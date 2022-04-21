@@ -1,0 +1,88 @@
+import 'package:flutter/material.dart';
+import 'package:zenon_syrius_wallet_flutter/screens/onboarding/import_wallet/import_wallet_seed_choice_screen.dart';
+import 'package:zenon_syrius_wallet_flutter/screens/onboarding/new_wallet/new_wallet_seed_choice_screen.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/navigation_utils.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/access_wallet_fluid_cell.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/layout_scaffold/standard_fluid_layout.dart';
+
+class AccessWalletScreen extends StatefulWidget {
+  static const String route = 'access-wallet-screen';
+
+  const AccessWalletScreen({Key? key}) : super(key: key);
+
+  @override
+  _AccessWalletScreenState createState() => _AccessWalletScreenState();
+}
+
+class _AccessWalletScreenState extends State<AccessWalletScreen> {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Container(
+        padding: const EdgeInsets.all(50.0),
+        child: Column(
+          children: [
+            Column(
+              children: <Widget>[
+                Text(
+                  'Welcome',
+                  style: Theme.of(context).textTheme.headline1,
+                ),
+                kVerticalSpacing,
+                Text(
+                  'Select an option to access your wallet',
+                  style: Theme.of(context).textTheme.headline4,
+                ),
+                const SizedBox(
+                  height: 50.0,
+                ),
+              ],
+            ),
+            Expanded(
+              child: StandardFluidLayout(
+                defaultCellHeight: kStaggeredNumOfColumns / 3,
+                children: [
+                  AccessWalletFluidCell(
+                    onPressed: _onCreateWalletButtonPressed,
+                    buttonIconLocation: 'assets/svg/ic_create_new.svg',
+                    buttonText: 'Create wallet',
+                    context: context,
+                  ),
+                  AccessWalletFluidCell(
+                    onPressed: _onImportWalletButtonPressed,
+                    buttonIconLocation: 'assets/svg/ic_import_wallet.svg',
+                    buttonText: 'Import wallet',
+                    context: context,
+                  ),
+                  AccessWalletFluidCell(
+                    onPressed: null,
+                    buttonIconLocation: 'assets/svg/ic_hardware_wallet.svg',
+                    buttonText: 'Hardware wallet',
+                    context: context,
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _onCreateWalletButtonPressed() {
+    NavigationUtils.push(
+      context,
+      const NewWalletSeedChoiceScreen(
+        export: false,
+      ),
+    );
+  }
+
+  void _onImportWalletButtonPressed() {
+    NavigationUtils.push(
+      context,
+      const ImportWalletSeedChoiceScreen(),
+    );
+  }
+}

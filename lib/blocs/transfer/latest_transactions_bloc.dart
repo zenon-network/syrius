@@ -1,0 +1,17 @@
+import 'dart:async';
+
+import 'package:zenon_syrius_wallet_flutter/blocs/infinite_scroll_bloc.dart';
+import 'package:zenon_syrius_wallet_flutter/main.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
+import 'package:znn_sdk_dart/znn_sdk_dart.dart';
+
+class LatestTransactionsBloc extends InfiniteScrollBloc<AccountBlock> {
+  @override
+  Future<List<AccountBlock>> getData(int pageKey, int pageSize) async =>
+      (await zenon!.ledger.getAccountBlocksByPage(
+        Address.parse(kSelectedAddress!),
+        pageIndex: pageKey,
+        pageSize: pageSize,
+      ))
+          .list!;
+}

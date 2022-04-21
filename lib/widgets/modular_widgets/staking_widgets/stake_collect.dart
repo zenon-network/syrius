@@ -1,0 +1,126 @@
+import 'package:flutter/material.dart';
+import 'package:zenon_syrius_wallet_flutter/blocs/staking/staking_rewards_history_bloc.dart';
+import 'package:zenon_syrius_wallet_flutter/blocs/staking/staking_uncollected_rewards_bloc.dart';
+import 'package:zenon_syrius_wallet_flutter/main.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/account_block_utils.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/extensions.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/notification_utils.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/zts_utils.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/buttons/loading_button.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/error_widget.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/layout_scaffold/card_scaffold.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/loading_widget.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/number_animation.dart';
+import 'package:znn_sdk_dart/znn_sdk_dart.dart';
+
+class StakeCollect extends StatefulWidget {
+  final StakingRewardsHistoryBloc stakingRewardsHistoryBloc;
+
+  const StakeCollect({
+    required this.stakingRewardsHistoryBloc,
+    Key? key,
+  }) : super(key: key);
+
+  @override
+  _StakeCollectState createState() => _StakeCollectState();
+}
+
+class _StakeCollectState extends State<StakeCollect> {
+  final GlobalKey<LoadingButtonState> _collectButtonKey = GlobalKey();
+
+  final StakingUncollectedRewardsBloc _stakingUncollectedRewardsBloc =
+      StakingUncollectedRewardsBloc();
+
+  @override
+  Widget build(BuildContext context) {
+    return CardScaffold(
+      title: 'Stake Collect',
+      description: 'This card displays your current staking rewards that are '
+          'ready to be collected. If there are any rewards available, you '
+          'will be able to collect them',
+      childBuilder: () => Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: _getFutureBuilder(),
+      ),
+    );
+  }
+
+  Widget _getFutureBuilder() {
+    return StreamBuilder<UncollectedReward?>(
+      stream: _stakingUncollectedRewardsBloc.stream,
+      builder: (_, snapshot) {
+        if (snapshot.hasError) {
+          return SyriusErrorWidget(snapshot.error!);
+        } else if (snapshot.hasData) {
+          if (snapshot.data!.qsrAmount > 0) {
+            return _getWidgetBody(snapshot.data!);
+          }
+          return const SyriusErrorWidget('No rewards to collect');
+        }
+        return const SyriusLoadingWidget();
+      },
+    );
+  }
+
+  Widget _getWidgetBody(UncollectedReward uncollectedReward) {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        NumberAnimation(
+          end: uncollectedReward.qsrAmount.addDecimals(qsrDecimals),
+          isInt: false,
+          after: ' ${kQsrCoin.symbol}',
+          style: Theme.of(context).textTheme.headline1!.copyWith(
+                color: AppColors.qsrColor,
+                fontSize: 30.0,
+              ),
+        ),
+        kVerticalSpacing,
+        Visibility(
+          visible: uncollectedReward.qsrAmount > 0,
+          child: LoadingButton.stepper(
+            key: _collectButtonKey,
+            text: 'Collect',
+            outlineColor: AppColors.qsrColor,
+            onPressed:
+                uncollectedReward.qsrAmount > 0 ? _onCollectPressed : null,
+          ),
+        ),
+      ],
+    );
+  }
+
+  void _onCollectPressed() async {
+    try {
+      _collectButtonKey.currentState?.animateForward();
+      await AccountBlockUtils.createAccountBlock(
+        zenon!.embedded.stake.collectReward(),
+        'collect staking rewards',
+        waitForRequiredPlasma: true,
+      ).then(
+        (response) async {
+          await Future.delayed(kDelayAfterAccountBlockCreationCall);
+          if (mounted) {
+            _stakingUncollectedRewardsBloc.updateStream();
+          }
+          widget.stakingRewardsHistoryBloc.updateStream();
+        },
+      );
+    } catch (e) {
+      NotificationUtils.sendNotificationError(
+        e,
+        'Error while collecting staking rewards',
+      );
+    } finally {
+      _collectButtonKey.currentState?.animateReverse();
+    }
+  }
+
+  @override
+  void dispose() {
+    _stakingUncollectedRewardsBloc.dispose();
+    super.dispose();
+  }
+}

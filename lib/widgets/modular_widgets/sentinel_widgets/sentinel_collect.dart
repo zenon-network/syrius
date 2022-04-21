@@ -1,0 +1,141 @@
+import 'package:flutter/material.dart';
+import 'package:zenon_syrius_wallet_flutter/blocs/sentinels/sentinel_rewards_history_bloc.dart';
+import 'package:zenon_syrius_wallet_flutter/blocs/sentinels/sentinel_uncollected_rewards_bloc.dart';
+import 'package:zenon_syrius_wallet_flutter/main.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/account_block_utils.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/extensions.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/notification_utils.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/zts_utils.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/buttons/loading_button.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/error_widget.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/layout_scaffold/card_scaffold.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/loading_widget.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/number_animation.dart';
+import 'package:znn_sdk_dart/znn_sdk_dart.dart';
+
+class SentinelCollect extends StatefulWidget {
+  final SentinelRewardsHistoryBloc sentinelRewardsHistoryBloc;
+
+  const SentinelCollect({
+    required this.sentinelRewardsHistoryBloc,
+    Key? key,
+  }) : super(key: key);
+
+  @override
+  _SentinelCollectState createState() => _SentinelCollectState();
+}
+
+class _SentinelCollectState extends State<SentinelCollect> {
+  final GlobalKey<LoadingButtonState> _collectButtonKey = GlobalKey();
+
+  final SentinelUncollectedRewardsBloc _sentinelCollectRewardsBloc =
+      SentinelUncollectedRewardsBloc();
+
+  @override
+  Widget build(BuildContext context) {
+    return CardScaffold(
+      title: 'Sentinel Collect',
+      description: 'This card displays your current Sentinel rewards that are '
+          'ready to be collected. If there are any rewards available, you will '
+          'be able to collect them. In order to receive rewards, the Sentinel '
+          'Node needs to be not only registered in the network, but also '
+          'deployed (use znn-controller for this operation) and it must have >90% '
+          'daily uptime',
+      childBuilder: () => Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: _getFutureBuilder(),
+      ),
+    );
+  }
+
+  Widget _getFutureBuilder() {
+    return StreamBuilder<UncollectedReward?>(
+      stream: _sentinelCollectRewardsBloc.stream,
+      builder: (_, snapshot) {
+        if (snapshot.hasError) {
+          return SyriusErrorWidget(snapshot.error!);
+        } else if (snapshot.hasData) {
+          if (snapshot.data!.znnAmount > 0 || snapshot.data!.qsrAmount > 0) {
+            return _getWidgetBody(snapshot.data!);
+          }
+          return const SyriusErrorWidget('No rewards to collect');
+        }
+        return const SyriusLoadingWidget();
+      },
+    );
+  }
+
+  Widget _getWidgetBody(UncollectedReward uncollectedReward) {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        NumberAnimation(
+          end: uncollectedReward.znnAmount.addDecimals(znnDecimals),
+          isInt: false,
+          after: ' ${kZnnCoin.symbol}',
+          style: Theme.of(context).textTheme.headline1!.copyWith(
+                color: AppColors.znnColor,
+                fontSize: 30.0,
+              ),
+        ),
+        kVerticalSpacing,
+        NumberAnimation(
+          end: uncollectedReward.qsrAmount.addDecimals(qsrDecimals),
+          isInt: false,
+          after: ' ${kQsrCoin.symbol}',
+          style: Theme.of(context).textTheme.headline1!.copyWith(
+                color: AppColors.qsrColor,
+                fontSize: 30.0,
+              ),
+        ),
+        kVerticalSpacing,
+        Visibility(
+          visible: uncollectedReward.qsrAmount > 0 ||
+              uncollectedReward.znnAmount > 0,
+          child: LoadingButton.stepper(
+            key: _collectButtonKey,
+            text: 'Collect',
+            onPressed: uncollectedReward.qsrAmount > 0 ||
+                    uncollectedReward.znnAmount > 0
+                ? _onCollectPressed
+                : null,
+          ),
+        ),
+      ],
+    );
+  }
+
+  void _onCollectPressed() async {
+    try {
+      _collectButtonKey.currentState?.animateForward();
+      await AccountBlockUtils.createAccountBlock(
+        zenon!.embedded.sentinel.collectReward(),
+        'collect Sentinel rewards',
+        waitForRequiredPlasma: true,
+      ).then(
+        (response) async {
+          await Future.delayed(kDelayAfterAccountBlockCreationCall);
+          if (mounted) {
+            _sentinelCollectRewardsBloc.updateStream();
+          }
+          widget.sentinelRewardsHistoryBloc.updateStream();
+        },
+      );
+    } catch (e) {
+      NotificationUtils.sendNotificationError(
+        e,
+        'Error while collecting Sentinel rewards',
+      );
+    } finally {
+      _collectButtonKey.currentState?.animateReverse();
+    }
+  }
+
+  @override
+  void dispose() {
+    _sentinelCollectRewardsBloc.dispose();
+    super.dispose();
+  }
+}

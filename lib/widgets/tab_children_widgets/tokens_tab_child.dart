@@ -1,0 +1,57 @@
+import 'package:flutter/material.dart';
+import 'package:layout/layout.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/token_widgets/create_token.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/token_widgets/token_balance.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/token_widgets/token_map.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/layout_scaffold/standard_fluid_layout.dart';
+
+class TokensTabChild extends StatelessWidget {
+  final VoidCallback onStepperNotificationSeeMorePressed;
+
+  const TokensTabChild({
+    required this.onStepperNotificationSeeMorePressed,
+    Key? key,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return StandardFluidLayout(
+      children: [
+        FluidCell(
+          width: context.layout.value(
+            xl: kStaggeredNumOfColumns ~/ 3,
+            lg: kStaggeredNumOfColumns ~/ 3,
+            md: kStaggeredNumOfColumns ~/ 3,
+            sm: kStaggeredNumOfColumns,
+            xs: kStaggeredNumOfColumns,
+          ),
+          child: const TokenBalance(),
+        ),
+        FluidCell(
+          height: kStaggeredNumOfColumns / 2,
+          width: context.layout.value(
+            xl: kStaggeredNumOfColumns ~/ 1.5,
+            lg: kStaggeredNumOfColumns ~/ 1.5,
+            md: kStaggeredNumOfColumns ~/ 1.5,
+            sm: kStaggeredNumOfColumns,
+            xs: kStaggeredNumOfColumns,
+          ),
+          child: const TokenMap(),
+        ),
+        FluidCell(
+          width: context.layout.value(
+            xl: kStaggeredNumOfColumns ~/ 3,
+            lg: kStaggeredNumOfColumns ~/ 3,
+            md: kStaggeredNumOfColumns ~/ 3,
+            sm: kStaggeredNumOfColumns,
+            xs: kStaggeredNumOfColumns,
+          ),
+          child: CreateToken(
+            onStepperNotificationSeeMorePressed:
+                onStepperNotificationSeeMorePressed,
+          ),
+        ),
+      ],
+    );
+  }
+}
