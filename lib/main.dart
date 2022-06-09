@@ -93,6 +93,8 @@ main() async {
       double? windowPositionX = sharedPrefsService!.get(kWindowPositionXKey);
       double? windowPositionY = sharedPrefsService!.get(kWindowPositionYKey);
       if (windowPositionX != null && windowPositionY != null) {
+        windowPositionX = windowPositionX >= 0 ? windowPositionX : 100;
+        windowPositionY = windowPositionY >= 0 ? windowPositionY : 100;
         await windowManager
             .setPosition(Offset(windowPositionX, windowPositionY));
       }
