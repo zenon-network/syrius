@@ -48,13 +48,13 @@ class AboutCardState extends State<AboutCard> {
           _getGenericTextExpandedChild(kWalletVersion),
         ),
         CustomExpandablePanel(
-          'Zenon Node network identifier',
+          'Zenon Node chain and network identifiers',
           _getGenericTextExpandedChild(
               generalStats.frontierMomentum.chainIdentifier.toString()),
         ),
         CustomExpandablePanel(
-          'Client network identifier',
-          _getGenericTextExpandedChild(netId.toString()),
+          'Client chain identifier',
+          _getGenericTextExpandedChild(getChainIdentifier().toString()),
         ),
         CustomExpandablePanel(
           'ZNN SDK version',
