@@ -42,6 +42,7 @@ dependencies:
   network_info_plus: ^2.1.2
   validators: ^3.0.0
   wakelock: ^0.6.1+2
+  number_selector: ^1.0.5
   file_selector_windows:
     git:
       url: https://github.com/google/flutter-desktop-embedding.git
