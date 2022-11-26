@@ -88,6 +88,7 @@ class _NewWalletConfirmSeedScreenState
                     ),
                     const StandardTooltipIcon(
                       'You can drag & drop words on empty boxes or incorrect words',
+                      Icons.help,
                     ),
                   ],
                 ),

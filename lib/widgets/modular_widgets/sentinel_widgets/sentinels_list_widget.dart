@@ -118,6 +118,7 @@ class _SentinelsListWidgetState extends State<SentinelsListWidget> {
                 sentinelInfo.isRevocable
                     ? 'Revocation window is open'
                     : 'Until revocation window opens',
+                Icons.help,
                 iconColor: sentinelInfo.isRevocable
                     ? AppColors.znnColor
                     : AppColors.errorColor,

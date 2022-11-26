@@ -256,7 +256,9 @@ class _PhaseCreationStepperState extends State<PhaseCreationStepper> {
               ),
             ),
             const StandardTooltipIcon(
-                'Showcase the progress of your project (e.g. Git PR/commit)'),
+              'Showcase the progress of your project (e.g. Git PR/commit)',
+              Icons.help,
+            ),
           ],
         ),
         kVerticalSpacing,
@@ -267,7 +269,9 @@ class _PhaseCreationStepperState extends State<PhaseCreationStepper> {
               style: Theme.of(context).textTheme.bodyText1,
             ),
             const StandardTooltipIcon(
-                'Necessary budget to successfully complete this phase'),
+              'Necessary budget to successfully complete this phase',
+              Icons.help,
+            ),
           ],
         ),
         kVerticalSpacing,
