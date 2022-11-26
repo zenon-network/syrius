@@ -40,10 +40,13 @@ class _NodeManagementState extends State<NodeManagement> {
   TextEditingController _newNodeController = TextEditingController();
   GlobalKey<FormState> _newNodeKey = GlobalKey();
 
+  late String _selectedNodeConfirmed;
+
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
     _selectedNode ??= kCurrentNode!;
+    _selectedNodeConfirmed = _selectedNode!;
   }
 
   @override
@@ -69,7 +72,7 @@ class _NodeManagementState extends State<NodeManagement> {
         CustomExpandablePanel(
           'Add node',
           _getAddNodeExpandableChild(),
-        ),
+        )
       ],
     );
   }
@@ -246,6 +249,7 @@ class _NodeManagementState extends State<NodeManagement> {
             onChangedOrDeletedNode: () {
               setState(() {});
             },
+            currentNode: _selectedNodeConfirmed,
           ),
         ),
       ],

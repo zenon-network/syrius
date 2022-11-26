@@ -18,6 +18,7 @@ import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/buttons/loa
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/input_field/input_field.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/notification_widget.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/settings_node.dart';
+import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 class NodeManagementScreen extends StatefulWidget {
   final VoidCallback? nodeConfirmationCallback;
@@ -42,10 +43,13 @@ class _NodeManagementScreenState extends State<NodeManagementScreen> {
   TextEditingController _newNodeController = TextEditingController();
   GlobalKey<FormState> _newNodeKey = GlobalKey();
 
+  late String _selectedNodeConfirmed;
+
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
     _selectedNode ??= kCurrentNode!;
+    _selectedNodeConfirmed = _selectedNode!;
   }
 
   @override
@@ -95,7 +99,7 @@ class _NodeManagementScreenState extends State<NodeManagementScreen> {
                         style: Theme.of(context).textTheme.bodyText1,
                       ),
                       kVerticalSpacing,
-                      _getAddNodeColumn(),
+                      _getAddNodeColumn()
                     ],
                   ),
                 ),
@@ -295,6 +299,7 @@ class _NodeManagementScreenState extends State<NodeManagementScreen> {
             onChangedOrDeletedNode: () {
               setState(() {});
             },
+            currentNode: _selectedNodeConfirmed,
           ),
         ),
       ],
