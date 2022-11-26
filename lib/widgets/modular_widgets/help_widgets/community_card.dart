@@ -28,8 +28,16 @@ class CommunityCard extends StatelessWidget {
           _getWebsitesExpandableChild(context),
         ),
         CustomExpandablePanel(
+          'Explorers',
+          _getExplorersExpandableChild(context),
+        ),
+        CustomExpandablePanel(
           'Social Media',
           _getSocialMediaExpandableChild(context),
+        ),
+        CustomExpandablePanel(
+          'Documentation',
+          _getDocumentationExpandableChild(context),
         ),
       ],
     );
@@ -40,33 +48,15 @@ class CommunityCard extends StatelessWidget {
       shrinkWrap: true,
       children: [
         _getListViewChild(
-          iconData: MaterialCommunityIcons.web,
+          iconData: MaterialCommunityIcons.home,
           title: 'Zenon Network',
           url: kWebsite,
           context: context,
         ),
         _getListViewChild(
-          iconData: Icons.explore,
-          title: 'Zenon Explorer',
-          url: kExplorer,
-          context: context,
-        ),
-        _getListViewChild(
-          iconData: MaterialCommunityIcons.cube,
-          title: 'Zenonscraper',
-          url: kScraper,
-          context: context,
-        ),
-        _getListViewChild(
-          iconData: MaterialCommunityIcons.book_multiple,
-          title: 'Zenon Wiki',
-          url: kWiki,
-          context: context,
-        ),
-        _getListViewChild(
-          iconData: MaterialCommunityIcons.book,
-          title: 'Zenon Community Wiki',
-          url: kCommunityWiki,
+          iconData: MaterialCommunityIcons.forum,
+          title: 'ZenonORG Community Forum',
+          url: kOrgCommunityForum,
           context: context,
         ),
         _getListViewChild(
@@ -76,15 +66,41 @@ class CommunityCard extends StatelessWidget {
           context: context,
         ),
         _getListViewChild(
-          iconData: MaterialCommunityIcons.human_greeting,
-          title: 'Zenon Community',
-          url: kCommunityWebsite,
+          iconData: MaterialCommunityIcons.web,
+          title: 'ZenonORG Community',
+          url: kOrgCommunityWebsite,
           context: context,
         ),
         _getListViewChild(
-          iconData: MaterialCommunityIcons.web_box,
-          title: 'ZenonORG Community',
-          url: kOrgCommunityWebsite,
+          iconData: MaterialCommunityIcons.lan,
+          title: 'Zenon Hub',
+          url: kHubCommunityWebsite,
+          context: context,
+        ),
+      ],
+    );
+  }
+
+  Widget _getExplorersExpandableChild(BuildContext context) {
+    return ListView(
+      shrinkWrap: true,
+      children: [
+        _getListViewChild(
+          iconData: Icons.explore,
+          title: 'Zenon Explorer',
+          url: kExplorer,
+          context: context,
+        ),
+        _getListViewChild(
+          iconData: MaterialCommunityIcons.wan,
+          title: 'Zenon Hub Explorer',
+          url: kHubExplorer,
+          context: context,
+        ),
+        _getListViewChild(
+          iconData: MaterialCommunityIcons.magnify_scan,
+          title: 'Zenonscraper',
+          url: kScraper,
           context: context,
         ),
       ],
@@ -96,7 +112,7 @@ class CommunityCard extends StatelessWidget {
       shrinkWrap: true,
       children: [
         _getListViewChild(
-          iconData: SimpleLineIcons.social_twitter,
+          iconData: MaterialCommunityIcons.twitter,
           title: 'Zenon Twitter',
           url: kTwitter,
           context: context,
@@ -114,7 +130,7 @@ class CommunityCard extends StatelessWidget {
           context: context,
         ),
         _getListViewChild(
-          iconData: SimpleLineIcons.social_github,
+          iconData: MaterialCommunityIcons.github,
           title: 'Zenon Github',
           url: kGithub,
           context: context,
@@ -141,6 +157,32 @@ class CommunityCard extends StatelessWidget {
           iconData: MaterialCommunityIcons.youtube,
           title: 'Zenon Youtube',
           url: kYoutube,
+          context: context,
+        ),
+      ],
+    );
+  }
+
+  Widget _getDocumentationExpandableChild(BuildContext context) {
+    return ListView(
+      shrinkWrap: true,
+      children: [
+        _getListViewChild(
+          iconData: MaterialCommunityIcons.book_open_page_variant,
+          title: 'Zenon Wiki',
+          url: kWiki,
+          context: context,
+        ),
+        _getListViewChild(
+          iconData: MaterialCommunityIcons.book,
+          title: 'Zenon Community Wiki',
+          url: kCommunityWiki,
+          context: context,
+        ),
+        _getListViewChild(
+          iconData: MaterialCommunityIcons.file_document,
+          title: 'Zenon Whitepaper',
+          url: kWhitepaper,
           context: context,
         ),
       ],
