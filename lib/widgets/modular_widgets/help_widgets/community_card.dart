@@ -180,6 +180,12 @@ class CommunityCard extends StatelessWidget {
           context: context,
         ),
         _getListViewChild(
+          iconData: MaterialCommunityIcons.book_multiple,
+          title: 'ZenonORG Community Wiki',
+          url: kOrgCommunityWiki,
+          context: context,
+        ),
+        _getListViewChild(
           iconData: MaterialCommunityIcons.file_document,
           title: 'Zenon Whitepaper',
           url: kWhitepaper,

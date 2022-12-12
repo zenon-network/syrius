@@ -151,6 +151,7 @@ const String kScraper = 'https://zenonscraper.com';
 const String kHubExplorer = 'https://www.zenonhub.org/explorer';
 const String kWiki = 'https://wiki.zenon.network';
 const String kCommunityWiki = 'https://docs.zenon.wiki';
+const String kOrgCommunityWiki = 'https://docs.zenon.org';
 const String kTools = 'https://zenon.tools';
 const String kWhitepaper =
     'https://github.com/zenon-network/zenon.network/releases/download/whitepaper/whitepaper.pdf';
