@@ -28,6 +28,14 @@ class EmbeddedNode {
     executablePathListParts.removeLast();
     var possiblePaths = List<String>.empty(growable: true);
     possiblePaths.add(Directory.current.path);
+    possiblePaths.add(
+      path.join(
+        Directory.current.path,
+        'lib',
+        'embedded_node',
+        'blobs',
+      ),
+    );
     possiblePaths.add(path.joinAll(executablePathListParts));
     executablePathListParts.removeLast();
     possiblePaths
