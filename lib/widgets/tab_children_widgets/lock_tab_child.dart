@@ -8,7 +8,7 @@ import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/keystore_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/navigation_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/notification_utils.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/init_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/buttons/loading_button.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/input_field/password_input_field.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
@@ -165,7 +165,7 @@ class _LockTabChildState extends State<LockTabChild> {
           setState(() {
             _messageToUser = 'Initializing wallet, please wait';
           });
-          await Utils.initWalletAfterDecryption(context);
+          await InitUtils.initWalletAfterDecryption(context);
           widget.afterInitCallback();
         } else {
           await widget.afterUnlockCallback(_passwordController.text);

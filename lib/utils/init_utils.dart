@@ -11,7 +11,7 @@ import 'package:zenon_syrius_wallet_flutter/utils/keystore_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/node_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/widget_utils.dart';
 
-class Utils {
+class InitUtils {
   static Future<void> initApp(BuildContext context) async {
     try {
       await KeyStoreUtils.setKeyStorePath();

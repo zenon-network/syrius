@@ -12,7 +12,7 @@ import 'package:zenon_syrius_wallet_flutter/screens/onboarding/access_wallet_scr
 import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/file_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/init_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/main_app_container.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/error_widget.dart';
 
@@ -64,7 +64,7 @@ class _SplashScreenState extends State<SplashScreen>
           ? await _resetWallet()
           : widget.deleteCacheFlow
               ? await _deleteCache().then((value) => exit(0))
-              : await Utils.initApp(context);
+              : await InitUtils.initApp(context);
       _navigateToNextScreen();
     } on Exception catch (e) {
       Navigator.pushReplacementNamed(
@@ -106,7 +106,7 @@ class _SplashScreenState extends State<SplashScreen>
     await sl.get<NotificationsBloc>().addNotification(null);
     await _deleteKeyStoreFile();
     await Hive.deleteFromDisk();
-    await Utils.initApp(context);
+    await InitUtils.initApp(context);
   }
 
   Future<void> _deleteCache() async => Future.forEach<String>(
