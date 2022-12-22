@@ -4,12 +4,12 @@ import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
 
 class StandardLineChartBarData extends LineChartBarData {
   StandardLineChartBarData({
-    required List<Color> colors,
+    required Color color,
     required List<FlSpot>? spots,
   }) : super(
           spots: spots,
           isCurved: false,
-          colors: colors,
+          color: color,
           barWidth: 3.0,
           isStrokeCapRound: true,
           dotData: FlDotData(
@@ -17,12 +17,14 @@ class StandardLineChartBarData extends LineChartBarData {
           ),
           belowBarData: BarAreaData(
             show: true,
-            colors: [
-              AppColors.znnColor.withOpacity(0.5),
-              AppColors.znnColor.withOpacity(0.0),
-            ],
-            gradientColorStops: [0.1, 1.0],
-            gradientTo: const Offset(0.0, 1.0),
+            gradient: LinearGradient(
+              colors: [
+                AppColors.znnColor.withOpacity(0.5),
+                AppColors.znnColor.withOpacity(0.0),
+              ],
+              stops: const [0.1, 1.0],
+
+            ),
           ),
         );
 }
