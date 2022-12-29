@@ -40,18 +40,20 @@ jobs:
         with:
           repository: "alienc0der/go-zenon"
           latest: true
-      - name: Move required libraries to macos directory
+      - name: Copy the required libraries to the macos directory
         run: |
           unzip -j libpow_links-darwin-universal.zip
-          cp libpow_links-darwin-universal/libpow_links.dylib macos/
+          cp libpow_links.dylib macos/
           unzip -j libargon2_ffi-darwin-universal.zip
           cp libargon2_ffi.dylib macos/
-          tar -xvf libznn-darwin-universal.tar.gz
-          cp libznn-darwin-universal.dylib build/linux/x64/release/bundle/libznn.dylib
-      - name: Build syrius desktop
+      - name: Build syrius desktop 
         run: |
           flutter config --enable-macos-desktop
           flutter build macos --release
+      - name: Add the libznn library
+        run: |
+          tar -xvf libznn-darwin-universal.tar.gz
+          cp libznn-darwin-universal.dylib build/macos/Build/Products/Release/s\ y\ r\ i\ u\ s.app/Contents/Resources/libznn.dylib
       - name: Package into DMG
         run: |
           create-dmg --volname syrius-wallet --volicon macos/dmg/volume.icns --background macos/dmg/background.png  --window-pos 300 200 --icon-size 80 --icon "s\ y\ r\ i\ u\ s.app" 185 200 --hide-extension "s\ y\ r\ i\ u\ s.app" --app-drop-link 410 200 --text-size 11 --format ULFO --hdiutil-verbose syrius-alphanet-macos-universal.dmg build/macos/Build/Products/Release/s\ y\ r\ i\ u\ s.app syrius-alphanet-macos-universal.dmg build/macos/Build/Products/Release/s\ y\ r\ i\ u\ s.app
@@ -90,12 +92,12 @@ jobs:
         run: |
           flutter config --enable-windows-desktop
           flutter build windows --release
-      - name: Move required libraries
+      - name: Copy the required libraries
         run: |
           unzip -j libpow_links-windows-amd64.zip
-          cp libpow_links-windows-amd64\libpow_links.dll build\windows\runner\Release\
+          cp libpow_links.dll build\windows\runner\Release\
           unzip -j libargon2_ffi-windows-amd64.zip
-          cp argon2_ffi_plugin.dll build\windows\runner\Release\argon2_ffi_plugin.dll.dll
+          cp argon2_ffi_plugin.dll build\windows\runner\Release\
           unzip -j libznn-windows-amd64.zip
           cp libznn-windows-amd64.dll build\windows\runner\Release\libznn.dll     
       - name: Package into zip
@@ -140,12 +142,12 @@ jobs:
         run: |
           flutter config --enable-linux-desktop
           flutter build linux --release
-      - name: Move required libraries
+      - name: Copy the required libraries
         run: |
           unzip -j libpow_links-linux-amd64.zip
-          cp libpow_links-linux-amd64/libpow_links.so build/linux/x64/release/bundle/libpow_links.so
+          cp libpow_links.so build/linux/x64/release/bundle/
           unzip -j libargon2_ffi-linux-amd64.zip
-          cp libargon2_ffi-linux-amd64.so build/linux/x64/release/bundle/libargon2_ffi.so
+          cp libargon2_ffi_plugin.so build/linux/x64/release/bundle/
           tar -xvf libznn-linux-amd64.tar.gz
           cp libznn-linux-amd64.so build/linux/x64/release/bundle/libznn.so
       - name: Package zip
