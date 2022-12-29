@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'dart:isolate';
 
 import 'package:flutter/material.dart';
@@ -101,7 +102,7 @@ class _NodeManagementState extends State<NodeManagement> {
 
   Future<void> _onConfirmNodeButtonPressed() async {
     // Acquire WakeLock
-    if (!await Wakelock.enabled) {
+    if (!Platform.isLinux && !await Wakelock.enabled) {
       Wakelock.enable();
     }
 

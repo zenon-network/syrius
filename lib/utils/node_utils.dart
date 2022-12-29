@@ -21,7 +21,7 @@ int _kHeight = 0;
 
 class NodeUtils {
   static Future<bool> establishConnectionToNode(String url) async {
-    var connectionStatus = await zenon!.wsClient.initialize(
+    bool connectionStatus = await zenon!.wsClient.initialize(
       url,
       retry: false,
     );
@@ -41,7 +41,7 @@ class NodeUtils {
 
   static closeEmbeddedNode() async {
     // Release WakeLock
-    if (await Wakelock.enabled) {
+    if (!Platform.isLinux && await Wakelock.enabled) {
       Wakelock.disable();
     }
 
@@ -197,7 +197,7 @@ class NodeUtils {
           await NodeUtils.establishConnectionToNode(kLocalhostDefaultNodeUrl);
       if (_isConnectionEstablished == false) {
         // Acquire WakeLock
-        if (!await Wakelock.enabled) {
+        if (!Platform.isLinux && !await Wakelock.enabled) {
           Wakelock.enable();
         }
         // Initialize local full node

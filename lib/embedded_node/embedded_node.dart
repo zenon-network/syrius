@@ -21,7 +21,7 @@ _RunNodeFunc? _runNodeFunction;
 
 class EmbeddedNode {
   static void initializeNodeLib() {
-    var insideSdk = path.join('wallet', 'lib', 'embedded_node', 'blobs');
+    var insideSdk = path.join('syrius', 'lib', 'embedded_node', 'blobs');
     var currentPathListParts = path.split(Directory.current.path);
     currentPathListParts.removeLast();
     var executablePathListParts = path.split(Platform.resolvedExecutable);
@@ -33,8 +33,6 @@ class EmbeddedNode {
     possiblePaths
         .add(path.join(path.joinAll(executablePathListParts), 'Resources'));
     possiblePaths.add(path.join(path.joinAll(currentPathListParts), insideSdk));
-    possiblePaths.add(
-        path.join(path.joinAll(currentPathListParts), 'packages', insideSdk));
 
     var libraryPath = '';
     var found = false;

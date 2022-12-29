@@ -22,7 +22,7 @@ dependencies:
   flutter_staggered_grid_view: 0.4.0
   flip_card: ^0.6.0
   auto_size_text: ^3.0.0
-  window_manager: 0.2.0
+  window_manager: 0.2.8
   stacked: ^2.2.8
   path_provider: ^2.0.8
   rxdart: ^0.27.3
@@ -41,7 +41,7 @@ dependencies:
   desktop_drop: ^0.3.0
   network_info_plus: ^2.1.2
   validators: ^3.0.0
-  wakelock: ^0.6.1+2
+  wakelock: ^0.6.2
   number_selector: ^1.0.5
   file_selector_windows:
     git:
@@ -60,8 +60,8 @@ dependencies:
       ref: 38c4c9024665483cf4afadd768fdfcb32e43bd64
   znn_sdk_dart:
     git:
-      url: https://github.com/zenon-network/znn_sdk_dart.git
-      ref: 367ddc7fbfefb6484d7553d9ac7e4532003a7008
+      url: https://github.com/alienc0der/znn_sdk_dart.git
+      ref: 5e1d826f9cad841498a314cf50e985539c29d634
   znn_swap_utility:
     git:
       url: https://github.com/zenon-network/znn_swap_utility.git

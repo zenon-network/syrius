@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'dart:isolate';
 
 import 'package:flutter/material.dart';
@@ -18,7 +19,6 @@ import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/buttons/loa
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/input_field/input_field.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/notification_widget.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/settings_node.dart';
-import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 class NodeManagementScreen extends StatefulWidget {
   final VoidCallback? nodeConfirmationCallback;
@@ -99,7 +99,7 @@ class _NodeManagementScreenState extends State<NodeManagementScreen> {
                         style: Theme.of(context).textTheme.bodyText1,
                       ),
                       kVerticalSpacing,
-                      _getAddNodeColumn()
+                      _getAddNodeColumn(),
                     ],
                   ),
                 ),
@@ -138,7 +138,7 @@ class _NodeManagementScreenState extends State<NodeManagementScreen> {
 
   Future<void> _onConfirmNodeButtonPressed() async {
     // Acquire WakeLock
-    if (!await Wakelock.enabled) {
+    if (!Platform.isLinux && !await Wakelock.enabled) {
       Wakelock.enable();
     }
 
