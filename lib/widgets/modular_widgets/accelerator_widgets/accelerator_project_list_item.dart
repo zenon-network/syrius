@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_vector_icons/flutter_vector_icons.dart';
 import 'package:stacked/stacked.dart';
-import 'package:zenon_syrius_wallet_flutter/blocs/accelerator/project_vote_breakdown_bloc.dart';
-import 'package:zenon_syrius_wallet_flutter/blocs/accelerator/vote_project_bloc.dart';
-import 'package:zenon_syrius_wallet_flutter/screens/project_details_screen.dart';
-import 'package:zenon_syrius_wallet_flutter/screens/stepper_screen.dart';
+import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
+import 'package:zenon_syrius_wallet_flutter/screens/screens.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/extensions.dart';

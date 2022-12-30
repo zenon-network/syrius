@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:layout/layout.dart';
-import 'package:zenon_syrius_wallet_flutter/blocs/sentinels/sentinel_rewards_history_bloc.dart';
+import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/sentinel_widgets/create_sentinel.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/sentinel_widgets/sentinel_collect.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/sentinel_widgets/sentinel_rewards.dart';

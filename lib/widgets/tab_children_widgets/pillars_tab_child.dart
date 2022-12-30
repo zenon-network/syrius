@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:layout/layout.dart';
-import 'package:zenon_syrius_wallet_flutter/blocs/pillars/pillar_rewards_history_bloc.dart';
+import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/pillars_widgets/create_pillar.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/pillars_widgets/pillar_collect.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/pillars_widgets/pillar_rewards.dart';
