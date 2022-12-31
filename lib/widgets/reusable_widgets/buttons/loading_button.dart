@@ -124,6 +124,7 @@ class LoadingButton extends StatefulWidget {
         minimumSize: minimumSize,
         outlineColor: outlineColor,
         textStyle: textStyle,
+        key: key,
         child: Row(
           mainAxisSize: MainAxisSize.min,
           mainAxisAlignment: MainAxisAlignment.center,
@@ -138,7 +139,6 @@ class LoadingButton extends StatefulWidget {
             ),
           ],
         ),
-        key: key,
       );
 
   @override
@@ -229,6 +229,7 @@ class LoadingButtonState extends State<LoadingButton>
         widget.minimumSize.height / 2,
         _animation.value,
       )!,
+      padding: widget.paddingAroundChild,
       child: btnState == ButtonState.idle
           ? widget.child ?? Text(widget.text!)
           : const SizedBox(
@@ -239,7 +240,6 @@ class LoadingButtonState extends State<LoadingButton>
                 valueColor: AlwaysStoppedAnimation<Color>(AppColors.znnColor),
               ),
             ),
-      padding: widget.paddingAroundChild,
     );
   }
 

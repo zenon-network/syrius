@@ -61,15 +61,6 @@ class MyOutlinedButtonState extends State<MyOutlinedButton> {
   Widget build(BuildContext context) {
     return OutlinedButton(
       onPressed: _showLoading ? null : widget.onPressed,
-      child: _showLoading
-          ? const SyriusLoadingWidget(
-              size: 25.0,
-            )
-          : widget.text != null
-              ? Text(
-                  widget.text!,
-                )
-              : widget.child!,
       style: OutlinedButton.styleFrom(
         primary: widget.textColor,
         padding: widget.padding,
@@ -106,6 +97,15 @@ class MyOutlinedButtonState extends State<MyOutlinedButton> {
           },
         ),
       ),
+      child: _showLoading
+          ? const SyriusLoadingWidget(
+              size: 25.0,
+            )
+          : widget.text != null
+              ? Text(
+                  widget.text!,
+                )
+              : widget.child!,
     );
   }
 

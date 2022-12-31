@@ -356,11 +356,6 @@ class _SecurityWidgetState extends State<SecurityWidget> {
           hintText: 'Enter message',
           suffixIcon: RawMaterialButton(
             hoverColor: Colors.white12,
-            child: const Icon(
-              Icons.content_paste,
-              color: AppColors.darkHintTextColor,
-              size: 15.0,
-            ),
             shape: const CircleBorder(),
             onPressed: () {
               setState(() {
@@ -372,6 +367,11 @@ class _SecurityWidgetState extends State<SecurityWidget> {
                 );
               });
             },
+            child: const Icon(
+              Icons.content_paste,
+              color: AppColors.darkHintTextColor,
+              size: 15.0,
+            ),
           ),
           suffixIconConstraints: const BoxConstraints(
             maxWidth: 45.0,
@@ -387,11 +387,6 @@ class _SecurityWidgetState extends State<SecurityWidget> {
           hintText: 'Enter signature',
           suffixIcon: RawMaterialButton(
             hoverColor: Colors.white12,
-            child: const Icon(
-              Icons.content_paste,
-              color: AppColors.darkHintTextColor,
-              size: 15.0,
-            ),
             shape: const CircleBorder(),
             onPressed: () {
               setState(() {
@@ -403,6 +398,11 @@ class _SecurityWidgetState extends State<SecurityWidget> {
                 );
               });
             },
+            child: const Icon(
+              Icons.content_paste,
+              color: AppColors.darkHintTextColor,
+              size: 15.0,
+            ),
           ),
           suffixIconConstraints: const BoxConstraints(
             maxWidth: 45.0,
@@ -418,11 +418,6 @@ class _SecurityWidgetState extends State<SecurityWidget> {
           hintText: 'Enter public key',
           suffixIcon: RawMaterialButton(
             hoverColor: Colors.white12,
-            child: const Icon(
-              Icons.content_paste,
-              color: AppColors.darkHintTextColor,
-              size: 15.0,
-            ),
             shape: const CircleBorder(),
             onPressed: () {
               setState(() {
@@ -434,6 +429,11 @@ class _SecurityWidgetState extends State<SecurityWidget> {
                 );
               });
             },
+            child: const Icon(
+              Icons.content_paste,
+              color: AppColors.darkHintTextColor,
+              size: 15.0,
+            ),
           ),
           suffixIconConstraints: const BoxConstraints(
             maxWidth: 45.0,
@@ -623,11 +623,6 @@ class _SecurityWidgetState extends State<SecurityWidget> {
               hintText: 'Enter signed hash',
               suffixIcon: RawMaterialButton(
                 hoverColor: Colors.white12,
-                child: const Icon(
-                  Icons.content_paste,
-                  color: AppColors.darkHintTextColor,
-                  size: 15.0,
-                ),
                 shape: const CircleBorder(),
                 onPressed: () {
                   setState(() {
@@ -639,6 +634,11 @@ class _SecurityWidgetState extends State<SecurityWidget> {
                     );
                   });
                 },
+                child: const Icon(
+                  Icons.content_paste,
+                  color: AppColors.darkHintTextColor,
+                  size: 15.0,
+                ),
               ),
               suffixIconConstraints: const BoxConstraints(
                 maxWidth: 45.0,
@@ -654,11 +654,6 @@ class _SecurityWidgetState extends State<SecurityWidget> {
               hintText: 'Enter public key',
               suffixIcon: RawMaterialButton(
                 hoverColor: Colors.white12,
-                child: const Icon(
-                  Icons.content_paste,
-                  color: AppColors.darkHintTextColor,
-                  size: 15.0,
-                ),
                 shape: const CircleBorder(),
                 onPressed: () {
                   setState(() {
@@ -670,6 +665,11 @@ class _SecurityWidgetState extends State<SecurityWidget> {
                     );
                   });
                 },
+                child: const Icon(
+                  Icons.content_paste,
+                  color: AppColors.darkHintTextColor,
+                  size: 15.0,
+                ),
               ),
               suffixIconConstraints: const BoxConstraints(
                 maxWidth: 45.0,

@@ -108,11 +108,6 @@ class _SendMediumCardState extends State<SendMediumCard> {
                 validator: (value) => InputValidators.checkAddress(value),
                 controller: _recipientController,
                 suffixIcon: RawMaterialButton(
-                  child: const Icon(
-                    Icons.content_paste,
-                    color: AppColors.darkHintTextColor,
-                    size: 15.0,
-                  ),
                   shape: const CircleBorder(),
                   onPressed: () {
                     ClipboardUtils.pasteToClipboard(context, (String value) {
@@ -120,6 +115,11 @@ class _SendMediumCardState extends State<SendMediumCard> {
                       setState(() {});
                     });
                   },
+                  child: const Icon(
+                    Icons.content_paste,
+                    color: AppColors.darkHintTextColor,
+                    size: 15.0,
+                  ),
                 ),
                 suffixIconConstraints: const BoxConstraints(
                   maxWidth: 45.0,

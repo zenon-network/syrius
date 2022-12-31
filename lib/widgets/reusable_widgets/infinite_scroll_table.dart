@@ -419,9 +419,9 @@ class InfiniteScrollTableCell extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Flexible(
-      child: child,
       flex: flex,
       fit: FlexFit.tight,
+      child: child,
     );
   }
 }

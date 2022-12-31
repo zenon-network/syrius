@@ -300,6 +300,7 @@ class _AcceleratorProjectListItemState
         Row(
           children: [
             AcceleratorProgressBar(
+                context: context,
                 child: Row(
                   children: [
                     AcceleratorProgressBarSpan(
@@ -321,8 +322,7 @@ class _AcceleratorProjectListItemState
                           '$pillarsThatCanStillVote Pillars that can still cast a vote',
                     ),
                   ],
-                ),
-                context: context),
+                )),
             const SizedBox(
               width: 10.0,
             ),

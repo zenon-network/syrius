@@ -93,12 +93,12 @@ class _NotificationsTabChildState extends State<NotificationsTabChild> {
   RawMaterialButton _getClearIcon(WalletNotification? notification) {
     return RawMaterialButton(
       onPressed: () => _deleteNotification(notification!.timestamp),
+      shape: const CircleBorder(),
       child: Icon(
         SimpleLineIcons.close,
         color: Theme.of(context).colorScheme.secondary,
         size: 20.0,
       ),
-      shape: const CircleBorder(),
     );
   }
 

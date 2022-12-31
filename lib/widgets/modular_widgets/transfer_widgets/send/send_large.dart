@@ -111,11 +111,6 @@ class _SendLargeCardState extends State<SendLargeCard> {
                 controller: _recipientController,
                 validator: (value) => InputValidators.checkAddress(value),
                 suffixIcon: RawMaterialButton(
-                  child: const Icon(
-                    Icons.content_paste,
-                    color: AppColors.darkHintTextColor,
-                    size: 15.0,
-                  ),
                   shape: const CircleBorder(),
                   onPressed: () {
                     ClipboardUtils.pasteToClipboard(context, (String value) {
@@ -123,6 +118,11 @@ class _SendLargeCardState extends State<SendLargeCard> {
                       setState(() {});
                     });
                   },
+                  child: const Icon(
+                    Icons.content_paste,
+                    color: AppColors.darkHintTextColor,
+                    size: 15.0,
+                  ),
                 ),
                 suffixIconConstraints: const BoxConstraints(
                   maxWidth: 45.0,

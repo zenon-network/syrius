@@ -424,12 +424,6 @@ class _SwapTransferBalanceScreenState extends State<SwapTransferBalanceScreen> {
 
   Widget _getTransferBalanceIcon(TransferBalanceBloc model, int index) {
     return RawMaterialButton(
-      child: Icon(
-        MaterialCommunityIcons.swap_horizontal,
-        color: _ifBalanceIsAvailable(index) && _currentlyActiveModel == null
-            ? AppColors.znnColor
-            : Theme.of(context).disabledColor,
-      ),
       constraints: const BoxConstraints.tightForFinite(),
       padding: const EdgeInsets.all(8),
       shape: const CircleBorder(),
@@ -445,6 +439,12 @@ class _SwapTransferBalanceScreenState extends State<SwapTransferBalanceScreen> {
               );
             }
           : null,
+      child: Icon(
+        MaterialCommunityIcons.swap_horizontal,
+        color: _ifBalanceIsAvailable(index) && _currentlyActiveModel == null
+            ? AppColors.znnColor
+            : Theme.of(context).disabledColor,
+      ),
     );
   }
 

@@ -34,12 +34,12 @@ class StandardFluidLayout extends StatelessWidget {
                       children.length,
                       (index) => WidgetAnimator(
                         curve: Curves.linear,
-                        child: children[index].child,
                         animationOffset: Duration(
                           milliseconds: ((children.length > 5 ? 800 : 400) ~/
                                   children.length) *
                               (index + 1),
                         ),
+                        child: children[index].child,
                       ),
                     ),
                   ),

@@ -285,28 +285,6 @@ class _NewWalletConfirmSeedScreenState
       if (!_foundMissingRandomElementsIndexes.contains(index)) {
         list.add(
           Draggable<String>(
-            child: ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                primary: _draggedValue == seedWords[index]
-                    ? Theme.of(context)
-                        .colorScheme
-                        .secondaryContainer
-                        .withOpacity(0.5)
-                    : Theme.of(context).colorScheme.secondaryContainer,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(5.0),
-                ),
-              ),
-              onPressed: () {},
-              child: Text(
-                seedWords[index],
-                style: Theme.of(context).textTheme.bodyText1!.copyWith(
-                      color: _draggedValue == seedWords[index]
-                          ? Colors.white.withOpacity(0.7)
-                          : Colors.white,
-                    ),
-              ),
-            ),
             feedback: ElevatedButton(
               style: ElevatedButton.styleFrom(
                 primary: AppColors.darkSecondary,
@@ -331,16 +309,38 @@ class _NewWalletConfirmSeedScreenState
                 _draggedValue = null;
               });
             },
+            child: ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                primary: _draggedValue == seedWords[index]
+                    ? Theme.of(context)
+                        .colorScheme
+                        .secondaryContainer
+                        .withOpacity(0.5)
+                    : Theme.of(context).colorScheme.secondaryContainer,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(5.0),
+                ),
+              ),
+              onPressed: () {},
+              child: Text(
+                seedWords[index],
+                style: Theme.of(context).textTheme.bodyText1!.copyWith(
+                      color: _draggedValue == seedWords[index]
+                          ? Colors.white.withOpacity(0.7)
+                          : Colors.white,
+                    ),
+              ),
+            ),
           ),
         );
       }
     }
     return Wrap(
-      children: list,
       crossAxisAlignment: WrapCrossAlignment.start,
       alignment: WrapAlignment.start,
       direction: Axis.horizontal,
       spacing: 5.0,
+      children: list,
     );
   }
 

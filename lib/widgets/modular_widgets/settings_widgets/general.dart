@@ -50,13 +50,6 @@ class GeneralWidgetState extends State<GeneralWidget> {
               Container(
                 width: 150.0,
                 height: 150.0,
-                child: Center(
-                  child: NumberAnimation(
-                    end: generalStats.frontierMomentum.height,
-                    isInt: true,
-                    style: Theme.of(context).textTheme.headline2,
-                  ),
-                ),
                 decoration: const ShapeDecoration(
                   color: Colors.transparent,
                   shape: CircleBorder(
@@ -64,6 +57,13 @@ class GeneralWidgetState extends State<GeneralWidget> {
                       width: 6.0,
                       color: AppColors.znnColor,
                     ),
+                  ),
+                ),
+                child: Center(
+                  child: NumberAnimation(
+                    end: generalStats.frontierMomentum.height,
+                    isInt: true,
+                    style: Theme.of(context).textTheme.headline2,
                   ),
                 ),
               ),

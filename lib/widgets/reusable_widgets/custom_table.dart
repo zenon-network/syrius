@@ -149,11 +149,11 @@ class _CustomTableState<T> extends State<CustomTable<T>> {
         backgroundColor: Colors.transparent,
         shape: const RoundedRectangleBorder(),
       ),
+      onPressed: widget.onShowMoreButtonPressed,
       child: Text(
         'Show more',
         style: Theme.of(context).textTheme.subtitle1,
       ),
-      onPressed: widget.onShowMoreButtonPressed,
     );
   }
 
@@ -384,9 +384,9 @@ class CustomTableCell extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Flexible(
-      child: child,
       flex: flex,
       fit: FlexFit.tight,
+      child: child,
     );
   }
 }

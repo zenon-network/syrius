@@ -95,9 +95,6 @@ main() async {
   });
 
   runApp(BetterFeedback(
-    child: Builder(
-      builder: (_) => const MyApp(),
-    ),
     theme: FeedbackThemeData(
       background: Colors.black,
       activeFeedbackModeColor: AppColors.znnColor,
@@ -106,6 +103,9 @@ main() async {
         AppColors.qsrColor,
         AppColors.errorColor,
       ],
+    ),
+    child: Builder(
+      builder: (_) => const MyApp(),
     ),
   ));
 }
