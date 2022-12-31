@@ -5,12 +5,7 @@ import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/node_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/notification_utils.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/buttons/material_icon_button.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/buttons/outlined_button.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/buttons/settings_button.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/dialogs.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/icons/standard_tooltip_icon.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/input_field/input_field.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 
 class SettingsNode extends StatefulWidget {
   final String node;

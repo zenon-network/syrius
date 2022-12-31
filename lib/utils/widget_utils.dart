@@ -8,8 +8,7 @@ import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/notifiers/app_theme_notifier.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/notifiers/text_scaling_notifier.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/settings_widgets/display.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/infinite_scroll_table.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 class WidgetUtils {

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/input_field/input_field.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 
 class PasswordInputField extends StatefulWidget {
   final TextEditingController controller;

@@ -7,13 +7,7 @@ import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/model/model.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/main_app_container.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/buttons/onboarding_button.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/dropdown/addresses_dropdown.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/icons/copy_to_clipboard_icon.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/input_field/input_field.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/loading_widget.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/progress_bars.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 import 'package:znn_swap_utility/znn_swap_utility.dart';
 

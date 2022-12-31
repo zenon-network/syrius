@@ -3,8 +3,7 @@ import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/model/model.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/main_app_container.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/layout_scaffold/widget_animator.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 
 class NotificationWidget extends StatefulWidget {
   final VoidCallback? onSeeMorePressed;

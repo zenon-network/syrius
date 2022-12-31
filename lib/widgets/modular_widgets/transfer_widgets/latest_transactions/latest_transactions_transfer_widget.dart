@@ -6,9 +6,7 @@ import 'package:zenon_syrius_wallet_flutter/utils/color_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/extensions.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/format_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/widget_utils.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/formatted_amount_with_tooltip.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/infinite_scroll_table.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/layout_scaffold/card_scaffold.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 enum LatestTransactionsVersion { standard, dashboard, token }

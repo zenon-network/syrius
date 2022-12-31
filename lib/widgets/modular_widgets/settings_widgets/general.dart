@@ -6,10 +6,7 @@ import 'package:zenon_syrius_wallet_flutter/model/model.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/navigation_utils.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/error_widget.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/layout_scaffold/card_scaffold.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/loading_widget.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/number_animation.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 
 class GeneralWidget extends StatefulWidget {
   const GeneralWidget({Key? key}) : super(key: key);

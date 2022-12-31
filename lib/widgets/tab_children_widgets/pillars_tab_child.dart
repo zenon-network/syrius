@@ -1,11 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:layout/layout.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/pillars_widgets/create_pillar.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/pillars_widgets/pillar_collect.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/pillars_widgets/pillar_rewards.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/pillars_widgets/pillars_list_widget.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/layout_scaffold/standard_fluid_layout.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 
 class PillarsTabChild extends StatefulWidget {
   final VoidCallback onStepperNotificationSeeMorePressed;

@@ -7,36 +7,31 @@ import 'package:rxdart/rxdart.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/format_utils.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/accelerator_widgets/accelerator_project_list_item.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/error_widget.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/input_field/input_field.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/layout_scaffold/card_scaffold.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/loading_widget.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/tag_widget.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
-enum ProjectsFilterTag {
+enum AccProjectsFilterTag {
   myProjects,
   onlyAccepted,
   votingOpened,
   alreadyVoted,
 }
 
-class ProjectList extends StatefulWidget {
+class AccProjectList extends StatefulWidget {
   final VoidCallback onStepperNotificationSeeMorePressed;
   final PillarInfo? pillarInfo;
 
-  const ProjectList({
+  const AccProjectList({
     required this.onStepperNotificationSeeMorePressed,
     required this.pillarInfo,
     Key? key,
   }) : super(key: key);
 
   @override
-  _ProjectListState createState() => _ProjectListState();
+  _AccProjectListState createState() => _AccProjectListState();
 }
 
-class _ProjectListState extends State<ProjectList> {
+class _AccProjectListState extends State<AccProjectList> {
   final ScrollController _scrollController = ScrollController();
   final PagingController<int, Project> _pagingController = PagingController(
     firstPageKey: 0,
@@ -171,9 +166,9 @@ class _ProjectListState extends State<ProjectList> {
   Row _getProjectsFilterTags() {
     List<TagWidget> children = [];
 
-    for (var tag in ProjectsFilterTag.values) {
+    for (var tag in AccProjectsFilterTag.values) {
       if (widget.pillarInfo == null) {
-        if ([ProjectsFilterTag.votingOpened, ProjectsFilterTag.alreadyVoted]
+        if ([AccProjectsFilterTag.votingOpened, AccProjectsFilterTag.alreadyVoted]
             .contains(tag)) {
           continue;
         }
@@ -186,9 +181,9 @@ class _ProjectListState extends State<ProjectList> {
     );
   }
 
-  _getProjectsFilterTag(ProjectsFilterTag filterTag) {
+  _getProjectsFilterTag(AccProjectsFilterTag filterTag) {
     return TagWidget(
-      text: FormatUtils.extractNameFromEnum<ProjectsFilterTag>(filterTag),
+      text: FormatUtils.extractNameFromEnum<AccProjectsFilterTag>(filterTag),
       hexColorCode: Theme.of(context)
           .colorScheme
           .primaryContainer

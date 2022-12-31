@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_vector_icons/flutter_vector_icons.dart';
 import 'package:zenon_syrius_wallet_flutter/screens/screens.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/buttons/outlined_button.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 
 class ResetWalletScreen extends StatefulWidget {
   const ResetWalletScreen({Key? key}) : super(key: key);

@@ -11,12 +11,7 @@ import 'package:zenon_syrius_wallet_flutter/utils/navigation_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/notification_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/pair.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/zts_utils.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/accelerator_widgets/update_phase_stepper.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/accelerator_project_details.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/error_widget.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/loading_widget.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/progress_bars.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/tag_widget.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 class AcceleratorProjectListItem extends StatefulWidget {

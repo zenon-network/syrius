@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:zenon_syrius_wallet_flutter/screens/screens.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/access_wallet_fluid_cell.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/layout_scaffold/standard_fluid_layout.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 
 class AccessWalletScreen extends StatefulWidget {
   static const String route = 'access-wallet-screen';

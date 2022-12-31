@@ -3,11 +3,7 @@ import 'package:layout/layout.dart';
 import 'package:provider/provider.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/notifiers/default_address_notifier.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/staking_widgets/stake_collect.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/staking_widgets/staking_list/staking_list.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/staking_widgets/staking_options/staking_options.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/staking_widgets/staking_rewards.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/layout_scaffold/standard_fluid_layout.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 
 class StakingTabChild extends StatefulWidget {
   const StakingTabChild({Key? key}) : super(key: key);

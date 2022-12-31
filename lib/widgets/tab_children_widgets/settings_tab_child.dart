@@ -1,16 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:layout/layout.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/settings_widgets/account_chain_stats.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/settings_widgets/addresses.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/settings_widgets/backup.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/settings_widgets/display.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/settings_widgets/general.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/settings_widgets/node_management.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/settings_widgets/peers.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/settings_widgets/security.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/settings_widgets/wallet_options.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/layout_scaffold/standard_fluid_layout.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 
 class SettingsTabChild extends StatefulWidget {
   final VoidCallback _onChangeAutoLockTime;

@@ -9,8 +9,7 @@ import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/model/model.dart';
 import 'package:zenon_syrius_wallet_flutter/screens/screens.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/main_app_container.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/error_widget.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 
 class SplashScreen extends StatefulWidget {
   static const String route = 'splash-screen';

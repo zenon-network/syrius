@@ -2,9 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/screens/screens.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/error_widget.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/loading_widget.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/progress_bars.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 
 class CreateKeyStoreScreen extends StatefulWidget {
   final String seed;

@@ -3,8 +3,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_vector_icons/flutter_vector_icons.dart';
 import 'package:zenon_syrius_wallet_flutter/screens/screens.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/buttons/onboarding_button.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/progress_bars.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 
 class ExportWalletInfoScreen extends StatefulWidget {
   final String seed;

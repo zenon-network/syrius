@@ -1,12 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/format_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/accelerator_widgets/accelerator_project_list_item.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/input_field/input_field.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/tag_widget.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
-enum ProjectsFilterTag {
+enum AcceleratorProjectsFilterTag {
   myProjects,
   onlyAccepted,
   votingOpened,
@@ -34,7 +32,7 @@ class _AcceleratorProjectListState extends State<AcceleratorProjectList> {
   final TextEditingController _searchKeyWordController =
       TextEditingController();
 
-  final List<ProjectsFilterTag> _selectedProjectsFilterTag = [];
+  final List<AcceleratorProjectsFilterTag> _selectedProjectsFilterTag = [];
 
   final ScrollController _scrollController = ScrollController();
 
@@ -168,17 +166,17 @@ class _AcceleratorProjectListState extends State<AcceleratorProjectList> {
   Widget _getProjectsFilterTags() {
     return Row(
       children: [
-        _getProjectsFilterTag(ProjectsFilterTag.myProjects),
-        _getProjectsFilterTag(ProjectsFilterTag.onlyAccepted),
+        _getProjectsFilterTag(AcceleratorProjectsFilterTag.myProjects),
+        _getProjectsFilterTag(AcceleratorProjectsFilterTag.onlyAccepted),
         if (widget.pillarInfo != null)
-          _getProjectsFilterTag(ProjectsFilterTag.votingOpened),
+          _getProjectsFilterTag(AcceleratorProjectsFilterTag.votingOpened),
       ],
     );
   }
 
-  Widget _getProjectsFilterTag(ProjectsFilterTag filterTag) {
+  Widget _getProjectsFilterTag(AcceleratorProjectsFilterTag filterTag) {
     return TagWidget(
-      text: FormatUtils.extractNameFromEnum<ProjectsFilterTag>(filterTag),
+      text: FormatUtils.extractNameFromEnum<AcceleratorProjectsFilterTag>(filterTag),
       hexColorCode: Theme.of(context)
           .colorScheme
           .primaryContainer
@@ -202,12 +200,12 @@ class _AcceleratorProjectListState extends State<AcceleratorProjectList> {
 
   Set<AcceleratorProject> _filterProjectsByFilterTags(List<Project> projects) {
     var filteredBaseProjects = const Iterable<Project>.empty();
-    if (_selectedProjectsFilterTag.contains(ProjectsFilterTag.myProjects)) {
+    if (_selectedProjectsFilterTag.contains(AcceleratorProjectsFilterTag.myProjects)) {
       filteredBaseProjects = projects.where(
         (project) => project.owner.toString() == kSelectedAddress,
       );
     }
-    if (_selectedProjectsFilterTag.contains(ProjectsFilterTag.onlyAccepted)) {
+    if (_selectedProjectsFilterTag.contains(AcceleratorProjectsFilterTag.onlyAccepted)) {
       if (filteredBaseProjects.isNotEmpty) {
         filteredBaseProjects = filteredBaseProjects.where(
           (project) => project.status == AcceleratorProjectStatus.active,
@@ -218,7 +216,7 @@ class _AcceleratorProjectListState extends State<AcceleratorProjectList> {
         );
       }
     }
-    if (_selectedProjectsFilterTag.contains(ProjectsFilterTag.votingOpened)) {
+    if (_selectedProjectsFilterTag.contains(AcceleratorProjectsFilterTag.votingOpened)) {
       if (filteredBaseProjects.isNotEmpty) {
         filteredBaseProjects = filteredBaseProjects.where(
           (project) => project.status == AcceleratorProjectStatus.voting,

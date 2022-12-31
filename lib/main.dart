@@ -28,8 +28,7 @@ import 'package:zenon_syrius_wallet_flutter/utils/notifiers/default_address_noti
 import 'package:zenon_syrius_wallet_flutter/utils/notifiers/plasma_beneficiary_address_notifier.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/notifiers/plasma_generated_notifier.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/notifiers/text_scaling_notifier.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/main_app_container.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/error_widget.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 Zenon? zenon;

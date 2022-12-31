@@ -8,11 +8,7 @@ import 'package:zenon_syrius_wallet_flutter/embedded_node/embedded_node.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/model/model.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/main_app_container.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/buttons/loading_button.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/input_field/input_field.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/notification_widget.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/settings_node.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 
 class NodeManagementScreen extends StatefulWidget {
   final VoidCallback? nodeConfirmationCallback;

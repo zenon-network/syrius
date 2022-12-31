@@ -14,22 +14,7 @@ import 'package:zenon_syrius_wallet_flutter/utils/format_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/notification_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/notifiers/text_scaling_notifier.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/layout_scaffold/overscroll_remover.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/loading_widget.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/notification_widget.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/tab_children_widgets/accelerator_tab_child.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/tab_children_widgets/bridge_tab_child.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/tab_children_widgets/dashboard_tab_child.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/tab_children_widgets/help_tab_child.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/tab_children_widgets/lock_tab_child.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/tab_children_widgets/notifications_tab_child.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/tab_children_widgets/pillars_tab_child.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/tab_children_widgets/plasma_tab_child.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/tab_children_widgets/sentinels_tab_child.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/tab_children_widgets/settings_tab_child.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/tab_children_widgets/staking_tab_child.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/tab_children_widgets/tokens_tab_child.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/tab_children_widgets/transfer_tab_child.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 enum Tabs {

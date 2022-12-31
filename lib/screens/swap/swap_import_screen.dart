@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:zenon_syrius_wallet_flutter/screens/screens.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/buttons/onboarding_button.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/progress_bars.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/select_file_widget.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 
 class SwapImportScreen extends StatefulWidget {
   const SwapImportScreen({Key? key}) : super(key: key);

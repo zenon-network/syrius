@@ -1,13 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:layout/layout.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/transfer_widgets/latest_transactions/latest_transactions_transfer_widget.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/transfer_widgets/receive/receive_large.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/transfer_widgets/receive/receive_medium.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/transfer_widgets/receive/receive_small.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/transfer_widgets/send/send_large.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/transfer_widgets/send/send_medium.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/transfer_widgets/send/send_small.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/layout_scaffold/standard_fluid_layout.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 
 enum DimensionCard { small, medium, large }
 

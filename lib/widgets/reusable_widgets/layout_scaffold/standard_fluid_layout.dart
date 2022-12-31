@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:layout/layout.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/layout_scaffold/overscroll_remover.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/layout_scaffold/widget_animator.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 
 const int kStaggeredNumOfColumns = 12;
 

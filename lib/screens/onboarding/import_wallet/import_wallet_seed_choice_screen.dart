@@ -2,11 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'package:zenon_syrius_wallet_flutter/screens/screens.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/buttons/onboarding_button.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/progress_bars.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/seed/seed_choice.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/seed/seed_grid.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/select_file_widget.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 class ImportWalletSeedChoiceScreen extends StatefulWidget {
