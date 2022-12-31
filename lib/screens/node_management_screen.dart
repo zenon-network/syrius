@@ -134,11 +134,11 @@ class _NodeManagementScreenState extends State<NodeManagementScreen> {
       String url = _selectedNode == 'Embedded Node'
           ? kLocalhostDefaultNodeUrl
           : _selectedNode!;
-      bool _isConnectionEstablished =
+      bool isConnectionEstablished =
           await NodeUtils.establishConnectionToNode(url);
       if (_selectedNode == 'Embedded Node') {
         // Check if node is already running
-        if (!_isConnectionEstablished) {
+        if (!isConnectionEstablished) {
           // Initialize local full node
           await Isolate.spawn(EmbeddedNode.runNode, [''],
               onExit: sl<ReceivePort>(instanceName: 'embeddedStoppedPort')
@@ -146,17 +146,17 @@ class _NodeManagementScreenState extends State<NodeManagementScreen> {
           kEmbeddedNodeRunning = true;
           // The node needs a couple of seconds to actually start
           await Future.delayed(kEmbeddedConnectionDelay);
-          _isConnectionEstablished =
+          isConnectionEstablished =
               await NodeUtils.establishConnectionToNode(url);
         }
       } else {
-        _isConnectionEstablished =
+        isConnectionEstablished =
             await NodeUtils.establishConnectionToNode(url);
-        if (_isConnectionEstablished) {
+        if (isConnectionEstablished) {
           await NodeUtils.closeEmbeddedNode();
         }
       }
-      if (_isConnectionEstablished) {
+      if (isConnectionEstablished) {
         await sharedPrefsService!.put(
           kSelectedNodeKey,
           _selectedNode,

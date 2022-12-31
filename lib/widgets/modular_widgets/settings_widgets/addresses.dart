@@ -112,7 +112,7 @@ class AddressesState extends State<Addresses> {
   }
 
   Widget _getAddresses() {
-    List<Widget> _addresses = kDefaultAddressList
+    List<Widget> addresses = kDefaultAddressList
         .map(
           (e) => Row(
             children: [
@@ -136,9 +136,9 @@ class AddressesState extends State<Addresses> {
       controller: _scrollController,
       key: const PageStorageKey('Addresses list view'),
       shrinkWrap: true,
-      itemCount: _addresses.length,
+      itemCount: addresses.length,
       itemBuilder: (context, index) {
-        return _addresses[index];
+        return addresses[index];
       },
     );
 

@@ -109,19 +109,19 @@ class _PlasmaListState extends State<PlasmaList> {
     bool isSelected,
     FusionEntry plasmaItem,
   ) {
-    final GlobalKey<LoadingButtonState> _cancelButtonKey = GlobalKey();
+    final GlobalKey<LoadingButtonState> cancelButtonKey = GlobalKey();
 
     return ViewModelBuilder<CancelPlasmaBloc>.reactive(
       onModelReady: (model) {
         model.stream.listen(
           (event) {
             if (event != null) {
-              _cancelButtonKey.currentState?.animateReverse();
+              cancelButtonKey.currentState?.animateReverse();
               plasmaModel.refreshResults();
             }
           },
           onError: (error) {
-            _cancelButtonKey.currentState?.animateReverse();
+            cancelButtonKey.currentState?.animateReverse();
             NotificationUtils.sendNotificationError(
                 error, 'Error while cancelling plasma');
           },
@@ -130,7 +130,7 @@ class _PlasmaListState extends State<PlasmaList> {
       builder: (_, model, __) => _getCancelButton(
         model,
         plasmaItem.id.toString(),
-        _cancelButtonKey,
+        cancelButtonKey,
       ),
       viewModelBuilder: () => CancelPlasmaBloc(),
     );

@@ -178,9 +178,9 @@ class NodeUtils {
 
     if (savedNode == 'Embedded Node') {
       // First we need to check if the node is not already running
-      bool _isConnectionEstablished =
+      bool isConnectionEstablished =
           await NodeUtils.establishConnectionToNode(kLocalhostDefaultNodeUrl);
-      if (_isConnectionEstablished == false) {
+      if (isConnectionEstablished == false) {
         // Acquire WakeLock
         if (!await Wakelock.enabled) {
           Wakelock.enable();

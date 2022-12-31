@@ -566,11 +566,11 @@ class _SecurityWidgetState extends State<SecurityWidget> {
   void _onSignFileButtonPressed() async {
     try {
       _signFileButtonKey.currentState?.animateForward();
-      File _droppedFile = File(
+      File droppedFile = File(
         _toBeSignedFilePath!,
       );
       List<int> fileSignature = await zenon!.defaultKeyPair!.sign(Crypto.digest(
-        await _droppedFile.readAsBytes(),
+        await droppedFile.readAsBytes(),
       ));
       setState(() {
         _fileHashController.text = BytesUtils.bytesToHex(fileSignature);

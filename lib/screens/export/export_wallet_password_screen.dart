@@ -143,7 +143,7 @@ class _ExportWalletPasswordScreenState
                 initialDirectory =
                     (await getApplicationDocumentsDirectory()).path;
               }
-              final _path = await FileSelectorPlatform.instance.getSavePath(
+              final walletPath = await FileSelectorPlatform.instance.getSavePath(
                 acceptedTypeGroups: <XTypeGroup>[
                   XTypeGroup(
                     label: 'file',
@@ -157,20 +157,20 @@ class _ExportWalletPasswordScreenState
                   dateFormat: 'yyyy-MM-dd-HHmm',
                 )}.json',
               );
-              if (_path != null) {
+              if (walletPath != null) {
                 KeyStoreManager keyStoreManager = KeyStoreManager(
                   walletPath: Directory(
-                    path.dirname(_path),
+                    path.dirname(walletPath),
                   ),
                 );
                 KeyStore keyStore = KeyStore.fromMnemonic(widget.seed);
                 await keyStoreManager.saveKeyStore(
                   keyStore,
                   _passwordController.text,
-                  name: path.basename(_path),
+                  name: path.basename(walletPath),
                 );
                 if (widget.backupWalletFlow) {
-                  _sendSuccessNotification(_path);
+                  _sendSuccessNotification(walletPath);
                 } else {
                   _updateExportedSeedList();
                 }
@@ -195,12 +195,12 @@ class _ExportWalletPasswordScreenState
     ).value = exportedSeeds;
   }
 
-  void _sendSuccessNotification(String _path) {
+  void _sendSuccessNotification(String path) {
     sl.get<NotificationsBloc>().addNotification(
           WalletNotification(
             title: 'Seed Vault successfully exported',
             timestamp: DateTime.now().millisecondsSinceEpoch,
-            details: 'The Seed Vault was successfully exported to ' + _path,
+            details: 'The Seed Vault was successfully exported to ' + path,
             type: NotificationType.paymentSent,
           ),
         );

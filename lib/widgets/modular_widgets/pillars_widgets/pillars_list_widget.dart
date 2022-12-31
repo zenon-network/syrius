@@ -550,19 +550,19 @@ class _PillarsListWidgetState extends State<PillarsListWidget> {
   }
 
   Widget _getUndelegateButtonViewModel(PillarsListBloc pillarsModel) {
-    final GlobalKey<LoadingButtonState> _undelegateButtonKey = GlobalKey();
+    final GlobalKey<LoadingButtonState> undelegateButtonKey = GlobalKey();
 
     return ViewModelBuilder<UndelegateButtonBloc>.reactive(
       onModelReady: (model) {
         model.stream.listen(
           (event) {
             if (event != null) {
-              _undelegateButtonKey.currentState?.animateReverse();
+              undelegateButtonKey.currentState?.animateReverse();
               _delegationInfoBloc.updateStream();
             }
           },
           onError: (error) {
-            _undelegateButtonKey.currentState?.animateReverse();
+            undelegateButtonKey.currentState?.animateReverse();
             NotificationUtils.sendNotificationError(
               error,
               'Error while undelegating',
@@ -572,7 +572,7 @@ class _PillarsListWidgetState extends State<PillarsListWidget> {
       },
       builder: (_, model, __) => _getUndelegateButton(
         model,
-        _undelegateButtonKey,
+        undelegateButtonKey,
       ),
       viewModelBuilder: () => UndelegateButtonBloc(),
     );
@@ -608,13 +608,13 @@ class _PillarsListWidgetState extends State<PillarsListWidget> {
     PillarsListBloc pillarsModel,
     AccountInfo accountInfo,
   ) {
-    GlobalKey<LoadingButtonState> _delegateButtonKey;
+    GlobalKey<LoadingButtonState> delegateButtonKey;
 
     if (_delegateButtonKeys[pillarInfo.name] == null) {
       _delegateButtonKeys[pillarInfo.name] = GlobalKey();
     }
 
-    _delegateButtonKey = _delegateButtonKeys[pillarInfo.name]!;
+    delegateButtonKey = _delegateButtonKeys[pillarInfo.name]!;
 
     return Visibility(
       visible: accountInfo.znn()!.addDecimals(
@@ -630,14 +630,14 @@ class _PillarsListWidgetState extends State<PillarsListWidget> {
             (event) {
               if (event != null) {
                 _delegationInfoBloc.updateStream();
-                _delegateButtonKey.currentState?.animateReverse();
+                delegateButtonKey.currentState?.animateReverse();
                 setState(() {
                   _currentlyDelegatingToPillar = null;
                 });
               }
             },
             onError: (error) {
-              _delegateButtonKey.currentState?.animateReverse();
+              delegateButtonKey.currentState?.animateReverse();
               NotificationUtils.sendNotificationError(
                 error,
                 'Pillar delegation error',
@@ -651,7 +651,7 @@ class _PillarsListWidgetState extends State<PillarsListWidget> {
         builder: (_, model, __) => _getDelegateButton(
           pillarInfo,
           model,
-          _delegateButtonKey,
+          delegateButtonKey,
         ),
         viewModelBuilder: () => DelegateButtonBloc(),
       ),

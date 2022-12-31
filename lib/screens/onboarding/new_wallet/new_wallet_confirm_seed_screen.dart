@@ -154,11 +154,11 @@ class _NewWalletConfirmSeedScreenState
   Widget _seedFieldWidget(SeedGridElement seedGridElement) {
     int seedGridElementIndex = _seedGridElements.indexOf(seedGridElement);
 
-    final TextEditingController _controller = TextEditingController();
-    _controller.text = seedGridElement.word;
+    final TextEditingController controller = TextEditingController();
+    controller.text = seedGridElement.word;
     if (_textCursor == seedGridElementIndex) {
-      _controller.selection = TextSelection.collapsed(
-        offset: _controller.text.length,
+      controller.selection = TextSelection.collapsed(
+        offset: controller.text.length,
       );
     }
 
@@ -228,7 +228,7 @@ class _NewWalletConfirmSeedScreenState
                 builder: (BuildContext context, accepted, rejected) {
                   return TextField(
                     enabled: false,
-                    controller: _controller,
+                    controller: controller,
                     obscureText: _randomIndexes.contains(seedGridElementIndex)
                         ? false
                         : !seedGridElement.isShown ||

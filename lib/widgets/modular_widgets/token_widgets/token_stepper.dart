@@ -665,11 +665,11 @@ class _TokenStepperState extends State<TokenStepper> {
     _saveProgressAndNavigateToNextStep(TokenStepperStep.tokenCreation);
   }
 
-  void _saveProgressAndNavigateToNextStep(TokenStepperStep _completedStep) {
+  void _saveProgressAndNavigateToNextStep(TokenStepperStep completedStep) {
     setState(() {
-      _lastCompletedStep = _completedStep;
+      _lastCompletedStep = completedStep;
       if (_lastCompletedStep!.index + 1 < _numSteps) {
-        _currentStep = TokenStepperStep.values[_completedStep.index + 1];
+        _currentStep = TokenStepperStep.values[completedStep.index + 1];
       }
     });
   }

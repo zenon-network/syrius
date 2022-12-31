@@ -102,13 +102,13 @@ class _JoinLiquidityProgramCardState extends State<JoinLiquidityProgramCard> {
   }
 
   void _saveProgressAndNavigateToNextStep(
-      JoinLiquidityProgramStep _completedStep) {
+      JoinLiquidityProgramStep completedStep) {
     setState(() {
-      _lastCompletedStep = _completedStep;
+      _lastCompletedStep = completedStep;
       if (_lastCompletedStep!.index + 1 <
           JoinLiquidityProgramStep.values.length) {
         _currentStep =
-            JoinLiquidityProgramStep.values[_completedStep.index + 1];
+            JoinLiquidityProgramStep.values[completedStep.index + 1];
       }
     });
   }

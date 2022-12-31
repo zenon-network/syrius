@@ -124,19 +124,19 @@ class _StakingListState extends State<StakingList> {
     bool isSelected,
     String stakeHash,
   ) {
-    final GlobalKey<LoadingButtonState> _cancelButtonKey = GlobalKey();
+    final GlobalKey<LoadingButtonState> cancelButtonKey = GlobalKey();
 
     return ViewModelBuilder<CancelStakeBloc>.reactive(
       onModelReady: (model) {
         model.stream.listen(
           (event) {
             if (event != null) {
-              _cancelButtonKey.currentState?.animateReverse();
+              cancelButtonKey.currentState?.animateReverse();
               bloc.refreshResults();
             }
           },
           onError: (error) {
-            _cancelButtonKey.currentState?.animateReverse();
+            cancelButtonKey.currentState?.animateReverse();
             NotificationUtils.sendNotificationError(
               error,
               'Error while cancelling stake',
@@ -147,7 +147,7 @@ class _StakingListState extends State<StakingList> {
       builder: (_, model, __) => _getCancelButton(
         model,
         stakeHash,
-        _cancelButtonKey,
+        cancelButtonKey,
       ),
       viewModelBuilder: () => CancelStakeBloc(),
     );
