@@ -19,7 +19,7 @@ class SentinelsListWidget extends StatefulWidget {
 class _SentinelsListWidgetState extends State<SentinelsListWidget> {
   late SentinelsListBloc _bloc;
 
-  final List<SentinelInfo>? _sentinels = [];
+  final List<SentinelInfo> _sentinels = [];
   bool _sortAscending = true;
 
   @override
@@ -189,14 +189,14 @@ class _SentinelsListWidgetState extends State<SentinelsListWidget> {
     switch (columnName) {
       case 'Sentinel Owner':
         _sortAscending
-            ? _sentinels!.sort((a, b) => a.owner.compareTo(b.owner))
-            : _sentinels!.sort((a, b) => b.owner.compareTo(a.owner));
+            ? _sentinels.sort((a, b) => a.owner.compareTo(b.owner))
+            : _sentinels.sort((a, b) => b.owner.compareTo(a.owner));
         break;
       case 'Registration time':
         _sortAscending
-            ? _sentinels!.sort((a, b) =>
+            ? _sentinels.sort((a, b) =>
                 a.registrationTimestamp.compareTo(b.registrationTimestamp))
-            : _sentinels!.sort((a, b) =>
+            : _sentinels.sort((a, b) =>
                 b.registrationTimestamp.compareTo(a.registrationTimestamp));
         break;
       case 'Reward Address':

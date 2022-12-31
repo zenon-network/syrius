@@ -21,7 +21,7 @@ class StakingList extends StatefulWidget {
 }
 
 class _StakingListState extends State<StakingList> {
-  final List<StakeEntry>? _stakingList = [];
+  final List<StakeEntry> _stakingList = [];
 
   bool _sortAscending = true;
 
@@ -181,36 +181,36 @@ class _StakingListState extends State<StakingList> {
     switch (columnName) {
       case 'Amount':
         _sortAscending
-            ? _stakingList!.sort((a, b) => a.amount.compareTo(b.amount))
-            : _stakingList!.sort((a, b) => b.amount.compareTo(a.amount));
+            ? _stakingList.sort((a, b) => a.amount.compareTo(b.amount))
+            : _stakingList.sort((a, b) => b.amount.compareTo(a.amount));
         break;
       case 'Staking duration':
         _sortAscending
-            ? _stakingList!.sort(
+            ? _stakingList.sort(
                 (a, b) => (a.expirationTimestamp - a.startTimestamp)
                     .compareTo(b.expirationTimestamp - b.startTimestamp),
               )
-            : _stakingList!.sort(
+            : _stakingList.sort(
                 (a, b) => (b.expirationTimestamp - b.startTimestamp)
                     .compareTo(a.expirationTimestamp - a.startTimestamp),
               );
         break;
       case 'Recipient':
         _sortAscending
-            ? _stakingList!.sort((a, b) => a.address.compareTo(b.address))
-            : _stakingList!.sort((a, b) => b.address.compareTo(a.address));
+            ? _stakingList.sort((a, b) => a.address.compareTo(b.address))
+            : _stakingList.sort((a, b) => b.address.compareTo(a.address));
         break;
       case 'Expiration':
         _sortAscending
-            ? _stakingList!.sort((a, b) =>
+            ? _stakingList.sort((a, b) =>
                 a.expirationTimestamp.compareTo(b.expirationTimestamp))
-            : _stakingList!.sort((a, b) =>
+            : _stakingList.sort((a, b) =>
                 b.expirationTimestamp.compareTo(a.expirationTimestamp));
         break;
       default:
         _sortAscending
-            ? _stakingList!.sort((a, b) => a.address.compareTo(b.address))
-            : _stakingList!.sort((a, b) => b.address.compareTo(a.address));
+            ? _stakingList.sort((a, b) => a.address.compareTo(b.address))
+            : _stakingList.sort((a, b) => b.address.compareTo(a.address));
         break;
     }
 

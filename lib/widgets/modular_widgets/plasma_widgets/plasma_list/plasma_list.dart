@@ -23,7 +23,7 @@ class PlasmaList extends StatefulWidget {
 }
 
 class _PlasmaListState extends State<PlasmaList> {
-  final List<FusionEntry>? _stakingList = [];
+  final List<FusionEntry> _stakingList = [];
 
   bool _sortAscending = true;
 
@@ -164,22 +164,18 @@ class _PlasmaListState extends State<PlasmaList> {
     switch (columnName) {
       case 'Amount':
         _sortAscending
-            ? _stakingList!.sort((a, b) => a.qsrAmount.compareTo(b.qsrAmount))
-            : _stakingList!.sort((a, b) => b.qsrAmount.compareTo(a.qsrAmount));
+            ? _stakingList.sort((a, b) => a.qsrAmount.compareTo(b.qsrAmount))
+            : _stakingList.sort((a, b) => b.qsrAmount.compareTo(a.qsrAmount));
         break;
       case 'Beneficiary':
         _sortAscending
-            ? _stakingList!
-                .sort((a, b) => a.beneficiary.compareTo(b.beneficiary))
-            : _stakingList!
-                .sort((a, b) => b.beneficiary.compareTo(a.beneficiary));
+            ? _stakingList.sort((a, b) => a.beneficiary.compareTo(b.beneficiary))
+            : _stakingList.sort((a, b) => b.beneficiary.compareTo(a.beneficiary));
         break;
       default:
         _sortAscending
-            ? _stakingList!
-                .sort((a, b) => a.beneficiary.compareTo(b.beneficiary))
-            : _stakingList!
-                .sort((a, b) => b.beneficiary.compareTo(a.beneficiary));
+            ? _stakingList.sort((a, b) => a.beneficiary.compareTo(b.beneficiary))
+            : _stakingList.sort((a, b) => b.beneficiary.compareTo(a.beneficiary));
         break;
     }
 
