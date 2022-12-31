@@ -296,11 +296,11 @@ class _PillarsListWidgetState extends State<PillarsListWidget> {
       ),
       InfiniteScrollTableCell.withText(
         context,
-        pillarInfo.giveMomentumRewardPercentage.toString() + ' %',
+        '${pillarInfo.giveMomentumRewardPercentage} %',
       ),
       InfiniteScrollTableCell.withText(
         context,
-        pillarInfo.giveDelegateRewardPercentage.toString() + ' %',
+        '${pillarInfo.giveDelegateRewardPercentage} %',
       ),
       InfiniteScrollTableCell.withText(context,
           '${pillarInfo.expectedMomentums}/${pillarInfo.producedMomentums} '),

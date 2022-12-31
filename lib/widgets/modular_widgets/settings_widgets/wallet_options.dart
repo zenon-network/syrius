@@ -150,11 +150,8 @@ class _WalletOptionsState extends State<WalletOptions> {
   }
 
   void _shareFeedbackScreenshot(Uint8List feedbackScreenshot) async {
-    final String screenshotFilePath = znnDefaultCacheDirectory.path +
-        Platform.pathSeparator +
-        'feedback_' +
-        DateTime.now().millisecondsSinceEpoch.toString() +
-        '.png';
+    final String screenshotFilePath =
+        '${znnDefaultCacheDirectory.path}${Platform.pathSeparator}feedback_${DateTime.now().millisecondsSinceEpoch}.png';
     final File screenshotFile = File(screenshotFilePath);
     await screenshotFile.writeAsBytes(feedbackScreenshot);
     var screenshotFilePathList = <String>[];
@@ -162,21 +159,12 @@ class _WalletOptionsState extends State<WalletOptions> {
     screenshotFilePathList.add(screenshotFile.absolute.path);
     if (screenshotFilePath.isNotEmpty) {
       await Share.shareFiles(screenshotFilePathList,
-          text: 'Feedback provided at ' +
-              DateTime.now().millisecondsSinceEpoch.toString() +
-              ' running on ' +
-              DeviceUtils.getDeviceInfo().toString() +
-              ' syrius wallet version ' +
-              DeviceUtils.getPackageInfo().toString(),
+          text:
+              'Feedback provided at ${DateTime.now().millisecondsSinceEpoch} running on ${DeviceUtils.getDeviceInfo()} syrius wallet version ${DeviceUtils.getPackageInfo()}',
           subject: 'Syrius wallet feedback');
     } else {
       await Share.share(
-        'Feedback provided at ' +
-            DateTime.now().millisecondsSinceEpoch.toString() +
-            ' running on ' +
-            DeviceUtils.getDeviceInfo().toString() +
-            ' syrius wallet version ' +
-            DeviceUtils.getPackageInfo().toString(),
+        'Feedback provided at ${DateTime.now().millisecondsSinceEpoch} running on ${DeviceUtils.getDeviceInfo()} syrius wallet version ${DeviceUtils.getPackageInfo()}',
         subject: 'Syrius wallet feedback',
       );
     }

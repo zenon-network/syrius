@@ -8,10 +8,10 @@ class Logger {
         print('Info: $error');
       } else {
         // ignore: avoid_print
-        print('Error: ' + error.toString());
+        print('Error: $error');
         if (error is Error) {
           // ignore: avoid_print
-          print('Stack trace: ' + error.stackTrace.toString());
+          print('Stack trace: ${error.stackTrace}');
         }
       }
     }

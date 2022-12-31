@@ -8,7 +8,7 @@ import 'package:zenon_syrius_wallet_flutter/model/model.dart';
 class NavigationUtils {
   static Future<void> launchUrl(String url, BuildContext context) async {
     if (!RegExp(r'^http').hasMatch(url)) {
-      url = 'http://' + url;
+      url = 'http://$url';
     }
     if (await canLaunch(url)) {
       await launch(url);

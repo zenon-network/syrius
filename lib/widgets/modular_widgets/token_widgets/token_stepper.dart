@@ -224,7 +224,7 @@ class _TokenStepperState extends State<TokenStepper> {
             stepTitle: 'Token Details',
             stepContent: _getTokenDetailsStepContent(context, accountInfo),
             stepSubtitle:
-                '${_tokenNameController.text} ' + _tokenSymbolController.text,
+                '${_tokenNameController.text} ${_tokenSymbolController.text}',
             stepState: StepperUtils.getStepState(
               TokenStepperStep.tokenDetails.index,
               _lastCompletedStep?.index,

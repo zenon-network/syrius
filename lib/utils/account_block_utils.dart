@@ -65,10 +65,9 @@ class AccountBlockUtils {
               WalletNotification(
                 title: 'Account-block published',
                 timestamp: DateTime.now().millisecondsSinceEpoch,
-                details: 'Account-block type: ' +
-                    FormatUtils.extractNameFromEnum<BlockTypeEnum>(
+                details: 'Account-block type: ${FormatUtils.extractNameFromEnum<BlockTypeEnum>(
                       BlockTypeEnum.values[response.blockType],
-                    ),
+                    )}',
                 type: NotificationType.paymentSent,
               ),
             );

@@ -200,7 +200,7 @@ class _ExportWalletPasswordScreenState
           WalletNotification(
             title: 'Seed Vault successfully exported',
             timestamp: DateTime.now().millisecondsSinceEpoch,
-            details: 'The Seed Vault was successfully exported to ' + path,
+            details: 'The Seed Vault was successfully exported to $path',
             type: NotificationType.paymentSent,
           ),
         );

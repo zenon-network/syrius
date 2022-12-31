@@ -43,7 +43,7 @@ class WidgetUtils {
   }
 
   static String isWidgetHiddenKey(String widgetTitle) =>
-      widgetTitle + 'is_hidden';
+      '${widgetTitle}is_hidden';
 
   static InfiniteScrollTableCell getMarqueeAddressTableCell(
     Address? address,

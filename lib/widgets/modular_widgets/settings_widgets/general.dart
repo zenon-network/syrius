@@ -149,9 +149,7 @@ class GeneralWidgetState extends State<GeneralWidget> {
                 ),
                 materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                 onPressed: () => NavigationUtils.launchUrl(
-                  kExplorer +
-                      '/momentum/' +
-                      generalStats.frontierMomentum.hash.toString(),
+                  '$kExplorer/momentum/${generalStats.frontierMomentum.hash}',
                   context,
                 ),
                 child: Row(
