@@ -7,7 +7,7 @@ class DumpMnemonicScreen extends StatefulWidget {
   const DumpMnemonicScreen({Key? key}) : super(key: key);
 
   @override
-  _DumpMnemonicScreenState createState() => _DumpMnemonicScreenState();
+  State<DumpMnemonicScreen> createState() => _DumpMnemonicScreenState();
 }
 
 class _DumpMnemonicScreenState extends State<DumpMnemonicScreen> {

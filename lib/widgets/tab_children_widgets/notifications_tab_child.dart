@@ -12,7 +12,7 @@ class NotificationsTabChild extends StatefulWidget {
   const NotificationsTabChild({Key? key}) : super(key: key);
 
   @override
-  _NotificationsTabChildState createState() => _NotificationsTabChildState();
+  State<NotificationsTabChild> createState() => _NotificationsTabChildState();
 }
 
 class _NotificationsTabChildState extends State<NotificationsTabChild> {

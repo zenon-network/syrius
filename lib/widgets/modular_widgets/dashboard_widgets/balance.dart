@@ -21,7 +21,7 @@ class BalanceWidget extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  _BalanceWidgetState createState() => _BalanceWidgetState();
+  State<BalanceWidget> createState() => _BalanceWidgetState();
 }
 
 class _BalanceWidgetState extends State<BalanceWidget> {

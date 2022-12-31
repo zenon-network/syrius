@@ -27,7 +27,7 @@ class SendMediumCard extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  _SendMediumCardState createState() => _SendMediumCardState();
+  State<SendMediumCard> createState() => _SendMediumCardState();
 }
 
 class _SendMediumCardState extends State<SendMediumCard> {

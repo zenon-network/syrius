@@ -23,7 +23,7 @@ class PillarUpdateStepper extends StatefulWidget {
   const PillarUpdateStepper(this.pillarInfo, {Key? key}) : super(key: key);
 
   @override
-  _PillarUpdateStepperState createState() => _PillarUpdateStepperState();
+  State<PillarUpdateStepper> createState() => _PillarUpdateStepperState();
 }
 
 class _PillarUpdateStepperState extends State<PillarUpdateStepper> {

@@ -45,7 +45,7 @@ class MainAppContainer extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  _MainAppContainerState createState() => _MainAppContainerState();
+  State<MainAppContainer> createState() => _MainAppContainerState();
 }
 
 class _MainAppContainerState extends State<MainAppContainer>

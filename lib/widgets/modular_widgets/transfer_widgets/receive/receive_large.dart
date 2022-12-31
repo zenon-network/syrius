@@ -22,7 +22,7 @@ class ReceiveLargeCard extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  _ReceiveLargeCardState createState() => _ReceiveLargeCardState();
+  State<ReceiveLargeCard> createState() => _ReceiveLargeCardState();
 }
 
 class _ReceiveLargeCardState extends State<ReceiveLargeCard> {

@@ -33,7 +33,7 @@ class PlasmaStats extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  _PlasmaStatsState createState() => _PlasmaStatsState();
+  State<PlasmaStats> createState() => _PlasmaStatsState();
 }
 
 class _PlasmaStatsState extends State<PlasmaStats> {

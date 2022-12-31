@@ -18,7 +18,7 @@ class RealtimeStatistics extends StatefulWidget {
   const RealtimeStatistics({Key? key}) : super(key: key);
 
   @override
-  _RealtimeStatisticsState createState() => _RealtimeStatisticsState();
+  State<RealtimeStatistics> createState() => _RealtimeStatisticsState();
 }
 
 class _RealtimeStatisticsState extends State<RealtimeStatistics> {

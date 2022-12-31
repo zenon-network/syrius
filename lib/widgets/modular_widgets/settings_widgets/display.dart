@@ -26,7 +26,7 @@ class DisplayWidget extends StatefulWidget {
   const DisplayWidget({Key? key}) : super(key: key);
 
   @override
-  _DisplayWidget createState() => _DisplayWidget();
+  State<DisplayWidget> createState() => _DisplayWidget();
 }
 
 class _DisplayWidget extends State<DisplayWidget> {

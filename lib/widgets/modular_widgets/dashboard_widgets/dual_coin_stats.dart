@@ -18,7 +18,7 @@ class DualCoinStats extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  _DualCoinStatsState createState() => _DualCoinStatsState();
+  State<DualCoinStats> createState() => _DualCoinStatsState();
 }
 
 class _DualCoinStatsState extends State<DualCoinStats>

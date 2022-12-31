@@ -19,7 +19,7 @@ class StakeCollect extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  _StakeCollectState createState() => _StakeCollectState();
+  State<StakeCollect> createState() => _StakeCollectState();
 }
 
 class _StakeCollectState extends State<StakeCollect> {

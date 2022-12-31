@@ -17,7 +17,7 @@ class TransferTabChild extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  _TransferTabChildState createState() => _TransferTabChildState();
+  State<TransferTabChild> createState() => _TransferTabChildState();
 }
 
 class _TransferTabChildState extends State<TransferTabChild> {

@@ -14,7 +14,7 @@ class DashboardTabChild extends StatefulWidget {
   const DashboardTabChild({Key? key, this.changePage}) : super(key: key);
 
   @override
-  _DashboardTabChildState createState() => _DashboardTabChildState();
+  State<DashboardTabChild> createState() => _DashboardTabChildState();
 }
 
 class _DashboardTabChildState extends State<DashboardTabChild> {

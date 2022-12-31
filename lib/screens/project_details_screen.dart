@@ -19,7 +19,7 @@ class ProjectDetailsScreen extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  _ProjectDetailsScreenState createState() => _ProjectDetailsScreenState();
+  State<ProjectDetailsScreen> createState() => _ProjectDetailsScreenState();
 }
 
 class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {

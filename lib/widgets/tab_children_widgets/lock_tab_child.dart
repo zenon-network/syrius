@@ -21,7 +21,7 @@ class LockTabChild extends StatefulWidget {
       : super(key: key);
 
   @override
-  _LockTabChildState createState() => _LockTabChildState();
+  State<LockTabChild> createState() => _LockTabChildState();
 }
 
 class _LockTabChildState extends State<LockTabChild> {

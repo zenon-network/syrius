@@ -9,7 +9,7 @@ class ImportWalletSeedChoiceScreen extends StatefulWidget {
   const ImportWalletSeedChoiceScreen({Key? key}) : super(key: key);
 
   @override
-  _ImportWalletSeedChoiceScreenState createState() =>
+  State<ImportWalletSeedChoiceScreen> createState() =>
       _ImportWalletSeedChoiceScreenState();
 }
 

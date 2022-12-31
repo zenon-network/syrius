@@ -20,7 +20,7 @@ class LatestTransactions extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  _LatestTransactionsState createState() => _LatestTransactionsState();
+  State<LatestTransactions> createState() => _LatestTransactionsState();
 }
 
 class _LatestTransactionsState extends State<LatestTransactions> {

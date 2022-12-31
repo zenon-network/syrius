@@ -18,7 +18,7 @@ class WalletOptions extends StatefulWidget {
   const WalletOptions(this.onResyncWalletPressed, {Key? key}) : super(key: key);
 
   @override
-  _WalletOptionsState createState() => _WalletOptionsState();
+  State<WalletOptions> createState() => _WalletOptionsState();
 }
 
 class _WalletOptionsState extends State<WalletOptions> {

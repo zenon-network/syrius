@@ -13,7 +13,7 @@ class Sentinels extends StatefulWidget {
   const Sentinels({Key? key}) : super(key: key);
 
   @override
-  _SentinelsState createState() => _SentinelsState();
+  State<Sentinels> createState() => _SentinelsState();
 }
 
 class _SentinelsState extends State<Sentinels> {

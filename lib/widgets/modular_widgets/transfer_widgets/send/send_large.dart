@@ -31,7 +31,7 @@ class SendLargeCard extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  _SendLargeCardState createState() => _SendLargeCardState();
+  State<SendLargeCard> createState() => _SendLargeCardState();
 }
 
 class _SendLargeCardState extends State<SendLargeCard> {

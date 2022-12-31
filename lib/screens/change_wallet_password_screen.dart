@@ -14,7 +14,7 @@ class ChangeWalletPasswordScreen extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  _ChangeWalletPasswordScreenState createState() =>
+  State<ChangeWalletPasswordScreen> createState() =>
       _ChangeWalletPasswordScreenState();
 }
 

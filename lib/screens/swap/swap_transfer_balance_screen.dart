@@ -22,7 +22,7 @@ class SwapTransferBalanceScreen extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  _SwapTransferBalanceScreenState createState() =>
+  State<SwapTransferBalanceScreen> createState() =>
       _SwapTransferBalanceScreenState();
 }
 
