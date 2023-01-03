@@ -16,8 +16,8 @@ class InitUtils {
     try {
       await KeyStoreUtils.setKeyStorePath();
       await _setNumUnlockFailedAttempts();
-      await NodeUtils.setNode(context);
-      await NodeUtils.loadDbNodes(context);
+      await NodeUtils.setNode();
+      await NodeUtils.loadDbNodes();
       WidgetUtils.setThemeMode(context);
       WidgetUtils.setTextScale(context);
       _setAutoEraseWalletNumAttempts();
@@ -56,7 +56,7 @@ class InitUtils {
         defaultValue: kAutoLockWalletDefaultIntervalMinutes,
       );
 
-  static Future<void> initWalletAfterDecryption(BuildContext context) async {
+  static Future<void> initWalletAfterDecryption() async {
     await AddressUtils.setAddresses(kKeyStore);
     await AddressUtils.setAddressLabels();
     await AddressUtils.setDefaultAddress();
@@ -66,7 +66,7 @@ class InitUtils {
     await _openFavoriteTokensBox();
     await _openNotificationsBox();
     await _openRecipientBox();
-    await NodeUtils.initWebSocketClient(context);
+    await NodeUtils.initWebSocketClient();
     await _setWalletVersion();
     kWalletInitCompleted = true;
   }

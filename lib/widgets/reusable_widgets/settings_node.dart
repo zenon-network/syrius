@@ -216,7 +216,7 @@ class _SettingsNodeState extends State<SettingsNode> {
           (key) => nodesBox.get(key) == widget.node,
         );
         await nodesBox.put(key, _nodeController.text);
-        await NodeUtils.loadDbNodes(context);
+        await NodeUtils.loadDbNodes();
         setState(() {
           _editable = false;
         });

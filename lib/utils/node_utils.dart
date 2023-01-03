@@ -62,7 +62,7 @@ class NodeUtils {
     }
   }
 
-  static initWebSocketClient(BuildContext context) async {
+  static initWebSocketClient() async {
     addOnWebSocketConnectedCallback();
     var url = kCurrentNode!;
     bool connected = false;
@@ -151,7 +151,7 @@ class NodeUtils {
   static Future<void> _getSubscriptionForAllAccountEvents() async =>
       await zenon!.subscribe.toAllAccountBlocks();
 
-  static Future<void> loadDbNodes(BuildContext context) async {
+  static Future<void> loadDbNodes() async {
     if (!Hive.isBoxOpen(kNodesBox)) {
       await Hive.openBox<String>(kNodesBox);
     }
@@ -169,7 +169,7 @@ class NodeUtils {
     }
   }
 
-  static Future<void> setNode(BuildContext context) async {
+  static Future<void> setNode() async {
     String savedNode = sharedPrefsService!.get(
       kSelectedNodeKey,
       defaultValue: kDefaultNodes.first,

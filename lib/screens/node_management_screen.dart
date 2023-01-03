@@ -242,7 +242,7 @@ class _NodeManagementScreenState extends State<NodeManagementScreen> {
         await Hive.openBox<String>(kNodesBox);
       }
       Hive.box<String>(kNodesBox).add(_newNodeController.text);
-      await NodeUtils.loadDbNodes(context);
+      await NodeUtils.loadDbNodes();
       _sendAddNodeSuccessNotification();
       setState(() {
         _newNodeController = TextEditingController();

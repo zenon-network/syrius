@@ -164,7 +164,7 @@ class _LockTabChildState extends State<LockTabChild> {
           setState(() {
             _messageToUser = 'Initializing wallet, please wait';
           });
-          await InitUtils.initWalletAfterDecryption(context);
+          await InitUtils.initWalletAfterDecryption();
           widget.afterInitCallback();
         } else {
           await widget.afterUnlockCallback(_passwordController.text);

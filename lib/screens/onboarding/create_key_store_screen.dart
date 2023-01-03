@@ -28,7 +28,6 @@ class _CreateKeyStoreScreenState extends State<CreateKeyStoreScreen> {
     super.initState();
     _keyStorePathBloc = KeyStorePathBloc()
       ..getKeyStorePath(
-        context,
         widget.seed,
         widget.password,
       );

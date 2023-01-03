@@ -199,7 +199,7 @@ class _NodeManagementState extends State<NodeManagement> {
         await Hive.openBox<String>(kNodesBox);
       }
       Hive.box<String>(kNodesBox).add(_newNodeController.text);
-      await NodeUtils.loadDbNodes(context);
+      await NodeUtils.loadDbNodes();
       _sendAddNodeSuccessNotification();
       _newNodeController = TextEditingController();
       _newNodeKey = GlobalKey();
