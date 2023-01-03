@@ -113,7 +113,7 @@ class _AccProjectListState extends State<AccProjectList> {
           Expanded(
             child: Scrollbar(
               controller: _scrollController,
-              isAlwaysShown: true,
+              thumbVisibility: true,
               child: PagedListView.separated(
                 scrollController: _scrollController,
                 pagingController: _pagingController,

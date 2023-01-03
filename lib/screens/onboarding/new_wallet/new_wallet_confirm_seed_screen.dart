@@ -287,7 +287,7 @@ class _NewWalletConfirmSeedScreenState
           Draggable<String>(
             feedback: ElevatedButton(
               style: ElevatedButton.styleFrom(
-                primary: AppColors.darkSecondary,
+                foregroundColor: AppColors.darkSecondary,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(5.0),
                 ),
@@ -311,7 +311,7 @@ class _NewWalletConfirmSeedScreenState
             },
             child: ElevatedButton(
               style: ElevatedButton.styleFrom(
-                primary: _draggedValue == seedWords[index]
+                foregroundColor: _draggedValue == seedWords[index]
                     ? Theme.of(context)
                         .colorScheme
                         .secondaryContainer

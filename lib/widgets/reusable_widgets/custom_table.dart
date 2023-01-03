@@ -145,7 +145,7 @@ class _CustomTableState<T> extends State<CustomTable<T>> {
   Widget _getShowMoreButton() {
     return TextButton(
       style: TextButton.styleFrom(
-        primary: Colors.white12,
+        foregroundColor: Colors.white12,
         backgroundColor: Colors.transparent,
         shape: const RoundedRectangleBorder(),
       ),

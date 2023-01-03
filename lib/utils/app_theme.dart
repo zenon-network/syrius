@@ -16,7 +16,7 @@ final ButtonStyle kElevatedButtonStyle = ElevatedButton.styleFrom(
     ),
   ),
   minimumSize: const Size(55, 42),
-  primary: AppColors.znnColor,
+  backgroundColor: AppColors.znnColor,
 );
 
 final ButtonStyle kOutlinedButtonStyle = OutlinedButton.styleFrom(

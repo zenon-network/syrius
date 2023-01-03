@@ -56,7 +56,7 @@ class _AcceleratorProjectListState extends State<AcceleratorProjectList> {
           Expanded(
             child: Scrollbar(
               controller: _scrollController,
-              isAlwaysShown: true,
+              thumbVisibility: true,
               child: ListView.separated(
                 separatorBuilder: (_, __) => const SizedBox(
                   height: 15.0,

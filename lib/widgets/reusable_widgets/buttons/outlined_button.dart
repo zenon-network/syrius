@@ -62,7 +62,7 @@ class MyOutlinedButtonState extends State<MyOutlinedButton> {
     return OutlinedButton(
       onPressed: _showLoading ? null : widget.onPressed,
       style: OutlinedButton.styleFrom(
-        primary: widget.textColor,
+        foregroundColor: widget.textColor,
         padding: widget.padding,
         minimumSize: widget.minimumSize,
         textStyle: widget.textStyle,
