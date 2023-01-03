@@ -148,7 +148,7 @@ class GeneralWidgetState extends State<GeneralWidget> {
                   minHeight: 40.0,
                 ),
                 materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                onPressed: () => NavigationUtils.launchUrl(
+                onPressed: () => NavigationUtils.openUrl(
                   '$kExplorer/momentum/${generalStats.frontierMomentum.hash}',
                   context,
                 ),

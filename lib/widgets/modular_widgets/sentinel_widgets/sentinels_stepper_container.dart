@@ -692,7 +692,7 @@ class _MainSentinelsState extends State<SentinelsStepperContainer> {
                                     ),
                             recognizer: TapGestureRecognizer()
                               ..onTap = () {
-                                NavigationUtils.launchUrl(
+                                NavigationUtils.openUrl(
                                     kZnnController, context);
                               },
                           ),

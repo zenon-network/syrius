@@ -50,7 +50,7 @@ class _JoinLiquidityProgramCardState extends State<JoinLiquidityProgramCard> {
               children: [
                 MyOutlinedButton(
                   outlineColor: AppColors.qsrColor,
-                  onPressed: () => NavigationUtils.launchUrl(
+                  onPressed: () => NavigationUtils.openUrl(
                     kJoinLiquidityProgramUrl,
                     context,
                   ).then((value) => _saveProgressAndNavigateToNextStep(
@@ -76,7 +76,7 @@ class _JoinLiquidityProgramCardState extends State<JoinLiquidityProgramCard> {
                   children: [
                     MyOutlinedButton(
                       outlineColor: AppColors.qsrColor,
-                      onPressed: () => NavigationUtils.launchUrl(
+                      onPressed: () => NavigationUtils.openUrl(
                         kAddLiquidityUrl,
                         context,
                       ).then((value) => _saveProgressAndNavigateToNextStep(

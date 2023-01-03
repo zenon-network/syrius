@@ -68,7 +68,7 @@ class _AccountChainStatsState extends State<AccountChainStatsWidget> {
                     minHeight: 40.0,
                   ),
                   materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                  onPressed: () => NavigationUtils.launchUrl(
+                  onPressed: () => NavigationUtils.openUrl(
                     '$kExplorer/transaction/${stats.firstHash}',
                     context,
                   ),

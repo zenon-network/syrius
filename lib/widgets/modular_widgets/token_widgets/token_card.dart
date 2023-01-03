@@ -262,7 +262,7 @@ class _TokenCardState extends State<TokenCard> {
                 materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                 shape: const CircleBorder(),
                 onPressed: () =>
-                    NavigationUtils.launchUrl(widget.token.domain, context),
+                    NavigationUtils.openUrl(widget.token.domain, context),
                 child: Tooltip(
                   message: 'Visit ${widget.token.domain}',
                   child: Container(

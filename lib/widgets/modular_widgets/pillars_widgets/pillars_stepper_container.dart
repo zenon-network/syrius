@@ -878,7 +878,7 @@ class _MainPillarsState extends State<PillarsStepperContainer> {
                                     ),
                             recognizer: TapGestureRecognizer()
                               ..onTap = () {
-                                NavigationUtils.launchUrl(
+                                NavigationUtils.openUrl(
                                     kZnnController, context);
                               },
                           ),

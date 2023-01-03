@@ -6,12 +6,13 @@ import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/model/model.dart';
 
 class NavigationUtils {
-  static Future<void> launchUrl(String url, BuildContext context) async {
+  static Future<void> openUrl(String url, BuildContext context) async {
     if (!RegExp(r'^http').hasMatch(url)) {
       url = 'http://$url';
     }
-    if (await canLaunch(url)) {
-      await launch(url);
+    var uri = Uri.parse(url);
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri);
     } else {
       sl.get<NotificationsBloc>().addNotification(
             WalletNotification(

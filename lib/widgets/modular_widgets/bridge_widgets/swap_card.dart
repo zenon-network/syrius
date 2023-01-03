@@ -312,7 +312,7 @@ class _SwapCardState extends State<SwapCard> {
             title: 'Redeem',
             description: 'Press OK to open https://bridge.zenon.network/',
             onActionButtonPressed: () {
-              NavigationUtils.launchUrl(
+              NavigationUtils.openUrl(
                       'https://bridge.zenon.network/', context)
                   .then(
                 (value) => Navigator.pop(context),

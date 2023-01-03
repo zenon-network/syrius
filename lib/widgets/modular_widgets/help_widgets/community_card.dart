@@ -179,7 +179,7 @@ class CommunityCard extends StatelessWidget {
           ),
           materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
           shape: const CircleBorder(),
-          onPressed: () => NavigationUtils.launchUrl(url, context),
+          onPressed: () => NavigationUtils.openUrl(url, context),
           child: Container(
             height: 25.0,
             width: 25.0,

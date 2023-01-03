@@ -31,7 +31,7 @@ class UpdateCard extends StatelessWidget {
     return Center(
       child: SettingsButton(
         onPressed: () =>
-            NavigationUtils.launchUrl(kGithubReleasesLink, context),
+            NavigationUtils.openUrl(kGithubReleasesLink, context),
         text: 'Update',
       ),
     );
