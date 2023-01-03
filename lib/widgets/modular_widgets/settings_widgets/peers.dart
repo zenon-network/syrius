@@ -7,7 +7,7 @@ class PeersWidget extends StatefulWidget {
   const PeersWidget({Key? key}) : super(key: key);
 
   @override
-  _PeersWidget createState() => _PeersWidget();
+  State<PeersWidget> createState() => _PeersWidget();
 }
 
 class _PeersWidget extends State<PeersWidget> {

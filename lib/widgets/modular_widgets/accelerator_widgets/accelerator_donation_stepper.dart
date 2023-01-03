@@ -19,7 +19,7 @@ class AcceleratorDonationStepper extends StatefulWidget {
   const AcceleratorDonationStepper({Key? key}) : super(key: key);
 
   @override
-  _AcceleratorDonationStepperState createState() =>
+  State<AcceleratorDonationStepper> createState() =>
       _AcceleratorDonationStepperState();
 }
 

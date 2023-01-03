@@ -9,7 +9,7 @@ class AccessWalletScreen extends StatefulWidget {
   const AccessWalletScreen({Key? key}) : super(key: key);
 
   @override
-  _AccessWalletScreenState createState() => _AccessWalletScreenState();
+  State<AccessWalletScreen> createState() => _AccessWalletScreenState();
 }
 
 class _AccessWalletScreenState extends State<AccessWalletScreen> {

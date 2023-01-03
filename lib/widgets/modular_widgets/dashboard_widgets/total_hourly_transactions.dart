@@ -12,7 +12,7 @@ class TotalHourlyTransactions extends StatefulWidget {
   const TotalHourlyTransactions({Key? key}) : super(key: key);
 
   @override
-  _TotalHourlyTransactionsState createState() =>
+  State<TotalHourlyTransactions> createState() =>
       _TotalHourlyTransactionsState();
 }
 

@@ -12,7 +12,7 @@ class ImportWalletDecryptScreen extends StatefulWidget {
   const ImportWalletDecryptScreen(this.path, {Key? key}) : super(key: key);
 
   @override
-  _ImportWalletDecryptScreenState createState() =>
+  State<ImportWalletDecryptScreen> createState() =>
       _ImportWalletDecryptScreenState();
 }
 

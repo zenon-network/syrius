@@ -15,7 +15,7 @@ class DelegationStats extends StatefulWidget {
   const DelegationStats({Key? key}) : super(key: key);
 
   @override
-  _DelegationStatsState createState() => _DelegationStatsState();
+  State<DelegationStats> createState() => _DelegationStatsState();
 }
 
 class _DelegationStatsState extends State<DelegationStats> {

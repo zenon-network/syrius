@@ -10,7 +10,7 @@ class AcceleratorStats extends StatefulWidget {
   const AcceleratorStats({Key? key}) : super(key: key);
 
   @override
-  _AcceleratorStatsState createState() => _AcceleratorStatsState();
+  State<AcceleratorStats> createState() => _AcceleratorStatsState();
 }
 
 class _AcceleratorStatsState extends State<AcceleratorStats> {

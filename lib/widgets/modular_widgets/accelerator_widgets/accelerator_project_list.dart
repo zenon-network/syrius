@@ -24,7 +24,7 @@ class AcceleratorProjectList extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  _AcceleratorProjectListState createState() => _AcceleratorProjectListState();
+  State<AcceleratorProjectList> createState() => _AcceleratorProjectListState();
 }
 
 class _AcceleratorProjectListState extends State<AcceleratorProjectList> {

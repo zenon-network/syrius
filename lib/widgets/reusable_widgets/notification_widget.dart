@@ -20,7 +20,7 @@ class NotificationWidget extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  _NotificationWidgetState createState() => _NotificationWidgetState();
+  State<NotificationWidget> createState() => _NotificationWidgetState();
 }
 
 class _NotificationWidgetState extends State<NotificationWidget> {

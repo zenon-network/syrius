@@ -12,7 +12,7 @@ class SendSmallCard extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  _SendSmallCardState createState() => _SendSmallCardState();
+  State<SendSmallCard> createState() => _SendSmallCardState();
 }
 
 class _SendSmallCardState extends State<SendSmallCard> {

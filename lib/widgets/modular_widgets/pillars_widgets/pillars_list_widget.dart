@@ -21,7 +21,7 @@ class PillarsListWidget extends StatefulWidget {
   const PillarsListWidget({Key? key, this.title}) : super(key: key);
 
   @override
-  _PillarsListWidgetState createState() => _PillarsListWidgetState();
+  State<PillarsListWidget> createState() => _PillarsListWidgetState();
 }
 
 class _PillarsListWidgetState extends State<PillarsListWidget> {

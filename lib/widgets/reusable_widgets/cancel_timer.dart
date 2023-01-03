@@ -15,7 +15,7 @@ class CancelTimer extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  _CancelTimerState createState() => _CancelTimerState();
+  State<CancelTimer> createState() => _CancelTimerState();
 }
 
 class _CancelTimerState extends State<CancelTimer> {

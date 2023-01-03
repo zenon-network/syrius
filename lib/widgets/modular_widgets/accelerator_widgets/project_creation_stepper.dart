@@ -19,7 +19,7 @@ class ProjectCreationStepper extends StatefulWidget {
   const ProjectCreationStepper({Key? key}) : super(key: key);
 
   @override
-  _ProjectCreationStepperState createState() => _ProjectCreationStepperState();
+  State<ProjectCreationStepper> createState() => _ProjectCreationStepperState();
 }
 
 class _ProjectCreationStepperState extends State<ProjectCreationStepper> {

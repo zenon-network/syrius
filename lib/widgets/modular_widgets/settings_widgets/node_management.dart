@@ -23,7 +23,7 @@ class NodeManagement extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  _NodeManagementState createState() => _NodeManagementState();
+  State<NodeManagement> createState() => _NodeManagementState();
 }
 
 class _NodeManagementState extends State<NodeManagement> {

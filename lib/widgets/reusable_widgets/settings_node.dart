@@ -20,7 +20,7 @@ class SettingsNode extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  _SettingsNodeState createState() => _SettingsNodeState();
+  State<SettingsNode> createState() => _SettingsNodeState();
 }
 
 class _SettingsNodeState extends State<SettingsNode> {

@@ -16,7 +16,7 @@ class ExportWalletInfoScreen extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  _ExportWalletInfoScreenState createState() => _ExportWalletInfoScreenState();
+  State<ExportWalletInfoScreen> createState() => _ExportWalletInfoScreenState();
 }
 
 class _ExportWalletInfoScreenState extends State<ExportWalletInfoScreen> {

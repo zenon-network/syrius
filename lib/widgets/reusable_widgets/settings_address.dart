@@ -17,7 +17,7 @@ class SettingsAddress extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  _SettingsAddressState createState() => _SettingsAddressState();
+  State<SettingsAddress> createState() => _SettingsAddressState();
 }
 
 class _SettingsAddressState extends State<SettingsAddress> {

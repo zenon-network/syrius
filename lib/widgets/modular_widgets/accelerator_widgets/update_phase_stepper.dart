@@ -25,7 +25,7 @@ class UpdatePhaseStepper extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  _UpdatePhaseStepperState createState() => _UpdatePhaseStepperState();
+  State<UpdatePhaseStepper> createState() => _UpdatePhaseStepperState();
 }
 
 class _UpdatePhaseStepperState extends State<UpdatePhaseStepper> {

@@ -8,7 +8,7 @@ class ResetWalletScreen extends StatefulWidget {
   const ResetWalletScreen({Key? key}) : super(key: key);
 
   @override
-  _ResetWalletScreenState createState() => _ResetWalletScreenState();
+  State<ResetWalletScreen> createState() => _ResetWalletScreenState();
 }
 
 class _ResetWalletScreenState extends State<ResetWalletScreen> {

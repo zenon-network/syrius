@@ -14,7 +14,7 @@ class NewWalletConfirmSeedScreen extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  _NewWalletConfirmSeedScreenState createState() =>
+  State<NewWalletConfirmSeedScreen> createState() =>
       _NewWalletConfirmSeedScreenState();
 }
 

@@ -19,7 +19,7 @@ class SentinelCollect extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  _SentinelCollectState createState() => _SentinelCollectState();
+  State<SentinelCollect> createState() => _SentinelCollectState();
 }
 
 class _SentinelCollectState extends State<SentinelCollect> {

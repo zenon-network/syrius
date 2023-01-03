@@ -35,7 +35,7 @@ class CardScaffold<T> extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  _CardScaffoldState createState() => _CardScaffoldState<T>();
+  State<CardScaffold<T>> createState() => _CardScaffoldState<T>();
 }
 
 class _CardScaffoldState<T> extends State<CardScaffold<T>> {

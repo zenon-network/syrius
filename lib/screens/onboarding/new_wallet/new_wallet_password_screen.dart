@@ -9,7 +9,7 @@ class NewWalletPasswordScreen extends StatefulWidget {
   const NewWalletPasswordScreen(this.seedWords, {Key? key}) : super(key: key);
 
   @override
-  _NewWalletPasswordScreenState createState() =>
+  State<NewWalletPasswordScreen> createState() =>
       _NewWalletPasswordScreenState();
 }
 

@@ -19,7 +19,7 @@ class PillarCollect extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  _PillarCollectState createState() => _PillarCollectState();
+  State<PillarCollect> createState() => _PillarCollectState();
 }
 
 class _PillarCollectState extends State<PillarCollect> {

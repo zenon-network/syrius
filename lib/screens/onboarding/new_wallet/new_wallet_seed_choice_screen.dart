@@ -13,7 +13,7 @@ class NewWalletSeedChoiceScreen extends StatefulWidget {
   const NewWalletSeedChoiceScreen({Key? key, this.export}) : super(key: key);
 
   @override
-  _NewWalletSeedChoiceScreenState createState() =>
+  State<NewWalletSeedChoiceScreen> createState() =>
       _NewWalletSeedChoiceScreenState();
 }
 

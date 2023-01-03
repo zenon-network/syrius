@@ -14,7 +14,7 @@ class Pillars extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  _PillarsState createState() => _PillarsState();
+  State<Pillars> createState() => _PillarsState();
 }
 
 class _PillarsState extends State<Pillars> {

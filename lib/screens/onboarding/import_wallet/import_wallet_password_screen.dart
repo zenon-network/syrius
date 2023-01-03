@@ -14,7 +14,7 @@ class ImportWalletPasswordScreen extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  _ImportWalletPasswordScreenState createState() =>
+  State<ImportWalletPasswordScreen> createState() =>
       _ImportWalletPasswordScreenState();
 }
 

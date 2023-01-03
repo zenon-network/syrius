@@ -14,7 +14,7 @@ class Staking extends StatefulWidget {
   const Staking({Key? key}) : super(key: key);
 
   @override
-  _StakingState createState() => _StakingState();
+  State<Staking> createState() => _StakingState();
 }
 
 class _StakingState extends State<Staking> {

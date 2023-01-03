@@ -12,7 +12,7 @@ class ReceiveSmallCard extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  _ReceiveSmallCardState createState() => _ReceiveSmallCardState();
+  State<ReceiveSmallCard> createState() => _ReceiveSmallCardState();
 }
 
 class _ReceiveSmallCardState extends State<ReceiveSmallCard> {

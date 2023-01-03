@@ -13,7 +13,7 @@ class WalletSuccessScreen extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  _WalletSuccessScreenState createState() => _WalletSuccessScreenState();
+  State<WalletSuccessScreen> createState() => _WalletSuccessScreenState();
 }
 
 class _WalletSuccessScreenState extends State<WalletSuccessScreen> {

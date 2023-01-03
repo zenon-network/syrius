@@ -20,7 +20,7 @@ class PhaseCreationStepper extends StatefulWidget {
   const PhaseCreationStepper(this.project, {Key? key}) : super(key: key);
 
   @override
-  _PhaseCreationStepperState createState() => _PhaseCreationStepperState();
+  State<PhaseCreationStepper> createState() => _PhaseCreationStepperState();
 }
 
 class _PhaseCreationStepperState extends State<PhaseCreationStepper> {

@@ -37,7 +37,7 @@ class TokenCard extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  _TokenCardState createState() => _TokenCardState();
+  State<TokenCard> createState() => _TokenCardState();
 }
 
 class _TokenCardState extends State<TokenCard> {

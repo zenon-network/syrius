@@ -21,7 +21,7 @@ class Transfer extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  _TransferState createState() => _TransferState();
+  State<Transfer> createState() => _TransferState();
 }
 
 class _TransferState extends State<Transfer> {

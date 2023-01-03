@@ -20,7 +20,7 @@ class TokenFavorite extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  _TokenFavoriteState createState() => _TokenFavoriteState();
+  State<TokenFavorite> createState() => _TokenFavoriteState();
 }
 
 class _TokenFavoriteState extends State<TokenFavorite> {

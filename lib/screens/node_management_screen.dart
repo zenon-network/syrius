@@ -21,7 +21,7 @@ class NodeManagementScreen extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  _NodeManagementScreenState createState() => _NodeManagementScreenState();
+  State<NodeManagementScreen> createState() => _NodeManagementScreenState();
 }
 
 class _NodeManagementScreenState extends State<NodeManagementScreen> {

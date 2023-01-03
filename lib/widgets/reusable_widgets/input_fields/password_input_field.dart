@@ -22,7 +22,7 @@ class PasswordInputField extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  _PasswordInputFieldState createState() => _PasswordInputFieldState();
+  State<PasswordInputField> createState() => _PasswordInputFieldState();
 }
 
 class _PasswordInputFieldState extends State<PasswordInputField> {

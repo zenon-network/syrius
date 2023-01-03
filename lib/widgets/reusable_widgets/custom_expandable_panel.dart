@@ -13,7 +13,7 @@ class CustomExpandablePanel extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  _CustomExpandablePanelState createState() => _CustomExpandablePanelState();
+  State<CustomExpandablePanel> createState() => _CustomExpandablePanelState();
 
   static Widget getGenericTextExpandedChild(
     String expandedText,
