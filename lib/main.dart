@@ -1,7 +1,5 @@
 import 'dart:io';
 import 'dart:isolate';
-
-import 'package:feedback/feedback.dart';
 import 'package:flutter/foundation.dart'
     show debugDefaultTargetPlatformOverride;
 import 'package:flutter/gestures.dart';
@@ -16,7 +14,6 @@ import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/model/model.dart';
 import 'package:zenon_syrius_wallet_flutter/screens/screens.dart';
 import 'package:zenon_syrius_wallet_flutter/services/shared_prefs_service.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_theme.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
@@ -94,20 +91,9 @@ main() async {
     }
   });
 
-  runApp(BetterFeedback(
-    theme: FeedbackThemeData(
-      background: Colors.black,
-      activeFeedbackModeColor: AppColors.znnColor,
-      drawColors: [
-        AppColors.znnColor,
-        AppColors.qsrColor,
-        AppColors.errorColor,
-      ],
-    ),
-    child: Builder(
-      builder: (_) => const MyApp(),
-    ),
-  ));
+  runApp(
+    const MyApp(),
+  );
 }
 
 void setup() {
