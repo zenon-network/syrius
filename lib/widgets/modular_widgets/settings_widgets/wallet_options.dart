@@ -29,7 +29,6 @@ class _WalletOptionsState extends State<WalletOptions> {
       children: [
         CustomExpandablePanel('Delete cache', _getDeleteCacheExpandedWidget()),
         CustomExpandablePanel('Reset wallet', _getResetWalletExpandedWidget()),
-        CustomExpandablePanel('Swap wallet', _getSwapWalletExpandedWidget()),
       ],
     );
   }
@@ -53,31 +52,6 @@ class _WalletOptionsState extends State<WalletOptions> {
             text: 'Reset wallet',
           ),
         ),
-      ],
-    );
-  }
-
-  Widget _getSwapWalletExpandedWidget() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'This option will start the swap procedure',
-          style: Theme.of(context).textTheme.subtitle2,
-        ),
-        kVerticalSpacing,
-        Center(
-          child: SettingsButton(
-            onPressed: () {
-              NavigationUtils.push(
-                context,
-                const SwapInfoScreen(),
-              );
-            },
-            text: 'Swap wallet',
-          ),
-        ),
-        kVerticalSpacing,
       ],
     );
   }

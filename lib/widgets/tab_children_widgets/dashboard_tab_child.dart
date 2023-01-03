@@ -63,16 +63,12 @@ class _DashboardTabChildState extends State<DashboardTabChild> {
         height: kStaggeredNumOfColumns / 8,
       ),
       const FluidCell(
-        child: SwapDecay(),
-        height: kStaggeredNumOfColumns / 8,
-      ),
-      const FluidCell(
         child: DelegationStats(),
         height: kStaggeredNumOfColumns / 8,
       ),
       FluidCell(
         child: const Sentinels(),
-        width: defaultCellWidth,
+        width: defaultCellWidth * 2,
         height: kStaggeredNumOfColumns / 8,
       ),
       FluidCell(

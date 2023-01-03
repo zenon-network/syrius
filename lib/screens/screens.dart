@@ -9,4 +9,3 @@ export 'splash_screen.dart';
 export 'stepper_screen.dart';
 export 'export/export.dart';
 export 'onboarding/onboarding.dart';
-export 'swap/swap.dart';

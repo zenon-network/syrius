@@ -60,13 +60,7 @@ class _WalletSuccessScreenState extends State<WalletSuccessScreen> {
             ),
           ),
         ),
-        Column(
-          children: [
-            _getAccessWalletActionButton(),
-            kVerticalSpacing,
-            _getSwapWalletButton(),
-          ],
-        ),
+        _getAccessWalletActionButton(),
       ],
     );
   }
@@ -86,18 +80,6 @@ class _WalletSuccessScreenState extends State<WalletSuccessScreen> {
         );
       },
       text: 'Access wallet',
-    );
-  }
-
-  Widget _getSwapWalletButton() {
-    return OnboardingButton(
-      onPressed: () {
-        NavigationUtils.push(
-          context,
-          const SwapInfoScreen(),
-        );
-      },
-      text: 'Swap wallet',
     );
   }
 }
