@@ -145,7 +145,7 @@ class _ExportWalletPasswordScreenState
               }
               final walletPath = await FileSelectorPlatform.instance.getSavePath(
                 acceptedTypeGroups: <XTypeGroup>[
-                  XTypeGroup(
+                  const XTypeGroup(
                     label: 'file',
                     extensions: <String>['json'],
                   ),
