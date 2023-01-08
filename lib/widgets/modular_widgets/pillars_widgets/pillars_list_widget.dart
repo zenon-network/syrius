@@ -407,6 +407,7 @@ class _PillarsListWidgetState extends State<PillarsListWidget> {
             pillarItem.isRevocable
                 ? 'Revocation window is open'
                 : 'Until revocation window opens',
+            Icons.help,
             iconColor: pillarItem.isRevocable
                 ? AppColors.znnColor
                 : AppColors.errorColor,

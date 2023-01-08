@@ -363,6 +363,7 @@ class _TokenStepperState extends State<TokenStepper> {
               const StandardTooltipIcon(
                 'Token status: utility or '
                 'non-utility (e.g. security token)',
+                Icons.help,
                 iconColor: AppColors.ztsColor,
               ),
             ],
@@ -855,6 +856,7 @@ class _TokenStepperState extends State<TokenStepper> {
             ),
             const StandardTooltipIcon(
               'Whether or not this token is mintable after creation',
+              Icons.help,
               iconColor: AppColors.ztsColor,
             ),
           ],
@@ -884,6 +886,7 @@ class _TokenStepperState extends State<TokenStepper> {
             ),
             const StandardTooltipIcon(
               'Whether or not only the token owner can burn it',
+              Icons.help,
               iconColor: AppColors.ztsColor,
             ),
           ],
