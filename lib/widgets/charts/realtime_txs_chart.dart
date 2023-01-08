@@ -82,15 +82,11 @@ class RealtimeTxsChartState extends State<RealtimeTxsChart> {
   List<LineChartBarData> _linesBarData() {
     return [
       StandardLineChartBarData(
-        colors: [
-          ColorUtils.getTokenColor(kZnnCoin.tokenStandard),
-        ],
+        color: ColorUtils.getTokenColor(kZnnCoin.tokenStandard),
         spots: _znnSpots,
       ),
       StandardLineChartBarData(
-        colors: [
-          ColorUtils.getTokenColor(kQsrCoin.tokenStandard),
-        ],
+        color: ColorUtils.getTokenColor(kQsrCoin.tokenStandard),
         spots: _qsrSpots,
       ),
     ];

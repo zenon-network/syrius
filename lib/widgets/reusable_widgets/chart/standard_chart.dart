@@ -45,7 +45,7 @@ class StandardChart extends StatelessWidget {
                 return touchedSpots.map(
                   (LineBarSpot touchedSpot) {
                     final textStyle = TextStyle(
-                      color: touchedSpot.bar.colors[0],
+                      color: touchedSpot.bar.color,
                       fontWeight: FontWeight.bold,
                       fontSize: 14.0,
                     );
@@ -72,40 +72,51 @@ class StandardChart extends StatelessWidget {
             },
           ),
           titlesData: FlTitlesData(
-            bottomTitles: SideTitles(
-              showTitles: true,
-              reservedSize: 14.0,
-              getTextStyles: (context, _) =>
-                  Theme.of(context).textTheme.subtitle2!,
-              margin: 8.0,
-              interval: 1.0,
-              getTitles: (value) => FormatUtils.formatDate(
-                FormatUtils.subtractDaysFromDate(
-                    value.toInt(), titlesReferenceDate),
-                dateFormat: 'd MMM',
+            bottomTitles: AxisTitles(
+              sideTitles: SideTitles(
+                getTitlesWidget: (value, titleMeta) => Padding(
+                  padding: const EdgeInsets.only(top: 8.0),
+                  child: Text(
+                    FormatUtils.formatDate(
+                      FormatUtils.subtractDaysFromDate(
+                          value.toInt(), titlesReferenceDate),
+                      dateFormat: 'd MMM',
+                    ),
+                    style: Theme.of(context).textTheme.subtitle2!,
+                  ),
+                ),
+                showTitles: true,
+                reservedSize: 14.0,
+                interval: 1.0,
               ),
             ),
-            leftTitles: SideTitles(
-              interval: yValuesInterval,
-              showTitles: true,
-              getTextStyles: (context, _) =>
-                  Theme.of(context).textTheme.subtitle2!,
-              getTitles: (value) {
-                return value != 0
-                    ? convertLeftSideTitlesToInt
+            leftTitles: AxisTitles(
+              sideTitles: SideTitles(
+                interval: yValuesInterval,
+                showTitles: true,
+                getTitlesWidget: (value, _) => Padding(
+                  padding: const EdgeInsets.only(top: 8.0),
+                  child: Text(
+                    value != 0
+                        ? convertLeftSideTitlesToInt
                         ? '${value.toInt()}'
                         : value.toStringAsFixed(2)
-                    : '';
-              },
-              margin: 8.0,
-              reservedSize: 26.0,
+                        : '',
+                    style: Theme.of(context).textTheme.subtitle2!,
+                  ),
+                ),
+                reservedSize: 26.0,
+              ),
             ),
-            rightTitles: SideTitles(
-              showTitles: false,
+            rightTitles: AxisTitles(
+              sideTitles: SideTitles(
+                showTitles: false,
+              ),
             ),
-            topTitles: SideTitles(
-              showTitles: false,
-            ),
+            topTitles: AxisTitles(
+                sideTitles: SideTitles(
+                  showTitles: false,
+                )),
           ),
           borderData: FlBorderData(show: false),
           minX: 0.0,

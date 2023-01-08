@@ -108,7 +108,7 @@ class CommunityCard extends StatelessWidget {
           context: context,
         ),
         _getListViewChild(
-          iconData: MaterialCommunityIcons.telegram,
+          iconData: Icons.telegram,
           title: 'Zenon Telegram',
           url: kTelegram,
           context: context,
