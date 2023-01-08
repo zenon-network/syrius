@@ -24,21 +24,28 @@ class AddressUtils {
   static String getLabel(String address) =>
       kAddressLabelMap[address] ?? address;
 
-  static Future<void> generateNewAddress({VoidCallback? callback}) async {
+  static Future<void> generateNewAddress(
+      {int numAddr = 1, VoidCallback? callback}) async {
     await Future.delayed(const Duration(milliseconds: 500));
-    Address? newAddress =
-        await kKeyStore!.getKeyPair(kDefaultAddressList.length).address;
-    Box addressesBox = Hive.box(kAddressesBox);
-    await addressesBox.add(newAddress.toString());
-    _initAddresses(addressesBox);
-    Box addressLabelsBox = Hive.box(kAddressLabelsBox);
-    await addressLabelsBox.put(
-      newAddress.toString(),
-      'Address ${kDefaultAddressList.length}',
-    );
-    _initAddressLabels(addressLabelsBox);
-    NodeUtils.getUnreceivedTransactionsByAddress(newAddress!);
-    callback?.call();
+    List<Address?> listAddr = [];
+    int addrListLength = kDefaultAddressList.length;
+    for (int i = 0; i < numAddr; i++) {
+      int addrListCounter = addrListLength + i;
+      Address? address = await kKeyStore!.getKeyPair(addrListCounter).address;
+      listAddr.add(address);
+      Box addressesBox = Hive.box(kAddressesBox);
+      await addressesBox.add(listAddr.elementAt(i).toString());
+      _initAddresses(addressesBox);
+      Box addressLabelsBox = Hive.box(kAddressLabelsBox);
+      await addressLabelsBox.put(
+        listAddr.elementAt(i).toString(),
+        'Address ${kDefaultAddressList.length}',
+      );
+      _initAddressLabels(addressLabelsBox);
+      NodeUtils.getUnreceivedTransactionsByAddress(listAddr[i]!);
+      callback?.call();
+    }
+    listAddr.clear();
   }
 
   static Future<void> setAddressLabels() async {

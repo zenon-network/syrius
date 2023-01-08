@@ -11,6 +11,7 @@ import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/model/model.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/logger.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/notification_utils.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
@@ -18,15 +19,27 @@ int _kHeight = 0;
 
 class NodeUtils {
   static Future<bool> establishConnectionToNode(String url) async {
-    return await zenon!.wsClient.initialize(
+    bool connectionStatus = await zenon!.wsClient.initialize(
       url,
       retry: false,
     );
+
+    if (connectionStatus) {
+      try {
+        await zenon!.ledger.getFrontierMomentum().then((value) {
+          setChainIdentifier(chainIdentifier: value.chainIdentifier.toInt());
+        });
+      } catch (e) {
+        Logger.logError(e);
+      }
+    }
+
+    return connectionStatus;
   }
 
   static closeEmbeddedNode() async {
     // Release WakeLock
-    if (await Wakelock.enabled) {
+    if (!Platform.isLinux && await Wakelock.enabled) {
       Wakelock.disable();
     }
 
@@ -182,7 +195,7 @@ class NodeUtils {
           await NodeUtils.establishConnectionToNode(kLocalhostDefaultNodeUrl);
       if (isConnectionEstablished == false) {
         // Acquire WakeLock
-        if (!await Wakelock.enabled) {
+        if (!Platform.isLinux && !await Wakelock.enabled) {
           Wakelock.enable();
         }
         // Initialize local full node

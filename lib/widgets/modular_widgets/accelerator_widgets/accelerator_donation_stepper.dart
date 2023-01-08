@@ -235,6 +235,7 @@ class _AcceleratorDonationStepperState
             Text('Total donation budget'),
             StandardTooltipIcon(
               'Your donation matters',
+              Icons.help,
             ),
           ],
         ),
