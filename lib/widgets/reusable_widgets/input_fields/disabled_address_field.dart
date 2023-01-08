@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/input_field/input_field.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 
 class DisabledAddressField extends StatelessWidget {
   final TextEditingController _addressController;

@@ -1,15 +1,9 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
-import 'package:zenon_syrius_wallet_flutter/screens/onboarding/new_wallet/new_wallet_password_screen.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/extensions.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/navigation_utils.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/buttons/onboarding_button.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/icons/standard_tooltip_icon.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/progress_bars.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/seed/seed_grid.dart';
+import 'package:zenon_syrius_wallet_flutter/screens/screens.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 
 class NewWalletConfirmSeedScreen extends StatefulWidget {
   final List<String> seedWords;
@@ -20,7 +14,7 @@ class NewWalletConfirmSeedScreen extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  _NewWalletConfirmSeedScreenState createState() =>
+  State<NewWalletConfirmSeedScreen> createState() =>
       _NewWalletConfirmSeedScreenState();
 }
 
@@ -161,11 +155,11 @@ class _NewWalletConfirmSeedScreenState
   Widget _seedFieldWidget(SeedGridElement seedGridElement) {
     int seedGridElementIndex = _seedGridElements.indexOf(seedGridElement);
 
-    final TextEditingController _controller = TextEditingController();
-    _controller.text = seedGridElement.word;
+    final TextEditingController controller = TextEditingController();
+    controller.text = seedGridElement.word;
     if (_textCursor == seedGridElementIndex) {
-      _controller.selection = TextSelection.collapsed(
-        offset: _controller.text.length,
+      controller.selection = TextSelection.collapsed(
+        offset: controller.text.length,
       );
     }
 
@@ -235,7 +229,7 @@ class _NewWalletConfirmSeedScreenState
                 builder: (BuildContext context, accepted, rejected) {
                   return TextField(
                     enabled: false,
-                    controller: _controller,
+                    controller: controller,
                     obscureText: _randomIndexes.contains(seedGridElementIndex)
                         ? false
                         : !seedGridElement.isShown ||
@@ -292,31 +286,9 @@ class _NewWalletConfirmSeedScreenState
       if (!_foundMissingRandomElementsIndexes.contains(index)) {
         list.add(
           Draggable<String>(
-            child: ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                primary: _draggedValue == seedWords[index]
-                    ? Theme.of(context)
-                        .colorScheme
-                        .secondaryContainer
-                        .withOpacity(0.5)
-                    : Theme.of(context).colorScheme.secondaryContainer,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(5.0),
-                ),
-              ),
-              onPressed: () {},
-              child: Text(
-                seedWords[index],
-                style: Theme.of(context).textTheme.bodyText1!.copyWith(
-                      color: _draggedValue == seedWords[index]
-                          ? Colors.white.withOpacity(0.7)
-                          : Colors.white,
-                    ),
-              ),
-            ),
             feedback: ElevatedButton(
               style: ElevatedButton.styleFrom(
-                primary: AppColors.darkSecondary,
+                foregroundColor: AppColors.darkSecondary,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(5.0),
                 ),
@@ -338,16 +310,38 @@ class _NewWalletConfirmSeedScreenState
                 _draggedValue = null;
               });
             },
+            child: ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                foregroundColor: _draggedValue == seedWords[index]
+                    ? Theme.of(context)
+                        .colorScheme
+                        .secondaryContainer
+                        .withOpacity(0.5)
+                    : Theme.of(context).colorScheme.secondaryContainer,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(5.0),
+                ),
+              ),
+              onPressed: () {},
+              child: Text(
+                seedWords[index],
+                style: Theme.of(context).textTheme.bodyText1!.copyWith(
+                      color: _draggedValue == seedWords[index]
+                          ? Colors.white.withOpacity(0.7)
+                          : Colors.white,
+                    ),
+              ),
+            ),
           ),
         );
       }
     }
     return Wrap(
-      children: list,
       crossAxisAlignment: WrapCrossAlignment.start,
       alignment: WrapAlignment.start,
       direction: Axis.horizontal,
       spacing: 5.0,
+      children: list,
     );
   }
 

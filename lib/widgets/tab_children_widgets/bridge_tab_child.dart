@@ -1,9 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:layout/layout.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/bridge_widgets/dynamic_multiplier_rewards_card.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/bridge_widgets/join_liquidity_program_card.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/bridge_widgets/swap_card.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/layout_scaffold/standard_fluid_layout.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 
 class BridgeTabChild extends StatelessWidget {
   const BridgeTabChild({Key? key}) : super(key: key);

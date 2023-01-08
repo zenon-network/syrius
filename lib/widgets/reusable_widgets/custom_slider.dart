@@ -166,7 +166,7 @@ class CustomSlider extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  _CustomSliderState createState() => _CustomSliderState();
+  State<CustomSlider> createState() => _CustomSliderState();
 }
 
 class _CustomSliderState extends State<CustomSlider> {

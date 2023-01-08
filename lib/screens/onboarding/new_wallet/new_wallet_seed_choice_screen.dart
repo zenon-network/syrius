@@ -2,16 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:hive/hive.dart';
 import 'package:provider/provider.dart';
-import 'package:zenon_syrius_wallet_flutter/screens/export/export_wallet_info_screen.dart';
-import 'package:zenon_syrius_wallet_flutter/screens/onboarding/access_wallet_screen.dart';
-import 'package:zenon_syrius_wallet_flutter/screens/onboarding/new_wallet/new_wallet_confirm_seed_screen.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/navigation_utils.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/buttons/onboarding_button.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/progress_bars.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/seed/seed_choice.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/seed/seed_grid.dart';
+import 'package:zenon_syrius_wallet_flutter/screens/screens.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 class NewWalletSeedChoiceScreen extends StatefulWidget {
@@ -20,7 +13,7 @@ class NewWalletSeedChoiceScreen extends StatefulWidget {
   const NewWalletSeedChoiceScreen({Key? key, this.export}) : super(key: key);
 
   @override
-  _NewWalletSeedChoiceScreenState createState() =>
+  State<NewWalletSeedChoiceScreen> createState() =>
       _NewWalletSeedChoiceScreenState();
 }
 

@@ -4,21 +4,12 @@ import 'dart:isolate';
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'package:wakelock/wakelock.dart';
-import 'package:zenon_syrius_wallet_flutter/blocs/notifications_bloc.dart';
+import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/embedded_node/embedded_node.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
-import 'package:zenon_syrius_wallet_flutter/model/database/notification_type.dart';
-import 'package:zenon_syrius_wallet_flutter/model/database/wallet_notification.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/input_validators.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/node_utils.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/notification_utils.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/main_app_container.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/buttons/loading_button.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/input_field/input_field.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/notification_widget.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/settings_node.dart';
+import 'package:zenon_syrius_wallet_flutter/model/model.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 
 class NodeManagementScreen extends StatefulWidget {
   final VoidCallback? nodeConfirmationCallback;
@@ -31,7 +22,7 @@ class NodeManagementScreen extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  _NodeManagementScreenState createState() => _NodeManagementScreenState();
+  State<NodeManagementScreen> createState() => _NodeManagementScreenState();
 }
 
 class _NodeManagementScreenState extends State<NodeManagementScreen> {
@@ -147,11 +138,11 @@ class _NodeManagementScreenState extends State<NodeManagementScreen> {
       String url = _selectedNode == 'Embedded Node'
           ? kLocalhostDefaultNodeUrl
           : _selectedNode!;
-      bool _isConnectionEstablished =
+      bool isConnectionEstablished =
           await NodeUtils.establishConnectionToNode(url);
       if (_selectedNode == 'Embedded Node') {
         // Check if node is already running
-        if (!_isConnectionEstablished) {
+        if (!isConnectionEstablished) {
           // Initialize local full node
           await Isolate.spawn(EmbeddedNode.runNode, [''],
               onExit: sl<ReceivePort>(instanceName: 'embeddedStoppedPort')
@@ -159,17 +150,17 @@ class _NodeManagementScreenState extends State<NodeManagementScreen> {
           kEmbeddedNodeRunning = true;
           // The node needs a couple of seconds to actually start
           await Future.delayed(kEmbeddedConnectionDelay);
-          _isConnectionEstablished =
+          isConnectionEstablished =
               await NodeUtils.establishConnectionToNode(url);
         }
       } else {
-        _isConnectionEstablished =
+        isConnectionEstablished =
             await NodeUtils.establishConnectionToNode(url);
-        if (_isConnectionEstablished) {
+        if (isConnectionEstablished) {
           await NodeUtils.closeEmbeddedNode();
         }
       }
-      if (_isConnectionEstablished) {
+      if (isConnectionEstablished) {
         await sharedPrefsService!.put(
           kSelectedNodeKey,
           _selectedNode,
@@ -255,7 +246,7 @@ class _NodeManagementScreenState extends State<NodeManagementScreen> {
         await Hive.openBox<String>(kNodesBox);
       }
       Hive.box<String>(kNodesBox).add(_newNodeController.text);
-      await NodeUtils.loadDbNodes(context);
+      await NodeUtils.loadDbNodes();
       _sendAddNodeSuccessNotification();
       setState(() {
         _newNodeController = TextEditingController();

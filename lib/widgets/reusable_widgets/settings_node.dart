@@ -6,12 +6,7 @@ import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/node_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/notification_utils.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/buttons/material_icon_button.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/buttons/outlined_button.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/buttons/settings_button.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/dialogs.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/icons/standard_tooltip_icon.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/input_field/input_field.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 class SettingsNode extends StatefulWidget {
@@ -29,7 +24,7 @@ class SettingsNode extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  _SettingsNodeState createState() => _SettingsNodeState();
+  State<SettingsNode> createState() => _SettingsNodeState();
 }
 
 class _SettingsNodeState extends State<SettingsNode> {
@@ -88,7 +83,7 @@ class _SettingsNodeState extends State<SettingsNode> {
         Visibility(
             visible: widget.currentNode.contains(widget.node),
             child: StandardTooltipIcon(
-                'Chain identifier ' + getChainIdentifier().toString(),
+                'Chain identifier ${getChainIdentifier()}',
                 MaterialCommunityIcons.identifier)),
         const SizedBox(
           width: 5.0,
@@ -243,7 +238,7 @@ class _SettingsNodeState extends State<SettingsNode> {
           (key) => nodesBox.get(key) == widget.node,
         );
         await nodesBox.put(key, _nodeController.text);
-        await NodeUtils.loadDbNodes(context);
+        await NodeUtils.loadDbNodes();
         setState(() {
           _editable = false;
         });

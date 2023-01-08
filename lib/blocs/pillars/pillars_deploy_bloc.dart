@@ -1,10 +1,10 @@
 import 'dart:async';
 
-import 'package:zenon_syrius_wallet_flutter/blocs/base_bloc.dart';
+import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/account_block_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/address_utils.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/pillars_widgets/pillars_stepper_container.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 class PillarsDeployBloc extends BaseBloc<AccountBlockTemplate?> {

@@ -1,12 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:zenon_syrius_wallet_flutter/screens/onboarding/create_key_store_screen.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/input_validators.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/navigation_utils.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/buttons/onboarding_button.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/dotted_border_info_widget.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/input_field/password_input_field.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/progress_bars.dart';
+import 'package:zenon_syrius_wallet_flutter/screens/screens.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 
 class ImportWalletPasswordScreen extends StatefulWidget {
   final String seed;
@@ -19,7 +14,7 @@ class ImportWalletPasswordScreen extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  _ImportWalletPasswordScreenState createState() =>
+  State<ImportWalletPasswordScreen> createState() =>
       _ImportWalletPasswordScreenState();
 }
 

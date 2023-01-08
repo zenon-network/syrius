@@ -1,9 +1,8 @@
 import 'dart:async';
 
 import 'package:hive/hive.dart';
-import 'package:zenon_syrius_wallet_flutter/blocs/base_bloc.dart';
-import 'package:zenon_syrius_wallet_flutter/model/database/notification_type.dart';
-import 'package:zenon_syrius_wallet_flutter/model/database/wallet_notification.dart';
+import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
+import 'package:zenon_syrius_wallet_flutter/model/model.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
 
 class NotificationsBloc extends BaseBloc<WalletNotification?> {

@@ -1,12 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
-import 'package:zenon_syrius_wallet_flutter/screens/onboarding/access_wallet_screen.dart';
-import 'package:zenon_syrius_wallet_flutter/screens/swap/swap_info_screen.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/navigation_utils.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/main_app_container.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/buttons/onboarding_button.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/progress_bars.dart';
+import 'package:zenon_syrius_wallet_flutter/screens/screens.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 
 class WalletSuccessScreen extends StatefulWidget {
   final int progressBarNumLevels;
@@ -17,7 +13,7 @@ class WalletSuccessScreen extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  _WalletSuccessScreenState createState() => _WalletSuccessScreenState();
+  State<WalletSuccessScreen> createState() => _WalletSuccessScreenState();
 }
 
 class _WalletSuccessScreenState extends State<WalletSuccessScreen> {
@@ -64,13 +60,7 @@ class _WalletSuccessScreenState extends State<WalletSuccessScreen> {
             ),
           ),
         ),
-        Column(
-          children: [
-            _getAccessWalletActionButton(),
-            kVerticalSpacing,
-            _getSwapWalletButton(),
-          ],
-        ),
+        _getAccessWalletActionButton(),
       ],
     );
   }
@@ -90,18 +80,6 @@ class _WalletSuccessScreenState extends State<WalletSuccessScreen> {
         );
       },
       text: 'Access wallet',
-    );
-  }
-
-  Widget _getSwapWalletButton() {
-    return OnboardingButton(
-      onPressed: () {
-        NavigationUtils.push(
-          context,
-          const SwapInfoScreen(),
-        );
-      },
-      text: 'Swap wallet',
     );
   }
 }

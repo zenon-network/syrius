@@ -1,6 +1,6 @@
-import 'package:zenon_syrius_wallet_flutter/blocs/base_bloc.dart';
+import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/main_app_container.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 
 enum LockEvent {
   countDown,

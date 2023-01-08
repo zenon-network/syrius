@@ -119,7 +119,7 @@ packages:
       name: build_resolvers
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "2.0.10"
+    version: "2.1.0"
   build_runner:
     dependency: "direct dev"
     description:
@@ -161,7 +161,7 @@ packages:
       name: checked_yaml
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "2.0.1"
+    version: "2.0.2"
   clock:
     dependency: transitive
     description:
@@ -302,15 +302,8 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.3.1"
-  feedback:
-    dependency: "direct main"
-    description:
-      name: feedback
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "2.2.1"
   ffi:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: ffi
       url: "https://pub.dartlang.org"
@@ -390,11 +383,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "2.0.1"
-  flutter_localizations:
-    dependency: transitive
-    description: flutter
-    source: sdk
-    version: "0.0.0"
   flutter_staggered_grid_view:
     dependency: "direct main"
     description:
@@ -441,7 +429,7 @@ packages:
     source: hosted
     version: "2.0.1"
   get_it:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: get_it
       url: "https://pub.dartlang.org"
@@ -462,7 +450,7 @@ packages:
     source: hosted
     version: "2.2.0"
   hex:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: hex
       url: "https://pub.dartlang.org"
@@ -539,7 +527,7 @@ packages:
     source: hosted
     version: "4.7.0"
   json_rpc_2:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: json_rpc_2
       url: "https://pub.dartlang.org"
@@ -636,6 +624,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "0.5.0"
+  number_selector:
+    dependency: "direct main"
+    description:
+      name: number_selector
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "1.0.5"
   overlay_support:
     dependency: "direct main"
     description:
@@ -700,7 +695,7 @@ packages:
     source: hosted
     version: "2.0.9"
   path:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: path
       url: "https://pub.dartlang.org"
@@ -810,7 +805,7 @@ packages:
       name: pretty_qr_code
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "2.0.2"
+    version: "2.0.3"
   process:
     dependency: transitive
     description:
@@ -845,7 +840,7 @@ packages:
       name: qr
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "2.1.0"
+    version: "3.0.1"
   rxdart:
     dependency: "direct main"
     description:
@@ -859,7 +854,7 @@ packages:
       name: screen_retriever
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.1.4"
+    version: "0.1.5"
   sha3:
     dependency: transitive
     description:
@@ -1179,7 +1174,7 @@ packages:
       name: window_manager
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.2.8"
+    version: "0.2.9"
   xdg_directories:
     dependency: transitive
     description:
@@ -1205,9 +1200,9 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: "367ddc7fbfefb6484d7553d9ac7e4532003a7008"
-      resolved-ref: "367ddc7fbfefb6484d7553d9ac7e4532003a7008"
-      url: "https://github.com/zenon-network/znn_sdk_dart.git"
+      ref: "5e1d826f9cad841498a314cf50e985539c29d634"
+      resolved-ref: "5e1d826f9cad841498a314cf50e985539c29d634"
+      url: "https://github.com/alienc0der/znn_sdk_dart.git"
     source: git
     version: "0.0.4"
   znn_swap_utility:

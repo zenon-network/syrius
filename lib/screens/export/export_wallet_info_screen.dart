@@ -1,12 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_vector_icons/flutter_vector_icons.dart';
-import 'package:zenon_syrius_wallet_flutter/screens/export/export_wallet_password_screen.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/navigation_utils.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/buttons/onboarding_button.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/progress_bars.dart';
+import 'package:zenon_syrius_wallet_flutter/screens/screens.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 
 class ExportWalletInfoScreen extends StatefulWidget {
   final String seed;
@@ -19,7 +16,7 @@ class ExportWalletInfoScreen extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  _ExportWalletInfoScreenState createState() => _ExportWalletInfoScreenState();
+  State<ExportWalletInfoScreen> createState() => _ExportWalletInfoScreenState();
 }
 
 class _ExportWalletInfoScreenState extends State<ExportWalletInfoScreen> {

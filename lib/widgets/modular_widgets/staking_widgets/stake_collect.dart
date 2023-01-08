@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:zenon_syrius_wallet_flutter/blocs/staking/staking_rewards_history_bloc.dart';
-import 'package:zenon_syrius_wallet_flutter/blocs/staking/staking_uncollected_rewards_bloc.dart';
+import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/account_block_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
@@ -8,11 +7,7 @@ import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/extensions.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/notification_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/zts_utils.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/buttons/loading_button.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/error_widget.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/layout_scaffold/card_scaffold.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/loading_widget.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/number_animation.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 class StakeCollect extends StatefulWidget {
@@ -24,7 +19,7 @@ class StakeCollect extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  _StakeCollectState createState() => _StakeCollectState();
+  State<StakeCollect> createState() => _StakeCollectState();
 }
 
 class _StakeCollectState extends State<StakeCollect> {

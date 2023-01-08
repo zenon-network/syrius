@@ -4,17 +4,12 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'package:lottie/lottie.dart';
-import 'package:zenon_syrius_wallet_flutter/blocs/notifications_bloc.dart';
+import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
-import 'package:zenon_syrius_wallet_flutter/model/navigation_arguments.dart';
-import 'package:zenon_syrius_wallet_flutter/screens/node_management_screen.dart';
-import 'package:zenon_syrius_wallet_flutter/screens/onboarding/access_wallet_screen.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/file_utils.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
+import 'package:zenon_syrius_wallet_flutter/model/model.dart';
+import 'package:zenon_syrius_wallet_flutter/screens/screens.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/main_app_container.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/error_widget.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 
 class SplashScreen extends StatefulWidget {
   static const String route = 'splash-screen';
@@ -29,7 +24,7 @@ class SplashScreen extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  _SplashScreenState createState() => _SplashScreenState();
+  State<SplashScreen> createState() => _SplashScreenState();
 }
 
 class _SplashScreenState extends State<SplashScreen>
@@ -64,7 +59,7 @@ class _SplashScreenState extends State<SplashScreen>
           ? await _resetWallet()
           : widget.deleteCacheFlow
               ? await _deleteCache().then((value) => exit(0))
-              : await Utils.initApp(context);
+              : await InitUtils.initApp(context);
       _navigateToNextScreen();
     } on Exception catch (e) {
       Navigator.pushReplacementNamed(
@@ -106,7 +101,7 @@ class _SplashScreenState extends State<SplashScreen>
     await sl.get<NotificationsBloc>().addNotification(null);
     await _deleteKeyStoreFile();
     await Hive.deleteFromDisk();
-    await Utils.initApp(context);
+    await InitUtils.initApp(context);
   }
 
   Future<void> _deleteCache() async => Future.forEach<String>(

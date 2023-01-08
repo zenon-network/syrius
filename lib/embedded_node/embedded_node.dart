@@ -63,7 +63,7 @@ class EmbeddedNode {
       }
     }
 
-    logger.info('Loading libznn from path ' + libraryPath);
+    logger.info('Loading libznn from path $libraryPath');
 
     if (!found) {
       throw invalidZnnLibPathException;

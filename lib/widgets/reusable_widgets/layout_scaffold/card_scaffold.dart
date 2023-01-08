@@ -6,14 +6,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_vector_icons/flutter_vector_icons.dart';
 import 'package:lottie/lottie.dart';
 import 'package:stacked/stacked.dart';
-import 'package:zenon_syrius_wallet_flutter/blocs/hide_widget_status_bloc.dart';
+import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/widget_utils.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/buttons/loading_button.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/error_widget.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/input_field/password_input_field.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/loading_widget.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 
 class CardScaffold<T> extends StatefulWidget {
   final String? title;
@@ -38,7 +35,7 @@ class CardScaffold<T> extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  _CardScaffoldState createState() => _CardScaffoldState<T>();
+  State<CardScaffold<T>> createState() => _CardScaffoldState<T>();
 }
 
 class _CardScaffoldState<T> extends State<CardScaffold<T>> {
