@@ -320,7 +320,10 @@ class _ProjectCreationStepperState extends State<ProjectCreationStepper> {
                 ),
               ),
             ),
-            const StandardTooltipIcon('Link to project article'),
+            const StandardTooltipIcon(
+              'Link to project article',
+              Icons.help,
+            ),
           ],
         ),
         kVerticalSpacing,
@@ -330,7 +333,10 @@ class _ProjectCreationStepperState extends State<ProjectCreationStepper> {
               'Total project budget',
               style: Theme.of(context).textTheme.bodyText1,
             ),
-            const StandardTooltipIcon('Set a budget for the project'),
+            const StandardTooltipIcon(
+              'Set a budget for the project',
+              Icons.help,
+            ),
           ],
         ),
         kVerticalSpacing,
