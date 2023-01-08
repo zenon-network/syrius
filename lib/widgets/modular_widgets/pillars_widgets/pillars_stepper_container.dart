@@ -633,6 +633,7 @@ class _MainPillarsState extends State<PillarsStepperContainer> {
               ),
               const StandardTooltipIcon(
                 'The address that will be able to collect the Pillar rewards',
+                Icons.help,
               ),
             ],
           ),
@@ -657,6 +658,7 @@ class _MainPillarsState extends State<PillarsStepperContainer> {
               ),
               const StandardTooltipIcon(
                 'The address that will produce momentums, get it from znn-controller',
+                Icons.help,
               ),
             ],
           ),

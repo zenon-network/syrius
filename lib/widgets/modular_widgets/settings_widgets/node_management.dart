@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'dart:isolate';
 
 import 'package:flutter/material.dart';
@@ -35,10 +36,13 @@ class _NodeManagementState extends State<NodeManagement> {
   TextEditingController _newNodeController = TextEditingController();
   GlobalKey<FormState> _newNodeKey = GlobalKey();
 
+  late String _selectedNodeConfirmed;
+
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
     _selectedNode ??= kCurrentNode!;
+    _selectedNodeConfirmed = _selectedNode!;
   }
 
   @override
@@ -64,7 +68,7 @@ class _NodeManagementState extends State<NodeManagement> {
         CustomExpandablePanel(
           'Add node',
           _getAddNodeExpandableChild(),
-        ),
+        )
       ],
     );
   }
@@ -93,7 +97,7 @@ class _NodeManagementState extends State<NodeManagement> {
 
   Future<void> _onConfirmNodeButtonPressed() async {
     // Acquire WakeLock
-    if (!await Wakelock.enabled) {
+    if (!Platform.isLinux && !await Wakelock.enabled) {
       Wakelock.enable();
     }
 
@@ -241,6 +245,7 @@ class _NodeManagementState extends State<NodeManagement> {
             onChangedOrDeletedNode: () {
               setState(() {});
             },
+            currentNode: _selectedNodeConfirmed,
           ),
         ),
       ],

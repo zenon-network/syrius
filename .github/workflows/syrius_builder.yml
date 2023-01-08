@@ -1,0 +1,194 @@
+name: Build and release syrius
+
+on:
+  push:
+    branches:
+      - cicd
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+jobs:
+  build-macos:
+    runs-on: macos-12
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Setup environment
+        run: |
+          brew install unzip create-dmg
+          brew cleanup
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: "stable"
+      - name: Check flutter version
+        run: flutter --version
+      - name: Download libpow_links
+        uses: robinraju/release-downloader@v1.6
+        with:
+          repository: "alienc0der/znn-pow-links-cpp"
+          latest: true
+      - name: Download libargon2
+        uses: robinraju/release-downloader@v1.6
+        with:
+          repository: "alienc0der/argon2_ffi"
+          latest: true
+      - name: Download libznn
+        uses: robinraju/release-downloader@v1.6
+        with:
+          repository: "alienc0der/go-zenon"
+          latest: true
+      - name: Copy the required libraries to the macos directory
+        run: |
+          unzip -j libpow_links-darwin-universal.zip
+          cp libpow_links.dylib macos/
+          unzip -j libargon2_ffi-darwin-universal.zip
+          cp libargon2_ffi.dylib macos/
+      - name: Build syrius desktop 
+        run: |
+          flutter config --enable-macos-desktop
+          flutter build macos --release
+      - name: Add the libznn library
+        run: |
+          tar -xvf libznn-darwin-universal.tar.gz
+          cp libznn-darwin-universal.dylib build/macos/Build/Products/Release/s\ y\ r\ i\ u\ s.app/Contents/Resources/libznn.dylib
+      - name: Package into DMG
+        run: |
+          create-dmg --volname syrius-wallet --volicon macos/dmg/volume.icns --background macos/dmg/background.png  --window-pos 300 200 --icon-size 80 --icon "s\ y\ r\ i\ u\ s.app" 185 200 --hide-extension "s\ y\ r\ i\ u\ s.app" --app-drop-link 410 200 --text-size 11 --format ULFO --hdiutil-verbose syrius-alphanet-macos-universal.dmg build/macos/Build/Products/Release/s\ y\ r\ i\ u\ s.app syrius-alphanet-macos-universal.dmg build/macos/Build/Products/Release/s\ y\ r\ i\ u\ s.app
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: macos-artifacts
+          path: syrius-alphanet-macos-universal.dmg
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: "stable"
+      - name: Check flutter version
+        run: flutter --version
+      - name: Download libpow_links
+        uses: robinraju/release-downloader@v1.6
+        with:
+          repository: "alienc0der/znn-pow-links-cpp"
+          latest: true
+      - name: Download libargon2
+        uses: robinraju/release-downloader@v1.6
+        with:
+          repository: "alienc0der/argon2_ffi"
+          latest: true
+      - name: Download libznn
+        uses: robinraju/release-downloader@v1.6
+        with:
+          repository: "alienc0der/go-zenon"
+          latest: true
+      - name: Build syrius desktop
+        run: |
+          flutter config --enable-windows-desktop
+          flutter build windows --release
+      - name: Copy the required libraries
+        run: |
+          unzip -j libpow_links-windows-amd64.zip
+          cp libpow_links.dll build\windows\runner\Release\
+          unzip -j libargon2_ffi-windows-amd64.zip
+          cp argon2_ffi_plugin.dll build\windows\runner\Release\
+          unzip -j libznn-windows-amd64.zip
+          cp libznn-windows-amd64.dll build\windows\runner\Release\libznn.dll     
+      - name: Package into zip
+        run: |
+          Compress-Archive -Path build\windows\runner\Release\* -DestinationPath .\syrius-alphanet-windows-amd64.zip
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: windows-artifacts
+          path: syrius-alphanet-windows-amd64.zip
+  build-linux:
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Prepare environment
+        run: |
+          sudo apt update
+          sudo apt install -y curl clang cmake ninja-build pkg-config libgtk-3-dev liblzma-dev unzip xz-utils zip
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: "stable"
+      - name: Check flutter version
+        run: flutter --version
+      - name: Download libpow_links
+        uses: robinraju/release-downloader@v1.6
+        with:
+          repository: "alienc0der/znn-pow-links-cpp"
+          latest: true
+      - name: Download libargon2_ffi
+        uses: robinraju/release-downloader@v1.6
+        with:
+          repository: "alienc0der/argon2_ffi"
+          latest: true
+      - name: Download libznn
+        uses: robinraju/release-downloader@v1.6
+        with:
+          repository: "alienc0der/go-zenon"
+          latest: true
+      - name: Build syrius desktop
+        run: |
+          flutter config --enable-linux-desktop
+          flutter build linux --release
+      - name: Copy the required libraries
+        run: |
+          unzip -j libpow_links-linux-amd64.zip
+          cp libpow_links.so build/linux/x64/release/bundle/
+          unzip -j libargon2_ffi-linux-amd64.zip
+          cp libargon2_ffi_plugin.so build/linux/x64/release/bundle/
+          tar -xvf libznn-linux-amd64.tar.gz
+          cp libznn-linux-amd64.so build/linux/x64/release/bundle/libznn.so
+      - name: Package zip
+        run: |
+          cd build/linux/x64/release/bundle && zip -r ../../../../../syrius-alphanet-linux-amd64.zip *
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: linux-artifacts
+          path: syrius-alphanet-linux-amd64.zip
+  make-release:
+    needs: [build-macos, build-windows, build-linux]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Prepare releases directory
+        run: mkdir releases
+      - name: Download macOS artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: macos-artifacts
+      - name: Download Windows artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: windows-artifacts
+      - name: Download Linux artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: linux-artifacts
+      - name: Prepare releases
+        run: |
+          cp syrius-alphanet-windows-amd64.zip releases/
+          cp syrius-alphanet-macos-universal.dmg releases/
+          cp syrius-alphanet-linux-amd64.zip releases/
+      - name: Generate checksums
+        run: cd releases/ && echo $(sha256sum *) >> SHA256CHECKSUMS.txt
+      - name: Upload files to a GitHub release
+        uses: svenstaro/upload-release-action@2.3.0
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: releases/*
+          tag: v0.0.6-alpha
+          file_glob: true
+          overwrite: true
+          body: ""

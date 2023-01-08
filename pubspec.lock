@@ -631,6 +631,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "0.5.0"
+  number_selector:
+    dependency: "direct main"
+    description:
+      name: number_selector
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "1.0.5"
   overlay_support:
     dependency: "direct main"
     description:
@@ -1200,9 +1207,9 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: "367ddc7fbfefb6484d7553d9ac7e4532003a7008"
-      resolved-ref: "367ddc7fbfefb6484d7553d9ac7e4532003a7008"
-      url: "https://github.com/zenon-network/znn_sdk_dart.git"
+      ref: "5e1d826f9cad841498a314cf50e985539c29d634"
+      resolved-ref: "5e1d826f9cad841498a314cf50e985539c29d634"
+      url: "https://github.com/alienc0der/znn_sdk_dart.git"
     source: git
     version: "0.0.4"
   znn_swap_utility:
