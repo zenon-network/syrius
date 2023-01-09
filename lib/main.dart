@@ -3,13 +3,14 @@ import 'dart:isolate';
 import 'package:flutter/foundation.dart'
     show debugDefaultTargetPlatformOverride;
 import 'package:flutter/gestures.dart';
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide MenuItem;
 import 'package:get_it/get_it.dart';
 import 'package:hive/hive.dart';
 import 'package:layout/layout.dart';
 import 'package:local_notifier/local_notifier.dart';
 import 'package:overlay_support/overlay_support.dart';
 import 'package:provider/provider.dart';
+import 'package:tray_manager/tray_manager.dart';
 import 'package:window_manager/window_manager.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/model/model.dart';
@@ -55,6 +56,9 @@ main() async {
     // The parameter shortcutPolicy only works on Windows
     shortcutPolicy: ShortcutPolicy.requireCreate,
   );
+
+  // Setup tray manager
+  await _setupTrayManager();
 
   // Register Hive adapters
   Hive.registerAdapter(NotificationTypeAdapter());
@@ -104,6 +108,26 @@ main() async {
   );
 }
 
+Future<void> _setupTrayManager() async {
+  await trayManager.setIcon(
+    Platform.isWindows
+        ? 'assets/images/app_icon.ico'
+        : 'assets/images/Icon-MacOS-16x16@2x.png',
+  );
+  List<MenuItem> items = [
+    MenuItem(
+      key: 'show_window',
+      label: 'Show Window',
+    ),
+    MenuItem.separator(),
+    MenuItem(
+      key: 'exit',
+      label: 'Exit',
+    ),
+  ];
+  await trayManager.setContextMenu(Menu(items: items));
+}
+
 void setup() {
   sl.registerSingleton<Zenon>(Zenon());
   zenon = sl<Zenon>();
@@ -136,10 +160,11 @@ class MyApp extends StatefulWidget {
   }
 }
 
-class _MyAppState extends State<MyApp> with WindowListener {
+class _MyAppState extends State<MyApp> with WindowListener, TrayListener {
   @override
   void initState() {
     windowManager.addListener(this);
+    trayManager.addListener(this);
     initPlatformState();
     super.initState();
   }
@@ -292,8 +317,32 @@ class _MyAppState extends State<MyApp> with WindowListener {
   }
 
   @override
+  void onTrayIconMouseDown() {
+  }
+
+  @override
+  void onTrayIconRightMouseDown() {
+    trayManager.popUpContextMenu();
+  }
+
+  @override
+  void onTrayIconRightMouseUp() {
+    // do something
+  }
+
+  @override
+  void onTrayMenuItemClick(MenuItem menuItem) {
+    if (menuItem.key == 'show_window') {
+      windowManager.show();
+    } else if (menuItem.key == 'exit') {
+      windowManager.close();
+    }
+  }
+
+  @override
   void dispose() {
     windowManager.removeListener(this);
+    trayManager.removeListener(this);
     sl.unregister();
     super.dispose();
   }

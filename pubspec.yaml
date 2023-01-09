@@ -71,6 +71,7 @@ dependencies:
   get_it: ^7.2.0
   hex: ^0.2.0
   local_notifier: ^0.1.5
+  tray_manager: ^0.2.0
 
 dev_dependencies:
   flutter_test:
