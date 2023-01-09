@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 import 'package:hive/hive.dart';
 import 'package:layout/layout.dart';
+import 'package:local_notifier/local_notifier.dart';
 import 'package:overlay_support/overlay_support.dart';
 import 'package:provider/provider.dart';
 import 'package:window_manager/window_manager.dart';
@@ -47,6 +48,13 @@ main() async {
 
   // Setup services
   setup();
+
+  // Setup local_notifier
+  await localNotifier.setup(
+    appName: 's y r i u s',
+    // The parameter shortcutPolicy only works on Windows
+    shortcutPolicy: ShortcutPolicy.requireCreate,
+  );
 
   // Register Hive adapters
   Hive.registerAdapter(NotificationTypeAdapter());
