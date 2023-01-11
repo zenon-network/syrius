@@ -27,7 +27,7 @@ const List<String> kBridgeNetworks = [
 ];
 
 // Wallet version
-const String kWalletVersion = '0.0.5';
+const String kWalletVersion = '0.0.6';
 
 // Boxes constants
 const String kFavoriteTokensBox = 'favourite_tokens_box';
