@@ -89,11 +89,11 @@ class _SettingsNodeState extends State<SettingsNode> {
           width: 5.0,
         ),
         Visibility(
-          visible: widget.node.contains("wss://"),
+          visible: widget.node.contains('wss://'),
           child: const StandardTooltipIcon('Encrypted connection', Icons.lock),
         ),
         Visibility(
-          visible: widget.node.contains("ws://"),
+          visible: widget.node.contains('ws://'),
           child: const StandardTooltipIcon(
             'Unencrypted connection',
             Icons.lock_open,
@@ -101,7 +101,7 @@ class _SettingsNodeState extends State<SettingsNode> {
           ),
         ),
         Visibility(
-          visible: widget.node.contains("Embedded"),
+          visible: widget.node.contains('Embedded'),
           child: const StandardTooltipIcon(
             'The Embedded Node can take several hours to fully sync with the network',
             Icons.help,

@@ -85,7 +85,7 @@ class EmbeddedNode {
     ReceivePort commandsPort = ReceivePort();
     SendPort sendPort = commandsPort.sendPort;
 
-    IsolateNameServer.registerPortWithName(sendPort, "embeddedIsolate");
+    IsolateNameServer.registerPortWithName(sendPort, 'embeddedIsolate');
 
     if (_runNodeFunction == null) {
       initializeNodeLib();
@@ -95,7 +95,7 @@ class EmbeddedNode {
     Completer embeddedIsolateCompleter = Completer();
     commandsPort.listen((event) {
       _stopNodeFunction!();
-      IsolateNameServer.removePortNameMapping("embeddedIsolate");
+      IsolateNameServer.removePortNameMapping('embeddedIsolate');
       commandsPort.close();
       embeddedIsolateCompleter.complete();
     });
@@ -111,9 +111,9 @@ class EmbeddedNode {
 
   static bool stopNode() {
     SendPort? embeddedIsolate =
-        IsolateNameServer.lookupPortByName("embeddedIsolate");
+        IsolateNameServer.lookupPortByName('embeddedIsolate');
     if (embeddedIsolate != null) {
-      embeddedIsolate.send("stop");
+      embeddedIsolate.send('stop');
       return true;
     }
     return false;

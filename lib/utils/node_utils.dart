@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:isolate';
 
-import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'package:wakelock/wakelock.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';

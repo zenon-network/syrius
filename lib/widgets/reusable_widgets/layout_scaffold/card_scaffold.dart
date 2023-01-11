@@ -353,7 +353,8 @@ class _CardScaffoldState<T> extends State<CardScaffold<T>> {
                   if (snapshot.hasError) {
                     return SyriusErrorWidget(snapshot.error!);
                   } else if (snapshot.hasData) {
-                    return widget.onCompletedStatusCallback!(snapshot.data!);
+                    return widget
+                        .onCompletedStatusCallback!(snapshot.data as T);
                   }
                   return const SyriusLoadingWidget();
                 },

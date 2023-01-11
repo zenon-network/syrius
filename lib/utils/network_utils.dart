@@ -10,17 +10,17 @@ class NetworkUtils {
 
     try {
       NetworkInterface vpnInterface =
-          interfaces.firstWhere((element) => element.name == "tun0");
+          interfaces.firstWhere((element) => element.name == 'tun0');
       return vpnInterface.addresses.first.address;
     } on StateError {
       try {
         NetworkInterface interface =
-            interfaces.firstWhere((element) => element.name == "wlan0");
+            interfaces.firstWhere((element) => element.name == 'wlan0');
         return interface.addresses.first.address;
       } catch (e) {
         try {
           NetworkInterface interface = interfaces.firstWhere((element) =>
-              !(element.name == "tun0" || element.name == "wlan0"));
+              !(element.name == 'tun0' || element.name == 'wlan0'));
           return interface.addresses.first.address;
         } catch (e) {
           return e.toString();
