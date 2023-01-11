@@ -109,20 +109,26 @@ main() async {
 }
 
 Future<void> _setupTrayManager() async {
+  await trayManager.setTitle('s y r i u s');
   await trayManager.setIcon(
     Platform.isWindows
-        ? 'assets/images/app_icon.ico'
-        : 'assets/images/Icon-MacOS-16x16@2x.png',
+        ? 'assets/images/tray_app_icon.ico'
+        : 'assets/images/tray_app_icon.png',
   );
+  await trayManager.setToolTip('s y r i u s');
   List<MenuItem> items = [
     MenuItem(
-      key: 'show_window',
-      label: 'Show Window',
+      key: 'show_wallet',
+      label: 'Show wallet',
+    ),
+    MenuItem(
+      key: 'hide_wallet',
+      label: 'Hide wallet',
     ),
     MenuItem.separator(),
     MenuItem(
       key: 'exit',
-      label: 'Exit',
+      label: 'Exit wallet',
     ),
   ];
   await trayManager.setContextMenu(Menu(items: items));
@@ -318,24 +324,31 @@ class _MyAppState extends State<MyApp> with WindowListener, TrayListener {
 
   @override
   void onTrayIconMouseDown() {
-  }
-
-  @override
-  void onTrayIconRightMouseDown() {
     trayManager.popUpContextMenu();
   }
 
   @override
-  void onTrayIconRightMouseUp() {
-    // do something
-  }
+  void onTrayIconRightMouseDown() {}
 
   @override
-  void onTrayMenuItemClick(MenuItem menuItem) {
-    if (menuItem.key == 'show_window') {
-      windowManager.show();
-    } else if (menuItem.key == 'exit') {
-      windowManager.close();
+  void onTrayIconRightMouseUp() {}
+
+  @override
+  void onTrayMenuItemClick(MenuItem menuItem) async {
+    switch (menuItem.key) {
+      case 'show_wallet':
+        windowManager.show();
+        break;
+      case 'hide_wallet':
+        if (!await windowManager.isMinimized()) {
+          windowManager.minimize();
+        }
+        break;
+      case 'exit':
+        windowManager.destroy();
+        break;
+      default:
+        break;
     }
   }
 
