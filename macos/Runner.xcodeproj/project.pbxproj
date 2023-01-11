@@ -187,6 +187,7 @@
 			buildConfigurationList = 33CC10FB2044A3C60003C045 /* Build configuration list for PBXNativeTarget "Runner" */;
 			buildPhases = (
 				26152DF600C95C6136D5E940 /* [CP] Check Pods Manifest.lock */,
+				96DA24F0296EB70E00545E88 /* ShellScript */,
 				33CC10E92044A3C60003C045 /* Sources */,
 				33CC10EA2044A3C60003C045 /* Frameworks */,
 				33CC10EB2044A3C60003C045 /* Resources */,
@@ -295,6 +296,7 @@
 			inputFileListPaths = (
 			);
 			inputPaths = (
+				"",
 			);
 			outputFileListPaths = (
 			);
@@ -340,6 +342,23 @@
 			shellPath = /bin/sh;
 			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-Runner/Pods-Runner-frameworks.sh\"\n";
 			showEnvVarsInLog = 0;
+		};
+		96DA24F0296EB70E00545E88 /* ShellScript */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "OUTPUT_DIRECTORY=\"./\"\n\nPACKAGE_CONFIG=\"../.dart_tool/package_config.json\"\nZNN_SDK_DART_PATH=`cat $PACKAGE_CONFIG | grep git/znn_sdk_dart | sed 's/\"rootUri\": \"file:\\/\\///' | sed 's/\\/\",//' | xargs`  \n\nSYRIUS_LIBRARIES=(\n  \"$ZNN_SDK_DART_PATH/lib/src/argon2/blobs/libargon2_ffi.dylib\"\n  \"$ZNN_SDK_DART_PATH/lib/src/pow/blobs/libpow_links.dylib\"\n)\n\necho \"$OUTPUT_DIRECTORY\"\n\nfor znn_library in ${SYRIUS_LIBRARIES[@]}; do\n  echo \"Copy ZNN library: $znn_library\"\n  cp $znn_library \"$OUTPUT_DIRECTORY\"\ndone\n\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 
