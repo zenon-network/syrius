@@ -1,10 +1,10 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:open_filex/open_filex.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/model/model.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
@@ -86,18 +86,15 @@ class AboutCardState extends State<AboutCard> {
         ),
         CustomExpandablePanel(
           'Zenon main data path',
-          _getGenericTextExpandedChild(
-              znnDefaultPaths.main.absolute.toString()),
+          _getGenericButtonExpandedChild(znnDefaultPaths.main.absolute.path),
         ),
         CustomExpandablePanel(
           'syrius cache path',
-          _getGenericTextExpandedChild(
-              znnDefaultPaths.cache.absolute.toString()),
+          _getGenericButtonExpandedChild(znnDefaultPaths.cache.absolute.path),
         ),
         CustomExpandablePanel(
           'syrius wallet path',
-          _getGenericTextExpandedChild(
-              znnDefaultPaths.wallet.absolute.toString()),
+          _getGenericButtonExpandedChild(znnDefaultPaths.wallet.absolute.path),
         ),
         CustomExpandablePanel(
           'Client hostname',
@@ -132,6 +129,25 @@ class AboutCardState extends State<AboutCard> {
       CustomTableCell.withMarquee(
         expandedText.toString(),
       )
+    ]);
+  }
+
+  Widget _getGenericButtonExpandedChild(String expandedText) {
+    return Row(children: [
+      CustomTableCell.withMarquee(
+        expandedText.toString(),
+      ),
+      IconButton(
+        splashRadius: 16,
+        onPressed: () async {
+          await OpenFilex.open(expandedText);
+        },
+        icon: const Icon(
+          Icons.open_in_new,
+          size: 16,
+          color: AppColors.znnColor,
+        ),
+      ),
     ]);
   }
 
