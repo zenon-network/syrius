@@ -23,24 +23,13 @@ class PillarsDeployBloc extends BaseBloc<AccountBlockTemplate?> {
       if (await _pillarNameAlreadyExists(pillarName)) {
         throw 'Pillar name already exists';
       }
-      AccountBlockTemplate transactionParams =
-          pillarType != PillarType.legacyPillar
-              ? zenon!.embedded.pillar.register(
-                  pillarName,
-                  Address.parse(blockProducingAddress),
-                  Address.parse(rewardAddress),
-                  giveBlockRewardPercentage,
-                  giveDelegateRewardPercentage,
-                )
-              : zenon!.embedded.pillar.registerLegacy(
-                  pillarName,
-                  Address.parse(blockProducingAddress),
-                  Address.parse(rewardAddress),
-                  publicKey!,
-                  signature!,
-                  giveBlockRewardPercentage,
-                  giveDelegateRewardPercentage,
-                );
+      AccountBlockTemplate transactionParams = zenon!.embedded.pillar.register(
+        pillarName,
+        Address.parse(blockProducingAddress),
+        Address.parse(rewardAddress),
+        giveBlockRewardPercentage,
+        giveDelegateRewardPercentage,
+      );
       AccountBlockUtils.createAccountBlock(
         transactionParams,
         'register Pillar',

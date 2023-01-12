@@ -18,21 +18,18 @@ import 'package:zenon_syrius_wallet_flutter/utils/input_validators.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/navigation_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/notification_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/zts_utils.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/custom_material_stepper.dart'
-as custom_material_stepper;
+    as custom_material_stepper;
+import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
-import 'package:znn_swap_utility/znn_swap_utility.dart';
 
 enum PillarType {
   regularPillar,
-  legacyPillar,
 }
 
 enum PillarsStepperStep {
   checkPlasma,
   selectPillarType,
-  checkForLegacyPillar,
   qsrManagement,
   znnManagement,
   deployPillar,
@@ -83,16 +80,6 @@ class _MainPillarsState extends State<PillarsStepperContainer> {
   );
 
   late PillarsQsrInfoBloc _pillarsQsrInfoViewModel;
-
-  String _password = '';
-  String _checkForLegacyPillarStepSubtitle = 'Step skipped';
-  String? _walletPath;
-
-  final List<SwapFileEntry> _foundLegacyPillarSwapFileEntries = [];
-  List<SwapFileEntry> _decryptWalletResults = [];
-  SwapFileEntry? _selectedLegacyPillarSwapFileEntry;
-
-  List<SwapLegacyPillarEntry>? _legacyPillars;
 
   double _momentumRewardPercentageGiven = 0.0;
   double _delegateRewardPercentageGiven = 0.0;
@@ -493,17 +480,6 @@ class _MainPillarsState extends State<PillarsStepperContainer> {
             context: context,
           ),
           StepperUtils.getMaterialStep(
-            stepTitle: 'Check for Legacy Pillar',
-            stepContent: _getCheckForLegacyPillarStepBody(),
-            stepSubtitle: _checkForLegacyPillarStepSubtitle,
-            stepState: StepperUtils.getStepState(
-              PillarsStepperStep.checkForLegacyPillar.index,
-              _lastCompletedStep?.index,
-            ),
-            context: context,
-            expanded: true,
-          ),
-          StepperUtils.getMaterialStep(
             stepTitle: '${kQsrCoin.symbol} management',
             stepContent: _getQsrManagementStep(context, accountInfo),
             stepSubtitle: '${kQsrCoin.symbol} Deposited',
@@ -541,8 +517,6 @@ class _MainPillarsState extends State<PillarsStepperContainer> {
 
   String _getPillarTypeStepSubtitle() {
     switch (_selectedPillarType) {
-      case PillarType.legacyPillar:
-        return 'Legacy Pillar';
       case PillarType.regularPillar:
         return 'Pillar';
       default:
@@ -756,19 +730,17 @@ class _MainPillarsState extends State<PillarsStepperContainer> {
     PillarsDepositQsrBloc model,
     PillarsQsrInfo qsrInfo,
   ) {
-    if (_lastCompletedStep == PillarsStepperStep.checkForLegacyPillar) {
-      if (qsrInfo.deposit >= qsrInfo.cost) {
-        _depositQsrButtonKey.currentState?.animateForward();
-        model.depositQsr(
-          _qsrAmountController.text,
-          justMarkStepCompleted: true,
-        );
-      } else if (qsrInfo.deposit + _maxQsrAmount! <= qsrInfo.cost &&
-          _qsrFormKey.currentState!.validate() &&
-          _qsrAmountController.text.toNum() > 0) {
-        _depositQsrButtonKey.currentState?.animateForward();
-        model.depositQsr(_qsrAmountController.text);
-      }
+    if (qsrInfo.deposit >= qsrInfo.cost) {
+      _depositQsrButtonKey.currentState?.animateForward();
+      model.depositQsr(
+        _qsrAmountController.text,
+        justMarkStepCompleted: true,
+      );
+    } else if (qsrInfo.deposit + _maxQsrAmount! <= qsrInfo.cost &&
+        _qsrFormKey.currentState!.validate() &&
+        _qsrAmountController.text.toNum() > 0) {
+      _depositQsrButtonKey.currentState?.animateForward();
+      model.depositQsr(_qsrAmountController.text);
     }
   }
 
@@ -798,11 +770,6 @@ class _MainPillarsState extends State<PillarsStepperContainer> {
           blockProducingAddress: _pillarMomentumController.text,
           giveBlockRewardPercentage: _momentumRewardPercentageGiven.toInt(),
           giveDelegateRewardPercentage: _delegateRewardPercentageGiven.toInt(),
-          signature: _selectedLegacyPillarSwapFileEntry?.signLegacyPillar(
-            _password,
-            _addressController.text,
-          ),
-          publicKey: _selectedLegacyPillarSwapFileEntry?.pubKeyB64,
         );
       } else {
         for (var element in _pillarFormKeys) {
@@ -975,7 +942,6 @@ class _MainPillarsState extends State<PillarsStepperContainer> {
           ],
         ),
         _getPillarTypeListTile('Pillar', PillarType.regularPillar),
-        _getPillarTypeListTile('Legacy Pillar', PillarType.legacyPillar),
         _getContinueButton(),
       ],
     );
@@ -1012,11 +978,7 @@ class _MainPillarsState extends State<PillarsStepperContainer> {
   }
 
   void _onPillarTypeContinuePressed() {
-    _saveProgressAndNavigateToNextStep(
-      _selectedPillarType == PillarType.legacyPillar
-          ? PillarsStepperStep.selectPillarType
-          : PillarsStepperStep.checkForLegacyPillar,
-    );
+    _saveProgressAndNavigateToNextStep(PillarsStepperStep.selectPillarType);
   }
 
   void _saveProgressAndNavigateToNextStep(PillarsStepperStep completedStep) {
@@ -1068,17 +1030,9 @@ class _MainPillarsState extends State<PillarsStepperContainer> {
       );
 
   void _onQsrNextPressed() {
-    if (_lastCompletedStep == PillarsStepperStep.checkForLegacyPillar) {
-      _saveProgressAndNavigateToNextStep(PillarsStepperStep.qsrManagement);
-    } else if (StepperUtils.getStepState(
-          PillarsStepperStep.qsrManagement.index,
-          _lastCompletedStep?.index,
-        ) ==
-        custom_material_stepper.StepState.complete) {
-      setState(() {
-        _currentStep = PillarsStepperStep.values[_currentStep.index + 1];
-      });
-    }
+    setState(() {
+      _currentStep = PillarsStepperStep.values[_currentStep.index + 1];
+    });
   }
 
   Widget _getPlasmaCheckFutureBuilder() {
@@ -1139,220 +1093,6 @@ class _MainPillarsState extends State<PillarsStepperContainer> {
         _currentStep = PillarsStepperStep.values[_currentStep.index + 1];
       });
     }
-  }
-
-  Widget _getCheckForLegacyPillarStepBody() {
-    return ViewModelBuilder<GetLegacyPillarsBloc>.reactive(
-      onModelReady: (model) {
-        model.checkForLegacyPillar();
-      },
-      builder: (_, model, __) => StreamBuilder<List<SwapLegacyPillarEntry>?>(
-        stream: model.stream,
-        builder: (_, snapshot) {
-          if (snapshot.hasError) {
-            return SyriusErrorWidget(snapshot.error!);
-          }
-          if (snapshot.connectionState == ConnectionState.active) {
-            if (snapshot.hasData) {
-              _legacyPillars = snapshot.data;
-              return _getDecryptWalletFileBody();
-            }
-            return const SyriusLoadingWidget();
-          }
-          return const SyriusLoadingWidget();
-        },
-      ),
-      viewModelBuilder: () => GetLegacyPillarsBloc(),
-    );
-  }
-
-  Widget _getImportWalletWidget() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Please choose the ".dat" wallet file to discover legacy Pillar entries',
-          style: Theme.of(context).textTheme.headline6,
-        ),
-        const SizedBox(
-          height: 25.0,
-        ),
-        SelectFileWidget(
-          fileExtension: 'dat',
-          onPathFoundCallback: (String path) {
-            setState(() {
-              _walletPath = path;
-            });
-          },
-        ),
-      ],
-    );
-  }
-
-  Widget _getDecryptWalletFileBody() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _getImportWalletWidget(),
-        Visibility(
-          visible: _walletPath != null,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              kVerticalSpacing,
-              _getWalletPasswordInputField(),
-              kVerticalSpacing,
-              Visibility(
-                visible: _decryptWalletResults.isEmpty,
-                child: _getDecryptWalletFileViewModel(),
-              ),
-              Visibility(
-                visible: _foundLegacyPillarSwapFileEntries.isNotEmpty,
-                child: Column(
-                  children: <Widget>[
-                        Row(
-                          children: [
-                            Text(
-                              'Please choose the Legacy Pillar',
-                              style: Theme.of(context).textTheme.headline6,
-                            ),
-                          ],
-                        )
-                      ] +
-                      _foundLegacyPillarSwapFileEntries
-                          .map((e) => _getLegacyPillarListTile(e.address, e))
-                          .toList()
-                          .cast<Widget>(),
-                ),
-              ),
-              Visibility(
-                visible: _foundLegacyPillarSwapFileEntries.isNotEmpty &&
-                    _selectedLegacyPillarSwapFileEntry != null,
-                child: StepperButton(
-                  text: 'Next',
-                  onPressed: () {
-                    _saveProgressAndNavigateToNextStep(
-                      PillarsStepperStep.checkForLegacyPillar,
-                    );
-                  },
-                ),
-              ),
-              Visibility(
-                visible: _foundLegacyPillarSwapFileEntries.isEmpty &&
-                    _decryptWalletResults.isNotEmpty,
-                child: Text(
-                  'No Legacy Pillar found',
-                  style: Theme.of(context).textTheme.headline6,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _getWalletPasswordInputField() {
-    return Material(
-      color: Colors.transparent,
-      child: PasswordInputField(
-        hintText: 'Wallet password',
-        controller: _passwordController,
-        onChanged: (value) {
-          setState(() {
-            _password = value;
-          });
-        },
-      ),
-    );
-  }
-
-  Widget _getDecryptWalletFileViewModel() {
-    return ViewModelBuilder<ReadWalletBloc>.reactive(
-      onModelReady: (model) {
-        model.stream.listen(
-          (results) {
-            if (results != null) {
-              _decryptWalletResults = results;
-              _findLegacyPillar(
-                _decryptWalletResults,
-                _legacyPillars!,
-              );
-              if (_foundLegacyPillarSwapFileEntries.isEmpty) {
-                _checkForLegacyPillarStepSubtitle =
-                    'No Legacy Pillar available';
-              } else {
-                _checkForLegacyPillarStepSubtitle = 'Legacy Pillar available';
-              }
-              setState(() {});
-            }
-          },
-          onError: (error) {
-            NotificationUtils.sendNotificationError(error, error.toString());
-          },
-        );
-      },
-      builder: (_, model, __) => StreamBuilder<List<SwapFileEntry>?>(
-        stream: model.stream,
-        builder: (_, snapshot) {
-          if (snapshot.hasError) {
-            return _getDecryptButton(model);
-          }
-          if (snapshot.connectionState == ConnectionState.active) {
-            if (snapshot.hasData) {
-              return _getDecryptButton(model);
-            }
-            return const SyriusLoadingWidget();
-          }
-          return _getDecryptButton(model);
-        },
-      ),
-      viewModelBuilder: () => ReadWalletBloc(),
-    );
-  }
-
-  Widget _getDecryptButton(ReadWalletBloc model) {
-    return StepperButton(
-      onPressed: _password.isNotEmpty
-          ? () {
-              model.readWallet(_walletPath!, _password);
-            }
-          : null,
-      text: 'Decrypt',
-    );
-  }
-
-  void _findLegacyPillar(
-    List<SwapFileEntry> decryptWalletResults,
-    List<SwapLegacyPillarEntry> legacyPillars,
-  ) {
-    for (SwapFileEntry decryptWalletResult in decryptWalletResults) {
-      for (SwapLegacyPillarEntry legacyPillar in legacyPillars) {
-        if (legacyPillar.keyIdHash.toString() ==
-            decryptWalletResult.keyIdHashHex) {
-          _foundLegacyPillarSwapFileEntries.add(decryptWalletResult);
-        }
-      }
-    }
-  }
-
-  Widget _getLegacyPillarListTile(String text, SwapFileEntry value) {
-    return ListTile(
-      title: Text(
-        text,
-        style: Theme.of(context).textTheme.bodyText1,
-      ),
-      leading: Radio(
-        activeColor: AppColors.znnColor,
-        value: value,
-        groupValue: _selectedLegacyPillarSwapFileEntry,
-        onChanged: (SwapFileEntry? value) {
-          setState(() {
-            _selectedLegacyPillarSwapFileEntry = value;
-          });
-        },
-      ),
-    );
   }
 
   Widget _getPillarMomentumRewardsStepContent() {

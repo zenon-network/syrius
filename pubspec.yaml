@@ -61,17 +61,14 @@ dependencies:
     git:
       url: https://github.com/alienc0der/znn_sdk_dart.git
       ref: 5e1d826f9cad841498a314cf50e985539c29d634
-  znn_swap_utility:
-    git:
-      url: https://github.com/zenon-network/znn_swap_utility.git
-      ref: 417d3a42bb0ce1f9fab5dd4d6e8481112afbbbfc
   json_rpc_2: ^3.0.2
   path: ^1.8.2
-  ffi: ^1.2.1
+  ffi: ^2.0.1
   get_it: ^7.2.0
   hex: ^0.2.0
   local_notifier: ^0.1.5
   tray_manager: ^0.2.0
+  open_filex: ^4.3.2
 
 dev_dependencies:
   flutter_test:

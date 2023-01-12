@@ -49,9 +49,6 @@ const List<String> kCacheBoxesToBeDeleted = [
   kNodesBox,
 ];
 
-// Swap temporary directory
-const String kSwapWalletTempDirectory = 'swap-wallet';
-
 // Wallet file name
 const String kNameWalletFile = 'wallet';
 

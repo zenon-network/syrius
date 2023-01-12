@@ -18,9 +18,7 @@ class PillarsQsrInfoBloc extends BaseBloc<PillarsQsrInfo?> {
           .addDecimals(
         qsrDecimals,
       );
-      num cost = (pillarType == PillarType.legacyPillar
-              ? pillarRegisterQsrAmount
-              : await zenon!.embedded.pillar.getQsrRegistrationCost())
+      num cost = (await zenon!.embedded.pillar.getQsrRegistrationCost())
           .addDecimals(qsrDecimals);
       addEvent(
         PillarsQsrInfo(
