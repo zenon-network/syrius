@@ -33,6 +33,9 @@ class _SwapCardState extends State<SwapCard> {
   final SendPaymentBloc _sendPaymentBloc = SendPaymentBloc();
   bool? _userHasEnoughBnbBalance = false;
 
+  String? _selectedBridge = kBridgeNetworks.first;
+  bool? _bridgeStatus = false;
+
   final ScrollController _scrollController = ScrollController();
 
   @override
@@ -121,7 +124,12 @@ class _SwapCardState extends State<SwapCard> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        BridgeNetworkDropdown(kBridgeNetworks.first, (value) {}),
+        BridgeNetworkDropdown(
+            _selectedBridge,
+            (value) => setState(() {
+              _selectedBridge = value;
+            }),
+        ),
         Padding(
           padding: const EdgeInsets.only(
             left: 10.0,
@@ -228,6 +236,7 @@ class _SwapCardState extends State<SwapCard> {
         LoadingButton(
           onPressed:
               _isInputValid(accountInfo) && (_userHasEnoughBnbBalance ?? false)
+                  && (_bridgeStatus ?? false)
                   ? _onSwapButtonPressed
                   : null,
           key: _swapButtonKey,

@@ -23,7 +23,7 @@ const SizedBox kSpacingBetweenActionButtons = SizedBox(
 const Size kAcceleratorProgressBarSize = Size(300.0, 10.0);
 
 const List<String> kBridgeNetworks = [
-  'BNB Smart Chain Mainnet',
+  'The ZNN to wZNN bridge is unavailable. A new bridge will be available soon.',
 ];
 
 // Wallet version
