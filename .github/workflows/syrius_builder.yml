@@ -31,7 +31,19 @@ jobs:
           flutter build macos --release
       - name: Package into DMG
         run: |
-          create-dmg --volname syrius-wallet --volicon macos/dmg/volume.icns --background macos/dmg/background.png  --window-pos 300 200 --icon-size 80 --icon "s\ y\ r\ i\ u\ s.app" 185 200 --hide-extension "s\ y\ r\ i\ u\ s.app" --app-drop-link 410 200 --text-size 11 --format ULFO --hdiutil-verbose syrius-alphanet-macos-universal.dmg build/macos/Build/Products/Release/s\ y\ r\ i\ u\ s.app syrius-alphanet-macos-universal.dmg build/macos/Build/Products/Release/s\ y\ r\ i\ u\ s.app
+          create-dmg --volname syrius \
+          --volicon macos/dmg/volume.icns \
+          --icon "s\ y\ r\ i\ u\ s.app" 210 175 \
+          --icon-size 90 \
+          --app-drop-link 390 175 \
+          --text-size 14 \
+          --background macos/dmg/background.png \
+          --window-pos 300 200 \
+          --window-size 600 325 \
+          --hide-extension "s\ y\ r\ i\ u\ s.app" \
+          --format ULFO \
+          --hdiutil-verbose syrius-alphanet-macos-universal.dmg build/macos/Build/Products/Release/s\ y\ r\ i\ u\ s.app \
+          syrius-alphanet-macos-universal.dmg build/macos/Build/Products/Release/s\ y\ r\ i\ u\ s.app
       - name: Upload artifacts
         uses: actions/upload-artifact@v3
         with:
