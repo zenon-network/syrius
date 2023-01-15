@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/main_app_container.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/settings_widgets/display.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 // Dimensions
@@ -24,11 +23,11 @@ const SizedBox kSpacingBetweenActionButtons = SizedBox(
 const Size kAcceleratorProgressBarSize = Size(300.0, 10.0);
 
 const List<String> kBridgeNetworks = [
-  'BNB Smart Chain Mainnet',
+  'The ZNN to wZNN bridge is unavailable. A new bridge will be available soon.',
 ];
 
 // Wallet version
-const String kWalletVersion = '0.0.5';
+const String kWalletVersion = '0.0.6';
 
 // Boxes constants
 const String kFavoriteTokensBox = 'favourite_tokens_box';
@@ -49,9 +48,6 @@ const List<String> kCacheBoxesToBeDeleted = [
   kSharedPrefsBox,
   kNodesBox,
 ];
-
-// Swap temporary directory
-const String kSwapWalletTempDirectory = 'swap-wallet';
 
 // Wallet file name
 const String kNameWalletFile = 'wallet';

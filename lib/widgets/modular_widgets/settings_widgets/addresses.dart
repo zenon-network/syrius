@@ -2,8 +2,9 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
+import 'package:number_selector/number_selector.dart';
 import 'package:provider/provider.dart';
-import 'package:zenon_syrius_wallet_flutter/blocs/settings/account_chain_stats_bloc.dart';
+import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/address_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
@@ -11,10 +12,7 @@ import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/notifiers/default_address_notifier.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/notifiers/plasma_beneficiary_address_notifier.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/error_widget.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/layout_scaffold/card_scaffold.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/loading_widget.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/settings_address.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 
 class Addresses extends StatefulWidget {
   final AccountChainStatsBloc accountChainStatsBloc;
@@ -80,33 +78,53 @@ class AddressesState extends State<Addresses> {
   }
 
   Widget _getAddAddressWidget() {
+    int numAddrToAdd = 1;
     return InkWell(
       onTap: () {
         setState(() {
-          _futureGenerateNewAddress =
-              AddressUtils.generateNewAddress(callback: () {
-            setState(() {
-              _shouldScrollToTheEnd = true;
-            });
-          });
+          _futureGenerateNewAddress = AddressUtils.generateNewAddress(
+              numAddr: numAddrToAdd,
+              callback: () {
+                setState(() {
+                  _shouldScrollToTheEnd = true;
+                });
+              });
         });
       },
       child: Padding(
         padding: const EdgeInsets.all(8.0),
         child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
+            Expanded(
+              flex: 1,
+              child: Container(
+                padding: const EdgeInsets.only(left: 20, right: 20),
+                child: NumberSelector.plain(
+                  borderColor: AppColors.znnColor,
+                  iconColor: AppColors.znnColor,
+                  dividerColor: AppColors.znnColor,
+                  step: 1,
+                  current: 1,
+                  min: 1,
+                  max: 10,
+                  onUpdate: (val) {
+                    numAddrToAdd = val;
+                  },
+                ),
+              ),
+            ),
             const Icon(
               Icons.add_circle,
               color: AppColors.znnColor,
               size: 20.0,
             ),
-            const SizedBox(
-              width: 5.0,
-            ),
-            Text(
-              'Add new address',
-              style: Theme.of(context).textTheme.bodyText1,
+            Container(
+              padding: const EdgeInsets.only(left: 10, right: 80),
+              child: Text(
+                'Add addresses',
+                style: Theme.of(context).textTheme.bodyText1,
+              ),
             ),
           ],
         ),
@@ -115,7 +133,7 @@ class AddressesState extends State<Addresses> {
   }
 
   Widget _getAddresses() {
-    List<Widget> _addresses = kDefaultAddressList
+    List<Widget> addresses = kDefaultAddressList
         .map(
           (e) => Row(
             children: [
@@ -139,9 +157,9 @@ class AddressesState extends State<Addresses> {
       controller: _scrollController,
       key: const PageStorageKey('Addresses list view'),
       shrinkWrap: true,
-      itemCount: _addresses.length,
+      itemCount: addresses.length,
       itemBuilder: (context, index) {
-        return _addresses[index];
+        return addresses[index];
       },
     );
 

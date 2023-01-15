@@ -1,31 +1,25 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_vector_icons/flutter_vector_icons.dart';
 import 'package:stacked/stacked.dart';
-import 'package:zenon_syrius_wallet_flutter/blocs/sentinels/disassemble_button_bloc.dart';
-import 'package:zenon_syrius_wallet_flutter/blocs/sentinels/sentinel_list_bloc.dart';
+import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/notification_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/widget_utils.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/buttons/outlined_button.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/cancel_timer.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/icons/standard_tooltip_icon.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/infinite_scroll_table.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/layout_scaffold/card_scaffold.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/loading_widget.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 class SentinelsListWidget extends StatefulWidget {
   const SentinelsListWidget({Key? key}) : super(key: key);
 
   @override
-  _SentinelsListWidgetState createState() => _SentinelsListWidgetState();
+  State<SentinelsListWidget> createState() => _SentinelsListWidgetState();
 }
 
 class _SentinelsListWidgetState extends State<SentinelsListWidget> {
   late SentinelsListBloc _bloc;
 
-  final List<SentinelInfo>? _sentinels = [];
+  final List<SentinelInfo> _sentinels = [];
   bool _sortAscending = true;
 
   @override
@@ -118,6 +112,7 @@ class _SentinelsListWidgetState extends State<SentinelsListWidget> {
                 sentinelInfo.isRevocable
                     ? 'Revocation window is open'
                     : 'Until revocation window opens',
+                Icons.help,
                 iconColor: sentinelInfo.isRevocable
                     ? AppColors.znnColor
                     : AppColors.errorColor,
@@ -195,14 +190,14 @@ class _SentinelsListWidgetState extends State<SentinelsListWidget> {
     switch (columnName) {
       case 'Sentinel Owner':
         _sortAscending
-            ? _sentinels!.sort((a, b) => a.owner.compareTo(b.owner))
-            : _sentinels!.sort((a, b) => b.owner.compareTo(a.owner));
+            ? _sentinels.sort((a, b) => a.owner.compareTo(b.owner))
+            : _sentinels.sort((a, b) => b.owner.compareTo(a.owner));
         break;
       case 'Registration time':
         _sortAscending
-            ? _sentinels!.sort((a, b) =>
+            ? _sentinels.sort((a, b) =>
                 a.registrationTimestamp.compareTo(b.registrationTimestamp))
-            : _sentinels!.sort((a, b) =>
+            : _sentinels.sort((a, b) =>
                 b.registrationTimestamp.compareTo(a.registrationTimestamp));
         break;
       case 'Reward Address':

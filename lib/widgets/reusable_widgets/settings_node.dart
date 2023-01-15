@@ -1,31 +1,30 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_vector_icons/flutter_vector_icons.dart';
 import 'package:hive/hive.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/node_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/notification_utils.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/buttons/material_icon_button.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/buttons/outlined_button.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/buttons/settings_button.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/dialogs.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/icons/standard_tooltip_icon.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/input_field/input_field.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
+import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 class SettingsNode extends StatefulWidget {
   final String node;
   final void Function(String?) onNodePressed;
   final VoidCallback onChangedOrDeletedNode;
+  final String currentNode;
 
   const SettingsNode({
     required this.node,
     required this.onNodePressed,
     required this.onChangedOrDeletedNode,
+    required this.currentNode,
     Key? key,
   }) : super(key: key);
 
   @override
-  _SettingsNodeState createState() => _SettingsNodeState();
+  State<SettingsNode> createState() => _SettingsNodeState();
 }
 
 class _SettingsNodeState extends State<SettingsNode> {
@@ -81,13 +80,31 @@ class _SettingsNodeState extends State<SettingsNode> {
             ),
           ),
         ),
+        Visibility(
+            visible: widget.currentNode.contains(widget.node),
+            child: StandardTooltipIcon(
+                'Chain identifier ${getChainIdentifier()}',
+                MaterialCommunityIcons.identifier)),
         const SizedBox(
           width: 5.0,
         ),
         Visibility(
-          visible: widget.node.contains("Embedded"),
+          visible: widget.node.contains('wss://'),
+          child: const StandardTooltipIcon('Encrypted connection', Icons.lock),
+        ),
+        Visibility(
+          visible: widget.node.contains('ws://'),
+          child: const StandardTooltipIcon(
+            'Unencrypted connection',
+            Icons.lock_open,
+            iconColor: AppColors.errorColor,
+          ),
+        ),
+        Visibility(
+          visible: widget.node.contains('Embedded'),
           child: const StandardTooltipIcon(
             'The Embedded Node can take several hours to fully sync with the network',
+            Icons.help,
           ),
         ),
         const SizedBox(
@@ -106,7 +123,7 @@ class _SettingsNodeState extends State<SettingsNode> {
           ),
         ),
         const SizedBox(
-          width: 5.0,
+          width: 7.0,
         ),
         Visibility(
           visible: !kDefaultNodes.contains(widget.node),
@@ -221,7 +238,7 @@ class _SettingsNodeState extends State<SettingsNode> {
           (key) => nodesBox.get(key) == widget.node,
         );
         await nodesBox.put(key, _nodeController.text);
-        await NodeUtils.loadDbNodes(context);
+        await NodeUtils.loadDbNodes();
         setState(() {
           _editable = false;
         });

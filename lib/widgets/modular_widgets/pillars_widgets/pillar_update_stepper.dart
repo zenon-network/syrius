@@ -1,18 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
 import 'package:stacked/stacked.dart';
-import 'package:zenon_syrius_wallet_flutter/blocs/pillars/update_pillar_bloc.dart';
+import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/input_validators.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/notification_utils.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/buttons/loading_button.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/buttons/stepper_button.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/custom_material_stepper.dart'
-    as custom_material_stepper;
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/custom_slider.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/input_field/input_field.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/stepper_utils.dart';
+as custom_material_stepper;
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 enum PillarUpdateStep {
@@ -27,7 +23,7 @@ class PillarUpdateStepper extends StatefulWidget {
   const PillarUpdateStepper(this.pillarInfo, {Key? key}) : super(key: key);
 
   @override
-  _PillarUpdateStepperState createState() => _PillarUpdateStepperState();
+  State<PillarUpdateStepper> createState() => _PillarUpdateStepperState();
 }
 
 class _PillarUpdateStepperState extends State<PillarUpdateStepper> {

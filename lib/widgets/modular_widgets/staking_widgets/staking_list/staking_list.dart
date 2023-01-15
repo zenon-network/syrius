@@ -1,17 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_vector_icons/flutter_vector_icons.dart';
 import 'package:stacked/stacked.dart';
-import 'package:zenon_syrius_wallet_flutter/blocs/staking/cancel_stake_bloc.dart';
-import 'package:zenon_syrius_wallet_flutter/blocs/staking/staking_list_bloc.dart';
+import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/extensions.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/notification_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/zts_utils.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/buttons/loading_button.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/cancel_timer.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/formatted_amount_with_tooltip.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/infinite_scroll_table.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/layout_scaffold/card_scaffold.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 class StakingList extends StatefulWidget {
@@ -26,7 +21,7 @@ class StakingList extends StatefulWidget {
 }
 
 class _StakingListState extends State<StakingList> {
-  final List<StakeEntry>? _stakingList = [];
+  final List<StakeEntry> _stakingList = [];
 
   bool _sortAscending = true;
 
@@ -129,19 +124,19 @@ class _StakingListState extends State<StakingList> {
     bool isSelected,
     String stakeHash,
   ) {
-    final GlobalKey<LoadingButtonState> _cancelButtonKey = GlobalKey();
+    final GlobalKey<LoadingButtonState> cancelButtonKey = GlobalKey();
 
     return ViewModelBuilder<CancelStakeBloc>.reactive(
       onModelReady: (model) {
         model.stream.listen(
           (event) {
             if (event != null) {
-              _cancelButtonKey.currentState?.animateReverse();
+              cancelButtonKey.currentState?.animateReverse();
               bloc.refreshResults();
             }
           },
           onError: (error) {
-            _cancelButtonKey.currentState?.animateReverse();
+            cancelButtonKey.currentState?.animateReverse();
             NotificationUtils.sendNotificationError(
               error,
               'Error while cancelling stake',
@@ -152,7 +147,7 @@ class _StakingListState extends State<StakingList> {
       builder: (_, model, __) => _getCancelButton(
         model,
         stakeHash,
-        _cancelButtonKey,
+        cancelButtonKey,
       ),
       viewModelBuilder: () => CancelStakeBloc(),
     );
@@ -186,36 +181,36 @@ class _StakingListState extends State<StakingList> {
     switch (columnName) {
       case 'Amount':
         _sortAscending
-            ? _stakingList!.sort((a, b) => a.amount.compareTo(b.amount))
-            : _stakingList!.sort((a, b) => b.amount.compareTo(a.amount));
+            ? _stakingList.sort((a, b) => a.amount.compareTo(b.amount))
+            : _stakingList.sort((a, b) => b.amount.compareTo(a.amount));
         break;
       case 'Staking duration':
         _sortAscending
-            ? _stakingList!.sort(
+            ? _stakingList.sort(
                 (a, b) => (a.expirationTimestamp - a.startTimestamp)
                     .compareTo(b.expirationTimestamp - b.startTimestamp),
               )
-            : _stakingList!.sort(
+            : _stakingList.sort(
                 (a, b) => (b.expirationTimestamp - b.startTimestamp)
                     .compareTo(a.expirationTimestamp - a.startTimestamp),
               );
         break;
       case 'Recipient':
         _sortAscending
-            ? _stakingList!.sort((a, b) => a.address.compareTo(b.address))
-            : _stakingList!.sort((a, b) => b.address.compareTo(a.address));
+            ? _stakingList.sort((a, b) => a.address.compareTo(b.address))
+            : _stakingList.sort((a, b) => b.address.compareTo(a.address));
         break;
       case 'Expiration':
         _sortAscending
-            ? _stakingList!.sort((a, b) =>
+            ? _stakingList.sort((a, b) =>
                 a.expirationTimestamp.compareTo(b.expirationTimestamp))
-            : _stakingList!.sort((a, b) =>
+            : _stakingList.sort((a, b) =>
                 b.expirationTimestamp.compareTo(a.expirationTimestamp));
         break;
       default:
         _sortAscending
-            ? _stakingList!.sort((a, b) => a.address.compareTo(b.address))
-            : _stakingList!.sort((a, b) => b.address.compareTo(a.address));
+            ? _stakingList.sort((a, b) => a.address.compareTo(b.address))
+            : _stakingList.sort((a, b) => b.address.compareTo(a.address));
         break;
     }
 

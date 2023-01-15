@@ -1,18 +1,17 @@
 import 'dart:async';
 
 import 'package:rxdart/rxdart.dart';
-import 'package:zenon_syrius_wallet_flutter/blocs/infinite_scroll_bloc.dart';
-import 'package:zenon_syrius_wallet_flutter/blocs/refresh_bloc_mixin.dart';
+import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/logger.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/accelerator_widgets/project_list.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 class ProjectListBloc with RefreshBlocMixin {
   List<Project>? _allProjects;
 
-  final List<ProjectsFilterTag> selectedProjectsFilterTag = [];
+  final List<AccProjectsFilterTag> selectedProjectsFilterTag = [];
 
   final PillarInfo? pillarInfo;
 
@@ -222,12 +221,12 @@ class ProjectListBloc with RefreshBlocMixin {
     if (selectedProjectsFilterTag.isNotEmpty) {
       Iterable<Hash>? votedProjectIds;
       var filteredProjects = const Iterable<Project>.empty();
-      if (selectedProjectsFilterTag.contains(ProjectsFilterTag.myProjects)) {
+      if (selectedProjectsFilterTag.contains(AccProjectsFilterTag.myProjects)) {
         filteredProjects = projects.where(
           (project) => kDefaultAddressList.contains(project.owner.toString()),
         );
       }
-      if (selectedProjectsFilterTag.contains(ProjectsFilterTag.onlyAccepted)) {
+      if (selectedProjectsFilterTag.contains(AccProjectsFilterTag.onlyAccepted)) {
         if (filteredProjects.isNotEmpty) {
           filteredProjects = filteredProjects.where(
               (project) => project.status == AcceleratorProjectStatus.active);
@@ -236,7 +235,7 @@ class ProjectListBloc with RefreshBlocMixin {
               (project) => project.status == AcceleratorProjectStatus.active);
         }
       }
-      if (selectedProjectsFilterTag.contains(ProjectsFilterTag.votingOpened)) {
+      if (selectedProjectsFilterTag.contains(AccProjectsFilterTag.votingOpened)) {
         var projectsToBeChecked =
             filteredProjects.isNotEmpty ? filteredProjects : projects;
         votedProjectIds ??=
@@ -247,7 +246,7 @@ class ProjectListBloc with RefreshBlocMixin {
               !votedProjectIds!.contains(project.id),
         );
       }
-      if (selectedProjectsFilterTag.contains(ProjectsFilterTag.alreadyVoted)) {
+      if (selectedProjectsFilterTag.contains(AccProjectsFilterTag.alreadyVoted)) {
         var projectsToBeChecked =
             filteredProjects.isNotEmpty ? filteredProjects : projects;
         votedProjectIds ??=

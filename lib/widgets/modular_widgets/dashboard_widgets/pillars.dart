@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:stacked/stacked.dart';
-import 'package:zenon_syrius_wallet_flutter/blocs/dashboard/pillars_bloc.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/layout_scaffold/card_scaffold.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/number_animation.dart';
+import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 
 const String _kWidgetTitle = 'Pillars';
 const String _kWidgetDescription = 'This card displays the number of active '
@@ -15,7 +14,7 @@ class Pillars extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  _PillarsState createState() => _PillarsState();
+  State<Pillars> createState() => _PillarsState();
 }
 
 class _PillarsState extends State<Pillars> {

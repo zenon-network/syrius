@@ -4,11 +4,7 @@ import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/notification_utils.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/buttons/material_icon_button.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/buttons/outlined_button.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/buttons/settings_button.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/icons/copy_to_clipboard_icon.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/input_field/input_field.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 
 class SettingsAddress extends StatefulWidget {
   final String? address;
@@ -21,7 +17,7 @@ class SettingsAddress extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  _SettingsAddressState createState() => _SettingsAddressState();
+  State<SettingsAddress> createState() => _SettingsAddressState();
 }
 
 class _SettingsAddressState extends State<SettingsAddress> {

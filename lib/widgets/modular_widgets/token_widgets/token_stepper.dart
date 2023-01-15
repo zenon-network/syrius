@@ -4,10 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:lottie/lottie.dart';
 import 'package:stacked/stacked.dart';
-import 'package:zenon_syrius_wallet_flutter/blocs/dashboard/balance_bloc.dart';
-import 'package:zenon_syrius_wallet_flutter/blocs/tokens/issue_token_bloc.dart';
+import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
-import 'package:zenon_syrius_wallet_flutter/model/new_token_data.dart';
+import 'package:zenon_syrius_wallet_flutter/model/model.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/extensions.dart';
@@ -16,19 +15,9 @@ import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/input_validators.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/notification_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/zts_utils.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/buttons/loading_button.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/buttons/stepper_button.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/custom_material_stepper.dart'
-    as custom_material_stepper;
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/custom_slider.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/dotted_border_info_widget.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/error_widget.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/icons/standard_tooltip_icon.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/input_field/disabled_address_field.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/input_field/input_field.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/loading_widget.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/plasma_icon.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/stepper_utils.dart';
+as custom_material_stepper;
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 enum TokenStepperStep {
@@ -235,7 +224,7 @@ class _TokenStepperState extends State<TokenStepper> {
             stepTitle: 'Token Details',
             stepContent: _getTokenDetailsStepContent(context, accountInfo),
             stepSubtitle:
-                '${_tokenNameController.text} ' + _tokenSymbolController.text,
+                '${_tokenNameController.text} ${_tokenSymbolController.text}',
             stepState: StepperUtils.getStepState(
               TokenStepperStep.tokenDetails.index,
               _lastCompletedStep?.index,
@@ -374,6 +363,7 @@ class _TokenStepperState extends State<TokenStepper> {
               const StandardTooltipIcon(
                 'Token status: utility or '
                 'non-utility (e.g. security token)',
+                Icons.help,
                 iconColor: AppColors.ztsColor,
               ),
             ],
@@ -676,11 +666,11 @@ class _TokenStepperState extends State<TokenStepper> {
     _saveProgressAndNavigateToNextStep(TokenStepperStep.tokenCreation);
   }
 
-  void _saveProgressAndNavigateToNextStep(TokenStepperStep _completedStep) {
+  void _saveProgressAndNavigateToNextStep(TokenStepperStep completedStep) {
     setState(() {
-      _lastCompletedStep = _completedStep;
+      _lastCompletedStep = completedStep;
       if (_lastCompletedStep!.index + 1 < _numSteps) {
-        _currentStep = TokenStepperStep.values[_completedStep.index + 1];
+        _currentStep = TokenStepperStep.values[completedStep.index + 1];
       }
     });
   }
@@ -866,6 +856,7 @@ class _TokenStepperState extends State<TokenStepper> {
             ),
             const StandardTooltipIcon(
               'Whether or not this token is mintable after creation',
+              Icons.help,
               iconColor: AppColors.ztsColor,
             ),
           ],
@@ -895,6 +886,7 @@ class _TokenStepperState extends State<TokenStepper> {
             ),
             const StandardTooltipIcon(
               'Whether or not only the token owner can burn it',
+              Icons.help,
               iconColor: AppColors.ztsColor,
             ),
           ],
