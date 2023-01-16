@@ -109,13 +109,17 @@ main() async {
 }
 
 Future<void> _setupTrayManager() async {
-  await trayManager.setTitle('s y r i u s');
+  if (!Platform.isWindows) {
+    await trayManager.setTitle('s y r i u s');
+  }
   await trayManager.setIcon(
     Platform.isWindows
         ? 'assets/images/tray_app_icon.ico'
         : 'assets/images/tray_app_icon.png',
   );
-  await trayManager.setToolTip('s y r i u s');
+  if (Platform.isMacOS) {
+    await trayManager.setToolTip('s y r i u s');
+  }
   List<MenuItem> items = [
     MenuItem(
       key: 'show_wallet',
