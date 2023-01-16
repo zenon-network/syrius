@@ -115,7 +115,9 @@ Future<void> _setupTrayManager() async {
         ? 'assets/images/tray_app_icon.ico'
         : 'assets/images/tray_app_icon.png',
   );
-  await trayManager.setToolTip('s y r i u s');
+  if (!Platform.isLinux) {
+    await trayManager.setToolTip('s y r i u s');
+  }
   List<MenuItem> items = [
     MenuItem(
       key: 'show_wallet',
