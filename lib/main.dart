@@ -115,7 +115,7 @@ Future<void> _setupTrayManager() async {
         ? 'assets/images/tray_app_icon.ico'
         : 'assets/images/tray_app_icon.png',
   );
-  if (!Platform.isLinux) {
+  if (Platform.isMacOS) {
     await trayManager.setToolTip('s y r i u s');
   }
   List<MenuItem> items = [
