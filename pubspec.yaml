@@ -60,7 +60,7 @@ dependencies:
   znn_sdk_dart:
     git:
       url: https://github.com/alienc0der/znn_sdk_dart.git
-      ref: 5e1d826f9cad841498a314cf50e985539c29d634
+      ref: master
   json_rpc_2: ^3.0.2
   path: ^1.8.2
   ffi: ^2.0.1
