@@ -93,7 +93,7 @@ BEGIN
             VALUE "FileDescription", "s y r i u s (v0.0.6-alphanet)" "\0"
             VALUE "FileVersion", VERSION_AS_STRING "\0"
             VALUE "InternalName", "syrius" "\0"
-            VALUE "LegalCopyright", "(C) 2022 Zenon Network" "\0"
+            VALUE "LegalCopyright", "(C) 2023 Zenon Network" "\0"
             VALUE "OriginalFilename", "syrius.exe" "\0"
             VALUE "ProductName", "syrius" "\0"
             VALUE "ProductVersion", VERSION_AS_STRING "\0"

@@ -103,6 +103,26 @@ jobs:
     needs: [build-macos, build-windows, build-linux]
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Set variables
+        run: |
+          SYRIUS="v$(cat pubspec.yaml | grep version | sed 's/version://' | xargs)"
+          echo "Syrius Version: $SYRIUS"
+          echo "SYRIUS_VERSION=$SYRIUS" >> $GITHUB_ENV
+          GOZENON=$(curl -s https://raw.githubusercontent.com/zenon-network/go-zenon/master/metadata/version.go | grep Version | awk -F '"' '{print $2}')
+          echo "Go-Zenon Version: $GOZENON"
+          BODY=$(cat <<EOF
+          Syrius $SYRIUS features the pre-release version of the [go-zenon](https://github.com/zenon-network/go-zenon) $GOZENON full node.
+
+          syrius for Windows requires Microsoft Visual C++ to be installed.
+          [Download Microsoft Visual C++](https://aka.ms/vs/16/release/vc_redist.x64.exe)
+          EOF
+          )
+          echo "$BODY"
+          echo "BODY<<EOFMARKER" >> ${GITHUB_ENV}
+          echo "${BODY}" >> ${GITHUB_ENV}
+          echo "EOFMARKER" >> ${GITHUB_ENV}
       - name: Prepare releases directory
         run: mkdir releases
       - name: Download macOS artifacts
@@ -129,7 +149,8 @@ jobs:
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           file: releases/*
-          tag: v0.0.6-alpha
+          release_name: ${{ env.SYRIUS_VERSION }}
+          tag: ${{ env.SYRIUS_VERSION }}-alphanet
           file_glob: true
           overwrite: true
-          body: ""
+          body: ${{ env.BODY }}

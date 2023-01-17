@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.15)
 project(syrius LANGUAGES CXX)
 
 set(BINARY_NAME "syrius")
+set(APPLICATION_ID "network.zenon.syrius")
 
 cmake_policy(SET CMP0063 NEW)
 

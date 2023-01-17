@@ -38,6 +38,7 @@ class AddressesState extends State<Addresses> {
   late ScrollController _scrollController;
 
   bool _shouldScrollToTheEnd = false;
+  int numberOfAddressesToAdd = 1;
 
   @override
   void initState() {
@@ -78,56 +79,69 @@ class AddressesState extends State<Addresses> {
   }
 
   Widget _getAddAddressWidget() {
-    int numAddrToAdd = 1;
-    return InkWell(
-      onTap: () {
-        setState(() {
-          _futureGenerateNewAddress = AddressUtils.generateNewAddress(
-              numAddr: numAddrToAdd,
-              callback: () {
-                setState(() {
-                  _shouldScrollToTheEnd = true;
-                });
+    return Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: [
+          Expanded(
+            flex: 1,
+            child: Container(
+              padding: const EdgeInsets.only(left: 20, right: 20),
+              child: NumberSelector.plain(
+                borderColor: AppColors.znnColor,
+                iconColor: AppColors.znnColor,
+                dividerColor: AppColors.znnColor,
+                step: 1,
+                current: 1,
+                min: 1,
+                max: 10,
+                onUpdate: (val) {
+                  _onAddAddressPressedCallback(val);
+                },
+              ),
+            ),
+          ),
+          InkWell(
+            onTap: () {
+              setState(() {
+                _futureGenerateNewAddress = AddressUtils.generateNewAddress(
+                    numAddr: numberOfAddressesToAdd,
+                    callback: () {
+                      setState(() {
+                        _shouldScrollToTheEnd = true;
+                      });
+                    }
+                );
               });
-        });
-      },
-      child: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: [
-            Expanded(
-              flex: 1,
-              child: Container(
-                padding: const EdgeInsets.only(left: 20, right: 20),
-                child: NumberSelector.plain(
-                  borderColor: AppColors.znnColor,
-                  iconColor: AppColors.znnColor,
-                  dividerColor: AppColors.znnColor,
-                  step: 1,
-                  current: 1,
-                  min: 1,
-                  max: 10,
-                  onUpdate: (val) {
-                    numAddrToAdd = val;
-                  },
-                ),
-              ),
+            },
+            child: Container(
+                constraints: const BoxConstraints(
+                    minWidth: 150.0, minHeight: 50.0),
+                alignment: Alignment.center,
+                child: Row(
+                  children: [
+                    const Icon(
+                      Icons.add_circle,
+                      color: AppColors.znnColor,
+                      size: 20.0,
+                    ),
+                    const SizedBox(width: 10.0),
+                    Text(
+                      (numberOfAddressesToAdd == 1) ?
+                      'Add $numberOfAddressesToAdd address  ' :
+                      'Add $numberOfAddressesToAdd addresses',
+                      style: Theme
+                          .of(context)
+                          .textTheme
+                          .bodyText1,
+                    ),
+                  ],
+                )
             ),
-            const Icon(
-              Icons.add_circle,
-              color: AppColors.znnColor,
-              size: 20.0,
-            ),
-            Container(
-              padding: const EdgeInsets.only(left: 10, right: 80),
-              child: Text(
-                'Add addresses',
-                style: Theme.of(context).textTheme.bodyText1,
-              ),
-            ),
-          ],
-        ),
+          ),
+          const SizedBox(width: 10.0),
+        ],
       ),
     );
   }
@@ -165,7 +179,7 @@ class AddressesState extends State<Addresses> {
 
     if (_shouldScrollToTheEnd) {
       Timer(
-        const Duration(seconds: 1),
+        const Duration(milliseconds: 1),
         () {
           if (mounted && _scrollController.hasClients) {
             _scrollController
@@ -228,9 +242,16 @@ class AddressesState extends State<Addresses> {
     );
   }
 
+  void _onAddAddressPressedCallback(int value) {
+    setState(() {
+      numberOfAddressesToAdd = value;
+    });
+  }
+
   void _onAddressPressedCallback(String? value) {
     setState(() {
       _futureChangeDefaultAddress = _changeDefaultAddress(value);
+      numberOfAddressesToAdd = 1;
     });
   }
 
