@@ -54,6 +54,7 @@ class _SettingsNodeState extends State<SettingsNode> {
     return Row(
       children: [
         Expanded(
+          flex: 1,
           child: InkWell(
             borderRadius: BorderRadius.circular(
               10.0,
@@ -86,7 +87,7 @@ class _SettingsNodeState extends State<SettingsNode> {
                 'Chain identifier ${getChainIdentifier()}',
                 MaterialCommunityIcons.identifier)),
         const SizedBox(
-          width: 5.0,
+          width: 8.0,
         ),
         Visibility(
           visible: widget.node.contains('wss://'),
@@ -122,9 +123,6 @@ class _SettingsNodeState extends State<SettingsNode> {
             materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
           ),
         ),
-        const SizedBox(
-          width: 7.0,
-        ),
         Visibility(
           visible: !kDefaultNodes.contains(widget.node),
           child: MaterialIconButton(
@@ -141,6 +139,7 @@ class _SettingsNodeState extends State<SettingsNode> {
               );
             },
             iconData: Icons.delete_forever,
+            materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
           ),
         ),
       ],

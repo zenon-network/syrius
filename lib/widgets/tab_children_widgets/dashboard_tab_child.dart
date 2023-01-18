@@ -52,7 +52,7 @@ class _DashboardTabChildState extends State<DashboardTabChild> {
       ),
       const FluidCell(
         child: TotalHourlyTransactions(),
-        height: kStaggeredNumOfColumns / 8,
+        height: kStaggeredNumOfColumns / 4,
       ),
       const FluidCell(
         child: Pillars(),
@@ -66,9 +66,8 @@ class _DashboardTabChildState extends State<DashboardTabChild> {
         child: DelegationStats(),
         height: kStaggeredNumOfColumns / 8,
       ),
-      FluidCell(
-        child: const Sentinels(),
-        width: defaultCellWidth * 2,
+      const FluidCell(
+        child: Sentinels(),
         height: kStaggeredNumOfColumns / 8,
       ),
       FluidCell(

@@ -87,7 +87,7 @@ class AddressesState extends State<Addresses> {
           Expanded(
             flex: 1,
             child: Container(
-              padding: const EdgeInsets.only(left: 20, right: 20),
+              padding: const EdgeInsets.symmetric(horizontal: 20.0),
               child: NumberSelector.plain(
                 borderColor: AppColors.znnColor,
                 iconColor: AppColors.znnColor,
