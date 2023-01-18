@@ -30,7 +30,11 @@ class _SettingsAddressState extends State<SettingsAddress> {
   @override
   void initState() {
     super.initState();
-    _labelController.text = kAddressLabelMap[widget.address]!;
+    if (kAddressLabelMap[widget.address] != null) {
+      _labelController.text = kAddressLabelMap[widget.address]!;
+    } else {
+      _labelController.text = 'Address 1';
+    }
   }
 
   @override

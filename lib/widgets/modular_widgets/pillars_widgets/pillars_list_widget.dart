@@ -114,7 +114,7 @@ class _PillarsListWidgetState extends State<PillarsListWidget> {
   Widget _getTable(PillarsListBloc bloc) {
     return Column(
       children: [
-        _getTableHeader(),
+        _getTableHeader(bloc),
         Expanded(
           child: Scrollbar(
             controller: _scrollController,
@@ -142,12 +142,15 @@ class _PillarsListWidgetState extends State<PillarsListWidget> {
     );
   }
 
-  Container _getTableHeader() {
+  Container _getTableHeader(PillarsListBloc bloc) {
     return Container(
       decoration: BoxDecoration(
         border: Border(
           bottom: BorderSide(
-            color: Theme.of(context).dividerTheme.color!,
+            color: Theme
+                .of(context)
+                .dividerTheme
+                .color!,
             width: 1.0,
           ),
         ),
@@ -156,43 +159,60 @@ class _PillarsListWidgetState extends State<PillarsListWidget> {
         vertical: 15.0,
       ),
       child: Row(
-        children: List<Widget>.from(
-              [
-                const SizedBox(
-                  width: 20.0,
-                )
-              ],
-            ) +
+          children: List<Widget>.from(
             [
-              InfiniteScrollTableHeaderColumn(
-                columnName: 'Name',
-                onSortArrowsPressed: _onSortArrowsPressed,
-              ),
-              InfiniteScrollTableHeaderColumn(
-                columnName: 'Producer Address',
-                onSortArrowsPressed: _onSortArrowsPressed,
-                flex: 3,
-              ),
-              InfiniteScrollTableHeaderColumn(
-                columnName: 'Weight',
-                onSortArrowsPressed: _onSortArrowsPressed,
-              ),
-              const InfiniteScrollTableHeaderColumn(columnName: 'Delegation'),
-              const InfiniteScrollTableHeaderColumn(
-                  columnName: 'Momentum reward'),
-              const InfiniteScrollTableHeaderColumn(
-                  columnName: 'Delegation reward'),
-              const InfiniteScrollTableHeaderColumn(
-                columnName: 'Expected/produced momentums',
-              ),
-              const InfiniteScrollTableHeaderColumn(
-                columnName: 'Uptime',
-              ),
-              const InfiniteScrollTableHeaderColumn(
-                columnName: '',
-                flex: 2,
-              ),
+              const SizedBox(
+                width: 20.0,
+              )
             ],
+          ) +
+              [
+                InfiniteScrollTableHeaderColumn(
+                  columnName: 'Name',
+                  onSortArrowsPressed: _onSortArrowsPressed,
+                ),
+                InfiniteScrollTableHeaderColumn(
+                  columnName: 'Producer Address',
+                  onSortArrowsPressed: _onSortArrowsPressed,
+                  flex: 3,
+                ),
+                InfiniteScrollTableHeaderColumn(
+                  columnName: 'Weight',
+                  onSortArrowsPressed: _onSortArrowsPressed,
+                ),
+                const InfiniteScrollTableHeaderColumn(columnName: 'Delegation'),
+                const InfiniteScrollTableHeaderColumn(
+                    columnName: 'Momentum reward'),
+                const InfiniteScrollTableHeaderColumn(
+                    columnName: 'Delegation reward'),
+                const InfiniteScrollTableHeaderColumn(
+                  columnName: 'Expected/produced momentums',
+                ),
+                const InfiniteScrollTableHeaderColumn(
+                  columnName: 'Uptime',
+                ),
+                const InfiniteScrollTableHeaderColumn(
+                  columnName: '',
+                  flex: 1,
+                ),
+                const SizedBox(
+                  width: 5.0,
+                )
+              ] + [
+            SizedBox(
+                width: 110,
+                child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Visibility(
+                        visible: _delegationInfo?.name != null,
+                        child: _getUndelegateButtonViewModel(bloc),
+                      ),
+                    ]
+                )
+            ),
+          ]
       ),
     );
   }
@@ -216,32 +236,43 @@ class _PillarsListWidgetState extends State<PillarsListWidget> {
         ),
         decoration: BoxDecoration(
           color: isSelected
-              ? Theme.of(context).colorScheme.primaryContainer
+              ? Theme
+              .of(context)
+              .colorScheme
+              .primaryContainer
               : Colors.transparent,
           border: Border(
             top: indexOfRow != 0
                 ? BorderSide(
-                    color: Theme.of(context).dividerTheme.color!,
-                    width: 0.75,
-                  )
+              color: Theme
+                  .of(context)
+                  .dividerTheme
+                  .color!,
+              width: 0.75,
+            )
                 : BorderSide.none,
             left: isSelected
                 ? const BorderSide(
-                    color: AppColors.znnColor,
-                    width: 2.0,
-                  )
+              color: AppColors.znnColor,
+              width: 2.0,
+            )
                 : BorderSide.none,
           ),
         ),
         child: Row(
-          children: List<Widget>.from(
-                [
+            children: List<Widget>.from(
+              [
+                const SizedBox(
+                  width: 20.0,
+                )
+              ],
+            ) +
+                generateRowCells(item, isSelected)
+                + [
                   const SizedBox(
-                    width: 20.0,
+                    width: 110,
                   )
-                ],
-              ) +
-              generateRowCells(item, isSelected),
+                ]
         ),
       ),
     );
@@ -314,7 +345,6 @@ class _PillarsListWidgetState extends State<PillarsListWidget> {
           pillarInfo,
           _pillarsListBloc,
         ),
-        flex: 2,
       ),
     ];
   }
@@ -332,9 +362,9 @@ class _PillarsListWidgetState extends State<PillarsListWidget> {
           child: _delegationInfo == null
               ? _getBalanceStreamBuilder(pillarInfo, model)
               : Visibility(
-                  visible: pillarInfo.name == _delegationInfo!.name,
-                  child: _getUndelegateButtonViewModel(model),
-                ),
+            visible: pillarInfo.name == _delegationInfo!.name,
+            child: _getUndelegateButtonViewModel(model),
+          ),
         ),
       ],
     );
