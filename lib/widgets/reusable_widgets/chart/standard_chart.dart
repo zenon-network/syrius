@@ -27,6 +27,7 @@ class StandardChart extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       margin: const EdgeInsets.only(
+        left: 5.0,
         right: 20.0,
         top: 20.0,
         bottom: 10.0,
@@ -43,7 +44,7 @@ class StandardChart extends StatelessWidget {
               tooltipRoundedRadius: 6.0,
               getTooltipItems: (touchedSpots) {
                 return touchedSpots.map(
-                  (LineBarSpot touchedSpot) {
+                      (LineBarSpot touchedSpot) {
                     final textStyle = TextStyle(
                       color: touchedSpot.bar.color,
                       fontWeight: FontWeight.bold,
@@ -51,7 +52,7 @@ class StandardChart extends StatelessWidget {
                     );
                     return LineTooltipItem(
                       '${touchedSpot.y == touchedSpot.y.toInt() ? touchedSpot.y.toInt() : touchedSpot.y} '
-                      '$lineBarDotSymbol',
+                          '$lineBarDotSymbol',
                       textStyle,
                     );
                   },
@@ -86,7 +87,7 @@ class StandardChart extends StatelessWidget {
                   ),
                 ),
                 showTitles: true,
-                reservedSize: 14.0,
+                reservedSize: 22.0,
                 interval: 1.0,
               ),
             ),
