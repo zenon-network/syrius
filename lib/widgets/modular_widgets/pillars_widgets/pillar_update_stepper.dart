@@ -8,7 +8,7 @@ import 'package:zenon_syrius_wallet_flutter/utils/input_validators.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/notification_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/custom_material_stepper.dart'
-as custom_material_stepper;
+    as custom_material_stepper;
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 enum PillarUpdateStep {
@@ -384,7 +384,7 @@ class _PillarUpdateStepperState extends State<PillarUpdateStepper> {
 
   Widget _getUpdatePillarViewModel() {
     return ViewModelBuilder<UpdatePillarBloc>.reactive(
-      onModelReady: (model) {
+      onViewModelReady: (model) {
         model.stream.listen(
           (event) {
             if (event != null) {

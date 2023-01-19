@@ -178,27 +178,14 @@ class _SendMediumCardState extends State<SendMediumCard> {
   void _onSendPaymentPressed(SendPaymentBloc model) {
     if (_recipientKey.currentState!.validate() &&
         _amountKey.currentState!.validate()) {
-      if (Address.parse(_recipientController.text) == bridgeAddress) {
-        showOkDialog(
-          context: context,
-          title: 'Send Payment',
-          description:
-              'Use the form from the Bridge tab in order to perform the swap',
-          onActionButtonPressed: () {
-            Navigator.pop(context);
-            widget.onOkBridgeWarningDialogPressed();
-          },
-        );
-      } else {
-        showDialogWithNoAndYesOptions(
-          context: context,
-          title: 'Send Payment',
-          description: 'Are you sure you want to transfer '
-              '${_amountController.text} ${_selectedToken.symbol} to '
-              '${AddressUtils.getLabel(_recipientController.text)} ?',
-          onYesButtonPressed: () => _sendPayment(model),
-        );
-      }
+      showDialogWithNoAndYesOptions(
+        context: context,
+        title: 'Send Payment',
+        description: 'Are you sure you want to transfer '
+            '${_amountController.text} ${_selectedToken.symbol} to '
+            '${AddressUtils.getLabel(_recipientController.text)} ?',
+        onYesButtonPressed: () => _sendPayment(model),
+      );
     }
   }
 
@@ -263,8 +250,8 @@ class _SendMediumCardState extends State<SendMediumCard> {
 
   Widget _getSendPaymentViewModel(AccountInfo? accountInfo) {
     return ViewModelBuilder<SendPaymentBloc>.reactive(
-      fireOnModelReadyOnce: true,
-      onModelReady: (model) {
+      fireOnViewModelReadyOnce: true,
+      onViewModelReady: (model) {
         model.stream.listen(
           (event) {
             if (event is AccountBlockTemplate) {

@@ -19,7 +19,7 @@ import 'package:zenon_syrius_wallet_flutter/utils/notification_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/zts_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/custom_material_stepper.dart'
-as custom_material_stepper;
+    as custom_material_stepper;
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 enum SentinelsStepperStep {
@@ -98,7 +98,7 @@ class _MainSentinelsState extends State<SentinelsStepperContainer> {
 
   Widget _getDepositQsrStep(BuildContext context, AccountInfo? accountInfo) {
     return ViewModelBuilder<SentinelsQsrInfoBloc>.reactive(
-      onModelReady: (model) {
+      onViewModelReady: (model) {
         _sentinelsQsrInfoViewModel = model;
         model.getQsrDepositedAmount(_addressController.text);
       },
@@ -334,7 +334,7 @@ class _MainSentinelsState extends State<SentinelsStepperContainer> {
 
   Widget _getDepositButtonViewModel(AccountInfo accountInfo, num depositedQsr) {
     return ViewModelBuilder<SentinelsDepositQsrBloc>.reactive(
-      onModelReady: (model) {
+      onViewModelReady: (model) {
         model.stream.listen(
           (response) {
             if (response != null) {
@@ -378,7 +378,7 @@ class _MainSentinelsState extends State<SentinelsStepperContainer> {
 
   Widget _getWithdrawQsrButtonViewModel(num qsrDeposit) {
     return ViewModelBuilder<SentinelsWithdrawQsrBloc>.reactive(
-      onModelReady: (model) {
+      onViewModelReady: (model) {
         model.stream.listen(
           (event) {
             if (event != null) {
@@ -505,7 +505,7 @@ class _MainSentinelsState extends State<SentinelsStepperContainer> {
 
   Widget _getDeployButtonViewModel() {
     return ViewModelBuilder<SentinelsDeployBloc>.reactive(
-      onModelReady: (model) {
+      onViewModelReady: (model) {
         model.stream.listen(
           (response) {
             if (response != null) {

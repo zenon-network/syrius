@@ -21,7 +21,7 @@ class _TotalHourlyTransactionsState extends State<TotalHourlyTransactions> {
   Widget build(BuildContext context) {
     return ViewModelBuilder<TotalHourlyTransactionsBloc>.reactive(
       viewModelBuilder: () => TotalHourlyTransactionsBloc(),
-      onModelReady: (model) {
+      onViewModelReady: (model) {
         model.getDataPeriodically();
       },
       builder: (_, model, __) => CardScaffold<Map<String, dynamic>>(

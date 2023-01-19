@@ -21,7 +21,7 @@ class _SentinelsState extends State<Sentinels> {
   Widget build(BuildContext context) {
     return ViewModelBuilder<SentinelsBloc>.reactive(
       viewModelBuilder: () => SentinelsBloc(),
-      onModelReady: (model) {
+      onViewModelReady: (model) {
         model.getDataPeriodically();
       },
       builder: (_, model, __) => CardScaffold<List<SentinelInfo>>(

@@ -23,7 +23,7 @@ class _DelegationStatsState extends State<DelegationStats> {
   Widget build(BuildContext context) {
     return ViewModelBuilder<DelegationBloc>.reactive(
       viewModelBuilder: () => DelegationBloc(),
-      onModelReady: (model) {
+      onViewModelReady: (model) {
         model.getDataPeriodically();
       },
       builder: (_, model, __) => CardScaffold<DelegationInfo>(

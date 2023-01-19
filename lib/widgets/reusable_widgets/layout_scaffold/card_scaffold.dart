@@ -299,7 +299,7 @@ class _CardScaffoldState<T> extends State<CardScaffold<T>> {
 
   Widget _getHideWidgetInfoViewModel() {
     return ViewModelBuilder<HideWidgetStatusBloc>.reactive(
-      onModelReady: (model) {
+      onViewModelReady: (model) {
         _actionButton = _getActionButton(model);
         // Stream will tell us if the widget info is hidden or not
         model.stream.listen(

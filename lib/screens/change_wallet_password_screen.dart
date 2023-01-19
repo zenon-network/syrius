@@ -170,7 +170,7 @@ class _ChangeWalletPasswordScreenState
 
   Widget _getDecryptKeyStoreFileViewModel() {
     return ViewModelBuilder<DecryptKeyStoreBloc>.reactive(
-      onModelReady: (model) {
+      onViewModelReady: (model) {
         model.stream.listen((keyStore) async {
           if (keyStore != null) {
             setState(() {

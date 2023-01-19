@@ -322,7 +322,7 @@ class _PlasmaOptionsState extends State<PlasmaOptions> {
 
   Widget _getGeneratePlasmaButtonStreamBuilder() {
     return ViewModelBuilder<PlasmaOptionsBloc>.reactive(
-      onModelReady: (model) {
+      onViewModelReady: (model) {
         model.stream.listen(
           (event) {
             if (event != null) {

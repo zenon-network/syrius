@@ -7,7 +7,6 @@ import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/format_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/input_validators.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/navigation_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/notification_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/zts_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
@@ -57,11 +56,8 @@ class _SwapCardState extends State<SwapCard> {
       },
       onError: (error) {
         _swapButtonKey.currentState?.animateReverse();
-        NotificationUtils.sendNotificationError(
-          error,
-          'Couldn\'t send ${_amountController.text} ${kZnnCoin.symbol} '
-          'to $bridgeAddress',
-        );
+        NotificationUtils.sendNotificationError(error,
+            'Couldn\'t send ${_amountController.text} ${kZnnCoin.symbol}');
       },
     );
   }
@@ -223,13 +219,6 @@ class _SwapCardState extends State<SwapCard> {
 
   void _sendSwapBlock() {
     _swapButtonKey.currentState?.animateForward();
-    _sendPaymentBloc.sendTransfer(
-      fromAddress: _selectedSelfAddress,
-      toAddress: bridgeAddress.toString(),
-      amount: _amountController.text,
-      data: _decodeEvmAddress(),
-      token: kZnnCoin,
-    );
   }
 
   void _onMaxPressed(AccountInfo accountInfo) => setState(() {
@@ -256,11 +245,9 @@ class _SwapCardState extends State<SwapCard> {
   void _sendConfirmationNotification() {
     sl.get<NotificationsBloc>().addNotification(
           WalletNotification(
-            title: 'Sent ${_amountController.text} ${kZnnCoin.symbol} '
-                'to $bridgeAddress',
+            title: 'Sent ${_amountController.text} ${kZnnCoin.symbol}',
             timestamp: DateTime.now().millisecondsSinceEpoch,
-            details: 'Sent ${_amountController.text} ${kZnnCoin.symbol} '
-                'from $_selectedSelfAddress to $bridgeAddress',
+            details: 'Sent ${_amountController.text} ${kZnnCoin.symbol}',
             type: NotificationType.paymentSent,
             id: null,
           ),

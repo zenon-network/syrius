@@ -216,7 +216,7 @@ class _SentinelsListWidgetState extends State<SentinelsListWidget> {
     SentinelInfo sentinelInfo,
   ) {
     return ViewModelBuilder<DisassembleButtonBloc>.reactive(
-      onModelReady: (model) {
+      onViewModelReady: (model) {
         model.stream.listen(
           (event) {
             if (event != null) {

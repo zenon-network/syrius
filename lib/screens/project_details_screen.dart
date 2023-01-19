@@ -112,7 +112,7 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
 
   Widget _getStreamBuilder() {
     return ViewModelBuilder<RefreshProjectBloc>.reactive(
-      onModelReady: (model) {
+      onViewModelReady: (model) {
         model.refreshProject(widget.project.id);
       },
       builder: (_, model, __) => StreamBuilder<Project?>(

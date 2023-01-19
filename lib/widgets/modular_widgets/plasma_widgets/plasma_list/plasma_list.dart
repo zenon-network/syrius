@@ -112,7 +112,7 @@ class _PlasmaListState extends State<PlasmaList> {
     final GlobalKey<LoadingButtonState> cancelButtonKey = GlobalKey();
 
     return ViewModelBuilder<CancelPlasmaBloc>.reactive(
-      onModelReady: (model) {
+      onViewModelReady: (model) {
         model.stream.listen(
           (event) {
             if (event != null) {
@@ -169,13 +169,17 @@ class _PlasmaListState extends State<PlasmaList> {
         break;
       case 'Beneficiary':
         _sortAscending
-            ? _stakingList.sort((a, b) => a.beneficiary.compareTo(b.beneficiary))
-            : _stakingList.sort((a, b) => b.beneficiary.compareTo(a.beneficiary));
+            ? _stakingList
+                .sort((a, b) => a.beneficiary.compareTo(b.beneficiary))
+            : _stakingList
+                .sort((a, b) => b.beneficiary.compareTo(a.beneficiary));
         break;
       default:
         _sortAscending
-            ? _stakingList.sort((a, b) => a.beneficiary.compareTo(b.beneficiary))
-            : _stakingList.sort((a, b) => b.beneficiary.compareTo(a.beneficiary));
+            ? _stakingList
+                .sort((a, b) => a.beneficiary.compareTo(b.beneficiary))
+            : _stakingList
+                .sort((a, b) => b.beneficiary.compareTo(a.beneficiary));
         break;
     }
 

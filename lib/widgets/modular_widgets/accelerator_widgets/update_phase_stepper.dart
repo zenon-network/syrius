@@ -396,7 +396,7 @@ class _UpdatePhaseStepperState extends State<UpdatePhaseStepper> {
 
   Widget _getUpdatePhaseViewModel() {
     return ViewModelBuilder<UpdatePhaseBloc>.reactive(
-      onModelReady: (model) {
+      onViewModelReady: (model) {
         model.stream.listen(
           (event) {
             if (event != null) {

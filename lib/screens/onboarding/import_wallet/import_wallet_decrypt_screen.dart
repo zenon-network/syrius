@@ -108,7 +108,7 @@ class _ImportWalletDecryptScreenState extends State<ImportWalletDecryptScreen> {
 
   _getDecryptKeyStoreFileViewModel() {
     return ViewModelBuilder<DecryptKeyStoreBloc>.reactive(
-      onModelReady: (model) {
+      onViewModelReady: (model) {
         model.stream.listen((keyStore) {
           if (keyStore != null) {
             _loadingButtonKey.currentState!.animateReverse();

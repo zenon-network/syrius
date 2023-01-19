@@ -147,10 +147,7 @@ class _PillarsListWidgetState extends State<PillarsListWidget> {
       decoration: BoxDecoration(
         border: Border(
           bottom: BorderSide(
-            color: Theme
-                .of(context)
-                .dividerTheme
-                .color!,
+            color: Theme.of(context).dividerTheme.color!,
             width: 1.0,
           ),
         ),
@@ -160,12 +157,12 @@ class _PillarsListWidgetState extends State<PillarsListWidget> {
       ),
       child: Row(
           children: List<Widget>.from(
-            [
-              const SizedBox(
-                width: 20.0,
-              )
-            ],
-          ) +
+                [
+                  const SizedBox(
+                    width: 20.0,
+                  )
+                ],
+              ) +
               [
                 InfiniteScrollTableHeaderColumn(
                   columnName: 'Name',
@@ -198,22 +195,20 @@ class _PillarsListWidgetState extends State<PillarsListWidget> {
                 const SizedBox(
                   width: 5.0,
                 )
-              ] + [
-            SizedBox(
-                width: 110,
-                child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      Visibility(
-                        visible: _delegationInfo?.name != null,
-                        child: _getUndelegateButtonViewModel(bloc),
-                      ),
-                    ]
-                )
-            ),
-          ]
-      ),
+              ] +
+              [
+                SizedBox(
+                    width: 110,
+                    child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Visibility(
+                            visible: _delegationInfo?.name != null,
+                            child: _getUndelegateButtonViewModel(bloc),
+                          ),
+                        ])),
+              ]),
     );
   }
 
@@ -236,44 +231,37 @@ class _PillarsListWidgetState extends State<PillarsListWidget> {
         ),
         decoration: BoxDecoration(
           color: isSelected
-              ? Theme
-              .of(context)
-              .colorScheme
-              .primaryContainer
+              ? Theme.of(context).colorScheme.primaryContainer
               : Colors.transparent,
           border: Border(
             top: indexOfRow != 0
                 ? BorderSide(
-              color: Theme
-                  .of(context)
-                  .dividerTheme
-                  .color!,
-              width: 0.75,
-            )
+                    color: Theme.of(context).dividerTheme.color!,
+                    width: 0.75,
+                  )
                 : BorderSide.none,
             left: isSelected
                 ? const BorderSide(
-              color: AppColors.znnColor,
-              width: 2.0,
-            )
+                    color: AppColors.znnColor,
+                    width: 2.0,
+                  )
                 : BorderSide.none,
           ),
         ),
         child: Row(
             children: List<Widget>.from(
-              [
-                const SizedBox(
-                  width: 20.0,
-                )
-              ],
-            ) +
-                generateRowCells(item, isSelected)
-                + [
+                  [
+                    const SizedBox(
+                      width: 20.0,
+                    )
+                  ],
+                ) +
+                generateRowCells(item, isSelected) +
+                [
                   const SizedBox(
                     width: 110,
                   )
-                ]
-        ),
+                ]),
       ),
     );
   }
@@ -362,9 +350,9 @@ class _PillarsListWidgetState extends State<PillarsListWidget> {
           child: _delegationInfo == null
               ? _getBalanceStreamBuilder(pillarInfo, model)
               : Visibility(
-            visible: pillarInfo.name == _delegationInfo!.name,
-            child: _getUndelegateButtonViewModel(model),
-          ),
+                  visible: pillarInfo.name == _delegationInfo!.name,
+                  child: _getUndelegateButtonViewModel(model),
+                ),
         ),
       ],
     );
@@ -453,7 +441,7 @@ class _PillarsListWidgetState extends State<PillarsListWidget> {
     PillarInfo pillarInfo,
   ) {
     return ViewModelBuilder<DisassemblePillarBloc>.reactive(
-      onModelReady: (model) {
+      onViewModelReady: (model) {
         model.stream.listen(
           (event) {
             if (event != null) {
@@ -584,7 +572,7 @@ class _PillarsListWidgetState extends State<PillarsListWidget> {
     final GlobalKey<LoadingButtonState> undelegateButtonKey = GlobalKey();
 
     return ViewModelBuilder<UndelegateButtonBloc>.reactive(
-      onModelReady: (model) {
+      onViewModelReady: (model) {
         model.stream.listen(
           (event) {
             if (event != null) {
@@ -656,7 +644,7 @@ class _PillarsListWidgetState extends State<PillarsListWidget> {
               ? true
               : _currentlyDelegatingToPillar == pillarInfo.name),
       child: ViewModelBuilder<DelegateButtonBloc>.reactive(
-        onModelReady: (model) {
+        onViewModelReady: (model) {
           model.stream.listen(
             (event) {
               if (event != null) {

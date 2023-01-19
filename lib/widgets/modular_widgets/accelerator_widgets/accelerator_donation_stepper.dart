@@ -430,7 +430,7 @@ class _AcceleratorDonationStepperState
 
   Widget _getSubmitDonationViewModel() {
     return ViewModelBuilder<SubmitDonationBloc>.reactive(
-      onModelReady: (model) {
+      onViewModelReady: (model) {
         model.stream.listen(
           (event) {
             if (event != null) {

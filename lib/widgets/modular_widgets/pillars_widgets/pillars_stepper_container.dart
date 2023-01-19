@@ -122,7 +122,7 @@ class _MainPillarsState extends State<PillarsStepperContainer> {
 
   Widget _getQsrManagementStep(BuildContext context, AccountInfo accountInfo) {
     return ViewModelBuilder<PillarsQsrInfoBloc>.reactive(
-      onModelReady: (model) {
+      onViewModelReady: (model) {
         _pillarsQsrInfoViewModel = model;
         model.getQsrManagementInfo(
           _selectedPillarType,
@@ -360,7 +360,7 @@ class _MainPillarsState extends State<PillarsStepperContainer> {
 
   Widget _getDepositQsrViewModel(PillarsQsrInfo qsrInfo) {
     return ViewModelBuilder<PillarsDepositQsrBloc>.reactive(
-      onModelReady: (model) {
+      onViewModelReady: (model) {
         model.stream.listen(
           (response) {
             if (response != null) {
@@ -406,7 +406,7 @@ class _MainPillarsState extends State<PillarsStepperContainer> {
     num qsrDeposit,
   ) {
     return ViewModelBuilder<PillarsWithdrawQsrBloc>.reactive(
-      onModelReady: (model) {
+      onViewModelReady: (model) {
         model.stream.listen(
           (event) {
             if (event != null) {
@@ -649,7 +649,7 @@ class _MainPillarsState extends State<PillarsStepperContainer> {
 
   Widget _getDeployButton() {
     return ViewModelBuilder<PillarsDeployBloc>.reactive(
-      onModelReady: (model) {
+      onViewModelReady: (model) {
         model.stream.listen(
           (response) {
             if (response != null) {

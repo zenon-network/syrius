@@ -127,7 +127,7 @@ class _StakingListState extends State<StakingList> {
     final GlobalKey<LoadingButtonState> cancelButtonKey = GlobalKey();
 
     return ViewModelBuilder<CancelStakeBloc>.reactive(
-      onModelReady: (model) {
+      onViewModelReady: (model) {
         model.stream.listen(
           (event) {
             if (event != null) {
