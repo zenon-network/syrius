@@ -116,10 +116,6 @@ class AboutCardState extends State<AboutCard> {
           'Client number of processors',
           _getGenericTextExpandedChild(Platform.numberOfProcessors.toString()),
         ),
-        CustomExpandablePanel(
-          'ZNN bridge address',
-          _getGenericTextExpandedChild(bridgeAddress.toString()),
-        ),
       ],
     );
   }
