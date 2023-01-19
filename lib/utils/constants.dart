@@ -151,20 +151,14 @@ const String kOrgCommunityWiki = 'https://docs.zenon.org';
 const String kTools = 'https://zenon.tools';
 const String kWhitepaper =
     'https://github.com/zenon-network/zenon.network/releases/download/whitepaper/whitepaper.pdf';
-const String kZnnController = 'https://github.com/zenon-network/znn_controller_dart';
+const String kZnnController =
+    'https://github.com/zenon-network/znn_controller_dart';
 const String kBitcoinTalk =
     'https://bitcointalk.org/index.php?topic=5279643.msg55303681#msg55303681';
 const String kDiscord = 'https://discord.gg/zenonnetwork';
 const String kMedium = 'https://medium.com/@zenon.network';
 const String kReddit = 'https://reddit.com/r/Zenon_Network';
 const String kYoutube = 'https://youtube.com/channel/UCDb8ZtqBt6l5l4HugCnJwhQ';
-
-// Bridge links
-const String kJoinLiquidityProgramUrl =
-    'https://bridge.zenon.network/#liquidity';
-const String kAddLiquidityUrl =
-    'https://pancakeswap.finance/add/0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c/0x84b174628911896a3b87fa6980d05dbc2ee74836';
-const int kLiquidityRewardsMultiplier = 10;
 
 // Wallet security
 const double kAutoEraseNumAttemptsDefault = 3;

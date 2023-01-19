@@ -106,14 +106,6 @@ class _SwapCardState extends State<SwapCard> {
           children: [
             _getInputFields(accountInfo),
             _getCheckBox(),
-            _getSwapButton(accountInfo),
-            kVerticalSpacing,
-            const Text(
-              'Redeem the wZNN if you have already performed the swap',
-              textAlign: TextAlign.center,
-            ),
-            kVerticalSpacing,
-            _getRedeemButton(),
           ],
         ),
       ),
@@ -229,23 +221,6 @@ class _SwapCardState extends State<SwapCard> {
     );
   }
 
-  Widget _getSwapButton(AccountInfo accountInfo) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        LoadingButton(
-          onPressed: _isInputValid(accountInfo) &&
-                  (_userHasEnoughBnbBalance ?? false) &&
-                  (_bridgeStatus)
-              ? _onSwapButtonPressed
-              : null,
-          key: _swapButtonKey,
-          text: 'Swap',
-        ),
-      ],
-    );
-  }
-
   void _sendSwapBlock() {
     _swapButtonKey.currentState?.animateForward();
     _sendPaymentBloc.sendTransfer(
@@ -308,29 +283,6 @@ class _SwapCardState extends State<SwapCard> {
   List<int> _decodeEvmAddress() {
     String hexCharacters = _evmAddressController.text.split('0x')[1];
     return FormatUtils.decodeHexString(hexCharacters);
-  }
-
-  Widget _getRedeemButton() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        MyOutlinedButton(
-          text: 'Redeem',
-          onPressed: () => showOkDialog(
-            context: context,
-            title: 'Redeem',
-            description: 'Press OK to open https://bridge.zenon.network/',
-            onActionButtonPressed: () {
-              NavigationUtils.openUrl('https://bridge.zenon.network/', context)
-                  .then(
-                (value) => Navigator.pop(context),
-              );
-            },
-          ),
-          minimumSize: kLoadingButtonMinSize,
-        ),
-      ],
-    );
   }
 
   @override
