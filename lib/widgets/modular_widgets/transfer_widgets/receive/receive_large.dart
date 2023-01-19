@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
-import 'package:zenon_syrius_wallet_flutter/blocs/tokens/tokens_bloc.dart';
+import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/extensions.dart';
@@ -8,15 +8,7 @@ import 'package:zenon_syrius_wallet_flutter/utils/format_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/input_validators.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/zts_utils.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/buttons/transfer_toggle_card_size_button.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/dropdown/addresses_dropdown.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/dropdown/coin_dropdown.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/error_widget.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/icons/copy_to_clipboard_icon.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/input_field/input_field.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/layout_scaffold/card_scaffold.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/loading_widget.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/receive_qr_image.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 class ReceiveLargeCard extends StatefulWidget {
@@ -30,7 +22,7 @@ class ReceiveLargeCard extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  _ReceiveLargeCardState createState() => _ReceiveLargeCardState();
+  State<ReceiveLargeCard> createState() => _ReceiveLargeCardState();
 }
 
 class _ReceiveLargeCardState extends State<ReceiveLargeCard> {

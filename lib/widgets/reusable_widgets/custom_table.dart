@@ -4,7 +4,7 @@ import 'package:marquee_widget/marquee_widget.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/address_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/icons/copy_to_clipboard_icon.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 class CustomTable<T> extends StatefulWidget {
@@ -145,15 +145,15 @@ class _CustomTableState<T> extends State<CustomTable<T>> {
   Widget _getShowMoreButton() {
     return TextButton(
       style: TextButton.styleFrom(
-        primary: Colors.white12,
+        foregroundColor: Colors.white12,
         backgroundColor: Colors.transparent,
         shape: const RoundedRectangleBorder(),
       ),
+      onPressed: widget.onShowMoreButtonPressed,
       child: Text(
         'Show more',
         style: Theme.of(context).textTheme.subtitle1,
       ),
-      onPressed: widget.onShowMoreButtonPressed,
     );
   }
 
@@ -384,9 +384,9 @@ class CustomTableCell extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Flexible(
-      child: child,
       flex: flex,
       fit: FlexFit.tight,
+      child: child,
     );
   }
 }

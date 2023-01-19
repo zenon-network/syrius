@@ -2,8 +2,9 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
+import 'package:number_selector/number_selector.dart';
 import 'package:provider/provider.dart';
-import 'package:zenon_syrius_wallet_flutter/blocs/settings/account_chain_stats_bloc.dart';
+import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/address_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
@@ -11,10 +12,7 @@ import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/notifiers/default_address_notifier.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/notifiers/plasma_beneficiary_address_notifier.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/error_widget.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/layout_scaffold/card_scaffold.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/loading_widget.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/settings_address.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 
 class Addresses extends StatefulWidget {
   final AccountChainStatsBloc accountChainStatsBloc;
@@ -40,6 +38,7 @@ class AddressesState extends State<Addresses> {
   late ScrollController _scrollController;
 
   bool _shouldScrollToTheEnd = false;
+  int numberOfAddressesToAdd = 1;
 
   @override
   void initState() {
@@ -80,42 +79,75 @@ class AddressesState extends State<Addresses> {
   }
 
   Widget _getAddAddressWidget() {
-    return InkWell(
-      onTap: () {
-        setState(() {
-          _futureGenerateNewAddress =
-              AddressUtils.generateNewAddress(callback: () {
-            setState(() {
-              _shouldScrollToTheEnd = true;
-            });
-          });
-        });
-      },
-      child: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(
-              Icons.add_circle,
-              color: AppColors.znnColor,
-              size: 20.0,
+    return Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: [
+          Expanded(
+            flex: 1,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 20.0),
+              child: NumberSelector.plain(
+                borderColor: AppColors.znnColor,
+                iconColor: AppColors.znnColor,
+                dividerColor: AppColors.znnColor,
+                step: 1,
+                current: 1,
+                min: 1,
+                max: 10,
+                onUpdate: (val) {
+                  _onAddAddressPressedCallback(val);
+                },
+              ),
             ),
-            const SizedBox(
-              width: 5.0,
+          ),
+          InkWell(
+            onTap: () {
+              setState(() {
+                _futureGenerateNewAddress = AddressUtils.generateNewAddress(
+                    numAddr: numberOfAddressesToAdd,
+                    callback: () {
+                      setState(() {
+                        _shouldScrollToTheEnd = true;
+                      });
+                    }
+                );
+              });
+            },
+            child: Container(
+                constraints: const BoxConstraints(
+                    minWidth: 150.0, minHeight: 50.0),
+                alignment: Alignment.center,
+                child: Row(
+                  children: [
+                    const Icon(
+                      Icons.add_circle,
+                      color: AppColors.znnColor,
+                      size: 20.0,
+                    ),
+                    const SizedBox(width: 10.0),
+                    Text(
+                      (numberOfAddressesToAdd == 1) ?
+                      'Add $numberOfAddressesToAdd address  ' :
+                      'Add $numberOfAddressesToAdd addresses',
+                      style: Theme
+                          .of(context)
+                          .textTheme
+                          .bodyText1,
+                    ),
+                  ],
+                )
             ),
-            Text(
-              'Add new address',
-              style: Theme.of(context).textTheme.bodyText1,
-            ),
-          ],
-        ),
+          ),
+          const SizedBox(width: 10.0),
+        ],
       ),
     );
   }
 
   Widget _getAddresses() {
-    List<Widget> _addresses = kDefaultAddressList
+    List<Widget> addresses = kDefaultAddressList
         .map(
           (e) => Row(
             children: [
@@ -139,15 +171,15 @@ class AddressesState extends State<Addresses> {
       controller: _scrollController,
       key: const PageStorageKey('Addresses list view'),
       shrinkWrap: true,
-      itemCount: _addresses.length,
+      itemCount: addresses.length,
       itemBuilder: (context, index) {
-        return _addresses[index];
+        return addresses[index];
       },
     );
 
     if (_shouldScrollToTheEnd) {
       Timer(
-        const Duration(seconds: 1),
+        const Duration(milliseconds: 1),
         () {
           if (mounted && _scrollController.hasClients) {
             _scrollController
@@ -210,9 +242,16 @@ class AddressesState extends State<Addresses> {
     );
   }
 
+  void _onAddAddressPressedCallback(int value) {
+    setState(() {
+      numberOfAddressesToAdd = value;
+    });
+  }
+
   void _onAddressPressedCallback(String? value) {
     setState(() {
       _futureChangeDefaultAddress = _changeDefaultAddress(value);
+      numberOfAddressesToAdd = 1;
     });
   }
 

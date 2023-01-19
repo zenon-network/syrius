@@ -1,17 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:zenon_syrius_wallet_flutter/blocs/notifications_bloc.dart';
+import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
-import 'package:zenon_syrius_wallet_flutter/model/database/notification_type.dart';
-import 'package:zenon_syrius_wallet_flutter/model/database/wallet_notification.dart';
+import 'package:zenon_syrius_wallet_flutter/model/model.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/format_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/notification_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/notifiers/app_theme_notifier.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/notifiers/text_scaling_notifier.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/buttons/loading_button.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/custom_expandable_panel.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/layout_scaffold/card_scaffold.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 
 enum TextScaling {
   system,
@@ -29,7 +26,7 @@ class DisplayWidget extends StatefulWidget {
   const DisplayWidget({Key? key}) : super(key: key);
 
   @override
-  _DisplayWidget createState() => _DisplayWidget();
+  State<DisplayWidget> createState() => _DisplayWidget();
 }
 
 class _DisplayWidget extends State<DisplayWidget> {

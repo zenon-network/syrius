@@ -2,11 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/navigation_utils.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/buttons/outlined_button.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/custom_material_stepper.dart'
-    as custom_material_stepper;
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/layout_scaffold/card_scaffold.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/stepper_utils.dart';
+as custom_material_stepper;
 
 enum JoinLiquidityProgramStep {
   joinProgram,
@@ -52,7 +50,7 @@ class _JoinLiquidityProgramCardState extends State<JoinLiquidityProgramCard> {
               children: [
                 MyOutlinedButton(
                   outlineColor: AppColors.qsrColor,
-                  onPressed: () => NavigationUtils.launchUrl(
+                  onPressed: () => NavigationUtils.openUrl(
                     kJoinLiquidityProgramUrl,
                     context,
                   ).then((value) => _saveProgressAndNavigateToNextStep(
@@ -78,7 +76,7 @@ class _JoinLiquidityProgramCardState extends State<JoinLiquidityProgramCard> {
                   children: [
                     MyOutlinedButton(
                       outlineColor: AppColors.qsrColor,
-                      onPressed: () => NavigationUtils.launchUrl(
+                      onPressed: () => NavigationUtils.openUrl(
                         kAddLiquidityUrl,
                         context,
                       ).then((value) => _saveProgressAndNavigateToNextStep(
@@ -104,13 +102,13 @@ class _JoinLiquidityProgramCardState extends State<JoinLiquidityProgramCard> {
   }
 
   void _saveProgressAndNavigateToNextStep(
-      JoinLiquidityProgramStep _completedStep) {
+      JoinLiquidityProgramStep completedStep) {
     setState(() {
-      _lastCompletedStep = _completedStep;
+      _lastCompletedStep = completedStep;
       if (_lastCompletedStep!.index + 1 <
           JoinLiquidityProgramStep.values.length) {
         _currentStep =
-            JoinLiquidityProgramStep.values[_completedStep.index + 1];
+            JoinLiquidityProgramStep.values[completedStep.index + 1];
       }
     });
   }

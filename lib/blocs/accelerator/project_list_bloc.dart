@@ -1,18 +1,17 @@
 import 'dart:async';
 
 import 'package:rxdart/rxdart.dart';
-import 'package:zenon_syrius_wallet_flutter/blocs/infinite_scroll_bloc.dart';
-import 'package:zenon_syrius_wallet_flutter/blocs/refresh_bloc_mixin.dart';
+import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/logger.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/accelerator_widgets/project_list.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 class ProjectListBloc with RefreshBlocMixin {
   List<Project>? _allProjects;
 
-  final List<ProjectsFilterTag> selectedProjectsFilterTag = [];
+  final List<AccProjectsFilterTag> selectedProjectsFilterTag = [];
 
   final PillarInfo? pillarInfo;
 

@@ -1,33 +1,21 @@
 import 'dart:io';
 import 'dart:isolate';
-
-import 'package:feedback/feedback.dart';
 import 'package:flutter/foundation.dart'
     show debugDefaultTargetPlatformOverride;
 import 'package:flutter/gestures.dart';
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide MenuItem;
 import 'package:get_it/get_it.dart';
 import 'package:hive/hive.dart';
 import 'package:layout/layout.dart';
+import 'package:local_notifier/local_notifier.dart';
 import 'package:overlay_support/overlay_support.dart';
 import 'package:provider/provider.dart';
+import 'package:tray_manager/tray_manager.dart';
 import 'package:window_manager/window_manager.dart';
-import 'package:zenon_syrius_wallet_flutter/blocs/accelerator/accelerator_balance_bloc.dart';
-import 'package:zenon_syrius_wallet_flutter/blocs/auto_receive_tx_worker.dart';
-import 'package:zenon_syrius_wallet_flutter/blocs/dashboard/balance_bloc.dart';
-import 'package:zenon_syrius_wallet_flutter/blocs/lock_bloc.dart';
-import 'package:zenon_syrius_wallet_flutter/blocs/notifications_bloc.dart';
-import 'package:zenon_syrius_wallet_flutter/blocs/plasma/plasma_stats_bloc.dart';
-import 'package:zenon_syrius_wallet_flutter/blocs/pow_generating_status_bloc.dart';
-import 'package:zenon_syrius_wallet_flutter/blocs/transfer/transfer_widgets_balance_bloc.dart';
-import 'package:zenon_syrius_wallet_flutter/model/database/notification_type.dart';
-import 'package:zenon_syrius_wallet_flutter/model/database/wallet_notification.dart';
-import 'package:zenon_syrius_wallet_flutter/model/navigation_arguments.dart';
-import 'package:zenon_syrius_wallet_flutter/screens/node_management_screen.dart';
-import 'package:zenon_syrius_wallet_flutter/screens/onboarding/access_wallet_screen.dart';
-import 'package:zenon_syrius_wallet_flutter/screens/splash_screen.dart';
+import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
+import 'package:zenon_syrius_wallet_flutter/model/model.dart';
+import 'package:zenon_syrius_wallet_flutter/screens/screens.dart';
 import 'package:zenon_syrius_wallet_flutter/services/shared_prefs_service.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_theme.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
@@ -39,8 +27,7 @@ import 'package:zenon_syrius_wallet_flutter/utils/notifiers/default_address_noti
 import 'package:zenon_syrius_wallet_flutter/utils/notifiers/plasma_beneficiary_address_notifier.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/notifiers/plasma_generated_notifier.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/notifiers/text_scaling_notifier.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/main_app_container.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/error_widget.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 Zenon? zenon;
@@ -62,6 +49,16 @@ main() async {
 
   // Setup services
   setup();
+
+  // Setup local_notifier
+  await localNotifier.setup(
+    appName: 's y r i u s',
+    // The parameter shortcutPolicy only works on Windows
+    shortcutPolicy: ShortcutPolicy.requireCreate,
+  );
+
+  // Setup tray manager
+  await _setupTrayManager();
 
   // Register Hive adapters
   Hive.registerAdapter(NotificationTypeAdapter());
@@ -106,20 +103,39 @@ main() async {
     }
   });
 
-  runApp(BetterFeedback(
-    child: Builder(
-      builder: (_) => const MyApp(),
+  runApp(
+    const MyApp(),
+  );
+}
+
+Future<void> _setupTrayManager() async {
+  if (!Platform.isWindows) {
+    await trayManager.setTitle('s y r i u s');
+  }
+  await trayManager.setIcon(
+    Platform.isWindows
+        ? 'assets/images/tray_app_icon.ico'
+        : 'assets/images/tray_app_icon.png',
+  );
+  if (Platform.isMacOS) {
+    await trayManager.setToolTip('s y r i u s');
+  }
+  List<MenuItem> items = [
+    MenuItem(
+      key: 'show_wallet',
+      label: 'Show wallet',
     ),
-    theme: FeedbackThemeData(
-      background: Colors.black,
-      activeFeedbackModeColor: AppColors.znnColor,
-      drawColors: [
-        AppColors.znnColor,
-        AppColors.qsrColor,
-        AppColors.errorColor,
-      ],
+    MenuItem(
+      key: 'hide_wallet',
+      label: 'Hide wallet',
     ),
-  ));
+    MenuItem.separator(),
+    MenuItem(
+      key: 'exit',
+      label: 'Exit wallet',
+    ),
+  ];
+  await trayManager.setContextMenu(Menu(items: items));
 }
 
 void setup() {
@@ -154,10 +170,11 @@ class MyApp extends StatefulWidget {
   }
 }
 
-class _MyAppState extends State<MyApp> with WindowListener {
+class _MyAppState extends State<MyApp> with WindowListener, TrayListener {
   @override
   void initState() {
     windowManager.addListener(this);
+    trayManager.addListener(this);
     initPlatformState();
     super.initState();
   }
@@ -310,8 +327,39 @@ class _MyAppState extends State<MyApp> with WindowListener {
   }
 
   @override
+  void onTrayIconMouseDown() {
+    trayManager.popUpContextMenu();
+  }
+
+  @override
+  void onTrayIconRightMouseDown() {}
+
+  @override
+  void onTrayIconRightMouseUp() {}
+
+  @override
+  void onTrayMenuItemClick(MenuItem menuItem) async {
+    switch (menuItem.key) {
+      case 'show_wallet':
+        windowManager.show();
+        break;
+      case 'hide_wallet':
+        if (!await windowManager.isMinimized()) {
+          windowManager.minimize();
+        }
+        break;
+      case 'exit':
+        windowManager.destroy();
+        break;
+      default:
+        break;
+    }
+  }
+
+  @override
   void dispose() {
     windowManager.removeListener(this);
+    trayManager.removeListener(this);
     sl.unregister();
     super.dispose();
   }

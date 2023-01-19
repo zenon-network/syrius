@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/accelerator_widgets/accelerator_project_list.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/error_widget.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/layout_scaffold/card_scaffold.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 class PhaseList extends StatelessWidget {

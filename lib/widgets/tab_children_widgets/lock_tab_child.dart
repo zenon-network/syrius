@@ -1,16 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_vector_icons/flutter_vector_icons.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
-import 'package:zenon_syrius_wallet_flutter/screens/splash_screen.dart';
+import 'package:zenon_syrius_wallet_flutter/screens/screens.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/keystore_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/navigation_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/notification_utils.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/buttons/loading_button.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/input_field/password_input_field.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/init_utils.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 class LockTabChild extends StatefulWidget {
@@ -22,7 +21,7 @@ class LockTabChild extends StatefulWidget {
       : super(key: key);
 
   @override
-  _LockTabChildState createState() => _LockTabChildState();
+  State<LockTabChild> createState() => _LockTabChildState();
 }
 
 class _LockTabChildState extends State<LockTabChild> {
@@ -165,7 +164,7 @@ class _LockTabChildState extends State<LockTabChild> {
           setState(() {
             _messageToUser = 'Initializing wallet, please wait';
           });
-          await Utils.initWalletAfterDecryption(context);
+          await InitUtils.initWalletAfterDecryption();
           widget.afterInitCallback();
         } else {
           await widget.afterUnlockCallback(_passwordController.text);

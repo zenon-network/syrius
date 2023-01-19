@@ -1,23 +1,19 @@
+import 'dart:io';
 import 'dart:isolate';
 
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'package:wakelock/wakelock.dart';
-import 'package:zenon_syrius_wallet_flutter/blocs/notifications_bloc.dart';
+import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/embedded_node/embedded_node.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
-import 'package:zenon_syrius_wallet_flutter/model/database/notification_type.dart';
-import 'package:zenon_syrius_wallet_flutter/model/database/wallet_notification.dart';
+import 'package:zenon_syrius_wallet_flutter/model/model.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/input_validators.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/node_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/notification_utils.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/buttons/loading_button.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/custom_expandable_panel.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/input_field/input_field.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/layout_scaffold/card_scaffold.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/settings_node.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 
 class NodeManagement extends StatefulWidget {
   final VoidCallback onNodeChangedCallback;
@@ -28,7 +24,7 @@ class NodeManagement extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  _NodeManagementState createState() => _NodeManagementState();
+  State<NodeManagement> createState() => _NodeManagementState();
 }
 
 class _NodeManagementState extends State<NodeManagement> {
@@ -40,10 +36,13 @@ class _NodeManagementState extends State<NodeManagement> {
   TextEditingController _newNodeController = TextEditingController();
   GlobalKey<FormState> _newNodeKey = GlobalKey();
 
+  late String _selectedNodeConfirmed;
+
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
     _selectedNode ??= kCurrentNode!;
+    _selectedNodeConfirmed = _selectedNode!;
   }
 
   @override
@@ -69,7 +68,7 @@ class _NodeManagementState extends State<NodeManagement> {
         CustomExpandablePanel(
           'Add node',
           _getAddNodeExpandableChild(),
-        ),
+        )
       ],
     );
   }
@@ -98,7 +97,7 @@ class _NodeManagementState extends State<NodeManagement> {
 
   Future<void> _onConfirmNodeButtonPressed() async {
     // Acquire WakeLock
-    if (!await Wakelock.enabled) {
+    if (!Platform.isLinux && !await Wakelock.enabled) {
       Wakelock.enable();
     }
 
@@ -107,11 +106,11 @@ class _NodeManagementState extends State<NodeManagement> {
       String url = _selectedNode == 'Embedded Node'
           ? kLocalhostDefaultNodeUrl
           : _selectedNode!;
-      bool _isConnectionEstablished =
+      bool isConnectionEstablished =
           await NodeUtils.establishConnectionToNode(url);
       if (_selectedNode == 'Embedded Node') {
         // Check if node is already running
-        if (!_isConnectionEstablished) {
+        if (!isConnectionEstablished) {
           // Initialize local full node
           await Isolate.spawn(EmbeddedNode.runNode, [''],
               onExit: sl<ReceivePort>(instanceName: 'embeddedStoppedPort')
@@ -119,17 +118,17 @@ class _NodeManagementState extends State<NodeManagement> {
           kEmbeddedNodeRunning = true;
           // The node needs a couple of seconds to actually start
           await Future.delayed(kEmbeddedConnectionDelay);
-          _isConnectionEstablished =
+          isConnectionEstablished =
               await NodeUtils.establishConnectionToNode(url);
         }
       } else {
-        _isConnectionEstablished =
+        isConnectionEstablished =
             await NodeUtils.establishConnectionToNode(url);
-        if (_isConnectionEstablished) {
+        if (isConnectionEstablished) {
           await NodeUtils.closeEmbeddedNode();
         }
       }
-      if (_isConnectionEstablished) {
+      if (isConnectionEstablished) {
         await sharedPrefsService!.put(
           kSelectedNodeKey,
           _selectedNode,
@@ -204,7 +203,7 @@ class _NodeManagementState extends State<NodeManagement> {
         await Hive.openBox<String>(kNodesBox);
       }
       Hive.box<String>(kNodesBox).add(_newNodeController.text);
-      await NodeUtils.loadDbNodes(context);
+      await NodeUtils.loadDbNodes();
       _sendAddNodeSuccessNotification();
       _newNodeController = TextEditingController();
       _newNodeKey = GlobalKey();
@@ -246,6 +245,7 @@ class _NodeManagementState extends State<NodeManagement> {
             onChangedOrDeletedNode: () {
               setState(() {});
             },
+            currentNode: _selectedNodeConfirmed,
           ),
         ),
       ],

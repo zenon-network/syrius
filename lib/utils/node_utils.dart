@@ -2,17 +2,15 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:isolate';
 
-import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'package:wakelock/wakelock.dart';
-import 'package:zenon_syrius_wallet_flutter/blocs/auto_receive_tx_worker.dart';
-import 'package:zenon_syrius_wallet_flutter/blocs/notifications_bloc.dart';
+import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/embedded_node/embedded_node.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
-import 'package:zenon_syrius_wallet_flutter/model/database/notification_type.dart';
-import 'package:zenon_syrius_wallet_flutter/model/database/wallet_notification.dart';
+import 'package:zenon_syrius_wallet_flutter/model/model.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/logger.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/notification_utils.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
@@ -20,15 +18,27 @@ int _kHeight = 0;
 
 class NodeUtils {
   static Future<bool> establishConnectionToNode(String url) async {
-    return await zenon!.wsClient.initialize(
+    bool connectionStatus = await zenon!.wsClient.initialize(
       url,
       retry: false,
     );
+
+    if (connectionStatus) {
+      try {
+        await zenon!.ledger.getFrontierMomentum().then((value) {
+          setChainIdentifier(chainIdentifier: value.chainIdentifier.toInt());
+        });
+      } catch (e) {
+        Logger.logError(e);
+      }
+    }
+
+    return connectionStatus;
   }
 
   static closeEmbeddedNode() async {
     // Release WakeLock
-    if (await Wakelock.enabled) {
+    if (!Platform.isLinux && await Wakelock.enabled) {
       Wakelock.disable();
     }
 
@@ -64,7 +74,7 @@ class NodeUtils {
     }
   }
 
-  static initWebSocketClient(BuildContext context) async {
+  static initWebSocketClient() async {
     addOnWebSocketConnectedCallback();
     var url = kCurrentNode!;
     bool connected = false;
@@ -153,7 +163,7 @@ class NodeUtils {
   static Future<void> _getSubscriptionForAllAccountEvents() async =>
       await zenon!.subscribe.toAllAccountBlocks();
 
-  static Future<void> loadDbNodes(BuildContext context) async {
+  static Future<void> loadDbNodes() async {
     if (!Hive.isBoxOpen(kNodesBox)) {
       await Hive.openBox<String>(kNodesBox);
     }
@@ -171,7 +181,7 @@ class NodeUtils {
     }
   }
 
-  static Future<void> setNode(BuildContext context) async {
+  static Future<void> setNode() async {
     String savedNode = sharedPrefsService!.get(
       kSelectedNodeKey,
       defaultValue: kDefaultNodes.first,
@@ -180,11 +190,11 @@ class NodeUtils {
 
     if (savedNode == 'Embedded Node') {
       // First we need to check if the node is not already running
-      bool _isConnectionEstablished =
+      bool isConnectionEstablished =
           await NodeUtils.establishConnectionToNode(kLocalhostDefaultNodeUrl);
-      if (_isConnectionEstablished == false) {
+      if (isConnectionEstablished == false) {
         // Acquire WakeLock
-        if (!await Wakelock.enabled) {
+        if (!Platform.isLinux && !await Wakelock.enabled) {
           Wakelock.enable();
         }
         // Initialize local full node

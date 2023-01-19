@@ -1,15 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_vector_icons/flutter_vector_icons.dart';
 import 'package:marquee_widget/marquee_widget.dart';
-import 'package:zenon_syrius_wallet_flutter/blocs/settings/general_stats_bloc.dart';
-import 'package:zenon_syrius_wallet_flutter/model/general_stats.dart';
+import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
+import 'package:zenon_syrius_wallet_flutter/model/model.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/navigation_utils.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/error_widget.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/layout_scaffold/card_scaffold.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/loading_widget.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/number_animation.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 
 class GeneralWidget extends StatefulWidget {
   const GeneralWidget({Key? key}) : super(key: key);
@@ -53,13 +50,6 @@ class GeneralWidgetState extends State<GeneralWidget> {
               Container(
                 width: 150.0,
                 height: 150.0,
-                child: Center(
-                  child: NumberAnimation(
-                    end: generalStats.frontierMomentum.height,
-                    isInt: true,
-                    style: Theme.of(context).textTheme.headline2,
-                  ),
-                ),
                 decoration: const ShapeDecoration(
                   color: Colors.transparent,
                   shape: CircleBorder(
@@ -67,6 +57,13 @@ class GeneralWidgetState extends State<GeneralWidget> {
                       width: 6.0,
                       color: AppColors.znnColor,
                     ),
+                  ),
+                ),
+                child: Center(
+                  child: NumberAnimation(
+                    end: generalStats.frontierMomentum.height,
+                    isInt: true,
+                    style: Theme.of(context).textTheme.headline2,
                   ),
                 ),
               ),
@@ -151,10 +148,8 @@ class GeneralWidgetState extends State<GeneralWidget> {
                   minHeight: 40.0,
                 ),
                 materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                onPressed: () => NavigationUtils.launchUrl(
-                  kExplorer +
-                      '/momentum/' +
-                      generalStats.frontierMomentum.hash.toString(),
+                onPressed: () => NavigationUtils.openUrl(
+                  '$kExplorer/momentum/${generalStats.frontierMomentum.hash}',
                   context,
                 ),
                 child: Row(

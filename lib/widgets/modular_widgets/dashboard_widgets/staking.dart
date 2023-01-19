@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_vector_icons/flutter_vector_icons.dart';
 import 'package:stacked/stacked.dart';
-import 'package:zenon_syrius_wallet_flutter/blocs/dashboard/staking_bloc.dart';
+import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/zts_utils.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/layout_scaffold/card_scaffold.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/number_animation.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 
 const String _kWidgetTitle = 'Staking Stats';
 final String _kWidgetDescription = 'This card displays the number of staking '
@@ -15,7 +14,7 @@ class Staking extends StatefulWidget {
   const Staking({Key? key}) : super(key: key);
 
   @override
-  _StakingState createState() => _StakingState();
+  State<Staking> createState() => _StakingState();
 }
 
 class _StakingState extends State<Staking> {

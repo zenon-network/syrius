@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:rxdart/rxdart.dart';
-import 'package:zenon_syrius_wallet_flutter/blocs/refresh_bloc_mixin.dart';
+import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/logger.dart';
 
 abstract class InfiniteScrollBloc<T> with RefreshBlocMixin {

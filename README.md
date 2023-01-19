@@ -29,6 +29,8 @@ Currently supported `<os>`: `windows`, `macos`, `linux`
 git clone https://github.com/zenon-network/syrius.git
 flutter pub get
 flutter build <os>
+flutter build <os> --release
+flutter run --release
 ```
 
 ## Contributing

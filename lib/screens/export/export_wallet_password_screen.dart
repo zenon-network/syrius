@@ -6,19 +6,11 @@ import 'package:flutter_svg/svg.dart';
 import 'package:path/path.dart' as path;
 import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
-import 'package:zenon_syrius_wallet_flutter/blocs/notifications_bloc.dart';
+import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
-import 'package:zenon_syrius_wallet_flutter/model/database/notification_type.dart';
-import 'package:zenon_syrius_wallet_flutter/model/database/wallet_notification.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/format_utils.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/input_validators.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/navigation_utils.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/buttons/onboarding_button.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/dotted_border_info_widget.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/input_field/password_input_field.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/progress_bars.dart';
+import 'package:zenon_syrius_wallet_flutter/model/model.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 class ExportWalletPasswordScreen extends StatefulWidget {
@@ -32,7 +24,7 @@ class ExportWalletPasswordScreen extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  _ExportWalletPasswordScreenState createState() =>
+  State<ExportWalletPasswordScreen> createState() =>
       _ExportWalletPasswordScreenState();
 }
 
@@ -151,9 +143,9 @@ class _ExportWalletPasswordScreenState
                 initialDirectory =
                     (await getApplicationDocumentsDirectory()).path;
               }
-              final _path = await FileSelectorPlatform.instance.getSavePath(
+              final walletPath = await FileSelectorPlatform.instance.getSavePath(
                 acceptedTypeGroups: <XTypeGroup>[
-                  XTypeGroup(
+                  const XTypeGroup(
                     label: 'file',
                     extensions: <String>['json'],
                   ),
@@ -165,20 +157,20 @@ class _ExportWalletPasswordScreenState
                   dateFormat: 'yyyy-MM-dd-HHmm',
                 )}.json',
               );
-              if (_path != null) {
+              if (walletPath != null) {
                 KeyStoreManager keyStoreManager = KeyStoreManager(
                   walletPath: Directory(
-                    path.dirname(_path),
+                    path.dirname(walletPath),
                   ),
                 );
                 KeyStore keyStore = KeyStore.fromMnemonic(widget.seed);
                 await keyStoreManager.saveKeyStore(
                   keyStore,
                   _passwordController.text,
-                  name: path.basename(_path),
+                  name: path.basename(walletPath),
                 );
                 if (widget.backupWalletFlow) {
-                  _sendSuccessNotification(_path);
+                  _sendSuccessNotification(walletPath);
                 } else {
                   _updateExportedSeedList();
                 }
@@ -203,12 +195,12 @@ class _ExportWalletPasswordScreenState
     ).value = exportedSeeds;
   }
 
-  void _sendSuccessNotification(String _path) {
+  void _sendSuccessNotification(String path) {
     sl.get<NotificationsBloc>().addNotification(
           WalletNotification(
             title: 'Seed Vault successfully exported',
             timestamp: DateTime.now().millisecondsSinceEpoch,
-            details: 'The Seed Vault was successfully exported to ' + _path,
+            details: 'The Seed Vault was successfully exported to $path',
             type: NotificationType.paymentSent,
           ),
         );

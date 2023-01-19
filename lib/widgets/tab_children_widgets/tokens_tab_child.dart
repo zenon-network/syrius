@@ -1,9 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:layout/layout.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/token_widgets/create_token.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/token_widgets/token_balance.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/token_widgets/token_map.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/layout_scaffold/standard_fluid_layout.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 
 class TokensTabChild extends StatelessWidget {
   final VoidCallback onStepperNotificationSeeMorePressed;

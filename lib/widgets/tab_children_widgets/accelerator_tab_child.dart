@@ -4,14 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/notifiers/default_address_notifier.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/accelerator_widgets/accelerator_donations.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/accelerator_widgets/accelerator_stats.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/accelerator_widgets/create_project.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/accelerator_widgets/project_list.dart'
-    as project_list;
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/error_widget.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/layout_scaffold/standard_fluid_layout.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/loading_widget.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 class AcceleratorTabChild extends StatelessWidget {
@@ -81,7 +74,7 @@ class AcceleratorTabChild extends StatelessWidget {
         FluidCell(
           width: kStaggeredNumOfColumns,
           child: Consumer<SelectedAddressNotifier>(
-            builder: (_, __, ___) => project_list.ProjectList(
+            builder: (_, __, ___) => AccProjectList(
               onStepperNotificationSeeMorePressed:
                   onStepperNotificationSeeMorePressed,
               pillarInfo: pillarInfo,

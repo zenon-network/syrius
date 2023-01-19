@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_vector_icons/flutter_vector_icons.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/transfer_icon_legend.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 
 class SendSmallCard extends StatefulWidget {
   final VoidCallback onClicked;
@@ -12,7 +12,7 @@ class SendSmallCard extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  _SendSmallCardState createState() => _SendSmallCardState();
+  State<SendSmallCard> createState() => _SendSmallCardState();
 }
 
 class _SendSmallCardState extends State<SendSmallCard> {

@@ -14,11 +14,11 @@ showOkDialog({
         content: Text(description),
         actions: [
           TextButton(
+            onPressed: onActionButtonPressed,
             child: Text(
               'OK',
               style: Theme.of(context).textTheme.bodyText1,
             ),
-            onPressed: onActionButtonPressed,
           ),
         ],
       ),
@@ -46,15 +46,15 @@ showDialogWithNoAndYesOptions({
             },
           ),
           TextButton(
-            child: Text(
-              'Yes',
-              style: Theme.of(context).textTheme.bodyText1,
-            ),
             onPressed: onYesButtonPressed,
             style: Theme.of(context).textButtonTheme.style!.copyWith(
                   backgroundColor: MaterialStateColor.resolveWith(
                       (states) => AppColors.errorColor),
                 ),
+            child: Text(
+              'Yes',
+              style: Theme.of(context).textTheme.bodyText1,
+            ),
           ),
         ],
       ),

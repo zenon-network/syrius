@@ -1,12 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
-import 'package:zenon_syrius_wallet_flutter/blocs/dashboard/realtime_statistics_bloc.dart';
+import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/color_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/zts_utils.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/charts/realtime_txs_chart.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/chart/chart_legend.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/layout_scaffold/card_scaffold.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 const String _kWidgetTitle = 'Realtime Stats';
@@ -20,7 +18,7 @@ class RealtimeStatistics extends StatefulWidget {
   const RealtimeStatistics({Key? key}) : super(key: key);
 
   @override
-  _RealtimeStatisticsState createState() => _RealtimeStatisticsState();
+  State<RealtimeStatistics> createState() => _RealtimeStatisticsState();
 }
 
 class _RealtimeStatisticsState extends State<RealtimeStatistics> {
