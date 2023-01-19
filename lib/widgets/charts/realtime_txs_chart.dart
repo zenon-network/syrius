@@ -38,7 +38,7 @@ class RealtimeTxsChartState extends State<RealtimeTxsChart> {
     return StandardChart(
       yValuesInterval: (_maxTransactionsPerDay + 1) > kNumOfChartLeftSideTitles
           ? (_maxTransactionsPerDay + 1) / kNumOfChartLeftSideTitles
-          : null,
+          : 1,
       maxY: _maxTransactionsPerDay,
       lineBarsData: _linesBarData(),
       lineBarDotSymbol: 'txs',
