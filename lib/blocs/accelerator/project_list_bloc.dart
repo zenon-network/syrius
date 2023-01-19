@@ -112,18 +112,19 @@ class ProjectListBloc with RefreshBlocMixin {
     _allProjects ??= (await zenon!.embedded.accelerator.getAll()).list;
     List<Project> results = [];
     if (searchTerm != null && searchTerm.isNotEmpty) {
-      results = _filterProjectsBySearchKeyWord(_allProjects!, searchTerm).toList();
+      results =
+          _filterProjectsBySearchKeyWord(_allProjects!, searchTerm).toList();
     } else {
       results = _allProjects!;
     }
     results = (await _filterProjectsAccordingToPillarInfo(
         await _filterProjectsByTags(results)));
     return results.sublist(
-          pageKey * pageSize,
-          (pageKey + 1) * pageSize <= results.length
-              ? (pageKey + 1) * pageSize
-              : results.length,
-        );
+      pageKey * pageSize,
+      (pageKey + 1) * pageSize <= results.length
+          ? (pageKey + 1) * pageSize
+          : results.length,
+    );
   }
 
   /*
@@ -207,27 +208,28 @@ class ProjectListBloc with RefreshBlocMixin {
     if (selectedProjectsFilterTag.isNotEmpty) {
       Iterable<Hash>? votedProjectIds;
       Iterable<Project> filteredProjects = projects;
-      if (selectedProjectsFilterTag.contains(ProjectsFilterTag.myProjects)) {
+      if (selectedProjectsFilterTag.contains(AccProjectsFilterTag.myProjects)) {
         filteredProjects = filteredProjects.where(
           (project) => kDefaultAddressList.contains(project.owner.toString()),
         );
       }
-      if (selectedProjectsFilterTag.contains(ProjectsFilterTag.onlyAccepted)) {
+      if (selectedProjectsFilterTag
+          .contains(AccProjectsFilterTag.onlyAccepted)) {
         filteredProjects = filteredProjects.where(
-          (project) => project.status == AcceleratorProjectStatus.active);
+            (project) => project.status == AcceleratorProjectStatus.active);
       }
-      if (selectedProjectsFilterTag.contains(ProjectsFilterTag.votingOpened)) {
-        votedProjectIds ??=
-            await _getVotedProjectIdsByPillar(filteredProjects);
+      if (selectedProjectsFilterTag
+          .contains(AccProjectsFilterTag.votingOpened)) {
+        votedProjectIds ??= await _getVotedProjectIdsByPillar(filteredProjects);
         filteredProjects = filteredProjects.where(
           (project) =>
               project.status == AcceleratorProjectStatus.voting &&
               !votedProjectIds!.contains(project.id),
         );
       }
-      if (selectedProjectsFilterTag.contains(ProjectsFilterTag.alreadyVoted)) {
-        votedProjectIds ??=
-            await _getVotedProjectIdsByPillar(filteredProjects);
+      if (selectedProjectsFilterTag
+          .contains(AccProjectsFilterTag.alreadyVoted)) {
+        votedProjectIds ??= await _getVotedProjectIdsByPillar(filteredProjects);
         filteredProjects = filteredProjects.where(
           (project) => votedProjectIds!.contains(project.id),
         );
