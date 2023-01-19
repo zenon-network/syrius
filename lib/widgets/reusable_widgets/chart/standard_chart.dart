@@ -44,7 +44,7 @@ class StandardChart extends StatelessWidget {
               tooltipRoundedRadius: 6.0,
               getTooltipItems: (touchedSpots) {
                 return touchedSpots.map(
-                  (LineBarSpot touchedSpot) {
+                      (LineBarSpot touchedSpot) {
                     final textStyle = TextStyle(
                       color: touchedSpot.bar.color,
                       fontWeight: FontWeight.bold,
@@ -52,7 +52,7 @@ class StandardChart extends StatelessWidget {
                     );
                     return LineTooltipItem(
                       '${touchedSpot.y == touchedSpot.y.toInt() ? touchedSpot.y.toInt() : touchedSpot.y} '
-                      '$lineBarDotSymbol',
+                          '$lineBarDotSymbol',
                       textStyle,
                     );
                   },
