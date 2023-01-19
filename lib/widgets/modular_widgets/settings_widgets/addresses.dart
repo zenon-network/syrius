@@ -60,6 +60,7 @@ class AddressesState extends State<Addresses> {
     try {
       Box box = Hive.box(kSharedPrefsBox);
       await box.put(kDefaultAddressKey, newDefaultAddress);
+      if (!mounted) return;
       Provider.of<SelectedAddressNotifier>(
         context,
         listen: false,
@@ -111,13 +112,12 @@ class AddressesState extends State<Addresses> {
                       setState(() {
                         _shouldScrollToTheEnd = true;
                       });
-                    }
-                );
+                    });
               });
             },
             child: Container(
-                constraints: const BoxConstraints(
-                    minWidth: 150.0, minHeight: 50.0),
+                constraints:
+                    const BoxConstraints(minWidth: 150.0, minHeight: 50.0),
                 alignment: Alignment.center,
                 child: Row(
                   children: [
@@ -128,17 +128,13 @@ class AddressesState extends State<Addresses> {
                     ),
                     const SizedBox(width: 10.0),
                     Text(
-                      (numberOfAddressesToAdd == 1) ?
-                      'Add $numberOfAddressesToAdd address  ' :
-                      'Add $numberOfAddressesToAdd addresses',
-                      style: Theme
-                          .of(context)
-                          .textTheme
-                          .bodyText1,
+                      (numberOfAddressesToAdd == 1)
+                          ? 'Add $numberOfAddressesToAdd address  '
+                          : 'Add $numberOfAddressesToAdd addresses',
+                      style: Theme.of(context).textTheme.bodyText1,
                     ),
                   ],
-                )
-            ),
+                )),
           ),
           const SizedBox(width: 10.0),
         ],

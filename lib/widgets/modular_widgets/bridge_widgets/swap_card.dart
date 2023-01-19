@@ -34,7 +34,7 @@ class _SwapCardState extends State<SwapCard> {
   bool? _userHasEnoughBnbBalance = false;
 
   String? _selectedBridge = kBridgeNetworks.first;
-  bool? _bridgeStatus = false;
+  final bool _bridgeStatus = false;
 
   final ScrollController _scrollController = ScrollController();
 
@@ -125,10 +125,10 @@ class _SwapCardState extends State<SwapCard> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         BridgeNetworkDropdown(
-            _selectedBridge,
-            (value) => setState(() {
-              _selectedBridge = value;
-            }),
+          _selectedBridge,
+          (value) => setState(() {
+            _selectedBridge = value;
+          }),
         ),
         Padding(
           padding: const EdgeInsets.only(
@@ -234,11 +234,11 @@ class _SwapCardState extends State<SwapCard> {
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         LoadingButton(
-          onPressed:
-              _isInputValid(accountInfo) && (_userHasEnoughBnbBalance ?? false)
-                  && (_bridgeStatus ?? false)
-                  ? _onSwapButtonPressed
-                  : null,
+          onPressed: _isInputValid(accountInfo) &&
+                  (_userHasEnoughBnbBalance ?? false) &&
+                  (_bridgeStatus)
+              ? _onSwapButtonPressed
+              : null,
           key: _swapButtonKey,
           text: 'Swap',
         ),
@@ -321,8 +321,7 @@ class _SwapCardState extends State<SwapCard> {
             title: 'Redeem',
             description: 'Press OK to open https://bridge.zenon.network/',
             onActionButtonPressed: () {
-              NavigationUtils.openUrl(
-                      'https://bridge.zenon.network/', context)
+              NavigationUtils.openUrl('https://bridge.zenon.network/', context)
                   .then(
                 (value) => Navigator.pop(context),
               );

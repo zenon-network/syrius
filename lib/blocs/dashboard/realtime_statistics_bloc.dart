@@ -19,24 +19,26 @@ class RealtimeStatisticsBloc extends DashboardBaseBloc<List<AccountBlock>> {
     List<AccountBlock> blockList = [];
 
     while (!isLastPage) {
-        List<AccountBlock> response = (await zenon!.ledger.getAccountBlocksByPage(
-          Address.parse(kSelectedAddress!),
-          pageIndex: pageIndex,
-          pageSize: pageSize,
-        ))
-          .list ??
+      List<AccountBlock> response = (await zenon!.ledger.getAccountBlocksByPage(
+            Address.parse(kSelectedAddress!),
+            pageIndex: pageIndex,
+            pageSize: pageSize,
+          ))
+              .list ??
           [];
-        
-        if (response.isEmpty)
-            break;
 
-        blockList.addAll(response);
+      if (response.isEmpty) {
+        break;
+      }
 
-        if (response.last.confirmationDetail!.momentumHeight <= height)
-            break;
+      blockList.addAll(response);
 
-        pageIndex += 1;
-        isLastPage = response.length < pageSize;
+      if (response.last.confirmationDetail!.momentumHeight <= height) {
+        break;
+      }
+
+      pageIndex += 1;
+      isLastPage = response.length < pageSize;
     }
 
     if (blockList.isNotEmpty) {

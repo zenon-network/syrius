@@ -143,7 +143,8 @@ class _ExportWalletPasswordScreenState
                 initialDirectory =
                     (await getApplicationDocumentsDirectory()).path;
               }
-              final walletPath = await FileSelectorPlatform.instance.getSavePath(
+              final walletPath =
+                  await FileSelectorPlatform.instance.getSavePath(
                 acceptedTypeGroups: <XTypeGroup>[
                   const XTypeGroup(
                     label: 'file',
@@ -174,6 +175,7 @@ class _ExportWalletPasswordScreenState
                 } else {
                   _updateExportedSeedList();
                 }
+                if (!mounted) return;
                 NavigationUtils.popRepeated(context, 2);
               }
             }

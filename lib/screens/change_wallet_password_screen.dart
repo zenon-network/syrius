@@ -150,9 +150,11 @@ class _ChangeWalletPasswordScreenState
     await KeyStoreUtils.createKeyStore(
       mnemonic,
       newPassword,
-      keyStoreName: '${await kKeyStore!.getKeyPair(0).address}_${DateTime.now().millisecondsSinceEpoch}',
+      keyStoreName:
+          '${await kKeyStore!.getKeyPair(0).address}_${DateTime.now().millisecondsSinceEpoch}',
     );
     await FileUtils.deleteFile(oldKeyStorePath);
+    if (!mounted) return;
     Navigator.pop(context);
   }
 
