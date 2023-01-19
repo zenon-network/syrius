@@ -188,7 +188,8 @@ class _PlasmaOptionsState extends State<PlasmaOptions> {
                         child: InputField(
                           enabled: _maxQsrAmount! > 0,
                           onChanged: (String value) {
-                            setState(() {});
+                            // The setState() causes a redraw which resets the beneficiaryAddress.
+                            // setState(() {});
                           },
                           inputFormatters:
                               FormatUtils.getPlasmaAmountTextInputFormatters(
