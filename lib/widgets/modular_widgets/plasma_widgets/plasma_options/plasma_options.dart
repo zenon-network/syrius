@@ -55,7 +55,9 @@ class _PlasmaOptionsState extends State<PlasmaOptions> {
   final GlobalKey<FormState> _qsrAmountKey = GlobalKey();
   final GlobalKey<FormState> _beneficiaryAddressKey = GlobalKey();
   final GlobalKey<LoadingButtonState> _fuseButtonKey = GlobalKey();
-
+  
+  PlasmaBeneficiaryAddressNotifier? _plasmaBeneficiaryAddress;
+  
   int? _maxQsrAmount;
   double? _maxWidth;
 
@@ -69,6 +71,12 @@ class _PlasmaOptionsState extends State<PlasmaOptions> {
   @override
   void initState() {
     super.initState();
+
+    // The setState() causes a redraw which resets the beneficiaryAddress.
+    _plasmaBeneficiaryAddress = Provider.of<PlasmaBeneficiaryAddressNotifier>(context);
+    _plasmaBeneficiaryAddress!.addListener(() => 
+      _beneficiaryAddressController.text = _plasmaBeneficiaryAddress!.getBeneficiaryAddress()!);
+
     sl.get<BalanceBloc>().getBalanceForAllAddresses();
   }
 
@@ -133,112 +141,106 @@ class _PlasmaOptionsState extends State<PlasmaOptions> {
   }
 
   Widget _getWidgetBody(AccountInfo? accountInfo) {
-    return Consumer<PlasmaBeneficiaryAddressNotifier>(
-      builder: (_, notifier, child) {
-        _beneficiaryAddressController.text = notifier.getBeneficiaryAddress()!;
-        return Container(
-          margin: EdgeInsets.all(_marginWidth),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                flex: _beneficiaryAddressExpandedFlex,
-                child: ListView(
-                  shrinkWrap: true,
-                  children: [
-                    DisabledAddressField(
-                      _addressController,
+    return Container(
+      margin: EdgeInsets.all(_marginWidth),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(
+            flex: _beneficiaryAddressExpandedFlex,
+            child: ListView(
+              shrinkWrap: true,
+              children: [
+                DisabledAddressField(
+                  _addressController,
+                  contentLeftPadding: 20.0,
+                ),
+                StepperUtils.getBalanceWidget(kQsrCoin, accountInfo!),
+                Form(
+                  key: _beneficiaryAddressKey,
+                  autovalidateMode: AutovalidateMode.onUserInteraction,
+                  child: InputField(
+                    onChanged: (String value) {
+                      _beneficiaryAddressString.value = value;
+                    },
+                    inputFormatters: [
+                      FilteringTextInputFormatter.allow(
+                          RegExp(r'[0-9a-z]')),
+                    ],
+                    controller: _beneficiaryAddressController,
+                    hintText: 'Beneficiary address',
+                    contentLeftPadding: 20.0,
+                    validator: (value) =>
+                        InputValidators.checkAddress(value),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          SizedBox(
+            width: _spaceBetweenExpandedWidgets,
+          ),
+          Expanded(
+            flex: _fuseButtonExpandedFlex,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                SizedBox(
+                  height: 87.0,
+                  child: Form(
+                    key: _qsrAmountKey,
+                    autovalidateMode: AutovalidateMode.onUserInteraction,
+                    child: InputField(
+                      enabled: _maxQsrAmount! > 0,
+                      onChanged: (String value) {
+                        setState(() {});
+                      },
+                      inputFormatters:
+                          FormatUtils.getPlasmaAmountTextInputFormatters(
+                        _qsrAmountController.text,
+                      ),
+                      controller: _qsrAmountController,
+                      validator: (value) => InputValidators.correctValue(
+                        value,
+                        _maxQsrAmount,
+                        kQsrCoin.decimals,
+                        min: fuseMinQsrAmount.addDecimals(
+                          qsrDecimals,
+                        ),
+                        canBeEqualToMin: true,
+                      ),
+                      suffixIcon: _getAmountSuffix(),
+                      hintText: 'Amount',
                       contentLeftPadding: 20.0,
                     ),
-                    StepperUtils.getBalanceWidget(kQsrCoin, accountInfo!),
-                    Form(
-                      key: _beneficiaryAddressKey,
-                      autovalidateMode: AutovalidateMode.onUserInteraction,
-                      child: InputField(
-                        onChanged: (String value) {
-                          _beneficiaryAddressString.value = value;
-                        },
-                        inputFormatters: [
-                          FilteringTextInputFormatter.allow(
-                              RegExp(r'[0-9a-z]')),
-                        ],
-                        controller: _beneficiaryAddressController,
-                        hintText: 'Beneficiary address',
-                        contentLeftPadding: 20.0,
-                        validator: (value) =>
-                            InputValidators.checkAddress(value),
-                      ),
-                    ),
-                  ],
+                  ),
                 ),
-              ),
-              SizedBox(
-                width: _spaceBetweenExpandedWidgets,
-              ),
-              Expanded(
-                flex: _fuseButtonExpandedFlex,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    SizedBox(
-                      height: 87.0,
-                      child: Form(
-                        key: _qsrAmountKey,
-                        autovalidateMode: AutovalidateMode.onUserInteraction,
-                        child: InputField(
-                          enabled: _maxQsrAmount! > 0,
-                          onChanged: (String value) {
-                            // The setState() causes a redraw which resets the beneficiaryAddress.
-                            // setState(() {});
-                          },
-                          inputFormatters:
-                              FormatUtils.getPlasmaAmountTextInputFormatters(
-                            _qsrAmountController.text,
-                          ),
-                          controller: _qsrAmountController,
-                          validator: (value) => InputValidators.correctValue(
-                            value,
-                            _maxQsrAmount,
-                            kQsrCoin.decimals,
-                            min: fuseMinQsrAmount.addDecimals(
-                              qsrDecimals,
-                            ),
-                            canBeEqualToMin: true,
-                          ),
-                          suffixIcon: _getAmountSuffix(),
-                          hintText: 'Amount',
-                          contentLeftPadding: 20.0,
-                        ),
-                      ),
-                    ),
-                    ValueListenableBuilder<String>(
-                      valueListenable: _beneficiaryAddressString,
-                      builder: (_, __, ___) {
-                        return Row(
-                          children: [
-                            _getGeneratePlasmaButtonStreamBuilder(),
-                            Visibility(
-                              visible: _isInputValid(),
-                              child: Row(
-                                children: [
-                                  const SizedBox(
-                                    width: 10.0,
-                                  ),
-                                  _getPlasmaIcon(),
-                                ],
+                ValueListenableBuilder<String>(
+                  valueListenable: _beneficiaryAddressString,
+                  builder: (_, __, ___) {
+                    return Row(
+                      children: [
+                        _getGeneratePlasmaButtonStreamBuilder(),
+                        Visibility(
+                          visible: _isInputValid(),
+                          child: Row(
+                            children: [
+                              const SizedBox(
+                                width: 10.0,
                               ),
-                            )
-                          ],
-                        );
-                      },
-                    ),
-                  ],
+                              _getPlasmaIcon(),
+                            ],
+                          ),
+                        )
+                      ],
+                    );
+                  },
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
-        );
-      },
+        ],
+      ),
     );
   }
 
@@ -379,6 +381,7 @@ class _PlasmaOptionsState extends State<PlasmaOptions> {
 
   @override
   void dispose() {
+    _plasmaBeneficiaryAddress!.removeListener(() {});
     _qsrAmountController.dispose();
     _addressController.dispose();
     _beneficiaryAddressController.dispose();
