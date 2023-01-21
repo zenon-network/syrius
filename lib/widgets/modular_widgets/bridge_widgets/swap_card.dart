@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/model/model.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/format_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
@@ -203,9 +202,8 @@ class _SwapCardState extends State<SwapCard> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Checkbox(
-          checkColor: Theme.of(context).scaffoldBackgroundColor,
-          activeColor: AppColors.znnColor,
+        SyriusCheckbox(
+          context: context,
           value: _userHasEnoughBnbBalance,
           onChanged: (value) {
             setState(() {
