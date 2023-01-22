@@ -29,7 +29,7 @@ class _DualCoinStatsState extends State<DualCoinStats>
   Widget build(BuildContext context) {
     return ViewModelBuilder<DualCoinStatsBloc>.reactive(
       viewModelBuilder: () => DualCoinStatsBloc(),
-      onModelReady: (model) {
+      onViewModelReady: (model) {
         model.getDataPeriodically();
       },
       builder: (_, model, __) => CardScaffold<List<Token?>>(

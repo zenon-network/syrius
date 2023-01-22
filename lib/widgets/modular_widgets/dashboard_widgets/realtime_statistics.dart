@@ -26,7 +26,7 @@ class _RealtimeStatisticsState extends State<RealtimeStatistics> {
   Widget build(BuildContext context) {
     return ViewModelBuilder<RealtimeStatisticsBloc>.reactive(
       viewModelBuilder: () => RealtimeStatisticsBloc(),
-      onModelReady: (model) {
+      onViewModelReady: (model) {
         model.getDataPeriodically();
       },
       builder: (_, model, __) => CardScaffold<List<AccountBlock>>(

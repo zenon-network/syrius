@@ -584,7 +584,7 @@ class _AcceleratorProjectListItemState
     ProjectVoteBreakdownBloc projectVoteBreakdownViewModel,
   ) {
     return ViewModelBuilder<VoteProjectBloc>.reactive(
-      onModelReady: (model) {
+      onViewModelReady: (model) {
         model.stream.listen((event) {
           if (event != null) {
             projectVoteBreakdownViewModel.getVoteBreakdown(
@@ -619,7 +619,7 @@ class _AcceleratorProjectListItemState
 
   Widget _getProjectVoteBreakdownViewModel(BuildContext context) {
     return ViewModelBuilder<ProjectVoteBreakdownBloc>.reactive(
-      onModelReady: (model) {
+      onViewModelReady: (model) {
         model.getVoteBreakdown(
             widget.pillarInfo?.name, widget.acceleratorProject.id);
         model.stream.listen((event) {}, onError: (error) {

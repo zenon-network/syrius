@@ -64,6 +64,7 @@ class _CreateSentinelState extends State<CreateSentinel> {
           const StandardTooltipIcon(
             'Cannot reuse address. '
             'Please use another address to spawn a new Sentinel Node',
+            Icons.help,
           ),
         ],
       ),

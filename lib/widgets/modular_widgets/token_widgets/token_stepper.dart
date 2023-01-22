@@ -17,7 +17,7 @@ import 'package:zenon_syrius_wallet_flutter/utils/notification_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/zts_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/custom_material_stepper.dart'
-as custom_material_stepper;
+    as custom_material_stepper;
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 enum TokenStepperStep {
@@ -363,6 +363,7 @@ class _TokenStepperState extends State<TokenStepper> {
               const StandardTooltipIcon(
                 'Token status: utility or '
                 'non-utility (e.g. security token)',
+                Icons.help,
                 iconColor: AppColors.ztsColor,
               ),
             ],
@@ -709,7 +710,7 @@ class _TokenStepperState extends State<TokenStepper> {
 
   Widget _getIssueTokenViewModel() {
     return ViewModelBuilder<IssueTokenBloc>.reactive(
-      onModelReady: (model) {
+      onViewModelReady: (model) {
         model.stream.listen(
           (response) {
             _createButtonKey.currentState?.animateReverse();
@@ -855,6 +856,7 @@ class _TokenStepperState extends State<TokenStepper> {
             ),
             const StandardTooltipIcon(
               'Whether or not this token is mintable after creation',
+              Icons.help,
               iconColor: AppColors.ztsColor,
             ),
           ],
@@ -884,6 +886,7 @@ class _TokenStepperState extends State<TokenStepper> {
             ),
             const StandardTooltipIcon(
               'Whether or not only the token owner can burn it',
+              Icons.help,
               iconColor: AppColors.ztsColor,
             ),
           ],

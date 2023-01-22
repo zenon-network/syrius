@@ -104,39 +104,26 @@ class ProjectListBloc with RefreshBlocMixin {
     _onPageRequest.close();
   }
 
-  Future<List<Project>> _getDataBySearchTerm(
-    int pageKey,
-    int pageSize,
-    String searchTerm,
-  ) async {
-    _allProjects ??= (await zenon!.embedded.accelerator.getAll()).list;
-    Set<Project> results =
-        _filterProjectsBySearchKeyWord(_allProjects!, searchTerm);
-    List<Project> subListResults = results.toList().sublist(
-          pageKey * pageSize,
-          (pageKey + 1) * pageSize <= results.length
-              ? (pageKey + 1) * pageSize
-              : results.length,
-        );
-    return _filterProjectsAccordingToPillarInfo(
-        await _filterProjectsByTags(subListResults));
-  }
-
   Future<List<Project>> getData(
     int pageKey,
     int pageSize,
     String? searchTerm,
   ) async {
+    _allProjects ??= (await zenon!.embedded.accelerator.getAll()).list;
+    List<Project> results = [];
     if (searchTerm != null && searchTerm.isNotEmpty) {
-      return _getDataBySearchTerm(pageKey, pageSize, searchTerm);
+      results =
+          _filterProjectsBySearchKeyWord(_allProjects!, searchTerm).toList();
+    } else {
+      results = _allProjects!;
     }
-    List<Project> projectList = (await zenon!.embedded.accelerator.getAll(
-      pageIndex: pageKey,
-      pageSize: pageSize,
-    ))
-        .list;
-    return await _filterProjectsAccordingToPillarInfo(
-      await _filterProjectsByTags(projectList),
+    results = (await _filterProjectsAccordingToPillarInfo(
+        await _filterProjectsByTags(results)));
+    return results.sublist(
+      pageKey * pageSize,
+      (pageKey + 1) * pageSize <= results.length
+          ? (pageKey + 1) * pageSize
+          : results.length,
     );
   }
 
@@ -220,38 +207,30 @@ class ProjectListBloc with RefreshBlocMixin {
   Future<Set<Project>> _filterProjectsByTags(List<Project> projects) async {
     if (selectedProjectsFilterTag.isNotEmpty) {
       Iterable<Hash>? votedProjectIds;
-      var filteredProjects = const Iterable<Project>.empty();
+      Iterable<Project> filteredProjects = projects;
       if (selectedProjectsFilterTag.contains(AccProjectsFilterTag.myProjects)) {
-        filteredProjects = projects.where(
+        filteredProjects = filteredProjects.where(
           (project) => kDefaultAddressList.contains(project.owner.toString()),
         );
       }
-      if (selectedProjectsFilterTag.contains(AccProjectsFilterTag.onlyAccepted)) {
-        if (filteredProjects.isNotEmpty) {
-          filteredProjects = filteredProjects.where(
-              (project) => project.status == AcceleratorProjectStatus.active);
-        } else {
-          filteredProjects = projects.where(
-              (project) => project.status == AcceleratorProjectStatus.active);
-        }
+      if (selectedProjectsFilterTag
+          .contains(AccProjectsFilterTag.onlyAccepted)) {
+        filteredProjects = filteredProjects.where(
+            (project) => project.status == AcceleratorProjectStatus.active);
       }
-      if (selectedProjectsFilterTag.contains(AccProjectsFilterTag.votingOpened)) {
-        var projectsToBeChecked =
-            filteredProjects.isNotEmpty ? filteredProjects : projects;
-        votedProjectIds ??=
-            await _getVotedProjectIdsByPillar(projectsToBeChecked);
-        filteredProjects = projectsToBeChecked.where(
+      if (selectedProjectsFilterTag
+          .contains(AccProjectsFilterTag.votingOpened)) {
+        votedProjectIds ??= await _getVotedProjectIdsByPillar(filteredProjects);
+        filteredProjects = filteredProjects.where(
           (project) =>
               project.status == AcceleratorProjectStatus.voting &&
               !votedProjectIds!.contains(project.id),
         );
       }
-      if (selectedProjectsFilterTag.contains(AccProjectsFilterTag.alreadyVoted)) {
-        var projectsToBeChecked =
-            filteredProjects.isNotEmpty ? filteredProjects : projects;
-        votedProjectIds ??=
-            await _getVotedProjectIdsByPillar(projectsToBeChecked);
-        filteredProjects = projectsToBeChecked.where(
+      if (selectedProjectsFilterTag
+          .contains(AccProjectsFilterTag.alreadyVoted)) {
+        votedProjectIds ??= await _getVotedProjectIdsByPillar(filteredProjects);
+        filteredProjects = filteredProjects.where(
           (project) => votedProjectIds!.contains(project.id),
         );
       }

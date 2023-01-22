@@ -4,9 +4,11 @@ import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
 class StandardTooltipIcon extends StatelessWidget {
   final String tooltipMessage;
   final Color iconColor;
+  final IconData iconData;
 
   const StandardTooltipIcon(
-    this.tooltipMessage, {
+    this.tooltipMessage,
+    this.iconData, {
     this.iconColor = AppColors.znnColor,
     Key? key,
   }) : super(key: key);
@@ -19,7 +21,7 @@ class StandardTooltipIcon extends StatelessWidget {
       constraints: const BoxConstraints(),
       iconSize: 15.0,
       icon: Icon(
-        Icons.help_sharp,
+        iconData,
         color: iconColor,
       ),
       onPressed: () {},

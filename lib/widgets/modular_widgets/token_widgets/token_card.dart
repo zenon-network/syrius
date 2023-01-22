@@ -426,7 +426,7 @@ class _TokenCardState extends State<TokenCard> {
 
   Widget _getBurnButtonViewModel() {
     return ViewModelBuilder<BurnTokenBloc>.reactive(
-      onModelReady: (model) {
+      onViewModelReady: (model) {
         model.stream.listen(
           (event) {
             setState(() {
@@ -587,7 +587,7 @@ class _TokenCardState extends State<TokenCard> {
 
   Widget _getMintButtonViewModel() {
     return ViewModelBuilder<MintTokenBloc>.reactive(
-      onModelReady: (model) {
+      onViewModelReady: (model) {
         model.stream.listen((event) {
           setState(() {
             _beneficiaryAddressKey.currentState!.reset();
@@ -716,7 +716,7 @@ class _TokenCardState extends State<TokenCard> {
 
   Widget _getTransferOwnershipButtonViewModel() {
     return ViewModelBuilder<TransferOwnershipBloc>.reactive(
-      onModelReady: (model) {
+      onViewModelReady: (model) {
         model.stream.listen((event) {
           _sendTransferSuccessfulNotification();
           if (mounted) {

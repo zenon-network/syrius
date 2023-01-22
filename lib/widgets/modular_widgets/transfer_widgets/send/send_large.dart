@@ -20,10 +20,8 @@ class SendLargeCard extends StatefulWidget {
   final double? cardWidth;
   final bool? extendIcon;
   final VoidCallback? onCollapsePressed;
-  final VoidCallback onOkBridgeWarningDialogPressed;
 
   const SendLargeCard({
-    required this.onOkBridgeWarningDialogPressed,
     Key? key,
     this.cardWidth,
     this.extendIcon,
@@ -225,26 +223,14 @@ class _SendLargeCardState extends State<SendLargeCard> {
   void _onSendPaymentPressed(SendPaymentBloc model) {
     if (_recipientKey.currentState!.validate() &&
         _amountKey.currentState!.validate()) {
-      if (Address.parse(_recipientController.text) == bridgeAddress) {
-        showOkDialog(
-          context: context,
-          title: 'Send Payment',
-          description: 'Use the form from the \'Bridge\' tab to swap coins',
-          onActionButtonPressed: () {
-            Navigator.pop(context);
-            widget.onOkBridgeWarningDialogPressed();
-          },
-        );
-      } else {
-        showDialogWithNoAndYesOptions(
-          context: context,
-          title: 'Send Payment',
-          description: 'Are you sure you want to transfer '
-              '${_amountController.text} ${_selectedToken.symbol} to '
-              '${AddressUtils.getLabel(_recipientController.text)} ?',
-          onYesButtonPressed: () => _sendPayment(model),
-        );
-      }
+      showDialogWithNoAndYesOptions(
+        context: context,
+        title: 'Send Payment',
+        description: 'Are you sure you want to transfer '
+            '${_amountController.text} ${_selectedToken.symbol} to '
+            '${AddressUtils.getLabel(_recipientController.text)} ?',
+        onYesButtonPressed: () => _sendPayment(model),
+      );
     }
   }
 
@@ -324,7 +310,7 @@ class _SendLargeCardState extends State<SendLargeCard> {
 
   Widget _getSendPaymentViewModel(AccountInfo? accountInfo) {
     return ViewModelBuilder<SendPaymentBloc>.reactive(
-      onModelReady: (model) {
+      onViewModelReady: (model) {
         model.stream.listen(
           (event) {
             if (event is AccountBlockTemplate) {

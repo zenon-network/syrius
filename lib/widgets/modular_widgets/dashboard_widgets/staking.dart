@@ -22,7 +22,7 @@ class _StakingState extends State<Staking> {
   Widget build(BuildContext context) {
     return ViewModelBuilder<StakingBloc>.reactive(
       viewModelBuilder: () => StakingBloc(),
-      onModelReady: (model) {
+      onViewModelReady: (model) {
         model.getDataPeriodically();
       },
       builder: (_, model, __) => CardScaffold<StakingStatsModel>(

@@ -112,6 +112,7 @@ class _SentinelsListWidgetState extends State<SentinelsListWidget> {
                 sentinelInfo.isRevocable
                     ? 'Revocation window is open'
                     : 'Until revocation window opens',
+                Icons.help,
                 iconColor: sentinelInfo.isRevocable
                     ? AppColors.znnColor
                     : AppColors.errorColor,
@@ -215,7 +216,7 @@ class _SentinelsListWidgetState extends State<SentinelsListWidget> {
     SentinelInfo sentinelInfo,
   ) {
     return ViewModelBuilder<DisassembleButtonBloc>.reactive(
-      onModelReady: (model) {
+      onViewModelReady: (model) {
         model.stream.listen(
           (event) {
             if (event != null) {

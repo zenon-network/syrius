@@ -114,7 +114,7 @@ class _PillarsListWidgetState extends State<PillarsListWidget> {
   Widget _getTable(PillarsListBloc bloc) {
     return Column(
       children: [
-        _getTableHeader(),
+        _getTableHeader(bloc),
         Expanded(
           child: Scrollbar(
             controller: _scrollController,
@@ -142,7 +142,7 @@ class _PillarsListWidgetState extends State<PillarsListWidget> {
     );
   }
 
-  Container _getTableHeader() {
+  Container _getTableHeader(PillarsListBloc bloc) {
     return Container(
       decoration: BoxDecoration(
         border: Border(
@@ -156,44 +156,59 @@ class _PillarsListWidgetState extends State<PillarsListWidget> {
         vertical: 15.0,
       ),
       child: Row(
-        children: List<Widget>.from(
+          children: List<Widget>.from(
+                [
+                  const SizedBox(
+                    width: 20.0,
+                  )
+                ],
+              ) +
               [
+                InfiniteScrollTableHeaderColumn(
+                  columnName: 'Name',
+                  onSortArrowsPressed: _onSortArrowsPressed,
+                ),
+                InfiniteScrollTableHeaderColumn(
+                  columnName: 'Producer Address',
+                  onSortArrowsPressed: _onSortArrowsPressed,
+                  flex: 3,
+                ),
+                InfiniteScrollTableHeaderColumn(
+                  columnName: 'Weight',
+                  onSortArrowsPressed: _onSortArrowsPressed,
+                ),
+                const InfiniteScrollTableHeaderColumn(columnName: 'Delegation'),
+                const InfiniteScrollTableHeaderColumn(
+                    columnName: 'Momentum reward'),
+                const InfiniteScrollTableHeaderColumn(
+                    columnName: 'Delegation reward'),
+                const InfiniteScrollTableHeaderColumn(
+                  columnName: 'Expected/produced momentums',
+                ),
+                const InfiniteScrollTableHeaderColumn(
+                  columnName: 'Uptime',
+                ),
+                const InfiniteScrollTableHeaderColumn(
+                  columnName: '',
+                  flex: 1,
+                ),
                 const SizedBox(
-                  width: 20.0,
+                  width: 5.0,
                 )
-              ],
-            ) +
-            [
-              InfiniteScrollTableHeaderColumn(
-                columnName: 'Name',
-                onSortArrowsPressed: _onSortArrowsPressed,
-              ),
-              InfiniteScrollTableHeaderColumn(
-                columnName: 'Producer Address',
-                onSortArrowsPressed: _onSortArrowsPressed,
-                flex: 3,
-              ),
-              InfiniteScrollTableHeaderColumn(
-                columnName: 'Weight',
-                onSortArrowsPressed: _onSortArrowsPressed,
-              ),
-              const InfiniteScrollTableHeaderColumn(columnName: 'Delegation'),
-              const InfiniteScrollTableHeaderColumn(
-                  columnName: 'Momentum reward'),
-              const InfiniteScrollTableHeaderColumn(
-                  columnName: 'Delegation reward'),
-              const InfiniteScrollTableHeaderColumn(
-                columnName: 'Expected/produced momentums',
-              ),
-              const InfiniteScrollTableHeaderColumn(
-                columnName: 'Uptime',
-              ),
-              const InfiniteScrollTableHeaderColumn(
-                columnName: '',
-                flex: 2,
-              ),
-            ],
-      ),
+              ] +
+              [
+                SizedBox(
+                    width: 110,
+                    child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Visibility(
+                            visible: _delegationInfo?.name != null,
+                            child: _getUndelegateButtonViewModel(bloc),
+                          ),
+                        ])),
+              ]),
     );
   }
 
@@ -234,15 +249,19 @@ class _PillarsListWidgetState extends State<PillarsListWidget> {
           ),
         ),
         child: Row(
-          children: List<Widget>.from(
+            children: List<Widget>.from(
+                  [
+                    const SizedBox(
+                      width: 20.0,
+                    )
+                  ],
+                ) +
+                generateRowCells(item, isSelected) +
                 [
                   const SizedBox(
-                    width: 20.0,
+                    width: 110,
                   )
-                ],
-              ) +
-              generateRowCells(item, isSelected),
-        ),
+                ]),
       ),
     );
   }
@@ -314,7 +333,6 @@ class _PillarsListWidgetState extends State<PillarsListWidget> {
           pillarInfo,
           _pillarsListBloc,
         ),
-        flex: 2,
       ),
     ];
   }
@@ -407,6 +425,7 @@ class _PillarsListWidgetState extends State<PillarsListWidget> {
             pillarItem.isRevocable
                 ? 'Revocation window is open'
                 : 'Until revocation window opens',
+            Icons.help,
             iconColor: pillarItem.isRevocable
                 ? AppColors.znnColor
                 : AppColors.errorColor,
@@ -422,7 +441,7 @@ class _PillarsListWidgetState extends State<PillarsListWidget> {
     PillarInfo pillarInfo,
   ) {
     return ViewModelBuilder<DisassemblePillarBloc>.reactive(
-      onModelReady: (model) {
+      onViewModelReady: (model) {
         model.stream.listen(
           (event) {
             if (event != null) {
@@ -553,7 +572,7 @@ class _PillarsListWidgetState extends State<PillarsListWidget> {
     final GlobalKey<LoadingButtonState> undelegateButtonKey = GlobalKey();
 
     return ViewModelBuilder<UndelegateButtonBloc>.reactive(
-      onModelReady: (model) {
+      onViewModelReady: (model) {
         model.stream.listen(
           (event) {
             if (event != null) {
@@ -625,7 +644,7 @@ class _PillarsListWidgetState extends State<PillarsListWidget> {
               ? true
               : _currentlyDelegatingToPillar == pillarInfo.name),
       child: ViewModelBuilder<DelegateButtonBloc>.reactive(
-        onModelReady: (model) {
+        onViewModelReady: (model) {
           model.stream.listen(
             (event) {
               if (event != null) {

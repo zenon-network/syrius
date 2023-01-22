@@ -101,6 +101,7 @@ class _SplashScreenState extends State<SplashScreen>
     await sl.get<NotificationsBloc>().addNotification(null);
     await _deleteKeyStoreFile();
     await Hive.deleteFromDisk();
+    if (!mounted) return;
     await InitUtils.initApp(context);
   }
 

@@ -7,7 +7,7 @@ import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/custom_material_stepper.dart'
-as custom_material_stepper;
+    as custom_material_stepper;
 
 enum ProjectCreationStep {
   projectCreation,
@@ -304,7 +304,10 @@ class _ProjectCreationStepperState extends State<ProjectCreationStepper> {
                 ),
               ),
             ),
-            const StandardTooltipIcon('Link to project article'),
+            const StandardTooltipIcon(
+              'Link to project article',
+              Icons.help,
+            ),
           ],
         ),
         kVerticalSpacing,
@@ -314,7 +317,10 @@ class _ProjectCreationStepperState extends State<ProjectCreationStepper> {
               'Total project budget',
               style: Theme.of(context).textTheme.bodyText1,
             ),
-            const StandardTooltipIcon('Set a budget for the project'),
+            const StandardTooltipIcon(
+              'Set a budget for the project',
+              Icons.help,
+            ),
           ],
         ),
         kVerticalSpacing,
@@ -460,7 +466,7 @@ class _ProjectCreationStepperState extends State<ProjectCreationStepper> {
 
   Widget _getSubmitProjectViewModel() {
     return ViewModelBuilder<CreateProjectBloc>.reactive(
-      onModelReady: (model) {
+      onViewModelReady: (model) {
         model.stream.listen(
           (event) {
             if (event != null) {

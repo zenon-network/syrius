@@ -22,7 +22,7 @@ class _PillarsState extends State<Pillars> {
   Widget build(BuildContext context) {
     return ViewModelBuilder<PillarsBloc>.reactive(
       viewModelBuilder: () => PillarsBloc(),
-      onModelReady: (model) {
+      onViewModelReady: (model) {
         model.getDataPeriodically();
       },
       builder: (_, model, __) => CardScaffold<int>(

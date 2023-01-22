@@ -7,7 +7,7 @@ import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/custom_material_stepper.dart'
-as custom_material_stepper;
+    as custom_material_stepper;
 
 enum PhaseCreationStep {
   phaseDetails,
@@ -241,7 +241,9 @@ class _PhaseCreationStepperState extends State<PhaseCreationStepper> {
               ),
             ),
             const StandardTooltipIcon(
-                'Showcase the progress of your project (e.g. Git PR/commit)'),
+              'Showcase the progress of your project (e.g. Git PR/commit)',
+              Icons.help,
+            ),
           ],
         ),
         kVerticalSpacing,
@@ -252,7 +254,9 @@ class _PhaseCreationStepperState extends State<PhaseCreationStepper> {
               style: Theme.of(context).textTheme.bodyText1,
             ),
             const StandardTooltipIcon(
-                'Necessary budget to successfully complete this phase'),
+              'Necessary budget to successfully complete this phase',
+              Icons.help,
+            ),
           ],
         ),
         kVerticalSpacing,
@@ -439,7 +443,7 @@ class _PhaseCreationStepperState extends State<PhaseCreationStepper> {
 
   Widget _getCreatePhaseViewModel() {
     return ViewModelBuilder<CreatePhaseBloc>.reactive(
-      onModelReady: (model) {
+      onViewModelReady: (model) {
         model.stream.listen(
           (event) {
             if (event != null) {

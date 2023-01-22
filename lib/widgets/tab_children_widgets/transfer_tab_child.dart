@@ -64,7 +64,6 @@ class _TransferTabChildState extends State<TransferTabChild> {
               SendLargeCard(
                 extendIcon: true,
                 onCollapsePressed: _onCollapse,
-                onOkBridgeWarningDialogPressed: widget.navigateToBridgeTab,
               ),
             );
 

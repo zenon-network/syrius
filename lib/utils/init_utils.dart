@@ -14,14 +14,14 @@ import 'package:zenon_syrius_wallet_flutter/utils/widget_utils.dart';
 class InitUtils {
   static Future<void> initApp(BuildContext context) async {
     try {
-      await KeyStoreUtils.setKeyStorePath();
-      await _setNumUnlockFailedAttempts();
-      await NodeUtils.setNode();
-      await NodeUtils.loadDbNodes();
       WidgetUtils.setThemeMode(context);
       WidgetUtils.setTextScale(context);
       _setAutoEraseWalletNumAttempts();
       _setAutoLockWalletTimeInterval();
+      await KeyStoreUtils.setKeyStorePath();
+      await _setNumUnlockFailedAttempts();
+      await NodeUtils.setNode();
+      await NodeUtils.loadDbNodes();
     } catch (e) {
       rethrow;
     }

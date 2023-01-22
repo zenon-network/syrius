@@ -299,7 +299,7 @@ class _CardScaffoldState<T> extends State<CardScaffold<T>> {
 
   Widget _getHideWidgetInfoViewModel() {
     return ViewModelBuilder<HideWidgetStatusBloc>.reactive(
-      onModelReady: (model) {
+      onViewModelReady: (model) {
         _actionButton = _getActionButton(model);
         // Stream will tell us if the widget info is hidden or not
         model.stream.listen(
@@ -353,7 +353,8 @@ class _CardScaffoldState<T> extends State<CardScaffold<T>> {
                   if (snapshot.hasError) {
                     return SyriusErrorWidget(snapshot.error!);
                   } else if (snapshot.hasData) {
-                    return widget.onCompletedStatusCallback!(snapshot.data!);
+                    return widget
+                        .onCompletedStatusCallback!(snapshot.data as T);
                   }
                   return const SyriusLoadingWidget();
                 },

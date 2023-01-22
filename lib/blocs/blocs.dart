@@ -20,6 +20,5 @@ export 'plasma/plasma.dart';
 export 'sentinels/sentinels.dart';
 export 'settings/settings.dart';
 export 'staking/staking.dart';
-export 'swap/swap.dart';
 export 'tokens/tokens.dart';
 export 'transfer/transfer.dart';

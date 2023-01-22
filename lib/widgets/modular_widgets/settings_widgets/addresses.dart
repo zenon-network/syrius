@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
+import 'package:number_selector/number_selector.dart';
 import 'package:provider/provider.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
@@ -37,6 +38,7 @@ class AddressesState extends State<Addresses> {
   late ScrollController _scrollController;
 
   bool _shouldScrollToTheEnd = false;
+  int numberOfAddressesToAdd = 1;
 
   @override
   void initState() {
@@ -58,6 +60,7 @@ class AddressesState extends State<Addresses> {
     try {
       Box box = Hive.box(kSharedPrefsBox);
       await box.put(kDefaultAddressKey, newDefaultAddress);
+      if (!mounted) return;
       Provider.of<SelectedAddressNotifier>(
         context,
         listen: false,
@@ -77,36 +80,64 @@ class AddressesState extends State<Addresses> {
   }
 
   Widget _getAddAddressWidget() {
-    return InkWell(
-      onTap: () {
-        setState(() {
-          _futureGenerateNewAddress =
-              AddressUtils.generateNewAddress(callback: () {
-            setState(() {
-              _shouldScrollToTheEnd = true;
-            });
-          });
-        });
-      },
-      child: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(
-              Icons.add_circle,
-              color: AppColors.znnColor,
-              size: 20.0,
+    return Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: [
+          Expanded(
+            flex: 1,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 20.0),
+              child: NumberSelector.plain(
+                borderColor: AppColors.znnColor,
+                iconColor: AppColors.znnColor,
+                dividerColor: AppColors.znnColor,
+                step: 1,
+                current: 1,
+                min: 1,
+                max: 10,
+                onUpdate: (val) {
+                  _onAddAddressPressedCallback(val);
+                },
+              ),
             ),
-            const SizedBox(
-              width: 5.0,
-            ),
-            Text(
-              'Add new address',
-              style: Theme.of(context).textTheme.bodyText1,
-            ),
-          ],
-        ),
+          ),
+          InkWell(
+            onTap: () {
+              setState(() {
+                _futureGenerateNewAddress = AddressUtils.generateNewAddress(
+                    numAddr: numberOfAddressesToAdd,
+                    callback: () {
+                      setState(() {
+                        _shouldScrollToTheEnd = true;
+                      });
+                    });
+              });
+            },
+            child: Container(
+                constraints:
+                    const BoxConstraints(minWidth: 150.0, minHeight: 50.0),
+                alignment: Alignment.center,
+                child: Row(
+                  children: [
+                    const Icon(
+                      Icons.add_circle,
+                      color: AppColors.znnColor,
+                      size: 20.0,
+                    ),
+                    const SizedBox(width: 10.0),
+                    Text(
+                      (numberOfAddressesToAdd == 1)
+                          ? 'Add $numberOfAddressesToAdd address  '
+                          : 'Add $numberOfAddressesToAdd addresses',
+                      style: Theme.of(context).textTheme.bodyText1,
+                    ),
+                  ],
+                )),
+          ),
+          const SizedBox(width: 10.0),
+        ],
       ),
     );
   }
@@ -144,7 +175,7 @@ class AddressesState extends State<Addresses> {
 
     if (_shouldScrollToTheEnd) {
       Timer(
-        const Duration(seconds: 1),
+        const Duration(milliseconds: 1),
         () {
           if (mounted && _scrollController.hasClients) {
             _scrollController
@@ -207,9 +238,16 @@ class AddressesState extends State<Addresses> {
     );
   }
 
+  void _onAddAddressPressedCallback(int value) {
+    setState(() {
+      numberOfAddressesToAdd = value;
+    });
+  }
+
   void _onAddressPressedCallback(String? value) {
     setState(() {
       _futureChangeDefaultAddress = _changeDefaultAddress(value);
+      numberOfAddressesToAdd = 1;
     });
   }
 

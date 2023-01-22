@@ -1,0 +1,156 @@
+name: Build and release syrius
+
+on:
+  push:
+    branches:
+      - cicd
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+jobs:
+  build-macos:
+    runs-on: macos-12
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Setup environment
+        run: |
+          brew install unzip create-dmg
+          brew cleanup
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: "stable"
+      - name: Check flutter version
+        run: flutter --version
+      - name: Build syrius desktop 
+        run: |
+          flutter config --enable-macos-desktop
+          flutter build macos --release
+      - name: Package into DMG
+        run: |
+          create-dmg --volname syrius \
+          --volicon macos/dmg/volume.icns \
+          --icon "s\ y\ r\ i\ u\ s.app" 210 175 \
+          --icon-size 90 \
+          --app-drop-link 390 175 \
+          --text-size 14 \
+          --background macos/dmg/background.png \
+          --window-pos 300 200 \
+          --window-size 600 325 \
+          --hide-extension "s\ y\ r\ i\ u\ s.app" \
+          --format ULFO \
+          --hdiutil-verbose syrius-alphanet-macos-universal.dmg build/macos/Build/Products/Release/s\ y\ r\ i\ u\ s.app \
+          syrius-alphanet-macos-universal.dmg build/macos/Build/Products/Release/s\ y\ r\ i\ u\ s.app
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: macos-artifacts
+          path: syrius-alphanet-macos-universal.dmg
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: "stable"
+      - name: Check flutter version
+        run: flutter --version
+      - name: Build syrius desktop
+        run: |
+          flutter config --enable-windows-desktop
+          flutter build windows --release   
+      - name: Package into zip
+        run: |
+          Compress-Archive -Path build\windows\runner\Release\* -DestinationPath .\syrius-alphanet-windows-amd64.zip
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: windows-artifacts
+          path: syrius-alphanet-windows-amd64.zip
+  build-linux:
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Prepare environment
+        run: |
+          sudo apt update
+          sudo apt install -y curl clang cmake ninja-build pkg-config libgtk-3-dev liblzma-dev unzip xz-utils zip libnotify-dev libayatana-appindicator3-dev
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: "stable"
+      - name: Check flutter version
+        run: flutter --version
+      - name: Build syrius desktop
+        run: |
+          flutter config --enable-linux-desktop
+          flutter build linux --release
+      - name: Package zip
+        run: |
+          cd build/linux/x64/release/bundle && zip -r ../../../../../syrius-alphanet-linux-amd64.zip *
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: linux-artifacts
+          path: syrius-alphanet-linux-amd64.zip
+  make-release:
+    needs: [build-macos, build-windows, build-linux]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Set variables
+        run: |
+          SYRIUS="v$(cat pubspec.yaml | grep version | sed 's/version://' | xargs)"
+          echo "Syrius Version: $SYRIUS"
+          echo "SYRIUS_VERSION=$SYRIUS" >> $GITHUB_ENV
+          GOZENON=$(curl -s https://raw.githubusercontent.com/zenon-network/go-zenon/master/metadata/version.go | grep Version | awk -F '"' '{print $2}')
+          echo "Go-Zenon Version: $GOZENON"
+          BODY=$(cat <<EOF
+          Syrius $SYRIUS features the pre-release version of the [go-zenon](https://github.com/zenon-network/go-zenon) $GOZENON full node.
+
+          syrius for Windows requires Microsoft Visual C++ to be installed.
+          [Download Microsoft Visual C++](https://aka.ms/vs/16/release/vc_redist.x64.exe)
+          EOF
+          )
+          echo "$BODY"
+          echo "BODY<<EOFMARKER" >> ${GITHUB_ENV}
+          echo "${BODY}" >> ${GITHUB_ENV}
+          echo "EOFMARKER" >> ${GITHUB_ENV}
+      - name: Prepare releases directory
+        run: mkdir releases
+      - name: Download macOS artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: macos-artifacts
+      - name: Download Windows artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: windows-artifacts
+      - name: Download Linux artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: linux-artifacts
+      - name: Prepare releases
+        run: |
+          cp syrius-alphanet-windows-amd64.zip releases/
+          cp syrius-alphanet-macos-universal.dmg releases/
+          cp syrius-alphanet-linux-amd64.zip releases/
+      - name: Generate checksums
+        run: cd releases/ && echo $(sha256sum *) >> SHA256CHECKSUMS.txt
+      - name: Upload files to a GitHub release
+        uses: svenstaro/upload-release-action@2.3.0
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: releases/*
+          release_name: ${{ env.SYRIUS_VERSION }}
+          tag: ${{ env.SYRIUS_VERSION }}-alphanet
+          file_glob: true
+          overwrite: true
+          body: ${{ env.BODY }}

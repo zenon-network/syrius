@@ -153,7 +153,7 @@ class _StakingOptionsState extends State<StakingOptions> {
 
   Widget _getStakeForQsrViewModel() {
     return ViewModelBuilder<StakingOptionsBloc>.reactive(
-      onModelReady: (model) {
+      onViewModelReady: (model) {
         model.stream.listen(
           (event) {
             if (event != null) {

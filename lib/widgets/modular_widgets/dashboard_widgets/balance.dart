@@ -40,7 +40,7 @@ class _BalanceWidgetState extends State<BalanceWidget> {
   Widget build(BuildContext context) {
     return ViewModelBuilder<BalanceDashboardBloc>.reactive(
       viewModelBuilder: () => BalanceDashboardBloc(),
-      onModelReady: (model) {
+      onViewModelReady: (model) {
         model.getDataPeriodically();
       },
       builder: (_, model, __) => CardScaffold<AccountInfo>(
