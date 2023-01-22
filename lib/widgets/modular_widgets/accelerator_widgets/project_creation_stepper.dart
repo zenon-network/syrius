@@ -315,7 +315,7 @@ class _ProjectCreationStepperState extends State<ProjectCreationStepper> {
           children: [
             Text(
               'Total project budget',
-              style: Theme.of(context).textTheme.bodyText1,
+              style: Theme.of(context).textTheme.bodyLarge,
             ),
             const StandardTooltipIcon(
               'Set a budget for the project',

@@ -118,7 +118,7 @@ class _AcceleratorProjectListItemState
       children: [
         Text(
           widget.acceleratorProject.name,
-          style: Theme.of(context).textTheme.headline5,
+          style: Theme.of(context).textTheme.headlineSmall,
         ),
       ],
     );
@@ -130,7 +130,7 @@ class _AcceleratorProjectListItemState
         Expanded(
           child: Text(
             widget.acceleratorProject.description,
-            style: Theme.of(context).textTheme.bodyText1,
+            style: Theme.of(context).textTheme.bodyLarge,
           ),
         ),
       ],

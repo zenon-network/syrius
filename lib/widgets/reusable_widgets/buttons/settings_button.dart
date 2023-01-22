@@ -12,7 +12,7 @@ class SettingsButton extends MyOutlinedButton {
           key: key,
           onPressed: onPressed,
           text: text,
-          textStyle: kText2TextStyle,
+          textStyle: kBodyMediumTextStyle,
           minimumSize: kSettingsButtonMinSize,
         );
 }

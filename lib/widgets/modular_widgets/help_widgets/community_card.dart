@@ -146,7 +146,6 @@ class CommunityCard extends StatelessWidget {
           url: kBitcoinTalk,
           context: context,
         ),
-
         _getListViewChild(
           iconData: MaterialCommunityIcons.reddit,
           title: 'Zenon Reddit',
@@ -215,7 +214,7 @@ class CommunityCard extends StatelessWidget {
         Expanded(
           child: Text(
             title,
-            style: Theme.of(context).textTheme.subtitle1,
+            style: Theme.of(context).textTheme.titleMedium,
           ),
         ),
         const SizedBox(

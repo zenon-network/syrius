@@ -635,7 +635,7 @@ class _TokenStepperState extends State<TokenStepper> {
       children: [
         Text(
           'This will be your issuance address',
-          style: Theme.of(context).textTheme.headline6,
+          style: Theme.of(context).textTheme.headlineSmall,
         ),
         kVerticalSpacing,
         Row(

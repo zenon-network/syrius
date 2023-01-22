@@ -50,7 +50,7 @@ class _ChangeWalletPasswordScreenState
             ),
             Text(
               'Change wallet password',
-              style: Theme.of(context).textTheme.headline1,
+              style: Theme.of(context).textTheme.headlineLarge,
             ),
             Column(
               children: [

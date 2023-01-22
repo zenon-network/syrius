@@ -40,7 +40,7 @@ class _WalletOptionsState extends State<WalletOptions> {
         Text(
           'This option will erase the wallet files. Make sure you have a '
           'backup first',
-          style: Theme.of(context).textTheme.subtitle2,
+          style: Theme.of(context).textTheme.titleSmall,
         ),
         kVerticalSpacing,
         Center(
@@ -62,7 +62,7 @@ class _WalletOptionsState extends State<WalletOptions> {
       children: <Widget>[
         Text(
           'This option will delete the wallet cache and close the application',
-          style: Theme.of(context).textTheme.subtitle2,
+          style: Theme.of(context).textTheme.titleSmall,
         ),
         kVerticalSpacing,
         Center(

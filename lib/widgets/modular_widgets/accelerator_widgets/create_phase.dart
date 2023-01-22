@@ -43,7 +43,7 @@ class CreatePhase extends StatelessWidget {
               width: 200.0,
               child: Text(
                 'Start the project by creating a phase to unlock funds',
-                style: Theme.of(context).textTheme.headline6,
+                style: Theme.of(context).textTheme.headlineSmall,
               ),
             ),
             kVerticalSpacing,

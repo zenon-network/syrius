@@ -251,7 +251,7 @@ class _PhaseCreationStepperState extends State<PhaseCreationStepper> {
           children: [
             Text(
               'Total phase budget',
-              style: Theme.of(context).textTheme.bodyText1,
+              style: Theme.of(context).textTheme.bodyLarge,
             ),
             const StandardTooltipIcon(
               'Necessary budget to successfully complete this phase',

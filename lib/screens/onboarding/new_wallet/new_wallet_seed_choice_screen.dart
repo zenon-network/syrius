@@ -56,12 +56,12 @@ class _NewWalletSeedChoiceScreenState extends State<NewWalletSeedChoiceScreen> {
                   _isSeed12Selected
                       ? 'This is your 12 words seed'
                       : 'This is your 24 words seed',
-                  style: Theme.of(context).textTheme.headline1,
+                  style: Theme.of(context).textTheme.headlineLarge,
                 ),
                 kVerticalSpacing,
                 Text(
                   'Please carefully write down your seed and export it to a safe location',
-                  style: Theme.of(context).textTheme.headline4,
+                  style: Theme.of(context).textTheme.headlineMedium,
                 ),
                 kVerticalSpacing,
                 SizedBox(
@@ -165,7 +165,7 @@ class _NewWalletSeedChoiceScreenState extends State<NewWalletSeedChoiceScreen> {
                     color: Colors.transparent,
                     child: SvgPicture.asset(
                       'assets/svg/ic_export_seed.svg',
-                      color: Theme.of(context).textTheme.headline6!.color,
+                      color: Theme.of(context).textTheme.headlineSmall!.color,
                       height: 18.0,
                     ),
                   ),
@@ -174,7 +174,7 @@ class _NewWalletSeedChoiceScreenState extends State<NewWalletSeedChoiceScreen> {
                   ),
                   Text(
                     'Export Seed',
-                    style: Theme.of(context).textTheme.headline6,
+                    style: Theme.of(context).textTheme.headlineSmall,
                   ),
                 ],
               ),
@@ -218,7 +218,7 @@ class _NewWalletSeedChoiceScreenState extends State<NewWalletSeedChoiceScreen> {
         ),
         Text(
           'I have backed up my seed in a safe location',
-          style: Theme.of(context).textTheme.headline6,
+          style: Theme.of(context).textTheme.headlineSmall,
         )
       ],
     );
@@ -282,7 +282,7 @@ class _NewWalletSeedChoiceScreenState extends State<NewWalletSeedChoiceScreen> {
         ),
         Text(
           'I have written down my seed',
-          style: Theme.of(context).textTheme.headline6,
+          style: Theme.of(context).textTheme.headlineSmall,
         ),
       ],
     );

@@ -45,12 +45,12 @@ class _ImportWalletDecryptScreenState extends State<ImportWalletDecryptScreen> {
                 ),
                 Text(
                   'Unlock your Seed Vault',
-                  style: Theme.of(context).textTheme.headline1,
+                  style: Theme.of(context).textTheme.headlineLarge,
                 ),
                 kVerticalSpacing,
                 Text(
                   'Input the Seed Vault Key to continue',
-                  style: Theme.of(context).textTheme.headline4,
+                  style: Theme.of(context).textTheme.headlineMedium,
                 ),
               ],
             ),

@@ -185,7 +185,7 @@ class _UpdatePhaseStepperState extends State<UpdatePhaseStepper> {
               child: Text(
                 'This phase belongs to Project ID '
                 '${widget.phase.id.toShortString()}',
-                style: Theme.of(context).textTheme.headline6,
+                style: Theme.of(context).textTheme.headlineSmall,
               ),
             ),
           ],
@@ -232,7 +232,7 @@ class _UpdatePhaseStepperState extends State<UpdatePhaseStepper> {
         kVerticalSpacing,
         Text(
           'Total phase budget',
-          style: Theme.of(context).textTheme.bodyText1,
+          style: Theme.of(context).textTheme.bodyLarge,
         ),
         kVerticalSpacing,
         Form(

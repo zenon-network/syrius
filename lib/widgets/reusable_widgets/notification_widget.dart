@@ -92,7 +92,7 @@ class _NotificationWidgetState extends State<NotificationWidget> {
         ),
         Text(
           notification.title!,
-          style: Theme.of(context).textTheme.bodyText2,
+          style: Theme.of(context).textTheme.bodyMedium,
         ),
       ],
     );
@@ -112,7 +112,7 @@ class _NotificationWidgetState extends State<NotificationWidget> {
             onPressed: _navigateToNotification,
             child: Text(
               'See more',
-              style: Theme.of(context).textTheme.subtitle1!.copyWith(
+              style: Theme.of(context).textTheme.titleMedium!.copyWith(
                     color: notification.getColor(),
                   ),
             ),
@@ -130,7 +130,7 @@ class _NotificationWidgetState extends State<NotificationWidget> {
           onPressed: _dismissNotification,
           child: Text(
             'Dismiss',
-            style: Theme.of(context).textTheme.bodyText2,
+            style: Theme.of(context).textTheme.bodyMedium,
           ),
         ),
       ],

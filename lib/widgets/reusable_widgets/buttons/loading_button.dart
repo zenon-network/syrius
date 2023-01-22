@@ -80,7 +80,7 @@ class LoadingButton extends StatefulWidget {
         minimumSize: kSettingsButtonMinSize,
         key: key,
         paddingAroundChild: EdgeInsets.zero,
-        textStyle: kText2TextStyle,
+        textStyle: kBodyMediumTextStyle,
       );
 
   factory LoadingButton.onboarding({

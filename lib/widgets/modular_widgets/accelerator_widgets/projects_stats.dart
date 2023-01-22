@@ -179,7 +179,7 @@ class ProjectsStats extends StatelessWidget {
               tokenSymbol: kZnnCoin.symbol,
               builder: (amount, tokenSymbol) => Text(
                 '$amount $tokenSymbol',
-                style: Theme.of(context).textTheme.subtitle1,
+                style: Theme.of(context).textTheme.titleMedium,
               ),
             ),
           ),
@@ -192,7 +192,7 @@ class ProjectsStats extends StatelessWidget {
               tokenSymbol: kZnnCoin.symbol,
               builder: (amount, tokenSymbol) => Text(
                 '$amount $tokenSymbol',
-                style: Theme.of(context).textTheme.subtitle1,
+                style: Theme.of(context).textTheme.titleMedium,
               ),
             ),
           ),
@@ -205,7 +205,7 @@ class ProjectsStats extends StatelessWidget {
               tokenSymbol: kZnnCoin.symbol,
               builder: (amount, tokenSymbol) => Text(
                 '$amount $tokenSymbol',
-                style: Theme.of(context).textTheme.subtitle1,
+                style: Theme.of(context).textTheme.titleMedium,
               ),
             ),
           ),
@@ -230,7 +230,7 @@ class ProjectsStats extends StatelessWidget {
               tokenSymbol: kQsrCoin.symbol,
               builder: (amount, tokenSymbol) => Text(
                 '$amount $tokenSymbol',
-                style: Theme.of(context).textTheme.subtitle1,
+                style: Theme.of(context).textTheme.titleMedium,
               ),
             ),
           ),
@@ -243,7 +243,7 @@ class ProjectsStats extends StatelessWidget {
               tokenSymbol: kQsrCoin.symbol,
               builder: (amount, tokenSymbol) => Text(
                 '$amount $tokenSymbol',
-                style: Theme.of(context).textTheme.subtitle1,
+                style: Theme.of(context).textTheme.titleMedium,
               ),
             ),
           ),
@@ -256,7 +256,7 @@ class ProjectsStats extends StatelessWidget {
               tokenSymbol: kQsrCoin.symbol,
               builder: (amount, tokenSymbol) => Text(
                 '$amount $tokenSymbol',
-                style: Theme.of(context).textTheme.subtitle1,
+                style: Theme.of(context).textTheme.titleMedium,
               ),
             ),
           ),

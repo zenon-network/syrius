@@ -27,7 +27,7 @@ class ReceiveQrImage extends StatelessWidget {
         padding: const EdgeInsets.all(
           10.0,
         ),
-        color: Theme.of(context).backgroundColor,
+        color: Theme.of(context).colorScheme.background,
         child: PrettyQr(
           data: data,
           size: size,

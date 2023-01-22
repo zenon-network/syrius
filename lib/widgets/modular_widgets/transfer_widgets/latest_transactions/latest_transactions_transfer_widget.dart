@@ -94,7 +94,7 @@ class _LatestTransactionsState extends State<LatestTransactions> {
           tokenSymbol: infoBlock.token?.symbol ?? '',
           builder: (formattedAmount, tokenSymbol) => Text(
             formattedAmount,
-            style: Theme.of(context).textTheme.subtitle1!.copyWith(
+            style: Theme.of(context).textTheme.titleMedium!.copyWith(
                   color: AppColors.subtitleColor,
                 ),
           ),
@@ -191,7 +191,7 @@ class _LatestTransactionsState extends State<LatestTransactions> {
         BlockTypeEnum.values[block.blockType],
       ),
       textAlign: TextAlign.center,
-      style: Theme.of(context).textTheme.subtitle2,
+      style: Theme.of(context).textTheme.titleSmall,
     );
   }
 
@@ -353,7 +353,7 @@ class _LatestTransactionsState extends State<LatestTransactions> {
           tokenSymbol: infoBlock.token?.symbol ?? '',
           builder: (formattedAmount, tokenSymbol) => Text(
             formattedAmount,
-            style: Theme.of(context).textTheme.subtitle1!.copyWith(
+            style: Theme.of(context).textTheme.titleMedium!.copyWith(
                   color: AppColors.subtitleColor,
                 ),
           ),

@@ -54,7 +54,7 @@ class _DelegationStatsState extends State<DelegationStats> {
           child: Icon(
             SimpleLineIcons.trophy,
             size: 12.0,
-            color: Theme.of(context).textTheme.bodyText1!.color,
+            color: Theme.of(context).textTheme.bodyLarge!.color,
           ),
         ),
         Container(width: 16.0),
@@ -64,11 +64,11 @@ class _DelegationStatsState extends State<DelegationStats> {
           children: <Widget>[
             Text(
               delegationInfo.name.toString(),
-              style: Theme.of(context).textTheme.bodyText2,
+              style: Theme.of(context).textTheme.bodyMedium,
             ),
             Text(
               '${delegationInfo.weightWithDecimals.toString()} ${kZnnCoin.symbol}',
-              style: Theme.of(context).textTheme.subtitle1,
+              style: Theme.of(context).textTheme.titleMedium,
             ),
           ],
         ),

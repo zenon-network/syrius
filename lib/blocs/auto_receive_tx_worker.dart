@@ -79,7 +79,7 @@ class AutoReceiveTxWorker extends BaseBloc<WalletNotification> {
     );
   }
 
-  void addHash(Hash hash) {
+  Future<void> addHash(Hash hash) async {
     if (!processedHashes.contains(hash)) {
       zenon!.stats.syncInfo().then((syncInfo) {
         if (!processedHashes.contains(hash) &&

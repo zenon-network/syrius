@@ -68,10 +68,10 @@ class _SettingsNodeState extends State<SettingsNode> {
                 children: [
                   Text(
                     _nodeController.text,
-                    style: Theme.of(context).textTheme.bodyText1!.copyWith(
+                    style: Theme.of(context).textTheme.bodyLarge!.copyWith(
                           color: Theme.of(context)
                               .textTheme
-                              .bodyText1!
+                              .bodyLarge!
                               .color!
                               .withOpacity(0.7),
                         ),
@@ -166,7 +166,7 @@ class _SettingsNodeState extends State<SettingsNode> {
                     setState(() {});
                   },
                   inputtedTextStyle:
-                      Theme.of(context).textTheme.bodyText2!.copyWith(
+                      Theme.of(context).textTheme.bodyMedium!.copyWith(
                             color: AppColors.znnColor,
                           ),
                   enabledBorder: OutlineInputBorder(

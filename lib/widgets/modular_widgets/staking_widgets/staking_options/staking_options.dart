@@ -226,7 +226,7 @@ class _StakingOptionsState extends State<StakingOptions> {
                 child: Text(
                   '${duration.inSeconds ~/ stakeTimeUnitSec} $stakeUnitDurationName'
                   '${(duration.inSeconds ~/ stakeTimeUnitSec) > 1 ? 's' : ''}',
-                  style: Theme.of(context).textTheme.bodyText1!.copyWith(
+                  style: Theme.of(context).textTheme.bodyLarge!.copyWith(
                         fontSize: 12.0,
                         color: _selectedStakeDuration?.inDays == duration.inDays
                             ? AppColors.znnColor

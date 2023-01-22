@@ -53,7 +53,7 @@ class _ReceiveLargeCardState extends State<ReceiveLargeCard> {
   Widget build(BuildContext context) {
     return CardScaffold(
       title: 'Receive',
-      titleFontSize: Theme.of(context).textTheme.headline5!.fontSize,
+      titleFontSize: Theme.of(context).textTheme.headlineSmall!.fontSize,
       description: 'Manage receiving funds',
       childBuilder: () => _getTokensStreamBuilder(),
     );

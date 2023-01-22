@@ -17,7 +17,7 @@ showOkDialog({
             onPressed: onActionButtonPressed,
             child: Text(
               'OK',
-              style: Theme.of(context).textTheme.bodyText1,
+              style: Theme.of(context).textTheme.bodyLarge,
             ),
           ),
         ],
@@ -39,7 +39,7 @@ showDialogWithNoAndYesOptions({
           TextButton(
             child: Text(
               'No',
-              style: Theme.of(context).textTheme.bodyText1,
+              style: Theme.of(context).textTheme.bodyLarge,
             ),
             onPressed: () {
               Navigator.of(context).pop();
@@ -53,7 +53,7 @@ showDialogWithNoAndYesOptions({
                 ),
             child: Text(
               'Yes',
-              style: Theme.of(context).textTheme.bodyText1,
+              style: Theme.of(context).textTheme.bodyLarge,
             ),
           ),
         ],

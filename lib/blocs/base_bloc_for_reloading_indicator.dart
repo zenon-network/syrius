@@ -27,7 +27,7 @@ abstract class BaseBlocForReloadingIndicator<T> extends BaseBloc<T?>
   }
 
   @override
-  dispose() {
+  dispose() async {
     cancelStreamSubscription();
     super.dispose();
   }

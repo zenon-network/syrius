@@ -198,7 +198,7 @@ class _CustomSliderState extends State<CustomSlider> {
                 valueIndicatorColor: widget.activeColor,
                 thumbShape: const _CustomThumbShape(),
                 valueIndicatorShape: const _CustomValueIndicatorShape(),
-                valueIndicatorTextStyle: theme.textTheme.bodyText1!.copyWith(
+                valueIndicatorTextStyle: theme.textTheme.bodyLarge!.copyWith(
                   color: Colors.white,
                 ),
               ),
@@ -220,7 +220,7 @@ class _CustomSliderState extends State<CustomSlider> {
             ),
             Text(
               widget.description,
-              style: Theme.of(context).textTheme.subtitle1,
+              style: Theme.of(context).textTheme.titleMedium,
             ),
           ],
         ),

@@ -50,7 +50,7 @@ class WidgetUtils {
     BuildContext context,
   ) {
     TextStyle? textStyle = address != null && address.isEmbedded()
-        ? Theme.of(context).textTheme.subtitle1!.copyWith(
+        ? Theme.of(context).textTheme.titleMedium!.copyWith(
               color: AppColors.znnColor,
               fontWeight: FontWeight.bold,
             )
@@ -92,7 +92,7 @@ class WidgetUtils {
     bool showCopyToClipboardIcon = false,
   }) {
     TextStyle? textStyle = address != null && address.isEmbedded()
-        ? Theme.of(context).textTheme.subtitle1!.copyWith(
+        ? Theme.of(context).textTheme.titleMedium!.copyWith(
               color: AppColors.znnColor,
               fontWeight: FontWeight.bold,
             )
@@ -100,7 +100,7 @@ class WidgetUtils {
 
     if (checkIfStakeAddress) {
       textStyle = address != null && address.toString() == kSelectedAddress
-          ? Theme.of(context).textTheme.subtitle1!.copyWith(
+          ? Theme.of(context).textTheme.titleMedium!.copyWith(
                 color: AppColors.znnColor,
                 fontWeight: FontWeight.bold,
               )

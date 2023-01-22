@@ -15,11 +15,11 @@ class AmountInfoColumn extends Column {
           children: [
             Text(
               tokenSymbol,
-              style: Theme.of(context).textTheme.bodyText1,
+              style: Theme.of(context).textTheme.bodyLarge,
             ),
             Text(
               amount,
-              style: Theme.of(context).textTheme.subtitle2,
+              style: Theme.of(context).textTheme.titleSmall,
             ),
           ],
         );

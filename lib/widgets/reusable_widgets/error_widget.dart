@@ -27,7 +27,7 @@ class SyriusErrorWidget extends StatelessWidget {
               Text(
                 _getErrorText(error.toString()),
                 textAlign: TextAlign.center,
-                style: Theme.of(context).textTheme.bodyText2,
+                style: Theme.of(context).textTheme.bodyMedium,
               ),
             ],
           ),
