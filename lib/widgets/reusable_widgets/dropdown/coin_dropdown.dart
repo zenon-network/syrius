@@ -39,7 +39,7 @@ class CoinDropdown extends StatelessWidget {
                         color: ColorUtils.getTokenColor(e!.tokenStandard),
                       ),
                       child: Padding(
-                        padding: const EdgeInsets.all(5.0),
+                        padding: const EdgeInsets.only(left: 8.0),
                         child: Row(
                           children: [
                             Text(

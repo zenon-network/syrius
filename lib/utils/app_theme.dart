@@ -118,6 +118,7 @@ const OutlineInputBorder kOutlineInputBorder = OutlineInputBorder(
 
 class AppTheme {
   static final ThemeData lightTheme = ThemeData(
+    useMaterial3: true,
     hoverColor: AppColors.lightTextFormFieldFill,
     textButtonTheme: kTextButtonThemeData,
     outlinedButtonTheme: OutlinedButtonThemeData(
@@ -253,6 +254,7 @@ class AppTheme {
   );
 
   static final ThemeData darkTheme = ThemeData(
+    useMaterial3: true,
     hoverColor: AppColors.darkTextFormFieldFill,
     textButtonTheme: kTextButtonThemeData,
     outlinedButtonTheme: OutlinedButtonThemeData(
