@@ -6,11 +6,9 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart' hide MenuItem;
 import 'package:get_it/get_it.dart';
 import 'package:hive/hive.dart';
-import 'package:launch_at_startup/launch_at_startup.dart';
 import 'package:layout/layout.dart';
 import 'package:local_notifier/local_notifier.dart';
 import 'package:overlay_support/overlay_support.dart';
-import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart';
 import 'package:tray_manager/tray_manager.dart';
 import 'package:window_manager/window_manager.dart';
@@ -59,8 +57,8 @@ main() async {
     shortcutPolicy: ShortcutPolicy.requireCreate,
   );
 
+  // Setup tray manager
   await _setupTrayManager();
-  await _setupLaunchAtStartup();
 
   // Register Hive adapters
   Hive.registerAdapter(NotificationTypeAdapter());
@@ -128,13 +126,6 @@ Future<void> _setupTrayManager() async {
     ),
   ];
   await trayManager.setContextMenu(Menu(items: items));
-}
-Future<void> _setupLaunchAtStartup() async {
-  PackageInfo packageInfo = await PackageInfo.fromPlatform();
-  launchAtStartup.setup(
-    appName: packageInfo.appName,
-    appPath: Platform.resolvedExecutable,
-  );
 }
 
 void setup() {
