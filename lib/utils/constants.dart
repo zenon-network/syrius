@@ -170,6 +170,10 @@ const int kAutoLockWalletDefaultIntervalMinutes = 15;
 const String kAutoLockWalletMinutesKey = 'auto_lock_interval_minutes';
 const String kAutoEraseNumAttemptsKey = 'auto_erase_num_attempts';
 
+// Wallet preferences
+const String kLaunchAtStartupKey = 'launch_at_startup';
+const bool kLaunchAtStartupDefaultValue = false;
+
 // Display constants
 const String kThemeModeKey = 'theme_mode_key';
 const ThemeMode kDefaultThemeMode = ThemeMode.dark;
