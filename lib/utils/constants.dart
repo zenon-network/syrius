@@ -169,6 +169,8 @@ const String kAutoEraseNumAttemptsKey = 'auto_erase_num_attempts';
 // Wallet preferences
 const String kLaunchAtStartupKey = 'launch_at_startup';
 const bool kLaunchAtStartupDefaultValue = false;
+const String kEnableDesktopNotificationsKey = 'enable_desktop_notifications';
+const bool kEnableDesktopNotificationsDefaultValue = false;
 
 // Display constants
 const String kThemeModeKey = 'theme_mode_key';

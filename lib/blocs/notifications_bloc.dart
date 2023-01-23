@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:hive/hive.dart';
 import 'package:local_notifier/local_notifier.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
+import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/model/model.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
 
@@ -17,7 +18,7 @@ class NotificationsBloc extends BaseBloc<WalletNotification?> {
         }
       }
       await notificationsBox.add(notification);
-      if (notification != null) {
+      if (notification != null && _areDesktopNotificationsEnabled()) {
         LocalNotification localNotification = LocalNotification(
           title: notification.title ?? 'Empty title',
           body: notification.details ?? 'No details available',
@@ -52,4 +53,9 @@ class NotificationsBloc extends BaseBloc<WalletNotification?> {
       ),
     );
   }
+
+  bool _areDesktopNotificationsEnabled() => sharedPrefsService!.get(
+        kEnableDesktopNotificationsKey,
+        defaultValue: kEnableDesktopNotificationsDefaultValue,
+      );
 }
