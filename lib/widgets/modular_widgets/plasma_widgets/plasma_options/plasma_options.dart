@@ -44,9 +44,9 @@ class _PlasmaOptionsState extends State<PlasmaOptions> {
   final GlobalKey<FormState> _qsrAmountKey = GlobalKey();
   final GlobalKey<FormState> _beneficiaryAddressKey = GlobalKey();
   final GlobalKey<LoadingButtonState> _fuseButtonKey = GlobalKey();
-  
+
   PlasmaBeneficiaryAddressNotifier? _plasmaBeneficiaryAddress;
-  
+
   int? _maxQsrAmount;
   double? _maxWidth;
 
@@ -59,12 +59,12 @@ class _PlasmaOptionsState extends State<PlasmaOptions> {
 
   @override
   void initState() {
-    super.initState();
-
     // The setState() causes a redraw which resets the beneficiaryAddress.
-    _plasmaBeneficiaryAddress = Provider.of<PlasmaBeneficiaryAddressNotifier>(context);
-    _plasmaBeneficiaryAddress!.addListener(() => 
-      _beneficiaryAddressController.text = _plasmaBeneficiaryAddress!.getBeneficiaryAddress()!);
+    _plasmaBeneficiaryAddress =
+        Provider.of<PlasmaBeneficiaryAddressNotifier>(context, listen: false);
+    _plasmaBeneficiaryAddress!.addListener(_beneficiaryAddressListener);
+
+    super.initState();
 
     sl.get<BalanceBloc>().getBalanceForAllAddresses();
   }
@@ -129,6 +129,11 @@ class _PlasmaOptionsState extends State<PlasmaOptions> {
     );
   }
 
+  void _beneficiaryAddressListener() {
+    _beneficiaryAddressController.text =
+        _plasmaBeneficiaryAddress!.getBeneficiaryAddress()!;
+  }
+
   Widget _getWidgetBody(AccountInfo? accountInfo) {
     return Container(
       margin: EdgeInsets.all(_marginWidth),
@@ -153,14 +158,12 @@ class _PlasmaOptionsState extends State<PlasmaOptions> {
                       _beneficiaryAddressString.value = value;
                     },
                     inputFormatters: [
-                      FilteringTextInputFormatter.allow(
-                          RegExp(r'[0-9a-z]')),
+                      FilteringTextInputFormatter.allow(RegExp(r'[0-9a-z]')),
                     ],
                     controller: _beneficiaryAddressController,
                     hintText: 'Beneficiary address',
                     contentLeftPadding: 20.0,
-                    validator: (value) =>
-                        InputValidators.checkAddress(value),
+                    validator: (value) => InputValidators.checkAddress(value),
                   ),
                 ),
               ],
@@ -370,7 +373,7 @@ class _PlasmaOptionsState extends State<PlasmaOptions> {
 
   @override
   void dispose() {
-    _plasmaBeneficiaryAddress!.removeListener(() {});
+    _plasmaBeneficiaryAddress!.removeListener(_beneficiaryAddressListener);
     _qsrAmountController.dispose();
     _addressController.dispose();
     _beneficiaryAddressController.dispose();
