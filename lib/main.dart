@@ -360,7 +360,6 @@ class _MyAppState extends State<MyApp> with WindowListener, TrayListener {
   void dispose() {
     windowManager.removeListener(this);
     trayManager.removeListener(this);
-    sl.unregister();
     super.dispose();
   }
 }
