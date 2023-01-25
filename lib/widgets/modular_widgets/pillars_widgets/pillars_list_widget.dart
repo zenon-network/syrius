@@ -402,33 +402,37 @@ class _PillarsListWidgetState extends State<PillarsListWidget> {
               width: 5.0,
             ),
           ),
-          pillarItem.isRevocable
-              ? CancelTimer(
-                  Duration(
-                    seconds: pillarItem.revokeCooldown,
+          Expanded(
+            child: pillarItem.isRevocable
+                ? CancelTimer(
+                    Duration(
+                      seconds: pillarItem.revokeCooldown,
+                    ),
+                    AppColors.znnColor,
+                    onTimeFinishedCallback: () {
+                      model.refreshResults();
+                    },
+                  )
+                : CancelTimer(
+                    Duration(
+                      seconds: pillarItem.revokeCooldown,
+                    ),
+                    AppColors.errorColor,
+                    onTimeFinishedCallback: () {
+                      model.refreshResults();
+                    },
                   ),
-                  AppColors.znnColor,
-                  onTimeFinishedCallback: () {
-                    model.refreshResults();
-                  },
-                )
-              : CancelTimer(
-                  Duration(
-                    seconds: pillarItem.revokeCooldown,
-                  ),
-                  AppColors.errorColor,
-                  onTimeFinishedCallback: () {
-                    model.refreshResults();
-                  },
-                ),
-          StandardTooltipIcon(
-            pillarItem.isRevocable
-                ? 'Revocation window is open'
-                : 'Until revocation window opens',
-            Icons.help,
-            iconColor: pillarItem.isRevocable
-                ? AppColors.znnColor
-                : AppColors.errorColor,
+          ),
+          Expanded(
+            child: StandardTooltipIcon(
+              pillarItem.isRevocable
+                  ? 'Revocation window is open'
+                  : 'Until revocation window opens',
+              Icons.help,
+              iconColor: pillarItem.isRevocable
+                  ? AppColors.znnColor
+                  : AppColors.errorColor,
+            ),
           ),
         ],
       ),

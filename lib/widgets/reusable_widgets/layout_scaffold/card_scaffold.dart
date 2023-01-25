@@ -162,9 +162,11 @@ class _CardScaffoldState<T> extends State<CardScaffold<T>> {
               const SizedBox(
                 width: 5.0,
               ),
-              Text(
-                'Discreet mode',
-                style: Theme.of(context).textTheme.bodyText1,
+              Expanded(
+                child: Text(
+                  'Discreet mode',
+                  style: Theme.of(context).textTheme.bodyText1,
+                ),
               ),
               const Spacer(),
               Switch(
@@ -219,22 +221,26 @@ class _CardScaffoldState<T> extends State<CardScaffold<T>> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: <Widget>[
-        Padding(
-          padding: const EdgeInsets.all(14.0),
-          child: Row(
-            children: [
-              Text(
-                title,
-                style: Theme.of(context).textTheme.bodyText1!.copyWith(
-                      fontSize: widget.titleFontSize,
-                      height: 1.0,
-                    ),
-              ),
-              const SizedBox(
-                width: 5.0,
-              ),
-              widget.titleIcon != null ? widget.titleIcon! : Container(),
-            ],
+        Expanded(
+          child: Padding(
+            padding: const EdgeInsets.all(14.0),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    title,
+                    style: Theme.of(context).textTheme.bodyText1!.copyWith(
+                          fontSize: widget.titleFontSize,
+                          height: 1.0,
+                        ),
+                  ),
+                ),
+                const SizedBox(
+                  width: 5.0,
+                ),
+                widget.titleIcon != null ? widget.titleIcon! : Container(),
+              ],
+            ),
           ),
         ),
         Row(
