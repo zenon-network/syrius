@@ -23,6 +23,7 @@ class WalletOptions extends StatefulWidget {
 
 class _WalletOptionsState extends State<WalletOptions> {
   bool? _launchAtStartup;
+  bool? _enableDesktopNotifications;
 
   @override
   void initState() {
@@ -30,6 +31,10 @@ class _WalletOptionsState extends State<WalletOptions> {
     _launchAtStartup = sharedPrefsService!.get(
       kLaunchAtStartupKey,
       defaultValue: kLaunchAtStartupDefaultValue,
+    );
+    _enableDesktopNotifications = sharedPrefsService!.get(
+      kEnableDesktopNotificationsKey,
+      defaultValue: kEnableDesktopNotificationsDefaultValue,
     );
   }
 
@@ -106,6 +111,7 @@ class _WalletOptionsState extends State<WalletOptions> {
     return Column(
       children: [
         _getLaunchAtStartupWidget(),
+        _getEnableDesktopNotifications(),
       ],
     );
   }
@@ -148,7 +154,7 @@ class _WalletOptionsState extends State<WalletOptions> {
         await launchAtStartup.disable();
       }
       await _saveLaunchAtStartupValueToCache(enabled);
-      _sendNotification(enabled);
+      _sendLaunchAtStartupStatusNotification(enabled);
     } on Exception catch (e) {
       NotificationUtils.sendNotificationError(
         e,
@@ -164,12 +170,58 @@ class _WalletOptionsState extends State<WalletOptions> {
     );
   }
 
-  void _sendNotification(bool enabled) {
+  void _sendLaunchAtStartupStatusNotification(bool enabled) {
     sl.get<NotificationsBloc>().addNotification(
           WalletNotification(
             title: 'Launch at startup was ${enabled ? 'enabled' : 'disabled'}',
             details:
                 'Launch at startup preference was ${enabled ? 'enabled' : 'disabled'}',
+            timestamp: DateTime.now().millisecondsSinceEpoch,
+            type: NotificationType.paymentSent,
+          ),
+        );
+  }
+
+  Widget _getEnableDesktopNotifications() {
+    return Row(
+      children: [
+        Text(
+          'Enable desktop notifications: ',
+          style: Theme.of(context).textTheme.subtitle1,
+        ),
+        SyriusCheckbox(
+          onChanged: (value) {
+            setState(() {
+              _enableDesktopNotifications = value;
+              _changeEnableDesktopNotificationsStatus(value ?? false);
+            });
+          },
+          value: _enableDesktopNotifications,
+          context: context,
+        ),
+      ],
+    );
+  }
+
+  Future<void> _changeEnableDesktopNotificationsStatus(bool enabled) async {
+    try {
+      await sharedPrefsService!.put(kEnableDesktopNotificationsKey, enabled);
+      _sendEnabledDesktopNotificationsStatusNotification(enabled);
+    } on Exception catch (e) {
+      NotificationUtils.sendNotificationError(
+        e,
+        'Something went wrong while changing the preferences of desktop notifications',
+      );
+    }
+  }
+
+  void _sendEnabledDesktopNotificationsStatusNotification(bool enabled) {
+    sl.get<NotificationsBloc>().addNotification(
+          WalletNotification(
+            title:
+                'Desktop notifications have been ${enabled ? 'enabled' : 'disabled'}',
+            details:
+                'You changed the desktop notifications preference to ${enabled ? 'enabled' : 'disabled'}',
             timestamp: DateTime.now().millisecondsSinceEpoch,
             type: NotificationType.paymentSent,
           ),
