@@ -125,7 +125,7 @@ class _ReceiveMediumCardState extends State<ReceiveMediumCard> {
                         key: _amountKey,
                         autovalidateMode: AutovalidateMode.onUserInteraction,
                         child: InputField(
-                          validator: InputValidators.validateNumber,
+                          validator: InputValidators.validateAmount,
                           onChanged: (value) => setState(() {}),
                           inputFormatters:
                               FormatUtils.getAmountTextInputFormatters(

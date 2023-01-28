@@ -560,7 +560,7 @@ class _MainSentinelsState extends State<SentinelsStepperContainer> {
               child: InputField(
                 enabled: false,
                 controller: _znnAmountController,
-                validator: InputValidators.validateNumber,
+                validator: InputValidators.validateAmount,
               ),
             ),
           ],

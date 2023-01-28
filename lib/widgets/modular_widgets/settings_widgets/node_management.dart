@@ -2,6 +2,7 @@ import 'dart:io';
 import 'dart:isolate';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:hive/hive.dart';
 import 'package:wakelock/wakelock.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
@@ -14,6 +15,7 @@ import 'package:zenon_syrius_wallet_flutter/utils/input_validators.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/node_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/notification_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
+import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 class NodeManagement extends StatefulWidget {
   final VoidCallback onNodeChangedCallback;
@@ -32,17 +34,32 @@ class _NodeManagementState extends State<NodeManagement> {
 
   final GlobalKey<LoadingButtonState> _confirmNodeButtonKey = GlobalKey();
   final GlobalKey<LoadingButtonState> _addNodeButtonKey = GlobalKey();
+  final GlobalKey<LoadingButtonState> _confirmChainIdButtonKey = GlobalKey();
 
   TextEditingController _newNodeController = TextEditingController();
   GlobalKey<FormState> _newNodeKey = GlobalKey();
 
+  TextEditingController _newChainIdController = TextEditingController();
+  GlobalKey<FormState> _newChainIdKey = GlobalKey();
+
   late String _selectedNodeConfirmed;
+  late int _currentChainId;
+
+  int get _newChainId => int.parse(_newChainIdController.text);
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
     _selectedNode ??= kCurrentNode!;
     _selectedNodeConfirmed = _selectedNode!;
+    _initCurrentChainId();
+  }
+
+  void _initCurrentChainId() {
+    _currentChainId = sharedPrefsService!.get(
+      kChainIdKey,
+      defaultValue: kChainIdDefaultValue,
+    );
   }
 
   @override
@@ -62,13 +79,17 @@ class _NodeManagementState extends State<NodeManagement> {
       shrinkWrap: true,
       children: [
         CustomExpandablePanel(
+          'Chain id selection',
+          _getChainIdSelectionExpandableChild(),
+        ),
+        CustomExpandablePanel(
           'Node selection',
           _getNodeSelectionExpandableChild(),
         ),
         CustomExpandablePanel(
           'Add node',
           _getAddNodeExpandableChild(),
-        )
+        ),
       ],
     );
   }
@@ -134,6 +155,7 @@ class _NodeManagementState extends State<NodeManagement> {
           _selectedNode,
         );
         kCurrentNode = _selectedNode!;
+        await _checkForChainIdDifferences();
         _sendChangingNodeSuccessNotification();
         widget.onNodeChangedCallback();
       } else {
@@ -266,6 +288,7 @@ class _NodeManagementState extends State<NodeManagement> {
   @override
   void dispose() {
     _newNodeController.dispose();
+    _newChainIdController.dispose();
     super.dispose();
   }
 
@@ -278,5 +301,100 @@ class _NodeManagementState extends State<NodeManagement> {
             type: NotificationType.changedNode,
           ),
         );
+  }
+
+  Widget _getChainIdSelectionExpandableChild() {
+    return Column(
+      children: [
+        Text(
+          'Current chain id: $_currentChainId',
+          style: Theme.of(context).textTheme.subtitle1,
+        ),
+        kVerticalSpacing,
+        Form(
+          key: _newChainIdKey,
+          autovalidateMode: AutovalidateMode.onUserInteraction,
+          child: InputField(
+            inputFormatters: [
+              FilteringTextInputFormatter.digitsOnly,
+            ],
+            controller: _newChainIdController,
+            hintText: 'Node address with port',
+            onSubmitted: (value) {
+              if (_ifUserInputValid()) {
+                _onAddNodePressed();
+              }
+            },
+            onChanged: (String value) {
+              if (value.isNotEmpty) {
+                setState(() {});
+              }
+            },
+            validator: InputValidators.validateNumber,
+          ),
+        ),
+        kVerticalSpacing,
+        LoadingButton.settings(
+          onPressed: _isChainIdSelectionInputIsValid()
+              ? _onConfirmChainIdPressed
+              : null,
+          text: 'Confirm chain id',
+          key: _confirmChainIdButtonKey,
+        ),
+      ],
+    );
+  }
+
+  bool _isChainIdSelectionInputIsValid() =>
+      InputValidators.validateNumber(_newChainIdController.text) == null &&
+      _newChainId != _currentChainId;
+
+  Future<void> _onConfirmChainIdPressed() async {
+    try {
+      _confirmChainIdButtonKey.currentState?.animateForward();
+      setChainIdentifier(chainIdentifier: _newChainId);
+      await sharedPrefsService!.put(kChainIdKey, _newChainId);
+      _sendSuccessfullyChangedChainIdNotification(_newChainId);
+      _initCurrentChainId();
+      _newChainIdController = TextEditingController();
+      _newChainIdKey = GlobalKey();
+    } catch (e) {
+      NotificationUtils.sendNotificationError(
+        e,
+        'Error while saving new chain id',
+      );
+    } finally {
+      _confirmChainIdButtonKey.currentState?.animateReverse();
+    }
+  }
+
+  void _sendSuccessfullyChangedChainIdNotification(int newChainId) {
+    sl.get<NotificationsBloc>().addNotification(
+          WalletNotification(
+            title: 'Successfully changed chain id to: $newChainId',
+            timestamp: DateTime.now().millisecondsSinceEpoch,
+            details:
+                'Successfully changed chain id from $_currentChainId to $_newChainId',
+            type: NotificationType.changedNode,
+          ),
+        );
+  }
+
+  Future<void> _checkForChainIdDifferences() async {
+    await zenon!.ledger.getFrontierMomentum().then((momentum) {
+      int nodeChainId = momentum.chainIdentifier;
+      if (nodeChainId != _currentChainId) {
+        _showDifferentChainIdDialog(nodeChainId, _currentChainId);
+      }
+    });
+  }
+
+  void _showDifferentChainIdDialog(int nodeChainId, int currentChainId) {
+    showOkDialog(
+      context: context,
+      title: 'Different chain id',
+      description: 'The new node: $_selectedNode has a different '
+          'chain id ($nodeChainId) than the current one ($currentChainId)',
+    );
   }
 }

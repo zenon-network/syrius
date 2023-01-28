@@ -120,7 +120,7 @@ class _ReceiveLargeCardState extends State<ReceiveLargeCard> {
                               autovalidateMode:
                                   AutovalidateMode.onUserInteraction,
                               child: InputField(
-                                validator: InputValidators.validateNumber,
+                                validator: InputValidators.validateAmount,
                                 onChanged: (value) => setState(() {}),
                                 inputFormatters:
                                     FormatUtils.getAmountTextInputFormatters(

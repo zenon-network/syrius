@@ -5,7 +5,7 @@ showOkDialog({
   required BuildContext context,
   required String title,
   required String description,
-  required VoidCallback onActionButtonPressed,
+  VoidCallback? onActionButtonPressed,
 }) =>
     showDialog(
       context: context,
@@ -14,7 +14,9 @@ showOkDialog({
         content: Text(description),
         actions: [
           TextButton(
-            onPressed: onActionButtonPressed,
+            onPressed: onActionButtonPressed ?? () {
+              Navigator.pop(context);
+            },
             child: Text(
               'OK',
               style: Theme.of(context).textTheme.bodyText1,
