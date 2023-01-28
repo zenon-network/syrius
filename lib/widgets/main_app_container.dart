@@ -1,9 +1,11 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_vector_icons/flutter_vector_icons.dart';
 import 'package:provider/provider.dart';
+import 'package:uni_links/uni_links.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/model/model.dart';
@@ -70,6 +72,11 @@ class _MainAppContainerState extends State<MainAppContainer>
     canRequestFocus: false,
   );
 
+  final _scaffoldKey = GlobalKey();
+
+  bool _initialUriIsHandled = false;
+
+
   @override
   void initState() {
     _netSyncStatusBloc.getDataPeriodically();
@@ -87,6 +94,8 @@ class _MainAppContainerState extends State<MainAppContainer>
     _animation = Tween(begin: 1.0, end: 3.0).animate(_animationController);
     kCurrentPage = kWalletInitCompleted ? Tabs.dashboard : Tabs.lock;
     _initLockBlock();
+    _handleIncomingLinks();
+    _handleInitialUri();
     super.initState();
   }
 
@@ -630,5 +639,60 @@ class _MainAppContainerState extends State<MainAppContainer>
     if (widget.redirectedFromWalletSuccess) {
       _lockBloc.addEvent(LockEvent.countDown);
     }
+  }
+
+
+  /// Handle incoming links - the ones that the app will receive from the OS
+  /// while already started.
+  void _handleIncomingLinks() {
+    if (!kIsWeb) {
+      // It will handle app links while the app is already started - be it in
+      // the foreground or in the background.
+      uriLinkStream.listen((Uri? uri) {
+        if (!mounted) return;
+      }, onError: (Object err) {
+        if (!mounted) return;
+      });
+    }
+  }
+
+  //TODO: review if this is needed
+  /// Handle the initial Uri - the one the app was started with
+  ///
+  /// **ATTENTION**: `getInitialLink`/`getInitialUri` should be handled
+  /// ONLY ONCE in your app's lifetime, since it is not meant to change
+  /// throughout your app's life.
+  ///
+  /// We handle all exceptions, since it is called from initState.
+  Future<void> _handleInitialUri() async {
+    // In this example app this is an almost useless guard, but it is here to
+    // show we are not going to call getInitialUri multiple times, even if this
+    // was a weidget that will be disposed of (ex. a navigation route change).
+    if (!_initialUriIsHandled) {
+      _initialUriIsHandled = true;
+      _showSnackBar('_handleInitialUri called');
+      try {
+        final uri = await getInitialUri();
+        if (uri == null) {
+        } else {
+        }
+        if (!mounted) return;
+      } on PlatformException {
+        // Platform messages may fail but we ignore the exception
+      } on FormatException {
+        if (!mounted) return;
+      }
+    }
+  }
+
+  void _showSnackBar(String msg) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final context = _scaffoldKey.currentContext;
+      if (context != null) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text(msg),
+        ));
+      }
+    });
   }
 }

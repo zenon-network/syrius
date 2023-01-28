@@ -11,6 +11,7 @@ import 'package:local_notifier/local_notifier.dart';
 import 'package:overlay_support/overlay_support.dart';
 import 'package:provider/provider.dart';
 import 'package:tray_manager/tray_manager.dart';
+import 'package:uni_links_desktop/uni_links_desktop.dart';
 import 'package:window_manager/window_manager.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/model/model.dart';
@@ -102,6 +103,10 @@ main() async {
       }
     }
   });
+
+  if (Platform.isWindows) {
+    registerProtocol('syrius');
+  }
 
   runApp(
     const MyApp(),

@@ -70,6 +70,8 @@ dependencies:
   tray_manager: ^0.2.0
   open_filex: ^4.3.2
   launch_at_startup: ^0.2.1
+  uni_links_desktop: ^0.1.4
+  uni_links: ^0.5.1
 
 dev_dependencies:
   flutter_test:
