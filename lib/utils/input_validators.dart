@@ -34,7 +34,7 @@ class InputValidators {
     return (value ?? '').isEmpty ? '$fieldName must not be empty' : null;
   }
 
-  static String? validateNumber(String? value) {
+  static String? validateAmount(String? value) {
     if (value != null) {
       try {
         if (value.isEmpty) {

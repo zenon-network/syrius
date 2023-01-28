@@ -705,7 +705,7 @@ class _MainPillarsState extends State<PillarsStepperContainer> {
               child: InputField(
                 enabled: false,
                 controller: _znnAmountController,
-                validator: InputValidators.validateNumber,
+                validator: InputValidators.validateAmount,
               ),
             ),
           ],
