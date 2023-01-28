@@ -100,7 +100,6 @@ class _SwapCardState extends State<SwapCard> {
           controller: _scrollController,
           children: [
             _getInputFields(accountInfo),
-            _getCheckBox(),
           ],
         ),
       ),

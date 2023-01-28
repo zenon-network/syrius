@@ -20,10 +20,18 @@ class AboutCard extends StatefulWidget {
 class AboutCardState extends State<AboutCard> {
   GeneralStatsBloc? _generalStatsBloc;
 
+  String syriusGitCommitHash = '';
+  String syriusGitBranchName = '';
+
   @override
   void initState() {
-    super.initState();
     _generalStatsBloc = GeneralStatsBloc();
+    DeviceUtils.getGitInfo().then((gitInfo) {
+      syriusGitBranchName = gitInfo.entries.elementAt(0).value;
+      syriusGitCommitHash = gitInfo.entries.elementAt(1).value;
+      setState(() {});
+    });
+    super.initState();
   }
 
   @override
@@ -63,6 +71,14 @@ class AboutCardState extends State<AboutCard> {
         CustomExpandablePanel(
           'Zenon Node git commit hash',
           _getGenericTextExpandedChild(generalStats.processInfo.commit),
+        ),
+        CustomExpandablePanel(
+          'Syrius git commit hash',
+          _getGenericTextExpandedChild(syriusGitCommitHash),
+        ),
+        CustomExpandablePanel(
+          'Syrius git branch name',
+          _getGenericTextExpandedChild(syriusGitBranchName),
         ),
         CustomExpandablePanel(
           'Zenon Node kernel version',

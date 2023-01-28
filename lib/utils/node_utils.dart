@@ -10,6 +10,7 @@ import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/model/model.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/logger.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/notification_utils.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
@@ -22,6 +23,18 @@ class NodeUtils {
       retry: false,
     );
     return connectionStatus;
+  }
+
+  static Future<int> getNodeChainIdentifier() async {
+    int nodeChainId = -1;
+    try {
+      await zenon!.ledger.getFrontierMomentum().then((value) {
+        nodeChainId = value.chainIdentifier;
+      });
+    } catch (e) {
+      Logger.logError(e);
+    }
+    return nodeChainId;
   }
 
   static closeEmbeddedNode() async {
