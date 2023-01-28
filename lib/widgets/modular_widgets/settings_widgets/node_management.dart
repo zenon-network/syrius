@@ -155,6 +155,7 @@ class _NodeManagementState extends State<NodeManagement> {
           _selectedNode,
         );
         kCurrentNode = _selectedNode!;
+        await _checkForChainIdDifferences();
         _sendChangingNodeSuccessNotification();
         widget.onNodeChangedCallback();
       } else {
@@ -369,12 +370,31 @@ class _NodeManagementState extends State<NodeManagement> {
 
   void _sendSuccessfullyChangedChainIdNotification(int newChainId) {
     sl.get<NotificationsBloc>().addNotification(
-      WalletNotification(
-        title: 'Successfully changed chain id to: $newChainId',
-        timestamp: DateTime.now().millisecondsSinceEpoch,
-        details: 'Successfully changed chain id from $_currentChainId to $_newChainId',
-        type: NotificationType.changedNode,
-      ),
+          WalletNotification(
+            title: 'Successfully changed chain id to: $newChainId',
+            timestamp: DateTime.now().millisecondsSinceEpoch,
+            details:
+                'Successfully changed chain id from $_currentChainId to $_newChainId',
+            type: NotificationType.changedNode,
+          ),
+        );
+  }
+
+  Future<void> _checkForChainIdDifferences() async {
+    await zenon!.ledger.getFrontierMomentum().then((momentum) {
+      int nodeChainId = momentum.chainIdentifier;
+      if (nodeChainId != _currentChainId) {
+        _showDifferentChainIdDialog(nodeChainId, _currentChainId);
+      }
+    });
+  }
+
+  void _showDifferentChainIdDialog(int nodeChainId, int currentChainId) {
+    showOkDialog(
+      context: context,
+      title: 'Different chain id',
+      description: 'The new node: $_selectedNode has a different '
+          'chain id ($nodeChainId) than the current one ($currentChainId)',
     );
   }
 }
