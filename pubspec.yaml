@@ -87,6 +87,3 @@ flutter:
     - assets/i18n/
     - assets/lottie/
     - assets/svg/
-    - .git/HEAD         # This file points out the current branch of the project
-    - .git/ORIG_HEAD    # This file points to the commit id at origin (last commit id of the remote repository)
-    - .git/refs/heads/  # This directory includes files for each branch which points to the last commit id (local repo)

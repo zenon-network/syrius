@@ -23,6 +23,19 @@ showWarningDialog({
         TextButton(
           onPressed: onActionButtonPressed ??
               () {
+                Navigator.pop(context);
+              },
+          style: const ButtonStyle(
+            backgroundColor: MaterialStatePropertyAll(Colors.amber),
+          ),
+          child: Text(
+            'Cancel',
+            style: Theme.of(context).textTheme.bodyText1,
+          ),
+        ),
+        TextButton(
+          onPressed: onActionButtonPressed ??
+              () {
                 isPressed = true;
                 Navigator.pop(context);
               },
@@ -33,7 +46,7 @@ showWarningDialog({
             buttonText.isEmpty ? 'OK' : buttonText,
             style: Theme.of(context).textTheme.bodyText1,
           ),
-        ),
+        )
       ],
     ),
     barrierDismissible: false,

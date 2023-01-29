@@ -26,7 +26,7 @@ class NodeUtils {
   }
 
   static Future<int> getNodeChainIdentifier() async {
-    int nodeChainId = -1;
+    int nodeChainId = 1;
     try {
       await zenon!.ledger.getFrontierMomentum().then((value) {
         nodeChainId = value.chainIdentifier;

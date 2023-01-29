@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:open_filex/open_filex.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/model/model.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/metadata.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
@@ -20,17 +21,9 @@ class AboutCard extends StatefulWidget {
 class AboutCardState extends State<AboutCard> {
   GeneralStatsBloc? _generalStatsBloc;
 
-  String syriusGitCommitHash = '';
-  String syriusGitBranchName = '';
-
   @override
   void initState() {
     _generalStatsBloc = GeneralStatsBloc();
-    DeviceUtils.getGitInfo().then((gitInfo) {
-      syriusGitBranchName = gitInfo.entries.elementAt(0).value;
-      syriusGitCommitHash = gitInfo.entries.elementAt(1).value;
-      setState(() {});
-    });
     super.initState();
   }
 
@@ -61,7 +54,7 @@ class AboutCardState extends State<AboutCard> {
           _getGenericTextExpandedChild(getChainIdentifier().toString()),
         ),
         CustomExpandablePanel(
-          'ZNN SDK version',
+          'Zenon SDK version',
           _getGenericTextExpandedChild(znnSdkVersion),
         ),
         CustomExpandablePanel(
@@ -73,12 +66,24 @@ class AboutCardState extends State<AboutCard> {
           _getGenericTextExpandedChild(generalStats.processInfo.commit),
         ),
         CustomExpandablePanel(
-          'Syrius git commit hash',
-          _getGenericTextExpandedChild(syriusGitCommitHash),
+          'Syrius git origin url',
+          _getGenericLinkButtonExpandedChild(gitOriginUrl),
         ),
         CustomExpandablePanel(
           'Syrius git branch name',
-          _getGenericTextExpandedChild(syriusGitBranchName),
+          _getGenericTextExpandedChild(gitBranchName),
+        ),
+        CustomExpandablePanel(
+          'Syrius git commit hash',
+          _getGenericTextExpandedChild(gitCommitHash),
+        ),
+        CustomExpandablePanel(
+          'Syrius git commit message',
+          _getGenericTextExpandedChild(gitCommitMessage),
+        ),
+        CustomExpandablePanel(
+          'Syrius git commit date',
+          _getGenericTextExpandedChild(gitCommitDate),
         ),
         CustomExpandablePanel(
           'Zenon Node kernel version',
@@ -102,15 +107,18 @@ class AboutCardState extends State<AboutCard> {
         ),
         CustomExpandablePanel(
           'Zenon main data path',
-          _getGenericButtonExpandedChild(znnDefaultPaths.main.absolute.path),
+          _getGenericOpenButtonExpandedChild(
+              znnDefaultPaths.main.absolute.path),
         ),
         CustomExpandablePanel(
-          'syrius cache path',
-          _getGenericButtonExpandedChild(znnDefaultPaths.cache.absolute.path),
+          'Syrius cache path',
+          _getGenericOpenButtonExpandedChild(
+              znnDefaultPaths.cache.absolute.path),
         ),
         CustomExpandablePanel(
-          'syrius wallet path',
-          _getGenericButtonExpandedChild(znnDefaultPaths.wallet.absolute.path),
+          'Syrius wallet path',
+          _getGenericOpenButtonExpandedChild(
+              znnDefaultPaths.wallet.absolute.path),
         ),
         CustomExpandablePanel(
           'Client hostname',
@@ -144,7 +152,26 @@ class AboutCardState extends State<AboutCard> {
     ]);
   }
 
-  Widget _getGenericButtonExpandedChild(String expandedText) {
+  Widget _getGenericLinkButtonExpandedChild(String url) {
+    return Row(children: [
+      CustomTableCell.withMarquee(
+        url.toString(),
+      ),
+      IconButton(
+        splashRadius: 16,
+        onPressed: () async {
+          NavigationUtils.openUrl(url, context);
+        },
+        icon: const Icon(
+          Icons.link,
+          size: 16,
+          color: AppColors.znnColor,
+        ),
+      ),
+    ]);
+  }
+
+  Widget _getGenericOpenButtonExpandedChild(String expandedText) {
     return Row(children: [
       CustomTableCell.withMarquee(
         expandedText.toString(),

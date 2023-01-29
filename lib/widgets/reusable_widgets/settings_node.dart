@@ -34,14 +34,14 @@ class _SettingsNodeState extends State<SettingsNode> {
 
   final GlobalKey<MyOutlinedButtonState> _changeButtonKey = GlobalKey();
 
-  int currentConnectedChainIdentifier = -1;
+  int connectedNodeChainIdentifier = 1;
 
   @override
   void initState() {
     _nodeController.text = widget.node;
 
     NodeUtils.getNodeChainIdentifier().then((chainIdentifier) {
-      currentConnectedChainIdentifier = chainIdentifier;
+      connectedNodeChainIdentifier = chainIdentifier;
       setState(() {});
     });
 
@@ -92,15 +92,15 @@ class _SettingsNodeState extends State<SettingsNode> {
         Visibility(
             visible: widget.currentNode.contains(widget.node),
             child: StandardTooltipIcon(
-                (currentConnectedChainIdentifier == getChainIdentifier())
+                (connectedNodeChainIdentifier == getChainIdentifier())
                     ? 'Client chain identifier: ${getChainIdentifier().toString()}\n'
-                        'Node chain identifier: $currentConnectedChainIdentifier'
+                        'Node chain identifier: $connectedNodeChainIdentifier'
                     : 'Chain identifier mismatch\n'
                         'Client chain identifier: ${getChainIdentifier().toString()}\n'
-                        'Node chain identifier: $currentConnectedChainIdentifier',
+                        'Node chain identifier: $connectedNodeChainIdentifier',
                 MaterialCommunityIcons.identifier,
                 iconColor:
-                    (getChainIdentifier() == currentConnectedChainIdentifier)
+                    (getChainIdentifier() == connectedNodeChainIdentifier)
                         ? AppColors.znnColor
                         : AppColors.errorColor)),
         const SizedBox(
