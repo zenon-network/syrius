@@ -322,7 +322,7 @@ class _MyAppState extends State<MyApp> with WindowListener, TrayListener {
     await NodeUtils.closeEmbeddedNode();
     super.onWindowClose();
     deactivate();
-    dispose();
+    await dispose();
     exit(0);
   }
 
@@ -357,9 +357,10 @@ class _MyAppState extends State<MyApp> with WindowListener, TrayListener {
   }
 
   @override
-  void dispose() {
+  Future<void> dispose() async {
     windowManager.removeListener(this);
     trayManager.removeListener(this);
+    await sl.reset();
     super.dispose();
   }
 }
