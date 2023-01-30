@@ -320,6 +320,7 @@ class _MyAppState extends State<MyApp> with WindowListener, TrayListener {
     sl<Zenon>().wsClient.stop();
     Future.delayed(const Duration(seconds: 60)).then((value) => exit(0));
     await NodeUtils.closeEmbeddedNode();
+    await sl.reset();
     super.onWindowClose();
     deactivate();
     dispose();
@@ -360,7 +361,6 @@ class _MyAppState extends State<MyApp> with WindowListener, TrayListener {
   void dispose() {
     windowManager.removeListener(this);
     trayManager.removeListener(this);
-    sl.unregister();
     super.dispose();
   }
 }
