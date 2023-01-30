@@ -1,28 +1,58 @@
 import 'package:flutter/material.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
 
-showOkDialog({
+showWarningDialog({
   required BuildContext context,
   required String title,
   required String description,
-  required VoidCallback onActionButtonPressed,
-}) =>
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(title),
-        content: Text(description),
-        actions: [
-          TextButton(
-            onPressed: onActionButtonPressed,
-            child: Text(
-              'OK',
-              style: Theme.of(context).textTheme.bodyLarge,
-            ),
-          ),
-        ],
+  required String buttonText,
+  VoidCallback? onActionButtonPressed,
+}) async {
+  bool isPressed = false;
+  await showDialog(
+    context: context,
+    builder: (context) => AlertDialog(
+      icon: const Icon(
+        Icons.warning,
+        size: 24.0,
+        color: Colors.orange,
       ),
-    );
+      title: Text(title),
+      content: Text(description),
+      actions: [
+        TextButton(
+          onPressed: onActionButtonPressed ??
+              () {
+                Navigator.pop(context);
+              },
+          style: const ButtonStyle(
+            backgroundColor: MaterialStatePropertyAll(Colors.amber),
+          ),
+          child: Text(
+            'Cancel',
+            style: Theme.of(context).textTheme.bodyText1,
+          ),
+        ),
+        TextButton(
+          onPressed: onActionButtonPressed ??
+              () {
+                isPressed = true;
+                Navigator.pop(context);
+              },
+          style: const ButtonStyle(
+            backgroundColor: MaterialStatePropertyAll(Colors.orange),
+          ),
+          child: Text(
+            buttonText.isEmpty ? 'OK' : buttonText,
+            style: Theme.of(context).textTheme.bodyText1,
+          ),
+        )
+      ],
+    ),
+    barrierDismissible: false,
+  );
+  return isPressed;
+}
 
 showDialogWithNoAndYesOptions({
   required BuildContext context,

@@ -22,18 +22,19 @@ class NodeUtils {
       url,
       retry: false,
     );
-
-    if (connectionStatus) {
-      try {
-        await zenon!.ledger.getFrontierMomentum().then((value) {
-          setChainIdentifier(chainIdentifier: value.chainIdentifier.toInt());
-        });
-      } catch (e) {
-        Logger.logError(e);
-      }
-    }
-
     return connectionStatus;
+  }
+
+  static Future<int> getNodeChainIdentifier() async {
+    int nodeChainId = 1;
+    try {
+      await zenon!.ledger.getFrontierMomentum().then((value) {
+        nodeChainId = value.chainIdentifier;
+      });
+    } catch (e) {
+      Logger.logError(e);
+    }
+    return nodeChainId;
   }
 
   static closeEmbeddedNode() async {

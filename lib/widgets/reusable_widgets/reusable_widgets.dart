@@ -32,3 +32,4 @@ export 'settings_node.dart';
 export 'stepper_utils.dart';
 export 'tag_widget.dart';
 export 'transfer_icon_legend.dart';
+export 'syrius_checkbox.dart';

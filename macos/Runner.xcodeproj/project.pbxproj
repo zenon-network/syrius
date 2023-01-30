@@ -11,6 +11,7 @@
 			isa = PBXAggregateTarget;
 			buildConfigurationList = 33CC111B2044C6BA0003C045 /* Build configuration list for PBXAggregateTarget "Flutter Assemble" */;
 			buildPhases = (
+				96A0E3322987BEC500EDD131 /* ShellScript */,
 				33CC111E2044C6BF0003C045 /* ShellScript */,
 			);
 			dependencies = (
@@ -324,7 +325,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "\"$FLUTTER_ROOT\"/packages/flutter_tools/bin/macos_assemble.sh && touch Flutter/ephemeral/tripwire";
+			shellScript = "\"$FLUTTER_ROOT\"/packages/flutter_tools/bin/macos_assemble.sh && touch Flutter/ephemeral/tripwire\n";
 		};
 		50C0A8AFDC34B7D28837F481 /* [CP] Embed Pods Frameworks */ = {
 			isa = PBXShellScriptBuildPhase;
@@ -343,7 +344,7 @@
 			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-Runner/Pods-Runner-frameworks.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
-		96DA24F0296EB70E00545E88 /* ShellScript */ = {
+		96A0E3322987BEC500EDD131 /* ShellScript */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -358,7 +359,24 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "OUTPUT_DIRECTORY=\"./\"\n\nPACKAGE_CONFIG=\"../.dart_tool/package_config.json\"\nZNN_SDK_DART_PATH=`cat $PACKAGE_CONFIG | grep git/znn_sdk_dart | sed 's/\"rootUri\": \"file:\\/\\///' | sed 's/\\/\",//' | xargs`  \n\nSYRIUS_LIBRARIES=(\n  \"$ZNN_SDK_DART_PATH/lib/src/argon2/blobs/libargon2_ffi.dylib\"\n  \"$ZNN_SDK_DART_PATH/lib/src/pow/blobs/libpow_links.dylib\"\n)\n\necho \"$OUTPUT_DIRECTORY\"\n\nfor znn_library in ${SYRIUS_LIBRARIES[@]}; do\n  echo \"Copy ZNN library: $znn_library\"\n  cp $znn_library \"$OUTPUT_DIRECTORY\"\ndone\n\n";
+			shellScript = "GIT_BRANCH_NAME=$(git rev-parse --abbrev-ref HEAD)\nGIT_COMMIT_HASH=$(git rev-parse HEAD)\nGIT_COMMIT_MESSAGE=$(git log -1 --pretty=%s)\nGIT_COMMIT_DATE=$(git --no-pager log -1 --format=\"%ai\")\nGIT_ORIGIN_URL=$(git config --get remote.origin.url)\nGIT_COMMIT_FILE=\"../lib/utils/metadata.dart\"\n\nsed -i '' '1,5d' $GIT_COMMIT_FILE\necho \"const String gitBranchName = '$GIT_BRANCH_NAME';\" >> $GIT_COMMIT_FILE\necho \"const String gitCommitHash = '$GIT_COMMIT_HASH';\" >> $GIT_COMMIT_FILE\necho \"const String gitCommitMessage = '$GIT_COMMIT_MESSAGE';\" >> $GIT_COMMIT_FILE\necho \"const String gitCommitDate = '$GIT_COMMIT_DATE';\" >> $GIT_COMMIT_FILE\necho \"const String gitOriginUrl = '$GIT_ORIGIN_URL';\" >> $GIT_COMMIT_FILE\n\n\n";
+		};
+		96DA24F0296EB70E00545E88 /* ShellScript */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 12;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "OUTPUT_DIRECTORY=\"./\"\n\nPACKAGE_CONFIG=\"../.dart_tool/package_config.json\"\nZNN_SDK_DART_PATH=`cat $PACKAGE_CONFIG | grep git/znn_sdk_dart | sed 's/\"rootUri\": \"file:\\/\\///' | sed 's/\\/\",//' | xargs`  \n\nSYRIUS_LIBRARIES=(\n  \"$ZNN_SDK_DART_PATH/lib/src/argon2/blobs/libargon2_ffi.dylib\"\n  \"$ZNN_SDK_DART_PATH/lib/src/pow/blobs/libpow_links.dylib\"\n)\n\necho \"$OUTPUT_DIRECTORY\"\n\nfor znn_library in ${SYRIUS_LIBRARIES[@]}; do\n  echo \"Copy ZNN library: $znn_library\"\n  cp $znn_library \"$OUTPUT_DIRECTORY\"\ndone\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 
