@@ -118,3 +118,7 @@ foreach(znn_library ${SYRIUS_LIBRARIES})
     COMPONENT Runtime)
   message(STATUS "Copy ZNN library: \"${znn_library}\"")
 endforeach(znn_library)
+
+find_program(POWERSHELL_PATH NAMES powershell)
+add_custom_target("git_metadata" ALL
+  COMMAND ${POWERSHELL_PATH} "${CMAKE_HOME_DIRECTORY}/CreateGitMetadata.ps1")
