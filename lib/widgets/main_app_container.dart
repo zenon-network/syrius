@@ -204,12 +204,14 @@ class _MainAppContainerState extends State<MainAppContainer>
                       child: IgnorePointer(
                         ignoring: _isWalletLocked(),
                         child: TabBar(
-                          labelStyle:
-                              Theme.of(context).textTheme.headline6!.copyWith(
-                                    fontSize: 15.0,
-                                  ),
+                          labelStyle: Theme.of(context)
+                              .textTheme
+                              .headlineSmall!
+                              .copyWith(
+                                fontSize: 15.0,
+                              ),
                           labelColor:
-                              Theme.of(context).textTheme.headline6!.color,
+                              Theme.of(context).textTheme.headlineSmall!.color,
                           onTap: (int index) {
                             if (_isTabSelected(Tabs.lock)) {
                               _onNavigateToLock();

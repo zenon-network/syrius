@@ -116,7 +116,7 @@ class _DisplayWidget extends State<DisplayWidget> {
         Expanded(
           child: Text(
             text,
-            style: Theme.of(context).textTheme.bodyText1!.copyWith(
+            style: Theme.of(context).textTheme.bodyLarge!.copyWith(
                   fontSize: 10.0,
                 ),
           ),

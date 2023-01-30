@@ -51,7 +51,7 @@ class _StakingState extends State<Staking> {
           child: Icon(
             SimpleLineIcons.energy,
             size: 12.0,
-            color: Theme.of(context).textTheme.bodyText1!.color,
+            color: Theme.of(context).textTheme.bodyLarge!.color,
           ),
         ),
         Container(width: 16.0),
@@ -62,11 +62,11 @@ class _StakingState extends State<Staking> {
             NumberAnimation(
               end: stake.numActiveStakingEntries,
               isInt: true,
-              style: Theme.of(context).textTheme.headline2,
+              style: Theme.of(context).textTheme.headlineMedium,
             ),
             Text(
               '${stake.totalZnnStakingAmount.toString()} ${kZnnCoin.symbol}',
-              style: Theme.of(context).textTheme.subtitle1,
+              style: Theme.of(context).textTheme.titleMedium,
             ),
           ],
         ),

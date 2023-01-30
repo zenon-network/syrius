@@ -50,7 +50,7 @@ class TransferToggleCardSizeButton extends StatelessWidget {
         iconData,
         color: onPressed == null
             ? Colors.grey
-            : Theme.of(context).textTheme.headline5!.color,
+            : Theme.of(context).textTheme.headlineSmall!.color,
       ),
     );
   }

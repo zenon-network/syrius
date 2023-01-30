@@ -33,7 +33,7 @@ class _BalanceWidgetState extends State<BalanceWidget> {
   void didChangeDependencies() {
     super.didChangeDependencies();
     _colorAddressPrefixSuffix ??= Theme.of(context).hintColor;
-    _backgroundAddressColor ??= Theme.of(context).backgroundColor;
+    _backgroundAddressColor ??= Theme.of(context).colorScheme.background;
   }
 
   @override
@@ -201,7 +201,7 @@ class _BalanceWidgetState extends State<BalanceWidget> {
           tokenStandard,
         )} ${_touchedTokenStandard == kZnnCoin.tokenStandard.toString() ? kZnnCoin.symbol : kQsrCoin.symbol}',
         textAlign: TextAlign.center,
-        style: Theme.of(context).textTheme.headline4!.copyWith(
+        style: Theme.of(context).textTheme.headlineMedium!.copyWith(
               color: ColorUtils.getTokenColor(tokenStandard),
               fontWeight: FontWeight.bold,
             ),

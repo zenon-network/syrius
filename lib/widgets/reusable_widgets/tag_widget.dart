@@ -50,7 +50,7 @@ class TagWidget extends StatelessWidget {
                   ),
                 Text(
                   text,
-                  style: kText2TextStyle.copyWith(
+                  style: kBodySmallTextStyle.copyWith(
                     color: Colors.white,
                   ),
                 ),

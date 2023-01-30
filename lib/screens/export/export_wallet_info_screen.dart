@@ -46,7 +46,7 @@ class _ExportWalletInfoScreenState extends State<ExportWalletInfoScreen> {
             ),
             Text(
               'Export Seed Vault',
-              style: Theme.of(context).textTheme.headline1,
+              style: Theme.of(context).textTheme.headlineLarge,
             ),
             _getSeedFieldsGrid(),
             _getSecureSeedInfo(),
@@ -80,7 +80,7 @@ class _ExportWalletInfoScreenState extends State<ExportWalletInfoScreen> {
       ),
       child: Text(
         text,
-        style: Theme.of(context).textTheme.bodyText1!.copyWith(
+        style: Theme.of(context).textTheme.bodyLarge!.copyWith(
               color: Colors.white,
             ),
         textAlign: TextAlign.justify,
@@ -109,7 +109,7 @@ class _ExportWalletInfoScreenState extends State<ExportWalletInfoScreen> {
               ),
               Text(
                 'Seed',
-                style: Theme.of(context).textTheme.bodyText1,
+                style: Theme.of(context).textTheme.bodyLarge,
               )
             ],
           ),
@@ -125,7 +125,7 @@ class _ExportWalletInfoScreenState extends State<ExportWalletInfoScreen> {
               ),
               Text(
                 'Seed Vault Key',
-                style: Theme.of(context).textTheme.bodyText1,
+                style: Theme.of(context).textTheme.bodyLarge,
               )
             ],
           ),
@@ -144,7 +144,7 @@ class _ExportWalletInfoScreenState extends State<ExportWalletInfoScreen> {
               ),
               Text(
                 'Seed Vault',
-                style: Theme.of(context).textTheme.bodyText1,
+                style: Theme.of(context).textTheme.bodyLarge,
               )
             ],
           ),
@@ -169,7 +169,7 @@ class _ExportWalletInfoScreenState extends State<ExportWalletInfoScreen> {
         ),
         Text(
           'I will securely store the Seed Vault & Seed Vault Key',
-          style: Theme.of(context).textTheme.headline6,
+          style: Theme.of(context).textTheme.headlineSmall,
         )
       ],
     );

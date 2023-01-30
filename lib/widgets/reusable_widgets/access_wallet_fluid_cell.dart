@@ -56,7 +56,7 @@ class AccessWalletFluidCell extends FluidCell {
                   child: Text(
                     buttonText,
                     textAlign: TextAlign.center,
-                    style: Theme.of(context).textTheme.headline6,
+                    style: Theme.of(context).textTheme.headlineSmall,
                   ),
                 ),
               ],

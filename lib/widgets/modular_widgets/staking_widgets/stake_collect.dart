@@ -67,7 +67,7 @@ class _StakeCollectState extends State<StakeCollect> {
           end: uncollectedReward.qsrAmount.addDecimals(qsrDecimals),
           isInt: false,
           after: ' ${kQsrCoin.symbol}',
-          style: Theme.of(context).textTheme.headline1!.copyWith(
+          style: Theme.of(context).textTheme.headlineLarge!.copyWith(
                 color: AppColors.qsrColor,
                 fontSize: 30.0,
               ),

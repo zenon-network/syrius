@@ -51,11 +51,11 @@ class _SentinelsState extends State<Sentinels> {
             NumberAnimation(
               end: sentinelsByCycle.length,
               isInt: true,
-              style: Theme.of(context).textTheme.headline2,
+              style: Theme.of(context).textTheme.headlineMedium,
             ),
             Text(
               'Active Sentinels',
-              style: Theme.of(context).textTheme.subtitle1,
+              style: Theme.of(context).textTheme.titleMedium,
             ),
           ],
         ),

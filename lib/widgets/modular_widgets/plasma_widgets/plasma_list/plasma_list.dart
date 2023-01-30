@@ -68,7 +68,7 @@ class _PlasmaListState extends State<PlasmaList> {
               tokenSymbol: kQsrCoin.symbol,
               builder: (formattedAmount, tokenSymbol) => Text(
                 '$formattedAmount $tokenSymbol',
-                style: Theme.of(context).textTheme.subtitle1!.copyWith(
+                style: Theme.of(context).textTheme.titleMedium!.copyWith(
                       color: AppColors.subtitleColor,
                     ),
               ),
@@ -154,8 +154,8 @@ class _PlasmaListState extends State<PlasmaList> {
         color: AppColors.errorColor,
       ),
       outlineColor: AppColors.errorColor,
-      textStyle: Theme.of(context).textTheme.subtitle2!.copyWith(
-            color: Theme.of(context).textTheme.bodyText1!.color,
+      textStyle: Theme.of(context).textTheme.titleSmall!.copyWith(
+            color: Theme.of(context).textTheme.bodyLarge!.color,
           ),
     );
   }

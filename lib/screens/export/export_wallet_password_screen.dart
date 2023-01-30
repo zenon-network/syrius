@@ -65,12 +65,12 @@ class _ExportWalletPasswordScreenState
                 kVerticalSpacing,
                 Text(
                   'Export Seed Vault',
-                  style: Theme.of(context).textTheme.headline1,
+                  style: Theme.of(context).textTheme.headlineLarge,
                 ),
                 kVerticalSpacing,
                 Text(
                   'Please enter a strong Seed Vault Key to encrypt your Seed',
-                  style: Theme.of(context).textTheme.headline4,
+                  style: Theme.of(context).textTheme.headlineMedium,
                 ),
                 const SizedBox(
                   height: 50.0,

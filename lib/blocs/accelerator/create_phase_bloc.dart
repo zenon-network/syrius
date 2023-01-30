@@ -4,14 +4,14 @@ import 'package:zenon_syrius_wallet_flutter/utils/account_block_utils.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 class CreatePhaseBloc extends BaseBloc<AccountBlockTemplate?> {
-  void createPhase(
+  Future<void> createPhase(
     Hash id,
     String name,
     String description,
     String url,
     int znnFundsNeeded,
     int qsrFundsNeeded,
-  ) {
+  ) async {
     try {
       addEvent(null);
       AccountBlockTemplate transactionParams =

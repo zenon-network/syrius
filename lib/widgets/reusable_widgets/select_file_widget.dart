@@ -92,7 +92,7 @@ class SelectFileWidgetState extends State<SelectFileWidget> {
             borderType: BorderType.RRect,
             color: _browseButtonHover
                 ? AppColors.znnColor
-                : Theme.of(context).textTheme.headline5!.color!,
+                : Theme.of(context).textTheme.headlineSmall!.color!,
             strokeWidth: 2.0,
             dashPattern: const [8.0, 5.0],
             radius: const Radius.circular(10.0),
@@ -114,7 +114,7 @@ class SelectFileWidgetState extends State<SelectFileWidget> {
                       _messageToUser,
                       maxLines: 2,
                       style: widget.textStyle ??
-                          Theme.of(context).textTheme.headline5,
+                          Theme.of(context).textTheme.headlineSmall,
                       softWrap: true,
                       textAlign: TextAlign.center,
                     ),

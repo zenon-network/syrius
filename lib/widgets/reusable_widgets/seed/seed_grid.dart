@@ -161,7 +161,7 @@ class SeedGridState extends State<SeedGrid> {
                 child: Center(
                   child: Text(
                     (seedWordIndex + 1).toString(),
-                    style: Theme.of(context).textTheme.bodyText1!.copyWith(
+                    style: Theme.of(context).textTheme.bodyLarge!.copyWith(
                           color: Colors.white,
                         ),
                   ),

@@ -69,7 +69,7 @@ class _CancelTimerState extends State<CancelTimer> {
         ),
         child: Text(
           _currentDuration.toString().split('.').first,
-          style: Theme.of(context).textTheme.bodyText2,
+          style: Theme.of(context).textTheme.bodyMedium,
         ),
       ),
     );

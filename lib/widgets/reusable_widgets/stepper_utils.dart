@@ -19,14 +19,14 @@ class StepperUtils {
     return custom_material_stepper.Step(
       title: Text(
         stepTitle,
-        style: Theme.of(context).textTheme.headline2,
+        style: Theme.of(context).textTheme.headlineMedium,
       ),
       subtitle: stepState == custom_material_stepper.StepState.complete
           ? Row(
               children: [
                 Text(
                   stepSubtitle,
-                  style: Theme.of(context).textTheme.bodyText1!.copyWith(
+                  style: Theme.of(context).textTheme.bodyLarge!.copyWith(
                         fontSize: 12.0,
                         color: stepSubtitleColor,
                       ),
