@@ -12,7 +12,6 @@ export 'format_utils.dart';
 export 'global.dart';
 export 'init_utils.dart';
 export 'input_validators.dart';
-export 'keyboard_fixer.dart';
 export 'keystore_utils.dart';
 export 'logger.dart';
 export 'navigation_utils.dart';

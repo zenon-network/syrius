@@ -120,8 +120,8 @@ class _WalletOptionsState extends State<WalletOptions> {
     return Row(
       children: [
         Text(
-          'Launch at startup: ',
-          style: Theme.of(context).textTheme.subtitle1,
+          'Launch at startup ',
+          style: Theme.of(context).textTheme.bodyMedium,
         ),
         SyriusCheckbox(
           onChanged: (value) {
@@ -158,7 +158,7 @@ class _WalletOptionsState extends State<WalletOptions> {
     } on Exception catch (e) {
       NotificationUtils.sendNotificationError(
         e,
-        'Something went wrong while change launch at startup status',
+        'Something went wrong while saving launch at startup preference',
       );
     }
   }
@@ -173,7 +173,7 @@ class _WalletOptionsState extends State<WalletOptions> {
   void _sendLaunchAtStartupStatusNotification(bool enabled) {
     sl.get<NotificationsBloc>().addNotification(
           WalletNotification(
-            title: 'Launch at startup was ${enabled ? 'enabled' : 'disabled'}',
+            title: 'Launch startup ${enabled ? 'enabled' : 'disabled'}',
             details:
                 'Launch at startup preference was ${enabled ? 'enabled' : 'disabled'}',
             timestamp: DateTime.now().millisecondsSinceEpoch,
@@ -186,8 +186,8 @@ class _WalletOptionsState extends State<WalletOptions> {
     return Row(
       children: [
         Text(
-          'Enable desktop notifications: ',
-          style: Theme.of(context).textTheme.subtitle1,
+          'Enable desktop notifications ',
+          style: Theme.of(context).textTheme.bodyMedium,
         ),
         SyriusCheckbox(
           onChanged: (value) {
@@ -210,7 +210,7 @@ class _WalletOptionsState extends State<WalletOptions> {
     } on Exception catch (e) {
       NotificationUtils.sendNotificationError(
         e,
-        'Something went wrong while changing the preferences of desktop notifications',
+        'Something went wrong while saving desktop notifications preference',
       );
     }
   }
@@ -218,10 +218,9 @@ class _WalletOptionsState extends State<WalletOptions> {
   void _sendEnabledDesktopNotificationsStatusNotification(bool enabled) {
     sl.get<NotificationsBloc>().addNotification(
           WalletNotification(
-            title:
-                'Desktop notifications have been ${enabled ? 'enabled' : 'disabled'}',
+            title: 'Desktop notifications ${enabled ? 'enabled' : 'disabled'}',
             details:
-                'You changed the desktop notifications preference to ${enabled ? 'enabled' : 'disabled'}',
+                'Desktop notifications preference was ${enabled ? 'enabled' : 'disabled'}',
             timestamp: DateTime.now().millisecondsSinceEpoch,
             type: NotificationType.paymentSent,
           ),

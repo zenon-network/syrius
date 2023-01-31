@@ -3,7 +3,7 @@ import 'dart:isolate';
 import 'package:flutter/foundation.dart'
     show debugDefaultTargetPlatformOverride;
 import 'package:flutter/gestures.dart';
-import 'package:flutter/material.dart' hide MenuItem;
+import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 import 'package:hive/hive.dart';
 import 'package:layout/layout.dart';
@@ -19,7 +19,6 @@ import 'package:zenon_syrius_wallet_flutter/services/shared_prefs_service.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_theme.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/keyboard_fixer.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/network_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/node_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/notifiers/app_theme_notifier.dart';
@@ -242,37 +241,36 @@ class _MyAppState extends State<MyApp> with WindowListener, TrayListener {
                         onKey: (RawKeyEvent event) {
                           lockBloc.addEvent(LockEvent.resetTimer);
                         },
-                        child: KeyboardFixer(
-                          child: Layout(
-                            child: MaterialApp(
-                              title: 's y r i u s',
-                              debugShowCheckedModeBanner: false,
-                              theme: AppTheme.lightTheme,
-                              darkTheme: AppTheme.darkTheme,
-                              themeMode: appThemeNotifier.currentThemeMode,
-                              initialRoute: SplashScreen.route,
-                              routes: {
-                                AccessWalletScreen.route: (context) =>
-                                    const AccessWalletScreen(),
-                                SplashScreen.route: (context) =>
-                                    const SplashScreen(),
-                                MainAppContainer.route: (context) =>
-                                    const MainAppContainer(),
-                                NodeManagementScreen.route: (_) =>
-                                    const NodeManagementScreen(),
-                              },
-                              onGenerateRoute: (settings) {
-                                if (settings.name == SyriusErrorWidget.route) {
-                                  final args = settings.arguments
-                                      as CustomSyriusErrorWidgetArguments;
-                                  return MaterialPageRoute(
-                                    builder: (context) =>
-                                        SyriusErrorWidget(args.errorText),
-                                  );
-                                }
-                                return null;
-                              },
-                            ),
+                        child: Layout(
+                          child: MaterialApp(
+                            title: 's y r i u s',
+                            debugShowCheckedModeBanner: false,
+                            theme: AppTheme.lightTheme,
+                            darkTheme: AppTheme.darkTheme,
+                            themeMode: appThemeNotifier.currentThemeMode,
+                            initialRoute: SplashScreen.route,
+                            scrollBehavior: RemoveOverscrollEffect(),
+                            routes: {
+                              AccessWalletScreen.route: (context) =>
+                                  const AccessWalletScreen(),
+                              SplashScreen.route: (context) =>
+                                  const SplashScreen(),
+                              MainAppContainer.route: (context) =>
+                                  const MainAppContainer(),
+                              NodeManagementScreen.route: (_) =>
+                                  const NodeManagementScreen(),
+                            },
+                            onGenerateRoute: (settings) {
+                              if (settings.name == SyriusErrorWidget.route) {
+                                final args = settings.arguments
+                                    as CustomSyriusErrorWidgetArguments;
+                                return MaterialPageRoute(
+                                  builder: (context) =>
+                                      SyriusErrorWidget(args.errorText),
+                                );
+                              }
+                              return null;
+                            },
                           ),
                         ),
                       ),

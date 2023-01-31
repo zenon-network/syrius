@@ -307,7 +307,7 @@ class _NodeManagementState extends State<NodeManagement> {
         Row(children: [
           Text(
             'Current client chain identifier is $_currentChainId\t',
-            style: Theme.of(context).textTheme.bodyText2,
+            style: Theme.of(context).textTheme.bodyMedium,
           ),
           StandardTooltipIcon(
               (getChainIdentifier() == 1)

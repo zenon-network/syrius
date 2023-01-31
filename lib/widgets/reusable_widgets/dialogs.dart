@@ -30,7 +30,7 @@ showWarningDialog({
           ),
           child: Text(
             'Cancel',
-            style: Theme.of(context).textTheme.bodyText1,
+            style: Theme.of(context).textTheme.bodyMedium,
           ),
         ),
         TextButton(
@@ -44,7 +44,7 @@ showWarningDialog({
           ),
           child: Text(
             buttonText.isEmpty ? 'OK' : buttonText,
-            style: Theme.of(context).textTheme.bodyText1,
+            style: Theme.of(context).textTheme.bodyMedium,
           ),
         )
       ],

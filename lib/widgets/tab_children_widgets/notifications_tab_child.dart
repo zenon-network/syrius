@@ -22,12 +22,9 @@ class _NotificationsTabChildState extends State<NotificationsTabChild> {
   Widget build(BuildContext context) {
     _loadNotifications();
 
-    return ScrollConfiguration(
-      behavior: RemoveOverscrollEffect(),
-      child: WidgetAnimator(
-        curve: Curves.linear,
-        child: _getNotificationsContainer(),
-      ),
+    return WidgetAnimator(
+      curve: Curves.linear,
+      child: _getNotificationsContainer(),
     );
   }
 

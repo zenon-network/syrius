@@ -126,11 +126,8 @@ class _MainAppContainerState extends State<MainAppContainer>
                     borderRadius: BorderRadius.circular(
                       15.0,
                     ),
-                    child: ScrollConfiguration(
-                      behavior: RemoveOverscrollEffect(),
-                      child: Container(
-                        child: _getCurrentPageContainer(),
-                      ),
+                    child: Container(
+                      child: _getCurrentPageContainer(),
                     ),
                   ),
                 ),
