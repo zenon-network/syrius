@@ -139,6 +139,7 @@ class AppTheme {
     scaffoldBackgroundColor: AppColors.backgroundLight,
     textSelectionTheme: const TextSelectionThemeData(
       cursorColor: AppColors.znnColor,
+      selectionHandleColor: AppColors.znnColor,
     ),
     fontFamily: 'Roboto',
     inputDecorationTheme: InputDecorationTheme(
@@ -276,6 +277,7 @@ class AppTheme {
     textSelectionTheme: TextSelectionThemeData(
       selectionColor: Colors.white.withOpacity(0.1),
       cursorColor: AppColors.znnColor,
+      selectionHandleColor: AppColors.znnColor,
     ),
     fontFamily: 'Roboto',
     inputDecorationTheme: InputDecorationTheme(
