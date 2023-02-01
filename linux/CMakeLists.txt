@@ -173,5 +173,5 @@ endforeach(znn_library)
 add_custom_target(
   "git_metadata" ALL
   COMMAND "${CMAKE_HOME_DIRECTORY}/create-git-metadata.sh"
-  WORKING_DIRECTORY ${CMAKE_HOME_DIRECTORY}
+  WORKING_DIRECTORY ${CMAKE_HOME_DIRECTORY}/
 )
