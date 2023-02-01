@@ -8,6 +8,7 @@ list(APPEND FLUTTER_PLUGIN_LIST
   local_notifier
   network_info_plus
   screen_retriever
+  share_plus
   tray_manager
   url_launcher_windows
   window_manager

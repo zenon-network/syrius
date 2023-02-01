@@ -79,7 +79,7 @@ class _InputFieldState extends State<InputField> {
                   child: Text(
                       AdaptiveTextSelectionToolbar.getButtonLabel(
                           context, buttonItem),
-                      style: const TextStyle(color: Colors.white)),
+                      style: Theme.of(context).textTheme.bodyMedium),
                 ))
               ]);
             }).toList());
