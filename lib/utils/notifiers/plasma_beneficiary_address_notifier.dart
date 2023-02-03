@@ -5,10 +5,8 @@ class PlasmaBeneficiaryAddressNotifier extends ChangeNotifier {
   String? _plasmaBeneficiaryAddress = kSelectedAddress;
 
   changePlasmaBeneficiaryAddress(String? newAddress) {
-    if (_plasmaBeneficiaryAddress != newAddress) {
-      _plasmaBeneficiaryAddress = newAddress;
-      notifyListeners();
-    }
+    _plasmaBeneficiaryAddress = newAddress;
+    notifyListeners();
   }
 
   String? getBeneficiaryAddress() => _plasmaBeneficiaryAddress;
