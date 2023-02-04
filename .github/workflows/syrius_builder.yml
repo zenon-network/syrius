@@ -120,7 +120,7 @@ jobs:
           Syrius for Windows requires Microsoft Visual C++ to be installed.
           [Download Microsoft Visual C++](https://aka.ms/vs/16/release/vc_redist.x64.exe)
 
-          Github Action Context
+          Github Action Context information
           Git reference: ${{ github.ref }}
           Repository URL:  ${{ github.repositoryUrl }}
           Run ID: ${{ github.run_id }}

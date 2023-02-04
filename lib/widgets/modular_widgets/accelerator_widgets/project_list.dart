@@ -212,6 +212,7 @@ class _AccProjectListState extends State<AccProjectList> {
     _textChangesSubscription.cancel();
     _blocListingStateSubscription.cancel();
     _textChangeStreamController.sink.close();
+    _textChangeStreamController.close();
     _bloc.onPageRequestSink.close();
     _bloc.onSearchInputChangedSink.close();
     _bloc.dispose();
