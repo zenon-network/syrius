@@ -158,7 +158,7 @@ class _WalletOptionsState extends State<WalletOptions> {
     } on Exception catch (e) {
       NotificationUtils.sendNotificationError(
         e,
-        'Something went wrong while saving launch at startup preference',
+        'Something went wrong while setting launch at startup preference',
       );
     }
   }
@@ -210,7 +210,7 @@ class _WalletOptionsState extends State<WalletOptions> {
     } on Exception catch (e) {
       NotificationUtils.sendNotificationError(
         e,
-        'Something went wrong while saving desktop notifications preference',
+        'Something went wrong while setting desktop notifications preference',
       );
     }
   }

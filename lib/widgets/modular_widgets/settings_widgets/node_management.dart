@@ -119,35 +119,35 @@ class _NodeManagementState extends State<NodeManagement> {
       Wakelock.enable();
     }
 
-    if (await _checkForChainIdMismatch()) {
-      try {
-        _confirmNodeButtonKey.currentState?.animateForward();
-        String url = _selectedNode == 'Embedded Node'
-            ? kLocalhostDefaultNodeUrl
-            : _selectedNode!;
-        bool isConnectionEstablished =
-            await NodeUtils.establishConnectionToNode(url);
-        if (_selectedNode == 'Embedded Node') {
-          // Check if node is already running
-          if (!isConnectionEstablished) {
-            // Initialize local full node
-            await Isolate.spawn(EmbeddedNode.runNode, [''],
-                onExit: sl<ReceivePort>(instanceName: 'embeddedStoppedPort')
-                    .sendPort);
-            kEmbeddedNodeRunning = true;
-            // The node needs a couple of seconds to actually start
-            await Future.delayed(kEmbeddedConnectionDelay);
-            isConnectionEstablished =
-                await NodeUtils.establishConnectionToNode(url);
-          }
-        } else {
+    try {
+      _confirmNodeButtonKey.currentState?.animateForward();
+      String url = _selectedNode == 'Embedded Node'
+          ? kLocalhostDefaultNodeUrl
+          : _selectedNode!;
+      bool isConnectionEstablished =
+          await NodeUtils.establishConnectionToNode(url);
+      if (_selectedNode == 'Embedded Node') {
+        // Check if node is already running
+        if (!isConnectionEstablished) {
+          // Initialize local full node
+          await Isolate.spawn(EmbeddedNode.runNode, [''],
+              onExit: sl<ReceivePort>(instanceName: 'embeddedStoppedPort')
+                  .sendPort);
+          kEmbeddedNodeRunning = true;
+          // The node needs a couple of seconds to actually start
+          await Future.delayed(kEmbeddedConnectionDelay);
           isConnectionEstablished =
               await NodeUtils.establishConnectionToNode(url);
-          if (isConnectionEstablished) {
-            await NodeUtils.closeEmbeddedNode();
-          }
         }
+      } else {
+        isConnectionEstablished =
+            await NodeUtils.establishConnectionToNode(url);
         if (isConnectionEstablished) {
+          await NodeUtils.closeEmbeddedNode();
+        }
+      }
+      if (isConnectionEstablished) {
+        if (await _checkForChainIdMismatch()) {
           await sharedPrefsService!.put(
             kSelectedNodeKey,
             _selectedNode,
@@ -155,20 +155,20 @@ class _NodeManagementState extends State<NodeManagement> {
           kCurrentNode = _selectedNode!;
           _sendChangingNodeSuccessNotification();
           widget.onNodeChangedCallback();
-        } else {
-          throw 'Connection could not be established to $_selectedNode';
         }
-      } catch (e) {
-        NotificationUtils.sendNotificationError(
-          e,
-          'Connection failed',
-        );
-        setState(() {
-          _selectedNode = kCurrentNode!;
-        });
-      } finally {
-        _confirmNodeButtonKey.currentState?.animateReverse();
+      } else {
+        throw 'Connection could not be established to $_selectedNode';
       }
+    } catch (e) {
+      NotificationUtils.sendNotificationError(
+        e,
+        'Connection failed',
+      );
+      setState(() {
+        _selectedNode = kCurrentNode!;
+      });
+    } finally {
+      _confirmNodeButtonKey.currentState?.animateReverse();
     }
   }
 
@@ -304,42 +304,48 @@ class _NodeManagementState extends State<NodeManagement> {
   Widget _getChainIdSelectionExpandableChild() {
     return Column(
       children: [
-        Row(children: [
-          Text(
-            'Current client chain identifier is $_currentChainId\t',
-            style: Theme.of(context).textTheme.bodyMedium,
-          ),
-          StandardTooltipIcon(
+        Row(
+          mainAxisAlignment: MainAxisAlignment.start,
+          children: [
+            Expanded(
+                child: Form(
+              key: _newChainIdKey,
+              autovalidateMode: AutovalidateMode.onUserInteraction,
+              child: InputField(
+                inputFormatters: [
+                  FilteringTextInputFormatter.digitsOnly,
+                ],
+                controller: _newChainIdController,
+                hintText:
+                    'Current client chain identifier is ${getChainIdentifier().toString()}',
+                onSubmitted: (value) async {
+                  if (_isChainIdSelectionInputIsValid()) {
+                    _onConfirmChainIdPressed();
+                  }
+                },
+                onChanged: (String value) {
+                  if (value.isNotEmpty) {
+                    setState(() {});
+                  }
+                },
+                validator: InputValidators.validateNumber,
+              ),
+            )),
+            StandardTooltipIcon(
               (getChainIdentifier() == 1)
                   ? 'Alphanet chain identifier'
-                  : 'Testnet chain identifier',
+                  : 'Non-alphanet chain identifier',
               MaterialCommunityIcons.network,
               iconColor: (getChainIdentifier() == 1)
                   ? AppColors.znnColor
-                  : Colors.orange)
-        ]),
-        kVerticalSpacing,
-        Form(
-          key: _newChainIdKey,
-          autovalidateMode: AutovalidateMode.onUserInteraction,
-          child: InputField(
-            inputFormatters: [
-              FilteringTextInputFormatter.digitsOnly,
-            ],
-            controller: _newChainIdController,
-            hintText: 'Chain identifier',
-            onSubmitted: (value) {
-              if (_isChainIdSelectionInputIsValid()) {
-                _onConfirmChainIdPressed();
-              }
-            },
-            onChanged: (String value) {
-              if (value.isNotEmpty) {
-                setState(() {});
-              }
-            },
-            validator: InputValidators.validateNumber,
-          ),
+                  : Colors.orange,
+            ),
+            const StandardTooltipIcon(
+              'The chain identifier is used in transaction signing to prevent replay attacks',
+              MaterialCommunityIcons.alert,
+              iconColor: Colors.orange,
+            ),
+          ],
         ),
         kVerticalSpacing,
         LoadingButton.settings(
@@ -369,7 +375,7 @@ class _NodeManagementState extends State<NodeManagement> {
     } catch (e) {
       NotificationUtils.sendNotificationError(
         e,
-        'Error while saving new chain id',
+        'Error while setting the new client chain identifier',
       );
     } finally {
       _confirmChainIdButtonKey.currentState?.animateReverse();

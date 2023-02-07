@@ -5,10 +5,10 @@ import 'package:zenon_syrius_wallet_flutter/screens/screens.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/init_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/keystore_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/navigation_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/notification_utils.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/init_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
@@ -49,7 +49,7 @@ class _LockTabChildState extends State<LockTabChild> {
         children: <Widget>[
           const Icon(
             Fontisto.locked,
-            color: Color.fromRGBO(63, 63, 63, 1),
+            color: AppColors.znnColor,
             size: 50.0,
           ),
           const SizedBox(
