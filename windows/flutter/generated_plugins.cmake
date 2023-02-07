@@ -6,7 +6,6 @@ list(APPEND FLUTTER_PLUGIN_LIST
   desktop_drop
   file_selector_windows
   local_notifier
-  network_info_plus
   screen_retriever
   share_plus
   tray_manager

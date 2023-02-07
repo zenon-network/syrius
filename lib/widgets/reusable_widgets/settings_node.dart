@@ -121,8 +121,16 @@ class _SettingsNodeState extends State<SettingsNode> {
         Visibility(
           visible: widget.node.contains('Embedded'),
           child: const StandardTooltipIcon(
-            'The Embedded Node can take several hours to fully sync with the network',
-            Icons.help,
+            'Integrated Full Node: enhanced security and privacy',
+            MaterialCommunityIcons.security,
+          ),
+        ),
+        Visibility(
+          visible: widget.node.contains('Embedded'),
+          child: const StandardTooltipIcon(
+            'The Embedded Node validates all network transactions\n'
+            'It may take several hours to fully sync with the network',
+            MaterialCommunityIcons.clock,
           ),
         ),
         const SizedBox(

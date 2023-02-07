@@ -165,7 +165,9 @@ class _NewWalletSeedChoiceScreenState extends State<NewWalletSeedChoiceScreen> {
                     color: Colors.transparent,
                     child: SvgPicture.asset(
                       'assets/svg/ic_export_seed.svg',
-                      color: Theme.of(context).textTheme.headlineSmall!.color,
+                      colorFilter: ColorFilter.mode(
+                          Theme.of(context).textTheme.headlineSmall!.color!,
+                          BlendMode.srcIn),
                       height: 18.0,
                     ),
                   ),

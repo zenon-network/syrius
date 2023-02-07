@@ -1,6 +1,6 @@
 import 'package:desktop_drop/desktop_drop.dart';
 import 'package:dotted_border/dotted_border.dart';
-import 'package:file_selector_platform_interface/file_selector_platform_interface.dart';
+import 'package:file_selector/file_selector.dart';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
@@ -55,8 +55,7 @@ class SelectFileWidgetState extends State<SelectFileWidget> {
         onTap: () async {
           String? initialDirectory;
           initialDirectory = (await getApplicationDocumentsDirectory()).path;
-          final XFile? selectedFile =
-              await FileSelectorPlatform.instance.openFile(
+          final selectedFile = await openFile(
             acceptedTypeGroups: <XTypeGroup>[
               XTypeGroup(
                 label: 'file',

@@ -40,7 +40,8 @@ class _ExportWalletInfoScreenState extends State<ExportWalletInfoScreen> {
               color: Colors.transparent,
               child: SvgPicture.asset(
                 'assets/svg/ic_export_seed.svg',
-                color: AppColors.znnColor,
+                colorFilter:
+                    const ColorFilter.mode(AppColors.znnColor, BlendMode.srcIn),
                 height: 55.0,
               ),
             ),
@@ -100,7 +101,8 @@ class _ExportWalletInfoScreenState extends State<ExportWalletInfoScreen> {
                 color: Colors.transparent,
                 child: SvgPicture.asset(
                   'assets/svg/ic_seed.svg',
-                  color: AppColors.qsrColor,
+                  colorFilter: const ColorFilter.mode(
+                      AppColors.qsrColor, BlendMode.srcIn),
                   height: 50.0,
                 ),
               ),
@@ -135,7 +137,8 @@ class _ExportWalletInfoScreenState extends State<ExportWalletInfoScreen> {
                 color: Colors.transparent,
                 child: SvgPicture.asset(
                   'assets/svg/ic_vault_seed.svg',
-                  color: AppColors.znnColor,
+                  colorFilter: const ColorFilter.mode(
+                      AppColors.znnColor, BlendMode.srcIn),
                   height: 50.0,
                 ),
               ),
