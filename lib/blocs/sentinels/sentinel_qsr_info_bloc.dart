@@ -14,8 +14,8 @@ class SentinelsQsrInfoBloc extends BaseBloc<num?> {
         qsrDecimals,
       );
       addEvent(response);
-    } catch (e) {
-      addError(e);
+    } catch (e, stackTrace) {
+      addError(e, stackTrace);
     }
   }
 }

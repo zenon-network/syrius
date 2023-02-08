@@ -26,8 +26,8 @@ class NotificationsBloc extends BaseBloc<WalletNotification?> {
         localNotification.show();
       }
       addEvent(notification);
-    } catch (e) {
-      addError(e);
+    } catch (e, stackTrace) {
+      addError(e, stackTrace);
     }
   }
 

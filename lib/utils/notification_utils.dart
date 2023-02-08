@@ -1,8 +1,8 @@
+import 'package:logging/logging.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/model/model.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/logger.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 class NotificationUtils {
@@ -10,7 +10,8 @@ class NotificationUtils {
     Object error,
     String title,
   ) {
-    Logger.logError(error);
+    Logger('NotificationUtils')
+        .log(Level.WARNING, 'sendNotificationError', error);
     sl.get<NotificationsBloc>().addErrorNotification(
           error,
           title,

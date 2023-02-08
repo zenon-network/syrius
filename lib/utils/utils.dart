@@ -13,7 +13,6 @@ export 'global.dart';
 export 'init_utils.dart';
 export 'input_validators.dart';
 export 'keystore_utils.dart';
-export 'logger.dart';
 export 'navigation_utils.dart';
 export 'network_utils.dart';
 export 'node_utils.dart';

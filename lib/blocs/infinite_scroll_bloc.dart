@@ -1,8 +1,8 @@
 import 'dart:async';
 
+import 'package:logging/logging.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/logger.dart';
 
 abstract class InfiniteScrollBloc<T> with RefreshBlocMixin {
   InfiniteScrollBloc() {
@@ -69,8 +69,9 @@ abstract class InfiniteScrollBloc<T> with RefreshBlocMixin {
         nextPageKey: nextPageKey,
         itemList: allItems,
       );
-    } catch (e) {
-      Logger.logError(e);
+    } catch (e, stackTrace) {
+      Logger('InfiniteScrollBloc')
+          .log(Level.WARNING, '_fetchList', e, stackTrace);
       yield InfiniteScrollBlocListingState<T>(
         error: e,
         nextPageKey: lastListingState.nextPageKey,

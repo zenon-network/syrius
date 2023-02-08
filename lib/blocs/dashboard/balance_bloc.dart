@@ -26,8 +26,8 @@ class BalanceBloc extends BaseBloc<Map<String, AccountInfo>?>
         addressBalanceMap[accountInfo.address!] = accountInfo;
       }
       addEvent(addressBalanceMap);
-    } catch (e) {
-      addError(e);
+    } catch (e, stackTrace) {
+      addError(e, stackTrace);
     }
   }
 

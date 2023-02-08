@@ -23,7 +23,6 @@ class StandardLineChartBarData extends LineChartBarData {
                 AppColors.znnColor.withOpacity(0.0),
               ],
               stops: const [0.1, 1.0],
-
             ),
           ),
         );

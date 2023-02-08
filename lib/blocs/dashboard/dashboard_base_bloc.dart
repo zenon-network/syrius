@@ -29,8 +29,8 @@ abstract class DashboardBaseBloc<T> extends BaseBloc<T> with RefreshBlocMixin {
       } else {
         throw noConnectionException;
       }
-    } catch (e) {
-      addError(e);
+    } catch (e, stackTrace) {
+      addError(e, stackTrace);
     } finally {
       if (_autoRefresher == null) {
         _autoRefresher = _getAutoRefreshTimer();

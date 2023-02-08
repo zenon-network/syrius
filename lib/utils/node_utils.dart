@@ -3,6 +3,7 @@ import 'dart:io';
 import 'dart:isolate';
 
 import 'package:hive/hive.dart';
+import 'package:logging/logging.dart';
 import 'package:wakelock/wakelock.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/embedded_node/embedded_node.dart';
@@ -10,7 +11,6 @@ import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/model/model.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/logger.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/notification_utils.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
@@ -31,8 +31,9 @@ class NodeUtils {
       await zenon!.ledger.getFrontierMomentum().then((value) {
         nodeChainId = value.chainIdentifier;
       });
-    } catch (e) {
-      Logger.logError(e);
+    } catch (e, stackTrace) {
+      Logger('NodeUtils')
+          .log(Level.WARNING, 'getNodeChainIdentifier', e, stackTrace);
     }
     return nodeChainId;
   }

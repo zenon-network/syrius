@@ -9,8 +9,8 @@ class RefreshProjectBloc extends BaseBloc<Project?> {
       addEvent(
         await zenon!.embedded.accelerator.getProjectById(projectId.toString()),
       );
-    } catch (e) {
-      addError(e);
+    } catch (e, stackTrace) {
+      addError(e, stackTrace);
     }
   }
 }

@@ -22,8 +22,8 @@ class ProjectVoteBreakdownBloc
         );
       }
       addEvent(Pair(voteBreakdown, pillarVoteList));
-    } catch (e) {
-      addError(e);
+    } catch (e, stackTrace) {
+      addError(e, stackTrace);
     }
   }
 }

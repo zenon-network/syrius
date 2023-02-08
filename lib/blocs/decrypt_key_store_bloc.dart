@@ -9,8 +9,8 @@ class DecryptKeyStoreBloc extends BaseBloc<KeyStore?> {
       KeyStore keyStore =
           await KeyStoreUtils.decryptKeyStoreFile(path, password);
       addEvent(keyStore);
-    } catch (e) {
-      addError(e);
+    } catch (e, stackTrace) {
+      addError(e, stackTrace);
     }
   }
 }
