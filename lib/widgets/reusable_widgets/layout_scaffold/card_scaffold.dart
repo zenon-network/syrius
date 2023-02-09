@@ -165,7 +165,7 @@ class _CardScaffoldState<T> extends State<CardScaffold<T>> {
               Expanded(
                 child: Text(
                   'Discreet mode',
-                  style: Theme.of(context).textTheme.bodyText1,
+                  style: Theme.of(context).textTheme.bodyLarge,
                 ),
               ),
               const Spacer(),
