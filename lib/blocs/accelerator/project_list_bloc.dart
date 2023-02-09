@@ -1,10 +1,10 @@
 import 'dart:async';
 
+import 'package:logging/logging.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/logger.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
@@ -87,8 +87,8 @@ class ProjectListBloc with RefreshBlocMixin {
         nextPageKey: nextPageKey,
         itemList: allItems,
       );
-    } catch (e) {
-      Logger.logError(e);
+    } catch (e, stackTrace) {
+      Logger('ProjectListBloc').log(Level.WARNING, 'addError', e, stackTrace);
       yield InfiniteScrollBlocListingState<Project>(
         error: e,
         nextPageKey: lastListingState.nextPageKey,

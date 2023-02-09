@@ -21,8 +21,8 @@ class SubmitDonationBloc extends BaseBloc<AccountBlockTemplate?> {
           kQsrCoin.tokenStandard,
         ));
       }
-    } catch (e) {
-      addError(e);
+    } catch (e, stackTrace) {
+      addError(e, stackTrace);
     }
   }
 
@@ -38,7 +38,7 @@ class SubmitDonationBloc extends BaseBloc<AccountBlockTemplate?> {
       },
     ).onError(
       (error, stackTrace) {
-        addError(error.toString());
+        addError(error, stackTrace);
       },
     );
   }

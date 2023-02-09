@@ -57,13 +57,13 @@ class _NodeManagementScreenState extends State<NodeManagementScreen> {
             const NotificationWidget(),
             Text(
               'Node Management',
-              style: Theme.of(context).textTheme.headline1,
+              style: Theme.of(context).textTheme.headlineLarge,
               textAlign: TextAlign.center,
             ),
             kVerticalSpacing,
             Text(
               'By default Syrius connects to its own built-in full node, which is called the Embedded Node. If you want to connect to a different node, you can add one below. Otherwise just connect and continue.',
-              style: Theme.of(context).textTheme.headline4,
+              style: Theme.of(context).textTheme.headlineMedium,
               textAlign: TextAlign.center,
             ),
             SizedBox(
@@ -81,13 +81,13 @@ class _NodeManagementScreenState extends State<NodeManagementScreen> {
                     children: [
                       Text(
                         'Node selection',
-                        style: Theme.of(context).textTheme.bodyText1,
+                        style: Theme.of(context).textTheme.bodyLarge,
                       ),
                       _getNodeSelectionColumn(),
                       kVerticalSpacing,
                       Text(
                         'Add node',
-                        style: Theme.of(context).textTheme.bodyText1,
+                        style: Theme.of(context).textTheme.bodyLarge,
                       ),
                       kVerticalSpacing,
                       _getAddNodeColumn(),

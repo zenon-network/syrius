@@ -167,8 +167,10 @@ class _AccProjectListState extends State<AccProjectList> {
 
     for (var tag in AccProjectsFilterTag.values) {
       if (widget.pillarInfo == null) {
-        if ([AccProjectsFilterTag.votingOpened, AccProjectsFilterTag.alreadyVoted]
-            .contains(tag)) {
+        if ([
+          AccProjectsFilterTag.votingOpened,
+          AccProjectsFilterTag.alreadyVoted
+        ].contains(tag)) {
           continue;
         }
       }
@@ -209,6 +211,10 @@ class _AccProjectListState extends State<AccProjectList> {
   void dispose() {
     _textChangesSubscription.cancel();
     _blocListingStateSubscription.cancel();
+    _textChangeStreamController.sink.close();
+    _textChangeStreamController.close();
+    _bloc.onPageRequestSink.close();
+    _bloc.onSearchInputChangedSink.close();
     _bloc.dispose();
     _pagingController.dispose();
     _scrollController.dispose();

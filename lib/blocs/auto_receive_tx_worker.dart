@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:collection';
 
 import 'package:json_rpc_2/json_rpc_2.dart';
+import 'package:logging/logging.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/model/model.dart';
@@ -45,7 +46,9 @@ class AutoReceiveTxWorker extends BaseBloc<WalletNotification> {
           waitForRequiredPlasma: true,
         );
         _sendSuccessNotification(response, toAddress);
-      } on RpcException catch (e) {
+      } on RpcException catch (e, stackTrace) {
+        Logger('AutoReceiveTxWorker')
+            .log(Level.WARNING, 'autoReceive', e, stackTrace);
         if (e.message.compareTo('account-block from-block already received') !=
             0) {
           pool.addFirst(currentHash);
@@ -79,7 +82,7 @@ class AutoReceiveTxWorker extends BaseBloc<WalletNotification> {
     );
   }
 
-  void addHash(Hash hash) {
+  Future<void> addHash(Hash hash) async {
     if (!processedHashes.contains(hash)) {
       zenon!.stats.syncInfo().then((syncInfo) {
         if (!processedHashes.contains(hash) &&

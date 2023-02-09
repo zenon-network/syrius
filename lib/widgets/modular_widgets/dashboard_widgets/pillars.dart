@@ -49,11 +49,11 @@ class _PillarsState extends State<Pillars> {
             NumberAnimation(
               end: numOfPillars,
               isInt: true,
-              style: Theme.of(context).textTheme.headline2,
+              style: Theme.of(context).textTheme.headlineMedium,
             ),
             Text(
               'Active Pillars',
-              style: Theme.of(context).textTheme.subtitle1,
+              style: Theme.of(context).textTheme.titleMedium,
             ),
           ],
         ),

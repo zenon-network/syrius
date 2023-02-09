@@ -70,7 +70,7 @@ class _NewWalletConfirmSeedScreenState
                 ),
                 Text(
                   'Confirm your seed',
-                  style: Theme.of(context).textTheme.headline1,
+                  style: Theme.of(context).textTheme.headlineLarge,
                 ),
                 kVerticalSpacing,
                 Row(
@@ -78,7 +78,7 @@ class _NewWalletConfirmSeedScreenState
                   children: [
                     Text(
                       'Drag & drop the words in the correct order',
-                      style: Theme.of(context).textTheme.headline4,
+                      style: Theme.of(context).textTheme.headlineMedium,
                     ),
                     const StandardTooltipIcon(
                       'You can drag & drop words on empty boxes or incorrect words',
@@ -203,7 +203,7 @@ class _NewWalletConfirmSeedScreenState
                 child: Center(
                   child: Text(
                     '${seedGridElementIndex + 1}',
-                    style: Theme.of(context).textTheme.headline6,
+                    style: Theme.of(context).textTheme.headlineSmall,
                   ),
                 ),
               ),
@@ -296,7 +296,7 @@ class _NewWalletConfirmSeedScreenState
               onPressed: () {},
               child: Text(
                 seedWords[index],
-                style: Theme.of(context).textTheme.bodyText1,
+                style: Theme.of(context).textTheme.bodyLarge,
               ),
             ),
             data: seedWords[index],
@@ -325,7 +325,7 @@ class _NewWalletConfirmSeedScreenState
               onPressed: () {},
               child: Text(
                 seedWords[index],
-                style: Theme.of(context).textTheme.bodyText1!.copyWith(
+                style: Theme.of(context).textTheme.bodyLarge!.copyWith(
                       color: _draggedValue == seedWords[index]
                           ? Colors.white.withOpacity(0.7)
                           : Colors.white,

@@ -70,7 +70,7 @@ class _SentinelCollectState extends State<SentinelCollect> {
           end: uncollectedReward.znnAmount.addDecimals(znnDecimals),
           isInt: false,
           after: ' ${kZnnCoin.symbol}',
-          style: Theme.of(context).textTheme.headline1!.copyWith(
+          style: Theme.of(context).textTheme.headlineLarge!.copyWith(
                 color: AppColors.znnColor,
                 fontSize: 30.0,
               ),
@@ -80,7 +80,7 @@ class _SentinelCollectState extends State<SentinelCollect> {
           end: uncollectedReward.qsrAmount.addDecimals(qsrDecimals),
           isInt: false,
           after: ' ${kQsrCoin.symbol}',
-          style: Theme.of(context).textTheme.headline1!.copyWith(
+          style: Theme.of(context).textTheme.headlineLarge!.copyWith(
                 color: AppColors.qsrColor,
                 fontSize: 30.0,
               ),

@@ -299,7 +299,7 @@ class _PillarsListWidgetState extends State<PillarsListWidget> {
           tokenSymbol: kZnnCoin.symbol,
           builder: (formattedAmount, tokenSymbol) => Text(
             '$formattedAmount $tokenSymbol',
-            style: Theme.of(context).textTheme.subtitle1!.copyWith(
+            style: Theme.of(context).textTheme.titleMedium!.copyWith(
                   color: _isStakeAddressDefault(pillarInfo)
                       ? AppColors.znnColor
                       : AppColors.subtitleColor,
@@ -372,8 +372,8 @@ class _PillarsListWidgetState extends State<PillarsListWidget> {
         model.votePillar(pillarInfo.name, context);
       },
       text: 'DELEGATE',
-      textStyle: Theme.of(context).textTheme.subtitle2!.copyWith(
-            color: Theme.of(context).textTheme.bodyText1!.color,
+      textStyle: Theme.of(context).textTheme.titleSmall!.copyWith(
+            color: Theme.of(context).textTheme.bodyLarge!.color,
           ),
       key: key,
     );
@@ -488,7 +488,7 @@ class _PillarsListWidgetState extends State<PillarsListWidget> {
       minimumSize: const Size(55.0, 25.0),
       outlineColor: isSelected
           ? AppColors.errorColor
-          : Theme.of(context).textTheme.subtitle2!.color,
+          : Theme.of(context).textTheme.titleSmall!.color,
       onPressed: isSelected
           ? () {
               model.disassemblePillar(
@@ -503,10 +503,10 @@ class _PillarsListWidgetState extends State<PillarsListWidget> {
           Text(
             'DISASSEMBLE',
             style: isSelected
-                ? Theme.of(context).textTheme.subtitle2!.copyWith(
-                      color: Theme.of(context).textTheme.bodyText1!.color,
+                ? Theme.of(context).textTheme.titleSmall!.copyWith(
+                      color: Theme.of(context).textTheme.bodyLarge!.color,
                     )
-                : Theme.of(context).textTheme.subtitle2,
+                : Theme.of(context).textTheme.titleSmall,
           ),
           const SizedBox(
             width: 20.0,
@@ -516,7 +516,7 @@ class _PillarsListWidgetState extends State<PillarsListWidget> {
             size: 11.0,
             color: isSelected
                 ? AppColors.errorColor
-                : Theme.of(context).textTheme.subtitle2!.color,
+                : Theme.of(context).textTheme.titleSmall!.color,
           ),
         ],
       ),
@@ -533,8 +533,8 @@ class _PillarsListWidgetState extends State<PillarsListWidget> {
         model.cancelPillarVoting(context);
       },
       text: 'UNDELEGATE',
-      textStyle: Theme.of(context).textTheme.subtitle2!.copyWith(
-            color: Theme.of(context).textTheme.bodyText1!.color,
+      textStyle: Theme.of(context).textTheme.titleSmall!.copyWith(
+            color: Theme.of(context).textTheme.bodyLarge!.color,
           ),
       outlineColor: AppColors.errorColor,
       key: key,

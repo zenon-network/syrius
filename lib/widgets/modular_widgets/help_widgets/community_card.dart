@@ -20,6 +20,7 @@ class CommunityCard extends StatelessWidget {
 
   Widget _getWidgetBody(BuildContext context) {
     return ListView(
+      physics: const ClampingScrollPhysics(),
       shrinkWrap: true,
       children: [
         CustomExpandablePanel(
@@ -44,6 +45,7 @@ class CommunityCard extends StatelessWidget {
 
   Widget _getWebsitesExpandableChild(BuildContext context) {
     return ListView(
+      physics: const ClampingScrollPhysics(),
       shrinkWrap: true,
       children: [
         _getListViewChild(
@@ -82,6 +84,7 @@ class CommunityCard extends StatelessWidget {
 
   Widget _getExplorersExpandableChild(BuildContext context) {
     return ListView(
+      physics: const ClampingScrollPhysics(),
       shrinkWrap: true,
       children: [
         _getListViewChild(
@@ -108,6 +111,7 @@ class CommunityCard extends StatelessWidget {
 
   Widget _getSocialMediaExpandableChild(BuildContext context) {
     return ListView(
+      physics: const ClampingScrollPhysics(),
       shrinkWrap: true,
       children: [
         _getListViewChild(
@@ -146,7 +150,6 @@ class CommunityCard extends StatelessWidget {
           url: kBitcoinTalk,
           context: context,
         ),
-
         _getListViewChild(
           iconData: MaterialCommunityIcons.reddit,
           title: 'Zenon Reddit',
@@ -165,6 +168,7 @@ class CommunityCard extends StatelessWidget {
 
   Widget _getDocumentationExpandableChild(BuildContext context) {
     return ListView(
+      physics: const ClampingScrollPhysics(),
       shrinkWrap: true,
       children: [
         _getListViewChild(
@@ -212,11 +216,9 @@ class CommunityCard extends StatelessWidget {
         const SizedBox(
           width: 10.0,
         ),
-        Expanded(
-          child: Text(
-            title,
-            style: Theme.of(context).textTheme.subtitle1,
-          ),
+        Text(
+          title,
+          style: Theme.of(context).textTheme.titleMedium,
         ),
         const SizedBox(
           width: 10.0,

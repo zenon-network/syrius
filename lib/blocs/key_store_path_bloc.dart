@@ -14,8 +14,8 @@ class KeyStorePathBloc extends BaseBloc<String?> {
       await KeyStoreUtils.createKeyStore(mnemonic, passphrase);
       await InitUtils.initWalletAfterDecryption();
       addEvent(kKeyStorePath);
-    } catch (e) {
-      addError(e);
+    } catch (e, stackTrace) {
+      addError(e, stackTrace);
     }
   }
 }

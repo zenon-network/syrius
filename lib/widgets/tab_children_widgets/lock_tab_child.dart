@@ -5,10 +5,10 @@ import 'package:zenon_syrius_wallet_flutter/screens/screens.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/init_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/keystore_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/navigation_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/notification_utils.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/init_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
@@ -49,7 +49,7 @@ class _LockTabChildState extends State<LockTabChild> {
         children: <Widget>[
           const Icon(
             Fontisto.locked,
-            color: Color.fromRGBO(63, 63, 63, 1),
+            color: AppColors.znnColor,
             size: 50.0,
           ),
           const SizedBox(
@@ -57,14 +57,14 @@ class _LockTabChildState extends State<LockTabChild> {
           ),
           Text(
             'Welcome Back',
-            style: Theme.of(context).textTheme.headline2,
+            style: Theme.of(context).textTheme.headlineMedium,
           ),
           const SizedBox(
             height: 20.0,
           ),
           Text(
             'Enter the password to access the wallet',
-            style: Theme.of(context).textTheme.headline4,
+            style: Theme.of(context).textTheme.headlineSmall,
           ),
           const SizedBox(
             height: 40.0,
@@ -96,11 +96,11 @@ class _LockTabChildState extends State<LockTabChild> {
                     ? Text(
                         'Last attempt. The wallet will be reset if this '
                         'attempt fails',
-                        style: Theme.of(context).textTheme.headline4,
+                        style: Theme.of(context).textTheme.headlineSmall,
                       )
                     : Text(
                         '${kAutoEraseWalletLimit!.toInt() - kNumFailedUnlockAttempts!} attempts left',
-                        style: Theme.of(context).textTheme.headline4,
+                        style: Theme.of(context).textTheme.headlineSmall,
                       ),
           ),
           Visibility(
@@ -109,7 +109,7 @@ class _LockTabChildState extends State<LockTabChild> {
               padding: const EdgeInsets.only(top: 30.0),
               child: Text(
                 _messageToUser,
-                style: Theme.of(context).textTheme.bodyText1,
+                style: Theme.of(context).textTheme.bodyLarge,
               ),
             ),
           ),

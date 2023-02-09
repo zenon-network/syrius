@@ -117,7 +117,7 @@ class _CardScaffoldState<T> extends State<CardScaffold<T>> {
           ExpandablePanel(
             collapsed: Container(),
             theme: ExpandableThemeData(
-              iconColor: Theme.of(context).textTheme.bodyText1!.color,
+              iconColor: Theme.of(context).textTheme.bodyLarge!.color,
               headerAlignment: ExpandablePanelHeaderAlignment.center,
               iconPlacement: ExpandablePanelIconPlacement.right,
             ),
@@ -134,7 +134,7 @@ class _CardScaffoldState<T> extends State<CardScaffold<T>> {
                 Expanded(
                   child: Text(
                     'Description',
-                    style: Theme.of(context).textTheme.bodyText1,
+                    style: Theme.of(context).textTheme.bodyLarge,
                   ),
                 ),
               ],
@@ -147,7 +147,7 @@ class _CardScaffoldState<T> extends State<CardScaffold<T>> {
               ),
               child: Text(
                 widget.description,
-                style: Theme.of(context).textTheme.subtitle1,
+                style: Theme.of(context).textTheme.titleMedium,
               ),
             ),
           ),
@@ -268,7 +268,7 @@ class _CardScaffoldState<T> extends State<CardScaffold<T>> {
                 splashRadius: 15.0,
                 icon: const Icon(Icons.more_horiz),
                 iconSize: 18.0,
-                color: Theme.of(context).textTheme.bodyText1!.color,
+                color: Theme.of(context).textTheme.bodyLarge!.color,
                 onPressed: () {
                   cardKey.currentState!.toggleCard();
                 },

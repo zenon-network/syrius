@@ -169,6 +169,12 @@ const String kAutoEraseNumAttemptsKey = 'auto_erase_num_attempts';
 // Wallet preferences
 const String kLaunchAtStartupKey = 'launch_at_startup';
 const bool kLaunchAtStartupDefaultValue = false;
+const String kEnableDesktopNotificationsKey = 'enable_desktop_notifications';
+const bool kEnableDesktopNotificationsDefaultValue = false;
+
+/// Node management
+const String kChainIdKey = 'chain_id';
+const int kChainIdDefaultValue = 1; // 1 corresponds to Alphanet
 
 // Display constants
 const String kThemeModeKey = 'theme_mode_key';

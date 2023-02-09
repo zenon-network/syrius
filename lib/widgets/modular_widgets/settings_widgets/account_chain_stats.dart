@@ -48,7 +48,7 @@ class _AccountChainStatsState extends State<AccountChainStatsWidget> {
               children: <Widget>[
                 Text(
                   'Account-chain height',
-                  style: Theme.of(context).textTheme.subtitle1,
+                  style: Theme.of(context).textTheme.titleMedium,
                 ),
                 Stack(
                   alignment: Alignment.center,
@@ -56,7 +56,7 @@ class _AccountChainStatsState extends State<AccountChainStatsWidget> {
                     NumberAnimation(
                       end: stats.blockCount,
                       isInt: true,
-                      style: Theme.of(context).textTheme.headline2,
+                      style: Theme.of(context).textTheme.headlineMedium,
                     ),
                     _getChart(stats),
                   ],
@@ -77,7 +77,7 @@ class _AccountChainStatsState extends State<AccountChainStatsWidget> {
                     children: <Widget>[
                       Text(
                         'Block hash',
-                        style: Theme.of(context).textTheme.bodyText2,
+                        style: Theme.of(context).textTheme.bodyMedium,
                       ),
                       Container(width: 10.0),
                       const Icon(
@@ -100,7 +100,7 @@ class _AccountChainStatsState extends State<AccountChainStatsWidget> {
                         child: Marquee(
                           child: Text(
                             stats.firstHash.toString(),
-                            style: Theme.of(context).textTheme.subtitle1,
+                            style: Theme.of(context).textTheme.titleMedium,
                           ),
                         ),
                       ),
@@ -183,20 +183,20 @@ class _AccountChainStatsState extends State<AccountChainStatsWidget> {
         children: [
           Text(
             '● ',
-            style: Theme.of(context).textTheme.bodyText2!.copyWith(
+            style: Theme.of(context).textTheme.bodyMedium!.copyWith(
                   color: kBlockTypeColorMap[blockType] ?? AppColors.errorColor,
                 ),
           ),
           AutoSizeText(
             FormatUtils.extractNameFromEnum<BlockTypeEnum>(blockType),
-            style: Theme.of(context).textTheme.bodyText2,
+            style: Theme.of(context).textTheme.bodyMedium,
           ),
           const SizedBox(
             width: 10.0,
           ),
           AutoSizeText(
             blockTypeCount.toString(),
-            style: Theme.of(context).textTheme.subtitle1,
+            style: Theme.of(context).textTheme.titleMedium,
           ),
         ],
       ),

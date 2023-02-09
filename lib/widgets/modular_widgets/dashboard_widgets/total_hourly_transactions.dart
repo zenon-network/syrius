@@ -40,7 +40,7 @@ class _TotalHourlyTransactionsState extends State<TotalHourlyTransactions> {
         NumberAnimation(
           end: widgetData['numAccountBlocks'],
           isInt: true,
-          style: Theme.of(context).textTheme.headline1!.copyWith(
+          style: Theme.of(context).textTheme.headlineLarge!.copyWith(
                 fontSize: 30.0,
               ),
         ),

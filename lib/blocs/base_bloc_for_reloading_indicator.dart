@@ -21,13 +21,13 @@ abstract class BaseBlocForReloadingIndicator<T> extends BaseBloc<T?>
       } else {
         throw noConnectionException;
       }
-    } catch (e) {
-      addError(e);
+    } catch (e, stackTrace) {
+      addError(e, stackTrace);
     }
   }
 
   @override
-  dispose() {
+  dispose() async {
     cancelStreamSubscription();
     super.dispose();
   }

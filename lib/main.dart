@@ -1,13 +1,15 @@
 import 'dart:io';
 import 'dart:isolate';
+
 import 'package:flutter/foundation.dart'
-    show debugDefaultTargetPlatformOverride;
+    show debugDefaultTargetPlatformOverride, kDebugMode;
 import 'package:flutter/gestures.dart';
-import 'package:flutter/material.dart' hide MenuItem;
+import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 import 'package:hive/hive.dart';
 import 'package:layout/layout.dart';
 import 'package:local_notifier/local_notifier.dart';
+import 'package:logging/logging.dart';
 import 'package:overlay_support/overlay_support.dart';
 import 'package:provider/provider.dart';
 import 'package:tray_manager/tray_manager.dart';
@@ -16,17 +18,7 @@ import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/model/model.dart';
 import 'package:zenon_syrius_wallet_flutter/screens/screens.dart';
 import 'package:zenon_syrius_wallet_flutter/services/shared_prefs_service.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/app_theme.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/keyboard_fixer.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/network_utils.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/node_utils.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/notifiers/app_theme_notifier.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/notifiers/default_address_notifier.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/notifiers/plasma_beneficiary_address_notifier.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/notifiers/plasma_generated_notifier.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/notifiers/text_scaling_notifier.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
@@ -40,6 +32,16 @@ main() async {
 
   Provider.debugCheckInvalidValueType = null;
   debugDefaultTargetPlatformOverride = TargetPlatform.fuchsia;
+
+  // Setup logger
+  Logger.root.level = Level.ALL;
+  Logger.root.onRecord.listen((record) {
+    if (kDebugMode) {
+      print(
+          '${record.level.name} ${record.loggerName} ${record.message} ${record.time}: '
+          '${record.error} ${record.stackTrace}\n');
+    }
+  });
 
   ensureDirectoriesExist();
   Hive.init(znnDefaultPaths.cache.path.toString());
@@ -242,37 +244,36 @@ class _MyAppState extends State<MyApp> with WindowListener, TrayListener {
                         onKey: (RawKeyEvent event) {
                           lockBloc.addEvent(LockEvent.resetTimer);
                         },
-                        child: KeyboardFixer(
-                          child: Layout(
-                            child: MaterialApp(
-                              title: 's y r i u s',
-                              debugShowCheckedModeBanner: false,
-                              theme: AppTheme.lightTheme,
-                              darkTheme: AppTheme.darkTheme,
-                              themeMode: appThemeNotifier.currentThemeMode,
-                              initialRoute: SplashScreen.route,
-                              routes: {
-                                AccessWalletScreen.route: (context) =>
-                                    const AccessWalletScreen(),
-                                SplashScreen.route: (context) =>
-                                    const SplashScreen(),
-                                MainAppContainer.route: (context) =>
-                                    const MainAppContainer(),
-                                NodeManagementScreen.route: (_) =>
-                                    const NodeManagementScreen(),
-                              },
-                              onGenerateRoute: (settings) {
-                                if (settings.name == SyriusErrorWidget.route) {
-                                  final args = settings.arguments
-                                      as CustomSyriusErrorWidgetArguments;
-                                  return MaterialPageRoute(
-                                    builder: (context) =>
-                                        SyriusErrorWidget(args.errorText),
-                                  );
-                                }
-                                return null;
-                              },
-                            ),
+                        child: Layout(
+                          child: MaterialApp(
+                            title: 's y r i u s',
+                            debugShowCheckedModeBanner: false,
+                            theme: AppTheme.lightTheme,
+                            darkTheme: AppTheme.darkTheme,
+                            themeMode: appThemeNotifier.currentThemeMode,
+                            initialRoute: SplashScreen.route,
+                            scrollBehavior: RemoveOverscrollEffect(),
+                            routes: {
+                              AccessWalletScreen.route: (context) =>
+                                  const AccessWalletScreen(),
+                              SplashScreen.route: (context) =>
+                                  const SplashScreen(),
+                              MainAppContainer.route: (context) =>
+                                  const MainAppContainer(),
+                              NodeManagementScreen.route: (_) =>
+                                  const NodeManagementScreen(),
+                            },
+                            onGenerateRoute: (settings) {
+                              if (settings.name == SyriusErrorWidget.route) {
+                                final args = settings.arguments
+                                    as CustomSyriusErrorWidgetArguments;
+                                return MaterialPageRoute(
+                                  builder: (context) =>
+                                      SyriusErrorWidget(args.errorText),
+                                );
+                              }
+                              return null;
+                            },
                           ),
                         ),
                       ),
@@ -320,6 +321,7 @@ class _MyAppState extends State<MyApp> with WindowListener, TrayListener {
     sl<Zenon>().wsClient.stop();
     Future.delayed(const Duration(seconds: 60)).then((value) => exit(0));
     await NodeUtils.closeEmbeddedNode();
+    await sl.reset();
     super.onWindowClose();
     deactivate();
     dispose();
@@ -360,7 +362,6 @@ class _MyAppState extends State<MyApp> with WindowListener, TrayListener {
   void dispose() {
     windowManager.removeListener(this);
     trayManager.removeListener(this);
-    sl.unregister();
     super.dispose();
   }
 }

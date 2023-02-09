@@ -38,7 +38,7 @@ class CreateProject extends StatelessWidget {
               width: 200.0,
               child: Text(
                 'Join the Aliens building the future on Network of Momentum',
-                style: Theme.of(context).textTheme.headline6,
+                style: Theme.of(context).textTheme.headlineSmall,
               ),
             ),
             kVerticalSpacing,

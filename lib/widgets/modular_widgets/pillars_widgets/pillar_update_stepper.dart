@@ -160,7 +160,7 @@ class _PillarUpdateStepperState extends State<PillarUpdateStepper> {
       children: [
         Text(
           'Pillar name',
-          style: Theme.of(context).textTheme.bodyText1,
+          style: Theme.of(context).textTheme.bodyLarge,
         ),
         kVerticalSpacing,
         InputField(
@@ -170,7 +170,7 @@ class _PillarUpdateStepperState extends State<PillarUpdateStepper> {
         kVerticalSpacing,
         Text(
           'Pillar reward address',
-          style: Theme.of(context).textTheme.bodyText1,
+          style: Theme.of(context).textTheme.bodyLarge,
         ),
         kVerticalSpacing,
         Form(
@@ -190,7 +190,7 @@ class _PillarUpdateStepperState extends State<PillarUpdateStepper> {
         kVerticalSpacing,
         Text(
           'Pillar producer address',
-          style: Theme.of(context).textTheme.bodyText1,
+          style: Theme.of(context).textTheme.bodyLarge,
         ),
         kVerticalSpacing,
         Form(
@@ -245,7 +245,7 @@ class _PillarUpdateStepperState extends State<PillarUpdateStepper> {
           children: [
             Text(
               'Percentage of momentum rewards given to the delegators',
-              style: Theme.of(context).textTheme.headline6,
+              style: Theme.of(context).textTheme.headlineSmall,
             ),
           ],
         ),
@@ -266,11 +266,11 @@ class _PillarUpdateStepperState extends State<PillarUpdateStepper> {
           children: [
             Text(
               'Pillar: ${100 - _momentumRewardPercentageGiven.toInt()}',
-              style: Theme.of(context).textTheme.subtitle1,
+              style: Theme.of(context).textTheme.titleMedium,
             ),
             Text(
               'Delegators: ${_momentumRewardPercentageGiven.toInt()}',
-              style: Theme.of(context).textTheme.subtitle1,
+              style: Theme.of(context).textTheme.titleMedium,
             ),
           ],
         ),
@@ -280,7 +280,7 @@ class _PillarUpdateStepperState extends State<PillarUpdateStepper> {
           children: [
             Text(
               'Percentage of delegation rewards given to the delegators',
-              style: Theme.of(context).textTheme.headline6,
+              style: Theme.of(context).textTheme.headlineSmall,
             ),
           ],
         ),
@@ -301,11 +301,11 @@ class _PillarUpdateStepperState extends State<PillarUpdateStepper> {
           children: [
             Text(
               'Pillar: ${100 - _delegateRewardPercentageGiven.toInt()}',
-              style: Theme.of(context).textTheme.subtitle1,
+              style: Theme.of(context).textTheme.titleMedium,
             ),
             Text(
               'Delegators: ${_delegateRewardPercentageGiven.toInt()}',
-              style: Theme.of(context).textTheme.subtitle1,
+              style: Theme.of(context).textTheme.titleMedium,
             ),
           ],
         ),

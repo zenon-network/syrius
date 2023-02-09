@@ -38,13 +38,13 @@ class StandardChart extends StatelessWidget {
             enabled: true,
             touchTooltipData: LineTouchTooltipData(
               fitInsideHorizontally: true,
-              tooltipBgColor: Theme.of(context).backgroundColor,
+              tooltipBgColor: Theme.of(context).colorScheme.background,
               tooltipMargin: 14.0,
               tooltipPadding: const EdgeInsets.all(4.0),
               tooltipRoundedRadius: 6.0,
               getTooltipItems: (touchedSpots) {
                 return touchedSpots.map(
-                      (LineBarSpot touchedSpot) {
+                  (LineBarSpot touchedSpot) {
                     final textStyle = TextStyle(
                       color: touchedSpot.bar.color,
                       fontWeight: FontWeight.bold,
@@ -52,7 +52,7 @@ class StandardChart extends StatelessWidget {
                     );
                     return LineTooltipItem(
                       '${touchedSpot.y == touchedSpot.y.toInt() ? touchedSpot.y.toInt() : touchedSpot.y} '
-                          '$lineBarDotSymbol',
+                      '$lineBarDotSymbol',
                       textStyle,
                     );
                   },
@@ -83,7 +83,7 @@ class StandardChart extends StatelessWidget {
                           value.toInt(), titlesReferenceDate),
                       dateFormat: 'd MMM',
                     ),
-                    style: Theme.of(context).textTheme.subtitle2!,
+                    style: Theme.of(context).textTheme.titleSmall!,
                   ),
                 ),
                 showTitles: true,
@@ -100,10 +100,10 @@ class StandardChart extends StatelessWidget {
                   child: Text(
                     value != 0
                         ? convertLeftSideTitlesToInt
-                        ? '${value.toInt()}'
-                        : value.toStringAsFixed(2)
+                            ? '${value.toInt()}'
+                            : value.toStringAsFixed(2)
                         : '',
-                    style: Theme.of(context).textTheme.subtitle2!,
+                    style: Theme.of(context).textTheme.titleSmall!,
                   ),
                 ),
                 reservedSize: 26.0,
@@ -116,8 +116,8 @@ class StandardChart extends StatelessWidget {
             ),
             topTitles: AxisTitles(
                 sideTitles: SideTitles(
-                  showTitles: false,
-                )),
+              showTitles: false,
+            )),
           ),
           borderData: FlBorderData(show: false),
           minX: 0.0,

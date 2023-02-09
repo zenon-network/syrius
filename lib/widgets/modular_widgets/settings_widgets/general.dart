@@ -44,7 +44,7 @@ class GeneralWidgetState extends State<GeneralWidget> {
             children: <Widget>[
               Text(
                 'Momentum height',
-                style: Theme.of(context).textTheme.subtitle1,
+                style: Theme.of(context).textTheme.titleMedium,
               ),
               Container(height: 10.0),
               Container(
@@ -63,7 +63,7 @@ class GeneralWidgetState extends State<GeneralWidget> {
                   child: NumberAnimation(
                     end: generalStats.frontierMomentum.height,
                     isInt: true,
-                    style: Theme.of(context).textTheme.headline2,
+                    style: Theme.of(context).textTheme.headlineMedium,
                   ),
                 ),
               ),
@@ -91,7 +91,7 @@ class GeneralWidgetState extends State<GeneralWidget> {
                       (generalStats.networkInfo.peers.isNotEmpty)
                           ? Text(
                               'Peers connected',
-                              style: Theme.of(context).textTheme.bodyText2,
+                              style: Theme.of(context).textTheme.bodyMedium,
                             )
                           : const Text('Peers available'),
                       const SizedBox(
@@ -100,11 +100,11 @@ class GeneralWidgetState extends State<GeneralWidget> {
                       (generalStats.networkInfo.peers.isNotEmpty)
                           ? Text(
                               '${generalStats.networkInfo.peers.length}',
-                              style: Theme.of(context).textTheme.subtitle1,
+                              style: Theme.of(context).textTheme.titleMedium,
                             )
                           : Text(
                               'No peers found',
-                              style: Theme.of(context).textTheme.bodyText2,
+                              style: Theme.of(context).textTheme.bodyMedium,
                             ),
                     ],
                   )
@@ -129,14 +129,14 @@ class GeneralWidgetState extends State<GeneralWidget> {
                     children: <Widget>[
                       Text(
                         'Timestamp',
-                        style: Theme.of(context).textTheme.bodyText2,
+                        style: Theme.of(context).textTheme.bodyMedium,
                       ),
                     ],
                   ),
                   const SizedBox(width: 10.0),
                   Text(
                     '${generalStats.frontierMomentum.timestamp}',
-                    style: Theme.of(context).textTheme.subtitle1,
+                    style: Theme.of(context).textTheme.titleMedium,
                   ),
                 ],
               ),
@@ -157,7 +157,7 @@ class GeneralWidgetState extends State<GeneralWidget> {
                   children: <Widget>[
                     Text(
                       'Momentum hash',
-                      style: Theme.of(context).textTheme.bodyText2,
+                      style: Theme.of(context).textTheme.bodyMedium,
                     ),
                     Container(width: 10.0),
                     const Icon(
@@ -180,7 +180,7 @@ class GeneralWidgetState extends State<GeneralWidget> {
                       child: Marquee(
                         child: Text(
                           '${generalStats.frontierMomentum.hash}',
-                          style: Theme.of(context).textTheme.subtitle1,
+                          style: Theme.of(context).textTheme.titleMedium,
                         ),
                       ),
                     ),

@@ -24,6 +24,17 @@ linter:
   rules:
     avoid_print: true  # Uncomment to disable the `avoid_print` rule
     prefer_single_quotes: true  # Uncomment to enable the `prefer_single_quotes` rule
-
+    cancel_subscriptions: true
+    close_sinks: true
+    comment_references: true
+    one_member_abstracts: true
+    always_use_package_imports: true
+    avoid_empty_else: true
+    avoid_slow_async_io: true
+    avoid_web_libraries_in_flutter: true
+    control_flow_in_finally: true
+    empty_statements: true
+    depend_on_referenced_packages: true
+    secure_pubspec_urls: true
 # Additional information about this file can be found at
 # https://dart.dev/guides/language/analysis-options

@@ -1,12 +1,12 @@
 import 'dart:async';
 
 import 'package:hive/hive.dart';
+import 'package:logging/logging.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/logger.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/zts_utils.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
@@ -80,8 +80,8 @@ class TokenMapBloc with RefreshBlocMixin {
         nextPageKey: nextPageKey,
         itemList: allItems,
       );
-    } catch (e) {
-      Logger.logError(e);
+    } catch (e, stackTrace) {
+      Logger('TokenMapBloc').log(Level.WARNING, '_fetchList', e, stackTrace);
       yield InfiniteScrollBlocListingState<Token>(
         error: e,
         nextPageKey: lastListingState.nextPageKey,

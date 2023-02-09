@@ -70,7 +70,7 @@ class _MyStepperButtonWithIconChild extends StatelessWidget {
         Icon(
           iconData,
           size: 17.0,
-          color: Theme.of(context).textTheme.headline6!.color,
+          color: Theme.of(context).textTheme.headlineSmall!.color,
         ),
       ],
     );

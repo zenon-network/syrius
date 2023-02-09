@@ -109,7 +109,7 @@ class _DualCoinStatsState extends State<DualCoinStats>
           value: currentTokenInfo.totalSupply / totalSupply,
           title: currentTokenInfo.symbol,
           radius: 60.0,
-          titleStyle: Theme.of(context).textTheme.subtitle2!.copyWith(
+          titleStyle: Theme.of(context).textTheme.titleSmall!.copyWith(
                 color: Colors.white,
               ),
         );

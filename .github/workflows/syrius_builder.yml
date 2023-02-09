@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - cicd
+  pull_request:
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
@@ -93,7 +94,8 @@ jobs:
           flutter build linux --release
       - name: Package zip
         run: |
-          cd build/linux/x64/release/bundle && zip -r ../../../../../syrius-alphanet-linux-amd64.zip *
+          cd build/linux/x64/release/bundle
+          zip -r ../../../../../syrius-alphanet-linux-amd64.zip *
       - name: Upload artifacts
         uses: actions/upload-artifact@v3
         with:
@@ -115,8 +117,15 @@ jobs:
           BODY=$(cat <<EOF
           Syrius $SYRIUS features the pre-release version of the [go-zenon](https://github.com/zenon-network/go-zenon) $GOZENON full node.
 
-          syrius for Windows requires Microsoft Visual C++ to be installed.
+          Syrius for Windows requires Microsoft Visual C++ to be installed.
           [Download Microsoft Visual C++](https://aka.ms/vs/16/release/vc_redist.x64.exe)
+
+          Github Action Context information
+          Git reference: ${{ github.ref }}
+          Repository URL:  ${{ github.repositoryUrl }}
+          Run ID: ${{ github.run_id }}
+          Commit hash: ${{ github.sha }}
+          Workflow hash: ${{ github.workflow_sha }}
           EOF
           )
           echo "$BODY"
@@ -143,9 +152,12 @@ jobs:
           cp syrius-alphanet-macos-universal.dmg releases/
           cp syrius-alphanet-linux-amd64.zip releases/
       - name: Generate checksums
-        run: cd releases/ && echo $(sha256sum *) >> SHA256CHECKSUMS.txt
+        run: |
+          cd releases/
+          echo $(sha256sum *)
+          echo $(sha256sum *) >> SHA256CHECKSUMS.txt
       - name: Upload files to a GitHub release
-        uses: svenstaro/upload-release-action@2.3.0
+        uses: svenstaro/upload-release-action@2.4.1
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           file: releases/*

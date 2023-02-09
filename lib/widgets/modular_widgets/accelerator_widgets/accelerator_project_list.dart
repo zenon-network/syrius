@@ -175,7 +175,8 @@ class _AcceleratorProjectListState extends State<AcceleratorProjectList> {
 
   Widget _getProjectsFilterTag(AcceleratorProjectsFilterTag filterTag) {
     return TagWidget(
-      text: FormatUtils.extractNameFromEnum<AcceleratorProjectsFilterTag>(filterTag),
+      text: FormatUtils.extractNameFromEnum<AcceleratorProjectsFilterTag>(
+          filterTag),
       hexColorCode: Theme.of(context)
           .colorScheme
           .primaryContainer
@@ -199,12 +200,14 @@ class _AcceleratorProjectListState extends State<AcceleratorProjectList> {
 
   Set<AcceleratorProject> _filterProjectsByFilterTags(List<Project> projects) {
     var filteredBaseProjects = const Iterable<Project>.empty();
-    if (_selectedProjectsFilterTag.contains(AcceleratorProjectsFilterTag.myProjects)) {
+    if (_selectedProjectsFilterTag
+        .contains(AcceleratorProjectsFilterTag.myProjects)) {
       filteredBaseProjects = projects.where(
         (project) => project.owner.toString() == kSelectedAddress,
       );
     }
-    if (_selectedProjectsFilterTag.contains(AcceleratorProjectsFilterTag.onlyAccepted)) {
+    if (_selectedProjectsFilterTag
+        .contains(AcceleratorProjectsFilterTag.onlyAccepted)) {
       if (filteredBaseProjects.isNotEmpty) {
         filteredBaseProjects = filteredBaseProjects.where(
           (project) => project.status == AcceleratorProjectStatus.active,
@@ -215,7 +218,8 @@ class _AcceleratorProjectListState extends State<AcceleratorProjectList> {
         );
       }
     }
-    if (_selectedProjectsFilterTag.contains(AcceleratorProjectsFilterTag.votingOpened)) {
+    if (_selectedProjectsFilterTag
+        .contains(AcceleratorProjectsFilterTag.votingOpened)) {
       if (filteredBaseProjects.isNotEmpty) {
         filteredBaseProjects = filteredBaseProjects.where(
           (project) => project.status == AcceleratorProjectStatus.voting,

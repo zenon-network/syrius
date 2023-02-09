@@ -20,8 +20,8 @@ abstract class BaseBlocWithRefreshMixin<T> extends BaseBloc<T>
       } else {
         throw noConnectionException;
       }
-    } catch (e) {
-      addError(e);
+    } catch (e, stackTrace) {
+      addError(e, stackTrace);
     }
   }
 

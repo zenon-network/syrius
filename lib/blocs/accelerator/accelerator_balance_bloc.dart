@@ -16,8 +16,8 @@ class AcceleratorBalanceBloc extends BaseBloc<AccountInfo?> {
       } else {
         throw 'Accelerator fund empty';
       }
-    } catch (e) {
-      addError(e);
+    } catch (e, stackTrace) {
+      addError(e, stackTrace);
     }
   }
 }

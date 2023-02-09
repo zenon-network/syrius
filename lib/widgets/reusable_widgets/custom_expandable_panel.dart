@@ -21,7 +21,7 @@ class CustomExpandablePanel extends StatefulWidget {
   ) {
     return Text(
       expandedText,
-      style: Theme.of(context).textTheme.subtitle2,
+      style: Theme.of(context).textTheme.titleSmall,
     );
   }
 }
@@ -43,7 +43,7 @@ class _CustomExpandablePanelState extends State<CustomExpandablePanel> {
           ),
           child: Text(
             widget.header,
-            style: Theme.of(context).textTheme.subtitle1,
+            style: Theme.of(context).textTheme.titleMedium,
           ),
         ),
         expanded: Padding(

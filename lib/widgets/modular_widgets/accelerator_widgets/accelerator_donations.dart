@@ -38,7 +38,7 @@ class AcceleratorDonations extends StatelessWidget {
               width: 200.0,
               child: Text(
                 'Fuel for the Mothership',
-                style: Theme.of(context).textTheme.headline6,
+                style: Theme.of(context).textTheme.headlineSmall,
               ),
             ),
             kVerticalSpacing,

@@ -83,7 +83,7 @@ class _AcceleratorStatsState extends State<AcceleratorStats> {
             tokenSymbol: kZnnCoin.symbol,
             builder: (amount, tokenSymbol) => Text(
               '$amount $tokenSymbol',
-              style: Theme.of(context).textTheme.subtitle1!,
+              style: Theme.of(context).textTheme.titleMedium!,
             ),
           ),
         ),
@@ -98,7 +98,7 @@ class _AcceleratorStatsState extends State<AcceleratorStats> {
             tokenSymbol: kQsrCoin.symbol,
             builder: (amount, tokenSymbol) => Text(
               '$amount $tokenSymbol',
-              style: Theme.of(context).textTheme.subtitle1!,
+              style: Theme.of(context).textTheme.titleMedium!,
             ),
           ),
         ),
@@ -148,7 +148,7 @@ class _AcceleratorStatsState extends State<AcceleratorStats> {
       value: value / sumValues,
       title: accountInfo.findTokenByTokenStandard(token.tokenStandard)!.symbol,
       radius: 60.0,
-      titleStyle: Theme.of(context).textTheme.bodyText1,
+      titleStyle: Theme.of(context).textTheme.bodyLarge,
     );
   }
 }

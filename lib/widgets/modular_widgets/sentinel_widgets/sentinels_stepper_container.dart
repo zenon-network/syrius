@@ -143,7 +143,7 @@ class _MainSentinelsState extends State<SentinelsStepperContainer> {
               bottom: 30.0,
             ),
             decoration: BoxDecoration(
-              color: Theme.of(context).backgroundColor,
+              color: Theme.of(context).colorScheme.background,
               borderRadius: BorderRadius.circular(6.0),
             ),
             child: Padding(
@@ -179,7 +179,7 @@ class _MainSentinelsState extends State<SentinelsStepperContainer> {
                           ),
                           Text(
                             'Sentinel Slot value\n$_qsrCost ${kQsrCoin.symbol}',
-                            style: Theme.of(context).textTheme.bodyText2,
+                            style: Theme.of(context).textTheme.bodyMedium,
                             textAlign: TextAlign.center,
                           ),
                         ],
@@ -202,7 +202,7 @@ class _MainSentinelsState extends State<SentinelsStepperContainer> {
                               'Deposited ${kQsrCoin.symbol}',
                               style: Theme.of(context)
                                   .textTheme
-                                  .bodyText1!
+                                  .bodyLarge!
                                   .copyWith(
                                     fontSize: 10.0,
                                   ),
@@ -223,7 +223,7 @@ class _MainSentinelsState extends State<SentinelsStepperContainer> {
                               'Remaining ${kQsrCoin.symbol}',
                               style: Theme.of(context)
                                   .textTheme
-                                  .bodyText1!
+                                  .bodyLarge!
                                   .copyWith(
                                     fontSize: 10.0,
                                   ),
@@ -240,7 +240,7 @@ class _MainSentinelsState extends State<SentinelsStepperContainer> {
                         child: Text(
                           'You have deposited $depositedQsr ${kQsrCoin.symbol}',
                           textAlign: TextAlign.center,
-                          style: Theme.of(context).textTheme.bodyText1,
+                          style: Theme.of(context).textTheme.bodyLarge,
                         ),
                       ),
                       kVerticalSpacing,
@@ -560,7 +560,7 @@ class _MainSentinelsState extends State<SentinelsStepperContainer> {
               child: InputField(
                 enabled: false,
                 controller: _znnAmountController,
-                validator: InputValidators.validateNumber,
+                validator: InputValidators.validateAmount,
               ),
             ),
           ],
@@ -666,30 +666,34 @@ class _MainSentinelsState extends State<SentinelsStepperContainer> {
                     child: RichText(
                       textAlign: TextAlign.center,
                       text: TextSpan(
-                        style: Theme.of(context).textTheme.headline6,
+                        style: Theme.of(context).textTheme.headlineSmall,
                         children: [
                           TextSpan(
                             text: 'Sentinel ',
-                            style: Theme.of(context).textTheme.headline6,
+                            style: Theme.of(context).textTheme.headlineSmall,
                           ),
                           TextSpan(
                             text: 'successfully',
-                            style:
-                                Theme.of(context).textTheme.headline6!.copyWith(
-                                      color: AppColors.znnColor,
-                                    ),
+                            style: Theme.of(context)
+                                .textTheme
+                                .headlineSmall!
+                                .copyWith(
+                                  color: AppColors.znnColor,
+                                ),
                           ),
                           TextSpan(
                             text: ' registered. Use ',
-                            style: Theme.of(context).textTheme.headline6,
+                            style: Theme.of(context).textTheme.headlineSmall,
                           ),
                           TextSpan(
                             text: 'znn-controller ',
-                            style:
-                                Theme.of(context).textTheme.headline6!.copyWith(
-                                      color: AppColors.znnColor,
-                                      decoration: TextDecoration.underline,
-                                    ),
+                            style: Theme.of(context)
+                                .textTheme
+                                .headlineSmall!
+                                .copyWith(
+                                  color: AppColors.znnColor,
+                                  decoration: TextDecoration.underline,
+                                ),
                             recognizer: TapGestureRecognizer()
                               ..onTap = () {
                                 NavigationUtils.openUrl(
@@ -705,7 +709,7 @@ class _MainSentinelsState extends State<SentinelsStepperContainer> {
                           ),
                           TextSpan(
                             text: ' to check the Sentinel status',
-                            style: Theme.of(context).textTheme.headline6,
+                            style: Theme.of(context).textTheme.headlineSmall,
                           ),
                         ],
                       ),
