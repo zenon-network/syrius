@@ -56,7 +56,7 @@ class CommunityCard extends StatelessWidget {
         ),
         _getListViewChild(
           iconData: MaterialCommunityIcons.forum,
-          title: 'ZenonORG Community Forum',
+          title: 'Zenon ORG Community Forum',
           url: kOrgCommunityForum,
           context: context,
         ),
@@ -68,7 +68,7 @@ class CommunityCard extends StatelessWidget {
         ),
         _getListViewChild(
           iconData: MaterialCommunityIcons.web,
-          title: 'ZenonORG Community',
+          title: 'Zenon ORG Community',
           url: kOrgCommunityWebsite,
           context: context,
         ),
@@ -94,17 +94,11 @@ class CommunityCard extends StatelessWidget {
           context: context,
         ),
         _getListViewChild(
-          iconData: MaterialCommunityIcons.wan,
+          iconData: Icons.explore_off_outlined,
           title: 'Zenon Hub Explorer',
-          url: kHubExplorer,
+          url: kHubCommunityExplorer,
           context: context,
-        ),
-        _getListViewChild(
-          iconData: MaterialCommunityIcons.magnify_scan,
-          title: 'Zenonscraper',
-          url: kScraper,
-          context: context,
-        ),
+        )
       ],
     );
   }
@@ -175,12 +169,6 @@ class CommunityCard extends StatelessWidget {
           iconData: MaterialCommunityIcons.book_open_page_variant,
           title: 'Zenon Wiki',
           url: kWiki,
-          context: context,
-        ),
-        _getListViewChild(
-          iconData: MaterialCommunityIcons.book,
-          title: 'Zenon Community Wiki',
-          url: kCommunityWiki,
           context: context,
         ),
         _getListViewChild(

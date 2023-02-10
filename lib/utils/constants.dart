@@ -138,21 +138,19 @@ const int kNotificationTypeEnumHiveTypeId = 101;
 const String kWebsite = 'https://zenon.network';
 const String kOrgCommunityWebsite = 'https://zenon.org';
 const String kOrgCommunityForum = 'https://forum.zenon.org';
-const String kHubCommunityWebsite = 'https://zenonhub.org';
+const String kHubCommunityWebsite = 'https://zenonhub.io';
+const String kHubCommunityExplorer = 'https://zenonhub.io/explorer';
 const String kTwitter = 'https://twitter.com/Zenon_Network';
 const String kTelegram = 'https://t.me/zenonnetwork';
 const String kGithub = 'https://github.com/zenon-network';
 const String kExplorer = 'https://explorer.zenon.network';
-const String kScraper = 'https://zenonscraper.com';
-const String kHubExplorer = 'https://www.zenonhub.org/explorer';
 const String kWiki = 'https://wiki.zenon.network';
-const String kCommunityWiki = 'https://docs.zenon.wiki';
 const String kOrgCommunityWiki = 'https://docs.zenon.org';
 const String kTools = 'https://zenon.tools';
 const String kWhitepaper =
     'https://github.com/zenon-network/zenon.network/releases/download/whitepaper/whitepaper.pdf';
 const String kZnnController =
-    'https://github.com/zenon-network/znn_controller_dart';
+    'https://github.com/zenon-network/znn_controller_dart/releases/latest';
 const String kBitcoinTalk =
     'https://bitcointalk.org/index.php?topic=5279643.msg55303681#msg55303681';
 const String kDiscord = 'https://discord.gg/zenonnetwork';
