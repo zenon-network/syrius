@@ -86,7 +86,7 @@ class _TokenBalanceState extends State<TokenBalance> {
       children: [
         Text(
           '$formattedAmount $tokenSymbol',
-          style: Theme.of(context).textTheme.bodyText1,
+          style: Theme.of(context).textTheme.bodyLarge,
         ),
       ],
     );
@@ -110,7 +110,7 @@ class _TokenBalanceState extends State<TokenBalance> {
           children: [
             Text(
               '● ',
-              style: Theme.of(context).textTheme.bodyText1!.copyWith(
+              style: Theme.of(context).textTheme.bodyLarge!.copyWith(
                     color: ColorUtils.getTokenColor(
                         _newTokenIds[index].token!.tokenStandard),
                   ),

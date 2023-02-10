@@ -58,7 +58,7 @@ class _SendLargeCardState extends State<SendLargeCard> {
   Widget build(BuildContext context) {
     return CardScaffold(
       title: 'Send',
-      titleFontSize: Theme.of(context).textTheme.headline5!.fontSize,
+      titleFontSize: Theme.of(context).textTheme.headlineSmall!.fontSize,
       description: 'Manage sending funds',
       childBuilder: () => _getBalanceStreamBuilder(),
     );

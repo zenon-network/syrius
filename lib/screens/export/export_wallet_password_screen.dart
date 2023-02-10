@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'package:file_selector_platform_interface/file_selector_platform_interface.dart';
+import 'package:file_selector/file_selector.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:path/path.dart' as path;
@@ -58,19 +58,20 @@ class _ExportWalletPasswordScreenState
                   color: Colors.transparent,
                   child: SvgPicture.asset(
                     'assets/svg/ic_export_seed.svg',
-                    color: AppColors.znnColor,
+                    colorFilter: const ColorFilter.mode(
+                        AppColors.znnColor, BlendMode.srcIn),
                     height: 55.0,
                   ),
                 ),
                 kVerticalSpacing,
                 Text(
                   'Export Seed Vault',
-                  style: Theme.of(context).textTheme.headline1,
+                  style: Theme.of(context).textTheme.headlineLarge,
                 ),
                 kVerticalSpacing,
                 Text(
                   'Please enter a strong Seed Vault Key to encrypt your Seed',
-                  style: Theme.of(context).textTheme.headline4,
+                  style: Theme.of(context).textTheme.headlineMedium,
                 ),
                 const SizedBox(
                   height: 50.0,
@@ -143,8 +144,7 @@ class _ExportWalletPasswordScreenState
                 initialDirectory =
                     (await getApplicationDocumentsDirectory()).path;
               }
-              final walletPath =
-                  await FileSelectorPlatform.instance.getSavePath(
+              final walletPath = await getSavePath(
                 acceptedTypeGroups: <XTypeGroup>[
                   const XTypeGroup(
                     label: 'file',

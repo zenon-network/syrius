@@ -105,7 +105,7 @@ class _CreatePillarState extends State<CreatePillar> {
             children: [
               Text(
                 'Update Pillar settings',
-                style: Theme.of(context).textTheme.headline6,
+                style: Theme.of(context).textTheme.headlineSmall,
               ),
               kVerticalSpacing,
               Row(

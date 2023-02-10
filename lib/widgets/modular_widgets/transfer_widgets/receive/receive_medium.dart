@@ -50,7 +50,7 @@ class _ReceiveMediumCardState extends State<ReceiveMediumCard> {
   Widget build(BuildContext context) {
     return CardScaffold(
       title: 'Receive',
-      titleFontSize: Theme.of(context).textTheme.headline5!.fontSize,
+      titleFontSize: Theme.of(context).textTheme.headlineSmall!.fontSize,
       description: 'Manage receiving funds',
       childBuilder: () => _getTokensStreamBuilder(),
     );
@@ -125,7 +125,7 @@ class _ReceiveMediumCardState extends State<ReceiveMediumCard> {
                         key: _amountKey,
                         autovalidateMode: AutovalidateMode.onUserInteraction,
                         child: InputField(
-                          validator: InputValidators.validateNumber,
+                          validator: InputValidators.validateAmount,
                           onChanged: (value) => setState(() {}),
                           inputFormatters:
                               FormatUtils.getAmountTextInputFormatters(

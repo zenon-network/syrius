@@ -152,7 +152,7 @@ class _CustomTableState<T> extends State<CustomTable<T>> {
       onPressed: widget.onShowMoreButtonPressed,
       child: Text(
         'Show more',
-        style: Theme.of(context).textTheme.subtitle1,
+        style: Theme.of(context).textTheme.titleMedium,
       ),
     );
   }
@@ -187,7 +187,7 @@ class CustomHeaderColumn extends StatelessWidget {
         children: [
           Text(
             columnName,
-            style: Theme.of(context).textTheme.bodyText2,
+            style: Theme.of(context).textTheme.bodyMedium,
           ),
           Visibility(
             visible: onSortArrowsPressed != null,
@@ -317,7 +317,7 @@ class CustomTableCell extends StatelessWidget {
                   AddressUtils.getLabel(address.toString()),
                   textAlign: textAlign,
                   style: textStyle ??
-                      Theme.of(context).textTheme.subtitle1!.copyWith(
+                      Theme.of(context).textTheme.titleMedium!.copyWith(
                             color: textColor,
                           ),
                   overflow: TextOverflow.ellipsis,
@@ -358,7 +358,7 @@ class CustomTableCell extends StatelessWidget {
                 text,
                 textAlign: textAlign,
                 style: textStyle ??
-                    Theme.of(context).textTheme.subtitle1!.copyWith(
+                    Theme.of(context).textTheme.titleMedium!.copyWith(
                           color: textColor,
                         ),
               ),

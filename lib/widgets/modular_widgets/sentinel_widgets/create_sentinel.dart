@@ -59,7 +59,7 @@ class _CreateSentinelState extends State<CreateSentinel> {
         children: [
           Text(
             'You already spawned a Sentinel on this address',
-            style: Theme.of(context).textTheme.bodyText1,
+            style: Theme.of(context).textTheme.bodyLarge,
           ),
           const StandardTooltipIcon(
             'Cannot reuse address. '

@@ -73,7 +73,7 @@ class _PillarCollectState extends State<PillarCollect> {
           ),
           isInt: false,
           after: ' ${kZnnCoin.symbol}',
-          style: Theme.of(context).textTheme.headline1!.copyWith(
+          style: Theme.of(context).textTheme.headlineLarge!.copyWith(
                 color: AppColors.znnColor,
                 fontSize: 30.0,
               ),

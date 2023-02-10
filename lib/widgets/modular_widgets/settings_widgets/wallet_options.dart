@@ -23,6 +23,7 @@ class WalletOptions extends StatefulWidget {
 
 class _WalletOptionsState extends State<WalletOptions> {
   bool? _launchAtStartup;
+  bool? _enableDesktopNotifications;
 
   @override
   void initState() {
@@ -30,6 +31,10 @@ class _WalletOptionsState extends State<WalletOptions> {
     _launchAtStartup = sharedPrefsService!.get(
       kLaunchAtStartupKey,
       defaultValue: kLaunchAtStartupDefaultValue,
+    );
+    _enableDesktopNotifications = sharedPrefsService!.get(
+      kEnableDesktopNotificationsKey,
+      defaultValue: kEnableDesktopNotificationsDefaultValue,
     );
   }
 
@@ -60,7 +65,7 @@ class _WalletOptionsState extends State<WalletOptions> {
         Text(
           'This option will erase the wallet files. Make sure you have a '
           'backup first',
-          style: Theme.of(context).textTheme.subtitle2,
+          style: Theme.of(context).textTheme.titleSmall,
         ),
         kVerticalSpacing,
         Center(
@@ -82,7 +87,7 @@ class _WalletOptionsState extends State<WalletOptions> {
       children: <Widget>[
         Text(
           'This option will delete the wallet cache and close the application',
-          style: Theme.of(context).textTheme.subtitle2,
+          style: Theme.of(context).textTheme.titleSmall,
         ),
         kVerticalSpacing,
         Center(
@@ -106,6 +111,7 @@ class _WalletOptionsState extends State<WalletOptions> {
     return Column(
       children: [
         _getLaunchAtStartupWidget(),
+        _getEnableDesktopNotifications(),
       ],
     );
   }
@@ -114,8 +120,8 @@ class _WalletOptionsState extends State<WalletOptions> {
     return Row(
       children: [
         Text(
-          'Launch at startup: ',
-          style: Theme.of(context).textTheme.subtitle1,
+          'Launch at startup ',
+          style: Theme.of(context).textTheme.bodyMedium,
         ),
         SyriusCheckbox(
           onChanged: (value) {
@@ -148,11 +154,11 @@ class _WalletOptionsState extends State<WalletOptions> {
         await launchAtStartup.disable();
       }
       await _saveLaunchAtStartupValueToCache(enabled);
-      _sendNotification(enabled);
+      _sendLaunchAtStartupStatusNotification(enabled);
     } on Exception catch (e) {
       NotificationUtils.sendNotificationError(
         e,
-        'Something went wrong while change launch at startup status',
+        'Something went wrong while setting launch at startup preference',
       );
     }
   }
@@ -164,12 +170,57 @@ class _WalletOptionsState extends State<WalletOptions> {
     );
   }
 
-  void _sendNotification(bool enabled) {
+  void _sendLaunchAtStartupStatusNotification(bool enabled) {
     sl.get<NotificationsBloc>().addNotification(
           WalletNotification(
-            title: 'Launch at startup was ${enabled ? 'enabled' : 'disabled'}',
+            title: 'Launch startup ${enabled ? 'enabled' : 'disabled'}',
             details:
                 'Launch at startup preference was ${enabled ? 'enabled' : 'disabled'}',
+            timestamp: DateTime.now().millisecondsSinceEpoch,
+            type: NotificationType.paymentSent,
+          ),
+        );
+  }
+
+  Widget _getEnableDesktopNotifications() {
+    return Row(
+      children: [
+        Text(
+          'Enable desktop notifications ',
+          style: Theme.of(context).textTheme.bodyMedium,
+        ),
+        SyriusCheckbox(
+          onChanged: (value) {
+            setState(() {
+              _enableDesktopNotifications = value;
+              _changeEnableDesktopNotificationsStatus(value ?? false);
+            });
+          },
+          value: _enableDesktopNotifications,
+          context: context,
+        ),
+      ],
+    );
+  }
+
+  Future<void> _changeEnableDesktopNotificationsStatus(bool enabled) async {
+    try {
+      await sharedPrefsService!.put(kEnableDesktopNotificationsKey, enabled);
+      _sendEnabledDesktopNotificationsStatusNotification(enabled);
+    } on Exception catch (e) {
+      NotificationUtils.sendNotificationError(
+        e,
+        'Something went wrong while setting desktop notifications preference',
+      );
+    }
+  }
+
+  void _sendEnabledDesktopNotificationsStatusNotification(bool enabled) {
+    sl.get<NotificationsBloc>().addNotification(
+          WalletNotification(
+            title: 'Desktop notifications ${enabled ? 'enabled' : 'disabled'}',
+            details:
+                'Desktop notifications preference was ${enabled ? 'enabled' : 'disabled'}',
             timestamp: DateTime.now().millisecondsSinceEpoch,
             type: NotificationType.paymentSent,
           ),

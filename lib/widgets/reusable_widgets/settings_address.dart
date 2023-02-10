@@ -65,10 +65,10 @@ class _SettingsAddressState extends State<SettingsAddress> {
                 children: [
                   Text(
                     _labelController.text,
-                    style: Theme.of(context).textTheme.bodyText1!.copyWith(
+                    style: Theme.of(context).textTheme.bodyLarge!.copyWith(
                           color: Theme.of(context)
                               .textTheme
-                              .bodyText1!
+                              .bodyLarge!
                               .color!
                               .withOpacity(0.7),
                         ),
@@ -126,7 +126,7 @@ class _SettingsAddressState extends State<SettingsAddress> {
                     setState(() {});
                   },
                   inputtedTextStyle:
-                      Theme.of(context).textTheme.bodyText2!.copyWith(
+                      Theme.of(context).textTheme.bodyMedium!.copyWith(
                             color: AppColors.znnColor,
                           ),
                   enabledBorder: OutlineInputBorder(
@@ -191,7 +191,7 @@ class _SettingsAddressState extends State<SettingsAddress> {
   Text _getAddressTextWidget() {
     return Text(
       widget.address!,
-      style: Theme.of(context).textTheme.bodyText2,
+      style: Theme.of(context).textTheme.bodyMedium,
     );
   }
 

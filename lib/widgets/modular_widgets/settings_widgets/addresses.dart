@@ -131,7 +131,7 @@ class AddressesState extends State<Addresses> {
                       (numberOfAddressesToAdd == 1)
                           ? 'Add $numberOfAddressesToAdd address  '
                           : 'Add $numberOfAddressesToAdd addresses',
-                      style: Theme.of(context).textTheme.bodyText1,
+                      style: Theme.of(context).textTheme.bodyLarge,
                     ),
                   ],
                 )),

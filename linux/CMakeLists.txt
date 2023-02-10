@@ -169,3 +169,9 @@ foreach(znn_library ${SYRIUS_LIBRARIES})
     COMPONENT Runtime)
   message(STATUS "Copy ZNN library: \"${znn_library}\"")
 endforeach(znn_library)
+
+add_custom_target(
+  "git_metadata" ALL
+  COMMAND "${CMAKE_HOME_DIRECTORY}/create-git-metadata.sh"
+  WORKING_DIRECTORY ${CMAKE_HOME_DIRECTORY}
+)

@@ -32,39 +32,39 @@ final ButtonStyle kOutlinedButtonStyle = OutlinedButton.styleFrom(
   textStyle: kOutlinedButtonTextStyle,
 );
 
-const TextStyle kText1TextStyle = TextStyle(
+const TextStyle kDisplaySmallTextStyle = TextStyle(
   fontSize: 14.0,
   fontWeight: FontWeight.w400,
 );
 
-const TextStyle kText2TextStyle = TextStyle(
+const TextStyle kBodyLargeTextStyle = TextStyle(
+  fontSize: 14.0,
+  fontWeight: FontWeight.w400,
+);
+
+const TextStyle kBodyMediumTextStyle = TextStyle(
   fontSize: 12.0,
   fontWeight: FontWeight.w400,
 );
 
-const TextStyle kHeadline6TextStyle = TextStyle(
-  fontSize: 16.0,
-  fontWeight: FontWeight.w400,
+const TextStyle kBodySmallTextStyle = TextStyle(
+  fontSize: 10.0,
+  fontWeight: FontWeight.w300,
 );
 
-const TextStyle kHeadline5TextStyle = TextStyle(
-  fontSize: 18.0,
-  fontWeight: FontWeight.w400,
+const TextStyle kHeadlineLargeTextStyle = TextStyle(
+  fontSize: 26.0,
+  fontWeight: FontWeight.w500,
 );
 
-const TextStyle kHeadline4TextStyle = TextStyle(
-  fontSize: 20.0,
-  fontWeight: FontWeight.w400,
-);
-
-const TextStyle kHeadline2TextStyle = TextStyle(
+const TextStyle kHeadlineMediumTextStyle = TextStyle(
   fontSize: 24.0,
   fontWeight: FontWeight.w500,
 );
 
-const TextStyle kHeadline1TextStyle = TextStyle(
-  fontSize: 26.0,
-  fontWeight: FontWeight.w500,
+const TextStyle kHeadlineSmallTextStyle = TextStyle(
+  fontSize: 16.0,
+  fontWeight: FontWeight.w400,
 );
 
 const TextStyle kOutlinedButtonTextStyle = TextStyle(
@@ -77,13 +77,13 @@ const TextStyle kTextButtonTextStyle = TextStyle(
   fontWeight: FontWeight.w400,
 );
 
-const TextStyle kSubtitle1TextStyle = TextStyle(
+const TextStyle kTitleMediumTextStyle = TextStyle(
   fontSize: 12.0,
   fontWeight: FontWeight.w400,
   color: AppColors.subtitleColor,
 );
 
-const TextStyle kSubtitle2TextStyle = TextStyle(
+const TextStyle kTitleSmallTextStyle = TextStyle(
   fontSize: 10.0,
   fontWeight: FontWeight.w400,
   color: AppColors.subtitleColor,
@@ -118,7 +118,7 @@ const OutlineInputBorder kOutlineInputBorder = OutlineInputBorder(
 
 class AppTheme {
   static final ThemeData lightTheme = ThemeData(
-    toggleableActiveColor: AppColors.znnColor,
+    useMaterial3: true,
     hoverColor: AppColors.lightTextFormFieldFill,
     textButtonTheme: kTextButtonThemeData,
     outlinedButtonTheme: OutlinedButtonThemeData(
@@ -136,10 +136,10 @@ class AppTheme {
     elevatedButtonTheme: ElevatedButtonThemeData(
       style: kElevatedButtonStyle,
     ),
-    backgroundColor: AppColors.backgroundLight,
     scaffoldBackgroundColor: AppColors.backgroundLight,
     textSelectionTheme: const TextSelectionThemeData(
       cursorColor: AppColors.znnColor,
+      selectionHandleColor: AppColors.znnColor,
     ),
     fontFamily: 'Roboto',
     inputDecorationTheme: InputDecorationTheme(
@@ -173,46 +173,89 @@ class AppTheme {
     dividerTheme: kDefaultDividerThemeData.copyWith(
       color: AppColors.lightDividerColor,
     ),
+    iconTheme: const IconThemeData(
+      color: AppColors.lightSecondary,
+    ),
+    textTheme: TextTheme(
+      bodyLarge: kBodyMediumTextStyle.copyWith(
+        color: Colors.black,
+      ),
+      bodyMedium: kBodyMediumTextStyle.copyWith(
+        color: Colors.black,
+      ),
+      bodySmall: kBodySmallTextStyle.copyWith(
+        color: Colors.black,
+      ),
+      titleMedium: kTitleMediumTextStyle,
+      titleSmall: kTitleSmallTextStyle,
+      headlineLarge: kHeadlineLargeTextStyle.copyWith(
+        color: Colors.black,
+      ),
+      headlineMedium: kHeadlineMediumTextStyle.copyWith(
+        color: Colors.black,
+      ),
+      headlineSmall: kHeadlineSmallTextStyle.copyWith(
+        color: Colors.black,
+      ),
+    ),
+    unselectedWidgetColor: AppColors.lightSecondaryContainer,
+    switchTheme: SwitchThemeData(
+      thumbColor: MaterialStateProperty.resolveWith<Color?>(
+          (Set<MaterialState> states) {
+        if (states.contains(MaterialState.disabled)) {
+          return null;
+        }
+        if (states.contains(MaterialState.selected)) {
+          return AppColors.znnColor;
+        }
+        return null;
+      }),
+      trackColor: MaterialStateProperty.resolveWith<Color?>(
+          (Set<MaterialState> states) {
+        if (states.contains(MaterialState.disabled)) {
+          return null;
+        }
+        if (states.contains(MaterialState.selected)) {
+          return AppColors.znnColor;
+        }
+        return null;
+      }),
+    ),
+    radioTheme: RadioThemeData(
+      fillColor: MaterialStateProperty.resolveWith<Color?>(
+          (Set<MaterialState> states) {
+        if (states.contains(MaterialState.disabled)) {
+          return null;
+        }
+        if (states.contains(MaterialState.selected)) {
+          return AppColors.znnColor;
+        }
+        return null;
+      }),
+    ),
+    checkboxTheme: CheckboxThemeData(
+      fillColor: MaterialStateProperty.resolveWith<Color?>(
+          (Set<MaterialState> states) {
+        if (states.contains(MaterialState.disabled)) {
+          return null;
+        }
+        if (states.contains(MaterialState.selected)) {
+          return AppColors.znnColor;
+        }
+        return null;
+      }),
+    ),
     colorScheme: const ColorScheme.light(
       primary: Colors.white,
       primaryContainer: AppColors.lightPrimaryContainer,
       secondary: AppColors.lightSecondary,
       secondaryContainer: AppColors.lightSecondaryContainer,
       error: AppColors.errorColor,
-    ),
-    iconTheme: const IconThemeData(
-      color: AppColors.lightSecondary,
-    ),
-    textTheme: TextTheme(
-      bodyText1: kText1TextStyle.copyWith(
-        color: Colors.black,
-      ),
-      bodyText2: kText2TextStyle.copyWith(
-        color: Colors.black,
-      ),
-      subtitle1: kSubtitle1TextStyle,
-      subtitle2: kSubtitle2TextStyle,
-      headline6: kHeadline6TextStyle.copyWith(
-        color: Colors.black,
-      ),
-      headline5: kHeadline5TextStyle.copyWith(
-        color: Colors.black,
-      ),
-      headline4: kHeadline4TextStyle.copyWith(
-        color: Colors.black,
-      ),
-      headline2: kHeadline2TextStyle.copyWith(
-        color: Colors.black,
-      ),
-      headline1: kHeadline1TextStyle.copyWith(
-        color: Colors.black,
-      ),
-    ),
-    unselectedWidgetColor: AppColors.lightSecondaryContainer,
+    ).copyWith(background: AppColors.backgroundLight),
   );
 
   static final ThemeData darkTheme = ThemeData(
-    toggleableActiveColor: AppColors.znnColor,
+    useMaterial3: true,
     hoverColor: AppColors.darkTextFormFieldFill,
     textButtonTheme: kTextButtonThemeData,
     outlinedButtonTheme: OutlinedButtonThemeData(
@@ -230,11 +273,11 @@ class AppTheme {
     elevatedButtonTheme: ElevatedButtonThemeData(
       style: kElevatedButtonStyle,
     ),
-    backgroundColor: AppColors.backgroundDark,
     scaffoldBackgroundColor: AppColors.backgroundDark,
     textSelectionTheme: TextSelectionThemeData(
       selectionColor: Colors.white.withOpacity(0.1),
       cursorColor: AppColors.znnColor,
+      selectionHandleColor: AppColors.znnColor,
     ),
     fontFamily: 'Roboto',
     inputDecorationTheme: InputDecorationTheme(
@@ -270,42 +313,85 @@ class AppTheme {
     dividerTheme: kDefaultDividerThemeData.copyWith(
       color: AppColors.darkDividerColor,
     ),
+    iconTheme: const IconThemeData(
+      color: AppColors.lightSecondary,
+    ),
+    textTheme: TextTheme(
+      bodyLarge: kBodyLargeTextStyle.copyWith(
+        color: Colors.white,
+      ),
+      bodyMedium: kBodyMediumTextStyle.copyWith(
+        color: Colors.white,
+      ),
+      bodySmall: kBodySmallTextStyle.copyWith(
+        color: Colors.white,
+      ),
+      titleMedium: kTitleMediumTextStyle,
+      titleSmall: kTitleSmallTextStyle,
+      headlineLarge: kHeadlineLargeTextStyle.copyWith(
+        color: Colors.white,
+      ),
+      headlineMedium: kHeadlineMediumTextStyle.copyWith(
+        color: Colors.white,
+      ),
+      headlineSmall: kHeadlineSmallTextStyle.copyWith(
+        color: Colors.white,
+      ),
+    ),
+    unselectedWidgetColor: AppColors.darkSecondaryContainer,
+    switchTheme: SwitchThemeData(
+      thumbColor: MaterialStateProperty.resolveWith<Color?>(
+          (Set<MaterialState> states) {
+        if (states.contains(MaterialState.disabled)) {
+          return null;
+        }
+        if (states.contains(MaterialState.selected)) {
+          return AppColors.znnColor;
+        }
+        return null;
+      }),
+      trackColor: MaterialStateProperty.resolveWith<Color?>(
+          (Set<MaterialState> states) {
+        if (states.contains(MaterialState.disabled)) {
+          return null;
+        }
+        if (states.contains(MaterialState.selected)) {
+          return AppColors.znnColor;
+        }
+        return null;
+      }),
+    ),
+    radioTheme: RadioThemeData(
+      fillColor: MaterialStateProperty.resolveWith<Color?>(
+          (Set<MaterialState> states) {
+        if (states.contains(MaterialState.disabled)) {
+          return null;
+        }
+        if (states.contains(MaterialState.selected)) {
+          return AppColors.znnColor;
+        }
+        return null;
+      }),
+    ),
+    checkboxTheme: CheckboxThemeData(
+      fillColor: MaterialStateProperty.resolveWith<Color?>(
+          (Set<MaterialState> states) {
+        if (states.contains(MaterialState.disabled)) {
+          return null;
+        }
+        if (states.contains(MaterialState.selected)) {
+          return AppColors.znnColor;
+        }
+        return null;
+      }),
+    ),
     colorScheme: const ColorScheme.dark(
       primary: AppColors.darkPrimary,
       primaryContainer: AppColors.darkPrimaryContainer,
       secondary: AppColors.darkSecondary,
       secondaryContainer: AppColors.darkSecondaryContainer,
       error: AppColors.errorColor,
-    ),
-    iconTheme: const IconThemeData(
-      color: AppColors.lightSecondary,
-    ),
-    textTheme: TextTheme(
-      bodyText1: kText1TextStyle.copyWith(
-        color: Colors.white,
-      ),
-      bodyText2: kText2TextStyle.copyWith(
-        color: Colors.white,
-      ),
-      subtitle1: kSubtitle1TextStyle,
-      subtitle2: kSubtitle2TextStyle,
-      headline6: kHeadline6TextStyle.copyWith(
-        color: Colors.white,
-      ),
-      headline5: kHeadline5TextStyle.copyWith(
-        color: Colors.white,
-      ),
-      headline4: kHeadline4TextStyle.copyWith(
-        color: AppColors.subtitleColor,
-      ),
-      headline2: kHeadline2TextStyle.copyWith(
-        color: Colors.white,
-      ),
-      headline1: kHeadline2TextStyle.copyWith(
-        color: Colors.white,
-      ),
-    ),
-    unselectedWidgetColor: AppColors.darkSecondaryContainer,
+    ).copyWith(background: AppColors.backgroundDark),
   );
 
   AppTheme._();

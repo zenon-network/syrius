@@ -41,11 +41,11 @@ class PillarsDeployBloc extends BaseBloc<AccountBlockTemplate?> {
         },
       ).onError(
         (error, stackTrace) {
-          addError(error.toString());
+          addError(error, stackTrace);
         },
       );
-    } catch (e) {
-      addError(e);
+    } catch (e, stackTrace) {
+      addError(e, stackTrace);
     }
   }
 

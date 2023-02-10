@@ -36,11 +36,11 @@ class SendPaymentBloc extends BaseBloc<AccountBlockTemplate?> {
         },
       ).onError(
         (error, stackTrace) {
-          addError(error.toString());
+          addError(error, stackTrace);
         },
       );
-    } catch (e) {
-      addError(e.toString());
+    } catch (e, stackTrace) {
+      addError(e, stackTrace);
     }
   }
 }

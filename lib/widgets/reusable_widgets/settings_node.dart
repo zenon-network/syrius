@@ -34,10 +34,18 @@ class _SettingsNodeState extends State<SettingsNode> {
 
   final GlobalKey<MyOutlinedButtonState> _changeButtonKey = GlobalKey();
 
+  int connectedNodeChainIdentifier = 1;
+
   @override
   void initState() {
-    super.initState();
     _nodeController.text = widget.node;
+
+    NodeUtils.getNodeChainIdentifier().then((chainIdentifier) {
+      connectedNodeChainIdentifier = chainIdentifier;
+      setState(() {});
+    });
+
+    super.initState();
   }
 
   @override
@@ -68,10 +76,10 @@ class _SettingsNodeState extends State<SettingsNode> {
                 children: [
                   Text(
                     _nodeController.text,
-                    style: Theme.of(context).textTheme.bodyText1!.copyWith(
+                    style: Theme.of(context).textTheme.bodyLarge!.copyWith(
                           color: Theme.of(context)
                               .textTheme
-                              .bodyText1!
+                              .bodyLarge!
                               .color!
                               .withOpacity(0.7),
                         ),
@@ -84,8 +92,17 @@ class _SettingsNodeState extends State<SettingsNode> {
         Visibility(
             visible: widget.currentNode.contains(widget.node),
             child: StandardTooltipIcon(
-                'Chain identifier ${getChainIdentifier()}',
-                MaterialCommunityIcons.identifier)),
+                (connectedNodeChainIdentifier == getChainIdentifier())
+                    ? 'Client chain identifier: ${getChainIdentifier().toString()}\n'
+                        'Node chain identifier: $connectedNodeChainIdentifier'
+                    : 'Chain identifier mismatch\n'
+                        'Client chain identifier: ${getChainIdentifier().toString()}\n'
+                        'Node chain identifier: $connectedNodeChainIdentifier',
+                MaterialCommunityIcons.identifier,
+                iconColor:
+                    (getChainIdentifier() == connectedNodeChainIdentifier)
+                        ? AppColors.znnColor
+                        : AppColors.errorColor)),
         const SizedBox(
           width: 8.0,
         ),
@@ -104,8 +121,16 @@ class _SettingsNodeState extends State<SettingsNode> {
         Visibility(
           visible: widget.node.contains('Embedded'),
           child: const StandardTooltipIcon(
-            'The Embedded Node can take several hours to fully sync with the network',
-            Icons.help,
+            'Integrated Full Node: enhanced security and privacy',
+            MaterialCommunityIcons.security,
+          ),
+        ),
+        Visibility(
+          visible: widget.node.contains('Embedded'),
+          child: const StandardTooltipIcon(
+            'The Embedded Node validates all network transactions\n'
+            'It may take several hours to fully sync with the network',
+            MaterialCommunityIcons.clock,
           ),
         ),
         const SizedBox(
@@ -166,7 +191,7 @@ class _SettingsNodeState extends State<SettingsNode> {
                     setState(() {});
                   },
                   inputtedTextStyle:
-                      Theme.of(context).textTheme.bodyText2!.copyWith(
+                      Theme.of(context).textTheme.bodyMedium!.copyWith(
                             color: AppColors.znnColor,
                           ),
                   enabledBorder: OutlineInputBorder(

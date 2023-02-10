@@ -49,12 +49,12 @@ class _ImportWalletSeedChoiceScreenState
                 ),
                 Text(
                   'Import your wallet',
-                  style: Theme.of(context).textTheme.headline1,
+                  style: Theme.of(context).textTheme.headlineLarge,
                 ),
                 kVerticalSpacing,
                 Text(
                   'Input your seed or import the Seed Vault',
-                  style: Theme.of(context).textTheme.headline4,
+                  style: Theme.of(context).textTheme.headlineMedium,
                 ),
                 kVerticalSpacing,
                 SizedBox(

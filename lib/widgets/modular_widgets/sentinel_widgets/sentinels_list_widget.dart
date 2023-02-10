@@ -154,7 +154,7 @@ class _SentinelsListWidgetState extends State<SentinelsListWidget> {
       minimumSize: const Size(55.0, 25.0),
       outlineColor: isSelected
           ? AppColors.errorColor
-          : Theme.of(context).textTheme.subtitle2!.color,
+          : Theme.of(context).textTheme.titleSmall!.color,
       onPressed: isSelected
           ? () {
               model.disassembleSentinel(context);
@@ -166,10 +166,10 @@ class _SentinelsListWidgetState extends State<SentinelsListWidget> {
           Text(
             'DISASSEMBLE',
             style: isSelected
-                ? Theme.of(context).textTheme.subtitle2!.copyWith(
-                      color: Theme.of(context).textTheme.bodyText1!.color,
+                ? Theme.of(context).textTheme.titleSmall!.copyWith(
+                      color: Theme.of(context).textTheme.bodyLarge!.color,
                     )
-                : Theme.of(context).textTheme.subtitle2,
+                : Theme.of(context).textTheme.titleSmall,
           ),
           const SizedBox(
             width: 20.0,
@@ -179,7 +179,7 @@ class _SentinelsListWidgetState extends State<SentinelsListWidget> {
             size: 11.0,
             color: isSelected
                 ? AppColors.errorColor
-                : Theme.of(context).textTheme.subtitle2!.color,
+                : Theme.of(context).textTheme.titleSmall!.color,
           ),
         ],
       ),

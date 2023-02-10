@@ -130,7 +130,7 @@ class _TokenCardState extends State<TokenCard> {
                 message: '${widget.token.name}: ${widget.token.symbol}',
                 child: Text(
                   widget.token.symbol.toUpperCase(),
-                  style: Theme.of(context).textTheme.bodyText1,
+                  style: Theme.of(context).textTheme.bodyLarge,
                 ),
               ),
               const SizedBox(
@@ -149,7 +149,7 @@ class _TokenCardState extends State<TokenCard> {
                         Expanded(
                           child: Text(
                             widget.token.tokenStandard.toString().toUpperCase(),
-                            style: Theme.of(context).textTheme.subtitle1,
+                            style: Theme.of(context).textTheme.titleMedium,
                           ),
                         ),
                         CopyToClipboardIcon(
@@ -232,7 +232,7 @@ class _TokenCardState extends State<TokenCard> {
                     ),
                     Text(
                       '${widget.token.decimals} decimals',
-                      style: Theme.of(context).textTheme.subtitle2,
+                      style: Theme.of(context).textTheme.titleSmall,
                     ),
                   ],
                 ),
@@ -249,7 +249,7 @@ class _TokenCardState extends State<TokenCard> {
                     kDefaultAddressList.contains(widget.token.owner.toString())
                         ? kAddressLabelMap[widget.token.owner.toString()]!
                         : widget.token.owner.toShortString(),
-                    style: Theme.of(context).textTheme.subtitle2,
+                    style: Theme.of(context).textTheme.titleSmall,
                   ),
                   CopyToClipboardIcon(widget.token.owner.toString()),
                 ],
@@ -360,7 +360,7 @@ class _TokenCardState extends State<TokenCard> {
             tokenSymbol: token.symbol,
             builder: (formattedAmount, tokenSymbol) => Text(
               '$formattedAmount $tokenSymbol',
-              style: Theme.of(context).textTheme.bodyText2,
+              style: Theme.of(context).textTheme.bodyMedium,
               textAlign: TextAlign.center,
             ),
           ),

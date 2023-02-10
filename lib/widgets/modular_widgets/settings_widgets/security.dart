@@ -507,7 +507,7 @@ class _SecurityWidgetState extends State<SecurityWidget> {
               _toBeSignedFilePath = path;
             });
           },
-          textStyle: Theme.of(context).textTheme.subtitle1,
+          textStyle: Theme.of(context).textTheme.titleMedium,
           key: _signSelectFileWidgetKey,
         ),
         Visibility(
@@ -593,7 +593,7 @@ class _SecurityWidgetState extends State<SecurityWidget> {
               _toBeVerifiedFilePath = path;
             });
           },
-          textStyle: Theme.of(context).textTheme.subtitle1,
+          textStyle: Theme.of(context).textTheme.titleMedium,
           key: _verifySelectFileWidgetKey,
         ),
         Visibility(

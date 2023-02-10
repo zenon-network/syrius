@@ -205,7 +205,7 @@ class InfiniteScrollTableHeaderColumn extends StatelessWidget {
           Expanded(
             child: Text(
               columnName,
-              style: Theme.of(context).textTheme.bodyText2,
+              style: Theme.of(context).textTheme.bodyMedium,
             ),
           ),
           Visibility(
@@ -346,7 +346,7 @@ class InfiniteScrollTableCell extends StatelessWidget {
                   AddressUtils.getLabel(address.toString()),
                   textAlign: textAlign,
                   style: textStyle ??
-                      Theme.of(context).textTheme.subtitle1!.copyWith(
+                      Theme.of(context).textTheme.titleMedium!.copyWith(
                             color: textColor,
                           ),
                   overflow: TextOverflow.ellipsis,
@@ -391,7 +391,7 @@ class InfiniteScrollTableCell extends StatelessWidget {
                 text,
                 textAlign: textAlign,
                 style: textStyle ??
-                    Theme.of(context).textTheme.subtitle1!.copyWith(
+                    Theme.of(context).textTheme.titleMedium!.copyWith(
                           color: textColor,
                         ),
               ),

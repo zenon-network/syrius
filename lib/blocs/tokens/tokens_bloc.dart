@@ -17,8 +17,8 @@ class TokensBloc extends BaseBloc<List<Token>?> with RefreshBlocMixin {
     try {
       addEvent(null);
       addEvent((await zenon!.embedded.token.getAll()).list);
-    } catch (e) {
-      addError(e);
+    } catch (e, stackTrace) {
+      addError(e, stackTrace);
     }
   }
 }

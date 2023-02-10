@@ -43,12 +43,12 @@ class _WalletSuccessScreenState extends State<WalletSuccessScreen> {
             ),
             Text(
               'You\'re all set',
-              style: Theme.of(context).textTheme.headline1,
+              style: Theme.of(context).textTheme.headlineLarge,
             ),
             kVerticalSpacing,
             Text(
               'The wallet has been successfully created',
-              style: Theme.of(context).textTheme.headline4,
+              style: Theme.of(context).textTheme.headlineMedium,
             ),
           ],
         ),

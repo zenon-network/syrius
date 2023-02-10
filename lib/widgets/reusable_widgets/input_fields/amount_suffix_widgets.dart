@@ -54,7 +54,7 @@ class AmountSuffixTokenSymbolWidget extends Container {
           ),
           child: Text(
             token.symbol,
-            style: Theme.of(context).textTheme.subtitle1!.copyWith(
+            style: Theme.of(context).textTheme.titleMedium!.copyWith(
                   color: Colors.white,
                 ),
           ),
@@ -84,7 +84,7 @@ class AmountSuffixMaxWidget extends InkWell {
             ),
             child: Text(
               'MAX',
-              style: Theme.of(context).textTheme.subtitle1,
+              style: Theme.of(context).textTheme.titleMedium,
             ),
           ),
         );

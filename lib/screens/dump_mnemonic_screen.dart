@@ -36,7 +36,7 @@ class _DumpMnemonicScreenState extends State<DumpMnemonicScreen> {
               visible: _seedWords == null,
               child: Text(
                 'Enter the wallet password to dump the mnemonic',
-                style: Theme.of(context).textTheme.headline1,
+                style: Theme.of(context).textTheme.headlineLarge,
               ),
             ),
             Visibility(

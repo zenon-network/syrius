@@ -22,12 +22,9 @@ class _NotificationsTabChildState extends State<NotificationsTabChild> {
   Widget build(BuildContext context) {
     _loadNotifications();
 
-    return ScrollConfiguration(
-      behavior: RemoveOverscrollEffect(),
-      child: WidgetAnimator(
-        curve: Curves.linear,
-        child: _getNotificationsContainer(),
-      ),
+    return WidgetAnimator(
+      curve: Curves.linear,
+      child: _getNotificationsContainer(),
     );
   }
 
@@ -55,7 +52,7 @@ class _NotificationsTabChildState extends State<NotificationsTabChild> {
     return ExpandablePanel(
       collapsed: Container(),
       theme: ExpandableThemeData(
-        iconColor: Theme.of(context).textTheme.subtitle1!.color,
+        iconColor: Theme.of(context).textTheme.titleMedium!.color,
         headerAlignment: ExpandablePanelHeaderAlignment.center,
         iconPlacement: ExpandablePanelIconPlacement.right,
       ),
@@ -68,7 +65,7 @@ class _NotificationsTabChildState extends State<NotificationsTabChild> {
           Expanded(
             child: Text(
               notification.title!,
-              style: Theme.of(context).textTheme.subtitle1,
+              style: Theme.of(context).textTheme.titleMedium,
             ),
           ),
         ],
@@ -80,7 +77,7 @@ class _NotificationsTabChildState extends State<NotificationsTabChild> {
             Expanded(
               child: Text(
                 notification.details!,
-                style: Theme.of(context).textTheme.subtitle1,
+                style: Theme.of(context).textTheme.titleMedium,
               ),
             ),
             CopyToClipboardIcon(notification.details),

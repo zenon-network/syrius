@@ -48,12 +48,12 @@ class _ImportWalletPasswordScreenState
                 ),
                 Text(
                   'Create a wallet password',
-                  style: Theme.of(context).textTheme.headline1,
+                  style: Theme.of(context).textTheme.headlineLarge,
                 ),
                 kVerticalSpacing,
                 Text(
                   'This is the password that will be required to unlock the wallet',
-                  style: Theme.of(context).textTheme.headline4,
+                  style: Theme.of(context).textTheme.headlineMedium,
                 ),
                 const SizedBox(
                   height: 100.0,

@@ -279,7 +279,7 @@ class _MainPillarsState extends State<PillarsStepperContainer> {
             visible: qsrInfo.deposit > 0,
             child: Container(
               decoration: BoxDecoration(
-                color: Theme.of(context).backgroundColor,
+                color: Theme.of(context).colorScheme.background,
                 borderRadius: BorderRadius.circular(6),
               ),
               margin: const EdgeInsets.only(
@@ -323,7 +323,7 @@ class _MainPillarsState extends State<PillarsStepperContainer> {
                             Text(
                               'Current Pillar Slot fee\n${qsrInfo.cost} '
                               '${kQsrCoin.symbol}',
-                              style: Theme.of(context).textTheme.bodyText2,
+                              style: Theme.of(context).textTheme.bodyMedium,
                               textAlign: TextAlign.center,
                             ),
                           ],
@@ -339,7 +339,7 @@ class _MainPillarsState extends State<PillarsStepperContainer> {
                             'You have deposited ${qsrInfo.deposit} '
                             '${kQsrCoin.symbol}',
                             textAlign: TextAlign.center,
-                            style: Theme.of(context).textTheme.bodyText1,
+                            style: Theme.of(context).textTheme.bodyLarge,
                           ),
                         ),
                         kVerticalSpacing,
@@ -543,7 +543,7 @@ class _MainPillarsState extends State<PillarsStepperContainer> {
               children: [
                 Text(
                   kQsrCoin.symbol,
-                  style: Theme.of(context).textTheme.subtitle2!.copyWith(
+                  style: Theme.of(context).textTheme.titleSmall!.copyWith(
                         color: Colors.white,
                       ),
                 ),
@@ -705,7 +705,7 @@ class _MainPillarsState extends State<PillarsStepperContainer> {
               child: InputField(
                 enabled: false,
                 controller: _znnAmountController,
-                validator: InputValidators.validateNumber,
+                validator: InputValidators.validateAmount,
               ),
             ),
           ],
@@ -821,30 +821,34 @@ class _MainPillarsState extends State<PillarsStepperContainer> {
                     child: RichText(
                       textAlign: TextAlign.center,
                       text: TextSpan(
-                        style: Theme.of(context).textTheme.headline6,
+                        style: Theme.of(context).textTheme.headlineSmall,
                         children: [
                           TextSpan(
                             text: 'Pillar ',
-                            style: Theme.of(context).textTheme.headline6,
+                            style: Theme.of(context).textTheme.headlineSmall,
                           ),
                           TextSpan(
                             text: 'successfully',
-                            style:
-                                Theme.of(context).textTheme.headline6!.copyWith(
-                                      color: AppColors.znnColor,
-                                    ),
+                            style: Theme.of(context)
+                                .textTheme
+                                .headlineSmall!
+                                .copyWith(
+                                  color: AppColors.znnColor,
+                                ),
                           ),
                           TextSpan(
                             text: ' registered. Use ',
-                            style: Theme.of(context).textTheme.headline6,
+                            style: Theme.of(context).textTheme.headlineSmall,
                           ),
                           TextSpan(
                             text: 'znn-controller ',
-                            style:
-                                Theme.of(context).textTheme.headline6!.copyWith(
-                                      color: AppColors.znnColor,
-                                      decoration: TextDecoration.underline,
-                                    ),
+                            style: Theme.of(context)
+                                .textTheme
+                                .headlineSmall!
+                                .copyWith(
+                                  color: AppColors.znnColor,
+                                  decoration: TextDecoration.underline,
+                                ),
                             recognizer: TapGestureRecognizer()
                               ..onTap = () {
                                 NavigationUtils.openUrl(
@@ -857,7 +861,7 @@ class _MainPillarsState extends State<PillarsStepperContainer> {
                           ),
                           TextSpan(
                             text: ' to check the Pillar status',
-                            style: Theme.of(context).textTheme.headline6,
+                            style: Theme.of(context).textTheme.headlineSmall,
                           ),
                         ],
                       ),
@@ -937,7 +941,7 @@ class _MainPillarsState extends State<PillarsStepperContainer> {
           children: [
             Text(
               'Please choose the type of Pillar you want to register',
-              style: Theme.of(context).textTheme.headline6,
+              style: Theme.of(context).textTheme.headlineSmall,
             ),
           ],
         ),
@@ -960,7 +964,7 @@ class _MainPillarsState extends State<PillarsStepperContainer> {
     return ListTile(
       title: Text(
         text,
-        style: Theme.of(context).textTheme.bodyText1,
+        style: Theme.of(context).textTheme.bodyLarge,
       ),
       leading: Radio(
         activeColor: AppColors.znnColor,
@@ -1103,7 +1107,7 @@ class _MainPillarsState extends State<PillarsStepperContainer> {
           children: [
             Text(
               'Percentage of momentum rewards given to the delegators',
-              style: Theme.of(context).textTheme.headline6,
+              style: Theme.of(context).textTheme.headlineSmall,
             ),
           ],
         ),
@@ -1124,11 +1128,11 @@ class _MainPillarsState extends State<PillarsStepperContainer> {
           children: [
             Text(
               'Pillar: ${100 - _momentumRewardPercentageGiven.toInt()}',
-              style: Theme.of(context).textTheme.subtitle1,
+              style: Theme.of(context).textTheme.titleMedium,
             ),
             Text(
               'Delegators: ${_momentumRewardPercentageGiven.toInt()}',
-              style: Theme.of(context).textTheme.subtitle1,
+              style: Theme.of(context).textTheme.titleMedium,
             ),
           ],
         ),
@@ -1138,7 +1142,7 @@ class _MainPillarsState extends State<PillarsStepperContainer> {
           children: [
             Text(
               'Percentage of delegation rewards given to the delegators',
-              style: Theme.of(context).textTheme.headline6,
+              style: Theme.of(context).textTheme.headlineSmall,
             ),
           ],
         ),
@@ -1159,11 +1163,11 @@ class _MainPillarsState extends State<PillarsStepperContainer> {
           children: [
             Text(
               'Pillar: ${100 - _delegateRewardPercentageGiven.toInt()}',
-              style: Theme.of(context).textTheme.subtitle1,
+              style: Theme.of(context).textTheme.titleMedium,
             ),
             Text(
               'Delegators: ${_delegateRewardPercentageGiven.toInt()}',
-              style: Theme.of(context).textTheme.subtitle1,
+              style: Theme.of(context).textTheme.titleMedium,
             ),
           ],
         ),

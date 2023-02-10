@@ -26,8 +26,8 @@ class PillarsQsrInfoBloc extends BaseBloc<PillarsQsrInfo?> {
           cost: cost,
         ),
       );
-    } catch (e) {
-      addError(e);
+    } catch (e, stackTrace) {
+      addError(e, stackTrace);
     }
   }
 }

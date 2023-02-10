@@ -18,8 +18,8 @@ class PlasmaStatsBloc extends BaseBloc<List<PlasmaInfoWrapper>>
         kDefaultAddressList.map((e) => _getPlasma(e!)).toList(),
       );
       addEvent(plasmaInfoWrapper);
-    } catch (e) {
-      addError(e);
+    } catch (e, stackTrace) {
+      addError(e, stackTrace);
     }
   }
 
@@ -29,7 +29,8 @@ class PlasmaStatsBloc extends BaseBloc<List<PlasmaInfoWrapper>>
         Address.parse(address),
       );
       return PlasmaInfoWrapper(address: address, plasmaInfo: plasmaInfo);
-    } catch (e) {
+    } catch (e, stackTrace) {
+      addError(e, stackTrace);
       rethrow;
     }
   }

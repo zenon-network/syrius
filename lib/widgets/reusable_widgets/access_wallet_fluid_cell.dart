@@ -45,7 +45,8 @@ class AccessWalletFluidCell extends FluidCell {
                   color: Colors.transparent,
                   child: SvgPicture.asset(
                     buttonIconLocation,
-                    color: AppColors.znnColor,
+                    colorFilter: const ColorFilter.mode(
+                        AppColors.znnColor, BlendMode.srcIn),
                   ),
                 ),
                 Padding(
@@ -56,7 +57,7 @@ class AccessWalletFluidCell extends FluidCell {
                   child: Text(
                     buttonText,
                     textAlign: TextAlign.center,
-                    style: Theme.of(context).textTheme.headline6,
+                    style: Theme.of(context).textTheme.headlineSmall,
                   ),
                 ),
               ],

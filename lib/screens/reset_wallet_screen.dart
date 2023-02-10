@@ -44,7 +44,7 @@ class _ResetWalletScreenState extends State<ResetWalletScreen> {
                 kVerticalSpacing,
                 Text(
                   'Reset wallet',
-                  style: Theme.of(context).textTheme.headline1,
+                  style: Theme.of(context).textTheme.headlineLarge,
                 ),
                 kVerticalSpacing,
                 SizedBox(
@@ -54,7 +54,7 @@ class _ResetWalletScreenState extends State<ResetWalletScreen> {
                     'you have a backup of your mnemonic or Seed Vault & Seed Vault Key before you proceed '
                     'with erasing the wallet',
                     textAlign: TextAlign.center,
-                    style: Theme.of(context).textTheme.headline4,
+                    style: Theme.of(context).textTheme.headlineMedium,
                   ),
                 ),
               ],

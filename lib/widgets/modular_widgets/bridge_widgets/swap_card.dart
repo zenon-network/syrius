@@ -100,7 +100,6 @@ class _SwapCardState extends State<SwapCard> {
           controller: _scrollController,
           children: [
             _getInputFields(accountInfo),
-            _getCheckBox(),
           ],
         ),
       ),
@@ -209,7 +208,7 @@ class _SwapCardState extends State<SwapCard> {
         ),
         Text(
           'I have enough funds to cover the gas fees in order to complete the swap',
-          style: Theme.of(context).textTheme.bodyText2,
+          style: Theme.of(context).textTheme.bodyMedium,
         )
       ],
     );
