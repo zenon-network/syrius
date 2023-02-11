@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_vector_icons/flutter_vector_icons.dart';
+import 'package:logging/logging.dart';
 import 'package:provider/provider.dart';
 import 'package:uni_links/uni_links.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
@@ -58,6 +59,7 @@ class _MainAppContainerState extends State<MainAppContainer>
   final NodeSyncStatusBloc _netSyncStatusBloc = NodeSyncStatusBloc();
 
   late StreamSubscription _lockBlockStreamSubscription;
+  late StreamSubscription _incomingLinkSubscription;
 
   Timer? _navigateToLockTimer;
 
@@ -72,10 +74,7 @@ class _MainAppContainerState extends State<MainAppContainer>
     canRequestFocus: false,
   );
 
-  final _scaffoldKey = GlobalKey();
-
   bool _initialUriIsHandled = false;
-
 
   @override
   void initState() {
@@ -476,6 +475,7 @@ class _MainAppContainerState extends State<MainAppContainer>
     _netSyncStatusBloc.dispose();
     _navigateToLockTimer?.cancel();
     _lockBlockStreamSubscription.cancel();
+    _incomingLinkSubscription.cancel();
     _tabController?.dispose();
     super.dispose();
   }
@@ -640,16 +640,15 @@ class _MainAppContainerState extends State<MainAppContainer>
     }
   }
 
-
-  /// Handle incoming links - the ones that the app will receive from the OS
-  /// while already started.
   void _handleIncomingLinks() {
     if (!kIsWeb) {
-      // It will handle app links while the app is already started - be it in
-      // the foreground or in the background.
-      uriLinkStream.listen((Uri? uri) {
+      _incomingLinkSubscription = uriLinkStream.listen((Uri? uri) {
+        Logger('MainAppContainer')
+            .log(Level.INFO, '_handleIncomingLinks ${uri!.toString()}');
         if (!mounted) return;
       }, onError: (Object err) {
+        Logger('MainAppContainer')
+            .log(Level.WARNING, '_handleIncomingLinks', err);
         if (!mounted) return;
       });
     }
@@ -658,29 +657,20 @@ class _MainAppContainerState extends State<MainAppContainer>
   Future<void> _handleInitialUri() async {
     if (!_initialUriIsHandled) {
       _initialUriIsHandled = true;
-      _showSnackBar('_handleInitialUri called');
       try {
         final uri = await getInitialUri();
-        if (uri == null) {
-        } else {
+        if (uri != null) {
+          Logger('MainAppContainer').log(Level.INFO, '_handleInitialUri $uri');
         }
         if (!mounted) return;
-      } on PlatformException {
-        // Platform messages may fail but we ignore the exception
-      } on FormatException {
+      } on PlatformException catch (e, stackTrace) {
+        Logger('MainAppContainer').log(Level.WARNING,
+            '_handleInitialUri PlatformException', e, stackTrace);
+      } on FormatException catch (e, stackTrace) {
+        Logger('MainAppContainer').log(
+            Level.WARNING, '_handleInitialUri FormatException', e, stackTrace);
         if (!mounted) return;
       }
     }
-  }
-
-  void _showSnackBar(String msg) {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      final context = _scaffoldKey.currentContext;
-      if (context != null) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text(msg),
-        ));
-      }
-    });
   }
 }

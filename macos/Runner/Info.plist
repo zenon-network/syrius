@@ -26,6 +26,7 @@
 	<string>$(PRODUCT_COPYRIGHT)</string>
 	<key>NSMainNibFile</key>
 	<string>MainMenu</string>
+	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>
 			<key>CFBundleTypeRole</key>

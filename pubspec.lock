@@ -1105,28 +1105,32 @@ packages:
     dependency: "direct main"
     description:
       name: uni_links
-      url: "https://pub.dartlang.org"
+      sha256: "051098acfc9e26a9fde03b487bef5d3d228ca8f67693480c6f33fd4fbb8e2b6e"
+      url: "https://pub.dev"
     source: hosted
     version: "0.5.1"
   uni_links_desktop:
     dependency: "direct main"
     description:
       name: uni_links_desktop
-      url: "https://pub.dartlang.org"
+      sha256: "205484c01890259b56d9271bcf299adf9889e881616c976f13061e29e94bb9f0"
+      url: "https://pub.dev"
     source: hosted
     version: "0.1.4"
   uni_links_platform_interface:
     dependency: transitive
     description:
       name: uni_links_platform_interface
-      url: "https://pub.dartlang.org"
+      sha256: "929cf1a71b59e3b7c2d8a2605a9cf7e0b125b13bc858e55083d88c62722d4507"
+      url: "https://pub.dev"
     source: hosted
     version: "1.0.0"
   uni_links_web:
     dependency: transitive
     description:
       name: uni_links_web
-      url: "https://pub.dartlang.org"
+      sha256: "7539db908e25f67de2438e33cc1020b30ab94e66720b5677ba6763b25f6394df"
+      url: "https://pub.dev"
     source: hosted
     version: "0.1.0"
   universal_io:

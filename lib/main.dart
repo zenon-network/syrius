@@ -116,9 +116,6 @@ main() async {
 }
 
 Future<void> _setupTrayManager() async {
-  if (!Platform.isWindows) {
-    await trayManager.setTitle('s y r i u s');
-  }
   await trayManager.setIcon(
     Platform.isWindows
         ? 'assets/images/tray_app_icon.ico'
