@@ -9,3 +9,4 @@ export 'settings_widgets/settings_widgets.dart';
 export 'staking_widgets/staking_widgets.dart';
 export 'token_widgets/token_widgets.dart';
 export 'transfer_widgets/transfer_widgets.dart';
+export 'wallet_connect_widgets/wallet_connect_widgets.dart';

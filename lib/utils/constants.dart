@@ -204,6 +204,7 @@ const List<Tabs> kTabsWithTextTitles = [
 
 const List<Tabs> kTabsWithIconTitles = [
   Tabs.bridge,
+  Tabs.walletConnect,
   Tabs.accelerator,
   Tabs.help,
   Tabs.notifications,

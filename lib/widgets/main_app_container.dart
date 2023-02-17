@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:flutter_vector_icons/flutter_vector_icons.dart';
 import 'package:logging/logging.dart';
 import 'package:provider/provider.dart';
@@ -17,6 +18,7 @@ import 'package:zenon_syrius_wallet_flutter/utils/format_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/notification_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/notifiers/text_scaling_notifier.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/tab_children_widgets/wallet_connect_tab_child.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
@@ -35,6 +37,7 @@ enum Tabs {
   resyncWallet,
   bridge,
   accelerator,
+  walletConnect,
 }
 
 class MainAppContainer extends StatefulWidget {
@@ -286,6 +289,16 @@ class _MainAppContainerState extends State<MainAppContainer>
         ),
       ),
       Tab(
+        child: SvgPicture.asset(
+          'assets/svg/walletconnect-logo.svg',
+          width: 24.0,
+          fit: BoxFit.fitWidth,
+          color: _isTabSelected(Tabs.walletConnect)
+              ? AppColors.znnColor
+              : Theme.of(context).iconTheme.color,
+        ),
+      ),
+      Tab(
         child: Icon(
           MaterialCommunityIcons.rocket,
           size: 24.0,
@@ -439,6 +452,7 @@ class _MainAppContainerState extends State<MainAppContainer>
               _navigateTo(Tabs.notifications),
         ),
         const BridgeTabChild(),
+        const WalletConnectTabChild(),
         AcceleratorTabChild(
           onStepperNotificationSeeMorePressed: () =>
               _navigateTo(Tabs.notifications),
