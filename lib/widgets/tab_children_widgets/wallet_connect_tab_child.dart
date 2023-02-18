@@ -13,7 +13,7 @@ class WalletConnectTabChild extends StatelessWidget {
           width: context.layout.value(
             xs: kStaggeredNumOfColumns,
           ),
-          child: const WalletConnectCard(),
+          child: const WalletConnectPairingCard(),
         ),
       ],
     );

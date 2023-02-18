@@ -1,1 +1,1 @@
-export 'wallet_connect_card.dart';
+export 'wallet_connect_pairing_card.dart';

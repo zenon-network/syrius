@@ -19,6 +19,7 @@ import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/model/model.dart';
 import 'package:zenon_syrius_wallet_flutter/screens/screens.dart';
 import 'package:zenon_syrius_wallet_flutter/services/shared_prefs_service.dart';
+import 'package:zenon_syrius_wallet_flutter/services/wallet_connect_service.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
@@ -147,7 +148,7 @@ void setup() {
   zenon = sl<Zenon>();
   sl.registerLazySingletonAsync<SharedPrefsService>(
       (() => SharedPrefsService.getInstance().then((value) => value!)));
-
+  sl.registerLazySingleton<WalletConnectService>(() => WalletConnectService());
   sl.registerSingleton<AutoReceiveTxWorker>(AutoReceiveTxWorker.getInstance());
 
   sl.registerSingleton<ReceivePort>(ReceivePort(),

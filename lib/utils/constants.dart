@@ -3,6 +3,9 @@ import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
+// WalletConnect
+const String kWcProjectId = '0f19e445d8064bfe0f8c0d8fd828eb00';
+
 // Dimensions
 const double kAmountSuffixHeight = 25.0;
 const double kAmountSuffixWidth = 40.0;
