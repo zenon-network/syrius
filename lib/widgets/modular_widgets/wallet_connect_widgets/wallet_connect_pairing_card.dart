@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:walletconnect_flutter_v2/apis/core/pairing/i_pairing_store.dart';
 import 'package:walletconnect_flutter_v2/apis/core/pairing/utils/pairing_models.dart';
+import 'package:walletconnect_flutter_v2/walletconnect_flutter_v2.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/model/database/notification_type.dart';
@@ -34,6 +36,7 @@ class _WalletConnectPairingCardState extends State<WalletConnectPairingCard> {
       padding: const EdgeInsets.all(15.0),
       child: Column(
         children: [
+          kVerticalSpacing,
           InputField(
             onChanged: (value) {
               setState(() {});
@@ -67,6 +70,13 @@ class _WalletConnectPairingCardState extends State<WalletConnectPairingCard> {
             },
             minimumSize: kLoadingButtonMinSize,
           ),
+          MyOutlinedButton(
+            text: 'Print pairings',
+            onPressed: () {
+              _showPairings(sl.get<WalletConnectService>().getPairings());
+            },
+            minimumSize: kLoadingButtonMinSize,
+          ),
         ],
       ),
     );
@@ -85,6 +95,7 @@ class _WalletConnectPairingCardState extends State<WalletConnectPairingCard> {
   Future<void> _pairWithDapp(Uri uri) async {
     try {
       final pairingInfo = await sl.get<WalletConnectService>().pair(uri);
+      print('Pairing info: ${pairingInfo.toJson()}');
       _uriController.clear();
       _sendSuccessfullyPairedNotification(pairingInfo);
     } catch (e) {
@@ -105,5 +116,12 @@ class _WalletConnectPairingCardState extends State<WalletConnectPairingCard> {
             type: NotificationType.paymentSent,
           ),
         );
+  }
+
+  void _showPairings(IPairingStore pairings) async {
+    await pairings.init();
+    print('Pairings: ${pairings.getAll()}');
+    final uriParams = WalletConnectUtils.parseUri(Uri.parse(_uriController.text));
+    print('Other pairing: ${pairings.get(uriParams.topic)?.toJson()}');
   }
 }

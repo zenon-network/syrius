@@ -5,6 +5,7 @@ import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 // WalletConnect
 const String kWcProjectId = '0f19e445d8064bfe0f8c0d8fd828eb00';
+const String kZenonNameSpace = 'zenon';
 
 // Dimensions
 const double kAmountSuffixHeight = 25.0;
