@@ -303,6 +303,7 @@ class _MyAppState extends State<MyApp> with WindowListener {
     sl<Zenon>().wsClient.stop();
     Future.delayed(const Duration(seconds: 60)).then((value) => exit(0));
     await NodeUtils.closeEmbeddedNode();
+    await sl.reset();
     super.onWindowClose();
     deactivate();
     dispose();
@@ -311,8 +312,7 @@ class _MyAppState extends State<MyApp> with WindowListener {
 
   @override
   void dispose() {
-    windowManager.removeListener(this);
-    sl.unregister();
+    windowManager.removeListener(this);    
     super.dispose();
   }
 }
