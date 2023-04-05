@@ -16,10 +16,7 @@ class WalletConnectService {
 
   Future<void> initClient() async {
     _wcClient = await Web3Wallet.createInstance(
-      core: Core(
-        relayUrl: 'wss://relay.walletconnect.com', // The relay websocket URL
-        projectId: kWcProjectId,
-      ),
+      projectId: kWcProjectId,
       metadata: const PairingMetadata(
         name: 's y r i u s',
         description: 'A wallet for interacting with the Zenon network',
@@ -101,7 +98,7 @@ class WalletConnectService {
 
   Future<void> rejectSession({
     required int id,
-    required WalletConnectErrorResponse reason,
+    required WalletConnectError reason,
   }) =>
       _wcClient.rejectSession(id: id, reason: reason);
 

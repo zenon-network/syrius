@@ -277,10 +277,10 @@ packages:
     dependency: "direct main"
     description:
       name: desktop_drop
-      sha256: f649bd498e87d39ddf3ba229a720144fe2a5362ba921627303f97d0b09481e7d
+      sha256: "4ca4d960f4b11c032e9adfd2a0a8ac615bc3fddb4cbe73dcf840dd8077582186"
       url: "https://pub.dev"
     source: hosted
-    version: "0.4.0"
+    version: "0.4.1"
   device_info_plus:
     dependency: "direct main"
     description:
@@ -1393,10 +1393,10 @@ packages:
     dependency: "direct main"
     description:
       name: walletconnect_flutter_v2
-      sha256: "115a9a18317f377aa3ca121392dd452d4af31d421162b53aa195b18854966abe"
+      sha256: e3310bcb8d7266eab931cd1128ebc283618f0b92aad439513b20616ccb17d486
       url: "https://pub.dev"
     source: hosted
-    version: "1.0.2"
+    version: "1.2.3"
   watcher:
     dependency: transitive
     description:

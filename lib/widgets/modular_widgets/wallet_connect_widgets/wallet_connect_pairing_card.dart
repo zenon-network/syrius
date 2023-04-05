@@ -1,14 +1,18 @@
 import 'package:flutter/material.dart';
-import 'package:walletconnect_flutter_v2/apis/core/pairing/i_pairing_store.dart';
-import 'package:walletconnect_flutter_v2/apis/core/pairing/utils/pairing_models.dart';
+import 'package:stacked/stacked.dart';
 import 'package:walletconnect_flutter_v2/walletconnect_flutter_v2.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
+import 'package:zenon_syrius_wallet_flutter/blocs/wallet_connect/wallet_connect_pairings_bloc.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/model/database/notification_type.dart';
 import 'package:zenon_syrius_wallet_flutter/model/database/wallet_notification.dart';
 import 'package:zenon_syrius_wallet_flutter/services/wallet_connect_service.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
+
+const String _kWidgetTitle = 'WalletConnect Pairing';
+// TODO: change description
+const String _kWidgetDescription = 'Description';
 
 class WalletConnectPairingCard extends StatefulWidget {
   const WalletConnectPairingCard({Key? key}) : super(key: key);
@@ -21,17 +25,18 @@ class WalletConnectPairingCard extends StatefulWidget {
 class _WalletConnectPairingCardState extends State<WalletConnectPairingCard> {
   final TextEditingController _uriController = TextEditingController();
 
+  late WalletConnectPairingsBloc _pairingsBloc;
+
   @override
   Widget build(BuildContext context) {
     return CardScaffold(
-      title: 'WalletConnect Pairing',
-      // TODO: to be changed
-      description: 'Description',
-      childBuilder: () => _getCardBody(context),
+      title: _kWidgetTitle,
+      description: _kWidgetDescription,
+      childBuilder: () => _getCardBody(),
     );
   }
 
-  Widget _getCardBody(BuildContext context) {
+  Widget _getCardBody() {
     return Padding(
       padding: const EdgeInsets.all(15.0),
       child: Column(
@@ -70,12 +75,34 @@ class _WalletConnectPairingCardState extends State<WalletConnectPairingCard> {
             },
             minimumSize: kLoadingButtonMinSize,
           ),
+          kVerticalSpacing,
           MyOutlinedButton(
-            text: 'Print pairings',
+            text: 'Refresh pairings',
             onPressed: () {
-              _showPairings(sl.get<WalletConnectService>().getPairings());
+              _pairingsBloc.getPairings();
             },
             minimumSize: kLoadingButtonMinSize,
+          ),
+          kVerticalSpacing,
+          Expanded(
+            child: ViewModelBuilder<WalletConnectPairingsBloc>.reactive(
+              viewModelBuilder: () => WalletConnectPairingsBloc(),
+              onViewModelReady: (model) {
+                _pairingsBloc = model;
+                model.getPairings();
+              },
+              builder: (_, model, __) => StreamBuilder<List<PairingInfo>?>(
+                stream: model.stream,
+                builder: (context, snapshot) {
+                  if (snapshot.hasError) {
+                    return SyriusErrorWidget(snapshot.error!);
+                  } else if (snapshot.hasData) {
+                    return _showPairings(snapshot.data!);
+                  }
+                  return const SyriusLoadingWidget();
+                },
+              ),
+            ),
           ),
         ],
       ),
@@ -108,7 +135,8 @@ class _WalletConnectPairingCardState extends State<WalletConnectPairingCard> {
   void _sendSuccessfullyPairedNotification(PairingInfo pairingInfo) {
     sl.get<NotificationsBloc>().addNotification(
           WalletNotification(
-            title: 'Successfully paired with ${pairingInfo.peerMetadata?.name ?? 'dApp'}',
+            title:
+                'Successfully paired with ${pairingInfo.peerMetadata?.name ?? 'dApp'}',
             timestamp: DateTime.now().millisecondsSinceEpoch,
             details:
                 'Successfully paired with ${pairingInfo.peerMetadata?.name ?? 'dApp'} '
@@ -118,10 +146,14 @@ class _WalletConnectPairingCardState extends State<WalletConnectPairingCard> {
         );
   }
 
-  void _showPairings(IPairingStore pairings) async {
-    await pairings.init();
-    print('Pairings: ${pairings.getAll()}');
-    final uriParams = WalletConnectUtils.parseUri(Uri.parse(_uriController.text));
-    print('Other pairing: ${pairings.get(uriParams.topic)?.toJson()}');
+  Widget _showPairings(List<PairingInfo> pairings) {
+    return ListView.builder(
+      itemCount: pairings.length,
+      itemBuilder: (_, index) {
+        debugPrint('Pairings length: ${pairings.length}');
+        debugPrint('Index: $index');
+        return Text(pairings.elementAt(index).toJson().toString());
+      },
+    );
   }
 }
