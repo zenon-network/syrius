@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:stacked/stacked.dart';
 import 'package:walletconnect_flutter_v2/walletconnect_flutter_v2.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/wallet_connect/wallet_connect_pairings_bloc.dart';
@@ -79,30 +78,9 @@ class _WalletConnectPairingCardState extends State<WalletConnectPairingCard> {
           MyOutlinedButton(
             text: 'Refresh pairings',
             onPressed: () {
-              _pairingsBloc.getPairings();
+              _pairingsBloc.refreshResults();
             },
             minimumSize: kLoadingButtonMinSize,
-          ),
-          kVerticalSpacing,
-          Expanded(
-            child: ViewModelBuilder<WalletConnectPairingsBloc>.reactive(
-              viewModelBuilder: () => WalletConnectPairingsBloc(),
-              onViewModelReady: (model) {
-                _pairingsBloc = model;
-                model.getPairings();
-              },
-              builder: (_, model, __) => StreamBuilder<List<PairingInfo>?>(
-                stream: model.stream,
-                builder: (context, snapshot) {
-                  if (snapshot.hasError) {
-                    return SyriusErrorWidget(snapshot.error!);
-                  } else if (snapshot.hasData) {
-                    return _showPairings(snapshot.data!);
-                  }
-                  return const SyriusLoadingWidget();
-                },
-              ),
-            ),
           ),
         ],
       ),
@@ -146,16 +124,5 @@ class _WalletConnectPairingCardState extends State<WalletConnectPairingCard> {
             type: NotificationType.paymentSent,
           ),
         );
-  }
-
-  Widget _showPairings(List<PairingInfo> pairings) {
-    return ListView.builder(
-      itemCount: pairings.length,
-      itemBuilder: (_, index) {
-        debugPrint('Pairings length: ${pairings.length}');
-        debugPrint('Index: $index');
-        return Text(pairings.elementAt(index).toJson().toString());
-      },
-    );
   }
 }
