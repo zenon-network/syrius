@@ -59,6 +59,13 @@ dependencies:
   uni_links: ^0.5.1
   logging: ^1.1.1
   walletconnect_flutter_v2: ^1.2.3
+  bot_toast: ^4.0.1
+  preference_list: ^0.0.1
+  screen_capturer: ^0.1.2
+  uni_ocr: ^0.1.0
+  zxing2: ^0.2.0
+  image: ^4.0.10
+  clipboard_watcher: ^0.2.0
 
 dev_dependencies:
   flutter_test:
