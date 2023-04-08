@@ -121,8 +121,10 @@ class _WalletConnectPairingCardState extends State<WalletConnectPairingCard> {
 
   Future<void> _pairWithDapp(Uri uri) async {
     try {
-      final pairingInfo = await sl.get<WalletConnectService>().pair(uri);
+      final wcService = sl.get<WalletConnectService>();
+      final pairingInfo = await wcService.pair(uri);
       print('Pairing info: ${pairingInfo.toJson()}');
+      wcService.activatePairing(topic: pairingInfo.topic);
       _uriController.clear();
       _sendSuccessfullyPairedNotification(pairingInfo);
     } catch (e) {
