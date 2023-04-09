@@ -1,12 +1,13 @@
 import 'dart:io';
 
+import 'package:flutter/cupertino.dart';
 import 'package:zenon_syrius_wallet_flutter/model/model.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 
-String? kLastWalletConnectUri;
+ValueNotifier<String?> kLastWalletConnectUriNotifier = ValueNotifier(null);
 String? kCurrentNode;
 String? kSelectedAddress;
 String? kKeyStorePath;

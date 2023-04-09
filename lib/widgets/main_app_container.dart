@@ -702,15 +702,15 @@ class _MainAppContainerState extends State<MainAppContainer>
     // TODO: add a stronger patter
     if (text.isNotEmpty && text.contains('wc:') && text.contains('symKey')) {
       // This check is needed because onClipboardChanged is called twice sometimes
-      if (kLastWalletConnectUri != text) {
-        kLastWalletConnectUri = text;
+      if (kLastWalletConnectUriNotifier.value != text) {
+        kLastWalletConnectUriNotifier.value = text;
         sl<NotificationsBloc>().addNotification(
           WalletNotification(
             title:
                 'WalletConnect link detected. Go to WalletConnect tab to connect.',
             timestamp: DateTime.now().millisecondsSinceEpoch,
             details: 'A WalletConnect link has been copied to clipboard. '
-                'Go to the WalletConnect tab to connect with the dApp through $kLastWalletConnectUri',
+                'Go to the WalletConnect tab to connect with the dApp through ${kLastWalletConnectUriNotifier.value}',
             type: NotificationType.copiedToClipboard,
           ),
         );

@@ -30,7 +30,7 @@ class WalletConnectPairingCard extends StatefulWidget {
 
 class _WalletConnectPairingCardState extends State<WalletConnectPairingCard> {
   final TextEditingController _uriController = TextEditingController(
-    text: kLastWalletConnectUri,
+    text: kLastWalletConnectUriNotifier.value,
   );
   CapturedData? _lastCapturedData;
 
@@ -49,34 +49,42 @@ class _WalletConnectPairingCardState extends State<WalletConnectPairingCard> {
       child: Column(
         children: [
           kVerticalSpacing,
-          InputField(
-            onChanged: (value) {
-              setState(() {});
+          ValueListenableBuilder<String?>(
+            builder: (_, value, child) {
+              _uriController.text = value ?? 'Empty URI';
+              return child!;
             },
-            controller: _uriController,
-            suffixIcon: RawMaterialButton(
-              shape: const CircleBorder(),
-              onPressed: () {
-                ClipboardUtils.pasteToClipboard(context, (String value) {
-                  _uriController.text = value;
-                  setState(() {});
-                });
+            valueListenable: kLastWalletConnectUriNotifier,
+            child: InputField(
+              onChanged: (value) {
+                setState(() {});
               },
-              child: const Icon(
-                Icons.content_paste,
-                color: AppColors.darkHintTextColor,
-                size: 15.0,
+              controller: _uriController,
+              suffixIcon: RawMaterialButton(
+                shape: const CircleBorder(),
+                onPressed: () {
+                  ClipboardUtils.pasteToClipboard(context, (String value) {
+                    _uriController.text = value;
+                    setState(() {});
+                  });
+                },
+                child: const Icon(
+                  Icons.content_paste,
+                  color: AppColors.darkHintTextColor,
+                  size: 15.0,
+                ),
               ),
+              suffixIconConstraints: const BoxConstraints(
+                maxWidth: 45.0,
+                maxHeight: 20.0,
+              ),
+              hintText: 'dApp URI',
             ),
-            suffixIconConstraints: const BoxConstraints(
-              maxWidth: 45.0,
-              maxHeight: 20.0,
-            ),
-            hintText: 'dApp URI',
           ),
           kVerticalSpacing,
           MyOutlinedButton(
             text: 'Connect',
+            // TODO: add validator for WC URI
             onPressed: () {
               _showPairingDialog(Uri.parse(_uriController.text));
             },

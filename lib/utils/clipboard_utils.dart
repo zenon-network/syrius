@@ -16,7 +16,7 @@ class ClipboardUtils {
     if (enableClipboardWatcher) {
       clipboardWatcher.start();
     } else {
-      kLastWalletConnectUri = null;
+      kLastWalletConnectUriNotifier.value = null;
       clipboardWatcher.stop();
     }
   }
