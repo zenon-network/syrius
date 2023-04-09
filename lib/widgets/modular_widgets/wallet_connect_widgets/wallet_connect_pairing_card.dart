@@ -29,7 +29,9 @@ class WalletConnectPairingCard extends StatefulWidget {
 }
 
 class _WalletConnectPairingCardState extends State<WalletConnectPairingCard> {
-  final TextEditingController _uriController = TextEditingController();
+  final TextEditingController _uriController = TextEditingController(
+    text: kLastWalletConnectUri,
+  );
   CapturedData? _lastCapturedData;
 
   @override

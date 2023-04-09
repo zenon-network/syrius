@@ -5,11 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:preference_list/preference_list.dart';
 import 'package:screen_capturer/screen_capturer.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/buttons/buttons.dart';
-import 'package:zxing2/qrcode.dart';
-import 'package:image/image.dart' as img;
 
 final screenCapturer = ScreenCapturer.instance;
 
@@ -45,34 +40,6 @@ class _QrScreenScannerState extends State<QrScreenScanner>
     ClipboardData? newClipboardData =
         await Clipboard.getData(Clipboard.kTextPlain);
     print(newClipboardData?.text ?? "");
-  }
-
-  void _handleClickCapture(CaptureMode mode) async {
-    // Directory directory = await getApplicationDocumentsDirectory();
-    // String imageName =
-    //     'Screenshot-${DateTime.now().millisecondsSinceEpoch}.png';
-    // String imagePath =
-    //     '${directory.path}/text_recognizer/Screenshots/$imageName';
-    // _lastCapturedData = await screenCapturer.capture(
-    //   mode: mode,
-    //   imagePath: imagePath,
-    //   silent: true,
-    // );
-    // if (_lastCapturedData != null) {
-    //   var image = img.decodePng(File(imagePath).readAsBytesSync())!;
-    //
-    //   LuminanceSource source = RGBLuminanceSource(
-    //       image.width, image.height, image.getBytes().buffer.asInt32List());
-    //   var bitmap = BinaryBitmap(HybridBinarizer(source));
-    //
-    //   var reader = QRCodeReader();
-    //   var result = reader.decode(bitmap);
-    //   _qrCode = reader.decode(bitmap).text;
-    //   print('QR code: $_qrCode');
-    // } else {
-    //   print('User canceled capture');
-    // }
-    // setState(() {});
   }
 
   Widget _buildBody(BuildContext context) {
@@ -123,18 +90,6 @@ class _QrScreenScannerState extends State<QrScreenScanner>
         ),
           ],
         ),
-        Row(
-          children: [
-            MyOutlinedButton(
-              text: 'Scan QR code',
-              onPressed: () {
-                _handleClickCapture(CaptureMode.region);
-              },
-              minimumSize: kLoadingButtonMinSize,
-            ),
-          ],
-        ),
-        if (_qrCode != null) Text(_qrCode ?? ''),
       ],
     );
   }

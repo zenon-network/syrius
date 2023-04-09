@@ -171,9 +171,11 @@ const String kAutoEraseNumAttemptsKey = 'auto_erase_num_attempts';
 
 // Wallet preferences
 const String kLaunchAtStartupKey = 'launch_at_startup';
-const bool kLaunchAtStartupDefaultValue = false;
 const String kEnableDesktopNotificationsKey = 'enable_desktop_notifications';
+const String kEnableClipboardWatcherKey = 'enable_clipboard_watcher';
+const bool kLaunchAtStartupDefaultValue = false;
 const bool kEnableDesktopNotificationsDefaultValue = false;
+const bool kEnableClipboardWatcherDefaultValue = false;
 
 /// Node management
 const String kChainIdKey = 'chain_id';

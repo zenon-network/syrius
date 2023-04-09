@@ -5,6 +5,8 @@ import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
+
+String? kLastWalletConnectUri;
 String? kCurrentNode;
 String? kSelectedAddress;
 String? kKeyStorePath;

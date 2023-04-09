@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:clipboard_watcher/clipboard_watcher.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -12,6 +13,7 @@ import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/model/model.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/clipboard_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/extensions.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/format_utils.dart';
@@ -55,7 +57,7 @@ class MainAppContainer extends StatefulWidget {
 }
 
 class _MainAppContainerState extends State<MainAppContainer>
-    with TickerProviderStateMixin {
+    with TickerProviderStateMixin, ClipboardListener {
   late AnimationController _animationController;
   late Animation _animation;
 
@@ -81,6 +83,8 @@ class _MainAppContainerState extends State<MainAppContainer>
 
   @override
   void initState() {
+    clipboardWatcher.addListener(this);
+    ClipboardUtils.toggleClipboardWatcherStatus();
     _netSyncStatusBloc.getDataPeriodically();
     _transferTabChild = TransferTabChild(
       navigateToBridgeTab: () {
@@ -684,6 +688,31 @@ class _MainAppContainerState extends State<MainAppContainer>
         Logger('MainAppContainer').log(
             Level.WARNING, '_handleInitialUri FormatException', e, stackTrace);
         if (!mounted) return;
+      }
+    }
+  }
+
+  @override
+  void onClipboardChanged() async {
+    print('onClipboardChanged main app container');
+    ClipboardData? newClipboardData =
+        await Clipboard.getData(Clipboard.kTextPlain);
+    final text = newClipboardData?.text ?? '';
+    // TODO: add a stronger patter
+    if (text.isNotEmpty && text.contains('wc:') && text.contains('symKey')) {
+      // This check is needed because onClipboardChanged is called twice sometimes
+      if (kLastWalletConnectUri != text) {
+        kLastWalletConnectUri = text;
+        sl<NotificationsBloc>().addNotification(
+          WalletNotification(
+            title:
+                'WalletConnect link detected. Go to WalletConnect tab to connect.',
+            timestamp: DateTime.now().millisecondsSinceEpoch,
+            details: 'A WalletConnect link has been copied to clipboard. '
+                'Go to the WalletConnect tab to connect with the dApp through $kLastWalletConnectUri',
+            type: NotificationType.copiedToClipboard,
+          ),
+        );
       }
     }
   }
