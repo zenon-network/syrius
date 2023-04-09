@@ -585,8 +585,10 @@ class _MainAppContainerState extends State<MainAppContainer>
       _transferTabChild!.sendCard = DimensionCard.small;
       _transferTabChild!.receiveCard = DimensionCard.large;
     }
-    kCurrentPage = page;
-    _tabController!.animateTo(kTabs.indexOf(page));
+    if (kCurrentPage != page) {
+      kCurrentPage = page;
+      _tabController!.animateTo(kTabs.indexOf(page));
+    }
   }
 
   void _initTabController() {
@@ -694,7 +696,6 @@ class _MainAppContainerState extends State<MainAppContainer>
 
   @override
   void onClipboardChanged() async {
-    print('onClipboardChanged main app container');
     ClipboardData? newClipboardData =
         await Clipboard.getData(Clipboard.kTextPlain);
     final text = newClipboardData?.text ?? '';
@@ -713,6 +714,7 @@ class _MainAppContainerState extends State<MainAppContainer>
             type: NotificationType.copiedToClipboard,
           ),
         );
+        _navigateTo(Tabs.walletConnect);
       }
     }
   }
