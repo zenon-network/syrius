@@ -25,13 +25,6 @@ class WalletConnectTabChild extends StatelessWidget {
           height: kStaggeredNumOfColumns / 3,
           child: const WalletConnectPairingsCard(),
         ),
-        FluidCell(
-          width: context.layout.value(
-            xs: kStaggeredNumOfColumns,
-          ),
-          height: kStaggeredNumOfColumns / 3,
-          child: const qr_screen_scanner(),
-        )
       ],
     );
   }

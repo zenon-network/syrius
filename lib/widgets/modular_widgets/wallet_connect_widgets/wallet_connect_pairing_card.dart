@@ -1,13 +1,20 @@
+import 'dart:io';
+import 'package:image/image.dart' as img;
 import 'package:flutter/material.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:screen_capturer/screen_capturer.dart';
 import 'package:walletconnect_flutter_v2/walletconnect_flutter_v2.dart';
+import 'package:window_manager/window_manager.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
-import 'package:zenon_syrius_wallet_flutter/blocs/wallet_connect/wallet_connect_pairings_bloc.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/model/database/notification_type.dart';
 import 'package:zenon_syrius_wallet_flutter/model/database/wallet_notification.dart';
 import 'package:zenon_syrius_wallet_flutter/services/wallet_connect_service.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
+import 'package:zxing2/qrcode.dart';
+
+final screenCapturer = ScreenCapturer.instance;
 
 const String _kWidgetTitle = 'WalletConnect Pairing';
 // TODO: change description
@@ -23,8 +30,7 @@ class WalletConnectPairingCard extends StatefulWidget {
 
 class _WalletConnectPairingCardState extends State<WalletConnectPairingCard> {
   final TextEditingController _uriController = TextEditingController();
-
-  late WalletConnectPairingsBloc _pairingsBloc;
+  CapturedData? _lastCapturedData;
 
   @override
   Widget build(BuildContext context) {
@@ -76,9 +82,11 @@ class _WalletConnectPairingCardState extends State<WalletConnectPairingCard> {
           ),
           kVerticalSpacing,
           MyOutlinedButton(
-            text: 'Refresh pairings',
+            text: 'Scan QR code',
             onPressed: () {
-              _pairingsBloc.refreshResults();
+              windowManager.minimize().then(
+                    (value) => _handleClickCapture(CaptureMode.region),
+                  );
             },
             minimumSize: kLoadingButtonMinSize,
           ),
@@ -124,5 +132,31 @@ class _WalletConnectPairingCardState extends State<WalletConnectPairingCard> {
             type: NotificationType.paymentSent,
           ),
         );
+  }
+
+  void _handleClickCapture(CaptureMode mode) async {
+    Directory directory = await getApplicationDocumentsDirectory();
+    String imageName =
+        'Screenshot-${DateTime.now().millisecondsSinceEpoch}.png';
+    String imagePath =
+        '${directory.path}/text_recognizer/Screenshots/$imageName';
+    _lastCapturedData = await screenCapturer.capture(
+      mode: mode,
+      imagePath: imagePath,
+      silent: true,
+    );
+    if (_lastCapturedData != null) {
+      var image = img.decodePng(File(imagePath).readAsBytesSync())!;
+
+      LuminanceSource source = RGBLuminanceSource(
+          image.width, image.height, image.getBytes().buffer.asInt32List());
+      var bitmap = BinaryBitmap(HybridBinarizer(source));
+
+      var reader = QRCodeReader();
+      var result = reader.decode(bitmap);
+      setState(() {
+        _uriController.text = result.text;
+      });
+    }
   }
 }
