@@ -30,9 +30,7 @@ class _WalletConnectPairingsCardState extends State<WalletConnectPairingsCard> {
   }
 
   Widget _getCardBody() {
-    return Expanded(
-      child: _buildPairingsTable(),
-    );
+    return _buildPairingsTable();
   }
 
   Widget _buildPairingsTable() {
