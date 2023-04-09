@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:layout/layout.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/wallet_connect_widgets/qr_screen_scanner.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/wallet_connect_widgets/wallet_connect_pairings_card.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 

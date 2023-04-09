@@ -137,28 +137,46 @@ class _WalletConnectPairingCardState extends State<WalletConnectPairingCard> {
   }
 
   void _handleClickCapture(CaptureMode mode) async {
-    Directory directory = await getApplicationDocumentsDirectory();
-    String imageName =
-        'Screenshot-${DateTime.now().millisecondsSinceEpoch}.png';
-    String imagePath =
-        '${directory.path}/text_recognizer/Screenshots/$imageName';
-    _lastCapturedData = await screenCapturer.capture(
-      mode: mode,
-      imagePath: imagePath,
-      silent: true,
-    );
-    if (_lastCapturedData != null) {
-      var image = img.decodePng(File(imagePath).readAsBytesSync())!;
+    try {
+      if (Platform.isMacOS) {
+        await _requestAccessForMacOs();
+      }
+      Directory directory = await getApplicationDocumentsDirectory();
+      String imageName =
+          'Screenshot-${DateTime.now().millisecondsSinceEpoch}.png';
+      String imagePath =
+          '${directory.path}/text_recognizer/Screenshots/$imageName';
+      _lastCapturedData = await screenCapturer.capture(
+        mode: mode,
+        imagePath: imagePath,
+        silent: true,
+      );
+      if (_lastCapturedData != null) {
+        var image = img.decodePng(File(imagePath).readAsBytesSync())!;
 
-      LuminanceSource source = RGBLuminanceSource(
-          image.width, image.height, image.getBytes().buffer.asInt32List());
-      var bitmap = BinaryBitmap(HybridBinarizer(source));
+        LuminanceSource source = RGBLuminanceSource(
+            image.width, image.height, image.getBytes().buffer.asInt32List());
+        var bitmap = BinaryBitmap(HybridBinarizer(source));
 
-      var reader = QRCodeReader();
-      var result = reader.decode(bitmap);
-      setState(() {
-        _uriController.text = result.text;
-      });
+        var reader = QRCodeReader();
+        var result = reader.decode(bitmap);
+        setState(() {
+          _uriController.text = result.text;
+        });
+      }
+    } on Exception catch (e) {
+      sl<NotificationsBloc>().addErrorNotification(e, 'Could not scan screen');
+    }
+  }
+
+  Future<void> _requestAccessForMacOs() async {
+    bool isAccessAllowed = await ScreenCapturer.instance.isAccessAllowed();
+    if (!isAccessAllowed) {
+      await ScreenCapturer.instance.requestAccess();
+      isAccessAllowed = await ScreenCapturer.instance.isAccessAllowed();
+      if (!isAccessAllowed) {
+        throw 'Access denied';
+      }
     }
   }
 }
