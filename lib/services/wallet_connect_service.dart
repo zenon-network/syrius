@@ -117,4 +117,9 @@ class WalletConnectService {
       _wcClient.core.pairing.activate(
         topic: topic,
       );
+
+  Future<void> deactivatePairing({
+    required String topic,
+  }) =>
+      _wcClient.core.pairing.disconnect(topic: topic);
 }

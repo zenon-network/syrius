@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:walletconnect_flutter_v2/walletconnect_flutter_v2.dart';
+import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/wallet_connect/wallet_connect_pairings_bloc.dart';
+import 'package:zenon_syrius_wallet_flutter/main.dart';
+import 'package:zenon_syrius_wallet_flutter/services/wallet_connect_service.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/icons/clear_icon.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 
 const String _kWidgetTitle = 'WalletConnect Pairings';
@@ -43,9 +47,16 @@ class _WalletConnectPairingsCardState extends State<WalletConnectPairingsCard> {
         ),
         InfiniteScrollTableHeaderColumn(
           columnName: 'URL',
+          flex: 2,
         ),
         InfiniteScrollTableHeaderColumn(
           columnName: 'Expiration',
+        ),
+        InfiniteScrollTableHeaderColumn(
+          columnName: 'Active',
+        ),
+        InfiniteScrollTableHeaderColumn(
+          columnName: '',
         ),
       ],
       generateRowCells: (pairingInfo, bool isSelected) {
@@ -56,13 +67,28 @@ class _WalletConnectPairingsCardState extends State<WalletConnectPairingsCard> {
           ),
           InfiniteScrollTableCell(
             _buildTableUrlWidget(pairingInfo),
+            flex: 2,
           ),
           InfiniteScrollTableCell.withText(
             context,
             _formatExpiryDateTime(pairingInfo.expiry).toString(),
           ),
+          InfiniteScrollTableCell.withText(
+            context,
+            pairingInfo.active ? 'Yes' : 'No',
+          ),
+          InfiniteScrollTableCell(
+            _buildDeactivatePairingIcon(pairingInfo),
+          ),
         ];
       },
+    );
+  }
+
+  ClearIcon _buildDeactivatePairingIcon(PairingInfo pairingInfo) {
+    return ClearIcon(
+      onPressed: () => _onDeactivatePairingIconPressed(pairingInfo),
+      context: context,
     );
   }
 
@@ -86,5 +112,19 @@ class _WalletConnectPairingsCardState extends State<WalletConnectPairingsCard> {
         DateTime.fromMillisecondsSinceEpoch(expirySeconds * 1000);
 
     return DateFormat('MMM dd, y HH:mm:ss').format(expiryDateTime);
+  }
+
+  Future<void> _onDeactivatePairingIconPressed(PairingInfo pairingInfo) async {
+    try {
+      await sl<WalletConnectService>().deactivatePairing(
+        topic: pairingInfo.topic,
+      );
+      _pairingsBloc.refreshResults();
+    } catch (e) {
+      sl<NotificationsBloc>().addErrorNotification(
+        e,
+        'Error while deactivating pair',
+      );
+    }
   }
 }
