@@ -111,15 +111,10 @@ class WalletConnectService {
       )
       .toList();
 
-  /// To active a pairing we update the expiry day with 30 days
-  // TODO: talk if we update the pairing with each interaction between the dApp and wallet
   Future<void> activatePairing({
     required String topic,
   }) =>
-      _wcClient.pairings.update(
-        topic,
-        expiry: WalletConnectUtils.calculateExpiry(
-          WalletConnectConstants.THIRTY_DAYS,
-        ),
+      _wcClient.core.pairing.activate(
+        topic: topic,
       );
 }
