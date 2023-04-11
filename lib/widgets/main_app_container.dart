@@ -665,7 +665,16 @@ class _MainAppContainerState extends State<MainAppContainer>
       _incomingLinkSubscription = uriLinkStream.listen((Uri? uri) {
         Logger('MainAppContainer')
             .log(Level.INFO, '_handleIncomingLinks ${uri!.toString()}');
-        if (!mounted) return;
+        final uriRaw = uri.toString();
+        final uriRawData = uriRaw.split('syrius://')[1];
+        if (uriRawData.contains('wc:')) {
+          _updateWalletConnectUri(uriRawData);
+        }
+        if (mounted) {
+
+        } else {
+          return;
+        }
       }, onError: (Object err) {
         Logger('MainAppContainer')
             .log(Level.WARNING, '_handleIncomingLinks', err);
@@ -703,19 +712,23 @@ class _MainAppContainerState extends State<MainAppContainer>
     if (text.isNotEmpty && text.contains('wc:') && text.contains('symKey')) {
       // This check is needed because onClipboardChanged is called twice sometimes
       if (kLastWalletConnectUriNotifier.value != text) {
-        kLastWalletConnectUriNotifier.value = text;
-        sl<NotificationsBloc>().addNotification(
-          WalletNotification(
-            title:
-                'WalletConnect link detected. Go to WalletConnect tab to connect.',
-            timestamp: DateTime.now().millisecondsSinceEpoch,
-            details: 'A WalletConnect link has been copied to clipboard. '
-                'Go to the WalletConnect tab to connect with the dApp through ${kLastWalletConnectUriNotifier.value}',
-            type: NotificationType.copiedToClipboard,
-          ),
-        );
-        _navigateTo(Tabs.walletConnect);
+        _updateWalletConnectUri(text);
       }
     }
+  }
+
+  void _updateWalletConnectUri(String text) {
+    kLastWalletConnectUriNotifier.value = text;
+    sl<NotificationsBloc>().addNotification(
+      WalletNotification(
+        title:
+            'WalletConnect link detected. Go to WalletConnect tab to connect.',
+        timestamp: DateTime.now().millisecondsSinceEpoch,
+        details: 'A WalletConnect link has been copied to clipboard. '
+            'Go to the WalletConnect tab to connect with the dApp through ${kLastWalletConnectUriNotifier.value}',
+        type: NotificationType.copiedToClipboard,
+      ),
+    );
+    _navigateTo(Tabs.walletConnect);
   }
 }
