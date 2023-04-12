@@ -51,7 +51,9 @@ class _WalletConnectPairingCardState extends State<WalletConnectPairingCard> {
           kVerticalSpacing,
           ValueListenableBuilder<String?>(
             builder: (_, value, child) {
-              _uriController.text = value ?? 'Empty URI';
+              if (value != null) {
+                _uriController.text = value;
+              }
               return child!;
             },
             valueListenable: kLastWalletConnectUriNotifier,
