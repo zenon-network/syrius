@@ -9,6 +9,7 @@ import 'package:flutter_vector_icons/flutter_vector_icons.dart';
 import 'package:logging/logging.dart';
 import 'package:provider/provider.dart';
 import 'package:uni_links/uni_links.dart';
+import 'package:wallet_connect_uri_validator/wallet_connect_uri_validator.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/model/model.dart';
@@ -667,11 +668,10 @@ class _MainAppContainerState extends State<MainAppContainer>
             .log(Level.INFO, '_handleIncomingLinks ${uri!.toString()}');
         final uriRaw = uri.toString();
         final uriRawData = uriRaw.split('syrius://')[1];
-        if (uriRawData.contains('wc:')) {
-          _updateWalletConnectUri(uriRawData);
-        }
         if (mounted) {
-
+          if (WalletConnectUri.tryParse(uriRawData) != null) {
+            _updateWalletConnectUri(uriRawData);
+          }
         } else {
           return;
         }
@@ -708,8 +708,7 @@ class _MainAppContainerState extends State<MainAppContainer>
     ClipboardData? newClipboardData =
         await Clipboard.getData(Clipboard.kTextPlain);
     final text = newClipboardData?.text ?? '';
-    // TODO: add a stronger patter
-    if (text.isNotEmpty && text.contains('wc:') && text.contains('symKey')) {
+    if (text.isNotEmpty && WalletConnectUri.tryParse(text) != null) {
       // This check is needed because onClipboardChanged is called twice sometimes
       if (kLastWalletConnectUriNotifier.value != text) {
         _updateWalletConnectUri(text);

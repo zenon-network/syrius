@@ -65,6 +65,7 @@ dependencies:
   zxing2: ^0.2.0
   image: ^4.0.10
   clipboard_watcher: ^0.2.0
+  wallet_connect_uri_validator: ^0.1.0
 
 dev_dependencies:
   flutter_test:
