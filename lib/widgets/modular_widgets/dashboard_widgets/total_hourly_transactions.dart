@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
-import 'package:zenon_syrius_wallet_flutter/blocs/dashboard/total_hourly_transactions_bloc.dart';
+import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/layout_scaffold/card_scaffold.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/number_animation.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 
 const String _kWidgetTitle = 'Transactions';
 const String _kWidgetDescription = 'This card displays the total number of '
@@ -13,7 +12,7 @@ class TotalHourlyTransactions extends StatefulWidget {
   const TotalHourlyTransactions({Key? key}) : super(key: key);
 
   @override
-  _TotalHourlyTransactionsState createState() =>
+  State<TotalHourlyTransactions> createState() =>
       _TotalHourlyTransactionsState();
 }
 
@@ -22,7 +21,7 @@ class _TotalHourlyTransactionsState extends State<TotalHourlyTransactions> {
   Widget build(BuildContext context) {
     return ViewModelBuilder<TotalHourlyTransactionsBloc>.reactive(
       viewModelBuilder: () => TotalHourlyTransactionsBloc(),
-      onModelReady: (model) {
+      onViewModelReady: (model) {
         model.getDataPeriodically();
       },
       builder: (_, model, __) => CardScaffold<Map<String, dynamic>>(
@@ -41,7 +40,7 @@ class _TotalHourlyTransactionsState extends State<TotalHourlyTransactions> {
         NumberAnimation(
           end: widgetData['numAccountBlocks'],
           isInt: true,
-          style: Theme.of(context).textTheme.headline1!.copyWith(
+          style: Theme.of(context).textTheme.headlineLarge!.copyWith(
                 fontSize: 30.0,
               ),
         ),

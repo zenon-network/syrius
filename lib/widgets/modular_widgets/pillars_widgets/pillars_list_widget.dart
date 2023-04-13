@@ -4,12 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_vector_icons/flutter_vector_icons.dart';
 import 'package:infinite_scroll_pagination/infinite_scroll_pagination.dart';
 import 'package:stacked/stacked.dart';
-import 'package:zenon_syrius_wallet_flutter/blocs/dashboard/balance_bloc.dart';
-import 'package:zenon_syrius_wallet_flutter/blocs/pillars/delegate_button_bloc.dart';
-import 'package:zenon_syrius_wallet_flutter/blocs/pillars/delegation_info_bloc.dart';
-import 'package:zenon_syrius_wallet_flutter/blocs/pillars/disassemble_pillar_bloc.dart';
-import 'package:zenon_syrius_wallet_flutter/blocs/pillars/pillars_list_bloc.dart';
-import 'package:zenon_syrius_wallet_flutter/blocs/pillars/undelegate_button_bloc.dart';
+import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
@@ -17,15 +12,7 @@ import 'package:zenon_syrius_wallet_flutter/utils/extensions.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/notification_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/zts_utils.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/buttons/loading_button.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/buttons/outlined_button.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/cancel_timer.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/error_widget.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/formatted_amount_with_tooltip.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/icons/standard_tooltip_icon.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/infinite_scroll_table.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/layout_scaffold/card_scaffold.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/loading_widget.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 class PillarsListWidget extends StatefulWidget {
@@ -34,7 +21,7 @@ class PillarsListWidget extends StatefulWidget {
   const PillarsListWidget({Key? key, this.title}) : super(key: key);
 
   @override
-  _PillarsListWidgetState createState() => _PillarsListWidgetState();
+  State<PillarsListWidget> createState() => _PillarsListWidgetState();
 }
 
 class _PillarsListWidgetState extends State<PillarsListWidget> {
@@ -127,7 +114,7 @@ class _PillarsListWidgetState extends State<PillarsListWidget> {
   Widget _getTable(PillarsListBloc bloc) {
     return Column(
       children: [
-        _getTableHeader(),
+        _getTableHeader(bloc),
         Expanded(
           child: Scrollbar(
             controller: _scrollController,
@@ -155,7 +142,7 @@ class _PillarsListWidgetState extends State<PillarsListWidget> {
     );
   }
 
-  Container _getTableHeader() {
+  Container _getTableHeader(PillarsListBloc bloc) {
     return Container(
       decoration: BoxDecoration(
         border: Border(
@@ -169,44 +156,59 @@ class _PillarsListWidgetState extends State<PillarsListWidget> {
         vertical: 15.0,
       ),
       child: Row(
-        children: List<Widget>.from(
+          children: List<Widget>.from(
+                [
+                  const SizedBox(
+                    width: 20.0,
+                  )
+                ],
+              ) +
               [
+                InfiniteScrollTableHeaderColumn(
+                  columnName: 'Name',
+                  onSortArrowsPressed: _onSortArrowsPressed,
+                ),
+                InfiniteScrollTableHeaderColumn(
+                  columnName: 'Producer Address',
+                  onSortArrowsPressed: _onSortArrowsPressed,
+                  flex: 3,
+                ),
+                InfiniteScrollTableHeaderColumn(
+                  columnName: 'Weight',
+                  onSortArrowsPressed: _onSortArrowsPressed,
+                ),
+                const InfiniteScrollTableHeaderColumn(columnName: 'Delegation'),
+                const InfiniteScrollTableHeaderColumn(
+                    columnName: 'Momentum reward'),
+                const InfiniteScrollTableHeaderColumn(
+                    columnName: 'Delegation reward'),
+                const InfiniteScrollTableHeaderColumn(
+                  columnName: 'Expected/produced momentums',
+                ),
+                const InfiniteScrollTableHeaderColumn(
+                  columnName: 'Uptime',
+                ),
+                const InfiniteScrollTableHeaderColumn(
+                  columnName: '',
+                  flex: 1,
+                ),
                 const SizedBox(
-                  width: 20.0,
+                  width: 5.0,
                 )
-              ],
-            ) +
-            [
-              InfiniteScrollTableHeaderColumn(
-                columnName: 'Name',
-                onSortArrowsPressed: _onSortArrowsPressed,
-              ),
-              InfiniteScrollTableHeaderColumn(
-                columnName: 'Producer Address',
-                onSortArrowsPressed: _onSortArrowsPressed,
-                flex: 3,
-              ),
-              InfiniteScrollTableHeaderColumn(
-                columnName: 'Weight',
-                onSortArrowsPressed: _onSortArrowsPressed,
-              ),
-              const InfiniteScrollTableHeaderColumn(columnName: 'Delegation'),
-              const InfiniteScrollTableHeaderColumn(
-                  columnName: 'Momentum reward'),
-              const InfiniteScrollTableHeaderColumn(
-                  columnName: 'Delegation reward'),
-              const InfiniteScrollTableHeaderColumn(
-                columnName: 'Expected/produced momentums',
-              ),
-              const InfiniteScrollTableHeaderColumn(
-                columnName: 'Uptime',
-              ),
-              const InfiniteScrollTableHeaderColumn(
-                columnName: '',
-                flex: 2,
-              ),
-            ],
-      ),
+              ] +
+              [
+                SizedBox(
+                    width: 110,
+                    child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Visibility(
+                            visible: _delegationInfo?.name != null,
+                            child: _getUndelegateButtonViewModel(bloc),
+                          ),
+                        ])),
+              ]),
     );
   }
 
@@ -247,15 +249,19 @@ class _PillarsListWidgetState extends State<PillarsListWidget> {
           ),
         ),
         child: Row(
-          children: List<Widget>.from(
+            children: List<Widget>.from(
+                  [
+                    const SizedBox(
+                      width: 20.0,
+                    )
+                  ],
+                ) +
+                generateRowCells(item, isSelected) +
                 [
                   const SizedBox(
-                    width: 20.0,
+                    width: 110,
                   )
-                ],
-              ) +
-              generateRowCells(item, isSelected),
-        ),
+                ]),
       ),
     );
   }
@@ -293,7 +299,7 @@ class _PillarsListWidgetState extends State<PillarsListWidget> {
           tokenSymbol: kZnnCoin.symbol,
           builder: (formattedAmount, tokenSymbol) => Text(
             '$formattedAmount $tokenSymbol',
-            style: Theme.of(context).textTheme.subtitle1!.copyWith(
+            style: Theme.of(context).textTheme.titleMedium!.copyWith(
                   color: _isStakeAddressDefault(pillarInfo)
                       ? AppColors.znnColor
                       : AppColors.subtitleColor,
@@ -309,11 +315,11 @@ class _PillarsListWidgetState extends State<PillarsListWidget> {
       ),
       InfiniteScrollTableCell.withText(
         context,
-        pillarInfo.giveMomentumRewardPercentage.toString() + ' %',
+        '${pillarInfo.giveMomentumRewardPercentage} %',
       ),
       InfiniteScrollTableCell.withText(
         context,
-        pillarInfo.giveDelegateRewardPercentage.toString() + ' %',
+        '${pillarInfo.giveDelegateRewardPercentage} %',
       ),
       InfiniteScrollTableCell.withText(context,
           '${pillarInfo.expectedMomentums}/${pillarInfo.producedMomentums} '),
@@ -327,7 +333,6 @@ class _PillarsListWidgetState extends State<PillarsListWidget> {
           pillarInfo,
           _pillarsListBloc,
         ),
-        flex: 2,
       ),
     ];
   }
@@ -367,8 +372,8 @@ class _PillarsListWidgetState extends State<PillarsListWidget> {
         model.votePillar(pillarInfo.name, context);
       },
       text: 'DELEGATE',
-      textStyle: Theme.of(context).textTheme.subtitle2!.copyWith(
-            color: Theme.of(context).textTheme.bodyText1!.color,
+      textStyle: Theme.of(context).textTheme.titleSmall!.copyWith(
+            color: Theme.of(context).textTheme.bodyLarge!.color,
           ),
       key: key,
     );
@@ -397,32 +402,37 @@ class _PillarsListWidgetState extends State<PillarsListWidget> {
               width: 5.0,
             ),
           ),
-          pillarItem.isRevocable
-              ? CancelTimer(
-                  Duration(
-                    seconds: pillarItem.revokeCooldown,
+          Expanded(
+            child: pillarItem.isRevocable
+                ? CancelTimer(
+                    Duration(
+                      seconds: pillarItem.revokeCooldown,
+                    ),
+                    AppColors.znnColor,
+                    onTimeFinishedCallback: () {
+                      model.refreshResults();
+                    },
+                  )
+                : CancelTimer(
+                    Duration(
+                      seconds: pillarItem.revokeCooldown,
+                    ),
+                    AppColors.errorColor,
+                    onTimeFinishedCallback: () {
+                      model.refreshResults();
+                    },
                   ),
-                  AppColors.znnColor,
-                  onTimeFinishedCallback: () {
-                    model.refreshResults();
-                  },
-                )
-              : CancelTimer(
-                  Duration(
-                    seconds: pillarItem.revokeCooldown,
-                  ),
-                  AppColors.errorColor,
-                  onTimeFinishedCallback: () {
-                    model.refreshResults();
-                  },
-                ),
-          StandardTooltipIcon(
-            pillarItem.isRevocable
-                ? 'Revocation window is open'
-                : 'Until revocation window opens',
-            iconColor: pillarItem.isRevocable
-                ? AppColors.znnColor
-                : AppColors.errorColor,
+          ),
+          Expanded(
+            child: StandardTooltipIcon(
+              pillarItem.isRevocable
+                  ? 'Revocation window is open'
+                  : 'Until revocation window opens',
+              Icons.help,
+              iconColor: pillarItem.isRevocable
+                  ? AppColors.znnColor
+                  : AppColors.errorColor,
+            ),
           ),
         ],
       ),
@@ -435,7 +445,7 @@ class _PillarsListWidgetState extends State<PillarsListWidget> {
     PillarInfo pillarInfo,
   ) {
     return ViewModelBuilder<DisassemblePillarBloc>.reactive(
-      onModelReady: (model) {
+      onViewModelReady: (model) {
         model.stream.listen(
           (event) {
             if (event != null) {
@@ -478,7 +488,7 @@ class _PillarsListWidgetState extends State<PillarsListWidget> {
       minimumSize: const Size(55.0, 25.0),
       outlineColor: isSelected
           ? AppColors.errorColor
-          : Theme.of(context).textTheme.subtitle2!.color,
+          : Theme.of(context).textTheme.titleSmall!.color,
       onPressed: isSelected
           ? () {
               model.disassemblePillar(
@@ -493,10 +503,10 @@ class _PillarsListWidgetState extends State<PillarsListWidget> {
           Text(
             'DISASSEMBLE',
             style: isSelected
-                ? Theme.of(context).textTheme.subtitle2!.copyWith(
-                      color: Theme.of(context).textTheme.bodyText1!.color,
+                ? Theme.of(context).textTheme.titleSmall!.copyWith(
+                      color: Theme.of(context).textTheme.bodyLarge!.color,
                     )
-                : Theme.of(context).textTheme.subtitle2,
+                : Theme.of(context).textTheme.titleSmall,
           ),
           const SizedBox(
             width: 20.0,
@@ -506,7 +516,7 @@ class _PillarsListWidgetState extends State<PillarsListWidget> {
             size: 11.0,
             color: isSelected
                 ? AppColors.errorColor
-                : Theme.of(context).textTheme.subtitle2!.color,
+                : Theme.of(context).textTheme.titleSmall!.color,
           ),
         ],
       ),
@@ -523,8 +533,8 @@ class _PillarsListWidgetState extends State<PillarsListWidget> {
         model.cancelPillarVoting(context);
       },
       text: 'UNDELEGATE',
-      textStyle: Theme.of(context).textTheme.subtitle2!.copyWith(
-            color: Theme.of(context).textTheme.bodyText1!.color,
+      textStyle: Theme.of(context).textTheme.titleSmall!.copyWith(
+            color: Theme.of(context).textTheme.bodyLarge!.color,
           ),
       outlineColor: AppColors.errorColor,
       key: key,
@@ -563,19 +573,19 @@ class _PillarsListWidgetState extends State<PillarsListWidget> {
   }
 
   Widget _getUndelegateButtonViewModel(PillarsListBloc pillarsModel) {
-    final GlobalKey<LoadingButtonState> _undelegateButtonKey = GlobalKey();
+    final GlobalKey<LoadingButtonState> undelegateButtonKey = GlobalKey();
 
     return ViewModelBuilder<UndelegateButtonBloc>.reactive(
-      onModelReady: (model) {
+      onViewModelReady: (model) {
         model.stream.listen(
           (event) {
             if (event != null) {
-              _undelegateButtonKey.currentState?.animateReverse();
+              undelegateButtonKey.currentState?.animateReverse();
               _delegationInfoBloc.updateStream();
             }
           },
           onError: (error) {
-            _undelegateButtonKey.currentState?.animateReverse();
+            undelegateButtonKey.currentState?.animateReverse();
             NotificationUtils.sendNotificationError(
               error,
               'Error while undelegating',
@@ -585,7 +595,7 @@ class _PillarsListWidgetState extends State<PillarsListWidget> {
       },
       builder: (_, model, __) => _getUndelegateButton(
         model,
-        _undelegateButtonKey,
+        undelegateButtonKey,
       ),
       viewModelBuilder: () => UndelegateButtonBloc(),
     );
@@ -621,13 +631,13 @@ class _PillarsListWidgetState extends State<PillarsListWidget> {
     PillarsListBloc pillarsModel,
     AccountInfo accountInfo,
   ) {
-    GlobalKey<LoadingButtonState> _delegateButtonKey;
+    GlobalKey<LoadingButtonState> delegateButtonKey;
 
     if (_delegateButtonKeys[pillarInfo.name] == null) {
       _delegateButtonKeys[pillarInfo.name] = GlobalKey();
     }
 
-    _delegateButtonKey = _delegateButtonKeys[pillarInfo.name]!;
+    delegateButtonKey = _delegateButtonKeys[pillarInfo.name]!;
 
     return Visibility(
       visible: accountInfo.znn()!.addDecimals(
@@ -638,19 +648,19 @@ class _PillarsListWidgetState extends State<PillarsListWidget> {
               ? true
               : _currentlyDelegatingToPillar == pillarInfo.name),
       child: ViewModelBuilder<DelegateButtonBloc>.reactive(
-        onModelReady: (model) {
+        onViewModelReady: (model) {
           model.stream.listen(
             (event) {
               if (event != null) {
                 _delegationInfoBloc.updateStream();
-                _delegateButtonKey.currentState?.animateReverse();
+                delegateButtonKey.currentState?.animateReverse();
                 setState(() {
                   _currentlyDelegatingToPillar = null;
                 });
               }
             },
             onError: (error) {
-              _delegateButtonKey.currentState?.animateReverse();
+              delegateButtonKey.currentState?.animateReverse();
               NotificationUtils.sendNotificationError(
                 error,
                 'Pillar delegation error',
@@ -664,7 +674,7 @@ class _PillarsListWidgetState extends State<PillarsListWidget> {
         builder: (_, model, __) => _getDelegateButton(
           pillarInfo,
           model,
-          _delegateButtonKey,
+          delegateButtonKey,
         ),
         viewModelBuilder: () => DelegateButtonBloc(),
       ),

@@ -2,16 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:hive/hive.dart';
 import 'package:provider/provider.dart';
-import 'package:zenon_syrius_wallet_flutter/screens/export/export_wallet_info_screen.dart';
-import 'package:zenon_syrius_wallet_flutter/screens/onboarding/access_wallet_screen.dart';
-import 'package:zenon_syrius_wallet_flutter/screens/onboarding/new_wallet/new_wallet_confirm_seed_screen.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/navigation_utils.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/buttons/onboarding_button.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/progress_bars.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/seed/seed_choice.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/seed/seed_grid.dart';
+import 'package:zenon_syrius_wallet_flutter/screens/screens.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 class NewWalletSeedChoiceScreen extends StatefulWidget {
@@ -20,7 +13,7 @@ class NewWalletSeedChoiceScreen extends StatefulWidget {
   const NewWalletSeedChoiceScreen({Key? key, this.export}) : super(key: key);
 
   @override
-  _NewWalletSeedChoiceScreenState createState() =>
+  State<NewWalletSeedChoiceScreen> createState() =>
       _NewWalletSeedChoiceScreenState();
 }
 
@@ -63,12 +56,12 @@ class _NewWalletSeedChoiceScreenState extends State<NewWalletSeedChoiceScreen> {
                   _isSeed12Selected
                       ? 'This is your 12 words seed'
                       : 'This is your 24 words seed',
-                  style: Theme.of(context).textTheme.headline1,
+                  style: Theme.of(context).textTheme.headlineLarge,
                 ),
                 kVerticalSpacing,
                 Text(
                   'Please carefully write down your seed and export it to a safe location',
-                  style: Theme.of(context).textTheme.headline4,
+                  style: Theme.of(context).textTheme.headlineMedium,
                 ),
                 kVerticalSpacing,
                 SizedBox(
@@ -172,7 +165,9 @@ class _NewWalletSeedChoiceScreenState extends State<NewWalletSeedChoiceScreen> {
                     color: Colors.transparent,
                     child: SvgPicture.asset(
                       'assets/svg/ic_export_seed.svg',
-                      color: Theme.of(context).textTheme.headline6!.color,
+                      colorFilter: ColorFilter.mode(
+                          Theme.of(context).textTheme.headlineSmall!.color!,
+                          BlendMode.srcIn),
                       height: 18.0,
                     ),
                   ),
@@ -181,7 +176,7 @@ class _NewWalletSeedChoiceScreenState extends State<NewWalletSeedChoiceScreen> {
                   ),
                   Text(
                     'Export Seed',
-                    style: Theme.of(context).textTheme.headline6,
+                    style: Theme.of(context).textTheme.headlineSmall,
                   ),
                 ],
               ),
@@ -225,7 +220,7 @@ class _NewWalletSeedChoiceScreenState extends State<NewWalletSeedChoiceScreen> {
         ),
         Text(
           'I have backed up my seed in a safe location',
-          style: Theme.of(context).textTheme.headline6,
+          style: Theme.of(context).textTheme.headlineSmall,
         )
       ],
     );
@@ -289,7 +284,7 @@ class _NewWalletSeedChoiceScreenState extends State<NewWalletSeedChoiceScreen> {
         ),
         Text(
           'I have written down my seed',
-          style: Theme.of(context).textTheme.headline6,
+          style: Theme.of(context).textTheme.headlineSmall,
         ),
       ],
     );

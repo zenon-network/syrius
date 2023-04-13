@@ -1,6 +1,6 @@
-import 'package:zenon_syrius_wallet_flutter/blocs/base_bloc_for_reloading_indicator.dart';
+import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
-import 'package:zenon_syrius_wallet_flutter/model/account_chain_stats.dart';
+import 'package:zenon_syrius_wallet_flutter/model/model.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
@@ -13,20 +13,29 @@ class AccountChainStatsBloc
         kSelectedAddress!,
       ),
     );
-    List<AccountBlock> blocks = (await zenon!.ledger.getAccountBlocksByHeight(
-          Address.parse(
-            kSelectedAddress!,
-          ),
-          1,
-          accountInfo.blockCount! + 1,
-        ))
-            .list ??
-        [];
-    if (accountInfo.blockCount! > 0) {
+
+    int pageSize = accountInfo.blockCount!;
+    int pageCount = ((pageSize + 1) / rpcMaxPageSize).ceil();
+
+    if (pageSize > 0) {
+      List<AccountBlock> allBlocks = [];
+
+      for (var i = 0; i < pageCount; i++) {
+        allBlocks.addAll((await zenon!.ledger.getAccountBlocksByHeight(
+              Address.parse(
+                kSelectedAddress!,
+              ),
+              (rpcMaxPageSize * i) + 1,
+              rpcMaxPageSize,
+            ))
+                .list ??
+            []);
+      }
+
       return AccountChainStats(
-        firstHash: blocks.isNotEmpty ? blocks.first.hash : '' as Hash,
-        blockCount: accountInfo.blockCount!,
-        blockTypeNumOfBlocksMap: _getNumOfBlocksForEachBlockType(blocks),
+        firstHash: allBlocks.isNotEmpty ? allBlocks.first.hash : emptyHash,
+        blockCount: pageSize,
+        blockTypeNumOfBlocksMap: _getNumOfBlocksForEachBlockType(allBlocks),
       );
     } else {
       throw 'Empty account-chain';

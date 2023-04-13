@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:layout/layout.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/layout_scaffold/standard_fluid_layout.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 
 class AccessWalletFluidCell extends FluidCell {
   final VoidCallback? onPressed;
@@ -45,7 +45,8 @@ class AccessWalletFluidCell extends FluidCell {
                   color: Colors.transparent,
                   child: SvgPicture.asset(
                     buttonIconLocation,
-                    color: AppColors.znnColor,
+                    colorFilter: const ColorFilter.mode(
+                        AppColors.znnColor, BlendMode.srcIn),
                   ),
                 ),
                 Padding(
@@ -56,7 +57,7 @@ class AccessWalletFluidCell extends FluidCell {
                   child: Text(
                     buttonText,
                     textAlign: TextAlign.center,
-                    style: Theme.of(context).textTheme.headline6,
+                    style: Theme.of(context).textTheme.headlineSmall,
                   ),
                 ),
               ],

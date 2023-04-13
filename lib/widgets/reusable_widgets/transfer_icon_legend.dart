@@ -27,7 +27,7 @@ class TransferIconLegend extends StatelessWidget {
         children: <Widget>[
           Text(
             legendText,
-            style: Theme.of(context).textTheme.bodyText2,
+            style: Theme.of(context).textTheme.bodyMedium,
           ),
         ],
       ),

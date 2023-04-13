@@ -1,4 +1,4 @@
-import 'package:zenon_syrius_wallet_flutter/blocs/base_bloc.dart';
+import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/extensions.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
@@ -14,8 +14,8 @@ class SentinelsQsrInfoBloc extends BaseBloc<num?> {
         qsrDecimals,
       );
       addEvent(response);
-    } catch (e) {
-      addError(e);
+    } catch (e, stackTrace) {
+      addError(e, stackTrace);
     }
   }
 }

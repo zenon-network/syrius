@@ -21,20 +21,26 @@ _RunNodeFunc? _runNodeFunction;
 
 class EmbeddedNode {
   static void initializeNodeLib() {
-    var insideSdk = path.join('wallet', 'lib', 'embedded_node', 'blobs');
+    var insideSdk = path.join('syrius', 'lib', 'embedded_node', 'blobs');
     var currentPathListParts = path.split(Directory.current.path);
     currentPathListParts.removeLast();
     var executablePathListParts = path.split(Platform.resolvedExecutable);
     executablePathListParts.removeLast();
     var possiblePaths = List<String>.empty(growable: true);
     possiblePaths.add(Directory.current.path);
+    possiblePaths.add(
+      path.join(
+        Directory.current.path,
+        'lib',
+        'embedded_node',
+        'blobs',
+      ),
+    );
     possiblePaths.add(path.joinAll(executablePathListParts));
     executablePathListParts.removeLast();
     possiblePaths
         .add(path.join(path.joinAll(executablePathListParts), 'Resources'));
     possiblePaths.add(path.join(path.joinAll(currentPathListParts), insideSdk));
-    possiblePaths.add(
-        path.join(path.joinAll(currentPathListParts), 'packages', insideSdk));
 
     var libraryPath = '';
     var found = false;
@@ -57,7 +63,7 @@ class EmbeddedNode {
       }
     }
 
-    logger.info('Loading libznn from path ' + libraryPath);
+    logger.info('Loading libznn from path $libraryPath');
 
     if (!found) {
       throw invalidZnnLibPathException;
@@ -79,7 +85,7 @@ class EmbeddedNode {
     ReceivePort commandsPort = ReceivePort();
     SendPort sendPort = commandsPort.sendPort;
 
-    IsolateNameServer.registerPortWithName(sendPort, "embeddedIsolate");
+    IsolateNameServer.registerPortWithName(sendPort, 'embeddedIsolate');
 
     if (_runNodeFunction == null) {
       initializeNodeLib();
@@ -89,7 +95,7 @@ class EmbeddedNode {
     Completer embeddedIsolateCompleter = Completer();
     commandsPort.listen((event) {
       _stopNodeFunction!();
-      IsolateNameServer.removePortNameMapping("embeddedIsolate");
+      IsolateNameServer.removePortNameMapping('embeddedIsolate');
       commandsPort.close();
       embeddedIsolateCompleter.complete();
     });
@@ -105,9 +111,9 @@ class EmbeddedNode {
 
   static bool stopNode() {
     SendPort? embeddedIsolate =
-        IsolateNameServer.lookupPortByName("embeddedIsolate");
+        IsolateNameServer.lookupPortByName('embeddedIsolate');
     if (embeddedIsolate != null) {
-      embeddedIsolate.send("stop");
+      embeddedIsolate.send('stop');
       return true;
     }
     return false;

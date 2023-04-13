@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:device_info_plus/device_info_plus.dart';
+import 'package:flutter/services.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
 class DeviceUtils {
@@ -64,5 +65,12 @@ class DeviceUtils {
       'appVersion': packageInfo.version,
       'buildNumber': packageInfo.buildNumber,
     };
+  }
+
+  static Future<Map<String, String>> getGitInfo() async {
+    final head = await rootBundle.loadString('.git/HEAD');
+    final branchName = head.split('/').last;
+    final commitHash = await rootBundle.loadString('.git/ORIG_HEAD');
+    return {'branchName': branchName, 'commitHash': commitHash};
   }
 }

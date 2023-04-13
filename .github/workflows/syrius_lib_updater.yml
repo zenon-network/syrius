@@ -1,0 +1,63 @@
+name: Library updater for syrius
+
+on:
+  push:
+    branches-ignore:
+        - master
+  pull_request:
+    branches:
+      - dev
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+jobs:
+  lib-builder:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Prepare environment
+        run: |
+          sudo apt update
+          sudo apt install -y unzip
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Download libznn
+        uses: robinraju/release-downloader@v1.6
+        with:
+          repository: "zenon-network/go-zenon"
+          latest: true
+      - name: Extract libznn library
+        run: |
+          tar -xvf libznn-linux-amd64.tar.gz
+          tar -xvf libznn-darwin-universal.tar.gz
+          unzip -j libznn-windows-amd64.zip -d ./
+      - name: Check if changes are present
+        run: |
+          LIBZNN_LINUX_AMD64=$(sha256sum ./libznn-linux-amd64.so | head -c 64)
+          LIBZNN_LINUX_AMD64_LOCAL=$(sha256sum ./lib/embedded_node/blobs/libznn.so | head -c 64)
+          LIBZNN_WINDOWS_AMD64=$(sha256sum ./libznn-windows-amd64.dll | head -c 64)
+          LIBZNN_WINDOWS_AMD64_LOCAL=$(sha256sum ./lib/embedded_node/blobs/libznn.dll | head -c 64)
+          LIBZNN_DARWIN_UNIVERSAL=$(sha256sum ./libznn-darwin-universal.dylib | head -c 64)
+          LIBZNN_DARWIN_UNIVERSAL_LOCAL=$(sha256sum ./lib/embedded_node/blobs/libznn.dylib | head -c 64)
+          function check() {
+            if [[ "$LIBZNN_LINUX_AMD64" == "$LIBZNN_LINUX_AMD64_LOCAL" && "$LIBZNN_WINDOWS_AMD64" == "$LIBZNN_WINDOWS_AMD64_LOCAL" && "$LIBZNN_DARWIN_UNIVERSAL" == "$LIBZNN_DARWIN_UNIVERSAL_LOCAL" ]];
+            then
+              echo "0"
+            else
+              echo "1"
+            fi
+          }
+          echo "CHANGED=$(check)" >> $GITHUB_ENV
+      - name: Move libznn native library to blobs directory
+        if: ${{ env.CHANGED == '1' }}
+        run: |
+          mv libznn-linux-amd64.so lib/embedded_node/blobs/libznn.so
+          mv libznn-darwin-universal.dylib lib/embedded_node/blobs/libznn.dylib
+          mv libznn-windows-amd64.dll lib/embedded_node/blobs/libznn.dll
+      - name: Push if changes are present
+        if: ${{ env.CHANGED == '1' }}
+        run: |
+          git config user.name  "Github Actions"
+          git config user.email "GH-actions-ci@github.com"
+          git add -f lib/embedded_node/blobs/*
+          git commit -m "Updated native libraries"
+          git push origin ${GITHUB_REF##*/}

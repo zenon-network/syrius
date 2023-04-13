@@ -1,7 +1,6 @@
 import 'dart:async';
 
-import 'package:zenon_syrius_wallet_flutter/blocs/base_bloc.dart';
-import 'package:zenon_syrius_wallet_flutter/blocs/refresh_bloc_mixin.dart';
+import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
@@ -25,8 +24,8 @@ class TransferWidgetsBalanceBloc extends BaseBloc<Map<String, AccountInfo>?>
         addressBalanceMap[accountInfo.address!] = accountInfo;
       }
       addEvent(addressBalanceMap);
-    } catch (e) {
-      addError(e);
+    } catch (e, stackTrace) {
+      addError(e, stackTrace);
     }
   }
 

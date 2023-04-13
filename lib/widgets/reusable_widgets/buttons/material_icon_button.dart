@@ -26,13 +26,13 @@ class MaterialIconButton extends StatelessWidget {
       hoverColor: hoverColor,
       constraints: const BoxConstraints.tightForFinite(),
       padding: EdgeInsets.all(padding),
+      shape: const CircleBorder(),
+      onPressed: onPressed,
       child: Icon(
         iconData,
         color: iconColor,
         size: 15.0,
       ),
-      shape: const CircleBorder(),
-      onPressed: onPressed,
     );
   }
 }

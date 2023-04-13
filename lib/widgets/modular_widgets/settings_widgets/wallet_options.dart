@@ -1,20 +1,16 @@
 import 'dart:io';
-import 'dart:typed_data';
 
-import 'package:feedback/feedback.dart';
 import 'package:flutter/material.dart';
-import 'package:share_plus/share_plus.dart';
-import 'package:zenon_syrius_wallet_flutter/screens/reset_wallet_screen.dart';
-import 'package:zenon_syrius_wallet_flutter/screens/splash_screen.dart';
-import 'package:zenon_syrius_wallet_flutter/screens/swap/swap_info_screen.dart';
+import 'package:launch_at_startup/launch_at_startup.dart';
+import 'package:package_info_plus/package_info_plus.dart';
+import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
+import 'package:zenon_syrius_wallet_flutter/main.dart';
+import 'package:zenon_syrius_wallet_flutter/model/model.dart';
+import 'package:zenon_syrius_wallet_flutter/screens/screens.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/device_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/navigation_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/notification_utils.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/buttons/settings_button.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/custom_expandable_panel.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/layout_scaffold/card_scaffold.dart';
-import 'package:znn_sdk_dart/znn_sdk_dart.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 
 class WalletOptions extends StatefulWidget {
   final VoidCallback onResyncWalletPressed;
@@ -22,10 +18,26 @@ class WalletOptions extends StatefulWidget {
   const WalletOptions(this.onResyncWalletPressed, {Key? key}) : super(key: key);
 
   @override
-  _WalletOptionsState createState() => _WalletOptionsState();
+  State<WalletOptions> createState() => _WalletOptionsState();
 }
 
 class _WalletOptionsState extends State<WalletOptions> {
+  bool? _launchAtStartup;
+  bool? _enableDesktopNotifications;
+
+  @override
+  void initState() {
+    super.initState();
+    _launchAtStartup = sharedPrefsService!.get(
+      kLaunchAtStartupKey,
+      defaultValue: kLaunchAtStartupDefaultValue,
+    );
+    _enableDesktopNotifications = sharedPrefsService!.get(
+      kEnableDesktopNotificationsKey,
+      defaultValue: kEnableDesktopNotificationsDefaultValue,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return CardScaffold(
@@ -41,8 +53,7 @@ class _WalletOptionsState extends State<WalletOptions> {
       children: [
         CustomExpandablePanel('Delete cache', _getDeleteCacheExpandedWidget()),
         CustomExpandablePanel('Reset wallet', _getResetWalletExpandedWidget()),
-        CustomExpandablePanel('Swap wallet', _getSwapWalletExpandedWidget()),
-        CustomExpandablePanel('Provide feedback', _getProvideFeedbackWidget()),
+        CustomExpandablePanel('Preferences', _getPreferencesExpandedWidget()),
       ],
     );
   }
@@ -54,7 +65,7 @@ class _WalletOptionsState extends State<WalletOptions> {
         Text(
           'This option will erase the wallet files. Make sure you have a '
           'backup first',
-          style: Theme.of(context).textTheme.subtitle2,
+          style: Theme.of(context).textTheme.titleSmall,
         ),
         kVerticalSpacing,
         Center(
@@ -70,38 +81,13 @@ class _WalletOptionsState extends State<WalletOptions> {
     );
   }
 
-  Widget _getSwapWalletExpandedWidget() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'This option will start the swap procedure',
-          style: Theme.of(context).textTheme.subtitle2,
-        ),
-        kVerticalSpacing,
-        Center(
-          child: SettingsButton(
-            onPressed: () {
-              NavigationUtils.push(
-                context,
-                const SwapInfoScreen(),
-              );
-            },
-            text: 'Swap wallet',
-          ),
-        ),
-        kVerticalSpacing,
-      ],
-    );
-  }
-
   Widget _getDeleteCacheExpandedWidget() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
         Text(
           'This option will delete the wallet cache and close the application',
-          style: Theme.of(context).textTheme.subtitle2,
+          style: Theme.of(context).textTheme.titleSmall,
         ),
         kVerticalSpacing,
         Center(
@@ -121,68 +107,123 @@ class _WalletOptionsState extends State<WalletOptions> {
     );
   }
 
-  Widget _getProvideFeedbackWidget() {
+  Widget _getPreferencesExpandedWidget() {
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: <Widget>[
+      children: [
+        _getLaunchAtStartupWidget(),
+        _getEnableDesktopNotifications(),
+      ],
+    );
+  }
+
+  Widget _getLaunchAtStartupWidget() {
+    return Row(
+      children: [
         Text(
-          'This option will open a feedback utility window',
-          style: Theme.of(context).textTheme.subtitle2,
+          'Launch at startup ',
+          style: Theme.of(context).textTheme.bodyMedium,
         ),
-        kVerticalSpacing,
-        Center(
-          child: SettingsButton(
-            onPressed: () {
-              BetterFeedback.of(context).show(
-                (feedback) async {
-                  try {
-                    _shareFeedbackScreenshot(feedback.screenshot);
-                  } catch (e) {
-                    NotificationUtils.sendNotificationError(
-                      e,
-                      'Error while sharing feedback',
-                    );
-                  }
-                },
-              );
-            },
-            text: 'Provide feedback',
-          ),
+        SyriusCheckbox(
+          onChanged: (value) {
+            setState(() {
+              _launchAtStartup = value;
+              _changeLaunchAtStartupStatus(value ?? false);
+            });
+          },
+          value: _launchAtStartup,
+          context: context,
         ),
       ],
     );
   }
 
-  void _shareFeedbackScreenshot(Uint8List feedbackScreenshot) async {
-    final String screenshotFilePath = znnDefaultCacheDirectory.path +
-        Platform.pathSeparator +
-        'feedback_' +
-        DateTime.now().millisecondsSinceEpoch.toString() +
-        '.png';
-    final File screenshotFile = File(screenshotFilePath);
-    await screenshotFile.writeAsBytes(feedbackScreenshot);
-    var screenshotFilePathList = <String>[];
-    screenshotFilePathList.clear();
-    screenshotFilePathList.add(screenshotFile.absolute.path);
-    if (screenshotFilePath.isNotEmpty) {
-      await Share.shareFiles(screenshotFilePathList,
-          text: 'Feedback provided at ' +
-              DateTime.now().millisecondsSinceEpoch.toString() +
-              ' running on ' +
-              DeviceUtils.getDeviceInfo().toString() +
-              ' syrius wallet version ' +
-              DeviceUtils.getPackageInfo().toString(),
-          subject: 'Syrius wallet feedback');
-    } else {
-      await Share.share(
-        'Feedback provided at ' +
-            DateTime.now().millisecondsSinceEpoch.toString() +
-            ' running on ' +
-            DeviceUtils.getDeviceInfo().toString() +
-            ' syrius wallet version ' +
-            DeviceUtils.getPackageInfo().toString(),
-        subject: 'Syrius wallet feedback',
+  Future<void> _setupLaunchAtStartup() async {
+    PackageInfo packageInfo = await PackageInfo.fromPlatform();
+    launchAtStartup.setup(
+      appName: packageInfo.appName,
+      appPath: Platform.resolvedExecutable,
+    );
+  }
+
+  Future<void> _changeLaunchAtStartupStatus(bool enabled) async {
+    try {
+      await _setupLaunchAtStartup();
+      if (enabled) {
+        await launchAtStartup.enable();
+      } else {
+        await launchAtStartup.disable();
+      }
+      await _saveLaunchAtStartupValueToCache(enabled);
+      _sendLaunchAtStartupStatusNotification(enabled);
+    } on Exception catch (e) {
+      NotificationUtils.sendNotificationError(
+        e,
+        'Something went wrong while setting launch at startup preference',
       );
     }
+  }
+
+  Future<void> _saveLaunchAtStartupValueToCache(bool enabled) async {
+    await sharedPrefsService!.put(
+      kLaunchAtStartupKey,
+      enabled,
+    );
+  }
+
+  void _sendLaunchAtStartupStatusNotification(bool enabled) {
+    sl.get<NotificationsBloc>().addNotification(
+          WalletNotification(
+            title: 'Launch startup ${enabled ? 'enabled' : 'disabled'}',
+            details:
+                'Launch at startup preference was ${enabled ? 'enabled' : 'disabled'}',
+            timestamp: DateTime.now().millisecondsSinceEpoch,
+            type: NotificationType.paymentSent,
+          ),
+        );
+  }
+
+  Widget _getEnableDesktopNotifications() {
+    return Row(
+      children: [
+        Text(
+          'Enable desktop notifications ',
+          style: Theme.of(context).textTheme.bodyMedium,
+        ),
+        SyriusCheckbox(
+          onChanged: (value) {
+            setState(() {
+              _enableDesktopNotifications = value;
+              _changeEnableDesktopNotificationsStatus(value ?? false);
+            });
+          },
+          value: _enableDesktopNotifications,
+          context: context,
+        ),
+      ],
+    );
+  }
+
+  Future<void> _changeEnableDesktopNotificationsStatus(bool enabled) async {
+    try {
+      await sharedPrefsService!.put(kEnableDesktopNotificationsKey, enabled);
+      _sendEnabledDesktopNotificationsStatusNotification(enabled);
+    } on Exception catch (e) {
+      NotificationUtils.sendNotificationError(
+        e,
+        'Something went wrong while setting desktop notifications preference',
+      );
+    }
+  }
+
+  void _sendEnabledDesktopNotificationsStatusNotification(bool enabled) {
+    sl.get<NotificationsBloc>().addNotification(
+          WalletNotification(
+            title: 'Desktop notifications ${enabled ? 'enabled' : 'disabled'}',
+            details:
+                'Desktop notifications preference was ${enabled ? 'enabled' : 'disabled'}',
+            timestamp: DateTime.now().millisecondsSinceEpoch,
+            type: NotificationType.paymentSent,
+          ),
+        );
   }
 }

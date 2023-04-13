@@ -1,5 +1,7 @@
 # s y r i u s
 
+[![Build and release syrius](https://github.com/zenon-network/syrius/actions/workflows/syrius_builder.yml/badge.svg?branch=cicd)](https://github.com/zenon-network/syrius/actions/workflows/syrius_builder.yml) [![Library updater for syrius](https://github.com/zenon-network/syrius/actions/workflows/syrius_lib_updater.yml/badge.svg?branch=cicd)](https://github.com/zenon-network/syrius/actions/workflows/syrius_lib_updater.yml)
+
 Cross-platform non-custodial wallet designed for Alphanet - Network of Momentum Phase 0.
 
 Developed in Flutter using the [Zenon Dart SDK](https://github.com/zenon-network/znn_sdk_dart), `s y r i u s` wallet provides a simple and intuitive interface to interact with Network of Momentum Phase 0.
@@ -29,6 +31,8 @@ Currently supported `<os>`: `windows`, `macos`, `linux`
 git clone https://github.com/zenon-network/syrius.git
 flutter pub get
 flutter build <os>
+flutter build <os> --release
+flutter run --release
 ```
 
 ## Contributing

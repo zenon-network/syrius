@@ -1,11 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
-import 'package:zenon_syrius_wallet_flutter/blocs/notifications_bloc.dart';
-import 'package:zenon_syrius_wallet_flutter/blocs/transfer/send_payment_bloc.dart';
-import 'package:zenon_syrius_wallet_flutter/blocs/transfer/transfer_widgets_balance_bloc.dart';
+import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
-import 'package:zenon_syrius_wallet_flutter/model/database/notification_type.dart';
-import 'package:zenon_syrius_wallet_flutter/model/database/wallet_notification.dart';
+import 'package:zenon_syrius_wallet_flutter/model/model.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/address_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/clipboard_utils.dart';
@@ -16,16 +13,7 @@ import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/input_validators.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/notification_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/zts_utils.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/buttons/loading_button.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/buttons/send_payment_button.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/buttons/transfer_toggle_card_size_button.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/dialogs.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/dropdown/coin_dropdown.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/error_widget.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/input_field/amount_suffix_widgets.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/input_field/input_field.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/layout_scaffold/card_scaffold.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/loading_widget.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 class SendMediumCard extends StatefulWidget {
@@ -39,7 +27,7 @@ class SendMediumCard extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  _SendMediumCardState createState() => _SendMediumCardState();
+  State<SendMediumCard> createState() => _SendMediumCardState();
 }
 
 class _SendMediumCardState extends State<SendMediumCard> {
@@ -68,7 +56,7 @@ class _SendMediumCardState extends State<SendMediumCard> {
   Widget build(BuildContext context) {
     return CardScaffold(
       title: 'Send',
-      titleFontSize: Theme.of(context).textTheme.headline5!.fontSize,
+      titleFontSize: Theme.of(context).textTheme.headlineSmall!.fontSize,
       description: 'Manage sending funds',
       childBuilder: () => _getBalanceStreamBuilder(),
     );
@@ -120,11 +108,6 @@ class _SendMediumCardState extends State<SendMediumCard> {
                 validator: (value) => InputValidators.checkAddress(value),
                 controller: _recipientController,
                 suffixIcon: RawMaterialButton(
-                  child: const Icon(
-                    Icons.content_paste,
-                    color: AppColors.darkHintTextColor,
-                    size: 15.0,
-                  ),
                   shape: const CircleBorder(),
                   onPressed: () {
                     ClipboardUtils.pasteToClipboard(context, (String value) {
@@ -132,6 +115,11 @@ class _SendMediumCardState extends State<SendMediumCard> {
                       setState(() {});
                     });
                   },
+                  child: const Icon(
+                    Icons.content_paste,
+                    color: AppColors.darkHintTextColor,
+                    size: 15.0,
+                  ),
                 ),
                 suffixIconConstraints: const BoxConstraints(
                   maxWidth: 45.0,
@@ -190,27 +178,14 @@ class _SendMediumCardState extends State<SendMediumCard> {
   void _onSendPaymentPressed(SendPaymentBloc model) {
     if (_recipientKey.currentState!.validate() &&
         _amountKey.currentState!.validate()) {
-      if (Address.parse(_recipientController.text) == bridgeAddress) {
-        showOkDialog(
-          context: context,
-          title: 'Send Payment',
-          description:
-              'Use the form from the Bridge tab in order to perform the swap',
-          onActionButtonPressed: () {
-            Navigator.pop(context);
-            widget.onOkBridgeWarningDialogPressed();
-          },
-        );
-      } else {
-        showDialogWithNoAndYesOptions(
-          context: context,
-          title: 'Send Payment',
-          description: 'Are you sure you want to transfer '
-              '${_amountController.text} ${_selectedToken.symbol} to '
-              '${AddressUtils.getLabel(_recipientController.text)} ?',
-          onYesButtonPressed: () => _sendPayment(model),
-        );
-      }
+      showDialogWithNoAndYesOptions(
+        context: context,
+        title: 'Send Payment',
+        description: 'Are you sure you want to transfer '
+            '${_amountController.text} ${_selectedToken.symbol} to '
+            '${AddressUtils.getLabel(_recipientController.text)} ?',
+        onYesButtonPressed: () => _sendPayment(model),
+      );
     }
   }
 
@@ -275,8 +250,8 @@ class _SendMediumCardState extends State<SendMediumCard> {
 
   Widget _getSendPaymentViewModel(AccountInfo? accountInfo) {
     return ViewModelBuilder<SendPaymentBloc>.reactive(
-      fireOnModelReadyOnce: true,
-      onModelReady: (model) {
+      fireOnViewModelReadyOnce: true,
+      onViewModelReady: (model) {
         model.stream.listen(
           (event) {
             if (event is AccountBlockTemplate) {
