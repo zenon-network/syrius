@@ -23,7 +23,7 @@ jobs:
       - name: Download libznn
         uses: robinraju/release-downloader@v1.6
         with:
-          repository: "alienc0der/go-zenon"
+          repository: "zenon-network/go-zenon"
           latest: true
       - name: Extract libznn library
         run: |
