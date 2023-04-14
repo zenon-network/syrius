@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:walletconnect_flutter_v2/walletconnect_flutter_v2.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/functions.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
-
-import '../main.dart';
 
 class WalletConnectService {
   WalletConnectService._internal();
@@ -36,11 +34,6 @@ class WalletConnectService {
   Future<void> sendTx(
       String fromAddress, AccountBlockTemplate accountBlockTemplate) {
     // TODO: implement sendTx
-    throw UnimplementedError();
-  }
-
-  Future<void> signMessage(String message) {
-    // TODO: implement signMessage
     throw UnimplementedError();
   }
 
@@ -97,13 +90,8 @@ class WalletConnectService {
       method: 'znn_sign',
       handler: (method, params) async {
         final message = params as String;
-        List<int> signature = await zenon!.defaultKeyPair!.sign(
-          Uint8List.fromList(
-            message.codeUnits,
-          ),
-        );
 
-         return BytesUtils.bytesToHex(signature);
+         return await walletSign(message.codeUnits);
       },
     );
   }
