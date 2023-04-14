@@ -1,7 +1,5 @@
 Function Escape($String) {
-    $String = $String.Replace('\', '\\');
-    $String = $String.Replace('$', '\$');
-    Return $String
+    Return $String.Replace("'", "'`"'`"'");
 }
 
 $GIT_BRANCH_NAME = git rev-parse --abbrev-ref HEAD
@@ -13,8 +11,8 @@ $GIT_COMMIT_FILE = "${PSScriptRoot}\..\lib\utils\metadata.dart"
 
 Clear-Content $GIT_COMMIT_FILE -Force
 
-Add-Content $GIT_COMMIT_FILE "const String gitBranchName = '''$(Escape $GIT_BRANCH_NAME)''';"
-Add-Content $GIT_COMMIT_FILE "const String gitCommitHash = '''$GIT_COMMIT_HASH''';"
-Add-Content $GIT_COMMIT_FILE "const String gitCommitMessage = '''$(Escape $GIT_COMMIT_MESSAGE)''';"
-Add-Content $GIT_COMMIT_FILE "const String gitCommitDate = '''$GIT_COMMIT_DATE''';"
-Add-Content $GIT_COMMIT_FILE "const String gitOriginUrl = '''$(Escape $GIT_ORIGIN_URL)''';"
+Add-Content $GIT_COMMIT_FILE "const String gitBranchName = r'$(Escape $GIT_BRANCH_NAME)';"
+Add-Content $GIT_COMMIT_FILE "const String gitCommitHash = r'$GIT_COMMIT_HASH';"
+Add-Content $GIT_COMMIT_FILE "const String gitCommitMessage = r'$(Escape $GIT_COMMIT_MESSAGE)';"
+Add-Content $GIT_COMMIT_FILE "const String gitCommitDate = r'$GIT_COMMIT_DATE';"
+Add-Content $GIT_COMMIT_FILE "const String gitOriginUrl = r'$(Escape $GIT_ORIGIN_URL)';"
