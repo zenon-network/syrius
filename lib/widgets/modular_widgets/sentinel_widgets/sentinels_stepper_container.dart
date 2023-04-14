@@ -6,11 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_vector_icons/flutter_vector_icons.dart';
 import 'package:lottie/lottie.dart';
 import 'package:stacked/stacked.dart';
-import 'package:zenon_syrius_wallet_flutter/blocs/dashboard/balance_bloc.dart';
-import 'package:zenon_syrius_wallet_flutter/blocs/sentinels/sentinel_deposit_qsr_bloc.dart';
-import 'package:zenon_syrius_wallet_flutter/blocs/sentinels/sentinel_qsr_info_bloc.dart';
-import 'package:zenon_syrius_wallet_flutter/blocs/sentinels/sentinel_register_bloc.dart';
-import 'package:zenon_syrius_wallet_flutter/blocs/sentinels/sentinel_withdraw_qsr_bloc.dart';
+import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
@@ -21,19 +17,9 @@ import 'package:zenon_syrius_wallet_flutter/utils/input_validators.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/navigation_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/notification_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/zts_utils.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/buttons/loading_button.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/buttons/stepper_button.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/chart/standard_pie_chart.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/custom_material_stepper.dart'
     as custom_material_stepper;
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/dotted_border_info_widget.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/error_widget.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/input_field/amount_suffix_widgets.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/input_field/disabled_address_field.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/input_field/input_field.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/loading_widget.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/plasma_icon.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/stepper_utils.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 enum SentinelsStepperStep {
@@ -112,7 +98,7 @@ class _MainSentinelsState extends State<SentinelsStepperContainer> {
 
   Widget _getDepositQsrStep(BuildContext context, AccountInfo? accountInfo) {
     return ViewModelBuilder<SentinelsQsrInfoBloc>.reactive(
-      onModelReady: (model) {
+      onViewModelReady: (model) {
         _sentinelsQsrInfoViewModel = model;
         model.getQsrDepositedAmount(_addressController.text);
       },
@@ -157,7 +143,7 @@ class _MainSentinelsState extends State<SentinelsStepperContainer> {
               bottom: 30.0,
             ),
             decoration: BoxDecoration(
-              color: Theme.of(context).backgroundColor,
+              color: Theme.of(context).colorScheme.background,
               borderRadius: BorderRadius.circular(6.0),
             ),
             child: Padding(
@@ -193,7 +179,7 @@ class _MainSentinelsState extends State<SentinelsStepperContainer> {
                           ),
                           Text(
                             'Sentinel Slot value\n$_qsrCost ${kQsrCoin.symbol}',
-                            style: Theme.of(context).textTheme.bodyText2,
+                            style: Theme.of(context).textTheme.bodyMedium,
                             textAlign: TextAlign.center,
                           ),
                         ],
@@ -216,7 +202,7 @@ class _MainSentinelsState extends State<SentinelsStepperContainer> {
                               'Deposited ${kQsrCoin.symbol}',
                               style: Theme.of(context)
                                   .textTheme
-                                  .bodyText1!
+                                  .bodyLarge!
                                   .copyWith(
                                     fontSize: 10.0,
                                   ),
@@ -237,7 +223,7 @@ class _MainSentinelsState extends State<SentinelsStepperContainer> {
                               'Remaining ${kQsrCoin.symbol}',
                               style: Theme.of(context)
                                   .textTheme
-                                  .bodyText1!
+                                  .bodyLarge!
                                   .copyWith(
                                     fontSize: 10.0,
                                   ),
@@ -254,7 +240,7 @@ class _MainSentinelsState extends State<SentinelsStepperContainer> {
                         child: Text(
                           'You have deposited $depositedQsr ${kQsrCoin.symbol}',
                           textAlign: TextAlign.center,
-                          style: Theme.of(context).textTheme.bodyText1,
+                          style: Theme.of(context).textTheme.bodyLarge,
                         ),
                       ),
                       kVerticalSpacing,
@@ -348,7 +334,7 @@ class _MainSentinelsState extends State<SentinelsStepperContainer> {
 
   Widget _getDepositButtonViewModel(AccountInfo accountInfo, num depositedQsr) {
     return ViewModelBuilder<SentinelsDepositQsrBloc>.reactive(
-      onModelReady: (model) {
+      onViewModelReady: (model) {
         model.stream.listen(
           (response) {
             if (response != null) {
@@ -392,7 +378,7 @@ class _MainSentinelsState extends State<SentinelsStepperContainer> {
 
   Widget _getWithdrawQsrButtonViewModel(num qsrDeposit) {
     return ViewModelBuilder<SentinelsWithdrawQsrBloc>.reactive(
-      onModelReady: (model) {
+      onViewModelReady: (model) {
         model.stream.listen(
           (event) {
             if (event != null) {
@@ -519,7 +505,7 @@ class _MainSentinelsState extends State<SentinelsStepperContainer> {
 
   Widget _getDeployButtonViewModel() {
     return ViewModelBuilder<SentinelsDeployBloc>.reactive(
-      onModelReady: (model) {
+      onViewModelReady: (model) {
         model.stream.listen(
           (response) {
             if (response != null) {
@@ -574,7 +560,7 @@ class _MainSentinelsState extends State<SentinelsStepperContainer> {
               child: InputField(
                 enabled: false,
                 controller: _znnAmountController,
-                validator: InputValidators.validateNumber,
+                validator: InputValidators.validateAmount,
               ),
             ),
           ],
@@ -680,33 +666,37 @@ class _MainSentinelsState extends State<SentinelsStepperContainer> {
                     child: RichText(
                       textAlign: TextAlign.center,
                       text: TextSpan(
-                        style: Theme.of(context).textTheme.headline6,
+                        style: Theme.of(context).textTheme.headlineSmall,
                         children: [
                           TextSpan(
                             text: 'Sentinel ',
-                            style: Theme.of(context).textTheme.headline6,
+                            style: Theme.of(context).textTheme.headlineSmall,
                           ),
                           TextSpan(
                             text: 'successfully',
-                            style:
-                                Theme.of(context).textTheme.headline6!.copyWith(
-                                      color: AppColors.znnColor,
-                                    ),
+                            style: Theme.of(context)
+                                .textTheme
+                                .headlineSmall!
+                                .copyWith(
+                                  color: AppColors.znnColor,
+                                ),
                           ),
                           TextSpan(
                             text: ' registered. Use ',
-                            style: Theme.of(context).textTheme.headline6,
+                            style: Theme.of(context).textTheme.headlineSmall,
                           ),
                           TextSpan(
                             text: 'znn-controller ',
-                            style:
-                                Theme.of(context).textTheme.headline6!.copyWith(
-                                      color: AppColors.znnColor,
-                                      decoration: TextDecoration.underline,
-                                    ),
+                            style: Theme.of(context)
+                                .textTheme
+                                .headlineSmall!
+                                .copyWith(
+                                  color: AppColors.znnColor,
+                                  decoration: TextDecoration.underline,
+                                ),
                             recognizer: TapGestureRecognizer()
                               ..onTap = () {
-                                NavigationUtils.launchUrl(
+                                NavigationUtils.openUrl(
                                     kZnnController, context);
                               },
                           ),
@@ -719,7 +709,7 @@ class _MainSentinelsState extends State<SentinelsStepperContainer> {
                           ),
                           TextSpan(
                             text: ' to check the Sentinel status',
-                            style: Theme.of(context).textTheme.headline6,
+                            style: Theme.of(context).textTheme.headlineSmall,
                           ),
                         ],
                       ),

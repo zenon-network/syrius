@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:layout/layout.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/layout_scaffold/overscroll_remover.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/layout_scaffold/widget_animator.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 
 const int kStaggeredNumOfColumns = 12;
 
@@ -20,48 +19,45 @@ class StandardFluidLayout extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ScrollConfiguration(
-      behavior: RemoveOverscrollEffect(),
-      child: Layout(
-        format: FluidLayoutFormat(),
-        child: Builder(
-          builder: (context) {
-            const int crossAxisCount = kStaggeredNumOfColumns;
-            return CustomScrollView(
-              slivers: [
-                SliverStaggeredGrid(
-                  delegate: SliverChildListDelegate.fixed(
-                    List.generate(
-                      children.length,
-                      (index) => WidgetAnimator(
-                        curve: Curves.linear,
-                        child: children[index].child,
-                        animationOffset: Duration(
-                          milliseconds: ((children.length > 5 ? 800 : 400) ~/
-                                  children.length) *
-                              (index + 1),
-                        ),
+    return Layout(
+      format: FluidLayoutFormat(),
+      child: Builder(
+        builder: (context) {
+          const int crossAxisCount = kStaggeredNumOfColumns;
+          return CustomScrollView(
+            slivers: [
+              SliverStaggeredGrid(
+                delegate: SliverChildListDelegate.fixed(
+                  List.generate(
+                    children.length,
+                    (index) => WidgetAnimator(
+                      curve: Curves.linear,
+                      animationOffset: Duration(
+                        milliseconds: ((children.length > 5 ? 800 : 400) ~/
+                                children.length) *
+                            (index + 1),
                       ),
-                    ),
-                  ),
-                  gridDelegate:
-                      SliverStaggeredGridDelegateWithFixedCrossAxisCount(
-                    mainAxisSpacing:
-                        context.breakpoint < LayoutBreakpoint.sm ? 4 : 12.0,
-                    crossAxisSpacing:
-                        context.breakpoint < LayoutBreakpoint.sm ? 4 : 12.0,
-                    crossAxisCount: crossAxisCount,
-                    staggeredTileCount: children.length,
-                    staggeredTileBuilder: (index) => StaggeredTile.count(
-                      children[index].width ?? defaultCellWidth!,
-                      children[index].height ?? defaultCellHeight!,
+                      child: children[index].child,
                     ),
                   ),
                 ),
-              ],
-            );
-          },
-        ),
+                gridDelegate:
+                    SliverStaggeredGridDelegateWithFixedCrossAxisCount(
+                  mainAxisSpacing:
+                      context.breakpoint < LayoutBreakpoint.sm ? 4 : 12.0,
+                  crossAxisSpacing:
+                      context.breakpoint < LayoutBreakpoint.sm ? 4 : 12.0,
+                  crossAxisCount: crossAxisCount,
+                  staggeredTileCount: children.length,
+                  staggeredTileBuilder: (index) => StaggeredTile.count(
+                    children[index].width ?? defaultCellWidth!,
+                    children[index].height ?? defaultCellHeight!,
+                  ),
+                ),
+              ),
+            ],
+          );
+        },
       ),
     );
   }

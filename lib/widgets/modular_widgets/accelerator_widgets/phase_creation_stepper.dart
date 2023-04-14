@@ -1,28 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
 import 'package:stacked/stacked.dart';
-import 'package:zenon_syrius_wallet_flutter/blocs/accelerator/create_phase_bloc.dart';
-import 'package:zenon_syrius_wallet_flutter/blocs/dashboard/balance_bloc.dart';
+import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/extensions.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/format_utils.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/input_validators.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/notification_utils.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/zts_utils.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/buttons/loading_button.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/buttons/stepper_button.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
+import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/custom_material_stepper.dart'
     as custom_material_stepper;
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/dotted_border_info_widget.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/error_widget.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/icons/standard_tooltip_icon.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/input_field/amount_suffix_widgets.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/input_field/input_field.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/loading_widget.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/stepper_utils.dart';
-import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 enum PhaseCreationStep {
   phaseDetails,
@@ -35,7 +20,7 @@ class PhaseCreationStepper extends StatefulWidget {
   const PhaseCreationStepper(this.project, {Key? key}) : super(key: key);
 
   @override
-  _PhaseCreationStepperState createState() => _PhaseCreationStepperState();
+  State<PhaseCreationStepper> createState() => _PhaseCreationStepperState();
 }
 
 class _PhaseCreationStepperState extends State<PhaseCreationStepper> {
@@ -256,7 +241,9 @@ class _PhaseCreationStepperState extends State<PhaseCreationStepper> {
               ),
             ),
             const StandardTooltipIcon(
-                'Showcase the progress of your project (e.g. Git PR/commit)'),
+              'Showcase the progress of your project (e.g. Git PR/commit)',
+              Icons.help,
+            ),
           ],
         ),
         kVerticalSpacing,
@@ -264,10 +251,12 @@ class _PhaseCreationStepperState extends State<PhaseCreationStepper> {
           children: [
             Text(
               'Total phase budget',
-              style: Theme.of(context).textTheme.bodyText1,
+              style: Theme.of(context).textTheme.bodyLarge,
             ),
             const StandardTooltipIcon(
-                'Necessary budget to successfully complete this phase'),
+              'Necessary budget to successfully complete this phase',
+              Icons.help,
+            ),
           ],
         ),
         kVerticalSpacing,
@@ -454,7 +443,7 @@ class _PhaseCreationStepperState extends State<PhaseCreationStepper> {
 
   Widget _getCreatePhaseViewModel() {
     return ViewModelBuilder<CreatePhaseBloc>.reactive(
-      onModelReady: (model) {
+      onViewModelReady: (model) {
         model.stream.listen(
           (event) {
             if (event != null) {

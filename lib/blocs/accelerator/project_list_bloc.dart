@@ -1,18 +1,17 @@
 import 'dart:async';
 
+import 'package:logging/logging.dart';
 import 'package:rxdart/rxdart.dart';
-import 'package:zenon_syrius_wallet_flutter/blocs/infinite_scroll_bloc.dart';
-import 'package:zenon_syrius_wallet_flutter/blocs/refresh_bloc_mixin.dart';
+import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/logger.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/accelerator_widgets/project_list.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 class ProjectListBloc with RefreshBlocMixin {
   List<Project>? _allProjects;
 
-  final List<ProjectsFilterTag> selectedProjectsFilterTag = [];
+  final List<AccProjectsFilterTag> selectedProjectsFilterTag = [];
 
   final PillarInfo? pillarInfo;
 
@@ -88,8 +87,8 @@ class ProjectListBloc with RefreshBlocMixin {
         nextPageKey: nextPageKey,
         itemList: allItems,
       );
-    } catch (e) {
-      Logger.logError(e);
+    } catch (e, stackTrace) {
+      Logger('ProjectListBloc').log(Level.WARNING, 'addError', e, stackTrace);
       yield InfiniteScrollBlocListingState<Project>(
         error: e,
         nextPageKey: lastListingState.nextPageKey,
@@ -105,39 +104,26 @@ class ProjectListBloc with RefreshBlocMixin {
     _onPageRequest.close();
   }
 
-  Future<List<Project>> _getDataBySearchTerm(
-    int pageKey,
-    int pageSize,
-    String searchTerm,
-  ) async {
-    _allProjects ??= (await zenon!.embedded.accelerator.getAll()).list;
-    Set<Project> results =
-        _filterProjectsBySearchKeyWord(_allProjects!, searchTerm);
-    List<Project> subListResults = results.toList().sublist(
-          pageKey * pageSize,
-          (pageKey + 1) * pageSize <= results.length
-              ? (pageKey + 1) * pageSize
-              : results.length,
-        );
-    return _filterProjectsAccordingToPillarInfo(
-        await _filterProjectsByTags(subListResults));
-  }
-
   Future<List<Project>> getData(
     int pageKey,
     int pageSize,
     String? searchTerm,
   ) async {
+    _allProjects ??= (await zenon!.embedded.accelerator.getAll()).list;
+    List<Project> results = [];
     if (searchTerm != null && searchTerm.isNotEmpty) {
-      return _getDataBySearchTerm(pageKey, pageSize, searchTerm);
+      results =
+          _filterProjectsBySearchKeyWord(_allProjects!, searchTerm).toList();
+    } else {
+      results = _allProjects!;
     }
-    List<Project> projectList = (await zenon!.embedded.accelerator.getAll(
-      pageIndex: pageKey,
-      pageSize: pageSize,
-    ))
-        .list;
-    return await _filterProjectsAccordingToPillarInfo(
-      await _filterProjectsByTags(projectList),
+    results = (await _filterProjectsAccordingToPillarInfo(
+        await _filterProjectsByTags(results)));
+    return results.sublist(
+      pageKey * pageSize,
+      (pageKey + 1) * pageSize <= results.length
+          ? (pageKey + 1) * pageSize
+          : results.length,
     );
   }
 
@@ -221,38 +207,30 @@ class ProjectListBloc with RefreshBlocMixin {
   Future<Set<Project>> _filterProjectsByTags(List<Project> projects) async {
     if (selectedProjectsFilterTag.isNotEmpty) {
       Iterable<Hash>? votedProjectIds;
-      var filteredProjects = const Iterable<Project>.empty();
-      if (selectedProjectsFilterTag.contains(ProjectsFilterTag.myProjects)) {
-        filteredProjects = projects.where(
+      Iterable<Project> filteredProjects = projects;
+      if (selectedProjectsFilterTag.contains(AccProjectsFilterTag.myProjects)) {
+        filteredProjects = filteredProjects.where(
           (project) => kDefaultAddressList.contains(project.owner.toString()),
         );
       }
-      if (selectedProjectsFilterTag.contains(ProjectsFilterTag.onlyAccepted)) {
-        if (filteredProjects.isNotEmpty) {
-          filteredProjects = filteredProjects.where(
-              (project) => project.status == AcceleratorProjectStatus.active);
-        } else {
-          filteredProjects = projects.where(
-              (project) => project.status == AcceleratorProjectStatus.active);
-        }
+      if (selectedProjectsFilterTag
+          .contains(AccProjectsFilterTag.onlyAccepted)) {
+        filteredProjects = filteredProjects.where(
+            (project) => project.status == AcceleratorProjectStatus.active);
       }
-      if (selectedProjectsFilterTag.contains(ProjectsFilterTag.votingOpened)) {
-        var projectsToBeChecked =
-            filteredProjects.isNotEmpty ? filteredProjects : projects;
-        votedProjectIds ??=
-            await _getVotedProjectIdsByPillar(projectsToBeChecked);
-        filteredProjects = projectsToBeChecked.where(
+      if (selectedProjectsFilterTag
+          .contains(AccProjectsFilterTag.votingOpened)) {
+        votedProjectIds ??= await _getVotedProjectIdsByPillar(filteredProjects);
+        filteredProjects = filteredProjects.where(
           (project) =>
               project.status == AcceleratorProjectStatus.voting &&
               !votedProjectIds!.contains(project.id),
         );
       }
-      if (selectedProjectsFilterTag.contains(ProjectsFilterTag.alreadyVoted)) {
-        var projectsToBeChecked =
-            filteredProjects.isNotEmpty ? filteredProjects : projects;
-        votedProjectIds ??=
-            await _getVotedProjectIdsByPillar(projectsToBeChecked);
-        filteredProjects = projectsToBeChecked.where(
+      if (selectedProjectsFilterTag
+          .contains(AccProjectsFilterTag.alreadyVoted)) {
+        votedProjectIds ??= await _getVotedProjectIdsByPillar(filteredProjects);
+        filteredProjects = filteredProjects.where(
           (project) => votedProjectIds!.contains(project.id),
         );
       }

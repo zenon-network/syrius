@@ -71,9 +71,11 @@ class _SeedChoiceState extends State<SeedChoice> {
                 ),
                 child: SvgPicture.asset(
                   'assets/svg/ic_seed_24.svg',
-                  color: widget.isSeed12Selected
-                      ? _seed24Color
-                      : AppColors.selectedSeedChoiceColor,
+                  colorFilter: ColorFilter.mode(
+                      widget.isSeed12Selected
+                          ? _seed24Color
+                          : AppColors.selectedSeedChoiceColor,
+                      BlendMode.srcIn),
                 ),
               ),
             ),
@@ -113,9 +115,11 @@ class _SeedChoiceState extends State<SeedChoice> {
                 ),
                 child: SvgPicture.asset(
                   'assets/svg/ic_seed_12.svg',
-                  color: widget.isSeed12Selected
-                      ? AppColors.selectedSeedChoiceColor
-                      : _seed12Color,
+                  colorFilter: ColorFilter.mode(
+                      widget.isSeed12Selected
+                          ? AppColors.selectedSeedChoiceColor
+                          : _seed12Color,
+                      BlendMode.srcIn),
                 ),
               ),
             ),

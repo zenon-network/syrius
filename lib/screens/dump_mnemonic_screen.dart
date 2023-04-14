@@ -1,18 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/keystore_utils.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/buttons/loading_button.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/buttons/onboarding_button.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/input_field/password_input_field.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/seed/seed_grid.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 class DumpMnemonicScreen extends StatefulWidget {
   const DumpMnemonicScreen({Key? key}) : super(key: key);
 
   @override
-  _DumpMnemonicScreenState createState() => _DumpMnemonicScreenState();
+  State<DumpMnemonicScreen> createState() => _DumpMnemonicScreenState();
 }
 
 class _DumpMnemonicScreenState extends State<DumpMnemonicScreen> {
@@ -41,7 +36,7 @@ class _DumpMnemonicScreenState extends State<DumpMnemonicScreen> {
               visible: _seedWords == null,
               child: Text(
                 'Enter the wallet password to dump the mnemonic',
-                style: Theme.of(context).textTheme.headline1,
+                style: Theme.of(context).textTheme.headlineLarge,
               ),
             ),
             Visibility(

@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_vector_icons/flutter_vector_icons.dart';
 import 'package:stacked/stacked.dart';
-import 'package:zenon_syrius_wallet_flutter/blocs/dashboard/delegation_bloc.dart';
+import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/zts_utils.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/layout_scaffold/card_scaffold.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 const String _kWidgetTitle = 'Delegation Stats';
@@ -15,7 +15,7 @@ class DelegationStats extends StatefulWidget {
   const DelegationStats({Key? key}) : super(key: key);
 
   @override
-  _DelegationStatsState createState() => _DelegationStatsState();
+  State<DelegationStats> createState() => _DelegationStatsState();
 }
 
 class _DelegationStatsState extends State<DelegationStats> {
@@ -23,7 +23,7 @@ class _DelegationStatsState extends State<DelegationStats> {
   Widget build(BuildContext context) {
     return ViewModelBuilder<DelegationBloc>.reactive(
       viewModelBuilder: () => DelegationBloc(),
-      onModelReady: (model) {
+      onViewModelReady: (model) {
         model.getDataPeriodically();
       },
       builder: (_, model, __) => CardScaffold<DelegationInfo>(
@@ -54,7 +54,7 @@ class _DelegationStatsState extends State<DelegationStats> {
           child: Icon(
             SimpleLineIcons.trophy,
             size: 12.0,
-            color: Theme.of(context).textTheme.bodyText1!.color,
+            color: Theme.of(context).textTheme.bodyLarge!.color,
           ),
         ),
         Container(width: 16.0),
@@ -64,11 +64,11 @@ class _DelegationStatsState extends State<DelegationStats> {
           children: <Widget>[
             Text(
               delegationInfo.name.toString(),
-              style: Theme.of(context).textTheme.bodyText2,
+              style: Theme.of(context).textTheme.bodyMedium,
             ),
             Text(
               '${delegationInfo.weightWithDecimals.toString()} ${kZnnCoin.symbol}',
-              style: Theme.of(context).textTheme.subtitle1,
+              style: Theme.of(context).textTheme.titleMedium,
             ),
           ],
         ),

@@ -49,7 +49,7 @@ class BridgeNetworkDropdown extends StatelessWidget {
                     value: value,
                     child: Text(
                       value,
-                      style: Theme.of(context).textTheme.bodyText2!.copyWith(
+                      style: Theme.of(context).textTheme.bodyMedium!.copyWith(
                             color: _selectedNetwork == value
                                 ? onChangedCallback != null
                                     ? AppColors.znnColor

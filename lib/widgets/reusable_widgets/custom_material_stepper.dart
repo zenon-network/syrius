@@ -219,7 +219,7 @@ class Stepper extends StatefulWidget {
   final ControlsWidgetBuilder? controlsBuilder;
 
   @override
-  _StepperState createState() => _StepperState();
+  State<Stepper> createState() => _StepperState();
 }
 
 class _StepperState extends State<Stepper> with TickerProviderStateMixin {
@@ -389,12 +389,12 @@ class _StepperState extends State<Stepper> with TickerProviderStateMixin {
       case StepState.indexed:
       case StepState.editing:
       case StepState.complete:
-        return textTheme.bodyText1;
+        return textTheme.bodyLarge;
       case StepState.disabled:
-        return textTheme.bodyText1!
+        return textTheme.bodyLarge!
             .copyWith(color: _isDark() ? _kDisabledDark : _kDisabledLight);
       case StepState.error:
-        return textTheme.bodyText1!
+        return textTheme.bodyLarge!
             .copyWith(color: _isDark() ? _kErrorDark : _kErrorLight);
     }
   }
@@ -407,12 +407,12 @@ class _StepperState extends State<Stepper> with TickerProviderStateMixin {
       case StepState.indexed:
       case StepState.editing:
       case StepState.complete:
-        return textTheme.caption;
+        return textTheme.bodySmall;
       case StepState.disabled:
-        return textTheme.caption!
+        return textTheme.bodySmall!
             .copyWith(color: _isDark() ? _kDisabledDark : _kDisabledLight);
       case StepState.error:
-        return textTheme.caption!
+        return textTheme.bodySmall!
             .copyWith(color: _isDark() ? _kErrorDark : _kErrorLight);
     }
   }

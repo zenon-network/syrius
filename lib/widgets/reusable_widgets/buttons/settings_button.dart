@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_theme.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/buttons/outlined_button.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 
 class SettingsButton extends MyOutlinedButton {
   const SettingsButton({
@@ -12,7 +12,7 @@ class SettingsButton extends MyOutlinedButton {
           key: key,
           onPressed: onPressed,
           text: text,
-          textStyle: kText2TextStyle,
+          textStyle: kBodyMediumTextStyle,
           minimumSize: kSettingsButtonMinSize,
         );
 }

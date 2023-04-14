@@ -1,15 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_vector_icons/flutter_vector_icons.dart';
-import 'package:zenon_syrius_wallet_flutter/blocs/sentinels/sentinel_list_bloc.dart';
-import 'package:zenon_syrius_wallet_flutter/blocs/transfer/latest_transactions_bloc.dart';
+import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/color_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/extensions.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/format_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/widget_utils.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/formatted_amount_with_tooltip.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/infinite_scroll_table.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/layout_scaffold/card_scaffold.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 enum LatestTransactionsVersion { standard, dashboard, token }
@@ -23,7 +20,7 @@ class LatestTransactions extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  _LatestTransactionsState createState() => _LatestTransactionsState();
+  State<LatestTransactions> createState() => _LatestTransactionsState();
 }
 
 class _LatestTransactionsState extends State<LatestTransactions> {
@@ -97,7 +94,7 @@ class _LatestTransactionsState extends State<LatestTransactions> {
           tokenSymbol: infoBlock.token?.symbol ?? '',
           builder: (formattedAmount, tokenSymbol) => Text(
             formattedAmount,
-            style: Theme.of(context).textTheme.subtitle1!.copyWith(
+            style: Theme.of(context).textTheme.titleMedium!.copyWith(
                   color: AppColors.subtitleColor,
                 ),
           ),
@@ -194,7 +191,7 @@ class _LatestTransactionsState extends State<LatestTransactions> {
         BlockTypeEnum.values[block.blockType],
       ),
       textAlign: TextAlign.center,
-      style: Theme.of(context).textTheme.subtitle2,
+      style: Theme.of(context).textTheme.titleSmall,
     );
   }
 
@@ -356,7 +353,7 @@ class _LatestTransactionsState extends State<LatestTransactions> {
           tokenSymbol: infoBlock.token?.symbol ?? '',
           builder: (formattedAmount, tokenSymbol) => Text(
             formattedAmount,
-            style: Theme.of(context).textTheme.subtitle1!.copyWith(
+            style: Theme.of(context).textTheme.titleMedium!.copyWith(
                   color: AppColors.subtitleColor,
                 ),
           ),

@@ -1,8 +1,8 @@
 import 'dart:async';
 
+import 'package:logging/logging.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:stacked/stacked.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/logger.dart';
 
 abstract class BaseBloc<T> extends BaseViewModel {
   final BehaviorSubject<T> _controller = BehaviorSubject();
@@ -15,9 +15,9 @@ abstract class BaseBloc<T> extends BaseViewModel {
     if (!_controller.isClosed) _sink.add(event);
   }
 
-  void addError(error) {
+  void addError(error, stackTrace) {
+    Logger('BaseBloc').log(Level.WARNING, 'addError', error, stackTrace);
     if (!_controller.isClosed) {
-      Logger.logError(error);
       _sink.addError(error);
     }
   }

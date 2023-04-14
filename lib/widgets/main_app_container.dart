@@ -4,14 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_vector_icons/flutter_vector_icons.dart';
 import 'package:provider/provider.dart';
-import 'package:zenon_syrius_wallet_flutter/blocs/auto_receive_tx_worker.dart';
-import 'package:zenon_syrius_wallet_flutter/blocs/lock_bloc.dart';
-import 'package:zenon_syrius_wallet_flutter/blocs/node_sync_status_bloc.dart';
-import 'package:zenon_syrius_wallet_flutter/blocs/notifications_bloc.dart';
-import 'package:zenon_syrius_wallet_flutter/blocs/pow_generating_status_bloc.dart';
+import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
-import 'package:zenon_syrius_wallet_flutter/model/database/notification_type.dart';
-import 'package:zenon_syrius_wallet_flutter/model/database/wallet_notification.dart';
+import 'package:zenon_syrius_wallet_flutter/model/model.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/extensions.dart';
@@ -19,22 +14,7 @@ import 'package:zenon_syrius_wallet_flutter/utils/format_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/notification_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/notifiers/text_scaling_notifier.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/layout_scaffold/overscroll_remover.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/loading_widget.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/notification_widget.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/tab_children_widgets/accelerator_tab_child.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/tab_children_widgets/bridge_tab_child.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/tab_children_widgets/dashboard_tab_child.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/tab_children_widgets/help_tab_child.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/tab_children_widgets/lock_tab_child.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/tab_children_widgets/notifications_tab_child.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/tab_children_widgets/pillars_tab_child.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/tab_children_widgets/plasma_tab_child.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/tab_children_widgets/sentinels_tab_child.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/tab_children_widgets/settings_tab_child.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/tab_children_widgets/staking_tab_child.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/tab_children_widgets/tokens_tab_child.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/tab_children_widgets/transfer_tab_child.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 enum Tabs {
@@ -65,7 +45,7 @@ class MainAppContainer extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  _MainAppContainerState createState() => _MainAppContainerState();
+  State<MainAppContainer> createState() => _MainAppContainerState();
 }
 
 class _MainAppContainerState extends State<MainAppContainer>
@@ -146,11 +126,8 @@ class _MainAppContainerState extends State<MainAppContainer>
                     borderRadius: BorderRadius.circular(
                       15.0,
                     ),
-                    child: ScrollConfiguration(
-                      behavior: RemoveOverscrollEffect(),
-                      child: Container(
-                        child: _getCurrentPageContainer(),
-                      ),
+                    child: Container(
+                      child: _getCurrentPageContainer(),
                     ),
                   ),
                 ),
@@ -224,12 +201,14 @@ class _MainAppContainerState extends State<MainAppContainer>
                       child: IgnorePointer(
                         ignoring: _isWalletLocked(),
                         child: TabBar(
-                          labelStyle:
-                              Theme.of(context).textTheme.headline6!.copyWith(
-                                    fontSize: 15.0,
-                                  ),
+                          labelStyle: Theme.of(context)
+                              .textTheme
+                              .headlineSmall!
+                              .copyWith(
+                                fontSize: 15.0,
+                              ),
                           labelColor:
-                              Theme.of(context).textTheme.headline6!.color,
+                              Theme.of(context).textTheme.headlineSmall!.color,
                           onTap: (int index) {
                             if (_isTabSelected(Tabs.lock)) {
                               _onNavigateToLock();

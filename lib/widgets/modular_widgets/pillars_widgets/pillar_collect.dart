@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:zenon_syrius_wallet_flutter/blocs/pillars/pillar_rewards_history_bloc.dart';
-import 'package:zenon_syrius_wallet_flutter/blocs/pillars/pillar_uncollected_rewards_bloc.dart';
+import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/account_block_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
@@ -8,11 +7,7 @@ import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/extensions.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/notification_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/zts_utils.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/buttons/loading_button.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/error_widget.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/layout_scaffold/card_scaffold.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/loading_widget.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/number_animation.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 class PillarCollect extends StatefulWidget {
@@ -24,7 +19,7 @@ class PillarCollect extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  _PillarCollectState createState() => _PillarCollectState();
+  State<PillarCollect> createState() => _PillarCollectState();
 }
 
 class _PillarCollectState extends State<PillarCollect> {
@@ -78,7 +73,7 @@ class _PillarCollectState extends State<PillarCollect> {
           ),
           isInt: false,
           after: ' ${kZnnCoin.symbol}',
-          style: Theme.of(context).textTheme.headline1!.copyWith(
+          style: Theme.of(context).textTheme.headlineLarge!.copyWith(
                 color: AppColors.znnColor,
                 fontSize: 30.0,
               ),

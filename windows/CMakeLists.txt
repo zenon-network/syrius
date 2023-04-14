@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.15)
 project(syrius LANGUAGES CXX)
 
 set(BINARY_NAME "syrius")
+set(APPLICATION_ID "network.zenon.syrius")
 
 cmake_policy(SET CMP0063 NEW)
 
@@ -93,3 +94,31 @@ install(DIRECTORY "${PROJECT_BUILD_DIR}/${FLUTTER_ASSET_DIR_NAME}"
 install(FILES "${AOT_LIBRARY}" DESTINATION "${INSTALL_BUNDLE_DATA_DIR}"
   CONFIGURATIONS Profile;Release
   COMPONENT Runtime)
+
+# Bundle required ZNN libraries for Syrius
+set(SYRIUS_PROJECT_DIRECTORY "${CMAKE_HOME_DIRECTORY}/..")
+
+# Leveraging flutter to identify dependency locations
+file(STRINGS "${SYRIUS_PROJECT_DIRECTORY}/.dart_tool/package_config.json"
+  ZNN_SDK_DART_PATH REGEX "(file:).*(znn_sdk_dart).*\\/\"" )
+
+string(REPLACE "\"rootUri\": \"file:///" "" ZNN_SDK_DART_PATH "${ZNN_SDK_DART_PATH}")
+string(REPLACE "/\"," "" ZNN_SDK_DART_PATH "${ZNN_SDK_DART_PATH}")
+string(STRIP "${ZNN_SDK_DART_PATH}" ZNN_SDK_DART_PATH)
+
+list(APPEND SYRIUS_LIBRARIES
+  "${SYRIUS_PROJECT_DIRECTORY}/lib/embedded_node/blobs/libznn.dll"
+  "${ZNN_SDK_DART_PATH}/lib/src/argon2/blobs/argon2_ffi_plugin.dll"
+  "${ZNN_SDK_DART_PATH}/lib/src/pow/blobs/libpow_links.dll"
+)
+
+foreach(znn_library ${SYRIUS_LIBRARIES})
+  install(FILES "${znn_library}"
+    DESTINATION "${CMAKE_INSTALL_PREFIX}"
+    COMPONENT Runtime)
+  message(STATUS "Copy ZNN library: \"${znn_library}\"")
+endforeach(znn_library)
+
+find_program(POWERSHELL_PATH NAMES powershell)
+add_custom_target("git_metadata" ALL
+  COMMAND ${POWERSHELL_PATH} "${CMAKE_HOME_DIRECTORY}/CreateGitMetadata.ps1")

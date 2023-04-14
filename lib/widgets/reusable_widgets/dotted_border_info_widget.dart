@@ -39,7 +39,7 @@ class _DottedBorderInfoWidgetState extends State<DottedBorderInfoWidget> {
           Flexible(
             child: Text(
               widget.text,
-              style: Theme.of(context).textTheme.bodyText2,
+              style: Theme.of(context).textTheme.bodyMedium,
               textAlign: TextAlign.center,
             ),
           ),

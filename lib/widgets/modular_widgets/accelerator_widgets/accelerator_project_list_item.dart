@@ -1,24 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_vector_icons/flutter_vector_icons.dart';
 import 'package:stacked/stacked.dart';
-import 'package:zenon_syrius_wallet_flutter/blocs/accelerator/project_vote_breakdown_bloc.dart';
-import 'package:zenon_syrius_wallet_flutter/blocs/accelerator/vote_project_bloc.dart';
-import 'package:zenon_syrius_wallet_flutter/screens/project_details_screen.dart';
-import 'package:zenon_syrius_wallet_flutter/screens/stepper_screen.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/extensions.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/navigation_utils.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/notification_utils.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/pair.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/zts_utils.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/accelerator_widgets/update_phase_stepper.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/accelerator_project_details.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/error_widget.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/loading_widget.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/progress_bars.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/tag_widget.dart';
+import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
+import 'package:zenon_syrius_wallet_flutter/screens/screens.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 class AcceleratorProjectListItem extends StatefulWidget {
@@ -36,7 +22,7 @@ class AcceleratorProjectListItem extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  _AcceleratorProjectListItemState createState() =>
+  State<AcceleratorProjectListItem> createState() =>
       _AcceleratorProjectListItemState();
 }
 
@@ -132,7 +118,7 @@ class _AcceleratorProjectListItemState
       children: [
         Text(
           widget.acceleratorProject.name,
-          style: Theme.of(context).textTheme.headline5,
+          style: Theme.of(context).textTheme.headlineSmall,
         ),
       ],
     );
@@ -144,7 +130,7 @@ class _AcceleratorProjectListItemState
         Expanded(
           child: Text(
             widget.acceleratorProject.description,
-            style: Theme.of(context).textTheme.bodyText1,
+            style: Theme.of(context).textTheme.bodyLarge,
           ),
         ),
       ],
@@ -314,6 +300,7 @@ class _AcceleratorProjectListItemState
         Row(
           children: [
             AcceleratorProgressBar(
+                context: context,
                 child: Row(
                   children: [
                     AcceleratorProgressBarSpan(
@@ -335,8 +322,7 @@ class _AcceleratorProjectListItemState
                           '$pillarsThatCanStillVote Pillars that can still cast a vote',
                     ),
                   ],
-                ),
-                context: context),
+                )),
             const SizedBox(
               width: 10.0,
             ),
@@ -367,7 +353,7 @@ class _AcceleratorProjectListItemState
       materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
       shape: const CircleBorder(),
       onPressed: () =>
-          NavigationUtils.launchUrl(widget.acceleratorProject.url, context),
+          NavigationUtils.openUrl(widget.acceleratorProject.url, context),
       child: Tooltip(
         message: 'Visit ${widget.acceleratorProject.url}',
         child: Container(
@@ -598,7 +584,7 @@ class _AcceleratorProjectListItemState
     ProjectVoteBreakdownBloc projectVoteBreakdownViewModel,
   ) {
     return ViewModelBuilder<VoteProjectBloc>.reactive(
-      onModelReady: (model) {
+      onViewModelReady: (model) {
         model.stream.listen((event) {
           if (event != null) {
             projectVoteBreakdownViewModel.getVoteBreakdown(
@@ -633,7 +619,7 @@ class _AcceleratorProjectListItemState
 
   Widget _getProjectVoteBreakdownViewModel(BuildContext context) {
     return ViewModelBuilder<ProjectVoteBreakdownBloc>.reactive(
-      onModelReady: (model) {
+      onViewModelReady: (model) {
         model.getVoteBreakdown(
             widget.pillarInfo?.name, widget.acceleratorProject.id);
         model.stream.listen((event) {}, onError: (error) {

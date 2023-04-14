@@ -1,4 +1,4 @@
-import 'package:zenon_syrius_wallet_flutter/blocs/base_bloc.dart';
+import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
@@ -20,9 +20,9 @@ class HideWidgetStatusBloc extends BaseBloc<bool?> {
       await _markWidgetAsHidden(widgetTitle, isHidden);
       addEvent(isHidden);
     } on IncorrectPasswordException {
-      addError(kIncorrectPasswordNotificationTitle);
-    } catch (e) {
-      addError(e);
+      addError(kIncorrectPasswordNotificationTitle, null);
+    } catch (e, stackTrace) {
+      addError(e, stackTrace);
     }
   }
 

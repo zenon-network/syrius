@@ -1,16 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:layout/layout.dart';
 import 'package:provider/provider.dart';
-import 'package:zenon_syrius_wallet_flutter/blocs/plasma/plasma_list_bloc.dart';
-import 'package:zenon_syrius_wallet_flutter/blocs/plasma/plasma_stats_bloc.dart';
+import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
-import 'package:zenon_syrius_wallet_flutter/model/plasma_info_wrapper.dart';
+import 'package:zenon_syrius_wallet_flutter/model/model.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/notifiers/plasma_generated_notifier.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/dashboard_widgets/plasma_stats.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/plasma_widgets/plasma_list/plasma_list.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/plasma_widgets/plasma_options/plasma_options.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/layout_scaffold/standard_fluid_layout.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/loading_widget.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 
 class PlasmaTabChild extends StatefulWidget {
   const PlasmaTabChild({Key? key}) : super(key: key);

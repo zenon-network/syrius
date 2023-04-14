@@ -1,18 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
-import 'package:zenon_syrius_wallet_flutter/blocs/decrypt_key_store_bloc.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/file_utils.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/input_validators.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/keystore_utils.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/notification_utils.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/buttons/loading_button.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/buttons/onboarding_button.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/dotted_border_info_widget.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/input_field/password_input_field.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/notification_widget.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/progress_bars.dart';
+import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 class ChangeWalletPasswordScreen extends StatefulWidget {
@@ -24,7 +14,7 @@ class ChangeWalletPasswordScreen extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  _ChangeWalletPasswordScreenState createState() =>
+  State<ChangeWalletPasswordScreen> createState() =>
       _ChangeWalletPasswordScreenState();
 }
 
@@ -60,7 +50,7 @@ class _ChangeWalletPasswordScreenState
             ),
             Text(
               'Change wallet password',
-              style: Theme.of(context).textTheme.headline1,
+              style: Theme.of(context).textTheme.headlineLarge,
             ),
             Column(
               children: [
@@ -160,11 +150,11 @@ class _ChangeWalletPasswordScreenState
     await KeyStoreUtils.createKeyStore(
       mnemonic,
       newPassword,
-      keyStoreName: (await kKeyStore!.getKeyPair(0).address).toString() +
-          '_' +
-          DateTime.now().millisecondsSinceEpoch.toString(),
+      keyStoreName:
+          '${await kKeyStore!.getKeyPair(0).address}_${DateTime.now().millisecondsSinceEpoch}',
     );
     await FileUtils.deleteFile(oldKeyStorePath);
+    if (!mounted) return;
     Navigator.pop(context);
   }
 
@@ -180,7 +170,7 @@ class _ChangeWalletPasswordScreenState
 
   Widget _getDecryptKeyStoreFileViewModel() {
     return ViewModelBuilder<DecryptKeyStoreBloc>.reactive(
-      onModelReady: (model) {
+      onViewModelReady: (model) {
         model.stream.listen((keyStore) async {
           if (keyStore != null) {
             setState(() {

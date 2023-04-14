@@ -1,24 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
 import 'package:stacked/stacked.dart';
-import 'package:zenon_syrius_wallet_flutter/blocs/accelerator/update_phase_bloc.dart';
-import 'package:zenon_syrius_wallet_flutter/blocs/dashboard/balance_bloc.dart';
+import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/format_utils.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/input_validators.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/notification_utils.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/zts_utils.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/buttons/stepper_button.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/custom_material_stepper.dart'
     as custom_material_stepper;
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/dotted_border_info_widget.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/error_widget.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/input_field/amount_suffix_widgets.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/input_field/input_field.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/loading_widget.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/stepper_utils.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 enum UpdatePhaseStep {
@@ -37,7 +25,7 @@ class UpdatePhaseStepper extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  _UpdatePhaseStepperState createState() => _UpdatePhaseStepperState();
+  State<UpdatePhaseStepper> createState() => _UpdatePhaseStepperState();
 }
 
 class _UpdatePhaseStepperState extends State<UpdatePhaseStepper> {
@@ -197,7 +185,7 @@ class _UpdatePhaseStepperState extends State<UpdatePhaseStepper> {
               child: Text(
                 'This phase belongs to Project ID '
                 '${widget.phase.id.toShortString()}',
-                style: Theme.of(context).textTheme.headline6,
+                style: Theme.of(context).textTheme.headlineSmall,
               ),
             ),
           ],
@@ -244,7 +232,7 @@ class _UpdatePhaseStepperState extends State<UpdatePhaseStepper> {
         kVerticalSpacing,
         Text(
           'Total phase budget',
-          style: Theme.of(context).textTheme.bodyText1,
+          style: Theme.of(context).textTheme.bodyLarge,
         ),
         kVerticalSpacing,
         Form(
@@ -408,7 +396,7 @@ class _UpdatePhaseStepperState extends State<UpdatePhaseStepper> {
 
   Widget _getUpdatePhaseViewModel() {
     return ViewModelBuilder<UpdatePhaseBloc>.reactive(
-      onModelReady: (model) {
+      onViewModelReady: (model) {
         model.stream.listen(
           (event) {
             if (event != null) {

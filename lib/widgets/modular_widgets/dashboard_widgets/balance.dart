@@ -2,16 +2,13 @@ import 'package:auto_size_text/auto_size_text.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
-import 'package:zenon_syrius_wallet_flutter/blocs/dashboard/balance_dashboard_bloc.dart';
+import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/color_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/zts_utils.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/amount_info_column.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/chart/standard_pie_chart.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/formatted_amount_with_tooltip.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/layout_scaffold/card_scaffold.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 const String _kWidgetTitle = 'Balance';
@@ -24,7 +21,7 @@ class BalanceWidget extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  _BalanceWidgetState createState() => _BalanceWidgetState();
+  State<BalanceWidget> createState() => _BalanceWidgetState();
 }
 
 class _BalanceWidgetState extends State<BalanceWidget> {
@@ -36,14 +33,14 @@ class _BalanceWidgetState extends State<BalanceWidget> {
   void didChangeDependencies() {
     super.didChangeDependencies();
     _colorAddressPrefixSuffix ??= Theme.of(context).hintColor;
-    _backgroundAddressColor ??= Theme.of(context).backgroundColor;
+    _backgroundAddressColor ??= Theme.of(context).colorScheme.background;
   }
 
   @override
   Widget build(BuildContext context) {
     return ViewModelBuilder<BalanceDashboardBloc>.reactive(
       viewModelBuilder: () => BalanceDashboardBloc(),
-      onModelReady: (model) {
+      onViewModelReady: (model) {
         model.getDataPeriodically();
       },
       builder: (_, model, __) => CardScaffold<AccountInfo>(
@@ -204,7 +201,7 @@ class _BalanceWidgetState extends State<BalanceWidget> {
           tokenStandard,
         )} ${_touchedTokenStandard == kZnnCoin.tokenStandard.toString() ? kZnnCoin.symbol : kQsrCoin.symbol}',
         textAlign: TextAlign.center,
-        style: Theme.of(context).textTheme.headline4!.copyWith(
+        style: Theme.of(context).textTheme.headlineMedium!.copyWith(
               color: ColorUtils.getTokenColor(tokenStandard),
               fontWeight: FontWeight.bold,
             ),

@@ -64,7 +64,7 @@ class NumberAnimation extends StatefulWidget {
 
   /// create state
   @override
-  _NumberAnimationState createState() => _NumberAnimationState();
+  State<NumberAnimation> createState() => _NumberAnimationState();
 }
 
 /// state

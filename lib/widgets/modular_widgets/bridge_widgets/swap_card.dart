@@ -1,29 +1,14 @@
 import 'package:flutter/material.dart';
-import 'package:zenon_syrius_wallet_flutter/blocs/notifications_bloc.dart';
-import 'package:zenon_syrius_wallet_flutter/blocs/transfer/send_payment_bloc.dart';
-import 'package:zenon_syrius_wallet_flutter/blocs/transfer/transfer_widgets_balance_bloc.dart';
+import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
-import 'package:zenon_syrius_wallet_flutter/model/database/notification_type.dart';
-import 'package:zenon_syrius_wallet_flutter/model/database/wallet_notification.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
+import 'package:zenon_syrius_wallet_flutter/model/model.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/format_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/input_validators.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/navigation_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/notification_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/zts_utils.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/available_balance.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/buttons/loading_button.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/buttons/outlined_button.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/dialogs.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/dropdown/addresses_dropdown.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/dropdown/bridge_network_dropdown.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/error_widget.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/input_field/amount_suffix_widgets.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/input_field/input_field.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/layout_scaffold/card_scaffold.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/loading_widget.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 class SwapCard extends StatefulWidget {
@@ -46,6 +31,9 @@ class _SwapCardState extends State<SwapCard> {
   final SendPaymentBloc _sendPaymentBloc = SendPaymentBloc();
   bool? _userHasEnoughBnbBalance = false;
 
+  String? _selectedBridge = kBridgeNetworks.first;
+  final bool _bridgeStatus = false;
+
   final ScrollController _scrollController = ScrollController();
 
   @override
@@ -67,11 +55,8 @@ class _SwapCardState extends State<SwapCard> {
       },
       onError: (error) {
         _swapButtonKey.currentState?.animateReverse();
-        NotificationUtils.sendNotificationError(
-          error,
-          'Couldn\'t send ${_amountController.text} ${kZnnCoin.symbol} '
-          'to $bridgeAddress',
-        );
+        NotificationUtils.sendNotificationError(error,
+            'Couldn\'t send ${_amountController.text} ${kZnnCoin.symbol}');
       },
     );
   }
@@ -115,15 +100,6 @@ class _SwapCardState extends State<SwapCard> {
           controller: _scrollController,
           children: [
             _getInputFields(accountInfo),
-            _getCheckBox(),
-            _getSwapButton(accountInfo),
-            kVerticalSpacing,
-            const Text(
-              'Redeem the wZNN if you have already performed the swap',
-              textAlign: TextAlign.center,
-            ),
-            kVerticalSpacing,
-            _getRedeemButton(),
           ],
         ),
       ),
@@ -134,7 +110,12 @@ class _SwapCardState extends State<SwapCard> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        BridgeNetworkDropdown(kBridgeNetworks.first, (value) {}),
+        BridgeNetworkDropdown(
+          _selectedBridge,
+          (value) => setState(() {
+            _selectedBridge = value;
+          }),
+        ),
         Padding(
           padding: const EdgeInsets.only(
             left: 10.0,
@@ -216,9 +197,8 @@ class _SwapCardState extends State<SwapCard> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Checkbox(
-          checkColor: Theme.of(context).scaffoldBackgroundColor,
-          activeColor: AppColors.znnColor,
+        SyriusCheckbox(
+          context: context,
           value: _userHasEnoughBnbBalance,
           onChanged: (value) {
             setState(() {
@@ -228,37 +208,14 @@ class _SwapCardState extends State<SwapCard> {
         ),
         Text(
           'I have enough funds to cover the gas fees in order to complete the swap',
-          style: Theme.of(context).textTheme.bodyText2,
+          style: Theme.of(context).textTheme.bodyMedium,
         )
-      ],
-    );
-  }
-
-  Widget _getSwapButton(AccountInfo accountInfo) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        LoadingButton(
-          onPressed:
-              _isInputValid(accountInfo) && (_userHasEnoughBnbBalance ?? false)
-                  ? _onSwapButtonPressed
-                  : null,
-          key: _swapButtonKey,
-          text: 'Swap',
-        ),
       ],
     );
   }
 
   void _sendSwapBlock() {
     _swapButtonKey.currentState?.animateForward();
-    _sendPaymentBloc.sendTransfer(
-      fromAddress: _selectedSelfAddress,
-      toAddress: bridgeAddress.toString(),
-      amount: _amountController.text,
-      data: _decodeEvmAddress(),
-      token: kZnnCoin,
-    );
   }
 
   void _onMaxPressed(AccountInfo accountInfo) => setState(() {
@@ -285,11 +242,9 @@ class _SwapCardState extends State<SwapCard> {
   void _sendConfirmationNotification() {
     sl.get<NotificationsBloc>().addNotification(
           WalletNotification(
-            title: 'Sent ${_amountController.text} ${kZnnCoin.symbol} '
-                'to $bridgeAddress',
+            title: 'Sent ${_amountController.text} ${kZnnCoin.symbol}',
             timestamp: DateTime.now().millisecondsSinceEpoch,
-            details: 'Sent ${_amountController.text} ${kZnnCoin.symbol} '
-                'from $_selectedSelfAddress to $bridgeAddress',
+            details: 'Sent ${_amountController.text} ${kZnnCoin.symbol}',
             type: NotificationType.paymentSent,
             id: null,
           ),
@@ -312,30 +267,6 @@ class _SwapCardState extends State<SwapCard> {
   List<int> _decodeEvmAddress() {
     String hexCharacters = _evmAddressController.text.split('0x')[1];
     return FormatUtils.decodeHexString(hexCharacters);
-  }
-
-  Widget _getRedeemButton() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        MyOutlinedButton(
-          text: 'Redeem',
-          onPressed: () => showOkDialog(
-            context: context,
-            title: 'Redeem',
-            description: 'Press OK to open https://bridge.zenon.network/',
-            onActionButtonPressed: () {
-              NavigationUtils.launchUrl(
-                      'https://bridge.zenon.network/', context)
-                  .then(
-                (value) => Navigator.pop(context),
-              );
-            },
-          ),
-          minimumSize: kLoadingButtonMinSize,
-        ),
-      ],
-    );
   }
 
   @override
