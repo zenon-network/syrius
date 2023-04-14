@@ -47,7 +47,9 @@ class _WalletConnectPairingsCardState extends State<WalletConnectPairingsCard> {
         ),
         InfiniteScrollTableHeaderColumn(
           columnName: 'URL',
-          flex: 2,
+        ),
+        InfiniteScrollTableHeaderColumn(
+          columnName: 'Topic',
         ),
         InfiniteScrollTableHeaderColumn(
           columnName: 'Expiration',
@@ -67,7 +69,10 @@ class _WalletConnectPairingsCardState extends State<WalletConnectPairingsCard> {
           ),
           InfiniteScrollTableCell(
             _buildTableUrlWidget(pairingInfo),
-            flex: 2,
+          ),
+          InfiniteScrollTableCell.withText(
+            context,
+            pairingInfo.topic,
           ),
           InfiniteScrollTableCell.withText(
             context,

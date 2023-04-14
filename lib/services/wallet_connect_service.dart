@@ -53,7 +53,7 @@ class WalletConnectService {
             'zenon': Namespace(
               accounts: _getWalletAccounts(),
               methods: event.params.optionalNamespaces['zenon']?.methods ??
-                  ['znn_sign'],
+                  ['znn_sign', 'znn_net_info'],
               events: event.params.optionalNamespaces['zenon']?.events ?? [],
             )
           },
@@ -62,7 +62,7 @@ class WalletConnectService {
     });
 
     _wcClient.onSessionRequest.subscribe((SessionRequestEvent? request) async {
-      debugPrint('WalletConnectService: onSessionProposal triggered');
+      debugPrint('WalletConnectService: onSessionRequest triggered');
 
       // await _wcClient.respondSessionRequest(
       //   topic: request.topic,
@@ -76,6 +76,18 @@ class WalletConnectService {
     _wcClient.onAuthRequest.subscribe((AuthRequest? args) async {
       debugPrint('WalletConnectService: onAuthRequest triggered');
     });
+
+    _wcClient.registerRequestHandler(
+      chainId: 'zenon:3',
+      method: 'znn_net_info',
+      handler: (method, params) {
+        return {
+          'address': kSelectedAddress,
+          'node': kCurrentNode,
+          'netId': getChainIdentifier(),
+        };
+      },
+    );
   }
 
   IPairingStore getPairings() => _wcClient.pairings;
@@ -86,7 +98,7 @@ class WalletConnectService {
         {
           'zenon': Namespace(
             accounts: _getWalletAccounts(),
-            methods: ['znn_sign'],
+            methods: ['znn_sign', 'znn_net_info'],
             events: [],
           )
         };

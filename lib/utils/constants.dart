@@ -179,6 +179,7 @@ const bool kEnableClipboardWatcherDefaultValue = false;
 
 /// Node management
 const String kChainIdKey = 'chain_id';
+// TODO: maybe change to production
 const int kChainIdDefaultValue = 1; // 1 corresponds to Alphanet
 
 // Display constants
