@@ -11,6 +11,8 @@ escape () {
     echo $retval
 }
 
+sed --i '1,5d' $GIT_COMMIT_FILE
+
 echo "const String gitBranchName = '''$( escape "$GIT_BRANCH_NAME" )''';" >> $GIT_COMMIT_FILE
 echo "const String gitCommitHash = '''$GIT_COMMIT_HASH''';" >> $GIT_COMMIT_FILE
 echo "const String gitCommitMessage = '''$( escape "$GIT_COMMIT_MESSAGE" )''';" >> $GIT_COMMIT_FILE
