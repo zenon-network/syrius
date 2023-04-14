@@ -1,15 +1,12 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:zenon_syrius_wallet_flutter/blocs/settings/general_stats_bloc.dart';
-import 'package:zenon_syrius_wallet_flutter/model/general_stats.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/custom_expandable_panel.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/custom_table.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/error_widget.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/layout_scaffold/card_scaffold.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/loading_widget.dart';
+import 'package:open_filex/open_filex.dart';
+import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
+import 'package:zenon_syrius_wallet_flutter/model/model.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/metadata.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 class AboutCard extends StatefulWidget {
@@ -26,8 +23,8 @@ class AboutCardState extends State<AboutCard> {
 
   @override
   void initState() {
-    super.initState();
     _generalStatsBloc = GeneralStatsBloc();
+    super.initState();
   }
 
   @override
@@ -48,16 +45,16 @@ class AboutCardState extends State<AboutCard> {
           _getGenericTextExpandedChild(kWalletVersion),
         ),
         CustomExpandablePanel(
-          'Zenon Node network identifier',
+          'Zenon Node chain identifier',
           _getGenericTextExpandedChild(
               generalStats.frontierMomentum.chainIdentifier.toString()),
         ),
         CustomExpandablePanel(
-          'Client network identifier',
-          _getGenericTextExpandedChild(netId.toString()),
+          'Client chain identifier',
+          _getGenericTextExpandedChild(getChainIdentifier().toString()),
         ),
         CustomExpandablePanel(
-          'ZNN SDK version',
+          'Zenon SDK version',
           _getGenericTextExpandedChild(znnSdkVersion),
         ),
         CustomExpandablePanel(
@@ -67,6 +64,26 @@ class AboutCardState extends State<AboutCard> {
         CustomExpandablePanel(
           'Zenon Node git commit hash',
           _getGenericTextExpandedChild(generalStats.processInfo.commit),
+        ),
+        CustomExpandablePanel(
+          'Syrius git origin url',
+          _getGenericLinkButtonExpandedChild(gitOriginUrl),
+        ),
+        CustomExpandablePanel(
+          'Syrius git branch name',
+          _getGenericTextExpandedChild(gitBranchName),
+        ),
+        CustomExpandablePanel(
+          'Syrius git commit hash',
+          _getGenericTextExpandedChild(gitCommitHash),
+        ),
+        CustomExpandablePanel(
+          'Syrius git commit message',
+          _getGenericTextExpandedChild(gitCommitMessage),
+        ),
+        CustomExpandablePanel(
+          'Syrius git commit date',
+          _getGenericTextExpandedChild(gitCommitDate),
         ),
         CustomExpandablePanel(
           'Zenon Node kernel version',
@@ -90,18 +107,18 @@ class AboutCardState extends State<AboutCard> {
         ),
         CustomExpandablePanel(
           'Zenon main data path',
-          _getGenericTextExpandedChild(
-              znnDefaultPaths.main.absolute.toString()),
+          _getGenericOpenButtonExpandedChild(
+              znnDefaultPaths.main.absolute.path),
         ),
         CustomExpandablePanel(
-          'syrius cache path',
-          _getGenericTextExpandedChild(
-              znnDefaultPaths.cache.absolute.toString()),
+          'Syrius cache path',
+          _getGenericOpenButtonExpandedChild(
+              znnDefaultPaths.cache.absolute.path),
         ),
         CustomExpandablePanel(
-          'syrius wallet path',
-          _getGenericTextExpandedChild(
-              znnDefaultPaths.wallet.absolute.toString()),
+          'Syrius wallet path',
+          _getGenericOpenButtonExpandedChild(
+              znnDefaultPaths.wallet.absolute.path),
         ),
         CustomExpandablePanel(
           'Client hostname',
@@ -123,10 +140,6 @@ class AboutCardState extends State<AboutCard> {
           'Client number of processors',
           _getGenericTextExpandedChild(Platform.numberOfProcessors.toString()),
         ),
-        CustomExpandablePanel(
-          'ZNN bridge address',
-          _getGenericTextExpandedChild(bridgeAddress.toString()),
-        ),
       ],
     );
   }
@@ -136,6 +149,44 @@ class AboutCardState extends State<AboutCard> {
       CustomTableCell.withMarquee(
         expandedText.toString(),
       )
+    ]);
+  }
+
+  Widget _getGenericLinkButtonExpandedChild(String url) {
+    return Row(children: [
+      CustomTableCell.withMarquee(
+        url.toString(),
+      ),
+      IconButton(
+        splashRadius: 16,
+        onPressed: () async {
+          NavigationUtils.openUrl(url, context);
+        },
+        icon: const Icon(
+          Icons.link,
+          size: 16,
+          color: AppColors.znnColor,
+        ),
+      ),
+    ]);
+  }
+
+  Widget _getGenericOpenButtonExpandedChild(String expandedText) {
+    return Row(children: [
+      CustomTableCell.withMarquee(
+        expandedText.toString(),
+      ),
+      IconButton(
+        splashRadius: 16,
+        onPressed: () async {
+          await OpenFilex.open(expandedText);
+        },
+        icon: const Icon(
+          Icons.open_in_new,
+          size: 16,
+          color: AppColors.znnColor,
+        ),
+      ),
     ]);
   }
 

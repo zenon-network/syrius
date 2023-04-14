@@ -5,8 +5,7 @@ import 'package:zenon_syrius_wallet_flutter/utils/color_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/format_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/zts_utils.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/chart/standard_chart.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/chart/standard_line_chart_bar_data.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 class RealtimeTxsChart extends StatefulWidget {
@@ -44,9 +43,9 @@ class RealtimeTxsChartState extends State<RealtimeTxsChart> {
   @override
   Widget build(BuildContext context) {
     return StandardChart(
-      yValuesInterval: (_maxTransactionsPerDay + 1) > kNumOfChartLeftSideTitles
-          ? (_maxTransactionsPerDay + 1) / kNumOfChartLeftSideTitles
-          : null,
+      yValuesInterval: _maxTransactionsPerDay > kNumOfChartLeftSideTitles
+          ? _maxTransactionsPerDay / kNumOfChartLeftSideTitles
+          : 1,
       maxY: _maxTransactionsPerDay,
       lineBarsData: _linesBarData(),
       lineBarDotSymbol: 'txs',
@@ -89,15 +88,11 @@ class RealtimeTxsChartState extends State<RealtimeTxsChart> {
   List<LineChartBarData> _linesBarData() {
     return [
       StandardLineChartBarData(
-        colors: [
-          ColorUtils.getTokenColor(kZnnCoin.tokenStandard),
-        ],
+        color: ColorUtils.getTokenColor(kZnnCoin.tokenStandard),
         spots: _znnSpots,
       ),
       StandardLineChartBarData(
-        colors: [
-          ColorUtils.getTokenColor(kQsrCoin.tokenStandard),
-        ],
+        color: ColorUtils.getTokenColor(kQsrCoin.tokenStandard),
         spots: _qsrSpots,
       ),
     ];

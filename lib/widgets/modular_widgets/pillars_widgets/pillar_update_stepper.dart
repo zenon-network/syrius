@@ -1,18 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
 import 'package:stacked/stacked.dart';
-import 'package:zenon_syrius_wallet_flutter/blocs/pillars/update_pillar_bloc.dart';
+import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/input_validators.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/notification_utils.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/buttons/loading_button.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/buttons/stepper_button.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/custom_material_stepper.dart'
     as custom_material_stepper;
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/custom_slider.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/input_field/input_field.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/stepper_utils.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 enum PillarUpdateStep {
@@ -27,7 +23,7 @@ class PillarUpdateStepper extends StatefulWidget {
   const PillarUpdateStepper(this.pillarInfo, {Key? key}) : super(key: key);
 
   @override
-  _PillarUpdateStepperState createState() => _PillarUpdateStepperState();
+  State<PillarUpdateStepper> createState() => _PillarUpdateStepperState();
 }
 
 class _PillarUpdateStepperState extends State<PillarUpdateStepper> {
@@ -164,7 +160,7 @@ class _PillarUpdateStepperState extends State<PillarUpdateStepper> {
       children: [
         Text(
           'Pillar name',
-          style: Theme.of(context).textTheme.bodyText1,
+          style: Theme.of(context).textTheme.bodyLarge,
         ),
         kVerticalSpacing,
         InputField(
@@ -174,7 +170,7 @@ class _PillarUpdateStepperState extends State<PillarUpdateStepper> {
         kVerticalSpacing,
         Text(
           'Pillar reward address',
-          style: Theme.of(context).textTheme.bodyText1,
+          style: Theme.of(context).textTheme.bodyLarge,
         ),
         kVerticalSpacing,
         Form(
@@ -194,7 +190,7 @@ class _PillarUpdateStepperState extends State<PillarUpdateStepper> {
         kVerticalSpacing,
         Text(
           'Pillar producer address',
-          style: Theme.of(context).textTheme.bodyText1,
+          style: Theme.of(context).textTheme.bodyLarge,
         ),
         kVerticalSpacing,
         Form(
@@ -249,7 +245,7 @@ class _PillarUpdateStepperState extends State<PillarUpdateStepper> {
           children: [
             Text(
               'Percentage of momentum rewards given to the delegators',
-              style: Theme.of(context).textTheme.headline6,
+              style: Theme.of(context).textTheme.headlineSmall,
             ),
           ],
         ),
@@ -270,11 +266,11 @@ class _PillarUpdateStepperState extends State<PillarUpdateStepper> {
           children: [
             Text(
               'Pillar: ${100 - _momentumRewardPercentageGiven.toInt()}',
-              style: Theme.of(context).textTheme.subtitle1,
+              style: Theme.of(context).textTheme.titleMedium,
             ),
             Text(
               'Delegators: ${_momentumRewardPercentageGiven.toInt()}',
-              style: Theme.of(context).textTheme.subtitle1,
+              style: Theme.of(context).textTheme.titleMedium,
             ),
           ],
         ),
@@ -284,7 +280,7 @@ class _PillarUpdateStepperState extends State<PillarUpdateStepper> {
           children: [
             Text(
               'Percentage of delegation rewards given to the delegators',
-              style: Theme.of(context).textTheme.headline6,
+              style: Theme.of(context).textTheme.headlineSmall,
             ),
           ],
         ),
@@ -305,11 +301,11 @@ class _PillarUpdateStepperState extends State<PillarUpdateStepper> {
           children: [
             Text(
               'Pillar: ${100 - _delegateRewardPercentageGiven.toInt()}',
-              style: Theme.of(context).textTheme.subtitle1,
+              style: Theme.of(context).textTheme.titleMedium,
             ),
             Text(
               'Delegators: ${_delegateRewardPercentageGiven.toInt()}',
-              style: Theme.of(context).textTheme.subtitle1,
+              style: Theme.of(context).textTheme.titleMedium,
             ),
           ],
         ),
@@ -388,7 +384,7 @@ class _PillarUpdateStepperState extends State<PillarUpdateStepper> {
 
   Widget _getUpdatePillarViewModel() {
     return ViewModelBuilder<UpdatePillarBloc>.reactive(
-      onModelReady: (model) {
+      onViewModelReady: (model) {
         model.stream.listen(
           (event) {
             if (event != null) {

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/buttons/loading_button.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 
 class SendPaymentButton extends LoadingButton {
   const SendPaymentButton({

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/buttons/outlined_button.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 
 class StepperButton extends MyOutlinedButton {
   const StepperButton({
@@ -70,7 +70,7 @@ class _MyStepperButtonWithIconChild extends StatelessWidget {
         Icon(
           iconData,
           size: 17.0,
-          color: Theme.of(context).textTheme.headline6!.color,
+          color: Theme.of(context).textTheme.headlineSmall!.color,
         ),
       ],
     );

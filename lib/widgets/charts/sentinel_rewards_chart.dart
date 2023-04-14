@@ -6,8 +6,7 @@ import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/extensions.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/zts_utils.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/chart/standard_chart.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/chart/standard_line_chart_bar_data.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 class SentinelRewardsChart extends StatefulWidget {
@@ -63,15 +62,11 @@ class _SentinelRewardsChart extends State<SentinelRewardsChart> {
 
   List<LineChartBarData> _linesBarData() => [
         StandardLineChartBarData(
-          colors: [
-            AppColors.znnColor,
-          ],
+          color: AppColors.znnColor,
           spots: _getZnnRewardsSpots(),
         ),
         StandardLineChartBarData(
-          colors: [
-            AppColors.qsrColor,
-          ],
+          color: AppColors.qsrColor,
           spots: _getQsrRewardsSpots(),
         ),
       ];

@@ -11,6 +11,7 @@
 			isa = PBXAggregateTarget;
 			buildConfigurationList = 33CC111B2044C6BA0003C045 /* Build configuration list for PBXAggregateTarget "Flutter Assemble" */;
 			buildPhases = (
+				96A0E3322987BEC500EDD131 /* ShellScript */,
 				33CC111E2044C6BF0003C045 /* ShellScript */,
 			);
 			dependencies = (
@@ -27,6 +28,9 @@
 		33CC10F62044A3C60003C045 /* MainMenu.xib in Resources */ = {isa = PBXBuildFile; fileRef = 33CC10F42044A3C60003C045 /* MainMenu.xib */; };
 		33CC11132044BFA00003C045 /* MainFlutterWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33CC11122044BFA00003C045 /* MainFlutterWindow.swift */; };
 		74B27E3AADF4DA759158BD4B /* Pods_Runner.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E5DFBCCB2F3B416824983EAB /* Pods_Runner.framework */; };
+		9631FB752956060A007ED711 /* ../lib/embedded_node/blobs/libznn.dylib in Resources */ = {isa = PBXBuildFile; fileRef = 04CC766027C81F7E00DBC357 /* ../lib/embedded_node/blobs/libznn.dylib */; };
+		9631FB86295610FB007ED711 /* libargon2_ffi.dylib in Resources */ = {isa = PBXBuildFile; fileRef = 9631FB7A29560ECB007ED711 /* libargon2_ffi.dylib */; };
+		9631FB87295610FF007ED711 /* libpow_links.dylib in Resources */ = {isa = PBXBuildFile; fileRef = 9631FB8229560F53007ED711 /* libpow_links.dylib */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -53,10 +57,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		04CC765727C81EF600DBC357 /* libExportWallet.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; path = libExportWallet.dylib; sourceTree = "<group>"; };
-		04CC765827C81EF600DBC357 /* libargon2_ffi.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; path = libargon2_ffi.dylib; sourceTree = "<group>"; };
-		04CC765927C81EF600DBC357 /* libpow_links.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; path = libpow_links.dylib; sourceTree = "<group>"; };
-		04CC766027C81F7E00DBC357 /* libznn.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; path = libznn.dylib; sourceTree = "<group>"; };
+		04CC766027C81F7E00DBC357 /* ../lib/embedded_node/blobs/libznn.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; path = ../lib/embedded_node/blobs/libznn.dylib; sourceTree = "<group>"; };
 		159BBDEDF6B164A788D81F92 /* Pods-Runner.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Runner.debug.xcconfig"; path = "Target Support Files/Pods-Runner/Pods-Runner.debug.xcconfig"; sourceTree = "<group>"; };
 		333000ED22D3DE5D00554162 /* Warnings.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Warnings.xcconfig; sourceTree = "<group>"; };
 		335BBD1A22A9A15E00E9071D /* GeneratedPluginRegistrant.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = GeneratedPluginRegistrant.swift; sourceTree = "<group>"; };
@@ -74,6 +75,8 @@
 		33E5194F232828860026EE4D /* AppInfo.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = AppInfo.xcconfig; sourceTree = "<group>"; };
 		42B5975FEA7102303C16308A /* Pods-Runner.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Runner.release.xcconfig"; path = "Target Support Files/Pods-Runner/Pods-Runner.release.xcconfig"; sourceTree = "<group>"; };
 		7AFA3C8E1D35360C0083082E /* Release.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Release.xcconfig; sourceTree = "<group>"; };
+		9631FB7A29560ECB007ED711 /* libargon2_ffi.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; path = libargon2_ffi.dylib; sourceTree = "<group>"; };
+		9631FB8229560F53007ED711 /* libpow_links.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; path = libpow_links.dylib; sourceTree = "<group>"; };
 		9740EEB21CF90195004384FC /* Debug.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; path = Debug.xcconfig; sourceTree = "<group>"; };
 		DDCA1E2CBCCC96B9436CF502 /* Pods-Runner.profile.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Runner.profile.xcconfig"; path = "Target Support Files/Pods-Runner/Pods-Runner.profile.xcconfig"; sourceTree = "<group>"; };
 		E5DFBCCB2F3B416824983EAB /* Pods_Runner.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Runner.framework; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -124,10 +127,9 @@
 		33CC11242044D66E0003C045 /* Resources */ = {
 			isa = PBXGroup;
 			children = (
-				04CC766027C81F7E00DBC357 /* libznn.dylib */,
-				04CC765827C81EF600DBC357 /* libargon2_ffi.dylib */,
-				04CC765727C81EF600DBC357 /* libExportWallet.dylib */,
-				04CC765927C81EF600DBC357 /* libpow_links.dylib */,
+				9631FB7A29560ECB007ED711 /* libargon2_ffi.dylib */,
+				9631FB8229560F53007ED711 /* libpow_links.dylib */,
+				04CC766027C81F7E00DBC357 /* ../lib/embedded_node/blobs/libznn.dylib */,
 				33CC10F22044A3C60003C045 /* Assets.xcassets */,
 				33CC10F42044A3C60003C045 /* MainMenu.xib */,
 				33CC10F72044A3C60003C045 /* Info.plist */,
@@ -186,6 +188,7 @@
 			buildConfigurationList = 33CC10FB2044A3C60003C045 /* Build configuration list for PBXNativeTarget "Runner" */;
 			buildPhases = (
 				26152DF600C95C6136D5E940 /* [CP] Check Pods Manifest.lock */,
+				96DA24F0296EB70E00545E88 /* ShellScript */,
 				33CC10E92044A3C60003C045 /* Sources */,
 				33CC10EA2044A3C60003C045 /* Frameworks */,
 				33CC10EB2044A3C60003C045 /* Resources */,
@@ -210,7 +213,7 @@
 			isa = PBXProject;
 			attributes = {
 				LastSwiftUpdateCheck = 0920;
-				LastUpgradeCheck = 0930;
+				LastUpgradeCheck = 1400;
 				ORGANIZATIONNAME = "";
 				TargetAttributes = {
 					33CC10EC2044A3C60003C045 = {
@@ -253,6 +256,9 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				9631FB87295610FF007ED711 /* libpow_links.dylib in Resources */,
+				9631FB86295610FB007ED711 /* libargon2_ffi.dylib in Resources */,
+				9631FB752956060A007ED711 /* ../lib/embedded_node/blobs/libznn.dylib in Resources */,
 				33CC10F32044A3C60003C045 /* Assets.xcassets in Resources */,
 				33CC10F62044A3C60003C045 /* MainMenu.xib in Resources */,
 			);
@@ -291,6 +297,7 @@
 			inputFileListPaths = (
 			);
 			inputPaths = (
+				"",
 			);
 			outputFileListPaths = (
 			);
@@ -318,7 +325,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "\"$FLUTTER_ROOT\"/packages/flutter_tools/bin/macos_assemble.sh && touch Flutter/ephemeral/tripwire";
+			shellScript = "\"$FLUTTER_ROOT\"/packages/flutter_tools/bin/macos_assemble.sh && touch Flutter/ephemeral/tripwire\n";
 		};
 		50C0A8AFDC34B7D28837F481 /* [CP] Embed Pods Frameworks */ = {
 			isa = PBXShellScriptBuildPhase;
@@ -336,6 +343,40 @@
 			shellPath = /bin/sh;
 			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-Runner/Pods-Runner-frameworks.sh\"\n";
 			showEnvVarsInLog = 0;
+		};
+		96A0E3322987BEC500EDD131 /* ShellScript */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "GIT_BRANCH_NAME=$(git rev-parse --abbrev-ref HEAD)\nGIT_COMMIT_HASH=$(git rev-parse HEAD)\nGIT_COMMIT_MESSAGE=$(git log -1 --pretty=%s)\nGIT_COMMIT_DATE=$(git --no-pager log -1 --format=\"%ai\")\nGIT_ORIGIN_URL=$(git config --get remote.origin.url)\nGIT_COMMIT_FILE=\"../lib/utils/metadata.dart\"\n\nsed -i '' '1,5d' $GIT_COMMIT_FILE\necho \"const String gitBranchName = '$GIT_BRANCH_NAME';\" >> $GIT_COMMIT_FILE\necho \"const String gitCommitHash = '$GIT_COMMIT_HASH';\" >> $GIT_COMMIT_FILE\necho \"const String gitCommitMessage = '$GIT_COMMIT_MESSAGE';\" >> $GIT_COMMIT_FILE\necho \"const String gitCommitDate = '$GIT_COMMIT_DATE';\" >> $GIT_COMMIT_FILE\necho \"const String gitOriginUrl = '$GIT_ORIGIN_URL';\" >> $GIT_COMMIT_FILE\n\n\n";
+		};
+		96DA24F0296EB70E00545E88 /* ShellScript */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 12;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "OUTPUT_DIRECTORY=\"./\"\n\nPACKAGE_CONFIG=\"../.dart_tool/package_config.json\"\nZNN_SDK_DART_PATH=`cat $PACKAGE_CONFIG | grep git/znn_sdk_dart | sed 's/\"rootUri\": \"file:\\/\\///' | sed 's/\\/\",//' | xargs`  \n\nSYRIUS_LIBRARIES=(\n  \"$ZNN_SDK_DART_PATH/lib/src/argon2/blobs/libargon2_ffi.dylib\"\n  \"$ZNN_SDK_DART_PATH/lib/src/pow/blobs/libpow_links.dylib\"\n)\n\necho \"$OUTPUT_DIRECTORY\"\n\nfor znn_library in ${SYRIUS_LIBRARIES[@]}; do\n  echo \"Copy ZNN library: $znn_library\"\n  cp $znn_library \"$OUTPUT_DIRECTORY\"\ndone\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 
@@ -401,6 +442,7 @@
 				CLANG_WARN_SUSPICIOUS_MOVE = YES;
 				CODE_SIGN_IDENTITY = "-";
 				COPY_PHASE_STRIP = NO;
+				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
@@ -411,7 +453,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				MACOSX_DEPLOYMENT_TARGET = 10.11;
+				MACOSX_DEPLOYMENT_TARGET = "$(RECOMMENDED_MACOSX_DEPLOYMENT_TARGET)";
 				MTL_ENABLE_DEBUG_INFO = NO;
 				SDKROOT = macosx;
 				SWIFT_COMPILATION_MODE = wholemodule;
@@ -437,7 +479,8 @@
 					"$(inherited)",
 					"$(PROJECT_DIR)",
 				);
-				MARKETING_VERSION = "v0.0.5-alphanet";
+				MACOSX_DEPLOYMENT_TARGET = "$(RECOMMENDED_MACOSX_DEPLOYMENT_TARGET)";
+				MARKETING_VERSION = "v0.0.6-alphanet";
 				PRODUCT_BUNDLE_IDENTIFIER = network.zenon.syrius;
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_VERSION = 5.0;
@@ -448,6 +491,8 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_STYLE = Manual;
+				DEAD_CODE_STRIPPING = YES;
+				MACOSX_DEPLOYMENT_TARGET = "$(RECOMMENDED_MACOSX_DEPLOYMENT_TARGET)";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Profile;
@@ -480,6 +525,7 @@
 				CLANG_WARN_SUSPICIOUS_MOVE = YES;
 				CODE_SIGN_IDENTITY = "-";
 				COPY_PHASE_STRIP = NO;
+				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
@@ -496,7 +542,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				MACOSX_DEPLOYMENT_TARGET = 10.11;
+				MACOSX_DEPLOYMENT_TARGET = "$(RECOMMENDED_MACOSX_DEPLOYMENT_TARGET)";
 				MTL_ENABLE_DEBUG_INFO = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = macosx;
@@ -533,6 +579,7 @@
 				CLANG_WARN_SUSPICIOUS_MOVE = YES;
 				CODE_SIGN_IDENTITY = "-";
 				COPY_PHASE_STRIP = NO;
+				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
@@ -543,7 +590,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				MACOSX_DEPLOYMENT_TARGET = 10.11;
+				MACOSX_DEPLOYMENT_TARGET = "$(RECOMMENDED_MACOSX_DEPLOYMENT_TARGET)";
 				MTL_ENABLE_DEBUG_INFO = NO;
 				SDKROOT = macosx;
 				SWIFT_COMPILATION_MODE = wholemodule;
@@ -569,7 +616,8 @@
 					"$(inherited)",
 					"$(PROJECT_DIR)",
 				);
-				MARKETING_VERSION = "v0.0.5-alphanet";
+				MACOSX_DEPLOYMENT_TARGET = "$(RECOMMENDED_MACOSX_DEPLOYMENT_TARGET)";
+				MARKETING_VERSION = "v0.0.6-alphanet";
 				PRODUCT_BUNDLE_IDENTIFIER = network.zenon.syrius;
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
@@ -595,7 +643,8 @@
 					"$(inherited)",
 					"$(PROJECT_DIR)",
 				);
-				MARKETING_VERSION = "v0.0.5-alphanet";
+				MACOSX_DEPLOYMENT_TARGET = "$(RECOMMENDED_MACOSX_DEPLOYMENT_TARGET)";
+				MARKETING_VERSION = "v0.0.6-alphanet";
 				PRODUCT_BUNDLE_IDENTIFIER = network.zenon.syrius;
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_VERSION = 5.0;
@@ -606,6 +655,8 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_STYLE = Manual;
+				DEAD_CODE_STRIPPING = YES;
+				MACOSX_DEPLOYMENT_TARGET = "$(RECOMMENDED_MACOSX_DEPLOYMENT_TARGET)";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
@@ -614,6 +665,8 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
+				DEAD_CODE_STRIPPING = YES;
+				MACOSX_DEPLOYMENT_TARGET = "$(RECOMMENDED_MACOSX_DEPLOYMENT_TARGET)";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;

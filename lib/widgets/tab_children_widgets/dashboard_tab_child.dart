@@ -1,21 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:layout/layout.dart';
-import 'package:zenon_syrius_wallet_flutter/blocs/plasma/plasma_stats_bloc.dart';
+import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/main_app_container.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/dashboard_widgets/balance.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/dashboard_widgets/delegation_stats.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/dashboard_widgets/dual_coin_stats.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/dashboard_widgets/pillars.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/dashboard_widgets/plasma_stats.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/dashboard_widgets/realtime_statistics.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/dashboard_widgets/sentinels.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/dashboard_widgets/staking.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/dashboard_widgets/swap_decay.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/dashboard_widgets/total_hourly_transactions.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/dashboard_widgets/transfer.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/transfer_widgets/latest_transactions/latest_transactions_transfer_widget.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/layout_scaffold/standard_fluid_layout.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 
 class DashboardTabChild extends StatefulWidget {
   final void Function(
@@ -27,7 +14,7 @@ class DashboardTabChild extends StatefulWidget {
   const DashboardTabChild({Key? key, this.changePage}) : super(key: key);
 
   @override
-  _DashboardTabChildState createState() => _DashboardTabChildState();
+  State<DashboardTabChild> createState() => _DashboardTabChildState();
 }
 
 class _DashboardTabChildState extends State<DashboardTabChild> {
@@ -65,7 +52,7 @@ class _DashboardTabChildState extends State<DashboardTabChild> {
       ),
       const FluidCell(
         child: TotalHourlyTransactions(),
-        height: kStaggeredNumOfColumns / 8,
+        height: kStaggeredNumOfColumns / 4,
       ),
       const FluidCell(
         child: Pillars(),
@@ -76,16 +63,11 @@ class _DashboardTabChildState extends State<DashboardTabChild> {
         height: kStaggeredNumOfColumns / 8,
       ),
       const FluidCell(
-        child: SwapDecay(),
-        height: kStaggeredNumOfColumns / 8,
-      ),
-      const FluidCell(
         child: DelegationStats(),
         height: kStaggeredNumOfColumns / 8,
       ),
-      FluidCell(
-        child: const Sentinels(),
-        width: defaultCellWidth,
+      const FluidCell(
+        child: Sentinels(),
         height: kStaggeredNumOfColumns / 8,
       ),
       FluidCell(

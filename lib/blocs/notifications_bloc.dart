@@ -1,9 +1,10 @@
 import 'dart:async';
 
 import 'package:hive/hive.dart';
-import 'package:zenon_syrius_wallet_flutter/blocs/base_bloc.dart';
-import 'package:zenon_syrius_wallet_flutter/model/database/notification_type.dart';
-import 'package:zenon_syrius_wallet_flutter/model/database/wallet_notification.dart';
+import 'package:local_notifier/local_notifier.dart';
+import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
+import 'package:zenon_syrius_wallet_flutter/main.dart';
+import 'package:zenon_syrius_wallet_flutter/model/model.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
 
 class NotificationsBloc extends BaseBloc<WalletNotification?> {
@@ -17,9 +18,16 @@ class NotificationsBloc extends BaseBloc<WalletNotification?> {
         }
       }
       await notificationsBox.add(notification);
+      if (notification != null && _areDesktopNotificationsEnabled()) {
+        LocalNotification localNotification = LocalNotification(
+          title: notification.title ?? 'Empty title',
+          body: notification.details ?? 'No details available',
+        );
+        localNotification.show();
+      }
       addEvent(notification);
-    } catch (e) {
-      addError(e);
+    } catch (e, stackTrace) {
+      addError(e, stackTrace);
     }
   }
 
@@ -45,4 +53,9 @@ class NotificationsBloc extends BaseBloc<WalletNotification?> {
       ),
     );
   }
+
+  bool _areDesktopNotificationsEnabled() => sharedPrefsService!.get(
+        kEnableDesktopNotificationsKey,
+        defaultValue: kEnableDesktopNotificationsDefaultValue,
+      );
 }

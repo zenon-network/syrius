@@ -1,29 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
 import 'package:stacked/stacked.dart';
-import 'package:zenon_syrius_wallet_flutter/blocs/accelerator/create_project_bloc.dart';
-import 'package:zenon_syrius_wallet_flutter/blocs/dashboard/balance_bloc.dart';
+import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/extensions.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/format_utils.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/input_validators.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/notification_utils.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/zts_utils.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/buttons/loading_button.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/buttons/stepper_button.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
+import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/custom_material_stepper.dart'
     as custom_material_stepper;
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/dotted_border_info_widget.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/error_widget.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/icons/standard_tooltip_icon.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/input_field/amount_suffix_widgets.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/input_field/disabled_address_field.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/input_field/input_field.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/loading_widget.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/stepper_utils.dart';
-import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 enum ProjectCreationStep {
   projectCreation,
@@ -35,7 +19,7 @@ class ProjectCreationStepper extends StatefulWidget {
   const ProjectCreationStepper({Key? key}) : super(key: key);
 
   @override
-  _ProjectCreationStepperState createState() => _ProjectCreationStepperState();
+  State<ProjectCreationStepper> createState() => _ProjectCreationStepperState();
 }
 
 class _ProjectCreationStepperState extends State<ProjectCreationStepper> {
@@ -320,7 +304,10 @@ class _ProjectCreationStepperState extends State<ProjectCreationStepper> {
                 ),
               ),
             ),
-            const StandardTooltipIcon('Link to project article'),
+            const StandardTooltipIcon(
+              'Link to project article',
+              Icons.help,
+            ),
           ],
         ),
         kVerticalSpacing,
@@ -328,9 +315,12 @@ class _ProjectCreationStepperState extends State<ProjectCreationStepper> {
           children: [
             Text(
               'Total project budget',
-              style: Theme.of(context).textTheme.bodyText1,
+              style: Theme.of(context).textTheme.bodyLarge,
             ),
-            const StandardTooltipIcon('Set a budget for the project'),
+            const StandardTooltipIcon(
+              'Set a budget for the project',
+              Icons.help,
+            ),
           ],
         ),
         kVerticalSpacing,
@@ -476,7 +466,7 @@ class _ProjectCreationStepperState extends State<ProjectCreationStepper> {
 
   Widget _getSubmitProjectViewModel() {
     return ViewModelBuilder<CreateProjectBloc>.reactive(
-      onModelReady: (model) {
+      onViewModelReady: (model) {
         model.stream.listen(
           (event) {
             if (event != null) {

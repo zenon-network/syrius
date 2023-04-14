@@ -1,31 +1,30 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_vector_icons/flutter_vector_icons.dart';
 import 'package:hive/hive.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/node_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/notification_utils.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/buttons/material_icon_button.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/buttons/outlined_button.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/buttons/settings_button.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/dialogs.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/icons/standard_tooltip_icon.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/input_field/input_field.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
+import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 class SettingsNode extends StatefulWidget {
   final String node;
   final void Function(String?) onNodePressed;
   final VoidCallback onChangedOrDeletedNode;
+  final String currentNode;
 
   const SettingsNode({
     required this.node,
     required this.onNodePressed,
     required this.onChangedOrDeletedNode,
+    required this.currentNode,
     Key? key,
   }) : super(key: key);
 
   @override
-  _SettingsNodeState createState() => _SettingsNodeState();
+  State<SettingsNode> createState() => _SettingsNodeState();
 }
 
 class _SettingsNodeState extends State<SettingsNode> {
@@ -35,10 +34,18 @@ class _SettingsNodeState extends State<SettingsNode> {
 
   final GlobalKey<MyOutlinedButtonState> _changeButtonKey = GlobalKey();
 
+  int connectedNodeChainIdentifier = 1;
+
   @override
   void initState() {
-    super.initState();
     _nodeController.text = widget.node;
+
+    NodeUtils.getNodeChainIdentifier().then((chainIdentifier) {
+      connectedNodeChainIdentifier = chainIdentifier;
+      setState(() {});
+    });
+
+    super.initState();
   }
 
   @override
@@ -55,6 +62,7 @@ class _SettingsNodeState extends State<SettingsNode> {
     return Row(
       children: [
         Expanded(
+          flex: 1,
           child: InkWell(
             borderRadius: BorderRadius.circular(
               10.0,
@@ -68,10 +76,10 @@ class _SettingsNodeState extends State<SettingsNode> {
                 children: [
                   Text(
                     _nodeController.text,
-                    style: Theme.of(context).textTheme.bodyText1!.copyWith(
+                    style: Theme.of(context).textTheme.bodyLarge!.copyWith(
                           color: Theme.of(context)
                               .textTheme
-                              .bodyText1!
+                              .bodyLarge!
                               .color!
                               .withOpacity(0.7),
                         ),
@@ -81,13 +89,48 @@ class _SettingsNodeState extends State<SettingsNode> {
             ),
           ),
         ),
+        Visibility(
+            visible: widget.currentNode.contains(widget.node),
+            child: StandardTooltipIcon(
+                (connectedNodeChainIdentifier == getChainIdentifier())
+                    ? 'Client chain identifier: ${getChainIdentifier().toString()}\n'
+                        'Node chain identifier: $connectedNodeChainIdentifier'
+                    : 'Chain identifier mismatch\n'
+                        'Client chain identifier: ${getChainIdentifier().toString()}\n'
+                        'Node chain identifier: $connectedNodeChainIdentifier',
+                MaterialCommunityIcons.identifier,
+                iconColor:
+                    (getChainIdentifier() == connectedNodeChainIdentifier)
+                        ? AppColors.znnColor
+                        : AppColors.errorColor)),
         const SizedBox(
-          width: 5.0,
+          width: 8.0,
         ),
         Visibility(
-          visible: widget.node.contains("Embedded"),
+          visible: widget.node.contains('wss://'),
+          child: const StandardTooltipIcon('Encrypted connection', Icons.lock),
+        ),
+        Visibility(
+          visible: widget.node.contains('ws://'),
           child: const StandardTooltipIcon(
-            'The Embedded Node can take several hours to fully sync with the network',
+            'Unencrypted connection',
+            Icons.lock_open,
+            iconColor: AppColors.errorColor,
+          ),
+        ),
+        Visibility(
+          visible: widget.node.contains('Embedded'),
+          child: const StandardTooltipIcon(
+            'Integrated Full Node: enhanced security and privacy',
+            MaterialCommunityIcons.security,
+          ),
+        ),
+        Visibility(
+          visible: widget.node.contains('Embedded'),
+          child: const StandardTooltipIcon(
+            'The Embedded Node validates all network transactions\n'
+            'It may take several hours to fully sync with the network',
+            MaterialCommunityIcons.clock,
           ),
         ),
         const SizedBox(
@@ -105,9 +148,6 @@ class _SettingsNodeState extends State<SettingsNode> {
             materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
           ),
         ),
-        const SizedBox(
-          width: 5.0,
-        ),
         Visibility(
           visible: !kDefaultNodes.contains(widget.node),
           child: MaterialIconButton(
@@ -124,6 +164,7 @@ class _SettingsNodeState extends State<SettingsNode> {
               );
             },
             iconData: Icons.delete_forever,
+            materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
           ),
         ),
       ],
@@ -150,7 +191,7 @@ class _SettingsNodeState extends State<SettingsNode> {
                     setState(() {});
                   },
                   inputtedTextStyle:
-                      Theme.of(context).textTheme.bodyText2!.copyWith(
+                      Theme.of(context).textTheme.bodyMedium!.copyWith(
                             color: AppColors.znnColor,
                           ),
                   enabledBorder: OutlineInputBorder(
@@ -221,7 +262,7 @@ class _SettingsNodeState extends State<SettingsNode> {
           (key) => nodesBox.get(key) == widget.node,
         );
         await nodesBox.put(key, _nodeController.text);
-        await NodeUtils.loadDbNodes(context);
+        await NodeUtils.loadDbNodes();
         setState(() {
           _editable = false;
         });
@@ -263,6 +304,7 @@ class _SettingsNodeState extends State<SettingsNode> {
       );
       await nodesBox.delete(nodeKey);
       kDbNodes.remove(node);
+      if (!mounted) return;
       Navigator.pop(context);
       widget.onChangedOrDeletedNode();
     } catch (e) {

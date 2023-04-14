@@ -2,21 +2,17 @@ import 'package:expandable/expandable.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_vector_icons/flutter_vector_icons.dart';
 import 'package:hive/hive.dart';
-import 'package:zenon_syrius_wallet_flutter/blocs/sentinels/sentinel_list_bloc.dart';
-import 'package:zenon_syrius_wallet_flutter/model/database/wallet_notification.dart';
+import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
+import 'package:zenon_syrius_wallet_flutter/model/model.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/format_utils.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/custom_table.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/icons/copy_to_clipboard_icon.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/layout_scaffold/card_scaffold.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/layout_scaffold/overscroll_remover.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/layout_scaffold/widget_animator.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 
 class NotificationsTabChild extends StatefulWidget {
   const NotificationsTabChild({Key? key}) : super(key: key);
 
   @override
-  _NotificationsTabChildState createState() => _NotificationsTabChildState();
+  State<NotificationsTabChild> createState() => _NotificationsTabChildState();
 }
 
 class _NotificationsTabChildState extends State<NotificationsTabChild> {
@@ -26,12 +22,9 @@ class _NotificationsTabChildState extends State<NotificationsTabChild> {
   Widget build(BuildContext context) {
     _loadNotifications();
 
-    return ScrollConfiguration(
-      behavior: RemoveOverscrollEffect(),
-      child: WidgetAnimator(
-        curve: Curves.linear,
-        child: _getNotificationsContainer(),
-      ),
+    return WidgetAnimator(
+      curve: Curves.linear,
+      child: _getNotificationsContainer(),
     );
   }
 
@@ -59,7 +52,7 @@ class _NotificationsTabChildState extends State<NotificationsTabChild> {
     return ExpandablePanel(
       collapsed: Container(),
       theme: ExpandableThemeData(
-        iconColor: Theme.of(context).textTheme.subtitle1!.color,
+        iconColor: Theme.of(context).textTheme.titleMedium!.color,
         headerAlignment: ExpandablePanelHeaderAlignment.center,
         iconPlacement: ExpandablePanelIconPlacement.right,
       ),
@@ -72,7 +65,7 @@ class _NotificationsTabChildState extends State<NotificationsTabChild> {
           Expanded(
             child: Text(
               notification.title!,
-              style: Theme.of(context).textTheme.subtitle1,
+              style: Theme.of(context).textTheme.titleMedium,
             ),
           ),
         ],
@@ -84,7 +77,7 @@ class _NotificationsTabChildState extends State<NotificationsTabChild> {
             Expanded(
               child: Text(
                 notification.details!,
-                style: Theme.of(context).textTheme.subtitle1,
+                style: Theme.of(context).textTheme.titleMedium,
               ),
             ),
             CopyToClipboardIcon(notification.details),
@@ -97,12 +90,12 @@ class _NotificationsTabChildState extends State<NotificationsTabChild> {
   RawMaterialButton _getClearIcon(WalletNotification? notification) {
     return RawMaterialButton(
       onPressed: () => _deleteNotification(notification!.timestamp),
+      shape: const CircleBorder(),
       child: Icon(
         SimpleLineIcons.close,
         color: Theme.of(context).colorScheme.secondary,
         size: 20.0,
       ),
-      shape: const CircleBorder(),
     );
   }
 

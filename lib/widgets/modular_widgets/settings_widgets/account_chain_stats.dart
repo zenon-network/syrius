@@ -3,17 +3,13 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_vector_icons/flutter_vector_icons.dart';
 import 'package:marquee_widget/marquee_widget.dart';
-import 'package:zenon_syrius_wallet_flutter/blocs/settings/account_chain_stats_bloc.dart';
-import 'package:zenon_syrius_wallet_flutter/model/account_chain_stats.dart';
+import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
+import 'package:zenon_syrius_wallet_flutter/model/model.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/format_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/navigation_utils.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/chart/standard_pie_chart.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/error_widget.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/layout_scaffold/card_scaffold.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/loading_widget.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/number_animation.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 class AccountChainStatsWidget extends StatefulWidget {
@@ -52,7 +48,7 @@ class _AccountChainStatsState extends State<AccountChainStatsWidget> {
               children: <Widget>[
                 Text(
                   'Account-chain height',
-                  style: Theme.of(context).textTheme.subtitle1,
+                  style: Theme.of(context).textTheme.titleMedium,
                 ),
                 Stack(
                   alignment: Alignment.center,
@@ -60,7 +56,7 @@ class _AccountChainStatsState extends State<AccountChainStatsWidget> {
                     NumberAnimation(
                       end: stats.blockCount,
                       isInt: true,
-                      style: Theme.of(context).textTheme.headline2,
+                      style: Theme.of(context).textTheme.headlineMedium,
                     ),
                     _getChart(stats),
                   ],
@@ -72,8 +68,8 @@ class _AccountChainStatsState extends State<AccountChainStatsWidget> {
                     minHeight: 40.0,
                   ),
                   materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                  onPressed: () => NavigationUtils.launchUrl(
-                    kExplorer + '/transaction/' + stats.firstHash.toString(),
+                  onPressed: () => NavigationUtils.openUrl(
+                    '$kExplorer/transaction/${stats.firstHash}',
                     context,
                   ),
                   child: Row(
@@ -81,7 +77,7 @@ class _AccountChainStatsState extends State<AccountChainStatsWidget> {
                     children: <Widget>[
                       Text(
                         'Block hash',
-                        style: Theme.of(context).textTheme.bodyText2,
+                        style: Theme.of(context).textTheme.bodyMedium,
                       ),
                       Container(width: 10.0),
                       const Icon(
@@ -104,7 +100,7 @@ class _AccountChainStatsState extends State<AccountChainStatsWidget> {
                         child: Marquee(
                           child: Text(
                             stats.firstHash.toString(),
-                            style: Theme.of(context).textTheme.subtitle1,
+                            style: Theme.of(context).textTheme.titleMedium,
                           ),
                         ),
                       ),
@@ -187,20 +183,20 @@ class _AccountChainStatsState extends State<AccountChainStatsWidget> {
         children: [
           Text(
             '● ',
-            style: Theme.of(context).textTheme.bodyText2!.copyWith(
+            style: Theme.of(context).textTheme.bodyMedium!.copyWith(
                   color: kBlockTypeColorMap[blockType] ?? AppColors.errorColor,
                 ),
           ),
           AutoSizeText(
             FormatUtils.extractNameFromEnum<BlockTypeEnum>(blockType),
-            style: Theme.of(context).textTheme.bodyText2,
+            style: Theme.of(context).textTheme.bodyMedium,
           ),
           const SizedBox(
             width: 10.0,
           ),
           AutoSizeText(
             blockTypeCount.toString(),
-            style: Theme.of(context).textTheme.subtitle1,
+            style: Theme.of(context).textTheme.titleMedium,
           ),
         ],
       ),
