@@ -1,18 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_vector_icons/flutter_vector_icons.dart';
 import 'package:stacked/stacked.dart';
-import 'package:zenon_syrius_wallet_flutter/blocs/plasma/cancel_plasma_bloc.dart';
-import 'package:zenon_syrius_wallet_flutter/blocs/plasma/plasma_list_bloc.dart';
+import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/extensions.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/notification_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/zts_utils.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/buttons/loading_button.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/cancel_timer.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/error_widget.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/formatted_amount_with_tooltip.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/infinite_scroll_table.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/layout_scaffold/card_scaffold.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 class PlasmaList extends StatefulWidget {
@@ -29,7 +23,7 @@ class PlasmaList extends StatefulWidget {
 }
 
 class _PlasmaListState extends State<PlasmaList> {
-  final List<FusionEntry>? _stakingList = [];
+  final List<FusionEntry> _stakingList = [];
 
   bool _sortAscending = true;
 
@@ -74,7 +68,7 @@ class _PlasmaListState extends State<PlasmaList> {
               tokenSymbol: kQsrCoin.symbol,
               builder: (formattedAmount, tokenSymbol) => Text(
                 '$formattedAmount $tokenSymbol',
-                style: Theme.of(context).textTheme.subtitle1!.copyWith(
+                style: Theme.of(context).textTheme.titleMedium!.copyWith(
                       color: AppColors.subtitleColor,
                     ),
               ),
@@ -115,19 +109,19 @@ class _PlasmaListState extends State<PlasmaList> {
     bool isSelected,
     FusionEntry plasmaItem,
   ) {
-    final GlobalKey<LoadingButtonState> _cancelButtonKey = GlobalKey();
+    final GlobalKey<LoadingButtonState> cancelButtonKey = GlobalKey();
 
     return ViewModelBuilder<CancelPlasmaBloc>.reactive(
-      onModelReady: (model) {
+      onViewModelReady: (model) {
         model.stream.listen(
           (event) {
             if (event != null) {
-              _cancelButtonKey.currentState?.animateReverse();
+              cancelButtonKey.currentState?.animateReverse();
               plasmaModel.refreshResults();
             }
           },
           onError: (error) {
-            _cancelButtonKey.currentState?.animateReverse();
+            cancelButtonKey.currentState?.animateReverse();
             NotificationUtils.sendNotificationError(
                 error, 'Error while cancelling plasma');
           },
@@ -136,7 +130,7 @@ class _PlasmaListState extends State<PlasmaList> {
       builder: (_, model, __) => _getCancelButton(
         model,
         plasmaItem.id.toString(),
-        _cancelButtonKey,
+        cancelButtonKey,
       ),
       viewModelBuilder: () => CancelPlasmaBloc(),
     );
@@ -160,8 +154,8 @@ class _PlasmaListState extends State<PlasmaList> {
         color: AppColors.errorColor,
       ),
       outlineColor: AppColors.errorColor,
-      textStyle: Theme.of(context).textTheme.subtitle2!.copyWith(
-            color: Theme.of(context).textTheme.bodyText1!.color,
+      textStyle: Theme.of(context).textTheme.titleSmall!.copyWith(
+            color: Theme.of(context).textTheme.bodyLarge!.color,
           ),
     );
   }
@@ -170,21 +164,21 @@ class _PlasmaListState extends State<PlasmaList> {
     switch (columnName) {
       case 'Amount':
         _sortAscending
-            ? _stakingList!.sort((a, b) => a.qsrAmount.compareTo(b.qsrAmount))
-            : _stakingList!.sort((a, b) => b.qsrAmount.compareTo(a.qsrAmount));
+            ? _stakingList.sort((a, b) => a.qsrAmount.compareTo(b.qsrAmount))
+            : _stakingList.sort((a, b) => b.qsrAmount.compareTo(a.qsrAmount));
         break;
       case 'Beneficiary':
         _sortAscending
-            ? _stakingList!
+            ? _stakingList
                 .sort((a, b) => a.beneficiary.compareTo(b.beneficiary))
-            : _stakingList!
+            : _stakingList
                 .sort((a, b) => b.beneficiary.compareTo(a.beneficiary));
         break;
       default:
         _sortAscending
-            ? _stakingList!
+            ? _stakingList
                 .sort((a, b) => a.beneficiary.compareTo(b.beneficiary))
-            : _stakingList!
+            : _stakingList
                 .sort((a, b) => b.beneficiary.compareTo(a.beneficiary));
         break;
     }

@@ -56,7 +56,7 @@ class _SyriusElevatedButtonState extends State<SyriusElevatedButton> {
           ),
           Text(
             widget.text,
-            style: Theme.of(context).textTheme.headline6,
+            style: Theme.of(context).textTheme.headlineSmall,
           ),
         ],
       ),

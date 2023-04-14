@@ -1,24 +1,16 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
-import 'package:zenon_syrius_wallet_flutter/blocs/accelerator/accelerator_balance_bloc.dart';
+import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/color_utils.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/zts_utils.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/chart/chart_legend.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/chart/standard_pie_chart.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/error_widget.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/formatted_amount_with_tooltip.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/layout_scaffold/card_scaffold.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/loading_widget.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 class AcceleratorStats extends StatefulWidget {
   const AcceleratorStats({Key? key}) : super(key: key);
 
   @override
-  _AcceleratorStatsState createState() => _AcceleratorStatsState();
+  State<AcceleratorStats> createState() => _AcceleratorStatsState();
 }
 
 class _AcceleratorStatsState extends State<AcceleratorStats> {
@@ -91,7 +83,7 @@ class _AcceleratorStatsState extends State<AcceleratorStats> {
             tokenSymbol: kZnnCoin.symbol,
             builder: (amount, tokenSymbol) => Text(
               '$amount $tokenSymbol',
-              style: Theme.of(context).textTheme.subtitle1!,
+              style: Theme.of(context).textTheme.titleMedium!,
             ),
           ),
         ),
@@ -106,7 +98,7 @@ class _AcceleratorStatsState extends State<AcceleratorStats> {
             tokenSymbol: kQsrCoin.symbol,
             builder: (amount, tokenSymbol) => Text(
               '$amount $tokenSymbol',
-              style: Theme.of(context).textTheme.subtitle1!,
+              style: Theme.of(context).textTheme.titleMedium!,
             ),
           ),
         ),
@@ -156,7 +148,7 @@ class _AcceleratorStatsState extends State<AcceleratorStats> {
       value: value / sumValues,
       title: accountInfo.findTokenByTokenStandard(token.tokenStandard)!.symbol,
       radius: 60.0,
-      titleStyle: Theme.of(context).textTheme.bodyText1,
+      titleStyle: Theme.of(context).textTheme.bodyLarge,
     );
   }
 }

@@ -23,13 +23,13 @@ class CopyToClipboardIcon extends StatelessWidget {
       hoverColor: hoverColor,
       constraints: const BoxConstraints.tightForFinite(),
       padding: const EdgeInsets.all(8.0),
+      shape: const CircleBorder(),
+      onPressed: () => ClipboardUtils.copyToClipboard(textToBeCopied!, context),
       child: Icon(
         Icons.content_copy,
         color: iconColor,
         size: 15.0,
       ),
-      shape: const CircleBorder(),
-      onPressed: () => ClipboardUtils.copyToClipboard(textToBeCopied!, context),
     );
   }
 }

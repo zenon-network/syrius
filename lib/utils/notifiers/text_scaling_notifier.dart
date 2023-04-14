@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/settings_widgets/display.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 
 class TextScalingNotifier extends ChangeNotifier {
   TextScaling? _currentTextScaling = kDefaultTextScaling;

@@ -2,11 +2,10 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
-import 'package:zenon_syrius_wallet_flutter/blocs/notifications_bloc.dart';
+import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
-import 'package:zenon_syrius_wallet_flutter/model/database/notification_type.dart';
-import 'package:zenon_syrius_wallet_flutter/model/database/wallet_notification.dart';
-import 'package:zenon_syrius_wallet_flutter/screens/change_wallet_password_screen.dart';
+import 'package:zenon_syrius_wallet_flutter/model/model.dart';
+import 'package:zenon_syrius_wallet_flutter/screens/screens.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/clipboard_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
@@ -14,16 +13,7 @@ import 'package:zenon_syrius_wallet_flutter/utils/format_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/navigation_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/notification_utils.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/buttons/loading_button.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/buttons/settings_button.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/custom_expandable_panel.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/custom_slider.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/error_widget.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/icons/copy_to_clipboard_icon.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/input_field/input_field.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/layout_scaffold/card_scaffold.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/loading_widget.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/select_file_widget.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 const double _kMaxMinutesOfInactivity = 30.0;
@@ -366,11 +356,6 @@ class _SecurityWidgetState extends State<SecurityWidget> {
           hintText: 'Enter message',
           suffixIcon: RawMaterialButton(
             hoverColor: Colors.white12,
-            child: const Icon(
-              Icons.content_paste,
-              color: AppColors.darkHintTextColor,
-              size: 15.0,
-            ),
             shape: const CircleBorder(),
             onPressed: () {
               setState(() {
@@ -382,6 +367,11 @@ class _SecurityWidgetState extends State<SecurityWidget> {
                 );
               });
             },
+            child: const Icon(
+              Icons.content_paste,
+              color: AppColors.darkHintTextColor,
+              size: 15.0,
+            ),
           ),
           suffixIconConstraints: const BoxConstraints(
             maxWidth: 45.0,
@@ -397,11 +387,6 @@ class _SecurityWidgetState extends State<SecurityWidget> {
           hintText: 'Enter signature',
           suffixIcon: RawMaterialButton(
             hoverColor: Colors.white12,
-            child: const Icon(
-              Icons.content_paste,
-              color: AppColors.darkHintTextColor,
-              size: 15.0,
-            ),
             shape: const CircleBorder(),
             onPressed: () {
               setState(() {
@@ -413,6 +398,11 @@ class _SecurityWidgetState extends State<SecurityWidget> {
                 );
               });
             },
+            child: const Icon(
+              Icons.content_paste,
+              color: AppColors.darkHintTextColor,
+              size: 15.0,
+            ),
           ),
           suffixIconConstraints: const BoxConstraints(
             maxWidth: 45.0,
@@ -428,11 +418,6 @@ class _SecurityWidgetState extends State<SecurityWidget> {
           hintText: 'Enter public key',
           suffixIcon: RawMaterialButton(
             hoverColor: Colors.white12,
-            child: const Icon(
-              Icons.content_paste,
-              color: AppColors.darkHintTextColor,
-              size: 15.0,
-            ),
             shape: const CircleBorder(),
             onPressed: () {
               setState(() {
@@ -444,6 +429,11 @@ class _SecurityWidgetState extends State<SecurityWidget> {
                 );
               });
             },
+            child: const Icon(
+              Icons.content_paste,
+              color: AppColors.darkHintTextColor,
+              size: 15.0,
+            ),
           ),
           suffixIconConstraints: const BoxConstraints(
             maxWidth: 45.0,
@@ -517,7 +507,7 @@ class _SecurityWidgetState extends State<SecurityWidget> {
               _toBeSignedFilePath = path;
             });
           },
-          textStyle: Theme.of(context).textTheme.subtitle1,
+          textStyle: Theme.of(context).textTheme.titleMedium,
           key: _signSelectFileWidgetKey,
         ),
         Visibility(
@@ -576,11 +566,11 @@ class _SecurityWidgetState extends State<SecurityWidget> {
   void _onSignFileButtonPressed() async {
     try {
       _signFileButtonKey.currentState?.animateForward();
-      File _droppedFile = File(
+      File droppedFile = File(
         _toBeSignedFilePath!,
       );
       List<int> fileSignature = await zenon!.defaultKeyPair!.sign(Crypto.digest(
-        await _droppedFile.readAsBytes(),
+        await droppedFile.readAsBytes(),
       ));
       setState(() {
         _fileHashController.text = BytesUtils.bytesToHex(fileSignature);
@@ -603,7 +593,7 @@ class _SecurityWidgetState extends State<SecurityWidget> {
               _toBeVerifiedFilePath = path;
             });
           },
-          textStyle: Theme.of(context).textTheme.subtitle1,
+          textStyle: Theme.of(context).textTheme.titleMedium,
           key: _verifySelectFileWidgetKey,
         ),
         Visibility(
@@ -633,11 +623,6 @@ class _SecurityWidgetState extends State<SecurityWidget> {
               hintText: 'Enter signed hash',
               suffixIcon: RawMaterialButton(
                 hoverColor: Colors.white12,
-                child: const Icon(
-                  Icons.content_paste,
-                  color: AppColors.darkHintTextColor,
-                  size: 15.0,
-                ),
                 shape: const CircleBorder(),
                 onPressed: () {
                   setState(() {
@@ -649,6 +634,11 @@ class _SecurityWidgetState extends State<SecurityWidget> {
                     );
                   });
                 },
+                child: const Icon(
+                  Icons.content_paste,
+                  color: AppColors.darkHintTextColor,
+                  size: 15.0,
+                ),
               ),
               suffixIconConstraints: const BoxConstraints(
                 maxWidth: 45.0,
@@ -664,11 +654,6 @@ class _SecurityWidgetState extends State<SecurityWidget> {
               hintText: 'Enter public key',
               suffixIcon: RawMaterialButton(
                 hoverColor: Colors.white12,
-                child: const Icon(
-                  Icons.content_paste,
-                  color: AppColors.darkHintTextColor,
-                  size: 15.0,
-                ),
                 shape: const CircleBorder(),
                 onPressed: () {
                   setState(() {
@@ -680,6 +665,11 @@ class _SecurityWidgetState extends State<SecurityWidget> {
                     );
                   });
                 },
+                child: const Icon(
+                  Icons.content_paste,
+                  color: AppColors.darkHintTextColor,
+                  size: 15.0,
+                ),
               ),
               suffixIconConstraints: const BoxConstraints(
                 maxWidth: 45.0,

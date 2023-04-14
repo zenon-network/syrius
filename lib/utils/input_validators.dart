@@ -1,7 +1,7 @@
+import 'package:logging/logging.dart';
 import 'package:validators/validators.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/logger.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 class InputValidators {
@@ -34,7 +34,19 @@ class InputValidators {
     return (value ?? '').isEmpty ? '$fieldName must not be empty' : null;
   }
 
-  static String? validateNumber(String? value) {
+  static String? validateNumber(String? number) {
+    try {
+      if (number == null) {
+        return 'Add a number';
+      }
+      int.parse(number);
+      return null;
+    } catch (e) {
+      return 'Input is not a valid number';
+    }
+  }
+
+  static String? validateAmount(String? value) {
     if (value != null) {
       try {
         if (value.isEmpty) {
@@ -45,8 +57,9 @@ class InputValidators {
         }
         double.parse(value);
         return null;
-      } catch (e) {
-        Logger.logError(e);
+      } catch (e, stackTrace) {
+        Logger('InputValidators')
+            .log(Level.SEVERE, 'validateAmount', e, stackTrace);
         return 'Error';
       }
     } else {
@@ -99,8 +112,9 @@ class InputValidators {
             : maxValue == min
                 ? 'Value must be $min'
                 : 'Value must be between $min and $maxValue';
-      } catch (e) {
-        Logger.logError(e);
+      } catch (e, stackTrace) {
+        Logger('InputValidators')
+            .log(Level.SEVERE, 'correctValue', e, stackTrace);
         return 'Error';
       }
     }
@@ -164,8 +178,9 @@ class InputValidators {
           return 'Max supply must be 0 for non-mintable tokens';
         }
         return null;
-      } catch (e) {
-        Logger.logError(e);
+      } catch (e, stackTrace) {
+        Logger('InputValidators')
+            .log(Level.SEVERE, 'isMaxSupplyZero', e, stackTrace);
         return 'Error';
       }
     } else {

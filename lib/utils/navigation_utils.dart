@@ -1,18 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:page_transition/page_transition.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:zenon_syrius_wallet_flutter/blocs/notifications_bloc.dart';
+import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
-import 'package:zenon_syrius_wallet_flutter/model/database/notification_type.dart';
-import 'package:zenon_syrius_wallet_flutter/model/database/wallet_notification.dart';
+import 'package:zenon_syrius_wallet_flutter/model/model.dart';
 
 class NavigationUtils {
-  static Future<void> launchUrl(String url, BuildContext context) async {
+  static Future<void> openUrl(String url, BuildContext context) async {
     if (!RegExp(r'^http').hasMatch(url)) {
-      url = 'http://' + url;
+      url = 'http://$url';
     }
-    if (await canLaunch(url)) {
-      await launch(url);
+    var uri = Uri.parse(url);
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri);
     } else {
       sl.get<NotificationsBloc>().addNotification(
             WalletNotification(

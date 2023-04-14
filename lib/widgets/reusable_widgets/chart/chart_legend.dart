@@ -19,13 +19,13 @@ class ChartLegend extends StatelessWidget {
       children: [
         Text(
           '● ',
-          style: Theme.of(context).textTheme.bodyText1!.copyWith(
+          style: Theme.of(context).textTheme.bodyLarge!.copyWith(
                 color: dotColor,
               ),
         ),
         Text(
           mainText,
-          style: Theme.of(context).textTheme.bodyText1,
+          style: Theme.of(context).textTheme.bodyLarge,
         ),
         const SizedBox(
           width: 5.0,

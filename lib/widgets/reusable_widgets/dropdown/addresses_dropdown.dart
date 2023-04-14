@@ -49,7 +49,7 @@ class AddressesDropdown extends StatelessWidget {
                     value: value,
                     child: Text(
                       kAddressLabelMap[value]!,
-                      style: Theme.of(context).textTheme.bodyText2!.copyWith(
+                      style: Theme.of(context).textTheme.bodyMedium!.copyWith(
                             color: _selectedSelfAddress == value
                                 ? onChangedCallback != null
                                     ? AppColors.znnColor

@@ -4,7 +4,7 @@ import 'package:marquee_widget/marquee_widget.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/address_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/icons/copy_to_clipboard_icon.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 class CustomTable<T> extends StatefulWidget {
@@ -145,15 +145,15 @@ class _CustomTableState<T> extends State<CustomTable<T>> {
   Widget _getShowMoreButton() {
     return TextButton(
       style: TextButton.styleFrom(
-        primary: Colors.white12,
+        foregroundColor: Colors.white12,
         backgroundColor: Colors.transparent,
         shape: const RoundedRectangleBorder(),
       ),
+      onPressed: widget.onShowMoreButtonPressed,
       child: Text(
         'Show more',
-        style: Theme.of(context).textTheme.subtitle1,
+        style: Theme.of(context).textTheme.titleMedium,
       ),
-      onPressed: widget.onShowMoreButtonPressed,
     );
   }
 
@@ -187,7 +187,7 @@ class CustomHeaderColumn extends StatelessWidget {
         children: [
           Text(
             columnName,
-            style: Theme.of(context).textTheme.bodyText2,
+            style: Theme.of(context).textTheme.bodyMedium,
           ),
           Visibility(
             visible: onSortArrowsPressed != null,
@@ -317,7 +317,7 @@ class CustomTableCell extends StatelessWidget {
                   AddressUtils.getLabel(address.toString()),
                   textAlign: textAlign,
                   style: textStyle ??
-                      Theme.of(context).textTheme.subtitle1!.copyWith(
+                      Theme.of(context).textTheme.titleMedium!.copyWith(
                             color: textColor,
                           ),
                   overflow: TextOverflow.ellipsis,
@@ -358,7 +358,7 @@ class CustomTableCell extends StatelessWidget {
                 text,
                 textAlign: textAlign,
                 style: textStyle ??
-                    Theme.of(context).textTheme.subtitle1!.copyWith(
+                    Theme.of(context).textTheme.titleMedium!.copyWith(
                           color: textColor,
                         ),
               ),
@@ -384,9 +384,9 @@ class CustomTableCell extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Flexible(
-      child: child,
       flex: flex,
       fit: FlexFit.tight,
+      child: child,
     );
   }
 }

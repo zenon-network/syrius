@@ -4,39 +4,33 @@ import 'package:flutter/material.dart';
 import 'package:flutter_vector_icons/flutter_vector_icons.dart';
 import 'package:infinite_scroll_pagination/infinite_scroll_pagination.dart';
 import 'package:rxdart/rxdart.dart';
-import 'package:zenon_syrius_wallet_flutter/blocs/accelerator/project_list_bloc.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/format_utils.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/accelerator_widgets/accelerator_project_list_item.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/error_widget.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/input_field/input_field.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/layout_scaffold/card_scaffold.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/loading_widget.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/tag_widget.dart';
+import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
-enum ProjectsFilterTag {
+enum AccProjectsFilterTag {
   myProjects,
   onlyAccepted,
   votingOpened,
   alreadyVoted,
 }
 
-class ProjectList extends StatefulWidget {
+class AccProjectList extends StatefulWidget {
   final VoidCallback onStepperNotificationSeeMorePressed;
   final PillarInfo? pillarInfo;
 
-  const ProjectList({
+  const AccProjectList({
     required this.onStepperNotificationSeeMorePressed,
     required this.pillarInfo,
     Key? key,
   }) : super(key: key);
 
   @override
-  _ProjectListState createState() => _ProjectListState();
+  State<AccProjectList> createState() => _AccProjectListState();
 }
 
-class _ProjectListState extends State<ProjectList> {
+class _AccProjectListState extends State<AccProjectList> {
   final ScrollController _scrollController = ScrollController();
   final PagingController<int, Project> _pagingController = PagingController(
     firstPageKey: 0,
@@ -119,7 +113,7 @@ class _ProjectListState extends State<ProjectList> {
           Expanded(
             child: Scrollbar(
               controller: _scrollController,
-              isAlwaysShown: true,
+              thumbVisibility: true,
               child: PagedListView.separated(
                 scrollController: _scrollController,
                 pagingController: _pagingController,
@@ -171,10 +165,12 @@ class _ProjectListState extends State<ProjectList> {
   Row _getProjectsFilterTags() {
     List<TagWidget> children = [];
 
-    for (var tag in ProjectsFilterTag.values) {
+    for (var tag in AccProjectsFilterTag.values) {
       if (widget.pillarInfo == null) {
-        if ([ProjectsFilterTag.votingOpened, ProjectsFilterTag.alreadyVoted]
-            .contains(tag)) {
+        if ([
+          AccProjectsFilterTag.votingOpened,
+          AccProjectsFilterTag.alreadyVoted
+        ].contains(tag)) {
           continue;
         }
       }
@@ -186,9 +182,9 @@ class _ProjectListState extends State<ProjectList> {
     );
   }
 
-  _getProjectsFilterTag(ProjectsFilterTag filterTag) {
+  _getProjectsFilterTag(AccProjectsFilterTag filterTag) {
     return TagWidget(
-      text: FormatUtils.extractNameFromEnum<ProjectsFilterTag>(filterTag),
+      text: FormatUtils.extractNameFromEnum<AccProjectsFilterTag>(filterTag),
       hexColorCode: Theme.of(context)
           .colorScheme
           .primaryContainer
@@ -215,6 +211,10 @@ class _ProjectListState extends State<ProjectList> {
   void dispose() {
     _textChangesSubscription.cancel();
     _blocListingStateSubscription.cancel();
+    _textChangeStreamController.sink.close();
+    _textChangeStreamController.close();
+    _bloc.onPageRequestSink.close();
+    _bloc.onSearchInputChangedSink.close();
     _bloc.dispose();
     _pagingController.dispose();
     _scrollController.dispose();

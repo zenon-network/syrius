@@ -39,14 +39,14 @@ class CoinDropdown extends StatelessWidget {
                         color: ColorUtils.getTokenColor(e!.tokenStandard),
                       ),
                       child: Padding(
-                        padding: const EdgeInsets.all(5.0),
+                        padding: const EdgeInsets.only(left: 8.0),
                         child: Row(
                           children: [
                             Text(
                               e.symbol,
                               style: Theme.of(context)
                                   .textTheme
-                                  .subtitle1!
+                                  .titleMedium!
                                   .copyWith(
                                     color: Colors.white,
                                   ),
@@ -75,7 +75,7 @@ class CoinDropdown extends StatelessWidget {
                   value: token,
                   child: Text(
                     token!.symbol,
-                    style: Theme.of(context).textTheme.bodyText2!.copyWith(
+                    style: Theme.of(context).textTheme.bodyMedium!.copyWith(
                           color: _selectedToken == token
                               ? AppColors.znnColor
                               : null,
