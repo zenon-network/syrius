@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:walletconnect_flutter_v2/walletconnect_flutter_v2.dart';
+import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/functions.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
@@ -49,7 +50,11 @@ class WalletConnectService {
             'zenon': Namespace(
               accounts: _getWalletAccounts(),
               methods: event.params.optionalNamespaces['zenon']?.methods ??
-                  ['znn_sign', 'znn_net_info'],
+                  [
+                    'znn_sign',
+                    'znn_net_info',
+                    'znn_send',
+                  ],
               events: event.params.optionalNamespaces['zenon']?.events ?? [],
             )
           },
@@ -91,7 +96,38 @@ class WalletConnectService {
       handler: (method, params) async {
         final message = params as String;
 
-         return await walletSign(message.codeUnits);
+        return await walletSign(message.codeUnits);
+      },
+    );
+
+    _wcClient.registerRequestHandler(
+      chainId: 'zenon:3',
+      method: 'znn_send',
+      handler: (method, params) async {
+        final sendPaymentBloc = SendPaymentBloc();
+
+        sendPaymentBloc.sendTransfer(
+          fromAddress: params['fromAddress'],
+          toAddress: params['toAddress'],
+          amount: params['amount'].toString(),
+          data: null,
+          token: kDualCoin.firstWhere(
+            (element) =>
+                element.tokenStandard.toString() == params['tokenStandard'],
+          ),
+        );
+
+        sendPaymentBloc.stream.listen((event) {
+          print('send payment bloc event: $event');
+        }, onError: (error) {
+          print('send payment bloc error: $error');
+        });
+
+        final result = await sendPaymentBloc.stream.firstWhere(
+          (element) => element != null,
+        );
+
+        return result!.hash.toString();
       },
     );
   }
@@ -104,7 +140,11 @@ class WalletConnectService {
         {
           'zenon': Namespace(
             accounts: _getWalletAccounts(),
-            methods: ['znn_sign', 'znn_net_info'],
+            methods: [
+              'znn_sign',
+              'znn_net_info',
+              'znn_send',
+            ],
             events: [],
           )
         };
