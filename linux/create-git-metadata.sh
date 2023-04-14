@@ -1,4 +1,4 @@
-function escape () {
+escape () {
     echo $1 | sed "s/'/'\"'\"r'/g"
 }
 
