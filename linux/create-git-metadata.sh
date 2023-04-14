@@ -6,7 +6,7 @@ GIT_ORIGIN_URL=$(git config --get remote.origin.url)
 GIT_COMMIT_FILE="../lib/utils/metadata.dart"
 
 escape () {
-    echo $1 | sed "s/'/'\"'\"'/g"
+    echo $1 | sed "s/'/'\"'\"r'/g"
 }
 
 sed --i '1,5d' $GIT_COMMIT_FILE

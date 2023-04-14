@@ -1,5 +1,5 @@
 Function Escape($String) {
-    Return $String.Replace("'", "'`"'`"'");
+    Return $String.Replace("'", "'`"'`"r'");
 }
 
 $GIT_BRANCH_NAME = git rev-parse --abbrev-ref HEAD
