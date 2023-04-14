@@ -6,8 +6,8 @@ GIT_ORIGIN_URL=$(git config --get remote.origin.url)
 GIT_COMMIT_FILE="../lib/utils/metadata.dart"
 
 escape () {
-    local retval=${1//\\/\\\\}
-    retval=${retval//\$/\\\$}
+    local retval=$(echo $1 | sed 's/\\/\\\\/g')
+    retval=$(echo $retval | sed 's/\$/\\\$/g')
     echo $retval
 }
 
