@@ -146,7 +146,7 @@ class WalletConnectService {
         );
 
         if (!wasAccepted) {
-          throw Errors.getSdkError(Errors.USER_REJECTED_SIGN);
+          throw Errors.getSdkError(Errors.USER_REJECTED);
         }
 
         sendPaymentBloc.stream.listen((event) {
