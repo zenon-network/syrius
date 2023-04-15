@@ -5,6 +5,7 @@ import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/wallet_connect/wallet_connect_pairings_bloc.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/services/wallet_connect_service.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/extensions.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/icons/clear_icon.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 
@@ -47,6 +48,7 @@ class _WalletConnectPairingsCardState extends State<WalletConnectPairingsCard> {
         ),
         InfiniteScrollTableHeaderColumn(
           columnName: 'URL',
+          flex: 2,
         ),
         InfiniteScrollTableHeaderColumn(
           columnName: 'Topic',
@@ -69,11 +71,16 @@ class _WalletConnectPairingsCardState extends State<WalletConnectPairingsCard> {
           ),
           InfiniteScrollTableCell(
             _buildTableUrlWidget(pairingInfo),
+            flex: 2,
           ),
-          InfiniteScrollTableCell.withText(
-            context,
-            pairingInfo.topic,
-          ),
+          isSelected
+              ? InfiniteScrollTableCell.withMarquee(
+                  pairingInfo.topic,
+                )
+              : InfiniteScrollTableCell.withText(
+                  context,
+                  pairingInfo.topic.short,
+                ),
           InfiniteScrollTableCell.withText(
             context,
             _formatExpiryDateTime(pairingInfo.expiry).toString(),
