@@ -158,6 +158,7 @@ class WalletConnectService {
         final token = kDualCoin.firstWhere(
           (element) => element.tokenStandard == accountBlock.tokenStandard,
         );
+        final amount = AmountUtils.addDecimals(accountBlock.amount, token.decimals);
 
         final sendPaymentBloc = SendPaymentBloc();
 
@@ -165,7 +166,7 @@ class WalletConnectService {
           context: _context,
           title: 'Send Payment',
           description: 'Are you sure you want to transfer '
-              '${accountBlock.amount} ${token.symbol} to '
+              '$amount ${token.symbol} to '
               '$toAddress ?',
           onYesButtonPressed: () {
             Navigator.pop(_context, true);
