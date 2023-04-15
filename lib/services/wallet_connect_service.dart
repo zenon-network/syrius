@@ -15,6 +15,7 @@ class WalletConnectService {
 
   late Web3Wallet _wcClient;
   int? _sessionProposalId;
+  String? _sessionTopic;
 
   Future<void> initClient() async {
     _wcClient = await Web3Wallet.createInstance(
@@ -40,7 +41,7 @@ class WalletConnectService {
 
   void _initListeners() {
     _wcClient.onSessionProposal.subscribe((SessionProposalEvent? event) async {
-      debugPrint('WalletConnectService: onSessionProposal triggered');
+      debugPrint('WalletConnectService: onSessionProposal triggered - $event');
       _sessionProposalId = event?.id;
       if (event != null) {
         debugPrint('Session proposal event: ${event.params.toJson()}');
@@ -55,15 +56,20 @@ class WalletConnectService {
                     'znn_info',
                     'znn_send',
                   ],
-              events: event.params.optionalNamespaces['zenon']?.events ?? [],
+              events: event.params.optionalNamespaces['zenon']?.events ?? [
+                'chainIdChange',
+                'addressChange',
+              ],
             )
           },
         );
+
+        _sessionTopic = approveResponse.session.topic;
       }
     });
 
     _wcClient.onSessionRequest.subscribe((SessionRequestEvent? request) async {
-      debugPrint('WalletConnectService: onSessionRequest triggered');
+      debugPrint('WalletConnectService: onSessionRequest triggered - $request');
 
       // await _wcClient.respondSessionRequest(
       //   topic: request.topic,
@@ -81,7 +87,7 @@ class WalletConnectService {
     _wcClient.registerRequestHandler(
       chainId: 'zenon:3',
       method: 'znn_info',
-      handler: (method, params) {
+      handler: (topic, params) {
         return {
           'address': kSelectedAddress,
           'nodeUrl': kCurrentNode,
@@ -93,7 +99,7 @@ class WalletConnectService {
     _wcClient.registerRequestHandler(
       chainId: 'zenon:3',
       method: 'znn_sign',
-      handler: (method, params) async {
+      handler: (topic, params) async {
         final message = params as String;
 
         return await walletSign(message.codeUnits);
@@ -103,7 +109,7 @@ class WalletConnectService {
     _wcClient.registerRequestHandler(
       chainId: 'zenon:3',
       method: 'znn_send',
-      handler: (method, params) async {
+      handler: (topic, params) async {
         final sendPaymentBloc = SendPaymentBloc();
 
         sendPaymentBloc.sendTransfer(
@@ -139,7 +145,7 @@ class WalletConnectService {
               'znn_info',
               'znn_send',
             ],
-            events: [],
+            events: ['chainIdChange', 'addressChange'],
           )
         };
     return _wcClient.approveSession(
@@ -174,4 +180,31 @@ class WalletConnectService {
     required String topic,
   }) =>
       _wcClient.core.pairing.disconnect(topic: topic);
+
+  Future<void> _emitEventForTheDApp({
+    required String sessionTopic,
+    required String changeName,
+    required String newValue,
+  }) async {
+    return await _wcClient.emitSessionEvent(
+      topic: sessionTopic,
+      chainId: 'zenon:3',
+      event: SessionEventParams(
+        name: changeName,
+        data: newValue,
+      ),
+    );
+  }
+
+  Future<void> emitAddressChangeEvent(String newAddress) => _emitEventForTheDApp(
+        sessionTopic: _sessionTopic!,
+        changeName: 'addressChange',
+        newValue: newAddress,
+      );
+
+  Future<void> emitChainIdChangeEvent(String newChainId) => _emitEventForTheDApp(
+    sessionTopic: _sessionTopic!,
+    changeName: 'chainIdChange',
+    newValue: newChainId,
+  );
 }
