@@ -59,6 +59,7 @@ showDialogWithNoAndYesOptions({
   required String title,
   required String description,
   required VoidCallback onYesButtonPressed,
+  VoidCallback? onNoButtonPressed,
 }) =>
     showDialog(
       context: context,
@@ -72,10 +73,11 @@ showDialogWithNoAndYesOptions({
               style: Theme.of(context).textTheme.bodyLarge,
             ),
             onPressed: () {
-              Navigator.of(context).pop();
+              onNoButtonPressed?.call();
             },
           ),
           TextButton(
+            // TODO: add also pop call
             onPressed: onYesButtonPressed,
             style: Theme.of(context).textButtonTheme.style!.copyWith(
                   backgroundColor: MaterialStateColor.resolveWith(

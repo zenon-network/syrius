@@ -29,7 +29,7 @@ class IssueTokenBloc extends BaseBloc<AccountBlockTemplate> {
       ).then(
         (response) {
           Hive.box(kFavoriteTokensBox).add(response.tokenStandard.toString());
-          AddressUtils.refreshBalance();
+          ZenonAddressUtils.refreshBalance();
           addEvent(response);
         },
       ).onError(

@@ -19,7 +19,7 @@ class BurnTokenBloc extends BaseBloc<AccountBlockTemplate> {
               waitForRequiredPlasma: true)
           .then(
         (response) {
-          AddressUtils.refreshBalance();
+          ZenonAddressUtils.refreshBalance();
           addEvent(response);
         },
       ).onError(

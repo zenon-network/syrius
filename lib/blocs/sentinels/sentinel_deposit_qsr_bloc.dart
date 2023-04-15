@@ -30,7 +30,7 @@ class SentinelsDepositQsrBloc extends BaseBloc<AccountBlockTemplate?> {
             await Future.delayed(
               kDelayAfterAccountBlockCreationCall,
             );
-            AddressUtils.refreshBalance();
+            ZenonAddressUtils.refreshBalance();
             addEvent(response);
           },
         ).onError(

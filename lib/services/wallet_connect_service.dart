@@ -3,6 +3,7 @@ import 'package:walletconnect_flutter_v2/walletconnect_flutter_v2.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/functions.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/dialogs.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 class WalletConnectService {
@@ -14,8 +15,11 @@ class WalletConnectService {
       WalletConnectService._internal();
 
   late Web3Wallet _wcClient;
+  late BuildContext _context;
   int? _sessionProposalId;
   String? _sessionTopic;
+
+  set context(BuildContext context) => _context = context;
 
   Future<void> initClient() async {
     _wcClient = await Web3Wallet.createInstance(
@@ -56,10 +60,11 @@ class WalletConnectService {
                     'znn_info',
                     'znn_send',
                   ],
-              events: event.params.optionalNamespaces['zenon']?.events ?? [
-                'chainIdChange',
-                'addressChange',
-              ],
+              events: event.params.optionalNamespaces['zenon']?.events ??
+                  [
+                    'chainIdChange',
+                    'addressChange',
+                  ],
             )
           },
         );
@@ -110,12 +115,39 @@ class WalletConnectService {
       chainId: 'zenon:3',
       method: 'znn_send',
       handler: (topic, params) async {
+        final accountBlock =
+            AccountBlockTemplate.fromJson(params['accountBlock']);
+
+        final toAddress = ZenonAddressUtils.getLabel(
+          accountBlock.toAddress.toString(),
+        );
+        final token = kDualCoin.firstWhere(
+          (element) => element.tokenStandard == accountBlock.tokenStandard,
+        );
+
         final sendPaymentBloc = SendPaymentBloc();
 
-        sendPaymentBloc.sendTransfer(
-          fromAddress: params['fromAddress'],
-          block: AccountBlockTemplate.fromJson(params['accountBlock']),
+        final wasAccepted = await showDialogWithNoAndYesOptions(
+          context: _context,
+          title: 'Send Payment',
+          description: 'Are you sure you want to transfer '
+              '${accountBlock.amount} ${token.symbol} to '
+              '$toAddress ?',
+          onYesButtonPressed: () {
+            Navigator.pop(_context, true);
+            sendPaymentBloc.sendTransfer(
+              fromAddress: params['fromAddress'],
+              block: AccountBlockTemplate.fromJson(params['accountBlock']),
+            );
+          },
+          onNoButtonPressed: () {
+            Navigator.pop(_context, false);
+          }
         );
+
+        if (!wasAccepted) {
+          throw Errors.getSdkError(Errors.USER_REJECTED_SIGN);
+        }
 
         sendPaymentBloc.stream.listen((event) {
           print('send payment bloc event: $event');
@@ -196,15 +228,17 @@ class WalletConnectService {
     );
   }
 
-  Future<void> emitAddressChangeEvent(String newAddress) => _emitEventForTheDApp(
+  Future<void> emitAddressChangeEvent(String newAddress) =>
+      _emitEventForTheDApp(
         sessionTopic: _sessionTopic!,
         changeName: 'addressChange',
         newValue: newAddress,
       );
 
-  Future<void> emitChainIdChangeEvent(String newChainId) => _emitEventForTheDApp(
-    sessionTopic: _sessionTopic!,
-    changeName: 'chainIdChange',
-    newValue: newChainId,
-  );
+  Future<void> emitChainIdChangeEvent(String newChainId) =>
+      _emitEventForTheDApp(
+        sessionTopic: _sessionTopic!,
+        changeName: 'chainIdChange',
+        newValue: newChainId,
+      );
 }

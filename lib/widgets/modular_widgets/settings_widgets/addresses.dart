@@ -107,7 +107,7 @@ class AddressesState extends State<Addresses> {
           InkWell(
             onTap: () {
               setState(() {
-                _futureGenerateNewAddress = AddressUtils.generateNewAddress(
+                _futureGenerateNewAddress = ZenonAddressUtils.generateNewAddress(
                     numAddr: numberOfAddressesToAdd,
                     callback: () {
                       setState(() {

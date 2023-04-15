@@ -70,9 +70,9 @@ class InitUtils {
       );
 
   static Future<void> initWalletAfterDecryption() async {
-    await AddressUtils.setAddresses(kKeyStore);
-    await AddressUtils.setAddressLabels();
-    await AddressUtils.setDefaultAddress();
+    await ZenonAddressUtils.setAddresses(kKeyStore);
+    await ZenonAddressUtils.setAddressLabels();
+    await ZenonAddressUtils.setDefaultAddress();
     zenon!.defaultKeyPair = kKeyStore!.getKeyPair(
       kDefaultAddressList.indexOf(kSelectedAddress),
     );

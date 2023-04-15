@@ -13,6 +13,7 @@ import 'package:wallet_connect_uri_validator/wallet_connect_uri_validator.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/model/model.dart';
+import 'package:zenon_syrius_wallet_flutter/services/wallet_connect_service.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/clipboard_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
@@ -84,6 +85,7 @@ class _MainAppContainerState extends State<MainAppContainer>
 
   @override
   void initState() {
+    sl<WalletConnectService>().context = context;
     clipboardWatcher.addListener(this);
     ClipboardUtils.toggleClipboardWatcherStatus();
     _netSyncStatusBloc.getDataPeriodically();

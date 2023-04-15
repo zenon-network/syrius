@@ -22,7 +22,7 @@ class MintTokenBloc extends BaseBloc<AccountBlockTemplate> {
           .then(
         (response) {
           response.amount = amount.toNum().extractDecimals(token.decimals);
-          AddressUtils.refreshBalance();
+          ZenonAddressUtils.refreshBalance();
           addEvent(response);
         },
       ).onError(

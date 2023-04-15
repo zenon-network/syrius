@@ -26,7 +26,7 @@ class CreateProjectBloc extends BaseBloc<AccountBlockTemplate?> {
         'creating project',
       ).then(
         (block) {
-          AddressUtils.refreshBalance();
+          ZenonAddressUtils.refreshBalance();
           addEvent(block);
         },
       ).onError(
