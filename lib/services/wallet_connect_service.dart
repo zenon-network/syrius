@@ -92,12 +92,28 @@ class WalletConnectService {
     _wcClient.registerRequestHandler(
       chainId: 'zenon:3',
       method: 'znn_info',
-      handler: (topic, params) {
-        return {
-          'address': kSelectedAddress,
-          'nodeUrl': kCurrentNode,
-          'chainId': getChainIdentifier(),
-        };
+      handler: (topic, params) async {
+        final actionWasAccepted = await showDialogWithNoAndYesOptions(
+            context: _context,
+            title: 'Send Payment',
+            description: 'Are you sure you want to '
+                'send address, current node and chain ID info ?',
+            onYesButtonPressed: () async {
+              Navigator.pop(_context, true);
+            },
+            onNoButtonPressed: () {
+              Navigator.pop(_context, false);
+            });
+
+        if (actionWasAccepted) {
+          return {
+            'address': kSelectedAddress,
+            'nodeUrl': kCurrentNode,
+            'chainId': getChainIdentifier(),
+          };
+        } else {
+          throw Errors.getSdkError(Errors.USER_REJECTED);
+        }
       },
     );
 
@@ -107,7 +123,23 @@ class WalletConnectService {
       handler: (topic, params) async {
         final message = params as String;
 
-        return await walletSign(message.codeUnits);
+        final actionWasAccepted = await showDialogWithNoAndYesOptions(
+            context: _context,
+            title: 'Send Payment',
+            description: 'Are you sure you want to '
+                'sign message $message ?',
+            onYesButtonPressed: () async {
+              Navigator.pop(_context, true);
+            },
+            onNoButtonPressed: () {
+              Navigator.pop(_context, false);
+            });
+
+        if (actionWasAccepted) {
+          return await walletSign(message.codeUnits);
+        } else {
+          throw Errors.getSdkError(Errors.USER_REJECTED);
+        }
       },
     );
 
@@ -128,22 +160,21 @@ class WalletConnectService {
         final sendPaymentBloc = SendPaymentBloc();
 
         final wasAccepted = await showDialogWithNoAndYesOptions(
-          context: _context,
-          title: 'Send Payment',
-          description: 'Are you sure you want to transfer '
-              '${accountBlock.amount} ${token.symbol} to '
-              '$toAddress ?',
-          onYesButtonPressed: () {
-            Navigator.pop(_context, true);
-            sendPaymentBloc.sendTransfer(
-              fromAddress: params['fromAddress'],
-              block: AccountBlockTemplate.fromJson(params['accountBlock']),
-            );
-          },
-          onNoButtonPressed: () {
-            Navigator.pop(_context, false);
-          }
-        );
+            context: _context,
+            title: 'Send Payment',
+            description: 'Are you sure you want to transfer '
+                '${accountBlock.amount} ${token.symbol} to '
+                '$toAddress ?',
+            onYesButtonPressed: () {
+              Navigator.pop(_context, true);
+              sendPaymentBloc.sendTransfer(
+                fromAddress: params['fromAddress'],
+                block: AccountBlockTemplate.fromJson(params['accountBlock']),
+              );
+            },
+            onNoButtonPressed: () {
+              Navigator.pop(_context, false);
+            });
 
         if (!wasAccepted) {
           throw Errors.getSdkError(Errors.USER_REJECTED);
