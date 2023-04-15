@@ -80,27 +80,41 @@ class _WalletConnectPairingCardState extends State<WalletConnectPairingCard> {
                 maxWidth: 45.0,
                 maxHeight: 20.0,
               ),
-              hintText: 'dApp URI',
+              hintText: 'WalletConnect URI',
             ),
           ),
           kVerticalSpacing,
-          MyOutlinedButton(
-            text: 'Connect',
-            // TODO: add validator for WC URI
-            onPressed: () {
-              _showPairingDialog(Uri.parse(_uriController.text));
-            },
-            minimumSize: kLoadingButtonMinSize,
-          ),
-          kVerticalSpacing,
-          MyOutlinedButton(
-            text: 'Scan QR code',
-            onPressed: () {
-              windowManager.minimize().then(
-                    (value) => _handleClickCapture(CaptureMode.region),
-                  );
-            },
-            minimumSize: kLoadingButtonMinSize,
+          Expanded(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    MyOutlinedButton(
+                      text: 'Connect',
+                      // TODO: add validator for WC URI
+                      onPressed: () {
+                        _showPairingDialog(Uri.parse(_uriController.text));
+                      },
+                      minimumSize: kLoadingButtonMinSize,
+                    ),
+                    const SizedBox(
+                      width: 15.0,
+                    ),
+                    MyOutlinedButton(
+                      text: 'Scan QR code',
+                      onPressed: () {
+                        windowManager.minimize().then(
+                              (value) => _handleClickCapture(CaptureMode.region),
+                        );
+                      },
+                      minimumSize: kLoadingButtonMinSize,
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
         ],
       ),

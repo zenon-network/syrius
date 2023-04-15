@@ -7,25 +7,36 @@ import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 class SendPaymentBloc extends BaseBloc<AccountBlockTemplate?> {
   void sendTransfer({
-    required String? fromAddress,
-    required String toAddress,
-    required String amount,
-    required List<int>? data,
-    required Token token,
+    // TODO: make this argument non-nullable
+    String? fromAddress,
+    String? toAddress,
+    String? amount,
+    List<int>? data,
+    Token? token,
+    AccountBlockTemplate? block,
   }) {
+    assert(
+      block == null &&
+              fromAddress != null &&
+              toAddress != null &&
+              amount != null &&
+              token != null ||
+          block != null && fromAddress != null,
+    );
     try {
       addEvent(null);
-      AccountBlockTemplate transactionParams = AccountBlockTemplate.send(
-        Address.parse(toAddress),
-        token.tokenStandard,
-        amount.toNum().extractDecimals(token.decimals),
-        data,
-      );
+      AccountBlockTemplate accountBlock = block ??
+          AccountBlockTemplate.send(
+            Address.parse(toAddress!),
+            token!.tokenStandard,
+            amount!.toNum().extractDecimals(token.decimals),
+            data,
+          );
       KeyPair blockSigningKeyPair = kKeyStore!.getKeyPair(
         kDefaultAddressList.indexOf(fromAddress),
       );
       AccountBlockUtils.createAccountBlock(
-        transactionParams,
+        accountBlock,
         'send transaction',
         blockSigningKey: blockSigningKeyPair,
         waitForRequiredPlasma: true,

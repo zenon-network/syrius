@@ -52,7 +52,7 @@ class WalletConnectService {
               methods: event.params.optionalNamespaces['zenon']?.methods ??
                   [
                     'znn_sign',
-                    'znn_net_info',
+                    'znn_info',
                     'znn_send',
                   ],
               events: event.params.optionalNamespaces['zenon']?.events ?? [],
@@ -80,12 +80,12 @@ class WalletConnectService {
 
     _wcClient.registerRequestHandler(
       chainId: 'zenon:3',
-      method: 'znn_net_info',
+      method: 'znn_info',
       handler: (method, params) {
         return {
           'address': kSelectedAddress,
-          'node': kCurrentNode,
-          'netId': getChainIdentifier(),
+          'nodeUrl': kCurrentNode,
+          'chainId': getChainIdentifier(),
         };
       },
     );
@@ -108,13 +108,7 @@ class WalletConnectService {
 
         sendPaymentBloc.sendTransfer(
           fromAddress: params['fromAddress'],
-          toAddress: params['toAddress'],
-          amount: params['amount'].toString(),
-          data: null,
-          token: kDualCoin.firstWhere(
-            (element) =>
-                element.tokenStandard.toString() == params['tokenStandard'],
-          ),
+          block: AccountBlockTemplate.fromJson(params['accountBlock']),
         );
 
         sendPaymentBloc.stream.listen((event) {
@@ -142,7 +136,7 @@ class WalletConnectService {
             accounts: _getWalletAccounts(),
             methods: [
               'znn_sign',
-              'znn_net_info',
+              'znn_info',
               'znn_send',
             ],
             events: [],
