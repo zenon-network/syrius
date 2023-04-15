@@ -121,7 +121,7 @@ class WalletConnectService {
           (element) => element != null,
         );
 
-        return result!.hash.toString();
+        return result!;
       },
     );
   }
