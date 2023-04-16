@@ -53,6 +53,7 @@ class _WalletConnectPairingCardState extends State<WalletConnectPairingCard> {
             builder: (_, value, child) {
               if (value != null) {
                 _uriController.text = value;
+                kLastWalletConnectUriNotifier.value = null;
               }
               return child!;
             },
