@@ -721,17 +721,19 @@ class _MainAppContainerState extends State<MainAppContainer>
   void _updateWalletConnectUri(String text) {
     if (!_isWalletLocked()) {
       kLastWalletConnectUriNotifier.value = text;
-      sl<NotificationsBloc>().addNotification(
-        WalletNotification(
-          title:
-              'WalletConnect link detected. Go to WalletConnect tab to connect.',
-          timestamp: DateTime.now().millisecondsSinceEpoch,
-          details: 'A WalletConnect link has been copied to clipboard. '
-              'Go to the WalletConnect tab to connect with the dApp through ${kLastWalletConnectUriNotifier.value}',
-          type: NotificationType.copiedToClipboard,
-        ),
-      );
-      _navigateTo(Tabs.walletConnect);
+      if (kCurrentPage != Tabs.walletConnect) {
+        sl<NotificationsBloc>().addNotification(
+          WalletNotification(
+            title:
+                'WalletConnect link detected. Go to WalletConnect tab to connect.',
+            timestamp: DateTime.now().millisecondsSinceEpoch,
+            details: 'A WalletConnect link has been copied to clipboard. '
+                'Go to the WalletConnect tab to connect with the dApp through ${kLastWalletConnectUriNotifier.value}',
+            type: NotificationType.copiedToClipboard,
+          ),
+        );
+        _navigateTo(Tabs.walletConnect);
+      }
     }
   }
 }
