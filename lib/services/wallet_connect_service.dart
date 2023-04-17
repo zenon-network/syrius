@@ -3,6 +3,7 @@ import 'package:walletconnect_flutter_v2/walletconnect_flutter_v2.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/functions.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/main_app_container.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/dialogs.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
@@ -20,6 +21,11 @@ class WalletConnectService {
   String? _sessionTopic;
 
   set context(BuildContext context) => _context = context;
+
+  final _walletLockedError = WalletConnectError(
+    code: 9000,
+    message: 'Wallet is locked',
+  );
 
   Future<void> initClient() async {
     _wcClient = await Web3Wallet.createInstance(
@@ -93,27 +99,31 @@ class WalletConnectService {
       chainId: 'zenon:3',
       method: 'znn_info',
       handler: (topic, params) async {
-        final actionWasAccepted = await showDialogWithNoAndYesOptions(
-          context: _context,
-          title: 'Send Payment',
-          description: 'Are you sure you want to '
-              'send address, current node and chain ID info ?',
-          onYesButtonPressed: () async {
-            Navigator.pop(_context, true);
-          },
-          onNoButtonPressed: () {
-            Navigator.pop(_context, false);
-          },
-        );
+        if (kCurrentPage != Tabs.lock) {
+          final actionWasAccepted = await showDialogWithNoAndYesOptions(
+            context: _context,
+            title: 'Send Payment',
+            description: 'Are you sure you want to '
+                'send address, current node and chain ID info ?',
+            onYesButtonPressed: () async {
+              Navigator.pop(_context, true);
+            },
+            onNoButtonPressed: () {
+              Navigator.pop(_context, false);
+            },
+          );
 
-        if (actionWasAccepted) {
-          return {
-            'address': kSelectedAddress,
-            'nodeUrl': kCurrentNode,
-            'chainId': getChainIdentifier(),
-          };
+          if (actionWasAccepted) {
+            return {
+              'address': kSelectedAddress,
+              'nodeUrl': kCurrentNode,
+              'chainId': getChainIdentifier(),
+            };
+          } else {
+            throw Errors.getSdkError(Errors.USER_REJECTED);
+          }
         } else {
-          throw Errors.getSdkError(Errors.USER_REJECTED);
+          throw _walletLockedError;
         }
       },
     );
@@ -122,25 +132,29 @@ class WalletConnectService {
       chainId: 'zenon:3',
       method: 'znn_sign',
       handler: (topic, params) async {
-        final message = params as String;
+        if (kCurrentPage != Tabs.lock) {
+          final message = params as String;
 
-        final actionWasAccepted = await showDialogWithNoAndYesOptions(
-          context: _context,
-          title: 'Send Payment',
-          description: 'Are you sure you want to '
-              'sign message $message ?',
-          onYesButtonPressed: () async {
-            Navigator.pop(_context, true);
-          },
-          onNoButtonPressed: () {
-            Navigator.pop(_context, false);
-          },
-        );
+          final actionWasAccepted = await showDialogWithNoAndYesOptions(
+            context: _context,
+            title: 'Send Payment',
+            description: 'Are you sure you want to '
+                'sign message $message ?',
+            onYesButtonPressed: () async {
+              Navigator.pop(_context, true);
+            },
+            onNoButtonPressed: () {
+              Navigator.pop(_context, false);
+            },
+          );
 
-        if (actionWasAccepted) {
-          return await walletSign(message.codeUnits);
+          if (actionWasAccepted) {
+            return await walletSign(message.codeUnits);
+          } else {
+            throw Errors.getSdkError(Errors.USER_REJECTED);
+          }
         } else {
-          throw Errors.getSdkError(Errors.USER_REJECTED);
+          throw _walletLockedError;
         }
       },
     );
@@ -149,46 +163,51 @@ class WalletConnectService {
       chainId: 'zenon:3',
       method: 'znn_send',
       handler: (topic, params) async {
-        final accountBlock =
-            AccountBlockTemplate.fromJson(params['accountBlock']);
+        if (kCurrentPage != Tabs.lock) {
+          final accountBlock =
+              AccountBlockTemplate.fromJson(params['accountBlock']);
 
-        final toAddress = ZenonAddressUtils.getLabel(
-          accountBlock.toAddress.toString(),
-        );
-        final token = kDualCoin.firstWhere(
-          (element) => element.tokenStandard == accountBlock.tokenStandard,
-        );
-        final amount = AmountUtils.addDecimals(accountBlock.amount, token.decimals);
+          final toAddress = ZenonAddressUtils.getLabel(
+            accountBlock.toAddress.toString(),
+          );
+          final token = kDualCoin.firstWhere(
+            (element) => element.tokenStandard == accountBlock.tokenStandard,
+          );
+          final amount =
+              AmountUtils.addDecimals(accountBlock.amount, token.decimals);
 
-        final sendPaymentBloc = SendPaymentBloc();
+          final sendPaymentBloc = SendPaymentBloc();
 
-        final wasActionAccepted = await showDialogWithNoAndYesOptions(
-          context: _context,
-          title: 'Send Payment',
-          description: 'Are you sure you want to transfer '
-              '$amount ${token.symbol} to '
-              '$toAddress ?',
-          onYesButtonPressed: () {
-            Navigator.pop(_context, true);
-          },
-          onNoButtonPressed: () {
-            Navigator.pop(_context, false);
-          },
-        );
-
-        if (wasActionAccepted) {
-          sendPaymentBloc.sendTransfer(
-            fromAddress: params['fromAddress'],
-            block: AccountBlockTemplate.fromJson(params['accountBlock']),
+          final wasActionAccepted = await showDialogWithNoAndYesOptions(
+            context: _context,
+            title: 'Send Payment',
+            description: 'Are you sure you want to transfer '
+                '$amount ${token.symbol} to '
+                '$toAddress ?',
+            onYesButtonPressed: () {
+              Navigator.pop(_context, true);
+            },
+            onNoButtonPressed: () {
+              Navigator.pop(_context, false);
+            },
           );
 
-          final result = await sendPaymentBloc.stream.firstWhere(
-            (element) => element != null,
-          );
+          if (wasActionAccepted) {
+            sendPaymentBloc.sendTransfer(
+              fromAddress: params['fromAddress'],
+              block: AccountBlockTemplate.fromJson(params['accountBlock']),
+            );
 
-          return result!;
+            final result = await sendPaymentBloc.stream.firstWhere(
+              (element) => element != null,
+            );
+
+            return result!;
+          } else {
+            throw Errors.getSdkError(Errors.USER_REJECTED);
+          }
         } else {
-          throw Errors.getSdkError(Errors.USER_REJECTED);
+          throw _walletLockedError;
         }
       },
     );
