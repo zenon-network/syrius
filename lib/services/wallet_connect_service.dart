@@ -50,6 +50,10 @@ class WalletConnectService {
   }
 
   void _initListeners() {
+    _wcClient.core.relayClient.onRelayClientDisconnect.subscribe((args) {
+      _wcClient.core.relayClient.connect();
+    });
+
     _wcClient.onSessionProposal.subscribe((SessionProposalEvent? event) async {
       debugPrint('WalletConnectService: onSessionProposal triggered - $event');
       _sessionProposalId = event?.id;
