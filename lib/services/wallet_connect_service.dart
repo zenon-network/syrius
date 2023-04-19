@@ -294,4 +294,11 @@ class WalletConnectService {
         changeName: 'chainIdChange',
         newValue: newChainId,
       );
+
+  Map<String, SessionData> getActiveSessions() => _wcClient.getActiveSessions();
+
+  Map<String, SessionData> getAllSessions(String pairingTopic) =>
+      _wcClient.getSessionsForPairing(
+        pairingTopic: pairingTopic,
+      );
 }
