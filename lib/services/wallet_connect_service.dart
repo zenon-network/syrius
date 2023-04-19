@@ -43,12 +43,6 @@ class WalletConnectService {
 
   Future<PairingInfo> pair(Uri uri) => _wcClient.pair(uri: uri);
 
-  Future<void> sendTx(
-      String fromAddress, AccountBlockTemplate accountBlockTemplate) {
-    // TODO: implement sendTx
-    throw UnimplementedError();
-  }
-
   void _initListeners() {
     _wcClient.core.relayClient.onRelayClientDisconnect.subscribe((args) {
       _wcClient.core.relayClient.connect();
