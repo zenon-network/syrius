@@ -3,6 +3,7 @@ import 'package:image/image.dart' as img;
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:screen_capturer/screen_capturer.dart';
+import 'package:wallet_connect_uri_validator/wallet_connect_uri_validator.dart';
 import 'package:walletconnect_flutter_v2/walletconnect_flutter_v2.dart';
 import 'package:window_manager/window_manager.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
@@ -49,70 +50,70 @@ class _WalletConnectPairingCardState extends State<WalletConnectPairingCard> {
       child: Column(
         children: [
           kVerticalSpacing,
-          ValueListenableBuilder<String?>(
-            builder: (_, value, child) {
-              if (value != null) {
-                _uriController.text = value;
-                kLastWalletConnectUriNotifier.value = null;
-              }
-              return child!;
-            },
-            valueListenable: kLastWalletConnectUriNotifier,
-            child: InputField(
-              onChanged: (value) {
-                setState(() {});
-              },
-              controller: _uriController,
-              suffixIcon: RawMaterialButton(
-                shape: const CircleBorder(),
-                onPressed: () {
-                  ClipboardUtils.pasteToClipboard(context, (String value) {
-                    _uriController.text = value;
-                    setState(() {});
-                  });
-                },
-                child: const Icon(
-                  Icons.content_paste,
-                  color: AppColors.darkHintTextColor,
-                  size: 15.0,
+          Row(
+            children: [
+              Expanded(
+                child: ValueListenableBuilder<String?>(
+                  builder: (_, value, child) {
+                    if (value != null) {
+                      _uriController.text = value;
+                      kLastWalletConnectUriNotifier.value = null;
+                    }
+                    return child!;
+                  },
+                  valueListenable: kLastWalletConnectUriNotifier,
+                  child: InputField(
+                    onChanged: (value) {
+                      setState(() {});
+                    },
+                    controller: _uriController,
+                    suffixIcon: RawMaterialButton(
+                      shape: const CircleBorder(),
+                      onPressed: () {
+                        ClipboardUtils.pasteToClipboard(context, (String value) {
+                          _uriController.text = value;
+                          setState(() {});
+                        });
+                      },
+                      child: const Icon(
+                        Icons.content_paste,
+                        color: AppColors.darkHintTextColor,
+                        size: 15.0,
+                      ),
+                    ),
+                    suffixIconConstraints: const BoxConstraints(
+                      maxWidth: 45.0,
+                      maxHeight: 20.0,
+                    ),
+                    hintText: 'WalletConnect URI',
+                  ),
                 ),
               ),
-              suffixIconConstraints: const BoxConstraints(
-                maxWidth: 45.0,
-                maxHeight: 20.0,
+              const SizedBox(
+                width: 15.0,
               ),
-              hintText: 'WalletConnect URI',
-            ),
+              MyOutlinedButton(
+                text: 'Connect',
+                onPressed: WalletConnectUri.tryParse(_uriController.text) != null ? () {
+                  _showPairingDialog(Uri.parse(_uriController.text));
+                } : null,
+                minimumSize: kLoadingButtonMinSize,
+              ),
+            ],
           ),
           kVerticalSpacing,
           Expanded(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    MyOutlinedButton(
-                      text: 'Connect',
-                      // TODO: add validator for WC URI
-                      onPressed: () {
-                        _showPairingDialog(Uri.parse(_uriController.text));
-                      },
-                      minimumSize: kLoadingButtonMinSize,
-                    ),
-                    const SizedBox(
-                      width: 15.0,
-                    ),
-                    MyOutlinedButton(
-                      text: 'Scan QR code',
-                      onPressed: () {
-                        windowManager.minimize().then(
-                              (value) => _handleClickCapture(CaptureMode.region),
-                        );
-                      },
-                      minimumSize: kLoadingButtonMinSize,
-                    ),
-                  ],
+                MyOutlinedButton(
+                  text: 'Scan QR code',
+                  onPressed: () {
+                    windowManager.minimize().then(
+                          (value) => _handleClickCapture(CaptureMode.region),
+                    );
+                  },
+                  minimumSize: kLoadingButtonMinSize,
                 ),
               ],
             ),
