@@ -719,8 +719,8 @@ class _MainAppContainerState extends State<MainAppContainer>
   }
 
   void _updateWalletConnectUri(String text) {
+    kLastWalletConnectUriNotifier.value = text;
     if (!_isWalletLocked()) {
-      kLastWalletConnectUriNotifier.value = text;
       if (kCurrentPage != Tabs.walletConnect) {
         sl<NotificationsBloc>().addNotification(
           WalletNotification(
