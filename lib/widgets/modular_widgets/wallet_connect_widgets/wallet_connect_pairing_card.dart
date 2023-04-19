@@ -70,7 +70,8 @@ class _WalletConnectPairingCardState extends State<WalletConnectPairingCard> {
                     suffixIcon: RawMaterialButton(
                       shape: const CircleBorder(),
                       onPressed: () {
-                        ClipboardUtils.pasteToClipboard(context, (String value) {
+                        ClipboardUtils.pasteToClipboard(context,
+                            (String value) {
                           _uriController.text = value;
                           setState(() {});
                         });
@@ -94,9 +95,12 @@ class _WalletConnectPairingCardState extends State<WalletConnectPairingCard> {
               ),
               MyOutlinedButton(
                 text: 'Connect',
-                onPressed: WalletConnectUri.tryParse(_uriController.text) != null ? () {
-                  _showPairingDialog(Uri.parse(_uriController.text));
-                } : null,
+                onPressed:
+                    WalletConnectUri.tryParse(_uriController.text) != null
+                        ? () {
+                            _showPairingDialog(Uri.parse(_uriController.text));
+                          }
+                        : null,
                 minimumSize: kLoadingButtonMinSize,
               ),
             ],
@@ -111,7 +115,7 @@ class _WalletConnectPairingCardState extends State<WalletConnectPairingCard> {
                   onPressed: () {
                     windowManager.minimize().then(
                           (value) => _handleClickCapture(CaptureMode.region),
-                    );
+                        );
                   },
                   minimumSize: kLoadingButtonMinSize,
                 ),
@@ -189,6 +193,11 @@ class _WalletConnectPairingCardState extends State<WalletConnectPairingCard> {
         setState(() {
           _uriController.text = result.text;
         });
+      } else {
+        sl<NotificationsBloc>().addErrorNotification(
+          'User cancelled scan',
+          'User cancelled scan',
+        );
       }
     } on Exception catch (e) {
       sl<NotificationsBloc>().addErrorNotification(e, 'Could not scan screen');
