@@ -6,7 +6,6 @@ import 'package:logging/logging.dart';
 import 'package:path/path.dart' as path;
 import 'package:screen_capturer/screen_capturer.dart';
 import 'package:wallet_connect_uri_validator/wallet_connect_uri_validator.dart';
-import 'package:walletconnect_flutter_v2/walletconnect_flutter_v2.dart';
 import 'package:window_manager/window_manager.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
@@ -39,6 +38,8 @@ class _WalletConnectPairingCardState extends State<WalletConnectPairingCard> {
   );
   CapturedData? _lastCapturedData;
 
+  final _uriKey = GlobalKey<FormState>();
+
   @override
   Widget build(BuildContext context) {
     return CardScaffold(
@@ -55,6 +56,7 @@ class _WalletConnectPairingCardState extends State<WalletConnectPairingCard> {
         children: [
           kVerticalSpacing,
           Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Expanded(
                 child: ValueListenableBuilder<String?>(
@@ -66,31 +68,42 @@ class _WalletConnectPairingCardState extends State<WalletConnectPairingCard> {
                     return child!;
                   },
                   valueListenable: kLastWalletConnectUriNotifier,
-                  child: InputField(
-                    onChanged: (value) {
-                      setState(() {});
-                    },
-                    controller: _uriController,
-                    suffixIcon: RawMaterialButton(
-                      shape: const CircleBorder(),
-                      onPressed: () {
-                        ClipboardUtils.pasteToClipboard(context,
-                                (String value) {
-                              _uriController.text = value;
-                              setState(() {});
-                            });
+                  child: Form(
+                    key: _uriKey,
+                    autovalidateMode: AutovalidateMode.onUserInteraction,
+                    child: InputField(
+                      validator: (value) {
+                        if (WalletConnectUri.tryParse(value ?? '') != null) {
+                          return null;
+                        } else {
+                          return 'URI invalid';
+                        }
                       },
-                      child: const Icon(
-                        Icons.content_paste,
-                        color: AppColors.darkHintTextColor,
-                        size: 15.0,
+                      onChanged: (value) {
+                        setState(() {});
+                      },
+                      controller: _uriController,
+                      suffixIcon: RawMaterialButton(
+                        shape: const CircleBorder(),
+                        onPressed: () {
+                          ClipboardUtils.pasteToClipboard(context,
+                                  (String value) {
+                                _uriController.text = value;
+                                setState(() {});
+                              });
+                        },
+                        child: const Icon(
+                          Icons.content_paste,
+                          color: AppColors.darkHintTextColor,
+                          size: 15.0,
+                        ),
                       ),
+                      suffixIconConstraints: const BoxConstraints(
+                        maxWidth: 45.0,
+                        maxHeight: 20.0,
+                      ),
+                      hintText: 'WalletConnect URI',
                     ),
-                    suffixIconConstraints: const BoxConstraints(
-                      maxWidth: 45.0,
-                      maxHeight: 20.0,
-                    ),
-                    hintText: 'WalletConnect URI',
                   ),
                 ),
               ),
@@ -142,28 +155,10 @@ class _WalletConnectPairingCardState extends State<WalletConnectPairingCard> {
       final pairingInfo = await wcService.pair(uri);
       Logger('WalletConnectPairingCard')
           .log(Level.INFO, 'pairing info', pairingInfo.toJson());
-      await wcService.activatePairing(topic: pairingInfo.topic);
       _uriController.clear();
-      _sendSuccessfullyPairedNotification(pairingInfo);
     } catch (e) {
       NotificationUtils.sendNotificationError(e, 'Pairing failed');
-    } finally {
-      Navigator.pop(context);
     }
-  }
-
-  void _sendSuccessfullyPairedNotification(PairingInfo pairingInfo) {
-    sl.get<NotificationsBloc>().addNotification(
-      WalletNotification(
-        title:
-        'Successfully paired with ${pairingInfo.peerMetadata?.name ?? 'dApp'}',
-        timestamp: DateTime.now().millisecondsSinceEpoch,
-        details:
-        'Successfully paired with ${pairingInfo.peerMetadata?.name ?? 'dApp'} '
-            'through WalletConnect',
-        type: NotificationType.paymentSent,
-      ),
-    );
   }
 
   void _handleClickCapture(CaptureMode mode) async {

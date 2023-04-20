@@ -150,7 +150,6 @@ class GeneralWidgetState extends State<GeneralWidget> {
                 materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                 onPressed: () => NavigationUtils.openUrl(
                   '$kExplorer/momentum/${generalStats.frontierMomentum.hash}',
-                  context,
                 ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,

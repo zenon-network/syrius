@@ -5,7 +5,6 @@ import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 class LinkIcon extends RawMaterialButton {
   LinkIcon({
     required String url,
-    required BuildContext context,
     Key? key})
       : super(
           key: key,
@@ -15,7 +14,7 @@ class LinkIcon extends RawMaterialButton {
           ),
           materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
           shape: const CircleBorder(),
-          onPressed: () => NavigationUtils.openUrl(url, context),
+          onPressed: () => NavigationUtils.openUrl(url),
           child: Container(
             height: 25.0,
             width: 25.0,

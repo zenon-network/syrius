@@ -57,15 +57,16 @@ showWarningDialog({
 showDialogWithNoAndYesOptions({
   required BuildContext context,
   required String title,
-  required String description,
   required VoidCallback onYesButtonPressed,
+  Widget? content,
+  String? description,
   VoidCallback? onNoButtonPressed,
 }) =>
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         title: Text(title),
-        content: Text(description),
+        content: content ?? Text(description!),
         actions: [
           TextButton(
             child: Text(

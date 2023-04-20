@@ -112,7 +112,6 @@ class _WalletConnectPairingsCardState extends State<WalletConnectPairingsCard> {
           visible: pairingInfo.peerMetadata?.url != null,
           child: LinkIcon(
             url: pairingInfo.peerMetadata?.url ?? 'Empty',
-            context: context,
           ),
         ),
       ],

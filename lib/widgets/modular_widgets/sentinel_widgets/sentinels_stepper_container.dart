@@ -696,8 +696,7 @@ class _MainSentinelsState extends State<SentinelsStepperContainer> {
                                 ),
                             recognizer: TapGestureRecognizer()
                               ..onTap = () {
-                                NavigationUtils.openUrl(
-                                    kZnnController, context);
+                                NavigationUtils.openUrl(kZnnController);
                               },
                           ),
                           const WidgetSpan(

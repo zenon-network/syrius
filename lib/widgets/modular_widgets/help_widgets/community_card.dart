@@ -210,7 +210,7 @@ class CommunityCard extends StatelessWidget {
         const SizedBox(
           width: 10.0,
         ),
-        LinkIcon(url: url, context: context),
+        LinkIcon(url: url),
       ],
     );
   }
