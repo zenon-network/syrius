@@ -9,7 +9,7 @@ import 'package:zenon_syrius_wallet_flutter/utils/extensions.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/icons/clear_icon.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 
-const String _kWidgetTitle = 'WalletConnect Pairings';
+const String _kWidgetTitle = 'WalletConnect Pairing List';
 // TODO: change description
 const String _kWidgetDescription = 'Description';
 
@@ -75,12 +75,12 @@ class _WalletConnectPairingsCardState extends State<WalletConnectPairingsCard> {
           ),
           isSelected
               ? InfiniteScrollTableCell.withMarquee(
-                  pairingInfo.topic,
-                )
+            pairingInfo.topic,
+          )
               : InfiniteScrollTableCell.withText(
-                  context,
-                  pairingInfo.topic.short,
-                ),
+            context,
+            pairingInfo.topic.short,
+          ),
           InfiniteScrollTableCell.withText(
             context,
             _formatExpiryDateTime(pairingInfo.expiry).toString(),
@@ -121,7 +121,7 @@ class _WalletConnectPairingsCardState extends State<WalletConnectPairingsCard> {
 
   String _formatExpiryDateTime(int expirySeconds) {
     final expiryDateTime =
-        DateTime.fromMillisecondsSinceEpoch(expirySeconds * 1000);
+    DateTime.fromMillisecondsSinceEpoch(expirySeconds * 1000);
 
     return DateFormat('MMM dd, y HH:mm:ss').format(expiryDateTime);
   }

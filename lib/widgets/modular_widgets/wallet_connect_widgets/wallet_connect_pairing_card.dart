@@ -1,6 +1,8 @@
 import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:image/image.dart' as img;
+import 'package:logging/logging.dart';
 import 'package:path/path.dart' as path;
 import 'package:screen_capturer/screen_capturer.dart';
 import 'package:wallet_connect_uri_validator/wallet_connect_uri_validator.dart';
@@ -21,6 +23,7 @@ final screenCapturer = ScreenCapturer.instance;
 const String _kWidgetTitle = 'WalletConnect Pairing';
 // TODO: change description
 const String _kWidgetDescription = 'Description';
+const walletConnect = 'walletconnect';
 
 class WalletConnectPairingCard extends StatefulWidget {
   const WalletConnectPairingCard({Key? key}) : super(key: key);
@@ -71,10 +74,11 @@ class _WalletConnectPairingCardState extends State<WalletConnectPairingCard> {
                     suffixIcon: RawMaterialButton(
                       shape: const CircleBorder(),
                       onPressed: () {
-                        ClipboardUtils.pasteToClipboard(context, (String value) {
-                          _uriController.text = value;
-                          setState(() {});
-                        });
+                        ClipboardUtils.pasteToClipboard(context,
+                                (String value) {
+                              _uriController.text = value;
+                              setState(() {});
+                            });
                       },
                       child: const Icon(
                         Icons.content_paste,
@@ -96,11 +100,11 @@ class _WalletConnectPairingCardState extends State<WalletConnectPairingCard> {
               MyOutlinedButton(
                 text: 'Connect',
                 onPressed:
-                    WalletConnectUri.tryParse(_uriController.text) != null
-                        ? () {
-                            _showPairingDialog(Uri.parse(_uriController.text));
-                          }
-                        : null,
+                WalletConnectUri.tryParse(_uriController.text) != null
+                    ? () {
+                  _pairWithDapp(Uri.parse(_uriController.text));
+                }
+                    : null,
                 minimumSize: kLoadingButtonMinSize,
               ),
             ],
@@ -117,8 +121,8 @@ class _WalletConnectPairingCardState extends State<WalletConnectPairingCard> {
                       if (value) {
                         windowManager.minimize().then(
                               (value) =>
-                                  _handleClickCapture(CaptureMode.region),
-                            );
+                              _handleClickCapture(CaptureMode.region),
+                        );
                       }
                     });
                   },
@@ -132,22 +136,13 @@ class _WalletConnectPairingCardState extends State<WalletConnectPairingCard> {
     );
   }
 
-  Future<void> _showPairingDialog(Uri uri) async {
-    showDialogWithNoAndYesOptions(
-      context: context,
-      title: 'Pairing through WalletConnect',
-      // TODO: check if we can get the dApp name at this stage
-      description: 'Are you sure you want to pair with this dApp?',
-      onYesButtonPressed: () => _pairWithDapp(uri),
-    );
-  }
-
   Future<void> _pairWithDapp(Uri uri) async {
     try {
       final wcService = sl.get<WalletConnectService>();
       final pairingInfo = await wcService.pair(uri);
-      print('Pairing info: ${pairingInfo.toJson()}');
-      wcService.activatePairing(topic: pairingInfo.topic);
+      Logger('WalletConnectPairingCard')
+          .log(Level.INFO, 'pairing info', pairingInfo.toJson());
+      await wcService.activatePairing(topic: pairingInfo.topic);
       _uriController.clear();
       _sendSuccessfullyPairedNotification(pairingInfo);
     } catch (e) {
@@ -159,16 +154,86 @@ class _WalletConnectPairingCardState extends State<WalletConnectPairingCard> {
 
   void _sendSuccessfullyPairedNotification(PairingInfo pairingInfo) {
     sl.get<NotificationsBloc>().addNotification(
-          WalletNotification(
-            title:
-                'Successfully paired with ${pairingInfo.peerMetadata?.name ?? 'dApp'}',
-            timestamp: DateTime.now().millisecondsSinceEpoch,
-            details:
-                'Successfully paired with ${pairingInfo.peerMetadata?.name ?? 'dApp'} '
-                'through WalletConnect',
-            type: NotificationType.paymentSent,
-          ),
+      WalletNotification(
+        title:
+        'Successfully paired with ${pairingInfo.peerMetadata?.name ?? 'dApp'}',
+        timestamp: DateTime.now().millisecondsSinceEpoch,
+        details:
+        'Successfully paired with ${pairingInfo.peerMetadata?.name ?? 'dApp'} '
+            'through WalletConnect',
+        type: NotificationType.paymentSent,
+      ),
+    );
+  }
+
+  void _handleClickCapture(CaptureMode mode) async {
+    try {
+      Directory walletConnectDirectory =
+      Directory(path.join(znnDefaultPaths.cache.path, walletConnect));
+
+      if (!walletConnectDirectory.existsSync()) {
+        walletConnectDirectory.createSync(recursive: true);
+      }
+
+      String screenshotName =
+          'screenshot-${DateTime.now().millisecondsSinceEpoch}';
+
+      final imagePath = await File(
+          '${walletConnectDirectory.absolute.path}${path.separator}$screenshotName.png')
+          .create();
+
+      _lastCapturedData = await screenCapturer.capture(
+        mode: mode,
+        imagePath: imagePath.absolute.path,
+        silent: true,
+      );
+
+      if (_lastCapturedData != null) {
+        var image = img.decodePng(imagePath.readAsBytesSync())!;
+
+        LuminanceSource source = RGBLuminanceSource(
+            image.width, image.height, image.getBytes().buffer.asInt32List());
+        var bitmap = BinaryBitmap(HybridBinarizer(source));
+
+        var reader = QRCodeReader();
+        var result = reader.decode(bitmap);
+
+        if (result.rawBytes!.isNotEmpty) {
+          if (result.text.isNotEmpty &&
+              WalletConnectUri.tryParse(result.text) != null) {
+            windowManager.show();
+            _uriController.text = result.text;
+          } else {
+            windowManager.show();
+            sl<NotificationsBloc>().addNotification(WalletNotification(
+                title: 'Invalid QR code',
+                timestamp: DateTime.now().millisecondsSinceEpoch,
+                details: 'Please scan a valid WalletConnect QR code',
+                type: NotificationType.error));
+          }
+        } else {
+          windowManager.show();
+          sl<NotificationsBloc>().addNotification(WalletNotification(
+              title: 'QR code scan failed',
+              timestamp: DateTime.now().millisecondsSinceEpoch,
+              details: 'Please scan a valid WalletConnect QR code',
+              type: NotificationType.error));
+        }
+        setState(() {
+          _uriController.text = result.text;
+        });
+      } else {
+        windowManager.show();
+        sl<NotificationsBloc>().addErrorNotification(
+          'User canceled the QR scanning operation',
+          'User QR scan canceled',
         );
+      }
+    } on Exception catch (e) {
+      windowManager.show();
+      sl<NotificationsBloc>()
+          .addErrorNotification(e, 'Invalid QR code exception');
+    }
   }
 
   Future<bool> checkPermissionForMacOS() async {
@@ -178,7 +243,7 @@ class _WalletConnectPairingCardState extends State<WalletConnectPairingCard> {
             title: 'Permission required',
             timestamp: DateTime.now().millisecondsSinceEpoch,
             details:
-                'Screen Recording permission is required to scan and process the on-screen WalletConnect QR code',
+            'Screen Recording permission is required to scan and process the on-screen WalletConnect QR code',
             type: NotificationType.generatingPlasma));
         return false;
       }
@@ -187,64 +252,10 @@ class _WalletConnectPairingCardState extends State<WalletConnectPairingCard> {
     return true;
   }
 
-  void _handleClickCapture(CaptureMode mode) async {
-    try {
-      String screenshotName =
-          'screenshot-${DateTime.now().millisecondsSinceEpoch}.png';
-      String imagePath =
-          '${znnDefaultPaths.cache.absolute}${path.separator}WalletConnect${path.separator}$screenshotName';
-
-      _lastCapturedData = await screenCapturer.capture(
-        mode: mode,
-        imagePath: imagePath,
-        silent: true,
-      );
-      if (_lastCapturedData != null) {
-        var image = img.decodePng(File(imagePath).readAsBytesSync())!;
-        LuminanceSource source = RGBLuminanceSource(
-            image.width, image.height, image.getBytes().buffer.asInt32List());
-        var bitmap = BinaryBitmap(HybridBinarizer(source));
-        var reader = QRCodeReader();
-        var result = reader.decode(bitmap);
-
-        if (result.rawBytes!.isNotEmpty) {
-          setState(() {
-            if (result.text.isNotEmpty &&
-                WalletConnectUri.tryParse(result.text) != null) {
-              _uriController.text = result.text;
-            } else {
-              windowManager.show();
-              sl<NotificationsBloc>().addNotification(WalletNotification(
-                  title: 'Invalid QR code',
-                  timestamp: DateTime.now().millisecondsSinceEpoch,
-                  details: 'Please scan a valid WalletConnect QR code',
-                  type: NotificationType.error));
-            }
-          });
-        } else {
-          windowManager.show();
-          sl<NotificationsBloc>().addNotification(
-            WalletNotification(
-              title: 'QR code scan failed',
-              timestamp: DateTime.now().millisecondsSinceEpoch,
-              details: 'Please scan a valid WalletConnect QR code',
-              type: NotificationType.error,
-            ),
-          );
-        }
-      }
-    } catch (e) {
-      sl<NotificationsBloc>().addErrorNotification(
-        e,
-        'Error while capturing the QR',
-      );
-    }
-  }
-
   Future<bool> _requestAccessForMacOS() async {
     bool isAccessAllowed = await ScreenCapturer.instance.isAccessAllowed();
     if (!isAccessAllowed) {
-      await ScreenCapturer.instance.requestAccess(onlyOpenPrefPane: true);
+      await ScreenCapturer.instance.requestAccess();
     }
     return isAccessAllowed;
   }
