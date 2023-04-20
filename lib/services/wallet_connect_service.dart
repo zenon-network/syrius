@@ -22,7 +22,6 @@ class WalletConnectService {
   late Web3Wallet _wcClient;
   late BuildContext _context;
   String? _sessionTopic;
-  int? _sessionProposalId;
 
   final List<ApproveResponse> _dAppsProposalData = [];
 
@@ -59,7 +58,6 @@ class WalletConnectService {
           .log(Level.INFO, 'onSessionProposal triggered', event.toString());
 
       if (event != null) {
-        print('Session proposal event: ${event.toString()}');
         Logger('WalletConnectService')
             .log(Level.INFO, 'session proposal event', event.params.toJson());
 
