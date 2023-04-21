@@ -1,22 +1,28 @@
 import 'dart:async';
 
+import 'package:clipboard_watcher/clipboard_watcher.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:flutter_vector_icons/flutter_vector_icons.dart';
 import 'package:logging/logging.dart';
 import 'package:provider/provider.dart';
 import 'package:uni_links/uni_links.dart';
+import 'package:wallet_connect_uri_validator/wallet_connect_uri_validator.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/model/model.dart';
+import 'package:zenon_syrius_wallet_flutter/services/wallet_connect_service.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/clipboard_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/extensions.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/format_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/notification_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/notifiers/text_scaling_notifier.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/tab_children_widgets/wallet_connect_tab_child.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
@@ -35,6 +41,7 @@ enum Tabs {
   resyncWallet,
   bridge,
   accelerator,
+  walletConnect,
 }
 
 class MainAppContainer extends StatefulWidget {
@@ -52,7 +59,7 @@ class MainAppContainer extends StatefulWidget {
 }
 
 class _MainAppContainerState extends State<MainAppContainer>
-    with TickerProviderStateMixin {
+    with TickerProviderStateMixin, ClipboardListener {
   late AnimationController _animationController;
   late Animation _animation;
 
@@ -78,6 +85,9 @@ class _MainAppContainerState extends State<MainAppContainer>
 
   @override
   void initState() {
+    sl<WalletConnectService>().context = context;
+    clipboardWatcher.addListener(this);
+    ClipboardUtils.toggleClipboardWatcherStatus();
     _netSyncStatusBloc.getDataPeriodically();
     _transferTabChild = TransferTabChild(
       navigateToBridgeTab: () {
@@ -286,6 +296,16 @@ class _MainAppContainerState extends State<MainAppContainer>
         ),
       ),
       Tab(
+        child: SvgPicture.asset(
+          'assets/svg/walletconnect-logo.svg',
+          width: 24.0,
+          fit: BoxFit.fitWidth,
+          color: _isTabSelected(Tabs.walletConnect)
+              ? AppColors.znnColor
+              : Theme.of(context).iconTheme.color,
+        ),
+      ),
+      Tab(
         child: Icon(
           MaterialCommunityIcons.rocket,
           size: 24.0,
@@ -439,6 +459,7 @@ class _MainAppContainerState extends State<MainAppContainer>
               _navigateTo(Tabs.notifications),
         ),
         const BridgeTabChild(),
+        const WalletConnectTabChild(),
         AcceleratorTabChild(
           onStepperNotificationSeeMorePressed: () =>
               _navigateTo(Tabs.notifications),
@@ -567,8 +588,10 @@ class _MainAppContainerState extends State<MainAppContainer>
       _transferTabChild!.sendCard = DimensionCard.small;
       _transferTabChild!.receiveCard = DimensionCard.large;
     }
-    kCurrentPage = page;
-    _tabController!.animateTo(kTabs.indexOf(page));
+    if (kCurrentPage != page) {
+      kCurrentPage = page;
+      _tabController!.animateTo(kTabs.indexOf(page));
+    }
   }
 
   void _initTabController() {
@@ -645,7 +668,15 @@ class _MainAppContainerState extends State<MainAppContainer>
       _incomingLinkSubscription = uriLinkStream.listen((Uri? uri) {
         Logger('MainAppContainer')
             .log(Level.INFO, '_handleIncomingLinks ${uri!.toString()}');
-        if (!mounted) return;
+        final uriRaw = uri.toString();
+        final uriRawData = uriRaw.split('syrius://')[1];
+        if (mounted) {
+          if (WalletConnectUri.tryParse(uriRawData) != null) {
+            _updateWalletConnectUri(uriRawData);
+          }
+        } else {
+          return;
+        }
       }, onError: (Object err) {
         Logger('MainAppContainer')
             .log(Level.WARNING, '_handleIncomingLinks', err);
@@ -670,6 +701,38 @@ class _MainAppContainerState extends State<MainAppContainer>
         Logger('MainAppContainer').log(
             Level.WARNING, '_handleInitialUri FormatException', e, stackTrace);
         if (!mounted) return;
+      }
+    }
+  }
+
+  @override
+  void onClipboardChanged() async {
+    ClipboardData? newClipboardData =
+        await Clipboard.getData(Clipboard.kTextPlain);
+    final text = newClipboardData?.text ?? '';
+    if (text.isNotEmpty && WalletConnectUri.tryParse(text) != null) {
+      // This check is needed because onClipboardChanged is called twice sometimes
+      if (kLastWalletConnectUriNotifier.value != text) {
+        _updateWalletConnectUri(text);
+      }
+    }
+  }
+
+  void _updateWalletConnectUri(String text) {
+    kLastWalletConnectUriNotifier.value = text;
+    if (!_isWalletLocked()) {
+      if (kCurrentPage != Tabs.walletConnect) {
+        sl<NotificationsBloc>().addNotification(
+          WalletNotification(
+            title:
+                'WalletConnect link detected. Go to WalletConnect tab to connect.',
+            timestamp: DateTime.now().millisecondsSinceEpoch,
+            details: 'A WalletConnect link has been copied to clipboard. '
+                'Go to the WalletConnect tab to connect with the dApp through ${kLastWalletConnectUriNotifier.value}',
+            type: NotificationType.copiedToClipboard,
+          ),
+        );
+        _navigateTo(Tabs.walletConnect);
       }
     }
   }

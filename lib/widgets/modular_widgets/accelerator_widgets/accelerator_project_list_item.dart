@@ -353,7 +353,7 @@ class _AcceleratorProjectListItemState
       materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
       shape: const CircleBorder(),
       onPressed: () =>
-          NavigationUtils.openUrl(widget.acceleratorProject.url, context),
+          NavigationUtils.openUrl(widget.acceleratorProject.url),
       child: Tooltip(
         message: 'Visit ${widget.acceleratorProject.url}',
         child: Container(

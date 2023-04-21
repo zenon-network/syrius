@@ -44,7 +44,7 @@ dependencies:
   number_selector: ^1.0.5
   znn_sdk_dart:
     git:
-      url: https://github.com/zenon-network/znn_sdk_dart.git
+      url: https://github.com/alienc0der/znn_sdk_dart.git
       ref: master
   json_rpc_2: ^3.0.2
   path: ^1.8.2
@@ -58,6 +58,14 @@ dependencies:
   uni_links_desktop: ^0.1.4
   uni_links: ^0.5.1
   logging: ^1.1.1
+  walletconnect_flutter_v2: ^1.2.3
+  preference_list: ^0.0.1
+  screen_capturer: ^0.1.2
+  uni_ocr: ^0.1.0
+  zxing2: ^0.2.0
+  image: ^4.0.10
+  clipboard_watcher: ^0.2.0
+  wallet_connect_uri_validator: ^0.1.0
 
 dev_dependencies:
   flutter_test:

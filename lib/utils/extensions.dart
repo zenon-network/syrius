@@ -49,3 +49,11 @@ extension ZipTwoLists on List {
     );
   }
 }
+
+extension ShortString on String {
+  String get short {
+    final longString = this;
+    return '${longString.substring(0, 6)}...'
+        '${longString.substring(longString.length - 6)}';
+  }
+}

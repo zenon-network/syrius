@@ -851,8 +851,7 @@ class _MainPillarsState extends State<PillarsStepperContainer> {
                                 ),
                             recognizer: TapGestureRecognizer()
                               ..onTap = () {
-                                NavigationUtils.openUrl(
-                                    kZnnController, context);
+                                NavigationUtils.openUrl(kZnnController);
                               },
                           ),
                           const WidgetSpan(

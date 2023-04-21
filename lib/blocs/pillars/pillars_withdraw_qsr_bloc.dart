@@ -21,7 +21,7 @@ class PillarsWithdrawQsrBloc extends BaseBloc<AccountBlockTemplate?> {
       ).then(
         (response) async {
           await Future.delayed(kDelayAfterAccountBlockCreationCall);
-          AddressUtils.refreshBalance();
+          ZenonAddressUtils.refreshBalance();
           addEvent(response);
         },
       ).onError(

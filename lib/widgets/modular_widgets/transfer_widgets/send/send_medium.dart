@@ -183,7 +183,7 @@ class _SendMediumCardState extends State<SendMediumCard> {
         title: 'Send Payment',
         description: 'Are you sure you want to transfer '
             '${_amountController.text} ${_selectedToken.symbol} to '
-            '${AddressUtils.getLabel(_recipientController.text)} ?',
+            '${ZenonAddressUtils.getLabel(_recipientController.text)} ?',
         onYesButtonPressed: () => _sendPayment(model),
       );
     }
@@ -293,10 +293,10 @@ class _SendMediumCardState extends State<SendMediumCard> {
     sl.get<NotificationsBloc>().addNotification(
           WalletNotification(
             title: 'Sent ${_amountController.text} ${_selectedToken.symbol} '
-                'to ${AddressUtils.getLabel(_recipientController.text)}',
+                'to ${ZenonAddressUtils.getLabel(_recipientController.text)}',
             timestamp: DateTime.now().millisecondsSinceEpoch,
             details: 'Sent ${_amountController.text} ${_selectedToken.symbol} '
-                'from ${AddressUtils.getLabel(kSelectedAddress!)} to ${AddressUtils.getLabel(_recipientController.text)}',
+                'from ${ZenonAddressUtils.getLabel(kSelectedAddress!)} to ${ZenonAddressUtils.getLabel(_recipientController.text)}',
             type: NotificationType.paymentSent,
             id: null,
           ),

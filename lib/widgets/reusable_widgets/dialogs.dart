@@ -57,14 +57,16 @@ showWarningDialog({
 showDialogWithNoAndYesOptions({
   required BuildContext context,
   required String title,
-  required String description,
   required VoidCallback onYesButtonPressed,
+  Widget? content,
+  String? description,
+  VoidCallback? onNoButtonPressed,
 }) =>
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         title: Text(title),
-        content: Text(description),
+        content: content ?? Text(description!),
         actions: [
           TextButton(
             child: Text(
@@ -72,10 +74,11 @@ showDialogWithNoAndYesOptions({
               style: Theme.of(context).textTheme.bodyLarge,
             ),
             onPressed: () {
-              Navigator.of(context).pop();
+              onNoButtonPressed?.call();
             },
           ),
           TextButton(
+            // TODO: add also pop call
             onPressed: onYesButtonPressed,
             style: Theme.of(context).textButtonTheme.style!.copyWith(
                   backgroundColor: MaterialStateColor.resolveWith(

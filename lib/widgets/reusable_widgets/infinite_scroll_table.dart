@@ -343,7 +343,7 @@ class InfiniteScrollTableCell extends StatelessWidget {
               child: Tooltip(
                 message: address.toString(),
                 child: Text(
-                  AddressUtils.getLabel(address.toString()),
+                  ZenonAddressUtils.getLabel(address.toString()),
                   textAlign: textAlign,
                   style: textStyle ??
                       Theme.of(context).textTheme.titleMedium!.copyWith(

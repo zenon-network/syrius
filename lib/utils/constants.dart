@@ -3,6 +3,10 @@ import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
+// WalletConnect
+const String kWcProjectId = String.fromEnvironment('WC_PROJECT_ID');
+const String kZenonNameSpace = 'zenon';
+
 // Dimensions
 const double kAmountSuffixHeight = 25.0;
 const double kAmountSuffixWidth = 40.0;
@@ -166,12 +170,15 @@ const String kAutoEraseNumAttemptsKey = 'auto_erase_num_attempts';
 
 // Wallet preferences
 const String kLaunchAtStartupKey = 'launch_at_startup';
-const bool kLaunchAtStartupDefaultValue = false;
 const String kEnableDesktopNotificationsKey = 'enable_desktop_notifications';
+const String kEnableClipboardWatcherKey = 'enable_clipboard_watcher';
+const bool kLaunchAtStartupDefaultValue = false;
 const bool kEnableDesktopNotificationsDefaultValue = false;
+const bool kEnableClipboardWatcherDefaultValue = false;
 
 /// Node management
 const String kChainIdKey = 'chain_id';
+// TODO: maybe change to production
 const int kChainIdDefaultValue = 1; // 1 corresponds to Alphanet
 
 // Display constants
@@ -204,6 +211,7 @@ const List<Tabs> kTabsWithTextTitles = [
 
 const List<Tabs> kTabsWithIconTitles = [
   Tabs.bridge,
+  Tabs.walletConnect,
   Tabs.accelerator,
   Tabs.help,
   Tabs.notifications,

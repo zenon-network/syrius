@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/services/shared_prefs_service.dart';
+import 'package:zenon_syrius_wallet_flutter/services/wallet_connect_service.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/address_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
@@ -17,6 +18,7 @@ class InitUtils {
     try {
       WidgetUtils.setThemeMode(context);
       WidgetUtils.setTextScale(context);
+      await sl.get<WalletConnectService>().initClient();
       _setAutoEraseWalletNumAttempts();
       _setAutoLockWalletTimeInterval();
       await KeyStoreUtils.setKeyStorePath();
@@ -68,9 +70,9 @@ class InitUtils {
       );
 
   static Future<void> initWalletAfterDecryption() async {
-    await AddressUtils.setAddresses(kKeyStore);
-    await AddressUtils.setAddressLabels();
-    await AddressUtils.setDefaultAddress();
+    await ZenonAddressUtils.setAddresses(kKeyStore);
+    await ZenonAddressUtils.setAddressLabels();
+    await ZenonAddressUtils.setDefaultAddress();
     zenon!.defaultKeyPair = kKeyStore!.getKeyPair(
       kDefaultAddressList.indexOf(kSelectedAddress),
     );

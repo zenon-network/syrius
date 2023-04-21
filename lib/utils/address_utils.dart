@@ -17,7 +17,7 @@ class SetAddressArguments {
   SetAddressArguments(this.keystore, this.port);
 }
 
-class AddressUtils {
+class ZenonAddressUtils {
   static void refreshBalance() =>
       sl.get<BalanceBloc>().getBalanceForAllAddresses();
 
