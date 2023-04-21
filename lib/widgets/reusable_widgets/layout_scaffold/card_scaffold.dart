@@ -6,14 +6,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_vector_icons/flutter_vector_icons.dart';
 import 'package:lottie/lottie.dart';
 import 'package:stacked/stacked.dart';
-import 'package:zenon_syrius_wallet_flutter/blocs/hide_widget_status_bloc.dart';
+import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/widget_utils.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/buttons/loading_button.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/error_widget.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/input_field/password_input_field.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/loading_widget.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 
 class CardScaffold<T> extends StatefulWidget {
   final String? title;
@@ -38,7 +35,7 @@ class CardScaffold<T> extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  _CardScaffoldState createState() => _CardScaffoldState<T>();
+  State<CardScaffold<T>> createState() => _CardScaffoldState<T>();
 }
 
 class _CardScaffoldState<T> extends State<CardScaffold<T>> {
@@ -120,7 +117,7 @@ class _CardScaffoldState<T> extends State<CardScaffold<T>> {
           ExpandablePanel(
             collapsed: Container(),
             theme: ExpandableThemeData(
-              iconColor: Theme.of(context).textTheme.bodyText1!.color,
+              iconColor: Theme.of(context).textTheme.bodyLarge!.color,
               headerAlignment: ExpandablePanelHeaderAlignment.center,
               iconPlacement: ExpandablePanelIconPlacement.right,
             ),
@@ -137,7 +134,7 @@ class _CardScaffoldState<T> extends State<CardScaffold<T>> {
                 Expanded(
                   child: Text(
                     'Description',
-                    style: Theme.of(context).textTheme.bodyText1,
+                    style: Theme.of(context).textTheme.bodyLarge,
                   ),
                 ),
               ],
@@ -150,7 +147,7 @@ class _CardScaffoldState<T> extends State<CardScaffold<T>> {
               ),
               child: Text(
                 widget.description,
-                style: Theme.of(context).textTheme.subtitle1,
+                style: Theme.of(context).textTheme.titleMedium,
               ),
             ),
           ),
@@ -165,9 +162,11 @@ class _CardScaffoldState<T> extends State<CardScaffold<T>> {
               const SizedBox(
                 width: 5.0,
               ),
-              Text(
-                'Discreet mode',
-                style: Theme.of(context).textTheme.bodyText1,
+              Expanded(
+                child: Text(
+                  'Discreet mode',
+                  style: Theme.of(context).textTheme.bodyLarge,
+                ),
               ),
               const Spacer(),
               Switch(
@@ -222,22 +221,26 @@ class _CardScaffoldState<T> extends State<CardScaffold<T>> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: <Widget>[
-        Padding(
-          padding: const EdgeInsets.all(14.0),
-          child: Row(
-            children: [
-              Text(
-                title,
-                style: Theme.of(context).textTheme.bodyText1!.copyWith(
-                      fontSize: widget.titleFontSize,
-                      height: 1.0,
-                    ),
-              ),
-              const SizedBox(
-                width: 5.0,
-              ),
-              widget.titleIcon != null ? widget.titleIcon! : Container(),
-            ],
+        Expanded(
+          child: Padding(
+            padding: const EdgeInsets.all(14.0),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    title,
+                    style: Theme.of(context).textTheme.bodyText1!.copyWith(
+                          fontSize: widget.titleFontSize,
+                          height: 1.0,
+                        ),
+                  ),
+                ),
+                const SizedBox(
+                  width: 5.0,
+                ),
+                widget.titleIcon != null ? widget.titleIcon! : Container(),
+              ],
+            ),
           ),
         ),
         Row(
@@ -265,7 +268,7 @@ class _CardScaffoldState<T> extends State<CardScaffold<T>> {
                 splashRadius: 15.0,
                 icon: const Icon(Icons.more_horiz),
                 iconSize: 18.0,
-                color: Theme.of(context).textTheme.bodyText1!.color,
+                color: Theme.of(context).textTheme.bodyLarge!.color,
                 onPressed: () {
                   cardKey.currentState!.toggleCard();
                 },
@@ -302,7 +305,7 @@ class _CardScaffoldState<T> extends State<CardScaffold<T>> {
 
   Widget _getHideWidgetInfoViewModel() {
     return ViewModelBuilder<HideWidgetStatusBloc>.reactive(
-      onModelReady: (model) {
+      onViewModelReady: (model) {
         _actionButton = _getActionButton(model);
         // Stream will tell us if the widget info is hidden or not
         model.stream.listen(
@@ -356,7 +359,8 @@ class _CardScaffoldState<T> extends State<CardScaffold<T>> {
                   if (snapshot.hasError) {
                     return SyriusErrorWidget(snapshot.error!);
                   } else if (snapshot.hasData) {
-                    return widget.onCompletedStatusCallback!(snapshot.data!);
+                    return widget
+                        .onCompletedStatusCallback!(snapshot.data as T);
                   }
                   return const SyriusLoadingWidget();
                 },

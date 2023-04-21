@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:zenon_syrius_wallet_flutter/blocs/notifications_bloc.dart';
+import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
-import 'package:zenon_syrius_wallet_flutter/model/database/wallet_notification.dart';
+import 'package:zenon_syrius_wallet_flutter/model/model.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/main_app_container.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/layout_scaffold/widget_animator.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 
 class NotificationWidget extends StatefulWidget {
   final VoidCallback? onSeeMorePressed;
@@ -21,7 +20,7 @@ class NotificationWidget extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  _NotificationWidgetState createState() => _NotificationWidgetState();
+  State<NotificationWidget> createState() => _NotificationWidgetState();
 }
 
 class _NotificationWidgetState extends State<NotificationWidget> {
@@ -93,7 +92,7 @@ class _NotificationWidgetState extends State<NotificationWidget> {
         ),
         Text(
           notification.title!,
-          style: Theme.of(context).textTheme.bodyText2,
+          style: Theme.of(context).textTheme.bodyMedium,
         ),
       ],
     );
@@ -113,7 +112,7 @@ class _NotificationWidgetState extends State<NotificationWidget> {
             onPressed: _navigateToNotification,
             child: Text(
               'See more',
-              style: Theme.of(context).textTheme.subtitle1!.copyWith(
+              style: Theme.of(context).textTheme.titleMedium!.copyWith(
                     color: notification.getColor(),
                   ),
             ),
@@ -131,7 +130,7 @@ class _NotificationWidgetState extends State<NotificationWidget> {
           onPressed: _dismissNotification,
           child: Text(
             'Dismiss',
-            style: Theme.of(context).textTheme.bodyText2,
+            style: Theme.of(context).textTheme.bodyMedium,
           ),
         ),
       ],

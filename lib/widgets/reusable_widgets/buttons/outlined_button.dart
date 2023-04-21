@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/loading_widget.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 
 class MyOutlinedButton extends StatefulWidget {
   final String? text;
@@ -61,17 +61,8 @@ class MyOutlinedButtonState extends State<MyOutlinedButton> {
   Widget build(BuildContext context) {
     return OutlinedButton(
       onPressed: _showLoading ? null : widget.onPressed,
-      child: _showLoading
-          ? const SyriusLoadingWidget(
-              size: 25.0,
-            )
-          : widget.text != null
-              ? Text(
-                  widget.text!,
-                )
-              : widget.child!,
       style: OutlinedButton.styleFrom(
-        primary: widget.textColor,
+        foregroundColor: widget.textColor,
         padding: widget.padding,
         minimumSize: widget.minimumSize,
         textStyle: widget.textStyle,
@@ -106,6 +97,15 @@ class MyOutlinedButtonState extends State<MyOutlinedButton> {
           },
         ),
       ),
+      child: _showLoading
+          ? const SyriusLoadingWidget(
+              size: 25.0,
+            )
+          : widget.text != null
+              ? Text(
+                  widget.text!,
+                )
+              : widget.child!,
     );
   }
 

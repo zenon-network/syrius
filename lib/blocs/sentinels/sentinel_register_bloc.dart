@@ -1,4 +1,4 @@
-import 'package:zenon_syrius_wallet_flutter/blocs/base_bloc.dart';
+import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/account_block_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/address_utils.dart';
@@ -21,11 +21,11 @@ class SentinelsDeployBloc extends BaseBloc<AccountBlockTemplate?> {
         },
       ).onError(
         (error, stackTrace) {
-          addError(error.toString());
+          addError(error, stackTrace);
         },
       );
-    } catch (e) {
-      addError(e);
+    } catch (e, stackTrace) {
+      addError(e, stackTrace);
     }
   }
 }

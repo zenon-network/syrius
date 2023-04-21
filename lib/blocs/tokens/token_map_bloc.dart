@@ -1,13 +1,12 @@
 import 'dart:async';
 
 import 'package:hive/hive.dart';
+import 'package:logging/logging.dart';
 import 'package:rxdart/rxdart.dart';
-import 'package:zenon_syrius_wallet_flutter/blocs/infinite_scroll_bloc.dart';
-import 'package:zenon_syrius_wallet_flutter/blocs/refresh_bloc_mixin.dart';
+import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/logger.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/zts_utils.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
@@ -81,8 +80,8 @@ class TokenMapBloc with RefreshBlocMixin {
         nextPageKey: nextPageKey,
         itemList: allItems,
       );
-    } catch (e) {
-      Logger.logError(e);
+    } catch (e, stackTrace) {
+      Logger('TokenMapBloc').log(Level.WARNING, '_fetchList', e, stackTrace);
       yield InfiniteScrollBlocListingState<Token>(
         error: e,
         nextPageKey: lastListingState.nextPageKey,
@@ -114,7 +113,7 @@ class TokenMapBloc with RefreshBlocMixin {
   }
 
   List<Token> _sortByIfTokenCreatedByUser(List<Token> tokens) {
-    List<Token> _sortedTokens = tokens
+    List<Token> sortedTokens = tokens
         .where(
           (token) => kDefaultAddressList.contains(
             token.owner.toString(),
@@ -122,7 +121,7 @@ class TokenMapBloc with RefreshBlocMixin {
         )
         .toList();
 
-    _sortedTokens.addAll(tokens
+    sortedTokens.addAll(tokens
         .where(
           (token) => !kDefaultAddressList.contains(
             token.owner.toString(),
@@ -130,29 +129,29 @@ class TokenMapBloc with RefreshBlocMixin {
         )
         .toList());
 
-    return _sortedTokens;
+    return sortedTokens;
   }
 
   List<Token> _sortByIfTokenIsInFavorites(List<Token> tokens) {
-    Box _favoriteTokens = Hive.box(kFavoriteTokensBox);
+    Box favoriteTokens = Hive.box(kFavoriteTokensBox);
 
-    List<Token> _sortedTokens = tokens
+    List<Token> sortedTokens = tokens
         .where(
-          (token) => _favoriteTokens.values.contains(
+          (token) => favoriteTokens.values.contains(
             token.tokenStandard.toString(),
           ),
         )
         .toList();
 
-    _sortedTokens.addAll(tokens
+    sortedTokens.addAll(tokens
         .where(
-          (token) => !_favoriteTokens.values.contains(
+          (token) => !favoriteTokens.values.contains(
             token.tokenStandard.toString(),
           ),
         )
         .toList());
 
-    return _sortedTokens;
+    return sortedTokens;
   }
 
   Future<List<Token>> getData(

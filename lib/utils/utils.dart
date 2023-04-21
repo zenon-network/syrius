@@ -1,87 +1,24 @@
-import 'dart:async';
-
-import 'package:flutter/material.dart';
-import 'package:hive/hive.dart';
-import 'package:zenon_syrius_wallet_flutter/main.dart';
-import 'package:zenon_syrius_wallet_flutter/services/shared_prefs_service.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/address_utils.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/keystore_utils.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/node_utils.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/widget_utils.dart';
-
-class Utils {
-  static Future<void> initApp(BuildContext context) async {
-    try {
-      await KeyStoreUtils.setKeyStorePath();
-      await _setNumUnlockFailedAttempts();
-      await NodeUtils.setNode(context);
-      await NodeUtils.loadDbNodes(context);
-      WidgetUtils.setThemeMode(context);
-      WidgetUtils.setTextScale(context);
-      _setAutoEraseWalletNumAttempts();
-      _setAutoLockWalletTimeInterval();
-    } catch (e) {
-      rethrow;
-    }
-  }
-
-  static Future<void> _setNumUnlockFailedAttempts() async {
-    if (sharedPrefsService == null) {
-      sharedPrefsService = await sl.getAsync<SharedPrefsService>();
-    } else {
-      await sharedPrefsService!.checkIfBoxIsOpen();
-    }
-
-    if (sharedPrefsService!.get(kNumUnlockFailedAttemptsKey) == null) {
-      await sharedPrefsService!.put(
-        kNumUnlockFailedAttemptsKey,
-        0,
-      );
-    }
-    kNumFailedUnlockAttempts =
-        sharedPrefsService!.get(kNumUnlockFailedAttemptsKey);
-  }
-
-  static void _setAutoEraseWalletNumAttempts() =>
-      kAutoEraseWalletLimit = sharedPrefsService!.get(
-        kAutoEraseNumAttemptsKey,
-        defaultValue: kAutoEraseNumAttemptsDefault,
-      );
-
-  static void _setAutoLockWalletTimeInterval() =>
-      kAutoLockWalletMinutes = sharedPrefsService!.get(
-        kAutoLockWalletMinutesKey,
-        defaultValue: kAutoLockWalletDefaultIntervalMinutes,
-      );
-
-  static Future<void> initWalletAfterDecryption(BuildContext context) async {
-    await AddressUtils.setAddresses(kKeyStore);
-    await AddressUtils.setAddressLabels();
-    await AddressUtils.setDefaultAddress();
-    zenon!.defaultKeyPair = kKeyStore!.getKeyPair(
-      kDefaultAddressList.indexOf(kSelectedAddress),
-    );
-    await _openFavoriteTokensBox();
-    await _openNotificationsBox();
-    await _openRecipientBox();
-    await NodeUtils.initWebSocketClient(context);
-    await _setWalletVersion();
-    kWalletInitCompleted = true;
-  }
-
-  static Future<void> _openFavoriteTokensBox() async =>
-      await Hive.openBox(kFavoriteTokensBox);
-
-  static Future<void> _openNotificationsBox() async =>
-      await Hive.openBox(kNotificationsBox);
-
-  static Future<void> _openRecipientBox() async =>
-      await Hive.openBox(kRecipientAddressBox);
-
-  static Future<void> _setWalletVersion() async => sharedPrefsService!.put(
-        kWalletVersionKey,
-        kWalletVersion,
-      );
-}
+export 'account_block_utils.dart';
+export 'address_utils.dart';
+export 'app_colors.dart';
+export 'app_theme.dart';
+export 'clipboard_utils.dart';
+export 'color_utils.dart';
+export 'constants.dart';
+export 'device_utils.dart';
+export 'extensions.dart';
+export 'file_utils.dart';
+export 'format_utils.dart';
+export 'global.dart';
+export 'init_utils.dart';
+export 'input_validators.dart';
+export 'keystore_utils.dart';
+export 'navigation_utils.dart';
+export 'network_utils.dart';
+export 'node_utils.dart';
+export 'notification_utils.dart';
+export 'pair.dart';
+export 'utils.dart';
+export 'widget_utils.dart';
+export 'zts_utils.dart';
+export 'notifiers/notifiers.dart';

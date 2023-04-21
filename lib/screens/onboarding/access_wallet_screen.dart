@@ -1,10 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:zenon_syrius_wallet_flutter/screens/onboarding/import_wallet/import_wallet_seed_choice_screen.dart';
-import 'package:zenon_syrius_wallet_flutter/screens/onboarding/new_wallet/new_wallet_seed_choice_screen.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/navigation_utils.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/access_wallet_fluid_cell.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/layout_scaffold/standard_fluid_layout.dart';
+import 'package:zenon_syrius_wallet_flutter/screens/screens.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 
 class AccessWalletScreen extends StatefulWidget {
   static const String route = 'access-wallet-screen';
@@ -12,7 +9,7 @@ class AccessWalletScreen extends StatefulWidget {
   const AccessWalletScreen({Key? key}) : super(key: key);
 
   @override
-  _AccessWalletScreenState createState() => _AccessWalletScreenState();
+  State<AccessWalletScreen> createState() => _AccessWalletScreenState();
 }
 
 class _AccessWalletScreenState extends State<AccessWalletScreen> {
@@ -27,12 +24,12 @@ class _AccessWalletScreenState extends State<AccessWalletScreen> {
               children: <Widget>[
                 Text(
                   'Welcome',
-                  style: Theme.of(context).textTheme.headline1,
+                  style: Theme.of(context).textTheme.headlineLarge,
                 ),
                 kVerticalSpacing,
                 Text(
                   'Select an option to access your wallet',
-                  style: Theme.of(context).textTheme.headline4,
+                  style: Theme.of(context).textTheme.headlineMedium,
                 ),
                 const SizedBox(
                   height: 50.0,

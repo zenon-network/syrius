@@ -114,12 +114,12 @@ class SeedGridState extends State<SeedGrid> {
   Widget _seedWordWidget(int seedWordIndex) {
     String seedWord = _seedGridElements[seedWordIndex].word;
 
-    final TextEditingController _controller = TextEditingController();
-    _controller.text = seedWord;
+    final TextEditingController controller = TextEditingController();
+    controller.text = seedWord;
 
     if (_textCursor == seedWordIndex) {
-      _controller.selection = TextSelection.collapsed(
-        offset: _controller.text.length,
+      controller.selection = TextSelection.collapsed(
+        offset: controller.text.length,
       );
     }
     return SizedBox(
@@ -161,7 +161,7 @@ class SeedGridState extends State<SeedGrid> {
                 child: Center(
                   child: Text(
                     (seedWordIndex + 1).toString(),
-                    style: Theme.of(context).textTheme.bodyText1!.copyWith(
+                    style: Theme.of(context).textTheme.bodyLarge!.copyWith(
                           color: Colors.white,
                         ),
                   ),
@@ -192,7 +192,7 @@ class SeedGridState extends State<SeedGrid> {
                 child: TextField(
                   focusNode: _focusNodes[seedWordIndex],
                   onChanged: (text) {
-                    _controller.text = text;
+                    controller.text = text;
                     _seedGridElements[seedWordIndex].word = text;
                     _seedGridElements[seedWordIndex].isValid =
                         Mnemonic.isValidWord(text);
@@ -204,7 +204,7 @@ class SeedGridState extends State<SeedGrid> {
                   },
                   inputFormatters: [LengthLimitingTextInputFormatter(8)],
                   enabled: widget.enableSeedInputFields,
-                  controller: _controller,
+                  controller: controller,
                   obscureText: _onHoverText == seedWordIndex
                       ? false
                       : _seedGridElements[seedWordIndex].isShown,

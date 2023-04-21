@@ -17,7 +17,7 @@ class WidgetAnimator extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  _WidgetAnimatorState createState() => _WidgetAnimatorState();
+  State<WidgetAnimator> createState() => _WidgetAnimatorState();
 }
 
 class _WidgetAnimatorState extends State<WidgetAnimator>

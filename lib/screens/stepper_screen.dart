@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/notification_widget.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 
 class StepperScreen extends StatelessWidget {
   final VoidCallback onStepperNotificationSeeMorePressed;

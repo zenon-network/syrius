@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/main_app_container.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/settings_widgets/display.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 // Dimensions
@@ -24,11 +23,11 @@ const SizedBox kSpacingBetweenActionButtons = SizedBox(
 const Size kAcceleratorProgressBarSize = Size(300.0, 10.0);
 
 const List<String> kBridgeNetworks = [
-  'BNB Smart Chain Mainnet',
+  'The ZNN to wZNN bridge is unavailable. A new bridge will be available soon.',
 ];
 
 // Wallet version
-const String kWalletVersion = '0.0.5';
+const String kWalletVersion = '0.0.6';
 
 // Boxes constants
 const String kFavoriteTokensBox = 'favourite_tokens_box';
@@ -49,9 +48,6 @@ const List<String> kCacheBoxesToBeDeleted = [
   kSharedPrefsBox,
   kNodesBox,
 ];
-
-// Swap temporary directory
-const String kSwapWalletTempDirectory = 'swap-wallet';
 
 // Wallet file name
 const String kNameWalletFile = 'wallet';
@@ -139,37 +135,44 @@ const int kWalletNotificationHiveTypeId = 100;
 const int kNotificationTypeEnumHiveTypeId = 101;
 
 // Community links
-const String kWebsite = 'zenon.network';
-const String kCommunityWebsite = 'zenon.community';
-const String kOrgCommunityWebsite = 'zenon.org';
-const String kTwitter = 'twitter.com/Zenon_Network';
-const String kTelegram = 't.me/joinchat/MLyPehLIbJj1nw1XOOOltg';
-const String kGithub = 'github.com/zenon-network';
-const String kExplorer = 'explorer.zenon.network';
-const String kScraper = 'zenonscraper.com';
-const String kWiki = 'github.com/zenon-network/znn-wiki';
-const String kCommunityWiki = 'zenon.wiki';
-const String kTools = 'zenon.tools';
-const String kZnnController = 'github.com/zenon-network/znn_controller_dart';
+const String kWebsite = 'https://zenon.network';
+const String kOrgCommunityWebsite = 'https://zenon.org';
+const String kOrgCommunityForum = 'https://forum.zenon.org';
+const String kHubCommunityWebsite = 'https://zenonhub.io';
+const String kHubCommunityExplorer = 'https://zenonhub.io/explorer';
+const String kTwitter = 'https://twitter.com/Zenon_Network';
+const String kTelegram = 'https://t.me/zenonnetwork';
+const String kGithub = 'https://github.com/zenon-network';
+const String kExplorer = 'https://explorer.zenon.network';
+const String kWiki = 'https://wiki.zenon.network';
+const String kOrgCommunityWiki = 'https://docs.zenon.org';
+const String kTools = 'https://zenon.tools';
+const String kWhitepaper =
+    'https://github.com/zenon-network/zenon.network/releases/download/whitepaper/whitepaper.pdf';
+const String kZnnController =
+    'https://github.com/zenon-network/znn_controller_dart/releases/latest';
 const String kBitcoinTalk =
-    'bitcointalk.org/index.php?topic=5279643.msg55303681#msg55303681';
-const String kDiscord = 'discord.gg/VE2ENBGPNa';
-const String kMedium = 'medium.com/@zenon.network';
-const String kReddit = 'reddit.com/r/Zenon_Network';
-const String kYoutube = 'youtube.com/channel/UCDb8ZtqBt6l5l4HugCnJwhQ';
-
-// Bridge links
-const String kJoinLiquidityProgramUrl =
-    'https://bridge.zenon.network/#liquidity';
-const String kAddLiquidityUrl =
-    'https://pancakeswap.finance/add/0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c/0x84b174628911896a3b87fa6980d05dbc2ee74836';
-const int kLiquidityRewardsMultiplier = 10;
+    'https://bitcointalk.org/index.php?topic=5279643.msg55303681#msg55303681';
+const String kDiscord = 'https://discord.gg/zenonnetwork';
+const String kMedium = 'https://medium.com/@zenon.network';
+const String kReddit = 'https://reddit.com/r/Zenon_Network';
+const String kYoutube = 'https://youtube.com/channel/UCDb8ZtqBt6l5l4HugCnJwhQ';
 
 // Wallet security
 const double kAutoEraseNumAttemptsDefault = 3;
 const int kAutoLockWalletDefaultIntervalMinutes = 15;
 const String kAutoLockWalletMinutesKey = 'auto_lock_interval_minutes';
 const String kAutoEraseNumAttemptsKey = 'auto_erase_num_attempts';
+
+// Wallet preferences
+const String kLaunchAtStartupKey = 'launch_at_startup';
+const bool kLaunchAtStartupDefaultValue = false;
+const String kEnableDesktopNotificationsKey = 'enable_desktop_notifications';
+const bool kEnableDesktopNotificationsDefaultValue = false;
+
+/// Node management
+const String kChainIdKey = 'chain_id';
+const int kChainIdDefaultValue = 1; // 1 corresponds to Alphanet
 
 // Display constants
 const String kThemeModeKey = 'theme_mode_key';

@@ -4,13 +4,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_vector_icons/flutter_vector_icons.dart';
 import 'package:infinite_scroll_pagination/infinite_scroll_pagination.dart';
 import 'package:marquee_widget/marquee_widget.dart';
-import 'package:zenon_syrius_wallet_flutter/blocs/infinite_scroll_bloc.dart';
+import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/address_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/error_widget.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/icons/copy_to_clipboard_icon.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/loading_widget.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 class InfiniteScrollTable<T> extends StatefulWidget {
@@ -207,7 +205,7 @@ class InfiniteScrollTableHeaderColumn extends StatelessWidget {
           Expanded(
             child: Text(
               columnName,
-              style: Theme.of(context).textTheme.bodyText2,
+              style: Theme.of(context).textTheme.bodyMedium,
             ),
           ),
           Visibility(
@@ -348,7 +346,7 @@ class InfiniteScrollTableCell extends StatelessWidget {
                   AddressUtils.getLabel(address.toString()),
                   textAlign: textAlign,
                   style: textStyle ??
-                      Theme.of(context).textTheme.subtitle1!.copyWith(
+                      Theme.of(context).textTheme.titleMedium!.copyWith(
                             color: textColor,
                           ),
                   overflow: TextOverflow.ellipsis,
@@ -393,7 +391,7 @@ class InfiniteScrollTableCell extends StatelessWidget {
                 text,
                 textAlign: textAlign,
                 style: textStyle ??
-                    Theme.of(context).textTheme.subtitle1!.copyWith(
+                    Theme.of(context).textTheme.titleMedium!.copyWith(
                           color: textColor,
                         ),
               ),
@@ -421,9 +419,9 @@ class InfiniteScrollTableCell extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Flexible(
-      child: child,
       flex: flex,
       fit: FlexFit.tight,
+      child: child,
     );
   }
 }
