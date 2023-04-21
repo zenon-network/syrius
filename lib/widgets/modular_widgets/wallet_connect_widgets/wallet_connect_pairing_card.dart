@@ -55,72 +55,73 @@ class _WalletConnectPairingCardState extends State<WalletConnectPairingCard> {
       child: Column(
         children: [
           kVerticalSpacing,
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                child: ValueListenableBuilder<String?>(
-                  builder: (_, value, child) {
-                    if (value != null) {
-                      _uriController.text = value;
-                      kLastWalletConnectUriNotifier.value = null;
-                    }
-                    return child!;
-                  },
-                  valueListenable: kLastWalletConnectUriNotifier,
-                  child: Form(
-                    key: _uriKey,
-                    autovalidateMode: AutovalidateMode.onUserInteraction,
-                    child: InputField(
-                      validator: (value) {
-                        if (WalletConnectUri.tryParse(value ?? '') != null) {
-                          return null;
-                        } else {
-                          return 'URI invalid';
-                        }
-                      },
-                      onChanged: (value) {
-                        setState(() {});
-                      },
-                      controller: _uriController,
-                      suffixIcon: RawMaterialButton(
-                        shape: const CircleBorder(),
-                        onPressed: () {
-                          ClipboardUtils.pasteToClipboard(context,
-                                  (String value) {
-                                _uriController.text = value;
-                                setState(() {});
-                              });
+          ValueListenableBuilder<String?>(
+            builder: (_, value, child) {
+              if (value != null) {
+                _uriController.text = value;
+                kLastWalletConnectUriNotifier.value = null;
+              }
+              return Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: Form(
+                      key: _uriKey,
+                      autovalidateMode: AutovalidateMode.onUserInteraction,
+                      child: InputField(
+                        validator: (value) {
+                          if (WalletConnectUri.tryParse(value ?? '') != null) {
+                            return null;
+                          } else {
+                            return 'URI invalid';
+                          }
                         },
-                        child: const Icon(
-                          Icons.content_paste,
-                          color: AppColors.darkHintTextColor,
-                          size: 15.0,
+                        onChanged: (value) {
+                          setState(() {});
+                        },
+                        controller: _uriController,
+                        suffixIcon: RawMaterialButton(
+                          shape: const CircleBorder(),
+                          onPressed: () {
+                            ClipboardUtils.pasteToClipboard(context,
+                                (String value) {
+                              _uriController.text = value;
+                              setState(() {});
+                            });
+                          },
+                          child: const Icon(
+                            Icons.content_paste,
+                            color: AppColors.darkHintTextColor,
+                            size: 15.0,
+                          ),
                         ),
+                        suffixIconConstraints: const BoxConstraints(
+                          maxWidth: 45.0,
+                          maxHeight: 20.0,
+                        ),
+                        hintText: 'WalletConnect URI',
                       ),
-                      suffixIconConstraints: const BoxConstraints(
-                        maxWidth: 45.0,
-                        maxHeight: 20.0,
-                      ),
-                      hintText: 'WalletConnect URI',
                     ),
                   ),
-                ),
-              ),
-              const SizedBox(
-                width: 15.0,
-              ),
-              MyOutlinedButton(
-                text: 'Connect',
-                onPressed:
-                WalletConnectUri.tryParse(_uriController.text) != null
-                    ? () {
-                  _pairWithDapp(Uri.parse(_uriController.text));
-                }
-                    : null,
-                minimumSize: kLoadingButtonMinSize,
-              ),
-            ],
+                  const SizedBox(
+                    width: 15.0,
+                  ),
+                  MyOutlinedButton(
+                    text: 'Connect',
+                    onPressed:
+                        WalletConnectUri.tryParse(_uriController.text) != null
+                            ? () {
+                                _pairWithDapp(
+                                  Uri.parse(_uriController.text),
+                                );
+                              }
+                            : null,
+                    minimumSize: kLoadingButtonMinSize,
+                  ),
+                ],
+              );
+            },
+            valueListenable: kLastWalletConnectUriNotifier,
           ),
           kVerticalSpacing,
           Expanded(
@@ -134,8 +135,8 @@ class _WalletConnectPairingCardState extends State<WalletConnectPairingCard> {
                       if (value) {
                         windowManager.minimize().then(
                               (value) =>
-                              _handleClickCapture(CaptureMode.region),
-                        );
+                                  _handleClickCapture(CaptureMode.region),
+                            );
                       }
                     });
                   },
@@ -164,7 +165,7 @@ class _WalletConnectPairingCardState extends State<WalletConnectPairingCard> {
   void _handleClickCapture(CaptureMode mode) async {
     try {
       Directory walletConnectDirectory =
-      Directory(path.join(znnDefaultPaths.cache.path, walletConnect));
+          Directory(path.join(znnDefaultPaths.cache.path, walletConnect));
 
       if (!walletConnectDirectory.existsSync()) {
         walletConnectDirectory.createSync(recursive: true);
@@ -174,7 +175,7 @@ class _WalletConnectPairingCardState extends State<WalletConnectPairingCard> {
           'screenshot-${DateTime.now().millisecondsSinceEpoch}';
 
       final imagePath = await File(
-          '${walletConnectDirectory.absolute.path}${path.separator}$screenshotName.png')
+              '${walletConnectDirectory.absolute.path}${path.separator}$screenshotName.png')
           .create();
 
       _lastCapturedData = await screenCapturer.capture(
@@ -238,7 +239,7 @@ class _WalletConnectPairingCardState extends State<WalletConnectPairingCard> {
             title: 'Permission required',
             timestamp: DateTime.now().millisecondsSinceEpoch,
             details:
-            'Screen Recording permission is required to scan and process the on-screen WalletConnect QR code',
+                'Screen Recording permission is required to scan and process the on-screen WalletConnect QR code',
             type: NotificationType.generatingPlasma));
         return false;
       }
