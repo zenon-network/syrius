@@ -1,9 +1,12 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_vector_icons/flutter_vector_icons.dart';
+import 'package:logging/logging.dart';
 import 'package:provider/provider.dart';
+import 'package:uni_links/uni_links.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/model/model.dart';
@@ -56,6 +59,7 @@ class _MainAppContainerState extends State<MainAppContainer>
   final NodeSyncStatusBloc _netSyncStatusBloc = NodeSyncStatusBloc();
 
   late StreamSubscription _lockBlockStreamSubscription;
+  late StreamSubscription _incomingLinkSubscription;
 
   Timer? _navigateToLockTimer;
 
@@ -69,6 +73,8 @@ class _MainAppContainerState extends State<MainAppContainer>
     skipTraversal: true,
     canRequestFocus: false,
   );
+
+  bool _initialUriIsHandled = false;
 
   @override
   void initState() {
@@ -87,6 +93,8 @@ class _MainAppContainerState extends State<MainAppContainer>
     _animation = Tween(begin: 1.0, end: 3.0).animate(_animationController);
     kCurrentPage = kWalletInitCompleted ? Tabs.dashboard : Tabs.lock;
     _initLockBlock();
+    _handleIncomingLinks();
+    _handleInitialUri();
     super.initState();
   }
 
@@ -467,6 +475,7 @@ class _MainAppContainerState extends State<MainAppContainer>
     _netSyncStatusBloc.dispose();
     _navigateToLockTimer?.cancel();
     _lockBlockStreamSubscription.cancel();
+    _incomingLinkSubscription.cancel();
     _tabController?.dispose();
     super.dispose();
   }
@@ -628,6 +637,40 @@ class _MainAppContainerState extends State<MainAppContainer>
     });
     if (widget.redirectedFromWalletSuccess) {
       _lockBloc.addEvent(LockEvent.countDown);
+    }
+  }
+
+  void _handleIncomingLinks() {
+    if (!kIsWeb) {
+      _incomingLinkSubscription = uriLinkStream.listen((Uri? uri) {
+        Logger('MainAppContainer')
+            .log(Level.INFO, '_handleIncomingLinks ${uri!.toString()}');
+        if (!mounted) return;
+      }, onError: (Object err) {
+        Logger('MainAppContainer')
+            .log(Level.WARNING, '_handleIncomingLinks', err);
+        if (!mounted) return;
+      });
+    }
+  }
+
+  Future<void> _handleInitialUri() async {
+    if (!_initialUriIsHandled) {
+      _initialUriIsHandled = true;
+      try {
+        final uri = await getInitialUri();
+        if (uri != null) {
+          Logger('MainAppContainer').log(Level.INFO, '_handleInitialUri $uri');
+        }
+        if (!mounted) return;
+      } on PlatformException catch (e, stackTrace) {
+        Logger('MainAppContainer').log(Level.WARNING,
+            '_handleInitialUri PlatformException', e, stackTrace);
+      } on FormatException catch (e, stackTrace) {
+        Logger('MainAppContainer').log(
+            Level.WARNING, '_handleInitialUri FormatException', e, stackTrace);
+        if (!mounted) return;
+      }
     }
   }
 }

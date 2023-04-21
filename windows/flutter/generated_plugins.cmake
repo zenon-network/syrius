@@ -9,6 +9,7 @@ list(APPEND FLUTTER_PLUGIN_LIST
   screen_retriever
   share_plus
   tray_manager
+  uni_links_desktop
   url_launcher_windows
   window_manager
 )
