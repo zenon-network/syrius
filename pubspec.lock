@@ -1554,8 +1554,8 @@ packages:
     description:
       path: "."
       ref: master
-      resolved-ref: "3b485611c1e568dde50155562a5e855639d3417e"
-      url: "https://github.com/zenon-network/znn_sdk_dart.git"
+      resolved-ref: "7b2d8a33420ba4ed2ef52df8716fce88fbf90773"
+      url: "https://github.com/alienc0der/znn_sdk_dart.git"
     source: git
     version: "0.0.4"
   zxing2:
