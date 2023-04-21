@@ -44,8 +44,8 @@ dependencies:
   number_selector: ^1.0.5
   znn_sdk_dart:
     git:
-      url: https://github.com/mik3mast3rs/znn_sdk_dart.git
-      ref: wallet-connect
+      url: https://github.com/zenon-network/znn_sdk_dart.git
+      ref: master
   json_rpc_2: ^3.0.2
   path: ^1.8.2
   ffi: ^2.0.1
