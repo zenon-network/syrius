@@ -45,7 +45,7 @@ dependencies:
   znn_sdk_dart:
     git:
       url: https://github.com/alienc0der/znn_sdk_dart.git
-      ref: master
+      ref: wallet-connect
   json_rpc_2: ^3.0.2
   path: ^1.8.2
   ffi: ^2.0.1
