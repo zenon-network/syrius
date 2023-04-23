@@ -300,9 +300,10 @@ class _MainAppContainerState extends State<MainAppContainer>
           'assets/svg/walletconnect-logo.svg',
           width: 24.0,
           fit: BoxFit.fitWidth,
-          color: _isTabSelected(Tabs.walletConnect)
-              ? AppColors.znnColor
-              : Theme.of(context).iconTheme.color,
+          colorFilter: _isTabSelected(Tabs.walletConnect)
+              ? const ColorFilter.mode(AppColors.znnColor, BlendMode.srcIn)
+              : ColorFilter.mode(
+                  Theme.of(context).iconTheme.color!, BlendMode.srcIn),
         ),
       ),
       Tab(

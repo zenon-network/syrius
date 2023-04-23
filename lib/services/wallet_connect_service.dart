@@ -140,7 +140,6 @@ class WalletConnectService {
     _wcClient.onSessionRequest.subscribe((SessionRequestEvent? request) async {
       Logger('WalletConnectService')
           .log(Level.INFO, 'onSessionRequest triggered', request.toString());
-
     });
 
     _wcClient.registerRequestHandler(
@@ -149,7 +148,9 @@ class WalletConnectService {
       handler: (topic, params) async {
         final dAppMetadata = _dAppsProposalData
             .firstWhere((element) => element.topic == topic)
-            .session.peer.metadata;
+            .session
+            .peer
+            .metadata;
 
         if (kCurrentPage != Tabs.lock) {
           final actionWasAccepted = await showDialogWithNoAndYesOptions(
@@ -215,7 +216,9 @@ class WalletConnectService {
       handler: (topic, params) async {
         final dAppMetadata = _dAppsProposalData
             .firstWhere((element) => element.topic == topic)
-            .session.peer.metadata;
+            .session
+            .peer
+            .metadata;
         if (kCurrentPage != Tabs.lock) {
           final message = params as String;
 
@@ -273,7 +276,9 @@ class WalletConnectService {
       handler: (topic, params) async {
         final dAppMetadata = _dAppsProposalData
             .firstWhere((element) => element.topic == topic)
-            .session.peer.metadata;
+            .session
+            .peer
+            .metadata;
         if (kCurrentPage != Tabs.lock) {
           final accountBlock =
               AccountBlockTemplate.fromJson(params['accountBlock']);
@@ -436,7 +441,8 @@ class WalletConnectService {
         pairingTopic: pairingTopic,
       );
 
-  void _sendSuccessfullyApprovedSessionNotification(PairingMetadata dAppMetadata) {
+  void _sendSuccessfullyApprovedSessionNotification(
+      PairingMetadata dAppMetadata) {
     sl.get<NotificationsBloc>().addNotification(
           WalletNotification(
             title: 'Successfully connected with ${dAppMetadata.name}',
