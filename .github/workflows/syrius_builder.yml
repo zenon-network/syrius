@@ -97,6 +97,9 @@ jobs:
         uses: subosito/flutter-action@v2.10.0
         with:
           channel: "stable"
+      - name: Set permissions
+        run: |
+          sudo chmod -R 777 linux/
       - name: Check flutter version
         run: |
           which flutter
