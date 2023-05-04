@@ -1035,7 +1035,7 @@ class _MainPillarsState extends State<PillarsStepperContainer> {
 
   void _onQsrNextPressed() {
     setState(() {
-      _currentStep = PillarsStepperStep.values[_currentStep.index + 1];
+      _saveProgressAndNavigateToNextStep(PillarsStepperStep.qsrManagement);
     });
   }
 
