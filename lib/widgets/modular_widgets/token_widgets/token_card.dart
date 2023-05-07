@@ -492,8 +492,8 @@ class _TokenCardState extends State<TokenCard> {
 
   void _onMaxPressed() {
     if (_burnAmountController.text.isEmpty ||
-        _burnAmountController.text.toNum() != _burnMaxAmount ||
-        _burnAmountController.text.toNum() != _mintMaxAmount) {
+        BigInt.parse(_burnAmountController.text) != _burnMaxAmount ||
+        BigInt.parse(_burnAmountController.text) != _mintMaxAmount) {
       setState(() {
         if (_backOfCardVersion == TokenCardBackVersion.burn) {
           _burnAmountController.text = _burnMaxAmount.toString();
