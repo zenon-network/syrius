@@ -8,7 +8,7 @@ import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 class StakingStatsModel {
   int numActiveStakingEntries;
-  num totalZnnStakingAmount;
+  BigInt totalZnnStakingAmount;
 
   StakingStatsModel(
     this.numActiveStakingEntries,
@@ -23,7 +23,7 @@ class StakingBloc extends DashboardBaseBloc<StakingStatsModel> {
     if (stakeList.list.isNotEmpty) {
       return StakingStatsModel(
         stakeList.list.length,
-        stakeList.totalAmount.addDecimals(znnDecimals),
+        stakeList.totalAmount,
       );
     } else {
       throw 'No active staking entries';

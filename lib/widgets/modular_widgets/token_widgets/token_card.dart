@@ -1,5 +1,3 @@
-import 'dart:math' show pow;
-
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flip_card/flip_card.dart';
 import 'package:flutter/material.dart';
@@ -53,8 +51,8 @@ class _TokenCardState extends State<TokenCard> {
   final TextEditingController _mintAmountController = TextEditingController();
   TextEditingController _newOwnerAddressController = TextEditingController();
 
-  num? _burnMaxAmount;
-  num? _mintMaxAmount;
+  BigInt _burnMaxAmount = BigInt.zero;
+  BigInt _mintMaxAmount = BigInt.zero;
 
   final GlobalKey<LoadingButtonState> _burnButtonKey = GlobalKey();
   final GlobalKey<LoadingButtonState> _mintButtonKey = GlobalKey();
@@ -261,8 +259,7 @@ class _TokenCardState extends State<TokenCard> {
                 ),
                 materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                 shape: const CircleBorder(),
-                onPressed: () =>
-                    NavigationUtils.openUrl(widget.token.domain),
+                onPressed: () => NavigationUtils.openUrl(widget.token.domain),
                 child: Tooltip(
                   message: 'Visit ${widget.token.domain}',
                   child: Container(
@@ -325,9 +322,10 @@ class _TokenCardState extends State<TokenCard> {
 
   Widget _getAnimatedChart(Token token) {
     double totalSupplyWithDecimals =
-        token.totalSupply / pow(10, token.decimals);
+        token.totalSupply.addDecimals(token.decimals).toDouble();
 
-    double maxSupplyWithDecimals = token.maxSupply / pow(10, token.decimals);
+    double maxSupplyWithDecimals =
+        token.maxSupply.addDecimals(token.decimals).toDouble();
 
     return Stack(
       alignment: Alignment.center,
@@ -370,7 +368,7 @@ class _TokenCardState extends State<TokenCard> {
   }
 
   Widget _getBurnBackOfCard(AccountInfo accountInfo) {
-    _burnMaxAmount = accountInfo.getBalanceWithDecimals(
+    _burnMaxAmount = accountInfo.getBalance(
       widget.token.tokenStandard,
     );
 
@@ -389,10 +387,7 @@ class _TokenCardState extends State<TokenCard> {
             ),
             controller: _burnAmountController,
             validator: (value) => InputValidators.correctValue(
-              value,
-              _burnMaxAmount,
-              widget.token.decimals,
-            ),
+                value, _burnMaxAmount, widget.token.decimals, BigInt.zero),
             suffixIcon: _getAmountSuffix(),
             suffixIconConstraints: const BoxConstraints(maxWidth: 50.0),
             hintText: 'Amount',
@@ -470,13 +465,10 @@ class _TokenCardState extends State<TokenCard> {
   Widget _getBurnButton(BurnTokenBloc model) {
     return LoadingButton.stepper(
       text: 'Burn',
-      onPressed: _burnMaxAmount! > 0 &&
+      onPressed: _burnMaxAmount > BigInt.zero &&
               _burnAmountController.text.isNotEmpty &&
-              InputValidators.correctValue(
-                    _burnAmountController.text,
-                    _burnMaxAmount,
-                    widget.token.decimals,
-                  ) ==
+              InputValidators.correctValue(_burnAmountController.text,
+                      _burnMaxAmount, widget.token.decimals, BigInt.zero) ==
                   null
           ? () {
               _burnButtonKey.currentState?.animateForward();
@@ -513,10 +505,7 @@ class _TokenCardState extends State<TokenCard> {
   }
 
   Widget _getMintBackOfCard(AccountInfo? accountInfo) {
-    _mintMaxAmount =
-        (widget.token.maxSupply - widget.token.totalSupply).addDecimals(
-      widget.token.decimals,
-    );
+    _mintMaxAmount = (widget.token.maxSupply - widget.token.totalSupply);
 
     return ListView(
       shrinkWrap: true,
@@ -550,10 +539,7 @@ class _TokenCardState extends State<TokenCard> {
             ),
             controller: _mintAmountController,
             validator: (value) => InputValidators.correctValue(
-              value,
-              _mintMaxAmount,
-              widget.token.decimals,
-            ),
+                value, _mintMaxAmount, widget.token.decimals, BigInt.zero),
             suffixIcon: _getAmountSuffix(),
             suffixIconConstraints: const BoxConstraints(maxWidth: 50.0),
             hintText: 'Amount',
@@ -630,13 +616,10 @@ class _TokenCardState extends State<TokenCard> {
   Widget _getMintButton(MintTokenBloc model) {
     return LoadingButton.stepper(
       text: 'Mint',
-      onPressed: _mintMaxAmount! > 0 &&
+      onPressed: _mintMaxAmount > BigInt.zero &&
               _mintAmountController.text.isNotEmpty &&
-              InputValidators.correctValue(
-                    _mintAmountController.text,
-                    _mintMaxAmount,
-                    widget.token.decimals,
-                  ) ==
+              InputValidators.correctValue(_mintAmountController.text,
+                      _mintMaxAmount, widget.token.decimals, BigInt.zero) ==
                   null
           ? () {
               _mintButtonKey.currentState!.animateForward();

@@ -15,9 +15,9 @@ import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/input_validators.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/notification_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/zts_utils.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/custom_material_stepper.dart'
     as custom_material_stepper;
+import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 enum TokenStepperStep {
@@ -58,11 +58,11 @@ class _TokenStepperState extends State<TokenStepper> {
   GlobalKey<FormState> _tokenDomainKey = GlobalKey();
   final GlobalKey<LoadingButtonState> _createButtonKey = GlobalKey();
 
-  double _selectedNumDecimals = 0;
+  int _selectedNumDecimals = 0;
 
-  bool? _isMintable = false;
-  bool? _isBurnable = false;
-  bool? _isUtility = true;
+  bool _isMintable = false;
+  bool _isBurnable = false;
+  bool _isUtility = true;
 
   late List<FocusNode> _focusNodes;
 
@@ -235,8 +235,8 @@ class _TokenStepperState extends State<TokenStepper> {
           StepperUtils.getMaterialStep(
             stepTitle: 'Token mintable and burnable options',
             stepContent: _getTokenMintableAndBurnableStepContent(),
-            stepSubtitle: 'Mintable: ${_isMintable! ? 'yes' : 'no'}\n'
-                'Burnable: ${_isBurnable! ? 'yes' : 'no'}',
+            stepSubtitle: 'Mintable: ${_isMintable ? 'yes' : 'no'}\n'
+                'Burnable: ${_isBurnable ? 'yes' : 'no'}',
             stepState: StepperUtils.getStepState(
               TokenStepperStep.tokenMintableBurnable.index,
               _lastCompletedStep?.index,
@@ -260,10 +260,10 @@ class _TokenStepperState extends State<TokenStepper> {
           StepperUtils.getMaterialStep(
             stepTitle: 'Issue Token',
             stepContent: _getIssueTokenStepContent(context),
-            stepSubtitle: _isMintable!
+            stepSubtitle: _isMintable
                 ? '${_totalSupplyController.text} out of '
                     '${_maxSupplyController.text} ${_tokenSymbolController.text}'
-                : _isUtility!
+                : _isUtility
                     ? 'Utility Token'
                     : '',
             stepState: StepperUtils.getStepState(
@@ -348,7 +348,7 @@ class _TokenStepperState extends State<TokenStepper> {
                 value: _isUtility,
                 onChanged: (value) {
                   setState(() {
-                    _isUtility = value;
+                    _isUtility = value!;
                   });
                 },
               ),
@@ -427,16 +427,16 @@ class _TokenStepperState extends State<TokenStepper> {
             description: 'Number of decimals: ${_selectedNumDecimals.toInt()}',
             startValue: 0.0,
             min: 0.0,
-            maxValue: 16.0,
+            maxValue: 18.0,
             callback: (double value) {
               setState(() {
-                _selectedNumDecimals = value;
+                _selectedNumDecimals = value.toInt();
               });
             },
           ),
         ),
         Visibility(
-          visible: _isMintable!,
+          visible: _isMintable,
           child: Container(
             margin: const EdgeInsets.only(bottom: 15.0),
             child: Row(
@@ -455,14 +455,12 @@ class _TokenStepperState extends State<TokenStepper> {
                       },
                       controller: _maxSupplyController,
                       hintText: 'Max supply',
-                      validator: _isMintable!
+                      validator: _isMintable
                           ? (String? value) => InputValidators.correctValue(
                                 value,
-                                kMaxInt.addDecimals(
-                                  _selectedNumDecimals.toInt(),
-                                ),
+                                kBigP255,
                                 _selectedNumDecimals.toInt(),
-                                min: kMinTokenTotalMaxSupply,
+                                kMinTokenTotalMaxSupply,
                                 canBeEqualToMin: true,
                               )
                           : (String? value) =>
@@ -492,17 +490,13 @@ class _TokenStepperState extends State<TokenStepper> {
                   hintText: 'Total supply',
                   validator: (value) => InputValidators.correctValue(
                     value,
-                    _isMintable!
-                        ? double.parse(_maxSupplyController.text.isNotEmpty
+                    _isMintable
+                        ? BigInt.parse(_maxSupplyController.text.isNotEmpty
                             ? _maxSupplyController.text
-                            : '${kMaxInt.addDecimals(
-                                _selectedNumDecimals.toInt(),
-                              )}')
-                        : kMaxInt.addDecimals(
-                            _selectedNumDecimals.toInt(),
-                          ),
+                            : '$kBigP255')
+                        : kBigP255,
                     _selectedNumDecimals.toInt(),
-                    min: _isMintable! ? 0 : kMinTokenTotalMaxSupply,
+                    _isMintable ? BigInt.zero : kMinTokenTotalMaxSupply,
                     canBeEqualToMin: true,
                   ),
                 ),
@@ -694,15 +688,14 @@ class _TokenStepperState extends State<TokenStepper> {
   }
 
   void _onTokenMetricsContinuePressed() {
-    if ((!_isMintable! || _maxSupplyKey.currentState!.validate()) &&
+    if ((!_isMintable || _maxSupplyKey.currentState!.validate()) &&
         _totalSupplyKey.currentState!.validate()) {
       _tokenStepperData.decimals = _selectedNumDecimals.toInt();
-      _tokenStepperData.totalSupply = _totalSupplyController.text.toNum();
+      _tokenStepperData.totalSupply = BigInt.parse(_totalSupplyController.text);
       _tokenStepperData.isMintable = _isMintable;
-      _tokenStepperData.maxSupply = (_isMintable!
-              ? _maxSupplyController.text
-              : _totalSupplyController.text)
-          .toNum();
+      _tokenStepperData.maxSupply = (_isMintable
+          ? BigInt.parse(_maxSupplyController.text)
+          : BigInt.parse(_totalSupplyController.text));
       _tokenStepperData.isOwnerBurnOnly = _isBurnable;
       _saveProgressAndNavigateToNextStep(TokenStepperStep.tokenMetrics);
     }
@@ -787,27 +780,24 @@ class _TokenStepperState extends State<TokenStepper> {
   }
 
   bool _areTokenMetricsCorrect() =>
-      (_isMintable!
+      (_isMintable
           ? InputValidators.correctValue(
                 _maxSupplyController.text,
-                kMaxInt.addDecimals(
-                  _selectedNumDecimals.toInt(),
-                ),
+                kBigP255,
                 _selectedNumDecimals.toInt(),
-                min: kMinTokenTotalMaxSupply,
+                kMinTokenTotalMaxSupply,
                 canBeEqualToMin: true,
               ) ==
               null
           : true) &&
       InputValidators.correctValue(
             _totalSupplyController.text,
-            _isMintable!
-                ? _maxSupplyController.text.toNum()
-                : kMaxInt.addDecimals(
-                    _selectedNumDecimals.toInt(),
-                  ),
+            _isMintable
+                ? AmountUtils.extractDecimals(_maxSupplyController.text.toNum(),
+                    _selectedNumDecimals.toInt())
+                : kBigP255,
             _selectedNumDecimals.toInt(),
-            min: _isMintable! ? 0 : kMinTokenTotalMaxSupply,
+            _isMintable ? BigInt.zero : kMinTokenTotalMaxSupply,
             canBeEqualToMin: true,
           ) ==
           null;
@@ -871,7 +861,7 @@ class _TokenStepperState extends State<TokenStepper> {
               value: _isBurnable,
               onChanged: (value) {
                 setState(() {
-                  _isBurnable = value;
+                  _isBurnable = value!;
                 });
               },
             ),

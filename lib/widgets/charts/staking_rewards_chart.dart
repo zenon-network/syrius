@@ -64,7 +64,7 @@ class _StakingRewardsChart extends State<StakingRewardsChart> {
       );
 
   num _getMaxValueOfQsrRewards() {
-    int max = widget.rewardsHistory!.list.first.qsrAmount;
+    BigInt max = widget.rewardsHistory!.list.first.qsrAmount;
     for (var element in widget.rewardsHistory!.list) {
       if (element.qsrAmount > max) {
         max = element.qsrAmount;

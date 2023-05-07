@@ -3,9 +3,9 @@ class NewTokenData {
   late String tokenName;
   late String tokenSymbol;
   late String tokenDomain;
-  late num totalSupply;
+  late BigInt totalSupply;
   late int decimals;
-  late num maxSupply;
+  late BigInt maxSupply;
   bool? isMintable;
   bool? isOwnerBurnOnly;
   bool? isUtility;

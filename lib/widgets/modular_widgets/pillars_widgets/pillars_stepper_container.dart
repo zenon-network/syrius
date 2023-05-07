@@ -15,6 +15,7 @@ import 'package:zenon_syrius_wallet_flutter/utils/extensions.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/format_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/input_validators.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/math_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/navigation_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/notification_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/zts_utils.dart';
@@ -72,7 +73,7 @@ class _MainPillarsState extends State<PillarsStepperContainer> {
   final GlobalKey<LoadingButtonState> _withdrawButtonKey = GlobalKey();
   final GlobalKey<LoadingButtonState> _registerButtonKey = GlobalKey();
 
-  num? _maxQsrAmount;
+  BigInt _maxQsrAmount = BigInt.zero;
 
   final List<GlobalKey<FormState>> _pillarFormKeys = List.generate(
     3,
@@ -131,17 +132,15 @@ class _MainPillarsState extends State<PillarsStepperContainer> {
         model.stream.listen(
           (event) {
             if (event != null) {
-              _maxQsrAmount = math.min<num>(
-                accountInfo.getBalanceWithDecimals(
+              _maxQsrAmount = MathUtils.bigMin(
+                accountInfo.getBalance(
                   kQsrCoin.tokenStandard,
                 ),
-                math.max<num>(
-                  0,
-                  event.cost - (event.deposit),
-                ),
+                MathUtils.bigMax(BigInt.zero, event.cost - event.deposit),
               );
               setState(() {
-                _qsrAmountController.text = _maxQsrAmount.toString();
+                _qsrAmountController.text =
+                    _maxQsrAmount.addDecimals(qsrDecimals).toString();
               });
             }
           },
@@ -204,7 +203,7 @@ class _MainPillarsState extends State<PillarsStepperContainer> {
                           accountInfo,
                         ),
                         Text(
-                          '${qsrInfo.cost} ${kQsrCoin.symbol} needed for a Pillar',
+                          '${qsrInfo.cost.addDecimals(qsrDecimals)} ${kQsrCoin.symbol} needed for a Pillar',
                           style:
                               Theme.of(context).inputDecorationTheme.hintStyle,
                         ),
@@ -276,7 +275,7 @@ class _MainPillarsState extends State<PillarsStepperContainer> {
         ),
         Expanded(
           child: Visibility(
-            visible: qsrInfo.deposit > 0,
+            visible: qsrInfo.deposit > BigInt.zero,
             child: Container(
               decoration: BoxDecoration(
                 color: Theme.of(context).colorScheme.background,
@@ -403,7 +402,7 @@ class _MainPillarsState extends State<PillarsStepperContainer> {
   }
 
   Widget _getWithdrawQsrButtonViewModel(
-    num qsrDeposit,
+    BigInt qsrDeposit,
   ) {
     return ViewModelBuilder<PillarsWithdrawQsrBloc>.reactive(
       onViewModelReady: (model) {
@@ -436,10 +435,10 @@ class _MainPillarsState extends State<PillarsStepperContainer> {
 
   Widget _getWithdrawQsrButton(
     PillarsWithdrawQsrBloc model,
-    num qsrDeposit,
+    BigInt qsrDeposit,
   ) {
     return Visibility(
-      visible: qsrDeposit > 0,
+      visible: qsrDeposit > BigInt.zero,
       child: LoadingButton.stepper(
         text: 'Withdraw',
         onPressed: () => _onWithdrawButtonPressed(model, qsrDeposit.toDouble()),
@@ -736,7 +735,7 @@ class _MainPillarsState extends State<PillarsStepperContainer> {
         _qsrAmountController.text,
         justMarkStepCompleted: true,
       );
-    } else if (qsrInfo.deposit + _maxQsrAmount! <= qsrInfo.cost &&
+    } else if (qsrInfo.deposit + _maxQsrAmount <= qsrInfo.cost &&
         _qsrFormKey.currentState!.validate() &&
         _qsrAmountController.text.toNum() > 0) {
       _depositQsrButtonKey.currentState?.animateForward();
@@ -1028,7 +1027,7 @@ class _MainPillarsState extends State<PillarsStepperContainer> {
         value,
         _maxQsrAmount,
         kQsrCoin.decimals,
-        min: 1.0,
+        BigInt.one,
         canBeEqualToMin: true,
       );
 

@@ -273,11 +273,10 @@ class _PhaseCreationStepperState extends State<PhaseCreationStepper> {
                     kZnnCoin,
                     onMaxPressed: () {
                       setState(() {
-                        _phaseZnnAmountController.text =
-                            AmountUtils.addDecimals(
-                                    widget.project.getRemainingZnnFunds(),
-                                    znnDecimals)
-                                .toString();
+                        _phaseZnnAmountController.text = widget.project
+                            .getRemainingZnnFunds()
+                            .addDecimals(znnDecimals)
+                            .toString();
                       });
                     },
                   ),
@@ -286,9 +285,9 @@ class _PhaseCreationStepperState extends State<PhaseCreationStepper> {
                   ),
                   validator: (value) => InputValidators.correctValue(
                     value,
-                    AmountUtils.addDecimals(
-                        widget.project.getRemainingZnnFunds(), znnDecimals),
+                    widget.project.getRemainingZnnFunds(),
                     znnDecimals,
+                    BigInt.zero,
                     canBeEqualToMin: true,
                   ),
                   onChanged: (value) {
@@ -317,11 +316,10 @@ class _PhaseCreationStepperState extends State<PhaseCreationStepper> {
                     kQsrCoin,
                     onMaxPressed: () {
                       setState(() {
-                        _phaseQsrAmountController.text =
-                            AmountUtils.addDecimals(
-                                    widget.project.getRemainingQsrFunds(),
-                                    qsrDecimals)
-                                .toString();
+                        _phaseQsrAmountController.text = widget.project
+                            .getRemainingQsrFunds()
+                            .addDecimals(qsrDecimals)
+                            .toString();
                       });
                     },
                   ),
@@ -330,9 +328,9 @@ class _PhaseCreationStepperState extends State<PhaseCreationStepper> {
                   ),
                   validator: (value) => InputValidators.correctValue(
                     value,
-                    AmountUtils.addDecimals(
-                        widget.project.getRemainingQsrFunds(), qsrDecimals),
+                    widget.project.getRemainingQsrFunds(),
                     qsrDecimals,
+                    BigInt.zero,
                     canBeEqualToMin: true,
                   ),
                   onChanged: (value) {
@@ -377,17 +375,17 @@ class _PhaseCreationStepperState extends State<PhaseCreationStepper> {
   }
 
   Widget _getSubmitPhaseStepContent() {
-    double remainingZnnBudget = AmountUtils.addDecimals(
-            widget.project.getRemainingZnnFunds(), znnDecimals) -
-        double.parse(_phaseZnnAmountController.text.isNotEmpty
-            ? _phaseZnnAmountController.text
-            : '0.0');
+    double remainingZnnBudget =
+        widget.project.getRemainingZnnFunds().addDecimals(znnDecimals) -
+            double.parse(_phaseZnnAmountController.text.isNotEmpty
+                ? _phaseZnnAmountController.text
+                : '0.0');
 
-    double remainingQsrBudget = AmountUtils.addDecimals(
-            widget.project.getRemainingQsrFunds(), qsrDecimals) -
-        double.parse(_phaseQsrAmountController.text.isNotEmpty
-            ? _phaseQsrAmountController.text
-            : '0.0');
+    double remainingQsrBudget =
+        widget.project.getRemainingQsrFunds().addDecimals(qsrDecimals) -
+            double.parse(_phaseQsrAmountController.text.isNotEmpty
+                ? _phaseQsrAmountController.text
+                : '0.0');
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -482,17 +480,17 @@ class _PhaseCreationStepperState extends State<PhaseCreationStepper> {
           null &&
       InputValidators.correctValue(
             _phaseZnnAmountController.text,
-            AmountUtils.addDecimals(
-                widget.project.getRemainingZnnFunds(), znnDecimals),
+            widget.project.getRemainingZnnFunds(),
             znnDecimals,
+            BigInt.zero,
             canBeEqualToMin: true,
           ) ==
           null &&
       InputValidators.correctValue(
             _phaseQsrAmountController.text,
-            AmountUtils.addDecimals(
-                widget.project.getRemainingQsrFunds(), qsrDecimals),
+            widget.project.getRemainingQsrFunds(),
             qsrDecimals,
+            BigInt.zero,
             canBeEqualToMin: true,
           ) ==
           null;

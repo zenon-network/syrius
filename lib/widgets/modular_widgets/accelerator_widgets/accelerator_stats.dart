@@ -135,10 +135,10 @@ class _AcceleratorStatsState extends State<AcceleratorStats> {
     Token token,
     AccountInfo accountInfo,
   ) {
-    int value = token.tokenStandard == kZnnCoin.tokenStandard
+    BigInt value = token.tokenStandard == kZnnCoin.tokenStandard
         ? accountInfo.znn()!
         : accountInfo.qsr()!;
-    int sumValues = accountInfo.znn()! + accountInfo.qsr()!;
+    BigInt sumValues = accountInfo.znn()! + accountInfo.qsr()!;
 
     final isTouched = token.symbol == _touchedSectionTitle;
     final double opacity = isTouched ? 1.0 : 0.5;

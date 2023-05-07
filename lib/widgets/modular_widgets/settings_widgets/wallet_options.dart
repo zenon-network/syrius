@@ -214,7 +214,7 @@ class _WalletOptionsState extends State<WalletOptions> {
     return Row(
       children: [
         Text(
-          'Enable clipboard watcher ',
+          'Enable clipboard watcher',
           style: Theme.of(context).textTheme.bodyMedium,
         ),
         SyriusCheckbox(
@@ -229,7 +229,7 @@ class _WalletOptionsState extends State<WalletOptions> {
         ),
         const StandardTooltipIcon(
           'Listens to the values passed to the clipboard and sends a '
-              'notification when a WalletConnect link has been copied.',
+          'notification when a WalletConnect URI has been copied',
           Icons.help,
         ),
       ],

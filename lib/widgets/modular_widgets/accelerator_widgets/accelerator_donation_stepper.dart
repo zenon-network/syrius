@@ -36,8 +36,8 @@ class _AcceleratorDonationStepperState
   final GlobalKey<FormState> _qsrAmountKey = GlobalKey();
   final GlobalKey<LoadingButtonState> _submitButtonKey = GlobalKey();
 
-  num _znnAmount = 0;
-  num _qsrAmount = 0;
+  BigInt _znnAmount = BigInt.zero;
+  BigInt _qsrAmount = BigInt.zero;
 
   @override
   void initState() {
@@ -209,7 +209,7 @@ class _AcceleratorDonationStepperState
               width: 15.0,
             ),
             StepperButton(
-              onPressed: accountInfo.znn()! > 0
+              onPressed: accountInfo.znn()! > BigInt.zero
                   ? () {
                       setState(() {
                         _lastCompletedStep =
@@ -249,24 +249,25 @@ class _AcceleratorDonationStepperState
             suffixIcon: AmountSuffixWidgets(
               kZnnCoin,
               onMaxPressed: () {
-                num maxZnn = accountInfo.getBalanceWithDecimals(
+                BigInt maxZnn = accountInfo.getBalance(
                   kZnnCoin.tokenStandard,
                 );
                 if (_znnAmountController.text.isEmpty ||
-                    _znnAmountController.text.toNum() < maxZnn) {
+                    AmountUtils.extractDecimals(
+                            _znnAmountController.text.toNum(), znnDecimals) <
+                        maxZnn) {
                   setState(() {
-                    _znnAmountController.text = maxZnn.toString();
+                    _znnAmountController.text =
+                        maxZnn.addDecimals(znnDecimals).toString();
                   });
                 }
               },
             ),
             validator: (value) => InputValidators.correctValue(
               value,
-              AmountUtils.addDecimals(
-                accountInfo.znn()!,
-                znnDecimals,
-              ),
+              accountInfo.znn()!,
               znnDecimals,
+              BigInt.zero,
               canBeEqualToMin: true,
               canBeBlank: true,
             ),
@@ -288,25 +289,26 @@ class _AcceleratorDonationStepperState
             suffixIcon: AmountSuffixWidgets(
               kQsrCoin,
               onMaxPressed: () {
-                num maxQsr = accountInfo.getBalanceWithDecimals(
+                BigInt maxQsr = accountInfo.getBalance(
                   kQsrCoin.tokenStandard,
                 );
 
                 if (_qsrAmountController.text.isEmpty ||
-                    _qsrAmountController.text.toNum() < maxQsr) {
+                    AmountUtils.extractDecimals(
+                            _qsrAmountController.text.toNum(), qsrDecimals) <
+                        maxQsr) {
                   setState(() {
-                    _qsrAmountController.text = maxQsr.toString();
+                    _qsrAmountController.text =
+                        maxQsr.addDecimals(qsrDecimals).toString();
                   });
                 }
               },
             ),
             validator: (value) => InputValidators.correctValue(
               value,
-              AmountUtils.addDecimals(
-                accountInfo.qsr()!,
-                qsrDecimals,
-              ),
+              accountInfo.qsr()!,
               znnDecimals,
+              BigInt.zero,
               canBeEqualToMin: true,
               canBeBlank: true,
             ),
@@ -351,38 +353,34 @@ class _AcceleratorDonationStepperState
   bool _ifInputValid(AccountInfo accountInfo) {
     try {
       _znnAmount = _znnAmountController.text.isNotEmpty
-          ? _znnAmountController.text.toNum()
-          : 0;
+          ? BigInt.parse(_znnAmountController.text)
+          : BigInt.zero;
       _qsrAmount = _qsrAmountController.text.isNotEmpty
-          ? _qsrAmountController.text.toNum()
-          : 0;
+          ? BigInt.parse(_qsrAmountController.text)
+          : BigInt.zero;
     } catch (_) {}
 
     return InputValidators.correctValue(
               _znnAmountController.text,
-              AmountUtils.addDecimals(
-                accountInfo.znn()!,
-                znnDecimals,
-              ),
+              accountInfo.znn()!,
               znnDecimals,
+              BigInt.zero,
               canBeEqualToMin: true,
               canBeBlank: true,
             ) ==
             null &&
         InputValidators.correctValue(
               _qsrAmountController.text,
-              AmountUtils.addDecimals(
-                accountInfo.qsr()!,
-                qsrDecimals,
-              ),
+              accountInfo.qsr()!,
               qsrDecimals,
+              BigInt.zero,
               canBeEqualToMin: true,
               canBeBlank: true,
             ) ==
             null &&
         (_qsrAmountController.text.isNotEmpty ||
             _znnAmountController.text.isNotEmpty) &&
-        (_znnAmount > 0 || _qsrAmount > 0);
+        (_znnAmount > BigInt.zero || _qsrAmount > BigInt.zero);
   }
 
   Widget _getSubmitDonationStepContent() {

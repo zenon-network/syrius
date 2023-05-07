@@ -21,7 +21,7 @@ class WalletConnectService {
 
   late Web3Wallet _wcClient;
   late BuildContext _context;
-  String? _sessionTopic;
+  String _sessionTopic = '';
 
   final List<ApproveResponse> _dAppsProposalData = [];
 
@@ -289,9 +289,7 @@ class WalletConnectService {
           final token = kDualCoin.firstWhere(
             (element) => element.tokenStandard == accountBlock.tokenStandard,
           );
-          final amount =
-              AmountUtils.addDecimals(accountBlock.amount, token.decimals);
-
+          final amount = accountBlock.amount.addDecimals(token.decimals);
           final sendPaymentBloc = SendPaymentBloc();
 
           final wasActionAccepted = await showDialogWithNoAndYesOptions(
@@ -420,19 +418,21 @@ class WalletConnectService {
     );
   }
 
-  Future<void> emitAddressChangeEvent(String newAddress) =>
-      _emitEventForTheDApp(
-        sessionTopic: _sessionTopic!,
-        changeName: 'addressChange',
-        newValue: newAddress,
-      );
+  Future<void> emitAddressChangeEvent(String newAddress) {
+    return _emitEventForTheDApp(
+      sessionTopic: _sessionTopic,
+      changeName: 'addressChange',
+      newValue: newAddress,
+    );
+  }
 
-  Future<void> emitChainIdChangeEvent(String newChainId) =>
-      _emitEventForTheDApp(
-        sessionTopic: _sessionTopic!,
-        changeName: 'chainIdChange',
-        newValue: newChainId,
-      );
+  Future<void> emitChainIdChangeEvent(String newChainId) {
+    return _emitEventForTheDApp(
+      sessionTopic: _sessionTopic,
+      changeName: 'chainIdChange',
+      newValue: newChainId,
+    );
+  }
 
   Map<String, SessionData> getActiveSessions() => _wcClient.getActiveSessions();
 

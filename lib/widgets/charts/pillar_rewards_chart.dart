@@ -64,7 +64,7 @@ class PillarRewardsChartState extends State<PillarRewardsChart> {
       );
 
   num _getMaxValueOfZnnRewards() {
-    int? max = widget.rewardsHistory!.list.first.znnAmount;
+    BigInt? max = widget.rewardsHistory!.list.first.znnAmount;
     for (var element in widget.rewardsHistory!.list) {
       if (element.znnAmount > max!) {
         max = element.znnAmount;

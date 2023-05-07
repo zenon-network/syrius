@@ -53,7 +53,7 @@ class _PillarCollectState extends State<PillarCollect> {
         if (snapshot.hasError) {
           return SyriusErrorWidget(snapshot.error!);
         } else if (snapshot.hasData) {
-          if (snapshot.data!.znnAmount > 0) {
+          if (snapshot.data!.znnAmount > BigInt.zero) {
             return _getWidgetBody(snapshot.data!);
           }
           return const SyriusErrorWidget('No rewards to collect');
@@ -80,12 +80,13 @@ class _PillarCollectState extends State<PillarCollect> {
         ),
         kVerticalSpacing,
         Visibility(
-          visible: uncollectedReward.znnAmount > 0,
+          visible: uncollectedReward.znnAmount > BigInt.zero,
           child: LoadingButton.stepper(
             key: _collectButtonKey,
             text: 'Collect',
-            onPressed:
-                uncollectedReward.znnAmount > 0 ? _onCollectPressed : null,
+            onPressed: uncollectedReward.znnAmount > BigInt.zero
+                ? _onCollectPressed
+                : null,
           ),
         ),
       ],

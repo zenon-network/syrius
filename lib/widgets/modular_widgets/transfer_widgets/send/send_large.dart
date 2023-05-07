@@ -150,12 +150,12 @@ class _SendLargeCardState extends State<SendLargeCard> {
                       ),
                       controller: _amountController,
                       validator: (value) => InputValidators.correctValue(
-                        value,
-                        accountInfo.getBalanceWithDecimals(
-                          _selectedToken.tokenStandard,
-                        ),
-                        _selectedToken.decimals,
-                      ),
+                          value,
+                          accountInfo.getBalance(
+                            _selectedToken.tokenStandard,
+                          ),
+                          _selectedToken.decimals,
+                          BigInt.zero),
                       suffixIcon: _getAmountSuffix(accountInfo),
                       hintText: 'Amount',
                     ),
@@ -372,7 +372,7 @@ class _SendLargeCardState extends State<SendLargeCard> {
 
   void _addTokensWithBalance(AccountInfo accountInfo) {
     for (var balanceInfo in accountInfo.balanceInfoList!) {
-      if (balanceInfo.balance! > 0 &&
+      if (balanceInfo.balance! > BigInt.zero &&
           !_tokensWithBalance.contains(balanceInfo.token)) {
         _tokensWithBalance.add(balanceInfo.token);
       }
@@ -382,12 +382,12 @@ class _SendLargeCardState extends State<SendLargeCard> {
   bool _isInputValid(AccountInfo accountInfo) =>
       InputValidators.checkAddress(_recipientController.text) == null &&
       InputValidators.correctValue(
-            _amountController.text,
-            accountInfo.getBalanceWithDecimals(
-              _selectedToken.tokenStandard,
-            ),
-            _selectedToken.decimals,
-          ) ==
+              _amountController.text,
+              accountInfo.getBalance(
+                _selectedToken.tokenStandard,
+              ),
+              _selectedToken.decimals,
+              BigInt.zero) ==
           null;
 
   @override

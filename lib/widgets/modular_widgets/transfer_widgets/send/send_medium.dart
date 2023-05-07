@@ -144,10 +144,11 @@ class _SendMediumCardState extends State<SendMediumCard> {
                 ),
                 validator: (value) => InputValidators.correctValue(
                   value,
-                  accountInfo.getBalanceWithDecimals(
+                  accountInfo.getBalance(
                     _selectedToken.tokenStandard,
                   ),
                   _selectedToken.decimals,
+                  BigInt.zero,
                 ),
                 controller: _amountController,
                 suffixIcon: _getAmountSuffix(accountInfo),
@@ -307,11 +308,11 @@ class _SendMediumCardState extends State<SendMediumCard> {
       accountInfo.getBalance(
         _selectedToken.tokenStandard,
       ) >
-      0;
+      BigInt.zero;
 
   void _addTokensWithBalance(AccountInfo accountInfo) {
     for (var balanceInfo in accountInfo.balanceInfoList!) {
-      if (balanceInfo.balance! > 0 &&
+      if (balanceInfo.balance! > BigInt.zero &&
           !_tokensWithBalance.contains(balanceInfo.token)) {
         _tokensWithBalance.add(balanceInfo.token);
       }
@@ -321,12 +322,12 @@ class _SendMediumCardState extends State<SendMediumCard> {
   bool _isInputValid(AccountInfo accountInfo) =>
       InputValidators.checkAddress(_recipientController.text) == null &&
       InputValidators.correctValue(
-            _amountController.text,
-            accountInfo.getBalanceWithDecimals(
-              _selectedToken.tokenStandard,
-            ),
-            _selectedToken.decimals,
-          ) ==
+              _amountController.text,
+              accountInfo.getBalance(
+                _selectedToken.tokenStandard,
+              ),
+              _selectedToken.decimals,
+              BigInt.zero) ==
           null;
 
   @override

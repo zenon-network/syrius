@@ -15,17 +15,22 @@ extension FixedNumDecimals on double {
 }
 
 extension NumExtensions on num {
-  int extractDecimals(int decimals) => (this * pow(10, decimals)).toInt();
+  BigInt extractDecimals(int decimals) =>
+      BigInt.parse(toStringAsFixed(decimals).replaceAll('.', ''));
 }
 
-extension IntExtensions on int {
+extension BigIntExtensions on BigInt {
   num addDecimals(int decimals) {
-    var numberWithDecimals = this / pow(10, decimals);
-    if (numberWithDecimals == numberWithDecimals.toInt()) {
-      return numberWithDecimals.toInt();
-    }
-    return numberWithDecimals;
+    return getValueInUnit(this, decimals);
   }
+}
+
+double getValueInUnit(BigInt amount, int decimals) {
+  final factor = BigInt.from(10).pow(decimals);
+  final value = amount ~/ factor;
+  final remainder = amount.remainder(factor);
+
+  return value.toInt() + (remainder.toInt() / factor.toInt());
 }
 
 // This extension takes other list with fewer elements and creates a single one

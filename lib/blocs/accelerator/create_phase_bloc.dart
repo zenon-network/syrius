@@ -9,8 +9,8 @@ class CreatePhaseBloc extends BaseBloc<AccountBlockTemplate?> {
     String name,
     String description,
     String url,
-    int znnFundsNeeded,
-    int qsrFundsNeeded,
+    BigInt znnFundsNeeded,
+    BigInt qsrFundsNeeded,
   ) async {
     try {
       addEvent(null);

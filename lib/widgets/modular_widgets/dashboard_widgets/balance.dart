@@ -171,7 +171,7 @@ class _BalanceWidgetState extends State<BalanceWidget> {
 
   List<PieChartSectionData> _getChartSection(AccountInfo accountInfo) {
     List<PieChartSectionData> sections = [];
-    if (accountInfo.znn()! > 0) {
+    if (accountInfo.znn()! > BigInt.zero) {
       sections.add(
         _getBalanceChartSection(
           accountInfo.findTokenByTokenStandard(kZnnCoin.tokenStandard)!,
@@ -179,7 +179,7 @@ class _BalanceWidgetState extends State<BalanceWidget> {
         ),
       );
     }
-    if (accountInfo.qsr()! > 0) {
+    if (accountInfo.qsr()! > BigInt.zero) {
       sections.add(
         _getBalanceChartSection(
           accountInfo.findTokenByTokenStandard(kQsrCoin.tokenStandard)!,

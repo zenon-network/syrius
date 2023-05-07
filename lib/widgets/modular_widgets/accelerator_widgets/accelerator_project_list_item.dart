@@ -142,13 +142,13 @@ class _AcceleratorProjectListItemState
       _getProjectStatusTag(),
     ];
 
-    if (widget.acceleratorProject.znnFundsNeeded > 0) {
+    if (widget.acceleratorProject.znnFundsNeeded > BigInt.zero) {
       tags.add(
         _getProjectZnnFundsNeededTag(context),
       );
     }
 
-    if (widget.acceleratorProject.qsrFundsNeeded > 0) {
+    if (widget.acceleratorProject.qsrFundsNeeded > BigInt.zero) {
       tags.add(
         _getProjectQsrFundsNeededTag(context),
       );
@@ -352,8 +352,7 @@ class _AcceleratorProjectListItemState
       ),
       materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
       shape: const CircleBorder(),
-      onPressed: () =>
-          NavigationUtils.openUrl(widget.acceleratorProject.url),
+      onPressed: () => NavigationUtils.openUrl(widget.acceleratorProject.url),
       child: Tooltip(
         message: 'Visit ${widget.acceleratorProject.url}',
         child: Container(

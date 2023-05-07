@@ -80,9 +80,10 @@ const String kWindowMaximizedKey = 'window_maximized_key';
 const double kDefaultBorderOutlineWidth = 1.0;
 const double kMinDelegationAmount = 1.0;
 const double kStandardChartNumDays = 7;
-const double kMinTokenTotalMaxSupply = 1;
 
-const int kMaxInt = 9223372036854775807;
+final BigInt kMinTokenTotalMaxSupply = BigInt.one;
+final BigInt kBigP255 = BigInt.from(2).pow(255);
+
 const int kAddressLabelMaxLength = 80;
 const int kNumOfInitialAddresses = 1;
 const int kSeedGridNumOfRows = 4;
@@ -95,23 +96,27 @@ const int kMomentumsPerDay = kHoursPerDay * kMomentumsPerHour;
 const int kDaysInAWeek = 7;
 const int kMomentumsPerWeek = kMomentumsPerDay * kDaysInAWeek;
 const int kNumOfAddresses = 10;
+
 const int kPillarPlasmaAmountNeeded = 252000;
 const int kSentinelPlasmaAmountNeeded = 252000;
 const int kStakePlasmaAmountNeeded = 105000;
 const int kDelegatePlasmaAmountNeeded = 84000;
 const int kIssueTokenPlasmaAmountNeeded = 189000;
-const int kZnnProjectMaximumFunds = 5000;
-const int kQsrProjectMaximumFunds = 50000;
-const int kZnnProjectMinimumFunds = 10;
-const int kQsrProjectMinimumFunds = 100;
+
+final BigInt kZnnProjectMaximumFunds = BigInt.from(5000);
+final BigInt kQsrProjectMaximumFunds = BigInt.from(50000);
+final BigInt kZnnProjectMinimumFunds = BigInt.from(10);
+final BigInt kQsrProjectMinimumFunds = BigInt.from(100);
+
 const int kAmountInputMaxCharacterLength = 21;
 const int kSecondsPerMomentum = 10;
 
-const List<int> kNormalUsersPlasmaRequirements = [
+final List<int> kNormalUsersPlasmaRequirements = [
   kStakePlasmaAmountNeeded,
   kDelegatePlasmaAmountNeeded,
 ];
-const List<int> kPowerUsersPlasmaRequirements = [
+
+final List<int> kPowerUsersPlasmaRequirements = [
   kPillarPlasmaAmountNeeded,
   kSentinelPlasmaAmountNeeded,
   kIssueTokenPlasmaAmountNeeded,

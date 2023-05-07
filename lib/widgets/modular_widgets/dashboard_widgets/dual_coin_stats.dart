@@ -93,8 +93,8 @@ class _DualCoinStatsState extends State<DualCoinStats>
   }
 
   List<PieChartSectionData> showingSections(List<Token?> tokenList) {
-    int totalSupply = tokenList.fold<int>(
-      0,
+    BigInt totalSupply = tokenList.fold<BigInt>(
+      BigInt.zero,
       (previousValue, element) => previousValue + element!.totalSupply,
     );
     return List.generate(
@@ -106,7 +106,9 @@ class _DualCoinStatsState extends State<DualCoinStats>
         return PieChartSectionData(
           color: ColorUtils.getTokenColor(currentTokenInfo.tokenStandard)
               .withOpacity(opacity),
-          value: currentTokenInfo.totalSupply / totalSupply,
+          value: currentTokenInfo.totalSupply
+                  .addDecimals(currentTokenInfo.decimals) /
+              totalSupply.addDecimals(currentTokenInfo.decimals),
           title: currentTokenInfo.symbol,
           radius: 60.0,
           titleStyle: Theme.of(context).textTheme.titleSmall!.copyWith(

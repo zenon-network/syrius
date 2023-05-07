@@ -159,11 +159,11 @@ class _SwapCardState extends State<SwapCard> {
             ),
             validator: (value) => InputValidators.correctValue(
               value,
-              accountInfo.getBalanceWithDecimals(
+              accountInfo.getBalance(
                 kZnnCoin.tokenStandard,
               ),
               kZnnCoin.decimals,
-              min: 0.99999999,
+              BigInt.zero,
               canBeEqualToMin: false,
             ),
             suffixIcon: AmountSuffixWidgets(
@@ -229,11 +229,11 @@ class _SwapCardState extends State<SwapCard> {
   bool _isInputValid(AccountInfo accountInfo) =>
       InputValidators.correctValue(
             _amountController.text,
-            accountInfo.getBalanceWithDecimals(
+            accountInfo.getBalance(
               kZnnCoin.tokenStandard,
             ),
             kZnnCoin.decimals,
-            min: 0.99999999,
+            BigInt.zero,
             canBeEqualToMin: false,
           ) ==
           null &&

@@ -11,7 +11,7 @@ class BalanceDashboardBloc extends DashboardBaseBloc<AccountInfo> {
     AccountInfo response = await zenon!.ledger
         .getAccountInfoByAddress(Address.parse(kSelectedAddress!));
     if (response.blockCount! > 0 &&
-        (response.znn()! > 0 || response.qsr()! > 0)) {
+        (response.znn()! > BigInt.zero || response.qsr()! > BigInt.zero)) {
       return response;
     } else {
       throw 'Empty balance on the selected address';

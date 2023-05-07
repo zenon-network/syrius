@@ -221,7 +221,7 @@ class _ProjectCreationStepperState extends State<ProjectCreationStepper> {
               onPressed: accountInfo.getBalanceWithDecimals(
                         kZnnCoin.tokenStandard,
                       ) >=
-                      projectCreationFeeInZnn
+                      projectCreationFeeInZnn.addDecimals(znnDecimals)
                   ? () {
                       setState(() {
                         _lastCompletedStep =
@@ -349,7 +349,7 @@ class _ProjectCreationStepperState extends State<ProjectCreationStepper> {
                     value,
                     kZnnProjectMaximumFunds,
                     kZnnCoin.decimals,
-                    min: kZnnProjectMinimumFunds,
+                    kZnnProjectMinimumFunds,
                     canBeEqualToMin: true,
                   ),
                   onChanged: (value) {
@@ -390,7 +390,7 @@ class _ProjectCreationStepperState extends State<ProjectCreationStepper> {
                     value,
                     kQsrProjectMaximumFunds,
                     kQsrCoin.decimals,
-                    min: kQsrProjectMinimumFunds,
+                    kQsrProjectMinimumFunds,
                     canBeEqualToMin: true,
                   ),
                   onChanged: (value) {
@@ -528,7 +528,7 @@ class _ProjectCreationStepperState extends State<ProjectCreationStepper> {
             _projectZnnAmountController.text,
             kZnnProjectMaximumFunds,
             kZnnCoin.decimals,
-            min: kZnnProjectMinimumFunds,
+            kZnnProjectMinimumFunds,
             canBeEqualToMin: true,
           ) ==
           null &&
@@ -536,7 +536,7 @@ class _ProjectCreationStepperState extends State<ProjectCreationStepper> {
             _projectQsrAmountController.text,
             kQsrProjectMaximumFunds,
             kZnnCoin.decimals,
-            min: kQsrProjectMinimumFunds,
+            kQsrProjectMinimumFunds,
             canBeEqualToMin: true,
           ) ==
           null;

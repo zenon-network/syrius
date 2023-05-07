@@ -4,9 +4,9 @@ import 'package:stacked/stacked.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/custom_material_stepper.dart'
     as custom_material_stepper;
+import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 enum UpdatePhaseStep {
@@ -56,14 +56,10 @@ class _UpdatePhaseStepperState extends State<UpdatePhaseStepper> {
     _phaseNameController.text = widget.phase.name;
     _phaseDescriptionController.text = widget.phase.description;
     _phaseUrlController.text = widget.phase.url;
-    _phaseZnnAmountController.text = AmountUtils.addDecimals(
-      widget.phase.znnFundsNeeded,
-      znnDecimals,
-    ).toString();
-    _phaseQsrAmountController.text = AmountUtils.addDecimals(
-      widget.phase.qsrFundsNeeded,
-      qsrDecimals,
-    ).toString();
+    _phaseZnnAmountController.text =
+        widget.phase.znnFundsNeeded.addDecimals(znnDecimals).toString();
+    _phaseQsrAmountController.text =
+        widget.phase.qsrFundsNeeded.addDecimals(qsrDecimals).toString();
     sl.get<BalanceBloc>().getBalanceForAllAddresses();
   }
 
@@ -245,8 +241,9 @@ class _UpdatePhaseStepperState extends State<UpdatePhaseStepper> {
               kZnnCoin,
               onMaxPressed: () {
                 setState(() {
-                  _phaseZnnAmountController.text = AmountUtils.addDecimals(
-                          widget.project.getRemainingZnnFunds(), znnDecimals)
+                  _phaseZnnAmountController.text = widget.project
+                      .getRemainingZnnFunds()
+                      .addDecimals(znnDecimals)
                       .toString();
                 });
               },
@@ -256,9 +253,9 @@ class _UpdatePhaseStepperState extends State<UpdatePhaseStepper> {
             ),
             validator: (value) => InputValidators.correctValue(
               value,
-              AmountUtils.addDecimals(
-                  widget.project.getRemainingZnnFunds(), znnDecimals),
+              widget.project.getRemainingZnnFunds(),
               kZnnCoin.decimals,
+              BigInt.zero,
               canBeEqualToMin: true,
             ),
             onChanged: (value) {
@@ -277,8 +274,9 @@ class _UpdatePhaseStepperState extends State<UpdatePhaseStepper> {
               kQsrCoin,
               onMaxPressed: () {
                 setState(() {
-                  _phaseQsrAmountController.text = AmountUtils.addDecimals(
-                          widget.project.getRemainingQsrFunds(), qsrDecimals)
+                  _phaseQsrAmountController.text = widget.project
+                      .getRemainingQsrFunds()
+                      .addDecimals(qsrDecimals)
                       .toString();
                 });
               },
@@ -288,9 +286,9 @@ class _UpdatePhaseStepperState extends State<UpdatePhaseStepper> {
             ),
             validator: (value) => InputValidators.correctValue(
               value,
-              AmountUtils.addDecimals(
-                  widget.project.getRemainingQsrFunds(), qsrDecimals),
+              widget.project.getRemainingQsrFunds(),
               kQsrCoin.decimals,
+              BigInt.zero,
               canBeEqualToMin: true,
             ),
             onChanged: (value) {
@@ -379,17 +377,17 @@ class _UpdatePhaseStepperState extends State<UpdatePhaseStepper> {
       InputValidators.checkUrl(_phaseUrlController.text) == null &&
       InputValidators.correctValue(
             _phaseZnnAmountController.text,
-            AmountUtils.addDecimals(
-                widget.project.getRemainingZnnFunds(), znnDecimals),
+            widget.project.getRemainingZnnFunds(),
             kZnnCoin.decimals,
+            BigInt.zero,
             canBeEqualToMin: true,
           ) ==
           null &&
       InputValidators.correctValue(
             _phaseQsrAmountController.text,
-            AmountUtils.addDecimals(
-                widget.project.getRemainingQsrFunds(), qsrDecimals),
+            widget.project.getRemainingQsrFunds(),
             kQsrCoin.decimals,
+            BigInt.zero,
             canBeEqualToMin: true,
           ) ==
           null;
