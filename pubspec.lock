@@ -612,10 +612,10 @@ packages:
     dependency: "direct main"
     description:
       name: intl
-      sha256: a3715e3bc90294e971cb7dc063fbf3cd9ee0ebf8604ffeafabd9e6f16abbdbe6
+      sha256: "3bc132a9dbce73a7e4a21a17d06e1878839ffbf975568bc875c60537824b0c4d"
       url: "https://pub.dev"
     source: hosted
-    version: "0.18.0"
+    version: "0.18.1"
   io:
     dependency: transitive
     description:
@@ -1553,8 +1553,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: wallet-connect
-      resolved-ref: "3f9a8dcc3f62f2b91ffa32e2416159b1df473f99"
+      ref: "8c67ce9516f20987b2ac693be9561e0e15257745"
+      resolved-ref: "8c67ce9516f20987b2ac693be9561e0e15257745"
       url: "https://github.com/alienc0der/znn_sdk_dart.git"
     source: git
     version: "0.0.4"

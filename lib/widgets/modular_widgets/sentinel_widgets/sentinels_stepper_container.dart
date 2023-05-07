@@ -1,5 +1,3 @@
-import 'dart:math' as math;
-
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
@@ -18,9 +16,9 @@ import 'package:zenon_syrius_wallet_flutter/utils/math_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/navigation_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/notification_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/zts_utils.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/custom_material_stepper.dart'
     as custom_material_stepper;
+import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 enum SentinelsStepperStep {
