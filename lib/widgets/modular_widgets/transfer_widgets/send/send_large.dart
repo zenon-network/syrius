@@ -260,7 +260,8 @@ class _SendLargeCardState extends State<SendLargeCard> {
     model.sendTransfer(
       fromAddress: _selectedSelfAddress,
       toAddress: _recipientController.text,
-      amount: _amountController.text,
+      amount: AmountUtils.extractDecimals(
+          _amountController.text.toNum(), _selectedToken.decimals),
       data: null,
       token: _selectedToken,
     );

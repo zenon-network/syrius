@@ -179,7 +179,7 @@ class _MainSentinelsState extends State<SentinelsStepperContainer> {
                             ),
                           ),
                           Text(
-                            'Sentinel Slot value\n$_qsrCost ${kQsrCoin.symbol}',
+                            'Sentinel Slot value\n${_qsrCost.addDecimals(qsrDecimals)} ${kQsrCoin.symbol}',
                             style: Theme.of(context).textTheme.bodyMedium,
                             textAlign: TextAlign.center,
                           ),
@@ -239,7 +239,7 @@ class _MainSentinelsState extends State<SentinelsStepperContainer> {
                       SizedBox(
                         width: 130.0,
                         child: Text(
-                          'You have deposited $depositedQsr ${kQsrCoin.symbol}',
+                          'You have deposited ${depositedQsr.addDecimals(qsrDecimals)} ${kQsrCoin.symbol}',
                           textAlign: TextAlign.center,
                           style: Theme.of(context).textTheme.bodyLarge,
                         ),
@@ -589,14 +589,16 @@ class _MainSentinelsState extends State<SentinelsStepperContainer> {
       if (depositedQsr >= _qsrCost) {
         _depositQsrButtonKey.currentState?.animateForward();
         model.depositQsr(
-          _qsrAmountController.text,
+          _qsrAmountController.text.toNum().extractDecimals(qsrDecimals),
           justMarkStepCompleted: true,
         );
       } else if (_maxQsrAmount + depositedQsr >= _qsrCost &&
           _qsrFormKey.currentState!.validate() &&
-          BigInt.parse(_qsrAmountController.text) > BigInt.zero) {
+          _qsrAmountController.text.toNum().extractDecimals(qsrDecimals) >
+              BigInt.zero) {
         _depositQsrButtonKey.currentState?.animateForward();
-        model.depositQsr(_qsrAmountController.text);
+        model.depositQsr(
+            _qsrAmountController.text.toNum().extractDecimals(qsrDecimals));
       }
     } else if (_lastCompletedStep == SentinelsStepperStep.qsrManagement) {
       setState(() {
@@ -622,7 +624,8 @@ class _MainSentinelsState extends State<SentinelsStepperContainer> {
   void _onDeployPressed(SentinelsDeployBloc model) {
     if (_lastCompletedStep == SentinelsStepperStep.znnManagement) {
       _registerButtonKey.currentState?.animateForward();
-      model.deploySentinel(_znnAmountController.text);
+      model.deploySentinel(
+          _znnAmountController.text.toNum().extractDecimals(znnDecimals));
     }
   }
 

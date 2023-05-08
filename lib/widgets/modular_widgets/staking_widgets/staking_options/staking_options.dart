@@ -246,12 +246,12 @@ class _StakingOptionsState extends State<StakingOptions> {
   void _onStakePressed(StakingOptionsBloc? model) {
     if (_selectedStakeDuration != null &&
         _znnAmountKey.currentState!.validate() &&
-        _znnAmountController.text.toNum() >=
-            stakeMinZnnAmount.addDecimals(znnDecimals)) {
+        _znnAmountController.text.toNum().extractDecimals(znnDecimals) >=
+            stakeMinZnnAmount) {
       _stakeButtonKey.currentState?.animateForward();
       model!.stakeForQsr(
         _selectedStakeDuration!,
-        _znnAmountController.text,
+        _znnAmountController.text.toNum().extractDecimals(znnDecimals),
       );
     }
   }

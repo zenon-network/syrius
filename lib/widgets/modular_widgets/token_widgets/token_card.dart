@@ -472,7 +472,11 @@ class _TokenCardState extends State<TokenCard> {
                   null
           ? () {
               _burnButtonKey.currentState?.animateForward();
-              model.burnToken(widget.token, _burnAmountController.text);
+              model.burnToken(
+                  widget.token,
+                  _burnAmountController.text
+                      .toNum()
+                      .extractDecimals(widget.token.decimals));
             }
           : null,
       key: _burnButtonKey,
@@ -492,8 +496,14 @@ class _TokenCardState extends State<TokenCard> {
 
   void _onMaxPressed() {
     if (_burnAmountController.text.isEmpty ||
-        BigInt.parse(_burnAmountController.text) != _burnMaxAmount ||
-        BigInt.parse(_burnAmountController.text) != _mintMaxAmount) {
+        _burnAmountController.text
+                .toNum()
+                .extractDecimals(widget.token.decimals) !=
+            _burnMaxAmount ||
+        _burnAmountController.text
+                .toNum()
+                .extractDecimals(widget.token.decimals) !=
+            _mintMaxAmount) {
       setState(() {
         if (_backOfCardVersion == TokenCardBackVersion.burn) {
           _burnAmountController.text = _burnMaxAmount.toString();
@@ -625,7 +635,9 @@ class _TokenCardState extends State<TokenCard> {
               _mintButtonKey.currentState!.animateForward();
               model.mintToken(
                 widget.token,
-                _mintAmountController.text,
+                _mintAmountController.text
+                    .toNum()
+                    .extractDecimals(widget.token.decimals),
                 Address.parse(_beneficiaryAddressController.text),
               );
             }

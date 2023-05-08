@@ -240,7 +240,9 @@ class _PlasmaOptionsState extends State<PlasmaOptions> {
           'currentPlasma': ((_qsrAmountController.text.isNotEmpty
                   ? zenon!.embedded.plasma
                       .getPlasmaByQsr(
-                        BigInt.parse(_qsrAmountController.text),
+                        _qsrAmountController.text
+                            .toNum()
+                            .extractDecimals(qsrDecimals),
                       )
                       .toInt()
                   : 0) +
@@ -304,7 +306,7 @@ class _PlasmaOptionsState extends State<PlasmaOptions> {
       _fuseButtonKey.currentState?.animateForward();
       model!.generatePlasma(
         _beneficiaryAddressController.text,
-        _qsrAmountController.text,
+        _qsrAmountController.text.toNum().extractDecimals(qsrDecimals),
       );
     }
   }

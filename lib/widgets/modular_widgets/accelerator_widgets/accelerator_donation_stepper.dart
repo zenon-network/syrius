@@ -353,10 +353,10 @@ class _AcceleratorDonationStepperState
   bool _ifInputValid(AccountInfo accountInfo) {
     try {
       _znnAmount = _znnAmountController.text.isNotEmpty
-          ? BigInt.parse(_znnAmountController.text)
+          ? _znnAmountController.text.toNum().extractDecimals(znnDecimals)
           : BigInt.zero;
       _qsrAmount = _qsrAmountController.text.isNotEmpty
-          ? BigInt.parse(_qsrAmountController.text)
+          ? _qsrAmountController.text.toNum().extractDecimals(qsrDecimals)
           : BigInt.zero;
     } catch (_) {}
 

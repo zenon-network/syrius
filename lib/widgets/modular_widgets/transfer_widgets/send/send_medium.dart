@@ -196,7 +196,8 @@ class _SendMediumCardState extends State<SendMediumCard> {
     model.sendTransfer(
       fromAddress: kSelectedAddress,
       toAddress: _recipientController.text,
-      amount: _amountController.text,
+      amount: AmountUtils.extractDecimals(
+          _amountController.text.toNum(), _selectedToken.decimals),
       data: null,
       token: _selectedToken,
     );

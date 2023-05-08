@@ -318,7 +318,7 @@ class _MainPillarsState extends State<PillarsStepperContainer> {
                               ),
                             ),
                             Text(
-                              'Current Pillar Slot fee\n${qsrInfo.cost} '
+                              'Current Pillar Slot fee\n${qsrInfo.cost.addDecimals(qsrDecimals)} '
                               '${kQsrCoin.symbol}',
                               style: Theme.of(context).textTheme.bodyMedium,
                               textAlign: TextAlign.center,
@@ -333,7 +333,7 @@ class _MainPillarsState extends State<PillarsStepperContainer> {
                         SizedBox(
                           width: 130.0,
                           child: Text(
-                            'You have deposited ${qsrInfo.deposit} '
+                            'You have deposited ${qsrInfo.deposit.addDecimals(qsrDecimals)} '
                             '${kQsrCoin.symbol}',
                             textAlign: TextAlign.center,
                             style: Theme.of(context).textTheme.bodyLarge,
@@ -730,14 +730,15 @@ class _MainPillarsState extends State<PillarsStepperContainer> {
     if (qsrInfo.deposit >= qsrInfo.cost) {
       _depositQsrButtonKey.currentState?.animateForward();
       model.depositQsr(
-        _qsrAmountController.text,
+        _qsrAmountController.text.toNum().extractDecimals(qsrDecimals),
         justMarkStepCompleted: true,
       );
     } else if (qsrInfo.deposit + _maxQsrAmount <= qsrInfo.cost &&
         _qsrFormKey.currentState!.validate() &&
         _qsrAmountController.text.toNum() > 0) {
       _depositQsrButtonKey.currentState?.animateForward();
-      model.depositQsr(_qsrAmountController.text);
+      model.depositQsr(
+          _qsrAmountController.text.toNum().extractDecimals(qsrDecimals));
     }
   }
 
@@ -1031,7 +1032,7 @@ class _MainPillarsState extends State<PillarsStepperContainer> {
 
   void _onQsrNextPressed() {
     setState(() {
-      _currentStep = PillarsStepperStep.values[_currentStep.index + 1];
+      _saveProgressAndNavigateToNextStep(PillarsStepperStep.qsrManagement);
     });
   }
 

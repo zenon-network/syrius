@@ -491,9 +491,11 @@ class _TokenStepperState extends State<TokenStepper> {
                   validator: (value) => InputValidators.correctValue(
                     value,
                     _isMintable
-                        ? BigInt.parse(_maxSupplyController.text.isNotEmpty
+                        ? _maxSupplyController.text.isNotEmpty
                             ? _maxSupplyController.text
-                            : '$kBigP255')
+                                .toNum()
+                                .extractDecimals(_selectedNumDecimals)
+                            : kBigP255
                         : kBigP255,
                     _selectedNumDecimals.toInt(),
                     _isMintable ? BigInt.zero : kMinTokenTotalMaxSupply,
@@ -691,11 +693,17 @@ class _TokenStepperState extends State<TokenStepper> {
     if ((!_isMintable || _maxSupplyKey.currentState!.validate()) &&
         _totalSupplyKey.currentState!.validate()) {
       _tokenStepperData.decimals = _selectedNumDecimals.toInt();
-      _tokenStepperData.totalSupply = BigInt.parse(_totalSupplyController.text);
+      _tokenStepperData.totalSupply = _totalSupplyController.text
+          .toNum()
+          .extractDecimals(_selectedNumDecimals);
       _tokenStepperData.isMintable = _isMintable;
       _tokenStepperData.maxSupply = (_isMintable
-          ? BigInt.parse(_maxSupplyController.text)
-          : BigInt.parse(_totalSupplyController.text));
+          ? _maxSupplyController.text
+              .toNum()
+              .extractDecimals(_selectedNumDecimals)
+          : _totalSupplyController.text
+              .toNum()
+              .extractDecimals(_selectedNumDecimals));
       _tokenStepperData.isOwnerBurnOnly = _isBurnable;
       _saveProgressAndNavigateToNextStep(TokenStepperStep.tokenMetrics);
     }

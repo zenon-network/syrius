@@ -9,7 +9,7 @@ class SendPaymentBloc extends BaseBloc<AccountBlockTemplate?> {
     // TODO: make this argument non-nullable
     String? fromAddress,
     String? toAddress,
-    String? amount,
+    BigInt? amount,
     List<int>? data,
     Token? token,
     AccountBlockTemplate? block,
@@ -28,7 +28,7 @@ class SendPaymentBloc extends BaseBloc<AccountBlockTemplate?> {
           AccountBlockTemplate.send(
             Address.parse(toAddress!),
             token!.tokenStandard,
-            BigInt.parse(amount!),
+            amount!,
             data,
           );
       KeyPair blockSigningKeyPair = kKeyStore!.getKeyPair(
