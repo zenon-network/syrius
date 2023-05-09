@@ -203,7 +203,7 @@ class _ProjectCreationStepperState extends State<ProjectCreationStepper> {
         StepperUtils.getBalanceWidget(kZnnCoin, accountInfo),
         DottedBorderInfoWidget(
           text:
-              'Creating a project consumes $projectCreationFeeInZnn ${kZnnCoin.symbol} that goes to the Accelerator',
+              'Creating a project consumes ${projectCreationFeeInZnn.addDecimals(znnDecimals)} ${kZnnCoin.symbol} that goes to the Accelerator',
         ),
         kVerticalSpacing,
         Row(
@@ -440,7 +440,7 @@ class _ProjectCreationStepperState extends State<ProjectCreationStepper> {
       children: [
         DottedBorderInfoWidget(
           text:
-              'Consume $projectCreationFeeInZnn ${kZnnCoin.symbol} to submit the project',
+              'Consume ${projectCreationFeeInZnn.addDecimals(znnDecimals)} ${kZnnCoin.symbol} to submit the project',
         ),
         kVerticalSpacing,
         Row(
