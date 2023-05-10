@@ -172,7 +172,7 @@ class ProjectsStats extends StatelessWidget {
         children: [
           ChartLegend(
             dotColor: AppColors.znnColor,
-            mainText: 'Received funds',
+            mainText: 'Received',
             detailsWidget: FormattedAmountWithTooltip(
               amount: project.getPaidZnnFunds().addDecimals(znnDecimals),
               tokenSymbol: kZnnCoin.symbol,
@@ -184,7 +184,7 @@ class ProjectsStats extends StatelessWidget {
           ),
           ChartLegend(
             dotColor: AppColors.znnColor.withOpacity(0.2),
-            mainText: 'Remaining funds',
+            mainText: 'Remaining',
             detailsWidget: FormattedAmountWithTooltip(
               amount: project.getRemainingZnnFunds().addDecimals(znnDecimals),
               tokenSymbol: kZnnCoin.symbol,
@@ -196,7 +196,7 @@ class ProjectsStats extends StatelessWidget {
           ),
           ChartLegend(
             dotColor: AppColors.znnColor.withOpacity(0.4),
-            mainText: 'Total project cost',
+            mainText: 'Total',
             detailsWidget: FormattedAmountWithTooltip(
               amount: project.getTotalZnnFunds().addDecimals(znnDecimals),
               tokenSymbol: kZnnCoin.symbol,
@@ -220,7 +220,7 @@ class ProjectsStats extends StatelessWidget {
         children: [
           ChartLegend(
             dotColor: AppColors.qsrColor,
-            mainText: 'Received funds',
+            mainText: 'Received',
             detailsWidget: FormattedAmountWithTooltip(
               amount: project.getPaidQsrFunds().addDecimals(qsrDecimals),
               tokenSymbol: kQsrCoin.symbol,
@@ -232,7 +232,7 @@ class ProjectsStats extends StatelessWidget {
           ),
           ChartLegend(
             dotColor: AppColors.qsrColor.withOpacity(0.2),
-            mainText: 'Remaining funds',
+            mainText: 'Remaining',
             detailsWidget: FormattedAmountWithTooltip(
               amount: project.getRemainingQsrFunds().addDecimals(qsrDecimals),
               tokenSymbol: kQsrCoin.symbol,
@@ -244,7 +244,7 @@ class ProjectsStats extends StatelessWidget {
           ),
           ChartLegend(
             dotColor: AppColors.qsrColor.withOpacity(0.4),
-            mainText: 'Total project cost',
+            mainText: 'Total',
             detailsWidget: FormattedAmountWithTooltip(
               amount: project.getTotalQsrFunds().addDecimals(qsrDecimals),
               tokenSymbol: kQsrCoin.symbol,

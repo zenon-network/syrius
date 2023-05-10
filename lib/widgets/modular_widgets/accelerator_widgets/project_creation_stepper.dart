@@ -339,10 +339,17 @@ class _ProjectCreationStepperState extends State<ProjectCreationStepper> {
                   suffixIcon: AmountSuffixWidgets(
                     kZnnCoin,
                     onMaxPressed: () {
-                      setState(() {
-                        _projectZnnAmountController.text =
-                            kZnnProjectMaximumFunds.toString();
-                      });
+                      BigInt maxZnn = kZnnProjectMaximumFunds;
+                      if (_projectZnnAmountController.text.isEmpty ||
+                          AmountUtils.extractDecimals(
+                                  _projectZnnAmountController.text.toNum(),
+                                  znnDecimals) <
+                              maxZnn) {
+                        setState(() {
+                          _projectZnnAmountController.text =
+                              maxZnn.addDecimals(znnDecimals).toString();
+                        });
+                      }
                     },
                   ),
                   validator: (value) => InputValidators.correctValue(
@@ -380,10 +387,17 @@ class _ProjectCreationStepperState extends State<ProjectCreationStepper> {
                   suffixIcon: AmountSuffixWidgets(
                     kQsrCoin,
                     onMaxPressed: () {
-                      setState(() {
-                        _projectQsrAmountController.text =
-                            kQsrProjectMaximumFunds.toString();
-                      });
+                      BigInt maxQsr = kQsrProjectMaximumFunds;
+                      if (_projectQsrAmountController.text.isEmpty ||
+                          AmountUtils.extractDecimals(
+                                  _projectQsrAmountController.text.toNum(),
+                                  qsrDecimals) <
+                              maxQsr) {
+                        setState(() {
+                          _projectQsrAmountController.text =
+                              maxQsr.addDecimals(qsrDecimals).toString();
+                        });
+                      }
                     },
                   ),
                   validator: (value) => InputValidators.correctValue(

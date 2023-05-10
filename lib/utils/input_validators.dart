@@ -35,8 +35,8 @@ class InputValidators {
 
   static String? validateNumber(String? number) {
     try {
-      if (number == null) {
-        return 'Add a number';
+      if (number == null || number.isEmpty) {
+        return 'Number required';
       }
       BigInt.parse(number);
       return null;

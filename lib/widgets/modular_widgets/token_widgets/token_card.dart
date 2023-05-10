@@ -2,6 +2,7 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flip_card/flip_card.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:marquee_widget/marquee_widget.dart';
 import 'package:stacked/stacked.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
@@ -145,9 +146,13 @@ class _TokenCardState extends State<TokenCard> {
                     Row(
                       children: [
                         Expanded(
-                          child: Text(
-                            widget.token.tokenStandard.toString().toUpperCase(),
-                            style: Theme.of(context).textTheme.titleMedium,
+                          child: Marquee(
+                            child: Text(
+                              widget.token.tokenStandard
+                                  .toString()
+                                  .toUpperCase(),
+                              style: Theme.of(context).textTheme.titleMedium,
+                            ),
                           ),
                         ),
                         CopyToClipboardIcon(
