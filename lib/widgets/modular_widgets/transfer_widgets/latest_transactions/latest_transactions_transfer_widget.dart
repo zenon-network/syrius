@@ -196,19 +196,14 @@ class _LatestTransactionsState extends State<LatestTransactions> {
   }
 
   Widget _showTokenSymbol(AccountBlock block) {
-    return Text(
-      block.token?.symbol ?? '',
-      style: TextStyle(
-        fontSize: 12.0,
-        color: Colors.white,
-        fontWeight: FontWeight.w400,
-        background: Paint()
-          ..strokeWidth = 15.0
-          ..color = ColorUtils.getTokenColor(block.tokenStandard)
-          ..style = PaintingStyle.stroke
-          ..strokeJoin = StrokeJoin.round,
-      ),
-    );
+    return Transform(
+        transform: Matrix4.identity()..scale(0.8),
+        alignment: Alignment.bottomCenter,
+        child: Chip(
+            backgroundColor: ColorUtils.getTokenColor(block.tokenStandard),
+            label: Text(block.token?.symbol ?? ''),
+            side: BorderSide.none,
+            materialTapTargetSize: MaterialTapTargetSize.shrinkWrap));
   }
 
   void _onSortArrowsPressed(String columnName) {
