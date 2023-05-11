@@ -23,7 +23,7 @@ class WalletConnectService {
   late BuildContext _context;
   String _sessionTopic = '';
 
-  final List<ApproveResponse> _dAppsProposalData = [];
+  final List<SessionData> dAppsActiveSessions = [];
 
   set context(BuildContext context) => _context = context;
 
@@ -43,6 +43,20 @@ class WalletConnectService {
         icons: ['https://avatars.githubusercontent.com/u/37784886'],
       ),
     );
+    getPairings().getAll().forEach((pairingInfo) {
+      dAppsActiveSessions.addAll(
+        getSessionsForPairing(pairingInfo.topic).values
+      );
+      print('Active pairing: $pairingInfo');
+    });
+    print('Pairings num: ${getPairings().getAll().length}');
+    print('Active sessions: ${getActiveSessions()}');
+    // print(
+    //   'Active sessions per pairing: '
+    //   '${getSessionsForPairing(
+    //     '7c2744eae54d0fb37b7f77c41eb7ca14aed92093c9e0179099ec8ed3dc699c1e',
+    //   )}',
+    // );
     _initListeners();
   }
 
@@ -124,7 +138,7 @@ class WalletConnectService {
           );
 
           _sendSuccessfullyApprovedSessionNotification(dAppMetadata);
-          _dAppsProposalData.add(approveResponse);
+          dAppsActiveSessions.add(approveResponse.session);
           _sessionTopic = approveResponse.session.topic;
         } else {
           await _wcClient.rejectSession(
@@ -146,9 +160,8 @@ class WalletConnectService {
       chainId: 'zenon:3',
       method: 'znn_info',
       handler: (topic, params) async {
-        final dAppMetadata = _dAppsProposalData
+        final dAppMetadata = dAppsActiveSessions
             .firstWhere((element) => element.topic == topic)
-            .session
             .peer
             .metadata;
 
@@ -214,9 +227,8 @@ class WalletConnectService {
       chainId: 'zenon:3',
       method: 'znn_sign',
       handler: (topic, params) async {
-        final dAppMetadata = _dAppsProposalData
+        final dAppMetadata = dAppsActiveSessions
             .firstWhere((element) => element.topic == topic)
-            .session
             .peer
             .metadata;
         if (kCurrentPage != Tabs.lock) {
@@ -274,9 +286,8 @@ class WalletConnectService {
       chainId: 'zenon:3',
       method: 'znn_send',
       handler: (topic, params) async {
-        final dAppMetadata = _dAppsProposalData
+        final dAppMetadata = dAppsActiveSessions
             .firstWhere((element) => element.topic == topic)
-            .session
             .peer
             .metadata;
         if (kCurrentPage != Tabs.lock) {
@@ -403,6 +414,15 @@ class WalletConnectService {
   }) =>
       _wcClient.core.pairing.disconnect(topic: topic);
 
+  Future<void> disconnectSession() async {
+    IPairingStore pairingStore = getPairings();
+    pairingStore.getAll().forEach((element) async {
+      await _wcClient.disconnectSession(
+          topic: element.topic,
+          reason: Errors.getSdkError(Errors.USER_DISCONNECTED));
+    });
+  }
+
   Future<void> _emitEventForTheDApp({
     required String sessionTopic,
     required String changeName,
@@ -436,7 +456,7 @@ class WalletConnectService {
 
   Map<String, SessionData> getActiveSessions() => _wcClient.getActiveSessions();
 
-  Map<String, SessionData> getAllSessions(String pairingTopic) =>
+  Map<String, SessionData> getSessionsForPairing(String pairingTopic) =>
       _wcClient.getSessionsForPairing(
         pairingTopic: pairingTopic,
       );
