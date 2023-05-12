@@ -153,6 +153,9 @@ class _WalletConnectPairingCardState extends State<WalletConnectPairingCard> {
   Future<void> _pairWithDapp(Uri uri) async {
     try {
       final wcService = sl.get<WalletConnectService>();
+
+      await wcService.getWeb3Wallet().core.relayClient.connect();
+
       final pairingInfo = await wcService.pair(uri);
       Logger('WalletConnectPairingCard')
           .log(Level.INFO, 'pairing info', pairingInfo.toJson());

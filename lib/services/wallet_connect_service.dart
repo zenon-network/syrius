@@ -57,11 +57,67 @@ class WalletConnectService {
     _initListeners();
   }
 
+  Web3Wallet getWeb3Wallet() {
+    return _wcClient;
+  }
+
   Future<PairingInfo> pair(Uri uri) => _wcClient.pair(uri: uri);
 
   void _initListeners() {
     _wcClient.core.relayClient.onRelayClientDisconnect.subscribe((args) {
+      Logger('WalletConnectService').log(
+          Level.INFO, 'onRelayClientDisconnect triggered', args.toString());
       _wcClient.core.relayClient.connect();
+    });
+
+    _wcClient.core.pairing.onPairingCreate.subscribe((args) {
+      Logger('WalletConnectService')
+          .log(Level.INFO, 'onPairingCreate triggered', args.toString());
+    });
+
+    _wcClient.core.pairing.onPairingActivate.subscribe((args) {
+      Logger('WalletConnectService')
+          .log(Level.INFO, 'onPairingActivate triggered', args.toString());
+    });
+
+    _wcClient.core.pairing.onPairingInvalid.subscribe((args) {
+      Logger('WalletConnectService')
+          .log(Level.INFO, 'onPairingInvalid triggered', args.toString());
+    });
+
+    _wcClient.core.pairing.onPairingPing.subscribe((args) {
+      Logger('WalletConnectService')
+          .log(Level.INFO, 'onPairingPing triggered', args.toString());
+    });
+
+    _wcClient.core.pairing.onPairingDelete.subscribe((args) {
+      Logger('WalletConnectService')
+          .log(Level.INFO, 'onPairingDelete triggered', args.toString());
+    });
+
+    _wcClient.core.pairing.onPairingExpire.subscribe((args) {
+      Logger('WalletConnectService')
+          .log(Level.INFO, 'onPairingExpire triggered', args.toString());
+    });
+
+    _wcClient.onSessionDelete.subscribe((args) {
+      Logger('WalletConnectService')
+          .log(Level.INFO, 'onSessionDelete triggered', args.toString());
+    });
+
+    _wcClient.onSessionProposalError.subscribe((args) {
+      Logger('WalletConnectService')
+          .log(Level.INFO, 'onSessionProposalError triggered', args.toString());
+    });
+
+    _wcClient.onSessionConnect.subscribe((args) {
+      Logger('WalletConnectService')
+          .log(Level.INFO, 'onSessionConnect triggered', args.toString());
+    });
+
+    _wcClient.onSessionPing.subscribe((args) {
+      Logger('WalletConnectService')
+          .log(Level.INFO, 'onSessionPing triggered', args.toString());
     });
 
     _wcClient.onSessionProposal.subscribe((SessionProposalEvent? event) async {
@@ -130,7 +186,7 @@ class WalletConnectService {
                       'chainIdChange',
                       'addressChange',
                     ],
-              )
+              ),
             },
           );
 
@@ -379,7 +435,7 @@ class WalletConnectService {
               'znn_send',
             ],
             events: ['chainIdChange', 'addressChange'],
-          )
+          ),
         };
     return _wcClient.approveSession(
       id: id,
