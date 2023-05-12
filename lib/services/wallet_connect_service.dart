@@ -44,19 +44,16 @@ class WalletConnectService {
       ),
     );
     getPairings().getAll().forEach((pairingInfo) {
-      dAppsActiveSessions.addAll(
-        getSessionsForPairing(pairingInfo.topic).values
-      );
-      print('Active pairing: $pairingInfo');
+      dAppsActiveSessions
+          .addAll(getSessionsForPairing(pairingInfo.topic).values);
+
+      Logger('WalletConnectService')
+          .log(Level.INFO, 'active pairings: $pairingInfo');
     });
-    print('Pairings num: ${getPairings().getAll().length}');
-    print('Active sessions: ${getActiveSessions()}');
-    // print(
-    //   'Active sessions per pairing: '
-    //   '${getSessionsForPairing(
-    //     '7c2744eae54d0fb37b7f77c41eb7ca14aed92093c9e0179099ec8ed3dc699c1e',
-    //   )}',
-    // );
+    Logger('WalletConnectService')
+        .log(Level.INFO, 'pairings num: ${getPairings().getAll().length}');
+    Logger('WalletConnectService')
+        .log(Level.INFO, 'active sessions: ${getActiveSessions()}');
     _initListeners();
   }
 
@@ -297,69 +294,72 @@ class WalletConnectService {
           final toAddress = ZenonAddressUtils.getLabel(
             accountBlock.toAddress.toString(),
           );
-          final token = kDualCoin.firstWhere(
-            (element) => element.tokenStandard == accountBlock.tokenStandard,
-          );
-          final amount = accountBlock.amount.addDecimals(token.decimals);
+
+          final token =
+              await zenon!.embedded.token.getByZts(accountBlock.tokenStandard);
+
+          final amount = accountBlock.amount.addDecimals(token!.decimals);
           final sendPaymentBloc = SendPaymentBloc();
 
-          final wasActionAccepted = await showDialogWithNoAndYesOptions(
-            context: _context,
-            title: '${dAppMetadata.name} - Send Payment',
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Text('Are you sure you want to transfer '
-                    '$amount ${token.symbol} to '
-                    '$toAddress ?'),
-                kVerticalSpacing,
-                Image(
-                  image: NetworkImage(dAppMetadata.icons.first),
-                  height: 100.0,
-                  fit: BoxFit.fitHeight,
-                ),
-                kVerticalSpacing,
-                Text(dAppMetadata.description),
-                kVerticalSpacing,
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(dAppMetadata.url),
-                    LinkIcon(
-                      url: dAppMetadata.url,
-                    )
-                  ],
-                ),
-              ],
-            ),
-            description: 'Are you sure you want to transfer '
-                '$amount ${token.symbol} to '
-                '$toAddress ?',
-            onYesButtonPressed: () {
-              Navigator.pop(_context, true);
-            },
-            onNoButtonPressed: () {
-              Navigator.pop(_context, false);
-            },
-          );
-
-          if (wasActionAccepted) {
-            sendPaymentBloc.sendTransfer(
-              fromAddress: params['fromAddress'],
-              block: AccountBlockTemplate.fromJson(params['accountBlock']),
+          if (_context.mounted) {
+            final wasActionAccepted = await showDialogWithNoAndYesOptions(
+              context: _context,
+              title: '${dAppMetadata.name} - Send Payment',
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Text('Are you sure you want to transfer '
+                      '$amount ${token.symbol} to '
+                      '$toAddress ?'),
+                  kVerticalSpacing,
+                  Image(
+                    image: NetworkImage(dAppMetadata.icons.first),
+                    height: 100.0,
+                    fit: BoxFit.fitHeight,
+                  ),
+                  kVerticalSpacing,
+                  Text(dAppMetadata.description),
+                  kVerticalSpacing,
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(dAppMetadata.url),
+                      LinkIcon(
+                        url: dAppMetadata.url,
+                      )
+                    ],
+                  ),
+                ],
+              ),
+              description: 'Are you sure you want to transfer '
+                  '$amount ${token.symbol} to '
+                  '$toAddress ?',
+              onYesButtonPressed: () {
+                Navigator.pop(_context, true);
+              },
+              onNoButtonPressed: () {
+                Navigator.pop(_context, false);
+              },
             );
 
-            final result = await sendPaymentBloc.stream.firstWhere(
-              (element) => element != null,
-            );
+            if (wasActionAccepted) {
+              sendPaymentBloc.sendTransfer(
+                fromAddress: params['fromAddress'],
+                block: AccountBlockTemplate.fromJson(params['accountBlock']),
+              );
 
-            return result!;
+              final result = await sendPaymentBloc.stream.firstWhere(
+                (element) => element != null,
+              );
+
+              return result!;
+            } else {
+              throw Errors.getSdkError(Errors.USER_REJECTED);
+            }
           } else {
-            throw Errors.getSdkError(Errors.USER_REJECTED);
+            throw _walletLockedError;
           }
-        } else {
-          throw _walletLockedError;
         }
       },
     );
@@ -411,8 +411,19 @@ class WalletConnectService {
 
   Future<void> deactivatePairing({
     required String topic,
-  }) =>
+  }) async {
+    try {
       _wcClient.core.pairing.disconnect(topic: topic);
+    } on WalletConnectError catch (e) {
+      // technically look for WalletConnectError 6 : Expired.  to consider it a warning
+      Logger('WalletConnectService')
+          .log(Level.INFO, 'deactivatePairing ${e.code} : ${e.message}');
+    } catch (e, s) {
+      // Catch anything else (not just Exceptions) and log stack
+      Logger('WalletConnectService').log(Level.INFO,
+          'disconnectAllParings - Unexpected error: $e, topic $topic\n$s');
+    }
+  }
 
   Future<void> disconnectSession() async {
     IPairingStore pairingStore = getPairings();
