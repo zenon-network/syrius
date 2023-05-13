@@ -481,14 +481,20 @@ class WalletConnectService {
     }
   }
 
-  Future<void> disconnectSession() async {
-    IPairingStore pairingStore = getPairings();
-    pairingStore.getAll().forEach((element) async {
-      await _wcClient.disconnectSession(
-          topic: element.topic,
-          reason: Errors.getSdkError(Errors.USER_DISCONNECTED));
-    });
-  }
+  // Future<void> disconnectSessions() async {
+  //   IPairingStore pairingStore = getPairings();
+  //   pairingStore.getAll().forEach((element) async {
+  //     await _wcClient.disconnectSession(
+  //         topic: element.topic,
+  //         reason: Errors.getSdkError(Errors.USER_DISCONNECTED));
+  //   });
+  // }
+
+  Future<void> disconnectSession({required String topic}) async =>
+      _wcClient.disconnectSession(
+        topic: topic,
+        reason: Errors.getSdkError(Errors.USER_DISCONNECTED),
+      );
 
   Future<void> _emitEventForTheDApp({
     required String sessionTopic,
