@@ -23,7 +23,6 @@ class WalletConnectService {
 
   late Web3Wallet _wcClient;
   late BuildContext _context;
-  String _sessionTopic = '';
 
   final List<SessionData> dAppsActiveSessions = [];
 
@@ -429,32 +428,54 @@ class WalletConnectService {
         reason: Errors.getSdkError(Errors.USER_DISCONNECTED),
       );
 
-  Future<void> _emitEventForTheDApp({
-    required String sessionTopic,
+  Future<void> _emitEventForTheDApps({
     required String changeName,
     required String newValue,
   }) async {
-    return await _wcClient.emitSessionEvent(
-      topic: sessionTopic,
-      chainId: 'zenon:3',
-      event: SessionEventParams(
-        name: changeName,
-        data: newValue,
-      ),
-    );
+    final pairings = getPairings().getAll();
+
+    final sessionTopics =
+        pairings.fold<List<String>>(<String>[], (previousValue, pairing) {
+      if (pairing.active) {
+        var sessionsPerPairing = getSessionsForPairing(pairing.topic).keys;
+        previousValue.addAll(sessionsPerPairing);
+        return previousValue;
+      }
+      return previousValue;
+    });
+
+    for (var sessionTopic in sessionTopics) {
+      _emitEventForADApp(
+        sessionTopic: sessionTopic,
+        changeName: changeName,
+        newValue: newValue,
+      );
+    }
   }
 
+  Future<void> _emitEventForADApp({
+    required String sessionTopic,
+    required String changeName,
+    required String newValue,
+  }) =>
+      _wcClient.emitSessionEvent(
+        topic: sessionTopic,
+        chainId: 'zenon:3',
+        event: SessionEventParams(
+          name: changeName,
+          data: newValue,
+        ),
+      );
+
   Future<void> emitAddressChangeEvent(String newAddress) {
-    return _emitEventForTheDApp(
-      sessionTopic: _sessionTopic,
+    return _emitEventForTheDApps(
       changeName: 'addressChange',
       newValue: newAddress,
     );
   }
 
   Future<void> emitChainIdChangeEvent(String newChainId) {
-    return _emitEventForTheDApp(
-      sessionTopic: _sessionTopic,
+    return _emitEventForTheDApps(
       changeName: 'chainIdChange',
       newValue: newChainId,
     );
@@ -550,7 +571,6 @@ class WalletConnectService {
 
           _sendSuccessfullyApprovedSessionNotification(dAppMetadata);
           dAppsActiveSessions.add(approveResponse.session);
-          _sessionTopic = approveResponse.session.topic;
         }
       } else {
         await _wcClient.rejectSession(
@@ -565,8 +585,8 @@ class WalletConnectService {
 
   void _initialChecks() {
     final pendingProposals = _wcClient.getPendingSessionProposals();
-    Logger('WalletConnectService')
-        .log(Level.INFO, 'checkForPendingRequests', pendingProposals.keys.length);
+    Logger('WalletConnectService').log(
+        Level.INFO, 'checkForPendingRequests', pendingProposals.keys.length);
     if (pendingProposals.isNotEmpty) {
       pendingProposals.forEach((key, value) {
         _wcClient.approveSession(id: value.id, namespaces: {
