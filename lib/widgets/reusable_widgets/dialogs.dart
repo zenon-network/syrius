@@ -63,6 +63,7 @@ showDialogWithNoAndYesOptions({
   VoidCallback? onNoButtonPressed,
 }) =>
     showDialog(
+      barrierDismissible: false,
       context: context,
       builder: (context) => AlertDialog(
         title: Text(title),
