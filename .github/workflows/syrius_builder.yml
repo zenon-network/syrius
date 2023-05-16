@@ -166,10 +166,10 @@ jobs:
         uses: svenstaro/upload-release-action@2.4.1
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
-          release_name: ${{ env.SYRIUS_VERSION }}-hypercore.one
+          release_name: ${{ env.SYRIUS_VERSION }}
           prerelease: ${{ contains(env.SYRIUS_VERSION, '-') }}
-          tag: ${{ env.SYRIUS_VERSION }}-hypercore.one
+          tag: ${{ env.SYRIUS_VERSION }}
           file_glob: true
           file: releases/*
-          overwrite: false
+          overwrite: true
           body: ${{ env.BODY }}
