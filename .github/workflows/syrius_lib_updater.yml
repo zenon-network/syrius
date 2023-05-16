@@ -1,9 +1,6 @@
 name: Library updater for syrius
 
 on:
-  push:
-    branches:
-      - develop
   workflow_dispatch:
 
 jobs:
@@ -19,7 +16,7 @@ jobs:
       - name: Download libznn
         uses: robinraju/release-downloader@v1.6
         with:
-          repository: "hypercore-one/go-zenon"
+          repository: "zenon-network/go-zenon"
           latest: true
       - name: Extract libznn library
         run: |
