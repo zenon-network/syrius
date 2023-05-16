@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:walletconnect_flutter_v2/walletconnect_flutter_v2.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
-import 'package:zenon_syrius_wallet_flutter/blocs/wallet_connect/wallet_connect_pairings_bloc.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/wallet_connect/wallet_connect_sessions_bloc.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/services/wallet_connect_service.dart';
@@ -79,20 +78,20 @@ class _WalletConnectSessionsCardState extends State<WalletConnectSessionsCard> {
           ),
           isSelected
               ? InfiniteScrollTableCell.withMarquee(
-            sessionData.pairingTopic,
-          )
+                  sessionData.pairingTopic,
+                )
               : InfiniteScrollTableCell.withText(
-            context,
-            sessionData.pairingTopic.short,
-          ),
+                  context,
+                  sessionData.pairingTopic.short,
+                ),
           isSelected
               ? InfiniteScrollTableCell.withMarquee(
-            sessionData.topic,
-          )
+                  sessionData.topic,
+                )
               : InfiniteScrollTableCell.withText(
-            context,
-            sessionData.topic.short,
-          ),
+                  context,
+                  sessionData.topic.short,
+                ),
           InfiniteScrollTableCell.withText(
             context,
             _formatExpiryDateTime(sessionData.expiry).toString(),
@@ -132,7 +131,7 @@ class _WalletConnectSessionsCardState extends State<WalletConnectSessionsCard> {
 
   String _formatExpiryDateTime(int expirySeconds) {
     final expiryDateTime =
-    DateTime.fromMillisecondsSinceEpoch(expirySeconds * 1000);
+        DateTime.fromMillisecondsSinceEpoch(expirySeconds * 1000);
 
     return DateFormat('MMM dd, y HH:mm:ss').format(expiryDateTime);
   }
