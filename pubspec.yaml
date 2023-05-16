@@ -1,6 +1,5 @@
 name: zenon_syrius_wallet_flutter
 description: Zenon cross-platform non-custodial wallet
-version: 0.0.6
 publish_to: none
 
 environment:
