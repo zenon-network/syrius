@@ -29,7 +29,7 @@ class _ReceiveMediumCardState extends State<ReceiveMediumCard> {
 
   String? _selectedSelfAddress = kSelectedAddress;
 
-  Token? _selectedToken;
+  Token _selectedToken = kDualCoin.first;
 
   final List<Token> _tokens = [];
 
@@ -74,8 +74,6 @@ class _ReceiveMediumCardState extends State<ReceiveMediumCard> {
   }
 
   Widget _getWidgetBody(BuildContext context, List<Token> tokens) {
-    _selectedToken ??= kDualCoin.first;
-
     _initTokens(tokens);
 
     return Container(
@@ -99,7 +97,7 @@ class _ReceiveMediumCardState extends State<ReceiveMediumCard> {
                 ReceiveQrImage(
                   data: _getQrString(),
                   size: 110.0,
-                  tokenStandard: _selectedToken!.tokenStandard,
+                  tokenStandard: _selectedToken.tokenStandard,
                   context: context,
                 ),
                 const SizedBox(
@@ -169,16 +167,16 @@ class _ReceiveMediumCardState extends State<ReceiveMediumCard> {
   }
 
   String _getQrString() {
-    return '${_selectedToken!.symbol.toLowerCase()}:'
-        '$_selectedSelfAddress?zts=${_selectedToken!.tokenStandard}'
+    return '${_selectedToken.symbol.toLowerCase()}:'
+        '$_selectedSelfAddress?zts=${_selectedToken.tokenStandard}'
         '&amount=${_getAmount()}';
   }
 
-  num _getAmount() {
+  BigInt _getAmount() {
     try {
-      return _amountController.text.toNum();
+      return _amountController.text.extractDecimals(_selectedToken.decimals);
     } catch (e) {
-      return 0;
+      return BigInt.zero;
     }
   }
 
@@ -199,7 +197,7 @@ class _ReceiveMediumCardState extends State<ReceiveMediumCard> {
 
   Widget _getCoinDropdown() => CoinDropdown(
         _tokens.toList(),
-        _selectedToken!,
+        _selectedToken,
         (value) {
           if (_selectedToken != value) {
             setState(

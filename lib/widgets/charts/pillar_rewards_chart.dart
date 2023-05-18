@@ -60,8 +60,9 @@ class PillarRewardsChartState extends State<PillarRewardsChart> {
       .toList()[index]
       .znnAmount
       .addDecimals(
-        znnDecimals,
-      );
+        coinDecimals,
+      )
+      .toNum();
 
   num _getMaxValueOfZnnRewards() {
     BigInt? max = widget.rewardsHistory!.list.first.znnAmount;
@@ -70,6 +71,6 @@ class PillarRewardsChartState extends State<PillarRewardsChart> {
         max = element.znnAmount;
       }
     }
-    return max!.addDecimals(znnDecimals);
+    return max!.addDecimals(coinDecimals).toNum();
   }
 }

@@ -7,6 +7,7 @@ import 'package:zenon_syrius_wallet_flutter/utils/format_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/input_validators.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/notification_utils.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/zts_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
@@ -220,10 +221,10 @@ class _SwapCardState extends State<SwapCard> {
 
   void _onMaxPressed(AccountInfo accountInfo) => setState(() {
         _amountController.text = accountInfo
-            .getBalanceWithDecimals(
+            .getBalance(
               kZnnCoin.tokenStandard,
             )
-            .toString();
+            .addDecimals(coinDecimals);
       });
 
   bool _isInputValid(AccountInfo accountInfo) =>

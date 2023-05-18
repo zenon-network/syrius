@@ -246,12 +246,12 @@ class _StakingOptionsState extends State<StakingOptions> {
   void _onStakePressed(StakingOptionsBloc? model) {
     if (_selectedStakeDuration != null &&
         _znnAmountKey.currentState!.validate() &&
-        _znnAmountController.text.toNum().extractDecimals(znnDecimals) >=
+        _znnAmountController.text.extractDecimals(coinDecimals) >=
             stakeMinZnnAmount) {
       _stakeButtonKey.currentState?.animateForward();
       model!.stakeForQsr(
         _selectedStakeDuration!,
-        _znnAmountController.text.toNum().extractDecimals(znnDecimals),
+        _znnAmountController.text.extractDecimals(coinDecimals),
       );
     }
   }
@@ -265,7 +265,7 @@ class _StakingOptionsState extends State<StakingOptions> {
 
   void _onMaxPressed() {
     setState(() {
-      _znnAmountController.text = _maxZnnAmount.toString();
+      _znnAmountController.text = _maxZnnAmount.addDecimals(coinDecimals);
     });
   }
 

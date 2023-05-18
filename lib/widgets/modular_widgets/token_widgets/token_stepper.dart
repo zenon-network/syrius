@@ -373,7 +373,7 @@ class _TokenStepperState extends State<TokenStepper> {
             child: DottedBorderInfoWidget(
               text: 'You will need to burn '
                   '${tokenZtsIssueFeeInZnn.addDecimals(
-                znnDecimals,
+                coinDecimals,
               )} ${kZnnCoin.symbol} '
                   'to issue a token',
               borderColor: AppColors.ztsColor,
@@ -458,7 +458,7 @@ class _TokenStepperState extends State<TokenStepper> {
                       validator: _isMintable
                           ? (String? value) => InputValidators.correctValue(
                                 value,
-                                kBigP255,
+                                kBigP255m1,
                                 _selectedNumDecimals.toInt(),
                                 kMinTokenTotalMaxSupply,
                                 canBeEqualToMin: true,
@@ -493,10 +493,9 @@ class _TokenStepperState extends State<TokenStepper> {
                     _isMintable
                         ? _maxSupplyController.text.isNotEmpty
                             ? _maxSupplyController.text
-                                .toNum()
                                 .extractDecimals(_selectedNumDecimals)
-                            : kBigP255
-                        : kBigP255,
+                            : kBigP255m1
+                        : kBigP255m1,
                     _selectedNumDecimals.toInt(),
                     _isMintable ? BigInt.zero : kMinTokenTotalMaxSupply,
                     canBeEqualToMin: true,
@@ -646,7 +645,7 @@ class _TokenStepperState extends State<TokenStepper> {
         DottedBorderInfoWidget(
           text: 'You will need to burn '
               '${tokenZtsIssueFeeInZnn.addDecimals(
-            znnDecimals,
+            coinDecimals,
           )} ${kZnnCoin.symbol} '
               'to issue a token',
           borderColor: AppColors.ztsColor,
@@ -693,17 +692,12 @@ class _TokenStepperState extends State<TokenStepper> {
     if ((!_isMintable || _maxSupplyKey.currentState!.validate()) &&
         _totalSupplyKey.currentState!.validate()) {
       _tokenStepperData.decimals = _selectedNumDecimals.toInt();
-      _tokenStepperData.totalSupply = _totalSupplyController.text
-          .toNum()
-          .extractDecimals(_selectedNumDecimals);
+      _tokenStepperData.totalSupply =
+          _totalSupplyController.text.extractDecimals(_selectedNumDecimals);
       _tokenStepperData.isMintable = _isMintable;
       _tokenStepperData.maxSupply = (_isMintable
-          ? _maxSupplyController.text
-              .toNum()
-              .extractDecimals(_selectedNumDecimals)
-          : _totalSupplyController.text
-              .toNum()
-              .extractDecimals(_selectedNumDecimals));
+          ? _maxSupplyController.text.extractDecimals(_selectedNumDecimals)
+          : _totalSupplyController.text.extractDecimals(_selectedNumDecimals));
       _tokenStepperData.isOwnerBurnOnly = _isBurnable;
       _saveProgressAndNavigateToNextStep(TokenStepperStep.tokenMetrics);
     }
@@ -734,12 +728,10 @@ class _TokenStepperState extends State<TokenStepper> {
   Widget _getTokenCreationContinueButton(AccountInfo accountInfo) {
     return StepperButton(
       text: 'Continue',
-      onPressed: accountInfo.getBalanceWithDecimals(
+      onPressed: accountInfo.getBalance(
                 kZnnCoin.tokenStandard,
               ) >=
-              tokenZtsIssueFeeInZnn.addDecimals(
-                znnDecimals,
-              )
+              tokenZtsIssueFeeInZnn
           ? _onTokenCreationContinuePressed
           : null,
     );
@@ -791,7 +783,7 @@ class _TokenStepperState extends State<TokenStepper> {
       (_isMintable
           ? InputValidators.correctValue(
                 _maxSupplyController.text,
-                kBigP255,
+                kBigP255m1,
                 _selectedNumDecimals.toInt(),
                 kMinTokenTotalMaxSupply,
                 canBeEqualToMin: true,
@@ -801,9 +793,9 @@ class _TokenStepperState extends State<TokenStepper> {
       InputValidators.correctValue(
             _totalSupplyController.text,
             _isMintable
-                ? AmountUtils.extractDecimals(_maxSupplyController.text.toNum(),
-                    _selectedNumDecimals.toInt())
-                : kBigP255,
+                ? _maxSupplyController.text
+                    .extractDecimals(_selectedNumDecimals.toInt())
+                : kBigP255m1,
             _selectedNumDecimals.toInt(),
             _isMintable ? BigInt.zero : kMinTokenTotalMaxSupply,
             canBeEqualToMin: true,

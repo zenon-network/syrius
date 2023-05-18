@@ -45,7 +45,7 @@ dependencies:
   znn_sdk_dart:
     git:
       url: https://github.com/alienc0der/znn_sdk_dart.git
-      ref: b863532aec0b176a70ce13c63fe78d7856ab37e1
+      ref: 2e445add298e841bf5a5bec2e3525e5c77fd0278
   json_rpc_2: ^3.0.2
   path: ^1.8.2
   ffi: ^2.0.1
@@ -66,7 +66,8 @@ dependencies:
   image: ^4.0.10
   clipboard_watcher: ^0.2.0
   wallet_connect_uri_validator: ^0.1.0
-
+  big_decimal: ^0.5.0
+  
 dev_dependencies:
   flutter_test:
     sdk: flutter

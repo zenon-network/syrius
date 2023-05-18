@@ -72,9 +72,11 @@ class WidgetUtils {
   static String getPlasmaToolTipMessage(PlasmaInfo plasmaInfo) {
     if (plasmaInfo.currentPlasma >= kPillarPlasmaAmountNeeded) {
       return 'High Plasma';
-    } else if (plasmaInfo.currentPlasma >= kIssueTokenPlasmaAmountNeeded) {
+    } else if (plasmaInfo.currentPlasma >= kIssueTokenPlasmaAmountNeeded &&
+        plasmaInfo.currentPlasma < kPillarPlasmaAmountNeeded) {
       return 'Average Plasma';
-    } else if (plasmaInfo.currentPlasma >= minPlasmaAmount.toInt()) {
+    } else if (plasmaInfo.currentPlasma >= minPlasmaAmount.toInt() &&
+        plasmaInfo.currentPlasma < kIssueTokenPlasmaAmountNeeded) {
       return 'Low Plasma';
     } else {
       return 'Insufficient Plasma';

@@ -196,8 +196,7 @@ class _SendMediumCardState extends State<SendMediumCard> {
     model.sendTransfer(
       fromAddress: kSelectedAddress,
       toAddress: _recipientController.text,
-      amount: AmountUtils.extractDecimals(
-          _amountController.text.toNum(), _selectedToken.decimals),
+      amount: _amountController.text.extractDecimals(_selectedToken.decimals),
       data: null,
       token: _selectedToken,
     );
@@ -238,14 +237,16 @@ class _SendMediumCardState extends State<SendMediumCard> {
       );
 
   void _onMaxPressed(AccountInfo accountInfo) {
-    num maxBalance = accountInfo.getBalanceWithDecimals(
+    BigInt maxBalance = accountInfo.getBalance(
       _selectedToken.tokenStandard,
     );
 
     if (_amountController.text.isEmpty ||
-        _amountController.text.toNum() < maxBalance) {
+        _amountController.text.extractDecimals(_selectedToken.decimals) <
+            maxBalance) {
       setState(() {
-        _amountController.text = maxBalance.toString();
+        _amountController.text =
+            maxBalance.addDecimals(_selectedToken.decimals);
       });
     }
   }

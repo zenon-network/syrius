@@ -77,23 +77,29 @@ class _SentinelRewardsChart extends State<SentinelRewardsChart> {
             .toList()[index]
             .znnAmount
             .addDecimals(
-              znnDecimals,
+              coinDecimals,
             )
+            .toNum()
         : widget.rewardsHistory!.list.reversed
             .toList()[index]
             .qsrAmount
             .addDecimals(
-              qsrDecimals,
-            );
+              coinDecimals,
+            )
+            .toNum();
   }
 
   num _getMaxValueOfRewards() {
-    num maxZnn = _getMaxValueOfZnnRewards().addDecimals(
-      znnDecimals,
-    );
-    num maxQsr = _getMaxValueOfQsrRewards().addDecimals(
-      qsrDecimals,
-    );
+    num maxZnn = _getMaxValueOfZnnRewards()
+        .addDecimals(
+          coinDecimals,
+        )
+        .toNum();
+    num maxQsr = _getMaxValueOfQsrRewards()
+        .addDecimals(
+          coinDecimals,
+        )
+        .toNum();
     return max(maxQsr, maxZnn);
   }
 

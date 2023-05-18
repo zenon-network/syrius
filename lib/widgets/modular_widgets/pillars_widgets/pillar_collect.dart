@@ -68,9 +68,11 @@ class _PillarCollectState extends State<PillarCollect> {
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         NumberAnimation(
-          end: uncollectedReward.znnAmount.addDecimals(
-            znnDecimals,
-          ),
+          end: uncollectedReward.znnAmount
+              .addDecimals(
+                coinDecimals,
+              )
+              .toNum(),
           isInt: false,
           after: ' ${kZnnCoin.symbol}',
           style: Theme.of(context).textTheme.headlineLarge!.copyWith(

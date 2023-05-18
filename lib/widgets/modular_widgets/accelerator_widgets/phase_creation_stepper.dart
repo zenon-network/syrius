@@ -275,8 +275,7 @@ class _PhaseCreationStepperState extends State<PhaseCreationStepper> {
                       setState(() {
                         _phaseZnnAmountController.text = widget.project
                             .getRemainingZnnFunds()
-                            .addDecimals(znnDecimals)
-                            .toString();
+                            .addDecimals(coinDecimals);
                       });
                     },
                   ),
@@ -286,7 +285,7 @@ class _PhaseCreationStepperState extends State<PhaseCreationStepper> {
                   validator: (value) => InputValidators.correctValue(
                     value,
                     widget.project.getRemainingZnnFunds(),
-                    znnDecimals,
+                    coinDecimals,
                     BigInt.zero,
                     canBeEqualToMin: true,
                   ),
@@ -318,8 +317,7 @@ class _PhaseCreationStepperState extends State<PhaseCreationStepper> {
                       setState(() {
                         _phaseQsrAmountController.text = widget.project
                             .getRemainingQsrFunds()
-                            .addDecimals(qsrDecimals)
-                            .toString();
+                            .addDecimals(coinDecimals);
                       });
                     },
                   ),
@@ -329,7 +327,7 @@ class _PhaseCreationStepperState extends State<PhaseCreationStepper> {
                   validator: (value) => InputValidators.correctValue(
                     value,
                     widget.project.getRemainingQsrFunds(),
-                    qsrDecimals,
+                    coinDecimals,
                     BigInt.zero,
                     canBeEqualToMin: true,
                   ),
@@ -375,17 +373,15 @@ class _PhaseCreationStepperState extends State<PhaseCreationStepper> {
   }
 
   Widget _getSubmitPhaseStepContent() {
-    double remainingZnnBudget =
-        widget.project.getRemainingZnnFunds().addDecimals(znnDecimals) -
-            double.parse(_phaseZnnAmountController.text.isNotEmpty
-                ? _phaseZnnAmountController.text
-                : '0.0');
+    BigInt remainingZnnBudget = widget.project.getRemainingZnnFunds() -
+        (_phaseZnnAmountController.text.isNotEmpty
+            ? _phaseZnnAmountController.text.extractDecimals(coinDecimals)
+            : BigInt.zero);
 
-    double remainingQsrBudget =
-        widget.project.getRemainingQsrFunds().addDecimals(qsrDecimals) -
-            double.parse(_phaseQsrAmountController.text.isNotEmpty
-                ? _phaseQsrAmountController.text
-                : '0.0');
+    BigInt remainingQsrBudget = widget.project.getRemainingQsrFunds() -
+        (_phaseQsrAmountController.text.isNotEmpty
+            ? _phaseQsrAmountController.text.extractDecimals(coinDecimals)
+            : BigInt.zero);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -426,12 +422,12 @@ class _PhaseCreationStepperState extends State<PhaseCreationStepper> {
           _phaseNameController.text,
           _phaseDescriptionController.text,
           _phaseUrlController.text,
-          _phaseZnnAmountController.text.toNum().extractDecimals(
-                znnDecimals,
-              ),
-          _phaseQsrAmountController.text.toNum().extractDecimals(
-                qsrDecimals,
-              ),
+          _phaseZnnAmountController.text.extractDecimals(
+            coinDecimals,
+          ),
+          _phaseQsrAmountController.text.extractDecimals(
+            coinDecimals,
+          ),
         );
       },
       text: 'Submit',
@@ -481,7 +477,7 @@ class _PhaseCreationStepperState extends State<PhaseCreationStepper> {
       InputValidators.correctValue(
             _phaseZnnAmountController.text,
             widget.project.getRemainingZnnFunds(),
-            znnDecimals,
+            coinDecimals,
             BigInt.zero,
             canBeEqualToMin: true,
           ) ==
@@ -489,7 +485,7 @@ class _PhaseCreationStepperState extends State<PhaseCreationStepper> {
       InputValidators.correctValue(
             _phaseQsrAmountController.text,
             widget.project.getRemainingQsrFunds(),
-            qsrDecimals,
+            coinDecimals,
             BigInt.zero,
             canBeEqualToMin: true,
           ) ==

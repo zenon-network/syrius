@@ -38,7 +38,7 @@ class InputValidators {
       if (number == null || number.isEmpty) {
         return 'Number required';
       }
-      BigInt.parse(number);
+      int.parse(number);
       return null;
     } catch (e, stackTrace) {
       Logger('InputValidators')
@@ -89,7 +89,7 @@ class InputValidators {
           }
         }
 
-        BigInt inputNum = AmountUtils.extractDecimals(value.toNum(), decimals);
+        BigInt inputNum = value.extractDecimals(decimals);
 
         if (value.contains('.') && value.split('.')[1].length > decimals) {
           return 'Inputted number has too many decimals';

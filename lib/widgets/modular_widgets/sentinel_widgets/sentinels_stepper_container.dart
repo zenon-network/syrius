@@ -62,12 +62,10 @@ class _MainSentinelsState extends State<SentinelsStepperContainer> {
   void initState() {
     super.initState();
     _qsrCost = sentinelRegisterQsrAmount;
-    _qsrAmountController.text = _qsrCost.addDecimals(qsrDecimals).toString();
-    _znnAmountController.text = sentinelRegisterZnnAmount
-        .addDecimals(
-          znnDecimals,
-        )
-        .toString();
+    _qsrAmountController.text = _qsrCost.addDecimals(coinDecimals);
+    _znnAmountController.text = sentinelRegisterZnnAmount.addDecimals(
+      coinDecimals,
+    );
     _addressController.text = kSelectedAddress!;
     sl.get<BalanceBloc>().getBalanceForAllAddresses();
     _iniStepperControllers();
@@ -163,10 +161,11 @@ class _MainSentinelsState extends State<SentinelsStepperContainer> {
                                 PieChartSectionData(
                                   showTitle: false,
                                   radius: 7.0,
-                                  value: (_qsrCost.toDouble() -
-                                          (depositedQsr - _withdrawnQSR) /
-                                              _qsrCost)
-                                      .toDouble(),
+                                  value: (_qsrCost
+                                          .addDecimals(coinDecimals)
+                                          .toNum() -
+                                      (depositedQsr - _withdrawnQSR) /
+                                          _qsrCost),
                                   color: AppColors.qsrColor.withOpacity(0.3),
                                 ),
                                 PieChartSectionData(
@@ -179,7 +178,7 @@ class _MainSentinelsState extends State<SentinelsStepperContainer> {
                             ),
                           ),
                           Text(
-                            'Sentinel Slot value\n${_qsrCost.addDecimals(qsrDecimals)} ${kQsrCoin.symbol}',
+                            'Sentinel Slot value\n${_qsrCost.addDecimals(coinDecimals)} ${kQsrCoin.symbol}',
                             style: Theme.of(context).textTheme.bodyMedium,
                             textAlign: TextAlign.center,
                           ),
@@ -239,7 +238,7 @@ class _MainSentinelsState extends State<SentinelsStepperContainer> {
                       SizedBox(
                         width: 130.0,
                         child: Text(
-                          'You have deposited ${depositedQsr.addDecimals(qsrDecimals)} ${kQsrCoin.symbol}',
+                          'You have deposited ${depositedQsr.addDecimals(coinDecimals)} ${kQsrCoin.symbol}',
                           textAlign: TextAlign.center,
                           style: Theme.of(context).textTheme.bodyLarge,
                         ),
@@ -375,6 +374,7 @@ class _MainSentinelsState extends State<SentinelsStepperContainer> {
       onPressed: _qsrAmountValidator(_qsrAmountController.text) == null
           ? () => _onDepositButtonPressed(model, depositedQsr)
           : null,
+      outlineColor: AppColors.qsrColor,
     );
   }
 
@@ -425,6 +425,7 @@ class _MainSentinelsState extends State<SentinelsStepperContainer> {
         text: 'Withdraw',
         onPressed: () => _onWithdrawButtonPressed(model, qsrDeposit),
         key: _withdrawButtonKey,
+        outlineColor: AppColors.qsrColor,
       ),
     );
   }
@@ -589,16 +590,16 @@ class _MainSentinelsState extends State<SentinelsStepperContainer> {
       if (depositedQsr >= _qsrCost) {
         _depositQsrButtonKey.currentState?.animateForward();
         model.depositQsr(
-          _qsrAmountController.text.toNum().extractDecimals(qsrDecimals),
+          _qsrAmountController.text.extractDecimals(coinDecimals),
           justMarkStepCompleted: true,
         );
       } else if (_maxQsrAmount + depositedQsr >= _qsrCost &&
           _qsrFormKey.currentState!.validate() &&
-          _qsrAmountController.text.toNum().extractDecimals(qsrDecimals) >
+          _qsrAmountController.text.extractDecimals(coinDecimals) >
               BigInt.zero) {
         _depositQsrButtonKey.currentState?.animateForward();
         model.depositQsr(
-            _qsrAmountController.text.toNum().extractDecimals(qsrDecimals));
+            _qsrAmountController.text.extractDecimals(coinDecimals));
       }
     } else if (_lastCompletedStep == SentinelsStepperStep.qsrManagement) {
       setState(() {
@@ -625,7 +626,7 @@ class _MainSentinelsState extends State<SentinelsStepperContainer> {
     if (_lastCompletedStep == SentinelsStepperStep.znnManagement) {
       _registerButtonKey.currentState?.animateForward();
       model.deploySentinel(
-          _znnAmountController.text.toNum().extractDecimals(znnDecimals));
+          _znnAmountController.text.extractDecimals(coinDecimals));
     }
   }
 

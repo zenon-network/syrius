@@ -64,7 +64,7 @@ class _StakeCollectState extends State<StakeCollect> {
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         NumberAnimation(
-          end: uncollectedReward.qsrAmount.addDecimals(qsrDecimals),
+          end: uncollectedReward.qsrAmount.addDecimals(coinDecimals).toNum(),
           isInt: false,
           after: ' ${kQsrCoin.symbol}',
           style: Theme.of(context).textTheme.headlineLarge!.copyWith(

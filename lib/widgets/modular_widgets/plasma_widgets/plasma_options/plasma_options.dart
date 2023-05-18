@@ -238,17 +238,13 @@ class _PlasmaOptionsState extends State<PlasmaOptions> {
       PlasmaInfo.fromJson(
         {
           'currentPlasma': ((_qsrAmountController.text.isNotEmpty
-                  ? zenon!.embedded.plasma
-                      .getPlasmaByQsr(
-                        _qsrAmountController.text
-                            .toNum()
-                            .extractDecimals(qsrDecimals),
-                      )
-                      .toInt()
+                  ? int.parse((zenon!.embedded.plasma.getPlasmaByQsr(
+                      _qsrAmountController.text.extractDecimals(coinDecimals),
+                    )).addDecimals(coinDecimals))
                   : 0) +
               _getPlasmaForCurrentBeneficiary()),
           'maxPlasma': 0,
-          'qsrAmount': BigInt.zero.toString(),
+          'qsrAmount': '0',
         },
       ),
     );
@@ -306,7 +302,7 @@ class _PlasmaOptionsState extends State<PlasmaOptions> {
       _fuseButtonKey.currentState?.animateForward();
       model!.generatePlasma(
         _beneficiaryAddressController.text,
-        _qsrAmountController.text.toNum().extractDecimals(qsrDecimals),
+        _qsrAmountController.text.extractDecimals(coinDecimals),
       );
     }
   }
@@ -320,12 +316,11 @@ class _PlasmaOptionsState extends State<PlasmaOptions> {
 
   void _onMaxPressed() {
     if (_qsrAmountController.text.isEmpty ||
-        AmountUtils.extractDecimals(
-                _qsrAmountController.text.toNum(), qsrDecimals) !=
+        _qsrAmountController.text.extractDecimals(coinDecimals) !=
             _maxQsrAmount) {
       setState(() {
         _qsrAmountController.text =
-            _maxQsrAmount.addDecimals(qsrDecimals).toInt().toString();
+            _maxQsrAmount.addDecimals(coinDecimals).toNum().toInt().toString();
       });
     }
   }

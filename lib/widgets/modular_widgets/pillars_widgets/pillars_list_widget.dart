@@ -7,7 +7,6 @@ import 'package:stacked/stacked.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/extensions.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/notification_utils.dart';
@@ -640,10 +639,7 @@ class _PillarsListWidgetState extends State<PillarsListWidget> {
     delegateButtonKey = _delegateButtonKeys[pillarInfo.name]!;
 
     return Visibility(
-      visible: accountInfo.znn()!.addDecimals(
-                    znnDecimals,
-                  ) >=
-              kMinDelegationAmount &&
+      visible: accountInfo.znn()! >= kMinDelegationAmount &&
           (_currentlyDelegatingToPillar == null
               ? true
               : _currentlyDelegatingToPillar == pillarInfo.name),

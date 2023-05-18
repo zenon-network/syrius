@@ -81,6 +81,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.2.2"
+  big_decimal:
+    dependency: "direct main"
+    description:
+      name: big_decimal
+      sha256: "301158ec5a646d1e1a0ca7a97fbfab7be18a8df700adb7f7cb9c4149e75c8f0c"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.5.0"
   bip32:
     dependency: transitive
     description:
@@ -1593,8 +1601,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: b863532aec0b176a70ce13c63fe78d7856ab37e1
-      resolved-ref: b863532aec0b176a70ce13c63fe78d7856ab37e1
+      ref: "2e445add298e841bf5a5bec2e3525e5c77fd0278"
+      resolved-ref: "2e445add298e841bf5a5bec2e3525e5c77fd0278"
       url: "https://github.com/alienc0der/znn_sdk_dart.git"
     source: git
     version: "0.0.4"

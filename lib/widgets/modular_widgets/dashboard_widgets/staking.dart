@@ -65,7 +65,7 @@ class _StakingState extends State<Staking> {
               style: Theme.of(context).textTheme.headlineMedium,
             ),
             Text(
-              '${stake.totalZnnStakingAmount.addDecimals(znnDecimals)} ${kZnnCoin.symbol}',
+              '${stake.totalZnnStakingAmount.addDecimals(coinDecimals)} ${kZnnCoin.symbol}',
               style: Theme.of(context).textTheme.titleMedium,
             ),
           ],

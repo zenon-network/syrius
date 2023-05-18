@@ -78,11 +78,7 @@ const String kWindowPositionYKey = 'window_position_y_key';
 const String kWindowMaximizedKey = 'window_maximized_key';
 
 const double kDefaultBorderOutlineWidth = 1.0;
-const double kMinDelegationAmount = 1.0;
 const double kStandardChartNumDays = 7;
-
-final BigInt kMinTokenTotalMaxSupply = BigInt.one;
-final BigInt kBigP255 = BigInt.from(2).pow(255);
 
 const int kAddressLabelMaxLength = 80;
 const int kNumOfInitialAddresses = 1;
@@ -103,11 +99,6 @@ const int kStakePlasmaAmountNeeded = 105000;
 const int kDelegatePlasmaAmountNeeded = 84000;
 const int kIssueTokenPlasmaAmountNeeded = 189000;
 
-final BigInt kZnnProjectMaximumFunds = BigInt.from(5000);
-final BigInt kQsrProjectMaximumFunds = BigInt.from(50000);
-final BigInt kZnnProjectMinimumFunds = BigInt.from(10);
-final BigInt kQsrProjectMinimumFunds = BigInt.from(100);
-
 const int kAmountInputMaxCharacterLength = 21;
 const int kSecondsPerMomentum = 10;
 
@@ -122,12 +113,14 @@ final List<int> kPowerUsersPlasmaRequirements = [
   kIssueTokenPlasmaAmountNeeded,
 ];
 
-const String kLocalhostDefaultNodeUrl = 'ws://127.0.0.1:35998';
+const String kLocalhostDefaultNodeUrl = 'ws://127.0.0.1:$kDefaultPort';
+const int kDefaultPort = 35998;
 
 List<String> kDefaultNodes = [
   'Embedded Node',
   kLocalhostDefaultNodeUrl,
 ];
+
 const List<String> kWalletActions = [
   'pillar',
   'sentinel',
@@ -183,7 +176,6 @@ const bool kEnableClipboardWatcherDefaultValue = false;
 
 /// Node management
 const String kChainIdKey = 'chain_id';
-// TODO: maybe change to production
 const int kChainIdDefaultValue = 1; // 1 corresponds to Alphanet
 
 // Display constants

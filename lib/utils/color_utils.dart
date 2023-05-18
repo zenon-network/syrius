@@ -23,9 +23,11 @@ class ColorUtils {
   static Color getPlasmaColor(PlasmaInfo plasmaInfo) {
     if (plasmaInfo.currentPlasma >= kPillarPlasmaAmountNeeded) {
       return AppColors.znnColor;
-    } else if (plasmaInfo.currentPlasma >= kIssueTokenPlasmaAmountNeeded) {
+    } else if (plasmaInfo.currentPlasma >= kIssueTokenPlasmaAmountNeeded &&
+        plasmaInfo.currentPlasma < kPillarPlasmaAmountNeeded) {
       return Colors.yellow;
-    } else if (plasmaInfo.currentPlasma >= minPlasmaAmount.toInt()) {
+    } else if (plasmaInfo.currentPlasma >= minPlasmaAmount.toInt() &&
+        plasmaInfo.currentPlasma < kIssueTokenPlasmaAmountNeeded) {
       return Colors.orange;
     } else {
       return AppColors.ztsColor;

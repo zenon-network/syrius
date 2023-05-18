@@ -68,7 +68,7 @@ class _SentinelCollectState extends State<SentinelCollect> {
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         NumberAnimation(
-          end: uncollectedReward.znnAmount.addDecimals(znnDecimals),
+          end: uncollectedReward.znnAmount.addDecimals(coinDecimals).toNum(),
           isInt: false,
           after: ' ${kZnnCoin.symbol}',
           style: Theme.of(context).textTheme.headlineLarge!.copyWith(
@@ -78,7 +78,7 @@ class _SentinelCollectState extends State<SentinelCollect> {
         ),
         kVerticalSpacing,
         NumberAnimation(
-          end: uncollectedReward.qsrAmount.addDecimals(qsrDecimals),
+          end: uncollectedReward.qsrAmount.addDecimals(coinDecimals).toNum(),
           isInt: false,
           after: ' ${kQsrCoin.symbol}',
           style: Theme.of(context).textTheme.headlineLarge!.copyWith(
