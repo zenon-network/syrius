@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_vector_icons/flutter_vector_icons.dart';
+import 'package:marquee_widget/marquee_widget.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/color_utils.dart';
@@ -86,20 +87,25 @@ class _LatestTransactionsState extends State<LatestTransactions> {
               infoBlock.hash.toShortString(),
               flex: 2,
             ),
-      InfiniteScrollTableCell(
-        FormattedAmountWithTooltip(
-          amount: infoBlock.amount.addDecimals(
-            infoBlock.token?.decimals ?? 0,
-          ),
-          tokenSymbol: infoBlock.token?.symbol ?? '',
-          builder: (formattedAmount, tokenSymbol) => Text(
-            formattedAmount,
-            style: Theme.of(context).textTheme.titleMedium!.copyWith(
-                  color: AppColors.subtitleColor,
-                ),
+      InfiniteScrollTableCell(Padding(
+        padding: const EdgeInsets.only(right: 10),
+        child: Marquee(
+          animationDuration: const Duration(milliseconds: 1000),
+          backDuration: const Duration(milliseconds: 1000),
+          child: FormattedAmountWithTooltip(
+            amount: infoBlock.amount.addDecimals(
+              infoBlock.token?.decimals ?? 0,
+            ),
+            tokenSymbol: infoBlock.token?.symbol ?? '',
+            builder: (formattedAmount, tokenSymbol) => Text(
+              formattedAmount,
+              style: Theme.of(context).textTheme.titleMedium!.copyWith(
+                    color: AppColors.subtitleColor,
+                  ),
+            ),
           ),
         ),
-      ),
+      )),
       InfiniteScrollTableCell.withText(
         context,
         infoBlock.confirmationDetail?.momentumTimestamp == null
@@ -341,16 +347,23 @@ class _LatestTransactionsState extends State<LatestTransactions> {
           ? WidgetUtils.getMarqueeAddressTableCell(infoBlock.address, context)
           : WidgetUtils.getTextAddressTableCell(infoBlock.address, context),
       InfiniteScrollTableCell(
-        FormattedAmountWithTooltip(
-          amount: infoBlock.amount.addDecimals(
-            infoBlock.token?.decimals ?? 0,
-          ),
-          tokenSymbol: infoBlock.token?.symbol ?? '',
-          builder: (formattedAmount, tokenSymbol) => Text(
-            formattedAmount,
-            style: Theme.of(context).textTheme.titleMedium!.copyWith(
-                  color: AppColors.subtitleColor,
-                ),
+        Padding(
+          padding: const EdgeInsets.only(right: 10),
+          child: Marquee(
+            animationDuration: const Duration(milliseconds: 1000),
+            backDuration: const Duration(milliseconds: 1000),
+            child: FormattedAmountWithTooltip(
+              amount: infoBlock.amount.addDecimals(
+                infoBlock.token?.decimals ?? 0,
+              ),
+              tokenSymbol: infoBlock.token?.symbol ?? '',
+              builder: (formattedAmount, tokenSymbol) => Text(
+                formattedAmount,
+                style: Theme.of(context).textTheme.titleMedium!.copyWith(
+                      color: AppColors.subtitleColor,
+                    ),
+              ),
+            ),
           ),
         ),
       ),

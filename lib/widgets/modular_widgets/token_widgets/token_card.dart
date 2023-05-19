@@ -326,11 +326,9 @@ class _TokenCardState extends State<TokenCard> {
   }
 
   Widget _getAnimatedChart(Token token) {
-    double totalSupplyWithDecimals =
-        token.totalSupply.addDecimals(token.decimals).toDouble();
+    BigInt totalSupply = token.totalSupply;
 
-    double maxSupplyWithDecimals =
-        token.maxSupply.addDecimals(token.decimals).toDouble();
+    BigInt maxSupply = token.maxSupply;
 
     return Stack(
       alignment: Alignment.center,
@@ -343,14 +341,13 @@ class _TokenCardState extends State<TokenCard> {
               PieChartSectionData(
                 showTitle: false,
                 radius: 5.0,
-                value: totalSupplyWithDecimals / maxSupplyWithDecimals,
+                value: totalSupply / maxSupply,
                 color: ColorUtils.getTokenColor(widget.token.tokenStandard),
               ),
               PieChartSectionData(
                 showTitle: false,
                 radius: 5.0,
-                value: (maxSupplyWithDecimals - totalSupplyWithDecimals) /
-                    maxSupplyWithDecimals,
+                value: (maxSupply - totalSupply) / maxSupply,
                 color: Colors.white12,
               ),
             ],
@@ -358,13 +355,15 @@ class _TokenCardState extends State<TokenCard> {
         ),
         SizedBox(
           width: 70.0,
-          child: FormattedAmountWithTooltip(
-            amount: totalSupplyWithDecimals,
-            tokenSymbol: token.symbol,
-            builder: (formattedAmount, tokenSymbol) => Text(
-              '$formattedAmount $tokenSymbol',
-              style: Theme.of(context).textTheme.bodyMedium,
-              textAlign: TextAlign.center,
+          child: Marquee(
+            child: FormattedAmountWithTooltip(
+              amount: totalSupply.addDecimals(token.decimals),
+              tokenSymbol: token.symbol,
+              builder: (formattedAmount, tokenSymbol) => Text(
+                '$formattedAmount $tokenSymbol',
+                style: Theme.of(context).textTheme.bodyMedium,
+                textAlign: TextAlign.center,
+              ),
             ),
           ),
         ),
@@ -480,7 +479,6 @@ class _TokenCardState extends State<TokenCard> {
               model.burnToken(
                   widget.token,
                   _burnAmountController.text
-                      .toNum()
                       .extractDecimals(widget.token.decimals));
             }
           : null,
@@ -501,19 +499,17 @@ class _TokenCardState extends State<TokenCard> {
 
   void _onMaxPressed() {
     if (_burnAmountController.text.isEmpty ||
-        _burnAmountController.text
-                .toNum()
-                .extractDecimals(widget.token.decimals) !=
+        _burnAmountController.text.extractDecimals(widget.token.decimals) !=
             _burnMaxAmount ||
-        _burnAmountController.text
-                .toNum()
-                .extractDecimals(widget.token.decimals) !=
+        _burnAmountController.text.extractDecimals(widget.token.decimals) !=
             _mintMaxAmount) {
       setState(() {
         if (_backOfCardVersion == TokenCardBackVersion.burn) {
-          _burnAmountController.text = _burnMaxAmount.toString();
+          _burnAmountController.text =
+              _burnMaxAmount.addDecimals(widget.token.decimals);
         } else {
-          _mintAmountController.text = _mintMaxAmount.toString();
+          _mintAmountController.text =
+              _mintMaxAmount.addDecimals(widget.token.decimals);
         }
       });
     }
@@ -641,7 +637,6 @@ class _TokenCardState extends State<TokenCard> {
               model.mintToken(
                 widget.token,
                 _mintAmountController.text
-                    .toNum()
                     .extractDecimals(widget.token.decimals),
                 Address.parse(_beneficiaryAddressController.text),
               );

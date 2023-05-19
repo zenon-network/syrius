@@ -203,7 +203,7 @@ class _ProjectCreationStepperState extends State<ProjectCreationStepper> {
         StepperUtils.getBalanceWidget(kZnnCoin, accountInfo),
         DottedBorderInfoWidget(
           text:
-              'Creating a project consumes ${projectCreationFeeInZnn.addDecimals(znnDecimals)} ${kZnnCoin.symbol} that goes to the Accelerator',
+              'Creating a project consumes ${projectCreationFeeInZnn.addDecimals(coinDecimals)} ${kZnnCoin.symbol} that goes to the Accelerator',
         ),
         kVerticalSpacing,
         Row(
@@ -218,10 +218,10 @@ class _ProjectCreationStepperState extends State<ProjectCreationStepper> {
               width: 15.0,
             ),
             StepperButton(
-              onPressed: accountInfo.getBalanceWithDecimals(
+              onPressed: accountInfo.getBalance(
                         kZnnCoin.tokenStandard,
                       ) >=
-                      projectCreationFeeInZnn.addDecimals(znnDecimals)
+                      projectCreationFeeInZnn
                   ? () {
                       setState(() {
                         _lastCompletedStep =
@@ -341,13 +341,12 @@ class _ProjectCreationStepperState extends State<ProjectCreationStepper> {
                     onMaxPressed: () {
                       BigInt maxZnn = kZnnProjectMaximumFunds;
                       if (_projectZnnAmountController.text.isEmpty ||
-                          AmountUtils.extractDecimals(
-                                  _projectZnnAmountController.text.toNum(),
-                                  znnDecimals) <
+                          _projectZnnAmountController.text
+                                  .extractDecimals(coinDecimals) <
                               maxZnn) {
                         setState(() {
                           _projectZnnAmountController.text =
-                              maxZnn.addDecimals(znnDecimals).toString();
+                              maxZnn.addDecimals(coinDecimals);
                         });
                       }
                     },
@@ -389,13 +388,12 @@ class _ProjectCreationStepperState extends State<ProjectCreationStepper> {
                     onMaxPressed: () {
                       BigInt maxQsr = kQsrProjectMaximumFunds;
                       if (_projectQsrAmountController.text.isEmpty ||
-                          AmountUtils.extractDecimals(
-                                  _projectQsrAmountController.text.toNum(),
-                                  qsrDecimals) <
+                          _projectQsrAmountController.text
+                                  .extractDecimals(coinDecimals) <
                               maxQsr) {
                         setState(() {
                           _projectQsrAmountController.text =
-                              maxQsr.addDecimals(qsrDecimals).toString();
+                              maxQsr.addDecimals(coinDecimals);
                         });
                       }
                     },
@@ -413,7 +411,6 @@ class _ProjectCreationStepperState extends State<ProjectCreationStepper> {
                 ),
               ),
             ),
-            // Empty space so that all the right edges will align
             const SizedBox(
               width: 23.0,
             ),
@@ -454,7 +451,7 @@ class _ProjectCreationStepperState extends State<ProjectCreationStepper> {
       children: [
         DottedBorderInfoWidget(
           text:
-              'Consume ${projectCreationFeeInZnn.addDecimals(znnDecimals)} ${kZnnCoin.symbol} to submit the project',
+              'Consume ${projectCreationFeeInZnn.addDecimals(coinDecimals)} ${kZnnCoin.symbol} to submit the project',
         ),
         kVerticalSpacing,
         Row(
@@ -512,12 +509,12 @@ class _ProjectCreationStepperState extends State<ProjectCreationStepper> {
           _projectNameController.text,
           _projectDescriptionController.text,
           _projectUrlController.text,
-          _projectZnnAmountController.text.toNum().extractDecimals(
-                znnDecimals,
-              ),
-          _projectQsrAmountController.text.toNum().extractDecimals(
-                qsrDecimals,
-              ),
+          _projectZnnAmountController.text.extractDecimals(
+            coinDecimals,
+          ),
+          _projectQsrAmountController.text.extractDecimals(
+            coinDecimals,
+          ),
         );
       },
       text: 'Submit',

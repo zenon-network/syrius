@@ -57,9 +57,9 @@ class _UpdatePhaseStepperState extends State<UpdatePhaseStepper> {
     _phaseDescriptionController.text = widget.phase.description;
     _phaseUrlController.text = widget.phase.url;
     _phaseZnnAmountController.text =
-        widget.phase.znnFundsNeeded.addDecimals(znnDecimals).toString();
+        widget.phase.znnFundsNeeded.addDecimals(coinDecimals);
     _phaseQsrAmountController.text =
-        widget.phase.qsrFundsNeeded.addDecimals(qsrDecimals).toString();
+        widget.phase.qsrFundsNeeded.addDecimals(coinDecimals);
     sl.get<BalanceBloc>().getBalanceForAllAddresses();
   }
 
@@ -243,8 +243,7 @@ class _UpdatePhaseStepperState extends State<UpdatePhaseStepper> {
                 setState(() {
                   _phaseZnnAmountController.text = widget.project
                       .getRemainingZnnFunds()
-                      .addDecimals(znnDecimals)
-                      .toString();
+                      .addDecimals(coinDecimals);
                 });
               },
             ),
@@ -276,8 +275,7 @@ class _UpdatePhaseStepperState extends State<UpdatePhaseStepper> {
                 setState(() {
                   _phaseQsrAmountController.text = widget.project
                       .getRemainingQsrFunds()
-                      .addDecimals(qsrDecimals)
-                      .toString();
+                      .addDecimals(coinDecimals);
                 });
               },
             ),
@@ -362,8 +360,8 @@ class _UpdatePhaseStepperState extends State<UpdatePhaseStepper> {
           _phaseNameController.text,
           _phaseDescriptionController.text,
           _phaseUrlController.text,
-          double.parse(_phaseZnnAmountController.text),
-          double.parse(_phaseQsrAmountController.text),
+          _phaseZnnAmountController.text.extractDecimals(coinDecimals),
+          _phaseQsrAmountController.text.extractDecimals(coinDecimals),
         );
       },
       text: 'Update',

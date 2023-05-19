@@ -1,10 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/color_utils.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/zts_utils.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
@@ -103,7 +100,9 @@ class _TokenBalanceState extends State<TokenBalance> {
         mainAxisSpacing: 10.0,
       ),
       itemBuilder: (context, index) => FormattedAmountWithTooltip(
-        amount: _newTokenIds[index].balanceWithDecimals!,
+        amount: _newTokenIds[index]
+            .balance!
+            .addDecimals(_newTokenIds[index].token!.decimals),
         tokenSymbol: _newTokenIds[index].token!.symbol,
         builder: (amount, symbol) => Row(
           mainAxisAlignment: MainAxisAlignment.center,

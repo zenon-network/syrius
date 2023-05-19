@@ -5,7 +5,7 @@ import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 class UpdatePhaseBloc extends BaseBloc<AccountBlockTemplate?> {
   void updatePhase(Hash id, String name, String description, String url,
-      double znnFundsNeeded, double qsrFundsNeeded) {
+      BigInt znnFundsNeeded, BigInt qsrFundsNeeded) {
     try {
       addEvent(null);
       AccountBlockTemplate transactionParams =
@@ -14,8 +14,8 @@ class UpdatePhaseBloc extends BaseBloc<AccountBlockTemplate?> {
         name,
         description,
         url,
-        znnFundsNeeded.extractDecimals(znnDecimals),
-        qsrFundsNeeded.extractDecimals(qsrDecimals),
+        znnFundsNeeded,
+        qsrFundsNeeded,
       );
       AccountBlockUtils.createAccountBlock(transactionParams, 'update phase')
           .then(

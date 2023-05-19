@@ -1,16 +1,14 @@
-# Project-level configuration.
-cmake_minimum_required(VERSION 3.14)
-project(zenon_syrius_wallet_flutter LANGUAGES CXX)
+cmake_minimum_required(VERSION 3.15)
+project(syrius LANGUAGES CXX)
 
-# The name of the executable created for the application. Change this to change
-# the on-disk name of your application.
-set(BINARY_NAME "zenon_syrius_wallet_flutter")
+set(BINARY_NAME "syrius")
+set(APPLICATION_ID "network.zenon.syrius")
 
-# Explicitly opt in to modern CMake behaviors to avoid warnings with recent
-# versions of CMake.
 cmake_policy(SET CMP0063 NEW)
 
-# Define build configuration option.
+set(CMAKE_INSTALL_RPATH "$ORIGIN/lib")
+
+# Configure build options.
 get_property(IS_MULTICONFIG GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
 if(IS_MULTICONFIG)
   set(CMAKE_CONFIGURATION_TYPES "Debug;Profile;Release"
@@ -23,7 +21,7 @@ else()
       "Debug" "Profile" "Release")
   endif()
 endif()
-# Define settings for the Profile build mode.
+
 set(CMAKE_EXE_LINKER_FLAGS_PROFILE "${CMAKE_EXE_LINKER_FLAGS_RELEASE}")
 set(CMAKE_SHARED_LINKER_FLAGS_PROFILE "${CMAKE_SHARED_LINKER_FLAGS_RELEASE}")
 set(CMAKE_C_FLAGS_PROFILE "${CMAKE_C_FLAGS_RELEASE}")
@@ -33,10 +31,6 @@ set(CMAKE_CXX_FLAGS_PROFILE "${CMAKE_CXX_FLAGS_RELEASE}")
 add_definitions(-DUNICODE -D_UNICODE)
 
 # Compilation settings that should be applied to most targets.
-#
-# Be cautious about adding new options here, as plugins use this function by
-# default. In most cases, you should add new options to specific targets instead
-# of modifying this function.
 function(APPLY_STANDARD_SETTINGS TARGET)
   target_compile_features(${TARGET} PUBLIC cxx_std_17)
   target_compile_options(${TARGET} PRIVATE /W4 /WX /wd"4100")
@@ -45,11 +39,12 @@ function(APPLY_STANDARD_SETTINGS TARGET)
   target_compile_definitions(${TARGET} PRIVATE "$<$<CONFIG:Debug>:_DEBUG>")
 endfunction()
 
-# Flutter library and tool build rules.
 set(FLUTTER_MANAGED_DIR "${CMAKE_CURRENT_SOURCE_DIR}/flutter")
+
+# Flutter library and tool build rules.
 add_subdirectory(${FLUTTER_MANAGED_DIR})
 
-# Application build; see runner/CMakeLists.txt.
+# Application build
 add_subdirectory("runner")
 
 # Generated plugin build rules, which manage building the plugins and adding
@@ -99,3 +94,31 @@ install(DIRECTORY "${PROJECT_BUILD_DIR}/${FLUTTER_ASSET_DIR_NAME}"
 install(FILES "${AOT_LIBRARY}" DESTINATION "${INSTALL_BUNDLE_DATA_DIR}"
   CONFIGURATIONS Profile;Release
   COMPONENT Runtime)
+
+# Bundle required ZNN libraries for Syrius
+set(SYRIUS_PROJECT_DIRECTORY "${CMAKE_HOME_DIRECTORY}/..")
+
+# Leveraging flutter to identify dependency locations
+file(STRINGS "${SYRIUS_PROJECT_DIRECTORY}/.dart_tool/package_config.json"
+  ZNN_SDK_DART_PATH REGEX "(file:).*(znn_sdk_dart).*\\/\"" )
+
+string(REPLACE "\"rootUri\": \"file:///" "" ZNN_SDK_DART_PATH "${ZNN_SDK_DART_PATH}")
+string(REPLACE "/\"," "" ZNN_SDK_DART_PATH "${ZNN_SDK_DART_PATH}")
+string(STRIP "${ZNN_SDK_DART_PATH}" ZNN_SDK_DART_PATH)
+
+list(APPEND SYRIUS_LIBRARIES
+  "${SYRIUS_PROJECT_DIRECTORY}/lib/embedded_node/blobs/libznn.dll"
+  "${ZNN_SDK_DART_PATH}/lib/src/argon2/blobs/argon2_ffi_plugin.dll"
+  "${ZNN_SDK_DART_PATH}/lib/src/pow/blobs/libpow_links.dll"
+)
+
+foreach(znn_library ${SYRIUS_LIBRARIES})
+  install(FILES "${znn_library}"
+    DESTINATION "${CMAKE_INSTALL_PREFIX}"
+    COMPONENT Runtime)
+  message(STATUS "Copy ZNN library: \"${znn_library}\"")
+endforeach(znn_library)
+
+find_program(POWERSHELL_PATH NAMES powershell)
+add_custom_target("git_metadata" ALL
+  COMMAND ${POWERSHELL_PATH} "${CMAKE_HOME_DIRECTORY}/CreateGitMetadata.ps1")

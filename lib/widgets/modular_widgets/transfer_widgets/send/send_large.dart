@@ -260,8 +260,7 @@ class _SendLargeCardState extends State<SendLargeCard> {
     model.sendTransfer(
       fromAddress: _selectedSelfAddress,
       toAddress: _recipientController.text,
-      amount: AmountUtils.extractDecimals(
-          _amountController.text.toNum(), _selectedToken.decimals),
+      amount: _amountController.text.extractDecimals(_selectedToken.decimals),
       data: null,
       token: _selectedToken,
     );
@@ -297,14 +296,16 @@ class _SendLargeCardState extends State<SendLargeCard> {
       );
 
   void _onMaxPressed(AccountInfo accountInfo) {
-    num maxBalance = accountInfo.getBalanceWithDecimals(
+    BigInt maxBalance = accountInfo.getBalance(
       _selectedToken.tokenStandard,
     );
 
     if (_amountController.text.isEmpty ||
-        _amountController.text.toNum() < maxBalance) {
+        _amountController.text.extractDecimals(_selectedToken.decimals) <
+            maxBalance) {
       setState(() {
-        _amountController.text = maxBalance.toString();
+        _amountController.text =
+            maxBalance.addDecimals(_selectedToken.decimals);
       });
     }
   }
@@ -366,10 +367,10 @@ class _SendLargeCardState extends State<SendLargeCard> {
   }
 
   bool _hasBalance(AccountInfo accountInfo) =>
-      accountInfo.getBalanceWithDecimals(
+      accountInfo.getBalance(
         _selectedToken.tokenStandard,
       ) >
-      0;
+      BigInt.zero;
 
   void _addTokensWithBalance(AccountInfo accountInfo) {
     for (var balanceInfo in accountInfo.balanceInfoList!) {

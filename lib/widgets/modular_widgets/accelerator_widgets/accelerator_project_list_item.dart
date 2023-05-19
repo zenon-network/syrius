@@ -221,7 +221,7 @@ class _AcceleratorProjectListItemState
   TagWidget _getProjectZnnFundsNeededTag(BuildContext context) {
     return TagWidget(
       text:
-          '${widget.acceleratorProject.znnFundsNeededWithDecimals} ${kZnnCoin.symbol}',
+          '${widget.acceleratorProject.znnFundsNeeded.addDecimals(coinDecimals)} ${kZnnCoin.symbol}',
       hexColorCode:
           Theme.of(context).colorScheme.secondary.value.toRadixString(16),
     );
@@ -230,7 +230,7 @@ class _AcceleratorProjectListItemState
   TagWidget _getProjectQsrFundsNeededTag(BuildContext context) {
     return TagWidget(
       text:
-          '${widget.acceleratorProject.qsrFundsNeededWithDecimals} ${kQsrCoin.symbol}',
+          '${widget.acceleratorProject.qsrFundsNeeded.addDecimals(coinDecimals)} ${kQsrCoin.symbol}',
       hexColorCode:
           Theme.of(context).colorScheme.secondary.value.toRadixString(16),
     );

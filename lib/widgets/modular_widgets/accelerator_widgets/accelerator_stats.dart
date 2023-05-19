@@ -77,9 +77,11 @@ class _AcceleratorStatsState extends State<AcceleratorStats> {
           dotColor: AppColors.znnColor,
           mainText: 'Available',
           detailsWidget: FormattedAmountWithTooltip(
-            amount: accountInfo.getBalanceWithDecimals(
-              kZnnCoin.tokenStandard,
-            ),
+            amount: accountInfo
+                .getBalance(
+                  kZnnCoin.tokenStandard,
+                )
+                .addDecimals(coinDecimals),
             tokenSymbol: kZnnCoin.symbol,
             builder: (amount, tokenSymbol) => Text(
               '$amount $tokenSymbol',
@@ -92,9 +94,11 @@ class _AcceleratorStatsState extends State<AcceleratorStats> {
           dotColor: AppColors.qsrColor,
           mainText: 'Available',
           detailsWidget: FormattedAmountWithTooltip(
-            amount: accountInfo.getBalanceWithDecimals(
-              kQsrCoin.tokenStandard,
-            ),
+            amount: accountInfo
+                .getBalance(
+                  kQsrCoin.tokenStandard,
+                )
+                .addDecimals(coinDecimals),
             tokenSymbol: kQsrCoin.symbol,
             builder: (amount, tokenSymbol) => Text(
               '$amount $tokenSymbol',

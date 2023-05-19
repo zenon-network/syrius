@@ -1,4 +1,4 @@
-import 'dart:math' show pow;
+import 'package:big_decimal/big_decimal.dart';
 
 extension StringExtensions on String {
   String capitalize() {
@@ -6,31 +6,28 @@ extension StringExtensions on String {
   }
 
   num toNum() => num.parse(this);
-}
 
-extension FixedNumDecimals on double {
-  String toStringFixedNumDecimals(int numDecimals) {
-    return '${(this * pow(10, numDecimals)).truncate() / pow(10, numDecimals)}';
+  BigInt extractDecimals(int decimals) {
+    if (!contains('.')) {
+      return BigInt.parse(this + ''.padRight(decimals, '0'));
+    }
+    List<String> parts = split('.');
+
+    return BigInt.parse(parts[0] +
+        (parts[1].length > decimals
+            ? parts[1].substring(0, decimals)
+            : parts[1].padRight(decimals, '0')));
   }
-}
+  //BigInt.parse(num.parse(this).toStringAsFixed(decimals).replaceAll('.', ''));
 
-extension NumExtensions on num {
-  BigInt extractDecimals(int decimals) =>
-      BigInt.parse(toStringAsFixed(decimals).replaceAll('.', ''));
+  String abs() => this;
 }
 
 extension BigIntExtensions on BigInt {
-  num addDecimals(int decimals) {
-    return getValueInUnit(this, decimals);
+  String addDecimals(int decimals) {
+    return BigDecimal.createAndStripZerosForScale(this, decimals, 0)
+        .toPlainString();
   }
-}
-
-double getValueInUnit(BigInt amount, int decimals) {
-  final factor = BigInt.from(10).pow(decimals);
-  final value = amount ~/ factor;
-  final remainder = amount.remainder(factor);
-
-  return value.toInt() + (remainder.toInt() / factor.toInt());
 }
 
 // This extension takes other list with fewer elements and creates a single one

@@ -287,6 +287,7 @@ class WalletConnectService {
               await zenon!.embedded.token.getByZts(accountBlock.tokenStandard);
 
           final amount = accountBlock.amount.addDecimals(token!.decimals);
+
           final sendPaymentBloc = SendPaymentBloc();
 
           if (_context.mounted) {
@@ -386,7 +387,7 @@ class WalletConnectService {
 
   List<String> _getWalletAccounts() => kAddressLabelMap.values
       .map(
-        (address) => _generateAccount(address, 3),
+        (address) => _generateAccount(address, getChainIdentifier()),
       )
       .toList();
 

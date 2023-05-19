@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 class AvailableBalance extends StatelessWidget {
@@ -14,9 +15,9 @@ class AvailableBalance extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Text(
-      '${accountInfo.getBalanceWithDecimals(
-        token.tokenStandard,
-      )} '
+      '${accountInfo.getBalance(
+            token.tokenStandard,
+          ).addDecimals(token.decimals)} '
       '${token.symbol} available',
       style: Theme.of(context).inputDecorationTheme.hintStyle,
     );

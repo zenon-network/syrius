@@ -253,12 +253,11 @@ class _AcceleratorDonationStepperState
                   kZnnCoin.tokenStandard,
                 );
                 if (_znnAmountController.text.isEmpty ||
-                    AmountUtils.extractDecimals(
-                            _znnAmountController.text.toNum(), znnDecimals) <
+                    _znnAmountController.text.extractDecimals(coinDecimals) <
                         maxZnn) {
                   setState(() {
                     _znnAmountController.text =
-                        maxZnn.addDecimals(znnDecimals).toString();
+                        maxZnn.addDecimals(coinDecimals);
                   });
                 }
               },
@@ -266,7 +265,7 @@ class _AcceleratorDonationStepperState
             validator: (value) => InputValidators.correctValue(
               value,
               accountInfo.znn()!,
-              znnDecimals,
+              coinDecimals,
               BigInt.zero,
               canBeEqualToMin: true,
               canBeBlank: true,
@@ -292,14 +291,12 @@ class _AcceleratorDonationStepperState
                 BigInt maxQsr = accountInfo.getBalance(
                   kQsrCoin.tokenStandard,
                 );
-
                 if (_qsrAmountController.text.isEmpty ||
-                    AmountUtils.extractDecimals(
-                            _qsrAmountController.text.toNum(), qsrDecimals) <
+                    _qsrAmountController.text.extractDecimals(coinDecimals) <
                         maxQsr) {
                   setState(() {
                     _qsrAmountController.text =
-                        maxQsr.addDecimals(qsrDecimals).toString();
+                        maxQsr.addDecimals(coinDecimals);
                   });
                 }
               },
@@ -307,7 +304,7 @@ class _AcceleratorDonationStepperState
             validator: (value) => InputValidators.correctValue(
               value,
               accountInfo.qsr()!,
-              znnDecimals,
+              coinDecimals,
               BigInt.zero,
               canBeEqualToMin: true,
               canBeBlank: true,
@@ -353,17 +350,17 @@ class _AcceleratorDonationStepperState
   bool _ifInputValid(AccountInfo accountInfo) {
     try {
       _znnAmount = _znnAmountController.text.isNotEmpty
-          ? _znnAmountController.text.toNum().extractDecimals(znnDecimals)
+          ? _znnAmountController.text.extractDecimals(coinDecimals)
           : BigInt.zero;
       _qsrAmount = _qsrAmountController.text.isNotEmpty
-          ? _qsrAmountController.text.toNum().extractDecimals(qsrDecimals)
+          ? _qsrAmountController.text.extractDecimals(coinDecimals)
           : BigInt.zero;
     } catch (_) {}
 
     return InputValidators.correctValue(
               _znnAmountController.text,
               accountInfo.znn()!,
-              znnDecimals,
+              coinDecimals,
               BigInt.zero,
               canBeEqualToMin: true,
               canBeBlank: true,
@@ -372,7 +369,7 @@ class _AcceleratorDonationStepperState
         InputValidators.correctValue(
               _qsrAmountController.text,
               accountInfo.qsr()!,
-              qsrDecimals,
+              coinDecimals,
               BigInt.zero,
               canBeEqualToMin: true,
               canBeBlank: true,

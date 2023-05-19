@@ -174,7 +174,7 @@ class ProjectsStats extends StatelessWidget {
             dotColor: AppColors.znnColor,
             mainText: 'Received',
             detailsWidget: FormattedAmountWithTooltip(
-              amount: project.getPaidZnnFunds().addDecimals(znnDecimals),
+              amount: project.getPaidZnnFunds().addDecimals(coinDecimals),
               tokenSymbol: kZnnCoin.symbol,
               builder: (amount, tokenSymbol) => Text(
                 '$amount $tokenSymbol',
@@ -186,7 +186,7 @@ class ProjectsStats extends StatelessWidget {
             dotColor: AppColors.znnColor.withOpacity(0.2),
             mainText: 'Remaining',
             detailsWidget: FormattedAmountWithTooltip(
-              amount: project.getRemainingZnnFunds().addDecimals(znnDecimals),
+              amount: project.getRemainingZnnFunds().addDecimals(coinDecimals),
               tokenSymbol: kZnnCoin.symbol,
               builder: (amount, tokenSymbol) => Text(
                 '$amount $tokenSymbol',
@@ -198,7 +198,7 @@ class ProjectsStats extends StatelessWidget {
             dotColor: AppColors.znnColor.withOpacity(0.4),
             mainText: 'Total',
             detailsWidget: FormattedAmountWithTooltip(
-              amount: project.getTotalZnnFunds().addDecimals(znnDecimals),
+              amount: project.getTotalZnnFunds().addDecimals(coinDecimals),
               tokenSymbol: kZnnCoin.symbol,
               builder: (amount, tokenSymbol) => Text(
                 '$amount $tokenSymbol',
@@ -222,7 +222,7 @@ class ProjectsStats extends StatelessWidget {
             dotColor: AppColors.qsrColor,
             mainText: 'Received',
             detailsWidget: FormattedAmountWithTooltip(
-              amount: project.getPaidQsrFunds().addDecimals(qsrDecimals),
+              amount: project.getPaidQsrFunds().addDecimals(coinDecimals),
               tokenSymbol: kQsrCoin.symbol,
               builder: (amount, tokenSymbol) => Text(
                 '$amount $tokenSymbol',
@@ -234,7 +234,7 @@ class ProjectsStats extends StatelessWidget {
             dotColor: AppColors.qsrColor.withOpacity(0.2),
             mainText: 'Remaining',
             detailsWidget: FormattedAmountWithTooltip(
-              amount: project.getRemainingQsrFunds().addDecimals(qsrDecimals),
+              amount: project.getRemainingQsrFunds().addDecimals(coinDecimals),
               tokenSymbol: kQsrCoin.symbol,
               builder: (amount, tokenSymbol) => Text(
                 '$amount $tokenSymbol',
@@ -246,7 +246,7 @@ class ProjectsStats extends StatelessWidget {
             dotColor: AppColors.qsrColor.withOpacity(0.4),
             mainText: 'Total',
             detailsWidget: FormattedAmountWithTooltip(
-              amount: project.getTotalQsrFunds().addDecimals(qsrDecimals),
+              amount: project.getTotalQsrFunds().addDecimals(coinDecimals),
               tokenSymbol: kQsrCoin.symbol,
               builder: (amount, tokenSymbol) => Text(
                 '$amount $tokenSymbol',

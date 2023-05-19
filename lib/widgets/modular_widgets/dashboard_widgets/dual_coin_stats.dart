@@ -106,9 +106,7 @@ class _DualCoinStatsState extends State<DualCoinStats>
         return PieChartSectionData(
           color: ColorUtils.getTokenColor(currentTokenInfo.tokenStandard)
               .withOpacity(opacity),
-          value: currentTokenInfo.totalSupply
-                  .addDecimals(currentTokenInfo.decimals) /
-              totalSupply.addDecimals(currentTokenInfo.decimals),
+          value: currentTokenInfo.totalSupply / totalSupply,
           title: currentTokenInfo.symbol,
           radius: 60.0,
           titleStyle: Theme.of(context).textTheme.titleSmall!.copyWith(
