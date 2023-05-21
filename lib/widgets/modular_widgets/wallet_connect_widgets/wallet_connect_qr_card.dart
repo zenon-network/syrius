@@ -74,7 +74,7 @@ class _WalletConnectQrCardState extends State<WalletConnectQrCard> {
             ),
           ),
           MyOutlinedButton(
-            text: 'Scan QR code',
+            text: 'Scan QR',
             onPressed: () {
               checkPermissionForMacOS().then((value) {
                 if (value) {
