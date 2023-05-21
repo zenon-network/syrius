@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:layout/layout.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/wallet_connect_widgets/wallet_connect_pairings_card.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/wallet_connect_widgets/wallet_connect_uri_card.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/wallet_connect_widgets/wallet_connection_sessions_card.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 
@@ -13,10 +14,13 @@ class WalletConnectTabChild extends StatelessWidget {
       children: [
         FluidCell(
           width: context.layout.value(
-            xs: kStaggeredNumOfColumns,
+            xl: kStaggeredNumOfColumns ~/ 4,
+            lg: kStaggeredNumOfColumns ~/ 4,
+            md: kStaggeredNumOfColumns ~/ 4,
+            sm: kStaggeredNumOfColumns ~/ 4,
+            xs: kStaggeredNumOfColumns ~/ 2,
           ),
-          height: kStaggeredNumOfColumns / 4,
-          child: const WalletConnectPairingCard(),
+          child: const WalletConnectUriCard(),
         ),
         FluidCell(
           width: context.layout.value(
