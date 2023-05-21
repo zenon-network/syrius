@@ -33,7 +33,7 @@ class WalletConnectPairingCard extends StatefulWidget {
 }
 
 class _WalletConnectPairingCardState extends State<WalletConnectPairingCard> {
-  final TextEditingController _uriController = TextEditingController(
+  TextEditingController _uriController = TextEditingController(
     text: kLastWalletConnectUriNotifier.value,
   );
   CapturedData? _lastCapturedData;
@@ -156,7 +156,10 @@ class _WalletConnectPairingCardState extends State<WalletConnectPairingCard> {
       final pairingInfo = await wcService.pair(uri);
       Logger('WalletConnectPairingCard')
           .log(Level.INFO, 'pairing info', pairingInfo.toJson());
-      _uriController.clear();
+      _uriController = TextEditingController();
+      _uriKey.currentState?.reset();
+      setState(() {
+      });
     } catch (e) {
       NotificationUtils.sendNotificationError(e, 'Pairing failed');
     }
