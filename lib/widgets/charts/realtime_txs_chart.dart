@@ -35,9 +35,9 @@ class RealtimeTxsChartState extends State<RealtimeTxsChart> {
 
   @override
   void didUpdateWidget(RealtimeTxsChart oldWidget) {
+    super.didUpdateWidget(oldWidget);
     _znnSpots = _generateZnnSpots();
     _qsrSpots = _generateQsrSpots();
-    super.didUpdateWidget(oldWidget);
   }
 
   @override
