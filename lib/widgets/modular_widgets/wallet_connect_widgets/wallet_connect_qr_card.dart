@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:image/image.dart' as img;
 import 'package:logging/logging.dart';
 import 'package:path/path.dart' as path;
+import 'package:pretty_qr_code/pretty_qr_code.dart';
 import 'package:screen_capturer/screen_capturer.dart';
 import 'package:wallet_connect_uri_validator/wallet_connect_uri_validator.dart';
 import 'package:window_manager/window_manager.dart';
@@ -19,20 +20,20 @@ import 'package:zxing2/qrcode.dart';
 
 final screenCapturer = ScreenCapturer.instance;
 
-const String _kWidgetTitle = 'WalletConnect Pairing';
+const String _kWidgetTitle = 'Scan dApp QR Code';
 // TODO: change description
 const String _kWidgetDescription = 'Description';
 const walletConnect = 'walletconnect';
 
-class WalletConnectPairingCard extends StatefulWidget {
-  const WalletConnectPairingCard({Key? key}) : super(key: key);
+class WalletConnectQrCard extends StatefulWidget {
+  const WalletConnectQrCard({Key? key}) : super(key: key);
 
   @override
-  State<WalletConnectPairingCard> createState() =>
-      _WalletConnectPairingCardState();
+  State<WalletConnectQrCard> createState() =>
+      _WalletConnectQrCardState();
 }
 
-class _WalletConnectPairingCardState extends State<WalletConnectPairingCard> {
+class _WalletConnectQrCardState extends State<WalletConnectQrCard> {
   TextEditingController _uriController = TextEditingController(
     text: kLastWalletConnectUriNotifier.value,
   );
@@ -53,97 +54,38 @@ class _WalletConnectPairingCardState extends State<WalletConnectPairingCard> {
     return Padding(
       padding: const EdgeInsets.all(15.0),
       child: Column(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
-          kVerticalSpacing,
-          ValueListenableBuilder<String?>(
-            builder: (_, value, child) {
-              if (value != null) {
-                _uriController.text = value;
-                kLastWalletConnectUriNotifier.value = null;
-              }
-              return Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Expanded(
-                    child: Form(
-                      key: _uriKey,
-                      autovalidateMode: AutovalidateMode.onUserInteraction,
-                      child: InputField(
-                        validator: (value) {
-                          if (WalletConnectUri.tryParse(value ?? '') != null) {
-                            return null;
-                          } else {
-                            return 'URI invalid';
-                          }
-                        },
-                        onChanged: (value) {
-                          setState(() {});
-                        },
-                        controller: _uriController,
-                        suffixIcon: RawMaterialButton(
-                          shape: const CircleBorder(),
-                          onPressed: () {
-                            ClipboardUtils.pasteToClipboard(context,
-                                (String value) {
-                              _uriController.text = value;
-                              setState(() {});
-                            });
-                          },
-                          child: const Icon(
-                            Icons.content_paste,
-                            color: AppColors.darkHintTextColor,
-                            size: 15.0,
-                          ),
-                        ),
-                        suffixIconConstraints: const BoxConstraints(
-                          maxWidth: 45.0,
-                          maxHeight: 20.0,
-                        ),
-                        hintText: 'WalletConnect URI',
-                      ),
-                    ),
-                  ),
-                  const SizedBox(
-                    width: 15.0,
-                  ),
-                  MyOutlinedButton(
-                    text: 'Connect',
-                    onPressed:
-                        WalletConnectUri.tryParse(_uriController.text) != null
-                            ? () {
-                                _pairWithDapp(
-                                  Uri.parse(_uriController.text),
-                                );
-                              }
-                            : null,
-                    minimumSize: kLoadingButtonMinSize,
-                  ),
-                ],
-              );
-            },
-            valueListenable: kLastWalletConnectUriNotifier,
-          ),
-          kVerticalSpacing,
-          Expanded(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                MyOutlinedButton(
-                  text: 'Scan QR code',
-                  onPressed: () {
-                    checkPermissionForMacOS().then((value) {
-                      if (value) {
-                        windowManager.minimize().then(
-                              (value) =>
-                                  _handleClickCapture(CaptureMode.region),
-                            );
-                      }
-                    });
-                  },
-                  minimumSize: kLoadingButtonMinSize,
-                ),
-              ],
+          Container(
+            padding: const EdgeInsets.all(10.0),
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.background,
+              borderRadius: BorderRadius.circular(15.0),
             ),
+            child: PrettyQr(
+              data: 'Scan the WC QR code from the dApp',
+              size: 100.0,
+              elementColor: AppColors.znnColor,
+              image: const AssetImage(
+                  'assets/images/qr_code_child_image_znn.png'),
+              typeNumber: 7,
+              errorCorrectLevel: QrErrorCorrectLevel.M,
+              roundEdges: true,
+            ),
+          ),
+          MyOutlinedButton(
+            text: 'Scan QR',
+            onPressed: () {
+              checkPermissionForMacOS().then((value) {
+                if (value) {
+                  windowManager.minimize().then(
+                        (value) =>
+                        _handleClickCapture(CaptureMode.region),
+                  );
+                }
+              });
+            },
+            minimumSize: kLoadingButtonMinSize,
           ),
         ],
       ),
@@ -168,7 +110,7 @@ class _WalletConnectPairingCardState extends State<WalletConnectPairingCard> {
   void _handleClickCapture(CaptureMode mode) async {
     try {
       Directory walletConnectDirectory =
-          Directory(path.join(znnDefaultPaths.cache.path, walletConnect));
+      Directory(path.join(znnDefaultPaths.cache.path, walletConnect));
 
       if (!walletConnectDirectory.existsSync()) {
         walletConnectDirectory.createSync(recursive: true);
@@ -178,7 +120,7 @@ class _WalletConnectPairingCardState extends State<WalletConnectPairingCard> {
           'screenshot-${DateTime.now().millisecondsSinceEpoch}';
 
       final imagePath = await File(
-              '${walletConnectDirectory.absolute.path}${path.separator}$screenshotName.png')
+          '${walletConnectDirectory.absolute.path}${path.separator}$screenshotName.png')
           .create();
 
       _lastCapturedData = await screenCapturer.capture(
@@ -218,9 +160,7 @@ class _WalletConnectPairingCardState extends State<WalletConnectPairingCard> {
               details: 'Please scan a valid WalletConnect QR code',
               type: NotificationType.error));
         }
-        setState(() {
-          _uriController.text = result.text;
-        });
+        _pairWithDapp(Uri.parse(result.text));
       } else {
         windowManager.show();
         sl<NotificationsBloc>().addErrorNotification(
@@ -242,7 +182,7 @@ class _WalletConnectPairingCardState extends State<WalletConnectPairingCard> {
             title: 'Permission required',
             timestamp: DateTime.now().millisecondsSinceEpoch,
             details:
-                'Screen Recording permission is required to scan and process the on-screen WalletConnect QR code',
+            'Screen Recording permission is required to scan and process the on-screen WalletConnect QR code',
             type: NotificationType.generatingPlasma));
         return false;
       }
