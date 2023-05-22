@@ -34,6 +34,13 @@ class RealtimeTxsChartState extends State<RealtimeTxsChart> {
   }
 
   @override
+  void didUpdateWidget(RealtimeTxsChart oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    _znnSpots = _generateZnnSpots();
+    _qsrSpots = _generateQsrSpots();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return StandardChart(
       yValuesInterval: _maxTransactionsPerDay > kNumOfChartLeftSideTitles
