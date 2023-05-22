@@ -47,6 +47,7 @@ class AutoReceiveTxWorker extends BaseBloc<WalletNotification> {
         );
         _sendSuccessNotification(response, toAddress);
       } on RpcException catch (e, stackTrace) {
+        _sendErrorNotification(e.toString());
         Logger('AutoReceiveTxWorker')
             .log(Level.WARNING, 'autoReceive', e, stackTrace);
         if (e.message.compareTo('account-block from-block already received') !=
