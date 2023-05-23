@@ -3,6 +3,7 @@ import 'dart:collection';
 
 import 'package:json_rpc_2/json_rpc_2.dart';
 import 'package:logging/logging.dart';
+import 'package:zenon_syrius_wallet_flutter/blocs/auto_unlock_htlc_worker.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/model/model.dart';
@@ -23,7 +24,9 @@ class AutoReceiveTxWorker extends BaseBloc<WalletNotification> {
   }
 
   Future<void> autoReceive() async {
-    if (pool.isNotEmpty && !running) {
+    // Make sure that AutoUnlockHtlcWorker is not running since it should be
+    // given priority to send transactions.
+    if (pool.isNotEmpty && !running && !sl<AutoUnlockHtlcWorker>().running) {
       running = true;
       Hash currentHash = pool.first;
       pool.removeFirst();

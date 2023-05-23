@@ -95,6 +95,7 @@ class NodeUtils {
   static Future<void> addOnWebSocketConnectedCallback() async {
     zenon!.wsClient
         .addOnConnectionEstablishedCallback((allResponseBroadcaster) async {
+      kNodeChainId = await getNodeChainIdentifier();
       await _getSubscriptionForMomentums();
       await _getSubscriptionForAllAccountEvents();
       await getUnreceivedTransactions();

@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
-import 'package:zenon_syrius_wallet_flutter/main.dart';
-import 'package:zenon_syrius_wallet_flutter/model/model.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/notification_utils.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/toast_utils.dart';
 
 class ClipboardUtils {
   static void copyToClipboard(String stringValue, BuildContext context) {
@@ -11,14 +10,8 @@ class ClipboardUtils {
       ClipboardData(
         text: stringValue,
       ),
-    ).then((value) =>
-        sl.get<NotificationsBloc>().addNotification(WalletNotification(
-              timestamp: DateTime.now().millisecondsSinceEpoch,
-              title: 'Successfully copied to clipboard',
-              details: 'Successfully copied $stringValue to clipboard',
-              type: NotificationType.copiedToClipboard,
-              id: null,
-            )));
+    ).then((_) =>
+        ToastUtils.showToast(context, 'Copied', color: AppColors.znnColor));
   }
 
   static void pasteToClipboard(

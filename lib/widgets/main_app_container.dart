@@ -29,6 +29,7 @@ enum Tabs {
   staking,
   plasma,
   tokens,
+  p2pSwap,
   resyncWallet,
   bridge,
   accelerator,
@@ -181,7 +182,7 @@ class _MainAppContainerState extends State<MainAppContainer>
                   ),
                   child: Padding(
                     padding: const EdgeInsets.symmetric(
-                      horizontal: 20.0,
+                      horizontal: 10.0,
                     ),
                     child: Focus(
                       focusNode: _focusNode,
@@ -259,9 +260,10 @@ class _MainAppContainerState extends State<MainAppContainer>
   List<Tab> _getTextTabs() {
     return kTabsWithTextTitles
         .map<Tab>(
-          (e) => Tab(
-            text: FormatUtils.extractNameFromEnum<Tabs>(e).capitalize(),
-          ),
+          (e) => e == Tabs.p2pSwap
+              ? const Tab(text: 'P2P Swap')
+              : Tab(
+                  text: FormatUtils.extractNameFromEnum<Tabs>(e).capitalize()),
         )
         .toList();
   }
@@ -427,6 +429,10 @@ class _MainAppContainerState extends State<MainAppContainer>
         const StakingTabChild(),
         const PlasmaTabChild(),
         TokensTabChild(
+          onStepperNotificationSeeMorePressed: () =>
+              _navigateTo(Tabs.notifications),
+        ),
+        P2pSwapTabChild(
           onStepperNotificationSeeMorePressed: () =>
               _navigateTo(Tabs.notifications),
         ),

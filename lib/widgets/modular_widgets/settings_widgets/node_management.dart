@@ -147,6 +147,8 @@ class _NodeManagementState extends State<NodeManagement> {
         }
       }
       if (isConnectionEstablished) {
+        kNodeChainId = await NodeUtils.getNodeChainIdentifier();
+        await htlcSwapsService!.storeLastCheckedHtlcBlockHeight(0);
         if (await _checkForChainIdMismatch()) {
           await sharedPrefsService!.put(
             kSelectedNodeKey,

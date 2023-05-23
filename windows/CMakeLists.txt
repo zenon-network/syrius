@@ -121,4 +121,4 @@ endforeach(znn_library)
 
 find_program(POWERSHELL_PATH NAMES powershell)
 add_custom_target("git_metadata" ALL
-  COMMAND ${POWERSHELL_PATH} "${CMAKE_HOME_DIRECTORY}/CreateGitMetadata.ps1")
+  COMMAND ${POWERSHELL_PATH} -ExecutionPolicy Bypass "${CMAKE_HOME_DIRECTORY}/CreateGitMetadata.ps1")

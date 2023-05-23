@@ -19,6 +19,7 @@ export 'error_widget.dart';
 export 'formatted_amount_with_tooltip.dart';
 export 'infinite_scroll_table.dart';
 export 'loading_widget.dart';
+export 'modals/base_modal.dart';
 export 'notification_widget.dart';
 export 'number_animation.dart';
 export 'plasma_icon.dart';

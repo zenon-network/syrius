@@ -34,6 +34,9 @@ class AddressesDropdown extends StatelessWidget {
                 margin: const EdgeInsets.symmetric(
                   horizontal: 10.0,
                 ),
+                padding: const EdgeInsets.only(
+                  right: 7.5,
+                ),
                 child: Icon(
                   SimpleLineIcons.arrow_down,
                   size: 10.0,

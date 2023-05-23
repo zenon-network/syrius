@@ -22,7 +22,7 @@ dependencies:
   flip_card: ^0.7.0
   auto_size_text: ^3.0.0
   window_manager: ^0.3.0
-  stacked: ^3.1.0
+  stacked: ^3.1.2
   path_provider: ^2.0.8
   rxdart: ^0.27.3
   hive: ^2.0.5
@@ -43,8 +43,8 @@ dependencies:
   number_selector: ^1.0.5
   znn_sdk_dart:
     git:
-      url: https://github.com/zenon-network/znn_sdk_dart.git
-      ref: master
+      url: https://github.com/vilkris4/znn_sdk_dart.git
+      ref: spork_htlc
   json_rpc_2: ^3.0.2
   path: ^1.8.2
   ffi: ^2.0.1
@@ -55,6 +55,7 @@ dependencies:
   open_filex: ^4.3.2
   launch_at_startup: ^0.2.1
   logging: ^1.1.1
+  collection: ^1.17.0
 
 dev_dependencies:
   flutter_test:

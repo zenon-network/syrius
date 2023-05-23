@@ -11,6 +11,7 @@ String? kKeyStorePath;
 String? kLocalIpAddress;
 
 int? kAutoLockWalletMinutes;
+int? kNodeChainId;
 int? kNumFailedUnlockAttempts;
 
 double? kAutoEraseWalletLimit;
