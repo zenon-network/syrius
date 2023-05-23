@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:logging/logging.dart';
 import 'package:walletconnect_flutter_v2/walletconnect_flutter_v2.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
+import 'package:zenon_syrius_wallet_flutter/blocs/wallet_connect/wallet_connect_pairings_bloc.dart';
+import 'package:zenon_syrius_wallet_flutter/blocs/wallet_connect/wallet_connect_sessions_bloc.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/model/model.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/functions.dart';
@@ -85,8 +87,7 @@ class WalletConnectService {
     _wcClient.core.pairing.onPairingActivate.subscribe((args) {
       Logger('WalletConnectService')
           .log(Level.INFO, 'onPairingActivate triggered', args.toString());
-      Logger('WalletConnectService').log(Level.INFO,
-          'onPairingActivate sessions', getSessionsForPairing(args!.topic));
+      sl.get<WalletConnectPairingsBloc>().refreshResults();
     });
 
     _wcClient.core.pairing.onPairingInvalid.subscribe((args) {
@@ -122,6 +123,7 @@ class WalletConnectService {
     _wcClient.onSessionConnect.subscribe((args) {
       Logger('WalletConnectService')
           .log(Level.INFO, 'onSessionConnect triggered', args.toString());
+      sl.get<WalletConnectSessionsBloc>().refreshResults();
     });
 
     _wcClient.onSessionPing.subscribe((args) {

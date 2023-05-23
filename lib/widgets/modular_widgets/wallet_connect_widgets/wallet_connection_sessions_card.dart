@@ -22,7 +22,8 @@ class WalletConnectSessionsCard extends StatefulWidget {
 }
 
 class _WalletConnectSessionsCardState extends State<WalletConnectSessionsCard> {
-  final WalletConnectSessionsBloc _sessionsBloc = WalletConnectSessionsBloc();
+  final WalletConnectSessionsBloc _sessionsBloc =
+      sl.get<WalletConnectSessionsBloc>();
 
   @override
   Widget build(BuildContext context) {

@@ -22,7 +22,8 @@ class WalletConnectPairingsCard extends StatefulWidget {
 }
 
 class _WalletConnectPairingsCardState extends State<WalletConnectPairingsCard> {
-  final WalletConnectPairingsBloc _pairingsBloc = WalletConnectPairingsBloc();
+  final WalletConnectPairingsBloc _pairingsBloc =
+      sl.get<WalletConnectPairingsBloc>();
 
   @override
   Widget build(BuildContext context) {
@@ -75,12 +76,12 @@ class _WalletConnectPairingsCardState extends State<WalletConnectPairingsCard> {
           ),
           isSelected
               ? InfiniteScrollTableCell.withMarquee(
-            pairingInfo.topic,
-          )
+                  pairingInfo.topic,
+                )
               : InfiniteScrollTableCell.withText(
-            context,
-            pairingInfo.topic.short,
-          ),
+                  context,
+                  pairingInfo.topic.short,
+                ),
           InfiniteScrollTableCell.withText(
             context,
             _formatExpiryDateTime(pairingInfo.expiry).toString(),
@@ -120,7 +121,7 @@ class _WalletConnectPairingsCardState extends State<WalletConnectPairingsCard> {
 
   String _formatExpiryDateTime(int expirySeconds) {
     final expiryDateTime =
-    DateTime.fromMillisecondsSinceEpoch(expirySeconds * 1000);
+        DateTime.fromMillisecondsSinceEpoch(expirySeconds * 1000);
 
     return DateFormat('MMM dd, y HH:mm:ss').format(expiryDateTime);
   }
