@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:clipboard_watcher/clipboard_watcher.dart';
 import 'package:flutter/foundation.dart';
@@ -670,7 +671,12 @@ class _MainAppContainerState extends State<MainAppContainer>
         Logger('MainAppContainer')
             .log(Level.INFO, '_handleIncomingLinks ${uri!.toString()}');
         final uriRaw = uri.toString();
-        final uriRawData = uriRaw.split('syrius://')[1];
+        String uriRawData = uriRaw.split('syrius://')[1];
+
+        if (Platform.isWindows) {
+          uriRawData = uriRawData.replaceAll('/?', '?');
+        }
+
         if (mounted) {
           if (WalletConnectUri.tryParse(uriRawData) != null) {
             _updateWalletConnectUri(uriRawData);
@@ -678,6 +684,9 @@ class _MainAppContainerState extends State<MainAppContainer>
         } else {
           return;
         }
+      }, onDone: () {
+        Logger('MainAppContainer')
+            .log(Level.INFO, '_handleIncomingLinks', 'done');
       }, onError: (Object err) {
         Logger('MainAppContainer')
             .log(Level.WARNING, '_handleIncomingLinks', err);
