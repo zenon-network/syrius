@@ -677,6 +677,15 @@ class _MainAppContainerState extends State<MainAppContainer>
           uriRawData = uriRawData.replaceAll('/?', '?');
         }
 
+        sl<NotificationsBloc>().addNotification(
+          WalletNotification(
+            title: 'Incoming link detected',
+            timestamp: DateTime.now().millisecondsSinceEpoch,
+            details: 'Deep link detected: $uriRawData',
+            type: NotificationType.paymentReceived,
+          ),
+        );
+
         if (mounted) {
           if (WalletConnectUri.tryParse(uriRawData) != null) {
             _updateWalletConnectUri(uriRawData);
@@ -688,6 +697,8 @@ class _MainAppContainerState extends State<MainAppContainer>
         Logger('MainAppContainer')
             .log(Level.INFO, '_handleIncomingLinks', 'done');
       }, onError: (Object err) {
+        NotificationUtils.sendNotificationError(
+            err, 'Handle incoming link failed');
         Logger('MainAppContainer')
             .log(Level.WARNING, '_handleIncomingLinks', err);
         if (!mounted) return;
