@@ -41,7 +41,7 @@ class _WalletConnectPairingsCardState extends State<WalletConnectPairingsCard> {
 
   Widget _buildPairingsTable() {
     return InfiniteScrollTable<PairingInfo>(
-      disposeBloc: true,
+      disposeBloc: false,
       bloc: _pairingsBloc,
       headerColumns: const [
         InfiniteScrollTableHeaderColumn(
