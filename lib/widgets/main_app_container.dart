@@ -1,6 +1,6 @@
 import 'dart:async';
-import 'dart:io';
 
+import 'package:app_links/app_links.dart';
 import 'package:clipboard_watcher/clipboard_watcher.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -9,7 +9,6 @@ import 'package:flutter_svg/svg.dart';
 import 'package:flutter_vector_icons/flutter_vector_icons.dart';
 import 'package:logging/logging.dart';
 import 'package:provider/provider.dart';
-import 'package:uni_links/uni_links.dart';
 import 'package:wallet_connect_uri_validator/wallet_connect_uri_validator.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
@@ -83,6 +82,8 @@ class _MainAppContainerState extends State<MainAppContainer>
   );
 
   bool _initialUriIsHandled = false;
+
+  final _appLinks = AppLinks();
 
   @override
   void initState() {
@@ -667,15 +668,15 @@ class _MainAppContainerState extends State<MainAppContainer>
 
   void _handleIncomingLinks() {
     if (!kIsWeb) {
-      _incomingLinkSubscription = uriLinkStream.listen((Uri? uri) {
+      _incomingLinkSubscription = _appLinks.allUriLinkStream.listen((Uri? uri) {
         Logger('MainAppContainer')
             .log(Level.INFO, '_handleIncomingLinks ${uri!.toString()}');
         final uriRaw = uri.toString();
         String uriRawData = uriRaw.split('syrius://')[1];
 
-        if (Platform.isWindows) {
-          uriRawData = uriRawData.replaceAll('/?', '?');
-        }
+        // if (Platform.isWindows) {
+        //   uriRawData = uriRawData.replaceAll('/?', '?');
+        // }
 
         sl<NotificationsBloc>().addNotification(
           WalletNotification(
@@ -710,7 +711,7 @@ class _MainAppContainerState extends State<MainAppContainer>
     if (!_initialUriIsHandled) {
       _initialUriIsHandled = true;
       try {
-        final uri = await getInitialUri();
+        final uri = await _appLinks.getInitialAppLink();
         if (uri != null) {
           Logger('MainAppContainer').log(Level.INFO, '_handleInitialUri $uri');
         }
