@@ -46,15 +46,15 @@ class WalletConnectService {
         icons: ['https://avatars.githubusercontent.com/u/37784886'],
       ),
     );
-    getPairings().getAll().forEach((pairingInfo) {
+    for (var pairingInfo in pairings) {
       dAppsActiveSessions
           .addAll(getSessionsForPairing(pairingInfo.topic).values);
 
       Logger('WalletConnectService')
           .log(Level.INFO, 'active pairings: $pairingInfo');
-    });
+    }
     Logger('WalletConnectService')
-        .log(Level.INFO, 'pairings num: ${getPairings().getAll().length}');
+        .log(Level.INFO, 'pairings num: ${pairings.length}');
     Logger('WalletConnectService')
         .log(Level.INFO, 'active sessions: ${getActiveSessions()}');
     _initListeners();
@@ -356,7 +356,7 @@ class WalletConnectService {
     );
   }
 
-  IPairingStore getPairings() => _wcClient.pairings;
+  List<PairingInfo> get pairings => _wcClient.pairings.getAll();
 
   Future<ApproveResponse> approveSession(
       {required int id, Map<String, Namespace>? namespaces}) {
@@ -435,7 +435,6 @@ class WalletConnectService {
     required String changeName,
     required String newValue,
   }) async {
-    final pairings = getPairings().getAll();
 
     final sessionTopics =
         pairings.fold<List<String>>(<String>[], (previousValue, pairing) {

@@ -40,27 +40,26 @@ class _WalletConnectPairingsCardState extends State<WalletConnectPairingsCard> {
   }
 
   Widget _buildPairingsTable() {
-    return InfiniteScrollTable<PairingInfo>(
-      disposeBloc: true,
-      bloc: _pairingsBloc,
+    return CustomTable<PairingInfo>(
+      items: sl.get<WalletConnectService>().pairings,
       headerColumns: const [
-        InfiniteScrollTableHeaderColumn(
+        CustomHeaderColumn(
           columnName: 'Name',
         ),
-        InfiniteScrollTableHeaderColumn(
+        CustomHeaderColumn(
           columnName: 'URL',
           flex: 2,
         ),
-        InfiniteScrollTableHeaderColumn(
+        CustomHeaderColumn(
           columnName: 'Topic',
         ),
-        InfiniteScrollTableHeaderColumn(
+        CustomHeaderColumn(
           columnName: 'Expiration',
         ),
-        InfiniteScrollTableHeaderColumn(
+        CustomHeaderColumn(
           columnName: 'Active',
         ),
-        InfiniteScrollTableHeaderColumn(
+        CustomHeaderColumn(
           columnName: '',
         ),
       ],

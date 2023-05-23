@@ -8,8 +8,7 @@ class WalletConnectSessionsBloc extends InfiniteScrollBloc<SessionData> {
   Future<List<SessionData>> getData(int pageKey, int pageSize) async {
     final wcService = sl.get<WalletConnectService>();
     final sessions = <SessionData>[];
-    final pairings = wcService.getPairings().getAll();
-    for (var pairing in pairings) {
+    for (var pairing in wcService.pairings) {
       sessions.addAll(wcService.getSessionsForPairing(pairing.topic).values);
     }
     return Future.delayed(const Duration(milliseconds: 500)).then(

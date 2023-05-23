@@ -8,6 +8,6 @@ class WalletConnectPairingsBloc extends InfiniteScrollBloc<PairingInfo> {
   @override
   Future<List<PairingInfo>> getData(int pageKey, int pageSize) =>
       Future.delayed(const Duration(milliseconds: 500)).then(
-        (value) => sl.get<WalletConnectService>().getPairings().getAll(),
+        (value) => sl.get<WalletConnectService>().pairings,
       );
 }
