@@ -166,8 +166,12 @@ void setup() {
   sl.registerSingleton<NotificationsBloc>(NotificationsBloc());
   sl.registerSingleton<AcceleratorBalanceBloc>(AcceleratorBalanceBloc());
   sl.registerSingleton<PowGeneratingStatusBloc>(PowGeneratingStatusBloc());
-  sl.registerSingleton<WalletConnectPairingsBloc>(WalletConnectPairingsBloc());
-  sl.registerSingleton<WalletConnectSessionsBloc>(WalletConnectSessionsBloc());
+  sl.registerSingleton<WalletConnectPairingsBloc>(
+    WalletConnectPairingsBloc(),
+  );
+  sl.registerSingleton<WalletConnectSessionsBloc>(
+    WalletConnectSessionsBloc(),
+  );
 }
 
 class MyApp extends StatefulWidget {
