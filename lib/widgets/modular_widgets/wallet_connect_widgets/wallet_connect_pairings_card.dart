@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import 'package:walletconnect_flutter_v2/walletconnect_flutter_v2.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/wallet_connect/wallet_connect_pairings_bloc.dart';
+import 'package:zenon_syrius_wallet_flutter/blocs/wallet_connect/wallet_connect_sessions_bloc.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/services/wallet_connect_service.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/extensions.dart';
@@ -132,6 +133,7 @@ class _WalletConnectPairingsCardState extends State<WalletConnectPairingsCard> {
         topic: pairingInfo.topic,
       );
       _pairingsBloc.refreshResults();
+      sl<WalletConnectSessionsBloc>().refreshResults();
     } catch (e) {
       sl<NotificationsBloc>().addErrorNotification(
         e,
