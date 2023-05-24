@@ -82,6 +82,7 @@ class WalletConnectService {
     _wcClient.core.pairing.onPairingCreate.subscribe((args) {
       Logger('WalletConnectService')
           .log(Level.INFO, 'onPairingCreate triggered', args.toString());
+      sl.get<WalletConnectPairingsBloc>().refreshResults();
     });
 
     _wcClient.core.pairing.onPairingActivate.subscribe((args) {
@@ -435,7 +436,6 @@ class WalletConnectService {
     required String changeName,
     required String newValue,
   }) async {
-
     final sessionTopics =
         pairings.fold<List<String>>(<String>[], (previousValue, pairing) {
       if (pairing.active) {

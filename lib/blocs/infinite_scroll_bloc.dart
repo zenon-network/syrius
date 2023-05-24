@@ -7,7 +7,7 @@ import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 abstract class InfiniteScrollBloc<T> with RefreshBlocMixin {
   InfiniteScrollBloc({
     this.isDataRequestPaginated = true,
-}) {
+  }) {
     _onPageRequest.stream
         .flatMap(_fetchList)
         .listen(_onNewListingStateController.add)
