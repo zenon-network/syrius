@@ -15,6 +15,8 @@ import 'package:provider/provider.dart';
 import 'package:tray_manager/tray_manager.dart';
 import 'package:window_manager/window_manager.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
+import 'package:zenon_syrius_wallet_flutter/blocs/wallet_connect/wallet_connect_pairings_bloc.dart';
+import 'package:zenon_syrius_wallet_flutter/blocs/wallet_connect/wallet_connect_sessions_bloc.dart';
 import 'package:zenon_syrius_wallet_flutter/model/model.dart';
 import 'package:zenon_syrius_wallet_flutter/screens/screens.dart';
 import 'package:zenon_syrius_wallet_flutter/services/shared_prefs_service.dart';
@@ -159,6 +161,12 @@ void setup() {
   sl.registerSingleton<NotificationsBloc>(NotificationsBloc());
   sl.registerSingleton<AcceleratorBalanceBloc>(AcceleratorBalanceBloc());
   sl.registerSingleton<PowGeneratingStatusBloc>(PowGeneratingStatusBloc());
+  sl.registerSingleton<WalletConnectPairingsBloc>(
+    WalletConnectPairingsBloc(),
+  );
+  sl.registerSingleton<WalletConnectSessionsBloc>(
+    WalletConnectSessionsBloc(),
+  );
 }
 
 class MyApp extends StatefulWidget {

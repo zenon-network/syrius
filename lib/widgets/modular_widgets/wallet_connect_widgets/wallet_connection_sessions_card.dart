@@ -22,7 +22,8 @@ class WalletConnectSessionsCard extends StatefulWidget {
 }
 
 class _WalletConnectSessionsCardState extends State<WalletConnectSessionsCard> {
-  final WalletConnectSessionsBloc _sessionsBloc = WalletConnectSessionsBloc();
+  final WalletConnectSessionsBloc _sessionsBloc =
+      sl.get<WalletConnectSessionsBloc>();
 
   @override
   Widget build(BuildContext context) {
@@ -40,7 +41,7 @@ class _WalletConnectSessionsCardState extends State<WalletConnectSessionsCard> {
 
   Widget _buildPairingsTable() {
     return InfiniteScrollTable<SessionData>(
-      disposeBloc: true,
+      disposeBloc: false,
       bloc: _sessionsBloc,
       headerColumns: const [
         InfiniteScrollTableHeaderColumn(

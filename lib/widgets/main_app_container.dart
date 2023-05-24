@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:app_links/app_links.dart';
 import 'package:clipboard_watcher/clipboard_watcher.dart';
@@ -674,9 +675,9 @@ class _MainAppContainerState extends State<MainAppContainer>
         final uriRaw = uri.toString();
         String uriRawData = uriRaw.split('syrius://')[1];
 
-        // if (Platform.isWindows) {
-        //   uriRawData = uriRawData.replaceAll('/?', '?');
-        // }
+        if (Platform.isWindows) {
+          uriRawData = uriRawData.replaceAll('/?', '?');
+        }
 
         sl<NotificationsBloc>().addNotification(
           WalletNotification(

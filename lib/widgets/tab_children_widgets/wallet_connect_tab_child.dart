@@ -46,24 +46,16 @@ class WalletConnectTabChild extends StatelessWidget {
         ),
         FluidCell(
           width: context.layout.value(
-            xl: kStaggeredNumOfColumns ~/ 2,
-            lg: kStaggeredNumOfColumns ~/ 2,
-            md: kStaggeredNumOfColumns ~/ 2,
-            sm: kStaggeredNumOfColumns ~/ 2,
-            xs: kStaggeredNumOfColumns ~/ 2,
+            xs: kStaggeredNumOfColumns,
           ),
-          height: kStaggeredNumOfColumns / 3,
+          height: kStaggeredNumOfColumns / 4,
           child: const WalletConnectPairingsCard(),
         ),
         FluidCell(
           width: context.layout.value(
-            xl: kStaggeredNumOfColumns ~/ 2,
-            lg: kStaggeredNumOfColumns ~/ 2,
-            md: kStaggeredNumOfColumns ~/ 2,
-            sm: kStaggeredNumOfColumns ~/ 2,
-            xs: kStaggeredNumOfColumns ~/ 2,
+            xs: kStaggeredNumOfColumns,
           ),
-          height: kStaggeredNumOfColumns / 3,
+          height: kStaggeredNumOfColumns / 4,
           child: const WalletConnectSessionsCard(),
         ),
       ],
