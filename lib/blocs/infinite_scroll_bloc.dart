@@ -7,7 +7,7 @@ import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 abstract class InfiniteScrollBloc<T> with RefreshBlocMixin {
   InfiniteScrollBloc({
     this.isDataRequestPaginated = true,
-}) {
+  }) {
     _onPageRequest.stream
         .flatMap(_fetchList)
         .listen(_onNewListingStateController.add)
@@ -54,6 +54,7 @@ abstract class InfiniteScrollBloc<T> with RefreshBlocMixin {
   final _onRefreshResultsRequest = StreamController<bool>();
 
   Sink<int> get onPageRequestSink => _onPageRequest.sink;
+
   Sink<bool> get onRefreshResultsRequest => _onRefreshResultsRequest.sink;
 
   List<T>? get lastListingItems => _onNewListingStateController.value.itemList;
@@ -64,7 +65,9 @@ abstract class InfiniteScrollBloc<T> with RefreshBlocMixin {
       final newItems = await getData(pageKey, _pageSize);
       final isLastPage = newItems.length < _pageSize || isDataRequestPaginated;
       final nextPageKey = isLastPage ? null : pageKey + 1;
-      List<T> allItems = [...lastListingState.itemList ?? [], ...newItems];
+      List<T> allItems = isDataRequestPaginated
+          ? [...lastListingState.itemList ?? [], ...newItems]
+          : newItems;
       if (filterItemsFunction != null) {
         allItems = filterItemsFunction!(allItems);
       }
