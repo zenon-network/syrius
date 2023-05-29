@@ -158,8 +158,7 @@ class _WalletConnectPairingCardState extends State<WalletConnectPairingCard> {
           .log(Level.INFO, 'pairing info', pairingInfo.toJson());
       _uriController = TextEditingController();
       _uriKey.currentState?.reset();
-      setState(() {
-      });
+      setState(() {});
     } catch (e) {
       NotificationUtils.sendNotificationError(e, 'Pairing failed');
     }
