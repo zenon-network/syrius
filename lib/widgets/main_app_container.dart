@@ -491,7 +491,11 @@ class _MainAppContainerState extends State<MainAppContainer>
       Duration(minutes: kAutoLockWalletMinutes!),
       (timer) => _lockBloc.addEvent(LockEvent.navigateToLock),
     );
-    _lockBloc.addEvent(LockEvent.navigateToPreviousTab);
+    if (kLastWalletConnectUriNotifier.value != null) {
+      _tabController!.animateTo(_getTabChildIndex(Tabs.walletConnect));
+    } else {
+      _lockBloc.addEvent(LockEvent.navigateToPreviousTab);
+    }
   }
 
   @override
@@ -526,7 +530,11 @@ class _MainAppContainerState extends State<MainAppContainer>
       ),
       (timer) => _lockBloc.addEvent(LockEvent.navigateToLock),
     );
-    _lockBloc.addEvent(LockEvent.navigateToDashboard);
+    if (kLastWalletConnectUriNotifier.value != null) {
+      _tabController!.animateTo(_getTabChildIndex(Tabs.walletConnect));
+    } else {
+      _lockBloc.addEvent(LockEvent.navigateToDashboard);
+    }
     _listenToAutoReceiveTxWorkerNotifications();
   }
 
@@ -757,6 +765,8 @@ class _MainAppContainerState extends State<MainAppContainer>
         );
         _navigateTo(Tabs.walletConnect);
       }
+    } else {
+
     }
   }
 }
