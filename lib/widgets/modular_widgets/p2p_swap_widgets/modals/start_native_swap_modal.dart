@@ -49,7 +49,7 @@ class _StartNativeSwapModalState extends State<StartNativeSwapModal> {
   late BasicDropdownItem<int> _selectedLockDuration;
 
   final List<BasicDropdownItem<int>> _lockDurationItems = [
-    BasicDropdownItem(label: '3 hours', value: kOneHourInSeconds * 3),
+    BasicDropdownItem(label: '6 hours', value: kOneHourInSeconds * 6),
     BasicDropdownItem(label: '12 hours', value: kOneHourInSeconds * 12),
     BasicDropdownItem(label: '24 hours', value: kOneHourInSeconds * 24),
   ];

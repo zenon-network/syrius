@@ -105,7 +105,7 @@ class _HtlcCardState extends State<HtlcCard>
     with SingleTickerProviderStateMixin {
   late final AnimationController _animationController;
 
-  final Duration _expirationWarningThreshold = const Duration(minutes: 60);
+  final Duration _expirationWarningThreshold = const Duration(minutes: 30);
   final Duration _animationDuration = const Duration(milliseconds: 100);
   final Cubic _animationCurve = Curves.easeInOut;
 

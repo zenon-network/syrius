@@ -400,7 +400,7 @@ class _JoinNativeSwapModalState extends State<JoinNativeSwapModal> {
 
   int? _calculateSafeExpirationTime(int initialHtlcExpiration) {
     const minimumSafeTime = Duration(hours: 1);
-    const maxExpirationTime = Duration(days: 1);
+    const maxExpirationTime = Duration(hours: 1);
     final now = DateTimeUtils.unixTimeNow;
     final remaining = Duration(seconds: initialHtlcExpiration - now);
     final safeTime = remaining ~/ 2;
