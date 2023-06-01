@@ -681,7 +681,7 @@ class _MainAppContainerState extends State<MainAppContainer>
         Logger('MainAppContainer')
             .log(Level.INFO, '_handleIncomingLinks ${uri!.toString()}');
         final uriRaw = uri.toString();
-        String uriRawData = uriRaw.split('syrius://')[1];
+        String uriRawData = Uri.decodeFull(uriRaw.split('syrius://wc/?uri=')[1]);
 
         if (Platform.isWindows) {
           uriRawData = uriRawData.replaceAll('/?', '?');
@@ -765,8 +765,6 @@ class _MainAppContainerState extends State<MainAppContainer>
         );
         _navigateTo(Tabs.walletConnect);
       }
-    } else {
-
     }
   }
 }
