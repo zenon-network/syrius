@@ -29,12 +29,11 @@ class _P2pSwapOptionsCardState extends State<P2pSwapOptionsCard> {
     super.initState();
   }
 
-  //TODO: Confirm CardScaffold description
   @override
   Widget build(BuildContext context) {
     return CardScaffold(
       title: 'P2P Swap Options',
-      description: 'update this text',
+      description: 'Starting and joining P2P swaps can be done from this card.',
       childBuilder: () => _getWidgetBody(context),
     );
   }

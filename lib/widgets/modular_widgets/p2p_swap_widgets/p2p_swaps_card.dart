@@ -59,8 +59,8 @@ class _P2pSwapsCardState extends State<P2pSwapsCard> {
             : _getTable(data),
         onRefreshPressed: () => _p2pSwapsListBloc.getData(),
         description:
-            'This card displays a list of P2P swaps that have been created '
-            'by or added to this wallet.');
+            'This card displays a list of P2P swaps that have been conducted '
+            'with this wallet.');
   }
 
   void _onSwapTapped(String swapId) {
