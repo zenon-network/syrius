@@ -16,11 +16,7 @@ class P2pSwapTabChild extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // TODO: Enable P2P Swaps UI on mainnet
-    return (kNodeChainId ?? 1) == 1
-        ? const SyriusErrorWidget(
-            'P2P Swaps can\'t be done on mainnet yet.\nPlease connect to a HyperCore One testnet node, such as: wss://testnet.deeznnutz.com:3598')
-        : _getLayout(context);
+    return _getLayout(context);
   }
 
   StandardFluidLayout _getLayout(BuildContext context) {
