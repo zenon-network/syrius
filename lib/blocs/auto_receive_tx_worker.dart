@@ -58,6 +58,11 @@ class AutoReceiveTxWorker extends BaseBloc<WalletNotification> {
         } else {
           _sendErrorNotification(e.toString());
         }
+      } catch (e, stackTrace) {
+        Logger('AutoReceiveTxWorker')
+            .log(Level.WARNING, 'autoReceive', e, stackTrace);
+        pool.addFirst(currentHash);
+        _sendErrorNotification(e.toString());
       }
       running = false;
     }
