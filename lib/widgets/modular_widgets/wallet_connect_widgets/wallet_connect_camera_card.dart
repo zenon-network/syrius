@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 
-const String _kWidgetTitle = 'Scan QR code with Camera';
+const String _kWidgetTitle = 'Camera QR Scanner';
 // TODO: change description
 const String _kWidgetDescription = 'Description';
 
@@ -10,11 +10,11 @@ class WalletConnectCameraCard extends StatefulWidget {
   const WalletConnectCameraCard({Key? key}) : super(key: key);
 
   @override
-  State<WalletConnectCameraCard> createState() => _WalletConnectCameraCardState();
+  State<WalletConnectCameraCard> createState() =>
+      _WalletConnectCameraCardState();
 }
 
 class _WalletConnectCameraCardState extends State<WalletConnectCameraCard> {
-
   @override
   Widget build(BuildContext context) {
     return CardScaffold(

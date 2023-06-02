@@ -20,7 +20,7 @@ import 'package:zxing2/qrcode.dart';
 
 final screenCapturer = ScreenCapturer.instance;
 
-const String _kWidgetTitle = 'Scan dApp QR Code';
+const String _kWidgetTitle = 'On-screen QR Scanner';
 // TODO: change description
 const String _kWidgetDescription = 'Description';
 const walletConnect = 'walletconnect';
@@ -29,8 +29,7 @@ class WalletConnectQrCard extends StatefulWidget {
   const WalletConnectQrCard({Key? key}) : super(key: key);
 
   @override
-  State<WalletConnectQrCard> createState() =>
-      _WalletConnectQrCardState();
+  State<WalletConnectQrCard> createState() => _WalletConnectQrCardState();
 }
 
 class _WalletConnectQrCardState extends State<WalletConnectQrCard> {
@@ -63,11 +62,11 @@ class _WalletConnectQrCardState extends State<WalletConnectQrCard> {
               borderRadius: BorderRadius.circular(15.0),
             ),
             child: PrettyQr(
-              data: 'Scan the WC QR code from the dApp',
+              data: 'Scan the WalletConnect QR from the dApp',
               size: 100.0,
               elementColor: AppColors.znnColor,
-              image: const AssetImage(
-                  'assets/images/qr_code_child_image_znn.png'),
+              image:
+                  const AssetImage('assets/images/qr_code_child_image_znn.png'),
               typeNumber: 7,
               errorCorrectLevel: QrErrorCorrectLevel.M,
               roundEdges: true,
@@ -79,9 +78,8 @@ class _WalletConnectQrCardState extends State<WalletConnectQrCard> {
               checkPermissionForMacOS().then((value) {
                 if (value) {
                   windowManager.minimize().then(
-                        (value) =>
-                        _handleClickCapture(CaptureMode.region),
-                  );
+                        (value) => _handleClickCapture(CaptureMode.region),
+                      );
                 }
               });
             },
@@ -100,8 +98,7 @@ class _WalletConnectQrCardState extends State<WalletConnectQrCard> {
           .log(Level.INFO, 'pairing info', pairingInfo.toJson());
       _uriController = TextEditingController();
       _uriKey.currentState?.reset();
-      setState(() {
-      });
+      setState(() {});
     } catch (e) {
       NotificationUtils.sendNotificationError(e, 'Pairing failed');
     }
@@ -110,7 +107,7 @@ class _WalletConnectQrCardState extends State<WalletConnectQrCard> {
   void _handleClickCapture(CaptureMode mode) async {
     try {
       Directory walletConnectDirectory =
-      Directory(path.join(znnDefaultPaths.cache.path, walletConnect));
+          Directory(path.join(znnDefaultPaths.cache.path, walletConnect));
 
       if (!walletConnectDirectory.existsSync()) {
         walletConnectDirectory.createSync(recursive: true);
@@ -120,7 +117,7 @@ class _WalletConnectQrCardState extends State<WalletConnectQrCard> {
           'screenshot-${DateTime.now().millisecondsSinceEpoch}';
 
       final imagePath = await File(
-          '${walletConnectDirectory.absolute.path}${path.separator}$screenshotName.png')
+              '${walletConnectDirectory.absolute.path}${path.separator}$screenshotName.png')
           .create();
 
       _lastCapturedData = await screenCapturer.capture(
@@ -182,7 +179,7 @@ class _WalletConnectQrCardState extends State<WalletConnectQrCard> {
             title: 'Permission required',
             timestamp: DateTime.now().millisecondsSinceEpoch,
             details:
-            'Screen Recording permission is required to scan and process the on-screen WalletConnect QR code',
+                'Screen Recording permission is required to scan and process the on-screen WalletConnect QR code',
             type: NotificationType.generatingPlasma));
         return false;
       }

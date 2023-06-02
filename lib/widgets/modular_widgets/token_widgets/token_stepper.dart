@@ -199,7 +199,7 @@ class _TokenStepperState extends State<TokenStepper> {
         onStepTapped: (int index) {},
         steps: [
           StepperUtils.getMaterialStep(
-            stepTitle: 'Plasma check',
+            stepTitle: 'Token creation: Plasma check',
             stepContent: _getPlasmaCheckFutureBuilder(),
             stepSubtitle: 'Sufficient Plasma',
             stepState: StepperUtils.getStepState(
@@ -296,6 +296,13 @@ class _TokenStepperState extends State<TokenStepper> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        Text(
+          'More Plasma is required to perform complex transactions. Please fuse enough QSR before proceeding.',
+          style: Theme.of(context).textTheme.headlineSmall,
+        ),
+        const SizedBox(
+          height: 25.0,
+        ),
         Row(
           mainAxisAlignment: MainAxisAlignment.start,
           children: <Widget>[

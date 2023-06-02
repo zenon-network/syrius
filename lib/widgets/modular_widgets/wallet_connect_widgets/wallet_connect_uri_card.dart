@@ -6,7 +6,7 @@ import 'package:zenon_syrius_wallet_flutter/services/wallet_connect_service.dart
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 
-const String _kWidgetTitle = 'Connect through URI';
+const String _kWidgetTitle = 'WalletConnect Link';
 // TODO: change description
 const String _kWidgetDescription = 'Description';
 
