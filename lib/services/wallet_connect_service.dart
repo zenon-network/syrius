@@ -352,6 +352,8 @@ class WalletConnectService {
           } else {
             throw _walletLockedError;
           }
+        } else {
+          throw _walletLockedError;
         }
       },
     );
