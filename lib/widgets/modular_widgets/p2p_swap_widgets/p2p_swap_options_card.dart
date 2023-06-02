@@ -11,6 +11,7 @@ import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/p2p_swap_wid
 import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/p2p_swap_widgets/p2p_swap_options_button.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/dialogs.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/error_widget.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/important_text_container.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/layout_scaffold/card_scaffold.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
@@ -123,6 +124,17 @@ class _P2pSwapOptionsCardState extends State<P2pSwapOptionsCard> {
             // TODO: Open link to tutorial
             onTap: () => ToastUtils.showToast(context, 'No tutorial yet'),
           ),
+        ),
+        const SizedBox(
+          height: 40.0,
+        ),
+        const ImportantTextContainer(
+          text: '''The P2P swap is an experimental feature. '''
+              '''Please use the feature with caution and only swap small '''
+              '''amounts. There is absolutely no warranty for this '''
+              '''software.''',
+          showBorder: true,
+          animateBorder: true,
         ),
       ],
     );
