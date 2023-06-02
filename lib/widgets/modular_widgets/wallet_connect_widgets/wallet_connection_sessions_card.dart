@@ -1,12 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:walletconnect_flutter_v2/walletconnect_flutter_v2.dart';
-import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/wallet_connect/wallet_connect_sessions_bloc.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
-import 'package:zenon_syrius_wallet_flutter/services/wallet_connect_service.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/extensions.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/icons/clear_icon.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 
 const String _kWidgetTitle = 'WalletConnect Sessions List';
@@ -63,9 +60,6 @@ class _WalletConnectSessionsCardState extends State<WalletConnectSessionsCard> {
         InfiniteScrollTableHeaderColumn(
           columnName: 'Acknowledged',
         ),
-        InfiniteScrollTableHeaderColumn(
-          columnName: '',
-        ),
       ],
       generateRowCells: (sessionData, bool isSelected) {
         return [
@@ -101,18 +95,8 @@ class _WalletConnectSessionsCardState extends State<WalletConnectSessionsCard> {
             context,
             sessionData.acknowledged ? 'Yes' : 'No',
           ),
-          InfiniteScrollTableCell(
-            _buildDeactivatePairingIcon(sessionData),
-          ),
         ];
       },
-    );
-  }
-
-  ClearIcon _buildDeactivatePairingIcon(SessionData sessionData) {
-    return ClearIcon(
-      onPressed: () => _onDeactivatePairingIconPressed(sessionData),
-      context: context,
     );
   }
 
@@ -137,17 +121,4 @@ class _WalletConnectSessionsCardState extends State<WalletConnectSessionsCard> {
     return DateFormat('MMM dd, y HH:mm:ss').format(expiryDateTime);
   }
 
-  Future<void> _onDeactivatePairingIconPressed(SessionData sessionData) async {
-    try {
-      await sl<WalletConnectService>().disconnectSession(
-        topic: sessionData.topic,
-      );
-      _sessionsBloc.refreshResults();
-    } catch (e) {
-      sl<NotificationsBloc>().addErrorNotification(
-        e,
-        'Error while deactivating pair',
-      );
-    }
-  }
 }
