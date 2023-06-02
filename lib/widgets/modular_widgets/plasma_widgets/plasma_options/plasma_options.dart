@@ -132,6 +132,8 @@ class _PlasmaOptionsState extends State<PlasmaOptions> {
   void _beneficiaryAddressListener() {
     _beneficiaryAddressController.text =
         _plasmaBeneficiaryAddress!.getBeneficiaryAddress()!;
+    // Notify internal state has changed.
+    setState(() { });
   }
 
   Widget _getWidgetBody(AccountInfo? accountInfo) {
