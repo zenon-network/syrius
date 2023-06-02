@@ -6,13 +6,26 @@ import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/p2p_swap_wid
 import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/p2p_swap_widgets/p2p_swap_options_card.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 
-class P2pSwapTabChild extends StatelessWidget {
+class P2pSwapTabChild extends StatefulWidget {
   final VoidCallback onStepperNotificationSeeMorePressed;
 
   const P2pSwapTabChild({
     required this.onStepperNotificationSeeMorePressed,
     Key? key,
   }) : super(key: key);
+
+  @override
+  State createState() => P2pSwapTabChildState();
+}
+
+class P2pSwapTabChildState extends State<P2pSwapTabChild> {
+  @override
+  void initState() {
+    super.initState();
+    NodeUtils.checkForLocalTimeDiscrepancy(
+        '''Local time discrepancy detected. Please confirm your operating '''
+        '''system's time is correct before conducting P2P swaps.''');
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -45,7 +58,7 @@ class P2pSwapTabChild extends StatelessWidget {
           child: Consumer<SelectedAddressNotifier>(
             builder: (_, __, ___) => P2pSwapsCard(
               onStepperNotificationSeeMorePressed:
-                  onStepperNotificationSeeMorePressed,
+                  widget.onStepperNotificationSeeMorePressed,
             ),
           ),
         ),
