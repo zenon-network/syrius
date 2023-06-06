@@ -252,8 +252,8 @@ class _AcceleratorProjectListItemState
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          children: const [
+        const Row(
+          children: [
             Text('Voting results'),
           ],
         ),

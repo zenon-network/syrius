@@ -25,11 +25,11 @@ class _WalletConnectCameraCardState extends State<WalletConnectCameraCard> {
   }
 
   Widget _getCardBody() {
-    return Padding(
-      padding: const EdgeInsets.all(15.0),
+    return const Padding(
+      padding: EdgeInsets.all(15.0),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children: const [
+        children: [
           CircleAvatar(
             radius: 60.0,
             backgroundColor: Colors.white12,

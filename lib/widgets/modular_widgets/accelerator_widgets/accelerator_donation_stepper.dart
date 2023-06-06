@@ -230,8 +230,8 @@ class _AcceleratorDonationStepperState
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          children: const [
+        const Row(
+          children: [
             Text('Total donation budget'),
             StandardTooltipIcon(
               'Your donation matters',
