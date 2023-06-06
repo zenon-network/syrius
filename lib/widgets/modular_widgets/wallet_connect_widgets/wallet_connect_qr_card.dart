@@ -23,7 +23,6 @@ final screenCapturer = ScreenCapturer.instance;
 const String _kWidgetTitle = 'On-screen QR Scanner';
 // TODO: change description
 const String _kWidgetDescription = 'Description';
-const walletConnect = 'walletconnect';
 
 class WalletConnectQrCard extends StatefulWidget {
   const WalletConnectQrCard({Key? key}) : super(key: key);
@@ -106,8 +105,8 @@ class _WalletConnectQrCardState extends State<WalletConnectQrCard> {
 
   void _handleClickCapture(CaptureMode mode) async {
     try {
-      Directory walletConnectDirectory =
-          Directory(path.join(znnDefaultPaths.cache.path, walletConnect));
+      Directory walletConnectDirectory = Directory(
+          path.join(znnDefaultPaths.cache.path, walletConnectDirName));
 
       if (!walletConnectDirectory.existsSync()) {
         walletConnectDirectory.createSync(recursive: true);

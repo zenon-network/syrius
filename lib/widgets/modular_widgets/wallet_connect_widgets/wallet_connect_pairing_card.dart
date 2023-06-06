@@ -22,7 +22,6 @@ final screenCapturer = ScreenCapturer.instance;
 const String _kWidgetTitle = 'WalletConnect Pairing';
 // TODO: change description
 const String _kWidgetDescription = 'Description';
-const walletConnect = 'walletconnect';
 
 class WalletConnectPairingCard extends StatefulWidget {
   const WalletConnectPairingCard({Key? key}) : super(key: key);
@@ -166,8 +165,8 @@ class _WalletConnectPairingCardState extends State<WalletConnectPairingCard> {
 
   void _handleClickCapture(CaptureMode mode) async {
     try {
-      Directory walletConnectDirectory =
-          Directory(path.join(znnDefaultPaths.cache.path, walletConnect));
+      Directory walletConnectDirectory = Directory(
+          path.join(znnDefaultPaths.cache.path, walletConnectDirName));
 
       if (!walletConnectDirectory.existsSync()) {
         walletConnectDirectory.createSync(recursive: true);

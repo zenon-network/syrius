@@ -6,6 +6,7 @@ import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 // WalletConnect
 const String kWcProjectId = String.fromEnvironment('WC_PROJECT_ID');
 const String kZenonNameSpace = 'zenon';
+const String walletConnectDirName = 'walletconnect';
 
 // Dimensions
 const double kAmountSuffixHeight = 25.0;
@@ -31,7 +32,7 @@ const List<String> kBridgeNetworks = [
 ];
 
 // Wallet version
-const String kWalletVersion = '0.0.6';
+const String kWalletVersion = '0.0.7';
 
 // Boxes constants
 const String kFavoriteTokensBox = 'favourite_tokens_box';
