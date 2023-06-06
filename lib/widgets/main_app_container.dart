@@ -678,30 +678,34 @@ class _MainAppContainerState extends State<MainAppContainer>
   void _handleIncomingLinks() {
     if (!kIsWeb) {
       _incomingLinkSubscription = _appLinks.allUriLinkStream.listen((Uri? uri) {
-        Logger('MainAppContainer')
-            .log(Level.INFO, '_handleIncomingLinks ${uri!.toString()}');
-        final uriRaw = uri.toString();
-        String uriRawData = Uri.decodeFull(uriRaw.split('syrius://wc/?uri=')[1]);
+        if (uri != null) {
+          String uriRaw = uri.toString();
 
-        if (Platform.isWindows) {
-          uriRawData = uriRawData.replaceAll('/?', '?');
-        }
+          Logger('MainAppContainer')
+              .log(Level.INFO, '_handleIncomingLinks $uriRaw');
 
-        sl<NotificationsBloc>().addNotification(
-          WalletNotification(
-            title: 'Incoming link detected',
-            timestamp: DateTime.now().millisecondsSinceEpoch,
-            details: 'Deep link detected: $uriRawData',
-            type: NotificationType.paymentReceived,
-          ),
-        );
+          String uriRawData = Uri.decodeFull(uriRaw.split('wc?uri=').last);
 
-        if (mounted) {
-          if (WalletConnectUri.tryParse(uriRawData) != null) {
-            _updateWalletConnectUri(uriRawData);
+          if (Platform.isWindows) {
+            uriRawData = uriRawData.replaceAll('/?', '?');
           }
-        } else {
-          return;
+
+          sl<NotificationsBloc>().addNotification(
+            WalletNotification(
+              title: 'Incoming link detected',
+              timestamp: DateTime.now().millisecondsSinceEpoch,
+              details: 'Deep link detected: $uriRawData',
+              type: NotificationType.paymentReceived,
+            ),
+          );
+
+          if (mounted) {
+            if (WalletConnectUri.tryParse(uriRawData) != null) {
+              _updateWalletConnectUri(uriRawData);
+            }
+          } else {
+            return;
+          }
         }
       }, onDone: () {
         Logger('MainAppContainer')
