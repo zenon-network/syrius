@@ -681,14 +681,14 @@ class _MainAppContainerState extends State<MainAppContainer>
         if (uri != null) {
           String uriRaw = uri.toString();
 
+          if (Platform.isWindows) {
+            uriRaw = uriRaw.replaceAll('/?', '?');
+          }
+
           Logger('MainAppContainer')
               .log(Level.INFO, '_handleIncomingLinks $uriRaw');
 
           String uriRawData = Uri.decodeFull(uriRaw.split('wc?uri=').last);
-
-          if (Platform.isWindows) {
-            uriRawData = uriRawData.replaceAll('/?', '?');
-          }
 
           sl<NotificationsBloc>().addNotification(
             WalletNotification(
@@ -763,7 +763,7 @@ class _MainAppContainerState extends State<MainAppContainer>
                 'WalletConnect link detected. Go to WalletConnect tab to connect.',
             timestamp: DateTime.now().millisecondsSinceEpoch,
             details: 'A WalletConnect link has been copied to clipboard. '
-                'Go to the WalletConnect tab to connect with the dApp through ${kLastWalletConnectUriNotifier.value}',
+                'Go to the WalletConnect tab to connect to the dApp through ${kLastWalletConnectUriNotifier.value}',
             type: NotificationType.copiedToClipboard,
           ),
         );

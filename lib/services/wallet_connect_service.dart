@@ -496,9 +496,9 @@ class WalletConnectService {
       PairingMetadata dAppMetadata) {
     sl.get<NotificationsBloc>().addNotification(
           WalletNotification(
-            title: 'Successfully connected with ${dAppMetadata.name}',
+            title: 'Successfully connected to ${dAppMetadata.name}',
             timestamp: DateTime.now().millisecondsSinceEpoch,
-            details: 'Successfully connected with ${dAppMetadata.name} '
+            details: 'Successfully connected to ${dAppMetadata.name} '
                 'via WalletConnect',
             type: NotificationType.paymentSent,
           ),
@@ -523,7 +523,7 @@ class WalletConnectService {
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             Text('Are you sure you want to '
-                'connect with ${dAppMetadata.name} ?'),
+                'connect to ${dAppMetadata.name} ?'),
             kVerticalSpacing,
             Image(
               image: NetworkImage(dAppMetadata.icons.first),
