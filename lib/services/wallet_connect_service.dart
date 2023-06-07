@@ -145,7 +145,7 @@ class WalletConnectService {
     });
 
     _wcClient.registerRequestHandler(
-      chainId: 'zenon:3',
+      chainId: 'zenon:1',
       method: 'znn_info',
       handler: (topic, params) async {
         final dAppMetadata = dAppsActiveSessions
@@ -212,7 +212,7 @@ class WalletConnectService {
     });
 
     _wcClient.registerRequestHandler(
-      chainId: 'zenon:3',
+      chainId: 'zenon:1',
       method: 'znn_sign',
       handler: (topic, params) async {
         final dAppMetadata = dAppsActiveSessions
@@ -271,7 +271,7 @@ class WalletConnectService {
     );
 
     _wcClient.registerRequestHandler(
-      chainId: 'zenon:3',
+      chainId: 'zenon:1',
       method: 'znn_send',
       handler: (topic, params) async {
         final dAppMetadata = dAppsActiveSessions
@@ -388,7 +388,7 @@ class WalletConnectService {
       _wcClient.rejectSession(id: id, reason: reason);
 
   String _generateAccount(String address, int chainId) =>
-      '$kZenonNameSpace:$chainId:$address';
+      '$kZenonNameSpace:1:$address';
 
   List<String> _getWalletAccounts() => kAddressLabelMap.values
       .map(
@@ -464,7 +464,7 @@ class WalletConnectService {
   }) =>
       _wcClient.emitSessionEvent(
         topic: sessionTopic,
-        chainId: 'zenon:3',
+        chainId: 'zenon:1',
         event: SessionEventParams(
           name: changeName,
           data: newValue,
