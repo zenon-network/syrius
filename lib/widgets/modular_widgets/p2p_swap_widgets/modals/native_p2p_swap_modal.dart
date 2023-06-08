@@ -423,8 +423,11 @@ class _NativeP2pSwapModalState extends State<NativeP2pSwapModal> {
             child: const Padding(
               padding: EdgeInsets.symmetric(vertical: 15.0),
               child: LoadingInfoText(
-                  text:
-                      'Waiting for the counterparty. Please keep Syrius running.'),
+                text:
+                    'Waiting for the counterparty. Please keep Syrius running.',
+                tooltipText:
+                    'Your wallet will not be auto-locked while the swap is in progress.',
+              ),
             ),
           ),
         ],

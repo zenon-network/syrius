@@ -1,7 +1,10 @@
 import 'dart:async';
+import 'dart:io';
 import 'dart:math';
 
+import 'package:collection/collection.dart';
 import 'package:logging/logging.dart';
+import 'package:wakelock/wakelock.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/auto_unlock_htlc_worker.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/model/block_data.dart';
@@ -28,9 +31,15 @@ class HtlcSwapsHandler {
     }
   }
 
+  bool get hasActiveIncomingSwaps =>
+      htlcSwapsService!.getSwapsByState([P2pSwapState.active]).firstWhereOrNull(
+          (e) => e.direction == P2pSwapDirection.incoming) !=
+      null;
+
   Future<void> _runPeriodically() async {
     try {
       _isRunning = true;
+      await _enableWakelockIfNeeded();
       if (!zenon!.wsClient.isClosed()) {
         final unresolvedSwaps = htlcSwapsService!.getSwapsByState([
           P2pSwapState.pending,
@@ -51,6 +60,17 @@ class HtlcSwapsHandler {
       Logger('HtlcSwapsHandler').log(Level.WARNING, '_runPeriodically', e);
     } finally {
       Future.delayed(const Duration(seconds: 5), () => _runPeriodically());
+    }
+  }
+
+  Future<void> _enableWakelockIfNeeded() async {
+    if (!Platform.isLinux && hasActiveIncomingSwaps) {
+      try {
+        await Wakelock.enable();
+      } catch (e) {
+        Logger('HtlcSwapsHandler')
+            .log(Level.WARNING, '_enableWakelockIfNeeded', e);
+      }
     }
   }
 

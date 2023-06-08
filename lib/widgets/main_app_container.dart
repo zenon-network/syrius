@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_vector_icons/flutter_vector_icons.dart';
 import 'package:provider/provider.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
+import 'package:zenon_syrius_wallet_flutter/handlers/htlc_swaps_handler.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/model/model.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
@@ -460,10 +461,7 @@ class _MainAppContainerState extends State<MainAppContainer>
   }
 
   Future<void> _mainLockCallback(String password) async {
-    _navigateToLockTimer = Timer.periodic(
-      Duration(minutes: kAutoLockWalletMinutes!),
-      (timer) => _lockBloc.addEvent(LockEvent.navigateToLock),
-    );
+    _navigateToLockTimer = _createAutoLockTimer();
     _lockBloc.addEvent(LockEvent.navigateToPreviousTab);
   }
 
@@ -492,12 +490,7 @@ class _MainAppContainerState extends State<MainAppContainer>
   }
 
   void _afterAppInitCallback() {
-    _navigateToLockTimer = Timer.periodic(
-      Duration(
-        minutes: kAutoLockWalletMinutes!,
-      ),
-      (timer) => _lockBloc.addEvent(LockEvent.navigateToLock),
-    );
+    _navigateToLockTimer = _createAutoLockTimer();
     _lockBloc.addEvent(LockEvent.navigateToDashboard);
     _listenToAutoReceiveTxWorkerNotifications();
   }
@@ -597,10 +590,7 @@ class _MainAppContainerState extends State<MainAppContainer>
       switch (event) {
         case LockEvent.countDown:
           if (kCurrentPage != Tabs.lock) {
-            _navigateToLockTimer = Timer.periodic(
-              Duration(minutes: kAutoLockWalletMinutes!),
-              (timer) => _lockBloc.addEvent(LockEvent.navigateToLock),
-            );
+            _navigateToLockTimer = _createAutoLockTimer();
           }
           break;
         case LockEvent.navigateToDashboard:
@@ -621,10 +611,7 @@ class _MainAppContainerState extends State<MainAppContainer>
         case LockEvent.resetTimer:
           if (_navigateToLockTimer != null && _navigateToLockTimer!.isActive) {
             _navigateToLockTimer?.cancel();
-            _navigateToLockTimer = Timer.periodic(
-              Duration(minutes: kAutoLockWalletMinutes!),
-              (timer) => _lockBloc.addEvent(LockEvent.navigateToLock),
-            );
+            _navigateToLockTimer = _createAutoLockTimer();
           }
           break;
         case LockEvent.navigateToPreviousTab:
@@ -635,5 +622,13 @@ class _MainAppContainerState extends State<MainAppContainer>
     if (widget.redirectedFromWalletSuccess) {
       _lockBloc.addEvent(LockEvent.countDown);
     }
+  }
+
+  Timer _createAutoLockTimer() {
+    return Timer.periodic(Duration(minutes: kAutoLockWalletMinutes!), (timer) {
+      if (!sl<HtlcSwapsHandler>().hasActiveIncomingSwaps) {
+        _lockBloc.addEvent(LockEvent.navigateToLock);
+      }
+    });
   }
 }
