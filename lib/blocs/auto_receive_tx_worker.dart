@@ -15,7 +15,6 @@ import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 class AutoReceiveTxWorker extends BaseBloc<WalletNotification> {
   static AutoReceiveTxWorker? _instance;
   Queue<Hash> pool = Queue<Hash>();
-  HashSet<Hash> processedHashes = HashSet<Hash>();
   bool running = false;
 
   static AutoReceiveTxWorker getInstance() {
@@ -29,7 +28,6 @@ class AutoReceiveTxWorker extends BaseBloc<WalletNotification> {
     if (pool.isNotEmpty && !running && !sl<AutoUnlockHtlcWorker>().running) {
       running = true;
       Hash currentHash = pool.first;
-      pool.removeFirst();
       try {
         String toAddress =
             (await zenon!.ledger.getAccountBlockByHash(currentHash))!
@@ -48,20 +46,20 @@ class AutoReceiveTxWorker extends BaseBloc<WalletNotification> {
           blockSigningKey: keyPair,
           waitForRequiredPlasma: true,
         );
+        pool.removeFirst();
         _sendSuccessNotification(response, toAddress);
       } on RpcException catch (e, stackTrace) {
         Logger('AutoReceiveTxWorker')
             .log(Level.WARNING, 'autoReceive', e, stackTrace);
-        if (e.message.compareTo('account-block from-block already received') !=
+        if (e.message.compareTo('account-block from-block already received') ==
             0) {
-          pool.addFirst(currentHash);
+          pool.removeFirst();
         } else {
           _sendErrorNotification(e.toString());
         }
       } catch (e, stackTrace) {
         Logger('AutoReceiveTxWorker')
             .log(Level.WARNING, 'autoReceive', e, stackTrace);
-        pool.addFirst(currentHash);
         _sendErrorNotification(e.toString());
       }
       running = false;
@@ -91,15 +89,13 @@ class AutoReceiveTxWorker extends BaseBloc<WalletNotification> {
   }
 
   Future<void> addHash(Hash hash) async {
-    if (!processedHashes.contains(hash)) {
+    if (!pool.contains(hash)) {
       zenon!.stats.syncInfo().then((syncInfo) {
-        if (!processedHashes.contains(hash) &&
-            (syncInfo.state == SyncState.syncDone ||
-                (syncInfo.targetHeight > 0 &&
-                    syncInfo.currentHeight > 0 &&
-                    (syncInfo.targetHeight - syncInfo.currentHeight) < 3))) {
+        if ((syncInfo.state == SyncState.syncDone ||
+            (syncInfo.targetHeight > 0 &&
+                syncInfo.currentHeight > 0 &&
+                (syncInfo.targetHeight - syncInfo.currentHeight) < 3))) {
           pool.add(hash);
-          processedHashes.add(hash);
         }
       });
     }
