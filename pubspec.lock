@@ -712,6 +712,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.1.5"
+  logger:
+    dependency: transitive
+    description:
+      name: logger
+      sha256: "7ad7215c15420a102ec687bb320a7312afd449bac63bfb1c60d9787c27b9767f"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.4.0"
   logging:
     dependency: "direct main"
     description:
@@ -1489,10 +1497,10 @@ packages:
     dependency: "direct main"
     description:
       name: walletconnect_flutter_v2
-      sha256: "6fbeb62098f86b52e539481cb7f8a98ec6b336105c560400e7eded4f2e29983d"
+      sha256: "84d8267827b353e1a9a2b3cb39ae28e405715b66c63a71e36d5bcb613883acdc"
       url: "https://pub.dev"
     source: hosted
-    version: "2.0.8"
+    version: "2.0.9"
   watcher:
     dependency: transitive
     description:

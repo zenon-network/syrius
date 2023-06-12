@@ -27,6 +27,13 @@ class _WalletConnectPairingsCardState extends State<WalletConnectPairingsCard> {
       sl.get<WalletConnectPairingsBloc>();
 
   @override
+  void initState() {
+    // Initialize WalletConnect client
+    sl.get<WalletConnectService>().initClient();
+    super.initState();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return CardScaffold(
       title: _kWidgetTitle,

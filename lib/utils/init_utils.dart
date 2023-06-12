@@ -18,7 +18,6 @@ class InitUtils {
     try {
       WidgetUtils.setThemeMode(context);
       WidgetUtils.setTextScale(context);
-      await sl.get<WalletConnectService>().initClient();
       _setAutoEraseWalletNumAttempts();
       _setAutoLockWalletTimeInterval();
       await KeyStoreUtils.setKeyStorePath();
@@ -26,6 +25,9 @@ class InitUtils {
       await NodeUtils.setNode();
       _setChainId();
       await NodeUtils.loadDbNodes();
+
+      // Initialize WalletConnect client
+      sl.get<WalletConnectService>().initClient();
     } catch (e) {
       rethrow;
     }

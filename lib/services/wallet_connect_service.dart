@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:logging/logging.dart';
 import 'package:walletconnect_flutter_v2/walletconnect_flutter_v2.dart';
+import 'package:window_manager/window_manager.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/wallet_connect/wallet_connect_pairings_bloc.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/wallet_connect/wallet_connect_sessions_bloc.dart';
@@ -36,29 +37,43 @@ class WalletConnectService {
   );
 
   Future<void> initClient() async {
-    _wcClient = await Web3Wallet.createInstance(
-      projectId: kWcProjectId,
-      metadata: const PairingMetadata(
-        name: 's y r i u s',
-        description: 'A wallet for interacting with Zenon Network',
-        url: 'https://zenon.network',
-        // TODO: add Zenon icon
-        icons: ['https://avatars.githubusercontent.com/u/37784886'],
-      ),
-    );
-    for (var pairingInfo in pairings) {
-      dAppsActiveSessions
-          .addAll(getSessionsForPairing(pairingInfo.topic).values);
+    if (kWcProjectId.isNotEmpty) {
+      try {
+        _wcClient = await Web3Wallet.createInstance(
+          projectId: kWcProjectId,
+          metadata: const PairingMetadata(
+            name: 's y r i u s',
+            description: 'A wallet for interacting with Zenon Network',
+            url: 'https://zenon.network',
+            // TODO: add Zenon icon
+            icons: ['https://avatars.githubusercontent.com/u/37784886'],
+          ),
+        ).onError((error, stackTrace) {
+          throw 'WalletConnect init failed';
+        });
+      } catch (e, stackTrace) {
+        Logger('WalletConnectService')
+            .log(Level.SEVERE, 'createInstance ', e, stackTrace);
+        return;
+      }
+      for (var pairingInfo in pairings) {
+        dAppsActiveSessions
+            .addAll(getSessionsForPairing(pairingInfo.topic).values);
 
+        Logger('WalletConnectService')
+            .log(Level.INFO, 'active pairings: $pairingInfo');
+      }
       Logger('WalletConnectService')
-          .log(Level.INFO, 'active pairings: $pairingInfo');
+          .log(Level.INFO, 'pairings num: ${pairings.length}');
+      Logger('WalletConnectService')
+          .log(Level.INFO, 'active sessions: ${getActiveSessions()}');
+      _initListeners();
+      _initialChecks();
+    } else {
+      Logger('WalletConnectService').log(Level.INFO, 'kWcProjectId missing');
+      return;
     }
-    Logger('WalletConnectService')
-        .log(Level.INFO, 'pairings num: ${pairings.length}');
-    Logger('WalletConnectService')
-        .log(Level.INFO, 'active sessions: ${getActiveSessions()}');
-    _initListeners();
-    _initialChecks();
+    return;
   }
 
   Web3Wallet getWeb3Wallet() {
@@ -148,57 +163,65 @@ class WalletConnectService {
       chainId: 'zenon:1',
       method: 'znn_info',
       handler: (topic, params) async {
+        if (!await windowManager.isFocused() ||
+            !await windowManager.isVisible()) {
+          windowManager.show();
+        }
         final dAppMetadata = dAppsActiveSessions
             .firstWhere((element) => element.topic == topic)
             .peer
             .metadata;
 
         if (kCurrentPage != Tabs.lock) {
-          final actionWasAccepted = await showDialogWithNoAndYesOptions(
-            context: _context,
-            title: '${dAppMetadata.name} - Information',
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Text('Are you sure you want to allow ${dAppMetadata.name} to '
-                    'retrieve the current address, node URL and chain identifier information?'),
-                kVerticalSpacing,
-                Image(
-                  image: NetworkImage(dAppMetadata.icons.first),
-                  height: 100.0,
-                  fit: BoxFit.fitHeight,
-                ),
-                kVerticalSpacing,
-                Text(dAppMetadata.description),
-                kVerticalSpacing,
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(dAppMetadata.url),
-                    LinkIcon(
-                      url: dAppMetadata.url,
-                    )
-                  ],
-                ),
-              ],
-            ),
-            onYesButtonPressed: () async {
-              Navigator.pop(_context, true);
-            },
-            onNoButtonPressed: () {
-              Navigator.pop(_context, false);
-            },
-          );
+          if (_context.mounted) {
+            final actionWasAccepted = await showDialogWithNoAndYesOptions(
+              context: _context,
+              title: '${dAppMetadata.name} - Information',
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Text('Are you sure you want to allow ${dAppMetadata.name} to '
+                      'retrieve the current address, node URL and chain identifier information?'),
+                  kVerticalSpacing,
+                  Image(
+                    image: NetworkImage(dAppMetadata.icons.first),
+                    height: 100.0,
+                    fit: BoxFit.fitHeight,
+                  ),
+                  kVerticalSpacing,
+                  Text(dAppMetadata.description),
+                  kVerticalSpacing,
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(dAppMetadata.url),
+                      LinkIcon(
+                        url: dAppMetadata.url,
+                      )
+                    ],
+                  ),
+                ],
+              ),
+              onYesButtonPressed: () async {
+                Navigator.pop(_context, true);
+              },
+              onNoButtonPressed: () {
+                Navigator.pop(_context, false);
+              },
+            );
 
-          if (actionWasAccepted) {
-            return {
-              'address': kSelectedAddress,
-              'nodeUrl': kCurrentNode,
-              'chainId': getChainIdentifier(),
-            };
+            if (actionWasAccepted) {
+              return {
+                'address': kSelectedAddress,
+                'nodeUrl': kCurrentNode,
+                'chainId': getChainIdentifier(),
+              };
+            } else {
+              throw Errors.getSdkError(Errors.USER_REJECTED);
+            }
           } else {
-            throw Errors.getSdkError(Errors.USER_REJECTED);
+            throw _walletLockedError;
           }
         } else {
           throw _walletLockedError;
@@ -215,6 +238,10 @@ class WalletConnectService {
       chainId: 'zenon:1',
       method: 'znn_sign',
       handler: (topic, params) async {
+        if (!await windowManager.isFocused() ||
+            !await windowManager.isVisible()) {
+          windowManager.show();
+        }
         final dAppMetadata = dAppsActiveSessions
             .firstWhere((element) => element.topic == topic)
             .peer
@@ -222,47 +249,51 @@ class WalletConnectService {
         if (kCurrentPage != Tabs.lock) {
           final message = params as String;
 
-          final actionWasAccepted = await showDialogWithNoAndYesOptions(
-            context: _context,
-            title: '${dAppMetadata.name} - Sign Message',
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Text('Are you sure you want to '
-                    'sign message $message ?'),
-                kVerticalSpacing,
-                Image(
-                  image: NetworkImage(dAppMetadata.icons.first),
-                  height: 100.0,
-                  fit: BoxFit.fitHeight,
-                ),
-                kVerticalSpacing,
-                Text(dAppMetadata.description),
-                kVerticalSpacing,
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(dAppMetadata.url),
-                    LinkIcon(
-                      url: dAppMetadata.url,
-                    )
-                  ],
-                ),
-              ],
-            ),
-            onYesButtonPressed: () async {
-              Navigator.pop(_context, true);
-            },
-            onNoButtonPressed: () {
-              Navigator.pop(_context, false);
-            },
-          );
+          if (_context.mounted) {
+            final actionWasAccepted = await showDialogWithNoAndYesOptions(
+              context: _context,
+              title: '${dAppMetadata.name} - Sign Message',
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Text('Are you sure you want to '
+                      'sign message $message ?'),
+                  kVerticalSpacing,
+                  Image(
+                    image: NetworkImage(dAppMetadata.icons.first),
+                    height: 100.0,
+                    fit: BoxFit.fitHeight,
+                  ),
+                  kVerticalSpacing,
+                  Text(dAppMetadata.description),
+                  kVerticalSpacing,
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(dAppMetadata.url),
+                      LinkIcon(
+                        url: dAppMetadata.url,
+                      )
+                    ],
+                  ),
+                ],
+              ),
+              onYesButtonPressed: () async {
+                Navigator.pop(_context, true);
+              },
+              onNoButtonPressed: () {
+                Navigator.pop(_context, false);
+              },
+            );
 
-          if (actionWasAccepted) {
-            return await walletSign(message.codeUnits);
+            if (actionWasAccepted) {
+              return await walletSign(message.codeUnits);
+            } else {
+              throw Errors.getSdkError(Errors.USER_REJECTED);
+            }
           } else {
-            throw Errors.getSdkError(Errors.USER_REJECTED);
+            throw _walletLockedError;
           }
         } else {
           throw _walletLockedError;
@@ -274,6 +305,10 @@ class WalletConnectService {
       chainId: 'zenon:1',
       method: 'znn_send',
       handler: (topic, params) async {
+        if (!await windowManager.isFocused() ||
+            !await windowManager.isVisible()) {
+          windowManager.show();
+        }
         final dAppMetadata = dAppsActiveSessions
             .firstWhere((element) => element.topic == topic)
             .peer
@@ -362,7 +397,10 @@ class WalletConnectService {
   List<PairingInfo> get pairings => _wcClient.pairings.getAll();
 
   Future<ApproveResponse> approveSession(
-      {required int id, Map<String, Namespace>? namespaces}) {
+      {required int id, Map<String, Namespace>? namespaces}) async {
+    if (!await windowManager.isFocused() || !await windowManager.isVisible()) {
+      windowManager.show();
+    }
     namespaces = namespaces ??
         {
           'zenon': Namespace(

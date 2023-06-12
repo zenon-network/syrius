@@ -11,6 +11,7 @@ import 'package:flutter_vector_icons/flutter_vector_icons.dart';
 import 'package:logging/logging.dart';
 import 'package:provider/provider.dart';
 import 'package:wallet_connect_uri_validator/wallet_connect_uri_validator.dart';
+import 'package:window_manager/window_manager.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/model/model.dart';
@@ -60,7 +61,7 @@ class MainAppContainer extends StatefulWidget {
 }
 
 class _MainAppContainerState extends State<MainAppContainer>
-    with TickerProviderStateMixin, ClipboardListener {
+    with TickerProviderStateMixin, ClipboardListener, WindowListener {
   late AnimationController _animationController;
   late Animation _animation;
 
@@ -89,7 +90,10 @@ class _MainAppContainerState extends State<MainAppContainer>
   @override
   void initState() {
     sl<WalletConnectService>().context = context;
+
     clipboardWatcher.addListener(this);
+    windowManager.addListener(this);
+
     ClipboardUtils.toggleClipboardWatcherStatus();
     _netSyncStatusBloc.getDataPeriodically();
     _transferTabChild = TransferTabChild(
@@ -500,6 +504,8 @@ class _MainAppContainerState extends State<MainAppContainer>
 
   @override
   void dispose() {
+    windowManager.removeListener(this);
+
     _animationController.dispose();
     _netSyncStatusBloc.dispose();
     _navigateToLockTimer?.cancel();
@@ -677,31 +683,106 @@ class _MainAppContainerState extends State<MainAppContainer>
 
   void _handleIncomingLinks() {
     if (!kIsWeb) {
-      _incomingLinkSubscription = _appLinks.allUriLinkStream.listen((Uri? uri) {
+      _incomingLinkSubscription =
+          _appLinks.allUriLinkStream.listen((Uri? uri) async {
+        if (!await windowManager.isFocused() ||
+            !await windowManager.isVisible()) {
+          windowManager.show();
+        }
+
         if (uri != null) {
           String uriRaw = uri.toString();
-
-          if (Platform.isWindows) {
-            uriRaw = uriRaw.replaceAll('/?', '?');
-          }
 
           Logger('MainAppContainer')
               .log(Level.INFO, '_handleIncomingLinks $uriRaw');
 
-          String uriRawData = Uri.decodeFull(uriRaw.split('wc?uri=').last);
+          if (context.mounted) {
+            if (uriRaw.contains('wc')) {
+              if (Platform.isWindows) {
+                uriRaw = uriRaw.replaceAll('/?', '?');
+              }
+              String wcUri = Uri.decodeFull(uriRaw.split('wc?uri=').last);
+              if (WalletConnectUri.tryParse(wcUri) != null) {
+                _updateWalletConnectUri(wcUri);
+              }
+            }
 
-          sl<NotificationsBloc>().addNotification(
-            WalletNotification(
-              title: 'Incoming link detected',
-              timestamp: DateTime.now().millisecondsSinceEpoch,
-              details: 'Deep link detected: $uriRawData',
-              type: NotificationType.paymentReceived,
-            ),
-          );
-
-          if (mounted) {
-            if (WalletConnectUri.tryParse(uriRawData) != null) {
-              _updateWalletConnectUri(uriRawData);
+            switch (uri.host) {
+              case 'stake':
+                if (kCurrentPage != Tabs.lock) {
+                  _navigateTo(Tabs.staking);
+                }
+                sl<NotificationsBloc>().addNotification(
+                  WalletNotification(
+                    title: 'Stake ZNN action detected',
+                    timestamp: DateTime.now().millisecondsSinceEpoch,
+                    details: 'Deep link: $uriRaw',
+                    type: NotificationType.paymentReceived,
+                  ),
+                );
+                break;
+              case 'delegate':
+                if (kCurrentPage != Tabs.lock) {
+                  _navigateTo(Tabs.pillars);
+                }
+                sl<NotificationsBloc>().addNotification(
+                  WalletNotification(
+                    title: 'Delegate ZNN action detected',
+                    timestamp: DateTime.now().millisecondsSinceEpoch,
+                    details: 'Deep link: $uriRaw',
+                    type: NotificationType.paymentReceived,
+                  ),
+                );
+                break;
+              case 'fuse':
+                if (kCurrentPage != Tabs.lock) {
+                  _navigateTo(Tabs.plasma);
+                }
+                sl<NotificationsBloc>().addNotification(
+                  WalletNotification(
+                    title: 'Fuse QSR action detected',
+                    timestamp: DateTime.now().millisecondsSinceEpoch,
+                    details: 'Deep link: $uriRaw',
+                    type: NotificationType.paymentReceived,
+                  ),
+                );
+                break;
+              case 'sentinel':
+                if (kCurrentPage != Tabs.lock) {
+                  _navigateTo(Tabs.sentinels);
+                }
+                sl<NotificationsBloc>().addNotification(
+                  WalletNotification(
+                    title: 'Deploy Sentinel action detected',
+                    timestamp: DateTime.now().millisecondsSinceEpoch,
+                    details: 'Deep link: $uriRaw',
+                    type: NotificationType.paymentReceived,
+                  ),
+                );
+                break;
+              case 'pillar':
+                if (kCurrentPage != Tabs.lock) {
+                  _navigateTo(Tabs.pillars);
+                }
+                sl<NotificationsBloc>().addNotification(
+                  WalletNotification(
+                    title: 'Deploy Pillar action detected',
+                    timestamp: DateTime.now().millisecondsSinceEpoch,
+                    details: 'Deep link: $uriRaw',
+                    type: NotificationType.paymentReceived,
+                  ),
+                );
+                break;
+              default:
+                sl<NotificationsBloc>().addNotification(
+                  WalletNotification(
+                    title: 'Incoming link detected',
+                    timestamp: DateTime.now().millisecondsSinceEpoch,
+                    details: 'Deep link: $uriRaw',
+                    type: NotificationType.paymentReceived,
+                  ),
+                );
+                break;
             }
           } else {
             return;
