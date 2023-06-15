@@ -129,8 +129,8 @@ class ProjectListBloc with RefreshBlocMixin {
 
   /*
   This method filters the projects according to the following rule:
-  if a user doesn't have a Pillar, then we only show him the active
-  projects
+  if a user doesn't have a Pillar, only show the active
+  projects or all owned projects
    */
   Future<List<Project>> _filterProjectsAccordingToPillarInfo(
       Set<Project> projectList) async {
@@ -142,7 +142,7 @@ class ProjectListBloc with RefreshBlocMixin {
           .where(
             (project) =>
                 project.status == AcceleratorProjectStatus.active ||
-                project.owner.toString() == kSelectedAddress,
+                kDefaultAddressList.contains(project.owner.toString()),
           )
           .toList();
       if (activeProjects.isNotEmpty) {
