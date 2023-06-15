@@ -58,9 +58,9 @@ showDialogWithNoAndYesOptions({
   required BuildContext context,
   required String title,
   required VoidCallback onYesButtonPressed,
+  VoidCallback? onNoButtonPressed,
   Widget? content,
   String? description,
-  VoidCallback? onNoButtonPressed,
 }) =>
     showDialog(
       barrierDismissible: false,
@@ -76,11 +76,14 @@ showDialogWithNoAndYesOptions({
             ),
             onPressed: () {
               onNoButtonPressed?.call();
+              Navigator.pop(context);
             },
           ),
           TextButton(
-            // TODO: add also pop call
-            onPressed: onYesButtonPressed,
+            onPressed: () {
+              onYesButtonPressed.call();
+              Navigator.pop(context);
+            },
             style: Theme.of(context).textButtonTheme.style!.copyWith(
                   backgroundColor: MaterialStateColor.resolveWith(
                       (states) => AppColors.errorColor),

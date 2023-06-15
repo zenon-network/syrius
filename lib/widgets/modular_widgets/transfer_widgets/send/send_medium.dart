@@ -191,7 +191,6 @@ class _SendMediumCardState extends State<SendMediumCard> {
   }
 
   void _sendPayment(SendPaymentBloc model) {
-    Navigator.pop(context);
     _sendPaymentButtonKey.currentState?.animateForward();
     model.sendTransfer(
       fromAddress: kSelectedAddress,

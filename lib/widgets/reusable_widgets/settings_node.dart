@@ -305,7 +305,6 @@ class _SettingsNodeState extends State<SettingsNode> {
       await nodesBox.delete(nodeKey);
       kDbNodes.remove(node);
       if (!mounted) return;
-      Navigator.pop(context);
       widget.onChangedOrDeletedNode();
     } catch (e) {
       NotificationUtils.sendNotificationError(

@@ -260,7 +260,6 @@ class _SwapCardState extends State<SwapCard> {
           '${kZnnCoin.symbol} ?',
       onYesButtonPressed: () {
         _sendSwapBlock();
-        Navigator.pop(context);
       },
     );
   }

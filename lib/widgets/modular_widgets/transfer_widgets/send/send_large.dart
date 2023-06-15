@@ -255,7 +255,6 @@ class _SendLargeCardState extends State<SendLargeCard> {
   }
 
   void _sendPayment(SendPaymentBloc model) {
-    Navigator.pop(context);
     _sendPaymentButtonKey.currentState?.animateForward();
     model.sendTransfer(
       fromAddress: _selectedSelfAddress,
