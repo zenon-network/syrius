@@ -11,6 +11,7 @@ import 'package:layout/layout.dart';
 import 'package:local_notifier/local_notifier.dart';
 import 'package:logging/logging.dart';
 import 'package:overlay_support/overlay_support.dart';
+import 'package:path/path.dart' as path;
 import 'package:provider/provider.dart';
 import 'package:tray_manager/tray_manager.dart';
 import 'package:window_manager/window_manager.dart';
@@ -36,18 +37,31 @@ main() async {
   Provider.debugCheckInvalidValueType = null;
   debugDefaultTargetPlatformOverride = TargetPlatform.fuchsia;
 
+  ensureDirectoriesExist();
+  Hive.init(znnDefaultPaths.cache.path.toString());
+
   // Setup logger
+  Directory syriusLogDir =
+      Directory(path.join(znnDefaultCacheDirectory.path, 'log'));
+  if (!syriusLogDir.existsSync()) {
+    syriusLogDir.createSync(recursive: true);
+  }
+  final logFile = File(
+      '${syriusLogDir.path}${path.separator}syrius-${DateTime.now().millisecondsSinceEpoch}.log');
   Logger.root.level = Level.ALL;
-  Logger.root.onRecord.listen((record) {
+  Logger.root.onRecord.listen((LogRecord record) {
     if (kDebugMode) {
       print(
           '${record.level.name} ${record.loggerName} ${record.message} ${record.time}: '
           '${record.error} ${record.stackTrace}\n');
     }
+    logFile.writeAsString(
+      '${record.level.name} ${record.loggerName} ${record.message} ${record.time}: '
+      '${record.error} ${record.stackTrace}\n',
+      mode: FileMode.append,
+      flush: true,
+    );
   });
-
-  ensureDirectoriesExist();
-  Hive.init(znnDefaultPaths.cache.path.toString());
 
   windowManager.ensureInitialized();
   await windowManager.setPreventClose(true);
