@@ -368,7 +368,7 @@ class _PillarsListWidgetState extends State<PillarsListWidget> {
         setState(() {
           _currentlyDelegatingToPillar = pillarInfo.name;
         });
-        model.votePillar(pillarInfo.name, context);
+        model.delegateToPillar(pillarInfo.name);
       },
       text: 'DELEGATE',
       textStyle: Theme.of(context).textTheme.titleSmall!.copyWith(
