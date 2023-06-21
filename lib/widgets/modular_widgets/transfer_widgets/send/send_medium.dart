@@ -181,6 +181,7 @@ class _SendMediumCardState extends State<SendMediumCard> {
         _amountKey.currentState!.validate()) {
       showDialogWithNoAndYesOptions(
         context: context,
+        isBarrierDismissible: true,
         title: 'Send Payment',
         description: 'Are you sure you want to transfer '
             '${_amountController.text} ${_selectedToken.symbol} to '

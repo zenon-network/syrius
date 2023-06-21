@@ -153,6 +153,7 @@ class _SettingsNodeState extends State<SettingsNode> {
           child: MaterialIconButton(
             onPressed: () {
               showDialogWithNoAndYesOptions(
+                isBarrierDismissible: true,
                 context: context,
                 title: 'Node Management',
                 description: 'Are you sure you want to delete '

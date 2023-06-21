@@ -38,24 +38,25 @@ class WalletConnectService {
 
   Future<void> initClient() async {
     if (kWcProjectId.isNotEmpty) {
-      try {
-        _wcClient = await Web3Wallet.createInstance(
-          projectId: kWcProjectId,
-          metadata: const PairingMetadata(
-            name: 's y r i u s',
-            description: 'A wallet for interacting with Zenon Network',
-            url: 'https://zenon.network',
-            // TODO: add Zenon icon
-            icons: ['https://avatars.githubusercontent.com/u/37784886'],
-          ),
-        ).onError((error, stackTrace) {
-          throw 'WalletConnect init failed';
-        });
-      } catch (e, stackTrace) {
+      _wcClient = await Web3Wallet.createInstance(
+        projectId: kWcProjectId,
+        metadata: const PairingMetadata(
+          name: 's y r i u s',
+          description: 'A wallet for interacting with Zenon Network',
+          url: 'https://zenon.network',
+          // TODO: add Zenon icon
+          icons: ['https://avatars.githubusercontent.com/u/37784886'],
+        ),
+      ).onError((e, stackTrace) {
         Logger('WalletConnectService')
-            .log(Level.SEVERE, 'createInstance ', e, stackTrace);
-        return;
-      }
+            .log(Level.SEVERE, 'initClient onError ', e, stackTrace);
+        if (e != null) {
+          NotificationUtils.sendNotificationError(
+              e, 'WalletConnect initialization failed');
+        }
+        throw 'WalletConnect init failed';
+      });
+
       for (var pairingInfo in pairings) {
         dAppsActiveSessions
             .addAll(getSessionsForPairing(pairingInfo.topic).values);
@@ -76,18 +77,9 @@ class WalletConnectService {
     return;
   }
 
-  Web3Wallet getWeb3Wallet() {
-    return _wcClient;
-  }
-
   Future<PairingInfo> pair(Uri uri) => _wcClient.pair(uri: uri);
 
   void _initListeners() {
-    _wcClient.onSessionPing.subscribe((args) {
-      Logger('WalletConnectService')
-          .log(Level.INFO, 'onSessionPing triggered', args.toString());
-    });
-
     _wcClient.core.relayClient.onRelayClientDisconnect.subscribe((args) {
       Logger('WalletConnectService').log(
           Level.INFO, 'onRelayClientDisconnect triggered', args.toString());
@@ -126,6 +118,11 @@ class WalletConnectService {
           .log(Level.INFO, 'onPairingExpire triggered', args.toString());
     });
 
+    _wcClient.onSessionPing.subscribe((args) {
+      Logger('WalletConnectService')
+          .log(Level.INFO, 'onSessionPing triggered', args.toString());
+    });
+
     _wcClient.onSessionDelete.subscribe((args) {
       Logger('WalletConnectService')
           .log(Level.INFO, 'onSessionDelete triggered', args.toString());
@@ -142,21 +139,16 @@ class WalletConnectService {
       sl.get<WalletConnectSessionsBloc>().refreshResults();
     });
 
-    _wcClient.onSessionPing.subscribe((args) {
-      Logger('WalletConnectService')
-          .log(Level.INFO, 'onSessionPing triggered', args.toString());
-    });
-
     _wcClient.onSessionProposal.subscribe(onSessionProposal);
-
-    _wcClient.onAuthRequest.subscribe((args) {
-      Logger('WalletConnectService')
-          .log(Level.INFO, 'onAuthRequest triggered', args.toString());
-    });
 
     _wcClient.onSessionRequest.subscribe((SessionRequestEvent? request) async {
       Logger('WalletConnectService')
           .log(Level.INFO, 'onSessionRequest triggered', request.toString());
+    });
+
+    _wcClient.onAuthRequest.subscribe((args) {
+      Logger('WalletConnectService')
+          .log(Level.INFO, 'onAuthRequest triggered', args.toString());
     });
 
     _wcClient.registerRequestHandler(
@@ -176,6 +168,7 @@ class WalletConnectService {
           if (_context.mounted) {
             final actionWasAccepted = await showDialogWithNoAndYesOptions(
               context: _context,
+              isBarrierDismissible: false,
               title: '${dAppMetadata.name} - Information',
               content: Column(
                 mainAxisSize: MainAxisSize.min,
@@ -203,12 +196,8 @@ class WalletConnectService {
                   ),
                 ],
               ),
-              onYesButtonPressed: () async {
-                Navigator.pop(_context, true);
-              },
-              onNoButtonPressed: () {
-                Navigator.pop(_context, false);
-              },
+              onYesButtonPressed: () async {},
+              onNoButtonPressed: () {},
             );
 
             if (actionWasAccepted) {
@@ -218,6 +207,9 @@ class WalletConnectService {
                 'chainId': getChainIdentifier(),
               };
             } else {
+              NotificationUtils.sendNotificationError(
+                  Errors.getSdkError(Errors.USER_REJECTED),
+                  'You have rejected the WalletConnect request');
               throw Errors.getSdkError(Errors.USER_REJECTED);
             }
           } else {
@@ -252,6 +244,7 @@ class WalletConnectService {
           if (_context.mounted) {
             final actionWasAccepted = await showDialogWithNoAndYesOptions(
               context: _context,
+              isBarrierDismissible: false,
               title: '${dAppMetadata.name} - Sign Message',
               content: Column(
                 mainAxisSize: MainAxisSize.min,
@@ -279,17 +272,16 @@ class WalletConnectService {
                   ),
                 ],
               ),
-              onYesButtonPressed: () async {
-                Navigator.pop(_context, true);
-              },
-              onNoButtonPressed: () {
-                Navigator.pop(_context, false);
-              },
+              onYesButtonPressed: () async {},
+              onNoButtonPressed: () {},
             );
 
             if (actionWasAccepted) {
               return await walletSign(message.codeUnits);
             } else {
+              NotificationUtils.sendNotificationError(
+                  Errors.getSdkError(Errors.USER_REJECTED),
+                  'You have rejected the WalletConnect request');
               throw Errors.getSdkError(Errors.USER_REJECTED);
             }
           } else {
@@ -331,6 +323,7 @@ class WalletConnectService {
           if (_context.mounted) {
             final wasActionAccepted = await showDialogWithNoAndYesOptions(
               context: _context,
+              isBarrierDismissible: false,
               title: '${dAppMetadata.name} - Send Payment',
               content: Column(
                 mainAxisSize: MainAxisSize.min,
@@ -362,12 +355,8 @@ class WalletConnectService {
               description: 'Are you sure you want to transfer '
                   '$amount ${token.symbol} to '
                   '$toAddress ?',
-              onYesButtonPressed: () {
-                Navigator.pop(_context, true);
-              },
-              onNoButtonPressed: () {
-                Navigator.pop(_context, false);
-              },
+              onYesButtonPressed: () {},
+              onNoButtonPressed: () {},
             );
 
             if (wasActionAccepted) {
@@ -382,6 +371,9 @@ class WalletConnectService {
 
               return result!;
             } else {
+              NotificationUtils.sendNotificationError(
+                  Errors.getSdkError(Errors.USER_REJECTED),
+                  'You have rejected the WalletConnect request');
               throw Errors.getSdkError(Errors.USER_REJECTED);
             }
           } else {
@@ -555,6 +547,7 @@ class WalletConnectService {
 
       final actionWasAccepted = await showDialogWithNoAndYesOptions(
         context: _context,
+        isBarrierDismissible: false,
         title: 'Approve session',
         content: Column(
           mainAxisSize: MainAxisSize.min,
@@ -582,12 +575,8 @@ class WalletConnectService {
             ),
           ],
         ),
-        onYesButtonPressed: () async {
-          Navigator.pop(_context, true);
-        },
-        onNoButtonPressed: () {
-          Navigator.pop(_context, false);
-        },
+        onYesButtonPressed: () async {},
+        onNoButtonPressed: () {},
       );
 
       if (actionWasAccepted) {

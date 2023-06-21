@@ -254,6 +254,7 @@ class _SwapCardState extends State<SwapCard> {
 
   void _onSwapButtonPressed() {
     showDialogWithNoAndYesOptions(
+      isBarrierDismissible: true,
       context: context,
       title: 'Swap',
       description: 'Are you sure you want to swap ${_amountController.text} '

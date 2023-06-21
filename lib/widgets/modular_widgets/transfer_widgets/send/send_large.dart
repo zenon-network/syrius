@@ -224,6 +224,7 @@ class _SendLargeCardState extends State<SendLargeCard> {
     if (_recipientKey.currentState!.validate() &&
         _amountKey.currentState!.validate()) {
       showDialogWithNoAndYesOptions(
+        isBarrierDismissible: false,
         context: context,
         title: 'Send Payment',
         description: 'Are you sure you want to transfer '
