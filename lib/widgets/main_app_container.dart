@@ -24,6 +24,7 @@ import 'package:zenon_syrius_wallet_flutter/utils/format_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/notification_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/notifiers/text_scaling_notifier.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/zts_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/tab_children_widgets/wallet_connect_tab_child.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
@@ -95,7 +96,9 @@ class _MainAppContainerState extends State<MainAppContainer>
     windowManager.addListener(this);
 
     ClipboardUtils.toggleClipboardWatcherStatus();
+
     _netSyncStatusBloc.getDataPeriodically();
+
     _transferTabChild = TransferTabChild(
       navigateToBridgeTab: () {
         _navigateTo(Tabs.bridge);
@@ -302,17 +305,18 @@ class _MainAppContainerState extends State<MainAppContainer>
               : Theme.of(context).iconTheme.color,
         ),
       ),
-      Tab(
-        child: SvgPicture.asset(
-          'assets/svg/walletconnect-logo.svg',
-          width: 24.0,
-          fit: BoxFit.fitWidth,
-          colorFilter: _isTabSelected(Tabs.walletConnect)
-              ? const ColorFilter.mode(AppColors.znnColor, BlendMode.srcIn)
-              : ColorFilter.mode(
-                  Theme.of(context).iconTheme.color!, BlendMode.srcIn),
+      if (kWcProjectId.isNotEmpty)
+        Tab(
+          child: SvgPicture.asset(
+            'assets/svg/walletconnect-logo.svg',
+            width: 24.0,
+            fit: BoxFit.fitWidth,
+            colorFilter: _isTabSelected(Tabs.walletConnect)
+                ? const ColorFilter.mode(AppColors.znnColor, BlendMode.srcIn)
+                : ColorFilter.mode(
+                    Theme.of(context).iconTheme.color!, BlendMode.srcIn),
+          ),
         ),
-      ),
       Tab(
         child: Icon(
           MaterialCommunityIcons.rocket,
@@ -467,7 +471,7 @@ class _MainAppContainerState extends State<MainAppContainer>
               _navigateTo(Tabs.notifications),
         ),
         const BridgeTabChild(),
-        const WalletConnectTabChild(),
+        if (kWcProjectId.isNotEmpty) const WalletConnectTabChild(),
         AcceleratorTabChild(
           onStepperNotificationSeeMorePressed: () =>
               _navigateTo(Tabs.notifications),

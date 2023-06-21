@@ -207,18 +207,3 @@ const List<Tabs> kTabsWithTextTitles = [
   Tabs.plasma,
   Tabs.tokens,
 ];
-
-const List<Tabs> kTabsWithIconTitles = [
-  Tabs.bridge,
-  Tabs.walletConnect,
-  Tabs.accelerator,
-  Tabs.help,
-  Tabs.notifications,
-  Tabs.settings,
-  Tabs.resyncWallet,
-  Tabs.lock,
-];
-
-const List<Tabs> kDisabledTabs = [
-  Tabs.resyncWallet,
-];
