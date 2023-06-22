@@ -685,7 +685,7 @@ class _MainAppContainerState extends State<MainAppContainer>
     }
   }
 
-  void _handleIncomingLinks() {
+  void _handleIncomingLinks() async {
     if (!kIsWeb) {
       _incomingLinkSubscription =
           _appLinks.allUriLinkStream.listen((Uri? uri) async {
@@ -709,86 +709,237 @@ class _MainAppContainerState extends State<MainAppContainer>
               if (WalletConnectUri.tryParse(wcUri) != null) {
                 _updateWalletConnectUri(wcUri);
               }
+              return;
             }
 
-            switch (uri.host) {
-              case 'stake':
-                if (kCurrentPage != Tabs.lock) {
-                  _navigateTo(Tabs.staking);
+            // Deep link query parameters
+            String queryAddress = '';
+            String queryAmount = ''; // with decimals
+            int queryDuration = 0; // in months
+            String queryZTS = '';
+            String queryPillarName = '';
+            Token? token;
+
+            if (uri.hasQuery) {
+              uri.queryParametersAll.forEach((key, value) async {
+                if (key == 'amount') {
+                  queryAmount = value.first;
+                } else if (key == 'zts') {
+                  queryZTS = value.first;
+                } else if (key == 'address') {
+                  queryAddress = value.first;
+                } else if (key == 'duration') {
+                  queryDuration = int.parse(value.first);
+                } else if (key == 'pillar') {
+                  queryPillarName = value.first;
                 }
-                sl<NotificationsBloc>().addNotification(
-                  WalletNotification(
-                    title: 'Stake ZNN action detected',
-                    timestamp: DateTime.now().millisecondsSinceEpoch,
-                    details: 'Deep link: $uriRaw',
-                    type: NotificationType.paymentReceived,
-                  ),
-                );
-                break;
-              case 'delegate':
-                if (kCurrentPage != Tabs.lock) {
-                  _navigateTo(Tabs.pillars);
-                }
-                sl<NotificationsBloc>().addNotification(
-                  WalletNotification(
-                    title: 'Delegate ZNN action detected',
-                    timestamp: DateTime.now().millisecondsSinceEpoch,
-                    details: 'Deep link: $uriRaw',
-                    type: NotificationType.paymentReceived,
-                  ),
-                );
-                break;
-              case 'fuse':
-                if (kCurrentPage != Tabs.lock) {
-                  _navigateTo(Tabs.plasma);
-                }
-                sl<NotificationsBloc>().addNotification(
-                  WalletNotification(
-                    title: 'Fuse QSR action detected',
-                    timestamp: DateTime.now().millisecondsSinceEpoch,
-                    details: 'Deep link: $uriRaw',
-                    type: NotificationType.paymentReceived,
-                  ),
-                );
-                break;
-              case 'sentinel':
-                if (kCurrentPage != Tabs.lock) {
-                  _navigateTo(Tabs.sentinels);
-                }
-                sl<NotificationsBloc>().addNotification(
-                  WalletNotification(
-                    title: 'Deploy Sentinel action detected',
-                    timestamp: DateTime.now().millisecondsSinceEpoch,
-                    details: 'Deep link: $uriRaw',
-                    type: NotificationType.paymentReceived,
-                  ),
-                );
-                break;
-              case 'pillar':
-                if (kCurrentPage != Tabs.lock) {
-                  _navigateTo(Tabs.pillars);
-                }
-                sl<NotificationsBloc>().addNotification(
-                  WalletNotification(
-                    title: 'Deploy Pillar action detected',
-                    timestamp: DateTime.now().millisecondsSinceEpoch,
-                    details: 'Deep link: $uriRaw',
-                    type: NotificationType.paymentReceived,
-                  ),
-                );
-                break;
-              default:
-                sl<NotificationsBloc>().addNotification(
-                  WalletNotification(
-                    title: 'Incoming link detected',
-                    timestamp: DateTime.now().millisecondsSinceEpoch,
-                    details: 'Deep link: $uriRaw',
-                    type: NotificationType.paymentReceived,
-                  ),
-                );
-                break;
+              });
             }
-          } else {
+
+            if (queryZTS.isNotEmpty) {
+              if (queryZTS == 'znn' || queryZTS == 'ZNN') {
+                token = kZnnCoin;
+              } else if (queryZTS == 'qsr' || queryZTS == 'QSR') {
+                token = kQsrCoin;
+              } else {
+                token = await zenon!.embedded.token
+                    .getByZts(TokenStandard.parse(queryZTS));
+              }
+            }
+
+            final sendPaymentBloc = SendPaymentBloc();
+            final stakingOptionsBloc = StakingOptionsBloc();
+            final delegateButtonBloc = DelegateButtonBloc();
+            final plasmaOptionsBloc = PlasmaOptionsBloc();
+
+            if (context.mounted) {
+              switch (uri.host) {
+                case 'transfer':
+                  sl<NotificationsBloc>().addNotification(
+                    WalletNotification(
+                      title: 'Transfer action detected',
+                      timestamp: DateTime.now().millisecondsSinceEpoch,
+                      details: 'Deep link: $uriRaw',
+                      type: NotificationType.paymentReceived,
+                    ),
+                  );
+
+                  if (kCurrentPage != Tabs.lock) {
+                    _navigateTo(Tabs.transfer);
+
+                    if (token != null) {
+                      showDialogWithNoAndYesOptions(
+                        context: context,
+                        title: 'Transfer action',
+                        isBarrierDismissible: true,
+                        content: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            Text(
+                                'Are you sure you want transfer $queryAmount ${token.symbol} from $kSelectedAddress to $queryAddress?'),
+                          ],
+                        ),
+                        onYesButtonPressed: () {
+                          sendPaymentBloc.sendTransfer(
+                            fromAddress: kSelectedAddress,
+                            toAddress: queryAddress,
+                            amount:
+                                queryAmount.extractDecimals(token!.decimals),
+                            data: null,
+                            token: token,
+                          );
+                        },
+                        onNoButtonPressed: () {},
+                      );
+                    }
+                  }
+                  break;
+
+                case 'stake':
+                  sl<NotificationsBloc>().addNotification(
+                    WalletNotification(
+                      title: 'Stake action detected',
+                      timestamp: DateTime.now().millisecondsSinceEpoch,
+                      details: 'Deep link: $uriRaw',
+                      type: NotificationType.paymentReceived,
+                    ),
+                  );
+
+                  if (kCurrentPage != Tabs.lock) {
+                    _navigateTo(Tabs.staking);
+
+                    showDialogWithNoAndYesOptions(
+                      context: context,
+                      title: 'Stake ${kZnnCoin.symbol} action',
+                      isBarrierDismissible: true,
+                      content: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Text(
+                              'Are you sure you want stake $queryAmount ${kZnnCoin.symbol} for $queryDuration month(s)?'),
+                        ],
+                      ),
+                      onYesButtonPressed: () {
+                        stakingOptionsBloc.stakeForQsr(
+                            Duration(seconds: queryDuration * stakeTimeUnitSec),
+                            queryAmount.extractDecimals(kZnnCoin.decimals));
+                      },
+                      onNoButtonPressed: () {},
+                    );
+                  }
+                  break;
+
+                case 'delegate':
+                  sl<NotificationsBloc>().addNotification(
+                    WalletNotification(
+                      title: 'Delegate action detected',
+                      timestamp: DateTime.now().millisecondsSinceEpoch,
+                      details: 'Deep link: $uriRaw',
+                      type: NotificationType.paymentReceived,
+                    ),
+                  );
+
+                  if (kCurrentPage != Tabs.lock) {
+                    _navigateTo(Tabs.pillars);
+
+                    showDialogWithNoAndYesOptions(
+                      context: context,
+                      title: 'Delegate ${kZnnCoin.symbol} action',
+                      isBarrierDismissible: true,
+                      content: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Text(
+                              'Are you sure you want delegate the ${kZnnCoin.symbol} from $kSelectedAddress to Pillar $queryPillarName?'),
+                        ],
+                      ),
+                      onYesButtonPressed: () {
+                        delegateButtonBloc.delegateToPillar(queryPillarName);
+                      },
+                      onNoButtonPressed: () {},
+                    );
+                  }
+                  break;
+
+                case 'fuse':
+                  sl<NotificationsBloc>().addNotification(
+                    WalletNotification(
+                      title: 'Fuse ${kQsrCoin.symbol} action detected',
+                      timestamp: DateTime.now().millisecondsSinceEpoch,
+                      details: 'Deep link: $uriRaw',
+                      type: NotificationType.paymentReceived,
+                    ),
+                  );
+
+                  if (kCurrentPage != Tabs.lock) {
+                    _navigateTo(Tabs.plasma);
+
+                    showDialogWithNoAndYesOptions(
+                      context: context,
+                      title: 'Fuse ${kQsrCoin.symbol} action',
+                      isBarrierDismissible: true,
+                      content: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Text(
+                              'Are you sure you want fuse $queryAmount ${kQsrCoin.symbol} for address $queryAddress?'),
+                        ],
+                      ),
+                      onYesButtonPressed: () {
+                        plasmaOptionsBloc.generatePlasma(queryAddress,
+                            queryAmount.extractDecimals(kZnnCoin.decimals));
+                      },
+                      onNoButtonPressed: () {},
+                    );
+                  }
+                  break;
+
+                case 'sentinel':
+                  sl<NotificationsBloc>().addNotification(
+                    WalletNotification(
+                      title: 'Deploy Sentinel action detected',
+                      timestamp: DateTime.now().millisecondsSinceEpoch,
+                      details: 'Deep link: $uriRaw',
+                      type: NotificationType.paymentReceived,
+                    ),
+                  );
+
+                  if (kCurrentPage != Tabs.lock) {
+                    _navigateTo(Tabs.sentinels);
+                  }
+                  break;
+
+                case 'pillar':
+                  sl<NotificationsBloc>().addNotification(
+                    WalletNotification(
+                      title: 'Deploy Pillar action detected',
+                      timestamp: DateTime.now().millisecondsSinceEpoch,
+                      details: 'Deep link: $uriRaw',
+                      type: NotificationType.paymentReceived,
+                    ),
+                  );
+
+                  if (kCurrentPage != Tabs.lock) {
+                    _navigateTo(Tabs.pillars);
+                  }
+                  break;
+
+                default:
+                  sl<NotificationsBloc>().addNotification(
+                    WalletNotification(
+                      title: 'Incoming link detected',
+                      timestamp: DateTime.now().millisecondsSinceEpoch,
+                      details: 'Deep link: $uriRaw',
+                      type: NotificationType.paymentReceived,
+                    ),
+                  );
+                  break;
+              }
+            }
             return;
           }
         }
