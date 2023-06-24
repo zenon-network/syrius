@@ -6,7 +6,8 @@ import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 class InitialHtlcForSwapBloc extends BaseBloc<HtlcInfo?> {
-  final _minimumRequiredDuration = const Duration(hours: 1);
+  final _minimumRequiredDuration =
+      kMinSafeTimeToFindPreimage + kCounterHtlcDuration;
   Future<void> getInitialHtlc(Hash id) async {
     try {
       final htlc = await zenon!.embedded.htlc.getById(id);
@@ -31,6 +32,15 @@ class InitialHtlcForSwapBloc extends BaseBloc<HtlcInfo?> {
           throw 'This deposit has expired.';
         }
         throw 'This deposit will expire too soon for a safe swap.';
+      }
+      if (remainingDuration > kMaxAllowedInitialHtlcDuration) {
+        throw 'The deposit\'s duration is too long. Expected ${kMaxAllowedInitialHtlcDuration.inHours} hours at most.';
+      }
+      final creationBlock = await zenon!.ledger.getAccountBlockByHash(htlc.id);
+      if (htlc.expirationTime -
+              creationBlock!.confirmationDetail!.momentumTimestamp >
+          kMaxAllowedInitialHtlcDuration.inSeconds) {
+        throw 'The deposit was created too long ago.';
       }
       addEvent(htlc);
     } catch (e, stackTrace) {

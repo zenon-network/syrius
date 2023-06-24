@@ -110,7 +110,7 @@ class HtlcSwapsHandler {
     }
 
     try {
-      return AccountBlockUtils.getAccountBlocksAfterTime(
+      return await AccountBlockUtils.getAccountBlocksAfterTime(
           htlcAddress, max(oldestSwapStartTime, lastCheckedBlockTime));
     } catch (e, stackTrace) {
       Logger('HtlcSwapsHandler')

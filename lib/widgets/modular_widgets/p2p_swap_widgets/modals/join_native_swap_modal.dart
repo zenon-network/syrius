@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_vector_icons/flutter_vector_icons.dart';
 import 'package:stacked/stacked.dart';
@@ -14,7 +13,6 @@ import 'package:zenon_syrius_wallet_flutter/utils/clipboard_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/date_time_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/extensions.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/format_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/input_validators.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/toast_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/zts_utils.dart';
@@ -304,12 +302,23 @@ class _JoinNativeSwapModalState extends State<JoinNativeSwapModal> {
             bulletPoints: [
               RichText(
                 text: BulletPointCard.textSpan(
-                  'The counterparty has until ',
+                  'You have ',
                   children: [
                     TextSpan(
-                        text: FormatUtils.formatDate(
-                            _safeExpirationTime! * 1000,
-                            dateFormat: kDefaultDateTimeFormat),
+                        text:
+                            '${(((_initialHltc!.expirationTime - kMinSafeTimeToFindPreimage.inSeconds - kCounterHtlcDuration.inSeconds) - DateTimeUtils.unixTimeNow) / 60).ceil()} minutes',
+                        style: const TextStyle(
+                            fontSize: 14.0, color: Colors.white)),
+                    BulletPointCard.textSpan(' left to join the swap.'),
+                  ],
+                ),
+              ),
+              RichText(
+                text: BulletPointCard.textSpan(
+                  'The counterparty will have ',
+                  children: [
+                    TextSpan(
+                        text: '${(kCounterHtlcDuration).inMinutes} minutes',
                         style: const TextStyle(
                             fontSize: 14.0, color: Colors.white)),
                     BulletPointCard.textSpan(' to complete the swap.'),
@@ -318,7 +327,8 @@ class _JoinNativeSwapModalState extends State<JoinNativeSwapModal> {
               ),
               RichText(
                 text: BulletPointCard.textSpan(
-                    'You can reclaim your funds if the counterparty fails to complete the swap.'),
+                  'You can reclaim your funds if the counterparty fails complete the swap. ',
+                ),
               ),
             ],
           ),
@@ -399,13 +409,12 @@ class _JoinNativeSwapModalState extends State<JoinNativeSwapModal> {
   }
 
   int? _calculateSafeExpirationTime(int initialHtlcExpiration) {
-    const minimumSafeTime = Duration(hours: 1);
-    const maxExpirationTime = Duration(hours: 1);
+    final minNeededRemainingTime =
+        kMinSafeTimeToFindPreimage + kCounterHtlcDuration;
     final now = DateTimeUtils.unixTimeNow;
     final remaining = Duration(seconds: initialHtlcExpiration - now);
-    final safeTime = remaining ~/ 2;
-    return safeTime >= minimumSafeTime
-        ? min(now + safeTime.inSeconds, now + maxExpirationTime.inSeconds)
+    return remaining >= minNeededRemainingTime
+        ? now + kCounterHtlcDuration.inSeconds
         : null;
   }
 

@@ -225,3 +225,11 @@ const List<Tabs> kTabsWithIconTitles = [
 const List<Tabs> kDisabledTabs = [
   Tabs.resyncWallet,
 ];
+
+// P2P swap constants
+const Duration kInitialHtlcDuration = Duration(hours: 8);
+const Duration kCounterHtlcDuration = Duration(minutes: 30);
+const Duration kMaxAllowedInitialHtlcDuration = Duration(hours: 24);
+const Duration kMinSafeTimeToFindPreimage = Duration(hours: 7);
+const Duration kMinSafeTimeToCompleteSwap = Duration(minutes: 10);
+const Duration kHtlcExpirationWarningThreshold = Duration(minutes: 20);

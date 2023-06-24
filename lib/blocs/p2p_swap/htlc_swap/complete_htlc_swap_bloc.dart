@@ -6,8 +6,6 @@ import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 class CompleteHtlcSwapBloc extends BaseBloc<HtlcSwap?> {
-  final safeExpirationThreshold = const Duration(minutes: 10);
-
   Future<void> completeHtlcSwap({
     required HtlcSwap swap,
   }) async {
@@ -21,7 +19,7 @@ class CompleteHtlcSwapBloc extends BaseBloc<HtlcSwap?> {
       // until expiration.
       final htlc = await zenon!.embedded.htlc.getById(Hash.parse(htlcId));
       if (htlc.expirationTime <=
-          DateTimeUtils.unixTimeNow + safeExpirationThreshold.inSeconds) {
+          DateTimeUtils.unixTimeNow + kMinSafeTimeToCompleteSwap.inSeconds) {
         throw 'The swap will expire too soon for a safe swap.';
       }
 

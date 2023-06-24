@@ -3,7 +3,6 @@ import 'package:stacked/stacked.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/dashboard/balance_bloc.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/p2p_swap/htlc_swap/start_htlc_swap_bloc.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
-import 'package:zenon_syrius_wallet_flutter/model/basic_dropdown_item.dart';
 import 'package:zenon_syrius_wallet_flutter/model/p2p_swap/htlc_swap.dart';
 import 'package:zenon_syrius_wallet_flutter/model/p2p_swap/p2p_swap.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
@@ -16,7 +15,6 @@ import 'package:zenon_syrius_wallet_flutter/utils/zts_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/bullet_point_card.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/buttons/instruction_button.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/dropdown/addresses_dropdown.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/dropdown/basic_dropdown.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/error_widget.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/input_fields/amount_input_field.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/input_fields/input_field.dart';
@@ -46,21 +44,12 @@ class _StartNativeSwapModalState extends State<StartNativeSwapModal> {
       TextEditingController();
   final TextEditingController _amountController = TextEditingController();
 
-  late BasicDropdownItem<int> _selectedLockDuration;
-
-  final List<BasicDropdownItem<int>> _lockDurationItems = [
-    BasicDropdownItem(label: '6 hours', value: kOneHourInSeconds * 6),
-    BasicDropdownItem(label: '12 hours', value: kOneHourInSeconds * 12),
-    BasicDropdownItem(label: '24 hours', value: kOneHourInSeconds * 24),
-  ];
-
   bool _isLoading = false;
 
   @override
   void initState() {
     super.initState();
     sl.get<BalanceBloc>().getBalanceForAllAddresses();
-    _selectedLockDuration = _lockDurationItems[1];
   }
 
   @override
@@ -180,24 +169,6 @@ class _StartNativeSwapModalState extends State<StartNativeSwapModal> {
             ),
           ),
         ),
-        kVerticalSpacing,
-        LabeledInputContainer(
-          labelText: 'Your deposit expires in',
-          helpText:
-              'If the swap is unsuccessful you can reclaim your funds after the deposit has expired.',
-          inputWidget: BasicDropdown<int>(
-            'Lock duration',
-            _selectedLockDuration,
-            _lockDurationItems,
-            (duration) => setState(
-              () {
-                if (duration != null) {
-                  _selectedLockDuration = duration;
-                }
-              },
-            ),
-          ),
-        ),
         const SizedBox(height: 20.0),
         BulletPointCard(
           bulletPoints: [
@@ -207,7 +178,16 @@ class _StartNativeSwapModalState extends State<StartNativeSwapModal> {
             ),
             RichText(
               text: BulletPointCard.textSpan(
-                  'You can reclaim your funds if the counterparty fails to join the swap.'),
+                '''You can reclaim your funds in ''',
+                children: [
+                  TextSpan(
+                      text: '${kInitialHtlcDuration.inHours} hours',
+                      style:
+                          const TextStyle(fontSize: 14.0, color: Colors.white)),
+                  BulletPointCard.textSpan(
+                      ' if the counterparty fails to join the swap.'),
+                ],
+              ),
             ),
             RichText(
               text: BulletPointCard.textSpan(
@@ -267,7 +247,7 @@ class _StartNativeSwapModalState extends State<StartNativeSwapModal> {
         swapType: P2pSwapType.native,
         fromChain: P2pSwapChain.nom,
         toChain: P2pSwapChain.nom,
-        initialHtlcDuration: _selectedLockDuration.value);
+        initialHtlcDuration: kInitialHtlcDuration.inSeconds);
   }
 
   bool _isInputValid() =>
