@@ -441,8 +441,10 @@ class _NativeP2pSwapModalState extends State<NativeP2pSwapModal> {
         model.stream.listen(
           (event) async {
             if (event is HtlcSwap) {
-              _swapCompletedText =
-                  'Swap completed. You will receive the funds shortly.';
+              setState(() {
+                _swapCompletedText =
+                    'Swap completed. You will receive the funds shortly.';
+              });
             }
           },
           onError: (error) {
