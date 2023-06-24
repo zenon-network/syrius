@@ -28,7 +28,6 @@ class AutoUnlockHtlcWorker extends BaseBloc<WalletNotification> {
     if (pool.isNotEmpty && !running && kKeyStore != null) {
       running = true;
       Hash currentHash = pool.first;
-      pool.removeFirst();
       try {
         final htlc = await zenon!.embedded.htlc.getById(currentHash);
         final swap = htlcSwapsService!
@@ -37,7 +36,7 @@ class AutoUnlockHtlcWorker extends BaseBloc<WalletNotification> {
           throw 'Invalid swap';
         }
         if (!kDefaultAddressList.contains(htlc.hashLocked.toString())) {
-          return;
+          throw 'Swap address not in default addresses. Please add the address in the addresses list.';
         }
         KeyPair? keyPair = kKeyStore!.getKeyPair(
           kDefaultAddressList.indexOf(htlc.hashLocked.toString()),
@@ -55,18 +54,18 @@ class AutoUnlockHtlcWorker extends BaseBloc<WalletNotification> {
       } on RpcException catch (e, stackTrace) {
         Logger('AutoUnlockHtlcWorker')
             .log(Level.WARNING, 'autoUnlock', e, stackTrace);
-        // Ignore exception caused by non existent HTLC
         if (!e.message.contains('data non existent')) {
-          pool.addFirst(currentHash);
           _sendErrorNotification(e.toString());
         }
       } catch (e, stackTrace) {
         Logger('AutoUnlockHtlcWorker')
             .log(Level.WARNING, 'autoUnlock', e, stackTrace);
-        pool.addFirst(currentHash);
         _sendErrorNotification(e.toString());
+      } finally {
+        pool.removeFirst();
+        _removeHashFromHashSetAfterDelay(currentHash);
+        running = false;
       }
-      running = false;
     }
   }
 
@@ -110,5 +109,16 @@ class AutoUnlockHtlcWorker extends BaseBloc<WalletNotification> {
         },
       );
     }
+  }
+
+  // Remove the hash from the processedHashes hash set after a delay, because
+  // if the node shuts down immediately after the unlock transactions has been
+  // sent, the transaction may not actually be published. By removing the hash
+  // from processedHashes, it can be re-added to the pool and retried.
+  // The delay gives the network time to process the transaction, before
+  // allowing for it to be retried.
+  void _removeHashFromHashSetAfterDelay(Hash hash) {
+    Future.delayed(
+        const Duration(minutes: 2), () => processedHashes.remove(hash));
   }
 }
