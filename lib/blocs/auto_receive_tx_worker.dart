@@ -91,10 +91,13 @@ class AutoReceiveTxWorker extends BaseBloc<WalletNotification> {
   Future<void> addHash(Hash hash) async {
     if (!pool.contains(hash)) {
       zenon!.stats.syncInfo().then((syncInfo) {
-        if ((syncInfo.state == SyncState.syncDone ||
-            (syncInfo.targetHeight > 0 &&
-                syncInfo.currentHeight > 0 &&
-                (syncInfo.targetHeight - syncInfo.currentHeight) < 3))) {
+        // Verify that the pool does not already contain the hash after the
+        // asynchronous request has completed and that the node is in sync.
+        if (!pool.contains(hash) &&
+            (syncInfo.state == SyncState.syncDone ||
+                (syncInfo.targetHeight > 0 &&
+                    syncInfo.currentHeight > 0 &&
+                    (syncInfo.targetHeight - syncInfo.currentHeight) < 3))) {
           pool.add(hash);
         }
       });
