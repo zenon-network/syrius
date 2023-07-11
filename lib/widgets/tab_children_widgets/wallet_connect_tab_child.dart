@@ -22,7 +22,7 @@ class WalletConnectTabChild extends StatelessWidget {
             sm: kStaggeredNumOfColumns ~/ 3,
             xs: kStaggeredNumOfColumns ~/ 2,
           ),
-          child: const WalletConnectUriCard(),
+          child: const WalletConnectQrCard(),
         ),
         FluidCell(
           width: context.layout.value(
@@ -32,7 +32,7 @@ class WalletConnectTabChild extends StatelessWidget {
             sm: kStaggeredNumOfColumns ~/ 3,
             xs: kStaggeredNumOfColumns ~/ 2,
           ),
-          child: const WalletConnectQrCard(),
+          child: const WalletConnectUriCard(),
         ),
         FluidCell(
           width: context.layout.value(

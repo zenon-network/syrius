@@ -131,6 +131,7 @@ class WalletConnectService {
     _wcClient.onSessionProposalError.subscribe((args) {
       Logger('WalletConnectService')
           .log(Level.INFO, 'onSessionProposalError triggered', args.toString());
+      sl.get<WalletConnectSessionsBloc>().refreshResults();
     });
 
     _wcClient.onSessionConnect.subscribe((args) {
