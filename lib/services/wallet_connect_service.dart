@@ -31,7 +31,7 @@ class WalletConnectService {
 
   set context(BuildContext context) => _context = context;
 
-  final _walletLockedError = WalletConnectError(
+  final _walletLockedError = const WalletConnectError(
     code: 9000,
     message: 'Wallet is locked',
   );

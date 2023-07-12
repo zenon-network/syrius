@@ -30,17 +30,17 @@ dependencies:
   url_launcher: ^6.0.18
   provider: ^6.0.2
   intl: ^0.18.0
-  package_info_plus: ^3.0.2
+  package_info_plus: ^4.0.2
   device_info_plus: ^8.0.0
   infinite_scroll_pagination: ^3.1.0
-  share_plus: ^6.3.0
+  share_plus: ^7.0.2
   page_transition: ^2.0.4
   file_selector: ^0.9.2+2
   pretty_qr_code: ^2.0.3
   screenshot: ^2.1.0
   desktop_drop: ^0.4.0
   validators: ^3.0.0
-  wakelock: ^0.6.1+2
+  wakelock_plus: ^1.1.1
   number_selector: ^1.0.5
   znn_sdk_dart:
     git:
@@ -57,7 +57,7 @@ dependencies:
   launch_at_startup: ^0.2.1
   app_links: ^3.4.3
   logging: ^1.2.0
-  walletconnect_flutter_v2: ^2.0.12
+  walletconnect_flutter_v2: ^2.0.13
   preference_list: ^0.0.1
   screen_capturer: ^0.1.2
   uni_ocr: ^0.1.0

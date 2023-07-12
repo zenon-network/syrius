@@ -3,7 +3,7 @@ import 'dart:isolate';
 
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
-import 'package:wakelock/wakelock.dart';
+import 'package:wakelock_plus/wakelock_plus.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/embedded_node/embedded_node.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
@@ -129,8 +129,8 @@ class _NodeManagementScreenState extends State<NodeManagementScreen> {
 
   Future<void> _onConfirmNodeButtonPressed() async {
     // Acquire WakeLock
-    if (!Platform.isLinux && !await Wakelock.enabled) {
-      Wakelock.enable();
+    if (!Platform.isLinux && !await WakelockPlus.enabled) {
+      WakelockPlus.enable();
     }
 
     try {
@@ -145,8 +145,9 @@ class _NodeManagementScreenState extends State<NodeManagementScreen> {
         if (!isConnectionEstablished) {
           // Initialize local full node
           await Isolate.spawn(EmbeddedNode.runNode, [''],
-              onExit: sl<ReceivePort>(instanceName: 'embeddedStoppedPort')
-                  .sendPort);
+              onExit:
+                  sl<ReceivePort>(instanceName: 'embeddedStoppedPort').sendPort,
+              debugName: 'EmbeddedNodeIsolate');
           kEmbeddedNodeRunning = true;
           // The node needs a couple of seconds to actually start
           await Future.delayed(kEmbeddedConnectionDelay);
