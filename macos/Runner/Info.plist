@@ -41,5 +41,7 @@
 	</array>
 	<key>NSPrincipalClass</key>
 	<string>NSApplication</string>
+	<key>NSCameraUsageDescription</key>
+	<string>Allows user to scan a QR code</string>
 </dict>
 </plist>

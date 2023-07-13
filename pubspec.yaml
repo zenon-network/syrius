@@ -66,6 +66,7 @@ dependencies:
   clipboard_watcher: ^0.2.0
   wallet_connect_uri_validator: ^0.1.0
   big_decimal: ^0.5.0
+  ai_barcode_scanner: ^0.0.7
   
 dev_dependencies:
   flutter_test:
