@@ -389,7 +389,7 @@ class _SendLargeCardState extends State<SendLargeCard> {
                 _selectedToken.tokenStandard,
               ),
               _selectedToken.decimals,
-              BigInt.zero) ==
+              BigInt.one) ==
           null;
 
   @override

@@ -329,7 +329,7 @@ class _SendMediumCardState extends State<SendMediumCard> {
                 _selectedToken.tokenStandard,
               ),
               _selectedToken.decimals,
-              BigInt.zero) ==
+              BigInt.one) ==
           null;
 
   @override
