@@ -44,8 +44,9 @@ class WalletConnectService {
           name: 's y r i u s',
           description: 'A wallet for interacting with Zenon Network',
           url: 'https://zenon.network',
-          // TODO: add Zenon icon
-          icons: ['https://avatars.githubusercontent.com/u/37784886'],
+          icons: [
+            'https://raw.githubusercontent.com/zenon-network/syrius/master/macos/Runner/Assets.xcassets/AppIcon.appiconset/Icon-MacOS-512x512%402x.png'
+          ],
         ),
       ).onError((e, stackTrace) {
         Logger('WalletConnectService')
@@ -80,6 +81,8 @@ class WalletConnectService {
   Future<PairingInfo> pair(Uri uri) => _wcClient.pair(uri: uri);
 
   void _initListeners() {
+    _wcClient.onSessionProposal.subscribe(onSessionProposal);
+
     _wcClient.core.relayClient.onRelayClientDisconnect.subscribe((args) {
       Logger('WalletConnectService').log(
           Level.INFO, 'onRelayClientDisconnect triggered', args.toString());
@@ -137,10 +140,9 @@ class WalletConnectService {
     _wcClient.onSessionConnect.subscribe((args) {
       Logger('WalletConnectService')
           .log(Level.INFO, 'onSessionConnect triggered', args.toString());
-      sl.get<WalletConnectSessionsBloc>().refreshResults();
+      Future.delayed(const Duration(seconds: 3)).then(
+          (value) => sl.get<WalletConnectSessionsBloc>().refreshResults());
     });
-
-    _wcClient.onSessionProposal.subscribe(onSessionProposal);
 
     _wcClient.onSessionRequest.subscribe((SessionRequestEvent? request) async {
       Logger('WalletConnectService')
