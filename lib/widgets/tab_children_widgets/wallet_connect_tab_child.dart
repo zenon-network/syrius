@@ -4,7 +4,7 @@ import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/wallet_conne
 import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/wallet_connect_widgets/wallet_connect_pairing_list_card.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/wallet_connect_widgets/wallet_connect_qr_card.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/wallet_connect_widgets/wallet_connect_uri_card.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/wallet_connect_widgets/wallet_connection_session_list_card.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/wallet_connect_widgets/wallet_connect_session_list_card.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 
 class WalletConnectTabChild extends StatelessWidget {
