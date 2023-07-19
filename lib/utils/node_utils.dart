@@ -40,7 +40,7 @@ class NodeUtils {
 
   static closeEmbeddedNode() async {
     // Release WakeLock
-    if (!Platform.isLinux && await WakelockPlus.enabled) {
+    if (await WakelockPlus.enabled) {
       WakelockPlus.disable();
     }
 
@@ -196,7 +196,7 @@ class NodeUtils {
           await NodeUtils.establishConnectionToNode(kLocalhostDefaultNodeUrl);
       if (isConnectionEstablished == false) {
         // Acquire WakeLock
-        if (!Platform.isLinux && !await WakelockPlus.enabled) {
+        if (!await WakelockPlus.enabled) {
           WakelockPlus.enable();
         }
         // Initialize local full node

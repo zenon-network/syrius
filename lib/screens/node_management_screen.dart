@@ -129,7 +129,7 @@ class _NodeManagementScreenState extends State<NodeManagementScreen> {
 
   Future<void> _onConfirmNodeButtonPressed() async {
     // Acquire WakeLock
-    if (!Platform.isLinux && !await WakelockPlus.enabled) {
+    if (!await WakelockPlus.enabled) {
       WakelockPlus.enable();
     }
 

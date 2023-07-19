@@ -116,7 +116,7 @@ class _NodeManagementState extends State<NodeManagement> {
 
   Future<void> _onConfirmNodeButtonPressed() async {
     // Acquire WakeLock
-    if (!Platform.isLinux && !await WakelockPlus.enabled) {
+    if (!await WakelockPlus.enabled) {
       WakelockPlus.enable();
     }
 
