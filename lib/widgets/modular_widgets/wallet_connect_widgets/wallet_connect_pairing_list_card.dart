@@ -11,8 +11,10 @@ import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/icons/clear
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 
 const String _kWidgetTitle = 'WalletConnect Pairing List';
-// TODO: change description
-const String _kWidgetDescription = 'Description';
+const String _kWidgetDescription =
+    'A pairing refers to the initial process of establishing a secure connection between a wallet and the dApp.'
+    'Once the pairing is complete, a session is established, which allows the dApp to communicate with the wallet '
+    'securely over the Internet';
 
 class WalletConnectPairingsCard extends StatefulWidget {
   const WalletConnectPairingsCard({Key? key}) : super(key: key);

@@ -7,8 +7,7 @@ import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 
 const String _kWidgetTitle = 'WalletConnect Link';
-// TODO: change description
-const String _kWidgetDescription = 'Description';
+const String _kWidgetDescription = 'Paste the WalletConnect link here';
 
 class WalletConnectUriCard extends StatefulWidget {
   const WalletConnectUriCard({Key? key}) : super(key: key);

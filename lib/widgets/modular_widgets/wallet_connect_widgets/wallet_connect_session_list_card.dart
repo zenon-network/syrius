@@ -7,8 +7,10 @@ import 'package:zenon_syrius_wallet_flutter/utils/extensions.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 
 const String _kWidgetTitle = 'WalletConnect Sessions List';
-// TODO: change description
-const String _kWidgetDescription = 'Description';
+const String _kWidgetDescription =
+    'A session refers to a live connection between a user\'s wallet and a dApp '
+    'A session allows the dApp to communicate with the wallet '
+    'securely over the Internet';
 
 class WalletConnectSessionsCard extends StatefulWidget {
   const WalletConnectSessionsCard({Key? key}) : super(key: key);
@@ -120,5 +122,4 @@ class _WalletConnectSessionsCardState extends State<WalletConnectSessionsCard> {
 
     return DateFormat('MMM dd, y HH:mm:ss').format(expiryDateTime);
   }
-
 }

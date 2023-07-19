@@ -10,8 +10,8 @@ import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 
 const String _kWidgetTitle = 'Camera QR Scanner';
-// TODO: change description
-const String _kWidgetDescription = 'Description';
+const String _kWidgetDescription =
+    'Scan a WalletConnect QR code using the built-in camera of this device';
 
 class WalletConnectCameraCard extends StatefulWidget {
   const WalletConnectCameraCard({Key? key}) : super(key: key);

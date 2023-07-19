@@ -18,11 +18,12 @@ import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 import 'package:zxing2/qrcode.dart';
 
-final screenCapturer = ScreenCapturer.instance;
-
 const String _kWidgetTitle = 'On-screen QR Scanner';
-// TODO: change description
-const String _kWidgetDescription = 'Description';
+const String _kWidgetDescription =
+    'Scan the WalletConnect QR code using an on-screen QR scanner. '
+    'This requires the screen recording permission';
+
+final screenCapturer = ScreenCapturer.instance;
 
 class WalletConnectQrCard extends StatefulWidget {
   const WalletConnectQrCard({Key? key}) : super(key: key);
