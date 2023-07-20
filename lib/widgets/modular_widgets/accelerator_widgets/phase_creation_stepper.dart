@@ -4,10 +4,10 @@ import 'package:stacked/stacked.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
-import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/custom_material_stepper.dart'
     as custom_material_stepper;
+import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
+import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 enum PhaseCreationStep {
   phaseDetails,
@@ -388,8 +388,8 @@ class _PhaseCreationStepperState extends State<PhaseCreationStepper> {
       children: [
         DottedBorderInfoWidget(
           text: 'Remaining budget for the next phases is '
-              '$remainingZnnBudget ${kZnnCoin.symbol} and '
-              '$remainingQsrBudget ${kQsrCoin.symbol}',
+              '${remainingZnnBudget.addDecimals(coinDecimals)} ${kZnnCoin.symbol} and '
+              '${remainingQsrBudget.addDecimals(coinDecimals)} ${kQsrCoin.symbol}',
         ),
         kVerticalSpacing,
         Row(
