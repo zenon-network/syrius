@@ -229,7 +229,7 @@ class _CardScaffoldState<T> extends State<CardScaffold<T>> {
                 Expanded(
                   child: Text(
                     title,
-                    style: Theme.of(context).textTheme.bodyText1!.copyWith(
+                    style: Theme.of(context).textTheme.bodyLarge!.copyWith(
                           fontSize: widget.titleFontSize,
                           height: 1.0,
                         ),

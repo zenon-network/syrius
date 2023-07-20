@@ -1,5 +1,3 @@
-import 'dart:math' as math;
-
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
@@ -15,6 +13,7 @@ import 'package:zenon_syrius_wallet_flutter/utils/extensions.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/format_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/input_validators.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/math_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/navigation_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/notification_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/zts_utils.dart';
@@ -72,7 +71,7 @@ class _MainPillarsState extends State<PillarsStepperContainer> {
   final GlobalKey<LoadingButtonState> _withdrawButtonKey = GlobalKey();
   final GlobalKey<LoadingButtonState> _registerButtonKey = GlobalKey();
 
-  num? _maxQsrAmount;
+  BigInt _maxQsrAmount = BigInt.zero;
 
   final List<GlobalKey<FormState>> _pillarFormKeys = List.generate(
     3,
@@ -87,11 +86,9 @@ class _MainPillarsState extends State<PillarsStepperContainer> {
   @override
   void initState() {
     super.initState();
-    _znnAmountController.text = pillarRegisterZnnAmount
-        .addDecimals(
-          znnDecimals,
-        )
-        .toString();
+    _znnAmountController.text = pillarRegisterZnnAmount.addDecimals(
+      coinDecimals,
+    );
     _addressController.text = kSelectedAddress!;
     _pillarRewardAddressController.text = kSelectedAddress!;
     sl.get<BalanceBloc>().getBalanceForAllAddresses();
@@ -131,17 +128,15 @@ class _MainPillarsState extends State<PillarsStepperContainer> {
         model.stream.listen(
           (event) {
             if (event != null) {
-              _maxQsrAmount = math.min<num>(
-                accountInfo.getBalanceWithDecimals(
+              _maxQsrAmount = MathUtils.bigMin(
+                accountInfo.getBalance(
                   kQsrCoin.tokenStandard,
                 ),
-                math.max<num>(
-                  0,
-                  event.cost - (event.deposit),
-                ),
+                MathUtils.bigMax(BigInt.zero, event.cost - event.deposit),
               );
               setState(() {
-                _qsrAmountController.text = _maxQsrAmount.toString();
+                _qsrAmountController.text =
+                    _maxQsrAmount.addDecimals(coinDecimals);
               });
             }
           },
@@ -204,7 +199,7 @@ class _MainPillarsState extends State<PillarsStepperContainer> {
                           accountInfo,
                         ),
                         Text(
-                          '${qsrInfo.cost} ${kQsrCoin.symbol} needed for a Pillar',
+                          '${qsrInfo.cost.addDecimals(coinDecimals)} ${kQsrCoin.symbol} required for a Pillar slot',
                           style:
                               Theme.of(context).inputDecorationTheme.hintStyle,
                         ),
@@ -276,7 +271,7 @@ class _MainPillarsState extends State<PillarsStepperContainer> {
         ),
         Expanded(
           child: Visibility(
-            visible: qsrInfo.deposit > 0,
+            visible: qsrInfo.deposit > BigInt.zero,
             child: Container(
               decoration: BoxDecoration(
                 color: Theme.of(context).colorScheme.background,
@@ -321,7 +316,7 @@ class _MainPillarsState extends State<PillarsStepperContainer> {
                               ),
                             ),
                             Text(
-                              'Current Pillar Slot fee\n${qsrInfo.cost} '
+                              'Current Pillar Slot fee\n${qsrInfo.cost.addDecimals(coinDecimals)} '
                               '${kQsrCoin.symbol}',
                               style: Theme.of(context).textTheme.bodyMedium,
                               textAlign: TextAlign.center,
@@ -336,7 +331,7 @@ class _MainPillarsState extends State<PillarsStepperContainer> {
                         SizedBox(
                           width: 130.0,
                           child: Text(
-                            'You have deposited ${qsrInfo.deposit} '
+                            'You have deposited ${qsrInfo.deposit.addDecimals(coinDecimals)} '
                             '${kQsrCoin.symbol}',
                             textAlign: TextAlign.center,
                             style: Theme.of(context).textTheme.bodyLarge,
@@ -399,11 +394,12 @@ class _MainPillarsState extends State<PillarsStepperContainer> {
       onPressed: _qsrAmountValidator(_qsrAmountController.text, qsrInfo) == null
           ? () => _onDepositButtonPressed(model, qsrInfo)
           : null,
+      outlineColor: AppColors.qsrColor,
     );
   }
 
   Widget _getWithdrawQsrButtonViewModel(
-    num qsrDeposit,
+    BigInt qsrDeposit,
   ) {
     return ViewModelBuilder<PillarsWithdrawQsrBloc>.reactive(
       onViewModelReady: (model) {
@@ -436,14 +432,15 @@ class _MainPillarsState extends State<PillarsStepperContainer> {
 
   Widget _getWithdrawQsrButton(
     PillarsWithdrawQsrBloc model,
-    num qsrDeposit,
+    BigInt qsrDeposit,
   ) {
     return Visibility(
-      visible: qsrDeposit > 0,
+      visible: qsrDeposit > BigInt.zero,
       child: LoadingButton.stepper(
         text: 'Withdraw',
-        onPressed: () => _onWithdrawButtonPressed(model, qsrDeposit.toDouble()),
+        onPressed: () => _onWithdrawButtonPressed(model, qsrDeposit),
         key: _withdrawButtonKey,
+        outlineColor: AppColors.qsrColor,
       ),
     );
   }
@@ -460,7 +457,7 @@ class _MainPillarsState extends State<PillarsStepperContainer> {
         onStepTapped: (int index) {},
         steps: [
           StepperUtils.getMaterialStep(
-            stepTitle: 'Plasma check',
+            stepTitle: 'Pillar deployment: Plasma check',
             stepContent: _getPlasmaCheckFutureBuilder(),
             stepSubtitle: 'Sufficient Plasma',
             stepState: StepperUtils.getStepState(
@@ -733,14 +730,14 @@ class _MainPillarsState extends State<PillarsStepperContainer> {
     if (qsrInfo.deposit >= qsrInfo.cost) {
       _depositQsrButtonKey.currentState?.animateForward();
       model.depositQsr(
-        _qsrAmountController.text,
+        _qsrAmountController.text.extractDecimals(coinDecimals),
         justMarkStepCompleted: true,
       );
-    } else if (qsrInfo.deposit + _maxQsrAmount! <= qsrInfo.cost &&
+    } else if (qsrInfo.deposit + _maxQsrAmount <= qsrInfo.cost &&
         _qsrFormKey.currentState!.validate() &&
-        _qsrAmountController.text.toNum() > 0) {
+        _qsrAmountController.text.extractDecimals(coinDecimals) > BigInt.zero) {
       _depositQsrButtonKey.currentState?.animateForward();
-      model.depositQsr(_qsrAmountController.text);
+      model.depositQsr(_qsrAmountController.text.extractDecimals(coinDecimals));
     }
   }
 
@@ -781,9 +778,9 @@ class _MainPillarsState extends State<PillarsStepperContainer> {
 
   void _onWithdrawButtonPressed(
     PillarsWithdrawQsrBloc viewModel,
-    double qsrDeposit,
+    BigInt qsrDeposit,
   ) {
-    if (qsrDeposit > 0) {
+    if (qsrDeposit > BigInt.zero) {
       _withdrawButtonKey.currentState?.animateForward();
       viewModel.withdrawQsr(_addressController.text);
     }
@@ -851,8 +848,7 @@ class _MainPillarsState extends State<PillarsStepperContainer> {
                                 ),
                             recognizer: TapGestureRecognizer()
                               ..onTap = () {
-                                NavigationUtils.openUrl(
-                                    kZnnController, context);
+                                NavigationUtils.openUrl(kZnnController);
                               },
                           ),
                           const WidgetSpan(
@@ -1000,12 +996,7 @@ class _MainPillarsState extends State<PillarsStepperContainer> {
   }
 
   bool _hasEnoughZnn(AccountInfo accountInfo) =>
-      accountInfo.getBalanceWithDecimals(
-        kZnnCoin.tokenStandard,
-      ) >=
-      pillarRegisterZnnAmount.addDecimals(
-        znnDecimals,
-      );
+      accountInfo.znn()! >= pillarRegisterZnnAmount;
 
   bool _canDeployPillar() =>
       InputValidators.notEmpty(
@@ -1029,13 +1020,13 @@ class _MainPillarsState extends State<PillarsStepperContainer> {
         value,
         _maxQsrAmount,
         kQsrCoin.decimals,
-        min: 1.0,
+        BigInt.one,
         canBeEqualToMin: true,
       );
 
   void _onQsrNextPressed() {
     setState(() {
-      _currentStep = PillarsStepperStep.values[_currentStep.index + 1];
+      _saveProgressAndNavigateToNextStep(PillarsStepperStep.qsrManagement);
     });
   }
 
@@ -1060,6 +1051,13 @@ class _MainPillarsState extends State<PillarsStepperContainer> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        Text(
+          'More Plasma is required to perform complex transactions. Please fuse enough QSR before proceeding.',
+          style: Theme.of(context).textTheme.headlineSmall,
+        ),
+        const SizedBox(
+          height: 25.0,
+        ),
         Row(
           mainAxisAlignment: MainAxisAlignment.start,
           children: <Widget>[

@@ -14,7 +14,8 @@ class SentinelRewardsHistoryBloc
       pageSize: kStandardChartNumDays.toInt(),
     );
     if (response.list.any(
-      (element) => element.qsrAmount > 0 || element.znnAmount > 0,
+      (element) =>
+          element.qsrAmount > BigInt.zero || element.znnAmount > BigInt.zero,
     )) {
       return response;
     } else {

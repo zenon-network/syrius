@@ -20,7 +20,7 @@
 .classpath
 .project
 .settings/
-.vscode/
+.vscode/*
 
 # Flutter repo-specific
 /bin/cache/
@@ -51,16 +51,13 @@ analysis_benchmark.json
 .flutter-plugins-dependencies
 **/generated_plugin_registrant.dart
 .packages
-.pub-cache/
+.pub-preload-cache/
 .pub/
 build/
 flutter_*.png
 linked_*.ds
 unlinked.ds
 unlinked_spec.ds
-
-# Web related
-lib/generated_plugin_registrant.dart
 
 # Android related
 **/android/**/gradle-wrapper.jar
@@ -104,65 +101,27 @@ lib/generated_plugin_registrant.dart
 **/ios/Runner/GeneratedPluginRegistrant.*
 
 # macOS
+**/Flutter/ephemeral/
+**/Pods/
 **/macos/Flutter/GeneratedPluginRegistrant.swift
 **/macos/Flutter/ephemeral
+**/xcuserdata/
 
-# Xcode
-#
-# gitignore contributors: remember to update Global/Xcode.gitignore, Objective-C.gitignore & Swift.gitignore
+# Windows
+**/windows/flutter/generated_plugin_registrant.cc
+**/windows/flutter/generated_plugin_registrant.h
+**/windows/flutter/generated_plugins.cmake
 
-## User settings
-xcuserdata/
-
-## compatibility with Xcode 8 and earlier (ignoring not required starting Xcode 9)
-*.xcscmblueprint
-*.xccheckout
-
-## compatibility with Xcode 3 and earlier (ignoring not required starting Xcode 4)
-build/
-DerivedData/
-*.moved-aside
-*.pbxuser
-!default.pbxuser
-*.mode1v3
-!default.mode1v3
-*.mode2v3
-!default.mode2v3
-*.perspectivev3
-!default.perspectivev3
-
-# Windows thumbnail cache files
-Thumbs.db
-ehthumbs.db
-ehthumbs_vista.db
-
-# Dump file
-*.stackdump
-
-# Folder config file
-[Dd]esktop.ini
-
-# Recycle Bin used on file shares
-$RECYCLE.BIN/
-
-# Windows Installer files
-*.cab
-*.msi
-*.msix
-*.msm
-*.msp
-
-# Windows shortcuts
-*.lnk
+# Linux
+**/linux/flutter/generated_plugin_registrant.cc
+**/linux/flutter/generated_plugin_registrant.h
+**/linux/flutter/generated_plugins.cmake
 
 # Coverage
 coverage/
 
 # Symbols
 app.*.symbols
-
-# Obfuscation related
-app.*.map.json
 
 # Exceptions to above rules.
 !**/ios/**/default.mode1v3
@@ -171,4 +130,4 @@ app.*.map.json
 !**/ios/**/default.perspectivev3
 !/packages/flutter_tools/test/data/dart_dependencies_test/**/.packages
 !/dev/ci/**/Gemfile.lock
-!pubspec.lock
+!.vscode/settings.json

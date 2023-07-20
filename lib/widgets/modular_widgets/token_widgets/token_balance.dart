@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:marquee_widget/marquee_widget.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/color_utils.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/zts_utils.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
@@ -102,21 +100,28 @@ class _TokenBalanceState extends State<TokenBalance> {
         crossAxisSpacing: 10.0,
         mainAxisSpacing: 10.0,
       ),
-      itemBuilder: (context, index) => FormattedAmountWithTooltip(
-        amount: _newTokenIds[index].balanceWithDecimals!,
-        tokenSymbol: _newTokenIds[index].token!.symbol,
-        builder: (amount, symbol) => Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(
-              '● ',
-              style: Theme.of(context).textTheme.bodyLarge!.copyWith(
-                    color: ColorUtils.getTokenColor(
-                        _newTokenIds[index].token!.tokenStandard),
-                  ),
+      itemBuilder: (context, index) => Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: Marquee(
+          child: FormattedAmountWithTooltip(
+            amount: _newTokenIds[index]
+                .balance!
+                .addDecimals(_newTokenIds[index].token!.decimals),
+            tokenSymbol: _newTokenIds[index].token!.symbol,
+            builder: (amount, symbol) => Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  '● ',
+                  style: Theme.of(context).textTheme.bodyLarge!.copyWith(
+                        color: ColorUtils.getTokenColor(
+                            _newTokenIds[index].token!.tokenStandard),
+                      ),
+                ),
+                _getTokenStatus(amount, symbol)
+              ],
             ),
-            _getTokenStatus(amount, symbol)
-          ],
+          ),
         ),
       ),
     );

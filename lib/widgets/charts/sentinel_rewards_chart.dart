@@ -77,28 +77,34 @@ class _SentinelRewardsChart extends State<SentinelRewardsChart> {
             .toList()[index]
             .znnAmount
             .addDecimals(
-              znnDecimals,
+              coinDecimals,
             )
+            .toNum()
         : widget.rewardsHistory!.list.reversed
             .toList()[index]
             .qsrAmount
             .addDecimals(
-              qsrDecimals,
-            );
+              coinDecimals,
+            )
+            .toNum();
   }
 
   num _getMaxValueOfRewards() {
-    num maxZnn = _getMaxValueOfZnnRewards().addDecimals(
-      znnDecimals,
-    );
-    num maxQsr = _getMaxValueOfQsrRewards().addDecimals(
-      qsrDecimals,
-    );
+    num maxZnn = _getMaxValueOfZnnRewards()
+        .addDecimals(
+          coinDecimals,
+        )
+        .toNum();
+    num maxQsr = _getMaxValueOfQsrRewards()
+        .addDecimals(
+          coinDecimals,
+        )
+        .toNum();
     return max(maxQsr, maxZnn);
   }
 
-  int _getMaxValueOfZnnRewards() {
-    int max = widget.rewardsHistory!.list.first.znnAmount;
+  BigInt _getMaxValueOfZnnRewards() {
+    BigInt max = widget.rewardsHistory!.list.first.znnAmount;
     for (var element in widget.rewardsHistory!.list) {
       if (element.znnAmount > max) {
         max = element.znnAmount;
@@ -107,8 +113,8 @@ class _SentinelRewardsChart extends State<SentinelRewardsChart> {
     return max;
   }
 
-  int _getMaxValueOfQsrRewards() {
-    int max = widget.rewardsHistory!.list.first.qsrAmount;
+  BigInt _getMaxValueOfQsrRewards() {
+    BigInt max = widget.rewardsHistory!.list.first.qsrAmount;
     for (var element in widget.rewardsHistory!.list) {
       if (element.qsrAmount > max) {
         max = element.qsrAmount;

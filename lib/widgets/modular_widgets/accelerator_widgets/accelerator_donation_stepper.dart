@@ -36,8 +36,8 @@ class _AcceleratorDonationStepperState
   final GlobalKey<FormState> _qsrAmountKey = GlobalKey();
   final GlobalKey<LoadingButtonState> _submitButtonKey = GlobalKey();
 
-  num _znnAmount = 0;
-  num _qsrAmount = 0;
+  BigInt _znnAmount = BigInt.zero;
+  BigInt _qsrAmount = BigInt.zero;
 
   @override
   void initState() {
@@ -209,7 +209,7 @@ class _AcceleratorDonationStepperState
               width: 15.0,
             ),
             StepperButton(
-              onPressed: accountInfo.znn()! > 0
+              onPressed: accountInfo.znn()! > BigInt.zero
                   ? () {
                       setState(() {
                         _lastCompletedStep =
@@ -230,8 +230,8 @@ class _AcceleratorDonationStepperState
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          children: const [
+        const Row(
+          children: [
             Text('Total donation budget'),
             StandardTooltipIcon(
               'Your donation matters',
@@ -249,24 +249,24 @@ class _AcceleratorDonationStepperState
             suffixIcon: AmountSuffixWidgets(
               kZnnCoin,
               onMaxPressed: () {
-                num maxZnn = accountInfo.getBalanceWithDecimals(
+                BigInt maxZnn = accountInfo.getBalance(
                   kZnnCoin.tokenStandard,
                 );
                 if (_znnAmountController.text.isEmpty ||
-                    _znnAmountController.text.toNum() < maxZnn) {
+                    _znnAmountController.text.extractDecimals(coinDecimals) <
+                        maxZnn) {
                   setState(() {
-                    _znnAmountController.text = maxZnn.toString();
+                    _znnAmountController.text =
+                        maxZnn.addDecimals(coinDecimals);
                   });
                 }
               },
             ),
             validator: (value) => InputValidators.correctValue(
               value,
-              AmountUtils.addDecimals(
-                accountInfo.znn()!,
-                znnDecimals,
-              ),
-              znnDecimals,
+              accountInfo.znn()!,
+              coinDecimals,
+              BigInt.zero,
               canBeEqualToMin: true,
               canBeBlank: true,
             ),
@@ -288,25 +288,24 @@ class _AcceleratorDonationStepperState
             suffixIcon: AmountSuffixWidgets(
               kQsrCoin,
               onMaxPressed: () {
-                num maxQsr = accountInfo.getBalanceWithDecimals(
+                BigInt maxQsr = accountInfo.getBalance(
                   kQsrCoin.tokenStandard,
                 );
-
                 if (_qsrAmountController.text.isEmpty ||
-                    _qsrAmountController.text.toNum() < maxQsr) {
+                    _qsrAmountController.text.extractDecimals(coinDecimals) <
+                        maxQsr) {
                   setState(() {
-                    _qsrAmountController.text = maxQsr.toString();
+                    _qsrAmountController.text =
+                        maxQsr.addDecimals(coinDecimals);
                   });
                 }
               },
             ),
             validator: (value) => InputValidators.correctValue(
               value,
-              AmountUtils.addDecimals(
-                accountInfo.qsr()!,
-                qsrDecimals,
-              ),
-              znnDecimals,
+              accountInfo.qsr()!,
+              coinDecimals,
+              BigInt.zero,
               canBeEqualToMin: true,
               canBeBlank: true,
             ),
@@ -351,38 +350,34 @@ class _AcceleratorDonationStepperState
   bool _ifInputValid(AccountInfo accountInfo) {
     try {
       _znnAmount = _znnAmountController.text.isNotEmpty
-          ? _znnAmountController.text.toNum()
-          : 0;
+          ? _znnAmountController.text.extractDecimals(coinDecimals)
+          : BigInt.zero;
       _qsrAmount = _qsrAmountController.text.isNotEmpty
-          ? _qsrAmountController.text.toNum()
-          : 0;
+          ? _qsrAmountController.text.extractDecimals(coinDecimals)
+          : BigInt.zero;
     } catch (_) {}
 
     return InputValidators.correctValue(
               _znnAmountController.text,
-              AmountUtils.addDecimals(
-                accountInfo.znn()!,
-                znnDecimals,
-              ),
-              znnDecimals,
+              accountInfo.znn()!,
+              coinDecimals,
+              BigInt.zero,
               canBeEqualToMin: true,
               canBeBlank: true,
             ) ==
             null &&
         InputValidators.correctValue(
               _qsrAmountController.text,
-              AmountUtils.addDecimals(
-                accountInfo.qsr()!,
-                qsrDecimals,
-              ),
-              qsrDecimals,
+              accountInfo.qsr()!,
+              coinDecimals,
+              BigInt.zero,
               canBeEqualToMin: true,
               canBeBlank: true,
             ) ==
             null &&
         (_qsrAmountController.text.isNotEmpty ||
             _znnAmountController.text.isNotEmpty) &&
-        (_znnAmount > 0 || _qsrAmount > 0);
+        (_znnAmount > BigInt.zero || _qsrAmount > BigInt.zero);
   }
 
   Widget _getSubmitDonationStepContent() {

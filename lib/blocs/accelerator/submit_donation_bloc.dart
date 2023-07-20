@@ -1,23 +1,22 @@
 import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/account_block_utils.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/extensions.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/zts_utils.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 class SubmitDonationBloc extends BaseBloc<AccountBlockTemplate?> {
-  Future<void> submitDonation(num znnAmount, num qsrAmount) async {
+  Future<void> submitDonation(BigInt znnAmount, BigInt qsrAmount) async {
     try {
       addEvent(null);
-      if (znnAmount > 0) {
+      if (znnAmount > BigInt.zero) {
         await _sendDonationBlock(zenon!.embedded.accelerator.donate(
-          znnAmount.extractDecimals(znnDecimals),
+          znnAmount,
           kZnnCoin.tokenStandard,
         ));
       }
-      if (qsrAmount > 0) {
+      if (qsrAmount > BigInt.zero) {
         await _sendDonationBlock(zenon!.embedded.accelerator.donate(
-          qsrAmount.extractDecimals(qsrDecimals),
+          qsrAmount,
           kQsrCoin.tokenStandard,
         ));
       }

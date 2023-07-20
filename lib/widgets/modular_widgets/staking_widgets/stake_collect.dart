@@ -49,7 +49,7 @@ class _StakeCollectState extends State<StakeCollect> {
         if (snapshot.hasError) {
           return SyriusErrorWidget(snapshot.error!);
         } else if (snapshot.hasData) {
-          if (snapshot.data!.qsrAmount > 0) {
+          if (snapshot.data!.qsrAmount > BigInt.zero) {
             return _getWidgetBody(snapshot.data!);
           }
           return const SyriusErrorWidget('No rewards to collect');
@@ -64,7 +64,7 @@ class _StakeCollectState extends State<StakeCollect> {
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         NumberAnimation(
-          end: uncollectedReward.qsrAmount.addDecimals(qsrDecimals),
+          end: uncollectedReward.qsrAmount.addDecimals(coinDecimals).toNum(),
           isInt: false,
           after: ' ${kQsrCoin.symbol}',
           style: Theme.of(context).textTheme.headlineLarge!.copyWith(
@@ -74,13 +74,14 @@ class _StakeCollectState extends State<StakeCollect> {
         ),
         kVerticalSpacing,
         Visibility(
-          visible: uncollectedReward.qsrAmount > 0,
+          visible: uncollectedReward.qsrAmount > BigInt.zero,
           child: LoadingButton.stepper(
             key: _collectButtonKey,
             text: 'Collect',
             outlineColor: AppColors.qsrColor,
-            onPressed:
-                uncollectedReward.qsrAmount > 0 ? _onCollectPressed : null,
+            onPressed: uncollectedReward.qsrAmount > BigInt.zero
+                ? _onCollectPressed
+                : null,
           ),
         ),
       ],

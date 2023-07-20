@@ -142,13 +142,13 @@ class _AcceleratorProjectListItemState
       _getProjectStatusTag(),
     ];
 
-    if (widget.acceleratorProject.znnFundsNeeded > 0) {
+    if (widget.acceleratorProject.znnFundsNeeded > BigInt.zero) {
       tags.add(
         _getProjectZnnFundsNeededTag(context),
       );
     }
 
-    if (widget.acceleratorProject.qsrFundsNeeded > 0) {
+    if (widget.acceleratorProject.qsrFundsNeeded > BigInt.zero) {
       tags.add(
         _getProjectQsrFundsNeededTag(context),
       );
@@ -221,7 +221,7 @@ class _AcceleratorProjectListItemState
   TagWidget _getProjectZnnFundsNeededTag(BuildContext context) {
     return TagWidget(
       text:
-          '${widget.acceleratorProject.znnFundsNeededWithDecimals} ${kZnnCoin.symbol}',
+          '${widget.acceleratorProject.znnFundsNeeded.addDecimals(coinDecimals)} ${kZnnCoin.symbol}',
       hexColorCode:
           Theme.of(context).colorScheme.secondary.value.toRadixString(16),
     );
@@ -230,7 +230,7 @@ class _AcceleratorProjectListItemState
   TagWidget _getProjectQsrFundsNeededTag(BuildContext context) {
     return TagWidget(
       text:
-          '${widget.acceleratorProject.qsrFundsNeededWithDecimals} ${kQsrCoin.symbol}',
+          '${widget.acceleratorProject.qsrFundsNeeded.addDecimals(coinDecimals)} ${kQsrCoin.symbol}',
       hexColorCode:
           Theme.of(context).colorScheme.secondary.value.toRadixString(16),
     );
@@ -252,8 +252,8 @@ class _AcceleratorProjectListItemState
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          children: const [
+        const Row(
+          children: [
             Text('Voting results'),
           ],
         ),
@@ -352,8 +352,7 @@ class _AcceleratorProjectListItemState
       ),
       materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
       shape: const CircleBorder(),
-      onPressed: () =>
-          NavigationUtils.openUrl(widget.acceleratorProject.url, context),
+      onPressed: () => NavigationUtils.openUrl(widget.acceleratorProject.url),
       child: Tooltip(
         message: 'Visit ${widget.acceleratorProject.url}',
         child: Container(

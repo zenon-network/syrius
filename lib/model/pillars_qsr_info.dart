@@ -1,6 +1,6 @@
 class PillarsQsrInfo {
-  final num cost;
-  final num deposit;
+  final BigInt cost;
+  final BigInt deposit;
 
   PillarsQsrInfo({
     required this.cost,

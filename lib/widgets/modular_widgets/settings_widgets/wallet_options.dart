@@ -7,6 +7,7 @@ import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/model/model.dart';
 import 'package:zenon_syrius_wallet_flutter/screens/screens.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/clipboard_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/navigation_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/notification_utils.dart';
@@ -24,6 +25,7 @@ class WalletOptions extends StatefulWidget {
 class _WalletOptionsState extends State<WalletOptions> {
   bool? _launchAtStartup;
   bool? _enableDesktopNotifications;
+  bool? _enabledClipboardWatcher;
 
   @override
   void initState() {
@@ -35,6 +37,10 @@ class _WalletOptionsState extends State<WalletOptions> {
     _enableDesktopNotifications = sharedPrefsService!.get(
       kEnableDesktopNotificationsKey,
       defaultValue: kEnableDesktopNotificationsDefaultValue,
+    );
+    _enabledClipboardWatcher = sharedPrefsService!.get(
+      kEnableClipboardWatcherKey,
+      defaultValue: kEnableClipboardWatcherDefaultValue,
     );
   }
 
@@ -112,6 +118,7 @@ class _WalletOptionsState extends State<WalletOptions> {
       children: [
         _getLaunchAtStartupWidget(),
         _getEnableDesktopNotifications(),
+        _buildEnableClipboardWatcher(),
       ],
     );
   }
@@ -203,6 +210,32 @@ class _WalletOptionsState extends State<WalletOptions> {
     );
   }
 
+  Widget _buildEnableClipboardWatcher() {
+    return Row(
+      children: [
+        Text(
+          'Enable clipboard watcher',
+          style: Theme.of(context).textTheme.bodyMedium,
+        ),
+        SyriusCheckbox(
+          onChanged: (value) {
+            setState(() {
+              _enabledClipboardWatcher = value;
+              _changeEnableClipboardWatcherStatus(value ?? false);
+            });
+          },
+          value: _enabledClipboardWatcher,
+          context: context,
+        ),
+        const StandardTooltipIcon(
+          'Listens to the values passed to the clipboard and sends a '
+          'notification when a WalletConnect URI has been copied',
+          Icons.help,
+        ),
+      ],
+    );
+  }
+
   Future<void> _changeEnableDesktopNotificationsStatus(bool enabled) async {
     try {
       await sharedPrefsService!.put(kEnableDesktopNotificationsKey, enabled);
@@ -215,12 +248,37 @@ class _WalletOptionsState extends State<WalletOptions> {
     }
   }
 
+  Future<void> _changeEnableClipboardWatcherStatus(bool enabled) async {
+    try {
+      await sharedPrefsService!.put(kEnableClipboardWatcherKey, enabled);
+      ClipboardUtils.toggleClipboardWatcherStatus();
+      _sendEnableClipboardWatcherStatusNotification(enabled);
+    } on Exception catch (e) {
+      NotificationUtils.sendNotificationError(
+        e,
+        'Something went wrong while changing clipboard watcher preference',
+      );
+    }
+  }
+
   void _sendEnabledDesktopNotificationsStatusNotification(bool enabled) {
     sl.get<NotificationsBloc>().addNotification(
           WalletNotification(
             title: 'Desktop notifications ${enabled ? 'enabled' : 'disabled'}',
             details:
                 'Desktop notifications preference was ${enabled ? 'enabled' : 'disabled'}',
+            timestamp: DateTime.now().millisecondsSinceEpoch,
+            type: NotificationType.paymentSent,
+          ),
+        );
+  }
+
+  void _sendEnableClipboardWatcherStatusNotification(bool enabled) {
+    sl.get<NotificationsBloc>().addNotification(
+          WalletNotification(
+            title: 'Clipboard watcher ${enabled ? 'enabled' : 'disabled'}',
+            details:
+                'Clipboard watcher preference was ${enabled ? 'enabled' : 'disabled'}',
             timestamp: DateTime.now().millisecondsSinceEpoch,
             type: NotificationType.paymentSent,
           ),

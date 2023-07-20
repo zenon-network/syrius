@@ -1,5 +1,3 @@
-import 'dart:math' as math;
-
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
@@ -14,12 +12,13 @@ import 'package:zenon_syrius_wallet_flutter/utils/extensions.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/format_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/input_validators.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/math_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/navigation_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/notification_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/zts_utils.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/custom_material_stepper.dart'
     as custom_material_stepper;
+import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 enum SentinelsStepperStep {
@@ -51,9 +50,9 @@ class _MainSentinelsState extends State<SentinelsStepperContainer> {
   final GlobalKey<LoadingButtonState> _registerButtonKey = GlobalKey();
   final GlobalKey<FormState> _qsrFormKey = GlobalKey();
 
-  num _withdrawnQSR = 0;
-  num? _maxQsrAmount;
-  late num _qsrCost;
+  BigInt _withdrawnQSR = BigInt.zero;
+  BigInt _maxQsrAmount = BigInt.zero;
+  BigInt _qsrCost = BigInt.zero;
 
   final int _numSteps = SentinelsStepperStep.values.length;
 
@@ -62,13 +61,11 @@ class _MainSentinelsState extends State<SentinelsStepperContainer> {
   @override
   void initState() {
     super.initState();
-    _qsrCost = sentinelRegisterQsrAmount.addDecimals(qsrDecimals);
-    _qsrAmountController.text = _qsrCost.toString();
-    _znnAmountController.text = sentinelRegisterZnnAmount
-        .addDecimals(
-          znnDecimals,
-        )
-        .toString();
+    _qsrCost = sentinelRegisterQsrAmount;
+    _qsrAmountController.text = _qsrCost.addDecimals(coinDecimals);
+    _znnAmountController.text = sentinelRegisterZnnAmount.addDecimals(
+      coinDecimals,
+    );
     _addressController.text = kSelectedAddress!;
     sl.get<BalanceBloc>().getBalanceForAllAddresses();
     _iniStepperControllers();
@@ -102,7 +99,7 @@ class _MainSentinelsState extends State<SentinelsStepperContainer> {
         _sentinelsQsrInfoViewModel = model;
         model.getQsrDepositedAmount(_addressController.text);
       },
-      builder: (_, model, __) => StreamBuilder<num?>(
+      builder: (_, model, __) => StreamBuilder<BigInt?>(
         stream: model.stream,
         builder: (_, snapshot) {
           if (snapshot.hasData) {
@@ -127,12 +124,12 @@ class _MainSentinelsState extends State<SentinelsStepperContainer> {
   Widget _getDepositQsrStepBody(
     BuildContext context,
     AccountInfo accountInfo,
-    num depositedQsr,
+    BigInt depositedQsr,
   ) {
-    _maxQsrAmount = math.min<num>(
-      accountInfo.getBalanceWithDecimals(kQsrCoin.tokenStandard),
-      math.max<num>(0, _qsrCost - (depositedQsr - _withdrawnQSR)),
-    );
+    _maxQsrAmount = MathUtils.bigMin(
+        accountInfo.getBalance(kQsrCoin.tokenStandard),
+        MathUtils.bigMax(
+            BigInt.zero, _qsrCost - (depositedQsr - _withdrawnQSR)));
 
     return Column(
       children: [
@@ -164,8 +161,11 @@ class _MainSentinelsState extends State<SentinelsStepperContainer> {
                                 PieChartSectionData(
                                   showTitle: false,
                                   radius: 7.0,
-                                  value: _qsrCost -
-                                      (depositedQsr - _withdrawnQSR) / _qsrCost,
+                                  value: (_qsrCost
+                                          .addDecimals(coinDecimals)
+                                          .toNum() -
+                                      (depositedQsr - _withdrawnQSR) /
+                                          _qsrCost),
                                   color: AppColors.qsrColor.withOpacity(0.3),
                                 ),
                                 PieChartSectionData(
@@ -178,7 +178,7 @@ class _MainSentinelsState extends State<SentinelsStepperContainer> {
                             ),
                           ),
                           Text(
-                            'Sentinel Slot value\n$_qsrCost ${kQsrCoin.symbol}',
+                            'Sentinel Slot value\n${_qsrCost.addDecimals(coinDecimals)} ${kQsrCoin.symbol}',
                             style: Theme.of(context).textTheme.bodyMedium,
                             textAlign: TextAlign.center,
                           ),
@@ -238,7 +238,7 @@ class _MainSentinelsState extends State<SentinelsStepperContainer> {
                       SizedBox(
                         width: 130.0,
                         child: Text(
-                          'You have deposited $depositedQsr ${kQsrCoin.symbol}',
+                          'You have deposited ${depositedQsr.addDecimals(coinDecimals)} ${kQsrCoin.symbol}',
                           textAlign: TextAlign.center,
                           style: Theme.of(context).textTheme.bodyLarge,
                         ),
@@ -328,11 +328,12 @@ class _MainSentinelsState extends State<SentinelsStepperContainer> {
         value,
         _maxQsrAmount,
         kQsrCoin.decimals,
-        min: _maxQsrAmount!,
+        _maxQsrAmount,
         canBeEqualToMin: true,
       );
 
-  Widget _getDepositButtonViewModel(AccountInfo accountInfo, num depositedQsr) {
+  Widget _getDepositButtonViewModel(
+      AccountInfo accountInfo, BigInt depositedQsr) {
     return ViewModelBuilder<SentinelsDepositQsrBloc>.reactive(
       onViewModelReady: (model) {
         model.stream.listen(
@@ -365,7 +366,7 @@ class _MainSentinelsState extends State<SentinelsStepperContainer> {
   Widget _getDepositButton(
     SentinelsDepositQsrBloc model,
     AccountInfo accountInfo,
-    num depositedQsr,
+    BigInt depositedQsr,
   ) {
     return LoadingButton.stepper(
       key: _depositQsrButtonKey,
@@ -373,10 +374,11 @@ class _MainSentinelsState extends State<SentinelsStepperContainer> {
       onPressed: _qsrAmountValidator(_qsrAmountController.text) == null
           ? () => _onDepositButtonPressed(model, depositedQsr)
           : null,
+      outlineColor: AppColors.qsrColor,
     );
   }
 
-  Widget _getWithdrawQsrButtonViewModel(num qsrDeposit) {
+  Widget _getWithdrawQsrButtonViewModel(BigInt qsrDeposit) {
     return ViewModelBuilder<SentinelsWithdrawQsrBloc>.reactive(
       onViewModelReady: (model) {
         model.stream.listen(
@@ -414,15 +416,16 @@ class _MainSentinelsState extends State<SentinelsStepperContainer> {
   }
 
   Widget _getWithdrawQsrButton(
-    num qsrDeposit,
+    BigInt qsrDeposit,
     SentinelsWithdrawQsrBloc model,
   ) {
     return Visibility(
-      visible: qsrDeposit > 0,
+      visible: qsrDeposit > BigInt.zero,
       child: LoadingButton.stepper(
         text: 'Withdraw',
-        onPressed: () => _onWithdrawButtonPressed(model, qsrDeposit.toDouble()),
+        onPressed: () => _onWithdrawButtonPressed(model, qsrDeposit),
         key: _withdrawButtonKey,
+        outlineColor: AppColors.qsrColor,
       ),
     );
   }
@@ -439,7 +442,7 @@ class _MainSentinelsState extends State<SentinelsStepperContainer> {
         onStepTapped: (int index) {},
         steps: [
           StepperUtils.getMaterialStep(
-            stepTitle: 'Plasma check',
+            stepTitle: 'Sentinel deployment: Plasma check',
             stepContent: _getPlasmaCheckFutureBuilder(),
             stepSubtitle: 'Sufficient Plasma',
             stepState: StepperUtils.getStepState(
@@ -582,19 +585,21 @@ class _MainSentinelsState extends State<SentinelsStepperContainer> {
   }
 
   void _onDepositButtonPressed(
-      SentinelsDepositQsrBloc model, num depositedQsr) {
+      SentinelsDepositQsrBloc model, BigInt depositedQsr) {
     if (_lastCompletedStep == SentinelsStepperStep.checkPlasma) {
       if (depositedQsr >= _qsrCost) {
         _depositQsrButtonKey.currentState?.animateForward();
         model.depositQsr(
-          _qsrAmountController.text,
+          _qsrAmountController.text.extractDecimals(coinDecimals),
           justMarkStepCompleted: true,
         );
-      } else if (_maxQsrAmount! + depositedQsr >= _qsrCost &&
+      } else if (_maxQsrAmount + depositedQsr >= _qsrCost &&
           _qsrFormKey.currentState!.validate() &&
-          num.parse(_qsrAmountController.text) > 0) {
+          _qsrAmountController.text.extractDecimals(coinDecimals) >
+              BigInt.zero) {
         _depositQsrButtonKey.currentState?.animateForward();
-        model.depositQsr(_qsrAmountController.text);
+        model.depositQsr(
+            _qsrAmountController.text.extractDecimals(coinDecimals));
       }
     } else if (_lastCompletedStep == SentinelsStepperStep.qsrManagement) {
       setState(() {
@@ -620,15 +625,16 @@ class _MainSentinelsState extends State<SentinelsStepperContainer> {
   void _onDeployPressed(SentinelsDeployBloc model) {
     if (_lastCompletedStep == SentinelsStepperStep.znnManagement) {
       _registerButtonKey.currentState?.animateForward();
-      model.deploySentinel(_znnAmountController.text);
+      model.deploySentinel(
+          _znnAmountController.text.extractDecimals(coinDecimals));
     }
   }
 
   void _onWithdrawButtonPressed(
     SentinelsWithdrawQsrBloc viewModel,
-    num qsrDeposit,
+    BigInt qsrDeposit,
   ) {
-    if (qsrDeposit > 0) {
+    if (qsrDeposit > BigInt.zero) {
       _withdrawButtonKey.currentState?.animateForward();
       viewModel.withdrawQsr(_addressController.text);
     }
@@ -696,8 +702,7 @@ class _MainSentinelsState extends State<SentinelsStepperContainer> {
                                 ),
                             recognizer: TapGestureRecognizer()
                               ..onTap = () {
-                                NavigationUtils.openUrl(
-                                    kZnnController, context);
+                                NavigationUtils.openUrl(kZnnController);
                               },
                           ),
                           const WidgetSpan(
@@ -818,6 +823,13 @@ class _MainSentinelsState extends State<SentinelsStepperContainer> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        Text(
+          'More Plasma is required to perform complex transactions. Please fuse enough QSR before proceeding.',
+          style: Theme.of(context).textTheme.headlineSmall,
+        ),
+        const SizedBox(
+          height: 25.0,
+        ),
         Row(
           mainAxisAlignment: MainAxisAlignment.start,
           children: <Widget>[

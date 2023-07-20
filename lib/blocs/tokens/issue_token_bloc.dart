@@ -5,7 +5,6 @@ import 'package:zenon_syrius_wallet_flutter/model/model.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/account_block_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/address_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/extensions.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 class IssueTokenBloc extends BaseBloc<AccountBlockTemplate> {
@@ -15,9 +14,8 @@ class IssueTokenBloc extends BaseBloc<AccountBlockTemplate> {
           tokenStepperData.tokenName,
           tokenStepperData.tokenSymbol,
           tokenStepperData.tokenDomain,
-          tokenStepperData.totalSupply
-              .extractDecimals(tokenStepperData.decimals),
-          tokenStepperData.maxSupply.extractDecimals(tokenStepperData.decimals),
+          tokenStepperData.totalSupply,
+          tokenStepperData.maxSupply,
           tokenStepperData.decimals,
           tokenStepperData.isMintable!,
           tokenStepperData.isOwnerBurnOnly!,
@@ -29,7 +27,7 @@ class IssueTokenBloc extends BaseBloc<AccountBlockTemplate> {
       ).then(
         (response) {
           Hive.box(kFavoriteTokensBox).add(response.tokenStandard.toString());
-          AddressUtils.refreshBalance();
+          ZenonAddressUtils.refreshBalance();
           addEvent(response);
         },
       ).onError(

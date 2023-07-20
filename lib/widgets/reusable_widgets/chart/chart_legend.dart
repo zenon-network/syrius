@@ -25,7 +25,7 @@ class ChartLegend extends StatelessWidget {
         ),
         Text(
           mainText,
-          style: Theme.of(context).textTheme.bodyLarge,
+          style: Theme.of(context).textTheme.bodyMedium,
         ),
         const SizedBox(
           width: 5.0,

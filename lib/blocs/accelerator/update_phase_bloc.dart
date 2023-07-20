@@ -1,11 +1,11 @@
 import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/account_block_utils.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 class UpdatePhaseBloc extends BaseBloc<AccountBlockTemplate?> {
   void updatePhase(Hash id, String name, String description, String url,
-      double znnFundsNeeded, double qsrFundsNeeded) {
+      BigInt znnFundsNeeded, BigInt qsrFundsNeeded) {
     try {
       addEvent(null);
       AccountBlockTemplate transactionParams =
@@ -14,14 +14,8 @@ class UpdatePhaseBloc extends BaseBloc<AccountBlockTemplate?> {
         name,
         description,
         url,
-        AmountUtils.extractDecimals(
-          znnFundsNeeded,
-          znnDecimals,
-        ),
-        AmountUtils.extractDecimals(
-          qsrFundsNeeded,
-          qsrDecimals,
-        ),
+        znnFundsNeeded,
+        qsrFundsNeeded,
       );
       AccountBlockUtils.createAccountBlock(transactionParams, 'update phase')
           .then(

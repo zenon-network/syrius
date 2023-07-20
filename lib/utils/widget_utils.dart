@@ -1,5 +1,3 @@
-import 'dart:math';
-
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
@@ -72,12 +70,13 @@ class WidgetUtils {
   }
 
   static String getPlasmaToolTipMessage(PlasmaInfo plasmaInfo) {
-    if (plasmaInfo.currentPlasma >= kPowerUsersPlasmaRequirements.reduce(max)) {
+    if (plasmaInfo.currentPlasma >= kPillarPlasmaAmountNeeded) {
       return 'High Plasma';
-    } else if (plasmaInfo.currentPlasma >=
-        kNormalUsersPlasmaRequirements.reduce(max)) {
+    } else if (plasmaInfo.currentPlasma >= kIssueTokenPlasmaAmountNeeded &&
+        plasmaInfo.currentPlasma < kPillarPlasmaAmountNeeded) {
       return 'Average Plasma';
-    } else if (plasmaInfo.currentPlasma >= minPlasmaAmount) {
+    } else if (plasmaInfo.currentPlasma >= minPlasmaAmount.toInt() &&
+        plasmaInfo.currentPlasma < kIssueTokenPlasmaAmountNeeded) {
       return 'Low Plasma';
     } else {
       return 'Insufficient Plasma';

@@ -52,7 +52,8 @@ class _SentinelCollectState extends State<SentinelCollect> {
         if (snapshot.hasError) {
           return SyriusErrorWidget(snapshot.error!);
         } else if (snapshot.hasData) {
-          if (snapshot.data!.znnAmount > 0 || snapshot.data!.qsrAmount > 0) {
+          if (snapshot.data!.znnAmount > BigInt.zero ||
+              snapshot.data!.qsrAmount > BigInt.zero) {
             return _getWidgetBody(snapshot.data!);
           }
           return const SyriusErrorWidget('No rewards to collect');
@@ -67,7 +68,7 @@ class _SentinelCollectState extends State<SentinelCollect> {
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         NumberAnimation(
-          end: uncollectedReward.znnAmount.addDecimals(znnDecimals),
+          end: uncollectedReward.znnAmount.addDecimals(coinDecimals).toNum(),
           isInt: false,
           after: ' ${kZnnCoin.symbol}',
           style: Theme.of(context).textTheme.headlineLarge!.copyWith(
@@ -77,7 +78,7 @@ class _SentinelCollectState extends State<SentinelCollect> {
         ),
         kVerticalSpacing,
         NumberAnimation(
-          end: uncollectedReward.qsrAmount.addDecimals(qsrDecimals),
+          end: uncollectedReward.qsrAmount.addDecimals(coinDecimals).toNum(),
           isInt: false,
           after: ' ${kQsrCoin.symbol}',
           style: Theme.of(context).textTheme.headlineLarge!.copyWith(
@@ -87,13 +88,13 @@ class _SentinelCollectState extends State<SentinelCollect> {
         ),
         kVerticalSpacing,
         Visibility(
-          visible: uncollectedReward.qsrAmount > 0 ||
-              uncollectedReward.znnAmount > 0,
+          visible: uncollectedReward.qsrAmount > BigInt.zero ||
+              uncollectedReward.znnAmount > BigInt.zero,
           child: LoadingButton.stepper(
             key: _collectButtonKey,
             text: 'Collect',
-            onPressed: uncollectedReward.qsrAmount > 0 ||
-                    uncollectedReward.znnAmount > 0
+            onPressed: uncollectedReward.qsrAmount > BigInt.zero ||
+                    uncollectedReward.znnAmount > BigInt.zero
                 ? _onCollectPressed
                 : null,
           ),

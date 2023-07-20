@@ -37,7 +37,7 @@ class _StakingOptionsState extends State<StakingOptions> {
             seconds: (index + 1) * stakeTimeUnitSec,
           ));
 
-  num? _maxZnnAmount;
+  BigInt _maxZnnAmount = BigInt.zero;
 
   double? _maxWidth;
 
@@ -74,8 +74,8 @@ class _StakingOptionsState extends State<StakingOptions> {
               }
               if (snapshot.connectionState == ConnectionState.active) {
                 if (snapshot.hasData) {
-                  _maxZnnAmount = snapshot.data![_addressController.text]!
-                      .getBalanceWithDecimals(
+                  _maxZnnAmount =
+                      snapshot.data![_addressController.text]!.getBalance(
                     kZnnCoin.tokenStandard,
                   );
                   return _getWidgetBody(
@@ -129,9 +129,7 @@ class _StakingOptionsState extends State<StakingOptions> {
                 value,
                 _maxZnnAmount,
                 kZnnCoin.decimals,
-                min: stakeMinZnnAmount.addDecimals(
-                  znnDecimals,
-                ),
+                stakeMinZnnAmount,
                 canBeEqualToMin: true,
               ),
               suffixIcon: _getZnnAmountSuffix(),
@@ -248,12 +246,12 @@ class _StakingOptionsState extends State<StakingOptions> {
   void _onStakePressed(StakingOptionsBloc? model) {
     if (_selectedStakeDuration != null &&
         _znnAmountKey.currentState!.validate() &&
-        _znnAmountController.text.toNum() >=
-            stakeMinZnnAmount.addDecimals(znnDecimals)) {
+        _znnAmountController.text.extractDecimals(coinDecimals) >=
+            stakeMinZnnAmount) {
       _stakeButtonKey.currentState?.animateForward();
       model!.stakeForQsr(
         _selectedStakeDuration!,
-        _znnAmountController.text,
+        _znnAmountController.text.extractDecimals(coinDecimals),
       );
     }
   }
@@ -267,7 +265,7 @@ class _StakingOptionsState extends State<StakingOptions> {
 
   void _onMaxPressed() {
     setState(() {
-      _znnAmountController.text = _maxZnnAmount.toString();
+      _znnAmountController.text = _maxZnnAmount.addDecimals(coinDecimals);
     });
   }
 
@@ -277,9 +275,7 @@ class _StakingOptionsState extends State<StakingOptions> {
             _znnAmountController.text,
             _maxZnnAmount,
             kZnnCoin.decimals,
-            min: stakeMinZnnAmount.addDecimals(
-              znnDecimals,
-            ),
+            stakeMinZnnAmount,
             canBeEqualToMin: true,
           ) ==
           null;

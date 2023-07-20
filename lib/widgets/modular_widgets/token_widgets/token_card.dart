@@ -1,9 +1,8 @@
-import 'dart:math' show pow;
-
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flip_card/flip_card.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:marquee_widget/marquee_widget.dart';
 import 'package:stacked/stacked.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
@@ -53,8 +52,8 @@ class _TokenCardState extends State<TokenCard> {
   final TextEditingController _mintAmountController = TextEditingController();
   TextEditingController _newOwnerAddressController = TextEditingController();
 
-  num? _burnMaxAmount;
-  num? _mintMaxAmount;
+  BigInt _burnMaxAmount = BigInt.zero;
+  BigInt _mintMaxAmount = BigInt.zero;
 
   final GlobalKey<LoadingButtonState> _burnButtonKey = GlobalKey();
   final GlobalKey<LoadingButtonState> _mintButtonKey = GlobalKey();
@@ -147,9 +146,13 @@ class _TokenCardState extends State<TokenCard> {
                     Row(
                       children: [
                         Expanded(
-                          child: Text(
-                            widget.token.tokenStandard.toString().toUpperCase(),
-                            style: Theme.of(context).textTheme.titleMedium,
+                          child: Marquee(
+                            child: Text(
+                              widget.token.tokenStandard
+                                  .toString()
+                                  .toUpperCase(),
+                              style: Theme.of(context).textTheme.titleMedium,
+                            ),
                           ),
                         ),
                         CopyToClipboardIcon(
@@ -261,8 +264,7 @@ class _TokenCardState extends State<TokenCard> {
                 ),
                 materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                 shape: const CircleBorder(),
-                onPressed: () =>
-                    NavigationUtils.openUrl(widget.token.domain, context),
+                onPressed: () => NavigationUtils.openUrl(widget.token.domain),
                 child: Tooltip(
                   message: 'Visit ${widget.token.domain}',
                   child: Container(
@@ -324,10 +326,9 @@ class _TokenCardState extends State<TokenCard> {
   }
 
   Widget _getAnimatedChart(Token token) {
-    double totalSupplyWithDecimals =
-        token.totalSupply / pow(10, token.decimals);
+    BigInt totalSupply = token.totalSupply;
 
-    double maxSupplyWithDecimals = token.maxSupply / pow(10, token.decimals);
+    BigInt maxSupply = token.maxSupply;
 
     return Stack(
       alignment: Alignment.center,
@@ -340,14 +341,13 @@ class _TokenCardState extends State<TokenCard> {
               PieChartSectionData(
                 showTitle: false,
                 radius: 5.0,
-                value: totalSupplyWithDecimals / maxSupplyWithDecimals,
+                value: totalSupply / maxSupply,
                 color: ColorUtils.getTokenColor(widget.token.tokenStandard),
               ),
               PieChartSectionData(
                 showTitle: false,
                 radius: 5.0,
-                value: (maxSupplyWithDecimals - totalSupplyWithDecimals) /
-                    maxSupplyWithDecimals,
+                value: (maxSupply - totalSupply) / maxSupply,
                 color: Colors.white12,
               ),
             ],
@@ -355,13 +355,15 @@ class _TokenCardState extends State<TokenCard> {
         ),
         SizedBox(
           width: 70.0,
-          child: FormattedAmountWithTooltip(
-            amount: totalSupplyWithDecimals,
-            tokenSymbol: token.symbol,
-            builder: (formattedAmount, tokenSymbol) => Text(
-              '$formattedAmount $tokenSymbol',
-              style: Theme.of(context).textTheme.bodyMedium,
-              textAlign: TextAlign.center,
+          child: Marquee(
+            child: FormattedAmountWithTooltip(
+              amount: totalSupply.addDecimals(token.decimals),
+              tokenSymbol: token.symbol,
+              builder: (formattedAmount, tokenSymbol) => Text(
+                '$formattedAmount $tokenSymbol',
+                style: Theme.of(context).textTheme.bodyMedium,
+                textAlign: TextAlign.center,
+              ),
             ),
           ),
         ),
@@ -370,7 +372,7 @@ class _TokenCardState extends State<TokenCard> {
   }
 
   Widget _getBurnBackOfCard(AccountInfo accountInfo) {
-    _burnMaxAmount = accountInfo.getBalanceWithDecimals(
+    _burnMaxAmount = accountInfo.getBalance(
       widget.token.tokenStandard,
     );
 
@@ -389,10 +391,7 @@ class _TokenCardState extends State<TokenCard> {
             ),
             controller: _burnAmountController,
             validator: (value) => InputValidators.correctValue(
-              value,
-              _burnMaxAmount,
-              widget.token.decimals,
-            ),
+                value, _burnMaxAmount, widget.token.decimals, BigInt.zero),
             suffixIcon: _getAmountSuffix(),
             suffixIconConstraints: const BoxConstraints(maxWidth: 50.0),
             hintText: 'Amount',
@@ -470,17 +469,17 @@ class _TokenCardState extends State<TokenCard> {
   Widget _getBurnButton(BurnTokenBloc model) {
     return LoadingButton.stepper(
       text: 'Burn',
-      onPressed: _burnMaxAmount! > 0 &&
+      onPressed: _burnMaxAmount > BigInt.zero &&
               _burnAmountController.text.isNotEmpty &&
-              InputValidators.correctValue(
-                    _burnAmountController.text,
-                    _burnMaxAmount,
-                    widget.token.decimals,
-                  ) ==
+              InputValidators.correctValue(_burnAmountController.text,
+                      _burnMaxAmount, widget.token.decimals, BigInt.zero) ==
                   null
           ? () {
               _burnButtonKey.currentState?.animateForward();
-              model.burnToken(widget.token, _burnAmountController.text);
+              model.burnToken(
+                  widget.token,
+                  _burnAmountController.text
+                      .extractDecimals(widget.token.decimals));
             }
           : null,
       key: _burnButtonKey,
@@ -500,23 +499,24 @@ class _TokenCardState extends State<TokenCard> {
 
   void _onMaxPressed() {
     if (_burnAmountController.text.isEmpty ||
-        _burnAmountController.text.toNum() != _burnMaxAmount ||
-        _burnAmountController.text.toNum() != _mintMaxAmount) {
+        _burnAmountController.text.extractDecimals(widget.token.decimals) !=
+            _burnMaxAmount ||
+        _burnAmountController.text.extractDecimals(widget.token.decimals) !=
+            _mintMaxAmount) {
       setState(() {
         if (_backOfCardVersion == TokenCardBackVersion.burn) {
-          _burnAmountController.text = _burnMaxAmount.toString();
+          _burnAmountController.text =
+              _burnMaxAmount.addDecimals(widget.token.decimals);
         } else {
-          _mintAmountController.text = _mintMaxAmount.toString();
+          _mintAmountController.text =
+              _mintMaxAmount.addDecimals(widget.token.decimals);
         }
       });
     }
   }
 
   Widget _getMintBackOfCard(AccountInfo? accountInfo) {
-    _mintMaxAmount =
-        (widget.token.maxSupply - widget.token.totalSupply).addDecimals(
-      widget.token.decimals,
-    );
+    _mintMaxAmount = (widget.token.maxSupply - widget.token.totalSupply);
 
     return ListView(
       shrinkWrap: true,
@@ -550,10 +550,7 @@ class _TokenCardState extends State<TokenCard> {
             ),
             controller: _mintAmountController,
             validator: (value) => InputValidators.correctValue(
-              value,
-              _mintMaxAmount,
-              widget.token.decimals,
-            ),
+                value, _mintMaxAmount, widget.token.decimals, BigInt.zero),
             suffixIcon: _getAmountSuffix(),
             suffixIconConstraints: const BoxConstraints(maxWidth: 50.0),
             hintText: 'Amount',
@@ -630,19 +627,17 @@ class _TokenCardState extends State<TokenCard> {
   Widget _getMintButton(MintTokenBloc model) {
     return LoadingButton.stepper(
       text: 'Mint',
-      onPressed: _mintMaxAmount! > 0 &&
+      onPressed: _mintMaxAmount > BigInt.zero &&
               _mintAmountController.text.isNotEmpty &&
-              InputValidators.correctValue(
-                    _mintAmountController.text,
-                    _mintMaxAmount,
-                    widget.token.decimals,
-                  ) ==
+              InputValidators.correctValue(_mintAmountController.text,
+                      _mintMaxAmount, widget.token.decimals, BigInt.zero) ==
                   null
           ? () {
               _mintButtonKey.currentState!.animateForward();
               model.mintToken(
                 widget.token,
-                _mintAmountController.text,
+                _mintAmountController.text
+                    .extractDecimals(widget.token.decimals),
                 Address.parse(_beneficiaryAddressController.text),
               );
             }

@@ -31,10 +31,10 @@ class _SendSmallCardState extends State<SendSmallCard> {
           padding: const EdgeInsets.all(
             20.0,
           ),
-          child: Column(
+          child: const Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             mainAxisAlignment: MainAxisAlignment.center,
-            children: const <Widget>[
+            children: <Widget>[
               Icon(
                 SimpleLineIcons.arrow_up_circle,
                 size: 60.0,

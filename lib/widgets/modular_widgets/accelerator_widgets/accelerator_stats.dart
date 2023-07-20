@@ -77,9 +77,11 @@ class _AcceleratorStatsState extends State<AcceleratorStats> {
           dotColor: AppColors.znnColor,
           mainText: 'Available',
           detailsWidget: FormattedAmountWithTooltip(
-            amount: accountInfo.getBalanceWithDecimals(
-              kZnnCoin.tokenStandard,
-            ),
+            amount: accountInfo
+                .getBalance(
+                  kZnnCoin.tokenStandard,
+                )
+                .addDecimals(coinDecimals),
             tokenSymbol: kZnnCoin.symbol,
             builder: (amount, tokenSymbol) => Text(
               '$amount $tokenSymbol',
@@ -92,9 +94,11 @@ class _AcceleratorStatsState extends State<AcceleratorStats> {
           dotColor: AppColors.qsrColor,
           mainText: 'Available',
           detailsWidget: FormattedAmountWithTooltip(
-            amount: accountInfo.getBalanceWithDecimals(
-              kQsrCoin.tokenStandard,
-            ),
+            amount: accountInfo
+                .getBalance(
+                  kQsrCoin.tokenStandard,
+                )
+                .addDecimals(coinDecimals),
             tokenSymbol: kQsrCoin.symbol,
             builder: (amount, tokenSymbol) => Text(
               '$amount $tokenSymbol',
@@ -135,10 +139,10 @@ class _AcceleratorStatsState extends State<AcceleratorStats> {
     Token token,
     AccountInfo accountInfo,
   ) {
-    int value = token.tokenStandard == kZnnCoin.tokenStandard
+    BigInt value = token.tokenStandard == kZnnCoin.tokenStandard
         ? accountInfo.znn()!
         : accountInfo.qsr()!;
-    int sumValues = accountInfo.znn()! + accountInfo.qsr()!;
+    BigInt sumValues = accountInfo.znn()! + accountInfo.qsr()!;
 
     final isTouched = token.symbol == _touchedSectionTitle;
     final double opacity = isTouched ? 1.0 : 0.5;

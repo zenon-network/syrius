@@ -144,10 +144,11 @@ class _SendMediumCardState extends State<SendMediumCard> {
                 ),
                 validator: (value) => InputValidators.correctValue(
                   value,
-                  accountInfo.getBalanceWithDecimals(
+                  accountInfo.getBalance(
                     _selectedToken.tokenStandard,
                   ),
                   _selectedToken.decimals,
+                  BigInt.zero,
                 ),
                 controller: _amountController,
                 suffixIcon: _getAmountSuffix(accountInfo),
@@ -180,22 +181,22 @@ class _SendMediumCardState extends State<SendMediumCard> {
         _amountKey.currentState!.validate()) {
       showDialogWithNoAndYesOptions(
         context: context,
+        isBarrierDismissible: true,
         title: 'Send Payment',
         description: 'Are you sure you want to transfer '
             '${_amountController.text} ${_selectedToken.symbol} to '
-            '${AddressUtils.getLabel(_recipientController.text)} ?',
+            '${ZenonAddressUtils.getLabel(_recipientController.text)} ?',
         onYesButtonPressed: () => _sendPayment(model),
       );
     }
   }
 
   void _sendPayment(SendPaymentBloc model) {
-    Navigator.pop(context);
     _sendPaymentButtonKey.currentState?.animateForward();
     model.sendTransfer(
       fromAddress: kSelectedAddress,
       toAddress: _recipientController.text,
-      amount: _amountController.text,
+      amount: _amountController.text.extractDecimals(_selectedToken.decimals),
       data: null,
       token: _selectedToken,
     );
@@ -236,14 +237,16 @@ class _SendMediumCardState extends State<SendMediumCard> {
       );
 
   void _onMaxPressed(AccountInfo accountInfo) {
-    num maxBalance = accountInfo.getBalanceWithDecimals(
+    BigInt maxBalance = accountInfo.getBalance(
       _selectedToken.tokenStandard,
     );
 
     if (_amountController.text.isEmpty ||
-        _amountController.text.toNum() < maxBalance) {
+        _amountController.text.extractDecimals(_selectedToken.decimals) <
+            maxBalance) {
       setState(() {
-        _amountController.text = maxBalance.toString();
+        _amountController.text =
+            maxBalance.addDecimals(_selectedToken.decimals);
       });
     }
   }
@@ -293,10 +296,10 @@ class _SendMediumCardState extends State<SendMediumCard> {
     sl.get<NotificationsBloc>().addNotification(
           WalletNotification(
             title: 'Sent ${_amountController.text} ${_selectedToken.symbol} '
-                'to ${AddressUtils.getLabel(_recipientController.text)}',
+                'to ${ZenonAddressUtils.getLabel(_recipientController.text)}',
             timestamp: DateTime.now().millisecondsSinceEpoch,
             details: 'Sent ${_amountController.text} ${_selectedToken.symbol} '
-                'from ${AddressUtils.getLabel(kSelectedAddress!)} to ${AddressUtils.getLabel(_recipientController.text)}',
+                'from ${ZenonAddressUtils.getLabel(kSelectedAddress!)} to ${ZenonAddressUtils.getLabel(_recipientController.text)}',
             type: NotificationType.paymentSent,
             id: null,
           ),
@@ -307,11 +310,11 @@ class _SendMediumCardState extends State<SendMediumCard> {
       accountInfo.getBalance(
         _selectedToken.tokenStandard,
       ) >
-      0;
+      BigInt.zero;
 
   void _addTokensWithBalance(AccountInfo accountInfo) {
     for (var balanceInfo in accountInfo.balanceInfoList!) {
-      if (balanceInfo.balance! > 0 &&
+      if (balanceInfo.balance! > BigInt.zero &&
           !_tokensWithBalance.contains(balanceInfo.token)) {
         _tokensWithBalance.add(balanceInfo.token);
       }
@@ -321,12 +324,12 @@ class _SendMediumCardState extends State<SendMediumCard> {
   bool _isInputValid(AccountInfo accountInfo) =>
       InputValidators.checkAddress(_recipientController.text) == null &&
       InputValidators.correctValue(
-            _amountController.text,
-            accountInfo.getBalanceWithDecimals(
-              _selectedToken.tokenStandard,
-            ),
-            _selectedToken.decimals,
-          ) ==
+              _amountController.text,
+              accountInfo.getBalance(
+                _selectedToken.tokenStandard,
+              ),
+              _selectedToken.decimals,
+              BigInt.one) ==
           null;
 
   @override

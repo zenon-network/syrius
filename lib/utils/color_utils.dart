@@ -1,5 +1,3 @@
-import 'dart:math';
-
 import 'package:flutter/material.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
@@ -23,12 +21,13 @@ class ColorUtils {
   }
 
   static Color getPlasmaColor(PlasmaInfo plasmaInfo) {
-    if (plasmaInfo.currentPlasma >= kPowerUsersPlasmaRequirements.reduce(max)) {
+    if (plasmaInfo.currentPlasma >= kPillarPlasmaAmountNeeded) {
       return AppColors.znnColor;
-    } else if (plasmaInfo.currentPlasma >=
-        kNormalUsersPlasmaRequirements.reduce(max)) {
+    } else if (plasmaInfo.currentPlasma >= kIssueTokenPlasmaAmountNeeded &&
+        plasmaInfo.currentPlasma < kPillarPlasmaAmountNeeded) {
       return Colors.yellow;
-    } else if (plasmaInfo.currentPlasma >= minPlasmaAmount) {
+    } else if (plasmaInfo.currentPlasma >= minPlasmaAmount.toInt() &&
+        plasmaInfo.currentPlasma < kIssueTokenPlasmaAmountNeeded) {
       return Colors.orange;
     } else {
       return AppColors.ztsColor;

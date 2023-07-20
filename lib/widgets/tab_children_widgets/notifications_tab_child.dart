@@ -1,11 +1,11 @@
 import 'package:expandable/expandable.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_vector_icons/flutter_vector_icons.dart';
 import 'package:hive/hive.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/model/model.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/format_utils.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/icons/clear_icon.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 
 class NotificationsTabChild extends StatefulWidget {
@@ -88,14 +88,9 @@ class _NotificationsTabChildState extends State<NotificationsTabChild> {
   }
 
   RawMaterialButton _getClearIcon(WalletNotification? notification) {
-    return RawMaterialButton(
+    return ClearIcon(
       onPressed: () => _deleteNotification(notification!.timestamp),
-      shape: const CircleBorder(),
-      child: Icon(
-        SimpleLineIcons.close,
-        color: Theme.of(context).colorScheme.secondary,
-        size: 20.0,
-      ),
+      context: context,
     );
   }
 

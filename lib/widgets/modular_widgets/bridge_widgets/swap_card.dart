@@ -7,6 +7,7 @@ import 'package:zenon_syrius_wallet_flutter/utils/format_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/input_validators.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/notification_utils.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/zts_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
@@ -159,11 +160,11 @@ class _SwapCardState extends State<SwapCard> {
             ),
             validator: (value) => InputValidators.correctValue(
               value,
-              accountInfo.getBalanceWithDecimals(
+              accountInfo.getBalance(
                 kZnnCoin.tokenStandard,
               ),
               kZnnCoin.decimals,
-              min: 0.99999999,
+              BigInt.zero,
               canBeEqualToMin: false,
             ),
             suffixIcon: AmountSuffixWidgets(
@@ -220,20 +221,20 @@ class _SwapCardState extends State<SwapCard> {
 
   void _onMaxPressed(AccountInfo accountInfo) => setState(() {
         _amountController.text = accountInfo
-            .getBalanceWithDecimals(
+            .getBalance(
               kZnnCoin.tokenStandard,
             )
-            .toString();
+            .addDecimals(coinDecimals);
       });
 
   bool _isInputValid(AccountInfo accountInfo) =>
       InputValidators.correctValue(
             _amountController.text,
-            accountInfo.getBalanceWithDecimals(
+            accountInfo.getBalance(
               kZnnCoin.tokenStandard,
             ),
             kZnnCoin.decimals,
-            min: 0.99999999,
+            BigInt.zero,
             canBeEqualToMin: false,
           ) ==
           null &&
@@ -253,13 +254,13 @@ class _SwapCardState extends State<SwapCard> {
 
   void _onSwapButtonPressed() {
     showDialogWithNoAndYesOptions(
+      isBarrierDismissible: true,
       context: context,
       title: 'Swap',
       description: 'Are you sure you want to swap ${_amountController.text} '
           '${kZnnCoin.symbol} ?',
       onYesButtonPressed: () {
         _sendSwapBlock();
-        Navigator.pop(context);
       },
     );
   }
