@@ -129,6 +129,7 @@ class WalletConnectService {
     _wcClient.onSessionDelete.subscribe((args) {
       Logger('WalletConnectService')
           .log(Level.INFO, 'onSessionDelete triggered', args.toString());
+      sl.get<WalletConnectSessionsBloc>().refreshResults();
     });
 
     _wcClient.onSessionProposalError.subscribe((args) {
