@@ -91,7 +91,12 @@ class WalletConnectService {
     _wcClient!.core.relayClient.onRelayClientDisconnect.subscribe((args) {
       Logger('WalletConnectService').log(
           Level.INFO, 'onRelayClientDisconnect triggered', args.toString());
-      _wcClient!.core.relayClient.connect();
+
+      if (!_wcClient!.core.relayClient.isConnected) {
+        _wcClient!.core.relayClient.connect();
+        Logger('WalletConnectService')
+            .log(Level.INFO, 'relayClient reconnect', args.toString());
+      }
     });
 
     _wcClient!.core.pairing.onPairingCreate.subscribe((args) {
@@ -587,26 +592,32 @@ class WalletConnectService {
       if (actionWasAccepted) {
         if (!_idSessionsApproved.contains(event.id)) {
           _idSessionsApproved.add(event.id);
-          ApproveResponse approveResponse = await _wcClient!.approveSession(
-            id: event.id,
-            namespaces: {
-              'zenon': Namespace(
-                accounts: _getWalletAccounts(),
-                methods: [
-                  'znn_sign',
-                  'znn_info',
-                  'znn_send',
-                ],
-                events: [
-                  'chainIdChange',
-                  'addressChange',
-                ],
-              ),
-            },
-          );
-
-          _sendSuccessfullyApprovedSessionNotification(dAppMetadata);
-          dAppsActiveSessions.add(approveResponse.session);
+          try {
+            ApproveResponse approveResponse = await _wcClient!.approveSession(
+              id: event.id,
+              namespaces: {
+                'zenon': Namespace(
+                  accounts: _getWalletAccounts(),
+                  methods: [
+                    'znn_sign',
+                    'znn_info',
+                    'znn_send',
+                  ],
+                  events: [
+                    'chainIdChange',
+                    'addressChange',
+                  ],
+                ),
+              },
+            );
+            _sendSuccessfullyApprovedSessionNotification(dAppMetadata);
+            dAppsActiveSessions.add(approveResponse.session);
+          } catch (e, stackTrace) {
+            NotificationUtils.sendNotificationError(
+                e, 'WalletConnect session approval failed');
+            Logger('WalletConnectService').log(
+                Level.INFO, 'onSessionProposal approveResponse', e, stackTrace);
+          }
         }
       } else {
         await _wcClient!.rejectSession(
@@ -620,6 +631,10 @@ class WalletConnectService {
   }
 
   void _initialChecks() {
+    if (!_wcClient!.core.relayClient.isConnected) {
+      _wcClient!.core.relayClient.connect();
+      Logger('WalletConnectService').log(Level.INFO, 'relayClient connect');
+    }
     final pendingProposals = _wcClient!.getPendingSessionProposals();
     Logger('WalletConnectService').log(
         Level.INFO, 'checkForPendingRequests', pendingProposals.keys.length);
