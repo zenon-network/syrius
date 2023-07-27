@@ -57,7 +57,7 @@ dependencies:
   logging: ^1.2.0
   collection: ^1.17.0
   app_links: ^3.4.3
-  walletconnect_flutter_v2: ^2.0.14
+  walletconnect_flutter_v2: ^2.0.15
   preference_list: ^0.0.1
   screen_capturer: ^0.1.2
   uni_ocr: ^0.1.0
