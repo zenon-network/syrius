@@ -124,6 +124,7 @@ class WalletConnectService {
     _wcClient!.core.pairing.onPairingDelete.subscribe((args) {
       Logger('WalletConnectService')
           .log(Level.INFO, 'onPairingDelete triggered', args.toString());
+      sl.get<WalletConnectPairingsBloc>().refreshResults();
     });
 
     _wcClient!.core.pairing.onPairingExpire.subscribe((args) {
