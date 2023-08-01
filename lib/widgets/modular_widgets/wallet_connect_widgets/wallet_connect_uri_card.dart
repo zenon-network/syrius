@@ -118,14 +118,15 @@ class _WalletConnectUriCardState extends State<WalletConnectUriCard> {
 
   Future<void> _pairWithDapp(Uri uri) async {
     try {
-      final wcService = sl.get<WalletConnectService>();
-      final pairingInfo = await wcService.pair(uri);
+      final pairingInfo = await sl.get<WalletConnectService>().pair(uri);
       Logger('WalletConnectPairingCard')
           .log(Level.INFO, 'pairing info', pairingInfo.toJson());
       _uriController = TextEditingController();
       _uriKey.currentState?.reset();
       setState(() {});
-    } catch (e) {
+    } catch (e, stackTrace) {
+      Logger('WalletConnectPairingCard')
+          .log(Level.INFO, 'pairing failed', e, stackTrace);
       NotificationUtils.sendNotificationError(e, 'Pairing failed');
     }
   }

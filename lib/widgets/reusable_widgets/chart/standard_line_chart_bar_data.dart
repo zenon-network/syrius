@@ -7,12 +7,11 @@ class StandardLineChartBarData extends LineChartBarData {
     required Color color,
     required List<FlSpot>? spots,
   }) : super(
-          spots: spots,
           isCurved: false,
           color: color,
           barWidth: 3.0,
           isStrokeCapRound: true,
-          dotData: FlDotData(
+          dotData: const FlDotData(
             show: true,
           ),
           belowBarData: BarAreaData(

@@ -24,7 +24,7 @@ class WalletConnectService {
 
   final List<int> _idSessionsApproved = [];
 
-  late Web3Wallet _wcClient;
+  Web3Wallet? _wcClient;
   late BuildContext _context;
 
   final List<SessionData> dAppsActiveSessions = [];
@@ -38,39 +38,44 @@ class WalletConnectService {
 
   Future<void> initClient() async {
     if (kWcProjectId.isNotEmpty) {
-      _wcClient = await Web3Wallet.createInstance(
-        projectId: kWcProjectId,
-        metadata: const PairingMetadata(
-          name: 's y r i u s',
-          description: 'A wallet for interacting with Zenon Network',
-          url: 'https://zenon.network',
-          icons: [
-            'https://raw.githubusercontent.com/zenon-network/syrius/master/macos/Runner/Assets.xcassets/AppIcon.appiconset/Icon-MacOS-512x512%402x.png'
-          ],
-        ),
-      ).onError((e, stackTrace) {
-        Logger('WalletConnectService')
-            .log(Level.SEVERE, 'initClient onError ', e, stackTrace);
-        if (e != null) {
-          NotificationUtils.sendNotificationError(
-              e, 'WalletConnect initialization failed');
+      if (_wcClient == null) {
+        _wcClient = await Web3Wallet.createInstance(
+          projectId: kWcProjectId,
+          metadata: const PairingMetadata(
+            name: 's y r i u s',
+            description: 'A wallet for interacting with Zenon Network',
+            url: 'https://zenon.network',
+            icons: [
+              'https://raw.githubusercontent.com/zenon-network/syrius/master/macos/Runner/Assets.xcassets/AppIcon.appiconset/Icon-MacOS-512x512%402x.png'
+            ],
+          ),
+        ).onError((e, stackTrace) {
+          Logger('WalletConnectService')
+              .log(Level.SEVERE, 'initClient onError ', e, stackTrace);
+          if (e != null) {
+            NotificationUtils.sendNotificationError(
+                e, 'WalletConnect initialization failed');
+          }
+          throw 'WalletConnect init failed';
+        });
+
+        for (var pairingInfo in pairings) {
+          dAppsActiveSessions
+              .addAll(getSessionsForPairing(pairingInfo.topic).values);
+
+          Logger('WalletConnectService')
+              .log(Level.INFO, 'active pairings: $pairingInfo');
         }
-        throw 'WalletConnect init failed';
-      });
-
-      for (var pairingInfo in pairings) {
-        dAppsActiveSessions
-            .addAll(getSessionsForPairing(pairingInfo.topic).values);
-
         Logger('WalletConnectService')
-            .log(Level.INFO, 'active pairings: $pairingInfo');
+            .log(Level.INFO, 'pairings num: ${pairings.length}');
+        Logger('WalletConnectService')
+            .log(Level.INFO, 'active sessions: ${getActiveSessions()}');
+        _initListeners();
+        _initialChecks();
+      } else {
+        Logger('WalletConnectService')
+            .log(Level.INFO, '_wcClient already initialized');
       }
-      Logger('WalletConnectService')
-          .log(Level.INFO, 'pairings num: ${pairings.length}');
-      Logger('WalletConnectService')
-          .log(Level.INFO, 'active sessions: ${getActiveSessions()}');
-      _initListeners();
-      _initialChecks();
     } else {
       Logger('WalletConnectService').log(Level.INFO, 'kWcProjectId missing');
       return;
@@ -78,84 +83,90 @@ class WalletConnectService {
     return;
   }
 
-  Future<PairingInfo> pair(Uri uri) => _wcClient.pair(uri: uri);
+  Future<PairingInfo> pair(Uri uri) => _wcClient!.pair(uri: uri);
 
   void _initListeners() {
-    _wcClient.onSessionProposal.subscribe(onSessionProposal);
+    _wcClient!.onSessionProposal.subscribe(onSessionProposal);
 
-    _wcClient.core.relayClient.onRelayClientDisconnect.subscribe((args) {
+    _wcClient!.core.relayClient.onRelayClientDisconnect.subscribe((args) {
       Logger('WalletConnectService').log(
           Level.INFO, 'onRelayClientDisconnect triggered', args.toString());
-      _wcClient.core.relayClient.connect();
+
+      if (!_wcClient!.core.relayClient.isConnected) {
+        _wcClient!.core.relayClient.connect();
+        Logger('WalletConnectService')
+            .log(Level.INFO, 'relayClient reconnect', args.toString());
+      }
     });
 
-    _wcClient.core.pairing.onPairingCreate.subscribe((args) {
+    _wcClient!.core.pairing.onPairingCreate.subscribe((args) {
       Logger('WalletConnectService')
           .log(Level.INFO, 'onPairingCreate triggered', args.toString());
       sl.get<WalletConnectPairingsBloc>().refreshResults();
     });
 
-    _wcClient.core.pairing.onPairingActivate.subscribe((args) {
+    _wcClient!.core.pairing.onPairingActivate.subscribe((args) {
       Logger('WalletConnectService')
           .log(Level.INFO, 'onPairingActivate triggered', args.toString());
       sl.get<WalletConnectPairingsBloc>().refreshResults();
     });
 
-    _wcClient.core.pairing.onPairingInvalid.subscribe((args) {
+    _wcClient!.core.pairing.onPairingInvalid.subscribe((args) {
       Logger('WalletConnectService')
           .log(Level.INFO, 'onPairingInvalid triggered', args.toString());
     });
 
-    _wcClient.core.pairing.onPairingPing.subscribe((args) {
+    _wcClient!.core.pairing.onPairingPing.subscribe((args) {
       Logger('WalletConnectService')
           .log(Level.INFO, 'onPairingPing triggered', args.toString());
     });
 
-    _wcClient.core.pairing.onPairingDelete.subscribe((args) {
+    _wcClient!.core.pairing.onPairingDelete.subscribe((args) {
       Logger('WalletConnectService')
           .log(Level.INFO, 'onPairingDelete triggered', args.toString());
+      sl.get<WalletConnectPairingsBloc>().refreshResults();
     });
 
-    _wcClient.core.pairing.onPairingExpire.subscribe((args) {
+    _wcClient!.core.pairing.onPairingExpire.subscribe((args) {
       Logger('WalletConnectService')
           .log(Level.INFO, 'onPairingExpire triggered', args.toString());
     });
 
-    _wcClient.onSessionPing.subscribe((args) {
+    _wcClient!.onSessionPing.subscribe((args) {
       Logger('WalletConnectService')
           .log(Level.INFO, 'onSessionPing triggered', args.toString());
     });
 
-    _wcClient.onSessionDelete.subscribe((args) {
+    _wcClient!.onSessionDelete.subscribe((args) {
       Logger('WalletConnectService')
           .log(Level.INFO, 'onSessionDelete triggered', args.toString());
       sl.get<WalletConnectSessionsBloc>().refreshResults();
     });
 
-    _wcClient.onSessionProposalError.subscribe((args) {
+    _wcClient!.onSessionProposalError.subscribe((args) {
       Logger('WalletConnectService')
           .log(Level.INFO, 'onSessionProposalError triggered', args.toString());
       sl.get<WalletConnectSessionsBloc>().refreshResults();
     });
 
-    _wcClient.onSessionConnect.subscribe((args) {
+    _wcClient!.onSessionConnect.subscribe((args) {
       Logger('WalletConnectService')
           .log(Level.INFO, 'onSessionConnect triggered', args.toString());
       Future.delayed(const Duration(seconds: 3)).then(
           (value) => sl.get<WalletConnectSessionsBloc>().refreshResults());
     });
 
-    _wcClient.onSessionRequest.subscribe((SessionRequestEvent? request) async {
+    _wcClient!.onSessionRequest.subscribe((SessionRequestEvent? request) async {
       Logger('WalletConnectService')
           .log(Level.INFO, 'onSessionRequest triggered', request.toString());
     });
 
-    _wcClient.onAuthRequest.subscribe((args) {
+    _wcClient!.onAuthRequest.subscribe((args) {
       Logger('WalletConnectService')
           .log(Level.INFO, 'onAuthRequest triggered', args.toString());
     });
 
-    _wcClient.registerRequestHandler(
+    _wcClient!.registerRequestHandler(
       chainId: 'zenon:1',
       method: 'znn_info',
       handler: (topic, params) async {
@@ -225,12 +236,7 @@ class WalletConnectService {
       },
     );
 
-    _wcClient.onAuthRequest.subscribe((AuthRequest? args) async {
-      Logger('WalletConnectService')
-          .log(Level.INFO, 'onAuthRequest triggered', args.toString());
-    });
-
-    _wcClient.registerRequestHandler(
+    _wcClient!.registerRequestHandler(
       chainId: 'zenon:1',
       method: 'znn_sign',
       handler: (topic, params) async {
@@ -297,7 +303,7 @@ class WalletConnectService {
       },
     );
 
-    _wcClient.registerRequestHandler(
+    _wcClient!.registerRequestHandler(
       chainId: 'zenon:1',
       method: 'znn_send',
       handler: (topic, params) async {
@@ -390,7 +396,7 @@ class WalletConnectService {
     );
   }
 
-  List<PairingInfo> get pairings => _wcClient.pairings.getAll();
+  List<PairingInfo> get pairings => _wcClient!.pairings.getAll();
 
   Future<ApproveResponse> approveSession(
       {required int id, Map<String, Namespace>? namespaces}) async {
@@ -409,7 +415,7 @@ class WalletConnectService {
             events: ['chainIdChange', 'addressChange'],
           ),
         };
-    return _wcClient.approveSession(
+    return _wcClient!.approveSession(
       id: id,
       namespaces: namespaces,
     );
@@ -419,7 +425,7 @@ class WalletConnectService {
     required int id,
     required WalletConnectError reason,
   }) =>
-      _wcClient.rejectSession(id: id, reason: reason);
+      _wcClient!.rejectSession(id: id, reason: reason);
 
   String _generateAccount(String address, int chainId) =>
       '$kZenonNameSpace:1:$address';
@@ -433,7 +439,7 @@ class WalletConnectService {
   Future<void> activatePairing({
     required String topic,
   }) =>
-      _wcClient.core.pairing.activate(
+      _wcClient!.core.pairing.activate(
         topic: topic,
       );
 
@@ -441,7 +447,7 @@ class WalletConnectService {
     required String topic,
   }) async {
     try {
-      _wcClient.core.pairing.disconnect(topic: topic);
+      _wcClient!.core.pairing.disconnect(topic: topic);
     } on WalletConnectError catch (e) {
       // technically look for WalletConnectError 6 : Expired.  to consider it a warning
       Logger('WalletConnectService')
@@ -463,7 +469,7 @@ class WalletConnectService {
   // }
 
   Future<void> disconnectSession({required String topic}) async =>
-      _wcClient.disconnectSession(
+      _wcClient!.disconnectSession(
         topic: topic,
         reason: Errors.getSdkError(Errors.USER_DISCONNECTED),
       );
@@ -496,7 +502,7 @@ class WalletConnectService {
     required String changeName,
     required String newValue,
   }) =>
-      _wcClient.emitSessionEvent(
+      _wcClient!.emitSessionEvent(
         topic: sessionTopic,
         chainId: 'zenon:1',
         event: SessionEventParams(
@@ -519,10 +525,11 @@ class WalletConnectService {
     );
   }
 
-  Map<String, SessionData> getActiveSessions() => _wcClient.getActiveSessions();
+  Map<String, SessionData> getActiveSessions() =>
+      _wcClient!.getActiveSessions();
 
   Map<String, SessionData> getSessionsForPairing(String pairingTopic) =>
-      _wcClient.getSessionsForPairing(
+      _wcClient!.getSessionsForPairing(
         pairingTopic: pairingTopic,
       );
 
@@ -586,29 +593,35 @@ class WalletConnectService {
       if (actionWasAccepted) {
         if (!_idSessionsApproved.contains(event.id)) {
           _idSessionsApproved.add(event.id);
-          ApproveResponse approveResponse = await _wcClient.approveSession(
-            id: event.id,
-            namespaces: {
-              'zenon': Namespace(
-                accounts: _getWalletAccounts(),
-                methods: [
-                  'znn_sign',
-                  'znn_info',
-                  'znn_send',
-                ],
-                events: [
-                  'chainIdChange',
-                  'addressChange',
-                ],
-              ),
-            },
-          );
-
-          _sendSuccessfullyApprovedSessionNotification(dAppMetadata);
-          dAppsActiveSessions.add(approveResponse.session);
+          try {
+            ApproveResponse approveResponse = await _wcClient!.approveSession(
+              id: event.id,
+              namespaces: {
+                'zenon': Namespace(
+                  accounts: _getWalletAccounts(),
+                  methods: [
+                    'znn_sign',
+                    'znn_info',
+                    'znn_send',
+                  ],
+                  events: [
+                    'chainIdChange',
+                    'addressChange',
+                  ],
+                ),
+              },
+            );
+            _sendSuccessfullyApprovedSessionNotification(dAppMetadata);
+            dAppsActiveSessions.add(approveResponse.session);
+          } catch (e, stackTrace) {
+            NotificationUtils.sendNotificationError(
+                e, 'WalletConnect session approval failed');
+            Logger('WalletConnectService').log(
+                Level.INFO, 'onSessionProposal approveResponse', e, stackTrace);
+          }
         }
       } else {
-        await _wcClient.rejectSession(
+        await _wcClient!.rejectSession(
           id: event.id,
           reason: Errors.getSdkError(
             Errors.USER_REJECTED,
@@ -619,12 +632,16 @@ class WalletConnectService {
   }
 
   void _initialChecks() {
-    final pendingProposals = _wcClient.getPendingSessionProposals();
+    if (!_wcClient!.core.relayClient.isConnected) {
+      _wcClient!.core.relayClient.connect();
+      Logger('WalletConnectService').log(Level.INFO, 'relayClient connect');
+    }
+    final pendingProposals = _wcClient!.getPendingSessionProposals();
     Logger('WalletConnectService').log(
         Level.INFO, 'checkForPendingRequests', pendingProposals.keys.length);
     if (pendingProposals.isNotEmpty) {
       pendingProposals.forEach((key, value) {
-        _wcClient.approveSession(id: value.id, namespaces: {
+        _wcClient!.approveSession(id: value.id, namespaces: {
           'zenon': Namespace(
             accounts: _getWalletAccounts(),
             methods: [
