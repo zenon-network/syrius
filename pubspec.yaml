@@ -30,10 +30,10 @@ dependencies:
   url_launcher: ^6.1.12
   provider: ^6.0.2
   intl: ^0.18.0
-  package_info_plus: ^4.0.2
-  device_info_plus: ^9.0.2
+  package_info_plus: ^4.1.0
+  device_info_plus: ^9.0.3
   infinite_scroll_pagination: ^3.1.0
-  share_plus: ^7.0.2
+  share_plus: ^7.1.0
   page_transition: ^2.0.4
   file_selector: ^1.0.0
   pretty_qr_code: ^2.0.3
@@ -44,8 +44,8 @@ dependencies:
   number_selector: ^1.0.5
   znn_sdk_dart:
     git:
-      url: https://github.com/alienc0der/znn_sdk_dart.git
-      ref: a7f2598f2125f3ed95dd19116038dd377f9d321a
+      url: https://github.com/zenon-network/znn_sdk_dart.git
+      ref: master
   json_rpc_2: ^3.0.2
   path: ^1.8.2
   ffi: ^2.0.1
