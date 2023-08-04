@@ -9,7 +9,7 @@ import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/embedded_node/embedded_node.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/model/model.dart';
-import 'package:zenon_syrius_wallet_flutter/services/wallet_connect_service.dart';
+import 'package:zenon_syrius_wallet_flutter/services/i_web3wallet_service.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
@@ -368,7 +368,7 @@ class _NodeManagementState extends State<NodeManagement> {
       _confirmChainIdButtonKey.currentState?.animateForward();
       setChainIdentifier(chainIdentifier: _newChainId);
       await sharedPrefsService!.put(kChainIdKey, _newChainId);
-      sl<WalletConnectService>().emitChainIdChangeEvent(_newChainId.toString());
+      sl<IWeb3WalletService>().emitChainIdChangeEvent(_newChainId.toString());
       _sendSuccessfullyChangedChainIdNotification(_newChainId);
       _initCurrentChainId();
       _newChainIdController = TextEditingController();

@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:logging/logging.dart';
 import 'package:wallet_connect_uri_validator/wallet_connect_uri_validator.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
-import 'package:zenon_syrius_wallet_flutter/services/wallet_connect_service.dart';
+import 'package:zenon_syrius_wallet_flutter/services/i_web3wallet_service.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 
@@ -63,7 +63,7 @@ class _WalletConnectCameraCardState extends State<WalletConnectCameraCard> {
                           },
                           canPop: true,
                           onScan: (String value) async {
-                            final wcService = sl.get<WalletConnectService>();
+                            final wcService = sl.get<IWeb3WalletService>();
                             final pairingInfo =
                                 await wcService.pair(Uri.parse(value));
                             Logger('WalletConnectCameraCard').log(Level.INFO,
