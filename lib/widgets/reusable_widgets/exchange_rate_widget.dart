@@ -3,10 +3,10 @@ import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/extensions.dart';
 
 class ExchangeRateWidget extends StatefulWidget {
-  final int fromAmount;
+  final BigInt fromAmount;
   final int fromDecimals;
   final String fromSymbol;
-  final int toAmount;
+  final BigInt toAmount;
   final int toDecimals;
   final String toSymbol;
 
@@ -30,7 +30,7 @@ class _ExchangeRateWidgetState extends State<ExchangeRateWidget> {
   @override
   Widget build(BuildContext context) {
     return Visibility(
-      visible: widget.fromAmount > 0 && widget.toAmount > 0,
+      visible: widget.fromAmount > BigInt.zero && widget.toAmount > BigInt.zero,
       child: Row(
         children: [
           Text(
@@ -60,16 +60,14 @@ class _ExchangeRateWidgetState extends State<ExchangeRateWidget> {
   }
 
   String _getFormattedRate() {
-    if (widget.fromAmount <= 0 || widget.toAmount <= 0) {
+    if (widget.fromAmount <= BigInt.zero || widget.toAmount <= BigInt.zero) {
       return '-';
     }
-    num from = widget.fromAmount.addDecimals(widget.fromDecimals);
-    num to = widget.toAmount.addDecimals(widget.toDecimals);
     if (_isToggled) {
-      final rate = from / to;
+      final rate = (widget.fromAmount / widget.toAmount);
       return '1 ${widget.toSymbol} = ${rate.toStringFixedNumDecimals(5)} ${widget.fromSymbol}';
     } else {
-      final rate = to / from;
+      final rate = widget.toAmount / widget.fromAmount;
       return '1 ${widget.fromSymbol} = ${rate.toStringFixedNumDecimals(5)} ${widget.toSymbol}';
     }
   }

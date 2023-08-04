@@ -11,7 +11,8 @@ class AcceleratorBalanceBloc extends BaseBloc<AccountInfo?> {
       AccountInfo accountInfo = await zenon!.ledger.getAccountInfoByAddress(
         acceleratorAddress,
       );
-      if (accountInfo.qsr()! > 0 || accountInfo.znn()! > 0) {
+      if (accountInfo.qsr()! > BigInt.zero ||
+          accountInfo.znn()! > BigInt.zero) {
         addEvent(accountInfo);
       } else {
         throw 'Accelerator fund empty';

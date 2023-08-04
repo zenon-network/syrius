@@ -108,14 +108,14 @@ class _HtlcSwapDetailsWidgetState extends State<HtlcSwapDetailsWidget>
       DetailRow(
         label: 'Your address',
         value: swap.selfAddress,
-        valueToShow: AddressUtils.getLabel(swap.selfAddress),
+        valueToShow: ZenonAddressUtils.getLabel(swap.selfAddress),
       ),
     );
     children.add(
       DetailRow(
         label: 'Counterparty address',
         value: swap.counterpartyAddress,
-        valueToShow: AddressUtils.getLabel(swap.counterpartyAddress),
+        valueToShow: ZenonAddressUtils.getLabel(swap.counterpartyAddress),
       ),
     );
     children.add(

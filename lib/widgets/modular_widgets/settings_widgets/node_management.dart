@@ -1,15 +1,15 @@
-import 'dart:io';
 import 'dart:isolate';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_vector_icons/flutter_vector_icons.dart';
 import 'package:hive/hive.dart';
-import 'package:wakelock/wakelock.dart';
+import 'package:wakelock_plus/wakelock_plus.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/embedded_node/embedded_node.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/model/model.dart';
+import 'package:zenon_syrius_wallet_flutter/services/wallet_connect_service.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
@@ -115,8 +115,8 @@ class _NodeManagementState extends State<NodeManagement> {
 
   Future<void> _onConfirmNodeButtonPressed() async {
     // Acquire WakeLock
-    if (!Platform.isLinux && !await Wakelock.enabled) {
-      Wakelock.enable();
+    if (!await WakelockPlus.enabled) {
+      WakelockPlus.enable();
     }
 
     try {
@@ -370,6 +370,7 @@ class _NodeManagementState extends State<NodeManagement> {
       _confirmChainIdButtonKey.currentState?.animateForward();
       setChainIdentifier(chainIdentifier: _newChainId);
       await sharedPrefsService!.put(kChainIdKey, _newChainId);
+      sl<WalletConnectService>().emitChainIdChangeEvent(_newChainId.toString());
       _sendSuccessfullyChangedChainIdNotification(_newChainId);
       _initCurrentChainId();
       _newChainIdController = TextEditingController();

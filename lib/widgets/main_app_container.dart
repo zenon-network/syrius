@@ -1,20 +1,32 @@
 import 'dart:async';
+import 'dart:io';
 
+import 'package:app_links/app_links.dart';
+import 'package:clipboard_watcher/clipboard_watcher.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:flutter_vector_icons/flutter_vector_icons.dart';
+import 'package:logging/logging.dart';
 import 'package:provider/provider.dart';
+import 'package:wallet_connect_uri_validator/wallet_connect_uri_validator.dart';
+import 'package:window_manager/window_manager.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/handlers/htlc_swaps_handler.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/model/model.dart';
+import 'package:zenon_syrius_wallet_flutter/services/wallet_connect_service.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/clipboard_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/extensions.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/format_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/notification_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/notifiers/text_scaling_notifier.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/zts_utils.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/tab_children_widgets/wallet_connect_tab_child.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
@@ -34,6 +46,7 @@ enum Tabs {
   resyncWallet,
   bridge,
   accelerator,
+  walletConnect,
 }
 
 class MainAppContainer extends StatefulWidget {
@@ -51,13 +64,14 @@ class MainAppContainer extends StatefulWidget {
 }
 
 class _MainAppContainerState extends State<MainAppContainer>
-    with TickerProviderStateMixin {
+    with TickerProviderStateMixin, ClipboardListener, WindowListener {
   late AnimationController _animationController;
   late Animation _animation;
 
   final NodeSyncStatusBloc _netSyncStatusBloc = NodeSyncStatusBloc();
 
   late StreamSubscription _lockBlockStreamSubscription;
+  late StreamSubscription _incomingLinkSubscription;
 
   Timer? _navigateToLockTimer;
 
@@ -72,9 +86,21 @@ class _MainAppContainerState extends State<MainAppContainer>
     canRequestFocus: false,
   );
 
+  bool _initialUriIsHandled = false;
+
+  final _appLinks = AppLinks();
+
   @override
   void initState() {
+    sl<WalletConnectService>().context = context;
+
+    clipboardWatcher.addListener(this);
+    windowManager.addListener(this);
+
+    ClipboardUtils.toggleClipboardWatcherStatus();
+
     _netSyncStatusBloc.getDataPeriodically();
+
     _transferTabChild = TransferTabChild(
       navigateToBridgeTab: () {
         _navigateTo(Tabs.bridge);
@@ -89,6 +115,8 @@ class _MainAppContainerState extends State<MainAppContainer>
     _animation = Tween(begin: 1.0, end: 3.0).animate(_animationController);
     kCurrentPage = kWalletInitCompleted ? Tabs.dashboard : Tabs.lock;
     _initLockBlock();
+    _handleIncomingLinks();
+    _handleInitialUri();
     super.initState();
   }
 
@@ -280,6 +308,18 @@ class _MainAppContainerState extends State<MainAppContainer>
               : Theme.of(context).iconTheme.color,
         ),
       ),
+      if (kWcProjectId.isNotEmpty)
+        Tab(
+          child: SvgPicture.asset(
+            'assets/svg/walletconnect-logo.svg',
+            width: 24.0,
+            fit: BoxFit.fitWidth,
+            colorFilter: _isTabSelected(Tabs.walletConnect)
+                ? const ColorFilter.mode(AppColors.znnColor, BlendMode.srcIn)
+                : ColorFilter.mode(
+                    Theme.of(context).iconTheme.color!, BlendMode.srcIn),
+          ),
+        ),
       Tab(
         child: Icon(
           MaterialCommunityIcons.rocket,
@@ -438,6 +478,7 @@ class _MainAppContainerState extends State<MainAppContainer>
               _navigateTo(Tabs.notifications),
         ),
         const BridgeTabChild(),
+        if (kWcProjectId.isNotEmpty) const WalletConnectTabChild(),
         AcceleratorTabChild(
           onStepperNotificationSeeMorePressed: () =>
               _navigateTo(Tabs.notifications),
@@ -462,15 +503,22 @@ class _MainAppContainerState extends State<MainAppContainer>
 
   Future<void> _mainLockCallback(String password) async {
     _navigateToLockTimer = _createAutoLockTimer();
-    _lockBloc.addEvent(LockEvent.navigateToPreviousTab);
+    if (kLastWalletConnectUriNotifier.value != null) {
+      _tabController!.animateTo(_getTabChildIndex(Tabs.walletConnect));
+    } else {
+      _lockBloc.addEvent(LockEvent.navigateToPreviousTab);
+    }
   }
 
   @override
   void dispose() {
+    windowManager.removeListener(this);
+
     _animationController.dispose();
     _netSyncStatusBloc.dispose();
     _navigateToLockTimer?.cancel();
     _lockBlockStreamSubscription.cancel();
+    _incomingLinkSubscription.cancel();
     _tabController?.dispose();
     super.dispose();
   }
@@ -491,7 +539,11 @@ class _MainAppContainerState extends State<MainAppContainer>
 
   void _afterAppInitCallback() {
     _navigateToLockTimer = _createAutoLockTimer();
-    _lockBloc.addEvent(LockEvent.navigateToDashboard);
+    if (kLastWalletConnectUriNotifier.value != null) {
+      _tabController!.animateTo(_getTabChildIndex(Tabs.walletConnect));
+    } else {
+      _lockBloc.addEvent(LockEvent.navigateToDashboard);
+    }
     _listenToAutoReceiveTxWorkerNotifications();
   }
 
@@ -557,8 +609,10 @@ class _MainAppContainerState extends State<MainAppContainer>
       _transferTabChild!.sendCard = DimensionCard.small;
       _transferTabChild!.receiveCard = DimensionCard.large;
     }
-    kCurrentPage = page;
-    _tabController!.animateTo(kTabs.indexOf(page));
+    if (kCurrentPage != page) {
+      kCurrentPage = page;
+      _tabController!.animateTo(kTabs.indexOf(page));
+    }
   }
 
   void _initTabController() {
@@ -630,5 +684,328 @@ class _MainAppContainerState extends State<MainAppContainer>
         _lockBloc.addEvent(LockEvent.navigateToLock);
       }
     });
+  }
+
+  void _handleIncomingLinks() async {
+    if (!kIsWeb) {
+      _incomingLinkSubscription =
+          _appLinks.allUriLinkStream.listen((Uri? uri) async {
+        if (!await windowManager.isFocused() ||
+            !await windowManager.isVisible()) {
+          windowManager.show();
+        }
+
+        if (uri != null) {
+          String uriRaw = uri.toString();
+
+          Logger('MainAppContainer')
+              .log(Level.INFO, '_handleIncomingLinks $uriRaw');
+
+          if (context.mounted) {
+            if (uriRaw.contains('wc')) {
+              if (Platform.isWindows) {
+                uriRaw = uriRaw.replaceAll('/?', '?');
+              }
+              String wcUri = Uri.decodeFull(uriRaw.split('wc?uri=').last);
+              if (WalletConnectUri.tryParse(wcUri) != null) {
+                _updateWalletConnectUri(wcUri);
+              }
+              return;
+            }
+
+            // Deep link query parameters
+            String queryAddress = '';
+            String queryAmount = ''; // with decimals
+            int queryDuration = 0; // in months
+            String queryZTS = '';
+            String queryPillarName = '';
+            Token? token;
+
+            if (uri.hasQuery) {
+              uri.queryParametersAll.forEach((key, value) async {
+                if (key == 'amount') {
+                  queryAmount = value.first;
+                } else if (key == 'zts') {
+                  queryZTS = value.first;
+                } else if (key == 'address') {
+                  queryAddress = value.first;
+                } else if (key == 'duration') {
+                  queryDuration = int.parse(value.first);
+                } else if (key == 'pillar') {
+                  queryPillarName = value.first;
+                }
+              });
+            }
+
+            if (queryZTS.isNotEmpty) {
+              if (queryZTS == 'znn' || queryZTS == 'ZNN') {
+                token = kZnnCoin;
+              } else if (queryZTS == 'qsr' || queryZTS == 'QSR') {
+                token = kQsrCoin;
+              } else {
+                token = await zenon!.embedded.token
+                    .getByZts(TokenStandard.parse(queryZTS));
+              }
+            }
+
+            final sendPaymentBloc = SendPaymentBloc();
+            final stakingOptionsBloc = StakingOptionsBloc();
+            final delegateButtonBloc = DelegateButtonBloc();
+            final plasmaOptionsBloc = PlasmaOptionsBloc();
+
+            if (context.mounted) {
+              switch (uri.host) {
+                case 'transfer':
+                  sl<NotificationsBloc>().addNotification(
+                    WalletNotification(
+                      title: 'Transfer action detected',
+                      timestamp: DateTime.now().millisecondsSinceEpoch,
+                      details: 'Deep link: $uriRaw',
+                      type: NotificationType.paymentReceived,
+                    ),
+                  );
+
+                  if (kCurrentPage != Tabs.lock) {
+                    _navigateTo(Tabs.transfer);
+
+                    if (token != null) {
+                      showDialogWithNoAndYesOptions(
+                        context: context,
+                        title: 'Transfer action',
+                        isBarrierDismissible: true,
+                        content: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            Text(
+                                'Are you sure you want transfer $queryAmount ${token.symbol} from $kSelectedAddress to $queryAddress?'),
+                          ],
+                        ),
+                        onYesButtonPressed: () {
+                          sendPaymentBloc.sendTransfer(
+                            fromAddress: kSelectedAddress,
+                            toAddress: queryAddress,
+                            amount:
+                                queryAmount.extractDecimals(token!.decimals),
+                            data: null,
+                            token: token,
+                          );
+                        },
+                        onNoButtonPressed: () {},
+                      );
+                    }
+                  }
+                  break;
+
+                case 'stake':
+                  sl<NotificationsBloc>().addNotification(
+                    WalletNotification(
+                      title: 'Stake action detected',
+                      timestamp: DateTime.now().millisecondsSinceEpoch,
+                      details: 'Deep link: $uriRaw',
+                      type: NotificationType.paymentReceived,
+                    ),
+                  );
+
+                  if (kCurrentPage != Tabs.lock) {
+                    _navigateTo(Tabs.staking);
+
+                    showDialogWithNoAndYesOptions(
+                      context: context,
+                      title: 'Stake ${kZnnCoin.symbol} action',
+                      isBarrierDismissible: true,
+                      content: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Text(
+                              'Are you sure you want stake $queryAmount ${kZnnCoin.symbol} for $queryDuration month(s)?'),
+                        ],
+                      ),
+                      onYesButtonPressed: () {
+                        stakingOptionsBloc.stakeForQsr(
+                            Duration(seconds: queryDuration * stakeTimeUnitSec),
+                            queryAmount.extractDecimals(kZnnCoin.decimals));
+                      },
+                      onNoButtonPressed: () {},
+                    );
+                  }
+                  break;
+
+                case 'delegate':
+                  sl<NotificationsBloc>().addNotification(
+                    WalletNotification(
+                      title: 'Delegate action detected',
+                      timestamp: DateTime.now().millisecondsSinceEpoch,
+                      details: 'Deep link: $uriRaw',
+                      type: NotificationType.paymentReceived,
+                    ),
+                  );
+
+                  if (kCurrentPage != Tabs.lock) {
+                    _navigateTo(Tabs.pillars);
+
+                    showDialogWithNoAndYesOptions(
+                      context: context,
+                      title: 'Delegate ${kZnnCoin.symbol} action',
+                      isBarrierDismissible: true,
+                      content: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Text(
+                              'Are you sure you want delegate the ${kZnnCoin.symbol} from $kSelectedAddress to Pillar $queryPillarName?'),
+                        ],
+                      ),
+                      onYesButtonPressed: () {
+                        delegateButtonBloc.delegateToPillar(queryPillarName);
+                      },
+                      onNoButtonPressed: () {},
+                    );
+                  }
+                  break;
+
+                case 'fuse':
+                  sl<NotificationsBloc>().addNotification(
+                    WalletNotification(
+                      title: 'Fuse ${kQsrCoin.symbol} action detected',
+                      timestamp: DateTime.now().millisecondsSinceEpoch,
+                      details: 'Deep link: $uriRaw',
+                      type: NotificationType.paymentReceived,
+                    ),
+                  );
+
+                  if (kCurrentPage != Tabs.lock) {
+                    _navigateTo(Tabs.plasma);
+
+                    showDialogWithNoAndYesOptions(
+                      context: context,
+                      title: 'Fuse ${kQsrCoin.symbol} action',
+                      isBarrierDismissible: true,
+                      content: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Text(
+                              'Are you sure you want fuse $queryAmount ${kQsrCoin.symbol} for address $queryAddress?'),
+                        ],
+                      ),
+                      onYesButtonPressed: () {
+                        plasmaOptionsBloc.generatePlasma(queryAddress,
+                            queryAmount.extractDecimals(kZnnCoin.decimals));
+                      },
+                      onNoButtonPressed: () {},
+                    );
+                  }
+                  break;
+
+                case 'sentinel':
+                  sl<NotificationsBloc>().addNotification(
+                    WalletNotification(
+                      title: 'Deploy Sentinel action detected',
+                      timestamp: DateTime.now().millisecondsSinceEpoch,
+                      details: 'Deep link: $uriRaw',
+                      type: NotificationType.paymentReceived,
+                    ),
+                  );
+
+                  if (kCurrentPage != Tabs.lock) {
+                    _navigateTo(Tabs.sentinels);
+                  }
+                  break;
+
+                case 'pillar':
+                  sl<NotificationsBloc>().addNotification(
+                    WalletNotification(
+                      title: 'Deploy Pillar action detected',
+                      timestamp: DateTime.now().millisecondsSinceEpoch,
+                      details: 'Deep link: $uriRaw',
+                      type: NotificationType.paymentReceived,
+                    ),
+                  );
+
+                  if (kCurrentPage != Tabs.lock) {
+                    _navigateTo(Tabs.pillars);
+                  }
+                  break;
+
+                default:
+                  sl<NotificationsBloc>().addNotification(
+                    WalletNotification(
+                      title: 'Incoming link detected',
+                      timestamp: DateTime.now().millisecondsSinceEpoch,
+                      details: 'Deep link: $uriRaw',
+                      type: NotificationType.paymentReceived,
+                    ),
+                  );
+                  break;
+              }
+            }
+            return;
+          }
+        }
+      }, onDone: () {
+        Logger('MainAppContainer')
+            .log(Level.INFO, '_handleIncomingLinks', 'done');
+      }, onError: (Object err) {
+        NotificationUtils.sendNotificationError(
+            err, 'Handle incoming link failed');
+        Logger('MainAppContainer')
+            .log(Level.WARNING, '_handleIncomingLinks', err);
+        if (!mounted) return;
+      });
+    }
+  }
+
+  Future<void> _handleInitialUri() async {
+    if (!_initialUriIsHandled) {
+      _initialUriIsHandled = true;
+      try {
+        final uri = await _appLinks.getInitialAppLink();
+        if (uri != null) {
+          Logger('MainAppContainer').log(Level.INFO, '_handleInitialUri $uri');
+        }
+        if (!mounted) return;
+      } on PlatformException catch (e, stackTrace) {
+        Logger('MainAppContainer').log(Level.WARNING,
+            '_handleInitialUri PlatformException', e, stackTrace);
+      } on FormatException catch (e, stackTrace) {
+        Logger('MainAppContainer').log(
+            Level.WARNING, '_handleInitialUri FormatException', e, stackTrace);
+        if (!mounted) return;
+      }
+    }
+  }
+
+  @override
+  void onClipboardChanged() async {
+    ClipboardData? newClipboardData =
+        await Clipboard.getData(Clipboard.kTextPlain);
+    final text = newClipboardData?.text ?? '';
+    if (text.isNotEmpty && WalletConnectUri.tryParse(text) != null) {
+      // This check is needed because onClipboardChanged is called twice sometimes
+      if (kLastWalletConnectUriNotifier.value != text) {
+        _updateWalletConnectUri(text);
+      }
+    }
+  }
+
+  void _updateWalletConnectUri(String text) {
+    kLastWalletConnectUriNotifier.value = text;
+    if (!_isWalletLocked()) {
+      if (kCurrentPage != Tabs.walletConnect) {
+        sl<NotificationsBloc>().addNotification(
+          WalletNotification(
+            title:
+                'WalletConnect link detected. Go to WalletConnect tab to connect.',
+            timestamp: DateTime.now().millisecondsSinceEpoch,
+            details: 'A WalletConnect link has been copied to clipboard. '
+                'Go to the WalletConnect tab to connect to the dApp through ${kLastWalletConnectUriNotifier.value}',
+            type: NotificationType.copiedToClipboard,
+          ),
+        );
+        _navigateTo(Tabs.walletConnect);
+      }
+    }
   }
 }

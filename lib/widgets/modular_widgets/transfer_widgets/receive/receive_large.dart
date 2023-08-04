@@ -180,16 +180,16 @@ class _ReceiveLargeCardState extends State<ReceiveLargeCard> {
   }
 
   String _getQrString() {
-    return '${_selectedToken.symbol.toLowerCase()}:$_selectedSelfAddress?tti='
+    return '${_selectedToken.symbol.toLowerCase()}:$_selectedSelfAddress?zts='
         '${_selectedToken.tokenStandard}'
         '&amount=${_getAmount()}';
   }
 
-  num _getAmount() {
+  BigInt _getAmount() {
     try {
-      return _amountController.text.toNum();
+      return _amountController.text.extractDecimals(_selectedToken.decimals);
     } catch (e) {
-      return 0;
+      return BigInt.zero;
     }
   }
 

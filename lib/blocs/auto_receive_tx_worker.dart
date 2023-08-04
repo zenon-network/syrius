@@ -49,6 +49,7 @@ class AutoReceiveTxWorker extends BaseBloc<WalletNotification> {
         pool.removeFirst();
         _sendSuccessNotification(response, toAddress);
       } on RpcException catch (e, stackTrace) {
+        _sendErrorNotification(e.toString());
         Logger('AutoReceiveTxWorker')
             .log(Level.WARNING, 'autoReceive', e, stackTrace);
         if (e.message.compareTo('account-block from-block already received') ==
@@ -80,7 +81,8 @@ class AutoReceiveTxWorker extends BaseBloc<WalletNotification> {
   void _sendSuccessNotification(AccountBlockTemplate block, String toAddress) {
     addEvent(
       WalletNotification(
-        title: 'Transaction received on ${AddressUtils.getLabel(toAddress)}',
+        title:
+            'Transaction received on ${ZenonAddressUtils.getLabel(toAddress)}',
         timestamp: DateTime.now().millisecondsSinceEpoch,
         details: 'Transaction hash: ${block.hash}',
         type: NotificationType.paymentReceived,

@@ -93,8 +93,8 @@ class _DualCoinStatsState extends State<DualCoinStats>
   }
 
   List<PieChartSectionData> showingSections(List<Token?> tokenList) {
-    int totalSupply = tokenList.fold<int>(
-      0,
+    BigInt totalSupply = tokenList.fold<BigInt>(
+      BigInt.zero,
       (previousValue, element) => previousValue + element!.totalSupply,
     );
     return List.generate(

@@ -20,7 +20,7 @@ class HtlcCard extends StatefulWidget {
   final String? hashLock;
   final int? expirationTime;
   final String? recipient;
-  final int? amount;
+  final BigInt? amount;
   final String? tokenStandard;
   final int? tokenDecimals;
   final String? tokenSymbol;
@@ -290,13 +290,13 @@ class _HtlcCardState extends State<HtlcCard>
       DetailRow(
           label: 'Sender',
           value: widget.sender,
-          valueToShow: AddressUtils.getLabel(widget.sender)),
+          valueToShow: ZenonAddressUtils.getLabel(widget.sender)),
     );
     children.add(
       DetailRow(
           label: 'Recipient',
           value: widget.recipient!,
-          valueToShow: AddressUtils.getLabel(widget.recipient!)),
+          valueToShow: ZenonAddressUtils.getLabel(widget.recipient!)),
     );
     children.add(
       DetailRow(

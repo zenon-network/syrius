@@ -47,7 +47,7 @@ class _PlasmaOptionsState extends State<PlasmaOptions> {
 
   PlasmaBeneficiaryAddressNotifier? _plasmaBeneficiaryAddress;
 
-  int? _maxQsrAmount;
+  BigInt _maxQsrAmount = BigInt.zero;
   double? _maxWidth;
 
   final double _marginWidth = 20.0;
@@ -102,12 +102,11 @@ class _PlasmaOptionsState extends State<PlasmaOptions> {
                       }
                       if (snapshot.connectionState == ConnectionState.active) {
                         if (snapshot.hasData) {
-                          _maxQsrAmount =
-                              snapshot.data![_addressController.text]!
-                                  .getBalanceWithDecimals(
-                                    kQsrCoin.tokenStandard,
-                                  )
-                                  .toInt();
+                          _maxQsrAmount = snapshot
+                              .data![_addressController.text]!
+                              .getBalance(
+                            kQsrCoin.tokenStandard,
+                          );
                           return _getWidgetBody(
                             snapshot.data![_addressController.text],
                           );
@@ -185,7 +184,7 @@ class _PlasmaOptionsState extends State<PlasmaOptions> {
                     key: _qsrAmountKey,
                     autovalidateMode: AutovalidateMode.onUserInteraction,
                     child: InputField(
-                      enabled: _maxQsrAmount! > 0,
+                      enabled: _maxQsrAmount > BigInt.zero,
                       onChanged: (String value) {
                         setState(() {});
                       },
@@ -198,9 +197,7 @@ class _PlasmaOptionsState extends State<PlasmaOptions> {
                         value,
                         _maxQsrAmount,
                         kQsrCoin.decimals,
-                        min: fuseMinQsrAmount.addDecimals(
-                          qsrDecimals,
-                        ),
+                        fuseMinQsrAmount,
                         canBeEqualToMin: true,
                       ),
                       suffixIcon: _getAmountSuffix(),
@@ -242,14 +239,14 @@ class _PlasmaOptionsState extends State<PlasmaOptions> {
     return PlasmaIcon(
       PlasmaInfo.fromJson(
         {
-          'currentPlasma': (_qsrAmountController.text.isNotEmpty
-                  ? zenon!.embedded.plasma.getPlasmaByQsr(
-                      double.parse(_qsrAmountController.text),
-                    )
+          'currentPlasma': ((_qsrAmountController.text.isNotEmpty
+                  ? int.parse((zenon!.embedded.plasma.getPlasmaByQsr(
+                      _qsrAmountController.text.extractDecimals(coinDecimals),
+                    )).addDecimals(coinDecimals))
                   : 0) +
-              _getPlasmaForCurrentBeneficiary(),
+              _getPlasmaForCurrentBeneficiary()),
           'maxPlasma': 0,
-          'qsrAmount': 0,
+          'qsrAmount': '0',
         },
       ),
     );
@@ -307,7 +304,7 @@ class _PlasmaOptionsState extends State<PlasmaOptions> {
       _fuseButtonKey.currentState?.animateForward();
       model!.generatePlasma(
         _beneficiaryAddressController.text,
-        _qsrAmountController.text,
+        _qsrAmountController.text.extractDecimals(coinDecimals),
       );
     }
   }
@@ -321,9 +318,11 @@ class _PlasmaOptionsState extends State<PlasmaOptions> {
 
   void _onMaxPressed() {
     if (_qsrAmountController.text.isEmpty ||
-        _qsrAmountController.text.toNum() != _maxQsrAmount) {
+        _qsrAmountController.text.extractDecimals(coinDecimals) !=
+            _maxQsrAmount) {
       setState(() {
-        _qsrAmountController.text = _maxQsrAmount!.toString();
+        _qsrAmountController.text =
+            _maxQsrAmount.addDecimals(coinDecimals).toNum().toInt().toString();
       });
     }
   }
@@ -366,9 +365,7 @@ class _PlasmaOptionsState extends State<PlasmaOptions> {
             _qsrAmountController.text,
             _maxQsrAmount,
             kQsrCoin.decimals,
-            min: fuseMinQsrAmount.addDecimals(
-              qsrDecimals,
-            ),
+            fuseMinQsrAmount,
             canBeEqualToMin: true,
           ) ==
           null;

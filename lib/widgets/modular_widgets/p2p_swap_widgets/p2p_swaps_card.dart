@@ -75,6 +75,7 @@ class _P2pSwapsCardState extends State<P2pSwapsCard> {
   Future<void> _onDeleteSwapTapped(P2pSwap swap) async {
     showDialogWithNoAndYesOptions(
         context: context,
+        isBarrierDismissible: true,
         title: 'Delete swap',
         description:
             'Are you sure you want to delete this swap? This action cannot be undone.',

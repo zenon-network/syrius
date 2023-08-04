@@ -44,11 +44,8 @@ class _TransferState extends State<Transfer> {
             widget.changePage!(Tabs.transfer,
                 redirectWithSendContainerLarge: true);
           },
-          icon: Container(
-            alignment: Alignment.center,
-            child: const Icon(
-              SimpleLineIcons.arrow_up_circle,
-            ),
+          icon: const Icon(
+            SimpleLineIcons.arrow_up_circle,
           ),
           color: AppColors.darkHintTextColor,
           iconSize: 48.0,

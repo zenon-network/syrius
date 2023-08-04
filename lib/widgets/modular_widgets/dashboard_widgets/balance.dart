@@ -3,11 +3,7 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/color_utils.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/zts_utils.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
@@ -157,9 +153,11 @@ class _BalanceWidgetState extends State<BalanceWidget> {
     AccountInfo accountInfo,
   ) {
     return FormattedAmountWithTooltip(
-      amount: accountInfo.getBalanceWithDecimals(
-        coin.tokenStandard,
-      ),
+      amount: accountInfo
+          .getBalance(
+            coin.tokenStandard,
+          )
+          .addDecimals(coin.decimals),
       tokenSymbol: coin.symbol,
       builder: (amount, tokenSymbol) => AmountInfoColumn(
         context: context,
@@ -171,7 +169,7 @@ class _BalanceWidgetState extends State<BalanceWidget> {
 
   List<PieChartSectionData> _getChartSection(AccountInfo accountInfo) {
     List<PieChartSectionData> sections = [];
-    if (accountInfo.znn()! > 0) {
+    if (accountInfo.znn()! > BigInt.zero) {
       sections.add(
         _getBalanceChartSection(
           accountInfo.findTokenByTokenStandard(kZnnCoin.tokenStandard)!,
@@ -179,7 +177,7 @@ class _BalanceWidgetState extends State<BalanceWidget> {
         ),
       );
     }
-    if (accountInfo.qsr()! > 0) {
+    if (accountInfo.qsr()! > BigInt.zero) {
       sections.add(
         _getBalanceChartSection(
           accountInfo.findTokenByTokenStandard(kQsrCoin.tokenStandard)!,
@@ -197,9 +195,9 @@ class _BalanceWidgetState extends State<BalanceWidget> {
     return SizedBox(
       width: 120.0,
       child: AutoSizeText(
-        '${accountInfo.getBalanceWithDecimals(
-          tokenStandard,
-        )} ${_touchedTokenStandard == kZnnCoin.tokenStandard.toString() ? kZnnCoin.symbol : kQsrCoin.symbol}',
+        '${accountInfo.getBalance(
+              tokenStandard,
+            ).addDecimals(coinDecimals)} ${_touchedTokenStandard == kZnnCoin.tokenStandard.toString() ? kZnnCoin.symbol : kQsrCoin.symbol}',
         textAlign: TextAlign.center,
         style: Theme.of(context).textTheme.headlineMedium!.copyWith(
               color: ColorUtils.getTokenColor(tokenStandard),

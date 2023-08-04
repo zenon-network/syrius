@@ -401,7 +401,8 @@ class _JoinNativeSwapModalState extends State<JoinNativeSwapModal> {
         initialHtlc: _initialHltc!,
         fromToken: _selectedToken,
         toToken: tokenToReceive,
-        fromAmount: _amountController.text,
+        fromAmount:
+            _amountController.text.extractDecimals(_selectedToken.decimals),
         swapType: P2pSwapType.native,
         fromChain: P2pSwapChain.nom,
         toChain: P2pSwapChain.nom,
@@ -419,10 +420,9 @@ class _JoinNativeSwapModalState extends State<JoinNativeSwapModal> {
   }
 
   Widget _getExchangeRateWidget(Token tokenToReceive) {
-    final fromAmount =
-        _amountController.text.isNotEmpty ? _amountController.text.toNum() : 0;
     return ExchangeRateWidget(
-        fromAmount: fromAmount.extractDecimals(_selectedToken.decimals),
+        fromAmount:
+            _amountController.text.extractDecimals(_selectedToken.decimals),
         fromDecimals: _selectedToken.decimals,
         fromSymbol: _selectedToken.symbol,
         toAmount: _initialHltc!.amount,

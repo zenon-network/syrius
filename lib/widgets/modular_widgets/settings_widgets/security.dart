@@ -10,6 +10,7 @@ import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/clipboard_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/format_utils.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/functions.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/navigation_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/notification_utils.dart';
@@ -329,13 +330,11 @@ class _SecurityWidgetState extends State<SecurityWidget> {
   Future<void> _onSignButtonPressed() async {
     try {
       _signButtonKey.currentState?.animateForward();
-      List<int> signature = await zenon!.defaultKeyPair!.sign(
-        Uint8List.fromList(
-          _textToBeSignedController.text.codeUnits,
-        ),
+      final signedMessage = await walletSign(
+        _textToBeSignedController.text.codeUnits,
       );
       setState(() {
-        _signedTextController.text = BytesUtils.bytesToHex(signature);
+        _signedTextController.text = signedMessage;
       });
     } catch (e) {
       NotificationUtils.sendNotificationError(e, 'Error while signing message');
@@ -569,11 +568,11 @@ class _SecurityWidgetState extends State<SecurityWidget> {
       File droppedFile = File(
         _toBeSignedFilePath!,
       );
-      List<int> fileSignature = await zenon!.defaultKeyPair!.sign(Crypto.digest(
+      final fileSignature = await walletSign(Crypto.digest(
         await droppedFile.readAsBytes(),
       ));
       setState(() {
-        _fileHashController.text = BytesUtils.bytesToHex(fileSignature);
+        _fileHashController.text = fileSignature;
         _toBeSignedFilePath = null;
         _signSelectFileWidgetKey.currentState!.resetMessageToUser();
       });

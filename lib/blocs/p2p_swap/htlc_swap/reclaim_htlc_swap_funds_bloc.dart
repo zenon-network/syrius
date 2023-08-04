@@ -22,7 +22,7 @@ class ReclaimHtlcSwapFundsBloc extends BaseBloc<AccountBlockTemplate?> {
               blockSigningKey: blockSigningKeyPair, waitForRequiredPlasma: true)
           .then(
         (response) {
-          AddressUtils.refreshBalance();
+          ZenonAddressUtils.refreshBalance();
           addEvent(response);
         },
       ).onError(

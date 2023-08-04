@@ -11,16 +11,20 @@ import 'package:layout/layout.dart';
 import 'package:local_notifier/local_notifier.dart';
 import 'package:logging/logging.dart';
 import 'package:overlay_support/overlay_support.dart';
+import 'package:path/path.dart' as path;
 import 'package:provider/provider.dart';
 import 'package:tray_manager/tray_manager.dart';
 import 'package:window_manager/window_manager.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/auto_unlock_htlc_worker.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/handlers/htlc_swaps_handler.dart';
+import 'package:zenon_syrius_wallet_flutter/blocs/wallet_connect/wallet_connect_pairings_bloc.dart';
+import 'package:zenon_syrius_wallet_flutter/blocs/wallet_connect/wallet_connect_sessions_bloc.dart';
 import 'package:zenon_syrius_wallet_flutter/model/model.dart';
 import 'package:zenon_syrius_wallet_flutter/screens/screens.dart';
 import 'package:zenon_syrius_wallet_flutter/services/htlc_swaps_service.dart';
 import 'package:zenon_syrius_wallet_flutter/services/shared_prefs_service.dart';
+import 'package:zenon_syrius_wallet_flutter/services/wallet_connect_service.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
@@ -37,18 +41,31 @@ main() async {
   Provider.debugCheckInvalidValueType = null;
   debugDefaultTargetPlatformOverride = TargetPlatform.fuchsia;
 
+  ensureDirectoriesExist();
+  Hive.init(znnDefaultPaths.cache.path.toString());
+
   // Setup logger
+  Directory syriusLogDir =
+      Directory(path.join(znnDefaultCacheDirectory.path, 'log'));
+  if (!syriusLogDir.existsSync()) {
+    syriusLogDir.createSync(recursive: true);
+  }
+  final logFile = File(
+      '${syriusLogDir.path}${path.separator}syrius-${DateTime.now().millisecondsSinceEpoch}.log');
   Logger.root.level = Level.ALL;
-  Logger.root.onRecord.listen((record) {
+  Logger.root.onRecord.listen((LogRecord record) {
     if (kDebugMode) {
       print(
           '${record.level.name} ${record.loggerName} ${record.message} ${record.time}: '
           '${record.error} ${record.stackTrace}\n');
     }
+    logFile.writeAsString(
+      '${record.level.name} ${record.loggerName} ${record.message} ${record.time}: '
+      '${record.error} ${record.stackTrace}\n',
+      mode: FileMode.append,
+      flush: true,
+    );
   });
-
-  ensureDirectoriesExist();
-  Hive.init(znnDefaultPaths.cache.path.toString());
 
   windowManager.ensureInitialized();
   await windowManager.setPreventClose(true);
@@ -117,9 +134,6 @@ main() async {
 }
 
 Future<void> _setupTrayManager() async {
-  if (!Platform.isWindows) {
-    await trayManager.setTitle('s y r i u s');
-  }
   await trayManager.setIcon(
     Platform.isWindows
         ? 'assets/images/tray_app_icon.ico'
@@ -153,6 +167,7 @@ void setup() {
       (() => SharedPrefsService.getInstance().then((value) => value!)));
   sl.registerSingleton<HtlcSwapsService>(HtlcSwapsService.getInstance());
 
+  sl.registerLazySingleton<WalletConnectService>(() => WalletConnectService());
   sl.registerSingleton<AutoReceiveTxWorker>(AutoReceiveTxWorker.getInstance());
   sl.registerSingleton<AutoUnlockHtlcWorker>(
       AutoUnlockHtlcWorker.getInstance());
@@ -172,6 +187,12 @@ void setup() {
   sl.registerSingleton<NotificationsBloc>(NotificationsBloc());
   sl.registerSingleton<AcceleratorBalanceBloc>(AcceleratorBalanceBloc());
   sl.registerSingleton<PowGeneratingStatusBloc>(PowGeneratingStatusBloc());
+  sl.registerSingleton<WalletConnectPairingsBloc>(
+    WalletConnectPairingsBloc(),
+  );
+  sl.registerSingleton<WalletConnectSessionsBloc>(
+    WalletConnectSessionsBloc(),
+  );
 }
 
 class MyApp extends StatefulWidget {

@@ -13,7 +13,7 @@ class PillarRewardsHistoryBloc
       Address.parse(kSelectedAddress!),
       pageSize: kStandardChartNumDays.toInt(),
     );
-    if (response.list.any((element) => element.znnAmount > 0)) {
+    if (response.list.any((element) => element.znnAmount > BigInt.zero)) {
       return response;
     } else {
       throw 'No rewards in the last week';

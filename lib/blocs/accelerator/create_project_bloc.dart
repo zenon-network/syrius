@@ -8,8 +8,8 @@ class CreateProjectBloc extends BaseBloc<AccountBlockTemplate?> {
     String name,
     String description,
     String url,
-    int znnFundsNeeded,
-    int qsrFundsNeeded,
+    BigInt znnFundsNeeded,
+    BigInt qsrFundsNeeded,
   ) {
     try {
       addEvent(null);
@@ -26,7 +26,7 @@ class CreateProjectBloc extends BaseBloc<AccountBlockTemplate?> {
         'creating project',
       ).then(
         (block) {
-          AddressUtils.refreshBalance();
+          ZenonAddressUtils.refreshBalance();
           addEvent(block);
         },
       ).onError(

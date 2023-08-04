@@ -2,25 +2,24 @@ import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/account_block_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/address_utils.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/extensions.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 class StakingOptionsBloc extends BaseBloc<AccountBlockTemplate?> {
   void stakeForQsr(
     Duration stakeDuration,
-    String amount,
+    BigInt amount,
   ) {
     try {
       addEvent(null);
       AccountBlockTemplate transactionParams = zenon!.embedded.stake.stake(
         stakeDuration.inSeconds,
-        amount.toNum().extractDecimals(znnDecimals),
+        amount,
       );
       AccountBlockUtils.createAccountBlock(transactionParams, 'create stake',
               waitForRequiredPlasma: true)
           .then(
         (response) {
-          AddressUtils.refreshBalance();
+          ZenonAddressUtils.refreshBalance();
           addEvent(response);
         },
       ).onError(

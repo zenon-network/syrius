@@ -1,10 +1,9 @@
 import 'dart:async';
-import 'dart:io';
 import 'dart:math';
 
 import 'package:collection/collection.dart';
 import 'package:logging/logging.dart';
-import 'package:wakelock/wakelock.dart';
+import 'package:wakelock_plus/wakelock_plus.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/auto_unlock_htlc_worker.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/model/block_data.dart';
@@ -64,9 +63,9 @@ class HtlcSwapsHandler {
   }
 
   Future<void> _enableWakelockIfNeeded() async {
-    if (!Platform.isLinux && hasActiveIncomingSwaps) {
+    if (hasActiveIncomingSwaps) {
       try {
-        await Wakelock.enable();
+        await WakelockPlus.enable();
       } catch (e) {
         Logger('HtlcSwapsHandler')
             .log(Level.WARNING, '_enableWakelockIfNeeded', e);

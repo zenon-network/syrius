@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/extensions.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/format_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/input_validators.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/zts_utils.dart';
@@ -62,10 +63,11 @@ class _AmountInputFieldState extends State<AmountInputField> {
         ),
         validator: (value) => InputValidators.correctValue(
           value,
-          widget.accountInfo.getBalanceWithDecimals(
+          widget.accountInfo.getBalance(
             _selectedToken!.tokenStandard,
           ),
           _selectedToken!.decimals,
+          BigInt.zero,
         ),
         controller: widget.controller,
         suffixIcon: _getAmountSuffix(),
@@ -100,10 +102,11 @@ class _AmountInputFieldState extends State<AmountInputField> {
   }
 
   void _onMaxPressed() => setState(() {
-        num maxBalance = widget.accountInfo.getBalanceWithDecimals(
+        final maxBalance = widget.accountInfo.getBalance(
           _selectedToken!.tokenStandard,
         );
-        widget.controller.text = maxBalance.toString();
+        widget.controller.text =
+            maxBalance.addDecimals(_selectedToken!.decimals).toString();
       });
 
   Widget _getCoinDropdown() => CoinDropdown(
@@ -124,7 +127,7 @@ class _AmountInputFieldState extends State<AmountInputField> {
 
   void _addTokensWithBalance() {
     for (var balanceInfo in widget.accountInfo.balanceInfoList!) {
-      if (balanceInfo.balance! > 0 &&
+      if (balanceInfo.balance! > BigInt.zero &&
           !_tokensWithBalance.contains(balanceInfo.token)) {
         _tokensWithBalance.add(balanceInfo.token);
       }
@@ -134,10 +137,11 @@ class _AmountInputFieldState extends State<AmountInputField> {
   bool _isInputValid() =>
       InputValidators.correctValue(
         widget.controller.text,
-        widget.accountInfo.getBalanceWithDecimals(
+        widget.accountInfo.getBalance(
           _selectedToken!.tokenStandard,
         ),
         _selectedToken!.decimals,
+        BigInt.zero,
       ) ==
       null;
 

@@ -3,6 +3,12 @@ import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
+// WalletConnect
+const String kWcProjectId = String.fromEnvironment('WC_PROJECT_ID',
+    defaultValue: '6106aa8c2f308b338f31465bef999a1f');
+const String kZenonNameSpace = 'zenon';
+const walletConnectDirName = 'walletconnect';
+
 // Dimensions
 const double kAmountSuffixHeight = 25.0;
 const double kAmountSuffixWidth = 40.0;
@@ -27,7 +33,7 @@ const List<String> kBridgeNetworks = [
 ];
 
 // Wallet version
-const String kWalletVersion = '0.0.6';
+const String kWalletVersion = '0.0.7';
 
 // Boxes constants
 const String kFavoriteTokensBox = 'favourite_tokens_box';
@@ -82,11 +88,8 @@ const String kP2pAutoReclaimKey = 'p2p_auto_reclaim_key';
 const String kLastCheckedHtlcBlockKey = 'last_checked_htlc_block_key';
 
 const double kDefaultBorderOutlineWidth = 1.0;
-const double kMinDelegationAmount = 1.0;
 const double kStandardChartNumDays = 7;
-const double kMinTokenTotalMaxSupply = 1;
 
-const int kMaxInt = 9223372036854775807;
 const int kAddressLabelMaxLength = 80;
 const int kNumOfInitialAddresses = 1;
 const int kSeedGridNumOfRows = 4;
@@ -99,35 +102,36 @@ const int kMomentumsPerDay = kHoursPerDay * kMomentumsPerHour;
 const int kDaysInAWeek = 7;
 const int kMomentumsPerWeek = kMomentumsPerDay * kDaysInAWeek;
 const int kNumOfAddresses = 10;
+
 const int kPillarPlasmaAmountNeeded = 252000;
 const int kSentinelPlasmaAmountNeeded = 252000;
 const int kStakePlasmaAmountNeeded = 105000;
 const int kDelegatePlasmaAmountNeeded = 84000;
 const int kIssueTokenPlasmaAmountNeeded = 189000;
-const int kZnnProjectMaximumFunds = 5000;
-const int kQsrProjectMaximumFunds = 50000;
-const int kZnnProjectMinimumFunds = 10;
-const int kQsrProjectMinimumFunds = 100;
+
 const int kAmountInputMaxCharacterLength = 21;
 const int kSecondsPerMomentum = 10;
 const int kMaxP2pSwapsToStore = 500;
 
-const List<int> kNormalUsersPlasmaRequirements = [
+final List<int> kNormalUsersPlasmaRequirements = [
   kStakePlasmaAmountNeeded,
   kDelegatePlasmaAmountNeeded,
 ];
-const List<int> kPowerUsersPlasmaRequirements = [
+
+final List<int> kPowerUsersPlasmaRequirements = [
   kPillarPlasmaAmountNeeded,
   kSentinelPlasmaAmountNeeded,
   kIssueTokenPlasmaAmountNeeded,
 ];
 
-const String kLocalhostDefaultNodeUrl = 'ws://127.0.0.1:35998';
+const String kLocalhostDefaultNodeUrl = 'ws://127.0.0.1:$kDefaultPort';
+const int kDefaultPort = 35998;
 
 List<String> kDefaultNodes = [
   'Embedded Node',
   kLocalhostDefaultNodeUrl,
 ];
+
 const List<String> kWalletActions = [
   'pillar',
   'sentinel',
@@ -175,9 +179,11 @@ const String kAutoEraseNumAttemptsKey = 'auto_erase_num_attempts';
 
 // Wallet preferences
 const String kLaunchAtStartupKey = 'launch_at_startup';
-const bool kLaunchAtStartupDefaultValue = false;
 const String kEnableDesktopNotificationsKey = 'enable_desktop_notifications';
+const String kEnableClipboardWatcherKey = 'enable_clipboard_watcher';
+const bool kLaunchAtStartupDefaultValue = false;
 const bool kEnableDesktopNotificationsDefaultValue = false;
+const bool kEnableClipboardWatcherDefaultValue = false;
 
 /// Node management
 const String kChainIdKey = 'chain_id';
@@ -210,20 +216,6 @@ const List<Tabs> kTabsWithTextTitles = [
   Tabs.plasma,
   Tabs.tokens,
   Tabs.p2pSwap,
-];
-
-const List<Tabs> kTabsWithIconTitles = [
-  Tabs.bridge,
-  Tabs.accelerator,
-  Tabs.help,
-  Tabs.notifications,
-  Tabs.settings,
-  Tabs.resyncWallet,
-  Tabs.lock,
-];
-
-const List<Tabs> kDisabledTabs = [
-  Tabs.resyncWallet,
 ];
 
 // P2P swap constants

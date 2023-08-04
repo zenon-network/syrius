@@ -150,12 +150,12 @@ class _SendLargeCardState extends State<SendLargeCard> {
                       ),
                       controller: _amountController,
                       validator: (value) => InputValidators.correctValue(
-                        value,
-                        accountInfo.getBalanceWithDecimals(
-                          _selectedToken.tokenStandard,
-                        ),
-                        _selectedToken.decimals,
-                      ),
+                          value,
+                          accountInfo.getBalance(
+                            _selectedToken.tokenStandard,
+                          ),
+                          _selectedToken.decimals,
+                          BigInt.zero),
                       suffixIcon: _getAmountSuffix(accountInfo),
                       hintText: 'Amount',
                     ),
@@ -224,11 +224,12 @@ class _SendLargeCardState extends State<SendLargeCard> {
     if (_recipientKey.currentState!.validate() &&
         _amountKey.currentState!.validate()) {
       showDialogWithNoAndYesOptions(
+        isBarrierDismissible: false,
         context: context,
         title: 'Send Payment',
         description: 'Are you sure you want to transfer '
             '${_amountController.text} ${_selectedToken.symbol} to '
-            '${AddressUtils.getLabel(_recipientController.text)} ?',
+            '${ZenonAddressUtils.getLabel(_recipientController.text)} ?',
         onYesButtonPressed: () => _sendPayment(model),
       );
     }
@@ -255,12 +256,11 @@ class _SendLargeCardState extends State<SendLargeCard> {
   }
 
   void _sendPayment(SendPaymentBloc model) {
-    Navigator.pop(context);
     _sendPaymentButtonKey.currentState?.animateForward();
     model.sendTransfer(
       fromAddress: _selectedSelfAddress,
       toAddress: _recipientController.text,
-      amount: _amountController.text,
+      amount: _amountController.text.extractDecimals(_selectedToken.decimals),
       data: null,
       token: _selectedToken,
     );
@@ -296,14 +296,16 @@ class _SendLargeCardState extends State<SendLargeCard> {
       );
 
   void _onMaxPressed(AccountInfo accountInfo) {
-    num maxBalance = accountInfo.getBalanceWithDecimals(
+    BigInt maxBalance = accountInfo.getBalance(
       _selectedToken.tokenStandard,
     );
 
     if (_amountController.text.isEmpty ||
-        _amountController.text.toNum() < maxBalance) {
+        _amountController.text.extractDecimals(_selectedToken.decimals) <
+            maxBalance) {
       setState(() {
-        _amountController.text = maxBalance.toString();
+        _amountController.text =
+            maxBalance.addDecimals(_selectedToken.decimals);
       });
     }
   }
@@ -354,10 +356,10 @@ class _SendLargeCardState extends State<SendLargeCard> {
     sl.get<NotificationsBloc>().addNotification(
           WalletNotification(
             title: 'Sent ${_amountController.text} ${_selectedToken.symbol} '
-                'to ${AddressUtils.getLabel(_recipientController.text)}',
+                'to ${ZenonAddressUtils.getLabel(_recipientController.text)}',
             timestamp: DateTime.now().millisecondsSinceEpoch,
             details: 'Sent ${_amountController.text} ${_selectedToken.symbol} '
-                'from ${AddressUtils.getLabel(_selectedSelfAddress!)} to ${AddressUtils.getLabel(_recipientController.text)}',
+                'from ${ZenonAddressUtils.getLabel(_selectedSelfAddress!)} to ${ZenonAddressUtils.getLabel(_recipientController.text)}',
             type: NotificationType.paymentSent,
             id: null,
           ),
@@ -365,14 +367,14 @@ class _SendLargeCardState extends State<SendLargeCard> {
   }
 
   bool _hasBalance(AccountInfo accountInfo) =>
-      accountInfo.getBalanceWithDecimals(
+      accountInfo.getBalance(
         _selectedToken.tokenStandard,
       ) >
-      0;
+      BigInt.zero;
 
   void _addTokensWithBalance(AccountInfo accountInfo) {
     for (var balanceInfo in accountInfo.balanceInfoList!) {
-      if (balanceInfo.balance! > 0 &&
+      if (balanceInfo.balance! > BigInt.zero &&
           !_tokensWithBalance.contains(balanceInfo.token)) {
         _tokensWithBalance.add(balanceInfo.token);
       }
@@ -382,12 +384,12 @@ class _SendLargeCardState extends State<SendLargeCard> {
   bool _isInputValid(AccountInfo accountInfo) =>
       InputValidators.checkAddress(_recipientController.text) == null &&
       InputValidators.correctValue(
-            _amountController.text,
-            accountInfo.getBalanceWithDecimals(
-              _selectedToken.tokenStandard,
-            ),
-            _selectedToken.decimals,
-          ) ==
+              _amountController.text,
+              accountInfo.getBalance(
+                _selectedToken.tokenStandard,
+              ),
+              _selectedToken.decimals,
+              BigInt.one) ==
           null;
 
   @override

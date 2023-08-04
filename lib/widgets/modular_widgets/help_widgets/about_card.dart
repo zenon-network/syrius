@@ -160,7 +160,7 @@ class AboutCardState extends State<AboutCard> {
       IconButton(
         splashRadius: 16,
         onPressed: () async {
-          NavigationUtils.openUrl(url, context);
+          NavigationUtils.openUrl(url);
         },
         icon: const Icon(
           Icons.link,

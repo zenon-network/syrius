@@ -39,7 +39,7 @@ class CompleteHtlcSwapBloc extends BaseBloc<HtlcSwap?> {
         (response) async {
           swap.state = P2pSwapState.completed;
           await htlcSwapsService!.storeSwap(swap);
-          AddressUtils.refreshBalance();
+          ZenonAddressUtils.refreshBalance();
           addEvent(swap);
         },
       ).onError(

@@ -7,7 +7,6 @@ import 'package:zenon_syrius_wallet_flutter/model/p2p_swap/p2p_swap.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/account_block_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/address_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/date_time_utils.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/extensions.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/format_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
@@ -17,7 +16,7 @@ class StartHtlcSwapBloc extends BaseBloc<HtlcSwap?> {
     required Address selfAddress,
     required Address counterpartyAddress,
     required Token fromToken,
-    required String fromAmount,
+    required BigInt fromAmount,
     required int hashType,
     required P2pSwapType swapType,
     required P2pSwapChain fromChain,
@@ -29,10 +28,9 @@ class StartHtlcSwapBloc extends BaseBloc<HtlcSwap?> {
       final preimage = _generatePreimage();
       final hashLock = await _getHashLock(hashType, preimage);
       final expirationTime = await _getExpirationTime(initialHtlcDuration);
-      final amount = fromAmount.toNum().extractDecimals(fromToken.decimals);
       AccountBlockTemplate transactionParams = zenon!.embedded.htlc.create(
         fromToken,
-        amount,
+        fromAmount,
         counterpartyAddress,
         expirationTime,
         hashType,
@@ -57,7 +55,7 @@ class StartHtlcSwapBloc extends BaseBloc<HtlcSwap?> {
             startTime: DateTimeUtils.unixTimeNow,
             initialHtlcId: response.hash.toString(),
             initialHtlcExpirationTime: expirationTime,
-            fromAmount: amount,
+            fromAmount: fromAmount,
             fromTokenStandard: fromToken.tokenStandard.toString(),
             fromDecimals: fromToken.decimals,
             fromSymbol: fromToken.symbol,
@@ -68,7 +66,7 @@ class StartHtlcSwapBloc extends BaseBloc<HtlcSwap?> {
             hashType: hashType,
           );
           await htlcSwapsService!.storeSwap(swap);
-          AddressUtils.refreshBalance();
+          ZenonAddressUtils.refreshBalance();
           addEvent(swap);
         },
       ).onError(

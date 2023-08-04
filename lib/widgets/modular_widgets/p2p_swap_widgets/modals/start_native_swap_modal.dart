@@ -8,6 +8,7 @@ import 'package:zenon_syrius_wallet_flutter/model/p2p_swap/p2p_swap.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/clipboard_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/extensions.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/input_validators.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/toast_utils.dart';
@@ -242,7 +243,8 @@ class _StartNativeSwapModalState extends State<StartNativeSwapModal> {
         selfAddress: Address.parse(_selectedSelfAddress!),
         counterpartyAddress: Address.parse(_counterpartyAddressController.text),
         fromToken: _selectedToken,
-        fromAmount: _amountController.text,
+        fromAmount:
+            _amountController.text.extractDecimals(_selectedToken.decimals),
         hashType: htlcHashTypeSha3,
         swapType: P2pSwapType.native,
         fromChain: P2pSwapChain.nom,

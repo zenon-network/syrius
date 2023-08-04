@@ -5,6 +5,7 @@ import 'dart:isolate';
 import 'dart:ui';
 
 import 'package:ffi/ffi.dart';
+import 'package:logging/logging.dart';
 import 'package:path/path.dart' as path;
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
@@ -63,9 +64,11 @@ class EmbeddedNode {
       }
     }
 
-    logger.info('Loading libznn from path $libraryPath');
+    Logger('EmbeddedNode')
+        .log(Level.INFO, 'Loading libznn from path $libraryPath');
 
     if (!found) {
+      Logger('EmbeddedNode').log(Level.SEVERE, 'Could not load libznn');
       throw invalidZnnLibPathException;
     }
 

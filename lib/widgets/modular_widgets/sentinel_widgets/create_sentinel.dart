@@ -58,11 +58,11 @@ class _CreateSentinelState extends State<CreateSentinel> {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Text(
-            'You already spawned a Sentinel on this address',
+            'Sentinel detected on this address',
             style: Theme.of(context).textTheme.bodyLarge,
           ),
           const StandardTooltipIcon(
-            'Cannot reuse address. '
+            'Cannot reuse address.\n'
             'Please use another address to spawn a new Sentinel Node',
             Icons.help,
           ),

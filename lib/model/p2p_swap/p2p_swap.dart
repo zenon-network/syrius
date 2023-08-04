@@ -35,7 +35,7 @@ class P2pSwap {
   final P2pSwapDirection direction;
   final String selfAddress;
   final String counterpartyAddress;
-  final int fromAmount;
+  final BigInt fromAmount;
   final String fromTokenStandard;
   final String fromSymbol;
   final int fromDecimals;
@@ -43,7 +43,7 @@ class P2pSwap {
   final P2pSwapChain toChain;
   final int startTime;
   P2pSwapState state;
-  int? toAmount;
+  BigInt? toAmount;
   String? toTokenStandard;
   String? toSymbol;
   int? toDecimals;
@@ -77,7 +77,7 @@ class P2pSwap {
         direction = P2pSwapDirection.values.byName(json['direction']),
         selfAddress = json['selfAddress'],
         counterpartyAddress = json['counterpartyAddress'],
-        fromAmount = json['fromAmount'],
+        fromAmount = BigInt.parse(json['fromAmount'].toString()),
         fromTokenStandard = json['fromTokenStandard'],
         fromSymbol = json['fromSymbol'],
         fromDecimals = json['fromDecimals'],
@@ -85,7 +85,7 @@ class P2pSwap {
         toChain = P2pSwapChain.values.byName(json['toChain']),
         startTime = json['startTime'],
         state = P2pSwapState.values.byName(json['state']),
-        toAmount = json['toAmount'],
+        toAmount = BigInt.tryParse(json['toAmount'].toString()),
         toTokenStandard = json['toTokenStandard'],
         toSymbol = json['toSymbol'],
         toDecimals = json['toDecimals'];
@@ -98,7 +98,7 @@ class P2pSwap {
         'direction': direction.name,
         'selfAddress': selfAddress,
         'counterpartyAddress': counterpartyAddress,
-        'fromAmount': fromAmount,
+        'fromAmount': fromAmount.toString(),
         'fromTokenStandard': fromTokenStandard,
         'fromSymbol': fromSymbol,
         'fromDecimals': fromDecimals,
@@ -106,7 +106,7 @@ class P2pSwap {
         'toChain': toChain.name,
         'startTime': startTime,
         'state': state.name,
-        'toAmount': toAmount,
+        'toAmount': toAmount?.toString(),
         'toTokenStandard': toTokenStandard,
         'toSymbol': toSymbol,
         'toDecimals': toDecimals,

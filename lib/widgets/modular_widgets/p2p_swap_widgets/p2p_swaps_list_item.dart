@@ -135,7 +135,7 @@ class _P2pSwapsListItemState extends State<P2pSwapsListItem> {
   }
 
   Widget _getAmountWidget(
-      int? amount, int? decimals, String? tokenStandard, String? symbol) {
+      BigInt? amount, int? decimals, String? tokenStandard, String? symbol) {
     if (amount == null ||
         decimals == null ||
         tokenStandard == null ||

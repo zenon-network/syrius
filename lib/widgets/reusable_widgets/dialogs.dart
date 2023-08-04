@@ -57,30 +57,38 @@ showWarningDialog({
 showDialogWithNoAndYesOptions({
   required BuildContext context,
   required String title,
-  required String description,
   required VoidCallback onYesButtonPressed,
+  required isBarrierDismissible,
+  VoidCallback? onNoButtonPressed,
+  Widget? content,
+  String? description,
 }) =>
     showDialog(
+      barrierDismissible: isBarrierDismissible,
       context: context,
       builder: (context) => AlertDialog(
         title: Text(title),
-        content: Text(description),
+        content: content ?? Text(description!),
         actions: [
           TextButton(
+            onPressed: () {
+              onNoButtonPressed?.call();
+              Navigator.pop(context, false);
+            },
             child: Text(
               'No',
               style: Theme.of(context).textTheme.bodyLarge,
             ),
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
           ),
           TextButton(
-            onPressed: onYesButtonPressed,
             style: Theme.of(context).textButtonTheme.style!.copyWith(
                   backgroundColor: MaterialStateColor.resolveWith(
                       (states) => AppColors.errorColor),
                 ),
+            onPressed: () {
+              onYesButtonPressed.call();
+              Navigator.pop(context, true);
+            },
             child: Text(
               'Yes',
               style: Theme.of(context).textTheme.bodyLarge,

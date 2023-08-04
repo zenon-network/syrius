@@ -5,13 +5,12 @@ import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/account_block_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/address_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/extensions.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/zts_utils.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 class PillarsDepositQsrBloc extends BaseBloc<AccountBlockTemplate?> {
   Future<void> depositQsr(
-    String amount, {
+    BigInt amount, {
     bool justMarkStepCompleted = false,
   }) async {
     try {
@@ -19,7 +18,7 @@ class PillarsDepositQsrBloc extends BaseBloc<AccountBlockTemplate?> {
       if (!justMarkStepCompleted) {
         AccountBlockTemplate transactionParams =
             zenon!.embedded.pillar.depositQsr(
-          amount.toNum().extractDecimals(qsrDecimals),
+          amount,
         );
         AccountBlockUtils.createAccountBlock(
           transactionParams,
@@ -30,7 +29,7 @@ class PillarsDepositQsrBloc extends BaseBloc<AccountBlockTemplate?> {
             await Future.delayed(
               kDelayAfterAccountBlockCreationCall,
             );
-            AddressUtils.refreshBalance();
+            ZenonAddressUtils.refreshBalance();
             addEvent(response);
           },
         ).onError(

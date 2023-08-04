@@ -203,7 +203,7 @@ class _ProjectCreationStepperState extends State<ProjectCreationStepper> {
         StepperUtils.getBalanceWidget(kZnnCoin, accountInfo),
         DottedBorderInfoWidget(
           text:
-              'Creating a project consumes $projectCreationFeeInZnn ${kZnnCoin.symbol} that goes to the Accelerator',
+              'Creating a project consumes ${projectCreationFeeInZnn.addDecimals(coinDecimals)} ${kZnnCoin.symbol} that goes to the Accelerator',
         ),
         kVerticalSpacing,
         Row(
@@ -218,7 +218,7 @@ class _ProjectCreationStepperState extends State<ProjectCreationStepper> {
               width: 15.0,
             ),
             StepperButton(
-              onPressed: accountInfo.getBalanceWithDecimals(
+              onPressed: accountInfo.getBalance(
                         kZnnCoin.tokenStandard,
                       ) >=
                       projectCreationFeeInZnn
@@ -339,17 +339,23 @@ class _ProjectCreationStepperState extends State<ProjectCreationStepper> {
                   suffixIcon: AmountSuffixWidgets(
                     kZnnCoin,
                     onMaxPressed: () {
-                      setState(() {
-                        _projectZnnAmountController.text =
-                            kZnnProjectMaximumFunds.toString();
-                      });
+                      BigInt maxZnn = kZnnProjectMaximumFunds;
+                      if (_projectZnnAmountController.text.isEmpty ||
+                          _projectZnnAmountController.text
+                                  .extractDecimals(coinDecimals) <
+                              maxZnn) {
+                        setState(() {
+                          _projectZnnAmountController.text =
+                              maxZnn.addDecimals(coinDecimals);
+                        });
+                      }
                     },
                   ),
                   validator: (value) => InputValidators.correctValue(
                     value,
                     kZnnProjectMaximumFunds,
                     kZnnCoin.decimals,
-                    min: kZnnProjectMinimumFunds,
+                    kZnnProjectMinimumFunds,
                     canBeEqualToMin: true,
                   ),
                   onChanged: (value) {
@@ -380,17 +386,23 @@ class _ProjectCreationStepperState extends State<ProjectCreationStepper> {
                   suffixIcon: AmountSuffixWidgets(
                     kQsrCoin,
                     onMaxPressed: () {
-                      setState(() {
-                        _projectQsrAmountController.text =
-                            kQsrProjectMaximumFunds.toString();
-                      });
+                      BigInt maxQsr = kQsrProjectMaximumFunds;
+                      if (_projectQsrAmountController.text.isEmpty ||
+                          _projectQsrAmountController.text
+                                  .extractDecimals(coinDecimals) <
+                              maxQsr) {
+                        setState(() {
+                          _projectQsrAmountController.text =
+                              maxQsr.addDecimals(coinDecimals);
+                        });
+                      }
                     },
                   ),
                   validator: (value) => InputValidators.correctValue(
                     value,
                     kQsrProjectMaximumFunds,
                     kQsrCoin.decimals,
-                    min: kQsrProjectMinimumFunds,
+                    kQsrProjectMinimumFunds,
                     canBeEqualToMin: true,
                   ),
                   onChanged: (value) {
@@ -399,7 +411,6 @@ class _ProjectCreationStepperState extends State<ProjectCreationStepper> {
                 ),
               ),
             ),
-            // Empty space so that all the right edges will align
             const SizedBox(
               width: 23.0,
             ),
@@ -440,7 +451,7 @@ class _ProjectCreationStepperState extends State<ProjectCreationStepper> {
       children: [
         DottedBorderInfoWidget(
           text:
-              'Consume $projectCreationFeeInZnn ${kZnnCoin.symbol} to submit the project',
+              'Consume ${projectCreationFeeInZnn.addDecimals(coinDecimals)} ${kZnnCoin.symbol} to submit the project',
         ),
         kVerticalSpacing,
         Row(
@@ -498,12 +509,12 @@ class _ProjectCreationStepperState extends State<ProjectCreationStepper> {
           _projectNameController.text,
           _projectDescriptionController.text,
           _projectUrlController.text,
-          _projectZnnAmountController.text.toNum().extractDecimals(
-                znnDecimals,
-              ),
-          _projectQsrAmountController.text.toNum().extractDecimals(
-                qsrDecimals,
-              ),
+          _projectZnnAmountController.text.extractDecimals(
+            coinDecimals,
+          ),
+          _projectQsrAmountController.text.extractDecimals(
+            coinDecimals,
+          ),
         );
       },
       text: 'Submit',
@@ -528,7 +539,7 @@ class _ProjectCreationStepperState extends State<ProjectCreationStepper> {
             _projectZnnAmountController.text,
             kZnnProjectMaximumFunds,
             kZnnCoin.decimals,
-            min: kZnnProjectMinimumFunds,
+            kZnnProjectMinimumFunds,
             canBeEqualToMin: true,
           ) ==
           null &&
@@ -536,7 +547,7 @@ class _ProjectCreationStepperState extends State<ProjectCreationStepper> {
             _projectQsrAmountController.text,
             kQsrProjectMaximumFunds,
             kZnnCoin.decimals,
-            min: kQsrProjectMinimumFunds,
+            kQsrProjectMinimumFunds,
             canBeEqualToMin: true,
           ) ==
           null;

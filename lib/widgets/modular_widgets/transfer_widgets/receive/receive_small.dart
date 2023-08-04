@@ -27,10 +27,10 @@ class _ReceiveSmallCardState extends State<ReceiveSmallCard> {
             15.0,
           ),
         ),
-        child: Column(
+        child: const Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           mainAxisAlignment: MainAxisAlignment.center,
-          children: const <Widget>[
+          children: <Widget>[
             Icon(
               SimpleLineIcons.arrow_down_circle,
               size: 60.0,

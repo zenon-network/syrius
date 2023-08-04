@@ -106,13 +106,14 @@ class AddressesState extends State<Addresses> {
           InkWell(
             onTap: () {
               setState(() {
-                _futureGenerateNewAddress = AddressUtils.generateNewAddress(
-                    numAddr: numberOfAddressesToAdd,
-                    callback: () {
-                      setState(() {
-                        _shouldScrollToTheEnd = true;
-                      });
-                    });
+                _futureGenerateNewAddress =
+                    ZenonAddressUtils.generateNewAddress(
+                        numAddr: numberOfAddressesToAdd,
+                        callback: () {
+                          setState(() {
+                            _shouldScrollToTheEnd = true;
+                          });
+                        });
               });
             },
             child: Container(

@@ -153,6 +153,7 @@ class _SettingsNodeState extends State<SettingsNode> {
           child: MaterialIconButton(
             onPressed: () {
               showDialogWithNoAndYesOptions(
+                isBarrierDismissible: true,
                 context: context,
                 title: 'Node Management',
                 description: 'Are you sure you want to delete '
@@ -305,7 +306,6 @@ class _SettingsNodeState extends State<SettingsNode> {
       await nodesBox.delete(nodeKey);
       kDbNodes.remove(node);
       if (!mounted) return;
-      Navigator.pop(context);
       widget.onChangedOrDeletedNode();
     } catch (e) {
       NotificationUtils.sendNotificationError(

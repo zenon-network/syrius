@@ -2,17 +2,16 @@ import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/account_block_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/address_utils.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/extensions.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/zts_utils.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 class PlasmaOptionsBloc extends BaseBloc<AccountBlockTemplate?> {
-  void generatePlasma(String beneficiaryAddress, String amount) {
+  void generatePlasma(String beneficiaryAddress, BigInt amount) {
     try {
       addEvent(null);
       AccountBlockTemplate transactionParams = zenon!.embedded.plasma.fuse(
         Address.parse(beneficiaryAddress),
-        amount.toNum().extractDecimals(qsrDecimals),
+        amount,
       );
       AccountBlockUtils.createAccountBlock(
         transactionParams,
@@ -20,7 +19,7 @@ class PlasmaOptionsBloc extends BaseBloc<AccountBlockTemplate?> {
         waitForRequiredPlasma: true,
       ).then(
         (response) {
-          AddressUtils.refreshBalance();
+          ZenonAddressUtils.refreshBalance();
           addEvent(response);
         },
       ).onError(

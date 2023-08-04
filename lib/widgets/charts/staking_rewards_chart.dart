@@ -60,18 +60,21 @@ class _StakingRewardsChart extends State<StakingRewardsChart> {
       .toList()[index]
       .qsrAmount
       .addDecimals(
-        qsrDecimals,
-      );
+        coinDecimals,
+      )
+      .toNum();
 
   num _getMaxValueOfQsrRewards() {
-    int max = widget.rewardsHistory!.list.first.qsrAmount;
+    BigInt max = widget.rewardsHistory!.list.first.qsrAmount;
     for (var element in widget.rewardsHistory!.list) {
       if (element.qsrAmount > max) {
         max = element.qsrAmount;
       }
     }
-    return max.addDecimals(
-      qsrDecimals,
-    );
+    return max
+        .addDecimals(
+          coinDecimals,
+        )
+        .toNum();
   }
 }
