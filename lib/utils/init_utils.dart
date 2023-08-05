@@ -24,6 +24,10 @@ class InitUtils {
       await NodeUtils.setNode();
       _setChainId();
       await NodeUtils.loadDbNodes();
+
+      await _openFavoriteTokensBox();
+      await _openNotificationsBox();
+      await _openRecipientBox();
     } catch (e) {
       rethrow;
     }
@@ -74,9 +78,7 @@ class InitUtils {
     zenon!.defaultKeyPair = kKeyStore!.getKeyPair(
       kDefaultAddressList.indexOf(kSelectedAddress),
     );
-    await _openFavoriteTokensBox();
-    await _openNotificationsBox();
-    await _openRecipientBox();
+
     await NodeUtils.initWebSocketClient();
     await _setWalletVersion();
     kWalletInitCompleted = true;

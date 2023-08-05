@@ -67,6 +67,7 @@ dependencies:
   wallet_connect_uri_validator: ^0.1.0
   big_decimal: ^0.5.0
   ai_barcode_scanner: ^0.0.7
+  badges: ^3.1.1
 
 dev_dependencies:
   build_runner: ^2.4.6
