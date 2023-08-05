@@ -104,7 +104,7 @@ class _SettingsNodeState extends State<SettingsNode> {
                         ? AppColors.znnColor
                         : AppColors.errorColor)),
         const SizedBox(
-          width: 8.0,
+          width: 5.0,
         ),
         Visibility(
           visible: widget.node.contains('wss://'),
@@ -131,13 +131,23 @@ class _SettingsNodeState extends State<SettingsNode> {
             'The Embedded Node validates all network transactions\n'
             'It may take several hours to fully sync with the network',
             MaterialCommunityIcons.clock,
+            iconColor: Colors.amber,
+          ),
+        ),
+        Visibility(
+          visible: kDefaultCommunityNodes.contains(widget.node),
+          child: const StandardTooltipIcon(
+            'Hardcoded Community Node',
+            MaterialCommunityIcons.vector_link,
+            iconColor: Colors.amber,
           ),
         ),
         const SizedBox(
           width: 5.0,
         ),
         Visibility(
-          visible: !kDefaultNodes.contains(widget.node),
+          visible: !kDefaultNodes.contains(widget.node) &&
+              !kDefaultCommunityNodes.contains(widget.node),
           child: MaterialIconButton(
             iconData: Icons.edit,
             onPressed: () {
@@ -149,7 +159,8 @@ class _SettingsNodeState extends State<SettingsNode> {
           ),
         ),
         Visibility(
-          visible: !kDefaultNodes.contains(widget.node),
+          visible: !kDefaultNodes.contains(widget.node) &&
+              !kDefaultCommunityNodes.contains(widget.node),
           child: MaterialIconButton(
             onPressed: () {
               showDialogWithNoAndYesOptions(
@@ -257,7 +268,8 @@ class _SettingsNodeState extends State<SettingsNode> {
       _changeButtonKey.currentState!.showLoadingIndicator(true);
       if (_nodeController.text.isNotEmpty &&
           _nodeController.text.length <= kAddressLabelMaxLength &&
-          ![...kDefaultNodes, ...kDbNodes].contains(_nodeController.text)) {
+          ![...kDefaultNodes, ...kDefaultCommunityNodes, ...kDbNodes]
+              .contains(_nodeController.text)) {
         Box<String> nodesBox = await Hive.openBox<String>(kNodesBox);
         dynamic key = nodesBox.keys.firstWhere(
           (key) => nodesBox.get(key) == widget.node,
