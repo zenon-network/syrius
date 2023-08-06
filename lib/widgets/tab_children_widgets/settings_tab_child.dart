@@ -5,13 +5,11 @@ import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 
 class SettingsTabChild extends StatefulWidget {
   final VoidCallback _onChangeAutoLockTime;
-  final VoidCallback _onResyncWalletPressed;
   final VoidCallback onStepperNotificationSeeMorePressed;
   final VoidCallback onNodeChangedCallback;
 
   const SettingsTabChild(
-    this._onChangeAutoLockTime,
-    this._onResyncWalletPressed, {
+    this._onChangeAutoLockTime, {
     required this.onStepperNotificationSeeMorePressed,
     required this.onNodeChangedCallback,
     Key? key,
@@ -75,10 +73,8 @@ class _SettingsTabChildState extends State<SettingsTabChild> {
           ),
           height: kStaggeredNumOfColumns / 3,
         ),
-        FluidCell(
-          child: WalletOptions(
-            widget._onResyncWalletPressed,
-          ),
+        const FluidCell(
+          child: WalletOptions(),
           height: kStaggeredNumOfColumns / 3,
         ),
         FluidCell(

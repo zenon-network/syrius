@@ -42,7 +42,7 @@ enum Tabs {
   staking,
   plasma,
   tokens,
-  resyncWallet,
+  sync,
   bridge,
   accelerator,
   walletConnect,
@@ -489,7 +489,6 @@ class _MainAppContainerState extends State<MainAppContainer>
         const NotificationsTabChild(),
         SettingsTabChild(
           _onChangeAutoLockTime,
-          _onResyncWalletPressed,
           onStepperNotificationSeeMorePressed: () => _navigateTo(
             Tabs.notifications,
           ),
@@ -561,10 +560,6 @@ class _MainAppContainerState extends State<MainAppContainer>
     sl<AutoReceiveTxWorker>().stream.listen((event) {
       sl<NotificationsBloc>().addNotification(event);
     });
-  }
-
-  void _onResyncWalletPressed() {
-    _navigateTo(Tabs.resyncWallet);
   }
 
   Widget _getPowGeneratingStatus() {

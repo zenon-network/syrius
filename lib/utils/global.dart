@@ -48,12 +48,12 @@ final List<Tabs> kTabsWithIconTitles = [
   Tabs.help,
   Tabs.notifications,
   Tabs.settings,
-  Tabs.resyncWallet,
+  Tabs.sync,
   Tabs.lock,
 ];
 
 final List<Tabs> kDisabledTabs = [
-  Tabs.resyncWallet,
+  Tabs.sync,
 ];
 
 List<String> kDefaultNodes = [
