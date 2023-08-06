@@ -113,6 +113,10 @@ class Web3WalletService extends IWeb3WalletService {
     _wcClient!.onSessionProposalError.unsubscribe(_onSessionProposalError);
     _wcClient!.onSessionDelete.unsubscribe(_onSessionDelete);
     // _wcClient!.onAuthRequest.unsubscribe(_onAuthRequest);
+
+    pairings.dispose();
+    sessions.dispose();
+    auth.dispose();
   }
 
   @override
