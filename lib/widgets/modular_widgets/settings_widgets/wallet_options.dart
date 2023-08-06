@@ -14,9 +14,7 @@ import 'package:zenon_syrius_wallet_flutter/utils/notification_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 
 class WalletOptions extends StatefulWidget {
-  final VoidCallback onResyncWalletPressed;
-
-  const WalletOptions(this.onResyncWalletPressed, {Key? key}) : super(key: key);
+  const WalletOptions({Key? key}) : super(key: key);
 
   @override
   State<WalletOptions> createState() => _WalletOptionsState();
