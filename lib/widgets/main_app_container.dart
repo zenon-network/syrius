@@ -425,7 +425,7 @@ class _MainAppContainerState extends State<MainAppContainer>
   }
 
   Widget _getSyncingStatusIcon(SyncState syncState, [SyncInfo? syncInfo]) {
-    var message = 'Connected and synced';
+    String message = 'Connected and synced';
 
     if (syncState != SyncState.notEnoughPeers &&
         syncState != SyncState.syncDone &&
@@ -439,7 +439,7 @@ class _MainAppContainerState extends State<MainAppContainer>
       return Tooltip(
           message: message,
           child: Icon(
-            Icons.signal_cellular_connected_no_internet_0_bar,
+            Icons.sync_disabled,
             size: 24.0,
             color: _getSyncIconColor(syncState),
           ));
@@ -459,7 +459,7 @@ class _MainAppContainerState extends State<MainAppContainer>
                 repeat: true,
               ));
         } else if (syncInfo.targetHeight == 0 || syncInfo.currentHeight == 0) {
-          message = 'Started sync, please wait';
+          message = 'Started syncing with the network, please wait';
           syncState = SyncState.syncing;
           return Tooltip(
               message: message,
@@ -644,6 +644,7 @@ class _MainAppContainerState extends State<MainAppContainer>
     } else {
       _lockBloc.addEvent(LockEvent.navigateToDashboard);
     }
+
     _listenToAutoReceiveTxWorkerNotifications();
   }
 
