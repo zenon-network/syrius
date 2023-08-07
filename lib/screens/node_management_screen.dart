@@ -270,9 +270,11 @@ class _NodeManagementScreenState extends State<NodeManagementScreen> {
 
   Widget _getNodeTiles() {
     return Column(
-      children: [...kDefaultNodes, ...kDefaultCommunityNodes, ...kDbNodes]
-          .map((e) => _getNodeTile(e))
-          .toList(),
+      children: <String>{
+        ...kDefaultNodes,
+        ...kDefaultCommunityNodes,
+        ...kDbNodes
+      }.toList().map((e) => _getNodeTile(e)).toList(),
     );
   }
 
