@@ -12,7 +12,7 @@ dependencies:
 
   fl_chart: ^0.63.0
   overlay_support: ^2.1.0
-  lottie: ^2.5.0
+  lottie: ^2.6.0
   dotted_border: ^2.0.0+2
   flutter_svg: ^2.0.0+1
   flutter_vector_icons: ^2.0.0
@@ -24,7 +24,7 @@ dependencies:
   auto_size_text: ^3.0.0
   window_manager: ^0.3.5
   stacked: ^3.4.1
-  path_provider: ^2.0.8
+  path_provider: ^2.1.0
   rxdart: ^0.27.3
   hive: ^2.0.5
   url_launcher: ^6.1.12
@@ -48,7 +48,7 @@ dependencies:
       ref: master
   json_rpc_2: ^3.0.2
   path: ^1.8.2
-  ffi: ^2.0.1
+  ffi: ^2.1.0
   get_it: ^7.2.0
   hex: ^0.2.0
   local_notifier: ^0.1.5
@@ -57,10 +57,9 @@ dependencies:
   launch_at_startup: ^0.2.1
   app_links: ^3.4.3
   logging: ^1.2.0
-  walletconnect_flutter_v2: ^2.0.16
+  walletconnect_flutter_v2: ^2.1.0
   preference_list: ^0.0.1
   screen_capturer: ^0.1.6
-  uni_ocr: ^0.1.0
   zxing2: ^0.2.0
   image: ^4.0.10
   clipboard_watcher: ^0.2.0
