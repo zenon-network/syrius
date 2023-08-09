@@ -167,9 +167,12 @@ const String kAutoEraseNumAttemptsKey = 'auto_erase_num_attempts';
 const String kLaunchAtStartupKey = 'launch_at_startup';
 const String kEnableDesktopNotificationsKey = 'enable_desktop_notifications';
 const String kEnableClipboardWatcherKey = 'enable_clipboard_watcher';
+const String kAutoReceiveKey = 'enable_auto_receive';
+
 const bool kLaunchAtStartupDefaultValue = false;
 const bool kEnableDesktopNotificationsDefaultValue = false;
 const bool kEnableClipboardWatcherDefaultValue = false;
+const bool kAutoReceiveDefaultValue = true;
 
 /// Node management
 const String kChainIdKey = 'chain_id';

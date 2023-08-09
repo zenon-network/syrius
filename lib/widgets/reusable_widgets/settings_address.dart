@@ -83,6 +83,7 @@ class _SettingsAddressState extends State<SettingsAddress> {
           width: 5.0,
         ),
         MaterialIconButton(
+          size: 15.0,
           iconData: Icons.edit,
           onPressed: () {
             setState(() {
@@ -173,6 +174,7 @@ class _SettingsAddressState extends State<SettingsAddress> {
               key: _changeButtonKey,
             ),
             MaterialIconButton(
+              size: 15.0,
               onPressed: () {
                 setState(() {
                   _labelController.text = kAddressLabelMap[widget.address]!;
