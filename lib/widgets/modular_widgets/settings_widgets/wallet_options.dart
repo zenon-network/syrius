@@ -2,15 +2,13 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:launch_at_startup/launch_at_startup.dart';
+import 'package:logging/logging.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/model/model.dart';
 import 'package:zenon_syrius_wallet_flutter/screens/screens.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/clipboard_utils.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/navigation_utils.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/notification_utils.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 
 class WalletOptions extends StatefulWidget {
@@ -24,6 +22,7 @@ class _WalletOptionsState extends State<WalletOptions> {
   bool? _launchAtStartup;
   bool? _enableDesktopNotifications;
   bool? _enabledClipboardWatcher;
+  bool? _autoReceive;
 
   @override
   void initState() {
@@ -39,6 +38,10 @@ class _WalletOptionsState extends State<WalletOptions> {
     _enabledClipboardWatcher = sharedPrefsService!.get(
       kEnableClipboardWatcherKey,
       defaultValue: kEnableClipboardWatcherDefaultValue,
+    );
+    _autoReceive = sharedPrefsService!.get(
+      kAutoReceiveKey,
+      defaultValue: kAutoReceiveDefaultValue,
     );
   }
 
@@ -117,6 +120,7 @@ class _WalletOptionsState extends State<WalletOptions> {
         _getLaunchAtStartupWidget(),
         _getEnableDesktopNotifications(),
         _buildEnableClipboardWatcher(),
+        _getAutoReceiveWidget()
       ],
     );
   }
@@ -142,12 +146,79 @@ class _WalletOptionsState extends State<WalletOptions> {
     );
   }
 
+  Widget _getAutoReceiveWidget() {
+    return Row(
+      children: [
+        Text(
+          'Auto-receiver',
+          style: Theme.of(context).textTheme.bodyMedium,
+        ),
+        SyriusCheckbox(
+          onChanged: (value) async {
+            if (value == true) {
+              NodeUtils.getUnreceivedTransactions().then((value) {
+                sl<AutoReceiveTxWorker>().autoReceive();
+              }).onError((error, stackTrace) {
+                Logger('MainAppContainer').log(
+                    Level.WARNING, '_getAutoReceiveWidget', error, stackTrace);
+              });
+            } else if (value == false &&
+                sl<AutoReceiveTxWorker>().pool.isNotEmpty) {
+              sl<AutoReceiveTxWorker>().pool.clear();
+            }
+            setState(() {
+              _autoReceive = value;
+              _changeAutoReceiveStatus(value ?? false);
+            });
+          },
+          value: _autoReceive,
+          context: context,
+        ),
+        const StandardTooltipIcon(
+          'Disable the auto-receiver to protect against dusting attacks',
+          Icons.help,
+        ),
+      ],
+    );
+  }
+
   Future<void> _setupLaunchAtStartup() async {
     PackageInfo packageInfo = await PackageInfo.fromPlatform();
     launchAtStartup.setup(
       appName: packageInfo.appName,
       appPath: Platform.resolvedExecutable,
     );
+  }
+
+  Future<void> _changeAutoReceiveStatus(bool enabled) async {
+    try {
+      await _saveAutoReceiveValueToCache(enabled);
+      _sendAutoReceiveNotification(enabled);
+    } on Exception catch (e) {
+      NotificationUtils.sendNotificationError(
+        e,
+        'Something went wrong while setting automatic receive preference',
+      );
+    }
+  }
+
+  Future<void> _saveAutoReceiveValueToCache(bool enabled) async {
+    await sharedPrefsService!.put(
+      kAutoReceiveKey,
+      enabled,
+    );
+  }
+
+  void _sendAutoReceiveNotification(bool enabled) {
+    sl.get<NotificationsBloc>().addNotification(
+          WalletNotification(
+            title: 'Auto-receiver ${enabled ? 'enabled' : 'disabled'}',
+            details:
+                'Automatic Plasma generation was ${enabled ? 'enabled' : 'disabled'}',
+            timestamp: DateTime.now().millisecondsSinceEpoch,
+            type: NotificationType.paymentSent,
+          ),
+        );
   }
 
   Future<void> _changeLaunchAtStartupStatus(bool enabled) async {
