@@ -401,14 +401,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "5.0.1"
-  fake_async:
-    dependency: transitive
-    description:
-      name: fake_async
-      sha256: "511392330127add0b769b75a987850d136345d9227c6b94c96a04cf4a391bf78"
-      url: "https://pub.dev"
-    source: hosted
-    version: "1.3.1"
   ffi:
     dependency: "direct main"
     description:
@@ -534,11 +526,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.0.7"
-  flutter_test:
-    dependency: "direct dev"
-    description: flutter
-    source: sdk
-    version: "0.0.0"
   flutter_vector_icons:
     dependency: "direct main"
     description:
@@ -1281,10 +1268,10 @@ packages:
     dependency: transitive
     description:
       name: stream_channel
-      sha256: "83615bee9045c1d322bbbd1ba209b7a749c2cbcdcb3fdd1df8eb488b3279c1c8"
+      sha256: ba2aa5d8cc609d96bbb2899c28934f9e1af5cddbd60a827822ea467161eb54e7
       url: "https://pub.dev"
     source: hosted
-    version: "2.1.1"
+    version: "2.1.2"
   stream_transform:
     dependency: transitive
     description:
@@ -1601,9 +1588,9 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: "2e445add298e841bf5a5bec2e3525e5c77fd0278"
-      resolved-ref: "2e445add298e841bf5a5bec2e3525e5c77fd0278"
-      url: "https://github.com/alienc0der/znn_sdk_dart.git"
+      ref: master
+      resolved-ref: f3adff23fa6af3882b25bfb8a1d157f04f8a7b5d
+      url: "https://github.com/zenon-network/znn_sdk_dart.git"
     source: git
     version: "0.0.4"
   zxing2:
