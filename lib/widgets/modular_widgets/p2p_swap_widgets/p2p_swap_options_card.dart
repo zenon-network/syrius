@@ -8,6 +8,7 @@ import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/toast_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/p2p_swap_widgets/modals/join_native_swap_modal.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/p2p_swap_widgets/modals/native_p2p_swap_modal.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/p2p_swap_widgets/modals/recover_deposit_modal.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/p2p_swap_widgets/modals/start_native_swap_modal.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/p2p_swap_widgets/modals/p2p_swap_warning_modal.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/p2p_swap_widgets/p2p_swap_options_button.dart';
@@ -37,6 +38,36 @@ class _P2pSwapOptionsCardState extends State<P2pSwapOptionsCard> {
       title: 'P2P Swap Options',
       description: 'Starting and joining P2P swaps can be done from this card.',
       childBuilder: () => _getWidgetBody(context),
+      customItem: MouseRegion(
+        cursor: SystemMouseCursors.click,
+        child: GestureDetector(
+          onTap: () {
+            showCustomDialog(
+              context: context,
+              content: const RecoverDepositModal(),
+            );
+          },
+          child: Row(
+            children: [
+              const Icon(
+                Icons.refresh,
+                color: AppColors.znnColor,
+                size: 20.0,
+              ),
+              const SizedBox(
+                width: 5.0,
+                height: 38.0,
+              ),
+              Expanded(
+                child: Text(
+                  'Recover deposit',
+                  style: Theme.of(context).textTheme.bodyLarge,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 
