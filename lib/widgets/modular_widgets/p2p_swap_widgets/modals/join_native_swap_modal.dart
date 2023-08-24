@@ -205,6 +205,7 @@ class _JoinNativeSwapModalState extends State<JoinNativeSwapModal> {
   void _onContinueButtonPressed(InitialHtlcForSwapBloc model) async {
     setState(() {
       _isLoading = true;
+      _initialHtlcError = null;
     });
     model.getInitialHtlc(Hash.parse(_depositIdController.text));
   }
