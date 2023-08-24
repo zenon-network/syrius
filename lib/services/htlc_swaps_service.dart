@@ -88,6 +88,15 @@ class HtlcSwapsService {
   Future<void> deleteSwap(String swapId) async =>
       await _htlcSwapsBox!.delete(swapId);
 
+  Future<void> deleteInactiveSwaps() async =>
+      await _htlcSwapsBox!.deleteAll(_swapsForCurrentChainId
+          .where((e) => [
+                P2pSwapState.completed,
+                P2pSwapState.unsuccessful,
+                P2pSwapState.error
+              ].contains(e.state))
+          .map((e) => e.id));
+
   List<HtlcSwap> get _swapsForCurrentChainId {
     return kNodeChainId != null
         ? _htlcSwapsBox!.values

@@ -52,15 +52,41 @@ class _P2pSwapsCardState extends State<P2pSwapsCard> {
   @override
   Widget build(BuildContext context) {
     return CardScaffold<List<P2pSwap>>(
-        title: 'P2P Swaps',
-        childStream: _p2pSwapsListBloc.stream,
-        onCompletedStatusCallback: (data) => data.isEmpty
-            ? const SyriusErrorWidget('No P2P swaps')
-            : _getTable(data),
-        onRefreshPressed: () => _p2pSwapsListBloc.getData(),
-        description:
-            'This card displays a list of P2P swaps that have been conducted '
-            'with this wallet.');
+      title: 'P2P Swaps',
+      childStream: _p2pSwapsListBloc.stream,
+      onCompletedStatusCallback: (data) => data.isEmpty
+          ? const SyriusErrorWidget('No P2P swaps')
+          : _getTable(data),
+      onRefreshPressed: () => _p2pSwapsListBloc.getData(),
+      description:
+          'This card displays a list of P2P swaps that have been conducted '
+          'with this wallet.',
+      customItem: MouseRegion(
+        cursor: SystemMouseCursors.click,
+        child: GestureDetector(
+          onTap: _onDeleteSwapHistoryTapped,
+          child: Row(
+            children: [
+              const Icon(
+                Icons.delete,
+                color: AppColors.znnColor,
+                size: 20.0,
+              ),
+              const SizedBox(
+                width: 5.0,
+                height: 38.0,
+              ),
+              Expanded(
+                child: Text(
+                  'Delete swap history',
+                  style: Theme.of(context).textTheme.bodyLarge,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
   void _onSwapTapped(String swapId) {
@@ -80,10 +106,22 @@ class _P2pSwapsCardState extends State<P2pSwapsCard> {
         description:
             'Are you sure you want to delete this swap? This action cannot be undone.',
         onYesButtonPressed: () async {
-          Navigator.of(context).pop();
           if (swap.mode == P2pSwapMode.htlc) {
             await htlcSwapsService!.deleteSwap(swap.id);
           }
+          _p2pSwapsListBloc.getData();
+        });
+  }
+
+  Future<void> _onDeleteSwapHistoryTapped() async {
+    showDialogWithNoAndYesOptions(
+        context: context,
+        isBarrierDismissible: true,
+        title: 'Delete swap history',
+        description:
+            'Are you sure you want to delete your swap history? Active swaps cannot be deleted.',
+        onYesButtonPressed: () async {
+          await htlcSwapsService!.deleteInactiveSwaps();
           _p2pSwapsListBloc.getData();
         });
   }
