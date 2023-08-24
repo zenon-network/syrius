@@ -4,14 +4,15 @@ import 'package:flutter/material.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/pow_generating_status_bloc.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/toast_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/p2p_swap_widgets/modals/join_native_swap_modal.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/p2p_swap_widgets/modals/native_p2p_swap_modal.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/p2p_swap_widgets/modals/start_native_swap_modal.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/p2p_swap_widgets/modals/p2p_swap_warning_modal.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/p2p_swap_widgets/p2p_swap_options_button.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/dialogs.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/error_widget.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/important_text_container.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/layout_scaffold/card_scaffold.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
@@ -55,6 +56,25 @@ class _P2pSwapOptionsCardState extends State<P2pSwapOptionsCard> {
     );
   }
 
+  void _showUserWarningModalIfNeeded({required Function() onContinue}) {
+    final hasReadWarning = sharedPrefsService!.get(
+      kHasReadP2pSwapWarningKey,
+      defaultValue: kHasReadP2pSwapWarningDefaultValue,
+    );
+    if (!hasReadWarning) {
+      showCustomDialog(
+        context: context,
+        content: P2PSwapWarningModal(onAccepted: () {
+          Navigator.pop(context);
+          sharedPrefsService!.put(kHasReadP2pSwapWarningKey, true);
+          Timer.run(onContinue);
+        }),
+      );
+    } else {
+      onContinue();
+    }
+  }
+
   void _showNativeSwapModal(String swapId) {
     Navigator.pop(context);
     Timer.run(
@@ -75,11 +95,12 @@ class _P2pSwapOptionsCardState extends State<P2pSwapOptionsCard> {
           secondaryText: 'Start a native swap with a counterparty.',
           onClick: () => isGeneratingPlasma
               ? _showGeneratingPlasmaToast()
-              : showCustomDialog(
-                  context: context,
-                  content:
-                      StartNativeSwapModal(onSwapStarted: _showNativeSwapModal),
-                ),
+              : _showUserWarningModalIfNeeded(
+                  onContinue: () => showCustomDialog(
+                        context: context,
+                        content: StartNativeSwapModal(
+                            onSwapStarted: _showNativeSwapModal),
+                      )),
         ),
         const SizedBox(
           height: 25.0,
@@ -89,10 +110,12 @@ class _P2pSwapOptionsCardState extends State<P2pSwapOptionsCard> {
           secondaryText: 'Join a native swap started by a counterparty.',
           onClick: () => isGeneratingPlasma
               ? _showGeneratingPlasmaToast()
-              : showCustomDialog(
-                  context: context,
-                  content:
-                      JoinNativeSwapModal(onJoinedSwap: _showNativeSwapModal),
+              : _showUserWarningModalIfNeeded(
+                  onContinue: () => showCustomDialog(
+                    context: context,
+                    content:
+                        JoinNativeSwapModal(onJoinedSwap: _showNativeSwapModal),
+                  ),
                 ),
         ),
         const SizedBox(
@@ -127,14 +150,6 @@ class _P2pSwapOptionsCardState extends State<P2pSwapOptionsCard> {
         ),
         const SizedBox(
           height: 40.0,
-        ),
-        const ImportantTextContainer(
-          text: '''The P2P swap is an experimental feature. '''
-              '''Please use the feature with caution and only swap small '''
-              '''amounts. There is absolutely no warranty for this '''
-              '''software.''',
-          showBorder: true,
-          animateBorder: true,
         ),
       ],
     );
