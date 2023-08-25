@@ -170,9 +170,25 @@ class _HtlcCardState extends State<HtlcCard>
             children: [
               Row(
                 children: [
-                  Text(
-                    '${widget.amount!.addDecimals(widget.tokenDecimals!)} ${widget.tokenSymbol!}',
-                    style: const TextStyle(fontSize: 18.0),
+                  Container(
+                    constraints: const BoxConstraints(maxWidth: 280),
+                    child: Text(
+                      widget.amount!.addDecimals(widget.tokenDecimals!),
+                      style: const TextStyle(fontSize: 18.0),
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 1,
+                      softWrap: false,
+                    ),
+                  ),
+                  Container(
+                    constraints: const BoxConstraints(maxWidth: 150),
+                    child: Text(
+                      ' ${widget.tokenSymbol!}',
+                      style: const TextStyle(fontSize: 18.0),
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 1,
+                      softWrap: false,
+                    ),
                   ),
                   const SizedBox(
                     width: 8.0,

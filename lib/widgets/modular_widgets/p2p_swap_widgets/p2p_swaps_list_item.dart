@@ -127,11 +127,12 @@ class _P2pSwapsListItemState extends State<P2pSwapsListItem> {
   }
 
   Widget _getTextWidget(String text) {
-    return Text(
-      text,
-      style: const TextStyle(
-          fontSize: 12.0, height: 1, color: AppColors.subtitleColor),
-    );
+    return Text(text,
+        style: const TextStyle(
+            fontSize: 12.0, height: 1, color: AppColors.subtitleColor),
+        overflow: TextOverflow.ellipsis,
+        maxLines: 1,
+        softWrap: false);
   }
 
   Widget _getAmountWidget(
@@ -144,7 +145,18 @@ class _P2pSwapsListItemState extends State<P2pSwapsListItem> {
     }
     return Row(
       children: [
-        _getTextWidget('${amount.addDecimals(decimals)} $symbol'),
+        Row(
+          children: [
+            Container(
+              constraints: const BoxConstraints(maxWidth: 70),
+              child: _getTextWidget(amount.addDecimals(decimals)),
+            ),
+            Container(
+              constraints: const BoxConstraints(maxWidth: 50),
+              child: _getTextWidget(' $symbol'),
+            ),
+          ],
+        ),
         const SizedBox(
           width: 6.0,
         ),
