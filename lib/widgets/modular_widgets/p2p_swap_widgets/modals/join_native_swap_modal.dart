@@ -319,7 +319,7 @@ class _JoinNativeSwapModalState extends State<JoinNativeSwapModal> {
                   'The counterparty will have ',
                   children: [
                     TextSpan(
-                        text: '${(kCounterHtlcDuration).inMinutes} minutes',
+                        text: '~${(kCounterHtlcDuration).inHours} hour',
                         style: const TextStyle(
                             fontSize: 14.0, color: Colors.white)),
                     BulletPointCard.textSpan(' to complete the swap.'),

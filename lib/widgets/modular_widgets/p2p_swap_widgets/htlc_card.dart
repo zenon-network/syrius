@@ -149,17 +149,10 @@ class _HtlcCardState extends State<HtlcCard>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                widget.title,
-                style: const TextStyle(
-                    fontSize: 14.0, color: AppColors.subtitleColor),
-              ),
-              _getExpirationWarning(widget.expirationTime!),
-            ],
+          Text(
+            widget.title,
+            style:
+                const TextStyle(fontSize: 14.0, color: AppColors.subtitleColor),
           ),
           const SizedBox(
             height: 10,
@@ -208,42 +201,6 @@ class _HtlcCardState extends State<HtlcCard>
             ],
           ),
           _getDetailsSection(),
-        ],
-      ),
-    );
-  }
-
-  Widget _getExpirationWarning(int expirationTime) {
-    final remaining =
-        Duration(seconds: expirationTime - DateTimeUtils.unixTimeNow);
-    return Visibility(
-      visible:
-          !remaining.isNegative && remaining < kHtlcExpirationWarningThreshold,
-      child: Row(
-        children: [
-          const Icon(
-            Icons.error_outline_rounded,
-            color: AppColors.errorColor,
-            size: 16.0,
-          ),
-          const SizedBox(
-            width: 5.0,
-          ),
-          TweenAnimationBuilder<Duration>(
-            duration: remaining,
-            tween: Tween(begin: remaining, end: Duration.zero),
-            onEnd: () => setState(() {}),
-            builder: (_, Duration d, __) {
-              return Text(
-                'Expires in ${d.toString().split('.').first}',
-                style: const TextStyle(
-                  fontSize: 12.0,
-                  color: AppColors.errorColor,
-                  height: 1,
-                ),
-              );
-            },
-          ),
         ],
       ),
     );

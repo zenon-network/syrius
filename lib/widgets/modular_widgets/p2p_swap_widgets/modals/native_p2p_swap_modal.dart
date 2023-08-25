@@ -102,16 +102,19 @@ class _NativeP2pSwapModalState extends State<NativeP2pSwapModal> {
   Widget _getPendingView() {
     return const SizedBox(
       height: 215.0,
-      child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-        Text(
-          'Starting swap. This will take a moment.',
-          style: TextStyle(
-            fontSize: 16.0,
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(
+            'Starting swap. This will take a moment.',
+            style: TextStyle(
+              fontSize: 16.0,
+            ),
           ),
-        ),
-        SizedBox(height: 25.0),
-        SyriusLoadingWidget()
-      ]),
+          SizedBox(height: 25.0),
+          SyriusLoadingWidget()
+        ],
+      ),
     );
   }
 
@@ -410,6 +413,7 @@ class _NativeP2pSwapModalState extends State<NativeP2pSwapModal> {
                     ),
                   ),
                 ),
+                _getExpirationWarningForOutgoingSwap(swap),
                 _getSwapButtonViewModel(swap),
                 const SizedBox(
                   height: 25,
@@ -433,6 +437,30 @@ class _NativeP2pSwapModalState extends State<NativeP2pSwapModal> {
         ],
       );
     }
+  }
+
+  Widget _getExpirationWarningForOutgoingSwap(HtlcSwap swap) {
+    const warningThreshold = Duration(minutes: 10);
+    final timeToCompleteSwap = Duration(
+            seconds:
+                swap.counterHtlcExpirationTime! - DateTimeUtils.unixTimeNow) -
+        kMinSafeTimeToCompleteSwap;
+    return TweenAnimationBuilder<Duration>(
+      duration: timeToCompleteSwap,
+      tween: Tween(begin: timeToCompleteSwap, end: Duration.zero),
+      onEnd: () => setState(() {}),
+      builder: (_, Duration d, __) {
+        return Visibility(
+          visible: timeToCompleteSwap <= warningThreshold,
+          child: Padding(
+            padding: const EdgeInsets.only(bottom: 25.0),
+            child: ImportantTextContainer(
+              text: 'The swap will expire in ${d.toString().split('.').first}',
+            ),
+          ),
+        );
+      },
+    );
   }
 
   Widget _getSwapButtonViewModel(HtlcSwap swap) {
