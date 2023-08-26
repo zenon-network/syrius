@@ -43,7 +43,6 @@ int? kNumOfPillars;
 bool kEmbeddedNodeRunning = false;
 
 final List<Tabs> kTabsWithIconTitles = [
-  Tabs.bridge,
   if (kWcProjectId.isNotEmpty) Tabs.walletConnect,
   Tabs.accelerator,
   Tabs.help,

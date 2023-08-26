@@ -1,5 +1,4 @@
 export 'accelerator_tab_child.dart';
-export 'bridge_tab_child.dart';
 export 'dashboard_tab_child.dart';
 export 'help_tab_child.dart';
 export 'lock_tab_child.dart';

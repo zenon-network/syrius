@@ -7,10 +7,8 @@ enum DimensionCard { small, medium, large }
 class TransferTabChild extends StatefulWidget {
   DimensionCard sendCard;
   DimensionCard receiveCard;
-  final void Function() navigateToBridgeTab;
 
   TransferTabChild({
-    required this.navigateToBridgeTab,
     Key? key,
     this.sendCard = DimensionCard.medium,
     this.receiveCard = DimensionCard.medium,
@@ -53,10 +51,7 @@ class _TransferTabChildState extends State<TransferTabChild> {
 
   FluidCell _getSendCard() => widget.sendCard == DimensionCard.medium
       ? _getMediumFluidCell(
-          SendMediumCard(
-            onExpandClicked: _onExpandSendCard,
-            onOkBridgeWarningDialogPressed: widget.navigateToBridgeTab,
-          ),
+          SendMediumCard(onExpandClicked: _onExpandSendCard),
         )
       : widget.sendCard == DimensionCard.small
           ? _getSmallFluidCell(SendSmallCard(_onCollapse))

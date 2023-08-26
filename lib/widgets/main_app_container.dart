@@ -44,7 +44,6 @@ enum Tabs {
   tokens,
   p2pSwap,
   resyncWallet,
-  bridge,
   accelerator,
   walletConnect,
 }
@@ -101,11 +100,7 @@ class _MainAppContainerState extends State<MainAppContainer>
 
     _netSyncStatusBloc.getDataPeriodically();
 
-    _transferTabChild = TransferTabChild(
-      navigateToBridgeTab: () {
-        _navigateTo(Tabs.bridge);
-      },
-    );
+    _transferTabChild = TransferTabChild();
     _initTabController();
     _animationController = AnimationController(
       vsync: this,
@@ -299,15 +294,6 @@ class _MainAppContainerState extends State<MainAppContainer>
 
   List<Tab> _getIconTabs() {
     return <Tab>[
-      Tab(
-        child: Icon(
-          MaterialCommunityIcons.bridge,
-          size: 24.0,
-          color: _isTabSelected(Tabs.bridge)
-              ? AppColors.znnColor
-              : Theme.of(context).iconTheme.color,
-        ),
-      ),
       if (kWcProjectId.isNotEmpty)
         Tab(
           child: SvgPicture.asset(
@@ -477,7 +463,6 @@ class _MainAppContainerState extends State<MainAppContainer>
           onStepperNotificationSeeMorePressed: () =>
               _navigateTo(Tabs.notifications),
         ),
-        const BridgeTabChild(),
         if (kWcProjectId.isNotEmpty) const WalletConnectTabChild(),
         AcceleratorTabChild(
           onStepperNotificationSeeMorePressed: () =>

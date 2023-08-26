@@ -28,10 +28,6 @@ const SizedBox kSpacingBetweenActionButtons = SizedBox(
 );
 const Size kAcceleratorProgressBarSize = Size(300.0, 10.0);
 
-const List<String> kBridgeNetworks = [
-  'The ZNN to wZNN bridge is unavailable. A new bridge will be available soon.',
-];
-
 // Wallet version
 const String kWalletVersion = '0.0.7';
 
