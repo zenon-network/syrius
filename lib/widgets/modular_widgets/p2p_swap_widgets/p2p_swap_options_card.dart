@@ -3,9 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/pow_generating_status_bloc.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/toast_utils.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/p2p_swap_widgets/modals/join_native_swap_modal.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/p2p_swap_widgets/modals/native_p2p_swap_modal.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/p2p_swap_widgets/modals/recover_deposit_modal.dart';
@@ -155,9 +153,9 @@ class _P2pSwapOptionsCardState extends State<P2pSwapOptionsCard> {
         MouseRegion(
           cursor: SystemMouseCursors.click,
           child: GestureDetector(
-            child: Row(
+            child: const Row(
               mainAxisAlignment: MainAxisAlignment.center,
-              children: const [
+              children: [
                 Text(
                   'View swap tutorial',
                   style: TextStyle(
@@ -175,8 +173,7 @@ class _P2pSwapOptionsCardState extends State<P2pSwapOptionsCard> {
                 ),
               ],
             ),
-            // TODO: Open link to tutorial
-            onTap: () => ToastUtils.showToast(context, 'No tutorial yet'),
+            onTap: () => NavigationUtils.openUrl(kP2pSwapTutorialLink),
           ),
         ),
         const SizedBox(

@@ -222,3 +222,5 @@ const Duration kMinSafeTimeToFindPreimage = Duration(hours: 6);
 const Duration kMinSafeTimeToCompleteSwap = Duration(minutes: 10);
 const String kHasReadP2pSwapWarningKey = 'has_read_p2p_swap_warning';
 const bool kHasReadP2pSwapWarningDefaultValue = false;
+const String kP2pSwapTutorialLink =
+    'https://medium.com/@vilkris/p2p-swap-tutorial-3805f10d2d21';
