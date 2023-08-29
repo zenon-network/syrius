@@ -26,7 +26,9 @@ KeyStoreManager kKeyStoreManager = KeyStoreManager(
 );
 
 List<String> kDbNodes = [];
-List<String?> kDefaultAddressList = [];
+List<String?> kDefaultAddressList = [
+  'wss://my.hc1node.com:35998',
+];
 
 Map<String, String> kAddressLabelMap = {};
 
