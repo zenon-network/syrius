@@ -5,7 +5,7 @@ escape () {
 GIT_BRANCH_NAME=$(git rev-parse --abbrev-ref HEAD)
 GIT_COMMIT_HASH=$(git rev-parse HEAD)
 GIT_COMMIT_MESSAGE=$(git log -1 --pretty=%s)
-GIT_COMMIT_DATE=$(git --no-pager log -1 --format="%ai")
+GIT_COMMIT_DATE=$(git --no-pager log -1 --format="%as")
 GIT_ORIGIN_URL=$(git config --get remote.origin.url)
 GIT_COMMIT_FILE="../lib/utils/metadata.dart"
 
