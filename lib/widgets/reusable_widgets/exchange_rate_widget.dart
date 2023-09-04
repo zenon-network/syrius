@@ -1,3 +1,4 @@
+import 'package:big_decimal/big_decimal.dart';
 import 'package:flutter/material.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/extensions.dart';
@@ -63,12 +64,18 @@ class _ExchangeRateWidgetState extends State<ExchangeRateWidget> {
     if (widget.fromAmount <= BigInt.zero || widget.toAmount <= BigInt.zero) {
       return '-';
     }
+    final fromAmountWithDecimals = BigDecimal.createAndStripZerosForScale(
+        widget.fromAmount, widget.fromDecimals, widget.fromDecimals);
+    final toAmountWithDecimals = BigDecimal.createAndStripZerosForScale(
+        widget.toAmount, widget.toDecimals, widget.toDecimals);
     if (_isToggled) {
-      final rate = (widget.fromAmount / widget.toAmount);
-      return '1 ${widget.toSymbol} = ${rate.toStringFixedNumDecimals(5)} ${widget.fromSymbol}';
+      final rate = (fromAmountWithDecimals.divide(toAmountWithDecimals,
+          roundingMode: RoundingMode.DOWN));
+      return '1 ${widget.toSymbol} = ${rate.toDouble().toStringFixedNumDecimals(5)} ${widget.fromSymbol}';
     } else {
-      final rate = widget.toAmount / widget.fromAmount;
-      return '1 ${widget.fromSymbol} = ${rate.toStringFixedNumDecimals(5)} ${widget.toSymbol}';
+      final rate = (toAmountWithDecimals.divide(fromAmountWithDecimals,
+          roundingMode: RoundingMode.DOWN));
+      return '1 ${widget.fromSymbol} = ${rate.toDouble().toStringFixedNumDecimals(5)} ${widget.toSymbol}';
     }
   }
 }
