@@ -10,6 +10,9 @@ extension StringExtensions on String {
 
   BigInt extractDecimals(int decimals) {
     if (!contains('.')) {
+      if (decimals == 0 && isEmpty) {
+        return BigInt.zero;
+      }
       return BigInt.parse(this + ''.padRight(decimals, '0'));
     }
     List<String> parts = split('.');
@@ -19,7 +22,6 @@ extension StringExtensions on String {
             ? parts[1].substring(0, decimals)
             : parts[1].padRight(decimals, '0')));
   }
-  //BigInt.parse(num.parse(this).toStringAsFixed(decimals).replaceAll('.', ''));
 
   String abs() => this;
 }
