@@ -384,12 +384,14 @@ class _SendLargeCardState extends State<SendLargeCard> {
   bool _isInputValid(AccountInfo accountInfo) =>
       InputValidators.checkAddress(_recipientController.text) == null &&
       InputValidators.correctValue(
-              _amountController.text,
-              accountInfo.getBalance(
-                _selectedToken.tokenStandard,
-              ),
-              _selectedToken.decimals,
-              BigInt.one) ==
+            _amountController.text,
+            accountInfo.getBalance(
+              _selectedToken.tokenStandard,
+            ),
+            _selectedToken.decimals,
+            BigInt.one,
+            canBeEqualToMin: true,
+          ) ==
           null;
 
   @override
