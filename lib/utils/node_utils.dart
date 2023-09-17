@@ -137,12 +137,10 @@ class NodeUtils {
     const maxAllowedDiscrepancy = Duration(minutes: 5);
     try {
       final syncInfo = await zenon!.stats.syncInfo();
-      bool nodeIsSynced = kCurrentNode == kLocalhostDefaultNodeUrl
-          ? (syncInfo.state == SyncState.syncDone ||
-              (syncInfo.targetHeight > 0 &&
-                  syncInfo.currentHeight > 0 &&
-                  (syncInfo.targetHeight - syncInfo.currentHeight) < 20))
-          : true;
+      bool nodeIsSynced = (syncInfo.state == SyncState.syncDone ||
+          (syncInfo.targetHeight > 0 &&
+              syncInfo.currentHeight > 0 &&
+              (syncInfo.targetHeight - syncInfo.currentHeight) < 20));
       if (nodeIsSynced) {
         final frontierTime =
             (await zenon!.ledger.getFrontierMomentum()).timestamp;
