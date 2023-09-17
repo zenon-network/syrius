@@ -1,6 +1,6 @@
 # s y r i u s
 
-[![Build and release syrius](https://github.com/hypercore-one/syrius/actions/workflows/syrius_builder.yml/badge.svg?branch=develop)](https://github.com/hypercore-one/syrius/actions/workflows/syrius_builder.yml) [![Library updater for syrius](https://github.com/hypercore-one/syrius/actions/workflows/syrius_lib_updater.yml/badge.svg?branch=develop)](https://github.com/hypercore-one/syrius/actions/workflows/syrius_lib_updater.yml)
+[![Build and release syrius](https://github.com/zenon-network/syrius/actions/workflows/syrius_builder.yml/badge.svg?branch=develop)](https://github.com/zenon-network/syrius/actions/workflows/syrius_builder.yml) [![Library updater for syrius](https://github.com/zenon-network/syrius/actions/workflows/syrius_lib_updater.yml/badge.svg?branch=develop)](https://github.com/zenon-network/syrius/actions/workflows/syrius_lib_updater.yml)
 
 Cross-platform non-custodial wallet designed for Alphanet - Network of Momentum Phase 0.
 
