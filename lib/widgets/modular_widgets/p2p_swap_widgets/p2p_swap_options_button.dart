@@ -75,8 +75,8 @@ class _P2pSwapOptionsButtonState extends State<P2pSwapOptionsButton> {
               const SizedBox(
                 width: 15.0,
               ),
-              Column(
-                children: const [
+              const Column(
+                children: [
                   Icon(Icons.keyboard_arrow_right, size: 18.0),
                 ],
               ),
