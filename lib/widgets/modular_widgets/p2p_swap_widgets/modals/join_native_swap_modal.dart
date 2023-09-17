@@ -328,7 +328,7 @@ class _JoinNativeSwapModalState extends State<JoinNativeSwapModal> {
               ),
               RichText(
                 text: BulletPointCard.textSpan(
-                  'You can reclaim your funds if the counterparty fails complete the swap. ',
+                  'You can reclaim your funds if the counterparty fails to complete the swap. ',
                 ),
               ),
             ],
