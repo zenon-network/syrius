@@ -1588,9 +1588,9 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: "feature/bigint"
-      resolved-ref: "5559b763ba7a0b46c0583fd8f926b9423bb92378"
-      url: "https://github.com/hypercore-one/znn_sdk_dart.git"
+      ref: d960c0bdc6dc553eaa75d5ddddb34cab530578b8
+      resolved-ref: d960c0bdc6dc553eaa75d5ddddb34cab530578b8
+      url: "https://github.com/zenon-network/znn_sdk_dart.git"
     source: git
     version: "0.0.5"
   zxing2:

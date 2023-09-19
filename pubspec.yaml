@@ -43,8 +43,8 @@ dependencies:
   number_selector: ^1.0.5
   znn_sdk_dart:
     git:
-      url: https://github.com/hypercore-one/znn_sdk_dart.git
-      ref: feature/bigint
+      url: https://github.com/zenon-network/znn_sdk_dart.git
+      ref: d960c0bdc6dc553eaa75d5ddddb34cab530578b8
   json_rpc_2: ^3.0.2
   path: ^1.8.2
   ffi: ^2.0.1
