@@ -21,6 +21,7 @@ class CardScaffold<T> extends StatefulWidget {
   final Widget Function(T)? onCompletedStatusCallback;
   final double? titleFontSize;
   final Widget? titleIcon;
+  final Widget? customItem;
 
   const CardScaffold({
     required this.title,
@@ -31,6 +32,7 @@ class CardScaffold<T> extends StatefulWidget {
     this.onCompletedStatusCallback,
     this.titleFontSize,
     this.titleIcon,
+    this.customItem,
     Key? key,
   }) : super(key: key);
 
@@ -212,6 +214,7 @@ class _CardScaffoldState<T> extends State<CardScaffold<T>> {
               ],
             ),
           ),
+          if (widget.customItem != null) widget.customItem!
         ],
       ),
     );

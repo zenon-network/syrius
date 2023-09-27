@@ -1,13 +1,10 @@
 import 'package:clipboard_watcher/clipboard_watcher.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
-import 'package:zenon_syrius_wallet_flutter/model/model.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 
 class ClipboardUtils {
-
   static void toggleClipboardWatcherStatus() {
     final enableClipboardWatcher = sharedPrefsService!.get(
       kEnableClipboardWatcherKey,
@@ -26,14 +23,8 @@ class ClipboardUtils {
       ClipboardData(
         text: stringValue,
       ),
-    ).then((value) =>
-        sl.get<NotificationsBloc>().addNotification(WalletNotification(
-              timestamp: DateTime.now().millisecondsSinceEpoch,
-              title: 'Successfully copied to clipboard',
-              details: 'Successfully copied $stringValue to clipboard',
-              type: NotificationType.copiedToClipboard,
-              id: null,
-            )));
+    ).then((_) =>
+        ToastUtils.showToast(context, 'Copied', color: AppColors.znnColor));
   }
 
   static void pasteToClipboard(

@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
+import 'package:zenon_syrius_wallet_flutter/handlers/htlc_swaps_handler.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/services/shared_prefs_service.dart';
 import 'package:zenon_syrius_wallet_flutter/services/wallet_connect_service.dart';
@@ -83,6 +84,10 @@ class InitUtils {
     await _openRecipientBox();
     await NodeUtils.initWebSocketClient();
     await _setWalletVersion();
+    final baseAddress = await kKeyStore!.getKeyPair(0).address;
+    await htlcSwapsService!.openBoxes(
+        baseAddress.toString(), kKeyStore!.getKeyPair(0).getPrivateKey()!);
+    sl<HtlcSwapsHandler>().start();
     kWalletInitCompleted = true;
   }
 

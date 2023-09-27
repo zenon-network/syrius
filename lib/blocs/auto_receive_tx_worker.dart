@@ -3,6 +3,7 @@ import 'dart:collection';
 
 import 'package:json_rpc_2/json_rpc_2.dart';
 import 'package:logging/logging.dart';
+import 'package:zenon_syrius_wallet_flutter/blocs/auto_unlock_htlc_worker.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/model/model.dart';
@@ -14,7 +15,6 @@ import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 class AutoReceiveTxWorker extends BaseBloc<WalletNotification> {
   static AutoReceiveTxWorker? _instance;
   Queue<Hash> pool = Queue<Hash>();
-  HashSet<Hash> processedHashes = HashSet<Hash>();
   bool running = false;
 
   static AutoReceiveTxWorker getInstance() {
@@ -23,10 +23,11 @@ class AutoReceiveTxWorker extends BaseBloc<WalletNotification> {
   }
 
   Future<void> autoReceive() async {
-    if (pool.isNotEmpty && !running) {
+    // Make sure that AutoUnlockHtlcWorker is not running since it should be
+    // given priority to send transactions.
+    if (pool.isNotEmpty && !running && !sl<AutoUnlockHtlcWorker>().running) {
       running = true;
       Hash currentHash = pool.first;
-      pool.removeFirst();
       try {
         String toAddress =
             (await zenon!.ledger.getAccountBlockByHash(currentHash))!
@@ -45,17 +46,22 @@ class AutoReceiveTxWorker extends BaseBloc<WalletNotification> {
           blockSigningKey: keyPair,
           waitForRequiredPlasma: true,
         );
+        pool.removeFirst();
         _sendSuccessNotification(response, toAddress);
       } on RpcException catch (e, stackTrace) {
         _sendErrorNotification(e.toString());
         Logger('AutoReceiveTxWorker')
             .log(Level.WARNING, 'autoReceive', e, stackTrace);
-        if (e.message.compareTo('account-block from-block already received') !=
+        if (e.message.compareTo('account-block from-block already received') ==
             0) {
-          pool.addFirst(currentHash);
+          pool.removeFirst();
         } else {
           _sendErrorNotification(e.toString());
         }
+      } catch (e, stackTrace) {
+        Logger('AutoReceiveTxWorker')
+            .log(Level.WARNING, 'autoReceive', e, stackTrace);
+        _sendErrorNotification(e.toString());
       }
       running = false;
     }
@@ -85,15 +91,16 @@ class AutoReceiveTxWorker extends BaseBloc<WalletNotification> {
   }
 
   Future<void> addHash(Hash hash) async {
-    if (!processedHashes.contains(hash)) {
+    if (!pool.contains(hash)) {
       zenon!.stats.syncInfo().then((syncInfo) {
-        if (!processedHashes.contains(hash) &&
+        // Verify that the pool does not already contain the hash after the
+        // asynchronous request has completed and that the node is in sync.
+        if (!pool.contains(hash) &&
             (syncInfo.state == SyncState.syncDone ||
                 (syncInfo.targetHeight > 0 &&
                     syncInfo.currentHeight > 0 &&
                     (syncInfo.targetHeight - syncInfo.currentHeight) < 3))) {
           pool.add(hash);
-          processedHashes.add(hash);
         }
       });
     }
