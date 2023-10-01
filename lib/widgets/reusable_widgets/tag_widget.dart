@@ -7,12 +7,14 @@ class TagWidget extends StatelessWidget {
   final VoidCallback? onPressed;
   final String text;
   final String? hexColorCode;
+  final Color? textColor;
 
   const TagWidget({
     required this.text,
     this.hexColorCode,
     this.onPressed,
     this.iconData,
+    this.textColor,
     Key? key,
   }) : super(key: key);
 
@@ -51,7 +53,7 @@ class TagWidget extends StatelessWidget {
                 Text(
                   text,
                   style: kBodySmallTextStyle.copyWith(
-                    color: Colors.white,
+                    color: textColor ?? Colors.white,
                   ),
                 ),
               ],

@@ -3,16 +3,16 @@ name: Build and release syrius
 on:
   push:
     branches-ignore:
-        - master
-  pull_request:
-    branches:
-      - dev
-  # Allows you to run this workflow manually from the Actions tab
+      - master
+    tags:
+      - '*'
   workflow_dispatch:
+
+env:
+  FLUTTER_VERSION: "3.10.x"
 
 jobs:
   build-macos:
-    environment: wallet-connect
     env:
         WALLET_CONNECT_PROJECT_ID: ${{ secrets.WC_PROJECT_ID }}
     runs-on: macos-12
@@ -28,8 +28,8 @@ jobs:
       - name: Setup Flutter
         uses: subosito/flutter-action@v2.10.0
         with:
+          flutter-version: ${{env.FLUTTER_VERSION}}
           channel: "stable"
-          flutter-version: "3.10.2"
       - name: Check flutter version
         run: flutter --version
       - name: Build syrius desktop 
@@ -57,7 +57,6 @@ jobs:
           name: macos-artifacts
           path: syrius-alphanet-macos-universal.dmg
   build-windows:
-    environment: wallet-connect
     env:
         WALLET_CONNECT_PROJECT_ID: ${{ secrets.WC_PROJECT_ID }}
     runs-on: windows-latest
@@ -67,8 +66,8 @@ jobs:
       - name: Setup Flutter
         uses: subosito/flutter-action@v2.10.0
         with:
+          flutter-version: ${{env.FLUTTER_VERSION}}
           channel: "stable"
-          flutter-version: "3.10.2"
       - name: Check flutter version
         run: flutter --version
       - name: Build syrius desktop
@@ -84,7 +83,6 @@ jobs:
           name: windows-artifacts
           path: syrius-alphanet-windows-amd64.zip
   build-linux:
-    environment: wallet-connect
     env:
         WALLET_CONNECT_PROJECT_ID: ${{ secrets.WC_PROJECT_ID }}
     runs-on: ubuntu-20.04
@@ -98,8 +96,8 @@ jobs:
       - name: Setup Flutter
         uses: subosito/flutter-action@v2.10.0
         with:
+          flutter-version: ${{env.FLUTTER_VERSION}}
           channel: "stable"
-          flutter-version: "3.10.2"
       - name: Set permissions
         run: |
           sudo chmod -R 777 linux/
@@ -123,19 +121,18 @@ jobs:
   make-release:
     needs: [build-macos, build-windows, build-linux]
     runs-on: ubuntu-latest
-    if: github.event_name != 'pull_request'
+    if: startsWith(github.ref, 'refs/tags/v')
     steps:
       - name: Checkout
         uses: actions/checkout@v3
       - name: Set variables
         run: |
-          SYRIUS="v$(cat pubspec.yaml | grep version | sed 's/version://' | xargs)"
-          echo "Syrius Version: $SYRIUS"
-          echo "SYRIUS_VERSION=$SYRIUS" >> $GITHUB_ENV
+          echo "SYRIUS_VERSION=${{ github.ref }}" >> $GITHUB_ENV
+          echo "Syrius Version: $SYRIUS_VERSION"
           GOZENON=$(curl -s https://raw.githubusercontent.com/zenon-network/go-zenon/master/metadata/version.go | grep Version | awk -F '"' '{print $2}')
           echo "Go-Zenon Version: $GOZENON"
           BODY=$(cat <<EOF
-          Syrius $SYRIUS features the pre-release version of the [go-zenon](https://github.com/zenon-network/go-zenon) $GOZENON full node.
+          Syrius $SYRIUS_VERSION features the pre-release version of the [go-zenon](https://github.com/zenon-network/go-zenon) $GOZENON full node.
 
           Syrius for Windows requires Microsoft Visual C++ to be installed.
           [Download Microsoft Visual C++](https://aka.ms/vs/16/release/vc_redist.x64.exe)
@@ -180,9 +177,10 @@ jobs:
         uses: svenstaro/upload-release-action@2.4.1
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: releases/*
           release_name: ${{ env.SYRIUS_VERSION }}
-          tag: ${{ env.SYRIUS_VERSION }}-alphanet
+          prerelease: ${{ contains(env.SYRIUS_VERSION, '-') }}
+          tag: ${{ env.SYRIUS_VERSION }}
           file_glob: true
+          file: releases/*
           overwrite: true
           body: ${{ env.BODY }}

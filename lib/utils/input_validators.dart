@@ -2,6 +2,7 @@ import 'package:logging/logging.dart';
 import 'package:validators/validators.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
+import 'package:convert/convert.dart';
 
 class InputValidators {
   static String kEVMAddressRegex = r'^(0x)([a-fA-F0-9]){40}$';
@@ -190,5 +191,33 @@ class InputValidators {
       return null;
     }
     return 'Invalid URL';
+  }
+
+  static String? checkHash(String? value) {
+    try {
+      if (Hash.parse(value!).runtimeType == Hash) {
+        return null;
+      }
+    } catch (e) {
+      return 'Invalid hash';
+    }
+    return 'Invalid hash';
+  }
+
+  static Future<String?> checkSecret(HtlcInfo htlc, String? value) async {
+    if (value != null) {
+      try {
+        final preimageCheck = htlc.hashType == htlcHashTypeSha3
+            ? Hash.digest(hex.decode(value))
+            : Hash.fromBytes(await Crypto.sha256Bytes(hex.decode(value)));
+
+        if (preimageCheck == Hash.fromBytes(htlc.hashLock)) {
+          return null;
+        }
+      } catch (e) {
+        return 'Invalid secret';
+      }
+    }
+    return 'Invalid secret';
   }
 }

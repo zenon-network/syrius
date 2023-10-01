@@ -1,5 +1,4 @@
 export 'accelerator_widgets/accelerator_widgets.dart';
-export 'bridge_widgets/bridge_widgets.dart';
 export 'dashboard_widgets/dashboard_widgets.dart';
 export 'help_widgets/help_widgets.dart';
 export 'pillars_widgets/pillars_widgets.dart';

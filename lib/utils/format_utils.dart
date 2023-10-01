@@ -28,6 +28,7 @@ class FormatUtils {
         ),
       ];
 
+  static String encodeHexString(List<int> input) => HEX.encode(input);
   static List<int> decodeHexString(String input) => HEX.decode(input);
 
   static String formatDate(int timestampMillis,

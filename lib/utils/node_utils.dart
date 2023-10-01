@@ -10,6 +10,7 @@ import 'package:zenon_syrius_wallet_flutter/embedded_node/embedded_node.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/model/model.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/date_time_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/notification_utils.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
@@ -95,6 +96,7 @@ class NodeUtils {
   static Future<void> addOnWebSocketConnectedCallback() async {
     zenon!.wsClient
         .addOnConnectionEstablishedCallback((allResponseBroadcaster) async {
+      kNodeChainId = await getNodeChainIdentifier();
       await _getSubscriptionForMomentums();
       await _getSubscriptionForAllAccountEvents();
       await getUnreceivedTransactions();
@@ -127,6 +129,32 @@ class NodeUtils {
       for (AccountBlock unreceivedBlock in unreceivedBlocks) {
         sl<AutoReceiveTxWorker>().addHash(unreceivedBlock.hash);
       }
+    }
+  }
+
+  static Future<void> checkForLocalTimeDiscrepancy(
+      String warningMessage) async {
+    const maxAllowedDiscrepancy = Duration(minutes: 5);
+    try {
+      final syncInfo = await zenon!.stats.syncInfo();
+      bool nodeIsSynced = (syncInfo.state == SyncState.syncDone ||
+          (syncInfo.targetHeight > 0 &&
+              syncInfo.currentHeight > 0 &&
+              (syncInfo.targetHeight - syncInfo.currentHeight) < 20));
+      if (nodeIsSynced) {
+        final frontierTime =
+            (await zenon!.ledger.getFrontierMomentum()).timestamp;
+        final timeDifference = (frontierTime - DateTimeUtils.unixTimeNow).abs();
+        if (timeDifference > maxAllowedDiscrepancy.inSeconds) {
+          NotificationUtils.sendNotificationError(
+            Exception('Local time discrepancy detected.'),
+            warningMessage,
+          );
+        }
+      }
+    } catch (e, stackTrace) {
+      Logger('NodeUtils')
+          .log(Level.WARNING, 'checkForLocalTimeDiscrepancy', e, stackTrace);
     }
   }
 

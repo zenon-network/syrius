@@ -15,11 +15,14 @@ import 'package:path/path.dart' as path;
 import 'package:provider/provider.dart';
 import 'package:tray_manager/tray_manager.dart';
 import 'package:window_manager/window_manager.dart';
+import 'package:zenon_syrius_wallet_flutter/blocs/auto_unlock_htlc_worker.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
+import 'package:zenon_syrius_wallet_flutter/handlers/htlc_swaps_handler.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/wallet_connect/wallet_connect_pairings_bloc.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/wallet_connect/wallet_connect_sessions_bloc.dart';
 import 'package:zenon_syrius_wallet_flutter/model/model.dart';
 import 'package:zenon_syrius_wallet_flutter/screens/screens.dart';
+import 'package:zenon_syrius_wallet_flutter/services/htlc_swaps_service.dart';
 import 'package:zenon_syrius_wallet_flutter/services/shared_prefs_service.dart';
 import 'package:zenon_syrius_wallet_flutter/services/wallet_connect_service.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
@@ -28,6 +31,7 @@ import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 Zenon? zenon;
 SharedPrefsService? sharedPrefsService;
+HtlcSwapsService? htlcSwapsService;
 
 final sl = GetIt.instance;
 
@@ -88,6 +92,8 @@ main() async {
   } else {
     await sharedPrefsService!.checkIfBoxIsOpen();
   }
+
+  htlcSwapsService ??= sl.get<HtlcSwapsService>();
 
   windowManager.waitUntilReadyToShow().then((_) async {
     await windowManager.setTitle('s y r i u s');
@@ -159,8 +165,14 @@ void setup() {
   zenon = sl<Zenon>();
   sl.registerLazySingletonAsync<SharedPrefsService>(
       (() => SharedPrefsService.getInstance().then((value) => value!)));
+  sl.registerSingleton<HtlcSwapsService>(HtlcSwapsService.getInstance());
+
   sl.registerLazySingleton<WalletConnectService>(() => WalletConnectService());
   sl.registerSingleton<AutoReceiveTxWorker>(AutoReceiveTxWorker.getInstance());
+  sl.registerSingleton<AutoUnlockHtlcWorker>(
+      AutoUnlockHtlcWorker.getInstance());
+
+  sl.registerSingleton<HtlcSwapsHandler>(HtlcSwapsHandler.getInstance());
 
   sl.registerSingleton<ReceivePort>(ReceivePort(),
       instanceName: 'embeddedStoppedPort');

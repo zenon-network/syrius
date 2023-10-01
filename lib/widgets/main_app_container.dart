@@ -13,6 +13,7 @@ import 'package:provider/provider.dart';
 import 'package:wallet_connect_uri_validator/wallet_connect_uri_validator.dart';
 import 'package:window_manager/window_manager.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
+import 'package:zenon_syrius_wallet_flutter/handlers/htlc_swaps_handler.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/model/model.dart';
 import 'package:zenon_syrius_wallet_flutter/services/wallet_connect_service.dart';
@@ -41,8 +42,8 @@ enum Tabs {
   staking,
   plasma,
   tokens,
+  p2pSwap,
   resyncWallet,
-  bridge,
   accelerator,
   walletConnect,
 }
@@ -99,11 +100,7 @@ class _MainAppContainerState extends State<MainAppContainer>
 
     _netSyncStatusBloc.getDataPeriodically();
 
-    _transferTabChild = TransferTabChild(
-      navigateToBridgeTab: () {
-        _navigateTo(Tabs.bridge);
-      },
-    );
+    _transferTabChild = TransferTabChild();
     _initTabController();
     _animationController = AnimationController(
       vsync: this,
@@ -209,7 +206,7 @@ class _MainAppContainerState extends State<MainAppContainer>
                   ),
                   child: Padding(
                     padding: const EdgeInsets.symmetric(
-                      horizontal: 20.0,
+                      horizontal: 10.0,
                     ),
                     child: Focus(
                       focusNode: _focusNode,
@@ -287,24 +284,16 @@ class _MainAppContainerState extends State<MainAppContainer>
   List<Tab> _getTextTabs() {
     return kTabsWithTextTitles
         .map<Tab>(
-          (e) => Tab(
-            text: FormatUtils.extractNameFromEnum<Tabs>(e).capitalize(),
-          ),
+          (e) => e == Tabs.p2pSwap
+              ? const Tab(text: 'P2P Swap')
+              : Tab(
+                  text: FormatUtils.extractNameFromEnum<Tabs>(e).capitalize()),
         )
         .toList();
   }
 
   List<Tab> _getIconTabs() {
     return <Tab>[
-      Tab(
-        child: Icon(
-          MaterialCommunityIcons.bridge,
-          size: 24.0,
-          color: _isTabSelected(Tabs.bridge)
-              ? AppColors.znnColor
-              : Theme.of(context).iconTheme.color,
-        ),
-      ),
       if (kWcProjectId.isNotEmpty)
         Tab(
           child: SvgPicture.asset(
@@ -470,7 +459,10 @@ class _MainAppContainerState extends State<MainAppContainer>
           onStepperNotificationSeeMorePressed: () =>
               _navigateTo(Tabs.notifications),
         ),
-        const BridgeTabChild(),
+        P2pSwapTabChild(
+          onStepperNotificationSeeMorePressed: () =>
+              _navigateTo(Tabs.notifications),
+        ),
         if (kWcProjectId.isNotEmpty) const WalletConnectTabChild(),
         AcceleratorTabChild(
           onStepperNotificationSeeMorePressed: () =>
@@ -495,10 +487,7 @@ class _MainAppContainerState extends State<MainAppContainer>
   }
 
   Future<void> _mainLockCallback(String password) async {
-    _navigateToLockTimer = Timer.periodic(
-      Duration(minutes: kAutoLockWalletMinutes!),
-      (timer) => _lockBloc.addEvent(LockEvent.navigateToLock),
-    );
+    _navigateToLockTimer = _createAutoLockTimer();
     if (kLastWalletConnectUriNotifier.value != null) {
       _tabController!.animateTo(_getTabChildIndex(Tabs.walletConnect));
     } else {
@@ -534,12 +523,7 @@ class _MainAppContainerState extends State<MainAppContainer>
   }
 
   void _afterAppInitCallback() {
-    _navigateToLockTimer = Timer.periodic(
-      Duration(
-        minutes: kAutoLockWalletMinutes!,
-      ),
-      (timer) => _lockBloc.addEvent(LockEvent.navigateToLock),
-    );
+    _navigateToLockTimer = _createAutoLockTimer();
     if (kLastWalletConnectUriNotifier.value != null) {
       _tabController!.animateTo(_getTabChildIndex(Tabs.walletConnect));
     } else {
@@ -645,10 +629,7 @@ class _MainAppContainerState extends State<MainAppContainer>
       switch (event) {
         case LockEvent.countDown:
           if (kCurrentPage != Tabs.lock) {
-            _navigateToLockTimer = Timer.periodic(
-              Duration(minutes: kAutoLockWalletMinutes!),
-              (timer) => _lockBloc.addEvent(LockEvent.navigateToLock),
-            );
+            _navigateToLockTimer = _createAutoLockTimer();
           }
           break;
         case LockEvent.navigateToDashboard:
@@ -669,10 +650,7 @@ class _MainAppContainerState extends State<MainAppContainer>
         case LockEvent.resetTimer:
           if (_navigateToLockTimer != null && _navigateToLockTimer!.isActive) {
             _navigateToLockTimer?.cancel();
-            _navigateToLockTimer = Timer.periodic(
-              Duration(minutes: kAutoLockWalletMinutes!),
-              (timer) => _lockBloc.addEvent(LockEvent.navigateToLock),
-            );
+            _navigateToLockTimer = _createAutoLockTimer();
           }
           break;
         case LockEvent.navigateToPreviousTab:
@@ -683,6 +661,14 @@ class _MainAppContainerState extends State<MainAppContainer>
     if (widget.redirectedFromWalletSuccess) {
       _lockBloc.addEvent(LockEvent.countDown);
     }
+  }
+
+  Timer _createAutoLockTimer() {
+    return Timer.periodic(Duration(minutes: kAutoLockWalletMinutes!), (timer) {
+      if (!sl<HtlcSwapsHandler>().hasActiveIncomingSwaps) {
+        _lockBloc.addEvent(LockEvent.navigateToLock);
+      }
+    });
   }
 
   void _handleIncomingLinks() async {

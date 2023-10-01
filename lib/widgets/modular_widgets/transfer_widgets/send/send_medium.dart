@@ -18,11 +18,9 @@ import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 class SendMediumCard extends StatefulWidget {
   final VoidCallback onExpandClicked;
-  final VoidCallback onOkBridgeWarningDialogPressed;
 
   const SendMediumCard({
     required this.onExpandClicked,
-    required this.onOkBridgeWarningDialogPressed,
     Key? key,
   }) : super(key: key);
 

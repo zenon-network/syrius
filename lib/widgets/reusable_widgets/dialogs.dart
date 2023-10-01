@@ -97,3 +97,16 @@ showDialogWithNoAndYesOptions({
         ],
       ),
     );
+
+showCustomDialog({required BuildContext context, required Widget content}) =>
+    showGeneralDialog(
+      context: context,
+      barrierLabel: '',
+      barrierDismissible: true,
+      pageBuilder: (context, Animation<double> animation,
+              Animation<double> secondaryAnimation) =>
+          Center(
+        child: ClipRRect(
+            borderRadius: BorderRadius.circular(15.0), child: content),
+      ),
+    );

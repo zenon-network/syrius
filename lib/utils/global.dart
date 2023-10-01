@@ -13,6 +13,7 @@ String? kKeyStorePath;
 String? kLocalIpAddress;
 
 int? kAutoLockWalletMinutes;
+int? kNodeChainId;
 int? kNumFailedUnlockAttempts;
 
 double? kAutoEraseWalletLimit;
@@ -42,7 +43,6 @@ int? kNumOfPillars;
 bool kEmbeddedNodeRunning = false;
 
 final List<Tabs> kTabsWithIconTitles = [
-  Tabs.bridge,
   if (kWcProjectId.isNotEmpty) Tabs.walletConnect,
   Tabs.accelerator,
   Tabs.help,
