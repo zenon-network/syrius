@@ -104,12 +104,12 @@ const int kIssueTokenPlasmaAmountNeeded = 189000;
 const int kAmountInputMaxCharacterLength = 21;
 const int kSecondsPerMomentum = 10;
 
-final List<int> kNormalUsersPlasmaRequirements = [
+const List<int> kNormalUsersPlasmaRequirements = [
   kStakePlasmaAmountNeeded,
   kDelegatePlasmaAmountNeeded,
 ];
 
-final List<int> kPowerUsersPlasmaRequirements = [
+const List<int> kPowerUsersPlasmaRequirements = [
   kPillarPlasmaAmountNeeded,
   kSentinelPlasmaAmountNeeded,
   kIssueTokenPlasmaAmountNeeded,
@@ -117,11 +117,6 @@ final List<int> kPowerUsersPlasmaRequirements = [
 
 const String kLocalhostDefaultNodeUrl = 'ws://127.0.0.1:$kDefaultPort';
 const int kDefaultPort = 35998;
-
-List<String> kDefaultNodes = [
-  'Embedded Node',
-  kLocalhostDefaultNodeUrl,
-];
 
 const List<String> kWalletActions = [
   'pillar',
@@ -172,9 +167,12 @@ const String kAutoEraseNumAttemptsKey = 'auto_erase_num_attempts';
 const String kLaunchAtStartupKey = 'launch_at_startup';
 const String kEnableDesktopNotificationsKey = 'enable_desktop_notifications';
 const String kEnableClipboardWatcherKey = 'enable_clipboard_watcher';
+const String kAutoReceiveKey = 'enable_auto_receive';
+
 const bool kLaunchAtStartupDefaultValue = false;
 const bool kEnableDesktopNotificationsDefaultValue = false;
 const bool kEnableClipboardWatcherDefaultValue = false;
+const bool kAutoReceiveDefaultValue = true;
 
 /// Node management
 const String kChainIdKey = 'chain_id';

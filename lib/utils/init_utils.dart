@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/services/shared_prefs_service.dart';
-import 'package:zenon_syrius_wallet_flutter/services/wallet_connect_service.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/address_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
@@ -26,8 +25,9 @@ class InitUtils {
       _setChainId();
       await NodeUtils.loadDbNodes();
 
-      // Initialize WalletConnect client
-      sl.get<WalletConnectService>().initClient();
+      await _openFavoriteTokensBox();
+      await _openNotificationsBox();
+      await _openRecipientBox();
     } catch (e) {
       rethrow;
     }
@@ -78,9 +78,7 @@ class InitUtils {
     zenon!.defaultKeyPair = kKeyStore!.getKeyPair(
       kDefaultAddressList.indexOf(kSelectedAddress),
     );
-    await _openFavoriteTokensBox();
-    await _openNotificationsBox();
-    await _openRecipientBox();
+
     await NodeUtils.initWebSocketClient();
     await _setWalletVersion();
     kWalletInitCompleted = true;

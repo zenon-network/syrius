@@ -272,6 +272,7 @@ class _SwapCardState extends State<SwapCard> {
 
   @override
   void dispose() {
+    _scrollController.dispose();
     _amountController.dispose();
     _evmAddressController.dispose();
     super.dispose();

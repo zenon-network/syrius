@@ -2,20 +2,23 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:app_links/app_links.dart';
+import 'package:badges/badges.dart' as badges;
 import 'package:clipboard_watcher/clipboard_watcher.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:flutter_vector_icons/flutter_vector_icons.dart';
+import 'package:hive/hive.dart';
 import 'package:logging/logging.dart';
+import 'package:lottie/lottie.dart';
 import 'package:provider/provider.dart';
 import 'package:wallet_connect_uri_validator/wallet_connect_uri_validator.dart';
 import 'package:window_manager/window_manager.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/model/model.dart';
-import 'package:zenon_syrius_wallet_flutter/services/wallet_connect_service.dart';
+import 'package:zenon_syrius_wallet_flutter/services/i_web3wallet_service.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/clipboard_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
@@ -41,7 +44,8 @@ enum Tabs {
   staking,
   plasma,
   tokens,
-  resyncWallet,
+  generation,
+  sync,
   bridge,
   accelerator,
   walletConnect,
@@ -65,33 +69,24 @@ class _MainAppContainerState extends State<MainAppContainer>
     with TickerProviderStateMixin, ClipboardListener, WindowListener {
   late AnimationController _animationController;
   late Animation _animation;
-
-  final NodeSyncStatusBloc _netSyncStatusBloc = NodeSyncStatusBloc();
-
   late StreamSubscription _lockBlockStreamSubscription;
   late StreamSubscription _incomingLinkSubscription;
-
-  Timer? _navigateToLockTimer;
-
   late LockBloc _lockBloc;
 
+  Timer? _navigateToLockTimer;
   TabController? _tabController;
-
   TransferTabChild? _transferTabChild;
+  bool _initialUriIsHandled = false;
 
+  final NodeSyncStatusBloc _netSyncStatusBloc = NodeSyncStatusBloc();
+  final _appLinks = AppLinks();
   final FocusNode _focusNode = FocusNode(
     skipTraversal: true,
     canRequestFocus: false,
   );
 
-  bool _initialUriIsHandled = false;
-
-  final _appLinks = AppLinks();
-
   @override
   void initState() {
-    sl<WalletConnectService>().context = context;
-
     clipboardWatcher.addListener(this);
     windowManager.addListener(this);
 
@@ -115,6 +110,7 @@ class _MainAppContainerState extends State<MainAppContainer>
     _initLockBlock();
     _handleIncomingLinks();
     _handleInitialUri();
+
     super.initState();
   }
 
@@ -307,14 +303,25 @@ class _MainAppContainerState extends State<MainAppContainer>
       ),
       if (kWcProjectId.isNotEmpty)
         Tab(
-          child: SvgPicture.asset(
-            'assets/svg/walletconnect-logo.svg',
-            width: 24.0,
-            fit: BoxFit.fitWidth,
-            colorFilter: _isTabSelected(Tabs.walletConnect)
-                ? const ColorFilter.mode(AppColors.znnColor, BlendMode.srcIn)
-                : ColorFilter.mode(
-                    Theme.of(context).iconTheme.color!, BlendMode.srcIn),
+          child: badges.Badge(
+            position: badges.BadgePosition.topEnd(top: -12.5, end: -12.5),
+            showBadge: (sl<IWeb3WalletService>().pairings.value.isNotEmpty),
+            badgeContent:
+                Text(sl<IWeb3WalletService>().pairings.value.length.toString()),
+            badgeStyle: const badges.BadgeStyle(
+              shape: badges.BadgeShape.circle,
+              badgeColor: AppColors.znnColor,
+              padding: EdgeInsets.all(3.5),
+            ),
+            child: SvgPicture.asset(
+              'assets/svg/walletconnect-logo.svg',
+              width: 24.0,
+              fit: BoxFit.fitWidth,
+              colorFilter: _isTabSelected(Tabs.walletConnect)
+                  ? const ColorFilter.mode(AppColors.znnColor, BlendMode.srcIn)
+                  : ColorFilter.mode(
+                      Theme.of(context).iconTheme.color!, BlendMode.srcIn),
+            ),
           ),
         ),
       Tab(
@@ -336,12 +343,22 @@ class _MainAppContainerState extends State<MainAppContainer>
         ),
       ),
       Tab(
-        child: Icon(
-          Icons.notifications,
-          size: 24.0,
-          color: _isTabSelected(Tabs.notifications)
-              ? AppColors.znnColor
-              : Theme.of(context).iconTheme.color,
+        child: badges.Badge(
+          position: badges.BadgePosition.topEnd(top: -10, end: -10),
+          showBadge: (Hive.box(kNotificationsBox).length > 0),
+          badgeContent: Text(Hive.box(kNotificationsBox).length.toString()),
+          badgeStyle: const badges.BadgeStyle(
+            shape: badges.BadgeShape.circle,
+            badgeColor: AppColors.znnColor,
+            padding: EdgeInsets.all(3.5),
+          ),
+          child: Icon(
+            Icons.notifications,
+            size: 24.0,
+            color: _isTabSelected(Tabs.notifications)
+                ? AppColors.znnColor
+                : Theme.of(context).iconTheme.color,
+          ),
         ),
       ),
       Tab(
@@ -354,7 +371,10 @@ class _MainAppContainerState extends State<MainAppContainer>
         ),
       ),
       Tab(
-        child: _getPowGeneratingStatus(),
+        child: _getGenerationStatus(),
+      ),
+      Tab(
+        child: _getSyncStatus(),
       ),
       Tab(
         child: _isTabSelected(Tabs.lock)
@@ -374,7 +394,7 @@ class _MainAppContainerState extends State<MainAppContainer>
     ];
   }
 
-  Widget _getWebsocketConnectionStatusStreamBuilder() {
+  Widget _getSyncStatus() {
     return StreamBuilder<SyncInfo>(
       stream: _netSyncStatusBloc.stream,
       builder: (_, snapshot) {
@@ -389,8 +409,34 @@ class _MainAppContainerState extends State<MainAppContainer>
     );
   }
 
+  Widget _getGenerationStatus() {
+    return StreamBuilder<PowStatus>(
+      stream: sl.get<PowGeneratingStatusBloc>().stream,
+      builder: (_, snapshot) {
+        if (snapshot.hasData && snapshot.data == PowStatus.generating) {
+          return Tooltip(
+            message: 'Generating Plasma',
+            child: Lottie.asset(
+              'assets/lottie/ic_anim_plasma_generation.json',
+              fit: BoxFit.contain,
+              width: 30.0,
+              repeat: true,
+            ),
+          );
+        }
+        return Tooltip(
+          message: 'Plasma generation idle',
+          child: Icon(
+            MaterialCommunityIcons.lightning_bolt,
+            color: Theme.of(context).iconTheme.color,
+          ),
+        );
+      },
+    );
+  }
+
   Widget _getSyncingStatusIcon(SyncState syncState, [SyncInfo? syncInfo]) {
-    var message = 'Connected and synced';
+    String message = 'Connected and synced';
 
     if (syncState != SyncState.notEnoughPeers &&
         syncState != SyncState.syncDone &&
@@ -401,6 +447,13 @@ class _MainAppContainerState extends State<MainAppContainer>
 
     if (syncState == SyncState.unknown) {
       message = 'Not ready';
+      return Tooltip(
+          message: message,
+          child: Icon(
+            Icons.sync_disabled,
+            size: 24.0,
+            color: _getSyncIconColor(syncState),
+          ));
     } else if (syncState == SyncState.syncing) {
       if (syncInfo != null) {
         if (syncInfo.targetHeight > 0 &&
@@ -408,12 +461,44 @@ class _MainAppContainerState extends State<MainAppContainer>
             (syncInfo.targetHeight - syncInfo.currentHeight) < 3) {
           message = 'Connected and synced';
           syncState = SyncState.syncDone;
+          return Tooltip(
+              message: message,
+              child: Lottie.asset(
+                'assets/lottie/ic_anim_live.json',
+                fit: BoxFit.contain,
+                width: 25.0,
+                repeat: true,
+              ));
+        } else if (syncInfo.targetHeight == 0 || syncInfo.currentHeight == 0) {
+          message = 'Started syncing with the network, please wait';
+          syncState = SyncState.syncing;
+          return Tooltip(
+              message: message,
+              child: Icon(Icons.sync,
+                  size: 24.0, color: _getSyncIconColor(syncState)));
         } else {
           message =
               'Sync progress: momentum ${syncInfo.currentHeight} of ${syncInfo.targetHeight}';
+          return Tooltip(
+            message: message,
+            child: SizedBox(
+              height: 25.0,
+              width: 25.0,
+              child: Center(
+                  child: CircularProgressIndicator(
+                backgroundColor: Theme.of(context).iconTheme.color,
+                color: _getSyncIconColor(syncState),
+                value: syncInfo.currentHeight / syncInfo.targetHeight,
+              )),
+            ),
+          );
         }
       } else {
         message = 'Syncing momentums';
+        return Tooltip(
+            message: message,
+            child: Icon(Icons.sync,
+                size: 24.0, color: _getSyncIconColor(syncState)));
       }
     } else if (syncState == SyncState.notEnoughPeers) {
       if (syncInfo != null) {
@@ -422,17 +507,47 @@ class _MainAppContainerState extends State<MainAppContainer>
             (syncInfo.targetHeight - syncInfo.currentHeight) < 20) {
           message = 'Connecting to peers';
           syncState = SyncState.syncing;
+          return Tooltip(
+              message: message,
+              child: SizedBox(
+                  height: 25.0,
+                  width: 25.0,
+                  child: Center(
+                      child: CircularProgressIndicator(
+                    backgroundColor: Theme.of(context).iconTheme.color,
+                    color: _getSyncIconColor(syncState),
+                    value: syncInfo.currentHeight / syncInfo.targetHeight,
+                  ))));
         } else if (syncInfo.targetHeight == 0 || syncInfo.currentHeight == 0) {
-          message = 'Connecting to peers';
+          message = 'Connecting to peers, please wait';
           syncState = SyncState.syncing;
+          return Tooltip(
+              message: message,
+              child: Icon(Icons.sync,
+                  size: 24.0, color: _getSyncIconColor(syncState)));
         } else {
           message =
               'Sync progress: momentum ${syncInfo.currentHeight} of ${syncInfo.targetHeight}';
           syncState = SyncState.syncing;
+          return Tooltip(
+              message: message,
+              child: SizedBox(
+                  height: 25.0,
+                  width: 25.0,
+                  child: Center(
+                      child: CircularProgressIndicator(
+                    backgroundColor: Theme.of(context).iconTheme.color,
+                    color: _getSyncIconColor(syncState),
+                    value: syncInfo.currentHeight / syncInfo.targetHeight,
+                  ))));
         }
       } else {
         message = 'Connecting to peers';
         syncState = SyncState.syncing;
+        return Tooltip(
+            message: message,
+            child: Icon(Icons.sync_problem,
+                size: 24.0, color: _getSyncIconColor(syncState)));
       }
     } else {
       message = 'Connected and synced';
@@ -440,13 +555,13 @@ class _MainAppContainerState extends State<MainAppContainer>
     }
 
     return Tooltip(
-      message: message,
-      child: Icon(
-        Icons.radio_button_unchecked,
-        size: 24.0,
-        color: _getSyncIconColor(syncState),
-      ),
-    );
+        message: message,
+        child: Lottie.asset(
+          'assets/lottie/ic_anim_live.json',
+          fit: BoxFit.contain,
+          width: 25.0,
+          repeat: true,
+        ));
   }
 
   Widget _getCurrentPageContainer() {
@@ -480,7 +595,6 @@ class _MainAppContainerState extends State<MainAppContainer>
         const NotificationsTabChild(),
         SettingsTabChild(
           _onChangeAutoLockTime,
-          _onResyncWalletPressed,
           onStepperNotificationSeeMorePressed: () => _navigateTo(
             Tabs.notifications,
           ),
@@ -488,6 +602,7 @@ class _MainAppContainerState extends State<MainAppContainer>
             Tabs.dashboard,
           ),
         ),
+        const SizedBox(),
         const SizedBox(),
         LockTabChild(_mainLockCallback, _afterAppInitCallback),
       ],
@@ -545,6 +660,7 @@ class _MainAppContainerState extends State<MainAppContainer>
     } else {
       _lockBloc.addEvent(LockEvent.navigateToDashboard);
     }
+
     _listenToAutoReceiveTxWorkerNotifications();
   }
 
@@ -552,28 +668,6 @@ class _MainAppContainerState extends State<MainAppContainer>
     sl<AutoReceiveTxWorker>().stream.listen((event) {
       sl<NotificationsBloc>().addNotification(event);
     });
-  }
-
-  void _onResyncWalletPressed() {
-    _navigateTo(Tabs.resyncWallet);
-  }
-
-  Widget _getPowGeneratingStatus() {
-    return StreamBuilder<PowStatus>(
-      stream: sl.get<PowGeneratingStatusBloc>().stream,
-      builder: (_, snapshot) {
-        if (snapshot.hasData && snapshot.data == PowStatus.generating) {
-          return const Tooltip(
-            message: 'Generating Plasma',
-            child: SyriusLoadingWidget(
-              size: 20.0,
-              strokeWidth: 2.5,
-            ),
-          );
-        }
-        return _getWebsocketConnectionStatusStreamBuilder();
-      },
-    );
   }
 
   bool _isTabSelected(Tabs page) =>
