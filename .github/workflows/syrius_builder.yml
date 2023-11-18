@@ -2,7 +2,7 @@ name: Build and release syrius
 
 on:
   push:
-    branches-ignore:
+    branches:
         - master
   pull_request:
     branches:
@@ -12,9 +12,6 @@ on:
 
 jobs:
   build-macos:
-    environment: wallet-connect
-    env:
-        WALLET_CONNECT_PROJECT_ID: ${{ secrets.WC_PROJECT_ID }}
     runs-on: macos-12
     steps:
       - name: Checkout
@@ -35,7 +32,7 @@ jobs:
       - name: Build syrius desktop 
         run: |
           flutter config --enable-macos-desktop
-          flutter build macos --dart-define=WC_PROJECT_ID=$WALLET_CONNECT_PROJECT_ID --release
+          flutter build macos --release
       - name: Package into DMG
         run: |
           create-dmg --volname syrius \
@@ -57,9 +54,6 @@ jobs:
           name: macos-artifacts
           path: syrius-alphanet-macos-universal.dmg
   build-windows:
-    environment: wallet-connect
-    env:
-        WALLET_CONNECT_PROJECT_ID: ${{ secrets.WC_PROJECT_ID }}
     runs-on: windows-latest
     steps:
       - name: Checkout
@@ -74,7 +68,7 @@ jobs:
       - name: Build syrius desktop
         run: |
           flutter config --enable-windows-desktop
-          flutter build windows --dart-define=WC_PROJECT_ID=$env:WALLET_CONNECT_PROJECT_ID --release   
+          flutter build windows --release   
       - name: Package into zip
         run: |
           Compress-Archive -Path build\windows\runner\Release\* -DestinationPath .\syrius-alphanet-windows-amd64.zip
@@ -84,9 +78,6 @@ jobs:
           name: windows-artifacts
           path: syrius-alphanet-windows-amd64.zip
   build-linux:
-    environment: wallet-connect
-    env:
-        WALLET_CONNECT_PROJECT_ID: ${{ secrets.WC_PROJECT_ID }}
     runs-on: ubuntu-20.04
     steps:
       - name: Checkout
@@ -110,7 +101,7 @@ jobs:
       - name: Build syrius desktop
         run: |
           flutter config --enable-linux-desktop
-          flutter build linux --dart-define=WC_PROJECT_ID=$WALLET_CONNECT_PROJECT_ID --release -v
+          flutter build linux --release -v
       - name: Package zip
         run: |
           cd build/linux/x64/release/bundle
