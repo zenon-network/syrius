@@ -159,7 +159,7 @@ class _LockTabChildState extends State<LockTabChild> {
         await KeyStoreUtils.decryptKeyStoreFile(
           kKeyStorePath!,
           _passwordController.text,
-        ).then((keyStore) => kKeyStore = keyStore);
+        ).then((keyStore) => kWallet = keyStore);
         if (kWalletInitCompleted == false) {
           setState(() {
             _messageToUser = 'Initializing wallet, please wait';

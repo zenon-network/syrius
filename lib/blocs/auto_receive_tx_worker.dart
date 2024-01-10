@@ -33,7 +33,7 @@ class AutoReceiveTxWorker extends BaseBloc<WalletNotification> {
             (await zenon!.ledger.getAccountBlockByHash(currentHash))!
                 .toAddress
                 .toString();
-        KeyPair keyPair = kKeyStore!.getKeyPair(
+        WalletAccount keyPair = await kWallet!.getAccount(
           kDefaultAddressList.indexOf(toAddress),
         );
         AccountBlockTemplate transactionParams = AccountBlockTemplate.receive(

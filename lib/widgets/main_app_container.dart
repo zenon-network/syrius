@@ -268,7 +268,7 @@ class _MainAppContainerState extends State<MainAppContainer>
   }
 
   void _onNavigateToLock() {
-    kKeyStore = null;
+    kWallet = null;
     _navigateToLockTimer?.cancel();
   }
 

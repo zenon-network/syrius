@@ -24,7 +24,7 @@ class KeyStoreUtils {
     String keyStorePath,
   ) {
     kKeyStorePath = keyStorePath;
-    kKeyStore = keyStore;
+    kWallet = keyStore;
   }
 
   static Future<void> createKeyStore(
@@ -35,16 +35,16 @@ class KeyStoreUtils {
     KeyStoreManager keyStoreManager =
         KeyStoreManager(walletPath: znnDefaultWalletDirectory);
     KeyStore keyStore = KeyStore.fromMnemonic(mnemonic);
-    File keyStoreFile = await keyStoreManager.saveKeyStore(
+    KeyStoreDefinition keyStoreFile = await keyStoreManager.saveKeyStore(
       keyStore,
       passphrase,
       name: keyStoreName,
     );
     _initKeyStoreConstants(
       keyStore,
-      keyStoreFile.path,
+      keyStoreFile.file.path,
     );
-    await _saveKeyStorePath(keyStoreFile.path);
+    await _saveKeyStorePath(keyStoreFile.file.path);
   }
 
   static Future<void> _saveKeyStorePath(String? keyStorePath) async {

@@ -3,6 +3,7 @@ import 'package:zenon_syrius_wallet_flutter/screens/screens.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/navigation_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
+import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 class BackupWidget extends StatefulWidget {
   const BackupWidget({Key? key}) : super(key: key);
@@ -36,7 +37,7 @@ class _BackupWidgetState extends State<BackupWidget> {
   Widget _getBackupButton() {
     return Center(
       child: SettingsButton(
-        onPressed: _onBackupWalletPressed,
+        onPressed: (kWallet is KeyStore) ? _onBackupWalletPressed : null,
         text: 'Backup wallet',
       ),
     );
@@ -46,7 +47,7 @@ class _BackupWidgetState extends State<BackupWidget> {
     NavigationUtils.push(
       context,
       ExportWalletInfoScreen(
-        kKeyStore!.mnemonic!,
+        (kWallet as KeyStore).mnemonic!,
         backupWalletFlow: true,
       ),
     );

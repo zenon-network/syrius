@@ -11,7 +11,7 @@ import 'package:zenon_syrius_wallet_flutter/utils/node_utils.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 class SetAddressArguments {
-  final KeyStore? keystore;
+  final Wallet? keystore;
   final SendPort port;
 
   SetAddressArguments(this.keystore, this.port);
@@ -31,7 +31,7 @@ class ZenonAddressUtils {
     int addrListLength = kDefaultAddressList.length;
     for (int i = 0; i < numAddr; i++) {
       int addrListCounter = addrListLength + i;
-      Address? address = await kKeyStore!.getKeyPair(addrListCounter).address;
+      Address? address = await (await kWallet!.getAccount(addrListCounter)).getAddress();
       listAddr.add(address);
       Box addressesBox = Hive.box(kAddressesBox);
       await addressesBox.add(listAddr.elementAt(i).toString());
@@ -65,7 +65,7 @@ class ZenonAddressUtils {
       List<Future<String>>.generate(
           kNumOfInitialAddresses,
           (index) async =>
-              (await args.keystore!.getKeyPair(index).address).toString()),
+              (await (await args.keystore!.getAccount(index)).getAddress()).toString()),
     ))) {
       args.port.send(element);
     }
@@ -82,7 +82,7 @@ class ZenonAddressUtils {
     kSelectedAddress = sharedPrefsService!.get(kDefaultAddressKey);
   }
 
-  static Future<void> setAddresses(KeyStore? keyStore) async {
+  static Future<void> setAddresses(Wallet? keyStore) async {
     final port = ReceivePort();
     Box addressesBox = await Hive.openBox(kAddressesBox);
     final args = SetAddressArguments(keyStore, port.sendPort);

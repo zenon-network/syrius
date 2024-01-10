@@ -73,10 +73,10 @@ class InitUtils {
       );
 
   static Future<void> initWalletAfterDecryption() async {
-    await ZenonAddressUtils.setAddresses(kKeyStore);
+    await ZenonAddressUtils.setAddresses(kWallet);
     await ZenonAddressUtils.setAddressLabels();
     await ZenonAddressUtils.setDefaultAddress();
-    zenon!.defaultKeyPair = kKeyStore!.getKeyPair(
+    zenon!.defaultKeyPair = await kWallet!.getAccount(
       kDefaultAddressList.indexOf(kSelectedAddress),
     );
     await _openFavoriteTokensBox();
@@ -84,9 +84,9 @@ class InitUtils {
     await _openRecipientBox();
     await NodeUtils.initWebSocketClient();
     await _setWalletVersion();
-    final baseAddress = await kKeyStore!.getKeyPair(0).address;
+    final baseAddress = await (await kWallet!.getAccount(0)).getAddress();
     await htlcSwapsService!.openBoxes(
-        baseAddress.toString(), kKeyStore!.getKeyPair(0).getPrivateKey()!);
+        baseAddress.toString(), (kWallet as KeyStore).getKeyPair(0).getPrivateKey()!);
     sl<HtlcSwapsHandler>().start();
     kWalletInitCompleted = true;
   }

@@ -145,13 +145,13 @@ class _ChangeWalletPasswordScreenState
     String currentPassword,
     String newPassword,
   ) async {
-    String mnemonic = kKeyStore!.mnemonic!;
+    String mnemonic = (kWallet as KeyStore).mnemonic!;
     String oldKeyStorePath = kKeyStorePath!;
     await KeyStoreUtils.createKeyStore(
       mnemonic,
       newPassword,
       keyStoreName:
-          '${await kKeyStore!.getKeyPair(0).address}_${DateTime.now().millisecondsSinceEpoch}',
+          '${await (await kWallet!.getAccount(0)).getAddress()}_${DateTime.now().millisecondsSinceEpoch}',
     );
     await FileUtils.deleteFile(oldKeyStorePath);
     if (!mounted) return;

@@ -15,7 +15,7 @@ class AccountBlockUtils {
   static Future<AccountBlockTemplate> createAccountBlock(
     AccountBlockTemplate transactionParams,
     String purposeOfGeneratingPlasma, {
-    KeyPair? blockSigningKey,
+    WalletAccount? blockSigningKey,
     bool waitForRequiredPlasma = false,
   }) async {
     SyncInfo syncInfo = await zenon!.stats.syncInfo();
@@ -26,8 +26,8 @@ class AccountBlockUtils {
                 (syncInfo.targetHeight - syncInfo.currentHeight) < 20))
         : true;
     if (nodeIsSynced) {
-      Address address = (await blockSigningKey?.address ??
-          await zenon!.defaultKeyPair!.address)!;
+      Address address = (await blockSigningKey?.getAddress() ??
+          await zenon!.defaultKeyPair!.getAddress());
       try {
         // Wait until the lock is unused.
         //

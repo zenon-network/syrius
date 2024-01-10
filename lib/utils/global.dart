@@ -20,9 +20,9 @@ double? kAutoEraseWalletLimit;
 
 bool kWalletInitCompleted = false;
 
-KeyStore? kKeyStore;
+Wallet? kWallet;
 
-KeyStoreManager kKeyStoreManager = KeyStoreManager(
+WalletManager kWalletManager = KeyStoreManager(
   walletPath: Directory(kKeyStorePath!),
 );
 

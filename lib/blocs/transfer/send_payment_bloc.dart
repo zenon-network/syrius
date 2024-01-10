@@ -13,7 +13,7 @@ class SendPaymentBloc extends BaseBloc<AccountBlockTemplate?> {
     List<int>? data,
     Token? token,
     AccountBlockTemplate? block,
-  }) {
+  }) async {
     assert(
       block == null &&
               fromAddress != null &&
@@ -31,7 +31,7 @@ class SendPaymentBloc extends BaseBloc<AccountBlockTemplate?> {
             amount!,
             data,
           );
-      KeyPair blockSigningKeyPair = kKeyStore!.getKeyPair(
+      WalletAccount blockSigningKeyPair = await kWallet!.getAccount(
         kDefaultAddressList.indexOf(fromAddress),
       );
       AccountBlockUtils.createAccountBlock(

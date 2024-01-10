@@ -44,7 +44,7 @@ dependencies:
   znn_sdk_dart:
     git:
       url: https://github.com/zenon-network/znn_sdk_dart.git
-      ref: d960c0bdc6dc553eaa75d5ddddb34cab530578b8
+      ref: 5967f385f6d64dcf61068485674a9e079534e68b
   json_rpc_2: ^3.0.2
   path: ^1.8.2
   ffi: ^2.0.1

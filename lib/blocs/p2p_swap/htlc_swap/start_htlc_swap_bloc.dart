@@ -37,7 +37,7 @@ class StartHtlcSwapBloc extends BaseBloc<HtlcSwap?> {
         htlcPreimageMaxLength,
         hashLock.getBytes(),
       );
-      KeyPair blockSigningKeyPair = kKeyStore!.getKeyPair(
+      WalletAccount blockSigningKeyPair = await kWallet!.getAccount(
         kDefaultAddressList.indexOf(selfAddress.toString()),
       );
       AccountBlockUtils.createAccountBlock(transactionParams, 'start swap',

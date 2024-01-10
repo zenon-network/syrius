@@ -25,7 +25,7 @@ class AutoUnlockHtlcWorker extends BaseBloc<WalletNotification> {
   }
 
   Future<void> autoUnlock() async {
-    if (pool.isNotEmpty && !running && kKeyStore != null) {
+    if (pool.isNotEmpty && !running && kWallet != null) {
       running = true;
       Hash currentHash = pool.first;
       try {
@@ -38,7 +38,7 @@ class AutoUnlockHtlcWorker extends BaseBloc<WalletNotification> {
         if (!kDefaultAddressList.contains(htlc.hashLocked.toString())) {
           throw 'Swap address not in default addresses. Please add the address in the addresses list.';
         }
-        KeyPair? keyPair = kKeyStore!.getKeyPair(
+        WalletAccount? keyPair = await kWallet!.getAccount(
           kDefaultAddressList.indexOf(htlc.hashLocked.toString()),
         );
         AccountBlockTemplate transactionParams = zenon!.embedded.htlc

@@ -9,12 +9,12 @@ class ReclaimHtlcSwapFundsBloc extends BaseBloc<AccountBlockTemplate?> {
   void reclaimFunds({
     required Hash htlcId,
     required Address selfAddress,
-  }) {
+  }) async {
     try {
       addEvent(null);
       AccountBlockTemplate transactionParams =
           zenon!.embedded.htlc.reclaim(htlcId);
-      KeyPair blockSigningKeyPair = kKeyStore!.getKeyPair(
+      WalletAccount blockSigningKeyPair = await kWallet!.getAccount(
         kDefaultAddressList.indexOf(selfAddress.toString()),
       );
       AccountBlockUtils.createAccountBlock(

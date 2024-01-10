@@ -71,7 +71,7 @@ class AddressesState extends State<Addresses> {
       );
       widget.accountChainStatsBloc.updateStream();
       _selectedAddress = newDefaultAddress;
-      zenon!.defaultKeyPair = kKeyStore!.getKeyPair(
+      zenon!.defaultKeyPair = await kWallet!.getAccount(
         kDefaultAddressList.indexOf(newDefaultAddress),
       );
     } catch (e) {

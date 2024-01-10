@@ -30,7 +30,7 @@ class CompleteHtlcSwapBloc extends BaseBloc<HtlcSwap?> {
 
       AccountBlockTemplate transactionParams = zenon!.embedded.htlc.unlock(
           Hash.parse(htlcId), FormatUtils.decodeHexString(swap.preimage!));
-      KeyPair blockSigningKeyPair = kKeyStore!.getKeyPair(
+      WalletAccount blockSigningKeyPair = await kWallet!.getAccount(
         kDefaultAddressList.indexOf(swap.selfAddress.toString()),
       );
       AccountBlockUtils.createAccountBlock(transactionParams, 'complete swap',

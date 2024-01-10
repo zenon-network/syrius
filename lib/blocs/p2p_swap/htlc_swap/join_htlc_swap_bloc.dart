@@ -19,7 +19,7 @@ class JoinHtlcSwapBloc extends BaseBloc<HtlcSwap?> {
     required P2pSwapChain fromChain,
     required P2pSwapChain toChain,
     required int counterHtlcExpirationTime,
-  }) {
+  }) async {
     try {
       addEvent(null);
       AccountBlockTemplate transactionParams = zenon!.embedded.htlc.create(
@@ -31,7 +31,7 @@ class JoinHtlcSwapBloc extends BaseBloc<HtlcSwap?> {
         initialHtlc.keyMaxSize,
         initialHtlc.hashLock,
       );
-      KeyPair blockSigningKeyPair = kKeyStore!.getKeyPair(
+      WalletAccount blockSigningKeyPair = await kWallet!.getAccount(
         kDefaultAddressList.indexOf(initialHtlc.hashLocked.toString()),
       );
       AccountBlockUtils.createAccountBlock(transactionParams, 'join swap',
