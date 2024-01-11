@@ -19,10 +19,20 @@ class HtlcSwapsService {
 
   bool get isMaxSwapsReached => _htlcSwapsBox!.length >= kMaxP2pSwapsToStore;
 
-  Future<void> openBoxes(String htlcSwapsBoxSuffix, List<int> cipherKey) async {
+  Future<void> openBoxes(String htlcSwapsBoxSuffix, List<int> cipherKey,
+      {List<int>? newCipherKey}) async {
     if (_htlcSwapsBox == null || !_htlcSwapsBox!.isOpen) {
       _htlcSwapsBox = await Hive.openBox('${kHtlcSwapsBox}_$htlcSwapsBoxSuffix',
           encryptionCipher: HiveAesCipher(cipherKey));
+      if (newCipherKey != null) {
+        final values = _htlcSwapsBox!.toMap();
+        await _htlcSwapsBox!.deleteFromDisk();
+        _htlcSwapsBox = await Hive.openBox(
+            '${kHtlcSwapsBox}_$htlcSwapsBoxSuffix',
+            encryptionCipher: HiveAesCipher(newCipherKey));
+        _htlcSwapsBox!.putAll(values);
+        _htlcSwapsBox!.flush();
+      }
     }
 
     if (_lastCheckedHtlcBlockHeightBox == null ||
@@ -30,6 +40,27 @@ class HtlcSwapsService {
       _lastCheckedHtlcBlockHeightBox = await Hive.openBox(
           kLastCheckedHtlcBlockBox,
           encryptionCipher: HiveAesCipher(cipherKey));
+      if (newCipherKey != null) {
+        final values = _lastCheckedHtlcBlockHeightBox!.toMap();
+        await _lastCheckedHtlcBlockHeightBox!.deleteFromDisk();
+        _lastCheckedHtlcBlockHeightBox = await Hive.openBox(
+            kLastCheckedHtlcBlockBox,
+            encryptionCipher: HiveAesCipher(newCipherKey));
+        _lastCheckedHtlcBlockHeightBox!.putAll(values);
+        _lastCheckedHtlcBlockHeightBox!.flush();
+      }
+    }
+  }
+
+  Future<void> closeBoxes() async {
+    if (_htlcSwapsBox != null && _htlcSwapsBox!.isOpen) {
+      await _htlcSwapsBox!.close();
+      _htlcSwapsBox = null;
+    }
+    if (_lastCheckedHtlcBlockHeightBox != null &&
+        _lastCheckedHtlcBlockHeightBox!.isOpen) {
+      await _lastCheckedHtlcBlockHeightBox!.close();
+      _lastCheckedHtlcBlockHeightBox = null;
     }
   }
 

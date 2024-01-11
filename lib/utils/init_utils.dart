@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
+import 'package:version/version.dart';
 import 'package:zenon_syrius_wallet_flutter/handlers/htlc_swaps_handler.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/services/shared_prefs_service.dart';
@@ -72,7 +73,9 @@ class InitUtils {
         defaultValue: kAutoLockWalletDefaultIntervalMinutes,
       );
 
-  static Future<void> initWalletAfterDecryption() async {
+  static Future<void> initWalletAfterDecryption(List<int> cipherKey) async {
+    final walletVersion = Version.parse(sharedPrefsService!
+        .get(kWalletVersionKey, defaultValue: kWalletVersion));
     await ZenonAddressUtils.setAddresses(kWallet);
     await ZenonAddressUtils.setAddressLabels();
     await ZenonAddressUtils.setDefaultAddress();
@@ -84,9 +87,15 @@ class InitUtils {
     await _openRecipientBox();
     await NodeUtils.initWebSocketClient();
     await _setWalletVersion();
-    final baseAddress = await (await kWallet!.getAccount(0)).getAddress();
-    await htlcSwapsService!.openBoxes(
-        baseAddress.toString(), (kWallet as KeyStore).getKeyPair(0).getPrivateKey()!);
+    final baseAddress = await (await kWallet!.getAccount()).getAddress();
+    if (walletVersion <= Version(0, 1, 0)) {
+      // Use password as the cipherkey instead of the private key.
+      await htlcSwapsService!.openBoxes(baseAddress.toString(),
+          (kWallet as KeyStore).getKeyPair().getPrivateKey()!,
+          newCipherKey: cipherKey);
+    } else {
+      await htlcSwapsService!.openBoxes(baseAddress.toString(), cipherKey);
+    }
     sl<HtlcSwapsHandler>().start();
     kWalletInitCompleted = true;
   }

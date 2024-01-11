@@ -1,6 +1,9 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
+import 'package:zenon_syrius_wallet_flutter/services/htlc_swaps_service.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
@@ -145,15 +148,23 @@ class _ChangeWalletPasswordScreenState
     String currentPassword,
     String newPassword,
   ) async {
-    String mnemonic = (kWallet as KeyStore).mnemonic!;
-    String oldKeyStorePath = kKeyStorePath!;
-    await KeyStoreUtils.createKeyStore(
-      mnemonic,
-      newPassword,
-      keyStoreName:
-          '${await (await kWallet!.getAccount(0)).getAddress()}_${DateTime.now().millisecondsSinceEpoch}',
+    final baseAddress = await (await kWallet!.getAccount()).getAddress();
+    if (kWallet is KeyStore) {
+      String mnemonic = (kWallet as KeyStore).mnemonic!;
+      String oldKeyStorePath = kKeyStorePath!;
+      await KeyStoreUtils.createKeyStore(
+        mnemonic,
+        newPassword,
+        keyStoreName: '${baseAddress}_${DateTime.now().millisecondsSinceEpoch}',
+      );
+      await FileUtils.deleteFile(oldKeyStorePath);
+    }
+    await HtlcSwapsService.getInstance().closeBoxes();
+    await HtlcSwapsService.getInstance().openBoxes(
+      baseAddress.toString(),
+      Crypto.digest(utf8.encode(currentPassword)),
+      newCipherKey: Crypto.digest(utf8.encode(newPassword)),
     );
-    await FileUtils.deleteFile(oldKeyStorePath);
     if (!mounted) return;
     Navigator.pop(context);
   }
@@ -178,7 +189,7 @@ class _ChangeWalletPasswordScreenState
             });
             try {
               await _changePassword(
-                _newPasswordController.text,
+                _currentPasswordController.text,
                 _newPasswordController.text,
               );
             } catch (e) {
