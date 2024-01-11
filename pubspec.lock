@@ -1584,6 +1584,15 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.1.2"
+  znn_ledger_dart:
+    dependency: "direct main"
+    description:
+      path: "."
+      ref: "48e2e932ead9558e7255294b4f71ecc5eb7d325e"
+      resolved-ref: "48e2e932ead9558e7255294b4f71ecc5eb7d325e"
+      url: "https://github.com/hypercore-one/znn_ledger_dart"
+    source: git
+    version: "0.0.2"
   znn_sdk_dart:
     dependency: "direct main"
     description:
