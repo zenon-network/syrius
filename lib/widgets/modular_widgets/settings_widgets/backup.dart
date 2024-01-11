@@ -28,13 +28,13 @@ class _BackupWidgetState extends State<BackupWidget> {
     return ListView(
       shrinkWrap: true,
       children: <Widget>[
-        CustomExpandablePanel('Backup Wallet', _getBackupButton()),
+        CustomExpandablePanel('Backup Wallet', _getBackupWalletButton()),
         CustomExpandablePanel('Dump Mnemonic', _getDumpMnemonicButton()),
       ],
     );
   }
 
-  Widget _getBackupButton() {
+  Widget _getBackupWalletButton() {
     return Center(
       child: SettingsButton(
         onPressed: (kWallet is KeyStore) ? _onBackupWalletPressed : null,
@@ -56,14 +56,16 @@ class _BackupWidgetState extends State<BackupWidget> {
   Widget _getDumpMnemonicButton() {
     return Center(
       child: SettingsButton(
-        onPressed: () {
-          NavigationUtils.push(
-            context,
-            const DumpMnemonicScreen(),
-          );
-        },
+        onPressed: (kWallet is KeyStore) ? _onDumpMnemonicPressed : null,
         text: 'Dump Mnemonic',
       ),
+    );
+  }
+
+  void _onDumpMnemonicPressed() {
+    NavigationUtils.push(
+      context,
+      const DumpMnemonicScreen(),
     );
   }
 }
