@@ -1596,18 +1596,18 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: "48e2e932ead9558e7255294b4f71ecc5eb7d325e"
-      resolved-ref: "48e2e932ead9558e7255294b4f71ecc5eb7d325e"
-      url: "https://github.com/hypercore-one/znn_ledger_dart"
+      ref: "feature/ledger"
+      resolved-ref: fe3069c758d51e17f02cc336315af6a7d5f51cb2
+      url: "https://github.com/kinggorrin/znn_ledger_dart.git"
     source: git
     version: "0.0.2"
   znn_sdk_dart:
     dependency: "direct main"
     description:
       path: "."
-      ref: "5967f385f6d64dcf61068485674a9e079534e68b"
-      resolved-ref: "5967f385f6d64dcf61068485674a9e079534e68b"
-      url: "https://github.com/zenon-network/znn_sdk_dart.git"
+      ref: "feature/ledger"
+      resolved-ref: "996d563361903d9e6860c56833b0652790578de1"
+      url: "https://github.com/kinggorrin/znn_sdk_dart.git"
     source: git
     version: "0.0.6"
   zxing2:
