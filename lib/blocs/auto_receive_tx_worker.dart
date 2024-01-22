@@ -9,6 +9,7 @@ import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/model/model.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/account_block_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/address_utils.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/extensions.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
@@ -33,9 +34,8 @@ class AutoReceiveTxWorker extends BaseBloc<WalletNotification> {
             (await zenon!.ledger.getAccountBlockByHash(currentHash))!
                 .toAddress
                 .toString();
-        WalletAccount keyPair = await kWallet!.getAccount(
-          kDefaultAddressList.indexOf(toAddress),
-        );
+        WalletAccount walletAccount =
+            await kWalletFile!.account(kDefaultAddressList.indexOf(toAddress));
         AccountBlockTemplate transactionParams = AccountBlockTemplate.receive(
           currentHash,
         );
@@ -43,7 +43,7 @@ class AutoReceiveTxWorker extends BaseBloc<WalletNotification> {
             await AccountBlockUtils.createAccountBlock(
           transactionParams,
           'receive transaction',
-          blockSigningKey: keyPair,
+          walletAccount: walletAccount,
           waitForRequiredPlasma: true,
         );
         pool.removeFirst();

@@ -1,35 +1,35 @@
 import 'package:flutter/material.dart';
-import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
+import 'package:zenon_syrius_wallet_flutter/blocs/ledger_wallet_file_bloc.dart';
 import 'package:zenon_syrius_wallet_flutter/screens/screens.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/wallet_file.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 
-class CreateKeyStoreScreen extends StatefulWidget {
-  final String seed;
+class CreateLedgerWalletScreen extends StatefulWidget {
+  final String walletId;
   final String password;
   final int progressBarNumLevels;
 
-  const CreateKeyStoreScreen(
-    this.seed,
+  const CreateLedgerWalletScreen(
+    this.walletId,
     this.password, {
-    this.progressBarNumLevels = 5,
+    this.progressBarNumLevels = 4,
     Key? key,
   }) : super(key: key);
 
   @override
-  State<CreateKeyStoreScreen> createState() => _CreateKeyStoreScreenState();
+  State<CreateLedgerWalletScreen> createState() => _CreateLedgerWalletScreenState();
 }
 
-class _CreateKeyStoreScreenState extends State<CreateKeyStoreScreen> {
-  late KeyStoreFileBloc _keyStoreFileBloc;
+class _CreateLedgerWalletScreenState extends State<CreateLedgerWalletScreen> {
+  late LedgerWalletFileBloc _ledgerWalletFileBloc;
 
   @override
   void initState() {
     super.initState();
-    _keyStoreFileBloc = KeyStoreFileBloc()
-      ..getKeyStorePath(
-        widget.seed,
+    _ledgerWalletFileBloc = LedgerWalletFileBloc()
+      ..getLedgerWalletPath(
+        widget.walletId,
         widget.password,
       );
   }
@@ -42,8 +42,8 @@ class _CreateKeyStoreScreenState extends State<CreateKeyStoreScreen> {
           vertical: 30.0,
         ),
         child: Center(
-          child: StreamBuilder<KeyStoreWalletFile?>(
-            stream: _keyStoreFileBloc.stream,
+          child: StreamBuilder<LedgerWalletFile?>(
+            stream: _ledgerWalletFileBloc.stream,
             builder: (_, snapshot) {
               if (snapshot.hasData) {
                 return Column(

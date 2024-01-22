@@ -29,7 +29,7 @@ const SizedBox kSpacingBetweenActionButtons = SizedBox(
 const Size kAcceleratorProgressBarSize = Size(300.0, 10.0);
 
 // Wallet version
-const String kWalletVersion = '0.1.0';
+const String kWalletVersion = '0.2.0';
 
 // Boxes constants
 const String kFavoriteTokensBox = 'favourite_tokens_box';
@@ -56,6 +56,10 @@ const List<String> kCacheBoxesToBeDeleted = [
 
 // Wallet file name
 const String kNameWalletFile = 'wallet';
+
+// Wallet types
+const String kLedgerWalletType = 'ledger';
+const String kKeyStoreWalletType = 'keyStore';
 
 // Github Syrius releases link
 const String kGithubReleasesLink =

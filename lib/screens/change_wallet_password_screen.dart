@@ -2,7 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
-import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
+import 'package:zenon_syrius_wallet_flutter/blocs/decrypt_wallet_file_bloc.dart';
 import 'package:zenon_syrius_wallet_flutter/services/htlc_swaps_service.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
@@ -148,17 +148,8 @@ class _ChangeWalletPasswordScreenState
     String currentPassword,
     String newPassword,
   ) async {
-    final baseAddress = await (await kWallet!.getAccount()).getAddress();
-    if (kWallet is KeyStore) {
-      String mnemonic = (kWallet as KeyStore).mnemonic!;
-      String oldKeyStorePath = kKeyStorePath!;
-      await KeyStoreUtils.createKeyStore(
-        mnemonic,
-        newPassword,
-        keyStoreName: '${baseAddress}_${DateTime.now().millisecondsSinceEpoch}',
-      );
-      await FileUtils.deleteFile(oldKeyStorePath);
-    }
+    await kWalletFile!.changePassword(currentPassword, newPassword);
+    final baseAddress = await WalletUtils.baseAddress();
     await HtlcSwapsService.getInstance().closeBoxes();
     await HtlcSwapsService.getInstance().openBoxes(
       baseAddress.toString(),
@@ -180,10 +171,10 @@ class _ChangeWalletPasswordScreenState
   }
 
   Widget _getDecryptKeyStoreFileViewModel() {
-    return ViewModelBuilder<DecryptKeyStoreBloc>.reactive(
+    return ViewModelBuilder<DecryptWalletFileBloc>.reactive(
       onViewModelReady: (model) {
-        model.stream.listen((keyStore) async {
-          if (keyStore != null) {
+        model.stream.listen((walletFile) async {
+          if (walletFile != null) {
             setState(() {
               _currentPassErrorText = null;
             });
@@ -219,18 +210,19 @@ class _ChangeWalletPasswordScreenState
         _loadingButton = _getLoadingButton(model);
         return _getLoadingButton(model);
       },
-      viewModelBuilder: () => DecryptKeyStoreBloc(),
+      viewModelBuilder: () => DecryptWalletFileBloc(),
     );
   }
 
-  LoadingButton _getLoadingButton(DecryptKeyStoreBloc model) {
+  LoadingButton _getLoadingButton(DecryptWalletFileBloc model) {
     return LoadingButton.onboarding(
       key: _loadingButtonKey,
       onPressed: _arePasswordsValid()
           ? () {
               _loadingButtonKey.currentState!.animateForward();
-              model.decryptKeyStoreFile(
-                kKeyStorePath!,
+              model.decryptWalletFile(
+                kWalletType!,
+                kWalletPath!,
                 _currentPasswordController.text,
               );
             }

@@ -103,13 +103,15 @@ class _DumpMnemonicScreenState extends State<DumpMnemonicScreen> {
     if (_passwordController.text.isNotEmpty) {
       try {
         _continueButtonKey.currentState!.animateForward();
-        await KeyStoreUtils.decryptKeyStoreFile(
-          kKeyStorePath!,
+        var walletFile = await WalletUtils.decryptWalletFile(
+          kWalletType!,
+          kWalletPath!,
           _passwordController.text,
-        ).then((keyStore) {
+        );
+        walletFile.open().then((wallet) {
           setState(() {
             _passwordController.clear();
-            _seedWords = keyStore.mnemonic!.split(' ');
+            _seedWords = (wallet as KeyStore).mnemonic!.split(' ');
             _passwordError = null;
           });
         });

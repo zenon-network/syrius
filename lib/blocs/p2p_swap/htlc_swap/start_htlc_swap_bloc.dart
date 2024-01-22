@@ -7,6 +7,7 @@ import 'package:zenon_syrius_wallet_flutter/model/p2p_swap/p2p_swap.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/account_block_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/address_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/date_time_utils.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/extensions.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/format_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
@@ -37,11 +38,11 @@ class StartHtlcSwapBloc extends BaseBloc<HtlcSwap?> {
         htlcPreimageMaxLength,
         hashLock.getBytes(),
       );
-      WalletAccount blockSigningKeyPair = await kWallet!.getAccount(
+      WalletAccount walletAccount = await kWalletFile!.account(
         kDefaultAddressList.indexOf(selfAddress.toString()),
       );
       AccountBlockUtils.createAccountBlock(transactionParams, 'start swap',
-              blockSigningKey: blockSigningKeyPair, waitForRequiredPlasma: true)
+              walletAccount: walletAccount, waitForRequiredPlasma: true)
           .then(
         (response) async {
           final swap = HtlcSwap(

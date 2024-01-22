@@ -1,5 +1,8 @@
 import 'dart:math' show pow;
 import 'package:big_decimal/big_decimal.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/wallet_file.dart';
+import 'package:znn_ledger_dart/znn_ledger_dart.dart';
+import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 extension StringExtensions on String {
   String capitalize() {
@@ -66,5 +69,63 @@ extension ShortString on String {
     final longString = this;
     return '${longString.substring(0, 6)}...'
         '${longString.substring(longString.length - 6)}';
+  }
+}
+
+extension WalletFileExtensions on WalletFile {
+  Future<WalletAccount> account([int index = 0]) async {
+    final walletFile = await open();
+    return await walletFile.getAccount(index);
+  }
+}
+
+extension LedgerErrorExtensions on LedgerError {
+  String toFriendlyString() {
+    return when(
+        connectionError: (origMessage) => origMessage,
+        responseError: (statusWord) => _mapStatusWord(statusWord));
+  }
+
+  String _mapStatusWord(StatusWord statusWord) {
+    switch (statusWord) {
+      case StatusWord.deny:
+        return 'Deny';
+      case StatusWord.wrongP1P2:
+        return 'Invalid P1 or P2';
+      case StatusWord.wrongDataLength:
+        return 'Invalid data length';
+      case StatusWord.inactiveDevice:
+        return 'Device is inactive';
+      case StatusWord.notAllowed:
+        return 'Request not allowed';
+      case StatusWord.insNotSupported:
+        return 'Instruction not supported, please make sure the Zenon app is opened';
+      case StatusWord.claNotSupported:
+        return 'Class not supported, please make sure the Zenon app is opened';
+      case StatusWord.appIsNotOpen:
+        return 'App not open, please open the Zenon app on your device';
+      case StatusWord.wrongResponseLength:
+        return 'Invalid response, please reconnect the device and try again';
+      case StatusWord.displayBip32PathFail:
+        return 'Failed to display BIP32 path';
+      case StatusWord.displayAddressFail:
+        return 'Failed to display address';
+      case StatusWord.displayAmountFail:
+        return 'Failed to display amount';
+      case StatusWord.wrongTxLength:
+        return 'Invalid transaction length';
+      case StatusWord.txParsingFail:
+        return 'Failed to parse transaction';
+      case StatusWord.txHashFail:
+        return 'Failed to hash transaction';
+      case StatusWord.badState:
+        return 'Bad state, please reconnect the device and try again';
+      case StatusWord.signatureFail:
+        return 'Failed to create signature';
+      case StatusWord.success:
+        return 'Success';
+      case StatusWord.unknownError:
+        return 'Unknown error, please make sure the device is unlocked';
+    }
   }
 }

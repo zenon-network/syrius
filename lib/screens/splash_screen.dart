@@ -72,7 +72,7 @@ class _SplashScreenState extends State<SplashScreen>
 
   void _navigateToNextScreen() {
     _controller.stop();
-    return kKeyStorePath != null
+    return kWalletPath != null
         ? _checkForDefaultNode()
         : Navigator.pushReplacementNamed(
             context,
@@ -99,7 +99,7 @@ class _SplashScreenState extends State<SplashScreen>
     // after the user creates or imports a new wallet
     kWalletInitCompleted = false;
     await sl.get<NotificationsBloc>().addNotification(null);
-    await _deleteKeyStoreFile();
+    await _deleteWalletFile();
     await Hive.deleteFromDisk();
     if (!mounted) return;
     await InitUtils.initApp(context);
@@ -110,9 +110,10 @@ class _SplashScreenState extends State<SplashScreen>
         (boxName) async => await Hive.deleteBoxFromDisk(boxName),
       );
 
-  Future<void> _deleteKeyStoreFile() async {
-    await FileUtils.deleteFile(kKeyStorePath!);
-    kKeyStorePath = null;
+  Future<void> _deleteWalletFile() async {
+    await FileUtils.deleteFile(kWalletPath!);
+    kWalletPath = null;
+    kWalletType = null;
   }
 
   void _checkForDefaultNode() => sharedPrefsService!.get(

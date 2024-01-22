@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:zenon_syrius_wallet_flutter/screens/screens.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/navigation_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
@@ -37,17 +38,19 @@ class _BackupWidgetState extends State<BackupWidget> {
   Widget _getBackupWalletButton() {
     return Center(
       child: SettingsButton(
-        onPressed: (kWallet is KeyStore) ? _onBackupWalletPressed : null,
+        onPressed: (kWalletFile!.walletType == kKeyStoreWalletType)
+            ? _onBackupWalletPressed
+            : null,
         text: 'Backup wallet',
       ),
     );
   }
 
-  void _onBackupWalletPressed() {
+  void _onBackupWalletPressed() async {
     NavigationUtils.push(
       context,
       ExportWalletInfoScreen(
-        (kWallet as KeyStore).mnemonic!,
+        ((await kWalletFile!.open()) as KeyStore).mnemonic!,
         backupWalletFlow: true,
       ),
     );
@@ -56,7 +59,9 @@ class _BackupWidgetState extends State<BackupWidget> {
   Widget _getDumpMnemonicButton() {
     return Center(
       child: SettingsButton(
-        onPressed: (kWallet is KeyStore) ? _onDumpMnemonicPressed : null,
+        onPressed: (kWalletFile!.walletType == kKeyStoreWalletType)
+            ? _onDumpMnemonicPressed
+            : null,
         text: 'Dump Mnemonic',
       ),
     );

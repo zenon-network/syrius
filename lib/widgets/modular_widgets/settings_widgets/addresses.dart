@@ -5,7 +5,6 @@ import 'package:hive/hive.dart';
 import 'package:number_selector/number_selector.dart';
 import 'package:provider/provider.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
-import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/address_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
@@ -71,9 +70,6 @@ class AddressesState extends State<Addresses> {
       );
       widget.accountChainStatsBloc.updateStream();
       _selectedAddress = newDefaultAddress;
-      zenon!.defaultKeyPair = await kWallet!.getAccount(
-        kDefaultAddressList.indexOf(newDefaultAddress),
-      );
     } catch (e) {
       rethrow;
     }

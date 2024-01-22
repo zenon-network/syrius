@@ -10,7 +10,7 @@ import 'package:zenon_syrius_wallet_flutter/services/wallet_connect_service.dart
 import 'package:zenon_syrius_wallet_flutter/utils/address_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/keystore_utils.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/wallet_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/node_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/widget_utils.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
@@ -22,7 +22,7 @@ class InitUtils {
       WidgetUtils.setTextScale(context);
       _setAutoEraseWalletNumAttempts();
       _setAutoLockWalletTimeInterval();
-      await KeyStoreUtils.setKeyStorePath();
+      await WalletUtils.setWalletPathAndType();
       await _setNumUnlockFailedAttempts();
       await NodeUtils.setNode();
       _setChainId();
@@ -76,22 +76,20 @@ class InitUtils {
   static Future<void> initWalletAfterDecryption(List<int> cipherKey) async {
     final walletVersion = Version.parse(sharedPrefsService!
         .get(kWalletVersionKey, defaultValue: kWalletVersion));
-    await ZenonAddressUtils.setAddresses(kWallet);
+    await ZenonAddressUtils.setAddresses(kWalletFile);
     await ZenonAddressUtils.setAddressLabels();
     await ZenonAddressUtils.setDefaultAddress();
-    zenon!.defaultKeyPair = await kWallet!.getAccount(
-      kDefaultAddressList.indexOf(kSelectedAddress),
-    );
     await _openFavoriteTokensBox();
     await _openNotificationsBox();
     await _openRecipientBox();
     await NodeUtils.initWebSocketClient();
     await _setWalletVersion();
-    final baseAddress = await (await kWallet!.getAccount()).getAddress();
+    final baseAddress = await WalletUtils.baseAddress();
     if (walletVersion <= Version(0, 1, 0)) {
-      // Use password as the cipherkey instead of the private key.
-      await htlcSwapsService!.openBoxes(baseAddress.toString(),
-          (kWallet as KeyStore).getKeyPair().getPrivateKey()!,
+      var wallet = await kWalletFile!.open() as KeyStore;
+      // Migrate to password as the cipherkey instead of the private key.
+      await htlcSwapsService!.openBoxes(
+          baseAddress.toString(), wallet.getKeyPair().getPrivateKey()!,
           newCipherKey: cipherKey);
     } else {
       await htlcSwapsService!.openBoxes(baseAddress.toString(), cipherKey);

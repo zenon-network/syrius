@@ -6,12 +6,14 @@ import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/screens/screens.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/extensions.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/init_utils.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/keystore_utils.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/wallet_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/navigation_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/notification_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
+import 'package:znn_ledger_dart/znn_ledger_dart.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 class LockTabChild extends StatefulWidget {
@@ -158,10 +160,11 @@ class _LockTabChildState extends State<LockTabChild> {
         _actionButtonKey.currentState!.btnState == ButtonState.idle) {
       try {
         _actionButtonKey.currentState!.animateForward();
-        await KeyStoreUtils.decryptKeyStoreFile(
-          kKeyStorePath!,
+        kWalletFile = await WalletUtils.decryptWalletFile(
+          kWalletType!,
+          kWalletPath!,
           _passwordController.text,
-        ).then((keyStore) => kWallet = keyStore);
+        );
         if (kWalletInitCompleted == false) {
           setState(() {
             _messageToUser = 'Initializing wallet, please wait';
@@ -179,6 +182,8 @@ class _LockTabChildState extends State<LockTabChild> {
           kIncorrectPasswordNotificationTitle,
           IncorrectPasswordException(),
         );
+      } on LedgerError catch (e) {
+        _onError('Ledger: ${e.toFriendlyString()}', e);
       } catch (e) {
         _onError(kUnlockFailedNotificationTitle, e);
       } finally {

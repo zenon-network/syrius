@@ -30,11 +30,11 @@ class CompleteHtlcSwapBloc extends BaseBloc<HtlcSwap?> {
 
       AccountBlockTemplate transactionParams = zenon!.embedded.htlc.unlock(
           Hash.parse(htlcId), FormatUtils.decodeHexString(swap.preimage!));
-      WalletAccount blockSigningKeyPair = await kWallet!.getAccount(
+      WalletAccount walletAccount = await kWalletFile!.account(
         kDefaultAddressList.indexOf(swap.selfAddress.toString()),
       );
       AccountBlockUtils.createAccountBlock(transactionParams, 'complete swap',
-              blockSigningKey: blockSigningKeyPair, waitForRequiredPlasma: true)
+              walletAccount: walletAccount, waitForRequiredPlasma: true)
           .then(
         (response) async {
           swap.state = P2pSwapState.completed;
