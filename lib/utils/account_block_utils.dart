@@ -27,8 +27,7 @@ class AccountBlockUtils {
                 (syncInfo.targetHeight - syncInfo.currentHeight) < 20))
         : true;
     if (nodeIsSynced) {
-      walletAccount ??= await WalletUtils.defaultAccount();
-      Address address = await walletAccount.getAddress();
+      Address address = await WalletUtils.defaultAddress();
       try {
         // Wait until the lock is unused.
         //
@@ -38,6 +37,8 @@ class AccountBlockUtils {
             _kIsRunningByAddress[address.toString()] != null) {
           await _kIsRunningByAddress[address.toString()];
         }
+        // Open wallet after lock to prevent concurrent access.
+        walletAccount ??= await WalletUtils.defaultAccount();
 
         // Acquire lock
         Completer<void> completer;
@@ -48,30 +49,25 @@ class AccountBlockUtils {
           transactionParams,
           blockSigningKey: walletAccount,
         );
+        bool needReview = kWalletType == kLedgerWalletType;
 
         if (needPlasma) {
           sl
               .get<NotificationsBloc>()
               .sendPlasmaNotification(purposeOfGeneratingPlasma);
-        }
-        if (kWalletFile!.walletType != kKeyStoreWalletType) {
-          sl.get<NotificationsBloc>().addNotification(
-                WalletNotification(
-                  title:
-                      '${BlockUtils.isSendBlock(transactionParams.blockType) ? 'Sending transaction' : 'Receiving transaction'}, please review the transaction on your hardware device',
-                  timestamp: DateTime.now().millisecondsSinceEpoch,
-                  details:
-                      'Review account-block type: ${FormatUtils.extractNameFromEnum<BlockTypeEnum>(
-                    BlockTypeEnum.values[transactionParams.blockType],
-                  )}',
-                  type: NotificationType.confirm,
-                ),
-              );
+        } else if (needReview) {
+          _sendReviewNotification(transactionParams);
         }
         final AccountBlockTemplate response = await zenon!.send(
           transactionParams,
           currentKeyPair: walletAccount,
-          generatingPowCallback: _addEventToPowGeneratingStatusBloc,
+          generatingPowCallback: (status) {
+            // Wait for plasma to be generated before sending review notification
+            if (needReview && status == PowStatus.done) {
+              _sendReviewNotification(transactionParams);
+            }
+            _addEventToPowGeneratingStatusBloc(status);
+          },
           waitForRequiredPlasma: waitForRequiredPlasma,
         );
         if (BlockUtils.isReceiveBlock(transactionParams.blockType)) {
@@ -187,6 +183,21 @@ class AccountBlockUtils {
       }
     }
     return null;
+  }
+
+  static void _sendReviewNotification(AccountBlockTemplate transactionParams) {
+    sl.get<NotificationsBloc>().addNotification(
+          WalletNotification(
+            title:
+                '${BlockUtils.isSendBlock(transactionParams.blockType) ? 'Sending transaction' : 'Receiving transaction'}, please review the transaction on your hardware device',
+            timestamp: DateTime.now().millisecondsSinceEpoch,
+            details:
+                'Review account-block type: ${FormatUtils.extractNameFromEnum<BlockTypeEnum>(
+              BlockTypeEnum.values[transactionParams.blockType],
+            )}',
+            type: NotificationType.confirm,
+          ),
+        );
   }
 
   static void _addEventToPowGeneratingStatusBloc(PowStatus event) =>
