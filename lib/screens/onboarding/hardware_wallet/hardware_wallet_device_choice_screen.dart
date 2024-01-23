@@ -207,7 +207,7 @@ class _HardwareWalletDeviceChoiceScreenState
                                     height: 20,
                                     child: value == null
                                         ? const Text(
-                                            'select to connect the device')
+                                            'Select to connect the device')
                                         : Text(value,
                                             style: Theme.of(context)
                                                 .textTheme
@@ -243,7 +243,7 @@ class _HardwareWalletDeviceChoiceScreenState
       if (wallet == null) {
         throw const LedgerError.connectionError(
             origMessage:
-                'not connected, please connect the device and try again.');
+                'Not connected, please connect the device and try again.');
       }
       final walletAccount = await wallet.getAccount();
       final walletAddress = await walletAccount.getAddress();
@@ -269,7 +269,7 @@ class _HardwareWalletDeviceChoiceScreenState
     if (err is LedgerError) {
       errorText = err.toFriendlyString();
     } else {
-      errorText = 'error: $err';
+      errorText = 'Error: $err';
     }
     setState(() {
       _deviceValueMap[walletDefinition!.walletId]!.value = errorText;

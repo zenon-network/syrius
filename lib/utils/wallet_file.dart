@@ -102,7 +102,7 @@ class LedgerWalletFile extends WalletFile {
     }
     throw const LedgerError.connectionError(
         origMessage:
-            'Could not find the wallet, please use the same device on which the wallet was initialized');
+            'Cannot find the hardware device, please connect the device on which the wallet is initialized');
   }
 
   static Future<void> _close() async {
