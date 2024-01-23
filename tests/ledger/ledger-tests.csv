@@ -24,6 +24,7 @@ Create hardware wallet,"Create a hardware wallet using a Ledger Nano S/S+ device
 Unlocking,,,
 Lock/unlock keystore wallet,"Lock and unlock a keystore wallet with a password.",PRIO1,
 Lock/unlock hardware wallet with device disconnected,"Unlocking a hardware wallet with a password does not require the device to be connected.",PRIO1,
+Discreet mode hardware wallet with device disconnected,"Enable and disable discreet mode on a hardware wallet.",PRIO2,
 ,,,
 Transactions,,,
 Send transaction on keystore wallet,"Send a transaction on a keystore wallet.",PRIO1,
