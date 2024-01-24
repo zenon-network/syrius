@@ -19,9 +19,6 @@ class NodeSyncStatusBloc extends DashboardBaseBloc<SyncInfo> {
                   (syncInfo.targetHeight - syncInfo.currentHeight) > 3))) {
         lastSyncState = syncInfo.state;
         if (syncInfo.state == SyncState.syncDone) {
-          NodeUtils.getUnreceivedTransactions().then((value) {
-            sl<AutoReceiveTxWorker>().autoReceive();
-          });
           Future.delayed(const Duration(seconds: 5)).then((value) {
             NodeUtils.getUnreceivedTransactions().then((value) {
               sl<AutoReceiveTxWorker>().autoReceive();
