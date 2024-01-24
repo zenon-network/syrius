@@ -9,6 +9,7 @@ import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/model/model.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/account_block_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/address_utils.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
@@ -22,12 +23,9 @@ class AutoReceiveTxWorker extends BaseBloc<WalletNotification> {
     return _instance!;
   }
 
-  Future<void> autoReceive() async {
-    // Make sure that AutoUnlockHtlcWorker is not running since it should be
-    // given priority to send transactions.
-    if (pool.isNotEmpty && !running && !sl<AutoUnlockHtlcWorker>().running) {
+  Future<void> autoReceiveTransactionHash(Hash currentHash) async {
+    if (!running) {
       running = true;
-      Hash currentHash = pool.first;
       try {
         String toAddress =
             (await zenon!.ledger.getAccountBlockByHash(currentHash))!
@@ -52,6 +50,52 @@ class AutoReceiveTxWorker extends BaseBloc<WalletNotification> {
         _sendErrorNotification(e.toString());
         Logger('AutoReceiveTxWorker')
             .log(Level.WARNING, 'autoReceive', e, stackTrace);
+      }
+      running = false;
+    }
+  }
+
+  Future<void> autoReceive() async {
+    if (!sharedPrefsService!.get(
+      kAutoReceiveKey,
+      defaultValue: kAutoReceiveDefaultValue,
+    )) {
+      pool.clear();
+      return;
+    }
+    // Make sure that AutoUnlockHtlcWorker is not running since it should be
+    // given priority to send transactions.
+    if (pool.isNotEmpty && !running && !sl<AutoUnlockHtlcWorker>().running) {
+      running = true;
+      Hash currentHash = pool.first;
+      try {
+        String toAddress =
+            (await zenon!.ledger.getAccountBlockByHash(currentHash))!
+                .toAddress
+                .toString();
+        KeyPair keyPair = kKeyStore!.getKeyPair(
+          kDefaultAddressList.indexOf(toAddress),
+        );
+        AccountBlockTemplate transactionParams = AccountBlockTemplate.receive(
+          currentHash,
+        );
+        AccountBlockTemplate response =
+            await AccountBlockUtils.createAccountBlock(
+          transactionParams,
+          'receive transaction',
+          blockSigningKey: keyPair,
+          waitForRequiredPlasma: true,
+        );
+        _sendSuccessNotification(response, toAddress);
+        if (pool.isNotEmpty) {
+          pool.removeFirst();
+        }
+        running = false;
+        autoReceive();
+      } on RpcException catch (e, stackTrace) {
+        _sendErrorNotification(e.toString());
+        Logger('AutoReceiveTxWorker')
+            .log(Level.WARNING, 'autoReceive', e, stackTrace);
         if (e.message.compareTo('account-block from-block already received') ==
             0) {
           pool.removeFirst();
@@ -65,6 +109,19 @@ class AutoReceiveTxWorker extends BaseBloc<WalletNotification> {
       }
       running = false;
     }
+    return;
+  }
+
+  Future<void> addHash(Hash hash) async {
+    zenon!.stats.syncInfo().then((syncInfo) {
+      if (!pool.contains(hash) &&
+          (syncInfo.state == SyncState.syncDone ||
+              (syncInfo.targetHeight > 0 &&
+                  syncInfo.currentHeight > 0 &&
+                  (syncInfo.targetHeight - syncInfo.currentHeight) < 3))) {
+        pool.add(hash);
+      }
+    });
   }
 
   void _sendErrorNotification(String errorText) {
@@ -88,21 +145,5 @@ class AutoReceiveTxWorker extends BaseBloc<WalletNotification> {
         type: NotificationType.paymentReceived,
       ),
     );
-  }
-
-  Future<void> addHash(Hash hash) async {
-    if (!pool.contains(hash)) {
-      zenon!.stats.syncInfo().then((syncInfo) {
-        // Verify that the pool does not already contain the hash after the
-        // asynchronous request has completed and that the node is in sync.
-        if (!pool.contains(hash) &&
-            (syncInfo.state == SyncState.syncDone ||
-                (syncInfo.targetHeight > 0 &&
-                    syncInfo.currentHeight > 0 &&
-                    (syncInfo.targetHeight - syncInfo.currentHeight) < 3))) {
-          pool.add(hash);
-        }
-      });
-    }
   }
 }
