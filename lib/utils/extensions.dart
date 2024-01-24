@@ -1,8 +1,6 @@
 import 'dart:math' show pow;
 import 'package:big_decimal/big_decimal.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/wallet_file.dart';
 import 'package:znn_ledger_dart/znn_ledger_dart.dart';
-import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 extension StringExtensions on String {
   String capitalize() {
@@ -69,13 +67,6 @@ extension ShortString on String {
     final longString = this;
     return '${longString.substring(0, 6)}...'
         '${longString.substring(longString.length - 6)}';
-  }
-}
-
-extension WalletFileExtensions on WalletFile {
-  Future<WalletAccount> account([int index = 0]) async {
-    final walletFile = await open();
-    return await walletFile.getAccount(index);
   }
 }
 

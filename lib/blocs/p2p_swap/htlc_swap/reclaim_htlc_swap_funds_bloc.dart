@@ -2,8 +2,6 @@ import 'package:zenon_syrius_wallet_flutter/blocs/base_bloc.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/account_block_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/address_utils.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/extensions.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 class ReclaimHtlcSwapFundsBloc extends BaseBloc<AccountBlockTemplate?> {
@@ -15,12 +13,9 @@ class ReclaimHtlcSwapFundsBloc extends BaseBloc<AccountBlockTemplate?> {
       addEvent(null);
       AccountBlockTemplate transactionParams =
           zenon!.embedded.htlc.reclaim(htlcId);
-      WalletAccount walletAccount = await kWalletFile!.account(
-        kDefaultAddressList.indexOf(selfAddress.toString()),
-      );
       AccountBlockUtils.createAccountBlock(
               transactionParams, 'reclaim swap funds',
-              walletAccount: walletAccount, waitForRequiredPlasma: true)
+              address: selfAddress, waitForRequiredPlasma: true)
           .then(
         (response) {
           ZenonAddressUtils.refreshBalance();

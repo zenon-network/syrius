@@ -22,43 +22,47 @@ class ZenonAddressUtils {
 
   static Future<void> generateNewAddress(
       {int numAddr = 1, VoidCallback? callback}) async {
-    await Future.delayed(const Duration(milliseconds: 500));
-    List<Address?> listAddr = [];
-    int addrListLength = kDefaultAddressList.length;
-    for (int i = 0; i < numAddr; i++) {
-      int addrListCounter = addrListLength + i;
-      Wallet wallet = await kWalletFile!.open();
-      WalletAccount walletAccount = await wallet.getAccount(addrListCounter);
-      Address? address;
-      if (walletAccount is LedgerWalletAccount) {
-        sl.get<NotificationsBloc>().addNotification(
-              WalletNotification(
-                title:
-                    'Adding address, please confirm the address on your hardware device',
-                timestamp: DateTime.now().millisecondsSinceEpoch,
-                details:
-                    'Confirm address for account index: $addrListCounter',
-                type: NotificationType.confirm,
-              ),
-            );
-        address = await walletAccount.getAddress(true);
-      } else {
-        address = await walletAccount.getAddress();
+    final wallet = await kWalletFile!.open();
+    try {
+      await Future.delayed(const Duration(milliseconds: 500));
+      List<Address?> listAddr = [];
+      int addrListLength = kDefaultAddressList.length;
+      for (int i = 0; i < numAddr; i++) {
+        int addrListCounter = addrListLength + i;
+        WalletAccount walletAccount = await wallet.getAccount(addrListCounter);
+        Address? address;
+        if (walletAccount is LedgerWalletAccount) {
+          sl.get<NotificationsBloc>().addNotification(
+                WalletNotification(
+                  title:
+                      'Adding address, please confirm the address on your hardware device',
+                  timestamp: DateTime.now().millisecondsSinceEpoch,
+                  details:
+                      'Confirm address for account index: $addrListCounter',
+                  type: NotificationType.confirm,
+                ),
+              );
+          address = await walletAccount.getAddress(true);
+        } else {
+          address = await walletAccount.getAddress();
+        }
+        listAddr.add(address);
+        Box addressesBox = Hive.box(kAddressesBox);
+        await addressesBox.add(listAddr.elementAt(i).toString());
+        _initAddresses(addressesBox);
+        Box addressLabelsBox = Hive.box(kAddressLabelsBox);
+        await addressLabelsBox.put(
+          listAddr.elementAt(i).toString(),
+          'Address ${kDefaultAddressList.length}',
+        );
+        _initAddressLabels(addressLabelsBox);
+        NodeUtils.getUnreceivedTransactionsByAddress(listAddr[i]!);
+        callback?.call();
       }
-      listAddr.add(address);
-      Box addressesBox = Hive.box(kAddressesBox);
-      await addressesBox.add(listAddr.elementAt(i).toString());
-      _initAddresses(addressesBox);
-      Box addressLabelsBox = Hive.box(kAddressLabelsBox);
-      await addressLabelsBox.put(
-        listAddr.elementAt(i).toString(),
-        'Address ${kDefaultAddressList.length}',
-      );
-      _initAddressLabels(addressLabelsBox);
-      NodeUtils.getUnreceivedTransactionsByAddress(listAddr[i]!);
-      callback?.call();
+      listAddr.clear();
+    } finally {
+      kWalletFile!.close();
     }
-    listAddr.clear();
   }
 
   static Future<void> setAddressLabels() async {

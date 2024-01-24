@@ -810,7 +810,14 @@ packages:
       sha256: "54dd914e1bb5758b3db7aa02e56d65d80285ba0705e0e5fa5cfbb11e27344c4b"
       url: "https://pub.dev"
     source: hosted
-    version: "3.3.0"
+  mutex:
+    dependency: "direct main"
+    description:
+      name: mutex
+      sha256: "8827da25de792088eb33e572115a5eb0d61d61a3c01acbc8bcbe76ed78f1a1f2"
+      url: "https://pub.dev"
+    source: hosted
+    version: "3.1.0"
   nested:
     dependency: transitive
     description:

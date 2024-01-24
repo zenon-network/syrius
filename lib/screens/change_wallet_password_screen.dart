@@ -148,8 +148,8 @@ class _ChangeWalletPasswordScreenState
     String currentPassword,
     String newPassword,
   ) async {
+    final baseAddress = WalletUtils.baseAddress;
     await kWalletFile!.changePassword(currentPassword, newPassword);
-    final baseAddress = await WalletUtils.baseAddress();
     await HtlcSwapsService.getInstance().closeBoxes();
     await HtlcSwapsService.getInstance().openBoxes(
       baseAddress.toString(),

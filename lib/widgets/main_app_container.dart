@@ -268,7 +268,7 @@ class _MainAppContainerState extends State<MainAppContainer>
   }
 
   void _onNavigateToLock() async {
-    if (kWalletFile != null) await kWalletFile!.dispose();
+    if (kWalletFile != null) kWalletFile!.close();
     kWalletFile = null;
     _navigateToLockTimer?.cancel();
   }

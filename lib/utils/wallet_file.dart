@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:hex/hex.dart';
+import 'package:mutex/mutex.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
 import 'package:znn_ledger_dart/znn_ledger_dart.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
@@ -32,9 +33,20 @@ abstract class WalletFile {
 
   String get walletType;
 
+  bool get isOpen;
+
   Future<Wallet> open();
 
-  Future<void> dispose();
+  void close();
+
+  Future<T> access<T>(Future<T> Function(Wallet) accessSection) async {
+    final wallet = await open();
+    try {
+      return await accessSection(wallet);
+    } finally {
+      close();
+    }
+  }
 
   Future<void> changePassword(
       String currentPassword, String newPassword) async {
@@ -44,11 +56,12 @@ abstract class WalletFile {
 }
 
 class KeyStoreWalletFile extends WalletFile {
-  final String walletSeed;
+  final Mutex _lock = Mutex();
+  final String _walletSeed;
+  KeyStore? _keyStore;
 
   static final KeyStoreManager keyStoreWalletManager =
       KeyStoreManager(walletPath: znnDefaultWalletDirectory);
-  static KeyStore? _keyStore;
 
   static Future<KeyStoreWalletFile> create(String mnemonic, String password,
       {String? name}) async {
@@ -65,32 +78,33 @@ class KeyStoreWalletFile extends WalletFile {
     return KeyStoreWalletFile._internal(walletPath, HEX.encode(decrypted));
   }
 
-  KeyStoreWalletFile._internal(super.walletPath, this.walletSeed);
-
-  KeyStore openSync() {
-    _keyStore ??= KeyStore.fromEntropy(walletSeed);
-    return _keyStore!;
-  }
+  KeyStoreWalletFile._internal(super._path, this._walletSeed);
 
   @override
   String get walletType => kKeyStoreWalletType;
 
   @override
+  bool get isOpen => _lock.isLocked;
+
+  @override
   Future<Wallet> open() async {
-    return openSync();
+    await _lock.acquire();
+    _keyStore ??= KeyStore.fromEntropy(_walletSeed);
+    return _keyStore!;
   }
 
   @override
-  Future<void> dispose() async {
-    _keyStore = null;
+  void close() async {
+    _lock.release();
   }
 }
 
 class LedgerWalletFile extends WalletFile {
-  final String walletId;
+  final Mutex _lock = Mutex();
+  final String _walletId;
+  LedgerWallet? _wallet;
 
   static final LedgerWalletManager ledgerWalletManager = LedgerWalletManager();
-  static LedgerWallet? _wallet;
 
   static Future<LedgerWallet> _connect(String walletId) async {
     for (var walletDefinition
@@ -103,17 +117,6 @@ class LedgerWalletFile extends WalletFile {
     throw const LedgerError.connectionError(
         origMessage:
             'Cannot find the hardware device, please connect the device on which the wallet is initialized');
-  }
-
-  static Future<void> _close() async {
-    if (_wallet != null) {
-      try {
-        await _wallet!.disconnect();
-      } catch (_) {
-      } finally {
-        _wallet = null;
-      }
-    }
   }
 
   static Future<LedgerWalletFile> create(String walletId, String password,
@@ -135,20 +138,37 @@ class LedgerWalletFile extends WalletFile {
     return LedgerWalletFile._internal(walletPath, utf8.decode(decrypted));
   }
 
-  LedgerWalletFile._internal(super.walletPath, this.walletId);
+  LedgerWalletFile._internal(super._path, this._walletId);
 
   @override
   String get walletType => kLedgerWalletType;
 
   @override
+  bool get isOpen => _lock.isLocked;
+
+  @override
   Future<Wallet> open() async {
-    await _close();
-    _wallet = await _connect(walletId);
-    return _wallet!;
+    await _lock.acquire();
+    try
+    {
+      _wallet = await _connect(_walletId);
+      return _wallet!;
+    } catch (_) {
+      _lock.release();
+      rethrow;
+    }
   }
 
   @override
-  Future<void> dispose() async {
-    await _close();
+  void close() async {
+    if (_wallet != null) {
+      try {
+        await _wallet!.disconnect();
+      } catch (_) {
+      } finally {
+        _wallet = null;
+      }
+    }
+    _lock.release();
   }
 }

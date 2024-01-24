@@ -7,16 +7,35 @@ import 'package:zenon_syrius_wallet_flutter/model/model.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/format_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/wallet_utils.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
+class AsyncMutex {
+  Completer<void>? _completer;
+
+  /// locks the mutex
+  Future<void> lock() async {
+    while (_completer != null) {
+      await _completer!.future;
+    }
+    _completer = Completer<void>();
+  }
+
+  /// unlocks the mutex
+  void unlock() {
+    assert(_completer != null);
+    final completer = _completer!;
+    _completer = null;
+    completer.complete();
+  }
+}
+
 class AccountBlockUtils {
-  static final Map<String, Future<void>?> _kIsRunningByAddress = {};
+  //static final Map<String, Future<void>?> _kIsRunningByAddress = {};
 
   static Future<AccountBlockTemplate> createAccountBlock(
     AccountBlockTemplate transactionParams,
     String purposeOfGeneratingPlasma, {
-    WalletAccount? walletAccount,
+    Address? address,
     bool waitForRequiredPlasma = false,
   }) async {
     SyncInfo syncInfo = await zenon!.stats.syncInfo();
@@ -27,23 +46,12 @@ class AccountBlockUtils {
                 (syncInfo.targetHeight - syncInfo.currentHeight) < 20))
         : true;
     if (nodeIsSynced) {
-      Address address = await WalletUtils.defaultAddress();
+      // Acquire wallet lock to prevent concurrent access.
+      final wallet = await kWalletFile!.open();
       try {
-        // Wait until the lock is unused.
-        //
-        // A while-loop is required since there is the case when a lot of routines are waiting, and only one should move
-        // forward when the main routine finishes.
-        while (_kIsRunningByAddress.containsKey(address.toString()) &&
-            _kIsRunningByAddress[address.toString()] != null) {
-          await _kIsRunningByAddress[address.toString()];
-        }
-        // Open wallet after lock to prevent concurrent access.
-        walletAccount ??= await WalletUtils.defaultAccount();
-
-        // Acquire lock
-        Completer<void> completer;
-        completer = Completer<void>();
-        _kIsRunningByAddress[address.toString()] = completer.future;
+        address ??= Address.parse(kSelectedAddress!);
+        final walletAccount = await wallet
+            .getAccount(kDefaultAddressList.indexOf(address.toString()));
 
         bool needPlasma = await zenon!.requiresPoW(
           transactionParams,
@@ -92,13 +100,12 @@ class AccountBlockUtils {
         // If we release the lock too early, zenon.send will autofill the AccountBlockTemplate with an old value of
         // ledger.getFrontierAccountBlock, since the node did not had enough time to process the current transaction.
         Future.delayed(const Duration(seconds: 1)).then((_) {
-          completer.complete();
-          _kIsRunningByAddress[address.toString()] = null;
+          kWalletFile!.close();
         });
 
         return response;
       } catch (e) {
-        _kIsRunningByAddress[address.toString()] = null;
+        kWalletFile!.close();
         rethrow;
       }
     } else {

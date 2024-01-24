@@ -1,28 +1,13 @@
 import 'package:hive/hive.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/extensions.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/wallet_file.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 class WalletUtils {
-  static Future<Address> baseAddress() async {
+  static get baseAddress {
     return Address.parse(kDefaultAddressList.first!);
-  }
-
-  static Future<Address> defaultAddress() async {
-    return Address.parse(kSelectedAddress!);
-  }
-
-  static Future<WalletAccount> defaultAccount() async {
-    return await kWalletFile!
-        .account(kDefaultAddressList.indexOf(kSelectedAddress));
-  }
-
-  static Future<List<int>> defaultPublicKey() async {
-    final walletAccount = await defaultAccount();
-    return await walletAccount.getPublicKey();
   }
 
   static Future<WalletFile> decryptWalletFile(

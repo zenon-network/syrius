@@ -112,14 +112,15 @@ class _ImportWalletDecryptScreenState extends State<ImportWalletDecryptScreen> {
     return ViewModelBuilder<DecryptWalletFileBloc>.reactive(
       onViewModelReady: (model) {
         model.stream.listen((walletFile) {
-          if (walletFile != null) {
+          if (walletFile != null && walletFile is KeyStoreWalletFile) {
             _loadingButtonKey.currentState!.animateReverse();
             setState(() {
               _passwordErrorText = null;
             });
-            var keyStoreFile = walletFile as KeyStoreWalletFile;
-            NavigationUtils.push(context,
-                ImportWalletPasswordScreen(keyStoreFile.openSync().mnemonic!));
+            walletFile
+                .access((wallet) => Future.value((wallet as KeyStore).mnemonic!))
+                .then((value) => NavigationUtils.push(
+                    context, ImportWalletPasswordScreen(value)));
           }
         }, onError: (error) {
           _loadingButtonKey.currentState!.animateReverse();
