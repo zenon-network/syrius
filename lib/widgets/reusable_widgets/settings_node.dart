@@ -139,6 +139,7 @@ class _SettingsNodeState extends State<SettingsNode> {
         Visibility(
           visible: !kDefaultNodes.contains(widget.node),
           child: MaterialIconButton(
+            size: 15.0,
             iconData: Icons.edit,
             onPressed: () {
               setState(() {
@@ -151,6 +152,7 @@ class _SettingsNodeState extends State<SettingsNode> {
         Visibility(
           visible: !kDefaultNodes.contains(widget.node),
           child: MaterialIconButton(
+            size: 15.0,
             onPressed: () {
               showDialogWithNoAndYesOptions(
                 isBarrierDismissible: true,
@@ -238,6 +240,7 @@ class _SettingsNodeState extends State<SettingsNode> {
               key: _changeButtonKey,
             ),
             MaterialIconButton(
+              size: 15.0,
               onPressed: () {
                 setState(() {
                   _nodeController.text = widget.node;
