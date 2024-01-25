@@ -44,7 +44,6 @@ class AutoReceiveTxWorker extends BaseBloc<WalletNotification> {
           blockSigningKey: keyPair,
           waitForRequiredPlasma: true,
         );
-        pool.removeFirst();
         _sendSuccessNotification(response, toAddress);
       } on RpcException catch (e, stackTrace) {
         _sendErrorNotification(e.toString());
