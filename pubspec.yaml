@@ -83,8 +83,3 @@ flutter:
     - assets/i18n/
     - assets/lottie/
     - assets/svg/
-
-# TODO: Are these really needed?
-dependency_overrides:
-    stream_channel: ^2.1.2
-    collection: ^1.17.2
