@@ -2,12 +2,14 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:app_links/app_links.dart';
+import 'package:badges/badges.dart' as badges;
 import 'package:clipboard_watcher/clipboard_watcher.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:flutter_vector_icons/flutter_vector_icons.dart';
+import 'package:hive/hive.dart';
 import 'package:logging/logging.dart';
 import 'package:provider/provider.dart';
 import 'package:wallet_connect_uri_validator/wallet_connect_uri_validator.dart';
@@ -112,6 +114,7 @@ class _MainAppContainerState extends State<MainAppContainer>
     _initLockBlock();
     _handleIncomingLinks();
     _handleInitialUri();
+
     super.initState();
   }
 
@@ -296,6 +299,16 @@ class _MainAppContainerState extends State<MainAppContainer>
     return <Tab>[
       if (kWcProjectId.isNotEmpty)
         Tab(
+          child: badges.Badge(
+            position: badges.BadgePosition.topEnd(top: -12.5, end: -12.5),
+            showBadge: (sl<WalletConnectService>().pairings.isNotEmpty),
+            badgeContent:
+                Text(sl<WalletConnectService>().pairings.length.toString()),
+            badgeStyle: const badges.BadgeStyle(
+              shape: badges.BadgeShape.circle,
+              badgeColor: AppColors.znnColor,
+              padding: EdgeInsets.all(3.5),
+            ),
           child: SvgPicture.asset(
             'assets/svg/walletconnect-logo.svg',
             width: 24.0,
@@ -304,6 +317,7 @@ class _MainAppContainerState extends State<MainAppContainer>
                 ? const ColorFilter.mode(AppColors.znnColor, BlendMode.srcIn)
                 : ColorFilter.mode(
                     Theme.of(context).iconTheme.color!, BlendMode.srcIn),
+            ),
           ),
         ),
       Tab(
@@ -325,12 +339,22 @@ class _MainAppContainerState extends State<MainAppContainer>
         ),
       ),
       Tab(
+        child: badges.Badge(
+          position: badges.BadgePosition.topEnd(top: -10, end: -10),
+          showBadge: (Hive.box(kNotificationsBox).length > 0),
+          badgeContent: Text(Hive.box(kNotificationsBox).length.toString()),
+          badgeStyle: const badges.BadgeStyle(
+            shape: badges.BadgeShape.circle,
+            badgeColor: AppColors.znnColor,
+            padding: EdgeInsets.all(3.5),
+          ),
         child: Icon(
           Icons.notifications,
           size: 24.0,
           color: _isTabSelected(Tabs.notifications)
               ? AppColors.znnColor
               : Theme.of(context).iconTheme.color,
+          ),
         ),
       ),
       Tab(
