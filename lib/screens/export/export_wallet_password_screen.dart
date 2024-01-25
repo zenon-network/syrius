@@ -144,7 +144,7 @@ class _ExportWalletPasswordScreenState
                 initialDirectory =
                     (await getApplicationDocumentsDirectory()).path;
               }
-              final walletPath = await getSavePath(
+              final walletPath = await getSaveLocation(
                 acceptedTypeGroups: <XTypeGroup>[
                   const XTypeGroup(
                     label: 'file',
@@ -161,17 +161,17 @@ class _ExportWalletPasswordScreenState
               if (walletPath != null) {
                 KeyStoreManager keyStoreManager = KeyStoreManager(
                   walletPath: Directory(
-                    path.dirname(walletPath),
+                    path.dirname(walletPath.path),
                   ),
                 );
                 KeyStore keyStore = KeyStore.fromMnemonic(widget.seed);
                 await keyStoreManager.saveKeyStore(
                   keyStore,
                   _passwordController.text,
-                  name: path.basename(walletPath),
+                  name: path.basename(walletPath.path),
                 );
                 if (widget.backupWalletFlow) {
-                  _sendSuccessNotification(walletPath);
+                  _sendSuccessNotification(walletPath.path);
                 } else {
                   _updateExportedSeedList();
                 }

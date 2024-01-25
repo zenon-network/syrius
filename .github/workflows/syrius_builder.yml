@@ -13,8 +13,6 @@ env:
 
 jobs:
   build-macos:
-    env:
-        WALLET_CONNECT_PROJECT_ID: ${{ secrets.WC_PROJECT_ID }}
     runs-on: macos-12
     steps:
       - name: Checkout
@@ -35,7 +33,7 @@ jobs:
       - name: Build syrius desktop 
         run: |
           flutter config --enable-macos-desktop
-          flutter build macos --dart-define=WC_PROJECT_ID=$WALLET_CONNECT_PROJECT_ID --release
+          flutter build macos --release
       - name: Package into DMG
         run: |
           create-dmg --volname syrius \
@@ -73,7 +71,7 @@ jobs:
       - name: Build syrius desktop
         run: |
           flutter config --enable-windows-desktop
-          flutter build windows --dart-define=WC_PROJECT_ID=$env:WALLET_CONNECT_PROJECT_ID --release   
+          flutter build windows --release   
       - name: Package into zip
         run: |
           Compress-Archive -Path build\windows\runner\Release\* -DestinationPath .\syrius-alphanet-windows-amd64.zip
@@ -108,7 +106,7 @@ jobs:
       - name: Build syrius desktop
         run: |
           flutter config --enable-linux-desktop
-          flutter build linux --dart-define=WC_PROJECT_ID=$WALLET_CONNECT_PROJECT_ID --release -v
+          flutter build linux --release -v
       - name: Package zip
         run: |
           cd build/linux/x64/release/bundle
