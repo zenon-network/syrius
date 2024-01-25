@@ -61,8 +61,11 @@ class _NodeManagementScreenState extends State<NodeManagementScreen> {
             ),
             kVerticalSpacing,
             Text(
-              'By default Syrius connects to its own built-in full node, which is called the Embedded Node. If you want to connect to a different node, you can add one below. Otherwise just connect and continue.',
-              style: Theme.of(context).textTheme.headlineMedium,
+              'By default Syrius connects to its own built-in full node, which is called the Embedded Node. '
+              'It may take up to 24 hours to fully sync the network via the embedded node. '
+              'During this time, you cannot send or receive transactions.\n\n'
+              'It you want to get started right away, please connect to a community node.',
+              style: Theme.of(context).textTheme.headlineSmall,
               textAlign: TextAlign.center,
             ),
             SizedBox(

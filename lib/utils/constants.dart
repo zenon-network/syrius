@@ -109,12 +109,12 @@ const int kAmountInputMaxCharacterLength = 21;
 const int kSecondsPerMomentum = 10;
 const int kMaxP2pSwapsToStore = 500;
 
-final List<int> kNormalUsersPlasmaRequirements = [
+const List<int> kNormalUsersPlasmaRequirements = [
   kStakePlasmaAmountNeeded,
   kDelegatePlasmaAmountNeeded,
 ];
 
-final List<int> kPowerUsersPlasmaRequirements = [
+const List<int> kPowerUsersPlasmaRequirements = [
   kPillarPlasmaAmountNeeded,
   kSentinelPlasmaAmountNeeded,
   kIssueTokenPlasmaAmountNeeded,
