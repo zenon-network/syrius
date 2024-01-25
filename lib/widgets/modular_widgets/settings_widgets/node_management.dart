@@ -45,6 +45,12 @@ class _NodeManagementState extends State<NodeManagement> {
   int get _newChainId => int.parse(_newChainIdController.text);
 
   @override
+  void initState() {
+    super.initState();
+    kDefaultCommunityNodes.shuffle();
+  }
+
+  @override
   void didChangeDependencies() {
     super.didChangeDependencies();
     _selectedNode ??= kCurrentNode!;
@@ -210,7 +216,8 @@ class _NodeManagementState extends State<NodeManagement> {
       InputValidators.node(_newNodeController.text) == null;
 
   void _onAddNodePressed() async {
-    if ([...kDbNodes, ...kDefaultNodes].contains(_newNodeController.text)) {
+    if ([...kDbNodes, ...kDefaultCommunityNodes, ...kDefaultNodes]
+        .contains(_newNodeController.text)) {
       NotificationUtils.sendNotificationError(
           'Node already exists', 'Node already exists');
     } else {
@@ -238,8 +245,11 @@ class _NodeManagementState extends State<NodeManagement> {
 
   Widget _getNodeTiles() {
     return Column(
-      children:
-          [...kDefaultNodes, ...kDbNodes].map((e) => _getNodeTile(e)).toList(),
+      children: <String>{
+        ...kDefaultNodes,
+        ...kDefaultCommunityNodes,
+        ...kDbNodes
+      }.toList().map((e) => _getNodeTile(e)).toList(),
     );
   }
 
