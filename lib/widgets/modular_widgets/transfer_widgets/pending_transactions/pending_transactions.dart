@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:marquee_widget/marquee_widget.dart';
-import 'package:zenon_syrius_wallet_flutter/blocs/auto_receive_tx_worker.dart';
+import 'package:stacked/stacked.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/transfer/pending_transactions_bloc.dart';
-import 'package:zenon_syrius_wallet_flutter/main.dart';
+import 'package:zenon_syrius_wallet_flutter/blocs/transfer/receive_transaction_bloc.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/color_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/extensions.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/format_utils.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/notification_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/widget_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
@@ -27,13 +28,6 @@ class _PendingTransactionsState extends State<PendingTransactions> {
   bool _sortAscending = true;
 
   @override
-  void initState() {
-    super.initState();
-    _bloc = PendingTransactionsBloc();
-    _bloc.refreshResults();
-  }
-
-  @override
   Widget build(BuildContext context) {
     return CardScaffold(
       title: _getWidgetTitle(),
@@ -51,21 +45,18 @@ class _PendingTransactionsState extends State<PendingTransactions> {
     return InfiniteScrollTable<AccountBlock>(
       bloc: _bloc,
       generateRowCells: _rowCellsGenerator,
-      headerColumns: _getHeaderColumnsForTransferWidget(),
+      headerColumns: _getHeaderColumnsForPendingTransactions(),
     );
   }
 
   List<Widget> _rowCellsGenerator(AccountBlock transaction, bool isSelected) =>
-      _getCellsForPendingTransferWidget(isSelected, transaction);
+      _getCellsForPendingTransactions(isSelected, transaction);
 
-  List<Widget> _getCellsForPendingTransferWidget(
-    bool isSelected,
-    AccountBlock transactionBlock,
-  ) {
-    AccountBlock infoBlock =
-        BlockUtils.isReceiveBlock(transactionBlock.blockType)
-            ? transactionBlock.pairedAccountBlock!
-            : transactionBlock;
+  List<Widget> _getCellsForPendingTransactions(
+      bool isSelected, AccountBlock transaction) {
+    AccountBlock infoBlock = BlockUtils.isReceiveBlock(transaction.blockType)
+        ? transaction.pairedAccountBlock!
+        : transaction;
     return [
       isSelected
           ? WidgetUtils.getMarqueeAddressTableCell(infoBlock.address, context)
@@ -114,13 +105,13 @@ class _PendingTransactionsState extends State<PendingTransactions> {
                 ? _showTokenSymbol(infoBlock)
                 : Container()),
       ),
-      InfiniteScrollTableCell(Align(
-          alignment: Alignment.centerLeft,
-          child: _getReceiveButton(transactionBlock.hash))),
+      InfiniteScrollTableCell(
+          _getReceiveContainer(isSelected, infoBlock, _bloc)),
     ];
   }
 
-  List<InfiniteScrollTableHeaderColumn> _getHeaderColumnsForTransferWidget() {
+  List<InfiniteScrollTableHeaderColumn>
+      _getHeaderColumnsForPendingTransactions() {
     return [
       InfiniteScrollTableHeaderColumn(
         columnName: 'Sender',
@@ -238,15 +229,58 @@ class _PendingTransactionsState extends State<PendingTransactions> {
     });
   }
 
-  Widget _getReceiveButton(Hash txHash) {
+  Widget _getReceiveContainer(
+    bool isSelected,
+    AccountBlock transaction,
+    PendingTransactionsBloc model,
+  ) {
+    return Align(
+        alignment: Alignment.centerLeft,
+        child: _getReceiveButtonViewModel(model, isSelected, transaction));
+  }
+
+  Widget _getReceiveButtonViewModel(
+    PendingTransactionsBloc transactionModel,
+    bool isSelected,
+    AccountBlock transactionItem,
+  ) {
+    return ViewModelBuilder<ReceiveTransactionBloc>.reactive(
+      onViewModelReady: (model) {
+        model.stream.listen(
+          (event) {
+            if (event != null) {
+              transactionModel.refreshResults();
+            }
+          },
+          onError: (error) {
+            NotificationUtils.sendNotificationError(
+                error, 'Error while receiving transaction');
+          },
+        );
+      },
+      builder: (_, model, __) => _getReceiveButton(
+        model,
+        transactionItem.hash.toString(),
+      ),
+      viewModelBuilder: () => ReceiveTransactionBloc(),
+    );
+  }
+
+  Widget _getReceiveButton(
+    ReceiveTransactionBloc model,
+    String transactionHash,
+  ) {
     return MaterialIconButton(
       size: 25.0,
       iconData: Icons.download_for_offline,
       onPressed: () {
-        sl<AutoReceiveTxWorker>().autoReceiveTransactionHash(txHash);
-        setState(() {});
+        _onReceivePressed(model, transactionHash);
       },
     );
+  }
+
+  void _onReceivePressed(ReceiveTransactionBloc model, String id) {
+    model.receiveTransaction(id, context);
   }
 
   Widget _showTokenSymbol(AccountBlock block) {
