@@ -219,7 +219,8 @@ class _NodeManagementState extends State<NodeManagement> {
     if ([...kDbNodes, ...kDefaultCommunityNodes, ...kDefaultNodes]
         .contains(_newNodeController.text)) {
       NotificationUtils.sendNotificationError(
-          'Node already exists', 'Node already exists');
+          'Node ${_newNodeController.text} already exists',
+          'Node already exists');
     } else {
       _addNodeToDb();
     }
