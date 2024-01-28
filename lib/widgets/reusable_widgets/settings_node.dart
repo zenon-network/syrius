@@ -103,9 +103,6 @@ class _SettingsNodeState extends State<SettingsNode> {
                     (getChainIdentifier() == connectedNodeChainIdentifier)
                         ? AppColors.znnColor
                         : AppColors.errorColor)),
-        const SizedBox(
-          width: 5.0,
-        ),
         Visibility(
           visible: widget.node.contains('wss://'),
           child: const StandardTooltipIcon('Encrypted connection', Icons.lock),
@@ -142,43 +139,53 @@ class _SettingsNodeState extends State<SettingsNode> {
             iconColor: Colors.amber,
           ),
         ),
-        const SizedBox(
-          width: 5.0,
-        ),
         Visibility(
           visible: !kDefaultNodes.contains(widget.node) &&
               !kDefaultCommunityNodes.contains(widget.node),
-          child: MaterialIconButton(
-            iconData: Icons.edit,
-            onPressed: () {
-              setState(() {
-                _editable = true;
-              });
-            },
-            materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-          ),
-        ),
-        Visibility(
-          visible: !kDefaultNodes.contains(widget.node) &&
-              !kDefaultCommunityNodes.contains(widget.node),
-          child: MaterialIconButton(
-            onPressed: () {
-              showDialogWithNoAndYesOptions(
-                isBarrierDismissible: true,
-                context: context,
-                title: 'Node Management',
-                description: 'Are you sure you want to delete '
-                    '${widget.node} from the list of nodes? This action '
-                    'can\'t be undone.',
-                onYesButtonPressed: () {
-                  _deleteNodeFromDb(widget.node);
+          child: IconButton(
+              hoverColor: Colors.transparent,
+              padding: const EdgeInsets.all(4.0),
+              constraints: const BoxConstraints(),
+              iconSize: 15.0,
+              icon: const Icon(
+                Icons.edit,
+                color: AppColors.znnColor,
+              ),
+              onPressed: () {
+                  setState(() {
+                    _editable = true;
+                  });
                 },
-              );
-            },
-            iconData: Icons.delete_forever,
-            materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-          ),
+              tooltip: 'Edit node',
+            )
         ),
+        Visibility(
+          visible: !kDefaultNodes.contains(widget.node) &&
+              !kDefaultCommunityNodes.contains(widget.node),
+          child: IconButton(
+              hoverColor: Colors.transparent,
+              padding: const EdgeInsets.all(4.0),
+              constraints: const BoxConstraints(),
+              iconSize: 15.0,
+              icon: const Icon(
+                Icons.delete_forever,
+                color: AppColors.znnColor,
+              ),
+              onPressed: () =>
+                showDialogWithNoAndYesOptions(
+                  isBarrierDismissible: true,
+                  context: context,
+                  title: 'Node Management',
+                  description: 'Are you sure you want to delete '
+                      '${widget.node} from the list of nodes? This action '
+                      'can\'t be undone.',
+                  onYesButtonPressed: () {
+                    _deleteNodeFromDb(widget.node);
+                  },
+                ),
+              tooltip: 'Delete node',
+            )
+          ),
       ],
     );
   }
