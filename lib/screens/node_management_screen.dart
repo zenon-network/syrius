@@ -25,15 +25,20 @@ class NodeManagementScreen extends StatefulWidget {
 }
 
 class _NodeManagementScreenState extends State<NodeManagementScreen> {
-  String? _selectedNode;
-
   final GlobalKey<LoadingButtonState> _confirmNodeButtonKey = GlobalKey();
   final GlobalKey<LoadingButtonState> _addNodeButtonKey = GlobalKey();
-
-  TextEditingController _newNodeController = TextEditingController();
   GlobalKey<FormState> _newNodeKey = GlobalKey();
 
+  TextEditingController _newNodeController = TextEditingController();
+
+  String? _selectedNode;
   late String _selectedNodeConfirmed;
+
+  @override
+  void initState() {
+    super.initState();
+    kDefaultCommunityNodes.shuffle();
+  }
 
   @override
   void didChangeDependencies() {
@@ -61,8 +66,11 @@ class _NodeManagementScreenState extends State<NodeManagementScreen> {
             ),
             kVerticalSpacing,
             Text(
-              'By default Syrius connects to its own built-in full node, which is called the Embedded Node. If you want to connect to a different node, you can add one below. Otherwise just connect and continue.',
-              style: Theme.of(context).textTheme.headlineMedium,
+              'By default Syrius connects to its own built-in full node, which is called the Embedded Node. '
+              'It may take up to 24 hours to fully sync the network via the embedded node. '
+              'During this time, you cannot send or receive transactions.\n\n'
+              'It you want to get started right away, please connect to a community node.',
+              style: Theme.of(context).textTheme.headlineSmall,
               textAlign: TextAlign.center,
             ),
             SizedBox(
@@ -231,7 +239,8 @@ class _NodeManagementScreenState extends State<NodeManagementScreen> {
       InputValidators.node(_newNodeController.text) == null;
 
   void _onAddNodePressed() async {
-    if ([...kDbNodes, ...kDefaultNodes].contains(_newNodeController.text)) {
+    if ([...kDbNodes, ...kDefaultCommunityNodes, ...kDefaultNodes]
+        .contains(_newNodeController.text)) {
       NotificationUtils.sendNotificationError(
           'Node already exists', 'Node already exists');
     } else {
@@ -261,8 +270,11 @@ class _NodeManagementScreenState extends State<NodeManagementScreen> {
 
   Widget _getNodeTiles() {
     return Column(
-      children:
-          [...kDefaultNodes, ...kDbNodes].map((e) => _getNodeTile(e)).toList(),
+      children: <String>{
+        ...kDefaultNodes,
+        ...kDefaultCommunityNodes,
+        ...kDbNodes
+      }.toList().map((e) => _getNodeTile(e)).toList(),
     );
   }
 

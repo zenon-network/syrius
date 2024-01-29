@@ -12,7 +12,7 @@ import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/model/database/notification_type.dart';
 import 'package:zenon_syrius_wallet_flutter/model/database/wallet_notification.dart';
-import 'package:zenon_syrius_wallet_flutter/services/wallet_connect_service.dart';
+import 'package:zenon_syrius_wallet_flutter/services/i_web3wallet_service.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
@@ -92,7 +92,7 @@ class _WalletConnectQrCardState extends State<WalletConnectQrCard> {
 
   Future<void> _pairWithDapp(Uri uri) async {
     try {
-      final wcService = sl.get<WalletConnectService>();
+      final wcService = sl.get<IWeb3WalletService>();
       final pairingInfo = await wcService.pair(uri);
       Logger('WalletConnectPairingCard')
           .log(Level.INFO, 'pairing info', pairingInfo.toJson());
