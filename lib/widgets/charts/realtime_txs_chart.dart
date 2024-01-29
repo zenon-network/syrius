@@ -46,14 +46,14 @@ class RealtimeTxsChartState extends State<RealtimeTxsChart> {
   Widget build(BuildContext context) {
     return StandardChart(
           yValuesInterval: _maxTransactionsPerDay > kNumOfChartLeftSideTitles
-              ? _maxTransactionsPerDay / kNumOfChartLeftSideTitles
-              : 1,
-          maxY: _maxTransactionsPerDay,
-          titlesReferenceDate: DateTime.now(),
-          lineBarsData: _linesBarData(),
-          lineBarDotSymbol: 'txs',
-          convertLeftSideTitlesToInt: true,
-        );
+          ? _maxTransactionsPerDay / kNumOfChartLeftSideTitles
+          : 1,
+      maxY: _maxTransactionsPerDay,
+      lineBarsData: _linesBarData(),
+      lineBarDotSymbol: 'txs',
+      titlesReferenceDate: DateTime.now(),
+      convertLeftSideTitlesToInt: true,
+    );
   }
 
   double _getTransactionsByDay(TokenStandard tokenId, DateTime date) {
