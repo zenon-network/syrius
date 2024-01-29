@@ -8,12 +8,10 @@ class MaterialIconButton extends StatelessWidget {
   final MaterialTapTargetSize materialTapTargetSize;
   final VoidCallback onPressed;
   final IconData iconData;
-  final double size;
 
   const MaterialIconButton({
     required this.onPressed,
     required this.iconData,
-    required this.size,
     this.iconColor = AppColors.znnColor,
     this.hoverColor,
     this.padding = 8.0,
@@ -33,7 +31,7 @@ class MaterialIconButton extends StatelessWidget {
       child: Icon(
         iconData,
         color: iconColor,
-        size: size,
+        size: 15.0,
       ),
     );
   }

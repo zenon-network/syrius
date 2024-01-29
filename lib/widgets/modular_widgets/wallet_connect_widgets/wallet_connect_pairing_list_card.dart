@@ -5,7 +5,7 @@ import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/wallet_connect/wallet_connect_pairings_bloc.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/wallet_connect/wallet_connect_sessions_bloc.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
-import 'package:zenon_syrius_wallet_flutter/services/i_web3wallet_service.dart';
+import 'package:zenon_syrius_wallet_flutter/services/wallet_connect_service.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/extensions.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/icons/clear_icon.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
@@ -30,6 +30,8 @@ class _WalletConnectPairingsCardState extends State<WalletConnectPairingsCard> {
 
   @override
   void initState() {
+    // Initialize WalletConnect client
+    sl.get<WalletConnectService>().initClient();
     super.initState();
   }
 
@@ -136,7 +138,7 @@ class _WalletConnectPairingsCardState extends State<WalletConnectPairingsCard> {
 
   Future<void> _onDeactivatePairingIconPressed(PairingInfo pairingInfo) async {
     try {
-      await sl<IWeb3WalletService>().deactivatePairing(
+      await sl<WalletConnectService>().deactivatePairing(
         topic: pairingInfo.topic,
       );
       _pairingsBloc.refreshResults();

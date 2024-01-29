@@ -679,7 +679,6 @@ class _PillarsListWidgetState extends State<PillarsListWidget> {
 
   @override
   void dispose() {
-    _scrollController.dispose();
     _pillarsListBloc.dispose();
     _blocListingStateSubscription.cancel();
     super.dispose();

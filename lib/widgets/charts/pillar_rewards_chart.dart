@@ -50,7 +50,7 @@ class PillarRewardsChartState extends State<PillarRewardsChart> {
       );
 
   List<LineChartBarData> _linesBarData() => [
-        LineChartBarData(
+        StandardLineChartBarData(
           color: AppColors.znnColor,
           spots: _getRewardsSpots(),
         ),

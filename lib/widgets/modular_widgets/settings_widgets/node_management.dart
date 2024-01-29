@@ -9,7 +9,7 @@ import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/embedded_node/embedded_node.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/model/model.dart';
-import 'package:zenon_syrius_wallet_flutter/services/i_web3wallet_service.dart';
+import 'package:zenon_syrius_wallet_flutter/services/wallet_connect_service.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
@@ -43,12 +43,6 @@ class _NodeManagementState extends State<NodeManagement> {
   late int _currentChainId;
 
   int get _newChainId => int.parse(_newChainIdController.text);
-
-  @override
-  void initState() {
-    super.initState();
-    kDefaultCommunityNodes.shuffle();
-  }
 
   @override
   void didChangeDependencies() {
@@ -216,8 +210,7 @@ class _NodeManagementState extends State<NodeManagement> {
       InputValidators.node(_newNodeController.text) == null;
 
   void _onAddNodePressed() async {
-    if ([...kDbNodes, ...kDefaultCommunityNodes, ...kDefaultNodes]
-        .contains(_newNodeController.text)) {
+    if ([...kDbNodes, ...kDefaultNodes].contains(_newNodeController.text)) {
       NotificationUtils.sendNotificationError(
           'Node already exists', 'Node already exists');
     } else {
@@ -245,11 +238,8 @@ class _NodeManagementState extends State<NodeManagement> {
 
   Widget _getNodeTiles() {
     return Column(
-      children: <String>{
-        ...kDefaultNodes,
-        ...kDefaultCommunityNodes,
-        ...kDbNodes
-      }.toList().map((e) => _getNodeTile(e)).toList(),
+      children:
+          [...kDefaultNodes, ...kDbNodes].map((e) => _getNodeTile(e)).toList(),
     );
   }
 
@@ -380,7 +370,7 @@ class _NodeManagementState extends State<NodeManagement> {
       _confirmChainIdButtonKey.currentState?.animateForward();
       setChainIdentifier(chainIdentifier: _newChainId);
       await sharedPrefsService!.put(kChainIdKey, _newChainId);
-      sl<IWeb3WalletService>().emitChainIdChangeEvent(_newChainId.toString());
+      sl<WalletConnectService>().emitChainIdChangeEvent(_newChainId.toString());
       _sendSuccessfullyChangedChainIdNotification(_newChainId);
       _initCurrentChainId();
       _newChainIdController = TextEditingController();

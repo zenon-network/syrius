@@ -48,22 +48,10 @@ final List<Tabs> kTabsWithIconTitles = [
   Tabs.help,
   Tabs.notifications,
   Tabs.settings,
-  Tabs.generation,
-  Tabs.sync,
+  Tabs.resyncWallet,
   Tabs.lock,
 ];
 
 final List<Tabs> kDisabledTabs = [
-  Tabs.generation,
-  Tabs.sync,
-];
-
-List<String> kDefaultNodes = [
-  'Embedded Node',
-  kLocalhostDefaultNodeUrl,
-];
-
-// Community supplied public full nodes
-List<String> kDefaultCommunityNodes = [
-  'wss://my.hc1node.com:35998',
+  Tabs.resyncWallet,
 ];

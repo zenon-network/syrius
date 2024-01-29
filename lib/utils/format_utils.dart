@@ -59,24 +59,4 @@ class FormatUtils {
         )
         .millisecondsSinceEpoch;
   }
-
-  static String formatData(int transactionMillis) {
-    int currentMillis = DateTime.now().millisecondsSinceEpoch;
-    if (currentMillis - transactionMillis <=
-        const Duration(days: 1).inMilliseconds) {
-      return formatDataShort(currentMillis - transactionMillis);
-    }
-    return FormatUtils.formatDate(transactionMillis, dateFormat: 'MM/dd/yyyy');
-  }
-
-  static String formatDataShort(int i) {
-    Duration duration = Duration(milliseconds: i);
-    if (duration.inHours > 0) {
-      return '${duration.inHours} h ago';
-    }
-    if (duration.inMinutes > 0) {
-      return '${duration.inMinutes} min ago';
-    }
-    return '${duration.inSeconds} s ago';
-  }
 }

@@ -100,7 +100,6 @@ class NodeUtils {
       await _getSubscriptionForMomentums();
       await _getSubscriptionForAllAccountEvents();
       await getUnreceivedTransactions();
-
       sl<AutoReceiveTxWorker>().autoReceive();
       Future.delayed(const Duration(seconds: 30))
           .then((value) => NotificationUtils.sendNodeSyncingNotification());
@@ -128,12 +127,7 @@ class NodeUtils {
 
     if (unreceivedBlocks.isNotEmpty) {
       for (AccountBlock unreceivedBlock in unreceivedBlocks) {
-        if (sharedPrefsService!.get(
-          kAutoReceiveKey,
-          defaultValue: kAutoReceiveDefaultValue,
-        )) {
-          sl<AutoReceiveTxWorker>().addHash(unreceivedBlock.hash);
-        }
+        sl<AutoReceiveTxWorker>().addHash(unreceivedBlock.hash);
       }
     }
   }
