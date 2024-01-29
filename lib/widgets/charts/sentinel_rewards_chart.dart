@@ -61,11 +61,11 @@ class _SentinelRewardsChart extends State<SentinelRewardsChart> {
       );
 
   List<LineChartBarData> _linesBarData() => [
-        LineChartBarData(
+        StandardLineChartBarData(
           color: AppColors.znnColor,
           spots: _getZnnRewardsSpots(),
         ),
-        LineChartBarData(
+        StandardLineChartBarData(
           color: AppColors.qsrColor,
           spots: _getQsrRewardsSpots(),
         ),

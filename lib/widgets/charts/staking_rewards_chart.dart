@@ -50,7 +50,7 @@ class _StakingRewardsChart extends State<StakingRewardsChart> {
       );
 
   _linesBarData() => [
-        LineChartBarData(
+        StandardLineChartBarData(
           color: AppColors.qsrColor,
           spots: _getRewardsSpots(),
         ),

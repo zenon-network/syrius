@@ -44,10 +44,7 @@ class RealtimeTxsChartState extends State<RealtimeTxsChart> {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-        padding: const EdgeInsets.all(10),
-        child: Center(
-            child: StandardChart(
+    return StandardChart(
           yValuesInterval: _maxTransactionsPerDay > kNumOfChartLeftSideTitles
               ? _maxTransactionsPerDay / kNumOfChartLeftSideTitles
               : 1,
@@ -56,7 +53,7 @@ class RealtimeTxsChartState extends State<RealtimeTxsChart> {
           lineBarsData: _linesBarData(),
           lineBarDotSymbol: 'txs',
           convertLeftSideTitlesToInt: true,
-        )));
+        );
   }
 
   double _getTransactionsByDay(TokenStandard tokenId, DateTime date) {
@@ -92,13 +89,13 @@ class RealtimeTxsChartState extends State<RealtimeTxsChart> {
 
   List<LineChartBarData> _linesBarData() {
     return [
-      LineChartBarData(
+      StandardLineChartBarData(
         color: ColorUtils.getTokenColor(kZnnCoin.tokenStandard),
-        spots: _znnSpots!,
+        spots: _znnSpots,
       ),
-      LineChartBarData(
+      StandardLineChartBarData(
         color: ColorUtils.getTokenColor(kQsrCoin.tokenStandard),
-        spots: _qsrSpots!,
+        spots: _qsrSpots,
       ),
     ];
   }
