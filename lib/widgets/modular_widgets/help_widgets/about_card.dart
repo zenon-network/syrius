@@ -2,7 +2,6 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:open_filex/open_filex.dart';
-import 'package:path/path.dart' as path;
 import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/model/model.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/metadata.dart';
@@ -115,13 +114,6 @@ class AboutCardState extends State<AboutCard> {
           'Syrius cache path',
           _getGenericOpenButtonExpandedChild(
               znnDefaultPaths.cache.absolute.path),
-        ),
-        CustomExpandablePanel(
-          'Syrius log path',
-          _getGenericOpenButtonExpandedChild(
-              Directory(path.join(znnDefaultCacheDirectory.path, 'log'))
-                  .absolute
-                  .path),
         ),
         CustomExpandablePanel(
           'Syrius wallet path',

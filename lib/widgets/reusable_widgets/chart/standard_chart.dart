@@ -65,7 +65,7 @@ class StandardChart extends StatelessWidget {
             drawVerticalLine: false,
             drawHorizontalLine: true,
             getDrawingHorizontalLine: (_) {
-              return const FlLine(
+              return FlLine(
                 strokeWidth: 1.0,
                 color: Colors.black87,
                 dashArray: [3, 3],
@@ -109,12 +109,12 @@ class StandardChart extends StatelessWidget {
                 reservedSize: 26.0,
               ),
             ),
-            rightTitles: const AxisTitles(
+            rightTitles: AxisTitles(
               sideTitles: SideTitles(
                 showTitles: false,
               ),
             ),
-            topTitles: const AxisTitles(
+            topTitles: AxisTitles(
                 sideTitles: SideTitles(
               showTitles: false,
             )),
@@ -126,6 +126,7 @@ class StandardChart extends StatelessWidget {
           minY: 0.0,
           lineBarsData: lineBarsData,
         ),
+        swapAnimationDuration: const Duration(milliseconds: 250),
       ),
     );
   }

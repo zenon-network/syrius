@@ -44,23 +44,20 @@ class RealtimeTxsChartState extends State<RealtimeTxsChart> {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-        padding: const EdgeInsets.all(10),
-        child: Center(
-            child: StandardChart(
-          yValuesInterval: _maxTransactionsPerDay > kNumOfChartLeftSideTitles
-              ? _maxTransactionsPerDay / kNumOfChartLeftSideTitles
-              : 1,
-          maxY: _maxTransactionsPerDay,
-          titlesReferenceDate: DateTime.now(),
-          lineBarsData: _linesBarData(),
-          lineBarDotSymbol: 'txs',
-          convertLeftSideTitlesToInt: true,
-        )));
+    return StandardChart(
+      yValuesInterval: _maxTransactionsPerDay > kNumOfChartLeftSideTitles
+          ? _maxTransactionsPerDay / kNumOfChartLeftSideTitles
+          : 1,
+      maxY: _maxTransactionsPerDay,
+      lineBarsData: _linesBarData(),
+      lineBarDotSymbol: 'txs',
+      titlesReferenceDate: DateTime.now(),
+      convertLeftSideTitlesToInt: true,
+    );
   }
 
   double _getTransactionsByDay(TokenStandard tokenId, DateTime date) {
-    List<AccountBlock> transactions = [];
+    var transactions = [];
     for (var transaction in widget.transactions) {
       AccountBlock? pairedAccountBlock;
       if (transaction.blockType == 3 &&
@@ -92,13 +89,13 @@ class RealtimeTxsChartState extends State<RealtimeTxsChart> {
 
   List<LineChartBarData> _linesBarData() {
     return [
-      LineChartBarData(
+      StandardLineChartBarData(
         color: ColorUtils.getTokenColor(kZnnCoin.tokenStandard),
-        spots: _znnSpots!,
+        spots: _znnSpots,
       ),
-      LineChartBarData(
+      StandardLineChartBarData(
         color: ColorUtils.getTokenColor(kQsrCoin.tokenStandard),
-        spots: _qsrSpots!,
+        spots: _qsrSpots,
       ),
     ];
   }
