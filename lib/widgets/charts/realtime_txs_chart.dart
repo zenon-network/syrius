@@ -45,7 +45,7 @@ class RealtimeTxsChartState extends State<RealtimeTxsChart> {
   @override
   Widget build(BuildContext context) {
     return StandardChart(
-          yValuesInterval: _maxTransactionsPerDay > kNumOfChartLeftSideTitles
+      yValuesInterval: _maxTransactionsPerDay > kNumOfChartLeftSideTitles
           ? _maxTransactionsPerDay / kNumOfChartLeftSideTitles
           : 1,
       maxY: _maxTransactionsPerDay,
