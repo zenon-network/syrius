@@ -328,7 +328,7 @@ class WalletConnectService {
             final wasActionAccepted = await showDialogWithNoAndYesOptions(
               context: _context,
               isBarrierDismissible: false,
-              title: '${dAppMetadata.name} - Send Payment',
+              title: '${dAppMetadata.name} - Send',
               content: Column(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.center,

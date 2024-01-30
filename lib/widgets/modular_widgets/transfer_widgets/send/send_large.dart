@@ -226,7 +226,7 @@ class _SendLargeCardState extends State<SendLargeCard> {
       showDialogWithNoAndYesOptions(
         isBarrierDismissible: false,
         context: context,
-        title: 'Send Payment',
+        title: 'Send',
         description: 'Are you sure you want to transfer '
             '${_amountController.text} ${_selectedToken.symbol} to '
             '${ZenonAddressUtils.getLabel(_recipientController.text)} ?',
