@@ -1,3 +1,4 @@
+
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
@@ -180,9 +181,10 @@ class _ReceiveLargeCardState extends State<ReceiveLargeCard> {
   }
 
   String _getQrString() {
-    return '${_selectedToken.symbol.toLowerCase()}:$_selectedSelfAddress?zts='
-        '${_selectedToken.tokenStandard}'
+    var qrData = '${_selectedToken.symbol.toLowerCase()}:'
+        '$_selectedSelfAddress?zts=${_selectedToken.tokenStandard}'
         '&amount=${_getAmount()}';
+    return qrData.substring(0, min(qrData.length, 122));
   }
 
   BigInt _getAmount() {
