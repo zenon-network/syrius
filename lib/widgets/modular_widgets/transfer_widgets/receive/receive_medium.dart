@@ -1,4 +1,5 @@
 import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
@@ -124,7 +125,11 @@ class _ReceiveMediumCardState extends State<ReceiveMediumCard> {
                         key: _amountKey,
                         autovalidateMode: AutovalidateMode.onUserInteraction,
                         child: InputField(
-                          validator: InputValidators.validateAmount,
+                          validator: (value) => InputValidators.correctValue(
+                              value,
+                              kBigP255m1,
+                              _selectedToken.decimals,
+                              BigInt.zero),
                           onChanged: (value) => setState(() {}),
                           inputFormatters:
                               FormatUtils.getAmountTextInputFormatters(

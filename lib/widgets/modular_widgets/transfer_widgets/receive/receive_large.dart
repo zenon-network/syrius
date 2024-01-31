@@ -1,3 +1,4 @@
+import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
@@ -121,7 +122,12 @@ class _ReceiveLargeCardState extends State<ReceiveLargeCard> {
                               autovalidateMode:
                                   AutovalidateMode.onUserInteraction,
                               child: InputField(
-                                validator: InputValidators.validateAmount,
+                                validator: (value) =>
+                                    InputValidators.correctValue(
+                                        value,
+                                        kBigP255m1,
+                                        _selectedToken.decimals,
+                                        BigInt.zero),
                                 onChanged: (value) => setState(() {}),
                                 inputFormatters:
                                     FormatUtils.getAmountTextInputFormatters(
