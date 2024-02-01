@@ -90,16 +90,17 @@ class ZenonAddressUtils {
   static Future<void> setAddresses(WalletFile? walletFile) async {
     Box addressesBox = await Hive.openBox(kAddressesBox);
     if (addressesBox.isEmpty) {
-      Wallet wallet = await walletFile!.open();
-      for (var element in (await Future.wait(
-        List<Future<String>>.generate(
-            kNumOfInitialAddresses,
-            (index) async =>
-                (await (await wallet.getAccount(index)).getAddress())
-                    .toString()),
-      ))) {
-        addressesBox.add(element);
-      }
+      await walletFile!.access((wallet) async {
+        for (var element in (await Future.wait(
+          List<Future<String>>.generate(
+              kNumOfInitialAddresses,
+              (index) async =>
+                  (await (await wallet.getAccount(index)).getAddress())
+                      .toString()),
+        ))) {
+          addressesBox.add(element);
+        }
+      });
     }
     _initAddresses(addressesBox);
   }
