@@ -136,7 +136,7 @@ class _SettingsNodeState extends State<SettingsNode> {
         Visibility(
           visible: kDefaultCommunityNodes.contains(widget.node),
           child: const StandardTooltipIcon(
-            'Hardcoded Community Node',
+            'Community Node',
             MaterialCommunityIcons.vector_link,
             iconColor: Colors.amber,
           ),
