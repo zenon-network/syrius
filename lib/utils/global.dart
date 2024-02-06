@@ -64,4 +64,5 @@ List<String> kDefaultNodes = [
 // Community supplied public full nodes
 List<String> kDefaultCommunityNodes = [
   'wss://my.hc1node.com:35998',
+  'wss://node.zenonhub.io:35998'
 ];
