@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
-import 'package:lottie/lottie.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
@@ -23,7 +22,6 @@ class ReceiveMediumCard extends StatefulWidget {
 }
 
 class _ReceiveMediumCardState extends State<ReceiveMediumCard> {
-  final int _maxQrCodeInputLength = 122;
   final TextEditingController _transferAddrController = TextEditingController();
   final TextEditingController _amountController = TextEditingController();
 
@@ -96,43 +94,12 @@ class _ReceiveMediumCardState extends State<ReceiveMediumCard> {
                 const SizedBox(
                   width: 20.0,
                 ),
-                _getQrString().length <= _maxQrCodeInputLength
-                    ? ReceiveQrImage(
-                        data: _getQrString(),
-                        size: 110.0,
-                        tokenStandard: _selectedToken.tokenStandard,
-                        context: context,
-                      )
-                    : Container(
-                        width: 130.0,
-                        height: 130.0,
-                        decoration: const BoxDecoration(
-                          color: AppColors.backgroundDark,
-                          borderRadius: BorderRadius.all(
-                            Radius.circular(15.0),
-                          ),
-                        ),
-                        child: Center(
-                          child: Padding(
-                            padding: const EdgeInsets.all(5.0),
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Lottie.asset(
-                                  'assets/lottie/ic_anim_no_data.json',
-                                  width: 32.0,
-                                  height: 32.0,
-                                ),
-                                Text(
-                                  'Input is too long for QR code',
-                                  textAlign: TextAlign.center,
-                                  style: Theme.of(context).textTheme.bodyMedium,
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
+                ReceiveQrImage(
+                  data: _getQrString(),
+                  size: 110,
+                  tokenStandard: _selectedToken.tokenStandard,
+                  context: context,
+                ),
                 const SizedBox(
                   width: 20.0,
                 ),
