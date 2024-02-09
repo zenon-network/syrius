@@ -672,7 +672,7 @@ class _MainAppContainerState extends State<MainAppContainer>
   }
 
   void _handleIncomingLinks() async {
-    if (!kIsWeb) {
+    if (!kIsWeb && !Platform.isLinux) {
       _incomingLinkSubscription =
           _appLinks.allUriLinkStream.listen((Uri? uri) async {
         if (!await windowManager.isFocused() ||
