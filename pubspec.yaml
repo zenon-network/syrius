@@ -56,8 +56,8 @@ dependencies:
   launch_at_startup: ^0.2.1
   logging: ^1.2.0
   collection: ^1.17.0
-  app_links: ^3.4.3
-  walletconnect_flutter_v2: ^2.1.0
+  app_links: ^3.4.5
+  walletconnect_flutter_v2: ^2.0.14
   preference_list: ^0.0.1
   screen_capturer: ^0.1.6
   zxing2: ^0.2.0
