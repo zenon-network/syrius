@@ -15,8 +15,7 @@ class HideWidgetStatusBloc extends BaseBloc<bool?> {
     try {
       addEvent(null);
       if (!isHidden) {
-        await WalletUtils.decryptWalletFile(
-            kWalletType!, kWalletPath!, password);
+        await WalletUtils.decryptWalletFile(kWalletPath!, password);
       }
       await _markWidgetAsHidden(widgetTitle, isHidden);
       addEvent(isHidden);

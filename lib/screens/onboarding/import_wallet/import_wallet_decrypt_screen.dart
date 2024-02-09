@@ -89,7 +89,6 @@ class _ImportWalletDecryptScreenState extends State<ImportWalletDecryptScreen> {
           ? () async {
               _loadingButtonKey.currentState!.animateForward();
               await model.decryptWalletFile(
-                kKeyStoreWalletType,
                 widget.path,
                 _passwordController.text,
               );

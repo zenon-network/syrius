@@ -11,15 +11,8 @@ class WalletUtils {
   }
 
   static Future<WalletFile> decryptWalletFile(
-      String walletType, String walletPath, String password) async {
-    if (walletType == kKeyStoreWalletType) {
-      return await KeyStoreWalletFile.decrypt(walletPath, password);
-    } else if (walletType == kLedgerWalletType) {
-      return await LedgerWalletFile.decrypt(walletPath, password);
-    } else {
-      throw UnsupportedError(
-          'The specified wallet type $walletType is not supported.');
-    }
+      String walletPath, String password) async {
+    return await WalletFile.decrypt(walletPath, password);
   }
 
   static Future<void> createLedgerWalletFile(
@@ -29,9 +22,7 @@ class WalletUtils {
   }) async {
     kWalletFile = await LedgerWalletFile.create(walletId, password, name: name);
     kWalletPath = kWalletFile!.walletPath;
-    kWalletType = kWalletFile!.walletType;
     await _storeWalletPath(kWalletFile!.walletPath);
-    await _storeWalletType(kWalletFile!.walletType);
   }
 
   static Future<void> createKeyStoreWalletFile(
@@ -42,9 +33,7 @@ class WalletUtils {
     kWalletFile =
         await KeyStoreWalletFile.create(mnemonic, password, name: name);
     kWalletPath = kWalletFile!.walletPath;
-    kWalletType = kWalletFile!.walletType;
     await _storeWalletPath(kWalletFile!.walletPath);
-    await _storeWalletType(kWalletFile!.walletType);
   }
 
   static Future<void> _storeWalletPath(String? walletPath) async {
@@ -52,12 +41,7 @@ class WalletUtils {
     await keyStoreBox.put(0, walletPath);
   }
 
-  static Future<void> _storeWalletType(String? walletType) async {
-    Box keyStoreBox = await Hive.openBox(kKeyStoreBox);
-    await keyStoreBox.put(1, walletType);
-  }
-
-  static Future<void> setWalletPathAndType() async {
+  static Future<void> setWalletPath() async {
     if (kWalletPath == null) {
       Box keyStoreBox = await Hive.openBox(kKeyStoreBox);
       if (keyStoreBox.isEmpty) {
@@ -73,17 +57,6 @@ class WalletUtils {
       }
     } else {
       _storeWalletPath(kWalletPath);
-    }
-
-    if (kWalletType == null) {
-      Box keyStoreBox = await Hive.openBox(kKeyStoreBox);
-      if (keyStoreBox.values.length > 1) {
-        kWalletType = keyStoreBox.getAt(1);
-      } else {
-        kWalletType = null;
-      }
-    } else {
-      _storeWalletType(kWalletType);
     }
   }
 }

@@ -57,7 +57,7 @@ class AccountBlockUtils {
           transactionParams,
           blockSigningKey: walletAccount,
         );
-        bool needReview = kWalletType == kLedgerWalletType;
+        bool needReview = kWalletFile!.isHardwareWallet;
 
         if (needPlasma) {
           sl

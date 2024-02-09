@@ -123,7 +123,7 @@ class AboutCardState extends State<AboutCard> {
         CustomExpandablePanel(
           'Syrius wallet type',
           _getGenericOpenButtonExpandedChild(
-              kWalletType!),
+              kWalletFile!.walletType),
         ),
         CustomExpandablePanel(
           'Client hostname',

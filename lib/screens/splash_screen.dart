@@ -113,7 +113,6 @@ class _SplashScreenState extends State<SplashScreen>
   Future<void> _deleteWalletFile() async {
     await FileUtils.deleteFile(kWalletPath!);
     kWalletPath = null;
-    kWalletType = null;
   }
 
   void _checkForDefaultNode() => sharedPrefsService!.get(

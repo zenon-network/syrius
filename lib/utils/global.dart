@@ -8,7 +8,6 @@ ValueNotifier<String?> kLastWalletConnectUriNotifier = ValueNotifier(null);
 String? kCurrentNode;
 String? kSelectedAddress;
 String? kWalletPath;
-String? kWalletType;
 String? kLocalIpAddress;
 
 int? kAutoLockWalletMinutes;

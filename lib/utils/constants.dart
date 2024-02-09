@@ -57,10 +57,6 @@ const List<String> kCacheBoxesToBeDeleted = [
 // Wallet file name
 const String kNameWalletFile = 'wallet';
 
-// Wallet types
-const String kLedgerWalletType = 'ledger';
-const String kKeyStoreWalletType = 'keyStore';
-
 // Github Syrius releases link
 const String kGithubReleasesLink =
     'https://github.com/zenon-network/syrius/releases/latest';

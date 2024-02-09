@@ -161,7 +161,6 @@ class _LockTabChildState extends State<LockTabChild> {
       try {
         _actionButtonKey.currentState!.animateForward();
         kWalletFile = await WalletUtils.decryptWalletFile(
-          kWalletType!,
           kWalletPath!,
           _passwordController.text,
         );

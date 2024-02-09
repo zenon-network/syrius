@@ -221,10 +221,7 @@ class _ChangeWalletPasswordScreenState
           ? () {
               _loadingButtonKey.currentState!.animateForward();
               model.decryptWalletFile(
-                kWalletType!,
-                kWalletPath!,
-                _currentPasswordController.text,
-              );
+                  kWalletPath!, _currentPasswordController.text);
             }
           : null,
       text: 'Change password',

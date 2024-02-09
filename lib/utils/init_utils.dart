@@ -22,7 +22,7 @@ class InitUtils {
       WidgetUtils.setTextScale(context);
       _setAutoEraseWalletNumAttempts();
       _setAutoLockWalletTimeInterval();
-      await WalletUtils.setWalletPathAndType();
+      await WalletUtils.setWalletPath();
       await _setNumUnlockFailedAttempts();
       await NodeUtils.setNode();
       _setChainId();
