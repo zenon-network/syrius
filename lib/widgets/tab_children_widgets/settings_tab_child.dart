@@ -90,15 +90,15 @@ class _SettingsTabChildState extends State<SettingsTabChild> {
           child: NodeManagement(
             onNodeChangedCallback: widget.onNodeChangedCallback,
           ),
-          height: kStaggeredNumOfColumns / 6,
+          height: kStaggeredNumOfColumns / 3,
         ),
         const FluidCell(
           child: DisplayWidget(),
-          height: kStaggeredNumOfColumns / 6,
+          height: kStaggeredNumOfColumns / 3,
         ),
         const FluidCell(
           child: BackupWidget(),
-          height: kStaggeredNumOfColumns / 6,
+          height: kStaggeredNumOfColumns / 3,
         ),
       ],
     );

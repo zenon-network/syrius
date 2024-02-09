@@ -401,7 +401,7 @@ class _PillarsListWidgetState extends State<PillarsListWidget> {
               width: 5.0,
             ),
           ),
-          Expanded(
+          SizedBox( 
             child: pillarItem.isRevocable
                 ? CancelTimer(
                     Duration(
