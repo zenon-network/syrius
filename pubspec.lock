@@ -1605,7 +1605,7 @@ packages:
     description:
       path: "."
       ref: "feature/ledger"
-      resolved-ref: fe3069c758d51e17f02cc336315af6a7d5f51cb2
+      resolved-ref: "3b11e8e3d46b403370e3888bc18a294781cbc0d9"
       url: "https://github.com/kinggorrin/znn_ledger_dart.git"
     source: git
     version: "0.0.2"
@@ -1614,7 +1614,7 @@ packages:
     description:
       path: "."
       ref: "feature/ledger"
-      resolved-ref: "996d563361903d9e6860c56833b0652790578de1"
+      resolved-ref: d8e38c3a0adf05b8b25c6766645ed4c8b9b4de20
       url: "https://github.com/kinggorrin/znn_sdk_dart.git"
     source: git
     version: "0.0.6"
