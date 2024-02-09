@@ -36,6 +36,12 @@ class _NodeManagementScreenState extends State<NodeManagementScreen> {
   late String _selectedNodeConfirmed;
 
   @override
+  void initState() {
+    super.initState();
+    kDefaultCommunityNodes.shuffle();
+  }
+
+  @override
   void didChangeDependencies() {
     super.didChangeDependencies();
     _selectedNode ??= kCurrentNode!;
@@ -231,9 +237,11 @@ class _NodeManagementScreenState extends State<NodeManagementScreen> {
       InputValidators.node(_newNodeController.text) == null;
 
   void _onAddNodePressed() async {
-    if ([...kDbNodes, ...kDefaultNodes].contains(_newNodeController.text)) {
+    if ([...kDbNodes, ...kDefaultCommunityNodes, ...kDefaultNodes]
+        .contains(_newNodeController.text)) {
       NotificationUtils.sendNotificationError(
-          'Node already exists', 'Node already exists');
+          'Node ${_newNodeController.text} already exists',
+          'Node already exists');
     } else {
       _addNodeToDb();
     }
@@ -261,8 +269,11 @@ class _NodeManagementScreenState extends State<NodeManagementScreen> {
 
   Widget _getNodeTiles() {
     return Column(
-      children:
-          [...kDefaultNodes, ...kDbNodes].map((e) => _getNodeTile(e)).toList(),
+      children: <String>{
+        ...kDefaultNodes,
+        ...kDefaultCommunityNodes,
+        ...kDbNodes
+      }.toList().map((e) => _getNodeTile(e)).toList(),
     );
   }
 

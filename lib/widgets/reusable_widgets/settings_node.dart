@@ -4,6 +4,7 @@ import 'package:hive/hive.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/input_validators.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/node_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/notification_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
@@ -29,6 +30,7 @@ class SettingsNode extends StatefulWidget {
 
 class _SettingsNodeState extends State<SettingsNode> {
   bool _editable = false;
+  String? _nodeError;
 
   final TextEditingController _nodeController = TextEditingController();
 
@@ -103,9 +105,6 @@ class _SettingsNodeState extends State<SettingsNode> {
                     (getChainIdentifier() == connectedNodeChainIdentifier)
                         ? AppColors.znnColor
                         : AppColors.errorColor)),
-        const SizedBox(
-          width: 8.0,
-        ),
         Visibility(
           visible: widget.node.contains('wss://'),
           child: const StandardTooltipIcon('Encrypted connection', Icons.lock),
@@ -131,28 +130,49 @@ class _SettingsNodeState extends State<SettingsNode> {
             'The Embedded Node validates all network transactions\n'
             'It may take several hours to fully sync with the network',
             MaterialCommunityIcons.clock,
-          ),
-        ),
-        const SizedBox(
-          width: 5.0,
-        ),
-        Visibility(
-          visible: !kDefaultNodes.contains(widget.node),
-          child: MaterialIconButton(
-            iconData: Icons.edit,
-            onPressed: () {
-              setState(() {
-                _editable = true;
-              });
-            },
-            materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            iconColor: Colors.amber,
           ),
         ),
         Visibility(
-          visible: !kDefaultNodes.contains(widget.node),
-          child: MaterialIconButton(
-            onPressed: () {
-              showDialogWithNoAndYesOptions(
+          visible: kDefaultCommunityNodes.contains(widget.node),
+          child: const StandardTooltipIcon(
+            'Community Node',
+            MaterialCommunityIcons.vector_link,
+            iconColor: Colors.amber,
+          ),
+        ),
+        Visibility(
+            visible: !kDefaultNodes.contains(widget.node) &&
+                !kDefaultCommunityNodes.contains(widget.node),
+            child: IconButton(
+              hoverColor: Colors.transparent,
+              padding: const EdgeInsets.all(4.0),
+              constraints: const BoxConstraints(),
+              iconSize: 15.0,
+              icon: const Icon(
+                Icons.edit,
+                color: AppColors.znnColor,
+              ),
+              onPressed: () {
+                setState(() {
+                  _editable = true;
+                });
+              },
+              tooltip: 'Edit node',
+            )),
+        Visibility(
+            visible: !kDefaultNodes.contains(widget.node) &&
+                !kDefaultCommunityNodes.contains(widget.node),
+            child: IconButton(
+              hoverColor: Colors.transparent,
+              padding: const EdgeInsets.all(4.0),
+              constraints: const BoxConstraints(),
+              iconSize: 15.0,
+              icon: const Icon(
+                Icons.delete_forever,
+                color: AppColors.znnColor,
+              ),
+              onPressed: () => showDialogWithNoAndYesOptions(
                 isBarrierDismissible: true,
                 context: context,
                 title: 'Node Management',
@@ -162,12 +182,9 @@ class _SettingsNodeState extends State<SettingsNode> {
                 onYesButtonPressed: () {
                   _deleteNodeFromDb(widget.node);
                 },
-              );
-            },
-            iconData: Icons.delete_forever,
-            materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-          ),
-        ),
+              ),
+              tooltip: 'Delete node',
+            )),
       ],
     );
   }
@@ -180,50 +197,27 @@ class _SettingsNodeState extends State<SettingsNode> {
           children: [
             Expanded(
               child: SizedBox(
-                height: 40.0,
-                child: InputField(
-                  controller: _nodeController,
-                  onSubmitted: (value) {
-                    if (_nodeController.text != widget.node) {
-                      _onChangeButtonPressed();
-                    }
-                  },
-                  onChanged: (value) {
-                    setState(() {});
-                  },
-                  inputtedTextStyle:
-                      Theme.of(context).textTheme.bodyMedium!.copyWith(
-                            color: AppColors.znnColor,
-                          ),
-                  enabledBorder: OutlineInputBorder(
-                    borderSide: BorderSide.none,
-                    borderRadius: BorderRadius.circular(10.0),
-                  ),
-                  contentLeftPadding: 5.0,
-                  disabledBorder: OutlineInputBorder(
-                    borderSide: BorderSide(
-                      color: Colors.white.withOpacity(0.1),
-                    ),
-                    borderRadius: BorderRadius.circular(10.0),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderSide: const BorderSide(color: AppColors.znnColor),
-                    borderRadius: BorderRadius.circular(10.0),
-                  ),
-                  errorBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10.0),
-                    borderSide: const BorderSide(
-                      color: AppColors.errorColor,
-                      width: 2.0,
-                    ),
-                  ),
-                  focusedErrorBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10.0),
-                    borderSide: const BorderSide(
-                      color: AppColors.errorColor,
-                      width: 2.0,
-                    ),
-                  ),
+                child: Form(
+                  key: widget.key,
+                  autovalidateMode: AutovalidateMode.onUserInteraction,
+                  child: InputField(
+                      controller: _nodeController,
+                      hintText: 'Node address with port',
+                      onSubmitted: (value) {
+                        if (_nodeController.text != widget.node &&
+                            _ifUserInputValid()) {
+                          _onChangeButtonPressed();
+                        }
+                      },
+                      onChanged: (String value) {
+                        if (value.isNotEmpty) {
+                          setState(() {
+                            _nodeError = null;
+                          });
+                        }
+                      },
+                      validator: (value) =>
+                          InputValidators.node(value) ?? _nodeError),
                 ),
               ),
             ),
@@ -231,9 +225,10 @@ class _SettingsNodeState extends State<SettingsNode> {
               width: 15.0,
             ),
             SettingsButton(
-              onPressed: _nodeController.text != widget.node
-                  ? _onChangeButtonPressed
-                  : null,
+              onPressed:
+                  _nodeController.text != widget.node && _ifUserInputValid()
+                      ? _onChangeButtonPressed
+                      : null,
               text: 'Change',
               key: _changeButtonKey,
             ),
@@ -242,6 +237,7 @@ class _SettingsNodeState extends State<SettingsNode> {
                 setState(() {
                   _nodeController.text = widget.node;
                   _editable = false;
+                  _nodeError = null;
                 });
               },
               iconData: Icons.clear,
@@ -252,37 +248,44 @@ class _SettingsNodeState extends State<SettingsNode> {
     );
   }
 
+  bool _ifUserInputValid() =>
+      InputValidators.node(_nodeController.text) == null;
+
   void _onChangeButtonPressed() async {
     try {
       _changeButtonKey.currentState!.showLoadingIndicator(true);
       if (_nodeController.text.isNotEmpty &&
           _nodeController.text.length <= kAddressLabelMaxLength &&
-          ![...kDefaultNodes, ...kDbNodes].contains(_nodeController.text)) {
-        Box<String> nodesBox = await Hive.openBox<String>(kNodesBox);
-        dynamic key = nodesBox.keys.firstWhere(
+          ![...kDefaultNodes, ...kDefaultCommunityNodes, ...kDbNodes]
+              .contains(_nodeController.text)) {
+        if (!Hive.isBoxOpen(kNodesBox)) {
+          await Hive.openBox<String>(kNodesBox);
+        }
+        Box<String> nodesBox = Hive.box<String>(kNodesBox);
+        var nodeKey = nodesBox.keys.firstWhere(
           (key) => nodesBox.get(key) == widget.node,
         );
-        await nodesBox.put(key, _nodeController.text);
+        await nodesBox.put(nodeKey, _nodeController.text);
         await NodeUtils.loadDbNodes();
         setState(() {
           _editable = false;
+          _nodeError = null;
         });
+        if (!mounted) return;
+        widget.onChangedOrDeletedNode();
       } else if (_nodeController.text.isEmpty) {
-        NotificationUtils.sendNotificationError(
-          'Node address can\'t be empty',
-          'Node error',
-        );
+        setState(() {
+          _nodeError = 'Node address can\'t be empty';
+        });
       } else if (_nodeController.text.length > kAddressLabelMaxLength) {
-        NotificationUtils.sendNotificationError(
-          'The node ${_nodeController.text} is ${_nodeController.text.length} '
-              'characters long, which is more than the $kAddressLabelMaxLength limit.',
-          'The node has more than $kAddressLabelMaxLength characters',
-        );
+        setState(() {
+          _nodeError =
+              'The node has more than $kAddressLabelMaxLength characters';
+        });
       } else {
-        NotificationUtils.sendNotificationError(
-          'Node ${_nodeController.text} already exists in the database',
-          'Node already exists',
-        );
+        setState(() {
+          _nodeError = 'Node already exists';
+        });
       }
     } catch (e) {
       NotificationUtils.sendNotificationError(

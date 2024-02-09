@@ -108,12 +108,12 @@ const int kAmountInputMaxCharacterLength = 21;
 const int kSecondsPerMomentum = 10;
 const int kMaxP2pSwapsToStore = 500;
 
-final List<int> kNormalUsersPlasmaRequirements = [
+const List<int> kNormalUsersPlasmaRequirements = [
   kStakePlasmaAmountNeeded,
   kDelegatePlasmaAmountNeeded,
 ];
 
-final List<int> kPowerUsersPlasmaRequirements = [
+const List<int> kPowerUsersPlasmaRequirements = [
   kPillarPlasmaAmountNeeded,
   kSentinelPlasmaAmountNeeded,
   kIssueTokenPlasmaAmountNeeded,
@@ -121,11 +121,6 @@ final List<int> kPowerUsersPlasmaRequirements = [
 
 const String kLocalhostDefaultNodeUrl = 'ws://127.0.0.1:$kDefaultPort';
 const int kDefaultPort = 35998;
-
-List<String> kDefaultNodes = [
-  'Embedded Node',
-  kLocalhostDefaultNodeUrl,
-];
 
 const List<String> kWalletActions = [
   'pillar',
