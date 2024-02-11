@@ -116,8 +116,13 @@ class KeyStoreWalletFile extends WalletFile {
   @override
   Future<Wallet> open() async {
     await _lock.acquire();
-    _keyStore ??= KeyStore.fromEntropy(_walletSeed);
-    return _keyStore!;
+    try {
+      _keyStore ??= KeyStore.fromEntropy(_walletSeed);
+      return _keyStore!;
+    } catch (_) {
+      _lock.release();
+      rethrow;
+    }
   }
 
   @override
