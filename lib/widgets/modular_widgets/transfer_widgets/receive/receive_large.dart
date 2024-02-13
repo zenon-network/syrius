@@ -100,7 +100,7 @@ class _ReceiveLargeCardState extends State<ReceiveLargeCard> {
                 ),
                 ReceiveQrImage(
                   data: _getQrString(),
-                  size: 150.0,
+                  size: 150,
                   tokenStandard: _selectedToken.tokenStandard,
                   context: context,
                 ),
@@ -120,7 +120,12 @@ class _ReceiveLargeCardState extends State<ReceiveLargeCard> {
                               autovalidateMode:
                                   AutovalidateMode.onUserInteraction,
                               child: InputField(
-                                validator: InputValidators.validateAmount,
+                                validator: (value) =>
+                                    InputValidators.correctValue(
+                                        value,
+                                        kBigP255m1,
+                                        _selectedToken.decimals,
+                                        BigInt.zero),
                                 onChanged: (value) => setState(() {}),
                                 inputFormatters:
                                     FormatUtils.getAmountTextInputFormatters(
@@ -180,8 +185,8 @@ class _ReceiveLargeCardState extends State<ReceiveLargeCard> {
   }
 
   String _getQrString() {
-    return '${_selectedToken.symbol.toLowerCase()}:$_selectedSelfAddress?zts='
-        '${_selectedToken.tokenStandard}'
+    return '${_selectedToken.symbol.toLowerCase()}:'
+        '$_selectedSelfAddress?zts=${_selectedToken.tokenStandard}'
         '&amount=${_getAmount()}';
   }
 
