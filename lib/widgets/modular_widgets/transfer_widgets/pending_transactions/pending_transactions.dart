@@ -32,7 +32,7 @@ class _PendingTransactionsState extends State<PendingTransactions> {
     return CardScaffold(
       title: _getWidgetTitle(),
       description: 'This card displays the pending transactions (including ZTS '
-          'tokens) involving your wallet addresses',
+          'tokens) for the selected address',
       childBuilder: () {
         _bloc = PendingTransactionsBloc();
         return _getTable();
