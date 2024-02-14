@@ -36,7 +36,7 @@ class _LatestTransactionsState extends State<LatestTransactions> {
     return CardScaffold(
       title: _getWidgetTitle(),
       description: 'This card displays the latest transactions (including ZTS '
-          'tokens) involving your wallet addresses',
+          'tokens) of your selected address',
       childBuilder: () {
         _bloc = LatestTransactionsBloc();
         return _getTable();
