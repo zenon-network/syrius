@@ -57,7 +57,7 @@ class RealtimeTxsChartState extends State<RealtimeTxsChart> {
   }
 
   double _getTransactionsByDay(TokenStandard tokenId, DateTime date) {
-    var transactions = [];
+    List<AccountBlock> transactions = [];
     for (var transaction in widget.transactions) {
       AccountBlock? pairedAccountBlock;
       if (transaction.blockType == 3 &&
