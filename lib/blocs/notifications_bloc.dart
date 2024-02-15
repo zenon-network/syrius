@@ -10,7 +10,9 @@ import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
 class NotificationsBloc extends BaseBloc<WalletNotification?> {
   Future<void> addNotification(WalletNotification? notification) async {
     try {
-      await Hive.openBox(kNotificationsBox);
+      if (!Hive.box(kNotificationsBox).isOpen) {
+        await Hive.openBox(kNotificationsBox);
+      }
       Box notificationsBox = Hive.box(kNotificationsBox);
       if (notificationsBox.length >= kNotificationsEntriesLimit) {
         while (notificationsBox.length >= kNotificationsEntriesLimit) {
