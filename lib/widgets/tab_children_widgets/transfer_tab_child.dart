@@ -27,12 +27,12 @@ class _TransferTabChildState extends State<TransferTabChild> {
         _getReceiveCard(),
         const FluidCell(
           child: LatestTransactions(),
-          width: kStaggeredNumOfColumns,
+          width: kStaggeredNumOfColumns ~/ 2,
           height: kStaggeredNumOfColumns / 3,
         ),
         const FluidCell(
           child: PendingTransactions(),
-          width: kStaggeredNumOfColumns,
+          width: kStaggeredNumOfColumns ~/ 2,
           height: kStaggeredNumOfColumns / 3,
         ),
       ],
