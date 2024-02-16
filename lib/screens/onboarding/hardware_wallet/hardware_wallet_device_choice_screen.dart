@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
+import 'package:zenon_syrius_wallet_flutter/blocs/notifications_bloc.dart';
+import 'package:zenon_syrius_wallet_flutter/main.dart';
+import 'package:zenon_syrius_wallet_flutter/model/database/notification_type.dart';
+import 'package:zenon_syrius_wallet_flutter/model/database/wallet_notification.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/screens/screens.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
@@ -58,6 +62,7 @@ class _HardwareWalletDeviceChoiceScreenState
                 const SizedBox(
                   height: 30.0,
                 ),
+                const NotificationWidget(),
                 Text(
                   'Choose your device',
                   style: Theme.of(context).textTheme.headlineLarge,
@@ -245,8 +250,7 @@ class _HardwareWalletDeviceChoiceScreenState
             origMessage:
                 'Not connected, please connect the device and try again.');
       }
-      final walletAccount = await wallet.getAccount();
-      final walletAddress = await walletAccount.getAddress();
+      final walletAddress = await _getWalletAddress(wallet);
       setState(() {
         _deviceValueMap[walletDefinition!.walletId]!.value =
             walletAddress.toString();
@@ -261,6 +265,24 @@ class _HardwareWalletDeviceChoiceScreenState
         } catch (_) {}
       }
       wallet = null;
+    }
+  }
+
+  Future<Address> _getWalletAddress(Wallet wallet) async {
+    final account = await wallet.getAccount();
+    if (account is LedgerWalletAccount) {
+      sl.get<NotificationsBloc>().addNotification(
+            WalletNotification(
+              title:
+                  'Resolving address, please confirm the address on your hardware device',
+              timestamp: DateTime.now().millisecondsSinceEpoch,
+              details: 'Confirm address for account index: 0',
+              type: NotificationType.confirm,
+            ),
+          );
+      return await account.getAddress(true);
+    } else {
+      return await account.getAddress();
     }
   }
 
