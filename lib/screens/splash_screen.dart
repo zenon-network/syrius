@@ -99,6 +99,9 @@ class _SplashScreenState extends State<SplashScreen>
     // after the user creates or imports a new wallet
     kWalletInitCompleted = false;
     await sl.get<NotificationsBloc>().addNotification(null);
+    if (sl<AutoReceiveTxWorker>().pool.isNotEmpty) {
+      sl<AutoReceiveTxWorker>().pool.clear();
+    }
     await _deleteWalletFile();
     await Hive.deleteFromDisk();
     if (!mounted) return;
@@ -111,6 +114,8 @@ class _SplashScreenState extends State<SplashScreen>
       );
 
   Future<void> _deleteWalletFile() async {
+    if (kWalletFile != null) kWalletFile!.close();
+    kWalletFile = null;
     await FileUtils.deleteFile(kWalletPath!);
     kWalletPath = null;
   }
