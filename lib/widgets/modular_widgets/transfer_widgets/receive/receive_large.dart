@@ -109,46 +109,8 @@ class _ReceiveLargeCardState extends State<ReceiveLargeCard> {
                 ),
                 Expanded(
                   child: Column(
+                    mainAxisAlignment: MainAxisAlignment.start,
                     children: <Widget>[
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.start,
-                        children: <Widget>[
-                          Expanded(
-                            flex: 7,
-                            child: Form(
-                              key: _amountKey,
-                              autovalidateMode:
-                                  AutovalidateMode.onUserInteraction,
-                              child: InputField(
-                                validator: (value) =>
-                                    InputValidators.correctValue(
-                                        value,
-                                        kBigP255m1,
-                                        _selectedToken.decimals,
-                                        BigInt.zero),
-                                onChanged: (value) => setState(() {}),
-                                inputFormatters:
-                                    FormatUtils.getAmountTextInputFormatters(
-                                  _amountController.text,
-                                ),
-                                controller: _amountController,
-                                suffixIcon: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  mainAxisAlignment: MainAxisAlignment.end,
-                                  children: [
-                                    _getCoinDropdown(),
-                                    const SizedBox(
-                                      width: 15.0,
-                                    ),
-                                  ],
-                                ),
-                                hintText: 'Amount',
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      kVerticalSpacing,
                       Row(
                         children: <Widget>[
                           Expanded(
@@ -160,6 +122,35 @@ class _ReceiveLargeCardState extends State<ReceiveLargeCard> {
                             iconColor: AppColors.darkHintTextColor,
                           ),
                         ],
+                      ),
+                      kVerticalSpacing,
+                      Form(
+                        key: _amountKey,
+                        autovalidateMode: AutovalidateMode.onUserInteraction,
+                        child: InputField(
+                          validator: (value) => InputValidators.correctValue(
+                              value,
+                              kBigP255m1,
+                              _selectedToken.decimals,
+                              BigInt.zero),
+                          onChanged: (value) => setState(() {}),
+                          inputFormatters:
+                              FormatUtils.getAmountTextInputFormatters(
+                            _amountController.text,
+                          ),
+                          controller: _amountController,
+                          suffixIcon: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            children: [
+                              _getCoinDropdown(),
+                              const SizedBox(
+                                width: 15.0,
+                              ),
+                            ],
+                          ),
+                          hintText: 'Amount',
+                        ),
                       ),
                     ],
                   ),
