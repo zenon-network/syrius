@@ -97,7 +97,9 @@ class AutoReceiveTxWorker extends BaseBloc<WalletNotification> {
             .log(Level.WARNING, 'autoReceive', e, stackTrace);
         if (e.message.compareTo('account-block from-block already received') ==
             0) {
-          pool.removeFirst();
+          if (pool.isNotEmpty) {
+            pool.removeFirst();
+          }
         } else {
           _sendErrorNotification(e.toString());
         }
