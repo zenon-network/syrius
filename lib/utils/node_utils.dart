@@ -46,14 +46,14 @@ class NodeUtils {
     }
 
     if (kCurrentNode == kLocalhostDefaultNodeUrl ||
-        kCurrentNode == 'Embedded Node') {
+        kCurrentNode == kEmbeddedNode) {
       if (kEmbeddedNodeRunning) {
         sl.get<NotificationsBloc>().addNotification(
               WalletNotification(
-                title: 'Waiting for embedded node to stop',
+                title: 'Waiting for Embedded Node to stop',
                 timestamp: DateTime.now().millisecondsSinceEpoch,
                 details:
-                    'The app will close after the embedded node has been stopped',
+                    'The app will close after the Embedded Node has been stopped',
                 type: NotificationType.changedNode,
               ),
             );
@@ -79,7 +79,7 @@ class NodeUtils {
 
   static initWebSocketClient() async {
     addOnWebSocketConnectedCallback();
-    var url = kCurrentNode!;
+    var url = kCurrentNode ?? kLocalhostDefaultNodeUrl;
     bool connected = false;
     try {
       connected = await establishConnectionToNode(url);
@@ -204,21 +204,19 @@ class NodeUtils {
     kDbNodes.addAll(nodesBox.values);
     // Handle the case in which some default nodes were deleted
     // so they can't be found in the cache
-    String currentNode = kCurrentNode!;
-    if (!kDefaultNodes.contains(currentNode) &&
+    String? currentNode = kCurrentNode;
+    if (currentNode != null &&
+        !kDefaultNodes.contains(currentNode) &&
         !kDbNodes.contains(currentNode)) {
       kDefaultNodes.add(currentNode);
     }
   }
 
   static Future<void> setNode() async {
-    String savedNode = sharedPrefsService!.get(
-      kSelectedNodeKey,
-      defaultValue: kDefaultNodes.first,
-    );
+    String? savedNode = sharedPrefsService!.get(kSelectedNodeKey);
     kCurrentNode = savedNode;
 
-    if (savedNode == 'Embedded Node') {
+    if (savedNode == kEmbeddedNode) {
       // First we need to check if the node is not already running
       bool isConnectionEstablished =
           await NodeUtils.establishConnectionToNode(kLocalhostDefaultNodeUrl);

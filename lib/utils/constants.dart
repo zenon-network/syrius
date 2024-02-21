@@ -120,6 +120,7 @@ const List<int> kPowerUsersPlasmaRequirements = [
   kIssueTokenPlasmaAmountNeeded,
 ];
 
+const String kEmbeddedNode = 'Embedded Node';
 const String kLocalhostDefaultNodeUrl = 'ws://127.0.0.1:$kDefaultPort';
 const int kDefaultPort = 35998;
 
