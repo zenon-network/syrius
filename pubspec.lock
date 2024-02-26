@@ -1604,11 +1604,11 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: "feature/ledger"
-      resolved-ref: "3b11e8e3d46b403370e3888bc18a294781cbc0d9"
-      url: "https://github.com/kinggorrin/znn_ledger_dart.git"
+      ref: "release/v0.0.4"
+      resolved-ref: ddd2440b1cd8478ce6538b099b1cfd064b74bf6a
+      url: "https://github.com/hypercore-one/znn_ledger_dart.git"
     source: git
-    version: "0.0.2"
+    version: "0.0.4"
   znn_sdk_dart:
     dependency: "direct main"
     description:

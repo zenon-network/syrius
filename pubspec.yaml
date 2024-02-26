@@ -47,8 +47,8 @@ dependencies:
       ref: feature/ledger
   znn_ledger_dart:
     git:
-      url: https://github.com/kinggorrin/znn_ledger_dart.git
-      ref: feature/ledger
+      url: https://github.com/hypercore-one/znn_ledger_dart.git
+      ref: release/v0.0.4
   json_rpc_2: ^3.0.2
   path: ^1.8.2
   ffi: ^2.0.1
