@@ -51,7 +51,7 @@ final List<Tabs> kDisabledTabs = [
 ];
 
 List<String> kDefaultNodes = [
-  'Embedded Node',
+  kEmbeddedNode,
   kLocalhostDefaultNodeUrl,
 ];
 

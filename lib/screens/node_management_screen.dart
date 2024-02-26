@@ -44,8 +44,8 @@ class _NodeManagementScreenState extends State<NodeManagementScreen> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    _selectedNode ??= kCurrentNode!;
-    _selectedNodeConfirmed = _selectedNode!;
+    _selectedNode ??= kCurrentNode ?? kEmbeddedNode;
+    _selectedNodeConfirmed = _selectedNode ?? kEmbeddedNode;
   }
 
   @override
@@ -140,12 +140,12 @@ class _NodeManagementScreenState extends State<NodeManagementScreen> {
 
     try {
       _confirmNodeButtonKey.currentState?.animateForward();
-      String url = _selectedNode == 'Embedded Node'
+      String url = _selectedNode == kEmbeddedNode
           ? kLocalhostDefaultNodeUrl
           : _selectedNode!;
       bool isConnectionEstablished =
           await NodeUtils.establishConnectionToNode(url);
-      if (_selectedNode == 'Embedded Node') {
+      if (_selectedNode == kEmbeddedNode) {
         // Check if node is already running
         if (!isConnectionEstablished) {
           // Initialize local full node
