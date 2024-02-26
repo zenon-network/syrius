@@ -1,6 +1,9 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
-import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
+import 'package:zenon_syrius_wallet_flutter/blocs/decrypt_wallet_file_bloc.dart';
+import 'package:zenon_syrius_wallet_flutter/services/htlc_swaps_service.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
@@ -145,15 +148,14 @@ class _ChangeWalletPasswordScreenState
     String currentPassword,
     String newPassword,
   ) async {
-    String mnemonic = kKeyStore!.mnemonic!;
-    String oldKeyStorePath = kKeyStorePath!;
-    await KeyStoreUtils.createKeyStore(
-      mnemonic,
-      newPassword,
-      keyStoreName:
-          '${await kKeyStore!.getKeyPair(0).address}_${DateTime.now().millisecondsSinceEpoch}',
+    final baseAddress = WalletUtils.baseAddress;
+    await kWalletFile!.changePassword(currentPassword, newPassword);
+    await HtlcSwapsService.getInstance().closeBoxes();
+    await HtlcSwapsService.getInstance().openBoxes(
+      baseAddress.toString(),
+      Crypto.digest(utf8.encode(currentPassword)),
+      newCipherKey: Crypto.digest(utf8.encode(newPassword)),
     );
-    await FileUtils.deleteFile(oldKeyStorePath);
     if (!mounted) return;
     Navigator.pop(context);
   }
@@ -169,16 +171,16 @@ class _ChangeWalletPasswordScreenState
   }
 
   Widget _getDecryptKeyStoreFileViewModel() {
-    return ViewModelBuilder<DecryptKeyStoreBloc>.reactive(
+    return ViewModelBuilder<DecryptWalletFileBloc>.reactive(
       onViewModelReady: (model) {
-        model.stream.listen((keyStore) async {
-          if (keyStore != null) {
+        model.stream.listen((walletFile) async {
+          if (walletFile != null) {
             setState(() {
               _currentPassErrorText = null;
             });
             try {
               await _changePassword(
-                _newPasswordController.text,
+                _currentPasswordController.text,
                 _newPasswordController.text,
               );
             } catch (e) {
@@ -208,20 +210,18 @@ class _ChangeWalletPasswordScreenState
         _loadingButton = _getLoadingButton(model);
         return _getLoadingButton(model);
       },
-      viewModelBuilder: () => DecryptKeyStoreBloc(),
+      viewModelBuilder: () => DecryptWalletFileBloc(),
     );
   }
 
-  LoadingButton _getLoadingButton(DecryptKeyStoreBloc model) {
+  LoadingButton _getLoadingButton(DecryptWalletFileBloc model) {
     return LoadingButton.onboarding(
       key: _loadingButtonKey,
       onPressed: _arePasswordsValid()
           ? () {
               _loadingButtonKey.currentState!.animateForward();
-              model.decryptKeyStoreFile(
-                kKeyStorePath!,
-                _currentPasswordController.text,
-              );
+              model.decryptWalletFile(
+                  kWalletPath!, _currentPasswordController.text);
             }
           : null,
       text: 'Change password',

@@ -157,10 +157,27 @@ else()
   string(STRIP "${ZNN_SDK_DART_PATH}" ZNN_SDK_DART_PATH)
 endif()
 
+file(STRINGS "${SYRIUS_PROJECT_DIRECTORY}/.dart_tool/package_config.json"
+  ZNN_LEDGER_DART_PATH REGEX "(file:).*(znn_ledger_dart).*\\/\"" )
+
+if (ZNN_LEDGER_DART_PATH STREQUAL "")
+  file(STRINGS "${SYRIUS_PROJECT_DIRECTORY}/.dart_tool/package_config.json"
+    ZNN_LEDGER_DART_PATH REGEX "(rootUri).*(znn_ledger_dart).*\"" )
+  string(REPLACE "\"rootUri\": \"" "" ZNN_LEDGER_DART_PATH "${ZNN_LEDGER_DART_PATH}")
+  string(REPLACE "/\"," "" ZNN_LEDGER_DART_PATH "${ZNN_LEDGER_DART_PATH}")
+  string(REPLACE "\"," "" ZNN_LEDGER_DART_PATH "${ZNN_LEDGER_DART_PATH}")
+  string(STRIP "${ZNN_LEDGER_DART_PATH}" ZNN_LEDGER_DART_PATH)
+else()
+  string(REPLACE "\"rootUri\": \"file://" "" ZNN_LEDGER_DART_PATH "${ZNN_LEDGER_DART_PATH}")
+  string(REPLACE "/\"," "" ZNN_LEDGER_DART_PATH "${ZNN_LEDGER_DART_PATH}")
+  string(STRIP "${ZNN_LEDGER_DART_PATH}" ZNN_LEDGER_DART_PATH)
+endif()
+
 list(APPEND SYRIUS_LIBRARIES
   "${SYRIUS_PROJECT_DIRECTORY}/lib/embedded_node/blobs/libznn.so"
   "${ZNN_SDK_DART_PATH}/lib/src/argon2/blobs/libargon2_ffi_plugin.so"
   "${ZNN_SDK_DART_PATH}/lib/src/pow/blobs/libpow_links.so"
+  "${ZNN_LEDGER_DART_PATH}/lib/src/ledger/blobs/libledger_ffi.so"
 )
 
 foreach(znn_library ${SYRIUS_LIBRARIES})

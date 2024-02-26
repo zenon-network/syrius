@@ -178,7 +178,7 @@ class NodeUtils {
               (_kHeight == 0 || result['height'] >= _kHeight + 1)) {
             _kHeight = result['height'];
             if (sl<AutoReceiveTxWorker>().pool.isNotEmpty &&
-                kKeyStore != null) {
+                kWalletFile != null) {
               sl<AutoReceiveTxWorker>().autoReceive();
             }
           }

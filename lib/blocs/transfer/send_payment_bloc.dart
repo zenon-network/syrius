@@ -1,7 +1,6 @@
 import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/account_block_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/address_utils.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 class SendPaymentBloc extends BaseBloc<AccountBlockTemplate?> {
@@ -13,7 +12,7 @@ class SendPaymentBloc extends BaseBloc<AccountBlockTemplate?> {
     List<int>? data,
     Token? token,
     AccountBlockTemplate? block,
-  }) {
+  }) async {
     assert(
       block == null &&
               fromAddress != null &&
@@ -31,13 +30,10 @@ class SendPaymentBloc extends BaseBloc<AccountBlockTemplate?> {
             amount!,
             data,
           );
-      KeyPair blockSigningKeyPair = kKeyStore!.getKeyPair(
-        kDefaultAddressList.indexOf(fromAddress),
-      );
       AccountBlockUtils.createAccountBlock(
         accountBlock,
         'send transaction',
-        blockSigningKey: blockSigningKeyPair,
+        address: Address.parse(fromAddress!),
         waitForRequiredPlasma: true,
       ).then(
         (response) {
