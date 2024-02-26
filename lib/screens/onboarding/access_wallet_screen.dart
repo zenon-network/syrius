@@ -53,7 +53,7 @@ class _AccessWalletScreenState extends State<AccessWalletScreen> {
                     context: context,
                   ),
                   AccessWalletFluidCell(
-                    onPressed: null,
+                    onPressed: _onHardwareWalletButtonPressed,
                     buttonIconLocation: 'assets/svg/ic_hardware_wallet.svg',
                     buttonText: 'Hardware wallet',
                     context: context,
@@ -80,6 +80,13 @@ class _AccessWalletScreenState extends State<AccessWalletScreen> {
     NavigationUtils.push(
       context,
       const ImportWalletSeedChoiceScreen(),
+    );
+  }
+
+  void _onHardwareWalletButtonPressed() {
+    NavigationUtils.push(
+      context,
+      const HardwareWalletDeviceChoiceScreen(),
     );
   }
 }

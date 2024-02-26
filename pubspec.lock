@@ -37,10 +37,10 @@ packages:
     dependency: "direct main"
     description:
       name: app_links
-      sha256: "16725e716afd0634a5441654b1dda2b6c5557aa230884b5e1f41a5aa546a4cb6"
+      sha256: eb83c2b15b78a66db04e95132678e910fcdb8dc3a9b0aed0c138f50b2bef0dae
       url: "https://pub.dev"
     source: hosted
-    version: "3.4.3"
+    version: "3.4.5"
   archive:
     dependency: transitive
     description:
@@ -493,10 +493,10 @@ packages:
     dependency: "direct main"
     description:
       name: fl_chart
-      sha256: "48a1b69be9544e2b03d9a8e843affd89e43f3194c9248776222efcb4206bb1ec"
+      sha256: c1e26c7e48496be85104c16c040950b0436674cdf0737f3f6e95511b2529b592
       url: "https://pub.dev"
     source: hosted
-    version: "0.62.0"
+    version: "0.63.0"
   flip_card:
     dependency: "direct main"
     description:
@@ -811,6 +811,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.3.0"
+  mutex:
+    dependency: "direct main"
+    description:
+      name: mutex
+      sha256: "8827da25de792088eb33e572115a5eb0d61d61a3c01acbc8bcbe76ed78f1a1f2"
+      url: "https://pub.dev"
+    source: hosted
+    version: "3.1.0"
   nested:
     dependency: transitive
     description:
@@ -1015,10 +1023,10 @@ packages:
     dependency: "direct main"
     description:
       name: pretty_qr_code
-      sha256: ea7ccb3069e0f5b89b441449b9ec10f4148ddda7a4bef89a130d2ebdaa0be647
+      sha256: "47a0fde3967e01ea31985d1a11a998fab1ab900becdba592e9abb0a4034b807e"
       url: "https://pub.dev"
     source: hosted
-    version: "2.0.3"
+    version: "3.2.1"
   provider:
     dependency: "direct main"
     description:
@@ -1464,6 +1472,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.1.4"
+  version:
+    dependency: "direct main"
+    description:
+      name: version
+      sha256: "3d4140128e6ea10d83da32fef2fa4003fccbf6852217bb854845802f04191f94"
+      url: "https://pub.dev"
+    source: hosted
+    version: "3.0.2"
   wakelock_plus:
     dependency: "direct main"
     description:
@@ -1584,15 +1600,24 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.1.2"
+  znn_ledger_dart:
+    dependency: "direct main"
+    description:
+      path: "."
+      ref: "release/v0.0.4"
+      resolved-ref: ddd2440b1cd8478ce6538b099b1cfd064b74bf6a
+      url: "https://github.com/hypercore-one/znn_ledger_dart.git"
+    source: git
+    version: "0.0.4"
   znn_sdk_dart:
     dependency: "direct main"
     description:
       path: "."
-      ref: d960c0bdc6dc553eaa75d5ddddb34cab530578b8
-      resolved-ref: d960c0bdc6dc553eaa75d5ddddb34cab530578b8
+      ref: e88869160c3cfd34710ca317bcb92f1ac0ee60ca
+      resolved-ref: e88869160c3cfd34710ca317bcb92f1ac0ee60ca
       url: "https://github.com/zenon-network/znn_sdk_dart.git"
     source: git
-    version: "0.0.5"
+    version: "0.0.7"
   zxing2:
     dependency: "direct main"
     description:

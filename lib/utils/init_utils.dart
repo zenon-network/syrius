@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
+import 'package:version/version.dart';
 import 'package:zenon_syrius_wallet_flutter/handlers/htlc_swaps_handler.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/services/shared_prefs_service.dart';
@@ -9,7 +10,7 @@ import 'package:zenon_syrius_wallet_flutter/services/wallet_connect_service.dart
 import 'package:zenon_syrius_wallet_flutter/utils/address_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/keystore_utils.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/wallet_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/node_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/widget_utils.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
@@ -21,7 +22,7 @@ class InitUtils {
       WidgetUtils.setTextScale(context);
       _setAutoEraseWalletNumAttempts();
       _setAutoLockWalletTimeInterval();
-      await KeyStoreUtils.setKeyStorePath();
+      await WalletUtils.setWalletPath();
       await _setNumUnlockFailedAttempts();
       await NodeUtils.setNode();
       _setChainId();
@@ -72,21 +73,27 @@ class InitUtils {
         defaultValue: kAutoLockWalletDefaultIntervalMinutes,
       );
 
-  static Future<void> initWalletAfterDecryption() async {
-    await ZenonAddressUtils.setAddresses(kKeyStore);
+  static Future<void> initWalletAfterDecryption(List<int> cipherKey) async {
+    final walletVersion = Version.parse(sharedPrefsService!
+        .get(kWalletVersionKey, defaultValue: kWalletVersion));
+    await ZenonAddressUtils.setAddresses(kWalletFile);
     await ZenonAddressUtils.setAddressLabels();
     await ZenonAddressUtils.setDefaultAddress();
-    zenon!.defaultKeyPair = kKeyStore!.getKeyPair(
-      kDefaultAddressList.indexOf(kSelectedAddress),
-    );
     await _openFavoriteTokensBox();
     await _openNotificationsBox();
     await _openRecipientBox();
     await NodeUtils.initWebSocketClient();
     await _setWalletVersion();
-    final baseAddress = await kKeyStore!.getKeyPair(0).address;
-    await htlcSwapsService!.openBoxes(
-        baseAddress.toString(), kKeyStore!.getKeyPair(0).getPrivateKey()!);
+    if (walletVersion <= Version(0, 1, 0)) {
+      var wallet = await kWalletFile!.open() as KeyStore;
+      // Migrate to password as the cipherkey instead of the private key.
+      await htlcSwapsService!.openBoxes(WalletUtils.baseAddress.toString(),
+          wallet.getKeyPair().getPrivateKey()!,
+          newCipherKey: cipherKey);
+    } else {
+      await htlcSwapsService!
+          .openBoxes(WalletUtils.baseAddress.toString(), cipherKey);
+    }
     sl<HtlcSwapsHandler>().start();
     kWalletInitCompleted = true;
   }

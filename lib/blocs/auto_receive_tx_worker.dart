@@ -10,7 +10,6 @@ import 'package:zenon_syrius_wallet_flutter/model/model.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/account_block_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/address_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 class AutoReceiveTxWorker extends BaseBloc<WalletNotification> {
@@ -27,13 +26,9 @@ class AutoReceiveTxWorker extends BaseBloc<WalletNotification> {
     if (!running) {
       running = true;
       try {
-        String toAddress =
+        Address toAddress =
             (await zenon!.ledger.getAccountBlockByHash(currentHash))!
-                .toAddress
-                .toString();
-        KeyPair keyPair = kKeyStore!.getKeyPair(
-          kDefaultAddressList.indexOf(toAddress),
-        );
+                .toAddress;
         AccountBlockTemplate transactionParams = AccountBlockTemplate.receive(
           currentHash,
         );
@@ -41,10 +36,10 @@ class AutoReceiveTxWorker extends BaseBloc<WalletNotification> {
             await AccountBlockUtils.createAccountBlock(
           transactionParams,
           'receive transaction',
-          blockSigningKey: keyPair,
+          address: toAddress,
           waitForRequiredPlasma: true,
         );
-        _sendSuccessNotification(response, toAddress);
+        _sendSuccessNotification(response, toAddress.toString());
       } on RpcException catch (e, stackTrace) {
         _sendErrorNotification(e.toString());
         Logger('AutoReceiveTxWorker')
@@ -68,13 +63,9 @@ class AutoReceiveTxWorker extends BaseBloc<WalletNotification> {
       running = true;
       Hash currentHash = pool.first;
       try {
-        String toAddress =
+        Address toAddress =
             (await zenon!.ledger.getAccountBlockByHash(currentHash))!
-                .toAddress
-                .toString();
-        KeyPair keyPair = kKeyStore!.getKeyPair(
-          kDefaultAddressList.indexOf(toAddress),
-        );
+                .toAddress;
         AccountBlockTemplate transactionParams = AccountBlockTemplate.receive(
           currentHash,
         );
@@ -82,10 +73,10 @@ class AutoReceiveTxWorker extends BaseBloc<WalletNotification> {
             await AccountBlockUtils.createAccountBlock(
           transactionParams,
           'receive transaction',
-          blockSigningKey: keyPair,
+          address: toAddress,
           waitForRequiredPlasma: true,
         );
-        _sendSuccessNotification(response, toAddress);
+        _sendSuccessNotification(response, toAddress.toString());
         if (pool.isNotEmpty) {
           pool.removeFirst();
         }

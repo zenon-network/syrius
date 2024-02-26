@@ -43,6 +43,8 @@ class NotificationTypeAdapter extends TypeAdapter<NotificationType> {
         return NotificationType.changedNode;
       case 14:
         return NotificationType.delete;
+      case 15:
+        return NotificationType.confirm;
       default:
         return NotificationType.paymentSent;
     }
@@ -95,6 +97,9 @@ class NotificationTypeAdapter extends TypeAdapter<NotificationType> {
         break;
       case NotificationType.delete:
         writer.writeByte(14);
+        break;
+      case NotificationType.confirm:
+        writer.writeByte(15);
         break;
     }
   }

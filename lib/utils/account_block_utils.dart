@@ -9,13 +9,33 @@ import 'package:zenon_syrius_wallet_flutter/utils/format_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
+class AsyncMutex {
+  Completer<void>? _completer;
+
+  /// locks the mutex
+  Future<void> lock() async {
+    while (_completer != null) {
+      await _completer!.future;
+    }
+    _completer = Completer<void>();
+  }
+
+  /// unlocks the mutex
+  void unlock() {
+    assert(_completer != null);
+    final completer = _completer!;
+    _completer = null;
+    completer.complete();
+  }
+}
+
 class AccountBlockUtils {
-  static final Map<String, Future<void>?> _kIsRunningByAddress = {};
+  //static final Map<String, Future<void>?> _kIsRunningByAddress = {};
 
   static Future<AccountBlockTemplate> createAccountBlock(
     AccountBlockTemplate transactionParams,
     String purposeOfGeneratingPlasma, {
-    KeyPair? blockSigningKey,
+    Address? address,
     bool waitForRequiredPlasma = false,
   }) async {
     SyncInfo syncInfo = await zenon!.stats.syncInfo();
@@ -26,37 +46,36 @@ class AccountBlockUtils {
                 (syncInfo.targetHeight - syncInfo.currentHeight) < 20))
         : true;
     if (nodeIsSynced) {
-      Address address = (await blockSigningKey?.address ??
-          await zenon!.defaultKeyPair!.address)!;
+      // Acquire wallet lock to prevent concurrent access.
+      final wallet = await kWalletFile!.open();
       try {
-        // Wait until the lock is unused.
-        //
-        // A while-loop is required since there is the case when a lot of routines are waiting, and only one should move
-        // forward when the main routine finishes.
-        while (_kIsRunningByAddress.containsKey(address.toString()) &&
-            _kIsRunningByAddress[address.toString()] != null) {
-          await _kIsRunningByAddress[address.toString()];
-        }
-
-        // Acquire lock
-        Completer<void> completer;
-        completer = Completer<void>();
-        _kIsRunningByAddress[address.toString()] = completer.future;
+        address ??= Address.parse(kSelectedAddress!);
+        final walletAccount = await wallet
+            .getAccount(kDefaultAddressList.indexOf(address.toString()));
 
         bool needPlasma = await zenon!.requiresPoW(
           transactionParams,
-          blockSigningKey: blockSigningKey,
+          blockSigningKey: walletAccount,
         );
+        bool needReview = kWalletFile!.isHardwareWallet;
 
         if (needPlasma) {
           sl
               .get<NotificationsBloc>()
               .sendPlasmaNotification(purposeOfGeneratingPlasma);
+        } else if (needReview) {
+          _sendReviewNotification(transactionParams);
         }
         final AccountBlockTemplate response = await zenon!.send(
           transactionParams,
-          currentKeyPair: blockSigningKey,
-          generatingPowCallback: _addEventToPowGeneratingStatusBloc,
+          currentKeyPair: walletAccount,
+          generatingPowCallback: (status) {
+            // Wait for plasma to be generated before sending review notification
+            if (needReview && status == PowStatus.done) {
+              _sendReviewNotification(transactionParams);
+            }
+            _addEventToPowGeneratingStatusBloc(status);
+          },
           waitForRequiredPlasma: waitForRequiredPlasma,
         );
         if (BlockUtils.isReceiveBlock(transactionParams.blockType)) {
@@ -81,13 +100,12 @@ class AccountBlockUtils {
         // If we release the lock too early, zenon.send will autofill the AccountBlockTemplate with an old value of
         // ledger.getFrontierAccountBlock, since the node did not had enough time to process the current transaction.
         Future.delayed(const Duration(seconds: 1)).then((_) {
-          completer.complete();
-          _kIsRunningByAddress[address.toString()] = null;
+          kWalletFile!.close();
         });
 
         return response;
       } catch (e) {
-        _kIsRunningByAddress[address.toString()] = null;
+        kWalletFile!.close();
         rethrow;
       }
     } else {
@@ -172,6 +190,21 @@ class AccountBlockUtils {
       }
     }
     return null;
+  }
+
+  static void _sendReviewNotification(AccountBlockTemplate transactionParams) {
+    sl.get<NotificationsBloc>().addNotification(
+          WalletNotification(
+            title:
+                '${BlockUtils.isSendBlock(transactionParams.blockType) ? 'Sending transaction' : 'Receiving transaction'}, please review the transaction on your hardware device',
+            timestamp: DateTime.now().millisecondsSinceEpoch,
+            details:
+                'Review account-block type: ${FormatUtils.extractNameFromEnum<BlockTypeEnum>(
+              BlockTypeEnum.values[transactionParams.blockType],
+            )}',
+            type: NotificationType.confirm,
+          ),
+        );
   }
 
   static void _addEventToPowGeneratingStatusBloc(PowStatus event) =>

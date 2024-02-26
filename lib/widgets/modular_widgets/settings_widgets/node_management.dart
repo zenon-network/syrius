@@ -71,7 +71,7 @@ class _NodeManagementState extends State<NodeManagement> {
       title: 'Node Management',
       description:
           'This card allows one to set the ZNN Node used to connect to. '
-          'By default the wallet is connected to the embedded node. '
+          'By default the wallet is connected to the Embedded Node. '
           'If you are running a local ZNN Node, please use the localhost option',
       childBuilder: () => _getWidgetBody(),
     );
@@ -127,12 +127,12 @@ class _NodeManagementState extends State<NodeManagement> {
 
     try {
       _confirmNodeButtonKey.currentState?.animateForward();
-      String url = _selectedNode == 'Embedded Node'
+      String url = _selectedNode == kEmbeddedNode
           ? kLocalhostDefaultNodeUrl
           : _selectedNode!;
       bool isConnectionEstablished =
           await NodeUtils.establishConnectionToNode(url);
-      if (_selectedNode == 'Embedded Node') {
+      if (_selectedNode == kEmbeddedNode) {
         // Check if node is already running
         if (!isConnectionEstablished) {
           // Initialize local full node

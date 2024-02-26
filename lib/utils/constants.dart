@@ -29,7 +29,7 @@ const SizedBox kSpacingBetweenActionButtons = SizedBox(
 const Size kAcceleratorProgressBarSize = Size(300.0, 10.0);
 
 // Wallet version
-const String kWalletVersion = '0.1.0';
+const String kWalletVersion = '0.2.0';
 
 // Boxes constants
 const String kFavoriteTokensBox = 'favourite_tokens_box';
@@ -120,6 +120,7 @@ const List<int> kPowerUsersPlasmaRequirements = [
   kIssueTokenPlasmaAmountNeeded,
 ];
 
+const String kEmbeddedNode = 'Embedded Node';
 const String kLocalhostDefaultNodeUrl = 'ws://127.0.0.1:$kDefaultPort';
 const int kDefaultPort = 35998;
 
