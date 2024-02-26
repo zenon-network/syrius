@@ -100,6 +100,7 @@ class NodeUtils {
       await _getSubscriptionForMomentums();
       await _getSubscriptionForAllAccountEvents();
       await getUnreceivedTransactions();
+
       sl<AutoReceiveTxWorker>().autoReceive();
       Future.delayed(const Duration(seconds: 30))
           .then((value) => NotificationUtils.sendNodeSyncingNotification());
@@ -127,7 +128,12 @@ class NodeUtils {
 
     if (unreceivedBlocks.isNotEmpty) {
       for (AccountBlock unreceivedBlock in unreceivedBlocks) {
-        sl<AutoReceiveTxWorker>().addHash(unreceivedBlock.hash);
+        if (sharedPrefsService!.get(
+          kAutoReceiveKey,
+          defaultValue: kAutoReceiveDefaultValue,
+        )) {
+          sl<AutoReceiveTxWorker>().addHash(unreceivedBlock.hash);
+        }
       }
     }
   }
@@ -161,8 +167,11 @@ class NodeUtils {
   static void _initListenForUnreceivedAccountBlocks(Stream broadcaster) {
     broadcaster.listen(
       (event) {
+        // Only process unreceived account blocks when autoReceive is enabled
         if (event!.containsKey('method') &&
-            event['method'] == 'ledger.subscription') {
+            event['method'] == 'ledger.subscription' &&
+            sharedPrefsService!
+                .get(kAutoReceiveKey, defaultValue: kAutoReceiveDefaultValue)) {
           for (var i = 0; i < event['params']['result'].length; i += 1) {
             var tx = event['params']['result'][i];
             if (tx.containsKey('toAddress') &&

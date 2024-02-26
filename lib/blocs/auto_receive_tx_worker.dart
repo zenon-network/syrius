@@ -9,6 +9,7 @@ import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/model/model.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/account_block_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/address_utils.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 class AutoReceiveTxWorker extends BaseBloc<WalletNotification> {
@@ -21,7 +22,41 @@ class AutoReceiveTxWorker extends BaseBloc<WalletNotification> {
     return _instance!;
   }
 
+  Future<void> autoReceiveTransactionHash(Hash currentHash) async {
+    if (!running) {
+      running = true;
+      try {
+        Address toAddress =
+            (await zenon!.ledger.getAccountBlockByHash(currentHash))!
+                .toAddress;
+        AccountBlockTemplate transactionParams = AccountBlockTemplate.receive(
+          currentHash,
+        );
+        AccountBlockTemplate response =
+            await AccountBlockUtils.createAccountBlock(
+          transactionParams,
+          'receive transaction',
+          address: toAddress,
+          waitForRequiredPlasma: true,
+        );
+        _sendSuccessNotification(response, toAddress.toString());
+      } on RpcException catch (e, stackTrace) {
+        _sendErrorNotification(e.toString());
+        Logger('AutoReceiveTxWorker')
+            .log(Level.WARNING, 'autoReceive', e, stackTrace);
+      }
+      running = false;
+    }
+  }
+
   Future<void> autoReceive() async {
+    if (!sharedPrefsService!.get(
+      kAutoReceiveKey,
+      defaultValue: kAutoReceiveDefaultValue,
+    )) {
+      pool.clear();
+      return;
+    }
     // Make sure that AutoUnlockHtlcWorker is not running since it should be
     // given priority to send transactions.
     if (pool.isNotEmpty && !running && !sl<AutoUnlockHtlcWorker>().running) {
@@ -41,15 +76,21 @@ class AutoReceiveTxWorker extends BaseBloc<WalletNotification> {
           address: toAddress,
           waitForRequiredPlasma: true,
         );
-        pool.removeFirst();
         _sendSuccessNotification(response, toAddress.toString());
+        if (pool.isNotEmpty) {
+          pool.removeFirst();
+        }
+        running = false;
+        autoReceive();
       } on RpcException catch (e, stackTrace) {
         _sendErrorNotification(e.toString());
         Logger('AutoReceiveTxWorker')
             .log(Level.WARNING, 'autoReceive', e, stackTrace);
         if (e.message.compareTo('account-block from-block already received') ==
             0) {
-          pool.removeFirst();
+          if (pool.isNotEmpty) {
+            pool.removeFirst();
+          }
         } else {
           _sendErrorNotification(e.toString());
         }
@@ -60,6 +101,19 @@ class AutoReceiveTxWorker extends BaseBloc<WalletNotification> {
       }
       running = false;
     }
+    return;
+  }
+
+  Future<void> addHash(Hash hash) async {
+    zenon!.stats.syncInfo().then((syncInfo) {
+      if (!pool.contains(hash) &&
+          (syncInfo.state == SyncState.syncDone ||
+              (syncInfo.targetHeight > 0 &&
+                  syncInfo.currentHeight > 0 &&
+                  (syncInfo.targetHeight - syncInfo.currentHeight) < 3))) {
+        pool.add(hash);
+      }
+    });
   }
 
   void _sendErrorNotification(String errorText) {
@@ -83,21 +137,5 @@ class AutoReceiveTxWorker extends BaseBloc<WalletNotification> {
         type: NotificationType.paymentReceived,
       ),
     );
-  }
-
-  Future<void> addHash(Hash hash) async {
-    if (!pool.contains(hash)) {
-      zenon!.stats.syncInfo().then((syncInfo) {
-        // Verify that the pool does not already contain the hash after the
-        // asynchronous request has completed and that the node is in sync.
-        if (!pool.contains(hash) &&
-            (syncInfo.state == SyncState.syncDone ||
-                (syncInfo.targetHeight > 0 &&
-                    syncInfo.currentHeight > 0 &&
-                    (syncInfo.targetHeight - syncInfo.currentHeight) < 3))) {
-          pool.add(hash);
-        }
-      });
-    }
   }
 }

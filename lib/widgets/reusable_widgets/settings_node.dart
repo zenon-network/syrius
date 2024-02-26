@@ -233,6 +233,7 @@ class _SettingsNodeState extends State<SettingsNode> {
               key: _changeButtonKey,
             ),
             MaterialIconButton(
+              size: 15.0,
               onPressed: () {
                 setState(() {
                   _nodeController.text = widget.node;
