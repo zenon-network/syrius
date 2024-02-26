@@ -1613,11 +1613,11 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: "feature/ledger"
-      resolved-ref: d8e38c3a0adf05b8b25c6766645ed4c8b9b4de20
-      url: "https://github.com/kinggorrin/znn_sdk_dart.git"
+      ref: e88869160c3cfd34710ca317bcb92f1ac0ee60ca
+      resolved-ref: e88869160c3cfd34710ca317bcb92f1ac0ee60ca
+      url: "https://github.com/zenon-network/znn_sdk_dart.git"
     source: git
-    version: "0.0.6"
+    version: "0.0.7"
   zxing2:
     dependency: "direct main"
     description:
