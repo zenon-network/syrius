@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/screens/screens.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/wallet_file.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
@@ -81,13 +82,13 @@ class _ImportWalletDecryptScreenState extends State<ImportWalletDecryptScreen> {
     );
   }
 
-  LoadingButton _getLoadingButton(DecryptKeyStoreBloc model) {
+  LoadingButton _getLoadingButton(DecryptWalletFileBloc model) {
     return LoadingButton.onboarding(
       key: _loadingButtonKey,
       onPressed: _passwordController.text.isNotEmpty
           ? () async {
               _loadingButtonKey.currentState!.animateForward();
-              await model.decryptKeyStoreFile(
+              await model.decryptWalletFile(
                 widget.path,
                 _passwordController.text,
               );
@@ -107,18 +108,18 @@ class _ImportWalletDecryptScreenState extends State<ImportWalletDecryptScreen> {
   }
 
   _getDecryptKeyStoreFileViewModel() {
-    return ViewModelBuilder<DecryptKeyStoreBloc>.reactive(
+    return ViewModelBuilder<DecryptWalletFileBloc>.reactive(
       onViewModelReady: (model) {
-        model.stream.listen((keyStore) {
-          if (keyStore != null) {
+        model.stream.listen((walletFile) {
+          if (walletFile != null && walletFile is KeyStoreWalletFile) {
             _loadingButtonKey.currentState!.animateReverse();
             setState(() {
               _passwordErrorText = null;
             });
-            NavigationUtils.push(
-              context,
-              ImportWalletPasswordScreen(keyStore.mnemonic!),
-            );
+            walletFile
+                .access((wallet) => Future.value((wallet as KeyStore).mnemonic!))
+                .then((value) => NavigationUtils.push(
+                    context, ImportWalletPasswordScreen(value)));
           }
         }, onError: (error) {
           _loadingButtonKey.currentState!.animateReverse();
@@ -137,7 +138,7 @@ class _ImportWalletDecryptScreenState extends State<ImportWalletDecryptScreen> {
         _loadingButton = _getLoadingButton(model);
         return _getLoadingButton(model);
       },
-      viewModelBuilder: () => DecryptKeyStoreBloc(),
+      viewModelBuilder: () => DecryptWalletFileBloc(),
     );
   }
 

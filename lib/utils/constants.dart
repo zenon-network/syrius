@@ -28,7 +28,7 @@ const SizedBox kSpacingBetweenActionButtons = SizedBox(
 const Size kAcceleratorProgressBarSize = Size(300.0, 10.0);
 
 // Wallet version
-const String kWalletVersion = '0.1.0';
+const String kWalletVersion = '0.2.0';
 
 // Boxes constants
 const String kFavoriteTokensBox = 'favourite_tokens_box';
@@ -119,6 +119,7 @@ const List<int> kPowerUsersPlasmaRequirements = [
   kIssueTokenPlasmaAmountNeeded,
 ];
 
+const String kEmbeddedNode = 'Embedded Node';
 const String kLocalhostDefaultNodeUrl = 'ws://127.0.0.1:$kDefaultPort';
 const int kDefaultPort = 35998;
 
@@ -171,9 +172,12 @@ const String kAutoEraseNumAttemptsKey = 'auto_erase_num_attempts';
 const String kLaunchAtStartupKey = 'launch_at_startup';
 const String kEnableDesktopNotificationsKey = 'enable_desktop_notifications';
 const String kEnableClipboardWatcherKey = 'enable_clipboard_watcher';
+const String kAutoReceiveKey = 'enable_auto_receive';
+
 const bool kLaunchAtStartupDefaultValue = false;
 const bool kEnableDesktopNotificationsDefaultValue = false;
 const bool kEnableClipboardWatcherDefaultValue = false;
+const bool kAutoReceiveDefaultValue = true;
 
 /// Node management
 const String kChainIdKey = 'chain_id';

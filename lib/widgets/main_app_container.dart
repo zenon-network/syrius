@@ -265,8 +265,9 @@ class _MainAppContainerState extends State<MainAppContainer>
     );
   }
 
-  void _onNavigateToLock() {
-    kKeyStore = null;
+  void _onNavigateToLock() async {
+    if (kWalletFile != null) kWalletFile!.close();
+    kWalletFile = null;
     _navigateToLockTimer?.cancel();
   }
 

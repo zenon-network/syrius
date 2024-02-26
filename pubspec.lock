@@ -81,14 +81,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.0.0"
-  badges:
-    dependency: "direct main"
-    description:
-      name: badges
-      sha256: "6e7f3ec561ec08f47f912cfe349d4a1707afdc8dda271e17b046aa6d42c89e77"
-      url: "https://pub.dev"
-    source: hosted
-    version: "3.1.1"
   base_x:
     dependency: transitive
     description:
@@ -819,6 +811,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.4.1"
+  mutex:
+    dependency: "direct main"
+    description:
+      name: mutex
+      sha256: "8827da25de792088eb33e572115a5eb0d61d61a3c01acbc8bcbe76ed78f1a1f2"
+      url: "https://pub.dev"
+    source: hosted
+    version: "3.1.0"
   nested:
     dependency: transitive
     description:
@@ -1440,6 +1440,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.1.4"
+  version:
+    dependency: "direct main"
+    description:
+      name: version
+      sha256: "3d4140128e6ea10d83da32fef2fa4003fccbf6852217bb854845802f04191f94"
+      url: "https://pub.dev"
+    source: hosted
+    version: "3.0.2"
   wakelock_plus:
     dependency: "direct main"
     description:
@@ -1568,15 +1576,24 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.1.2"
+  znn_ledger_dart:
+    dependency: "direct main"
+    description:
+      path: "."
+      ref: "release/v0.0.4"
+      resolved-ref: ddd2440b1cd8478ce6538b099b1cfd064b74bf6a
+      url: "https://github.com/hypercore-one/znn_ledger_dart.git"
+    source: git
+    version: "0.0.4"
   znn_sdk_dart:
     dependency: "direct main"
     description:
       path: "."
-      ref: d960c0bdc6dc553eaa75d5ddddb34cab530578b8
-      resolved-ref: d960c0bdc6dc553eaa75d5ddddb34cab530578b8
+      ref: e88869160c3cfd34710ca317bcb92f1ac0ee60ca
+      resolved-ref: e88869160c3cfd34710ca317bcb92f1ac0ee60ca
       url: "https://github.com/zenon-network/znn_sdk_dart.git"
     source: git
-    version: "0.0.5"
+    version: "0.0.7"
   zxing2:
     dependency: "direct main"
     description:
@@ -1586,5 +1603,5 @@ packages:
     source: hosted
     version: "0.2.0"
 sdks:
-  dart: ">=3.0.1 <4.0.0"
+  dart: ">=3.1.0-185.0.dev <4.0.0"
   flutter: ">=3.10.0"

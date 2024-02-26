@@ -84,24 +84,7 @@ class _SecurityWidgetState extends State<SecurityWidget> {
     return CardScaffold(
       title: 'Security',
       description: 'Change the security parameters of the wallet',
-      childBuilder: () => _getFutureBuilder(context),
-    );
-  }
-
-  Widget _getFutureBuilder(BuildContext context) {
-    return FutureBuilder<List<int>>(
-      future: zenon!.defaultKeyPair!.getPublicKey(),
-      builder: (_, snapshot) {
-        if (snapshot.hasError) {
-          return SyriusErrorWidget(snapshot.error.toString());
-        } else if (snapshot.hasData) {
-          _publicKeyController.text = BytesUtils.bytesToHex(snapshot.data!);
-          _publicKeySignFileController.text =
-              BytesUtils.bytesToHex(snapshot.data!);
-          return _getWidgetBody(context);
-        }
-        return const SyriusLoadingWidget();
-      },
+      childBuilder: () => _getWidgetBody(context),
     );
   }
 
@@ -330,11 +313,12 @@ class _SecurityWidgetState extends State<SecurityWidget> {
   Future<void> _onSignButtonPressed() async {
     try {
       _signButtonKey.currentState?.animateForward();
-      final signedMessage = await walletSign(
+      final signature = await walletSign(
         _textToBeSignedController.text.codeUnits,
       );
       setState(() {
-        _signedTextController.text = signedMessage;
+        _signedTextController.text = signature.signature;
+        _publicKeyController.text = signature.publicKey;
       });
     } catch (e) {
       NotificationUtils.sendNotificationError(e, 'Error while signing message');
@@ -572,7 +556,8 @@ class _SecurityWidgetState extends State<SecurityWidget> {
         await droppedFile.readAsBytes(),
       ));
       setState(() {
-        _fileHashController.text = fileSignature;
+        _fileHashController.text = fileSignature.signature;
+        _publicKeySignFileController.text = fileSignature.publicKey;
         _toBeSignedFilePath = null;
         _signSelectFileWidgetKey.currentState!.resetMessageToUser();
       });

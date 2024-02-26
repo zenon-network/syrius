@@ -106,10 +106,18 @@ string(REPLACE "\"rootUri\": \"file:///" "" ZNN_SDK_DART_PATH "${ZNN_SDK_DART_PA
 string(REPLACE "/\"," "" ZNN_SDK_DART_PATH "${ZNN_SDK_DART_PATH}")
 string(STRIP "${ZNN_SDK_DART_PATH}" ZNN_SDK_DART_PATH)
 
+file(STRINGS "${SYRIUS_PROJECT_DIRECTORY}/.dart_tool/package_config.json"
+  ZNN_LEDGER_DART_PATH REGEX "(file:).*(znn_ledger_dart).*\\/\"" )
+
+string(REPLACE "\"rootUri\": \"file:///" "" ZNN_LEDGER_DART_PATH "${ZNN_LEDGER_DART_PATH}")
+string(REPLACE "/\"," "" ZNN_LEDGER_DART_PATH "${ZNN_LEDGER_DART_PATH}")
+string(STRIP "${ZNN_LEDGER_DART_PATH}" ZNN_LEDGER_DART_PATH)
+
 list(APPEND SYRIUS_LIBRARIES
   "${SYRIUS_PROJECT_DIRECTORY}/lib/embedded_node/blobs/libznn.dll"
   "${ZNN_SDK_DART_PATH}/lib/src/argon2/blobs/argon2_ffi_plugin.dll"
   "${ZNN_SDK_DART_PATH}/lib/src/pow/blobs/libpow_links.dll"
+  "${ZNN_LEDGER_DART_PATH}/lib/src/ledger/blobs/libledger_ffi.dll"
 )
 
 foreach(znn_library ${SYRIUS_LIBRARIES})
