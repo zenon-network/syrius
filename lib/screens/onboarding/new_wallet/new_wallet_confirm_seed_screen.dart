@@ -350,16 +350,22 @@ class _NewWalletConfirmSeedScreenState
     for (var element in _seedGridElements) {
       int i = _seedGridElements.indexOf(element);
       element.isValid = element.word == widget.seedWords[i];
-    }
-    for (var item in _seedGridElements) {
-      if (!item.isValid) {
-        setState(() {
-          _seedError = true;
-        });
-        break;
+      if (!element.isValid) {
+        _seedError = true;
       }
     }
+    if (_seedError) {
+      for (var element in _seedGridElements) {
+        int i = _seedGridElements.indexOf(element);
+        if (_randomIndexes.contains(i)) {
+          element.isValid = false;
+          element.word = '';
+        }
+      }
+    }
+
     setState(() {
+      _seedError = true;
       _foundMissingRandomElementsIndexes = _randomIndexes
           .where((index) => _seedGridElements[index].isValid)
           .toList();
