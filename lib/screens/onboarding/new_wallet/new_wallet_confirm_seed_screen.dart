@@ -263,11 +263,27 @@ class _NewWalletConfirmSeedScreenState
                       !seedGridElement.isValid;
                 },
                 onAccept: (String data) {
-                  _foundMissingRandomElementsIndexes
-                      .add(widget.seedWords.indexOf(data));
-                  _seedGridElements[seedGridElementIndex].word = data;
-                  if (_randomIndexes.length ==
-                      _foundMissingRandomElementsIndexes.length) {}
+                  var element = _seedGridElements[seedGridElementIndex];
+                  var i = -1;
+                  if (element.word != '') {
+                    while ((i =
+                            widget.seedWords.indexOf(element.word, i + 1)) !=
+                        -1) {
+                      if (_foundMissingRandomElementsIndexes.contains(i)) {
+                        _foundMissingRandomElementsIndexes.remove(i);
+                        break;
+                      }
+                    }
+                  }
+                  i = -1;
+                  while ((i = widget.seedWords.indexOf(data, i + 1)) != -1) {
+                    if (!_foundMissingRandomElementsIndexes.contains(i) &&
+                        _randomIndexes.contains(i)) {
+                      _foundMissingRandomElementsIndexes.add(i);
+                      break;
+                    }
+                  }
+                  element.word = data;
                   setState(() {
                     _textCursor = seedGridElementIndex;
                   });
