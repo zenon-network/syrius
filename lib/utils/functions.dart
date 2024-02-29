@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/services.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
@@ -25,4 +27,9 @@ Future<Signature> walletSign(List<int> message) async {
   } finally {
     kWalletFile!.close();
   }
+}
+
+Future<dynamic> loadJsonFromAssets(String filePath) async {
+  String jsonString = await rootBundle.loadString(filePath);
+  return jsonDecode(jsonString);
 }
