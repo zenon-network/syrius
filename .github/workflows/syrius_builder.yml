@@ -78,7 +78,8 @@ jobs:
           path: ./node-db
           ref: main
       - name: Copy community nodes
-        run: xcopy /y ./node-db/rpc-nodes-mainnet.json assets/community-nodes.json
+        shell: pwsh
+        run: Copy-Item .\node-db\rpc-nodes-mainnet.json .\assets\community-nodes.json -Force
       - name: Setup Flutter
         uses: subosito/flutter-action@v2.10.0
         with:
