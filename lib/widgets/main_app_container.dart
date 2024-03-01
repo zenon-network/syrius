@@ -431,11 +431,10 @@ class _MainAppContainerState extends State<MainAppContainer>
           syncState = SyncState.syncDone;
           return Tooltip(
               message: message,
-              child: Lottie.asset(
-                'assets/lottie/ic_anim_live.json',
-                fit: BoxFit.contain,
-                width: 25.0,
-                repeat: true,
+              child: Icon(
+                Icons.radio_button_unchecked,
+                size: 24.0,
+                color: _getSyncIconColor(syncState),
               ));
         } else if (syncInfo.targetHeight == 0 || syncInfo.currentHeight == 0) {
           message = 'Started syncing with the network, please wait';
@@ -450,13 +449,14 @@ class _MainAppContainerState extends State<MainAppContainer>
           return Tooltip(
             message: message,
             child: SizedBox(
-              height: 25.0,
-              width: 25.0,
+              height: 18.0,
+              width: 18.0,
               child: Center(
                   child: CircularProgressIndicator(
                 backgroundColor: Theme.of(context).iconTheme.color,
                 color: _getSyncIconColor(syncState),
                 value: syncInfo.currentHeight / syncInfo.targetHeight,
+                strokeWidth: 3.0,
               )),
             ),
           );
@@ -478,13 +478,14 @@ class _MainAppContainerState extends State<MainAppContainer>
           return Tooltip(
               message: message,
               child: SizedBox(
-                  height: 25.0,
-                  width: 25.0,
+                  height: 18.0,
+                  width: 18.0,
                   child: Center(
                       child: CircularProgressIndicator(
                     backgroundColor: Theme.of(context).iconTheme.color,
                     color: _getSyncIconColor(syncState),
                     value: syncInfo.currentHeight / syncInfo.targetHeight,
+                    strokeWidth: 3.0,
                   ))));
         } else if (syncInfo.targetHeight == 0 || syncInfo.currentHeight == 0) {
           message = 'Connecting to peers, please wait';
@@ -500,13 +501,14 @@ class _MainAppContainerState extends State<MainAppContainer>
           return Tooltip(
               message: message,
               child: SizedBox(
-                  height: 25.0,
-                  width: 25.0,
+                  height: 18.0,
+                  width: 18.0,
                   child: Center(
                       child: CircularProgressIndicator(
                     backgroundColor: Theme.of(context).iconTheme.color,
                     color: _getSyncIconColor(syncState),
                     value: syncInfo.currentHeight / syncInfo.targetHeight,
+                    strokeWidth: 3.0,
                   ))));
         }
       } else {
@@ -524,12 +526,18 @@ class _MainAppContainerState extends State<MainAppContainer>
 
     return Tooltip(
       message: message,
-        child: Lottie.asset(
-          'assets/lottie/ic_anim_live.json',
-          fit: BoxFit.contain,
-          width: 25.0,
-          repeat: true,
-        ));
+      child: SizedBox(
+        height: 18.0,
+        width: 18.0,
+        child: Center(
+            child: CircularProgressIndicator(
+          backgroundColor: Theme.of(context).iconTheme.color,
+          color: _getSyncIconColor(syncState),
+          value: 1,
+          strokeWidth: 2.0,
+        )),
+      ),
+    );
   }
 
   Widget _getCurrentPageContainer() {
