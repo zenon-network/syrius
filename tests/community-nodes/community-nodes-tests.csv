@@ -1,0 +1,24 @@
+Column1;Column2;Column3;Column4
+Version:;Environment:;;
+Date:;Tester:;;
+;;;
+Test case;Description;Priority;Result
+Assets;;;
+Add community nodes;Add nodes by editing the assets/community-nodes.json file and verify added nodes by restarting syrius;PRIO1;
+Remove community nodes;Remove nodes by editing the assets/community-nodes.json file and verify removed nodes by restarting syrius;PRIO1;
+Invalid community nodes;Add invalid node urls by editing the assets/community-nodes.json file and verify they are not added by restarting syrius;PRIO1;
+Delete community nodes file;Delete the assets/community-nodes.json file and verify empty community nodes by restarting syrius;PRIO2;
+Invalidate community nodes file;Invalidate the assets/community-nodes.json file by using incorrect format and verify empty community nodes by restartng syrius;PRIO2;
+;;;
+Node management (onboarding);;;
+Verify community nodes list;Verify community node list and corresponding icons;PRIO1;
+Confirm community node;Select and confirm a community node and verify connection;PRIO1;
+Add existing node;Adding an existing node causes a node already exist exception;PRIO1;
+Shuffle community nodes;Verify community node list is shuffled each time they are loaded;PRIO1;
+;;;
+Node management (settings);;;
+Verify community nodes list;Verify community node list and corresponding icons;PRIO1;
+Select community nodes;Select and confirm a community node and verify connection;PRIO1;
+Add existing  node;Adding an existing node causes a node already exist exception;PRIO1;
+Edit existing  node;Editing an existing node causes a node already exist exception;PRIO1;
+Shuffle community nodes;Verify community node list is shuffled each time they are loaded;PRIO1;
