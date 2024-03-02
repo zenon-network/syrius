@@ -168,7 +168,10 @@ Future<void> _loadDefaultCommunityNodes() async {
   try {
     var nodes = await loadJsonFromAssets('assets/community-nodes.json')
         as List<dynamic>;
-    kDefaultCommunityNodes = nodes.map((node) => node.toString()).toList();
+    kDefaultCommunityNodes = nodes
+        .map((node) => node.toString())
+        .where((node) => InputValidators.node(node) == null)
+        .toList();
   } catch (e, stackTrace) {
     Logger('main')
         .log(Level.WARNING, '_loadDefaultCommunityNodes', e, stackTrace);
