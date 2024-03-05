@@ -19,6 +19,14 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
+      - name: Checkout zenon-node-database repository
+        uses: actions/checkout@v3
+        with:
+          repository: HyperCore-One/zenon-node-database
+          path: ./node-db
+          ref: main
+      - name: Copy community nodes
+        run: cp -r ./node-db/rpc-nodes-mainnet.json assets/community-nodes.json
       - name: Setup environment
         run: |
           brew install unzip create-dmg
@@ -63,6 +71,15 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
+      - name: Checkout zenon-node-database repository
+        uses: actions/checkout@v3
+        with:
+          repository: HyperCore-One/zenon-node-database
+          path: ./node-db
+          ref: main
+      - name: Copy community nodes
+        shell: pwsh
+        run: Copy-Item .\node-db\rpc-nodes-mainnet.json .\assets\community-nodes.json -Force
       - name: Setup Flutter
         uses: subosito/flutter-action@v2.10.0
         with:
@@ -89,6 +106,14 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
+      - name: Checkout zenon-node-database repository
+        uses: actions/checkout@v3
+        with:
+          repository: HyperCore-One/zenon-node-database
+          path: ./node-db
+          ref: main
+      - name: Copy community nodes
+        run: cp -r ./node-db/rpc-nodes-mainnet.json assets/community-nodes.json
       - name: Prepare environment
         run: |
           sudo apt update

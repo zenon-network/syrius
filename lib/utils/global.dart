@@ -55,8 +55,5 @@ List<String> kDefaultNodes = [
   kLocalhostDefaultNodeUrl,
 ];
 
-// Community supplied public full nodes
-List<String> kDefaultCommunityNodes = [
-  'wss://my.hc1node.com:35998',
-  'wss://node.zenonhub.io:35998'
-];
+// Community supplied public rpc nodes
+List<String> kDefaultCommunityNodes = [];
