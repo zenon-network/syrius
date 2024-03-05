@@ -1605,7 +1605,7 @@ packages:
     description:
       path: "."
       ref: "release/v0.0.4"
-      resolved-ref: ddd2440b1cd8478ce6538b099b1cfd064b74bf6a
+      resolved-ref: c66264f599038e15a3457e382cfaaff202ab231a
       url: "https://github.com/hypercore-one/znn_ledger_dart.git"
     source: git
     version: "0.0.4"
@@ -1613,8 +1613,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: e88869160c3cfd34710ca317bcb92f1ac0ee60ca
-      resolved-ref: e88869160c3cfd34710ca317bcb92f1ac0ee60ca
+      ref: "8511f17a0dfa721e8f0ec2e0b0aae409f509e102"
+      resolved-ref: "8511f17a0dfa721e8f0ec2e0b0aae409f509e102"
       url: "https://github.com/zenon-network/znn_sdk_dart.git"
     source: git
     version: "0.0.7"

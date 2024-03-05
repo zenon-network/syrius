@@ -44,7 +44,7 @@ dependencies:
   znn_sdk_dart:
     git:
       url: https://github.com/zenon-network/znn_sdk_dart.git
-      ref: e88869160c3cfd34710ca317bcb92f1ac0ee60ca
+      ref: 8511f17a0dfa721e8f0ec2e0b0aae409f509e102
   znn_ledger_dart:
     git:
       url: https://github.com/hypercore-one/znn_ledger_dart.git
