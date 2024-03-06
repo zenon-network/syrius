@@ -41,7 +41,7 @@ class _CreateSentinelState extends State<CreateSentinel> {
           return SyriusErrorWidget(snapshot.error!);
         }
         if (snapshot.connectionState == ConnectionState.active) {
-          if (snapshot.hasData) {
+          if (snapshot.hasData && snapshot.data!.active) {
             return _getAlreadyCreatedSentinelBody(context);
           } else {
             return _getCreateSentinelBody(context);
