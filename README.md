@@ -27,13 +27,11 @@ Dependencies:
 
 Currently supported `<os>`: `windows`, `macos`, `linux`
 
-The [WalletConnect](https://github.com/WalletConnect) integration requires setting the `WC_PROJECT_ID` environmental variable.
-
 ```bash
 git clone https://github.com/zenon-network/syrius.git
 flutter pub get
-flutter run --dart-define=WC_PROJECT_ID=walletconnect_project_id -d <os>
-flutter build --dart-define=WC_PROJECT_ID=walletconnect_project_id <os>
+flutter run -d <os>
+flutter build <os>
 ```
 
 ## Linux

@@ -6,7 +6,6 @@ import 'package:version/version.dart';
 import 'package:zenon_syrius_wallet_flutter/handlers/htlc_swaps_handler.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/services/shared_prefs_service.dart';
-import 'package:zenon_syrius_wallet_flutter/services/wallet_connect_service.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/address_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
@@ -28,8 +27,9 @@ class InitUtils {
       _setChainId();
       await NodeUtils.loadDbNodes();
 
-      // Initialize WalletConnect client
-      sl.get<WalletConnectService>().initClient();
+      await _openFavoriteTokensBox();
+      await _openNotificationsBox();
+      await _openRecipientBox();
     } catch (e) {
       rethrow;
     }

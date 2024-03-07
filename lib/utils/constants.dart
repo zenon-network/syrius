@@ -4,8 +4,7 @@ import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 // WalletConnect
-const String kWcProjectId = String.fromEnvironment('WC_PROJECT_ID',
-    defaultValue: '6106aa8c2f308b338f31465bef999a1f');
+const String kWcProjectId = '6106aa8c2f308b338f31465bef999a1f';
 const String kZenonNameSpace = 'zenon';
 const walletConnectDirName = 'walletconnect';
 

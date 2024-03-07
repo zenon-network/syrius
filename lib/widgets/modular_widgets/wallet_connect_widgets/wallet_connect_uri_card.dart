@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:logging/logging.dart';
 import 'package:wallet_connect_uri_validator/wallet_connect_uri_validator.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
-import 'package:zenon_syrius_wallet_flutter/services/wallet_connect_service.dart';
+import 'package:zenon_syrius_wallet_flutter/services/i_web3wallet_service.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 
@@ -118,14 +118,15 @@ class _WalletConnectUriCardState extends State<WalletConnectUriCard> {
 
   Future<void> _pairWithDapp(Uri uri) async {
     try {
-      final wcService = sl.get<WalletConnectService>();
-      final pairingInfo = await wcService.pair(uri);
+      final pairingInfo = await sl.get<IWeb3WalletService>().pair(uri);
       Logger('WalletConnectPairingCard')
           .log(Level.INFO, 'pairing info', pairingInfo.toJson());
       _uriController = TextEditingController();
       _uriKey.currentState?.reset();
       setState(() {});
-    } catch (e) {
+    } catch (e, stackTrace) {
+      Logger('WalletConnectPairingCard')
+          .log(Level.INFO, 'pairing failed', e, stackTrace);
       NotificationUtils.sendNotificationError(e, 'Pairing failed');
     }
   }
