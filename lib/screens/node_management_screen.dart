@@ -2,6 +2,7 @@ import 'dart:isolate';
 
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
+import 'package:logging/logging.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/embedded_node/embedded_node.dart';
@@ -26,6 +27,7 @@ class NodeManagementScreen extends StatefulWidget {
 
 class _NodeManagementScreenState extends State<NodeManagementScreen> {
   String? _selectedNode;
+  bool? _autoReceive;
 
   final GlobalKey<LoadingButtonState> _confirmNodeButtonKey = GlobalKey();
   final GlobalKey<LoadingButtonState> _addNodeButtonKey = GlobalKey();
@@ -39,6 +41,10 @@ class _NodeManagementScreenState extends State<NodeManagementScreen> {
   void initState() {
     super.initState();
     kDefaultCommunityNodes.shuffle();
+    _autoReceive = sharedPrefsService!.get(
+      kAutoReceiveKey,
+      defaultValue: kAutoReceiveDefaultValue,
+    );
   }
 
   @override
@@ -67,8 +73,11 @@ class _NodeManagementScreenState extends State<NodeManagementScreen> {
             ),
             kVerticalSpacing,
             Text(
-              'By default Syrius connects to its own built-in full node, which is called the Embedded Node. If you want to connect to a different node, you can add one below. Otherwise just connect and continue.',
-              style: Theme.of(context).textTheme.headlineMedium,
+              'By default Syrius connects to its own built-in full node, which is called the Embedded Node. '
+              'It may take up to 24 hours to fully sync the network via the embedded node. '
+              'During this time, you cannot send or receive transactions.\n\n'
+              'It you want to get started right away, please connect to a community node.',
+              style: Theme.of(context).textTheme.headlineSmall,
               textAlign: TextAlign.center,
             ),
             SizedBox(
@@ -88,7 +97,14 @@ class _NodeManagementScreenState extends State<NodeManagementScreen> {
                         'Node selection',
                         style: Theme.of(context).textTheme.bodyLarge,
                       ),
-                      _getNodeSelectionColumn(),
+                      _getNodeTiles(),
+                      kVerticalSpacing,
+                      Text(
+                        'Wallet options',
+                        style: Theme.of(context).textTheme.bodyLarge,
+                      ),
+                      _getAutoReceiveCheckboxContainer(),
+                      _getConfirmNodeSelectionButton(),
                       kVerticalSpacing,
                       Text(
                         'Add node',
@@ -110,12 +126,68 @@ class _NodeManagementScreenState extends State<NodeManagementScreen> {
     );
   }
 
-  Widget _getNodeSelectionColumn() {
-    return Column(
-      children: [
-        _getNodeTiles(),
-        _getConfirmNodeSelectionButton(),
+  Widget _getAutoReceiveCheckboxContainer() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.start,
+      children: <Widget>[
+        Checkbox(
+          value: _autoReceive,
+          checkColor: Theme.of(context).colorScheme.primary,
+          activeColor: AppColors.znnColor,
+          onChanged: (bool? value) async {
+            if (value == true) {
+              NodeUtils.getUnreceivedTransactions().then((value) {
+                sl<AutoReceiveTxWorker>().autoReceive();
+              }).onError((error, stackTrace) {
+                Logger('MainAppContainer').log(Level.WARNING,
+                    '_getAutoReceiveCheckboxContainer', error, stackTrace);
+              });
+            } else if (value == false &&
+                sl<AutoReceiveTxWorker>().pool.isNotEmpty) {
+              sl<AutoReceiveTxWorker>().pool.clear();
+            }
+            setState(() {
+              _autoReceive = value;
+              _changeAutoReceiveStatus(value ?? false);
+            });
+          },
+        ),
+        Text(
+          'Automatically receive transactions',
+          style: Theme.of(context).textTheme.headlineSmall,
+        )
       ],
+    );
+  }
+
+  Future<void> _changeAutoReceiveStatus(bool enabled) async {
+    try {
+      await _saveAutoReceiveValueToCache(enabled);
+      _sendAutoReceiveNotification(enabled);
+    } on Exception catch (e) {
+      NotificationUtils.sendNotificationError(
+        e,
+        'Something went wrong while setting automatic receive preference',
+      );
+    }
+  }
+
+  void _sendAutoReceiveNotification(bool enabled) {
+    sl.get<NotificationsBloc>().addNotification(
+          WalletNotification(
+            title: 'Auto-receiver ${enabled ? 'enabled' : 'disabled'}',
+            details:
+                'Auto-receiver preference was ${enabled ? 'enabled' : 'disabled'}',
+            timestamp: DateTime.now().millisecondsSinceEpoch,
+            type: NotificationType.paymentSent,
+          ),
+        );
+  }
+
+  Future<void> _saveAutoReceiveValueToCache(bool enabled) async {
+    await sharedPrefsService!.put(
+      kAutoReceiveKey,
+      enabled,
     );
   }
 

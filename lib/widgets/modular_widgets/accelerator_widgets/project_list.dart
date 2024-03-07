@@ -12,7 +12,7 @@ import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 enum AccProjectsFilterTag {
   myProjects,
   onlyAccepted,
-  votingOpened,
+  needsVoting,
   alreadyVoted,
 }
 
@@ -168,7 +168,7 @@ class _AccProjectListState extends State<AccProjectList> {
     for (var tag in AccProjectsFilterTag.values) {
       if (widget.pillarInfo == null) {
         if ([
-          AccProjectsFilterTag.votingOpened,
+          AccProjectsFilterTag.needsVoting,
           AccProjectsFilterTag.alreadyVoted
         ].contains(tag)) {
           continue;

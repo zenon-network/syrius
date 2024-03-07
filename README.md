@@ -2,9 +2,9 @@
 
 [![Build and release syrius](https://github.com/zenon-network/syrius/actions/workflows/syrius_builder.yml/badge.svg?branch=develop)](https://github.com/zenon-network/syrius/actions/workflows/syrius_builder.yml) [![Library updater for syrius](https://github.com/zenon-network/syrius/actions/workflows/syrius_lib_updater.yml/badge.svg?branch=develop)](https://github.com/zenon-network/syrius/actions/workflows/syrius_lib_updater.yml)
 
-Cross-platform non-custodial wallet designed for Alphanet - Network of Momentum Phase 0.
+Cross-platform non-custodial wallet designed for Alphanet - Network of Momentum Phase 1.
 
-Developed in Flutter using the [Zenon Dart SDK](https://github.com/zenon-network/znn_sdk_dart) and [Ledger Wallet for Zenon Dart SDK](https://github.com/hypercore-one/znn_ledger_dart), `s y r i u s` wallet provides a simple and intuitive interface to interact with Network of Momentum Phase 0.
+Developed in Flutter using the [Zenon Dart SDK](https://github.com/zenon-network/znn_sdk_dart) and [Ledger Wallet for Zenon Dart SDK](https://github.com/hypercore-one/znn_ledger_dart), `s y r i u s` wallet provides a simple and intuitive interface to interact with Network of Momentum Phase 1.
 
 ## Architecture
 
@@ -18,7 +18,7 @@ The wallet has a modular design with native full node integration. There are thr
 
 Follow the instructions to install the [Flutter SDK](https://docs.flutter.dev/get-started/install). Check the [documentation](https://docs.flutter.dev/desktop) in order to setup the Flutter desktop environment.
 
-Learn about the foreign function interface (ffi) [here](https://docs.flutter.dev/development/platform-integration/c-interop) that enables state-of-the art KDF - [Argon2](https://github.com/zenon-network/argon2_ffi), feeless transactions - [PoW links](https://github.com/zenon-network/znn-pow-links-cpp), native full node integration - [Embedded Node](https://github.com/zenon-network/go-zenon) and communication library between Ledger devices - [Ledger](https://github.com/hypercore-one/ledger_ffi_rs).
+Learn about the foreign function interface (ffi) [here](https://docs.flutter.dev/development/platform-integration/c-interop) that enables state-of-the art KDF - [Argon2](https://github.com/zenon-network/argon2_ffi), feeless transactions - [PoW links](https://github.com/zenon-network/znn-pow-links-cpp), native full node integration - [Embedded Node](https://github.com/zenon-network/go-zenon) and communication library between Ledger devices - [Ledger](https://github.com/zenon-network/ledger_ffi_rs).
 
 Dependencies:
 

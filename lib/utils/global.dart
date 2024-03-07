@@ -42,12 +42,14 @@ final List<Tabs> kTabsWithIconTitles = [
   Tabs.help,
   Tabs.notifications,
   Tabs.settings,
-  Tabs.resyncWallet,
+  Tabs.generation,
+  Tabs.sync,
   Tabs.lock,
 ];
 
 final List<Tabs> kDisabledTabs = [
-  Tabs.resyncWallet,
+  Tabs.generation,
+  Tabs.sync,
 ];
 
 List<String> kDefaultNodes = [
@@ -55,8 +57,5 @@ List<String> kDefaultNodes = [
   kLocalhostDefaultNodeUrl,
 ];
 
-// Community supplied public full nodes
-List<String> kDefaultCommunityNodes = [
-  'wss://my.hc1node.com:35998',
-  'wss://node.zenonhub.io:35998'
-];
+// Community supplied public rpc nodes
+List<String> kDefaultCommunityNodes = [];

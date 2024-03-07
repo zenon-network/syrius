@@ -28,6 +28,7 @@ import 'package:zenon_syrius_wallet_flutter/services/htlc_swaps_service.dart';
 import 'package:zenon_syrius_wallet_flutter/services/i_web3wallet_service.dart';
 import 'package:zenon_syrius_wallet_flutter/services/shared_prefs_service.dart';
 import 'package:zenon_syrius_wallet_flutter/services/web3wallet_service.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/functions.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
@@ -93,6 +94,9 @@ main() async {
 
   // Setup tray manager
   await _setupTrayManager();
+
+  // Load default community nodes from assets
+  await _loadDefaultCommunityNodes();
 
   // Register Hive adapters
   Hive.registerAdapter(NotificationTypeAdapter());
@@ -169,6 +173,20 @@ Future<void> _setupTrayManager() async {
     ),
   ];
   await trayManager.setContextMenu(Menu(items: items));
+}
+
+Future<void> _loadDefaultCommunityNodes() async {
+  try {
+    var nodes = await loadJsonFromAssets('assets/community-nodes.json')
+        as List<dynamic>;
+    kDefaultCommunityNodes = nodes
+        .map((node) => node.toString())
+        .where((node) => InputValidators.node(node) == null)
+        .toList();
+  } catch (e, stackTrace) {
+    Logger('main')
+        .log(Level.WARNING, '_loadDefaultCommunityNodes', e, stackTrace);
+  }
 }
 
 void setup() {

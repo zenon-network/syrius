@@ -72,6 +72,7 @@ class _AcceleratorProjectListItemState
               hash: widget.acceleratorProject.id,
               creationTimestamp: widget.acceleratorProject.creationTimestamp,
               acceleratorProjectStatus: widget.acceleratorProject.status,
+              isPhase: widget.acceleratorProject is Phase
             ),
             const SizedBox(
               height: 10.0,
