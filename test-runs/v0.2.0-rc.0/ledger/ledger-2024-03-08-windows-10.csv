@@ -39,7 +39,7 @@ P2P Swap,,,
 Swap history migration on existing keystore wallet,"Open an existing keystore wallet with swap history and verify the migration of the swap history.",PRIO1,PASS
 Swap history on keystore wallet after password change,"Change the password on a keystore with swap history and verify that the swap history is not lost.",PRIO1,PASS
 Swap history on keystore wallet after delete cache,"Delete cache on a keystore with swap history and verify that the swap history is not lost.",PRIO1,FAIL
-Verify swap history on hardware wallet after password change,"Change the password on a hardware wallet with swap history and verify that the swap history is not lost.,PRIO1,
+Verify swap history on hardware wallet after password change,"Change the password on a hardware wallet with swap history and verify that the swap history is not lost.",PRIO1,
 Verify swap history on hardware wallet after reset cache,"Reset cache on a hardware wallet with swap history and verify that the swap history is not lost.",PRIO1,
 ,,,
 WalletConnect,,,
