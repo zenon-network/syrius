@@ -32,7 +32,7 @@ Send transaction on keystore wallet,"Send a transaction on a keystore wallet.",P
 Receive transaction on keystore wallet,"Receive a transaction on a keystore wallet.",PRIO1,PASS
 Send and confirm transaction on hardware wallet,"Send and confirm a transaction on a hardware wallet.",PRIO1,
 Receive and confirm transaction on hardware wallet,"Receive and confirm a transaction on a hardware wallet.",PRIO1,
-Send and reject transaction on hardware wallet,Send and reject a transaction on a hardware wallet.",PRIO1,
+Send and reject transaction on hardware wallet,"Send and reject a transaction on a hardware wallet.",PRIO1,
 Receive and reject transaction on hardware wallet,"Receive and reject a transaction on a hardware wallet.",PRIO1,
 ,,,
 P2P Swap,,,
