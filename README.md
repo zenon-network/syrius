@@ -30,8 +30,8 @@ Currently supported `<os>`: `windows`, `macos`, `linux`
 ```bash
 git clone https://github.com/zenon-network/syrius.git
 flutter pub get
-flutter run -d <os>
-flutter build <os>
+flutter run --dart-define=WC_PROJECT_ID=walletconnect_project_id -d <os>
+flutter build --dart-define=WC_PROJECT_ID=walletconnect_project_id <os>
 ```
 
 ## Linux
