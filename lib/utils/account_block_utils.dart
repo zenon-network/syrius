@@ -99,14 +99,12 @@ class AccountBlockUtils {
         // This is a problem when we create 2 transactions from the same address without requiring PoW.
         // If we release the lock too early, zenon.send will autofill the AccountBlockTemplate with an old value of
         // ledger.getFrontierAccountBlock, since the node did not had enough time to process the current transaction.
-        Future.delayed(const Duration(seconds: 1)).then((_) {
-          kWalletFile!.close();
-        });
+        await Future.delayed(const Duration(seconds: 1));
 
         return response;
-      } catch (e) {
+      } 
+      finally {
         kWalletFile!.close();
-        rethrow;
       }
     } else {
       throw 'Node is not synced';
