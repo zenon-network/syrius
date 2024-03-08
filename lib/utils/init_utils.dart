@@ -85,11 +85,12 @@ class InitUtils {
     await NodeUtils.initWebSocketClient();
     await _setWalletVersion();
     if (walletVersion <= Version(0, 1, 0)) {
-      var wallet = await kWalletFile!.open() as KeyStore;
       // Migrate to password as the cipherkey instead of the private key.
-      await htlcSwapsService!.openBoxes(WalletUtils.baseAddress.toString(),
-          wallet.getKeyPair().getPrivateKey()!,
-          newCipherKey: cipherKey);
+      await kWalletFile!.access((Wallet wallet) async {
+        await htlcSwapsService!.openBoxes(WalletUtils.baseAddress.toString(),
+            (wallet as KeyStore).getKeyPair().getPrivateKey()!,
+            newCipherKey: cipherKey);
+      });
     } else {
       await htlcSwapsService!
           .openBoxes(WalletUtils.baseAddress.toString(), cipherKey);
