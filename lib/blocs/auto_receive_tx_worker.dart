@@ -22,13 +22,13 @@ class AutoReceiveTxWorker extends BaseBloc<WalletNotification> {
     return _instance!;
   }
 
-  Future<void> autoReceiveTransactionHash(Hash currentHash) async {
+  Future<AccountBlockTemplate?> autoReceiveTransactionHash(
+      Hash currentHash) async {
     if (!running) {
       running = true;
       try {
         Address toAddress =
-            (await zenon!.ledger.getAccountBlockByHash(currentHash))!
-                .toAddress;
+            (await zenon!.ledger.getAccountBlockByHash(currentHash))!.toAddress;
         AccountBlockTemplate transactionParams = AccountBlockTemplate.receive(
           currentHash,
         );
@@ -40,13 +40,16 @@ class AutoReceiveTxWorker extends BaseBloc<WalletNotification> {
           waitForRequiredPlasma: true,
         );
         _sendSuccessNotification(response, toAddress.toString());
+        return response;
       } on RpcException catch (e, stackTrace) {
         _sendErrorNotification(e.toString());
         Logger('AutoReceiveTxWorker')
             .log(Level.WARNING, 'autoReceive', e, stackTrace);
+      } finally {
+        running = false;
       }
-      running = false;
     }
+    return null;
   }
 
   Future<void> autoReceive() async {
@@ -64,8 +67,7 @@ class AutoReceiveTxWorker extends BaseBloc<WalletNotification> {
       Hash currentHash = pool.first;
       try {
         Address toAddress =
-            (await zenon!.ledger.getAccountBlockByHash(currentHash))!
-                .toAddress;
+            (await zenon!.ledger.getAccountBlockByHash(currentHash))!.toAddress;
         AccountBlockTemplate transactionParams = AccountBlockTemplate.receive(
           currentHash,
         );
@@ -98,10 +100,10 @@ class AutoReceiveTxWorker extends BaseBloc<WalletNotification> {
         Logger('AutoReceiveTxWorker')
             .log(Level.WARNING, 'autoReceive', e, stackTrace);
         _sendErrorNotification(e.toString());
+      } finally {
+        running = false;
       }
-      running = false;
     }
-    return;
   }
 
   Future<void> addHash(Hash hash) async {
