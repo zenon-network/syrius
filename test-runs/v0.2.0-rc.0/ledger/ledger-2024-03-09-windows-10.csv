@@ -1,0 +1,77 @@
+Version: v0.2.0-rc.0,Environment: Ubuntu 22.04.3 LTS/Ledger Nano S,,
+Date: 2024-03-09,Tester: CryptoFish,,
+,,,
+Test case,Description,Priority,Result
+New wallet,,,
+Create new wallet using 12 word seed phrase,"Create a new wallet using a 12 word seed phrase",PRIO1,
+Create new wallet using 24 word seed phrase,"Create a new wallet using a 24 word seed phrase",PRIO1,
+,,,
+Import wallet,,,
+Import wallet using 12 word seed phrase,"Import a wallet using a 12 word seed phrase",PRIO1,
+Import wallet using 24 word seed phrase,"Import a wallet using a 24 word seed phrase",PRIO1,
+Import wallet using key store wallet file,"Import a wallet using a backup wallet file",PRIO2,
+,,,
+Hardware Wallet,,,
+Scan devices with no devices connected,"Scanning for devices when no Ledger devices are connected, returns an empty result.",PRIO1,PASS
+Scan devices with one device connected,"Scanning for devices when one Ledger device is connected, returns 1 result.",PRIO1,PASS
+Scan devices with more than one device connected,"Scanning for devices when more than one Ledger device is connected, returns multiple results.",PRIO1,
+Select device with device disconnected,"Selecting a disconnected Ledger device after it has been scanned, displays an error message.",PRIO1,PASS
+Select device with device connected/locked,"Selecting a connected/locked Ledger device, displays an error message.",PRIO1,PASS
+Select device with device connected/unlocked and wong app open,"Selecting a connected/unlocked Ledger device with the wrong app open, displays an error message.",PRIO1,PASS
+Select device with device connected/unlocked and app open,"Selecting a connected/unlocked Ledger device with the Zenon app open, displays the address and enables the continue button.",PRIO1,PASS
+Create hardware wallet,"Create a hardware wallet using a Ledger Nano S/S+ device.",PRIO1,PASS
+,,,
+Unlocking,,,
+Lock/unlock keystore wallet,"Lock and unlock a keystore wallet with a password.",PRIO1,
+Lock/unlock hardware wallet with device disconnected,"Unlocking a hardware wallet with a password does not require the device to be connected.",PRIO1,PASS
+Discreet mode keystore wallet,"Enable and disable discreet mode on a keystore wallet.",PRIO2,
+Discreet mode hardware wallet with device disconnected,"Enable and disable discreet mode on a hardware wallet.",PRIO2,PASS
+,,,
+Transactions,,,
+Send transaction on keystore wallet,"Send a transaction on a keystore wallet.",PRIO1,
+Receive transaction on keystore wallet,"Receive a transaction on a keystore wallet.",PRIO1,
+Send and confirm transaction on hardware wallet,"Send and confirm a transaction on a hardware wallet.",PRIO1,PASS
+Receive and confirm transaction on hardware wallet,"Receive and confirm a transaction on a hardware wallet.",PRIO1,PASS
+Send and reject transaction on hardware wallet,"Send and reject a transaction on a hardware wallet.",PRIO1,PASS
+Receive and reject transaction on hardware wallet,"Receive and reject a transaction on a hardware wallet.",PRIO1,FAIL
+,,,
+P2P Swap,,,
+Swap history migration on existing keystore wallet,"Open an existing keystore wallet with swap history and verify the migration of the swap history.",PRIO1,
+Swap history on keystore wallet after password change,"Change the password on a keystore with swap history and verify that the swap history is not lost.",PRIO1,
+Swap history on keystore wallet after delete cache,"Delete cache on a keystore with swap history and verify that the swap history is not lost.",PRIO1,
+Verify swap history on hardware wallet after password change,"Change the password on a hardware wallet with swap history and verify that the swap history is not lost.",PRIO1,
+Verify swap history on hardware wallet after reset cache,"Reset cache on a hardware wallet with swap history and verify that the swap history is not lost.",PRIO1,
+,,,
+WalletConnect,,,
+Wrap/unwrap assets on keystore wallet,"Wrap and unwrap assets on a keystore wallet.",PRIO1,
+Wrap/unwrap assets on hardware wallet,"Wrap and unwrap assets on a hardware wallet.",PRIO1,
+,,,
+Addresses,,,
+Add 1 address on keystore wallet,"Add and confirm 1 address on a keystore wallet.",PRIO1,
+Add 1+ addresses on keystore wallet,"Add and confirm 1+ address on a keystore wallet.",PRIO1,
+Add and confirm 1 address on hardware wallet,"Add and confirm 1 address on a hardware wallet with device connected/unlocked and app open.",PRIO1,PASS
+Add and confirm 1+ addresses on hardware wallet,"Add and confirm 1+ address on a hardware wallet with device connected/unlocked and app open.",PRIO1,PASS
+Add and reject 1 address on hardware wallet,"Add and reject 1 address on a hardware wallet with device connected/unlocked and app open.",PRIO1,PASS
+Add and reject 1+ addresses on hardware wallet,"Add and reject 1+ address on a hardware wallet with device connected/unlocked and app open.",PRIO1,PASS
+,,,
+Security,,,
+Change password of keystore wallet,"Change the password of a keystore wallet and verify the change.",PRIO1,
+Change password of hardware wallet with device disconnected,"Change the password of a hardware wallet with the device disconnected and verify the change.",PRIO1,PASS
+Sign message using keystore wallet,"Sign a message using a keystore wallet.",PRIO1,
+Sign message using hardware wallet,"Signing a message on a hardware wallet is not supported and raises an unsupported exception.",PRIO2,PASS
+Sign file using keystore wallet,"Sign a file using a keystore wallet.",PRIO1,
+Sign file using hardware wallet,"Signing a file on a hardware wallet is not supported and raises an unsupported exception.",PRIO2,PASS
+,,,
+Wallet Options,,,
+Delete cache and unlock keystore wallet,"Delete cache and unlock a keystore wallet.",PRIO1,
+Delete cache and unlock hardware wallet with device disconnected,"A hardware wallet with deleted cache needs to be initialized with a device; otherwise an error message is shown.",PRIO1,PASS
+Delete cache and unlock hardware wallet with device connected/locked,"A hardware wallet with deleted cache needs to be initialized with a device; otherwise an error message is shown.",PRIO1,PASS
+Delete cache and unlock hardware wallet with device connected/unlocked and app closed,"A hardware wallet with deleted cache needs to be initialized with a device; otherwise an error message is shown.",PRIO1,PASS
+Delete cache and unlock hardware wallet with device connected/unlocked and wrong app open,"A hardware wallet with deleted cache needs to be initialized with a device; otherwise an error message is shown.",PRIO1,PASS
+Delete cache and unlock hardware wallet with device connected/unlocked and app open,"A hardware wallet with deleted cache needs to be initialized with a device; otherwise an error message is shown.",PRIO1,PASS
+,,,
+Backup,,,
+Backup keystore wallet,"Backup a keystore wallet.",PRIO1,
+Dump mnemonic of keystore wallet,"Dump mnemonic of a keystore wallet.",PRIO1,
+Verify backup wallet button disabled on hardware wallet,"The backup function is not supported on a hardware wallet and therefor disabled.",PRIO2,PASS
+Verify dump mnemonic button disabled on hardware wallet,"The dump mnemonic function is not supported on a hardware wallet and therefor disabled.",PRIO2,PASS
