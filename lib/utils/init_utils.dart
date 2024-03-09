@@ -16,23 +16,18 @@ import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 class InitUtils {
   static Future<void> initApp(BuildContext context) async {
-    try {
-      WidgetUtils.setThemeMode(context);
-      WidgetUtils.setTextScale(context);
-      _setAutoEraseWalletNumAttempts();
-      _setAutoLockWalletTimeInterval();
-      await WalletUtils.setWalletPath();
-      await _setNumUnlockFailedAttempts();
-      await NodeUtils.setNode();
-      _setChainId();
-      await NodeUtils.loadDbNodes();
-
-      await _openFavoriteTokensBox();
-      await _openNotificationsBox();
-      await _openRecipientBox();
-    } catch (e) {
-      rethrow;
-    }
+    WidgetUtils.setThemeMode(context);
+    WidgetUtils.setTextScale(context);
+    _setAutoEraseWalletNumAttempts();
+    _setAutoLockWalletTimeInterval();
+    await WalletUtils.setWalletPath();
+    await _setNumUnlockFailedAttempts();
+    await NodeUtils.setNode();
+    _setChainId();
+    await NodeUtils.loadDbNodes();
+    await _openFavoriteTokensBox();
+    await _openNotificationsBox();
+    await _openRecipientBox();
   }
 
   static void _setChainId() {
@@ -79,9 +74,6 @@ class InitUtils {
     await ZenonAddressUtils.setAddresses(kWalletFile);
     await ZenonAddressUtils.setAddressLabels();
     await ZenonAddressUtils.setDefaultAddress();
-    await _openFavoriteTokensBox();
-    await _openNotificationsBox();
-    await _openRecipientBox();
     await NodeUtils.initWebSocketClient();
     await _setWalletVersion();
     if (walletVersion <= Version(0, 1, 0)) {
