@@ -43,12 +43,12 @@ Verify swap history on hardware wallet after password change,"Change the passwor
 Verify swap history on hardware wallet after reset cache,"Reset cache on a hardware wallet with swap history and verify that the swap history is not lost.",PRIO1,
 ,,,
 WalletConnect,,,
-Wrap/unwrap assets on keystore wallet,"Wrap and unwrap assets on a keystore wallet.",PRIO1,",
-Wrap/unwrap assets on hardware wallet,"Wrap and unwrap assets on a hardware wallet.",PRIO1,",
+Wrap/unwrap assets on keystore wallet,"Wrap and unwrap assets on a keystore wallet.",PRIO1,
+Wrap/unwrap assets on hardware wallet,"Wrap and unwrap assets on a hardware wallet.",PRIO1,
 ,,,
 Addresses,,,
-Add 1 address on keystore wallet,"Add and confirm 1 address on a keystore wallet.",PRIO1,",
-Add 1+ addresses on keystore wallet,"Add and confirm 1+ address on a keystore wallet.",PRIO1,",
+Add 1 address on keystore wallet,"Add and confirm 1 address on a keystore wallet.",PRIO1,
+Add 1+ addresses on keystore wallet,"Add and confirm 1+ address on a keystore wallet.",PRIO1,
 Add and confirm 1 address on hardware wallet,"Add and confirm 1 address on a hardware wallet with device connected/unlocked and app open.",PRIO1,PASS
 Add and confirm 1+ addresses on hardware wallet,"Add and confirm 1+ address on a hardware wallet with device connected/unlocked and app open.",PRIO1,PASS
 Add and reject 1 address on hardware wallet,"Add and reject 1 address on a hardware wallet with device connected/unlocked and app open.",PRIO1,PASS
