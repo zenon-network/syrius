@@ -108,10 +108,29 @@ class _SplashScreenState extends State<SplashScreen>
     await InitUtils.initApp(context);
   }
 
-  Future<void> _deleteCache() async => Future.forEach<String>(
+  Future<void> _deleteCache() async {
+    await Hive.close();
+    await Future.forEach<String>(
         kCacheBoxesToBeDeleted,
         (boxName) async => await Hive.deleteBoxFromDisk(boxName),
       );
+    await _deleteWeb3Cache();
+  }
+
+  Future<void> _deleteWeb3Cache() async {
+    try {
+      final web3Store =
+          sl<IWeb3WalletService>().getWeb3Wallet().pairingTopics.storage;
+      await Future.forEach<String>(
+        web3Store.keys.map((prefixedKey) =>
+            prefixedKey.substring(web3Store.storagePrefix.length)),
+        (key) async => await web3Store.delete(key),
+      );
+    } catch (e, stackTrace) {
+      Logger('SplashScreen')
+          .log(Level.WARNING, '_deleteWeb3Cache', e, stackTrace);
+    }
+  }
 
   Future<void> _deleteWalletFile() async {
     if (kWalletFile != null) kWalletFile!.close();
