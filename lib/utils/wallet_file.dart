@@ -127,7 +127,7 @@ class KeyStoreWalletFile extends WalletFile {
 
   @override
   void close() async {
-    _lock.release();
+    if (_lock.isLocked) _lock.release();
   }
 }
 
@@ -214,6 +214,6 @@ class LedgerWalletFile extends WalletFile {
         _wallet = null;
       }
     }
-    _lock.release();
+    if (_lock.isLocked) _lock.release();
   }
 }

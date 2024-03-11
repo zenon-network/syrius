@@ -3,11 +3,13 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
+import 'package:logging/logging.dart';
 import 'package:lottie/lottie.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/model/model.dart';
 import 'package:zenon_syrius_wallet_flutter/screens/screens.dart';
+import 'package:zenon_syrius_wallet_flutter/services/i_web3wallet_service.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 
@@ -102,18 +104,38 @@ class _SplashScreenState extends State<SplashScreen>
     if (sl<AutoReceiveTxWorker>().pool.isNotEmpty) {
       sl<AutoReceiveTxWorker>().pool.clear();
     }
+    await _deleteCache();
     await _deleteWalletFile();
-    await Hive.deleteFromDisk();
     if (!mounted) return;
     await InitUtils.initApp(context);
   }
 
-  Future<void> _deleteCache() async => Future.forEach<String>(
-        kCacheBoxesToBeDeleted,
-        (boxName) async => await Hive.deleteBoxFromDisk(boxName),
+  Future<void> _deleteCache() async {
+    await Hive.close();
+    await Future.forEach<String>(
+      kCacheBoxesToBeDeleted,
+      (boxName) async => await Hive.deleteBoxFromDisk(boxName),
+    );
+    await _deleteWeb3Cache();
+  }
+
+  Future<void> _deleteWeb3Cache() async {
+    try {
+      final web3Store =
+          sl<IWeb3WalletService>().getWeb3Wallet().pairingTopics.storage;
+      await Future.forEach<String>(
+        web3Store.keys.map((prefixedKey) =>
+            prefixedKey.substring(web3Store.storagePrefix.length)),
+        (key) async => await web3Store.delete(key),
       );
+    } catch (e, stackTrace) {
+      Logger('SplashScreen')
+          .log(Level.WARNING, '_deleteWeb3Cache', e, stackTrace);
+    }
+  }
 
   Future<void> _deleteWalletFile() async {
+    await Hive.deleteBoxFromDisk(kKeyStoreBox);
     if (kWalletFile != null) kWalletFile!.close();
     kWalletFile = null;
     await FileUtils.deleteFile(kWalletPath!);
