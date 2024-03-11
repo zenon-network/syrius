@@ -18,6 +18,6 @@ Shuffle community nodes,Verify community node list is shuffled each time they ar
 Node management (settings),,,
 Verify community nodes list,Verify community node list and corresponding icons,PRIO1,
 Select community nodes,Select and confirm a community node and verify connection,PRIO1,
-Add existing  node,Adding an existing node causes a node already exist exception,PRIO1,
-Edit existing  node,Editing an existing node causes a node already exist exception,PRIO1,
+Add existing node,Adding an existing node causes a node already exist exception,PRIO1,
+Edit existing node,Editing an existing node causes a node already exist exception,PRIO1,
 Shuffle community nodes,Verify community node list is shuffled each time they are loaded,PRIO1,
