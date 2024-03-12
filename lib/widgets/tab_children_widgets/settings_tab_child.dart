@@ -45,37 +45,13 @@ class _SettingsTabChildState extends State<SettingsTabChild> {
             accountChainStatsBloc: _accountChainStatsBloc,
           ),
         ),
-        FluidCell(
-          width: context.layout.value(
-            xl: kStaggeredNumOfColumns ~/ 2,
-            lg: kStaggeredNumOfColumns ~/ 2,
-            md: kStaggeredNumOfColumns ~/ 2,
-            sm: kStaggeredNumOfColumns,
-            xs: kStaggeredNumOfColumns,
-          ),
-          child: const PeersWidget(),
-        ),
         const FluidCell(
           child: GeneralWidget(),
-          height: kStaggeredNumOfColumns / 3,
         ),
         FluidCell(
           child: AccountChainStatsWidget(
             accountChainStatsBloc: _accountChainStatsBloc,
           ),
-          height: kStaggeredNumOfColumns / 3,
-        ),
-        FluidCell(
-          child: SecurityWidget(
-            widget._onChangeAutoLockTime,
-            onStepperNotificationSeeMorePressed:
-                widget.onStepperNotificationSeeMorePressed,
-          ),
-          height: kStaggeredNumOfColumns / 3,
-        ),
-        const FluidCell(
-          child: WalletOptions(),
-          height: kStaggeredNumOfColumns / 3,
         ),
         FluidCell(
           width: context.layout.value(
@@ -88,15 +64,65 @@ class _SettingsTabChildState extends State<SettingsTabChild> {
           child: NodeManagement(
             onNodeChangedCallback: widget.onNodeChangedCallback,
           ),
-          height: kStaggeredNumOfColumns / 3,
+          height: kStaggeredNumOfColumns / 4,
         ),
-        const FluidCell(
-          child: DisplayWidget(),
-          height: kStaggeredNumOfColumns / 3,
+        FluidCell(
+          width: context.layout.value(
+            xl: kStaggeredNumOfColumns ~/ 6,
+            lg: kStaggeredNumOfColumns ~/ 6,
+            md: kStaggeredNumOfColumns ~/ 6,
+            sm: kStaggeredNumOfColumns,
+            xs: kStaggeredNumOfColumns,
+          ),
+          child: SecurityWidget(
+            widget._onChangeAutoLockTime,
+            onStepperNotificationSeeMorePressed:
+                widget.onStepperNotificationSeeMorePressed,
+          ),
+          height: kStaggeredNumOfColumns / 2
         ),
-        const FluidCell(
-          child: BackupWidget(),
-          height: kStaggeredNumOfColumns / 3,
+        FluidCell(
+          width: context.layout.value(
+            xl: kStaggeredNumOfColumns ~/ 6,
+            lg: kStaggeredNumOfColumns ~/ 6,
+            md: kStaggeredNumOfColumns ~/ 6,
+            sm: kStaggeredNumOfColumns,
+            xs: kStaggeredNumOfColumns,
+          ),
+          child: const DisplayWidget(),
+          height: kStaggeredNumOfColumns / 2
+        ),
+        FluidCell(
+          child: const WalletOptions(),
+          width: context.layout.value(
+            xl: kStaggeredNumOfColumns ~/ 6,
+            lg: kStaggeredNumOfColumns ~/ 6,
+            md: kStaggeredNumOfColumns ~/ 6,
+            sm: kStaggeredNumOfColumns,
+            xs: kStaggeredNumOfColumns,
+          ),
+          height: kStaggeredNumOfColumns / 4,
+        ),
+        FluidCell(
+          width: context.layout.value(
+            xl: kStaggeredNumOfColumns ~/ 2,
+            lg: kStaggeredNumOfColumns ~/ 2,
+            md: kStaggeredNumOfColumns ~/ 2,
+            sm: kStaggeredNumOfColumns,
+            xs: kStaggeredNumOfColumns,
+          ),
+          child: const PeersWidget(),
+        ),
+        FluidCell(
+          child: const BackupWidget(),
+          width: context.layout.value(
+            xl: kStaggeredNumOfColumns ~/ 6,
+            lg: kStaggeredNumOfColumns ~/ 6,
+            md: kStaggeredNumOfColumns ~/ 6,
+            sm: kStaggeredNumOfColumns,
+            xs: kStaggeredNumOfColumns,
+          ),
+          height: kStaggeredNumOfColumns / 4,
         ),
       ],
     );
