@@ -322,7 +322,7 @@ class _HardwareWalletDeviceChoiceScreenState
               ? () {
                   NavigationUtils.push(
                     context,
-                    HardwareWalletPasswordScreen(_selectedDevice!.walletId),
+                    HardwareWalletPasswordScreen(_selectedDevice!),
                   );
                 }
               : null,

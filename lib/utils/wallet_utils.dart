@@ -18,9 +18,10 @@ class WalletUtils {
   static Future<void> createLedgerWalletFile(
     String walletId,
     String password, {
-    String? name,
+    String? walletName,
   }) async {
-    kWalletFile = await LedgerWalletFile.create(walletId, password, name: name);
+    kWalletFile = await LedgerWalletFile.create(walletId, password,
+        walletName: walletName);
     kWalletPath = kWalletFile!.walletPath;
     await _storeWalletPath(kWalletFile!.walletPath);
   }
