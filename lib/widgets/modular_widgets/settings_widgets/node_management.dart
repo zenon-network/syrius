@@ -127,35 +127,12 @@ class _NodeManagementState extends State<NodeManagement> {
 
     try {
       _confirmNodeButtonKey.currentState?.animateForward();
-      String url = _selectedNode == kEmbeddedNode
-          ? kLocalhostDefaultNodeUrl
-          : _selectedNode!;
-      bool isConnectionEstablished =
-          await NodeUtils.establishConnectionToNode(url);
-      if (_selectedNode == kEmbeddedNode) {
-        // Check if node is already running
-        if (!isConnectionEstablished) {
-          // Initialize local full node
-          await Isolate.spawn(EmbeddedNode.runNode, [''],
-              onExit: sl<ReceivePort>(instanceName: 'embeddedStoppedPort')
-                  .sendPort);
-          kEmbeddedNodeRunning = true;
-          // The node needs a couple of seconds to actually start
-          await Future.delayed(kEmbeddedConnectionDelay);
-          isConnectionEstablished =
-              await NodeUtils.establishConnectionToNode(url);
-        }
-      } else {
-        isConnectionEstablished =
-            await NodeUtils.establishConnectionToNode(url);
-        if (isConnectionEstablished) {
-          await NodeUtils.closeEmbeddedNode();
-        }
-      }
+      var isConnectionEstablished =
+          await _establishConnectionToNode(_selectedNode);
       if (isConnectionEstablished) {
         kNodeChainId = await NodeUtils.getNodeChainIdentifier();
-        await htlcSwapsService!.storeLastCheckedHtlcBlockHeight(0);
         if (await _checkForChainIdMismatch()) {
+          await htlcSwapsService!.storeLastCheckedHtlcBlockHeight(0);
           await sharedPrefsService!.put(
             kSelectedNodeKey,
             _selectedNode,
@@ -163,6 +140,12 @@ class _NodeManagementState extends State<NodeManagement> {
           kCurrentNode = _selectedNode!;
           _sendChangingNodeSuccessNotification();
           widget.onNodeChangedCallback();
+        } else {
+          await _establishConnectionToNode(kCurrentNode);
+          kNodeChainId = await NodeUtils.getNodeChainIdentifier();
+          setState(() {
+            _selectedNode = kCurrentNode!;
+          });
         }
       } else {
         throw 'Connection could not be established to $_selectedNode';
@@ -178,6 +161,33 @@ class _NodeManagementState extends State<NodeManagement> {
     } finally {
       _confirmNodeButtonKey.currentState?.animateReverse();
     }
+  }
+
+  Future<bool> _establishConnectionToNode(String? url) async {
+    String targetUrl = url == kEmbeddedNode ? kLocalhostDefaultNodeUrl : url!;
+    bool isConnectionEstablished =
+        await NodeUtils.establishConnectionToNode(targetUrl);
+    if (url == kEmbeddedNode) {
+      // Check if node is already running
+      if (!isConnectionEstablished) {
+        // Initialize local full node
+        await Isolate.spawn(EmbeddedNode.runNode, [''],
+            onExit:
+                sl<ReceivePort>(instanceName: 'embeddedStoppedPort').sendPort);
+        kEmbeddedNodeRunning = true;
+        // The node needs a couple of seconds to actually start
+        await Future.delayed(kEmbeddedConnectionDelay);
+        isConnectionEstablished =
+            await NodeUtils.establishConnectionToNode(targetUrl);
+      }
+    } else {
+      isConnectionEstablished =
+          await NodeUtils.establishConnectionToNode(targetUrl);
+      if (isConnectionEstablished) {
+        await NodeUtils.closeEmbeddedNode();
+      }
+    }
+    return isConnectionEstablished;
   }
 
   Widget _getAddNodeExpandableChild() {
