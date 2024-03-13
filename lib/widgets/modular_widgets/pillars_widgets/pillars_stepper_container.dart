@@ -28,7 +28,6 @@ enum PillarType {
 
 enum PillarsStepperStep {
   checkPlasma,
-  selectPillarType,
   qsrManagement,
   znnManagement,
   deployPillar,
