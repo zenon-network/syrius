@@ -149,7 +149,7 @@ class LedgerWalletFile extends WalletFile {
     }
     throw const LedgerError.connectionError(
         origMessage:
-            'Cannot find the hardware device, please connect the device on which the wallet is initialized');
+            'Cannot find the hardware device, please connect/unlock the device on which the wallet is initialized');
   }
 
   static Future<LedgerWalletFile> create(String walletId, String password,
