@@ -28,7 +28,6 @@ enum PillarType {
 
 enum PillarsStepperStep {
   checkPlasma,
-  selectPillarType,
   qsrManagement,
   znnManagement,
   deployPillar,
@@ -467,16 +466,6 @@ class _MainPillarsState extends State<PillarsStepperContainer> {
             context: context,
           ),
           StepperUtils.getMaterialStep(
-            stepTitle: 'Pillar type',
-            stepContent: _getPillarTypeStepBody(),
-            stepSubtitle: _getPillarTypeStepSubtitle(),
-            stepState: StepperUtils.getStepState(
-              PillarsStepperStep.selectPillarType.index,
-              _lastCompletedStep?.index,
-            ),
-            context: context,
-          ),
-          StepperUtils.getMaterialStep(
             stepTitle: '${kQsrCoin.symbol} management',
             stepContent: _getQsrManagementStep(context, accountInfo),
             stepSubtitle: '${kQsrCoin.symbol} Deposited',
@@ -510,15 +499,6 @@ class _MainPillarsState extends State<PillarsStepperContainer> {
         ],
       ),
     );
-  }
-
-  String _getPillarTypeStepSubtitle() {
-    switch (_selectedPillarType) {
-      case PillarType.regularPillar:
-        return 'Pillar';
-      default:
-        return 'No Pillar type selected';
-    }
   }
 
   Widget _getAmountSuffix(AccountInfo accountInfo) {
@@ -928,59 +908,7 @@ class _MainPillarsState extends State<PillarsStepperContainer> {
       _iniStepperControllers();
     });
   }
-
-  Widget _getPillarTypeStepBody() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            Text(
-              'Please choose the type of Pillar you want to register',
-              style: Theme.of(context).textTheme.headlineSmall,
-            ),
-          ],
-        ),
-        _getPillarTypeListTile('Pillar', PillarType.regularPillar),
-        _getContinueButton(),
-      ],
-    );
-  }
-
-  Widget _getContinueButton() {
-    return StepperButton(
-      onPressed: _selectedPillarType != null
-          ? () => _onPillarTypeContinuePressed()
-          : null,
-      text: 'Continue',
-    );
-  }
-
-  Widget _getPillarTypeListTile(String text, PillarType value) {
-    return ListTile(
-      title: Text(
-        text,
-        style: Theme.of(context).textTheme.bodyLarge,
-      ),
-      leading: Radio(
-        activeColor: AppColors.znnColor,
-        value: value,
-        groupValue: _selectedPillarType,
-        onChanged: (PillarType? value) {
-          setState(() {
-            _selectedPillarType = value;
-            _pillarsQsrInfoViewModel.getQsrManagementInfo(
-                _selectedPillarType, _addressController.text);
-          });
-        },
-      ),
-    );
-  }
-
-  void _onPillarTypeContinuePressed() {
-    _saveProgressAndNavigateToNextStep(PillarsStepperStep.selectPillarType);
-  }
-
+  
   void _saveProgressAndNavigateToNextStep(PillarsStepperStep completedStep) {
     setState(() {
       _lastCompletedStep = completedStep;
