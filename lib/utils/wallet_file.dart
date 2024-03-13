@@ -133,15 +133,16 @@ class KeyStoreWalletFile extends WalletFile {
 
 class LedgerWalletFile extends WalletFile {
   final Mutex _lock = Mutex();
-  final String _walletId;
+  final String _walletName;
   LedgerWallet? _wallet;
 
   static final LedgerWalletManager ledgerWalletManager = LedgerWalletManager();
 
-  static Future<LedgerWallet> _connect(String walletId) async {
+  static Future<LedgerWallet> _connect(String walletIdOrName) async {
     for (var walletDefinition
         in await ledgerWalletManager.getWalletDefinitions()) {
-      if (walletDefinition.walletId == walletId) {
+      if (walletDefinition.walletId == walletIdOrName ||
+          walletDefinition.walletName == walletIdOrName) {
         return await ledgerWalletManager.getWallet(walletDefinition)
             as LedgerWallet;
       }
@@ -152,18 +153,18 @@ class LedgerWalletFile extends WalletFile {
   }
 
   static Future<LedgerWalletFile> create(String walletId, String password,
-      {String? name}) async {
+      {String? walletName}) async {
     LedgerWallet wallet = await _connect(walletId);
     try {
       final baseAddress = (await (await wallet.getAccount()).getAddress());
-      name ??= baseAddress.toString();
-      final walletPath = path.join(znnDefaultWalletDirectory.path, name);
-      await WalletFile.write(walletPath, password, utf8.encode(walletId),
+      walletName ??= baseAddress.toString();
+      final walletPath = path.join(znnDefaultWalletDirectory.path, walletName);
+      await WalletFile.write(walletPath, password, utf8.encode(walletName),
           metadata: {
             baseAddressKey: baseAddress.toString(),
             walletTypeKey: ledgerWalletType
           });
-      return LedgerWalletFile._internal(walletPath, walletId);
+      return LedgerWalletFile._internal(walletPath, walletName);
     } finally {
       await wallet.disconnect();
     }
@@ -181,7 +182,7 @@ class LedgerWalletFile extends WalletFile {
     return LedgerWalletFile._internal(walletPath, utf8.decode(decrypted));
   }
 
-  LedgerWalletFile._internal(super._path, this._walletId);
+  LedgerWalletFile._internal(super._path, this._walletName);
 
   @override
   String get walletType => ledgerWalletType;
@@ -196,7 +197,7 @@ class LedgerWalletFile extends WalletFile {
   Future<Wallet> open() async {
     await _lock.acquire();
     try {
-      _wallet = await _connect(_walletId);
+      _wallet = await _connect(_walletName);
       return _wallet!;
     } catch (_) {
       _lock.release();

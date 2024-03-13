@@ -2,11 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:zenon_syrius_wallet_flutter/screens/onboarding/create_ledger_screen.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
+import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 class HardwareWalletPasswordScreen extends StatefulWidget {
-  final String walletId;
+  final WalletDefinition deviceInfo;
 
-  const HardwareWalletPasswordScreen(this.walletId, {Key? key}) : super(key: key);
+  const HardwareWalletPasswordScreen(this.deviceInfo, {Key? key}) : super(key: key);
 
   @override
   State<HardwareWalletPasswordScreen> createState() =>
@@ -115,7 +116,7 @@ class _HardwareWalletPasswordScreenState extends State<HardwareWalletPasswordScr
               NavigationUtils.push(
                 context,
                 CreateLedgerWalletScreen(
-                  widget.walletId,
+                  widget.deviceInfo,
                   _passwordController.text,
                 ),
               );
