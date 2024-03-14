@@ -101,6 +101,7 @@ class _SplashScreenState extends State<SplashScreen>
     // after the user creates or imports a new wallet
     kWalletInitCompleted = false;
     await sl.get<NotificationsBloc>().addNotification(null);
+    NodeUtils.stopWebSocketClient();
     if (sl<AutoReceiveTxWorker>().pool.isNotEmpty) {
       sl<AutoReceiveTxWorker>().pool.clear();
     }
