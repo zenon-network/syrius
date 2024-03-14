@@ -77,15 +77,19 @@ class NodeUtils {
     }
   }
 
+  static stopWebSocketClient() {
+    try {
+      zenon!.wsClient.stop();
+    } catch (_) {}
+  }
+
   static initWebSocketClient() async {
     addOnWebSocketConnectedCallback();
-    var url = kCurrentNode ?? kLocalhostDefaultNodeUrl;
+    var url = kCurrentNode ?? '';
     bool connected = false;
     try {
       connected = await establishConnectionToNode(url);
-    } on WebSocketException {
-      url = kLocalhostDefaultNodeUrl;
-    }
+    } catch (_) {}
     if (!connected) {
       zenon!.wsClient.initialize(
         url,
