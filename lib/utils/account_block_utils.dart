@@ -60,19 +60,19 @@ class AccountBlockUtils {
         bool needReview = kWalletFile!.isHardwareWallet;
 
         if (needPlasma) {
-          sl
+          await sl
               .get<NotificationsBloc>()
               .sendPlasmaNotification(purposeOfGeneratingPlasma);
         } else if (needReview) {
-          _sendReviewNotification(transactionParams);
+          await _sendReviewNotification(transactionParams);
         }
         final AccountBlockTemplate response = await zenon!.send(
           transactionParams,
           currentKeyPair: walletAccount,
-          generatingPowCallback: (status) {
+          generatingPowCallback: (status) async {
             // Wait for plasma to be generated before sending review notification
             if (needReview && status == PowStatus.done) {
-              _sendReviewNotification(transactionParams);
+              await _sendReviewNotification(transactionParams);
             }
             _addEventToPowGeneratingStatusBloc(status);
           },
@@ -81,7 +81,7 @@ class AccountBlockUtils {
         if (BlockUtils.isReceiveBlock(transactionParams.blockType)) {
           sl.get<TransferWidgetsBalanceBloc>().getBalanceForAllAddresses();
         }
-        sl.get<NotificationsBloc>().addNotification(
+        await sl.get<NotificationsBloc>().addNotification(
               WalletNotification(
                 title: 'Account-block published',
                 timestamp: DateTime.now().millisecondsSinceEpoch,
@@ -102,8 +102,7 @@ class AccountBlockUtils {
         await Future.delayed(const Duration(seconds: 1));
 
         return response;
-      } 
-      finally {
+      } finally {
         kWalletFile!.close();
       }
     } else {
@@ -190,8 +189,9 @@ class AccountBlockUtils {
     return null;
   }
 
-  static void _sendReviewNotification(AccountBlockTemplate transactionParams) {
-    sl.get<NotificationsBloc>().addNotification(
+  static Future<void> _sendReviewNotification(
+      AccountBlockTemplate transactionParams) async {
+    await sl.get<NotificationsBloc>().addNotification(
           WalletNotification(
             title:
                 '${BlockUtils.isSendBlock(transactionParams.blockType) ? 'Sending transaction' : 'Receiving transaction'}, please review the transaction on your hardware device',

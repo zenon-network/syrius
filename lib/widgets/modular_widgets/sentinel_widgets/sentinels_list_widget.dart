@@ -223,8 +223,8 @@ class _SentinelsListWidgetState extends State<SentinelsListWidget> {
               sentinelsModel.refreshResults();
             }
           },
-          onError: (error) {
-            NotificationUtils.sendNotificationError(
+          onError: (error) async {
+            await NotificationUtils.sendNotificationError(
               error,
               'Error while disassembling Sentinel',
             );

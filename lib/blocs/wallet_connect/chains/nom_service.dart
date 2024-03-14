@@ -148,7 +148,7 @@ class NoMService extends IChain {
             'chainId': getChainIdentifier(),
           };
         } else {
-          NotificationUtils.sendNotificationError(
+          await NotificationUtils.sendNotificationError(
               Errors.getSdkError(Errors.USER_REJECTED),
               'You have rejected the WalletConnect request');
           throw Errors.getSdkError(Errors.USER_REJECTED);
@@ -212,7 +212,7 @@ class NoMService extends IChain {
         if (actionWasAccepted) {
           return await walletSign(message.codeUnits);
         } else {
-          NotificationUtils.sendNotificationError(
+          await NotificationUtils.sendNotificationError(
               Errors.getSdkError(Errors.USER_REJECTED),
               'You have rejected the WalletConnect request');
           throw Errors.getSdkError(Errors.USER_REJECTED);
@@ -301,7 +301,7 @@ class NoMService extends IChain {
 
           return result!;
         } else {
-          NotificationUtils.sendNotificationError(
+          await NotificationUtils.sendNotificationError(
               Errors.getSdkError(Errors.USER_REJECTED),
               'You have rejected the WalletConnect request');
           throw Errors.getSdkError(Errors.USER_REJECTED);

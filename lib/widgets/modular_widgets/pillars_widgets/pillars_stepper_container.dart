@@ -368,9 +368,9 @@ class _MainPillarsState extends State<PillarsStepperContainer> {
               setState(() {});
             }
           },
-          onError: (error) {
+          onError: (error) async {
             _depositQsrButtonKey.currentState?.animateReverse();
-            NotificationUtils.sendNotificationError(
+            await NotificationUtils.sendNotificationError(
               error,
               'Error while depositing ${kQsrCoin.symbol}',
             );
@@ -415,9 +415,9 @@ class _MainPillarsState extends State<PillarsStepperContainer> {
               );
             }
           },
-          onError: (error) {
+          onError: (error) async {
             _withdrawButtonKey.currentState?.animateReverse();
-            NotificationUtils.sendNotificationError(
+            await NotificationUtils.sendNotificationError(
               error,
               'Error while withdrawing ${kQsrCoin.symbol}',
             );
@@ -639,9 +639,9 @@ class _MainPillarsState extends State<PillarsStepperContainer> {
               setState(() {});
             }
           },
-          onError: (error) {
+          onError: (error) async {
             _registerButtonKey.currentState?.animateReverse();
-            NotificationUtils.sendNotificationError(
+            await NotificationUtils.sendNotificationError(
                 error, 'Error while deploying a Pillar');
             setState(() {});
           },

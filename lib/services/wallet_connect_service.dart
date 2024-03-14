@@ -48,11 +48,11 @@ class WalletConnectService {
             'https://raw.githubusercontent.com/zenon-network/syrius/master/macos/Runner/Assets.xcassets/AppIcon.appiconset/Icon-MacOS-512x512%402x.png'
           ],
         ),
-      ).onError((e, stackTrace) {
+      ).onError((e, stackTrace) async {
         Logger('WalletConnectService')
             .log(Level.SEVERE, 'initClient onError ', e, stackTrace);
         if (e != null) {
-          NotificationUtils.sendNotificationError(
+          await NotificationUtils.sendNotificationError(
               e, 'WalletConnect initialization failed');
         }
         throw 'WalletConnect init failed';
@@ -211,7 +211,7 @@ class WalletConnectService {
                 'chainId': getChainIdentifier(),
               };
             } else {
-              NotificationUtils.sendNotificationError(
+              await NotificationUtils.sendNotificationError(
                   Errors.getSdkError(Errors.USER_REJECTED),
                   'You have rejected the WalletConnect request');
               throw Errors.getSdkError(Errors.USER_REJECTED);
@@ -283,7 +283,7 @@ class WalletConnectService {
             if (actionWasAccepted) {
               return await walletSign(message.codeUnits);
             } else {
-              NotificationUtils.sendNotificationError(
+              await NotificationUtils.sendNotificationError(
                   Errors.getSdkError(Errors.USER_REJECTED),
                   'You have rejected the WalletConnect request');
               throw Errors.getSdkError(Errors.USER_REJECTED);
@@ -375,7 +375,7 @@ class WalletConnectService {
 
               return result!;
             } else {
-              NotificationUtils.sendNotificationError(
+              await NotificationUtils.sendNotificationError(
                   Errors.getSdkError(Errors.USER_REJECTED),
                   'You have rejected the WalletConnect request');
               throw Errors.getSdkError(Errors.USER_REJECTED);
@@ -526,9 +526,9 @@ class WalletConnectService {
         pairingTopic: pairingTopic,
       );
 
-  void _sendSuccessfullyApprovedSessionNotification(
-      PairingMetadata dAppMetadata) {
-    sl.get<NotificationsBloc>().addNotification(
+  Future<void> _sendSuccessfullyApprovedSessionNotification(
+      PairingMetadata dAppMetadata) async {
+    await sl.get<NotificationsBloc>().addNotification(
           WalletNotification(
             title: 'Successfully connected to ${dAppMetadata.name}',
             timestamp: DateTime.now().millisecondsSinceEpoch,
@@ -604,7 +604,7 @@ class WalletConnectService {
             },
           );
 
-          _sendSuccessfullyApprovedSessionNotification(dAppMetadata);
+          await _sendSuccessfullyApprovedSessionNotification(dAppMetadata);
           dAppsActiveSessions.add(approveResponse.session);
         }
       } else {

@@ -148,8 +148,8 @@ class _NodeManagementScreenState extends State<NodeManagementScreen> {
             }
             setState(() {
               _autoReceive = value;
-              _changeAutoReceiveStatus(value ?? false);
             });
+            await _changeAutoReceiveStatus(value ?? false);
           },
         ),
         Text(
@@ -163,17 +163,17 @@ class _NodeManagementScreenState extends State<NodeManagementScreen> {
   Future<void> _changeAutoReceiveStatus(bool enabled) async {
     try {
       await _saveAutoReceiveValueToCache(enabled);
-      _sendAutoReceiveNotification(enabled);
+      await _sendAutoReceiveNotification(enabled);
     } on Exception catch (e) {
-      NotificationUtils.sendNotificationError(
+      await NotificationUtils.sendNotificationError(
         e,
         'Something went wrong while setting automatic receive preference',
       );
     }
   }
 
-  void _sendAutoReceiveNotification(bool enabled) {
-    sl.get<NotificationsBloc>().addNotification(
+  Future<void> _sendAutoReceiveNotification(bool enabled) async {
+    await sl.get<NotificationsBloc>().addNotification(
           WalletNotification(
             title: 'Auto-receiver ${enabled ? 'enabled' : 'disabled'}',
             details:
@@ -242,7 +242,7 @@ class _NodeManagementScreenState extends State<NodeManagementScreen> {
           _selectedNode,
         );
         kCurrentNode = _selectedNode!;
-        _sendChangingNodeSuccessNotification();
+        await _sendChangingNodeSuccessNotification();
         if (widget.nodeConfirmationCallback != null) {
           widget.nodeConfirmationCallback!();
         } else {
@@ -252,7 +252,7 @@ class _NodeManagementScreenState extends State<NodeManagementScreen> {
         throw 'Connection could not be established to $_selectedNode';
       }
     } catch (e) {
-      NotificationUtils.sendNotificationError(
+      await NotificationUtils.sendNotificationError(
         e,
         'Connection failed',
       );
@@ -306,10 +306,10 @@ class _NodeManagementScreenState extends State<NodeManagementScreen> {
   bool _ifUserInputValid() =>
       InputValidators.node(_newNodeController.text) == null;
 
-  void _onAddNodePressed() async {
+  Future<void> _onAddNodePressed() async {
     if ([...kDbNodes, ...kDefaultCommunityNodes, ...kDefaultNodes]
         .contains(_newNodeController.text)) {
-      NotificationUtils.sendNotificationError(
+      await NotificationUtils.sendNotificationError(
           'Node ${_newNodeController.text} already exists',
           'Node already exists');
     } else {
@@ -325,13 +325,13 @@ class _NodeManagementScreenState extends State<NodeManagementScreen> {
       }
       Hive.box<String>(kNodesBox).add(_newNodeController.text);
       await NodeUtils.loadDbNodes();
-      _sendAddNodeSuccessNotification();
+      await _sendAddNodeSuccessNotification();
       setState(() {
         _newNodeController = TextEditingController();
         _newNodeKey = GlobalKey();
       });
     } catch (e) {
-      NotificationUtils.sendNotificationError(e, 'Error while adding new node');
+      await NotificationUtils.sendNotificationError(e, 'Error while adding new node');
     } finally {
       _addNodeButtonKey.currentState?.animateReverse();
     }
@@ -378,8 +378,8 @@ class _NodeManagementScreenState extends State<NodeManagementScreen> {
     );
   }
 
-  void _sendChangingNodeSuccessNotification() {
-    sl.get<NotificationsBloc>().addNotification(
+  Future<void> _sendChangingNodeSuccessNotification() async {
+    await sl.get<NotificationsBloc>().addNotification(
           WalletNotification(
             title: 'Successfully connected to $_selectedNode',
             timestamp: DateTime.now().millisecondsSinceEpoch,
@@ -395,8 +395,8 @@ class _NodeManagementScreenState extends State<NodeManagementScreen> {
     super.dispose();
   }
 
-  void _sendAddNodeSuccessNotification() {
-    sl.get<NotificationsBloc>().addNotification(
+  Future<void> _sendAddNodeSuccessNotification() async {
+    await sl.get<NotificationsBloc>().addNotification(
           WalletNotification(
             title: 'Successfully added node ${_newNodeController.text}',
             timestamp: DateTime.now().millisecondsSinceEpoch,

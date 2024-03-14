@@ -289,7 +289,7 @@ class _SettingsNodeState extends State<SettingsNode> {
         });
       }
     } catch (e) {
-      NotificationUtils.sendNotificationError(
+      await NotificationUtils.sendNotificationError(
         e,
         'Something went wrong',
       );
@@ -312,7 +312,7 @@ class _SettingsNodeState extends State<SettingsNode> {
       if (!mounted) return;
       widget.onChangedOrDeletedNode();
     } catch (e) {
-      NotificationUtils.sendNotificationError(
+      await NotificationUtils.sendNotificationError(
         e,
         'Error during deleting node $node from the database',
       );

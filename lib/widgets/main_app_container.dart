@@ -608,8 +608,8 @@ class _MainAppContainerState extends State<MainAppContainer>
     super.dispose();
   }
 
-  void _onChangeAutoLockTime() {
-    sl.get<NotificationsBloc>().addNotification(
+  Future<void> _onChangeAutoLockTime() async {
+    await sl.get<NotificationsBloc>().addNotification(
           WalletNotification(
             title: 'Auto-lock interval changed successfully',
             details: 'Auto-lock interval changed successfully to '
@@ -772,7 +772,7 @@ class _MainAppContainerState extends State<MainAppContainer>
               }
               String wcUri = Uri.decodeFull(uriRaw.split('wc?uri=').last);
               if (WalletConnectUri.tryParse(wcUri) != null) {
-                _updateWalletConnectUri(wcUri);
+                await _updateWalletConnectUri(wcUri);
               }
               return;
             }
@@ -820,7 +820,7 @@ class _MainAppContainerState extends State<MainAppContainer>
             if (context.mounted) {
               switch (uri.host) {
                 case 'transfer':
-                  sl<NotificationsBloc>().addNotification(
+                  await sl<NotificationsBloc>().addNotification(
                     WalletNotification(
                       title: 'Transfer action detected',
                       timestamp: DateTime.now().millisecondsSinceEpoch,
@@ -862,7 +862,7 @@ class _MainAppContainerState extends State<MainAppContainer>
                   break;
 
                 case 'stake':
-                  sl<NotificationsBloc>().addNotification(
+                  await sl<NotificationsBloc>().addNotification(
                     WalletNotification(
                       title: 'Stake action detected',
                       timestamp: DateTime.now().millisecondsSinceEpoch,
@@ -897,7 +897,7 @@ class _MainAppContainerState extends State<MainAppContainer>
                   break;
 
                 case 'delegate':
-                  sl<NotificationsBloc>().addNotification(
+                  await sl<NotificationsBloc>().addNotification(
                     WalletNotification(
                       title: 'Delegate action detected',
                       timestamp: DateTime.now().millisecondsSinceEpoch,
@@ -930,7 +930,7 @@ class _MainAppContainerState extends State<MainAppContainer>
                   break;
 
                 case 'fuse':
-                  sl<NotificationsBloc>().addNotification(
+                  await sl<NotificationsBloc>().addNotification(
                     WalletNotification(
                       title: 'Fuse ${kQsrCoin.symbol} action detected',
                       timestamp: DateTime.now().millisecondsSinceEpoch,
@@ -964,7 +964,7 @@ class _MainAppContainerState extends State<MainAppContainer>
                   break;
 
                 case 'sentinel':
-                  sl<NotificationsBloc>().addNotification(
+                  await sl<NotificationsBloc>().addNotification(
                     WalletNotification(
                       title: 'Deploy Sentinel action detected',
                       timestamp: DateTime.now().millisecondsSinceEpoch,
@@ -979,7 +979,7 @@ class _MainAppContainerState extends State<MainAppContainer>
                   break;
 
                 case 'pillar':
-                  sl<NotificationsBloc>().addNotification(
+                  await sl<NotificationsBloc>().addNotification(
                     WalletNotification(
                       title: 'Deploy Pillar action detected',
                       timestamp: DateTime.now().millisecondsSinceEpoch,
@@ -994,7 +994,7 @@ class _MainAppContainerState extends State<MainAppContainer>
                   break;
 
                 default:
-                  sl<NotificationsBloc>().addNotification(
+                  await sl<NotificationsBloc>().addNotification(
                     WalletNotification(
                       title: 'Incoming link detected',
                       timestamp: DateTime.now().millisecondsSinceEpoch,
@@ -1011,8 +1011,8 @@ class _MainAppContainerState extends State<MainAppContainer>
       }, onDone: () {
         Logger('MainAppContainer')
             .log(Level.INFO, '_handleIncomingLinks', 'done');
-      }, onError: (Object err) {
-        NotificationUtils.sendNotificationError(
+      }, onError: (Object err) async {
+        await NotificationUtils.sendNotificationError(
             err, 'Handle incoming link failed');
         Logger('MainAppContainer')
             .log(Level.WARNING, '_handleIncomingLinks', err);
@@ -1054,11 +1054,11 @@ class _MainAppContainerState extends State<MainAppContainer>
     }
   }
 
-  void _updateWalletConnectUri(String text) {
+  Future<void> _updateWalletConnectUri(String text) async {
     kLastWalletConnectUriNotifier.value = text;
     if (!_isWalletLocked()) {
       if (kCurrentPage != Tabs.walletConnect) {
-        sl<NotificationsBloc>().addNotification(
+        await sl<NotificationsBloc>().addNotification(
           WalletNotification(
             title:
                 'WalletConnect link detected. Go to WalletConnect tab to connect.',

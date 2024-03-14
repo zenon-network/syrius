@@ -171,7 +171,7 @@ class _ExportWalletPasswordScreenState
                   name: path.basename(walletPath.path),
                 );
                 if (widget.backupWalletFlow) {
-                  _sendSuccessNotification(walletPath.path);
+                  await _sendSuccessNotification(walletPath.path);
                 } else {
                   _updateExportedSeedList();
                 }
@@ -197,8 +197,8 @@ class _ExportWalletPasswordScreenState
     ).value = exportedSeeds;
   }
 
-  void _sendSuccessNotification(String path) {
-    sl.get<NotificationsBloc>().addNotification(
+  Future<void> _sendSuccessNotification(String path) async {
+    await sl.get<NotificationsBloc>().addNotification(
           WalletNotification(
             title: 'Seed Vault successfully exported',
             timestamp: DateTime.now().millisecondsSinceEpoch,

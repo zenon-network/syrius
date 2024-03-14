@@ -436,9 +436,9 @@ class _TokenCardState extends State<TokenCard> {
             _sendBurnSuccessfulNotification(event);
             sl.get<BalanceBloc>().getBalanceForAllAddresses();
           },
-          onError: (error) {
+          onError: (error) async {
             _burnButtonKey.currentState?.animateReverse();
-            NotificationUtils.sendNotificationError(
+            await NotificationUtils.sendNotificationError(
               error,
               'Error while trying to burn ZTS',
             );
@@ -450,8 +450,8 @@ class _TokenCardState extends State<TokenCard> {
     );
   }
 
-  void _sendBurnSuccessfulNotification(AccountBlockTemplate event) {
-    sl.get<NotificationsBloc>().addNotification(
+  Future<void> _sendBurnSuccessfulNotification(AccountBlockTemplate event) async {
+    await sl.get<NotificationsBloc>().addNotification(
           WalletNotification(
             title: 'Successfully burned ${event.amount.addDecimals(
               widget.token.decimals,
@@ -595,8 +595,8 @@ class _TokenCardState extends State<TokenCard> {
           _mintButtonKey.currentState!.animateReverse();
           _sendMintSuccessfulNotification(event);
           sl.get<BalanceBloc>().getBalanceForAllAddresses();
-        }, onError: (error) {
-          NotificationUtils.sendNotificationError(
+        }, onError: (error) async {
+          await NotificationUtils.sendNotificationError(
             error,
             'Error while trying to mint ${widget.token.symbol}}',
           );
@@ -608,8 +608,8 @@ class _TokenCardState extends State<TokenCard> {
     );
   }
 
-  void _sendMintSuccessfulNotification(AccountBlockTemplate event) {
-    sl.get<NotificationsBloc>().addNotification(
+  Future<void> _sendMintSuccessfulNotification(AccountBlockTemplate event) async {
+    await sl.get<NotificationsBloc>().addNotification(
           WalletNotification(
             title: 'Successfully minted ${event.amount.addDecimals(
               widget.token.decimals,
@@ -721,9 +721,9 @@ class _TokenCardState extends State<TokenCard> {
             });
           }
           _transferButtonKey.currentState?.animateReverse();
-        }, onError: (error) {
+        }, onError: (error) async {
           _transferButtonKey.currentState?.animateReverse();
-          NotificationUtils.sendNotificationError(
+          await NotificationUtils.sendNotificationError(
             error,
             'Error while trying to transfer token ownership',
           );
@@ -748,8 +748,8 @@ class _TokenCardState extends State<TokenCard> {
     );
   }
 
-  void _sendTransferSuccessfulNotification() {
-    sl.get<NotificationsBloc>().addNotification(
+  Future<void> _sendTransferSuccessfulNotification() async {
+    await sl.get<NotificationsBloc>().addNotification(
           WalletNotification(
             title: 'Successfully transferred ownership of '
                 '${widget.token.name} token',

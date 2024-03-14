@@ -134,16 +134,16 @@ class _LockTabChildState extends State<LockTabChild> {
     );
   }
 
-  void _onError(String errorMessage, Object error) {
+  Future<void> _onError(String errorMessage, Object error) async {
     if (_messageToUser.isNotEmpty) {
       setState(() {
         _messageToUser = '';
       });
     }
-    NotificationUtils.sendNotificationError(error, errorMessage);
+    await NotificationUtils.sendNotificationError(error, errorMessage);
     if (error is IncorrectPasswordException) {
       kNumFailedUnlockAttempts = kNumFailedUnlockAttempts! + 1;
-      _saveNumFailedUnlockAttempts(kNumFailedUnlockAttempts);
+      await _saveNumFailedUnlockAttempts(kNumFailedUnlockAttempts);
     }
     if (kNumFailedUnlockAttempts == kAutoEraseWalletLimit) {
       NavigationUtils.pushReplacement(

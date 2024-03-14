@@ -138,7 +138,7 @@ class _NodeManagementState extends State<NodeManagement> {
             _selectedNode,
           );
           kCurrentNode = _selectedNode!;
-          _sendChangingNodeSuccessNotification();
+          await _sendChangingNodeSuccessNotification();
           widget.onNodeChangedCallback();
         } else {
           await _establishConnectionToNode(kCurrentNode);
@@ -151,7 +151,7 @@ class _NodeManagementState extends State<NodeManagement> {
         throw 'Connection could not be established to $_selectedNode';
       }
     } catch (e) {
-      NotificationUtils.sendNotificationError(
+      await NotificationUtils.sendNotificationError(
         e,
         'Connection failed',
       );
@@ -225,10 +225,10 @@ class _NodeManagementState extends State<NodeManagement> {
   bool _ifUserInputValid() =>
       InputValidators.node(_newNodeController.text) == null;
 
-  void _onAddNodePressed() async {
+  Future<void> _onAddNodePressed() async {
     if ([...kDbNodes, ...kDefaultCommunityNodes, ...kDefaultNodes]
         .contains(_newNodeController.text)) {
-      NotificationUtils.sendNotificationError(
+      await NotificationUtils.sendNotificationError(
           'Node ${_newNodeController.text} already exists',
           'Node already exists');
     } else {
@@ -244,11 +244,11 @@ class _NodeManagementState extends State<NodeManagement> {
       }
       Hive.box<String>(kNodesBox).add(_newNodeController.text);
       await NodeUtils.loadDbNodes();
-      _sendAddNodeSuccessNotification();
+      await _sendAddNodeSuccessNotification();
       _newNodeController = TextEditingController();
       _newNodeKey = GlobalKey();
     } catch (e) {
-      NotificationUtils.sendNotificationError(e, 'Error while adding new node');
+      await NotificationUtils.sendNotificationError(e, 'Error while adding new node');
     } finally {
       _addNodeButtonKey.currentState?.animateReverse();
     }
@@ -295,8 +295,8 @@ class _NodeManagementState extends State<NodeManagement> {
     );
   }
 
-  void _sendChangingNodeSuccessNotification() {
-    sl.get<NotificationsBloc>().addNotification(
+  Future<void> _sendChangingNodeSuccessNotification() async {
+    await sl.get<NotificationsBloc>().addNotification(
           WalletNotification(
             title: 'Successfully connected to $_selectedNode',
             timestamp: DateTime.now().millisecondsSinceEpoch,
@@ -313,8 +313,8 @@ class _NodeManagementState extends State<NodeManagement> {
     super.dispose();
   }
 
-  void _sendAddNodeSuccessNotification() {
-    sl.get<NotificationsBloc>().addNotification(
+  Future<void> _sendAddNodeSuccessNotification() async {
+    await sl.get<NotificationsBloc>().addNotification(
           WalletNotification(
             title: 'Successfully added node ${_newNodeController.text}',
             timestamp: DateTime.now().millisecondsSinceEpoch,
@@ -391,13 +391,13 @@ class _NodeManagementState extends State<NodeManagement> {
       _confirmChainIdButtonKey.currentState?.animateForward();
       setChainIdentifier(chainIdentifier: _newChainId);
       await sharedPrefsService!.put(kChainIdKey, _newChainId);
-      sl<IWeb3WalletService>().emitChainIdChangeEvent(_newChainId.toString());
-      _sendSuccessfullyChangedChainIdNotification(_newChainId);
+      await sl<IWeb3WalletService>().emitChainIdChangeEvent(_newChainId.toString());
+      await _sendSuccessfullyChangedChainIdNotification(_newChainId);
       _initCurrentChainId();
       _newChainIdController = TextEditingController();
       _newChainIdKey = GlobalKey();
     } catch (e) {
-      NotificationUtils.sendNotificationError(
+      await NotificationUtils.sendNotificationError(
         e,
         'Error while setting the new client chain identifier',
       );
@@ -406,8 +406,8 @@ class _NodeManagementState extends State<NodeManagement> {
     }
   }
 
-  void _sendSuccessfullyChangedChainIdNotification(int newChainId) {
-    sl.get<NotificationsBloc>().addNotification(
+  Future<void> _sendSuccessfullyChangedChainIdNotification(int newChainId) async {
+    await sl.get<NotificationsBloc>().addNotification(
           WalletNotification(
             title:
                 'Successfully changed client chain identifier to $newChainId',

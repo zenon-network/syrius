@@ -333,10 +333,10 @@ class Web3WalletService extends IWeb3WalletService {
           try {
             ApproveResponse approveResponse =
                 await _approveSession(id: event.id);
-            _sendSuccessfullyApprovedSessionNotification(dAppMetadata);
+            await _sendSuccessfullyApprovedSessionNotification(dAppMetadata);
             sessions.value.add(approveResponse.session);
           } catch (e, stackTrace) {
-            NotificationUtils.sendNotificationError(
+            await NotificationUtils.sendNotificationError(
                 e, 'WalletConnect session approval failed');
             Logger('WalletConnectService').log(
                 Level.INFO, 'onSessionProposal approveResponse', e, stackTrace);
@@ -363,9 +363,9 @@ class Web3WalletService extends IWeb3WalletService {
         .then((value) => sl.get<WalletConnectSessionsBloc>().refreshResults());
   }
 
-  void _sendSuccessfullyApprovedSessionNotification(
-      PairingMetadata dAppMetadata) {
-    sl.get<NotificationsBloc>().addNotification(
+  Future<void> _sendSuccessfullyApprovedSessionNotification(
+      PairingMetadata dAppMetadata) async {
+    await sl.get<NotificationsBloc>().addNotification(
           WalletNotification(
             title: 'Successfully connected to ${dAppMetadata.name}',
             timestamp: DateTime.now().millisecondsSinceEpoch,

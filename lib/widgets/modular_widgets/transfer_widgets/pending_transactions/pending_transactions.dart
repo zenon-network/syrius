@@ -252,8 +252,8 @@ class _PendingTransactionsState extends State<PendingTransactions> {
               transactionModel.refreshResults();
             }
           },
-          onError: (error) {
-            NotificationUtils.sendNotificationError(
+          onError: (error) async {
+            await NotificationUtils.sendNotificationError(
                 error, 'Error while receiving transaction');
           },
         );

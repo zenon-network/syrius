@@ -112,7 +112,7 @@ class _PillarCollectState extends State<PillarCollect> {
         },
       );
     } catch (e) {
-      NotificationUtils.sendNotificationError(
+      await NotificationUtils.sendNotificationError(
           e, 'Error while collecting rewards');
     } finally {
       _collectButtonKey.currentState?.animateReverse();
