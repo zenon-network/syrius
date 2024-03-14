@@ -232,8 +232,6 @@ class _NodeManagementScreenState extends State<NodeManagementScreen> {
               await NodeUtils.establishConnectionToNode(url);
         }
       } else {
-        isConnectionEstablished =
-            await NodeUtils.establishConnectionToNode(url);
         if (isConnectionEstablished) {
           await NodeUtils.closeEmbeddedNode();
         }
