@@ -184,7 +184,7 @@ class _ChangeWalletPasswordScreenState
                 _newPasswordController.text,
               );
             } catch (e) {
-              NotificationUtils.sendNotificationError(
+              await NotificationUtils.sendNotificationError(
                 e,
                 'An error occurred while trying to change password',
               );
@@ -192,14 +192,14 @@ class _ChangeWalletPasswordScreenState
               _loadingButtonKey.currentState!.animateReverse();
             }
           }
-        }, onError: (e) {
+        }, onError: (e) async {
           _loadingButtonKey.currentState!.animateReverse();
           if (e is IncorrectPasswordException) {
             setState(() {
               _currentPassErrorText = 'Incorrect password';
             });
           } else {
-            NotificationUtils.sendNotificationError(
+            await NotificationUtils.sendNotificationError(
               e,
               'An error occurred while trying to decrypt wallet',
             );

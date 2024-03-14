@@ -345,9 +345,9 @@ class _MainSentinelsState extends State<SentinelsStepperContainer> {
               );
             }
           },
-          onError: (error) {
+          onError: (error) async {
             _depositQsrButtonKey.currentState?.animateReverse();
-            NotificationUtils.sendNotificationError(
+            await NotificationUtils.sendNotificationError(
               error,
               'Error while depositing ${kQsrCoin.symbol} for Sentinel',
             );
@@ -393,9 +393,9 @@ class _MainSentinelsState extends State<SentinelsStepperContainer> {
               );
             }
           },
-          onError: (error) {
+          onError: (error) async {
             _withdrawButtonKey.currentState?.animateReverse();
-            NotificationUtils.sendNotificationError(
+            await NotificationUtils.sendNotificationError(
               error,
               'Error while withdrawing ${kQsrCoin.symbol}',
             );
@@ -517,9 +517,9 @@ class _MainSentinelsState extends State<SentinelsStepperContainer> {
                   SentinelsStepperStep.deploySentinel);
             }
           },
-          onError: (error) {
+          onError: (error) async {
             _registerButtonKey.currentState?.animateReverse();
-            NotificationUtils.sendNotificationError(
+            await NotificationUtils.sendNotificationError(
               error,
               'Error while deploying the Sentinel Node',
             );

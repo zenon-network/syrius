@@ -212,25 +212,25 @@ class _SettingsAddressState extends State<SettingsAddress> {
           _editable = false;
         });
       } else if (_labelController.text.isEmpty) {
-        NotificationUtils.sendNotificationError(
+        await NotificationUtils.sendNotificationError(
           'Label can\'t be empty',
           'Label can\'t be empty',
         );
       } else if (_labelController.text.length > kAddressLabelMaxLength) {
-        NotificationUtils.sendNotificationError(
+        await NotificationUtils.sendNotificationError(
           'The label ${_labelController.text} is ${_labelController.text.length} '
               'characters long, which is more than the $kAddressLabelMaxLength limit.',
           'The label has more than $kAddressLabelMaxLength characters',
         );
       } else {
-        NotificationUtils.sendNotificationError(
+        await NotificationUtils.sendNotificationError(
           'Label ${_labelController.text}'
               ' already exists in the database',
           'Label already exists',
         );
       }
     } catch (e) {
-      NotificationUtils.sendNotificationError(
+      await NotificationUtils.sendNotificationError(
         e,
         'Something went wrong while changing the address label',
       );

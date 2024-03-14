@@ -23,7 +23,7 @@ class NotificationsBloc extends BaseBloc<WalletNotification?> {
           title: notification.title ?? 'Empty title',
           body: notification.details ?? 'No details available',
         );
-        localNotification.show();
+        await localNotification.show();
       }
       addEvent(notification);
     } catch (e, stackTrace) {
@@ -31,8 +31,8 @@ class NotificationsBloc extends BaseBloc<WalletNotification?> {
     }
   }
 
-  sendPlasmaNotification(String purposeOfGeneratingPlasma) {
-    addNotification(
+  Future<void> sendPlasmaNotification(String purposeOfGeneratingPlasma) async {
+    await addNotification(
       WalletNotification(
         title: 'Plasma will be generated in order to '
             '$purposeOfGeneratingPlasma',
@@ -43,8 +43,8 @@ class NotificationsBloc extends BaseBloc<WalletNotification?> {
     );
   }
 
-  addErrorNotification(Object error, String title) {
-    addNotification(
+  Future<void> addErrorNotification(Object error, String title) async {
+    await addNotification(
       WalletNotification(
         title: title,
         timestamp: DateTime.now().millisecondsSinceEpoch,

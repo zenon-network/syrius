@@ -32,7 +32,7 @@ class ZenonAddressUtils {
         WalletAccount walletAccount = await wallet.getAccount(addrListCounter);
         Address? address;
         if (walletAccount is LedgerWalletAccount) {
-          sl.get<NotificationsBloc>().addNotification(
+          await sl.get<NotificationsBloc>().addNotification(
                 WalletNotification(
                   title:
                       'Adding address, please confirm the address on your hardware device',

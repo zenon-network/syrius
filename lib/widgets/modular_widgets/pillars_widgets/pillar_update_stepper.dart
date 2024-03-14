@@ -394,9 +394,9 @@ class _PillarUpdateStepperState extends State<PillarUpdateStepper> {
               });
             }
           },
-          onError: (error) {
+          onError: (error) async {
             _updateButtonKey.currentState?.animateReverse();
-            NotificationUtils.sendNotificationError(
+            await NotificationUtils.sendNotificationError(
               error,
               'Error while updating Pillar',
             );

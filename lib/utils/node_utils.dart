@@ -48,7 +48,7 @@ class NodeUtils {
     if (kCurrentNode == kLocalhostDefaultNodeUrl ||
         kCurrentNode == kEmbeddedNode) {
       if (kEmbeddedNodeRunning) {
-        sl.get<NotificationsBloc>().addNotification(
+        await sl.get<NotificationsBloc>().addNotification(
               WalletNotification(
                 title: 'Waiting for Embedded Node to stop',
                 timestamp: DateTime.now().millisecondsSinceEpoch,
@@ -103,7 +103,7 @@ class NodeUtils {
 
       sl<AutoReceiveTxWorker>().autoReceive();
       Future.delayed(const Duration(seconds: 30))
-          .then((value) => NotificationUtils.sendNodeSyncingNotification());
+          .then((value) async => await NotificationUtils.sendNodeSyncingNotification());
       _initListenForUnreceivedAccountBlocks(allResponseBroadcaster);
     });
   }
@@ -152,7 +152,7 @@ class NodeUtils {
             (await zenon!.ledger.getFrontierMomentum()).timestamp;
         final timeDifference = (frontierTime - DateTimeUtils.unixTimeNow).abs();
         if (timeDifference > maxAllowedDiscrepancy.inSeconds) {
-          NotificationUtils.sendNotificationError(
+          await NotificationUtils.sendNotificationError(
             Exception('Local time discrepancy detected.'),
             warningMessage,
           );

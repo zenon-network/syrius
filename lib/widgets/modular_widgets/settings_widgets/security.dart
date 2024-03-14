@@ -189,7 +189,7 @@ class _SecurityWidgetState extends State<SecurityWidget> {
         },
       );
     } catch (e) {
-      NotificationUtils.sendNotificationError(
+      await NotificationUtils.sendNotificationError(
         e,
         'Error while confirming auto-lock interval',
       );
@@ -206,7 +206,7 @@ class _SecurityWidgetState extends State<SecurityWidget> {
     );
   }
 
-  void _onConfirmAutoEraseButtonPressed() async {
+  Future<void> _onConfirmAutoEraseButtonPressed() async {
     try {
       _autoEraseButtonKey.currentState?.animateForward();
       await sharedPrefsService!
@@ -215,9 +215,9 @@ class _SecurityWidgetState extends State<SecurityWidget> {
         _autoEraseWalletLimit,
       )
           .then(
-        (value) {
+        (value) async {
           kAutoEraseWalletLimit = _autoEraseWalletLimit;
-          sl.get<NotificationsBloc>().addNotification(
+          await sl.get<NotificationsBloc>().addNotification(
                 WalletNotification(
                   title: 'Auto-erase attempts limit successfully changed',
                   details: 'The auto-erase limit has now '
@@ -230,7 +230,7 @@ class _SecurityWidgetState extends State<SecurityWidget> {
         },
       );
     } catch (e) {
-      NotificationUtils.sendNotificationError(
+      await NotificationUtils.sendNotificationError(
         e,
         'Error while confirming auto-erase limit',
       );
@@ -321,7 +321,7 @@ class _SecurityWidgetState extends State<SecurityWidget> {
         _publicKeyController.text = signature.publicKey;
       });
     } catch (e) {
-      NotificationUtils.sendNotificationError(e, 'Error while signing message');
+      await NotificationUtils.sendNotificationError(e, 'Error while signing message');
     } finally {
       _signButtonKey.currentState?.animateReverse();
     }
@@ -446,7 +446,7 @@ class _SecurityWidgetState extends State<SecurityWidget> {
         FormatUtils.decodeHexString(_publicKeyToBeFilledController.text),
       );
       if (verified) {
-        sl.get<NotificationsBloc>().addNotification(
+        await sl.get<NotificationsBloc>().addNotification(
               WalletNotification(
                 title: 'Message verified successfully',
                 timestamp: DateTime.now().millisecondsSinceEpoch,
@@ -465,7 +465,7 @@ class _SecurityWidgetState extends State<SecurityWidget> {
         throw 'Message or signature invalid';
       }
     } catch (e) {
-      NotificationUtils.sendNotificationError(
+      await NotificationUtils.sendNotificationError(
           e, 'Error while verifying message');
     } finally {
       _verifyButtonKey.currentState?.animateReverse();
@@ -562,7 +562,7 @@ class _SecurityWidgetState extends State<SecurityWidget> {
         _signSelectFileWidgetKey.currentState!.resetMessageToUser();
       });
     } catch (e) {
-      NotificationUtils.sendNotificationError(e, 'Error while signing message');
+      await NotificationUtils.sendNotificationError(e, 'Error while signing message');
     } finally {
       _signFileButtonKey.currentState?.animateReverse();
     }
@@ -667,7 +667,7 @@ class _SecurityWidgetState extends State<SecurityWidget> {
     );
   }
 
-  void _onVerifyFileButtonPressed() async {
+  Future<void> _onVerifyFileButtonPressed() async {
     try {
       _verifyFileButtonKey.currentState?.animateForward();
       bool verified = await Crypto.verify(
@@ -678,7 +678,7 @@ class _SecurityWidgetState extends State<SecurityWidget> {
         FormatUtils.decodeHexString(_publicKeyVerifyFileController.text),
       );
       if (verified) {
-        sl.get<NotificationsBloc>().addNotification(
+        await sl.get<NotificationsBloc>().addNotification(
               WalletNotification(
                 title: 'File hash verified successfully',
                 timestamp: DateTime.now().millisecondsSinceEpoch,
@@ -698,7 +698,7 @@ class _SecurityWidgetState extends State<SecurityWidget> {
         throw 'Hash or public key invalid';
       }
     } catch (e) {
-      NotificationUtils.sendNotificationError(
+      await NotificationUtils.sendNotificationError(
           e, 'Error while verifying file hash:');
     } finally {
       _verifyFileButtonKey.currentState?.animateReverse();

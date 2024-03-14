@@ -314,9 +314,9 @@ class _SendLargeCardState extends State<SendLargeCard> {
     return ViewModelBuilder<SendPaymentBloc>.reactive(
       onViewModelReady: (model) {
         model.stream.listen(
-          (event) {
+          (event) async {
             if (event is AccountBlockTemplate) {
-              _sendConfirmationNotification();
+              await _sendConfirmationNotification();
               setState(() {
                 _sendPaymentButtonKey.currentState?.animateReverse();
                 _amountController = TextEditingController();
@@ -326,9 +326,9 @@ class _SendLargeCardState extends State<SendLargeCard> {
               });
             }
           },
-          onError: (error) {
+          onError: (error) async {
             _sendPaymentButtonKey.currentState?.animateReverse();
-            _sendErrorNotification(error);
+            await _sendErrorNotification(error);
           },
         );
       },
@@ -343,8 +343,8 @@ class _SendLargeCardState extends State<SendLargeCard> {
     );
   }
 
-  void _sendErrorNotification(error) {
-    NotificationUtils.sendNotificationError(
+  Future<void> _sendErrorNotification(error) async {
+    await NotificationUtils.sendNotificationError(
       error,
       'Couldn\'t send ${_amountController.text} '
       '${_selectedToken.symbol} '
@@ -352,8 +352,8 @@ class _SendLargeCardState extends State<SendLargeCard> {
     );
   }
 
-  void _sendConfirmationNotification() {
-    sl.get<NotificationsBloc>().addNotification(
+  Future<void> _sendConfirmationNotification() async {
+    await sl.get<NotificationsBloc>().addNotification(
           WalletNotification(
             title: 'Sent ${_amountController.text} ${_selectedToken.symbol} '
                 'to ${ZenonAddressUtils.getLabel(_recipientController.text)}',

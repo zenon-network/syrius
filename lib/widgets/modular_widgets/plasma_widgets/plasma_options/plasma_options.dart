@@ -342,9 +342,9 @@ class _PlasmaOptionsState extends State<PlasmaOptions> {
               widget.plasmaListBloc.refreshResults();
             }
           },
-          onError: (error) {
+          onError: (error) async {
             _fuseButtonKey.currentState?.animateReverse();
-            NotificationUtils.sendNotificationError(
+            await NotificationUtils.sendNotificationError(
               error,
               'Error while generating Plasma',
             );

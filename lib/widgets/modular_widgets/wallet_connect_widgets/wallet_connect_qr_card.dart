@@ -100,7 +100,7 @@ class _WalletConnectQrCardState extends State<WalletConnectQrCard> {
       _uriKey.currentState?.reset();
       setState(() {});
     } catch (e) {
-      NotificationUtils.sendNotificationError(e, 'Pairing failed');
+      await NotificationUtils.sendNotificationError(e, 'Pairing failed');
     }
   }
 
@@ -139,35 +139,35 @@ class _WalletConnectQrCardState extends State<WalletConnectQrCard> {
         if (result.rawBytes!.isNotEmpty) {
           if (result.text.isNotEmpty &&
               WalletConnectUri.tryParse(result.text) != null) {
-            windowManager.show();
+            await windowManager.show();
             _uriController.text = result.text;
           } else {
-            windowManager.show();
-            sl<NotificationsBloc>().addNotification(WalletNotification(
+            await windowManager.show();
+            await sl<NotificationsBloc>().addNotification(WalletNotification(
                 title: 'Invalid QR code',
                 timestamp: DateTime.now().millisecondsSinceEpoch,
                 details: 'Please scan a valid WalletConnect QR code',
                 type: NotificationType.error));
           }
         } else {
-          windowManager.show();
-          sl<NotificationsBloc>().addNotification(WalletNotification(
+          await windowManager.show();
+          await sl<NotificationsBloc>().addNotification(WalletNotification(
               title: 'QR code scan failed',
               timestamp: DateTime.now().millisecondsSinceEpoch,
               details: 'Please scan a valid WalletConnect QR code',
               type: NotificationType.error));
         }
-        _pairWithDapp(Uri.parse(result.text));
+        await _pairWithDapp(Uri.parse(result.text));
       } else {
-        windowManager.show();
-        sl<NotificationsBloc>().addErrorNotification(
+        await windowManager.show();
+        await sl<NotificationsBloc>().addErrorNotification(
           'User canceled the QR scanning operation',
           'User QR scan canceled',
         );
       }
     } on Exception catch (e) {
-      windowManager.show();
-      sl<NotificationsBloc>()
+      await windowManager.show();
+      await sl<NotificationsBloc>()
           .addErrorNotification(e, 'Invalid QR code exception');
     }
   }
@@ -175,7 +175,7 @@ class _WalletConnectQrCardState extends State<WalletConnectQrCard> {
   Future<bool> checkPermissionForMacOS() async {
     if (Platform.isMacOS) {
       if (!await _requestAccessForMacOS()) {
-        sl<NotificationsBloc>().addNotification(WalletNotification(
+        await sl<NotificationsBloc>().addNotification(WalletNotification(
             title: 'Permission required',
             timestamp: DateTime.now().millisecondsSinceEpoch,
             details:

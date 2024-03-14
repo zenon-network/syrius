@@ -271,7 +271,7 @@ class _HardwareWalletDeviceChoiceScreenState
   Future<Address> _getWalletAddress(Wallet wallet) async {
     final account = await wallet.getAccount();
     if (account is LedgerWalletAccount) {
-      sl.get<NotificationsBloc>().addNotification(
+      await sl.get<NotificationsBloc>().addNotification(
             WalletNotification(
               title:
                   'Resolving address, please confirm the address on your hardware device',

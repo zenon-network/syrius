@@ -127,7 +127,7 @@ class _WalletConnectUriCardState extends State<WalletConnectUriCard> {
     } catch (e, stackTrace) {
       Logger('WalletConnectPairingCard')
           .log(Level.INFO, 'pairing failed', e, stackTrace);
-      NotificationUtils.sendNotificationError(e, 'Pairing failed');
+      await NotificationUtils.sendNotificationError(e, 'Pairing failed');
     }
   }
 }

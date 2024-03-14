@@ -142,7 +142,7 @@ class _WalletConnectPairingsCardState extends State<WalletConnectPairingsCard> {
       _pairingsBloc.refreshResults();
       sl<WalletConnectSessionsBloc>().refreshResults();
     } catch (e) {
-      sl<NotificationsBloc>().addErrorNotification(
+      await sl<NotificationsBloc>().addErrorNotification(
         e,
         'Error while deactivating pair',
       );

@@ -63,8 +63,8 @@ class _TokenFavoriteState extends State<TokenFavorite> {
       _showLoading = true;
     });
     _favoriteTokensBox.add(widget.token.tokenStandard.toString()).then(
-      (value) {
-        sl.get<NotificationsBloc>().addNotification(
+      (value) async {
+        await sl.get<NotificationsBloc>().addNotification(
               WalletNotification(
                 title: '${widget.token.name} token has been added to favorites',
                 details: 'Token ${widget.token.name} with symbol '
@@ -79,8 +79,8 @@ class _TokenFavoriteState extends State<TokenFavorite> {
         });
         widget._tokenFavoritesCallback();
       },
-      onError: (error) {
-        NotificationUtils.sendNotificationError(
+      onError: (error) async {
+        await NotificationUtils.sendNotificationError(
           error,
           'Error adding ${widget.token.name} token to favorites',
         );
@@ -99,8 +99,8 @@ class _TokenFavoriteState extends State<TokenFavorite> {
           ),
     )
         .then(
-      (value) {
-        sl.get<NotificationsBloc>().addNotification(
+      (value) async {
+        await sl.get<NotificationsBloc>().addNotification(
               WalletNotification(
                 title: '${widget.token.name} token has been removed '
                     'from favorites',
@@ -116,8 +116,8 @@ class _TokenFavoriteState extends State<TokenFavorite> {
         });
         widget._tokenFavoritesCallback();
       },
-      onError: (error) {
-        NotificationUtils.sendNotificationError(
+      onError: (error) async {
+        await NotificationUtils.sendNotificationError(
           error,
           'Error removing ${widget.token.name} token from favorites',
         );

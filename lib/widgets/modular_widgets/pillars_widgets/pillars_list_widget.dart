@@ -451,8 +451,8 @@ class _PillarsListWidgetState extends State<PillarsListWidget> {
               pillarsListModel.refreshResults();
             }
           },
-          onError: (error) {
-            NotificationUtils.sendNotificationError(
+          onError: (error) async {
+            await NotificationUtils.sendNotificationError(
               error,
               'Error while disassembling Pillar',
             );
@@ -583,9 +583,9 @@ class _PillarsListWidgetState extends State<PillarsListWidget> {
               _delegationInfoBloc.updateStream();
             }
           },
-          onError: (error) {
+          onError: (error) async {
             undelegateButtonKey.currentState?.animateReverse();
-            NotificationUtils.sendNotificationError(
+            await NotificationUtils.sendNotificationError(
               error,
               'Error while undelegating',
             );
@@ -655,9 +655,9 @@ class _PillarsListWidgetState extends State<PillarsListWidget> {
                 });
               }
             },
-            onError: (error) {
+            onError: (error) async {
               delegateButtonKey.currentState?.animateReverse();
-              NotificationUtils.sendNotificationError(
+              await NotificationUtils.sendNotificationError(
                 error,
                 'Pillar delegation error',
               );
