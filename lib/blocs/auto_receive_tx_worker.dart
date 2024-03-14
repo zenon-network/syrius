@@ -93,8 +93,6 @@ class AutoReceiveTxWorker extends BaseBloc<WalletNotification> {
           if (pool.isNotEmpty) {
             pool.removeFirst();
           }
-        } else {
-          _sendErrorNotification(e.toString());
         }
       } catch (e, stackTrace) {
         Logger('AutoReceiveTxWorker')
