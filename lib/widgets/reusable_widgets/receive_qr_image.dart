@@ -21,6 +21,8 @@ class ReceiveQrImage extends StatelessWidget {
   final BuildContext context;
 
   static const decorationImage = PrettyQrDecorationImage(
+    scale: 0.3,
+    padding: EdgeInsets.only(top: 10, bottom: 10),
     image: AssetImage('assets/images/qr_code_child_image_znn.png'),
     position: PrettyQrDecorationImagePosition.embedded,
   );
