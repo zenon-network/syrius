@@ -199,7 +199,7 @@ class _MainAppContainerState extends State<MainAppContainer>
                   ),
                   child: Padding(
                     padding: const EdgeInsets.symmetric(
-                      horizontal: 10.0,
+                      horizontal: 12.0,
                     ),
                     child: Focus(
                       focusNode: _focusNode,
