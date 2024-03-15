@@ -1573,7 +1573,7 @@ packages:
     description:
       path: "."
       ref: "release/v0.0.4"
-      resolved-ref: c66264f599038e15a3457e382cfaaff202ab231a
+      resolved-ref: "9fde67444e82448a2f5dc1d9f0ee32ef8cdd9600"
       url: "https://github.com/hypercore-one/znn_ledger_dart.git"
     source: git
     version: "0.0.4"
