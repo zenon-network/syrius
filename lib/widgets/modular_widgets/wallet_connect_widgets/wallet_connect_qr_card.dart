@@ -56,20 +56,26 @@ class _WalletConnectQrCardState extends State<WalletConnectQrCard> {
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
           Container(
+            height: 130,
+            width: 130,
             padding: const EdgeInsets.all(10.0),
             decoration: BoxDecoration(
               color: Theme.of(context).colorScheme.background,
               borderRadius: BorderRadius.circular(15.0),
             ),
-            child: PrettyQr(
+            child: PrettyQrView.data(
               data: 'Scan the WalletConnect QR from the dApp',
-              size: 100.0,
-              elementColor: AppColors.znnColor,
-              image:
-                  const AssetImage('assets/images/qr_code_child_image_znn.png'),
-              typeNumber: 7,
-              errorCorrectLevel: QrErrorCorrectLevel.M,
-              roundEdges: true,
+              decoration: const PrettyQrDecoration(
+                  shape: PrettyQrSmoothSymbol(
+                    roundFactor: 0,
+                    color: AppColors.znnColor,
+                  ),
+                  image: PrettyQrDecorationImage(
+                      scale: 0.3,
+                      padding: EdgeInsets.only(top: 10, bottom: 10),
+                      image: AssetImage(
+                          'assets/images/qr_code_child_image_znn.png'))),
+              errorCorrectLevel: QrErrorCorrectLevel.H,
             ),
           ),
           MyOutlinedButton(
