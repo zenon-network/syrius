@@ -82,7 +82,7 @@ class _CreateSentinelState extends State<CreateSentinel> {
               context,
               MaterialPageRoute(
                 builder: (context) => StepperScreen(
-                  stepper: const SentinelsStepperContainer(),
+                  stepper: const SentinelStepperContainer(),
                   onStepperNotificationSeeMorePressed:
                       widget.onStepperNotificationSeeMorePressed,
                 ),

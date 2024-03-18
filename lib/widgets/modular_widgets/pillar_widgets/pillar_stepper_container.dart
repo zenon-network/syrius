@@ -26,27 +26,27 @@ enum PillarType {
   regularPillar,
 }
 
-enum PillarsStepperStep {
+enum PillarStepperStep {
   checkPlasma,
   qsrManagement,
   znnManagement,
   deployPillar,
 }
 
-class PillarsStepperContainer extends StatefulWidget {
-  const PillarsStepperContainer({Key? key}) : super(key: key);
+class PillarStepperContainer extends StatefulWidget {
+  const PillarStepperContainer({Key? key}) : super(key: key);
 
   @override
   State createState() {
-    return _MainPillarsState();
+    return _MainPillarState();
   }
 }
 
-class _MainPillarsState extends State<PillarsStepperContainer> {
-  late PillarsStepperStep _currentStep;
-  PillarsStepperStep? _lastCompletedStep;
+class _MainPillarState extends State<PillarStepperContainer> {
+  late PillarStepperStep _currentStep;
+  PillarStepperStep? _lastCompletedStep;
 
-  final int _numSteps = PillarsStepperStep.values.length;
+  final int _numSteps = PillarStepperStep.values.length;
 
   PillarType? _selectedPillarType = PillarType.regularPillar;
 
@@ -406,7 +406,7 @@ class _MainPillarsState extends State<PillarsStepperContainer> {
             if (event != null) {
               _withdrawButtonKey.currentState?.animateReverse();
               _saveProgressAndNavigateToNextStep(
-                PillarsStepperStep.checkPlasma,
+                PillarStepperStep.checkPlasma,
               );
               _pillarsQsrInfoViewModel.getQsrManagementInfo(
                 _selectedPillarType,
@@ -459,7 +459,7 @@ class _MainPillarsState extends State<PillarsStepperContainer> {
             stepContent: _getPlasmaCheckFutureBuilder(),
             stepSubtitle: 'Sufficient Plasma',
             stepState: StepperUtils.getStepState(
-              PillarsStepperStep.checkPlasma.index,
+              PillarStepperStep.checkPlasma.index,
               _lastCompletedStep?.index,
             ),
             context: context,
@@ -469,7 +469,7 @@ class _MainPillarsState extends State<PillarsStepperContainer> {
             stepContent: _getQsrManagementStep(context, accountInfo),
             stepSubtitle: '${kQsrCoin.symbol} deposited',
             stepState: StepperUtils.getStepState(
-              PillarsStepperStep.qsrManagement.index,
+              PillarStepperStep.qsrManagement.index,
               _lastCompletedStep?.index,
             ),
             context: context,
@@ -480,7 +480,7 @@ class _MainPillarsState extends State<PillarsStepperContainer> {
             stepContent: _getZnnManagementStepBody(context, accountInfo),
             stepSubtitle: '${kZnnCoin.symbol} locked',
             stepState: StepperUtils.getStepState(
-              PillarsStepperStep.znnManagement.index,
+              PillarStepperStep.znnManagement.index,
               _lastCompletedStep?.index,
             ),
             context: context,
@@ -490,7 +490,7 @@ class _MainPillarsState extends State<PillarsStepperContainer> {
             stepContent: _getDeployPillarStepBody(context),
             stepSubtitle: 'Pillar registered',
             stepState: StepperUtils.getStepState(
-              PillarsStepperStep.deployPillar.index,
+              PillarStepperStep.deployPillar.index,
               _lastCompletedStep?.index,
             ),
             context: context,
@@ -631,7 +631,7 @@ class _MainPillarsState extends State<PillarsStepperContainer> {
             if (response != null) {
               _registerButtonKey.currentState?.animateReverse();
               _saveProgressAndNavigateToNextStep(
-                PillarsStepperStep.deployPillar,
+                PillarStepperStep.deployPillar,
               );
               setState(() {});
             } else {
@@ -675,7 +675,7 @@ class _MainPillarsState extends State<PillarsStepperContainer> {
           ],
         ),
         kVerticalSpacing,
-        StepperUtils.getBalanceWidget(kZnnCoin, accountInfo!),
+        StepperUtils.getBalanceWidget(kZnnCoin, accountInfo),
         kVerticalSpacing,
         Row(
           children: [
@@ -723,21 +723,21 @@ class _MainPillarsState extends State<PillarsStepperContainer> {
   }
 
   void _onNextPressed() {
-    if (_lastCompletedStep == PillarsStepperStep.qsrManagement) {
-      _saveProgressAndNavigateToNextStep(PillarsStepperStep.znnManagement);
+    if (_lastCompletedStep == PillarStepperStep.qsrManagement) {
+      _saveProgressAndNavigateToNextStep(PillarStepperStep.znnManagement);
     } else if (StepperUtils.getStepState(
-          PillarsStepperStep.qsrManagement.index,
+          PillarStepperStep.qsrManagement.index,
           _lastCompletedStep?.index,
         ) ==
         custom_material_stepper.StepState.complete) {
       setState(() {
-        _currentStep = PillarsStepperStep.values[_currentStep.index + 1];
+        _currentStep = PillarStepperStep.values[_currentStep.index + 1];
       });
     }
   }
 
   void _onDeployPressed(PillarsDeployBloc model) {
-    if (_lastCompletedStep == PillarsStepperStep.znnManagement) {
+    if (_lastCompletedStep == PillarStepperStep.znnManagement) {
       if (_pillarFormKeys
           .every((element) => element.currentState!.validate())) {
         _registerButtonKey.currentState?.animateForward();
@@ -910,17 +910,17 @@ class _MainPillarsState extends State<PillarsStepperContainer> {
     });
   }
   
-  void _saveProgressAndNavigateToNextStep(PillarsStepperStep completedStep) {
+  void _saveProgressAndNavigateToNextStep(PillarStepperStep completedStep) {
     setState(() {
       _lastCompletedStep = completedStep;
       if (_lastCompletedStep!.index + 1 < _numSteps) {
-        _currentStep = PillarsStepperStep.values[completedStep.index + 1];
+        _currentStep = PillarStepperStep.values[completedStep.index + 1];
       }
     });
   }
 
   void _iniStepperControllers() {
-    _currentStep = PillarsStepperStep.values.first;
+    _currentStep = PillarStepperStep.values.first;
     _selectedPillarType = PillarType.values.first;
   }
 
@@ -955,7 +955,7 @@ class _MainPillarsState extends State<PillarsStepperContainer> {
 
   void _onQsrNextPressed() {
     setState(() {
-      _saveProgressAndNavigateToNextStep(PillarsStepperStep.qsrManagement);
+      _saveProgressAndNavigateToNextStep(PillarStepperStep.qsrManagement);
     });
   }
 
@@ -1014,14 +1014,14 @@ class _MainPillarsState extends State<PillarsStepperContainer> {
 
   void _onPlasmaCheckNextPressed() {
     if (_lastCompletedStep == null) {
-      _saveProgressAndNavigateToNextStep(PillarsStepperStep.checkPlasma);
+      _saveProgressAndNavigateToNextStep(PillarStepperStep.checkPlasma);
     } else if (StepperUtils.getStepState(
-          PillarsStepperStep.checkPlasma.index,
+          PillarStepperStep.checkPlasma.index,
           _lastCompletedStep?.index,
         ) ==
         custom_material_stepper.StepState.complete) {
       setState(() {
-        _currentStep = PillarsStepperStep.values[_currentStep.index + 1];
+        _currentStep = PillarStepperStep.values[_currentStep.index + 1];
       });
     }
   }

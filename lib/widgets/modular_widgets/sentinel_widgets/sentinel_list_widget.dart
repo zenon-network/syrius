@@ -9,14 +9,14 @@ import 'package:zenon_syrius_wallet_flutter/utils/widget_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
-class SentinelsListWidget extends StatefulWidget {
-  const SentinelsListWidget({Key? key}) : super(key: key);
+class SentinelListWidget extends StatefulWidget {
+  const SentinelListWidget({Key? key}) : super(key: key);
 
   @override
-  State<SentinelsListWidget> createState() => _SentinelsListWidgetState();
+  State<SentinelListWidget> createState() => _SentinelListWidgetState();
 }
 
-class _SentinelsListWidgetState extends State<SentinelsListWidget> {
+class _SentinelListWidgetState extends State<SentinelListWidget> {
   late SentinelsListBloc _bloc;
 
   final List<SentinelInfo> _sentinels = [];

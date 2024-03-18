@@ -22,27 +22,27 @@ import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/custom_mate
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
-enum SentinelsStepperStep {
+enum SentinelStepperStep {
   checkPlasma,
   qsrManagement,
   znnManagement,
   deploySentinel,
 }
 
-class SentinelsStepperContainer extends StatefulWidget {
-  const SentinelsStepperContainer({Key? key}) : super(key: key);
+class SentinelStepperContainer extends StatefulWidget {
+  const SentinelStepperContainer({Key? key}) : super(key: key);
 
   @override
   State createState() {
-    return _MainSentinelsState();
+    return _MainSentinelState();
   }
 }
 
-class _MainSentinelsState extends State<SentinelsStepperContainer> {
-  late SentinelsStepperStep _currentStep;
-  SentinelsStepperStep? _lastCompletedStep;
+class _MainSentinelState extends State<SentinelStepperContainer> {
+  late SentinelStepperStep _currentStep;
+  SentinelStepperStep? _lastCompletedStep;
 
-  final int _numSteps = SentinelsStepperStep.values.length;
+  final int _numSteps = SentinelStepperStep.values.length;
 
   final TextEditingController _qsrAmountController = TextEditingController();
   final TextEditingController _znnAmountController = TextEditingController();
@@ -374,7 +374,7 @@ class _MainSentinelsState extends State<SentinelsStepperContainer> {
             if (event != null) {
               _withdrawButtonKey.currentState?.animateReverse();
               _saveProgressAndNavigateToNextStep(
-                SentinelsStepperStep.checkPlasma,
+                SentinelStepperStep.checkPlasma,
               );
               _sentinelsQsrInfoViewModel.getQsrManagementInfo(
                 _addressController.text,
@@ -426,7 +426,7 @@ class _MainSentinelsState extends State<SentinelsStepperContainer> {
             stepContent: _getPlasmaCheckFutureBuilder(),
             stepSubtitle: 'Sufficient Plasma',
             stepState: StepperUtils.getStepState(
-              SentinelsStepperStep.checkPlasma.index,
+              SentinelStepperStep.checkPlasma.index,
               _lastCompletedStep?.index,
             ),
             context: context,
@@ -436,7 +436,7 @@ class _MainSentinelsState extends State<SentinelsStepperContainer> {
             stepContent: _getQsrManagementStep(context, accountInfo),
             stepSubtitle: '${kQsrCoin.symbol} deposited',
             stepState: StepperUtils.getStepState(
-              SentinelsStepperStep.qsrManagement.index,
+              SentinelStepperStep.qsrManagement.index,
               _lastCompletedStep?.index,
             ),
             context: context,
@@ -447,7 +447,7 @@ class _MainSentinelsState extends State<SentinelsStepperContainer> {
             stepContent: _getZnnManagementStepBody(context, accountInfo),
             stepSubtitle: '${kZnnCoin.symbol} locked',
             stepState: StepperUtils.getStepState(
-              SentinelsStepperStep.znnManagement.index,
+              SentinelStepperStep.znnManagement.index,
               _lastCompletedStep?.index,
             ),
             context: context,
@@ -457,7 +457,7 @@ class _MainSentinelsState extends State<SentinelsStepperContainer> {
             stepContent: _getDeploySentinelStepBody(context),
             stepSubtitle: 'Sentinel registered',
             stepState: StepperUtils.getStepState(
-              SentinelsStepperStep.deploySentinel.index,
+              SentinelStepperStep.deploySentinel.index,
               _lastCompletedStep?.index,
             ),
             context: context,
@@ -495,7 +495,7 @@ class _MainSentinelsState extends State<SentinelsStepperContainer> {
             if (response != null) {
               _registerButtonKey.currentState?.animateReverse();
               _saveProgressAndNavigateToNextStep(
-                  SentinelsStepperStep.deploySentinel);
+                  SentinelStepperStep.deploySentinel);
               setState(() {});
             } else {
               setState(() {});
@@ -540,7 +540,7 @@ class _MainSentinelsState extends State<SentinelsStepperContainer> {
           ],
         ),
         kVerticalSpacing,
-        StepperUtils.getBalanceWidget(kZnnCoin, accountInfo!),
+        StepperUtils.getBalanceWidget(kZnnCoin, accountInfo),
         kVerticalSpacing,
         Row(
           children: [
@@ -586,21 +586,21 @@ class _MainSentinelsState extends State<SentinelsStepperContainer> {
   }
 
   void _onNextPressed() {
-    if (_lastCompletedStep == SentinelsStepperStep.qsrManagement) {
-      _saveProgressAndNavigateToNextStep(SentinelsStepperStep.znnManagement);
+    if (_lastCompletedStep == SentinelStepperStep.qsrManagement) {
+      _saveProgressAndNavigateToNextStep(SentinelStepperStep.znnManagement);
     } else if (StepperUtils.getStepState(
-          SentinelsStepperStep.qsrManagement.index,
+          SentinelStepperStep.qsrManagement.index,
           _lastCompletedStep?.index,
         ) ==
         custom_material_stepper.StepState.complete) {
       setState(() {
-        _currentStep = SentinelsStepperStep.values[_currentStep.index + 1];
+        _currentStep = SentinelStepperStep.values[_currentStep.index + 1];
       });
     }
   }
 
   void _onDeployPressed(SentinelsDeployBloc model) {
-    if (_lastCompletedStep == SentinelsStepperStep.znnManagement) {
+    if (_lastCompletedStep == SentinelStepperStep.znnManagement) {
       _registerButtonKey.currentState?.animateForward();
       model.deploySentinel(
           _znnAmountController.text.extractDecimals(coinDecimals));
@@ -625,7 +625,7 @@ class _MainSentinelsState extends State<SentinelsStepperContainer> {
             _getMaterialStepper(context, accountInfo),
             Visibility(
               visible:
-                  _lastCompletedStep == SentinelsStepperStep.deploySentinel,
+                  _lastCompletedStep == SentinelStepperStep.deploySentinel,
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.center,
@@ -711,7 +711,7 @@ class _MainSentinelsState extends State<SentinelsStepperContainer> {
           ],
         ),
         Visibility(
-          visible: _lastCompletedStep == SentinelsStepperStep.deploySentinel,
+          visible: _lastCompletedStep == SentinelStepperStep.deploySentinel,
           child: Positioned(
             right: 50.0,
             child: SizedBox(
@@ -741,17 +741,17 @@ class _MainSentinelsState extends State<SentinelsStepperContainer> {
     );
   }
 
-  void _saveProgressAndNavigateToNextStep(SentinelsStepperStep completedStep) {
+  void _saveProgressAndNavigateToNextStep(SentinelStepperStep completedStep) {
     setState(() {
       _lastCompletedStep = completedStep;
       if (_lastCompletedStep!.index + 1 < _numSteps) {
-        _currentStep = SentinelsStepperStep.values[completedStep.index + 1];
+        _currentStep = SentinelStepperStep.values[completedStep.index + 1];
       }
     });
   }
 
   void _iniStepperControllers() {
-    _currentStep = SentinelsStepperStep.values.first;
+    _currentStep = SentinelStepperStep.values.first;
   }
 
   bool _hasEnoughZnn(AccountInfo accountInfo) =>
@@ -768,7 +768,7 @@ class _MainSentinelsState extends State<SentinelsStepperContainer> {
 
   void _onQsrNextPressed() {
     setState(() {
-      _saveProgressAndNavigateToNextStep(SentinelsStepperStep.qsrManagement);
+      _saveProgressAndNavigateToNextStep(SentinelStepperStep.qsrManagement);
     });
   }
 
@@ -827,14 +827,14 @@ class _MainSentinelsState extends State<SentinelsStepperContainer> {
 
   void _onPlasmaCheckNextPressed() {
     if (_lastCompletedStep == null) {
-      _saveProgressAndNavigateToNextStep(SentinelsStepperStep.checkPlasma);
+      _saveProgressAndNavigateToNextStep(SentinelStepperStep.checkPlasma);
     } else if (StepperUtils.getStepState(
-          SentinelsStepperStep.checkPlasma.index,
+          SentinelStepperStep.checkPlasma.index,
           _lastCompletedStep?.index,
         ) ==
         custom_material_stepper.StepState.complete) {
       setState(() {
-        _currentStep = SentinelsStepperStep.values[_currentStep.index + 1];
+        _currentStep = SentinelStepperStep.values[_currentStep.index + 1];
       });
     }
   }

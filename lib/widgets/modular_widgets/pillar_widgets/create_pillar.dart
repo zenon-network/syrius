@@ -65,7 +65,7 @@ class _CreatePillarState extends State<CreatePillar> {
                   context,
                   MaterialPageRoute(
                     builder: (context) => StepperScreen(
-                      stepper: const PillarsStepperContainer(),
+                      stepper: const PillarStepperContainer(),
                       onStepperNotificationSeeMorePressed:
                           widget.onStepperNotificationSeeMorePressed,
                     ),
