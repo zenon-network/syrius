@@ -191,9 +191,11 @@ class _MainSentinelState extends State<SentinelStepperContainer> {
                               _qsrAmountController.text,
                             ),
                             controller: _qsrAmountController,
-                            validator: (value) => _qsrAmountValidator(
+                            validator: (value) => InputValidators.correctValue(
                               value,
-                              qsrInfo,
+                              _maxQsrAmount,
+                              kQsrCoin.decimals,
+                              BigInt.zero,
                             ),
                             suffixIcon: _getAmountSuffix(accountInfo),
                             suffixIconConstraints:
@@ -222,7 +224,7 @@ class _MainSentinelState extends State<SentinelStepperContainer> {
                 children: [
                   Visibility(
                     visible: qsrInfo.deposit < qsrInfo.cost,
-                    child: _getDepositQsrViewModel(qsrInfo),
+                    child: _getDepositQsrViewModel(accountInfo, qsrInfo),
                   ),
                   Visibility(
                     visible: qsrInfo.deposit >= qsrInfo.cost,
@@ -322,7 +324,8 @@ class _MainSentinelState extends State<SentinelStepperContainer> {
     );
   }
 
-  Widget _getDepositQsrViewModel(SentinelsQsrInfo qsrInfo) {
+  Widget _getDepositQsrViewModel(
+      AccountInfo accountInfo, SentinelsQsrInfo qsrInfo) {
     return ViewModelBuilder<SentinelsDepositQsrBloc>.reactive(
       onViewModelReady: (model) {
         model.stream.listen(
@@ -347,19 +350,22 @@ class _MainSentinelState extends State<SentinelStepperContainer> {
           },
         );
       },
-      builder: (_, model, __) => _getDepositQsrButton(model, qsrInfo),
+      builder: (_, model, __) =>
+          _getDepositQsrButton(model, accountInfo, qsrInfo),
       viewModelBuilder: () => SentinelsDepositQsrBloc(),
     );
   }
 
   Widget _getDepositQsrButton(
     SentinelsDepositQsrBloc model,
+    AccountInfo accountInfo,
     SentinelsQsrInfo qsrInfo,
   ) {
     return LoadingButton.stepper(
       key: _depositQsrButtonKey,
       text: 'Deposit',
-      onPressed: _qsrAmountValidator(_qsrAmountController.text, qsrInfo) == null
+      onPressed: _hasQsrBalance(accountInfo) &&
+              _qsrAmountValidator(_qsrAmountController.text, qsrInfo) == null
           ? () => _onDepositButtonPressed(model, qsrInfo)
           : null,
       outlineColor: AppColors.qsrColor,
@@ -624,8 +630,7 @@ class _MainSentinelState extends State<SentinelStepperContainer> {
           children: [
             _getMaterialStepper(context, accountInfo),
             Visibility(
-              visible:
-                  _lastCompletedStep == SentinelStepperStep.deploySentinel,
+              visible: _lastCompletedStep == SentinelStepperStep.deploySentinel,
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.center,
@@ -756,6 +761,9 @@ class _MainSentinelState extends State<SentinelStepperContainer> {
 
   bool _hasEnoughZnn(AccountInfo accountInfo) =>
       accountInfo.znn()! >= sentinelRegisterZnnAmount;
+
+  bool _hasQsrBalance(AccountInfo accountInfo) =>
+      accountInfo.qsr()! > BigInt.zero;
 
   String? _qsrAmountValidator(String? value, SentinelsQsrInfo qsrInfo) =>
       InputValidators.correctValue(

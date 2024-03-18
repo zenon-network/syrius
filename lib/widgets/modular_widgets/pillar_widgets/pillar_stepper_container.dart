@@ -219,9 +219,11 @@ class _MainPillarState extends State<PillarStepperContainer> {
                               _qsrAmountController.text,
                             ),
                             controller: _qsrAmountController,
-                            validator: (value) => _qsrAmountValidator(
+                            validator: (value) => InputValidators.correctValue(
                               value,
-                              qsrInfo,
+                              _maxQsrAmount,
+                              kQsrCoin.decimals,
+                              BigInt.zero,
                             ),
                             suffixIcon: _getAmountSuffix(accountInfo),
                             suffixIconConstraints:
@@ -250,7 +252,7 @@ class _MainPillarState extends State<PillarStepperContainer> {
                 children: [
                   Visibility(
                     visible: qsrInfo.deposit < qsrInfo.cost,
-                    child: _getDepositQsrViewModel(qsrInfo),
+                    child: _getDepositQsrViewModel(accountInfo, qsrInfo),
                   ),
                   Visibility(
                     visible: qsrInfo.deposit >= qsrInfo.cost,
@@ -351,7 +353,8 @@ class _MainPillarState extends State<PillarStepperContainer> {
     );
   }
 
-  Widget _getDepositQsrViewModel(PillarsQsrInfo qsrInfo) {
+  Widget _getDepositQsrViewModel(
+      AccountInfo accountInfo, PillarsQsrInfo qsrInfo) {
     return ViewModelBuilder<PillarsDepositQsrBloc>.reactive(
       onViewModelReady: (model) {
         model.stream.listen(
@@ -377,19 +380,22 @@ class _MainPillarState extends State<PillarStepperContainer> {
           },
         );
       },
-      builder: (_, model, __) => _getDepositQsrButton(model, qsrInfo),
+      builder: (_, model, __) =>
+          _getDepositQsrButton(model, accountInfo, qsrInfo),
       viewModelBuilder: () => PillarsDepositQsrBloc(),
     );
   }
 
   Widget _getDepositQsrButton(
     PillarsDepositQsrBloc model,
+    AccountInfo accountInfo,
     PillarsQsrInfo qsrInfo,
   ) {
     return LoadingButton.stepper(
       key: _depositQsrButtonKey,
       text: 'Deposit',
-      onPressed: _qsrAmountValidator(_qsrAmountController.text, qsrInfo) == null
+      onPressed: _hasQsrBalance(accountInfo) &&
+              _qsrAmountValidator(_qsrAmountController.text, qsrInfo) == null
           ? () => _onDepositButtonPressed(model, qsrInfo)
           : null,
       outlineColor: AppColors.qsrColor,
@@ -909,7 +915,7 @@ class _MainPillarState extends State<PillarStepperContainer> {
       _iniStepperControllers();
     });
   }
-  
+
   void _saveProgressAndNavigateToNextStep(PillarStepperStep completedStep) {
     setState(() {
       _lastCompletedStep = completedStep;
@@ -943,6 +949,9 @@ class _MainPillarState extends State<PillarStepperContainer> {
             _pillarMomentumController.text,
           ) ==
           null;
+
+  bool _hasQsrBalance(AccountInfo accountInfo) =>
+      accountInfo.qsr()! > BigInt.zero;
 
   String? _qsrAmountValidator(String? value, PillarsQsrInfo qsrInfo) =>
       InputValidators.correctValue(
