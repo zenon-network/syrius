@@ -6,6 +6,7 @@ import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/model/database/notification_type.dart';
 import 'package:zenon_syrius_wallet_flutter/model/database/wallet_notification.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/notification_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/wallet_file.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
@@ -60,6 +61,9 @@ class ZenonAddressUtils {
         callback?.call();
       }
       listAddr.clear();
+    } catch (e) {
+      await NotificationUtils.sendNotificationError(
+          e, 'Error while generating new address');
     } finally {
       kWalletFile!.close();
     }
