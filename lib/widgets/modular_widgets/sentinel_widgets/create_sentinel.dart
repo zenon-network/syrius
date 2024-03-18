@@ -29,11 +29,11 @@ class _CreateSentinelState extends State<CreateSentinel> {
       title: 'Create Sentinel',
       description: 'Start the process of deploying a Sentinel Node in the '
           'network',
-      childBuilder: () => _widgetBody(),
+      childBuilder: () => _getStreamBuilder(context),
     );
   }
 
-  Widget _widgetBody() {
+  Widget _getStreamBuilder(BuildContext context) {
     return StreamBuilder<SentinelInfo?>(
       stream: _getSentinelByOwnerBloc.stream,
       builder: (context, snapshot) {
@@ -42,9 +42,9 @@ class _CreateSentinelState extends State<CreateSentinel> {
         }
         if (snapshot.connectionState == ConnectionState.active) {
           if (snapshot.hasData && snapshot.data!.active) {
-            return _getAlreadyCreatedSentinelBody(context);
+            return _getAlreadyCreatedSentinelWidgetBody(context);
           } else {
-            return _getCreateSentinelBody(context);
+            return _getCreateSentinelWidgetBody(context);
           }
         }
         return const SyriusLoadingWidget();
@@ -52,7 +52,7 @@ class _CreateSentinelState extends State<CreateSentinel> {
     );
   }
 
-  Center _getAlreadyCreatedSentinelBody(BuildContext context) {
+  Center _getAlreadyCreatedSentinelWidgetBody(BuildContext context) {
     return Center(
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -71,7 +71,7 @@ class _CreateSentinelState extends State<CreateSentinel> {
     );
   }
 
-  Row _getCreateSentinelBody(BuildContext context) {
+  Row _getCreateSentinelWidgetBody(BuildContext context) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceAround,
       children: [

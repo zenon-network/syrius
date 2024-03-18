@@ -58,7 +58,6 @@ class _MainPillarsState extends State<PillarsStepperContainer> {
       TextEditingController();
   final TextEditingController _znnAmountController = TextEditingController();
   final TextEditingController _addressController = TextEditingController();
-  final TextEditingController _passwordController = TextEditingController();
 
   final FocusNode _pillarNameNode = FocusNode();
   final FocusNode _pillarRewardNode = FocusNode();
@@ -468,7 +467,7 @@ class _MainPillarsState extends State<PillarsStepperContainer> {
           StepperUtils.getMaterialStep(
             stepTitle: '${kQsrCoin.symbol} management',
             stepContent: _getQsrManagementStep(context, accountInfo),
-            stepSubtitle: '${kQsrCoin.symbol} Deposited',
+            stepSubtitle: '${kQsrCoin.symbol} deposited',
             stepState: StepperUtils.getStepState(
               PillarsStepperStep.qsrManagement.index,
               _lastCompletedStep?.index,
@@ -675,7 +674,9 @@ class _MainPillarsState extends State<PillarsStepperContainer> {
             ),
           ],
         ),
-        StepperUtils.getBalanceWidget(kZnnCoin, accountInfo),
+        kVerticalSpacing,
+        StepperUtils.getBalanceWidget(kZnnCoin, accountInfo!),
+        kVerticalSpacing,
         Row(
           children: [
             Expanded(
@@ -1109,7 +1110,6 @@ class _MainPillarsState extends State<PillarsStepperContainer> {
     _pillarMomentumController.dispose();
     _znnAmountController.dispose();
     _addressController.dispose();
-    _passwordController.dispose();
     _pillarNameNode.dispose();
     _pillarRewardNode.dispose();
     _pillarMomentumNode.dispose;

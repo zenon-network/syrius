@@ -6,6 +6,7 @@ import 'package:lottie/lottie.dart';
 import 'package:stacked/stacked.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
+import 'package:zenon_syrius_wallet_flutter/model/model.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/extensions.dart';
@@ -41,28 +42,24 @@ class _MainSentinelsState extends State<SentinelsStepperContainer> {
   late SentinelsStepperStep _currentStep;
   SentinelsStepperStep? _lastCompletedStep;
 
+  final int _numSteps = SentinelsStepperStep.values.length;
+
   final TextEditingController _qsrAmountController = TextEditingController();
   final TextEditingController _znnAmountController = TextEditingController();
   final TextEditingController _addressController = TextEditingController();
+  final GlobalKey<FormState> _qsrFormKey = GlobalKey();
 
   final GlobalKey<LoadingButtonState> _depositQsrButtonKey = GlobalKey();
   final GlobalKey<LoadingButtonState> _withdrawButtonKey = GlobalKey();
   final GlobalKey<LoadingButtonState> _registerButtonKey = GlobalKey();
-  final GlobalKey<FormState> _qsrFormKey = GlobalKey();
 
-  BigInt _withdrawnQSR = BigInt.zero;
   BigInt _maxQsrAmount = BigInt.zero;
-  BigInt _qsrCost = BigInt.zero;
-
-  final int _numSteps = SentinelsStepperStep.values.length;
 
   late SentinelsQsrInfoBloc _sentinelsQsrInfoViewModel;
 
   @override
   void initState() {
     super.initState();
-    _qsrCost = sentinelRegisterQsrAmount;
-    _qsrAmountController.text = _qsrCost.addDecimals(coinDecimals);
     _znnAmountController.text = sentinelRegisterZnnAmount.addDecimals(
       coinDecimals,
     );
@@ -83,7 +80,7 @@ class _MainSentinelsState extends State<SentinelsStepperContainer> {
           if (snapshot.hasData) {
             return _getWidgetBody(
               context,
-              snapshot.data![_addressController.text],
+              snapshot.data![_addressController.text]!,
             );
           }
           return const SyriusLoadingWidget();
@@ -93,19 +90,35 @@ class _MainSentinelsState extends State<SentinelsStepperContainer> {
     );
   }
 
-  Widget _getDepositQsrStep(BuildContext context, AccountInfo? accountInfo) {
+  Widget _getQsrManagementStep(BuildContext context, AccountInfo accountInfo) {
     return ViewModelBuilder<SentinelsQsrInfoBloc>.reactive(
       onViewModelReady: (model) {
         _sentinelsQsrInfoViewModel = model;
-        model.getQsrDepositedAmount(_addressController.text);
+        model.getQsrManagementInfo(_addressController.text);
+        model.stream.listen(
+          (event) {
+            if (event != null) {
+              _maxQsrAmount = MathUtils.bigMin(
+                accountInfo.getBalance(
+                  kQsrCoin.tokenStandard,
+                ),
+                MathUtils.bigMax(BigInt.zero, event.cost - event.deposit),
+              );
+              setState(() {
+                _qsrAmountController.text =
+                    _maxQsrAmount.addDecimals(coinDecimals);
+              });
+            }
+          },
+        );
       },
-      builder: (_, model, __) => StreamBuilder<BigInt?>(
+      builder: (_, model, __) => StreamBuilder<SentinelsQsrInfo?>(
         stream: model.stream,
         builder: (_, snapshot) {
           if (snapshot.hasData) {
-            return _getDepositQsrStepBody(
+            return _getQsrManagementStepBody(
               context,
-              accountInfo!,
+              accountInfo,
               snapshot.data!,
             );
           } else if (snapshot.hasError) {
@@ -121,258 +134,233 @@ class _MainSentinelsState extends State<SentinelsStepperContainer> {
     );
   }
 
-  Widget _getDepositQsrStepBody(
+  Row _getQsrManagementStepBody(
     BuildContext context,
     AccountInfo accountInfo,
-    BigInt depositedQsr,
+    SentinelsQsrInfo qsrInfo,
   ) {
-    _maxQsrAmount = MathUtils.bigMin(
-        accountInfo.getBalance(kQsrCoin.tokenStandard),
-        MathUtils.bigMax(
-            BigInt.zero, _qsrCost - (depositedQsr - _withdrawnQSR)));
-
-    return Column(
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Visibility(
-          visible: depositedQsr >= _qsrCost,
-          child: Container(
-            margin: const EdgeInsets.only(
-              bottom: 30.0,
-            ),
-            decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.background,
-              borderRadius: BorderRadius.circular(6.0),
-            ),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 30.0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  Column(
-                    children: [
-                      Stack(
-                        alignment: Alignment.center,
-                        children: [
-                          SizedBox(
-                            height: 150.0,
-                            width: 150.0,
-                            child: StandardPieChart(
-                              sections: [
-                                PieChartSectionData(
-                                  showTitle: false,
-                                  radius: 7.0,
-                                  value: (_qsrCost
-                                          .addDecimals(coinDecimals)
-                                          .toNum() -
-                                      (depositedQsr - _withdrawnQSR) /
-                                          _qsrCost),
-                                  color: AppColors.qsrColor.withOpacity(0.3),
-                                ),
-                                PieChartSectionData(
-                                  showTitle: false,
-                                  radius: 7.0,
-                                  value: _qsrCost / _qsrCost,
-                                  color: AppColors.qsrColor,
-                                ),
-                              ],
-                            ),
-                          ),
-                          Text(
-                            'Sentinel Slot value\n${_qsrCost.addDecimals(coinDecimals)} ${kQsrCoin.symbol}',
-                            style: Theme.of(context).textTheme.bodyMedium,
-                            textAlign: TextAlign.center,
-                          ),
-                        ],
-                      ),
-                      kVerticalSpacing,
-                      Visibility(
-                        visible: false,
-                        child: Row(
-                          children: [
-                            Container(
-                              width: 5.0,
-                              height: 5.0,
-                              margin: const EdgeInsets.only(right: 5.0),
-                              decoration: const BoxDecoration(
-                                shape: BoxShape.circle,
-                                color: AppColors.qsrColor,
-                              ),
-                            ),
-                            Text(
-                              'Deposited ${kQsrCoin.symbol}',
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .bodyLarge!
-                                  .copyWith(
-                                    fontSize: 10.0,
-                                  ),
-                            ),
-                            Container(
-                              width: 5.0,
-                              height: 5.0,
-                              margin: const EdgeInsets.only(
-                                left: 10.0,
-                                right: 5.0,
-                              ),
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                color: AppColors.qsrColor.withOpacity(0.3),
-                              ),
-                            ),
-                            Text(
-                              'Remaining ${kQsrCoin.symbol}',
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .bodyLarge!
-                                  .copyWith(
-                                    fontSize: 10.0,
-                                  ),
-                            )
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                  Column(
-                    children: [
-                      SizedBox(
-                        width: 130.0,
-                        child: Text(
-                          'You have deposited ${depositedQsr.addDecimals(coinDecimals)} ${kQsrCoin.symbol}',
-                          textAlign: TextAlign.center,
-                          style: Theme.of(context).textTheme.bodyLarge,
-                        ),
-                      ),
-                      kVerticalSpacing,
-                      _getWithdrawQsrButtonViewModel(depositedQsr)
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-        Visibility(
-          visible: depositedQsr < _qsrCost,
+        Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.start,
-                children: <Widget>[
-                  Expanded(
-                    child: DisabledAddressField(_addressController),
-                  ),
-                ],
-              ),
-              StepperUtils.getBalanceWidget(kQsrCoin, accountInfo),
-              Row(
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Expanded(
-                    child: Form(
-                      key: _qsrFormKey,
-                      autovalidateMode: AutovalidateMode.onUserInteraction,
-                      child: InputField(
-                        enabled: false,
-                        onChanged: (value) {
-                          setState(() {});
-                        },
-                        inputFormatters:
-                            FormatUtils.getAmountTextInputFormatters(
-                          _qsrAmountController.text,
-                        ),
-                        controller: _qsrAmountController,
-                        validator: _qsrAmountValidator,
-                        suffixIcon: _getAmountSuffix(accountInfo),
-                        suffixIconConstraints: const BoxConstraints(
-                          maxWidth: 50.0,
-                        ),
-                        hintText: 'Amount',
+                  Row(
+                    children: <Widget>[
+                      Expanded(
+                        child: DisabledAddressField(_addressController),
                       ),
+                    ],
+                  ),
+                  const SizedBox(
+                    height: 10.0,
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.only(left: 20.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        AvailableBalance(
+                          kQsrCoin,
+                          accountInfo,
+                        ),
+                        Text(
+                          '${qsrInfo.cost.addDecimals(coinDecimals)} ${kQsrCoin.symbol} required for a Sentinel Node',
+                          style:
+                              Theme.of(context).inputDecorationTheme.hintStyle,
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(
+                    height: 10.0,
+                  ),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Form(
+                          key: _qsrFormKey,
+                          autovalidateMode: AutovalidateMode.onUserInteraction,
+                          child: InputField(
+                            inputFormatters:
+                                FormatUtils.getAmountTextInputFormatters(
+                              _qsrAmountController.text,
+                            ),
+                            controller: _qsrAmountController,
+                            validator: (value) => _qsrAmountValidator(
+                              value,
+                              qsrInfo,
+                            ),
+                            suffixIcon: _getAmountSuffix(accountInfo),
+                            suffixIconConstraints:
+                                const BoxConstraints(maxWidth: 50.0),
+                            hintText: 'Amount',
+                            onChanged: (value) {
+                              setState(() {});
+                            },
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 25.0),
+                    child: DottedBorderInfoWidget(
+                      text:
+                          'You will be able to unlock the ${kQsrCoin.symbol} if you '
+                          'choose to disassemble the Sentinel',
+                      borderColor: AppColors.qsrColor,
                     ),
                   ),
                 ],
               ),
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 25.0),
-                child: DottedBorderInfoWidget(
-                  text:
-                      'You will be able to unlock the ${kQsrCoin.symbol} if you '
-                      'choose to disassemble the Sentinel',
-                  borderColor: AppColors.qsrColor,
-                ),
-              ),
+              Row(
+                children: [
+                  Visibility(
+                    visible: qsrInfo.deposit < qsrInfo.cost,
+                    child: _getDepositQsrViewModel(qsrInfo),
+                  ),
+                  Visibility(
+                    visible: qsrInfo.deposit >= qsrInfo.cost,
+                    child: StepperButton(
+                      text: 'Next',
+                      onPressed: _onQsrNextPressed,
+                    ),
+                  ),
+                ],
+              )
             ],
           ),
         ),
-        Row(
-          children: [
-            Visibility(
-              visible: depositedQsr < _qsrCost,
-              child: _getDepositButtonViewModel(accountInfo, depositedQsr),
-            ),
-            Visibility(
-              visible: depositedQsr >= _qsrCost,
-              child: StepperButton(
-                text: 'Next',
-                onPressed: _onQsrNextPressed,
+        const SizedBox(
+          width: 45.0,
+        ),
+        Expanded(
+          child: Visibility(
+            visible: qsrInfo.deposit > BigInt.zero,
+            child: Container(
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.background,
+                borderRadius: BorderRadius.circular(6),
+              ),
+              margin: const EdgeInsets.only(
+                bottom: 30.0,
+              ),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 30.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    Column(
+                      children: [
+                        Stack(
+                          alignment: Alignment.center,
+                          children: [
+                            SizedBox(
+                              width: 150.0,
+                              height: 150.0,
+                              child: AspectRatio(
+                                aspectRatio: 1.0,
+                                child: StandardPieChart(
+                                  sections: [
+                                    PieChartSectionData(
+                                      showTitle: false,
+                                      radius: 7.0,
+                                      value: (qsrInfo.cost - qsrInfo.deposit) /
+                                          qsrInfo.cost,
+                                      color:
+                                          AppColors.qsrColor.withOpacity(0.3),
+                                    ),
+                                    PieChartSectionData(
+                                      showTitle: false,
+                                      radius: 7.0,
+                                      value: qsrInfo.deposit / qsrInfo.cost,
+                                      color: AppColors.qsrColor,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                            Text(
+                              'Sentinel Slot value\n${qsrInfo.cost.addDecimals(coinDecimals)} ${kQsrCoin.symbol}',
+                              style: Theme.of(context).textTheme.bodyMedium,
+                              textAlign: TextAlign.center,
+                            ),
+                          ],
+                        ),
+                        kVerticalSpacing,
+                      ],
+                    ),
+                    Column(
+                      children: [
+                        SizedBox(
+                          width: 130.0,
+                          child: Text(
+                            'You have deposited ${qsrInfo.deposit.addDecimals(coinDecimals)} '
+                            '${kQsrCoin.symbol}',
+                            textAlign: TextAlign.center,
+                            style: Theme.of(context).textTheme.bodyLarge,
+                          ),
+                        ),
+                        kVerticalSpacing,
+                        _getWithdrawQsrButtonViewModel(
+                          qsrInfo.deposit,
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
             ),
-          ],
-        )
+          ),
+        ),
       ],
     );
   }
 
-  String? _qsrAmountValidator(String? value) => InputValidators.correctValue(
-        value,
-        _maxQsrAmount,
-        kQsrCoin.decimals,
-        _maxQsrAmount,
-        canBeEqualToMin: true,
-      );
-
-  Widget _getDepositButtonViewModel(
-      AccountInfo accountInfo, BigInt depositedQsr) {
+  Widget _getDepositQsrViewModel(SentinelsQsrInfo qsrInfo) {
     return ViewModelBuilder<SentinelsDepositQsrBloc>.reactive(
       onViewModelReady: (model) {
         model.stream.listen(
           (response) {
             if (response != null) {
               _depositQsrButtonKey.currentState?.animateReverse();
-              _sentinelsQsrInfoViewModel.getQsrDepositedAmount(
+              _sentinelsQsrInfoViewModel.getQsrManagementInfo(
                 _addressController.text,
               );
+              setState(() {});
+            } else {
+              setState(() {});
             }
           },
           onError: (error) async {
             _depositQsrButtonKey.currentState?.animateReverse();
             await NotificationUtils.sendNotificationError(
               error,
-              'Error while depositing ${kQsrCoin.symbol} for Sentinel',
+              'Error while depositing ${kQsrCoin.symbol}',
             );
+            setState(() {});
           },
         );
       },
-      builder: (_, model, __) => _getDepositButton(
-        model,
-        accountInfo,
-        depositedQsr,
-      ),
+      builder: (_, model, __) => _getDepositQsrButton(model, qsrInfo),
       viewModelBuilder: () => SentinelsDepositQsrBloc(),
     );
   }
 
-  Widget _getDepositButton(
+  Widget _getDepositQsrButton(
     SentinelsDepositQsrBloc model,
-    AccountInfo accountInfo,
-    BigInt depositedQsr,
+    SentinelsQsrInfo qsrInfo,
   ) {
     return LoadingButton.stepper(
       key: _depositQsrButtonKey,
       text: 'Deposit',
-      onPressed: _qsrAmountValidator(_qsrAmountController.text) == null
-          ? () => _onDepositButtonPressed(model, depositedQsr)
+      onPressed: _qsrAmountValidator(_qsrAmountController.text, qsrInfo) == null
+          ? () => _onDepositButtonPressed(model, qsrInfo)
           : null,
       outlineColor: AppColors.qsrColor,
     );
@@ -385,10 +373,10 @@ class _MainSentinelsState extends State<SentinelsStepperContainer> {
           (event) {
             if (event != null) {
               _withdrawButtonKey.currentState?.animateReverse();
-              setState(() {
-                _lastCompletedStep = SentinelsStepperStep.checkPlasma;
-              });
-              _sentinelsQsrInfoViewModel.getQsrDepositedAmount(
+              _saveProgressAndNavigateToNextStep(
+                SentinelsStepperStep.checkPlasma,
+              );
+              _sentinelsQsrInfoViewModel.getQsrManagementInfo(
                 _addressController.text,
               );
             }
@@ -402,22 +390,14 @@ class _MainSentinelsState extends State<SentinelsStepperContainer> {
           },
         );
       },
-      builder: (_, model, __) => StreamBuilder<AccountBlockTemplate?>(
-        stream: model.stream,
-        builder: (_, snapshot) {
-          if (snapshot.hasData) {
-            _withdrawnQSR = qsrDeposit;
-          }
-          return _getWithdrawQsrButton(qsrDeposit, model);
-        },
-      ),
+      builder: (_, model, __) => _getWithdrawQsrButton(model, qsrDeposit),
       viewModelBuilder: () => SentinelsWithdrawQsrBloc(),
     );
   }
 
   Widget _getWithdrawQsrButton(
-    BigInt qsrDeposit,
     SentinelsWithdrawQsrBloc model,
+    BigInt qsrDeposit,
   ) {
     return Visibility(
       visible: qsrDeposit > BigInt.zero,
@@ -430,7 +410,7 @@ class _MainSentinelsState extends State<SentinelsStepperContainer> {
     );
   }
 
-  Widget _getMaterialStepper(BuildContext context, AccountInfo? accountInfo) {
+  Widget _getMaterialStepper(BuildContext context, AccountInfo accountInfo) {
     return Theme(
       data: Theme.of(context).copyWith(
         highlightColor: Colors.transparent,
@@ -453,13 +433,14 @@ class _MainSentinelsState extends State<SentinelsStepperContainer> {
           ),
           StepperUtils.getMaterialStep(
             stepTitle: '${kQsrCoin.symbol} management',
-            stepContent: _getDepositQsrStep(context, accountInfo),
+            stepContent: _getQsrManagementStep(context, accountInfo),
             stepSubtitle: '${kQsrCoin.symbol} deposited',
             stepState: StepperUtils.getStepState(
               SentinelsStepperStep.qsrManagement.index,
               _lastCompletedStep?.index,
             ),
             context: context,
+            expanded: true,
           ),
           StepperUtils.getMaterialStep(
             stepTitle: '${kZnnCoin.symbol} management',
@@ -515,6 +496,9 @@ class _MainSentinelsState extends State<SentinelsStepperContainer> {
               _registerButtonKey.currentState?.animateReverse();
               _saveProgressAndNavigateToNextStep(
                   SentinelsStepperStep.deploySentinel);
+              setState(() {});
+            } else {
+              setState(() {});
             }
           },
           onError: (error) async {
@@ -523,15 +507,16 @@ class _MainSentinelsState extends State<SentinelsStepperContainer> {
               error,
               'Error while deploying the Sentinel Node',
             );
+            setState(() {});
           },
         );
       },
-      builder: (_, model, __) => _getDeployButton(model),
+      builder: (_, model, __) => _getRegisterSentinelButton(model),
       viewModelBuilder: () => SentinelsDeployBloc(),
     );
   }
 
-  Widget _getDeployButton(SentinelsDeployBloc model) {
+  Widget _getRegisterSentinelButton(SentinelsDeployBloc model) {
     return LoadingButton.stepper(
       text: 'Register',
       onPressed: () => _onDeployPressed(model),
@@ -541,7 +526,7 @@ class _MainSentinelsState extends State<SentinelsStepperContainer> {
 
   Widget _getZnnManagementStepBody(
     BuildContext context,
-    AccountInfo? accountInfo,
+    AccountInfo accountInfo,
   ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -585,26 +570,18 @@ class _MainSentinelsState extends State<SentinelsStepperContainer> {
   }
 
   void _onDepositButtonPressed(
-      SentinelsDepositQsrBloc model, BigInt depositedQsr) {
-    if (_lastCompletedStep == SentinelsStepperStep.checkPlasma) {
-      if (depositedQsr >= _qsrCost) {
-        _depositQsrButtonKey.currentState?.animateForward();
-        model.depositQsr(
-          _qsrAmountController.text.extractDecimals(coinDecimals),
-          justMarkStepCompleted: true,
-        );
-      } else if (_maxQsrAmount + depositedQsr >= _qsrCost &&
-          _qsrFormKey.currentState!.validate() &&
-          _qsrAmountController.text.extractDecimals(coinDecimals) >
-              BigInt.zero) {
-        _depositQsrButtonKey.currentState?.animateForward();
-        model.depositQsr(
-            _qsrAmountController.text.extractDecimals(coinDecimals));
-      }
-    } else if (_lastCompletedStep == SentinelsStepperStep.qsrManagement) {
-      setState(() {
-        _currentStep = SentinelsStepperStep.values[_currentStep.index + 1];
-      });
+      SentinelsDepositQsrBloc model, SentinelsQsrInfo qsrInfo) {
+    if (qsrInfo.deposit >= qsrInfo.cost) {
+      _depositQsrButtonKey.currentState?.animateForward();
+      model.depositQsr(
+        _qsrAmountController.text.extractDecimals(coinDecimals),
+        justMarkStepCompleted: true,
+      );
+    } else if (qsrInfo.deposit + _maxQsrAmount <= qsrInfo.cost &&
+        _qsrFormKey.currentState!.validate() &&
+        _qsrAmountController.text.extractDecimals(coinDecimals) > BigInt.zero) {
+      _depositQsrButtonKey.currentState?.animateForward();
+      model.depositQsr(_qsrAmountController.text.extractDecimals(coinDecimals));
     }
   }
 
@@ -640,7 +617,7 @@ class _MainSentinelsState extends State<SentinelsStepperContainer> {
     }
   }
 
-  Widget _getWidgetBody(BuildContext context, AccountInfo? accountInfo) {
+  Widget _getWidgetBody(BuildContext context, AccountInfo accountInfo) {
     return Stack(
       children: [
         ListView(
@@ -651,6 +628,7 @@ class _MainSentinelsState extends State<SentinelsStepperContainer> {
                   _lastCompletedStep == SentinelsStepperStep.deploySentinel,
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   Container(
                     padding: const EdgeInsets.symmetric(
@@ -763,10 +741,6 @@ class _MainSentinelsState extends State<SentinelsStepperContainer> {
     );
   }
 
-  void _iniStepperControllers() {
-    _currentStep = SentinelsStepperStep.values.first;
-  }
-
   void _saveProgressAndNavigateToNextStep(SentinelsStepperStep completedStep) {
     setState(() {
       _lastCompletedStep = completedStep;
@@ -776,18 +750,26 @@ class _MainSentinelsState extends State<SentinelsStepperContainer> {
     });
   }
 
+  void _iniStepperControllers() {
+    _currentStep = SentinelsStepperStep.values.first;
+  }
+
+  bool _hasEnoughZnn(AccountInfo accountInfo) =>
+      accountInfo.znn()! >= sentinelRegisterZnnAmount;
+
+  String? _qsrAmountValidator(String? value, SentinelsQsrInfo qsrInfo) =>
+      InputValidators.correctValue(
+        value,
+        _maxQsrAmount,
+        kQsrCoin.decimals,
+        BigInt.one,
+        canBeEqualToMin: true,
+      );
+
   void _onQsrNextPressed() {
-    if (_lastCompletedStep == SentinelsStepperStep.checkPlasma) {
+    setState(() {
       _saveProgressAndNavigateToNextStep(SentinelsStepperStep.qsrManagement);
-    } else if (StepperUtils.getStepState(
-          SentinelsStepperStep.qsrManagement.index,
-          _lastCompletedStep?.index,
-        ) ==
-        custom_material_stepper.StepState.complete) {
-      setState(() {
-        _currentStep = SentinelsStepperStep.values[_currentStep.index + 1];
-      });
-    }
+    });
   }
 
   Widget _getPlasmaCheckFutureBuilder() {
@@ -796,25 +778,13 @@ class _MainSentinelsState extends State<SentinelsStepperContainer> {
       builder: (_, snapshot) {
         if (snapshot.hasError) {
           return SyriusErrorWidget(snapshot.error!);
+        } else if (snapshot.hasData) {
+          return _getPlasmaCheckBody(snapshot.data!);
         }
-        switch (snapshot.connectionState) {
-          case ConnectionState.active:
-            return const Padding(
-              padding: EdgeInsets.all(8.0),
-              child: SyriusLoadingWidget(),
-            );
-          case ConnectionState.done:
-            return _getPlasmaCheckBody(snapshot.data!);
-          case ConnectionState.none:
-            return Container();
-          case ConnectionState.waiting:
-            return const Padding(
-              padding: EdgeInsets.all(8.0),
-              child: SyriusLoadingWidget(),
-            );
-          default:
-            return Container();
-        }
+        return const Padding(
+          padding: EdgeInsets.all(8.0),
+          child: SyriusLoadingWidget(),
+        );
       },
     );
   }
@@ -868,12 +838,6 @@ class _MainSentinelsState extends State<SentinelsStepperContainer> {
       });
     }
   }
-
-  bool _hasEnoughZnn(AccountInfo accountInfo) =>
-      accountInfo.getBalance(
-        kZnnCoin.tokenStandard,
-      ) >=
-      sentinelRegisterZnnAmount;
 
   @override
   void dispose() {
