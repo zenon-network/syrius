@@ -60,7 +60,7 @@ class _PillarsTabChildState extends State<PillarsTabChild> {
         ),
       ),
       const FluidCell(
-        child: PillarsListWidget(),
+        child: PillarListWidget(),
         width: kStaggeredNumOfColumns,
         height: kStaggeredNumOfColumns / 2,
       ),

@@ -1,7 +1,7 @@
 export 'accelerator_widgets/accelerator_widgets.dart';
 export 'dashboard_widgets/dashboard_widgets.dart';
 export 'help_widgets/help_widgets.dart';
-export 'pillars_widgets/pillars_widgets.dart';
+export 'pillar_widgets/pillar_widgets.dart';
 export 'plasma_widgets/plasma_widgets.dart';
 export 'sentinel_widgets/sentinel_widgets.dart';
 export 'settings_widgets/settings_widgets.dart';

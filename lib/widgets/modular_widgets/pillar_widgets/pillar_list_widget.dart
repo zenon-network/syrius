@@ -14,16 +14,16 @@ import 'package:zenon_syrius_wallet_flutter/utils/zts_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
-class PillarsListWidget extends StatefulWidget {
+class PillarListWidget extends StatefulWidget {
   final String? title;
 
-  const PillarsListWidget({Key? key, this.title}) : super(key: key);
+  const PillarListWidget({Key? key, this.title}) : super(key: key);
 
   @override
-  State<PillarsListWidget> createState() => _PillarsListWidgetState();
+  State<PillarListWidget> createState() => _PillarListWidgetState();
 }
 
-class _PillarsListWidgetState extends State<PillarsListWidget> {
+class _PillarListWidgetState extends State<PillarListWidget> {
   final ScrollController _scrollController = ScrollController();
 
   final PagingController<int, PillarInfo> _pagingController = PagingController(
