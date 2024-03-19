@@ -12,6 +12,7 @@ A clear and concise description of what the bug is.
 
 **To Reproduce**
 Steps to reproduce the behavior:
+
 1. Go to '...'
 2. Click on '....'
 3. Scroll down to '....'
@@ -20,6 +21,9 @@ Steps to reproduce the behavior:
 **Expected behavior**
 A clear and concise description of what you expected to happen.
 
+**Actual behavior**
+A clear and concise description of what is actually happening.
+
 **Workaround**
 Steps to take to work around the issue.
 
@@ -27,9 +31,12 @@ Steps to take to work around the issue.
 If applicable, add screenshots to help explain your problem.
 
 **Desktop (please complete the following information):**
- - OS: [e.g. iOS]
- - Syrius Version [e.g. 0.1.0]
- - Commit hash
+- OS: [e.g. iOS]
+- Syrius Version: [e.g. 0.1.0]
+- Commit hash:
 
 **Additional context**
 Add any other context about the problem here.
+
+**Bounty program**
+- Zenon Address:
