@@ -44,7 +44,7 @@ Verify swap history on hardware wallet after reset cache,"Reset cache on a hardw
 ,,,
 WalletConnect,,,
 Wrap/unwrap assets on keystore wallet,"Wrap and unwrap assets on a keystore wallet.",PRIO1,
-Wrap/unwrap assets on hardware wallet,"Wrap and unwrap assets on a hardware wallet.",PRIO1,
+Wrap/unwrap assets on hardware wallet,"Wrap and unwrap assets on a hardware wallet.",PRIO1,PASS
 ,,,
 Addresses,,,
 Add 1 address on keystore wallet,"Add and confirm 1 address on a keystore wallet.",PRIO1,
