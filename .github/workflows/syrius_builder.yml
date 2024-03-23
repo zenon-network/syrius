@@ -91,7 +91,7 @@ jobs:
           flutter build windows --release   
       - name: Package into zip
         run: |
-          Compress-Archive -Path build\windows\runner\Release\* -DestinationPath .\syrius-alphanet-windows-amd64.zip
+          Compress-Archive -Path build\windows\x64\runner\Release\* -DestinationPath .\syrius-alphanet-windows-amd64.zip
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
