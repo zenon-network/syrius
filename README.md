@@ -23,7 +23,7 @@ Learn about the foreign function interface (ffi) [here](https://docs.flutter.dev
 Dependencies:
 
 - Flutter: `>=3.19.x`
-- Dart: `>=3.0.x`
+- Dart: `>=3.3.x`
 
 Currently supported `<os>`: `windows`, `macos`, `linux`
 
