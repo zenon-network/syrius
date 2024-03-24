@@ -21,10 +21,10 @@ packages:
     dependency: "direct main"
     description:
       name: ai_barcode_scanner
-      sha256: e77a90d9a953ba8d797cf4ff9f705c1842133fffd596f7ccc845dd08650e0543
+      sha256: "1d6ce239d84a40c0d586891291eee9b958c748f7de3de75daaa7be79ee511dee"
       url: "https://pub.dev"
     source: hosted
-    version: "0.0.7"
+    version: "3.4.3"
   analyzer:
     dependency: transitive
     description:
@@ -815,10 +815,10 @@ packages:
     dependency: transitive
     description:
       name: mobile_scanner
-      sha256: "1b60b8f9d4ce0cb0e7d7bc223c955d083a0737bee66fa1fcfe5de48225e0d5b3"
+      sha256: "827765afbd4792ff3fd105ad593821ac0f6d8a7d352689013b07ee85be336312"
       url: "https://pub.dev"
     source: hosted
-    version: "3.5.7"
+    version: "4.0.1"
   mutex:
     dependency: "direct main"
     description:
