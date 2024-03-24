@@ -24,13 +24,11 @@ jobs:
           path: ./node-db
           ref: main
       - name: Copy community nodes
-        run: cp -r ./node-db/rpc-nodes-mainnet.json assets/community-nodes.json
+        run: cp -r ./node-db/rpc-nodes-mainnet.json ./assets/community-nodes.json
       - name: Setup environment
         run: |
           brew install unzip create-dmg
           brew cleanup
-      - name: Checkout
-        uses: actions/checkout@v4
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
@@ -63,8 +61,6 @@ jobs:
           name: macos-artifacts
           path: syrius-alphanet-macos-universal.dmg
   build-windows:
-    env:
-        WALLET_CONNECT_PROJECT_ID: ${{ secrets.WC_PROJECT_ID }}
     runs-on: windows-latest
     steps:
       - name: Checkout
@@ -98,8 +94,6 @@ jobs:
           name: windows-artifacts
           path: syrius-alphanet-windows-amd64.zip
   build-linux:
-    env:
-        WALLET_CONNECT_PROJECT_ID: ${{ secrets.WC_PROJECT_ID }}
     runs-on: ubuntu-20.04
     steps:
       - name: Checkout
