@@ -22,16 +22,16 @@ Learn about the foreign function interface (ffi) [here](https://docs.flutter.dev
 
 Dependencies:
 
-- Flutter: `>=3.10.x`
-- Dart: `>=3.0.x`
+- Flutter: `>=3.19.x`
+- Dart: `>=3.3.x`
 
 Currently supported `<os>`: `windows`, `macos`, `linux`
 
 ```bash
 git clone https://github.com/zenon-network/syrius.git
 flutter pub get
-flutter run --dart-define=WC_PROJECT_ID=walletconnect_project_id -d <os>
-flutter build --dart-define=WC_PROJECT_ID=walletconnect_project_id <os>
+flutter run -d <os>
+flutter build <os>
 ```
 
 ## Linux
