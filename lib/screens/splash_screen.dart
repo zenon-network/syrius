@@ -122,13 +122,10 @@ class _SplashScreenState extends State<SplashScreen>
 
   Future<void> _deleteWeb3Cache() async {
     try {
-      final web3Store =
-          sl<IWeb3WalletService>().getWeb3Wallet().pairingTopics.storage;
-      await Future.forEach<String>(
-        web3Store.keys.map((prefixedKey) =>
-            prefixedKey.substring(web3Store.storagePrefix.length)),
-        (key) async => await web3Store.delete(key),
-      );
+      final web3WalletService = sl<IWeb3WalletService>();
+      for (var pairing in web3WalletService.pairings.value) {
+        await web3WalletService.deactivatePairing(topic: pairing.topic);
+      }
     } catch (e, stackTrace) {
       Logger('SplashScreen')
           .log(Level.WARNING, '_deleteWeb3Cache', e, stackTrace);
