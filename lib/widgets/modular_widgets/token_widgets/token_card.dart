@@ -60,6 +60,7 @@ class _TokenCardState extends State<TokenCard> {
   final GlobalKey<LoadingButtonState> _transferButtonKey = GlobalKey();
 
   TokenCardBackVersion _backOfCardVersion = TokenCardBackVersion.burn;
+  bool _backOfCardVisible = false;
 
   @override
   void initState() {
@@ -71,13 +72,16 @@ class _TokenCardState extends State<TokenCard> {
   @override
   Widget build(BuildContext context) {
     return FlipCard(
-      direction: FlipDirection.HORIZONTAL,
-      speed: 500,
-      flipOnTouch: false,
-      key: _cardKey,
-      front: _getFrontOfCard(),
-      back: _getBackOfCard(),
-    );
+        direction: FlipDirection.HORIZONTAL,
+        speed: 500,
+        flipOnTouch: false,
+        key: _cardKey,
+        front: _getFrontOfCard(),
+        back: _getBackOfCard(),
+        onFlip: () => {
+              setState(
+                  () => _backOfCardVisible = _cardKey.currentState!.isFront)
+            });
   }
 
   Widget _getBackOfCard() {
@@ -376,50 +380,53 @@ class _TokenCardState extends State<TokenCard> {
       widget.token.tokenStandard,
     );
 
-    return ListView(
-      shrinkWrap: true,
-      children: [
-        Form(
-          key: _burnAmountKey,
-          autovalidateMode: AutovalidateMode.onUserInteraction,
-          child: InputField(
-            onChanged: (String value) {
-              setState(() {});
-            },
-            inputFormatters: FormatUtils.getAmountTextInputFormatters(
-              _burnAmountController.text,
+    return Visibility(
+      visible: _backOfCardVisible,
+      child: ListView(
+        shrinkWrap: true,
+        children: [
+          Form(
+            key: _burnAmountKey,
+            autovalidateMode: AutovalidateMode.onUserInteraction,
+            child: InputField(
+              onChanged: (String value) {
+                setState(() {});
+              },
+              inputFormatters: FormatUtils.getAmountTextInputFormatters(
+                _burnAmountController.text,
+              ),
+              controller: _burnAmountController,
+              validator: (value) => InputValidators.correctValue(
+                  value, _burnMaxAmount, widget.token.decimals, BigInt.zero),
+              suffixIcon: _getAmountSuffix(),
+              suffixIconConstraints: const BoxConstraints(maxWidth: 50.0),
+              hintText: 'Amount',
+              contentLeftPadding: 20.0,
             ),
-            controller: _burnAmountController,
-            validator: (value) => InputValidators.correctValue(
-                value, _burnMaxAmount, widget.token.decimals, BigInt.zero),
-            suffixIcon: _getAmountSuffix(),
-            suffixIconConstraints: const BoxConstraints(maxWidth: 50.0),
-            hintText: 'Amount',
-            contentLeftPadding: 20.0,
           ),
-        ),
-        StepperUtils.getBalanceWidget(widget.token, accountInfo),
-        Row(
-          mainAxisSize: MainAxisSize.min,
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Column(
-              children: [
-                _getBurnButtonViewModel(),
-                const SizedBox(
-                  height: 10.0,
-                ),
-                StepperButton(
-                  text: 'Go back',
-                  onPressed: () {
-                    _cardKey.currentState!.toggleCard();
-                  },
-                ),
-              ],
-            ),
-          ],
-        ),
-      ],
+          StepperUtils.getBalanceWidget(widget.token, accountInfo),
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Column(
+                children: [
+                  _getBurnButtonViewModel(),
+                  const SizedBox(
+                    height: 10.0,
+                  ),
+                  StepperButton(
+                    text: 'Go back',
+                    onPressed: () {
+                      _cardKey.currentState!.toggleCard();
+                    },
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 
@@ -450,7 +457,8 @@ class _TokenCardState extends State<TokenCard> {
     );
   }
 
-  Future<void> _sendBurnSuccessfulNotification(AccountBlockTemplate event) async {
+  Future<void> _sendBurnSuccessfulNotification(
+      AccountBlockTemplate event) async {
     await sl.get<NotificationsBloc>().addNotification(
           WalletNotification(
             title: 'Successfully burned ${event.amount.addDecimals(
@@ -518,67 +526,70 @@ class _TokenCardState extends State<TokenCard> {
   Widget _getMintBackOfCard(AccountInfo? accountInfo) {
     _mintMaxAmount = (widget.token.maxSupply - widget.token.totalSupply);
 
-    return ListView(
-      shrinkWrap: true,
-      children: [
-        Form(
-          key: _beneficiaryAddressKey,
-          autovalidateMode: AutovalidateMode.onUserInteraction,
-          child: InputField(
-            onChanged: (value) {
-              setState(() {});
-            },
-            inputFormatters: [
-              FilteringTextInputFormatter.allow(RegExp(r'[0-9a-z]')),
-            ],
-            controller: _beneficiaryAddressController,
-            hintText: 'Beneficiary address',
-            contentLeftPadding: 20.0,
-            validator: (value) => InputValidators.checkAddress(value),
-          ),
-        ),
-        StepperUtils.getBalanceWidget(widget.token, accountInfo!),
-        Form(
-          key: _mintAmountKey,
-          autovalidateMode: AutovalidateMode.onUserInteraction,
-          child: InputField(
-            onChanged: (value) {
-              setState(() {});
-            },
-            inputFormatters: FormatUtils.getAmountTextInputFormatters(
-              _mintAmountController.text,
-            ),
-            controller: _mintAmountController,
-            validator: (value) => InputValidators.correctValue(
-                value, _mintMaxAmount, widget.token.decimals, BigInt.zero),
-            suffixIcon: _getAmountSuffix(),
-            suffixIconConstraints: const BoxConstraints(maxWidth: 50.0),
-            hintText: 'Amount',
-            contentLeftPadding: 20.0,
-          ),
-        ),
-        kVerticalSpacing,
-        Row(
-          mainAxisSize: MainAxisSize.min,
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Column(
-              children: [
-                _getMintButtonViewModel(),
-                const SizedBox(
-                  height: 10.0,
-                ),
-                StepperButton(
-                  text: 'Go back',
-                  onPressed: () {
-                    _cardKey.currentState!.toggleCard();
-                  },
-                ),
+    return Visibility(
+      visible: _backOfCardVisible,
+      child: ListView(
+        shrinkWrap: true,
+        children: [
+          Form(
+            key: _beneficiaryAddressKey,
+            autovalidateMode: AutovalidateMode.onUserInteraction,
+            child: InputField(
+              onChanged: (value) {
+                setState(() {});
+              },
+              inputFormatters: [
+                FilteringTextInputFormatter.allow(RegExp(r'[0-9a-z]')),
               ],
+              controller: _beneficiaryAddressController,
+              hintText: 'Beneficiary address',
+              contentLeftPadding: 20.0,
+              validator: (value) => InputValidators.checkAddress(value),
             ),
-          ],
-        ),
-      ],
+          ),
+          StepperUtils.getBalanceWidget(widget.token, accountInfo!),
+          Form(
+            key: _mintAmountKey,
+            autovalidateMode: AutovalidateMode.onUserInteraction,
+            child: InputField(
+              onChanged: (value) {
+                setState(() {});
+              },
+              inputFormatters: FormatUtils.getAmountTextInputFormatters(
+                _mintAmountController.text,
+              ),
+              controller: _mintAmountController,
+              validator: (value) => InputValidators.correctValue(
+                  value, _mintMaxAmount, widget.token.decimals, BigInt.zero),
+              suffixIcon: _getAmountSuffix(),
+              suffixIconConstraints: const BoxConstraints(maxWidth: 50.0),
+              hintText: 'Amount',
+              contentLeftPadding: 20.0,
+            ),
+          ),
+          kVerticalSpacing,
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Column(
+                children: [
+                  _getMintButtonViewModel(),
+                  const SizedBox(
+                    height: 10.0,
+                  ),
+                  StepperButton(
+                    text: 'Go back',
+                    onPressed: () {
+                      _cardKey.currentState!.toggleCard();
+                    },
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 
@@ -588,7 +599,6 @@ class _TokenCardState extends State<TokenCard> {
         model.stream.listen((event) {
           setState(() {
             _beneficiaryAddressKey.currentState!.reset();
-            _beneficiaryAddressController.clear();
             _mintAmountKey.currentState!.reset();
             _mintAmountController.clear();
           });
@@ -608,7 +618,8 @@ class _TokenCardState extends State<TokenCard> {
     );
   }
 
-  Future<void> _sendMintSuccessfulNotification(AccountBlockTemplate event) async {
+  Future<void> _sendMintSuccessfulNotification(
+      AccountBlockTemplate event) async {
     await sl.get<NotificationsBloc>().addNotification(
           WalletNotification(
             title: 'Successfully minted ${event.amount.addDecimals(
@@ -627,21 +638,24 @@ class _TokenCardState extends State<TokenCard> {
   Widget _getMintButton(MintTokenBloc model) {
     return LoadingButton.stepper(
       text: 'Mint',
-      onPressed: _mintMaxAmount > BigInt.zero &&
-              _mintAmountController.text.isNotEmpty &&
-              InputValidators.correctValue(_mintAmountController.text,
-                      _mintMaxAmount, widget.token.decimals, BigInt.zero) ==
-                  null
-          ? () {
-              _mintButtonKey.currentState!.animateForward();
-              model.mintToken(
-                widget.token,
-                _mintAmountController.text
-                    .extractDecimals(widget.token.decimals),
-                Address.parse(_beneficiaryAddressController.text),
-              );
-            }
-          : null,
+      onPressed:
+          InputValidators.checkAddress(_beneficiaryAddressController.text) ==
+                      null &&
+                  _mintMaxAmount > BigInt.zero &&
+                  _mintAmountController.text.isNotEmpty &&
+                  InputValidators.correctValue(_mintAmountController.text,
+                          _mintMaxAmount, widget.token.decimals, BigInt.zero) ==
+                      null
+              ? () {
+                  _mintButtonKey.currentState!.animateForward();
+                  model.mintToken(
+                    widget.token,
+                    _mintAmountController.text
+                        .extractDecimals(widget.token.decimals),
+                    Address.parse(_beneficiaryAddressController.text),
+                  );
+                }
+              : null,
       key: _mintButtonKey,
     );
   }
@@ -654,47 +668,50 @@ class _TokenCardState extends State<TokenCard> {
   }
 
   Widget _getTransferOwnershipBackOfCard() {
-    return ListView(
-      shrinkWrap: true,
-      children: [
-        Form(
-          key: _newOwnerAddressKey,
-          autovalidateMode: AutovalidateMode.onUserInteraction,
-          child: InputField(
-            onChanged: (String value) {
-              setState(() {});
-            },
-            inputFormatters: [
-              FilteringTextInputFormatter.allow(RegExp(r'[0-9a-z]')),
-            ],
-            controller: _newOwnerAddressController,
-            hintText: 'New owner address',
-            contentLeftPadding: 20.0,
-            validator: (value) => InputValidators.checkAddress(value),
-          ),
-        ),
-        kVerticalSpacing,
-        Row(
-          mainAxisSize: MainAxisSize.min,
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Column(
-              children: [
-                _getTransferOwnershipButtonViewModel(),
-                const SizedBox(
-                  height: 10.0,
-                ),
-                StepperButton(
-                  text: 'Go back',
-                  onPressed: () {
-                    _cardKey.currentState!.toggleCard();
-                  },
-                ),
+    return Visibility(
+      visible: _backOfCardVisible,
+      child: ListView(
+        shrinkWrap: true,
+        children: [
+          Form(
+            key: _newOwnerAddressKey,
+            autovalidateMode: AutovalidateMode.onUserInteraction,
+            child: InputField(
+              onChanged: (String value) {
+                setState(() {});
+              },
+              inputFormatters: [
+                FilteringTextInputFormatter.allow(RegExp(r'[0-9a-z]')),
               ],
+              controller: _newOwnerAddressController,
+              hintText: 'New owner address',
+              contentLeftPadding: 20.0,
+              validator: (value) => InputValidators.checkAddress(value),
             ),
-          ],
-        ),
-      ],
+          ),
+          kVerticalSpacing,
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Column(
+                children: [
+                  _getTransferOwnershipButtonViewModel(),
+                  const SizedBox(
+                    height: 10.0,
+                  ),
+                  StepperButton(
+                    text: 'Go back',
+                    onPressed: () {
+                      _cardKey.currentState!.toggleCard();
+                    },
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 
