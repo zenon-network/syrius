@@ -68,12 +68,15 @@ class StepperUtils {
   static Widget getBalanceWidget(Token token, AccountInfo accountInfo) {
     return Row(
       children: [
-        Padding(
-          padding: const EdgeInsets.only(left: 20.0, top: 10.0, bottom: 10.0),
-          child: AvailableBalance(
-            token,
-            accountInfo,
-          ),
+        Expanded(
+          child:
+            Padding(
+              padding: const EdgeInsets.only(left: 20.0, top: 10.0, bottom: 10.0),
+              child: AvailableBalance(
+                token,
+                accountInfo,
+              ),
+            ),
         ),
       ],
     );

@@ -1,7 +1,7 @@
 import 'package:fl_chart/fl_chart.dart';
-import 'package:flip_card/flip_card.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_flip_card/flutter_flip_card.dart';
 import 'package:marquee_widget/marquee_widget.dart';
 import 'package:stacked/stacked.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
@@ -46,6 +46,7 @@ class _TokenCardState extends State<TokenCard> {
   final GlobalKey<FormState> _mintAmountKey = GlobalKey();
   GlobalKey<FormState> _newOwnerAddressKey = GlobalKey();
 
+  final FlipCardController _flipCardController = FlipCardController();
   final TextEditingController _beneficiaryAddressController =
       TextEditingController();
   final TextEditingController _burnAmountController = TextEditingController();
@@ -71,31 +72,47 @@ class _TokenCardState extends State<TokenCard> {
   @override
   Widget build(BuildContext context) {
     return FlipCard(
-      direction: FlipDirection.HORIZONTAL,
-      speed: 500,
-      flipOnTouch: false,
       key: _cardKey,
-      front: _getFrontOfCard(),
-      back: _getBackOfCard(),
+      rotateSide: RotateSide.right,
+      animationDuration: const Duration(milliseconds: 500),
+      axis: FlipAxis.vertical,
+      disableSplashEffect: false,
+      onTapFlipping: false,
+      controller: _flipCardController,
+      frontWidget: _getFrontOfCard(),
+      backWidget: _getBackOfCard(),
     );
   }
 
+  Future<void> _flipCard() async {
+    await _flipCardController.flipcard();
+  }
+
   Widget _getBackOfCard() {
-    return StreamBuilder<Map<String, AccountInfo>?>(
-      stream: sl.get<BalanceBloc>().stream,
-      builder: (_, snapshot) {
-        if (snapshot.hasError) {
-          return SyriusErrorWidget(snapshot.error!);
-        }
-        if (snapshot.connectionState == ConnectionState.active) {
-          if (snapshot.hasData) {
-            return _getBackVersionOfCard(snapshot.data!);
-          }
-          return const SyriusLoadingWidget();
-        }
-        return const SyriusLoadingWidget();
-      },
-    );
+    return Container(
+        padding: const EdgeInsets.symmetric(
+          horizontal: 20.0,
+          vertical: 10.0,
+        ),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(10.0),
+          color: Theme.of(context).colorScheme.primaryContainer,
+        ),
+        child: StreamBuilder<Map<String, AccountInfo>?>(
+          stream: sl.get<BalanceBloc>().stream,
+          builder: (_, snapshot) {
+            if (snapshot.hasError) {
+              return SyriusErrorWidget(snapshot.error!);
+            }
+            if (snapshot.connectionState == ConnectionState.active) {
+              if (snapshot.hasData) {
+                return _getBackVersionOfCard(snapshot.data!);
+              }
+              return const SyriusLoadingWidget();
+            }
+            return const SyriusLoadingWidget();
+          },
+        ));
   }
 
   Container _getFrontOfCard() {
@@ -188,7 +205,7 @@ class _TokenCardState extends State<TokenCard> {
                             onPressed: kDefaultAddressList
                                     .contains(widget.token.owner.toString())
                                 ? () {
-                                    _cardKey.currentState!.toggleCard();
+                                    _flipCard();
                                     _backOfCardVersion =
                                         TokenCardBackVersion.mint;
                                     sl
@@ -207,7 +224,7 @@ class _TokenCardState extends State<TokenCard> {
                               widget.token.owner.toString(),
                             )
                                 ? () {
-                                    _cardKey.currentState!.toggleCard();
+                                    _flipCard();
                                     _backOfCardVersion =
                                         TokenCardBackVersion.burn;
                                     sl
@@ -412,7 +429,7 @@ class _TokenCardState extends State<TokenCard> {
                 StepperButton(
                   text: 'Go back',
                   onPressed: () {
-                    _cardKey.currentState!.toggleCard();
+                    _flipCard();
                   },
                 ),
               ],
@@ -450,7 +467,8 @@ class _TokenCardState extends State<TokenCard> {
     );
   }
 
-  Future<void> _sendBurnSuccessfulNotification(AccountBlockTemplate event) async {
+  Future<void> _sendBurnSuccessfulNotification(
+      AccountBlockTemplate event) async {
     await sl.get<NotificationsBloc>().addNotification(
           WalletNotification(
             title: 'Successfully burned ${event.amount.addDecimals(
@@ -571,7 +589,7 @@ class _TokenCardState extends State<TokenCard> {
                 StepperButton(
                   text: 'Go back',
                   onPressed: () {
-                    _cardKey.currentState!.toggleCard();
+                    _flipCard();
                   },
                 ),
               ],
@@ -588,7 +606,6 @@ class _TokenCardState extends State<TokenCard> {
         model.stream.listen((event) {
           setState(() {
             _beneficiaryAddressKey.currentState!.reset();
-            _beneficiaryAddressController.clear();
             _mintAmountKey.currentState!.reset();
             _mintAmountController.clear();
           });
@@ -608,7 +625,8 @@ class _TokenCardState extends State<TokenCard> {
     );
   }
 
-  Future<void> _sendMintSuccessfulNotification(AccountBlockTemplate event) async {
+  Future<void> _sendMintSuccessfulNotification(
+      AccountBlockTemplate event) async {
     await sl.get<NotificationsBloc>().addNotification(
           WalletNotification(
             title: 'Successfully minted ${event.amount.addDecimals(
@@ -627,21 +645,24 @@ class _TokenCardState extends State<TokenCard> {
   Widget _getMintButton(MintTokenBloc model) {
     return LoadingButton.stepper(
       text: 'Mint',
-      onPressed: _mintMaxAmount > BigInt.zero &&
-              _mintAmountController.text.isNotEmpty &&
-              InputValidators.correctValue(_mintAmountController.text,
-                      _mintMaxAmount, widget.token.decimals, BigInt.zero) ==
-                  null
-          ? () {
-              _mintButtonKey.currentState!.animateForward();
-              model.mintToken(
-                widget.token,
-                _mintAmountController.text
-                    .extractDecimals(widget.token.decimals),
-                Address.parse(_beneficiaryAddressController.text),
-              );
-            }
-          : null,
+      onPressed:
+          InputValidators.checkAddress(_beneficiaryAddressController.text) ==
+                      null &&
+                  _mintMaxAmount > BigInt.zero &&
+                  _mintAmountController.text.isNotEmpty &&
+                  InputValidators.correctValue(_mintAmountController.text,
+                          _mintMaxAmount, widget.token.decimals, BigInt.zero) ==
+                      null
+              ? () {
+                  _mintButtonKey.currentState!.animateForward();
+                  model.mintToken(
+                    widget.token,
+                    _mintAmountController.text
+                        .extractDecimals(widget.token.decimals),
+                    Address.parse(_beneficiaryAddressController.text),
+                  );
+                }
+              : null,
       key: _mintButtonKey,
     );
   }
@@ -649,7 +670,7 @@ class _TokenCardState extends State<TokenCard> {
   void _onTransferOwnershipIconPressed() {
     setState(() {
       _backOfCardVersion = TokenCardBackVersion.transferOwnership;
-      _cardKey.currentState!.toggleCard();
+      _flipCard();
     });
   }
 
@@ -687,7 +708,7 @@ class _TokenCardState extends State<TokenCard> {
                 StepperButton(
                   text: 'Go back',
                   onPressed: () {
-                    _cardKey.currentState!.toggleCard();
+                    _flipCard();
                   },
                 ),
               ],
