@@ -12,7 +12,7 @@ import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/model/database/notification_type.dart';
 import 'package:zenon_syrius_wallet_flutter/model/database/wallet_notification.dart';
-import 'package:zenon_syrius_wallet_flutter/services/wallet_connect_service.dart';
+import 'package:zenon_syrius_wallet_flutter/services/i_web3wallet_service.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
@@ -56,20 +56,26 @@ class _WalletConnectQrCardState extends State<WalletConnectQrCard> {
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
           Container(
+            height: 130,
+            width: 130,
             padding: const EdgeInsets.all(10.0),
             decoration: BoxDecoration(
               color: Theme.of(context).colorScheme.background,
               borderRadius: BorderRadius.circular(15.0),
             ),
-            child: PrettyQr(
+            child: PrettyQrView.data(
               data: 'Scan the WalletConnect QR from the dApp',
-              size: 100.0,
-              elementColor: AppColors.znnColor,
-              image:
-                  const AssetImage('assets/images/qr_code_child_image_znn.png'),
-              typeNumber: 7,
-              errorCorrectLevel: QrErrorCorrectLevel.M,
-              roundEdges: true,
+              decoration: const PrettyQrDecoration(
+                  shape: PrettyQrSmoothSymbol(
+                    roundFactor: 0,
+                    color: AppColors.znnColor,
+                  ),
+                  image: PrettyQrDecorationImage(
+                      scale: 0.3,
+                      padding: EdgeInsets.only(top: 10, bottom: 10),
+                      image: AssetImage(
+                          'assets/images/qr_code_child_image_znn.png'))),
+              errorCorrectLevel: QrErrorCorrectLevel.H,
             ),
           ),
           MyOutlinedButton(
@@ -92,7 +98,7 @@ class _WalletConnectQrCardState extends State<WalletConnectQrCard> {
 
   Future<void> _pairWithDapp(Uri uri) async {
     try {
-      final wcService = sl.get<WalletConnectService>();
+      final wcService = sl.get<IWeb3WalletService>();
       final pairingInfo = await wcService.pair(uri);
       Logger('WalletConnectPairingCard')
           .log(Level.INFO, 'pairing info', pairingInfo.toJson());
@@ -100,7 +106,7 @@ class _WalletConnectQrCardState extends State<WalletConnectQrCard> {
       _uriKey.currentState?.reset();
       setState(() {});
     } catch (e) {
-      NotificationUtils.sendNotificationError(e, 'Pairing failed');
+      await NotificationUtils.sendNotificationError(e, 'Pairing failed');
     }
   }
 
@@ -139,35 +145,35 @@ class _WalletConnectQrCardState extends State<WalletConnectQrCard> {
         if (result.rawBytes!.isNotEmpty) {
           if (result.text.isNotEmpty &&
               WalletConnectUri.tryParse(result.text) != null) {
-            windowManager.show();
+            await windowManager.show();
             _uriController.text = result.text;
           } else {
-            windowManager.show();
-            sl<NotificationsBloc>().addNotification(WalletNotification(
+            await windowManager.show();
+            await sl<NotificationsBloc>().addNotification(WalletNotification(
                 title: 'Invalid QR code',
                 timestamp: DateTime.now().millisecondsSinceEpoch,
                 details: 'Please scan a valid WalletConnect QR code',
                 type: NotificationType.error));
           }
         } else {
-          windowManager.show();
-          sl<NotificationsBloc>().addNotification(WalletNotification(
+          await windowManager.show();
+          await sl<NotificationsBloc>().addNotification(WalletNotification(
               title: 'QR code scan failed',
               timestamp: DateTime.now().millisecondsSinceEpoch,
               details: 'Please scan a valid WalletConnect QR code',
               type: NotificationType.error));
         }
-        _pairWithDapp(Uri.parse(result.text));
+        await _pairWithDapp(Uri.parse(result.text));
       } else {
-        windowManager.show();
-        sl<NotificationsBloc>().addErrorNotification(
+        await windowManager.show();
+        await sl<NotificationsBloc>().addErrorNotification(
           'User canceled the QR scanning operation',
           'User QR scan canceled',
         );
       }
     } on Exception catch (e) {
-      windowManager.show();
-      sl<NotificationsBloc>()
+      await windowManager.show();
+      await sl<NotificationsBloc>()
           .addErrorNotification(e, 'Invalid QR code exception');
     }
   }
@@ -175,7 +181,7 @@ class _WalletConnectQrCardState extends State<WalletConnectQrCard> {
   Future<bool> checkPermissionForMacOS() async {
     if (Platform.isMacOS) {
       if (!await _requestAccessForMacOS()) {
-        sl<NotificationsBloc>().addNotification(WalletNotification(
+        await sl<NotificationsBloc>().addNotification(WalletNotification(
             title: 'Permission required',
             timestamp: DateTime.now().millisecondsSinceEpoch,
             details:

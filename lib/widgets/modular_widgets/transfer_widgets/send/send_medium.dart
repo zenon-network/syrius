@@ -180,7 +180,7 @@ class _SendMediumCardState extends State<SendMediumCard> {
       showDialogWithNoAndYesOptions(
         context: context,
         isBarrierDismissible: true,
-        title: 'Send Payment',
+        title: 'Send',
         description: 'Are you sure you want to transfer '
             '${_amountController.text} ${_selectedToken.symbol} to '
             '${ZenonAddressUtils.getLabel(_recipientController.text)} ?',
@@ -254,9 +254,9 @@ class _SendMediumCardState extends State<SendMediumCard> {
       fireOnViewModelReadyOnce: true,
       onViewModelReady: (model) {
         model.stream.listen(
-          (event) {
+          (event) async {
             if (event is AccountBlockTemplate) {
-              _sendConfirmationNotification();
+              await _sendConfirmationNotification();
               setState(() {
                 _sendPaymentButtonKey.currentState?.animateReverse();
                 _amountController = TextEditingController();
@@ -266,9 +266,9 @@ class _SendMediumCardState extends State<SendMediumCard> {
               });
             }
           },
-          onError: (error) {
+          onError: (error) async {
             _sendPaymentButtonKey.currentState?.animateReverse();
-            _sendErrorNotification(error);
+            await _sendErrorNotification(error);
           },
         );
       },
@@ -282,16 +282,16 @@ class _SendMediumCardState extends State<SendMediumCard> {
     );
   }
 
-  void _sendErrorNotification(error) {
-    NotificationUtils.sendNotificationError(
+  Future<void> _sendErrorNotification(error) async {
+    await NotificationUtils.sendNotificationError(
       error,
       'Couldn\'t send ${_amountController.text} ${_selectedToken.symbol} '
       'to ${_recipientController.text}',
     );
   }
 
-  void _sendConfirmationNotification() {
-    sl.get<NotificationsBloc>().addNotification(
+  Future<void> _sendConfirmationNotification() async {
+    await sl.get<NotificationsBloc>().addNotification(
           WalletNotification(
             title: 'Sent ${_amountController.text} ${_selectedToken.symbol} '
                 'to ${ZenonAddressUtils.getLabel(_recipientController.text)}',

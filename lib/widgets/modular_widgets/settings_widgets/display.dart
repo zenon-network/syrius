@@ -189,7 +189,7 @@ class _DisplayWidget extends State<DisplayWidget> {
         kThemeModeKey,
         currentThemeMode.toString(),
       );
-      sl.get<NotificationsBloc>().addNotification(
+      await sl.get<NotificationsBloc>().addNotification(
             WalletNotification(
               title: 'Theme mode changed',
               timestamp: DateTime.now().millisecondsSinceEpoch,
@@ -204,7 +204,7 @@ class _DisplayWidget extends State<DisplayWidget> {
             ),
           );
     } catch (e) {
-      NotificationUtils.sendNotificationError(e, 'Theme mode change failed');
+      await NotificationUtils.sendNotificationError(e, 'Theme mode change failed');
     } finally {
       _confirmThemeButtonKey.currentState!.animateReverse();
     }
@@ -226,7 +226,7 @@ class _DisplayWidget extends State<DisplayWidget> {
     );
   }
 
-  void _onConfirmScaleButtonPressed() {
+  void _onConfirmScaleButtonPressed() async {
     try {
       _confirmScaleButtonKey.currentState!.animateForward();
 
@@ -240,7 +240,7 @@ class _DisplayWidget extends State<DisplayWidget> {
         currentTextScaling.toString(),
       );
 
-      sl.get<NotificationsBloc>().addNotification(
+      await sl.get<NotificationsBloc>().addNotification(
             WalletNotification(
                 title: 'Text scale changed',
                 timestamp: DateTime.now().millisecondsSinceEpoch,
@@ -249,7 +249,7 @@ class _DisplayWidget extends State<DisplayWidget> {
                 type: NotificationType.paymentSent),
           );
     } catch (e) {
-      NotificationUtils.sendNotificationError(e, 'Text scale change failed');
+      await NotificationUtils.sendNotificationError(e, 'Text scale change failed');
     } finally {
       _confirmScaleButtonKey.currentState!.animateReverse();
     }

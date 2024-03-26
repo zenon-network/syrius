@@ -1,0 +1,11 @@
+Version: v0.1.0-rc.1,Environment: Windows 10,,
+Date: 2023-06-07,Tester: vilkris,,
+,,,
+Test case,Description,Priority,Result
+Basic swap functionality,,,
+Start & complete native P2P Swap,"Start a native swap, wait for the counterparty to join and complete the swap.",PRIO1,PASS
+Join & complete native P2P Swap,Join a native swap and wait for the counterparty to complete the swap.,PRIO1,PASS
+,,,
+Reclaim functionality,,,
+Reclaim funds after started swap fails,"Start swap and wait for the initial deposit to expire, then reclaim funds.",PRIO1,PASS
+Reclaim funds after joined swap fails,"Join swap and wait for the counter deposit to expire, then reclaim funds.",PRIO1,PASS

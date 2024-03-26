@@ -1,15 +1,13 @@
-import 'dart:io';
-
 import 'package:flutter/cupertino.dart';
 import 'package:zenon_syrius_wallet_flutter/model/model.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/wallet_file.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
-import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 ValueNotifier<String?> kLastWalletConnectUriNotifier = ValueNotifier(null);
 String? kCurrentNode;
 String? kSelectedAddress;
-String? kKeyStorePath;
+String? kWalletPath;
 String? kLocalIpAddress;
 
 int? kAutoLockWalletMinutes;
@@ -20,11 +18,7 @@ double? kAutoEraseWalletLimit;
 
 bool kWalletInitCompleted = false;
 
-KeyStore? kKeyStore;
-
-KeyStoreManager kKeyStoreManager = KeyStoreManager(
-  walletPath: Directory(kKeyStorePath!),
-);
+WalletFile? kWalletFile;
 
 List<String> kDbNodes = [];
 List<String?> kDefaultAddressList = [];
@@ -48,10 +42,20 @@ final List<Tabs> kTabsWithIconTitles = [
   Tabs.help,
   Tabs.notifications,
   Tabs.settings,
-  Tabs.resyncWallet,
+  Tabs.generation,
+  Tabs.sync,
   Tabs.lock,
 ];
 
 final List<Tabs> kDisabledTabs = [
-  Tabs.resyncWallet,
+  Tabs.generation,
+  Tabs.sync,
 ];
+
+List<String> kDefaultNodes = [
+  kEmbeddedNode,
+  kLocalhostDefaultNodeUrl,
+];
+
+// Community supplied public rpc nodes
+List<String> kDefaultCommunityNodes = [];

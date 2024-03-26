@@ -9,6 +9,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:flutter_vector_icons/flutter_vector_icons.dart';
 import 'package:logging/logging.dart';
+import 'package:lottie/lottie.dart';
 import 'package:provider/provider.dart';
 import 'package:wallet_connect_uri_validator/wallet_connect_uri_validator.dart';
 import 'package:window_manager/window_manager.dart';
@@ -16,7 +17,6 @@ import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/handlers/htlc_swaps_handler.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/model/model.dart';
-import 'package:zenon_syrius_wallet_flutter/services/wallet_connect_service.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/clipboard_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
@@ -43,7 +43,8 @@ enum Tabs {
   plasma,
   tokens,
   p2pSwap,
-  resyncWallet,
+  generation,
+  sync,
   accelerator,
   walletConnect,
 }
@@ -66,33 +67,24 @@ class _MainAppContainerState extends State<MainAppContainer>
     with TickerProviderStateMixin, ClipboardListener, WindowListener {
   late AnimationController _animationController;
   late Animation _animation;
-
-  final NodeSyncStatusBloc _netSyncStatusBloc = NodeSyncStatusBloc();
-
   late StreamSubscription _lockBlockStreamSubscription;
   late StreamSubscription _incomingLinkSubscription;
-
-  Timer? _navigateToLockTimer;
-
   late LockBloc _lockBloc;
 
+  Timer? _navigateToLockTimer;
   TabController? _tabController;
-
   TransferTabChild? _transferTabChild;
+  bool _initialUriIsHandled = false;
 
+  final NodeSyncStatusBloc _netSyncStatusBloc = NodeSyncStatusBloc();
+  final _appLinks = AppLinks();
   final FocusNode _focusNode = FocusNode(
     skipTraversal: true,
     canRequestFocus: false,
   );
 
-  bool _initialUriIsHandled = false;
-
-  final _appLinks = AppLinks();
-
   @override
   void initState() {
-    sl<WalletConnectService>().context = context;
-
     clipboardWatcher.addListener(this);
     windowManager.addListener(this);
 
@@ -112,6 +104,7 @@ class _MainAppContainerState extends State<MainAppContainer>
     _initLockBlock();
     _handleIncomingLinks();
     _handleInitialUri();
+
     super.initState();
   }
 
@@ -206,7 +199,7 @@ class _MainAppContainerState extends State<MainAppContainer>
                   ),
                   child: Padding(
                     padding: const EdgeInsets.symmetric(
-                      horizontal: 10.0,
+                      horizontal: 12.0,
                     ),
                     child: Focus(
                       focusNode: _focusNode,
@@ -267,8 +260,9 @@ class _MainAppContainerState extends State<MainAppContainer>
     );
   }
 
-  void _onNavigateToLock() {
-    kKeyStore = null;
+  void _onNavigateToLock() async {
+    if (kWalletFile != null) kWalletFile!.close();
+    kWalletFile = null;
     _navigateToLockTimer?.cancel();
   }
 
@@ -343,7 +337,10 @@ class _MainAppContainerState extends State<MainAppContainer>
         ),
       ),
       Tab(
-        child: _getPowGeneratingStatus(),
+        child: _getGenerationStatus(),
+      ),
+      Tab(
+        child: _getSyncStatus(),
       ),
       Tab(
         child: _isTabSelected(Tabs.lock)
@@ -363,7 +360,7 @@ class _MainAppContainerState extends State<MainAppContainer>
     ];
   }
 
-  Widget _getWebsocketConnectionStatusStreamBuilder() {
+  Widget _getSyncStatus() {
     return StreamBuilder<SyncInfo>(
       stream: _netSyncStatusBloc.stream,
       builder: (_, snapshot) {
@@ -378,8 +375,34 @@ class _MainAppContainerState extends State<MainAppContainer>
     );
   }
 
+  Widget _getGenerationStatus() {
+    return StreamBuilder<PowStatus>(
+      stream: sl.get<PowGeneratingStatusBloc>().stream,
+      builder: (_, snapshot) {
+        if (snapshot.hasData && snapshot.data == PowStatus.generating) {
+          return Tooltip(
+            message: 'Generating Plasma',
+            child: Lottie.asset(
+              'assets/lottie/ic_anim_plasma_generation.json',
+              fit: BoxFit.contain,
+              width: 30.0,
+              repeat: true,
+            ),
+          );
+        }
+        return Tooltip(
+          message: 'Plasma generation idle',
+          child: Icon(
+            MaterialCommunityIcons.lightning_bolt,
+            color: Theme.of(context).iconTheme.color,
+          ),
+        );
+      },
+    );
+  }
+
   Widget _getSyncingStatusIcon(SyncState syncState, [SyncInfo? syncInfo]) {
-    var message = 'Connected and synced';
+    String message = 'Connected and synced';
 
     if (syncState != SyncState.notEnoughPeers &&
         syncState != SyncState.syncDone &&
@@ -390,6 +413,13 @@ class _MainAppContainerState extends State<MainAppContainer>
 
     if (syncState == SyncState.unknown) {
       message = 'Not ready';
+      return Tooltip(
+          message: message,
+          child: Icon(
+            Icons.sync_disabled,
+            size: 24.0,
+            color: _getSyncIconColor(syncState),
+          ));
     } else if (syncState == SyncState.syncing) {
       if (syncInfo != null) {
         if (syncInfo.targetHeight > 0 &&
@@ -397,12 +427,44 @@ class _MainAppContainerState extends State<MainAppContainer>
             (syncInfo.targetHeight - syncInfo.currentHeight) < 3) {
           message = 'Connected and synced';
           syncState = SyncState.syncDone;
+          return Tooltip(
+              message: message,
+              child: Icon(
+                Icons.radio_button_unchecked,
+                size: 24.0,
+                color: _getSyncIconColor(syncState),
+              ));
+        } else if (syncInfo.targetHeight == 0 || syncInfo.currentHeight == 0) {
+          message = 'Started syncing with the network, please wait';
+          syncState = SyncState.syncing;
+          return Tooltip(
+              message: message,
+              child: Icon(Icons.sync,
+                  size: 24.0, color: _getSyncIconColor(syncState)));
         } else {
           message =
               'Sync progress: momentum ${syncInfo.currentHeight} of ${syncInfo.targetHeight}';
+          return Tooltip(
+            message: message,
+            child: SizedBox(
+              height: 18.0,
+              width: 18.0,
+              child: Center(
+                  child: CircularProgressIndicator(
+                backgroundColor: Theme.of(context).iconTheme.color,
+                color: _getSyncIconColor(syncState),
+                value: syncInfo.currentHeight / syncInfo.targetHeight,
+                strokeWidth: 3.0,
+              )),
+            ),
+          );
         }
       } else {
         message = 'Syncing momentums';
+        return Tooltip(
+            message: message,
+            child: Icon(Icons.sync,
+                size: 24.0, color: _getSyncIconColor(syncState)));
       }
     } else if (syncState == SyncState.notEnoughPeers) {
       if (syncInfo != null) {
@@ -411,17 +473,49 @@ class _MainAppContainerState extends State<MainAppContainer>
             (syncInfo.targetHeight - syncInfo.currentHeight) < 20) {
           message = 'Connecting to peers';
           syncState = SyncState.syncing;
+          return Tooltip(
+              message: message,
+              child: SizedBox(
+                  height: 18.0,
+                  width: 18.0,
+                  child: Center(
+                      child: CircularProgressIndicator(
+                    backgroundColor: Theme.of(context).iconTheme.color,
+                    color: _getSyncIconColor(syncState),
+                    value: syncInfo.currentHeight / syncInfo.targetHeight,
+                    strokeWidth: 3.0,
+                  ))));
         } else if (syncInfo.targetHeight == 0 || syncInfo.currentHeight == 0) {
-          message = 'Connecting to peers';
+          message = 'Connecting to peers, please wait';
           syncState = SyncState.syncing;
+          return Tooltip(
+              message: message,
+              child: Icon(Icons.sync,
+                  size: 24.0, color: _getSyncIconColor(syncState)));
         } else {
           message =
               'Sync progress: momentum ${syncInfo.currentHeight} of ${syncInfo.targetHeight}';
           syncState = SyncState.syncing;
+          return Tooltip(
+              message: message,
+              child: SizedBox(
+                  height: 18.0,
+                  width: 18.0,
+                  child: Center(
+                      child: CircularProgressIndicator(
+                    backgroundColor: Theme.of(context).iconTheme.color,
+                    color: _getSyncIconColor(syncState),
+                    value: syncInfo.currentHeight / syncInfo.targetHeight,
+                    strokeWidth: 3.0,
+                  ))));
         }
       } else {
         message = 'Connecting to peers';
         syncState = SyncState.syncing;
+        return Tooltip(
+            message: message,
+            child: Icon(Icons.sync_problem,
+                size: 24.0, color: _getSyncIconColor(syncState)));
       }
     } else {
       message = 'Connected and synced';
@@ -430,10 +524,16 @@ class _MainAppContainerState extends State<MainAppContainer>
 
     return Tooltip(
       message: message,
-      child: Icon(
-        Icons.radio_button_unchecked,
-        size: 24.0,
-        color: _getSyncIconColor(syncState),
+      child: SizedBox(
+        height: 18.0,
+        width: 18.0,
+        child: Center(
+            child: CircularProgressIndicator(
+          backgroundColor: Theme.of(context).iconTheme.color,
+          color: _getSyncIconColor(syncState),
+          value: 1,
+          strokeWidth: 2.0,
+        )),
       ),
     );
   }
@@ -472,7 +572,6 @@ class _MainAppContainerState extends State<MainAppContainer>
         const NotificationsTabChild(),
         SettingsTabChild(
           _onChangeAutoLockTime,
-          _onResyncWalletPressed,
           onStepperNotificationSeeMorePressed: () => _navigateTo(
             Tabs.notifications,
           ),
@@ -480,6 +579,7 @@ class _MainAppContainerState extends State<MainAppContainer>
             Tabs.dashboard,
           ),
         ),
+        const SizedBox(),
         const SizedBox(),
         LockTabChild(_mainLockCallback, _afterAppInitCallback),
       ],
@@ -508,8 +608,8 @@ class _MainAppContainerState extends State<MainAppContainer>
     super.dispose();
   }
 
-  void _onChangeAutoLockTime() {
-    sl.get<NotificationsBloc>().addNotification(
+  Future<void> _onChangeAutoLockTime() async {
+    await sl.get<NotificationsBloc>().addNotification(
           WalletNotification(
             title: 'Auto-lock interval changed successfully',
             details: 'Auto-lock interval changed successfully to '
@@ -529,6 +629,7 @@ class _MainAppContainerState extends State<MainAppContainer>
     } else {
       _lockBloc.addEvent(LockEvent.navigateToDashboard);
     }
+
     _listenToAutoReceiveTxWorkerNotifications();
   }
 
@@ -536,28 +637,6 @@ class _MainAppContainerState extends State<MainAppContainer>
     sl<AutoReceiveTxWorker>().stream.listen((event) {
       sl<NotificationsBloc>().addNotification(event);
     });
-  }
-
-  void _onResyncWalletPressed() {
-    _navigateTo(Tabs.resyncWallet);
-  }
-
-  Widget _getPowGeneratingStatus() {
-    return StreamBuilder<PowStatus>(
-      stream: sl.get<PowGeneratingStatusBloc>().stream,
-      builder: (_, snapshot) {
-        if (snapshot.hasData && snapshot.data == PowStatus.generating) {
-          return const Tooltip(
-            message: 'Generating Plasma',
-            child: SyriusLoadingWidget(
-              size: 20.0,
-              strokeWidth: 2.5,
-            ),
-          );
-        }
-        return _getWebsocketConnectionStatusStreamBuilder();
-      },
-    );
   }
 
   bool _isTabSelected(Tabs page) =>
@@ -672,7 +751,7 @@ class _MainAppContainerState extends State<MainAppContainer>
   }
 
   void _handleIncomingLinks() async {
-    if (!kIsWeb) {
+    if (!kIsWeb && !Platform.isLinux) {
       _incomingLinkSubscription =
           _appLinks.allUriLinkStream.listen((Uri? uri) async {
         if (!await windowManager.isFocused() ||
@@ -693,7 +772,7 @@ class _MainAppContainerState extends State<MainAppContainer>
               }
               String wcUri = Uri.decodeFull(uriRaw.split('wc?uri=').last);
               if (WalletConnectUri.tryParse(wcUri) != null) {
-                _updateWalletConnectUri(wcUri);
+                await _updateWalletConnectUri(wcUri);
               }
               return;
             }
@@ -741,7 +820,7 @@ class _MainAppContainerState extends State<MainAppContainer>
             if (context.mounted) {
               switch (uri.host) {
                 case 'transfer':
-                  sl<NotificationsBloc>().addNotification(
+                  await sl<NotificationsBloc>().addNotification(
                     WalletNotification(
                       title: 'Transfer action detected',
                       timestamp: DateTime.now().millisecondsSinceEpoch,
@@ -783,7 +862,7 @@ class _MainAppContainerState extends State<MainAppContainer>
                   break;
 
                 case 'stake':
-                  sl<NotificationsBloc>().addNotification(
+                  await sl<NotificationsBloc>().addNotification(
                     WalletNotification(
                       title: 'Stake action detected',
                       timestamp: DateTime.now().millisecondsSinceEpoch,
@@ -818,7 +897,7 @@ class _MainAppContainerState extends State<MainAppContainer>
                   break;
 
                 case 'delegate':
-                  sl<NotificationsBloc>().addNotification(
+                  await sl<NotificationsBloc>().addNotification(
                     WalletNotification(
                       title: 'Delegate action detected',
                       timestamp: DateTime.now().millisecondsSinceEpoch,
@@ -851,7 +930,7 @@ class _MainAppContainerState extends State<MainAppContainer>
                   break;
 
                 case 'fuse':
-                  sl<NotificationsBloc>().addNotification(
+                  await sl<NotificationsBloc>().addNotification(
                     WalletNotification(
                       title: 'Fuse ${kQsrCoin.symbol} action detected',
                       timestamp: DateTime.now().millisecondsSinceEpoch,
@@ -885,7 +964,7 @@ class _MainAppContainerState extends State<MainAppContainer>
                   break;
 
                 case 'sentinel':
-                  sl<NotificationsBloc>().addNotification(
+                  await sl<NotificationsBloc>().addNotification(
                     WalletNotification(
                       title: 'Deploy Sentinel action detected',
                       timestamp: DateTime.now().millisecondsSinceEpoch,
@@ -900,7 +979,7 @@ class _MainAppContainerState extends State<MainAppContainer>
                   break;
 
                 case 'pillar':
-                  sl<NotificationsBloc>().addNotification(
+                  await sl<NotificationsBloc>().addNotification(
                     WalletNotification(
                       title: 'Deploy Pillar action detected',
                       timestamp: DateTime.now().millisecondsSinceEpoch,
@@ -915,7 +994,7 @@ class _MainAppContainerState extends State<MainAppContainer>
                   break;
 
                 default:
-                  sl<NotificationsBloc>().addNotification(
+                  await sl<NotificationsBloc>().addNotification(
                     WalletNotification(
                       title: 'Incoming link detected',
                       timestamp: DateTime.now().millisecondsSinceEpoch,
@@ -932,8 +1011,8 @@ class _MainAppContainerState extends State<MainAppContainer>
       }, onDone: () {
         Logger('MainAppContainer')
             .log(Level.INFO, '_handleIncomingLinks', 'done');
-      }, onError: (Object err) {
-        NotificationUtils.sendNotificationError(
+      }, onError: (Object err) async {
+        await NotificationUtils.sendNotificationError(
             err, 'Handle incoming link failed');
         Logger('MainAppContainer')
             .log(Level.WARNING, '_handleIncomingLinks', err);
@@ -975,11 +1054,11 @@ class _MainAppContainerState extends State<MainAppContainer>
     }
   }
 
-  void _updateWalletConnectUri(String text) {
+  Future<void> _updateWalletConnectUri(String text) async {
     kLastWalletConnectUriNotifier.value = text;
     if (!_isWalletLocked()) {
       if (kCurrentPage != Tabs.walletConnect) {
-        sl<NotificationsBloc>().addNotification(
+        await sl<NotificationsBloc>().addNotification(
           WalletNotification(
             title:
                 'WalletConnect link detected. Go to WalletConnect tab to connect.',

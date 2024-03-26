@@ -164,9 +164,9 @@ class _StakingOptionsState extends State<StakingOptions> {
               });
             }
           },
-          onError: (error) {
+          onError: (error) async {
             _stakeButtonKey.currentState?.animateReverse();
-            NotificationUtils.sendNotificationError(
+            await NotificationUtils.sendNotificationError(
               error,
               'Error while generating stake',
             );

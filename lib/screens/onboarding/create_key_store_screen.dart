@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/screens/screens.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/wallet_file.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 
 class CreateKeyStoreScreen extends StatefulWidget {
@@ -21,12 +22,12 @@ class CreateKeyStoreScreen extends StatefulWidget {
 }
 
 class _CreateKeyStoreScreenState extends State<CreateKeyStoreScreen> {
-  late KeyStorePathBloc _keyStorePathBloc;
+  late KeyStoreFileBloc _keyStoreFileBloc;
 
   @override
   void initState() {
     super.initState();
-    _keyStorePathBloc = KeyStorePathBloc()
+    _keyStoreFileBloc = KeyStoreFileBloc()
       ..getKeyStorePath(
         widget.seed,
         widget.password,
@@ -41,8 +42,8 @@ class _CreateKeyStoreScreenState extends State<CreateKeyStoreScreen> {
           vertical: 30.0,
         ),
         child: Center(
-          child: StreamBuilder<String?>(
-            stream: _keyStorePathBloc.stream,
+          child: StreamBuilder<KeyStoreWalletFile?>(
+            stream: _keyStoreFileBloc.stream,
             builder: (_, snapshot) {
               if (snapshot.hasData) {
                 return Column(

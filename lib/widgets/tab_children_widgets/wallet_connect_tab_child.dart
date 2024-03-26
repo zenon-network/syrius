@@ -41,6 +41,7 @@ class WalletConnectTabChild extends StatelessWidget {
         ),
         FluidCell(
           width: context.layout.value(
+            xl: kStaggeredNumOfColumns ~/ 2,
             xs: kStaggeredNumOfColumns,
           ),
           height: kStaggeredNumOfColumns / 4,
@@ -48,6 +49,7 @@ class WalletConnectTabChild extends StatelessWidget {
         ),
         FluidCell(
           width: context.layout.value(
+            xl: kStaggeredNumOfColumns ~/ 2,
             xs: kStaggeredNumOfColumns,
           ),
           height: kStaggeredNumOfColumns / 4,

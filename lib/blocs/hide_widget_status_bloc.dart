@@ -2,7 +2,7 @@ import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/keystore_utils.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/wallet_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/widget_utils.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
@@ -15,7 +15,7 @@ class HideWidgetStatusBloc extends BaseBloc<bool?> {
     try {
       addEvent(null);
       if (!isHidden) {
-        await KeyStoreUtils.decryptKeyStoreFile(kKeyStorePath!, password);
+        await WalletUtils.decryptWalletFile(kWalletPath!, password);
       }
       await _markWidgetAsHidden(widgetTitle, isHidden);
       addEvent(isHidden);

@@ -172,6 +172,7 @@ class _InfiniteScrollTableState<T> extends State<InfiniteScrollTable<T>> {
 
   @override
   void dispose() {
+    _scrollController.dispose();
     _pagingController.dispose();
     _blocListingStateSubscription.cancel();
     if (widget.disposeBloc) {

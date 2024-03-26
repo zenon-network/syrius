@@ -37,7 +37,7 @@ class ProjectsStats extends StatelessWidget {
                   AcceleratorProjectDetails(
                     owner: project.owner,
                     hash: project.id,
-                    creationTimestamp: null,
+                    creationTimestamp: project.creationTimestamp
                   ),
                 ],
               ),

@@ -29,11 +29,11 @@ class ClipboardUtils {
 
   static void pasteToClipboard(
       BuildContext context, Function(String) callback) {
-    Clipboard.getData('text/plain').then((value) {
+    Clipboard.getData('text/plain').then((value) async {
       if (value != null) {
         callback(value.text!);
       } else {
-        NotificationUtils.sendNotificationError(
+        await NotificationUtils.sendNotificationError(
           Exception('The clipboard data could not be obtained'),
           'Something went wrong while getting the clipboard data',
         );

@@ -120,7 +120,7 @@ class _SentinelCollectState extends State<SentinelCollect> {
         },
       );
     } catch (e) {
-      NotificationUtils.sendNotificationError(
+      await NotificationUtils.sendNotificationError(
         e,
         'Error while collecting Sentinel rewards',
       );

@@ -3,11 +3,13 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
+import 'package:logging/logging.dart';
 import 'package:lottie/lottie.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/model/model.dart';
 import 'package:zenon_syrius_wallet_flutter/screens/screens.dart';
+import 'package:zenon_syrius_wallet_flutter/services/i_web3wallet_service.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 
@@ -72,7 +74,7 @@ class _SplashScreenState extends State<SplashScreen>
 
   void _navigateToNextScreen() {
     _controller.stop();
-    return kKeyStorePath != null
+    return kWalletPath != null
         ? _checkForDefaultNode()
         : Navigator.pushReplacementNamed(
             context,
@@ -99,20 +101,43 @@ class _SplashScreenState extends State<SplashScreen>
     // after the user creates or imports a new wallet
     kWalletInitCompleted = false;
     await sl.get<NotificationsBloc>().addNotification(null);
-    await _deleteKeyStoreFile();
-    await Hive.deleteFromDisk();
+    NodeUtils.stopWebSocketClient();
+    if (sl<AutoReceiveTxWorker>().pool.isNotEmpty) {
+      sl<AutoReceiveTxWorker>().pool.clear();
+    }
+    await _deleteCache();
+    await _deleteWalletFile();
     if (!mounted) return;
     await InitUtils.initApp(context);
   }
 
-  Future<void> _deleteCache() async => Future.forEach<String>(
-        kCacheBoxesToBeDeleted,
-        (boxName) async => await Hive.deleteBoxFromDisk(boxName),
-      );
+  Future<void> _deleteCache() async {
+    await Hive.close();
+    await Future.forEach<String>(
+      kCacheBoxesToBeDeleted,
+      (boxName) async => await Hive.deleteBoxFromDisk(boxName),
+    );
+    await _deleteWeb3Cache();
+  }
 
-  Future<void> _deleteKeyStoreFile() async {
-    await FileUtils.deleteFile(kKeyStorePath!);
-    kKeyStorePath = null;
+  Future<void> _deleteWeb3Cache() async {
+    try {
+      final web3WalletService = sl<IWeb3WalletService>();
+      for (var pairing in web3WalletService.pairings.value) {
+        await web3WalletService.deactivatePairing(topic: pairing.topic);
+      }
+    } catch (e, stackTrace) {
+      Logger('SplashScreen')
+          .log(Level.WARNING, '_deleteWeb3Cache', e, stackTrace);
+    }
+  }
+
+  Future<void> _deleteWalletFile() async {
+    await Hive.deleteBoxFromDisk(kKeyStoreBox);
+    if (kWalletFile != null) kWalletFile!.close();
+    kWalletFile = null;
+    await FileUtils.deleteFile(kWalletPath!);
+    kWalletPath = null;
   }
 
   void _checkForDefaultNode() => sharedPrefsService!.get(

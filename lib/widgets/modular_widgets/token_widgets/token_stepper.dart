@@ -718,9 +718,9 @@ class _TokenStepperState extends State<TokenStepper> {
             _createButtonKey.currentState?.animateReverse();
             _saveProgressAndNavigateToNextStep(TokenStepperStep.issueToken);
           },
-          onError: (error) {
+          onError: (error) async {
             _createButtonKey.currentState?.animateReverse();
-            NotificationUtils.sendNotificationError(
+            await NotificationUtils.sendNotificationError(
               error,
               'Error while creating a new ZTS token',
             );

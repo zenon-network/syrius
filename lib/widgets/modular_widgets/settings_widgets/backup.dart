@@ -3,6 +3,7 @@ import 'package:zenon_syrius_wallet_flutter/screens/screens.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/navigation_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
+import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 class BackupWidget extends StatefulWidget {
   const BackupWidget({Key? key}) : super(key: key);
@@ -27,42 +28,50 @@ class _BackupWidgetState extends State<BackupWidget> {
     return ListView(
       shrinkWrap: true,
       children: <Widget>[
-        CustomExpandablePanel('Backup Wallet', _getBackupButton()),
+        CustomExpandablePanel('Backup Wallet', _getBackupWalletButton()),
         CustomExpandablePanel('Dump Mnemonic', _getDumpMnemonicButton()),
       ],
     );
   }
 
-  Widget _getBackupButton() {
+  Widget _getBackupWalletButton() {
     return Center(
       child: SettingsButton(
-        onPressed: _onBackupWalletPressed,
+        onPressed: (!kWalletFile!.isHardwareWallet)
+            ? _onBackupWalletPressed
+            : null,
         text: 'Backup wallet',
       ),
     );
   }
 
-  void _onBackupWalletPressed() {
-    NavigationUtils.push(
-      context,
-      ExportWalletInfoScreen(
-        kKeyStore!.mnemonic!,
-        backupWalletFlow: true,
-      ),
-    );
+  void _onBackupWalletPressed() async {
+    kWalletFile!
+        .access((wallet) => Future.value((wallet as KeyStore).mnemonic!))
+        .then((value) => NavigationUtils.push(
+              context,
+              ExportWalletInfoScreen(
+                value,
+                backupWalletFlow: true,
+              ),
+            ));
   }
 
   Widget _getDumpMnemonicButton() {
     return Center(
       child: SettingsButton(
-        onPressed: () {
-          NavigationUtils.push(
-            context,
-            const DumpMnemonicScreen(),
-          );
-        },
+        onPressed: (!kWalletFile!.isHardwareWallet)
+            ? _onDumpMnemonicPressed
+            : null,
         text: 'Dump Mnemonic',
       ),
+    );
+  }
+
+  void _onDumpMnemonicPressed() {
+    NavigationUtils.push(
+      context,
+      const DumpMnemonicScreen(),
     );
   }
 }

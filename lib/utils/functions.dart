@@ -1,13 +1,35 @@
+import 'dart:convert';
+
 import 'package:flutter/services.dart';
-import 'package:zenon_syrius_wallet_flutter/main.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
-Future<String> walletSign(List<int> message) async {
-  List<int> signature = await zenon!.defaultKeyPair!.sign(
-    Uint8List.fromList(
-      message,
-    ),
-  );
+class Signature {
+  String signature;
+  String publicKey;
 
-  return BytesUtils.bytesToHex(signature);
+  Signature(this.signature, this.publicKey);
+}
+
+Future<Signature> walletSign(List<int> message) async {
+  final wallet = await kWalletFile!.open();
+  try {
+    final walletAccount = await wallet
+        .getAccount(kDefaultAddressList.indexOf(kSelectedAddress));
+    List<int> publicKey = await walletAccount.getPublicKey();
+    List<int> signature = await walletAccount.sign(
+      Uint8List.fromList(
+        message,
+      ),
+    );
+    return Signature(
+        BytesUtils.bytesToHex(signature), BytesUtils.bytesToHex(publicKey));
+  } finally {
+    kWalletFile!.close();
+  }
+}
+
+Future<dynamic> loadJsonFromAssets(String filePath) async {
+  String jsonString = await rootBundle.loadString(filePath);
+  return jsonDecode(jsonString);
 }

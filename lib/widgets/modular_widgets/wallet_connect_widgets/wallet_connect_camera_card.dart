@@ -1,11 +1,13 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:ai_barcode_scanner/ai_barcode_scanner.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_vector_icons/flutter_vector_icons.dart';
 import 'package:logging/logging.dart';
 import 'package:wallet_connect_uri_validator/wallet_connect_uri_validator.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
-import 'package:zenon_syrius_wallet_flutter/services/wallet_connect_service.dart';
+import 'package:zenon_syrius_wallet_flutter/services/i_web3wallet_service.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 
@@ -59,22 +61,60 @@ class _WalletConnectCameraCardState extends State<WalletConnectCameraCard> {
                       MaterialPageRoute(
                         builder: (context) => AiBarcodeScanner(
                           validator: (value) {
-                            return canParseWalletConnectUri(value);
+                            return (canParseWalletConnectUri(value));
                           },
                           canPop: true,
                           onScan: (String value) async {
-                            final wcService = sl.get<WalletConnectService>();
+                            final wcService = sl.get<IWeb3WalletService>();
                             final pairingInfo =
                                 await wcService.pair(Uri.parse(value));
                             Logger('WalletConnectCameraCard').log(Level.INFO,
                                 'pairing info', pairingInfo.toJson());
                             setState(() {});
                           },
-                          onDetect: (p0) {},
-                          onDispose: () {},
+                          onScannerStarted: (p0) {
+                            // Pop navigator and close camera after 10 seconds
+                            Timer(const Duration(seconds: 30), () {
+                              Navigator.pop(context);
+                            });
+                            Logger('WalletConnectCameraCard')
+                                .log(Level.INFO, 'onScannerStarted');
+                          },
+                          onDetect: (p0) {
+                            Logger('WalletConnectCameraCard')
+                                .log(Level.INFO, 'onDetect', p0.toString());
+                          },
+                          onDispose: () {
+                            Logger('WalletConnectCameraCard')
+                                .log(Level.INFO, 'onDispose');
+                          },
                           controller: MobileScannerController(
+                            facing: CameraFacing.front,
                             detectionSpeed: DetectionSpeed.noDuplicates,
                           ),
+                          errorBuilder: (p0, p1, p2) {
+                            // Pop navigator and close camera after 10 seconds
+                            Timer(const Duration(seconds: 10), () {
+                              Navigator.pop(context);
+                            });
+                            return Center(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Text('${p1.errorCode}',
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .bodyMedium),
+                                  Container(height: 16),
+                                  const Icon(
+                                    MaterialCommunityIcons.camera_off,
+                                    size: 32,
+                                    color: AppColors.errorColor,
+                                  ),
+                                ],
+                              ),
+                            );
+                          },
                         ),
                       ),
                     );
@@ -88,6 +128,11 @@ class _WalletConnectCameraCardState extends State<WalletConnectCameraCard> {
         ],
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
   }
 
   bool canParseWalletConnectUri(String wcUri) {

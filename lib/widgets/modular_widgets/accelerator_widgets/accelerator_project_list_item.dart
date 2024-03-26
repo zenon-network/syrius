@@ -72,6 +72,7 @@ class _AcceleratorProjectListItemState
               hash: widget.acceleratorProject.id,
               creationTimestamp: widget.acceleratorProject.creationTimestamp,
               acceleratorProjectStatus: widget.acceleratorProject.status,
+              isPhase: widget.acceleratorProject is Phase
             ),
             const SizedBox(
               height: 10.0,
@@ -591,8 +592,8 @@ class _AcceleratorProjectListItemState
               widget.acceleratorProject.id,
             );
           }
-        }, onError: (error) {
-          NotificationUtils.sendNotificationError(
+        }, onError: (error) async {
+          await NotificationUtils.sendNotificationError(
             error,
             'Error while voting project',
           );
@@ -621,8 +622,8 @@ class _AcceleratorProjectListItemState
       onViewModelReady: (model) {
         model.getVoteBreakdown(
             widget.pillarInfo?.name, widget.acceleratorProject.id);
-        model.stream.listen((event) {}, onError: (error) {
-          NotificationUtils.sendNotificationError(
+        model.stream.listen((event) {}, onError: (error) async {
+          await NotificationUtils.sendNotificationError(
             error,
             'Error while trying to get the vote breakdown',
           );

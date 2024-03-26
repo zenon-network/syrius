@@ -135,9 +135,9 @@ class _StakingListState extends State<StakingList> {
               bloc.refreshResults();
             }
           },
-          onError: (error) {
+          onError: (error) async {
             cancelButtonKey.currentState?.animateReverse();
-            NotificationUtils.sendNotificationError(
+            await NotificationUtils.sendNotificationError(
               error,
               'Error while cancelling stake',
             );

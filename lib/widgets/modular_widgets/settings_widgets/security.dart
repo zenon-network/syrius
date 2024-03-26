@@ -84,24 +84,7 @@ class _SecurityWidgetState extends State<SecurityWidget> {
     return CardScaffold(
       title: 'Security',
       description: 'Change the security parameters of the wallet',
-      childBuilder: () => _getFutureBuilder(context),
-    );
-  }
-
-  Widget _getFutureBuilder(BuildContext context) {
-    return FutureBuilder<List<int>>(
-      future: zenon!.defaultKeyPair!.getPublicKey(),
-      builder: (_, snapshot) {
-        if (snapshot.hasError) {
-          return SyriusErrorWidget(snapshot.error.toString());
-        } else if (snapshot.hasData) {
-          _publicKeyController.text = BytesUtils.bytesToHex(snapshot.data!);
-          _publicKeySignFileController.text =
-              BytesUtils.bytesToHex(snapshot.data!);
-          return _getWidgetBody(context);
-        }
-        return const SyriusLoadingWidget();
-      },
+      childBuilder: () => _getWidgetBody(context),
     );
   }
 
@@ -206,7 +189,7 @@ class _SecurityWidgetState extends State<SecurityWidget> {
         },
       );
     } catch (e) {
-      NotificationUtils.sendNotificationError(
+      await NotificationUtils.sendNotificationError(
         e,
         'Error while confirming auto-lock interval',
       );
@@ -223,7 +206,7 @@ class _SecurityWidgetState extends State<SecurityWidget> {
     );
   }
 
-  void _onConfirmAutoEraseButtonPressed() async {
+  Future<void> _onConfirmAutoEraseButtonPressed() async {
     try {
       _autoEraseButtonKey.currentState?.animateForward();
       await sharedPrefsService!
@@ -232,9 +215,9 @@ class _SecurityWidgetState extends State<SecurityWidget> {
         _autoEraseWalletLimit,
       )
           .then(
-        (value) {
+        (value) async {
           kAutoEraseWalletLimit = _autoEraseWalletLimit;
-          sl.get<NotificationsBloc>().addNotification(
+          await sl.get<NotificationsBloc>().addNotification(
                 WalletNotification(
                   title: 'Auto-erase attempts limit successfully changed',
                   details: 'The auto-erase limit has now '
@@ -247,7 +230,7 @@ class _SecurityWidgetState extends State<SecurityWidget> {
         },
       );
     } catch (e) {
-      NotificationUtils.sendNotificationError(
+      await NotificationUtils.sendNotificationError(
         e,
         'Error while confirming auto-erase limit',
       );
@@ -330,14 +313,15 @@ class _SecurityWidgetState extends State<SecurityWidget> {
   Future<void> _onSignButtonPressed() async {
     try {
       _signButtonKey.currentState?.animateForward();
-      final signedMessage = await walletSign(
+      final signature = await walletSign(
         _textToBeSignedController.text.codeUnits,
       );
       setState(() {
-        _signedTextController.text = signedMessage;
+        _signedTextController.text = signature.signature;
+        _publicKeyController.text = signature.publicKey;
       });
     } catch (e) {
-      NotificationUtils.sendNotificationError(e, 'Error while signing message');
+      await NotificationUtils.sendNotificationError(e, 'Error while signing message');
     } finally {
       _signButtonKey.currentState?.animateReverse();
     }
@@ -462,7 +446,7 @@ class _SecurityWidgetState extends State<SecurityWidget> {
         FormatUtils.decodeHexString(_publicKeyToBeFilledController.text),
       );
       if (verified) {
-        sl.get<NotificationsBloc>().addNotification(
+        await sl.get<NotificationsBloc>().addNotification(
               WalletNotification(
                 title: 'Message verified successfully',
                 timestamp: DateTime.now().millisecondsSinceEpoch,
@@ -481,7 +465,7 @@ class _SecurityWidgetState extends State<SecurityWidget> {
         throw 'Message or signature invalid';
       }
     } catch (e) {
-      NotificationUtils.sendNotificationError(
+      await NotificationUtils.sendNotificationError(
           e, 'Error while verifying message');
     } finally {
       _verifyButtonKey.currentState?.animateReverse();
@@ -572,12 +556,13 @@ class _SecurityWidgetState extends State<SecurityWidget> {
         await droppedFile.readAsBytes(),
       ));
       setState(() {
-        _fileHashController.text = fileSignature;
+        _fileHashController.text = fileSignature.signature;
+        _publicKeySignFileController.text = fileSignature.publicKey;
         _toBeSignedFilePath = null;
         _signSelectFileWidgetKey.currentState!.resetMessageToUser();
       });
     } catch (e) {
-      NotificationUtils.sendNotificationError(e, 'Error while signing message');
+      await NotificationUtils.sendNotificationError(e, 'Error while signing message');
     } finally {
       _signFileButtonKey.currentState?.animateReverse();
     }
@@ -682,7 +667,7 @@ class _SecurityWidgetState extends State<SecurityWidget> {
     );
   }
 
-  void _onVerifyFileButtonPressed() async {
+  Future<void> _onVerifyFileButtonPressed() async {
     try {
       _verifyFileButtonKey.currentState?.animateForward();
       bool verified = await Crypto.verify(
@@ -693,7 +678,7 @@ class _SecurityWidgetState extends State<SecurityWidget> {
         FormatUtils.decodeHexString(_publicKeyVerifyFileController.text),
       );
       if (verified) {
-        sl.get<NotificationsBloc>().addNotification(
+        await sl.get<NotificationsBloc>().addNotification(
               WalletNotification(
                 title: 'File hash verified successfully',
                 timestamp: DateTime.now().millisecondsSinceEpoch,
@@ -713,7 +698,7 @@ class _SecurityWidgetState extends State<SecurityWidget> {
         throw 'Hash or public key invalid';
       }
     } catch (e) {
-      NotificationUtils.sendNotificationError(
+      await NotificationUtils.sendNotificationError(
           e, 'Error while verifying file hash:');
     } finally {
       _verifyFileButtonKey.currentState?.animateReverse();

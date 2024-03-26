@@ -10,12 +10,14 @@ class AcceleratorProjectDetails extends StatelessWidget {
   final Hash? hash;
   final int? creationTimestamp;
   final AcceleratorProjectStatus? acceleratorProjectStatus;
+  final bool isPhase;
 
   const AcceleratorProjectDetails({
     this.owner,
     this.hash,
     this.creationTimestamp,
     this.acceleratorProjectStatus,
+    this.isPhase = false,
     Key? key,
   }) : super(key: key);
 
@@ -44,7 +46,8 @@ class AcceleratorProjectDetails extends StatelessWidget {
         'Created ${_formatData(creationTimestamp! * 1000)}',
         style: Theme.of(context).inputDecorationTheme.hintStyle,
       ));
-      if (acceleratorProjectStatus != null &&
+      if (!isPhase &&
+          acceleratorProjectStatus != null &&
           acceleratorProjectStatus == AcceleratorProjectStatus.voting) {
         children.add(Text(
           _getTimeUntilVotingCloses(),

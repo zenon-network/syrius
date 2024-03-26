@@ -192,7 +192,10 @@ class _AcceleratorDonationStepperState
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         DisabledAddressField(_addressController),
-        StepperUtils.getBalanceWidget(kZnnCoin, accountInfo),
+        Row(children: [
+          StepperUtils.getBalanceWidget(kZnnCoin, accountInfo),
+          StepperUtils.getBalanceWidget(kQsrCoin, accountInfo),
+        ]),
         const DottedBorderInfoWidget(
           text: 'All donated funds go directly into the Accelerator address',
         ),
@@ -209,7 +212,8 @@ class _AcceleratorDonationStepperState
               width: 15.0,
             ),
             StepperButton(
-              onPressed: accountInfo.znn()! > BigInt.zero
+              onPressed: accountInfo.znn()! > BigInt.zero ||
+                      accountInfo.qsr()! > BigInt.zero
                   ? () {
                       setState(() {
                         _lastCompletedStep =
@@ -358,26 +362,37 @@ class _AcceleratorDonationStepperState
     } catch (_) {}
 
     return InputValidators.correctValue(
-              _znnAmountController.text,
-              accountInfo.znn()!,
-              coinDecimals,
-              BigInt.zero,
-              canBeEqualToMin: true,
-              canBeBlank: true,
-            ) ==
-            null &&
-        InputValidators.correctValue(
-              _qsrAmountController.text,
-              accountInfo.qsr()!,
-              coinDecimals,
-              BigInt.zero,
-              canBeEqualToMin: true,
-              canBeBlank: true,
-            ) ==
-            null &&
-        (_qsrAmountController.text.isNotEmpty ||
-            _znnAmountController.text.isNotEmpty) &&
-        (_znnAmount > BigInt.zero || _qsrAmount > BigInt.zero);
+                  _znnAmountController.text,
+                  accountInfo.znn()!,
+                  coinDecimals,
+                  BigInt.zero,
+                  canBeEqualToMin: true,
+                  canBeBlank: true,
+                ) ==
+                null &&
+            InputValidators.correctValue(
+                  _qsrAmountController.text,
+                  accountInfo.qsr()!,
+                  coinDecimals,
+                  BigInt.zero,
+                  canBeEqualToMin: true,
+                  canBeBlank: true,
+                ) ==
+                null &&
+            (_znnAmountController.text.isNotEmpty &&
+                _qsrAmountController.text.isNotEmpty &&
+                _znnAmount > BigInt.zero &&
+                _znnAmount <= accountInfo.znn()! &&
+                _qsrAmount > BigInt.zero &&
+                _qsrAmount <= accountInfo.qsr()!) ||
+        (_znnAmountController.text.isNotEmpty &&
+            _qsrAmountController.text.isEmpty &&
+            _znnAmount > BigInt.zero &&
+            _znnAmount <= accountInfo.znn()!) ||
+        (_znnAmountController.text.isEmpty &&
+            !_qsrAmountController.text.isNotEmpty &&
+            _qsrAmount > BigInt.zero &&
+            _qsrAmount <= accountInfo.qsr()!);
   }
 
   Widget _getSubmitDonationStepContent() {
@@ -435,9 +450,9 @@ class _AcceleratorDonationStepperState
               });
             }
           },
-          onError: (error) {
+          onError: (error) async {
             _submitButtonKey.currentState?.animateReverse();
-            NotificationUtils.sendNotificationError(
+            await NotificationUtils.sendNotificationError(
               error,
               'Error while submitting donation',
             );

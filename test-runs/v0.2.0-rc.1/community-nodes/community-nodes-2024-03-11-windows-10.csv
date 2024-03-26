@@ -1,0 +1,23 @@
+Version: v0.2.0-rc.1,Environment: Windows 10,,
+Date: 2024-03-11,Tester: CryptoFish,,
+,,,
+Test case,Description,Priority,Result
+Assets,,,
+Add community nodes,Add nodes by editing the assets/community-nodes.json file and verify added nodes by restarting syrius,PRIO1,PASS
+Remove community nodes,Remove nodes by editing the assets/community-nodes.json file and verify removed nodes by restarting syrius,PRIO1,PASS
+Invalid community nodes,Add invalid node urls by editing the assets/community-nodes.json file and verify they are not added by restarting syrius,PRIO1,PASS
+Delete community nodes file,Delete the assets/community-nodes.json file and verify empty community nodes by restarting syrius,PRIO2,PASS
+Invalidate community nodes file,Invalidate the assets/community-nodes.json file by using incorrect format and verify empty community nodes by restartng syrius,PRIO2,PASS
+,,,
+Node management (onboarding),,,
+Verify community nodes list,Verify community node list and corresponding icons,PRIO1,PASS
+Confirm community node,Select and confirm a community node and verify connection,PRIO1,PASS
+Add existing node,Adding an existing node causes a node already exist exception,PRIO1,PASS
+Shuffle community nodes,Verify community node list is shuffled each time they are loaded,PRIO1,PASS
+,,,
+Node management (settings),,,
+Verify community nodes list,Verify community node list and corresponding icons,PRIO1,PASS
+Select community nodes,Select and confirm a community node and verify connection,PRIO1,PASS
+Add existing node,Adding an existing node causes a node already exist exception,PRIO1,PASS
+Edit existing node,Editing an existing node causes a node already exist exception,PRIO1,PASS
+Shuffle community nodes,Verify community node list is shuffled each time they are loaded,PRIO1,PASS

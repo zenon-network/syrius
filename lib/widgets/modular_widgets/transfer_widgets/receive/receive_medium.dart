@@ -96,7 +96,7 @@ class _ReceiveMediumCardState extends State<ReceiveMediumCard> {
                 ),
                 ReceiveQrImage(
                   data: _getQrString(),
-                  size: 110.0,
+                  size: 110,
                   tokenStandard: _selectedToken.tokenStandard,
                   context: context,
                 ),
@@ -123,7 +123,11 @@ class _ReceiveMediumCardState extends State<ReceiveMediumCard> {
                         key: _amountKey,
                         autovalidateMode: AutovalidateMode.onUserInteraction,
                         child: InputField(
-                          validator: InputValidators.validateAmount,
+                          validator: (value) => InputValidators.correctValue(
+                              value,
+                              kBigP255m1,
+                              _selectedToken.decimals,
+                              BigInt.zero),
                           onChanged: (value) => setState(() {}),
                           inputFormatters:
                               FormatUtils.getAmountTextInputFormatters(

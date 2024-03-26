@@ -132,7 +132,7 @@ class _PlasmaOptionsState extends State<PlasmaOptions> {
     _beneficiaryAddressController.text =
         _plasmaBeneficiaryAddress!.getBeneficiaryAddress()!;
     // Notify internal state has changed.
-    setState(() { });
+    setState(() {});
   }
 
   Widget _getWidgetBody(AccountInfo? accountInfo) {
@@ -240,11 +240,13 @@ class _PlasmaOptionsState extends State<PlasmaOptions> {
       PlasmaInfo.fromJson(
         {
           'currentPlasma': ((_qsrAmountController.text.isNotEmpty
-                  ? int.parse((zenon!.embedded.plasma.getPlasmaByQsr(
-                      _qsrAmountController.text.extractDecimals(coinDecimals),
-                    )).addDecimals(coinDecimals))
-                  : 0) +
-              _getPlasmaForCurrentBeneficiary()),
+                      ? BigInt.parse(zenon!.embedded.plasma
+                          .getPlasmaByQsr(_qsrAmountController.text
+                              .extractDecimals(coinDecimals))
+                          .addDecimals(coinDecimals))
+                      : BigInt.zero) +
+                  BigInt.from(_getPlasmaForCurrentBeneficiary()))
+              .toInt(),
           'maxPlasma': 0,
           'qsrAmount': '0',
         },
@@ -340,9 +342,9 @@ class _PlasmaOptionsState extends State<PlasmaOptions> {
               widget.plasmaListBloc.refreshResults();
             }
           },
-          onError: (error) {
+          onError: (error) async {
             _fuseButtonKey.currentState?.animateReverse();
-            NotificationUtils.sendNotificationError(
+            await NotificationUtils.sendNotificationError(
               error,
               'Error while generating Plasma',
             );

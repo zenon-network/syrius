@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/color_utils.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/zts_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
@@ -39,9 +38,9 @@ class _RealtimeStatisticsState extends State<RealtimeStatistics> {
   }
 
   Widget _widgetBody(List<AccountBlock> list) {
-    return Column(
-      children: [
-        kVerticalSpacing,
+    return Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: Column(children: [
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -60,10 +59,8 @@ class _RealtimeStatisticsState extends State<RealtimeStatistics> {
             ),
           ],
         ),
-        Expanded(
-          child: RealtimeTxsChart(list),
-        ),
-      ],
+        Expanded(child: RealtimeTxsChart(list)),
+      ]),
     );
   }
 }

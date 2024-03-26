@@ -49,4 +49,7 @@ enum NotificationType {
 
   @HiveField(14)
   delete,
+
+  @HiveField(15)
+  confirm,
 }

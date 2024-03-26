@@ -1,0 +1,55 @@
+Version: v0.1.0-rc.8,Environment: Windows 10,,
+Date: 2023-09-17,Tester: vilkris,,
+,,,
+Test case,Description,Priority,Result
+Basic swap functionality,,,
+Start & complete native P2P Swap with Plasma,"Start a native swap, wait for the counterparty to join and complete the swap with Plasma.",PRIO1,PASS
+Join & complete native P2P Swap with Plasma,Join a native swap and wait for the counterparty to complete the swap with Plasma.,PRIO1,PASS
+Start & complete native P2P Swap with PoW,"Start a native swap, wait for the counterparty to join and complete the swap with PoW.",PRIO1,PASS
+Join & complete native P2P Swap with PoW,Join a native swap and wait for the counterparty to complete the swap with PoW.,PRIO1,PASS
+Initial deposit is too old,A swap cannot be joined if the initial deposit has been created over 24 hours ago.,PRIO1,PASS
+Minimum safe time to complete swap,A swap cannot be completed if the counter deposit's expiration time is in less than 10 minutes.,PRIO1,PASS
+Deposit must be intended for user,A swap cannot be joined if the initial deposit is not intended for the user.,PRIO1,PASS
+Joining self started swap,A swap cannot be joined if the swap was started by the same user.,PRIO1,PASS
+Deposit already in use,A swap cannot be joined if the deposit is in use in another swap.,PRIO1,PASS
+Hashlock already in use,A swap cannot be joined if the deposit's hashlock is in use in another swap.,PRIO1,PASS
+Joining an expired swap,A swap cannot be joined if the deposit has expired.,PRIO1,PASS
+Joining a swap too late,A swap cannot be joined if the deposit expires in less than 6 hours.,PRIO1,PASS
+Counter deposit max duration,The counter deposit's duration can not exceed 24 hours.,PRIO1,PASS
+Joining a swap with a non-unique hashlock,A swap cannot be joined if the deposit's hashlock has been used in another deposit in the past 24 hours.,PRIO1,PASS
+Initial deposit duration,The initial deposit's duration is 8 hours.,PRIO1,PASS
+Counter deposit duration,The counter deposit's duration is 1 hour.,PRIO1,PASS
+Deposit must exist when completing swap,The counter deposit must exist in the HTLC contract when the unlock transaction is sent.,PRIO1,PASS
+Syrius stays active and unlocked during inbound swap,"During an inbound swap, the wakelock keeps Syrius active and unlocked until the swap completes or expires.",PRIO1,PASS
+Swap counterparty address cannot belong to keystore,The swap's counterparty cannot be an address from the user's keystore.,PRIO1,PASS
+,,,
+Swap states and deposits,,,
+Invalid method calls to HTLC contract,Invalid method calls to the embedded HTLC contract do not affect swap states.,PRIO1,PASS
+Only one counter deposit is accepted,Only the first valid counter deposit is accepted for a swap.,PRIO1,PASS
+Swap initiator must be recipient of counter deposit,The swap initiator address must be the recipient of the counter deposit.,PRIO1,PASS
+Counter deposit sender must be counterparty,The counter deposit's sender must be the recipient of the initial deposit.,PRIO1,PASS
+Counter deposit uses same hash type,The counter deposit must use the same hash type as the initial deposit.,PRIO1,PASS
+Proxy unlocked deposit,The swap item of a proxy unlocked deposit is marked as completed.,PRIO1,PASS
+Swap expiration,A swap is marked as expired 10 minutes before the counter deposit expires.,PRIO1,PASS
+Swap state maintained after restart of Syrius,A swap's state is maintained is Syrius is closed and reopened.,PRIO1,PASS
+,,,
+Deleting swap items,,,
+Deleting active swap,An active swap cannot be deleted from the swaps list.,PRIO1,PASS
+Deleting reclaimable swap,A reclaimable swap cannot be deleted from the swaps list.,PRIO1,PASS
+Deleting swap history,Deleting the swap history deletes all swap items except active and reclaimable swaps.,PRIO1,PASS
+Deleting completed swap,A completed swap item can be deleted from the swaps list.,PRIO2,PASS
+Deleting unsuccessful swap,An unsuccessful swap item can be deleted from the swaps list.,PRIO2,PASS
+Delete swap confirmation,Confirmation is asked before deleting a swap item from the swaps list.,PRIO2,PASS
+,,,
+Reclaim functionality,,,
+Reclaim funds after started swap fails,"Start swap and wait for the initial deposit to expire, then reclaim funds.",PRIO1,PASS
+Reclaim funds after joined swap fails,"Join swap and wait for the counter deposit to expire, then reclaim funds.",PRIO1,PASS
+,,,
+Recover functionality,,,
+Recover funds of any expired deposit,"Start or join a swap and wait for the deposit to expire, then recover funds.",PRIO1,PASS
+,,,
+Miscellaneous,,,
+Swap preimage not shown to user,The swap's preimage is not shown to the user until the swap is no longer active.,PRIO1,PASS
+Show warning if deposited token is not in favorites,Show a warning to the user if a swap's token is not in their favorites (except ZNN and QSR).,PRIO1,PASS
+Disallow swap start & join when generating plasma,"When plasma is being generated, disallow starting and joining a swap.",PRIO2,PASS
+Swap tutorial link,The swap tutorial link opens the swap tutorial in a browser.,PRIO3,PASS

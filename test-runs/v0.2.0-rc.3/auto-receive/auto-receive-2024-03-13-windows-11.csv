@@ -1,0 +1,21 @@
+Version: v0.2.0-rc.3,Environment: Windows 11 Enterprise Eval 22H2,,
+Date: 3/13/2024,Tester: coinselor,,
+,,,
+Test case,Description,Priority,Result
+Wallet,,,
+Create wallet and set auto-receive preference,Create a wallet and set the auto-receive preference in the node-management screen.,PRIO1,PASS
+,,,
+Transactions,,,
+Receive transaction with auto-receive enabled,Automatically receive a transaction by enabling the auto-receive preference.,PRIO1,PASS
+Receive transaction with auto-receive disabled,Manually receive a transaction by disabling the auto-receive preference and manually receive it from the pending transaction list.,PRIO1,PASS
+,,,
+P2P Swap,,,
+Start & complete native P2P Swap with auto-receive enabled,"Start a native swap, wait for the counterparty to join and complete the swap with auto-receive enabled.",PRIO1,PASS
+Start & complete native P2P Swap with auto-receive disabled,"Start a native swap, wait for the counterparty to join and complete the swap with auto-receive disabled.",PRIO1,PASS
+Join & complete native P2P Swap with auto-receive enabled,"Join a native swap and wait for the counterparty to complete the swap with auto-receive enabled.",PRIO1,PASS
+Join & complete native P2P Swap with auto-receive disabled,"Join a native swap and wait for the counterparty to complete the swap with auto-receive disabled.",PRIO1,PASS
+,,,
+Wallet Options,,,
+Disable auto-receive,Disable the auto-receive preference,PRIO1,PASS
+Enable auto-receive,Enable the auto-receive preference,PRIO1,PASS
+Reset wallet and verify auto-receive after confirmation,Reset and reinitialize the wallet and verify that no transactions are automatically received before confirming the auto-receive preference.,PRIO1,FAIL
