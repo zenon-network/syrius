@@ -39,12 +39,10 @@ class AccountBlockUtils {
     bool waitForRequiredPlasma = false,
   }) async {
     SyncInfo syncInfo = await zenon!.stats.syncInfo();
-    bool nodeIsSynced = kCurrentNode == kLocalhostDefaultNodeUrl
-        ? (syncInfo.state == SyncState.syncDone ||
-            (syncInfo.targetHeight > 0 &&
-                syncInfo.currentHeight > 0 &&
-                (syncInfo.targetHeight - syncInfo.currentHeight) < 20))
-        : true;
+    bool nodeIsSynced = (syncInfo.state == SyncState.syncDone ||
+        (syncInfo.targetHeight > 0 &&
+            syncInfo.currentHeight > 0 &&
+            (syncInfo.targetHeight - syncInfo.currentHeight) < 20));
     if (nodeIsSynced) {
       // Acquire wallet lock to prevent concurrent access.
       final wallet = await kWalletFile!.open();
