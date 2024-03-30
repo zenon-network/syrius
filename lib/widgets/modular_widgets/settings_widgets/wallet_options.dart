@@ -175,7 +175,7 @@ class _WalletOptionsState extends State<WalletOptions> {
           context: context,
         ),
         const StandardTooltipIcon(
-          'Disable the auto-receiver to protect against dusting attacks',
+          'Uncheck to disable the auto-receiver and receive transactions manually',
           Icons.help,
         ),
       ],
