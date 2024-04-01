@@ -4,34 +4,11 @@ import 'package:collection/collection.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/model/model.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/format_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
-class AsyncMutex {
-  Completer<void>? _completer;
-
-  /// locks the mutex
-  Future<void> lock() async {
-    while (_completer != null) {
-      await _completer!.future;
-    }
-    _completer = Completer<void>();
-  }
-
-  /// unlocks the mutex
-  void unlock() {
-    assert(_completer != null);
-    final completer = _completer!;
-    _completer = null;
-    completer.complete();
-  }
-}
-
 class AccountBlockUtils {
-  //static final Map<String, Future<void>?> _kIsRunningByAddress = {};
-
   static Future<AccountBlockTemplate> createAccountBlock(
     AccountBlockTemplate transactionParams,
     String purposeOfGeneratingPlasma, {
