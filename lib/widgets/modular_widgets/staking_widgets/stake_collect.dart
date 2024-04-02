@@ -105,7 +105,7 @@ class _StakeCollectState extends State<StakeCollect> {
         },
       );
     } catch (e) {
-      NotificationUtils.sendNotificationError(
+      await NotificationUtils.sendNotificationError(
         e,
         'Error while collecting staking rewards',
       );

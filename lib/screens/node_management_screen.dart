@@ -2,6 +2,7 @@ import 'dart:isolate';
 
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
+import 'package:logging/logging.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/embedded_node/embedded_node.dart';
@@ -26,6 +27,7 @@ class NodeManagementScreen extends StatefulWidget {
 
 class _NodeManagementScreenState extends State<NodeManagementScreen> {
   String? _selectedNode;
+  bool? _autoReceive;
 
   final GlobalKey<LoadingButtonState> _confirmNodeButtonKey = GlobalKey();
   final GlobalKey<LoadingButtonState> _addNodeButtonKey = GlobalKey();
@@ -36,10 +38,20 @@ class _NodeManagementScreenState extends State<NodeManagementScreen> {
   late String _selectedNodeConfirmed;
 
   @override
+  void initState() {
+    super.initState();
+    kDefaultCommunityNodes.shuffle();
+    _autoReceive = sharedPrefsService!.get(
+      kAutoReceiveKey,
+      defaultValue: kAutoReceiveDefaultValue,
+    );
+  }
+
+  @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    _selectedNode ??= kCurrentNode!;
-    _selectedNodeConfirmed = _selectedNode!;
+    _selectedNode ??= kCurrentNode ?? kEmbeddedNode;
+    _selectedNodeConfirmed = _selectedNode ?? kEmbeddedNode;
   }
 
   @override
@@ -61,8 +73,11 @@ class _NodeManagementScreenState extends State<NodeManagementScreen> {
             ),
             kVerticalSpacing,
             Text(
-              'By default Syrius connects to its own built-in full node, which is called the Embedded Node. If you want to connect to a different node, you can add one below. Otherwise just connect and continue.',
-              style: Theme.of(context).textTheme.headlineMedium,
+              'By default Syrius connects to its own built-in full node, which is called the Embedded Node. '
+              'It may take up to 24 hours to fully sync the network via the embedded node. '
+              'During this time, you cannot send or receive transactions.\n\n'
+              'It you want to get started right away, please connect to a community node.',
+              style: Theme.of(context).textTheme.headlineSmall,
               textAlign: TextAlign.center,
             ),
             SizedBox(
@@ -82,7 +97,14 @@ class _NodeManagementScreenState extends State<NodeManagementScreen> {
                         'Node selection',
                         style: Theme.of(context).textTheme.bodyLarge,
                       ),
-                      _getNodeSelectionColumn(),
+                      _getNodeTiles(),
+                      kVerticalSpacing,
+                      Text(
+                        'Wallet options',
+                        style: Theme.of(context).textTheme.bodyLarge,
+                      ),
+                      _getAutoReceiveCheckboxContainer(),
+                      _getConfirmNodeSelectionButton(),
                       kVerticalSpacing,
                       Text(
                         'Add node',
@@ -104,12 +126,68 @@ class _NodeManagementScreenState extends State<NodeManagementScreen> {
     );
   }
 
-  Widget _getNodeSelectionColumn() {
-    return Column(
-      children: [
-        _getNodeTiles(),
-        _getConfirmNodeSelectionButton(),
+  Widget _getAutoReceiveCheckboxContainer() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.start,
+      children: <Widget>[
+        Checkbox(
+          value: _autoReceive,
+          checkColor: Theme.of(context).colorScheme.primary,
+          activeColor: AppColors.znnColor,
+          onChanged: (bool? value) async {
+            if (value == true) {
+              NodeUtils.getUnreceivedTransactions().then((value) {
+                sl<AutoReceiveTxWorker>().autoReceive();
+              }).onError((error, stackTrace) {
+                Logger('MainAppContainer').log(Level.WARNING,
+                    '_getAutoReceiveCheckboxContainer', error, stackTrace);
+              });
+            } else if (value == false &&
+                sl<AutoReceiveTxWorker>().pool.isNotEmpty) {
+              sl<AutoReceiveTxWorker>().pool.clear();
+            }
+            setState(() {
+              _autoReceive = value;
+            });
+            await _changeAutoReceiveStatus(value ?? false);
+          },
+        ),
+        Text(
+          'Automatically receive transactions',
+          style: Theme.of(context).textTheme.headlineSmall,
+        )
       ],
+    );
+  }
+
+  Future<void> _changeAutoReceiveStatus(bool enabled) async {
+    try {
+      await _saveAutoReceiveValueToCache(enabled);
+      await _sendAutoReceiveNotification(enabled);
+    } on Exception catch (e) {
+      await NotificationUtils.sendNotificationError(
+        e,
+        'Something went wrong while setting automatic receive preference',
+      );
+    }
+  }
+
+  Future<void> _sendAutoReceiveNotification(bool enabled) async {
+    await sl.get<NotificationsBloc>().addNotification(
+          WalletNotification(
+            title: 'Auto-receiver ${enabled ? 'enabled' : 'disabled'}',
+            details:
+                'Auto-receiver preference was ${enabled ? 'enabled' : 'disabled'}',
+            timestamp: DateTime.now().millisecondsSinceEpoch,
+            type: NotificationType.paymentSent,
+          ),
+        );
+  }
+
+  Future<void> _saveAutoReceiveValueToCache(bool enabled) async {
+    await sharedPrefsService!.put(
+      kAutoReceiveKey,
+      enabled,
     );
   }
 
@@ -134,12 +212,12 @@ class _NodeManagementScreenState extends State<NodeManagementScreen> {
 
     try {
       _confirmNodeButtonKey.currentState?.animateForward();
-      String url = _selectedNode == 'Embedded Node'
+      String url = _selectedNode == kEmbeddedNode
           ? kLocalhostDefaultNodeUrl
           : _selectedNode!;
       bool isConnectionEstablished =
           await NodeUtils.establishConnectionToNode(url);
-      if (_selectedNode == 'Embedded Node') {
+      if (_selectedNode == kEmbeddedNode) {
         // Check if node is already running
         if (!isConnectionEstablished) {
           // Initialize local full node
@@ -154,8 +232,6 @@ class _NodeManagementScreenState extends State<NodeManagementScreen> {
               await NodeUtils.establishConnectionToNode(url);
         }
       } else {
-        isConnectionEstablished =
-            await NodeUtils.establishConnectionToNode(url);
         if (isConnectionEstablished) {
           await NodeUtils.closeEmbeddedNode();
         }
@@ -166,7 +242,7 @@ class _NodeManagementScreenState extends State<NodeManagementScreen> {
           _selectedNode,
         );
         kCurrentNode = _selectedNode!;
-        _sendChangingNodeSuccessNotification();
+        await _sendChangingNodeSuccessNotification();
         if (widget.nodeConfirmationCallback != null) {
           widget.nodeConfirmationCallback!();
         } else {
@@ -176,7 +252,7 @@ class _NodeManagementScreenState extends State<NodeManagementScreen> {
         throw 'Connection could not be established to $_selectedNode';
       }
     } catch (e) {
-      NotificationUtils.sendNotificationError(
+      await NotificationUtils.sendNotificationError(
         e,
         'Connection failed',
       );
@@ -230,10 +306,12 @@ class _NodeManagementScreenState extends State<NodeManagementScreen> {
   bool _ifUserInputValid() =>
       InputValidators.node(_newNodeController.text) == null;
 
-  void _onAddNodePressed() async {
-    if ([...kDbNodes, ...kDefaultNodes].contains(_newNodeController.text)) {
-      NotificationUtils.sendNotificationError(
-          'Node already exists', 'Node already exists');
+  Future<void> _onAddNodePressed() async {
+    if ([...kDbNodes, ...kDefaultCommunityNodes, ...kDefaultNodes]
+        .contains(_newNodeController.text)) {
+      await NotificationUtils.sendNotificationError(
+          'Node ${_newNodeController.text} already exists',
+          'Node already exists');
     } else {
       _addNodeToDb();
     }
@@ -247,13 +325,13 @@ class _NodeManagementScreenState extends State<NodeManagementScreen> {
       }
       Hive.box<String>(kNodesBox).add(_newNodeController.text);
       await NodeUtils.loadDbNodes();
-      _sendAddNodeSuccessNotification();
+      await _sendAddNodeSuccessNotification();
       setState(() {
         _newNodeController = TextEditingController();
         _newNodeKey = GlobalKey();
       });
     } catch (e) {
-      NotificationUtils.sendNotificationError(e, 'Error while adding new node');
+      await NotificationUtils.sendNotificationError(e, 'Error while adding new node');
     } finally {
       _addNodeButtonKey.currentState?.animateReverse();
     }
@@ -261,8 +339,11 @@ class _NodeManagementScreenState extends State<NodeManagementScreen> {
 
   Widget _getNodeTiles() {
     return Column(
-      children:
-          [...kDefaultNodes, ...kDbNodes].map((e) => _getNodeTile(e)).toList(),
+      children: <String>{
+        ...kDefaultNodes,
+        ...kDefaultCommunityNodes,
+        ...kDbNodes
+      }.toList().map((e) => _getNodeTile(e)).toList(),
     );
   }
 
@@ -297,8 +378,8 @@ class _NodeManagementScreenState extends State<NodeManagementScreen> {
     );
   }
 
-  void _sendChangingNodeSuccessNotification() {
-    sl.get<NotificationsBloc>().addNotification(
+  Future<void> _sendChangingNodeSuccessNotification() async {
+    await sl.get<NotificationsBloc>().addNotification(
           WalletNotification(
             title: 'Successfully connected to $_selectedNode',
             timestamp: DateTime.now().millisecondsSinceEpoch,
@@ -314,8 +395,8 @@ class _NodeManagementScreenState extends State<NodeManagementScreen> {
     super.dispose();
   }
 
-  void _sendAddNodeSuccessNotification() {
-    sl.get<NotificationsBloc>().addNotification(
+  Future<void> _sendAddNodeSuccessNotification() async {
+    await sl.get<NotificationsBloc>().addNotification(
           WalletNotification(
             title: 'Successfully added node ${_newNodeController.text}',
             timestamp: DateTime.now().millisecondsSinceEpoch,

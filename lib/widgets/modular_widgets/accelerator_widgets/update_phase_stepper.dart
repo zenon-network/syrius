@@ -401,8 +401,8 @@ class _UpdatePhaseStepperState extends State<UpdatePhaseStepper> {
               });
             }
           },
-          onError: (error) {
-            NotificationUtils.sendNotificationError(
+          onError: (error) async {
+            await NotificationUtils.sendNotificationError(
               error,
               'Error while updating phase',
             );

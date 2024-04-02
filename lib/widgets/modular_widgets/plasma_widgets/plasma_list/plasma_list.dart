@@ -120,9 +120,9 @@ class _PlasmaListState extends State<PlasmaList> {
               plasmaModel.refreshResults();
             }
           },
-          onError: (error) {
+          onError: (error) async {
             cancelButtonKey.currentState?.animateReverse();
-            NotificationUtils.sendNotificationError(
+            await NotificationUtils.sendNotificationError(
                 error, 'Error while cancelling plasma');
           },
         );

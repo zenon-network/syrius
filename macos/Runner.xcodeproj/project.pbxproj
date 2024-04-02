@@ -31,6 +31,7 @@
 		9631FB752956060A007ED711 /* ../lib/embedded_node/blobs/libznn.dylib in Resources */ = {isa = PBXBuildFile; fileRef = 04CC766027C81F7E00DBC357 /* ../lib/embedded_node/blobs/libznn.dylib */; };
 		9631FB86295610FB007ED711 /* libargon2_ffi.dylib in Resources */ = {isa = PBXBuildFile; fileRef = 9631FB7A29560ECB007ED711 /* libargon2_ffi.dylib */; };
 		9631FB87295610FF007ED711 /* libpow_links.dylib in Resources */ = {isa = PBXBuildFile; fileRef = 9631FB8229560F53007ED711 /* libpow_links.dylib */; };
+		9631FB88295610FF007ED711 /* libledger_ffi.dylib in Resources */ = {isa = PBXBuildFile; fileRef = 9631FB8A29561054007ED711 /* libledger_ffi.dylib */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -77,6 +78,7 @@
 		7AFA3C8E1D35360C0083082E /* Release.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Release.xcconfig; sourceTree = "<group>"; };
 		9631FB7A29560ECB007ED711 /* libargon2_ffi.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; path = libargon2_ffi.dylib; sourceTree = "<group>"; };
 		9631FB8229560F53007ED711 /* libpow_links.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; path = libpow_links.dylib; sourceTree = "<group>"; };
+		9631FB8A29561054007ED711 /* libledger_ffi.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; path = libledger_ffi.dylib; sourceTree = "<group>"; };
 		9740EEB21CF90195004384FC /* Debug.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; path = Debug.xcconfig; sourceTree = "<group>"; };
 		DDCA1E2CBCCC96B9436CF502 /* Pods-Runner.profile.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Runner.profile.xcconfig"; path = "Target Support Files/Pods-Runner/Pods-Runner.profile.xcconfig"; sourceTree = "<group>"; };
 		E5DFBCCB2F3B416824983EAB /* Pods_Runner.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Runner.framework; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -129,6 +131,7 @@
 			children = (
 				9631FB7A29560ECB007ED711 /* libargon2_ffi.dylib */,
 				9631FB8229560F53007ED711 /* libpow_links.dylib */,
+				9631FB8A29561054007ED711 /* libledger_ffi.dylib */,
 				04CC766027C81F7E00DBC357 /* ../lib/embedded_node/blobs/libznn.dylib */,
 				33CC10F22044A3C60003C045 /* Assets.xcassets */,
 				33CC10F42044A3C60003C045 /* MainMenu.xib */,
@@ -189,6 +192,7 @@
 			buildPhases = (
 				26152DF600C95C6136D5E940 /* [CP] Check Pods Manifest.lock */,
 				96DA24F0296EB70E00545E88 /* ShellScript */,
+				96DA2500296EB70F00545E88 /* ShellScript */,
 				33CC10E92044A3C60003C045 /* Sources */,
 				33CC10EA2044A3C60003C045 /* Frameworks */,
 				33CC10EB2044A3C60003C045 /* Resources */,
@@ -258,6 +262,7 @@
 			files = (
 				9631FB87295610FF007ED711 /* libpow_links.dylib in Resources */,
 				9631FB86295610FB007ED711 /* libargon2_ffi.dylib in Resources */,
+				9631FB88295610FF007ED711 /* libledger_ffi.dylib in Resources */,
 				9631FB752956060A007ED711 /* ../lib/embedded_node/blobs/libznn.dylib in Resources */,
 				33CC10F32044A3C60003C045 /* Assets.xcassets in Resources */,
 				33CC10F62044A3C60003C045 /* MainMenu.xib in Resources */,
@@ -378,6 +383,23 @@
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
 			shellScript = "OUTPUT_DIRECTORY=\"./\"\n\nPACKAGE_CONFIG=\"../.dart_tool/package_config.json\"\nZNN_SDK_DART_PATH=`cat $PACKAGE_CONFIG | grep git/znn_sdk_dart | sed 's/\"rootUri\": \"file:\\/\\///' | sed 's/\\/\",//' | xargs`  \n\nSYRIUS_LIBRARIES=(\n  \"$ZNN_SDK_DART_PATH/lib/src/argon2/blobs/libargon2_ffi.dylib\"\n  \"$ZNN_SDK_DART_PATH/lib/src/pow/blobs/libpow_links.dylib\"\n)\n\necho \"$OUTPUT_DIRECTORY\"\n\nfor znn_library in ${SYRIUS_LIBRARIES[@]}; do\n  echo \"Copy ZNN library: $znn_library\"\n  cp $znn_library \"$OUTPUT_DIRECTORY\"\ndone\n";
+		};
+		96DA2500296EB70F00545E88 /* ShellScript */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 12;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "OUTPUT_DIRECTORY=\"./\"\n\nPACKAGE_CONFIG=\"../.dart_tool/package_config.json\"\nZNN_LEDGER_DART_PATH=`cat $PACKAGE_CONFIG | grep git/znn_ledger_dart | sed 's/\"rootUri\": \"file:\\/\\///' | sed 's/\\/\",//' | xargs`  \n\nSYRIUS_LIBRARIES=(\n  \"$ZNN_LEDGER_DART_PATH/lib/src/ledger/blobs/libledger_ffi.dylib\"\n)\n\necho \"$OUTPUT_DIRECTORY\"\n\nfor znn_library in ${SYRIUS_LIBRARIES[@]}; do\n  echo \"Copy ZNN library: $znn_library\"\n  cp $znn_library \"$OUTPUT_DIRECTORY\"\ndone\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 

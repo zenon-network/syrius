@@ -487,9 +487,9 @@ class _ProjectCreationStepperState extends State<ProjectCreationStepper> {
               });
             }
           },
-          onError: (error) {
+          onError: (error) async {
             _submitButtonKey.currentState?.animateReverse();
-            NotificationUtils.sendNotificationError(
+            await NotificationUtils.sendNotificationError(
               error,
               'Error while submitting project',
             );

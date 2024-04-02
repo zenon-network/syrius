@@ -60,7 +60,7 @@ class _SentinelsTabChildState extends State<SentinelsTabChild> {
         ),
       ),
       const FluidCell(
-        child: SentinelsListWidget(),
+        child: SentinelListWidget(),
         width: kStaggeredNumOfColumns,
         height: kStaggeredNumOfColumns / 2,
       ),

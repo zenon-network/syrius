@@ -2,21 +2,17 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:launch_at_startup/launch_at_startup.dart';
+import 'package:logging/logging.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/model/model.dart';
 import 'package:zenon_syrius_wallet_flutter/screens/screens.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/clipboard_utils.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/navigation_utils.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/notification_utils.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 
 class WalletOptions extends StatefulWidget {
-  final VoidCallback onResyncWalletPressed;
-
-  const WalletOptions(this.onResyncWalletPressed, {Key? key}) : super(key: key);
+  const WalletOptions({Key? key}) : super(key: key);
 
   @override
   State<WalletOptions> createState() => _WalletOptionsState();
@@ -26,6 +22,7 @@ class _WalletOptionsState extends State<WalletOptions> {
   bool? _launchAtStartup;
   bool? _enableDesktopNotifications;
   bool? _enabledClipboardWatcher;
+  bool? _autoReceive;
 
   @override
   void initState() {
@@ -41,6 +38,10 @@ class _WalletOptionsState extends State<WalletOptions> {
     _enabledClipboardWatcher = sharedPrefsService!.get(
       kEnableClipboardWatcherKey,
       defaultValue: kEnableClipboardWatcherDefaultValue,
+    );
+    _autoReceive = sharedPrefsService!.get(
+      kAutoReceiveKey,
+      defaultValue: kAutoReceiveDefaultValue,
     );
   }
 
@@ -119,6 +120,7 @@ class _WalletOptionsState extends State<WalletOptions> {
         _getLaunchAtStartupWidget(),
         _getEnableDesktopNotifications(),
         _buildEnableClipboardWatcher(),
+        _getAutoReceiveWidget()
       ],
     );
   }
@@ -131,14 +133,50 @@ class _WalletOptionsState extends State<WalletOptions> {
           style: Theme.of(context).textTheme.bodyMedium,
         ),
         SyriusCheckbox(
-          onChanged: (value) {
+          onChanged: (value) async {
             setState(() {
               _launchAtStartup = value;
-              _changeLaunchAtStartupStatus(value ?? false);
             });
+            await _changeLaunchAtStartupStatus(value ?? false);
           },
           value: _launchAtStartup,
           context: context,
+        ),
+      ],
+    );
+  }
+
+  Widget _getAutoReceiveWidget() {
+    return Row(
+      children: [
+        Text(
+          'Auto-receiver',
+          style: Theme.of(context).textTheme.bodyMedium,
+        ),
+        SyriusCheckbox(
+          onChanged: (value) async {
+            if (value == true) {
+              NodeUtils.getUnreceivedTransactions().then((value) {
+                sl<AutoReceiveTxWorker>().autoReceive();
+              }).onError((error, stackTrace) {
+                Logger('MainAppContainer').log(
+                    Level.WARNING, '_getAutoReceiveWidget', error, stackTrace);
+              });
+            } else if (value == false &&
+                sl<AutoReceiveTxWorker>().pool.isNotEmpty) {
+              sl<AutoReceiveTxWorker>().pool.clear();
+            }
+            setState(() {
+              _autoReceive = value;
+            });
+            await _changeAutoReceiveStatus(value ?? false);
+          },
+          value: _autoReceive,
+          context: context,
+        ),
+        const StandardTooltipIcon(
+          'Uncheck to disable the auto-receiver and receive transactions manually',
+          Icons.help,
         ),
       ],
     );
@@ -152,6 +190,37 @@ class _WalletOptionsState extends State<WalletOptions> {
     );
   }
 
+  Future<void> _changeAutoReceiveStatus(bool enabled) async {
+    try {
+      await _saveAutoReceiveValueToCache(enabled);
+      await _sendAutoReceiveNotification(enabled);
+    } on Exception catch (e) {
+      await NotificationUtils.sendNotificationError(
+        e,
+        'Something went wrong while setting automatic receive preference',
+      );
+    }
+  }
+
+  Future<void> _saveAutoReceiveValueToCache(bool enabled) async {
+    await sharedPrefsService!.put(
+      kAutoReceiveKey,
+      enabled,
+    );
+  }
+
+  Future<void> _sendAutoReceiveNotification(bool enabled) async {
+    await sl.get<NotificationsBloc>().addNotification(
+          WalletNotification(
+            title: 'Auto-receiver ${enabled ? 'enabled' : 'disabled'}',
+            details:
+                'Auto-receiver preference was ${enabled ? 'enabled' : 'disabled'}',
+            timestamp: DateTime.now().millisecondsSinceEpoch,
+            type: NotificationType.paymentSent,
+          ),
+        );
+  }
+
   Future<void> _changeLaunchAtStartupStatus(bool enabled) async {
     try {
       await _setupLaunchAtStartup();
@@ -161,9 +230,9 @@ class _WalletOptionsState extends State<WalletOptions> {
         await launchAtStartup.disable();
       }
       await _saveLaunchAtStartupValueToCache(enabled);
-      _sendLaunchAtStartupStatusNotification(enabled);
+      await _sendLaunchAtStartupStatusNotification(enabled);
     } on Exception catch (e) {
-      NotificationUtils.sendNotificationError(
+      await NotificationUtils.sendNotificationError(
         e,
         'Something went wrong while setting launch at startup preference',
       );
@@ -177,8 +246,8 @@ class _WalletOptionsState extends State<WalletOptions> {
     );
   }
 
-  void _sendLaunchAtStartupStatusNotification(bool enabled) {
-    sl.get<NotificationsBloc>().addNotification(
+  Future<void> _sendLaunchAtStartupStatusNotification(bool enabled) async {
+    await sl.get<NotificationsBloc>().addNotification(
           WalletNotification(
             title: 'Launch startup ${enabled ? 'enabled' : 'disabled'}',
             details:
@@ -239,9 +308,9 @@ class _WalletOptionsState extends State<WalletOptions> {
   Future<void> _changeEnableDesktopNotificationsStatus(bool enabled) async {
     try {
       await sharedPrefsService!.put(kEnableDesktopNotificationsKey, enabled);
-      _sendEnabledDesktopNotificationsStatusNotification(enabled);
+      await _sendEnabledDesktopNotificationsStatusNotification(enabled);
     } on Exception catch (e) {
-      NotificationUtils.sendNotificationError(
+      await NotificationUtils.sendNotificationError(
         e,
         'Something went wrong while setting desktop notifications preference',
       );
@@ -252,17 +321,18 @@ class _WalletOptionsState extends State<WalletOptions> {
     try {
       await sharedPrefsService!.put(kEnableClipboardWatcherKey, enabled);
       ClipboardUtils.toggleClipboardWatcherStatus();
-      _sendEnableClipboardWatcherStatusNotification(enabled);
+      await _sendEnableClipboardWatcherStatusNotification(enabled);
     } on Exception catch (e) {
-      NotificationUtils.sendNotificationError(
+      await NotificationUtils.sendNotificationError(
         e,
         'Something went wrong while changing clipboard watcher preference',
       );
     }
   }
 
-  void _sendEnabledDesktopNotificationsStatusNotification(bool enabled) {
-    sl.get<NotificationsBloc>().addNotification(
+  Future<void> _sendEnabledDesktopNotificationsStatusNotification(
+      bool enabled) async {
+    await sl.get<NotificationsBloc>().addNotification(
           WalletNotification(
             title: 'Desktop notifications ${enabled ? 'enabled' : 'disabled'}',
             details:
@@ -273,8 +343,9 @@ class _WalletOptionsState extends State<WalletOptions> {
         );
   }
 
-  void _sendEnableClipboardWatcherStatusNotification(bool enabled) {
-    sl.get<NotificationsBloc>().addNotification(
+  Future<void> _sendEnableClipboardWatcherStatusNotification(
+      bool enabled) async {
+    await sl.get<NotificationsBloc>().addNotification(
           WalletNotification(
             title: 'Clipboard watcher ${enabled ? 'enabled' : 'disabled'}',
             details:

@@ -263,11 +263,27 @@ class _NewWalletConfirmSeedScreenState
                       !seedGridElement.isValid;
                 },
                 onAccept: (String data) {
-                  _foundMissingRandomElementsIndexes
-                      .add(widget.seedWords.indexOf(data));
-                  _seedGridElements[seedGridElementIndex].word = data;
-                  if (_randomIndexes.length ==
-                      _foundMissingRandomElementsIndexes.length) {}
+                  var element = _seedGridElements[seedGridElementIndex];
+                  var i = -1;
+                  if (element.word != '') {
+                    while ((i =
+                            widget.seedWords.indexOf(element.word, i + 1)) !=
+                        -1) {
+                      if (_foundMissingRandomElementsIndexes.contains(i)) {
+                        _foundMissingRandomElementsIndexes.remove(i);
+                        break;
+                      }
+                    }
+                  }
+                  i = -1;
+                  while ((i = widget.seedWords.indexOf(data, i + 1)) != -1) {
+                    if (!_foundMissingRandomElementsIndexes.contains(i) &&
+                        _randomIndexes.contains(i)) {
+                      _foundMissingRandomElementsIndexes.add(i);
+                      break;
+                    }
+                  }
+                  element.word = data;
                   setState(() {
                     _textCursor = seedGridElementIndex;
                   });
@@ -350,16 +366,22 @@ class _NewWalletConfirmSeedScreenState
     for (var element in _seedGridElements) {
       int i = _seedGridElements.indexOf(element);
       element.isValid = element.word == widget.seedWords[i];
-    }
-    for (var item in _seedGridElements) {
-      if (!item.isValid) {
-        setState(() {
-          _seedError = true;
-        });
-        break;
+      if (!element.isValid) {
+        _seedError = true;
       }
     }
+    if (_seedError) {
+      for (var element in _seedGridElements) {
+        int i = _seedGridElements.indexOf(element);
+        if (_randomIndexes.contains(i)) {
+          element.isValid = false;
+          element.word = '';
+        }
+      }
+    }
+
     setState(() {
+      _seedError = true;
       _foundMissingRandomElementsIndexes = _randomIndexes
           .where((index) => _seedGridElements[index].isValid)
           .toList();

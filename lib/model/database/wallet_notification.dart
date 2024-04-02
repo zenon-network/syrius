@@ -78,6 +78,9 @@ class WalletNotification extends HiveObject {
         return _getCircledIcon(Icons.link);
       case NotificationType.delete:
         return _getCircledIcon(Icons.delete_forever);
+      case NotificationType.confirm:
+        return _getCircledIcon(Icons.remove_red_eye,
+            iconColor: AppColors.alertNotification);
       default:
         return _getCircledIcon(MaterialCommunityIcons.arrow_top_right);
     }

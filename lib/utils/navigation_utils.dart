@@ -14,7 +14,7 @@ class NavigationUtils {
     if (await canLaunchUrl(uri)) {
       await launchUrl(uri);
     } else {
-      sl.get<NotificationsBloc>().addNotification(
+      await sl.get<NotificationsBloc>().addNotification(
             WalletNotification(
               title: 'Error while trying to open $url',
               timestamp: DateTime.now().millisecondsSinceEpoch,

@@ -18,13 +18,17 @@ import 'package:window_manager/window_manager.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/auto_unlock_htlc_worker.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/handlers/htlc_swaps_handler.dart';
+import 'package:zenon_syrius_wallet_flutter/blocs/wallet_connect/chains/i_chain.dart';
+import 'package:zenon_syrius_wallet_flutter/blocs/wallet_connect/chains/nom_service.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/wallet_connect/wallet_connect_pairings_bloc.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/wallet_connect/wallet_connect_sessions_bloc.dart';
 import 'package:zenon_syrius_wallet_flutter/model/model.dart';
 import 'package:zenon_syrius_wallet_flutter/screens/screens.dart';
 import 'package:zenon_syrius_wallet_flutter/services/htlc_swaps_service.dart';
+import 'package:zenon_syrius_wallet_flutter/services/i_web3wallet_service.dart';
 import 'package:zenon_syrius_wallet_flutter/services/shared_prefs_service.dart';
-import 'package:zenon_syrius_wallet_flutter/services/wallet_connect_service.dart';
+import 'package:zenon_syrius_wallet_flutter/services/web3wallet_service.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/functions.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
@@ -34,6 +38,9 @@ SharedPrefsService? sharedPrefsService;
 HtlcSwapsService? htlcSwapsService;
 
 final sl = GetIt.instance;
+
+IWeb3WalletService? web3WalletService;
+final globalNavigatorKey = GlobalKey<NavigatorState>();
 
 main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -70,8 +77,13 @@ main() async {
   windowManager.ensureInitialized();
   await windowManager.setPreventClose(true);
 
+  web3WalletService = Web3WalletService();
+  web3WalletService!.create();
+
   // Setup services
   setup();
+
+  await web3WalletService!.init();
 
   // Setup local_notifier
   await localNotifier.setup(
@@ -82,6 +94,9 @@ main() async {
 
   // Setup tray manager
   await _setupTrayManager();
+
+  // Load default community nodes from assets
+  await _loadDefaultCommunityNodes();
 
   // Register Hive adapters
   Hive.registerAdapter(NotificationTypeAdapter());
@@ -160,6 +175,20 @@ Future<void> _setupTrayManager() async {
   await trayManager.setContextMenu(Menu(items: items));
 }
 
+Future<void> _loadDefaultCommunityNodes() async {
+  try {
+    var nodes = await loadJsonFromAssets('assets/community-nodes.json')
+        as List<dynamic>;
+    kDefaultCommunityNodes = nodes
+        .map((node) => node.toString())
+        .where((node) => InputValidators.node(node) == null)
+        .toList();
+  } catch (e, stackTrace) {
+    Logger('main')
+        .log(Level.WARNING, '_loadDefaultCommunityNodes', e, stackTrace);
+  }
+}
+
 void setup() {
   sl.registerSingleton<Zenon>(Zenon());
   zenon = sl<Zenon>();
@@ -167,7 +196,13 @@ void setup() {
       (() => SharedPrefsService.getInstance().then((value) => value!)));
   sl.registerSingleton<HtlcSwapsService>(HtlcSwapsService.getInstance());
 
-  sl.registerLazySingleton<WalletConnectService>(() => WalletConnectService());
+  // Initialize WalletConnect service
+  sl.registerSingleton<IWeb3WalletService>(web3WalletService!);
+  sl.registerSingleton<IChain>(
+    NoMService(reference: NoMChainId.mainnet),
+    instanceName: NoMChainId.mainnet.chain(),
+  );
+
   sl.registerSingleton<AutoReceiveTxWorker>(AutoReceiveTxWorker.getInstance());
   sl.registerSingleton<AutoUnlockHtlcWorker>(
       AutoUnlockHtlcWorker.getInstance());
@@ -279,6 +314,7 @@ class _MyAppState extends State<MyApp> with WindowListener, TrayListener {
                         child: Layout(
                           child: MaterialApp(
                             title: 's y r i u s',
+                            navigatorKey: globalNavigatorKey,
                             debugShowCheckedModeBanner: false,
                             theme: AppTheme.lightTheme,
                             darkTheme: AppTheme.darkTheme,

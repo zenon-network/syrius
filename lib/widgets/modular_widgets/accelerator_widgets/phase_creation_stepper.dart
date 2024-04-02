@@ -447,9 +447,9 @@ class _PhaseCreationStepperState extends State<PhaseCreationStepper> {
               });
             }
           },
-          onError: (error) {
+          onError: (error) async {
             _submitButtonKey.currentState?.animateReverse();
-            NotificationUtils.sendNotificationError(
+            await NotificationUtils.sendNotificationError(
               error,
               'Error while creating phase',
             );
