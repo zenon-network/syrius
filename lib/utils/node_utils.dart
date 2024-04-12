@@ -84,7 +84,9 @@ class NodeUtils {
 
   static initWebSocketClient() async {
     addOnWebSocketConnectedCallback();
-    var url = kCurrentNode ?? '';
+    var url = kCurrentNode == kEmbeddedNode
+          ? kLocalhostDefaultNodeUrl
+          : kCurrentNode ?? '';
     bool connected = false;
     try {
       connected = await establishConnectionToNode(url);
