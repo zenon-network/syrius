@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 import 'dart:isolate';
 
@@ -86,7 +87,7 @@ main() async {
 
   retry(
     () => web3WalletService!.init(),
-    retryIf: (e) => e is SocketException,
+    retryIf: (e) => e is SocketException || e is TimeoutException,
     maxAttempts: 0x7FFFFFFFFFFFFFFF
   );
 
