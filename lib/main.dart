@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 import 'dart:isolate';
 
@@ -13,6 +14,7 @@ import 'package:logging/logging.dart';
 import 'package:overlay_support/overlay_support.dart';
 import 'package:path/path.dart' as path;
 import 'package:provider/provider.dart';
+import 'package:retry/retry.dart';
 import 'package:tray_manager/tray_manager.dart';
 import 'package:window_manager/window_manager.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/auto_unlock_htlc_worker.dart';
@@ -36,10 +38,10 @@ import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 Zenon? zenon;
 SharedPrefsService? sharedPrefsService;
 HtlcSwapsService? htlcSwapsService;
+IWeb3WalletService? web3WalletService;
 
 final sl = GetIt.instance;
 
-IWeb3WalletService? web3WalletService;
 final globalNavigatorKey = GlobalKey<NavigatorState>();
 
 main() async {
@@ -83,7 +85,11 @@ main() async {
   // Setup services
   setup();
 
-  await web3WalletService!.init();
+  retry(
+    () => web3WalletService!.init(),
+    retryIf: (e) => e is SocketException || e is TimeoutException,
+    maxAttempts: 0x7FFFFFFFFFFFFFFF
+  );
 
   // Setup local_notifier
   await localNotifier.setup(
