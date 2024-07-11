@@ -48,7 +48,7 @@ class BasicDropdown<T> extends StatelessWidget {
                 value: item,
                 child: Text(
                   item.label,
-                  style: Theme.of(context).textTheme.bodyText2!.copyWith(
+                  style: Theme.of(context).textTheme.bodyMedium!.copyWith(
                         color: _selectedValue == item
                             ? onChangedCallback != null
                                 ? AppColors.znnColor
