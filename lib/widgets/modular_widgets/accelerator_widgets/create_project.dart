@@ -17,7 +17,7 @@ class CreateProject extends StatelessWidget {
     return CardScaffold(
       title: 'Create Project',
       childBuilder: () => _getWidgetBody(context),
-      description: 'Innovate. Inspire. Buidl.',
+      description: 'Innovate. Inspire. Build.',
     );
   }
 
