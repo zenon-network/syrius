@@ -49,6 +49,9 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
                   ),
                 ],
               ),
+              NotificationWidget(
+                onSeeMorePressed: widget.onStepperNotificationSeeMorePressed,
+              ),
               Expanded(
                 child: _getStreamBuilder(),
               ),
