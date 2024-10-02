@@ -245,6 +245,7 @@ class _MainAppContainerState extends State<MainAppContainer>
                               width: 2.0,
                             ),
                           ),
+                          dividerHeight: 0.0,
                           controller: _tabController,
                           tabs: _getTabs(),
                         ),
