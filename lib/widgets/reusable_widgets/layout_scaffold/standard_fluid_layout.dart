@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:layout/layout.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/layout_scaffold/widget_animator.dart';
 
 const int kStaggeredNumOfColumns = 12;
 
@@ -27,9 +28,20 @@ class StandardFluidLayout extends StatelessWidget {
           final double spacing =
               context.breakpoint < LayoutBreakpoint.sm ? 4.0 : 12.0;
 
+          final double totalDurationMs = children.length > 5 ? 800 : 400;
+
+          final int durationPerTile = totalDurationMs ~/ children.length;
+
           final List<StaggeredGridTile> tiles = List.generate(
             children.length,
-            (index) => _generateStaggeredTitle(children[index]),
+            (index) {
+              final int widgetAnimatorOffset = durationPerTile * (index + 1);
+
+              return _generateStaggeredTitle(
+                children[index],
+                widgetAnimatorOffset,
+              );
+            },
           );
 
           return SingleChildScrollView(
@@ -37,20 +49,7 @@ class StandardFluidLayout extends StatelessWidget {
               crossAxisCount: crossAxisCount,
               mainAxisSpacing: spacing,
               crossAxisSpacing: spacing,
-              children: List.generate(
-                tiles.length,
-                (index) {
-                  final StaggeredGridTile tile = tiles[index];
-
-                  final double totalDurationMs =
-                      children.length > 5 ? 800 : 400;
-
-                  final int durationPerTile =
-                      totalDurationMs ~/ children.length;
-
-                  return tile;
-                },
-              ),
+              children: tiles,
             ),
           );
         },
@@ -58,11 +57,20 @@ class StandardFluidLayout extends StatelessWidget {
     );
   }
 
-  StaggeredGridTile _generateStaggeredTitle(FluidCell fluidCell) {
+  StaggeredGridTile _generateStaggeredTitle(
+    FluidCell fluidCell,
+    int widgetAnimatorOffset,
+  ) {
     return StaggeredGridTile.count(
       crossAxisCellCount: fluidCell.width ?? defaultCellWidth!,
       mainAxisCellCount: fluidCell.height ?? defaultCellHeight!,
-      child: fluidCell.child,
+      child: WidgetAnimator(
+        curve: Curves.linear,
+        animationOffset: Duration(
+          milliseconds: widgetAnimatorOffset,
+        ),
+        child: fluidCell.child,
+      ),
     );
   }
 }
