@@ -753,7 +753,7 @@ class _MainAppContainerState extends State<MainAppContainer>
   void _handleIncomingLinks() async {
     if (!kIsWeb && !Platform.isLinux) {
       _incomingLinkSubscription =
-          _appLinks.allUriLinkStream.listen((Uri? uri) async {
+          _appLinks.uriLinkStream.listen((Uri? uri) async {
         if (!await windowManager.isFocused() ||
             !await windowManager.isVisible()) {
           windowManager.show();
@@ -1025,7 +1025,7 @@ class _MainAppContainerState extends State<MainAppContainer>
     if (!_initialUriIsHandled) {
       _initialUriIsHandled = true;
       try {
-        final uri = await _appLinks.getInitialAppLink();
+        final uri = await _appLinks.getInitialLink();
         if (uri != null) {
           Logger('MainAppContainer').log(Level.INFO, '_handleInitialUri $uri');
         }
