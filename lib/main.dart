@@ -48,7 +48,9 @@ main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   Provider.debugCheckInvalidValueType = null;
-  debugDefaultTargetPlatformOverride = TargetPlatform.fuchsia;
+  if (kDebugMode) {
+    debugDefaultTargetPlatformOverride = TargetPlatform.fuchsia;
+  }
 
   ensureDirectoriesExist();
   Hive.init(znnDefaultPaths.cache.path.toString());
