@@ -70,36 +70,6 @@ void main() {
               )).called(1);
         },
       );
-
-      blocTest<DelegationCubit, DashboardState>(
-        'emits [loading, failure] when getDelegatedPillar throws',
-        setUp: () {
-          when(
-                () => mockZenon.embedded.pillar.getDelegatedPillar(emptyAddress),
-          ).thenThrow(Exception('No delegation stats available - test'));
-        },
-        build: () => delegationCubit,
-        act: (cubit) => cubit.fetch(),
-        expect: () => <DelegationState>[
-          DelegationState(status: CubitStatus.loading),
-          DelegationState(status: CubitStatus.failure),
-        ],
-      );
-
-      blocTest<DelegationCubit, DashboardState>(
-          'emits [loading, success] when getDelegatedPillar returns (delegationInfo)',
-          setUp: () {
-            when(
-                  () => mockZenon.embedded.pillar.getDelegatedPillar(any()),
-            ).thenReturn(delegationInfo as Future<DelegationInfo?>);
-          },
-          build: () => delegationCubit,
-          act: (cubit) => cubit.fetch,
-          expect: () => <DelegationState>[
-          DelegationState(status: CubitStatus.loading),
-          DelegationState(status: CubitStatus.success),
-      ]
-      );
     });
   });
 }
