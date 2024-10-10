@@ -1,6 +1,7 @@
 library screens;
 
 export 'change_wallet_password_screen.dart';
+export 'development_intialization_screen.dart';
 export 'dump_mnemonic_screen.dart';
 export 'node_management_screen.dart';
 export 'project_details_screen.dart';
