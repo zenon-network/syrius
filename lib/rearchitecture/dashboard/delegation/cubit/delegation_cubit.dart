@@ -10,11 +10,13 @@ part 'delegation_state.dart';
 /// This cubit extends `DashboardCubit<DelegationInfo>`, using the `DelegationInfo` data type
 /// to store and manage delegation stats for the account identified by `kDemoAddress`.
 class DelegationCubit extends DashboardCubit<DelegationInfo> {
+
+  final Address address;
   /// Constructs a `DelegationCubit`, passing the `zenon` client and the initial state
   /// to the parent class.
   ///
   /// The `zenon` client is used to interact with the Zenon network to retrieve delegation information.
-  DelegationCubit(super.zenon, super.initialState);
+  DelegationCubit(this.address, super.zenon, super.initialState);
 
   /// Fetches the delegation information for the account identified by its address.
   ///
@@ -29,7 +31,7 @@ class DelegationCubit extends DashboardCubit<DelegationInfo> {
   Future<DelegationInfo> fetch() async {
     try {
       final DelegationInfo? delegationInfo = await zenon.embedded.pillar.getDelegatedPillar(
-        Address.parse(kSelectedAddress!),
+        address,
       );
 
       // Check if delegation information is available
