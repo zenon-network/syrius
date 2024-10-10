@@ -73,6 +73,8 @@ dependencies:
   version: ^3.0.0
   mutex: ^3.1.0
   retry: ^3.1.2
+  flutter_bloc: ^8.1.6
+  bloc: ^8.1.4
 
 dev_dependencies:
   build_runner: ^2.4.6
