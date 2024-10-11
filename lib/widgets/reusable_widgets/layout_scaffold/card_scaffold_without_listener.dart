@@ -6,20 +6,17 @@ import 'package:lottie/lottie.dart';
 import 'package:stacked/stacked.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/widget_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 
 class CardScaffoldWithoutListener extends StatefulWidget {
   final Widget child;
-  final String? title;
-  final String description;
+  final CardType type;
   final VoidCallback? onRefreshPressed;
 
   const CardScaffoldWithoutListener({
     required this.child,
-    required this.title,
-    required this.description,
+    required this.type,
     this.onRefreshPressed,
     super.key,
   });
@@ -41,10 +38,13 @@ class _CardScaffoldWithoutListenerState extends State<CardScaffoldWithoutListene
 
   LoadingButton? _actionButton;
 
+  String get _title => widget.type.data.title;
+  String get _description => widget.type.data.description;
+
   @override
   void initState() {
     super.initState();
-    _hideWidgetInfo = _getWidgetHiddenInfoValue(widget.title);
+    _hideWidgetInfo = _getWidgetHiddenInfoValue(_title);
   }
 
   @override
@@ -64,7 +64,7 @@ class _CardScaffoldWithoutListenerState extends State<CardScaffoldWithoutListene
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: <Widget>[
-              _getWidgetHeader(widget.title!),
+              _getWidgetHeader(_title),
               const Divider(),
               Expanded(
                 child: Material(
@@ -85,7 +85,7 @@ class _CardScaffoldWithoutListenerState extends State<CardScaffoldWithoutListene
             color: Theme.of(context).colorScheme.primary,
             child: Column(
               children: <Widget>[
-                _getWidgetHeader(widget.title!),
+                _getWidgetHeader(_title),
                 const Divider(),
                 Expanded(
                   child: _getHideWidgetInfoViewModel(),
@@ -136,7 +136,7 @@ class _CardScaffoldWithoutListenerState extends State<CardScaffoldWithoutListene
                 bottom: 5.0,
               ),
               child: Text(
-                widget.description,
+                _description,
                 style: Theme.of(context).textTheme.titleMedium,
               ),
             ),
@@ -167,9 +167,9 @@ class _CardScaffoldWithoutListenerState extends State<CardScaffoldWithoutListene
                     _hideWidgetInfo = value;
                   });
                   if (value) {
-                    if (_getWidgetHiddenInfoValue(widget.title) != value) {
+                    if (_getWidgetHiddenInfoValue(_title) != value) {
                       model.checkPassAndMarkWidgetWithHiddenValue(
-                        widget.title!,
+                        _title,
                         _passwordController.text,
                         value,
                       );
@@ -336,7 +336,7 @@ class _CardScaffoldWithoutListenerState extends State<CardScaffoldWithoutListene
   }
 
   Widget? _getWidgetFrontBody() {
-    return _getWidgetHiddenInfoValue(widget.title)
+    return _getWidgetHiddenInfoValue(_title)
         ? _getHiddenInfoWidget()
         : widget.child;
   }
@@ -347,7 +347,7 @@ class _CardScaffoldWithoutListenerState extends State<CardScaffoldWithoutListene
 
   bool _getWidgetHiddenInfoValue(String? title) {
     return sharedPrefsService!.get(
-      WidgetUtils.isWidgetHiddenKey(widget.title!),
+      WidgetUtils.isWidgetHiddenKey(_title),
       defaultValue: false,
     );
   }
@@ -358,7 +358,7 @@ class _CardScaffoldWithoutListenerState extends State<CardScaffoldWithoutListene
       try {
         _actionButtonKey.currentState!.animateForward();
         await model.checkPassAndMarkWidgetWithHiddenValue(
-          widget.title!,
+          _title,
           _passwordController.text,
           _hideWidgetInfo!,
         );

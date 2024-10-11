@@ -2,14 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/dashboard/dashboard.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/card/card.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/zts_utils.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/layout_scaffold/card_scaffold_without_listener.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
-
-const String _kWidgetTitle = 'Delegation Stats';
-final String _kWidgetDescription = 'This card displays the amount of '
-    '${kZnnCoin.symbol} and the name of the Pillar that you delegated to';
+import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 
 class DelegationCard extends StatelessWidget {
   const DelegationCard({super.key});
@@ -27,8 +23,7 @@ class DelegationCard extends StatelessWidget {
         return cubit;
       },
       child: CardScaffoldWithoutListener(
-        description: _kWidgetDescription,
-        title: _kWidgetTitle,
+        type: CardType.delegationStats,
         child: BlocBuilder<DelegationCubit, DashboardState>(
           builder: (context, state) {
             return switch (state.status) {
