@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/error_widget.dart';
 
 class DelegationError extends StatelessWidget {
   final Object error;
@@ -7,6 +8,6 @@ class DelegationError extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Text(error.toString());
+    return SyriusErrorWidget(error);
   }
 }

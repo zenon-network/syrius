@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:layout/layout.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/dashboard/dashboard.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 
 class DashboardTabChild extends StatefulWidget {
@@ -63,7 +64,7 @@ class _DashboardTabChildState extends State<DashboardTabChild> {
         height: kStaggeredNumOfColumns / 8,
       ),
       const FluidCell(
-        child: DelegationStats(),
+        child: DelegationCard(),
         height: kStaggeredNumOfColumns / 8,
       ),
       const FluidCell(
