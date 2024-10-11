@@ -14,7 +14,7 @@ class StakingCard extends StatelessWidget {
           zenon!,
           StakingState(),
         );
-        cubit.fetch();
+        cubit.fetchDataPeriodically();
         return cubit;
       },
       child: Scaffold(

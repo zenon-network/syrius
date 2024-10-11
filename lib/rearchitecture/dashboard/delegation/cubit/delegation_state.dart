@@ -9,7 +9,7 @@ class DelegationState extends DashboardState<DelegationInfo> {
   ///
   /// This state is initialized with default `status`, `data`, and `error` values from the parent `DashboardState` class.
   /// It manages delegation information for an account.
-  DelegationState({
+  const DelegationState({
     super.status,
     super.data,
     super.error,

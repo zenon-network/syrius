@@ -26,7 +26,7 @@ class BalanceDashboardCard extends StatelessWidget {
           zenon!,
           BalanceDashboardState(),
         );
-        cubit.fetch();
+        cubit.fetchDataPeriodically();
         return cubit;
       },
       child: Scaffold(

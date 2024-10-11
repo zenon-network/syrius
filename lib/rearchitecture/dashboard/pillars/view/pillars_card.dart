@@ -15,7 +15,7 @@ class PillarsCard extends StatelessWidget {
           zenon!,
           PillarsState(),
         );
-        cubit.fetch();
+        cubit.fetchDataPeriodically();
         return cubit;
       },
       child: Scaffold(

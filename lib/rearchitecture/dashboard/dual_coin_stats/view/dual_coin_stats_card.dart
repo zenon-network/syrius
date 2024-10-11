@@ -15,7 +15,7 @@ class DualCoinStatsCard extends StatelessWidget {
           zenon!,
           DualCoinStatsState(),
         );
-        cubit.fetch();
+        cubit.fetchDataPeriodically();
         return cubit;
       },
       child: Scaffold(

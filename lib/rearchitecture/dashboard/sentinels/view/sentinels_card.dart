@@ -14,7 +14,7 @@ class SentinelsCard extends StatelessWidget {
           zenon!,
           SentinelsState(),
         );
-        cubit.fetch();
+        cubit.fetchDataPeriodically();
         return cubit;
       },
       child: Scaffold(

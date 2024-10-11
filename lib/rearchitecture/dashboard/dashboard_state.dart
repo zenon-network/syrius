@@ -25,7 +25,7 @@ enum CubitStatus {
 /// - [status]: A [CubitStatus] that indicates the current state (loading, success, etc.).
 /// - [data]: The data of type [T] that is managed by the cubit.
 /// - [error]: An optional [error] object that contains error details if the cubit is in a failure state.
-abstract class DashboardState<T> {
+abstract class DashboardState<T> extends Equatable {
   /// Represents the current status of the cubit, such as loading, success, or failure.
   final CubitStatus status;
 
@@ -39,7 +39,7 @@ abstract class DashboardState<T> {
   ///
   /// - The [status] defaults to [CubitStatus.initial] if not provided.
   /// - The [data] and [error] can be null, indicating that either no data has been fetched yet, or an error has occurred.
-  DashboardState({
+  const DashboardState({
     this.status = CubitStatus.initial,
     this.data,
     this.error,
@@ -58,4 +58,7 @@ abstract class DashboardState<T> {
     T? data,
     Object? error,
   });
+
+  @override
+  List<Object?> get props => [status, data, error];
 }

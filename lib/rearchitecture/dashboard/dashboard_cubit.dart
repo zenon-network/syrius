@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:bloc/bloc.dart';
+import 'package:equatable/equatable.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
@@ -21,35 +22,39 @@ abstract class DashboardCubit<T> extends Cubit<DashboardState<T>> {
   /// Constructs a `DashboardCubit` with the provided [zenon] client and initial state.
   ///
   /// The auto-refresh functionality is initialized upon the cubit's creation.
-  DashboardCubit(this.zenon, super.initialState, {this.refreshInterval = kDashboardRefreshInterval}) {
-    _startAutoRefresh();
-  }
+  DashboardCubit(
+    this.zenon,
+    super.initialState, {
+    this.refreshInterval = kDashboardRefreshInterval,
+  });
 
   /// Fetches data of type [T] that is managed by the cubit.
   ///
   /// This method needs to be implemented by subclasses, and it should define
   /// the specific data-fetching logic (e.g., fetching account information).
+  ///
+  /// It shouldn't be used to emit states
   Future<T> fetch();
 
   /// Returns a [Timer] that triggers the auto-refresh functionality after
   /// the predefined [kDashboardRefreshInterval].
   ///
   /// This method cancels any existing timers and initiates a new periodic
-  /// fetch cycle by calling [_fetchDataPeriodically].
+  /// fetch cycle by calling [fetchDataPeriodically].
   Timer _getAutoRefreshTimer() => Timer(
-    refreshInterval,
+        refreshInterval,
         () {
-      _autoRefresher!.cancel();
-      _fetchDataPeriodically();
-    },
-  );
+          _autoRefresher!.cancel();
+          fetchDataPeriodically();
+        },
+      );
 
   /// Periodically fetches data and updates the state with either success or failure.
   ///
   /// This method fetches new data by calling [fetch], emits a loading state while
   /// fetching, and updates the state with success or failure based on the outcome.
   /// If the WebSocket client is closed, it throws a [noConnectionException].
-  Future<void> _fetchDataPeriodically() async {
+  Future<void> fetchDataPeriodically() async {
     try {
       emit(state.copyWith(status: CubitStatus.loading));
       if (!zenon.wsClient.isClosed()) {
@@ -62,10 +67,8 @@ abstract class DashboardCubit<T> extends Cubit<DashboardState<T>> {
       emit(state.copyWith(status: CubitStatus.failure, error: e));
     } finally {
       /// Ensure that the auto-refresher is restarted if it's not active.
-      if (_autoRefresher == null) {
-        _autoRefresher = _getAutoRefreshTimer();
-      } else if (!_autoRefresher!.isActive) {
-        _autoRefresher = _getAutoRefreshTimer();
+      if (!isTimerActive) {
+        _startAutoRefresh();
       }
     }
   }
@@ -74,6 +77,9 @@ abstract class DashboardCubit<T> extends Cubit<DashboardState<T>> {
   void _startAutoRefresh() {
     _autoRefresher = _getAutoRefreshTimer();
   }
+
+  /// Checks if a timer was set and if it's active
+  bool get isTimerActive => _autoRefresher?.isActive ?? false;
 
   /// Cancels the auto-refresh timer and closes the cubit.
   ///
