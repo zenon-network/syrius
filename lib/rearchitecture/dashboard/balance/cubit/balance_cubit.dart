@@ -10,7 +10,7 @@ part 'balance_state.dart';
 /// of multiple addresses. It extends the `DashboardCubit` with a state
 /// represented as a `Map` of addresses and their associated `AccountInfo`.
 
-class BalanceCubit extends DashboardCubit<AccountInfo> {
+class BalanceCubit extends DashboardCubit<AccountInfo, BalanceState> {
 
   final Address address;
   /// Constructs a `BalanceCubit` with the provided `zenon` client and initial state.

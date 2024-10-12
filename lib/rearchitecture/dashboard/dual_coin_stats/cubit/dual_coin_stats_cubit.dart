@@ -8,7 +8,7 @@ part 'dual_coin_stats_state.dart';
 ///
 /// This cubit extends `DashboardCubit<List<Token?>>`, using a list of `Token` objects to
 /// represent the statistics for the ZNN and QSR tokens fetched from the Zenon network.
-class DualCoinStatsCubit extends DashboardCubit<List<Token?>> {
+class DualCoinStatsCubit extends DashboardCubit<List<Token?>, DualCoinStatsState> {
   /// Constructs a `DualCoinStatsCubit`, passing the `zenon` client and the initial state
   /// to the parent class.
   ///

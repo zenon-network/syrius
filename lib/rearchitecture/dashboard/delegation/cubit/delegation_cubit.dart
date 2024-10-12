@@ -8,7 +8,7 @@ part 'delegation_state.dart';
 ///
 /// This cubit extends `DashboardCubit<DelegationInfo>`, using the `DelegationInfo` data type
 /// to store and manage delegation stats for the account identified by `kDemoAddress`.
-class DelegationCubit extends DashboardCubit<DelegationInfo> {
+class DelegationCubit extends DashboardCubit<DelegationInfo, DelegationState> {
 
   final Address address;
   /// Constructs a `DelegationCubit`, passing the `zenon` client and the initial state

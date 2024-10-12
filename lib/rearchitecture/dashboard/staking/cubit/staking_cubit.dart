@@ -8,7 +8,7 @@ part 'staking_state.dart';
 ///
 /// This cubit extends `DashboardCubit<StakeList>`, using a `StakeList` object
 /// to represent the list of staking entries for a specific address fetched from the Zenon network.
-class StakingCubit extends DashboardCubit<StakeList> {
+class StakingCubit extends DashboardCubit<StakeList, StakingState> {
   /// Constructs a `StakingCubit`, passing the `zenon` client and the initial state
   /// to the parent class.
   ///

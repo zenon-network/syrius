@@ -8,7 +8,7 @@ part 'sentinels_state.dart';
 ///
 /// This cubit extends `DashboardCubit<SentinelInfoList>`, using a `SentinelInfoList`
 /// object to represent the list of active sentinels fetched from the Zenon network.
-class SentinelsCubit extends DashboardCubit<SentinelInfoList> {
+class SentinelsCubit extends DashboardCubit<SentinelInfoList, SentinelsState> {
   /// Constructs a `SentinelsCubit`, passing the `zenon` client and the initial state
   /// to the parent class.
   ///

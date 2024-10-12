@@ -11,7 +11,10 @@ part 'dashboard_state.dart';
 /// success, or failure, and it periodically refreshes the data automatically.
 ///
 /// The generic type [T] represents the type of data managed by this cubit.
-abstract class DashboardCubit<T> extends Cubit<DashboardState<T>> {
+///
+/// The generic type [S] represents the type of the states emitted by the cubit.
+/// [S] extends [DashboardState]
+abstract class DashboardCubit<T, S extends DashboardState<T>> extends Cubit<S> {
   /// A timer that handles the auto-refreshing of data.
   Timer? _autoRefresher;
 
@@ -56,15 +59,15 @@ abstract class DashboardCubit<T> extends Cubit<DashboardState<T>> {
   /// If the WebSocket client is closed, it throws a [noConnectionException].
   Future<void> fetchDataPeriodically() async {
     try {
-      emit(state.copyWith(status: CubitStatus.loading));
+      emit(state.copyWith(status: CubitStatus.loading) as S);
       if (!zenon.wsClient.isClosed()) {
-        final T? data = await fetch();
-        emit(state.copyWith(data: data, status: CubitStatus.success));
+        final T data = await fetch();
+        emit(state.copyWith(data: data, status: CubitStatus.success) as S);
       } else {
         throw noConnectionException;
       }
     } catch (e) {
-      emit(state.copyWith(status: CubitStatus.failure, error: e));
+      emit(state.copyWith(status: CubitStatus.failure, error: e) as S);
     } finally {
       /// Ensure that the auto-refresher is restarted if it's not active.
       if (!isTimerActive) {

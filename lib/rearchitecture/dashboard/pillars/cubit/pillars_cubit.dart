@@ -7,7 +7,7 @@ part 'pillars_state.dart';
 ///
 /// This cubit extends `DashboardCubit<int>`, using an integer to represent the
 /// total number of pillars fetched from the Zenon network.
-class PillarsCubit extends DashboardCubit<int> {
+class PillarsCubit extends DashboardCubit<int, PillarsState> {
   /// Constructs a `PillarsCubit`, passing the `zenon` client and the initial state
   /// to the parent class.
   ///

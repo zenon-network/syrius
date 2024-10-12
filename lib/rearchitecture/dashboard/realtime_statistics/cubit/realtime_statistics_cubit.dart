@@ -10,7 +10,7 @@ part 'realtime_statistics_state.dart';
 ///
 /// This cubit extends `DashboardCubit<List<AccountBlock>>`, using a list of
 /// `AccountBlock` objects to represent the account blocks fetched from the Zenon network.
-class RealtimeStatisticsCubit extends DashboardCubit<List<AccountBlock>> {
+class RealtimeStatisticsCubit extends DashboardCubit<List<AccountBlock>, RealtimeStatisticsState> {
   /// Constructs a `RealtimeStatisticsCubit`, passing the `zenon` client and the initial state
   /// to the parent class.
   ///

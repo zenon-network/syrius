@@ -9,7 +9,7 @@ part 'balance_dashboard_state.dart';
 /// This cubit extends `DashboardCubit<AccountInfo>`, utilizing the `AccountInfo` data type to store
 /// and manage the balance data for a specific account (identified by `kDemoAddress`).
 /// It provides the logic for fetching and updating the balance.
-class BalanceDashboardCubit extends DashboardCubit<AccountInfo> {
+class BalanceDashboardCubit extends DashboardCubit<AccountInfo, BalanceDashboardState> {
   /// Constructs a `BalanceDashboardCubit`, passing the `zenon` client and the initial state to the parent class.
   ///
   /// The `zenon` client is used to interact with the Zenon ledger to retrieve account information.
