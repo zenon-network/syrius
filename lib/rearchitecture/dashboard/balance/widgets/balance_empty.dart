@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/reusable_widgets.dart';
 
 /// A `BalanceEmpty` widget that displays a simple message indicating that there
 /// is no balance data available.
@@ -10,7 +11,6 @@ class BalanceEmpty extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Returns a simple `Text` widget displaying the message 'empty'.
-    return const Text('empty');
+    return SyriusErrorWidget('No data available');
   }
 }

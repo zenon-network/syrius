@@ -4,12 +4,12 @@ part of 'balance_cubit.dart';
 ///
 /// `BalanceState` holds a map of account addresses to their corresponding `AccountInfo` objects.
 /// This state is used by the `BalanceCubit` to track the balance information for multiple addresses.
-class BalanceState extends DashboardState<Map<String, AccountInfo>> {
+class BalanceState extends DashboardState<AccountInfo> {
   /// Constructs a new `BalanceState`.
   ///
   /// This state uses the default `status`, `data`, and `error` from the parent `DashboardState` class
   /// and initializes them for managing balance data.
-  BalanceState({
+  const BalanceState({
     super.status,
     super.data,
     super.error,
@@ -23,9 +23,9 @@ class BalanceState extends DashboardState<Map<String, AccountInfo>> {
   /// Returns:
   /// - A new instance of `BalanceState` with the updated values or the existing ones if none are provided.
   @override
-  DashboardState<Map<String, AccountInfo>> copyWith({
+  DashboardState<AccountInfo> copyWith({
     CubitStatus? status,
-    Map<String, AccountInfo>? data,
+    AccountInfo? data,
     Object? error,
   }) {
     return BalanceState(

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/loading_widget.dart';
 
 /// A `BalanceLoading` widget that displays a loading message while the balance
 /// data is being fetched.
@@ -10,6 +11,6 @@ class BalanceLoading extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Text('loading');
+    return SyriusLoadingWidget();
   }
 }

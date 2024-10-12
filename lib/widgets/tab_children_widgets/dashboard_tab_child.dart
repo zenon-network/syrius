@@ -72,7 +72,7 @@ class _DashboardTabChildState extends State<DashboardTabChild> {
         height: kStaggeredNumOfColumns / 8,
       ),
       FluidCell(
-        child: const BalanceWidget(),
+        child: const BalanceCard(),
         width: defaultCellWidth * 2,
       ),
       FluidCell(

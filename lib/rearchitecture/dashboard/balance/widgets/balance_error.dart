@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/error_widget.dart';
 
 /// A `BalanceError` widget that displays an error message when the balance
 /// data fetching fails.
@@ -12,6 +13,6 @@ class BalanceError extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Text(error.toString());
+    return SyriusErrorWidget(error);
   }
 }

@@ -1,10 +1,11 @@
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/dashboard/dashboard.dart';
-
-
+import 'package:zenon_syrius_wallet_flutter/utils/card/card.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/layout_scaffold/card_scaffold_without_listener.dart';
+import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 /// A `BalanceCard` widget that displays balance information for a user.
 ///
@@ -26,34 +27,37 @@ class BalanceCard extends StatelessWidget {
         // and an initial `BalanceState`. The cubit immediately begins fetching
         // balance data by calling `fetch()`.
         final BalanceCubit cubit = BalanceCubit(
-            zenon!,
-            BalanceState()
+          Address.parse(kSelectedAddress!),
+          zenon!,
+          BalanceState(),
         );
         cubit.fetchDataPeriodically();
         return cubit;
       },
-      child: Scaffold(
-        body: BlocBuilder<BalanceCubit, DashboardState>(
+      child: CardScaffoldWithoutListener(
+        type: CardType.balance,
+        child: BlocBuilder<BalanceCubit, DashboardState>(
           builder: (context, state) {
             // Uses a `switch` statement to display different widgets based on
             // the current cubit state. The state is managed by the `BalanceCubit` and
             // is derived from `DashboardState`, with different widgets rendered for each status.
             return switch (state.status) {
-            // Displays an empty balance view when the cubit is in its initial state.
+              // Displays an empty balance view when the cubit is in its initial state.
               CubitStatus.initial => const BalanceEmpty(),
 
-            // Shows a loading indicator while the cubit is fetching balance data.
+              // Shows a loading indicator while the cubit is fetching balance data.
               CubitStatus.loading => const BalanceLoading(),
 
-            // Displays an error message if fetching balance data fails.
+              // Displays an error message if fetching balance data fails.
               CubitStatus.failure => BalanceError(
-                error: state.error!,
-              ),
+                  error: state.error!,
+                ),
 
-            // Shows the populated balance data when it is successfully fetched.
+              // Shows the populated balance data when it is successfully fetched.
               CubitStatus.success => BalancePopulated(
-                data: state.data!,
-              ),
+                  address: kSelectedAddress!,
+                  accountInfo: state.data!,
+                ),
             };
           },
         ),
