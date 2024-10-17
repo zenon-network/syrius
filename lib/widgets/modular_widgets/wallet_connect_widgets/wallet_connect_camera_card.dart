@@ -16,7 +16,7 @@ const String _kWidgetDescription =
     'Scan a WalletConnect QR code using the built-in camera of this device';
 
 class WalletConnectCameraCard extends StatefulWidget {
-  const WalletConnectCameraCard({Key? key}) : super(key: key);
+  const WalletConnectCameraCard({super.key});
 
   @override
   State<WalletConnectCameraCard> createState() =>

@@ -20,8 +20,8 @@ class AcceleratorProjectList extends StatefulWidget {
     this.acceleratorProjects, {
     required this.onStepperNotificationSeeMorePressed,
     this.projects,
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   State<AcceleratorProjectList> createState() => _AcceleratorProjectListState();

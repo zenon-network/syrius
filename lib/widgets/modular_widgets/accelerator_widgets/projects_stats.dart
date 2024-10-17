@@ -7,7 +7,7 @@ import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 class ProjectsStats extends StatelessWidget {
   final Project project;
 
-  const ProjectsStats(this.project, {Key? key}) : super(key: key);
+  const ProjectsStats(this.project, {super.key});
 
   @override
   Widget build(BuildContext context) {

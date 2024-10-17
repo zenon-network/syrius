@@ -33,8 +33,8 @@ class CardScaffold<T> extends StatefulWidget {
     this.titleFontSize,
     this.titleIcon,
     this.customItem,
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   State<CardScaffold<T>> createState() => _CardScaffoldState<T>();

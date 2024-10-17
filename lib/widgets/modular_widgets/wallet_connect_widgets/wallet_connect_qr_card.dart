@@ -26,7 +26,7 @@ const String _kWidgetDescription =
 final screenCapturer = ScreenCapturer.instance;
 
 class WalletConnectQrCard extends StatefulWidget {
-  const WalletConnectQrCard({Key? key}) : super(key: key);
+  const WalletConnectQrCard({super.key});
 
   @override
   State<WalletConnectQrCard> createState() => _WalletConnectQrCardState();
@@ -60,7 +60,7 @@ class _WalletConnectQrCardState extends State<WalletConnectQrCard> {
             width: 130,
             padding: const EdgeInsets.all(10.0),
             decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.background,
+              color: Theme.of(context).colorScheme.surface,
               borderRadius: BorderRadius.circular(15.0),
             ),
             child: PrettyQrView.data(

@@ -23,8 +23,8 @@ class AccProjectList extends StatefulWidget {
   const AccProjectList({
     required this.onStepperNotificationSeeMorePressed,
     required this.pillarInfo,
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   State<AccProjectList> createState() => _AccProjectListState();

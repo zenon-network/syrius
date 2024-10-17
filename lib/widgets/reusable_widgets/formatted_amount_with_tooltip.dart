@@ -8,12 +8,11 @@ class FormattedAmountWithTooltip extends Tooltip {
   final Widget Function(String, String) builder;
 
   FormattedAmountWithTooltip({
-    Key? key,
+    super.key,
     required this.amount,
     required this.tokenSymbol,
     required this.builder,
   }) : super(
-          key: key,
           message: '$amount $tokenSymbol',
           child: builder(
               amount.toNum() == 0

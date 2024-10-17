@@ -3,12 +3,10 @@ import 'package:flutter_vector_icons/flutter_vector_icons.dart';
 
 class ClearIcon extends RawMaterialButton {
   ClearIcon({
-    Key? key,
-    required VoidCallback onPressed,
+    super.key,
+    required VoidCallback super.onPressed,
     required BuildContext context,
   }) : super(
-          key: key,
-          onPressed: onPressed,
           shape: const CircleBorder(),
           child: Icon(
             SimpleLineIcons.close,

@@ -12,8 +12,8 @@ class ExportWalletInfoScreen extends StatefulWidget {
   const ExportWalletInfoScreen(
     this.seed, {
     this.backupWalletFlow = false,
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   State<ExportWalletInfoScreen> createState() => _ExportWalletInfoScreenState();

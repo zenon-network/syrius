@@ -14,12 +14,12 @@ class AcceleratorProjectListItem extends StatefulWidget {
   final VoidCallback onStepperNotificationSeeMorePressed;
 
   const AcceleratorProjectListItem({
-    Key? key,
+    super.key,
     required this.acceleratorProject,
     this.pillarInfo,
     this.project,
     required this.onStepperNotificationSeeMorePressed,
-  }) : super(key: key);
+  });
 
   @override
   State<AcceleratorProjectListItem> createState() =>

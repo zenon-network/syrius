@@ -21,8 +21,8 @@ class SettingsNode extends StatefulWidget {
     required this.onNodePressed,
     required this.onChangedOrDeletedNode,
     required this.currentNode,
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   State<SettingsNode> createState() => _SettingsNodeState();

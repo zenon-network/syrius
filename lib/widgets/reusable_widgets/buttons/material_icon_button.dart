@@ -18,8 +18,8 @@ class MaterialIconButton extends StatelessWidget {
     this.hoverColor,
     this.padding = 8.0,
     this.materialTapTargetSize = MaterialTapTargetSize.padded,
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   Widget build(BuildContext context) {

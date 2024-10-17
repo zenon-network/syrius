@@ -15,8 +15,8 @@ class StakeCollect extends StatefulWidget {
 
   const StakeCollect({
     required this.stakingRewardsHistoryBloc,
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   State<StakeCollect> createState() => _StakeCollectState();

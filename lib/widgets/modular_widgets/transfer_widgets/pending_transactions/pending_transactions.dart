@@ -14,8 +14,8 @@ import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 class PendingTransactions extends StatefulWidget {
   const PendingTransactions({
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   State<PendingTransactions> createState() => _PendingTransactionsState();

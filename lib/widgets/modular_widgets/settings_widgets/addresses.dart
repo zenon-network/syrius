@@ -18,8 +18,8 @@ class Addresses extends StatefulWidget {
 
   const Addresses({
     required this.accountChainStatsBloc,
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   State createState() {

@@ -8,8 +8,8 @@ class PlasmaIcon extends StatelessWidget {
 
   const PlasmaIcon(
     this.plasmaInfo, {
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   Widget build(BuildContext context) {

@@ -30,7 +30,7 @@ enum TokenStepperStep {
 }
 
 class TokenStepper extends StatefulWidget {
-  const TokenStepper({Key? key}) : super(key: key);
+  const TokenStepper({super.key});
 
   @override
   State createState() {

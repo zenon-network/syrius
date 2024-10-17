@@ -14,8 +14,8 @@ class CreateKeyStoreScreen extends StatefulWidget {
     this.seed,
     this.password, {
     this.progressBarNumLevels = 5,
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   State<CreateKeyStoreScreen> createState() => _CreateKeyStoreScreenState();

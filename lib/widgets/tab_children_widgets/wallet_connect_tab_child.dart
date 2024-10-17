@@ -3,7 +3,7 @@ import 'package:layout/layout.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 
 class WalletConnectTabChild extends StatelessWidget {
-  const WalletConnectTabChild({Key? key}) : super(key: key);
+  const WalletConnectTabChild({super.key});
 
   @override
   Widget build(BuildContext context) {

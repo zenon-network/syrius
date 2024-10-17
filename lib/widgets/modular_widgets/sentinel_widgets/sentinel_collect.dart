@@ -15,8 +15,8 @@ class SentinelCollect extends StatefulWidget {
 
   const SentinelCollect({
     required this.sentinelRewardsHistoryBloc,
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   State<SentinelCollect> createState() => _SentinelCollectState();

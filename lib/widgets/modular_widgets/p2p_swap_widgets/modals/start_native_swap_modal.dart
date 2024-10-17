@@ -29,8 +29,8 @@ class StartNativeSwapModal extends StatefulWidget {
 
   const StartNativeSwapModal({
     required this.onSwapStarted,
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   State<StartNativeSwapModal> createState() => _StartNativeSwapModalState();

@@ -10,7 +10,7 @@ import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 class SentinelListWidget extends StatefulWidget {
-  const SentinelListWidget({Key? key}) : super(key: key);
+  const SentinelListWidget({super.key});
 
   @override
   State<SentinelListWidget> createState() => _SentinelListWidgetState();

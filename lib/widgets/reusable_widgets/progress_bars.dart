@@ -11,8 +11,8 @@ class PasswordProgressBar extends StatefulWidget {
   const PasswordProgressBar({
     required this.password,
     required this.passwordKey,
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   State<PasswordProgressBar> createState() => _PasswordProgressBarState();
@@ -99,8 +99,8 @@ class ProgressBar extends StatelessWidget {
   const ProgressBar({
     required this.currentLevel,
     this.numLevels = 5,
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -147,8 +147,8 @@ class AcceleratorProgressBarSpan extends StatelessWidget {
     required this.value,
     required this.color,
     required this.tooltipMessage,
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -170,8 +170,7 @@ class AcceleratorProgressBar extends StatelessWidget {
   final BuildContext context;
 
   const AcceleratorProgressBar(
-      {required this.child, required this.context, Key? key})
-      : super(key: key);
+      {required this.child, required this.context, super.key});
 
   @override
   Widget build(BuildContext context) {

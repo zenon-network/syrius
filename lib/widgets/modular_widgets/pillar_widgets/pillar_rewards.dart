@@ -6,8 +6,7 @@ import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 class PillarRewards extends StatefulWidget {
   final PillarRewardsHistoryBloc pillarRewardsHistoryBloc;
 
-  const PillarRewards({required this.pillarRewardsHistoryBloc, Key? key})
-      : super(key: key);
+  const PillarRewards({required this.pillarRewardsHistoryBloc, super.key});
 
   @override
   State createState() => _PillarRewardsState();

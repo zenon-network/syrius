@@ -11,7 +11,7 @@ import 'package:znn_ledger_dart/znn_ledger_dart.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 class HardwareWalletDeviceChoiceScreen extends StatefulWidget {
-  const HardwareWalletDeviceChoiceScreen({Key? key}) : super(key: key);
+  const HardwareWalletDeviceChoiceScreen({super.key});
 
   @override
   State<HardwareWalletDeviceChoiceScreen> createState() =>

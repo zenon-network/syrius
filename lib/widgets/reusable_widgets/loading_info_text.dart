@@ -9,8 +9,8 @@ class LoadingInfoText extends StatelessWidget {
   const LoadingInfoText({
     required this.text,
     this.tooltipText,
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   Widget build(BuildContext context) {

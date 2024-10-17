@@ -13,8 +13,8 @@ class RealtimeTxsChart extends StatefulWidget {
 
   const RealtimeTxsChart(
     this.transactions, {
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   State<StatefulWidget> createState() => RealtimeTxsChartState();

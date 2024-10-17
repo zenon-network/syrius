@@ -51,8 +51,8 @@ class InputField extends StatefulWidget {
     this.errorBorder,
     this.focusedBorder,
     this.focusedErrorBorder,
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   State createState() {

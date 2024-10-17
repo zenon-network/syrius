@@ -17,7 +17,7 @@ import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 class PillarListWidget extends StatefulWidget {
   final String? title;
 
-  const PillarListWidget({Key? key, this.title}) : super(key: key);
+  const PillarListWidget({super.key, this.title});
 
   @override
   State<PillarListWidget> createState() => _PillarListWidgetState();

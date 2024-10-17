@@ -17,7 +17,7 @@ const String _kWidgetDescription =
     'securely over the Internet';
 
 class WalletConnectPairingsCard extends StatefulWidget {
-  const WalletConnectPairingsCard({Key? key}) : super(key: key);
+  const WalletConnectPairingsCard({super.key});
 
   @override
   State<WalletConnectPairingsCard> createState() =>

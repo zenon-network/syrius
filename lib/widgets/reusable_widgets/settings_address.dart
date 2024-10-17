@@ -13,8 +13,8 @@ class SettingsAddress extends StatefulWidget {
   const SettingsAddress({
     required this.address,
     required this.onAddressLabelPressed,
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   State<SettingsAddress> createState() => _SettingsAddressState();

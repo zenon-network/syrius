@@ -9,10 +9,10 @@ class TransferTabChild extends StatefulWidget {
   DimensionCard receiveCard;
 
   TransferTabChild({
-    Key? key,
+    super.key,
     this.sendCard = DimensionCard.medium,
     this.receiveCard = DimensionCard.medium,
-  }) : super(key: key);
+  });
 
   @override
   State<TransferTabChild> createState() => _TransferTabChildState();

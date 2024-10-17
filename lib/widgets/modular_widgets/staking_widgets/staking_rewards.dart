@@ -8,8 +8,8 @@ class StakingRewards extends StatefulWidget {
 
   const StakingRewards({
     required this.stakingRewardsHistoryBloc,
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   State createState() {

@@ -12,7 +12,7 @@ import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 
 class WalletOptions extends StatefulWidget {
-  const WalletOptions({Key? key}) : super(key: key);
+  const WalletOptions({super.key});
 
   @override
   State<WalletOptions> createState() => _WalletOptionsState();

@@ -28,8 +28,8 @@ class SecurityWidget extends StatefulWidget {
   const SecurityWidget(
     this._onChangeAutoLockTime, {
     required this.onStepperNotificationSeeMorePressed,
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   State createState() {

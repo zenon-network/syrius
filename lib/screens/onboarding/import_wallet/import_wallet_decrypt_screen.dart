@@ -10,7 +10,7 @@ import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 class ImportWalletDecryptScreen extends StatefulWidget {
   final String path;
 
-  const ImportWalletDecryptScreen(this.path, {Key? key}) : super(key: key);
+  const ImportWalletDecryptScreen(this.path, {super.key});
 
   @override
   State<ImportWalletDecryptScreen> createState() =>

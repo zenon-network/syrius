@@ -1,4 +1,4 @@
-library screens;
+library;
 
 export 'change_wallet_password_screen.dart';
 export 'development_intialization_screen.dart';

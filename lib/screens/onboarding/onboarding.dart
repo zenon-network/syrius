@@ -1,4 +1,4 @@
-library onboarding;
+library;
 
 export 'access_wallet_screen.dart';
 export 'create_key_store_screen.dart';

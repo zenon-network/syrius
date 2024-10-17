@@ -114,7 +114,7 @@ class Stepper extends StatefulWidget {
   ///
   /// The [steps], [type], and [currentStep] arguments must not be null.
   const Stepper({
-    Key? key,
+    super.key,
     required this.steps,
     this.physics,
     this.type = StepperType.vertical,
@@ -124,8 +124,7 @@ class Stepper extends StatefulWidget {
     this.onStepCancel,
     this.controlsBuilder,
     this.activeColor = AppColors.znnColor,
-  })  : assert(0 <= currentStep && currentStep < steps.length),
-        super(key: key);
+  })  : assert(0 <= currentStep && currentStep < steps.length);
 
   /// The color of the circle next to the name of the step when the step
   /// is selected or completed
@@ -526,8 +525,8 @@ class _StepperState extends State<Stepper> with TickerProviderStateMixin {
             key: _keys[i],
             children: <Widget>[
               InkWell(
-                overlayColor: MaterialStateProperty.resolveWith((states) =>
-                    states.contains(MaterialState.hovered)
+                overlayColor: WidgetStateProperty.resolveWith((states) =>
+                    states.contains(WidgetState.hovered)
                         ? Colors.transparent
                         : null),
                 onTap: widget.steps[i].state != StepState.disabled

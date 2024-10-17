@@ -20,8 +20,8 @@ class StandardChart extends StatelessWidget {
     this.maxX = kStandardChartNumDays - 1,
     this.lineBarDotSymbol = '',
     this.convertLeftSideTitlesToInt = false,
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -42,7 +42,7 @@ class StandardChart extends StatelessWidget {
               tooltipPadding: const EdgeInsets.all(4.0),
               tooltipRoundedRadius: 6.0,
               getTooltipColor: (LineBarSpot lineBarSpot) =>
-                  Theme.of(context).colorScheme.background,
+                  Theme.of(context).colorScheme.surface,
               getTooltipItems: (touchedSpots) {
                 return touchedSpots.map(
                   (LineBarSpot touchedSpot) {

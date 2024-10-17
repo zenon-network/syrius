@@ -12,8 +12,8 @@ class CreatePhase extends StatelessWidget {
   const CreatePhase({
     required this.onStepperNotificationSeeMorePressed,
     required this.project,
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   Widget build(BuildContext context) {

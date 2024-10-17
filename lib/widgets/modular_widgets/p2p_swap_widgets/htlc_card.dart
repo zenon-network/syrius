@@ -36,8 +36,8 @@ class HtlcCard extends StatefulWidget {
     required this.tokenStandard,
     required this.tokenDecimals,
     required this.tokenSymbol,
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   factory HtlcCard.sending({
     required HtlcSwap swap,

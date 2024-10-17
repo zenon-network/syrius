@@ -16,8 +16,8 @@ class SeedGrid extends StatefulWidget {
     this.isContinueButtonDisabled = false,
     this.enableSeedInputFields = true,
     this.onTextFieldChangedCallback,
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   State createState() {

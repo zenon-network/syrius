@@ -13,8 +13,7 @@ class PlasmaList extends StatefulWidget {
   final String? errorText;
   final PlasmaListBloc bloc;
 
-  const PlasmaList({required this.bloc, this.errorText, Key? key})
-      : super(key: key);
+  const PlasmaList({required this.bloc, this.errorText, super.key});
 
   @override
   State createState() {

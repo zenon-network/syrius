@@ -10,8 +10,8 @@ const String _kWidgetDescription = 'This card displays the number of active '
 
 class Pillars extends StatefulWidget {
   const Pillars({
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   State<Pillars> createState() => _PillarsState();

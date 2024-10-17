@@ -17,8 +17,8 @@ import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 class P2pSwapOptionsCard extends StatefulWidget {
   const P2pSwapOptionsCard({
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   State<P2pSwapOptionsCard> createState() => _P2pSwapOptionsCardState();

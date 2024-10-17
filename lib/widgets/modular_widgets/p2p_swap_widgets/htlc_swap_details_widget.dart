@@ -12,8 +12,8 @@ class HtlcSwapDetailsWidget extends StatefulWidget {
 
   const HtlcSwapDetailsWidget({
     required this.swap,
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   State<HtlcSwapDetailsWidget> createState() => _HtlcSwapDetailsWidgetState();

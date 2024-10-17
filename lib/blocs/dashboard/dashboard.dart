@@ -1,4 +1,4 @@
-library dashboard;
+library;
 
 export 'balance_bloc.dart';
 export 'balance_dashboard_bloc.dart';

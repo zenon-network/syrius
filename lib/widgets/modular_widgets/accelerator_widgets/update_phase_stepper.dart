@@ -21,8 +21,8 @@ class UpdatePhaseStepper extends StatefulWidget {
   const UpdatePhaseStepper(
     this.phase,
     this.project, {
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   State<UpdatePhaseStepper> createState() => _UpdatePhaseStepperState();

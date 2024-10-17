@@ -6,12 +6,11 @@ class AmountInfoColumn extends Column {
   final BuildContext context;
 
   AmountInfoColumn({
-    Key? key,
+    super.key,
     required this.context,
     required this.amount,
     required this.tokenSymbol,
   }) : super(
-          key: key,
           children: [
             Text(
               tokenSymbol,

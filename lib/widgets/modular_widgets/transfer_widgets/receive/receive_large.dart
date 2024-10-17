@@ -16,10 +16,10 @@ class ReceiveLargeCard extends StatefulWidget {
   final VoidCallback onCollapseClicked;
 
   const ReceiveLargeCard({
-    Key? key,
+    super.key,
     this.extendIcon,
     required this.onCollapseClicked,
-  }) : super(key: key);
+  });
 
   @override
   State<ReceiveLargeCard> createState() => _ReceiveLargeCardState();

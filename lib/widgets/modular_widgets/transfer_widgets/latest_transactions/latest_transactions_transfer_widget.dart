@@ -16,9 +16,9 @@ class LatestTransactions extends StatefulWidget {
   final LatestTransactionsVersion version;
 
   const LatestTransactions({
-    Key? key,
+    super.key,
     this.version = LatestTransactionsVersion.standard,
-  }) : super(key: key);
+  });
 
   @override
   State<LatestTransactions> createState() => _LatestTransactionsState();

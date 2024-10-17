@@ -17,8 +17,8 @@ class InstructionButton extends StatefulWidget {
     required this.onPressed,
     this.instructionText,
     this.loadingText,
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   State<InstructionButton> createState() => _InstructionButtonState();

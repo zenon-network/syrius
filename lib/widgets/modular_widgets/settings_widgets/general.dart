@@ -9,7 +9,7 @@ import 'package:zenon_syrius_wallet_flutter/utils/navigation_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 
 class GeneralWidget extends StatefulWidget {
-  const GeneralWidget({Key? key}) : super(key: key);
+  const GeneralWidget({super.key});
 
   @override
   State createState() {

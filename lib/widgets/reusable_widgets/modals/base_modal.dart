@@ -7,11 +7,11 @@ class BaseModal extends StatelessWidget {
   final Widget child;
 
   const BaseModal({
-    Key? key,
+    super.key,
     required this.title,
     required this.child,
     this.subtitle = '',
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

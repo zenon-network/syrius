@@ -12,8 +12,8 @@ class P2pSwapsCard extends StatefulWidget {
 
   const P2pSwapsCard({
     required this.onStepperNotificationSeeMorePressed,
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   State<P2pSwapsCard> createState() => _P2pSwapsCardState();

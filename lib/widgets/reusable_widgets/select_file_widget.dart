@@ -16,8 +16,8 @@ class SelectFileWidget extends StatefulWidget {
     required this.onPathFoundCallback,
     this.fileExtension,
     this.textStyle,
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   SelectFileWidgetState createState() => SelectFileWidgetState();

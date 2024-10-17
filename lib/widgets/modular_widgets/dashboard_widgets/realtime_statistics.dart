@@ -14,7 +14,7 @@ final String _kWidgetDescription =
     'with the network embedded contracts is internally considered a transaction';
 
 class RealtimeStatistics extends StatefulWidget {
-  const RealtimeStatistics({Key? key}) : super(key: key);
+  const RealtimeStatistics({super.key});
 
   @override
   State<RealtimeStatistics> createState() => _RealtimeStatisticsState();

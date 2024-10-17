@@ -7,7 +7,7 @@ import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 class TokenBalance extends StatefulWidget {
-  const TokenBalance({Key? key}) : super(key: key);
+  const TokenBalance({super.key});
 
   @override
   State createState() {

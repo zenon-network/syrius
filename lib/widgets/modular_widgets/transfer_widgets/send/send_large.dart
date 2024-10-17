@@ -22,11 +22,11 @@ class SendLargeCard extends StatefulWidget {
   final VoidCallback? onCollapsePressed;
 
   const SendLargeCard({
-    Key? key,
+    super.key,
     this.cardWidth,
     this.extendIcon,
     this.onCollapsePressed,
-  }) : super(key: key);
+  });
 
   @override
   State<SendLargeCard> createState() => _SendLargeCardState();

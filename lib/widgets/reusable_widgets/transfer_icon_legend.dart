@@ -5,8 +5,8 @@ class TransferIconLegend extends StatelessWidget {
 
   const TransferIconLegend({
     required this.legendText,
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   Widget build(BuildContext context) {

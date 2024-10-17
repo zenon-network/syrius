@@ -18,8 +18,8 @@ class ExchangeRateWidget extends StatefulWidget {
     required this.toAmount,
     required this.toDecimals,
     required this.toSymbol,
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   State<ExchangeRateWidget> createState() => _ExchangeRateWidgetState();

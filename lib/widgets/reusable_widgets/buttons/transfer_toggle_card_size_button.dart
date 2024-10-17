@@ -10,8 +10,8 @@ class TransferToggleCardSizeButton extends StatelessWidget {
   const TransferToggleCardSizeButton({
     required this.onPressed,
     required this.iconData,
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   Widget build(BuildContext context) {

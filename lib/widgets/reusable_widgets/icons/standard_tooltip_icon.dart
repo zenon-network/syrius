@@ -10,8 +10,8 @@ class StandardTooltipIcon extends StatelessWidget {
     this.tooltipMessage,
     this.iconData, {
     this.iconColor = AppColors.znnColor,
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   Widget build(BuildContext context) {

@@ -7,8 +7,8 @@ class TokensTabChild extends StatelessWidget {
 
   const TokensTabChild({
     required this.onStepperNotificationSeeMorePressed,
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   Widget build(BuildContext context) {

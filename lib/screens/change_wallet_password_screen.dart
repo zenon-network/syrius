@@ -13,8 +13,8 @@ class ChangeWalletPasswordScreen extends StatefulWidget {
 
   const ChangeWalletPasswordScreen({
     required this.onStepperNotificationSeeMorePressed,
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   State<ChangeWalletPasswordScreen> createState() =>

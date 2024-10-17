@@ -7,7 +7,7 @@ import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 class AcceleratorStats extends StatefulWidget {
-  const AcceleratorStats({Key? key}) : super(key: key);
+  const AcceleratorStats({super.key});
 
   @override
   State<AcceleratorStats> createState() => _AcceleratorStatsState();

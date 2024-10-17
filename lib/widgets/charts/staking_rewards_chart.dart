@@ -12,8 +12,8 @@ class StakingRewardsChart extends StatefulWidget {
 
   const StakingRewardsChart(
     this.rewardsHistory, {
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   State createState() => _StakingRewardsChart();

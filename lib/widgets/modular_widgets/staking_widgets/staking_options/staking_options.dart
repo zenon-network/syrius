@@ -19,8 +19,8 @@ class StakingOptions extends StatefulWidget {
 
   const StakingOptions(
     this.stakingListViewModel, {
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   State createState() {

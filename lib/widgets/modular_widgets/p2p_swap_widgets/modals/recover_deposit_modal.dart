@@ -13,8 +13,8 @@ import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 class RecoverDepositModal extends StatefulWidget {
   const RecoverDepositModal({
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   State<RecoverDepositModal> createState() => _RecoverDepositModalState();

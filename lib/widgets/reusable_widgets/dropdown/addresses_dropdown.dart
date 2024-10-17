@@ -10,8 +10,8 @@ class AddressesDropdown extends StatelessWidget {
   const AddressesDropdown(
     this._selectedSelfAddress,
     this.onChangedCallback, {
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   Widget build(BuildContext context) {

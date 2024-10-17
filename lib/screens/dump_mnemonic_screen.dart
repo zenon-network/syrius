@@ -4,7 +4,7 @@ import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 class DumpMnemonicScreen extends StatefulWidget {
-  const DumpMnemonicScreen({Key? key}) : super(key: key);
+  const DumpMnemonicScreen({super.key});
 
   @override
   State<DumpMnemonicScreen> createState() => _DumpMnemonicScreenState();

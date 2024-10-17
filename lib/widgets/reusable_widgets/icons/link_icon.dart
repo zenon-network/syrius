@@ -5,9 +5,8 @@ import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 class LinkIcon extends RawMaterialButton {
   LinkIcon({
     required String url,
-    Key? key})
+    super.key})
       : super(
-          key: key,
           constraints: const BoxConstraints(
             minWidth: 40.0,
             minHeight: 40.0,

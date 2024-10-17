@@ -14,8 +14,7 @@ import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 class ReceiveMediumCard extends StatefulWidget {
   final VoidCallback onExpandClicked;
 
-  const ReceiveMediumCard({Key? key, required this.onExpandClicked})
-      : super(key: key);
+  const ReceiveMediumCard({super.key, required this.onExpandClicked});
 
   @override
   State<ReceiveMediumCard> createState() => _ReceiveMediumCardState();

@@ -16,8 +16,8 @@ class NotificationWidget extends StatefulWidget {
     this.onDismissPressed,
     this.onNewNotificationCallback,
     this.popBeforeSeeMoreIsPressed = true,
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   State<NotificationWidget> createState() => _NotificationWidgetState();

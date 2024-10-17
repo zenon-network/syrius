@@ -10,8 +10,8 @@ class SyriusLoadingWidget extends StatelessWidget {
     this.size = 50.0,
     this.strokeWidth = 4.0,
     this.padding = 4.0,
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   Widget build(BuildContext context) {

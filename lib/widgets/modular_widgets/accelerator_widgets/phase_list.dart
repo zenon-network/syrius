@@ -13,8 +13,8 @@ class PhaseList extends StatelessWidget {
     this.project,
     this.onRefreshButtonPressed, {
     required this.onStepperNotificationSeeMorePressed,
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   Widget build(BuildContext context) {

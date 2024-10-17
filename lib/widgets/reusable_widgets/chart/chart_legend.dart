@@ -9,8 +9,8 @@ class ChartLegend extends StatelessWidget {
     required this.dotColor,
     required this.mainText,
     this.detailsWidget,
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   Widget build(BuildContext context) {

@@ -6,7 +6,7 @@ import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 class ImportWalletSeedChoiceScreen extends StatefulWidget {
-  const ImportWalletSeedChoiceScreen({Key? key}) : super(key: key);
+  const ImportWalletSeedChoiceScreen({super.key});
 
   @override
   State<ImportWalletSeedChoiceScreen> createState() =>

@@ -12,8 +12,8 @@ class PillarRewardsChart extends StatefulWidget {
 
   const PillarRewardsChart(
     this.rewardsHistory, {
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   State createState() => PillarRewardsChartState();

@@ -39,7 +39,7 @@ class NumberAnimation extends StatefulWidget {
 
   /// constructor
   NumberAnimation({
-    Key? key,
+    super.key,
     this.start = 0.0,
     this.end,
     this.isInt = false,
@@ -52,7 +52,7 @@ class NumberAnimation extends StatefulWidget {
     this.after = '',
     this.isLoading = false,
     this.loadingPlaceHolder = '',
-  }) : super(key: key) {
+  }) {
     if (isLoading == false) {
       assert(end != null);
       if (isInt) {

@@ -8,8 +8,8 @@ class StepperScreen extends StatelessWidget {
   const StepperScreen({
     required this.stepper,
     required this.onStepperNotificationSeeMorePressed,
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   Widget build(BuildContext context) {

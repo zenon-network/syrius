@@ -55,9 +55,9 @@ class MainAppContainer extends StatefulWidget {
   static const String route = 'main-app-container';
 
   const MainAppContainer({
-    Key? key,
+    super.key,
     this.redirectedFromWalletSuccess = false,
-  }) : super(key: key);
+  });
 
   @override
   State<MainAppContainer> createState() => _MainAppContainerState();
@@ -113,7 +113,7 @@ class _MainAppContainerState extends State<MainAppContainer>
     return Consumer<TextScalingNotifier>(
       builder: (context, textScalingNotifier, child) => MediaQuery(
         data: MediaQuery.of(context).copyWith(
-          textScaleFactor: textScalingNotifier.getTextScaleFactor(context),
+          textScaler: TextScaler.linear(textScalingNotifier.getTextScaleFactor(context)),
         ),
         child: Scaffold(
           body: Container(

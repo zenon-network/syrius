@@ -10,7 +10,7 @@ const String _kWidgetDescription = 'This card displays the number of active '
     'Sentinels in the network';
 
 class Sentinels extends StatefulWidget {
-  const Sentinels({Key? key}) : super(key: key);
+  const Sentinels({super.key});
 
   @override
   State<Sentinels> createState() => _SentinelsState();

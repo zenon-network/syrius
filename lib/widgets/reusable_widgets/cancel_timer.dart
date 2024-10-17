@@ -11,8 +11,8 @@ class CancelTimer extends StatefulWidget {
     this.timerDuration,
     this.borderColor, {
     required this.onTimeFinishedCallback,
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   State<CancelTimer> createState() => _CancelTimerState();

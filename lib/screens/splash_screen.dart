@@ -22,8 +22,8 @@ class SplashScreen extends StatefulWidget {
   const SplashScreen({
     this.resetWalletFlow = false,
     this.deleteCacheFlow = false,
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   State<SplashScreen> createState() => _SplashScreenState();

@@ -9,7 +9,7 @@ import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/icons/clear
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 
 class NotificationsTabChild extends StatefulWidget {
-  const NotificationsTabChild({Key? key}) : super(key: key);
+  const NotificationsTabChild({super.key});
 
   @override
   State<NotificationsTabChild> createState() => _NotificationsTabChildState();

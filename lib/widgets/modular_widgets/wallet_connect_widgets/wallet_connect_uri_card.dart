@@ -10,7 +10,7 @@ const String _kWidgetTitle = 'WalletConnect Link';
 const String _kWidgetDescription = 'Paste the WalletConnect link here';
 
 class WalletConnectUriCard extends StatefulWidget {
-  const WalletConnectUriCard({Key? key}) : super(key: key);
+  const WalletConnectUriCard({super.key});
 
   @override
   State<WalletConnectUriCard> createState() => _WalletConnectUriCardState();

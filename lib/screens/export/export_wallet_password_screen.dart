@@ -20,8 +20,8 @@ class ExportWalletPasswordScreen extends StatefulWidget {
   const ExportWalletPasswordScreen(
     this.seed, {
     this.backupWalletFlow = false,
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   State<ExportWalletPasswordScreen> createState() =>

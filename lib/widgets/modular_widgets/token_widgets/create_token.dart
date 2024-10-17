@@ -9,8 +9,8 @@ class CreateToken extends StatefulWidget {
 
   const CreateToken({
     required this.onStepperNotificationSeeMorePressed,
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   State createState() {

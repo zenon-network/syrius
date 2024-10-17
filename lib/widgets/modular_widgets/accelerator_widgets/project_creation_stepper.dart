@@ -16,7 +16,7 @@ enum ProjectCreationStep {
 }
 
 class ProjectCreationStepper extends StatefulWidget {
-  const ProjectCreationStepper({Key? key}) : super(key: key);
+  const ProjectCreationStepper({super.key});
 
   @override
   State<ProjectCreationStepper> createState() => _ProjectCreationStepperState();

@@ -12,8 +12,8 @@ class CreateSentinel extends StatefulWidget {
 
   const CreateSentinel({
     required this.onStepperNotificationSeeMorePressed,
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   State<CreateSentinel> createState() => _CreateSentinelState();

@@ -20,7 +20,7 @@ enum PillarUpdateStep {
 class PillarUpdateStepper extends StatefulWidget {
   final PillarInfo pillarInfo;
 
-  const PillarUpdateStepper(this.pillarInfo, {Key? key}) : super(key: key);
+  const PillarUpdateStepper(this.pillarInfo, {super.key});
 
   @override
   State<PillarUpdateStepper> createState() => _PillarUpdateStepperState();

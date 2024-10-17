@@ -29,8 +29,8 @@ class PlasmaStats extends StatefulWidget {
 
   const PlasmaStats({
     this.version = PlasmaStatsWidgetVersion.dashboardTab,
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   State<PlasmaStats> createState() => _PlasmaStatsState();

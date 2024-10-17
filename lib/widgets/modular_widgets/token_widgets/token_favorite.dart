@@ -16,8 +16,8 @@ class TokenFavorite extends StatefulWidget {
   const TokenFavorite(
     this.token,
     this._tokenFavoritesCallback, {
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   State<TokenFavorite> createState() => _TokenFavoriteState();

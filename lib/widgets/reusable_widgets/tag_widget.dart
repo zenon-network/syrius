@@ -15,8 +15,8 @@ class TagWidget extends StatelessWidget {
     this.onPressed,
     this.iconData,
     this.textColor,
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   Widget build(BuildContext context) {

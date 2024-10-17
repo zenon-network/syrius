@@ -9,8 +9,8 @@ class WalletSuccessScreen extends StatefulWidget {
 
   const WalletSuccessScreen({
     this.progressBarNumLevels = 5,
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   State<WalletSuccessScreen> createState() => _WalletSuccessScreenState();

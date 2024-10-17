@@ -8,8 +8,8 @@ class SyriusErrorWidget extends StatelessWidget {
 
   const SyriusErrorWidget(
     this.error, {
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   Widget build(BuildContext context) {

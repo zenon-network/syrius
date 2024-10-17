@@ -32,8 +32,8 @@ class ReceiveQrImage extends StatelessWidget {
     required this.size,
     required this.tokenStandard,
     required this.context,
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -47,7 +47,7 @@ class ReceiveQrImage extends StatelessWidget {
         padding: const EdgeInsets.all(
           10.0,
         ),
-        color: Theme.of(context).colorScheme.background,
+        color: Theme.of(context).colorScheme.surface,
         child: ContextMenuRegion(
             contextMenuBuilder: (context, offset) {
               return AdaptiveTextSelectionToolbar(
@@ -63,7 +63,7 @@ class ReceiveQrImage extends StatelessWidget {
                           child: TextButton.icon(
                             icon: Icon(
                               MaterialCommunityIcons.share,
-                              color: Theme.of(context).colorScheme.onBackground,
+                              color: Theme.of(context).colorScheme.onSurface,
                               size: 14,
                             ),
                             onPressed: () {
@@ -94,7 +94,7 @@ class ReceiveQrImage extends StatelessWidget {
                           child: TextButton.icon(
                             icon: Icon(
                               Icons.save_alt,
-                              color: Theme.of(context).colorScheme.onBackground,
+                              color: Theme.of(context).colorScheme.onSurface,
                               size: 14,
                             ),
                             onPressed: () {

@@ -7,11 +7,11 @@ class P2pSwapOptionsButton extends StatefulWidget {
   final String secondaryText;
 
   const P2pSwapOptionsButton({
-    Key? key,
+    super.key,
     required this.primaryText,
     required this.secondaryText,
     required this.onClick,
-  }) : super(key: key);
+  });
 
   @override
   State<P2pSwapOptionsButton> createState() => _P2pSwapOptionsButtonState();

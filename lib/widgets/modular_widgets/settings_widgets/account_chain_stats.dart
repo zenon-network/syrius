@@ -17,8 +17,8 @@ class AccountChainStatsWidget extends StatefulWidget {
 
   const AccountChainStatsWidget({
     required this.accountChainStatsBloc,
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   State createState() {

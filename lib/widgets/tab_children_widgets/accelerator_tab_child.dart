@@ -12,8 +12,8 @@ class AcceleratorTabChild extends StatelessWidget {
 
   const AcceleratorTabChild({
     required this.onStepperNotificationSeeMorePressed,
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   Widget build(BuildContext context) {

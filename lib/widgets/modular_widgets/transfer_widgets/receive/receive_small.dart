@@ -8,8 +8,8 @@ class ReceiveSmallCard extends StatefulWidget {
 
   const ReceiveSmallCard(
     this.onPressed, {
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   State<ReceiveSmallCard> createState() => _ReceiveSmallCardState();

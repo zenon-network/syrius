@@ -15,8 +15,8 @@ class DetailRow extends StatelessWidget {
     this.valueToShow,
     this.prefixWidget,
     this.canBeCopied = true,
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   Widget build(BuildContext context) {

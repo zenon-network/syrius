@@ -21,8 +21,7 @@ class LockTabChild extends StatefulWidget {
   final Function() afterInitCallback;
 
   const LockTabChild(this.afterUnlockCallback, this.afterInitCallback,
-      {Key? key})
-      : super(key: key);
+      {super.key});
 
   @override
   State<LockTabChild> createState() => _LockTabChildState();

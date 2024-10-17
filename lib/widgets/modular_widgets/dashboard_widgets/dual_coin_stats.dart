@@ -14,8 +14,8 @@ final String _kWidgetDescription = 'This card displays the circulating '
 
 class DualCoinStats extends StatefulWidget {
   const DualCoinStats({
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   State<DualCoinStats> createState() => _DualCoinStatsState();

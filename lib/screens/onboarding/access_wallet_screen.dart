@@ -6,7 +6,7 @@ import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 class AccessWalletScreen extends StatefulWidget {
   static const String route = 'access-wallet-screen';
 
-  const AccessWalletScreen({Key? key}) : super(key: key);
+  const AccessWalletScreen({super.key});
 
   @override
   State<AccessWalletScreen> createState() => _AccessWalletScreenState();

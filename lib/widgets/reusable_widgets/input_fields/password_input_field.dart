@@ -18,8 +18,8 @@ class PasswordInputField extends StatefulWidget {
     this.onChanged,
     this.validator,
     this.errorText,
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   State<PasswordInputField> createState() => _PasswordInputFieldState();

@@ -5,7 +5,7 @@ import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 
 class CommunityCard extends StatelessWidget {
-  const CommunityCard({Key? key}) : super(key: key);
+  const CommunityCard({super.key});
 
   @override
   Widget build(BuildContext context) {

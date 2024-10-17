@@ -18,8 +18,8 @@ class AcceleratorProjectDetails extends StatelessWidget {
     this.creationTimestamp,
     this.acceleratorProjectStatus,
     this.isPhase = false,
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   Widget build(BuildContext context) {

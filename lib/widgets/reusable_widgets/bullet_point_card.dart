@@ -7,8 +7,8 @@ class BulletPointCard extends StatelessWidget {
 
   const BulletPointCard({
     required this.bulletPoints,
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   static TextSpan textSpan(String text, {List<TextSpan>? children}) {
     return TextSpan(

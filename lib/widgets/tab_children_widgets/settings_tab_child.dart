@@ -12,8 +12,8 @@ class SettingsTabChild extends StatefulWidget {
     this._onChangeAutoLockTime, {
     required this.onStepperNotificationSeeMorePressed,
     required this.onNodeChangedCallback,
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   State<SettingsTabChild> createState() => _SettingsTabChildState();

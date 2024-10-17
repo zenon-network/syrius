@@ -1,4 +1,4 @@
-library sentinels;
+library;
 
 export 'disassemble_button_bloc.dart';
 export 'get_sentinel_by_owner_bloc.dart';

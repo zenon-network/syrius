@@ -13,8 +13,8 @@ class CreatePillar extends StatefulWidget {
 
   const CreatePillar({
     required this.onStepperNotificationSeeMorePressed,
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   State<CreatePillar> createState() => _CreatePillarState();

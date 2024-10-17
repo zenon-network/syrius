@@ -12,7 +12,7 @@ class DashboardTabChild extends StatefulWidget {
     bool redirectWithReceiveContainerLarge,
   })? changePage;
 
-  const DashboardTabChild({Key? key, this.changePage}) : super(key: key);
+  const DashboardTabChild({super.key, this.changePage});
 
   @override
   State<DashboardTabChild> createState() => _DashboardTabChildState();

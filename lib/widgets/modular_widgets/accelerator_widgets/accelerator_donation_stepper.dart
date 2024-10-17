@@ -16,7 +16,7 @@ enum AcceleratorDonationStep {
 }
 
 class AcceleratorDonationStepper extends StatefulWidget {
-  const AcceleratorDonationStepper({Key? key}) : super(key: key);
+  const AcceleratorDonationStepper({super.key});
 
   @override
   State<AcceleratorDonationStepper> createState() =>

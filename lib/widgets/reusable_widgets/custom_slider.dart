@@ -162,8 +162,8 @@ class CustomSlider extends StatefulWidget {
     required this.callback,
     this.min = 1.0,
     this.activeColor = AppColors.znnColor,
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   State<CustomSlider> createState() => _CustomSliderState();

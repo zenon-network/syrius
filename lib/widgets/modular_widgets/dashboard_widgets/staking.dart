@@ -11,7 +11,7 @@ final String _kWidgetDescription = 'This card displays the number of staking '
     'entries and the total ${kZnnCoin.symbol} that you are currently staking';
 
 class Staking extends StatefulWidget {
-  const Staking({Key? key}) : super(key: key);
+  const Staking({super.key});
 
   @override
   State<Staking> createState() => _StakingState();

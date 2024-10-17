@@ -6,7 +6,7 @@ import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 class NewWalletPasswordScreen extends StatefulWidget {
   final List<String> seedWords;
 
-  const NewWalletPasswordScreen(this.seedWords, {Key? key}) : super(key: key);
+  const NewWalletPasswordScreen(this.seedWords, {super.key});
 
   @override
   State<NewWalletPasswordScreen> createState() =>

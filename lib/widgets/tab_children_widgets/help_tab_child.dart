@@ -3,7 +3,7 @@ import 'package:layout/layout.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 
 class HelpTabChild extends StatelessWidget {
-  const HelpTabChild({Key? key}) : super(key: key);
+  const HelpTabChild({super.key});
 
   @override
   Widget build(BuildContext context) {

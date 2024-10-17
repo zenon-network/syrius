@@ -6,8 +6,8 @@ class P2PSwapWarningModal extends StatefulWidget {
 
   const P2PSwapWarningModal({
     required this.onAccepted,
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   State<P2PSwapWarningModal> createState() => _P2PSwapWarningModalState();

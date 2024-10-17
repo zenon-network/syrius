@@ -9,8 +9,8 @@ class AcceleratorDonations extends StatelessWidget {
 
   const AcceleratorDonations({
     required this.onStepperNotificationSeeMorePressed,
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   Widget build(BuildContext context) {

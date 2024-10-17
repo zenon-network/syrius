@@ -16,9 +16,9 @@ class Transfer extends StatefulWidget {
   })? changePage;
 
   const Transfer({
-    Key? key,
+    super.key,
     this.changePage,
-  }) : super(key: key);
+  });
 
   @override
   State<Transfer> createState() => _TransferState();

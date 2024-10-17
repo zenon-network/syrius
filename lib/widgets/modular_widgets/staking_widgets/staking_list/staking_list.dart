@@ -12,7 +12,7 @@ import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 class StakingList extends StatefulWidget {
   final StakingListBloc bloc;
 
-  const StakingList(this.bloc, {Key? key}) : super(key: key);
+  const StakingList(this.bloc, {super.key});
 
   @override
   State createState() {

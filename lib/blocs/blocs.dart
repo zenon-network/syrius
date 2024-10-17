@@ -1,4 +1,4 @@
-library blocs;
+library;
 
 export 'auto_receive_tx_worker.dart';
 export 'base_bloc.dart';

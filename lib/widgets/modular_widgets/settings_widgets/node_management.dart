@@ -19,8 +19,8 @@ class NodeManagement extends StatefulWidget {
 
   const NodeManagement({
     required this.onNodeChangedCallback,
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   State<NodeManagement> createState() => _NodeManagementState();

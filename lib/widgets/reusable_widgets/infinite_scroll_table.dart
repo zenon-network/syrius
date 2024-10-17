@@ -24,8 +24,8 @@ class InfiniteScrollTable<T> extends StatefulWidget {
     this.headerColumns,
     this.onRowTappedCallback,
     this.disposeBloc = true,
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   State createState() => _InfiniteScrollTableState<T>();
@@ -193,8 +193,8 @@ class InfiniteScrollTableHeaderColumn extends StatelessWidget {
     this.onSortArrowsPressed,
     this.contentAlign = MainAxisAlignment.start,
     this.flex = 1,
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -233,8 +233,8 @@ class InfiniteScrollTableCell extends StatelessWidget {
   const InfiniteScrollTableCell(
     this.child, {
     this.flex = 1,
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   factory InfiniteScrollTableCell.tooltipWithMarquee(
     Address address, {

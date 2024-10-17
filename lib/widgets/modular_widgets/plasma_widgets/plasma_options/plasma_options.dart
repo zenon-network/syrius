@@ -27,8 +27,8 @@ class PlasmaOptions extends StatefulWidget {
     required this.plasmaListBloc,
     this.errorText,
     required this.plasmaStatsResults,
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   State createState() {

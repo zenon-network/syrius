@@ -21,8 +21,8 @@ class SendMediumCard extends StatefulWidget {
 
   const SendMediumCard({
     required this.onExpandClicked,
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   State<SendMediumCard> createState() => _SendMediumCardState();

@@ -10,8 +10,8 @@ class LabeledInputContainer extends StatelessWidget {
     required this.labelText,
     required this.inputWidget,
     this.helpText,
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   Widget build(BuildContext context) {

@@ -8,8 +8,8 @@ class SentinelsTabChild extends StatefulWidget {
 
   const SentinelsTabChild({
     required this.onStepperNotificationSeeMorePressed,
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   State<SentinelsTabChild> createState() => _SentinelsTabChildState();

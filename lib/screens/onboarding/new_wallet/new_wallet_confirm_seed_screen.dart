@@ -10,8 +10,8 @@ class NewWalletConfirmSeedScreen extends StatefulWidget {
 
   const NewWalletConfirmSeedScreen(
     this.seedWords, {
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   State<NewWalletConfirmSeedScreen> createState() =>
@@ -258,7 +258,7 @@ class _NewWalletConfirmSeedScreenState
                     ),
                   );
                 },
-                onWillAccept: (data) {
+                onWillAcceptWithDetails: (data) {
                   return _randomIndexes.contains(seedGridElementIndex) ||
                       !seedGridElement.isValid;
                 },

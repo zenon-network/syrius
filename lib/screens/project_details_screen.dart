@@ -15,8 +15,8 @@ class ProjectDetailsScreen extends StatefulWidget {
     required this.project,
     required this.pillarInfo,
     required this.onStepperNotificationSeeMorePressed,
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   State<ProjectDetailsScreen> createState() => _ProjectDetailsScreenState();

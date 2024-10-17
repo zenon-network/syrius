@@ -7,7 +7,7 @@ import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 class HardwareWalletPasswordScreen extends StatefulWidget {
   final WalletDefinition deviceInfo;
 
-  const HardwareWalletPasswordScreen(this.deviceInfo, {Key? key}) : super(key: key);
+  const HardwareWalletPasswordScreen(this.deviceInfo, {super.key});
 
   @override
   State<HardwareWalletPasswordScreen> createState() =>

@@ -15,8 +15,8 @@ class SyriusElevatedButton extends StatefulWidget {
     this.icon,
     this.initialFillColor = AppColors.qsrColor,
     this.style,
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   State createState() {

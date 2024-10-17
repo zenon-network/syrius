@@ -14,8 +14,8 @@ class SentinelRewardsChart extends StatefulWidget {
 
   const SentinelRewardsChart(
     this.rewardsHistory, {
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   State createState() {

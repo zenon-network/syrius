@@ -30,7 +30,7 @@ enum SentinelStepperStep {
 }
 
 class SentinelStepperContainer extends StatefulWidget {
-  const SentinelStepperContainer({Key? key}) : super(key: key);
+  const SentinelStepperContainer({super.key});
 
   @override
   State createState() {
@@ -246,7 +246,7 @@ class _MainSentinelState extends State<SentinelStepperContainer> {
             visible: qsrInfo.deposit > BigInt.zero,
             child: Container(
               decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.background,
+                color: Theme.of(context).colorScheme.surface,
                 borderRadius: BorderRadius.circular(6),
               ),
               margin: const EdgeInsets.only(

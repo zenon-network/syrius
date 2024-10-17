@@ -10,8 +10,8 @@ class DottedBorderInfoWidget extends StatefulWidget {
   const DottedBorderInfoWidget({
     required this.text,
     this.borderColor = AppColors.znnColor,
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   State<DottedBorderInfoWidget> createState() => _DottedBorderInfoWidgetState();

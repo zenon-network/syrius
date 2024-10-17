@@ -9,8 +9,8 @@ class DisabledAddressField extends StatelessWidget {
   const DisabledAddressField(
     this._addressController, {
     this.contentLeftPadding = 8.0,
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   Widget build(BuildContext context) {

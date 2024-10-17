@@ -11,8 +11,8 @@ class SeedChoice extends StatefulWidget {
     required this.onSeed24Selected,
     required this.onSeed12Selected,
     required this.isSeed12Selected,
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   State<SeedChoice> createState() => _SeedChoiceState();

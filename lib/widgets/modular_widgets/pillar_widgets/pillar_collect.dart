@@ -15,8 +15,8 @@ class PillarCollect extends StatefulWidget {
 
   const PillarCollect({
     required this.pillarRewardsHistoryBloc,
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   State<PillarCollect> createState() => _PillarCollectState();

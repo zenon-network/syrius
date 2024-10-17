@@ -8,7 +8,7 @@ import 'package:zenon_syrius_wallet_flutter/utils/notifiers/plasma_generated_not
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 
 class PlasmaTabChild extends StatefulWidget {
-  const PlasmaTabChild({Key? key}) : super(key: key);
+  const PlasmaTabChild({super.key});
 
   @override
   State createState() {

@@ -3,18 +3,13 @@ import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 
 class StepperButton extends MyOutlinedButton {
   const StepperButton({
-    required VoidCallback? onPressed,
-    String? text,
-    Color? outlineColor,
-    Widget? child,
-    Key? key,
+    required super.onPressed,
+    super.text,
+    super.outlineColor,
+    super.child,
+    super.key,
   }) : super(
-          key: key,
-          onPressed: onPressed,
-          text: text,
-          outlineColor: outlineColor,
           minimumSize: const Size(120.0, 40.0),
-          child: child,
         );
 
   factory StepperButton.icon({
@@ -36,12 +31,9 @@ class _MyStepperButtonWithIcon extends StepperButton {
   _MyStepperButtonWithIcon({
     required String label,
     required IconData iconData,
-    required VoidCallback onPressed,
+    required VoidCallback super.onPressed,
     required BuildContext context,
-    Color? outlineColor,
   }) : super(
-          onPressed: onPressed,
-          outlineColor: outlineColor,
           child: _MyStepperButtonWithIconChild(
             label: label,
             iconData: iconData,

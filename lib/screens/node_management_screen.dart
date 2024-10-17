@@ -18,8 +18,8 @@ class NodeManagementScreen extends StatefulWidget {
 
   const NodeManagementScreen({
     this.nodeConfirmationCallback,
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   State<NodeManagementScreen> createState() => _NodeManagementScreenState();

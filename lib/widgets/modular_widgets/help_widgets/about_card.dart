@@ -10,7 +10,7 @@ import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 class AboutCard extends StatefulWidget {
-  const AboutCard({Key? key}) : super(key: key);
+  const AboutCard({super.key});
 
   @override
   State createState() {

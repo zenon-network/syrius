@@ -10,7 +10,7 @@ import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 class NewWalletSeedChoiceScreen extends StatefulWidget {
   final bool? export;
 
-  const NewWalletSeedChoiceScreen({Key? key, this.export}) : super(key: key);
+  const NewWalletSeedChoiceScreen({super.key, this.export});
 
   @override
   State<NewWalletSeedChoiceScreen> createState() =>

@@ -19,8 +19,8 @@ class CopyToClipboardIcon extends StatefulWidget {
     this.materialTapTargetSize = MaterialTapTargetSize.padded,
     this.icon = Icons.content_copy,
     this.padding = const EdgeInsets.all(8.0),
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   State<CopyToClipboardIcon> createState() => _CopyToClipboardIcon();

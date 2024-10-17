@@ -5,7 +5,7 @@ import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 
 class ResetWalletScreen extends StatefulWidget {
-  const ResetWalletScreen({Key? key}) : super(key: key);
+  const ResetWalletScreen({super.key});
 
   @override
   State<ResetWalletScreen> createState() => _ResetWalletScreenState();

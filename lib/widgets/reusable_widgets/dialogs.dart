@@ -26,7 +26,7 @@ showWarningDialog({
                 Navigator.pop(context);
               },
           style: const ButtonStyle(
-            backgroundColor: MaterialStatePropertyAll(Colors.amber),
+            backgroundColor: WidgetStatePropertyAll(Colors.amber),
           ),
           child: Text(
             'Cancel',
@@ -40,7 +40,7 @@ showWarningDialog({
                 Navigator.pop(context);
               },
           style: const ButtonStyle(
-            backgroundColor: MaterialStatePropertyAll(Colors.orange),
+            backgroundColor: WidgetStatePropertyAll(Colors.orange),
           ),
           child: Text(
             buttonText.isEmpty ? 'OK' : buttonText,
@@ -82,7 +82,7 @@ showDialogWithNoAndYesOptions({
           ),
           TextButton(
             style: Theme.of(context).textButtonTheme.style!.copyWith(
-                  backgroundColor: MaterialStateColor.resolveWith(
+                  backgroundColor: WidgetStateColor.resolveWith(
                       (states) => AppColors.errorColor),
                 ),
             onPressed: () {

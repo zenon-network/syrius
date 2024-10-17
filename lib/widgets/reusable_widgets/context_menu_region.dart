@@ -10,10 +10,10 @@ typedef ContextMenuBuilder = Widget Function(
 class ContextMenuRegion extends StatefulWidget {
   /// Creates an instance of [ContextMenuRegion].
   const ContextMenuRegion({
-    Key? key,
+    super.key,
     required this.child,
     required this.contextMenuBuilder,
-  }) : super(key: key);
+  });
 
   /// Builds the context menu.
   final ContextMenuBuilder contextMenuBuilder;

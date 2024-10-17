@@ -13,8 +13,8 @@ class WidgetAnimator extends StatefulWidget {
     this.animationOffset = const Duration(milliseconds: 100),
     this.duration = const Duration(milliseconds: 300),
     this.curve = Curves.linear,
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   State<WidgetAnimator> createState() => _WidgetAnimatorState();

@@ -8,8 +8,8 @@ class PillarsTabChild extends StatefulWidget {
 
   const PillarsTabChild({
     required this.onStepperNotificationSeeMorePressed,
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   State<PillarsTabChild> createState() => _PillarsTabChildState();

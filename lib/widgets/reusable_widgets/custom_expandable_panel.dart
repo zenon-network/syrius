@@ -9,8 +9,8 @@ class CustomExpandablePanel extends StatefulWidget {
   const CustomExpandablePanel(
     this.header,
     this.expandedChild, {
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   State<CustomExpandablePanel> createState() => _CustomExpandablePanelState();

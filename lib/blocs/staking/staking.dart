@@ -1,4 +1,4 @@
-library staking;
+library;
 
 export 'cancel_stake_bloc.dart';
 export 'staking_list_bloc.dart';

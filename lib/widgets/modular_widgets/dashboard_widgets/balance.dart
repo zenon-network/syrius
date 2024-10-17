@@ -13,8 +13,8 @@ final String _kWidgetDescription = 'This card displays the current '
 
 class BalanceWidget extends StatefulWidget {
   const BalanceWidget({
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   State<BalanceWidget> createState() => _BalanceWidgetState();
@@ -29,7 +29,7 @@ class _BalanceWidgetState extends State<BalanceWidget> {
   void didChangeDependencies() {
     super.didChangeDependencies();
     _colorAddressPrefixSuffix ??= Theme.of(context).hintColor;
-    _backgroundAddressColor ??= Theme.of(context).colorScheme.background;
+    _backgroundAddressColor ??= Theme.of(context).colorScheme.surface;
   }
 
   @override

@@ -15,8 +15,8 @@ class CreateLedgerWalletScreen extends StatefulWidget {
     this.deviceInfo,
     this.password, {
     this.progressBarNumLevels = 4,
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   State<CreateLedgerWalletScreen> createState() =>

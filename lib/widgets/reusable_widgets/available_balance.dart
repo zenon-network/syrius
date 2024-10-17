@@ -9,8 +9,8 @@ class AvailableBalance extends StatelessWidget {
   const AvailableBalance(
     this.token,
     this.accountInfo, {
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   Widget build(BuildContext context) {

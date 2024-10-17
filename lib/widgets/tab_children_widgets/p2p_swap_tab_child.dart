@@ -11,8 +11,8 @@ class P2pSwapTabChild extends StatefulWidget {
 
   const P2pSwapTabChild({
     required this.onStepperNotificationSeeMorePressed,
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   State createState() => P2pSwapTabChildState();

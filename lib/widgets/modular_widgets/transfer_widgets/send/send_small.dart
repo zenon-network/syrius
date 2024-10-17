@@ -8,8 +8,8 @@ class SendSmallCard extends StatefulWidget {
 
   const SendSmallCard(
     this.onClicked, {
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   State<SendSmallCard> createState() => _SendSmallCardState();

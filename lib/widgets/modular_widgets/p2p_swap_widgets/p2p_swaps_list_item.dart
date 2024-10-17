@@ -16,8 +16,8 @@ class P2pSwapsListItem extends StatefulWidget {
     required this.swap,
     required this.onTap,
     required this.onDelete,
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   State<P2pSwapsListItem> createState() => _P2pSwapsListItemState();

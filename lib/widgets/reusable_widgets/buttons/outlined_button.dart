@@ -26,8 +26,8 @@ class MyOutlinedButton extends StatefulWidget {
     this.textColor,
     this.padding,
     required this.onPressed,
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   factory MyOutlinedButton.icon({
     required VoidCallback? onPressed,
@@ -73,9 +73,9 @@ class MyOutlinedButtonState extends State<MyOutlinedButton> {
               )
             : null,
       ).copyWith(
-        side: MaterialStateProperty.resolveWith<BorderSide?>(
+        side: WidgetStateProperty.resolveWith<BorderSide?>(
           (states) {
-            if (states.contains(MaterialState.disabled)) {
+            if (states.contains(WidgetState.disabled)) {
               return BorderSide(
                 color: AppColors.lightSecondaryContainer,
                 width: widget.borderWidth,
@@ -122,13 +122,10 @@ class _MyOutlinedButtonWithIcon extends MyOutlinedButton {
   _MyOutlinedButtonWithIcon({
     required String label,
     required Widget icon,
-    Color? outlineColor,
-    required VoidCallback? onPressed,
-    Key? key,
+    super.outlineColor,
+    required super.onPressed,
+    super.key,
   }) : super(
-          onPressed: onPressed,
-          outlineColor: outlineColor,
-          key: key,
           child: _MyOutlinedButtonWithIconChild(
             label: label,
             icon: icon,

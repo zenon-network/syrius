@@ -4,7 +4,7 @@ import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 class PeersWidget extends StatefulWidget {
-  const PeersWidget({Key? key}) : super(key: key);
+  const PeersWidget({super.key});
 
   @override
   State<PeersWidget> createState() => _PeersWidget();

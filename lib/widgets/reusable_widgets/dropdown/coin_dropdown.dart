@@ -14,8 +14,8 @@ class CoinDropdown extends StatelessWidget {
     this._availableTokens,
     this._selectedToken,
     this._onChangeCallback, {
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   Widget build(BuildContext context) {

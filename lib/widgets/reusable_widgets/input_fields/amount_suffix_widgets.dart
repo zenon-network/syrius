@@ -11,8 +11,8 @@ class AmountSuffixWidgets extends StatelessWidget {
   const AmountSuffixWidgets(
     this.tokenId, {
     this.onMaxPressed,
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -39,9 +39,8 @@ class AmountSuffixTokenSymbolWidget extends Container {
   AmountSuffixTokenSymbolWidget({
     required Token token,
     required BuildContext context,
-    Key? key,
+    super.key,
   }) : super(
-          key: key,
           height: kAmountSuffixHeight,
           width: kAmountSuffixWidth,
           alignment: Alignment.center,
@@ -65,9 +64,8 @@ class AmountSuffixMaxWidget extends InkWell {
   AmountSuffixMaxWidget({
     required VoidCallback onPressed,
     required BuildContext context,
-    Key? key,
+    super.key,
   }) : super(
-          key: key,
           onTap: onPressed,
           child: Container(
             height: kAmountSuffixHeight,

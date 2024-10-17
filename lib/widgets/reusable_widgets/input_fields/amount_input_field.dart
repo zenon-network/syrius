@@ -28,8 +28,8 @@ class AmountInputField extends StatefulWidget {
     this.initialToken,
     this.hintText = 'Amount',
     this.enabled = true,
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   State createState() {

@@ -6,7 +6,7 @@ import 'package:zenon_syrius_wallet_flutter/utils/notifiers/default_address_noti
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 
 class StakingTabChild extends StatefulWidget {
-  const StakingTabChild({Key? key}) : super(key: key);
+  const StakingTabChild({super.key});
 
   @override
   State createState() {

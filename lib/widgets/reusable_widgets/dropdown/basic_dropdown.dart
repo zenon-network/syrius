@@ -14,8 +14,8 @@ class BasicDropdown<T> extends StatelessWidget {
     this._selectedValue,
     this._items,
     this.onChangedCallback, {
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   Widget build(BuildContext context) {

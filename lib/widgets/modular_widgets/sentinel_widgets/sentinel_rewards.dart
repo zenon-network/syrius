@@ -8,8 +8,8 @@ class SentinelRewards extends StatefulWidget {
 
   const SentinelRewards({
     required this.sentinelRewardsHistoryBloc,
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   State createState() {

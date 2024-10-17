@@ -1,4 +1,4 @@
-library import_wallet;
+library;
 
 export 'import_wallet_decrypt_screen.dart';
 export 'import_wallet_password_screen.dart';

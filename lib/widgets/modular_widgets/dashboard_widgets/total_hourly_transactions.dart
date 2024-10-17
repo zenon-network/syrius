@@ -9,7 +9,7 @@ const String _kWidgetDescription = 'This card displays the total number of '
     'transactions settled in the last hour across the network';
 
 class TotalHourlyTransactions extends StatefulWidget {
-  const TotalHourlyTransactions({Key? key}) : super(key: key);
+  const TotalHourlyTransactions({super.key});
 
   @override
   State<TotalHourlyTransactions> createState() =>

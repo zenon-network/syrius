@@ -23,7 +23,7 @@ enum LocaleType {
 }
 
 class DisplayWidget extends StatefulWidget {
-  const DisplayWidget({Key? key}) : super(key: key);
+  const DisplayWidget({super.key});
 
   @override
   State<DisplayWidget> createState() => _DisplayWidget();

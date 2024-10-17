@@ -20,8 +20,8 @@ class CustomTable<T> extends StatefulWidget {
     this.headerColumns,
     this.onShowMoreButtonPressed,
     this.onRowTappedCallback,
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   State createState() => _CustomTableState<T>();
@@ -175,8 +175,8 @@ class CustomHeaderColumn extends StatelessWidget {
     this.onSortArrowsPressed,
     this.contentAlign = MainAxisAlignment.start,
     this.flex = 1,
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -213,12 +213,12 @@ class CustomTableCell extends StatelessWidget {
   const CustomTableCell(
     this.child, {
     this.flex = 1,
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   CustomTableCell.tooltipWithMarquee(
     Address address, {
-    Key? key,
+    super.key,
     TextStyle? textStyle,
     this.flex = 1,
     Color textColor = AppColors.subtitleColor,
@@ -252,12 +252,11 @@ class CustomTableCell extends StatelessWidget {
               width: 10.0,
             ),
           ],
-        ),
-        super(key: key);
+        );
 
   CustomTableCell.withMarquee(
     String text, {
-    Key? key,
+    super.key,
     bool showCopyToClipboardIcon = true,
     TextStyle? textStyle,
     this.flex = 1,
@@ -296,13 +295,12 @@ class CustomTableCell extends StatelessWidget {
               ),
             ),
           ],
-        ),
-        super(key: key);
+        );
 
   CustomTableCell.tooltipWithText(
     BuildContext context,
     Address? address, {
-    Key? key,
+    super.key,
     bool showCopyToClipboardIcon = false,
     TextStyle? textStyle,
     this.flex = 1,
@@ -339,13 +337,12 @@ class CustomTableCell extends StatelessWidget {
               ),
             ),
           ],
-        ),
-        super(key: key);
+        );
 
   CustomTableCell.withText(
     BuildContext context,
     String text, {
-    Key? key,
+    super.key,
     bool showCopyToClipboardIcon = false,
     TextStyle? textStyle,
     this.flex = 1,
@@ -378,8 +375,7 @@ class CustomTableCell extends StatelessWidget {
               ),
             ),
           ],
-        ),
-        super(key: key);
+        );
 
   @override
   Widget build(BuildContext context) {

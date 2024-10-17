@@ -1,4 +1,4 @@
-library tokens;
+library;
 
 export 'burn_token_bloc.dart';
 export 'issue_token_bloc.dart';

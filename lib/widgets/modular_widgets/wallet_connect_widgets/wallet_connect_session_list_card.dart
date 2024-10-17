@@ -13,7 +13,7 @@ const String _kWidgetDescription =
     'securely over the Internet';
 
 class WalletConnectSessionsCard extends StatefulWidget {
-  const WalletConnectSessionsCard({Key? key}) : super(key: key);
+  const WalletConnectSessionsCard({super.key});
 
   @override
   State<WalletConnectSessionsCard> createState() =>

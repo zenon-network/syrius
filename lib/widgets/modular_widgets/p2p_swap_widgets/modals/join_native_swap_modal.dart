@@ -32,8 +32,8 @@ class JoinNativeSwapModal extends StatefulWidget {
 
   const JoinNativeSwapModal({
     required this.onJoinedSwap,
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   State<JoinNativeSwapModal> createState() => _JoinNativeSwapModalState();

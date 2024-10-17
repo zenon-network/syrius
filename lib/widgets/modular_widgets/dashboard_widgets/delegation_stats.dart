@@ -11,7 +11,7 @@ final String _kWidgetDescription = 'This card displays the amount of '
     '${kZnnCoin.symbol} and the name of the Pillar that you delegated to';
 
 class DelegationStats extends StatefulWidget {
-  const DelegationStats({Key? key}) : super(key: key);
+  const DelegationStats({super.key});
 
   @override
   State<DelegationStats> createState() => _DelegationStatsState();

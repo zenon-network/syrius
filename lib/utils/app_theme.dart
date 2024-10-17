@@ -123,9 +123,9 @@ class AppTheme {
     textButtonTheme: kTextButtonThemeData,
     outlinedButtonTheme: OutlinedButtonThemeData(
       style: kOutlinedButtonStyle.copyWith(
-        foregroundColor: MaterialStateProperty.resolveWith(
+        foregroundColor: WidgetStateProperty.resolveWith(
           (states) {
-            if (states.contains(MaterialState.disabled)) {
+            if (states.contains(WidgetState.disabled)) {
               return Colors.black38;
             }
             return Colors.black;
@@ -200,46 +200,46 @@ class AppTheme {
     ),
     unselectedWidgetColor: AppColors.lightSecondaryContainer,
     switchTheme: SwitchThemeData(
-      thumbColor: MaterialStateProperty.resolveWith<Color?>(
-          (Set<MaterialState> states) {
-        if (states.contains(MaterialState.disabled)) {
+      thumbColor: WidgetStateProperty.resolveWith<Color?>(
+          (Set<WidgetState> states) {
+        if (states.contains(WidgetState.disabled)) {
           return null;
         }
-        if (states.contains(MaterialState.selected)) {
+        if (states.contains(WidgetState.selected)) {
           return AppColors.znnColor;
         }
         return null;
       }),
-      trackColor: MaterialStateProperty.resolveWith<Color?>(
-          (Set<MaterialState> states) {
-        if (states.contains(MaterialState.disabled)) {
+      trackColor: WidgetStateProperty.resolveWith<Color?>(
+          (Set<WidgetState> states) {
+        if (states.contains(WidgetState.disabled)) {
           return null;
         }
-        if (states.contains(MaterialState.selected)) {
+        if (states.contains(WidgetState.selected)) {
           return AppColors.znnColor;
         }
         return null;
       }),
     ),
     radioTheme: RadioThemeData(
-      fillColor: MaterialStateProperty.resolveWith<Color?>(
-          (Set<MaterialState> states) {
-        if (states.contains(MaterialState.disabled)) {
+      fillColor: WidgetStateProperty.resolveWith<Color?>(
+          (Set<WidgetState> states) {
+        if (states.contains(WidgetState.disabled)) {
           return null;
         }
-        if (states.contains(MaterialState.selected)) {
+        if (states.contains(WidgetState.selected)) {
           return AppColors.znnColor;
         }
         return null;
       }),
     ),
     checkboxTheme: CheckboxThemeData(
-      fillColor: MaterialStateProperty.resolveWith<Color?>(
-          (Set<MaterialState> states) {
-        if (states.contains(MaterialState.disabled)) {
+      fillColor: WidgetStateProperty.resolveWith<Color?>(
+          (Set<WidgetState> states) {
+        if (states.contains(WidgetState.disabled)) {
           return null;
         }
-        if (states.contains(MaterialState.selected)) {
+        if (states.contains(WidgetState.selected)) {
           return AppColors.znnColor;
         }
         return null;
@@ -251,7 +251,7 @@ class AppTheme {
       secondary: AppColors.lightSecondary,
       secondaryContainer: AppColors.lightSecondaryContainer,
       error: AppColors.errorColor,
-    ).copyWith(background: AppColors.backgroundLight),
+    ).copyWith(surface: AppColors.backgroundLight),
   );
 
   static final ThemeData darkTheme = ThemeData(
@@ -260,9 +260,9 @@ class AppTheme {
     textButtonTheme: kTextButtonThemeData,
     outlinedButtonTheme: OutlinedButtonThemeData(
       style: kOutlinedButtonStyle.copyWith(
-        foregroundColor: MaterialStateProperty.resolveWith(
+        foregroundColor: WidgetStateProperty.resolveWith(
           (states) {
-            if (states.contains(MaterialState.disabled)) {
+            if (states.contains(WidgetState.disabled)) {
               return Colors.white38;
             }
             return Colors.white;
@@ -340,46 +340,46 @@ class AppTheme {
     ),
     unselectedWidgetColor: AppColors.darkSecondaryContainer,
     switchTheme: SwitchThemeData(
-      thumbColor: MaterialStateProperty.resolveWith<Color?>(
-          (Set<MaterialState> states) {
-        if (states.contains(MaterialState.disabled)) {
+      thumbColor: WidgetStateProperty.resolveWith<Color?>(
+          (Set<WidgetState> states) {
+        if (states.contains(WidgetState.disabled)) {
           return null;
         }
-        if (states.contains(MaterialState.selected)) {
+        if (states.contains(WidgetState.selected)) {
           return AppColors.znnColor;
         }
         return null;
       }),
-      trackColor: MaterialStateProperty.resolveWith<Color?>(
-          (Set<MaterialState> states) {
-        if (states.contains(MaterialState.disabled)) {
+      trackColor: WidgetStateProperty.resolveWith<Color?>(
+          (Set<WidgetState> states) {
+        if (states.contains(WidgetState.disabled)) {
           return null;
         }
-        if (states.contains(MaterialState.selected)) {
+        if (states.contains(WidgetState.selected)) {
           return AppColors.znnColor;
         }
         return null;
       }),
     ),
     radioTheme: RadioThemeData(
-      fillColor: MaterialStateProperty.resolveWith<Color?>(
-          (Set<MaterialState> states) {
-        if (states.contains(MaterialState.disabled)) {
+      fillColor: WidgetStateProperty.resolveWith<Color?>(
+          (Set<WidgetState> states) {
+        if (states.contains(WidgetState.disabled)) {
           return null;
         }
-        if (states.contains(MaterialState.selected)) {
+        if (states.contains(WidgetState.selected)) {
           return AppColors.znnColor;
         }
         return null;
       }),
     ),
     checkboxTheme: CheckboxThemeData(
-      fillColor: MaterialStateProperty.resolveWith<Color?>(
-          (Set<MaterialState> states) {
-        if (states.contains(MaterialState.disabled)) {
+      fillColor: WidgetStateProperty.resolveWith<Color?>(
+          (Set<WidgetState> states) {
+        if (states.contains(WidgetState.disabled)) {
           return null;
         }
-        if (states.contains(MaterialState.selected)) {
+        if (states.contains(WidgetState.selected)) {
           return AppColors.znnColor;
         }
         return null;
@@ -391,7 +391,7 @@ class AppTheme {
       secondary: AppColors.darkSecondary,
       secondaryContainer: AppColors.darkSecondaryContainer,
       error: AppColors.errorColor,
-    ).copyWith(background: AppColors.backgroundDark),
+    ).copyWith(surface: AppColors.backgroundDark),
   );
 
   AppTheme._();

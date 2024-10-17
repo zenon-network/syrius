@@ -10,8 +10,8 @@ class ImportantTextContainer extends StatelessWidget {
     required this.text,
     this.showBorder = false,
     this.isSelectable = false,
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   Widget build(BuildContext context) {

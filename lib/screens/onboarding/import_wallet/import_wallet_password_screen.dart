@@ -10,8 +10,8 @@ class ImportWalletPasswordScreen extends StatefulWidget {
   const ImportWalletPasswordScreen(
     this.seed, {
     this.progressBarNumLevels = 5,
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   State<ImportWalletPasswordScreen> createState() =>
