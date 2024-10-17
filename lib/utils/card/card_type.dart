@@ -3,20 +3,26 @@ import 'package:zenon_syrius_wallet_flutter/utils/zts_utils.dart';
 
 enum CardType {
   balance,
-  delegationStats;
+  delegationStats,
+  dualCoinStats;
 
   CardData get data {
     return switch (this) {
       CardType.balance => CardData(
-        title: 'Balance',
-        description: 'This card displays the current ${kZnnCoin.symbol} '
-            'and ${kQsrCoin.symbol} amounts for the selected address',
-      ),
+          title: 'Balance',
+          description: 'This card displays the current ${kZnnCoin.symbol} '
+              'and ${kQsrCoin.symbol} amounts for the selected address',
+        ),
       CardType.delegationStats => CardData(
-        title: 'Delegation Stats',
-        description: 'This card displays the amount of ${kZnnCoin.symbol} '
-            'and the name of the Pillar that you delegated to',
-      ),
+          title: 'Delegation Stats',
+          description: 'This card displays the amount of ${kZnnCoin.symbol} '
+              'and the name of the Pillar that you delegated to',
+        ),
+      CardType.dualCoinStats => CardData(
+          title: 'Dual Coin Stats',
+          description: 'This card displays the circulating ${kZnnCoin.symbol} '
+              'and ${kQsrCoin.symbol} supply from the network',
+        ),
     };
   }
 }

@@ -41,7 +41,7 @@ class _DashboardTabChildState extends State<DashboardTabChild> {
 
     final List<FluidCell> children = [
       const FluidCell(
-        child: DualCoinStats(),
+        child: DualCoinStatsCard(),
       ),
       const FluidCell(
         child: PlasmaStats(),

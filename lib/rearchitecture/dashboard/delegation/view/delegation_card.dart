@@ -24,7 +24,7 @@ class DelegationCard extends StatelessWidget {
       },
       child: CardScaffoldWithoutListener(
         type: CardType.delegationStats,
-        child: BlocBuilder<DelegationCubit, DelegationState>(
+        body: BlocBuilder<DelegationCubit, DelegationState>(
           builder: (context, state) {
             return switch (state.status) {
               CubitStatus.initial => const DelegationEmpty(),

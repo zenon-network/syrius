@@ -10,12 +10,12 @@ import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 
 class CardScaffoldWithoutListener extends StatefulWidget {
-  final Widget child;
+  final Widget body;
   final CardType type;
   final VoidCallback? onRefreshPressed;
 
   const CardScaffoldWithoutListener({
-    required this.child,
+    required this.body,
     required this.type,
     this.onRefreshPressed,
     super.key,
@@ -338,7 +338,7 @@ class _CardScaffoldWithoutListenerState extends State<CardScaffoldWithoutListene
   Widget? _getWidgetFrontBody() {
     return _getWidgetHiddenInfoValue(_title)
         ? _getHiddenInfoWidget()
-        : widget.child;
+        : widget.body;
   }
 
   Widget _getHiddenInfoWidget() {
