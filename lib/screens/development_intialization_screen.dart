@@ -6,23 +6,35 @@ import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 /// This will be used to quickly initialize the app when testing in the
 /// development phase
 
-class DevelopmentInitializationScreen extends StatelessWidget {
+class DevelopmentInitializationScreen extends StatefulWidget {
   static const String route = 'development-initialization-screen';
 
   const DevelopmentInitializationScreen({super.key});
 
   @override
+  State<DevelopmentInitializationScreen> createState() =>
+      _DevelopmentInitializationScreenState();
+}
+
+class _DevelopmentInitializationScreenState
+    extends State<DevelopmentInitializationScreen> {
+  @override
   Widget build(BuildContext context) {
     return FutureBuilder(
-      future: _initializeApp(context: context),
+      future: _checkIfWalletPathIsNull(context: context),
       builder: (_, snapshot) {
         if (snapshot.hasData) {
-          final bool finished = snapshot.data!;
-          if (finished) {
-            _navigateToHomeScreen(context: context);
-          } else {
-            return Text('Error while initializing the app');
-          }
+          final bool isWalletPathNull = snapshot.data!;
+
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (isWalletPathNull) {
+              _navigateToAccessWalletScreen(context: context);
+            } else {
+              _navigateToHomeScreen(context: context);
+            }
+          });
+
+          return SizedBox.shrink();
         } else if (snapshot.hasError) {
           return Text('Error: ${snapshot.error}');
         }
@@ -32,17 +44,10 @@ class DevelopmentInitializationScreen extends StatelessWidget {
     );
   }
 
-  Future<bool> _initializeApp({required BuildContext context}) async {
+  Future<bool> _checkIfWalletPathIsNull({required BuildContext context}) async {
     try {
       await InitUtils.initApp(context);
-      if (kWalletPath == null) {
-        if (!context.mounted) return false;
-        Navigator.pushReplacementNamed(
-          context,
-          AccessWalletScreen.route,
-        );
-      }
-      return true;
+      return kWalletPath == null;
     } on Exception catch (_) {
       rethrow;
     }
@@ -53,5 +58,12 @@ class DevelopmentInitializationScreen extends StatelessWidget {
       context,
       rootNavigator: true,
     ).pushReplacementNamed(MainAppContainer.route);
+  }
+
+  void _navigateToAccessWalletScreen({required BuildContext context}) {
+    Navigator.pushReplacementNamed(
+      context,
+      AccessWalletScreen.route,
+    );
   }
 }
