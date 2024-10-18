@@ -19,8 +19,8 @@ class HideWidgetStatusBloc extends BaseBloc<bool?> {
       }
       await _markWidgetAsHidden(widgetTitle, isHidden);
       addEvent(isHidden);
-    } on IncorrectPasswordException {
-      addError(kIncorrectPasswordNotificationTitle, null);
+    } on IncorrectPasswordException catch(e, stackTrace) {
+      addError(kIncorrectPasswordNotificationTitle, stackTrace);
     } catch (e, stackTrace) {
       addError(e, stackTrace);
     }

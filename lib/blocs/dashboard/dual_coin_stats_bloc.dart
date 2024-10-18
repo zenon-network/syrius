@@ -7,14 +7,14 @@ import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 class DualCoinStatsBloc extends DashboardBaseBloc<List<Token?>> {
   @override
-  Future<List<Token?>> makeAsyncCall() async => await Future.wait(
+  Future<List<Token?>> makeAsyncCall() async => Future.wait(
         [
           zenon!.embedded.token.getByZts(
             kZnnCoin.tokenStandard,
           ),
           zenon!.embedded.token.getByZts(
             kQsrCoin.tokenStandard,
-          )
+          ),
         ],
       );
 }

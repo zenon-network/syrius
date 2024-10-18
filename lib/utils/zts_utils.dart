@@ -45,6 +45,6 @@ bool isTrustedToken(String tokenStandard) {
   return [
     znnTokenStandard,
     qsrTokenStandard,
-    ...Hive.box(kFavoriteTokensBox).values
+    ...Hive.box(kFavoriteTokensBox).values,
   ].contains(tokenStandard);
 }

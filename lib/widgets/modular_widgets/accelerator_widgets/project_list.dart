@@ -17,14 +17,14 @@ enum AccProjectsFilterTag {
 }
 
 class AccProjectList extends StatefulWidget {
-  final VoidCallback onStepperNotificationSeeMorePressed;
-  final PillarInfo? pillarInfo;
 
   const AccProjectList({
     required this.onStepperNotificationSeeMorePressed,
     required this.pillarInfo,
     super.key,
   });
+  final VoidCallback onStepperNotificationSeeMorePressed;
+  final PillarInfo? pillarInfo;
 
   @override
   State<AccProjectList> createState() => _AccProjectListState();
@@ -79,7 +79,7 @@ class _AccProjectListState extends State<AccProjectList> {
   Widget build(BuildContext context) {
     return CardScaffold(
       title: 'Project List',
-      childBuilder: () => _getInfiniteScrollList(),
+      childBuilder: _getInfiniteScrollList,
       onRefreshPressed: () {
         _searchKeyWordController.clear();
         _bloc.refreshResults();
@@ -90,7 +90,7 @@ class _AccProjectListState extends State<AccProjectList> {
 
   Widget _getInfiniteScrollList() {
     return Padding(
-      padding: const EdgeInsets.all(15.0),
+      padding: const EdgeInsets.all(15),
       child: Column(
         children: [
           _getSearchInputField(),
@@ -103,7 +103,7 @@ class _AccProjectListState extends State<AccProjectList> {
                 onTap: _sortProjectListByLastUpdate,
                 child: Icon(
                   Entypo.select_arrows,
-                  size: 15.0,
+                  size: 15,
                   color: Theme.of(context).iconTheme.color,
                 ),
               ),
@@ -118,7 +118,7 @@ class _AccProjectListState extends State<AccProjectList> {
                 scrollController: _scrollController,
                 pagingController: _pagingController,
                 separatorBuilder: (_, __) => const SizedBox(
-                  height: 15.0,
+                  height: 15,
                 ),
                 builderDelegate: PagedChildBuilderDelegate<Project>(
                   itemBuilder: (_, project, __) => AcceleratorProjectListItem(
@@ -163,13 +163,13 @@ class _AccProjectListState extends State<AccProjectList> {
   }
 
   Row _getProjectsFilterTags() {
-    List<TagWidget> children = [];
+    final children = <TagWidget>[];
 
-    for (var tag in AccProjectsFilterTag.values) {
+    for (final tag in AccProjectsFilterTag.values) {
       if (widget.pillarInfo == null) {
         if ([
           AccProjectsFilterTag.needsVoting,
-          AccProjectsFilterTag.alreadyVoted
+          AccProjectsFilterTag.alreadyVoted,
         ].contains(tag)) {
           continue;
         }
@@ -182,7 +182,7 @@ class _AccProjectListState extends State<AccProjectList> {
     );
   }
 
-  _getProjectsFilterTag(AccProjectsFilterTag filterTag) {
+  TagWidget _getProjectsFilterTag(AccProjectsFilterTag filterTag) {
     return TagWidget(
       text: FormatUtils.extractNameFromEnum<AccProjectsFilterTag>(filterTag),
       hexColorCode: Theme.of(context)
@@ -226,9 +226,9 @@ class _AccProjectListState extends State<AccProjectList> {
         _pagingController.itemList!.isNotEmpty) {
       _sortAscending
           ? _pagingController.itemList!.sort(
-              (a, b) => a.lastUpdateTimestamp.compareTo(b.lastUpdateTimestamp))
+              (a, b) => a.lastUpdateTimestamp.compareTo(b.lastUpdateTimestamp),)
           : _pagingController.itemList!.sort(
-              (a, b) => b.lastUpdateTimestamp.compareTo(a.lastUpdateTimestamp));
+              (a, b) => b.lastUpdateTimestamp.compareTo(a.lastUpdateTimestamp),);
       setState(() {
         _sortAscending = !_sortAscending;
       });

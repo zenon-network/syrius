@@ -25,7 +25,7 @@ class _StakingTabChildState extends State<StakingTabChild> {
   }
 
   Widget _getFluidLayout() {
-    final List<FluidCell> children = [
+    final children = <FluidCell>[
       FluidCell(
         child: StakingRewards(
           stakingRewardsHistoryBloc: _stakingRewardsHistoryBloc,

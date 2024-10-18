@@ -8,11 +8,6 @@ import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 class CustomTable<T> extends StatefulWidget {
-  final List<T>? items;
-  final List<CustomHeaderColumn>? headerColumns;
-  final List<Widget> Function(T, bool) generateRowCells;
-  final VoidCallback? onShowMoreButtonPressed;
-  final void Function(int index)? onRowTappedCallback;
 
   const CustomTable({
     required this.items,
@@ -22,6 +17,11 @@ class CustomTable<T> extends StatefulWidget {
     this.onRowTappedCallback,
     super.key,
   });
+  final List<T>? items;
+  final List<CustomHeaderColumn>? headerColumns;
+  final List<Widget> Function(T, bool) generateRowCells;
+  final VoidCallback? onShowMoreButtonPressed;
+  final void Function(int index)? onRowTappedCallback;
 
   @override
   State createState() => _CustomTableState<T>();
@@ -71,19 +71,18 @@ class _CustomTableState<T> extends State<CustomTable<T>> {
         border: Border(
           bottom: BorderSide(
             color: Theme.of(context).dividerTheme.color!,
-            width: 1.0,
           ),
         ),
       ),
       padding: const EdgeInsets.symmetric(
-        vertical: 15.0,
+        vertical: 15,
       ),
       child: Row(
         children: List<Widget>.from(
               [
                 const SizedBox(
-                  width: 20.0,
-                )
+                  width: 20,
+                ),
               ],
             ) +
             (widget.headerColumns ?? []),
@@ -92,7 +91,7 @@ class _CustomTableState<T> extends State<CustomTable<T>> {
   }
 
   Widget _getTableRow(dynamic item, int indexOfRow) {
-    bool isSelected = _selectedRowIndex == indexOfRow;
+    final isSelected = _selectedRowIndex == indexOfRow;
 
     return InkWell(
       onTap: () {
@@ -120,20 +119,20 @@ class _CustomTableState<T> extends State<CustomTable<T>> {
             left: isSelected
                 ? const BorderSide(
                     color: AppColors.znnColor,
-                    width: 2.0,
+                    width: 2,
                   )
                 : BorderSide.none,
           ),
         ),
         padding: const EdgeInsets.symmetric(
-          vertical: 15.0,
+          vertical: 15,
         ),
         child: Row(
           children: List<Widget>.from(
                 [
                   const SizedBox(
-                    width: 20.0,
-                  )
+                    width: 20,
+                  ),
                 ],
               ) +
               widget.generateRowCells(item, isSelected),
@@ -165,10 +164,6 @@ class _CustomTableState<T> extends State<CustomTable<T>> {
 }
 
 class CustomHeaderColumn extends StatelessWidget {
-  final String columnName;
-  final Function(String)? onSortArrowsPressed;
-  final MainAxisAlignment contentAlign;
-  final int flex;
 
   const CustomHeaderColumn({
     required this.columnName,
@@ -177,6 +172,10 @@ class CustomHeaderColumn extends StatelessWidget {
     this.flex = 1,
     super.key,
   });
+  final String columnName;
+  final Function(String)? onSortArrowsPressed;
+  final MainAxisAlignment contentAlign;
+  final int flex;
 
   @override
   Widget build(BuildContext context) {
@@ -195,11 +194,11 @@ class CustomHeaderColumn extends StatelessWidget {
               onTap: () => onSortArrowsPressed!(columnName),
               child: Icon(
                 Entypo.select_arrows,
-                size: 15.0,
+                size: 15,
                 color: Theme.of(context).iconTheme.color,
               ),
             ),
-          )
+          ),
         ],
       ),
     );
@@ -207,8 +206,6 @@ class CustomHeaderColumn extends StatelessWidget {
 }
 
 class CustomTableCell extends StatelessWidget {
-  final Widget child;
-  final int flex;
 
   const CustomTableCell(
     this.child, {
@@ -229,7 +226,7 @@ class CustomTableCell extends StatelessWidget {
                 message: address.toString(),
                 child: Container(
                   margin: const EdgeInsets.only(
-                    right: 10.0,
+                    right: 10,
                   ),
                   child: Marquee(
                     child: Text(
@@ -237,7 +234,7 @@ class CustomTableCell extends StatelessWidget {
                       style: textStyle ??
                           TextStyle(
                             color: textColor,
-                            fontSize: 12.0,
+                            fontSize: 12,
                           ),
                     ),
                   ),
@@ -249,7 +246,7 @@ class CustomTableCell extends StatelessWidget {
               materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
             ),
             const SizedBox(
-              width: 10.0,
+              width: 10,
             ),
           ],
         );
@@ -266,7 +263,7 @@ class CustomTableCell extends StatelessWidget {
             Expanded(
               child: Container(
                 margin: const EdgeInsets.only(
-                  right: 10.0,
+                  right: 10,
                 ),
                 child: Marquee(
                   child: Text(
@@ -274,7 +271,7 @@ class CustomTableCell extends StatelessWidget {
                     style: textStyle ??
                         TextStyle(
                           color: textColor,
-                          fontSize: 12.0,
+                          fontSize: 12,
                         ),
                   ),
                 ),
@@ -289,7 +286,7 @@ class CustomTableCell extends StatelessWidget {
                     materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                   ),
                   const SizedBox(
-                    width: 10.0,
+                    width: 10,
                   ),
                 ],
               ),
@@ -331,7 +328,7 @@ class CustomTableCell extends StatelessWidget {
                     materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                   ),
                   const SizedBox(
-                    width: 10.0,
+                    width: 10,
                   ),
                 ],
               ),
@@ -369,13 +366,15 @@ class CustomTableCell extends StatelessWidget {
                     materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                   ),
                   const SizedBox(
-                    width: 10.0,
+                    width: 10,
                   ),
                 ],
               ),
             ),
           ],
         );
+  final Widget child;
+  final int flex;
 
   @override
   Widget build(BuildContext context) {

@@ -8,7 +8,7 @@ class SentinelRewardsHistoryBloc
     extends BaseBlocForReloadingIndicator<RewardHistoryList> {
   @override
   Future<RewardHistoryList> getDataAsync() async {
-    RewardHistoryList response =
+    final response =
         await zenon!.embedded.sentinel.getFrontierRewardByPage(
       Address.parse(kSelectedAddress!),
       pageSize: kStandardChartNumDays.toInt(),

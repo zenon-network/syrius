@@ -6,11 +6,11 @@ import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/model/database/notification_type.dart';
 import 'package:zenon_syrius_wallet_flutter/model/database/wallet_notification.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/notification_utils.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/wallet_file.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/node_utils.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/notification_utils.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/wallet_file.dart';
 import 'package:znn_ledger_dart/znn_ledger_dart.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
@@ -22,15 +22,15 @@ class ZenonAddressUtils {
       kAddressLabelMap[address] ?? address;
 
   static Future<void> generateNewAddress(
-      {int numAddr = 1, VoidCallback? callback}) async {
+      {int numAddr = 1, VoidCallback? callback,}) async {
     final wallet = await kWalletFile!.open();
     try {
       await Future.delayed(const Duration(milliseconds: 500));
-      List<Address?> listAddr = [];
-      int addrListLength = kDefaultAddressList.length;
-      for (int i = 0; i < numAddr; i++) {
-        int addrListCounter = addrListLength + i;
-        WalletAccount walletAccount = await wallet.getAccount(addrListCounter);
+      final listAddr = <Address?>[];
+      final addrListLength = kDefaultAddressList.length;
+      for (var i = 0; i < numAddr; i++) {
+        final addrListCounter = addrListLength + i;
+        final walletAccount = await wallet.getAccount(addrListCounter);
         Address? address;
         if (walletAccount is LedgerWalletAccount) {
           await sl.get<NotificationsBloc>().addNotification(
@@ -48,10 +48,10 @@ class ZenonAddressUtils {
           address = await walletAccount.getAddress();
         }
         listAddr.add(address);
-        Box addressesBox = Hive.box(kAddressesBox);
+        final addressesBox = Hive.box(kAddressesBox);
         await addressesBox.add(listAddr.elementAt(i).toString());
         _initAddresses(addressesBox);
-        Box addressLabelsBox = Hive.box(kAddressLabelsBox);
+        final addressLabelsBox = Hive.box(kAddressLabelsBox);
         await addressLabelsBox.put(
           listAddr.elementAt(i).toString(),
           'Address ${kDefaultAddressList.length}',
@@ -63,19 +63,19 @@ class ZenonAddressUtils {
       listAddr.clear();
     } catch (e) {
       await NotificationUtils.sendNotificationError(
-          e, 'Error while generating new address');
+          e, 'Error while generating new address',);
     } finally {
       kWalletFile!.close();
     }
   }
 
   static Future<void> setAddressLabels() async {
-    Box addressLabelsBox = await Hive.openBox(kAddressLabelsBox);
+    final addressLabelsBox = await Hive.openBox(kAddressLabelsBox);
 
     if (addressLabelsBox.isEmpty) {
-      for (var address in kDefaultAddressList) {
+      for (final address in kDefaultAddressList) {
         await addressLabelsBox.put(
-            address, 'Address ${kDefaultAddressList.indexOf(address) + 1}');
+            address, 'Address ${kDefaultAddressList.indexOf(address) + 1}',);
       }
     }
     _initAddressLabels(addressLabelsBox);
@@ -92,16 +92,16 @@ class ZenonAddressUtils {
   }
 
   static Future<void> setAddresses(WalletFile? walletFile) async {
-    Box addressesBox = await Hive.openBox(kAddressesBox);
+    final addressesBox = await Hive.openBox(kAddressesBox);
     if (addressesBox.isEmpty) {
       await walletFile!.access((wallet) async {
-        for (var element in (await Future.wait(
+        for (final element in await Future.wait(
           List<Future<String>>.generate(
               kNumOfInitialAddresses,
               (index) async =>
                   (await (await wallet.getAccount(index)).getAddress())
-                      .toString()),
-        ))) {
+                      .toString(),),
+        )) {
           addressesBox.add(element);
         }
       });

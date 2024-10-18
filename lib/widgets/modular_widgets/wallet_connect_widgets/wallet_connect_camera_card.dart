@@ -34,27 +34,26 @@ class _WalletConnectCameraCardState extends State<WalletConnectCameraCard> {
     return CardScaffold(
       title: _kWidgetTitle,
       description: _kWidgetDescription,
-      childBuilder: () => _getCardBody(),
+      childBuilder: _getCardBody,
     );
   }
 
   Widget _getCardBody() {
     return Padding(
-      padding: const EdgeInsets.all(15.0),
+      padding: const EdgeInsets.all(15),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
           const CircleAvatar(
-            radius: 60.0,
+            radius: 60,
             backgroundColor: Colors.white12,
             child: Icon(
               Icons.camera_alt_outlined,
               color: AppColors.znnColor,
-              size: 60.0,
+              size: 60,
             ),
           ),
-          Platform.isMacOS
-              ? MyOutlinedButton(
+          if (Platform.isMacOS) MyOutlinedButton(
                   text: 'Scan QR',
                   onPressed: () async {
                     await Navigator.of(context).push(
@@ -68,7 +67,7 @@ class _WalletConnectCameraCardState extends State<WalletConnectCameraCard> {
                               value.toString(),
                             );
                             final wcService = sl.get<IWeb3WalletService>();
-                            final Barcode? barcode = _filterBarcodes(value);
+                            final barcode = _filterBarcodes(value);
                             if (barcode != null) {
                               final pairingInfo = await wcService.pair(
                                 Uri.parse(value.barcodes.first.displayValue!),
@@ -101,7 +100,7 @@ class _WalletConnectCameraCardState extends State<WalletConnectCameraCard> {
                                   Text('${p1.errorCode}',
                                       style: Theme.of(context)
                                           .textTheme
-                                          .bodyMedium),
+                                          .bodyMedium,),
                                   Container(height: 16),
                                   const Icon(
                                     MaterialCommunityIcons.camera_off,
@@ -117,8 +116,7 @@ class _WalletConnectCameraCardState extends State<WalletConnectCameraCard> {
                     );
                   },
                   minimumSize: kLoadingButtonMinSize,
-                )
-              : Text(
+                ) else Text(
                   'Only MacOS is supported at the moment',
                   style: Theme.of(context).textTheme.bodyLarge,
                 ),
@@ -145,7 +143,7 @@ class _WalletConnectCameraCardState extends State<WalletConnectCameraCard> {
   /// the first valid WC barcode
   Barcode? _filterBarcodes(BarcodeCapture capture) {
     for (final barcode in capture.barcodes) {
-      final String? uri = barcode.displayValue;
+      final uri = barcode.displayValue;
       if (uri != null) {
         if (!canParseWalletConnectUri(uri)) {
           return barcode;

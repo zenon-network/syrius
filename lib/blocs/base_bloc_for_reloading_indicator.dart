@@ -6,12 +6,12 @@ import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 abstract class BaseBlocForReloadingIndicator<T> extends BaseBloc<T?>
     with RefreshBlocMixin {
-  Future<T> getDataAsync();
 
   BaseBlocForReloadingIndicator() {
     updateStream();
     listenToWsRestart(updateStream);
   }
+  Future<T> getDataAsync();
 
   Future<void> updateStream() async {
     try {

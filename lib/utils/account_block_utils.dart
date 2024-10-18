@@ -15,11 +15,11 @@ class AccountBlockUtils {
     Address? address,
     bool waitForRequiredPlasma = false,
   }) async {
-    SyncInfo syncInfo = await zenon!.stats.syncInfo();
-    bool nodeIsSynced = (syncInfo.state == SyncState.syncDone ||
+    final syncInfo = await zenon!.stats.syncInfo();
+    final nodeIsSynced = syncInfo.state == SyncState.syncDone ||
         (syncInfo.targetHeight > 0 &&
             syncInfo.currentHeight > 0 &&
-            (syncInfo.targetHeight - syncInfo.currentHeight) < 20));
+            (syncInfo.targetHeight - syncInfo.currentHeight) < 20);
     if (nodeIsSynced) {
       // Acquire wallet lock to prevent concurrent access.
       final wallet = await kWalletFile!.open();
@@ -28,11 +28,11 @@ class AccountBlockUtils {
         final walletAccount = await wallet
             .getAccount(kDefaultAddressList.indexOf(address.toString()));
 
-        bool needPlasma = await zenon!.requiresPoW(
+        final needPlasma = await zenon!.requiresPoW(
           transactionParams,
           blockSigningKey: walletAccount,
         );
-        bool needReview = kWalletFile!.isHardwareWallet;
+        final needReview = kWalletFile!.isHardwareWallet;
 
         if (needPlasma) {
           await sl
@@ -41,7 +41,7 @@ class AccountBlockUtils {
         } else if (needReview) {
           await _sendReviewNotification(transactionParams);
         }
-        final AccountBlockTemplate response = await zenon!.send(
+        final response = await zenon!.send(
           transactionParams,
           currentKeyPair: walletAccount,
           generatingPowCallback: (status) async {
@@ -93,11 +93,11 @@ class AccountBlockUtils {
     try {
       for (final entry in abi.entries) {
         if (eq(AbiFunction.extractSignature(entry.encodeSignature()),
-            AbiFunction.extractSignature(encodedData))) {
+            AbiFunction.extractSignature(encodedData),)) {
           final decoded =
               AbiFunction(entry.name!, entry.inputs!).decode(encodedData);
-          final Map<String, dynamic> params = {};
-          for (int i = 0; i < entry.inputs!.length; i += 1) {
+          final params = <String, dynamic>{};
+          for (var i = 0; i < entry.inputs!.length; i += 1) {
             params[entry.inputs![i].name!] = decoded[i];
           }
           return BlockData(function: entry.name!, params: params);
@@ -112,13 +112,13 @@ class AccountBlockUtils {
   // Returns a list of AccountBlocks that are newer than a given timestamp.
   // The list is returned in ascending order.
   static Future<List<AccountBlock>> getAccountBlocksAfterTime(
-      Address address, int time) async {
-    final List<AccountBlock> blocks = [];
-    int pageIndex = 0;
+      Address address, int time,) async {
+    final blocks = <AccountBlock>[];
+    var pageIndex = 0;
     try {
       while (true) {
         final fetched = await zenon!.ledger.getAccountBlocksByPage(address,
-            pageIndex: pageIndex, pageSize: 100);
+            pageIndex: pageIndex, pageSize: 100,);
 
         final lastBlockConfirmation = fetched.list!.last.confirmationDetail;
         if (lastBlockConfirmation == null ||
@@ -149,7 +149,7 @@ class AccountBlockUtils {
   }
 
   static Future<int?> getTimeForAccountBlockHeight(
-      Address address, int height) async {
+      Address address, int height,) async {
     if (height >= 1) {
       try {
         final block =
@@ -165,7 +165,7 @@ class AccountBlockUtils {
   }
 
   static Future<void> _sendReviewNotification(
-      AccountBlockTemplate transactionParams) async {
+      AccountBlockTemplate transactionParams,) async {
     await sl.get<NotificationsBloc>().addNotification(
           WalletNotification(
             title:

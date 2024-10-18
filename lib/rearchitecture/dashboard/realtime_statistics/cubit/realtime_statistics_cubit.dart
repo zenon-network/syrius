@@ -35,20 +35,20 @@ class RealtimeStatisticsCubit extends DashboardCubit<List<AccountBlock>, Realtim
   Future<List<AccountBlock>> fetch() async {
     try {
       // Get the current chain height
-      int chainHeight = (await zenon.ledger.getFrontierMomentum()).height;
+      final chainHeight = (await zenon.ledger.getFrontierMomentum()).height;
       // Calculate the starting height for the block retrieval
-      int height = chainHeight - kMomentumsPerWeek > 0
+      final height = chainHeight - kMomentumsPerWeek > 0
           ? chainHeight - kMomentumsPerWeek
           : 1;
-      int pageIndex = 0; // Start from the first page
-      int pageSize = 10; // Number of blocks to fetch per page
-      bool isLastPage = false; // Flag to determine if it's the last page
-      final List<AccountBlock> blockList = []; // List to store fetched account blocks
+      var pageIndex = 0; // Start from the first page
+      const pageSize = 10; // Number of blocks to fetch per page
+      var isLastPage = false; // Flag to determine if it's the last page
+      final blockList = <AccountBlock>[]; // List to store fetched account blocks
 
       // Fetch account blocks until the last page is reached
       while (!isLastPage) {
         // Fetch account blocks for the current page
-        List<AccountBlock> response =
+        final response =
             (await zenon.ledger.getAccountBlocksByPage(
               Address.parse(kSelectedAddress!),
               pageIndex: pageIndex,

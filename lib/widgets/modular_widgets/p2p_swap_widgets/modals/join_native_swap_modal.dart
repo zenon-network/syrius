@@ -28,12 +28,12 @@ import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/modals/base
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 class JoinNativeSwapModal extends StatefulWidget {
-  final Function(String) onJoinedSwap;
 
   const JoinNativeSwapModal({
     required this.onJoinedSwap,
     super.key,
   });
+  final Function(String) onJoinedSwap;
 
   @override
   State<JoinNativeSwapModal> createState() => _JoinNativeSwapModalState();
@@ -88,14 +88,14 @@ class _JoinNativeSwapModalState extends State<JoinNativeSwapModal> {
               builder: (_, snapshot) {
                 if (snapshot.hasError) {
                   return Padding(
-                    padding: const EdgeInsets.all(20.0),
+                    padding: const EdgeInsets.all(20),
                     child: SyriusErrorWidget(snapshot.error!),
                   );
                 } else if (snapshot.hasData) {
                   return _getContent(snapshot.data!);
                 }
                 return const Padding(
-                  padding: EdgeInsets.all(50.0),
+                  padding: EdgeInsets.all(50),
                   child: SyriusLoadingWidget(),
                 );
               },
@@ -107,7 +107,7 @@ class _JoinNativeSwapModalState extends State<JoinNativeSwapModal> {
     return Column(
       children: [
         const SizedBox(
-          height: 20.0,
+          height: 20,
         ),
         Form(
           autovalidateMode: AutovalidateMode.onUserInteraction,
@@ -115,7 +115,7 @@ class _JoinNativeSwapModalState extends State<JoinNativeSwapModal> {
             onChanged: (value) {
               setState(() {});
             },
-            validator: (value) => InputValidators.checkHash(value),
+            validator: InputValidators.checkHash,
             controller: _depositIdController,
             suffixIcon: RawMaterialButton(
               shape: const CircleBorder(),
@@ -129,19 +129,19 @@ class _JoinNativeSwapModalState extends State<JoinNativeSwapModal> {
               child: const Icon(
                 Icons.content_paste,
                 color: AppColors.darkHintTextColor,
-                size: 15.0,
+                size: 15,
               ),
             ),
             suffixIconConstraints: const BoxConstraints(
-              maxWidth: 45.0,
-              maxHeight: 20.0,
+              maxWidth: 45,
+              maxHeight: 20,
             ),
             hintText: 'Deposit ID provided by the counterparty',
-            contentLeftPadding: 10.0,
+            contentLeftPadding: 10,
           ),
         ),
         const SizedBox(
-          height: 25.0,
+          height: 25,
         ),
         Visibility(
           visible: _initialHtlcError != null,
@@ -152,7 +152,7 @@ class _JoinNativeSwapModalState extends State<JoinNativeSwapModal> {
                 showBorder: true,
               ),
               const SizedBox(
-                height: 20.0,
+                height: 20,
               ),
             ],
           ),
@@ -162,7 +162,7 @@ class _JoinNativeSwapModalState extends State<JoinNativeSwapModal> {
     );
   }
 
-  _getInitialHtlcViewModel() {
+  ViewModelBuilder<InitialHtlcForSwapBloc> _getInitialHtlcViewModel() {
     return ViewModelBuilder<InitialHtlcForSwapBloc>.reactive(
       onViewModelReady: (model) {
         model.stream.listen(
@@ -187,7 +187,7 @@ class _JoinNativeSwapModalState extends State<JoinNativeSwapModal> {
         );
       },
       builder: (_, model, __) => _getContinueButton(model),
-      viewModelBuilder: () => InitialHtlcForSwapBloc(),
+      viewModelBuilder: InitialHtlcForSwapBloc.new,
     );
   }
 
@@ -202,7 +202,7 @@ class _JoinNativeSwapModalState extends State<JoinNativeSwapModal> {
     );
   }
 
-  void _onContinueButtonPressed(InitialHtlcForSwapBloc model) async {
+  Future<void> _onContinueButtonPressed(InitialHtlcForSwapBloc model) async {
     setState(() {
       _isLoading = true;
       _initialHtlcError = null;
@@ -215,7 +215,7 @@ class _JoinNativeSwapModalState extends State<JoinNativeSwapModal> {
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        const SizedBox(height: 20.0),
+        const SizedBox(height: 20),
         Row(
           children: [
             Expanded(
@@ -224,15 +224,15 @@ class _JoinNativeSwapModalState extends State<JoinNativeSwapModal> {
                 helpText: 'You will receive the swapped funds to this address.',
                 inputWidget: DisabledAddressField(
                   _addressController,
-                  contentLeftPadding: 10.0,
+                  contentLeftPadding: 10,
                 ),
               ),
             ),
           ],
         ),
-        const SizedBox(height: 20.0),
+        const SizedBox(height: 20),
         Divider(color: Colors.white.withOpacity(0.1)),
-        const SizedBox(height: 20.0),
+        const SizedBox(height: 20),
         LabeledInputContainer(
           labelText: 'You are sending',
           inputWidget: Flexible(
@@ -246,8 +246,8 @@ class _JoinNativeSwapModalState extends State<JoinNativeSwapModal> {
                   if (snapshot.hasData) {
                     return AmountInputField(
                       controller: _amountController,
-                      accountInfo: (snapshot.data![_selfAddress]!),
-                      valuePadding: 10.0,
+                      accountInfo: snapshot.data![_selfAddress]!,
+                      valuePadding: 10,
                       textColor: Theme.of(context).colorScheme.inverseSurface,
                       initialToken: _selectedToken,
                       hintText: '0.0',
@@ -280,24 +280,24 @@ class _JoinNativeSwapModalState extends State<JoinNativeSwapModal> {
           htlc: _initialHltc!,
           token: tokenToReceive,
         ),
-        const SizedBox(height: 20.0),
+        const SizedBox(height: 20),
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 10.0),
+          padding: const EdgeInsets.symmetric(horizontal: 10),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               const Text(
                 'Exchange Rate',
                 style:
-                    TextStyle(fontSize: 14.0, color: AppColors.subtitleColor),
+                    TextStyle(fontSize: 14, color: AppColors.subtitleColor),
               ),
               _getExchangeRateWidget(tokenToReceive),
             ],
           ),
         ),
-        const SizedBox(height: 20.0),
+        const SizedBox(height: 20),
         Divider(color: Colors.white.withOpacity(0.1)),
-        if (_safeExpirationTime != null) const SizedBox(height: 20.0),
+        if (_safeExpirationTime != null) const SizedBox(height: 20),
         if (_safeExpirationTime != null)
           BulletPointCard(
             bulletPoints: [
@@ -309,7 +309,7 @@ class _JoinNativeSwapModalState extends State<JoinNativeSwapModal> {
                         text:
                             '${(((_initialHltc!.expirationTime - kMinSafeTimeToFindPreimage.inSeconds - kCounterHtlcDuration.inSeconds) - DateTimeUtils.unixTimeNow) / 60).ceil()} minutes',
                         style: const TextStyle(
-                            fontSize: 14.0, color: Colors.white)),
+                            fontSize: 14, color: Colors.white,),),
                     BulletPointCard.textSpan(' left to join the swap.'),
                   ],
                 ),
@@ -319,9 +319,9 @@ class _JoinNativeSwapModalState extends State<JoinNativeSwapModal> {
                   'The counterparty will have ',
                   children: [
                     TextSpan(
-                        text: '~${(kCounterHtlcDuration).inHours} hour',
+                        text: '~${kCounterHtlcDuration.inHours} hour',
                         style: const TextStyle(
-                            fontSize: 14.0, color: Colors.white)),
+                            fontSize: 14, color: Colors.white,),),
                     BulletPointCard.textSpan(' to complete the swap.'),
                   ],
                 ),
@@ -333,40 +333,38 @@ class _JoinNativeSwapModalState extends State<JoinNativeSwapModal> {
               ),
             ],
           ),
-        const SizedBox(height: 20.0),
-        _safeExpirationTime != null
-            ? Column(children: [
+        const SizedBox(height: 20),
+        if (_safeExpirationTime != null) Column(children: [
                 Visibility(
                   visible:
                       !isTrustedToken(tokenToReceive.tokenStandard.toString()),
                   child: Padding(
-                    padding: const EdgeInsets.only(bottom: 20.0),
+                    padding: const EdgeInsets.only(bottom: 20),
                     child: ImportantTextContainer(
                       text:
                           '''You are receiving a token that is not in your favorites. '''
-                          '''Please verify that the token standard is correct: ${tokenToReceive.tokenStandard.toString()}''',
+                          '''Please verify that the token standard is correct: ${tokenToReceive.tokenStandard}''',
                       isSelectable: true,
                     ),
                   ),
                 ),
                 _getJoinSwapViewModel(tokenToReceive),
-              ])
-            : const ImportantTextContainer(
+              ],) else const ImportantTextContainer(
                 text:
                     'Cannot join swap. The swap will expire too soon for a safe swap.',
                 showBorder: true,
-              )
+              ),
       ],
     );
   }
 
-  _getJoinSwapViewModel(Token tokenToReceive) {
+  ViewModelBuilder<JoinHtlcSwapBloc> _getJoinSwapViewModel(Token tokenToReceive) {
     return ViewModelBuilder<JoinHtlcSwapBloc>.reactive(
       onViewModelReady: (model) {
         model.stream.listen(
           (event) async {
             if (event is HtlcSwap) {
-              widget.onJoinedSwap.call(event.id.toString());
+              widget.onJoinedSwap.call(event.id);
             }
           },
           onError: (error) {
@@ -378,7 +376,7 @@ class _JoinNativeSwapModalState extends State<JoinNativeSwapModal> {
         );
       },
       builder: (_, model, __) => _getJoinSwapButton(model, tokenToReceive),
-      viewModelBuilder: () => JoinHtlcSwapBloc(),
+      viewModelBuilder: JoinHtlcSwapBloc.new,
     );
   }
 
@@ -393,8 +391,8 @@ class _JoinNativeSwapModalState extends State<JoinNativeSwapModal> {
     );
   }
 
-  void _onJoinButtonPressed(
-      JoinHtlcSwapBloc model, Token tokenToReceive) async {
+  Future<void> _onJoinButtonPressed(
+      JoinHtlcSwapBloc model, Token tokenToReceive,) async {
     setState(() {
       _isLoading = true;
     });
@@ -407,7 +405,7 @@ class _JoinNativeSwapModalState extends State<JoinNativeSwapModal> {
         swapType: P2pSwapType.native,
         fromChain: P2pSwapChain.nom,
         toChain: P2pSwapChain.nom,
-        counterHtlcExpirationTime: _safeExpirationTime!);
+        counterHtlcExpirationTime: _safeExpirationTime!,);
   }
 
   int? _calculateSafeExpirationTime(int initialHtlcExpiration) {
@@ -428,7 +426,7 @@ class _JoinNativeSwapModalState extends State<JoinNativeSwapModal> {
         fromSymbol: _selectedToken.symbol,
         toAmount: _initialHltc!.amount,
         toDecimals: tokenToReceive.decimals,
-        toSymbol: tokenToReceive.symbol);
+        toSymbol: tokenToReceive.symbol,);
   }
 
   bool _isInputValid() => _isAmountValid;

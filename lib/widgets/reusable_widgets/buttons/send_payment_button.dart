@@ -8,18 +8,17 @@ class SendPaymentButton extends LoadingButton {
     required super.key,
     String super.text = 'Send',
     super.outlineColor,
-    super.minimumSize = const Size(100.0, 40.0),
+    super.minimumSize = const Size(100, 40),
   }) : super(
           paddingAroundChild: const EdgeInsets.symmetric(
-            horizontal: 10.0,
+            horizontal: 10,
           ),
         );
 
   factory SendPaymentButton.error({
     required VoidCallback? onPressed,
     required Key key,
-    String text = 'Retry',
-    Size minimumSize = const Size(150.0, 40.0),
+    Size minimumSize = const Size(150, 40),
   }) =>
       SendPaymentButton(
         onPressed: onPressed,

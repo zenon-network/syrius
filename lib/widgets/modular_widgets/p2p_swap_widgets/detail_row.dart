@@ -3,11 +3,6 @@ import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/icons/copy_to_clipboard_icon.dart';
 
 class DetailRow extends StatelessWidget {
-  final String label;
-  final String value;
-  final String? valueToShow;
-  final Widget? prefixWidget;
-  final bool canBeCopied;
 
   const DetailRow({
     required this.label,
@@ -17,6 +12,11 @@ class DetailRow extends StatelessWidget {
     this.canBeCopied = true,
     super.key,
   });
+  final String label;
+  final String value;
+  final String? valueToShow;
+  final Widget? prefixWidget;
+  final bool canBeCopied;
 
   @override
   Widget build(BuildContext context) {
@@ -25,28 +25,28 @@ class DetailRow extends StatelessWidget {
       children: [
         Text(label,
             style: const TextStyle(
-                fontSize: 12.0, color: AppColors.subtitleColor)),
+                fontSize: 12, color: AppColors.subtitleColor,),),
         Row(
           children: [
             prefixWidget ?? Container(),
             if (prefixWidget != null)
               const SizedBox(
-                width: 5.0,
+                width: 5,
               ),
             Text(valueToShow ?? value,
                 style: const TextStyle(
-                    fontSize: 12.0, color: AppColors.subtitleColor)),
+                    fontSize: 12, color: AppColors.subtitleColor,),),
             Visibility(
               visible: canBeCopied,
               child: CopyToClipboardIcon(
                 value,
                 iconColor: AppColors.subtitleColor,
                 materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                padding: const EdgeInsets.only(left: 8.0),
+                padding: const EdgeInsets.only(left: 8),
               ),
             ),
           ],
-        )
+        ),
       ],
     );
   }

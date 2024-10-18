@@ -50,7 +50,7 @@ class _WalletOptionsState extends State<WalletOptions> {
     return CardScaffold(
       title: 'Wallet Options',
       description: 'Other wallet options',
-      childBuilder: () => _getWidgetBody(),
+      childBuilder: _getWidgetBody,
     );
   }
 
@@ -120,7 +120,7 @@ class _WalletOptionsState extends State<WalletOptions> {
         _getLaunchAtStartupWidget(),
         _getEnableDesktopNotifications(),
         _buildEnableClipboardWatcher(),
-        _getAutoReceiveWidget()
+        _getAutoReceiveWidget(),
       ],
     );
   }
@@ -160,7 +160,7 @@ class _WalletOptionsState extends State<WalletOptions> {
                 sl<AutoReceiveTxWorker>().autoReceive();
               }).onError((error, stackTrace) {
                 Logger('MainAppContainer').log(
-                    Level.WARNING, '_getAutoReceiveWidget', error, stackTrace);
+                    Level.WARNING, '_getAutoReceiveWidget', error, stackTrace,);
               });
             } else if (value == false &&
                 sl<AutoReceiveTxWorker>().pool.isNotEmpty) {
@@ -183,7 +183,7 @@ class _WalletOptionsState extends State<WalletOptions> {
   }
 
   Future<void> _setupLaunchAtStartup() async {
-    PackageInfo packageInfo = await PackageInfo.fromPlatform();
+    final packageInfo = await PackageInfo.fromPlatform();
     launchAtStartup.setup(
       appName: packageInfo.appName,
       appPath: Platform.resolvedExecutable,
@@ -331,7 +331,7 @@ class _WalletOptionsState extends State<WalletOptions> {
   }
 
   Future<void> _sendEnabledDesktopNotificationsStatusNotification(
-      bool enabled) async {
+      bool enabled,) async {
     await sl.get<NotificationsBloc>().addNotification(
           WalletNotification(
             title: 'Desktop notifications ${enabled ? 'enabled' : 'disabled'}',
@@ -344,7 +344,7 @@ class _WalletOptionsState extends State<WalletOptions> {
   }
 
   Future<void> _sendEnableClipboardWatcherStatusNotification(
-      bool enabled) async {
+      bool enabled,) async {
     await sl.get<NotificationsBloc>().addNotification(
           WalletNotification(
             title: 'Clipboard watcher ${enabled ? 'enabled' : 'disabled'}',

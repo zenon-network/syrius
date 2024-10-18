@@ -27,7 +27,7 @@ class _DumpMnemonicScreenState extends State<DumpMnemonicScreen> {
     return Scaffold(
       body: Container(
         padding: const EdgeInsets.symmetric(
-          vertical: 30.0,
+          vertical: 30,
         ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -103,7 +103,7 @@ class _DumpMnemonicScreenState extends State<DumpMnemonicScreen> {
     if (_passwordController.text.isNotEmpty) {
       try {
         _continueButtonKey.currentState!.animateForward();
-        var walletFile = await WalletUtils.decryptWalletFile(
+        final walletFile = await WalletUtils.decryptWalletFile(
           kWalletPath!,
           _passwordController.text,
         );

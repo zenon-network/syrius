@@ -97,7 +97,7 @@ class CommunityCard extends StatelessWidget {
           title: 'Zenon Hub Explorer',
           url: kHubCommunityExplorer,
           context: context,
-        )
+        ),
       ],
     );
   }
@@ -193,22 +193,21 @@ class CommunityCard extends StatelessWidget {
     required BuildContext context,
   }) {
     return Row(
-      mainAxisAlignment: MainAxisAlignment.start,
       children: [
         Icon(
           iconData,
           color: AppColors.znnColor,
-          size: 20.0,
+          size: 20,
         ),
         const SizedBox(
-          width: 10.0,
+          width: 10,
         ),
         Text(
           title,
           style: Theme.of(context).textTheme.titleMedium,
         ),
         const SizedBox(
-          width: 10.0,
+          width: 10,
         ),
         LinkIcon(url: url),
       ],

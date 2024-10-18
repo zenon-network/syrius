@@ -15,12 +15,12 @@ import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 class NodeManagement extends StatefulWidget {
-  final VoidCallback onNodeChangedCallback;
 
   const NodeManagement({
     required this.onNodeChangedCallback,
     super.key,
   });
+  final VoidCallback onNodeChangedCallback;
 
   @override
   State<NodeManagement> createState() => _NodeManagementState();
@@ -73,7 +73,7 @@ class _NodeManagementState extends State<NodeManagement> {
           'This card allows one to set the ZNN Node used to connect to. '
           'By default the wallet is connected to the Embedded Node. '
           'If you are running a local ZNN Node, please use the localhost option',
-      childBuilder: () => _getWidgetBody(),
+      childBuilder: _getWidgetBody,
     );
   }
 
@@ -106,7 +106,7 @@ class _NodeManagementState extends State<NodeManagement> {
     );
   }
 
-  _getConfirmNodeSelectionButton() {
+  Row _getConfirmNodeSelectionButton() {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
@@ -127,7 +127,7 @@ class _NodeManagementState extends State<NodeManagement> {
 
     try {
       _confirmNodeButtonKey.currentState?.animateForward();
-      var isConnectionEstablished =
+      final isConnectionEstablished =
           await _establishConnectionToNode(_selectedNode);
       if (isConnectionEstablished) {
         kNodeChainId = await NodeUtils.getNodeChainIdentifier();
@@ -137,14 +137,14 @@ class _NodeManagementState extends State<NodeManagement> {
             kSelectedNodeKey,
             _selectedNode,
           );
-          kCurrentNode = _selectedNode!;
+          kCurrentNode = _selectedNode;
           await _sendChangingNodeSuccessNotification();
           widget.onNodeChangedCallback();
         } else {
           await _establishConnectionToNode(kCurrentNode);
           kNodeChainId = await NodeUtils.getNodeChainIdentifier();
           setState(() {
-            _selectedNode = kCurrentNode!;
+            _selectedNode = kCurrentNode;
           });
         }
       } else {
@@ -156,7 +156,7 @@ class _NodeManagementState extends State<NodeManagement> {
         'Connection failed',
       );
       setState(() {
-        _selectedNode = kCurrentNode!;
+        _selectedNode = kCurrentNode;
       });
     } finally {
       _confirmNodeButtonKey.currentState?.animateReverse();
@@ -164,8 +164,8 @@ class _NodeManagementState extends State<NodeManagement> {
   }
 
   Future<bool> _establishConnectionToNode(String? url) async {
-    String targetUrl = url == kEmbeddedNode ? kLocalhostDefaultNodeUrl : url!;
-    bool isConnectionEstablished =
+    final targetUrl = url == kEmbeddedNode ? kLocalhostDefaultNodeUrl : url!;
+    var isConnectionEstablished =
         await NodeUtils.establishConnectionToNode(targetUrl);
     if (url == kEmbeddedNode) {
       // Check if node is already running
@@ -173,7 +173,7 @@ class _NodeManagementState extends State<NodeManagement> {
         // Initialize local full node
         await Isolate.spawn(EmbeddedNode.runNode, [''],
             onExit:
-                sl<ReceivePort>(instanceName: 'embeddedStoppedPort').sendPort);
+                sl<ReceivePort>(instanceName: 'embeddedStoppedPort').sendPort,);
         kEmbeddedNodeRunning = true;
         // The node needs a couple of seconds to actually start
         await Future.delayed(kEmbeddedConnectionDelay);
@@ -230,7 +230,7 @@ class _NodeManagementState extends State<NodeManagement> {
         .contains(_newNodeController.text)) {
       await NotificationUtils.sendNotificationError(
           'Node ${_newNodeController.text} already exists',
-          'Node already exists');
+          'Node already exists',);
     } else {
       _addNodeToDb();
     }
@@ -259,8 +259,8 @@ class _NodeManagementState extends State<NodeManagement> {
       children: <String>{
         ...kDefaultNodes,
         ...kDefaultCommunityNodes,
-        ...kDbNodes
-      }.toList().map((e) => _getNodeTile(e)).toList(),
+        ...kDbNodes,
+      }.toList().map(_getNodeTile).toList(),
     );
   }
 
@@ -328,7 +328,6 @@ class _NodeManagementState extends State<NodeManagement> {
     return Column(
       children: [
         Row(
-          mainAxisAlignment: MainAxisAlignment.start,
           children: [
             Expanded(
                 child: Form(
@@ -340,7 +339,7 @@ class _NodeManagementState extends State<NodeManagement> {
                 ],
                 controller: _newChainIdController,
                 hintText:
-                    'Current client chain identifier is ${getChainIdentifier().toString()}',
+                    'Current client chain identifier is ${getChainIdentifier()}',
                 onSubmitted: (value) async {
                   if (_isChainIdSelectionInputIsValid()) {
                     _onConfirmChainIdPressed();
@@ -353,7 +352,7 @@ class _NodeManagementState extends State<NodeManagement> {
                 },
                 validator: InputValidators.validateNumber,
               ),
-            )),
+            ),),
             StandardTooltipIcon(
               (getChainIdentifier() == 1)
                   ? 'Alphanet chain identifier'
@@ -420,9 +419,9 @@ class _NodeManagementState extends State<NodeManagement> {
   }
 
   Future<bool> _checkForChainIdMismatch() async {
-    bool match = false;
+    var match = false;
     await zenon!.ledger.getFrontierMomentum().then((momentum) async {
-      int nodeChainId = momentum.chainIdentifier;
+      final nodeChainId = momentum.chainIdentifier;
       if (nodeChainId != _currentChainId) {
         match = await _showChainIdWarningDialog(nodeChainId, _currentChainId);
       } else {
@@ -433,8 +432,8 @@ class _NodeManagementState extends State<NodeManagement> {
   }
 
   Future<bool> _showChainIdWarningDialog(
-      int nodeChainId, int currentChainId) async {
-    return await showWarningDialog(
+      int nodeChainId, int currentChainId,) async {
+    return showWarningDialog(
       context: context,
       title: 'Chain identifier mismatch',
       buttonText: 'Proceed anyway',

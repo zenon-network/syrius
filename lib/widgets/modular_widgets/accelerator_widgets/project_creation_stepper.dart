@@ -4,10 +4,10 @@ import 'package:stacked/stacked.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
-import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/custom_material_stepper.dart'
     as custom_material_stepper;
+import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
+import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 enum ProjectCreationStep {
   projectCreation,
@@ -81,9 +81,9 @@ class _ProjectCreationStepperState extends State<ProjectCreationStepper> {
         Visibility(
           visible: _lastCompletedStep == ProjectCreationStep.values.last,
           child: Positioned(
-            bottom: 20.0,
-            right: 0.0,
-            left: 0.0,
+            bottom: 20,
+            right: 0,
+            left: 0,
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
@@ -97,10 +97,9 @@ class _ProjectCreationStepperState extends State<ProjectCreationStepper> {
                     });
                   },
                   iconData: Icons.refresh,
-                  context: context,
                 ),
                 const SizedBox(
-                  width: 75.0,
+                  width: 75,
                 ),
                 StepperButton(
                   text: 'View projects',
@@ -115,10 +114,10 @@ class _ProjectCreationStepperState extends State<ProjectCreationStepper> {
         Visibility(
           visible: _lastCompletedStep == ProjectCreationStep.values.last,
           child: Positioned(
-            right: 50.0,
+            right: 50,
             child: SizedBox(
-              width: 400.0,
-              height: 400.0,
+              width: 400,
+              height: 400,
               child: Center(
                 child: Lottie.asset(
                   'assets/lottie/ic_anim_zts.json',
@@ -215,7 +214,7 @@ class _ProjectCreationStepperState extends State<ProjectCreationStepper> {
               text: 'Cancel',
             ),
             const SizedBox(
-              width: 15.0,
+              width: 15,
             ),
             StepperButton(
               onPressed: accountInfo.getBalance(
@@ -260,7 +259,7 @@ class _ProjectCreationStepperState extends State<ProjectCreationStepper> {
             ),
             // Empty space so that all the right edges will align
             const SizedBox(
-              width: 23.0,
+              width: 23,
             ),
           ],
         ),
@@ -283,7 +282,7 @@ class _ProjectCreationStepperState extends State<ProjectCreationStepper> {
             ),
             // Empty space so that all the right edges will align
             const SizedBox(
-              width: 23.0,
+              width: 23,
             ),
           ],
         ),
@@ -339,7 +338,7 @@ class _ProjectCreationStepperState extends State<ProjectCreationStepper> {
                   suffixIcon: AmountSuffixWidgets(
                     kZnnCoin,
                     onMaxPressed: () {
-                      BigInt maxZnn = kZnnProjectMaximumFunds;
+                      final maxZnn = kZnnProjectMaximumFunds;
                       if (_projectZnnAmountController.text.isEmpty ||
                           _projectZnnAmountController.text
                                   .extractDecimals(coinDecimals) <
@@ -366,7 +365,7 @@ class _ProjectCreationStepperState extends State<ProjectCreationStepper> {
             ),
             // Empty space so that all the right edges will align
             const SizedBox(
-              width: 23.0,
+              width: 23,
             ),
           ],
         ),
@@ -386,7 +385,7 @@ class _ProjectCreationStepperState extends State<ProjectCreationStepper> {
                   suffixIcon: AmountSuffixWidgets(
                     kQsrCoin,
                     onMaxPressed: () {
-                      BigInt maxQsr = kQsrProjectMaximumFunds;
+                      final maxQsr = kQsrProjectMaximumFunds;
                       if (_projectQsrAmountController.text.isEmpty ||
                           _projectQsrAmountController.text
                                   .extractDecimals(coinDecimals) <
@@ -412,7 +411,7 @@ class _ProjectCreationStepperState extends State<ProjectCreationStepper> {
               ),
             ),
             const SizedBox(
-              width: 23.0,
+              width: 23,
             ),
           ],
         ),
@@ -426,7 +425,7 @@ class _ProjectCreationStepperState extends State<ProjectCreationStepper> {
               },
             ),
             const SizedBox(
-              width: 15.0,
+              width: 15,
             ),
             StepperButton(
               text: 'Continue',
@@ -466,7 +465,7 @@ class _ProjectCreationStepperState extends State<ProjectCreationStepper> {
               text: 'Go back',
             ),
             const SizedBox(
-              width: 15.0,
+              width: 15,
             ),
             _getSubmitProjectViewModel(),
           ],
@@ -497,7 +496,7 @@ class _ProjectCreationStepperState extends State<ProjectCreationStepper> {
         );
       },
       builder: (_, model, __) => _getSubmitProjectButton(model),
-      viewModelBuilder: () => CreateProjectBloc(),
+      viewModelBuilder: CreateProjectBloc.new,
     );
   }
 

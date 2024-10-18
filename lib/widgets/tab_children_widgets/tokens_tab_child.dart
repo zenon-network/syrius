@@ -3,12 +3,12 @@ import 'package:layout/layout.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 
 class TokensTabChild extends StatelessWidget {
-  final VoidCallback onStepperNotificationSeeMorePressed;
 
   const TokensTabChild({
     required this.onStepperNotificationSeeMorePressed,
     super.key,
   });
+  final VoidCallback onStepperNotificationSeeMorePressed;
 
   @override
   Widget build(BuildContext context) {

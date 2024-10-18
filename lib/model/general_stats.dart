@@ -1,22 +1,19 @@
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 class GeneralStats {
-  final Momentum frontierMomentum;
-  final ProcessInfo processInfo;
-  final NetworkInfo networkInfo;
-  final OsInfo osInfo;
 
   GeneralStats(
       {required this.frontierMomentum,
       required this.processInfo,
       required this.networkInfo,
-      required this.osInfo});
+      required this.osInfo,});
+  final Momentum frontierMomentum;
+  final ProcessInfo processInfo;
+  final NetworkInfo networkInfo;
+  final OsInfo osInfo;
 }
 
 class LatestMomentum {
-  final String hash;
-  final int? height;
-  final int? time;
 
   LatestMomentum({
     required this.hash,
@@ -29,4 +26,7 @@ class LatestMomentum {
         height: json['Height'],
         time: json['Time'],
       );
+  final String hash;
+  final int? height;
+  final int? time;
 }

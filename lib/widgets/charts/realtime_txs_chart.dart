@@ -9,12 +9,12 @@ import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 class RealtimeTxsChart extends StatefulWidget {
-  final List<AccountBlock> transactions;
 
   const RealtimeTxsChart(
     this.transactions, {
     super.key,
   });
+  final List<AccountBlock> transactions;
 
   @override
   State<StatefulWidget> createState() => RealtimeTxsChartState();
@@ -57,19 +57,19 @@ class RealtimeTxsChartState extends State<RealtimeTxsChart> {
   }
 
   double _getTransactionsByDay(TokenStandard tokenId, DateTime date) {
-    List<AccountBlock> transactions = [];
-    for (var transaction in widget.transactions) {
+    final transactions = <AccountBlock>[];
+    for (final transaction in widget.transactions) {
       AccountBlock? pairedAccountBlock;
       if (transaction.blockType == 3 &&
           transaction.pairedAccountBlock != null) {
-        pairedAccountBlock = transaction.pairedAccountBlock!;
+        pairedAccountBlock = transaction.pairedAccountBlock;
       }
 
       if (DateFormat('d MMM, yyyy').format(date) ==
           DateFormat('d MMM, yyyy').format(
             DateTime.fromMillisecondsSinceEpoch(
                 (transaction.confirmationDetail?.momentumTimestamp ?? 0) *
-                    1000),
+                    1000,),
           )) {
         if (transaction.tokenStandard == tokenId ||
             (pairedAccountBlock != null &&
@@ -79,7 +79,7 @@ class RealtimeTxsChartState extends State<RealtimeTxsChart> {
       }
     }
 
-    double transactionsPerDay = transactions.length.toDouble();
+    final transactionsPerDay = transactions.length.toDouble();
 
     if (transactionsPerDay > _maxTransactionsPerDay) {
       _maxTransactionsPerDay = transactionsPerDay;

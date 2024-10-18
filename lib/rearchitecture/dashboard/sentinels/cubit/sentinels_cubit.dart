@@ -26,7 +26,7 @@ class SentinelsCubit extends DashboardCubit<SentinelInfoList, SentinelsState> {
   Future<SentinelInfoList> fetch() async {
     try {
       // Fetches the list of all active sentinels from the Zenon network
-      final SentinelInfoList data = await zenon.embedded.sentinel.getAllActive();
+      final data = await zenon.embedded.sentinel.getAllActive();
       return data; // Returns the fetched sentinel information
     } catch (e) {
       rethrow;

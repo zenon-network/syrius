@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 
 class RealtimeStatisticsError extends StatelessWidget {
-  final Object error;
 
   const RealtimeStatisticsError({required this.error, super.key});
+  final Object error;
 
   @override
   Widget build(BuildContext context) {

@@ -11,7 +11,7 @@ class NodeSyncStatusBloc extends DashboardBaseBloc<SyncInfo> {
   @override
   Future<SyncInfo> makeAsyncCall() async {
     if (zenon!.wsClient.status() == WebsocketStatus.running) {
-      SyncInfo syncInfo = await zenon!.stats.syncInfo();
+      final syncInfo = await zenon!.stats.syncInfo();
       if (lastSyncState != syncInfo.state &&
           (syncInfo.state == SyncState.syncDone ||
               (syncInfo.targetHeight > 0 &&

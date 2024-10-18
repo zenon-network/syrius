@@ -15,12 +15,6 @@ part 'dashboard_state.dart';
 /// The generic type [S] represents the type of the states emitted by the cubit.
 /// [S] extends [DashboardState]
 abstract class DashboardCubit<T, S extends DashboardState<T>> extends Cubit<S> {
-  /// A timer that handles the auto-refreshing of data.
-  Timer? _autoRefresher;
-
-  /// The Zenon client used to fetch data from the Zenon ledger.
-  final Zenon zenon;
-  final Duration refreshInterval;
 
   /// Constructs a `DashboardCubit` with the provided [zenon] client and initial state.
   ///
@@ -30,6 +24,12 @@ abstract class DashboardCubit<T, S extends DashboardState<T>> extends Cubit<S> {
     super.initialState, {
     this.refreshInterval = kDashboardRefreshInterval,
   });
+  /// A timer that handles the auto-refreshing of data.
+  Timer? _autoRefresher;
+
+  /// The Zenon client used to fetch data from the Zenon ledger.
+  final Zenon zenon;
+  final Duration refreshInterval;
 
   /// Fetches data of type [T] that is managed by the cubit.
   ///
@@ -61,7 +61,7 @@ abstract class DashboardCubit<T, S extends DashboardState<T>> extends Cubit<S> {
     try {
       emit(state.copyWith(status: CubitStatus.loading) as S);
       if (!zenon.wsClient.isClosed()) {
-        final T data = await fetch();
+        final data = await fetch();
         emit(state.copyWith(data: data, status: CubitStatus.success) as S);
       } else {
         throw noConnectionException;

@@ -35,8 +35,8 @@ Path _upTriangle(double size, Offset thumbCenter) =>
 class _CustomThumbShape extends SliderComponentShape {
   const _CustomThumbShape();
 
-  static const double _thumbSize = 4.0;
-  static const double _disabledThumbSize = 3.0;
+  static const double _thumbSize = 4;
+  static const double _disabledThumbSize = 3;
 
   @override
   Size getPreferredSize(bool isEnabled, bool isDiscrete) {
@@ -54,12 +54,10 @@ class _CustomThumbShape extends SliderComponentShape {
   void paint(
     PaintingContext context,
     Offset thumbCenter, {
-    Animation<double>? activationAnimation,
-    required Animation<double> enableAnimation,
+    required Animation<double> enableAnimation, required SliderThemeData sliderTheme, Animation<double>? activationAnimation,
     bool? isDiscrete,
     TextPainter? labelPainter,
     RenderBox? parentBox,
-    required SliderThemeData sliderTheme,
     TextDirection? textDirection,
     double? value,
     double? textScaleFactor,
@@ -82,9 +80,9 @@ class _CustomThumbShape extends SliderComponentShape {
 class _CustomValueIndicatorShape extends SliderComponentShape {
   const _CustomValueIndicatorShape();
 
-  static const double _indicatorSize = 4.0;
-  static const double _disabledIndicatorSize = 3.0;
-  static const double _slideUpHeight = 40.0;
+  static const double _indicatorSize = 4;
+  static const double _disabledIndicatorSize = 3;
+  static const double _slideUpHeight = 40;
 
   @override
   Size getPreferredSize(bool isEnabled, bool isDiscrete) {
@@ -102,10 +100,8 @@ class _CustomValueIndicatorShape extends SliderComponentShape {
     Offset thumbCenter, {
     required Animation<double> activationAnimation,
     required Animation<double> enableAnimation,
-    bool? isDiscrete,
-    required TextPainter labelPainter,
+    required TextPainter labelPainter, required SliderThemeData sliderTheme, bool? isDiscrete,
     RenderBox? parentBox,
-    required SliderThemeData sliderTheme,
     TextDirection? textDirection,
     double? value,
     double? textScaleFactor,
@@ -117,12 +113,12 @@ class _CustomValueIndicatorShape extends SliderComponentShape {
       end: sliderTheme.valueIndicatorColor,
     );
     final slideUpTween = Tween<double>(
-      begin: 0.0,
+      begin: 0,
       end: _slideUpHeight,
     );
     final size = _indicatorSize * sizeTween.evaluate(enableAnimation);
     final slideUpOffset =
-        Offset(0.0, -slideUpTween.evaluate(activationAnimation));
+        Offset(0, -slideUpTween.evaluate(activationAnimation));
     final thumbPath = _upTriangle(size, thumbCenter + slideUpOffset);
     final paintColor = enableColor
         .evaluate(enableAnimation)!
@@ -137,7 +133,7 @@ class _CustomValueIndicatorShape extends SliderComponentShape {
         Paint()
           ..color = paintColor
           ..style = PaintingStyle.stroke
-          ..strokeWidth = 2.0);
+          ..strokeWidth = 2.0,);
     labelPainter.paint(
       canvas,
       thumbCenter +
@@ -148,12 +144,6 @@ class _CustomValueIndicatorShape extends SliderComponentShape {
 }
 
 class CustomSlider extends StatefulWidget {
-  final String description;
-  final double? startValue;
-  final double maxValue;
-  final Function callback;
-  final double min;
-  final Color activeColor;
 
   const CustomSlider({
     required this.description,
@@ -164,6 +154,12 @@ class CustomSlider extends StatefulWidget {
     this.activeColor = AppColors.znnColor,
     super.key,
   });
+  final String description;
+  final double? startValue;
+  final double maxValue;
+  final Function callback;
+  final double min;
+  final Color activeColor;
 
   @override
   State<CustomSlider> createState() => _CustomSliderState();
@@ -185,7 +181,7 @@ class _CustomSliderState extends State<CustomSlider> {
           children: [
             SliderTheme(
               data: theme.sliderTheme.copyWith(
-                trackHeight: 2.0,
+                trackHeight: 2,
                 activeTrackColor: widget.activeColor,
                 inactiveTrackColor:
                     theme.colorScheme.onSurface.withOpacity(0.5),

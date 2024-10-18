@@ -2,15 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/screens/screens.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/wallet_file.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/wallet_file.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 class ImportWalletDecryptScreen extends StatefulWidget {
-  final String path;
 
   const ImportWalletDecryptScreen(this.path, {super.key});
+  final String path;
 
   @override
   State<ImportWalletDecryptScreen> createState() =>
@@ -31,7 +31,7 @@ class _ImportWalletDecryptScreenState extends State<ImportWalletDecryptScreen> {
     return Scaffold(
       body: Container(
         padding: const EdgeInsets.symmetric(
-          vertical: 30.0,
+          vertical: 30,
         ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -42,7 +42,7 @@ class _ImportWalletDecryptScreenState extends State<ImportWalletDecryptScreen> {
                   currentLevel: 2,
                 ),
                 const SizedBox(
-                  height: 30.0,
+                  height: 30,
                 ),
                 Text(
                   'Unlock your Seed Vault',
@@ -107,7 +107,7 @@ class _ImportWalletDecryptScreenState extends State<ImportWalletDecryptScreen> {
     );
   }
 
-  _getDecryptKeyStoreFileViewModel() {
+  ViewModelBuilder<DecryptWalletFileBloc> _getDecryptKeyStoreFileViewModel() {
     return ViewModelBuilder<DecryptWalletFileBloc>.reactive(
       onViewModelReady: (model) {
         model.stream.listen((walletFile) {
@@ -119,7 +119,7 @@ class _ImportWalletDecryptScreenState extends State<ImportWalletDecryptScreen> {
             walletFile
                 .access((wallet) => Future.value((wallet as KeyStore).mnemonic!))
                 .then((value) => NavigationUtils.push(
-                    context, ImportWalletPasswordScreen(value)));
+                    context, ImportWalletPasswordScreen(value),),);
           }
         }, onError: (error) {
           _loadingButtonKey.currentState!.animateReverse();
@@ -132,13 +132,13 @@ class _ImportWalletDecryptScreenState extends State<ImportWalletDecryptScreen> {
               _passwordErrorText = error.toString();
             });
           }
-        });
+        },);
       },
       builder: (_, model, __) {
         _loadingButton = _getLoadingButton(model);
         return _getLoadingButton(model);
       },
-      viewModelBuilder: () => DecryptWalletFileBloc(),
+      viewModelBuilder: DecryptWalletFileBloc.new,
     );
   }
 

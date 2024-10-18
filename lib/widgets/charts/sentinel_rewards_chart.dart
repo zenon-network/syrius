@@ -10,12 +10,12 @@ import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 class SentinelRewardsChart extends StatefulWidget {
-  final RewardHistoryList? rewardsHistory;
 
   const SentinelRewardsChart(
     this.rewardsHistory, {
     super.key,
   });
+  final RewardHistoryList? rewardsHistory;
 
   @override
   State createState() {
@@ -90,12 +90,12 @@ class _SentinelRewardsChart extends State<SentinelRewardsChart> {
   }
 
   num _getMaxValueOfRewards() {
-    num maxZnn = _getMaxValueOfZnnRewards()
+    final maxZnn = _getMaxValueOfZnnRewards()
         .addDecimals(
           coinDecimals,
         )
         .toNum();
-    num maxQsr = _getMaxValueOfQsrRewards()
+    final maxQsr = _getMaxValueOfQsrRewards()
         .addDecimals(
           coinDecimals,
         )
@@ -104,8 +104,8 @@ class _SentinelRewardsChart extends State<SentinelRewardsChart> {
   }
 
   BigInt _getMaxValueOfZnnRewards() {
-    BigInt max = widget.rewardsHistory!.list.first.znnAmount;
-    for (var element in widget.rewardsHistory!.list) {
+    var max = widget.rewardsHistory!.list.first.znnAmount;
+    for (final element in widget.rewardsHistory!.list) {
       if (element.znnAmount > max) {
         max = element.znnAmount;
       }
@@ -114,8 +114,8 @@ class _SentinelRewardsChart extends State<SentinelRewardsChart> {
   }
 
   BigInt _getMaxValueOfQsrRewards() {
-    BigInt max = widget.rewardsHistory!.list.first.qsrAmount;
-    for (var element in widget.rewardsHistory!.list) {
+    var max = widget.rewardsHistory!.list.first.qsrAmount;
+    for (final element in widget.rewardsHistory!.list) {
       if (element.qsrAmount > max) {
         max = element.qsrAmount;
       }

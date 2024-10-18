@@ -5,12 +5,12 @@ import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 
 class WalletSuccessScreen extends StatefulWidget {
-  final int progressBarNumLevels;
 
   const WalletSuccessScreen({
     this.progressBarNumLevels = 5,
     super.key,
   });
+  final int progressBarNumLevels;
 
   @override
   State<WalletSuccessScreen> createState() => _WalletSuccessScreenState();
@@ -22,7 +22,7 @@ class _WalletSuccessScreenState extends State<WalletSuccessScreen> {
     return Scaffold(
       body: Container(
         padding: const EdgeInsets.symmetric(
-          vertical: 30.0,
+          vertical: 30,
         ),
         child: _getSuccessBody(),
       ),
@@ -39,10 +39,10 @@ class _WalletSuccessScreenState extends State<WalletSuccessScreen> {
               numLevels: widget.progressBarNumLevels,
             ),
             const SizedBox(
-              height: 30.0,
+              height: 30,
             ),
             Text(
-              'You\'re all set',
+              "You're all set",
               style: Theme.of(context).textTheme.headlineLarge,
             ),
             kVerticalSpacing,

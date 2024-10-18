@@ -38,8 +38,8 @@ class _WalletConnectPairingsCardState extends State<WalletConnectPairingsCard> {
     return CardScaffold(
       title: _kWidgetTitle,
       description: _kWidgetDescription,
-      childBuilder: () => _getCardBody(),
-      onRefreshPressed: () => _pairingsBloc.refreshResults(),
+      childBuilder: _getCardBody,
+      onRefreshPressed: _pairingsBloc.refreshResults,
     );
   }
 
@@ -82,17 +82,15 @@ class _WalletConnectPairingsCardState extends State<WalletConnectPairingsCard> {
             _buildTableUrlWidget(pairingInfo),
             flex: 2,
           ),
-          isSelected
-              ? InfiniteScrollTableCell.withMarquee(
+          if (isSelected) InfiniteScrollTableCell.withMarquee(
                   pairingInfo.topic,
-                )
-              : InfiniteScrollTableCell.withText(
+                ) else InfiniteScrollTableCell.withText(
                   context,
                   pairingInfo.topic.short,
                 ),
           InfiniteScrollTableCell.withText(
             context,
-            _formatExpiryDateTime(pairingInfo.expiry).toString(),
+            _formatExpiryDateTime(pairingInfo.expiry),
           ),
           InfiniteScrollTableCell.withText(
             context,

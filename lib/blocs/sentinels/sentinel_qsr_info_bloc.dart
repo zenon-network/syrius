@@ -7,10 +7,10 @@ class SentinelsQsrInfoBloc extends BaseBloc<SentinelsQsrInfo?> {
   Future<void> getQsrManagementInfo(String address) async {
     try {
       addEvent(null);
-      BigInt deposit = (await zenon!.embedded.sentinel.getDepositedQsr(
+      final deposit = await zenon!.embedded.sentinel.getDepositedQsr(
         Address.parse(address),
-      ));
-      BigInt cost = sentinelRegisterQsrAmount;
+      );
+      final cost = sentinelRegisterQsrAmount;
       addEvent(
         SentinelsQsrInfo(
           deposit: deposit,

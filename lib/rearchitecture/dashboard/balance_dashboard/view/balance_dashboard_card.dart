@@ -22,9 +22,9 @@ class BalanceDashboardCard extends StatelessWidget {
         // Creates a `BalanceDashboardCubit` instance, passing in the `zenon` client
         // and an initial `BalanceDashboardState`. The cubit immediately begins fetching
         // the balance data by calling `fetch()`.
-        final BalanceDashboardCubit cubit = BalanceDashboardCubit(
+        final cubit = BalanceDashboardCubit(
           zenon!,
-          BalanceDashboardState(),
+          const BalanceDashboardState(),
         );
         cubit.fetchDataPeriodically();
         return cubit;
@@ -49,7 +49,7 @@ class BalanceDashboardCard extends StatelessWidget {
 
             // Shows the populated balance data when it is successfully fetched.
               CubitStatus.success => BalanceDashboardPopulated(
-                data: state.data!,
+                data: state.data,
               ),
             };
           },

@@ -7,9 +7,9 @@ import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/error_widge
 /// This widget is displayed when the `BalanceCubit` encounters an error
 /// while trying to load the balance data.
 class BalanceError extends StatelessWidget {
-  final Object error;
 
   const BalanceError({required this.error, super.key});
+  final Object error;
 
   @override
   Widget build(BuildContext context) {

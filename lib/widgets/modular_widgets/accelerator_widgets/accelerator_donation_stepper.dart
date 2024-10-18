@@ -4,9 +4,9 @@ import 'package:stacked/stacked.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/custom_material_stepper.dart'
     as custom_material_stepper;
+import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 enum AcceleratorDonationStep {
@@ -79,9 +79,9 @@ class _AcceleratorDonationStepperState
         Visibility(
           visible: _lastCompletedStep == AcceleratorDonationStep.values.last,
           child: Positioned(
-            bottom: 20.0,
-            right: 0.0,
-            left: 0.0,
+            bottom: 20,
+            right: 0,
+            left: 0,
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
@@ -94,10 +94,9 @@ class _AcceleratorDonationStepperState
                     });
                   },
                   iconData: Icons.refresh,
-                  context: context,
                 ),
                 const SizedBox(
-                  width: 75.0,
+                  width: 75,
                 ),
                 StepperButton(
                   text: 'Return to project list',
@@ -112,10 +111,10 @@ class _AcceleratorDonationStepperState
         Visibility(
           visible: _lastCompletedStep == AcceleratorDonationStep.values.last,
           child: Positioned(
-            right: 50.0,
+            right: 50,
             child: SizedBox(
-              width: 400.0,
-              height: 400.0,
+              width: 400,
+              height: 400,
               child: Center(
                 child: Lottie.asset(
                   'assets/lottie/ic_anim_zts.json',
@@ -176,13 +175,13 @@ class _AcceleratorDonationStepperState
   }
 
   String _getDonationDetailsStepSubtitle() {
-    String znnPrefix = _znnAmountController.text.isNotEmpty
+    final znnPrefix = _znnAmountController.text.isNotEmpty
         ? '${_znnAmountController.text} ${kZnnCoin.symbol}'
         : '';
-    String qsrSuffix = _qsrAmountController.text.isNotEmpty
+    final qsrSuffix = _qsrAmountController.text.isNotEmpty
         ? '${_qsrAmountController.text} ${kQsrCoin.symbol}'
         : '';
-    String splitter = znnPrefix.isNotEmpty && qsrSuffix.isNotEmpty ? ' ● ' : '';
+    final splitter = znnPrefix.isNotEmpty && qsrSuffix.isNotEmpty ? ' ● ' : '';
 
     return znnPrefix + splitter + qsrSuffix;
   }
@@ -195,7 +194,7 @@ class _AcceleratorDonationStepperState
         Row(children: [
           StepperUtils.getBalanceWidget(kZnnCoin, accountInfo),
           StepperUtils.getBalanceWidget(kQsrCoin, accountInfo),
-        ]),
+        ],),
         const DottedBorderInfoWidget(
           text: 'All donated funds go directly into the Accelerator address',
         ),
@@ -209,7 +208,7 @@ class _AcceleratorDonationStepperState
               text: 'Cancel',
             ),
             const SizedBox(
-              width: 15.0,
+              width: 15,
             ),
             StepperButton(
               onPressed: accountInfo.znn()! > BigInt.zero ||
@@ -253,7 +252,7 @@ class _AcceleratorDonationStepperState
             suffixIcon: AmountSuffixWidgets(
               kZnnCoin,
               onMaxPressed: () {
-                BigInt maxZnn = accountInfo.getBalance(
+                final maxZnn = accountInfo.getBalance(
                   kZnnCoin.tokenStandard,
                 );
                 if (_znnAmountController.text.isEmpty ||
@@ -292,7 +291,7 @@ class _AcceleratorDonationStepperState
             suffixIcon: AmountSuffixWidgets(
               kQsrCoin,
               onMaxPressed: () {
-                BigInt maxQsr = accountInfo.getBalance(
+                final maxQsr = accountInfo.getBalance(
                   kQsrCoin.tokenStandard,
                 );
                 if (_qsrAmountController.text.isEmpty ||
@@ -331,7 +330,7 @@ class _AcceleratorDonationStepperState
               },
             ),
             const SizedBox(
-              width: 15.0,
+              width: 15,
             ),
             StepperButton(
               text: 'Continue',
@@ -415,7 +414,7 @@ class _AcceleratorDonationStepperState
               text: 'Go back',
             ),
             const SizedBox(
-              width: 15.0,
+              width: 15,
             ),
             _getSubmitDonationViewModel(),
           ],
@@ -460,7 +459,7 @@ class _AcceleratorDonationStepperState
         );
       },
       builder: (_, model, __) => _getSubmitDonationButton(model),
-      viewModelBuilder: () => SubmitDonationBloc(),
+      viewModelBuilder: SubmitDonationBloc.new,
     );
   }
 

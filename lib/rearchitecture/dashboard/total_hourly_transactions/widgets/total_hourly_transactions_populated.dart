@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 
 class TotalHourlyTransactionsPopulated extends StatelessWidget {
-  final Map<String, dynamic>? data;
 
   const TotalHourlyTransactionsPopulated({required this.data, super.key});
+  final Map<String, dynamic>? data;
 
   @override
   Widget build(BuildContext context) {

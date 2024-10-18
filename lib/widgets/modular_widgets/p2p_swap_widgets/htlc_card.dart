@@ -14,16 +14,6 @@ import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/loading_inf
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 class HtlcCard extends StatefulWidget {
-  final String title;
-  final String sender;
-  final String? htlcId;
-  final String? hashLock;
-  final int? expirationTime;
-  final String? recipient;
-  final BigInt? amount;
-  final String? tokenStandard;
-  final int? tokenDecimals;
-  final String? tokenSymbol;
 
   const HtlcCard({
     required this.title,
@@ -96,6 +86,16 @@ class HtlcCard extends StatefulWidget {
         tokenDecimals: token.decimals,
         tokenSymbol: token.symbol,
       );
+  final String title;
+  final String sender;
+  final String? htlcId;
+  final String? hashLock;
+  final int? expirationTime;
+  final String? recipient;
+  final BigInt? amount;
+  final String? tokenStandard;
+  final int? tokenDecimals;
+  final String? tokenSymbol;
 
   @override
   State<HtlcCard> createState() => _HtlcCardState();
@@ -127,7 +127,7 @@ class _HtlcCardState extends State<HtlcCard>
       child: Container(
         decoration: BoxDecoration(
           color: Theme.of(context).colorScheme.primary,
-          borderRadius: const BorderRadius.all(Radius.circular(8.0)),
+          borderRadius: const BorderRadius.all(Radius.circular(8)),
         ),
         child: widget.htlcId == null ? _getWaitingBody() : _getWidgetBody(),
       ),
@@ -136,7 +136,7 @@ class _HtlcCardState extends State<HtlcCard>
 
   Widget _getWaitingBody() {
     return const SizedBox(
-      height: 94.0,
+      height: 94,
       child: LoadingInfoText(
         text: 'Waiting for the counterparty to join the swap.',
       ),
@@ -145,14 +145,14 @@ class _HtlcCardState extends State<HtlcCard>
 
   Widget _getWidgetBody() {
     return Padding(
-      padding: const EdgeInsets.all(20.0),
+      padding: const EdgeInsets.all(20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Text(
             widget.title,
             style:
-                const TextStyle(fontSize: 14.0, color: AppColors.subtitleColor),
+                const TextStyle(fontSize: 14, color: AppColors.subtitleColor),
           ),
           const SizedBox(
             height: 10,
@@ -167,7 +167,7 @@ class _HtlcCardState extends State<HtlcCard>
                     constraints: const BoxConstraints(maxWidth: 280),
                     child: Text(
                       widget.amount!.addDecimals(widget.tokenDecimals!),
-                      style: const TextStyle(fontSize: 18.0),
+                      style: const TextStyle(fontSize: 18),
                       overflow: TextOverflow.ellipsis,
                       maxLines: 1,
                       softWrap: false,
@@ -177,27 +177,27 @@ class _HtlcCardState extends State<HtlcCard>
                     constraints: const BoxConstraints(maxWidth: 150),
                     child: Text(
                       ' ${widget.tokenSymbol!}',
-                      style: const TextStyle(fontSize: 18.0),
+                      style: const TextStyle(fontSize: 18),
                       overflow: TextOverflow.ellipsis,
                       maxLines: 1,
                       softWrap: false,
                     ),
                   ),
                   const SizedBox(
-                    width: 8.0,
+                    width: 8,
                   ),
                   Container(
-                    height: 6.0,
-                    width: 6.0,
+                    height: 6,
+                    width: 6,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       color: ColorUtils.getTokenColor(
-                          TokenStandard.parse(widget.tokenStandard!)),
+                          TokenStandard.parse(widget.tokenStandard!),),
                     ),
                   ),
                 ],
               ),
-              _getDetailsButton()
+              _getDetailsButton(),
             ],
           ),
           _getDetailsSection(),
@@ -217,8 +217,8 @@ class _HtlcCardState extends State<HtlcCard>
         });
       },
       child: RotationTransition(
-        turns: Tween(begin: 0.0, end: 0.5).animate(_animationController),
-        child: const Icon(Icons.keyboard_arrow_down, size: 22.0),
+        turns: Tween<double>(begin: 0, end: 0.5).animate(_animationController),
+        child: const Icon(Icons.keyboard_arrow_down, size: 22),
       ),
     );
   }
@@ -231,9 +231,9 @@ class _HtlcCardState extends State<HtlcCard>
         visible: _areDetailsExpanded,
         child: Column(
           children: [
-            const SizedBox(height: 20.0),
+            const SizedBox(height: 20),
             Divider(color: Colors.white.withOpacity(0.1)),
-            const SizedBox(height: 20.0),
+            const SizedBox(height: 20),
             _getDetailsList(),
           ],
         ),
@@ -242,7 +242,7 @@ class _HtlcCardState extends State<HtlcCard>
   }
 
   Widget _getDetailsList() {
-    final List<Widget> children = [];
+    final children = <Widget>[];
     final htlcId = Hash.parse(widget.htlcId!);
     final hashLock = Hash.parse(widget.hashLock!);
     children.add(_getExpirationRow(widget.expirationTime!));
@@ -250,7 +250,7 @@ class _HtlcCardState extends State<HtlcCard>
       DetailRow(
           label: 'Deposit ID',
           value: htlcId.toString(),
-          valueToShow: htlcId.toShortString()),
+          valueToShow: htlcId.toShortString(),),
     );
     children.add(
       DetailRow(
@@ -263,26 +263,26 @@ class _HtlcCardState extends State<HtlcCard>
       DetailRow(
           label: 'Sender',
           value: widget.sender,
-          valueToShow: ZenonAddressUtils.getLabel(widget.sender)),
+          valueToShow: ZenonAddressUtils.getLabel(widget.sender),),
     );
     children.add(
       DetailRow(
           label: 'Recipient',
           value: widget.recipient!,
-          valueToShow: ZenonAddressUtils.getLabel(widget.recipient!)),
+          valueToShow: ZenonAddressUtils.getLabel(widget.recipient!),),
     );
     children.add(
       DetailRow(
           label: 'Hashlock',
           value: hashLock.toString(),
-          valueToShow: hashLock.toShortString()),
+          valueToShow: hashLock.toShortString(),),
     );
     return Column(
       children: children.zip(
         List.generate(
           children.length - 1,
           (index) => const SizedBox(
-            height: 15.0,
+            height: 15,
           ),
         ),
       ),
@@ -305,11 +305,11 @@ class _HtlcCardState extends State<HtlcCard>
     return Tooltip(
       message: message,
       child: Padding(
-        padding: const EdgeInsets.only(top: 1.0),
+        padding: const EdgeInsets.only(top: 1),
         child: Icon(
           icon,
           color: iconColor,
-          size: 14.0,
+          size: 14,
         ),
       ),
     );
@@ -320,7 +320,7 @@ class _HtlcCardState extends State<HtlcCard>
         Duration(seconds: expirationTime - DateTimeUtils.unixTimeNow);
     if (duration.isNegative) {
       return const DetailRow(
-          label: 'Expires in', value: 'Expired', canBeCopied: false);
+          label: 'Expires in', value: 'Expired', canBeCopied: false,);
     }
     return TweenAnimationBuilder<Duration>(
       duration: duration,
@@ -329,7 +329,7 @@ class _HtlcCardState extends State<HtlcCard>
         return DetailRow(
             label: 'Expires in',
             value: d.toString().split('.').first,
-            canBeCopied: false);
+            canBeCopied: false,);
       },
     );
   }

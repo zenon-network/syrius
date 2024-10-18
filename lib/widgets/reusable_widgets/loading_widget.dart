@@ -2,9 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
 
 class SyriusLoadingWidget extends StatelessWidget {
-  final double size;
-  final double strokeWidth;
-  final double padding;
 
   const SyriusLoadingWidget({
     this.size = 50.0,
@@ -12,6 +9,9 @@ class SyriusLoadingWidget extends StatelessWidget {
     this.padding = 4.0,
     super.key,
   });
+  final double size;
+  final double strokeWidth;
+  final double padding;
 
   @override
   Widget build(BuildContext context) {

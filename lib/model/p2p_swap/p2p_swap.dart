@@ -28,25 +28,6 @@ enum P2pSwapChain {
 }
 
 class P2pSwap {
-  final String id;
-  final int chainId;
-  final P2pSwapType type;
-  final P2pSwapMode mode;
-  final P2pSwapDirection direction;
-  final String selfAddress;
-  final String counterpartyAddress;
-  final BigInt fromAmount;
-  final String fromTokenStandard;
-  final String fromSymbol;
-  final int fromDecimals;
-  final P2pSwapChain fromChain;
-  final P2pSwapChain toChain;
-  final int startTime;
-  P2pSwapState state;
-  BigInt? toAmount;
-  String? toTokenStandard;
-  String? toSymbol;
-  int? toDecimals;
 
   P2pSwap(
       {required this.id,
@@ -67,7 +48,7 @@ class P2pSwap {
       this.toAmount,
       this.toTokenStandard,
       this.toSymbol,
-      this.toDecimals});
+      this.toDecimals,});
 
   P2pSwap.fromJson(Map<String, dynamic> json)
       : id = json['id'],
@@ -89,6 +70,25 @@ class P2pSwap {
         toTokenStandard = json['toTokenStandard'],
         toSymbol = json['toSymbol'],
         toDecimals = json['toDecimals'];
+  final String id;
+  final int chainId;
+  final P2pSwapType type;
+  final P2pSwapMode mode;
+  final P2pSwapDirection direction;
+  final String selfAddress;
+  final String counterpartyAddress;
+  final BigInt fromAmount;
+  final String fromTokenStandard;
+  final String fromSymbol;
+  final int fromDecimals;
+  final P2pSwapChain fromChain;
+  final P2pSwapChain toChain;
+  final int startTime;
+  P2pSwapState state;
+  BigInt? toAmount;
+  String? toTokenStandard;
+  String? toSymbol;
+  int? toDecimals;
 
   Map<String, dynamic> toJson() => {
         'id': id,

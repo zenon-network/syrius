@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 
 class PillarsPopulated extends StatelessWidget {
-  final int? data;
 
   const PillarsPopulated({required this.data, super.key});
+  final int? data;
 
   @override
   Widget build(BuildContext context) {

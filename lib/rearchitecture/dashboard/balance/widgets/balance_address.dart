@@ -10,14 +10,14 @@ import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 /// and changes the value of the [edgesColorNotifier]
 
 class BalanceAddress extends StatelessWidget {
-  final String address;
-  final ValueNotifier<Color> edgesColorNotifier;
 
   const BalanceAddress({
     required this.address,
     required this.edgesColorNotifier,
     super.key,
   });
+  final String address;
+  final ValueNotifier<Color> edgesColorNotifier;
 
   @override
   Widget build(BuildContext context) {
@@ -36,15 +36,15 @@ class BalanceAddress extends StatelessWidget {
             decoration: BoxDecoration(
               color: Theme.of(context).colorScheme.surface,
               border: Border.all(color: Theme.of(context).colorScheme.surface),
-              borderRadius: BorderRadius.circular(15.0),
+              borderRadius: BorderRadius.circular(15),
             ),
             padding: const EdgeInsets.symmetric(
-              vertical: 4.0,
-              horizontal: 8.0,
+              vertical: 4,
+              horizontal: 8,
             ),
             margin: const EdgeInsets.only(
-              bottom: 12.0,
-              top: 12.0,
+              bottom: 12,
+              top: 12,
             ),
             child: AutoSizeText.rich(
               TextSpan(

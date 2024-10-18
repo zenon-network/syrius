@@ -8,9 +8,6 @@ import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/loading_wid
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 class P2pSwapsListItem extends StatefulWidget {
-  final P2pSwap swap;
-  final Function(String) onTap;
-  final Function(P2pSwap) onDelete;
 
   const P2pSwapsListItem({
     required this.swap,
@@ -18,6 +15,9 @@ class P2pSwapsListItem extends StatefulWidget {
     required this.onDelete,
     super.key,
   });
+  final P2pSwap swap;
+  final Function(String) onTap;
+  final Function(P2pSwap) onDelete;
 
   @override
   State<P2pSwapsListItem> createState() => _P2pSwapsListItemState();
@@ -30,16 +30,16 @@ class _P2pSwapsListItemState extends State<P2pSwapsListItem> {
   Widget build(BuildContext context) {
     return Material(
       color: Theme.of(context).colorScheme.primaryContainer,
-      elevation: 1.0,
+      elevation: 1,
       borderRadius: BorderRadius.circular(
-        8.0,
+        8,
       ),
       child: InkWell(
         borderRadius: BorderRadius.circular(8),
         onTap: () => widget.onTap.call(widget.swap.id),
         child: Container(
-          height: 56.0,
-          padding: const EdgeInsets.symmetric(horizontal: 20.0),
+          height: 56,
+          padding: const EdgeInsets.symmetric(horizontal: 20),
           child: Row(
             children: [
               Expanded(
@@ -48,9 +48,9 @@ class _P2pSwapsListItemState extends State<P2pSwapsListItem> {
                   children: [
                     _getStatusWidget(),
                     const SizedBox(
-                      width: 8.0,
+                      width: 8,
                     ),
-                    _getStatusText()
+                    _getStatusText(),
                   ],
                 ),
               ),
@@ -60,7 +60,7 @@ class _P2pSwapsListItemState extends State<P2pSwapsListItem> {
                     widget.swap.fromAmount,
                     widget.swap.fromDecimals,
                     widget.swap.fromTokenStandard,
-                    widget.swap.fromSymbol),
+                    widget.swap.fromSymbol,),
               ),
               Expanded(
                 flex: 20,
@@ -69,7 +69,7 @@ class _P2pSwapsListItemState extends State<P2pSwapsListItem> {
                         widget.swap.toAmount,
                         widget.swap.toDecimals,
                         widget.swap.toTokenStandard,
-                        widget.swap.toSymbol)
+                        widget.swap.toSymbol,)
                     : _getTextWidget('-'),
               ),
               Expanded(
@@ -95,16 +95,16 @@ class _P2pSwapsListItemState extends State<P2pSwapsListItem> {
       case P2pSwapState.pending:
       case P2pSwapState.active:
         return const SyriusLoadingWidget(
-          size: 12.0,
-          strokeWidth: 2.0,
-          padding: 2.0,
+          size: 12,
+          strokeWidth: 2,
+          padding: 2,
         );
       case P2pSwapState.completed:
         return const Icon(Icons.check_circle_outline,
-            color: AppColors.znnColor, size: size);
+            color: AppColors.znnColor, size: size,);
       default:
         return const Icon(Icons.cancel_outlined,
-            color: AppColors.errorColor, size: size);
+            color: AppColors.errorColor, size: size,);
     }
   }
 
@@ -113,13 +113,10 @@ class _P2pSwapsListItemState extends State<P2pSwapsListItem> {
     switch (widget.swap.state) {
       case P2pSwapState.pending:
         text = 'Starting';
-        break;
       case P2pSwapState.active:
         text = 'Active';
-        break;
       case P2pSwapState.completed:
         text = 'Completed';
-        break;
       default:
         text = 'Unsuccessful';
     }
@@ -129,14 +126,14 @@ class _P2pSwapsListItemState extends State<P2pSwapsListItem> {
   Widget _getTextWidget(String text) {
     return Text(text,
         style: const TextStyle(
-            fontSize: 12.0, height: 1, color: AppColors.subtitleColor),
+            fontSize: 12, height: 1, color: AppColors.subtitleColor,),
         overflow: TextOverflow.ellipsis,
         maxLines: 1,
-        softWrap: false);
+        softWrap: false,);
   }
 
   Widget _getAmountWidget(
-      BigInt? amount, int? decimals, String? tokenStandard, String? symbol) {
+      BigInt? amount, int? decimals, String? tokenStandard, String? symbol,) {
     if (amount == null ||
         decimals == null ||
         tokenStandard == null ||
@@ -158,11 +155,11 @@ class _P2pSwapsListItemState extends State<P2pSwapsListItem> {
           ],
         ),
         const SizedBox(
-          width: 6.0,
+          width: 6,
         ),
         Container(
-          height: 6.0,
-          width: 6.0,
+          height: 6,
+          width: 6,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
             color: ColorUtils.getTokenColor(
@@ -186,7 +183,7 @@ class _P2pSwapsListItemState extends State<P2pSwapsListItem> {
               height: 32,
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(
-                  4.0,
+                  4,
                 ),
                 color: const Color(0xff333333),
               ),
@@ -201,7 +198,7 @@ class _P2pSwapsListItemState extends State<P2pSwapsListItem> {
                     color: _isDeleteIconHovered
                         ? Colors.white
                         : AppColors.subtitleColor,
-                    size: 18.0,
+                    size: 18,
                   ),
                 ),
               ),
@@ -214,12 +211,12 @@ class _P2pSwapsListItemState extends State<P2pSwapsListItem> {
           child: FittedBox(
             fit: BoxFit.scaleDown,
             child: SizedBox(
-              height: 32.0,
+              height: 32,
               child: ElevatedButton(
                 onPressed: () => widget.onTap.call(widget.swap.id),
                 child: const Text(
                   'Reclaim funds',
-                  style: TextStyle(fontSize: 12.0, color: Colors.white),
+                  style: TextStyle(fontSize: 12, color: Colors.white),
                 ),
               ),
             ),
@@ -231,17 +228,17 @@ class _P2pSwapsListItemState extends State<P2pSwapsListItem> {
   }
 
   String _formatTime(int transactionMillis) {
-    int currentMillis = DateTime.now().millisecondsSinceEpoch;
+    final currentMillis = DateTime.now().millisecondsSinceEpoch;
     if (currentMillis - transactionMillis <=
         const Duration(days: 1).inMilliseconds) {
       return _formatTimeShort(currentMillis - transactionMillis);
     }
     return FormatUtils.formatDate(transactionMillis,
-        dateFormat: 'MM/dd/yyyy hh:mm a');
+        dateFormat: 'MM/dd/yyyy hh:mm a',);
   }
 
   String _formatTimeShort(int i) {
-    Duration duration = Duration(milliseconds: i);
+    final duration = Duration(milliseconds: i);
     if (duration.inHours > 0) {
       return '${duration.inHours} h ago';
     }

@@ -6,9 +6,6 @@ import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 class CoinDropdown extends StatelessWidget {
-  final Function(Token?) _onChangeCallback;
-  final Token _selectedToken;
-  final List<Token?> _availableTokens;
 
   const CoinDropdown(
     this._availableTokens,
@@ -16,6 +13,9 @@ class CoinDropdown extends StatelessWidget {
     this._onChangeCallback, {
     super.key,
   });
+  final Function(Token?) _onChangeCallback;
+  final Token _selectedToken;
+  final List<Token?> _availableTokens;
 
   @override
   Widget build(BuildContext context) {
@@ -39,7 +39,7 @@ class CoinDropdown extends StatelessWidget {
                         color: ColorUtils.getTokenColor(e!.tokenStandard),
                       ),
                       child: Padding(
-                        padding: const EdgeInsets.only(left: 8.0),
+                        padding: const EdgeInsets.only(left: 8),
                         child: Row(
                           children: [
                             Text(
@@ -53,14 +53,14 @@ class CoinDropdown extends StatelessWidget {
                             ),
                             const Padding(
                               padding: EdgeInsets.symmetric(
-                                horizontal: 5.0,
+                                horizontal: 5,
                               ),
                               child: Icon(
                                 SimpleLineIcons.arrow_down,
-                                size: 8.0,
+                                size: 8,
                                 color: Colors.white,
                               ),
-                            )
+                            ),
                           ],
                         ),
                       ),

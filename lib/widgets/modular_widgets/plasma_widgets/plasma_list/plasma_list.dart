@@ -10,10 +10,10 @@ import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 class PlasmaList extends StatefulWidget {
-  final String? errorText;
-  final PlasmaListBloc bloc;
 
   const PlasmaList({required this.bloc, this.errorText, super.key});
+  final String? errorText;
+  final PlasmaListBloc bloc;
 
   @override
   State createState() {
@@ -94,11 +94,8 @@ class _PlasmaListState extends State<PlasmaList> {
   ) {
     return Stack(
       alignment: Alignment.centerLeft,
-      fit: StackFit.loose,
       children: [
-        plasmaItem.isRevocable!
-            ? _getCancelButtonViewModel(plasmaModel, isSelected, plasmaItem)
-            : _getCancelCountdownTimer(plasmaItem, plasmaModel)
+        if (plasmaItem.isRevocable!) _getCancelButtonViewModel(plasmaModel, isSelected, plasmaItem) else _getCancelCountdownTimer(plasmaItem, plasmaModel),
       ],
     );
   }
@@ -108,7 +105,7 @@ class _PlasmaListState extends State<PlasmaList> {
     bool isSelected,
     FusionEntry plasmaItem,
   ) {
-    final GlobalKey<LoadingButtonState> cancelButtonKey = GlobalKey();
+    final cancelButtonKey = GlobalKey<LoadingButtonState>();
 
     return ViewModelBuilder<CancelPlasmaBloc>.reactive(
       onViewModelReady: (model) {
@@ -122,7 +119,7 @@ class _PlasmaListState extends State<PlasmaList> {
           onError: (error) async {
             cancelButtonKey.currentState?.animateReverse();
             await NotificationUtils.sendNotificationError(
-                error, 'Error while cancelling plasma');
+                error, 'Error while cancelling plasma',);
           },
         );
       },
@@ -131,7 +128,7 @@ class _PlasmaListState extends State<PlasmaList> {
         plasmaItem.id.toString(),
         cancelButtonKey,
       ),
-      viewModelBuilder: () => CancelPlasmaBloc(),
+      viewModelBuilder: CancelPlasmaBloc.new,
     );
   }
 
@@ -149,7 +146,7 @@ class _PlasmaListState extends State<PlasmaList> {
       key: key,
       icon: const Icon(
         SimpleLineIcons.close,
-        size: 11.0,
+        size: 11,
         color: AppColors.errorColor,
       ),
       outlineColor: AppColors.errorColor,
@@ -165,14 +162,12 @@ class _PlasmaListState extends State<PlasmaList> {
         _sortAscending
             ? _stakingList.sort((a, b) => a.qsrAmount.compareTo(b.qsrAmount))
             : _stakingList.sort((a, b) => b.qsrAmount.compareTo(a.qsrAmount));
-        break;
       case 'Beneficiary':
         _sortAscending
             ? _stakingList
                 .sort((a, b) => a.beneficiary.compareTo(b.beneficiary))
             : _stakingList
                 .sort((a, b) => b.beneficiary.compareTo(a.beneficiary));
-        break;
       default:
         _sortAscending
             ? _stakingList
@@ -195,10 +190,10 @@ class _PlasmaListState extends State<PlasmaList> {
     FusionEntry plasmaItem,
     PlasmaListBloc model,
   ) {
-    int heightUntilCancellation =
+    final heightUntilCancellation =
         plasmaItem.expirationHeight - model.lastMomentumHeight!;
 
-    Duration durationUntilCancellation =
+    final durationUntilCancellation =
         kIntervalBetweenMomentums * heightUntilCancellation;
 
     if (plasmaItem.isRevocable!) {

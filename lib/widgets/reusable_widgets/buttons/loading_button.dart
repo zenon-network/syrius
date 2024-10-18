@@ -9,16 +9,6 @@ import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 enum ButtonState { busy, idle }
 
 class LoadingButton extends StatefulWidget {
-  final Size minimumSize;
-  final double minWidth;
-  final VoidCallback? onPressed;
-  final String? text;
-  final Widget? child;
-  final Color? outlineColor;
-  final EdgeInsets paddingAroundChild;
-  final double borderWidth;
-  final double circularBorderRadius;
-  final TextStyle? textStyle;
 
   const LoadingButton({
     required this.onPressed,
@@ -47,7 +37,7 @@ class LoadingButton extends StatefulWidget {
         onPressed: onPressed,
         label: text,
         key: key,
-        minimumSize: const Size(90.0, 25.0),
+        minimumSize: const Size(90, 25),
         textStyle: textStyle,
         outlineColor: outlineColor,
         icon: icon,
@@ -64,7 +54,7 @@ class LoadingButton extends StatefulWidget {
         onPressed: onPressed,
         text: text,
         key: key,
-        minimumSize: const Size(80.0, 25.0),
+        minimumSize: const Size(80, 25),
         textStyle: textStyle,
         outlineColor: outlineColor,
       );
@@ -79,7 +69,6 @@ class LoadingButton extends StatefulWidget {
         text: text,
         minimumSize: kSettingsButtonMinSize,
         key: key,
-        paddingAroundChild: EdgeInsets.zero,
         textStyle: kBodyMediumTextStyle,
       );
 
@@ -91,7 +80,7 @@ class LoadingButton extends StatefulWidget {
       LoadingButton(
         onPressed: onPressed,
         text: text,
-        minimumSize: const Size(360.0, 40.0),
+        minimumSize: const Size(360, 40),
         key: key,
       );
 
@@ -115,7 +104,7 @@ class LoadingButton extends StatefulWidget {
     required Widget icon,
     required Key key,
     String label = '',
-    Size minimumSize = const Size(50.0, 50.0),
+    Size minimumSize = const Size(50, 50),
     Color? outlineColor,
     TextStyle? textStyle,
   }) =>
@@ -140,6 +129,16 @@ class LoadingButton extends StatefulWidget {
           ],
         ),
       );
+  final Size minimumSize;
+  final double minWidth;
+  final VoidCallback? onPressed;
+  final String? text;
+  final Widget? child;
+  final Color? outlineColor;
+  final EdgeInsets paddingAroundChild;
+  final double borderWidth;
+  final double circularBorderRadius;
+  final TextStyle? textStyle;
 
   @override
   LoadingButtonState createState() => LoadingButtonState();
@@ -154,7 +153,7 @@ class LoadingButtonState extends State<LoadingButton>
   ButtonState btnState = ButtonState.idle;
 
   final GlobalKey<MyOutlinedButtonState> _outlineButtonKey = GlobalKey();
-  double _minWidth = 0.0;
+  double _minWidth = 0;
 
   double get minWidth => _minWidth;
 
@@ -177,7 +176,7 @@ class LoadingButtonState extends State<LoadingButton>
       ),
     );
 
-    _animation = Tween(begin: 0.0, end: 1.0).animate(
+    _animation = Tween<double>(begin: 0, end: 1).animate(
       CurvedAnimation(
         parent: _animationController,
         curve: Curves.easeInOutCirc,
@@ -219,7 +218,7 @@ class LoadingButtonState extends State<LoadingButton>
       borderWidth: widget.borderWidth,
       outlineColor: widget.outlineColor,
       minimumSize: Size(
-        lerpWidth(widget.minimumSize.width, minWidth, _animation.value),
+        lerpWidth(widget.minimumSize.width, minWidth, _animation.value)!,
         widget.minimumSize.height,
       ),
       onPressed: btnState == ButtonState.idle ? widget.onPressed : null,
@@ -228,15 +227,15 @@ class LoadingButtonState extends State<LoadingButton>
         widget.circularBorderRadius,
         widget.minimumSize.height / 2,
         _animation.value,
-      )!,
+      ),
       padding: widget.paddingAroundChild,
       child: btnState == ButtonState.idle
           ? widget.child ?? Text(widget.text!)
           : const SizedBox(
-              width: 15.0,
-              height: 15.0,
+              width: 15,
+              height: 15,
               child: CircularProgressIndicator(
-                strokeWidth: 1.0,
+                strokeWidth: 1,
                 valueColor: AlwaysStoppedAnimation<Color>(AppColors.znnColor),
               ),
             ),
@@ -258,7 +257,7 @@ class LoadingButtonState extends State<LoadingButton>
     }
   }
 
-  lerpWidth(a, b, t) {
+  double? lerpWidth(double a, double b, double t) {
     if (a == 0.0 || b == 0.0) {
       return null;
     } else {

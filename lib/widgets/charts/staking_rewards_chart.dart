@@ -8,12 +8,12 @@ import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 class StakingRewardsChart extends StatefulWidget {
-  final RewardHistoryList? rewardsHistory;
 
   const StakingRewardsChart(
     this.rewardsHistory, {
     super.key,
   });
+  final RewardHistoryList? rewardsHistory;
 
   @override
   State createState() => _StakingRewardsChart();
@@ -49,7 +49,7 @@ class _StakingRewardsChart extends State<StakingRewardsChart> {
         ),
       );
 
-  _linesBarData() => [
+  List<StandardLineChartBarData> _linesBarData() => [
         StandardLineChartBarData(
           color: AppColors.qsrColor,
           spots: _getRewardsSpots(),
@@ -65,8 +65,8 @@ class _StakingRewardsChart extends State<StakingRewardsChart> {
       .toNum();
 
   num _getMaxValueOfQsrRewards() {
-    BigInt max = widget.rewardsHistory!.list.first.qsrAmount;
-    for (var element in widget.rewardsHistory!.list) {
+    var max = widget.rewardsHistory!.list.first.qsrAmount;
+    for (final element in widget.rewardsHistory!.list) {
       if (element.qsrAmount > max) {
         max = element.qsrAmount;
       }

@@ -7,7 +7,7 @@ import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 class RecoverHtlcSwapFundsBloc extends ReclaimHtlcSwapFundsBloc {
-  void recoverFunds({required Hash htlcId}) async {
+  Future<void> recoverFunds({required Hash htlcId}) async {
     try {
       final htlc = await zenon!.embedded.htlc.getById(htlcId);
 

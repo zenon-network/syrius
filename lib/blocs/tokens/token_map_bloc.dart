@@ -11,7 +11,6 @@ import 'package:zenon_syrius_wallet_flutter/utils/zts_utils.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 class TokenMapBloc with RefreshBlocMixin {
-  List<Token>? _allTokens;
 
   TokenMapBloc() {
     _onPageRequest.stream
@@ -26,6 +25,7 @@ class TokenMapBloc with RefreshBlocMixin {
 
     listenToWsRestart(refreshResults);
   }
+  List<Token>? _allTokens;
 
   void refreshResults() {
     if (!_onSearchInputChangedSubject.isClosed) {
@@ -73,10 +73,9 @@ class TokenMapBloc with RefreshBlocMixin {
       final newItems = await getData(pageKey, _pageSize, _searchInputTerm);
       final isLastPage = newItems.length < _pageSize;
       final nextPageKey = isLastPage ? null : pageKey + 1;
-      List<Token> allItems = [...lastListingState.itemList ?? [], ...newItems];
+      var allItems = <Token>[...lastListingState.itemList ?? [], ...newItems];
       allItems = filterItemsFunction(allItems);
       yield InfiniteScrollBlocListingState<Token>(
-        error: null,
         nextPageKey: nextPageKey,
         itemList: allItems,
       );
@@ -113,7 +112,7 @@ class TokenMapBloc with RefreshBlocMixin {
   }
 
   List<Token> _sortByIfTokenCreatedByUser(List<Token> tokens) {
-    List<Token> sortedTokens = tokens
+    final sortedTokens = tokens
         .where(
           (token) => kDefaultAddressList.contains(
             token.owner.toString(),
@@ -127,15 +126,15 @@ class TokenMapBloc with RefreshBlocMixin {
             token.owner.toString(),
           ),
         )
-        .toList());
+        .toList(),);
 
     return sortedTokens;
   }
 
   List<Token> _sortByIfTokenIsInFavorites(List<Token> tokens) {
-    Box favoriteTokens = Hive.box(kFavoriteTokensBox);
+    final favoriteTokens = Hive.box(kFavoriteTokensBox);
 
-    List<Token> sortedTokens = tokens
+    final sortedTokens = tokens
         .where(
           (token) => favoriteTokens.values.contains(
             token.tokenStandard.toString(),
@@ -149,7 +148,7 @@ class TokenMapBloc with RefreshBlocMixin {
             token.tokenStandard.toString(),
           ),
         )
-        .toList());
+        .toList(),);
 
     return sortedTokens;
   }
@@ -166,7 +165,7 @@ class TokenMapBloc with RefreshBlocMixin {
       ))
           .list!;
     } else {
-      return await _getDataBySearchTerm(pageKey, pageSize, searchTerm);
+      return _getDataBySearchTerm(pageKey, pageSize, searchTerm);
     }
   }
 
@@ -179,8 +178,8 @@ class TokenMapBloc with RefreshBlocMixin {
     String searchTerm,
   ) async {
     _allTokens ??= (await zenon!.embedded.token.getAll()).list!;
-    Iterable<Token> results = _allTokens!.where((token) =>
-        token.symbol.toLowerCase().contains(searchTerm.toLowerCase()));
+    final results = _allTokens!.where((token) =>
+        token.symbol.toLowerCase().contains(searchTerm.toLowerCase()),);
     results.toList().sublist(
           pageKey * pageSize,
           (pageKey + 1) * pageSize <= results.length
@@ -189,7 +188,7 @@ class TokenMapBloc with RefreshBlocMixin {
         );
     return results
         .where((token) =>
-            token.symbol.toLowerCase().contains(searchTerm.toLowerCase()))
+            token.symbol.toLowerCase().contains(searchTerm.toLowerCase()),)
         .toList();
   }
 }

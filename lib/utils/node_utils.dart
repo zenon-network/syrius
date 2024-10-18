@@ -18,7 +18,7 @@ int _kHeight = 0;
 
 class NodeUtils {
   static Future<bool> establishConnectionToNode(String url) async {
-    bool connectionStatus = await zenon!.wsClient.initialize(
+    final connectionStatus = await zenon!.wsClient.initialize(
       url,
       retry: false,
     );
@@ -26,7 +26,7 @@ class NodeUtils {
   }
 
   static Future<int> getNodeChainIdentifier() async {
-    int nodeChainId = 1;
+    var nodeChainId = 1;
     try {
       await zenon!.ledger.getFrontierMomentum().then((value) {
         nodeChainId = value.chainIdentifier;
@@ -58,7 +58,7 @@ class NodeUtils {
             );
 
         // If the message is null, it means that the isolate has closed
-        Completer embeddedStoppedCompleter = Completer();
+        final embeddedStoppedCompleter = Completer();
         sl<Stream>(instanceName: 'embeddedStoppedStream').listen(
           (message) {
             kEmbeddedNodeRunning = false;
@@ -84,10 +84,10 @@ class NodeUtils {
 
   static initWebSocketClient() async {
     addOnWebSocketConnectedCallback();
-    var url = kCurrentNode == kEmbeddedNode
+    final url = kCurrentNode == kEmbeddedNode
           ? kLocalhostDefaultNodeUrl
           : kCurrentNode ?? '';
-    bool connected = false;
+    var connected = false;
     try {
       connected = await establishConnectionToNode(url);
     } catch (_) {}
@@ -108,7 +108,7 @@ class NodeUtils {
 
       sl<AutoReceiveTxWorker>().autoReceive();
       Future.delayed(const Duration(seconds: 30))
-          .then((value) async => await NotificationUtils.sendNodeSyncingNotification());
+          .then((value) async => NotificationUtils.sendNodeSyncingNotification());
       _initListenForUnreceivedAccountBlocks(allResponseBroadcaster);
     });
   }
@@ -116,7 +116,7 @@ class NodeUtils {
   static Future<void> getUnreceivedTransactions() async {
     await Future.forEach<String?>(
       kDefaultAddressList,
-      (address) async => await getUnreceivedTransactionsByAddress(
+      (address) async => getUnreceivedTransactionsByAddress(
         Address.parse(address!),
       ),
     );
@@ -125,14 +125,14 @@ class NodeUtils {
   static Future<void> getUnreceivedTransactionsByAddress(
     Address address,
   ) async {
-    List<AccountBlock> unreceivedBlocks =
+    final unreceivedBlocks =
         (await zenon!.ledger.getUnreceivedBlocksByAddress(
       address,
     ))
             .list!;
 
     if (unreceivedBlocks.isNotEmpty) {
-      for (AccountBlock unreceivedBlock in unreceivedBlocks) {
+      for (final unreceivedBlock in unreceivedBlocks) {
         if (sharedPrefsService!.get(
           kAutoReceiveKey,
           defaultValue: kAutoReceiveDefaultValue,
@@ -144,14 +144,14 @@ class NodeUtils {
   }
 
   static Future<void> checkForLocalTimeDiscrepancy(
-      String warningMessage) async {
+      String warningMessage,) async {
     const maxAllowedDiscrepancy = Duration(minutes: 5);
     try {
       final syncInfo = await zenon!.stats.syncInfo();
-      bool nodeIsSynced = (syncInfo.state == SyncState.syncDone ||
+      final nodeIsSynced = syncInfo.state == SyncState.syncDone ||
           (syncInfo.targetHeight > 0 &&
               syncInfo.currentHeight > 0 &&
-              (syncInfo.targetHeight - syncInfo.currentHeight) < 20));
+              (syncInfo.targetHeight - syncInfo.currentHeight) < 20);
       if (nodeIsSynced) {
         final frontierTime =
             (await zenon!.ledger.getFrontierMomentum()).timestamp;
@@ -178,15 +178,15 @@ class NodeUtils {
             sharedPrefsService!
                 .get(kAutoReceiveKey, defaultValue: kAutoReceiveDefaultValue)) {
           for (var i = 0; i < event['params']['result'].length; i += 1) {
-            var tx = event['params']['result'][i];
+            final tx = event['params']['result'][i];
             if (tx.containsKey('toAddress') &&
                 kDefaultAddressList.contains(tx['toAddress'])) {
-              var hash = Hash.parse(tx['hash']);
+              final hash = Hash.parse(tx['hash']);
               sl<AutoReceiveTxWorker>().addHash(hash);
             }
           }
 
-          Map result = (event['params']['result'] as List).first;
+          final Map result = (event['params']['result'] as List).first;
           if (!result.containsKey('blockType') &&
               result['height'] != null &&
               (_kHeight == 0 || result['height'] >= _kHeight + 1)) {
@@ -202,23 +202,23 @@ class NodeUtils {
   }
 
   static Future<void> _getSubscriptionForMomentums() async =>
-      await zenon!.subscribe.toMomentums();
+      zenon!.subscribe.toMomentums();
 
   static Future<void> _getSubscriptionForAllAccountEvents() async =>
-      await zenon!.subscribe.toAllAccountBlocks();
+      zenon!.subscribe.toAllAccountBlocks();
 
   static Future<void> loadDbNodes() async {
     if (!Hive.isBoxOpen(kNodesBox)) {
       await Hive.openBox<String>(kNodesBox);
     }
-    Box<String> nodesBox = Hive.box<String>(kNodesBox);
+    final nodesBox = Hive.box<String>(kNodesBox);
     if (kDbNodes.isNotEmpty) {
       kDbNodes.clear();
     }
     kDbNodes.addAll(nodesBox.values);
     // Handle the case in which some default nodes were deleted
     // so they can't be found in the cache
-    String? currentNode = kCurrentNode;
+    final currentNode = kCurrentNode;
     if (currentNode != null &&
         !kDefaultNodes.contains(currentNode) &&
         !kDbNodes.contains(currentNode)) {
@@ -227,12 +227,12 @@ class NodeUtils {
   }
 
   static Future<void> setNode() async {
-    String? savedNode = sharedPrefsService!.get(kSelectedNodeKey);
+    final String? savedNode = sharedPrefsService!.get(kSelectedNodeKey);
     kCurrentNode = savedNode;
 
     if (savedNode == kEmbeddedNode) {
       // First we need to check if the node is not already running
-      bool isConnectionEstablished =
+      final isConnectionEstablished =
           await NodeUtils.establishConnectionToNode(kLocalhostDefaultNodeUrl);
       if (isConnectionEstablished == false) {
         // Acquire WakeLock
@@ -242,7 +242,7 @@ class NodeUtils {
         // Initialize local full node
         await Isolate.spawn(EmbeddedNode.runNode, [''],
             onExit:
-                sl<ReceivePort>(instanceName: 'embeddedStoppedPort').sendPort);
+                sl<ReceivePort>(instanceName: 'embeddedStoppedPort').sendPort,);
 
         kEmbeddedNodeRunning = true;
       }

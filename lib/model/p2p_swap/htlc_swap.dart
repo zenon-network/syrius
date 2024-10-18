@@ -1,13 +1,6 @@
 import 'package:zenon_syrius_wallet_flutter/model/p2p_swap/p2p_swap.dart';
 
 class HtlcSwap extends P2pSwap {
-  final String hashLock;
-  final String initialHtlcId;
-  final int initialHtlcExpirationTime;
-  final int hashType;
-  String? counterHtlcId;
-  int? counterHtlcExpirationTime;
-  String? preimage;
 
   HtlcSwap({
     required this.hashLock,
@@ -46,6 +39,13 @@ class HtlcSwap extends P2pSwap {
         counterHtlcExpirationTime = json['counterHtlcExpirationTime'],
         preimage = json['preimage'],
         super.fromJson();
+  final String hashLock;
+  final String initialHtlcId;
+  final int initialHtlcExpirationTime;
+  final int hashType;
+  String? counterHtlcId;
+  int? counterHtlcExpirationTime;
+  String? preimage;
 
   @override
   Map<String, dynamic> toJson() {

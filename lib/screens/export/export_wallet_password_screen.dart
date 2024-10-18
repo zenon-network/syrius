@@ -14,14 +14,14 @@ import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 class ExportWalletPasswordScreen extends StatefulWidget {
-  final String seed;
-  final bool backupWalletFlow;
 
   const ExportWalletPasswordScreen(
     this.seed, {
     this.backupWalletFlow = false,
     super.key,
   });
+  final String seed;
+  final bool backupWalletFlow;
 
   @override
   State<ExportWalletPasswordScreen> createState() =>
@@ -42,7 +42,7 @@ class _ExportWalletPasswordScreenState
     return Scaffold(
       body: Container(
         padding: const EdgeInsets.symmetric(
-          vertical: 30.0,
+          vertical: 30,
         ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -59,8 +59,8 @@ class _ExportWalletPasswordScreenState
                   child: SvgPicture.asset(
                     'assets/svg/ic_export_seed.svg',
                     colorFilter: const ColorFilter.mode(
-                        AppColors.znnColor, BlendMode.srcIn),
-                    height: 55.0,
+                        AppColors.znnColor, BlendMode.srcIn,),
+                    height: 55,
                   ),
                 ),
                 kVerticalSpacing,
@@ -74,7 +74,7 @@ class _ExportWalletPasswordScreenState
                   style: Theme.of(context).textTheme.headlineMedium,
                 ),
                 const SizedBox(
-                  height: 50.0,
+                  height: 50,
                 ),
                 Column(
                   children: [
@@ -126,7 +126,7 @@ class _ExportWalletPasswordScreenState
               children: <Widget>[
                 _getGoBackButton(),
                 kSpacingBetweenActionButtons,
-                _getExportButton()
+                _getExportButton(),
               ],
             ),
           ],
@@ -159,12 +159,12 @@ class _ExportWalletPasswordScreenState
                 )}.json',
               );
               if (walletPath != null) {
-                KeyStoreManager keyStoreManager = KeyStoreManager(
+                final keyStoreManager = KeyStoreManager(
                   walletPath: Directory(
                     path.dirname(walletPath.path),
                   ),
                 );
-                KeyStore keyStore = KeyStore.fromMnemonic(widget.seed);
+                final keyStore = KeyStore.fromMnemonic(widget.seed);
                 await keyStoreManager.saveKeyStore(
                   keyStore,
                   _passwordController.text,
@@ -185,11 +185,11 @@ class _ExportWalletPasswordScreenState
   }
 
   void _updateExportedSeedList() {
-    List<String> exportedSeeds = [];
+    final exportedSeeds = <String>[];
     exportedSeeds.addAll(Provider.of<ValueNotifier<List<String>>>(
       context,
       listen: false,
-    ).value);
+    ).value,);
     exportedSeeds.add(widget.seed);
     Provider.of<ValueNotifier<List<String>>>(
       context,

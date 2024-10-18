@@ -2,13 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
 
 class MaterialIconButton extends StatelessWidget {
-  final Color iconColor;
-  final Color? hoverColor;
-  final double padding;
-  final MaterialTapTargetSize materialTapTargetSize;
-  final VoidCallback onPressed;
-  final IconData iconData;
-  final double size;
 
   const MaterialIconButton({
     required this.onPressed,
@@ -20,6 +13,13 @@ class MaterialIconButton extends StatelessWidget {
     this.materialTapTargetSize = MaterialTapTargetSize.padded,
     super.key,
   });
+  final Color iconColor;
+  final Color? hoverColor;
+  final double padding;
+  final MaterialTapTargetSize materialTapTargetSize;
+  final VoidCallback onPressed;
+  final IconData iconData;
+  final double size;
 
   @override
   Widget build(BuildContext context) {

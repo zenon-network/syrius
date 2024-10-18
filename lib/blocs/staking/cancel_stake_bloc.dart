@@ -9,7 +9,7 @@ class CancelStakeBloc extends BaseBloc<AccountBlockTemplate?> {
   void cancelStake(String hash, BuildContext context) {
     try {
       addEvent(null);
-      AccountBlockTemplate transactionParams = zenon!.embedded.stake.cancel(
+      final transactionParams = zenon!.embedded.stake.cancel(
         Hash.parse(hash),
       );
       AccountBlockUtils.createAccountBlock(
@@ -22,9 +22,7 @@ class CancelStakeBloc extends BaseBloc<AccountBlockTemplate?> {
           addEvent(response);
         },
       ).onError(
-        (error, stackTrace) {
-          addError(error, stackTrace);
-        },
+        addError,
       );
     } catch (e, stackTrace) {
       addError(e, stackTrace);

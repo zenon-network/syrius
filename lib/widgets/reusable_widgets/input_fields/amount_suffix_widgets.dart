@@ -5,14 +5,14 @@ import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 class AmountSuffixWidgets extends StatelessWidget {
-  final Token tokenId;
-  final VoidCallback? onMaxPressed;
 
   const AmountSuffixWidgets(
     this.tokenId, {
     this.onMaxPressed,
     super.key,
   });
+  final Token tokenId;
+  final VoidCallback? onMaxPressed;
 
   @override
   Widget build(BuildContext context) {

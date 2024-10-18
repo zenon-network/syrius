@@ -5,10 +5,10 @@ import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 class UpdatePhaseBloc extends BaseBloc<AccountBlockTemplate?> {
   void updatePhase(Hash id, String name, String description, String url,
-      BigInt znnFundsNeeded, BigInt qsrFundsNeeded) {
+      BigInt znnFundsNeeded, BigInt qsrFundsNeeded,) {
     try {
       addEvent(null);
-      AccountBlockTemplate transactionParams =
+      final transactionParams =
           zenon!.embedded.accelerator.updatePhase(
         id,
         name,
@@ -19,12 +19,10 @@ class UpdatePhaseBloc extends BaseBloc<AccountBlockTemplate?> {
       );
       AccountBlockUtils.createAccountBlock(transactionParams, 'update phase')
           .then(
-        (block) => addEvent(block),
+        addEvent,
       )
           .onError(
-        (error, stackTrace) {
-          addError(error, stackTrace);
-        },
+        addError,
       );
     } catch (e, stackTrace) {
       addError(e, stackTrace);

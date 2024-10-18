@@ -14,7 +14,7 @@ class PlasmaStatsBloc extends BaseBloc<List<PlasmaInfoWrapper>>
 
   Future<void> getPlasmas() async {
     try {
-      List<PlasmaInfoWrapper> plasmaInfoWrapper = await Future.wait(
+      final plasmaInfoWrapper = await Future.wait(
         kDefaultAddressList.map((e) => _getPlasma(e!)).toList(),
       );
       addEvent(plasmaInfoWrapper);
@@ -25,7 +25,7 @@ class PlasmaStatsBloc extends BaseBloc<List<PlasmaInfoWrapper>>
 
   Future<PlasmaInfoWrapper> _getPlasma(String address) async {
     try {
-      PlasmaInfo plasmaInfo = await zenon!.embedded.plasma.get(
+      final plasmaInfo = await zenon!.embedded.plasma.get(
         Address.parse(address),
       );
       return PlasmaInfoWrapper(address: address, plasmaInfo: plasmaInfo);

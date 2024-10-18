@@ -10,16 +10,16 @@ class PlasmaListBloc extends InfiniteScrollBloc<FusionEntry> {
 
   @override
   Future<List<FusionEntry>> getData(int pageKey, int pageSize) async {
-    List<FusionEntry> results =
+    final results =
         (await zenon!.embedded.plasma.getEntriesByAddress(
       Address.parse(kSelectedAddress!),
       pageIndex: pageKey,
       pageSize: pageSize,
     ))
             .list;
-    Momentum lastMomentum = await zenon!.ledger.getFrontierMomentum();
+    final lastMomentum = await zenon!.ledger.getFrontierMomentum();
     lastMomentumHeight = lastMomentum.height;
-    for (var fusionEntry in results) {
+    for (final fusionEntry in results) {
       fusionEntry.isRevocable =
           lastMomentum.height > fusionEntry.expirationHeight;
     }

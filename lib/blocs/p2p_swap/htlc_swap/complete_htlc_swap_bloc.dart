@@ -28,10 +28,10 @@ class CompleteHtlcSwapBloc extends BaseBloc<HtlcSwap?> {
         throw 'The swap secret size exceeds the maximum allowed size.';
       }
 
-      AccountBlockTemplate transactionParams = zenon!.embedded.htlc.unlock(
-          Hash.parse(htlcId), FormatUtils.decodeHexString(swap.preimage!));
+      final transactionParams = zenon!.embedded.htlc.unlock(
+          Hash.parse(htlcId), FormatUtils.decodeHexString(swap.preimage!),);
       AccountBlockUtils.createAccountBlock(transactionParams, 'complete swap',
-              address: Address.parse(swap.selfAddress), waitForRequiredPlasma: true)
+              address: Address.parse(swap.selfAddress), waitForRequiredPlasma: true,)
           .then(
         (response) async {
           swap.state = P2pSwapState.completed;

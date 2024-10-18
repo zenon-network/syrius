@@ -5,13 +5,13 @@ import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 abstract class DashboardBaseBloc<T> extends BaseBloc<T> with RefreshBlocMixin {
-  Timer? _autoRefresher;
-
-  Future<T> makeAsyncCall();
 
   DashboardBaseBloc() {
     listenToWsRestart(getDataPeriodically);
   }
+  Timer? _autoRefresher;
+
+  Future<T> makeAsyncCall();
 
   Timer _getAutoRefreshTimer() => Timer(
         kIntervalBetweenMomentums,
@@ -24,7 +24,7 @@ abstract class DashboardBaseBloc<T> extends BaseBloc<T> with RefreshBlocMixin {
   Future<void> getDataPeriodically() async {
     try {
       if (!zenon!.wsClient.isClosed()) {
-        T data = await makeAsyncCall();
+        final data = await makeAsyncCall();
         addEvent(data);
       } else {
         throw noConnectionException;

@@ -8,19 +8,19 @@ import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 /// tooltip for showing the exact amount, including the decimals
 
 class DualCoinStatsChartLegend extends StatelessWidget {
-  final List<Token> tokens;
 
   const DualCoinStatsChartLegend({
     required this.tokens,
     super.key,
   });
+  final List<Token> tokens;
 
   @override
   Widget build(BuildContext context) {
-    final List<Widget> items = List.generate(
+    final items = List<Widget>.generate(
       tokens.length,
       (index) {
-        final Token token = tokens[index];
+        final token = tokens[index];
 
         return Expanded(
           child: DualCoinStatsChartLegendItem(

@@ -10,7 +10,7 @@ class DelegateButtonBloc extends BaseBloc<AccountBlockTemplate?> {
   ) async {
     try {
       addEvent(null);
-      AccountBlockTemplate transactionParams = zenon!.embedded.pillar.delegate(
+      final transactionParams = zenon!.embedded.pillar.delegate(
         pillarName!,
       );
       AccountBlockUtils.createAccountBlock(
@@ -23,9 +23,7 @@ class DelegateButtonBloc extends BaseBloc<AccountBlockTemplate?> {
           addEvent(response);
         },
       ).onError(
-        (error, stackTrace) {
-          addError(error, stackTrace);
-        },
+        addError,
       );
     } catch (e, stackTrace) {
       addError(e, stackTrace);

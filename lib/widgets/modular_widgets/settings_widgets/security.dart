@@ -17,19 +17,19 @@ import 'package:zenon_syrius_wallet_flutter/utils/notification_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
-const double _kMaxMinutesOfInactivity = 30.0;
-const double _kMinUnlockAttempts = 3.0;
-const double _kMaxUnlockAttempts = 10.0;
+const double _kMaxMinutesOfInactivity = 30;
+const double _kMinUnlockAttempts = 3;
+const double _kMaxUnlockAttempts = 10;
 
 class SecurityWidget extends StatefulWidget {
-  final VoidCallback _onChangeAutoLockTime;
-  final VoidCallback onStepperNotificationSeeMorePressed;
 
   const SecurityWidget(
     this._onChangeAutoLockTime, {
     required this.onStepperNotificationSeeMorePressed,
     super.key,
   });
+  final VoidCallback _onChangeAutoLockTime;
+  final VoidCallback onStepperNotificationSeeMorePressed;
 
   @override
   State createState() {
@@ -174,7 +174,7 @@ class _SecurityWidgetState extends State<SecurityWidget> {
     );
   }
 
-  void _onConfirmAutoLockDurationButtonPressed() async {
+  Future<void> _onConfirmAutoLockDurationButtonPressed() async {
     try {
       _confirmIntervalButtonKey.currentState?.animateForward();
       await sharedPrefsService!
@@ -223,7 +223,6 @@ class _SecurityWidgetState extends State<SecurityWidget> {
                   details: 'The auto-erase limit has now '
                       '$kAutoEraseWalletLimit attempt(s)',
                   timestamp: DateTime.now().millisecondsSinceEpoch,
-                  id: null,
                   type: NotificationType.autoEraseNumAttemptsChanged,
                 ),
               );
@@ -268,11 +267,11 @@ class _SecurityWidgetState extends State<SecurityWidget> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const SizedBox(
-                height: 10.0,
+                height: 10,
               ),
               const Text('Signature:'),
               const SizedBox(
-                height: 10.0,
+                height: 10,
               ),
               Row(
                 children: [
@@ -286,11 +285,11 @@ class _SecurityWidgetState extends State<SecurityWidget> {
                 ],
               ),
               const SizedBox(
-                height: 10.0,
+                height: 10,
               ),
               const Text('Public key:'),
               const SizedBox(
-                height: 10.0,
+                height: 10,
               ),
               Row(
                 children: [
@@ -353,12 +352,12 @@ class _SecurityWidgetState extends State<SecurityWidget> {
             child: const Icon(
               Icons.content_paste,
               color: AppColors.darkHintTextColor,
-              size: 15.0,
+              size: 15,
             ),
           ),
           suffixIconConstraints: const BoxConstraints(
-            maxWidth: 45.0,
-            maxHeight: 20.0,
+            maxWidth: 45,
+            maxHeight: 20,
           ),
         ),
         kVerticalSpacing,
@@ -384,12 +383,12 @@ class _SecurityWidgetState extends State<SecurityWidget> {
             child: const Icon(
               Icons.content_paste,
               color: AppColors.darkHintTextColor,
-              size: 15.0,
+              size: 15,
             ),
           ),
           suffixIconConstraints: const BoxConstraints(
-            maxWidth: 45.0,
-            maxHeight: 20.0,
+            maxWidth: 45,
+            maxHeight: 20,
           ),
         ),
         kVerticalSpacing,
@@ -415,12 +414,12 @@ class _SecurityWidgetState extends State<SecurityWidget> {
             child: const Icon(
               Icons.content_paste,
               color: AppColors.darkHintTextColor,
-              size: 15.0,
+              size: 15,
             ),
           ),
           suffixIconConstraints: const BoxConstraints(
-            maxWidth: 45.0,
-            maxHeight: 20.0,
+            maxWidth: 45,
+            maxHeight: 20,
           ),
         ),
         kVerticalSpacing,
@@ -440,7 +439,7 @@ class _SecurityWidgetState extends State<SecurityWidget> {
   Future<void> _onVerifyButtonPressed() async {
     try {
       _verifyButtonKey.currentState?.animateForward();
-      bool verified = await Crypto.verify(
+      final verified = await Crypto.verify(
         FormatUtils.decodeHexString(_signatureController.text),
         Uint8List.fromList(_textToBeVerifiedController.text.codeUnits),
         FormatUtils.decodeHexString(_publicKeyToBeFilledController.text),
@@ -466,7 +465,7 @@ class _SecurityWidgetState extends State<SecurityWidget> {
       }
     } catch (e) {
       await NotificationUtils.sendNotificationError(
-          e, 'Error while verifying message');
+          e, 'Error while verifying message',);
     } finally {
       _verifyButtonKey.currentState?.animateReverse();
     }
@@ -546,15 +545,15 @@ class _SecurityWidgetState extends State<SecurityWidget> {
     );
   }
 
-  void _onSignFileButtonPressed() async {
+  Future<void> _onSignFileButtonPressed() async {
     try {
       _signFileButtonKey.currentState?.animateForward();
-      File droppedFile = File(
+      final droppedFile = File(
         _toBeSignedFilePath!,
       );
       final fileSignature = await walletSign(Crypto.digest(
         await droppedFile.readAsBytes(),
-      ));
+      ),);
       setState(() {
         _fileHashController.text = fileSignature.signature;
         _publicKeySignFileController.text = fileSignature.publicKey;
@@ -621,12 +620,12 @@ class _SecurityWidgetState extends State<SecurityWidget> {
                 child: const Icon(
                   Icons.content_paste,
                   color: AppColors.darkHintTextColor,
-                  size: 15.0,
+                  size: 15,
                 ),
               ),
               suffixIconConstraints: const BoxConstraints(
-                maxWidth: 45.0,
-                maxHeight: 20.0,
+                maxWidth: 45,
+                maxHeight: 20,
               ),
             ),
             kVerticalSpacing,
@@ -652,15 +651,15 @@ class _SecurityWidgetState extends State<SecurityWidget> {
                 child: const Icon(
                   Icons.content_paste,
                   color: AppColors.darkHintTextColor,
-                  size: 15.0,
+                  size: 15,
                 ),
               ),
               suffixIconConstraints: const BoxConstraints(
-                maxWidth: 45.0,
-                maxHeight: 20.0,
+                maxWidth: 45,
+                maxHeight: 20,
               ),
             ),
-            kVerticalSpacing
+            kVerticalSpacing,
           ],
         ),
       ],
@@ -670,11 +669,11 @@ class _SecurityWidgetState extends State<SecurityWidget> {
   Future<void> _onVerifyFileButtonPressed() async {
     try {
       _verifyFileButtonKey.currentState?.animateForward();
-      bool verified = await Crypto.verify(
+      final verified = await Crypto.verify(
         FormatUtils.decodeHexString(_fileHashVerifyController.text),
         Uint8List.fromList(Crypto.digest(await File(
           _toBeVerifiedFilePath!,
-        ).readAsBytes())),
+        ).readAsBytes(),),),
         FormatUtils.decodeHexString(_publicKeyVerifyFileController.text),
       );
       if (verified) {
@@ -699,7 +698,7 @@ class _SecurityWidgetState extends State<SecurityWidget> {
       }
     } catch (e) {
       await NotificationUtils.sendNotificationError(
-          e, 'Error while verifying file hash:');
+          e, 'Error while verifying file hash:',);
     } finally {
       _verifyFileButtonKey.currentState?.animateReverse();
     }

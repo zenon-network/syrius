@@ -6,7 +6,7 @@ import 'package:package_info_plus/package_info_plus.dart';
 
 class DeviceUtils {
   static Future<Map<String, dynamic>> getDeviceInfo() async {
-    DeviceInfoPlugin deviceInfoPlugin = DeviceInfoPlugin();
+    final deviceInfoPlugin = DeviceInfoPlugin();
     if (Platform.isLinux) {
       return _readLinuxDeviceInfo(await deviceInfoPlugin.linuxInfo);
     }
@@ -58,7 +58,7 @@ class DeviceUtils {
   }
 
   static Future<Map<String, dynamic>> getPackageInfo() async {
-    PackageInfo packageInfo = await PackageInfo.fromPlatform();
+    final packageInfo = await PackageInfo.fromPlatform();
     return {
       'appName': packageInfo.appName,
       'packageName': packageInfo.packageName,

@@ -10,7 +10,7 @@ class FormatUtils {
   ) =>
       [
         FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*?$'),
-            replacementString: replacementString),
+            replacementString: replacementString,),
         FilteringTextInputFormatter.deny(
           RegExp(r'^0\d+'),
           replacementString: replacementString,
@@ -32,16 +32,16 @@ class FormatUtils {
   static List<int> decodeHexString(String input) => HEX.decode(input);
 
   static String formatDate(int timestampMillis,
-      {String dateFormat = kDefaultDateFormat}) {
-    DateTime date = DateTime.fromMillisecondsSinceEpoch(timestampMillis);
+      {String dateFormat = kDefaultDateFormat,}) {
+    final date = DateTime.fromMillisecondsSinceEpoch(timestampMillis);
     return DateFormat(dateFormat).format(date);
   }
 
   static String extractNameFromEnum<T>(T enumValue) {
-    String valueName = enumValue.toString().split('.')[1];
-    if (RegExp(r'^[a-z]+[A-Z]+').hasMatch(valueName)) {
-      List<String> parts = valueName
-          .split(RegExp(r'(?<=[a-z])(?=[A-Z])'))
+    final valueName = enumValue.toString().split('.')[1];
+    if (RegExp('^[a-z]+[A-Z]+').hasMatch(valueName)) {
+      final parts = valueName
+          .split(RegExp('(?<=[a-z])(?=[A-Z])'))
           .map((e) => e.toLowerCase())
           .toList();
       parts.first = parts.first.capitalize();
@@ -61,7 +61,7 @@ class FormatUtils {
   }
 
   static String formatData(int transactionMillis) {
-    int currentMillis = DateTime.now().millisecondsSinceEpoch;
+    final currentMillis = DateTime.now().millisecondsSinceEpoch;
     if (currentMillis - transactionMillis <=
         const Duration(days: 1).inMilliseconds) {
       return formatDataShort(currentMillis - transactionMillis);
@@ -70,7 +70,7 @@ class FormatUtils {
   }
 
   static String formatDataShort(int i) {
-    Duration duration = Duration(milliseconds: i);
+    final duration = Duration(milliseconds: i);
     if (duration.inHours > 0) {
       return '${duration.inHours} h ago';
     }

@@ -75,7 +75,7 @@ class _TokenMapState extends State<TokenMap> {
 
   Widget _getWidgetBody(TokenMapBloc bloc) {
     return Padding(
-      padding: const EdgeInsets.all(15.0),
+      padding: const EdgeInsets.all(15),
       child: Column(
         children: [
           InputField(

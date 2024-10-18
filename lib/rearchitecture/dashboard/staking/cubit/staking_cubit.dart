@@ -26,7 +26,7 @@ class StakingCubit extends DashboardCubit<StakeList, StakingState> {
   Future<StakeList> fetch() async {
     try {
       // Retrieve the list of staking entries for the demo address
-      final StakeList data = await _getStakeList();
+      final data = await _getStakeList();
       if (data.list.isNotEmpty) {
         return data; // Return the fetched stake data if not empty
       } else {
@@ -45,9 +45,8 @@ class StakingCubit extends DashboardCubit<StakeList, StakingState> {
   /// Returns:
   /// - A `StakeList` containing the staking entries for the specified address.
   Future<StakeList> _getStakeList() async {
-    return await zenon.embedded.stake.getEntriesByAddress(
+    return zenon.embedded.stake.getEntriesByAddress(
       Address.parse(kSelectedAddress!),
-      pageIndex: 0,
     );
   }
 }

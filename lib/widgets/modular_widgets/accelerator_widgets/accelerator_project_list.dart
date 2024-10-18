@@ -10,10 +10,6 @@ enum AcceleratorProjectsFilterTag {
 }
 
 class AcceleratorProjectList extends StatefulWidget {
-  final PillarInfo? pillarInfo;
-  final List<AcceleratorProject> acceleratorProjects;
-  final Project? projects;
-  final VoidCallback onStepperNotificationSeeMorePressed;
 
   const AcceleratorProjectList(
     this.pillarInfo,
@@ -22,6 +18,10 @@ class AcceleratorProjectList extends StatefulWidget {
     this.projects,
     super.key,
   });
+  final PillarInfo? pillarInfo;
+  final List<AcceleratorProject> acceleratorProjects;
+  final Project? projects;
+  final VoidCallback onStepperNotificationSeeMorePressed;
 
   @override
   State<AcceleratorProjectList> createState() => _AcceleratorProjectListState();
@@ -40,18 +40,18 @@ class _AcceleratorProjectListState extends State<AcceleratorProjectList> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.all(15.0),
+      margin: const EdgeInsets.all(15),
       child: Column(
         children: [
           _getSearchInputField(),
           const SizedBox(
-            height: 10.0,
+            height: 10,
           ),
           if (widget.acceleratorProjects.first is Project)
             _getProjectsFilterTags(),
           if (widget.acceleratorProjects.first is Project)
             const SizedBox(
-              height: 10.0,
+              height: 10,
             ),
           Expanded(
             child: Scrollbar(
@@ -59,7 +59,7 @@ class _AcceleratorProjectListState extends State<AcceleratorProjectList> {
               thumbVisibility: true,
               child: ListView.separated(
                 separatorBuilder: (_, __) => const SizedBox(
-                  height: 15.0,
+                  height: 15,
                 ),
                 controller: _scrollController,
                 shrinkWrap: true,
@@ -105,7 +105,7 @@ class _AcceleratorProjectListState extends State<AcceleratorProjectList> {
   }
 
   Set<AcceleratorProject> _filterBaseProjects(
-      List<AcceleratorProject> acceleratorProjects) {
+      List<AcceleratorProject> acceleratorProjects,) {
     var filteredBaseProjects =
         _filterBaseProjectsBySearchKeyWord(acceleratorProjects);
     if (widget.acceleratorProjects.first is Project &&
@@ -120,7 +120,7 @@ class _AcceleratorProjectListState extends State<AcceleratorProjectList> {
   Set<AcceleratorProject> _filterBaseProjectsBySearchKeyWord(
     List<AcceleratorProject> acceleratorProjects,
   ) {
-    var filteredBaseProjects = <AcceleratorProject>{};
+    final filteredBaseProjects = <AcceleratorProject>{};
     filteredBaseProjects.addAll(
       acceleratorProjects.where(
         (element) => element.id.toString().toLowerCase().contains(
@@ -176,7 +176,7 @@ class _AcceleratorProjectListState extends State<AcceleratorProjectList> {
   Widget _getProjectsFilterTag(AcceleratorProjectsFilterTag filterTag) {
     return TagWidget(
       text: FormatUtils.extractNameFromEnum<AcceleratorProjectsFilterTag>(
-          filterTag),
+          filterTag,),
       hexColorCode: Theme.of(context)
           .colorScheme
           .primaryContainer

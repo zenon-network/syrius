@@ -30,7 +30,7 @@ class HtlcSwapsHandler {
 
   bool get hasActiveIncomingSwaps =>
       htlcSwapsService!.getSwapsByState([P2pSwapState.active]).firstWhereOrNull(
-          (e) => e.direction == P2pSwapDirection.incoming) !=
+          (e) => e.direction == P2pSwapDirection.incoming,) !=
       null;
 
   Future<void> _runPeriodically() async {
@@ -41,7 +41,7 @@ class HtlcSwapsHandler {
         final unresolvedSwaps = htlcSwapsService!.getSwapsByState([
           P2pSwapState.pending,
           P2pSwapState.active,
-          P2pSwapState.reclaimable
+          P2pSwapState.reclaimable,
         ]);
         if (unresolvedSwaps.isNotEmpty) {
           if (await _areThereNewHtlcBlocks()) {
@@ -56,7 +56,7 @@ class HtlcSwapsHandler {
     } catch (e) {
       Logger('HtlcSwapsHandler').log(Level.WARNING, '_runPeriodically', e);
     } finally {
-      Future.delayed(const Duration(seconds: 5), () => _runPeriodically());
+      Future.delayed(const Duration(seconds: 5), _runPeriodically);
     }
   }
 
@@ -91,13 +91,13 @@ class HtlcSwapsHandler {
   Future<List<AccountBlock>> _getNewHtlcBlocks(List<HtlcSwap> swaps) async {
     final lastCheckedHeight = htlcSwapsService!.getLastCheckedHtlcBlockHeight();
     final oldestSwapStartTime = _getOldestSwapStartTime(swaps) ?? 0;
-    int lastCheckedBlockTime = 0;
+    var lastCheckedBlockTime = 0;
 
     if (lastCheckedHeight > 0) {
       try {
         lastCheckedBlockTime =
             (await AccountBlockUtils.getTimeForAccountBlockHeight(
-                    htlcAddress, lastCheckedHeight)) ??
+                    htlcAddress, lastCheckedHeight,)) ??
                 lastCheckedBlockTime;
       } catch (e, stackTrace) {
         Logger('HtlcSwapsHandler')
@@ -108,7 +108,7 @@ class HtlcSwapsHandler {
 
     try {
       return await AccountBlockUtils.getAccountBlocksAfterTime(
-          htlcAddress, max(oldestSwapStartTime, lastCheckedBlockTime));
+          htlcAddress, max(oldestSwapStartTime, lastCheckedBlockTime),);
     } catch (e, stackTrace) {
       Logger('HtlcSwapsHandler')
           .log(Level.WARNING, '_getNewHtlcBlocks', e, stackTrace);
@@ -130,7 +130,7 @@ class HtlcSwapsHandler {
 
     final pairedBlock = htlcBlock.pairedAccountBlock!;
     final blockData = AccountBlockUtils.getDecodedBlockData(
-        Definitions.htlc, pairedBlock.data);
+        Definitions.htlc, pairedBlock.data,);
 
     if (blockData == null) {
       return;
@@ -198,7 +198,7 @@ class HtlcSwapsHandler {
         if (htlcBlock.descendantBlocks.isEmpty) {
           return;
         }
-        bool isSelfReclaim = false;
+        var isSelfReclaim = false;
         if (swap.direction == P2pSwapDirection.outgoing &&
             blockData.params['id'].toString() == swap.initialHtlcId) {
           isSelfReclaim = true;
@@ -221,7 +221,7 @@ class HtlcSwapsHandler {
     }
     if (data.params.containsKey('hashLock') && swap == null) {
       swap = htlcSwapsService!.getSwapByHashLock(
-          Hash.fromBytes(data.params['hashLock']).toString());
+          Hash.fromBytes(data.params['hashLock']).toString(),);
     }
     return swap;
   }

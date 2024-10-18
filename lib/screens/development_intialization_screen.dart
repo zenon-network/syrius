@@ -7,9 +7,9 @@ import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 /// development phase
 
 class DevelopmentInitializationScreen extends StatefulWidget {
-  static const String route = 'development-initialization-screen';
 
   const DevelopmentInitializationScreen({super.key});
+  static const String route = 'development-initialization-screen';
 
   @override
   State<DevelopmentInitializationScreen> createState() =>
@@ -24,7 +24,7 @@ class _DevelopmentInitializationScreenState
       future: _checkIfWalletPathIsNull(context: context),
       builder: (_, snapshot) {
         if (snapshot.hasData) {
-          final bool isWalletPathNull = snapshot.data!;
+          final isWalletPathNull = snapshot.data!;
 
           WidgetsBinding.instance.addPostFrameCallback((_) {
             if (isWalletPathNull) {
@@ -34,12 +34,12 @@ class _DevelopmentInitializationScreenState
             }
           });
 
-          return SizedBox.shrink();
+          return const SizedBox.shrink();
         } else if (snapshot.hasError) {
           return Text('Error: ${snapshot.error}');
         }
 
-        return Center(child: CircularProgressIndicator());
+        return const Center(child: CircularProgressIndicator());
       },
     );
   }

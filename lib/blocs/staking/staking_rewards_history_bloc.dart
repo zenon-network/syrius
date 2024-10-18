@@ -8,7 +8,7 @@ class StakingRewardsHistoryBloc
     extends BaseBlocForReloadingIndicator<RewardHistoryList> {
   @override
   Future<RewardHistoryList> getDataAsync() async {
-    RewardHistoryList? response =
+    final response =
         await zenon!.embedded.stake.getFrontierRewardByPage(
       Address.parse(kSelectedAddress!),
       pageSize: kStandardChartNumDays.toInt(),

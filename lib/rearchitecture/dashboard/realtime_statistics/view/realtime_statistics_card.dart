@@ -12,9 +12,9 @@ class RealtimeStatisticsCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (_) {
-        final RealtimeStatisticsCubit cubit = RealtimeStatisticsCubit(
+        final cubit = RealtimeStatisticsCubit(
           zenon!,
-          RealtimeStatisticsState(),
+          const RealtimeStatisticsState(),
         );
         cubit.fetchDataPeriodically();
         return cubit;

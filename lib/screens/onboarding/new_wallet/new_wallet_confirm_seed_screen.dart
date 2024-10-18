@@ -6,12 +6,12 @@ import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 
 class NewWalletConfirmSeedScreen extends StatefulWidget {
-  final List<String> seedWords;
 
   const NewWalletConfirmSeedScreen(
     this.seedWords, {
     super.key,
   });
+  final List<String> seedWords;
 
   @override
   State<NewWalletConfirmSeedScreen> createState() =>
@@ -35,7 +35,7 @@ class _NewWalletConfirmSeedScreenState
   void initState() {
     super.initState();
     _actionButton = _getVerifyButton();
-    for (var word in widget.seedWords) {
+    for (final word in widget.seedWords) {
       _seedGridElements.add(
         SeedGridElement(
           word: word,
@@ -45,7 +45,7 @@ class _NewWalletConfirmSeedScreenState
       );
     }
     _generateRandomIndexes();
-    for (var index in _randomIndexes) {
+    for (final index in _randomIndexes) {
       _seedGridElements[index].word = '';
     }
   }
@@ -55,7 +55,7 @@ class _NewWalletConfirmSeedScreenState
     return Scaffold(
       body: Container(
         padding: const EdgeInsets.symmetric(
-          vertical: 30.0,
+          vertical: 30,
         ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -66,7 +66,7 @@ class _NewWalletConfirmSeedScreenState
                   currentLevel: 2,
                 ),
                 const SizedBox(
-                  height: 30.0,
+                  height: 30,
                 ),
                 Text(
                   'Confirm your seed',
@@ -87,18 +87,17 @@ class _NewWalletConfirmSeedScreenState
                   ],
                 ),
                 const SizedBox(
-                  height: 75.0,
+                  height: 75,
                 ),
                 _getSeedInputWidgetsGrid(),
               ],
             ),
             Row(
-              mainAxisAlignment: MainAxisAlignment.start,
               children: [
                 Container(
-                  margin: const EdgeInsets.only(left: 90.0),
+                  margin: const EdgeInsets.only(left: 90),
                   child: _getMissingSeedGridElements(widget.seedWords),
-                )
+                ),
               ],
             ),
             Row(
@@ -122,7 +121,7 @@ class _NewWalletConfirmSeedScreenState
   }
 
   void _generateRandomIndex() {
-    int randomNumber = Random().nextInt(_seedGridElements.length);
+    final randomNumber = Random().nextInt(_seedGridElements.length);
     if (!_randomIndexes.contains(randomNumber)) {
       _randomIndexes.add(randomNumber);
     }
@@ -153,9 +152,9 @@ class _NewWalletConfirmSeedScreenState
   }
 
   Widget _seedFieldWidget(SeedGridElement seedGridElement) {
-    int seedGridElementIndex = _seedGridElements.indexOf(seedGridElement);
+    final seedGridElementIndex = _seedGridElements.indexOf(seedGridElement);
 
-    final TextEditingController controller = TextEditingController();
+    final controller = TextEditingController();
     controller.text = seedGridElement.word;
     if (_textCursor == seedGridElementIndex) {
       controller.selection = TextSelection.collapsed(
@@ -164,8 +163,8 @@ class _NewWalletConfirmSeedScreenState
     }
 
     return SizedBox(
-      width: 200.0,
-      height: 30.0,
+      width: 200,
+      height: 30,
       child: Row(
         children: <Widget>[
           InkWell(
@@ -188,18 +187,18 @@ class _NewWalletConfirmSeedScreenState
                 }
               },
               child: Container(
-                width: 30.0,
-                height: 30.0,
+                width: 30,
+                height: 30,
                 decoration: BoxDecoration(
                     border: Border.all(
-                      width: 2.0,
+                      width: 2,
                       color: _hoveredSeedGridIndex == seedGridElementIndex ||
                               _randomIndexes.contains(seedGridElementIndex)
                           ? _getColor(seedGridElement, false)
                           : Theme.of(context).colorScheme.secondaryContainer,
                     ),
                     color: Theme.of(context).colorScheme.secondaryContainer,
-                    shape: BoxShape.circle),
+                    shape: BoxShape.circle,),
                 child: Center(
                   child: Text(
                     '${seedGridElementIndex + 1}',
@@ -210,7 +209,7 @@ class _NewWalletConfirmSeedScreenState
             ),
           ),
           const SizedBox(
-            width: 10.0,
+            width: 10,
           ),
           Expanded(
             child: FocusableActionDetector(
@@ -240,7 +239,7 @@ class _NewWalletConfirmSeedScreenState
                               _randomIndexes.contains(seedGridElementIndex)
                           ? Colors.white
                           : AppColors.znnColor,
-                      fontSize: 12.0,
+                      fontSize: 12,
                     ),
                     decoration: InputDecoration(
                       filled: true,
@@ -251,7 +250,7 @@ class _NewWalletConfirmSeedScreenState
                       disabledBorder: UnderlineInputBorder(
                         borderSide: BorderSide(
                           color: _getColor(seedGridElement, true),
-                          width: 3.0,
+                          width: 3,
                         ),
                       ),
                       hintText: '',
@@ -263,7 +262,7 @@ class _NewWalletConfirmSeedScreenState
                       !seedGridElement.isValid;
                 },
                 onAcceptWithDetails: (DragTargetDetails data) {
-                  var element = _seedGridElements[seedGridElementIndex];
+                  final element = _seedGridElements[seedGridElementIndex];
                   var i = -1;
                   if (element.word != '') {
                     while ((i =
@@ -297,8 +296,8 @@ class _NewWalletConfirmSeedScreenState
   }
 
   Widget _getMissingSeedGridElements(List<String> seedWords) {
-    List<Widget> list = <Widget>[];
-    for (var index in _randomIndexes) {
+    final list = <Widget>[];
+    for (final index in _randomIndexes) {
       if (!_foundMissingRandomElementsIndexes.contains(index)) {
         list.add(
           Draggable<String>(
@@ -306,7 +305,7 @@ class _NewWalletConfirmSeedScreenState
               style: ElevatedButton.styleFrom(
                 foregroundColor: AppColors.darkSecondary,
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(5.0),
+                  borderRadius: BorderRadius.circular(5),
                 ),
               ),
               onPressed: () {},
@@ -335,7 +334,7 @@ class _NewWalletConfirmSeedScreenState
                         .withOpacity(0.5)
                     : Theme.of(context).colorScheme.secondaryContainer,
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(5.0),
+                  borderRadius: BorderRadius.circular(5),
                 ),
               ),
               onPressed: () {},
@@ -353,26 +352,23 @@ class _NewWalletConfirmSeedScreenState
       }
     }
     return Wrap(
-      crossAxisAlignment: WrapCrossAlignment.start,
-      alignment: WrapAlignment.start,
-      direction: Axis.horizontal,
-      spacing: 5.0,
+      spacing: 5,
       children: list,
     );
   }
 
   void _checkSeed() {
     _seedError = false;
-    for (var element in _seedGridElements) {
-      int i = _seedGridElements.indexOf(element);
+    for (final element in _seedGridElements) {
+      final i = _seedGridElements.indexOf(element);
       element.isValid = element.word == widget.seedWords[i];
       if (!element.isValid) {
         _seedError = true;
       }
     }
     if (_seedError) {
-      for (var element in _seedGridElements) {
-        int i = _seedGridElements.indexOf(element);
+      for (final element in _seedGridElements) {
+        final i = _seedGridElements.indexOf(element);
         if (_randomIndexes.contains(i)) {
           element.isValid = false;
           element.word = '';
@@ -423,11 +419,11 @@ class _NewWalletConfirmSeedScreenState
   }
 
   Widget _getSeedInputWidgetsGrid() {
-    int divider = widget.seedWords.length ~/ kSeedGridNumOfRows;
+    final divider = widget.seedWords.length ~/ kSeedGridNumOfRows;
 
-    List<Widget> columnChildren = [];
+    var columnChildren = <Widget>[];
 
-    for (int i = 0; i <= _seedGridElements.length / divider - 1; i++) {
+    for (var i = 0; i <= _seedGridElements.length / divider - 1; i++) {
       columnChildren.add(
         _getSeedRow(
           List.generate(
@@ -442,7 +438,7 @@ class _NewWalletConfirmSeedScreenState
       List.generate(
         kSeedGridNumOfRows - 1,
         (index) => const SizedBox(
-          height: 10.0,
+          height: 10,
         ),
       ),
     );
@@ -454,16 +450,16 @@ class _NewWalletConfirmSeedScreenState
   }
 
   Widget _getSeedRow(List<int> rangeIndexes) {
-    List<Widget> children = rangeIndexes.fold<List<Widget>>(
+    final children = rangeIndexes.fold<List<Widget>>(
       [],
       (previousValue, index) {
         previousValue.add(_seedFieldWidget(
           _seedGridElements[index],
-        ));
+        ),);
         if (rangeIndexes.last != index) {
           previousValue.add(
             const SizedBox(
-              width: 10.0,
+              width: 10,
             ),
           );
         }

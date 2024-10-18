@@ -9,11 +9,6 @@ import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 class ProjectListBloc with RefreshBlocMixin {
-  List<Project>? _allProjects;
-
-  final List<AccProjectsFilterTag> selectedProjectsFilterTag = [];
-
-  final PillarInfo? pillarInfo;
 
   ProjectListBloc({
     required this.pillarInfo,
@@ -30,6 +25,11 @@ class ProjectListBloc with RefreshBlocMixin {
 
     listenToWsRestart(refreshResults);
   }
+  List<Project>? _allProjects;
+
+  final List<AccProjectsFilterTag> selectedProjectsFilterTag = [];
+
+  final PillarInfo? pillarInfo;
 
   void refreshResults() {
     if (!_onSearchInputChangedSubject.isClosed) {
@@ -72,18 +72,17 @@ class ProjectListBloc with RefreshBlocMixin {
   String? get _searchInputTerm => _onSearchInputChangedSubject.value;
 
   Stream<InfiniteScrollBlocListingState<Project>> _fetchList(
-      int pageKey) async* {
+      int pageKey,) async* {
     final lastListingState = _onNewListingStateController.value;
     try {
       final newItems = await getData(pageKey, _pageSize, _searchInputTerm);
       final isLastPage = newItems.length < _pageSize;
       final nextPageKey = isLastPage ? null : pageKey + 1;
-      List<Project> allItems = [
+      final allItems = <Project>[
         ...lastListingState.itemList ?? [],
-        ...newItems
+        ...newItems,
       ];
       yield InfiniteScrollBlocListingState<Project>(
-        error: null,
         nextPageKey: nextPageKey,
         itemList: allItems,
       );
@@ -110,15 +109,15 @@ class ProjectListBloc with RefreshBlocMixin {
     String? searchTerm,
   ) async {
     _allProjects ??= (await zenon!.embedded.accelerator.getAll()).list;
-    List<Project> results = [];
+    var results = <Project>[];
     if (searchTerm != null && searchTerm.isNotEmpty) {
       results =
           _filterProjectsBySearchKeyWord(_allProjects!, searchTerm).toList();
     } else {
       results = _allProjects!;
     }
-    results = (await _filterProjectsAccordingToPillarInfo(
-        await _filterProjectsByTags(results)));
+    results = await _filterProjectsAccordingToPillarInfo(
+        await _filterProjectsByTags(results),);
     return results.sublist(
       pageKey * pageSize,
       (pageKey + 1) * pageSize <= results.length
@@ -133,12 +132,12 @@ class ProjectListBloc with RefreshBlocMixin {
   projects or all owned projects
    */
   Future<List<Project>> _filterProjectsAccordingToPillarInfo(
-      Set<Project> projectList) async {
-    bool isPillarAddress = pillarInfo != null;
+      Set<Project> projectList,) async {
+    final isPillarAddress = pillarInfo != null;
     if (isPillarAddress) {
       return projectList.toList();
     } else {
-      List<Project> activeProjects = projectList
+      final activeProjects = projectList
           .where(
             (project) =>
                 project.status == AcceleratorProjectStatus.active ||
@@ -154,8 +153,8 @@ class ProjectListBloc with RefreshBlocMixin {
   }
 
   Set<Project> _filterProjectsBySearchKeyWord(
-      List<Project> projects, String searchKeyWord) {
-    var filteredProjects = <Project>{};
+      List<Project> projects, String searchKeyWord,) {
+    final filteredProjects = <Project>{};
     filteredProjects.addAll(
       projects.where(
         (element) =>
@@ -217,7 +216,7 @@ class ProjectListBloc with RefreshBlocMixin {
       if (selectedProjectsFilterTag
           .contains(AccProjectsFilterTag.onlyAccepted)) {
         filteredProjects = filteredProjects.where(
-            (project) => project.status == AcceleratorProjectStatus.active);
+            (project) => project.status == AcceleratorProjectStatus.active,);
       }
       if (selectedProjectsFilterTag
           .contains(AccProjectsFilterTag.needsVoting)) {
@@ -229,7 +228,7 @@ class ProjectListBloc with RefreshBlocMixin {
                   !votedProjectIds!.contains(project.id)) ||
               project.phases.any((phase) =>
                   phase.status == AcceleratorProjectStatus.voting &&
-                  !votedPhaseIds!.contains(phase.id)),
+                  !votedPhaseIds!.contains(phase.id),),
         );
       }
       if (selectedProjectsFilterTag
@@ -242,7 +241,7 @@ class ProjectListBloc with RefreshBlocMixin {
                   votedProjectIds!.contains(project.id)) ||
               project.phases.any((phase) =>
                   phase.status == AcceleratorProjectStatus.voting &&
-                  votedPhaseIds!.contains(phase.id)),
+                  votedPhaseIds!.contains(phase.id),),
         );
       }
       return filteredProjects.toSet();
@@ -252,8 +251,8 @@ class ProjectListBloc with RefreshBlocMixin {
   }
 
   Future<Iterable<Hash>> _getVotedProjectIdsByPillar(
-      Iterable<Project> projects) async {
-    var pillarVotes = await zenon!.embedded.accelerator.getPillarVotes(
+      Iterable<Project> projects,) async {
+    final pillarVotes = await zenon!.embedded.accelerator.getPillarVotes(
       pillarInfo!.name,
       projects.map((e) => e.id.toString()).toList(),
     );
@@ -261,8 +260,8 @@ class ProjectListBloc with RefreshBlocMixin {
   }
 
   Future<Iterable<Hash>> _getVotedPhaseIdsByPillar(
-      Iterable<Project> projects) async {
-    var pillarVotes = await zenon!.embedded.accelerator.getPillarVotes(
+      Iterable<Project> projects,) async {
+    final pillarVotes = await zenon!.embedded.accelerator.getPillarVotes(
       pillarInfo!.name,
       projects
           .expand((project) => project.phaseIds)

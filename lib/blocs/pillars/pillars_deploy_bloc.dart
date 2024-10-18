@@ -23,14 +23,14 @@ class PillarsDeployBloc extends BaseBloc<AccountBlockTemplate?> {
       if (await _pillarNameAlreadyExists(pillarName)) {
         throw 'Pillar name already exists';
       }
-      AccountBlockTemplate transactionParams = zenon!.embedded.pillar.register(
+      final transactionParams = zenon!.embedded.pillar.register(
         pillarName,
         Address.parse(blockProducingAddress),
         Address.parse(rewardAddress),
         giveBlockRewardPercentage,
         giveDelegateRewardPercentage,
       );
-      AccountBlockUtils.createAccountBlock(
+      await AccountBlockUtils.createAccountBlock(
         transactionParams,
         'register Pillar',
         waitForRequiredPlasma: true,
@@ -40,9 +40,7 @@ class PillarsDeployBloc extends BaseBloc<AccountBlockTemplate?> {
           addEvent(response);
         },
       ).onError(
-        (error, stackTrace) {
-          addError(error, stackTrace);
-        },
+        addError,
       );
     } catch (e, stackTrace) {
       addError(e, stackTrace);

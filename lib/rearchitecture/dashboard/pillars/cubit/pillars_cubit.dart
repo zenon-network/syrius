@@ -1,5 +1,4 @@
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/dashboard/dashboard.dart';
-import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 part 'pillars_state.dart';
 
@@ -25,8 +24,8 @@ class PillarsCubit extends DashboardCubit<int, PillarsState> {
   Future<int> fetch() async {
     try {
       // Fetches the list of all pillars from the Zenon network
-      final PillarInfoList pillarInfoList = await zenon.embedded.pillar.getAll();
-      final int data = pillarInfoList.list.length; // Counts the number of pillars
+      final pillarInfoList = await zenon.embedded.pillar.getAll();
+      final data = pillarInfoList.list.length; // Counts the number of pillars
       return data; // Returns the total number of pillars
     } catch (e) {
       rethrow;

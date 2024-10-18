@@ -2,13 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
 import 'package:stacked/stacked.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/input_validators.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/notification_utils.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/custom_material_stepper.dart'
     as custom_material_stepper;
+import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 enum PillarUpdateStep {
@@ -18,9 +17,9 @@ enum PillarUpdateStep {
 }
 
 class PillarUpdateStepper extends StatefulWidget {
-  final PillarInfo pillarInfo;
 
   const PillarUpdateStepper(this.pillarInfo, {super.key});
+  final PillarInfo pillarInfo;
 
   @override
   State<PillarUpdateStepper> createState() => _PillarUpdateStepperState();
@@ -71,9 +70,9 @@ class _PillarUpdateStepperState extends State<PillarUpdateStepper> {
         Visibility(
           visible: _lastCompletedStep == PillarUpdateStep.pillarUpdate,
           child: Positioned(
-            bottom: 20.0,
-            right: 0.0,
-            left: 0.0,
+            bottom: 20,
+            right: 0,
+            left: 0,
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
@@ -90,13 +89,13 @@ class _PillarUpdateStepperState extends State<PillarUpdateStepper> {
         Visibility(
           visible: _lastCompletedStep == PillarUpdateStep.pillarUpdate,
           child: Positioned(
-            right: 50.0,
+            right: 50,
             child: SizedBox(
-              width: 400.0,
-              height: 400.0,
+              width: 400,
+              height: 400,
               child: Center(
                 child: Lottie.asset('assets/lottie/ic_anim_pillar.json',
-                    repeat: false),
+                    repeat: false,),
               ),
             ),
           ),
@@ -200,9 +199,7 @@ class _PillarUpdateStepperState extends State<PillarUpdateStepper> {
             hintText: 'Pillar producer address',
             controller: _pillarProducerController,
             thisNode: _pillarMomentumNode,
-            validator: (value) => InputValidators.validatePillarMomentumAddress(
-              value,
-            ),
+            validator: InputValidators.validatePillarMomentumAddress,
             onChanged: (value) {
               setState(() {});
             },
@@ -218,7 +215,7 @@ class _PillarUpdateStepperState extends State<PillarUpdateStepper> {
               text: 'Cancel',
             ),
             const SizedBox(
-              width: 25.0,
+              width: 25,
             ),
             StepperButton(
               onPressed: _arePillarDetailsValid()
@@ -250,11 +247,10 @@ class _PillarUpdateStepperState extends State<PillarUpdateStepper> {
           ],
         ),
         CustomSlider(
-          activeColor: AppColors.znnColor,
           description: '',
           startValue: widget.pillarInfo.giveMomentumRewardPercentage.toDouble(),
-          min: 0.0,
-          maxValue: 100.0,
+          min: 0,
+          maxValue: 100,
           callback: (double value) {
             setState(() {
               _momentumRewardPercentageGiven = value;
@@ -285,11 +281,10 @@ class _PillarUpdateStepperState extends State<PillarUpdateStepper> {
           ],
         ),
         CustomSlider(
-          activeColor: AppColors.znnColor,
           description: '',
           startValue: widget.pillarInfo.giveDelegateRewardPercentage.toDouble(),
-          min: 0.0,
-          maxValue: 100.0,
+          min: 0,
+          maxValue: 100,
           callback: (double value) {
             setState(() {
               _delegateRewardPercentageGiven = value;
@@ -322,7 +317,7 @@ class _PillarUpdateStepperState extends State<PillarUpdateStepper> {
               text: 'Go back',
             ),
             const SizedBox(
-              width: 25.0,
+              width: 25,
             ),
             StepperButton(
               onPressed: () {
@@ -352,7 +347,7 @@ class _PillarUpdateStepperState extends State<PillarUpdateStepper> {
           text: 'Go back',
         ),
         const SizedBox(
-          width: 25.0,
+          width: 25,
         ),
         _getUpdatePillarViewModel(),
       ],
@@ -379,7 +374,7 @@ class _PillarUpdateStepperState extends State<PillarUpdateStepper> {
   bool _arePillarDetailsValid() =>
       InputValidators.checkAddress(_pillarRewardController.text) == null &&
       InputValidators.validatePillarMomentumAddress(
-              _pillarProducerController.text) ==
+              _pillarProducerController.text,) ==
           null;
 
   Widget _getUpdatePillarViewModel() {
@@ -404,7 +399,7 @@ class _PillarUpdateStepperState extends State<PillarUpdateStepper> {
         );
       },
       builder: (_, model, __) => _getUpdatePillarButton(model),
-      viewModelBuilder: () => UpdatePillarBloc(),
+      viewModelBuilder: UpdatePillarBloc.new,
     );
   }
 

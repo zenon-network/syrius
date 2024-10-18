@@ -3,15 +3,9 @@ import 'package:intl/intl.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 
 class FormattedAmountWithTooltip extends Tooltip {
-  final String amount;
-  final String tokenSymbol;
-  final Widget Function(String, String) builder;
 
   FormattedAmountWithTooltip({
-    super.key,
-    required this.amount,
-    required this.tokenSymbol,
-    required this.builder,
+    required this.amount, required this.tokenSymbol, required this.builder, super.key,
   }) : super(
           message: '$amount $tokenSymbol',
           child: builder(
@@ -22,6 +16,9 @@ class FormattedAmountWithTooltip extends Tooltip {
                       : NumberFormat.compact().format(amount.toNum()).length > 8
                           ? '…'
                           : NumberFormat.compact().format(amount.toNum()),
-              tokenSymbol),
+              tokenSymbol,),
         );
+  final String amount;
+  final String tokenSymbol;
+  final Widget Function(String, String) builder;
 }

@@ -4,9 +4,9 @@ import 'package:zenon_syrius_wallet_flutter/model/p2p_swap/htlc_swap.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 class HtlcSwapBloc extends PeriodicP2pSwapBaseBloc<HtlcSwap> {
-  final String swapId;
 
   HtlcSwapBloc(this.swapId);
+  final String swapId;
 
   @override
   HtlcSwap makeCall() {

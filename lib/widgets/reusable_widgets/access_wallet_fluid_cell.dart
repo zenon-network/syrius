@@ -5,13 +5,8 @@ import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 
 class AccessWalletFluidCell extends FluidCell {
-  final VoidCallback? onPressed;
-  final String buttonIconLocation;
-  final String buttonText;
-  final BuildContext context;
 
   AccessWalletFluidCell({
-    Key? key,
     required this.onPressed,
     required this.buttonIconLocation,
     required this.buttonText,
@@ -28,11 +23,11 @@ class AccessWalletFluidCell extends FluidCell {
             disabledColor: Theme.of(context).colorScheme.secondary.withOpacity(
                   0.7,
                 ),
-            padding: const EdgeInsets.all(50.0),
+            padding: const EdgeInsets.all(50),
             color: Theme.of(context).colorScheme.secondaryContainer,
             hoverColor: Theme.of(context).colorScheme.secondary,
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12.0),
+              borderRadius: BorderRadius.circular(12),
               side: const BorderSide(color: Colors.transparent),
             ),
             onPressed: onPressed,
@@ -40,19 +35,19 @@ class AccessWalletFluidCell extends FluidCell {
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: <Widget>[
                 Container(
-                  width: 70.0,
-                  height: 70.0,
+                  width: 70,
+                  height: 70,
                   color: Colors.transparent,
                   child: SvgPicture.asset(
                     buttonIconLocation,
                     colorFilter: const ColorFilter.mode(
-                        AppColors.znnColor, BlendMode.srcIn),
+                        AppColors.znnColor, BlendMode.srcIn,),
                   ),
                 ),
                 Padding(
                   padding: const EdgeInsets.only(
-                    left: 40.0,
-                    right: 40.0,
+                    left: 40,
+                    right: 40,
                   ),
                   child: Text(
                     buttonText,
@@ -64,4 +59,8 @@ class AccessWalletFluidCell extends FluidCell {
             ),
           ),
         );
+  final VoidCallback? onPressed;
+  final String buttonIconLocation;
+  final String buttonText;
+  final BuildContext context;
 }

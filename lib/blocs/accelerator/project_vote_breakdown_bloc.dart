@@ -8,7 +8,7 @@ class ProjectVoteBreakdownBloc
   Future<void> getVoteBreakdown(String? pillarName, Hash projectId) async {
     try {
       addEvent(null);
-      VoteBreakdown voteBreakdown =
+      final voteBreakdown =
           await zenon!.embedded.accelerator.getVoteBreakdown(
         projectId,
       );

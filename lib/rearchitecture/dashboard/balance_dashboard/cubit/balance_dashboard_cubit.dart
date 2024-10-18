@@ -27,7 +27,7 @@ class BalanceDashboardCubit extends DashboardCubit<AccountInfo, BalanceDashboard
   @override
   Future<AccountInfo> fetch() async {
     try {
-      final AccountInfo response = await zenon.ledger
+      final response = await zenon.ledger
           .getAccountInfoByAddress(Address.parse(kSelectedAddress!));
 
       if (response.blockCount! > 0 &&

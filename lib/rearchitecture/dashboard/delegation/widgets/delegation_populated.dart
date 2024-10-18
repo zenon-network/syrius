@@ -4,9 +4,9 @@ import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 class DelegationPopulated extends StatelessWidget {
-  final DelegationInfo data;
 
   const DelegationPopulated({required this.data, super.key});
+  final DelegationInfo data;
 
   @override
   Widget build(BuildContext context) {
@@ -14,9 +14,9 @@ class DelegationPopulated extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.center,
       children: <Widget>[
         Container(
-          padding: const EdgeInsets.all(8.0),
-          width: 36.0,
-          height: 36.0,
+          padding: const EdgeInsets.all(8),
+          width: 36,
+          height: 36,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
             border: Border.all(
@@ -27,17 +27,17 @@ class DelegationPopulated extends StatelessWidget {
           ),
           child: Icon(
             SimpleLineIcons.trophy,
-            size: 12.0,
+            size: 12,
             color: Theme.of(context).textTheme.bodyLarge!.color,
           ),
         ),
-        Container(width: 16.0),
+        Container(width: 16),
         Column(
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
             Text(
-              data.name.toString(),
+              data.name,
               style: Theme.of(context).textTheme.bodyMedium,
             ),
             Text(

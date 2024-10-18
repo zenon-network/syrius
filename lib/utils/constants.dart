@@ -9,23 +9,23 @@ const String kZenonNameSpace = 'zenon';
 const walletConnectDirName = 'walletconnect';
 
 // Dimensions
-const double kAmountSuffixHeight = 25.0;
-const double kAmountSuffixWidth = 40.0;
-const double kAmountSuffixRadius = 5.0;
-const double kContentPadding = 8.0;
-const double kSeedWordCellWidth = 200.0;
-const double kPasswordInputFieldWidth = 360.0;
+const double kAmountSuffixHeight = 25;
+const double kAmountSuffixWidth = 40;
+const double kAmountSuffixRadius = 5;
+const double kContentPadding = 8;
+const double kSeedWordCellWidth = 200;
+const double kPasswordInputFieldWidth = 360;
 
 // Size widgets
-const Size kLoadingButtonMinSize = Size(120.0, 40.0);
-const Size kSettingsButtonMinSize = Size(100.0, 35.0);
+const Size kLoadingButtonMinSize = Size(120, 40);
+const Size kSettingsButtonMinSize = Size(100, 35);
 const SizedBox kVerticalSpacing = SizedBox(
-  height: 15.0,
+  height: 15,
 );
 const SizedBox kSpacingBetweenActionButtons = SizedBox(
-  width: 70.0,
+  width: 70,
 );
-const Size kAcceleratorProgressBarSize = Size(300.0, 10.0);
+const Size kAcceleratorProgressBarSize = Size(300, 10);
 
 // Wallet version
 const String kWalletVersion = '0.2.1';
@@ -50,7 +50,7 @@ const List<String> kCacheBoxesToBeDeleted = [
   kRecipientAddressBox,
   kSharedPrefsBox,
   kNodesBox,
-  kLastCheckedHtlcBlockBox
+  kLastCheckedHtlcBlockBox,
 ];
 
 // Wallet file name
@@ -82,7 +82,7 @@ const String kP2pAtomicUnlockKey = 'p2p_atomic_unlock_key';
 const String kP2pAutoReclaimKey = 'p2p_auto_reclaim_key';
 const String kLastCheckedHtlcBlockKey = 'last_checked_htlc_block_key';
 
-const double kDefaultBorderOutlineWidth = 1.0;
+const double kDefaultBorderOutlineWidth = 1;
 const double kStandardChartNumDays = 7;
 
 const int kAddressLabelMaxLength = 80;

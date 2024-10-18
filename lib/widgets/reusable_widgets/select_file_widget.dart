@@ -8,9 +8,6 @@ import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
 const String _kInitialMessage = 'Click to browse or drag and drop a file';
 
 class SelectFileWidget extends StatefulWidget {
-  final void Function(String) onPathFoundCallback;
-  final String? fileExtension;
-  final TextStyle? textStyle;
 
   const SelectFileWidget({
     required this.onPathFoundCallback,
@@ -18,6 +15,9 @@ class SelectFileWidget extends StatefulWidget {
     this.textStyle,
     super.key,
   });
+  final void Function(String) onPathFoundCallback;
+  final String? fileExtension;
+  final TextStyle? textStyle;
 
   @override
   SelectFileWidgetState createState() => SelectFileWidgetState();
@@ -33,7 +33,7 @@ class SelectFileWidgetState extends State<SelectFileWidget> {
   Widget build(BuildContext context) {
     return DropTarget(
       onDragDone: (detail) {
-        String walletFilePath = detail.files.first.path;
+        final walletFilePath = detail.files.first.path;
         if (walletFilePath.contains(widget.fileExtension ?? '')) {
           setState(() {
             widget.onPathFoundCallback(walletFilePath);
@@ -92,17 +92,17 @@ class SelectFileWidgetState extends State<SelectFileWidget> {
             color: _browseButtonHover
                 ? AppColors.znnColor
                 : Theme.of(context).textTheme.headlineSmall!.color!,
-            strokeWidth: 2.0,
+            strokeWidth: 2,
             dashPattern: const [8.0, 5.0],
-            radius: const Radius.circular(10.0),
+            radius: const Radius.circular(10),
             child: Container(
-              height: 100.0,
+              height: 100,
               decoration: BoxDecoration(
                 color: _dragging
                     ? Colors.blue.withOpacity(0.4)
                     : Theme.of(context).colorScheme.primary,
                 borderRadius: const BorderRadius.all(
-                  Radius.circular(10.0),
+                  Radius.circular(10),
                 ),
               ),
               child: Row(
@@ -117,7 +117,7 @@ class SelectFileWidgetState extends State<SelectFileWidget> {
                       softWrap: true,
                       textAlign: TextAlign.center,
                     ),
-                  )
+                  ),
                 ],
               ),
             ),

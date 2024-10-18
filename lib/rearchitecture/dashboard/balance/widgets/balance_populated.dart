@@ -10,6 +10,12 @@ import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 /// This widget is displayed when the `BalanceCubit` is in the `success` state,
 /// and the balance data is available for rendering.
 class BalancePopulated extends StatefulWidget {
+
+  const BalancePopulated({
+    required this.address,
+    required this.accountInfo,
+    super.key,
+  });
   /// The balance data that has been successfully fetched.
   ///
   /// The data is a map where the key is a string (representing the account address),
@@ -18,12 +24,6 @@ class BalancePopulated extends StatefulWidget {
 
   /// The address for which the [accountInfo] was retrieved.
   final String address;
-
-  const BalancePopulated({
-    required this.address,
-    required this.accountInfo,
-    super.key,
-  });
 
   @override
   State<BalancePopulated> createState() => _BalancePopulatedState();
@@ -46,7 +46,7 @@ class _BalancePopulatedState extends State<BalancePopulated> {
         kVerticalSpacing,
         Expanded(
           child: AspectRatio(
-            aspectRatio: 1.0,
+            aspectRatio: 1,
             child: LayoutBuilder(
                 builder: (BuildContext context, BoxConstraints constraints) {
               return Stack(
@@ -59,21 +59,21 @@ class _BalancePopulatedState extends State<BalancePopulated> {
                   ValueListenableBuilder(
                     valueListenable: _touchedSectionId,
                     builder: (_, String? id, __) {
-                      final Widget center = id != null
+                      final center = id != null
                           ? _getBalance(
                               accountInfo: widget.accountInfo,
                               constraints: constraints,
                               tokenStandard:
                                   TokenStandard.parse(_touchedSectionId.value!),
                             )
-                          : SizedBox.shrink();
+                          : const SizedBox.shrink();
 
                       return center;
                     },
                   ),
                 ],
               );
-            }),
+            },),
           ),
         ),
         BalanceAddress(
@@ -82,7 +82,7 @@ class _BalancePopulatedState extends State<BalancePopulated> {
         ),
         const Divider(),
         Padding(
-          padding: const EdgeInsets.all(8.0),
+          padding: const EdgeInsets.all(8),
           child: BalanceChartLegend(accountInfo: widget.accountInfo),
         ),
       ],
@@ -94,19 +94,19 @@ class _BalancePopulatedState extends State<BalancePopulated> {
     required BoxConstraints constraints,
     required TokenStandard tokenStandard,
   }) {
-    final String amount = accountInfo
+    final amount = accountInfo
         .getBalance(
           tokenStandard,
         )
         .addDecimals(coinDecimals);
 
-    final String symbol = tokenStandard == kZnnCoin.tokenStandard
+    final symbol = tokenStandard == kZnnCoin.tokenStandard
         ? kZnnCoin.symbol
         : kQsrCoin.symbol;
 
-    final double margin = constraints.maxWidth * 0.3;
+    final margin = constraints.maxWidth * 0.3;
 
-    final double width = constraints.maxWidth - margin;
+    final width = constraints.maxWidth - margin;
 
     return SizedBox(
       width: width,

@@ -11,11 +11,11 @@ import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 class WidgetUtils {
   static void setThemeMode(BuildContext context) {
-    AppThemeNotifier appThemeNotifier = Provider.of<AppThemeNotifier>(
+    final appThemeNotifier = Provider.of<AppThemeNotifier>(
       context,
       listen: false,
     );
-    ThemeMode savedThemeMode = ThemeMode.values.firstWhere(
+    final savedThemeMode = ThemeMode.values.firstWhere(
       (element) => element.toString() == sharedPrefsService!.get(kThemeModeKey),
       orElse: () => kDefaultThemeMode,
     );
@@ -25,12 +25,12 @@ class WidgetUtils {
   }
 
   static void setTextScale(BuildContext context) {
-    TextScalingNotifier textScalingNotifier = Provider.of<TextScalingNotifier>(
+    final textScalingNotifier = Provider.of<TextScalingNotifier>(
       context,
       listen: false,
     );
 
-    TextScaling savedTextScaling = TextScaling.values.firstWhere(
+    final savedTextScaling = TextScaling.values.firstWhere(
       (element) =>
           element.toString() == sharedPrefsService!.get(kTextScalingKey),
       orElse: () => kDefaultTextScaling,
@@ -47,7 +47,7 @@ class WidgetUtils {
     Address? address,
     BuildContext context,
   ) {
-    TextStyle? textStyle = address != null && address.isEmbedded()
+    final textStyle = address != null && address.isEmbedded()
         ? Theme.of(context).textTheme.titleMedium!.copyWith(
               color: AppColors.znnColor,
               fontWeight: FontWeight.bold,
@@ -90,7 +90,7 @@ class WidgetUtils {
     bool isShortVersion = true,
     bool showCopyToClipboardIcon = false,
   }) {
-    TextStyle? textStyle = address != null && address.isEmbedded()
+    var textStyle = address != null && address.isEmbedded()
         ? Theme.of(context).textTheme.titleMedium!.copyWith(
               color: AppColors.znnColor,
               fontWeight: FontWeight.bold,

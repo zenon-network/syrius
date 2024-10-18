@@ -11,6 +11,6 @@ class BalanceLoading extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SyriusLoadingWidget();
+    return const SyriusLoadingWidget();
   }
 }

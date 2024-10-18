@@ -26,14 +26,6 @@ enum CubitStatus {
 /// - [data]: The data of type [T] that is managed by the cubit.
 /// - [error]: An optional [error] object that contains error details if the cubit is in a failure state.
 abstract class DashboardState<T> extends Equatable {
-  /// Represents the current status of the cubit, such as loading, success, or failure.
-  final CubitStatus status;
-
-  /// The data of type [T] managed by the cubit, which can be null if no data has been loaded or if there was an error.
-  final T? data;
-
-  /// An optional error object that holds error details in case of failure.
-  final Object? error;
 
   /// Constructs a [DashboardState] with an optional [status], [data], and [error].
   ///
@@ -44,6 +36,14 @@ abstract class DashboardState<T> extends Equatable {
     this.data,
     this.error,
   });
+  /// Represents the current status of the cubit, such as loading, success, or failure.
+  final CubitStatus status;
+
+  /// The data of type [T] managed by the cubit, which can be null if no data has been loaded or if there was an error.
+  final T? data;
+
+  /// An optional error object that holds error details in case of failure.
+  final Object? error;
 
   /// Creates a copy of the current state with the option to modify specific fields.
   ///

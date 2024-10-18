@@ -16,7 +16,7 @@ class SentinelsDepositQsrBloc extends BaseBloc<AccountBlockTemplate?> {
     try {
       addEvent(null);
       if (!justMarkStepCompleted) {
-        AccountBlockTemplate transactionParams =
+        final transactionParams =
             zenon!.embedded.sentinel.depositQsr(
           amount,
         );
@@ -33,9 +33,7 @@ class SentinelsDepositQsrBloc extends BaseBloc<AccountBlockTemplate?> {
             addEvent(response);
           },
         ).onError(
-          (error, stackTrace) {
-            addError(error, stackTrace);
-          },
+          addError,
         );
       }
     } catch (e, stackTrace) {

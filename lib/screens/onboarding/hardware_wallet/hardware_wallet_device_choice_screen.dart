@@ -4,8 +4,8 @@ import 'package:zenon_syrius_wallet_flutter/blocs/notifications_bloc.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/model/database/notification_type.dart';
 import 'package:zenon_syrius_wallet_flutter/model/database/wallet_notification.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/screens/screens.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_ledger_dart/znn_ledger_dart.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
@@ -48,7 +48,7 @@ class _HardwareWalletDeviceChoiceScreenState
     return Scaffold(
       body: Container(
         padding: const EdgeInsets.symmetric(
-          vertical: 30.0,
+          vertical: 30,
         ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -60,7 +60,7 @@ class _HardwareWalletDeviceChoiceScreenState
                   numLevels: 4,
                 ),
                 const SizedBox(
-                  height: 30.0,
+                  height: 30,
                 ),
                 const NotificationWidget(),
                 Text(
@@ -74,7 +74,7 @@ class _HardwareWalletDeviceChoiceScreenState
                 ),
                 kVerticalSpacing,
                 SizedBox(
-                  height: 40.0,
+                  height: 40,
                   child: _getScanDevicesContainer(),
                 ),
                 kVerticalSpacing,
@@ -95,17 +95,15 @@ class _HardwareWalletDeviceChoiceScreenState
     return Container(
       decoration: BoxDecoration(
           color: Colors.transparent,
-          borderRadius: const BorderRadius.all(Radius.circular(6.0)),
+          borderRadius: const BorderRadius.all(Radius.circular(6)),
           border: Border.all(
             color: AppColors.znnColor,
-            width: 1.0,
-            style: BorderStyle.solid,
-          )),
+          ),),
       child: InkWell(
           child: FocusableActionDetector(
             child: SizedBox(
-              height: 50.0,
-              width: 150.0,
+              height: 50,
+              width: 150,
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: <Widget>[
@@ -113,10 +111,10 @@ class _HardwareWalletDeviceChoiceScreenState
                       color: Colors.transparent,
                       child: Icon(Icons.search,
                           color:
-                              Theme.of(context).textTheme.headlineSmall!.color!,
-                          size: 18.0)),
+                              Theme.of(context).textTheme.headlineSmall!.color,
+                          size: 18,),),
                   const SizedBox(
-                    width: 15.0,
+                    width: 15,
                   ),
                   Text(
                     'Scan devices',
@@ -128,27 +126,27 @@ class _HardwareWalletDeviceChoiceScreenState
           ),
           onTap: () async {
             await _scanDevices();
-          }),
+          },),
     );
   }
 
   Future<void> _scanDevices() async {
-    List<Future<Iterable<WalletDefinition>>> futures = _walletManagers
+    final futures = _walletManagers
         .map((manager) => manager.getWalletDefinitions())
         .toList();
 
-    List<Iterable<WalletDefinition>> listOfDefinitions =
+    final listOfDefinitions =
         await Future.wait(futures);
 
     // Combine all the iterables into a single list using fold or expand
     // For example, using fold:
-    List<WalletDefinition> combinedList =
+    final combinedList =
         listOfDefinitions.fold<List<WalletDefinition>>(
       <WalletDefinition>[],
       (previousList, element) => previousList..addAll(element),
     );
 
-    for (var device in combinedList) {
+    for (final device in combinedList) {
       if (!_deviceValueMap.containsKey(device.walletId)) {
         _deviceValueMap[device.walletId] = ValueNotifier<String?>(null);
       }
@@ -158,7 +156,7 @@ class _HardwareWalletDeviceChoiceScreenState
       _devices = combinedList;
       _selectedDevice = null;
 
-      for (var valueNotifier in _deviceValueMap.values) {
+      for (final valueNotifier in _deviceValueMap.values) {
         valueNotifier.value = null;
       }
     });
@@ -177,19 +175,19 @@ class _HardwareWalletDeviceChoiceScreenState
               Expanded(
                 child: Container(
                   margin: const EdgeInsets.symmetric(
-                    vertical: 5.0,
+                    vertical: 5,
                   ),
                   child: Row(
                     children: [
                       Expanded(
                         child: InkWell(
                           borderRadius: BorderRadius.circular(
-                            10.0,
+                            10,
                           ),
                           onTap: () => _onDevicePressedCallback(e),
                           child: Padding(
                             padding: const EdgeInsets.symmetric(
-                                horizontal: 5.0, vertical: 5.0),
+                                horizontal: 5, vertical: 5,),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
@@ -212,11 +210,11 @@ class _HardwareWalletDeviceChoiceScreenState
                                     height: 20,
                                     child: value == null
                                         ? const Text(
-                                            'Select to connect the device')
+                                            'Select to connect the device',)
                                         : Text(value,
                                             style: Theme.of(context)
                                                 .textTheme
-                                                .bodyMedium),
+                                                .bodyMedium,),
                                   ),
                                 ),
                               ],
@@ -227,7 +225,7 @@ class _HardwareWalletDeviceChoiceScreenState
                     ],
                   ),
                 ),
-              )
+              ),
             ],
           ),
         )
@@ -235,11 +233,11 @@ class _HardwareWalletDeviceChoiceScreenState
   }
 
   Future<void> _onDevicePressedCallback(
-      WalletDefinition? walletDefinition) async {
+      WalletDefinition? walletDefinition,) async {
     Wallet? wallet;
     try {
-      for (var walletManager in _walletManagers) {
-        WalletDefinition wd = walletDefinition!;
+      for (final walletManager in _walletManagers) {
+        final wd = walletDefinition!;
         if (await walletManager.supportsWallet(wd)) {
           wallet = await walletManager.getWallet(walletDefinition);
           break;
@@ -248,7 +246,7 @@ class _HardwareWalletDeviceChoiceScreenState
       if (wallet == null) {
         throw const LedgerError.connectionError(
             origMessage:
-                'Not connected, please connect the device and try again.');
+                'Not connected, please connect the device and try again.',);
       }
       final walletAddress = await _getWalletAddress(wallet);
       setState(() {
@@ -280,9 +278,9 @@ class _HardwareWalletDeviceChoiceScreenState
               type: NotificationType.confirm,
             ),
           );
-      return await account.getAddress(true);
+      return account.getAddress(true);
     } else {
-      return await account.getAddress();
+      return account.getAddress();
     }
   }
 

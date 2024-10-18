@@ -4,9 +4,9 @@ import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/reusable_wi
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 class DualCoinStatsChartLegendItem extends StatelessWidget {
-  final Token token;
 
   const DualCoinStatsChartLegendItem({required this.token, super.key});
+  final Token token;
 
   @override
   Widget build(BuildContext context) {

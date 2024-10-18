@@ -9,7 +9,7 @@ class UndelegateButtonBloc extends BaseBloc<AccountBlockTemplate?> {
   void cancelPillarVoting(BuildContext context) {
     try {
       addEvent(null);
-      AccountBlockTemplate transactionParams =
+      final transactionParams =
           zenon!.embedded.pillar.undelegate();
       AccountBlockUtils.createAccountBlock(
         transactionParams,
@@ -21,9 +21,7 @@ class UndelegateButtonBloc extends BaseBloc<AccountBlockTemplate?> {
           addEvent(response);
         },
       ).onError(
-        (error, stackTrace) {
-          addError(error, stackTrace);
-        },
+        addError,
       );
     } catch (e, stackTrace) {
       addError(e, stackTrace);

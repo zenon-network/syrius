@@ -8,7 +8,7 @@ class SentinelsDeployBloc extends BaseBloc<AccountBlockTemplate?> {
   Future<void> deploySentinel(BigInt amount) async {
     try {
       addEvent(null);
-      AccountBlockTemplate transactionParams =
+      final transactionParams =
           zenon!.embedded.sentinel.register();
       AccountBlockUtils.createAccountBlock(
         transactionParams,
@@ -20,9 +20,7 @@ class SentinelsDeployBloc extends BaseBloc<AccountBlockTemplate?> {
           addEvent(response);
         },
       ).onError(
-        (error, stackTrace) {
-          addError(error, stackTrace);
-        },
+        addError,
       );
     } catch (e, stackTrace) {
       addError(e, stackTrace);

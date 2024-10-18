@@ -7,9 +7,6 @@ import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 class ProjectDetailsScreen extends StatefulWidget {
-  final VoidCallback onStepperNotificationSeeMorePressed;
-  final AcceleratorProject project;
-  final PillarInfo? pillarInfo;
 
   const ProjectDetailsScreen({
     required this.project,
@@ -17,6 +14,9 @@ class ProjectDetailsScreen extends StatefulWidget {
     required this.onStepperNotificationSeeMorePressed,
     super.key,
   });
+  final VoidCallback onStepperNotificationSeeMorePressed;
+  final AcceleratorProject project;
+  final PillarInfo? pillarInfo;
 
   @override
   State<ProjectDetailsScreen> createState() => _ProjectDetailsScreenState();
@@ -29,9 +29,9 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
       body: SafeArea(
         child: Container(
           margin: const EdgeInsets.only(
-            left: 20.0,
-            right: 20.0,
-            bottom: 20.0,
+            left: 20,
+            right: 20,
+            bottom: 20,
           ),
           child: Column(
             children: [
@@ -39,7 +39,7 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
                   IconButton(
-                    splashRadius: 20.0,
+                    splashRadius: 20,
                     onPressed: () {
                       Navigator.pop(context);
                     },
@@ -133,7 +133,7 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
           return const SyriusLoadingWidget();
         },
       ),
-      viewModelBuilder: () => RefreshProjectBloc(),
+      viewModelBuilder: RefreshProjectBloc.new,
     );
   }
 }

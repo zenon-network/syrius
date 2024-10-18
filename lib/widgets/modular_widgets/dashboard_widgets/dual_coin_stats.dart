@@ -28,14 +28,14 @@ class _DualCoinStatsState extends State<DualCoinStats>
   @override
   Widget build(BuildContext context) {
     return ViewModelBuilder<DualCoinStatsBloc>.reactive(
-      viewModelBuilder: () => DualCoinStatsBloc(),
+      viewModelBuilder: DualCoinStatsBloc.new,
       onViewModelReady: (model) {
         model.getDataPeriodically();
       },
       builder: (_, model, __) => CardScaffold<List<Token?>>(
         description: _kWidgetDescription,
         childStream: model.stream,
-        onCompletedStatusCallback: (data) => _getWidgetBody(data),
+        onCompletedStatusCallback: _getWidgetBody,
         title: _kWidgetTitle,
       ),
     );
@@ -46,10 +46,10 @@ class _DualCoinStatsState extends State<DualCoinStats>
       children: [
         Expanded(
           child: AspectRatio(
-            aspectRatio: 1.0,
+            aspectRatio: 1,
             child: StandardPieChart(
-              sectionsSpace: 4.0,
-              centerSpaceRadius: 0.0,
+              sectionsSpace: 4,
+              centerSpaceRadius: 0,
               sections: showingSections(tokenList),
               onChartSectionTouched: (pieTouchedSection) {
                 setState(() {
@@ -61,7 +61,7 @@ class _DualCoinStatsState extends State<DualCoinStats>
         ),
         const Divider(),
         Padding(
-          padding: const EdgeInsets.all(8.0),
+          padding: const EdgeInsets.all(8),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: <Widget>[
@@ -93,22 +93,22 @@ class _DualCoinStatsState extends State<DualCoinStats>
   }
 
   List<PieChartSectionData> showingSections(List<Token?> tokenList) {
-    BigInt totalSupply = tokenList.fold<BigInt>(
+    final totalSupply = tokenList.fold<BigInt>(
       BigInt.zero,
       (previousValue, element) => previousValue + element!.totalSupply,
     );
     return List.generate(
       tokenList.length,
       (i) {
-        Token currentTokenInfo = tokenList[i]!;
+        final currentTokenInfo = tokenList[i]!;
         final isTouched = i == _touchedIndex;
-        final double opacity = isTouched ? 1.0 : 0.5;
+        final opacity = isTouched ? 1.0 : 0.5;
         return PieChartSectionData(
           color: ColorUtils.getTokenColor(currentTokenInfo.tokenStandard)
               .withOpacity(opacity),
           value: currentTokenInfo.totalSupply / totalSupply,
           title: currentTokenInfo.symbol,
-          radius: 60.0,
+          radius: 60,
           titleStyle: Theme.of(context).textTheme.titleSmall!.copyWith(
                 color: Colors.white,
               ),

@@ -9,8 +9,8 @@ import 'package:zenon_syrius_wallet_flutter/services/shared_prefs_service.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/address_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/wallet_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/node_utils.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/wallet_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/widget_utils.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
@@ -70,7 +70,7 @@ class InitUtils {
 
   static Future<void> initWalletAfterDecryption(List<int> cipherKey) async {
     final walletVersion = Version.parse(sharedPrefsService!
-        .get(kWalletVersionKey, defaultValue: kWalletVersion));
+        .get(kWalletVersionKey, defaultValue: kWalletVersion),);
     await ZenonAddressUtils.setAddresses(kWalletFile);
     await ZenonAddressUtils.setAddressLabels();
     await ZenonAddressUtils.setDefaultAddress();
@@ -81,7 +81,7 @@ class InitUtils {
       await kWalletFile!.access((Wallet wallet) async {
         await htlcSwapsService!.openBoxes(WalletUtils.baseAddress.toString(),
             (wallet as KeyStore).getKeyPair().getPrivateKey()!,
-            newCipherKey: cipherKey);
+            newCipherKey: cipherKey,);
       });
     } else {
       await htlcSwapsService!
@@ -92,13 +92,13 @@ class InitUtils {
   }
 
   static Future<void> _openFavoriteTokensBox() async =>
-      await Hive.openBox(kFavoriteTokensBox);
+      Hive.openBox(kFavoriteTokensBox);
 
   static Future<void> _openNotificationsBox() async =>
-      await Hive.openBox(kNotificationsBox);
+      Hive.openBox(kNotificationsBox);
 
   static Future<void> _openRecipientBox() async =>
-      await Hive.openBox(kRecipientAddressBox);
+      Hive.openBox(kRecipientAddressBox);
 
   static Future<void> _setWalletVersion() async => sharedPrefsService!.put(
         kWalletVersionKey,

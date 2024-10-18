@@ -32,7 +32,7 @@ class AboutCardState extends State<AboutCard> {
     return CardScaffold(
       title: 'About',
       description: 'Detailed information about wallet components',
-      childBuilder: () => _getStreamBuilder(),
+      childBuilder: _getStreamBuilder,
     );
   }
 
@@ -47,7 +47,7 @@ class AboutCardState extends State<AboutCard> {
         CustomExpandablePanel(
           'Zenon Node chain identifier',
           _getGenericTextExpandedChild(
-              generalStats.frontierMomentum.chainIdentifier.toString()),
+              generalStats.frontierMomentum.chainIdentifier.toString(),),
         ),
         CustomExpandablePanel(
           'Client chain identifier',
@@ -108,22 +108,22 @@ class AboutCardState extends State<AboutCard> {
         CustomExpandablePanel(
           'Zenon main data path',
           _getGenericOpenButtonExpandedChild(
-              znnDefaultPaths.main.absolute.path),
+              znnDefaultPaths.main.absolute.path,),
         ),
         CustomExpandablePanel(
           'Syrius cache path',
           _getGenericOpenButtonExpandedChild(
-              znnDefaultPaths.cache.absolute.path),
+              znnDefaultPaths.cache.absolute.path,),
         ),
         CustomExpandablePanel(
           'Syrius wallet path',
           _getGenericOpenButtonExpandedChild(
-              znnDefaultPaths.wallet.absolute.path),
+              znnDefaultPaths.wallet.absolute.path,),
         ),
         CustomExpandablePanel(
           'Syrius wallet type',
           _getGenericOpenButtonExpandedChild(
-              kWalletFile!.walletType),
+              kWalletFile!.walletType,),
         ),
         CustomExpandablePanel(
           'Client hostname',
@@ -152,15 +152,15 @@ class AboutCardState extends State<AboutCard> {
   Widget _getGenericTextExpandedChild(String expandedText) {
     return Row(children: [
       CustomTableCell.withMarquee(
-        expandedText.toString(),
-      )
-    ]);
+        expandedText,
+      ),
+    ],);
   }
 
   Widget _getGenericLinkButtonExpandedChild(String url) {
     return Row(children: [
       CustomTableCell.withMarquee(
-        url.toString(),
+        url,
       ),
       IconButton(
         splashRadius: 16,
@@ -173,13 +173,13 @@ class AboutCardState extends State<AboutCard> {
           color: AppColors.znnColor,
         ),
       ),
-    ]);
+    ],);
   }
 
   Widget _getGenericOpenButtonExpandedChild(String expandedText) {
     return Row(children: [
       CustomTableCell.withMarquee(
-        expandedText.toString(),
+        expandedText,
       ),
       IconButton(
         splashRadius: 16,
@@ -192,7 +192,7 @@ class AboutCardState extends State<AboutCard> {
           color: AppColors.znnColor,
         ),
       ),
-    ]);
+    ],);
   }
 
   Widget _getStreamBuilder() {

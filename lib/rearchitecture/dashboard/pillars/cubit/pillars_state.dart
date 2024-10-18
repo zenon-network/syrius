@@ -9,7 +9,7 @@ class PillarsState extends DashboardState<int> {
   ///
   /// This state is initialized with the default `status`, `data`, and `error` values from the parent `DashboardState` class.
   /// The `data` field in this case represents the count of active pillars on the Zenon network.
-  PillarsState({
+  const PillarsState({
     super.status,
     super.data,
     super.error,

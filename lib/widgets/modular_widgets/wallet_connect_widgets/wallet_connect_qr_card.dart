@@ -45,23 +45,23 @@ class _WalletConnectQrCardState extends State<WalletConnectQrCard> {
     return CardScaffold(
       title: _kWidgetTitle,
       description: _kWidgetDescription,
-      childBuilder: () => _getCardBody(),
+      childBuilder: _getCardBody,
     );
   }
 
   Widget _getCardBody() {
     return Padding(
-      padding: const EdgeInsets.all(15.0),
+      padding: const EdgeInsets.all(15),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
           Container(
             height: 130,
             width: 130,
-            padding: const EdgeInsets.all(10.0),
+            padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
               color: Theme.of(context).colorScheme.surface,
-              borderRadius: BorderRadius.circular(15.0),
+              borderRadius: BorderRadius.circular(15),
             ),
             child: PrettyQrView.data(
               data: 'Scan the WalletConnect QR from the dApp',
@@ -74,7 +74,7 @@ class _WalletConnectQrCardState extends State<WalletConnectQrCard> {
                       scale: 0.3,
                       padding: EdgeInsets.only(top: 10, bottom: 10),
                       image: AssetImage(
-                          'assets/images/qr_code_child_image_znn.png'))),
+                          'assets/images/qr_code_child_image_znn.png',),),),
               errorCorrectLevel: QrErrorCorrectLevel.H,
             ),
           ),
@@ -110,37 +110,36 @@ class _WalletConnectQrCardState extends State<WalletConnectQrCard> {
     }
   }
 
-  void _handleClickCapture(CaptureMode mode) async {
+  Future<void> _handleClickCapture(CaptureMode mode) async {
     try {
-      Directory walletConnectDirectory = Directory(
-          path.join(znnDefaultPaths.cache.path, walletConnectDirName));
+      final walletConnectDirectory = Directory(
+          path.join(znnDefaultPaths.cache.path, walletConnectDirName),);
 
       if (!walletConnectDirectory.existsSync()) {
         walletConnectDirectory.createSync(recursive: true);
       }
 
-      String screenshotName =
+      final screenshotName =
           'screenshot-${DateTime.now().millisecondsSinceEpoch}';
 
       final imagePath = await File(
-              '${walletConnectDirectory.absolute.path}${path.separator}$screenshotName.png')
+              '${walletConnectDirectory.absolute.path}${path.separator}$screenshotName.png',)
           .create();
 
       _lastCapturedData = await screenCapturer.capture(
         mode: mode,
         imagePath: imagePath.absolute.path,
-        silent: true,
       );
 
       if (_lastCapturedData != null) {
-        var image = img.decodePng(imagePath.readAsBytesSync())!;
+        final image = img.decodePng(imagePath.readAsBytesSync())!;
 
-        LuminanceSource source = RGBLuminanceSource(
-            image.width, image.height, image.getBytes().buffer.asInt32List());
-        var bitmap = BinaryBitmap(HybridBinarizer(source));
+        final LuminanceSource source = RGBLuminanceSource(
+            image.width, image.height, image.getBytes().buffer.asInt32List(),);
+        final bitmap = BinaryBitmap(HybridBinarizer(source));
 
-        var reader = QRCodeReader();
-        var result = reader.decode(bitmap);
+        final reader = QRCodeReader();
+        final result = reader.decode(bitmap);
 
         if (result.rawBytes!.isNotEmpty) {
           if (result.text.isNotEmpty &&
@@ -153,7 +152,7 @@ class _WalletConnectQrCardState extends State<WalletConnectQrCard> {
                 title: 'Invalid QR code',
                 timestamp: DateTime.now().millisecondsSinceEpoch,
                 details: 'Please scan a valid WalletConnect QR code',
-                type: NotificationType.error));
+                type: NotificationType.error,),);
           }
         } else {
           await windowManager.show();
@@ -161,7 +160,7 @@ class _WalletConnectQrCardState extends State<WalletConnectQrCard> {
               title: 'QR code scan failed',
               timestamp: DateTime.now().millisecondsSinceEpoch,
               details: 'Please scan a valid WalletConnect QR code',
-              type: NotificationType.error));
+              type: NotificationType.error,),);
         }
         await _pairWithDapp(Uri.parse(result.text));
       } else {
@@ -186,7 +185,7 @@ class _WalletConnectQrCardState extends State<WalletConnectQrCard> {
             timestamp: DateTime.now().millisecondsSinceEpoch,
             details:
                 'Screen Recording permission is required to scan and process the on-screen WalletConnect QR code',
-            type: NotificationType.generatingPlasma));
+            type: NotificationType.generatingPlasma,),);
         return false;
       }
       return true;
@@ -195,7 +194,7 @@ class _WalletConnectQrCardState extends State<WalletConnectQrCard> {
   }
 
   Future<bool> _requestAccessForMacOS() async {
-    bool isAccessAllowed = await ScreenCapturer.instance.isAccessAllowed();
+    final isAccessAllowed = await ScreenCapturer.instance.isAccessAllowed();
     if (!isAccessAllowed) {
       await ScreenCapturer.instance.requestAccess();
     }

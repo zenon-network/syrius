@@ -23,7 +23,6 @@ class _NotificationsTabChildState extends State<NotificationsTabChild> {
     _loadNotifications();
 
     return WidgetAnimator(
-      curve: Curves.linear,
       child: _getNotificationsContainer(),
     );
   }
@@ -43,12 +42,12 @@ class _NotificationsTabChildState extends State<NotificationsTabChild> {
               columnName: '',
             ),
           ],
-          generateRowCells: _rowCellsGenerator),
+          generateRowCells: _rowCellsGenerator,),
     );
   }
 
   ExpandablePanel _getNotificationExpandablePanel(
-      WalletNotification notification) {
+      WalletNotification notification,) {
     return ExpandablePanel(
       collapsed: Container(),
       theme: ExpandableThemeData(
@@ -60,7 +59,7 @@ class _NotificationsTabChildState extends State<NotificationsTabChild> {
         children: [
           notification.getIcon(),
           const SizedBox(
-            width: 10.0,
+            width: 10,
           ),
           Expanded(
             child: Text(
@@ -71,7 +70,7 @@ class _NotificationsTabChildState extends State<NotificationsTabChild> {
         ],
       ),
       expanded: Padding(
-        padding: const EdgeInsets.only(left: 14.0, top: 5.0, bottom: 5.0),
+        padding: const EdgeInsets.only(left: 14, top: 5, bottom: 5),
         child: Row(
           children: [
             Expanded(
@@ -96,8 +95,8 @@ class _NotificationsTabChildState extends State<NotificationsTabChild> {
 
   List<WalletNotification> _getNotificationsFromDb() {
     try {
-      Box notificationsBox = Hive.box(kNotificationsBox);
-      List<dynamic> keys = notificationsBox.keys.toList();
+      final notificationsBox = Hive.box(kNotificationsBox);
+      final keys = notificationsBox.keys.toList();
       if (keys.length >= kNotificationsResultLimit) {
         return List<WalletNotification>.from(
           notificationsBox.valuesBetween(
@@ -117,9 +116,9 @@ class _NotificationsTabChildState extends State<NotificationsTabChild> {
   }
 
   Future<void> _deleteNotification(int? notificationTimestamp) async {
-    Box notificationsBox = Hive.box(kNotificationsBox);
+    final notificationsBox = Hive.box(kNotificationsBox);
 
-    var notificationKey = notificationsBox.keys.firstWhere(
+    final notificationKey = notificationsBox.keys.firstWhere(
       (key) => notificationsBox.get(key).timestamp == notificationTimestamp,
     );
 
@@ -151,7 +150,7 @@ class _NotificationsTabChildState extends State<NotificationsTabChild> {
       CustomTableCell.withText(
         context,
         FormatUtils.formatDate(notification.timestamp,
-            dateFormat: kNotificationsTimeFormat),
+            dateFormat: kNotificationsTimeFormat,),
         flex: 2,
       ),
       CustomTableCell(_getClearIcon(notification)),

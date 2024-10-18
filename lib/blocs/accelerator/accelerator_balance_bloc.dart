@@ -8,7 +8,7 @@ class AcceleratorBalanceBloc extends BaseBloc<AccountInfo?> {
   Future<void> getAcceleratorBalance() async {
     try {
       addEvent(null);
-      AccountInfo accountInfo = await zenon!.ledger.getAccountInfoByAddress(
+      final accountInfo = await zenon!.ledger.getAccountInfoByAddress(
         acceleratorAddress,
       );
       if (accountInfo.qsr()! > BigInt.zero ||

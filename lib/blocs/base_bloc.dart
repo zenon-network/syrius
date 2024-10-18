@@ -15,7 +15,7 @@ abstract class BaseBloc<T> extends BaseViewModel {
     if (!_controller.isClosed) _sink.add(event);
   }
 
-  void addError(error, stackTrace) {
+  FutureOr<Null> addError(Object error, StackTrace stackTrace) async {
     Logger('BaseBloc').log(Level.WARNING, 'addError', error, stackTrace);
     if (!_controller.isClosed) {
       _sink.addError(error);

@@ -9,7 +9,7 @@ import 'package:zenon_syrius_wallet_flutter/utils/format_utils.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 class JoinHtlcSwapBloc extends BaseBloc<HtlcSwap?> {
-  void joinHtlcSwap({
+  Future<void> joinHtlcSwap({
     required HtlcInfo initialHtlc,
     required Token fromToken,
     required Token toToken,
@@ -21,7 +21,7 @@ class JoinHtlcSwapBloc extends BaseBloc<HtlcSwap?> {
   }) async {
     try {
       addEvent(null);
-      AccountBlockTemplate transactionParams = zenon!.embedded.htlc.create(
+      final transactionParams = zenon!.embedded.htlc.create(
         fromToken,
         fromAmount,
         initialHtlc.timeLocked,
@@ -31,7 +31,7 @@ class JoinHtlcSwapBloc extends BaseBloc<HtlcSwap?> {
         initialHtlc.hashLock,
       );
       AccountBlockUtils.createAccountBlock(transactionParams, 'join swap',
-              address: initialHtlc.hashLocked, waitForRequiredPlasma: true)
+              address: initialHtlc.hashLocked, waitForRequiredPlasma: true,)
           .then(
         (response) async {
           final swap = HtlcSwap(

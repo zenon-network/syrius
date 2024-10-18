@@ -14,7 +14,7 @@ class CreatePhaseBloc extends BaseBloc<AccountBlockTemplate?> {
   ) async {
     try {
       addEvent(null);
-      AccountBlockTemplate transactionParams =
+      final transactionParams =
           zenon!.embedded.accelerator.addPhase(
         id,
         name,
@@ -25,12 +25,10 @@ class CreatePhaseBloc extends BaseBloc<AccountBlockTemplate?> {
       );
       AccountBlockUtils.createAccountBlock(transactionParams, 'create phase')
           .then(
-        (block) => addEvent(block),
+        addEvent,
       )
           .onError(
-        (error, stackTrace) {
-          addError(error, stackTrace);
-        },
+        addError,
       );
     } catch (e, stackTrace) {
       addError(e, stackTrace);

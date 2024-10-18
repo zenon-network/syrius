@@ -6,9 +6,6 @@ import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/layout_scaf
 const int kStaggeredNumOfColumns = 12;
 
 class StandardFluidLayout extends StatelessWidget {
-  final List<FluidCell> children;
-  final int? defaultCellWidth;
-  final double? defaultCellHeight;
 
   const StandardFluidLayout({
     required this.children,
@@ -16,6 +13,9 @@ class StandardFluidLayout extends StatelessWidget {
     this.defaultCellHeight = kStaggeredNumOfColumns / 4,
     super.key,
   });
+  final List<FluidCell> children;
+  final int? defaultCellWidth;
+  final double? defaultCellHeight;
 
   @override
   Widget build(BuildContext context) {
@@ -23,19 +23,19 @@ class StandardFluidLayout extends StatelessWidget {
       format: FluidLayoutFormat(),
       child: Builder(
         builder: (context) {
-          const int crossAxisCount = kStaggeredNumOfColumns;
+          const crossAxisCount = kStaggeredNumOfColumns;
 
-          final double spacing =
+          final spacing =
               context.breakpoint < LayoutBreakpoint.sm ? 4.0 : 12.0;
 
-          final double totalDurationMs = children.length > 5 ? 800 : 400;
+          final totalDurationMs = children.length > 5 ? 800 : 400;
 
-          final int durationPerTile = totalDurationMs ~/ children.length;
+          final durationPerTile = totalDurationMs ~/ children.length;
 
-          final List<StaggeredGridTile> tiles = List.generate(
+          final tiles = List<StaggeredGridTile>.generate(
             children.length,
             (index) {
-              final int widgetAnimatorOffset = durationPerTile * (index + 1);
+              final widgetAnimatorOffset = durationPerTile * (index + 1);
 
               return _generateStaggeredTitle(
                 children[index],
@@ -65,7 +65,6 @@ class StandardFluidLayout extends StatelessWidget {
       crossAxisCellCount: fluidCell.width ?? defaultCellWidth!,
       mainAxisCellCount: fluidCell.height ?? defaultCellHeight!,
       child: WidgetAnimator(
-        curve: Curves.linear,
         animationOffset: Duration(
           milliseconds: widgetAnimatorOffset,
         ),
@@ -76,13 +75,13 @@ class StandardFluidLayout extends StatelessWidget {
 }
 
 class FluidCell {
-  final int? width;
-  final double? height;
-  final Widget child;
 
   const FluidCell({
     required this.child,
     this.width,
     this.height,
   });
+  final int? width;
+  final double? height;
+  final Widget child;
 }

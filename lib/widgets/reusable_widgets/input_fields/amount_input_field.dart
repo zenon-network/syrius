@@ -10,14 +10,6 @@ import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/input_field
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 class AmountInputField extends StatefulWidget {
-  final TextEditingController controller;
-  final AccountInfo accountInfo;
-  final void Function(Token, bool)? onChanged;
-  final double? valuePadding;
-  final Color? textColor;
-  final Token? initialToken;
-  final String hintText;
-  final bool enabled;
 
   const AmountInputField({
     required this.controller,
@@ -30,6 +22,14 @@ class AmountInputField extends StatefulWidget {
     this.enabled = true,
     super.key,
   });
+  final TextEditingController controller;
+  final AccountInfo accountInfo;
+  final void Function(Token, bool)? onChanged;
+  final double? valuePadding;
+  final Color? textColor;
+  final Token? initialToken;
+  final String hintText;
+  final bool enabled;
 
   @override
   State createState() {
@@ -88,14 +88,14 @@ class _AmountInputFieldState extends State<AmountInputField> {
       children: [
         _getCoinDropdown(),
         const SizedBox(
-          width: 5.0,
+          width: 5,
         ),
         AmountSuffixMaxWidget(
-          onPressed: () => _onMaxPressed(),
+          onPressed: _onMaxPressed,
           context: context,
         ),
         const SizedBox(
-          width: 5.0,
+          width: 5,
         ),
       ],
     );
@@ -106,7 +106,7 @@ class _AmountInputFieldState extends State<AmountInputField> {
           _selectedToken!.tokenStandard,
         );
         widget.controller.text =
-            maxBalance.addDecimals(_selectedToken!.decimals).toString();
+            maxBalance.addDecimals(_selectedToken!.decimals);
       });
 
   Widget _getCoinDropdown() => CoinDropdown(
@@ -116,7 +116,7 @@ class _AmountInputFieldState extends State<AmountInputField> {
           if (_selectedToken != value) {
             setState(
               () {
-                _selectedToken = value!;
+                _selectedToken = value;
                 _isInputValid();
                 widget.onChanged!(_selectedToken!, _isInputValid());
               },
@@ -126,7 +126,7 @@ class _AmountInputFieldState extends State<AmountInputField> {
       );
 
   void _addTokensWithBalance() {
-    for (var balanceInfo in widget.accountInfo.balanceInfoList!) {
+    for (final balanceInfo in widget.accountInfo.balanceInfoList!) {
       if (balanceInfo.balance! > BigInt.zero &&
           !_tokensWithBalance.contains(balanceInfo.token)) {
         _tokensWithBalance.add(balanceInfo.token);

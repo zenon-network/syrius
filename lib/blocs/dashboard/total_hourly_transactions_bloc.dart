@@ -1,15 +1,14 @@
 import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
-import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 class TotalHourlyTransactionsBloc
     extends DashboardBaseBloc<Map<String, dynamic>> {
   @override
   Future<Map<String, dynamic>> makeAsyncCall() async {
-    int chainHeight = await _ledgerGetMomentumLedgerHeight();
+    final chainHeight = await _ledgerGetMomentumLedgerHeight();
     if (chainHeight - kMomentumsPerHour > 0) {
-      List<DetailedMomentum> response =
+      final response =
           (await zenon!.ledger.getDetailedMomentumsByHeight(
                 chainHeight - kMomentumsPerHour,
                 kMomentumsPerHour,
@@ -28,7 +27,7 @@ class TotalHourlyTransactionsBloc
     }
   }
 
-  _ledgerGetMomentumLedgerHeight() async {
+  Future<int> _ledgerGetMomentumLedgerHeight() async {
     try {
       return (await zenon!.ledger.getFrontierMomentum()).height;
     } catch (e) {

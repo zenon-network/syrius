@@ -12,14 +12,14 @@ import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 
 class NodeManagementScreen extends StatefulWidget {
-  final VoidCallback? nodeConfirmationCallback;
-
-  static const String route = 'node-management-screen';
 
   const NodeManagementScreen({
     this.nodeConfirmationCallback,
     super.key,
   });
+  final VoidCallback? nodeConfirmationCallback;
+
+  static const String route = 'node-management-screen';
 
   @override
   State<NodeManagementScreen> createState() => _NodeManagementScreenState();
@@ -59,8 +59,8 @@ class _NodeManagementScreenState extends State<NodeManagementScreen> {
     return Scaffold(
       body: Container(
         padding: const EdgeInsets.symmetric(
-          vertical: 30.0,
-          horizontal: 50.0,
+          vertical: 30,
+          horizontal: 50,
         ),
         child: ListView(
           shrinkWrap: true,
@@ -128,7 +128,6 @@ class _NodeManagementScreenState extends State<NodeManagementScreen> {
 
   Widget _getAutoReceiveCheckboxContainer() {
     return Row(
-      mainAxisAlignment: MainAxisAlignment.start,
       children: <Widget>[
         Checkbox(
           value: _autoReceive,
@@ -140,7 +139,7 @@ class _NodeManagementScreenState extends State<NodeManagementScreen> {
                 sl<AutoReceiveTxWorker>().autoReceive();
               }).onError((error, stackTrace) {
                 Logger('MainAppContainer').log(Level.WARNING,
-                    '_getAutoReceiveCheckboxContainer', error, stackTrace);
+                    '_getAutoReceiveCheckboxContainer', error, stackTrace,);
               });
             } else if (value == false &&
                 sl<AutoReceiveTxWorker>().pool.isNotEmpty) {
@@ -155,7 +154,7 @@ class _NodeManagementScreenState extends State<NodeManagementScreen> {
         Text(
           'Automatically receive transactions',
           style: Theme.of(context).textTheme.headlineSmall,
-        )
+        ),
       ],
     );
   }
@@ -191,7 +190,7 @@ class _NodeManagementScreenState extends State<NodeManagementScreen> {
     );
   }
 
-  _getConfirmNodeSelectionButton() {
+  Row _getConfirmNodeSelectionButton() {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
@@ -212,10 +211,10 @@ class _NodeManagementScreenState extends State<NodeManagementScreen> {
 
     try {
       _confirmNodeButtonKey.currentState?.animateForward();
-      String url = _selectedNode == kEmbeddedNode
+      final url = _selectedNode == kEmbeddedNode
           ? kLocalhostDefaultNodeUrl
           : _selectedNode!;
-      bool isConnectionEstablished =
+      var isConnectionEstablished =
           await NodeUtils.establishConnectionToNode(url);
       if (_selectedNode == kEmbeddedNode) {
         // Check if node is already running
@@ -224,7 +223,7 @@ class _NodeManagementScreenState extends State<NodeManagementScreen> {
           await Isolate.spawn(EmbeddedNode.runNode, [''],
               onExit:
                   sl<ReceivePort>(instanceName: 'embeddedStoppedPort').sendPort,
-              debugName: 'EmbeddedNodeIsolate');
+              debugName: 'EmbeddedNodeIsolate',);
           kEmbeddedNodeRunning = true;
           // The node needs a couple of seconds to actually start
           await Future.delayed(kEmbeddedConnectionDelay);
@@ -241,7 +240,7 @@ class _NodeManagementScreenState extends State<NodeManagementScreen> {
           kSelectedNodeKey,
           _selectedNode,
         );
-        kCurrentNode = _selectedNode!;
+        kCurrentNode = _selectedNode;
         await _sendChangingNodeSuccessNotification();
         if (widget.nodeConfirmationCallback != null) {
           widget.nodeConfirmationCallback!();
@@ -257,7 +256,7 @@ class _NodeManagementScreenState extends State<NodeManagementScreen> {
         'Connection failed',
       );
       setState(() {
-        _selectedNode = kCurrentNode!;
+        _selectedNode = kCurrentNode;
       });
     } finally {
       _confirmNodeButtonKey.currentState?.animateReverse();
@@ -311,7 +310,7 @@ class _NodeManagementScreenState extends State<NodeManagementScreen> {
         .contains(_newNodeController.text)) {
       await NotificationUtils.sendNotificationError(
           'Node ${_newNodeController.text} already exists',
-          'Node already exists');
+          'Node already exists',);
     } else {
       _addNodeToDb();
     }
@@ -342,8 +341,8 @@ class _NodeManagementScreenState extends State<NodeManagementScreen> {
       children: <String>{
         ...kDefaultNodes,
         ...kDefaultCommunityNodes,
-        ...kDbNodes
-      }.toList().map((e) => _getNodeTile(e)).toList(),
+        ...kDbNodes,
+      }.toList().map(_getNodeTile).toList(),
     );
   }
 

@@ -6,13 +6,10 @@ import 'package:lottie/lottie.dart';
 import 'package:stacked/stacked.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 
 class CardScaffoldWithoutListener extends StatefulWidget {
-  final Widget body;
-  final CardType type;
-  final VoidCallback? onRefreshPressed;
 
   const CardScaffoldWithoutListener({
     required this.body,
@@ -20,6 +17,9 @@ class CardScaffoldWithoutListener extends StatefulWidget {
     this.onRefreshPressed,
     super.key,
   });
+  final Widget body;
+  final CardType type;
+  final VoidCallback? onRefreshPressed;
 
   @override
   State<CardScaffoldWithoutListener> createState() => _CardScaffoldWithoutListenerState();
@@ -50,14 +50,12 @@ class _CardScaffoldWithoutListenerState extends State<CardScaffoldWithoutListene
   @override
   Widget build(BuildContext context) {
     return FlipCard(
-      direction: FlipDirection.HORIZONTAL,
-      speed: 500,
       flipOnTouch: false,
       key: cardKey,
       onFlipDone: (status) {},
       front: ClipRRect(
         borderRadius: BorderRadius.circular(
-          15.0,
+          15,
         ),
         child: Container(
           color: Theme.of(context).colorScheme.primary,
@@ -71,14 +69,14 @@ class _CardScaffoldWithoutListenerState extends State<CardScaffoldWithoutListene
                   color: Theme.of(context).colorScheme.primary,
                   child: _getWidgetFrontBody(),
                 ),
-              )
+              ),
             ],
           ),
         ),
       ),
       back: ClipRRect(
         borderRadius: BorderRadius.circular(
-          15.0,
+          15,
         ),
         child: Material(
           child: Container(
@@ -100,7 +98,7 @@ class _CardScaffoldWithoutListenerState extends State<CardScaffoldWithoutListene
 
   Widget _getBackBody(HideWidgetStatusBloc model) {
     return Padding(
-      padding: const EdgeInsets.all(8.0),
+      padding: const EdgeInsets.all(8),
       child: ListView(
         shrinkWrap: true,
         children: [
@@ -116,10 +114,10 @@ class _CardScaffoldWithoutListenerState extends State<CardScaffoldWithoutListene
                 const Icon(
                   Icons.info,
                   color: AppColors.znnColor,
-                  size: 20.0,
+                  size: 20,
                 ),
                 const SizedBox(
-                  width: 5.0,
+                  width: 5,
                 ),
                 Expanded(
                   child: Text(
@@ -131,9 +129,9 @@ class _CardScaffoldWithoutListenerState extends State<CardScaffoldWithoutListene
             ),
             expanded: Padding(
               padding: const EdgeInsets.only(
-                left: 14.0,
-                top: 5.0,
-                bottom: 5.0,
+                left: 14,
+                top: 5,
+                bottom: 5,
               ),
               child: Text(
                 _description,
@@ -142,15 +140,14 @@ class _CardScaffoldWithoutListenerState extends State<CardScaffoldWithoutListene
             ),
           ),
           Row(
-            mainAxisAlignment: MainAxisAlignment.start,
             children: [
               const Icon(
                 Icons.remove_red_eye_rounded,
                 color: AppColors.znnColor,
-                size: 20.0,
+                size: 20,
               ),
               const SizedBox(
-                width: 5.0,
+                width: 5,
               ),
               Expanded(
                 child: Text(
@@ -160,7 +157,7 @@ class _CardScaffoldWithoutListenerState extends State<CardScaffoldWithoutListene
               ),
               const Spacer(),
               Switch(
-                splashRadius: 0.0,
+                splashRadius: 0,
                 value: _hideWidgetInfo!,
                 onChanged: (value) {
                   setState(() {
@@ -184,7 +181,7 @@ class _CardScaffoldWithoutListenerState extends State<CardScaffoldWithoutListene
                     });
                   }
                 },
-              )
+              ),
             ],
           ),
           Visibility(
@@ -196,7 +193,7 @@ class _CardScaffoldWithoutListenerState extends State<CardScaffoldWithoutListene
                   child: _getPasswordInputField(model),
                 ),
                 const SizedBox(
-                  width: 10.0,
+                  width: 10,
                 ),
                 _actionButton!,
               ],
@@ -213,7 +210,7 @@ class _CardScaffoldWithoutListenerState extends State<CardScaffoldWithoutListene
       children: <Widget>[
         Expanded(
           child: Padding(
-            padding: const EdgeInsets.all(14.0),
+            padding: const EdgeInsets.all(14),
             child: Row(
               children: [
                 Expanded(
@@ -223,7 +220,7 @@ class _CardScaffoldWithoutListenerState extends State<CardScaffoldWithoutListene
                   ),
                 ),
                 const SizedBox(
-                  width: 5.0,
+                  width: 5,
                 ),
               ],
             ),
@@ -239,9 +236,9 @@ class _CardScaffoldWithoutListenerState extends State<CardScaffoldWithoutListene
                 shadowColor: Colors.transparent,
                 color: Colors.transparent,
                 child: IconButton(
-                  splashRadius: 15.0,
+                  splashRadius: 15,
                   icon: const Icon(Icons.refresh),
-                  iconSize: 18.0,
+                  iconSize: 18,
                   color: Theme.of(context).colorScheme.secondary,
                   onPressed: widget.onRefreshPressed,
                 ),
@@ -251,9 +248,9 @@ class _CardScaffoldWithoutListenerState extends State<CardScaffoldWithoutListene
               shadowColor: Colors.transparent,
               color: Colors.transparent,
               child: IconButton(
-                splashRadius: 15.0,
+                splashRadius: 15,
                 icon: const Icon(Icons.more_horiz),
-                iconSize: 18.0,
+                iconSize: 18,
                 color: Theme.of(context).textTheme.bodyLarge!.color,
                 onPressed: () {
                   cardKey.currentState!.toggleCard();
@@ -284,7 +281,7 @@ class _CardScaffoldWithoutListenerState extends State<CardScaffoldWithoutListene
       icon: const Icon(
         AntDesign.arrowright,
         color: AppColors.znnColor,
-        size: 25.0,
+        size: 25,
       ),
     );
   }
@@ -324,14 +321,14 @@ class _CardScaffoldWithoutListenerState extends State<CardScaffoldWithoutListene
             }
             return const Center(
               child: SyriusLoadingWidget(
-                size: 25.0,
+                size: 25,
               ),
             );
           }
           return _getBackBody(model);
         },
       ),
-      viewModelBuilder: () => HideWidgetStatusBloc(),
+      viewModelBuilder: HideWidgetStatusBloc.new,
     );
   }
 
@@ -352,7 +349,7 @@ class _CardScaffoldWithoutListenerState extends State<CardScaffoldWithoutListene
     );
   }
 
-  void _onActionButtonPressed(HideWidgetStatusBloc model) async {
+  Future<void> _onActionButtonPressed(HideWidgetStatusBloc model) async {
     if (_passwordController.text.isNotEmpty &&
         _actionButtonKey.currentState!.btnState == ButtonState.idle) {
       try {

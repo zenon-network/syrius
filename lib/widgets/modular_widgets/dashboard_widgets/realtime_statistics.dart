@@ -10,7 +10,7 @@ const String _kWidgetTitle = 'Realtime Stats';
 final String _kWidgetDescription =
     'This card displays the number of ${kZnnCoin.symbol} and '
     '${kQsrCoin.symbol} transactions. For example, a delegation is considered a '
-    '${kZnnCoin.symbol} transaction from the network\'s perspective. Every interaction '
+    "${kZnnCoin.symbol} transaction from the network's perspective. Every interaction "
     'with the network embedded contracts is internally considered a transaction';
 
 class RealtimeStatistics extends StatefulWidget {
@@ -24,7 +24,7 @@ class _RealtimeStatisticsState extends State<RealtimeStatistics> {
   @override
   Widget build(BuildContext context) {
     return ViewModelBuilder<RealtimeStatisticsBloc>.reactive(
-      viewModelBuilder: () => RealtimeStatisticsBloc(),
+      viewModelBuilder: RealtimeStatisticsBloc.new,
       onViewModelReady: (model) {
         model.getDataPeriodically();
       },
@@ -32,14 +32,14 @@ class _RealtimeStatisticsState extends State<RealtimeStatistics> {
         childStream: model.stream,
         title: _kWidgetTitle,
         description: _kWidgetDescription,
-        onCompletedStatusCallback: (data) => _widgetBody(data),
+        onCompletedStatusCallback: _widgetBody,
       ),
     );
   }
 
   Widget _widgetBody(List<AccountBlock> list) {
     return Padding(
-      padding: const EdgeInsets.all(16.0),
+      padding: const EdgeInsets.all(16),
       child: Column(children: [
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -50,7 +50,7 @@ class _RealtimeStatisticsState extends State<RealtimeStatistics> {
                   'transactions',
             ),
             const SizedBox(
-              width: 10.0,
+              width: 10,
             ),
             ChartLegend(
               dotColor: ColorUtils.getTokenColor(kZnnCoin.tokenStandard),
@@ -60,7 +60,7 @@ class _RealtimeStatisticsState extends State<RealtimeStatistics> {
           ],
         ),
         Expanded(child: RealtimeTxsChart(list)),
-      ]),
+      ],),
     );
   }
 }

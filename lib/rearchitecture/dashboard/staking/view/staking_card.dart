@@ -10,9 +10,9 @@ class StakingCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (_) {
-        final StakingCubit cubit = StakingCubit(
+        final cubit = StakingCubit(
           zenon!,
-          StakingState(),
+          const StakingState(),
         );
         cubit.fetchDataPeriodically();
         return cubit;
@@ -27,7 +27,7 @@ class StakingCard extends StatelessWidget {
                   error: state.error!,
                 ),
               CubitStatus.success => StakingPopulated(
-                  data: state.data!,
+                  data: state.data,
                 ),
             };
           },

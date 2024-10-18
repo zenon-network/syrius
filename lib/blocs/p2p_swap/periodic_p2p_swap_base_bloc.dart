@@ -11,7 +11,7 @@ abstract class PeriodicP2pSwapBaseBloc<T> extends BaseBloc<T> {
 
   void getDataPeriodically() {
     try {
-      T data = makeCall();
+      final data = makeCall();
       addEvent(data);
     } catch (e, stackTrace) {
       addError(e, stackTrace);

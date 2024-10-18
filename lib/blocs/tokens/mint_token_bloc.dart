@@ -11,13 +11,13 @@ class MintTokenBloc extends BaseBloc<AccountBlockTemplate> {
     Address beneficiaryAddress,
   ) {
     try {
-      AccountBlockTemplate transactionParams = zenon!.embedded.token.mintToken(
+      final transactionParams = zenon!.embedded.token.mintToken(
         token.tokenStandard,
         amount,
         beneficiaryAddress,
       );
       AccountBlockUtils.createAccountBlock(transactionParams, 'mint token',
-              waitForRequiredPlasma: true)
+              waitForRequiredPlasma: true,)
           .then(
         (response) {
           response.amount = amount;
@@ -25,9 +25,7 @@ class MintTokenBloc extends BaseBloc<AccountBlockTemplate> {
           addEvent(response);
         },
       ).onError(
-        (error, stackTrace) {
-          addError(error, stackTrace);
-        },
+        addError,
       );
     } catch (e, stackTrace) {
       addError(e, stackTrace);

@@ -7,14 +7,14 @@ import 'package:zenon_syrius_wallet_flutter/utils/notification_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 
 class SettingsAddress extends StatefulWidget {
-  final String? address;
-  final void Function(String?) onAddressLabelPressed;
 
   const SettingsAddress({
     required this.address,
     required this.onAddressLabelPressed,
     super.key,
   });
+  final String? address;
+  final void Function(String?) onAddressLabelPressed;
 
   @override
   State<SettingsAddress> createState() => _SettingsAddressState();
@@ -41,7 +41,7 @@ class _SettingsAddressState extends State<SettingsAddress> {
   Widget build(BuildContext context) {
     return Container(
       margin: const EdgeInsets.symmetric(
-        vertical: 5.0,
+        vertical: 5,
       ),
       child:
           _editable ? _getAddressLabelInputField() : _getAddressLabel(context),
@@ -54,12 +54,12 @@ class _SettingsAddressState extends State<SettingsAddress> {
         Expanded(
           child: InkWell(
             borderRadius: BorderRadius.circular(
-              10.0,
+              10,
             ),
             onTap: () => widget.onAddressLabelPressed(widget.address),
             child: Padding(
               padding:
-                  const EdgeInsets.symmetric(horizontal: 5.0, vertical: 5.0),
+                  const EdgeInsets.symmetric(horizontal: 5, vertical: 5),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -80,10 +80,10 @@ class _SettingsAddressState extends State<SettingsAddress> {
           ),
         ),
         const SizedBox(
-          width: 5.0,
+          width: 5,
         ),
         MaterialIconButton(
-          size: 15.0,
+          size: 15,
           iconData: Icons.edit,
           onPressed: () {
             setState(() {
@@ -93,14 +93,14 @@ class _SettingsAddressState extends State<SettingsAddress> {
           materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
         ),
         const SizedBox(
-          width: 5.0,
+          width: 5,
         ),
         CopyToClipboardIcon(
           widget.address,
           materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
         ),
         const SizedBox(
-          width: 5.0,
+          width: 5,
         ),
       ],
     );
@@ -114,7 +114,7 @@ class _SettingsAddressState extends State<SettingsAddress> {
           children: [
             Expanded(
               child: SizedBox(
-                height: 40.0,
+                height: 40,
                 child: InputField(
                   controller: _labelController,
                   onSubmitted: (value) {
@@ -132,38 +132,38 @@ class _SettingsAddressState extends State<SettingsAddress> {
                           ),
                   enabledBorder: OutlineInputBorder(
                     borderSide: BorderSide.none,
-                    borderRadius: BorderRadius.circular(10.0),
+                    borderRadius: BorderRadius.circular(10),
                   ),
-                  contentLeftPadding: 5.0,
+                  contentLeftPadding: 5,
                   disabledBorder: OutlineInputBorder(
                     borderSide: BorderSide(
                       color: Colors.white.withOpacity(0.1),
                     ),
-                    borderRadius: BorderRadius.circular(10.0),
+                    borderRadius: BorderRadius.circular(10),
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderSide: const BorderSide(color: AppColors.znnColor),
-                    borderRadius: BorderRadius.circular(10.0),
+                    borderRadius: BorderRadius.circular(10),
                   ),
                   errorBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10.0),
+                    borderRadius: BorderRadius.circular(10),
                     borderSide: const BorderSide(
                       color: AppColors.errorColor,
-                      width: 2.0,
+                      width: 2,
                     ),
                   ),
                   focusedErrorBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10.0),
+                    borderRadius: BorderRadius.circular(10),
                     borderSide: const BorderSide(
                       color: AppColors.errorColor,
-                      width: 2.0,
+                      width: 2,
                     ),
                   ),
                 ),
               ),
             ),
             const SizedBox(
-              width: 15.0,
+              width: 15,
             ),
             SettingsButton(
               onPressed:
@@ -174,7 +174,7 @@ class _SettingsAddressState extends State<SettingsAddress> {
               key: _changeButtonKey,
             ),
             MaterialIconButton(
-              size: 15.0,
+              size: 15,
               onPressed: () {
                 setState(() {
                   _labelController.text = kAddressLabelMap[widget.address]!;
@@ -197,7 +197,7 @@ class _SettingsAddressState extends State<SettingsAddress> {
     );
   }
 
-  void _onChangeButtonPressed() async {
+  Future<void> _onChangeButtonPressed() async {
     try {
       _changeButtonKey.currentState!.showLoadingIndicator(true);
       if (_labelController.text.isNotEmpty &&
@@ -213,8 +213,8 @@ class _SettingsAddressState extends State<SettingsAddress> {
         });
       } else if (_labelController.text.isEmpty) {
         await NotificationUtils.sendNotificationError(
-          'Label can\'t be empty',
-          'Label can\'t be empty',
+          "Label can't be empty",
+          "Label can't be empty",
         );
       } else if (_labelController.text.length > kAddressLabelMaxLength) {
         await NotificationUtils.sendNotificationError(

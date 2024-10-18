@@ -9,7 +9,7 @@ class DelegationBloc extends DashboardBaseBloc<DelegationInfo> {
   @override
   Future<DelegationInfo> makeAsyncCall() async {
     try {
-      DelegationInfo? response =
+      final response =
           await zenon!.embedded.pillar.getDelegatedPillar(
         Address.parse(kSelectedAddress!),
       );

@@ -65,14 +65,13 @@ abstract class InfiniteScrollBloc<T> with RefreshBlocMixin {
       final newItems = await getData(pageKey, _pageSize);
       final isLastPage = newItems.length < _pageSize || !isDataRequestPaginated;
       final nextPageKey = isLastPage ? null : pageKey + 1;
-      List<T> allItems = isDataRequestPaginated
-          ? [...lastListingState.itemList ?? [], ...newItems]
+      var allItems = isDataRequestPaginated
+          ? <T>[...lastListingState.itemList ?? [], ...newItems]
           : newItems;
       if (filterItemsFunction != null) {
         allItems = filterItemsFunction!(allItems);
       }
       yield InfiniteScrollBlocListingState<T>(
-        error: null,
         nextPageKey: nextPageKey,
         itemList: allItems,
       );

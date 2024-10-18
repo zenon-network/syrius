@@ -25,12 +25,12 @@ final String _kWidgetDescription = 'This card displays information about '
 enum PlasmaStatsWidgetVersion { dashboardTab, plasmaTab }
 
 class PlasmaStats extends StatefulWidget {
-  final PlasmaStatsWidgetVersion version;
 
   const PlasmaStats({
     this.version = PlasmaStatsWidgetVersion.dashboardTab,
     super.key,
   });
+  final PlasmaStatsWidgetVersion version;
 
   @override
   State<PlasmaStats> createState() => _PlasmaStatsState();
@@ -54,7 +54,7 @@ class _PlasmaStatsState extends State<PlasmaStats> {
       title: kPlasmaStatsWidgetTitle,
       description: _kWidgetDescription,
       childStream: sl.get<PlasmaStatsBloc>().stream,
-      onCompletedStatusCallback: (data) => _getTable(data),
+      onCompletedStatusCallback: _getTable,
       onRefreshPressed: widget.version == PlasmaStatsWidgetVersion.plasmaTab
           ? () => sl.get<PlasmaStatsBloc>().getPlasmas()
           : null,
@@ -82,18 +82,14 @@ class _PlasmaStatsState extends State<PlasmaStats> {
           : null,
       generateRowCells: (plasmaStatsWrapper, isSelected) {
         return [
-          widget.version == PlasmaStatsWidgetVersion.plasmaTab
-              ? isSelected
+          if (widget.version == PlasmaStatsWidgetVersion.plasmaTab) isSelected
                   ? CustomTableCell.tooltipWithMarquee(
                       Address.parse(plasmaStatsWrapper.address),
-                      flex: 1,
                     )
                   : CustomTableCell.tooltipWithText(
                       context,
                       Address.parse(plasmaStatsWrapper.address),
-                      flex: 1,
-                    )
-              : isSelected
+                    ) else isSelected
                   ? CustomTableCell.tooltipWithMarquee(
                       Address.parse(plasmaStatsWrapper.address),
                       flex: 2,
@@ -126,7 +122,6 @@ class _PlasmaStatsState extends State<PlasmaStats> {
         _sortAscending
             ? _addresses.sort((a, b) => a.compareTo(b))
             : _addresses.sort((a, b) => b.compareTo(a));
-        break;
 
       default:
         _sortAscending

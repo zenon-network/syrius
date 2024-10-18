@@ -15,7 +15,7 @@ class ColorUtils {
   }
 
   static String _getHexCodeFromTokenZts(TokenStandard tokenStandard) {
-    List<int> bytes =
+    final bytes =
         tokenStandard.getBytes().sublist(tokenStandard.getBytes().length - 3);
     return BytesUtils.bytesToHex(bytes);
   }

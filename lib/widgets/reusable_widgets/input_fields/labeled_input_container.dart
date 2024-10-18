@@ -2,9 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
 
 class LabeledInputContainer extends StatelessWidget {
-  final String labelText;
-  final Widget inputWidget;
-  final String? helpText;
 
   const LabeledInputContainer({
     required this.labelText,
@@ -12,6 +9,9 @@ class LabeledInputContainer extends StatelessWidget {
     this.helpText,
     super.key,
   });
+  final String labelText;
+  final Widget inputWidget;
+  final String? helpText;
 
   @override
   Widget build(BuildContext context) {
@@ -20,34 +20,33 @@ class LabeledInputContainer extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             Text(
               labelText,
               style: const TextStyle(
-                fontSize: 14.0,
+                fontSize: 14,
                 color: AppColors.darkHintTextColor,
               ),
             ),
-            const SizedBox(width: 3.0),
+            const SizedBox(width: 3),
             Visibility(
               visible: helpText != null,
               child: Tooltip(
                 message: helpText ?? '',
                 child: const Padding(
-                  padding: EdgeInsets.only(top: 3.0),
+                  padding: EdgeInsets.only(top: 3),
                   child: Icon(
                     Icons.help,
                     color: AppColors.darkHintTextColor,
-                    size: 12.0,
+                    size: 12,
                   ),
                 ),
               ),
             ),
           ],
         ),
-        const SizedBox(height: 3.0),
-        inputWidget
+        const SizedBox(height: 3),
+        inputWidget,
       ],
     );
   }

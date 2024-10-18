@@ -12,9 +12,9 @@ import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 class ReceiveMediumCard extends StatefulWidget {
-  final VoidCallback onExpandClicked;
 
-  const ReceiveMediumCard({super.key, required this.onExpandClicked});
+  const ReceiveMediumCard({required this.onExpandClicked, super.key});
+  final VoidCallback onExpandClicked;
 
   @override
   State<ReceiveMediumCard> createState() => _ReceiveMediumCardState();
@@ -51,7 +51,7 @@ class _ReceiveMediumCardState extends State<ReceiveMediumCard> {
       title: 'Receive',
       titleFontSize: Theme.of(context).textTheme.headlineSmall!.fontSize,
       description: 'Manage receiving funds',
-      childBuilder: () => _getTokensStreamBuilder(),
+      childBuilder: _getTokensStreamBuilder,
     );
   }
 
@@ -69,7 +69,7 @@ class _ReceiveMediumCardState extends State<ReceiveMediumCard> {
             return const SyriusLoadingWidget();
           }
           return const SyriusLoadingWidget();
-        });
+        },);
   }
 
   Widget _getWidgetBody(BuildContext context, List<Token> tokens) {
@@ -77,8 +77,8 @@ class _ReceiveMediumCardState extends State<ReceiveMediumCard> {
 
     return Container(
       margin: const EdgeInsets.only(
-        right: 20.0,
-        top: 20.0,
+        right: 20,
+        top: 20,
       ),
       child: Form(
         key: _formKey,
@@ -91,7 +91,7 @@ class _ReceiveMediumCardState extends State<ReceiveMediumCard> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: <Widget>[
                 const SizedBox(
-                  width: 20.0,
+                  width: 20,
                 ),
                 ReceiveQrImage(
                   data: _getQrString(),
@@ -100,7 +100,7 @@ class _ReceiveMediumCardState extends State<ReceiveMediumCard> {
                   context: context,
                 ),
                 const SizedBox(
-                  width: 20.0,
+                  width: 20,
                 ),
                 Expanded(
                   child: Column(
@@ -126,7 +126,7 @@ class _ReceiveMediumCardState extends State<ReceiveMediumCard> {
                               value,
                               kBigP255m1,
                               _selectedToken.decimals,
-                              BigInt.zero),
+                              BigInt.zero,),
                           onChanged: (value) => setState(() {}),
                           inputFormatters:
                               FormatUtils.getAmountTextInputFormatters(
@@ -139,7 +139,7 @@ class _ReceiveMediumCardState extends State<ReceiveMediumCard> {
                             children: [
                               _getCoinDropdown(),
                               const SizedBox(
-                                width: 15.0,
+                                width: 15,
                               ),
                             ],
                           ),
@@ -152,10 +152,9 @@ class _ReceiveMediumCardState extends State<ReceiveMediumCard> {
               ],
             ),
             const SizedBox(
-              height: 35.0,
+              height: 35,
             ),
             Row(
-              mainAxisAlignment: MainAxisAlignment.start,
               children: <Widget>[
                 TransferToggleCardSizeButton(
                   onPressed: widget.onExpandClicked,
@@ -217,7 +216,7 @@ class _ReceiveMediumCardState extends State<ReceiveMediumCard> {
       _tokens.clear();
     }
     _tokens.addAll(kDualCoin);
-    for (var element in tokens) {
+    for (final element in tokens) {
       if (!_tokens.contains(element)) {
         _tokens.add(element);
       }

@@ -4,12 +4,12 @@ import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 
 class PillarsTabChild extends StatefulWidget {
-  final VoidCallback onStepperNotificationSeeMorePressed;
 
   const PillarsTabChild({
     required this.onStepperNotificationSeeMorePressed,
     super.key,
   });
+  final VoidCallback onStepperNotificationSeeMorePressed;
 
   @override
   State<PillarsTabChild> createState() => _PillarsTabChildState();
@@ -21,7 +21,7 @@ class _PillarsTabChildState extends State<PillarsTabChild> {
 
   @override
   Widget build(BuildContext context) {
-    final List<FluidCell> children = [
+    final children = <FluidCell>[
       FluidCell(
         child: PillarRewards(
           pillarRewardsHistoryBloc: _pillarRewardsHistoryBloc,

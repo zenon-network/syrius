@@ -4,9 +4,9 @@ import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 
 class AccessWalletScreen extends StatefulWidget {
-  static const String route = 'access-wallet-screen';
 
   const AccessWalletScreen({super.key});
+  static const String route = 'access-wallet-screen';
 
   @override
   State<AccessWalletScreen> createState() => _AccessWalletScreenState();
@@ -17,7 +17,7 @@ class _AccessWalletScreenState extends State<AccessWalletScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
-        padding: const EdgeInsets.all(50.0),
+        padding: const EdgeInsets.all(50),
         child: Column(
           children: [
             Column(
@@ -32,7 +32,7 @@ class _AccessWalletScreenState extends State<AccessWalletScreen> {
                   style: Theme.of(context).textTheme.headlineMedium,
                 ),
                 const SizedBox(
-                  height: 50.0,
+                  height: 50,
                 ),
               ],
             ),

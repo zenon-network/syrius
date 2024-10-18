@@ -15,9 +15,9 @@ enum PhaseCreationStep {
 }
 
 class PhaseCreationStepper extends StatefulWidget {
-  final Project project;
 
   const PhaseCreationStepper(this.project, {super.key});
+  final Project project;
 
   @override
   State<PhaseCreationStepper> createState() => _PhaseCreationStepperState();
@@ -82,9 +82,9 @@ class _PhaseCreationStepperState extends State<PhaseCreationStepper> {
         Visibility(
           visible: _lastCompletedStep == PhaseCreationStep.values.last,
           child: Positioned(
-            bottom: 20.0,
-            right: 0.0,
-            left: 0.0,
+            bottom: 20,
+            right: 0,
+            left: 0,
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
@@ -98,10 +98,9 @@ class _PhaseCreationStepperState extends State<PhaseCreationStepper> {
                     });
                   },
                   iconData: Icons.refresh,
-                  context: context,
                 ),
                 const SizedBox(
-                  width: 75.0,
+                  width: 75,
                 ),
                 StepperButton(
                   text: 'View phases',
@@ -116,10 +115,10 @@ class _PhaseCreationStepperState extends State<PhaseCreationStepper> {
         Visibility(
           visible: _lastCompletedStep == PhaseCreationStep.values.last,
           child: Positioned(
-            right: 50.0,
+            right: 50,
             child: SizedBox(
-              width: 400.0,
-              height: 400.0,
+              width: 400,
+              height: 400,
               child: Center(
                 child: Lottie.asset(
                   'assets/lottie/ic_anim_zts.json',
@@ -196,7 +195,7 @@ class _PhaseCreationStepperState extends State<PhaseCreationStepper> {
             ),
             // Empty space so that all the right edges will align
             const SizedBox(
-              width: 23.0,
+              width: 23,
             ),
           ],
         ),
@@ -219,7 +218,7 @@ class _PhaseCreationStepperState extends State<PhaseCreationStepper> {
             ),
             // Empty space so that all the right edges will align
             const SizedBox(
-              width: 23.0,
+              width: 23,
             ),
           ],
         ),
@@ -297,7 +296,7 @@ class _PhaseCreationStepperState extends State<PhaseCreationStepper> {
             ),
             // Empty space so that all the right edges will align
             const SizedBox(
-              width: 23.0,
+              width: 23,
             ),
           ],
         ),
@@ -339,7 +338,7 @@ class _PhaseCreationStepperState extends State<PhaseCreationStepper> {
             ),
             // Empty space so that all the right edges will align
             const SizedBox(
-              width: 23.0,
+              width: 23,
             ),
           ],
         ),
@@ -353,7 +352,7 @@ class _PhaseCreationStepperState extends State<PhaseCreationStepper> {
               },
             ),
             const SizedBox(
-              width: 15.0,
+              width: 15,
             ),
             StepperButton(
               text: 'Continue',
@@ -373,12 +372,12 @@ class _PhaseCreationStepperState extends State<PhaseCreationStepper> {
   }
 
   Widget _getSubmitPhaseStepContent() {
-    BigInt remainingZnnBudget = widget.project.getRemainingZnnFunds() -
+    final remainingZnnBudget = widget.project.getRemainingZnnFunds() -
         (_phaseZnnAmountController.text.isNotEmpty
             ? _phaseZnnAmountController.text.extractDecimals(coinDecimals)
             : BigInt.zero);
 
-    BigInt remainingQsrBudget = widget.project.getRemainingQsrFunds() -
+    final remainingQsrBudget = widget.project.getRemainingQsrFunds() -
         (_phaseQsrAmountController.text.isNotEmpty
             ? _phaseQsrAmountController.text.extractDecimals(coinDecimals)
             : BigInt.zero);
@@ -404,7 +403,7 @@ class _PhaseCreationStepperState extends State<PhaseCreationStepper> {
               text: 'Go back',
             ),
             const SizedBox(
-              width: 15.0,
+              width: 15,
             ),
             _getCreatePhaseViewModel(),
           ],
@@ -457,7 +456,7 @@ class _PhaseCreationStepperState extends State<PhaseCreationStepper> {
         );
       },
       builder: (_, model, __) => _getSubmitButton(model),
-      viewModelBuilder: () => CreatePhaseBloc(),
+      viewModelBuilder: CreatePhaseBloc.new,
     );
   }
 

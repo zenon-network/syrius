@@ -5,12 +5,12 @@ import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 
 class CreateProject extends StatelessWidget {
-  final VoidCallback onStepperNotificationSeeMorePressed;
 
   const CreateProject({
     required this.onStepperNotificationSeeMorePressed,
     super.key,
   });
+  final VoidCallback onStepperNotificationSeeMorePressed;
 
   @override
   Widget build(BuildContext context) {
@@ -27,7 +27,7 @@ class CreateProject extends StatelessWidget {
       children: [
         const Icon(
           MaterialCommunityIcons.alien,
-          size: 75.0,
+          size: 75,
           color: AppColors.znnColor,
         ),
         Column(
@@ -35,7 +35,7 @@ class CreateProject extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             SizedBox(
-              width: 200.0,
+              width: 200,
               child: Text(
                 'Join the Aliens building the future on Network of Momentum',
                 style: Theme.of(context).textTheme.headlineSmall,

@@ -28,13 +28,13 @@ class _WalletConnectUriCardState extends State<WalletConnectUriCard> {
     return CardScaffold(
       title: _kWidgetTitle,
       description: _kWidgetDescription,
-      childBuilder: () => _getCardBody(),
+      childBuilder: _getCardBody,
     );
   }
 
   Widget _getCardBody() {
     return Padding(
-      padding: const EdgeInsets.all(15.0),
+      padding: const EdgeInsets.all(15),
       child: ValueListenableBuilder<String?>(
         builder: (_, value, child) {
           if (value != null) {
@@ -45,7 +45,7 @@ class _WalletConnectUriCardState extends State<WalletConnectUriCard> {
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
               SizedBox(
-                height: 120.0,
+                height: 120,
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -83,12 +83,12 @@ class _WalletConnectUriCardState extends State<WalletConnectUriCard> {
                           child: const Icon(
                             Icons.content_paste,
                             color: AppColors.darkHintTextColor,
-                            size: 15.0,
+                            size: 15,
                           ),
                         ),
                         suffixIconConstraints: const BoxConstraints(
-                          maxWidth: 45.0,
-                          maxHeight: 20.0,
+                          maxWidth: 45,
+                          maxHeight: 20,
                         ),
                         hintText: 'WalletConnect URI',
                       ),

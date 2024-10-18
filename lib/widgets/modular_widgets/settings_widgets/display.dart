@@ -40,7 +40,7 @@ class _DisplayWidget extends State<DisplayWidget> {
     return CardScaffold(
       title: 'Display',
       description: 'Wallet appearance and theme settings',
-      childBuilder: () => _getWidgetBody(),
+      childBuilder: _getWidgetBody,
     );
   }
 
@@ -50,7 +50,7 @@ class _DisplayWidget extends State<DisplayWidget> {
       children: [
         CustomExpandablePanel('Text scaling', _getTextScalingExpandableChild()),
         CustomExpandablePanel('Locale', _getLocaleExpandableChild()),
-        CustomExpandablePanel('Theme', _getThemeExpandableChild())
+        CustomExpandablePanel('Theme', _getThemeExpandableChild()),
       ],
     );
   }
@@ -88,7 +88,7 @@ class _DisplayWidget extends State<DisplayWidget> {
               ? Provider.of<TextScalingNotifier>(
                   context,
                   listen: false,
-                ).currentTextScaling
+                ).currentTextScaling as T
               : value is LocaleType
                   ? _selectedLocaleType as T?
                   : Provider.of<AppThemeNotifier>(
@@ -117,7 +117,7 @@ class _DisplayWidget extends State<DisplayWidget> {
           child: Text(
             text,
             style: Theme.of(context).textTheme.bodyLarge!.copyWith(
-                  fontSize: 10.0,
+                  fontSize: 10,
                 ),
           ),
         ),
@@ -167,7 +167,7 @@ class _DisplayWidget extends State<DisplayWidget> {
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         Padding(
-          padding: const EdgeInsets.all(8.0),
+          padding: const EdgeInsets.all(8),
           child: LoadingButton.settings(
             text: 'Confirm theme',
             onPressed: _onConfirmThemeButtonPressed,
@@ -181,7 +181,7 @@ class _DisplayWidget extends State<DisplayWidget> {
   Future<void> _onConfirmThemeButtonPressed() async {
     try {
       _confirmThemeButtonKey.currentState!.animateForward();
-      ThemeMode? currentThemeMode = Provider.of<AppThemeNotifier>(
+      final currentThemeMode = Provider.of<AppThemeNotifier>(
         context,
         listen: false,
       ).currentThemeMode;
@@ -215,7 +215,7 @@ class _DisplayWidget extends State<DisplayWidget> {
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         Padding(
-          padding: const EdgeInsets.all(8.0),
+          padding: const EdgeInsets.all(8),
           child: LoadingButton.settings(
             text: 'Confirm scale',
             onPressed: _onConfirmScaleButtonPressed,
@@ -226,11 +226,11 @@ class _DisplayWidget extends State<DisplayWidget> {
     );
   }
 
-  void _onConfirmScaleButtonPressed() async {
+  Future<void> _onConfirmScaleButtonPressed() async {
     try {
       _confirmScaleButtonKey.currentState!.animateForward();
 
-      TextScaling? currentTextScaling = Provider.of<TextScalingNotifier>(
+      final currentTextScaling = Provider.of<TextScalingNotifier>(
         context,
         listen: false,
       ).currentTextScaling;
@@ -246,7 +246,7 @@ class _DisplayWidget extends State<DisplayWidget> {
                 timestamp: DateTime.now().millisecondsSinceEpoch,
                 details: 'Text scale successfully changed to '
                     '${FormatUtils.extractNameFromEnum<TextScaling?>(currentTextScaling)}',
-                type: NotificationType.paymentSent),
+                type: NotificationType.paymentSent,),
           );
     } catch (e) {
       await NotificationUtils.sendNotificationError(e, 'Text scale change failed');

@@ -13,12 +13,12 @@ import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 enum LatestTransactionsVersion { standard, dashboard, token }
 
 class LatestTransactions extends StatefulWidget {
-  final LatestTransactionsVersion version;
 
   const LatestTransactions({
     super.key,
     this.version = LatestTransactionsVersion.standard,
   });
+  final LatestTransactionsVersion version;
 
   @override
   State<LatestTransactions> createState() => _LatestTransactionsState();
@@ -68,21 +68,15 @@ class _LatestTransactionsState extends State<LatestTransactions> {
     bool isSelected,
     AccountBlock transactionBlock,
   ) {
-    AccountBlock infoBlock =
+    final infoBlock =
         BlockUtils.isReceiveBlock(transactionBlock.blockType)
             ? transactionBlock.pairedAccountBlock!
             : transactionBlock;
     return [
-      isSelected
-          ? WidgetUtils.getMarqueeAddressTableCell(infoBlock.address, context)
-          : WidgetUtils.getTextAddressTableCell(infoBlock.address, context),
-      isSelected
-          ? WidgetUtils.getMarqueeAddressTableCell(infoBlock.toAddress, context)
-          : WidgetUtils.getTextAddressTableCell(infoBlock.toAddress, context),
-      isSelected
-          ? InfiniteScrollTableCell.withMarquee(infoBlock.hash.toString(),
-              flex: 2)
-          : InfiniteScrollTableCell.withText(
+      if (isSelected) WidgetUtils.getMarqueeAddressTableCell(infoBlock.address, context) else WidgetUtils.getTextAddressTableCell(infoBlock.address, context),
+      if (isSelected) WidgetUtils.getMarqueeAddressTableCell(infoBlock.toAddress, context) else WidgetUtils.getTextAddressTableCell(infoBlock.toAddress, context),
+      if (isSelected) InfiniteScrollTableCell.withMarquee(infoBlock.hash.toString(),
+              flex: 2,) else InfiniteScrollTableCell.withText(
               context,
               infoBlock.hash.toShortString(),
               flex: 2,
@@ -105,23 +99,23 @@ class _LatestTransactionsState extends State<LatestTransactions> {
             ),
           ),
         ),
-      )),
+      ),),
       InfiniteScrollTableCell.withText(
         context,
         infoBlock.confirmationDetail?.momentumTimestamp == null
             ? 'Pending'
             : FormatUtils.formatData(
-                infoBlock.confirmationDetail!.momentumTimestamp * 1000),
+                infoBlock.confirmationDetail!.momentumTimestamp * 1000,),
       ),
       InfiniteScrollTableCell(Align(
           alignment: Alignment.centerLeft,
-          child: _getTransactionTypeIcon(transactionBlock))),
+          child: _getTransactionTypeIcon(transactionBlock),),),
       InfiniteScrollTableCell(
         Align(
             alignment: Alignment.centerLeft,
             child: infoBlock.token != null
                 ? _showTokenSymbol(infoBlock)
-                : Container()),
+                : Container(),),
       ),
     ];
   }
@@ -167,14 +161,14 @@ class _LatestTransactionsState extends State<LatestTransactions> {
       return const Icon(
         MaterialCommunityIcons.arrow_up,
         color: AppColors.darkHintTextColor,
-        size: 20.0,
+        size: 20,
       );
     }
     if (BlockUtils.isReceiveBlock(block.blockType)) {
       return const Icon(
         MaterialCommunityIcons.arrow_down,
         color: AppColors.lightHintTextColor,
-        size: 20.0,
+        size: 20,
       );
     }
     return Text(
@@ -194,7 +188,7 @@ class _LatestTransactionsState extends State<LatestTransactions> {
             backgroundColor: ColorUtils.getTokenColor(block.tokenStandard),
             label: Text(block.token?.symbol ?? ''),
             side: BorderSide.none,
-            materialTapTargetSize: MaterialTapTargetSize.shrinkWrap));
+            materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,),);
   }
 
   void _onSortArrowsPressed(String columnName) {
@@ -211,7 +205,6 @@ class _LatestTransactionsState extends State<LatestTransactions> {
                       a.address.toString(),
                     ),
               );
-        break;
       case 'Receiver':
         _sortAscending
             ? _transactions!.sort(
@@ -220,8 +213,7 @@ class _LatestTransactionsState extends State<LatestTransactions> {
                     ),
               )
             : _transactions!.sort((a, b) =>
-                b.toAddress.toString().compareTo(a.toAddress.toString()));
-        break;
+                b.toAddress.toString().compareTo(a.toAddress.toString()),);
       case 'Hash':
         _sortAscending
             ? _transactions!.sort(
@@ -234,28 +226,24 @@ class _LatestTransactionsState extends State<LatestTransactions> {
                       a.hash.toString(),
                     ),
               );
-        break;
       case 'Amount':
         _sortAscending
             ? _transactions!.sort((a, b) => a.amount.compareTo(b.amount))
             : _transactions!.sort((a, b) => b.amount.compareTo(a.amount));
-        break;
       case 'Date':
         _sortAscending
             ? _transactions!.sort(
                 (a, b) => a.confirmationDetail!.momentumTimestamp.compareTo(
                       b.confirmationDetail!.momentumTimestamp,
-                    ))
+                    ),)
             : _transactions!.sort(
                 (a, b) => b.confirmationDetail!.momentumTimestamp.compareTo(
                       a.confirmationDetail!.momentumTimestamp,
-                    ));
-        break;
+                    ),);
       case 'Type':
         _sortAscending
             ? _transactions!.sort((a, b) => a.blockType.compareTo(b.blockType))
             : _transactions!.sort((a, b) => b.blockType.compareTo(a.blockType));
-        break;
       case 'Assets':
         _sortAscending
             ? _transactions!.sort(
@@ -264,7 +252,6 @@ class _LatestTransactionsState extends State<LatestTransactions> {
             : _transactions!.sort(
                 (a, b) => b.token!.symbol.compareTo(a.token!.symbol),
               );
-        break;
       default:
         _sortAscending
             ? _transactions!.sort(
@@ -321,15 +308,13 @@ class _LatestTransactionsState extends State<LatestTransactions> {
     bool isSelected,
     AccountBlock transactionBlock,
   ) {
-    AccountBlock infoBlock =
+    final infoBlock =
         BlockUtils.isReceiveBlock(transactionBlock.blockType)
             ? transactionBlock.pairedAccountBlock!
             : transactionBlock;
 
     return [
-      isSelected
-          ? WidgetUtils.getMarqueeAddressTableCell(infoBlock.address, context)
-          : WidgetUtils.getTextAddressTableCell(infoBlock.address, context),
+      if (isSelected) WidgetUtils.getMarqueeAddressTableCell(infoBlock.address, context) else WidgetUtils.getTextAddressTableCell(infoBlock.address, context),
       InfiniteScrollTableCell(
         Padding(
           padding: const EdgeInsets.only(right: 10),
@@ -361,16 +346,15 @@ class _LatestTransactionsState extends State<LatestTransactions> {
       ),
       InfiniteScrollTableCell(
         Align(
-            alignment: Alignment.center,
-            child: _getTransactionTypeIcon(transactionBlock)),
+            child: _getTransactionTypeIcon(transactionBlock),),
       ),
       InfiniteScrollTableCell(
         Align(
             alignment: Alignment.centerLeft,
             child: infoBlock.token != null
                 ? _showTokenSymbol(infoBlock)
-                : Container()),
-      )
+                : Container(),),
+      ),
     ];
   }
 

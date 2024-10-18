@@ -12,14 +12,13 @@ import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 class ReceiveLargeCard extends StatefulWidget {
-  final bool? extendIcon;
-  final VoidCallback onCollapseClicked;
 
   const ReceiveLargeCard({
-    super.key,
+    required this.onCollapseClicked, super.key,
     this.extendIcon,
-    required this.onCollapseClicked,
   });
+  final bool? extendIcon;
+  final VoidCallback onCollapseClicked;
 
   @override
   State<ReceiveLargeCard> createState() => _ReceiveLargeCardState();
@@ -55,7 +54,7 @@ class _ReceiveLargeCardState extends State<ReceiveLargeCard> {
       title: 'Receive',
       titleFontSize: Theme.of(context).textTheme.headlineSmall!.fontSize,
       description: 'Manage receiving funds',
-      childBuilder: () => _getTokensStreamBuilder(),
+      childBuilder: _getTokensStreamBuilder,
     );
   }
 
@@ -82,8 +81,8 @@ class _ReceiveLargeCardState extends State<ReceiveLargeCard> {
 
     return Container(
       margin: const EdgeInsets.only(
-        right: 20.0,
-        top: 20.0,
+        right: 20,
+        top: 20,
       ),
       child: Form(
         key: _formKey,
@@ -96,7 +95,7 @@ class _ReceiveLargeCardState extends State<ReceiveLargeCard> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
                 const SizedBox(
-                  width: 20.0,
+                  width: 20,
                 ),
                 ReceiveQrImage(
                   data: _getQrString(),
@@ -105,11 +104,10 @@ class _ReceiveLargeCardState extends State<ReceiveLargeCard> {
                   context: context,
                 ),
                 const SizedBox(
-                  width: 20.0,
+                  width: 20,
                 ),
                 Expanded(
                   child: Column(
-                    mainAxisAlignment: MainAxisAlignment.start,
                     children: <Widget>[
                       Row(
                         children: <Widget>[
@@ -132,7 +130,7 @@ class _ReceiveLargeCardState extends State<ReceiveLargeCard> {
                               value,
                               kBigP255m1,
                               _selectedToken.decimals,
-                              BigInt.zero),
+                              BigInt.zero,),
                           onChanged: (value) => setState(() {}),
                           inputFormatters:
                               FormatUtils.getAmountTextInputFormatters(
@@ -145,7 +143,7 @@ class _ReceiveLargeCardState extends State<ReceiveLargeCard> {
                             children: [
                               _getCoinDropdown(),
                               const SizedBox(
-                                width: 15.0,
+                                width: 15,
                               ),
                             ],
                           ),
@@ -158,7 +156,6 @@ class _ReceiveLargeCardState extends State<ReceiveLargeCard> {
               ],
             ),
             Row(
-              mainAxisAlignment: MainAxisAlignment.start,
               children: <Widget>[
                 Visibility(
                   visible: widget.extendIcon!,
@@ -227,7 +224,7 @@ class _ReceiveLargeCardState extends State<ReceiveLargeCard> {
       _tokens.clear();
     }
     _tokens.addAll(kDualCoin);
-    for (var element in tokens) {
+    for (final element in tokens) {
       if (!_tokens.contains(element)) {
         _tokens.add(element);
       }

@@ -5,9 +5,9 @@ import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 class HardwareWalletPasswordScreen extends StatefulWidget {
-  final WalletDefinition deviceInfo;
 
   const HardwareWalletPasswordScreen(this.deviceInfo, {super.key});
+  final WalletDefinition deviceInfo;
 
   @override
   State<HardwareWalletPasswordScreen> createState() =>
@@ -27,7 +27,7 @@ class _HardwareWalletPasswordScreenState extends State<HardwareWalletPasswordScr
     return Scaffold(
       body: Container(
         padding: const EdgeInsets.symmetric(
-          vertical: 30.0,
+          vertical: 30,
         ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -39,16 +39,16 @@ class _HardwareWalletPasswordScreenState extends State<HardwareWalletPasswordScr
                   numLevels: 4,
                 ),
                 const SizedBox(
-                  height: 30.0,
+                  height: 30,
                 ),
                 Text('Create a wallet password',
-                    style: Theme.of(context).textTheme.headlineLarge),
+                    style: Theme.of(context).textTheme.headlineLarge,),
                 kVerticalSpacing,
                 Text(
                     'This is the password that will be required to unlock the wallet',
-                    style: Theme.of(context).textTheme.headlineMedium),
+                    style: Theme.of(context).textTheme.headlineMedium,),
                 const SizedBox(
-                  height: 65.0,
+                  height: 65,
                 ),
                 Column(
                   children: [
@@ -72,7 +72,7 @@ class _HardwareWalletPasswordScreenState extends State<HardwareWalletPasswordScr
                         controller: _confirmPasswordController,
                         validator: (value) =>
                             InputValidators.checkPasswordMatch(
-                                _passwordController.text, value),
+                                _passwordController.text, value,),
                         onChanged: (value) {
                           setState(() {});
                         },
@@ -80,7 +80,7 @@ class _HardwareWalletPasswordScreenState extends State<HardwareWalletPasswordScr
                       ),
                     ),
                     const SizedBox(
-                      height: 35.0,
+                      height: 35,
                     ),
                     PasswordProgressBar(
                       password: _passwordController.text,
@@ -100,7 +100,7 @@ class _HardwareWalletPasswordScreenState extends State<HardwareWalletPasswordScr
               children: <Widget>[
                 _getPassiveButton(),
                 kSpacingBetweenActionButtons,
-                _getActionButton()
+                _getActionButton(),
               ],
             ),
           ],

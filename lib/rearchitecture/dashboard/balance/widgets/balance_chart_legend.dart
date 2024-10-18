@@ -1,17 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/dashboard/balance/widgets/balance_chart.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/reusable_widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
-import 'package:zenon_syrius_wallet_flutter/rearchitecture/dashboard/balance/widgets/balance_chart.dart';
 
 /// Adds a legend to the [BalanceChart] consisting of widgets with a tooltip
 /// than will show the exact balance - including decimals - available in a
 /// certain coin (QSR or ZNN)
 
 class BalanceChartLegend extends StatelessWidget {
-  final AccountInfo accountInfo;
 
   const BalanceChartLegend({required this.accountInfo, super.key});
+  final AccountInfo accountInfo;
 
   @override
   Widget build(BuildContext context) {

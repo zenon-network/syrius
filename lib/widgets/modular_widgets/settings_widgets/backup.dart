@@ -45,7 +45,7 @@ class _BackupWidgetState extends State<BackupWidget> {
     );
   }
 
-  void _onBackupWalletPressed() async {
+  Future<void> _onBackupWalletPressed() async {
     kWalletFile!
         .access((wallet) => Future.value((wallet as KeyStore).mnemonic!))
         .then((value) => NavigationUtils.push(
@@ -54,7 +54,7 @@ class _BackupWidgetState extends State<BackupWidget> {
                 value,
                 backupWalletFlow: true,
               ),
-            ));
+            ),);
   }
 
   Widget _getDumpMnemonicButton() {

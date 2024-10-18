@@ -8,7 +8,7 @@ class PillarRewardsHistoryBloc
     extends BaseBlocForReloadingIndicator<RewardHistoryList> {
   @override
   Future<RewardHistoryList> getDataAsync() async {
-    RewardHistoryList response =
+    final response =
         await zenon!.embedded.pillar.getFrontierRewardByPage(
       Address.parse(kSelectedAddress!),
       pageSize: kStandardChartNumDays.toInt(),

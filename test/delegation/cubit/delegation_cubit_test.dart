@@ -1,7 +1,7 @@
 // ignore_for_file: prefer_const_constructors
 
-import 'package:flutter_test/flutter_test.dart';
 import 'package:bloc_test/bloc_test.dart';
+import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/dashboard/dashboard.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
@@ -65,7 +65,7 @@ void main() {
         verify: (_) {
           verify(() => mockZenon.embedded.pillar.getDelegatedPillar(
                 emptyAddress,
-              )).called(1);
+              ),).called(1);
         },
       );
 

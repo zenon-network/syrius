@@ -1,4 +1,3 @@
-library;
 
 export 'latest_transactions_bloc.dart';
 export 'send_payment_bloc.dart';

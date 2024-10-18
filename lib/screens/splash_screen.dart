@@ -14,16 +14,16 @@ import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 
 class SplashScreen extends StatefulWidget {
-  static const String route = 'splash-screen';
-
-  final bool resetWalletFlow;
-  final bool deleteCacheFlow;
 
   const SplashScreen({
     this.resetWalletFlow = false,
     this.deleteCacheFlow = false,
     super.key,
   });
+  static const String route = 'splash-screen';
+
+  final bool resetWalletFlow;
+  final bool deleteCacheFlow;
 
   @override
   State<SplashScreen> createState() => _SplashScreenState();
@@ -43,11 +43,9 @@ class _SplashScreenState extends State<SplashScreen> {
     return FutureBuilder<LottieComposition>(
       future: _composition,
       builder: (context, snapshot) {
-        var composition = snapshot.data;
+        final composition = snapshot.data;
         if (composition != null) {
-          Future.delayed(composition.duration, () {
-            _splashInits();
-          });
+          Future.delayed(composition.duration, _splashInits);
           return Lottie(
             composition: composition,
             repeat: false,
@@ -118,7 +116,7 @@ class _SplashScreenState extends State<SplashScreen> {
     await Hive.close();
     await Future.forEach<String>(
       kCacheBoxesToBeDeleted,
-      (boxName) async => await Hive.deleteBoxFromDisk(boxName),
+      (boxName) async => Hive.deleteBoxFromDisk(boxName),
     );
     await _deleteWeb3Cache();
   }
@@ -126,7 +124,7 @@ class _SplashScreenState extends State<SplashScreen> {
   Future<void> _deleteWeb3Cache() async {
     try {
       final web3WalletService = sl<IWeb3WalletService>();
-      for (var pairing in web3WalletService.pairings.value) {
+      for (final pairing in web3WalletService.pairings.value) {
         await web3WalletService.deactivatePairing(topic: pairing.topic);
       }
     } catch (e, stackTrace) {

@@ -1,4 +1,3 @@
-library;
 
 export 'app_theme_notifier.dart';
 export 'default_address_notifier.dart';

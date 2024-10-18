@@ -9,7 +9,7 @@ class PlasmaOptionsBloc extends BaseBloc<AccountBlockTemplate?> {
   void generatePlasma(String beneficiaryAddress, BigInt amount) {
     try {
       addEvent(null);
-      AccountBlockTemplate transactionParams = zenon!.embedded.plasma.fuse(
+      final transactionParams = zenon!.embedded.plasma.fuse(
         Address.parse(beneficiaryAddress),
         amount,
       );
@@ -23,9 +23,7 @@ class PlasmaOptionsBloc extends BaseBloc<AccountBlockTemplate?> {
           addEvent(response);
         },
       ).onError(
-        (error, stackTrace) {
-          addError(error, stackTrace);
-        },
+        addError,
       );
     } catch (e, stackTrace) {
       addError(e, stackTrace);

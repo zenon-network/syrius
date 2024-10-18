@@ -8,7 +8,7 @@ class SentinelsState extends DashboardState<SentinelInfoList> {
   /// Constructs a new `SentinelsState` with optional values for `status`, `data`, and `error`.
   ///
   /// The `data` field stores a `SentinelInfoList` object, which contains the details of all active sentinels on the network.
-  SentinelsState({
+  const SentinelsState({
     super.status,
     super.data,
     super.error,

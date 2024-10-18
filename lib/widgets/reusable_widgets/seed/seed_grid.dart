@@ -6,10 +6,6 @@ import 'package:zenon_syrius_wallet_flutter/utils/extensions.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart' show Mnemonic;
 
 class SeedGrid extends StatefulWidget {
-  final List<String> seedWords;
-  final bool isContinueButtonDisabled;
-  final bool enableSeedInputFields;
-  final VoidCallback? onTextFieldChangedCallback;
 
   const SeedGrid(
     this.seedWords, {
@@ -18,6 +14,10 @@ class SeedGrid extends StatefulWidget {
     this.onTextFieldChangedCallback,
     super.key,
   });
+  final List<String> seedWords;
+  final bool isContinueButtonDisabled;
+  final bool enableSeedInputFields;
+  final VoidCallback? onTextFieldChangedCallback;
 
   @override
   State createState() {
@@ -61,11 +61,11 @@ class SeedGridState extends State<SeedGrid> {
   }
 
   Widget _getSeedInputWidgetsGrid() {
-    int divider = widget.seedWords.length ~/ kSeedGridNumOfRows;
+    final divider = widget.seedWords.length ~/ kSeedGridNumOfRows;
 
-    List<Widget> columnChildren = [];
+    var columnChildren = <Widget>[];
 
-    for (int i = 0; i <= widget.seedWords.length / divider - 1; i++) {
+    for (var i = 0; i <= widget.seedWords.length / divider - 1; i++) {
       columnChildren.add(
         _getSeedRow(
           List.generate(
@@ -80,7 +80,7 @@ class SeedGridState extends State<SeedGrid> {
       List.generate(
         kSeedGridNumOfRows - 1,
         (index) => const SizedBox(
-          height: 10.0,
+          height: 10,
         ),
       ),
     );
@@ -93,14 +93,14 @@ class SeedGridState extends State<SeedGrid> {
   }
 
   Widget _getSeedRow(List<int> rangeIndexes) {
-    List<Widget> children = rangeIndexes.fold<List<Widget>>(
+    final children = rangeIndexes.fold<List<Widget>>(
       [],
       (previousValue, index) {
         previousValue.add(_seedWordWidget(index));
         if (rangeIndexes.last != index) {
           previousValue.add(const SizedBox(
-            width: 10.0,
-          ));
+            width: 10,
+          ),);
         }
         return previousValue;
       },
@@ -112,9 +112,9 @@ class SeedGridState extends State<SeedGrid> {
   }
 
   Widget _seedWordWidget(int seedWordIndex) {
-    String seedWord = _seedGridElements[seedWordIndex].word;
+    final seedWord = _seedGridElements[seedWordIndex].word;
 
-    final TextEditingController controller = TextEditingController();
+    final controller = TextEditingController();
     controller.text = seedWord;
 
     if (_textCursor == seedWordIndex) {
@@ -124,7 +124,7 @@ class SeedGridState extends State<SeedGrid> {
     }
     return SizedBox(
       width: kSeedWordCellWidth,
-      height: 30.0,
+      height: 30,
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         mainAxisSize: MainAxisSize.min,
@@ -148,11 +148,11 @@ class SeedGridState extends State<SeedGrid> {
                 }
               },
               child: Container(
-                width: 30.0,
-                height: 30.0,
+                width: 30,
+                height: 30,
                 decoration: BoxDecoration(
                   border: Border.all(
-                    width: 2.0,
+                    width: 2,
                     color: _getSeedNumberBorderColor(seedWordIndex, seedWord),
                   ),
                   color: _getSeedNumberColor(seedWordIndex, seedWord),
@@ -170,7 +170,7 @@ class SeedGridState extends State<SeedGrid> {
             ),
           ),
           const SizedBox(
-            width: 10.0,
+            width: 10,
           ),
           Expanded(
             child: FocusableActionDetector(
@@ -214,7 +214,7 @@ class SeedGridState extends State<SeedGrid> {
                             _onHoverText == seedWordIndex
                         ? Colors.white
                         : getIndicatorColor(seedWord),
-                    fontSize: 12.0,
+                    fontSize: 12,
                   ),
                   decoration: InputDecoration(
                     filled: true,
@@ -282,14 +282,14 @@ class SeedGridState extends State<SeedGrid> {
       return const UnderlineInputBorder(
         borderSide: BorderSide(
           color: AppColors.seedUnderlineBorderColor,
-          width: 3.0,
+          width: 3,
         ),
       );
     } else if (Mnemonic.isValidWord(seedValue)) {
       return const UnderlineInputBorder(
         borderSide: BorderSide(
           color: AppColors.znnColor,
-          width: 3.0,
+          width: 3,
         ),
       );
     } else if (Mnemonic.isValidWord(seedValue) == false && seedValue != '' ||
@@ -297,14 +297,14 @@ class SeedGridState extends State<SeedGrid> {
       return const UnderlineInputBorder(
         borderSide: BorderSide(
           color: AppColors.errorColor,
-          width: 3.0,
+          width: 3,
         ),
       );
     } else {
       return const UnderlineInputBorder(
         borderSide: BorderSide(
           color: AppColors.seedUnderlineBorderColor,
-          width: 3.0,
+          width: 3,
         ),
       );
     }
@@ -343,7 +343,7 @@ class SeedGridState extends State<SeedGrid> {
       );
 
   void _changeFocusToNextNode() {
-    int indexOfFocusedNode = _focusNodes.indexOf(
+    final indexOfFocusedNode = _focusNodes.indexOf(
       _focusNodes.firstWhere(
         (node) => node.hasFocus,
       ),
@@ -356,7 +356,7 @@ class SeedGridState extends State<SeedGrid> {
   }
 
   void _initSeedGridElements(List<String> seed) {
-    for (var word in seed) {
+    for (final word in seed) {
       _seedGridElements.add(
         SeedGridElement(
           word: word,
@@ -369,7 +369,7 @@ class SeedGridState extends State<SeedGrid> {
 
   @override
   void dispose() {
-    for (var focusNode in _focusNodes) {
+    for (final focusNode in _focusNodes) {
       focusNode.dispose();
     }
     super.dispose();
@@ -377,13 +377,13 @@ class SeedGridState extends State<SeedGrid> {
 }
 
 class SeedGridElement {
-  String word;
-  bool isValid;
-  bool isShown;
 
   SeedGridElement({
     required this.word,
     required this.isValid,
     required this.isShown,
   });
+  String word;
+  bool isValid;
+  bool isShown;
 }

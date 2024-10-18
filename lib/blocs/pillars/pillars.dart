@@ -1,4 +1,3 @@
-library;
 
 export 'delegate_button_bloc.dart';
 export 'delegation_info_bloc.dart';

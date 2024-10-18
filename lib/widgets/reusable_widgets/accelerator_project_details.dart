@@ -6,11 +6,6 @@ import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 class AcceleratorProjectDetails extends StatelessWidget {
-  final Address? owner;
-  final Hash? hash;
-  final int? creationTimestamp;
-  final AcceleratorProjectStatus? acceleratorProjectStatus;
-  final bool isPhase;
 
   const AcceleratorProjectDetails({
     this.owner,
@@ -20,16 +15,21 @@ class AcceleratorProjectDetails extends StatelessWidget {
     this.isPhase = false,
     super.key,
   });
+  final Address? owner;
+  final Hash? hash;
+  final int? creationTimestamp;
+  final AcceleratorProjectStatus? acceleratorProjectStatus;
+  final bool isPhase;
 
   @override
   Widget build(BuildContext context) {
-    List<Widget> children = [];
+    final children = <Widget>[];
 
     if (owner != null) {
       children.add(Text(
         _getOwnerDetails(),
         style: Theme.of(context).inputDecorationTheme.hintStyle,
-      ));
+      ),);
     }
 
     if (hash != null) {
@@ -45,14 +45,14 @@ class AcceleratorProjectDetails extends StatelessWidget {
       children.add(Text(
         'Created ${_formatData(creationTimestamp! * 1000)}',
         style: Theme.of(context).inputDecorationTheme.hintStyle,
-      ));
+      ),);
       if (!isPhase &&
           acceleratorProjectStatus != null &&
           acceleratorProjectStatus == AcceleratorProjectStatus.voting) {
         children.add(Text(
           _getTimeUntilVotingCloses(),
           style: Theme.of(context).inputDecorationTheme.hintStyle,
-        ));
+        ),);
       }
     }
 
@@ -63,18 +63,15 @@ class AcceleratorProjectDetails extends StatelessWidget {
           ' ● ',
           style: Theme.of(context).inputDecorationTheme.hintStyle,
         ),
-      )),
+      ),),
     );
   }
 
   String _formatData(int transactionMillis) {
-    int currentMillis = DateTime.now().millisecondsSinceEpoch;
+    final currentMillis = DateTime.now().millisecondsSinceEpoch;
     if (currentMillis - transactionMillis <=
         const Duration(
           days: 1,
-          minutes: 0,
-          seconds: 0,
-          milliseconds: 0,
         ).inMilliseconds) {
       return _formatDataShort(currentMillis - transactionMillis);
     }
@@ -82,7 +79,7 @@ class AcceleratorProjectDetails extends StatelessWidget {
   }
 
   String _formatDataShort(int i) {
-    Duration duration = Duration(milliseconds: i);
+    final duration = Duration(milliseconds: i);
     if (duration.inHours > 0) {
       return '${duration.inHours} h ago';
     }
@@ -93,12 +90,12 @@ class AcceleratorProjectDetails extends StatelessWidget {
   }
 
   String _getTimeUntilVotingCloses() {
-    String prefix = 'Voting closes in ';
-    String suffix = '';
-    DateTime creationDate =
+    const prefix = 'Voting closes in ';
+    var suffix = '';
+    final creationDate =
         DateTime.fromMillisecondsSinceEpoch((creationTimestamp ?? 0) * 1000);
-    DateTime votingEnds = creationDate.add(kProjectVotingPeriod);
-    Duration difference = votingEnds.difference(DateTime.now());
+    final votingEnds = creationDate.add(kProjectVotingPeriod);
+    final difference = votingEnds.difference(DateTime.now());
     if (difference.isNegative) {
       return 'Voting closed';
     }
@@ -115,7 +112,7 @@ class AcceleratorProjectDetails extends StatelessWidget {
   }
 
   String _getOwnerDetails() {
-    String address = owner!.toShortString();
+    var address = owner!.toShortString();
     if (kDefaultAddressList.contains(owner.toString())) {
       address = kAddressLabelMap[owner.toString()]!;
     }

@@ -8,7 +8,7 @@ class RealtimeStatisticsState extends DashboardState<List<AccountBlock>> {
   /// Constructs a new `RealtimeStatisticsState` with optional values for `status`, `data`, and `error`.
   ///
   /// The `data` field stores a list of `AccountBlock` objects that represent real-time blockchain statistics.
-  RealtimeStatisticsState({
+  const RealtimeStatisticsState({
     super.status,
     super.data,
     super.error,

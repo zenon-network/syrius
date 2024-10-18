@@ -53,21 +53,15 @@ class _PendingTransactionsState extends State<PendingTransactions> {
       _getCellsForPendingTransactions(isSelected, transaction);
 
   List<Widget> _getCellsForPendingTransactions(
-      bool isSelected, AccountBlock transaction) {
-    AccountBlock infoBlock = BlockUtils.isReceiveBlock(transaction.blockType)
+      bool isSelected, AccountBlock transaction,) {
+    final infoBlock = BlockUtils.isReceiveBlock(transaction.blockType)
         ? transaction.pairedAccountBlock!
         : transaction;
     return [
-      isSelected
-          ? WidgetUtils.getMarqueeAddressTableCell(infoBlock.address, context)
-          : WidgetUtils.getTextAddressTableCell(infoBlock.address, context),
-      isSelected
-          ? WidgetUtils.getMarqueeAddressTableCell(infoBlock.toAddress, context)
-          : WidgetUtils.getTextAddressTableCell(infoBlock.toAddress, context),
-      isSelected
-          ? InfiniteScrollTableCell.withMarquee(infoBlock.hash.toString(),
-              flex: 2)
-          : InfiniteScrollTableCell.withText(
+      if (isSelected) WidgetUtils.getMarqueeAddressTableCell(infoBlock.address, context) else WidgetUtils.getTextAddressTableCell(infoBlock.address, context),
+      if (isSelected) WidgetUtils.getMarqueeAddressTableCell(infoBlock.toAddress, context) else WidgetUtils.getTextAddressTableCell(infoBlock.toAddress, context),
+      if (isSelected) InfiniteScrollTableCell.withMarquee(infoBlock.hash.toString(),
+              flex: 2,) else InfiniteScrollTableCell.withText(
               context,
               infoBlock.hash.toShortString(),
               flex: 2,
@@ -90,23 +84,23 @@ class _PendingTransactionsState extends State<PendingTransactions> {
             ),
           ),
         ),
-      )),
+      ),),
       InfiniteScrollTableCell.withText(
         context,
         infoBlock.confirmationDetail?.momentumTimestamp == null
             ? 'Pending'
             : FormatUtils.formatData(
-                infoBlock.confirmationDetail!.momentumTimestamp * 1000),
+                infoBlock.confirmationDetail!.momentumTimestamp * 1000,),
       ),
       InfiniteScrollTableCell(
         Align(
             alignment: Alignment.centerLeft,
             child: infoBlock.token != null
                 ? _showTokenSymbol(infoBlock)
-                : Container()),
+                : Container(),),
       ),
       InfiniteScrollTableCell(
-          _getReceiveContainer(isSelected, infoBlock, _bloc)),
+          _getReceiveContainer(isSelected, infoBlock, _bloc),),
     ];
   }
 
@@ -160,7 +154,6 @@ class _PendingTransactionsState extends State<PendingTransactions> {
                       a.address.toString(),
                     ),
               );
-        break;
       case 'Receiver':
         _sortAscending
             ? _transactions!.sort(
@@ -169,8 +162,7 @@ class _PendingTransactionsState extends State<PendingTransactions> {
                     ),
               )
             : _transactions!.sort((a, b) =>
-                b.toAddress.toString().compareTo(a.toAddress.toString()));
-        break;
+                b.toAddress.toString().compareTo(a.toAddress.toString()),);
       case 'Hash':
         _sortAscending
             ? _transactions!.sort(
@@ -183,23 +175,20 @@ class _PendingTransactionsState extends State<PendingTransactions> {
                       a.hash.toString(),
                     ),
               );
-        break;
       case 'Amount':
         _sortAscending
             ? _transactions!.sort((a, b) => a.amount.compareTo(b.amount))
             : _transactions!.sort((a, b) => b.amount.compareTo(a.amount));
-        break;
       case 'Date':
         _sortAscending
             ? _transactions!.sort(
                 (a, b) => a.confirmationDetail!.momentumTimestamp.compareTo(
                       b.confirmationDetail!.momentumTimestamp,
-                    ))
+                    ),)
             : _transactions!.sort(
                 (a, b) => b.confirmationDetail!.momentumTimestamp.compareTo(
                       a.confirmationDetail!.momentumTimestamp,
-                    ));
-        break;
+                    ),);
       case 'Assets':
         _sortAscending
             ? _transactions!.sort(
@@ -208,7 +197,6 @@ class _PendingTransactionsState extends State<PendingTransactions> {
             : _transactions!.sort(
                 (a, b) => b.token!.symbol.compareTo(a.token!.symbol),
               );
-        break;
       default:
         _sortAscending
             ? _transactions!.sort(
@@ -236,7 +224,7 @@ class _PendingTransactionsState extends State<PendingTransactions> {
   ) {
     return Align(
         alignment: Alignment.centerLeft,
-        child: _getReceiveButtonViewModel(model, isSelected, transaction));
+        child: _getReceiveButtonViewModel(model, isSelected, transaction),);
   }
 
   Widget _getReceiveButtonViewModel(
@@ -254,7 +242,7 @@ class _PendingTransactionsState extends State<PendingTransactions> {
           },
           onError: (error) async {
             await NotificationUtils.sendNotificationError(
-                error, 'Error while receiving transaction');
+                error, 'Error while receiving transaction',);
           },
         );
       },
@@ -262,7 +250,7 @@ class _PendingTransactionsState extends State<PendingTransactions> {
         model,
         transactionItem.hash.toString(),
       ),
-      viewModelBuilder: () => ReceiveTransactionBloc(),
+      viewModelBuilder: ReceiveTransactionBloc.new,
     );
   }
 
@@ -271,7 +259,7 @@ class _PendingTransactionsState extends State<PendingTransactions> {
     String transactionHash,
   ) {
     return MaterialIconButton(
-      size: 25.0,
+      size: 25,
       iconData: Icons.download_for_offline,
       onPressed: () {
         _onReceivePressed(model, transactionHash);
@@ -291,7 +279,7 @@ class _PendingTransactionsState extends State<PendingTransactions> {
             backgroundColor: ColorUtils.getTokenColor(block.tokenStandard),
             label: Text(block.token?.symbol ?? ''),
             side: BorderSide.none,
-            materialTapTargetSize: MaterialTapTargetSize.shrinkWrap));
+            materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,),);
   }
 
   @override

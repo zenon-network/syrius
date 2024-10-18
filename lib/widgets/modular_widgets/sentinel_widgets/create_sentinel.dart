@@ -8,12 +8,12 @@ import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 class CreateSentinel extends StatefulWidget {
-  final VoidCallback onStepperNotificationSeeMorePressed;
 
   const CreateSentinel({
     required this.onStepperNotificationSeeMorePressed,
     super.key,
   });
+  final VoidCallback onStepperNotificationSeeMorePressed;
 
   @override
   State<CreateSentinel> createState() => _CreateSentinelState();
@@ -94,8 +94,8 @@ class _CreateSentinelState extends State<CreateSentinel> {
           icon: _getFilledButtonIcon(),
         ),
         const SizedBox(
-          width: 10.0,
-        )
+          width: 10,
+        ),
       ],
     );
   }
@@ -110,7 +110,7 @@ class _CreateSentinelState extends State<CreateSentinel> {
       child: const Icon(
         MaterialCommunityIcons.eye,
         color: Colors.white,
-        size: 15.0,
+        size: 15,
       ),
     );
   }

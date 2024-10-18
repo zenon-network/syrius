@@ -8,9 +8,9 @@ import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 class NewWalletSeedChoiceScreen extends StatefulWidget {
-  final bool? export;
 
   const NewWalletSeedChoiceScreen({super.key, this.export});
+  final bool? export;
 
   @override
   State<NewWalletSeedChoiceScreen> createState() =>
@@ -22,7 +22,8 @@ class _NewWalletSeedChoiceScreenState extends State<NewWalletSeedChoiceScreen> {
   bool? _isSeedSecure = false;
   bool? _isSeedWrittenDown = false;
 
-  late List<String> _generatedSeed24, _generatedSeed12;
+  late List<String> _generatedSeed24;
+  late List<String> _generatedSeed12;
 
   final GlobalKey<SeedGridState> _seedGridKey = GlobalKey();
 
@@ -39,7 +40,7 @@ class _NewWalletSeedChoiceScreenState extends State<NewWalletSeedChoiceScreen> {
     return Scaffold(
       body: Container(
         padding: const EdgeInsets.symmetric(
-          vertical: 30.0,
+          vertical: 30,
         ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -50,7 +51,7 @@ class _NewWalletSeedChoiceScreenState extends State<NewWalletSeedChoiceScreen> {
                   currentLevel: 1,
                 ),
                 const SizedBox(
-                  height: 30.0,
+                  height: 30,
                 ),
                 Text(
                   _isSeed12Selected
@@ -65,7 +66,7 @@ class _NewWalletSeedChoiceScreenState extends State<NewWalletSeedChoiceScreen> {
                 ),
                 kVerticalSpacing,
                 SizedBox(
-                  height: 45.0,
+                  height: 45,
                   child: Visibility(
                     visible: !_isSeedSecure!,
                     child: _getSeedChoice(),
@@ -76,7 +77,7 @@ class _NewWalletSeedChoiceScreenState extends State<NewWalletSeedChoiceScreen> {
               ],
             ),
             SizedBox(
-              height: 40.0,
+              height: 40,
               child: Visibility(
                 visible: !_isSeedSecure!,
                 child: _getBackUpSeedContainer(),
@@ -147,17 +148,15 @@ class _NewWalletSeedChoiceScreenState extends State<NewWalletSeedChoiceScreen> {
             color: _isSeedExported(exportedSeed.value)
                 ? AppColors.znnColor
                 : Colors.transparent,
-            borderRadius: const BorderRadius.all(Radius.circular(6.0)),
+            borderRadius: const BorderRadius.all(Radius.circular(6)),
             border: Border.all(
               color: AppColors.znnColor,
-              width: 1.0,
-              style: BorderStyle.solid,
-            )),
+            ),),
         child: InkWell(
           child: FocusableActionDetector(
             child: SizedBox(
-              height: 50.0,
-              width: 150.0,
+              height: 50,
+              width: 150,
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: <Widget>[
@@ -167,12 +166,12 @@ class _NewWalletSeedChoiceScreenState extends State<NewWalletSeedChoiceScreen> {
                       'assets/svg/ic_export_seed.svg',
                       colorFilter: ColorFilter.mode(
                           Theme.of(context).textTheme.headlineSmall!.color!,
-                          BlendMode.srcIn),
-                      height: 18.0,
+                          BlendMode.srcIn,),
+                      height: 18,
                     ),
                   ),
                   const SizedBox(
-                    width: 15.0,
+                    width: 15,
                   ),
                   Text(
                     'Export Seed',
@@ -221,7 +220,7 @@ class _NewWalletSeedChoiceScreenState extends State<NewWalletSeedChoiceScreen> {
         Text(
           'I have backed up my seed in a safe location',
           style: Theme.of(context).textTheme.headlineSmall,
-        )
+        ),
       ],
     );
   }

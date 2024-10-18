@@ -11,7 +11,7 @@ class TransferOwnershipBloc extends BaseBloc<AccountBlockTemplate> {
     bool isBurnable,
   ) {
     try {
-      AccountBlockTemplate transactionParams =
+      final transactionParams =
           zenon!.embedded.token.updateToken(
         tokenStandard,
         owner,
@@ -24,12 +24,10 @@ class TransferOwnershipBloc extends BaseBloc<AccountBlockTemplate> {
         waitForRequiredPlasma: true,
       )
           .then(
-        (value) => addEvent(value),
+        addEvent,
       )
           .onError(
-        (error, stackTrace) {
-          addError(error, stackTrace);
-        },
+        addError,
       );
     } catch (e, stackTrace) {
       addError(e, stackTrace);

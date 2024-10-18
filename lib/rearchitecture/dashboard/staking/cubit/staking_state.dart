@@ -8,7 +8,7 @@ class StakingState extends DashboardState<StakeList> {
   /// Constructs a new `StakingState` with optional values for `status`, `data`, and `error`.
   ///
   /// The `data` field holds a `StakeList` object, which contains the list of active staking entries for a particular address.
-  StakingState({
+  const StakingState({
     super.status,
     super.data,
     super.error,

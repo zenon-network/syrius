@@ -9,17 +9,17 @@ import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 class RealtimeStatisticsBloc extends DashboardBaseBloc<List<AccountBlock>> {
   @override
   Future<List<AccountBlock>> makeAsyncCall() async {
-    int chainHeight = (await zenon!.ledger.getFrontierMomentum()).height;
-    int height = chainHeight - kMomentumsPerWeek > 0
+    final chainHeight = (await zenon!.ledger.getFrontierMomentum()).height;
+    final height = chainHeight - kMomentumsPerWeek > 0
         ? chainHeight - kMomentumsPerWeek
         : 1;
-    int pageIndex = 0;
-    int pageSize = 10;
-    bool isLastPage = false;
-    List<AccountBlock> blockList = [];
+    var pageIndex = 0;
+    const pageSize = 10;
+    var isLastPage = false;
+    final blockList = <AccountBlock>[];
 
     while (!isLastPage) {
-      List<AccountBlock> response = (await zenon!.ledger.getAccountBlocksByPage(
+      final response = (await zenon!.ledger.getAccountBlocksByPage(
             Address.parse(kSelectedAddress!),
             pageIndex: pageIndex,
             pageSize: pageSize,

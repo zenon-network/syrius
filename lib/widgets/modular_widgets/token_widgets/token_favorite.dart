@@ -10,14 +10,14 @@ import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 class TokenFavorite extends StatefulWidget {
-  final Token token;
-  final VoidCallback _tokenFavoritesCallback;
 
   const TokenFavorite(
     this.token,
     this._tokenFavoritesCallback, {
     super.key,
   });
+  final Token token;
+  final VoidCallback _tokenFavoritesCallback;
 
   @override
   State<TokenFavorite> createState() => _TokenFavoriteState();
@@ -36,13 +36,13 @@ class _TokenFavoriteState extends State<TokenFavorite> {
         color: Colors.transparent,
         child: _showLoading
             ? const SyriusLoadingWidget(
-                size: 15.0,
+                size: 15,
               )
             : IconButton(
                 padding: EdgeInsets.zero,
-                splashRadius: 18.0,
+                splashRadius: 18,
                 onPressed: _onFavoriteIconPressed,
-                iconSize: 30.0,
+                iconSize: 30,
                 icon: Icon(
                   _getFavoriteIcons(),
                   color: _getIconColor(),
@@ -69,7 +69,7 @@ class _TokenFavoriteState extends State<TokenFavorite> {
                 title: '${widget.token.name} token has been added to favorites',
                 details: 'Token ${widget.token.name} with symbol '
                     '${widget.token.name} and ZTS '
-                    '${widget.token.tokenStandard.toString()}',
+                    '${widget.token.tokenStandard}',
                 timestamp: DateTime.now().millisecondsSinceEpoch,
                 type: NotificationType.addedTokenFavourite,
               ),
@@ -88,7 +88,7 @@ class _TokenFavoriteState extends State<TokenFavorite> {
     );
   }
 
-  void _removeTokenFromFavorites() async {
+  Future<void> _removeTokenFromFavorites() async {
     setState(() {
       _showLoading = true;
     });
@@ -106,7 +106,7 @@ class _TokenFavoriteState extends State<TokenFavorite> {
                     'from favorites',
                 details: 'Token ${widget.token.name} with symbol '
                     '${widget.token.name} and ZTS '
-                    '${widget.token.tokenStandard.toString()}',
+                    '${widget.token.tokenStandard}',
                 timestamp: DateTime.now().millisecondsSinceEpoch,
                 type: NotificationType.addedTokenFavourite,
               ),

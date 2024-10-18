@@ -17,9 +17,6 @@ import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 class SendLargeCard extends StatefulWidget {
-  final double? cardWidth;
-  final bool? extendIcon;
-  final VoidCallback? onCollapsePressed;
 
   const SendLargeCard({
     super.key,
@@ -27,6 +24,9 @@ class SendLargeCard extends StatefulWidget {
     this.extendIcon,
     this.onCollapsePressed,
   });
+  final double? cardWidth;
+  final bool? extendIcon;
+  final VoidCallback? onCollapsePressed;
 
   @override
   State<SendLargeCard> createState() => _SendLargeCardState();
@@ -60,7 +60,7 @@ class _SendLargeCardState extends State<SendLargeCard> {
       title: 'Send',
       titleFontSize: Theme.of(context).textTheme.headlineSmall!.fontSize,
       description: 'Manage sending funds',
-      childBuilder: () => _getBalanceStreamBuilder(),
+      childBuilder: _getBalanceStreamBuilder,
     );
   }
 
@@ -91,14 +91,14 @@ class _SendLargeCardState extends State<SendLargeCard> {
   Widget _getBody(BuildContext context, AccountInfo accountInfo) {
     return Container(
       margin: const EdgeInsets.only(
-        left: 20.0,
-        top: 20.0,
+        left: 20,
+        top: 20,
       ),
       child: ListView(
         shrinkWrap: true,
         children: <Widget>[
           Container(
-            margin: const EdgeInsets.only(right: 20.0),
+            margin: const EdgeInsets.only(right: 20),
             child: Form(
               key: _recipientKey,
               autovalidateMode: AutovalidateMode.onUserInteraction,
@@ -107,7 +107,7 @@ class _SendLargeCardState extends State<SendLargeCard> {
                   setState(() {});
                 },
                 controller: _recipientController,
-                validator: (value) => InputValidators.checkAddress(value),
+                validator: InputValidators.checkAddress,
                 suffixIcon: RawMaterialButton(
                   shape: const CircleBorder(),
                   onPressed: () {
@@ -119,12 +119,12 @@ class _SendLargeCardState extends State<SendLargeCard> {
                   child: const Icon(
                     Icons.content_paste,
                     color: AppColors.darkHintTextColor,
-                    size: 15.0,
+                    size: 15,
                   ),
                 ),
                 suffixIconConstraints: const BoxConstraints(
-                  maxWidth: 45.0,
-                  maxHeight: 20.0,
+                  maxWidth: 45,
+                  maxHeight: 20,
                 ),
                 hintText: 'Recipient Address',
               ),
@@ -137,7 +137,7 @@ class _SendLargeCardState extends State<SendLargeCard> {
               Expanded(
                 flex: 8,
                 child: Container(
-                  margin: const EdgeInsets.only(right: 20.0),
+                  margin: const EdgeInsets.only(right: 20),
                   child: Form(
                     key: _amountKey,
                     autovalidateMode: AutovalidateMode.onUserInteraction,
@@ -155,7 +155,7 @@ class _SendLargeCardState extends State<SendLargeCard> {
                             _selectedToken.tokenStandard,
                           ),
                           _selectedToken.decimals,
-                          BigInt.zero),
+                          BigInt.zero,),
                       suffixIcon: _getAmountSuffix(accountInfo),
                       hintText: 'Amount',
                     ),
@@ -165,17 +165,17 @@ class _SendLargeCardState extends State<SendLargeCard> {
             ],
           ),
           const SizedBox(
-            height: 5.0,
+            height: 5,
           ),
           Padding(
-            padding: const EdgeInsets.only(left: 10.0),
+            padding: const EdgeInsets.only(left: 10),
             child: Text(
               'Send from',
               style: Theme.of(context).inputDecorationTheme.hintStyle,
             ),
           ),
           const SizedBox(
-            height: 5.0,
+            height: 5,
           ),
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -184,12 +184,12 @@ class _SendLargeCardState extends State<SendLargeCard> {
                 child: _getDefaultAddressDropdown(),
               ),
               Container(
-                width: 10.0,
+                width: 10,
               ),
               _getSendPaymentViewModel(accountInfo),
               const SizedBox(
-                width: 20.0,
-              )
+                width: 20,
+              ),
             ],
           ),
           Row(
@@ -198,8 +198,8 @@ class _SendLargeCardState extends State<SendLargeCard> {
             children: [
               Padding(
                 padding: const EdgeInsets.only(
-                  left: 10.0,
-                  top: 10.0,
+                  left: 10,
+                  top: 10,
                 ),
                 child: AvailableBalance(
                   _selectedToken,
@@ -212,9 +212,9 @@ class _SendLargeCardState extends State<SendLargeCard> {
                   onPressed: widget.onCollapsePressed,
                   iconData: Icons.navigate_before,
                 ),
-              )
+              ),
             ],
-          )
+          ),
         ],
       ),
     );
@@ -242,14 +242,14 @@ class _SendLargeCardState extends State<SendLargeCard> {
       children: [
         _getCoinDropdown(),
         const SizedBox(
-          width: 5.0,
+          width: 5,
         ),
         AmountSuffixMaxWidget(
           onPressed: () => _onMaxPressed(accountInfo),
           context: context,
         ),
         const SizedBox(
-          width: 15.0,
+          width: 15,
         ),
       ],
     );
@@ -261,7 +261,6 @@ class _SendLargeCardState extends State<SendLargeCard> {
       fromAddress: _selectedSelfAddress,
       toAddress: _recipientController.text,
       amount: _amountController.text.extractDecimals(_selectedToken.decimals),
-      data: null,
       token: _selectedToken,
     );
   }
@@ -296,7 +295,7 @@ class _SendLargeCardState extends State<SendLargeCard> {
       );
 
   void _onMaxPressed(AccountInfo accountInfo) {
-    BigInt maxBalance = accountInfo.getBalance(
+    final maxBalance = accountInfo.getBalance(
       _selectedToken.tokenStandard,
     );
 
@@ -336,17 +335,17 @@ class _SendLargeCardState extends State<SendLargeCard> {
         onPressed: _hasBalance(accountInfo!) && _isInputValid(accountInfo)
             ? () => _onSendPaymentPressed(model)
             : null,
-        minimumSize: const Size(50.0, 48.0),
+        minimumSize: const Size(50, 48),
         key: _sendPaymentButtonKey,
       ),
-      viewModelBuilder: () => SendPaymentBloc(),
+      viewModelBuilder: SendPaymentBloc.new,
     );
   }
 
   Future<void> _sendErrorNotification(error) async {
     await NotificationUtils.sendNotificationError(
       error,
-      'Couldn\'t send ${_amountController.text} '
+      "Couldn't send ${_amountController.text} "
       '${_selectedToken.symbol} '
       'to ${_recipientController.text}',
     );
@@ -361,7 +360,6 @@ class _SendLargeCardState extends State<SendLargeCard> {
             details: 'Sent ${_amountController.text} ${_selectedToken.symbol} '
                 'from ${ZenonAddressUtils.getLabel(_selectedSelfAddress!)} to ${ZenonAddressUtils.getLabel(_recipientController.text)}',
             type: NotificationType.paymentSent,
-            id: null,
           ),
         );
   }
@@ -373,7 +371,7 @@ class _SendLargeCardState extends State<SendLargeCard> {
       BigInt.zero;
 
   void _addTokensWithBalance(AccountInfo accountInfo) {
-    for (var balanceInfo in accountInfo.balanceInfoList!) {
+    for (final balanceInfo in accountInfo.balanceInfoList!) {
       if (balanceInfo.balance! > BigInt.zero &&
           !_tokensWithBalance.contains(balanceInfo.token)) {
         _tokensWithBalance.add(balanceInfo.token);

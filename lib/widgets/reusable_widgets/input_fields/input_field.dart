@@ -4,6 +4,34 @@ import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
 
 class InputField extends StatefulWidget {
+
+  const InputField({
+    required this.controller,
+    this.maxLines = 1,
+    this.thisNode,
+    this.hintText,
+    this.nextNode,
+    this.enabled = true,
+    this.inputFormatters,
+    this.validator,
+    this.suffixIcon,
+    this.suffixIconConstraints,
+    this.contentLeftPadding = kContentPadding,
+    this.onChanged,
+    this.obscureText = false,
+    this.errorText,
+    this.onSubmitted,
+    this.inputtedTextStyle = const TextStyle(
+      fontSize: 14,
+      color: AppColors.znnColor,
+    ),
+    this.disabledBorder,
+    this.enabledBorder,
+    this.errorBorder,
+    this.focusedBorder,
+    this.focusedErrorBorder,
+    super.key,
+  });
   final TextEditingController controller;
   final FocusNode? thisNode;
   final FocusNode? nextNode;
@@ -25,34 +53,6 @@ class InputField extends StatefulWidget {
   final InputBorder? disabledBorder;
   final InputBorder? errorBorder;
   final InputBorder? focusedErrorBorder;
-
-  const InputField({
-    required this.controller,
-    this.maxLines = 1,
-    this.thisNode,
-    this.hintText,
-    this.nextNode,
-    this.enabled = true,
-    this.inputFormatters,
-    this.validator,
-    this.suffixIcon,
-    this.suffixIconConstraints,
-    this.contentLeftPadding = kContentPadding,
-    this.onChanged,
-    this.obscureText = false,
-    this.errorText,
-    this.onSubmitted,
-    this.inputtedTextStyle = const TextStyle(
-      fontSize: 14.0,
-      color: AppColors.znnColor,
-    ),
-    this.disabledBorder,
-    this.enabledBorder,
-    this.errorBorder,
-    this.focusedBorder,
-    this.focusedErrorBorder,
-    super.key,
-  });
 
   @override
   State createState() {
@@ -78,11 +78,11 @@ class _InputFieldState extends State<InputField> {
                   ),
                   child: Text(
                       AdaptiveTextSelectionToolbar.getButtonLabel(
-                          context, buttonItem),
-                      style: Theme.of(context).textTheme.bodyMedium),
-                ))
-              ]);
-            }).toList());
+                          context, buttonItem,),
+                      style: Theme.of(context).textTheme.bodyMedium,),
+                ),),
+              ],);
+            }).toList(),);
       },
       maxLines: widget.maxLines,
       obscureText: widget.obscureText,
@@ -91,7 +91,6 @@ class _InputFieldState extends State<InputField> {
       inputFormatters: widget.inputFormatters ?? [],
       enabled: widget.enabled,
       controller: widget.controller,
-      autofocus: false,
       focusNode: widget.thisNode,
       onFieldSubmitted: widget.onSubmitted,
       style: widget.inputtedTextStyle,

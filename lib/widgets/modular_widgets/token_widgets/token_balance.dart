@@ -97,11 +97,11 @@ class _TokenBalanceState extends State<TokenBalance> {
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 2,
         childAspectRatio: 100 / 20,
-        crossAxisSpacing: 10.0,
-        mainAxisSpacing: 10.0,
+        crossAxisSpacing: 10,
+        mainAxisSpacing: 10,
       ),
       itemBuilder: (context, index) => Padding(
-        padding: const EdgeInsets.all(8.0),
+        padding: const EdgeInsets.all(8),
         child: Marquee(
           child: FormattedAmountWithTooltip(
             amount: _newTokenIds[index]
@@ -115,10 +115,10 @@ class _TokenBalanceState extends State<TokenBalance> {
                   '● ',
                   style: Theme.of(context).textTheme.bodyLarge!.copyWith(
                         color: ColorUtils.getTokenColor(
-                            _newTokenIds[index].token!.tokenStandard),
+                            _newTokenIds[index].token!.tokenStandard,),
                       ),
                 ),
-                _getTokenStatus(amount, symbol)
+                _getTokenStatus(amount, symbol),
               ],
             ),
           ),

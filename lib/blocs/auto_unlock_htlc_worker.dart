@@ -27,7 +27,7 @@ class AutoUnlockHtlcWorker extends BaseBloc<WalletNotification> {
   Future<void> autoUnlock() async {
     if (pool.isNotEmpty && !running && kWalletFile != null) {
       running = true;
-      Hash currentHash = pool.first;
+      final currentHash = pool.first;
       try {
         final htlc = await zenon!.embedded.htlc.getById(currentHash);
         final swap = htlcSwapsService!
@@ -38,9 +38,9 @@ class AutoUnlockHtlcWorker extends BaseBloc<WalletNotification> {
         if (!kDefaultAddressList.contains(htlc.hashLocked.toString())) {
           throw 'Swap address not in default addresses. Please add the address in the addresses list.';
         }
-        AccountBlockTemplate transactionParams = zenon!.embedded.htlc
+        final transactionParams = zenon!.embedded.htlc
             .unlock(htlc.id, FormatUtils.decodeHexString(swap.preimage!));
-        AccountBlockTemplate response =
+        final response =
             await AccountBlockUtils.createAccountBlock(
           transactionParams,
           'complete swap',
@@ -117,6 +117,6 @@ class AutoUnlockHtlcWorker extends BaseBloc<WalletNotification> {
   // allowing for it to be retried.
   void _removeHashFromHashSetAfterDelay(Hash hash) {
     Future.delayed(
-        const Duration(minutes: 2), () => processedHashes.remove(hash));
+        const Duration(minutes: 2), () => processedHashes.remove(hash),);
   }
 }

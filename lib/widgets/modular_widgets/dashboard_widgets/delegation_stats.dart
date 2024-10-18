@@ -21,13 +21,13 @@ class _DelegationStatsState extends State<DelegationStats> {
   @override
   Widget build(BuildContext context) {
     return ViewModelBuilder<DelegationBloc>.reactive(
-      viewModelBuilder: () => DelegationBloc(),
+      viewModelBuilder: DelegationBloc.new,
       onViewModelReady: (model) {
         model.getDataPeriodically();
       },
       builder: (_, model, __) => CardScaffold<DelegationInfo>(
         childStream: model.stream,
-        onCompletedStatusCallback: (data) => _getWidgetBody(data),
+        onCompletedStatusCallback: _getWidgetBody,
         title: _kWidgetTitle,
         description: _kWidgetDescription,
       ),
@@ -39,9 +39,9 @@ class _DelegationStatsState extends State<DelegationStats> {
       mainAxisAlignment: MainAxisAlignment.center,
       children: <Widget>[
         Container(
-          padding: const EdgeInsets.all(8.0),
-          width: 36.0,
-          height: 36.0,
+          padding: const EdgeInsets.all(8),
+          width: 36,
+          height: 36,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
             border: Border.all(
@@ -52,17 +52,17 @@ class _DelegationStatsState extends State<DelegationStats> {
           ),
           child: Icon(
             SimpleLineIcons.trophy,
-            size: 12.0,
+            size: 12,
             color: Theme.of(context).textTheme.bodyLarge!.color,
           ),
         ),
-        Container(width: 16.0),
+        Container(width: 16),
         Column(
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
             Text(
-              delegationInfo.name.toString(),
+              delegationInfo.name,
               style: Theme.of(context).textTheme.bodyMedium,
             ),
             Text(

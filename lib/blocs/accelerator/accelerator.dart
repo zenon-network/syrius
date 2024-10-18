@@ -1,4 +1,3 @@
-library;
 
 export 'accelerator_balance_bloc.dart';
 export 'create_phase_bloc.dart';

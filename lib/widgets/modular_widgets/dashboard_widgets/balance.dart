@@ -35,14 +35,14 @@ class _BalanceWidgetState extends State<BalanceWidget> {
   @override
   Widget build(BuildContext context) {
     return ViewModelBuilder<BalanceDashboardBloc>.reactive(
-      viewModelBuilder: () => BalanceDashboardBloc(),
+      viewModelBuilder: BalanceDashboardBloc.new,
       onViewModelReady: (model) {
         model.getDataPeriodically();
       },
       builder: (_, model, __) => CardScaffold<AccountInfo>(
         description: _kWidgetDescription,
         childStream: model.stream,
-        onCompletedStatusCallback: (data) => _widgetBody(data),
+        onCompletedStatusCallback: _widgetBody,
         title: _kWidgetTitle,
       ),
     );
@@ -57,20 +57,17 @@ class _BalanceWidgetState extends State<BalanceWidget> {
             alignment: Alignment.center,
             children: [
               AspectRatio(
-                aspectRatio: 1.0,
+                aspectRatio: 1,
                 child: StandardPieChart(
-                    sectionsSpace: 0.0,
                     sections: _getChartSection(accountInfo),
                     onChartSectionTouched: (pieChartSection) {
                       setState(() {
                         _touchedTokenStandard =
                             pieChartSection?.touchedSection?.title;
                       });
-                    }),
+                    },),
               ),
-              _touchedTokenStandard != null
-                  ? _getBalance(accountInfo)
-                  : Container(),
+              if (_touchedTokenStandard != null) _getBalance(accountInfo) else Container(),
             ],
           ),
         ),
@@ -90,15 +87,15 @@ class _BalanceWidgetState extends State<BalanceWidget> {
             decoration: BoxDecoration(
               color: _backgroundAddressColor,
               border: Border.all(color: _backgroundAddressColor!),
-              borderRadius: BorderRadius.circular(15.0),
+              borderRadius: BorderRadius.circular(15),
             ),
             padding: const EdgeInsets.symmetric(
-              vertical: 4.0,
-              horizontal: 8.0,
+              vertical: 4,
+              horizontal: 8,
             ),
             margin: const EdgeInsets.only(
-              bottom: 12.0,
-              top: 12.0,
+              bottom: 12,
+              top: 12,
             ),
             child: AutoSizeText.rich(
               TextSpan(
@@ -132,7 +129,7 @@ class _BalanceWidgetState extends State<BalanceWidget> {
         ),
         const Divider(),
         Padding(
-          padding: const EdgeInsets.all(8.0),
+          padding: const EdgeInsets.all(8),
           child: Row(
             children: <Widget>[
               Expanded(
@@ -168,7 +165,7 @@ class _BalanceWidgetState extends State<BalanceWidget> {
   }
 
   List<PieChartSectionData> _getChartSection(AccountInfo accountInfo) {
-    List<PieChartSectionData> sections = [];
+    final sections = <PieChartSectionData>[];
     if (accountInfo.znn()! > BigInt.zero) {
       sections.add(
         _getBalanceChartSection(
@@ -190,10 +187,10 @@ class _BalanceWidgetState extends State<BalanceWidget> {
   }
 
   Widget _getBalance(AccountInfo accountInfo) {
-    TokenStandard tokenStandard = TokenStandard.parse(_touchedTokenStandard!);
+    final tokenStandard = TokenStandard.parse(_touchedTokenStandard!);
 
     return SizedBox(
-      width: 120.0,
+      width: 120,
       child: AutoSizeText(
         '${accountInfo.getBalance(
               tokenStandard,
@@ -212,15 +209,15 @@ class _BalanceWidgetState extends State<BalanceWidget> {
     AccountInfo accountInfo,
   ) {
     final isTouched = token.symbol == _touchedTokenStandard;
-    final double opacity = isTouched ? 1.0 : 0.7;
+    final opacity = isTouched ? 1.0 : 0.7;
 
-    double value = accountInfo.getBalance(token.tokenStandard) /
+    final value = accountInfo.getBalance(token.tokenStandard) /
         (accountInfo.znn()! + accountInfo.qsr()!);
 
     return PieChartSectionData(
       title: token.tokenStandard.toString(),
       showTitle: false,
-      radius: 7.0,
+      radius: 7,
       color: ColorUtils.getTokenColor(token.tokenStandard).withOpacity(opacity),
       value: value,
     );

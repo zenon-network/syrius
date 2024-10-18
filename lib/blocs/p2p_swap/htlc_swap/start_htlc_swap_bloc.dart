@@ -11,7 +11,7 @@ import 'package:zenon_syrius_wallet_flutter/utils/format_utils.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 class StartHtlcSwapBloc extends BaseBloc<HtlcSwap?> {
-  void startHtlcSwap({
+  Future<void> startHtlcSwap({
     required Address selfAddress,
     required Address counterpartyAddress,
     required Token fromToken,
@@ -27,7 +27,7 @@ class StartHtlcSwapBloc extends BaseBloc<HtlcSwap?> {
       final preimage = _generatePreimage();
       final hashLock = await _getHashLock(hashType, preimage);
       final expirationTime = await _getExpirationTime(initialHtlcDuration);
-      AccountBlockTemplate transactionParams = zenon!.embedded.htlc.create(
+      final transactionParams = zenon!.embedded.htlc.create(
         fromToken,
         fromAmount,
         counterpartyAddress,
@@ -37,7 +37,7 @@ class StartHtlcSwapBloc extends BaseBloc<HtlcSwap?> {
         hashLock.getBytes(),
       );
       AccountBlockUtils.createAccountBlock(transactionParams, 'start swap',
-              address: selfAddress, waitForRequiredPlasma: true)
+              address: selfAddress, waitForRequiredPlasma: true,)
           .then(
         (response) async {
           final swap = HtlcSwap(
@@ -78,7 +78,7 @@ class StartHtlcSwapBloc extends BaseBloc<HtlcSwap?> {
   List<int> _generatePreimage() {
     const maxInt = 256;
     return List<int>.generate(
-        htlcPreimageDefaultLength, (i) => Random.secure().nextInt(maxInt));
+        htlcPreimageDefaultLength, (i) => Random.secure().nextInt(maxInt),);
   }
 
   Future<Hash> _getHashLock(int hashType, List<int> preimage) async {

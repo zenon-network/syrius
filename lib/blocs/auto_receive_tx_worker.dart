@@ -23,16 +23,16 @@ class AutoReceiveTxWorker extends BaseBloc<WalletNotification> {
   }
 
   Future<AccountBlockTemplate?> autoReceiveTransactionHash(
-      Hash currentHash) async {
+      Hash currentHash,) async {
     if (!running) {
       running = true;
       try {
-        Address toAddress =
+        final toAddress =
             (await zenon!.ledger.getAccountBlockByHash(currentHash))!.toAddress;
-        AccountBlockTemplate transactionParams = AccountBlockTemplate.receive(
+        final transactionParams = AccountBlockTemplate.receive(
           currentHash,
         );
-        AccountBlockTemplate response =
+        final response =
             await AccountBlockUtils.createAccountBlock(
           transactionParams,
           'receive transaction',
@@ -53,10 +53,10 @@ class AutoReceiveTxWorker extends BaseBloc<WalletNotification> {
   }
 
   Future<void> autoReceive() async {
-    if (!sharedPrefsService!.get(
+    if (sharedPrefsService!.get(
       kAutoReceiveKey,
       defaultValue: kAutoReceiveDefaultValue,
-    )) {
+    ) == false) {
       pool.clear();
       return;
     }
@@ -64,14 +64,14 @@ class AutoReceiveTxWorker extends BaseBloc<WalletNotification> {
     // given priority to send transactions.
     if (pool.isNotEmpty && !running && !sl<AutoUnlockHtlcWorker>().running) {
       running = true;
-      Hash currentHash = pool.first;
+      final currentHash = pool.first;
       try {
-        Address toAddress =
+        final toAddress =
             (await zenon!.ledger.getAccountBlockByHash(currentHash))!.toAddress;
-        AccountBlockTemplate transactionParams = AccountBlockTemplate.receive(
+        final transactionParams = AccountBlockTemplate.receive(
           currentHash,
         );
-        AccountBlockTemplate response =
+        final response =
             await AccountBlockUtils.createAccountBlock(
           transactionParams,
           'receive transaction',

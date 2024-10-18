@@ -15,14 +15,14 @@ enum UpdatePhaseStep {
 }
 
 class UpdatePhaseStepper extends StatefulWidget {
-  final Phase phase;
-  final Project project;
 
   const UpdatePhaseStepper(
     this.phase,
     this.project, {
     super.key,
   });
+  final Phase phase;
+  final Project project;
 
   @override
   State<UpdatePhaseStepper> createState() => _UpdatePhaseStepperState();
@@ -96,9 +96,9 @@ class _UpdatePhaseStepperState extends State<UpdatePhaseStepper> {
         Visibility(
           visible: _lastCompletedStep == UpdatePhaseStep.updatePhase,
           child: Positioned(
-            bottom: 20.0,
-            right: 0.0,
-            left: 0.0,
+            bottom: 20,
+            right: 0,
+            left: 0,
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
@@ -115,10 +115,10 @@ class _UpdatePhaseStepperState extends State<UpdatePhaseStepper> {
         Visibility(
           visible: _lastCompletedStep == UpdatePhaseStep.updatePhase,
           child: Positioned(
-            right: 50.0,
+            right: 50,
             child: SizedBox(
-              width: 400.0,
-              height: 400.0,
+              width: 400,
+              height: 400,
               child: Center(
                 child: Lottie.asset(
                   'assets/lottie/ic_anim_zts.json',
@@ -165,7 +165,7 @@ class _UpdatePhaseStepperState extends State<UpdatePhaseStepper> {
   }
 
   custom_material_stepper.StepState _getStepState(UpdatePhaseStep step) {
-    int stepIndex = step.index;
+    final stepIndex = step.index;
     return stepIndex <= (_lastCompletedStep?.index ?? -1)
         ? custom_material_stepper.StepState.complete
         : custom_material_stepper.StepState.indexed;
@@ -304,7 +304,7 @@ class _UpdatePhaseStepperState extends State<UpdatePhaseStepper> {
               },
             ),
             const SizedBox(
-              width: 15.0,
+              width: 15,
             ),
             StepperButton(
               text: 'Continue',
@@ -343,7 +343,7 @@ class _UpdatePhaseStepperState extends State<UpdatePhaseStepper> {
               text: 'Go back',
             ),
             const SizedBox(
-              width: 15.0,
+              width: 15,
             ),
             _getUpdatePhaseViewModel(),
           ],
@@ -424,7 +424,7 @@ class _UpdatePhaseStepperState extends State<UpdatePhaseStepper> {
           return _getUpdatePhaseButton(model);
         },
       ),
-      viewModelBuilder: () => UpdatePhaseBloc(),
+      viewModelBuilder: UpdatePhaseBloc.new,
     );
   }
 

@@ -8,12 +8,12 @@ import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 class PillarRewardsChart extends StatefulWidget {
-  final RewardHistoryList? rewardsHistory;
 
   const PillarRewardsChart(
     this.rewardsHistory, {
     super.key,
   });
+  final RewardHistoryList? rewardsHistory;
 
   @override
   State createState() => PillarRewardsChartState();
@@ -66,7 +66,7 @@ class PillarRewardsChartState extends State<PillarRewardsChart> {
 
   num _getMaxValueOfZnnRewards() {
     BigInt? max = widget.rewardsHistory!.list.first.znnAmount;
-    for (var element in widget.rewardsHistory!.list) {
+    for (final element in widget.rewardsHistory!.list) {
       if (element.znnAmount > max!) {
         max = element.znnAmount;
       }

@@ -11,12 +11,12 @@ import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 class SentinelCollect extends StatefulWidget {
-  final SentinelRewardsHistoryBloc sentinelRewardsHistoryBloc;
 
   const SentinelCollect({
     required this.sentinelRewardsHistoryBloc,
     super.key,
   });
+  final SentinelRewardsHistoryBloc sentinelRewardsHistoryBloc;
 
   @override
   State<SentinelCollect> createState() => _SentinelCollectState();
@@ -39,7 +39,7 @@ class _SentinelCollectState extends State<SentinelCollect> {
           'deployed (use znn-controller for this operation) and it must have >90% '
           'daily uptime',
       childBuilder: () => Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(16),
         child: _getFutureBuilder(),
       ),
     );
@@ -69,21 +69,19 @@ class _SentinelCollectState extends State<SentinelCollect> {
       children: [
         NumberAnimation(
           end: uncollectedReward.znnAmount.addDecimals(coinDecimals).toNum(),
-          isInt: false,
           after: ' ${kZnnCoin.symbol}',
           style: Theme.of(context).textTheme.headlineLarge!.copyWith(
                 color: AppColors.znnColor,
-                fontSize: 30.0,
+                fontSize: 30,
               ),
         ),
         kVerticalSpacing,
         NumberAnimation(
           end: uncollectedReward.qsrAmount.addDecimals(coinDecimals).toNum(),
-          isInt: false,
           after: ' ${kQsrCoin.symbol}',
           style: Theme.of(context).textTheme.headlineLarge!.copyWith(
                 color: AppColors.qsrColor,
-                fontSize: 30.0,
+                fontSize: 30,
               ),
         ),
         kVerticalSpacing,
@@ -103,7 +101,7 @@ class _SentinelCollectState extends State<SentinelCollect> {
     );
   }
 
-  void _onCollectPressed() async {
+  Future<void> _onCollectPressed() async {
     try {
       _collectButtonKey.currentState?.animateForward();
       await AccountBlockUtils.createAccountBlock(

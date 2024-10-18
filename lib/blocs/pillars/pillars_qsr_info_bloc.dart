@@ -11,10 +11,10 @@ class PillarsQsrInfoBloc extends BaseBloc<PillarsQsrInfo?> {
   ) async {
     try {
       addEvent(null);
-      BigInt deposit = (await zenon!.embedded.pillar.getDepositedQsr(
+      final deposit = await zenon!.embedded.pillar.getDepositedQsr(
         Address.parse(address),
-      ));
-      BigInt cost = (await zenon!.embedded.pillar.getQsrRegistrationCost());
+      );
+      final cost = await zenon!.embedded.pillar.getQsrRegistrationCost();
       addEvent(
         PillarsQsrInfo(
           deposit: deposit,

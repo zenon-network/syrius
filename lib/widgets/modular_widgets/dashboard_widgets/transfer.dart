@@ -9,16 +9,16 @@ const String _kWidgetDescription =
     'can manage sending and receiving funds';
 
 class Transfer extends StatefulWidget {
-  final Function(
-    Tabs, {
-    bool redirectWithSendContainerLarge,
-    bool redirectWithReceiveContainerLarge,
-  })? changePage;
 
   const Transfer({
     super.key,
     this.changePage,
   });
+  final Function(
+    Tabs, {
+    bool redirectWithSendContainerLarge,
+    bool redirectWithReceiveContainerLarge,
+  })? changePage;
 
   @override
   State<Transfer> createState() => _TransferState();
@@ -30,7 +30,7 @@ class _TransferState extends State<Transfer> {
     return CardScaffold(
       title: _kWidgetTitle,
       description: _kWidgetDescription,
-      childBuilder: () => _getTransferButtons(),
+      childBuilder: _getTransferButtons,
     );
   }
 
@@ -39,30 +39,30 @@ class _TransferState extends State<Transfer> {
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: <Widget>[
         IconButton(
-          splashRadius: 30.0,
+          splashRadius: 30,
           onPressed: () {
             widget.changePage!(Tabs.transfer,
-                redirectWithSendContainerLarge: true);
+                redirectWithSendContainerLarge: true,);
           },
           icon: const Icon(
             SimpleLineIcons.arrow_up_circle,
           ),
           color: AppColors.darkHintTextColor,
-          iconSize: 48.0,
+          iconSize: 48,
         ),
         const TransferIconLegend(
           legendText: '● Send',
         ),
         IconButton(
-          splashRadius: 30.0,
+          splashRadius: 30,
           onPressed: () {
             widget.changePage!(Tabs.transfer,
-                redirectWithReceiveContainerLarge: true);
+                redirectWithReceiveContainerLarge: true,);
           },
           icon: const Icon(
             SimpleLineIcons.arrow_down_circle,
           ),
-          iconSize: 48.0,
+          iconSize: 48,
           color: AppColors.lightHintTextColor,
         ),
         const TransferIconLegend(

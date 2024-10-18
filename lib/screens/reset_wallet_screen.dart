@@ -23,21 +23,21 @@ class _ResetWalletScreenState extends State<ResetWalletScreen> {
               children: [
                 Container(
                   padding: const EdgeInsets.only(
-                    bottom: 10.0,
+                    bottom: 10,
                   ),
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     border: Border.all(
-                      width: 4.0,
+                      width: 4,
                       color: AppColors.errorColor,
                     ),
                   ),
                   child: const Padding(
-                    padding: EdgeInsets.all(20.0),
+                    padding: EdgeInsets.all(20),
                     child: Icon(
                       Feather.alert_triangle,
                       color: AppColors.errorColor,
-                      size: 50.0,
+                      size: 50,
                     ),
                   ),
                 ),
@@ -48,7 +48,7 @@ class _ResetWalletScreenState extends State<ResetWalletScreen> {
                 ),
                 kVerticalSpacing,
                 SizedBox(
-                  width: 500.0,
+                  width: 500,
                   child: Text(
                     'All your wallet data will be erased permanently. Make sure '
                     'you have a backup of your mnemonic or Seed Vault & Seed Vault Key before you proceed '
@@ -69,29 +69,29 @@ class _ResetWalletScreenState extends State<ResetWalletScreen> {
                 },
                 outlineColor: Colors.white,
                 text: 'Cancel',
-                minimumSize: const Size(100.0, 40.0),
+                minimumSize: const Size(100, 40),
               ),
               const SizedBox(
-                width: 20.0,
+                width: 20,
               ),
               MyOutlinedButton(
                 outlineColor: AppColors.errorColor,
                 onPressed: _onResetPressed,
                 text: 'Reset',
                 textColor: AppColors.errorColor,
-                minimumSize: const Size(100.0, 40.0),
-              )
+                minimumSize: const Size(100, 40),
+              ),
             ],
           ),
           const SizedBox(
-            height: 30.0,
+            height: 30,
           ),
         ],
       ),
     );
   }
 
-  void _onResetPressed() async {
+  Future<void> _onResetPressed() async {
     NodeUtils.closeEmbeddedNode();
 
     kLastDismissedNotification = kLastNotification;

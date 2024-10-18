@@ -7,6 +7,6 @@ class OnboardingButton extends MyOutlinedButton {
     required String super.text,
     super.key,
   }) : super(
-          minimumSize: const Size(360.0, 40.0),
+          minimumSize: const Size(360, 40),
         );
 }

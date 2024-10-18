@@ -8,7 +8,7 @@ import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 
 const String _kWidgetTitle = 'WalletConnect Sessions List';
 const String _kWidgetDescription =
-    'A session refers to a live connection between a user\'s wallet and a dApp '
+    "A session refers to a live connection between a user's wallet and a dApp "
     'A session allows the dApp to communicate with the wallet '
     'securely over the Internet';
 
@@ -29,8 +29,8 @@ class _WalletConnectSessionsCardState extends State<WalletConnectSessionsCard> {
     return CardScaffold(
       title: _kWidgetTitle,
       description: _kWidgetDescription,
-      childBuilder: () => _getCardBody(),
-      onRefreshPressed: () => _sessionsBloc.refreshResults(),
+      childBuilder: _getCardBody,
+      onRefreshPressed: _sessionsBloc.refreshResults,
     );
   }
 
@@ -73,25 +73,21 @@ class _WalletConnectSessionsCardState extends State<WalletConnectSessionsCard> {
             _buildTableUrlWidget(sessionData.peer.metadata.url),
             flex: 2,
           ),
-          isSelected
-              ? InfiniteScrollTableCell.withMarquee(
+          if (isSelected) InfiniteScrollTableCell.withMarquee(
                   sessionData.pairingTopic,
-                )
-              : InfiniteScrollTableCell.withText(
+                ) else InfiniteScrollTableCell.withText(
                   context,
                   sessionData.pairingTopic.short,
                 ),
-          isSelected
-              ? InfiniteScrollTableCell.withMarquee(
+          if (isSelected) InfiniteScrollTableCell.withMarquee(
                   sessionData.topic,
-                )
-              : InfiniteScrollTableCell.withText(
+                ) else InfiniteScrollTableCell.withText(
                   context,
                   sessionData.topic.short,
                 ),
           InfiniteScrollTableCell.withText(
             context,
-            _formatExpiryDateTime(sessionData.expiry).toString(),
+            _formatExpiryDateTime(sessionData.expiry),
           ),
           InfiniteScrollTableCell.withText(
             context,

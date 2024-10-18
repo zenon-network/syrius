@@ -10,9 +10,9 @@ class SentinelsCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (_) {
-        final SentinelsCubit cubit = SentinelsCubit(
+        final cubit = SentinelsCubit(
           zenon!,
-          SentinelsState(),
+          const SentinelsState(),
         );
         cubit.fetchDataPeriodically();
         return cubit;
@@ -27,7 +27,7 @@ class SentinelsCard extends StatelessWidget {
                   error: state.error!,
                 ),
               CubitStatus.success => SentinelsPopulated(
-                  data: state.data!,
+                  data: state.data,
                 ),
             };
           },

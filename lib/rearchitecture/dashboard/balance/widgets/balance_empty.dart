@@ -11,6 +11,6 @@ class BalanceEmpty extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SyriusErrorWidget('No data available');
+    return const SyriusErrorWidget('No data available');
   }
 }

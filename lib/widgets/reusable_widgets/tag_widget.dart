@@ -3,11 +3,6 @@ import 'package:zenon_syrius_wallet_flutter/utils/app_theme.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/color_utils.dart';
 
 class TagWidget extends StatelessWidget {
-  final IconData? iconData;
-  final VoidCallback? onPressed;
-  final String text;
-  final String? hexColorCode;
-  final Color? textColor;
 
   const TagWidget({
     required this.text,
@@ -17,6 +12,11 @@ class TagWidget extends StatelessWidget {
     this.textColor,
     super.key,
   });
+  final IconData? iconData;
+  final VoidCallback? onPressed;
+  final String text;
+  final String? hexColorCode;
+  final Color? textColor;
 
   @override
   Widget build(BuildContext context) {
@@ -24,13 +24,13 @@ class TagWidget extends StatelessWidget {
       children: [
         InkWell(
           onTap: onPressed,
-          borderRadius: BorderRadius.circular(50.0),
+          borderRadius: BorderRadius.circular(50),
           child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 15.0),
-            height: 25.0,
+            padding: const EdgeInsets.symmetric(horizontal: 15),
+            height: 25,
             alignment: Alignment.center,
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(50.0),
+              borderRadius: BorderRadius.circular(50),
               color: hexColorCode != null
                   ? ColorUtils.getColorFromHexCode(hexColorCode!)
                   : Theme.of(context).colorScheme.secondary,
@@ -43,10 +43,10 @@ class TagWidget extends StatelessWidget {
                       Icon(
                         iconData,
                         color: Colors.white,
-                        size: 15.0,
+                        size: 15,
                       ),
                       const SizedBox(
-                        width: 5.0,
+                        width: 5,
                       ),
                     ],
                   ),
@@ -61,7 +61,7 @@ class TagWidget extends StatelessWidget {
           ),
         ),
         const SizedBox(
-          width: 10.0,
+          width: 10,
         ),
       ],
     );

@@ -10,7 +10,7 @@ class TotalHourlyTransactionsState extends DashboardState<Map<String, dynamic>> 
   /// Constructs a new `TotalHourlyTransactionsState` with optional values for `status`, `data`, and `error`.
   ///
   /// The `data` field holds a map containing the transaction statistics for the last hour.
-  TotalHourlyTransactionsState({
+  const TotalHourlyTransactionsState({
     super.status,
     super.data,
     super.error,

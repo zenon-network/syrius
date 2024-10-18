@@ -5,14 +5,14 @@ import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 enum DimensionCard { small, medium, large }
 
 class TransferTabChild extends StatefulWidget {
-  DimensionCard sendCard;
-  DimensionCard receiveCard;
 
   TransferTabChild({
     super.key,
     this.sendCard = DimensionCard.medium,
     this.receiveCard = DimensionCard.medium,
   });
+  DimensionCard sendCard;
+  DimensionCard receiveCard;
 
   @override
   State<TransferTabChild> createState() => _TransferTabChildState();

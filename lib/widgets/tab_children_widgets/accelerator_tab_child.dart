@@ -8,12 +8,12 @@ import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 class AcceleratorTabChild extends StatelessWidget {
-  final VoidCallback onStepperNotificationSeeMorePressed;
 
   const AcceleratorTabChild({
     required this.onStepperNotificationSeeMorePressed,
     super.key,
   });
+  final VoidCallback onStepperNotificationSeeMorePressed;
 
   @override
   Widget build(BuildContext context) {
@@ -25,7 +25,7 @@ class AcceleratorTabChild extends StatelessWidget {
           return SyriusErrorWidget(snapshot.error.toString());
         } else if (snapshot.hasData) {
           return _getLayout(
-              context, snapshot.data!.isNotEmpty ? snapshot.data!.first : null);
+              context, snapshot.data!.isNotEmpty ? snapshot.data!.first : null,);
         }
         return const SyriusLoadingWidget();
       },

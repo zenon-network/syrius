@@ -27,21 +27,21 @@ class StepperUtils {
                 Text(
                   stepSubtitle,
                   style: Theme.of(context).textTheme.bodyLarge!.copyWith(
-                        fontSize: 12.0,
+                        fontSize: 12,
                         color: stepSubtitleColor,
                       ),
                 ),
                 if (stepSubtitleIconData != null)
                   Icon(
                     stepSubtitleIconData,
-                    size: 15.0,
+                    size: 15,
                     color: stepSubtitleColor,
                   ),
               ],
             )
           : null,
       content: Container(
-        margin: const EdgeInsets.only(left: 37.0),
+        margin: const EdgeInsets.only(left: 37),
         child: Row(
           children: [
             Expanded(
@@ -59,7 +59,7 @@ class StepperUtils {
   }
 
   static custom_material_stepper.StepState getStepState(
-      int currentStepIndex, int? completedStepIndex) {
+      int currentStepIndex, int? completedStepIndex,) {
     return currentStepIndex <= (completedStepIndex ?? -1)
         ? custom_material_stepper.StepState.complete
         : custom_material_stepper.StepState.indexed;
@@ -71,7 +71,7 @@ class StepperUtils {
         Expanded(
           child:
             Padding(
-              padding: const EdgeInsets.only(left: 20.0, top: 10.0, bottom: 10.0),
+              padding: const EdgeInsets.only(left: 20, top: 10, bottom: 10),
               child: AvailableBalance(
                 token,
                 accountInfo,

@@ -8,17 +8,17 @@ class AccountChainStatsBloc
     extends BaseBlocForReloadingIndicator<AccountChainStats> {
   @override
   Future<AccountChainStats> getDataAsync() async {
-    AccountInfo accountInfo = await zenon!.ledger.getAccountInfoByAddress(
+    final accountInfo = await zenon!.ledger.getAccountInfoByAddress(
       Address.parse(
         kSelectedAddress!,
       ),
     );
 
-    int pageSize = accountInfo.blockCount!;
-    int pageCount = ((pageSize + 1) / rpcMaxPageSize).ceil();
+    final pageSize = accountInfo.blockCount!;
+    final pageCount = ((pageSize + 1) / rpcMaxPageSize).ceil();
 
     if (pageSize > 0) {
-      List<AccountBlock> allBlocks = [];
+      final allBlocks = <AccountBlock>[];
 
       for (var i = 0; i < pageCount; i++) {
         allBlocks.addAll((await zenon!.ledger.getAccountBlocksByHeight(
@@ -26,10 +26,9 @@ class AccountChainStatsBloc
                 kSelectedAddress!,
               ),
               (rpcMaxPageSize * i) + 1,
-              rpcMaxPageSize,
             ))
                 .list ??
-            []);
+            [],);
       }
 
       return AccountChainStats(
@@ -43,7 +42,7 @@ class AccountChainStatsBloc
   }
 
   Map<BlockTypeEnum, int> _getNumOfBlocksForEachBlockType(
-          List<AccountBlock> blocks) =>
+          List<AccountBlock> blocks,) =>
       BlockTypeEnum.values.fold<Map<BlockTypeEnum, int>>(
         {},
         (previousValue, blockType) {
@@ -54,10 +53,10 @@ class AccountChainStatsBloc
       );
 
   int _getNumOfBlockForBlockType(
-          List<AccountBlock> blocks, BlockTypeEnum blockType) =>
+          List<AccountBlock> blocks, BlockTypeEnum blockType,) =>
       blocks.fold<int>(
         0,
-        (dynamic previousValue, element) {
+        (int previousValue, element) {
           if (element.blockType == blockType.index) {
             return previousValue + 1;
           }

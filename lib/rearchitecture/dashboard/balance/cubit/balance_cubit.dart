@@ -11,14 +11,14 @@ part 'balance_state.dart';
 /// represented as a `Map` of addresses and their associated `AccountInfo`.
 
 class BalanceCubit extends DashboardCubit<AccountInfo, BalanceState> {
-
-  final Address address;
   /// Constructs a `BalanceCubit` with the provided `zenon` client and initial state.
   ///
   /// The [zenon] parameter provides access to the Zenon SDK for interacting with
   /// account information, and the [initialState] is a map of addresses to their
   /// respective balances at the time the cubit is initialized.
   BalanceCubit(this.address, super.zenon, super.initialState);
+
+  final Address address;
 
   /// Fetches the balance information for a single address.
   ///
@@ -30,7 +30,7 @@ class BalanceCubit extends DashboardCubit<AccountInfo, BalanceState> {
   /// Throws an exception if the balance retrieval fails.
   @override
   Future<AccountInfo> fetch() async {
-    AccountInfo response = await zenon.ledger
+    final response = await zenon.ledger
         .getAccountInfoByAddress(address);
     if (response.blockCount! > 0 &&
         (response.znn()! > BigInt.zero || response.qsr()! > BigInt.zero)) {

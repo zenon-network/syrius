@@ -1,9 +1,6 @@
 import 'package:flutter/material.dart';
 
 class ChartLegend extends StatelessWidget {
-  final Color dotColor;
-  final String mainText;
-  final Widget? detailsWidget;
 
   const ChartLegend({
     required this.dotColor,
@@ -11,11 +8,13 @@ class ChartLegend extends StatelessWidget {
     this.detailsWidget,
     super.key,
   });
+  final Color dotColor;
+  final String mainText;
+  final Widget? detailsWidget;
 
   @override
   Widget build(BuildContext context) {
     return Row(
-      mainAxisAlignment: MainAxisAlignment.start,
       children: [
         Text(
           '● ',
@@ -28,7 +27,7 @@ class ChartLegend extends StatelessWidget {
           style: Theme.of(context).textTheme.bodyMedium,
         ),
         const SizedBox(
-          width: 5.0,
+          width: 5,
         ),
         if (detailsWidget != null)
           Expanded(

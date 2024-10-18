@@ -1,20 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
 
-showWarningDialog({
+Future<bool> showWarningDialog({
   required BuildContext context,
   required String title,
   required String description,
   required String buttonText,
   VoidCallback? onActionButtonPressed,
 }) async {
-  bool isPressed = false;
+  var isPressed = false;
   await showDialog(
     context: context,
     builder: (context) => AlertDialog(
       icon: const Icon(
         Icons.warning,
-        size: 24.0,
+        size: 24,
         color: Colors.orange,
       ),
       title: Text(title),
@@ -46,7 +46,7 @@ showWarningDialog({
             buttonText.isEmpty ? 'OK' : buttonText,
             style: Theme.of(context).textTheme.bodyMedium,
           ),
-        )
+        ),
       ],
     ),
     barrierDismissible: false,
@@ -54,7 +54,7 @@ showWarningDialog({
   return isPressed;
 }
 
-showDialogWithNoAndYesOptions({
+Future showDialogWithNoAndYesOptions({
   required BuildContext context,
   required String title,
   required VoidCallback onYesButtonPressed,
@@ -83,7 +83,7 @@ showDialogWithNoAndYesOptions({
           TextButton(
             style: Theme.of(context).textButtonTheme.style!.copyWith(
                   backgroundColor: WidgetStateColor.resolveWith(
-                      (states) => AppColors.errorColor),
+                      (states) => AppColors.errorColor,),
                 ),
             onPressed: () {
               onYesButtonPressed.call();
@@ -98,15 +98,15 @@ showDialogWithNoAndYesOptions({
       ),
     );
 
-showCustomDialog({required BuildContext context, required Widget content}) =>
+Future<Object?> showCustomDialog({required BuildContext context, required Widget content}) =>
     showGeneralDialog(
       context: context,
       barrierLabel: '',
       barrierDismissible: true,
       pageBuilder: (context, Animation<double> animation,
-              Animation<double> secondaryAnimation) =>
+              Animation<double> secondaryAnimation,) =>
           Center(
         child: ClipRRect(
-            borderRadius: BorderRadius.circular(15.0), child: content),
+            borderRadius: BorderRadius.circular(15), child: content,),
       ),
     );

@@ -11,19 +11,18 @@ import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 /// readable format - to appear in the center of the chart
 
 class BalanceChart extends StatelessWidget {
-  final AccountInfo accountInfo;
-  final ValueNotifier<String?> touchedSectionId;
 
   const BalanceChart({
     required this.accountInfo,
     required this.touchedSectionId,
     super.key,
   });
+  final AccountInfo accountInfo;
+  final ValueNotifier<String?> touchedSectionId;
 
   @override
   Widget build(BuildContext context) {
     return StandardPieChart(
-      sectionsSpace: 0.0,
       sections: _getChartSection(accountInfo),
       onChartSectionTouched: (pieChartSection) {
         touchedSectionId.value = pieChartSection?.touchedSection?.title;
@@ -32,7 +31,7 @@ class BalanceChart extends StatelessWidget {
   }
 
   List<PieChartSectionData> _getChartSection(AccountInfo accountInfo) {
-    List<PieChartSectionData> sections = [];
+    final sections = <PieChartSectionData>[];
     if (accountInfo.znn()! > BigInt.zero) {
       sections.add(
         _getBalanceChartSection(
@@ -59,15 +58,15 @@ class BalanceChart extends StatelessWidget {
   ) {
     final isTouched =
         token.tokenStandard.toString() == touchedSectionId.value;
-    final double opacity = isTouched ? 1.0 : 0.7;
+    final opacity = isTouched ? 1.0 : 0.7;
 
-    double value = accountInfo.getBalance(token.tokenStandard) /
+    final value = accountInfo.getBalance(token.tokenStandard) /
         (accountInfo.znn()! + accountInfo.qsr()!);
 
     return PieChartSectionData(
       title: token.tokenStandard.toString(),
       showTitle: false,
-      radius: 7.0,
+      radius: 7,
       color: ColorUtils.getTokenColor(token.tokenStandard).withOpacity(opacity),
       value: value,
     );

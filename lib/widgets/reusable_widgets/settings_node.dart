@@ -11,10 +11,6 @@ import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 class SettingsNode extends StatefulWidget {
-  final String node;
-  final void Function(String?) onNodePressed;
-  final VoidCallback onChangedOrDeletedNode;
-  final String currentNode;
 
   const SettingsNode({
     required this.node,
@@ -23,6 +19,10 @@ class SettingsNode extends StatefulWidget {
     required this.currentNode,
     super.key,
   });
+  final String node;
+  final void Function(String?) onNodePressed;
+  final VoidCallback onChangedOrDeletedNode;
+  final String currentNode;
 
   @override
   State<SettingsNode> createState() => _SettingsNodeState();
@@ -54,7 +54,7 @@ class _SettingsNodeState extends State<SettingsNode> {
   Widget build(BuildContext context) {
     return Container(
       margin: const EdgeInsets.symmetric(
-        vertical: 5.0,
+        vertical: 5,
       ),
       child: _editable ? _getNodeInputField() : _getNode(context),
     );
@@ -64,15 +64,14 @@ class _SettingsNodeState extends State<SettingsNode> {
     return Row(
       children: [
         Expanded(
-          flex: 1,
           child: InkWell(
             borderRadius: BorderRadius.circular(
-              10.0,
+              10,
             ),
             onTap: () => widget.onNodePressed(widget.node),
             child: Padding(
               padding:
-                  const EdgeInsets.symmetric(horizontal: 5.0, vertical: 5.0),
+                  const EdgeInsets.symmetric(horizontal: 5, vertical: 5),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -95,16 +94,16 @@ class _SettingsNodeState extends State<SettingsNode> {
             visible: widget.currentNode.contains(widget.node),
             child: StandardTooltipIcon(
                 (connectedNodeChainIdentifier == getChainIdentifier())
-                    ? 'Client chain identifier: ${getChainIdentifier().toString()}\n'
+                    ? 'Client chain identifier: ${getChainIdentifier()}\n'
                         'Node chain identifier: $connectedNodeChainIdentifier'
                     : 'Chain identifier mismatch\n'
-                        'Client chain identifier: ${getChainIdentifier().toString()}\n'
+                        'Client chain identifier: ${getChainIdentifier()}\n'
                         'Node chain identifier: $connectedNodeChainIdentifier',
                 MaterialCommunityIcons.identifier,
                 iconColor:
                     (getChainIdentifier() == connectedNodeChainIdentifier)
                         ? AppColors.znnColor
-                        : AppColors.errorColor)),
+                        : AppColors.errorColor,),),
         Visibility(
           visible: widget.node.contains('wss://'),
           child: const StandardTooltipIcon('Encrypted connection', Icons.lock),
@@ -146,9 +145,9 @@ class _SettingsNodeState extends State<SettingsNode> {
                 !kDefaultCommunityNodes.contains(widget.node),
             child: IconButton(
               hoverColor: Colors.transparent,
-              padding: const EdgeInsets.all(4.0),
+              padding: const EdgeInsets.all(4),
               constraints: const BoxConstraints(),
-              iconSize: 15.0,
+              iconSize: 15,
               icon: const Icon(
                 Icons.edit,
                 color: AppColors.znnColor,
@@ -159,15 +158,15 @@ class _SettingsNodeState extends State<SettingsNode> {
                 });
               },
               tooltip: 'Edit node',
-            )),
+            ),),
         Visibility(
             visible: !kDefaultNodes.contains(widget.node) &&
                 !kDefaultCommunityNodes.contains(widget.node),
             child: IconButton(
               hoverColor: Colors.transparent,
-              padding: const EdgeInsets.all(4.0),
+              padding: const EdgeInsets.all(4),
               constraints: const BoxConstraints(),
-              iconSize: 15.0,
+              iconSize: 15,
               icon: const Icon(
                 Icons.delete_forever,
                 color: AppColors.znnColor,
@@ -178,13 +177,13 @@ class _SettingsNodeState extends State<SettingsNode> {
                 title: 'Node Management',
                 description: 'Are you sure you want to delete '
                     '${widget.node} from the list of nodes? This action '
-                    'can\'t be undone.',
+                    "can't be undone.",
                 onYesButtonPressed: () {
                   _deleteNodeFromDb(widget.node);
                 },
               ),
               tooltip: 'Delete node',
-            )),
+            ),),
       ],
     );
   }
@@ -217,12 +216,12 @@ class _SettingsNodeState extends State<SettingsNode> {
                         }
                       },
                       validator: (value) =>
-                          InputValidators.node(value) ?? _nodeError),
+                          InputValidators.node(value) ?? _nodeError,),
                 ),
               ),
             ),
             const SizedBox(
-              width: 15.0,
+              width: 15,
             ),
             SettingsButton(
               onPressed:
@@ -233,7 +232,7 @@ class _SettingsNodeState extends State<SettingsNode> {
               key: _changeButtonKey,
             ),
             MaterialIconButton(
-              size: 15.0,
+              size: 15,
               onPressed: () {
                 setState(() {
                   _nodeController.text = widget.node;
@@ -252,7 +251,7 @@ class _SettingsNodeState extends State<SettingsNode> {
   bool _ifUserInputValid() =>
       InputValidators.node(_nodeController.text) == null;
 
-  void _onChangeButtonPressed() async {
+  Future<void> _onChangeButtonPressed() async {
     try {
       _changeButtonKey.currentState!.showLoadingIndicator(true);
       if (_nodeController.text.isNotEmpty &&
@@ -262,8 +261,8 @@ class _SettingsNodeState extends State<SettingsNode> {
         if (!Hive.isBoxOpen(kNodesBox)) {
           await Hive.openBox<String>(kNodesBox);
         }
-        Box<String> nodesBox = Hive.box<String>(kNodesBox);
-        var nodeKey = nodesBox.keys.firstWhere(
+        final nodesBox = Hive.box<String>(kNodesBox);
+        final nodeKey = nodesBox.keys.firstWhere(
           (key) => nodesBox.get(key) == widget.node,
         );
         await nodesBox.put(nodeKey, _nodeController.text);
@@ -276,7 +275,7 @@ class _SettingsNodeState extends State<SettingsNode> {
         widget.onChangedOrDeletedNode();
       } else if (_nodeController.text.isEmpty) {
         setState(() {
-          _nodeError = 'Node address can\'t be empty';
+          _nodeError = "Node address can't be empty";
         });
       } else if (_nodeController.text.length > kAddressLabelMaxLength) {
         setState(() {
@@ -303,8 +302,8 @@ class _SettingsNodeState extends State<SettingsNode> {
       if (!Hive.isBoxOpen(kNodesBox)) {
         await Hive.openBox<String>(kNodesBox);
       }
-      Box<String> nodesBox = Hive.box<String>(kNodesBox);
-      var nodeKey = nodesBox.keys.firstWhere(
+      final nodesBox = Hive.box<String>(kNodesBox);
+      final nodeKey = nodesBox.keys.firstWhere(
         (key) => nodesBox.get(key) == node,
       );
       await nodesBox.delete(nodeKey);

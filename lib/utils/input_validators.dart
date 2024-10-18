@@ -1,8 +1,8 @@
+import 'package:convert/convert.dart';
 import 'package:logging/logging.dart';
 import 'package:validators/validators.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
-import 'package:convert/convert.dart';
 
 class InputValidators {
   static String kEVMAddressRegex = r'^(0x)([a-fA-F0-9]){40}$';
@@ -90,7 +90,7 @@ class InputValidators {
           }
         }
 
-        BigInt inputNum = value.extractDecimals(decimals);
+        final inputNum = value.extractDecimals(decimals);
 
         if (value.contains('.') && value.split('.')[1].length > decimals) {
           return 'Inputted number has too many decimals';
@@ -116,7 +116,7 @@ class InputValidators {
         return 'Error';
       }
     }
-    return 'Value can\'t be empty';
+    return "Value can't be empty";
   }
 
   static String? checkAddress(String? value) {
@@ -142,9 +142,9 @@ class InputValidators {
       if (value.length < 8) {
         return 'Password not strong enough';
       }
-      String pattern =
+      const pattern =
           r'''^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[`~!@#$%^&*()\-_=+\[\]\{\}\\|;:",<.>\/\?']).{8,}$''';
-      RegExp regExp = RegExp(pattern);
+      final regExp = RegExp(pattern);
       if (regExp.hasMatch(value)) {
         return null;
       }

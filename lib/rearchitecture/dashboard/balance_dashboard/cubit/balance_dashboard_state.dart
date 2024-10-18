@@ -9,7 +9,7 @@ class BalanceDashboardState extends DashboardState<AccountInfo> {
   ///
   /// This state uses the default `status`, `data`, and `error` from the parent `DashboardState` class,
   /// and initializes them to manage the detailed account balance.
-  BalanceDashboardState({
+  const BalanceDashboardState({
     super.status,
     super.data,
     super.error,

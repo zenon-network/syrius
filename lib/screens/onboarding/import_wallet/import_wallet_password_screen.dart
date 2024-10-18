@@ -4,14 +4,14 @@ import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 
 class ImportWalletPasswordScreen extends StatefulWidget {
-  final String seed;
-  final int progressBarNumLevels;
 
   const ImportWalletPasswordScreen(
     this.seed, {
     this.progressBarNumLevels = 5,
     super.key,
   });
+  final String seed;
+  final int progressBarNumLevels;
 
   @override
   State<ImportWalletPasswordScreen> createState() =>
@@ -32,7 +32,7 @@ class _ImportWalletPasswordScreenState
     return Scaffold(
       body: Container(
         padding: const EdgeInsets.symmetric(
-          vertical: 30.0,
+          vertical: 30,
         ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -44,7 +44,7 @@ class _ImportWalletPasswordScreenState
                   numLevels: widget.progressBarNumLevels,
                 ),
                 const SizedBox(
-                  height: 30.0,
+                  height: 30,
                 ),
                 Text(
                   'Create a wallet password',
@@ -56,7 +56,7 @@ class _ImportWalletPasswordScreenState
                   style: Theme.of(context).textTheme.headlineMedium,
                 ),
                 const SizedBox(
-                  height: 100.0,
+                  height: 100,
                 ),
                 Column(
                   children: [

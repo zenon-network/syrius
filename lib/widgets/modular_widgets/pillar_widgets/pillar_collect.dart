@@ -11,12 +11,12 @@ import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 class PillarCollect extends StatefulWidget {
-  final PillarRewardsHistoryBloc pillarRewardsHistoryBloc;
 
   const PillarCollect({
     required this.pillarRewardsHistoryBloc,
     super.key,
   });
+  final PillarRewardsHistoryBloc pillarRewardsHistoryBloc;
 
   @override
   State<PillarCollect> createState() => _PillarCollectState();
@@ -40,7 +40,7 @@ class _PillarCollectState extends State<PillarCollect> {
           'registered in the network, but also deployed (use znn-controller for '
           'this operation) and it must produce momentums',
       childBuilder: () => Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(16),
         child: _getFutureBuilder(),
       ),
     );
@@ -73,11 +73,10 @@ class _PillarCollectState extends State<PillarCollect> {
                 coinDecimals,
               )
               .toNum(),
-          isInt: false,
           after: ' ${kZnnCoin.symbol}',
           style: Theme.of(context).textTheme.headlineLarge!.copyWith(
                 color: AppColors.znnColor,
-                fontSize: 30.0,
+                fontSize: 30,
               ),
         ),
         kVerticalSpacing,
@@ -113,7 +112,7 @@ class _PillarCollectState extends State<PillarCollect> {
       );
     } catch (e) {
       await NotificationUtils.sendNotificationError(
-          e, 'Error while collecting Pillar rewards');
+          e, 'Error while collecting Pillar rewards',);
     } finally {
       _collectButtonKey.currentState?.animateReverse();
     }

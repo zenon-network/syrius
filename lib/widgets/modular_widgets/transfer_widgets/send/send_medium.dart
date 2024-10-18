@@ -17,12 +17,12 @@ import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 class SendMediumCard extends StatefulWidget {
-  final VoidCallback onExpandClicked;
 
   const SendMediumCard({
     required this.onExpandClicked,
     super.key,
   });
+  final VoidCallback onExpandClicked;
 
   @override
   State<SendMediumCard> createState() => _SendMediumCardState();
@@ -56,7 +56,7 @@ class _SendMediumCardState extends State<SendMediumCard> {
       title: 'Send',
       titleFontSize: Theme.of(context).textTheme.headlineSmall!.fontSize,
       description: 'Manage sending funds',
-      childBuilder: () => _getBalanceStreamBuilder(),
+      childBuilder: _getBalanceStreamBuilder,
     );
   }
 
@@ -87,14 +87,14 @@ class _SendMediumCardState extends State<SendMediumCard> {
   Widget _getBody(BuildContext context, AccountInfo accountInfo) {
     return Container(
       margin: const EdgeInsets.only(
-        left: 20.0,
-        top: 20.0,
+        left: 20,
+        top: 20,
       ),
       child: ListView(
         shrinkWrap: true,
         children: <Widget>[
           Container(
-            margin: const EdgeInsets.only(right: 20.0),
+            margin: const EdgeInsets.only(right: 20),
             child: Form(
               key: _recipientKey,
               autovalidateMode: AutovalidateMode.onUserInteraction,
@@ -103,7 +103,7 @@ class _SendMediumCardState extends State<SendMediumCard> {
                   setState(() {});
                 },
                 thisNode: _recipientFocusNode,
-                validator: (value) => InputValidators.checkAddress(value),
+                validator: InputValidators.checkAddress,
                 controller: _recipientController,
                 suffixIcon: RawMaterialButton(
                   shape: const CircleBorder(),
@@ -116,12 +116,12 @@ class _SendMediumCardState extends State<SendMediumCard> {
                   child: const Icon(
                     Icons.content_paste,
                     color: AppColors.darkHintTextColor,
-                    size: 15.0,
+                    size: 15,
                   ),
                 ),
                 suffixIconConstraints: const BoxConstraints(
-                  maxWidth: 45.0,
-                  maxHeight: 20.0,
+                  maxWidth: 45,
+                  maxHeight: 20,
                 ),
                 hintText: 'Recipient Address',
               ),
@@ -129,7 +129,7 @@ class _SendMediumCardState extends State<SendMediumCard> {
           ),
           kVerticalSpacing,
           Container(
-            margin: const EdgeInsets.only(right: 20.0),
+            margin: const EdgeInsets.only(right: 20),
             child: Form(
               key: _amountKey,
               autovalidateMode: AutovalidateMode.onUserInteraction,
@@ -195,7 +195,6 @@ class _SendMediumCardState extends State<SendMediumCard> {
       fromAddress: kSelectedAddress,
       toAddress: _recipientController.text,
       amount: _amountController.text.extractDecimals(_selectedToken.decimals),
-      data: null,
       token: _selectedToken,
     );
   }
@@ -207,14 +206,14 @@ class _SendMediumCardState extends State<SendMediumCard> {
       children: [
         _getCoinDropdown(),
         const SizedBox(
-          width: 5.0,
+          width: 5,
         ),
         AmountSuffixMaxWidget(
           onPressed: () => _onMaxPressed(accountInfo),
           context: context,
         ),
         const SizedBox(
-          width: 15.0,
+          width: 15,
         ),
       ],
     );
@@ -235,7 +234,7 @@ class _SendMediumCardState extends State<SendMediumCard> {
       );
 
   void _onMaxPressed(AccountInfo accountInfo) {
-    BigInt maxBalance = accountInfo.getBalance(
+    final maxBalance = accountInfo.getBalance(
       _selectedToken.tokenStandard,
     );
 
@@ -278,14 +277,14 @@ class _SendMediumCardState extends State<SendMediumCard> {
             : null,
         key: _sendPaymentButtonKey,
       ),
-      viewModelBuilder: () => SendPaymentBloc(),
+      viewModelBuilder: SendPaymentBloc.new,
     );
   }
 
   Future<void> _sendErrorNotification(error) async {
     await NotificationUtils.sendNotificationError(
       error,
-      'Couldn\'t send ${_amountController.text} ${_selectedToken.symbol} '
+      "Couldn't send ${_amountController.text} ${_selectedToken.symbol} "
       'to ${_recipientController.text}',
     );
   }
@@ -299,7 +298,6 @@ class _SendMediumCardState extends State<SendMediumCard> {
             details: 'Sent ${_amountController.text} ${_selectedToken.symbol} '
                 'from ${ZenonAddressUtils.getLabel(kSelectedAddress!)} to ${ZenonAddressUtils.getLabel(_recipientController.text)}',
             type: NotificationType.paymentSent,
-            id: null,
           ),
         );
   }
@@ -311,7 +309,7 @@ class _SendMediumCardState extends State<SendMediumCard> {
       BigInt.zero;
 
   void _addTokensWithBalance(AccountInfo accountInfo) {
-    for (var balanceInfo in accountInfo.balanceInfoList!) {
+    for (final balanceInfo in accountInfo.balanceInfoList!) {
       if (balanceInfo.balance! > BigInt.zero &&
           !_tokensWithBalance.contains(balanceInfo.token)) {
         _tokensWithBalance.add(balanceInfo.token);

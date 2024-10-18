@@ -11,21 +11,19 @@ class StakingOptionsBloc extends BaseBloc<AccountBlockTemplate?> {
   ) {
     try {
       addEvent(null);
-      AccountBlockTemplate transactionParams = zenon!.embedded.stake.stake(
+      final transactionParams = zenon!.embedded.stake.stake(
         stakeDuration.inSeconds,
         amount,
       );
       AccountBlockUtils.createAccountBlock(transactionParams, 'create stake',
-              waitForRequiredPlasma: true)
+              waitForRequiredPlasma: true,)
           .then(
         (response) {
           ZenonAddressUtils.refreshBalance();
           addEvent(response);
         },
       ).onError(
-        (error, stackTrace) {
-          addError(error, stackTrace);
-        },
+        addError,
       );
     } catch (e, stackTrace) {
       addError(e, stackTrace);

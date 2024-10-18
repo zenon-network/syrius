@@ -5,12 +5,6 @@ import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/clipboard_utils.dart';
 
 class CopyToClipboardIcon extends StatefulWidget {
-  final String? textToBeCopied;
-  final Color iconColor;
-  final Color? hoverColor;
-  final MaterialTapTargetSize materialTapTargetSize;
-  final IconData icon;
-  final EdgeInsets padding;
 
   const CopyToClipboardIcon(
     this.textToBeCopied, {
@@ -18,9 +12,15 @@ class CopyToClipboardIcon extends StatefulWidget {
     this.hoverColor,
     this.materialTapTargetSize = MaterialTapTargetSize.padded,
     this.icon = Icons.content_copy,
-    this.padding = const EdgeInsets.all(8.0),
+    this.padding = const EdgeInsets.all(8),
     super.key,
   });
+  final String? textToBeCopied;
+  final Color iconColor;
+  final Color? hoverColor;
+  final MaterialTapTargetSize materialTapTargetSize;
+  final IconData icon;
+  final EdgeInsets padding;
 
   @override
   State<CopyToClipboardIcon> createState() => _CopyToClipboardIcon();

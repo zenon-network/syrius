@@ -4,19 +4,9 @@ import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 
 class MyOutlinedButton extends StatefulWidget {
-  final String? text;
-  final TextStyle? textStyle;
-  final Color? outlineColor;
-  final VoidCallback? onPressed;
-  final Size? minimumSize;
-  final Widget? child;
-  final double borderWidth;
-  final double? circularBorderRadius;
-  final Color? textColor;
-  final EdgeInsets? padding;
 
   const MyOutlinedButton({
-    this.text,
+    required this.onPressed, this.text,
     this.textStyle,
     this.outlineColor,
     this.minimumSize,
@@ -25,7 +15,6 @@ class MyOutlinedButton extends StatefulWidget {
     this.circularBorderRadius,
     this.textColor,
     this.padding,
-    required this.onPressed,
     super.key,
   });
 
@@ -43,6 +32,16 @@ class MyOutlinedButton extends StatefulWidget {
         outlineColor: outlineColor,
         key: key,
       );
+  final String? text;
+  final TextStyle? textStyle;
+  final Color? outlineColor;
+  final VoidCallback? onPressed;
+  final Size? minimumSize;
+  final Widget? child;
+  final double borderWidth;
+  final double? circularBorderRadius;
+  final Color? textColor;
+  final EdgeInsets? padding;
 
   @override
   MyOutlinedButtonState createState() => MyOutlinedButtonState();
@@ -99,7 +98,7 @@ class MyOutlinedButtonState extends State<MyOutlinedButton> {
       ),
       child: _showLoading
           ? const SyriusLoadingWidget(
-              size: 25.0,
+              size: 25,
             )
           : widget.text != null
               ? Text(
@@ -122,8 +121,7 @@ class _MyOutlinedButtonWithIcon extends MyOutlinedButton {
   _MyOutlinedButtonWithIcon({
     required String label,
     required Widget icon,
-    super.outlineColor,
-    required super.onPressed,
+    required super.onPressed, super.outlineColor,
     super.key,
   }) : super(
           child: _MyOutlinedButtonWithIconChild(
@@ -134,13 +132,13 @@ class _MyOutlinedButtonWithIcon extends MyOutlinedButton {
 }
 
 class _MyOutlinedButtonWithIconChild extends StatelessWidget {
-  final String label;
-  final Widget icon;
 
   const _MyOutlinedButtonWithIconChild({
     required this.label,
     required this.icon,
   });
+  final String label;
+  final Widget icon;
 
   @override
   Widget build(BuildContext context) {
@@ -149,7 +147,7 @@ class _MyOutlinedButtonWithIconChild extends StatelessWidget {
       children: [
         icon,
         const SizedBox(
-          width: 15.0,
+          width: 15,
         ),
         Text(label),
       ],

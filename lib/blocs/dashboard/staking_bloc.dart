@@ -6,19 +6,19 @@ import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 class StakingStatsModel {
-  int numActiveStakingEntries;
-  BigInt totalZnnStakingAmount;
 
   StakingStatsModel(
     this.numActiveStakingEntries,
     this.totalZnnStakingAmount,
   );
+  int numActiveStakingEntries;
+  BigInt totalZnnStakingAmount;
 }
 
 class StakingBloc extends DashboardBaseBloc<StakingStatsModel> {
   @override
   Future<StakingStatsModel> makeAsyncCall() async {
-    StakeList stakeList = await _getStakeList();
+    final stakeList = await _getStakeList();
     if (stakeList.list.isNotEmpty) {
       return StakingStatsModel(
         stakeList.list.length,
@@ -30,8 +30,7 @@ class StakingBloc extends DashboardBaseBloc<StakingStatsModel> {
   }
 
   Future<StakeList> _getStakeList() async =>
-      await zenon!.embedded.stake.getEntriesByAddress(
+      zenon!.embedded.stake.getEntriesByAddress(
         Address.parse(kSelectedAddress!),
-        pageIndex: 0,
       );
 }

@@ -12,11 +12,6 @@ import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 class InfiniteScrollTable<T> extends StatefulWidget {
-  final List<InfiniteScrollTableHeaderColumn>? headerColumns;
-  final List<Widget> Function(T, bool) generateRowCells;
-  final void Function(int index)? onRowTappedCallback;
-  final InfiniteScrollBloc<T> bloc;
-  final bool disposeBloc;
 
   const InfiniteScrollTable({
     required this.bloc,
@@ -26,6 +21,11 @@ class InfiniteScrollTable<T> extends StatefulWidget {
     this.disposeBloc = true,
     super.key,
   });
+  final List<InfiniteScrollTableHeaderColumn>? headerColumns;
+  final List<Widget> Function(T, bool) generateRowCells;
+  final void Function(int index)? onRowTappedCallback;
+  final InfiniteScrollBloc<T> bloc;
+  final bool disposeBloc;
 
   @override
   State createState() => _InfiniteScrollTableState<T>();
@@ -99,19 +99,18 @@ class _InfiniteScrollTableState<T> extends State<InfiniteScrollTable<T>> {
         border: Border(
           bottom: BorderSide(
             color: Theme.of(context).dividerTheme.color!,
-            width: 1.0,
           ),
         ),
       ),
       padding: const EdgeInsets.symmetric(
-        vertical: 15.0,
+        vertical: 15,
       ),
       child: Row(
         children: List<Widget>.from(
               [
                 const SizedBox(
-                  width: 20.0,
-                )
+                  width: 20,
+                ),
               ],
             ) +
             (widget.headerColumns ?? []),
@@ -120,7 +119,7 @@ class _InfiniteScrollTableState<T> extends State<InfiniteScrollTable<T>> {
   }
 
   Widget _getTableRow(dynamic item, int indexOfRow) {
-    bool isSelected = _selectedRowIndex == indexOfRow;
+    final isSelected = _selectedRowIndex == indexOfRow;
 
     return InkWell(
       onTap: () {
@@ -148,20 +147,20 @@ class _InfiniteScrollTableState<T> extends State<InfiniteScrollTable<T>> {
             left: isSelected
                 ? const BorderSide(
                     color: AppColors.znnColor,
-                    width: 2.0,
+                    width: 2,
                   )
                 : BorderSide.none,
           ),
         ),
         padding: const EdgeInsets.symmetric(
-          vertical: 15.0,
+          vertical: 15,
         ),
         child: Row(
           children: List<Widget>.from(
                 [
                   const SizedBox(
-                    width: 20.0,
-                  )
+                    width: 20,
+                  ),
                 ],
               ) +
               widget.generateRowCells(item, isSelected),
@@ -183,10 +182,6 @@ class _InfiniteScrollTableState<T> extends State<InfiniteScrollTable<T>> {
 }
 
 class InfiniteScrollTableHeaderColumn extends StatelessWidget {
-  final String columnName;
-  final Function(String)? onSortArrowsPressed;
-  final MainAxisAlignment contentAlign;
-  final int flex;
 
   const InfiniteScrollTableHeaderColumn({
     required this.columnName,
@@ -195,6 +190,10 @@ class InfiniteScrollTableHeaderColumn extends StatelessWidget {
     this.flex = 1,
     super.key,
   });
+  final String columnName;
+  final Function(String)? onSortArrowsPressed;
+  final MainAxisAlignment contentAlign;
+  final int flex;
 
   @override
   Widget build(BuildContext context) {
@@ -215,11 +214,11 @@ class InfiniteScrollTableHeaderColumn extends StatelessWidget {
               onTap: () => onSortArrowsPressed!(columnName),
               child: Icon(
                 Entypo.select_arrows,
-                size: 15.0,
+                size: 15,
                 color: Theme.of(context).iconTheme.color,
               ),
             ),
-          )
+          ),
         ],
       ),
     );
@@ -227,8 +226,6 @@ class InfiniteScrollTableHeaderColumn extends StatelessWidget {
 }
 
 class InfiniteScrollTableCell extends StatelessWidget {
-  final Widget child;
-  final int flex;
 
   const InfiniteScrollTableCell(
     this.child, {
@@ -251,7 +248,7 @@ class InfiniteScrollTableCell extends StatelessWidget {
                 message: address.toString(),
                 child: Container(
                   margin: const EdgeInsets.only(
-                    right: 10.0,
+                    right: 10,
                   ),
                   child: Marquee(
                     child: Text(
@@ -259,7 +256,7 @@ class InfiniteScrollTableCell extends StatelessWidget {
                       style: textStyle ??
                           TextStyle(
                             color: textColor,
-                            fontSize: 12.0,
+                            fontSize: 12,
                           ),
                     ),
                   ),
@@ -271,7 +268,7 @@ class InfiniteScrollTableCell extends StatelessWidget {
               materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
             ),
             const SizedBox(
-              width: 10.0,
+              width: 10,
             ),
           ],
         ),
@@ -293,7 +290,7 @@ class InfiniteScrollTableCell extends StatelessWidget {
             Expanded(
               child: Container(
                 margin: const EdgeInsets.only(
-                  right: 10.0,
+                  right: 10,
                 ),
                 child: Marquee(
                   child: Text(
@@ -301,7 +298,7 @@ class InfiniteScrollTableCell extends StatelessWidget {
                     style: textStyle ??
                         TextStyle(
                           color: textColor,
-                          fontSize: 12.0,
+                          fontSize: 12,
                         ),
                   ),
                 ),
@@ -316,7 +313,7 @@ class InfiniteScrollTableCell extends StatelessWidget {
                     materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                   ),
                   const SizedBox(
-                    width: 10.0,
+                    width: 10,
                   ),
                 ],
               ),
@@ -363,7 +360,7 @@ class InfiniteScrollTableCell extends StatelessWidget {
                     materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                   ),
                   const SizedBox(
-                    width: 10.0,
+                    width: 10,
                   ),
                 ],
               ),
@@ -406,7 +403,7 @@ class InfiniteScrollTableCell extends StatelessWidget {
                     materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                   ),
                   const SizedBox(
-                    width: 10.0,
+                    width: 10,
                   ),
                 ],
               ),
@@ -416,6 +413,8 @@ class InfiniteScrollTableCell extends StatelessWidget {
         flex: flex,
         key: key,
       );
+  final Widget child;
+  final int flex;
 
   @override
   Widget build(BuildContext context) {

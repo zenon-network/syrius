@@ -50,14 +50,14 @@ enum Tabs {
 }
 
 class MainAppContainer extends StatefulWidget {
-  final bool redirectedFromWalletSuccess;
-
-  static const String route = 'main-app-container';
 
   const MainAppContainer({
     super.key,
     this.redirectedFromWalletSuccess = false,
   });
+  final bool redirectedFromWalletSuccess;
+
+  static const String route = 'main-app-container';
 
   @override
   State<MainAppContainer> createState() => _MainAppContainerState();
@@ -99,7 +99,7 @@ class _MainAppContainerState extends State<MainAppContainer>
       duration: const Duration(milliseconds: 500),
     );
     _animationController.repeat(reverse: true);
-    _animation = Tween(begin: 1.0, end: 3.0).animate(_animationController);
+    _animation = Tween(begin: 1, end: 3).animate(_animationController);
     kCurrentPage = kWalletInitCompleted ? Tabs.dashboard : Tabs.lock;
     _initLockBlock();
     _handleIncomingLinks();
@@ -118,7 +118,7 @@ class _MainAppContainerState extends State<MainAppContainer>
         child: Scaffold(
           body: Container(
             margin: const EdgeInsets.all(
-              20.0,
+              20,
             ),
             child: Column(
               children: <Widget>[
@@ -142,7 +142,7 @@ class _MainAppContainerState extends State<MainAppContainer>
                 Expanded(
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(
-                      15.0,
+                      15,
                     ),
                     child: Container(
                       child: _getCurrentPageContainer(),
@@ -158,7 +158,7 @@ class _MainAppContainerState extends State<MainAppContainer>
   }
 
   Widget _getDesktopNavigationContainer() {
-    Color borderColor = NotificationUtils.shouldShowNotification()
+    final borderColor = NotificationUtils.shouldShowNotification()
         ? kLastNotification!.getColor()
         : Colors.transparent;
 
@@ -173,7 +173,7 @@ class _MainAppContainerState extends State<MainAppContainer>
                 decoration: BoxDecoration(
                   borderRadius: const BorderRadius.all(
                     Radius.circular(
-                      15.0,
+                      15,
                     ),
                   ),
                   boxShadow: (borderColor != Colors.transparent)
@@ -182,24 +182,24 @@ class _MainAppContainerState extends State<MainAppContainer>
                             color: borderColor,
                             blurRadius: _animation.value,
                             spreadRadius: _animation.value,
-                          )
+                          ),
                         ]
                       : [
                           const BoxShadow(
                             color: Colors.transparent,
-                          )
+                          ),
                         ],
                 ),
                 child: Material(
                   color: Theme.of(context).colorScheme.primary,
                   borderRadius: const BorderRadius.all(
                     Radius.circular(
-                      15.0,
+                      15,
                     ),
                   ),
                   child: Padding(
                     padding: const EdgeInsets.symmetric(
-                      horizontal: 12.0,
+                      horizontal: 12,
                     ),
                     child: Focus(
                       focusNode: _focusNode,
@@ -223,7 +223,7 @@ class _MainAppContainerState extends State<MainAppContainer>
                               .textTheme
                               .headlineSmall!
                               .copyWith(
-                                fontSize: 15.0,
+                                fontSize: 15,
                               ),
                           labelColor:
                               Theme.of(context).textTheme.headlineSmall!.color,
@@ -233,7 +233,7 @@ class _MainAppContainerState extends State<MainAppContainer>
                             }
                           },
                           labelPadding: const EdgeInsets.symmetric(
-                            vertical: 5.0,
+                            vertical: 5,
                           ),
                           indicator: UnderlineTabIndicator(
                             borderSide: BorderSide(
@@ -242,10 +242,10 @@ class _MainAppContainerState extends State<MainAppContainer>
                                   : _isIconTabSelected()
                                       ? Colors.transparent
                                       : AppColors.znnColor,
-                              width: 2.0,
+                              width: 2,
                             ),
                           ),
-                          dividerHeight: 0.0,
+                          dividerHeight: 0,
                           controller: _tabController,
                           tabs: _getTabs(),
                         ),
@@ -261,7 +261,7 @@ class _MainAppContainerState extends State<MainAppContainer>
     );
   }
 
-  void _onNavigateToLock() async {
+  Future<void> _onNavigateToLock() async {
     if (kWalletFile != null) kWalletFile!.close();
     kWalletFile = null;
     _navigateToLockTimer?.cancel();
@@ -282,7 +282,7 @@ class _MainAppContainerState extends State<MainAppContainer>
           (e) => e == Tabs.p2pSwap
               ? const Tab(text: 'P2P Swap')
               : Tab(
-                  text: FormatUtils.extractNameFromEnum<Tabs>(e).capitalize()),
+                  text: FormatUtils.extractNameFromEnum<Tabs>(e).capitalize(),),
         )
         .toList();
   }
@@ -293,18 +293,18 @@ class _MainAppContainerState extends State<MainAppContainer>
         Tab(
           child: SvgPicture.asset(
             'assets/svg/walletconnect-logo.svg',
-            width: 24.0,
+            width: 24,
             fit: BoxFit.fitWidth,
             colorFilter: _isTabSelected(Tabs.walletConnect)
                 ? const ColorFilter.mode(AppColors.znnColor, BlendMode.srcIn)
                 : ColorFilter.mode(
-                    Theme.of(context).iconTheme.color!, BlendMode.srcIn),
+                    Theme.of(context).iconTheme.color!, BlendMode.srcIn,),
           ),
         ),
       Tab(
         child: Icon(
           MaterialCommunityIcons.rocket,
-          size: 24.0,
+          size: 24,
           color: _isTabSelected(Tabs.accelerator)
               ? AppColors.znnColor
               : Theme.of(context).iconTheme.color,
@@ -313,7 +313,7 @@ class _MainAppContainerState extends State<MainAppContainer>
       Tab(
         child: Icon(
           Icons.info,
-          size: 24.0,
+          size: 24,
           color: _isTabSelected(Tabs.help)
               ? AppColors.znnColor
               : Theme.of(context).iconTheme.color,
@@ -322,7 +322,7 @@ class _MainAppContainerState extends State<MainAppContainer>
       Tab(
         child: Icon(
           Icons.notifications,
-          size: 24.0,
+          size: 24,
           color: _isTabSelected(Tabs.notifications)
               ? AppColors.znnColor
               : Theme.of(context).iconTheme.color,
@@ -331,7 +331,7 @@ class _MainAppContainerState extends State<MainAppContainer>
       Tab(
         child: Icon(
           Icons.settings,
-          size: 24.0,
+          size: 24,
           color: _isTabSelected(Tabs.settings)
               ? AppColors.znnColor
               : Theme.of(context).iconTheme.color,
@@ -347,14 +347,14 @@ class _MainAppContainerState extends State<MainAppContainer>
         child: _isTabSelected(Tabs.lock)
             ? Icon(
                 Icons.lock,
-                size: 24.0,
+                size: 24,
                 color: _isTabSelected(Tabs.lock)
                     ? AppColors.znnColor
                     : Theme.of(context).iconTheme.color,
               )
             : Icon(
                 MaterialCommunityIcons.lock_open_variant,
-                size: 24.0,
+                size: 24,
                 color: Theme.of(context).iconTheme.color,
               ),
       ),
@@ -386,7 +386,7 @@ class _MainAppContainerState extends State<MainAppContainer>
             child: Lottie.asset(
               'assets/lottie/ic_anim_plasma_generation.json',
               fit: BoxFit.contain,
-              width: 30.0,
+              width: 30,
               repeat: true,
             ),
           );
@@ -403,7 +403,7 @@ class _MainAppContainerState extends State<MainAppContainer>
   }
 
   Widget _getSyncingStatusIcon(SyncState syncState, [SyncInfo? syncInfo]) {
-    String message = 'Connected and synced';
+    var message = 'Connected and synced';
 
     if (syncState != SyncState.notEnoughPeers &&
         syncState != SyncState.syncDone &&
@@ -418,9 +418,9 @@ class _MainAppContainerState extends State<MainAppContainer>
           message: message,
           child: Icon(
             Icons.sync_disabled,
-            size: 24.0,
+            size: 24,
             color: _getSyncIconColor(syncState),
-          ));
+          ),);
     } else if (syncState == SyncState.syncing) {
       if (syncInfo != null) {
         if (syncInfo.targetHeight > 0 &&
@@ -432,31 +432,31 @@ class _MainAppContainerState extends State<MainAppContainer>
               message: message,
               child: Icon(
                 Icons.radio_button_unchecked,
-                size: 24.0,
+                size: 24,
                 color: _getSyncIconColor(syncState),
-              ));
+              ),);
         } else if (syncInfo.targetHeight == 0 || syncInfo.currentHeight == 0) {
           message = 'Started syncing with the network, please wait';
           syncState = SyncState.syncing;
           return Tooltip(
               message: message,
               child: Icon(Icons.sync,
-                  size: 24.0, color: _getSyncIconColor(syncState)));
+                  size: 24, color: _getSyncIconColor(syncState),),);
         } else {
           message =
               'Sync progress: momentum ${syncInfo.currentHeight} of ${syncInfo.targetHeight}';
           return Tooltip(
             message: message,
             child: SizedBox(
-              height: 18.0,
-              width: 18.0,
+              height: 18,
+              width: 18,
               child: Center(
                   child: CircularProgressIndicator(
                 backgroundColor: Theme.of(context).iconTheme.color,
                 color: _getSyncIconColor(syncState),
                 value: syncInfo.currentHeight / syncInfo.targetHeight,
-                strokeWidth: 3.0,
-              )),
+                strokeWidth: 3,
+              ),),
             ),
           );
         }
@@ -465,7 +465,7 @@ class _MainAppContainerState extends State<MainAppContainer>
         return Tooltip(
             message: message,
             child: Icon(Icons.sync,
-                size: 24.0, color: _getSyncIconColor(syncState)));
+                size: 24, color: _getSyncIconColor(syncState),),);
       }
     } else if (syncState == SyncState.notEnoughPeers) {
       if (syncInfo != null) {
@@ -477,22 +477,22 @@ class _MainAppContainerState extends State<MainAppContainer>
           return Tooltip(
               message: message,
               child: SizedBox(
-                  height: 18.0,
-                  width: 18.0,
+                  height: 18,
+                  width: 18,
                   child: Center(
                       child: CircularProgressIndicator(
                     backgroundColor: Theme.of(context).iconTheme.color,
                     color: _getSyncIconColor(syncState),
                     value: syncInfo.currentHeight / syncInfo.targetHeight,
-                    strokeWidth: 3.0,
-                  ))));
+                    strokeWidth: 3,
+                  ),),),);
         } else if (syncInfo.targetHeight == 0 || syncInfo.currentHeight == 0) {
           message = 'Connecting to peers, please wait';
           syncState = SyncState.syncing;
           return Tooltip(
               message: message,
               child: Icon(Icons.sync,
-                  size: 24.0, color: _getSyncIconColor(syncState)));
+                  size: 24, color: _getSyncIconColor(syncState),),);
         } else {
           message =
               'Sync progress: momentum ${syncInfo.currentHeight} of ${syncInfo.targetHeight}';
@@ -500,15 +500,15 @@ class _MainAppContainerState extends State<MainAppContainer>
           return Tooltip(
               message: message,
               child: SizedBox(
-                  height: 18.0,
-                  width: 18.0,
+                  height: 18,
+                  width: 18,
                   child: Center(
                       child: CircularProgressIndicator(
                     backgroundColor: Theme.of(context).iconTheme.color,
                     color: _getSyncIconColor(syncState),
                     value: syncInfo.currentHeight / syncInfo.targetHeight,
-                    strokeWidth: 3.0,
-                  ))));
+                    strokeWidth: 3,
+                  ),),),);
         }
       } else {
         message = 'Connecting to peers';
@@ -516,7 +516,7 @@ class _MainAppContainerState extends State<MainAppContainer>
         return Tooltip(
             message: message,
             child: Icon(Icons.sync_problem,
-                size: 24.0, color: _getSyncIconColor(syncState)));
+                size: 24, color: _getSyncIconColor(syncState),),);
       }
     } else {
       message = 'Connected and synced';
@@ -526,15 +526,15 @@ class _MainAppContainerState extends State<MainAppContainer>
     return Tooltip(
       message: message,
       child: SizedBox(
-        height: 18.0,
-        width: 18.0,
+        height: 18,
+        width: 18,
         child: Center(
             child: CircularProgressIndicator(
           backgroundColor: Theme.of(context).iconTheme.color,
           color: _getSyncIconColor(syncState),
           value: 1,
-          strokeWidth: 2.0,
-        )),
+          strokeWidth: 2,
+        ),),
       ),
     );
   }
@@ -616,7 +616,6 @@ class _MainAppContainerState extends State<MainAppContainer>
             details: 'Auto-lock interval changed successfully to '
                 '$kAutoLockWalletMinutes minutes.',
             timestamp: DateTime.now().millisecondsSinceEpoch,
-            id: null,
             type: NotificationType.autoLockIntervalChanged,
           ),
         );
@@ -692,7 +691,7 @@ class _MainAppContainerState extends State<MainAppContainer>
         if (kDisabledTabs.contains(
           kTabs[_tabController!.index],
         )) {
-          int index = _tabController!.previousIndex;
+          final index = _tabController!.previousIndex;
           setState(() {
             _tabController!.index = index;
           });
@@ -711,10 +710,8 @@ class _MainAppContainerState extends State<MainAppContainer>
           if (kCurrentPage != Tabs.lock) {
             _navigateToLockTimer = _createAutoLockTimer();
           }
-          break;
         case LockEvent.navigateToDashboard:
           _tabController!.animateTo(_getTabChildIndex(Tabs.dashboard));
-          break;
         case LockEvent.navigateToLock:
           if (Navigator.of(context).canPop()) {
             Navigator.popUntil(
@@ -726,16 +723,13 @@ class _MainAppContainerState extends State<MainAppContainer>
           _tabController!.animateTo(
             _getTabChildIndex(Tabs.lock),
           );
-          break;
         case LockEvent.resetTimer:
           if (_navigateToLockTimer != null && _navigateToLockTimer!.isActive) {
             _navigateToLockTimer?.cancel();
             _navigateToLockTimer = _createAutoLockTimer();
           }
-          break;
         case LockEvent.navigateToPreviousTab:
           _tabController!.animateTo(_tabController!.previousIndex);
-          break;
       }
     });
     if (widget.redirectedFromWalletSuccess) {
@@ -751,7 +745,7 @@ class _MainAppContainerState extends State<MainAppContainer>
     });
   }
 
-  void _handleIncomingLinks() async {
+  Future<void> _handleIncomingLinks() async {
     if (!kIsWeb && !Platform.isLinux) {
       _incomingLinkSubscription =
           _appLinks.uriLinkStream.listen((Uri? uri) async {
@@ -761,7 +755,7 @@ class _MainAppContainerState extends State<MainAppContainer>
         }
 
         if (uri != null) {
-          String uriRaw = uri.toString();
+          var uriRaw = uri.toString();
 
           Logger('MainAppContainer')
               .log(Level.INFO, '_handleIncomingLinks $uriRaw');
@@ -771,7 +765,7 @@ class _MainAppContainerState extends State<MainAppContainer>
               if (Platform.isWindows) {
                 uriRaw = uriRaw.replaceAll('/?', '?');
               }
-              String wcUri = Uri.decodeFull(uriRaw.split('wc?uri=').last);
+              final wcUri = Uri.decodeFull(uriRaw.split('wc?uri=').last);
               if (WalletConnectUri.tryParse(wcUri) != null) {
                 await _updateWalletConnectUri(wcUri);
               }
@@ -779,11 +773,11 @@ class _MainAppContainerState extends State<MainAppContainer>
             }
 
             // Deep link query parameters
-            String queryAddress = '';
-            String queryAmount = ''; // with decimals
-            int queryDuration = 0; // in months
-            String queryZTS = '';
-            String queryPillarName = '';
+            var queryAddress = '';
+            var queryAmount = ''; // with decimals
+            var queryDuration = 0; // in months
+            var queryZTS = '';
+            var queryPillarName = '';
             Token? token;
 
             if (uri.hasQuery) {
@@ -840,10 +834,9 @@ class _MainAppContainerState extends State<MainAppContainer>
                         isBarrierDismissible: true,
                         content: Column(
                           mainAxisSize: MainAxisSize.min,
-                          crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
                             Text(
-                                'Are you sure you want transfer $queryAmount ${token.symbol} from $kSelectedAddress to $queryAddress?'),
+                                'Are you sure you want transfer $queryAmount ${token.symbol} from $kSelectedAddress to $queryAddress?',),
                           ],
                         ),
                         onYesButtonPressed: () {
@@ -852,7 +845,6 @@ class _MainAppContainerState extends State<MainAppContainer>
                             toAddress: queryAddress,
                             amount:
                                 queryAmount.extractDecimals(token!.decimals),
-                            data: null,
                             token: token,
                           );
                         },
@@ -860,7 +852,6 @@ class _MainAppContainerState extends State<MainAppContainer>
                       );
                     }
                   }
-                  break;
 
                 case 'stake':
                   await sl<NotificationsBloc>().addNotification(
@@ -881,21 +872,19 @@ class _MainAppContainerState extends State<MainAppContainer>
                       isBarrierDismissible: true,
                       content: Column(
                         mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
                           Text(
-                              'Are you sure you want stake $queryAmount ${kZnnCoin.symbol} for $queryDuration month(s)?'),
+                              'Are you sure you want stake $queryAmount ${kZnnCoin.symbol} for $queryDuration month(s)?',),
                         ],
                       ),
                       onYesButtonPressed: () {
                         stakingOptionsBloc.stakeForQsr(
                             Duration(seconds: queryDuration * stakeTimeUnitSec),
-                            queryAmount.extractDecimals(kZnnCoin.decimals));
+                            queryAmount.extractDecimals(kZnnCoin.decimals),);
                       },
                       onNoButtonPressed: () {},
                     );
                   }
-                  break;
 
                 case 'delegate':
                   await sl<NotificationsBloc>().addNotification(
@@ -916,10 +905,9 @@ class _MainAppContainerState extends State<MainAppContainer>
                       isBarrierDismissible: true,
                       content: Column(
                         mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
                           Text(
-                              'Are you sure you want delegate the ${kZnnCoin.symbol} from $kSelectedAddress to Pillar $queryPillarName?'),
+                              'Are you sure you want delegate the ${kZnnCoin.symbol} from $kSelectedAddress to Pillar $queryPillarName?',),
                         ],
                       ),
                       onYesButtonPressed: () {
@@ -928,7 +916,6 @@ class _MainAppContainerState extends State<MainAppContainer>
                       onNoButtonPressed: () {},
                     );
                   }
-                  break;
 
                 case 'fuse':
                   await sl<NotificationsBloc>().addNotification(
@@ -949,20 +936,18 @@ class _MainAppContainerState extends State<MainAppContainer>
                       isBarrierDismissible: true,
                       content: Column(
                         mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
                           Text(
-                              'Are you sure you want fuse $queryAmount ${kQsrCoin.symbol} for address $queryAddress?'),
+                              'Are you sure you want fuse $queryAmount ${kQsrCoin.symbol} for address $queryAddress?',),
                         ],
                       ),
                       onYesButtonPressed: () {
                         plasmaOptionsBloc.generatePlasma(queryAddress,
-                            queryAmount.extractDecimals(kZnnCoin.decimals));
+                            queryAmount.extractDecimals(kZnnCoin.decimals),);
                       },
                       onNoButtonPressed: () {},
                     );
                   }
-                  break;
 
                 case 'sentinel':
                   await sl<NotificationsBloc>().addNotification(
@@ -977,7 +962,6 @@ class _MainAppContainerState extends State<MainAppContainer>
                   if (kCurrentPage != Tabs.lock) {
                     _navigateTo(Tabs.sentinels);
                   }
-                  break;
 
                 case 'pillar':
                   await sl<NotificationsBloc>().addNotification(
@@ -992,7 +976,6 @@ class _MainAppContainerState extends State<MainAppContainer>
                   if (kCurrentPage != Tabs.lock) {
                     _navigateTo(Tabs.pillars);
                   }
-                  break;
 
                 default:
                   await sl<NotificationsBloc>().addNotification(
@@ -1014,11 +997,11 @@ class _MainAppContainerState extends State<MainAppContainer>
             .log(Level.INFO, '_handleIncomingLinks', 'done');
       }, onError: (Object err) async {
         await NotificationUtils.sendNotificationError(
-            err, 'Handle incoming link failed');
+            err, 'Handle incoming link failed',);
         Logger('MainAppContainer')
             .log(Level.WARNING, '_handleIncomingLinks', err);
         if (!mounted) return;
-      });
+      },);
     }
   }
 
@@ -1033,18 +1016,18 @@ class _MainAppContainerState extends State<MainAppContainer>
         if (!mounted) return;
       } on PlatformException catch (e, stackTrace) {
         Logger('MainAppContainer').log(Level.WARNING,
-            '_handleInitialUri PlatformException', e, stackTrace);
+            '_handleInitialUri PlatformException', e, stackTrace,);
       } on FormatException catch (e, stackTrace) {
         Logger('MainAppContainer').log(
-            Level.WARNING, '_handleInitialUri FormatException', e, stackTrace);
+            Level.WARNING, '_handleInitialUri FormatException', e, stackTrace,);
         if (!mounted) return;
       }
     }
   }
 
   @override
-  void onClipboardChanged() async {
-    ClipboardData? newClipboardData =
+  Future<void> onClipboardChanged() async {
+    final newClipboardData =
         await Clipboard.getData(Clipboard.kTextPlain);
     final text = newClipboardData?.text ?? '';
     if (text.isNotEmpty && WalletConnectUri.tryParse(text) != null) {

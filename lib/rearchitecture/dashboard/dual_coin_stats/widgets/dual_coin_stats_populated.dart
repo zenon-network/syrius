@@ -7,12 +7,12 @@ import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 /// - [DualCoinStatsChart] - and a legend - [DualCoinStatsChartLegend]
 
 class DualCoinStatsPopulated extends StatefulWidget {
-  final List<Token> tokens;
 
   const DualCoinStatsPopulated({
     required this.tokens,
     super.key,
   });
+  final List<Token> tokens;
 
   @override
   State<DualCoinStatsPopulated> createState() => _DualCoinStatsPopulatedState();
@@ -34,7 +34,7 @@ class _DualCoinStatsPopulatedState extends State<DualCoinStatsPopulated>
         ),
         const Divider(),
         Padding(
-          padding: const EdgeInsets.all(8.0),
+          padding: const EdgeInsets.all(8),
           child: DualCoinStatsChartLegend(
             tokens: widget.tokens,
           ),

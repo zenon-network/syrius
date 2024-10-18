@@ -20,13 +20,13 @@ class _TotalHourlyTransactionsState extends State<TotalHourlyTransactions> {
   @override
   Widget build(BuildContext context) {
     return ViewModelBuilder<TotalHourlyTransactionsBloc>.reactive(
-      viewModelBuilder: () => TotalHourlyTransactionsBloc(),
+      viewModelBuilder: TotalHourlyTransactionsBloc.new,
       onViewModelReady: (model) {
         model.getDataPeriodically();
       },
       builder: (_, model, __) => CardScaffold<Map<String, dynamic>>(
         childStream: model.stream,
-        onCompletedStatusCallback: (data) => _getWidgetBody(data),
+        onCompletedStatusCallback: _getWidgetBody,
         title: _kWidgetTitle,
         description: _kWidgetDescription,
       ),
@@ -41,7 +41,7 @@ class _TotalHourlyTransactionsState extends State<TotalHourlyTransactions> {
           end: widgetData['numAccountBlocks'],
           isInt: true,
           style: Theme.of(context).textTheme.headlineLarge!.copyWith(
-                fontSize: 30.0,
+                fontSize: 30,
               ),
         ),
         kVerticalSpacing,

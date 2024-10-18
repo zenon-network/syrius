@@ -10,9 +10,9 @@ import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 class StakingList extends StatefulWidget {
-  final StakingListBloc bloc;
 
   const StakingList(this.bloc, {super.key});
+  final StakingListBloc bloc;
 
   @override
   State createState() {
@@ -91,8 +91,8 @@ class _StakingListState extends State<StakingList> {
             showCopyToClipboardIcon: isSelected ? true : false,
           ),
           InfiniteScrollTableCell(
-              _getCancelContainer(isSelected, stakingItem, bloc)),
-          InfiniteScrollTableCell.withText(context, '')
+              _getCancelContainer(isSelected, stakingItem, bloc),),
+          InfiniteScrollTableCell.withText(context, ''),
         ];
       },
     );
@@ -105,16 +105,13 @@ class _StakingListState extends State<StakingList> {
   ) {
     return Stack(
       alignment: Alignment.centerLeft,
-      fit: StackFit.loose,
       children: [
-        stakingItem.expirationTimestamp * 1000 <
-                DateTime.now().millisecondsSinceEpoch
-            ? _getCancelButtonViewModel(
+        if (stakingItem.expirationTimestamp * 1000 <
+                DateTime.now().millisecondsSinceEpoch) _getCancelButtonViewModel(
                 stakingListModel,
                 isSelected,
                 stakingItem.id.toString(),
-              )
-            : _getCancelTimer(stakingItem, stakingListModel)
+              ) else _getCancelTimer(stakingItem, stakingListModel),
       ],
     );
   }
@@ -124,7 +121,7 @@ class _StakingListState extends State<StakingList> {
     bool isSelected,
     String stakeHash,
   ) {
-    final GlobalKey<LoadingButtonState> cancelButtonKey = GlobalKey();
+    final cancelButtonKey = GlobalKey<LoadingButtonState>();
 
     return ViewModelBuilder<CancelStakeBloc>.reactive(
       onViewModelReady: (model) {
@@ -149,7 +146,7 @@ class _StakingListState extends State<StakingList> {
         stakeHash,
         cancelButtonKey,
       ),
-      viewModelBuilder: () => CancelStakeBloc(),
+      viewModelBuilder: CancelStakeBloc.new,
     );
   }
 
@@ -168,7 +165,7 @@ class _StakingListState extends State<StakingList> {
       key: key,
       icon: const Icon(
         SimpleLineIcons.close,
-        size: 11.0,
+        size: 11,
         color: AppColors.errorColor,
       ),
       textStyle: Theme.of(context).textTheme.titleSmall!.copyWith(
@@ -183,7 +180,6 @@ class _StakingListState extends State<StakingList> {
         _sortAscending
             ? _stakingList.sort((a, b) => a.amount.compareTo(b.amount))
             : _stakingList.sort((a, b) => b.amount.compareTo(a.amount));
-        break;
       case 'Staking duration':
         _sortAscending
             ? _stakingList.sort(
@@ -194,19 +190,16 @@ class _StakingListState extends State<StakingList> {
                 (a, b) => (b.expirationTimestamp - b.startTimestamp)
                     .compareTo(a.expirationTimestamp - a.startTimestamp),
               );
-        break;
       case 'Recipient':
         _sortAscending
             ? _stakingList.sort((a, b) => a.address.compareTo(b.address))
             : _stakingList.sort((a, b) => b.address.compareTo(a.address));
-        break;
       case 'Expiration':
         _sortAscending
             ? _stakingList.sort((a, b) =>
-                a.expirationTimestamp.compareTo(b.expirationTimestamp))
+                a.expirationTimestamp.compareTo(b.expirationTimestamp),)
             : _stakingList.sort((a, b) =>
-                b.expirationTimestamp.compareTo(a.expirationTimestamp));
-        break;
+                b.expirationTimestamp.compareTo(a.expirationTimestamp),);
       default:
         _sortAscending
             ? _stakingList.sort((a, b) => a.address.compareTo(b.address))
@@ -223,7 +216,7 @@ class _StakingListState extends State<StakingList> {
     StakeEntry stakingItem,
     StakingListBloc model,
   ) {
-    int secondsUntilExpiration = stakingItem.expirationTimestamp -
+    final secondsUntilExpiration = stakingItem.expirationTimestamp -
         DateTime.now().millisecondsSinceEpoch ~/ 1000;
     return CancelTimer(
       Duration(seconds: secondsUntilExpiration),
@@ -235,8 +228,8 @@ class _StakingListState extends State<StakingList> {
   }
 
   String _getStakingDurationInMonths(int seconds) {
-    int numDays = seconds / 3600 ~/ 24;
-    int numMonths = numDays ~/ 30;
+    final numDays = seconds / 3600 ~/ 24;
+    final numMonths = numDays ~/ 30;
 
     return '$numMonths month${numMonths > 1 ? 's' : ''}';
   }

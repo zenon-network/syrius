@@ -29,7 +29,7 @@ class _PeersWidget extends State<PeersWidget> {
       title: 'Peers',
       description:
           'This card displays information about connected network peers',
-      childBuilder: () => _getStreamBuilder(),
+      childBuilder: _getStreamBuilder,
     );
   }
 
@@ -81,12 +81,10 @@ class _PeersWidget extends State<PeersWidget> {
         _sortAscending
             ? _peers!.sort((a, b) => a.ip.compareTo(b.ip))
             : _peers!.sort((a, b) => b.ip.compareTo(a.ip));
-        break;
       case 'Public Key':
         _sortAscending
             ? _peers!.sort((a, b) => a.publicKey.compareTo(b.publicKey))
             : _peers!.sort((a, b) => b.publicKey.compareTo(a.publicKey));
-        break;
       default:
         _sortAscending
             ? _peers!.sort((a, b) => a.ip.compareTo(b.ip))

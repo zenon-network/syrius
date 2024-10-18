@@ -50,7 +50,6 @@ class _SentinelListWidgetState extends State<SentinelListWidget> {
         ),
         const InfiniteScrollTableHeaderColumn(
           columnName: '',
-          onSortArrowsPressed: null,
         ),
       ],
       generateRowCells: (sentinelInfo, isSelected) {
@@ -65,11 +64,9 @@ class _SentinelListWidgetState extends State<SentinelListWidget> {
           InfiniteScrollTableCell(
             _getSentinelRevokeTimer(sentinelInfo, bloc),
           ),
-          isStakeAddressDefault(sentinelInfo)
-              ? InfiniteScrollTableCell(
+          if (isStakeAddressDefault(sentinelInfo)) InfiniteScrollTableCell(
                   _getCancelContainer(isSelected, sentinelInfo, bloc),
-                )
-              : const Spacer(),
+                ) else const Spacer(),
         ];
       },
     );
@@ -82,12 +79,10 @@ class _SentinelListWidgetState extends State<SentinelListWidget> {
     return Visibility(
       visible: isStakeAddressDefault(sentinelInfo),
       child: Stack(
-        fit: StackFit.loose,
         children: [
           Row(
             children: [
-              sentinelInfo.isRevocable
-                  ? CancelTimer(
+              if (sentinelInfo.isRevocable) CancelTimer(
                       Duration(
                         seconds: sentinelInfo.revokeCooldown,
                       ),
@@ -95,8 +90,7 @@ class _SentinelListWidgetState extends State<SentinelListWidget> {
                       onTimeFinishedCallback: () {
                         model.refreshResults();
                       },
-                    )
-                  : CancelTimer(
+                    ) else CancelTimer(
                       Duration(
                         seconds: sentinelInfo.revokeCooldown,
                       ),
@@ -106,7 +100,7 @@ class _SentinelListWidgetState extends State<SentinelListWidget> {
                       },
                     ),
               const SizedBox(
-                width: 5.0,
+                width: 5,
               ),
               StandardTooltipIcon(
                 sentinelInfo.isRevocable
@@ -136,7 +130,6 @@ class _SentinelListWidgetState extends State<SentinelListWidget> {
     return Visibility(
       visible: sentinelInfo.isRevocable,
       child: Stack(
-        fit: StackFit.loose,
         alignment: Alignment.center,
         children: [
           _getDisassembleButtonViewModel(isSelected, model, sentinelInfo),
@@ -151,7 +144,7 @@ class _SentinelListWidgetState extends State<SentinelListWidget> {
     SentinelInfo sentinelInfo,
   ) {
     return MyOutlinedButton(
-      minimumSize: const Size(55.0, 25.0),
+      minimumSize: const Size(55, 25),
       outlineColor: isSelected
           ? AppColors.errorColor
           : Theme.of(context).textTheme.titleSmall!.color,
@@ -172,11 +165,11 @@ class _SentinelListWidgetState extends State<SentinelListWidget> {
                 : Theme.of(context).textTheme.titleSmall,
           ),
           const SizedBox(
-            width: 20.0,
+            width: 20,
           ),
           Icon(
             SimpleLineIcons.close,
-            size: 11.0,
+            size: 11,
             color: isSelected
                 ? AppColors.errorColor
                 : Theme.of(context).textTheme.titleSmall!.color,
@@ -192,14 +185,12 @@ class _SentinelListWidgetState extends State<SentinelListWidget> {
         _sortAscending
             ? _sentinels.sort((a, b) => a.owner.compareTo(b.owner))
             : _sentinels.sort((a, b) => b.owner.compareTo(a.owner));
-        break;
       case 'Registration time':
         _sortAscending
             ? _sentinels.sort((a, b) =>
-                a.registrationTimestamp.compareTo(b.registrationTimestamp))
+                a.registrationTimestamp.compareTo(b.registrationTimestamp),)
             : _sentinels.sort((a, b) =>
-                b.registrationTimestamp.compareTo(a.registrationTimestamp));
-        break;
+                b.registrationTimestamp.compareTo(a.registrationTimestamp),);
       case 'Reward Address':
       default:
         break;
@@ -241,12 +232,12 @@ class _SentinelListWidgetState extends State<SentinelListWidget> {
             if (snapshot.hasData) {
               return _getDisassembleButton(isSelected, model, sentinelInfo);
             }
-            return const SyriusLoadingWidget(size: 25.0);
+            return const SyriusLoadingWidget(size: 25);
           }
           return _getDisassembleButton(isSelected, model, sentinelInfo);
         },
       ),
-      viewModelBuilder: () => DisassembleButtonBloc(),
+      viewModelBuilder: DisassembleButtonBloc.new,
     );
   }
 }

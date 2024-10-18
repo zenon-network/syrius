@@ -4,8 +4,8 @@ import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/dashboard/dashboard.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/card/card.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
-import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
+import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 class DelegationCard extends StatelessWidget {
   const DelegationCard({super.key});
@@ -14,10 +14,10 @@ class DelegationCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (_) {
-        final DelegationCubit cubit = DelegationCubit(
+        final cubit = DelegationCubit(
           Address.parse(kSelectedAddress!),
           zenon!,
-          DelegationState(),
+          const DelegationState(),
         );
         cubit.fetchDataPeriodically();
         return cubit;

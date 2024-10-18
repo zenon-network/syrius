@@ -21,26 +21,26 @@ class _PillarsState extends State<Pillars> {
   @override
   Widget build(BuildContext context) {
     return ViewModelBuilder<PillarsBloc>.reactive(
-      viewModelBuilder: () => PillarsBloc(),
+      viewModelBuilder: PillarsBloc.new,
       onViewModelReady: (model) {
         model.getDataPeriodically();
       },
       builder: (_, model, __) => CardScaffold<int>(
         childStream: model.stream,
-        onCompletedStatusCallback: (data) => _widgetBody(data),
+        onCompletedStatusCallback: _widgetBody,
         title: _kWidgetTitle,
         description: _kWidgetDescription,
       ),
     );
   }
 
-  _widgetBody(int numOfPillars) {
+  Row _widgetBody(int numOfPillars) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: <Widget>[
         SvgPicture.asset(
           'assets/svg/ic_pillars_dashboard.svg',
-          width: 65.0,
+          width: 65,
         ),
         Column(
           mainAxisAlignment: MainAxisAlignment.center,

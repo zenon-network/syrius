@@ -5,9 +5,9 @@ import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 class ProjectsStats extends StatelessWidget {
-  final Project project;
 
   const ProjectsStats(this.project, {super.key});
+  final Project project;
 
   @override
   Widget build(BuildContext context) {
@@ -20,7 +20,7 @@ class ProjectsStats extends StatelessWidget {
 
   Widget _getWidgetBody(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.all(15.0),
+      padding: const EdgeInsets.all(15),
       child: Column(
         children: [
           Row(
@@ -32,12 +32,12 @@ class ProjectsStats extends StatelessWidget {
                     project.name,
                   ),
                   const SizedBox(
-                    height: 5.0,
+                    height: 5,
                   ),
                   AcceleratorProjectDetails(
                     owner: project.owner,
                     hash: project.id,
-                    creationTimestamp: project.creationTimestamp
+                    creationTimestamp: project.creationTimestamp,
                   ),
                 ],
               ),
@@ -56,7 +56,7 @@ class ProjectsStats extends StatelessWidget {
                         child: _getChart(_getZnnChartSections(context)),
                       ),
                       const SizedBox(
-                        width: 15.0,
+                        width: 15,
                       ),
                       Expanded(
                         flex: 3,
@@ -75,7 +75,7 @@ class ProjectsStats extends StatelessWidget {
                         child: _getChart(_getQsrChartSections(context)),
                       ),
                       const SizedBox(
-                        width: 15.0,
+                        width: 15,
                       ),
                       Expanded(
                         flex: 3,
@@ -95,11 +95,11 @@ class ProjectsStats extends StatelessWidget {
   Widget _getChart(List<PieChartSectionData> sections) {
     return Container(
       constraints: const BoxConstraints(
-        maxWidth: 150.0,
-        maxHeight: 150.0,
+        maxWidth: 150,
+        maxHeight: 150,
       ),
       child: AspectRatio(
-        aspectRatio: 1.0,
+        aspectRatio: 1,
         child: StandardPieChart(
           sections: sections,
         ),
@@ -113,7 +113,7 @@ class ProjectsStats extends StatelessWidget {
   ) {
     return PieChartSectionData(
       showTitle: false,
-      radius: 7.0,
+      radius: 7,
       color: color,
       value: value,
     );
@@ -165,7 +165,7 @@ class ProjectsStats extends StatelessWidget {
 
   Widget _getZnnProjectLegends(BuildContext context) {
     return SizedBox(
-      height: 100.0,
+      height: 100,
       child: Column(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -213,7 +213,7 @@ class ProjectsStats extends StatelessWidget {
 
   Widget _getQsrProjectLegends(BuildContext context) {
     return SizedBox(
-      height: 100.0,
+      height: 100,
       child: Column(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         crossAxisAlignment: CrossAxisAlignment.start,

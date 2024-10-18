@@ -9,12 +9,12 @@ import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 class ChangeWalletPasswordScreen extends StatefulWidget {
-  final VoidCallback onStepperNotificationSeeMorePressed;
 
   const ChangeWalletPasswordScreen({
     required this.onStepperNotificationSeeMorePressed,
     super.key,
   });
+  final VoidCallback onStepperNotificationSeeMorePressed;
 
   @override
   State<ChangeWalletPasswordScreen> createState() =>
@@ -43,7 +43,7 @@ class _ChangeWalletPasswordScreenState
     return Scaffold(
       body: Container(
         padding: const EdgeInsets.symmetric(
-          vertical: 30.0,
+          vertical: 30,
         ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -108,7 +108,7 @@ class _ChangeWalletPasswordScreenState
                   ),
                 ),
                 const SizedBox(
-                  height: 35.0,
+                  height: 35,
                 ),
                 PasswordProgressBar(
                   password: _newPasswordController.text,
@@ -204,13 +204,13 @@ class _ChangeWalletPasswordScreenState
               'An error occurred while trying to decrypt wallet',
             );
           }
-        });
+        },);
       },
       builder: (_, model, __) {
         _loadingButton = _getLoadingButton(model);
         return _getLoadingButton(model);
       },
-      viewModelBuilder: () => DecryptWalletFileBloc(),
+      viewModelBuilder: DecryptWalletFileBloc.new,
     );
   }
 
@@ -221,7 +221,7 @@ class _ChangeWalletPasswordScreenState
           ? () {
               _loadingButtonKey.currentState!.animateForward();
               model.decryptWalletFile(
-                  kWalletPath!, _currentPasswordController.text);
+                  kWalletPath!, _currentPasswordController.text,);
             }
           : null,
       text: 'Change password',

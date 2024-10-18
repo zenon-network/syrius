@@ -23,15 +23,13 @@ enum NoMChainId {
 
 extension NoMChainIdX on NoMChainId {
   String chain() {
-    String name = '';
+    var name = '';
 
     switch (this) {
       case NoMChainId.mainnet:
         name = '1';
-        break;
       case NoMChainId.testnet:
         name = '3';
-        break;
     }
 
     return '${NoMService.namespace}:$name';
@@ -39,18 +37,6 @@ extension NoMChainIdX on NoMChainId {
 }
 
 class NoMService extends IChain {
-  static const namespace = 'zenon';
-
-  final IWeb3WalletService _web3WalletService = sl<IWeb3WalletService>();
-
-  final NoMChainId reference;
-
-  final _walletLockedError = const WalletConnectError(
-    code: 9000,
-    message: 'Wallet is locked',
-  );
-
-  Web3Wallet? wallet;
 
   NoMService({
     required this.reference,
@@ -78,6 +64,18 @@ class NoMService extends IChain {
       handler: _methodZnnSend,
     );
   }
+  static const namespace = 'zenon';
+
+  final IWeb3WalletService _web3WalletService = sl<IWeb3WalletService>();
+
+  final NoMChainId reference;
+
+  final _walletLockedError = const WalletConnectError(
+    code: 9000,
+    message: 'Wallet is locked',
+  );
+
+  Web3Wallet? wallet;
 
   @override
   String getNamespace() {
@@ -113,14 +111,13 @@ class NoMService extends IChain {
           title: '${dAppMetadata.name} - Information',
           content: Column(
             mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               Text('Are you sure you want to allow ${dAppMetadata.name} to '
                   'retrieve the current address, node URL and chain identifier information?'),
               kVerticalSpacing,
               Image(
                 image: NetworkImage(dAppMetadata.icons.first),
-                height: 100.0,
+                height: 100,
                 fit: BoxFit.fitHeight,
               ),
               kVerticalSpacing,
@@ -132,7 +129,7 @@ class NoMService extends IChain {
                   Text(dAppMetadata.url),
                   LinkIcon(
                     url: dAppMetadata.url,
-                  )
+                  ),
                 ],
               ),
             ],
@@ -150,7 +147,7 @@ class NoMService extends IChain {
         } else {
           await NotificationUtils.sendNotificationError(
               Errors.getSdkError(Errors.USER_REJECTED),
-              'You have rejected the WalletConnect request');
+              'You have rejected the WalletConnect request',);
           throw Errors.getSdkError(Errors.USER_REJECTED);
         }
       } else {
@@ -181,14 +178,13 @@ class NoMService extends IChain {
           title: '${dAppMetadata.name} - Sign Message',
           content: Column(
             mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               Text('Are you sure you want to '
                   'sign message $message ?'),
               kVerticalSpacing,
               Image(
                 image: NetworkImage(dAppMetadata.icons.first),
-                height: 100.0,
+                height: 100,
                 fit: BoxFit.fitHeight,
               ),
               kVerticalSpacing,
@@ -200,7 +196,7 @@ class NoMService extends IChain {
                   Text(dAppMetadata.url),
                   LinkIcon(
                     url: dAppMetadata.url,
-                  )
+                  ),
                 ],
               ),
             ],
@@ -210,11 +206,11 @@ class NoMService extends IChain {
         );
 
         if (actionWasAccepted) {
-          return await walletSign(message.codeUnits);
+          return walletSign(message.codeUnits);
         } else {
           await NotificationUtils.sendNotificationError(
               Errors.getSdkError(Errors.USER_REJECTED),
-              'You have rejected the WalletConnect request');
+              'You have rejected the WalletConnect request',);
           throw Errors.getSdkError(Errors.USER_REJECTED);
         }
       } else {
@@ -257,7 +253,6 @@ class NoMService extends IChain {
           title: '${dAppMetadata.name} - Send Payment',
           content: Column(
             mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               Text('Are you sure you want to transfer '
                   '$amount ${token.symbol} to '
@@ -265,7 +260,7 @@ class NoMService extends IChain {
               kVerticalSpacing,
               Image(
                 image: NetworkImage(dAppMetadata.icons.first),
-                height: 100.0,
+                height: 100,
                 fit: BoxFit.fitHeight,
               ),
               kVerticalSpacing,
@@ -277,7 +272,7 @@ class NoMService extends IChain {
                   Text(dAppMetadata.url),
                   LinkIcon(
                     url: dAppMetadata.url,
-                  )
+                  ),
                 ],
               ),
             ],
@@ -303,7 +298,7 @@ class NoMService extends IChain {
         } else {
           await NotificationUtils.sendNotificationError(
               Errors.getSdkError(Errors.USER_REJECTED),
-              'You have rejected the WalletConnect request');
+              'You have rejected the WalletConnect request',);
           throw Errors.getSdkError(Errors.USER_REJECTED);
         }
       } else {

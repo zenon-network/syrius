@@ -1,6 +1,5 @@
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/dashboard/dashboard.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
-import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 part 'total_hourly_transactions_state.dart';
 
@@ -29,10 +28,10 @@ class TotalHourlyTransactionsCubit
   Future<Map<String, dynamic>> fetch() async {
     try {
       // Retrieve the current chain height
-      final int chainHeight = await _ledgerGetMomentumLedgerHeight();
+      final chainHeight = await _ledgerGetMomentumLedgerHeight();
       if (chainHeight - kMomentumsPerHour > 0) {
         // Fetch detailed momentums for the past hour
-        final List<DetailedMomentum> response =
+        final response =
             (await zenon.ledger.getDetailedMomentumsByHeight(
                   chainHeight - kMomentumsPerHour,
                   kMomentumsPerHour,
@@ -41,7 +40,7 @@ class TotalHourlyTransactionsCubit
                 [];
 
         // Prepare the transaction summary
-        final Map<String, dynamic> transactions = {
+        final transactions = <String, dynamic>{
           'numAccountBlocks': response.fold<int>(
             0,
             (previousValue, element) => previousValue + element.blocks.length,

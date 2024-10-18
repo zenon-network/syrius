@@ -12,7 +12,7 @@ enum LockEvent {
 
 class LockBloc extends BaseBloc<LockEvent> {
   @override
-  void addEvent(event) {
+  void addEvent(LockEvent event) {
     if (!(kCurrentPage == Tabs.lock && event == LockEvent.resetTimer)) {
       super.addEvent(event);
     }
