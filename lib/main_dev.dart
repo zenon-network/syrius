@@ -301,9 +301,9 @@ class _MyAppState extends State<MyApp> with WindowListener, TrayListener {
                     child: MouseRegion(
                       onEnter: (_) => lockBloc.addEvent(LockEvent.resetTimer),
                       onExit: (_) => lockBloc.addEvent(LockEvent.resetTimer),
-                      child: RawKeyboardListener(
+                      child: KeyboardListener(
                         focusNode: FocusNode(),
-                        onKey: (RawKeyEvent event) {
+                        onKeyEvent: (KeyEvent event) {
                           lockBloc.addEvent(LockEvent.resetTimer);
                         },
                         child: Layout(

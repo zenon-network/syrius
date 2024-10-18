@@ -262,7 +262,7 @@ class _NewWalletConfirmSeedScreenState
                   return _randomIndexes.contains(seedGridElementIndex) ||
                       !seedGridElement.isValid;
                 },
-                onAccept: (String data) {
+                onAcceptWithDetails: (DragTargetDetails data) {
                   var element = _seedGridElements[seedGridElementIndex];
                   var i = -1;
                   if (element.word != '') {
@@ -276,14 +276,14 @@ class _NewWalletConfirmSeedScreenState
                     }
                   }
                   i = -1;
-                  while ((i = widget.seedWords.indexOf(data, i + 1)) != -1) {
+                  while ((i = widget.seedWords.indexOf(data.data, i + 1)) != -1) {
                     if (!_foundMissingRandomElementsIndexes.contains(i) &&
                         _randomIndexes.contains(i)) {
                       _foundMissingRandomElementsIndexes.add(i);
                       break;
                     }
                   }
-                  element.word = data;
+                  element.word = data.data;
                   setState(() {
                     _textCursor = seedGridElementIndex;
                   });

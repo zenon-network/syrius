@@ -15,7 +15,7 @@ class TextScalingNotifier extends ChangeNotifier {
   getTextScaleFactor(BuildContext context) {
     switch (_currentTextScaling) {
       case TextScaling.system:
-        return MediaQuery.of(context).textScaleFactor;
+        return MediaQuery.of(context).textScaler.scale(1);
       case TextScaling.normal:
         return 1.0;
       case TextScaling.small:
