@@ -1,6 +1,8 @@
 import 'dart:math' show pow;
 import 'package:big_decimal/big_decimal.dart';
+import 'package:flutter/material.dart';
 import 'package:znn_ledger_dart/znn_ledger_dart.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 extension StringExtensions on String {
   String capitalize() {
@@ -119,4 +121,8 @@ extension LedgerErrorExtensions on LedgerError {
         return 'Unknown error, please make sure the device is unlocked';
     }
   }
+}
+
+extension BuildContextL10n on BuildContext {
+  AppLocalizations get l10n => AppLocalizations.of(this)!;
 }

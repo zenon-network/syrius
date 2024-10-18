@@ -2,6 +2,8 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:isolate';
 
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
@@ -321,6 +323,8 @@ class _MyAppState extends State<MyApp> with WindowListener, TrayListener {
                             themeMode: appThemeNotifier.currentThemeMode,
                             initialRoute: SplashScreen.route,
                             scrollBehavior: RemoveOverscrollEffect(),
+                            localizationsDelegates: AppLocalizations.localizationsDelegates,
+                            supportedLocales: AppLocalizations.supportedLocales,
                             routes: {
                               AccessWalletScreen.route: (context) =>
                                   const AccessWalletScreen(),
