@@ -7,6 +7,7 @@ import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/loading_wid
 /// loading indicator
 
 class DualCoinStatsLoading extends StatelessWidget {
+  /// Creates a DualCoinStatsLoading object
   const DualCoinStatsLoading({super.key});
 
   @override

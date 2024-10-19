@@ -8,7 +8,9 @@ import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/error_widge
 
 class DualCoinStatsError extends StatelessWidget {
 
+  /// Creates a DualCoinStatsError object
   const DualCoinStatsError({required this.error, super.key});
+  /// Holds the data that will be displayed
   final Object error;
 
   @override

@@ -4,8 +4,8 @@ import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/reusable_wi
 
 /// A widget associated with the [DualCoinStatsState] when it's status is
 /// [CubitStatus.initial] that uses the [SyriusErrorWidget] to display a message
-
 class DualCoinStatsEmpty extends StatelessWidget {
+  /// Creates a DualCoinStatsEmpty
   const DualCoinStatsEmpty({super.key});
 
   @override

@@ -9,15 +9,19 @@ import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 ///
 /// When the cursor hovers over a section, that respective section is
 /// highlighted
-
 class DualCoinStatsChart extends StatelessWidget {
 
+  /// Create a DualCoinStatsChart
   const DualCoinStatsChart({
     required this.tokenList,
     required this.touchedSectionIndexNotifier,
     super.key,
   });
+
+  /// List of [Token] that will provide data for the chart
   final List<Token> tokenList;
+  /// ValueNotifier used for rebuilding the widget tree when a section of the
+  /// chart is being hovered over
   final ValueNotifier<int?> touchedSectionIndexNotifier;
 
   @override

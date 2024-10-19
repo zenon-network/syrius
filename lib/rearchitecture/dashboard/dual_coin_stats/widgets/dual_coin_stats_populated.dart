@@ -8,10 +8,13 @@ import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 class DualCoinStatsPopulated extends StatefulWidget {
 
+  /// Creates a DualCoinStatsPopulated widget
   const DualCoinStatsPopulated({
     required this.tokens,
     super.key,
   });
+
+  /// The list of [Token] that will provide data for the chart
   final List<Token> tokens;
 
   @override

@@ -9,6 +9,7 @@ import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 class DualCoinStatsChartLegend extends StatelessWidget {
 
+  /// Creates a DualCoinStatsLegend
   const DualCoinStatsChartLegend({
     required this.tokens,
     super.key,

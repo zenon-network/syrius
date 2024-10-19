@@ -6,7 +6,12 @@ import 'package:zenon_syrius_wallet_flutter/utils/card/card.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/layout_scaffold/card_scaffold_without_listener.dart';
 
 
+/// Widget connected to the [DualCoinStatsCubit] that receives the state
+/// - [DualCoinStatsState] - updates and rebuilds the UI according to the
+/// state's status - [CubitStatus]
 class DualCoinStatsCard extends StatelessWidget {
+
+  /// Create a DualCoinStatsCard.
   const DualCoinStatsCard({super.key});
 
   @override
@@ -16,8 +21,7 @@ class DualCoinStatsCard extends StatelessWidget {
         final cubit = DualCoinStatsCubit(
           zenon!,
           const DualCoinStatsState(),
-        );
-        cubit.fetchDataPeriodically();
+        )..fetchDataPeriodically();
         return cubit;
       },
       child: CardScaffoldWithoutListener(
