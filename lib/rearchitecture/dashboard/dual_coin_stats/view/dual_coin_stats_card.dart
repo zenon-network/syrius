@@ -21,7 +21,7 @@ class DualCoinStatsCard extends StatelessWidget {
         return cubit;
       },
       child: CardScaffoldWithoutListener(
-        type: CardType.dualCoinStats,
+        data: CardType.dualCoinStats.getData(context: context),
         body: BlocBuilder<DualCoinStatsCubit, DualCoinStatsState>(
           builder: (context, state) {
             return switch (state.status) {

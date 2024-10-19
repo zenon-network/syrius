@@ -13,12 +13,12 @@ class CardScaffoldWithoutListener extends StatefulWidget {
 
   const CardScaffoldWithoutListener({
     required this.body,
-    required this.type,
+    required this.data,
     this.onRefreshPressed,
     super.key,
   });
   final Widget body;
-  final CardType type;
+  final CardData data;
   final VoidCallback? onRefreshPressed;
 
   @override
@@ -38,8 +38,8 @@ class _CardScaffoldWithoutListenerState extends State<CardScaffoldWithoutListene
 
   LoadingButton? _actionButton;
 
-  String get _title => widget.type.data.title;
-  String get _description => widget.type.data.description;
+  String get _title => widget.data.title;
+  String get _description => widget.data.description;
 
   @override
   void initState() {

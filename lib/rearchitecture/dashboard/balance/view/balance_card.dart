@@ -35,7 +35,7 @@ class BalanceCard extends StatelessWidget {
         return cubit;
       },
       child: CardScaffoldWithoutListener(
-        type: CardType.balance,
+        data: CardType.balance.getData(context: context),
         body: BlocBuilder<BalanceCubit, BalanceState>(
           builder: (context, state) {
             // Uses a `switch` statement to display different widgets based on
