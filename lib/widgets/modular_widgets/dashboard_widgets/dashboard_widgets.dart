@@ -1,4 +1,3 @@
-export 'pillars.dart';
 export 'plasma_stats.dart';
 export 'realtime_statistics.dart';
 export 'sentinels.dart';

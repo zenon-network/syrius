@@ -6,7 +6,8 @@ import 'package:zenon_syrius_wallet_flutter/utils/zts_utils.dart';
 enum CardType {
   balance,
   delegationStats,
-  dualCoinStats;
+  dualCoinStats,
+  pillars;
 
   CardData getData({
     required BuildContext context,
@@ -26,6 +27,11 @@ enum CardType {
           title: context.l10n.dualCoinStats,
           description: 'This card displays the circulating ${kZnnCoin.symbol} '
               'and ${kQsrCoin.symbol} supply from the network',
+        ),
+      CardType.pillars => CardData(
+          title: 'Pillars',
+          description: 'This card displays the number of active '
+              'Pillars in the network',
         ),
     };
   }

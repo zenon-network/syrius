@@ -7,16 +7,17 @@ part 'pillars_state.dart';
 /// This cubit extends `DashboardCubit<int>`, using an integer to represent the
 /// total number of pillars fetched from the Zenon network.
 class PillarsCubit extends DashboardCubit<int, PillarsState> {
-  /// Constructs a `PillarsCubit`, passing the `zenon` client and the initial state
-  /// to the parent class.
+  /// Constructs a `PillarsCubit`, passing the `zenon` client and the initial
+  /// state to the parent class.
   ///
-  /// The `zenon` client is used to interact with the Zenon network to retrieve pillar information.
+  /// The `zenon` client is used to interact with the Zenon network to retrieve
+  /// pillar information.
   PillarsCubit(super.zenon, super.initialState);
 
   /// Fetches the total count of pillars from the Zenon network.
   ///
-  /// This method retrieves all pillar information using the Zenon SDK's `getAll()` method
-  /// and returns the total number of pillars as an integer.
+  /// This method retrieves all pillar information using the Zenon SDK's
+  /// `getAll()` method and returns the total number of pillars as an integer.
   ///
   /// Throws:
   /// - An error if any exception occurs during the fetching of pillar data.
