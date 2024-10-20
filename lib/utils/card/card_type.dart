@@ -7,8 +7,12 @@ enum CardType {
   balance,
   delegationStats,
   dualCoinStats,
-  pillars;
+  pillars,
+  realtimeStatistics;
 
+  /// Returns the [CardData] assigned to a specific [CardType] value.
+  ///
+  /// The parameter [context] is used to retrieve the localized strings
   CardData getData({
     required BuildContext context,
   }) {
@@ -32,6 +36,15 @@ enum CardType {
           title: 'Pillars',
           description: 'This card displays the number of active '
               'Pillars in the network',
+        ),
+      CardType.realtimeStatistics => CardData(
+          title: 'Realtime Stats',
+          description:
+              'This card displays the number of ${kZnnCoin.symbol} and '
+              '${kQsrCoin.symbol} transactions. For example, a delegation is '
+              "considered a ${kZnnCoin.symbol} transaction from the network's "
+              'perspective. Every interaction with the network embedded '
+              'contracts is internally considered a transaction',
         ),
     };
   }

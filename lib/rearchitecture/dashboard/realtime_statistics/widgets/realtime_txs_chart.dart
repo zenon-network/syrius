@@ -8,6 +8,7 @@ import 'package:zenon_syrius_wallet_flutter/utils/zts_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
+/// Shows a chart based on the provided [transactions]
 class RealtimeTxsChart extends StatefulWidget {
 
   const RealtimeTxsChart(
@@ -17,10 +18,10 @@ class RealtimeTxsChart extends StatefulWidget {
   final List<AccountBlock> transactions;
 
   @override
-  State<StatefulWidget> createState() => RealtimeTxsChartState();
+  State<StatefulWidget> createState() => _RealtimeTxsChartState();
 }
 
-class RealtimeTxsChartState extends State<RealtimeTxsChart> {
+class _RealtimeTxsChartState extends State<RealtimeTxsChart> {
   double _maxTransactionsPerDay = 0;
 
   List<FlSpot>? _znnSpots;

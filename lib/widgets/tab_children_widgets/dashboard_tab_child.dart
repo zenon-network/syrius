@@ -76,7 +76,7 @@ class _DashboardTabChildState extends State<DashboardTabChild> {
         width: defaultCellWidth * 2,
       ),
       FluidCell(
-        child: const RealtimeStatistics(),
+        child: const RealtimeStatisticsCard(),
         width: defaultCellWidth * 2,
       ),
       FluidCell(

@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/dashboard/dashboard.dart';
-
-
+import 'package:zenon_syrius_wallet_flutter/utils/card/card.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/layout_scaffold/card_scaffold_without_listener.dart';
 
 class RealtimeStatisticsCard extends StatelessWidget {
   const RealtimeStatisticsCard({super.key});
@@ -15,12 +15,12 @@ class RealtimeStatisticsCard extends StatelessWidget {
         final cubit = RealtimeStatisticsCubit(
           zenon!,
           const RealtimeStatisticsState(),
-        );
-        cubit.fetchDataPeriodically();
+        )..fetchDataPeriodically();
         return cubit;
       },
-      child: Scaffold(
-        body: BlocBuilder<RealtimeStatisticsCubit, DashboardState>(
+      child: CardScaffoldWithoutListener(
+        data: CardType.realtimeStatistics.getData(context: context),
+        body: BlocBuilder<RealtimeStatisticsCubit, RealtimeStatisticsState>(
           builder: (context, state) {
             return switch (state.status) {
               CubitStatus.initial => const RealtimeStatisticsEmpty(),
@@ -29,7 +29,7 @@ class RealtimeStatisticsCard extends StatelessWidget {
                   error: state.error!,
                 ),
               CubitStatus.success => RealtimeStatisticsPopulated(
-                  data: state.data!,
+                  accountBlocks: state.data!,
                 ),
             };
           },
