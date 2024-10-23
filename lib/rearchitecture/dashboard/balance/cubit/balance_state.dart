@@ -1,13 +1,17 @@
 part of 'balance_cubit.dart';
 
-/// The state class for the `BalanceCubit`, extending `DashboardState` and managing account balance data.
+/// The state class for the `BalanceCubit`, extending `DashboardState` and
+/// managing account balance data.
 ///
-/// `BalanceState` holds a map of account addresses to their corresponding `AccountInfo` objects.
-/// This state is used by the `BalanceCubit` to track the balance information for multiple addresses.
+/// `BalanceState` holds a map of account addresses to their corresponding
+/// `AccountInfo` objects.
+/// This state is used by the `BalanceCubit` to track the balance information
+/// for multiple addresses.
 class BalanceState extends DashboardState<AccountInfo> {
   /// Constructs a new `BalanceState`.
   ///
-  /// This state uses the default `status`, `data`, and `error` from the parent `DashboardState` class
+  /// This state uses the default `status`, `data`, and `error` from the parent
+  /// `DashboardState` class
   /// and initializes them for managing balance data.
   const BalanceState({
     super.status,
@@ -15,13 +19,15 @@ class BalanceState extends DashboardState<AccountInfo> {
     super.error,
   });
 
-  /// Creates a copy of the current `BalanceState` with optional new values for `status`, `data`, and `error`.
+  /// Creates a copy of the current `BalanceState` with optional new values for
+  /// `status`, `data`, and `error`.
   ///
   /// This method is used to create a new state with updated fields if provided,
   /// otherwise retaining the existing values.
   ///
   /// Returns:
-  /// - A new instance of `BalanceState` with the updated values or the existing ones if none are provided.
+  /// - A new instance of `BalanceState` with the updated values or the
+  /// existing ones if none are provided.
   @override
   DashboardState<AccountInfo> copyWith({
     CubitStatus? status,

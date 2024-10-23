@@ -1,8 +1,7 @@
 
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/dashboard/dashboard.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/exceptions/exceptions.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
-
-
 
 part 'balance_state.dart';
 
@@ -11,7 +10,8 @@ part 'balance_state.dart';
 /// represented as a `Map` of addresses and their associated `AccountInfo`.
 
 class BalanceCubit extends DashboardCubit<AccountInfo, BalanceState> {
-  /// Constructs a `BalanceCubit` with the provided `zenon` client and initial state.
+  /// Constructs a `BalanceCubit` with the provided `zenon` client and initial
+  /// state.
   ///
   /// The [zenon] parameter provides access to the Zenon SDK for interacting with
   /// account information, and the [initialState] is a map of addresses to their
@@ -25,7 +25,8 @@ class BalanceCubit extends DashboardCubit<AccountInfo, BalanceState> {
   /// The method interacts with the `zenon` client's ledger to get the
   /// `AccountInfo` for the provided [address].
   ///
-  /// Returns an [AccountInfo] object containing the balance details for the given address.
+  /// Returns an [AccountInfo] object containing the balance details for the
+  /// given address.
   ///
   /// Throws an exception if the balance retrieval fails.
   @override
@@ -36,7 +37,7 @@ class BalanceCubit extends DashboardCubit<AccountInfo, BalanceState> {
         (response.znn()! > BigInt.zero || response.qsr()! > BigInt.zero)) {
       return response;
     } else {
-      throw 'Empty balance on the selected address';
+      throw NoBalanceException();
     }
   }
 }
