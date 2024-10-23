@@ -60,7 +60,7 @@ class _DashboardTabChildState extends State<DashboardTabChild> {
         height: kStaggeredNumOfColumns / 8,
       ),
       const FluidCell(
-        child: Staking(),
+        child: StakingCard(),
         height: kStaggeredNumOfColumns / 8,
       ),
       const FluidCell(

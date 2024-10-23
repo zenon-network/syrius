@@ -9,7 +9,8 @@ enum CardType {
   dualCoinStats,
   pillars,
   realtimeStatistics,
-  sentinels;
+  sentinels,
+  staking;
 
   /// Returns the [CardData] assigned to a specific [CardType] value.
   ///
@@ -48,10 +49,16 @@ enum CardType {
               'contracts is internally considered a transaction',
         ),
       CardType.sentinels => CardData(
-        title: 'Sentinels',
-        description: 'This card displays the number of active '
-            'Sentinels in the network',
-      ),
+          title: 'Sentinels',
+          description: 'This card displays the number of active '
+              'Sentinels in the network',
+        ),
+      CardType.staking => CardData(
+          description: 'This card displays the number of staking '
+              'entries and the total ${kZnnCoin.symbol} that you are currently '
+              'staking',
+          title: 'Staking Stats',
+        ),
     };
   }
 }
