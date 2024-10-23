@@ -99,7 +99,7 @@ class _MainAppContainerState extends State<MainAppContainer>
       duration: const Duration(milliseconds: 500),
     );
     _animationController.repeat(reverse: true);
-    _animation = Tween(begin: 1, end: 3).animate(_animationController);
+    _animation = Tween<double>(begin: 1, end: 3).animate(_animationController);
     kCurrentPage = kWalletInitCompleted ? Tabs.dashboard : Tabs.lock;
     _initLockBlock();
     _handleIncomingLinks();

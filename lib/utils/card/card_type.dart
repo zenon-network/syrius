@@ -8,7 +8,8 @@ enum CardType {
   delegationStats,
   dualCoinStats,
   pillars,
-  realtimeStatistics;
+  realtimeStatistics,
+  sentinels;
 
   /// Returns the [CardData] assigned to a specific [CardType] value.
   ///
@@ -46,6 +47,11 @@ enum CardType {
               'perspective. Every interaction with the network embedded '
               'contracts is internally considered a transaction',
         ),
+      CardType.sentinels => CardData(
+        title: 'Sentinels',
+        description: 'This card displays the number of active '
+            'Sentinels in the network',
+      ),
     };
   }
 }
