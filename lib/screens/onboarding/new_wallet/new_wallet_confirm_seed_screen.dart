@@ -242,6 +242,8 @@ class _NewWalletConfirmSeedScreenState
                       fontSize: 12,
                     ),
                     decoration: InputDecoration(
+                      contentPadding: EdgeInsets.all(8.0),
+                      isDense: true,
                       filled: true,
                       fillColor: Theme.of(context)
                           .colorScheme
