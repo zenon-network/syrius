@@ -10,7 +10,8 @@ enum CardType {
   pillars,
   realtimeStatistics,
   sentinels,
-  staking;
+  staking,
+  totalHourlyTransactions;
 
   /// Returns the [CardData] assigned to a specific [CardType] value.
   ///
@@ -58,6 +59,11 @@ enum CardType {
               'entries and the total ${kZnnCoin.symbol} that you are currently '
               'staking',
           title: 'Staking Stats',
+        ),
+      CardType.totalHourlyTransactions => CardData(
+          description: 'This card displays the total number of '
+              'transactions settled in the last hour across the network',
+          title: 'Transactions',
         ),
     };
   }

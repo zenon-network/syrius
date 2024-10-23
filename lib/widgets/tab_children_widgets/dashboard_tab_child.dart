@@ -52,7 +52,7 @@ class _DashboardTabChildState extends State<DashboardTabChild> {
         ),
       ),
       const FluidCell(
-        child: TotalHourlyTransactions(),
+        child: TotalHourlyTransactionsCard(),
         height: kStaggeredNumOfColumns / 4,
       ),
       const FluidCell(
