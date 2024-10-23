@@ -1,6 +1,6 @@
 class CardData {
 
-  CardData({required this.title, required this.description});
-  final String title;
+  CardData({required this.description, required this.title});
   final String description;
+  final String title;
 }
