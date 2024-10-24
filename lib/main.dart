@@ -2,8 +2,7 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:isolate';
 
-import 'package:flutter/foundation.dart'
-    show debugDefaultTargetPlatformOverride, kDebugMode;
+import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
@@ -48,7 +47,6 @@ main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   Provider.debugCheckInvalidValueType = null;
-  debugDefaultTargetPlatformOverride = TargetPlatform.fuchsia;
 
   ensureDirectoriesExist();
   Hive.init(znnDefaultPaths.cache.path.toString());
@@ -85,11 +83,9 @@ main() async {
   // Setup services
   setup();
 
-  retry(
-    () => web3WalletService!.init(),
-    retryIf: (e) => e is SocketException || e is TimeoutException,
-    maxAttempts: 0x7FFFFFFFFFFFFFFF
-  );
+  retry(() => web3WalletService!.init(),
+      retryIf: (e) => e is SocketException || e is TimeoutException,
+      maxAttempts: 0x7FFFFFFFFFFFFFFF);
 
   // Setup local_notifier
   await localNotifier.setup(

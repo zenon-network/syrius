@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:layout/layout.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/layout_scaffold/widget_animator.dart';
 
 const int kStaggeredNumOfColumns = 12;
 
@@ -14,8 +14,8 @@ class StandardFluidLayout extends StatelessWidget {
     required this.children,
     this.defaultCellWidth,
     this.defaultCellHeight = kStaggeredNumOfColumns / 4,
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -24,40 +24,52 @@ class StandardFluidLayout extends StatelessWidget {
       child: Builder(
         builder: (context) {
           const int crossAxisCount = kStaggeredNumOfColumns;
-          return CustomScrollView(
-            slivers: [
-              SliverStaggeredGrid(
-                delegate: SliverChildListDelegate.fixed(
-                  List.generate(
-                    children.length,
-                    (index) => WidgetAnimator(
-                      curve: Curves.linear,
-                      animationOffset: Duration(
-                        milliseconds: ((children.length > 5 ? 800 : 400) ~/
-                                children.length) *
-                            (index + 1),
-                      ),
-                      child: children[index].child,
-                    ),
-                  ),
-                ),
-                gridDelegate:
-                    SliverStaggeredGridDelegateWithFixedCrossAxisCount(
-                  mainAxisSpacing:
-                      context.breakpoint < LayoutBreakpoint.sm ? 4 : 12.0,
-                  crossAxisSpacing:
-                      context.breakpoint < LayoutBreakpoint.sm ? 4 : 12.0,
-                  crossAxisCount: crossAxisCount,
-                  staggeredTileCount: children.length,
-                  staggeredTileBuilder: (index) => StaggeredTile.count(
-                    children[index].width ?? defaultCellWidth!,
-                    children[index].height ?? defaultCellHeight!,
-                  ),
-                ),
-              ),
-            ],
+
+          final double spacing =
+              context.breakpoint < LayoutBreakpoint.sm ? 4.0 : 12.0;
+
+          final double totalDurationMs = children.length > 5 ? 800 : 400;
+
+          final int durationPerTile = totalDurationMs ~/ children.length;
+
+          final List<StaggeredGridTile> tiles = List.generate(
+            children.length,
+            (index) {
+              final int widgetAnimatorOffset = durationPerTile * (index + 1);
+
+              return _generateStaggeredTitle(
+                children[index],
+                widgetAnimatorOffset,
+              );
+            },
+          );
+
+          return SingleChildScrollView(
+            child: StaggeredGrid.count(
+              crossAxisCount: crossAxisCount,
+              mainAxisSpacing: spacing,
+              crossAxisSpacing: spacing,
+              children: tiles,
+            ),
           );
         },
+      ),
+    );
+  }
+
+  StaggeredGridTile _generateStaggeredTitle(
+    FluidCell fluidCell,
+    int widgetAnimatorOffset,
+  ) {
+    return StaggeredGridTile.count(
+      crossAxisCellCount: fluidCell.width ?? defaultCellWidth!,
+      mainAxisCellCount: fluidCell.height ?? defaultCellHeight!,
+      child: WidgetAnimator(
+        curve: Curves.linear,
+        animationOffset: Duration(
+          milliseconds: widgetAnimatorOffset,
+        ),
+        child: fluidCell.child,
       ),
     );
   }
