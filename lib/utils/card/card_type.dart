@@ -11,7 +11,8 @@ enum CardType {
   realtimeStatistics,
   sentinels,
   staking,
-  totalHourlyTransactions;
+  totalHourlyTransactions,
+  transfer;
 
   /// Returns the [CardData] assigned to a specific [CardType] value.
   ///
@@ -64,6 +65,11 @@ enum CardType {
           description: 'This card displays the total number of '
               'transactions settled in the last hour across the network',
           title: 'Transactions',
+        ),
+      CardType.transfer => CardData(
+          description: 'Redirects you to the Transfer tab where you '
+              'can manage sending and receiving funds',
+          title: 'Transfer',
         ),
     };
   }

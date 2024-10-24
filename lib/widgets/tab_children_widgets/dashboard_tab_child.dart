@@ -47,7 +47,7 @@ class _DashboardTabChildState extends State<DashboardTabChild> {
         child: PlasmaStats(),
       ),
       FluidCell(
-        child: Transfer(
+        child: TransferCard(
           changePage: widget.changePage,
         ),
       ),

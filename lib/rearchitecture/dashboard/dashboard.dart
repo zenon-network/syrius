@@ -9,3 +9,4 @@ export '../dashboard/sentinels/sentinels.dart';
 export '../dashboard/staking/staking.dart';
 export '../dashboard/total_hourly_transactions/total_hourly_transactions.dart';
 export 'dashboard_cubit.dart';
+export 'transfer/transfer.dart';
