@@ -1,8 +1,10 @@
 import 'dart:math' show pow;
 import 'package:big_decimal/big_decimal.dart';
 import 'package:flutter/material.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:znn_ledger_dart/znn_ledger_dart.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 extension StringExtensions on String {
   String capitalize() {
@@ -125,4 +127,15 @@ extension LedgerErrorExtensions on LedgerError {
 
 extension BuildContextL10n on BuildContext {
   AppLocalizations get l10n => AppLocalizations.of(this)!;
+}
+
+extension SyncStateExtension on SyncState {
+  Color? getColor({required BuildContext context}) {
+    return switch (this) {
+      SyncState.unknown => Theme.of(context).iconTheme.color,
+      SyncState.syncing => Colors.orange,
+      SyncState.syncDone => AppColors.znnColor,
+      SyncState.notEnoughPeers => AppColors.errorColor,
+    };
+  }
 }

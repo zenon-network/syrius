@@ -11,7 +11,6 @@ export 'infinite_scroll_bloc.dart';
 export 'key_store_file_bloc.dart';
 export 'ledger_wallet_file_bloc.dart';
 export 'lock_bloc.dart';
-export 'node_sync_status_bloc.dart';
 export 'notifications_bloc.dart';
 export 'pillars/pillars.dart';
 export 'plasma/plasma.dart';
