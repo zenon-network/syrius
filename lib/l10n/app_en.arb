@@ -1,5 +1,20 @@
 {
   "balance": "Balance",
+  "currentAmounts": "This card displays the current {kZnnCoinSymbol} and {kQsrCoinSymbol} amounts for the selected address",
+  "delegationStats": "Delegation Stats",
+  "delegationStatsDescription": "This card displays the amount of {kZnnCoinSymbol} and the name of the Pillar that you delegated to",
   "dualCoinStats": "Dual Coin Stats",
-  "delegationStats": "Delegation Stats"
+  "dualCoinStatsDescription": "This card displays the circulating {kZnnCoinSymbol} and {kQsrCoinSymbol} supply from the network",
+  "pillars": "Pillars",
+  "pillarsDescription": "This card displays the number of active Pillars in the network",
+  "realtimeStats": "Realtime Stats",
+  "realtimeStatsDescription": "This card displays the number of {kZnnCoinSymbol} and {kQsrCoinSymbol} transactions. For example, a delegation is considered a {kZnnCoinSymbol} transaction from the network's perspective. Every interaction with the network embedded contracts is internally considered a transaction",
+  "sentinels": "Sentinels",
+  "sentinelsDescription": "This card displays the number of active Sentinels in the network",
+  "stakingStats": "Staking Stats",
+  "stakingStatsDescription": "This card displays the number of staking entries and the total {kZnnCoinSymbol} that you are currently staking",
+  "transactions": "Transactions",
+  "transactionsDescription": "This card displays the total number of transactions settled in the last hour across the network",
+  "transfer": "Transfer",
+  "transferDescription": "Redirects you to the Transfer tab where you can manage sending and receiving funds"
 }

@@ -23,53 +23,46 @@ enum CardType {
     return switch (this) {
       CardType.balance => CardData(
           title: context.l10n.balance,
-          description: 'This card displays the current ${kZnnCoin.symbol} '
-              'and ${kQsrCoin.symbol} amounts for the selected address',
+          description: context.l10n.currentAmounts(
+            kQsrCoin.symbol,
+            kZnnCoin.symbol,
+          ),
         ),
       CardType.delegationStats => CardData(
           title: context.l10n.delegationStats,
-          description: 'This card displays the amount of ${kZnnCoin.symbol} '
-              'and the name of the Pillar that you delegated to',
+          description: context.l10n.delegationStatsDescription(kZnnCoin.symbol),
         ),
       CardType.dualCoinStats => CardData(
           title: context.l10n.dualCoinStats,
-          description: 'This card displays the circulating ${kZnnCoin.symbol} '
-              'and ${kQsrCoin.symbol} supply from the network',
+          description: context.l10n.dualCoinStatsDescription(
+            kQsrCoin.symbol,
+            kZnnCoin.symbol,
+          ),
         ),
       CardType.pillars => CardData(
-          title: 'Pillars',
-          description: 'This card displays the number of active '
-              'Pillars in the network',
+          title: context.l10n.pillars,
+          description: context.l10n.pillarsDescription,
         ),
       CardType.realtimeStatistics => CardData(
-          title: 'Realtime Stats',
-          description:
-              'This card displays the number of ${kZnnCoin.symbol} and '
-              '${kQsrCoin.symbol} transactions. For example, a delegation is '
-              "considered a ${kZnnCoin.symbol} transaction from the network's "
-              'perspective. Every interaction with the network embedded '
-              'contracts is internally considered a transaction',
+          title: context.l10n.realtimeStats,
+          description: context.l10n
+              .realtimeStatsDescription(kQsrCoin.symbol, kZnnCoin.symbol),
         ),
       CardType.sentinels => CardData(
-          title: 'Sentinels',
-          description: 'This card displays the number of active '
-              'Sentinels in the network',
+          title: context.l10n.sentinels,
+          description: context.l10n.sentinelsDescription,
         ),
       CardType.staking => CardData(
-          description: 'This card displays the number of staking '
-              'entries and the total ${kZnnCoin.symbol} that you are currently '
-              'staking',
-          title: 'Staking Stats',
+          description: context.l10n.stakingStatsDescription(kZnnCoin.symbol),
+          title: context.l10n.stakingStats,
         ),
       CardType.totalHourlyTransactions => CardData(
-          description: 'This card displays the total number of '
-              'transactions settled in the last hour across the network',
-          title: 'Transactions',
+          description: context.l10n.transactionsDescription,
+          title: context.l10n.transactions,
         ),
       CardType.transfer => CardData(
-          description: 'Redirects you to the Transfer tab where you '
-              'can manage sending and receiving funds',
-          title: 'Transfer',
+          description: context.l10n.transferDescription,
+          title: context.l10n.transfer,
         ),
     };
   }
