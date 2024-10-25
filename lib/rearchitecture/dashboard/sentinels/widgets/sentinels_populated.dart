@@ -7,8 +7,9 @@ import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 /// A widget associated with the [SentinelsState] when it's status is
 /// [DashboardStatus.success] that displays the current number of sentinels
 class SentinelsPopulated extends StatelessWidget {
-
+  /// Creates a SentinelsPopulated object.
   const SentinelsPopulated({required this.sentinelInfoList, super.key});
+  /// The data needed to display the current number of sentinels
   final SentinelInfoList sentinelInfoList;
 
   @override

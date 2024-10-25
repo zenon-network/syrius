@@ -11,7 +11,7 @@ class TransferCard extends StatefulWidget {
     super.key,
     this.changePage,
   });
-
+  /// Function that triggers the redirect to the Transfer tab
   final Function(
     Tabs, {
     bool redirectWithSendContainerLarge,

@@ -9,6 +9,7 @@ import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 class TotalHourlyTransactionsPopulated extends StatelessWidget {
   /// Creates a TotalHourlyTransactionsPopulated object.
   const TotalHourlyTransactionsPopulated({required this.count, super.key});
+  /// The number of confirmed transactions in the last one hour
   final int count;
 
   @override
@@ -27,6 +28,5 @@ class TotalHourlyTransactionsPopulated extends StatelessWidget {
         const Text('transactions in the last hour'),
       ],
     );
-
   }
 }

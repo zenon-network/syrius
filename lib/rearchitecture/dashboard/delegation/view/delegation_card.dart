@@ -7,7 +7,10 @@ import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
+/// A card that receives [DelegationState] updates from the [DelegationCubit]
+/// and changes the UI according to the request status - [DashboardStatus]
 class DelegationCard extends StatelessWidget {
+  /// Creates a DelegationCard object.
   const DelegationCard({super.key});
 
   @override
@@ -18,8 +21,7 @@ class DelegationCard extends StatelessWidget {
           Address.parse(kSelectedAddress!),
           zenon!,
           const DelegationState(),
-        );
-        cubit.fetchDataPeriodically();
+        )..fetchDataPeriodically();
         return cubit;
       },
       child: CardScaffoldWithoutListener(
@@ -33,7 +35,7 @@ class DelegationCard extends StatelessWidget {
                   error: state.error!,
                 ),
               DashboardStatus.success => DelegationPopulated(
-                  data: state.data!,
+                  delegationInfo: state.data!,
                 ),
             };
           },

@@ -12,12 +12,14 @@ part 'node_sync_status_state.dart';
 /// Cubit responsible for fetching the sync state - [SyncState] - and sending
 /// the states update - [NodeSyncStatusState] - back to the widget
 ///
-/// [SyncState] is not related to [NodeSyncStatusState], doesn't handle UI updates
+/// [SyncState] is not related to [NodeSyncStatusState], doesn't handle UI
+/// updates.
 ///
 /// [NodeSyncStatusState] along with [DashboardStatus] updates the UI of the
 /// [NodeSyncStatusIcon] widget
 class NodeSyncStatusCubit
     extends DashboardCubit<Pair<SyncState, SyncInfo>, NodeSyncStatusState> {
+  /// Creates a NodeSyncStatusCubit using the super-initializer parameters
   NodeSyncStatusCubit(super.zenon, super.initialState);
 
   SyncState _lastSyncState = SyncState.unknown;

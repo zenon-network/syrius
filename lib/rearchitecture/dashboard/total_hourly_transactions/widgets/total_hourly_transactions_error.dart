@@ -8,6 +8,7 @@ import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/error_widge
 class TotalHourlyTransactionsError extends StatelessWidget {
   /// Creates a TotalHourlyTransactionError object.
   const TotalHourlyTransactionsError({required this.error, super.key});
+  /// Error containing the message that will be displayed.
   final Object error;
 
   @override

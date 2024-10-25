@@ -6,14 +6,13 @@ import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 ///
 /// It shows the token symbol, the amount in a shortened format - it has a
 /// tooltip for showing the exact amount, including the decimals
-
 class DualCoinStatsChartLegend extends StatelessWidget {
-
   /// Creates a DualCoinStatsLegend
   const DualCoinStatsChartLegend({
     required this.tokens,
     super.key,
   });
+  /// Data used
   final List<Token> tokens;
 
   @override

@@ -41,5 +41,3 @@ class TotalHourlyTransactionsState extends DashboardState<int> {
     );
   }
 }
-
-

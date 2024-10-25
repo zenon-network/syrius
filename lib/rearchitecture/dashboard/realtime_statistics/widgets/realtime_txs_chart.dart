@@ -10,11 +10,12 @@ import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 /// Shows a chart based on the provided [transactions]
 class RealtimeTxsChart extends StatefulWidget {
-
+  /// Creates a RealtimeTxsChart object.
   const RealtimeTxsChart(
     this.transactions, {
     super.key,
   });
+  /// The data needed to generate the chart
   final List<AccountBlock> transactions;
 
   @override

@@ -3,7 +3,7 @@ part of 'node_sync_status_cubit.dart';
 /// Class used by [NodeSyncStatusCubit] to send state updates to the
 /// connected view
 class NodeSyncStatusState extends DashboardState<Pair<SyncState, SyncInfo>> {
-
+  /// Creates a NodeSyncStatusState object.
   const NodeSyncStatusState({
     super.status,
     super.data,

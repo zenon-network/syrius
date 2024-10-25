@@ -3,8 +3,10 @@ import 'package:zenon_syrius_wallet_flutter/rearchitecture/dashboard/dashboard.d
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 
 /// A widget associated with the [StakingState] when it's status is
-/// [DashboardStatus.initial] that uses the [SyriusErrorWidget] to display a message
+/// [DashboardStatus.initial] that uses the [SyriusErrorWidget] to display a
+/// message
 class StakingEmpty extends StatelessWidget {
+  /// Creates a StakingEmpty object.
   const StakingEmpty({super.key});
 
   @override

@@ -10,8 +10,9 @@ import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 /// Displays a chart highlighting the number of blocks in QSR and ZNN signed
 /// with a particular address in the last seven days
 class RealtimeStatisticsPopulated extends StatelessWidget {
+  /// Creates a RealtimeStatisticsPopulated object.
   const RealtimeStatisticsPopulated({required this.accountBlocks, super.key});
-
+  /// List of account blocks containing the ZNN and QSR transactions
   final List<AccountBlock> accountBlocks;
 
   @override

@@ -7,6 +7,7 @@ import 'package:zenon_syrius_wallet_flutter/rearchitecture/node_sync_status/node
 /// - [NodeSyncStatusState] - updates and rebuilds the UI according to the
 /// state's status - [DashboardStatus]
 class NodeSyncStatusIcon extends StatelessWidget {
+  /// Creates a NodeSyncStatusIcon object.
   const NodeSyncStatusIcon({super.key});
 
   @override

@@ -6,6 +6,7 @@ import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
 /// A widget associated with the [NodeSyncStatusState] when it's status is
 /// [DashboardStatus.loading] that displays a loading indicator with a tooltip
 class NodeSyncStatusLoading extends StatelessWidget {
+  /// Creates a NodeSyncStatusLoading object.
   const NodeSyncStatusLoading({super.key});
 
   @override
