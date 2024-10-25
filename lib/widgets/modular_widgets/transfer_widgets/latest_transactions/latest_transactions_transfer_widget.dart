@@ -26,8 +26,7 @@ class LatestTransactions extends StatefulWidget {
 
 class _LatestTransactionsState extends State<LatestTransactions> {
   late LatestTransactionsBloc _bloc;
-
-  List<AccountBlock>? _transactions;
+  late List<AccountBlock>? _transactions;
 
   bool _sortAscending = true;
 
@@ -35,8 +34,7 @@ class _LatestTransactionsState extends State<LatestTransactions> {
   Widget build(BuildContext context) {
     return CardScaffold(
       title: _getWidgetTitle(),
-      description: 'This card displays the latest transactions (including ZTS '
-          'tokens) involving your wallet addresses',
+      description: context.l10n.latestTransactionsTransferDescription,
       childBuilder: () {
         _bloc = LatestTransactionsBloc();
         return _getTable();
@@ -73,9 +71,14 @@ class _LatestTransactionsState extends State<LatestTransactions> {
             ? transactionBlock.pairedAccountBlock!
             : transactionBlock;
     return [
-      if (isSelected) WidgetUtils.getMarqueeAddressTableCell(infoBlock.address, context) else WidgetUtils.getTextAddressTableCell(infoBlock.address, context),
-      if (isSelected) WidgetUtils.getMarqueeAddressTableCell(infoBlock.toAddress, context) else WidgetUtils.getTextAddressTableCell(infoBlock.toAddress, context),
-      if (isSelected) InfiniteScrollTableCell.withMarquee(infoBlock.hash.toString(),
+      if (isSelected)
+        WidgetUtils.getMarqueeAddressTableCell(infoBlock.address, context)
+      else WidgetUtils.getTextAddressTableCell(infoBlock.address, context),
+      if (isSelected)
+        WidgetUtils.getMarqueeAddressTableCell(infoBlock.toAddress, context)
+      else WidgetUtils.getTextAddressTableCell(infoBlock.toAddress, context),
+      if (isSelected)
+        InfiniteScrollTableCell.withMarquee(infoBlock.hash.toString(),
               flex: 2,) else InfiniteScrollTableCell.withText(
               context,
               infoBlock.hash.toShortString(),
@@ -103,7 +106,7 @@ class _LatestTransactionsState extends State<LatestTransactions> {
       InfiniteScrollTableCell.withText(
         context,
         infoBlock.confirmationDetail?.momentumTimestamp == null
-            ? 'Pending'
+            ? context.l10n.pending
             : _formatData(
                 infoBlock.confirmationDetail!.momentumTimestamp * 1000,),
       ),
@@ -117,35 +120,35 @@ class _LatestTransactionsState extends State<LatestTransactions> {
   List<InfiniteScrollTableHeaderColumn> _getHeaderColumnsForTransferWidget() {
     return [
       InfiniteScrollTableHeaderColumn(
-        columnName: 'Sender',
+        columnName: context.l10n.sender,
         onSortArrowsPressed: _onSortArrowsPressed,
         flex: 2,
       ),
       InfiniteScrollTableHeaderColumn(
-        columnName: 'Receiver',
+        columnName: context.l10n.receiver,
         onSortArrowsPressed: _onSortArrowsPressed,
         flex: 2,
       ),
       InfiniteScrollTableHeaderColumn(
-        columnName: 'Hash',
+        columnName: context.l10n.hash,
         onSortArrowsPressed: _onSortArrowsPressed,
         flex: 2,
       ),
       InfiniteScrollTableHeaderColumn(
-        columnName: 'Amount',
+        columnName: context.l10n.amount,
         onSortArrowsPressed: _onSortArrowsPressed,
       ),
       InfiniteScrollTableHeaderColumn(
-        columnName: 'Date',
+        columnName: context.l10n.date,
         onSortArrowsPressed: _onSortArrowsPressed,
       ),
       InfiniteScrollTableHeaderColumn(
-        columnName: 'Type',
+        columnName: context.l10n.type,
         onSortArrowsPressed: _onSortArrowsPressed,
         contentAlign: MainAxisAlignment.center,
       ),
       InfiniteScrollTableHeaderColumn(
-        columnName: 'Assets',
+        columnName: context.l10n.assets,
         onSortArrowsPressed: _onSortArrowsPressed,
       ),
     ];
@@ -157,18 +160,20 @@ class _LatestTransactionsState extends State<LatestTransactions> {
         const Duration(days: 1).inMilliseconds) {
       return _formatDataShort(currentMillis - transactionMillis);
     }
-    return FormatUtils.formatDate(transactionMillis, dateFormat: 'MM/dd/yyyy');
+    return FormatUtils.formatDate(transactionMillis,
+        dateFormat: context.l10n.usDateFormat,
+    );
   }
 
   String _formatDataShort(int i) {
     final duration = Duration(milliseconds: i);
     if (duration.inHours > 0) {
-      return '${duration.inHours} h ago';
+      return '${duration.inHours} ${context.l10n.hAgo}';
     }
     if (duration.inMinutes > 0) {
-      return '${duration.inMinutes} min ago';
+      return '${duration.inMinutes} ${context.l10n.minAgo}';
     }
-    return '${duration.inSeconds} s ago';
+    return '${duration.inSeconds} ${context.l10n.sAgo}';
   }
 
   Widget _getTransactionTypeIcon(AccountBlock block) {
@@ -296,25 +301,25 @@ class _LatestTransactionsState extends State<LatestTransactions> {
   List<InfiniteScrollTableHeaderColumn> _getHeaderColumnsForDashboardWidget() {
     return [
       InfiniteScrollTableHeaderColumn(
-        columnName: 'Sender',
+        columnName: context.l10n.sender,
         onSortArrowsPressed: _onSortArrowsPressed,
         flex: 2,
       ),
       InfiniteScrollTableHeaderColumn(
-        columnName: 'Amount',
+        columnName: context.l10n.amount,
         onSortArrowsPressed: _onSortArrowsPressed,
       ),
       InfiniteScrollTableHeaderColumn(
-        columnName: 'Date',
+        columnName: context.l10n.date,
         onSortArrowsPressed: _onSortArrowsPressed,
       ),
       InfiniteScrollTableHeaderColumn(
-        columnName: 'Type',
+        columnName: context.l10n.type,
         onSortArrowsPressed: _onSortArrowsPressed,
         contentAlign: MainAxisAlignment.center,
       ),
       InfiniteScrollTableHeaderColumn(
-        columnName: 'Assets',
+        columnName: context.l10n.assets,
         onSortArrowsPressed: _onSortArrowsPressed,
       ),
     ];
@@ -330,7 +335,9 @@ class _LatestTransactionsState extends State<LatestTransactions> {
             : transactionBlock;
 
     return [
-      if (isSelected) WidgetUtils.getMarqueeAddressTableCell(infoBlock.address, context) else WidgetUtils.getTextAddressTableCell(infoBlock.address, context),
+      if (isSelected)
+        WidgetUtils.getMarqueeAddressTableCell(infoBlock.address, context)
+      else WidgetUtils.getTextAddressTableCell(infoBlock.address, context),
       InfiniteScrollTableCell(
         Padding(
           padding: const EdgeInsets.only(right: 10),
@@ -355,7 +362,7 @@ class _LatestTransactionsState extends State<LatestTransactions> {
       InfiniteScrollTableCell.withText(
         context,
         infoBlock.confirmationDetail?.momentumTimestamp == null
-            ? 'Pending'
+            ? context.l10n.pending
             : _formatData(
                 infoBlock.confirmationDetail!.momentumTimestamp * 1000,
               ),
@@ -367,7 +374,8 @@ class _LatestTransactionsState extends State<LatestTransactions> {
     ];
   }
 
-  String _getWidgetTitle() => widget.version == LatestTransactionsVersion.token
-      ? 'Token Transactions'
-      : 'Latest Transactions';
+  String _getWidgetTitle() =>
+      widget.version == LatestTransactionsVersion.token
+      ? context.l10n.tokenTransactions
+      : context.l10n.latestTransactionsTitle;
 }

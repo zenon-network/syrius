@@ -57,9 +57,9 @@ class _SendLargeCardState extends State<SendLargeCard> {
   @override
   Widget build(BuildContext context) {
     return CardScaffold(
-      title: 'Send',
+      title: context.l10n.send,
       titleFontSize: Theme.of(context).textTheme.headlineSmall!.fontSize,
-      description: 'Manage sending funds',
+      description: context.l10n.manageSendingFunds,
       childBuilder: _getBalanceStreamBuilder,
     );
   }
@@ -126,7 +126,7 @@ class _SendLargeCardState extends State<SendLargeCard> {
                   maxWidth: 45,
                   maxHeight: 20,
                 ),
-                hintText: 'Recipient Address',
+                hintText: context.l10n.recipientAddress,
               ),
             ),
           ),
@@ -157,7 +157,7 @@ class _SendLargeCardState extends State<SendLargeCard> {
                           _selectedToken.decimals,
                           BigInt.zero,),
                       suffixIcon: _getAmountSuffix(accountInfo),
-                      hintText: 'Amount',
+                      hintText: context.l10n.amount,
                     ),
                   ),
                 ),
@@ -170,7 +170,7 @@ class _SendLargeCardState extends State<SendLargeCard> {
           Padding(
             padding: const EdgeInsets.only(left: 10),
             child: Text(
-              'Send from',
+              context.l10n.sendFrom,
               style: Theme.of(context).inputDecorationTheme.hintStyle,
             ),
           ),
@@ -226,9 +226,10 @@ class _SendLargeCardState extends State<SendLargeCard> {
       showDialogWithNoAndYesOptions(
         isBarrierDismissible: false,
         context: context,
-        title: 'Send',
-        description: 'Are you sure you want to transfer '
-            '${_amountController.text} ${_selectedToken.symbol} to '
+        title: context.l10n.send,
+        description: '${context.l10n.areYouSureTranfer} '
+            '${_amountController.text} ${_selectedToken.symbol} '
+            '${context.l10n.to} '
             '${ZenonAddressUtils.getLabel(_recipientController.text)} ?',
         onYesButtonPressed: () => _sendPayment(model),
       );
@@ -272,8 +273,8 @@ class _SendLargeCardState extends State<SendLargeCard> {
         () {
           _selectedSelfAddress = value;
           _selectedToken = kDualCoin.first;
-          _tokensWithBalance.clear();
-          _tokensWithBalance.addAll(kDualCoin);
+          _tokensWithBalance..clear()
+                            ..addAll(kDualCoin);
           sl.get<TransferWidgetsBalanceBloc>().getBalanceForAllAddresses();
         },
       ),
@@ -345,20 +346,26 @@ class _SendLargeCardState extends State<SendLargeCard> {
   Future<void> _sendErrorNotification(error) async {
     await NotificationUtils.sendNotificationError(
       error,
-      "Couldn't send ${_amountController.text} "
+      '${context.l10n.couldNotSend} ${_amountController.text} '
       '${_selectedToken.symbol} '
-      'to ${_recipientController.text}',
+      '${context.l10n.to} ${_recipientController.text}',
     );
   }
 
   Future<void> _sendConfirmationNotification() async {
     await sl.get<NotificationsBloc>().addNotification(
           WalletNotification(
-            title: 'Sent ${_amountController.text} ${_selectedToken.symbol} '
-                'to ${ZenonAddressUtils.getLabel(_recipientController.text)}',
+            title: '${context.l10n.sent} ${_amountController.text} '
+              '${_selectedToken.symbol} '
+                '${context.l10n.to} '
+              '${ZenonAddressUtils.getLabel(_recipientController.text)}',
             timestamp: DateTime.now().millisecondsSinceEpoch,
-            details: 'Sent ${_amountController.text} ${_selectedToken.symbol} '
-                'from ${ZenonAddressUtils.getLabel(_selectedSelfAddress!)} to ${ZenonAddressUtils.getLabel(_recipientController.text)}',
+            details: '${context.l10n.sent} '
+              '${_amountController.text} ${_selectedToken.symbol} '
+                '${context.l10n.from} '
+                '${ZenonAddressUtils.getLabel(_selectedSelfAddress!)} '
+                '${context.l10n.to} '
+                '${ZenonAddressUtils.getLabel(_recipientController.text)}',
             type: NotificationType.paymentSent,
           ),
         );

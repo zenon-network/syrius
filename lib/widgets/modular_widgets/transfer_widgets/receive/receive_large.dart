@@ -51,9 +51,9 @@ class _ReceiveLargeCardState extends State<ReceiveLargeCard> {
   @override
   Widget build(BuildContext context) {
     return CardScaffold(
-      title: 'Receive',
+      title: context.l10n.receive,
       titleFontSize: Theme.of(context).textTheme.headlineSmall!.fontSize,
-      description: 'Manage receiving funds',
+      description: context.l10n.manageReceivingFunds,
       childBuilder: _getTokensStreamBuilder,
     );
   }
@@ -147,7 +147,7 @@ class _ReceiveLargeCardState extends State<ReceiveLargeCard> {
                               ),
                             ],
                           ),
-                          hintText: 'Amount',
+                          hintText: context.l10n.amount,
                         ),
                       ),
                     ],

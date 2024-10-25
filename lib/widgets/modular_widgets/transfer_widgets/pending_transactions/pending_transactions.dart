@@ -23,7 +23,7 @@ class PendingTransactions extends StatefulWidget {
 
 class _PendingTransactionsState extends State<PendingTransactions> {
   late PendingTransactionsBloc _bloc;
-  List<AccountBlock>? _transactions;
+  late List<AccountBlock>? _transactions;
 
   bool _sortAscending = true;
 
@@ -31,8 +31,7 @@ class _PendingTransactionsState extends State<PendingTransactions> {
   Widget build(BuildContext context) {
     return CardScaffold(
       title: _getWidgetTitle(),
-      description: 'This card displays the pending transactions (including ZTS '
-          'tokens) for the selected address',
+      description: context.l10n.pendingTransactionsDescription,
       childBuilder: () {
         _bloc = PendingTransactionsBloc();
         return _getTable();
@@ -58,9 +57,14 @@ class _PendingTransactionsState extends State<PendingTransactions> {
         ? transaction.pairedAccountBlock!
         : transaction;
     return [
-      if (isSelected) WidgetUtils.getMarqueeAddressTableCell(infoBlock.address, context) else WidgetUtils.getTextAddressTableCell(infoBlock.address, context),
-      if (isSelected) WidgetUtils.getMarqueeAddressTableCell(infoBlock.toAddress, context) else WidgetUtils.getTextAddressTableCell(infoBlock.toAddress, context),
-      if (isSelected) InfiniteScrollTableCell.withMarquee(infoBlock.hash.toString(),
+      if (isSelected)
+        WidgetUtils.getMarqueeAddressTableCell(infoBlock.address, context)
+      else WidgetUtils.getTextAddressTableCell(infoBlock.address, context),
+      if (isSelected)
+        WidgetUtils.getMarqueeAddressTableCell(infoBlock.toAddress, context)
+      else WidgetUtils.getTextAddressTableCell(infoBlock.toAddress, context),
+      if (isSelected)
+        InfiniteScrollTableCell.withMarquee(infoBlock.hash.toString(),
               flex: 2,) else InfiniteScrollTableCell.withText(
               context,
               infoBlock.hash.toShortString(),
@@ -88,7 +92,7 @@ class _PendingTransactionsState extends State<PendingTransactions> {
       InfiniteScrollTableCell.withText(
         context,
         infoBlock.confirmationDetail?.momentumTimestamp == null
-            ? 'Pending'
+            ? context.l10n.pending
             : FormatUtils.formatData(
                 infoBlock.confirmationDetail!.momentumTimestamp * 1000,),
       ),
@@ -108,30 +112,30 @@ class _PendingTransactionsState extends State<PendingTransactions> {
       _getHeaderColumnsForPendingTransactions() {
     return [
       InfiniteScrollTableHeaderColumn(
-        columnName: 'Sender',
+        columnName: context.l10n.sender,
         onSortArrowsPressed: _onSortArrowsPressed,
         flex: 2,
       ),
       InfiniteScrollTableHeaderColumn(
-        columnName: 'Receiver',
+        columnName: context.l10n.receiver,
         onSortArrowsPressed: _onSortArrowsPressed,
         flex: 2,
       ),
       InfiniteScrollTableHeaderColumn(
-        columnName: 'Hash',
+        columnName: context.l10n.hash,
         onSortArrowsPressed: _onSortArrowsPressed,
         flex: 2,
       ),
       InfiniteScrollTableHeaderColumn(
-        columnName: 'Amount',
+        columnName: context.l10n.amount,
         onSortArrowsPressed: _onSortArrowsPressed,
       ),
       InfiniteScrollTableHeaderColumn(
-        columnName: 'Date',
+        columnName: context.l10n.date,
         onSortArrowsPressed: _onSortArrowsPressed,
       ),
       InfiniteScrollTableHeaderColumn(
-        columnName: 'Assets',
+        columnName: context.l10n.assets,
         onSortArrowsPressed: _onSortArrowsPressed,
       ),
       const InfiniteScrollTableHeaderColumn(
@@ -240,9 +244,9 @@ class _PendingTransactionsState extends State<PendingTransactions> {
               transactionModel.refreshResults();
             }
           },
-          onError: (error) async {
-            await NotificationUtils.sendNotificationError(
-                error, 'Error while receiving transaction',);
+          onError: (error) {
+            NotificationUtils.sendNotificationError(
+                error, context.l10n.transactionError,);
           },
         );
       },
@@ -288,5 +292,5 @@ class _PendingTransactionsState extends State<PendingTransactions> {
     super.dispose();
   }
 
-  String _getWidgetTitle() => 'Pending Transactions';
+  String _getWidgetTitle() => context.l10n.pendingTransactionsTitle;
 }
