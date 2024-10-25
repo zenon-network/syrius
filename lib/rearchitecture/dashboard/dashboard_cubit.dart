@@ -16,7 +16,8 @@ part 'dashboard_state.dart';
 /// [S] extends [DashboardState]
 abstract class DashboardCubit<T, S extends DashboardState<T>> extends Cubit<S> {
 
-  /// Constructs a `DashboardCubit` with the provided [zenon] client and initial state.
+  /// Constructs a `DashboardCubit` with the provided [zenon] client and initial
+  /// state.
   ///
   /// The auto-refresh functionality is initialized upon the cubit's creation.
   DashboardCubit(
@@ -29,6 +30,7 @@ abstract class DashboardCubit<T, S extends DashboardState<T>> extends Cubit<S> {
 
   /// The Zenon client used to fetch data from the Zenon ledger.
   final Zenon zenon;
+  /// The interval at which to fetch the data again.
   final Duration refreshInterval;
 
   /// Fetches data of type [T] that is managed by the cubit.
@@ -52,10 +54,12 @@ abstract class DashboardCubit<T, S extends DashboardState<T>> extends Cubit<S> {
         },
       );
 
-  /// Periodically fetches data and updates the state with either success or failure.
+  /// Periodically fetches data and updates the state with either success or
+  /// failure.
   ///
-  /// This method fetches new data by calling [fetch], emits a loading state while
-  /// fetching, and updates the state with success or failure based on the outcome.
+  /// This method fetches new data by calling [fetch], emits a loading state
+  /// while fetching, and updates the state with success or failure based on
+  /// the outcome.
   /// If the WebSocket client is closed, it throws a [noConnectionException].
   Future<void> fetchDataPeriodically() async {
     try {
@@ -86,8 +90,8 @@ abstract class DashboardCubit<T, S extends DashboardState<T>> extends Cubit<S> {
 
   /// Cancels the auto-refresh timer and closes the cubit.
   ///
-  /// This method is called when the cubit is closed, ensuring that no background
-  /// tasks remain active after the cubit is disposed.
+  /// This method is called when the cubit is closed, ensuring that no
+  /// background tasks remain active after the cubit is disposed.
   @override
   Future<void> close() {
     _autoRefresher?.cancel();
