@@ -7,10 +7,10 @@ import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 /// Adds a legend to the [BalanceChart] consisting of widgets with a tooltip
 /// than will show the exact balance - including decimals - available in a
 /// certain coin (QSR or ZNN)
-
 class BalanceChartLegend extends StatelessWidget {
-
+  /// Creates a BalanceChartLegend object.
   const BalanceChartLegend({required this.accountInfo, super.key});
+  /// Data used for the legend
   final AccountInfo accountInfo;
 
   @override

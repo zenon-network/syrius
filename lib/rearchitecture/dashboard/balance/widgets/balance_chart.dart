@@ -9,23 +9,24 @@ import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 ///
 /// Hovering over the sections of the chart will trigger the balance - in a
 /// readable format - to appear in the center of the chart
-
 class BalanceChart extends StatelessWidget {
-
+  /// Creates a BalanceChart objects
   const BalanceChart({
     required this.accountInfo,
-    required this.touchedSectionId,
+    required this.hoveredSectionId,
     super.key,
   });
+  /// Data needed for the chart
   final AccountInfo accountInfo;
-  final ValueNotifier<String?> touchedSectionId;
+  /// Notifier that holds id of the hovered chart section
+  final ValueNotifier<String?> hoveredSectionId;
 
   @override
   Widget build(BuildContext context) {
     return StandardPieChart(
       sections: _getChartSection(accountInfo),
       onChartSectionTouched: (pieChartSection) {
-        touchedSectionId.value = pieChartSection?.touchedSection?.title;
+        hoveredSectionId.value = pieChartSection?.touchedSection?.title;
       },
     );
   }
@@ -57,7 +58,7 @@ class BalanceChart extends StatelessWidget {
     AccountInfo accountInfo,
   ) {
     final isTouched =
-        token.tokenStandard.toString() == touchedSectionId.value;
+        token.tokenStandard.toString() == hoveredSectionId.value;
     final opacity = isTouched ? 1.0 : 0.7;
 
     final value = accountInfo.getBalance(token.tokenStandard) /

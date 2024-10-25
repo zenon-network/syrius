@@ -10,13 +10,15 @@ import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 /// and changes the value of the [edgesColorNotifier]
 
 class BalanceAddress extends StatelessWidget {
-
+  /// Creates a BalanceAddress object.
   const BalanceAddress({
     required this.address,
     required this.edgesColorNotifier,
     super.key,
   });
+  /// The address that will be displayed
   final String address;
+  /// A notifier used to rebuild the widget
   final ValueNotifier<Color> edgesColorNotifier;
 
   @override

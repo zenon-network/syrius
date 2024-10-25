@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/dashboard/dashboard.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/loading_widget.dart';
 
-/// A `BalanceLoading` widget that displays a loading message while the balance
-/// data is being fetched.
+/// A widget that displays a loading message while the balance data is being
+/// fetched.
 ///
-/// This widget is shown when the `BalanceCubit` is in the `loading` state,
-/// indicating that the balance data is currently being loaded.
+/// This widget is shown when the [BalanceCubit] sends a [BalanceState] update
+/// with a status of [DashboardStatus.loading], indicating that the balance
+/// data is currently being loaded.
 class BalanceLoading extends StatelessWidget {
+  /// Creates a BalanceLoading object.
   const BalanceLoading({super.key});
 
   @override

@@ -10,7 +10,7 @@ import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 /// This widget is displayed when the `BalanceCubit` is in the `success` state,
 /// and the balance data is available for rendering.
 class BalancePopulated extends StatefulWidget {
-
+  /// Creates a BalancePopulated object.
   const BalancePopulated({
     required this.address,
     required this.accountInfo,
@@ -18,8 +18,9 @@ class BalancePopulated extends StatefulWidget {
   });
   /// The balance data that has been successfully fetched.
   ///
-  /// The data is a map where the key is a string (representing the account address),
-  /// and the value is an `AccountInfo` object containing the balance details.
+  /// The data is a map where the key is a string (representing the account
+  /// address), and the value is an `AccountInfo` object containing the balance
+  /// details.
   final AccountInfo accountInfo;
 
   /// The address for which the [accountInfo] was retrieved.
@@ -54,7 +55,7 @@ class _BalancePopulatedState extends State<BalancePopulated> {
                 children: [
                   BalanceChart(
                     accountInfo: widget.accountInfo,
-                    touchedSectionId: _touchedSectionId,
+                    hoveredSectionId: _touchedSectionId,
                   ),
                   ValueListenableBuilder(
                     valueListenable: _touchedSectionId,
