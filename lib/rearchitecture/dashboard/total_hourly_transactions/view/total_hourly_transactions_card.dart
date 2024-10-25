@@ -7,7 +7,7 @@ import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/layout_scaf
 
 /// A widget connected to the [TotalHourlyTransactionsCubit] that receives the
 /// state - [TotalHourlyTransactionsState] - updates and rebuilds the UI
-/// according to the state's status - [CubitStatus]
+/// according to the state's status - [DashboardStatus]
 class TotalHourlyTransactionsCard extends StatelessWidget {
   /// Creates a TotalHourlyTransactionsCard object.
   const TotalHourlyTransactionsCard({super.key});
@@ -28,12 +28,12 @@ class TotalHourlyTransactionsCard extends StatelessWidget {
             TotalHourlyTransactionsState>(
           builder: (context, state) {
             return switch (state.status) {
-              CubitStatus.initial => const TotalHourlyTransactionsEmpty(),
-              CubitStatus.loading => const TotalHourlyTransactionsLoading(),
-              CubitStatus.failure => TotalHourlyTransactionsError(
+              DashboardStatus.initial => const TotalHourlyTransactionsEmpty(),
+              DashboardStatus.loading => const TotalHourlyTransactionsLoading(),
+              DashboardStatus.failure => TotalHourlyTransactionsError(
                   error: state.error!,
                 ),
-              CubitStatus.success => TotalHourlyTransactionsPopulated(
+              DashboardStatus.success => TotalHourlyTransactionsPopulated(
                   count: state.data!,
                 ),
             };

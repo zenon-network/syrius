@@ -3,7 +3,7 @@ part of 'balance_cubit.dart';
 /// The class used by the [BalanceCubit] to send state updates to the
 /// listening widgets.
 ///
-/// The data hold, when the status is [CubitStatus.success] is of type
+/// The data hold, when the status is [DashboardStatus.success] is of type
 /// [AccountInfo].
 
 class BalanceState extends DashboardState<AccountInfo> {
@@ -28,7 +28,7 @@ class BalanceState extends DashboardState<AccountInfo> {
   /// existing ones if none are provided.
   @override
   DashboardState<AccountInfo> copyWith({
-    CubitStatus? status,
+    DashboardStatus? status,
     AccountInfo? data,
     Object? error,
   }) {

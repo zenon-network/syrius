@@ -30,7 +30,7 @@ class DualCoinStatsState extends DashboardState<List<Token>> {
   /// existing ones if none are provided.
   @override
   DashboardState<List<Token>> copyWith({
-    CubitStatus? status,
+    DashboardStatus? status,
     List<Token>? data,
     Object? error,
   }) {

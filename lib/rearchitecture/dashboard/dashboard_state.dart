@@ -1,9 +1,9 @@
 part of 'dashboard_cubit.dart';
 
-/// Represents the various statuses a cubit can have during its lifecycle.
+/// Represents the various statuses a cubit's request can have.
 ///
-/// This enum is used to track and emit different states:
-enum CubitStatus {
+/// This enum is used to track and emit states with different statuses.
+enum DashboardStatus {
   /// Indicates that the cubit has encountered an error.
   failure,
   /// The initial state before any data has been loaded.
@@ -22,7 +22,7 @@ enum CubitStatus {
 /// handle specific data types.
 ///
 /// The state includes:
-/// - [status]: A [CubitStatus] that indicates the current state (loading,
+/// - [status]: A [DashboardStatus] that indicates the current state (loading,
 /// success, etc.).
 /// - [data]: The data of type [T] that is managed by the cubit.
 /// - [error]: An optional [error] object that contains error details if the
@@ -32,17 +32,17 @@ abstract class DashboardState<T> extends Equatable {
   /// Constructs a [DashboardState] with an [status], [data], and
   /// [error].
   ///
-  /// - The [status] defaults to [CubitStatus.initial] if not provided.
+  /// - The [status] defaults to [DashboardStatus.initial] if not provided.
   /// - The [data] and [error] can be null, indicating that either no data has
   /// been fetched yet, or an error has occurred.
   const DashboardState({
-    this.status = CubitStatus.initial,
+    this.status = DashboardStatus.initial,
     this.data,
     this.error,
   });
   /// Represents the current status of the cubit, such as loading, success, or
   /// failure.
-  final CubitStatus status;
+  final DashboardStatus status;
 
   /// The data of type [T] managed by the cubit, which can be null if no data
   /// has been loaded or if there was an error.
@@ -62,7 +62,7 @@ abstract class DashboardState<T> extends Equatable {
   /// (like `BalanceState`) will implement this to
   /// ensure type safety and return the appropriate state class.
   DashboardState<T> copyWith({
-    CubitStatus? status,
+    DashboardStatus? status,
     T? data,
     Object? error,
   });

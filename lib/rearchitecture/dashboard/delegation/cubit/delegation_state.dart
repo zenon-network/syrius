@@ -24,7 +24,7 @@ class DelegationState extends DashboardState<DelegationInfo> {
   /// - A new instance of `DelegationState` with the updated values or the existing ones if none are provided.
   @override
   DashboardState<DelegationInfo> copyWith({
-    CubitStatus? status,
+    DashboardStatus? status,
     DelegationInfo? data,
     Object? error,
   }) {

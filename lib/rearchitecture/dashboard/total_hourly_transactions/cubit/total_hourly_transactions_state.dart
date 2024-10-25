@@ -30,7 +30,7 @@ class TotalHourlyTransactionsState extends DashboardState<int> {
   /// values or the existing ones if none are provided.
   @override
   DashboardState<int> copyWith({
-    CubitStatus? status,
+    DashboardStatus? status,
     int? data,
     Object? error,
   }) {

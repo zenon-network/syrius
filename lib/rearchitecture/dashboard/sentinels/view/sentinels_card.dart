@@ -7,7 +7,7 @@ import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/layout_scaf
 
 /// Widget connected to the [SentinelsCubit] that receives the state
 /// - [SentinelsState] - updates and rebuilds the UI according to the
-/// state's status - [CubitStatus]
+/// state's status - [DashboardStatus]
 class SentinelsCard extends StatelessWidget {
   /// Creates a SentinelsCard object.
   const SentinelsCard({super.key});
@@ -27,12 +27,12 @@ class SentinelsCard extends StatelessWidget {
         body: BlocBuilder<SentinelsCubit, SentinelsState>(
           builder: (context, state) {
             return switch (state.status) {
-              CubitStatus.initial => const SentinelsEmpty(),
-              CubitStatus.loading => const SentinelsLoading(),
-              CubitStatus.failure => SentinelsError(
+              DashboardStatus.initial => const SentinelsEmpty(),
+              DashboardStatus.loading => const SentinelsLoading(),
+              DashboardStatus.failure => SentinelsError(
                   error: state.error!,
                 ),
-              CubitStatus.success => SentinelsPopulated(
+              DashboardStatus.success => SentinelsPopulated(
                   sentinelInfoList: state.data!,
                 ),
             };

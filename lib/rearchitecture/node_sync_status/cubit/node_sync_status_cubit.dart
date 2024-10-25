@@ -14,7 +14,7 @@ part 'node_sync_status_state.dart';
 ///
 /// [SyncState] is not related to [NodeSyncStatusState], doesn't handle UI updates
 ///
-/// [NodeSyncStatusState] along with [CubitStatus] updates the UI of the
+/// [NodeSyncStatusState] along with [DashboardStatus] updates the UI of the
 /// [NodeSyncStatusIcon] widget
 class NodeSyncStatusCubit
     extends DashboardCubit<Pair<SyncState, SyncInfo>, NodeSyncStatusState> {

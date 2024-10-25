@@ -27,12 +27,12 @@ class DelegationCard extends StatelessWidget {
         body: BlocBuilder<DelegationCubit, DelegationState>(
           builder: (context, state) {
             return switch (state.status) {
-              CubitStatus.initial => const DelegationEmpty(),
-              CubitStatus.loading => const DelegationLoading(),
-              CubitStatus.failure => DelegationError(
+              DashboardStatus.initial => const DelegationEmpty(),
+              DashboardStatus.loading => const DelegationLoading(),
+              DashboardStatus.failure => DelegationError(
                   error: state.error!,
                 ),
-              CubitStatus.success => DelegationPopulated(
+              DashboardStatus.success => DelegationPopulated(
                   data: state.data!,
                 ),
             };

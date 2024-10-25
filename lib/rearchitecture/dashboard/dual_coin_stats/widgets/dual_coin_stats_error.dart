@@ -3,7 +3,7 @@ import 'package:zenon_syrius_wallet_flutter/rearchitecture/dashboard/dashboard.d
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/error_widget.dart';
 
 /// A widget associated with the [DualCoinStatsState] when it's status is
-/// [CubitStatus.failure] that uses the [SyriusErrorWidget] to display the
+/// [DashboardStatus.failure] that uses the [SyriusErrorWidget] to display the
 /// error message
 
 class DualCoinStatsError extends StatelessWidget {

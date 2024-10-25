@@ -4,7 +4,7 @@ import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 
 /// A widget associated with the [TotalHourlyTransactionsState] when it's
-/// status is [CubitStatus.success] that displays the number of transactions
+/// status is [DashboardStatus.success] that displays the number of transactions
 /// confirmed in the last one hour
 class TotalHourlyTransactionsPopulated extends StatelessWidget {
   /// Creates a TotalHourlyTransactionsPopulated object.

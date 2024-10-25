@@ -54,7 +54,7 @@ void main() {
     });
 
     test('initial status is correct', () {
-      expect(delegationCubit.state.status, CubitStatus.initial);
+      expect(delegationCubit.state.status, DashboardStatus.initial);
     });
 
     group('fetchDataPeriodically', () {
@@ -81,9 +81,9 @@ void main() {
         build: () => delegationCubit,
         act: (cubit) => cubit.fetchDataPeriodically(),
         expect: () => <DelegationState>[
-          DelegationState(status: CubitStatus.loading),
+          DelegationState(status: DashboardStatus.loading),
           DelegationState(
-            status: CubitStatus.failure,
+            status: DashboardStatus.failure,
             error: delegationException,
           ),
         ],
@@ -95,9 +95,9 @@ void main() {
         build: () => delegationCubit,
         act: (cubit) => cubit.fetchDataPeriodically(),
         expect: () => [
-          DelegationState(status: CubitStatus.loading),
+          DelegationState(status: DashboardStatus.loading),
           isA<DelegationState>()
-              .having((state) => state.status, 'status', CubitStatus.success),
+              .having((state) => state.status, 'status', DashboardStatus.success),
         ],
       );
     });

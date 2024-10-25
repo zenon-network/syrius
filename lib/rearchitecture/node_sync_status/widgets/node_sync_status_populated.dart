@@ -5,7 +5,7 @@ import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 /// A widget associated with the [NodeSyncStatusState] when it's status is
-/// [CubitStatus.success] that returns a corresponding icon depending on the
+/// [DashboardStatus.success] that returns a corresponding icon depending on the
 /// [SyncInfo] and [SyncState] data
 class NodeSyncPopulated extends StatelessWidget {
   const NodeSyncPopulated({required this.data, super.key});

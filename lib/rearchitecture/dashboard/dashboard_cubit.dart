@@ -63,15 +63,15 @@ abstract class DashboardCubit<T, S extends DashboardState<T>> extends Cubit<S> {
   /// If the WebSocket client is closed, it throws a [noConnectionException].
   Future<void> fetchDataPeriodically() async {
     try {
-      emit(state.copyWith(status: CubitStatus.loading) as S);
+      emit(state.copyWith(status: DashboardStatus.loading) as S);
       if (!zenon.wsClient.isClosed()) {
         final data = await fetch();
-        emit(state.copyWith(data: data, status: CubitStatus.success) as S);
+        emit(state.copyWith(data: data, status: DashboardStatus.success) as S);
       } else {
         throw noConnectionException;
       }
     } catch (e) {
-      emit(state.copyWith(status: CubitStatus.failure, error: e) as S);
+      emit(state.copyWith(status: DashboardStatus.failure, error: e) as S);
     } finally {
       /// Ensure that the auto-refresher is restarted if it's not active.
       if (!isTimerActive) {

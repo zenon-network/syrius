@@ -30,7 +30,7 @@ class StakingState extends DashboardState<StakeList> {
   /// existing ones if none are provided.
   @override
   DashboardState<StakeList> copyWith({
-    CubitStatus? status,
+    DashboardStatus? status,
     StakeList? data,
     Object? error,
   }) {

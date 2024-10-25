@@ -35,12 +35,12 @@ class BalanceCard extends StatelessWidget {
         body: BlocBuilder<BalanceCubit, BalanceState>(
           builder: (context, state) {
             return switch (state.status) {
-              CubitStatus.initial => const BalanceEmpty(),
-              CubitStatus.loading => const BalanceLoading(),
-              CubitStatus.failure => BalanceError(
+              DashboardStatus.initial => const BalanceEmpty(),
+              DashboardStatus.loading => const BalanceLoading(),
+              DashboardStatus.failure => BalanceError(
                   error: state.error!,
                 ),
-              CubitStatus.success => BalancePopulated(
+              DashboardStatus.success => BalancePopulated(
                   address: kSelectedAddress!,
                   accountInfo: state.data!,
                 ),

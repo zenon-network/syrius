@@ -4,7 +4,7 @@ import 'package:zenon_syrius_wallet_flutter/rearchitecture/dashboard/dashboard.d
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/reusable_widgets.dart';
 
 /// A widget associated with the [PillarsState] when it's status is
-/// [CubitStatus.success] that displays the number of pillars
+/// [DashboardStatus.success] that displays the number of pillars
 class PillarsPopulated extends StatelessWidget {
   /// Creates a PillarsPopulated object
   const PillarsPopulated({required this.numberOfPillars, super.key});

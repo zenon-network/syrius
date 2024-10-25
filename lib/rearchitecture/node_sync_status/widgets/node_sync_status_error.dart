@@ -4,7 +4,7 @@ import 'package:zenon_syrius_wallet_flutter/rearchitecture/node_sync_status/node
 import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
 
 /// A widget associated with the [NodeSyncStatusState] when it's status is
-/// [CubitStatus.failure] that displays an icon with a tooltip message
+/// [DashboardStatus.failure] that displays an icon with a tooltip message
 class NodeSyncStatusError extends StatelessWidget {
   const NodeSyncStatusError({required this.error, super.key});
 

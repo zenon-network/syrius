@@ -3,7 +3,7 @@ import 'package:zenon_syrius_wallet_flutter/rearchitecture/dashboard/dashboard.d
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/error_widget.dart';
 
 /// A widget associated with the [StakingState] when it's status is
-/// [CubitStatus.error] that uses the [SyriusErrorWidget] to display the error.
+/// [DashboardStatus.error] that uses the [SyriusErrorWidget] to display the error.
 class StakingError extends StatelessWidget {
   /// Creates a StakingError object.
   const StakingError({required this.error, super.key});

@@ -4,7 +4,7 @@ import 'package:zenon_syrius_wallet_flutter/rearchitecture/node_sync_status/node
 import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
 
 /// A widget associated with the [NodeSyncStatusState] when it's status is
-/// [CubitStatus.loading] that displays a loading indicator with a tooltip
+/// [DashboardStatus.loading] that displays a loading indicator with a tooltip
 class NodeSyncStatusLoading extends StatelessWidget {
   const NodeSyncStatusLoading({super.key});
 

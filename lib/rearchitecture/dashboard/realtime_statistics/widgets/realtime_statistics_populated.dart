@@ -5,7 +5,7 @@ import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 /// A widget associated with the [RealtimeStatisticsState] when it's status is
-/// [CubitStatus.success]
+/// [DashboardStatus.success]
 ///
 /// Displays a chart highlighting the number of blocks in QSR and ZNN signed
 /// with a particular address in the last seven days

@@ -5,7 +5,7 @@ import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 /// A widget associated with the [SentinelsState] when it's status is
-/// [CubitStatus.success] that displays the current number of sentinels
+/// [DashboardStatus.success] that displays the current number of sentinels
 class SentinelsPopulated extends StatelessWidget {
 
   const SentinelsPopulated({required this.sentinelInfoList, super.key});

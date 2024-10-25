@@ -7,7 +7,7 @@ import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/layout_scaf
 
 /// A widget connected to the [StakingCubit] that receives the state
 /// - [StakingState] - updates and rebuilds the UI according to the
-/// state's status - [CubitStatus]
+/// state's status - [DashboardStatus]
 class StakingCard extends StatelessWidget {
   /// Creates a StakingCard object.
   const StakingCard({super.key});
@@ -27,12 +27,12 @@ class StakingCard extends StatelessWidget {
         body: BlocBuilder<StakingCubit, StakingState>(
           builder: (context, state) {
             return switch (state.status) {
-              CubitStatus.initial => const StakingEmpty(),
-              CubitStatus.loading => const StakingLoading(),
-              CubitStatus.failure => StakingError(
+              DashboardStatus.initial => const StakingEmpty(),
+              DashboardStatus.loading => const StakingLoading(),
+              DashboardStatus.failure => StakingError(
                   error: state.error!,
                 ),
-              CubitStatus.success => StakingPopulated(
+              DashboardStatus.success => StakingPopulated(
                   stakingList: state.data!,
                 ),
             };

@@ -8,7 +8,7 @@ import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/layout_scaf
 
 /// Widget connected to the [DualCoinStatsCubit] that receives the state
 /// - [DualCoinStatsState] - updates and rebuilds the UI according to the
-/// state's status - [CubitStatus]
+/// state's status - [DashboardStatus]
 class DualCoinStatsCard extends StatelessWidget {
 
   /// Create a DualCoinStatsCard.
@@ -29,12 +29,12 @@ class DualCoinStatsCard extends StatelessWidget {
         body: BlocBuilder<DualCoinStatsCubit, DualCoinStatsState>(
           builder: (context, state) {
             return switch (state.status) {
-              CubitStatus.initial => const DualCoinStatsEmpty(),
-              CubitStatus.loading => const DualCoinStatsLoading(),
-              CubitStatus.failure => DualCoinStatsError(
+              DashboardStatus.initial => const DualCoinStatsEmpty(),
+              DashboardStatus.loading => const DualCoinStatsLoading(),
+              DashboardStatus.failure => DualCoinStatsError(
                   error: state.error!,
                 ),
-              CubitStatus.success => DualCoinStatsPopulated(
+              DashboardStatus.success => DualCoinStatsPopulated(
                   tokens: state.data!,
                 ),
             };

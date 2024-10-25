@@ -29,7 +29,7 @@ class SentinelsState extends DashboardState<SentinelInfoList> {
   /// existing ones if none are provided.
   @override
   DashboardState<SentinelInfoList> copyWith({
-    CubitStatus? status,
+    DashboardStatus? status,
     SentinelInfoList? data,
     Object? error,
   }) {

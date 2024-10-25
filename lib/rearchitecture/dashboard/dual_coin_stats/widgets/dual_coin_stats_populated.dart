@@ -3,7 +3,7 @@ import 'package:zenon_syrius_wallet_flutter/rearchitecture/dashboard/dashboard.d
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 /// A widget associated with the [DualCoinStatsState] when it's status is
-/// [CubitStatus.success] that displays the data provided using a chart
+/// [DashboardStatus.success] that displays the data provided using a chart
 /// - [DualCoinStatsChart] - and a legend - [DualCoinStatsChartLegend]
 
 class DualCoinStatsPopulated extends StatefulWidget {

@@ -30,7 +30,7 @@ class RealtimeStatisticsState extends DashboardState<List<AccountBlock>> {
   /// the existing ones if none are provided.
   @override
   DashboardState<List<AccountBlock>> copyWith({
-    CubitStatus? status,
+    DashboardStatus? status,
     List<AccountBlock>? data,
     Object? error,
   }) {

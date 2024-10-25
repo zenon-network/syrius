@@ -12,7 +12,7 @@ class NodeSyncStatusState extends DashboardState<Pair<SyncState, SyncInfo>> {
 
   @override
   DashboardState<Pair<SyncState, SyncInfo>> copyWith({
-    CubitStatus? status,
+    DashboardStatus? status,
     Pair<SyncState, SyncInfo>? data,
     Object? error,
   }) {

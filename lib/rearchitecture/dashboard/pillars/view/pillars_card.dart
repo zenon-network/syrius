@@ -7,7 +7,7 @@ import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/layout_scaf
 
 /// Widget connected to the [PillarsCubit] that receives the state
 /// - [PillarsState] - updates and rebuilds the UI according to the
-/// state's status - [CubitStatus]
+/// state's status - [DashboardStatus]
 class PillarsCard extends StatelessWidget {
   /// Creates a PillarsCard
   const PillarsCard({super.key});
@@ -27,12 +27,12 @@ class PillarsCard extends StatelessWidget {
         body: BlocBuilder<PillarsCubit, PillarsState>(
           builder: (context, state) {
             return switch (state.status) {
-              CubitStatus.initial => const PillarsEmpty(),
-              CubitStatus.loading => const PillarsLoading(),
-              CubitStatus.failure => PillarsError(
+              DashboardStatus.initial => const PillarsEmpty(),
+              DashboardStatus.loading => const PillarsLoading(),
+              DashboardStatus.failure => PillarsError(
                   error: state.error!,
                 ),
-              CubitStatus.success => PillarsPopulated(
+              DashboardStatus.success => PillarsPopulated(
                   numberOfPillars: state.data!,
                 ),
             };

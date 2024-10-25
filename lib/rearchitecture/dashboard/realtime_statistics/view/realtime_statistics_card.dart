@@ -23,12 +23,12 @@ class RealtimeStatisticsCard extends StatelessWidget {
         body: BlocBuilder<RealtimeStatisticsCubit, RealtimeStatisticsState>(
           builder: (context, state) {
             return switch (state.status) {
-              CubitStatus.initial => const RealtimeStatisticsEmpty(),
-              CubitStatus.loading => const RealtimeStatisticsLoading(),
-              CubitStatus.failure => RealtimeStatisticsError(
+              DashboardStatus.initial => const RealtimeStatisticsEmpty(),
+              DashboardStatus.loading => const RealtimeStatisticsLoading(),
+              DashboardStatus.failure => RealtimeStatisticsError(
                   error: state.error!,
                 ),
-              CubitStatus.success => RealtimeStatisticsPopulated(
+              DashboardStatus.success => RealtimeStatisticsPopulated(
                   accountBlocks: state.data!,
                 ),
             };
