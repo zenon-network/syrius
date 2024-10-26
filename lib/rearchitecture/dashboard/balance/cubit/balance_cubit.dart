@@ -1,6 +1,9 @@
+import 'package:json_annotation/json_annotation.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/dashboard/dashboard.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/exceptions/exceptions.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
+
+part 'balance_cubit.g.dart';
 
 part 'balance_state.dart';
 
@@ -26,8 +29,7 @@ class BalanceCubit extends DashboardCubit<AccountInfo, BalanceState> {
   /// Throws an exception if the balance retrieval fails.
   @override
   Future<AccountInfo> fetch() async {
-    final response = await zenon.ledger
-        .getAccountInfoByAddress(address);
+    final response = await zenon.ledger.getAccountInfoByAddress(address);
     if (response.blockCount! > 0 &&
         (response.znn()! > BigInt.zero || response.qsr()! > BigInt.zero)) {
       return response;
@@ -35,4 +37,12 @@ class BalanceCubit extends DashboardCubit<AccountInfo, BalanceState> {
       throw NoBalanceException();
     }
   }
+
+  @override
+  BalanceState? fromJson(Map<String, dynamic> json) => BalanceState.fromJson(
+        json,
+      );
+
+  @override
+  Map<String, dynamic>? toJson(BalanceState state) => state.toJson();
 }

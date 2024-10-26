@@ -6,6 +6,7 @@ part of 'sentinels_cubit.dart';
 /// This class manages a `SentinelInfoList` object representing information
 /// about active sentinels. It is used to track
 /// the state of sentinel data loading within the `SentinelsCubit`.
+@JsonSerializable()
 class SentinelsState extends DashboardState<SentinelInfoList> {
   /// Constructs a new `SentinelsState` with optional values for `status`,
   /// `data`, and `error`.
@@ -17,6 +18,10 @@ class SentinelsState extends DashboardState<SentinelInfoList> {
     super.data,
     super.error,
   });
+
+  /// Creates a [SentinelsState] instance from a JSON map.
+  factory SentinelsState.fromJson(Map<String, dynamic> json) =>
+      _$SentinelsStateFromJson(json);
 
   /// Creates a copy of the current `SentinelsState` with updated values for
   /// `status`, `data`, or `error`.
@@ -39,4 +44,7 @@ class SentinelsState extends DashboardState<SentinelInfoList> {
       error: error ?? this.error,
     );
   }
+
+  /// Converts this [SentinelsState] instance to a JSON map.
+  Map<String, dynamic> toJson() => _$SentinelsStateToJson(this);
 }

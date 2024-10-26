@@ -1,6 +1,8 @@
-
+import 'package:json_annotation/json_annotation.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/dashboard/dashboard.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
+
+part 'sentinels_cubit.g.dart';
 
 part 'sentinels_state.dart';
 
@@ -35,4 +37,13 @@ class SentinelsCubit extends DashboardCubit<SentinelInfoList, SentinelsState> {
       rethrow;
     }
   }
+
+  @override
+  SentinelsState? fromJson(Map<String, dynamic> json) =>
+      SentinelsState.fromJson(
+        json,
+      );
+
+  @override
+  Map<String, dynamic>? toJson(SentinelsState state) => state.toJson();
 }

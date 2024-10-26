@@ -1,6 +1,8 @@
+import 'package:json_annotation/json_annotation.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/dashboard/dashboard.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
+part 'delegation_cubit.g.dart';
 part 'delegation_state.dart';
 
 /// A cubit that manages the fetching and state of delegation information
@@ -12,6 +14,7 @@ class DelegationCubit extends DashboardCubit<DelegationInfo, DelegationState> {
   /// The [zenon] client is used to interact with the Zenon network to retrieve
   /// delegation information.
   DelegationCubit(this.address, super.zenon, super.initialState);
+
   /// The address for which the [DelegationInfo] will be fetched
   final Address address;
 
@@ -35,4 +38,13 @@ class DelegationCubit extends DashboardCubit<DelegationInfo, DelegationState> {
       throw NoDelegationStatsException();
     }
   }
+
+  @override
+  DelegationState? fromJson(Map<String, dynamic> json) =>
+      DelegationState.fromJson(
+        json,
+      );
+
+  @override
+  Map<String, dynamic>? toJson(DelegationState state) => state.toJson();
 }

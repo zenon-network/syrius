@@ -7,6 +7,7 @@ part of 'realtime_statistics_cubit.dart';
 /// blockchain data, such as recent transactions.
 /// It's used to track the state of the data loading process in the
 /// `RealtimeStatisticsCubit`.
+@JsonSerializable()
 class RealtimeStatisticsState extends DashboardState<List<AccountBlock>> {
   /// Constructs a new `RealtimeStatisticsState` with optional values for
   /// `status`, `data`, and `error`.
@@ -18,6 +19,10 @@ class RealtimeStatisticsState extends DashboardState<List<AccountBlock>> {
     super.data,
     super.error,
   });
+
+  /// Creates a [RealtimeStatisticsState] instance from a JSON map.
+  factory RealtimeStatisticsState.fromJson(Map<String, dynamic> json) =>
+      _$RealtimeStatisticsStateFromJson(json);
 
   /// Creates a copy of the current `RealtimeStatisticsState` with updated
   /// values for `status`, `data`, or `error`.
@@ -40,4 +45,7 @@ class RealtimeStatisticsState extends DashboardState<List<AccountBlock>> {
       error: error ?? this.error,
     );
   }
+
+  /// Converts this [RealtimeStatisticsState] instance to a JSON map.
+  Map<String, dynamic> toJson() => _$RealtimeStatisticsStateToJson(this);
 }

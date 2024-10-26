@@ -1,4 +1,7 @@
+import 'package:json_annotation/json_annotation.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/dashboard/dashboard.dart';
+
+part 'pillars_cubit.g.dart';
 
 part 'pillars_state.dart';
 
@@ -32,4 +35,11 @@ class PillarsCubit extends DashboardCubit<int, PillarsState> {
       rethrow;
     }
   }
+
+  @override
+  PillarsState? fromJson(Map<String, dynamic> json) =>
+      PillarsState.fromJson(json);
+
+  @override
+  Map<String, dynamic>? toJson(PillarsState state) => state.toJson();
 }

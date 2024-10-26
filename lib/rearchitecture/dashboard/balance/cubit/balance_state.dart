@@ -5,7 +5,7 @@ part of 'balance_cubit.dart';
 ///
 /// The data hold, when the status is [DashboardStatus.success] is of type
 /// [AccountInfo].
-
+@JsonSerializable()
 class BalanceState extends DashboardState<AccountInfo> {
   /// Constructs a new BalanceState.
   ///
@@ -16,6 +16,10 @@ class BalanceState extends DashboardState<AccountInfo> {
     super.data,
     super.error,
   });
+
+  /// Creates a [BalanceState] instance from a JSON map.
+  factory BalanceState.fromJson(Map<String, dynamic> json) =>
+      _$BalanceStateFromJson(json);
 
   /// Creates a copy of the current [BalanceState] with optional new values for
   /// [status], [data], and [error].
@@ -38,4 +42,7 @@ class BalanceState extends DashboardState<AccountInfo> {
       error: error ?? this.error,
     );
   }
+
+  /// Converts this [BalanceState] instance to a JSON map.
+  Map<String, dynamic> toJson() => _$BalanceStateToJson(this);
 }

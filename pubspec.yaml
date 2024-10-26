@@ -77,6 +77,8 @@ dependencies:
   flutter_bloc: ^8.1.6
   bloc: ^8.1.4
   equatable: ^2.0.5
+  hydrated_bloc: ^9.1.5
+  json_annotation: ^4.9.0
 
 
 dependency_overrides:
@@ -95,6 +97,7 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
   very_good_analysis: ^6.0.0
+  json_serializable: ^6.8.0
 
 
 flutter:

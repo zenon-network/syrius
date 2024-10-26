@@ -1,6 +1,9 @@
+import 'package:json_annotation/json_annotation.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/dashboard/dashboard.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/exceptions/exceptions.dart';
+
+part 'total_hourly_transactions_cubit.g.dart';
 
 part 'total_hourly_transactions_state.dart';
 
@@ -41,17 +44,17 @@ class TotalHourlyTransactionsCubit
         // Fetch detailed momentums for the past hour
         final response =
             (await zenon.ledger.getDetailedMomentumsByHeight(
-                  chainHeight - kMomentumsPerHour,
-                  kMomentumsPerHour,
-                ))
-                    .list ??
+              chainHeight - kMomentumsPerHour,
+              kMomentumsPerHour,
+            ))
+                .list ??
                 [];
 
         // Prepare the transaction summary
         final transactions = response.fold<int>(
-            0,
-            (previousValue, element) => previousValue + element.blocks.length,
-          );
+          0,
+              (previousValue, element) => previousValue + element.blocks.length,
+        );
         return transactions; // Return the summary of transactions
       } else {
         throw NotEnoughMomentumsException();
@@ -74,4 +77,12 @@ class TotalHourlyTransactionsCubit
       rethrow;
     }
   }
+
+  @override
+  TotalHourlyTransactionsState? fromJson(Map<String, dynamic> json) =>
+      TotalHourlyTransactionsState.fromJson(json);
+
+  @override
+  Map<String, dynamic>? toJson(TotalHourlyTransactionsState state) =>
+      state.toJson();
 }

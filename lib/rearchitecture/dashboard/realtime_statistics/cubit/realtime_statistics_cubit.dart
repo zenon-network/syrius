@@ -1,8 +1,11 @@
+import 'package:json_annotation/json_annotation.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/dashboard/dashboard.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/exceptions/exceptions.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
+
+part 'realtime_statistics_cubit.g.dart';
 
 part 'realtime_statistics_state.dart';
 
@@ -90,4 +93,13 @@ class RealtimeStatisticsCubit
       rethrow;
     }
   }
+
+  @override
+  RealtimeStatisticsState? fromJson(Map<String, dynamic> json) =>
+      RealtimeStatisticsState.fromJson(
+        json,
+      );
+
+  @override
+  Map<String, dynamic>? toJson(RealtimeStatisticsState state) => state.toJson();
 }

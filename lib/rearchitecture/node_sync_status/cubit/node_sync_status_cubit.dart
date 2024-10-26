@@ -1,11 +1,14 @@
 import 'dart:async';
 
+import 'package:json_annotation/json_annotation.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart' hide zenon;
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/dashboard/dashboard.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/node_sync_status/node_sync_status.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
+
+part 'node_sync_status_cubit.g.dart';
 
 part 'node_sync_status_state.dart';
 
@@ -54,4 +57,13 @@ class NodeSyncStatusCubit
     });
     return Pair(_lastSyncState, placeholderSyncInfo);
   }
+
+  @override
+  NodeSyncStatusState? fromJson(Map<String, dynamic> json) =>
+      NodeSyncStatusState.fromJson(
+        json,
+      );
+
+  @override
+  Map<String, dynamic>? toJson(NodeSyncStatusState state) => state.toJson();
 }

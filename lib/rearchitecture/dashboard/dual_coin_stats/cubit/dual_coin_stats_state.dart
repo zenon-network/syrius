@@ -7,6 +7,7 @@ part of 'dual_coin_stats_cubit.dart';
 /// for two tokens.
 /// This state is used by the `DualCoinStatsCubit` to track and update the
 /// state of both tokens.
+@JsonSerializable()
 class DualCoinStatsState extends DashboardState<List<Token>> {
   /// Constructs a new `DualCoinStatsState`.
   ///
@@ -18,6 +19,10 @@ class DualCoinStatsState extends DashboardState<List<Token>> {
     super.data,
     super.error,
   });
+
+  /// Creates a [DualCoinStatsState] instance from a JSON map.
+  factory DualCoinStatsState.fromJson(Map<String, dynamic> json) =>
+      _$DualCoinStatsStateFromJson(json);
 
   /// Creates a copy of the current `DualCoinStatsState` with optional new
   /// values for `status`, `data`, and `error`.
@@ -40,4 +45,7 @@ class DualCoinStatsState extends DashboardState<List<Token>> {
       error: error ?? this.error,
     );
   }
+
+  /// Converts this [DualCoinStatsState] instance to a JSON map.
+  Map<String, dynamic> toJson() => _$DualCoinStatsStateToJson(this);
 }

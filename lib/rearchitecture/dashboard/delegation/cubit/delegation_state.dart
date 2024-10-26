@@ -4,6 +4,8 @@ part of 'delegation_cubit.dart';
 ///
 /// It holds a [DelegationInfo] object that represents the retrieved delegation
 /// details.
+
+@JsonSerializable()
 class DelegationState extends DashboardState<DelegationInfo> {
   /// Constructs a new DelegationState object.
   ///
@@ -15,6 +17,10 @@ class DelegationState extends DashboardState<DelegationInfo> {
     super.data,
     super.error,
   });
+
+  /// Creates a [DelegationState] instance from a JSON map.
+  factory DelegationState.fromJson(Map<String, dynamic> json) =>
+      _$DelegationStateFromJson(json);
 
   /// Creates a copy of the current [DelegationState] with optional new values
   /// for [status], [data], and [error].
@@ -33,4 +39,7 @@ class DelegationState extends DashboardState<DelegationInfo> {
       error: error ?? this.error,
     );
   }
+
+  /// Converts this [DelegationState] instance to a JSON map.
+  Map<String, dynamic> toJson() => _$DelegationStateToJson(this);
 }

@@ -1,6 +1,6 @@
 import 'dart:async';
-import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
+import 'package:hydrated_bloc/hydrated_bloc.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
@@ -14,7 +14,8 @@ part 'dashboard_state.dart';
 ///
 /// The generic type [S] represents the type of the states emitted by the cubit.
 /// [S] extends [DashboardState]
-abstract class DashboardCubit<T, S extends DashboardState<T>> extends Cubit<S> {
+abstract class DashboardCubit<T, S extends DashboardState<T>> extends
+HydratedCubit<S> {
 
   /// Constructs a `DashboardCubit` with the provided [zenon] client and initial
   /// state.

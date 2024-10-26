@@ -3,15 +3,17 @@ import 'dart:io';
 import 'dart:isolate';
 
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
-import 'package:flutter/foundation.dart' show kDebugMode;
+import 'package:flutter/foundation.dart' show kDebugMode, kIsWeb;
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
+import 'package:hydrated_bloc/hydrated_bloc.dart';
 import 'package:layout/layout.dart';
 import 'package:local_notifier/local_notifier.dart';
 import 'package:logging/logging.dart';
 import 'package:overlay_support/overlay_support.dart';
 import 'package:path/path.dart' as path;
+import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:retry/retry.dart';
 import 'package:tray_manager/tray_manager.dart';
@@ -39,7 +41,12 @@ const String p = String.fromEnvironment('PASSWORD');
 
 main() async {
   WidgetsFlutterBinding.ensureInitialized();
-
+  // Init hydrated bloc storage
+  HydratedBloc.storage = await HydratedStorage.build(
+    storageDirectory: kIsWeb
+        ? HydratedStorage.webStorageDirectory
+        : await getApplicationDocumentsDirectory(),
+  );
   Provider.debugCheckInvalidValueType = null;
 
   ensureDirectoriesExist();

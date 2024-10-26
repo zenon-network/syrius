@@ -7,6 +7,7 @@ part of 'pillars_cubit.dart';
 /// retrieved from the Zenon network.
 /// This state is used by the `PillarsCubit` to track and update the number of
 /// active pillars.
+@JsonSerializable()
 class PillarsState extends DashboardState<int> {
   /// Constructs a new `PillarsState`.
   ///
@@ -19,6 +20,10 @@ class PillarsState extends DashboardState<int> {
     super.data,
     super.error,
   });
+
+  /// Creates a [PillarsState] instance from a JSON map.
+  factory PillarsState.fromJson(Map<String, dynamic> json) =>
+      _$PillarsStateFromJson(json);
 
   /// Creates a copy of the current `PillarsState` with optional new values for
   /// `status`, `data`, and `error`.
@@ -41,4 +46,7 @@ class PillarsState extends DashboardState<int> {
       error: error ?? this.error,
     );
   }
+
+  /// Converts this [PillarsState] instance to a JSON map.
+  Map<String, dynamic> toJson() => _$PillarsStateToJson(this);
 }

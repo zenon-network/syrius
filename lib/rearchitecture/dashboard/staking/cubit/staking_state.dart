@@ -7,6 +7,7 @@ part of 'staking_cubit.dart';
 /// staking entries.
 /// It tracks the loading, success, or failure of fetching staking data within
 /// the `StakingCubit`.
+@JsonSerializable()
 class StakingState extends DashboardState<StakeList> {
   /// Constructs a new `StakingState` with optional values for `status`,
   /// `data`, and `error`.
@@ -18,6 +19,10 @@ class StakingState extends DashboardState<StakeList> {
     super.data,
     super.error,
   });
+
+  /// Creates a [StakingState] instance from a JSON map.
+  factory StakingState.fromJson(Map<String, dynamic> json) =>
+      _$StakingStateFromJson(json);
 
   /// Creates a copy of the current `StakingState` with updated values for
   /// `status`, `data`, or `error`.
@@ -40,4 +45,7 @@ class StakingState extends DashboardState<StakeList> {
       error: error ?? this.error,
     );
   }
+
+  /// Converts this [StakingState] instance to a JSON map.
+  Map<String, dynamic> toJson() => _$StakingStateToJson(this);
 }

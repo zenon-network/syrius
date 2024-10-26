@@ -1,7 +1,10 @@
+import 'package:json_annotation/json_annotation.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/dashboard/dashboard.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/exceptions/exceptions.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
+
+part 'staking_cubit.g.dart';
 
 part 'staking_state.dart';
 
@@ -56,4 +59,12 @@ class StakingCubit extends DashboardCubit<StakeList, StakingState> {
       Address.parse(kSelectedAddress!),
     );
   }
+
+  @override
+  StakingState? fromJson(Map<String, dynamic> json) => StakingState.fromJson(
+        json,
+      );
+
+  @override
+  Map<String, dynamic>? toJson(StakingState state) => state.toJson();
 }
