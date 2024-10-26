@@ -1,7 +1,6 @@
 import 'package:json_annotation/json_annotation.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/dashboard/dashboard.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/exceptions/exceptions.dart';
 
 part 'total_hourly_transactions_cubit.g.dart';
 
