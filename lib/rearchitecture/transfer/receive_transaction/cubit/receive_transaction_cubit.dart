@@ -2,7 +2,6 @@ import 'package:equatable/equatable.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/auto_receive_tx_worker.dart';
-import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 part 'receive_transaction_state.dart';
