@@ -20,7 +20,7 @@ class PendingTransactionsCubit extends Cubit<PendingTransactionsState> {
       emit(state.copyWith(status: PendingTransactionsStatus.loading));
 
       final accountBlock = await zenon.ledger.getUnreceivedBlocksByAddress(
-        Address.parse('kDemoAddress'),
+        Address.parse(emptyAddress.toString()),
         pageIndex: pageKey,
         pageSize: pageSize,
       );

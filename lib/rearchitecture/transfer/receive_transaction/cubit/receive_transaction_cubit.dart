@@ -9,19 +9,20 @@ part 'receive_transaction_state.dart';
 
 class ReceiveTransactionCubit extends Cubit<ReceiveTransactionState> {
 
-  ReceiveTransactionCubit(this.zenon)
+  ReceiveTransactionCubit(this.zenon, this.autoReceiveTxWorker)
       : super(const ReceiveTransactionState(
     status: ReceiveTransactionStatus.initial,
   ),
   );
 
   final Zenon zenon;
+  final AutoReceiveTxWorker autoReceiveTxWorker;
 
   Future<void> receiveTransaction(String id, BuildContext context) async {
     try {
       emit(state.copyWith(status: ReceiveTransactionStatus.loading));
 
-      final response = await sl<AutoReceiveTxWorker>()
+      final response = await autoReceiveTxWorker
           .autoReceiveTransactionHash(Hash.parse(id));
 
       emit(state.copyWith(

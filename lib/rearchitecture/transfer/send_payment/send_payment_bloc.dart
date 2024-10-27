@@ -16,6 +16,7 @@ class SendPaymentBloc extends Bloc<SendPaymentEvent, SendPaymentState> {
     on<SendTransferWithBlock>(_onSendTransferWithBlock);
   }
 
+
   Future<void> _onSendTransfer(
       SendTransfer event,
       Emitter<SendPaymentState> emit,

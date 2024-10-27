@@ -19,7 +19,7 @@ class LatestTransactionsCubit extends Cubit<LatestTransactionsState> {
       emit(state.copyWith(status: LatestTransactionsStatus.loading));
 
       final accountBlock = await zenon.ledger.getAccountBlocksByPage(
-        Address.parse('kDemoAddress'),
+        Address.parse(emptyAddress.toString()),
         pageIndex: pageKey,
         pageSize: pageSize,
       );
