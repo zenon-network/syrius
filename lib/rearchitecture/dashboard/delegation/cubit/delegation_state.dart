@@ -31,7 +31,7 @@ class DelegationState extends DashboardState<DelegationInfo> {
   DashboardState<DelegationInfo> copyWith({
     DashboardStatus? status,
     DelegationInfo? data,
-    Object? error,
+    SyriusException? error,
   }) {
     return DelegationState(
       status: status ?? this.status,

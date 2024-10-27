@@ -48,8 +48,8 @@ abstract class DashboardState<T> extends Equatable {
   /// has been loaded or if there was an error.
   final T? data;
 
-  /// An optional error object that holds error details in case of failure.
-  final Object? error;
+  /// An optional error object that holds a message to be presented to the user.
+  final SyriusException? error;
 
   /// Creates a copy of the current state with the option to modify specific
   /// fields.
@@ -64,7 +64,7 @@ abstract class DashboardState<T> extends Equatable {
   DashboardState<T> copyWith({
     DashboardStatus? status,
     T? data,
-    Object? error,
+    SyriusException? error,
   });
 
   @override

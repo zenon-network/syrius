@@ -19,7 +19,7 @@ class NodeSyncStatusState extends DashboardState<Pair<SyncState, SyncInfo>> {
   DashboardState<Pair<SyncState, SyncInfo>> copyWith({
     DashboardStatus? status,
     Pair<SyncState, SyncInfo>? data,
-    Object? error,
+    SyriusException? error,
   }) {
     return NodeSyncStatusState(
       status: status ?? this.status,

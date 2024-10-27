@@ -8,6 +8,7 @@ export 'color_utils.dart';
 export 'constants.dart';
 export 'date_time_utils.dart';
 export 'device_utils.dart';
+export 'exceptions/exceptions.dart';
 export 'extensions.dart';
 export 'file_utils.dart';
 export 'format_utils.dart';

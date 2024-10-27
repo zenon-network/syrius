@@ -37,7 +37,7 @@ class DualCoinStatsState extends DashboardState<List<Token>> {
   DashboardState<List<Token>> copyWith({
     DashboardStatus? status,
     List<Token>? data,
-    Object? error,
+    SyriusException? error,
   }) {
     return DualCoinStatsState(
       status: status ?? this.status,

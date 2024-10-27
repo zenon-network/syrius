@@ -34,7 +34,7 @@ class BalanceState extends DashboardState<AccountInfo> {
   DashboardState<AccountInfo> copyWith({
     DashboardStatus? status,
     AccountInfo? data,
-    Object? error,
+    SyriusException? error,
   }) {
     return BalanceState(
       status: status ?? this.status,

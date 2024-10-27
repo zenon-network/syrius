@@ -37,7 +37,7 @@ class StakingState extends DashboardState<StakeList> {
   DashboardState<StakeList> copyWith({
     DashboardStatus? status,
     StakeList? data,
-    Object? error,
+    SyriusException? error,
   }) {
     return StakingState(
       status: status ?? this.status,

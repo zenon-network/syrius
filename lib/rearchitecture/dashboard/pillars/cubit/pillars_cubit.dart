@@ -1,5 +1,6 @@
 import 'package:json_annotation/json_annotation.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/dashboard/dashboard.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 
 part 'pillars_cubit.g.dart';
 

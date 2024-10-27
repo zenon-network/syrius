@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/dashboard/dashboard.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/reusable_widgets.dart';
 
 /// A widget associated with the [PillarsState] when it's status is
@@ -9,7 +10,7 @@ class PillarsError extends StatelessWidget {
   ///Creates a PillarsError object
   const PillarsError({required this.error, super.key});
   /// Holds the data that will be displayed
-  final Object error;
+  final SyriusException error;
 
   @override
   Widget build(BuildContext context) {

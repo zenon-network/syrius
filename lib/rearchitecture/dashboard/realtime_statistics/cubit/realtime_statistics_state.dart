@@ -37,7 +37,7 @@ class RealtimeStatisticsState extends DashboardState<List<AccountBlock>> {
   DashboardState<List<AccountBlock>> copyWith({
     DashboardStatus? status,
     List<AccountBlock>? data,
-    Object? error,
+    SyriusException? error,
   }) {
     return RealtimeStatisticsState(
       status: status ?? this.status,

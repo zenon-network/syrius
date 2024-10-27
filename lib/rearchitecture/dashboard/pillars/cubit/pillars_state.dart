@@ -38,7 +38,7 @@ class PillarsState extends DashboardState<int> {
   DashboardState<int> copyWith({
     DashboardStatus? status,
     int? data,
-    Object? error,
+    SyriusException? error,
   }) {
     return PillarsState(
       status: status ?? this.status,

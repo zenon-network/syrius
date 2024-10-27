@@ -1,5 +1,6 @@
 export 'balance/balance.dart';
 export 'dashboard_cubit.dart';
+export 'dashboard_cubit_exception.dart';
 export 'delegation/delegation.dart';
 export 'dual_coin_stats/dual_coin_stats.dart';
 export 'pillars/pillars.dart';

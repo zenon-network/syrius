@@ -37,7 +37,7 @@ class TotalHourlyTransactionsState extends DashboardState<int> {
   DashboardState<int> copyWith({
     DashboardStatus? status,
     int? data,
-    Object? error,
+    SyriusException? error,
   }) {
     return TotalHourlyTransactionsState(
       status: status ?? this.status,

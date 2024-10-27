@@ -36,7 +36,7 @@ class SentinelsState extends DashboardState<SentinelInfoList> {
   DashboardState<SentinelInfoList> copyWith({
     DashboardStatus? status,
     SentinelInfoList? data,
-    Object? error,
+    SyriusException? error,
   }) {
     return SentinelsState(
       status: status ?? this.status,

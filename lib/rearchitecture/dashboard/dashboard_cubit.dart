@@ -1,7 +1,11 @@
 import 'dart:async';
+
 import 'package:equatable/equatable.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/dashboard/dashboard.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/exceptions/cubit_failure_exception.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/exceptions/exceptions.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 part 'dashboard_state.dart';
@@ -14,9 +18,8 @@ part 'dashboard_state.dart';
 ///
 /// The generic type [S] represents the type of the states emitted by the cubit.
 /// [S] extends [DashboardState]
-abstract class DashboardCubit<T, S extends DashboardState<T>> extends
-HydratedCubit<S> {
-
+abstract class DashboardCubit<T, S extends DashboardState<T>>
+    extends HydratedCubit<S> {
   /// Constructs a `DashboardCubit` with the provided [zenon] client and initial
   /// state.
   ///
@@ -26,11 +29,13 @@ HydratedCubit<S> {
     super.initialState, {
     this.refreshInterval = kDashboardRefreshInterval,
   });
+
   /// A timer that handles the auto-refreshing of data.
   Timer? _autoRefresher;
 
   /// The Zenon client used to fetch data from the Zenon ledger.
   final Zenon zenon;
+
   /// The interval at which to fetch the data again.
   final Duration refreshInterval;
 
@@ -71,8 +76,15 @@ HydratedCubit<S> {
       } else {
         throw noConnectionException;
       }
-    } catch (e) {
+    } on DashboardCubitException catch (e) {
       emit(state.copyWith(status: DashboardStatus.failure, error: e) as S);
+    } catch (e) {
+      emit(
+        state.copyWith(
+          status: DashboardStatus.failure,
+          error: CubitFailureException(),
+        ) as S,
+      );
     } finally {
       /// Ensure that the auto-refresher is restarted if it's not active.
       if (!isTimerActive) {
