@@ -8,21 +8,23 @@ part of 'node_sync_status_cubit.dart';
 
 NodeSyncStatusState _$NodeSyncStatusStateFromJson(Map<String, dynamic> json) =>
     NodeSyncStatusState(
-      status: $enumDecodeNullable(_$DashboardStatusEnumMap, json['status']) ??
-          DashboardStatus.initial,
+      status: $enumDecodeNullable(_$TimerStatusEnumMap, json['status']) ??
+          TimerStatus.initial,
       data: json['data'] == null
           ? null
           : Pair<SyncState, SyncInfo>.fromJson(
               json['data'] as Map<String, dynamic>,
               (value) => $enumDecode(_$SyncStateEnumMap, value),
               (value) => SyncInfo.fromJson(value as Map<String, dynamic>)),
-      error: json['error'],
+      error: json['error'] == null
+          ? null
+          : SyriusException.fromJson(json['error'] as Map<String, dynamic>),
     );
 
 Map<String, dynamic> _$NodeSyncStatusStateToJson(
         NodeSyncStatusState instance) =>
     <String, dynamic>{
-      'status': _$DashboardStatusEnumMap[instance.status]!,
+      'status': _$TimerStatusEnumMap[instance.status]!,
       'data': instance.data?.toJson(
         (value) => _$SyncStateEnumMap[value]!,
         (value) => value,
@@ -30,11 +32,11 @@ Map<String, dynamic> _$NodeSyncStatusStateToJson(
       'error': instance.error,
     };
 
-const _$DashboardStatusEnumMap = {
-  DashboardStatus.failure: 'failure',
-  DashboardStatus.initial: 'initial',
-  DashboardStatus.loading: 'loading',
-  DashboardStatus.success: 'success',
+const _$TimerStatusEnumMap = {
+  TimerStatus.failure: 'failure',
+  TimerStatus.initial: 'initial',
+  TimerStatus.loading: 'loading',
+  TimerStatus.success: 'success',
 };
 
 const _$SyncStateEnumMap = {

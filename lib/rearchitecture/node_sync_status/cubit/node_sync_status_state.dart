@@ -3,7 +3,7 @@ part of 'node_sync_status_cubit.dart';
 /// Class used by [NodeSyncStatusCubit] to send state updates to the
 /// connected view
 @JsonSerializable()
-class NodeSyncStatusState extends DashboardState<Pair<SyncState, SyncInfo>> {
+class NodeSyncStatusState extends TimerState<Pair<SyncState, SyncInfo>> {
   /// Creates a NodeSyncStatusState object.
   const NodeSyncStatusState({
     super.status,
@@ -16,8 +16,8 @@ class NodeSyncStatusState extends DashboardState<Pair<SyncState, SyncInfo>> {
       _$NodeSyncStatusStateFromJson(json);
 
   @override
-  DashboardState<Pair<SyncState, SyncInfo>> copyWith({
-    DashboardStatus? status,
+  TimerState<Pair<SyncState, SyncInfo>> copyWith({
+    TimerStatus? status,
     Pair<SyncState, SyncInfo>? data,
     SyriusException? error,
   }) {

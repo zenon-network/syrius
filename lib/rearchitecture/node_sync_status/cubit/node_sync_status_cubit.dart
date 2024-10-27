@@ -3,8 +3,8 @@ import 'dart:async';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart' hide zenon;
-import 'package:zenon_syrius_wallet_flutter/rearchitecture/dashboard/dashboard.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/node_sync_status/node_sync_status.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
@@ -18,10 +18,10 @@ part 'node_sync_status_state.dart';
 /// [SyncState] is not related to [NodeSyncStatusState], doesn't handle UI
 /// updates.
 ///
-/// [NodeSyncStatusState] along with [DashboardStatus] updates the UI of the
+/// [NodeSyncStatusState] along with [TimerStatus] updates the UI of the
 /// [NodeSyncStatusIcon] widget
 class NodeSyncStatusCubit
-    extends DashboardCubit<Pair<SyncState, SyncInfo>, NodeSyncStatusState> {
+    extends TimerCubit<Pair<SyncState, SyncInfo>, NodeSyncStatusState> {
   /// Creates a NodeSyncStatusCubit using the super-initializer parameters
   NodeSyncStatusCubit(super.zenon, super.initialState);
 

@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:zenon_syrius_wallet_flutter/rearchitecture/dashboard/dashboard.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/node_sync_status/node_sync_status.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 
 /// A widget associated with the [NodeSyncStatusState] when it's status is
-/// [DashboardStatus.failure] that displays an icon with a tooltip message
+/// [TimerStatus.failure] that displays an icon with a tooltip message
 class NodeSyncStatusError extends StatelessWidget {
   /// Creates a NodeSyncStatusError object.
   const NodeSyncStatusError({required this.error, super.key});

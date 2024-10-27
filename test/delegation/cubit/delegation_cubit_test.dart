@@ -3,7 +3,7 @@
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
-import 'package:zenon_syrius_wallet_flutter/rearchitecture/dashboard/dashboard.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/dashboard/features.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 class MockZenon extends Mock implements Zenon {}
@@ -58,7 +58,7 @@ void main() {
     });
 
     group('fetchDataPeriodically', () {
-      blocTest<DelegationCubit, DashboardState>(
+      blocTest<DelegationCubit, TimerState>(
         'calls getDelegatedPillar once',
         build: () => delegationCubit,
         act: (cubit) => cubit.fetchDataPeriodically(),
@@ -69,7 +69,7 @@ void main() {
         },
       );
 
-      blocTest<DelegationCubit, DashboardState>(
+      blocTest<DelegationCubit, TimerState>(
         'emits [loading, failure] when getDelegatedPillar throws',
         setUp: () {
           when(
@@ -89,7 +89,7 @@ void main() {
         ],
       );
 
-      blocTest<DelegationCubit, DashboardState>(
+      blocTest<DelegationCubit, TimerState>(
         'emits [loading, success] when getDelegatedPillar '
         'returns a DelegationInfo instance',
         build: () => delegationCubit,

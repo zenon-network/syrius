@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:zenon_syrius_wallet_flutter/rearchitecture/dashboard/dashboard.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/node_sync_status/node_sync_status.dart';
 
 /// A widget associated with the [NodeSyncStatusState] when it's status is
-/// [DashboardStatus.initial] that displays an icon with a tooltip message
+/// [TimerStatus.initial] that displays an icon with a tooltip message
 class NodeSyncStatusEmpty extends StatelessWidget {
   /// Creates a NodeSyncStatusEmpty object.
   const NodeSyncStatusEmpty({super.key});
