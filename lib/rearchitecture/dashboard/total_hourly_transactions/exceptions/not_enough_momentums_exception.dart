@@ -6,9 +6,9 @@ part 'not_enough_momentums_exception.g.dart';
 /// Custom [Exception] to be used with [TotalHourlyTransactionsCubit] when
 /// the network is less than one hour old
 @JsonSerializable()
-class NotEnoughMomentumsException implements Exception {
+class NotEnoughMomentumsException extends DashboardCubitException {
   /// Creates a [NotEnoughMomentumsException] instance
-  NotEnoughMomentumsException();
+  NotEnoughMomentumsException(): super('Not enough momentums');
 
   /// Creates a [NotEnoughMomentumsException] instance from a JSON map.
   factory NotEnoughMomentumsException.fromJson(Map<String, dynamic> json) =>
@@ -17,7 +17,4 @@ class NotEnoughMomentumsException implements Exception {
 
   /// Converts this [NotEnoughMomentumsException] instance to a JSON map.
   Map<String, dynamic> toJson() => _$NotEnoughMomentumsExceptionToJson(this);
-
-  @override
-  String toString() => 'Not enough momentums';
 }

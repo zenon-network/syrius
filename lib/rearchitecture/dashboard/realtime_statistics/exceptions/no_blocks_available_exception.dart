@@ -6,9 +6,9 @@ part 'no_blocks_available_exception.g.dart';
 /// Custom [Exception] to be used with [RealtimeStatisticsCubit] when there are
 /// no account blocks available on the network
 @JsonSerializable()
-class NoBlocksAvailableException implements Exception {
+class NoBlocksAvailableException extends DashboardCubitException {
   /// Creates a [NoBlocksAvailableException] instance
-  NoBlocksAvailableException();
+  NoBlocksAvailableException(): super('No account blocks available');
 
   /// Creates a [NoBlocksAvailableException] instance from a JSON map.
   factory NoBlocksAvailableException.fromJson(Map<String, dynamic> json) =>
@@ -17,7 +17,4 @@ class NoBlocksAvailableException implements Exception {
 
   /// Converts this [NoBlocksAvailableException] instance to a JSON map.
   Map<String, dynamic> toJson() => _$NoBlocksAvailableExceptionToJson(this);
-
-  @override
-  String toString() => 'No account blocks available';
 }
