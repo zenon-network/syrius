@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/dashboard/balance/balance.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/reusable_widgets.dart';
 
 /// A [BalanceEmpty] widget that displays a simple message indicating that there
@@ -13,6 +14,6 @@ class BalanceEmpty extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const SyriusErrorWidget('No data available');
+    return SyriusErrorWidget(context.l10n.waitingForDataFetching);
   }
 }

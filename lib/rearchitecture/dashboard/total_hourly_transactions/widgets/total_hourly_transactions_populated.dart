@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/dashboard/dashboard.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 
 /// A widget associated with the [TotalHourlyTransactionsState] when it's
@@ -25,7 +25,7 @@ class TotalHourlyTransactionsPopulated extends StatelessWidget {
           ),
         ),
         kVerticalSpacing,
-        const Text('transactions in the last hour'),
+        Text(context.l10n.transactionsLastHour),
       ],
     );
   }

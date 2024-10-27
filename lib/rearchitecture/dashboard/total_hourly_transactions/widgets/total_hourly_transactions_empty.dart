@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/dashboard/dashboard.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 
 /// A widget associated with the [TotalHourlyTransactionsState] when it's
@@ -11,6 +12,6 @@ class TotalHourlyTransactionsEmpty extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const SyriusErrorWidget('No data available');
+    return SyriusErrorWidget(context.l10n.waitingForDataFetching);
   }
 }
