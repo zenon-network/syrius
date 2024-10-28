@@ -24,15 +24,7 @@ class StakingState extends TimerState<StakeList> {
   factory StakingState.fromJson(Map<String, dynamic> json) =>
       _$StakingStateFromJson(json);
 
-  /// Creates a copy of the current [StakingState] with updated values for
-  /// [status], [data], or [error].
-  ///
-  /// This method is used to create a new state with updated fields if provided,
-  /// otherwise retaining the existing values.
-  ///
-  /// Returns:
-  /// - A new instance of [StakingState]with the updated values or the
-  /// existing ones if none are provided.
+  /// {@macro state_copy_with}
   @override
   TimerState<StakeList> copyWith({
     TimerStatus? status,

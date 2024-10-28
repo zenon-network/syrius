@@ -57,10 +57,6 @@ abstract class TimerState<T> extends Equatable {
   /// - [status]: The new status of the cubit (e.g., loading, success).
   /// - [data]: The new data of type [T], if it has changed.
   /// - [error]: The new error, if any occurred.
-  ///
-  /// Returns a new [TimerState] with the updated fields. Subclasses
-  /// (like [BalanceState]) will implement this to
-  /// ensure type safety and return the appropriate state class.
   TimerState<T> copyWith({
     TimerStatus? status,
     T? data,

@@ -24,15 +24,7 @@ class TotalHourlyTransactionsState extends TimerState<int> {
   factory TotalHourlyTransactionsState.fromJson(Map<String, dynamic> json) =>
       _$TotalHourlyTransactionsStateFromJson(json);
 
-  /// Creates a copy of the current [TotalHourlyTransactionsState] with updated
-  /// values for [status], [data], or [error].
-  ///
-  /// This method is used to create a new state with updated fields if provided,
-  /// otherwise retaining the existing values.
-  ///
-  /// Returns:
-  /// - A new instance of [TotalHourlyTransactionsState] with the updated
-  /// values or the existing ones if none are provided.
+  /// {@macro state_copy_with}
   @override
   TimerState<int> copyWith({
     TimerStatus? status,

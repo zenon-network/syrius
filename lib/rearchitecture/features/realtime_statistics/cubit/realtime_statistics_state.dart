@@ -24,9 +24,7 @@ class RealtimeStatisticsState extends TimerState<List<AccountBlock>> {
   factory RealtimeStatisticsState.fromJson(Map<String, dynamic> json) =>
       _$RealtimeStatisticsStateFromJson(json);
 
-  /// Creates a copy of the current [RealtimeStatisticsState] with updated
-  /// values for [status], [data], or [error] if provided, otherwise retaining
-  /// the existing values.
+  /// {@macro state_copy_with}
   @override
   TimerState<List<AccountBlock>> copyWith({
     TimerStatus? status,

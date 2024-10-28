@@ -23,9 +23,7 @@ class SentinelsState extends TimerState<SentinelInfoList> {
   factory SentinelsState.fromJson(Map<String, dynamic> json) =>
       _$SentinelsStateFromJson(json);
 
-  /// Creates a copy of the current [SentinelsState] with updated values for
-  /// [status], [data], or [error] if provided, otherwise retaining the
-  /// existing values.
+  /// {@macro state_copy_with}
   @override
   TimerState<SentinelInfoList> copyWith({
     TimerStatus? status,

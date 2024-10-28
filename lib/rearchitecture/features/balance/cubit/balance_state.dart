@@ -21,11 +21,11 @@ class BalanceState extends TimerState<AccountInfo> {
   factory BalanceState.fromJson(Map<String, dynamic> json) =>
       _$BalanceStateFromJson(json);
 
-  /// Creates a copy of the current [BalanceState] with optional new values for
-  /// [status], [data], and [error].
-  ///
-  /// This method is used to create a new state with updated fields if provided,
-  /// otherwise retaining the existing values.
+  /// {@template state_copy_with}
+  /// Creates a copy of the current state with updated values for [status],
+  /// [data], or [error], if provided, otherwise retaining the
+  /// existing values.
+  /// {@endtemplate}
   @override
   TimerState<AccountInfo> copyWith({
     TimerStatus? status,

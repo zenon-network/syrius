@@ -23,8 +23,7 @@ class PillarsState extends TimerState<int> {
   factory PillarsState.fromJson(Map<String, dynamic> json) =>
       _$PillarsStateFromJson(json);
 
-  /// This method is used to create a new state with updated fields if provided,
-  /// otherwise retaining the existing values.
+  /// {@macro state_copy_with}
   @override
   TimerState<int> copyWith({
     TimerStatus? status,

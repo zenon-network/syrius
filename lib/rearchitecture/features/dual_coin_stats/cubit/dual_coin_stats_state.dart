@@ -24,11 +24,7 @@ class DualCoinStatsState extends TimerState<List<Token>> {
   factory DualCoinStatsState.fromJson(Map<String, dynamic> json) =>
       _$DualCoinStatsStateFromJson(json);
 
-  /// Creates a copy of the current [DualCoinStatsState] with optional new
-  /// values for [status], [data], and [error].
-  ///
-  /// This method is used to create a new state with updated fields if provided,
-  /// otherwise retaining the existing values.
+  /// {@macro state_copy_with}
   @override
   TimerState<List<Token>> copyWith({
     TimerStatus? status,
