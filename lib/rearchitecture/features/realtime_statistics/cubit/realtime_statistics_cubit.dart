@@ -6,6 +6,7 @@ import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 part 'realtime_statistics_cubit.g.dart';
+
 part 'realtime_statistics_state.dart';
 
 /// [RealtimeStatisticsCubit] manages the fetching and state of real-time
@@ -41,51 +42,52 @@ class RealtimeStatisticsCubit
   /// - An [NoBlocksAvailableException] if no data is available
   @override
   Future<List<AccountBlock>> fetch() async {
-      // Get the current chain height
-      final int chainHeight = (await zenon.ledger.getFrontierMomentum()).height;
-      // Calculate the starting height for the block retrieval
-      final int height = chainHeight - kMomentumsPerWeek > 0
-          ? chainHeight - kMomentumsPerWeek
-          : 1;
-      int pageIndex = 0; // Start from the first page
-      const int pageSize = 10; // Number of blocks to fetch per page
-      bool isLastPage = false; // Flag to determine if it's the last page
-      final List<AccountBlock> blockList =
-          <AccountBlock>[]; // List to store fetched account blocks
+    // Get the current chain height
+    final int chainHeight = (await zenon.ledger.getFrontierMomentum()).height;
+    // Calculate the starting height for the block retrieval
+    final int height = chainHeight - kMomentumsPerWeek > 0
+        ? chainHeight - kMomentumsPerWeek
+        : 1;
+    int pageIndex = 0; // Start from the first page
+    const int pageSize = 10; // Number of blocks to fetch per page
+    bool isLastPage = false; // Flag to determine if it's the last page
+    final List<AccountBlock> blockList =
+        <AccountBlock>[]; // List to store fetched account blocks
 
-      // Fetch account blocks until the last page is reached
-      while (!isLastPage) {
-        // Fetch account blocks for the current page
-        final List<AccountBlock> response = (await zenon.ledger.getAccountBlocksByPage(
-              Address.parse(kSelectedAddress!),
-              pageIndex: pageIndex,
-              pageSize: pageSize,
-            ))
-                .list ?? // Default to an empty list if no blocks are found
-            <AccountBlock>[];
+    // Fetch account blocks until the last page is reached
+    while (!isLastPage) {
+      // Fetch account blocks for the current page
+      final AccountBlockList accountBlockList =
+          await zenon.ledger.getAccountBlocksByPage(
+        Address.parse(kSelectedAddress!),
+        pageIndex: pageIndex,
+        pageSize: pageSize,
+      );
+      // Default to an empty list if no blocks are found
+      final List<AccountBlock> response =
+          accountBlockList.list ?? <AccountBlock>[];
 
-        if (response.isEmpty) {
-          break; // Exit the loop if no more blocks are found
-        }
-
-        blockList.addAll(response); // Add the fetched blocks to the list
-
-        // Check if the last block's momentum height is less than the
-        // calculated height
-        if (response.last.confirmationDetail!.momentumHeight <= height) {
-          break; // Exit if we've fetched enough data
-        }
-
-        pageIndex += 1; // Increment the page index for the next fetch
-        isLastPage =
-            response.length < pageSize; // Check if this is the last page
+      if (response.isEmpty) {
+        break; // Exit the loop if no more blocks are found
       }
 
-      if (blockList.isNotEmpty) {
-        return blockList; // Return the list of fetched blocks if available
-      } else {
-        throw NoBlocksAvailableException();
+      blockList.addAll(response); // Add the fetched blocks to the list
+
+      // Check if the last block's momentum height is less than the
+      // calculated height
+      if (response.last.confirmationDetail!.momentumHeight <= height) {
+        break; // Exit if we've fetched enough data
       }
+
+      pageIndex += 1; // Increment the page index for the next fetch
+      isLastPage = response.length < pageSize; // Check if this is the last page
+    }
+
+    if (blockList.isNotEmpty) {
+      return blockList; // Return the list of fetched blocks if available
+    } else {
+      throw NoBlocksAvailableException();
+    }
   }
 
   @override

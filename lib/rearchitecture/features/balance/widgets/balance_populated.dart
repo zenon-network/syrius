@@ -33,13 +33,13 @@ class BalancePopulated extends StatefulWidget {
 }
 
 class _BalancePopulatedState extends State<BalancePopulated> {
-  final ValueNotifier<String?> _touchedSectionId = ValueNotifier(null);
+  final ValueNotifier<String?> _touchedSectionId = ValueNotifier<String?>(null);
   late final ValueNotifier<Color> _addressEdgesColor;
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    _addressEdgesColor = ValueNotifier(Theme.of(context).hintColor);
+    _addressEdgesColor = ValueNotifier<Color>(Theme.of(context).hintColor);
   }
 
   @override
@@ -59,7 +59,7 @@ class _BalancePopulatedState extends State<BalancePopulated> {
                     accountInfo: widget.accountInfo,
                     hoveredSectionId: _touchedSectionId,
                   ),
-                  ValueListenableBuilder(
+                  ValueListenableBuilder<String?>(
                     valueListenable: _touchedSectionId,
                     builder: (_, String? id, __) {
                       final Widget center = id != null

@@ -13,7 +13,7 @@ class PillarsCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
+    return BlocProvider<PillarsCubit>(
       create: (_) {
         final PillarsCubit cubit = PillarsCubit(
           zenon!,

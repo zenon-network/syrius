@@ -19,7 +19,7 @@ class BalanceCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
+    return BlocProvider<BalanceCubit>(
       create: (_) {
         final BalanceCubit cubit = BalanceCubit(
           Address.parse(kSelectedAddress!),

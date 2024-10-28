@@ -12,8 +12,7 @@ part 'dual_coin_stats_state.dart';
 /// This cubit extends [TimerCubit], using a list of [Token] objects to
 /// represent the statistics for the ZNN and QSR tokens fetched from the Zenon
 /// network.
-class DualCoinStatsCubit
-    extends TimerCubit<List<Token>, DualCoinStatsState> {
+class DualCoinStatsCubit extends TimerCubit<List<Token>, DualCoinStatsState> {
   /// Constructs a [DualCoinStatsCubit], passing the [zenon] client and the
   /// initial state to the parent class.
   ///
@@ -38,7 +37,11 @@ class DualCoinStatsCubit
     );
 
     // For ZNN and QSR, the network will return non-nullable data
-    final List<Token> nonNullableData = data.map((Token? token) => token!).toList();
+    final List<Token> nonNullableData = data
+        .map(
+          (Token? token) => token!,
+        )
+        .toList();
 
     return nonNullableData;
   }

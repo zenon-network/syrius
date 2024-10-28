@@ -71,7 +71,7 @@ abstract class TimerCubit<T, S extends TimerState<T>>
     try {
       emit(state.copyWith(status: TimerStatus.loading) as S);
       if (!zenon.wsClient.isClosed()) {
-        final data = await fetch();
+        final T data = await fetch();
         emit(state.copyWith(data: data, status: TimerStatus.success) as S);
       } else {
         throw noConnectionException;

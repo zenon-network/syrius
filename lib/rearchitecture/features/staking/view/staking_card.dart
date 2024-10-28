@@ -13,7 +13,7 @@ class StakingCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
+    return BlocProvider<StakingCubit>(
       create: (_) {
         final StakingCubit cubit = StakingCubit(
           zenon!,

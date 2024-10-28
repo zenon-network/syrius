@@ -1,6 +1,6 @@
 import 'package:json_annotation/json_annotation.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
-import 'package:znn_sdk_dart/src/model/embedded/pillar.dart';
+import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 part 'pillars_cubit.g.dart';
 
@@ -21,10 +21,11 @@ class PillarsCubit extends TimerCubit<int, PillarsState> {
   /// Fetches the total count of pillars from the Zenon network.
   @override
   Future<int> fetch() async {
-      // Fetches the list of all pillars from the Zenon network
-      final PillarInfoList pillarInfoList = await zenon.embedded.pillar.getAll();
-      final int data = pillarInfoList.list.length; // Counts the number of pillars
-      return data; // Returns the total number of pillars
+    // Fetches the list of all pillars from the Zenon network
+    final PillarInfoList pillarInfoList = await zenon.embedded.pillar.getAll();
+    // Counts the number of pillars
+    final int data = pillarInfoList.list.length;
+    return data; // Returns the total number of pillars
   }
 
   @override

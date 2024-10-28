@@ -13,7 +13,7 @@ class RealtimeStatisticsCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
+    return BlocProvider<RealtimeStatisticsCubit>(
       create: (_) {
         final RealtimeStatisticsCubit cubit = RealtimeStatisticsCubit(
           zenon!,

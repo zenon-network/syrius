@@ -103,7 +103,7 @@ class _RealtimeTxsChartState extends State<RealtimeTxsChart> {
   }
 
   List<FlSpot> _generateQsrSpots() {
-    return List.generate(
+    return List<FlSpot>.generate(
       kStandardChartNumDays.toInt(),
       (int index) => FlSpot(
         index.toDouble(),
@@ -118,7 +118,7 @@ class _RealtimeTxsChartState extends State<RealtimeTxsChart> {
   }
 
   List<FlSpot> _generateZnnSpots() {
-    return List.generate(
+    return List<FlSpot>.generate(
       kStandardChartNumDays.toInt(),
       (int index) => FlSpot(
         index.toDouble(),

@@ -13,7 +13,7 @@ class SentinelsCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
+    return BlocProvider<SentinelsCubit>(
       create: (_) {
         final SentinelsCubit cubit = SentinelsCubit(
           zenon!,

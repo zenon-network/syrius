@@ -11,22 +11,24 @@ import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 
 class CardScaffoldWithoutListener extends StatefulWidget {
-
   const CardScaffoldWithoutListener({
     required this.body,
     required this.data,
     this.onRefreshPressed,
     super.key,
   });
+
   final Widget body;
   final CardData data;
   final VoidCallback? onRefreshPressed;
 
   @override
-  State<CardScaffoldWithoutListener> createState() => _CardScaffoldWithoutListenerState();
+  State<CardScaffoldWithoutListener> createState() =>
+      _CardScaffoldWithoutListenerState();
 }
 
-class _CardScaffoldWithoutListenerState extends State<CardScaffoldWithoutListener> {
+class _CardScaffoldWithoutListenerState
+    extends State<CardScaffoldWithoutListener> {
   GlobalKey<FlipCardState> cardKey = GlobalKey<FlipCardState>();
   final GlobalKey<LoadingButtonState> _actionButtonKey = GlobalKey();
 
@@ -37,9 +39,10 @@ class _CardScaffoldWithoutListenerState extends State<CardScaffoldWithoutListene
 
   String? _messageToUser;
 
-  LoadingButton? _actionButton;
+  late LoadingButton _actionButton;
 
   String get _title => widget.data.title;
+
   String get _description => widget.data.description;
 
   @override
@@ -58,7 +61,7 @@ class _CardScaffoldWithoutListenerState extends State<CardScaffoldWithoutListene
         borderRadius: BorderRadius.circular(
           15,
         ),
-        child: Container(
+        child: ColoredBox(
           color: Theme.of(context).colorScheme.primary,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -80,7 +83,7 @@ class _CardScaffoldWithoutListenerState extends State<CardScaffoldWithoutListene
           15,
         ),
         child: Material(
-          child: Container(
+          child: ColoredBox(
             color: Theme.of(context).colorScheme.primary,
             child: Column(
               children: <Widget>[
@@ -196,7 +199,7 @@ class _CardScaffoldWithoutListenerState extends State<CardScaffoldWithoutListene
                 const SizedBox(
                   width: 10,
                 ),
-                _actionButton!,
+                _actionButton,
               ],
             ),
           ),
@@ -267,7 +270,7 @@ class _CardScaffoldWithoutListenerState extends State<CardScaffoldWithoutListene
   Widget _getPasswordInputField(HideWidgetStatusBloc model) {
     return PasswordInputField(
       onSubmitted: (String value) {
-        _actionButton!.onPressed!();
+        _actionButton.onPressed!();
       },
       controller: _passwordController,
       errorText: _messageToUser,
@@ -293,7 +296,7 @@ class _CardScaffoldWithoutListenerState extends State<CardScaffoldWithoutListene
         _actionButton = _getActionButton(model);
         // Stream will tell us if the widget info is hidden or not
         model.stream.listen(
-              (bool? response) {
+          (bool? response) {
             if (response != null) {
               _passwordController.clear();
               if (!response) {
@@ -303,7 +306,7 @@ class _CardScaffoldWithoutListenerState extends State<CardScaffoldWithoutListene
               }
             }
           },
-          onError: (error) {
+          onError: (dynamic error) {
             setState(() {
               _messageToUser = error.toString();
             });

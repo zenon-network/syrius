@@ -4,6 +4,7 @@ import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 part 'delegation_cubit.g.dart';
+
 part 'delegation_state.dart';
 
 /// A cubit that manages the fetching and state of delegation information
@@ -28,7 +29,8 @@ class DelegationCubit extends TimerCubit<DelegationInfo, DelegationState> {
   /// - If not available, it throws an exception
   @override
   Future<DelegationInfo> fetch() async {
-    final DelegationInfo? delegationInfo = await zenon.embedded.pillar.getDelegatedPillar(
+    final DelegationInfo? delegationInfo =
+        await zenon.embedded.pillar.getDelegatedPillar(
       address,
     );
 

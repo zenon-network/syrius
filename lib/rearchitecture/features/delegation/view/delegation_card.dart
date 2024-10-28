@@ -14,7 +14,7 @@ class DelegationCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
+    return BlocProvider<DelegationCubit>(
       create: (_) {
         final DelegationCubit cubit = DelegationCubit(
           Address.parse(kSelectedAddress!),

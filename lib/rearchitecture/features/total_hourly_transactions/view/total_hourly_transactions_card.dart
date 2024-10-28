@@ -13,7 +13,7 @@ class TotalHourlyTransactionsCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
+    return BlocProvider<TotalHourlyTransactionsCubit>(
       create: (_) {
         final TotalHourlyTransactionsCubit cubit = TotalHourlyTransactionsCubit(
           zenon!,

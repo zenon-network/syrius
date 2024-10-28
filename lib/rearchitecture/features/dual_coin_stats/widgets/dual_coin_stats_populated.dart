@@ -8,7 +8,6 @@ import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 /// - [DualCoinStatsChart] - and a legend - [DualCoinStatsChartLegend]
 
 class DualCoinStatsPopulated extends StatefulWidget {
-
   /// Creates a DualCoinStatsPopulated widget
   const DualCoinStatsPopulated({
     required this.tokens,
@@ -24,7 +23,9 @@ class DualCoinStatsPopulated extends StatefulWidget {
 
 class _DualCoinStatsPopulatedState extends State<DualCoinStatsPopulated>
     with SingleTickerProviderStateMixin {
-  final ValueNotifier<int?> _touchedSectionIndexNotifier = ValueNotifier(null);
+  final ValueNotifier<int?> _touchedSectionIndexNotifier = ValueNotifier<int?>(
+    null,
+  );
 
   @override
   Widget build(BuildContext context) {

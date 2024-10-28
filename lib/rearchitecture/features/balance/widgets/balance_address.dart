@@ -23,7 +23,7 @@ class BalanceAddress extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ValueListenableBuilder(
+    return ValueListenableBuilder<Color?>(
       valueListenable: edgesColorNotifier,
       builder: (_, Color? edgesColor, __) {
         return FocusableActionDetector(
