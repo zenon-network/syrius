@@ -1,14 +1,16 @@
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/balance/balance.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/cubits/timer_cubit.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
-/// A `BalancePopulated` widget that displays balance data once it has been
+/// A [BalancePopulated] widget that displays balance data once it has been
 /// successfully fetched and populated.
 ///
-/// This widget is displayed when the `BalanceCubit` is in the `success` state,
-/// and the balance data is available for rendering.
+/// This widget is displayed when the [BalanceCubit] is in the
+/// [TimerStatus.success] state, and the balance data is available for
+/// rendering.
 class BalancePopulated extends StatefulWidget {
   /// Creates a BalancePopulated object.
   const BalancePopulated({
@@ -19,7 +21,7 @@ class BalancePopulated extends StatefulWidget {
   /// The balance data that has been successfully fetched.
   ///
   /// The data is a map where the key is a string (representing the account
-  /// address), and the value is an `AccountInfo` object containing the balance
+  /// address), and the value is an [AccountInfo] object containing the balance
   /// details.
   final AccountInfo accountInfo;
 

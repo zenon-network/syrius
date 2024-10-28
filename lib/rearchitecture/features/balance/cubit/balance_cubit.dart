@@ -19,8 +19,8 @@ class BalanceCubit extends TimerCubit<AccountInfo, BalanceState> {
 
   /// Fetches the balance information for a single address.
   ///
-  /// The method interacts with the `zenon` client's ledger to get the
-  /// `AccountInfo` for the provided [address].
+  /// The method interacts with the [zenon] client's ledger to get the
+  /// [AccountInfo] for the provided [address].
   ///
   /// Returns an [AccountInfo] object containing the balance details for the
   /// given address.

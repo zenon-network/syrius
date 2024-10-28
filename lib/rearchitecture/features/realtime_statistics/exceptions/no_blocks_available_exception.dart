@@ -17,5 +17,6 @@ class NoBlocksAvailableException extends CubitException {
 
 
   /// Converts this [NoBlocksAvailableException] instance to a JSON map.
+  @override
   Map<String, dynamic> toJson() => _$NoBlocksAvailableExceptionToJson(this);
 }

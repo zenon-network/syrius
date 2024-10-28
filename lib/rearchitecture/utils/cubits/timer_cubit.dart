@@ -2,14 +2,16 @@ import 'dart:async';
 
 import 'package:equatable/equatable.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/balance/balance.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 part 'timer_state.dart';
 
-/// An abstract `DashboardCubit` class that manages periodic data fetching for a
-/// dashboard feature. The cubit emits different states based on data loading,
+/// An abstract class that manages periodic data fetching for a
+///
+/// The cubit emits different states based on data loading,
 /// success, or failure, and it periodically refreshes the data automatically.
 ///
 /// The generic type [T] represents the type of data managed by this cubit.
@@ -18,7 +20,7 @@ part 'timer_state.dart';
 /// [S] extends [TimerState]
 abstract class TimerCubit<T, S extends TimerState<T>>
     extends HydratedCubit<S> {
-  /// Constructs a `DashboardCubit` with the provided [zenon] client and initial
+  /// Constructs a [TimerCubit] with the provided [zenon] client and initial
   /// state.
   ///
   /// The auto-refresh functionality is initialized upon the cubit's creation.

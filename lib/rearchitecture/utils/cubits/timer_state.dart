@@ -18,7 +18,7 @@ enum TimerStatus {
 ///
 /// The [TimerState] is designed to be generic, with [T] representing the
 /// type of data that is managed by each specific cubit state (e.g., balances,
-/// transactions, etc.). Subclasses like `BalanceState` extend this class to
+/// transactions, etc.). Subclasses like [BalanceState] extend this class to
 /// handle specific data types.
 ///
 /// The state includes:
@@ -59,7 +59,7 @@ abstract class TimerState<T> extends Equatable {
   /// - [error]: The new error, if any occurred.
   ///
   /// Returns a new [TimerState] with the updated fields. Subclasses
-  /// (like `BalanceState`) will implement this to
+  /// (like [BalanceState]) will implement this to
   /// ensure type safety and return the appropriate state class.
   TimerState<T> copyWith({
     TimerStatus? status,

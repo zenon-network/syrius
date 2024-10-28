@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/cubits/timer_cubit.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 /// A widget associated with the [DualCoinStatsState] when it's status is

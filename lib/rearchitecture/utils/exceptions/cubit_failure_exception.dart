@@ -16,5 +16,6 @@ class CubitFailureException extends SyriusException {
 
 
   /// Converts this [CubitFailureException] instance to a JSON map.
+  @override
   Map<String, dynamic> toJson() => _$CubitFailureExceptionToJson(this);
 }

@@ -1,17 +1,27 @@
 import 'package:flutter/material.dart';
-import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/models/card/card.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/zts_utils.dart';
 
+/// A class that helps distinguish between the card widgets
 enum CardType {
+  /// A type for a card displaying information related to balance
   balance,
+  /// A type for a card displaying information related to delegation
   delegationStats,
+  /// A type for a card displaying information related to ZNN and QSR
   dualCoinStats,
+  /// A type for a card displaying information related to pillars
   pillars,
+  /// A type for a card displaying information in realtime
   realtimeStatistics,
+  /// A type for a card displaying information related to sentinels
   sentinels,
+  /// A type for a card displaying information related to staking
   staking,
+  /// A type for a card displaying information related to transactions
+  /// confirmed in the last hour
   totalHourlyTransactions,
+  /// A type for a card that redirects to the Transfer tab
   transfer;
 
   /// Returns the [CardData] assigned to a specific [CardType] value.

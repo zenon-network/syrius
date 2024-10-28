@@ -1,26 +1,24 @@
 import 'package:json_annotation/json_annotation.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
-import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 part 'realtime_statistics_cubit.g.dart';
-
 part 'realtime_statistics_state.dart';
 
-/// `RealtimeStatisticsCubit` manages the fetching and state of real-time
+/// [RealtimeStatisticsCubit] manages the fetching and state of real-time
 /// account block statistics for a specific address.
 ///
-/// This cubit extends `DashboardCubit<List<AccountBlock>>`, using a list of
-/// `AccountBlock` objects to represent the account blocks fetched from the
-/// Zenon network.
+/// It uses a list of [AccountBlock] objects to represent the account blocks
+/// fetched from the Zenon network.
 class RealtimeStatisticsCubit
     extends TimerCubit<List<AccountBlock>, RealtimeStatisticsState> {
-  /// Constructs a `RealtimeStatisticsCubit`, passing the `zenon` client and
+  /// Constructs a [RealtimeStatisticsCubit], passing the [zenon] client and
   /// the initial state to the parent class.
   ///
-  /// The `zenon` client is used to interact with the Zenon network to retrieve
+  /// The [zenon] client is used to interact with the Zenon network to retrieve
   /// account block information.
   RealtimeStatisticsCubit(super.zenon, super.initialState);
 
@@ -28,7 +26,7 @@ class RealtimeStatisticsCubit
   /// week.
   ///
   /// This method retrieves the account blocks by:
-  /// - Determining the chain height using the `getFrontierMomentum()` method.
+  /// - Determining the chain height.
   /// - Calculating the starting height based on the momentums per week.
   /// - Fetching account blocks page by page until there are no more blocks to
   /// retrieve.
@@ -36,14 +34,13 @@ class RealtimeStatisticsCubit
   /// block's momentum height is less than the calculated height.
   ///
   /// Returns:
-  /// - A list of `AccountBlock` objects representing the account blocks
+  /// - A list of [AccountBlock] objects representing the account blocks
   /// fetched from the network.
   ///
   /// Throws:
   /// - An [NoBlocksAvailableException] if no data is available
   @override
   Future<List<AccountBlock>> fetch() async {
-    try {
       // Get the current chain height
       final chainHeight = (await zenon.ledger.getFrontierMomentum()).height;
       // Calculate the starting height for the block retrieval
@@ -89,9 +86,6 @@ class RealtimeStatisticsCubit
       } else {
         throw NoBlocksAvailableException();
       }
-    } catch (e) {
-      rethrow;
-    }
   }
 
   @override

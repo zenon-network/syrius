@@ -6,8 +6,8 @@ part 'dual_coin_stats_cubit.g.dart';
 
 part 'dual_coin_stats_state.dart';
 
-/// A cubit that manages the fetching and state of dual coin statistics
-/// for ZNN and QSR tokens.
+/// A cubit that manages the fetching and state of dual coin statistics - ZNN
+/// and QSR.
 ///
 /// This cubit extends [TimerCubit], using a list of [Token] objects to
 /// represent the statistics for the ZNN and QSR tokens fetched from the Zenon

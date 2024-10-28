@@ -16,5 +16,6 @@ class NoBalanceException extends CubitException {
 
 
   /// Converts this [NoBalanceException] instance to a JSON map.
+  @override
   Map<String, dynamic> toJson() => _$NoBalanceExceptionToJson(this);
 }
