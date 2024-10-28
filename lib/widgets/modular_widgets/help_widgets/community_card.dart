@@ -21,7 +21,7 @@ class CommunityCard extends StatelessWidget {
     return ListView(
       physics: const ClampingScrollPhysics(),
       shrinkWrap: true,
-      children: [
+      children: <Widget>[
         CustomExpandablePanel(
           'Websites',
           _getWebsitesExpandableChild(context),
@@ -46,7 +46,7 @@ class CommunityCard extends StatelessWidget {
     return ListView(
       physics: const ClampingScrollPhysics(),
       shrinkWrap: true,
-      children: [
+      children: <Widget>[
         _getListViewChild(
           iconData: MaterialCommunityIcons.home,
           title: 'Zenon Network',
@@ -85,7 +85,7 @@ class CommunityCard extends StatelessWidget {
     return ListView(
       physics: const ClampingScrollPhysics(),
       shrinkWrap: true,
-      children: [
+      children: <Widget>[
         _getListViewChild(
           iconData: Icons.explore,
           title: 'Zenon Explorer',
@@ -106,7 +106,7 @@ class CommunityCard extends StatelessWidget {
     return ListView(
       physics: const ClampingScrollPhysics(),
       shrinkWrap: true,
-      children: [
+      children: <Widget>[
         _getListViewChild(
           iconData: MaterialCommunityIcons.twitter,
           title: 'Zenon Twitter',
@@ -163,7 +163,7 @@ class CommunityCard extends StatelessWidget {
     return ListView(
       physics: const ClampingScrollPhysics(),
       shrinkWrap: true,
-      children: [
+      children: <Widget>[
         _getListViewChild(
           iconData: MaterialCommunityIcons.book_open_page_variant,
           title: 'Zenon Wiki',
@@ -193,7 +193,7 @@ class CommunityCard extends StatelessWidget {
     required BuildContext context,
   }) {
     return Row(
-      children: [
+      children: <Widget>[
         Icon(
           iconData,
           color: AppColors.znnColor,

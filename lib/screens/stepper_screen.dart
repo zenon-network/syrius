@@ -18,7 +18,7 @@ class StepperScreen extends StatelessWidget {
         margin: const EdgeInsets.all(20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
+          children: <Widget>[
             NotificationWidget(
               onSeeMorePressed: onStepperNotificationSeeMorePressed,
             ),
@@ -32,14 +32,14 @@ class StepperScreen extends StatelessWidget {
                 ),
                 child: Stack(
                   fit: StackFit.expand,
-                  children: [
+                  children: <Widget>[
                     stepper,
                     Positioned(
                       top: 0,
                       right: 0,
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.end,
-                        children: [
+                        children: <Widget>[
                           RawMaterialButton(
                             constraints: const BoxConstraints.tightForFinite(),
                             materialTapTargetSize:

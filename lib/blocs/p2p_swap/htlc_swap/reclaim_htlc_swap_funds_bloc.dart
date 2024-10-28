@@ -11,18 +11,18 @@ class ReclaimHtlcSwapFundsBloc extends BaseBloc<AccountBlockTemplate?> {
   }) async {
     try {
       addEvent(null);
-      final transactionParams =
+      final AccountBlockTemplate transactionParams =
           zenon!.embedded.htlc.reclaim(htlcId);
       AccountBlockUtils.createAccountBlock(
               transactionParams, 'reclaim swap funds',
               address: selfAddress, waitForRequiredPlasma: true,)
           .then(
-        (response) {
+        (AccountBlockTemplate response) {
           ZenonAddressUtils.refreshBalance();
           addEvent(response);
         },
       ).onError(
-        (error, stackTrace) {
+        (Object? error, StackTrace stackTrace) {
           addError(error.toString(), stackTrace);
         },
       );

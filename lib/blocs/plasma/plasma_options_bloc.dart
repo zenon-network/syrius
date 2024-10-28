@@ -9,7 +9,7 @@ class PlasmaOptionsBloc extends BaseBloc<AccountBlockTemplate?> {
   void generatePlasma(String beneficiaryAddress, BigInt amount) {
     try {
       addEvent(null);
-      final transactionParams = zenon!.embedded.plasma.fuse(
+      final AccountBlockTemplate transactionParams = zenon!.embedded.plasma.fuse(
         Address.parse(beneficiaryAddress),
         amount,
       );
@@ -18,7 +18,7 @@ class PlasmaOptionsBloc extends BaseBloc<AccountBlockTemplate?> {
         'fuse ${kQsrCoin.symbol} for Plasma',
         waitForRequiredPlasma: true,
       ).then(
-        (response) {
+        (AccountBlockTemplate response) {
           ZenonAddressUtils.refreshBalance();
           addEvent(response);
         },

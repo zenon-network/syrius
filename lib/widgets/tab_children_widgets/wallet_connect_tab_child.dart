@@ -8,7 +8,7 @@ class WalletConnectTabChild extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return StandardFluidLayout(
-      children: [
+      children: <FluidCell>[
         FluidCell(
           width: context.layout.value(
             xl: kStaggeredNumOfColumns ~/ 3,

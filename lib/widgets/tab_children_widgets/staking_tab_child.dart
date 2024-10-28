@@ -25,7 +25,7 @@ class _StakingTabChildState extends State<StakingTabChild> {
   }
 
   Widget _getFluidLayout() {
-    final children = <FluidCell>[
+    final List<FluidCell> children = <FluidCell>[
       FluidCell(
         child: StakingRewards(
           stakingRewardsHistoryBloc: _stakingRewardsHistoryBloc,
@@ -52,7 +52,7 @@ class _StakingTabChildState extends State<StakingTabChild> {
       ),
       FluidCell(
         child: Consumer<SelectedAddressNotifier>(
-          builder: (_, __, child) => StakingOptions(_stakingListBloc),
+          builder: (_, __, Widget? child) => StakingOptions(_stakingListBloc),
         ),
         width: context.layout.value(
           xl: kStaggeredNumOfColumns ~/ 3,

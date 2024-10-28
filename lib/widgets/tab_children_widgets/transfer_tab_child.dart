@@ -22,7 +22,7 @@ class _TransferTabChildState extends State<TransferTabChild> {
   @override
   Widget build(BuildContext context) {
     return StandardFluidLayout(
-      children: [
+      children: <FluidCell>[
         _getSendCard(),
         _getReceiveCard(),
         const FluidCell(

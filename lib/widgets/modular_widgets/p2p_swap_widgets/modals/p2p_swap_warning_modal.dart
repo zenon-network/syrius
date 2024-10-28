@@ -24,7 +24,7 @@ class _P2PSwapWarningModalState extends State<P2PSwapWarningModal> {
 
   Widget _getContent() {
     return Column(
-      children: [
+      children: <Widget>[
         const SizedBox(
           height: 20,
         ),

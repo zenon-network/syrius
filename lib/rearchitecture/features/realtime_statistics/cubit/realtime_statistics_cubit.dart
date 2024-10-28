@@ -42,27 +42,27 @@ class RealtimeStatisticsCubit
   @override
   Future<List<AccountBlock>> fetch() async {
       // Get the current chain height
-      final chainHeight = (await zenon.ledger.getFrontierMomentum()).height;
+      final int chainHeight = (await zenon.ledger.getFrontierMomentum()).height;
       // Calculate the starting height for the block retrieval
-      final height = chainHeight - kMomentumsPerWeek > 0
+      final int height = chainHeight - kMomentumsPerWeek > 0
           ? chainHeight - kMomentumsPerWeek
           : 1;
-      var pageIndex = 0; // Start from the first page
-      const pageSize = 10; // Number of blocks to fetch per page
-      var isLastPage = false; // Flag to determine if it's the last page
-      final blockList =
+      int pageIndex = 0; // Start from the first page
+      const int pageSize = 10; // Number of blocks to fetch per page
+      bool isLastPage = false; // Flag to determine if it's the last page
+      final List<AccountBlock> blockList =
           <AccountBlock>[]; // List to store fetched account blocks
 
       // Fetch account blocks until the last page is reached
       while (!isLastPage) {
         // Fetch account blocks for the current page
-        final response = (await zenon.ledger.getAccountBlocksByPage(
+        final List<AccountBlock> response = (await zenon.ledger.getAccountBlocksByPage(
               Address.parse(kSelectedAddress!),
               pageIndex: pageIndex,
               pageSize: pageSize,
             ))
                 .list ?? // Default to an empty list if no blocks are found
-            [];
+            <AccountBlock>[];
 
         if (response.isEmpty) {
           break; // Exit the loop if no more blocks are found

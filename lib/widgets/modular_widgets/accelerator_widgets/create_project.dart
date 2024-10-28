@@ -24,7 +24,7 @@ class CreateProject extends StatelessWidget {
   Widget _getWidgetBody(BuildContext context) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceAround,
-      children: [
+      children: <Widget>[
         const Icon(
           MaterialCommunityIcons.alien,
           size: 75,
@@ -33,7 +33,7 @@ class CreateProject extends StatelessWidget {
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisAlignment: MainAxisAlignment.center,
-          children: [
+          children: <Widget>[
             SizedBox(
               width: 200,
               child: Text(
@@ -47,7 +47,7 @@ class CreateProject extends StatelessWidget {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => StepperScreen(
+                    builder: (BuildContext context) => StepperScreen(
                       stepper: const ProjectCreationStepper(),
                       onStepperNotificationSeeMorePressed:
                           onStepperNotificationSeeMorePressed,

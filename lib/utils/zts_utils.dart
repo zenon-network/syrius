@@ -4,7 +4,7 @@ import 'package:hive/hive.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
-final List<Token> kDualCoin = [
+final List<Token> kDualCoin = <Token>[
   kZnnCoin,
   kQsrCoin,
 ];
@@ -36,13 +36,13 @@ final Token kQsrCoin = Token(
   true,
 );
 
-final Map<TokenStandard, Color> kCoinIdColor = {
+final Map<TokenStandard, Color> kCoinIdColor = <TokenStandard, Color>{
   kZnnCoin.tokenStandard: AppColors.znnColor,
   kQsrCoin.tokenStandard: AppColors.qsrColor,
 };
 
 bool isTrustedToken(String tokenStandard) {
-  return [
+  return <String>[
     znnTokenStandard,
     qsrTokenStandard,
     ...Hive.box(kFavoriteTokensBox).values,

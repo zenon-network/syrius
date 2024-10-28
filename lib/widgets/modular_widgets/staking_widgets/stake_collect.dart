@@ -45,7 +45,7 @@ class _StakeCollectState extends State<StakeCollect> {
   Widget _getFutureBuilder() {
     return StreamBuilder<UncollectedReward?>(
       stream: _stakingUncollectedRewardsBloc.stream,
-      builder: (_, snapshot) {
+      builder: (_, AsyncSnapshot<UncollectedReward?> snapshot) {
         if (snapshot.hasError) {
           return SyriusErrorWidget(snapshot.error!);
         } else if (snapshot.hasData) {
@@ -62,7 +62,7 @@ class _StakeCollectState extends State<StakeCollect> {
   Widget _getWidgetBody(UncollectedReward uncollectedReward) {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
-      children: [
+      children: <Widget>[
         NumberAnimation(
           end: uncollectedReward.qsrAmount.addDecimals(coinDecimals).toNum(),
           after: ' ${kQsrCoin.symbol}',
@@ -95,7 +95,7 @@ class _StakeCollectState extends State<StakeCollect> {
         'collect staking rewards',
         waitForRequiredPlasma: true,
       ).then(
-        (response) async {
+        (AccountBlockTemplate response) async {
           await Future.delayed(kDelayAfterAccountBlockCreationCall);
           if (mounted) {
             _stakingUncollectedRewardsBloc.updateStream();

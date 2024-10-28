@@ -61,7 +61,7 @@ void main() {
       blocTest<DelegationCubit, TimerState>(
         'calls getDelegatedPillar once',
         build: () => delegationCubit,
-        act: (cubit) => cubit.fetchDataPeriodically(),
+        act: (Object? cubit) => cubit.fetchDataPeriodically(),
         verify: (_) {
           verify(() => mockZenon.embedded.pillar.getDelegatedPillar(
                 emptyAddress,
@@ -79,7 +79,7 @@ void main() {
           ).thenThrow(delegationException);
         },
         build: () => delegationCubit,
-        act: (cubit) => cubit.fetchDataPeriodically(),
+        act: (Object? cubit) => cubit.fetchDataPeriodically(),
         expect: () => <DelegationState>[
           DelegationState(status: DashboardStatus.loading),
           DelegationState(
@@ -93,11 +93,11 @@ void main() {
         'emits [loading, success] when getDelegatedPillar '
         'returns a DelegationInfo instance',
         build: () => delegationCubit,
-        act: (cubit) => cubit.fetchDataPeriodically(),
-        expect: () => [
+        act: (Object? cubit) => cubit.fetchDataPeriodically(),
+        expect: () => <>[
           DelegationState(status: DashboardStatus.loading),
           isA<DelegationState>()
-              .having((state) => state.status, 'status', DashboardStatus.success),
+              .having((Object? state) => state.status, 'status', DashboardStatus.success),
         ],
       );
     });

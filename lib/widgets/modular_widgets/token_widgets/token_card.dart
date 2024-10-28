@@ -97,7 +97,7 @@ class _TokenCardState extends State<TokenCard> {
         ),
         child: StreamBuilder<Map<String, AccountInfo>?>(
           stream: sl.get<BalanceBloc>().stream,
-          builder: (_, snapshot) {
+          builder: (_, AsyncSnapshot<Map<String, AccountInfo>?> snapshot) {
             if (snapshot.hasError) {
               return SyriusErrorWidget(snapshot.error!);
             }
@@ -125,9 +125,9 @@ class _TokenCardState extends State<TokenCard> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
+        children: <Widget>[
           Row(
-            children: [
+            children: <Widget>[
               Container(
                 height: 5,
                 width: 5,
@@ -152,13 +152,13 @@ class _TokenCardState extends State<TokenCard> {
             ],
           ),
           Row(
-            children: [
+            children: <Widget>[
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
+                  children: <Widget>[
                     Row(
-                      children: [
+                      children: <Widget>[
                         Expanded(
                           child: Marquee(
                             child: Text(
@@ -178,7 +178,7 @@ class _TokenCardState extends State<TokenCard> {
                       height: 5,
                     ),
                     Wrap(
-                      children: [
+                      children: <Widget>[
                         if (kDefaultAddressList
                             .contains(widget.token.owner.toString()))
                           _getTokenOptionIconButton(
@@ -258,9 +258,9 @@ class _TokenCardState extends State<TokenCard> {
           ),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
+            children: <Widget>[
               Row(
-                children: [
+                children: <Widget>[
                   Text(
                     kDefaultAddressList.contains(widget.token.owner.toString())
                         ? kAddressLabelMap[widget.token.owner.toString()]!
@@ -339,18 +339,18 @@ class _TokenCardState extends State<TokenCard> {
   }
 
   Widget _getAnimatedChart(Token token) {
-    final totalSupply = token.totalSupply;
+    final BigInt totalSupply = token.totalSupply;
 
-    final maxSupply = token.maxSupply;
+    final BigInt maxSupply = token.maxSupply;
 
     return Stack(
       alignment: Alignment.center,
-      children: [
+      children: <Widget>[
         SizedBox(
           height: 100,
           width: 100,
           child: StandardPieChart(
-            sections: [
+            sections: <PieChartSectionData>[
               PieChartSectionData(
                 showTitle: false,
                 radius: 5,
@@ -372,7 +372,7 @@ class _TokenCardState extends State<TokenCard> {
             child: FormattedAmountWithTooltip(
               amount: totalSupply.addDecimals(token.decimals),
               tokenSymbol: token.symbol,
-              builder: (formattedAmount, tokenSymbol) => Text(
+              builder: (String formattedAmount, String tokenSymbol) => Text(
                 '$formattedAmount $tokenSymbol',
                 style: Theme.of(context).textTheme.bodyMedium,
                 textAlign: TextAlign.center,
@@ -391,7 +391,7 @@ class _TokenCardState extends State<TokenCard> {
 
     return ListView(
       shrinkWrap: true,
-      children: [
+      children: <Widget>[
         Form(
           key: _burnAmountKey,
           autovalidateMode: AutovalidateMode.onUserInteraction,
@@ -403,7 +403,7 @@ class _TokenCardState extends State<TokenCard> {
               _burnAmountController.text,
             ),
             controller: _burnAmountController,
-            validator: (value) => InputValidators.correctValue(
+            validator: (String? value) => InputValidators.correctValue(
                 value, _burnMaxAmount, widget.token.decimals, BigInt.zero,),
             suffixIcon: _getAmountSuffix(),
             suffixIconConstraints: const BoxConstraints(maxWidth: 50),
@@ -415,9 +415,9 @@ class _TokenCardState extends State<TokenCard> {
         Row(
           mainAxisSize: MainAxisSize.min,
           mainAxisAlignment: MainAxisAlignment.center,
-          children: [
+          children: <Widget>[
             Column(
-              children: [
+              children: <Widget>[
                 _getBurnButtonViewModel(),
                 const SizedBox(
                   height: 10,
@@ -436,9 +436,9 @@ class _TokenCardState extends State<TokenCard> {
 
   Widget _getBurnButtonViewModel() {
     return ViewModelBuilder<BurnTokenBloc>.reactive(
-      onViewModelReady: (model) {
+      onViewModelReady: (BurnTokenBloc model) {
         model.stream.listen(
-          (event) {
+          (AccountBlockTemplate event) {
             setState(() {
               _burnAmountKey.currentState?.reset();
               _burnAmountController.clear();
@@ -456,7 +456,7 @@ class _TokenCardState extends State<TokenCard> {
           },
         );
       },
-      builder: (_, model, __) => _getBurnButton(model),
+      builder: (_, BurnTokenBloc model, __) => _getBurnButton(model),
       viewModelBuilder: BurnTokenBloc.new,
     );
   }
@@ -500,7 +500,7 @@ class _TokenCardState extends State<TokenCard> {
 
   Widget _getAmountSuffix() {
     return Row(
-      children: [
+      children: <Widget>[
         AmountSuffixMaxWidget(
           onPressed: _onMaxPressed,
           context: context,
@@ -532,15 +532,15 @@ class _TokenCardState extends State<TokenCard> {
 
     return ListView(
       shrinkWrap: true,
-      children: [
+      children: <Widget>[
         Form(
           key: _beneficiaryAddressKey,
           autovalidateMode: AutovalidateMode.onUserInteraction,
           child: InputField(
-            onChanged: (value) {
+            onChanged: (String value) {
               setState(() {});
             },
-            inputFormatters: [
+            inputFormatters: <TextInputFormatter>[
               FilteringTextInputFormatter.allow(RegExp('[0-9a-z]')),
             ],
             controller: _beneficiaryAddressController,
@@ -554,14 +554,14 @@ class _TokenCardState extends State<TokenCard> {
           key: _mintAmountKey,
           autovalidateMode: AutovalidateMode.onUserInteraction,
           child: InputField(
-            onChanged: (value) {
+            onChanged: (String value) {
               setState(() {});
             },
             inputFormatters: FormatUtils.getAmountTextInputFormatters(
               _mintAmountController.text,
             ),
             controller: _mintAmountController,
-            validator: (value) => InputValidators.correctValue(
+            validator: (String? value) => InputValidators.correctValue(
                 value, _mintMaxAmount, widget.token.decimals, BigInt.zero,),
             suffixIcon: _getAmountSuffix(),
             suffixIconConstraints: const BoxConstraints(maxWidth: 50),
@@ -573,9 +573,9 @@ class _TokenCardState extends State<TokenCard> {
         Row(
           mainAxisSize: MainAxisSize.min,
           mainAxisAlignment: MainAxisAlignment.center,
-          children: [
+          children: <Widget>[
             Column(
-              children: [
+              children: <Widget>[
                 _getMintButtonViewModel(),
                 const SizedBox(
                   height: 10,
@@ -594,8 +594,8 @@ class _TokenCardState extends State<TokenCard> {
 
   Widget _getMintButtonViewModel() {
     return ViewModelBuilder<MintTokenBloc>.reactive(
-      onViewModelReady: (model) {
-        model.stream.listen((event) {
+      onViewModelReady: (MintTokenBloc model) {
+        model.stream.listen((AccountBlockTemplate event) {
           setState(() {
             _beneficiaryAddressKey.currentState!.reset();
             _mintAmountKey.currentState!.reset();
@@ -612,7 +612,7 @@ class _TokenCardState extends State<TokenCard> {
           _mintButtonKey.currentState!.animateReverse();
         },);
       },
-      builder: (_, model, __) => _getMintButton(model),
+      builder: (_, MintTokenBloc model, __) => _getMintButton(model),
       viewModelBuilder: MintTokenBloc.new,
     );
   }
@@ -669,7 +669,7 @@ class _TokenCardState extends State<TokenCard> {
   Widget _getTransferOwnershipBackOfCard() {
     return ListView(
       shrinkWrap: true,
-      children: [
+      children: <Widget>[
         Form(
           key: _newOwnerAddressKey,
           autovalidateMode: AutovalidateMode.onUserInteraction,
@@ -677,7 +677,7 @@ class _TokenCardState extends State<TokenCard> {
             onChanged: (String value) {
               setState(() {});
             },
-            inputFormatters: [
+            inputFormatters: <TextInputFormatter>[
               FilteringTextInputFormatter.allow(RegExp('[0-9a-z]')),
             ],
             controller: _newOwnerAddressController,
@@ -690,9 +690,9 @@ class _TokenCardState extends State<TokenCard> {
         Row(
           mainAxisSize: MainAxisSize.min,
           mainAxisAlignment: MainAxisAlignment.center,
-          children: [
+          children: <Widget>[
             Column(
-              children: [
+              children: <Widget>[
                 _getTransferOwnershipButtonViewModel(),
                 const SizedBox(
                   height: 10,
@@ -722,8 +722,8 @@ class _TokenCardState extends State<TokenCard> {
 
   Widget _getTransferOwnershipButtonViewModel() {
     return ViewModelBuilder<TransferOwnershipBloc>.reactive(
-      onViewModelReady: (model) {
-        model.stream.listen((event) {
+      onViewModelReady: (TransferOwnershipBloc model) {
+        model.stream.listen((AccountBlockTemplate event) {
           _sendTransferSuccessfulNotification();
           if (mounted) {
             setState(() {
@@ -740,9 +740,9 @@ class _TokenCardState extends State<TokenCard> {
           );
         },);
       },
-      builder: (_, model, __) => StreamBuilder(
+      builder: (_, TransferOwnershipBloc model, __) => StreamBuilder(
         stream: model.stream,
-        builder: (_, snapshot) {
+        builder: (_, AsyncSnapshot<AccountBlockTemplate> snapshot) {
           if (snapshot.hasError) {
             return _getTransferOwnershipButton(model);
           }

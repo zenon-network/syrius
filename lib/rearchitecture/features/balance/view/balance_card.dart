@@ -21,7 +21,7 @@ class BalanceCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (_) {
-        final cubit = BalanceCubit(
+        final BalanceCubit cubit = BalanceCubit(
           Address.parse(kSelectedAddress!),
           zenon!,
           const BalanceState(),
@@ -31,7 +31,7 @@ class BalanceCard extends StatelessWidget {
       child: CardScaffoldWithoutListener(
         data: CardType.balance.getData(context: context),
         body: BlocBuilder<BalanceCubit, BalanceState>(
-          builder: (context, state) {
+          builder: (BuildContext context, BalanceState state) {
             return switch (state.status) {
               TimerStatus.initial => const BalanceEmpty(),
               TimerStatus.loading => const BalanceLoading(),

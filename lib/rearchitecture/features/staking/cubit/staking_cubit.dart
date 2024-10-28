@@ -29,7 +29,7 @@ class StakingCubit extends TimerCubit<StakeList, StakingState> {
   @override
   Future<StakeList> fetch() async {
     // Retrieve the list of staking entries for the demo address
-    final data = await _getStakeList();
+    final StakeList data = await _getStakeList();
     if (data.list.isNotEmpty) {
       return data; // Return the fetched stake data if not empty
     } else {

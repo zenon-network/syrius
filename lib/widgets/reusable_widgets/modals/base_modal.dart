@@ -29,12 +29,12 @@ class BaseModal extends StatelessWidget {
                 padding: const EdgeInsets.all(25),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
-                  children: [
+                  children: <Widget>[
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
+                      children: <Widget>[
                         Column(
-                          children: [
+                          children: <Widget>[
                             Text(
                               title,
                               style: const TextStyle(

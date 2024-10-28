@@ -8,14 +8,14 @@ class SentinelsDeployBloc extends BaseBloc<AccountBlockTemplate?> {
   Future<void> deploySentinel(BigInt amount) async {
     try {
       addEvent(null);
-      final transactionParams =
+      final AccountBlockTemplate transactionParams =
           zenon!.embedded.sentinel.register();
       AccountBlockUtils.createAccountBlock(
         transactionParams,
         'register Sentinel',
         waitForRequiredPlasma: true,
       ).then(
-        (response) {
+        (AccountBlockTemplate response) {
           ZenonAddressUtils.refreshBalance();
           addEvent(response);
         },

@@ -53,7 +53,7 @@ class _CardScaffoldWithoutListenerState extends State<CardScaffoldWithoutListene
     return FlipCard(
       flipOnTouch: false,
       key: cardKey,
-      onFlipDone: (status) {},
+      onFlipDone: (bool status) {},
       front: ClipRRect(
         borderRadius: BorderRadius.circular(
           15,
@@ -102,7 +102,7 @@ class _CardScaffoldWithoutListenerState extends State<CardScaffoldWithoutListene
       padding: const EdgeInsets.all(8),
       child: ListView(
         shrinkWrap: true,
-        children: [
+        children: <Widget>[
           ExpandablePanel(
             collapsed: Container(),
             theme: ExpandableThemeData(
@@ -111,7 +111,7 @@ class _CardScaffoldWithoutListenerState extends State<CardScaffoldWithoutListene
               iconPlacement: ExpandablePanelIconPlacement.right,
             ),
             header: Row(
-              children: [
+              children: <Widget>[
                 const Icon(
                   Icons.info,
                   color: AppColors.znnColor,
@@ -141,7 +141,7 @@ class _CardScaffoldWithoutListenerState extends State<CardScaffoldWithoutListene
             ),
           ),
           Row(
-            children: [
+            children: <Widget>[
               const Icon(
                 Icons.remove_red_eye_rounded,
                 color: AppColors.znnColor,
@@ -160,7 +160,7 @@ class _CardScaffoldWithoutListenerState extends State<CardScaffoldWithoutListene
               Switch(
                 splashRadius: 0,
                 value: _hideWidgetInfo!,
-                onChanged: (value) {
+                onChanged: (bool value) {
                   setState(() {
                     _hideWidgetInfo = value;
                   });
@@ -189,7 +189,7 @@ class _CardScaffoldWithoutListenerState extends State<CardScaffoldWithoutListene
             visible: _showPasswordInputField,
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
+              children: <Widget>[
                 Expanded(
                   child: _getPasswordInputField(model),
                 ),
@@ -213,7 +213,7 @@ class _CardScaffoldWithoutListenerState extends State<CardScaffoldWithoutListene
           child: Padding(
             padding: const EdgeInsets.all(14),
             child: Row(
-              children: [
+              children: <Widget>[
                 Expanded(
                   child: Text(
                     title,
@@ -230,7 +230,7 @@ class _CardScaffoldWithoutListenerState extends State<CardScaffoldWithoutListene
         Row(
           mainAxisSize: MainAxisSize.min,
           mainAxisAlignment: MainAxisAlignment.end,
-          children: [
+          children: <Widget>[
             Visibility(
               visible: widget.onRefreshPressed != null,
               child: Material(
@@ -266,7 +266,7 @@ class _CardScaffoldWithoutListenerState extends State<CardScaffoldWithoutListene
 
   Widget _getPasswordInputField(HideWidgetStatusBloc model) {
     return PasswordInputField(
-      onSubmitted: (value) {
+      onSubmitted: (String value) {
         _actionButton!.onPressed!();
       },
       controller: _passwordController,
@@ -289,11 +289,11 @@ class _CardScaffoldWithoutListenerState extends State<CardScaffoldWithoutListene
 
   Widget _getHideWidgetInfoViewModel() {
     return ViewModelBuilder<HideWidgetStatusBloc>.reactive(
-      onViewModelReady: (model) {
+      onViewModelReady: (HideWidgetStatusBloc model) {
         _actionButton = _getActionButton(model);
         // Stream will tell us if the widget info is hidden or not
         model.stream.listen(
-              (response) {
+              (bool? response) {
             if (response != null) {
               _passwordController.clear();
               if (!response) {
@@ -310,9 +310,9 @@ class _CardScaffoldWithoutListenerState extends State<CardScaffoldWithoutListene
           },
         );
       },
-      builder: (_, model, __) => StreamBuilder<bool?>(
+      builder: (_, HideWidgetStatusBloc model, __) => StreamBuilder<bool?>(
         stream: model.stream,
-        builder: (_, snapshot) {
+        builder: (_, AsyncSnapshot<bool?> snapshot) {
           if (snapshot.hasError) {
             return _getBackBody(model);
           }

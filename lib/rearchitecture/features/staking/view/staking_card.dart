@@ -15,7 +15,7 @@ class StakingCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (_) {
-        final cubit = StakingCubit(
+        final StakingCubit cubit = StakingCubit(
           zenon!,
           const StakingState(),
         )..fetchDataPeriodically();
@@ -24,7 +24,7 @@ class StakingCard extends StatelessWidget {
       child: CardScaffoldWithoutListener(
         data: CardType.staking.getData(context: context),
         body: BlocBuilder<StakingCubit, StakingState>(
-          builder: (context, state) {
+          builder: (BuildContext context, StakingState state) {
             return switch (state.status) {
               TimerStatus.initial => const StakingEmpty(),
               TimerStatus.loading => const StakingLoading(),

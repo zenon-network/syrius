@@ -18,7 +18,7 @@ class TotalHourlyTransactionsPopulated extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
-      children: [
+      children: <Widget>[
         NumberAnimation(
           end: count,
           isInt: true,

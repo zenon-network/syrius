@@ -80,7 +80,7 @@ class _NodeManagementState extends State<NodeManagement> {
   Widget _getWidgetBody() {
     return ListView(
       shrinkWrap: true,
-      children: [
+      children: <Widget>[
         CustomExpandablePanel(
           'Client chain identifier selection',
           _getChainIdSelectionExpandableChild(),
@@ -99,7 +99,7 @@ class _NodeManagementState extends State<NodeManagement> {
 
   Widget _getNodeSelectionExpandableChild() {
     return Column(
-      children: [
+      children: <Widget>[
         _getNodeTiles(),
         _getConfirmNodeSelectionButton(),
       ],
@@ -109,7 +109,7 @@ class _NodeManagementState extends State<NodeManagement> {
   Row _getConfirmNodeSelectionButton() {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
-      children: [
+      children: <Widget>[
         LoadingButton.settings(
           text: 'Confirm node',
           onPressed: _onConfirmNodeButtonPressed,
@@ -127,7 +127,7 @@ class _NodeManagementState extends State<NodeManagement> {
 
     try {
       _confirmNodeButtonKey.currentState?.animateForward();
-      final isConnectionEstablished =
+      final bool isConnectionEstablished =
           await _establishConnectionToNode(_selectedNode);
       if (isConnectionEstablished) {
         kNodeChainId = await NodeUtils.getNodeChainIdentifier();
@@ -164,14 +164,14 @@ class _NodeManagementState extends State<NodeManagement> {
   }
 
   Future<bool> _establishConnectionToNode(String? url) async {
-    final targetUrl = url == kEmbeddedNode ? kLocalhostDefaultNodeUrl : url!;
-    var isConnectionEstablished =
+    final String targetUrl = url == kEmbeddedNode ? kLocalhostDefaultNodeUrl : url!;
+    bool isConnectionEstablished =
         await NodeUtils.establishConnectionToNode(targetUrl);
     if (url == kEmbeddedNode) {
       // Check if node is already running
       if (!isConnectionEstablished) {
         // Initialize local full node
-        await Isolate.spawn(EmbeddedNode.runNode, [''],
+        await Isolate.spawn(EmbeddedNode.runNode, <String>[''],
             onExit:
                 sl<ReceivePort>(instanceName: 'embeddedStoppedPort').sendPort,);
         kEmbeddedNodeRunning = true;
@@ -192,14 +192,14 @@ class _NodeManagementState extends State<NodeManagement> {
 
   Widget _getAddNodeExpandableChild() {
     return Column(
-      children: [
+      children: <Widget>[
         Form(
           key: _newNodeKey,
           autovalidateMode: AutovalidateMode.onUserInteraction,
           child: InputField(
             controller: _newNodeController,
             hintText: 'Node address with port',
-            onSubmitted: (value) {
+            onSubmitted: (String value) {
               if (_ifUserInputValid()) {
                 _onAddNodePressed();
               }
@@ -226,7 +226,7 @@ class _NodeManagementState extends State<NodeManagement> {
       InputValidators.node(_newNodeController.text) == null;
 
   Future<void> _onAddNodePressed() async {
-    if ([...kDbNodes, ...kDefaultCommunityNodes, ...kDefaultNodes]
+    if (<String>[...kDbNodes, ...kDefaultCommunityNodes, ...kDefaultNodes]
         .contains(_newNodeController.text)) {
       await NotificationUtils.sendNotificationError(
           'Node ${_newNodeController.text} already exists',
@@ -266,11 +266,11 @@ class _NodeManagementState extends State<NodeManagement> {
 
   Row _getNodeTile(String node) {
     return Row(
-      children: [
+      children: <Widget>[
         Radio<String?>(
           value: node,
           groupValue: _selectedNode,
-          onChanged: (value) {
+          onChanged: (String? value) {
             setState(() {
               _selectedNode = value;
             });
@@ -280,7 +280,7 @@ class _NodeManagementState extends State<NodeManagement> {
           child: SettingsNode(
             key: ValueKey(node),
             node: node,
-            onNodePressed: (value) {
+            onNodePressed: (String? value) {
               setState(() {
                 _selectedNode = value;
               });
@@ -326,21 +326,21 @@ class _NodeManagementState extends State<NodeManagement> {
 
   Widget _getChainIdSelectionExpandableChild() {
     return Column(
-      children: [
+      children: <Widget>[
         Row(
-          children: [
+          children: <Widget>[
             Expanded(
                 child: Form(
               key: _newChainIdKey,
               autovalidateMode: AutovalidateMode.onUserInteraction,
               child: InputField(
-                inputFormatters: [
+                inputFormatters: <TextInputFormatter>[
                   FilteringTextInputFormatter.digitsOnly,
                 ],
                 controller: _newChainIdController,
                 hintText:
                     'Current client chain identifier is ${getChainIdentifier()}',
-                onSubmitted: (value) async {
+                onSubmitted: (String value) async {
                   if (_isChainIdSelectionInputIsValid()) {
                     _onConfirmChainIdPressed();
                   }
@@ -419,9 +419,9 @@ class _NodeManagementState extends State<NodeManagement> {
   }
 
   Future<bool> _checkForChainIdMismatch() async {
-    var match = false;
-    await zenon!.ledger.getFrontierMomentum().then((momentum) async {
-      final nodeChainId = momentum.chainIdentifier;
+    bool match = false;
+    await zenon!.ledger.getFrontierMomentum().then((Momentum momentum) async {
+      final int nodeChainId = momentum.chainIdentifier;
       if (nodeChainId != _currentChainId) {
         match = await _showChainIdWarningDialog(nodeChainId, _currentChainId);
       } else {

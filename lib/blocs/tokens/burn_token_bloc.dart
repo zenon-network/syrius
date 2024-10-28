@@ -10,14 +10,14 @@ class BurnTokenBloc extends BaseBloc<AccountBlockTemplate> {
     BigInt amount,
   ) {
     try {
-      final transactionParams = zenon!.embedded.token.burnToken(
+      final AccountBlockTemplate transactionParams = zenon!.embedded.token.burnToken(
         token.tokenStandard,
         amount,
       );
       AccountBlockUtils.createAccountBlock(transactionParams, 'burn token',
               waitForRequiredPlasma: true,)
           .then(
-        (response) {
+        (AccountBlockTemplate response) {
           ZenonAddressUtils.refreshBalance();
           addEvent(response);
         },

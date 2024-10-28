@@ -38,7 +38,7 @@ class AmountInputField extends StatefulWidget {
 }
 
 class _AmountInputFieldState extends State<AmountInputField> {
-  final List<Token?> _tokensWithBalance = [];
+  final List<Token?> _tokensWithBalance = <Token?>[];
   Token? _selectedToken;
 
   @override
@@ -55,13 +55,13 @@ class _AmountInputFieldState extends State<AmountInputField> {
       key: widget.key,
       autovalidateMode: AutovalidateMode.onUserInteraction,
       child: InputField(
-        onChanged: (value) {
+        onChanged: (String value) {
           setState(() {});
         },
         inputFormatters: FormatUtils.getAmountTextInputFormatters(
           widget.controller.text,
         ),
-        validator: (value) => InputValidators.correctValue(
+        validator: (String? value) => InputValidators.correctValue(
           value,
           widget.accountInfo.getBalance(
             _selectedToken!.tokenStandard,
@@ -85,7 +85,7 @@ class _AmountInputFieldState extends State<AmountInputField> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.end,
       mainAxisSize: MainAxisSize.min,
-      children: [
+      children: <Widget>[
         _getCoinDropdown(),
         const SizedBox(
           width: 5,
@@ -102,7 +102,7 @@ class _AmountInputFieldState extends State<AmountInputField> {
   }
 
   void _onMaxPressed() => setState(() {
-        final maxBalance = widget.accountInfo.getBalance(
+        final BigInt maxBalance = widget.accountInfo.getBalance(
           _selectedToken!.tokenStandard,
         );
         widget.controller.text =
@@ -112,7 +112,7 @@ class _AmountInputFieldState extends State<AmountInputField> {
   Widget _getCoinDropdown() => CoinDropdown(
         _tokensWithBalance,
         _selectedToken!,
-        (value) {
+        (Token? value) {
           if (_selectedToken != value) {
             setState(
               () {
@@ -126,7 +126,7 @@ class _AmountInputFieldState extends State<AmountInputField> {
       );
 
   void _addTokensWithBalance() {
-    for (final balanceInfo in widget.accountInfo.balanceInfoList!) {
+    for (final BalanceInfoListItem balanceInfo in widget.accountInfo.balanceInfoList!) {
       if (balanceInfo.balance! > BigInt.zero &&
           !_tokensWithBalance.contains(balanceInfo.token)) {
         _tokensWithBalance.add(balanceInfo.token);

@@ -22,12 +22,12 @@ class ProjectsStats extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.all(15),
       child: Column(
-        children: [
+        children: <Widget>[
           Row(
-            children: [
+            children: <Widget>[
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
+                children: <Widget>[
                   Text(
                     project.name,
                   ),
@@ -46,11 +46,11 @@ class ProjectsStats extends StatelessWidget {
           kVerticalSpacing,
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
+            children: <Widget>[
               Visibility(
                 child: Expanded(
                   child: Row(
-                    children: [
+                    children: <Widget>[
                       Expanded(
                         flex: 2,
                         child: _getChart(_getZnnChartSections(context)),
@@ -69,7 +69,7 @@ class ProjectsStats extends StatelessWidget {
               Visibility(
                 child: Expanded(
                   child: Row(
-                    children: [
+                    children: <Widget>[
                       Expanded(
                         flex: 2,
                         child: _getChart(_getQsrChartSections(context)),
@@ -120,7 +120,7 @@ class ProjectsStats extends StatelessWidget {
   }
 
   List<PieChartSectionData> _getZnnChartSections(BuildContext context) {
-    return [
+    return <PieChartSectionData>[
       _getBalanceChartSection(
         AppColors.znnColor,
         project.znnFundsNeeded == BigInt.zero
@@ -137,7 +137,7 @@ class ProjectsStats extends StatelessWidget {
   }
 
   List<PieChartSectionData> _getQsrChartSections(BuildContext context) {
-    return [
+    return <PieChartSectionData>[
       _getBalanceChartSection(
         AppColors.qsrColor,
         project.qsrFundsNeeded == BigInt.zero
@@ -157,7 +157,7 @@ class ProjectsStats extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisAlignment: MainAxisAlignment.center,
-      children: [
+      children: <Widget>[
         child,
       ],
     );
@@ -169,14 +169,14 @@ class ProjectsStats extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
+        children: <Widget>[
           ChartLegend(
             dotColor: AppColors.znnColor,
             mainText: 'Received',
             detailsWidget: FormattedAmountWithTooltip(
               amount: project.getPaidZnnFunds().addDecimals(coinDecimals),
               tokenSymbol: kZnnCoin.symbol,
-              builder: (amount, tokenSymbol) => Text(
+              builder: (String amount, String tokenSymbol) => Text(
                 '$amount $tokenSymbol',
                 style: Theme.of(context).textTheme.titleMedium,
               ),
@@ -188,7 +188,7 @@ class ProjectsStats extends StatelessWidget {
             detailsWidget: FormattedAmountWithTooltip(
               amount: project.getRemainingZnnFunds().addDecimals(coinDecimals),
               tokenSymbol: kZnnCoin.symbol,
-              builder: (amount, tokenSymbol) => Text(
+              builder: (String amount, String tokenSymbol) => Text(
                 '$amount $tokenSymbol',
                 style: Theme.of(context).textTheme.titleMedium,
               ),
@@ -200,7 +200,7 @@ class ProjectsStats extends StatelessWidget {
             detailsWidget: FormattedAmountWithTooltip(
               amount: project.getTotalZnnFunds().addDecimals(coinDecimals),
               tokenSymbol: kZnnCoin.symbol,
-              builder: (amount, tokenSymbol) => Text(
+              builder: (String amount, String tokenSymbol) => Text(
                 '$amount $tokenSymbol',
                 style: Theme.of(context).textTheme.titleMedium,
               ),
@@ -217,14 +217,14 @@ class ProjectsStats extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
+        children: <Widget>[
           ChartLegend(
             dotColor: AppColors.qsrColor,
             mainText: 'Received',
             detailsWidget: FormattedAmountWithTooltip(
               amount: project.getPaidQsrFunds().addDecimals(coinDecimals),
               tokenSymbol: kQsrCoin.symbol,
-              builder: (amount, tokenSymbol) => Text(
+              builder: (String amount, String tokenSymbol) => Text(
                 '$amount $tokenSymbol',
                 style: Theme.of(context).textTheme.titleMedium,
               ),
@@ -236,7 +236,7 @@ class ProjectsStats extends StatelessWidget {
             detailsWidget: FormattedAmountWithTooltip(
               amount: project.getRemainingQsrFunds().addDecimals(coinDecimals),
               tokenSymbol: kQsrCoin.symbol,
-              builder: (amount, tokenSymbol) => Text(
+              builder: (String amount, String tokenSymbol) => Text(
                 '$amount $tokenSymbol',
                 style: Theme.of(context).textTheme.titleMedium,
               ),
@@ -248,7 +248,7 @@ class ProjectsStats extends StatelessWidget {
             detailsWidget: FormattedAmountWithTooltip(
               amount: project.getTotalQsrFunds().addDecimals(coinDecimals),
               tokenSymbol: kQsrCoin.symbol,
-              builder: (amount, tokenSymbol) => Text(
+              builder: (String amount, String tokenSymbol) => Text(
                 '$amount $tokenSymbol',
                 style: Theme.of(context).textTheme.titleMedium,
               ),

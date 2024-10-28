@@ -38,7 +38,7 @@ class DualCoinStatsChart extends StatelessWidget {
             tokenList: tokenList,
             touchedSectionIndex: index,
           ),
-          onChartSectionTouched: (pieTouchedSection) {
+          onChartSectionTouched: (PieTouchedSection? pieTouchedSection) {
             touchedSectionIndexNotifier.value =
                 pieTouchedSection?.touchedSectionIndex;
           },
@@ -52,16 +52,16 @@ class DualCoinStatsChart extends StatelessWidget {
     required List<Token> tokenList,
     required int? touchedSectionIndex,
   }) {
-    final totalSupply = tokenList.fold<BigInt>(
+    final BigInt totalSupply = tokenList.fold<BigInt>(
       BigInt.zero,
-      (previousValue, element) => previousValue + element.totalSupply,
+      (BigInt previousValue, Token element) => previousValue + element.totalSupply,
     );
     return List.generate(
       tokenList.length,
-      (i) {
-        final currentTokenInfo = tokenList[i];
-        final isTouched = i == touchedSectionIndex;
-        final opacity = isTouched ? 1.0 : 0.5;
+      (int i) {
+        final Token currentTokenInfo = tokenList[i];
+        final bool isTouched = i == touchedSectionIndex;
+        final double opacity = isTouched ? 1.0 : 0.5;
         return PieChartSectionData(
           color: ColorUtils.getTokenColor(currentTokenInfo.tokenStandard)
               .withOpacity(opacity),

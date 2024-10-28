@@ -45,7 +45,7 @@ class _BalancePopulatedState extends State<BalancePopulated> {
   @override
   Widget build(BuildContext context) {
     return Column(
-      children: [
+      children: <Widget>[
         kVerticalSpacing,
         Expanded(
           child: AspectRatio(
@@ -54,7 +54,7 @@ class _BalancePopulatedState extends State<BalancePopulated> {
                 builder: (BuildContext context, BoxConstraints constraints) {
               return Stack(
                 alignment: Alignment.center,
-                children: [
+                children: <Widget>[
                   BalanceChart(
                     accountInfo: widget.accountInfo,
                     hoveredSectionId: _touchedSectionId,
@@ -62,7 +62,7 @@ class _BalancePopulatedState extends State<BalancePopulated> {
                   ValueListenableBuilder(
                     valueListenable: _touchedSectionId,
                     builder: (_, String? id, __) {
-                      final center = id != null
+                      final Widget center = id != null
                           ? _getBalance(
                               accountInfo: widget.accountInfo,
                               constraints: constraints,
@@ -97,19 +97,19 @@ class _BalancePopulatedState extends State<BalancePopulated> {
     required BoxConstraints constraints,
     required TokenStandard tokenStandard,
   }) {
-    final amount = accountInfo
+    final String amount = accountInfo
         .getBalance(
           tokenStandard,
         )
         .addDecimals(coinDecimals);
 
-    final symbol = tokenStandard == kZnnCoin.tokenStandard
+    final String symbol = tokenStandard == kZnnCoin.tokenStandard
         ? kZnnCoin.symbol
         : kQsrCoin.symbol;
 
-    final margin = constraints.maxWidth * 0.3;
+    final double margin = constraints.maxWidth * 0.3;
 
-    final width = constraints.maxWidth - margin;
+    final double width = constraints.maxWidth - margin;
 
     return SizedBox(
       width: width,

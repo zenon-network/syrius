@@ -16,7 +16,7 @@ extension StringExtensions on String {
       }
       return BigInt.parse(this + ''.padRight(decimals, '0'));
     }
-    final parts = split('.');
+    final List<String> parts = split('.');
 
     return BigInt.parse(parts[0] +
         (parts[1].length > decimals
@@ -48,8 +48,8 @@ extension ZipTwoLists on List {
   List<T> zip<T>(List<T> smallerList) {
     return fold(
       <T>[],
-      (previousValue, element) {
-        final elementIndex = indexOf(element);
+      (List<T> previousValue, element) {
+        final int elementIndex = indexOf(element);
         previousValue.add(element);
         if (elementIndex < smallerList.length) {
           previousValue.add(
@@ -64,7 +64,7 @@ extension ZipTwoLists on List {
 
 extension ShortString on String {
   String get short {
-    final longString = this;
+    final String longString = this;
     return '${longString.substring(0, 6)}...'
         '${longString.substring(longString.length - 6)}';
   }
@@ -73,7 +73,7 @@ extension ShortString on String {
 extension LedgerErrorExtensions on LedgerError {
   String toFriendlyString() {
     return when(
-        connectionError: (origMessage) => origMessage,
+        connectionError: (String origMessage) => origMessage,
         responseError: _mapStatusWord,);
   }
 

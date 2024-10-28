@@ -148,7 +148,7 @@ class _HtlcCardState extends State<HtlcCard>
       padding: const EdgeInsets.all(20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
+        children: <Widget>[
           Text(
             widget.title,
             style:
@@ -160,9 +160,9 @@ class _HtlcCardState extends State<HtlcCard>
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
+            children: <Widget>[
               Row(
-                children: [
+                children: <Widget>[
                   Container(
                     constraints: const BoxConstraints(maxWidth: 280),
                     child: Text(
@@ -230,7 +230,7 @@ class _HtlcCardState extends State<HtlcCard>
       child: Visibility(
         visible: _areDetailsExpanded,
         child: Column(
-          children: [
+          children: <Widget>[
             const SizedBox(height: 20),
             Divider(color: Colors.white.withOpacity(0.1)),
             const SizedBox(height: 20),
@@ -242,9 +242,9 @@ class _HtlcCardState extends State<HtlcCard>
   }
 
   Widget _getDetailsList() {
-    final children = <Widget>[];
-    final htlcId = Hash.parse(widget.htlcId!);
-    final hashLock = Hash.parse(widget.hashLock!);
+    final List<Widget> children = <Widget>[];
+    final Hash htlcId = Hash.parse(widget.htlcId!);
+    final Hash hashLock = Hash.parse(widget.hashLock!);
     children.add(_getExpirationRow(widget.expirationTime!));
     children.add(
       DetailRow(
@@ -281,7 +281,7 @@ class _HtlcCardState extends State<HtlcCard>
       children: children.zip(
         List.generate(
           children.length - 1,
-          (index) => const SizedBox(
+          (int index) => const SizedBox(
             height: 15,
           ),
         ),
@@ -290,10 +290,10 @@ class _HtlcCardState extends State<HtlcCard>
   }
 
   Widget? _getTokenStandardTooltip(String tokenStandard) {
-    var message = 'This token is not in your favorites.';
-    var icon = Icons.help;
-    var iconColor = AppColors.errorColor;
-    if ([znnTokenStandard, qsrTokenStandard].contains(tokenStandard)) {
+    String message = 'This token is not in your favorites.';
+    IconData icon = Icons.help;
+    Color iconColor = AppColors.errorColor;
+    if (<String>[znnTokenStandard, qsrTokenStandard].contains(tokenStandard)) {
       message = 'This token is verified.';
       icon = Icons.check_circle_outline;
       iconColor = AppColors.znnColor;
@@ -316,7 +316,7 @@ class _HtlcCardState extends State<HtlcCard>
   }
 
   Widget _getExpirationRow(int expirationTime) {
-    final duration =
+    final Duration duration =
         Duration(seconds: expirationTime - DateTimeUtils.unixTimeNow);
     if (duration.isNegative) {
       return const DetailRow(

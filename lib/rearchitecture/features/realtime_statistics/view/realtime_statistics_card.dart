@@ -15,7 +15,7 @@ class RealtimeStatisticsCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (_) {
-        final cubit = RealtimeStatisticsCubit(
+        final RealtimeStatisticsCubit cubit = RealtimeStatisticsCubit(
           zenon!,
           const RealtimeStatisticsState(),
         )..fetchDataPeriodically();
@@ -24,7 +24,7 @@ class RealtimeStatisticsCard extends StatelessWidget {
       child: CardScaffoldWithoutListener(
         data: CardType.realtimeStatistics.getData(context: context),
         body: BlocBuilder<RealtimeStatisticsCubit, RealtimeStatisticsState>(
-          builder: (context, state) {
+          builder: (BuildContext context, RealtimeStatisticsState state) {
             return switch (state.status) {
               TimerStatus.initial => const RealtimeStatisticsEmpty(),
               TimerStatus.loading => const RealtimeStatisticsLoading(),

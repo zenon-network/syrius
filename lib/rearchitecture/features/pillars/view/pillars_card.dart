@@ -15,7 +15,7 @@ class PillarsCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (_) {
-        final cubit = PillarsCubit(
+        final PillarsCubit cubit = PillarsCubit(
           zenon!,
           const PillarsState(),
         )..fetchDataPeriodically();
@@ -24,7 +24,7 @@ class PillarsCard extends StatelessWidget {
       child: CardScaffoldWithoutListener(
         data: CardType.pillars.getData(context: context),
         body: BlocBuilder<PillarsCubit, PillarsState>(
-          builder: (context, state) {
+          builder: (BuildContext context, PillarsState state) {
             return switch (state.status) {
               TimerStatus.initial => const PillarsEmpty(),
               TimerStatus.loading => const PillarsLoading(),

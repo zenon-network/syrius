@@ -33,7 +33,7 @@ class _ExchangeRateWidgetState extends State<ExchangeRateWidget> {
     return Visibility(
       visible: widget.fromAmount > BigInt.zero && widget.toAmount > BigInt.zero,
       child: Row(
-        children: [
+        children: <Widget>[
           Text(
             _getFormattedRate(),
             style:
@@ -64,16 +64,16 @@ class _ExchangeRateWidgetState extends State<ExchangeRateWidget> {
     if (widget.fromAmount <= BigInt.zero || widget.toAmount <= BigInt.zero) {
       return '-';
     }
-    final fromAmountWithDecimals = BigDecimal.createAndStripZerosForScale(
+    final BigDecimal fromAmountWithDecimals = BigDecimal.createAndStripZerosForScale(
         widget.fromAmount, widget.fromDecimals, widget.fromDecimals,);
-    final toAmountWithDecimals = BigDecimal.createAndStripZerosForScale(
+    final BigDecimal toAmountWithDecimals = BigDecimal.createAndStripZerosForScale(
         widget.toAmount, widget.toDecimals, widget.toDecimals,);
     if (_isToggled) {
-      final rate = fromAmountWithDecimals.divide(toAmountWithDecimals,
+      final BigDecimal rate = fromAmountWithDecimals.divide(toAmountWithDecimals,
           roundingMode: RoundingMode.DOWN,);
       return '1 ${widget.toSymbol} = ${rate.toDouble().toStringFixedNumDecimals(5)} ${widget.fromSymbol}';
     } else {
-      final rate = toAmountWithDecimals.divide(fromAmountWithDecimals,
+      final BigDecimal rate = toAmountWithDecimals.divide(fromAmountWithDecimals,
           roundingMode: RoundingMode.DOWN,);
       return '1 ${widget.fromSymbol} = ${rate.toDouble().toStringFixedNumDecimals(5)} ${widget.toSymbol}';
     }

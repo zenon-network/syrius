@@ -48,7 +48,7 @@ class _ExportWalletPasswordScreenState
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: <Widget>[
             Column(
-              children: [
+              children: <Widget>[
                 const ProgressBar(
                   currentLevel: 2,
                   numLevels: 2,
@@ -77,7 +77,7 @@ class _ExportWalletPasswordScreenState
                   height: 50,
                 ),
                 Column(
-                  children: [
+                  children: <Widget>[
                     Form(
                       key: _passwordKey,
                       autovalidateMode: AutovalidateMode.onUserInteraction,
@@ -85,7 +85,7 @@ class _ExportWalletPasswordScreenState
                         hintText: 'Password',
                         controller: _passwordController,
                         validator: InputValidators.validatePassword,
-                        onChanged: (value) {
+                        onChanged: (String value) {
                           setState(() {});
                         },
                       ),
@@ -97,12 +97,12 @@ class _ExportWalletPasswordScreenState
                       child: PasswordInputField(
                         hintText: 'Confirm password',
                         controller: _confirmPasswordController,
-                        validator: (value) =>
+                        validator: (String? value) =>
                             InputValidators.checkPasswordMatch(
                           _passwordController.text,
                           value,
                         ),
-                        onChanged: (value) {
+                        onChanged: (String value) {
                           setState(() {});
                         },
                       ),
@@ -144,7 +144,7 @@ class _ExportWalletPasswordScreenState
                 initialDirectory =
                     (await getApplicationDocumentsDirectory()).path;
               }
-              final walletPath = await getSaveLocation(
+              final FileSaveLocation? walletPath = await getSaveLocation(
                 acceptedTypeGroups: <XTypeGroup>[
                   const XTypeGroup(
                     label: 'file',
@@ -159,12 +159,12 @@ class _ExportWalletPasswordScreenState
                 )}.json',
               );
               if (walletPath != null) {
-                final keyStoreManager = KeyStoreManager(
+                final KeyStoreManager keyStoreManager = KeyStoreManager(
                   walletPath: Directory(
                     path.dirname(walletPath.path),
                   ),
                 );
-                final keyStore = KeyStore.fromMnemonic(widget.seed);
+                final KeyStore keyStore = KeyStore.fromMnemonic(widget.seed);
                 await keyStoreManager.saveKeyStore(
                   keyStore,
                   _passwordController.text,
@@ -185,7 +185,7 @@ class _ExportWalletPasswordScreenState
   }
 
   void _updateExportedSeedList() {
-    final exportedSeeds = <String>[];
+    final List<String> exportedSeeds = <String>[];
     exportedSeeds.addAll(Provider.of<ValueNotifier<List<String>>>(
       context,
       listen: false,

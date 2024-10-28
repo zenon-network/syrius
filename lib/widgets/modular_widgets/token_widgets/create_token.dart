@@ -31,7 +31,7 @@ class _CreateTokenState extends State<CreateToken> {
   Widget _getWidgetBody() {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
-      children: [
+      children: <Widget>[
         Lottie.asset(
           'assets/lottie/ic_anim_zts.json',
           width: 128,
@@ -45,7 +45,7 @@ class _CreateTokenState extends State<CreateToken> {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => StepperScreen(
+                  builder: (BuildContext context) => StepperScreen(
                     stepper: const TokenStepper(),
                     onStepperNotificationSeeMorePressed:
                         widget.onStepperNotificationSeeMorePressed,

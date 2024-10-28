@@ -34,7 +34,7 @@ class P2pSwapTabChildState extends State<P2pSwapTabChild> {
 
   StandardFluidLayout _getLayout(BuildContext context) {
     return StandardFluidLayout(
-      children: [
+      children: <FluidCell>[
         FluidCell(
           height: kStaggeredNumOfColumns / 2,
           width: context.layout.value(

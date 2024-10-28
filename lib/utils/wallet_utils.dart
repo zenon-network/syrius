@@ -38,13 +38,13 @@ class WalletUtils {
   }
 
   static Future<void> _storeWalletPath(String? walletPath) async {
-    final keyStoreBox = await Hive.openBox(kKeyStoreBox);
+    final Box keyStoreBox = await Hive.openBox(kKeyStoreBox);
     await keyStoreBox.put(0, walletPath);
   }
 
   static Future<void> setWalletPath() async {
     if (kWalletPath == null) {
-      final keyStoreBox = await Hive.openBox(kKeyStoreBox);
+      final Box keyStoreBox = await Hive.openBox(kKeyStoreBox);
       if (keyStoreBox.isEmpty) {
         // Here we check if the key store path is saved in another place
         // and we copy that value, if it exists

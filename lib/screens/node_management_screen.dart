@@ -64,7 +64,7 @@ class _NodeManagementScreenState extends State<NodeManagementScreen> {
         ),
         child: ListView(
           shrinkWrap: true,
-          children: [
+          children: <Widget>[
             const NotificationWidget(),
             Text(
               'Node Management',
@@ -84,7 +84,7 @@ class _NodeManagementScreenState extends State<NodeManagementScreen> {
               height: kVerticalSpacing.height! * 2,
             ),
             Row(
-              children: [
+              children: <Widget>[
                 const Expanded(
                   child: SizedBox(),
                 ),
@@ -92,7 +92,7 @@ class _NodeManagementScreenState extends State<NodeManagementScreen> {
                   flex: 2,
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
+                    children: <Widget>[
                       Text(
                         'Node selection',
                         style: Theme.of(context).textTheme.bodyLarge,
@@ -137,7 +137,7 @@ class _NodeManagementScreenState extends State<NodeManagementScreen> {
             if (value == true) {
               NodeUtils.getUnreceivedTransactions().then((value) {
                 sl<AutoReceiveTxWorker>().autoReceive();
-              }).onError((error, stackTrace) {
+              }).onError((Object? error, StackTrace stackTrace) {
                 Logger('MainAppContainer').log(Level.WARNING,
                     '_getAutoReceiveCheckboxContainer', error, stackTrace,);
               });
@@ -193,7 +193,7 @@ class _NodeManagementScreenState extends State<NodeManagementScreen> {
   Row _getConfirmNodeSelectionButton() {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
-      children: [
+      children: <Widget>[
         LoadingButton.settings(
           text: 'Continue',
           onPressed: _onConfirmNodeButtonPressed,
@@ -211,16 +211,16 @@ class _NodeManagementScreenState extends State<NodeManagementScreen> {
 
     try {
       _confirmNodeButtonKey.currentState?.animateForward();
-      final url = _selectedNode == kEmbeddedNode
+      final String url = _selectedNode == kEmbeddedNode
           ? kLocalhostDefaultNodeUrl
           : _selectedNode!;
-      var isConnectionEstablished =
+      bool isConnectionEstablished =
           await NodeUtils.establishConnectionToNode(url);
       if (_selectedNode == kEmbeddedNode) {
         // Check if node is already running
         if (!isConnectionEstablished) {
           // Initialize local full node
-          await Isolate.spawn(EmbeddedNode.runNode, [''],
+          await Isolate.spawn(EmbeddedNode.runNode, <String>[''],
               onExit:
                   sl<ReceivePort>(instanceName: 'embeddedStoppedPort').sendPort,
               debugName: 'EmbeddedNodeIsolate',);
@@ -272,14 +272,14 @@ class _NodeManagementScreenState extends State<NodeManagementScreen> {
 
   Widget _getAddNodeColumn() {
     return Column(
-      children: [
+      children: <Widget>[
         Form(
           key: _newNodeKey,
           autovalidateMode: AutovalidateMode.onUserInteraction,
           child: InputField(
             controller: _newNodeController,
             hintText: 'Node address with port',
-            onSubmitted: (value) {
+            onSubmitted: (String value) {
               if (_ifUserInputValid()) {
                 _onAddNodePressed();
               }
@@ -306,7 +306,7 @@ class _NodeManagementScreenState extends State<NodeManagementScreen> {
       InputValidators.node(_newNodeController.text) == null;
 
   Future<void> _onAddNodePressed() async {
-    if ([...kDbNodes, ...kDefaultCommunityNodes, ...kDefaultNodes]
+    if (<String>[...kDbNodes, ...kDefaultCommunityNodes, ...kDefaultNodes]
         .contains(_newNodeController.text)) {
       await NotificationUtils.sendNotificationError(
           'Node ${_newNodeController.text} already exists',
@@ -348,11 +348,11 @@ class _NodeManagementScreenState extends State<NodeManagementScreen> {
 
   Row _getNodeTile(String node) {
     return Row(
-      children: [
+      children: <Widget>[
         Radio<String?>(
           value: node,
           groupValue: _selectedNode,
-          onChanged: (value) {
+          onChanged: (String? value) {
             setState(() {
               _selectedNode = value;
             });
@@ -362,7 +362,7 @@ class _NodeManagementScreenState extends State<NodeManagementScreen> {
           child: SettingsNode(
             key: ValueKey(node),
             node: node,
-            onNodePressed: (value) {
+            onNodePressed: (String? value) {
               setState(() {
                 _selectedNode = value;
               });

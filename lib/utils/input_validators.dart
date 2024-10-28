@@ -90,7 +90,7 @@ class InputValidators {
           }
         }
 
-        final inputNum = value.extractDecimals(decimals);
+        final BigInt inputNum = value.extractDecimals(decimals);
 
         if (value.contains('.') && value.split('.')[1].length > decimals) {
           return 'Inputted number has too many decimals';
@@ -142,9 +142,9 @@ class InputValidators {
       if (value.length < 8) {
         return 'Password not strong enough';
       }
-      const pattern =
+      const String pattern =
           r'''^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[`~!@#$%^&*()\-_=+\[\]\{\}\\|;:",<.>\/\?']).{8,}$''';
-      final regExp = RegExp(pattern);
+      final RegExp regExp = RegExp(pattern);
       if (regExp.hasMatch(value)) {
         return null;
       }
@@ -207,7 +207,7 @@ class InputValidators {
   static Future<String?> checkSecret(HtlcInfo htlc, String? value) async {
     if (value != null) {
       try {
-        final preimageCheck = htlc.hashType == htlcHashTypeSha3
+        final Hash preimageCheck = htlc.hashType == htlcHashTypeSha3
             ? Hash.digest(hex.decode(value))
             : Hash.fromBytes(await Crypto.sha256Bytes(hex.decode(value)));
 

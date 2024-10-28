@@ -18,7 +18,7 @@ int _kHeight = 0;
 
 class NodeUtils {
   static Future<bool> establishConnectionToNode(String url) async {
-    final connectionStatus = await zenon!.wsClient.initialize(
+    final bool connectionStatus = await zenon!.wsClient.initialize(
       url,
       retry: false,
     );
@@ -26,9 +26,9 @@ class NodeUtils {
   }
 
   static Future<int> getNodeChainIdentifier() async {
-    var nodeChainId = 1;
+    int nodeChainId = 1;
     try {
-      await zenon!.ledger.getFrontierMomentum().then((value) {
+      await zenon!.ledger.getFrontierMomentum().then((Momentum value) {
         nodeChainId = value.chainIdentifier;
       });
     } catch (e, stackTrace) {
@@ -58,7 +58,7 @@ class NodeUtils {
             );
 
         // If the message is null, it means that the isolate has closed
-        final embeddedStoppedCompleter = Completer();
+        final Completer embeddedStoppedCompleter = Completer();
         sl<Stream>(instanceName: 'embeddedStoppedStream').listen(
           (message) {
             kEmbeddedNodeRunning = false;
@@ -84,10 +84,10 @@ class NodeUtils {
 
   static initWebSocketClient() async {
     addOnWebSocketConnectedCallback();
-    final url = kCurrentNode == kEmbeddedNode
+    final String url = kCurrentNode == kEmbeddedNode
           ? kLocalhostDefaultNodeUrl
           : kCurrentNode ?? '';
-    var connected = false;
+    bool connected = false;
     try {
       connected = await establishConnectionToNode(url);
     } catch (_) {}
@@ -100,7 +100,7 @@ class NodeUtils {
 
   static Future<void> addOnWebSocketConnectedCallback() async {
     zenon!.wsClient
-        .addOnConnectionEstablishedCallback((allResponseBroadcaster) async {
+        .addOnConnectionEstablishedCallback((Stream<Map<String, dynamic>?> allResponseBroadcaster) async {
       kNodeChainId = await getNodeChainIdentifier();
       await _getSubscriptionForMomentums();
       await _getSubscriptionForAllAccountEvents();
@@ -116,7 +116,7 @@ class NodeUtils {
   static Future<void> getUnreceivedTransactions() async {
     await Future.forEach<String?>(
       kDefaultAddressList,
-      (address) async => getUnreceivedTransactionsByAddress(
+      (String? address) async => getUnreceivedTransactionsByAddress(
         Address.parse(address!),
       ),
     );
@@ -125,14 +125,14 @@ class NodeUtils {
   static Future<void> getUnreceivedTransactionsByAddress(
     Address address,
   ) async {
-    final unreceivedBlocks =
+    final List<AccountBlock> unreceivedBlocks =
         (await zenon!.ledger.getUnreceivedBlocksByAddress(
       address,
     ))
             .list!;
 
     if (unreceivedBlocks.isNotEmpty) {
-      for (final unreceivedBlock in unreceivedBlocks) {
+      for (final AccountBlock unreceivedBlock in unreceivedBlocks) {
         if (sharedPrefsService!.get(
           kAutoReceiveKey,
           defaultValue: kAutoReceiveDefaultValue,
@@ -145,17 +145,17 @@ class NodeUtils {
 
   static Future<void> checkForLocalTimeDiscrepancy(
       String warningMessage,) async {
-    const maxAllowedDiscrepancy = Duration(minutes: 5);
+    const Duration maxAllowedDiscrepancy = Duration(minutes: 5);
     try {
-      final syncInfo = await zenon!.stats.syncInfo();
-      final nodeIsSynced = syncInfo.state == SyncState.syncDone ||
+      final SyncInfo syncInfo = await zenon!.stats.syncInfo();
+      final bool nodeIsSynced = syncInfo.state == SyncState.syncDone ||
           (syncInfo.targetHeight > 0 &&
               syncInfo.currentHeight > 0 &&
               (syncInfo.targetHeight - syncInfo.currentHeight) < 20);
       if (nodeIsSynced) {
-        final frontierTime =
+        final int frontierTime =
             (await zenon!.ledger.getFrontierMomentum()).timestamp;
-        final timeDifference = (frontierTime - DateTimeUtils.unixTimeNow).abs();
+        final int timeDifference = (frontierTime - DateTimeUtils.unixTimeNow).abs();
         if (timeDifference > maxAllowedDiscrepancy.inSeconds) {
           await NotificationUtils.sendNotificationError(
             Exception('Local time discrepancy detected.'),
@@ -177,11 +177,11 @@ class NodeUtils {
             event['method'] == 'ledger.subscription' &&
             sharedPrefsService!
                 .get(kAutoReceiveKey, defaultValue: kAutoReceiveDefaultValue)) {
-          for (var i = 0; i < event['params']['result'].length; i += 1) {
+          for (int i = 0; i < event['params']['result'].length; i += 1) {
             final tx = event['params']['result'][i];
             if (tx.containsKey('toAddress') &&
                 kDefaultAddressList.contains(tx['toAddress'])) {
-              final hash = Hash.parse(tx['hash']);
+              final Hash hash = Hash.parse(tx['hash']);
               sl<AutoReceiveTxWorker>().addHash(hash);
             }
           }
@@ -211,14 +211,14 @@ class NodeUtils {
     if (!Hive.isBoxOpen(kNodesBox)) {
       await Hive.openBox<String>(kNodesBox);
     }
-    final nodesBox = Hive.box<String>(kNodesBox);
+    final Box<String> nodesBox = Hive.box<String>(kNodesBox);
     if (kDbNodes.isNotEmpty) {
       kDbNodes.clear();
     }
     kDbNodes.addAll(nodesBox.values);
     // Handle the case in which some default nodes were deleted
     // so they can't be found in the cache
-    final currentNode = kCurrentNode;
+    final String? currentNode = kCurrentNode;
     if (currentNode != null &&
         !kDefaultNodes.contains(currentNode) &&
         !kDbNodes.contains(currentNode)) {
@@ -232,7 +232,7 @@ class NodeUtils {
 
     if (savedNode == kEmbeddedNode) {
       // First we need to check if the node is not already running
-      final isConnectionEstablished =
+      final bool isConnectionEstablished =
           await NodeUtils.establishConnectionToNode(kLocalhostDefaultNodeUrl);
       if (isConnectionEstablished == false) {
         // Acquire WakeLock
@@ -240,7 +240,7 @@ class NodeUtils {
           WakelockPlus.enable();
         }
         // Initialize local full node
-        await Isolate.spawn(EmbeddedNode.runNode, [''],
+        await Isolate.spawn(EmbeddedNode.runNode, <String>[''],
             onExit:
                 sl<ReceivePort>(instanceName: 'embeddedStoppedPort').sendPort,);
 

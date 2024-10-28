@@ -68,5 +68,5 @@ abstract class TimerState<T> extends Equatable {
   });
 
   @override
-  List<Object?> get props => [status, data, error];
+  List<Object?> get props => <Object?>[status, data, error];
 }

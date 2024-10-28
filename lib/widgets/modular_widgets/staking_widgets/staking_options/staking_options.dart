@@ -33,7 +33,7 @@ class _StakingOptionsState extends State<StakingOptions> {
 
   final List<Duration> _durations = List.generate(
       stakeTimeMaxSec ~/ stakeTimeUnitSec,
-      (index) => Duration(
+      (int index) => Duration(
             seconds: (index + 1) * stakeTimeUnitSec,
           ),);
 
@@ -58,7 +58,7 @@ class _StakingOptionsState extends State<StakingOptions> {
     _addressController.text = kSelectedAddress!;
 
     return LayoutBuilder(
-      builder: (_, constraints) {
+      builder: (_, BoxConstraints constraints) {
         _maxWidth = constraints.maxWidth;
         return CardScaffold(
           title: 'Staking Options',
@@ -68,7 +68,7 @@ class _StakingOptionsState extends State<StakingOptions> {
               '${kQsrCoin.symbol}',
           childBuilder: () => StreamBuilder<Map<String, AccountInfo>?>(
             stream: sl.get<BalanceBloc>().stream,
-            builder: (_, snapshot) {
+            builder: (_, AsyncSnapshot<Map<String, AccountInfo>?> snapshot) {
               if (snapshot.hasError) {
                 return SyriusErrorWidget(snapshot.error!);
               }
@@ -99,7 +99,7 @@ class _StakingOptionsState extends State<StakingOptions> {
       ),
       child: ListView(
         shrinkWrap: true,
-        children: [
+        children: <Widget>[
           DisabledAddressField(
             _addressController,
             contentLeftPadding: 20,
@@ -125,7 +125,7 @@ class _StakingOptionsState extends State<StakingOptions> {
                 _znnAmountController.text,
               ),
               controller: _znnAmountController,
-              validator: (value) => InputValidators.correctValue(
+              validator: (String? value) => InputValidators.correctValue(
                 value,
                 _maxZnnAmount,
                 kZnnCoin.decimals,
@@ -140,7 +140,7 @@ class _StakingOptionsState extends State<StakingOptions> {
           kVerticalSpacing,
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
-            children: [
+            children: <Widget>[
               _getStakeForQsrViewModel(),
             ],
           ),
@@ -151,9 +151,9 @@ class _StakingOptionsState extends State<StakingOptions> {
 
   Widget _getStakeForQsrViewModel() {
     return ViewModelBuilder<StakingOptionsBloc>.reactive(
-      onViewModelReady: (model) {
+      onViewModelReady: (StakingOptionsBloc model) {
         model.stream.listen(
-          (event) {
+          (AccountBlockTemplate? event) {
             if (event != null) {
               _stakeButtonKey.currentState?.animateReverse();
               widget.stakingListViewModel!.refreshResults();
@@ -173,7 +173,7 @@ class _StakingOptionsState extends State<StakingOptions> {
           },
         );
       },
-      builder: (_, model, __) => _getStakeForQsrButton(model),
+      builder: (_, StakingOptionsBloc model, __) => _getStakeForQsrButton(model),
       viewModelBuilder: StakingOptionsBloc.new,
     );
   }
@@ -219,7 +219,7 @@ class _StakingOptionsState extends State<StakingOptions> {
         value: _selectedStakeDuration,
         items: _durations
             .map(
-              (duration) => DropdownMenuItem<Duration>(
+              (Duration duration) => DropdownMenuItem<Duration>(
                 value: duration,
                 child: Text(
                   '${duration.inSeconds ~/ stakeTimeUnitSec} $stakeUnitDurationName'
@@ -234,7 +234,7 @@ class _StakingOptionsState extends State<StakingOptions> {
               ),
             )
             .toList(),
-        onChanged: (value) {
+        onChanged: (Duration? value) {
           setState(() {
             _selectedStakeDuration = value;
           });

@@ -22,10 +22,10 @@ class RealtimeStatisticsPopulated extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.all(16),
       child: Column(
-        children: [
+        children: <Widget>[
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
-            children: [
+            children: <Widget>[
               ChartLegend(
                 dotColor: ColorUtils.getTokenColor(kQsrCoin.tokenStandard),
                 mainText: '${kQsrCoin.symbol} '

@@ -27,7 +27,7 @@ class ReceiveQrImage extends StatelessWidget {
   final TokenStandard tokenStandard;
   final BuildContext context;
 
-  static const decorationImage = PrettyQrDecorationImage(
+  static const PrettyQrDecorationImage decorationImage = PrettyQrDecorationImage(
     scale: 0.3,
     padding: EdgeInsets.only(top: 10, bottom: 10),
     image: AssetImage('assets/images/qr_code_child_image_znn.png'),
@@ -47,14 +47,14 @@ class ReceiveQrImage extends StatelessWidget {
         ),
         color: Theme.of(context).colorScheme.surface,
         child: ContextMenuRegion(
-            contextMenuBuilder: (context, offset) {
+            contextMenuBuilder: (BuildContext context, Offset offset) {
               return AdaptiveTextSelectionToolbar(
                 anchors: TextSelectionToolbarAnchors(
                   primaryAnchor: offset,
                 ),
-                children: [
+                children: <Widget>[
                   Row(
-                    children: [
+                    children: <Widget>[
                       Expanded(
                         child: Directionality(
                           textDirection: TextDirection.rtl,
@@ -84,7 +84,7 @@ class ReceiveQrImage extends StatelessWidget {
                   ),
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
+                    children: <Widget>[
                       Expanded(
                         child: Directionality(
                           textDirection: TextDirection.rtl,
@@ -124,12 +124,12 @@ class ReceiveQrImage extends StatelessWidget {
                     ),
                     image: decorationImage,),
                 errorCorrectLevel: QrErrorCorrectLevel.M,
-                errorBuilder: (context, error, stack) => Center(
+                errorBuilder: (BuildContext context, Object error, StackTrace? stack) => Center(
                       child: Padding(
                         padding: const EdgeInsets.all(5),
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
+                          children: <Widget>[
                             Lottie.asset(
                               'assets/lottie/ic_anim_no_data.json',
                               width: 32,
@@ -151,12 +151,12 @@ class ReceiveQrImage extends StatelessWidget {
   }
 
   Future<Uint8List?> _getQRImageData() async {
-    final qr = QrImage(QrCode.fromData(
+    final QrImage qr = QrImage(QrCode.fromData(
       data: data,
       errorCorrectLevel: QrErrorCorrectLevel.M,
     ),);
 
-    final b = await qr.toImageAsBytes(
+    final ByteData? b = await qr.toImageAsBytes(
         size: size,
         decoration: PrettyQrDecoration(
             shape: PrettyQrSmoothSymbol(
@@ -170,10 +170,10 @@ class ReceiveQrImage extends StatelessWidget {
   }
 
   Future<void> _saveQR() async {
-    final imageData = await _getQRImageData();
+    final Uint8List? imageData = await _getQRImageData();
     if (imageData != null) {
-      final fileName = DateTime.now().millisecondsSinceEpoch.toString();
-      final imagePath = await File(
+      final String fileName = DateTime.now().millisecondsSinceEpoch.toString();
+      final File imagePath = await File(
               '${znnDefaultPaths.cache.path}${path.separator}$fileName.png',)
           .create();
       await imagePath.writeAsBytes(imageData);
@@ -182,14 +182,14 @@ class ReceiveQrImage extends StatelessWidget {
   }
 
   Future<void> _shareQR() async {
-    final imageData = await _getQRImageData();
+    final Uint8List? imageData = await _getQRImageData();
     if (imageData != null) {
-      final fileName = DateTime.now().millisecondsSinceEpoch.toString();
-      final imagePath = await File(
+      final String fileName = DateTime.now().millisecondsSinceEpoch.toString();
+      final File imagePath = await File(
               '${znnDefaultPaths.cache.path}${path.separator}$fileName.png',)
           .create();
       await imagePath.writeAsBytes(imageData);
-      await Share.shareXFiles([XFile(imagePath.path)]);
+      await Share.shareXFiles(<XFile>[XFile(imagePath.path)]);
     }
   }
 }

@@ -13,7 +13,7 @@ abstract class WalletFile {
   final String _path;
 
   static Future<WalletFile> decrypt(String walletPath, String password) async {
-    final encrypted = await WalletFile.read(walletPath);
+    final EncryptedFile encrypted = await WalletFile.read(walletPath);
     final walletType =
         encrypted.metadata != null ? encrypted.metadata![walletTypeKey] : null;
     if (walletType == null || walletType == keyStoreWalletType) {
@@ -27,7 +27,7 @@ abstract class WalletFile {
   }
 
   static Future<EncryptedFile> read(String walletPath) async {
-    final file = File(walletPath);
+    final File file = File(walletPath);
     if (!file.existsSync()) {
       throw WalletException('Given wallet path does not exist ($walletPath)');
     }
@@ -36,8 +36,8 @@ abstract class WalletFile {
 
   static Future<void> write(String walletPath, String password, List<int> data,
       {Map<String, dynamic>? metadata,}) async {
-    final file = File(walletPath);
-    final encrypted =
+    final File file = File(walletPath);
+    final EncryptedFile encrypted =
         await EncryptedFile.encrypt(data, password, metadata: metadata);
     file.writeAsString(json.encode(encrypted), mode: FileMode.writeOnly);
   }
@@ -55,7 +55,7 @@ abstract class WalletFile {
   void close();
 
   Future<T> access<T>(Future<T> Function(Wallet) accessSection) async {
-    final wallet = await open();
+    final Wallet wallet = await open();
     try {
       return await accessSection(wallet);
     } finally {
@@ -65,8 +65,8 @@ abstract class WalletFile {
 
   Future<void> changePassword(
       String currentPassword, String newPassword,) async {
-    final file = await WalletFile.read(walletPath);
-    final decrypted = await file.decrypt(currentPassword);
+    final EncryptedFile file = await WalletFile.read(walletPath);
+    final List<int> decrypted = await file.decrypt(currentPassword);
     await WalletFile.write(walletPath, newPassword, decrypted,
         metadata: file.metadata,);
   }
@@ -84,8 +84,8 @@ class KeyStoreWalletFile extends WalletFile {
 
   static Future<KeyStoreWalletFile> create(String mnemonic, String password,
       {String? name,}) async {
-    final wallet = KeyStore.fromMnemonic(mnemonic);
-    final walletDefinition =
+    final KeyStore wallet = KeyStore.fromMnemonic(mnemonic);
+    final KeyStoreDefinition walletDefinition =
         await keyStoreWalletManager.saveKeyStore(wallet, password, name: name);
     return KeyStoreWalletFile._internal(
         walletDefinition.walletId, wallet.entropy,);
@@ -93,14 +93,14 @@ class KeyStoreWalletFile extends WalletFile {
 
   static Future<KeyStoreWalletFile> decrypt(
       String walletPath, String password,) async {
-    final encrypted = await WalletFile.read(walletPath);
+    final EncryptedFile encrypted = await WalletFile.read(walletPath);
     if (encrypted.metadata != null &&
         encrypted.metadata![walletTypeKey] != null &&
         encrypted.metadata![walletTypeKey] != keyStoreWalletType) {
       throw WalletException(
           'Wallet type (${encrypted.metadata![walletTypeKey]}) is not supported',);
     }
-    final decrypted = await encrypted.decrypt(password);
+    final List<int> decrypted = await encrypted.decrypt(password);
     return KeyStoreWalletFile._internal(walletPath, HEX.encode(decrypted));
   }
 
@@ -141,7 +141,7 @@ class LedgerWalletFile extends WalletFile {
   static final LedgerWalletManager ledgerWalletManager = LedgerWalletManager();
 
   static Future<LedgerWallet> _connect(String walletIdOrName) async {
-    for (final walletDefinition
+    for (final WalletDefinition walletDefinition
         in await ledgerWalletManager.getWalletDefinitions()) {
       if (walletDefinition.walletId == walletIdOrName ||
           walletDefinition.walletName == walletIdOrName) {
@@ -156,13 +156,13 @@ class LedgerWalletFile extends WalletFile {
 
   static Future<LedgerWalletFile> create(String walletId, String password,
       {String? walletName,}) async {
-    final wallet = await _connect(walletId);
+    final LedgerWallet wallet = await _connect(walletId);
     try {
-      final baseAddress = await (await wallet.getAccount()).getAddress();
+      final Address baseAddress = await (await wallet.getAccount()).getAddress();
       walletName ??= baseAddress.toString();
-      final walletPath = path.join(znnDefaultWalletDirectory.path, walletName);
+      final String walletPath = path.join(znnDefaultWalletDirectory.path, walletName);
       await WalletFile.write(walletPath, password, utf8.encode(walletName),
-          metadata: {
+          metadata: <String, String>{
             baseAddressKey: baseAddress.toString(),
             walletTypeKey: ledgerWalletType,
           },);
@@ -174,13 +174,13 @@ class LedgerWalletFile extends WalletFile {
 
   static Future<LedgerWalletFile> decrypt(
       String walletPath, String password,) async {
-    final encrypted = await WalletFile.read(walletPath);
+    final EncryptedFile encrypted = await WalletFile.read(walletPath);
     if (encrypted.metadata == null ||
         encrypted.metadata![walletTypeKey] != ledgerWalletType) {
       throw WalletException(
           'Wallet type (${encrypted.metadata![walletTypeKey]}) is not supported',);
     }
-    final decrypted = await encrypted.decrypt(password);
+    final List<int> decrypted = await encrypted.decrypt(password);
     return LedgerWalletFile._internal(walletPath, utf8.decode(decrypted));
   }
 

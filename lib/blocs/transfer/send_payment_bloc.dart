@@ -23,7 +23,7 @@ class SendPaymentBloc extends BaseBloc<AccountBlockTemplate?> {
     );
     try {
       addEvent(null);
-      final accountBlock = block ??
+      final AccountBlockTemplate accountBlock = block ??
           AccountBlockTemplate.send(
             Address.parse(toAddress!),
             token!.tokenStandard,
@@ -36,7 +36,7 @@ class SendPaymentBloc extends BaseBloc<AccountBlockTemplate?> {
         address: Address.parse(fromAddress!),
         waitForRequiredPlasma: true,
       ).then(
-        (response) {
+        (AccountBlockTemplate response) {
           ZenonAddressUtils.refreshBalance();
           addEvent(response);
         },

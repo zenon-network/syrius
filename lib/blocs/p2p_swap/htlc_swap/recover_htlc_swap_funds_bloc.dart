@@ -9,7 +9,7 @@ import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 class RecoverHtlcSwapFundsBloc extends ReclaimHtlcSwapFundsBloc {
   Future<void> recoverFunds({required Hash htlcId}) async {
     try {
-      final htlc = await zenon!.embedded.htlc.getById(htlcId);
+      final HtlcInfo htlc = await zenon!.embedded.htlc.getById(htlcId);
 
       if (!kDefaultAddressList.contains(htlc.timeLocked.toString())) {
         throw 'The deposit does not belong to you.';

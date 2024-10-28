@@ -11,7 +11,7 @@ class TransferOwnershipBloc extends BaseBloc<AccountBlockTemplate> {
     bool isBurnable,
   ) {
     try {
-      final transactionParams =
+      final AccountBlockTemplate transactionParams =
           zenon!.embedded.token.updateToken(
         tokenStandard,
         owner,

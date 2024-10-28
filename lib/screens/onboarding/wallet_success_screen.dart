@@ -33,7 +33,7 @@ class _WalletSuccessScreenState extends State<WalletSuccessScreen> {
     return Column(
       children: <Widget>[
         Column(
-          children: [
+          children: <Widget>[
             ProgressBar(
               currentLevel: widget.progressBarNumLevels,
               numLevels: widget.progressBarNumLevels,

@@ -31,7 +31,7 @@ class SubmitDonationBloc extends BaseBloc<AccountBlockTemplate?> {
       transactionParams,
       'donate for accelerator',
     ).then(
-      (block) {
+      (AccountBlockTemplate block) {
         sl.get<AcceleratorBalanceBloc>().getAcceleratorBalance();
         addEvent(block);
       },

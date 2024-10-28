@@ -29,7 +29,7 @@ class ClipboardUtils {
 
   static void pasteToClipboard(
       BuildContext context, Function(String) callback,) {
-    Clipboard.getData('text/plain').then((value) async {
+    Clipboard.getData('text/plain').then((ClipboardData? value) async {
       if (value != null) {
         callback(value.text!);
       } else {

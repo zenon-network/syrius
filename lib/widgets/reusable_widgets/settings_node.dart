@@ -42,7 +42,7 @@ class _SettingsNodeState extends State<SettingsNode> {
   void initState() {
     _nodeController.text = widget.node;
 
-    NodeUtils.getNodeChainIdentifier().then((chainIdentifier) {
+    NodeUtils.getNodeChainIdentifier().then((int chainIdentifier) {
       connectedNodeChainIdentifier = chainIdentifier;
       setState(() {});
     });
@@ -62,7 +62,7 @@ class _SettingsNodeState extends State<SettingsNode> {
 
   Row _getNode(BuildContext context) {
     return Row(
-      children: [
+      children: <Widget>[
         Expanded(
           child: InkWell(
             borderRadius: BorderRadius.circular(
@@ -74,7 +74,7 @@ class _SettingsNodeState extends State<SettingsNode> {
                   const EdgeInsets.symmetric(horizontal: 5, vertical: 5),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
+                children: <Widget>[
                   Text(
                     _nodeController.text,
                     style: Theme.of(context).textTheme.bodyLarge!.copyWith(
@@ -191,9 +191,9 @@ class _SettingsNodeState extends State<SettingsNode> {
   Widget _getNodeInputField() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
+      children: <Widget>[
         Row(
-          children: [
+          children: <Widget>[
             Expanded(
               child: SizedBox(
                 child: Form(
@@ -202,7 +202,7 @@ class _SettingsNodeState extends State<SettingsNode> {
                   child: InputField(
                       controller: _nodeController,
                       hintText: 'Node address with port',
-                      onSubmitted: (value) {
+                      onSubmitted: (String value) {
                         if (_nodeController.text != widget.node &&
                             _ifUserInputValid()) {
                           _onChangeButtonPressed();
@@ -215,7 +215,7 @@ class _SettingsNodeState extends State<SettingsNode> {
                           });
                         }
                       },
-                      validator: (value) =>
+                      validator: (String? value) =>
                           InputValidators.node(value) ?? _nodeError,),
                 ),
               ),
@@ -256,12 +256,12 @@ class _SettingsNodeState extends State<SettingsNode> {
       _changeButtonKey.currentState!.showLoadingIndicator(true);
       if (_nodeController.text.isNotEmpty &&
           _nodeController.text.length <= kAddressLabelMaxLength &&
-          ![...kDefaultNodes, ...kDefaultCommunityNodes, ...kDbNodes]
+          !<String>[...kDefaultNodes, ...kDefaultCommunityNodes, ...kDbNodes]
               .contains(_nodeController.text)) {
         if (!Hive.isBoxOpen(kNodesBox)) {
           await Hive.openBox<String>(kNodesBox);
         }
-        final nodesBox = Hive.box<String>(kNodesBox);
+        final Box<String> nodesBox = Hive.box<String>(kNodesBox);
         final nodeKey = nodesBox.keys.firstWhere(
           (key) => nodesBox.get(key) == widget.node,
         );
@@ -302,7 +302,7 @@ class _SettingsNodeState extends State<SettingsNode> {
       if (!Hive.isBoxOpen(kNodesBox)) {
         await Hive.openBox<String>(kNodesBox);
       }
-      final nodesBox = Hive.box<String>(kNodesBox);
+      final Box<String> nodesBox = Hive.box<String>(kNodesBox);
       final nodeKey = nodesBox.keys.firstWhere(
         (key) => nodesBox.get(key) == node,
       );

@@ -15,9 +15,9 @@ class NodeSyncPopulated extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    var (syncState, syncInfo) = (data.first, data.second);
+    var (SyncState syncState, SyncInfo syncInfo) = (data.first, data.second);
 
-    var message = '';
+    String message = '';
 
     if (syncState == SyncState.unknown) {
       message = 'Not ready';

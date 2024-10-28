@@ -23,7 +23,7 @@ enum NoMChainId {
 
 extension NoMChainIdX on NoMChainId {
   String chain() {
-    var name = '';
+    String name = '';
 
     switch (this) {
       case NoMChainId.mainnet:
@@ -64,13 +64,13 @@ class NoMService extends IChain {
       handler: _methodZnnSend,
     );
   }
-  static const namespace = 'zenon';
+  static const String namespace = 'zenon';
 
   final IWeb3WalletService _web3WalletService = sl<IWeb3WalletService>();
 
   final NoMChainId reference;
 
-  final _walletLockedError = const WalletConnectError(
+  final WalletConnectError _walletLockedError = const WalletConnectError(
     code: 9000,
     message: 'Wallet is locked',
   );
@@ -89,17 +89,17 @@ class NoMService extends IChain {
 
   @override
   List<String> getEvents() {
-    return ['chainIdChange', 'addressChange'];
+    return <String>['chainIdChange', 'addressChange'];
   }
 
   Future _methodZnnInfo(String topic, dynamic params) async {
     if (!await windowManager.isFocused() || !await windowManager.isVisible()) {
       windowManager.show();
     }
-    final dAppMetadata = wallet!
+    final PairingMetadata dAppMetadata = wallet!
         .getActiveSessions()
         .values
-        .firstWhere((element) => element.topic == topic)
+        .firstWhere((SessionData element) => element.topic == topic)
         .peer
         .metadata;
 
@@ -111,7 +111,7 @@ class NoMService extends IChain {
           title: '${dAppMetadata.name} - Information',
           content: Column(
             mainAxisSize: MainAxisSize.min,
-            children: [
+            children: <Widget>[
               Text('Are you sure you want to allow ${dAppMetadata.name} to '
                   'retrieve the current address, node URL and chain identifier information?'),
               kVerticalSpacing,
@@ -125,7 +125,7 @@ class NoMService extends IChain {
               kVerticalSpacing,
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
-                children: [
+                children: <Widget>[
                   Text(dAppMetadata.url),
                   LinkIcon(
                     url: dAppMetadata.url,
@@ -139,7 +139,7 @@ class NoMService extends IChain {
         );
 
         if (actionWasAccepted) {
-          return {
+          return <String, Object?>{
             'address': kSelectedAddress,
             'nodeUrl': kCurrentNode,
             'chainId': getChainIdentifier(),
@@ -162,14 +162,14 @@ class NoMService extends IChain {
     if (!await windowManager.isFocused() || !await windowManager.isVisible()) {
       windowManager.show();
     }
-    final dAppMetadata = wallet!
+    final PairingMetadata dAppMetadata = wallet!
         .getActiveSessions()
         .values
-        .firstWhere((element) => element.topic == topic)
+        .firstWhere((SessionData element) => element.topic == topic)
         .peer
         .metadata;
     if (kCurrentPage != Tabs.lock) {
-      final message = params as String;
+      final String message = params as String;
 
       if (globalNavigatorKey.currentContext!.mounted) {
         final actionWasAccepted = await showDialogWithNoAndYesOptions(
@@ -178,7 +178,7 @@ class NoMService extends IChain {
           title: '${dAppMetadata.name} - Sign Message',
           content: Column(
             mainAxisSize: MainAxisSize.min,
-            children: [
+            children: <Widget>[
               Text('Are you sure you want to '
                   'sign message $message ?'),
               kVerticalSpacing,
@@ -192,7 +192,7 @@ class NoMService extends IChain {
               kVerticalSpacing,
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
-                children: [
+                children: <Widget>[
                   Text(dAppMetadata.url),
                   LinkIcon(
                     url: dAppMetadata.url,
@@ -225,26 +225,26 @@ class NoMService extends IChain {
     if (!await windowManager.isFocused() || !await windowManager.isVisible()) {
       windowManager.show();
     }
-    final dAppMetadata = wallet!
+    final PairingMetadata dAppMetadata = wallet!
         .getActiveSessions()
         .values
-        .firstWhere((element) => element.topic == topic)
+        .firstWhere((SessionData element) => element.topic == topic)
         .peer
         .metadata;
     if (kCurrentPage != Tabs.lock) {
-      final accountBlock =
+      final AccountBlockTemplate accountBlock =
           AccountBlockTemplate.fromJson(params['accountBlock']);
 
-      final toAddress = ZenonAddressUtils.getLabel(
+      final String toAddress = ZenonAddressUtils.getLabel(
         accountBlock.toAddress.toString(),
       );
 
-      final token =
+      final Token? token =
           await zenon!.embedded.token.getByZts(accountBlock.tokenStandard);
 
-      final amount = accountBlock.amount.addDecimals(token!.decimals);
+      final String amount = accountBlock.amount.addDecimals(token!.decimals);
 
-      final sendPaymentBloc = SendPaymentBloc();
+      final SendPaymentBloc sendPaymentBloc = SendPaymentBloc();
 
       if (globalNavigatorKey.currentContext!.mounted) {
         final wasActionAccepted = await showDialogWithNoAndYesOptions(
@@ -253,7 +253,7 @@ class NoMService extends IChain {
           title: '${dAppMetadata.name} - Send Payment',
           content: Column(
             mainAxisSize: MainAxisSize.min,
-            children: [
+            children: <Widget>[
               Text('Are you sure you want to transfer '
                   '$amount ${token.symbol} to '
                   '$toAddress ?'),
@@ -268,7 +268,7 @@ class NoMService extends IChain {
               kVerticalSpacing,
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
-                children: [
+                children: <Widget>[
                   Text(dAppMetadata.url),
                   LinkIcon(
                     url: dAppMetadata.url,
@@ -290,8 +290,8 @@ class NoMService extends IChain {
             block: AccountBlockTemplate.fromJson(params['accountBlock']),
           );
 
-          final result = await sendPaymentBloc.stream.firstWhere(
-            (element) => element != null,
+          final AccountBlockTemplate? result = await sendPaymentBloc.stream.firstWhere(
+            (AccountBlockTemplate? element) => element != null,
           );
 
           return result!;

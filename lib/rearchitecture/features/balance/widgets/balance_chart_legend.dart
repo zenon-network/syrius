@@ -47,7 +47,7 @@ class BalanceChartLegend extends StatelessWidget {
           )
           .addDecimals(coin.decimals),
       tokenSymbol: coin.symbol,
-      builder: (amount, tokenSymbol) => AmountInfoColumn(
+      builder: (String amount, String tokenSymbol) => AmountInfoColumn(
         context: context,
         amount: amount,
         tokenSymbol: tokenSymbol,

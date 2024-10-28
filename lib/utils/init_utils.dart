@@ -69,7 +69,7 @@ class InitUtils {
       );
 
   static Future<void> initWalletAfterDecryption(List<int> cipherKey) async {
-    final walletVersion = Version.parse(sharedPrefsService!
+    final Version walletVersion = Version.parse(sharedPrefsService!
         .get(kWalletVersionKey, defaultValue: kWalletVersion),);
     await ZenonAddressUtils.setAddresses(kWalletFile);
     await ZenonAddressUtils.setAddressLabels();

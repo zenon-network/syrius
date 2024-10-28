@@ -32,7 +32,7 @@ class _CancelTimerState extends State<CancelTimer> {
       const Duration(
         seconds: 1,
       ),
-      (v) {
+      (Timer v) {
         if (mounted &&
             _currentDuration >
                 const Duration(

@@ -29,7 +29,7 @@ class _DualCoinStatsPopulatedState extends State<DualCoinStatsPopulated>
   @override
   Widget build(BuildContext context) {
     return Column(
-      children: [
+      children: <Widget>[
         Expanded(
           child: DualCoinStatsChart(
             tokenList: widget.tokens,

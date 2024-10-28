@@ -11,7 +11,7 @@ class NotificationsBloc extends BaseBloc<WalletNotification?> {
   Future<void> addNotification(WalletNotification? notification) async {
     try {
       await Hive.openBox(kNotificationsBox);
-      final notificationsBox = Hive.box(kNotificationsBox);
+      final Box notificationsBox = Hive.box(kNotificationsBox);
       if (notificationsBox.length >= kNotificationsEntriesLimit) {
         while (notificationsBox.length >= kNotificationsEntriesLimit) {
           await notificationsBox.delete(notificationsBox.keys.first);
@@ -19,7 +19,7 @@ class NotificationsBloc extends BaseBloc<WalletNotification?> {
       }
       await notificationsBox.add(notification);
       if (notification != null && _areDesktopNotificationsEnabled()) {
-        final localNotification = LocalNotification(
+        final LocalNotification localNotification = LocalNotification(
           title: notification.title ?? 'Empty title',
           body: notification.details ?? 'No details available',
         );

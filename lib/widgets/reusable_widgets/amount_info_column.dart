@@ -5,7 +5,7 @@ class AmountInfoColumn extends Column {
   AmountInfoColumn({
     required this.context, required this.amount, required this.tokenSymbol, super.key,
   }) : super(
-          children: [
+          children: <Widget>[
             Text(
               tokenSymbol,
               style: Theme.of(context).textTheme.bodyLarge,

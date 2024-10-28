@@ -14,7 +14,7 @@ class HtlcSwapBloc extends PeriodicP2pSwapBaseBloc<HtlcSwap> {
       if (zenon!.wsClient.isClosed()) {
         throw noConnectionException;
       }
-      final swap = htlcSwapsService!.getSwapById(swapId);
+      final HtlcSwap? swap = htlcSwapsService!.getSwapById(swapId);
       if (swap != null) {
         return swap;
       } else {

@@ -4,6 +4,7 @@ import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/cubits/timer_cu
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/exceptions/exceptions.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
+import 'package:znn_sdk_dart/src/model/nom/detailed_momentum.dart';
 
 part 'total_hourly_transactions_cubit.g.dart';
 
@@ -33,20 +34,20 @@ class TotalHourlyTransactionsCubit
   @override
   Future<int> fetch() async {
     // Retrieve the current chain height
-    final chainHeight = await _ledgerGetMomentumLedgerHeight();
+    final int chainHeight = await _ledgerGetMomentumLedgerHeight();
     if (chainHeight - kMomentumsPerHour > 0) {
       // Fetch detailed momentums for the past hour
-      final response = (await zenon.ledger.getDetailedMomentumsByHeight(
+      final List<DetailedMomentum> response = (await zenon.ledger.getDetailedMomentumsByHeight(
             chainHeight - kMomentumsPerHour,
             kMomentumsPerHour,
           ))
               .list ??
-          [];
+          <DetailedMomentum>[];
 
       // Prepare the transaction summary
-      final transactions = response.fold<int>(
+      final int transactions = response.fold<int>(
         0,
-        (previousValue, element) => previousValue + element.blocks.length,
+        (int previousValue, DetailedMomentum element) => previousValue + element.blocks.length,
       );
       return transactions; // Return the summary of transactions
     } else {

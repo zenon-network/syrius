@@ -5,6 +5,7 @@ import 'package:stacked/stacked.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/decrypt_wallet_file_bloc.dart';
 import 'package:zenon_syrius_wallet_flutter/services/htlc_swaps_service.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/wallet_file.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
@@ -56,7 +57,7 @@ class _ChangeWalletPasswordScreenState
               style: Theme.of(context).textTheme.headlineLarge,
             ),
             Column(
-              children: [
+              children: <Widget>[
                 Form(
                   key: _currentPasswordKey,
                   autovalidateMode: AutovalidateMode.onUserInteraction,
@@ -64,7 +65,7 @@ class _ChangeWalletPasswordScreenState
                     errorText: _currentPassErrorText,
                     controller: _currentPasswordController,
                     hintText: 'Current password',
-                    onChanged: (value) {
+                    onChanged: (String value) {
                       setState(() {
                         if (_currentPassErrorText != null) {
                           _currentPassErrorText = null;
@@ -80,7 +81,7 @@ class _ChangeWalletPasswordScreenState
                   child: PasswordInputField(
                     controller: _newPasswordController,
                     validator: InputValidators.validatePassword,
-                    onChanged: (value) {
+                    onChanged: (String value) {
                       setState(() {});
                     },
                     hintText: 'New password',
@@ -92,17 +93,17 @@ class _ChangeWalletPasswordScreenState
                   autovalidateMode: AutovalidateMode.onUserInteraction,
                   child: PasswordInputField(
                     controller: _confirmPasswordController,
-                    validator: (value) => InputValidators.checkPasswordMatch(
+                    validator: (String? value) => InputValidators.checkPasswordMatch(
                       _newPasswordController.text,
                       value,
                     ),
                     hintText: 'Repeat new password',
-                    onSubmitted: (value) {
+                    onSubmitted: (String value) {
                       if (_arePasswordsValid()) {
                         _loadingButton.onPressed!();
                       }
                     },
-                    onChanged: (value) {
+                    onChanged: (String value) {
                       setState(() {});
                     },
                   ),
@@ -148,7 +149,7 @@ class _ChangeWalletPasswordScreenState
     String currentPassword,
     String newPassword,
   ) async {
-    final baseAddress = WalletUtils.baseAddress;
+    final Address baseAddress = WalletUtils.baseAddress;
     await kWalletFile!.changePassword(currentPassword, newPassword);
     await HtlcSwapsService.getInstance().closeBoxes();
     await HtlcSwapsService.getInstance().openBoxes(
@@ -172,8 +173,8 @@ class _ChangeWalletPasswordScreenState
 
   Widget _getDecryptKeyStoreFileViewModel() {
     return ViewModelBuilder<DecryptWalletFileBloc>.reactive(
-      onViewModelReady: (model) {
-        model.stream.listen((walletFile) async {
+      onViewModelReady: (DecryptWalletFileBloc model) {
+        model.stream.listen((WalletFile? walletFile) async {
           if (walletFile != null) {
             setState(() {
               _currentPassErrorText = null;
@@ -206,7 +207,7 @@ class _ChangeWalletPasswordScreenState
           }
         },);
       },
-      builder: (_, model, __) {
+      builder: (_, DecryptWalletFileBloc model, __) {
         _loadingButton = _getLoadingButton(model);
         return _getLoadingButton(model);
       },

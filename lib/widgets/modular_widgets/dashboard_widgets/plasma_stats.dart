@@ -37,7 +37,7 @@ class PlasmaStats extends StatefulWidget {
 }
 
 class _PlasmaStatsState extends State<PlasmaStats> {
-  final List<String> _addresses = [];
+  final List<String> _addresses = <String>[];
 
   bool _sortAscending = true;
 
@@ -68,7 +68,7 @@ class _PlasmaStatsState extends State<PlasmaStats> {
           : null,
       items: plasmaInfoStats,
       headerColumns: widget.version == PlasmaStatsWidgetVersion.plasmaTab
-          ? [
+          ? <CustomHeaderColumn>[
               CustomHeaderColumn(
                 columnName: 'Address',
                 onSortArrowsPressed: _onSortArrowsPressed,
@@ -80,8 +80,8 @@ class _PlasmaStatsState extends State<PlasmaStats> {
               ),
             ]
           : null,
-      generateRowCells: (plasmaStatsWrapper, isSelected) {
-        return [
+      generateRowCells: (PlasmaInfoWrapper plasmaStatsWrapper, bool isSelected) {
+        return <Widget>[
           if (widget.version == PlasmaStatsWidgetVersion.plasmaTab) isSelected
                   ? CustomTableCell.tooltipWithMarquee(
                       Address.parse(plasmaStatsWrapper.address),
@@ -120,13 +120,13 @@ class _PlasmaStatsState extends State<PlasmaStats> {
     switch (columnName) {
       case 'Address':
         _sortAscending
-            ? _addresses.sort((a, b) => a.compareTo(b))
-            : _addresses.sort((a, b) => b.compareTo(a));
+            ? _addresses.sort((String a, String b) => a.compareTo(b))
+            : _addresses.sort((String a, String b) => b.compareTo(a));
 
       default:
         _sortAscending
-            ? _addresses.sort((a, b) => a.compareTo(b))
-            : _addresses.sort((a, b) => b.compareTo(a));
+            ? _addresses.sort((String a, String b) => a.compareTo(b))
+            : _addresses.sort((String a, String b) => b.compareTo(a));
         break;
     }
 

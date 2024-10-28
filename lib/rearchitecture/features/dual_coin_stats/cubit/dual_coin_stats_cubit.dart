@@ -26,8 +26,8 @@ class DualCoinStatsCubit
   /// It returns a list containing the fetched token data for ZNN and QSR.
   @override
   Future<List<Token>> fetch() async {
-    final data = await Future.wait(
-      [
+    final List<Token?> data = await Future.wait(
+      <Future<Token?>>[
         zenon.embedded.token.getByZts(
           znnZts, // Fetches the ZNN token statistics
         ),
@@ -38,7 +38,7 @@ class DualCoinStatsCubit
     );
 
     // For ZNN and QSR, the network will return non-nullable data
-    final nonNullableData = data.map((token) => token!).toList();
+    final List<Token> nonNullableData = data.map((Token? token) => token!).toList();
 
     return nonNullableData;
   }

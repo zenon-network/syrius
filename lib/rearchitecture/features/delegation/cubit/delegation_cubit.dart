@@ -28,7 +28,7 @@ class DelegationCubit extends TimerCubit<DelegationInfo, DelegationState> {
   /// - If not available, it throws an exception
   @override
   Future<DelegationInfo> fetch() async {
-    final delegationInfo = await zenon.embedded.pillar.getDelegatedPillar(
+    final DelegationInfo? delegationInfo = await zenon.embedded.pillar.getDelegatedPillar(
       address,
     );
 

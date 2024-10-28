@@ -9,3 +9,13 @@ analyzer:
     strict-casts: false
     strict-inference: false
     strict-raw-types: false
+
+linter:
+  rules:
+    # Always specifying types will make an unfamiliar codebase more readable for a new developer
+    # More details about the rule:
+    # https://gist.github.com/rydmike/fdb53ddd933c37d20e6f3188a936cd4c#file-analysis_options-yaml-L138
+    always_specify_types: true
+    # This rule is in contradiction with always_specify_types, so it must be disabled if the other
+    # one is enabled
+    omit_local_variable_types: false

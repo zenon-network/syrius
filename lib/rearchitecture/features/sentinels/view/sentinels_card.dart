@@ -15,7 +15,7 @@ class SentinelsCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (_) {
-        final cubit = SentinelsCubit(
+        final SentinelsCubit cubit = SentinelsCubit(
           zenon!,
           const SentinelsState(),
         )..fetchDataPeriodically();
@@ -24,7 +24,7 @@ class SentinelsCard extends StatelessWidget {
       child: CardScaffoldWithoutListener(
         data: CardType.sentinels.getData(context: context),
         body: BlocBuilder<SentinelsCubit, SentinelsState>(
-          builder: (context, state) {
+          builder: (BuildContext context, SentinelsState state) {
             return switch (state.status) {
               TimerStatus.initial => const SentinelsEmpty(),
               TimerStatus.loading => const SentinelsLoading(),
