@@ -10,16 +10,30 @@ import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 
+/// A scaffold for the standard card used across the app
+///
+/// It comes with a lot of predefined styling and features
+///
+/// On the front, it display a title, contained by [data], a [body], the main
+/// front widget, an [IconButton] to flip the card and, if [onRefreshPressed]
+/// is not null, an [IconButton] to trigger a callback
+/// On the back, it display a description, contained by [data], a [Switch] to
+/// hide the [body] and - if the widget is already hidden - an
+/// [PasswordInputField] to input the wallet password and make the [body]
+/// visible again
 class CardScaffoldWithoutListener extends StatefulWidget {
+  /// Creates a [CardScaffoldWithoutListener] instance.
   const CardScaffoldWithoutListener({
     required this.body,
     required this.data,
     this.onRefreshPressed,
     super.key,
   });
-
+  /// Widget that will appear on the front of the card
   final Widget body;
+  /// Data needed for certain UI parts of the card
   final CardData data;
+  /// Optional callback that can be trigger from the card
   final VoidCallback? onRefreshPressed;
 
   @override
@@ -34,7 +48,7 @@ class _CardScaffoldWithoutListenerState
 
   final TextEditingController _passwordController = TextEditingController();
 
-  bool? _hideWidgetInfo = false;
+  bool _hideWidgetInfo = false;
   bool _showPasswordInputField = false;
 
   String? _messageToUser;
@@ -162,7 +176,7 @@ class _CardScaffoldWithoutListenerState
               const Spacer(),
               Switch(
                 splashRadius: 0,
-                value: _hideWidgetInfo!,
+                value: _hideWidgetInfo,
                 onChanged: (bool value) {
                   setState(() {
                     _hideWidgetInfo = value;
@@ -361,7 +375,7 @@ class _CardScaffoldWithoutListenerState
         await model.checkPassAndMarkWidgetWithHiddenValue(
           _title,
           _passwordController.text,
-          _hideWidgetInfo!,
+          _hideWidgetInfo,
         );
       } catch (_) {
       } finally {
