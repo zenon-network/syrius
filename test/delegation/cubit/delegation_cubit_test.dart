@@ -53,9 +53,8 @@ void main() {
       when(() => mockPillar.getDelegatedPillar(any()))
           .thenAnswer((_) async => delegationInfo);
       delegationCubit = DelegationCubit(
-        emptyAddress,
-        mockZenon,
-        DelegationState(),
+        address: emptyAddress,
+        zenon: mockZenon,
       );
     });
 

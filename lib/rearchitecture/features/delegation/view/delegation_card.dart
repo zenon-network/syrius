@@ -17,9 +17,8 @@ class DelegationCard extends StatelessWidget {
     return BlocProvider<DelegationCubit>(
       create: (_) {
         final DelegationCubit cubit = DelegationCubit(
-          Address.parse(kSelectedAddress!),
-          zenon!,
-          DelegationState(),
+          address: Address.parse(kSelectedAddress!),
+          zenon: zenon!,
         )..fetchDataPeriodically();
         return cubit;
       },

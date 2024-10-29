@@ -19,7 +19,10 @@ class TotalHourlyTransactionsCubit
   ///
   /// The [zenon] client is used to interact with the Zenon network to retrieve
   /// transaction information.
-  TotalHourlyTransactionsCubit(super.zenon, super.initialState);
+  TotalHourlyTransactionsCubit({
+    required super.zenon,
+    super.initialState = const TotalHourlyTransactionsState(),
+});
 
   /// Fetches the total number of account blocks for the last hour from the
   /// Zenon network.

@@ -16,8 +16,7 @@ class StakingCard extends StatelessWidget {
     return BlocProvider<StakingCubit>(
       create: (_) {
         final StakingCubit cubit = StakingCubit(
-          zenon!,
-          StakingState(),
+          zenon: zenon!,
         )..fetchDataPeriodically();
         return cubit;
       },

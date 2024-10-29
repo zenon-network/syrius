@@ -16,8 +16,7 @@ class SentinelsCard extends StatelessWidget {
     return BlocProvider<SentinelsCubit>(
       create: (_) {
         final SentinelsCubit cubit = SentinelsCubit(
-          zenon!,
-          SentinelsState(),
+          zenon: zenon!,
         )..fetchDataPeriodically();
         return cubit;
       },

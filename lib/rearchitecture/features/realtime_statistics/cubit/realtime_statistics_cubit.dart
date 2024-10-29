@@ -21,7 +21,10 @@ class RealtimeStatisticsCubit
   ///
   /// The [zenon] client is used to interact with the Zenon network to retrieve
   /// account block information.
-  RealtimeStatisticsCubit(super.zenon, super.initialState);
+  RealtimeStatisticsCubit({
+    required super.zenon,
+    super.initialState = const RealtimeStatisticsState(),
+});
 
   /// Fetches a list of account blocks for the specified address over the past
   /// week.

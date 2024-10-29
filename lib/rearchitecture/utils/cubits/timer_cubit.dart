@@ -23,11 +23,11 @@ abstract class TimerCubit<T, S extends TimerState<T>> extends HydratedCubit<S> {
   /// state.
   ///
   /// The auto-refresh functionality is initialized upon the cubit's creation.
-  TimerCubit(
-    this.zenon,
-    super.initialState, {
+  TimerCubit({
+    required this.zenon,
+    required S initialState,
     this.refreshInterval = kTimerCubitRefreshInterval,
-  });
+  }): super(initialState);
 
   /// A timer that handles the auto-refreshing of data.
   Timer? _autoRefresher;

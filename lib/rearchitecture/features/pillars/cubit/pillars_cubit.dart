@@ -16,7 +16,10 @@ class PillarsCubit extends TimerCubit<int, PillarsState> {
   ///
   /// The [zenon] client is used to interact with the Zenon network to retrieve
   /// pillar information.
-  PillarsCubit(super.zenon, super.initialState);
+  PillarsCubit({
+    required super.zenon,
+    super.initialState = const PillarsState(),
+});
 
   /// Fetches the total count of pillars from the Zenon network.
   @override

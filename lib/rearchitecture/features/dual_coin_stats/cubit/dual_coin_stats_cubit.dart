@@ -18,7 +18,10 @@ class DualCoinStatsCubit extends TimerCubit<List<Token>, DualCoinStatsState> {
   ///
   /// The [zenon] client is used to interact with the Zenon network to retrieve
   /// token information.
-  DualCoinStatsCubit(super.zenon, super.initialState);
+  DualCoinStatsCubit({
+    required super.zenon,
+    super.initialState = const DualCoinStatsState(),
+});
 
   /// Fetches the statistics for both ZNN and QSR tokens.
   ///

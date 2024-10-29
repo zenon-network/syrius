@@ -16,7 +16,10 @@ class SentinelsCubit extends TimerCubit<SentinelInfoList, SentinelsState> {
   ///
   /// The [zenon] client is used to interact with the Zenon network to retrieve
   /// sentinel information.
-  SentinelsCubit(super.zenon, super.initialState);
+  SentinelsCubit({
+    required super.zenon,
+    super.initialState = const SentinelsState(),
+});
 
   /// Fetches a list of active sentinels from the Zenon network.
   @override

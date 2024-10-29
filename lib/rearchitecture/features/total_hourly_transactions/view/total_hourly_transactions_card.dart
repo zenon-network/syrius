@@ -16,8 +16,7 @@ class TotalHourlyTransactionsCard extends StatelessWidget {
     return BlocProvider<TotalHourlyTransactionsCubit>(
       create: (_) {
         final TotalHourlyTransactionsCubit cubit = TotalHourlyTransactionsCubit(
-          zenon!,
-          TotalHourlyTransactionsState(),
+          zenon: zenon!,
         )..fetchDataPeriodically();
         return cubit;
       },
