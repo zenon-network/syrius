@@ -3,8 +3,12 @@
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
-import 'package:zenon_syrius_wallet_flutter/rearchitecture/dashboard/features.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/cubits/timer_cubit.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/exceptions/exceptions.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
+
+import '../../helpers/hydrated_bloc.dart';
 
 class MockZenon extends Mock implements Zenon {}
 
@@ -18,7 +22,10 @@ class MockDelegationInfo extends Mock implements DelegationInfo {}
 
 class FakeAddress extends Fake implements Address {}
 
+
 void main() {
+  initHydratedStorage();
+
   setUpAll(() {
     registerFallbackValue(FakeAddress());
   });
@@ -27,18 +34,22 @@ void main() {
     late MockZenon mockZenon;
     late MockWsClient mockWsClient;
     late DelegationCubit delegationCubit;
+    late DelegationInfo delegationInfo;
     late MockEmbedded mockEmbedded;
     late MockPillar mockPillar;
-    late MockDelegationInfo delegationInfo;
-    late Exception delegationException;
+    late SyriusException delegationException;
 
     setUp(() async {
       mockZenon = MockZenon();
       mockWsClient = MockWsClient();
-      delegationInfo = MockDelegationInfo();
+      delegationInfo = DelegationInfo(
+        name: 'testName',
+        status: 1,
+        weight: BigInt.from(1),
+      );
       mockEmbedded = MockEmbedded();
       mockPillar = MockPillar();
-      delegationException = Exception('No delegation stats available - test');
+      delegationException = NoDelegationStatsException();
 
       when(() => mockZenon.wsClient).thenReturn(mockWsClient);
       when(() => mockWsClient.isClosed()).thenReturn(false);
@@ -46,6 +57,7 @@ void main() {
       when(() => mockEmbedded.pillar).thenReturn(mockPillar);
       when(() => mockPillar.getDelegatedPillar(any()))
           .thenAnswer((_) async => delegationInfo);
+
       delegationCubit = DelegationCubit(
         emptyAddress,
         mockZenon,
@@ -54,7 +66,14 @@ void main() {
     });
 
     test('initial status is correct', () {
-      expect(delegationCubit.state.status, DashboardStatus.initial);
+      expect(delegationCubit.state.status, TimerStatus.initial);
+    });
+
+    test('can be (de)serialized', () {
+      final delegationState = DelegationState(status: TimerStatus.success, data: delegationInfo);
+      final serialized = delegationCubit.toJson(delegationState);
+      final deserialized = delegationCubit.fromJson(serialized!);
+      expect(deserialized, delegationState);
     });
 
     group('fetchDataPeriodically', () {
@@ -63,7 +82,7 @@ void main() {
         build: () => delegationCubit,
         act: (cubit) => cubit.fetchDataPeriodically(),
         verify: (_) {
-          verify(() => mockZenon.embedded.pillar.getDelegatedPillar(
+          verify(() => mockPillar.getDelegatedPillar(
                 emptyAddress,
               ),).called(1);
         },
@@ -81,9 +100,9 @@ void main() {
         build: () => delegationCubit,
         act: (cubit) => cubit.fetchDataPeriodically(),
         expect: () => <DelegationState>[
-          DelegationState(status: DashboardStatus.loading),
+          DelegationState(status: TimerStatus.loading),
           DelegationState(
-            status: DashboardStatus.failure,
+            status: TimerStatus.failure,
             error: delegationException,
           ),
         ],
@@ -94,10 +113,12 @@ void main() {
         'returns a DelegationInfo instance',
         build: () => delegationCubit,
         act: (cubit) => cubit.fetchDataPeriodically(),
-        expect: () => [
-          DelegationState(status: DashboardStatus.loading),
-          isA<DelegationState>()
-              .having((state) => state.status, 'status', DashboardStatus.success),
+        expect: () => <DelegationState>[
+          DelegationState(status: TimerStatus.loading),
+          DelegationState(
+            status: TimerStatus.success,
+            data: delegationInfo,
+          ),
         ],
       );
     });

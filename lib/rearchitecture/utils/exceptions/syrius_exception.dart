@@ -1,10 +1,11 @@
+import 'package:equatable/equatable.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 part 'syrius_exception.g.dart';
 
 /// A custom exception that displays only the message when printed.
 @JsonSerializable()
-class SyriusException implements Exception {
+class SyriusException extends Equatable implements Exception {
   /// Creates a [SyriusException] with a required message.
   SyriusException(this.message);
 
@@ -21,4 +22,7 @@ class SyriusException implements Exception {
   /// Returns the exception message without the 'Exception:' prefix.
   @override
   String toString() => message;
+
+  @override
+  List<Object?> get props => [message];
 }

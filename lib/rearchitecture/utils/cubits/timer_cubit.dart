@@ -67,16 +67,22 @@ abstract class TimerCubit<T, S extends TimerState<T>>
   /// If the WebSocket client is closed, it throws a [noConnectionException].
   Future<void> fetchDataPeriodically() async {
     try {
+      print('Emitting loading state');
       emit(state.copyWith(status: TimerStatus.loading) as S);
       if (!zenon.wsClient.isClosed()) {
+        print('WebSocket is open, fetching data');
         final data = await fetch();
+        print('Fetch successful, emitting success state');
         emit(state.copyWith(data: data, status: TimerStatus.success) as S);
       } else {
+        print('WebSocket is closed, throwing noConnectionException');
         throw noConnectionException;
       }
     } on CubitException catch (e) {
+      print('CubitException caught: $e');
       emit(state.copyWith(status: TimerStatus.failure, error: e) as S);
     } catch (e) {
+      print('Generic exception caught: $e');
       emit(
         state.copyWith(
           status: TimerStatus.failure,
@@ -84,12 +90,12 @@ abstract class TimerCubit<T, S extends TimerState<T>>
         ) as S,
       );
     } finally {
-      /// Ensure that the auto-refresher is restarted if it's not active.
       if (!isTimerActive) {
         _startAutoRefresh();
       }
     }
   }
+
 
   /// Starts the auto-refresh cycle by initializing the [_autoRefresher] timer.
   void _startAutoRefresh() {
