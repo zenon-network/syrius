@@ -28,7 +28,7 @@ class PillarsState extends TimerState<int> {
   TimerState<int> copyWith({
     TimerStatus? status,
     int? data,
-    SyriusException? error,
+    CubitException? error,
   }) {
     return PillarsState(
       status: status ?? this.status,

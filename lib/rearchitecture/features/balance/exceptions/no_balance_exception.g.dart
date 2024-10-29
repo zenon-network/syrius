@@ -7,7 +7,12 @@ part of 'no_balance_exception.dart';
 // **************************************************************************
 
 NoBalanceException _$NoBalanceExceptionFromJson(Map<String, dynamic> json) =>
-    NoBalanceException();
+    NoBalanceException(
+      message:
+          json['message'] as String? ?? 'Empty balance on the selected address',
+    );
 
 Map<String, dynamic> _$NoBalanceExceptionToJson(NoBalanceException instance) =>
-    <String, dynamic>{};
+    <String, dynamic>{
+      'message': instance.message,
+    };

@@ -16,7 +16,7 @@ RealtimeStatisticsState _$RealtimeStatisticsStateFromJson(
           .toList(),
       error: json['error'] == null
           ? null
-          : SyriusException.fromJson(json['error'] as Map<String, dynamic>),
+          : CubitException.fromJson(json['error'] as Map<String, dynamic>),
     );
 
 Map<String, dynamic> _$RealtimeStatisticsStateToJson(

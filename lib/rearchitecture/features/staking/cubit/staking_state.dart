@@ -29,7 +29,7 @@ class StakingState extends TimerState<StakeList> {
   TimerState<StakeList> copyWith({
     TimerStatus? status,
     StakeList? data,
-    SyriusException? error,
+    CubitException? error,
   }) {
     return StakingState(
       status: status ?? this.status,

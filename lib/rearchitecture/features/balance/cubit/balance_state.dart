@@ -30,7 +30,7 @@ class BalanceState extends TimerState<AccountInfo> {
   TimerState<AccountInfo> copyWith({
     TimerStatus? status,
     AccountInfo? data,
-    SyriusException? error,
+    CubitException? error,
   }) {
     return BalanceState(
       status: status ?? this.status,

@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:equatable/equatable.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
+import 'package:logging/logging.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/balance/balance.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
@@ -18,8 +19,7 @@ part 'timer_state.dart';
 ///
 /// The generic type [S] represents the type of the states emitted by the cubit.
 /// [S] extends [TimerState]
-abstract class TimerCubit<T, S extends TimerState<T>>
-    extends HydratedCubit<S> {
+abstract class TimerCubit<T, S extends TimerState<T>> extends HydratedCubit<S> {
   /// Constructs a [TimerCubit] with the provided [zenon] client and initial
   /// state.
   ///
@@ -109,5 +109,20 @@ abstract class TimerCubit<T, S extends TimerState<T>>
   Future<void> close() {
     _autoRefresher?.cancel();
     return super.close();
+  }
+
+  @override
+  void onError(Object error, StackTrace stackTrace) {
+    Level logLevel = Level.WARNING;
+    if (error is CubitException) {
+      logLevel = Level.INFO;
+    }
+    Logger('TimerCubit, state of ${S.runtimeType}').log(
+      logLevel,
+      'onError triggered',
+      error,
+      stackTrace,
+    );
+    super.onError(error, stackTrace);
   }
 }

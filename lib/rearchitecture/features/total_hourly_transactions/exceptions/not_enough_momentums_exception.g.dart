@@ -8,8 +8,12 @@ part of 'not_enough_momentums_exception.dart';
 
 NotEnoughMomentumsException _$NotEnoughMomentumsExceptionFromJson(
         Map<String, dynamic> json) =>
-    NotEnoughMomentumsException();
+    NotEnoughMomentumsException(
+      message: json['message'] as String? ?? 'Not enough momentums',
+    );
 
 Map<String, dynamic> _$NotEnoughMomentumsExceptionToJson(
         NotEnoughMomentumsException instance) =>
-    <String, dynamic>{};
+    <String, dynamic>{
+      'message': instance.message,
+    };

@@ -9,12 +9,13 @@ part 'not_enough_momentums_exception.g.dart';
 @JsonSerializable()
 class NotEnoughMomentumsException extends CubitException {
   /// Creates a [NotEnoughMomentumsException] instance
-  NotEnoughMomentumsException(): super('Not enough momentums');
+  NotEnoughMomentumsException({
+    String message = 'Not enough momentums',
+  }) : super(message);
 
   /// Creates a [NotEnoughMomentumsException] instance from a JSON map.
   factory NotEnoughMomentumsException.fromJson(Map<String, dynamic> json) =>
       _$NotEnoughMomentumsExceptionFromJson(json);
-
 
   /// Converts this [NotEnoughMomentumsException] instance to a JSON map.
   @override

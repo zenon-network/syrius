@@ -27,7 +27,7 @@ class DelegationState extends TimerState<DelegationInfo> {
   TimerState<DelegationInfo> copyWith({
     TimerStatus? status,
     DelegationInfo? data,
-    SyriusException? error,
+    CubitException? error,
   }) {
     return DelegationState(
       status: status ?? this.status,

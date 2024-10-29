@@ -8,8 +8,12 @@ part of 'no_active_skaking_entries_exception.dart';
 
 NoActiveStakingEntriesException _$NoActiveStakingEntriesExceptionFromJson(
         Map<String, dynamic> json) =>
-    NoActiveStakingEntriesException();
+    NoActiveStakingEntriesException(
+      message: json['message'] as String? ?? 'No active staking entries',
+    );
 
 Map<String, dynamic> _$NoActiveStakingEntriesExceptionToJson(
         NoActiveStakingEntriesException instance) =>
-    <String, dynamic>{};
+    <String, dynamic>{
+      'message': instance.message,
+    };

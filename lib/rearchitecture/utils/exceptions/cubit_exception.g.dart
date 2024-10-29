@@ -1,17 +1,17 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'syrius_exception.dart';
+part of 'cubit_exception.dart';
 
 // **************************************************************************
 // JsonSerializableGenerator
 // **************************************************************************
 
-SyriusException _$SyriusExceptionFromJson(Map<String, dynamic> json) =>
-    SyriusException(
+CubitException _$CubitExceptionFromJson(Map<String, dynamic> json) =>
+    CubitException(
       json['message'] as String,
     );
 
-Map<String, dynamic> _$SyriusExceptionToJson(SyriusException instance) =>
+Map<String, dynamic> _$CubitExceptionToJson(CubitException instance) =>
     <String, dynamic>{
       'message': instance.message,
     };

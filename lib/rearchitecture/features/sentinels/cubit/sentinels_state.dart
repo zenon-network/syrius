@@ -28,7 +28,7 @@ class SentinelsState extends TimerState<SentinelInfoList> {
   TimerState<SentinelInfoList> copyWith({
     TimerStatus? status,
     SentinelInfoList? data,
-    SyriusException? error,
+    CubitException? error,
   }) {
     return SentinelsState(
       status: status ?? this.status,

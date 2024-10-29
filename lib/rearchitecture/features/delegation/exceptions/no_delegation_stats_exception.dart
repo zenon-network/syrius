@@ -7,14 +7,11 @@ part 'no_delegation_stats_exception.g.dart';
 @JsonSerializable()
 class NoDelegationStatsException extends CubitException {
   /// Creates a [NoDelegationStatsException] instance
-  NoDelegationStatsException(): super('No delegation stats available');
+  NoDelegationStatsException({
+    String message = 'No delegation stats available',
+  }) : super(message);
 
   /// Creates a [NoDelegationStatsException] instance from a JSON map.
   factory NoDelegationStatsException.fromJson(Map<String, dynamic> json) =>
       _$NoDelegationStatsExceptionFromJson(json);
-
-
-  /// Converts this [NoDelegationStatsException] instance to a JSON map.
-  @override
-  Map<String, dynamic> toJson() => _$NoDelegationStatsExceptionToJson(this);
 }
