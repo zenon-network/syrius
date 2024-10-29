@@ -68,7 +68,9 @@ abstract class TimerCubit<T, S extends TimerState<T>> extends HydratedCubit<S> {
   /// If the WebSocket client is closed, it throws a [noConnectionException].
   Future<void> fetchDataPeriodically() async {
     try {
-      emit(state.copyWith(status: TimerStatus.loading) as S);
+      if (state.status != TimerStatus.success) {
+        emit(state.copyWith(status: TimerStatus.loading) as S);
+      }
       if (!zenon.wsClient.isClosed()) {
         final T data = await fetch();
         emit(state.copyWith(data: data, status: TimerStatus.success) as S);
