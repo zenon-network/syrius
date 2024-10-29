@@ -23,7 +23,10 @@ part 'node_sync_status_state.dart';
 class NodeSyncStatusCubit
     extends TimerCubit<Pair<SyncState, SyncInfo>, NodeSyncStatusState> {
   /// Creates a NodeSyncStatusCubit using the super-initializer parameters
-  NodeSyncStatusCubit(super.zenon, super.initialState);
+  NodeSyncStatusCubit(super.zenon, super.initialState)
+      : super(
+          refreshInterval: kNodeSyncStatusRefreshInterval,
+        );
 
   SyncState _lastSyncState = SyncState.unknown;
 
