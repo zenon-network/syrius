@@ -17,7 +17,7 @@ class StakingCard extends StatelessWidget {
       create: (_) {
         final StakingCubit cubit = StakingCubit(
           zenon!,
-          const StakingState(),
+          StakingState(),
         )..fetchDataPeriodically();
         return cubit;
       },

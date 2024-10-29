@@ -17,7 +17,7 @@ class SentinelsCard extends StatelessWidget {
       create: (_) {
         final SentinelsCubit cubit = SentinelsCubit(
           zenon!,
-          const SentinelsState(),
+          SentinelsState(),
         )..fetchDataPeriodically();
         return cubit;
       },

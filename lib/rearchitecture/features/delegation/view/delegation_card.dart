@@ -19,7 +19,7 @@ class DelegationCard extends StatelessWidget {
         final DelegationCubit cubit = DelegationCubit(
           Address.parse(kSelectedAddress!),
           zenon!,
-          const DelegationState(),
+          DelegationState(),
         )..fetchDataPeriodically();
         return cubit;
       },

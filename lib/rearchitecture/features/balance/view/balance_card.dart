@@ -24,7 +24,7 @@ class BalanceCard extends StatelessWidget {
         final BalanceCubit cubit = BalanceCubit(
           Address.parse(kSelectedAddress!),
           zenon!,
-          const BalanceState(),
+          BalanceState(),
         )..fetchDataPeriodically();
         return cubit;
       },

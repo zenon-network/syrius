@@ -6,10 +6,13 @@ part of 'timer_cubit.dart';
 enum TimerStatus {
   /// Indicates that the cubit has encountered an error.
   failure,
+
   /// The initial state before any data has been loaded.
   initial,
+
   /// Data is currently being fetched.
   loading,
+
   /// Data has been successfully loaded.
   success,
 }
@@ -28,7 +31,6 @@ enum TimerStatus {
 /// - [error]: An optional [error] object that contains error details if the
 /// cubit is in a failure state.
 abstract class TimerState<T> extends Equatable {
-
   /// Constructs a [TimerState] with an [status], [data], and
   /// [error].
   ///
@@ -39,7 +41,16 @@ abstract class TimerState<T> extends Equatable {
     this.status = TimerStatus.initial,
     this.data,
     this.error,
-  });
+  }) : assert(
+          (status == TimerStatus.initial && data == null && error == null) ||
+              (status == TimerStatus.success && data != null) ||
+              (status == TimerStatus.failure && error != null) ||
+              (status == TimerStatus.loading),
+          'when status is initial, data and error must be null, '
+          'when status is success, data must be different than null, '
+          'when status is failure, error must be different than null',
+        );
+
   /// Represents the current status of the cubit, such as loading, success, or
   /// failure.
   final TimerStatus status;

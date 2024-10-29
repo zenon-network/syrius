@@ -17,7 +17,7 @@ class PillarsCard extends StatelessWidget {
       create: (_) {
         final PillarsCubit cubit = PillarsCubit(
           zenon!,
-          const PillarsState(),
+          PillarsState(),
         )..fetchDataPeriodically();
         return cubit;
       },

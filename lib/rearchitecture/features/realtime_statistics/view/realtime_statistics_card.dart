@@ -17,7 +17,7 @@ class RealtimeStatisticsCard extends StatelessWidget {
       create: (_) {
         final RealtimeStatisticsCubit cubit = RealtimeStatisticsCubit(
           zenon!,
-          const RealtimeStatisticsState(),
+          RealtimeStatisticsState(),
         )..fetchDataPeriodically();
         return cubit;
       },

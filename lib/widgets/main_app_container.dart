@@ -85,7 +85,7 @@ class _MainAppContainerState extends State<MainAppContainer>
   );
   final NodeSyncStatusCubit _nodeSyncStatusCubit = NodeSyncStatusCubit(
     zenon!,
-    const NodeSyncStatusState(),
+    NodeSyncStatusState(),
   );
 
   @override

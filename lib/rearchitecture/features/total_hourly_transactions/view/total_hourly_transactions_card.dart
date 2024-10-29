@@ -17,7 +17,7 @@ class TotalHourlyTransactionsCard extends StatelessWidget {
       create: (_) {
         final TotalHourlyTransactionsCubit cubit = TotalHourlyTransactionsCubit(
           zenon!,
-          const TotalHourlyTransactionsState(),
+          TotalHourlyTransactionsState(),
         )..fetchDataPeriodically();
         return cubit;
       },
