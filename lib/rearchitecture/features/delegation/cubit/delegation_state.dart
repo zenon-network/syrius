@@ -5,7 +5,7 @@ part of 'delegation_cubit.dart';
 /// It holds a [DelegationInfo] object that represents the retrieved delegation
 /// details.
 
-@JsonSerializable()
+@JsonSerializable(explicitToJson: true)
 class DelegationState extends TimerState<DelegationInfo> {
   /// Constructs a new DelegationState object.
   ///

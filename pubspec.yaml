@@ -45,7 +45,7 @@ dependencies:
   znn_sdk_dart:
     git:
       url: https://github.com/maznnwell/znn_sdk_dart.git
-      ref: refactor
+      ref: 9bcc29ec6d2c3131efa18791a35bc8a475357d2c
   znn_ledger_dart:
     git:
       url: https://github.com/zenon-network/znn_ledger_dart.git
@@ -85,7 +85,7 @@ dependency_overrides:
   znn_sdk_dart:
     git:
       url: https://github.com/maznnwell/znn_sdk_dart.git
-      ref: refactor
+      ref: 9bcc29ec6d2c3131efa18791a35bc8a475357d2c
 
 dev_dependencies:
   build_runner: ^2.4.6
