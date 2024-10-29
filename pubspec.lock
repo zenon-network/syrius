@@ -1940,8 +1940,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: "851dd81ecdd1dfba9f5b017544f603b4e63fad26"
-      resolved-ref: "851dd81ecdd1dfba9f5b017544f603b4e63fad26"
+      ref: "73ab62b8ccbeb654ea3d72fcba6b249e476fc894"
+      resolved-ref: "73ab62b8ccbeb654ea3d72fcba6b249e476fc894"
       url: "https://github.com/maznnwell/znn_sdk_dart.git"
     source: git
     version: "0.0.7"
