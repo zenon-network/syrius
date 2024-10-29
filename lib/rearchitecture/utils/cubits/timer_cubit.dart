@@ -5,7 +5,6 @@ import 'package:hydrated_bloc/hydrated_bloc.dart';
 import 'package:logging/logging.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/balance/balance.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 part 'timer_state.dart';
@@ -27,7 +26,7 @@ abstract class TimerCubit<T, S extends TimerState<T>> extends HydratedCubit<S> {
   TimerCubit(
     this.zenon,
     super.initialState, {
-    this.refreshInterval = kDashboardRefreshInterval,
+    this.refreshInterval = kTimerCubitRefreshInterval,
   });
 
   /// A timer that handles the auto-refreshing of data.
@@ -48,7 +47,7 @@ abstract class TimerCubit<T, S extends TimerState<T>> extends HydratedCubit<S> {
   Future<T> fetch();
 
   /// Returns a [Timer] that triggers the auto-refresh functionality after
-  /// the predefined [kDashboardRefreshInterval].
+  /// the predefined [kTimerCubitRefreshInterval].
   ///
   /// This method cancels any existing timers and initiates a new periodic
   /// fetch cycle by calling [fetchDataPeriodically].
