@@ -78,13 +78,15 @@ abstract class TimerCubit<T, S extends TimerState<T>> extends HydratedCubit<S> {
       }
     } on CubitException catch (e) {
       emit(state.copyWith(status: TimerStatus.failure, error: e) as S);
-    } catch (e) {
+    } catch (e, stackTrace) {
       emit(
         state.copyWith(
           status: TimerStatus.failure,
           error: CubitFailureException(),
         ) as S,
       );
+      // Reports only the unexpected errors
+      addError(e, stackTrace);
     } finally {
       /// Ensure that the auto-refresher is restarted if it's not active.
       if (!isTimerActive) {
@@ -117,7 +119,9 @@ abstract class TimerCubit<T, S extends TimerState<T>> extends HydratedCubit<S> {
     if (error is CubitException) {
       logLevel = Level.INFO;
     }
-    Logger('TimerCubit, state of ${S.runtimeType}').log(
+    // state.runtimeType has the roll to identify in which cubit subclass
+    // the error happened
+    Logger('TimerCubit - ${state.runtimeType}').log(
       logLevel,
       'onError triggered',
       error,
