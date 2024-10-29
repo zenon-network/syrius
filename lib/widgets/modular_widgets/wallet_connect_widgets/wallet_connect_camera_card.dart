@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_vector_icons/flutter_vector_icons.dart';
 import 'package:logging/logging.dart';
 import 'package:wallet_connect_uri_validator/wallet_connect_uri_validator.dart';
+import 'package:walletconnect_flutter_v2/apis/core/pairing/utils/pairing_models.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/services/i_web3wallet_service.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
@@ -43,7 +44,7 @@ class _WalletConnectCameraCardState extends State<WalletConnectCameraCard> {
       padding: const EdgeInsets.all(15),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children: [
+        children: <Widget>[
           const CircleAvatar(
             radius: 60,
             backgroundColor: Colors.white12,
@@ -58,18 +59,18 @@ class _WalletConnectCameraCardState extends State<WalletConnectCameraCard> {
                   onPressed: () async {
                     await Navigator.of(context).push(
                       MaterialPageRoute(
-                        builder: (context) => AiBarcodeScanner(
-                          validator: (capture) => _filterBarcodes(capture) != null,
-                          onDetect: (value) async {
+                        builder: (BuildContext context) => AiBarcodeScanner(
+                          validator: (BarcodeCapture capture) => _filterBarcodes(capture) != null,
+                          onDetect: (BarcodeCapture value) async {
                             Logger('WalletConnectCameraCard').log(
                               Level.INFO,
                               'onDetect',
                               value.toString(),
                             );
-                            final wcService = sl.get<IWeb3WalletService>();
-                            final barcode = _filterBarcodes(value);
+                            final IWeb3WalletService wcService = sl.get<IWeb3WalletService>();
+                            final Barcode? barcode = _filterBarcodes(value);
                             if (barcode != null) {
-                              final pairingInfo = await wcService.pair(
+                              final PairingInfo pairingInfo = await wcService.pair(
                                 Uri.parse(value.barcodes.first.displayValue!),
                               );
                               Logger('WalletConnectCameraCard').log(
@@ -88,7 +89,7 @@ class _WalletConnectCameraCardState extends State<WalletConnectCameraCard> {
                             facing: CameraFacing.front,
                             detectionSpeed: DetectionSpeed.noDuplicates,
                           ),
-                          errorBuilder: (p0, p1, p2) {
+                          errorBuilder: (BuildContext p0, MobileScannerException p1, Widget? p2) {
                             // Pop navigator and close camera after 10 seconds
                             Timer(const Duration(seconds: 10), () {
                               Navigator.pop(context);
@@ -96,7 +97,7 @@ class _WalletConnectCameraCardState extends State<WalletConnectCameraCard> {
                             return Center(
                               child: Column(
                                 mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
+                                children: <Widget>[
                                   Text('${p1.errorCode}',
                                       style: Theme.of(context)
                                           .textTheme
@@ -142,8 +143,8 @@ class _WalletConnectCameraCardState extends State<WalletConnectCameraCard> {
   /// A BarcodeCapture can contain multiple barcodes. This function returns
   /// the first valid WC barcode
   Barcode? _filterBarcodes(BarcodeCapture capture) {
-    for (final barcode in capture.barcodes) {
-      final uri = barcode.displayValue;
+    for (final Barcode barcode in capture.barcodes) {
+      final String? uri = barcode.displayValue;
       if (uri != null) {
         if (!canParseWalletConnectUri(uri)) {
           return barcode;

@@ -43,13 +43,13 @@ class PillarRewardsChartState extends State<PillarRewardsChart> {
 
   List<FlSpot> _getRewardsSpots() => List.generate(
         widget.rewardsHistory!.list.length,
-        (index) => FlSpot(
+        (int index) => FlSpot(
           index.toDouble(),
           _getRewardsByIndex(index).toDouble(),
         ),
       );
 
-  List<LineChartBarData> _linesBarData() => [
+  List<LineChartBarData> _linesBarData() => <LineChartBarData>[
         StandardLineChartBarData(
           color: AppColors.znnColor,
           spots: _getRewardsSpots(),
@@ -66,7 +66,7 @@ class PillarRewardsChartState extends State<PillarRewardsChart> {
 
   num _getMaxValueOfZnnRewards() {
     BigInt? max = widget.rewardsHistory!.list.first.znnAmount;
-    for (final element in widget.rewardsHistory!.list) {
+    for (final RewardHistoryEntry element in widget.rewardsHistory!.list) {
       if (element.znnAmount > max!) {
         max = element.znnAmount;
       }

@@ -10,36 +10,53 @@ import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 
+/// A scaffold for the standard card used across the app
+///
+/// It comes with a lot of predefined styling and features
+///
+/// On the front, it display a title, contained by [data], a [body], the main
+/// front widget, an [IconButton] to flip the card and, if [onRefreshPressed]
+/// is not null, an [IconButton] to trigger a callback
+/// On the back, it display a description, contained by [data], a [Switch] to
+/// hide the [body] and - if the widget is already hidden - an
+/// [PasswordInputField] to input the wallet password and make the [body]
+/// visible again
 class CardScaffoldWithoutListener extends StatefulWidget {
-
+  /// Creates a [CardScaffoldWithoutListener] instance.
   const CardScaffoldWithoutListener({
     required this.body,
     required this.data,
     this.onRefreshPressed,
     super.key,
   });
+  /// Widget that will appear on the front of the card
   final Widget body;
+  /// Data needed for certain UI parts of the card
   final CardData data;
+  /// Optional callback that can be trigger from the card
   final VoidCallback? onRefreshPressed;
 
   @override
-  State<CardScaffoldWithoutListener> createState() => _CardScaffoldWithoutListenerState();
+  State<CardScaffoldWithoutListener> createState() =>
+      _CardScaffoldWithoutListenerState();
 }
 
-class _CardScaffoldWithoutListenerState extends State<CardScaffoldWithoutListener> {
+class _CardScaffoldWithoutListenerState
+    extends State<CardScaffoldWithoutListener> {
   GlobalKey<FlipCardState> cardKey = GlobalKey<FlipCardState>();
   final GlobalKey<LoadingButtonState> _actionButtonKey = GlobalKey();
 
   final TextEditingController _passwordController = TextEditingController();
 
-  bool? _hideWidgetInfo = false;
+  bool _hideWidgetInfo = false;
   bool _showPasswordInputField = false;
 
   String? _messageToUser;
 
-  LoadingButton? _actionButton;
+  late LoadingButton _actionButton;
 
   String get _title => widget.data.title;
+
   String get _description => widget.data.description;
 
   @override
@@ -53,12 +70,12 @@ class _CardScaffoldWithoutListenerState extends State<CardScaffoldWithoutListene
     return FlipCard(
       flipOnTouch: false,
       key: cardKey,
-      onFlipDone: (status) {},
+      onFlipDone: (bool status) {},
       front: ClipRRect(
         borderRadius: BorderRadius.circular(
           15,
         ),
-        child: Container(
+        child: ColoredBox(
           color: Theme.of(context).colorScheme.primary,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -80,7 +97,7 @@ class _CardScaffoldWithoutListenerState extends State<CardScaffoldWithoutListene
           15,
         ),
         child: Material(
-          child: Container(
+          child: ColoredBox(
             color: Theme.of(context).colorScheme.primary,
             child: Column(
               children: <Widget>[
@@ -102,7 +119,7 @@ class _CardScaffoldWithoutListenerState extends State<CardScaffoldWithoutListene
       padding: const EdgeInsets.all(8),
       child: ListView(
         shrinkWrap: true,
-        children: [
+        children: <Widget>[
           ExpandablePanel(
             collapsed: Container(),
             theme: ExpandableThemeData(
@@ -111,7 +128,7 @@ class _CardScaffoldWithoutListenerState extends State<CardScaffoldWithoutListene
               iconPlacement: ExpandablePanelIconPlacement.right,
             ),
             header: Row(
-              children: [
+              children: <Widget>[
                 const Icon(
                   Icons.info,
                   color: AppColors.znnColor,
@@ -141,7 +158,7 @@ class _CardScaffoldWithoutListenerState extends State<CardScaffoldWithoutListene
             ),
           ),
           Row(
-            children: [
+            children: <Widget>[
               const Icon(
                 Icons.remove_red_eye_rounded,
                 color: AppColors.znnColor,
@@ -159,8 +176,8 @@ class _CardScaffoldWithoutListenerState extends State<CardScaffoldWithoutListene
               const Spacer(),
               Switch(
                 splashRadius: 0,
-                value: _hideWidgetInfo!,
-                onChanged: (value) {
+                value: _hideWidgetInfo,
+                onChanged: (bool value) {
                   setState(() {
                     _hideWidgetInfo = value;
                   });
@@ -189,14 +206,14 @@ class _CardScaffoldWithoutListenerState extends State<CardScaffoldWithoutListene
             visible: _showPasswordInputField,
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
+              children: <Widget>[
                 Expanded(
                   child: _getPasswordInputField(model),
                 ),
                 const SizedBox(
                   width: 10,
                 ),
-                _actionButton!,
+                _actionButton,
               ],
             ),
           ),
@@ -213,7 +230,7 @@ class _CardScaffoldWithoutListenerState extends State<CardScaffoldWithoutListene
           child: Padding(
             padding: const EdgeInsets.all(14),
             child: Row(
-              children: [
+              children: <Widget>[
                 Expanded(
                   child: Text(
                     title,
@@ -230,7 +247,7 @@ class _CardScaffoldWithoutListenerState extends State<CardScaffoldWithoutListene
         Row(
           mainAxisSize: MainAxisSize.min,
           mainAxisAlignment: MainAxisAlignment.end,
-          children: [
+          children: <Widget>[
             Visibility(
               visible: widget.onRefreshPressed != null,
               child: Material(
@@ -266,8 +283,8 @@ class _CardScaffoldWithoutListenerState extends State<CardScaffoldWithoutListene
 
   Widget _getPasswordInputField(HideWidgetStatusBloc model) {
     return PasswordInputField(
-      onSubmitted: (value) {
-        _actionButton!.onPressed!();
+      onSubmitted: (String value) {
+        _actionButton.onPressed!();
       },
       controller: _passwordController,
       errorText: _messageToUser,
@@ -289,11 +306,11 @@ class _CardScaffoldWithoutListenerState extends State<CardScaffoldWithoutListene
 
   Widget _getHideWidgetInfoViewModel() {
     return ViewModelBuilder<HideWidgetStatusBloc>.reactive(
-      onViewModelReady: (model) {
+      onViewModelReady: (HideWidgetStatusBloc model) {
         _actionButton = _getActionButton(model);
         // Stream will tell us if the widget info is hidden or not
         model.stream.listen(
-              (response) {
+          (bool? response) {
             if (response != null) {
               _passwordController.clear();
               if (!response) {
@@ -303,16 +320,16 @@ class _CardScaffoldWithoutListenerState extends State<CardScaffoldWithoutListene
               }
             }
           },
-          onError: (error) {
+          onError: (dynamic error) {
             setState(() {
               _messageToUser = error.toString();
             });
           },
         );
       },
-      builder: (_, model, __) => StreamBuilder<bool?>(
+      builder: (_, HideWidgetStatusBloc model, __) => StreamBuilder<bool?>(
         stream: model.stream,
-        builder: (_, snapshot) {
+        builder: (_, AsyncSnapshot<bool?> snapshot) {
           if (snapshot.hasError) {
             return _getBackBody(model);
           }
@@ -358,7 +375,7 @@ class _CardScaffoldWithoutListenerState extends State<CardScaffoldWithoutListene
         await model.checkPassAndMarkWidgetWithHiddenValue(
           _title,
           _passwordController.text,
-          _hideWidgetInfo!,
+          _hideWidgetInfo,
         );
       } catch (_) {
       } finally {

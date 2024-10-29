@@ -72,16 +72,16 @@ class _StartNativeSwapModalState extends State<StartNativeSwapModal> {
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
+      children: <Widget>[
         const SizedBox(height: 20),
         Row(
-          children: [
+          children: <Widget>[
             Expanded(
               child: LabeledInputContainer(
                 labelText: 'Your address',
                 inputWidget: AddressesDropdown(
                   _selectedSelfAddress,
-                  (address) => setState(() {
+                  (String? address) => setState(() {
                     _selectedSelfAddress = address;
                     sl.get<BalanceBloc>().getBalanceForAllAddresses();
                   }),
@@ -98,7 +98,7 @@ class _StartNativeSwapModalState extends State<StartNativeSwapModal> {
                 inputWidget: Form(
                   autovalidateMode: AutovalidateMode.onUserInteraction,
                   child: InputField(
-                    onChanged: (value) {
+                    onChanged: (String value) {
                       setState(() {});
                     },
                     enabled: !_isLoading,
@@ -137,7 +137,7 @@ class _StartNativeSwapModalState extends State<StartNativeSwapModal> {
           inputWidget: Flexible(
             child: StreamBuilder<Map<String, AccountInfo>?>(
               stream: sl.get<BalanceBloc>().stream,
-              builder: (_, snapshot) {
+              builder: (_, AsyncSnapshot<Map<String, AccountInfo>?> snapshot) {
                 if (snapshot.hasError) {
                   return SyriusErrorWidget(snapshot.error!);
                 }
@@ -151,7 +151,7 @@ class _StartNativeSwapModalState extends State<StartNativeSwapModal> {
                       textColor: Theme.of(context).colorScheme.inverseSurface,
                       initialToken: _selectedToken,
                       hintText: '0.0',
-                      onChanged: (token, isValid) {
+                      onChanged: (Token token, bool isValid) {
                         if (!_isLoading) {
                           setState(() {
                             _selectedToken = token;
@@ -172,7 +172,7 @@ class _StartNativeSwapModalState extends State<StartNativeSwapModal> {
         ),
         const SizedBox(height: 20),
         BulletPointCard(
-          bulletPoints: [
+          bulletPoints: <RichText>[
             RichText(
               text: BulletPointCard.textSpan(
                   'After starting the swap, wait for the counterparty to join the swap with the agreed upon amount.',),
@@ -180,7 +180,7 @@ class _StartNativeSwapModalState extends State<StartNativeSwapModal> {
             RichText(
               text: BulletPointCard.textSpan(
                 '''You can reclaim your funds in ''',
-                children: [
+                children: <TextSpan>[
                   TextSpan(
                       text: '${kInitialHtlcDuration.inHours} hours',
                       style:
@@ -204,9 +204,9 @@ class _StartNativeSwapModalState extends State<StartNativeSwapModal> {
 
   ViewModelBuilder<StartHtlcSwapBloc> _getStartSwapViewModel() {
     return ViewModelBuilder<StartHtlcSwapBloc>.reactive(
-      onViewModelReady: (model) {
+      onViewModelReady: (StartHtlcSwapBloc model) {
         model.stream.listen(
-          (event) async {
+          (HtlcSwap? event) async {
             if (event is HtlcSwap) {
               widget.onSwapStarted.call(event.id);
             }
@@ -219,7 +219,7 @@ class _StartNativeSwapModalState extends State<StartNativeSwapModal> {
           },
         );
       },
-      builder: (_, model, __) => _getStartSwapButton(model),
+      builder: (_, StartHtlcSwapBloc model, __) => _getStartSwapButton(model),
       viewModelBuilder: StartHtlcSwapBloc.new,
     );
   }
@@ -258,7 +258,7 @@ class _StartNativeSwapModalState extends State<StartNativeSwapModal> {
       _isAmountValid;
 
   String? _validateCounterpartyAddress(String? address) {
-    final result = InputValidators.checkAddress(address);
+    final String? result = InputValidators.checkAddress(address);
     if (result != null) {
       return result;
     } else {

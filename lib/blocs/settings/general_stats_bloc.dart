@@ -10,7 +10,7 @@ class GeneralStatsBloc extends BaseBlocWithRefreshMixin<GeneralStats> {
 
   @override
   Future<GeneralStats> getDataAsync() async {
-    final generalStats = GeneralStats(
+    final GeneralStats generalStats = GeneralStats(
         frontierMomentum: await zenon!.ledger.getFrontierMomentum(),
         processInfo: await zenon!.stats.processInfo(),
         networkInfo: await zenon!.stats.networkInfo(),

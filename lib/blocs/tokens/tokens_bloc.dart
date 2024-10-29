@@ -5,7 +5,7 @@ import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 class TokensBloc extends BaseBloc<List<Token>?> with RefreshBlocMixin {
   TokensBloc() {
     zenon!.wsClient.restartedStream.listen(
-      (restarted) {
+      (bool restarted) {
         if (restarted) {
           getDataAsync();
         }

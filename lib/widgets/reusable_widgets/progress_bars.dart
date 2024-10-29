@@ -19,7 +19,7 @@ class PasswordProgressBar extends StatefulWidget {
 }
 
 class _PasswordProgressBarState extends State<PasswordProgressBar> {
-  final List<Color> _colors = [
+  final List<Color> _colors = <Color>[
     AppColors.accessWalletContainersGray,
     AppColors.accessWalletContainersGray,
     AppColors.accessWalletContainersGray,
@@ -45,12 +45,12 @@ class _PasswordProgressBarState extends State<PasswordProgressBar> {
 
   List<Widget> _getProgressBars() => List.generate(
         _colors.length,
-        (index) => _getPasswordProgressBar(_colors[index]),
+        (int index) => _getPasswordProgressBar(_colors[index]),
       );
 
   List<Widget> _getSpacers() => List.generate(
         _colors.length - 1,
-        (index) => _getSpacer(),
+        (int index) => _getSpacer(),
       );
 
   Expanded _getPasswordProgressBar(Color color) {
@@ -112,12 +112,12 @@ class ProgressBar extends StatelessWidget {
 
   List<Widget> _getProgressBars() => List.generate(
         numLevels,
-        (index) => _getProgressBar(index + 1),
+        (int index) => _getProgressBar(index + 1),
       );
 
   List<Widget> _getSpacers() => List.generate(
         numLevels - 1,
-        (index) => _getSpacer(),
+        (int index) => _getSpacer(),
       );
 
   Container _getProgressBar(int level) {

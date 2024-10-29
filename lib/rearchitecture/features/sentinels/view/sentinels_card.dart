@@ -2,9 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
-import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/cubits/timer_cubit.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
-import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/card_scaffold_without_listener.dart';
 
 /// Widget connected to the [SentinelsCubit] that receives the state
 /// - [SentinelsState] - updates and rebuilds the UI according to the
@@ -15,9 +13,9 @@ class SentinelsCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
+    return BlocProvider<SentinelsCubit>(
       create: (_) {
-        final cubit = SentinelsCubit(
+        final SentinelsCubit cubit = SentinelsCubit(
           zenon!,
           const SentinelsState(),
         )..fetchDataPeriodically();
@@ -26,7 +24,7 @@ class SentinelsCard extends StatelessWidget {
       child: CardScaffoldWithoutListener(
         data: CardType.sentinels.getData(context: context),
         body: BlocBuilder<SentinelsCubit, SentinelsState>(
-          builder: (context, state) {
+          builder: (BuildContext context, SentinelsState state) {
             return switch (state.status) {
               TimerStatus.initial => const SentinelsEmpty(),
               TimerStatus.loading => const SentinelsLoading(),

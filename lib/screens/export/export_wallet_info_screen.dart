@@ -60,8 +60,8 @@ class _ExportWalletInfoScreenState extends State<ExportWalletInfoScreen> {
   }
 
   Widget _getSeedFieldsGrid() {
-    final seedFieldsGridWidth = MediaQuery.of(context).size.width * 0.5;
-    const text = 'A Seed Vault is an encrypted file for backing up your Seed.'
+    final double seedFieldsGridWidth = MediaQuery.of(context).size.width * 0.5;
+    const String text = 'A Seed Vault is an encrypted file for backing up your Seed.'
         ' The Seed is encrypted with a Seed Vault Key and cannot be accessed '
         'without it. Make sure you backup your Seed Vault in multiple offline locations '
         '(e.g. USB, external HDD) and do not lose your Seed Vault Key.'

@@ -71,12 +71,12 @@ class _PlasmaOptionsState extends State<PlasmaOptions> {
   @override
   Widget build(BuildContext context) {
     return Consumer<SelectedAddressNotifier>(
-      builder: (_, __, child) {
+      builder: (_, __, Widget? child) {
         _addressController.text = kSelectedAddress!;
         return child!;
       },
       child: LayoutBuilder(
-        builder: (_, constraints) {
+        builder: (_, BoxConstraints constraints) {
           _maxWidth = constraints.maxWidth;
           return CardScaffold(
             title: 'Plasma Options',
@@ -95,7 +95,7 @@ class _PlasmaOptionsState extends State<PlasmaOptions> {
                 ? SyriusErrorWidget(widget.errorText!)
                 : StreamBuilder<Map<String, AccountInfo>?>(
                     stream: sl.get<BalanceBloc>().stream,
-                    builder: (_, snapshot) {
+                    builder: (_, AsyncSnapshot<Map<String, AccountInfo>?> snapshot) {
                       if (snapshot.hasError) {
                         return SyriusErrorWidget(snapshot.error!);
                       }
@@ -139,12 +139,12 @@ class _PlasmaOptionsState extends State<PlasmaOptions> {
       margin: EdgeInsets.all(_marginWidth),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
+        children: <Widget>[
           Expanded(
             flex: _beneficiaryAddressExpandedFlex,
             child: ListView(
               shrinkWrap: true,
-              children: [
+              children: <Widget>[
                 DisabledAddressField(
                   _addressController,
                   contentLeftPadding: 20,
@@ -157,7 +157,7 @@ class _PlasmaOptionsState extends State<PlasmaOptions> {
                     onChanged: (String value) {
                       _beneficiaryAddressString.value = value;
                     },
-                    inputFormatters: [
+                    inputFormatters: <TextInputFormatter>[
                       FilteringTextInputFormatter.allow(RegExp('[0-9a-z]')),
                     ],
                     controller: _beneficiaryAddressController,
@@ -176,7 +176,7 @@ class _PlasmaOptionsState extends State<PlasmaOptions> {
             flex: _fuseButtonExpandedFlex,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
+              children: <Widget>[
                 SizedBox(
                   height: 87,
                   child: Form(
@@ -192,7 +192,7 @@ class _PlasmaOptionsState extends State<PlasmaOptions> {
                         _qsrAmountController.text,
                       ),
                       controller: _qsrAmountController,
-                      validator: (value) => InputValidators.correctValue(
+                      validator: (String? value) => InputValidators.correctValue(
                         value,
                         _maxQsrAmount,
                         kQsrCoin.decimals,
@@ -209,12 +209,12 @@ class _PlasmaOptionsState extends State<PlasmaOptions> {
                   valueListenable: _beneficiaryAddressString,
                   builder: (_, __, ___) {
                     return Row(
-                      children: [
+                      children: <Widget>[
                         _getGeneratePlasmaButtonStreamBuilder(),
                         Visibility(
                           visible: _isInputValid(),
                           child: Row(
-                            children: [
+                            children: <Widget>[
                               const SizedBox(
                                 width: 10,
                               ),
@@ -237,7 +237,7 @@ class _PlasmaOptionsState extends State<PlasmaOptions> {
   PlasmaIcon _getPlasmaIcon() {
     return PlasmaIcon(
       PlasmaInfo.fromJson(
-        {
+        <String, dynamic>{
           'currentPlasma': ((_qsrAmountController.text.isNotEmpty
                       ? BigInt.parse(zenon!.embedded.plasma
                           .getPlasmaByQsr(_qsrAmountController.text
@@ -257,7 +257,7 @@ class _PlasmaOptionsState extends State<PlasmaOptions> {
     try {
       return widget.plasmaStatsResults
           .firstWhere(
-            (plasmaInfo) =>
+            (PlasmaInfoWrapper plasmaInfo) =>
                 plasmaInfo.address == _beneficiaryAddressController.text,
           )
           .plasmaInfo
@@ -281,8 +281,8 @@ class _PlasmaOptionsState extends State<PlasmaOptions> {
       ),
     );
 
-    final widthOfPlasmaIcon = _isInputValid() ? 20.0 : 0.0;
-    final plasmaIconMargin = _isInputValid() ? 10.0 : 0.0;
+    final double widthOfPlasmaIcon = _isInputValid() ? 20.0 : 0.0;
+    final double plasmaIconMargin = _isInputValid() ? 10.0 : 0.0;
 
     return LoadingButton.icon(
       onPressed: _isInputValid() ? () => _onGeneratePlasmaPressed(model) : null,
@@ -330,9 +330,9 @@ class _PlasmaOptionsState extends State<PlasmaOptions> {
 
   Widget _getGeneratePlasmaButtonStreamBuilder() {
     return ViewModelBuilder<PlasmaOptionsBloc>.reactive(
-      onViewModelReady: (model) {
+      onViewModelReady: (PlasmaOptionsBloc model) {
         model.stream.listen(
-          (event) {
+          (AccountBlockTemplate? event) {
             if (event != null) {
               _fuseButtonKey.currentState?.animateReverse();
               _qsrAmountKey.currentState?.reset();
@@ -341,7 +341,7 @@ class _PlasmaOptionsState extends State<PlasmaOptions> {
               widget.plasmaListBloc.refreshResults();
             }
           },
-          onError: (error) async {
+          onError: (Object error) async {
             _fuseButtonKey.currentState?.animateReverse();
             await NotificationUtils.sendNotificationError(
               error,
@@ -350,7 +350,7 @@ class _PlasmaOptionsState extends State<PlasmaOptions> {
           },
         );
       },
-      builder: (_, model, __) => _getGeneratePlasmaButton(model),
+      builder: (_, PlasmaOptionsBloc model, __) => _getGeneratePlasmaButton(model),
       viewModelBuilder: PlasmaOptionsBloc.new,
     );
   }

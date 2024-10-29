@@ -41,11 +41,11 @@ class _P2pSwapsListItemState extends State<P2pSwapsListItem> {
           height: 56,
           padding: const EdgeInsets.symmetric(horizontal: 20),
           child: Row(
-            children: [
+            children: <Widget>[
               Expanded(
                 flex: 20,
                 child: Row(
-                  children: [
+                  children: <Widget>[
                     _getStatusWidget(),
                     const SizedBox(
                       width: 8,
@@ -90,7 +90,7 @@ class _P2pSwapsListItemState extends State<P2pSwapsListItem> {
   }
 
   Widget _getStatusWidget() {
-    const size = 16.0;
+    const double size = 16;
     switch (widget.swap.state) {
       case P2pSwapState.pending:
       case P2pSwapState.active:
@@ -141,9 +141,9 @@ class _P2pSwapsListItemState extends State<P2pSwapsListItem> {
       return _getTextWidget('-');
     }
     return Row(
-      children: [
+      children: <Widget>[
         Row(
-          children: [
+          children: <Widget>[
             Container(
               constraints: const BoxConstraints(maxWidth: 70),
               child: _getTextWidget(amount.addDecimals(decimals)),
@@ -228,7 +228,7 @@ class _P2pSwapsListItemState extends State<P2pSwapsListItem> {
   }
 
   String _formatTime(int transactionMillis) {
-    final currentMillis = DateTime.now().millisecondsSinceEpoch;
+    final int currentMillis = DateTime.now().millisecondsSinceEpoch;
     if (currentMillis - transactionMillis <=
         const Duration(days: 1).inMilliseconds) {
       return _formatTimeShort(currentMillis - transactionMillis);
@@ -238,7 +238,7 @@ class _P2pSwapsListItemState extends State<P2pSwapsListItem> {
   }
 
   String _formatTimeShort(int i) {
-    final duration = Duration(milliseconds: i);
+    final Duration duration = Duration(milliseconds: i);
     if (duration.inHours > 0) {
       return '${duration.inHours} h ago';
     }

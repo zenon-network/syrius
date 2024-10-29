@@ -14,9 +14,9 @@ class DelegationCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
+    return BlocProvider<DelegationCubit>(
       create: (_) {
-        final cubit = DelegationCubit(
+        final DelegationCubit cubit = DelegationCubit(
           Address.parse(kSelectedAddress!),
           zenon!,
           const DelegationState(),
@@ -26,7 +26,7 @@ class DelegationCard extends StatelessWidget {
       child: CardScaffoldWithoutListener(
         data: CardType.delegationStats.getData(context: context),
         body: BlocBuilder<DelegationCubit, DelegationState>(
-          builder: (context, state) {
+          builder: (BuildContext context, DelegationState state) {
             return switch (state.status) {
               TimerStatus.initial => const DelegationEmpty(),
               TimerStatus.loading => const DelegationLoading(),

@@ -20,8 +20,8 @@ class HardwareWalletDeviceChoiceScreen extends StatefulWidget {
 
 class _HardwareWalletDeviceChoiceScreenState
     extends State<HardwareWalletDeviceChoiceScreen> {
-  final List<WalletManager> _walletManagers = [LedgerWalletManager()];
-  List<WalletDefinition> _devices = [];
+  final List<WalletManager> _walletManagers = <WalletManager>[LedgerWalletManager()];
+  List<WalletDefinition> _devices = <WalletDefinition>[];
   WalletDefinition? _selectedDevice;
   final Map<String, ValueNotifier<String?>> _deviceValueMap =
       <String, ValueNotifier<String?>>{};
@@ -54,7 +54,7 @@ class _HardwareWalletDeviceChoiceScreenState
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: <Widget>[
             Column(
-              children: [
+              children: <Widget>[
                 const ProgressBar(
                   currentLevel: 1,
                   numLevels: 4,
@@ -131,22 +131,22 @@ class _HardwareWalletDeviceChoiceScreenState
   }
 
   Future<void> _scanDevices() async {
-    final futures = _walletManagers
-        .map((manager) => manager.getWalletDefinitions())
+    final List<Future<Iterable<WalletDefinition>>> futures = _walletManagers
+        .map((WalletManager manager) => manager.getWalletDefinitions())
         .toList();
 
-    final listOfDefinitions =
+    final List<Iterable<WalletDefinition>> listOfDefinitions =
         await Future.wait(futures);
 
     // Combine all the iterables into a single list using fold or expand
     // For example, using fold:
-    final combinedList =
+    final List<WalletDefinition> combinedList =
         listOfDefinitions.fold<List<WalletDefinition>>(
       <WalletDefinition>[],
-      (previousList, element) => previousList..addAll(element),
+      (List<WalletDefinition> previousList, Iterable<WalletDefinition> element) => previousList..addAll(element),
     );
 
-    for (final device in combinedList) {
+    for (final WalletDefinition device in combinedList) {
       if (!_deviceValueMap.containsKey(device.walletId)) {
         _deviceValueMap[device.walletId] = ValueNotifier<String?>(null);
       }
@@ -156,7 +156,7 @@ class _HardwareWalletDeviceChoiceScreenState
       _devices = combinedList;
       _selectedDevice = null;
 
-      for (final valueNotifier in _deviceValueMap.values) {
+      for (final ValueNotifier<String?> valueNotifier in _deviceValueMap.values) {
         valueNotifier.value = null;
       }
     });
@@ -165,8 +165,8 @@ class _HardwareWalletDeviceChoiceScreenState
   List<Widget> _getDevices() {
     return _devices
         .map(
-          (e) => Row(
-            children: [
+          (WalletDefinition e) => Row(
+            children: <Widget>[
               Radio<WalletDefinition?>(
                 value: e,
                 groupValue: _selectedDevice,
@@ -178,7 +178,7 @@ class _HardwareWalletDeviceChoiceScreenState
                     vertical: 5,
                   ),
                   child: Row(
-                    children: [
+                    children: <Widget>[
                       Expanded(
                         child: InkWell(
                           borderRadius: BorderRadius.circular(
@@ -190,7 +190,7 @@ class _HardwareWalletDeviceChoiceScreenState
                                 horizontal: 5, vertical: 5,),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
+                              children: <Widget>[
                                 Text(
                                   _getWalletName(e),
                                   style: Theme.of(context)
@@ -206,7 +206,7 @@ class _HardwareWalletDeviceChoiceScreenState
                                 ),
                                 ValueListenableBuilder<String?>(
                                   valueListenable: _deviceValueMap[e.walletId]!,
-                                  builder: (context, value, _) => SizedBox(
+                                  builder: (BuildContext context, String? value, _) => SizedBox(
                                     height: 20,
                                     child: value == null
                                         ? const Text(
@@ -236,8 +236,8 @@ class _HardwareWalletDeviceChoiceScreenState
       WalletDefinition? walletDefinition,) async {
     Wallet? wallet;
     try {
-      for (final walletManager in _walletManagers) {
-        final wd = walletDefinition!;
+      for (final WalletManager walletManager in _walletManagers) {
+        final WalletDefinition wd = walletDefinition!;
         if (await walletManager.supportsWallet(wd)) {
           wallet = await walletManager.getWallet(walletDefinition);
           break;
@@ -248,7 +248,7 @@ class _HardwareWalletDeviceChoiceScreenState
             origMessage:
                 'Not connected, please connect the device and try again.',);
       }
-      final walletAddress = await _getWalletAddress(wallet);
+      final Address walletAddress = await _getWalletAddress(wallet);
       setState(() {
         _deviceValueMap[walletDefinition!.walletId]!.value =
             walletAddress.toString();
@@ -267,7 +267,7 @@ class _HardwareWalletDeviceChoiceScreenState
   }
 
   Future<Address> _getWalletAddress(Wallet wallet) async {
-    final account = await wallet.getAccount();
+    final WalletAccount account = await wallet.getAccount();
     if (account is LedgerWalletAccount) {
       await sl.get<NotificationsBloc>().addNotification(
             WalletNotification(

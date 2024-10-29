@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/cubits/timer_cubit.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 /// A widget associated with the [DualCoinStatsState] when it's status is
@@ -7,7 +8,6 @@ import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 /// - [DualCoinStatsChart] - and a legend - [DualCoinStatsChartLegend]
 
 class DualCoinStatsPopulated extends StatefulWidget {
-
   /// Creates a DualCoinStatsPopulated widget
   const DualCoinStatsPopulated({
     required this.tokens,
@@ -23,12 +23,14 @@ class DualCoinStatsPopulated extends StatefulWidget {
 
 class _DualCoinStatsPopulatedState extends State<DualCoinStatsPopulated>
     with SingleTickerProviderStateMixin {
-  final ValueNotifier<int?> _touchedSectionIndexNotifier = ValueNotifier(null);
+  final ValueNotifier<int?> _touchedSectionIndexNotifier = ValueNotifier<int?>(
+    null,
+  );
 
   @override
   Widget build(BuildContext context) {
     return Column(
-      children: [
+      children: <Widget>[
         Expanded(
           child: DualCoinStatsChart(
             tokenList: widget.tokens,

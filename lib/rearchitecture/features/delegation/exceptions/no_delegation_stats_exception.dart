@@ -15,5 +15,6 @@ class NoDelegationStatsException extends CubitException {
 
 
   /// Converts this [NoDelegationStatsException] instance to a JSON map.
+  @override
   Map<String, dynamic> toJson() => _$NoDelegationStatsExceptionToJson(this);
 }

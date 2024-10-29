@@ -30,7 +30,7 @@ class NodeSyncStatusCubit
   @override
   Future<Pair<SyncState, SyncInfo>> fetch() async {
     if (zenon.wsClient.status() == WebsocketStatus.running) {
-      final syncInfo = await zenon.stats.syncInfo();
+      final SyncInfo syncInfo = await zenon.stats.syncInfo();
       if (_lastSyncState != syncInfo.state &&
           (syncInfo.state == SyncState.syncDone ||
               (syncInfo.targetHeight > 0 &&
@@ -39,7 +39,7 @@ class NodeSyncStatusCubit
         _lastSyncState = syncInfo.state;
         if (syncInfo.state == SyncState.syncDone) {
           unawaited(
-            Future.delayed(const Duration(seconds: 5)).then((_) {
+            Future<void>.delayed(const Duration(seconds: 5)).then((_) {
               NodeUtils.getUnreceivedTransactions().then((_) {
                 sl<AutoReceiveTxWorker>().autoReceive();
               });
@@ -47,15 +47,15 @@ class NodeSyncStatusCubit
           );
         }
       }
-      return Pair(_lastSyncState, syncInfo);
+      return Pair<SyncState, SyncInfo>(_lastSyncState, syncInfo);
     }
 
-    final placeholderSyncInfo = SyncInfo.fromJson({
+    final SyncInfo placeholderSyncInfo = SyncInfo.fromJson(<String, dynamic>{
       'state': 0,
       'currentHeight': 0,
       'targetHeight': 0,
     });
-    return Pair(_lastSyncState, placeholderSyncInfo);
+    return Pair<SyncState, SyncInfo>(_lastSyncState, placeholderSyncInfo);
   }
 
   @override

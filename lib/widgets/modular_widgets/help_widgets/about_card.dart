@@ -39,7 +39,7 @@ class AboutCardState extends State<AboutCard> {
   Widget _getNewBody(GeneralStats generalStats) {
     return ListView(
       shrinkWrap: true,
-      children: [
+      children: <Widget>[
         CustomExpandablePanel(
           'Syrius wallet version',
           _getGenericTextExpandedChild(kWalletVersion),
@@ -150,7 +150,7 @@ class AboutCardState extends State<AboutCard> {
   }
 
   Widget _getGenericTextExpandedChild(String expandedText) {
-    return Row(children: [
+    return Row(children: <Widget>[
       CustomTableCell.withMarquee(
         expandedText,
       ),
@@ -158,7 +158,7 @@ class AboutCardState extends State<AboutCard> {
   }
 
   Widget _getGenericLinkButtonExpandedChild(String url) {
-    return Row(children: [
+    return Row(children: <Widget>[
       CustomTableCell.withMarquee(
         url,
       ),
@@ -177,7 +177,7 @@ class AboutCardState extends State<AboutCard> {
   }
 
   Widget _getGenericOpenButtonExpandedChild(String expandedText) {
-    return Row(children: [
+    return Row(children: <Widget>[
       CustomTableCell.withMarquee(
         expandedText,
       ),
@@ -198,7 +198,7 @@ class AboutCardState extends State<AboutCard> {
   Widget _getStreamBuilder() {
     return StreamBuilder<GeneralStats>(
       stream: _generalStatsBloc!.stream,
-      builder: (_, snapshot) {
+      builder: (_, AsyncSnapshot<GeneralStats> snapshot) {
         if (snapshot.hasData) {
           return _getNewBody(snapshot.data!);
         } else if (snapshot.hasError) {

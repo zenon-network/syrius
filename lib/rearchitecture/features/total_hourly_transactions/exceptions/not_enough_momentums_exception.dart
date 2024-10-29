@@ -17,5 +17,6 @@ class NotEnoughMomentumsException extends CubitException {
 
 
   /// Converts this [NotEnoughMomentumsException] instance to a JSON map.
+  @override
   Map<String, dynamic> toJson() => _$NotEnoughMomentumsExceptionToJson(this);
 }

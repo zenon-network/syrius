@@ -57,7 +57,7 @@ class AddressesState extends State<Addresses> {
 
   Future<void> _changeDefaultAddress(String? newDefaultAddress) async {
     try {
-      final box = Hive.box(kSharedPrefsBox);
+      final Box box = Hive.box(kSharedPrefsBox);
       await box.put(kDefaultAddressKey, newDefaultAddress);
       if (!mounted) return;
       Provider.of<SelectedAddressNotifier>(
@@ -80,7 +80,7 @@ class AddressesState extends State<Addresses> {
       padding: const EdgeInsets.all(8),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children: [
+        children: <Widget>[
           Expanded(
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -91,7 +91,7 @@ class AddressesState extends State<Addresses> {
                 current: 1,
                 min: 1,
                 max: 10,
-                onUpdate: (val) {
+                onUpdate: (int val) {
                   _onAddAddressPressedCallback(val);
                 },
               ),
@@ -115,7 +115,7 @@ class AddressesState extends State<Addresses> {
                     const BoxConstraints(minWidth: 150, minHeight: 50),
                 alignment: Alignment.center,
                 child: Row(
-                  children: [
+                  children: <Widget>[
                     const Icon(
                       Icons.add_circle,
                       color: AppColors.znnColor,
@@ -140,8 +140,8 @@ class AddressesState extends State<Addresses> {
   Widget _getAddresses() {
     final List<Widget> addresses = kDefaultAddressList
         .map(
-          (e) => Row(
-            children: [
+          (String? e) => Row(
+            children: <Widget>[
               Radio<String?>(
                 value: e,
                 groupValue: _selectedAddress,
@@ -163,7 +163,7 @@ class AddressesState extends State<Addresses> {
       key: const PageStorageKey('Addresses list view'),
       shrinkWrap: true,
       itemCount: addresses.length,
-      itemBuilder: (context, index) {
+      itemBuilder: (BuildContext context, int index) {
         return addresses[index];
       },
     );
@@ -189,7 +189,7 @@ class AddressesState extends State<Addresses> {
 
   Widget _getCardBody() {
     return Column(
-      children: [
+      children: <Widget>[
         Expanded(
           child: _getAddresses(),
         ),
@@ -202,10 +202,10 @@ class AddressesState extends State<Addresses> {
   Widget _getGenerateNewAddressFutureBuilder() {
     return FutureBuilder(
       future: _futureGenerateNewAddress,
-      builder: (_, snapshot) {
+      builder: (_, AsyncSnapshot<void> snapshot) {
         if (snapshot.hasError) {
           return SyriusErrorWidget(snapshot.error!);
-        } else if ([
+        } else if (<ConnectionState>[
           ConnectionState.none,
           ConnectionState.done,
         ].contains(snapshot.connectionState)) {
@@ -219,10 +219,10 @@ class AddressesState extends State<Addresses> {
   Widget _getChangeDefaultAddressFutureBuilder() {
     return FutureBuilder(
       future: _futureChangeDefaultAddress,
-      builder: (_, snapshot) {
+      builder: (_, AsyncSnapshot<void> snapshot) {
         if (snapshot.hasError) {
           return SyriusErrorWidget(snapshot.error!);
-        } else if ([
+        } else if (<ConnectionState>[
           ConnectionState.none,
           ConnectionState.done,
         ].contains(snapshot.connectionState)) {

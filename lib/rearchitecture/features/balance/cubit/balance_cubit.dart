@@ -4,6 +4,7 @@ import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 part 'balance_cubit.g.dart';
+
 part 'balance_state.dart';
 
 /// A cubit that is responsible for managing and fetching the account balance
@@ -19,8 +20,8 @@ class BalanceCubit extends TimerCubit<AccountInfo, BalanceState> {
 
   /// Fetches the balance information for a single address.
   ///
-  /// The method interacts with the `zenon` client's ledger to get the
-  /// `AccountInfo` for the provided [address].
+  /// The method interacts with the [zenon] client's ledger to get the
+  /// [AccountInfo] for the provided [address].
   ///
   /// Returns an [AccountInfo] object containing the balance details for the
   /// given address.
@@ -28,7 +29,9 @@ class BalanceCubit extends TimerCubit<AccountInfo, BalanceState> {
   /// Throws an exception if the balance retrieval fails.
   @override
   Future<AccountInfo> fetch() async {
-    final response = await zenon.ledger.getAccountInfoByAddress(address);
+    final AccountInfo response = await zenon.ledger.getAccountInfoByAddress(
+      address,
+    );
     if (response.blockCount! > 0 &&
         (response.znn()! > BigInt.zero || response.qsr()! > BigInt.zero)) {
       return response;

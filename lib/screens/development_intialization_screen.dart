@@ -22,9 +22,9 @@ class _DevelopmentInitializationScreenState
   Widget build(BuildContext context) {
     return FutureBuilder(
       future: _checkIfWalletPathIsNull(context: context),
-      builder: (_, snapshot) {
+      builder: (_, AsyncSnapshot<bool> snapshot) {
         if (snapshot.hasData) {
-          final isWalletPathNull = snapshot.data!;
+          final bool isWalletPathNull = snapshot.data!;
 
           WidgetsBinding.instance.addPostFrameCallback((_) {
             if (isWalletPathNull) {

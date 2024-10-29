@@ -59,8 +59,8 @@ class _RealtimeTxsChartState extends State<RealtimeTxsChart> {
   }
 
   double _getTransactionsByDay(TokenStandard tokenId, DateTime date) {
-    final transactions = <AccountBlock>[];
-    for (final transaction in widget.transactions) {
+    final List<AccountBlock> transactions = <AccountBlock>[];
+    for (final AccountBlock transaction in widget.transactions) {
       AccountBlock? pairedAccountBlock;
       if (transaction.blockType == 3 &&
           transaction.pairedAccountBlock != null) {
@@ -81,7 +81,7 @@ class _RealtimeTxsChartState extends State<RealtimeTxsChart> {
       }
     }
 
-    final transactionsPerDay = transactions.length.toDouble();
+    final double transactionsPerDay = transactions.length.toDouble();
 
     if (transactionsPerDay > _maxTransactionsPerDay) {
       _maxTransactionsPerDay = transactionsPerDay;
@@ -90,7 +90,7 @@ class _RealtimeTxsChartState extends State<RealtimeTxsChart> {
   }
 
   List<LineChartBarData> _linesBarData() {
-    return [
+    return <LineChartBarData>[
       StandardLineChartBarData(
         color: ColorUtils.getTokenColor(kZnnCoin.tokenStandard),
         spots: _znnSpots,
@@ -103,9 +103,9 @@ class _RealtimeTxsChartState extends State<RealtimeTxsChart> {
   }
 
   List<FlSpot> _generateQsrSpots() {
-    return List.generate(
+    return List<FlSpot>.generate(
       kStandardChartNumDays.toInt(),
-      (index) => FlSpot(
+      (int index) => FlSpot(
         index.toDouble(),
         _getTransactionsByDay(
           kQsrCoin.tokenStandard,
@@ -118,9 +118,9 @@ class _RealtimeTxsChartState extends State<RealtimeTxsChart> {
   }
 
   List<FlSpot> _generateZnnSpots() {
-    return List.generate(
+    return List<FlSpot>.generate(
       kStandardChartNumDays.toInt(),
-      (index) => FlSpot(
+      (int index) => FlSpot(
         index.toDouble(),
         _getTransactionsByDay(
           kZnnCoin.tokenStandard,

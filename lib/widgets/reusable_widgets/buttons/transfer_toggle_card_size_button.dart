@@ -17,7 +17,7 @@ class TransferToggleCardSizeButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return StreamBuilder<PowStatus>(
       stream: sl.get<PowGeneratingStatusBloc>().stream,
-      builder: (_, snapshot) {
+      builder: (_, AsyncSnapshot<PowStatus> snapshot) {
         if (snapshot.hasError) {
           return _getButton(context, onPressed);
         } else if (snapshot.hasData) {

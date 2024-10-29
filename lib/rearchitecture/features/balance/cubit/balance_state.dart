@@ -3,7 +3,7 @@ part of 'balance_cubit.dart';
 /// The class used by the [BalanceCubit] to send state updates to the
 /// listening widgets.
 ///
-/// The data hold, when the status is [TimerStatus.success] is of type
+/// The data hold, when the status is [TimerStatus.success], is of type
 /// [AccountInfo].
 @JsonSerializable()
 class BalanceState extends TimerState<AccountInfo> {
@@ -21,15 +21,11 @@ class BalanceState extends TimerState<AccountInfo> {
   factory BalanceState.fromJson(Map<String, dynamic> json) =>
       _$BalanceStateFromJson(json);
 
-  /// Creates a copy of the current [BalanceState] with optional new values for
-  /// [status], [data], and [error].
-  ///
-  /// This method is used to create a new state with updated fields if provided,
-  /// otherwise retaining the existing values.
-  ///
-  /// Returns:
-  /// - A new instance of [BalanceState] with the updated values or the
-  /// existing ones if none are provided.
+  /// {@template state_copy_with}
+  /// Creates a copy of the current state with updated values for [status],
+  /// [data], or [error], if provided, otherwise retaining the
+  /// existing values.
+  /// {@endtemplate}
   @override
   TimerState<AccountInfo> copyWith({
     TimerStatus? status,

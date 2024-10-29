@@ -36,7 +36,7 @@ class _AcceleratorProjectListItemState
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => ProjectDetailsScreen(
+                  builder: (BuildContext context) => ProjectDetailsScreen(
                     pillarInfo: widget.pillarInfo,
                     project: widget.acceleratorProject,
                     onStepperNotificationSeeMorePressed:
@@ -58,7 +58,7 @@ class _AcceleratorProjectListItemState
           color: Theme.of(context).colorScheme.primaryContainer,
         ),
         child: Column(
-          children: [
+          children: <Widget>[
             _getProjectTitle(context),
             const SizedBox(
               height: 10,
@@ -98,7 +98,7 @@ class _AcceleratorProjectListItemState
   ) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
+      children: <Widget>[
         Visibility(
           visible: voteBreakdown.total > 0,
           child: _getVotingResults(context, voteBreakdown),
@@ -114,7 +114,7 @@ class _AcceleratorProjectListItemState
 
   Widget _getProjectTitle(BuildContext context) {
     return Row(
-      children: [
+      children: <Widget>[
         Text(
           widget.acceleratorProject.name,
           style: Theme.of(context).textTheme.headlineSmall,
@@ -125,7 +125,7 @@ class _AcceleratorProjectListItemState
 
   Widget _getProjectDescription(BuildContext context) {
     return Row(
-      children: [
+      children: <Widget>[
         Expanded(
           child: Text(
             widget.acceleratorProject.description,
@@ -137,7 +137,7 @@ class _AcceleratorProjectListItemState
   }
 
   Widget _getProjectStatuses(BuildContext context) {
-    final tags = <Widget>[
+    final List<Widget> tags = <Widget>[
       _getProjectStatusTag(),
     ];
 
@@ -170,7 +170,7 @@ class _AcceleratorProjectListItemState
       children: tags.zip(
         List.generate(
           tags.length - 1,
-          (index) => const SizedBox(
+          (int index) => const SizedBox(
             width: 5,
           ),
         ),
@@ -239,30 +239,30 @@ class _AcceleratorProjectListItemState
     BuildContext context,
     VoteBreakdown voteBreakdown,
   ) {
-    final yesVotes = voteBreakdown.yes;
-    final noVotes = voteBreakdown.no;
-    final quorum = voteBreakdown.total;
-    final quorumNeeded = (kNumOfPillars! * 0.33).ceil();
-    final votesToAchieveQuorum = quorumNeeded - quorum;
-    final pillarsThatCanStillVote = kNumOfPillars! -
+    final int yesVotes = voteBreakdown.yes;
+    final int noVotes = voteBreakdown.no;
+    final int quorum = voteBreakdown.total;
+    final int quorumNeeded = (kNumOfPillars! * 0.33).ceil();
+    final int votesToAchieveQuorum = quorumNeeded - quorum;
+    final int pillarsThatCanStillVote = kNumOfPillars! -
         quorum -
         (votesToAchieveQuorum > 0 ? votesToAchieveQuorum : 0);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
+      children: <Widget>[
         const Row(
-          children: [
+          children: <Widget>[
             Text('Voting results'),
           ],
         ),
         kVerticalSpacing,
         Row(
-          children: [
+          children: <Widget>[
             AcceleratorProgressBar(
               context: context,
               child: Row(
-                children: [
+                children: <Widget>[
                   AcceleratorProgressBarSpan(
                     value: yesVotes / (yesVotes + noVotes),
                     color: AppColors.znnColor,
@@ -297,11 +297,11 @@ class _AcceleratorProjectListItemState
           height: 10,
         ),
         Row(
-          children: [
+          children: <Widget>[
             AcceleratorProgressBar(
                 context: context,
                 child: Row(
-                  children: [
+                  children: <Widget>[
                     AcceleratorProgressBarSpan(
                       value: quorum / kNumOfPillars!,
                       color: AppColors.qsrColor,
@@ -378,7 +378,7 @@ class _AcceleratorProjectListItemState
     ProjectVoteBreakdownBloc projectVoteBreakdownViewModel,
   ) {
     return Row(
-      children: [
+      children: <Widget>[
         if (pillarVoteList != null &&
             ((widget.acceleratorProject is Phase &&
                     (widget.acceleratorProject as Phase).status ==
@@ -390,13 +390,13 @@ class _AcceleratorProjectListItemState
             pillarVoteList,
             projectVoteBreakdownViewModel,
           ),
-        if ([
+        if (<AcceleratorProjectStatus>[
           AcceleratorProjectStatus.voting,
           AcceleratorProjectStatus.active,
           AcceleratorProjectStatus.paid,
         ].contains(widget.acceleratorProject.status))
           Row(
-            children: [
+            children: <Widget>[
               const SizedBox(
                 width: 10,
               ),
@@ -408,7 +408,7 @@ class _AcceleratorProjectListItemState
                 AcceleratorProjectStatus.voting &&
             widget.project!.owner.toString() == kSelectedAddress)
           Row(
-            children: [
+            children: <Widget>[
               const SizedBox(
                 width: 10,
               ),
@@ -425,7 +425,7 @@ class _AcceleratorProjectListItemState
     List<PillarVote?> pillarVoteList,
   ) {
     return Row(
-      children: [
+      children: <Widget>[
         Tooltip(
           message: 'No',
           child: RawMaterialButton(
@@ -547,7 +547,7 @@ class _AcceleratorProjectListItemState
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => StepperScreen(
+              builder: (BuildContext context) => StepperScreen(
                 stepper: UpdatePhaseStepper(
                   widget.acceleratorProject as Phase,
                   widget.project!,
@@ -582,8 +582,8 @@ class _AcceleratorProjectListItemState
     ProjectVoteBreakdownBloc projectVoteBreakdownViewModel,
   ) {
     return ViewModelBuilder<VoteProjectBloc>.reactive(
-      onViewModelReady: (model) {
-        model.stream.listen((event) {
+      onViewModelReady: (VoteProjectBloc model) {
+        model.stream.listen((AccountBlockTemplate? event) {
           if (event != null) {
             projectVoteBreakdownViewModel.getVoteBreakdown(
               widget.pillarInfo?.name,
@@ -597,9 +597,9 @@ class _AcceleratorProjectListItemState
           );
         },);
       },
-      builder: (_, model, __) => StreamBuilder<AccountBlockTemplate?>(
+      builder: (_, VoteProjectBloc model, __) => StreamBuilder<AccountBlockTemplate?>(
           stream: model.stream,
-          builder: (_, snapshot) {
+          builder: (_, AsyncSnapshot<AccountBlockTemplate?> snapshot) {
             if (snapshot.hasError) {
               return _getVotingIcons(context, model, pillarVoteList);
             }
@@ -617,20 +617,20 @@ class _AcceleratorProjectListItemState
 
   Widget _getProjectVoteBreakdownViewModel(BuildContext context) {
     return ViewModelBuilder<ProjectVoteBreakdownBloc>.reactive(
-      onViewModelReady: (model) {
+      onViewModelReady: (ProjectVoteBreakdownBloc model) {
         model.getVoteBreakdown(
             widget.pillarInfo?.name, widget.acceleratorProject.id,);
-        model.stream.listen((event) {}, onError: (error) async {
+        model.stream.listen((Pair<VoteBreakdown, List<PillarVote?>?>? event) {}, onError: (error) async {
           await NotificationUtils.sendNotificationError(
             error,
             'Error while trying to get the vote breakdown',
           );
         },);
       },
-      builder: (_, model, __) =>
+      builder: (_, ProjectVoteBreakdownBloc model, __) =>
           StreamBuilder<Pair<VoteBreakdown, List<PillarVote?>?>?>(
         stream: model.stream,
-        builder: (_, snapshot) {
+        builder: (_, AsyncSnapshot<Pair<VoteBreakdown, List<PillarVote?>?>?> snapshot) {
           if (snapshot.hasError) {
             return SyriusErrorWidget(snapshot.error!);
           }
@@ -655,8 +655,8 @@ class _AcceleratorProjectListItemState
   bool _ifOptionVotedByUser(
       List<PillarVote?> pillarVoteList, AcceleratorProjectVote vote,) {
     try {
-      final pillarVote = pillarVoteList.firstWhere(
-        (pillarVote) => pillarVote?.name == widget.pillarInfo!.name,
+      final PillarVote? pillarVote = pillarVoteList.firstWhere(
+        (PillarVote? pillarVote) => pillarVote?.name == widget.pillarInfo!.name,
       );
       return pillarVote!.vote == vote.index;
     } catch (e) {

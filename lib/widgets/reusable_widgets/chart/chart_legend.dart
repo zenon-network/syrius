@@ -15,7 +15,7 @@ class ChartLegend extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Row(
-      children: [
+      children: <Widget>[
         Text(
           '● ',
           style: Theme.of(context).textTheme.bodyLarge!.copyWith(

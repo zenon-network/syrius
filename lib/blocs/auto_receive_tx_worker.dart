@@ -27,12 +27,12 @@ class AutoReceiveTxWorker extends BaseBloc<WalletNotification> {
     if (!running) {
       running = true;
       try {
-        final toAddress =
+        final Address toAddress =
             (await zenon!.ledger.getAccountBlockByHash(currentHash))!.toAddress;
-        final transactionParams = AccountBlockTemplate.receive(
+        final AccountBlockTemplate transactionParams = AccountBlockTemplate.receive(
           currentHash,
         );
-        final response =
+        final AccountBlockTemplate response =
             await AccountBlockUtils.createAccountBlock(
           transactionParams,
           'receive transaction',
@@ -64,14 +64,14 @@ class AutoReceiveTxWorker extends BaseBloc<WalletNotification> {
     // given priority to send transactions.
     if (pool.isNotEmpty && !running && !sl<AutoUnlockHtlcWorker>().running) {
       running = true;
-      final currentHash = pool.first;
+      final Hash currentHash = pool.first;
       try {
-        final toAddress =
+        final Address toAddress =
             (await zenon!.ledger.getAccountBlockByHash(currentHash))!.toAddress;
-        final transactionParams = AccountBlockTemplate.receive(
+        final AccountBlockTemplate transactionParams = AccountBlockTemplate.receive(
           currentHash,
         );
-        final response =
+        final AccountBlockTemplate response =
             await AccountBlockUtils.createAccountBlock(
           transactionParams,
           'receive transaction',
@@ -105,7 +105,7 @@ class AutoReceiveTxWorker extends BaseBloc<WalletNotification> {
   }
 
   Future<void> addHash(Hash hash) async {
-    zenon!.stats.syncInfo().then((syncInfo) {
+    zenon!.stats.syncInfo().then((SyncInfo syncInfo) {
       if (!pool.contains(hash) &&
           (syncInfo.state == SyncState.syncDone ||
               (syncInfo.targetHeight > 0 &&

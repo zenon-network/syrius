@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:logging/logging.dart';
 import 'package:wallet_connect_uri_validator/wallet_connect_uri_validator.dart';
+import 'package:walletconnect_flutter_v2/apis/core/pairing/utils/pairing_models.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/services/i_web3wallet_service.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
@@ -21,7 +22,7 @@ class _WalletConnectUriCardState extends State<WalletConnectUriCard> {
     text: kLastWalletConnectUriNotifier.value,
   );
 
-  final _uriKey = GlobalKey<FormState>();
+  final GlobalKey<FormState> _uriKey = GlobalKey<FormState>();
 
   @override
   Widget build(BuildContext context) {
@@ -36,19 +37,19 @@ class _WalletConnectUriCardState extends State<WalletConnectUriCard> {
     return Padding(
       padding: const EdgeInsets.all(15),
       child: ValueListenableBuilder<String?>(
-        builder: (_, value, child) {
+        builder: (_, String? value, Widget? child) {
           if (value != null) {
             _uriController.text = value;
             kLastWalletConnectUriNotifier.value = null;
           }
           return Column(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
+            children: <Widget>[
               SizedBox(
                 height: 120,
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
+                  children: <Widget>[
                     const CircleAvatar(
                       backgroundColor: Colors.white12,
                       child: Icon(
@@ -60,14 +61,14 @@ class _WalletConnectUriCardState extends State<WalletConnectUriCard> {
                       key: _uriKey,
                       autovalidateMode: AutovalidateMode.onUserInteraction,
                       child: InputField(
-                        validator: (value) {
+                        validator: (String? value) {
                           if (WalletConnectUri.tryParse(value ?? '') != null) {
                             return null;
                           } else {
                             return 'URI invalid';
                           }
                         },
-                        onChanged: (value) {
+                        onChanged: (String value) {
                           setState(() {});
                         },
                         controller: _uriController,
@@ -118,7 +119,7 @@ class _WalletConnectUriCardState extends State<WalletConnectUriCard> {
 
   Future<void> _pairWithDapp(Uri uri) async {
     try {
-      final pairingInfo = await sl.get<IWeb3WalletService>().pair(uri);
+      final PairingInfo pairingInfo = await sl.get<IWeb3WalletService>().pair(uri);
       Logger('WalletConnectPairingCard')
           .log(Level.INFO, 'pairing info', pairingInfo.toJson());
       _uriController = TextEditingController();

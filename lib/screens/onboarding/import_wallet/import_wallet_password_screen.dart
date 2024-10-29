@@ -38,7 +38,7 @@ class _ImportWalletPasswordScreenState
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: <Widget>[
             Column(
-              children: [
+              children: <Widget>[
                 ProgressBar(
                   currentLevel: widget.progressBarNumLevels - 2,
                   numLevels: widget.progressBarNumLevels,
@@ -59,7 +59,7 @@ class _ImportWalletPasswordScreenState
                   height: 100,
                 ),
                 Column(
-                  children: [
+                  children: <Widget>[
                     Form(
                       key: _passwordKey,
                       autovalidateMode: AutovalidateMode.onUserInteraction,
@@ -67,10 +67,10 @@ class _ImportWalletPasswordScreenState
                         hintText: 'Password',
                         controller: _passwordController,
                         validator: InputValidators.validatePassword,
-                        onChanged: (value) {
+                        onChanged: (String value) {
                           setState(() {});
                         },
-                        onSubmitted: (value) {
+                        onSubmitted: (String value) {
                           if (_arePasswordsValid()) {
                             NavigationUtils.push(
                               context,
@@ -92,15 +92,15 @@ class _ImportWalletPasswordScreenState
                       child: PasswordInputField(
                         hintText: 'Confirm password',
                         controller: _confirmPasswordController,
-                        validator: (value) =>
+                        validator: (String? value) =>
                             InputValidators.checkPasswordMatch(
                           _passwordController.text,
                           value,
                         ),
-                        onChanged: (value) {
+                        onChanged: (String value) {
                           setState(() {});
                         },
-                        onSubmitted: (value) {
+                        onSubmitted: (String value) {
                           if (_arePasswordsValid()) {
                             NavigationUtils.push(
                               context,

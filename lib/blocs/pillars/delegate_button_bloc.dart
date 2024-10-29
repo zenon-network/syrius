@@ -10,7 +10,7 @@ class DelegateButtonBloc extends BaseBloc<AccountBlockTemplate?> {
   ) async {
     try {
       addEvent(null);
-      final transactionParams = zenon!.embedded.pillar.delegate(
+      final AccountBlockTemplate transactionParams = zenon!.embedded.pillar.delegate(
         pillarName!,
       );
       AccountBlockUtils.createAccountBlock(
@@ -18,7 +18,7 @@ class DelegateButtonBloc extends BaseBloc<AccountBlockTemplate?> {
         'delegate to Pillar',
         waitForRequiredPlasma: true,
       ).then(
-        (response) async {
+        (AccountBlockTemplate response) async {
           await Future.delayed(kDelayAfterAccountBlockCreationCall);
           addEvent(response);
         },

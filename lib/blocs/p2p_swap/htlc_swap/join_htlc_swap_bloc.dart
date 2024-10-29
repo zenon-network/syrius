@@ -21,7 +21,7 @@ class JoinHtlcSwapBloc extends BaseBloc<HtlcSwap?> {
   }) async {
     try {
       addEvent(null);
-      final transactionParams = zenon!.embedded.htlc.create(
+      final AccountBlockTemplate transactionParams = zenon!.embedded.htlc.create(
         fromToken,
         fromAmount,
         initialHtlc.timeLocked,
@@ -33,8 +33,8 @@ class JoinHtlcSwapBloc extends BaseBloc<HtlcSwap?> {
       AccountBlockUtils.createAccountBlock(transactionParams, 'join swap',
               address: initialHtlc.hashLocked, waitForRequiredPlasma: true,)
           .then(
-        (response) async {
-          final swap = HtlcSwap(
+        (AccountBlockTemplate response) async {
+          final HtlcSwap swap = HtlcSwap(
             id: initialHtlc.id.toString(),
             chainId: response.chainIdentifier,
             type: swapType,
@@ -65,7 +65,7 @@ class JoinHtlcSwapBloc extends BaseBloc<HtlcSwap?> {
           addEvent(swap);
         },
       ).onError(
-        (error, stackTrace) {
+        (Object? error, StackTrace stackTrace) {
           addError(error.toString(), stackTrace);
         },
       );

@@ -32,7 +32,7 @@ class _SettingsTabChildState extends State<SettingsTabChild> {
         sm: kStaggeredNumOfColumns,
         xs: kStaggeredNumOfColumns,
       ),
-      children: [
+      children: <FluidCell>[
         FluidCell(
           width: context.layout.value(
             xl: kStaggeredNumOfColumns ~/ 2,

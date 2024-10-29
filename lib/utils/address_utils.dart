@@ -23,14 +23,14 @@ class ZenonAddressUtils {
 
   static Future<void> generateNewAddress(
       {int numAddr = 1, VoidCallback? callback,}) async {
-    final wallet = await kWalletFile!.open();
+    final Wallet wallet = await kWalletFile!.open();
     try {
       await Future.delayed(const Duration(milliseconds: 500));
-      final listAddr = <Address?>[];
-      final addrListLength = kDefaultAddressList.length;
-      for (var i = 0; i < numAddr; i++) {
-        final addrListCounter = addrListLength + i;
-        final walletAccount = await wallet.getAccount(addrListCounter);
+      final List<Address?> listAddr = <Address?>[];
+      final int addrListLength = kDefaultAddressList.length;
+      for (int i = 0; i < numAddr; i++) {
+        final int addrListCounter = addrListLength + i;
+        final WalletAccount walletAccount = await wallet.getAccount(addrListCounter);
         Address? address;
         if (walletAccount is LedgerWalletAccount) {
           await sl.get<NotificationsBloc>().addNotification(
@@ -48,10 +48,10 @@ class ZenonAddressUtils {
           address = await walletAccount.getAddress();
         }
         listAddr.add(address);
-        final addressesBox = Hive.box(kAddressesBox);
+        final Box addressesBox = Hive.box(kAddressesBox);
         await addressesBox.add(listAddr.elementAt(i).toString());
         _initAddresses(addressesBox);
-        final addressLabelsBox = Hive.box(kAddressLabelsBox);
+        final Box addressLabelsBox = Hive.box(kAddressLabelsBox);
         await addressLabelsBox.put(
           listAddr.elementAt(i).toString(),
           'Address ${kDefaultAddressList.length}',
@@ -70,10 +70,10 @@ class ZenonAddressUtils {
   }
 
   static Future<void> setAddressLabels() async {
-    final addressLabelsBox = await Hive.openBox(kAddressLabelsBox);
+    final Box addressLabelsBox = await Hive.openBox(kAddressLabelsBox);
 
     if (addressLabelsBox.isEmpty) {
-      for (final address in kDefaultAddressList) {
+      for (final String? address in kDefaultAddressList) {
         await addressLabelsBox.put(
             address, 'Address ${kDefaultAddressList.indexOf(address) + 1}',);
       }
@@ -92,13 +92,13 @@ class ZenonAddressUtils {
   }
 
   static Future<void> setAddresses(WalletFile? walletFile) async {
-    final addressesBox = await Hive.openBox(kAddressesBox);
+    final Box addressesBox = await Hive.openBox(kAddressesBox);
     if (addressesBox.isEmpty) {
-      await walletFile!.access((wallet) async {
-        for (final element in await Future.wait(
+      await walletFile!.access((Wallet wallet) async {
+        for (final String element in await Future.wait(
           List<Future<String>>.generate(
               kNumOfInitialAddresses,
-              (index) async =>
+              (int index) async =>
                   (await (await wallet.getAccount(index)).getAddress())
                       .toString(),),
         )) {
@@ -114,8 +114,8 @@ class ZenonAddressUtils {
 
   static void _initAddressLabels(Box box) =>
       kAddressLabelMap = box.keys.toList().fold<Map<String, String>>(
-        {},
-        (previousValue, key) {
+        <String, String>{},
+        (Map<String, String> previousValue, key) {
           previousValue[key] = box.get(key);
           return previousValue;
         },

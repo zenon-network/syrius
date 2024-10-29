@@ -42,7 +42,7 @@ class _WalletConnectSessionsCardState extends State<WalletConnectSessionsCard> {
     return InfiniteScrollTable<SessionData>(
       disposeBloc: false,
       bloc: _sessionsBloc,
-      headerColumns: const [
+      headerColumns: const <InfiniteScrollTableHeaderColumn>[
         InfiniteScrollTableHeaderColumn(
           columnName: 'Name',
         ),
@@ -63,8 +63,8 @@ class _WalletConnectSessionsCardState extends State<WalletConnectSessionsCard> {
           columnName: 'Acknowledged',
         ),
       ],
-      generateRowCells: (sessionData, bool isSelected) {
-        return [
+      generateRowCells: (SessionData sessionData, bool isSelected) {
+        return <Widget>[
           InfiniteScrollTableCell.withText(
             context,
             sessionData.peer.metadata.name,
@@ -100,7 +100,7 @@ class _WalletConnectSessionsCardState extends State<WalletConnectSessionsCard> {
 
   Row _buildTableUrlWidget(String? peerUrl) {
     return Row(
-      children: [
+      children: <Widget>[
         Text(peerUrl ?? 'Empty'),
         Visibility(
           visible: peerUrl != null,
@@ -113,7 +113,7 @@ class _WalletConnectSessionsCardState extends State<WalletConnectSessionsCard> {
   }
 
   String _formatExpiryDateTime(int expirySeconds) {
-    final expiryDateTime =
+    final DateTime expiryDateTime =
         DateTime.fromMillisecondsSinceEpoch(expirySeconds * 1000);
 
     return DateFormat('MMM dd, y HH:mm:ss').format(expiryDateTime);

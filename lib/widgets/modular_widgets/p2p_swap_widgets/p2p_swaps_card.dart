@@ -54,7 +54,7 @@ class _P2pSwapsCardState extends State<P2pSwapsCard> {
     return CardScaffold<List<P2pSwap>>(
       title: 'P2P Swaps',
       childStream: _p2pSwapsListBloc.stream,
-      onCompletedStatusCallback: (data) => data.isEmpty
+      onCompletedStatusCallback: (List<P2pSwap> data) => data.isEmpty
           ? const SyriusErrorWidget('No P2P swaps')
           : _getTable(data),
       onRefreshPressed: _p2pSwapsListBloc.getData,
@@ -66,7 +66,7 @@ class _P2pSwapsCardState extends State<P2pSwapsCard> {
         child: GestureDetector(
           onTap: _onDeleteSwapHistoryTapped,
           child: Row(
-            children: [
+            children: <Widget>[
               const Icon(
                 Icons.delete,
                 color: AppColors.znnColor,
@@ -130,7 +130,7 @@ class _P2pSwapsCardState extends State<P2pSwapsCard> {
     return Padding(
       padding: const EdgeInsets.all(15),
       child: Column(
-        children: [
+        children: <Widget>[
           _getHeader(),
           const SizedBox(
             height: 15,
@@ -151,7 +151,7 @@ class _P2pSwapsCardState extends State<P2pSwapsCard> {
                       height: 15,
                     );
                   },
-                  itemBuilder: (_, index) {
+                  itemBuilder: (_, int index) {
                     return P2pSwapsListItem(
                       key: ValueKey(swaps.elementAt(index).id),
                       swap: swaps.elementAt(index),
@@ -170,7 +170,7 @@ class _P2pSwapsCardState extends State<P2pSwapsCard> {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
       child: Row(
-        children: [
+        children: <Widget>[
           Expanded(
             flex: 20,
             child: _getHeaderItem('Status'),
@@ -193,7 +193,7 @@ class _P2pSwapsCardState extends State<P2pSwapsCard> {
               visible: htlcSwapsService!.isMaxSwapsReached,
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.end,
-                children: [
+                children: <Widget>[
                   _getHeaderItem(
                     'Swap history is full',
                     textColor: AppColors.errorColor,

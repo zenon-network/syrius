@@ -25,14 +25,14 @@ class BalanceChart extends StatelessWidget {
   Widget build(BuildContext context) {
     return StandardPieChart(
       sections: _getChartSection(accountInfo),
-      onChartSectionTouched: (pieChartSection) {
+      onChartSectionTouched: (PieTouchedSection? pieChartSection) {
         hoveredSectionId.value = pieChartSection?.touchedSection?.title;
       },
     );
   }
 
   List<PieChartSectionData> _getChartSection(AccountInfo accountInfo) {
-    final sections = <PieChartSectionData>[];
+    final List<PieChartSectionData> sections = <PieChartSectionData>[];
     if (accountInfo.znn()! > BigInt.zero) {
       sections.add(
         _getBalanceChartSection(
@@ -57,11 +57,11 @@ class BalanceChart extends StatelessWidget {
     Token token,
     AccountInfo accountInfo,
   ) {
-    final isTouched =
+    final bool isTouched =
         token.tokenStandard.toString() == hoveredSectionId.value;
-    final opacity = isTouched ? 1.0 : 0.7;
+    final double opacity = isTouched ? 1.0 : 0.7;
 
-    final value = accountInfo.getBalance(token.tokenStandard) /
+    final double value = accountInfo.getBalance(token.tokenStandard) /
         (accountInfo.znn()! + accountInfo.qsr()!);
 
     return PieChartSectionData(

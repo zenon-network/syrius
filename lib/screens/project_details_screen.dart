@@ -34,10 +34,10 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
             bottom: 20,
           ),
           child: Column(
-            children: [
+            children: <Widget>[
               Row(
                 mainAxisAlignment: MainAxisAlignment.end,
-                children: [
+                children: <Widget>[
                   IconButton(
                     splashRadius: 20,
                     onPressed: () {
@@ -68,7 +68,7 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
     RefreshProjectBloc refreshProjectViewModel,
   ) {
     return StandardFluidLayout(
-      children: [
+      children: <FluidCell>[
         FluidCell(
           width: project.owner.toString() == kSelectedAddress!
               ? context.layout.value(
@@ -115,12 +115,12 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
 
   Widget _getStreamBuilder() {
     return ViewModelBuilder<RefreshProjectBloc>.reactive(
-      onViewModelReady: (model) {
+      onViewModelReady: (RefreshProjectBloc model) {
         model.refreshProject(widget.project.id);
       },
-      builder: (_, model, __) => StreamBuilder<Project?>(
+      builder: (_, RefreshProjectBloc model, __) => StreamBuilder<Project?>(
         stream: model.stream,
-        builder: (_, snapshot) {
+        builder: (_, AsyncSnapshot<Project?> snapshot) {
           if (snapshot.hasError) {
             return SyriusErrorWidget(snapshot.error!);
           }

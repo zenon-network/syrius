@@ -47,7 +47,7 @@ class _SyriusElevatedButtonState extends State<SyriusElevatedButton> {
       style: widget.style,
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
-        children: [
+        children: <Widget>[
           Visibility(
             visible: widget.icon != null,
             child: Container(

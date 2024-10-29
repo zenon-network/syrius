@@ -126,7 +126,7 @@ class AppTheme {
     outlinedButtonTheme: OutlinedButtonThemeData(
       style: kOutlinedButtonStyle.copyWith(
         foregroundColor: WidgetStateProperty.resolveWith(
-          (states) {
+          (Set<WidgetState> states) {
             if (states.contains(WidgetState.disabled)) {
               return Colors.black38;
             }
@@ -263,7 +263,7 @@ class AppTheme {
     outlinedButtonTheme: OutlinedButtonThemeData(
       style: kOutlinedButtonStyle.copyWith(
         foregroundColor: WidgetStateProperty.resolveWith(
-          (states) {
+          (Set<WidgetState> states) {
             if (states.contains(WidgetState.disabled)) {
               return Colors.white38;
             }

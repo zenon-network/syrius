@@ -13,7 +13,7 @@ class NodeSyncStatusIcon extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<NodeSyncStatusCubit, NodeSyncStatusState>(
-      builder: (context, state) {
+      builder: (BuildContext context, NodeSyncStatusState state) {
         return switch (state.status) {
           TimerStatus.initial => const NodeSyncStatusEmpty(),
           TimerStatus.failure => NodeSyncStatusError(

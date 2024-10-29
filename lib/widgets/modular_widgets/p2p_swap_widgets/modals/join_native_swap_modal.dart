@@ -85,7 +85,7 @@ class _JoinNativeSwapModalState extends State<JoinNativeSwapModal> {
           : FutureBuilder<Token?>(
               future:
                   zenon!.embedded.token.getByZts(_initialHltc!.tokenStandard),
-              builder: (_, snapshot) {
+              builder: (_, AsyncSnapshot<Token?> snapshot) {
                 if (snapshot.hasError) {
                   return Padding(
                     padding: const EdgeInsets.all(20),
@@ -105,14 +105,14 @@ class _JoinNativeSwapModalState extends State<JoinNativeSwapModal> {
 
   Widget _getSearchView() {
     return Column(
-      children: [
+      children: <Widget>[
         const SizedBox(
           height: 20,
         ),
         Form(
           autovalidateMode: AutovalidateMode.onUserInteraction,
           child: InputField(
-            onChanged: (value) {
+            onChanged: (String value) {
               setState(() {});
             },
             validator: InputValidators.checkHash,
@@ -146,7 +146,7 @@ class _JoinNativeSwapModalState extends State<JoinNativeSwapModal> {
         Visibility(
           visible: _initialHtlcError != null,
           child: Column(
-            children: [
+            children: <Widget>[
               ImportantTextContainer(
                 text: _initialHtlcError ?? '',
                 showBorder: true,
@@ -164,9 +164,9 @@ class _JoinNativeSwapModalState extends State<JoinNativeSwapModal> {
 
   ViewModelBuilder<InitialHtlcForSwapBloc> _getInitialHtlcViewModel() {
     return ViewModelBuilder<InitialHtlcForSwapBloc>.reactive(
-      onViewModelReady: (model) {
+      onViewModelReady: (InitialHtlcForSwapBloc model) {
         model.stream.listen(
-          (event) async {
+          (HtlcInfo? event) async {
             if (event is HtlcInfo) {
               _initialHltc = event;
               _isLoading = false;
@@ -186,7 +186,7 @@ class _JoinNativeSwapModalState extends State<JoinNativeSwapModal> {
           },
         );
       },
-      builder: (_, model, __) => _getContinueButton(model),
+      builder: (_, InitialHtlcForSwapBloc model, __) => _getContinueButton(model),
       viewModelBuilder: InitialHtlcForSwapBloc.new,
     );
   }
@@ -214,10 +214,10 @@ class _JoinNativeSwapModalState extends State<JoinNativeSwapModal> {
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
+      children: <Widget>[
         const SizedBox(height: 20),
         Row(
-          children: [
+          children: <Widget>[
             Expanded(
               child: LabeledInputContainer(
                 labelText: 'Your address',
@@ -238,7 +238,7 @@ class _JoinNativeSwapModalState extends State<JoinNativeSwapModal> {
           inputWidget: Flexible(
             child: StreamBuilder<Map<String, AccountInfo>?>(
               stream: sl.get<BalanceBloc>().stream,
-              builder: (_, snapshot) {
+              builder: (_, AsyncSnapshot<Map<String, AccountInfo>?> snapshot) {
                 if (snapshot.hasError) {
                   return SyriusErrorWidget(snapshot.error!);
                 }
@@ -251,7 +251,7 @@ class _JoinNativeSwapModalState extends State<JoinNativeSwapModal> {
                       textColor: Theme.of(context).colorScheme.inverseSurface,
                       initialToken: _selectedToken,
                       hintText: '0.0',
-                      onChanged: (token, isValid) {
+                      onChanged: (Token token, bool isValid) {
                         setState(() {
                           _selectedToken = token;
                           _isAmountValid = isValid;
@@ -285,7 +285,7 @@ class _JoinNativeSwapModalState extends State<JoinNativeSwapModal> {
           padding: const EdgeInsets.symmetric(horizontal: 10),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
+            children: <Widget>[
               const Text(
                 'Exchange Rate',
                 style:
@@ -300,11 +300,11 @@ class _JoinNativeSwapModalState extends State<JoinNativeSwapModal> {
         if (_safeExpirationTime != null) const SizedBox(height: 20),
         if (_safeExpirationTime != null)
           BulletPointCard(
-            bulletPoints: [
+            bulletPoints: <RichText>[
               RichText(
                 text: BulletPointCard.textSpan(
                   'You have ',
-                  children: [
+                  children: <TextSpan>[
                     TextSpan(
                         text:
                             '${(((_initialHltc!.expirationTime - kMinSafeTimeToFindPreimage.inSeconds - kCounterHtlcDuration.inSeconds) - DateTimeUtils.unixTimeNow) / 60).ceil()} minutes',
@@ -317,7 +317,7 @@ class _JoinNativeSwapModalState extends State<JoinNativeSwapModal> {
               RichText(
                 text: BulletPointCard.textSpan(
                   'The counterparty will have ',
-                  children: [
+                  children: <TextSpan>[
                     TextSpan(
                         text: '~${kCounterHtlcDuration.inHours} hour',
                         style: const TextStyle(
@@ -334,7 +334,7 @@ class _JoinNativeSwapModalState extends State<JoinNativeSwapModal> {
             ],
           ),
         const SizedBox(height: 20),
-        if (_safeExpirationTime != null) Column(children: [
+        if (_safeExpirationTime != null) Column(children: <Widget>[
                 Visibility(
                   visible:
                       !isTrustedToken(tokenToReceive.tokenStandard.toString()),
@@ -360,9 +360,9 @@ class _JoinNativeSwapModalState extends State<JoinNativeSwapModal> {
 
   ViewModelBuilder<JoinHtlcSwapBloc> _getJoinSwapViewModel(Token tokenToReceive) {
     return ViewModelBuilder<JoinHtlcSwapBloc>.reactive(
-      onViewModelReady: (model) {
+      onViewModelReady: (JoinHtlcSwapBloc model) {
         model.stream.listen(
-          (event) async {
+          (HtlcSwap? event) async {
             if (event is HtlcSwap) {
               widget.onJoinedSwap.call(event.id);
             }
@@ -375,7 +375,7 @@ class _JoinNativeSwapModalState extends State<JoinNativeSwapModal> {
           },
         );
       },
-      builder: (_, model, __) => _getJoinSwapButton(model, tokenToReceive),
+      builder: (_, JoinHtlcSwapBloc model, __) => _getJoinSwapButton(model, tokenToReceive),
       viewModelBuilder: JoinHtlcSwapBloc.new,
     );
   }
@@ -409,10 +409,10 @@ class _JoinNativeSwapModalState extends State<JoinNativeSwapModal> {
   }
 
   int? _calculateSafeExpirationTime(int initialHtlcExpiration) {
-    final minNeededRemainingTime =
+    final Duration minNeededRemainingTime =
         kMinSafeTimeToFindPreimage + kCounterHtlcDuration;
-    final now = DateTimeUtils.unixTimeNow;
-    final remaining = Duration(seconds: initialHtlcExpiration - now);
+    final int now = DateTimeUtils.unixTimeNow;
+    final Duration remaining = Duration(seconds: initialHtlcExpiration - now);
     return remaining >= minNeededRemainingTime
         ? now + kCounterHtlcDuration.inSeconds
         : null;

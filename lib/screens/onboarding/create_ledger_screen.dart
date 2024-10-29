@@ -47,10 +47,10 @@ class _CreateLedgerWalletScreenState extends State<CreateLedgerWalletScreen> {
         child: Center(
           child: StreamBuilder<LedgerWalletFile?>(
             stream: _ledgerWalletFileBloc.stream,
-            builder: (_, snapshot) {
+            builder: (_, AsyncSnapshot<LedgerWalletFile?> snapshot) {
               if (snapshot.hasData) {
                 return Column(
-                  children: [
+                  children: <Widget>[
                     ProgressBar(
                       currentLevel: widget.progressBarNumLevels - 1,
                       numLevels: widget.progressBarNumLevels,

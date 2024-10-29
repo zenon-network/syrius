@@ -22,20 +22,20 @@ class StandardFluidLayout extends StatelessWidget {
     return Layout(
       format: FluidLayoutFormat(),
       child: Builder(
-        builder: (context) {
-          const crossAxisCount = kStaggeredNumOfColumns;
+        builder: (BuildContext context) {
+          const int crossAxisCount = kStaggeredNumOfColumns;
 
-          final spacing =
+          final double spacing =
               context.breakpoint < LayoutBreakpoint.sm ? 4.0 : 12.0;
 
-          final totalDurationMs = children.length > 5 ? 800 : 400;
+          final int totalDurationMs = children.length > 5 ? 800 : 400;
 
-          final durationPerTile = totalDurationMs ~/ children.length;
+          final int durationPerTile = totalDurationMs ~/ children.length;
 
-          final tiles = List<StaggeredGridTile>.generate(
+          final List<StaggeredGridTile> tiles = List<StaggeredGridTile>.generate(
             children.length,
-            (index) {
-              final widgetAnimatorOffset = durationPerTile * (index + 1);
+            (int index) {
+              final int widgetAnimatorOffset = durationPerTile * (index + 1);
 
               return _generateStaggeredTitle(
                 children[index],

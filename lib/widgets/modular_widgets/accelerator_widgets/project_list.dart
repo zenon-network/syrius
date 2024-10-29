@@ -58,14 +58,14 @@ class _AccProjectListState extends State<AccProjectList> {
           const Duration(seconds: 1),
         )
         .distinct()
-        .listen((text) {
+        .listen((String text) {
       _bloc.onSearchInputChangedSink.add(text);
     });
-    _pagingController.addPageRequestListener((pageKey) {
+    _pagingController.addPageRequestListener((int pageKey) {
       _bloc.onPageRequestSink.add(pageKey);
     });
     _blocListingStateSubscription = _bloc.onNewListingState.listen(
-      (listingState) {
+      (InfiniteScrollBlocListingState<Project> listingState) {
         _pagingController.value = PagingState(
           nextPageKey: listingState.nextPageKey,
           error: listingState.error,
@@ -92,12 +92,12 @@ class _AccProjectListState extends State<AccProjectList> {
     return Padding(
       padding: const EdgeInsets.all(15),
       child: Column(
-        children: [
+        children: <Widget>[
           _getSearchInputField(),
           kVerticalSpacing,
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
+            children: <Widget>[
               _getProjectsFilterTags(),
               InkWell(
                 onTap: _sortProjectListByLastUpdate,
@@ -121,7 +121,7 @@ class _AccProjectListState extends State<AccProjectList> {
                   height: 15,
                 ),
                 builderDelegate: PagedChildBuilderDelegate<Project>(
-                  itemBuilder: (_, project, __) => AcceleratorProjectListItem(
+                  itemBuilder: (_, Project project, __) => AcceleratorProjectListItem(
                     key: ValueKey(
                       project.id.toString(),
                     ),
@@ -163,11 +163,11 @@ class _AccProjectListState extends State<AccProjectList> {
   }
 
   Row _getProjectsFilterTags() {
-    final children = <TagWidget>[];
+    final List<TagWidget> children = <TagWidget>[];
 
-    for (final tag in AccProjectsFilterTag.values) {
+    for (final AccProjectsFilterTag tag in AccProjectsFilterTag.values) {
       if (widget.pillarInfo == null) {
-        if ([
+        if (<AccProjectsFilterTag>[
           AccProjectsFilterTag.needsVoting,
           AccProjectsFilterTag.alreadyVoted,
         ].contains(tag)) {
@@ -226,9 +226,9 @@ class _AccProjectListState extends State<AccProjectList> {
         _pagingController.itemList!.isNotEmpty) {
       _sortAscending
           ? _pagingController.itemList!.sort(
-              (a, b) => a.lastUpdateTimestamp.compareTo(b.lastUpdateTimestamp),)
+              (Project a, Project b) => a.lastUpdateTimestamp.compareTo(b.lastUpdateTimestamp),)
           : _pagingController.itemList!.sort(
-              (a, b) => b.lastUpdateTimestamp.compareTo(a.lastUpdateTimestamp),);
+              (Project a, Project b) => b.lastUpdateTimestamp.compareTo(a.lastUpdateTimestamp),);
       setState(() {
         _sortAscending = !_sortAscending;
       });

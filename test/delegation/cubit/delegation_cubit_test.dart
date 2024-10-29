@@ -4,8 +4,7 @@ import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
-import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/cubits/timer_cubit.dart';
-import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/exceptions/exceptions.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 import '../../helpers/hydrated_bloc.dart';
@@ -22,7 +21,6 @@ class MockDelegationInfo extends Mock implements DelegationInfo {}
 
 class FakeAddress extends Fake implements Address {}
 
-
 void main() {
   initHydratedStorage();
 
@@ -34,19 +32,16 @@ void main() {
     late MockZenon mockZenon;
     late MockWsClient mockWsClient;
     late DelegationCubit delegationCubit;
-    late DelegationInfo delegationInfo;
     late MockEmbedded mockEmbedded;
     late MockPillar mockPillar;
-    late SyriusException delegationException;
+    final DelegationInfo delegationInfo = DelegationInfo.fromJson(
+      <String, dynamic>{'name': 'Test-Name', 'status': 1, 'weight': '1000'},
+    );
+    late NoDelegationStatsException delegationException;
 
     setUp(() async {
       mockZenon = MockZenon();
       mockWsClient = MockWsClient();
-      delegationInfo = DelegationInfo(
-        name: 'testName',
-        status: 1,
-        weight: BigInt.from(1),
-      );
       mockEmbedded = MockEmbedded();
       mockPillar = MockPillar();
       delegationException = NoDelegationStatsException();
@@ -57,7 +52,6 @@ void main() {
       when(() => mockEmbedded.pillar).thenReturn(mockPillar);
       when(() => mockPillar.getDelegatedPillar(any()))
           .thenAnswer((_) async => delegationInfo);
-
       delegationCubit = DelegationCubit(
         emptyAddress,
         mockZenon,
@@ -70,25 +64,36 @@ void main() {
     });
 
     test('can be (de)serialized', () {
-      final delegationState = DelegationState(status: TimerStatus.success, data: delegationInfo);
-      final serialized = delegationCubit.toJson(delegationState);
-      final deserialized = delegationCubit.fromJson(serialized!);
+      final DelegationState delegationState = DelegationState(
+        data: delegationInfo,
+        status: TimerStatus.success,
+      );
+
+      final Map<String, dynamic>? serialized = delegationCubit.toJson(
+        delegationState,
+      );
+      final DelegationState? deserialized = delegationCubit.fromJson(
+        serialized!,
+      );
+
       expect(deserialized, delegationState);
     });
 
     group('fetchDataPeriodically', () {
-      blocTest<DelegationCubit, TimerState>(
+      blocTest<DelegationCubit, DelegationState>(
         'calls getDelegatedPillar once',
         build: () => delegationCubit,
-        act: (cubit) => cubit.fetchDataPeriodically(),
+        act: (DelegationCubit cubit) => cubit.fetchDataPeriodically(),
         verify: (_) {
-          verify(() => mockPillar.getDelegatedPillar(
-                emptyAddress,
-              ),).called(1);
+          verify(
+            () => mockZenon.embedded.pillar.getDelegatedPillar(
+              emptyAddress,
+            ),
+          ).called(1);
         },
       );
 
-      blocTest<DelegationCubit, TimerState>(
+      blocTest<DelegationCubit, DelegationState>(
         'emits [loading, failure] when getDelegatedPillar throws',
         setUp: () {
           when(
@@ -98,7 +103,7 @@ void main() {
           ).thenThrow(delegationException);
         },
         build: () => delegationCubit,
-        act: (cubit) => cubit.fetchDataPeriodically(),
+        act: (DelegationCubit cubit) => cubit.fetchDataPeriodically(),
         expect: () => <DelegationState>[
           DelegationState(status: TimerStatus.loading),
           DelegationState(
@@ -108,17 +113,14 @@ void main() {
         ],
       );
 
-      blocTest<DelegationCubit, TimerState>(
+      blocTest<DelegationCubit, DelegationState>(
         'emits [loading, success] when getDelegatedPillar '
         'returns a DelegationInfo instance',
         build: () => delegationCubit,
-        act: (cubit) => cubit.fetchDataPeriodically(),
-        expect: () => <DelegationState>[
+        act: (DelegationCubit cubit) => cubit.fetchDataPeriodically(),
+        expect: () => <dynamic>[
           DelegationState(status: TimerStatus.loading),
-          DelegationState(
-            status: TimerStatus.success,
-            data: delegationInfo,
-          ),
+          DelegationState(status: TimerStatus.success, data: delegationInfo),
         ],
       );
     });

@@ -16,6 +16,7 @@ class NoActiveStakingEntriesException extends CubitException {
       _$NoActiveStakingEntriesExceptionFromJson(json);
 
   /// Converts this [NoActiveStakingEntriesException] instance to a JSON map.
+  @override
   Map<String, dynamic> toJson() =>
       _$NoActiveStakingEntriesExceptionToJson(this);
 }

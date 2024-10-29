@@ -19,7 +19,7 @@ class _AccessWalletScreenState extends State<AccessWalletScreen> {
       body: Container(
         padding: const EdgeInsets.all(50),
         child: Column(
-          children: [
+          children: <Widget>[
             Column(
               children: <Widget>[
                 Text(
@@ -39,7 +39,7 @@ class _AccessWalletScreenState extends State<AccessWalletScreen> {
             Expanded(
               child: StandardFluidLayout(
                 defaultCellHeight: kStaggeredNumOfColumns / 3,
-                children: [
+                children: <FluidCell>[
                   AccessWalletFluidCell(
                     onPressed: _onCreateWalletButtonPressed,
                     buttonIconLocation: 'assets/svg/ic_create_new.svg',

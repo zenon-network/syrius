@@ -50,7 +50,7 @@ class _MyStepperButtonWithIconChild extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       mainAxisSize: MainAxisSize.min,
-      children: [
+      children: <Widget>[
         Text(label),
         const SizedBox(
           width: 10,

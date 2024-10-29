@@ -5,7 +5,7 @@ part of 'delegation_cubit.dart';
 /// It holds a [DelegationInfo] object that represents the retrieved delegation
 /// details.
 
-@JsonSerializable()
+@JsonSerializable(explicitToJson: true)
 class DelegationState extends TimerState<DelegationInfo> {
   /// Constructs a new DelegationState object.
   ///
@@ -22,11 +22,7 @@ class DelegationState extends TimerState<DelegationInfo> {
   factory DelegationState.fromJson(Map<String, dynamic> json) =>
       _$DelegationStateFromJson(json);
 
-  /// Creates a copy of the current [DelegationState] with optional new values
-  /// for [status], [data], and [error].
-  ///
-  /// This method is used to create a new state with updated fields if provided,
-  /// otherwise retaining the existing values.
+  /// {@macro state_copy_with}
   @override
   TimerState<DelegationInfo> copyWith({
     TimerStatus? status,

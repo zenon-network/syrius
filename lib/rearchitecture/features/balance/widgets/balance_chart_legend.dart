@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/balance/balance.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/reusable_widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
@@ -46,7 +47,7 @@ class BalanceChartLegend extends StatelessWidget {
           )
           .addDecimals(coin.decimals),
       tokenSymbol: coin.symbol,
-      builder: (amount, tokenSymbol) => AmountInfoColumn(
+      builder: (String amount, String tokenSymbol) => AmountInfoColumn(
         context: context,
         amount: amount,
         tokenSymbol: tokenSymbol,

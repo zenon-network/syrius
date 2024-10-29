@@ -2,7 +2,7 @@ class Pair<T1, T2> {
   /// Creates a [Pair] instance
   Pair(this.first, this.second);
 
-  /// `fromJson` factory to specify deserialization methods for generic types
+  /// Constructor to specify deserialization methods for generic types
   factory Pair.fromJson(
       Map<String, dynamic> json,
       T1 Function(Object? json) fromJsonT1,
@@ -16,7 +16,7 @@ class Pair<T1, T2> {
   final T1 first;
   final T2 second;
 
-  /// `toJson` function to serialize generic types
+  /// A function to serialize generic types
   Map<String, dynamic> toJson(
       Object? Function(T1 value) toJsonT1,
       Object? Function(T2 value) toJsonT2,

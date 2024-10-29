@@ -44,7 +44,7 @@ class _SeedChoiceState extends State<SeedChoice> {
               });
             },
             child: FocusableActionDetector(
-              onShowHoverHighlight: (x) {
+              onShowHoverHighlight: (bool x) {
                 if (x) {
                   setState(() {
                     _seed24Color = AppColors.znnColor;
@@ -88,7 +88,7 @@ class _SeedChoiceState extends State<SeedChoice> {
               });
             },
             child: FocusableActionDetector(
-              onShowHoverHighlight: (x) {
+              onShowHoverHighlight: (bool x) {
                 if (x) {
                   setState(() {
                     _seed12Color = AppColors.znnColor;

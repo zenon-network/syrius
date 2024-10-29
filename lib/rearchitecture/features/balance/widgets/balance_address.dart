@@ -23,11 +23,11 @@ class BalanceAddress extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ValueListenableBuilder(
+    return ValueListenableBuilder<Color?>(
       valueListenable: edgesColorNotifier,
       builder: (_, Color? edgesColor, __) {
         return FocusableActionDetector(
-          onShowHoverHighlight: (x) {
+          onShowHoverHighlight: (bool x) {
             if (x) {
               edgesColorNotifier.value = AppColors.znnColor;
             } else {
@@ -50,7 +50,7 @@ class BalanceAddress extends StatelessWidget {
             ),
             child: AutoSizeText.rich(
               TextSpan(
-                children: [
+                children: <InlineSpan>[
                   TextSpan(
                     text: address.substring(0, 3),
                     style: TextStyle(color: edgesColor),

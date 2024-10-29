@@ -20,7 +20,7 @@ class DualCoinStatsChartLegendItem extends StatelessWidget {
         token.decimals,
       ),
       tokenSymbol: token.symbol,
-      builder: (amount, symbol) => AmountInfoColumn(
+      builder: (String amount, String symbol) => AmountInfoColumn(
         amount: amount,
         tokenSymbol: symbol,
         context: context,

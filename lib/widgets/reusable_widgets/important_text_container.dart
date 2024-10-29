@@ -30,7 +30,7 @@ class ImportantTextContainer extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsets.fromLTRB(15, 20, 15, 20),
         child: Row(
-          children: [
+          children: <Widget>[
             const Icon(
               Icons.info,
               size: 20,

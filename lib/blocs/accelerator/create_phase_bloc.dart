@@ -14,7 +14,7 @@ class CreatePhaseBloc extends BaseBloc<AccountBlockTemplate?> {
   ) async {
     try {
       addEvent(null);
-      final transactionParams =
+      final AccountBlockTemplate transactionParams =
           zenon!.embedded.accelerator.addPhase(
         id,
         name,

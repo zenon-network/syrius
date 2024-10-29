@@ -8,12 +8,12 @@ class PillarRewardsHistoryBloc
     extends BaseBlocForReloadingIndicator<RewardHistoryList> {
   @override
   Future<RewardHistoryList> getDataAsync() async {
-    final response =
+    final RewardHistoryList response =
         await zenon!.embedded.pillar.getFrontierRewardByPage(
       Address.parse(kSelectedAddress!),
       pageSize: kStandardChartNumDays.toInt(),
     );
-    if (response.list.any((element) => element.znnAmount > BigInt.zero)) {
+    if (response.list.any((RewardHistoryEntry element) => element.znnAmount > BigInt.zero)) {
       return response;
     } else {
       throw 'No rewards in the last week';

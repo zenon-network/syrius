@@ -37,7 +37,7 @@ class _SendMediumCardState extends State<SendMediumCard> {
 
   Token _selectedToken = kDualCoin.first;
 
-  final List<Token?> _tokensWithBalance = [];
+  final List<Token?> _tokensWithBalance = <Token?>[];
 
   final FocusNode _recipientFocusNode = FocusNode();
 
@@ -63,7 +63,7 @@ class _SendMediumCardState extends State<SendMediumCard> {
   Widget _getBalanceStreamBuilder() {
     return StreamBuilder<Map<String, AccountInfo>?>(
       stream: sl.get<TransferWidgetsBalanceBloc>().stream,
-      builder: (_, snapshot) {
+      builder: (_, AsyncSnapshot<Map<String, AccountInfo>?> snapshot) {
         if (snapshot.hasError) {
           return SyriusErrorWidget(snapshot.error!);
         }
@@ -99,7 +99,7 @@ class _SendMediumCardState extends State<SendMediumCard> {
               key: _recipientKey,
               autovalidateMode: AutovalidateMode.onUserInteraction,
               child: InputField(
-                onChanged: (value) {
+                onChanged: (String value) {
                   setState(() {});
                 },
                 thisNode: _recipientFocusNode,
@@ -134,13 +134,13 @@ class _SendMediumCardState extends State<SendMediumCard> {
               key: _amountKey,
               autovalidateMode: AutovalidateMode.onUserInteraction,
               child: InputField(
-                onChanged: (value) {
+                onChanged: (String value) {
                   setState(() {});
                 },
                 inputFormatters: FormatUtils.getAmountTextInputFormatters(
                   _amountController.text,
                 ),
-                validator: (value) => InputValidators.correctValue(
+                validator: (String? value) => InputValidators.correctValue(
                   value,
                   accountInfo.getBalance(
                     _selectedToken.tokenStandard,
@@ -203,7 +203,7 @@ class _SendMediumCardState extends State<SendMediumCard> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.end,
       mainAxisSize: MainAxisSize.min,
-      children: [
+      children: <Widget>[
         _getCoinDropdown(),
         const SizedBox(
           width: 5,
@@ -222,7 +222,7 @@ class _SendMediumCardState extends State<SendMediumCard> {
   Widget _getCoinDropdown() => CoinDropdown(
         _tokensWithBalance,
         _selectedToken,
-        (value) {
+        (Token? value) {
           if (_selectedToken != value) {
             setState(
               () {
@@ -234,7 +234,7 @@ class _SendMediumCardState extends State<SendMediumCard> {
       );
 
   void _onMaxPressed(AccountInfo accountInfo) {
-    final maxBalance = accountInfo.getBalance(
+    final BigInt maxBalance = accountInfo.getBalance(
       _selectedToken.tokenStandard,
     );
 
@@ -251,9 +251,9 @@ class _SendMediumCardState extends State<SendMediumCard> {
   Widget _getSendPaymentViewModel(AccountInfo? accountInfo) {
     return ViewModelBuilder<SendPaymentBloc>.reactive(
       fireOnViewModelReadyOnce: true,
-      onViewModelReady: (model) {
+      onViewModelReady: (SendPaymentBloc model) {
         model.stream.listen(
-          (event) async {
+          (AccountBlockTemplate? event) async {
             if (event is AccountBlockTemplate) {
               await _sendConfirmationNotification();
               setState(() {
@@ -271,7 +271,7 @@ class _SendMediumCardState extends State<SendMediumCard> {
           },
         );
       },
-      builder: (_, model, __) => SendPaymentButton(
+      builder: (_, SendPaymentBloc model, __) => SendPaymentButton(
         onPressed: _hasBalance(accountInfo!) && _isInputValid(accountInfo)
             ? () => _onSendPaymentPressed(model)
             : null,
@@ -309,7 +309,7 @@ class _SendMediumCardState extends State<SendMediumCard> {
       BigInt.zero;
 
   void _addTokensWithBalance(AccountInfo accountInfo) {
-    for (final balanceInfo in accountInfo.balanceInfoList!) {
+    for (final BalanceInfoListItem balanceInfo in accountInfo.balanceInfoList!) {
       if (balanceInfo.balance! > BigInt.zero &&
           !_tokensWithBalance.contains(balanceInfo.token)) {
         _tokensWithBalance.add(balanceInfo.token);

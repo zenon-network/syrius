@@ -49,7 +49,7 @@ class HtlcSwap extends P2pSwap {
 
   @override
   Map<String, dynamic> toJson() {
-    final data = super.toJson();
+    final Map<String, dynamic> data = super.toJson();
     data['hashLock'] = hashLock;
     data['initialHtlcId'] = initialHtlcId;
     data['initialHtlcExpirationTime'] = initialHtlcExpirationTime;

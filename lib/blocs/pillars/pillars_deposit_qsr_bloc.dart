@@ -16,7 +16,7 @@ class PillarsDepositQsrBloc extends BaseBloc<AccountBlockTemplate?> {
     try {
       addEvent(null);
       if (!justMarkStepCompleted) {
-        final transactionParams =
+        final AccountBlockTemplate transactionParams =
             zenon!.embedded.pillar.depositQsr(
           amount,
         );
@@ -25,7 +25,7 @@ class PillarsDepositQsrBloc extends BaseBloc<AccountBlockTemplate?> {
           'deposit ${kQsrCoin.symbol} for Pillar Slot',
           waitForRequiredPlasma: true,
         ).then(
-          (response) async {
+          (AccountBlockTemplate response) async {
             await Future.delayed(
               kDelayAfterAccountBlockCreationCall,
             );

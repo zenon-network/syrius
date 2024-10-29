@@ -1,19 +1,17 @@
 part of 'pillars_cubit.dart';
 
-/// The state class for the `PillarsCubit`, extending `DashboardState` to
-/// manage the data related to pillars.
-///
-/// `PillarsState` stores an integer value representing the number of pillars
-/// retrieved from the Zenon network.
-/// This state is used by the `PillarsCubit` to track and update the number of
+/// This state is used by the [PillarsCubit] to track and update the number of
 /// active pillars.
+///
+/// [PillarsState] stores an integer value representing the number of pillars
+/// retrieved from the Zenon network.
 @JsonSerializable()
 class PillarsState extends TimerState<int> {
-  /// Constructs a new `PillarsState`.
+  /// Constructs a new [PillarsState] object.
   ///
-  /// This state is initialized with the default `status`, `data`, and `error`
-  /// values from the parent `DashboardState` class.
-  /// The `data` field in this case represents the count of active pillars on
+  /// This state is initialized with the default [status], [data], and [error]
+  /// values from the parent [TimerState] class.
+  /// The [data] field in this case represents the count of active pillars on
   /// the Zenon network.
   const PillarsState({
     super.status,
@@ -25,15 +23,7 @@ class PillarsState extends TimerState<int> {
   factory PillarsState.fromJson(Map<String, dynamic> json) =>
       _$PillarsStateFromJson(json);
 
-  /// Creates a copy of the current `PillarsState` with optional new values for
-  /// `status`, `data`, and `error`.
-  ///
-  /// This method is used to create a new state with updated fields if provided,
-  /// otherwise retaining the existing values.
-  ///
-  /// Returns:
-  /// - A new instance of `PillarsState` with the updated values or the
-  /// existing ones if none are provided.
+  /// {@macro state_copy_with}
   @override
   TimerState<int> copyWith({
     TimerStatus? status,

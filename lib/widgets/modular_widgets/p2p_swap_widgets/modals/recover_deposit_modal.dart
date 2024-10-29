@@ -59,7 +59,7 @@ class _RecoverDepositModalState extends State<RecoverDepositModal> {
   Widget _getPendingFundsView() {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
-      children: [
+      children: <Widget>[
         const SizedBox(
           height: 10,
         ),
@@ -91,7 +91,7 @@ class _RecoverDepositModalState extends State<RecoverDepositModal> {
 
   Widget _getSearchView() {
     return Column(
-      children: [
+      children: <Widget>[
         const SizedBox(
           height: 20,
         ),
@@ -108,7 +108,7 @@ class _RecoverDepositModalState extends State<RecoverDepositModal> {
           cursor: SystemMouseCursors.click,
           child: GestureDetector(
             child: const Row(
-              children: [
+              children: <Widget>[
                 Text(
                   'View swap tutorial',
                   style: TextStyle(
@@ -135,7 +135,7 @@ class _RecoverDepositModalState extends State<RecoverDepositModal> {
         Form(
           autovalidateMode: AutovalidateMode.onUserInteraction,
           child: InputField(
-            onChanged: (value) {
+            onChanged: (String value) {
               setState(() {});
             },
             validator: InputValidators.checkHash,
@@ -169,7 +169,7 @@ class _RecoverDepositModalState extends State<RecoverDepositModal> {
         Visibility(
           visible: _errorText != null,
           child: Column(
-            children: [
+            children: <Widget>[
               ImportantTextContainer(
                 text: _errorText ?? '',
                 showBorder: true,
@@ -187,9 +187,9 @@ class _RecoverDepositModalState extends State<RecoverDepositModal> {
 
   Widget _getRecoverButton() {
     return ViewModelBuilder<RecoverHtlcSwapFundsBloc>.reactive(
-      onViewModelReady: (model) {
+      onViewModelReady: (RecoverHtlcSwapFundsBloc model) {
         model.stream.listen(
-          (event) async {
+          (AccountBlockTemplate? event) async {
             if (event is AccountBlockTemplate) {
               setState(() {
                 _isPendingFunds = true;
@@ -204,7 +204,7 @@ class _RecoverDepositModalState extends State<RecoverDepositModal> {
           },
         );
       },
-      builder: (_, model, __) => InstructionButton(
+      builder: (_, RecoverHtlcSwapFundsBloc model, __) => InstructionButton(
         text: 'Recover deposit',
         isEnabled: _isHashValid(),
         isLoading: _isLoading,

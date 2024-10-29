@@ -52,7 +52,7 @@ class _NotificationWidgetState extends State<NotificationWidget> {
                   ),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
+                    children: <Widget>[
                       _getNotificationDetails(kLastNotification!),
                       _getNotificationOptions(kLastNotification!),
                     ],
@@ -71,7 +71,7 @@ class _NotificationWidgetState extends State<NotificationWidget> {
   void _initNotificationsBloc() {
     _notificationsBloc = sl.get<NotificationsBloc>();
     _notificationsBloc.stream.listen(
-      (value) {
+      (WalletNotification? value) {
         if (mounted) {
           setState(() {
             kLastNotification = value;
@@ -84,7 +84,7 @@ class _NotificationWidgetState extends State<NotificationWidget> {
 
   Row _getNotificationDetails(WalletNotification notification) {
     return Row(
-      children: [
+      children: <Widget>[
         notification.getIcon(),
         const SizedBox(
           width: 15,
@@ -99,7 +99,7 @@ class _NotificationWidgetState extends State<NotificationWidget> {
 
   Row _getNotificationOptions(WalletNotification notification) {
     return Row(
-      children: [
+      children: <Widget>[
         Visibility(
           visible: kCurrentPage != Tabs.lock && widget.onSeeMorePressed != null,
           child: RawMaterialButton(

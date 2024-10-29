@@ -14,13 +14,13 @@ class TransferWidgetsBalanceBloc extends BaseBloc<Map<String, AccountInfo>?>
   Future<void> getBalanceForAllAddresses() async {
     try {
       addEvent(null);
-      final addressBalanceMap = <String, AccountInfo>{};
-      final accountInfoList = await Future.wait(
+      final Map<String, AccountInfo> addressBalanceMap = <String, AccountInfo>{};
+      final List<AccountInfo> accountInfoList = await Future.wait(
         kDefaultAddressList.map(
-          (address) => _getBalancePerAddress(address!),
+          (String? address) => _getBalancePerAddress(address!),
         ),
       );
-      for (final accountInfo in accountInfoList) {
+      for (final AccountInfo accountInfo in accountInfoList) {
         addressBalanceMap[accountInfo.address!] = accountInfo;
       }
       addEvent(addressBalanceMap);

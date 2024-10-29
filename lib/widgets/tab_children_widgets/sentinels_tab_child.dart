@@ -21,7 +21,7 @@ class _SentinelsTabChildState extends State<SentinelsTabChild> {
 
   @override
   Widget build(BuildContext context) {
-    final children = <FluidCell>[
+    final List<FluidCell> children = <FluidCell>[
       FluidCell(
         child: SentinelRewards(
           sentinelRewardsHistoryBloc: _sentinelRewardsHistoryBloc,

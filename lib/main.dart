@@ -12,6 +12,7 @@ import 'package:hydrated_bloc/hydrated_bloc.dart';
 import 'package:layout/layout.dart';
 import 'package:local_notifier/local_notifier.dart';
 import 'package:logging/logging.dart';
+import 'package:nested/nested.dart';
 import 'package:overlay_support/overlay_support.dart';
 import 'package:path/path.dart' as path;
 import 'package:path_provider/path_provider.dart';
@@ -42,9 +43,9 @@ SharedPrefsService? sharedPrefsService;
 HtlcSwapsService? htlcSwapsService;
 IWeb3WalletService? web3WalletService;
 
-final sl = GetIt.instance;
+final GetIt sl = GetIt.instance;
 
-final globalNavigatorKey = GlobalKey<NavigatorState>();
+final GlobalKey<NavigatorState> globalNavigatorKey = GlobalKey<NavigatorState>();
 
 main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -60,12 +61,12 @@ main() async {
   Hive.init(znnDefaultPaths.cache.path);
 
   // Setup logger
-  final syriusLogDir =
+  final Directory syriusLogDir =
       Directory(path.join(znnDefaultCacheDirectory.path, 'log'));
   if (!syriusLogDir.existsSync()) {
     syriusLogDir.createSync(recursive: true);
   }
-  final logFile = File(
+  final File logFile = File(
       '${syriusLogDir.path}${path.separator}syrius-${DateTime.now().millisecondsSinceEpoch}.log',);
   Logger.root.level = Level.ALL;
   Logger.root.onRecord.listen((LogRecord record) {
@@ -92,7 +93,7 @@ main() async {
   setup();
 
   retry(() => web3WalletService!.init(),
-      retryIf: (e) => e is SocketException || e is TimeoutException,
+      retryIf: (Exception e) => e is SocketException || e is TimeoutException,
       maxAttempts: 0x7FFFFFFFFFFFFFFF,);
 
   // Setup local_notifier
@@ -165,7 +166,7 @@ Future<void> _setupTrayManager() async {
   if (Platform.isMacOS) {
     await trayManager.setToolTip('s y r i u s');
   }
-  final items = <MenuItem>[
+  final List<MenuItem> items = <MenuItem>[
     MenuItem(
       key: 'show_wallet',
       label: 'Show wallet',
@@ -185,11 +186,11 @@ Future<void> _setupTrayManager() async {
 
 Future<void> _loadDefaultCommunityNodes() async {
   try {
-    final nodes = await loadJsonFromAssets('assets/community-nodes.json')
+    final List nodes = await loadJsonFromAssets('assets/community-nodes.json')
         as List<dynamic>;
     kDefaultCommunityNodes = nodes
         .map((node) => node.toString())
-        .where((node) => InputValidators.node(node) == null)
+        .where((String node) => InputValidators.node(node) == null)
         .toList();
   } catch (e, stackTrace) {
     Logger('main')
@@ -201,7 +202,7 @@ void setup() {
   sl.registerSingleton<Zenon>(Zenon());
   zenon = sl<Zenon>();
   sl.registerLazySingletonAsync<SharedPrefsService>(
-      () => SharedPrefsService.getInstance().then((value) => value!),);
+      () => SharedPrefsService.getInstance().then((SharedPrefsService? value) => value!),);
   sl.registerSingleton<HtlcSwapsService>(HtlcSwapsService.getInstance());
 
   // Initialize WalletConnect service
@@ -267,7 +268,7 @@ class _MyAppState extends State<MyApp> with WindowListener, TrayListener {
   @override
   Widget build(BuildContext context) {
     return MultiProvider(
-      providers: [
+      providers: <SingleChildWidget>[
         ChangeNotifierProvider<SelectedAddressNotifier>(
           create: (_) => SelectedAddressNotifier(),
         ),
@@ -285,19 +286,19 @@ class _MyAppState extends State<MyApp> with WindowListener, TrayListener {
         ),
         ChangeNotifierProvider<ValueNotifier<List<String>>>(
           create: (_) => ValueNotifier<List<String>>(
-            [],
+            <String>[],
           ),
         ),
         Provider<LockBloc>(
           create: (_) => LockBloc(),
-          builder: (context, child) {
+          builder: (BuildContext context, Widget? child) {
             return Consumer<AppThemeNotifier>(
-              builder: (_, appThemeNotifier, __) {
-                final lockBloc =
+              builder: (_, AppThemeNotifier appThemeNotifier, __) {
+                final LockBloc lockBloc =
                     Provider.of<LockBloc>(context, listen: false);
                 return OverlaySupport(
                   child: Listener(
-                    onPointerSignal: (event) {
+                    onPointerSignal: (PointerSignalEvent event) {
                       if (event is PointerScrollEvent) {
                         lockBloc.addEvent(LockEvent.resetTimer);
                       }
@@ -331,22 +332,22 @@ class _MyAppState extends State<MyApp> with WindowListener, TrayListener {
                             scrollBehavior: RemoveOverscrollEffect(),
                             localizationsDelegates: AppLocalizations.localizationsDelegates,
                             supportedLocales: AppLocalizations.supportedLocales,
-                            routes: {
-                              AccessWalletScreen.route: (context) =>
+                            routes: <String, WidgetBuilder>{
+                              AccessWalletScreen.route: (BuildContext context) =>
                                   const AccessWalletScreen(),
-                              SplashScreen.route: (context) =>
+                              SplashScreen.route: (BuildContext context) =>
                                   const SplashScreen(),
-                              MainAppContainer.route: (context) =>
+                              MainAppContainer.route: (BuildContext context) =>
                                   const MainAppContainer(),
                               NodeManagementScreen.route: (_) =>
                                   const NodeManagementScreen(),
                             },
-                            onGenerateRoute: (settings) {
+                            onGenerateRoute: (RouteSettings settings) {
                               if (settings.name == SyriusErrorWidget.route) {
-                                final args = settings.arguments!
+                                final CustomSyriusErrorWidgetArguments args = settings.arguments!
                                     as CustomSyriusErrorWidgetArguments;
                                 return MaterialPageRoute(
-                                  builder: (context) =>
+                                  builder: (BuildContext context) =>
                                       SyriusErrorWidget(args.errorText),
                                 );
                               }
@@ -368,14 +369,14 @@ class _MyAppState extends State<MyApp> with WindowListener, TrayListener {
 
   @override
   Future<void> onWindowClose() async {
-    final windowMaximized = await windowManager.isMaximized();
+    final bool windowMaximized = await windowManager.isMaximized();
     await sharedPrefsService!.put(
       kWindowMaximizedKey,
       windowMaximized,
     );
 
     if (windowMaximized != true) {
-      final windowSize = await windowManager.getSize();
+      final Size windowSize = await windowManager.getSize();
       await sharedPrefsService!.put(
         kWindowSizeWidthKey,
         windowSize.width,
@@ -385,7 +386,7 @@ class _MyAppState extends State<MyApp> with WindowListener, TrayListener {
         windowSize.height,
       );
 
-      final windowPosition = await windowManager.getPosition();
+      final Offset windowPosition = await windowManager.getPosition();
       await sharedPrefsService!.put(
         kWindowPositionXKey,
         windowPosition.dx,

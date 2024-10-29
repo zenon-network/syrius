@@ -42,10 +42,10 @@ class StandardChart extends StatelessWidget {
               tooltipRoundedRadius: 6,
               getTooltipColor: (LineBarSpot lineBarSpot) =>
                   Theme.of(context).colorScheme.surface,
-              getTooltipItems: (touchedSpots) {
+              getTooltipItems: (List<LineBarSpot> touchedSpots) {
                 return touchedSpots.map(
                   (LineBarSpot touchedSpot) {
-                    final textStyle = TextStyle(
+                    final TextStyle textStyle = TextStyle(
                       color: touchedSpot.bar.color,
                       fontWeight: FontWeight.bold,
                       fontSize: 14,
@@ -67,14 +67,14 @@ class StandardChart extends StatelessWidget {
               return const FlLine(
                 strokeWidth: 1,
                 color: Colors.black87,
-                dashArray: [3, 3],
+                dashArray: <int>[3, 3],
               );
             },
           ),
           titlesData: FlTitlesData(
             bottomTitles: AxisTitles(
               sideTitles: SideTitles(
-                getTitlesWidget: (value, titleMeta) => Padding(
+                getTitlesWidget: (double value, TitleMeta titleMeta) => Padding(
                   padding: const EdgeInsets.only(top: 8),
                   child: Text(
                     FormatUtils.formatDate(
@@ -93,7 +93,7 @@ class StandardChart extends StatelessWidget {
               sideTitles: SideTitles(
                 interval: yValuesInterval,
                 showTitles: true,
-                getTitlesWidget: (value, _) => Padding(
+                getTitlesWidget: (double value, _) => Padding(
                   padding: const EdgeInsets.only(top: 8),
                   child: Text(
                     value != 0

@@ -11,13 +11,13 @@ class CompleteHtlcSwapBloc extends BaseBloc<HtlcSwap?> {
   }) async {
     try {
       addEvent(null);
-      final htlcId = swap.direction == P2pSwapDirection.outgoing
+      final String htlcId = swap.direction == P2pSwapDirection.outgoing
           ? swap.counterHtlcId!
           : swap.initialHtlcId;
 
       // Make sure that the HTLC exists and has a safe amount of time left
       // until expiration.
-      final htlc = await zenon!.embedded.htlc.getById(Hash.parse(htlcId));
+      final HtlcInfo htlc = await zenon!.embedded.htlc.getById(Hash.parse(htlcId));
       if (htlc.expirationTime <=
           DateTimeUtils.unixTimeNow + kMinSafeTimeToCompleteSwap.inSeconds) {
         throw 'The swap will expire too soon for a safe swap.';
@@ -28,19 +28,19 @@ class CompleteHtlcSwapBloc extends BaseBloc<HtlcSwap?> {
         throw 'The swap secret size exceeds the maximum allowed size.';
       }
 
-      final transactionParams = zenon!.embedded.htlc.unlock(
+      final AccountBlockTemplate transactionParams = zenon!.embedded.htlc.unlock(
           Hash.parse(htlcId), FormatUtils.decodeHexString(swap.preimage!),);
       AccountBlockUtils.createAccountBlock(transactionParams, 'complete swap',
               address: Address.parse(swap.selfAddress), waitForRequiredPlasma: true,)
           .then(
-        (response) async {
+        (AccountBlockTemplate response) async {
           swap.state = P2pSwapState.completed;
           await htlcSwapsService!.storeSwap(swap);
           ZenonAddressUtils.refreshBalance();
           addEvent(swap);
         },
       ).onError(
-        (error, stackTrace) {
+        (Object? error, StackTrace stackTrace) {
           addError(error.toString(), stackTrace);
         },
       );

@@ -50,7 +50,7 @@ class _SettingsAddressState extends State<SettingsAddress> {
 
   Row _getAddressLabel(BuildContext context) {
     return Row(
-      children: [
+      children: <Widget>[
         Expanded(
           child: InkWell(
             borderRadius: BorderRadius.circular(
@@ -62,7 +62,7 @@ class _SettingsAddressState extends State<SettingsAddress> {
                   const EdgeInsets.symmetric(horizontal: 5, vertical: 5),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
+                children: <Widget>[
                   Text(
                     _labelController.text,
                     style: Theme.of(context).textTheme.bodyLarge!.copyWith(
@@ -109,21 +109,21 @@ class _SettingsAddressState extends State<SettingsAddress> {
   Widget _getAddressLabelInputField() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
+      children: <Widget>[
         Row(
-          children: [
+          children: <Widget>[
             Expanded(
               child: SizedBox(
                 height: 40,
                 child: InputField(
                   controller: _labelController,
-                  onSubmitted: (value) {
+                  onSubmitted: (String value) {
                     if (_labelController.text !=
                         kAddressLabelMap[widget.address]!) {
                       _onChangeButtonPressed();
                     }
                   },
-                  onChanged: (value) {
+                  onChanged: (String value) {
                     setState(() {});
                   },
                   inputtedTextStyle:

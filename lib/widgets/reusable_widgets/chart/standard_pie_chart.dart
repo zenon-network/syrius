@@ -11,7 +11,7 @@ class StandardPieChart extends PieChart {
   }) : super(
           PieChartData(
             pieTouchData: PieTouchData(
-              touchCallback: (event, pieTouchResponse) {
+              touchCallback: (FlTouchEvent event, PieTouchResponse? pieTouchResponse) {
                 if (!event.isInterestedForInteractions ||
                     pieTouchResponse == null ||
                     pieTouchResponse.touchedSection == null) {

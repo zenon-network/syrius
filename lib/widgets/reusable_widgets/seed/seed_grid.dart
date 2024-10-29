@@ -26,7 +26,7 @@ class SeedGrid extends StatefulWidget {
 }
 
 class SeedGridState extends State<SeedGrid> {
-  final List<SeedGridElement> _seedGridElements = [];
+  final List<SeedGridElement> _seedGridElements = <SeedGridElement>[];
 
   int? _textCursor;
   int? _onHoverText;
@@ -61,16 +61,16 @@ class SeedGridState extends State<SeedGrid> {
   }
 
   Widget _getSeedInputWidgetsGrid() {
-    final divider = widget.seedWords.length ~/ kSeedGridNumOfRows;
+    final int divider = widget.seedWords.length ~/ kSeedGridNumOfRows;
 
-    var columnChildren = <Widget>[];
+    List<Widget> columnChildren = <Widget>[];
 
-    for (var i = 0; i <= widget.seedWords.length / divider - 1; i++) {
+    for (int i = 0; i <= widget.seedWords.length / divider - 1; i++) {
       columnChildren.add(
         _getSeedRow(
           List.generate(
             divider,
-            (index) => index + (divider * i),
+            (int index) => index + (divider * i),
           ),
         ),
       );
@@ -79,7 +79,7 @@ class SeedGridState extends State<SeedGrid> {
     columnChildren = columnChildren.zip<Widget>(
       List.generate(
         kSeedGridNumOfRows - 1,
-        (index) => const SizedBox(
+        (int index) => const SizedBox(
           height: 10,
         ),
       ),
@@ -93,9 +93,9 @@ class SeedGridState extends State<SeedGrid> {
   }
 
   Widget _getSeedRow(List<int> rangeIndexes) {
-    final children = rangeIndexes.fold<List<Widget>>(
-      [],
-      (previousValue, index) {
+    final List<Widget> children = rangeIndexes.fold<List<Widget>>(
+      <Widget>[],
+      (List<Widget> previousValue, int index) {
         previousValue.add(_seedWordWidget(index));
         if (rangeIndexes.last != index) {
           previousValue.add(const SizedBox(
@@ -112,9 +112,9 @@ class SeedGridState extends State<SeedGrid> {
   }
 
   Widget _seedWordWidget(int seedWordIndex) {
-    final seedWord = _seedGridElements[seedWordIndex].word;
+    final String seedWord = _seedGridElements[seedWordIndex].word;
 
-    final controller = TextEditingController();
+    final TextEditingController controller = TextEditingController();
     controller.text = seedWord;
 
     if (_textCursor == seedWordIndex) {
@@ -136,7 +136,7 @@ class SeedGridState extends State<SeedGrid> {
             },
             child: FocusableActionDetector(
               mouseCursor: SystemMouseCursors.click,
-              onShowHoverHighlight: (x) {
+              onShowHoverHighlight: (bool x) {
                 if (x) {
                   setState(() {
                     _onHoverText = seedWordIndex;
@@ -176,7 +176,7 @@ class SeedGridState extends State<SeedGrid> {
             child: FocusableActionDetector(
               actions: _actionMap,
               shortcuts: _shortcutMap,
-              onShowHoverHighlight: (x) {
+              onShowHoverHighlight: (bool x) {
                 if (x) {
                   setState(() {
                     _onHoverText = seedWordIndex;
@@ -191,7 +191,7 @@ class SeedGridState extends State<SeedGrid> {
                 color: Colors.transparent,
                 child: TextField(
                   focusNode: _focusNodes[seedWordIndex],
-                  onChanged: (text) {
+                  onChanged: (String text) {
                     controller.text = text;
                     _seedGridElements[seedWordIndex].word = text;
                     _seedGridElements[seedWordIndex].isValid =
@@ -202,7 +202,7 @@ class SeedGridState extends State<SeedGrid> {
                     _checkIfSeedIsValid();
                     widget.onTextFieldChangedCallback?.call();
                   },
-                  inputFormatters: [LengthLimitingTextInputFormatter(8)],
+                  inputFormatters: <TextInputFormatter>[LengthLimitingTextInputFormatter(8)],
                   enabled: widget.enableSeedInputFields,
                   controller: controller,
                   obscureText: _onHoverText == seedWordIndex
@@ -321,7 +321,7 @@ class SeedGridState extends State<SeedGrid> {
   }
 
   bool _foundInvalidSeedGridElement() {
-    return _seedGridElements.any((element) => !element.isValid);
+    return _seedGridElements.any((SeedGridElement element) => !element.isValid);
   }
 
   void changedSeed(List<String> newSeed) {
@@ -333,19 +333,19 @@ class SeedGridState extends State<SeedGrid> {
   }
 
   List<String> get getSeedWords =>
-      _seedGridElements.map((e) => e.word).toList();
+      _seedGridElements.map((SeedGridElement e) => e.word).toList();
 
   String get getSeed => getSeedWords.join(' ');
 
   void _initFocusNodes(int length) => _focusNodes = List.generate(
         length,
-        (index) => FocusNode(),
+        (int index) => FocusNode(),
       );
 
   void _changeFocusToNextNode() {
-    final indexOfFocusedNode = _focusNodes.indexOf(
+    final int indexOfFocusedNode = _focusNodes.indexOf(
       _focusNodes.firstWhere(
-        (node) => node.hasFocus,
+        (FocusNode node) => node.hasFocus,
       ),
     );
     if (indexOfFocusedNode + 1 < _focusNodes.length) {
@@ -356,7 +356,7 @@ class SeedGridState extends State<SeedGrid> {
   }
 
   void _initSeedGridElements(List<String> seed) {
-    for (final word in seed) {
+    for (final String word in seed) {
       _seedGridElements.add(
         SeedGridElement(
           word: word,
@@ -369,7 +369,7 @@ class SeedGridState extends State<SeedGrid> {
 
   @override
   void dispose() {
-    for (final focusNode in _focusNodes) {
+    for (final FocusNode focusNode in _focusNodes) {
       focusNode.dispose();
     }
     super.dispose();

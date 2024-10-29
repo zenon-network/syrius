@@ -21,8 +21,8 @@ DelegationState _$DelegationStateFromJson(Map<String, dynamic> json) =>
 Map<String, dynamic> _$DelegationStateToJson(DelegationState instance) =>
     <String, dynamic>{
       'status': _$TimerStatusEnumMap[instance.status]!,
-      'data': instance.data,
-      'error': instance.error,
+      'data': instance.data?.toJson(),
+      'error': instance.error?.toJson(),
     };
 
 const _$TimerStatusEnumMap = {

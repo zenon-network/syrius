@@ -2,9 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
-import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/cubits/timer_cubit.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
-import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/card_scaffold_without_listener.dart';
 
 /// A widget connected to the [TotalHourlyTransactionsCubit] that receives the
 /// state - [TotalHourlyTransactionsState] - updates and rebuilds the UI
@@ -15,9 +13,9 @@ class TotalHourlyTransactionsCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
+    return BlocProvider<TotalHourlyTransactionsCubit>(
       create: (_) {
-        final cubit = TotalHourlyTransactionsCubit(
+        final TotalHourlyTransactionsCubit cubit = TotalHourlyTransactionsCubit(
           zenon!,
           const TotalHourlyTransactionsState(),
         )..fetchDataPeriodically();
@@ -27,7 +25,7 @@ class TotalHourlyTransactionsCard extends StatelessWidget {
         data: CardType.totalHourlyTransactions.getData(context: context),
         body: BlocBuilder<TotalHourlyTransactionsCubit,
             TotalHourlyTransactionsState>(
-          builder: (context, state) {
+          builder: (BuildContext context, TotalHourlyTransactionsState state) {
             return switch (state.status) {
               TimerStatus.initial => const TotalHourlyTransactionsEmpty(),
               TimerStatus.loading => const TotalHourlyTransactionsLoading(),

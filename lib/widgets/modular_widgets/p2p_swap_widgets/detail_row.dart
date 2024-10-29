@@ -22,12 +22,12 @@ class DetailRow extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
+      children: <Widget>[
         Text(label,
             style: const TextStyle(
                 fontSize: 12, color: AppColors.subtitleColor,),),
         Row(
-          children: [
+          children: <Widget>[
             prefixWidget ?? Container(),
             if (prefixWidget != null)
               const SizedBox(

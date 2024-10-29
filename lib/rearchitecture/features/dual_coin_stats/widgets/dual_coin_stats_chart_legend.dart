@@ -17,10 +17,10 @@ class DualCoinStatsChartLegend extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final items = List<Widget>.generate(
+    final List<Widget> items = List<Widget>.generate(
       tokens.length,
-      (index) {
-        final token = tokens[index];
+      (int index) {
+        final Token token = tokens[index];
 
         return Expanded(
           child: DualCoinStatsChartLegendItem(

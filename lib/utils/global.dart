@@ -20,14 +20,14 @@ bool kWalletInitCompleted = false;
 
 WalletFile? kWalletFile;
 
-List<String> kDbNodes = [];
-List<String?> kDefaultAddressList = [];
+List<String> kDbNodes = <String>[];
+List<String?> kDefaultAddressList = <String?>[];
 
-Map<String, String> kAddressLabelMap = {};
+Map<String, String> kAddressLabelMap = <String, String>{};
 
 Tabs? kCurrentPage;
 
-final List<Tabs> kTabs = [...kTabsWithTextTitles, ...kTabsWithIconTitles];
+final List<Tabs> kTabs = <Tabs>[...kTabsWithTextTitles, ...kTabsWithIconTitles];
 
 WalletNotification? kLastNotification;
 WalletNotification? kLastDismissedNotification;
@@ -36,7 +36,7 @@ int? kNumOfPillars;
 
 bool kEmbeddedNodeRunning = false;
 
-final List<Tabs> kTabsWithIconTitles = [
+final List<Tabs> kTabsWithIconTitles = <Tabs>[
   if (kWcProjectId.isNotEmpty) Tabs.walletConnect,
   Tabs.accelerator,
   Tabs.help,
@@ -47,15 +47,15 @@ final List<Tabs> kTabsWithIconTitles = [
   Tabs.lock,
 ];
 
-final List<Tabs> kDisabledTabs = [
+final List<Tabs> kDisabledTabs = <Tabs>[
   Tabs.generation,
   Tabs.sync,
 ];
 
-List<String> kDefaultNodes = [
+List<String> kDefaultNodes = <String>[
   kEmbeddedNode,
   kLocalhostDefaultNodeUrl,
 ];
 
 // Community supplied public rpc nodes
-List<String> kDefaultCommunityNodes = [];
+List<String> kDefaultCommunityNodes = <String>[];

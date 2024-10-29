@@ -15,7 +15,7 @@ class CreateProjectBloc extends BaseBloc<AccountBlockTemplate?> {
   ) {
     try {
       addEvent(null);
-      final transactionParams =
+      final AccountBlockTemplate transactionParams =
           zenon!.embedded.accelerator.createProject(
         name,
         description,
@@ -27,7 +27,7 @@ class CreateProjectBloc extends BaseBloc<AccountBlockTemplate?> {
         transactionParams,
         'creating project',
       ).then(
-        (block) {
+        (AccountBlockTemplate block) {
           ZenonAddressUtils.refreshBalance();
           addEvent(block);
         },
