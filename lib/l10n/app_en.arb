@@ -48,7 +48,6 @@
   "transfer": "Transfer",
   "transferDescription": "Redirects you to the Transfer tab where you can manage sending and receiving funds",
   "type": "Type",
-  "usDateFormat": "MM/dd/yyyy"
-  "transferDescription": "Redirects you to the Transfer tab where you can manage sending and receiving funds",
+  "usDateFormat": "MM/dd/yyyy",
   "waitingForDataFetching": "Waiting for data fetching"
 }
