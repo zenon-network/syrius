@@ -10,6 +10,7 @@ import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 class BalanceChartLegend extends StatelessWidget {
   /// Creates a BalanceChartLegend object.
   const BalanceChartLegend({required this.accountInfo, super.key});
+
   /// Data used for the legend
   final AccountInfo accountInfo;
 

@@ -18,6 +18,7 @@ class BalancePopulated extends StatefulWidget {
     required this.accountInfo,
     super.key,
   });
+
   /// The balance data that has been successfully fetched.
   ///
   /// The data is a map where the key is a string (representing the account
@@ -51,32 +52,33 @@ class _BalancePopulatedState extends State<BalancePopulated> {
           child: AspectRatio(
             aspectRatio: 1,
             child: LayoutBuilder(
-                builder: (BuildContext context, BoxConstraints constraints) {
-              return Stack(
-                alignment: Alignment.center,
-                children: <Widget>[
-                  BalanceChart(
-                    accountInfo: widget.accountInfo,
-                    hoveredSectionId: _touchedSectionId,
-                  ),
-                  ValueListenableBuilder<String?>(
-                    valueListenable: _touchedSectionId,
-                    builder: (_, String? id, __) {
-                      final Widget center = id != null
-                          ? _getBalance(
-                              accountInfo: widget.accountInfo,
-                              constraints: constraints,
-                              tokenStandard:
-                                  TokenStandard.parse(_touchedSectionId.value!),
-                            )
-                          : const SizedBox.shrink();
+              builder: (BuildContext context, BoxConstraints constraints) {
+                return Stack(
+                  alignment: Alignment.center,
+                  children: <Widget>[
+                    BalanceChart(
+                      accountInfo: widget.accountInfo,
+                      hoveredSectionId: _touchedSectionId,
+                    ),
+                    ValueListenableBuilder<String?>(
+                      valueListenable: _touchedSectionId,
+                      builder: (_, String? id, __) {
+                        final Widget center = id != null
+                            ? _getBalance(
+                                accountInfo: widget.accountInfo,
+                                constraints: constraints,
+                                tokenStandard: TokenStandard.parse(
+                                    _touchedSectionId.value!),
+                              )
+                            : const SizedBox.shrink();
 
-                      return center;
-                    },
-                  ),
-                ],
-              );
-            },),
+                        return center;
+                      },
+                    ),
+                  ],
+                );
+              },
+            ),
           ),
         ),
         BalanceAddress(

@@ -21,7 +21,7 @@ class DualCoinStatsCubit extends TimerCubit<List<Token>, DualCoinStatsState> {
   DualCoinStatsCubit({
     required super.zenon,
     super.initialState = const DualCoinStatsState(),
-});
+  });
 
   /// Fetches the statistics for both ZNN and QSR tokens.
   ///

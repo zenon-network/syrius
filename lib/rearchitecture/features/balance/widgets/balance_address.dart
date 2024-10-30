@@ -16,8 +16,10 @@ class BalanceAddress extends StatelessWidget {
     required this.edgesColorNotifier,
     super.key,
   });
+
   /// The address that will be displayed
   final String address;
+
   /// A notifier used to rebuild the widget
   final ValueNotifier<Color> edgesColorNotifier;
 

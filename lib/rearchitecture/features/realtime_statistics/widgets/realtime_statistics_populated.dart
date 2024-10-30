@@ -14,6 +14,7 @@ import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 class RealtimeStatisticsPopulated extends StatelessWidget {
   /// Creates a RealtimeStatisticsPopulated object.
   const RealtimeStatisticsPopulated({required this.accountBlocks, super.key});
+
   /// List of account blocks containing the ZNN and QSR transactions
   final List<AccountBlock> accountBlocks;
 

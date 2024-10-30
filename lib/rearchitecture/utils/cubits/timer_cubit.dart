@@ -27,7 +27,7 @@ abstract class TimerCubit<T, S extends TimerState<T>> extends HydratedCubit<S> {
     required this.zenon,
     required S initialState,
     this.refreshInterval = kTimerCubitRefreshInterval,
-  }): super(initialState);
+  }) : super(initialState);
 
   /// A timer that handles the auto-refreshing of data.
   Timer? _autoRefresher;
@@ -72,19 +72,14 @@ abstract class TimerCubit<T, S extends TimerState<T>> extends HydratedCubit<S> {
         emit(state.copyWith(status: TimerStatus.loading) as S);
       }
       if (!zenon.wsClient.isClosed()) {
-        print('WebSocket is open, fetching data');
         final T data = await fetch();
-        print('Fetch successful, emitting success state');
         emit(state.copyWith(data: data, status: TimerStatus.success) as S);
       } else {
-        print('WebSocket is closed, throwing noConnectionException');
         throw noConnectionException;
       }
-    } on CubitException catch (e) {
-      print('CubitException caught: $e');
+    } on SyriusException catch (e) {
       emit(state.copyWith(status: TimerStatus.failure, error: e) as S);
     } catch (e, stackTrace) {
-      print('CubitException caught: $e');
       emit(
         state.copyWith(
           status: TimerStatus.failure,
@@ -122,7 +117,7 @@ abstract class TimerCubit<T, S extends TimerState<T>> extends HydratedCubit<S> {
   @override
   void onError(Object error, StackTrace stackTrace) {
     Level logLevel = Level.WARNING;
-    if (error is CubitException) {
+    if (error is SyriusException) {
       logLevel = Level.INFO;
     }
     // state.runtimeType has the roll to identify in which cubit subclass

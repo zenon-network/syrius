@@ -11,6 +11,7 @@ import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/error_widge
 class BalanceError extends StatelessWidget {
   /// Creates a BalanceError object.
   const BalanceError({required this.error, super.key});
+
   /// The object used to display an error message.
   final SyriusException error;
 

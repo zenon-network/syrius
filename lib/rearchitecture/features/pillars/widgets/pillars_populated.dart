@@ -9,6 +9,7 @@ import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/reusable_wi
 class PillarsPopulated extends StatelessWidget {
   /// Creates a PillarsPopulated object
   const PillarsPopulated({required this.numberOfPillars, super.key});
+
   /// Number of pillars in the network
   final int numberOfPillars;
 

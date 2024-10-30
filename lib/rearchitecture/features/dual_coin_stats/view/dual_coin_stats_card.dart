@@ -4,12 +4,10 @@ import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 
-
 /// Widget connected to the [DualCoinStatsCubit] that receives the state
 /// - [DualCoinStatsState] - updates and rebuilds the UI according to the
 /// state's status - [TimerStatus]
 class DualCoinStatsCard extends StatelessWidget {
-
   /// Create a DualCoinStatsCard.
   const DualCoinStatsCard({super.key});
 

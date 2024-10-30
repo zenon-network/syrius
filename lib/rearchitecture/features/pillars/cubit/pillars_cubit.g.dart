@@ -12,7 +12,7 @@ PillarsState _$PillarsStateFromJson(Map<String, dynamic> json) => PillarsState(
       data: (json['data'] as num?)?.toInt(),
       error: json['error'] == null
           ? null
-          : CubitException.fromJson(json['error'] as Map<String, dynamic>),
+          : SyriusException.fromJson(json['error'] as Map<String, dynamic>),
     );
 
 Map<String, dynamic> _$PillarsStateToJson(PillarsState instance) =>

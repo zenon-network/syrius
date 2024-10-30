@@ -6,7 +6,7 @@ part 'no_balance_exception.g.dart';
 /// Custom [Exception] used when there is no balance available on a specific
 /// address
 @JsonSerializable()
-class NoBalanceException extends CubitException {
+class NoBalanceException extends SyriusException {
   /// Creates a [NoBalanceException] instance
   NoBalanceException({
     String message = 'Empty balance on the selected address',
@@ -18,5 +18,6 @@ class NoBalanceException extends CubitException {
 
   /// Converts this [NoBalanceException] instance to a JSON map.
   @override
-  Map<String, dynamic> toJson() => _$NoBalanceExceptionToJson(this);
+  Map<String, dynamic> toJson() =>
+      _$NoBalanceExceptionToJson(this)..['runtimeType'] = 'NoBalanceException';
 }

@@ -17,8 +17,8 @@ class NodeSyncStatusIcon extends StatelessWidget {
         return switch (state.status) {
           TimerStatus.initial => const NodeSyncStatusEmpty(),
           TimerStatus.failure => NodeSyncStatusError(
-            error: state.error!,
-          ),
+              error: state.error!,
+            ),
           TimerStatus.loading => const NodeSyncStatusLoading(),
           TimerStatus.success => NodeSyncPopulated(data: state.data!),
         };

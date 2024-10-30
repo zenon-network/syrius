@@ -24,7 +24,7 @@ class RealtimeStatisticsCubit
   RealtimeStatisticsCubit({
     required super.zenon,
     super.initialState = const RealtimeStatisticsState(),
-});
+  });
 
   /// Fetches a list of account blocks for the specified address over the past
   /// week.

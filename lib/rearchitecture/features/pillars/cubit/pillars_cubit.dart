@@ -19,7 +19,7 @@ class PillarsCubit extends TimerCubit<int, PillarsState> {
   PillarsCubit({
     required super.zenon,
     super.initialState = const PillarsState(),
-});
+  });
 
   /// Fetches the total count of pillars from the Zenon network.
   @override

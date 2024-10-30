@@ -6,6 +6,7 @@ import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/reusable_wi
 class RealtimeStatisticsError extends StatelessWidget {
   /// Creates a RealtimeStatisticsError object
   const RealtimeStatisticsError({required this.error, super.key});
+
   /// The data that holds the message that will be displayed
   final SyriusException error;
 

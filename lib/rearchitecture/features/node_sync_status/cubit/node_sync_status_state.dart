@@ -19,7 +19,7 @@ class NodeSyncStatusState extends TimerState<Pair<SyncState, SyncInfo>> {
   TimerState<Pair<SyncState, SyncInfo>> copyWith({
     TimerStatus? status,
     Pair<SyncState, SyncInfo>? data,
-    CubitException? error,
+    SyriusException? error,
   }) {
     return NodeSyncStatusState(
       status: status ?? this.status,

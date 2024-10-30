@@ -29,7 +29,7 @@ class TotalHourlyTransactionsState extends TimerState<int> {
   TimerState<int> copyWith({
     TimerStatus? status,
     int? data,
-    CubitException? error,
+    SyriusException? error,
   }) {
     return TotalHourlyTransactionsState(
       status: status ?? this.status,

@@ -15,6 +15,7 @@ class RealtimeTxsChart extends StatefulWidget {
     this.transactions, {
     super.key,
   });
+
   /// The data needed to generate the chart
   final List<AccountBlock> transactions;
 
@@ -70,8 +71,8 @@ class _RealtimeTxsChartState extends State<RealtimeTxsChart> {
       if (DateFormat('d MMM, yyyy').format(date) ==
           DateFormat('d MMM, yyyy').format(
             DateTime.fromMillisecondsSinceEpoch(
-                (transaction.confirmationDetail?.momentumTimestamp ?? 0) *
-                    1000,),
+              (transaction.confirmationDetail?.momentumTimestamp ?? 0) * 1000,
+            ),
           )) {
         if (transaction.tokenStandard == tokenId ||
             (pairedAccountBlock != null &&

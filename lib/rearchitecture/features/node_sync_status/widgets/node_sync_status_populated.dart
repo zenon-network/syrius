@@ -10,6 +10,7 @@ import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 class NodeSyncPopulated extends StatelessWidget {
   /// Creates a NodeSyncPopulated object.
   const NodeSyncPopulated({required this.data, super.key});
+
   /// A Pair holding detailed info about the sync stage
   final Pair<SyncState, SyncInfo> data;
 
@@ -55,9 +56,8 @@ class NodeSyncPopulated extends StatelessWidget {
           ),
         );
       } else {
-        message =
-            'Sync progress: momentum ${syncInfo.currentHeight} of '
-                '${syncInfo.targetHeight}';
+        message = 'Sync progress: momentum ${syncInfo.currentHeight} of '
+            '${syncInfo.targetHeight}';
         return Tooltip(
           message: message,
           child: SizedBox(

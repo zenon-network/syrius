@@ -60,7 +60,7 @@ abstract class TimerState<T> extends Equatable {
   final T? data;
 
   /// An optional error object that holds a message to be presented to the user.
-  final CubitException? error;
+  final SyriusException? error;
 
   /// Creates a copy of the current state with the option to modify specific
   /// fields.
@@ -71,7 +71,7 @@ abstract class TimerState<T> extends Equatable {
   TimerState<T> copyWith({
     TimerStatus? status,
     T? data,
-    CubitException? error,
+    SyriusException? error,
   });
 
   @override

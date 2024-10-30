@@ -29,7 +29,7 @@ class DualCoinStatsState extends TimerState<List<Token>> {
   TimerState<List<Token>> copyWith({
     TimerStatus? status,
     List<Token>? data,
-    CubitException? error,
+    SyriusException? error,
   }) {
     return DualCoinStatsState(
       status: status ?? this.status,

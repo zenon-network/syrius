@@ -16,8 +16,10 @@ class BalanceChart extends StatelessWidget {
     required this.hoveredSectionId,
     super.key,
   });
+
   /// Data needed for the chart
   final AccountInfo accountInfo;
+
   /// Notifier that holds id of the hovered chart section
   final ValueNotifier<String?> hoveredSectionId;
 
