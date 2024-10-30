@@ -3,6 +3,7 @@ import 'package:marquee_widget/marquee_widget.dart';
 import 'package:stacked/stacked.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/transfer/pending_transactions_bloc.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/transfer/receive_transaction_bloc.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/extensions/buildcontext_extension.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/color_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/extensions.dart';
@@ -31,8 +32,7 @@ class _PendingTransactionsState extends State<PendingTransactions> {
   Widget build(BuildContext context) {
     return CardScaffold(
       title: _getWidgetTitle(),
-      description: 'This card displays the pending transactions (including ZTS '
-          'tokens) for the selected address',
+      description: context.l10n.pendingTransactionsDescription,
       childBuilder: () {
         _bloc = PendingTransactionsBloc();
         return _getTable();
@@ -53,85 +53,103 @@ class _PendingTransactionsState extends State<PendingTransactions> {
       _getCellsForPendingTransactions(isSelected, transaction);
 
   List<Widget> _getCellsForPendingTransactions(
-      bool isSelected, AccountBlock transaction,) {
+      bool isSelected,
+      AccountBlock transaction,
+      ) {
     final AccountBlock infoBlock = BlockUtils.isReceiveBlock(transaction.blockType)
         ? transaction.pairedAccountBlock!
         : transaction;
     return <Widget>[
-      if (isSelected) WidgetUtils.getMarqueeAddressTableCell(infoBlock.address, context) else WidgetUtils.getTextAddressTableCell(infoBlock.address, context),
-      if (isSelected) WidgetUtils.getMarqueeAddressTableCell(infoBlock.toAddress, context) else WidgetUtils.getTextAddressTableCell(infoBlock.toAddress, context),
-      if (isSelected) InfiniteScrollTableCell.withMarquee(infoBlock.hash.toString(),
-              flex: 2,) else InfiniteScrollTableCell.withText(
-              context,
-              infoBlock.hash.toShortString(),
-              flex: 2,
-            ),
-      InfiniteScrollTableCell(Padding(
-        padding: const EdgeInsets.only(right: 10),
-        child: Marquee(
-          animationDuration: const Duration(milliseconds: 1000),
-          backDuration: const Duration(milliseconds: 1000),
-          child: FormattedAmountWithTooltip(
-            amount: infoBlock.amount.addDecimals(
-              infoBlock.token?.decimals ?? 0,
-            ),
-            tokenSymbol: infoBlock.token?.symbol ?? '',
-            builder: (String formattedAmount, String tokenSymbol) => Text(
-              formattedAmount,
-              style: Theme.of(context).textTheme.titleMedium!.copyWith(
-                    color: AppColors.subtitleColor,
-                  ),
+      if (isSelected)
+        WidgetUtils.getMarqueeAddressTableCell(infoBlock.address, context)
+      else
+        WidgetUtils.getTextAddressTableCell(infoBlock.address, context),
+      if (isSelected)
+        WidgetUtils.getMarqueeAddressTableCell(infoBlock.toAddress, context)
+      else
+        WidgetUtils.getTextAddressTableCell(infoBlock.toAddress, context),
+      if (isSelected)
+        InfiniteScrollTableCell.withMarquee(
+          infoBlock.hash.toString(),
+          flex: 2,
+        )
+      else
+        InfiniteScrollTableCell.withText(
+          context,
+          infoBlock.hash.toShortString(),
+          flex: 2,
+        ),
+      InfiniteScrollTableCell(
+        Padding(
+          padding: const EdgeInsets.only(right: 10),
+          child: Marquee(
+            animationDuration: const Duration(milliseconds: 1000),
+            backDuration: const Duration(milliseconds: 1000),
+            child: FormattedAmountWithTooltip(
+              amount: infoBlock.amount.addDecimals(
+                infoBlock.token?.decimals ?? 0,
+              ),
+              tokenSymbol: infoBlock.token?.symbol ?? '',
+              builder: (String formattedAmount, String tokenSymbol) => Text(
+                formattedAmount,
+                style: Theme.of(context).textTheme.titleMedium!.copyWith(
+                  color: AppColors.subtitleColor,
+                ),
+              ),
             ),
           ),
         ),
-      ),),
+      ),
       InfiniteScrollTableCell.withText(
         context,
         infoBlock.confirmationDetail?.momentumTimestamp == null
-            ? 'Pending'
+            ? context.l10n.pending
             : FormatUtils.formatData(
-                infoBlock.confirmationDetail!.momentumTimestamp * 1000,),
+          infoBlock.confirmationDetail!.momentumTimestamp * 1000,
+        ),
       ),
       InfiniteScrollTableCell(
         Align(
-            alignment: Alignment.centerLeft,
-            child: infoBlock.token != null
-                ? _showTokenSymbol(infoBlock)
-                : Container(),),
+          alignment: Alignment.centerLeft,
+          child: infoBlock.token != null
+              ? _showTokenSymbol(infoBlock)
+              : Container(),
+        ),
       ),
       InfiniteScrollTableCell(
-          _getReceiveContainer(isSelected, infoBlock, _bloc),),
+        _getReceiveContainer(isSelected, infoBlock, _bloc),
+      ),
     ];
   }
 
   List<InfiniteScrollTableHeaderColumn>
-      _getHeaderColumnsForPendingTransactions() {
+  _getHeaderColumnsForPendingTransactions() {
     return <InfiniteScrollTableHeaderColumn>[
       InfiniteScrollTableHeaderColumn(
-        columnName: 'Sender',
+        columnName: context.l10n.sender,
         onSortArrowsPressed: _onSortArrowsPressed,
         flex: 2,
       ),
       InfiniteScrollTableHeaderColumn(
-        columnName: 'Receiver',
+        columnName: context.l10n.receiver,
         onSortArrowsPressed: _onSortArrowsPressed,
         flex: 2,
       ),
       InfiniteScrollTableHeaderColumn(
-        columnName: 'Hash',
+        columnName: context.l10n.hash,
         onSortArrowsPressed: _onSortArrowsPressed,
         flex: 2,
       ),
       InfiniteScrollTableHeaderColumn(
-        columnName: 'Amount',
+        columnName: context.l10n.amount,
         onSortArrowsPressed: _onSortArrowsPressed,
       ),
       InfiniteScrollTableHeaderColumn(
-        columnName: 'Date',
+        columnName: context.l10n.date,
         onSortArrowsPressed: _onSortArrowsPressed,
       ),
       InfiniteScrollTableHeaderColumn(
-        columnName: 'Assets',
+        columnName: context.l10n.assets,
         onSortArrowsPressed: _onSortArrowsPressed,
       ),
       const InfiniteScrollTableHeaderColumn(
@@ -145,70 +163,81 @@ class _PendingTransactionsState extends State<PendingTransactions> {
       case 'Sender':
         _sortAscending
             ? _transactions!.sort(
-                (AccountBlock a, AccountBlock b) => a.address.toString().compareTo(
-                      b.address.toString(),
-                    ),
-              )
+              (a, b) => a.address.toString().compareTo(
+            b.address.toString(),
+          ),
+        )
             : _transactions!.sort(
-                (AccountBlock a, AccountBlock b) => b.address.toString().compareTo(
-                      a.address.toString(),
-                    ),
-              );
+              (a, b) => b.address.toString().compareTo(
+            a.address.toString(),
+          ),
+        );
+        break;
       case 'Receiver':
         _sortAscending
             ? _transactions!.sort(
-                (AccountBlock a, AccountBlock b) => a.toAddress.toString().compareTo(
-                      b.toAddress.toString(),
-                    ),
-              )
-            : _transactions!.sort((AccountBlock a, AccountBlock b) =>
-                b.toAddress.toString().compareTo(a.toAddress.toString()),);
+              (a, b) => a.toAddress.toString().compareTo(
+            b.toAddress.toString(),
+          ),
+        )
+            : _transactions!.sort(
+              (a, b) => b.toAddress.toString().compareTo(
+            a.toAddress.toString(),
+          ),
+        );
+        break;
       case 'Hash':
         _sortAscending
             ? _transactions!.sort(
-                (AccountBlock a, AccountBlock b) => a.hash.toString().compareTo(
-                      b.hash.toString(),
-                    ),
-              )
+              (a, b) => a.hash.toString().compareTo(
+            b.hash.toString(),
+          ),
+        )
             : _transactions!.sort(
-                (AccountBlock a, AccountBlock b) => b.hash.toString().compareTo(
-                      a.hash.toString(),
-                    ),
-              );
+              (a, b) => b.hash.toString().compareTo(
+            a.hash.toString(),
+          ),
+        );
+        break;
       case 'Amount':
         _sortAscending
-            ? _transactions!.sort((AccountBlock a, AccountBlock b) => a.amount.compareTo(b.amount))
-            : _transactions!.sort((AccountBlock a, AccountBlock b) => b.amount.compareTo(a.amount));
+            ? _transactions!.sort((a, b) => a.amount.compareTo(b.amount))
+            : _transactions!.sort((a, b) => b.amount.compareTo(a.amount));
+        break;
       case 'Date':
         _sortAscending
             ? _transactions!.sort(
-                (AccountBlock a, AccountBlock b) => a.confirmationDetail!.momentumTimestamp.compareTo(
-                      b.confirmationDetail!.momentumTimestamp,
-                    ),)
+              (a, b) => a.confirmationDetail!.momentumTimestamp.compareTo(
+            b.confirmationDetail!.momentumTimestamp,
+          ),
+        )
             : _transactions!.sort(
-                (AccountBlock a, AccountBlock b) => b.confirmationDetail!.momentumTimestamp.compareTo(
-                      a.confirmationDetail!.momentumTimestamp,
-                    ),);
+              (a, b) => b.confirmationDetail!.momentumTimestamp.compareTo(
+            a.confirmationDetail!.momentumTimestamp,
+          ),
+        );
+        break;
       case 'Assets':
         _sortAscending
             ? _transactions!.sort(
-                (AccountBlock a, AccountBlock b) => a.token!.symbol.compareTo(b.token!.symbol),
-              )
+              (a, b) => a.token!.symbol.compareTo(b.token!.symbol),
+        )
             : _transactions!.sort(
-                (AccountBlock a, AccountBlock b) => b.token!.symbol.compareTo(a.token!.symbol),
-              );
+              (a, b) => b.token!.symbol.compareTo(a.token!.symbol),
+        );
+        break;
       default:
         _sortAscending
             ? _transactions!.sort(
-                (AccountBlock a, AccountBlock b) => a.tokenStandard.toString().compareTo(
-                      b.tokenStandard.toString(),
-                    ),
-              )
+              (a, b) => a.tokenStandard.toString().compareTo(
+            b.tokenStandard.toString(),
+          ),
+        )
             : _transactions!.sort(
-                (AccountBlock a, AccountBlock b) => b.tokenStandard.toString().compareTo(
-                      a.tokenStandard.toString(),
-                    ),
-              );
+              (a, b) => b.tokenStandard.toString().compareTo(
+            a.tokenStandard.toString(),
+          ),
+        );
         break;
     }
 
@@ -218,31 +247,34 @@ class _PendingTransactionsState extends State<PendingTransactions> {
   }
 
   Widget _getReceiveContainer(
-    bool isSelected,
-    AccountBlock transaction,
-    PendingTransactionsBloc model,
-  ) {
+      bool isSelected,
+      AccountBlock transaction,
+      PendingTransactionsBloc model,
+      ) {
     return Align(
-        alignment: Alignment.centerLeft,
-        child: _getReceiveButtonViewModel(model, isSelected, transaction),);
+      alignment: Alignment.centerLeft,
+      child: _getReceiveButtonViewModel(model, isSelected, transaction),
+    );
   }
 
   Widget _getReceiveButtonViewModel(
-    PendingTransactionsBloc transactionModel,
-    bool isSelected,
-    AccountBlock transactionItem,
-  ) {
+      PendingTransactionsBloc transactionModel,
+      bool isSelected,
+      AccountBlock transactionItem,
+      ) {
     return ViewModelBuilder<ReceiveTransactionBloc>.reactive(
       onViewModelReady: (ReceiveTransactionBloc model) {
         model.stream.listen(
-          (AccountBlockTemplate? event) {
+              (AccountBlockTemplate? event) {
             if (event != null) {
               transactionModel.refreshResults();
             }
           },
-          onError: (error) async {
-            await NotificationUtils.sendNotificationError(
-                error, 'Error while receiving transaction',);
+          onError: (error) {
+            NotificationUtils.sendNotificationError(
+              error,
+              context.l10n.transactionError,
+            );
           },
         );
       },
@@ -250,14 +282,14 @@ class _PendingTransactionsState extends State<PendingTransactions> {
         model,
         transactionItem.hash.toString(),
       ),
-      viewModelBuilder: ReceiveTransactionBloc.new,
+      viewModelBuilder: () => ReceiveTransactionBloc(),
     );
   }
 
   Widget _getReceiveButton(
-    ReceiveTransactionBloc model,
-    String transactionHash,
-  ) {
+      ReceiveTransactionBloc model,
+      String transactionHash,
+      ) {
     return MaterialIconButton(
       size: 25,
       iconData: Icons.download_for_offline,
@@ -273,13 +305,15 @@ class _PendingTransactionsState extends State<PendingTransactions> {
 
   Widget _showTokenSymbol(AccountBlock block) {
     return Transform(
-        transform: Matrix4.identity()..scale(0.8),
-        alignment: Alignment.bottomCenter,
-        child: Chip(
-            backgroundColor: ColorUtils.getTokenColor(block.tokenStandard),
-            label: Text(block.token?.symbol ?? ''),
-            side: BorderSide.none,
-            materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,),);
+      transform: Matrix4.identity()..scale(0.8),
+      alignment: Alignment.bottomCenter,
+      child: Chip(
+        backgroundColor: ColorUtils.getTokenColor(block.tokenStandard),
+        label: Text(block.token?.symbol ?? ''),
+        side: BorderSide.none,
+        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+      ),
+    );
   }
 
   @override
@@ -288,5 +322,5 @@ class _PendingTransactionsState extends State<PendingTransactions> {
     super.dispose();
   }
 
-  String _getWidgetTitle() => 'Pending Transactions';
+  String _getWidgetTitle() => context.l10n.pendingTransactionsTitle;
 }

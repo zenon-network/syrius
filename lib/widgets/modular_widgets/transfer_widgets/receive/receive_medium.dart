@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/extensions/buildcontext_extension.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/extensions.dart';
@@ -48,9 +49,9 @@ class _ReceiveMediumCardState extends State<ReceiveMediumCard> {
   @override
   Widget build(BuildContext context) {
     return CardScaffold(
-      title: 'Receive',
+      title: context.l10n.receive,
       titleFontSize: Theme.of(context).textTheme.headlineSmall!.fontSize,
-      description: 'Manage receiving funds',
+      description: context.l10n.manageReceivingFunds,
       childBuilder: _getTokensStreamBuilder,
     );
   }
@@ -143,7 +144,7 @@ class _ReceiveMediumCardState extends State<ReceiveMediumCard> {
                               ),
                             ],
                           ),
-                          hintText: 'Amount',
+                          hintText: context.l10n.amount,
                         ),
                       ),
                     ],

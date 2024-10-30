@@ -3,6 +3,7 @@ import 'package:stacked/stacked.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/model/model.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/extensions/buildcontext_extension.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/address_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/clipboard_utils.dart';
@@ -53,9 +54,9 @@ class _SendMediumCardState extends State<SendMediumCard> {
   @override
   Widget build(BuildContext context) {
     return CardScaffold(
-      title: 'Send',
+      title: context.l10n.send,
       titleFontSize: Theme.of(context).textTheme.headlineSmall!.fontSize,
-      description: 'Manage sending funds',
+      description: context.l10n.manageSendingFunds,
       childBuilder: _getBalanceStreamBuilder,
     );
   }
@@ -123,7 +124,7 @@ class _SendMediumCardState extends State<SendMediumCard> {
                   maxWidth: 45,
                   maxHeight: 20,
                 ),
-                hintText: 'Recipient Address',
+                hintText: context.l10n.recipientAddress,
               ),
             ),
           ),
@@ -150,7 +151,7 @@ class _SendMediumCardState extends State<SendMediumCard> {
                 ),
                 controller: _amountController,
                 suffixIcon: _getAmountSuffix(accountInfo),
-                hintText: 'Amount',
+                hintText: context.l10n.amount,
               ),
             ),
           ),
@@ -180,9 +181,9 @@ class _SendMediumCardState extends State<SendMediumCard> {
       showDialogWithNoAndYesOptions(
         context: context,
         isBarrierDismissible: true,
-        title: 'Send',
-        description: 'Are you sure you want to transfer '
-            '${_amountController.text} ${_selectedToken.symbol} to '
+        title: context.l10n.send,
+        description: '${context.l10n.areYouSureTranfer} '
+            '${_amountController.text} ${_selectedToken.symbol} ${context.l10n.to} '
             '${ZenonAddressUtils.getLabel(_recipientController.text)} ?',
         onYesButtonPressed: () => _sendPayment(model),
       );
@@ -284,19 +285,22 @@ class _SendMediumCardState extends State<SendMediumCard> {
   Future<void> _sendErrorNotification(error) async {
     await NotificationUtils.sendNotificationError(
       error,
-      "Couldn't send ${_amountController.text} ${_selectedToken.symbol} "
-      'to ${_recipientController.text}',
+      '${context.l10n.couldNotSend} ${_amountController.text} ${_selectedToken.symbol} '
+      '${context.l10n.to} ${_recipientController.text}',
     );
   }
 
   Future<void> _sendConfirmationNotification() async {
     await sl.get<NotificationsBloc>().addNotification(
           WalletNotification(
-            title: 'Sent ${_amountController.text} ${_selectedToken.symbol} '
-                'to ${ZenonAddressUtils.getLabel(_recipientController.text)}',
+            title: '${context.l10n.send} ${_amountController.text} ${_selectedToken.symbol} '
+                '${context.l10n.to} ${ZenonAddressUtils.getLabel(_recipientController.text)}',
             timestamp: DateTime.now().millisecondsSinceEpoch,
-            details: 'Sent ${_amountController.text} ${_selectedToken.symbol} '
-                'from ${ZenonAddressUtils.getLabel(kSelectedAddress!)} to ${ZenonAddressUtils.getLabel(_recipientController.text)}',
+            details: '${context.l10n.sent} ${_amountController.text} ${_selectedToken.symbol} '
+                '${context.l10n.from} '
+                '${ZenonAddressUtils.getLabel(kSelectedAddress!)} '
+                '${context.l10n.to} '
+                '${ZenonAddressUtils.getLabel(_recipientController.text)}',
             type: NotificationType.paymentSent,
           ),
         );
