@@ -18,11 +18,9 @@ class MockEmbedded extends Mock implements EmbeddedApi {}
 
 class MockStake extends Mock implements StakeApi {}
 
-class MockStakeList extends Mock implements StakeList {}
-
 class FakeAddress extends Fake implements Address {}
 
-class MockStakeEntry extends Fake implements StakeEntry {}
+class FakeStakeEntry extends Fake implements StakeEntry {}
 
 
 void main() {
@@ -38,20 +36,24 @@ void main() {
     late StakingCubit stakingCubit;
     late MockEmbedded mockEmbedded;
     late MockStake mockStake;
-    late SyriusException stakingException;
-    late MockStakeList mockStakeList;
-    late List<MockStakeEntry> mockStakeEntry;
+    late CubitException stakingException;
+    late StakeList testStakeList;
 
     setUp(() async {
       mockZenon = MockZenon();
       mockWsClient = MockWsClient();
       mockEmbedded = MockEmbedded();
       mockStake = MockStake();
-      mockStakeEntry = [MockStakeEntry()];
-      stakingCubit = StakingCubit(mockZenon, StakingState());
-      mockStakeList = MockStakeList();
+      stakingCubit = StakingCubit(
+          zenon: mockZenon,
+      );
+      testStakeList = StakeList(
+        totalAmount: BigInt.from(1),
+        totalWeightedAmount: BigInt.from(1),
+        count: 1,
+        list: <StakeEntry>[FakeStakeEntry()],
+      );
       stakingException = NoActiveStakingEntriesException();
-      kSelectedAddress = 'z1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqsggv2f';
 
       when(() => mockZenon.wsClient).thenReturn(mockWsClient);
       when(() => mockWsClient.isClosed()).thenReturn(false);
@@ -60,9 +62,8 @@ void main() {
     });
 
     test('initial status is correct', () {
-      final stakingCubit = StakingCubit(
-        mockZenon,
-        StakingState(),
+      final StakingCubit stakingCubit = StakingCubit(
+        zenon:  mockZenon,
       );
       expect(stakingCubit.state.status, TimerStatus.initial);
     });
@@ -71,11 +72,13 @@ void main() {
       blocTest<StakingCubit, StakingState>(
         'calls getEntriesByAddress() once',
         build: () => stakingCubit,
-        act: (cubit) => cubit.fetchDataPeriodically(),
+        act: (StakingCubit cubit) => cubit.fetchDataPeriodically(),
         verify: (_) {
           verify(() => mockZenon.embedded.stake.getEntriesByAddress(
-            emptyAddress,
-          )).called(1);
+            any(),
+          )
+            ,)
+              .called(1);
         },
       );
 
@@ -83,11 +86,11 @@ void main() {
         'emits [loading, failure] when getEntriesByAddress() throws',
         setUp: () {
           when(
-                () => mockStake.getEntriesByAddress(any())
+                () => mockStake.getEntriesByAddress(Address.parse(kSelectedAddress!)),
           ).thenThrow(stakingException);
         },
         build: () => stakingCubit,
-        act: (cubit) => cubit.fetchDataPeriodically(),
+        act: (StakingCubit cubit) => cubit.fetchDataPeriodically(),
         expect: () => <StakingState>[
           StakingState(status: TimerStatus.loading),
           StakingState(
@@ -97,23 +100,20 @@ void main() {
         ],
       );
 
-      //TODO:TEST NOT WORKING; RETURN OBJECT NOT SERIALIZABLE.
+      //TODO:TEST NOT DONE
       blocTest<StakingCubit, StakingState>(
-          'emits [loading, success] when getAllActive() returns (sentinelInfoList)',
+          'emits [loading, success] when getAllActive() returns successfully',
           setUp: () {
             when(
-                    () => mockStakeList.list
-            ).thenReturn(mockStakeEntry as List<StakeEntry>);
-            when(
                   () => mockStake.getEntriesByAddress(any())
-            ).thenAnswer((_) async => mockStakeList);
+            ).thenAnswer((_) async => testStakeList);
           },
           build: () => stakingCubit,
-          act: (cubit) => cubit.fetchDataPeriodically(),
+          act: (StakingCubit cubit) => cubit.fetchDataPeriodically(),
           expect: () => <StakingState>[
             StakingState(status: TimerStatus.loading),
             StakingState(status: TimerStatus.success,
-            data: mockStakeList),
+            data: testStakeList),
           ]
       );
     });

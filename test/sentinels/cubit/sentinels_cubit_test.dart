@@ -29,7 +29,7 @@ initHydratedStorage();
     late MockEmbedded mockEmbedded;
     late MockSentinel mockSentinel;
     late SentinelsCubit sentinelsCubit;
-    late SyriusException sentinelsException;
+    late CubitException sentinelsException;
     late SentinelInfoList mockSentinelInfoList;
 
     setUp(() async {
@@ -38,7 +38,9 @@ initHydratedStorage();
       mockEmbedded = MockEmbedded();
       mockSentinel = MockSentinel();
       mockSentinelInfoList = MockSentinelInfoList();
-      sentinelsCubit = SentinelsCubit(mockZenon, SentinelsState());
+      sentinelsCubit = SentinelsCubit(
+          zenon: mockZenon,
+      );
       sentinelsException = CubitFailureException();
 
       when(() => mockZenon.wsClient).thenReturn(mockWsClient);
@@ -53,12 +55,12 @@ initHydratedStorage();
 
     test('initial status is correct', () {
       final sentinelsCubit = SentinelsCubit(
-        mockZenon,
-        SentinelsState(),
+        zenon: mockZenon,
       );
       expect(sentinelsCubit.state.status, TimerStatus.initial);
     });
 
+    //TODO: ADD SERIALIZATION TESTS
     group('fetchDataPeriodically', () {
       blocTest<SentinelsCubit, SentinelsState>(
         'calls getAllActive() once',

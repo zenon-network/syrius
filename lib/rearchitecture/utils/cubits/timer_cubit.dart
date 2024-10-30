@@ -72,14 +72,19 @@ abstract class TimerCubit<T, S extends TimerState<T>> extends HydratedCubit<S> {
         emit(state.copyWith(status: TimerStatus.loading) as S);
       }
       if (!zenon.wsClient.isClosed()) {
+        print('WebSocket is open, fetching data');
         final T data = await fetch();
+        print('Fetch successful, emitting success state');
         emit(state.copyWith(data: data, status: TimerStatus.success) as S);
       } else {
+        print('WebSocket is closed, throwing noConnectionException');
         throw noConnectionException;
       }
     } on CubitException catch (e) {
+      print('CubitException caught: $e');
       emit(state.copyWith(status: TimerStatus.failure, error: e) as S);
     } catch (e, stackTrace) {
+      print('CubitException caught: $e');
       emit(
         state.copyWith(
           status: TimerStatus.failure,

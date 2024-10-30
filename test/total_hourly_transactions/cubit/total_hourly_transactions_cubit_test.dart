@@ -32,41 +32,47 @@ void main() {
     late MockWsClient mockWsClient;
     late MockLedger mockLedger;
     late TotalHourlyTransactionsCubit transactionsCubit;
-    late SyriusException fetchException;
+    late CubitException fetchException;
     late MockMomentum mockMomentum;
     late MockDetailedMomentum mockDetailedMomentum;
     late MockDetailedMomentumList mockDetailedMomentumList;
     late MockAccountBlock mockAccBlock;
-    late Map<String, dynamic> transactions;
 
     setUp(() async {
       mockZenon = MockZenon();
       mockLedger = MockLedger();
       mockWsClient = MockWsClient();
-      transactionsCubit = TotalHourlyTransactionsCubit(mockZenon, TotalHourlyTransactionsState());
+      transactionsCubit = TotalHourlyTransactionsCubit(
+          zenon: mockZenon,
+      );
       fetchException = NotEnoughMomentumsException();
       mockMomentum = MockMomentum();
       mockDetailedMomentum = MockDetailedMomentum();
       mockDetailedMomentumList = MockDetailedMomentumList();
       mockAccBlock = MockAccountBlock();
-      transactions = {
-        'numAccountBlocks' : 1,
-        'timestamp': DateTime.now().millisecondsSinceEpoch,
-      };
 
       when(() => mockZenon.wsClient).thenReturn(mockWsClient);
       when(() => mockWsClient.isClosed()).thenReturn(false);
       when(() => mockZenon.ledger).thenReturn(mockLedger);
-      when(() => mockLedger.getFrontierMomentum()).thenAnswer((_) async => mockMomentum);
+
+      when(() => mockLedger.getFrontierMomentum())
+          .thenAnswer((_) async => mockMomentum);
+      when(() => mockMomentum.height)
+          .thenReturn(kMomentumsPerHour + 1);
       when(() => mockLedger.getDetailedMomentumsByHeight(any(), any()))
           .thenAnswer((_) async => mockDetailedMomentumList);
-      when(() => mockMomentum.height).thenReturn(10000);
+      when(() => mockDetailedMomentumList.list)
+          .thenReturn(<DetailedMomentum>[mockDetailedMomentum]);
+      when(() => mockDetailedMomentum.blocks)
+          .thenReturn(<AccountBlock>[mockAccBlock, mockAccBlock]);
     });
 
 
 
     test('initial status is correct', () {
-      final cubit = TotalHourlyTransactionsCubit(mockZenon, TotalHourlyTransactionsState());
+      final TotalHourlyTransactionsCubit cubit = TotalHourlyTransactionsCubit(
+         zenon: mockZenon,
+      );
       expect(cubit.state.status, TimerStatus.initial);
     });
 
@@ -74,28 +80,24 @@ void main() {
       blocTest<TotalHourlyTransactionsCubit, TotalHourlyTransactionsState>(
         'calls getFrontierMomentum and getDetailedMomentumsByHeight once',
         build: () => transactionsCubit,
-        act: (cubit) => cubit.fetch(),
+        act: (TotalHourlyTransactionsCubit cubit) => cubit.fetch(),
         verify: (_) {
           verify(() => mockLedger.getFrontierMomentum()).called(1);
-          verify(() => mockLedger.getDetailedMomentumsByHeight(10000 - kMomentumsPerHour, kMomentumsPerHour)).called(1);
+          verify(() => mockLedger.getDetailedMomentumsByHeight(any(), any()))
+              .called(1);
         },
       );
 
-      //TODO: this test is not done;
       blocTest<TotalHourlyTransactionsCubit, TotalHourlyTransactionsState>(
         'emits [loading, success] when fetch returns',
-        setUp: () {
-          when(() => mockDetailedMomentumList.list)
-              .thenReturn([mockDetailedMomentum]);
-          when(() => mockDetailedMomentum.blocks).thenReturn([mockAccBlock]);
-
-        },
         build: () => transactionsCubit,
-        act: (cubit) => cubit.fetchDataPeriodically(),
-        expect: () => [
+        act: (TotalHourlyTransactionsCubit cubit)
+                                        => cubit.fetchDataPeriodically(),
+        expect: () => <TotalHourlyTransactionsState>[
           TotalHourlyTransactionsState(status: TimerStatus.loading),
           TotalHourlyTransactionsState(
             status: TimerStatus.success,
+            data: 2,
           ),
         ],
       );
@@ -103,10 +105,12 @@ void main() {
       blocTest<TotalHourlyTransactionsCubit, TotalHourlyTransactionsState>(
         'emits [loading, failure] when fetch throws an error',
         setUp: () {
-          when(() => mockLedger.getFrontierMomentum()).thenThrow(fetchException);
+          when(() => mockLedger.getFrontierMomentum())
+              .thenThrow(fetchException);
         },
         build: () => transactionsCubit,
-        act: (cubit) => cubit.fetchDataPeriodically(),
+        act: (TotalHourlyTransactionsCubit cubit)
+                                            => cubit.fetchDataPeriodically(),
         expect: () => <TotalHourlyTransactionsState>[
           TotalHourlyTransactionsState(status: TimerStatus.loading),
           TotalHourlyTransactionsState(

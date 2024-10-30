@@ -7,7 +7,7 @@ part of 'dual_coin_stats_cubit.dart';
 /// for two tokens.
 /// This state is used by the [DualCoinStatsCubit] to track and update the
 /// state of both tokens.
-@JsonSerializable()
+@JsonSerializable(explicitToJson: true)
 class DualCoinStatsState extends TimerState<List<Token>> {
   /// Constructs a new [DualCoinStatsState].
   ///

@@ -14,4 +14,9 @@ class NoDelegationStatsException extends CubitException {
   /// Creates a [NoDelegationStatsException] instance from a JSON map.
   factory NoDelegationStatsException.fromJson(Map<String, dynamic> json) =>
       _$NoDelegationStatsExceptionFromJson(json);
+
+  @override
+  bool operator ==(Object other) {
+    return other is NoDelegationStatsException && other.runtimeType == runtimeType && other.message == message;
+  }
 }

@@ -20,8 +20,8 @@ BalanceState _$BalanceStateFromJson(Map<String, dynamic> json) => BalanceState(
 Map<String, dynamic> _$BalanceStateToJson(BalanceState instance) =>
     <String, dynamic>{
       'status': _$TimerStatusEnumMap[instance.status]!,
-      'data': instance.data,
-      'error': instance.error,
+      'data': instance.data?.toJson(),
+      'error': instance.error?.toJson(),
     };
 
 const _$TimerStatusEnumMap = {

@@ -5,7 +5,7 @@ part of 'balance_cubit.dart';
 ///
 /// The data hold, when the status is [TimerStatus.success], is of type
 /// [AccountInfo].
-@JsonSerializable()
+@JsonSerializable(explicitToJson: true)
 class BalanceState extends TimerState<AccountInfo> {
   /// Constructs a new BalanceState.
   ///

@@ -4,8 +4,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/rearchitecture.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/exceptions/cubit_exception.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/exceptions/cubit_failure_exception.dart';
-import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/exceptions/syrius_exception.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 import '../../helpers/hydrated_bloc.dart';
@@ -31,34 +31,32 @@ void main() {
     late MockEmbedded mockEmbedded;
     late MockPillar mockPillar;
     late PillarsCubit pillarsCubit;
-    late SyriusException exception;
+    late CubitException exception;
 
     setUp(() async {
       mockZenon = MockZenon();
       mockWsClient = MockWsClient();
       mockEmbedded = MockEmbedded();
       mockPillar = MockPillar();
-      pillarsCubit = PillarsCubit(mockZenon, PillarsState());
+      pillarsCubit = PillarsCubit(
+        zenon: mockZenon,
+      );
       exception = CubitFailureException();
 
       when(() => mockZenon.wsClient).thenReturn(mockWsClient);
       when(() => mockWsClient.isClosed()).thenReturn(false);
-      when(
-              () => mockZenon.embedded
-      ).thenReturn(mockEmbedded);
-      when(
-          () => mockEmbedded.pillar
-      ).thenReturn(mockPillar);
+      when(() => mockZenon.embedded).thenReturn(mockEmbedded);
+      when(() => mockEmbedded.pillar).thenReturn(mockPillar);
     });
 
     test('initial status is correct', () {
-      final pillarsCubit = PillarsCubit(
-        mockZenon,
-        PillarsState(),
+      final PillarsCubit pillarsCubit = PillarsCubit(
+        zenon: mockZenon,
       );
       expect(pillarsCubit.state.status, TimerStatus.initial);
     });
 
+    //TODO: ADD SERIALIZATION TESTS
     group('fetch', () {
       blocTest<PillarsCubit, TimerState<int>>(
         'emits [loading, success] when fetch is successful',
@@ -66,10 +64,12 @@ void main() {
         setUp: () {
           final mockPillarInfoList = MockPillarInfoList();
           final mockPillarInfo = MockPillarInfo();
-          when(() => mockPillar.getAll()).thenAnswer((_) async => mockPillarInfoList);
-          when(() => mockPillarInfoList.list).thenReturn(List.filled(100, mockPillarInfo));
+          when(() => mockPillar.getAll())
+              .thenAnswer((_) async => mockPillarInfoList);
+          when(() => mockPillarInfoList.list)
+              .thenReturn(List.filled(100, mockPillarInfo));
         },
-        act: (cubit) => cubit.fetchDataPeriodically(),
+        act: (PillarsCubit cubit) => cubit.fetchDataPeriodically(),
         expect: () => <PillarsState>[
           PillarsState(status: TimerStatus.loading),
           PillarsState(status: TimerStatus.success, data: 100),
@@ -79,16 +79,13 @@ void main() {
         },
       );
 
-      //TODO: test not working
       blocTest<PillarsCubit, TimerState>(
         'emits [loading, failure] when getAll() throws',
         setUp: () {
-          when(() => mockZenon.embedded).thenReturn(mockEmbedded);
-          when(() => mockEmbedded.pillar).thenReturn(mockPillar);
           when(() => mockPillar.getAll()).thenThrow(exception);
         },
         build: () => pillarsCubit,
-        act: (cubit) => cubit.fetchDataPeriodically(),
+        act: (PillarsCubit cubit) => cubit.fetchDataPeriodically(),
         expect: () => <PillarsState>[
           PillarsState(status: TimerStatus.loading),
           PillarsState(status: TimerStatus.failure, error: exception),

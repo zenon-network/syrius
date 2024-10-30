@@ -8,9 +8,7 @@ import 'package:zenon_syrius_wallet_flutter/rearchitecture/rearchitecture.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/exceptions/exceptions.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
-
 import '../../helpers/hydrated_bloc.dart';
-
 
 class MockZenon extends Mock implements Zenon {}
 
@@ -35,7 +33,7 @@ void main() {
     late BalanceCubit balanceCubit;
     late AccountInfo accountInfo;
     late BalanceInfoListItem balanceInfoListItem;
-    late SyriusException balanceException;
+    late CubitException balanceException;
 
     setUp(() async {
       mockZenon = MockZenon();
@@ -50,10 +48,13 @@ void main() {
       accountInfo = AccountInfo(
           address: emptyAddress.toString(),
           blockCount: 1,
-          balanceInfoList: [balanceInfoListItem],
+          balanceInfoList: <BalanceInfoListItem>[balanceInfoListItem],
       );
 
-      balanceCubit = BalanceCubit(emptyAddress, mockZenon, BalanceState());
+      balanceCubit = BalanceCubit(
+          address: emptyAddress,
+          zenon: mockZenon,
+      );
       balanceException = NoBalanceException();
 
       when(() => mockZenon.wsClient).thenReturn(mockWsClient);
@@ -66,23 +67,40 @@ void main() {
     });
 
     test('initial status is correct', () {
-      final balanceCubit = BalanceCubit(
-        emptyAddress,
-        mockZenon,
-        BalanceState(),
+      final BalanceCubit balanceCubit = BalanceCubit(
+        address: emptyAddress,
+        zenon: mockZenon,
       );
       expect(balanceCubit.state.status, TimerStatus.initial);
     });
 
+    //TODO: problem:fromJson List - Map
+    test('can be (de)serialized', () {
+      final BalanceState balanceState = BalanceState(
+        data: accountInfo,
+        status: TimerStatus.success,
+      );
+
+      final Map<String, dynamic>? serialized = balanceCubit.toJson(
+        balanceState,
+      );
+      final BalanceState? deserialized = balanceCubit.fromJson(
+        serialized!,
+      );
+
+      expect(deserialized, balanceState);
+    });
+
+
     group('fetchDataPeriodically', () {
-      blocTest<BalanceCubit, TimerState>(
+      blocTest<BalanceCubit, BalanceState>(
         'calls getAccountInfoByAddress once',
         build: () => balanceCubit,
         setUp: () {
           when(() => mockLedger.getAccountInfoByAddress(any()),
           ).thenAnswer((_) async => accountInfo);
         },
-        act: (cubit) => cubit.fetch(),
+        act: (BalanceCubit cubit) => cubit.fetch(),
         verify: (_) {
             verify(() =>
                 mockLedger.getAccountInfoByAddress(any()),
@@ -90,14 +108,14 @@ void main() {
         },
       );
 
-      blocTest<BalanceCubit, TimerState>(
+      blocTest<BalanceCubit, BalanceState>(
         'emits [loading, failure] when fetch throws',
         build: () => balanceCubit,
         setUp: () {
           when(() => mockLedger.getAccountInfoByAddress(any()),
           ).thenThrow(balanceException);
         },
-        act: (cubit) => cubit.fetchDataPeriodically(),
+        act: (BalanceCubit cubit) => cubit.fetchDataPeriodically(),
           expect: () => <BalanceState>[
             BalanceState(status: TimerStatus.loading),
             BalanceState(
@@ -107,10 +125,10 @@ void main() {
         ],
       );
 
-      blocTest<BalanceCubit, TimerState>(
+      blocTest<BalanceCubit, BalanceState>(
         'emits [loading, success] when fetch returns',
         build: () => balanceCubit,
-        act: (cubit) => cubit.fetchDataPeriodically(),
+        act: (BalanceCubit cubit) => cubit.fetchDataPeriodically(),
           expect: () => <BalanceState>[
             BalanceState(status: TimerStatus.loading),
             BalanceState(status: TimerStatus.success,
