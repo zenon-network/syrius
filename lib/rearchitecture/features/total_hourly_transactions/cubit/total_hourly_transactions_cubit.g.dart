@@ -14,7 +14,7 @@ TotalHourlyTransactionsState _$TotalHourlyTransactionsStateFromJson(
       data: (json['data'] as num?)?.toInt(),
       error: json['error'] == null
           ? null
-          : SyriusException.fromJson(json['error'] as Map<String, dynamic>),
+          : CubitException.fromJson(json['error'] as Map<String, dynamic>),
     );
 
 Map<String, dynamic> _$TotalHourlyTransactionsStateToJson(

@@ -2,9 +2,9 @@ import 'dart:async';
 
 import 'package:equatable/equatable.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
+import 'package:logging/logging.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/balance/balance.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 part 'timer_state.dart';
@@ -18,17 +18,16 @@ part 'timer_state.dart';
 ///
 /// The generic type [S] represents the type of the states emitted by the cubit.
 /// [S] extends [TimerState]
-abstract class TimerCubit<T, S extends TimerState<T>>
-    extends HydratedCubit<S> {
+abstract class TimerCubit<T, S extends TimerState<T>> extends HydratedCubit<S> {
   /// Constructs a [TimerCubit] with the provided [zenon] client and initial
   /// state.
   ///
   /// The auto-refresh functionality is initialized upon the cubit's creation.
-  TimerCubit(
-    this.zenon,
-    super.initialState, {
-    this.refreshInterval = kDashboardRefreshInterval,
-  });
+  TimerCubit({
+    required this.zenon,
+    required S initialState,
+    this.refreshInterval = kTimerCubitRefreshInterval,
+  }): super(initialState);
 
   /// A timer that handles the auto-refreshing of data.
   Timer? _autoRefresher;
@@ -48,7 +47,7 @@ abstract class TimerCubit<T, S extends TimerState<T>>
   Future<T> fetch();
 
   /// Returns a [Timer] that triggers the auto-refresh functionality after
-  /// the predefined [kDashboardRefreshInterval].
+  /// the predefined [kTimerCubitRefreshInterval].
   ///
   /// This method cancels any existing timers and initiates a new periodic
   /// fetch cycle by calling [fetchDataPeriodically].
@@ -69,29 +68,26 @@ abstract class TimerCubit<T, S extends TimerState<T>>
   /// If the WebSocket client is closed, it throws a [noConnectionException].
   Future<void> fetchDataPeriodically() async {
     try {
-      print('Emitting loading state');
-      emit(state.copyWith(status: TimerStatus.loading) as S);
+      if (state.status != TimerStatus.success) {
+        emit(state.copyWith(status: TimerStatus.loading) as S);
+      }
       if (!zenon.wsClient.isClosed()) {
         final T data = await fetch();
-        print('WebSocket is open, fetching data');
-        final data = await fetch();
-        print('Fetch successful, emitting success state');
         emit(state.copyWith(data: data, status: TimerStatus.success) as S);
       } else {
-        print('WebSocket is closed, throwing noConnectionException');
         throw noConnectionException;
       }
     } on CubitException catch (e) {
-      print('CubitException caught: $e');
       emit(state.copyWith(status: TimerStatus.failure, error: e) as S);
-    } catch (e) {
-      print('Generic exception caught: $e');
+    } catch (e, stackTrace) {
       emit(
         state.copyWith(
           status: TimerStatus.failure,
           error: CubitFailureException(),
         ) as S,
       );
+      // Reports only the unexpected errors
+      addError(e, stackTrace);
     } finally {
       /// Ensure that the auto-refresher is restarted if it's not active.
       if (!isTimerActive) {
@@ -116,5 +112,22 @@ abstract class TimerCubit<T, S extends TimerState<T>>
   Future<void> close() {
     _autoRefresher?.cancel();
     return super.close();
+  }
+
+  @override
+  void onError(Object error, StackTrace stackTrace) {
+    Level logLevel = Level.WARNING;
+    if (error is CubitException) {
+      logLevel = Level.INFO;
+    }
+    // state.runtimeType has the roll to identify in which cubit subclass
+    // the error happened
+    Logger('TimerCubit - ${state.runtimeType}').log(
+      logLevel,
+      'onError triggered',
+      error,
+      stackTrace,
+    );
+    super.onError(error, stackTrace);
   }
 }

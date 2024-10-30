@@ -15,7 +15,7 @@ DualCoinStatsState _$DualCoinStatsStateFromJson(Map<String, dynamic> json) =>
           .toList(),
       error: json['error'] == null
           ? null
-          : SyriusException.fromJson(json['error'] as Map<String, dynamic>),
+          : CubitException.fromJson(json['error'] as Map<String, dynamic>),
     );
 
 Map<String, dynamic> _$DualCoinStatsStateToJson(DualCoinStatsState instance) =>

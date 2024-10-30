@@ -15,7 +15,11 @@ class DelegationCubit extends TimerCubit<DelegationInfo, DelegationState> {
   ///
   /// The [zenon] client is used to interact with the Zenon network to retrieve
   /// delegation information.
-  DelegationCubit(this.address, super.zenon, super.initialState);
+  DelegationCubit({
+    required this.address,
+    required super.zenon,
+    super.initialState = const DelegationState(),
+  });
 
   /// The address for which the [DelegationInfo] will be fetched
   final Address address;

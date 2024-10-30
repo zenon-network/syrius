@@ -9,7 +9,9 @@ part 'no_active_skaking_entries_exception.g.dart';
 @JsonSerializable()
 class NoActiveStakingEntriesException extends CubitException {
   /// Creates a [NoActiveStakingEntriesException] instance
-  NoActiveStakingEntriesException() : super('No active staking entries');
+  NoActiveStakingEntriesException({
+    String message = 'No active staking entries',
+  }) : super(message);
 
   /// Creates a [NoActiveStakingEntriesException] instance from a JSON map.
   factory NoActiveStakingEntriesException.fromJson(Map<String, dynamic> json) =>

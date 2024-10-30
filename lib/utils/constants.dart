@@ -199,7 +199,6 @@ const Duration kDelayAfterAccountBlockCreationCall = Duration(
 );
 const Duration kProjectVotingPeriod = Duration(days: 14);
 const Duration kEmbeddedConnectionDelay = Duration(seconds: 30);
-const Duration kDashboardRefreshInterval = Duration(minutes: 1);
 
 // Tabs
 const List<Tabs> kTabsWithTextTitles = <Tabs>[

@@ -15,7 +15,7 @@ SentinelsState _$SentinelsStateFromJson(Map<String, dynamic> json) =>
           : SentinelInfoList.fromJson(json['data'] as Map<String, dynamic>),
       error: json['error'] == null
           ? null
-          : SyriusException.fromJson(json['error'] as Map<String, dynamic>),
+          : CubitException.fromJson(json['error'] as Map<String, dynamic>),
     );
 
 Map<String, dynamic> _$SentinelsStateToJson(SentinelsState instance) =>

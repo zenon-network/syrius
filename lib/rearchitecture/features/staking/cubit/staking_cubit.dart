@@ -18,7 +18,10 @@ class StakingCubit extends TimerCubit<StakeList, StakingState> {
   ///
   /// The [zenon] client is used to interact with the Zenon network to retrieve
   /// staking information.
-  StakingCubit(super.zenon, super.initialState);
+  StakingCubit({
+    required super.zenon,
+    super.initialState = const StakingState(),
+});
 
   /// Fetches a list of staking entries for a specific address from the Zenon
   /// network.

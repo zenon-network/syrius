@@ -8,12 +8,13 @@ part 'no_balance_exception.g.dart';
 @JsonSerializable()
 class NoBalanceException extends CubitException {
   /// Creates a [NoBalanceException] instance
-  NoBalanceException(): super('Empty balance on the selected address');
+  NoBalanceException({
+    String message = 'Empty balance on the selected address',
+  }) : super(message);
 
   /// Creates a [NoBalanceException] instance from a JSON map.
   factory NoBalanceException.fromJson(Map<String, dynamic> json) =>
       _$NoBalanceExceptionFromJson(json);
-
 
   /// Converts this [NoBalanceException] instance to a JSON map.
   @override

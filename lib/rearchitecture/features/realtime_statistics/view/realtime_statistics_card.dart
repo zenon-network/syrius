@@ -16,8 +16,7 @@ class RealtimeStatisticsCard extends StatelessWidget {
     return BlocProvider<RealtimeStatisticsCubit>(
       create: (_) {
         final RealtimeStatisticsCubit cubit = RealtimeStatisticsCubit(
-          zenon!,
-          const RealtimeStatisticsState(),
+          zenon: zenon!,
         )..fetchDataPeriodically();
         return cubit;
       },

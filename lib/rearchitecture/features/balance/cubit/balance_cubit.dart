@@ -13,7 +13,11 @@ part 'balance_state.dart';
 class BalanceCubit extends TimerCubit<AccountInfo, BalanceState> {
   /// Constructs a BalanceCubit with the provided [zenon] client, [address] and
   /// [initialState].
-  BalanceCubit(this.address, super.zenon, super.initialState);
+  BalanceCubit({
+    required this.address,
+    required super.zenon,
+    super.initialState = const BalanceState(),
+  });
 
   /// The address for which the balance will be retrieved
   final Address address;

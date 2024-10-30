@@ -8,8 +8,12 @@ part of 'no_delegation_stats_exception.dart';
 
 NoDelegationStatsException _$NoDelegationStatsExceptionFromJson(
         Map<String, dynamic> json) =>
-    NoDelegationStatsException();
+    NoDelegationStatsException(
+      message: json['message'] as String? ?? 'No delegation stats available',
+    );
 
 Map<String, dynamic> _$NoDelegationStatsExceptionToJson(
         NoDelegationStatsException instance) =>
-    <String, dynamic>{};
+    <String, dynamic>{
+      'message': instance.message,
+    };

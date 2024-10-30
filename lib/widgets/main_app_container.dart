@@ -84,8 +84,7 @@ class _MainAppContainerState extends State<MainAppContainer>
     canRequestFocus: false,
   );
   final NodeSyncStatusCubit _nodeSyncStatusCubit = NodeSyncStatusCubit(
-    zenon!,
-    const NodeSyncStatusState(),
+    zenon: zenon!,
   );
 
   @override

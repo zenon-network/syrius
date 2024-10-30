@@ -22,9 +22,8 @@ class BalanceCard extends StatelessWidget {
     return BlocProvider<BalanceCubit>(
       create: (_) {
         final BalanceCubit cubit = BalanceCubit(
-          Address.parse(kSelectedAddress!),
-          zenon!,
-          const BalanceState(),
+          address: Address.parse(kSelectedAddress!),
+          zenon: zenon!,
         )..fetchDataPeriodically();
         return cubit;
       },

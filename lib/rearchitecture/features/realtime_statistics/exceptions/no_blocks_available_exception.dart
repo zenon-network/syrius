@@ -9,12 +9,13 @@ part 'no_blocks_available_exception.g.dart';
 @JsonSerializable()
 class NoBlocksAvailableException extends CubitException {
   /// Creates a [NoBlocksAvailableException] instance
-  NoBlocksAvailableException(): super('No account blocks available');
+  NoBlocksAvailableException({
+    String message = 'No account blocks available',
+  }) : super(message);
 
   /// Creates a [NoBlocksAvailableException] instance from a JSON map.
   factory NoBlocksAvailableException.fromJson(Map<String, dynamic> json) =>
       _$NoBlocksAvailableExceptionFromJson(json);
-
 
   /// Converts this [NoBlocksAvailableException] instance to a JSON map.
   @override
