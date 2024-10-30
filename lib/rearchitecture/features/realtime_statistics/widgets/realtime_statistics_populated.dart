@@ -32,9 +32,7 @@ class RealtimeStatisticsPopulated extends StatelessWidget {
                 mainText: '${kQsrCoin.symbol} '
                     'transactions',
               ),
-              const SizedBox(
-                width: 10,
-              ),
+              kHorizontalGap8,
               ChartLegend(
                 dotColor: ColorUtils.getTokenColor(kZnnCoin.tokenStandard),
                 mainText: '${kZnnCoin.symbol} '
