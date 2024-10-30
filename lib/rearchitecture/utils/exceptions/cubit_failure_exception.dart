@@ -6,7 +6,7 @@ part 'cubit_failure_exception.g.dart';
 /// A class to be used as a generic exception when something unexpected goes
 /// wrong inside a cubit.
 @JsonSerializable()
-class CubitFailureException extends CubitException {
+class CubitFailureException extends SyriusException {
   /// Creates a [CubitFailureException] instance.
   CubitFailureException({
     String message = 'Something went wrong',
@@ -18,5 +18,6 @@ class CubitFailureException extends CubitException {
 
   /// Converts this [CubitFailureException] instance to a JSON map.
   @override
-  Map<String, dynamic> toJson() => _$CubitFailureExceptionToJson(this);
+  Map<String, dynamic> toJson() => _$CubitFailureExceptionToJson(this)
+    ..['runtimeType'] = 'CubitFailureException';
 }

@@ -29,7 +29,7 @@ class RealtimeStatisticsState extends TimerState<List<AccountBlock>> {
   TimerState<List<AccountBlock>> copyWith({
     TimerStatus? status,
     List<AccountBlock>? data,
-    CubitException? error,
+    SyriusException? error,
   }) {
     return RealtimeStatisticsState(
       status: status ?? this.status,

@@ -77,7 +77,7 @@ abstract class TimerCubit<T, S extends TimerState<T>> extends HydratedCubit<S> {
       } else {
         throw noConnectionException;
       }
-    } on CubitException catch (e) {
+    } on SyriusException catch (e) {
       emit(state.copyWith(status: TimerStatus.failure, error: e) as S);
     } catch (e, stackTrace) {
       emit(
@@ -117,7 +117,7 @@ abstract class TimerCubit<T, S extends TimerState<T>> extends HydratedCubit<S> {
   @override
   void onError(Object error, StackTrace stackTrace) {
     Level logLevel = Level.WARNING;
-    if (error is CubitException) {
+    if (error is SyriusException) {
       logLevel = Level.INFO;
     }
     // state.runtimeType has the roll to identify in which cubit subclass

@@ -7,7 +7,7 @@ part 'no_active_skaking_entries_exception.g.dart';
 /// Custom [Exception] to be used with [StakingCubit] when there are
 /// no active staking entries found on an address
 @JsonSerializable()
-class NoActiveStakingEntriesException extends CubitException {
+class NoActiveStakingEntriesException extends SyriusException {
   /// Creates a [NoActiveStakingEntriesException] instance
   NoActiveStakingEntriesException({
     String message = 'No active staking entries',
@@ -19,6 +19,6 @@ class NoActiveStakingEntriesException extends CubitException {
 
   /// Converts this [NoActiveStakingEntriesException] instance to a JSON map.
   @override
-  Map<String, dynamic> toJson() =>
-      _$NoActiveStakingEntriesExceptionToJson(this);
+  Map<String, dynamic> toJson() => _$NoActiveStakingEntriesExceptionToJson(this)
+    ..['runtimeType'] = 'NoActiveStakingEntriesException';
 }
