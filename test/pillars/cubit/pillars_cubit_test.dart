@@ -4,7 +4,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/rearchitecture.dart';
-import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/exceptions/cubit_exception.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/exceptions/cubit_failure_exception.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
@@ -31,7 +30,7 @@ void main() {
     late MockEmbedded mockEmbedded;
     late MockPillar mockPillar;
     late PillarsCubit pillarsCubit;
-    late CubitException exception;
+    late CubitFailureException exception;
 
     setUp(() async {
       mockZenon = MockZenon();
@@ -56,18 +55,75 @@ void main() {
       expect(pillarsCubit.state.status, TimerStatus.initial);
     });
 
-    //TODO: ADD SERIALIZATION TESTS
+    group('fromJson/toJson', () {
+      test('can (de)serialize initial state', () {
+        final PillarsState initialState = PillarsState();
+
+        final Map<String, dynamic>? serialized = pillarsCubit.toJson(
+          initialState,
+        );
+        final PillarsState? deserialized = pillarsCubit.fromJson(
+          serialized!,
+        );
+        expect(deserialized, equals(initialState));
+      });
+
+      test('can (de)serialize loading state', () {
+        final PillarsState loadingState = PillarsState(
+          status: TimerStatus.loading,
+        );
+
+        final Map<String, dynamic>? serialized = pillarsCubit.toJson(
+          loadingState,
+        );
+        final PillarsState? deserialized = pillarsCubit.fromJson(
+          serialized!,
+        );
+        expect(deserialized, equals(loadingState));
+      });
+
+      test('can (de)serialize success state', () {
+        final PillarsState successState = PillarsState(
+          status: TimerStatus.success,
+          data: 100,
+        );
+
+        final Map<String, dynamic>? serialized = pillarsCubit.toJson(
+          successState,
+        );
+        final PillarsState? deserialized = pillarsCubit.fromJson(
+          serialized!,
+        );
+        expect(deserialized, equals(successState));
+      });
+
+      test('can (de)serialize failure state', () {
+        final PillarsState failureState = PillarsState(
+          status: TimerStatus.failure,
+          error: exception,
+        );
+
+        final Map<String, dynamic>? serialized = pillarsCubit.toJson(
+          failureState,
+        );
+        final PillarsState? deserialized = pillarsCubit.fromJson(
+          serialized!,
+        );
+        expect(deserialized, equals(failureState));
+      });
+    });
+
     group('fetch', () {
-      blocTest<PillarsCubit, TimerState<int>>(
+      blocTest<PillarsCubit, PillarsState>(
         'emits [loading, success] when fetch is successful',
         build: () => pillarsCubit,
         setUp: () {
-          final mockPillarInfoList = MockPillarInfoList();
-          final mockPillarInfo = MockPillarInfo();
+          final MockPillarInfoList mockPillarInfoList = MockPillarInfoList();
+          final MockPillarInfo mockPillarInfo = MockPillarInfo();
           when(() => mockPillar.getAll())
               .thenAnswer((_) async => mockPillarInfoList);
           when(() => mockPillarInfoList.list)
-              .thenReturn(List.filled(100, mockPillarInfo));
+              .thenReturn(List<PillarInfo>.filled(100, mockPillarInfo));
         },
         act: (PillarsCubit cubit) => cubit.fetchDataPeriodically(),
         expect: () => <PillarsState>[
@@ -79,7 +135,7 @@ void main() {
         },
       );
 
-      blocTest<PillarsCubit, TimerState>(
+      blocTest<PillarsCubit, PillarsState>(
         'emits [loading, failure] when getAll() throws',
         setUp: () {
           when(() => mockPillar.getAll()).thenThrow(exception);

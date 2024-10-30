@@ -5,7 +5,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/rearchitecture.dart';
-import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/exceptions/exceptions.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 import '../../helpers/hydrated_bloc.dart';
@@ -33,7 +32,7 @@ void main() {
     late BalanceCubit balanceCubit;
     late AccountInfo accountInfo;
     late BalanceInfoListItem balanceInfoListItem;
-    late CubitException balanceException;
+    late NoBalanceException balanceException;
 
     setUp(() async {
       mockZenon = MockZenon();
@@ -74,21 +73,65 @@ void main() {
       expect(balanceCubit.state.status, TimerStatus.initial);
     });
 
-    //TODO: problem:fromJson List - Map
-    test('can be (de)serialized', () {
-      final BalanceState balanceState = BalanceState(
-        data: accountInfo,
-        status: TimerStatus.success,
-      );
+    group('fromJson/toJson', () {
+      test('can (de)serialize initial state', () {
+        final BalanceState initialState = BalanceState();
 
-      final Map<String, dynamic>? serialized = balanceCubit.toJson(
-        balanceState,
-      );
-      final BalanceState? deserialized = balanceCubit.fromJson(
-        serialized!,
-      );
+        final Map<String, dynamic>? serialized = balanceCubit.toJson(
+          initialState,
+        );
+        final BalanceState? deserialized = balanceCubit.fromJson(
+          serialized!,
+        );
+        expect(deserialized, equals(initialState));
+      });
 
-      expect(deserialized, balanceState);
+      test('can (de)serialize loading state', () {
+        final BalanceState loadingState = BalanceState(
+          status: TimerStatus.loading,
+        );
+
+        final Map<String, dynamic>? serialized = balanceCubit.toJson(
+          loadingState,
+        );
+        final BalanceState? deserialized = balanceCubit.fromJson(
+          serialized!,
+        );
+        expect(deserialized, equals(loadingState));
+      });
+
+      // TODO(mazznwell): fix equality between AccountInfo instances
+      test('can (de)serialize success state', () {
+        final BalanceState balanceState = BalanceState(
+          data: accountInfo,
+          status: TimerStatus.success,
+        );
+
+        final Map<String, dynamic>? serialized = balanceCubit.toJson(
+          balanceState,
+        );
+        final BalanceState? deserialized = balanceCubit.fromJson(
+          serialized!,
+        );
+
+        expect(deserialized, balanceState);
+      });
+
+
+      test('can (de)serialize failure state', () {
+        final BalanceState failureState = BalanceState(
+          status: TimerStatus.failure,
+          error: balanceException,
+        );
+
+        final Map<String, dynamic>? serialized = balanceCubit.toJson(
+          failureState,
+        );
+        final BalanceState? deserialized = balanceCubit.fromJson(
+          serialized!,
+        );
+        expect(deserialized, equals(failureState));
+      });
     });
 
 

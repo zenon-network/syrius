@@ -21,7 +21,7 @@ class MockSentinelInfoList extends Mock implements SentinelInfoList {}
 
 
 void main() {
-initHydratedStorage();
+  initHydratedStorage();
 
   group('SentinelsCubit', () {
     late MockZenon mockZenon;
@@ -29,46 +29,115 @@ initHydratedStorage();
     late MockEmbedded mockEmbedded;
     late MockSentinel mockSentinel;
     late SentinelsCubit sentinelsCubit;
-    late CubitException sentinelsException;
-    late SentinelInfoList mockSentinelInfoList;
+    late CubitFailureException exception;
+    late SentinelInfo sentinelInfo;
+    late SentinelInfoList sentinelInfoList;
 
     setUp(() async {
       mockZenon = MockZenon();
       mockWsClient = MockWsClient();
       mockEmbedded = MockEmbedded();
       mockSentinel = MockSentinel();
-      mockSentinelInfoList = MockSentinelInfoList();
+      sentinelInfo = SentinelInfo.fromJson(
+        <String, dynamic>{
+          'owner': emptyAddress.toString(),
+          'registrationTimestamp': 1625132800,
+          'isRevocable': true,
+          'revokeCooldown': 1000,
+          'active': true,
+        },
+      );
+      sentinelInfoList = SentinelInfoList(count: 1,
+          list: <SentinelInfo>[sentinelInfo],
+      );
       sentinelsCubit = SentinelsCubit(
           zenon: mockZenon,
       );
-      sentinelsException = CubitFailureException();
+      exception = CubitFailureException();
 
       when(() => mockZenon.wsClient).thenReturn(mockWsClient);
       when(() => mockWsClient.isClosed()).thenReturn(false);
       when(
-              () => mockZenon.embedded
+              () => mockZenon.embedded,
       ).thenReturn(mockEmbedded);
       when(
-              () => mockEmbedded.sentinel
+              () => mockEmbedded.sentinel,
       ).thenReturn(mockSentinel);
     });
 
     test('initial status is correct', () {
-      final sentinelsCubit = SentinelsCubit(
+      final SentinelsCubit sentinelsCubit = SentinelsCubit(
         zenon: mockZenon,
       );
       expect(sentinelsCubit.state.status, TimerStatus.initial);
     });
 
-    //TODO: ADD SERIALIZATION TESTS
+    group('fromJson/toJson', () {
+      test('can (de)serialize initial state', () {
+        final SentinelsState initialState = SentinelsState();
+
+        final Map<String, dynamic>? serialized = sentinelsCubit.toJson(
+          initialState,
+        );
+        final SentinelsState? deserialized = sentinelsCubit.fromJson(
+          serialized!,
+        );
+        expect(deserialized, equals(initialState));
+      });
+
+      test('can (de)serialize loading state', () {
+        final SentinelsState loadingState = SentinelsState(
+          status: TimerStatus.loading,
+        );
+
+        final Map<String, dynamic>? serialized = sentinelsCubit.toJson(
+          loadingState,
+        );
+        final SentinelsState? deserialized = sentinelsCubit.fromJson(
+          serialized!,
+        );
+        expect(deserialized, equals(loadingState));
+      });
+
+      // TODO(mazznwell): to fix (equality between SentinelInfoList instances)
+      test('can (de)serialize success state', () {
+        final SentinelsState successState = SentinelsState(
+          status: TimerStatus.success,
+          data: sentinelInfoList,
+        );
+
+        final Map<String, dynamic>? serialized = sentinelsCubit.toJson(
+          successState,
+        );
+        final SentinelsState? deserialized = sentinelsCubit.fromJson(
+          serialized!,
+        );
+        expect(deserialized, equals(successState));
+      });
+
+      test('can (de)serialize failure state', () {
+        final SentinelsState failureState = SentinelsState(
+          status: TimerStatus.failure,
+          error: exception,
+        );
+
+        final Map<String, dynamic>? serialized = sentinelsCubit.toJson(
+          failureState,
+        );
+        final SentinelsState? deserialized = sentinelsCubit.fromJson(
+          serialized!,
+        );
+        expect(deserialized, equals(failureState));
+      });
+    });
+
     group('fetchDataPeriodically', () {
       blocTest<SentinelsCubit, SentinelsState>(
         'calls getAllActive() once',
         build: () => sentinelsCubit,
-        act: (cubit) => cubit.fetchDataPeriodically(),
+        act: (SentinelsCubit cubit) => cubit.fetchDataPeriodically(),
         verify: (_) {
-          verify(() => mockZenon.embedded.sentinel.getAllActive()
-          ).called(1);
+          verify(() => mockZenon.embedded.sentinel.getAllActive()).called(1);
         },
       );
 
@@ -77,15 +146,15 @@ initHydratedStorage();
         setUp: () {
           when(
                 () => mockSentinel.getAllActive(),
-          ).thenThrow(sentinelsException);
+          ).thenThrow(exception);
         },
         build: () => sentinelsCubit,
-        act: (cubit) => cubit.fetchDataPeriodically(),
+        act: (SentinelsCubit cubit) => cubit.fetchDataPeriodically(),
         expect: () => <SentinelsState>[
           SentinelsState(status: TimerStatus.loading),
           SentinelsState(
             status: TimerStatus.failure,
-            error: sentinelsException,
+            error: exception,
           ),
         ],
       );
@@ -95,15 +164,16 @@ initHydratedStorage();
           setUp: () {
             when(
                   () => mockSentinel.getAllActive(),
-            ).thenAnswer((_) async => mockSentinelInfoList);
+            ).thenAnswer((_) async => sentinelInfoList);
           },
           build: () => sentinelsCubit,
-          act: (cubit) => cubit.fetchDataPeriodically(),
+          act: (SentinelsCubit cubit) => cubit.fetchDataPeriodically(),
           expect: () => <SentinelsState>[
             SentinelsState(status: TimerStatus.loading),
             SentinelsState(status: TimerStatus.success,
-            data: mockSentinelInfoList),
-          ]
+            data: sentinelInfoList,
+            ),
+          ],
       );
     });
   });

@@ -117,7 +117,7 @@ void main() {
         final DelegationState? deserialized = delegationCubit.fromJson(
           serialized!,
         );
-        expect(deserialized, failureState);
+        expect(deserialized, equals(failureState));
       });
     });
 

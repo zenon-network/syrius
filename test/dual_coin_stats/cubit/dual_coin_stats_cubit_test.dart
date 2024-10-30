@@ -35,7 +35,7 @@ void main() {
     late MockWsClient mockWsClient;
     late MockTokenApi mockTokenApi;
     late DualCoinStatsCubit dualCoinStatsCubit;
-    late CubitException exception;
+    late CubitFailureException exception;
 
     setUp(() async {
       mockZenon = MockZenon();
@@ -65,23 +65,66 @@ void main() {
       );
       expect(dualCoinStatsCubit.state.status, TimerStatus.initial);
     });
+    group('fromJson/toJson', () {
+      test('can (de)serialize initial state', () {
+        final DualCoinStatsState initialState = DualCoinStatsState();
 
-    test('can be (de)serialized', () {
-      final DualCoinStatsState dualCoinStatsState = DualCoinStatsState(
-        data: [kZnnCoin, kQsrCoin],
-        status: TimerStatus.success,
-      );
+        final Map<String, dynamic>? serialized = dualCoinStatsCubit.toJson(
+          initialState,
+        );
+        final DualCoinStatsState? deserialized = dualCoinStatsCubit.fromJson(
+          serialized!,
+        );
+        expect(deserialized, equals(initialState));
+      });
 
-      final Map<String, dynamic>? serialized =dualCoinStatsCubit.toJson(
-        dualCoinStatsState,
-      );
-      final DualCoinStatsState? deserialized = dualCoinStatsCubit.fromJson(
-        serialized!,
-      );
-      expect(deserialized, dualCoinStatsState);
+      test('can (de)serialize loading state', () {
+        final DualCoinStatsState loadingState = DualCoinStatsState(
+          status: TimerStatus.loading,
+        );
+
+        final Map<String, dynamic>? serialized = dualCoinStatsCubit.toJson(
+          loadingState,
+        );
+        final DualCoinStatsState? deserialized = dualCoinStatsCubit.fromJson(
+          serialized!,
+        );
+        expect(deserialized, equals(loadingState));
+      });
+
+      test('can (de)serialize success state', () {
+        final DualCoinStatsState dualCoinStatsState = DualCoinStatsState(
+          data: <Token>[kZnnCoin, kQsrCoin],
+          status: TimerStatus.success,
+        );
+
+        final Map<String, dynamic>? serialized =dualCoinStatsCubit.toJson(
+          dualCoinStatsState,
+        );
+        final DualCoinStatsState? deserialized = dualCoinStatsCubit.fromJson(
+          serialized!,
+        );
+        expect(deserialized, dualCoinStatsState);
+      });
+
+      test('can (de)serialize failure state', () {
+        final DualCoinStatsState failureState = DualCoinStatsState(
+          status: TimerStatus.failure,
+          error: exception,
+        );
+
+        final Map<String, dynamic>? serialized = dualCoinStatsCubit.toJson(
+          failureState,
+        );
+        final DualCoinStatsState? deserialized = dualCoinStatsCubit.fromJson(
+          serialized!,
+        );
+        expect(deserialized, equals(failureState));
+      });
     });
 
-      blocTest<DualCoinStatsCubit, TimerState>(
+
+      blocTest<DualCoinStatsCubit, DualCoinStatsState>(
         'calls getByZts for each address in token once',
         build: () => dualCoinStatsCubit,
         setUp: () {
@@ -94,7 +137,7 @@ void main() {
         },
       );
 
-    blocTest<DualCoinStatsCubit, TimerState>(
+    blocTest<DualCoinStatsCubit, DualCoinStatsState>(
       'emits [loading, failure] when getByZts throws',
       setUp: () {
         when(
@@ -112,7 +155,7 @@ void main() {
       ],
     );
 
-    blocTest<DualCoinStatsCubit, TimerState>(
+    blocTest<DualCoinStatsCubit, DualCoinStatsState>(
         'emits [loading, success] when getByZts returns',
         build: () => dualCoinStatsCubit,
         act: (DualCoinStatsCubit cubit) => cubit.fetchDataPeriodically(),

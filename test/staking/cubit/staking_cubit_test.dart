@@ -20,8 +20,6 @@ class MockStake extends Mock implements StakeApi {}
 
 class FakeAddress extends Fake implements Address {}
 
-class FakeStakeEntry extends Fake implements StakeEntry {}
-
 
 void main() {
   initHydratedStorage();
@@ -36,7 +34,8 @@ void main() {
     late StakingCubit stakingCubit;
     late MockEmbedded mockEmbedded;
     late MockStake mockStake;
-    late CubitException stakingException;
+    late SyriusException stakingException;
+    late StakeEntry stakeEntry;
     late StakeList testStakeList;
 
     setUp(() async {
@@ -45,13 +44,22 @@ void main() {
       mockEmbedded = MockEmbedded();
       mockStake = MockStake();
       stakingCubit = StakingCubit(
+          address: emptyAddress,
           zenon: mockZenon,
+      );
+      stakeEntry = StakeEntry(
+        amount: BigInt.from(1),
+        weightedAmount: BigInt.from(1),
+        startTimestamp: 123,
+        expirationTimestamp: 321,
+        address: emptyAddress,
+        id: emptyHash,
       );
       testStakeList = StakeList(
         totalAmount: BigInt.from(1),
         totalWeightedAmount: BigInt.from(1),
         count: 1,
-        list: <StakeEntry>[FakeStakeEntry()],
+        list: <StakeEntry>[stakeEntry],
       );
       stakingException = NoActiveStakingEntriesException();
 
@@ -62,9 +70,6 @@ void main() {
     });
 
     test('initial status is correct', () {
-      final StakingCubit stakingCubit = StakingCubit(
-        zenon:  mockZenon,
-      );
       expect(stakingCubit.state.status, TimerStatus.initial);
     });
 
@@ -86,7 +91,7 @@ void main() {
         'emits [loading, failure] when getEntriesByAddress() throws',
         setUp: () {
           when(
-                () => mockStake.getEntriesByAddress(Address.parse(kSelectedAddress!)),
+                () => mockStake.getEntriesByAddress(any()),
           ).thenThrow(stakingException);
         },
         build: () => stakingCubit,
@@ -113,7 +118,7 @@ void main() {
           expect: () => <StakingState>[
             StakingState(status: TimerStatus.loading),
             StakingState(status: TimerStatus.success,
-            data: testStakeList),
+            data: testStakeList,),
           ]
       );
     });
