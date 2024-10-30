@@ -4,8 +4,8 @@ import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/exceptions/exce
 
 part 'no_active_skaking_entries_exception.g.dart';
 
-/// Custom [Exception] to be used with [StakingCubit] when there are
-/// no active staking entries found on an address
+/// An exception to be used with [StakingCubit] when there are no active
+/// staking entries found on an address
 @JsonSerializable()
 class NoActiveStakingEntriesException extends SyriusException {
   /// Creates a [NoActiveStakingEntriesException] instance

@@ -4,8 +4,8 @@ import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/exceptions/exce
 
 part 'not_enough_momentums_exception.g.dart';
 
-/// Custom [Exception] to be used with [TotalHourlyTransactionsCubit] when
-/// the network is less than one hour old
+/// An exception to be used with [TotalHourlyTransactionsCubit] when the
+/// network is less than one hour old
 @JsonSerializable()
 class NotEnoughMomentumsException extends SyriusException {
   /// Creates a [NotEnoughMomentumsException] instance
