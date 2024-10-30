@@ -20,7 +20,7 @@ class _ResetWalletScreenState extends State<ResetWalletScreen> {
           Expanded(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
-              children: [
+              children: <Widget>[
                 Container(
                   padding: const EdgeInsets.only(
                     bottom: 10,

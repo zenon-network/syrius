@@ -7,7 +7,7 @@ class ReceiveTransactionBloc extends BaseBloc<AccountBlockTemplate?> {
   Future<void> receiveTransaction(String id, BuildContext context) async {
     try {
       addEvent(null);
-      final response = await sl<AutoReceiveTxWorker>()
+      final AccountBlockTemplate? response = await sl<AutoReceiveTxWorker>()
           .autoReceiveTransactionHash(Hash.parse(id));
       addEvent(response);
     } catch (e, stackTrace) {

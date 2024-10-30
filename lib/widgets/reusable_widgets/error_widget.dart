@@ -18,7 +18,7 @@ class SyriusErrorWidget extends StatelessWidget {
         padding: const EdgeInsets.all(8),
         child: SingleChildScrollView(
           child: Column(
-            children: [
+            children: <Widget>[
               Lottie.asset(
                 'assets/lottie/ic_anim_no_data.json',
                 width: 32,

@@ -46,7 +46,7 @@ class _SentinelRewardsChart extends State<SentinelRewardsChart> {
 
   List<FlSpot> _getZnnRewardsSpots() => List.generate(
         widget.rewardsHistory!.list.length,
-        (index) => FlSpot(
+        (int index) => FlSpot(
           index.toDouble(),
           _getRewardsByIndex(index, kZnnCoin.tokenStandard).toDouble(),
         ),
@@ -54,13 +54,13 @@ class _SentinelRewardsChart extends State<SentinelRewardsChart> {
 
   List<FlSpot> _getQsrRewardsSpots() => List.generate(
         widget.rewardsHistory!.list.length,
-        (index) => FlSpot(
+        (int index) => FlSpot(
           index.toDouble(),
           _getRewardsByIndex(index, kQsrCoin.tokenStandard).toDouble(),
         ),
       );
 
-  List<LineChartBarData> _linesBarData() => [
+  List<LineChartBarData> _linesBarData() => <LineChartBarData>[
         StandardLineChartBarData(
           color: AppColors.znnColor,
           spots: _getZnnRewardsSpots(),
@@ -90,12 +90,12 @@ class _SentinelRewardsChart extends State<SentinelRewardsChart> {
   }
 
   num _getMaxValueOfRewards() {
-    final maxZnn = _getMaxValueOfZnnRewards()
+    final num maxZnn = _getMaxValueOfZnnRewards()
         .addDecimals(
           coinDecimals,
         )
         .toNum();
-    final maxQsr = _getMaxValueOfQsrRewards()
+    final num maxQsr = _getMaxValueOfQsrRewards()
         .addDecimals(
           coinDecimals,
         )
@@ -104,8 +104,8 @@ class _SentinelRewardsChart extends State<SentinelRewardsChart> {
   }
 
   BigInt _getMaxValueOfZnnRewards() {
-    var max = widget.rewardsHistory!.list.first.znnAmount;
-    for (final element in widget.rewardsHistory!.list) {
+    BigInt max = widget.rewardsHistory!.list.first.znnAmount;
+    for (final RewardHistoryEntry element in widget.rewardsHistory!.list) {
       if (element.znnAmount > max) {
         max = element.znnAmount;
       }
@@ -114,8 +114,8 @@ class _SentinelRewardsChart extends State<SentinelRewardsChart> {
   }
 
   BigInt _getMaxValueOfQsrRewards() {
-    var max = widget.rewardsHistory!.list.first.qsrAmount;
-    for (final element in widget.rewardsHistory!.list) {
+    BigInt max = widget.rewardsHistory!.list.first.qsrAmount;
+    for (final RewardHistoryEntry element in widget.rewardsHistory!.list) {
       if (element.qsrAmount > max) {
         max = element.qsrAmount;
       }

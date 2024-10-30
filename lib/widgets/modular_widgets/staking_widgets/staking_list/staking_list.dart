@@ -21,7 +21,7 @@ class StakingList extends StatefulWidget {
 }
 
 class _StakingListState extends State<StakingList> {
-  final List<StakeEntry> _stakingList = [];
+  final List<StakeEntry> _stakingList = <StakeEntry>[];
 
   bool _sortAscending = true;
 
@@ -42,7 +42,7 @@ class _StakingListState extends State<StakingList> {
       // This bloc is being used in another place, so it shouldn't be disposed
       // when this widget is disposed itself
       disposeBloc: false,
-      headerColumns: [
+      headerColumns: <InfiniteScrollTableHeaderColumn>[
         InfiniteScrollTableHeaderColumn(
           columnName: 'Amount',
           onSortArrowsPressed: _onSortArrowsPressed,
@@ -62,15 +62,15 @@ class _StakingListState extends State<StakingList> {
         ),
         const InfiniteScrollTableHeaderColumn(columnName: ''),
       ],
-      generateRowCells: (stakingItem, bool isSelected) {
-        return [
+      generateRowCells: (StakeEntry stakingItem, bool isSelected) {
+        return <Widget>[
           InfiniteScrollTableCell(
             FormattedAmountWithTooltip(
               amount: stakingItem.amount.addDecimals(
                 kZnnCoin.decimals,
               ),
               tokenSymbol: kZnnCoin.symbol,
-              builder: (formattedAmount, tokenSymbol) => Text(
+              builder: (String formattedAmount, String tokenSymbol) => Text(
                 '$formattedAmount $tokenSymbol',
                 style: Theme.of(context).textTheme.titleMedium!.copyWith(
                       color: AppColors.subtitleColor,
@@ -105,7 +105,7 @@ class _StakingListState extends State<StakingList> {
   ) {
     return Stack(
       alignment: Alignment.centerLeft,
-      children: [
+      children: <Widget>[
         if (stakingItem.expirationTimestamp * 1000 <
                 DateTime.now().millisecondsSinceEpoch) _getCancelButtonViewModel(
                 stakingListModel,
@@ -121,12 +121,12 @@ class _StakingListState extends State<StakingList> {
     bool isSelected,
     String stakeHash,
   ) {
-    final cancelButtonKey = GlobalKey<LoadingButtonState>();
+    final GlobalKey<LoadingButtonState> cancelButtonKey = GlobalKey<LoadingButtonState>();
 
     return ViewModelBuilder<CancelStakeBloc>.reactive(
-      onViewModelReady: (model) {
+      onViewModelReady: (CancelStakeBloc model) {
         model.stream.listen(
-          (event) {
+          (AccountBlockTemplate? event) {
             if (event != null) {
               cancelButtonKey.currentState?.animateReverse();
               bloc.refreshResults();
@@ -141,7 +141,7 @@ class _StakingListState extends State<StakingList> {
           },
         );
       },
-      builder: (_, model, __) => _getCancelButton(
+      builder: (_, CancelStakeBloc model, __) => _getCancelButton(
         model,
         stakeHash,
         cancelButtonKey,
@@ -178,32 +178,32 @@ class _StakingListState extends State<StakingList> {
     switch (columnName) {
       case 'Amount':
         _sortAscending
-            ? _stakingList.sort((a, b) => a.amount.compareTo(b.amount))
-            : _stakingList.sort((a, b) => b.amount.compareTo(a.amount));
+            ? _stakingList.sort((StakeEntry a, StakeEntry b) => a.amount.compareTo(b.amount))
+            : _stakingList.sort((StakeEntry a, StakeEntry b) => b.amount.compareTo(a.amount));
       case 'Staking duration':
         _sortAscending
             ? _stakingList.sort(
-                (a, b) => (a.expirationTimestamp - a.startTimestamp)
+                (StakeEntry a, StakeEntry b) => (a.expirationTimestamp - a.startTimestamp)
                     .compareTo(b.expirationTimestamp - b.startTimestamp),
               )
             : _stakingList.sort(
-                (a, b) => (b.expirationTimestamp - b.startTimestamp)
+                (StakeEntry a, StakeEntry b) => (b.expirationTimestamp - b.startTimestamp)
                     .compareTo(a.expirationTimestamp - a.startTimestamp),
               );
       case 'Recipient':
         _sortAscending
-            ? _stakingList.sort((a, b) => a.address.compareTo(b.address))
-            : _stakingList.sort((a, b) => b.address.compareTo(a.address));
+            ? _stakingList.sort((StakeEntry a, StakeEntry b) => a.address.compareTo(b.address))
+            : _stakingList.sort((StakeEntry a, StakeEntry b) => b.address.compareTo(a.address));
       case 'Expiration':
         _sortAscending
-            ? _stakingList.sort((a, b) =>
+            ? _stakingList.sort((StakeEntry a, StakeEntry b) =>
                 a.expirationTimestamp.compareTo(b.expirationTimestamp),)
-            : _stakingList.sort((a, b) =>
+            : _stakingList.sort((StakeEntry a, StakeEntry b) =>
                 b.expirationTimestamp.compareTo(a.expirationTimestamp),);
       default:
         _sortAscending
-            ? _stakingList.sort((a, b) => a.address.compareTo(b.address))
-            : _stakingList.sort((a, b) => b.address.compareTo(a.address));
+            ? _stakingList.sort((StakeEntry a, StakeEntry b) => a.address.compareTo(b.address))
+            : _stakingList.sort((StakeEntry a, StakeEntry b) => b.address.compareTo(a.address));
         break;
     }
 
@@ -216,7 +216,7 @@ class _StakingListState extends State<StakingList> {
     StakeEntry stakingItem,
     StakingListBloc model,
   ) {
-    final secondsUntilExpiration = stakingItem.expirationTimestamp -
+    final int secondsUntilExpiration = stakingItem.expirationTimestamp -
         DateTime.now().millisecondsSinceEpoch ~/ 1000;
     return CancelTimer(
       Duration(seconds: secondsUntilExpiration),
@@ -228,8 +228,8 @@ class _StakingListState extends State<StakingList> {
   }
 
   String _getStakingDurationInMonths(int seconds) {
-    final numDays = seconds / 3600 ~/ 24;
-    final numMonths = numDays ~/ 30;
+    final int numDays = seconds / 3600 ~/ 24;
+    final int numMonths = numDays ~/ 30;
 
     return '$numMonths month${numMonths > 1 ? 's' : ''}';
   }

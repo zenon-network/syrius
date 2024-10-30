@@ -46,7 +46,7 @@ class _NewWalletSeedChoiceScreenState extends State<NewWalletSeedChoiceScreen> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: <Widget>[
             Column(
-              children: [
+              children: <Widget>[
                 const ProgressBar(
                   currentLevel: 1,
                 ),
@@ -84,7 +84,7 @@ class _NewWalletSeedChoiceScreenState extends State<NewWalletSeedChoiceScreen> {
               ),
             ),
             Column(
-              children: [
+              children: <Widget>[
                 _getConfirmSecureCheckboxContainer(),
                 _getConfirmWrittenDownCheckbox(),
               ],
@@ -143,7 +143,7 @@ class _NewWalletSeedChoiceScreenState extends State<NewWalletSeedChoiceScreen> {
 
   Widget _getBackUpSeedContainer() {
     return Consumer<ValueNotifier<List<String>>>(
-      builder: (_, exportedSeed, __) => Container(
+      builder: (_, ValueNotifier<List<String>> exportedSeed, __) => Container(
         decoration: BoxDecoration(
             color: _isSeedExported(exportedSeed.value)
                 ? AppColors.znnColor

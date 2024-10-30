@@ -44,8 +44,11 @@
   "transactionError": "Error while receiving transaction",
   "transactions": "Transactions",
   "transactionsDescription": "This card displays the total number of transactions settled in the last hour across the network",
+  "transactionsLastHour": "transactions in the last hour",
   "transfer": "Transfer",
   "transferDescription": "Redirects you to the Transfer tab where you can manage sending and receiving funds",
   "type": "Type",
   "usDateFormat": "MM/dd/yyyy"
+  "transferDescription": "Redirects you to the Transfer tab where you can manage sending and receiving funds",
+  "waitingForDataFetching": "Waiting for data fetching"
 }

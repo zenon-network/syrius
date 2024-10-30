@@ -23,7 +23,7 @@ class StepperUtils {
       ),
       subtitle: stepState == custom_material_stepper.StepState.complete
           ? Row(
-              children: [
+              children: <Widget>[
                 Text(
                   stepSubtitle,
                   style: Theme.of(context).textTheme.bodyLarge!.copyWith(
@@ -43,7 +43,7 @@ class StepperUtils {
       content: Container(
         margin: const EdgeInsets.only(left: 37),
         child: Row(
-          children: [
+          children: <Widget>[
             Expanded(
               child: stepContent,
             ),
@@ -67,7 +67,7 @@ class StepperUtils {
 
   static Widget getBalanceWidget(Token token, AccountInfo accountInfo) {
     return Row(
-      children: [
+      children: <Widget>[
         Expanded(
           child:
             Padding(

@@ -33,7 +33,7 @@ class _HardwareWalletPasswordScreenState extends State<HardwareWalletPasswordScr
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: <Widget>[
             Column(
-              children: [
+              children: <Widget>[
                 const ProgressBar(
                   currentLevel: 2,
                   numLevels: 4,
@@ -51,14 +51,14 @@ class _HardwareWalletPasswordScreenState extends State<HardwareWalletPasswordScr
                   height: 65,
                 ),
                 Column(
-                  children: [
+                  children: <Widget>[
                     Form(
                       key: _passwordKey,
                       autovalidateMode: AutovalidateMode.onUserInteraction,
                       child: PasswordInputField(
                         controller: _passwordController,
                         validator: InputValidators.validatePassword,
-                        onChanged: (value) {
+                        onChanged: (String value) {
                           setState(() {});
                         },
                         hintText: 'Password',
@@ -70,10 +70,10 @@ class _HardwareWalletPasswordScreenState extends State<HardwareWalletPasswordScr
                       autovalidateMode: AutovalidateMode.onUserInteraction,
                       child: PasswordInputField(
                         controller: _confirmPasswordController,
-                        validator: (value) =>
+                        validator: (String? value) =>
                             InputValidators.checkPasswordMatch(
                                 _passwordController.text, value,),
-                        onChanged: (value) {
+                        onChanged: (String value) {
                           setState(() {});
                         },
                         hintText: 'Confirm password',

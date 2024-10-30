@@ -11,12 +11,12 @@ import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 class WidgetUtils {
   static void setThemeMode(BuildContext context) {
-    final appThemeNotifier = Provider.of<AppThemeNotifier>(
+    final AppThemeNotifier appThemeNotifier = Provider.of<AppThemeNotifier>(
       context,
       listen: false,
     );
-    final savedThemeMode = ThemeMode.values.firstWhere(
-      (element) => element.toString() == sharedPrefsService!.get(kThemeModeKey),
+    final ThemeMode savedThemeMode = ThemeMode.values.firstWhere(
+      (ThemeMode element) => element.toString() == sharedPrefsService!.get(kThemeModeKey),
       orElse: () => kDefaultThemeMode,
     );
     if (appThemeNotifier.currentThemeMode != savedThemeMode) {
@@ -25,13 +25,13 @@ class WidgetUtils {
   }
 
   static void setTextScale(BuildContext context) {
-    final textScalingNotifier = Provider.of<TextScalingNotifier>(
+    final TextScalingNotifier textScalingNotifier = Provider.of<TextScalingNotifier>(
       context,
       listen: false,
     );
 
-    final savedTextScaling = TextScaling.values.firstWhere(
-      (element) =>
+    final TextScaling savedTextScaling = TextScaling.values.firstWhere(
+      (TextScaling element) =>
           element.toString() == sharedPrefsService!.get(kTextScalingKey),
       orElse: () => kDefaultTextScaling,
     );
@@ -47,7 +47,7 @@ class WidgetUtils {
     Address? address,
     BuildContext context,
   ) {
-    final textStyle = address != null && address.isEmbedded()
+    final TextStyle? textStyle = address != null && address.isEmbedded()
         ? Theme.of(context).textTheme.titleMedium!.copyWith(
               color: AppColors.znnColor,
               fontWeight: FontWeight.bold,
@@ -90,7 +90,7 @@ class WidgetUtils {
     bool isShortVersion = true,
     bool showCopyToClipboardIcon = false,
   }) {
-    var textStyle = address != null && address.isEmbedded()
+    TextStyle? textStyle = address != null && address.isEmbedded()
         ? Theme.of(context).textTheme.titleMedium!.copyWith(
               color: AppColors.znnColor,
               fontWeight: FontWeight.bold,

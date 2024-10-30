@@ -30,7 +30,7 @@ class _PillarRewardsState extends State<PillarRewards> {
   Widget _getStreamBody() {
     return StreamBuilder<RewardHistoryList?>(
       stream: widget.pillarRewardsHistoryBloc.stream,
-      builder: (_, snapshot) {
+      builder: (_, AsyncSnapshot<RewardHistoryList?> snapshot) {
         if (snapshot.hasError) {
           return SyriusErrorWidget(snapshot.error!);
         }

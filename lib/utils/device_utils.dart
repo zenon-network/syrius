@@ -6,7 +6,7 @@ import 'package:package_info_plus/package_info_plus.dart';
 
 class DeviceUtils {
   static Future<Map<String, dynamic>> getDeviceInfo() async {
-    final deviceInfoPlugin = DeviceInfoPlugin();
+    final DeviceInfoPlugin deviceInfoPlugin = DeviceInfoPlugin();
     if (Platform.isLinux) {
       return _readLinuxDeviceInfo(await deviceInfoPlugin.linuxInfo);
     }
@@ -16,7 +16,7 @@ class DeviceUtils {
     if (Platform.isMacOS) {
       return _readMacOsDeviceInfo(await deviceInfoPlugin.macOsInfo);
     }
-    return {'info': 'device not supported'};
+    return <String, String>{'info': 'device not supported'};
   }
 
   static Map<String, dynamic> _readLinuxDeviceInfo(LinuxDeviceInfo data) {
@@ -58,8 +58,8 @@ class DeviceUtils {
   }
 
   static Future<Map<String, dynamic>> getPackageInfo() async {
-    final packageInfo = await PackageInfo.fromPlatform();
-    return {
+    final PackageInfo packageInfo = await PackageInfo.fromPlatform();
+    return <String, dynamic>{
       'appName': packageInfo.appName,
       'packageName': packageInfo.packageName,
       'appVersion': packageInfo.version,
@@ -68,9 +68,9 @@ class DeviceUtils {
   }
 
   static Future<Map<String, String>> getGitInfo() async {
-    final head = await rootBundle.loadString('.git/HEAD');
-    final branchName = head.split('/').last;
-    final commitHash = await rootBundle.loadString('.git/ORIG_HEAD');
-    return {'branchName': branchName, 'commitHash': commitHash};
+    final String head = await rootBundle.loadString('.git/HEAD');
+    final String branchName = head.split('/').last;
+    final String commitHash = await rootBundle.loadString('.git/ORIG_HEAD');
+    return <String, String>{'branchName': branchName, 'commitHash': commitHash};
   }
 }

@@ -20,12 +20,12 @@ _RunNodeFunc? _runNodeFunction;
 
 class EmbeddedNode {
   static void initializeNodeLib() {
-    final insideSdk = path.join('syrius', 'lib', 'embedded_node', 'blobs');
-    final currentPathListParts = path.split(Directory.current.path);
+    final String insideSdk = path.join('syrius', 'lib', 'embedded_node', 'blobs');
+    final List<String> currentPathListParts = path.split(Directory.current.path);
     currentPathListParts.removeLast();
-    final executablePathListParts = path.split(Platform.resolvedExecutable);
+    final List<String> executablePathListParts = path.split(Platform.resolvedExecutable);
     executablePathListParts.removeLast();
-    final possiblePaths = List<String>.empty(growable: true);
+    final List<String> possiblePaths = List<String>.empty(growable: true);
     possiblePaths.add(Directory.current.path);
     possiblePaths.add(
       path.join(
@@ -41,10 +41,10 @@ class EmbeddedNode {
         .add(path.join(path.joinAll(executablePathListParts), 'Resources'));
     possiblePaths.add(path.join(path.joinAll(currentPathListParts), insideSdk));
 
-    var libraryPath = '';
-    var found = false;
+    String libraryPath = '';
+    bool found = false;
 
-    for (final currentPath in possiblePaths) {
+    for (final String currentPath in possiblePaths) {
       libraryPath = path.join(currentPath, 'libznn.so');
 
       if (Platform.isMacOS) {
@@ -54,7 +54,7 @@ class EmbeddedNode {
         libraryPath = path.join(currentPath, 'libznn.dll');
       }
 
-      final libFile = File(libraryPath);
+      final File libFile = File(libraryPath);
 
       if (libFile.existsSync()) {
         found = true;
@@ -71,20 +71,20 @@ class EmbeddedNode {
     }
 
     // Open the dynamic library
-    final dylib = DynamicLibrary.open(libraryPath);
+    final DynamicLibrary dylib = DynamicLibrary.open(libraryPath);
 
-    final stopNodeFunctionPointer =
+    final Pointer<NativeFunction<_StopNodeFunc>> stopNodeFunctionPointer =
         dylib.lookup<NativeFunction<_StopNodeFunc>>('StopNode');
     _stopNodeFunction = stopNodeFunctionPointer.asFunction<Pointer<Utf8> Function()>();
 
-    final runNodeFunctionPointer =
+    final Pointer<NativeFunction<_RunNodeFunc>> runNodeFunctionPointer =
         dylib.lookup<NativeFunction<_RunNodeFunc>>('RunNode');
     _runNodeFunction = runNodeFunctionPointer.asFunction<Pointer<Utf8> Function()>();
   }
 
   static Future<void> runNode(List<String> args) async {
-    final commandsPort = ReceivePort();
-    final sendPort = commandsPort.sendPort;
+    final ReceivePort commandsPort = ReceivePort();
+    final SendPort sendPort = commandsPort.sendPort;
 
     IsolateNameServer.registerPortWithName(sendPort, 'embeddedIsolate');
 
@@ -93,7 +93,7 @@ class EmbeddedNode {
     }
     _runNodeFunction!();
 
-    final embeddedIsolateCompleter = Completer();
+    final Completer embeddedIsolateCompleter = Completer();
     commandsPort.listen((event) {
       _stopNodeFunction!();
       IsolateNameServer.removePortNameMapping('embeddedIsolate');
@@ -111,7 +111,7 @@ class EmbeddedNode {
   }
 
   static bool stopNode() {
-    final embeddedIsolate =
+    final SendPort? embeddedIsolate =
         IsolateNameServer.lookupPortByName('embeddedIsolate');
     if (embeddedIsolate != null) {
       embeddedIsolate.send('stop');

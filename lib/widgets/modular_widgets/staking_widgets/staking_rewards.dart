@@ -36,7 +36,7 @@ class _StakingRewardsState extends State<StakingRewards> {
   Widget _getStreamBody() {
     return StreamBuilder<RewardHistoryList?>(
       stream: widget.stakingRewardsHistoryBloc.stream,
-      builder: (_, snapshot) {
+      builder: (_, AsyncSnapshot<RewardHistoryList?> snapshot) {
         if (snapshot.hasError) {
           return SyriusErrorWidget(snapshot.error!);
         }

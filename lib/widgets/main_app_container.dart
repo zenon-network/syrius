@@ -18,7 +18,7 @@ import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/handlers/htlc_swaps_handler.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/model/model.dart';
-import 'package:zenon_syrius_wallet_flutter/rearchitecture/node_sync_status/node_sync_status.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/clipboard_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
@@ -78,14 +78,13 @@ class _MainAppContainerState extends State<MainAppContainer>
   TransferTabChild? _transferTabChild;
   bool _initialUriIsHandled = false;
 
-  final _appLinks = AppLinks();
+  final AppLinks _appLinks = AppLinks();
   final FocusNode _focusNode = FocusNode(
     skipTraversal: true,
     canRequestFocus: false,
   );
   final NodeSyncStatusCubit _nodeSyncStatusCubit = NodeSyncStatusCubit(
-    zenon!,
-    const NodeSyncStatusState(),
+    zenon: zenon!,
   );
 
   @override
@@ -114,10 +113,10 @@ class _MainAppContainerState extends State<MainAppContainer>
   @override
   Widget build(BuildContext context) {
     return Consumer<TextScalingNotifier>(
-      builder: (context, textScalingNotifier, child) => MediaQuery(
+      builder: (BuildContext context, TextScalingNotifier textScalingNotifier, Widget? child) => MediaQuery(
         data: MediaQuery.of(context).copyWith(
           textScaler: TextScaler.linear(
-              textScalingNotifier.getTextScaleFactor(context)),
+              textScalingNotifier.getTextScaleFactor(context),),
         ),
         child: Scaffold(
           body: Container(
@@ -162,15 +161,15 @@ class _MainAppContainerState extends State<MainAppContainer>
   }
 
   Widget _getDesktopNavigationContainer() {
-    final borderColor = NotificationUtils.shouldShowNotification()
+    final Color borderColor = NotificationUtils.shouldShowNotification()
         ? kLastNotification!.getColor()
         : Colors.transparent;
 
     return AnimatedBuilder(
       animation: _animationController,
-      builder: (context, widget) {
+      builder: (BuildContext context, Widget? widget) {
         return Row(
-          children: [
+          children: <Widget>[
             Expanded(
               child: Container(
                 alignment: Alignment.center,
@@ -181,14 +180,14 @@ class _MainAppContainerState extends State<MainAppContainer>
                     ),
                   ),
                   boxShadow: (borderColor != Colors.transparent)
-                      ? [
+                      ? <BoxShadow>[
                           BoxShadow(
                             color: borderColor,
                             blurRadius: _animation.value,
                             spreadRadius: _animation.value,
                           ),
                         ]
-                      : [
+                      : <BoxShadow>[
                           const BoxShadow(
                             color: Colors.transparent,
                           ),
@@ -207,7 +206,7 @@ class _MainAppContainerState extends State<MainAppContainer>
                     ),
                     child: Focus(
                       focusNode: _focusNode,
-                      onKeyEvent: (focusNode, KeyEvent event) {
+                      onKeyEvent: (FocusNode focusNode, KeyEvent event) {
                         if ((event.physicalKey == PhysicalKeyboardKey.tab ||
                                 event.physicalKey ==
                                     PhysicalKeyboardKey.enter ||
@@ -283,7 +282,7 @@ class _MainAppContainerState extends State<MainAppContainer>
   List<Tab> _getTextTabs() {
     return kTabsWithTextTitles
         .map<Tab>(
-          (e) => e == Tabs.p2pSwap
+          (Tabs e) => e == Tabs.p2pSwap
               ? const Tab(text: 'P2P Swap')
               : Tab(
                   text: FormatUtils.extractNameFromEnum<Tabs>(e).capitalize(),
@@ -374,7 +373,7 @@ class _MainAppContainerState extends State<MainAppContainer>
   Widget _getGenerationStatus() {
     return StreamBuilder<PowStatus>(
       stream: sl.get<PowGeneratingStatusBloc>().stream,
-      builder: (_, snapshot) {
+      builder: (_, AsyncSnapshot<PowStatus> snapshot) {
         if (snapshot.hasData && snapshot.data == PowStatus.generating) {
           return Tooltip(
             message: 'Generating Plasma',
@@ -401,7 +400,7 @@ class _MainAppContainerState extends State<MainAppContainer>
     return TabBarView(
       physics: const NeverScrollableScrollPhysics(),
       controller: _tabController,
-      children: [
+      children: <Widget>[
         DashboardTabChild(changePage: _navigateTo),
         _transferTabChild!,
         PillarsTabChild(
@@ -492,7 +491,7 @@ class _MainAppContainerState extends State<MainAppContainer>
   }
 
   void _listenToAutoReceiveTxWorkerNotifications() {
-    sl<AutoReceiveTxWorker>().stream.listen((event) {
+    sl<AutoReceiveTxWorker>().stream.listen((WalletNotification event) {
       sl<NotificationsBloc>().addNotification(event);
     });
   }
@@ -536,7 +535,7 @@ class _MainAppContainerState extends State<MainAppContainer>
         if (kDisabledTabs.contains(
           kTabs[_tabController!.index],
         )) {
-          final index = _tabController!.previousIndex;
+          final int index = _tabController!.previousIndex;
           setState(() {
             _tabController!.index = index;
           });
@@ -549,7 +548,7 @@ class _MainAppContainerState extends State<MainAppContainer>
 
   void _initLockBlock() {
     _lockBloc = Provider.of<LockBloc>(context, listen: false);
-    _lockBlockStreamSubscription = _lockBloc.stream.listen((event) {
+    _lockBlockStreamSubscription = _lockBloc.stream.listen((LockEvent event) {
       switch (event) {
         case LockEvent.countDown:
           if (kCurrentPage != Tabs.lock) {
@@ -583,7 +582,7 @@ class _MainAppContainerState extends State<MainAppContainer>
   }
 
   Timer _createAutoLockTimer() {
-    return Timer.periodic(Duration(minutes: kAutoLockWalletMinutes!), (timer) {
+    return Timer.periodic(Duration(minutes: kAutoLockWalletMinutes!), (Timer timer) {
       if (!sl<HtlcSwapsHandler>().hasActiveIncomingSwaps) {
         _lockBloc.addEvent(LockEvent.navigateToLock);
       }
@@ -600,7 +599,7 @@ class _MainAppContainerState extends State<MainAppContainer>
           }
 
           if (uri != null) {
-            var uriRaw = uri.toString();
+            String uriRaw = uri.toString();
 
             Logger('MainAppContainer')
                 .log(Level.INFO, '_handleIncomingLinks $uriRaw');
@@ -610,7 +609,7 @@ class _MainAppContainerState extends State<MainAppContainer>
                 if (Platform.isWindows) {
                   uriRaw = uriRaw.replaceAll('/?', '?');
                 }
-                final wcUri = Uri.decodeFull(uriRaw.split('wc?uri=').last);
+                final String wcUri = Uri.decodeFull(uriRaw.split('wc?uri=').last);
                 if (WalletConnectUri.tryParse(wcUri) != null) {
                   await _updateWalletConnectUri(wcUri);
                 }
@@ -618,15 +617,15 @@ class _MainAppContainerState extends State<MainAppContainer>
               }
 
               // Deep link query parameters
-              var queryAddress = '';
-              var queryAmount = ''; // with decimals
-              var queryDuration = 0; // in months
-              var queryZTS = '';
-              var queryPillarName = '';
+              String queryAddress = '';
+              String queryAmount = ''; // with decimals
+              int queryDuration = 0; // in months
+              String queryZTS = '';
+              String queryPillarName = '';
               Token? token;
 
               if (uri.hasQuery) {
-                uri.queryParametersAll.forEach((key, value) async {
+                uri.queryParametersAll.forEach((String key, List<String> value) async {
                   if (key == 'amount') {
                     queryAmount = value.first;
                   } else if (key == 'zts') {
@@ -652,10 +651,10 @@ class _MainAppContainerState extends State<MainAppContainer>
                 }
               }
 
-              final sendPaymentBloc = SendPaymentBloc();
-              final stakingOptionsBloc = StakingOptionsBloc();
-              final delegateButtonBloc = DelegateButtonBloc();
-              final plasmaOptionsBloc = PlasmaOptionsBloc();
+              final SendPaymentBloc sendPaymentBloc = SendPaymentBloc();
+              final StakingOptionsBloc stakingOptionsBloc = StakingOptionsBloc();
+              final DelegateButtonBloc delegateButtonBloc = DelegateButtonBloc();
+              final PlasmaOptionsBloc plasmaOptionsBloc = PlasmaOptionsBloc();
 
               if (context.mounted) {
                 switch (uri.host) {
@@ -679,7 +678,7 @@ class _MainAppContainerState extends State<MainAppContainer>
                           isBarrierDismissible: true,
                           content: Column(
                             mainAxisSize: MainAxisSize.min,
-                            children: [
+                            children: <Widget>[
                               Text(
                                 'Are you sure you want transfer $queryAmount ${token.symbol} from $kSelectedAddress to $queryAddress?',
                               ),
@@ -718,7 +717,7 @@ class _MainAppContainerState extends State<MainAppContainer>
                         isBarrierDismissible: true,
                         content: Column(
                           mainAxisSize: MainAxisSize.min,
-                          children: [
+                          children: <Widget>[
                             Text(
                               'Are you sure you want stake $queryAmount ${kZnnCoin.symbol} for $queryDuration month(s)?',
                             ),
@@ -753,7 +752,7 @@ class _MainAppContainerState extends State<MainAppContainer>
                         isBarrierDismissible: true,
                         content: Column(
                           mainAxisSize: MainAxisSize.min,
-                          children: [
+                          children: <Widget>[
                             Text(
                               'Are you sure you want delegate the ${kZnnCoin.symbol} from $kSelectedAddress to Pillar $queryPillarName?',
                             ),
@@ -785,7 +784,7 @@ class _MainAppContainerState extends State<MainAppContainer>
                         isBarrierDismissible: true,
                         content: Column(
                           mainAxisSize: MainAxisSize.min,
-                          children: [
+                          children: <Widget>[
                             Text(
                               'Are you sure you want fuse $queryAmount ${kQsrCoin.symbol} for address $queryAddress?',
                             ),
@@ -866,7 +865,7 @@ class _MainAppContainerState extends State<MainAppContainer>
     if (!_initialUriIsHandled) {
       _initialUriIsHandled = true;
       try {
-        final uri = await _appLinks.getInitialLink();
+        final Uri? uri = await _appLinks.getInitialLink();
         if (uri != null) {
           Logger('MainAppContainer').log(Level.INFO, '_handleInitialUri $uri');
         }
@@ -892,8 +891,8 @@ class _MainAppContainerState extends State<MainAppContainer>
 
   @override
   Future<void> onClipboardChanged() async {
-    final newClipboardData = await Clipboard.getData(Clipboard.kTextPlain);
-    final text = newClipboardData?.text ?? '';
+    final ClipboardData? newClipboardData = await Clipboard.getData(Clipboard.kTextPlain);
+    final String text = newClipboardData?.text ?? '';
     if (text.isNotEmpty && WalletConnectUri.tryParse(text) != null) {
       // This check is needed because onClipboardChanged is called twice sometimes
       if (kLastWalletConnectUriNotifier.value != text) {

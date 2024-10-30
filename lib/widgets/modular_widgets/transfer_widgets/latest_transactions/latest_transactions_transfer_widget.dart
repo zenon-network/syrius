@@ -66,10 +66,14 @@ class _LatestTransactionsState extends State<LatestTransactions> {
     bool isSelected,
     AccountBlock transactionBlock,
   ) {
-    final infoBlock =
+    final AccountBlock infoBlock =
         BlockUtils.isReceiveBlock(transactionBlock.blockType)
             ? transactionBlock.pairedAccountBlock!
             : transactionBlock;
+    return <Widget>[
+      if (isSelected) WidgetUtils.getMarqueeAddressTableCell(infoBlock.address, context) else WidgetUtils.getTextAddressTableCell(infoBlock.address, context),
+      if (isSelected) WidgetUtils.getMarqueeAddressTableCell(infoBlock.toAddress, context) else WidgetUtils.getTextAddressTableCell(infoBlock.toAddress, context),
+      if (isSelected) InfiniteScrollTableCell.withMarquee(infoBlock.hash.toString(),
     return [
       if (isSelected)
         WidgetUtils.getMarqueeAddressTableCell(infoBlock.address, context)
@@ -94,7 +98,7 @@ class _LatestTransactionsState extends State<LatestTransactions> {
               infoBlock.token?.decimals ?? 0,
             ),
             tokenSymbol: infoBlock.token?.symbol ?? '',
-            builder: (formattedAmount, tokenSymbol) => Text(
+            builder: (String formattedAmount, String tokenSymbol) => Text(
               formattedAmount,
               style: Theme.of(context).textTheme.titleMedium!.copyWith(
                     color: AppColors.subtitleColor,
@@ -118,7 +122,7 @@ class _LatestTransactionsState extends State<LatestTransactions> {
   }
 
   List<InfiniteScrollTableHeaderColumn> _getHeaderColumnsForTransferWidget() {
-    return [
+    return <InfiniteScrollTableHeaderColumn>[
       InfiniteScrollTableHeaderColumn(
         columnName: context.l10n.sender,
         onSortArrowsPressed: _onSortArrowsPressed,
@@ -155,7 +159,7 @@ class _LatestTransactionsState extends State<LatestTransactions> {
   }
 
   String _formatData(int transactionMillis) {
-    final currentMillis = DateTime.now().millisecondsSinceEpoch;
+    final int currentMillis = DateTime.now().millisecondsSinceEpoch;
     if (currentMillis - transactionMillis <=
         const Duration(days: 1).inMilliseconds) {
       return _formatDataShort(currentMillis - transactionMillis);
@@ -166,7 +170,7 @@ class _LatestTransactionsState extends State<LatestTransactions> {
   }
 
   String _formatDataShort(int i) {
-    final duration = Duration(milliseconds: i);
+    final Duration duration = Duration(milliseconds: i);
     if (duration.inHours > 0) {
       return '${duration.inHours} ${context.l10n.hAgo}';
     }
@@ -216,71 +220,71 @@ class _LatestTransactionsState extends State<LatestTransactions> {
       case 'Sender':
         _sortAscending
             ? _transactions!.sort(
-                (a, b) => a.address.toString().compareTo(
+                (AccountBlock a, AccountBlock b) => a.address.toString().compareTo(
                       b.address.toString(),
                     ),
               )
             : _transactions!.sort(
-                (a, b) => b.address.toString().compareTo(
+                (AccountBlock a, AccountBlock b) => b.address.toString().compareTo(
                       a.address.toString(),
                     ),
               );
       case 'Receiver':
         _sortAscending
             ? _transactions!.sort(
-                (a, b) => a.toAddress.toString().compareTo(
+                (AccountBlock a, AccountBlock b) => a.toAddress.toString().compareTo(
                       b.toAddress.toString(),
                     ),
               )
-            : _transactions!.sort((a, b) =>
+            : _transactions!.sort((AccountBlock a, AccountBlock b) =>
                 b.toAddress.toString().compareTo(a.toAddress.toString()),);
       case 'Hash':
         _sortAscending
             ? _transactions!.sort(
-                (a, b) => a.hash.toString().compareTo(
+                (AccountBlock a, AccountBlock b) => a.hash.toString().compareTo(
                       b.hash.toString(),
                     ),
               )
             : _transactions!.sort(
-                (a, b) => b.hash.toString().compareTo(
+                (AccountBlock a, AccountBlock b) => b.hash.toString().compareTo(
                       a.hash.toString(),
                     ),
               );
       case 'Amount':
         _sortAscending
-            ? _transactions!.sort((a, b) => a.amount.compareTo(b.amount))
-            : _transactions!.sort((a, b) => b.amount.compareTo(a.amount));
+            ? _transactions!.sort((AccountBlock a, AccountBlock b) => a.amount.compareTo(b.amount))
+            : _transactions!.sort((AccountBlock a, AccountBlock b) => b.amount.compareTo(a.amount));
       case 'Date':
         _sortAscending
             ? _transactions!.sort(
-                (a, b) => a.confirmationDetail!.momentumTimestamp.compareTo(
+                (AccountBlock a, AccountBlock b) => a.confirmationDetail!.momentumTimestamp.compareTo(
                       b.confirmationDetail!.momentumTimestamp,
                     ),)
             : _transactions!.sort(
-                (a, b) => b.confirmationDetail!.momentumTimestamp.compareTo(
+                (AccountBlock a, AccountBlock b) => b.confirmationDetail!.momentumTimestamp.compareTo(
                       a.confirmationDetail!.momentumTimestamp,
                     ),);
       case 'Type':
         _sortAscending
-            ? _transactions!.sort((a, b) => a.blockType.compareTo(b.blockType))
-            : _transactions!.sort((a, b) => b.blockType.compareTo(a.blockType));
+            ? _transactions!.sort((AccountBlock a, AccountBlock b) => a.blockType.compareTo(b.blockType))
+            : _transactions!.sort((AccountBlock a, AccountBlock b) => b.blockType.compareTo(a.blockType));
       case 'Assets':
         _sortAscending
             ? _transactions!.sort(
-                (a, b) => a.token!.symbol.compareTo(b.token!.symbol),
+                (AccountBlock a, AccountBlock b) => a.token!.symbol.compareTo(b.token!.symbol),
               )
             : _transactions!.sort(
-                (a, b) => b.token!.symbol.compareTo(a.token!.symbol),
+                (AccountBlock a, AccountBlock b) => b.token!.symbol.compareTo(a.token!.symbol),
               );
       default:
         _sortAscending
             ? _transactions!.sort(
-                (a, b) => a.tokenStandard.toString().compareTo(
+                (AccountBlock a, AccountBlock b) => a.tokenStandard.toString().compareTo(
                       b.tokenStandard.toString(),
                     ),
               )
             : _transactions!.sort(
-                (a, b) => b.tokenStandard.toString().compareTo(
+                (AccountBlock a, AccountBlock b) => b.tokenStandard.toString().compareTo(
                       a.tokenStandard.toString(),
                     ),
               );
@@ -299,7 +303,7 @@ class _LatestTransactionsState extends State<LatestTransactions> {
   }
 
   List<InfiniteScrollTableHeaderColumn> _getHeaderColumnsForDashboardWidget() {
-    return [
+    return <InfiniteScrollTableHeaderColumn>[
       InfiniteScrollTableHeaderColumn(
         columnName: context.l10n.sender,
         onSortArrowsPressed: _onSortArrowsPressed,
@@ -329,11 +333,13 @@ class _LatestTransactionsState extends State<LatestTransactions> {
     bool isSelected,
     AccountBlock transactionBlock,
   ) {
-    final infoBlock =
+    final AccountBlock infoBlock =
         BlockUtils.isReceiveBlock(transactionBlock.blockType)
             ? transactionBlock.pairedAccountBlock!
             : transactionBlock;
 
+    return <InfiniteScrollTableCell>[
+      if (isSelected) WidgetUtils.getMarqueeAddressTableCell(infoBlock.address, context) else WidgetUtils.getTextAddressTableCell(infoBlock.address, context),
     return [
       if (isSelected)
         WidgetUtils.getMarqueeAddressTableCell(infoBlock.address, context)
@@ -349,7 +355,7 @@ class _LatestTransactionsState extends State<LatestTransactions> {
                 infoBlock.token?.decimals ?? 0,
               ),
               tokenSymbol: infoBlock.token?.symbol ?? '',
-              builder: (formattedAmount, tokenSymbol) => Text(
+              builder: (String formattedAmount, String tokenSymbol) => Text(
                 formattedAmount,
                 style: Theme.of(context).textTheme.titleMedium!.copyWith(
                       color: AppColors.subtitleColor,

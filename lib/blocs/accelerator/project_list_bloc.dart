@@ -27,7 +27,7 @@ class ProjectListBloc with RefreshBlocMixin {
   }
   List<Project>? _allProjects;
 
-  final List<AccProjectsFilterTag> selectedProjectsFilterTag = [];
+  final List<AccProjectsFilterTag> selectedProjectsFilterTag = <AccProjectsFilterTag>[];
 
   final PillarInfo? pillarInfo;
 
@@ -42,11 +42,11 @@ class ProjectListBloc with RefreshBlocMixin {
     yield* _fetchList(0);
   }
 
-  static const _pageSize = 10;
+  static const int _pageSize = 10;
 
-  final _subscriptions = CompositeSubscription();
+  final CompositeSubscription _subscriptions = CompositeSubscription();
 
-  final _onNewListingStateController =
+  final BehaviorSubject<InfiniteScrollBlocListingState<Project>> _onNewListingStateController =
       BehaviorSubject<InfiniteScrollBlocListingState<Project>>.seeded(
     InfiniteScrollBlocListingState<Project>(),
   );
@@ -54,11 +54,11 @@ class ProjectListBloc with RefreshBlocMixin {
   Stream<InfiniteScrollBlocListingState<Project>> get onNewListingState =>
       _onNewListingStateController.stream;
 
-  final _onPageRequest = StreamController<int>();
+  final StreamController<int> _onPageRequest = StreamController<int>();
 
   Sink<int> get onPageRequestSink => _onPageRequest.sink;
 
-  final _onSearchInputChangedSubject = BehaviorSubject<String?>.seeded(null);
+  final BehaviorSubject<String?> _onSearchInputChangedSubject = BehaviorSubject<String?>.seeded(null);
 
   Sink<String?> get onRefreshResultsRequest =>
       _onSearchInputChangedSubject.sink;
@@ -73,13 +73,13 @@ class ProjectListBloc with RefreshBlocMixin {
 
   Stream<InfiniteScrollBlocListingState<Project>> _fetchList(
       int pageKey,) async* {
-    final lastListingState = _onNewListingStateController.value;
+    final InfiniteScrollBlocListingState<Project> lastListingState = _onNewListingStateController.value;
     try {
-      final newItems = await getData(pageKey, _pageSize, _searchInputTerm);
-      final isLastPage = newItems.length < _pageSize;
-      final nextPageKey = isLastPage ? null : pageKey + 1;
-      final allItems = <Project>[
-        ...lastListingState.itemList ?? [],
+      final List<Project> newItems = await getData(pageKey, _pageSize, _searchInputTerm);
+      final bool isLastPage = newItems.length < _pageSize;
+      final int? nextPageKey = isLastPage ? null : pageKey + 1;
+      final List<Project> allItems = <Project>[
+        ...lastListingState.itemList ?? <Project>[],
         ...newItems,
       ];
       yield InfiniteScrollBlocListingState<Project>(
@@ -109,7 +109,7 @@ class ProjectListBloc with RefreshBlocMixin {
     String? searchTerm,
   ) async {
     _allProjects ??= (await zenon!.embedded.accelerator.getAll()).list;
-    var results = <Project>[];
+    List<Project> results = <Project>[];
     if (searchTerm != null && searchTerm.isNotEmpty) {
       results =
           _filterProjectsBySearchKeyWord(_allProjects!, searchTerm).toList();
@@ -133,13 +133,13 @@ class ProjectListBloc with RefreshBlocMixin {
    */
   Future<List<Project>> _filterProjectsAccordingToPillarInfo(
       Set<Project> projectList,) async {
-    final isPillarAddress = pillarInfo != null;
+    final bool isPillarAddress = pillarInfo != null;
     if (isPillarAddress) {
       return projectList.toList();
     } else {
-      final activeProjects = projectList
+      final List<Project> activeProjects = projectList
           .where(
-            (project) =>
+            (Project project) =>
                 project.status == AcceleratorProjectStatus.active ||
                 kDefaultAddressList.contains(project.owner.toString()),
           )
@@ -154,10 +154,10 @@ class ProjectListBloc with RefreshBlocMixin {
 
   Set<Project> _filterProjectsBySearchKeyWord(
       List<Project> projects, String searchKeyWord,) {
-    final filteredProjects = <Project>{};
+    final Set<Project> filteredProjects = <Project>{};
     filteredProjects.addAll(
       projects.where(
-        (element) =>
+        (Project element) =>
             element.id.toString().toLowerCase().contains(
                   searchKeyWord.toLowerCase(),
                 ) &&
@@ -166,7 +166,7 @@ class ProjectListBloc with RefreshBlocMixin {
     );
     filteredProjects.addAll(
       projects.where(
-        (element) =>
+        (Project element) =>
             element.owner.toString().toLowerCase().contains(
                   searchKeyWord.toLowerCase(),
                 ) &&
@@ -175,7 +175,7 @@ class ProjectListBloc with RefreshBlocMixin {
     );
     filteredProjects.addAll(
       projects.where(
-        (element) =>
+        (Project element) =>
             element.name.toLowerCase().contains(
                   searchKeyWord.toLowerCase(),
                 ) &&
@@ -184,7 +184,7 @@ class ProjectListBloc with RefreshBlocMixin {
     );
     filteredProjects.addAll(
       projects.where(
-        (element) =>
+        (Project element) =>
             element.description.toLowerCase().contains(
                   searchKeyWord.toLowerCase(),
                 ) &&
@@ -193,7 +193,7 @@ class ProjectListBloc with RefreshBlocMixin {
     );
     filteredProjects.addAll(
       projects.where(
-        (element) =>
+        (Project element) =>
             element.url.toLowerCase().contains(
                   searchKeyWord.toLowerCase(),
                 ) &&
@@ -210,23 +210,23 @@ class ProjectListBloc with RefreshBlocMixin {
       Iterable<Project> filteredProjects = projects;
       if (selectedProjectsFilterTag.contains(AccProjectsFilterTag.myProjects)) {
         filteredProjects = filteredProjects.where(
-          (project) => kDefaultAddressList.contains(project.owner.toString()),
+          (Project project) => kDefaultAddressList.contains(project.owner.toString()),
         );
       }
       if (selectedProjectsFilterTag
           .contains(AccProjectsFilterTag.onlyAccepted)) {
         filteredProjects = filteredProjects.where(
-            (project) => project.status == AcceleratorProjectStatus.active,);
+            (Project project) => project.status == AcceleratorProjectStatus.active,);
       }
       if (selectedProjectsFilterTag
           .contains(AccProjectsFilterTag.needsVoting)) {
         votedProjectIds ??= await _getVotedProjectIdsByPillar(filteredProjects);
         votedPhaseIds ??= await _getVotedPhaseIdsByPillar(filteredProjects);
         filteredProjects = filteredProjects.where(
-          (project) =>
+          (Project project) =>
               (project.status == AcceleratorProjectStatus.voting &&
                   !votedProjectIds!.contains(project.id)) ||
-              project.phases.any((phase) =>
+              project.phases.any((Phase phase) =>
                   phase.status == AcceleratorProjectStatus.voting &&
                   !votedPhaseIds!.contains(phase.id),),
         );
@@ -236,10 +236,10 @@ class ProjectListBloc with RefreshBlocMixin {
         votedProjectIds ??= await _getVotedProjectIdsByPillar(filteredProjects);
         votedPhaseIds ??= await _getVotedPhaseIdsByPillar(filteredProjects);
         filteredProjects = filteredProjects.where(
-          (project) =>
+          (Project project) =>
               (project.status == AcceleratorProjectStatus.voting &&
                   votedProjectIds!.contains(project.id)) ||
-              project.phases.any((phase) =>
+              project.phases.any((Phase phase) =>
                   phase.status == AcceleratorProjectStatus.voting &&
                   votedPhaseIds!.contains(phase.id),),
         );
@@ -252,22 +252,22 @@ class ProjectListBloc with RefreshBlocMixin {
 
   Future<Iterable<Hash>> _getVotedProjectIdsByPillar(
       Iterable<Project> projects,) async {
-    final pillarVotes = await zenon!.embedded.accelerator.getPillarVotes(
+    final List<PillarVote?> pillarVotes = await zenon!.embedded.accelerator.getPillarVotes(
       pillarInfo!.name,
-      projects.map((e) => e.id.toString()).toList(),
+      projects.map((Project e) => e.id.toString()).toList(),
     );
-    return pillarVotes.where((e) => e != null).map((e) => e!.id);
+    return pillarVotes.where((PillarVote? e) => e != null).map((PillarVote? e) => e!.id);
   }
 
   Future<Iterable<Hash>> _getVotedPhaseIdsByPillar(
       Iterable<Project> projects,) async {
-    final pillarVotes = await zenon!.embedded.accelerator.getPillarVotes(
+    final List<PillarVote?> pillarVotes = await zenon!.embedded.accelerator.getPillarVotes(
       pillarInfo!.name,
       projects
-          .expand((project) => project.phaseIds)
-          .map((id) => id.toString())
+          .expand((Project project) => project.phaseIds)
+          .map((Hash id) => id.toString())
           .toList(),
     );
-    return pillarVotes.where((e) => e != null).map((e) => e!.id);
+    return pillarVotes.where((PillarVote? e) => e != null).map((PillarVote? e) => e!.id);
   }
 }

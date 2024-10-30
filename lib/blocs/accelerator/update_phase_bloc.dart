@@ -8,7 +8,7 @@ class UpdatePhaseBloc extends BaseBloc<AccountBlockTemplate?> {
       BigInt znnFundsNeeded, BigInt qsrFundsNeeded,) {
     try {
       addEvent(null);
-      final transactionParams =
+      final AccountBlockTemplate transactionParams =
           zenon!.embedded.accelerator.updatePhase(
         id,
         name,

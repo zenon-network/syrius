@@ -9,13 +9,13 @@ class CancelPlasmaBloc extends BaseBloc<AccountBlockTemplate?> {
   void cancelPlasmaStaking(String id, BuildContext context) {
     try {
       addEvent(null);
-      final transactionParams = zenon!.embedded.plasma.cancel(
+      final AccountBlockTemplate transactionParams = zenon!.embedded.plasma.cancel(
         Hash.parse(id),
       );
       AccountBlockUtils.createAccountBlock(transactionParams, 'cancel Plasma',
               waitForRequiredPlasma: true,)
           .then(
-        (response) {
+        (AccountBlockTemplate response) {
           ZenonAddressUtils.refreshBalance();
           addEvent(response);
         },

@@ -36,7 +36,7 @@ class _CreateSentinelState extends State<CreateSentinel> {
   Widget _getStreamBuilder(BuildContext context) {
     return StreamBuilder<SentinelInfo?>(
       stream: _getSentinelByOwnerBloc.stream,
-      builder: (context, snapshot) {
+      builder: (BuildContext context, AsyncSnapshot<SentinelInfo?> snapshot) {
         if (snapshot.hasError) {
           return SyriusErrorWidget(snapshot.error!);
         }
@@ -56,7 +56,7 @@ class _CreateSentinelState extends State<CreateSentinel> {
     return Center(
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
-        children: [
+        children: <Widget>[
           Text(
             'Sentinel detected on this address',
             style: Theme.of(context).textTheme.bodyLarge,
@@ -74,14 +74,14 @@ class _CreateSentinelState extends State<CreateSentinel> {
   Row _getCreateSentinelWidgetBody(BuildContext context) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceAround,
-      children: [
+      children: <Widget>[
         Lottie.asset('assets/lottie/ic_anim_sentinel.json', repeat: false),
         SyriusElevatedButton(
           onPressed: () {
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) => StepperScreen(
+                builder: (BuildContext context) => StepperScreen(
                   stepper: const SentinelStepperContainer(),
                   onStepperNotificationSeeMorePressed:
                       widget.onStepperNotificationSeeMorePressed,

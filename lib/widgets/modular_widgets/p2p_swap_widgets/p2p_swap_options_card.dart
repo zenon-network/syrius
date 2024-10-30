@@ -46,7 +46,7 @@ class _P2pSwapOptionsCardState extends State<P2pSwapOptionsCard> {
             );
           },
           child: Row(
-            children: [
+            children: <Widget>[
               const Icon(
                 Icons.refresh,
                 color: AppColors.znnColor,
@@ -72,11 +72,11 @@ class _P2pSwapOptionsCardState extends State<P2pSwapOptionsCard> {
   Widget _getWidgetBody(BuildContext context) {
     return StreamBuilder<PowStatus>(
       stream: sl.get<PowGeneratingStatusBloc>().stream,
-      builder: (_, snapshot) {
+      builder: (_, AsyncSnapshot<PowStatus> snapshot) {
         if (snapshot.hasError) {
           return SyriusErrorWidget(snapshot.error!);
         }
-        final isGeneratingPlasma = _isGeneratingPlasma(snapshot.data);
+        final bool isGeneratingPlasma = _isGeneratingPlasma(snapshot.data);
         return Container(
           margin: const EdgeInsets.all(20),
           child: _getNativeOptions(isGeneratingPlasma),
@@ -118,7 +118,7 @@ class _P2pSwapOptionsCardState extends State<P2pSwapOptionsCard> {
 
   Column _getNativeOptions(bool isGeneratingPlasma) {
     return Column(
-      children: [
+      children: <Widget>[
         P2pSwapOptionsButton(
           primaryText: 'Start swap',
           secondaryText: 'Start a native swap with a counterparty.',
@@ -155,7 +155,7 @@ class _P2pSwapOptionsCardState extends State<P2pSwapOptionsCard> {
           child: GestureDetector(
             child: const Row(
               mainAxisAlignment: MainAxisAlignment.center,
-              children: [
+              children: <Widget>[
                 Text(
                   'View swap tutorial',
                   style: TextStyle(

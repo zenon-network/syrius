@@ -45,11 +45,11 @@ class _P2pSwapOptionsButtonState extends State<P2pSwapOptionsButton> {
             ),
           ),
           child: Row(
-            children: [
+            children: <Widget>[
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
+                  children: <Widget>[
                     Text(
                       widget.primaryText,
                       textAlign: TextAlign.left,
@@ -73,7 +73,7 @@ class _P2pSwapOptionsButtonState extends State<P2pSwapOptionsButton> {
                 width: 15,
               ),
               const Column(
-                children: [
+                children: <Widget>[
                   Icon(Icons.keyboard_arrow_right, size: 18),
                 ],
               ),

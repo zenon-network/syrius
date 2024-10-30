@@ -30,9 +30,9 @@ class _PlasmaTabChildState extends State<PlasmaTabChild> {
   Widget build(BuildContext context) {
     return StreamBuilder<List<PlasmaInfoWrapper>>(
       stream: sl.get<PlasmaStatsBloc>().stream,
-      builder: (_, snapshot) {
+      builder: (_, AsyncSnapshot<List<PlasmaInfoWrapper>> snapshot) {
         if (snapshot.hasError) {
-          return _getFluidLayout([], errorText: snapshot.error.toString());
+          return _getFluidLayout(<PlasmaInfoWrapper>[], errorText: snapshot.error.toString());
         }
         if (snapshot.connectionState == ConnectionState.active) {
           if (snapshot.hasData) {
@@ -50,7 +50,7 @@ class _PlasmaTabChildState extends State<PlasmaTabChild> {
     String? errorText,
   }) {
     return StandardFluidLayout(
-      children: [
+      children: <FluidCell>[
         FluidCell(
           child: Consumer<PlasmaGeneratedNotifier>(
             builder: (_, __, ___) => const PlasmaStats(

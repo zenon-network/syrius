@@ -32,7 +32,7 @@ class _NewWalletPasswordScreenState extends State<NewWalletPasswordScreen> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: <Widget>[
             Column(
-              children: [
+              children: <Widget>[
                 const ProgressBar(
                   currentLevel: 3,
                 ),
@@ -49,14 +49,14 @@ class _NewWalletPasswordScreenState extends State<NewWalletPasswordScreen> {
                   height: 65,
                 ),
                 Column(
-                  children: [
+                  children: <Widget>[
                     Form(
                       key: _passwordKey,
                       autovalidateMode: AutovalidateMode.onUserInteraction,
                       child: PasswordInputField(
                         controller: _passwordController,
                         validator: InputValidators.validatePassword,
-                        onChanged: (value) {
+                        onChanged: (String value) {
                           setState(() {});
                         },
                         hintText: 'Password',
@@ -68,10 +68,10 @@ class _NewWalletPasswordScreenState extends State<NewWalletPasswordScreen> {
                       autovalidateMode: AutovalidateMode.onUserInteraction,
                       child: PasswordInputField(
                         controller: _confirmPasswordController,
-                        validator: (value) =>
+                        validator: (String? value) =>
                             InputValidators.checkPasswordMatch(
                                 _passwordController.text, value,),
-                        onChanged: (value) {
+                        onChanged: (String value) {
                           setState(() {});
                         },
                         hintText: 'Confirm password',

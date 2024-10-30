@@ -6,7 +6,7 @@ import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 // WalletConnect
 const String kWcProjectId = '6106aa8c2f308b338f31465bef999a1f';
 const String kZenonNameSpace = 'zenon';
-const walletConnectDirName = 'walletconnect';
+const String walletConnectDirName = 'walletconnect';
 
 // Dimensions
 const double kAmountSuffixHeight = 25;
@@ -42,7 +42,7 @@ const String kKeyStoreBox = 'key_store_box';
 const String kHtlcSwapsBox = 'htlc_swaps_box';
 const String kLastCheckedHtlcBlockBox = 'last_checked_htlc_block_box';
 
-const List<String> kCacheBoxesToBeDeleted = [
+const List<String> kCacheBoxesToBeDeleted = <String>[
   kFavoriteTokensBox,
   kAddressesBox,
   kAddressLabelsBox,
@@ -108,12 +108,12 @@ const int kAmountInputMaxCharacterLength = 21;
 const int kSecondsPerMomentum = 10;
 const int kMaxP2pSwapsToStore = 500;
 
-const List<int> kNormalUsersPlasmaRequirements = [
+const List<int> kNormalUsersPlasmaRequirements = <int>[
   kStakePlasmaAmountNeeded,
   kDelegatePlasmaAmountNeeded,
 ];
 
-const List<int> kPowerUsersPlasmaRequirements = [
+const List<int> kPowerUsersPlasmaRequirements = <int>[
   kPillarPlasmaAmountNeeded,
   kSentinelPlasmaAmountNeeded,
   kIssueTokenPlasmaAmountNeeded,
@@ -123,7 +123,7 @@ const String kEmbeddedNode = 'Embedded Node';
 const String kLocalhostDefaultNodeUrl = 'ws://127.0.0.1:$kDefaultPort';
 const int kDefaultPort = 35998;
 
-const List<String> kWalletActions = [
+const List<String> kWalletActions = <String>[
   'pillar',
   'sentinel',
   'delegation',
@@ -188,7 +188,7 @@ const String kThemeModeKey = 'theme_mode_key';
 const ThemeMode kDefaultThemeMode = ThemeMode.dark;
 const TextScaling kDefaultTextScaling = TextScaling.system;
 
-const kBlockTypeColorMap = {
+const Map<BlockTypeEnum, Color> kBlockTypeColorMap = <BlockTypeEnum, Color>{
   BlockTypeEnum.userReceive: AppColors.darkHintTextColor,
   BlockTypeEnum.userSend: AppColors.lightHintTextColor,
 };
@@ -199,10 +199,9 @@ const Duration kDelayAfterAccountBlockCreationCall = Duration(
 );
 const Duration kProjectVotingPeriod = Duration(days: 14);
 const Duration kEmbeddedConnectionDelay = Duration(seconds: 30);
-const Duration kDashboardRefreshInterval = Duration(minutes: 1);
 
 // Tabs
-const List<Tabs> kTabsWithTextTitles = [
+const List<Tabs> kTabsWithTextTitles = <Tabs>[
   Tabs.dashboard,
   Tabs.transfer,
   Tabs.pillars,

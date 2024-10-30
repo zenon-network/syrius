@@ -24,14 +24,14 @@ class Web3WalletService extends IWeb3WalletService {
   /// [SessionProposalEvent], [AuthRequest]
   @override
   ValueNotifier<List<PairingInfo>> pairings =
-      ValueNotifier<List<PairingInfo>>([]);
+      ValueNotifier<List<PairingInfo>>(<PairingInfo>[]);
   @override
   ValueNotifier<List<SessionData>> sessions =
-      ValueNotifier<List<SessionData>>([]);
+      ValueNotifier<List<SessionData>>(<SessionData>[]);
   @override
-  ValueNotifier<List<StoredCacao>> auth = ValueNotifier<List<StoredCacao>>([]);
+  ValueNotifier<List<StoredCacao>> auth = ValueNotifier<List<StoredCacao>>(<StoredCacao>[]);
 
-  final List<int> _idSessionsApproved = [];
+  final List<int> _idSessionsApproved = <int>[];
 
   @override
   void create() {
@@ -44,7 +44,7 @@ class Web3WalletService extends IWeb3WalletService {
           name: 's y r i u s',
           description: 'A wallet for interacting with Zenon Network',
           url: 'https://zenon.network',
-          icons: [
+          icons: <String>[
             'https://raw.githubusercontent.com/zenon-network/syrius/master/macos/Runner/Assets.xcassets/AppIcon.appiconset/Icon-MacOS-512x512%402x.png',
           ],
         ),
@@ -183,7 +183,7 @@ class Web3WalletService extends IWeb3WalletService {
   Future<void> disconnectSessions() async {
     Logger('WalletConnectService')
         .log(Level.INFO, 'disconnectSessions triggered');
-    for (var i = 0; i < pairings.value.length; i++) {
+    for (int i = 0; i < pairings.value.length; i++) {
       await _wcClient!.disconnectSession(
           topic: pairings.value[i].topic,
           reason: Errors.getSdkError(Errors.USER_DISCONNECTED),);
@@ -291,7 +291,7 @@ class Web3WalletService extends IWeb3WalletService {
       Logger('WalletConnectService')
           .log(Level.INFO, '_onSessionProposal event', event.params.toJson());
 
-      final dAppMetadata = event.params.proposer.metadata;
+      final PairingMetadata dAppMetadata = event.params.proposer.metadata;
 
       final actionWasAccepted = await showDialogWithNoAndYesOptions(
         context: globalNavigatorKey.currentContext!,
@@ -299,7 +299,7 @@ class Web3WalletService extends IWeb3WalletService {
         title: 'Approve session',
         content: Column(
           mainAxisSize: MainAxisSize.min,
-          children: [
+          children: <Widget>[
             Text('Are you sure you want to '
                 'connect to ${dAppMetadata.name} ?'),
             kVerticalSpacing,
@@ -313,7 +313,7 @@ class Web3WalletService extends IWeb3WalletService {
             kVerticalSpacing,
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
-              children: [
+              children: <Widget>[
                 Text(dAppMetadata.url),
                 LinkIcon(
                   url: dAppMetadata.url,
@@ -330,7 +330,7 @@ class Web3WalletService extends IWeb3WalletService {
         if (!_idSessionsApproved.contains(event.id)) {
           _idSessionsApproved.add(event.id);
           try {
-            final approveResponse =
+            final ApproveResponse approveResponse =
                 await _approveSession(id: event.id);
             await _sendSuccessfullyApprovedSessionNotification(dAppMetadata);
             sessions.value.add(approveResponse.session);
@@ -381,15 +381,15 @@ class Web3WalletService extends IWeb3WalletService {
       windowManager.show();
     }
     namespaces = namespaces ??
-        {
+        <String, Namespace>{
           'zenon': Namespace(
             accounts: _getWalletAccounts(),
-            methods: [
+            methods: <String>[
               'znn_sign',
               'znn_info',
               'znn_send',
             ],
-            events: ['chainIdChange', 'addressChange'],
+            events: <String>['chainIdChange', 'addressChange'],
           ),
         };
     return _wcClient!.approveSession(
@@ -403,7 +403,7 @@ class Web3WalletService extends IWeb3WalletService {
 
   List<String> _getWalletAccounts() => kAddressLabelMap.values
       .map(
-        (address) => _generateAccount(address, getChainIdentifier()),
+        (String address) => _generateAccount(address, getChainIdentifier()),
       )
       .toList();
 
@@ -411,8 +411,8 @@ class Web3WalletService extends IWeb3WalletService {
     required String changeName,
     required String newValue,
   }) async {
-    final sessionTopics =
-        pairings.value.fold<List<String>>(<String>[], (previousValue, pairing) {
+    final List<String> sessionTopics =
+        pairings.value.fold<List<String>>(<String>[], (List<String> previousValue, PairingInfo pairing) {
       if (pairing.active) {
         previousValue.addAll(getSessionsForPairing(pairing.topic).keys);
         return previousValue;
@@ -420,7 +420,7 @@ class Web3WalletService extends IWeb3WalletService {
       return previousValue;
     });
 
-    for (final sessionTopic in sessionTopics) {
+    for (final String sessionTopic in sessionTopics) {
       _emitDAppEvent(
         sessionTopic: sessionTopic,
         changeName: changeName,

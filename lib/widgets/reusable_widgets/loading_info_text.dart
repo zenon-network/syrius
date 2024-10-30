@@ -16,7 +16,7 @@ class LoadingInfoText extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
-      children: [
+      children: <Widget>[
         const SyriusLoadingWidget(
           size: 16,
           strokeWidth: 2,

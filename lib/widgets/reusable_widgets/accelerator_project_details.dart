@@ -23,7 +23,7 @@ class AcceleratorProjectDetails extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final children = <Widget>[];
+    final List<Widget> children = <Widget>[];
 
     if (owner != null) {
       children.add(Text(
@@ -59,7 +59,7 @@ class AcceleratorProjectDetails extends StatelessWidget {
     return Row(
       children: children.zip(List.generate(
         children.length - 1,
-        (index) => Text(
+        (int index) => Text(
           ' ● ',
           style: Theme.of(context).inputDecorationTheme.hintStyle,
         ),
@@ -68,7 +68,7 @@ class AcceleratorProjectDetails extends StatelessWidget {
   }
 
   String _formatData(int transactionMillis) {
-    final currentMillis = DateTime.now().millisecondsSinceEpoch;
+    final int currentMillis = DateTime.now().millisecondsSinceEpoch;
     if (currentMillis - transactionMillis <=
         const Duration(
           days: 1,
@@ -79,7 +79,7 @@ class AcceleratorProjectDetails extends StatelessWidget {
   }
 
   String _formatDataShort(int i) {
-    final duration = Duration(milliseconds: i);
+    final Duration duration = Duration(milliseconds: i);
     if (duration.inHours > 0) {
       return '${duration.inHours} h ago';
     }
@@ -90,12 +90,12 @@ class AcceleratorProjectDetails extends StatelessWidget {
   }
 
   String _getTimeUntilVotingCloses() {
-    const prefix = 'Voting closes in ';
-    var suffix = '';
-    final creationDate =
+    const String prefix = 'Voting closes in ';
+    String suffix = '';
+    final DateTime creationDate =
         DateTime.fromMillisecondsSinceEpoch((creationTimestamp ?? 0) * 1000);
-    final votingEnds = creationDate.add(kProjectVotingPeriod);
-    final difference = votingEnds.difference(DateTime.now());
+    final DateTime votingEnds = creationDate.add(kProjectVotingPeriod);
+    final Duration difference = votingEnds.difference(DateTime.now());
     if (difference.isNegative) {
       return 'Voting closed';
     }
@@ -112,7 +112,7 @@ class AcceleratorProjectDetails extends StatelessWidget {
   }
 
   String _getOwnerDetails() {
-    var address = owner!.toShortString();
+    String address = owner!.toShortString();
     if (kDefaultAddressList.contains(owner.toString())) {
       address = kAddressLabelMap[owner.toString()]!;
     }

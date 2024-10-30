@@ -85,7 +85,7 @@ class GeneralWidgetState extends State<GeneralWidget> {
                   ),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
+                    children: <Widget>[
                       if (generalStats.networkInfo.peers.isNotEmpty) Text(
                               'Peers connected',
                               style: Theme.of(context).textTheme.bodyMedium,
@@ -162,7 +162,7 @@ class GeneralWidgetState extends State<GeneralWidget> {
                 ),
               ),
               Row(
-                children: [
+                children: <Widget>[
                   Expanded(
                     child: Container(
                       padding: const EdgeInsets.only(
@@ -190,7 +190,7 @@ class GeneralWidgetState extends State<GeneralWidget> {
   Widget _getStreamBuilder() {
     return StreamBuilder<GeneralStats>(
       stream: _generalStatsBloc!.stream,
-      builder: (_, snapshot) {
+      builder: (_, AsyncSnapshot<GeneralStats> snapshot) {
         if (snapshot.hasData) {
           return _getNewBody(snapshot.data!);
         } else if (snapshot.hasError) {

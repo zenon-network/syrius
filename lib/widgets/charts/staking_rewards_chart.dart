@@ -43,13 +43,13 @@ class _StakingRewardsChart extends State<StakingRewardsChart> {
 
   List<FlSpot> _getRewardsSpots() => List.generate(
         widget.rewardsHistory!.list.length,
-        (index) => FlSpot(
+        (int index) => FlSpot(
           index.toDouble(),
           _getRewardsByIndex(index).toDouble(),
         ),
       );
 
-  List<StandardLineChartBarData> _linesBarData() => [
+  List<StandardLineChartBarData> _linesBarData() => <StandardLineChartBarData>[
         StandardLineChartBarData(
           color: AppColors.qsrColor,
           spots: _getRewardsSpots(),
@@ -65,8 +65,8 @@ class _StakingRewardsChart extends State<StakingRewardsChart> {
       .toNum();
 
   num _getMaxValueOfQsrRewards() {
-    var max = widget.rewardsHistory!.list.first.qsrAmount;
-    for (final element in widget.rewardsHistory!.list) {
+    BigInt max = widget.rewardsHistory!.list.first.qsrAmount;
+    for (final RewardHistoryEntry element in widget.rewardsHistory!.list) {
       if (element.qsrAmount > max) {
         max = element.qsrAmount;
       }

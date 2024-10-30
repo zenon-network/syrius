@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:layout/layout.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
-import 'package:zenon_syrius_wallet_flutter/rearchitecture/dashboard/dashboard.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 
 class DashboardTabChild extends StatefulWidget {
@@ -31,7 +31,7 @@ class _DashboardTabChildState extends State<DashboardTabChild> {
   }
 
   Widget _getFluidLayout() {
-    final defaultCellWidth = context.layout.value(
+    final int defaultCellWidth = context.layout.value(
       xl: kStaggeredNumOfColumns ~/ 6,
       lg: kStaggeredNumOfColumns ~/ 6,
       md: kStaggeredNumOfColumns ~/ 6,
@@ -39,7 +39,7 @@ class _DashboardTabChildState extends State<DashboardTabChild> {
       xs: kStaggeredNumOfColumns ~/ 2,
     );
 
-    final children = <FluidCell>[
+    final List<FluidCell> children = <FluidCell>[
       const FluidCell(
         child: DualCoinStatsCard(),
       ),

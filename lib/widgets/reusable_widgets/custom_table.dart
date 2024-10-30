@@ -35,7 +35,7 @@ class _CustomTableState<T> extends State<CustomTable<T>> {
   @override
   Widget build(BuildContext context) {
     return Column(
-      children: [
+      children: <Widget>[
         Visibility(
           visible: widget.headerColumns != null,
           child: _getTableHeader(),
@@ -47,7 +47,7 @@ class _CustomTableState<T> extends State<CustomTable<T>> {
               controller: _scrollController,
               shrinkWrap: true,
               children: widget.onShowMoreButtonPressed != null
-                  ? _getRows() + [_getShowMoreButton()]
+                  ? _getRows() + <Widget>[_getShowMoreButton()]
                   : _getRows(),
             ),
           ),
@@ -79,19 +79,19 @@ class _CustomTableState<T> extends State<CustomTable<T>> {
       ),
       child: Row(
         children: List<Widget>.from(
-              [
+              <SizedBox>[
                 const SizedBox(
                   width: 20,
                 ),
               ],
             ) +
-            (widget.headerColumns ?? []),
+            (widget.headerColumns ?? <Widget>[]),
       ),
     );
   }
 
   Widget _getTableRow(dynamic item, int indexOfRow) {
-    final isSelected = _selectedRowIndex == indexOfRow;
+    final bool isSelected = _selectedRowIndex == indexOfRow;
 
     return InkWell(
       onTap: () {
@@ -129,7 +129,7 @@ class _CustomTableState<T> extends State<CustomTable<T>> {
         ),
         child: Row(
           children: List<Widget>.from(
-                [
+                <SizedBox>[
                   const SizedBox(
                     width: 20,
                   ),
@@ -183,7 +183,7 @@ class CustomHeaderColumn extends StatelessWidget {
       flex: flex,
       child: Row(
         mainAxisAlignment: contentAlign,
-        children: [
+        children: <Widget>[
           Text(
             columnName,
             style: Theme.of(context).textTheme.bodyMedium,
@@ -220,7 +220,7 @@ class CustomTableCell extends StatelessWidget {
     this.flex = 1,
     Color textColor = AppColors.subtitleColor,
   })  : child = Row(
-          children: [
+          children: <Widget>[
             Expanded(
               child: Tooltip(
                 message: address.toString(),
@@ -259,7 +259,7 @@ class CustomTableCell extends StatelessWidget {
     this.flex = 1,
     Color textColor = AppColors.subtitleColor,
   })  : child = Row(
-          children: [
+          children: <Widget>[
             Expanded(
               child: Container(
                 margin: const EdgeInsets.only(
@@ -280,7 +280,7 @@ class CustomTableCell extends StatelessWidget {
             Visibility(
               visible: showCopyToClipboardIcon,
               child: Row(
-                children: [
+                children: <Widget>[
                   CopyToClipboardIcon(
                     text,
                     materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
@@ -304,7 +304,7 @@ class CustomTableCell extends StatelessWidget {
     Color textColor = AppColors.subtitleColor,
     TextAlign textAlign = TextAlign.start,
   })  : child = Row(
-          children: [
+          children: <Widget>[
             Expanded(
               child: Tooltip(
                 message: address.toString(),
@@ -322,7 +322,7 @@ class CustomTableCell extends StatelessWidget {
             Visibility(
               visible: showCopyToClipboardIcon,
               child: Row(
-                children: [
+                children: <Widget>[
                   CopyToClipboardIcon(
                     address.toString(),
                     materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
@@ -346,7 +346,7 @@ class CustomTableCell extends StatelessWidget {
     Color textColor = AppColors.subtitleColor,
     TextAlign textAlign = TextAlign.start,
   })  : child = Row(
-          children: [
+          children: <Widget>[
             Expanded(
               child: Text(
                 text,
@@ -360,7 +360,7 @@ class CustomTableCell extends StatelessWidget {
             Visibility(
               visible: showCopyToClipboardIcon,
               child: Row(
-                children: [
+                children: <Widget>[
                   CopyToClipboardIcon(
                     text,
                     materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,

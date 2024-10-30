@@ -19,7 +19,7 @@ class SentinelListWidget extends StatefulWidget {
 class _SentinelListWidgetState extends State<SentinelListWidget> {
   late SentinelsListBloc _bloc;
 
-  final List<SentinelInfo> _sentinels = [];
+  final List<SentinelInfo> _sentinels = <SentinelInfo>[];
   bool _sortAscending = true;
 
   @override
@@ -40,7 +40,7 @@ class _SentinelListWidgetState extends State<SentinelListWidget> {
   Widget _getTable(SentinelsListBloc bloc) {
     return InfiniteScrollTable<SentinelInfo>(
       bloc: _bloc,
-      headerColumns: [
+      headerColumns: <InfiniteScrollTableHeaderColumn>[
         InfiniteScrollTableHeaderColumn(
           columnName: 'Sentinel Address',
           onSortArrowsPressed: _onSortArrowsPressed,
@@ -52,8 +52,8 @@ class _SentinelListWidgetState extends State<SentinelListWidget> {
           columnName: '',
         ),
       ],
-      generateRowCells: (sentinelInfo, isSelected) {
-        return [
+      generateRowCells: (SentinelInfo sentinelInfo, bool isSelected) {
+        return <Widget>[
           WidgetUtils.getTextAddressTableCell(
             sentinelInfo.owner,
             context,
@@ -79,9 +79,9 @@ class _SentinelListWidgetState extends State<SentinelListWidget> {
     return Visibility(
       visible: isStakeAddressDefault(sentinelInfo),
       child: Stack(
-        children: [
+        children: <Widget>[
           Row(
-            children: [
+            children: <Widget>[
               if (sentinelInfo.isRevocable) CancelTimer(
                       Duration(
                         seconds: sentinelInfo.revokeCooldown,
@@ -131,7 +131,7 @@ class _SentinelListWidgetState extends State<SentinelListWidget> {
       visible: sentinelInfo.isRevocable,
       child: Stack(
         alignment: Alignment.center,
-        children: [
+        children: <Widget>[
           _getDisassembleButtonViewModel(isSelected, model, sentinelInfo),
         ],
       ),
@@ -155,7 +155,7 @@ class _SentinelListWidgetState extends State<SentinelListWidget> {
           : null,
       child: Row(
         mainAxisSize: MainAxisSize.min,
-        children: [
+        children: <Widget>[
           Text(
             'DISASSEMBLE',
             style: isSelected
@@ -183,13 +183,13 @@ class _SentinelListWidgetState extends State<SentinelListWidget> {
     switch (columnName) {
       case 'Sentinel Owner':
         _sortAscending
-            ? _sentinels.sort((a, b) => a.owner.compareTo(b.owner))
-            : _sentinels.sort((a, b) => b.owner.compareTo(a.owner));
+            ? _sentinels.sort((SentinelInfo a, SentinelInfo b) => a.owner.compareTo(b.owner))
+            : _sentinels.sort((SentinelInfo a, SentinelInfo b) => b.owner.compareTo(a.owner));
       case 'Registration time':
         _sortAscending
-            ? _sentinels.sort((a, b) =>
+            ? _sentinels.sort((SentinelInfo a, SentinelInfo b) =>
                 a.registrationTimestamp.compareTo(b.registrationTimestamp),)
-            : _sentinels.sort((a, b) =>
+            : _sentinels.sort((SentinelInfo a, SentinelInfo b) =>
                 b.registrationTimestamp.compareTo(a.registrationTimestamp),);
       case 'Reward Address':
       default:
@@ -207,9 +207,9 @@ class _SentinelListWidgetState extends State<SentinelListWidget> {
     SentinelInfo sentinelInfo,
   ) {
     return ViewModelBuilder<DisassembleButtonBloc>.reactive(
-      onViewModelReady: (model) {
+      onViewModelReady: (DisassembleButtonBloc model) {
         model.stream.listen(
-          (event) {
+          (AccountBlockTemplate? event) {
             if (event != null) {
               sentinelsModel.refreshResults();
             }
@@ -222,9 +222,9 @@ class _SentinelListWidgetState extends State<SentinelListWidget> {
           },
         );
       },
-      builder: (_, model, __) => StreamBuilder<AccountBlockTemplate?>(
+      builder: (_, DisassembleButtonBloc model, __) => StreamBuilder<AccountBlockTemplate?>(
         stream: model.stream,
-        builder: (_, snapshot) {
+        builder: (_, AsyncSnapshot<AccountBlockTemplate?> snapshot) {
           if (snapshot.hasError) {
             return _getDisassembleButton(isSelected, model, sentinelInfo);
           }

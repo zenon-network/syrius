@@ -1,10 +1,6 @@
 import 'dart:math' show pow;
 import 'package:big_decimal/big_decimal.dart';
-import 'package:flutter/material.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:znn_ledger_dart/znn_ledger_dart.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
-import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 extension StringExtensions on String {
   String capitalize() {
@@ -20,7 +16,7 @@ extension StringExtensions on String {
       }
       return BigInt.parse(this + ''.padRight(decimals, '0'));
     }
-    final parts = split('.');
+    final List<String> parts = split('.');
 
     return BigInt.parse(parts[0] +
         (parts[1].length > decimals
@@ -52,8 +48,8 @@ extension ZipTwoLists on List {
   List<T> zip<T>(List<T> smallerList) {
     return fold(
       <T>[],
-      (previousValue, element) {
-        final elementIndex = indexOf(element);
+      (List<T> previousValue, element) {
+        final int elementIndex = indexOf(element);
         previousValue.add(element);
         if (elementIndex < smallerList.length) {
           previousValue.add(
@@ -68,7 +64,7 @@ extension ZipTwoLists on List {
 
 extension ShortString on String {
   String get short {
-    final longString = this;
+    final String longString = this;
     return '${longString.substring(0, 6)}...'
         '${longString.substring(longString.length - 6)}';
   }
@@ -77,7 +73,7 @@ extension ShortString on String {
 extension LedgerErrorExtensions on LedgerError {
   String toFriendlyString() {
     return when(
-        connectionError: (origMessage) => origMessage,
+        connectionError: (String origMessage) => origMessage,
         responseError: _mapStatusWord,);
   }
 
@@ -122,20 +118,5 @@ extension LedgerErrorExtensions on LedgerError {
       case StatusWord.unknownError:
         return 'Unknown error, please make sure the device is unlocked';
     }
-  }
-}
-
-extension BuildContextL10n on BuildContext {
-  AppLocalizations get l10n => AppLocalizations.of(this)!;
-}
-
-extension SyncStateExtension on SyncState {
-  Color? getColor({required BuildContext context}) {
-    return switch (this) {
-      SyncState.unknown => Theme.of(context).iconTheme.color,
-      SyncState.syncing => Colors.orange,
-      SyncState.syncDone => AppColors.znnColor,
-      SyncState.notEnoughPeers => AppColors.errorColor,
-    };
   }
 }

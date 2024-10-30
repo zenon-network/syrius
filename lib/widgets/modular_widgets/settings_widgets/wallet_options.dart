@@ -57,7 +57,7 @@ class _WalletOptionsState extends State<WalletOptions> {
   Widget _getWidgetBody() {
     return ListView(
       shrinkWrap: true,
-      children: [
+      children: <Widget>[
         CustomExpandablePanel('Delete cache', _getDeleteCacheExpandedWidget()),
         CustomExpandablePanel('Reset wallet', _getResetWalletExpandedWidget()),
         CustomExpandablePanel('Preferences', _getPreferencesExpandedWidget()),
@@ -116,7 +116,7 @@ class _WalletOptionsState extends State<WalletOptions> {
 
   Widget _getPreferencesExpandedWidget() {
     return Column(
-      children: [
+      children: <Widget>[
         _getLaunchAtStartupWidget(),
         _getEnableDesktopNotifications(),
         _buildEnableClipboardWatcher(),
@@ -127,13 +127,13 @@ class _WalletOptionsState extends State<WalletOptions> {
 
   Widget _getLaunchAtStartupWidget() {
     return Row(
-      children: [
+      children: <Widget>[
         Text(
           'Launch at startup ',
           style: Theme.of(context).textTheme.bodyMedium,
         ),
         SyriusCheckbox(
-          onChanged: (value) async {
+          onChanged: (bool? value) async {
             setState(() {
               _launchAtStartup = value;
             });
@@ -148,17 +148,17 @@ class _WalletOptionsState extends State<WalletOptions> {
 
   Widget _getAutoReceiveWidget() {
     return Row(
-      children: [
+      children: <Widget>[
         Text(
           'Auto-receiver',
           style: Theme.of(context).textTheme.bodyMedium,
         ),
         SyriusCheckbox(
-          onChanged: (value) async {
+          onChanged: (bool? value) async {
             if (value == true) {
               NodeUtils.getUnreceivedTransactions().then((value) {
                 sl<AutoReceiveTxWorker>().autoReceive();
-              }).onError((error, stackTrace) {
+              }).onError((Object? error, StackTrace stackTrace) {
                 Logger('MainAppContainer').log(
                     Level.WARNING, '_getAutoReceiveWidget', error, stackTrace,);
               });
@@ -183,7 +183,7 @@ class _WalletOptionsState extends State<WalletOptions> {
   }
 
   Future<void> _setupLaunchAtStartup() async {
-    final packageInfo = await PackageInfo.fromPlatform();
+    final PackageInfo packageInfo = await PackageInfo.fromPlatform();
     launchAtStartup.setup(
       appName: packageInfo.appName,
       appPath: Platform.resolvedExecutable,
@@ -260,13 +260,13 @@ class _WalletOptionsState extends State<WalletOptions> {
 
   Widget _getEnableDesktopNotifications() {
     return Row(
-      children: [
+      children: <Widget>[
         Text(
           'Enable desktop notifications ',
           style: Theme.of(context).textTheme.bodyMedium,
         ),
         SyriusCheckbox(
-          onChanged: (value) {
+          onChanged: (bool? value) {
             setState(() {
               _enableDesktopNotifications = value;
               _changeEnableDesktopNotificationsStatus(value ?? false);
@@ -281,13 +281,13 @@ class _WalletOptionsState extends State<WalletOptions> {
 
   Widget _buildEnableClipboardWatcher() {
     return Row(
-      children: [
+      children: <Widget>[
         Text(
           'Enable clipboard watcher',
           style: Theme.of(context).textTheme.bodyMedium,
         ),
         SyriusCheckbox(
-          onChanged: (value) {
+          onChanged: (bool? value) {
             setState(() {
               _enabledClipboardWatcher = value;
               _changeEnableClipboardWatcherStatus(value ?? false);

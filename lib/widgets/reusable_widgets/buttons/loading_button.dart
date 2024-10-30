@@ -117,7 +117,7 @@ class LoadingButton extends StatefulWidget {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           mainAxisAlignment: MainAxisAlignment.center,
-          children: [
+          children: <Widget>[
             icon,
             SizedBox(
               width: label.isNotEmpty ? 10.0 : 0.0,
@@ -184,7 +184,7 @@ class LoadingButtonState extends State<LoadingButton>
       ),
     );
 
-    _animation.addStatusListener((status) {
+    _animation.addStatusListener((AnimationStatus status) {
       if (status == AnimationStatus.dismissed) {
         setState(() {
           btnState = ButtonState.idle;
@@ -206,7 +206,7 @@ class LoadingButtonState extends State<LoadingButton>
   Widget build(BuildContext context) {
     return AnimatedBuilder(
       animation: _animationController,
-      builder: (context, child) {
+      builder: (BuildContext context, Widget? child) {
         return buttonBody();
       },
     );

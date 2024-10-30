@@ -47,7 +47,7 @@ class _DisplayWidget extends State<DisplayWidget> {
   Widget _getWidgetBody() {
     return ListView(
       shrinkWrap: true,
-      children: [
+      children: <Widget>[
         CustomExpandablePanel('Text scaling', _getTextScalingExpandableChild()),
         CustomExpandablePanel('Locale', _getLocaleExpandableChild()),
         CustomExpandablePanel('Theme', _getThemeExpandableChild()),
@@ -57,7 +57,7 @@ class _DisplayWidget extends State<DisplayWidget> {
 
   Widget _getTextScalingExpandableChild() {
     return Column(
-      children: [
+      children: <Widget>[
         _getTextScalingTiles(),
         _getConfirmScaleButton(),
       ],
@@ -69,7 +69,7 @@ class _DisplayWidget extends State<DisplayWidget> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: TextScaling.values
           .map(
-            (e) => _getListTile<TextScaling>(
+            (TextScaling e) => _getListTile<TextScaling>(
               FormatUtils.extractNameFromEnum<TextScaling>(e),
               e,
             ),
@@ -80,7 +80,7 @@ class _DisplayWidget extends State<DisplayWidget> {
 
   Widget _getListTile<T>(String text, T value) {
     return Row(
-      children: [
+      children: <Widget>[
         Radio<T>(
           materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
           value: value,
@@ -130,7 +130,7 @@ class _DisplayWidget extends State<DisplayWidget> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: LocaleType.values
           .map(
-            (e) => _getListTile<LocaleType>(
+            (LocaleType e) => _getListTile<LocaleType>(
               FormatUtils.extractNameFromEnum<LocaleType>(e),
               e,
             ),
@@ -141,7 +141,7 @@ class _DisplayWidget extends State<DisplayWidget> {
 
   Widget _getThemeExpandableChild() {
     return Column(
-      children: [
+      children: <Widget>[
         _getThemeModeTiles(),
         _getConfirmThemeButton(),
       ],
@@ -153,7 +153,7 @@ class _DisplayWidget extends State<DisplayWidget> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: ThemeMode.values
           .map(
-            (e) => _getListTile<ThemeMode>(
+            (ThemeMode e) => _getListTile<ThemeMode>(
               FormatUtils.extractNameFromEnum<ThemeMode>(e),
               e,
             ),
@@ -165,7 +165,7 @@ class _DisplayWidget extends State<DisplayWidget> {
   Widget _getConfirmThemeButton() {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
-      children: [
+      children: <Widget>[
         Padding(
           padding: const EdgeInsets.all(8),
           child: LoadingButton.settings(
@@ -181,7 +181,7 @@ class _DisplayWidget extends State<DisplayWidget> {
   Future<void> _onConfirmThemeButtonPressed() async {
     try {
       _confirmThemeButtonKey.currentState!.animateForward();
-      final currentThemeMode = Provider.of<AppThemeNotifier>(
+      final ThemeMode? currentThemeMode = Provider.of<AppThemeNotifier>(
         context,
         listen: false,
       ).currentThemeMode;
@@ -213,7 +213,7 @@ class _DisplayWidget extends State<DisplayWidget> {
   Widget _getConfirmScaleButton() {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
-      children: [
+      children: <Widget>[
         Padding(
           padding: const EdgeInsets.all(8),
           child: LoadingButton.settings(
@@ -230,7 +230,7 @@ class _DisplayWidget extends State<DisplayWidget> {
     try {
       _confirmScaleButtonKey.currentState!.animateForward();
 
-      final currentTextScaling = Provider.of<TextScalingNotifier>(
+      final TextScaling? currentTextScaling = Provider.of<TextScalingNotifier>(
         context,
         listen: false,
       ).currentTextScaling;

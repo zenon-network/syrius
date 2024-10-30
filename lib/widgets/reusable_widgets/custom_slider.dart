@@ -8,11 +8,11 @@ import 'package:flutter/material.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
 
 Path _downTriangle(double size, Offset thumbCenter, {bool invert = false}) {
-  final thumbPath = Path();
-  final height = math.sqrt(3) / 2.0;
-  final centerHeight = size * height / 3.0;
-  final halfSize = size / 2.0;
-  final sign = invert ? -1.0 : 1.0;
+  final Path thumbPath = Path();
+  final double height = math.sqrt(3) / 2.0;
+  final double centerHeight = size * height / 3.0;
+  final double halfSize = size / 2.0;
+  final double sign = invert ? -1.0 : 1.0;
   thumbPath.moveTo(
     thumbCenter.dx - halfSize,
     thumbCenter.dy + sign * centerHeight,
@@ -63,13 +63,13 @@ class _CustomThumbShape extends SliderComponentShape {
     double? textScaleFactor,
     Size? sizeWithOverflow,
   }) {
-    final canvas = context.canvas;
-    final colorTween = ColorTween(
+    final Canvas canvas = context.canvas;
+    final ColorTween colorTween = ColorTween(
       begin: sliderTheme.disabledThumbColor,
       end: sliderTheme.thumbColor,
     );
-    final size = _thumbSize * sizeTween.evaluate(enableAnimation);
-    final thumbPath = _downTriangle(size, thumbCenter);
+    final double size = _thumbSize * sizeTween.evaluate(enableAnimation);
+    final Path thumbPath = _downTriangle(size, thumbCenter);
     canvas.drawPath(
       thumbPath,
       Paint()..color = colorTween.evaluate(enableAnimation)!,
@@ -107,20 +107,20 @@ class _CustomValueIndicatorShape extends SliderComponentShape {
     double? textScaleFactor,
     Size? sizeWithOverflow,
   }) {
-    final canvas = context.canvas;
-    final enableColor = ColorTween(
+    final Canvas canvas = context.canvas;
+    final ColorTween enableColor = ColorTween(
       begin: sliderTheme.disabledThumbColor,
       end: sliderTheme.valueIndicatorColor,
     );
-    final slideUpTween = Tween<double>(
+    final Tween<double> slideUpTween = Tween<double>(
       begin: 0,
       end: _slideUpHeight,
     );
-    final size = _indicatorSize * sizeTween.evaluate(enableAnimation);
-    final slideUpOffset =
+    final double size = _indicatorSize * sizeTween.evaluate(enableAnimation);
+    final Offset slideUpOffset =
         Offset(0, -slideUpTween.evaluate(activationAnimation));
-    final thumbPath = _upTriangle(size, thumbCenter + slideUpOffset);
-    final paintColor = enableColor
+    final Path thumbPath = _upTriangle(size, thumbCenter + slideUpOffset);
+    final Color paintColor = enableColor
         .evaluate(enableAnimation)!
         .withAlpha((255.0 * activationAnimation.value).round());
     canvas.drawPath(
@@ -172,13 +172,13 @@ class _CustomSliderState extends State<CustomSlider> {
   Widget build(BuildContext context) {
     _discreteCustomValue ??= widget.startValue;
 
-    final theme = Theme.of(context);
+    final ThemeData theme = Theme.of(context);
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
-      children: [
+      children: <Widget>[
         Column(
           mainAxisSize: MainAxisSize.min,
-          children: [
+          children: <Widget>[
             SliderTheme(
               data: theme.sliderTheme.copyWith(
                 trackHeight: 2,
@@ -204,9 +204,9 @@ class _CustomSliderState extends State<CustomSlider> {
                 min: widget.min,
                 max: widget.maxValue,
                 divisions: (widget.maxValue - widget.min).toInt(),
-                semanticFormatterCallback: (value) => value.round().toString(),
+                semanticFormatterCallback: (double value) => value.round().toString(),
                 label: '${_discreteCustomValue!.round()}',
-                onChanged: (value) {
+                onChanged: (double value) {
                   setState(() {
                     _discreteCustomValue = value;
                     widget.callback(value);

@@ -25,7 +25,7 @@ class HtlcSwapsService {
       _htlcSwapsBox = await Hive.openBox('${kHtlcSwapsBox}_$htlcSwapsBoxSuffix',
           encryptionCipher: HiveAesCipher(cipherKey),);
       if (newCipherKey != null) {
-        final values = _htlcSwapsBox!.toMap();
+        final Map values = _htlcSwapsBox!.toMap();
         await _htlcSwapsBox!.deleteFromDisk();
         _htlcSwapsBox = await Hive.openBox(
             '${kHtlcSwapsBox}_$htlcSwapsBoxSuffix',
@@ -41,7 +41,7 @@ class HtlcSwapsService {
           kLastCheckedHtlcBlockBox,
           encryptionCipher: HiveAesCipher(cipherKey),);
       if (newCipherKey != null) {
-        final values = _lastCheckedHtlcBlockHeightBox!.toMap();
+        final Map values = _lastCheckedHtlcBlockHeightBox!.toMap();
         await _lastCheckedHtlcBlockHeightBox!.deleteFromDisk();
         _lastCheckedHtlcBlockHeightBox = await Hive.openBox(
             kLastCheckedHtlcBlockBox,
@@ -70,14 +70,14 @@ class HtlcSwapsService {
 
   List<HtlcSwap> getSwapsByState(List<P2pSwapState> states) {
     return _swapsForCurrentChainId
-        .where((e) => states.contains(e.state))
+        .where((HtlcSwap e) => states.contains(e.state))
         .toList();
   }
 
   HtlcSwap? getSwapByHashLock(String hashLock) {
     try {
       return _swapsForCurrentChainId
-          .firstWhereOrNull((e) => e.hashLock == hashLock);
+          .firstWhereOrNull((HtlcSwap e) => e.hashLock == hashLock);
     } on HiveError {
       return null;
     }
@@ -86,7 +86,7 @@ class HtlcSwapsService {
   HtlcSwap? getSwapByHtlcId(String htlcId) {
     try {
       return _swapsForCurrentChainId.firstWhereOrNull(
-          (e) => e.initialHtlcId == htlcId || e.counterHtlcId == htlcId,);
+          (HtlcSwap e) => e.initialHtlcId == htlcId || e.counterHtlcId == htlcId,);
     } on HiveError {
       return null;
     }
@@ -94,7 +94,7 @@ class HtlcSwapsService {
 
   HtlcSwap? getSwapById(String id) {
     try {
-      return _swapsForCurrentChainId.firstWhereOrNull((e) => e.id == id);
+      return _swapsForCurrentChainId.firstWhereOrNull((HtlcSwap e) => e.id == id);
     } on HiveError {
       return null;
     }
@@ -121,12 +121,12 @@ class HtlcSwapsService {
 
   Future<void> deleteInactiveSwaps() async =>
       _htlcSwapsBox!.deleteAll(_swapsForCurrentChainId
-          .where((e) => [
+          .where((HtlcSwap e) => <P2pSwapState>[
                 P2pSwapState.completed,
                 P2pSwapState.unsuccessful,
                 P2pSwapState.error,
               ].contains(e.state),)
-          .map((e) => e.id),);
+          .map((HtlcSwap e) => e.id),);
 
   List<HtlcSwap> get _swapsForCurrentChainId {
     return kNodeChainId != null
@@ -135,21 +135,21 @@ class HtlcSwapsService {
                 (e) => HtlcSwap.fromJson(jsonDecode(e)).chainId == kNodeChainId,)
             .map((e) => HtlcSwap.fromJson(jsonDecode(e)))
             .toList()
-        : [];
+        : <HtlcSwap>[];
   }
 
   HtlcSwap? _getOldestPrunableSwap() {
-    final swaps = getAllSwaps()
-        .where((e) => [P2pSwapState.completed, P2pSwapState.unsuccessful]
+    final List<HtlcSwap> swaps = getAllSwaps()
+        .where((HtlcSwap e) => <P2pSwapState>[P2pSwapState.completed, P2pSwapState.unsuccessful]
             .contains(e.state),)
         .toList();
-    swaps.sort((a, b) => b.startTime.compareTo(a.startTime));
+    swaps.sort((HtlcSwap a, HtlcSwap b) => b.startTime.compareTo(a.startTime));
     return swaps.isNotEmpty ? swaps.last : null;
   }
 
   Future<void> _pruneSwapsHistoryIfNeeded() async {
     if (_htlcSwapsBox!.length > kMaxP2pSwapsToStore) {
-      final toBePruned = _getOldestPrunableSwap();
+      final HtlcSwap? toBePruned = _getOldestPrunableSwap();
       if (toBePruned != null) {
         await deleteSwap(toBePruned.id);
       }

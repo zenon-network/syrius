@@ -77,7 +77,7 @@ class _LockTabChildState extends State<LockTabChild> {
               PasswordInputField(
                 controller: _passwordController,
                 hintText: 'Current password',
-                onSubmitted: (value) {
+                onSubmitted: (String value) {
                   _actionButton!.onPressed!();
                 },
               ),

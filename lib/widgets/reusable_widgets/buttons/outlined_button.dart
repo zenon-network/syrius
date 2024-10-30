@@ -73,7 +73,7 @@ class MyOutlinedButtonState extends State<MyOutlinedButton> {
             : null,
       ).copyWith(
         side: WidgetStateProperty.resolveWith<BorderSide?>(
-          (states) {
+          (Set<WidgetState> states) {
             if (states.contains(WidgetState.disabled)) {
               return BorderSide(
                 color: AppColors.lightSecondaryContainer,
@@ -144,7 +144,7 @@ class _MyOutlinedButtonWithIconChild extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       mainAxisSize: MainAxisSize.min,
-      children: [
+      children: <Widget>[
         icon,
         const SizedBox(
           width: 15,

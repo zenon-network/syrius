@@ -21,7 +21,7 @@ class _PillarsTabChildState extends State<PillarsTabChild> {
 
   @override
   Widget build(BuildContext context) {
-    final children = <FluidCell>[
+    final List<FluidCell> children = <FluidCell>[
       FluidCell(
         child: PillarRewards(
           pillarRewardsHistoryBloc: _pillarRewardsHistoryBloc,

@@ -27,15 +27,15 @@ class _NewWalletConfirmSeedScreenState
   late Widget _actionButton;
   String? _draggedValue;
 
-  final List<SeedGridElement> _seedGridElements = [];
-  final List<int> _randomIndexes = [];
-  List<int> _foundMissingRandomElementsIndexes = [];
+  final List<SeedGridElement> _seedGridElements = <SeedGridElement>[];
+  final List<int> _randomIndexes = <int>[];
+  List<int> _foundMissingRandomElementsIndexes = <int>[];
 
   @override
   void initState() {
     super.initState();
     _actionButton = _getVerifyButton();
-    for (final word in widget.seedWords) {
+    for (final String word in widget.seedWords) {
       _seedGridElements.add(
         SeedGridElement(
           word: word,
@@ -45,7 +45,7 @@ class _NewWalletConfirmSeedScreenState
       );
     }
     _generateRandomIndexes();
-    for (final index in _randomIndexes) {
+    for (final int index in _randomIndexes) {
       _seedGridElements[index].word = '';
     }
   }
@@ -61,7 +61,7 @@ class _NewWalletConfirmSeedScreenState
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: <Widget>[
             Column(
-              children: [
+              children: <Widget>[
                 const ProgressBar(
                   currentLevel: 2,
                 ),
@@ -75,7 +75,7 @@ class _NewWalletConfirmSeedScreenState
                 kVerticalSpacing,
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
+                  children: <Widget>[
                     Text(
                       'Drag & drop the words in the correct order',
                       style: Theme.of(context).textTheme.headlineMedium,
@@ -93,7 +93,7 @@ class _NewWalletConfirmSeedScreenState
               ],
             ),
             Row(
-              children: [
+              children: <Widget>[
                 Container(
                   margin: const EdgeInsets.only(left: 90),
                   child: _getMissingSeedGridElements(widget.seedWords),
@@ -121,7 +121,7 @@ class _NewWalletConfirmSeedScreenState
   }
 
   void _generateRandomIndex() {
-    final randomNumber = Random().nextInt(_seedGridElements.length);
+    final int randomNumber = Random().nextInt(_seedGridElements.length);
     if (!_randomIndexes.contains(randomNumber)) {
       _randomIndexes.add(randomNumber);
     }
@@ -152,9 +152,9 @@ class _NewWalletConfirmSeedScreenState
   }
 
   Widget _seedFieldWidget(SeedGridElement seedGridElement) {
-    final seedGridElementIndex = _seedGridElements.indexOf(seedGridElement);
+    final int seedGridElementIndex = _seedGridElements.indexOf(seedGridElement);
 
-    final controller = TextEditingController();
+    final TextEditingController controller = TextEditingController();
     controller.text = seedGridElement.word;
     if (_textCursor == seedGridElementIndex) {
       controller.selection = TextSelection.collapsed(
@@ -175,7 +175,7 @@ class _NewWalletConfirmSeedScreenState
               });
             },
             child: FocusableActionDetector(
-              onShowHoverHighlight: (x) {
+              onShowHoverHighlight: (bool x) {
                 if (x) {
                   setState(() {
                     _hoveredSeedGridIndex = seedGridElementIndex;
@@ -213,7 +213,7 @@ class _NewWalletConfirmSeedScreenState
           ),
           Expanded(
             child: FocusableActionDetector(
-              onShowHoverHighlight: (x) {
+              onShowHoverHighlight: (bool x) {
                 if (x) {
                   setState(() {
                     _hoveredSeedGridIndex = seedGridElementIndex;
@@ -225,7 +225,7 @@ class _NewWalletConfirmSeedScreenState
                 }
               },
               child: DragTarget<String>(
-                builder: (BuildContext context, accepted, rejected) {
+                builder: (BuildContext context, List<String?> accepted, List rejected) {
                   return TextField(
                     enabled: false,
                     controller: controller,
@@ -257,13 +257,13 @@ class _NewWalletConfirmSeedScreenState
                     ),
                   );
                 },
-                onWillAcceptWithDetails: (data) {
+                onWillAcceptWithDetails: (DragTargetDetails<String> data) {
                   return _randomIndexes.contains(seedGridElementIndex) ||
                       !seedGridElement.isValid;
                 },
                 onAcceptWithDetails: (DragTargetDetails data) {
-                  final element = _seedGridElements[seedGridElementIndex];
-                  var i = -1;
+                  final SeedGridElement element = _seedGridElements[seedGridElementIndex];
+                  int i = -1;
                   if (element.word != '') {
                     while ((i =
                             widget.seedWords.indexOf(element.word, i + 1)) !=
@@ -296,8 +296,8 @@ class _NewWalletConfirmSeedScreenState
   }
 
   Widget _getMissingSeedGridElements(List<String> seedWords) {
-    final list = <Widget>[];
-    for (final index in _randomIndexes) {
+    final List<Widget> list = <Widget>[];
+    for (final int index in _randomIndexes) {
       if (!_foundMissingRandomElementsIndexes.contains(index)) {
         list.add(
           Draggable<String>(
@@ -359,16 +359,16 @@ class _NewWalletConfirmSeedScreenState
 
   void _checkSeed() {
     _seedError = false;
-    for (final element in _seedGridElements) {
-      final i = _seedGridElements.indexOf(element);
+    for (final SeedGridElement element in _seedGridElements) {
+      final int i = _seedGridElements.indexOf(element);
       element.isValid = element.word == widget.seedWords[i];
       if (!element.isValid) {
         _seedError = true;
       }
     }
     if (_seedError) {
-      for (final element in _seedGridElements) {
-        final i = _seedGridElements.indexOf(element);
+      for (final SeedGridElement element in _seedGridElements) {
+        final int i = _seedGridElements.indexOf(element);
         if (_randomIndexes.contains(i)) {
           element.isValid = false;
           element.word = '';
@@ -379,7 +379,7 @@ class _NewWalletConfirmSeedScreenState
     setState(() {
       _seedError = true;
       _foundMissingRandomElementsIndexes = _randomIndexes
-          .where((index) => _seedGridElements[index].isValid)
+          .where((int index) => _seedGridElements[index].isValid)
           .toList();
       _actionButton =
           _foundMissingRandomElementsIndexes.length == kNumOfSeedWordsToBeFound
@@ -395,7 +395,7 @@ class _NewWalletConfirmSeedScreenState
         NavigationUtils.push(
           context,
           NewWalletPasswordScreen(
-            _seedGridElements.map((e) => e.word).toList(),
+            _seedGridElements.map((SeedGridElement e) => e.word).toList(),
           ),
         );
       },
@@ -419,16 +419,16 @@ class _NewWalletConfirmSeedScreenState
   }
 
   Widget _getSeedInputWidgetsGrid() {
-    final divider = widget.seedWords.length ~/ kSeedGridNumOfRows;
+    final int divider = widget.seedWords.length ~/ kSeedGridNumOfRows;
 
-    var columnChildren = <Widget>[];
+    List<Widget> columnChildren = <Widget>[];
 
-    for (var i = 0; i <= _seedGridElements.length / divider - 1; i++) {
+    for (int i = 0; i <= _seedGridElements.length / divider - 1; i++) {
       columnChildren.add(
         _getSeedRow(
           List.generate(
             divider,
-            (index) => index + (divider * i),
+            (int index) => index + (divider * i),
           ),
         ),
       );
@@ -437,7 +437,7 @@ class _NewWalletConfirmSeedScreenState
     columnChildren = columnChildren.zip<Widget>(
       List.generate(
         kSeedGridNumOfRows - 1,
-        (index) => const SizedBox(
+        (int index) => const SizedBox(
           height: 10,
         ),
       ),
@@ -450,9 +450,9 @@ class _NewWalletConfirmSeedScreenState
   }
 
   Widget _getSeedRow(List<int> rangeIndexes) {
-    final children = rangeIndexes.fold<List<Widget>>(
-      [],
-      (previousValue, index) {
+    final List<Widget> children = rangeIndexes.fold<List<Widget>>(
+      <Widget>[],
+      (List<Widget> previousValue, int index) {
         previousValue.add(_seedFieldWidget(
           _seedGridElements[index],
         ),);

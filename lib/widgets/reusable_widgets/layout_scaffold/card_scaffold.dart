@@ -64,7 +64,7 @@ class _CardScaffoldState<T> extends State<CardScaffold<T>> {
     return FlipCard(
       flipOnTouch: false,
       key: cardKey,
-      onFlipDone: (status) {},
+      onFlipDone: (bool status) {},
       front: ClipRRect(
         borderRadius: BorderRadius.circular(
           15,
@@ -113,7 +113,7 @@ class _CardScaffoldState<T> extends State<CardScaffold<T>> {
       padding: const EdgeInsets.all(8),
       child: ListView(
         shrinkWrap: true,
-        children: [
+        children: <Widget>[
           ExpandablePanel(
             collapsed: Container(),
             theme: ExpandableThemeData(
@@ -122,7 +122,7 @@ class _CardScaffoldState<T> extends State<CardScaffold<T>> {
               iconPlacement: ExpandablePanelIconPlacement.right,
             ),
             header: Row(
-              children: [
+              children: <Widget>[
                 const Icon(
                   Icons.info,
                   color: AppColors.znnColor,
@@ -152,7 +152,7 @@ class _CardScaffoldState<T> extends State<CardScaffold<T>> {
             ),
           ),
           Row(
-            children: [
+            children: <Widget>[
               const Icon(
                 Icons.remove_red_eye_rounded,
                 color: AppColors.znnColor,
@@ -171,7 +171,7 @@ class _CardScaffoldState<T> extends State<CardScaffold<T>> {
               Switch(
                 splashRadius: 0,
                 value: _hideWidgetInfo!,
-                onChanged: (value) {
+                onChanged: (bool value) {
                   setState(() {
                     _hideWidgetInfo = value;
                   });
@@ -200,7 +200,7 @@ class _CardScaffoldState<T> extends State<CardScaffold<T>> {
             visible: _showPasswordInputField,
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
+              children: <Widget>[
                 Expanded(
                   child: _getPasswordInputField(model),
                 ),
@@ -225,7 +225,7 @@ class _CardScaffoldState<T> extends State<CardScaffold<T>> {
           child: Padding(
             padding: const EdgeInsets.all(14),
             child: Row(
-              children: [
+              children: <Widget>[
                 Expanded(
                   child: Text(
                     title,
@@ -246,7 +246,7 @@ class _CardScaffoldState<T> extends State<CardScaffold<T>> {
         Row(
           mainAxisSize: MainAxisSize.min,
           mainAxisAlignment: MainAxisAlignment.end,
-          children: [
+          children: <Widget>[
             Visibility(
               visible: widget.onRefreshPressed != null,
               child: Material(
@@ -282,7 +282,7 @@ class _CardScaffoldState<T> extends State<CardScaffold<T>> {
 
   Widget _getPasswordInputField(HideWidgetStatusBloc model) {
     return PasswordInputField(
-      onSubmitted: (value) {
+      onSubmitted: (String value) {
         _actionButton!.onPressed!();
       },
       controller: _passwordController,
@@ -305,11 +305,11 @@ class _CardScaffoldState<T> extends State<CardScaffold<T>> {
 
   Widget _getHideWidgetInfoViewModel() {
     return ViewModelBuilder<HideWidgetStatusBloc>.reactive(
-      onViewModelReady: (model) {
+      onViewModelReady: (HideWidgetStatusBloc model) {
         _actionButton = _getActionButton(model);
         // Stream will tell us if the widget info is hidden or not
         model.stream.listen(
-          (response) {
+          (bool? response) {
             if (response != null) {
               _passwordController.clear();
               if (!response) {
@@ -326,9 +326,9 @@ class _CardScaffoldState<T> extends State<CardScaffold<T>> {
           },
         );
       },
-      builder: (_, model, __) => StreamBuilder<bool?>(
+      builder: (_, HideWidgetStatusBloc model, __) => StreamBuilder<bool?>(
         stream: model.stream,
-        builder: (_, snapshot) {
+        builder: (_, AsyncSnapshot<bool?> snapshot) {
           if (snapshot.hasError) {
             return _getBackBody(model);
           }
@@ -355,7 +355,7 @@ class _CardScaffoldState<T> extends State<CardScaffold<T>> {
         : widget.childStream != null && widget.onCompletedStatusCallback != null
             ? StreamBuilder<T>(
                 stream: widget.childStream,
-                builder: (context, snapshot) {
+                builder: (BuildContext context, AsyncSnapshot<T> snapshot) {
                   if (snapshot.hasError) {
                     return SyriusErrorWidget(snapshot.error!);
                   } else if (snapshot.hasData) {

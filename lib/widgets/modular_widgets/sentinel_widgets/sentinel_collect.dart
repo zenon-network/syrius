@@ -48,7 +48,7 @@ class _SentinelCollectState extends State<SentinelCollect> {
   Widget _getFutureBuilder() {
     return StreamBuilder<UncollectedReward?>(
       stream: _sentinelCollectRewardsBloc.stream,
-      builder: (_, snapshot) {
+      builder: (_, AsyncSnapshot<UncollectedReward?> snapshot) {
         if (snapshot.hasError) {
           return SyriusErrorWidget(snapshot.error!);
         } else if (snapshot.hasData) {
@@ -66,7 +66,7 @@ class _SentinelCollectState extends State<SentinelCollect> {
   Widget _getWidgetBody(UncollectedReward uncollectedReward) {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
-      children: [
+      children: <Widget>[
         NumberAnimation(
           end: uncollectedReward.znnAmount.addDecimals(coinDecimals).toNum(),
           after: ' ${kZnnCoin.symbol}',
@@ -109,7 +109,7 @@ class _SentinelCollectState extends State<SentinelCollect> {
         'collect Sentinel rewards',
         waitForRequiredPlasma: true,
       ).then(
-        (response) async {
+        (AccountBlockTemplate response) async {
           await Future.delayed(kDelayAfterAccountBlockCreationCall);
           if (mounted) {
             _sentinelCollectRewardsBloc.updateStream();

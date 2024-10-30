@@ -18,7 +18,7 @@ class UpdateCard extends StatelessWidget {
   Widget _getWidgetBody(BuildContext context) {
     return ListView(
       shrinkWrap: true,
-      children: [
+      children: <Widget>[
         CustomExpandablePanel(
           'Check update',
           _getCheckUpdateExpandableChild(context),

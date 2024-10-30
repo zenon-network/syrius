@@ -40,7 +40,7 @@ class _HtlcSwapDetailsWidgetState extends State<HtlcSwapDetailsWidget>
   Widget build(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
+      children: <Widget>[
         InkWell(
           borderRadius: BorderRadius.circular(4),
           hoverColor: Colors.transparent,
@@ -57,7 +57,7 @@ class _HtlcSwapDetailsWidgetState extends State<HtlcSwapDetailsWidget>
             child: Row(
               mainAxisSize: MainAxisSize.min,
               mainAxisAlignment: MainAxisAlignment.center,
-              children: [
+              children: <Widget>[
                 Text(
                   _isExpanded ? 'Hide details' : 'Show details',
                   style: const TextStyle(
@@ -83,7 +83,7 @@ class _HtlcSwapDetailsWidgetState extends State<HtlcSwapDetailsWidget>
           child: Visibility(
             visible: _isExpanded,
             child: Column(
-              children: [
+              children: <Widget>[
                 const SizedBox(height: 20),
                 Divider(color: Colors.white.withOpacity(0.1)),
                 const SizedBox(height: 20),
@@ -97,11 +97,11 @@ class _HtlcSwapDetailsWidgetState extends State<HtlcSwapDetailsWidget>
   }
 
   Widget _getDetailsList(HtlcSwap swap) {
-    final children = <Widget>[];
-    final yourDepositId = swap.direction == P2pSwapDirection.outgoing
+    final List<Widget> children = <Widget>[];
+    final String yourDepositId = swap.direction == P2pSwapDirection.outgoing
         ? swap.initialHtlcId
         : swap.counterHtlcId!;
-    final counterpartyDepositId = swap.direction == P2pSwapDirection.incoming
+    final String? counterpartyDepositId = swap.direction == P2pSwapDirection.incoming
         ? swap.initialHtlcId
         : swap.counterHtlcId;
     children.add(
@@ -154,7 +154,7 @@ class _HtlcSwapDetailsWidgetState extends State<HtlcSwapDetailsWidget>
       children: children.zip(
         List.generate(
           children.length - 1,
-          (index) => const SizedBox(
+          (int index) => const SizedBox(
             height: 15,
           ),
         ),

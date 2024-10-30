@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'package:logging/logging.dart';
 import 'package:lottie/lottie.dart';
+import 'package:walletconnect_flutter_v2/apis/core/pairing/utils/pairing_models.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/model/model.dart';
@@ -42,8 +43,8 @@ class _SplashScreenState extends State<SplashScreen> {
   Widget build(BuildContext context) {
     return FutureBuilder<LottieComposition>(
       future: _composition,
-      builder: (context, snapshot) {
-        final composition = snapshot.data;
+      builder: (BuildContext context, AsyncSnapshot<LottieComposition> snapshot) {
+        final LottieComposition? composition = snapshot.data;
         if (composition != null) {
           Future.delayed(composition.duration, _splashInits);
           return Lottie(
@@ -116,15 +117,15 @@ class _SplashScreenState extends State<SplashScreen> {
     await Hive.close();
     await Future.forEach<String>(
       kCacheBoxesToBeDeleted,
-      (boxName) async => Hive.deleteBoxFromDisk(boxName),
+      (String boxName) async => Hive.deleteBoxFromDisk(boxName),
     );
     await _deleteWeb3Cache();
   }
 
   Future<void> _deleteWeb3Cache() async {
     try {
-      final web3WalletService = sl<IWeb3WalletService>();
-      for (final pairing in web3WalletService.pairings.value) {
+      final IWeb3WalletService web3WalletService = sl<IWeb3WalletService>();
+      for (final PairingInfo pairing in web3WalletService.pairings.value) {
         await web3WalletService.deactivatePairing(topic: pairing.topic);
       }
     } catch (e, stackTrace) {

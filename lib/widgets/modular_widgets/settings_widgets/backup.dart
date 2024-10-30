@@ -47,8 +47,8 @@ class _BackupWidgetState extends State<BackupWidget> {
 
   Future<void> _onBackupWalletPressed() async {
     kWalletFile!
-        .access((wallet) => Future.value((wallet as KeyStore).mnemonic!))
-        .then((value) => NavigationUtils.push(
+        .access((Wallet wallet) => Future.value((wallet as KeyStore).mnemonic!))
+        .then((String value) => NavigationUtils.push(
               context,
               ExportWalletInfoScreen(
                 value,

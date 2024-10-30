@@ -18,9 +18,9 @@ class LabeledInputContainer extends StatelessWidget {
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
+      children: <Widget>[
         Row(
-          children: [
+          children: <Widget>[
             Text(
               labelText,
               style: const TextStyle(

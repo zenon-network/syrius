@@ -37,7 +37,7 @@ class _ImportWalletDecryptScreenState extends State<ImportWalletDecryptScreen> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: <Widget>[
             Column(
-              children: [
+              children: <Widget>[
                 const ProgressBar(
                   currentLevel: 2,
                 ),
@@ -58,11 +58,11 @@ class _ImportWalletDecryptScreenState extends State<ImportWalletDecryptScreen> {
             PasswordInputField(
               hintText: 'Password',
               controller: _passwordController,
-              onChanged: (value) {
+              onChanged: (String value) {
                 setState(() {});
               },
               errorText: _passwordErrorText,
-              onSubmitted: (value) {
+              onSubmitted: (String value) {
                 if (_passwordController.text.isNotEmpty) {
                   _loadingButton.onPressed!();
                 }
@@ -109,16 +109,16 @@ class _ImportWalletDecryptScreenState extends State<ImportWalletDecryptScreen> {
 
   ViewModelBuilder<DecryptWalletFileBloc> _getDecryptKeyStoreFileViewModel() {
     return ViewModelBuilder<DecryptWalletFileBloc>.reactive(
-      onViewModelReady: (model) {
-        model.stream.listen((walletFile) {
+      onViewModelReady: (DecryptWalletFileBloc model) {
+        model.stream.listen((WalletFile? walletFile) {
           if (walletFile != null && walletFile is KeyStoreWalletFile) {
             _loadingButtonKey.currentState!.animateReverse();
             setState(() {
               _passwordErrorText = null;
             });
             walletFile
-                .access((wallet) => Future.value((wallet as KeyStore).mnemonic!))
-                .then((value) => NavigationUtils.push(
+                .access((Wallet wallet) => Future.value((wallet as KeyStore).mnemonic!))
+                .then((String value) => NavigationUtils.push(
                     context, ImportWalletPasswordScreen(value),),);
           }
         }, onError: (error) {
@@ -134,7 +134,7 @@ class _ImportWalletDecryptScreenState extends State<ImportWalletDecryptScreen> {
           }
         },);
       },
-      builder: (_, model, __) {
+      builder: (_, DecryptWalletFileBloc model, __) {
         _loadingButton = _getLoadingButton(model);
         return _getLoadingButton(model);
       },

@@ -42,11 +42,11 @@ class _InfiniteScrollTableState<T> extends State<InfiniteScrollTable<T>> {
 
   @override
   void initState() {
-    _pagingController.addPageRequestListener((pageKey) {
+    _pagingController.addPageRequestListener((int pageKey) {
       widget.bloc.onPageRequestSink.add(pageKey);
     });
     _blocListingStateSubscription =
-        widget.bloc.onNewListingState.listen((listingState) {
+        widget.bloc.onNewListingState.listen((InfiniteScrollBlocListingState<T> listingState) {
       _pagingController.value = PagingState(
         nextPageKey: listingState.nextPageKey,
         error: listingState.error,
@@ -59,7 +59,7 @@ class _InfiniteScrollTableState<T> extends State<InfiniteScrollTable<T>> {
   @override
   Widget build(BuildContext context) {
     return Column(
-      children: [
+      children: <Widget>[
         Visibility(
           visible: widget.headerColumns != null,
           child: _getTableHeader(),
@@ -71,7 +71,7 @@ class _InfiniteScrollTableState<T> extends State<InfiniteScrollTable<T>> {
               scrollController: _scrollController,
               pagingController: _pagingController,
               builderDelegate: PagedChildBuilderDelegate<T>(
-                itemBuilder: (_, item, index) => _getTableRow(
+                itemBuilder: (_, item, int index) => _getTableRow(
                   item,
                   index,
                 ),
@@ -107,19 +107,19 @@ class _InfiniteScrollTableState<T> extends State<InfiniteScrollTable<T>> {
       ),
       child: Row(
         children: List<Widget>.from(
-              [
+              <SizedBox>[
                 const SizedBox(
                   width: 20,
                 ),
               ],
             ) +
-            (widget.headerColumns ?? []),
+            (widget.headerColumns ?? <Widget>[]),
       ),
     );
   }
 
   Widget _getTableRow(dynamic item, int indexOfRow) {
-    final isSelected = _selectedRowIndex == indexOfRow;
+    final bool isSelected = _selectedRowIndex == indexOfRow;
 
     return InkWell(
       onTap: () {
@@ -157,7 +157,7 @@ class _InfiniteScrollTableState<T> extends State<InfiniteScrollTable<T>> {
         ),
         child: Row(
           children: List<Widget>.from(
-                [
+                <SizedBox>[
                   const SizedBox(
                     width: 20,
                   ),
@@ -201,7 +201,7 @@ class InfiniteScrollTableHeaderColumn extends StatelessWidget {
       flex: flex,
       child: Row(
         mainAxisAlignment: contentAlign,
-        children: [
+        children: <Widget>[
           Expanded(
             child: Text(
               columnName,
@@ -242,7 +242,7 @@ class InfiniteScrollTableCell extends StatelessWidget {
   }) =>
       InfiniteScrollTableCell(
         Row(
-          children: [
+          children: <Widget>[
             Expanded(
               child: Tooltip(
                 message: address.toString(),
@@ -286,7 +286,7 @@ class InfiniteScrollTableCell extends StatelessWidget {
   }) =>
       InfiniteScrollTableCell(
         Row(
-          children: [
+          children: <Widget>[
             Expanded(
               child: Container(
                 margin: const EdgeInsets.only(
@@ -307,7 +307,7 @@ class InfiniteScrollTableCell extends StatelessWidget {
             Visibility(
               visible: showCopyToClipboardIcon,
               child: Row(
-                children: [
+                children: <Widget>[
                   CopyToClipboardIcon(
                     text,
                     materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
@@ -336,7 +336,7 @@ class InfiniteScrollTableCell extends StatelessWidget {
   }) =>
       InfiniteScrollTableCell(
         Row(
-          children: [
+          children: <Widget>[
             Expanded(
               child: Tooltip(
                 message: address.toString(),
@@ -354,7 +354,7 @@ class InfiniteScrollTableCell extends StatelessWidget {
             Visibility(
               visible: showCopyToClipboardIcon,
               child: Row(
-                children: [
+                children: <Widget>[
                   CopyToClipboardIcon(
                     address.toString(),
                     materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
@@ -383,7 +383,7 @@ class InfiniteScrollTableCell extends StatelessWidget {
   }) =>
       InfiniteScrollTableCell(
         Row(
-          children: [
+          children: <Widget>[
             Expanded(
               child: Text(
                 text,
@@ -397,7 +397,7 @@ class InfiniteScrollTableCell extends StatelessWidget {
             Visibility(
               visible: showCopyToClipboardIcon,
               child: Row(
-                children: [
+                children: <Widget>[
                   CopyToClipboardIcon(
                     text,
                     materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,

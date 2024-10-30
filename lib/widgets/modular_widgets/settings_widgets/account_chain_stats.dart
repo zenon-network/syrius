@@ -52,7 +52,7 @@ class _AccountChainStatsState extends State<AccountChainStatsWidget> {
                 ),
                 Stack(
                   alignment: Alignment.center,
-                  children: [
+                  children: <Widget>[
                     NumberAnimation(
                       end: stats.blockCount,
                       isInt: true,
@@ -88,7 +88,7 @@ class _AccountChainStatsState extends State<AccountChainStatsWidget> {
                   ),
                 ),
                 Row(
-                  children: [
+                  children: <Widget>[
                     Expanded(
                       child: Container(
                         padding: const EdgeInsets.only(
@@ -131,7 +131,7 @@ class _AccountChainStatsState extends State<AccountChainStatsWidget> {
     AccountChainStats stats,
     BlockTypeEnum blockType,
   ) {
-    final blockTypeCount = stats.blockTypeNumOfBlocksMap[blockType]!;
+    final int blockTypeCount = stats.blockTypeNumOfBlocksMap[blockType]!;
 
     return PieChartSectionData(
       showTitle: false,
@@ -144,7 +144,7 @@ class _AccountChainStatsState extends State<AccountChainStatsWidget> {
   Widget _getStreamBuilder() {
     return StreamBuilder<AccountChainStats?>(
       stream: widget.accountChainStatsBloc.stream,
-      builder: (_, snapshot) {
+      builder: (_, AsyncSnapshot<AccountChainStats?> snapshot) {
         if (snapshot.hasError) {
           return SyriusErrorWidget(snapshot.error!);
         }
@@ -162,7 +162,7 @@ class _AccountChainStatsState extends State<AccountChainStatsWidget> {
   List<PieChartSectionData> _getChartSections(AccountChainStats stats) =>
       List.generate(
         BlockTypeEnum.values.length,
-        (index) => _getChartSection(
+        (int index) => _getChartSection(
           stats,
           BlockTypeEnum.values.elementAt(index),
         ),
@@ -179,7 +179,7 @@ class _AccountChainStatsState extends State<AccountChainStatsWidget> {
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
-        children: [
+        children: <Widget>[
           Text(
             '● ',
             style: Theme.of(context).textTheme.bodyMedium!.copyWith(
@@ -203,14 +203,14 @@ class _AccountChainStatsState extends State<AccountChainStatsWidget> {
   }
 
   Widget _getChartLegend(AccountChainStats stats) {
-    final typesWithBlocks = stats.blockTypeNumOfBlocksMap.keys
-        .where((key) => stats.blockTypeNumOfBlocksMap[key]! > 0)
+    final List<BlockTypeEnum> typesWithBlocks = stats.blockTypeNumOfBlocksMap.keys
+        .where((BlockTypeEnum key) => stats.blockTypeNumOfBlocksMap[key]! > 0)
         .toList();
 
     return ListView.builder(
       shrinkWrap: true,
       itemCount: typesWithBlocks.length,
-      itemBuilder: (context, index) => _getBlockTypeCountDetails(
+      itemBuilder: (BuildContext context, int index) => _getBlockTypeCountDetails(
         typesWithBlocks[index],
         stats.blockTypeNumOfBlocksMap[typesWithBlocks[index]],
       ),

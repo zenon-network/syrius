@@ -27,7 +27,7 @@ class CopyToClipboardIcon extends StatefulWidget {
 }
 
 class _CopyToClipboardIcon extends State<CopyToClipboardIcon> {
-  final _iconSize = 15.0;
+  final double _iconSize = 15;
   bool _isCopied = false;
 
   @override

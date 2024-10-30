@@ -90,7 +90,7 @@ class P2pSwap {
   String? toSymbol;
   int? toDecimals;
 
-  Map<String, dynamic> toJson() => {
+  Map<String, dynamic> toJson() => <String, dynamic>{
         'id': id,
         'chainId': chainId,
         'type': type.name,

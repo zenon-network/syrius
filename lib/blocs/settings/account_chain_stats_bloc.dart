@@ -8,19 +8,19 @@ class AccountChainStatsBloc
     extends BaseBlocForReloadingIndicator<AccountChainStats> {
   @override
   Future<AccountChainStats> getDataAsync() async {
-    final accountInfo = await zenon!.ledger.getAccountInfoByAddress(
+    final AccountInfo accountInfo = await zenon!.ledger.getAccountInfoByAddress(
       Address.parse(
         kSelectedAddress!,
       ),
     );
 
-    final pageSize = accountInfo.blockCount!;
-    final pageCount = ((pageSize + 1) / rpcMaxPageSize).ceil();
+    final int pageSize = accountInfo.blockCount!;
+    final int pageCount = ((pageSize + 1) / rpcMaxPageSize).ceil();
 
     if (pageSize > 0) {
-      final allBlocks = <AccountBlock>[];
+      final List<AccountBlock> allBlocks = <AccountBlock>[];
 
-      for (var i = 0; i < pageCount; i++) {
+      for (int i = 0; i < pageCount; i++) {
         allBlocks.addAll((await zenon!.ledger.getAccountBlocksByHeight(
               Address.parse(
                 kSelectedAddress!,
@@ -28,7 +28,7 @@ class AccountChainStatsBloc
               (rpcMaxPageSize * i) + 1,
             ))
                 .list ??
-            [],);
+            <AccountBlock>[],);
       }
 
       return AccountChainStats(
@@ -44,8 +44,8 @@ class AccountChainStatsBloc
   Map<BlockTypeEnum, int> _getNumOfBlocksForEachBlockType(
           List<AccountBlock> blocks,) =>
       BlockTypeEnum.values.fold<Map<BlockTypeEnum, int>>(
-        {},
-        (previousValue, blockType) {
+        <BlockTypeEnum, int>{},
+        (Map<BlockTypeEnum, int> previousValue, BlockTypeEnum blockType) {
           previousValue[blockType] =
               _getNumOfBlockForBlockType(blocks, blockType);
           return previousValue;
@@ -56,7 +56,7 @@ class AccountChainStatsBloc
           List<AccountBlock> blocks, BlockTypeEnum blockType,) =>
       blocks.fold<int>(
         0,
-        (int previousValue, element) {
+        (int previousValue, AccountBlock element) {
           if (element.blockType == blockType.index) {
             return previousValue + 1;
           }

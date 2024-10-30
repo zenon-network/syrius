@@ -29,8 +29,8 @@ class BulletPointCard extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: bulletPoints
-              .map((e) => Row(
-                    children: [
+              .map((RichText e) => Row(
+                    children: <Widget>[
                       const Text('●',
                           style: TextStyle(
                               fontSize: 14, color: AppColors.subtitleColor,),),
@@ -42,7 +42,7 @@ class BulletPointCard extends StatelessWidget {
               .zip(
                 List.generate(
                   bulletPoints.length - 1,
-                  (index) => const SizedBox(
+                  (int index) => const SizedBox(
                     height: 15,
                   ),
                 ),

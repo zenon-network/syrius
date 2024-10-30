@@ -59,7 +59,7 @@ class _NativeP2pSwapModalState extends State<NativeP2pSwapModal> {
   Widget build(BuildContext context) {
     return StreamBuilder<HtlcSwap>(
       stream: _htlcSwapBloc.stream,
-      builder: (_, snapshot) {
+      builder: (_, AsyncSnapshot<HtlcSwap> snapshot) {
         if (snapshot.hasData) {
           return BaseModal(
             title: _getTitle(snapshot.data!),
@@ -104,7 +104,7 @@ class _NativeP2pSwapModalState extends State<NativeP2pSwapModal> {
       height: 215,
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
-        children: [
+        children: <Widget>[
           Text(
             'Starting swap. This will take a moment.',
             style: TextStyle(
@@ -120,7 +120,7 @@ class _NativeP2pSwapModalState extends State<NativeP2pSwapModal> {
 
   Widget _getActiveView(HtlcSwap swap) {
     return Column(
-      children: [
+      children: <Widget>[
         const SizedBox(
           height: 20,
         ),
@@ -148,7 +148,7 @@ class _NativeP2pSwapModalState extends State<NativeP2pSwapModal> {
   Widget _getCompletedView(HtlcSwap swap) {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
-      children: [
+      children: <Widget>[
         const SizedBox(
           height: 10,
         ),
@@ -179,10 +179,10 @@ class _NativeP2pSwapModalState extends State<NativeP2pSwapModal> {
           child: Padding(
             padding: const EdgeInsets.all(20),
             child: Column(
-              children: [
+              children: <Widget>[
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
+                  children: <Widget>[
                     const Text(
                       'From',
                       style: TextStyle(
@@ -198,7 +198,7 @@ class _NativeP2pSwapModalState extends State<NativeP2pSwapModal> {
                 ),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
+                  children: <Widget>[
                     const Text(
                       'To',
                       style: TextStyle(
@@ -214,7 +214,7 @@ class _NativeP2pSwapModalState extends State<NativeP2pSwapModal> {
                 ),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
+                  children: <Widget>[
                     const Text(
                       'Exchange Rate',
                       style: TextStyle(
@@ -236,16 +236,16 @@ class _NativeP2pSwapModalState extends State<NativeP2pSwapModal> {
   }
 
   Widget _getUnsuccessfulView(HtlcSwap swap) {
-    final expiration = swap.direction == P2pSwapDirection.outgoing
+    final int? expiration = swap.direction == P2pSwapDirection.outgoing
         ? swap.initialHtlcExpirationTime
         : swap.counterHtlcExpirationTime;
-    final remainingDuration =
+    final Duration remainingDuration =
         Duration(seconds: (expiration ?? 0) - DateTimeUtils.unixTimeNow);
-    final isReclaimable = remainingDuration.inSeconds <= 0 &&
+    final bool isReclaimable = remainingDuration.inSeconds <= 0 &&
         swap.state == P2pSwapState.reclaimable;
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
-      children: [
+      children: <Widget>[
         const SizedBox(
           height: 10,
         ),
@@ -279,7 +279,7 @@ class _NativeP2pSwapModalState extends State<NativeP2pSwapModal> {
           child: Padding(
             padding: const EdgeInsets.all(20),
             child: Column(
-              children: [
+              children: <Widget>[
                 if (remainingDuration.inSeconds > 0)
                   TweenAnimationBuilder<Duration>(
                     duration: remainingDuration,
@@ -292,7 +292,7 @@ class _NativeP2pSwapModalState extends State<NativeP2pSwapModal> {
                           padding: const EdgeInsets.only(bottom: 15),
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
+                            children: <Widget>[
                               const Text(
                                 'Deposit expires in',
                                 style: TextStyle(
@@ -313,7 +313,7 @@ class _NativeP2pSwapModalState extends State<NativeP2pSwapModal> {
                   ),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
+                  children: <Widget>[
                     Text(
                       swap.state == P2pSwapState.reclaimable
                           ? 'Deposited amount'
@@ -346,7 +346,7 @@ class _NativeP2pSwapModalState extends State<NativeP2pSwapModal> {
   Widget _getBottomSection(HtlcSwap swap) {
     if (swap.counterHtlcId == null) {
       return Column(
-        children: [
+        children: <Widget>[
           const Padding(
             padding: EdgeInsets.symmetric(horizontal: 10),
             child: Text(
@@ -377,12 +377,12 @@ class _NativeP2pSwapModalState extends State<NativeP2pSwapModal> {
       );
     } else {
       return Column(
-        children: [
+        children: <Widget>[
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 10),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
+              children: <Widget>[
                 const Text(
                   'Exchange Rate',
                   style: TextStyle(
@@ -400,7 +400,7 @@ class _NativeP2pSwapModalState extends State<NativeP2pSwapModal> {
           Visibility(
             visible: swap.direction == P2pSwapDirection.outgoing,
             child: Column(
-              children: [
+              children: <Widget>[
                 Visibility(
                   visible: !isTrustedToken(swap.toTokenStandard ?? ''),
                   child: Padding(
@@ -440,8 +440,8 @@ class _NativeP2pSwapModalState extends State<NativeP2pSwapModal> {
   }
 
   Widget _getExpirationWarningForOutgoingSwap(HtlcSwap swap) {
-    const warningThreshold = Duration(minutes: 10);
-    final timeToCompleteSwap = Duration(
+    const Duration warningThreshold = Duration(minutes: 10);
+    final Duration timeToCompleteSwap = Duration(
             seconds:
                 swap.counterHtlcExpirationTime! - DateTimeUtils.unixTimeNow,) -
         kMinSafeTimeToCompleteSwap;
@@ -465,9 +465,9 @@ class _NativeP2pSwapModalState extends State<NativeP2pSwapModal> {
 
   Widget _getSwapButtonViewModel(HtlcSwap swap) {
     return ViewModelBuilder<CompleteHtlcSwapBloc>.reactive(
-      onViewModelReady: (model) {
+      onViewModelReady: (CompleteHtlcSwapBloc model) {
         model.stream.listen(
-          (event) async {
+          (HtlcSwap? event) async {
             if (event is HtlcSwap) {
               setState(() {
                 _swapCompletedText =
@@ -483,7 +483,7 @@ class _NativeP2pSwapModalState extends State<NativeP2pSwapModal> {
           },
         );
       },
-      builder: (_, model, __) => InstructionButton(
+      builder: (_, CompleteHtlcSwapBloc model, __) => InstructionButton(
         text: 'Swap',
         isEnabled: true,
         isLoading: _isSendingTransaction,
@@ -543,7 +543,7 @@ class _NativeP2pSwapModalState extends State<NativeP2pSwapModal> {
 
   Widget _getReclaimButton(HtlcSwap swap) {
     return ViewModelBuilder<ReclaimHtlcSwapFundsBloc>.reactive(
-      onViewModelReady: (model) {
+      onViewModelReady: (ReclaimHtlcSwapFundsBloc model) {
         model.stream.listen(
           null,
           onError: (error) {
@@ -553,7 +553,7 @@ class _NativeP2pSwapModalState extends State<NativeP2pSwapModal> {
           },
         );
       },
-      builder: (_, model, __) => InstructionButton(
+      builder: (_, ReclaimHtlcSwapFundsBloc model, __) => InstructionButton(
         text: 'Reclaim funds',
         isEnabled: true,
         isLoading: _isSendingTransaction,
@@ -586,7 +586,7 @@ class _NativeP2pSwapModalState extends State<NativeP2pSwapModal> {
 
   Widget _getAmountAndSymbolWidget(String amount, String symbol) {
     return Row(
-      children: [
+      children: <Widget>[
         Container(
           constraints: const BoxConstraints(maxWidth: 150),
           child: Text(

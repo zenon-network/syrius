@@ -34,9 +34,9 @@ class _PillarListWidgetState extends State<PillarListWidget> {
   final PillarsListBloc _pillarsListBloc = PillarsListBloc();
   final DelegationInfoBloc _delegationInfoBloc = DelegationInfoBloc();
 
-  final List<PillarInfo> _pillarInfoWrappers = [];
+  final List<PillarInfo> _pillarInfoWrappers = <PillarInfo>[];
 
-  final Map<String, GlobalKey<LoadingButtonState>> _delegateButtonKeys = {};
+  final Map<String, GlobalKey<LoadingButtonState>> _delegateButtonKeys = <String, GlobalKey<LoadingButtonState>>{};
 
   bool _sortAscending = true;
 
@@ -50,11 +50,11 @@ class _PillarListWidgetState extends State<PillarListWidget> {
   void initState() {
     super.initState();
     sl.get<BalanceBloc>().getBalanceForAllAddresses();
-    _pagingController.addPageRequestListener((pageKey) {
+    _pagingController.addPageRequestListener((int pageKey) {
       _pillarsListBloc.onPageRequestSink.add(pageKey);
     });
     _blocListingStateSubscription = _pillarsListBloc.onNewListingState.listen(
-      (listingState) {
+      (InfiniteScrollBlocListingState<PillarInfo> listingState) {
         _pagingController.value = PagingState(
           nextPageKey: listingState.nextPageKey,
           error: listingState.error,
@@ -93,7 +93,7 @@ class _PillarListWidgetState extends State<PillarListWidget> {
   ) {
     return StreamBuilder<DelegationInfo?>(
       stream: _delegationInfoBloc.stream,
-      builder: (_, snapshot) {
+      builder: (_, AsyncSnapshot<DelegationInfo?> snapshot) {
         if (snapshot.hasError) {
           return SyriusErrorWidget(snapshot.error!);
         }
@@ -112,7 +112,7 @@ class _PillarListWidgetState extends State<PillarListWidget> {
 
   Widget _getTable(PillarsListBloc bloc) {
     return Column(
-      children: [
+      children: <Widget>[
         _getTableHeader(bloc),
         Expanded(
           child: Scrollbar(
@@ -121,7 +121,7 @@ class _PillarListWidgetState extends State<PillarListWidget> {
               scrollController: _scrollController,
               pagingController: _pagingController,
               builderDelegate: PagedChildBuilderDelegate<PillarInfo>(
-                itemBuilder: (_, item, index) => _getTableRow(
+                itemBuilder: (_, PillarInfo item, int index) => _getTableRow(
                   item,
                   index,
                 ),
@@ -155,13 +155,13 @@ class _PillarListWidgetState extends State<PillarListWidget> {
       ),
       child: Row(
           children: List<Widget>.from(
-                [
+                <SizedBox>[
                   const SizedBox(
                     width: 20,
                   ),
                 ],
               ) +
-              [
+              <Widget>[
                 InfiniteScrollTableHeaderColumn(
                   columnName: 'Name',
                   onSortArrowsPressed: _onSortArrowsPressed,
@@ -193,12 +193,12 @@ class _PillarListWidgetState extends State<PillarListWidget> {
                   width: 5,
                 ),
               ] +
-              [
+              <Widget>[
                 SizedBox(
                     width: 110,
                     child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
+                        children: <Widget>[
                           Visibility(
                             visible: _delegationInfo?.name != null,
                             child: _getUndelegateButtonViewModel(bloc),
@@ -209,7 +209,7 @@ class _PillarListWidgetState extends State<PillarListWidget> {
   }
 
   Widget _getTableRow(dynamic item, int indexOfRow) {
-    final isSelected = _selectedRowIndex == indexOfRow;
+    final bool isSelected = _selectedRowIndex == indexOfRow;
 
     return InkWell(
       onTap: () {
@@ -246,14 +246,14 @@ class _PillarListWidgetState extends State<PillarListWidget> {
         ),
         child: Row(
             children: List<Widget>.from(
-                  [
+                  <SizedBox>[
                     const SizedBox(
                       width: 20,
                     ),
                   ],
                 ) +
                 generateRowCells(item, isSelected) +
-                [
+                <Widget>[
                   const SizedBox(
                     width: 110,
                   ),
@@ -270,7 +270,7 @@ class _PillarListWidgetState extends State<PillarListWidget> {
     PillarInfo pillarInfo,
     bool isSelected,
   ) {
-    return [
+    return <InfiniteScrollTableCell>[
       InfiniteScrollTableCell.withText(
         context,
         pillarInfo.name,
@@ -293,7 +293,7 @@ class _PillarListWidgetState extends State<PillarListWidget> {
             kZnnCoin.decimals,
           ),
           tokenSymbol: kZnnCoin.symbol,
-          builder: (formattedAmount, tokenSymbol) => Text(
+          builder: (String formattedAmount, String tokenSymbol) => Text(
             '$formattedAmount $tokenSymbol',
             style: Theme.of(context).textTheme.titleMedium!.copyWith(
                   color: _isStakeAddressDefault(pillarInfo)
@@ -338,7 +338,7 @@ class _PillarListWidgetState extends State<PillarListWidget> {
     PillarsListBloc model,
   ) {
     return Row(
-      children: [
+      children: <Widget>[
         Visibility(
           visible: _currentlyDelegatingToPillar == null
               ? true
@@ -383,7 +383,7 @@ class _PillarListWidgetState extends State<PillarListWidget> {
     return Visibility(
       visible: _isStakeAddressDefault(pillarItem),
       child: Row(
-        children: [
+        children: <Widget>[
           Visibility(
             visible: pillarItem.isRevocable,
             child: _getDisassemblePillarViewModel(
@@ -441,9 +441,9 @@ class _PillarListWidgetState extends State<PillarListWidget> {
     PillarInfo pillarInfo,
   ) {
     return ViewModelBuilder<DisassemblePillarBloc>.reactive(
-      onViewModelReady: (model) {
+      onViewModelReady: (DisassemblePillarBloc model) {
         model.stream.listen(
-          (event) {
+          (AccountBlockTemplate? event) {
             if (event != null) {
               pillarsListModel.refreshResults();
             }
@@ -456,9 +456,9 @@ class _PillarListWidgetState extends State<PillarListWidget> {
           },
         );
       },
-      builder: (_, model, __) => StreamBuilder<AccountBlockTemplate?>(
+      builder: (_, DisassemblePillarBloc model, __) => StreamBuilder<AccountBlockTemplate?>(
         stream: model.stream,
-        builder: (_, snapshot) {
+        builder: (_, AsyncSnapshot<AccountBlockTemplate?> snapshot) {
           if (snapshot.hasError) {
             return _getDisassembleButton(isSelected, model, pillarInfo);
           }
@@ -495,7 +495,7 @@ class _PillarListWidgetState extends State<PillarListWidget> {
           : null,
       child: Row(
         mainAxisSize: MainAxisSize.min,
-        children: [
+        children: <Widget>[
           Text(
             'DISASSEMBLE',
             style: isSelected
@@ -541,22 +541,22 @@ class _PillarListWidgetState extends State<PillarListWidget> {
     switch (columnName) {
       case 'Name':
         _sortAscending
-            ? _pillarInfoWrappers.sort((a, b) => a.name.compareTo(b.name))
-            : _pillarInfoWrappers.sort((a, b) => b.name.compareTo(a.name));
+            ? _pillarInfoWrappers.sort((PillarInfo a, PillarInfo b) => a.name.compareTo(b.name))
+            : _pillarInfoWrappers.sort((PillarInfo a, PillarInfo b) => b.name.compareTo(a.name));
       case 'Producer Address':
         _sortAscending
             ? _pillarInfoWrappers
-                .sort((a, b) => a.producerAddress.compareTo(b.producerAddress))
+                .sort((PillarInfo a, PillarInfo b) => a.producerAddress.compareTo(b.producerAddress))
             : _pillarInfoWrappers
-                .sort((a, b) => b.producerAddress.compareTo(a.producerAddress));
+                .sort((PillarInfo a, PillarInfo b) => b.producerAddress.compareTo(a.producerAddress));
       case 'Weight':
         _sortAscending
-            ? _pillarInfoWrappers.sort((a, b) => a.weight.compareTo(b.weight))
-            : _pillarInfoWrappers.sort((a, b) => b.weight.compareTo(a.weight));
+            ? _pillarInfoWrappers.sort((PillarInfo a, PillarInfo b) => a.weight.compareTo(b.weight))
+            : _pillarInfoWrappers.sort((PillarInfo a, PillarInfo b) => b.weight.compareTo(a.weight));
       default:
         _sortAscending
-            ? _pillarInfoWrappers.sort((a, b) => a.name.compareTo(b.name))
-            : _pillarInfoWrappers.sort((a, b) => b.name.compareTo(a.name));
+            ? _pillarInfoWrappers.sort((PillarInfo a, PillarInfo b) => a.name.compareTo(b.name))
+            : _pillarInfoWrappers.sort((PillarInfo a, PillarInfo b) => b.name.compareTo(a.name));
         break;
     }
 
@@ -566,12 +566,12 @@ class _PillarListWidgetState extends State<PillarListWidget> {
   }
 
   Widget _getUndelegateButtonViewModel(PillarsListBloc pillarsModel) {
-    final undelegateButtonKey = GlobalKey<LoadingButtonState>();
+    final GlobalKey<LoadingButtonState> undelegateButtonKey = GlobalKey<LoadingButtonState>();
 
     return ViewModelBuilder<UndelegateButtonBloc>.reactive(
-      onViewModelReady: (model) {
+      onViewModelReady: (UndelegateButtonBloc model) {
         model.stream.listen(
-          (event) {
+          (AccountBlockTemplate? event) {
             if (event != null) {
               undelegateButtonKey.currentState?.animateReverse();
               _delegationInfoBloc.updateStream();
@@ -586,7 +586,7 @@ class _PillarListWidgetState extends State<PillarListWidget> {
           },
         );
       },
-      builder: (_, model, __) => _getUndelegateButton(
+      builder: (_, UndelegateButtonBloc model, __) => _getUndelegateButton(
         model,
         undelegateButtonKey,
       ),
@@ -600,7 +600,7 @@ class _PillarListWidgetState extends State<PillarListWidget> {
   ) {
     return StreamBuilder<Map<String?, AccountInfo>?>(
       stream: sl.get<BalanceBloc>().stream,
-      builder: (_, snapshot) {
+      builder: (_, AsyncSnapshot<Map<String?, AccountInfo>?> snapshot) {
         if (snapshot.hasError) {
           return Expanded(child: SyriusErrorWidget(snapshot.error!));
         }
@@ -638,9 +638,9 @@ class _PillarListWidgetState extends State<PillarListWidget> {
               ? true
               : _currentlyDelegatingToPillar == pillarInfo.name),
       child: ViewModelBuilder<DelegateButtonBloc>.reactive(
-        onViewModelReady: (model) {
+        onViewModelReady: (DelegateButtonBloc model) {
           model.stream.listen(
-            (event) {
+            (AccountBlockTemplate? event) {
               if (event != null) {
                 _delegationInfoBloc.updateStream();
                 delegateButtonKey.currentState?.animateReverse();
@@ -661,7 +661,7 @@ class _PillarListWidgetState extends State<PillarListWidget> {
             },
           );
         },
-        builder: (_, model, __) => _getDelegateButton(
+        builder: (_, DelegateButtonBloc model, __) => _getDelegateButton(
           pillarInfo,
           model,
           delegateButtonKey,
@@ -680,7 +680,7 @@ class _PillarListWidgetState extends State<PillarListWidget> {
   }
 
   int _getMomentumsPercentage(PillarInfo pillarInfo) {
-    final percentage =
+    final double percentage =
         pillarInfo.producedMomentums / pillarInfo.expectedMomentums * 100;
     if (percentage.isNaN) {
       return 0;

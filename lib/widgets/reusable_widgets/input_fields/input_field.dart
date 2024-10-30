@@ -64,12 +64,12 @@ class _InputFieldState extends State<InputField> {
   @override
   Widget build(BuildContext context) {
     return TextFormField(
-      contextMenuBuilder: (context, editableTextState) {
+      contextMenuBuilder: (BuildContext context, EditableTextState editableTextState) {
         return AdaptiveTextSelectionToolbar(
             anchors: editableTextState.contextMenuAnchors,
             children: editableTextState.contextMenuButtonItems
                 .map((ContextMenuButtonItem buttonItem) {
-              return Row(children: [
+              return Row(children: <Widget>[
                 Expanded(
                     child: TextButton(
                   onPressed: buttonItem.onPressed,
@@ -88,7 +88,7 @@ class _InputFieldState extends State<InputField> {
       obscureText: widget.obscureText,
       onChanged: widget.onChanged,
       validator: widget.validator,
-      inputFormatters: widget.inputFormatters ?? [],
+      inputFormatters: widget.inputFormatters ?? <TextInputFormatter>[],
       enabled: widget.enabled,
       controller: widget.controller,
       focusNode: widget.thisNode,

@@ -6,7 +6,7 @@ class DecryptWalletFileBloc extends BaseBloc<WalletFile?> {
   Future<void> decryptWalletFile(String path, String password) async {
     try {
       addEvent(null);
-      final walletFile = await WalletUtils.decryptWalletFile(path, password);
+      final WalletFile walletFile = await WalletUtils.decryptWalletFile(path, password);
       addEvent(walletFile);
     } catch (e, stackTrace) {
       addError(e, stackTrace);

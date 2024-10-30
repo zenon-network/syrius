@@ -10,7 +10,7 @@ class NavigationUtils {
     if (!RegExp('^http').hasMatch(url)) {
       url = 'http://$url';
     }
-    final uri = Uri.parse(url);
+    final Uri uri = Uri.parse(url);
     if (await canLaunchUrl(uri)) {
       await launchUrl(uri);
     } else {
@@ -46,7 +46,7 @@ class NavigationUtils {
   }
 
   static void popRepeated(context, int times) {
-    var count = 0;
-    Navigator.popUntil(context, (route) => count++ == times);
+    int count = 0;
+    Navigator.popUntil(context, (Route route) => count++ == times);
   }
 }

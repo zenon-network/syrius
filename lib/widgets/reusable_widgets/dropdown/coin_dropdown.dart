@@ -27,7 +27,7 @@ class CoinDropdown extends StatelessWidget {
           child: DropdownButton<Token>(
             value: _selectedToken,
             isDense: true,
-            selectedItemBuilder: (context) {
+            selectedItemBuilder: (BuildContext context) {
               return _availableTokens
                   .map<Widget>(
                     (Token? e) => Container(
@@ -41,7 +41,7 @@ class CoinDropdown extends StatelessWidget {
                       child: Padding(
                         padding: const EdgeInsets.only(left: 8),
                         child: Row(
-                          children: [
+                          children: <Widget>[
                             Text(
                               e.symbol,
                               style: Theme.of(context)

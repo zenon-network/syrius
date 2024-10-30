@@ -41,7 +41,7 @@ class _SendLargeCardState extends State<SendLargeCard> {
 
   final GlobalKey<LoadingButtonState> _sendPaymentButtonKey = GlobalKey();
 
-  final List<Token?> _tokensWithBalance = [];
+  final List<Token?> _tokensWithBalance = <Token?>[];
 
   Token _selectedToken = kDualCoin.first;
 
@@ -67,7 +67,7 @@ class _SendLargeCardState extends State<SendLargeCard> {
   Widget _getBalanceStreamBuilder() {
     return StreamBuilder<Map<String, AccountInfo>?>(
       stream: sl.get<TransferWidgetsBalanceBloc>().stream,
-      builder: (_, snapshot) {
+      builder: (_, AsyncSnapshot<Map<String, AccountInfo>?> snapshot) {
         if (snapshot.hasError) {
           return SyriusErrorWidget(snapshot.error!);
         }
@@ -103,7 +103,7 @@ class _SendLargeCardState extends State<SendLargeCard> {
               key: _recipientKey,
               autovalidateMode: AutovalidateMode.onUserInteraction,
               child: InputField(
-                onChanged: (value) {
+                onChanged: (String value) {
                   setState(() {});
                 },
                 controller: _recipientController,
@@ -142,14 +142,14 @@ class _SendLargeCardState extends State<SendLargeCard> {
                     key: _amountKey,
                     autovalidateMode: AutovalidateMode.onUserInteraction,
                     child: InputField(
-                      onChanged: (value) {
+                      onChanged: (String value) {
                         setState(() {});
                       },
                       inputFormatters: FormatUtils.getAmountTextInputFormatters(
                         _amountController.text,
                       ),
                       controller: _amountController,
-                      validator: (value) => InputValidators.correctValue(
+                      validator: (String? value) => InputValidators.correctValue(
                           value,
                           accountInfo.getBalance(
                             _selectedToken.tokenStandard,
@@ -195,7 +195,7 @@ class _SendLargeCardState extends State<SendLargeCard> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
+            children: <Widget>[
               Padding(
                 padding: const EdgeInsets.only(
                   left: 10,
@@ -240,7 +240,7 @@ class _SendLargeCardState extends State<SendLargeCard> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.end,
       mainAxisSize: MainAxisSize.min,
-      children: [
+      children: <Widget>[
         _getCoinDropdown(),
         const SizedBox(
           width: 5,
@@ -269,7 +269,7 @@ class _SendLargeCardState extends State<SendLargeCard> {
   Widget _getDefaultAddressDropdown() {
     return AddressesDropdown(
       _selectedSelfAddress,
-      (value) => setState(
+      (String? value) => setState(
         () {
           _selectedSelfAddress = value;
           _selectedToken = kDualCoin.first;
@@ -284,7 +284,7 @@ class _SendLargeCardState extends State<SendLargeCard> {
   Widget _getCoinDropdown() => CoinDropdown(
         _tokensWithBalance,
         _selectedToken,
-        (value) {
+        (Token? value) {
           if (_selectedToken != value) {
             setState(
               () {
@@ -296,7 +296,7 @@ class _SendLargeCardState extends State<SendLargeCard> {
       );
 
   void _onMaxPressed(AccountInfo accountInfo) {
-    final maxBalance = accountInfo.getBalance(
+    final BigInt maxBalance = accountInfo.getBalance(
       _selectedToken.tokenStandard,
     );
 
@@ -312,9 +312,9 @@ class _SendLargeCardState extends State<SendLargeCard> {
 
   Widget _getSendPaymentViewModel(AccountInfo? accountInfo) {
     return ViewModelBuilder<SendPaymentBloc>.reactive(
-      onViewModelReady: (model) {
+      onViewModelReady: (SendPaymentBloc model) {
         model.stream.listen(
-          (event) async {
+          (AccountBlockTemplate? event) async {
             if (event is AccountBlockTemplate) {
               await _sendConfirmationNotification();
               setState(() {
@@ -332,7 +332,7 @@ class _SendLargeCardState extends State<SendLargeCard> {
           },
         );
       },
-      builder: (_, model, __) => SendPaymentButton(
+      builder: (_, SendPaymentBloc model, __) => SendPaymentButton(
         onPressed: _hasBalance(accountInfo!) && _isInputValid(accountInfo)
             ? () => _onSendPaymentPressed(model)
             : null,
@@ -378,7 +378,7 @@ class _SendLargeCardState extends State<SendLargeCard> {
       BigInt.zero;
 
   void _addTokensWithBalance(AccountInfo accountInfo) {
-    for (final balanceInfo in accountInfo.balanceInfoList!) {
+    for (final BalanceInfoListItem balanceInfo in accountInfo.balanceInfoList!) {
       if (balanceInfo.balance! > BigInt.zero &&
           !_tokensWithBalance.contains(balanceInfo.token)) {
         _tokensWithBalance.add(balanceInfo.token);

@@ -34,7 +34,7 @@ class _NotificationsTabChildState extends State<NotificationsTabChild> {
           'wallet notifications',
       childBuilder: () => CustomTable<WalletNotification>(
           items: _notifications,
-          headerColumns: const [
+          headerColumns: const <CustomHeaderColumn>[
             CustomHeaderColumn(columnName: 'Description', flex: 5),
             CustomHeaderColumn(columnName: 'Date', flex: 2),
             CustomHeaderColumn(columnName: 'Time', flex: 2),
@@ -56,7 +56,7 @@ class _NotificationsTabChildState extends State<NotificationsTabChild> {
         iconPlacement: ExpandablePanelIconPlacement.right,
       ),
       header: Row(
-        children: [
+        children: <Widget>[
           notification.getIcon(),
           const SizedBox(
             width: 10,
@@ -72,7 +72,7 @@ class _NotificationsTabChildState extends State<NotificationsTabChild> {
       expanded: Padding(
         padding: const EdgeInsets.only(left: 14, top: 5, bottom: 5),
         child: Row(
-          children: [
+          children: <Widget>[
             Expanded(
               child: Text(
                 notification.details!,
@@ -95,8 +95,8 @@ class _NotificationsTabChildState extends State<NotificationsTabChild> {
 
   List<WalletNotification> _getNotificationsFromDb() {
     try {
-      final notificationsBox = Hive.box(kNotificationsBox);
-      final keys = notificationsBox.keys.toList();
+      final Box notificationsBox = Hive.box(kNotificationsBox);
+      final List keys = notificationsBox.keys.toList();
       if (keys.length >= kNotificationsResultLimit) {
         return List<WalletNotification>.from(
           notificationsBox.valuesBetween(
@@ -111,12 +111,12 @@ class _NotificationsTabChildState extends State<NotificationsTabChild> {
           )
           .toList();
     } catch (e) {
-      return [];
+      return <WalletNotification>[];
     }
   }
 
   Future<void> _deleteNotification(int? notificationTimestamp) async {
-    final notificationsBox = Hive.box(kNotificationsBox);
+    final Box notificationsBox = Hive.box(kNotificationsBox);
 
     final notificationKey = notificationsBox.keys.firstWhere(
       (key) => notificationsBox.get(key).timestamp == notificationTimestamp,
@@ -129,7 +129,7 @@ class _NotificationsTabChildState extends State<NotificationsTabChild> {
 
   void _loadNotifications() {
     _notifications = _getNotificationsFromDb();
-    _notifications!.sort((a, b) => b.timestamp!.compareTo(a.timestamp!));
+    _notifications!.sort((WalletNotification a, WalletNotification b) => b.timestamp!.compareTo(a.timestamp!));
   }
 
   List<Widget> _rowCellsGenerator<WalletNotification>(
@@ -137,7 +137,7 @@ class _NotificationsTabChildState extends State<NotificationsTabChild> {
     isSelected, {
     SentinelsListBloc? model,
   }) {
-    return [
+    return <Widget>[
       CustomTableCell(
         _getNotificationExpandablePanel(notification),
         flex: 5,

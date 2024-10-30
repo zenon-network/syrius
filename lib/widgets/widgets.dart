@@ -1,5 +1,4 @@
 export 'charts/pillar_rewards_chart.dart';
-export '../rearchitecture/dashboard/realtime_statistics/widgets/realtime_txs_chart.dart';
 export 'charts/sentinel_rewards_chart.dart';
 export 'charts/staking_rewards_chart.dart';
 export 'main_app_container.dart';

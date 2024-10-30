@@ -21,7 +21,7 @@ class TagWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Row(
-      children: [
+      children: <Widget>[
         InkWell(
           onTap: onPressed,
           borderRadius: BorderRadius.circular(50),
@@ -36,10 +36,10 @@ class TagWidget extends StatelessWidget {
                   : Theme.of(context).colorScheme.secondary,
             ),
             child: Row(
-              children: [
+              children: <Widget>[
                 if (iconData != null)
                   Row(
-                    children: [
+                    children: <Widget>[
                       Icon(
                         iconData,
                         color: Colors.white,

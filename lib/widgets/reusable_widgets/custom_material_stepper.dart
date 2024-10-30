@@ -231,7 +231,7 @@ class _StepperState extends State<Stepper> with TickerProviderStateMixin {
       (int i) => GlobalKey(),
     );
 
-    for (var i = 0; i < widget.steps.length; i += 1) {
+    for (int i = 0; i < widget.steps.length; i += 1) {
       _oldStates[i] = widget.steps[i].state;
     }
   }
@@ -241,7 +241,7 @@ class _StepperState extends State<Stepper> with TickerProviderStateMixin {
     super.didUpdateWidget(oldWidget);
     assert(widget.steps.length == oldWidget.steps.length);
 
-    for (var i = 0; i < oldWidget.steps.length; i += 1) {
+    for (int i = 0; i < oldWidget.steps.length; i += 1) {
       _oldStates[i] = oldWidget.steps[i].state;
     }
   }
@@ -271,9 +271,9 @@ class _StepperState extends State<Stepper> with TickerProviderStateMixin {
   }
 
   Widget? _buildCircleChild(int index, bool oldState) {
-    final state =
+    final StepState state =
         oldState ? _oldStates[index]! : widget.steps[index].state;
-    final isDarkActive = _isDark() && widget.steps[index].isActive;
+    final bool isDarkActive = _isDark() && widget.steps[index].isActive;
     switch (state) {
       case StepState.indexed:
       case StepState.disabled:
@@ -379,8 +379,8 @@ class _StepperState extends State<Stepper> with TickerProviderStateMixin {
   }
 
   TextStyle? _titleStyle(int index) {
-    final themeData = Theme.of(context);
-    final textTheme = themeData.textTheme;
+    final ThemeData themeData = Theme.of(context);
+    final TextTheme textTheme = themeData.textTheme;
 
     switch (widget.steps[index].state) {
       case StepState.indexed:
@@ -397,8 +397,8 @@ class _StepperState extends State<Stepper> with TickerProviderStateMixin {
   }
 
   TextStyle? _subtitleStyle(int index) {
-    final themeData = Theme.of(context);
-    final textTheme = themeData.textTheme;
+    final ThemeData themeData = Theme.of(context);
+    final TextTheme textTheme = themeData.textTheme;
 
     switch (widget.steps[index].state) {
       case StepState.indexed:
@@ -522,7 +522,7 @@ class _StepperState extends State<Stepper> with TickerProviderStateMixin {
             key: _keys[i],
             children: <Widget>[
               InkWell(
-                overlayColor: WidgetStateProperty.resolveWith((states) =>
+                overlayColor: WidgetStateProperty.resolveWith((Set<WidgetState> states) =>
                     states.contains(WidgetState.hovered)
                         ? Colors.transparent
                         : null,),
@@ -552,7 +552,7 @@ class _StepperState extends State<Stepper> with TickerProviderStateMixin {
   }
 
   Widget _buildHorizontal() {
-    final children = <Widget>[
+    final List<Widget> children = <Widget>[
       for (int i = 0; i < widget.steps.length; i += 1) ...<Widget>[
         InkResponse(
           onTap: widget.steps[i].state != StepState.disabled
@@ -663,10 +663,10 @@ class _TrianglePainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final base = size.width;
-    final halfBase = size.width / 2.0;
-    final height = size.height;
-    final points = <Offset>[
+    final double base = size.width;
+    final double halfBase = size.width / 2.0;
+    final double height = size.height;
+    final List<Offset> points = <Offset>[
       Offset(0, height),
       Offset(base, height),
       Offset(halfBase, 0),

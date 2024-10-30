@@ -38,7 +38,7 @@ class _ImportWalletSeedChoiceScreenState
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: <Widget>[
             Column(
-              children: [
+              children: <Widget>[
                 ProgressBar(
                   currentLevel: 1,
                   // If the seed is imported from a file, an extra step to decrypt the file is needed
@@ -118,10 +118,10 @@ class _ImportWalletSeedChoiceScreenState
                 } else {
                   showDialog(
                     context: context,
-                    builder: (context) => AlertDialog(
+                    builder: (BuildContext context) => AlertDialog(
                       title: const Text('Importing seed'),
                       content: const Text('Mnemonic is not valid'),
-                      actions: [
+                      actions: <Widget>[
                         TextButton(
                           child: const Text('OK'),
                           onPressed: () {
@@ -163,7 +163,7 @@ class _ImportWalletSeedChoiceScreenState
         setState(() {
           _isSeed12Selected = false;
           _seedGridKey.currentState!.changedSeed(
-            List.generate(24, (index) => ''),
+            List.generate(24, (int index) => ''),
           );
         });
       },
@@ -171,7 +171,7 @@ class _ImportWalletSeedChoiceScreenState
         setState(() {
           _isSeed12Selected = true;
           _seedGridKey.currentState!.changedSeed(
-            List.generate(12, (index) => ''),
+            List.generate(12, (int index) => ''),
           );
         });
       },
@@ -183,11 +183,11 @@ class _ImportWalletSeedChoiceScreenState
       _isSeed12Selected
           ? List.generate(
               12,
-              (index) => '',
+              (int index) => '',
             )
           : List.generate(
               24,
-              (index) => '',
+              (int index) => '',
             ),
       key: _seedGridKey,
       isContinueButtonDisabled: true,

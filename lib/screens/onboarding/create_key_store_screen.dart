@@ -44,10 +44,10 @@ class _CreateKeyStoreScreenState extends State<CreateKeyStoreScreen> {
         child: Center(
           child: StreamBuilder<KeyStoreWalletFile?>(
             stream: _keyStoreFileBloc.stream,
-            builder: (_, snapshot) {
+            builder: (_, AsyncSnapshot<KeyStoreWalletFile?> snapshot) {
               if (snapshot.hasData) {
                 return Column(
-                  children: [
+                  children: <Widget>[
                     ProgressBar(
                       currentLevel: widget.progressBarNumLevels - 1,
                       numLevels: widget.progressBarNumLevels,

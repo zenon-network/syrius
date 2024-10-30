@@ -63,7 +63,7 @@ class _TokenFavoriteState extends State<TokenFavorite> {
       _showLoading = true;
     });
     _favoriteTokensBox.add(widget.token.tokenStandard.toString()).then(
-      (value) async {
+      (int value) async {
         await sl.get<NotificationsBloc>().addNotification(
               WalletNotification(
                 title: '${widget.token.name} token has been added to favorites',

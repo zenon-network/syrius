@@ -25,7 +25,7 @@ class _DottedBorderInfoWidgetState extends State<DottedBorderInfoWidget> {
       color: widget.borderColor,
       borderType: BorderType.RRect,
       radius: const Radius.circular(6),
-      dashPattern: const [3.0],
+      dashPattern: const <double>[3],
       strokeWidth: 2,
       child: Row(
         mainAxisSize: MainAxisSize.min,

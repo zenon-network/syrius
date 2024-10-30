@@ -49,7 +49,7 @@ class _PillarCollectState extends State<PillarCollect> {
   Widget _getFutureBuilder() {
     return StreamBuilder<UncollectedReward?>(
       stream: _pillarCollectRewardsBloc.stream,
-      builder: (_, snapshot) {
+      builder: (_, AsyncSnapshot<UncollectedReward?> snapshot) {
         if (snapshot.hasError) {
           return SyriusErrorWidget(snapshot.error!);
         } else if (snapshot.hasData) {
@@ -66,7 +66,7 @@ class _PillarCollectState extends State<PillarCollect> {
   Widget _getWidgetBody(UncollectedReward uncollectedReward) {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
-      children: [
+      children: <Widget>[
         NumberAnimation(
           end: uncollectedReward.znnAmount
               .addDecimals(
@@ -102,7 +102,7 @@ class _PillarCollectState extends State<PillarCollect> {
         'collect Pillar rewards',
         waitForRequiredPlasma: true,
       ).then(
-        (response) async {
+        (AccountBlockTemplate response) async {
           await Future.delayed(kDelayAfterAccountBlockCreationCall);
           if (mounted) {
             _pillarCollectRewardsBloc.updateStream();

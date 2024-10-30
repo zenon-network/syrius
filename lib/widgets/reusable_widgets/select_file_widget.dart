@@ -32,8 +32,8 @@ class SelectFileWidgetState extends State<SelectFileWidget> {
   @override
   Widget build(BuildContext context) {
     return DropTarget(
-      onDragDone: (detail) {
-        final walletFilePath = detail.files.first.path;
+      onDragDone: (DropDoneDetails detail) {
+        final String walletFilePath = detail.files.first.path;
         if (walletFilePath.contains(widget.fileExtension ?? '')) {
           setState(() {
             widget.onPathFoundCallback(walletFilePath);
@@ -41,12 +41,12 @@ class SelectFileWidgetState extends State<SelectFileWidget> {
           });
         }
       },
-      onDragEntered: (detail) {
+      onDragEntered: (DropEventDetails detail) {
         setState(() {
           _dragging = true;
         });
       },
-      onDragExited: (detail) {
+      onDragExited: (DropEventDetails detail) {
         setState(() {
           _dragging = false;
         });
@@ -55,7 +55,7 @@ class SelectFileWidgetState extends State<SelectFileWidget> {
         onTap: () async {
           String? initialDirectory;
           initialDirectory = (await getApplicationDocumentsDirectory()).path;
-          final selectedFile = await openFile(
+          final XFile? selectedFile = await openFile(
             acceptedTypeGroups: <XTypeGroup>[
               XTypeGroup(
                 label: 'file',
@@ -76,7 +76,7 @@ class SelectFileWidgetState extends State<SelectFileWidget> {
           }
         },
         child: FocusableActionDetector(
-          onShowHoverHighlight: (x) {
+          onShowHoverHighlight: (bool x) {
             if (x) {
               setState(() {
                 _browseButtonHover = true;
@@ -93,7 +93,7 @@ class SelectFileWidgetState extends State<SelectFileWidget> {
                 ? AppColors.znnColor
                 : Theme.of(context).textTheme.headlineSmall!.color!,
             strokeWidth: 2,
-            dashPattern: const [8.0, 5.0],
+            dashPattern: const <double>[8, 5],
             radius: const Radius.circular(10),
             child: Container(
               height: 100,

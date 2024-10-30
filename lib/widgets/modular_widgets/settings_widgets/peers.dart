@@ -36,7 +36,7 @@ class _PeersWidget extends State<PeersWidget> {
   Widget _getTable() {
     return CustomTable<Peer>(
       items: _peers,
-      headerColumns: [
+      headerColumns: <CustomHeaderColumn>[
         CustomHeaderColumn(
           columnName: 'IP',
           onSortArrowsPressed: _onSortArrowsPressed,
@@ -48,8 +48,8 @@ class _PeersWidget extends State<PeersWidget> {
           contentAlign: MainAxisAlignment.center,
         ),
       ],
-      generateRowCells: (peer, isSelected, {SentinelsListBloc? model}) {
-        return [
+      generateRowCells: (Peer peer, bool isSelected, {SentinelsListBloc? model}) {
+        return <Widget>[
           CustomTableCell.withText(context, peer.ip),
           CustomTableCell.withMarquee(
             peer.publicKey,
@@ -63,7 +63,7 @@ class _PeersWidget extends State<PeersWidget> {
   Widget _getStreamBuilder() {
     return StreamBuilder<NetworkInfo>(
       stream: _peersBloc!.stream,
-      builder: (_, snapshot) {
+      builder: (_, AsyncSnapshot<NetworkInfo> snapshot) {
         if (snapshot.hasData) {
           _peers = snapshot.data!.peers;
           return _getTable();
@@ -79,16 +79,16 @@ class _PeersWidget extends State<PeersWidget> {
     switch (columnName) {
       case 'IP':
         _sortAscending
-            ? _peers!.sort((a, b) => a.ip.compareTo(b.ip))
-            : _peers!.sort((a, b) => b.ip.compareTo(a.ip));
+            ? _peers!.sort((Peer a, Peer b) => a.ip.compareTo(b.ip))
+            : _peers!.sort((Peer a, Peer b) => b.ip.compareTo(a.ip));
       case 'Public Key':
         _sortAscending
-            ? _peers!.sort((a, b) => a.publicKey.compareTo(b.publicKey))
-            : _peers!.sort((a, b) => b.publicKey.compareTo(a.publicKey));
+            ? _peers!.sort((Peer a, Peer b) => a.publicKey.compareTo(b.publicKey))
+            : _peers!.sort((Peer a, Peer b) => b.publicKey.compareTo(a.publicKey));
       default:
         _sortAscending
-            ? _peers!.sort((a, b) => a.ip.compareTo(b.ip))
-            : _peers!.sort((a, b) => b.ip.compareTo(a.ip));
+            ? _peers!.sort((Peer a, Peer b) => a.ip.compareTo(b.ip))
+            : _peers!.sort((Peer a, Peer b) => b.ip.compareTo(a.ip));
         break;
     }
     setState(() {

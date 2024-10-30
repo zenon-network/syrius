@@ -9,6 +9,6 @@ class StandardLineChartBarData extends LineChartBarData {
           color: color,
           barWidth: 3,
           isStrokeCapRound: true,
-          spots: spots ?? const [],
+          spots: spots ?? const <FlSpot>[],
         );
 }

@@ -29,7 +29,7 @@ class CreatePhase extends StatelessWidget {
   Widget _getWidgetBody(BuildContext context) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceAround,
-      children: [
+      children: <Widget>[
         const Icon(
           MaterialCommunityIcons.creation,
           size: 100,
@@ -38,7 +38,7 @@ class CreatePhase extends StatelessWidget {
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisAlignment: MainAxisAlignment.center,
-          children: [
+          children: <Widget>[
             SizedBox(
               width: 200,
               child: Text(
@@ -53,7 +53,7 @@ class CreatePhase extends StatelessWidget {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => StepperScreen(
+                          builder: (BuildContext context) => StepperScreen(
                             stepper: PhaseCreationStepper(project),
                             onStepperNotificationSeeMorePressed:
                                 onStepperNotificationSeeMorePressed,

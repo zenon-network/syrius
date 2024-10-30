@@ -61,9 +61,9 @@ class _PillarUpdateStepperState extends State<PillarUpdateStepper> {
   @override
   Widget build(BuildContext context) {
     return Stack(
-      children: [
+      children: <Widget>[
         ListView(
-          children: [
+          children: <Widget>[
             _getMaterialStepper(),
           ],
         ),
@@ -75,7 +75,7 @@ class _PillarUpdateStepperState extends State<PillarUpdateStepper> {
             left: 0,
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
-              children: [
+              children: <Widget>[
                 StepperButton(
                   text: 'View Pillars',
                   onPressed: () {
@@ -114,7 +114,7 @@ class _PillarUpdateStepperState extends State<PillarUpdateStepper> {
       child: custom_material_stepper.Stepper(
         currentStep: _currentStep.index,
         onStepTapped: (int index) {},
-        steps: [
+        steps: <custom_material_stepper.Step>[
           StepperUtils.getMaterialStep(
             stepTitle: 'Pillar details',
             stepContent: _getPillarDetailsStepContent(),
@@ -156,7 +156,7 @@ class _PillarUpdateStepperState extends State<PillarUpdateStepper> {
   Widget _getPillarDetailsStepContent() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
+      children: <Widget>[
         Text(
           'Pillar name',
           style: Theme.of(context).textTheme.bodyLarge,
@@ -181,7 +181,7 @@ class _PillarUpdateStepperState extends State<PillarUpdateStepper> {
             thisNode: _pillarRewardNode,
             nextNode: _pillarMomentumNode,
             validator: InputValidators.checkAddress,
-            onChanged: (value) {
+            onChanged: (String value) {
               setState(() {});
             },
           ),
@@ -200,14 +200,14 @@ class _PillarUpdateStepperState extends State<PillarUpdateStepper> {
             controller: _pillarProducerController,
             thisNode: _pillarMomentumNode,
             validator: InputValidators.validatePillarMomentumAddress,
-            onChanged: (value) {
+            onChanged: (String value) {
               setState(() {});
             },
           ),
         ),
         kVerticalSpacing,
         Row(
-          children: [
+          children: <Widget>[
             StepperButton(
               onPressed: () {
                 Navigator.pop(context);
@@ -236,10 +236,10 @@ class _PillarUpdateStepperState extends State<PillarUpdateStepper> {
 
   Widget _getPillarMomentumRewardsStepContent() {
     return Column(
-      children: [
+      children: <Widget>[
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
-          children: [
+          children: <Widget>[
             Text(
               'Percentage of momentum rewards given to the delegators',
               style: Theme.of(context).textTheme.headlineSmall,
@@ -259,7 +259,7 @@ class _PillarUpdateStepperState extends State<PillarUpdateStepper> {
         ),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
+          children: <Widget>[
             Text(
               'Pillar: ${100 - _momentumRewardPercentageGiven.toInt()}',
               style: Theme.of(context).textTheme.titleMedium,
@@ -273,7 +273,7 @@ class _PillarUpdateStepperState extends State<PillarUpdateStepper> {
         kVerticalSpacing,
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
-          children: [
+          children: <Widget>[
             Text(
               'Percentage of delegation rewards given to the delegators',
               style: Theme.of(context).textTheme.headlineSmall,
@@ -293,7 +293,7 @@ class _PillarUpdateStepperState extends State<PillarUpdateStepper> {
         ),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
+          children: <Widget>[
             Text(
               'Pillar: ${100 - _delegateRewardPercentageGiven.toInt()}',
               style: Theme.of(context).textTheme.titleMedium,
@@ -306,7 +306,7 @@ class _PillarUpdateStepperState extends State<PillarUpdateStepper> {
         ),
         kVerticalSpacing,
         Row(
-          children: [
+          children: <Widget>[
             StepperButton(
               onPressed: () {
                 setState(() {
@@ -336,7 +336,7 @@ class _PillarUpdateStepperState extends State<PillarUpdateStepper> {
 
   Widget _getPillarUpdateStepContent() {
     return Row(
-      children: [
+      children: <Widget>[
         StepperButton(
           onPressed: () {
             setState(() {
@@ -379,9 +379,9 @@ class _PillarUpdateStepperState extends State<PillarUpdateStepper> {
 
   Widget _getUpdatePillarViewModel() {
     return ViewModelBuilder<UpdatePillarBloc>.reactive(
-      onViewModelReady: (model) {
+      onViewModelReady: (UpdatePillarBloc model) {
         model.stream.listen(
-          (event) {
+          (AccountBlockTemplate? event) {
             if (event != null) {
               _updateButtonKey.currentState?.animateReverse();
               setState(() {
@@ -398,7 +398,7 @@ class _PillarUpdateStepperState extends State<PillarUpdateStepper> {
           },
         );
       },
-      builder: (_, model, __) => _getUpdatePillarButton(model),
+      builder: (_, UpdatePillarBloc model, __) => _getUpdatePillarButton(model),
       viewModelBuilder: UpdatePillarBloc.new,
     );
   }

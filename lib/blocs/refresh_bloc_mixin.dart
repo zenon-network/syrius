@@ -7,6 +7,8 @@ mixin RefreshBlocMixin {
   StreamSubscription? _restartWsStreamSubscription;
 
   void listenToWsRestart(VoidCallback onWsConnectionRestartedCallback) {
+    _restartWsStreamSubscription = zenon!.wsClient.restartedStream.listen(
+      (bool restarted) {
     _restartWsStreamSubscription = zenon?.wsClient.restartedStream.listen(
       (restarted) {
         if (restarted) {

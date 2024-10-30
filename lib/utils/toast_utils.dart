@@ -7,7 +7,7 @@ class ToastUtils {
 
   static void showToast(BuildContext context, String message, {Color? color}) {
     if (_timer == null || !_timer!.isActive) {
-      final overlay = _getOverlayEntry(message, color);
+      final OverlayEntry overlay = _getOverlayEntry(message, color);
       Overlay.of(context).insert(overlay);
       _timer = Timer(const Duration(seconds: 3), overlay.remove);
     }

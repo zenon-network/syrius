@@ -35,7 +35,7 @@ class _ReceiveLargeCardState extends State<ReceiveLargeCard> {
   String? _selectedSelfAddress = kSelectedAddress;
 
   Token _selectedToken = kDualCoin.first;
-  final List<Token> _tokens = [];
+  final List<Token> _tokens = <Token>[];
 
   final Box _recipientAddressBox = Hive.box(kRecipientAddressBox);
 
@@ -61,7 +61,7 @@ class _ReceiveLargeCardState extends State<ReceiveLargeCard> {
   Widget _getTokensStreamBuilder() {
     return StreamBuilder<List<Token>?>(
       stream: _tokensBloc.stream,
-      builder: (_, snapshot) {
+      builder: (_, AsyncSnapshot<List<Token>?> snapshot) {
         if (snapshot.hasError) {
           return SyriusErrorWidget(snapshot.error!);
         }
@@ -126,12 +126,12 @@ class _ReceiveLargeCardState extends State<ReceiveLargeCard> {
                         key: _amountKey,
                         autovalidateMode: AutovalidateMode.onUserInteraction,
                         child: InputField(
-                          validator: (value) => InputValidators.correctValue(
+                          validator: (String? value) => InputValidators.correctValue(
                               value,
                               kBigP255m1,
                               _selectedToken.decimals,
                               BigInt.zero,),
-                          onChanged: (value) => setState(() {}),
+                          onChanged: (String value) => setState(() {}),
                           inputFormatters:
                               FormatUtils.getAmountTextInputFormatters(
                             _amountController.text,
@@ -140,7 +140,7 @@ class _ReceiveLargeCardState extends State<ReceiveLargeCard> {
                           suffixIcon: Row(
                             mainAxisSize: MainAxisSize.min,
                             mainAxisAlignment: MainAxisAlignment.end,
-                            children: [
+                            children: <Widget>[
                               _getCoinDropdown(),
                               const SizedBox(
                                 width: 15,
@@ -195,7 +195,7 @@ class _ReceiveLargeCardState extends State<ReceiveLargeCard> {
   Widget _getDefaultAddressDropdown() {
     return AddressesDropdown(
       _selectedSelfAddress,
-      (value) => setState(
+      (String? value) => setState(
         () {
           _selectedToken = kDualCoin.first;
           _selectedSelfAddress = value;
@@ -208,7 +208,7 @@ class _ReceiveLargeCardState extends State<ReceiveLargeCard> {
   Widget _getCoinDropdown() => CoinDropdown(
         _tokens,
         _selectedToken,
-        (value) {
+        (Token? value) {
           if (_selectedToken.tokenStandard != value!.tokenStandard) {
             setState(
               () {
@@ -224,7 +224,7 @@ class _ReceiveLargeCardState extends State<ReceiveLargeCard> {
       _tokens.clear();
     }
     _tokens.addAll(kDualCoin);
-    for (final element in tokens) {
+    for (final Token element in tokens) {
       if (!_tokens.contains(element)) {
         _tokens.add(element);
       }

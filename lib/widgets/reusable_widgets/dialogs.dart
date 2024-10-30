@@ -8,10 +8,10 @@ Future<bool> showWarningDialog({
   required String buttonText,
   VoidCallback? onActionButtonPressed,
 }) async {
-  var isPressed = false;
+  bool isPressed = false;
   await showDialog(
     context: context,
-    builder: (context) => AlertDialog(
+    builder: (BuildContext context) => AlertDialog(
       icon: const Icon(
         Icons.warning,
         size: 24,
@@ -19,7 +19,7 @@ Future<bool> showWarningDialog({
       ),
       title: Text(title),
       content: Text(description),
-      actions: [
+      actions: <Widget>[
         TextButton(
           onPressed: onActionButtonPressed ??
               () {
@@ -66,10 +66,10 @@ Future showDialogWithNoAndYesOptions({
     showDialog(
       barrierDismissible: isBarrierDismissible,
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (BuildContext context) => AlertDialog(
         title: Text(title),
         content: content ?? Text(description!),
-        actions: [
+        actions: <Widget>[
           TextButton(
             onPressed: () {
               onNoButtonPressed?.call();
@@ -83,7 +83,7 @@ Future showDialogWithNoAndYesOptions({
           TextButton(
             style: Theme.of(context).textButtonTheme.style!.copyWith(
                   backgroundColor: WidgetStateColor.resolveWith(
-                      (states) => AppColors.errorColor,),
+                      (Set<WidgetState> states) => AppColors.errorColor,),
                 ),
             onPressed: () {
               onYesButtonPressed.call();
@@ -103,7 +103,7 @@ Future<Object?> showCustomDialog({required BuildContext context, required Widget
       context: context,
       barrierLabel: '',
       barrierDismissible: true,
-      pageBuilder: (context, Animation<double> animation,
+      pageBuilder: (BuildContext context, Animation<double> animation,
               Animation<double> secondaryAnimation,) =>
           Center(
         child: ClipRRect(

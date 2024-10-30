@@ -13,7 +13,7 @@ class UpdatePillarBloc extends BaseBloc<AccountBlockTemplate?> {
   ) {
     try {
       addEvent(null);
-      final transactionParams =
+      final AccountBlockTemplate transactionParams =
           zenon!.embedded.pillar.updatePillar(
         name,
         producerAddress,

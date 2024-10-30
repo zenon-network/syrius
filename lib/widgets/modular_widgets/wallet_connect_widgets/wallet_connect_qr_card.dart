@@ -7,6 +7,7 @@ import 'package:path/path.dart' as path;
 import 'package:pretty_qr_code/pretty_qr_code.dart';
 import 'package:screen_capturer/screen_capturer.dart';
 import 'package:wallet_connect_uri_validator/wallet_connect_uri_validator.dart';
+import 'package:walletconnect_flutter_v2/apis/core/pairing/utils/pairing_models.dart';
 import 'package:window_manager/window_manager.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
@@ -23,7 +24,7 @@ const String _kWidgetDescription =
     'Scan the WalletConnect QR code using an on-screen QR scanner. '
     'This requires the screen recording permission';
 
-final screenCapturer = ScreenCapturer.instance;
+final ScreenCapturer screenCapturer = ScreenCapturer.instance;
 
 class WalletConnectQrCard extends StatefulWidget {
   const WalletConnectQrCard({super.key});
@@ -38,7 +39,7 @@ class _WalletConnectQrCardState extends State<WalletConnectQrCard> {
   );
   CapturedData? _lastCapturedData;
 
-  final _uriKey = GlobalKey<FormState>();
+  final GlobalKey<FormState> _uriKey = GlobalKey<FormState>();
 
   @override
   Widget build(BuildContext context) {
@@ -54,7 +55,7 @@ class _WalletConnectQrCardState extends State<WalletConnectQrCard> {
       padding: const EdgeInsets.all(15),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children: [
+        children: <Widget>[
           Container(
             height: 130,
             width: 130,
@@ -81,7 +82,7 @@ class _WalletConnectQrCardState extends State<WalletConnectQrCard> {
           MyOutlinedButton(
             text: 'Scan QR',
             onPressed: () {
-              checkPermissionForMacOS().then((value) {
+              checkPermissionForMacOS().then((bool value) {
                 if (value) {
                   windowManager.minimize().then(
                         (value) => _handleClickCapture(CaptureMode.region),
@@ -98,8 +99,8 @@ class _WalletConnectQrCardState extends State<WalletConnectQrCard> {
 
   Future<void> _pairWithDapp(Uri uri) async {
     try {
-      final wcService = sl.get<IWeb3WalletService>();
-      final pairingInfo = await wcService.pair(uri);
+      final IWeb3WalletService wcService = sl.get<IWeb3WalletService>();
+      final PairingInfo pairingInfo = await wcService.pair(uri);
       Logger('WalletConnectPairingCard')
           .log(Level.INFO, 'pairing info', pairingInfo.toJson());
       _uriController = TextEditingController();
@@ -112,17 +113,17 @@ class _WalletConnectQrCardState extends State<WalletConnectQrCard> {
 
   Future<void> _handleClickCapture(CaptureMode mode) async {
     try {
-      final walletConnectDirectory = Directory(
+      final Directory walletConnectDirectory = Directory(
           path.join(znnDefaultPaths.cache.path, walletConnectDirName),);
 
       if (!walletConnectDirectory.existsSync()) {
         walletConnectDirectory.createSync(recursive: true);
       }
 
-      final screenshotName =
+      final String screenshotName =
           'screenshot-${DateTime.now().millisecondsSinceEpoch}';
 
-      final imagePath = await File(
+      final File imagePath = await File(
               '${walletConnectDirectory.absolute.path}${path.separator}$screenshotName.png',)
           .create();
 
@@ -132,14 +133,14 @@ class _WalletConnectQrCardState extends State<WalletConnectQrCard> {
       );
 
       if (_lastCapturedData != null) {
-        final image = img.decodePng(imagePath.readAsBytesSync())!;
+        final img.Image image = img.decodePng(imagePath.readAsBytesSync())!;
 
         final LuminanceSource source = RGBLuminanceSource(
             image.width, image.height, image.getBytes().buffer.asInt32List(),);
-        final bitmap = BinaryBitmap(HybridBinarizer(source));
+        final BinaryBitmap bitmap = BinaryBitmap(HybridBinarizer(source));
 
-        final reader = QRCodeReader();
-        final result = reader.decode(bitmap);
+        final QRCodeReader reader = QRCodeReader();
+        final Result result = reader.decode(bitmap);
 
         if (result.rawBytes!.isNotEmpty) {
           if (result.text.isNotEmpty &&
@@ -194,7 +195,7 @@ class _WalletConnectQrCardState extends State<WalletConnectQrCard> {
   }
 
   Future<bool> _requestAccessForMacOS() async {
-    final isAccessAllowed = await ScreenCapturer.instance.isAccessAllowed();
+    final bool isAccessAllowed = await ScreenCapturer.instance.isAccessAllowed();
     if (!isAccessAllowed) {
       await ScreenCapturer.instance.requestAccess();
     }

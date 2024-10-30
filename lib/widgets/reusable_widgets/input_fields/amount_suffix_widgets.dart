@@ -18,7 +18,7 @@ class AmountSuffixWidgets extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       mainAxisSize: MainAxisSize.min,
-      children: [
+      children: <Widget>[
         AmountSuffixTokenSymbolWidget(
           token: tokenId,
           context: context,

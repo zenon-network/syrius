@@ -82,7 +82,7 @@ class _NumberAnimationState extends State<NumberAnimation>
     controller = AnimationController(duration: widget.duration, vsync: this);
     _curve = CurvedAnimation(parent: controller!, curve: Curves.easeOut);
     if (widget.isLoading == false) {
-      final animation = Tween<double>(
+      final Animation<double> animation = Tween<double>(
               begin: widget.start.toDouble(), end: widget.end!.toDouble(),)
           .animate(_curve as Animation<double>);
       _animation = animation;
@@ -107,7 +107,7 @@ class _NumberAnimationState extends State<NumberAnimation>
     if (oldWidget.end == widget.end && _hasShowNumber == true) {
       return;
     }
-    final animation = Tween<double>(
+    final Animation<double> animation = Tween<double>(
             begin: _animation != null
                 ? _animation!.value
                 : widget.start.toDouble(),
@@ -124,9 +124,9 @@ class _NumberAnimationState extends State<NumberAnimation>
   /// build
   @override
   Widget build(BuildContext context) {
-    final style = widget.style;
-    final textAlign = widget.textAlign;
-    final strutStyle = widget.strutStyle;
+    final TextStyle? style = widget.style;
+    final TextAlign? textAlign = widget.textAlign;
+    final StrutStyle? strutStyle = widget.strutStyle;
     if (widget.isLoading == true) {
       return Text(
         widget.loadingPlaceHolder,
@@ -137,7 +137,7 @@ class _NumberAnimationState extends State<NumberAnimation>
     }
     return AnimatedBuilder(
       animation: _animation!,
-      builder: (context, child) {
+      builder: (BuildContext context, Widget? child) {
         if (widget.isLoading == true) {
           return Text(
             widget.loadingPlaceHolder,
