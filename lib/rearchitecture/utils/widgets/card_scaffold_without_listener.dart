@@ -29,10 +29,13 @@ class CardScaffoldWithoutListener extends StatefulWidget {
     this.onRefreshPressed,
     super.key,
   });
+
   /// Widget that will appear on the front of the card
   final Widget body;
+
   /// Data needed for certain UI parts of the card
   final CardData data;
+
   /// Optional callback that can be trigger from the card
   final VoidCallback? onRefreshPressed;
 

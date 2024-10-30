@@ -8,6 +8,7 @@ import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 class DelegationPopulated extends StatelessWidget {
   /// Creates a DelegationPopulated object.
   const DelegationPopulated({required this.delegationInfo, super.key});
+
   /// Field that holds the needed details
   final DelegationInfo delegationInfo;
 

@@ -8,6 +8,7 @@ import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
 class NodeSyncStatusError extends StatelessWidget {
   /// Creates a NodeSyncStatusError object.
   const NodeSyncStatusError({required this.error, super.key});
+
   /// Error that holds the message used in the [Tooltip]
   final SyriusException error;
 

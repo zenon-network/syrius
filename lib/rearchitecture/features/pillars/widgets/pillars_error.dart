@@ -9,6 +9,7 @@ import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/reusable_wi
 class PillarsError extends StatelessWidget {
   ///Creates a PillarsError object
   const PillarsError({required this.error, super.key});
+
   /// Holds the data that will be displayed
   final SyriusException error;
 

@@ -6,6 +6,7 @@ import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/error_widge
 class DelegationError extends StatelessWidget {
   /// Creates a DelegationError object.
   const DelegationError({required this.error, super.key});
+
   /// The object that holds the representation of the error
   final SyriusException error;
 

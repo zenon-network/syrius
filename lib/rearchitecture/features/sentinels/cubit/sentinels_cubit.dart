@@ -19,7 +19,7 @@ class SentinelsCubit extends TimerCubit<SentinelInfoList, SentinelsState> {
   SentinelsCubit({
     required super.zenon,
     super.initialState = const SentinelsState(),
-});
+  });
 
   /// Fetches a list of active sentinels from the Zenon network.
   @override

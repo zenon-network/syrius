@@ -21,7 +21,7 @@ class StakingCubit extends TimerCubit<StakeList, StakingState> {
   StakingCubit({
     required super.zenon,
     super.initialState = const StakingState(),
-});
+  });
 
   /// Fetches a list of staking entries for a specific address from the Zenon
   /// network.
@@ -39,6 +39,7 @@ class StakingCubit extends TimerCubit<StakeList, StakingState> {
       throw NoActiveStakingEntriesException();
     }
   }
+
   // TODO(maznnwell): replace the global kSelectedAddress variable
   /// Retrieves the staking entries for a specific address.
   Future<StakeList> _getStakeList() async {

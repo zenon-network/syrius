@@ -22,7 +22,7 @@ class TotalHourlyTransactionsCubit
   TotalHourlyTransactionsCubit({
     required super.zenon,
     super.initialState = const TotalHourlyTransactionsState(),
-});
+  });
 
   /// Fetches the total number of account blocks for the last hour from the
   /// Zenon network.

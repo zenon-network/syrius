@@ -27,7 +27,7 @@ abstract class TimerCubit<T, S extends TimerState<T>> extends HydratedCubit<S> {
     required this.zenon,
     required S initialState,
     this.refreshInterval = kTimerCubitRefreshInterval,
-  }): super(initialState);
+  }) : super(initialState);
 
   /// A timer that handles the auto-refreshing of data.
   Timer? _autoRefresher;

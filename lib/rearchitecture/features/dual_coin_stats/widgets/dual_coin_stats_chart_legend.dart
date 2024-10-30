@@ -12,6 +12,7 @@ class DualCoinStatsChartLegend extends StatelessWidget {
     required this.tokens,
     super.key,
   });
+
   /// Data used
   final List<Token> tokens;
 

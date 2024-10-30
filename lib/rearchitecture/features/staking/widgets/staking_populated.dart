@@ -12,6 +12,7 @@ import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 class StakingPopulated extends StatelessWidget {
   /// Creates a StakingPopulated object
   const StakingPopulated({required this.stakingList, super.key});
+
   /// Field containing the data that will be displayed
   final StakeList stakingList;
 

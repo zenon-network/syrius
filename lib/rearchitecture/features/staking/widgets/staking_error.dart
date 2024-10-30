@@ -9,6 +9,7 @@ import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/error_widge
 class StakingError extends StatelessWidget {
   /// Creates a StakingError object.
   const StakingError({required this.error, super.key});
+
   /// Error containing the message that will be displayed.
   final SyriusException error;
 
