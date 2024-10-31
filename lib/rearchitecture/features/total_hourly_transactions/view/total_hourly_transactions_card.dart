@@ -20,7 +20,7 @@ class TotalHourlyTransactionsCard extends StatelessWidget {
         )..fetchDataPeriodically();
         return cubit;
       },
-      child: CardScaffoldWithoutListener(
+      child: NewCardScaffold(
         data: CardType.totalHourlyTransactions.getData(context: context),
         body: BlocBuilder<TotalHourlyTransactionsCubit,
             TotalHourlyTransactionsState>(

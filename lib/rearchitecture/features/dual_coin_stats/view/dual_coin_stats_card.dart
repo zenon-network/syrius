@@ -20,7 +20,7 @@ class DualCoinStatsCard extends StatelessWidget {
         )..fetchDataPeriodically();
         return cubit;
       },
-      child: CardScaffoldWithoutListener(
+      child: NewCardScaffold(
         data: CardType.dualCoinStats.getData(context: context),
         body: BlocBuilder<DualCoinStatsCubit, DualCoinStatsState>(
           builder: (BuildContext context, DualCoinStatsState state) {

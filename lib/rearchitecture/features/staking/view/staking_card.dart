@@ -20,7 +20,7 @@ class StakingCard extends StatelessWidget {
         )..fetchDataPeriodically();
         return cubit;
       },
-      child: CardScaffoldWithoutListener(
+      child: NewCardScaffold(
         data: CardType.staking.getData(context: context),
         body: BlocBuilder<StakingCubit, StakingState>(
           builder: (BuildContext context, StakingState state) {

@@ -20,7 +20,7 @@ class SentinelsCard extends StatelessWidget {
         )..fetchDataPeriodically();
         return cubit;
       },
-      child: CardScaffoldWithoutListener(
+      child: NewCardScaffold(
         data: CardType.sentinels.getData(context: context),
         body: BlocBuilder<SentinelsCubit, SentinelsState>(
           builder: (BuildContext context, SentinelsState state) {

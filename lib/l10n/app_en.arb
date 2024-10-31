@@ -5,6 +5,7 @@
   "delegationStatsDescription": "This card displays the amount of {kZnnCoinSymbol} and the name of the Pillar that you delegated to",
   "dualCoinStats": "Dual Coin Stats",
   "dualCoinStatsDescription": "This card displays the circulating {kZnnCoinSymbol} and {kQsrCoinSymbol} supply from the network",
+  "password": "Password",
   "pillars": "Pillars",
   "pillarsDescription": "This card displays the number of active Pillars in the network",
   "realtimeStats": "Realtime Stats",

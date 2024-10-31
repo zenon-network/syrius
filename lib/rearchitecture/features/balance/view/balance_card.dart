@@ -27,7 +27,7 @@ class BalanceCard extends StatelessWidget {
         )..fetchDataPeriodically();
         return cubit;
       },
-      child: CardScaffoldWithoutListener(
+      child: NewCardScaffold(
         data: CardType.balance.getData(context: context),
         body: BlocBuilder<BalanceCubit, BalanceState>(
           builder: (BuildContext context, BalanceState state) {

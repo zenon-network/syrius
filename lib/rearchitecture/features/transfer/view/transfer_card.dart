@@ -26,7 +26,7 @@ class TransferCard extends StatefulWidget {
 class _TransferCardState extends State<TransferCard> {
   @override
   Widget build(BuildContext context) {
-    return CardScaffoldWithoutListener(
+    return NewCardScaffold(
       data: CardType.transfer.getData(context: context),
       body: Column(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,

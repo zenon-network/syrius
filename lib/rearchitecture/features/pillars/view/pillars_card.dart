@@ -20,7 +20,7 @@ class PillarsCard extends StatelessWidget {
         )..fetchDataPeriodically();
         return cubit;
       },
-      child: CardScaffoldWithoutListener(
+      child: NewCardScaffold(
         data: CardType.pillars.getData(context: context),
         body: BlocBuilder<PillarsCubit, PillarsState>(
           builder: (BuildContext context, PillarsState state) {

@@ -20,7 +20,7 @@ class RealtimeStatisticsCard extends StatelessWidget {
         )..fetchDataPeriodically();
         return cubit;
       },
-      child: CardScaffoldWithoutListener(
+      child: NewCardScaffold(
         data: CardType.realtimeStatistics.getData(context: context),
         body: BlocBuilder<RealtimeStatisticsCubit, RealtimeStatisticsState>(
           builder: (BuildContext context, RealtimeStatisticsState state) {

@@ -22,7 +22,7 @@ class DelegationCard extends StatelessWidget {
         )..fetchDataPeriodically();
         return cubit;
       },
-      child: CardScaffoldWithoutListener(
+      child: NewCardScaffold(
         data: CardType.delegationStats.getData(context: context),
         body: BlocBuilder<DelegationCubit, DelegationState>(
           builder: (BuildContext context, DelegationState state) {
