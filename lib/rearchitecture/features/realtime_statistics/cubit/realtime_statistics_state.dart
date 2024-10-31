@@ -7,7 +7,7 @@ part of 'realtime_statistics_cubit.dart';
 /// blockchain data, such as recent transactions.
 /// It's used to track the state of the data loading process in the
 /// [RealtimeStatisticsCubit].
-@JsonSerializable()
+@JsonSerializable(explicitToJson: true)
 class RealtimeStatisticsState extends TimerState<List<AccountBlock>> {
   /// Constructs a new [RealtimeStatisticsState] with optional values for
   /// [status], [data], and [error].

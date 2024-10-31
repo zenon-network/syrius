@@ -32,7 +32,7 @@ void main() {
     late MockWsClient mockWsClient;
     late MockLedger mockLedger;
     late TotalHourlyTransactionsCubit transactionsCubit;
-    late CubitException fetchException;
+    late SyriusException fetchException;
     late MockMomentum mockMomentum;
     late MockDetailedMomentum mockDetailedMomentum;
     late MockDetailedMomentumList mockDetailedMomentumList;
@@ -67,13 +67,77 @@ void main() {
           .thenReturn(<AccountBlock>[mockAccBlock, mockAccBlock]);
     });
 
-
-
     test('initial status is correct', () {
       final TotalHourlyTransactionsCubit cubit = TotalHourlyTransactionsCubit(
          zenon: mockZenon,
       );
       expect(cubit.state.status, TimerStatus.initial);
+    });
+
+    group('fromJson/toJson', () {
+      test('can (de)serialize initial state', () {
+        final TotalHourlyTransactionsState initialState =
+        TotalHourlyTransactionsState();
+
+        final Map<String, dynamic>? serialized = transactionsCubit.toJson(
+          initialState,
+        );
+        final TotalHourlyTransactionsState? deserialized =
+        transactionsCubit.fromJson(
+          serialized!,
+        );
+        expect(deserialized, equals(initialState));
+      });
+
+      test('can (de)serialize loading state', () {
+        final TotalHourlyTransactionsState loadingState =
+        TotalHourlyTransactionsState(
+          status: TimerStatus.loading,
+        );
+
+        final Map<String, dynamic>? serialized = transactionsCubit.toJson(
+          loadingState,
+        );
+        final TotalHourlyTransactionsState? deserialized =
+        transactionsCubit.fromJson(
+          serialized!,
+        );
+        expect(deserialized, equals(loadingState));
+      });
+
+      test('can (de)serialize success state', () {
+        final TotalHourlyTransactionsState successState =
+        TotalHourlyTransactionsState(
+          status: TimerStatus.success,
+          data: 2,
+        );
+
+        final Map<String, dynamic>? serialized = transactionsCubit.toJson(
+          successState,
+        );
+        final TotalHourlyTransactionsState? deserialized =
+        transactionsCubit.fromJson(
+          serialized!,
+        );
+        expect(deserialized, equals(successState));
+      });
+
+      test('can (de)serialize failure state', () {
+        final TotalHourlyTransactionsState failureState =
+        TotalHourlyTransactionsState(
+          status: TimerStatus.failure,
+          error: fetchException,
+        );
+
+        final Map<String, dynamic>? serialized = transactionsCubit.toJson(
+          failureState,
+        );
+        final TotalHourlyTransactionsState? deserialized =
+        transactionsCubit.fromJson(
+          serialized!,
+        );
+        expect(deserialized, equals(failureState));
+      });
     });
 
     group('fetch', () {

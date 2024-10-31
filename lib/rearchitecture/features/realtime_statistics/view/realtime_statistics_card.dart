@@ -3,6 +3,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
+import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 /// A card that receives [RealtimeStatisticsState] updates from the
 /// [RealtimeStatisticsCubit] and changes the UI according to the request
@@ -16,6 +18,7 @@ class RealtimeStatisticsCard extends StatelessWidget {
     return BlocProvider<RealtimeStatisticsCubit>(
       create: (_) {
         final RealtimeStatisticsCubit cubit = RealtimeStatisticsCubit(
+          address: Address.parse(kSelectedAddress!),
           zenon: zenon!,
         )..fetchDataPeriodically();
         return cubit;

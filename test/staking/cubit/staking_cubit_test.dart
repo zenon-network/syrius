@@ -5,7 +5,6 @@ import 'package:mocktail/mocktail.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/rearchitecture.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/exceptions/exceptions.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 import '../../helpers/hydrated_bloc.dart';
@@ -73,6 +72,64 @@ void main() {
       expect(stakingCubit.state.status, TimerStatus.initial);
     });
 
+    group('fromJson/toJson', () {
+      test('can (de)serialize initial state', () {
+        final StakingState initialState = StakingState();
+
+        final Map<String, dynamic>? serialized = stakingCubit.toJson(
+          initialState,
+        );
+        final StakingState? deserialized = stakingCubit.fromJson(
+          serialized!,
+        );
+        expect(deserialized, equals(initialState));
+      });
+
+      test('can (de)serialize loading state', () {
+        final StakingState loadingState = StakingState(
+          status: TimerStatus.loading,
+        );
+
+        final Map<String, dynamic>? serialized = stakingCubit.toJson(
+          loadingState,
+        );
+        final StakingState? deserialized = stakingCubit.fromJson(
+          serialized!,
+        );
+        expect(deserialized, equals(loadingState));
+      });
+
+      test('can (de)serialize success state', () {
+        final StakingState successState = StakingState(
+          status: TimerStatus.success,
+          data: testStakeList,
+        );
+
+        final Map<String, dynamic>? serialized = stakingCubit.toJson(
+          successState,
+        );
+        final StakingState? deserialized = stakingCubit.fromJson(
+          serialized!,
+        );
+        expect(deserialized, equals(successState));
+      });
+
+      test('can (de)serialize failure state', () {
+        final StakingState failureState = StakingState(
+          status: TimerStatus.failure,
+          error: stakingException,
+        );
+
+        final Map<String, dynamic>? serialized = stakingCubit.toJson(
+          failureState,
+        );
+        final StakingState? deserialized = stakingCubit.fromJson(
+          serialized!,
+        );
+        expect(deserialized, equals(failureState));
+      });
+    });
+
     group('fetchDataPeriodically', () {
       blocTest<StakingCubit, StakingState>(
         'calls getEntriesByAddress() once',
@@ -105,12 +162,11 @@ void main() {
         ],
       );
 
-      //TODO:TEST NOT DONE
       blocTest<StakingCubit, StakingState>(
           'emits [loading, success] when getAllActive() returns successfully',
           setUp: () {
             when(
-                  () => mockStake.getEntriesByAddress(any())
+                  () => mockStake.getEntriesByAddress(any()),
             ).thenAnswer((_) async => testStakeList);
           },
           build: () => stakingCubit,
@@ -119,7 +175,7 @@ void main() {
             StakingState(status: TimerStatus.loading),
             StakingState(status: TimerStatus.success,
             data: testStakeList,),
-          ]
+          ],
       );
     });
   });

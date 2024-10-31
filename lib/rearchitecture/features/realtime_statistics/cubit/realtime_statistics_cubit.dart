@@ -22,9 +22,13 @@ class RealtimeStatisticsCubit
   /// The [zenon] client is used to interact with the Zenon network to retrieve
   /// account block information.
   RealtimeStatisticsCubit({
+    required this.address,
     required super.zenon,
     super.initialState = const RealtimeStatisticsState(),
   });
+
+  ///The address for which the list of account blocks is fetched
+  final Address address;
 
   /// Fetches a list of account blocks for the specified address over the past
   /// week.
@@ -62,7 +66,7 @@ class RealtimeStatisticsCubit
       // Fetch account blocks for the current page
       final AccountBlockList accountBlockList =
           await zenon.ledger.getAccountBlocksByPage(
-        Address.parse(kSelectedAddress!),
+        address,
         pageIndex: pageIndex,
         pageSize: pageSize,
       );

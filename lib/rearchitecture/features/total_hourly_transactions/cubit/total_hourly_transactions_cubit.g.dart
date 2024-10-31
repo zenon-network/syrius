@@ -22,7 +22,7 @@ Map<String, dynamic> _$TotalHourlyTransactionsStateToJson(
     <String, dynamic>{
       'status': _$TimerStatusEnumMap[instance.status]!,
       'data': instance.data,
-      'error': instance.error,
+      'error': instance.error?.toJson(),
     };
 
 const _$TimerStatusEnumMap = {
