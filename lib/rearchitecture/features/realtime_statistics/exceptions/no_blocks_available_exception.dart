@@ -5,7 +5,7 @@ import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/exceptions/exce
 
 part 'no_blocks_available_exception.g.dart';
 
-/// Custom [Exception] to be used with [RealtimeStatisticsCubit] when there are
+/// An exception to be used with [RealtimeStatisticsCubit] when there are
 /// no account blocks available on the network
 @immutable
 @JsonSerializable()

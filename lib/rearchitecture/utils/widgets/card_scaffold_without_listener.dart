@@ -137,9 +137,7 @@ class _CardScaffoldWithoutListenerState
                   color: AppColors.znnColor,
                   size: 20,
                 ),
-                const SizedBox(
-                  width: 5,
-                ),
+                kHorizontalGap4,
                 Expanded(
                   child: Text(
                     'Description',
@@ -167,9 +165,7 @@ class _CardScaffoldWithoutListenerState
                 color: AppColors.znnColor,
                 size: 20,
               ),
-              const SizedBox(
-                width: 5,
-              ),
+              kHorizontalGap4,
               Expanded(
                 child: Text(
                   'Discreet mode',
@@ -213,9 +209,7 @@ class _CardScaffoldWithoutListenerState
                 Expanded(
                   child: _getPasswordInputField(model),
                 ),
-                const SizedBox(
-                  width: 10,
-                ),
+                kHorizontalGap8,
                 _actionButton,
               ],
             ),
@@ -240,9 +234,7 @@ class _CardScaffoldWithoutListenerState
                     style: Theme.of(context).textTheme.titleMedium,
                   ),
                 ),
-                const SizedBox(
-                  width: 5,
-                ),
+                kHorizontalGap4,
               ],
             ),
           ),

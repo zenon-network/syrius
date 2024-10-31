@@ -11,8 +11,7 @@ part 'balance_state.dart';
 /// of the provided [address].
 
 class BalanceCubit extends TimerCubit<AccountInfo, BalanceState> {
-  /// Constructs a BalanceCubit with the provided [zenon] client, [address] and
-  /// [initialState].
+  /// Constructs a BalanceCubit instance.
   BalanceCubit({
     required this.address,
     required super.zenon,
@@ -24,13 +23,10 @@ class BalanceCubit extends TimerCubit<AccountInfo, BalanceState> {
 
   /// Fetches the balance information for a single address.
   ///
-  /// The method interacts with the [zenon] client's ledger to get the
-  /// [AccountInfo] for the provided [address].
-  ///
   /// Returns an [AccountInfo] object containing the balance details for the
   /// given address.
   ///
-  /// Throws an exception if the balance retrieval fails.
+  /// Throws an [NoBalanceException] if the balance for ZNN and QSR is zero.
   @override
   Future<AccountInfo> fetch() async {
     final AccountInfo response = await zenon.ledger.getAccountInfoByAddress(

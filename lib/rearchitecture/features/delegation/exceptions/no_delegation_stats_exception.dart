@@ -4,7 +4,7 @@ import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 
 part 'no_delegation_stats_exception.g.dart';
 
-/// Custom [Exception] used when there are no delegation info available
+/// An exception used when there are no delegation info available
 @immutable
 @JsonSerializable()
 class NoDelegationStatsException extends SyriusException {

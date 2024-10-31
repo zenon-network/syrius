@@ -4,7 +4,7 @@ import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/exceptions/exce
 
 part 'no_balance_exception.g.dart';
 
-/// Custom [Exception] used when there is no balance available on a specific
+/// An [SyriusException] used when there is no balance available on a specific
 /// address
 @immutable
 @JsonSerializable()
