@@ -2,7 +2,7 @@ part of 'node_sync_status_cubit.dart';
 
 /// Class used by [NodeSyncStatusCubit] to send state updates to the
 /// connected view
-@JsonSerializable()
+@JsonSerializable(explicitToJson: true)
 class NodeSyncStatusState extends TimerState<Pair<SyncState, SyncInfo>> {
   /// Creates a NodeSyncStatusState object.
   const NodeSyncStatusState({
