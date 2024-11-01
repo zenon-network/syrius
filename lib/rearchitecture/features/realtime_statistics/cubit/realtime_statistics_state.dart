@@ -20,7 +20,7 @@ class RealtimeStatisticsState extends TimerState<List<AccountBlock>> {
     super.error,
   });
 
-  /// Creates a [RealtimeStatisticsState] instance from a JSON map.
+  /// {@macro state_from_json}
   factory RealtimeStatisticsState.fromJson(Map<String, dynamic> json) =>
       _$RealtimeStatisticsStateFromJson(json);
 
@@ -38,6 +38,6 @@ class RealtimeStatisticsState extends TimerState<List<AccountBlock>> {
     );
   }
 
-  /// Converts this [RealtimeStatisticsState] instance to a JSON map.
+  /// {@macro state_to_json}
   Map<String, dynamic> toJson() => _$RealtimeStatisticsStateToJson(this);
 }

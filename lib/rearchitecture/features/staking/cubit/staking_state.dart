@@ -20,7 +20,7 @@ class StakingState extends TimerState<StakeList> {
     super.error,
   });
 
-  /// Creates a [StakingState] instance from a JSON map.
+  /// {@macro state_from_json}
   factory StakingState.fromJson(Map<String, dynamic> json) =>
       _$StakingStateFromJson(json);
 
@@ -38,6 +38,6 @@ class StakingState extends TimerState<StakeList> {
     );
   }
 
-  /// Converts this [StakingState] instance to a JSON map.
+  /// {@macro state_to_json}
   Map<String, dynamic> toJson() => _$StakingStateToJson(this);
 }

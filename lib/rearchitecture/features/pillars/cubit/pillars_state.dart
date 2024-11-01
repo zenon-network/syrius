@@ -19,7 +19,7 @@ class PillarsState extends TimerState<int> {
     super.error,
   });
 
-  /// Creates a [PillarsState] instance from a JSON map.
+  /// {@macro state_from_json}
   factory PillarsState.fromJson(Map<String, dynamic> json) =>
       _$PillarsStateFromJson(json);
 
@@ -37,6 +37,6 @@ class PillarsState extends TimerState<int> {
     );
   }
 
-  /// Converts this [PillarsState] instance to a JSON map.
+  /// {@macro state_to_json}
   Map<String, dynamic> toJson() => _$PillarsStateToJson(this);
 }
