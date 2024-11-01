@@ -16,13 +16,10 @@ class StakingCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider<StakingCubit>(
-      create: (_) {
-        final StakingCubit cubit = StakingCubit(
-          address: Address.parse(kSelectedAddress!),
-          zenon: zenon!,
-        )..fetchDataPeriodically();
-        return cubit;
-      },
+      create: (_) => StakingCubit(
+        address: Address.parse(kSelectedAddress!),
+        zenon: zenon!,
+      )..fetchDataPeriodically(),
       child: NewCardScaffold(
         data: CardType.staking.getData(context: context),
         body: BlocBuilder<StakingCubit, StakingState>(

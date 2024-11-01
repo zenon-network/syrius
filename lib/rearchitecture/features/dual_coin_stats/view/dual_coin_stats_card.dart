@@ -14,12 +14,9 @@ class DualCoinStatsCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider<DualCoinStatsCubit>(
-      create: (_) {
-        final DualCoinStatsCubit cubit = DualCoinStatsCubit(
-          zenon: zenon!,
-        )..fetchDataPeriodically();
-        return cubit;
-      },
+      create: (_) => DualCoinStatsCubit(
+        zenon: zenon!,
+      )..fetchDataPeriodically(),
       child: NewCardScaffold(
         data: CardType.dualCoinStats.getData(context: context),
         body: BlocBuilder<DualCoinStatsCubit, DualCoinStatsState>(

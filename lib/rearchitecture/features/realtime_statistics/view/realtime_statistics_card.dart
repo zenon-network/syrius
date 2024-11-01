@@ -16,13 +16,10 @@ class RealtimeStatisticsCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider<RealtimeStatisticsCubit>(
-      create: (_) {
-        final RealtimeStatisticsCubit cubit = RealtimeStatisticsCubit(
-          address: Address.parse(kSelectedAddress!),
-          zenon: zenon!,
-        )..fetchDataPeriodically();
-        return cubit;
-      },
+      create: (_) => RealtimeStatisticsCubit(
+        address: Address.parse(kSelectedAddress!),
+        zenon: zenon!,
+      )..fetchDataPeriodically(),
       child: NewCardScaffold(
         data: CardType.realtimeStatistics.getData(context: context),
         body: BlocBuilder<RealtimeStatisticsCubit, RealtimeStatisticsState>(

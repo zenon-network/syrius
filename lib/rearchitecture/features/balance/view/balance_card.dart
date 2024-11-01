@@ -20,13 +20,10 @@ class BalanceCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider<BalanceCubit>(
-      create: (_) {
-        final BalanceCubit cubit = BalanceCubit(
-          address: Address.parse(kSelectedAddress!),
-          zenon: zenon!,
-        )..fetchDataPeriodically();
-        return cubit;
-      },
+      create: (_) => BalanceCubit(
+        address: Address.parse(kSelectedAddress!),
+        zenon: zenon!,
+      )..fetchDataPeriodically(),
       child: NewCardScaffold(
         data: CardType.balance.getData(context: context),
         body: BlocBuilder<BalanceCubit, BalanceState>(
