@@ -1,10 +1,11 @@
+import 'dart:async';
+
 import 'package:expandable/expandable.dart';
 import 'package:flip_card/flip_card.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_vector_icons/flutter_vector_icons.dart';
 import 'package:lottie/lottie.dart';
-import 'package:stacked/stacked.dart';
-import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/theming/new_app_themes.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
@@ -43,21 +44,18 @@ class NewCardScaffold extends StatefulWidget {
   final VoidCallback? onRefreshPressed;
 
   @override
-  State<NewCardScaffold> createState() =>
-      _NewCardScaffoldState();
+  State<NewCardScaffold> createState() => _NewCardScaffoldState();
 }
 
-class _NewCardScaffoldState
-    extends State<NewCardScaffold> {
+class _NewCardScaffoldState extends State<NewCardScaffold> {
   GlobalKey<FlipCardState> cardKey = GlobalKey<FlipCardState>();
   final GlobalKey<LoadingButtonState> _actionButtonKey = GlobalKey();
 
   final TextEditingController _passwordController = TextEditingController();
 
-  late bool _shouldHideWidgetInfo;
   bool _showPasswordInputField = false;
 
-  String? _messageToUser;
+  SyriusException? _error;
 
   late LoadingButton _actionButton;
 
@@ -66,12 +64,6 @@ class _NewCardScaffoldState
   String get _description => widget.data.description;
 
   final ValueNotifier<bool> _obscureTextNotifier = ValueNotifier<bool>(false);
-
-  @override
-  void initState() {
-    super.initState();
-    _shouldHideWidgetInfo = _isWidgetInfoHidden(_title);
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -84,7 +76,7 @@ class _NewCardScaffoldState
     );
 
     final Widget front =
-        _isWidgetInfoHidden(_title) ? _getHiddenInfoWidget() : widget.body;
+        _isFrontWidgetHidden(_title) ? _getHiddenInfoWidget() : widget.body;
 
     final bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
 
@@ -141,7 +133,7 @@ class _NewCardScaffoldState
     );
   }
 
-  Widget _getBackBody(HideWidgetStatusBloc model) {
+  Widget _getBackBody() {
     return Builder(
       builder: (BuildContext context) {
         return Padding(
@@ -194,24 +186,16 @@ class _NewCardScaffoldState
                   ),
                   const Spacer(),
                   Switch(
-                    value: _shouldHideWidgetInfo,
-                    onChanged: (bool value) {
-                      setState(() {
-                        _shouldHideWidgetInfo = value;
-                      });
-                      if (value) {
-                        if (_isWidgetInfoHidden(_title) != value) {
-                          model.checkPassAndMarkWidgetWithHiddenValue(
-                            _title,
-                            _passwordController.text,
-                            value,
-                          );
-                        } else {
-                          setState(() {
-                            _showPasswordInputField = false;
-                          });
-                        }
+                    value: _isFrontWidgetHidden(_title),
+                    onChanged: (bool shouldHideFrontWidget) {
+                      if (shouldHideFrontWidget) {
+                        context.read<HideWidgetCubit>().saveValue(
+                              isHidden: shouldHideFrontWidget,
+                              widgetTitle: _title,
+                            );
                       } else {
+                        // To make the front widget visible, the user needs to
+                        // confirm with it's wallet password
                         setState(() {
                           _showPasswordInputField = true;
                         });
@@ -231,7 +215,7 @@ class _NewCardScaffoldState
                         builder: (_, bool obscureText, __) {
                           return CardScaffoldPasswordField(
                             controller: _passwordController,
-                            errorText: _messageToUser,
+                            errorText: _error?.toString(),
                             onSubmitted: (String value) {
                               _actionButton.onPressed!();
                             },
@@ -256,10 +240,12 @@ class _NewCardScaffoldState
   }
 
   Widget _getHideWidgetInfoViewModel() {
-    return ViewModelBuilder<HideWidgetStatusBloc>.reactive(
-      onViewModelReady: (HideWidgetStatusBloc model) {
+    return BlocProvider<HideWidgetCubit>(
+      create: (_) {
+        final HideWidgetCubit cubit = HideWidgetCubit();
+
         _actionButton = LoadingButton.icon(
-          onPressed: () => _onActionButtonPressed(model),
+          onPressed: () => _onActionButtonPressed(cubit: cubit),
           key: _actionButtonKey,
           icon: const Icon(
             AntDesign.arrowright,
@@ -267,45 +253,34 @@ class _NewCardScaffoldState
             size: 25,
           ),
         );
-        // Stream will tell us if the widget info is hidden or not
-        model.stream.listen(
-          (bool? response) {
-            if (response != null) {
-              _passwordController.clear();
-              if (!response) {
-                setState(() {
-                  _showPasswordInputField = false;
-                });
-              }
-            }
-          },
-          onError: (dynamic error) {
-            setState(() {
-              _messageToUser = error.toString();
-            });
-          },
-        );
+
+        return cubit;
       },
-      builder: (_, HideWidgetStatusBloc model, __) => StreamBuilder<bool?>(
-        stream: model.stream,
-        builder: (_, AsyncSnapshot<bool?> snapshot) {
-          if (snapshot.hasError) {
-            return _getBackBody(model);
+      child: BlocListener<HideWidgetCubit, HideWidgetState>(
+        listener: (BuildContext context, HideWidgetState state) {
+          final HideWidgetStatus status = state.status;
+          switch (status) {
+            case HideWidgetStatus.failure:
+              _actionButtonKey.currentState?.animateReverse();
+              setState(() {
+                _error = state.exception;
+              });
+            case HideWidgetStatus.initial:
+              break;
+            case HideWidgetStatus.loading:
+              _actionButtonKey.currentState?.animateForward();
+            case HideWidgetStatus.success:
+              _actionButtonKey.currentState?.animateReverse();
+              _passwordController.clear();
+              if (!state.isHidden!) {
+                  _showPasswordInputField = false;
+              }
+              _error = null;
+              setState(() {});
           }
-          if (snapshot.connectionState == ConnectionState.active) {
-            if (snapshot.hasData) {
-              return _getBackBody(model);
-            }
-            return const Center(
-              child: SyriusLoadingWidget(
-                size: 25,
-              ),
-            );
-          }
-          return _getBackBody(model);
         },
+        child: _getBackBody(),
       ),
-      viewModelBuilder: HideWidgetStatusBloc.new,
     );
   }
 
@@ -313,27 +288,23 @@ class _NewCardScaffoldState
     return Lottie.asset('assets/lottie/ic_anim_eye.json');
   }
 
-  bool _isWidgetInfoHidden(String title) {
+  bool _isFrontWidgetHidden(String title) {
     return sharedPrefsService!.get(
       WidgetUtils.isWidgetHiddenKey(title),
       defaultValue: false,
     );
   }
 
-  Future<void> _onActionButtonPressed(HideWidgetStatusBloc model) async {
+  Future<void> _onActionButtonPressed({required HideWidgetCubit cubit}) async {
     if (_passwordController.text.isNotEmpty &&
         _actionButtonKey.currentState!.btnState == ButtonState.idle) {
-      try {
-        _actionButtonKey.currentState!.animateForward();
-        await model.checkPassAndMarkWidgetWithHiddenValue(
-          _title,
-          _passwordController.text,
-          _shouldHideWidgetInfo,
-        );
-      } catch (_) {
-      } finally {
-        _actionButtonKey.currentState?.animateReverse();
-      }
+      unawaited(
+        cubit.saveValue(
+          isHidden: false,
+          password: _passwordController.text,
+          widgetTitle: _title,
+        ),
+      );
     }
   }
 
