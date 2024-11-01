@@ -43,7 +43,7 @@ class _BalancePopulatedState extends State<BalancePopulated> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    _addressEdgesColor = ValueNotifier<Color>(context.theme.hintColor);
+    _addressEdgesColor = ValueNotifier<Color>(context.themeData.hintColor);
   }
 
   @override

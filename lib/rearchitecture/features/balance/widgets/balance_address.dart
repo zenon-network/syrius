@@ -34,12 +34,12 @@ class BalanceAddress extends StatelessWidget {
             if (x) {
               edgesColorNotifier.value = AppColors.znnColor;
             } else {
-              edgesColorNotifier.value = context.theme.hintColor;
+              edgesColorNotifier.value = context.themeData.hintColor;
             }
           },
           child: Container(
             decoration: BoxDecoration(
-              color: context.theme.colorScheme.surface,
+              color: context.themeData.colorScheme.surface,
               borderRadius: BorderRadius.circular(15),
             ),
             padding: const EdgeInsets.symmetric(
@@ -63,7 +63,7 @@ class BalanceAddress extends StatelessWidget {
                       address.length - 6,
                     ),
                     style: TextStyle(
-                      color: context.theme.hintColor,
+                      color: context.themeData.hintColor,
                     ),
                   ),
                   TextSpan(

@@ -42,7 +42,7 @@ class StandardChart extends StatelessWidget {
               tooltipPadding: const EdgeInsets.all(4),
               tooltipRoundedRadius: 6,
               getTooltipColor: (LineBarSpot lineBarSpot) =>
-                  context.theme.colorScheme.surface,
+                  context.themeData.colorScheme.surface,
               getTooltipItems: (List<LineBarSpot> touchedSpots) {
                 return touchedSpots.map(
                   (LineBarSpot touchedSpot) {
