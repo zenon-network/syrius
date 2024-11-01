@@ -66,7 +66,7 @@ class _NewCardScaffoldState extends State<NewCardScaffold> {
 
   @override
   Widget build(BuildContext context) {
-    final Widget card = CardScaffoldHeader(
+    final Widget header = CardScaffoldHeader(
       onMoreIconPressed: () {
         cardKey.currentState!.toggleCard();
       },
@@ -97,7 +97,7 @@ class _NewCardScaffoldState extends State<NewCardScaffold> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: <Widget>[
-                    card,
+                    header,
                     const Divider(),
                     Expanded(
                       child: front,
@@ -114,7 +114,7 @@ class _NewCardScaffoldState extends State<NewCardScaffold> {
                 color: background,
                 child: Column(
                   children: <Widget>[
-                    card,
+                    header,
                     const Divider(),
                     Expanded(
                       child: _getHideWidgetInfoViewModel(),
