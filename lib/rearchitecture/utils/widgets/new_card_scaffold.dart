@@ -7,6 +7,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_vector_icons/flutter_vector_icons.dart';
 import 'package:lottie/lottie.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/theming/new_app_themes.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/card_scaffold_header.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/card_scaffold_password_field.dart';
@@ -80,8 +81,11 @@ class _NewCardScaffoldState extends State<NewCardScaffold> {
     final Color background =
         context.isDarkMode ? AppColors.darkPrimary : Colors.white;
 
+    final ThemeData themeData =
+        context.isDarkMode ? newDarkTheme : newLightTheme;
+
     return Theme(
-      data: context.newTheme,
+      data: themeData,
       child: Builder(
         builder: (BuildContext context) {
           return FlipCard(
