@@ -5,7 +5,7 @@ part of 'pillars_cubit.dart';
 ///
 /// [PillarsState] stores an integer value representing the number of pillars
 /// retrieved from the Zenon network.
-@JsonSerializable()
+@JsonSerializable(explicitToJson: true)
 class PillarsState extends TimerState<int> {
   /// Constructs a new [PillarsState] object.
   ///

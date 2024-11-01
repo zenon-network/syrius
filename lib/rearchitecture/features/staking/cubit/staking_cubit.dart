@@ -1,7 +1,6 @@
 import 'package:json_annotation/json_annotation.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 part 'staking_cubit.g.dart';
@@ -19,9 +18,13 @@ class StakingCubit extends TimerCubit<StakeList, StakingState> {
   /// The [zenon] client is used to interact with the Zenon network to retrieve
   /// staking information.
   StakingCubit({
+    required this.address,
     required super.zenon,
     super.initialState = const StakingState(),
   });
+
+  /// The address for which the [StakeList] will be fetched
+  final Address address;
 
   /// Fetches a list of staking entries for a specific address from the Zenon
   /// network.
@@ -32,7 +35,7 @@ class StakingCubit extends TimerCubit<StakeList, StakingState> {
   @override
   Future<StakeList> fetch() async {
     // Retrieve the list of staking entries for the demo address
-    final StakeList data = await _getStakeList();
+    final StakeList data = await _getStakeList(address);
     if (data.list.isNotEmpty) {
       return data; // Return the fetched stake data if not empty
     } else {
@@ -40,11 +43,10 @@ class StakingCubit extends TimerCubit<StakeList, StakingState> {
     }
   }
 
-  // TODO(maznnwell): replace the global kSelectedAddress variable
   /// Retrieves the staking entries for a specific address.
-  Future<StakeList> _getStakeList() async {
+  Future<StakeList> _getStakeList(Address address) async {
     return zenon.embedded.stake.getEntriesByAddress(
-      Address.parse(kSelectedAddress!),
+      address,
     );
   }
 

@@ -3,6 +3,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
+import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 /// A widget connected to the [StakingCubit] that receives the state
 /// - [StakingState] - updates and rebuilds the UI according to the
@@ -16,6 +18,7 @@ class StakingCard extends StatelessWidget {
     return BlocProvider<StakingCubit>(
       create: (_) {
         final StakingCubit cubit = StakingCubit(
+          address: Address.parse(kSelectedAddress!),
           zenon: zenon!,
         )..fetchDataPeriodically();
         return cubit;

@@ -7,7 +7,7 @@ part of 'total_hourly_transactions_cubit.dart';
 /// represent transaction statistics (e.g., the number of account blocks and
 /// the timestamp) for the last hour. It tracks the state of fetching
 /// hourly transaction data within [TotalHourlyTransactionsCubit].
-@JsonSerializable()
+@JsonSerializable(explicitToJson: true)
 class TotalHourlyTransactionsState extends TimerState<int> {
   /// Constructs a new [TotalHourlyTransactionsState] with optional values for
   /// [status], [data], and [error].

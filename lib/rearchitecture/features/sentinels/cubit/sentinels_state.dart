@@ -6,7 +6,7 @@ part of 'sentinels_cubit.dart';
 /// This class manages a [SentinelInfoList] object representing information
 /// about active sentinels. It is used to track
 /// the state of sentinel data loading within the [SentinelsCubit].
-@JsonSerializable()
+@JsonSerializable(explicitToJson: true)
 class SentinelsState extends TimerState<SentinelInfoList> {
   /// Constructs a new [SentinelsState] with optional values for [status],
   /// [data], and [error].
