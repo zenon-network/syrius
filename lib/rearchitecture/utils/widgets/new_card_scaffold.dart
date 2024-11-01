@@ -144,7 +144,7 @@ class _NewCardScaffoldState extends State<NewCardScaffold> {
               ExpandablePanel(
                 collapsed: const SizedBox.shrink(),
                 theme: ExpandableThemeData(
-                  iconColor: context.newTheme.iconTheme.color,
+                  iconColor: context.theme.iconTheme.color,
                   iconPlacement: ExpandablePanelIconPlacement.right,
                   headerAlignment: ExpandablePanelHeaderAlignment.center,
                 ),
@@ -158,7 +158,7 @@ class _NewCardScaffoldState extends State<NewCardScaffold> {
                     Expanded(
                       child: Text(
                         'Description',
-                        style: context.newTheme.textTheme.titleSmall,
+                        style: context.theme.textTheme.titleSmall,
                       ),
                     ),
                   ],
@@ -167,7 +167,7 @@ class _NewCardScaffoldState extends State<NewCardScaffold> {
                   padding: const EdgeInsets.all(8),
                   child: Text(
                     _description,
-                    style: context.newTheme.textTheme.bodyMedium,
+                    style: context.theme.textTheme.bodyMedium,
                   ),
                 ),
               ),
@@ -181,7 +181,7 @@ class _NewCardScaffoldState extends State<NewCardScaffold> {
                   Expanded(
                     child: Text(
                       'Discreet mode',
-                      style: context.newTheme.textTheme.titleSmall,
+                      style: context.theme.textTheme.titleSmall,
                     ),
                   ),
                   const Spacer(),
