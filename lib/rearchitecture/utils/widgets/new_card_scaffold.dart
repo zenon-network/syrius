@@ -63,7 +63,7 @@ class _NewCardScaffoldState extends State<NewCardScaffold> {
 
   String get _description => widget.data.description;
 
-  final ValueNotifier<bool> _obscureTextNotifier = ValueNotifier<bool>(false);
+  final ValueNotifier<bool> _obscureTextNotifier = ValueNotifier<bool>(true);
 
   @override
   Widget build(BuildContext context) {
