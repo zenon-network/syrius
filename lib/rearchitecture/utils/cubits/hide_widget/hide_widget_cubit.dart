@@ -1,6 +1,7 @@
 import 'package:equatable/equatable.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
 import 'package:json_annotation/json_annotation.dart';
+import 'package:logging/logging.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/exceptions/exceptions.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
@@ -69,4 +70,14 @@ class HideWidgetCubit extends HydratedCubit<HideWidgetState> {
 
   @override
   Map<String, dynamic>? toJson(HideWidgetState state) => state.toJson();
+
+  @override
+  void onError(Object error, StackTrace stackTrace) {
+    Logger('HideWidgetCubit').warning(
+      'onError triggered',
+      error,
+      stackTrace,
+    );
+    super.onError(error, stackTrace);
+  }
 }
