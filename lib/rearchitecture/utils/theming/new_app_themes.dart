@@ -6,7 +6,6 @@ final ThemeData newLightTheme = ThemeData(
   colorScheme: ColorScheme.fromSeed(
     seedColor: AppColors.znnColor,
   ),
-  fontFamily: 'Roboto',
   dividerTheme: kDefaultDividerThemeData,
   inputDecorationTheme: InputDecorationTheme(
     fillColor: AppColors.lightTextFormFieldFill,
@@ -53,7 +52,6 @@ final ThemeData newDarkTheme = ThemeData(
     brightness: Brightness.dark,
     seedColor: AppColors.znnColor,
   ),
-  fontFamily: 'Roboto',
   dividerTheme: kDefaultDividerThemeData,
   inputDecorationTheme: InputDecorationTheme(
     fillColor: AppColors.darkTextFormFieldFill,
