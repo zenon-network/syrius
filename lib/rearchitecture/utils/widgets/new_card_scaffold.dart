@@ -7,7 +7,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_vector_icons/flutter_vector_icons.dart';
 import 'package:lottie/lottie.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
-import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/theming/new_app_themes.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/card_scaffold_header.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/card_scaffold_password_field.dart';
@@ -78,14 +77,11 @@ class _NewCardScaffoldState extends State<NewCardScaffold> {
     final Widget front =
         _isFrontWidgetHidden(_title) ? _getHiddenInfoWidget() : widget.body;
 
-    final bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
-
-    final ThemeData themeData = isDarkMode ? newDarkTheme : newLightTheme;
-
-    final Color background = isDarkMode ? AppColors.darkPrimary : Colors.white;
+    final Color background =
+        context.isDarkMode ? AppColors.darkPrimary : Colors.white;
 
     return Theme(
-      data: themeData,
+      data: context.newTheme,
       child: Builder(
         builder: (BuildContext context) {
           return FlipCard(
@@ -144,7 +140,7 @@ class _NewCardScaffoldState extends State<NewCardScaffold> {
               ExpandablePanel(
                 collapsed: const SizedBox.shrink(),
                 theme: ExpandableThemeData(
-                  iconColor: Theme.of(context).iconTheme.color,
+                  iconColor: context.newTheme.iconTheme.color,
                   iconPlacement: ExpandablePanelIconPlacement.right,
                   headerAlignment: ExpandablePanelHeaderAlignment.center,
                 ),
@@ -158,7 +154,7 @@ class _NewCardScaffoldState extends State<NewCardScaffold> {
                     Expanded(
                       child: Text(
                         'Description',
-                        style: Theme.of(context).textTheme.titleSmall,
+                        style: context.newTheme.textTheme.titleSmall,
                       ),
                     ),
                   ],
@@ -167,7 +163,7 @@ class _NewCardScaffoldState extends State<NewCardScaffold> {
                   padding: const EdgeInsets.all(8),
                   child: Text(
                     _description,
-                    style: Theme.of(context).textTheme.bodyMedium,
+                    style: context.newTheme.textTheme.bodyMedium,
                   ),
                 ),
               ),
@@ -181,7 +177,7 @@ class _NewCardScaffoldState extends State<NewCardScaffold> {
                   Expanded(
                     child: Text(
                       'Discreet mode',
-                      style: Theme.of(context).textTheme.titleSmall,
+                      style: context.newTheme.textTheme.titleSmall,
                     ),
                   ),
                   const Spacer(),
@@ -273,7 +269,7 @@ class _NewCardScaffoldState extends State<NewCardScaffold> {
               _actionButtonKey.currentState?.animateReverse();
               _passwordController.clear();
               if (!state.isHidden!) {
-                  _showPasswordInputField = false;
+                _showPasswordInputField = false;
               }
               _error = null;
               setState(() {});
