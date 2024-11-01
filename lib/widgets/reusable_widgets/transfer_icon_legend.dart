@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 
 class TransferIconLegend extends StatelessWidget {
 
@@ -11,9 +12,9 @@ class TransferIconLegend extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 80,
       padding: const EdgeInsets.symmetric(
         vertical: 5,
+        horizontal: 10,
       ),
       decoration: BoxDecoration(
         color: Colors.black12,
@@ -21,14 +22,11 @@ class TransferIconLegend extends StatelessWidget {
           10,
         ),
       ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: <Widget>[
-          Text(
-            legendText,
-            style: Theme.of(context).textTheme.bodyMedium,
-          ),
-        ],
+      child: Text(
+        legendText,
+        style: context.textTheme.bodyMedium,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
       ),
     );
   }

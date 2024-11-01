@@ -32,7 +32,6 @@ class _TransferCardState extends State<TransferCard> {
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: <Widget>[
           IconButton(
-            splashRadius: 30,
             onPressed: () {
               widget.changePage!(
                 Tabs.transfer,
@@ -45,11 +44,10 @@ class _TransferCardState extends State<TransferCard> {
             color: AppColors.darkHintTextColor,
             iconSize: 48,
           ),
-          const TransferIconLegend(
-            legendText: '● Send',
+          TransferIconLegend(
+            legendText: '● ${context.l10n.send}',
           ),
           IconButton(
-            splashRadius: 30,
             onPressed: () {
               widget.changePage!(
                 Tabs.transfer,
@@ -62,8 +60,8 @@ class _TransferCardState extends State<TransferCard> {
             iconSize: 48,
             color: AppColors.lightHintTextColor,
           ),
-          const TransferIconLegend(
-            legendText: '● Receive',
+          TransferIconLegend(
+            legendText: '● ${context.l10n.receive}',
           ),
         ],
       ),

@@ -10,14 +10,18 @@
   "pillarsDescription": "This card displays the number of active Pillars in the network",
   "realtimeStats": "Realtime Stats",
   "realtimeStatsDescription": "This card displays the number of {kZnnCoinSymbol} and {kQsrCoinSymbol} transactions. For example, a delegation is considered a {kZnnCoinSymbol} transaction from the network's perspective. Every interaction with the network embedded contracts is internally considered a transaction",
+  "send": "Send",
   "sentinels": "Sentinels",
   "sentinelsDescription": "This card displays the number of active Sentinels in the network",
   "stakingStats": "Staking Stats",
   "stakingStatsDescription": "This card displays the number of staking entries and the total {kZnnCoinSymbol} that you are currently staking",
+  "receive": "Receive",
   "transactions": "Transactions",
   "transactionsDescription": "This card displays the total number of transactions settled in the last hour across the network",
   "transactionsLastHour": "transactions in the last hour",
   "transfer": "Transfer",
   "transferDescription": "Redirects you to the Transfer tab where you can manage sending and receiving funds",
-  "waitingForDataFetching": "Waiting for data fetching"
+  "waitingForDataFetching": "Waiting for data fetching",
+  "quasarTransactions": "{quasar} transactions",
+  "zenonTransactions": "{zenon} transactions"
 }

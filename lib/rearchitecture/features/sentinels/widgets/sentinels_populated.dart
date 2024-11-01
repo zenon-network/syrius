@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/cubits/timer_cubit.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
@@ -33,11 +34,11 @@ class SentinelsPopulated extends StatelessWidget {
             NumberAnimation(
               end: sentinelInfoList.count,
               isInt: true,
-              style: Theme.of(context).textTheme.headlineMedium,
+              style: context.textTheme.headlineMedium,
             ),
             Text(
               'Active Sentinels',
-              style: Theme.of(context).textTheme.titleMedium,
+              style: context.textTheme.bodyMedium,
             ),
           ],
         ),

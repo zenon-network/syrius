@@ -27,23 +27,22 @@ class StakingPopulated extends StatelessWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: <Widget>[
-        Container(
-          padding: const EdgeInsets.all(8),
-          width: 36,
-          height: 36,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            border: Border.all(
-              color: AppColors.znnColor,
+        SizedBox.square(
+          dimension: 36,
+          child: Container(
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              border: Border.all(
+                color: AppColors.znnColor,
+              ),
+            ),
+            child: const Icon(
+              SimpleLineIcons.energy,
+              size: 12,
             ),
           ),
-          child: Icon(
-            SimpleLineIcons.energy,
-            size: 12,
-            color: Theme.of(context).textTheme.bodyLarge!.color,
-          ),
         ),
-        Container(width: 16),
+        kHorizontalGap16,
         Column(
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -51,11 +50,11 @@ class StakingPopulated extends StatelessWidget {
             NumberAnimation(
               end: numActiveStakingEntries,
               isInt: true,
-              style: Theme.of(context).textTheme.headlineMedium,
+              style: context.textTheme.headlineMedium,
             ),
             Text(
               '$totalStakedAmountWithDecimals ${kZnnCoin.symbol}',
-              style: Theme.of(context).textTheme.titleMedium,
+              style: context.textTheme.bodyMedium,
             ),
           ],
         ),

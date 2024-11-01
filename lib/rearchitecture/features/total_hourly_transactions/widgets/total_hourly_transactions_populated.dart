@@ -21,9 +21,7 @@ class TotalHourlyTransactionsPopulated extends StatelessWidget {
         NumberAnimation(
           end: count,
           isInt: true,
-          style: Theme.of(context).textTheme.headlineLarge!.copyWith(
-                fontSize: 30,
-              ),
+          style: context.textTheme.headlineLarge,
         ),
         kVerticalGap16,
         Text(context.l10n.transactionsLastHour),

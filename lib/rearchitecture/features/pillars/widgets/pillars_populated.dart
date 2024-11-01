@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
-import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/cubits/timer_cubit.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/reusable_widgets.dart';
 
 /// A widget associated with the [PillarsState] when it's status is
@@ -29,11 +29,11 @@ class PillarsPopulated extends StatelessWidget {
             NumberAnimation(
               end: numberOfPillars,
               isInt: true,
-              style: Theme.of(context).textTheme.headlineMedium,
+              style: context.textTheme.headlineMedium,
             ),
             Text(
               'Active Pillars',
-              style: Theme.of(context).textTheme.titleMedium,
+              style: context.textTheme.bodyMedium,
             ),
           ],
         ),
