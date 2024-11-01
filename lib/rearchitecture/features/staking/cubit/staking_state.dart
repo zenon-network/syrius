@@ -7,7 +7,7 @@ part of 'staking_cubit.dart';
 /// staking entries.
 /// It tracks the loading, success, or failure of fetching staking data within
 /// the [StakingCubit].
-@JsonSerializable()
+@JsonSerializable(explicitToJson: true)
 class StakingState extends TimerState<StakeList> {
   /// Constructs a new [StakingState] with optional values for [status],
   /// [data], and [error].

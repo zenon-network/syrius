@@ -19,7 +19,6 @@ class MockStake extends Mock implements StakeApi {}
 
 class FakeAddress extends Fake implements Address {}
 
-
 void main() {
   initHydratedStorage();
 
@@ -43,8 +42,8 @@ void main() {
       mockEmbedded = MockEmbedded();
       mockStake = MockStake();
       stakingCubit = StakingCubit(
-          address: emptyAddress,
-          zenon: mockZenon,
+        address: emptyAddress,
+        zenon: mockZenon,
       );
       stakeEntry = StakeEntry(
         amount: BigInt.from(1),
@@ -66,6 +65,9 @@ void main() {
       when(() => mockWsClient.isClosed()).thenReturn(false);
       when(() => mockZenon.embedded).thenReturn(mockEmbedded);
       when(() => mockEmbedded.stake).thenReturn(mockStake);
+      when(
+        () => mockStake.getEntriesByAddress(any()),
+      ).thenAnswer((_) async => testStakeList);
     });
 
     test('initial status is correct', () {
@@ -136,11 +138,11 @@ void main() {
         build: () => stakingCubit,
         act: (StakingCubit cubit) => cubit.fetchDataPeriodically(),
         verify: (_) {
-          verify(() => mockZenon.embedded.stake.getEntriesByAddress(
-            any(),
-          )
-            ,)
-              .called(1);
+          verify(
+            () => mockZenon.embedded.stake.getEntriesByAddress(
+              any(),
+            ),
+          ).called(1);
         },
       );
 
@@ -148,7 +150,7 @@ void main() {
         'emits [loading, failure] when getEntriesByAddress() throws',
         setUp: () {
           when(
-                () => mockStake.getEntriesByAddress(any()),
+            () => mockStake.getEntriesByAddress(any()),
           ).thenThrow(stakingException);
         },
         build: () => stakingCubit,
@@ -163,19 +165,16 @@ void main() {
       );
 
       blocTest<StakingCubit, StakingState>(
-          'emits [loading, success] when getAllActive() returns successfully',
-          setUp: () {
-            when(
-                  () => mockStake.getEntriesByAddress(any()),
-            ).thenAnswer((_) async => testStakeList);
-          },
-          build: () => stakingCubit,
-          act: (StakingCubit cubit) => cubit.fetchDataPeriodically(),
-          expect: () => <StakingState>[
-            StakingState(status: TimerStatus.loading),
-            StakingState(status: TimerStatus.success,
-            data: testStakeList,),
-          ],
+        'emits [loading, success] when getAllActive() returns successfully',
+        build: () => stakingCubit,
+        act: (StakingCubit cubit) => cubit.fetchDataPeriodically(),
+        expect: () => <StakingState>[
+          StakingState(status: TimerStatus.loading),
+          StakingState(
+            status: TimerStatus.success,
+            data: testStakeList,
+          ),
+        ],
       );
     });
   });

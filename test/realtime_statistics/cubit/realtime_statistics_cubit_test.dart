@@ -192,7 +192,6 @@ void main() {
         },
       );
 
-      // TODO(maznwell): fix equality between AccountBlock instances
       blocTest<RealtimeStatisticsCubit, RealtimeStatisticsState>(
         'emits [loading, success] when fetch returns',
         build: () => statsCubit,

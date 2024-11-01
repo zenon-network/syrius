@@ -100,7 +100,6 @@ void main() {
         expect(deserialized, equals(loadingState));
       });
 
-      // TODO(mazznwell): fix equality between AccountInfo instances
       test('can (de)serialize success state', () {
         final BalanceState balanceState = BalanceState(
           data: accountInfo,
