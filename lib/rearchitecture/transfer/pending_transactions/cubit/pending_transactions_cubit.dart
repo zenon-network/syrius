@@ -1,7 +1,9 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:json_annotation/json_annotation.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
+part 'pending_transactions_cubit.g.dart';
 part 'pending_transactions_state.dart';
 
 
@@ -36,4 +38,13 @@ class PendingTransactionsCubit extends Cubit<PendingTransactionsState> {
       emit(state.copyWith(status: PendingTransactionsStatus.failure, error: e));
     }
   }
+
+  @override
+  PendingTransactionsState? fromJson(Map<String, dynamic> json) =>
+      PendingTransactionsState.fromJson(
+        json,
+      );
+
+  @override
+  Map<String, dynamic>? toJson(PendingTransactionsState state) => state.toJson();
 }

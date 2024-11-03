@@ -7,13 +7,17 @@ enum PendingTransactionsStatus {
   success,
 }
 
+@JsonSerializable(explicitToJson: true)
 class PendingTransactionsState extends Equatable {
 
   const PendingTransactionsState({
-    required this.status,
+    this.status = PendingTransactionsStatus.initial,
     this.data,
     this.error,
   });
+
+  factory PendingTransactionsState.fromJson(Map<String, dynamic> json) =>
+      _$PendingTransactionsStateFromJson(json);
 
   final PendingTransactionsStatus status;
   final List<AccountBlock>? data;
@@ -30,6 +34,8 @@ class PendingTransactionsState extends Equatable {
       error: error ?? this.error,
     );
   }
+
+  Map<String, dynamic> toJson() => _$PendingTransactionsStateToJson(this);
 
   @override
   List<Object?> get props => [status, data, error];

@@ -7,13 +7,17 @@ enum ReceiveTransactionStatus {
   success,
 }
 
+@JsonSerializable(explicitToJson: true)
 class ReceiveTransactionState extends Equatable{
 
   const ReceiveTransactionState({
-    required this.status,
+    this.status = ReceiveTransactionStatus.initial,
     this.data,
     this.error,
   });
+
+  factory ReceiveTransactionState.fromJson(Map<String, dynamic> json) =>
+      _$ReceiveTransactionStateFromJson(json);
 
   final ReceiveTransactionStatus status;
   final AccountBlockTemplate? data;
@@ -30,6 +34,8 @@ class ReceiveTransactionState extends Equatable{
       error: error ?? this.error,
     );
   }
+
+  Map<String, dynamic> toJson() => _$ReceiveTransactionStateToJson(this);
 
   @override
   List<Object?> get props => [status, data, error];

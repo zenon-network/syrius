@@ -1,3 +1,4 @@
+//ignore_for_file: prefer_const_constructors
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
@@ -31,12 +32,12 @@ void main() {
   });
 
   group('LatestTransactionsCubit', () {
-    const pageKey = 1;
-    const pageSize = 10;
+    const int pageKey = 1;
+    const int pageSize = 10;
 
-    final mockAccountBlock = MockAccountBlock();
-    final mockAccountBlockList = MockAccountBlockList();
-    final exception = Exception();
+    final MockAccountBlock mockAccountBlock = MockAccountBlock();
+    final MockAccountBlockList mockAccountBlockList = MockAccountBlockList();
+    final Exception exception = Exception();
 
     test('initial state is correct', () {
       expect(latestTransactionsCubit.state.status,
@@ -44,10 +45,69 @@ void main() {
       );
     });
 
+    group('fromJson/toJson', () {
+      test('can (de)serialize initial state', () {
+        final LatestTransactionsState initialState = LatestTransactionsState();
+
+        final Map<String, dynamic>? serialized = latestTransactionsCubit.toJson(
+          initialState,
+        );
+        final LatestTransactionsState? deserialized = latestTransactionsCubit.
+        fromJson(serialized!);
+
+        expect(deserialized, equals(initialState));
+      });
+
+      test('can (de)serialize loading state', () {
+        final LatestTransactionsState loadingState = LatestTransactionsState(
+          status: LatestTransactionsStatus.loading,
+        );
+
+        final Map<String, dynamic>? serialized = latestTransactionsCubit.toJson(
+          loadingState,
+        );
+        final LatestTransactionsState? deserialized = latestTransactionsCubit.fromJson(
+          serialized!,
+        );
+        expect(deserialized, equals(loadingState));
+      });
+
+      test('can (de)serialize success state', () {
+        final LatestTransactionsState successState = LatestTransactionsState(
+          status: LatestTransactionsStatus.success,
+          data: delegationInfo,
+        );
+
+        final Map<String, dynamic>? serialized = latestTransactionsCubit.toJson(
+          successState,
+        );
+        final LatestTransactionsState? deserialized = latestTransactionsCubit.fromJson(
+          serialized!,
+        );
+        expect(deserialized, equals(successState));
+      });
+
+      test('can (de)serialize failure state', () {
+        final LatestTransactionsState failureState = LatestTransactionsState(
+          status: LatestTransactionsStatus.failure,
+          error: delegationException,
+        );
+
+        final Map<String, dynamic>? serialized = latestTransactionsCubit.toJson(
+          failureState,
+        );
+        final LatestTransactionsState? deserialized = latestTransactionsCubit.fromJson(
+          serialized!,
+        );
+        expect(deserialized, equals(failureState));
+      });
+    });
+
     blocTest<LatestTransactionsCubit, LatestTransactionsState>(
       'emits [loading, success] with data on successful fetch',
       setUp: () {
-        when(() => mockAccountBlockList.list).thenReturn([mockAccountBlock]);
+        when(() => mockAccountBlockList.list)
+            .thenReturn(<AccountBlock>[mockAccountBlock]);
         when(() => mockLedger.getAccountBlocksByPage(
           any(),
           pageIndex: pageKey,
@@ -56,12 +116,12 @@ void main() {
         ).thenAnswer((_) async => mockAccountBlockList);
       },
       build: () => latestTransactionsCubit,
-      act: (cubit) => cubit.getData(pageKey, pageSize),
+      act: (LatestTransactionsCubit cubit) => cubit.getData(pageKey, pageSize),
       expect: () => <LatestTransactionsState>[
         const LatestTransactionsState(status: LatestTransactionsStatus.loading),
         LatestTransactionsState(
           status: LatestTransactionsStatus.success,
-          data: [mockAccountBlock],
+          data: <AccountBlock>[mockAccountBlock],
         ),
       ],
     );
@@ -76,7 +136,7 @@ void main() {
         ),).thenThrow(exception);
       },
       build: () => latestTransactionsCubit,
-      act: (cubit) => cubit.getData(pageKey, pageSize),
+      act: (LatestTransactionsCubit cubit) => cubit.getData(pageKey, pageSize),
       expect: () => <LatestTransactionsState>[
         const LatestTransactionsState(status: LatestTransactionsStatus.loading),
         LatestTransactionsState(

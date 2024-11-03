@@ -1,3 +1,4 @@
+//ignore_for_file: prefer_const_constructors
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -36,10 +37,12 @@ void main() {
   });
 
   group('ReceiveTransactionCubit', () {
-    final exception = Exception();
+    final Exception exception = Exception();
 
     test('initial state is correct', () {
-      expect(receiveTransactionCubit.state.status, ReceiveTransactionStatus.initial);
+      expect(receiveTransactionCubit.state.status,
+          ReceiveTransactionStatus.initial,
+      );
     });
 
     blocTest<ReceiveTransactionCubit, ReceiveTransactionState>(
@@ -49,7 +52,10 @@ void main() {
             .thenAnswer((_) async => response);
       },
       build: () => receiveTransactionCubit,
-      act: (cubit) => cubit.receiveTransaction(emptyHash.toString(), MockContext()),
+      act: (ReceiveTransactionCubit cubit) => cubit.receiveTransaction(
+          emptyHash.toString(),
+          MockContext(),
+      ),
       expect: () => <ReceiveTransactionState>[
         const ReceiveTransactionState(status: ReceiveTransactionStatus.loading),
         ReceiveTransactionState(
@@ -66,7 +72,10 @@ void main() {
             .thenThrow(exception);
       },
       build: () => receiveTransactionCubit,
-      act: (cubit) => cubit.receiveTransaction(emptyHash.toString(), MockContext()),
+      act: (ReceiveTransactionCubit cubit) => cubit.receiveTransaction(
+          emptyHash.toString(),
+          MockContext(),
+      ),
       expect: () => <ReceiveTransactionState>[
         ReceiveTransactionState(status: ReceiveTransactionStatus.loading),
         ReceiveTransactionState(

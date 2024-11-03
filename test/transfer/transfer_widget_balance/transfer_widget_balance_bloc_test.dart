@@ -1,10 +1,9 @@
+//ignore_for_file: prefer_const_constructors
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/transfer/transfer_widget_balance/transfer_widget_balance_bloc.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
-
-//Cubit not testable: use of global variable interferes with testing
 
 class MockZenon extends Mock implements Zenon {}
 class MockWsClient extends Mock implements WsClient {}
@@ -26,7 +25,10 @@ void main() {
     mockWsClient = MockWsClient();
     when(() => mockZenon.wsClient).thenReturn(mockWsClient);
     when(() => mockZenon.ledger).thenReturn(mockLedger);
-    bloc = TransferWidgetBalanceBloc(mockZenon);
+    bloc = TransferWidgetBalanceBloc(
+        zenon: mockZenon,
+        list: <String?>[emptyAddress.toString()],
+    );
   });
 
   tearDown(() {
@@ -34,9 +36,9 @@ void main() {
   });
 
   group('TransferWidgetsBalanceBloc', () {
-    final testAddress = emptyAddress.toString();
-    final mockAccountInfo = MockAccountInfo();
-    final exception = Exception();
+    final String testAddress = emptyAddress.toString();
+    final MockAccountInfo mockAccountInfo = MockAccountInfo();
+    final Exception exception = Exception();
 
     test('initial state is correct', () {
       expect(bloc.state.status, TransferWidgetBalanceStatus.initial);
@@ -50,12 +52,12 @@ void main() {
             .thenAnswer((_) async => mockAccountInfo);
       },
       build: () => bloc,
-      act: (bloc) => bloc.add(FetchBalances()),
-      expect: () => [
-        const TransferWidgetBalanceState(status: TransferWidgetBalanceStatus.loading),
+      act: (TransferWidgetBalanceBloc bloc) => bloc.add(FetchBalances()),
+      expect: () => <TransferWidgetBalanceState>[
+        TransferWidgetBalanceState(status: TransferWidgetBalanceStatus.loading),
         TransferWidgetBalanceState(
           status: TransferWidgetBalanceStatus.success,
-          data: {testAddress: mockAccountInfo},
+          data: <String, AccountInfo>{testAddress: mockAccountInfo},
         ),
       ],
     );
@@ -67,10 +69,9 @@ void main() {
             .thenThrow(exception);
       },
       build: () => bloc,
-      act: (bloc) => bloc.add(FetchBalances()),
-      expect: () => [
-        const TransferWidgetBalanceState(
-            status: TransferWidgetBalanceStatus.loading),
+      act: (TransferWidgetBalanceBloc bloc) => bloc.add(FetchBalances()),
+      expect: () => <TransferWidgetBalanceState>[
+        TransferWidgetBalanceState(status: TransferWidgetBalanceStatus.loading),
         TransferWidgetBalanceState(
           status: TransferWidgetBalanceStatus.failure,
           error: exception,

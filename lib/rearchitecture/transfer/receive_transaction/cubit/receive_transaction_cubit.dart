@@ -1,9 +1,11 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:json_annotation/json_annotation.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/auto_receive_tx_worker.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
+part 'receive_transaction_cubit.g.dart';
 part 'receive_transaction_state.dart';
 
 class ReceiveTransactionCubit extends Cubit<ReceiveTransactionState> {
@@ -33,4 +35,13 @@ class ReceiveTransactionCubit extends Cubit<ReceiveTransactionState> {
       emit(state.copyWith(status: ReceiveTransactionStatus.failure, error: e));
     }
   }
+
+  @override
+  ReceiveTransactionState? fromJson(Map<String, dynamic> json) =>
+      ReceiveTransactionState.fromJson(
+        json,
+      );
+
+  @override
+  Map<String, dynamic>? toJson(ReceiveTransactionState state) => state.toJson();
 }

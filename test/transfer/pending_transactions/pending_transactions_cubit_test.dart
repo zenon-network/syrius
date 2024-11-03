@@ -31,12 +31,12 @@ void main() {
   });
 
   group('LatestTransactionsCubit', () {
-    const pageKey = 1;
-    const pageSize = 10;
+    const int pageKey = 1;
+    const int pageSize = 10;
 
-    final mockAccountBlock = MockAccountBlock();
-    final mockAccountBlockList = MockAccountBlockList();
-    final exception = Exception();
+    final MockAccountBlock mockAccountBlock = MockAccountBlock();
+    final MockAccountBlockList mockAccountBlockList = MockAccountBlockList();
+    final Exception exception = Exception();
 
     test('initial state is correct', () {
       expect(pendingTransactionsCubit.state.status,
@@ -47,7 +47,8 @@ void main() {
     blocTest<PendingTransactionsCubit, PendingTransactionsState>(
       'emits [loading, success] with data on successful fetch',
       setUp: () {
-        when(() => mockAccountBlockList.list).thenReturn([mockAccountBlock]);
+        when(() => mockAccountBlockList.list)
+            .thenReturn(<AccountBlock>[mockAccountBlock]);
         when(() => mockLedger.getUnreceivedBlocksByAddress(
           any(),
           pageIndex: pageKey,
@@ -56,14 +57,14 @@ void main() {
         ).thenAnswer((_) async => mockAccountBlockList);
       },
       build: () => pendingTransactionsCubit,
-      act: (cubit) => cubit.getData(pageKey, pageSize),
+      act: (PendingTransactionsCubit cubit) => cubit.getData(pageKey, pageSize),
       expect: () => <PendingTransactionsState>[
         const PendingTransactionsState(
             status: PendingTransactionsStatus.loading,
         ),
         PendingTransactionsState(
           status: PendingTransactionsStatus.success,
-          data: [mockAccountBlock],
+          data: <AccountBlock>[mockAccountBlock],
         ),
       ],
     );
@@ -79,7 +80,7 @@ void main() {
         ).thenThrow(exception);
       },
       build: () => pendingTransactionsCubit,
-      act: (cubit) => cubit.getData(pageKey, pageSize),
+      act: (PendingTransactionsCubit cubit) => cubit.getData(pageKey, pageSize),
       expect: () => <PendingTransactionsState>[
         const PendingTransactionsState(
             status: PendingTransactionsStatus.loading,

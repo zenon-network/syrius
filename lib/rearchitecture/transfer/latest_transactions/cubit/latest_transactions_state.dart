@@ -7,13 +7,17 @@ enum LatestTransactionsStatus {
   success,
 }
 
+@JsonSerializable(explicitToJson: true)
 class LatestTransactionsState extends Equatable{
 
   const LatestTransactionsState({
-    required this.status,
+    this.status = LatestTransactionsStatus.initial,
     this.data,
     this.error,
   });
+
+  factory LatestTransactionsState.fromJson(Map<String, dynamic> json) =>
+      _$LatestTransactionsStateFromJson(json);
 
   final LatestTransactionsStatus status;
   final List<AccountBlock>? data;
@@ -31,6 +35,8 @@ class LatestTransactionsState extends Equatable{
     );
   }
 
+  Map<String, dynamic> toJson() => _$LatestTransactionsStateToJson(this);
+
   @override
-  List<Object?> get props => [status, data, error];
+  List<Object?> get props => <Object?>[status, data, error];
 }
