@@ -21,8 +21,8 @@ DualCoinStatsState _$DualCoinStatsStateFromJson(Map<String, dynamic> json) =>
 Map<String, dynamic> _$DualCoinStatsStateToJson(DualCoinStatsState instance) =>
     <String, dynamic>{
       'status': _$TimerStatusEnumMap[instance.status]!,
-      'data': instance.data,
-      'error': instance.error,
+      'data': instance.data?.map((e) => e.toJson()).toList(),
+      'error': instance.error?.toJson(),
     };
 
 const _$TimerStatusEnumMap = {

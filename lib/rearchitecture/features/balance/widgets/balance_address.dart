@@ -1,5 +1,6 @@
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 
 /// A stateless widget that takes in a [ValueNotifier] that holds a color
@@ -33,13 +34,12 @@ class BalanceAddress extends StatelessWidget {
             if (x) {
               edgesColorNotifier.value = AppColors.znnColor;
             } else {
-              edgesColorNotifier.value = Theme.of(context).hintColor;
+              edgesColorNotifier.value = context.themeData.hintColor;
             }
           },
           child: Container(
             decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.surface,
-              border: Border.all(color: Theme.of(context).colorScheme.surface),
+              color: context.themeData.colorScheme.surface,
               borderRadius: BorderRadius.circular(15),
             ),
             padding: const EdgeInsets.symmetric(
@@ -63,7 +63,7 @@ class BalanceAddress extends StatelessWidget {
                       address.length - 6,
                     ),
                     style: TextStyle(
-                      color: Theme.of(context).hintColor,
+                      color: context.themeData.hintColor,
                     ),
                   ),
                   TextSpan(

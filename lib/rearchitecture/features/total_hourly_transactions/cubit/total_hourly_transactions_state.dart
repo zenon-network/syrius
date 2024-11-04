@@ -7,7 +7,7 @@ part of 'total_hourly_transactions_cubit.dart';
 /// represent transaction statistics (e.g., the number of account blocks and
 /// the timestamp) for the last hour. It tracks the state of fetching
 /// hourly transaction data within [TotalHourlyTransactionsCubit].
-@JsonSerializable()
+@JsonSerializable(explicitToJson: true)
 class TotalHourlyTransactionsState extends TimerState<int> {
   /// Constructs a new [TotalHourlyTransactionsState] with optional values for
   /// [status], [data], and [error].
@@ -20,7 +20,7 @@ class TotalHourlyTransactionsState extends TimerState<int> {
     super.error,
   });
 
-  /// Creates a [TotalHourlyTransactionsState] instance from a JSON map.
+  /// {@macro state_from_json}
   factory TotalHourlyTransactionsState.fromJson(Map<String, dynamic> json) =>
       _$TotalHourlyTransactionsStateFromJson(json);
 
@@ -38,6 +38,6 @@ class TotalHourlyTransactionsState extends TimerState<int> {
     );
   }
 
-  /// Converts this [TotalHourlyTransactionsState] instance to a JSON map.
+  /// {@macro state_to_json}
   Map<String, dynamic> toJson() => _$TotalHourlyTransactionsStateToJson(this);
 }

@@ -5,7 +5,7 @@ part of 'balance_cubit.dart';
 ///
 /// The data hold, when the status is [TimerStatus.success], is of type
 /// [AccountInfo].
-@JsonSerializable()
+@JsonSerializable(explicitToJson: true)
 class BalanceState extends TimerState<AccountInfo> {
   /// Constructs a new BalanceState.
   ///
@@ -17,7 +17,9 @@ class BalanceState extends TimerState<AccountInfo> {
     super.error,
   });
 
-  /// Creates a [BalanceState] instance from a JSON map.
+  /// {@template state_from_json}
+  /// Creates a new instance from a JSON map.
+  /// {@endtemplate}
   factory BalanceState.fromJson(Map<String, dynamic> json) =>
       _$BalanceStateFromJson(json);
 
@@ -39,6 +41,8 @@ class BalanceState extends TimerState<AccountInfo> {
     );
   }
 
-  /// Converts this [BalanceState] instance to a JSON map.
+  /// {@template state_to_json}
+  /// Converts this instance to a JSON map.
+  /// {@endtemplate}
   Map<String, dynamic> toJson() => _$BalanceStateToJson(this);
 }

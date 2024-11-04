@@ -1,4 +1,6 @@
-class Pair<T1, T2> {
+import 'package:equatable/equatable.dart';
+
+class Pair<T1, T2> extends Equatable{
   /// Creates a [Pair] instance
   Pair(this.first, this.second);
 
@@ -15,6 +17,9 @@ class Pair<T1, T2> {
 
   final T1 first;
   final T2 second;
+
+  @override
+  List<Object?> get props => [first, second];
 
   /// A function to serialize generic types
   Map<String, dynamic> toJson(

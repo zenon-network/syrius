@@ -29,16 +29,12 @@ class RealtimeStatisticsPopulated extends StatelessWidget {
             children: <Widget>[
               ChartLegend(
                 dotColor: ColorUtils.getTokenColor(kQsrCoin.tokenStandard),
-                mainText: '${kQsrCoin.symbol} '
-                    'transactions',
+                mainText: context.l10n.quasarTransactions(kQsrCoin.symbol),
               ),
-              const SizedBox(
-                width: 10,
-              ),
+              kHorizontalGap8,
               ChartLegend(
                 dotColor: ColorUtils.getTokenColor(kZnnCoin.tokenStandard),
-                mainText: '${kZnnCoin.symbol} '
-                    'transactions',
+                mainText: context.l10n.zenonTransactions(kZnnCoin.symbol),
               ),
             ],
           ),

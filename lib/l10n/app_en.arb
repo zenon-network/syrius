@@ -50,4 +50,7 @@
   "type": "Type",
   "usDateFormat": "MM/dd/yyyy",
   "waitingForDataFetching": "Waiting for data fetching"
+  "waitingForDataFetching": "Waiting for data fetching",
+  "quasarTransactions": "{quasar} transactions",
+  "zenonTransactions": "{zenon} transactions"
 }

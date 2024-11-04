@@ -14,13 +14,10 @@ class SentinelsCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider<SentinelsCubit>(
-      create: (_) {
-        final SentinelsCubit cubit = SentinelsCubit(
-          zenon: zenon!,
-        )..fetchDataPeriodically();
-        return cubit;
-      },
-      child: CardScaffoldWithoutListener(
+      create: (_) => SentinelsCubit(
+        zenon: zenon!,
+      )..fetchDataPeriodically(),
+      child: NewCardScaffold(
         data: CardType.sentinels.getData(context: context),
         body: BlocBuilder<SentinelsCubit, SentinelsState>(
           builder: (BuildContext context, SentinelsState state) {

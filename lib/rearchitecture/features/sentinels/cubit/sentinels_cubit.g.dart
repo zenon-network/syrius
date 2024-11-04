@@ -21,8 +21,8 @@ SentinelsState _$SentinelsStateFromJson(Map<String, dynamic> json) =>
 Map<String, dynamic> _$SentinelsStateToJson(SentinelsState instance) =>
     <String, dynamic>{
       'status': _$TimerStatusEnumMap[instance.status]!,
-      'data': instance.data,
-      'error': instance.error,
+      'data': instance.data?.toJson(),
+      'error': instance.error?.toJson(),
     };
 
 const _$TimerStatusEnumMap = {
