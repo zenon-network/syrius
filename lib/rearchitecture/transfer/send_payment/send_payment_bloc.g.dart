@@ -8,7 +8,8 @@ part of 'send_payment_bloc.dart';
 
 SendPaymentState _$SendPaymentStateFromJson(Map<String, dynamic> json) =>
     SendPaymentState(
-      status: $enumDecode(_$SendPaymentStatusEnumMap, json['status']),
+      status: $enumDecodeNullable(_$SendPaymentStatusEnumMap, json['status']) ??
+          SendPaymentStatus.initial,
       data: json['data'] == null
           ? null
           : AccountBlockTemplate.fromJson(json['data'] as Map<String, dynamic>),

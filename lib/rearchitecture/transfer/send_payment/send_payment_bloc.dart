@@ -10,9 +10,7 @@ part 'send_payment_event.dart';
 part 'send_payment_state.dart';
 
 class SendPaymentBloc extends Bloc<SendPaymentEvent, SendPaymentState> {
-  SendPaymentBloc() : super(const SendPaymentState(
-      status: SendPaymentStatus.initial,
-  ),
+  SendPaymentBloc() : super(const SendPaymentState(),
   ) {
     on<SendTransfer>(_onSendTransfer);
     on<SendTransferWithBlock>(_onSendTransferWithBlock);
@@ -57,7 +55,7 @@ class SendPaymentBloc extends Bloc<SendPaymentEvent, SendPaymentState> {
       ) async {
     try {
       emit(state.copyWith(status: SendPaymentStatus.loading));
-      final response = await AccountBlockUtils.createAccountBlock(
+      final AccountBlockTemplate response = await AccountBlockUtils.createAccountBlock(
         event.block,
         'send transaction',
         address: Address.parse(event.fromAddress),

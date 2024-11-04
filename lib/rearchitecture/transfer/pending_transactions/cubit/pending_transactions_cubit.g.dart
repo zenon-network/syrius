@@ -9,7 +9,9 @@ part of 'pending_transactions_cubit.dart';
 PendingTransactionsState _$PendingTransactionsStateFromJson(
         Map<String, dynamic> json) =>
     PendingTransactionsState(
-      status: $enumDecode(_$PendingTransactionsStatusEnumMap, json['status']),
+      status: $enumDecodeNullable(
+              _$PendingTransactionsStatusEnumMap, json['status']) ??
+          PendingTransactionsStatus.initial,
       data: (json['data'] as List<dynamic>?)
           ?.map((e) => AccountBlock.fromJson(e as Map<String, dynamic>))
           .toList(),

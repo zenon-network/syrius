@@ -9,7 +9,9 @@ part of 'receive_transaction_cubit.dart';
 ReceiveTransactionState _$ReceiveTransactionStateFromJson(
         Map<String, dynamic> json) =>
     ReceiveTransactionState(
-      status: $enumDecode(_$ReceiveTransactionStatusEnumMap, json['status']),
+      status: $enumDecodeNullable(
+              _$ReceiveTransactionStatusEnumMap, json['status']) ??
+          ReceiveTransactionStatus.initial,
       data: json['data'] == null
           ? null
           : AccountBlockTemplate.fromJson(json['data'] as Map<String, dynamic>),
