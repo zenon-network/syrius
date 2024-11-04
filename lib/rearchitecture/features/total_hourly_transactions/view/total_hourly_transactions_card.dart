@@ -6,7 +6,7 @@ import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 
 /// A widget connected to the [TotalHourlyTransactionsCubit] that receives the
 /// state - [TotalHourlyTransactionsState] - updates and rebuilds the UI
-/// according to the state's status - [TimerStatus]
+/// according to the state's status - [TimerStatus].
 class TotalHourlyTransactionsCard extends StatelessWidget {
   /// Creates a TotalHourlyTransactionsCard object.
   const TotalHourlyTransactionsCard({super.key});

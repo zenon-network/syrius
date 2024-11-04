@@ -8,7 +8,7 @@ import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 /// A card that receives [RealtimeStatisticsState] updates from the
 /// [RealtimeStatisticsCubit] and changes the UI according to the request
-/// status - [TimerStatus]
+/// status - [TimerStatus].
 class RealtimeStatisticsCard extends StatelessWidget {
   /// Creates a RealtimeStatisticsCard object.
   const RealtimeStatisticsCard({super.key});

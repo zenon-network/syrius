@@ -20,7 +20,7 @@ class BalanceChart extends StatelessWidget {
   /// Data needed for the chart
   final AccountInfo accountInfo;
 
-  /// Notifier that holds id of the hovered chart section
+  /// Notifier that holds the id of the hovered chart section
   final ValueNotifier<String?> hoveredSectionId;
 
   @override

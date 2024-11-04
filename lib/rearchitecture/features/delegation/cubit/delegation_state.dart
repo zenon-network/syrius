@@ -18,7 +18,7 @@ class DelegationState extends TimerState<DelegationInfo> {
     super.error,
   });
 
-  /// {@macro state_from_json}
+  /// {@macro instance_from_json}
   factory DelegationState.fromJson(Map<String, dynamic> json) =>
       _$DelegationStateFromJson(json);
 

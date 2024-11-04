@@ -1,4 +1,6 @@
 {
+  "activePillars": "Active Pillars",
+  "activeSentinels": "Active Sentinels",
   "balance": "Balance",
   "currentAmounts": "This card displays the current {kZnnCoinSymbol} and {kQsrCoinSymbol} amounts for the selected address",
   "delegationStats": "Delegation Stats",
