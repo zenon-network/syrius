@@ -195,7 +195,7 @@ class _NewCardScaffoldState extends State<NewCardScaffold> {
                             );
                       } else {
                         // To make the front widget visible, the user needs to
-                        // confirm with it's wallet password
+                        // confirm the action with it's wallet password
                         setState(() {
                           _showPasswordInputField = true;
                         });
@@ -207,7 +207,6 @@ class _NewCardScaffoldState extends State<NewCardScaffold> {
               Visibility(
                 visible: _showPasswordInputField,
                 child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: <Widget>[
                     Expanded(
                       child: ValueListenableBuilder<bool>(
