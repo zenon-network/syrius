@@ -1,10 +1,10 @@
-//ignore_for_file: prefer_const_constructors
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/auto_receive_tx_worker.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/transfer/receive_transaction/cubit/receive_transaction_cubit.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/exceptions/cubit_failure_exception.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 import '../../helpers/hydrated_bloc.dart';
@@ -14,8 +14,6 @@ class MockZenon extends Mock implements Zenon {}
 class MockAutoReceiveTxWorker extends Mock implements AutoReceiveTxWorker {}
 
 class MockContext extends Mock implements BuildContext {}
-
-class MockAccountBlockTemplate extends Mock implements AccountBlockTemplate {}
 
 class MockHash extends Fake implements Hash {}
 
@@ -27,15 +25,13 @@ void main() {
   group('ReceiveTransactionCubit', () {
     late MockAutoReceiveTxWorker mockAutoReceiveTxWorker;
     late ReceiveTransactionCubit receiveTransactionCubit;
-    late MockAccountBlockTemplate mockAccBlockTemplate;
     late AccountBlockTemplate testAccBlockTemplate;
-    late Exception exception;
+    late CubitFailureException exception;
 
     setUp(() {
       mockAutoReceiveTxWorker = MockAutoReceiveTxWorker();
-      mockAccBlockTemplate = MockAccountBlockTemplate();
       testAccBlockTemplate = AccountBlockTemplate(blockType: 1);
-      exception = Exception();
+      exception = CubitFailureException();
 
       receiveTransactionCubit = ReceiveTransactionCubit(
         mockAutoReceiveTxWorker,
@@ -58,7 +54,7 @@ void main() {
 
     group('fromJson/toJson', () {
       test('can (de)serialize initial state', () {
-        final ReceiveTransactionState initialState = ReceiveTransactionState();
+        const ReceiveTransactionState initialState = ReceiveTransactionState();
 
         final Map<String, dynamic>? serialized = receiveTransactionCubit.toJson(
           initialState,
@@ -70,7 +66,7 @@ void main() {
       });
 
       test('can (de)serialize loading state', () {
-        final ReceiveTransactionState loadingState = ReceiveTransactionState(
+        const ReceiveTransactionState loadingState = ReceiveTransactionState(
           status: ReceiveTransactionStatus.loading,
         );
 
@@ -121,20 +117,16 @@ void main() {
 
     blocTest<ReceiveTransactionCubit, ReceiveTransactionState>(
       'emits [loading, success] on successful transaction receipt',
-      setUp: () {
-        when(() => mockAutoReceiveTxWorker.autoReceiveTransactionHash(any()))
-            .thenAnswer((_) async => mockAccBlockTemplate);
-      },
       build: () => receiveTransactionCubit,
       act: (ReceiveTransactionCubit cubit) => cubit.receiveTransaction(
         emptyHash.toString(),
         MockContext(),
       ),
       expect: () => <ReceiveTransactionState>[
-        ReceiveTransactionState(status: ReceiveTransactionStatus.loading),
+        const ReceiveTransactionState(status: ReceiveTransactionStatus.loading),
         ReceiveTransactionState(
           status: ReceiveTransactionStatus.success,
-          data: mockAccBlockTemplate,
+          data: testAccBlockTemplate,
         ),
       ],
     );
@@ -151,7 +143,7 @@ void main() {
         MockContext(),
       ),
       expect: () => <ReceiveTransactionState>[
-        ReceiveTransactionState(status: ReceiveTransactionStatus.loading),
+        const ReceiveTransactionState(status: ReceiveTransactionStatus.loading),
         ReceiveTransactionState(
           status: ReceiveTransactionStatus.failure,
           error: exception,

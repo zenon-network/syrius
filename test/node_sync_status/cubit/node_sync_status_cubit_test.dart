@@ -1,5 +1,3 @@
-// ignore_for_file: prefer_const_constructors
-
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
@@ -64,7 +62,7 @@ void main() {
 
     group('fromJson/toJson', () {
       test('can (de)serialize initial state', () {
-        final NodeSyncStatusState initialState = NodeSyncStatusState();
+        const NodeSyncStatusState initialState = NodeSyncStatusState();
 
         final Map<String, dynamic>? serialized = nodeSyncStatusCubit.toJson(
           initialState,
@@ -76,7 +74,7 @@ void main() {
       });
 
       test('can (de)serialize loading state', () {
-        final NodeSyncStatusState loadingState = NodeSyncStatusState(
+        const NodeSyncStatusState loadingState = NodeSyncStatusState(
           status: TimerStatus.loading,
         );
 
@@ -132,7 +130,7 @@ void main() {
         build: () => nodeSyncStatusCubit,
         act: (NodeSyncStatusCubit cubit) => cubit.fetchDataPeriodically(),
         expect: () => <NodeSyncStatusState>[ // Expected state changes
-          NodeSyncStatusState(status: TimerStatus.loading),
+          const NodeSyncStatusState(status: TimerStatus.loading),
           NodeSyncStatusState(
             status: TimerStatus.success,
             data: syncPair,
@@ -149,7 +147,7 @@ void main() {
         build: () => nodeSyncStatusCubit,
         act: (NodeSyncStatusCubit cubit) => cubit.fetchDataPeriodically(),
         expect: () => <NodeSyncStatusState>[
-          NodeSyncStatusState(status: TimerStatus.loading),
+          const NodeSyncStatusState(status: TimerStatus.loading),
           NodeSyncStatusState(
             status: TimerStatus.failure,
             error: exception,

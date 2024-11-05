@@ -184,6 +184,7 @@ void main() {
       ],
     );
 
+    // TODO(maznwell): test not working. seems to be an equatable-related problem, but can't figure it out.
     blocTest<LatestTransactionsCubit, LatestTransactionsState>(
       'emits [loading, failure] on fetch failure',
       setUp: () {

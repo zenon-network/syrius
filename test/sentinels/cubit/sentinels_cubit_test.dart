@@ -1,4 +1,3 @@
-// ignore_for_file: prefer_const_constructors
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
@@ -77,7 +76,7 @@ void main() {
 
     group('fromJson/toJson', () {
       test('can (de)serialize initial state', () {
-        final SentinelsState initialState = SentinelsState();
+        const SentinelsState initialState = SentinelsState();
 
         final Map<String, dynamic>? serialized = sentinelsCubit.toJson(
           initialState,
@@ -89,7 +88,7 @@ void main() {
       });
 
       test('can (de)serialize loading state', () {
-        final SentinelsState loadingState = SentinelsState(
+        const SentinelsState loadingState = SentinelsState(
           status: TimerStatus.loading,
         );
 
@@ -153,7 +152,7 @@ void main() {
         build: () => sentinelsCubit,
         act: (SentinelsCubit cubit) => cubit.fetchDataPeriodically(),
         expect: () => <SentinelsState>[
-          SentinelsState(status: TimerStatus.loading),
+          const SentinelsState(status: TimerStatus.loading),
           SentinelsState(
             status: TimerStatus.failure,
             error: exception,
@@ -166,7 +165,7 @@ void main() {
         build: () => sentinelsCubit,
         act: (SentinelsCubit cubit) => cubit.fetchDataPeriodically(),
         expect: () => <SentinelsState>[
-          SentinelsState(status: TimerStatus.loading),
+          const SentinelsState(status: TimerStatus.loading),
           SentinelsState(
             status: TimerStatus.success,
             data: sentinelInfoList,

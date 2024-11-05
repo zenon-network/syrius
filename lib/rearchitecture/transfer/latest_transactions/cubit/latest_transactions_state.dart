@@ -66,9 +66,6 @@ class LatestTransactionsState extends Equatable {
   /// {@endtemplate}
   Map<String, dynamic> toJson() => _$LatestTransactionsStateToJson(this);
 
-  /// {@template equatable_props}
-  /// A list of properties that determine whether two instances are equal.
-  /// {@endtemplate}
   @override
   List<Object?> get props => <Object?>[status, data, error];
 }

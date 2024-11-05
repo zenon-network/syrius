@@ -1,38 +1,39 @@
-//ignore_for_file: prefer_const_constructors
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/transfer/transfer_balance/transfer_balance_bloc.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/exceptions/cubit_failure_exception.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/zts_utils.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
+
+import '../../helpers/hydrated_bloc.dart';
 
 class MockZenon extends Mock implements Zenon {}
 class MockWsClient extends Mock implements WsClient {}
 class MockLedger extends Mock implements LedgerApi {}
-class MockAccountInfo extends Mock implements AccountInfo {}
 class FakeAddress extends Fake implements Address {}
 
 void main() {
+  initHydratedStorage();
+
   registerFallbackValue(FakeAddress());
 
   group('TransferBalanceBloc', () {
   late MockZenon mockZenon;
   late MockLedger mockLedger;
   late MockWsClient mockWsClient;
-  late MockAccountInfo mockAccountInfo;
   late TransferBalanceBloc bloc;
   late String testAddress;
   late BalanceInfoListItem balanceInfoListItem;
   late AccountInfo accountInfo;
-  late Exception exception;
+  late CubitFailureException exception;
 
   setUp(() {
     mockZenon = MockZenon();
     mockLedger = MockLedger();
     mockWsClient = MockWsClient();
     testAddress = emptyAddress.toString();
-    mockAccountInfo = MockAccountInfo();
-    exception = Exception();
+    exception = CubitFailureException();
 
     balanceInfoListItem = BalanceInfoListItem(
       token: kZnnCoin,
@@ -65,7 +66,7 @@ void main() {
 
   group('fromJson/toJson', () {
     test('can (de)serialize initial state', () {
-      final TransferBalanceState initialState = TransferBalanceState();
+      const TransferBalanceState initialState = TransferBalanceState();
 
       final Map<String, dynamic>? serialized = bloc.toJson(
         initialState,
@@ -77,7 +78,7 @@ void main() {
     });
 
     test('can (de)serialize loading state', () {
-      final TransferBalanceState loadingState = TransferBalanceState(
+      const TransferBalanceState loadingState = TransferBalanceState(
         status: TransferBalanceStatus.loading,
       );
 
@@ -128,18 +129,13 @@ void main() {
 
     blocTest<TransferBalanceBloc, TransferBalanceState>(
       'emits [loading, success] with data on successful fetch',
-      setUp: () {
-        when(() => mockAccountInfo.address).thenReturn(testAddress);
-        when(() => mockLedger.getAccountInfoByAddress(any()))
-            .thenAnswer((_) async => mockAccountInfo);
-      },
       build: () => bloc,
       act: (TransferBalanceBloc bloc) => bloc.add(FetchBalances()),
       expect: () => <TransferBalanceState>[
-        TransferBalanceState(status: TransferBalanceStatus.loading),
+        const TransferBalanceState(status: TransferBalanceStatus.loading),
         TransferBalanceState(
           status: TransferBalanceStatus.success,
-          data: <String, AccountInfo>{testAddress: mockAccountInfo},
+          data: <String, AccountInfo>{testAddress: accountInfo},
         ),
       ],
     );
@@ -153,7 +149,7 @@ void main() {
       build: () => bloc,
       act: (TransferBalanceBloc bloc) => bloc.add(FetchBalances()),
       expect: () => <TransferBalanceState>[
-        TransferBalanceState(status: TransferBalanceStatus.loading),
+        const TransferBalanceState(status: TransferBalanceStatus.loading),
         TransferBalanceState(
           status: TransferBalanceStatus.failure,
           error: exception,

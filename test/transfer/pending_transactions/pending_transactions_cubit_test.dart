@@ -1,8 +1,8 @@
-//ignore_for_file: prefer_const_constructors
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/transfer/pending_transactions/cubit/pending_transactions_cubit.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/exceptions/cubit_failure_exception.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/zts_utils.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
@@ -21,7 +21,7 @@ void main() {
     registerFallbackValue(FakeAddress());
   });
 
-  group('LatestTransactionsCubit', () {
+  group('PendingTransactionsCubit', () {
     late MockZenon mockZenon;
     late MockLedger mockLedger;
     late PendingTransactionsCubit pendingTransactionsCubit;
@@ -29,7 +29,7 @@ void main() {
     late AccountBlockList accountBlockList;
     late int pageKey;
     late int pageSize;
-    late Exception exception;
+    late CubitFailureException exception;
 
     setUp(() async {
       final Map<String, dynamic> confirmationDetailJson = <String, dynamic>{
@@ -81,7 +81,7 @@ void main() {
         more: false,
       );
 
-      exception = Exception();
+      exception = CubitFailureException();
       when(() => mockZenon.ledger).thenReturn(mockLedger);
       when(
         () => mockLedger.getUnreceivedBlocksByAddress(
@@ -110,7 +110,7 @@ void main() {
 
     group('fromJson/toJson', () {
       test('can (de)serialize initial state', () {
-        final PendingTransactionsState initialState =
+        const PendingTransactionsState initialState =
             PendingTransactionsState();
 
         final Map<String, dynamic>? serialized =
@@ -124,7 +124,7 @@ void main() {
       });
 
       test('can (de)serialize loading state', () {
-        final PendingTransactionsState loadingState = PendingTransactionsState(
+        const PendingTransactionsState loadingState = PendingTransactionsState(
           status: PendingTransactionsStatus.loading,
         );
 

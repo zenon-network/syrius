@@ -61,7 +61,6 @@ class ReceiveTransactionState extends Equatable {
   /// {@macro state_to_json}
   Map<String, dynamic> toJson() => _$ReceiveTransactionStateToJson(this);
 
-  /// {@macro equatable_props}
   @override
   List<Object?> get props => <Object?>[status, data, error];
 }

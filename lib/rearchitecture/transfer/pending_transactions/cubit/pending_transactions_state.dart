@@ -61,7 +61,6 @@ class PendingTransactionsState extends Equatable {
   /// {@macro state_to_json}
   Map<String, dynamic> toJson() => _$PendingTransactionsStateToJson(this);
 
-  /// {@macro equatable_props}
   @override
   List<Object?> get props => <Object?>[status, data, error];
 }

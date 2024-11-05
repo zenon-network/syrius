@@ -1,4 +1,3 @@
-// ignore_for_file: prefer_const_constructors
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
@@ -76,7 +75,7 @@ void main() {
 
     group('fromJson/toJson', () {
       test('can (de)serialize initial state', () {
-        final TotalHourlyTransactionsState initialState =
+        const TotalHourlyTransactionsState initialState =
         TotalHourlyTransactionsState();
 
         final Map<String, dynamic>? serialized = transactionsCubit.toJson(
@@ -90,7 +89,7 @@ void main() {
       });
 
       test('can (de)serialize loading state', () {
-        final TotalHourlyTransactionsState loadingState =
+        const TotalHourlyTransactionsState loadingState =
         TotalHourlyTransactionsState(
           status: TimerStatus.loading,
         );
@@ -106,7 +105,7 @@ void main() {
       });
 
       test('can (de)serialize success state', () {
-        final TotalHourlyTransactionsState successState =
+        const TotalHourlyTransactionsState successState =
         TotalHourlyTransactionsState(
           status: TimerStatus.success,
           data: 2,
@@ -158,8 +157,8 @@ void main() {
         act: (TotalHourlyTransactionsCubit cubit)
                                         => cubit.fetchDataPeriodically(),
         expect: () => <TotalHourlyTransactionsState>[
-          TotalHourlyTransactionsState(status: TimerStatus.loading),
-          TotalHourlyTransactionsState(
+          const TotalHourlyTransactionsState(status: TimerStatus.loading),
+          const TotalHourlyTransactionsState(
             status: TimerStatus.success,
             data: 2,
           ),
@@ -176,7 +175,7 @@ void main() {
         act: (TotalHourlyTransactionsCubit cubit)
                                             => cubit.fetchDataPeriodically(),
         expect: () => <TotalHourlyTransactionsState>[
-          TotalHourlyTransactionsState(status: TimerStatus.loading),
+          const TotalHourlyTransactionsState(status: TimerStatus.loading),
           TotalHourlyTransactionsState(
             status: TimerStatus.failure,
             error: fetchException,
