@@ -5,7 +5,8 @@ import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dar
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
-import '../../helpers/hydrated_bloc.dart';
+import '../../../helpers/hydrated_bloc.dart';
+
 
 class MockZenon extends Mock implements Zenon {}
 
