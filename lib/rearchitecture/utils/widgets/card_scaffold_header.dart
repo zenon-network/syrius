@@ -11,11 +11,11 @@ class CardScaffoldHeader extends StatelessWidget {
     super.key,
   });
 
-  /// Title that will appear in the header
+  /// Title that will appear in the header.
   final String title;
-  /// Callback triggered when the more icon is pressed
+  /// Callback triggered when the more icon is pressed.
   final VoidCallback onMoreIconPressed;
-  /// Optional callback that can be trigger from the refresh icon
+  /// Optional callback that can be trigger from the refresh icon.
   final VoidCallback? onRefreshPressed;
 
   @override

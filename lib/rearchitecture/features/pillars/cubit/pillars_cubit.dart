@@ -24,11 +24,9 @@ class PillarsCubit extends TimerCubit<int, PillarsState> {
   /// Fetches the total count of pillars from the Zenon network.
   @override
   Future<int> fetch() async {
-    // Fetches the list of all pillars from the Zenon network
     final PillarInfoList pillarInfoList = await zenon.embedded.pillar.getAll();
-    // Counts the number of pillars
     final int data = pillarInfoList.list.length;
-    return data; // Returns the total number of pillars
+    return data;
   }
 
   @override

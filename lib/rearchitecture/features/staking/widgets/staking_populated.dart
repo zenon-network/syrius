@@ -8,12 +8,12 @@ import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 /// A widget associated with the [StakingState] when it's status is
 /// [TimerStatus.success] that displays the number of active staking entries
-/// and the total staked amount
+/// and the total staked amount.
 class StakingPopulated extends StatelessWidget {
-  /// Creates a StakingPopulated object
+  /// Creates a StakingPopulated object.
   const StakingPopulated({required this.stakingList, super.key});
 
-  /// Field containing the data that will be displayed
+  /// Field containing the data that will be displayed.
   final StakeList stakingList;
 
   @override

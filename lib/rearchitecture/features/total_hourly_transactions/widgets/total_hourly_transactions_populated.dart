@@ -5,12 +5,12 @@ import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 
 /// A widget associated with the [TotalHourlyTransactionsState] when it's
 /// status is [TimerStatus.success] that displays the number of transactions
-/// confirmed in the last one hour
+/// confirmed in the last one hour.
 class TotalHourlyTransactionsPopulated extends StatelessWidget {
   /// Creates a TotalHourlyTransactionsPopulated object.
   const TotalHourlyTransactionsPopulated({required this.count, super.key});
 
-  /// The number of confirmed transactions in the last one hour
+  /// The number of confirmed transactions in the last one hour.
   final int count;
 
   @override

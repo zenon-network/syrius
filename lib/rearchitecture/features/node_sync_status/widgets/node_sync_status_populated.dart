@@ -60,9 +60,8 @@ class NodeSyncPopulated extends StatelessWidget {
             '${syncInfo.targetHeight}';
         return Tooltip(
           message: message,
-          child: SizedBox(
-            height: 18,
-            width: 18,
+          child: SizedBox.square(
+            dimension: 18,
             child: Center(
               child: CircularProgressIndicator(
                 backgroundColor: Theme.of(context).iconTheme.color,
@@ -82,9 +81,8 @@ class NodeSyncPopulated extends StatelessWidget {
         syncState = SyncState.syncing;
         return Tooltip(
           message: message,
-          child: SizedBox(
-            height: 18,
-            width: 18,
+          child: SizedBox.square(
+            dimension: 18,
             child: Center(
               child: CircularProgressIndicator(
                 backgroundColor: Theme.of(context).iconTheme.color,
@@ -112,9 +110,8 @@ class NodeSyncPopulated extends StatelessWidget {
         syncState = SyncState.syncing;
         return Tooltip(
           message: message,
-          child: SizedBox(
-            height: 18,
-            width: 18,
+          child: SizedBox.square(
+            dimension: 18,
             child: Center(
               child: CircularProgressIndicator(
                 backgroundColor: Theme.of(context).iconTheme.color,
@@ -133,9 +130,8 @@ class NodeSyncPopulated extends StatelessWidget {
 
     return Tooltip(
       message: message,
-      child: SizedBox(
-        height: 18,
-        width: 18,
+      child: SizedBox.square(
+        dimension: 18,
         child: Center(
           child: CircularProgressIndicator(
             backgroundColor: Theme.of(context).iconTheme.color,

@@ -14,11 +14,10 @@ class CubitFailureException extends SyriusException {
     String message = 'Something went wrong',
   }) : super(message);
 
-  /// Creates a [CubitFailureException] instance from a JSON map.
+  /// {@macro instance_from_json}
   factory CubitFailureException.fromJson(Map<String, dynamic> json) =>
       _$CubitFailureExceptionFromJson(json);
 
-  /// Converts this [CubitFailureException] instance to a JSON map.
   @override
   Map<String, dynamic> toJson() => _$CubitFailureExceptionToJson(this)
     ..['runtimeType'] = 'CubitFailureException';

@@ -17,7 +17,7 @@ class BalanceState extends TimerState<AccountInfo> {
     super.error,
   });
 
-  /// {@template state_from_json}
+  /// {@template instance_from_json}
   /// Creates a new instance from a JSON map.
   /// {@endtemplate}
   factory BalanceState.fromJson(Map<String, dynamic> json) =>

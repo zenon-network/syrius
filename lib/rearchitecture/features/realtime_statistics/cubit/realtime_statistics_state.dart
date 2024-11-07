@@ -20,7 +20,7 @@ class RealtimeStatisticsState extends TimerState<List<AccountBlock>> {
     super.error,
   });
 
-  /// {@macro state_from_json}
+  /// {@macro instance_from_json}
   factory RealtimeStatisticsState.fromJson(Map<String, dynamic> json) =>
       _$RealtimeStatisticsStateFromJson(json);
 

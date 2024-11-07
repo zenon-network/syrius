@@ -1,4 +1,6 @@
 {
+  "activePillars": "Active Pillars",
+  "activeSentinels": "Active Sentinels",
   "addressToCollectRewards": "The address that will be able to collect the Pillar rewards",
   "addressToProduceMomentums": "The address that will produce momentums, get it from znn-controller",
   "amount": "Amount",

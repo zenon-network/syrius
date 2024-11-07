@@ -13,7 +13,7 @@ class NoDelegationStatsException extends SyriusException {
     String message = 'No delegation stats available',
   }) : super(message);
 
-  /// Creates a [NoDelegationStatsException] instance from a JSON map.
+  /// {@macro instance_from_json}
   factory NoDelegationStatsException.fromJson(Map<String, dynamic> json) =>
       _$NoDelegationStatsExceptionFromJson(json);
 

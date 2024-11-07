@@ -5,12 +5,12 @@ import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/reusable_widgets.dart';
 
 /// A widget associated with the [PillarsState] when it's status is
-/// [TimerStatus.success] that displays the number of pillars
+/// [TimerStatus.success] that displays the number of pillars.
 class PillarsPopulated extends StatelessWidget {
-  /// Creates a PillarsPopulated object
+  /// Creates a PillarsPopulated object.
   const PillarsPopulated({required this.numberOfPillars, super.key});
 
-  /// Number of pillars in the network
+  /// Number of pillars in the network.
   final int numberOfPillars;
 
   @override
@@ -32,7 +32,7 @@ class PillarsPopulated extends StatelessWidget {
               style: context.textTheme.headlineMedium,
             ),
             Text(
-              'Active Pillars',
+              context.l10n.activePillars,
               style: context.textTheme.bodyMedium,
             ),
           ],
