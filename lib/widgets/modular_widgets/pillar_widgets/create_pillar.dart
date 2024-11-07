@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_vector_icons/flutter_vector_icons.dart';
 import 'package:lottie/lottie.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/extensions/buildcontext_extension.dart';
 import 'package:zenon_syrius_wallet_flutter/screens/screens.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
@@ -26,9 +27,8 @@ class _CreatePillarState extends State<CreatePillar> {
   @override
   Widget build(BuildContext context) {
     return CardScaffold(
-      title: 'Create Pillar',
-      description: 'Start the process of deploying a Pillar Node in the '
-          'network',
+      title: context.l10n.createPillarTitle,
+      description: context.l10n.createPillarDescription,
       childBuilder: () => _getStreamBuilder(context),
     );
   }
@@ -72,7 +72,7 @@ class _CreatePillarState extends State<CreatePillar> {
                   ),
                 );
               },
-              text: 'Spawn',
+              text: context.l10n.spawn,
               initialFillColor: AppColors.znnColor,
               icon: _getFilledButtonIcon(),
             ),
@@ -104,7 +104,7 @@ class _CreatePillarState extends State<CreatePillar> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: <Widget>[
               Text(
-                'Update Pillar settings',
+                context.l10n.updatePillarSettings,
                 style: Theme.of(context).textTheme.headlineSmall,
               ),
               kVerticalSpacing,
@@ -124,7 +124,7 @@ class _CreatePillarState extends State<CreatePillar> {
                         ),
                       );
                     },
-                    text: 'Update Pillar',
+                    text: context.l10n.updatePillar,
                     initialFillColor: AppColors.znnColor,
                     icon: _getFilledButtonIcon(),
                   ),
