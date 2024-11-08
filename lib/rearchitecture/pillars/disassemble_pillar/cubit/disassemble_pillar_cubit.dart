@@ -1,8 +1,8 @@
 import 'package:equatable/equatable.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
 import 'package:json_annotation/json_annotation.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/account_block_utils.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/address_utils.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/dependency_injection_helpers/account_block_utils_helper.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/dependency_injection_helpers/zenon_address_utils_helper.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 part 'disassemble_pillar_cubit.g.dart';
@@ -12,10 +12,24 @@ part 'disassemble_pillar_state.dart';
 /// A cubit responsible for handling the disassembly of a Pillar.
 class DisassemblePillarCubit extends HydratedCubit<DisassemblePillarState> {
   /// Creates a new instance of [DisassemblePillarCubit].
-  DisassemblePillarCubit(this.zenon) : super(const DisassemblePillarState());
+  DisassemblePillarCubit({
+    required this.zenon,
+    AccountBlockUtilsHelper? accountBlockUtilsHelper,
+    ZenonAddressUtilsHelper? zenonAddressUtilsHelper,
+  })  : zenonAddressUtilsHelper =
+            zenonAddressUtilsHelper ?? ZenonAddressUtilsHelper(),
+        accountBlockUtilsHelper =
+            accountBlockUtilsHelper ?? AccountBlockUtilsHelper(),
+        super(const DisassemblePillarState());
 
   /// The Zenon SDK instance used for network interactions.
   final Zenon zenon;
+
+  /// Helper class with the purpose of facilitating dependency injections.
+  final AccountBlockUtilsHelper accountBlockUtilsHelper;
+
+  /// Helper class with the purpose of facilitating dependency injections.
+  final ZenonAddressUtilsHelper zenonAddressUtilsHelper;
 
   /// Initiates the disassembly of a Pillar with the given [pillarName].
   Future<void> disassemblePillar(String pillarName) async {
@@ -28,13 +42,13 @@ class DisassemblePillarCubit extends HydratedCubit<DisassemblePillarState> {
       );
 
       final AccountBlockTemplate response =
-          await AccountBlockUtils.createAccountBlock(
+          await accountBlockUtilsHelper.createAccountBlock(
         transactionParams,
         'disassemble Pillar',
         waitForRequiredPlasma: true,
       );
 
-      ZenonAddressUtils.refreshBalance();
+      await zenonAddressUtilsHelper.refreshBalance();
 
       emit(
         state.copyWith(

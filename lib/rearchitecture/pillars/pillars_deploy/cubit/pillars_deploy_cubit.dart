@@ -4,8 +4,8 @@ import 'package:equatable/equatable.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/pillars/pillars_deploy/exceptions/pillar_name_already_exists_exception.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/account_block_utils.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/address_utils.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/dependency_injection_helpers/account_block_utils_helper.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/dependency_injection_helpers/zenon_address_utils_helper.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/pillar_widgets/pillar_stepper_container.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
@@ -16,10 +16,24 @@ part 'pillars_deploy_state.dart';
 /// A cubit responsible for handling the deployment of a Pillar.
 class PillarsDeployCubit extends HydratedCubit<PillarsDeployState> {
   /// Creates a new instance of [PillarsDeployCubit].
-  PillarsDeployCubit(this.zenon) : super(const PillarsDeployState());
+  PillarsDeployCubit({
+    required this.zenon,
+    AccountBlockUtilsHelper? accountBlockUtilsHelper,
+    ZenonAddressUtilsHelper? zenonAddressUtilsHelper,
+  })  : zenonAddressUtilsHelper =
+            zenonAddressUtilsHelper ?? ZenonAddressUtilsHelper(),
+        accountBlockUtilsHelper =
+            accountBlockUtilsHelper ?? AccountBlockUtilsHelper(),
+        super(const PillarsDeployState());
 
   /// The Zenon SDK instance used for network interactions.
   final Zenon zenon;
+
+  /// Helper class with the purpose of facilitating dependency injections.
+  final AccountBlockUtilsHelper accountBlockUtilsHelper;
+
+  /// Helper class with the purpose of facilitating dependency injections.
+  final ZenonAddressUtilsHelper zenonAddressUtilsHelper;
 
   /// Initiates the deployment of a Pillar with the given parameters.
   Future<void> deployPillar({
@@ -49,13 +63,13 @@ class PillarsDeployCubit extends HydratedCubit<PillarsDeployState> {
       );
 
       final AccountBlockTemplate response =
-          await AccountBlockUtils.createAccountBlock(
+          await accountBlockUtilsHelper.createAccountBlock(
         transactionParams,
         'register Pillar',
         waitForRequiredPlasma: true,
       );
 
-      ZenonAddressUtils.refreshBalance();
+      await zenonAddressUtilsHelper.refreshBalance();
 
       emit(
         state.copyWith(

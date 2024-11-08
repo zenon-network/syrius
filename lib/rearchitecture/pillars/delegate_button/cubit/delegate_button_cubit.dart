@@ -1,7 +1,7 @@
 import 'package:equatable/equatable.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
 import 'package:json_annotation/json_annotation.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/account_block_utils.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/dependency_injection_helpers/account_block_utils_helper.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
@@ -11,10 +11,22 @@ part 'delegate_button_state.dart';
 /// A cubit responsible for handling delegation to a Pillar.
 class DelegateButtonCubit extends HydratedCubit<DelegateButtonState> {
   /// Creates a new instance of [DelegateButtonCubit].
-  DelegateButtonCubit(this.zenon) : super(const DelegateButtonState());
+  DelegateButtonCubit({
+    required this.zenon,
+    this.duration = kDelayAfterAccountBlockCreationCall,
+    AccountBlockUtilsHelper? accountBlockUtilsHelper,
+  })  : accountBlockUtilsHelper =
+            accountBlockUtilsHelper ?? AccountBlockUtilsHelper(),
+        super(const DelegateButtonState());
 
   /// The Zenon SDK instance used for network interactions.
   final Zenon zenon;
+
+  /// The delay duration after account block creation.
+  final Duration duration;
+
+  /// Helper class with the purpose of facilitating dependency injections.
+  final AccountBlockUtilsHelper accountBlockUtilsHelper;
 
   /// Initiates delegation to a Pillar with the given [pillarName].
   Future<void> delegateToPillar(String pillarName) async {
@@ -25,19 +37,20 @@ class DelegateButtonCubit extends HydratedCubit<DelegateButtonState> {
           zenon.embedded.pillar.delegate(pillarName);
 
       final AccountBlockTemplate response =
-          await AccountBlockUtils.createAccountBlock(
+          await accountBlockUtilsHelper.createAccountBlock(
         transactionParams,
         'delegate to Pillar',
         waitForRequiredPlasma: true,
       );
 
-      // Optionally delay after account block creation
-      await Future.delayed(kDelayAfterAccountBlockCreationCall);
+      await Future.delayed(duration);
 
-      emit(state.copyWith(
-        status: DelegateButtonStatus.success,
-        data: response,
-      ));
+      emit(
+        state.copyWith(
+          status: DelegateButtonStatus.success,
+          data: response,
+        ),
+      );
     } catch (e) {
       emit(
         state.copyWith(
