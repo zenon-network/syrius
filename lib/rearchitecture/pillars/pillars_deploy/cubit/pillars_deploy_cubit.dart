@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:equatable/equatable.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
 import 'package:json_annotation/json_annotation.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/pillars/pillars_deploy/exceptions/pillar_name_already_exists_exception.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/account_block_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/address_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/pillar_widgets/pillar_stepper_container.dart';
@@ -35,7 +36,7 @@ class PillarsDeployCubit extends HydratedCubit<PillarsDeployState> {
       emit(state.copyWith(status: PillarsDeployStatus.loading));
 
       if (await _pillarNameAlreadyExists(pillarName)) {
-        throw 'Pillar name already exists';
+        throw PillarNameAlreadyExistsException();
       }
 
       final AccountBlockTemplate transactionParams =
