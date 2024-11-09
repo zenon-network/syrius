@@ -74,6 +74,63 @@ void main() {
       );
     });
 
+    group('DelegateButtonCubit fromJson/toJson', () {
+      test('can (de)serialize initial state', () {
+        const DelegateButtonState initialState = DelegateButtonState();
+
+        final Map<String, dynamic> serialized = initialState.toJson();
+        final DelegateButtonState deserialized =
+            DelegateButtonState.fromJson(serialized);
+
+        expect(deserialized, equals(initialState));
+      });
+
+      test('can (de)serialize loading state', () {
+        const DelegateButtonState loadingState = DelegateButtonState(
+          status: DelegateButtonStatus.loading,
+        );
+
+        final Map<String, dynamic> serialized = loadingState.toJson();
+        final DelegateButtonState deserialized =
+            DelegateButtonState.fromJson(serialized);
+
+        expect(deserialized, equals(loadingState));
+      });
+
+      test('can (de)serialize success state', () {
+        final AccountBlockTemplate testAccountBlockTemplate =
+            AccountBlockTemplate(
+          blockType: 1,
+        );
+        final DelegateButtonState successState = DelegateButtonState(
+          status: DelegateButtonStatus.success,
+          data: testAccountBlockTemplate,
+        );
+
+        final Map<String, dynamic> serialized = successState.toJson();
+        final DelegateButtonState deserialized =
+            DelegateButtonState.fromJson(serialized);
+
+        expect(deserialized, isA<DelegateButtonState>());
+        expect(deserialized.status, equals(DelegateButtonStatus.success));
+        expect(deserialized.data, equals(testAccountBlockTemplate));
+      });
+
+      test('can (de)serialize failure state', () {
+        final Exception testException = Exception('Test error');
+        final DelegateButtonState failureState = DelegateButtonState(
+          status: DelegateButtonStatus.failure,
+          error: testException,
+        );
+
+        final Map<String, dynamic> serialized = failureState.toJson();
+        final DelegateButtonState deserialized =
+            DelegateButtonState.fromJson(serialized);
+
+        expect(deserialized, equals(failureState));
+      });
+    });
+
     group('delegateToPillar', () {
       blocTest<DelegateButtonCubit, DelegateButtonState>(
         'emits [loading, success] when delegateToPillar succeeds',

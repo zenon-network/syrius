@@ -5,7 +5,6 @@ import 'package:zenon_syrius_wallet_flutter/rearchitecture/pillars/pillars_deplo
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/pillars/pillars_deploy/exceptions/pillar_name_already_exists_exception.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/dependency_injection_helpers/account_block_utils_helper.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/dependency_injection_helpers/zenon_address_utils_helper.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/address_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/pillar_widgets/pillar_stepper_container.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
@@ -74,6 +73,57 @@ void main() {
       expect(pillarsDeployCubit.state.status, PillarsDeployStatus.initial);
     });
 
+    group('fromJson/toJson', () {
+      test('can (de)serialize initial state', () {
+        const PillarsDeployState initialState = PillarsDeployState();
+
+        final Map<String, dynamic> serialized = initialState.toJson();
+        final PillarsDeployState deserialized =
+            PillarsDeployState.fromJson(serialized);
+
+        expect(deserialized, equals(initialState));
+      });
+
+      test('can (de)serialize loading state', () {
+        const PillarsDeployState loadingState = PillarsDeployState(
+          status: PillarsDeployStatus.loading,
+        );
+
+        final Map<String, dynamic> serialized = loadingState.toJson();
+        final PillarsDeployState deserialized =
+            PillarsDeployState.fromJson(serialized);
+
+        expect(deserialized, equals(loadingState));
+      });
+
+      test('can (de)serialize success state', () {
+        final PillarsDeployState successState = PillarsDeployState(
+          status: PillarsDeployStatus.success,
+          data: testAccBlockTemplate,
+        );
+
+        final Map<String, dynamic> serialized = successState.toJson();
+        final PillarsDeployState deserialized =
+            PillarsDeployState.fromJson(serialized);
+
+        expect(deserialized, isA<PillarsDeployState>());
+        expect(deserialized.status, equals(PillarsDeployStatus.success));
+        expect(deserialized.data, equals(testAccBlockTemplate));
+      });
+
+      test('can (de)serialize failure state', () {
+        final PillarsDeployState failureState = PillarsDeployState(
+          status: PillarsDeployStatus.failure,
+          error: exception,
+        );
+
+        final Map<String, dynamic> serialized = failureState.toJson();
+        final PillarsDeployState deserialized =
+            PillarsDeployState.fromJson(serialized);
+
+        expect(deserialized, equals(failureState));
+      });
+    });
     group('deployPillar', () {
       blocTest<PillarsDeployCubit, PillarsDeployState>(
         'emits [loading, success] when deployPillar succeeds',
@@ -91,7 +141,7 @@ void main() {
               waitForRequiredPlasma: any(named: 'waitForRequiredPlasma'),
             ),
           ).thenAnswer((_) async => testAccBlockTemplate);
-          },
+        },
         build: () => pillarsDeployCubit,
         act: (PillarsDeployCubit cubit) => cubit.deployPillar(
           pillarType: PillarType.regularPillar,

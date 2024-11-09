@@ -76,7 +76,61 @@ void main() {
       );
     });
 
-    group('depositQsr', () {
+    group('fromJson/toJson', () {
+      test('can (de)serialize initial state', () {
+        const PillarsDepositQsrState initialState = PillarsDepositQsrState();
+
+        final Map<String, dynamic> serialized = initialState.toJson();
+        final PillarsDepositQsrState deserialized =
+        PillarsDepositQsrState.fromJson(serialized);
+
+        expect(deserialized, equals(initialState));
+      });
+
+      test('can (de)serialize loading state', () {
+        const PillarsDepositQsrState loadingState = PillarsDepositQsrState(
+          status: PillarsDepositQsrStatus.loading,
+        );
+
+        final Map<String, dynamic> serialized = loadingState.toJson();
+        final PillarsDepositQsrState deserialized =
+        PillarsDepositQsrState.fromJson(serialized);
+
+        expect(deserialized, equals(loadingState));
+      });
+
+      test('can (de)serialize success state', () {
+        final PillarsDepositQsrState successState = PillarsDepositQsrState(
+          status: PillarsDepositQsrStatus.success,
+          data: testAccBlockTemplate,
+        );
+
+        final Map<String, dynamic> serialized = successState.toJson();
+        final PillarsDepositQsrState deserialized =
+        PillarsDepositQsrState.fromJson(serialized);
+
+        expect(deserialized, isA<PillarsDepositQsrState>());
+        expect(deserialized.status, equals(PillarsDepositQsrStatus.success));
+        expect(deserialized.data, equals(testAccBlockTemplate));
+      });
+
+      test('can (de)serialize failure state', () {
+        final PillarsDepositQsrState failureState = PillarsDepositQsrState(
+          status: PillarsDepositQsrStatus.failure,
+          error: exception,
+        );
+
+        final Map<String, dynamic> serialized = failureState.toJson();
+        final PillarsDepositQsrState deserialized =
+        PillarsDepositQsrState.fromJson(serialized);
+
+        expect(deserialized, equals(failureState));
+      });
+
+    });
+
+
+      group('depositQsr', () {
       blocTest<PillarsDepositQsrCubit, PillarsDepositQsrState>(
         'emits [loading, success] with data when depositQsr succeeds',
         setUp: () {

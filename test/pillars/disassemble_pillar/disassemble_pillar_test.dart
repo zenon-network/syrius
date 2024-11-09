@@ -70,6 +70,58 @@ void main() {
       );
     });
 
+    group('fromJson/toJson', () {
+      test('can (de)serialize initial state', () {
+        const DisassemblePillarState initialState = DisassemblePillarState();
+
+        final Map<String, dynamic> serialized = initialState.toJson();
+        final DisassemblePillarState deserialized = DisassemblePillarState
+            .fromJson(serialized);
+
+        expect(deserialized, equals(initialState));
+      });
+
+      test('can (de)serialize loading state', () {
+        const DisassemblePillarState loadingState = DisassemblePillarState(
+          status: DisassemblePillarStatus.loading,
+        );
+
+        final Map<String, dynamic> serialized = loadingState.toJson();
+        final DisassemblePillarState deserialized = DisassemblePillarState
+            .fromJson(serialized);
+
+        expect(deserialized, equals(loadingState));
+      });
+
+      test('can (de)serialize success state', () {
+        final DisassemblePillarState successState = DisassemblePillarState(
+          status: DisassemblePillarStatus.success,
+          data: testAccBlockTemplate,
+        );
+
+        final Map<String, dynamic> serialized = successState.toJson();
+        final DisassemblePillarState deserialized = DisassemblePillarState
+            .fromJson(serialized);
+
+        expect(deserialized, isA<DisassemblePillarState>());
+        expect(deserialized.status, equals(DisassemblePillarStatus.success));
+        expect(deserialized.data, equals(testAccBlockTemplate));
+      });
+
+      test('can (de)serialize failure state', () {
+        final DisassemblePillarState failureState = DisassemblePillarState(
+          status: DisassemblePillarStatus.failure,
+          error: exception,
+        );
+
+        final Map<String, dynamic> serialized = failureState.toJson();
+        final DisassemblePillarState deserialized = DisassemblePillarState
+            .fromJson(serialized);
+
+        expect(deserialized, equals(failureState));
+      });
+    });
+
     group('disassemblePillar', () {
       blocTest<DisassemblePillarCubit, DisassemblePillarState>(
         'emits [loading, success] when disassemblePillar succeeds',
