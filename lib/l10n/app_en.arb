@@ -19,6 +19,7 @@
   "manageReceivingFunds": "Manage receiving funds",
   "manageSendingFunds": "Manage sending funds",
   "minAgo": "min ago",
+  "password": "Password",
   "pending": "Pending",
   "pendingTransactionsDescription": "This card displays the pending transactions (including ZTS tokens) for the selected address",
   "pendingTransactionsTitle": "Pending Transactions",
@@ -49,5 +50,7 @@
   "transferDescription": "Redirects you to the Transfer tab where you can manage sending and receiving funds",
   "type": "Type",
   "usDateFormat": "MM/dd/yyyy",
-  "waitingForDataFetching": "Waiting for data fetching"
+  "waitingForDataFetching": "Waiting for data fetching",
+  "quasarTransactions": "{quasar} transactions",
+  "zenonTransactions": "{zenon} transactions"
 }

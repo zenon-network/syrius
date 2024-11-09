@@ -72,9 +72,6 @@ class DualCoinStatsChart extends StatelessWidget {
           value: currentTokenInfo.totalSupply / totalSupply,
           title: currentTokenInfo.symbol,
           radius: 60,
-          titleStyle: Theme.of(context).textTheme.titleSmall!.copyWith(
-                color: Colors.white,
-              ),
         );
       },
     );

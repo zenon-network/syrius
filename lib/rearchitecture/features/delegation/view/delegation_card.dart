@@ -15,14 +15,11 @@ class DelegationCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider<DelegationCubit>(
-      create: (_) {
-        final DelegationCubit cubit = DelegationCubit(
-          address: Address.parse(kSelectedAddress!),
-          zenon: zenon!,
-        )..fetchDataPeriodically();
-        return cubit;
-      },
-      child: CardScaffoldWithoutListener(
+      create: (_) => DelegationCubit(
+        address: Address.parse(kSelectedAddress!),
+        zenon: zenon!,
+      )..fetchDataPeriodically(),
+      child: NewCardScaffold(
         data: CardType.delegationStats.getData(context: context),
         body: BlocBuilder<DelegationCubit, DelegationState>(
           builder: (BuildContext context, DelegationState state) {

@@ -19,7 +19,7 @@ Map<String, dynamic> _$PillarsStateToJson(PillarsState instance) =>
     <String, dynamic>{
       'status': _$TimerStatusEnumMap[instance.status]!,
       'data': instance.data,
-      'error': instance.error,
+      'error': instance.error?.toJson(),
     };
 
 const _$TimerStatusEnumMap = {

@@ -2,7 +2,7 @@ part of 'node_sync_status_cubit.dart';
 
 /// Class used by [NodeSyncStatusCubit] to send state updates to the
 /// connected view
-@JsonSerializable()
+@JsonSerializable(explicitToJson: true)
 class NodeSyncStatusState extends TimerState<Pair<SyncState, SyncInfo>> {
   /// Creates a NodeSyncStatusState object.
   const NodeSyncStatusState({
@@ -11,7 +11,7 @@ class NodeSyncStatusState extends TimerState<Pair<SyncState, SyncInfo>> {
     super.error,
   });
 
-  /// Creates a [NodeSyncStatusState] instance from a JSON map.
+  /// {@macro state_from_json}
   factory NodeSyncStatusState.fromJson(Map<String, dynamic> json) =>
       _$NodeSyncStatusStateFromJson(json);
 
@@ -28,6 +28,6 @@ class NodeSyncStatusState extends TimerState<Pair<SyncState, SyncInfo>> {
     );
   }
 
-  /// Converts this [NodeSyncStatusState] instance to a JSON map.
+  /// {@macro state_to_json}
   Map<String, dynamic> toJson() => _$NodeSyncStatusStateToJson(this);
 }

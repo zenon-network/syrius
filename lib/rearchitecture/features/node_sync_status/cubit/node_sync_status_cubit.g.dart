@@ -27,9 +27,9 @@ Map<String, dynamic> _$NodeSyncStatusStateToJson(
       'status': _$TimerStatusEnumMap[instance.status]!,
       'data': instance.data?.toJson(
         (value) => _$SyncStateEnumMap[value]!,
-        (value) => value,
+        (value) => value.toJson(),
       ),
-      'error': instance.error,
+      'error': instance.error?.toJson(),
     };
 
 const _$TimerStatusEnumMap = {

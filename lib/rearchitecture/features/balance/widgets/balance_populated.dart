@@ -1,7 +1,10 @@
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/balance/balance.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/balance/cubit/balance_cubit.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/constants/app_sizes.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/cubits/timer_cubit.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
@@ -40,14 +43,14 @@ class _BalancePopulatedState extends State<BalancePopulated> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    _addressEdgesColor = ValueNotifier<Color>(Theme.of(context).hintColor);
+    _addressEdgesColor = ValueNotifier<Color>(context.themeData.hintColor);
   }
 
   @override
   Widget build(BuildContext context) {
     return Column(
       children: <Widget>[
-        kVerticalSpacing,
+        kVerticalGap16,
         Expanded(
           child: AspectRatio(
             aspectRatio: 1,
@@ -118,10 +121,10 @@ class _BalancePopulatedState extends State<BalancePopulated> {
       child: AutoSizeText(
         '$amount $symbol',
         textAlign: TextAlign.center,
-        style: Theme.of(context).textTheme.headlineMedium!.copyWith(
-              color: ColorUtils.getTokenColor(tokenStandard),
-              fontWeight: FontWeight.bold,
-            ),
+        style: context.textTheme.headlineMedium?.copyWith(
+          color: ColorUtils.getTokenColor(tokenStandard),
+          fontWeight: FontWeight.bold,
+        ),
       ),
     );
   }

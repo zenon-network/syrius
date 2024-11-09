@@ -1,5 +1,3 @@
-// ignore_for_file: prefer_const_constructors
-
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
@@ -52,6 +50,7 @@ void main() {
       when(() => mockEmbedded.pillar).thenReturn(mockPillar);
       when(() => mockPillar.getDelegatedPillar(any()))
           .thenAnswer((_) async => delegationInfo);
+
       delegationCubit = DelegationCubit(
         address: emptyAddress,
         zenon: mockZenon,
@@ -62,21 +61,64 @@ void main() {
       expect(delegationCubit.state.status, TimerStatus.initial);
     });
 
-    test('can be (de)serialized', () {
-      final DelegationState delegationState = DelegationState(
-        data: delegationInfo,
-        status: TimerStatus.success,
-      );
+    group('fromJson/toJson', () {
+      test('can (de)serialize initial state', () {
+        const DelegationState initialState = DelegationState();
 
-      final Map<String, dynamic>? serialized = delegationCubit.toJson(
-        delegationState,
-      );
-      final DelegationState? deserialized = delegationCubit.fromJson(
-        serialized!,
-      );
+        final Map<String, dynamic>? serialized = delegationCubit.toJson(
+          initialState,
+        );
+        final DelegationState? deserialized = delegationCubit.fromJson(
+          serialized!,
+        );
+        expect(deserialized, equals(initialState));
+      });
 
-      expect(deserialized, delegationState);
+      test('can (de)serialize loading state', () {
+        const DelegationState loadingState = DelegationState(
+          status: TimerStatus.loading,
+        );
+
+        final Map<String, dynamic>? serialized = delegationCubit.toJson(
+          loadingState,
+        );
+        final DelegationState? deserialized = delegationCubit.fromJson(
+          serialized!,
+        );
+        expect(deserialized, equals(loadingState));
+      });
+
+      test('can (de)serialize success state', () {
+        final DelegationState successState = DelegationState(
+          status: TimerStatus.success,
+          data: delegationInfo,
+        );
+
+        final Map<String, dynamic>? serialized = delegationCubit.toJson(
+          successState,
+        );
+        final DelegationState? deserialized = delegationCubit.fromJson(
+          serialized!,
+        );
+        expect(deserialized, equals(successState));
+      });
+
+      test('can (de)serialize failure state', () {
+        final DelegationState failureState = DelegationState(
+          status: TimerStatus.failure,
+          error: delegationException,
+        );
+
+        final Map<String, dynamic>? serialized = delegationCubit.toJson(
+          failureState,
+        );
+        final DelegationState? deserialized = delegationCubit.fromJson(
+          serialized!,
+        );
+        expect(deserialized, equals(failureState));
+      });
     });
+
 
     group('fetchDataPeriodically', () {
       blocTest<DelegationCubit, DelegationState>(
@@ -104,7 +146,7 @@ void main() {
         build: () => delegationCubit,
         act: (DelegationCubit cubit) => cubit.fetchDataPeriodically(),
         expect: () => <DelegationState>[
-          DelegationState(status: TimerStatus.loading),
+          const DelegationState(status: TimerStatus.loading),
           DelegationState(
             status: TimerStatus.failure,
             error: delegationException,
@@ -118,7 +160,7 @@ void main() {
         build: () => delegationCubit,
         act: (DelegationCubit cubit) => cubit.fetchDataPeriodically(),
         expect: () => <dynamic>[
-          DelegationState(status: TimerStatus.loading),
+          const DelegationState(status: TimerStatus.loading),
           DelegationState(status: TimerStatus.success, data: delegationInfo),
         ],
       );

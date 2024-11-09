@@ -2,7 +2,6 @@ import 'package:json_annotation/json_annotation.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 part 'realtime_statistics_cubit.g.dart';
@@ -22,9 +21,13 @@ class RealtimeStatisticsCubit
   /// The [zenon] client is used to interact with the Zenon network to retrieve
   /// account block information.
   RealtimeStatisticsCubit({
+    required this.address,
     required super.zenon,
     super.initialState = const RealtimeStatisticsState(),
   });
+
+  ///The address for which the list of account blocks is fetched
+  final Address address;
 
   /// Fetches a list of account blocks for the specified address over the past
   /// week.
@@ -62,7 +65,7 @@ class RealtimeStatisticsCubit
       // Fetch account blocks for the current page
       final AccountBlockList accountBlockList =
           await zenon.ledger.getAccountBlocksByPage(
-        Address.parse(kSelectedAddress!),
+        address,
         pageIndex: pageIndex,
         pageSize: pageSize,
       );

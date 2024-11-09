@@ -20,8 +20,8 @@ StakingState _$StakingStateFromJson(Map<String, dynamic> json) => StakingState(
 Map<String, dynamic> _$StakingStateToJson(StakingState instance) =>
     <String, dynamic>{
       'status': _$TimerStatusEnumMap[instance.status]!,
-      'data': instance.data,
-      'error': instance.error,
+      'data': instance.data?.toJson(),
+      'error': instance.error?.toJson(),
     };
 
 const _$TimerStatusEnumMap = {

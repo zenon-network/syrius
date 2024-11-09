@@ -14,13 +14,10 @@ class PillarsCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider<PillarsCubit>(
-      create: (_) {
-        final PillarsCubit cubit = PillarsCubit(
-          zenon: zenon!,
-        )..fetchDataPeriodically();
-        return cubit;
-      },
-      child: CardScaffoldWithoutListener(
+      create: (_) => PillarsCubit(
+        zenon: zenon!,
+      )..fetchDataPeriodically(),
+      child: NewCardScaffold(
         data: CardType.pillars.getData(context: context),
         body: BlocBuilder<PillarsCubit, PillarsState>(
           builder: (BuildContext context, PillarsState state) {

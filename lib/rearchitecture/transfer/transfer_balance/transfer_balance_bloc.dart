@@ -1,0 +1,80 @@
+import 'dart:async';
+import 'package:equatable/equatable.dart';
+import 'package:hydrated_bloc/hydrated_bloc.dart';
+import 'package:json_annotation/json_annotation.dart';
+import 'package:zenon_syrius_wallet_flutter/blocs/refresh_bloc_mixin.dart';
+import 'package:znn_sdk_dart/znn_sdk_dart.dart';
+
+part 'transfer_balance_bloc.g.dart';
+part 'transfer_balance_event.dart';
+part 'transfer_balance_state.dart';
+
+/// A bloc responsible for managing transfer balances for a list of addresses.
+class TransferBalanceBloc
+    extends HydratedBloc<TransferBalanceEvent, TransferBalanceState>
+    with RefreshBlocMixin {
+  /// Creates a new instance of [TransferBalanceBloc].
+  TransferBalanceBloc({required this.zenon, required this.addressList})
+      : super(const TransferBalanceState()) {
+    on<FetchBalances>(_onFetchBalances);
+    listenToWsRestart(() => add(FetchBalances()));
+  }
+
+  /// The Zenon SDK instance for ledger interactions.
+  final Zenon zenon;
+
+  /// The list of addresses whose balances are being managed.
+  final List<String?> addressList;
+
+  /// Handles the [FetchBalances] event to fetch balances for all addresses.
+  Future<void> _onFetchBalances(
+      FetchBalances event,
+      Emitter<TransferBalanceState> emit,
+      ) async {
+    emit(state.copyWith(status: TransferBalanceStatus.loading));
+
+    try {
+      final Map<String, AccountInfo> addressBalanceMap =
+        <String, AccountInfo>{};
+      final List<AccountInfo> accountInfoList = await Future.wait(
+        addressList.map(
+              (String? address) => _getBalancePerAddress(address!),
+        ),
+      );
+
+      for (final AccountInfo accountInfo in accountInfoList) {
+        addressBalanceMap[accountInfo.address!] = accountInfo;
+      }
+
+      emit(
+        state.copyWith(
+          status: TransferBalanceStatus.success,
+          data: addressBalanceMap,
+        ),
+      );
+    } catch (error) {
+      emit(
+        state.copyWith(
+          status: TransferBalanceStatus.failure,
+          error: error,
+        ),
+      );
+    }
+  }
+
+  /// Retrieves the account information for a specific [address].
+  Future<AccountInfo> _getBalancePerAddress(String address) async {
+    return zenon.ledger.getAccountInfoByAddress(
+      Address.parse(address),
+    );
+  }
+
+  /// Deserializes the state from a JSON map.
+  @override
+  TransferBalanceState? fromJson(Map<String, dynamic> json) =>
+      TransferBalanceState.fromJson(json);
+
+  /// Serializes the current state into a JSON map for persistence.
+  @override
+  Map<String, dynamic>? toJson(TransferBalanceState state) => state.toJson();
+}
