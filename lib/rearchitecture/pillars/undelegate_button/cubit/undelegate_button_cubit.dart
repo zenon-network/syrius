@@ -1,7 +1,7 @@
 import 'package:equatable/equatable.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
 import 'package:json_annotation/json_annotation.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/account_block_utils.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/dependency_injection_helpers/account_block_utils_helper.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
@@ -12,10 +12,22 @@ part 'undelegate_button_state.dart';
 /// A cubit responsible for handling the undelegation from a Pillar.
 class UndelegateButtonCubit extends HydratedCubit<UndelegateButtonState> {
   /// Creates a new instance of [UndelegateButtonCubit].
-  UndelegateButtonCubit(this.zenon) : super(const UndelegateButtonState());
+  UndelegateButtonCubit({
+    required this.zenon,
+    this.duration = kDelayAfterAccountBlockCreationCall,
+    AccountBlockUtilsHelper? accountBlockUtilsHelper,
+  })  : accountBlockUtilsHelper =
+            accountBlockUtilsHelper ?? AccountBlockUtilsHelper(),
+        super(const UndelegateButtonState());
 
   /// The Zenon SDK instance used for network interactions.
   final Zenon zenon;
+
+  /// The delay duration after account block creation.
+  final Duration duration;
+
+  /// Helper class with the purpose of facilitating dependency injections.
+  final AccountBlockUtilsHelper accountBlockUtilsHelper;
 
   /// Initiates the undelegation process.
   Future<void> cancelPillarVoting() async {
@@ -26,14 +38,13 @@ class UndelegateButtonCubit extends HydratedCubit<UndelegateButtonState> {
           zenon.embedded.pillar.undelegate();
 
       final AccountBlockTemplate response =
-          await AccountBlockUtils.createAccountBlock(
+          await accountBlockUtilsHelper.createAccountBlock(
         transactionParams,
         'undelegate',
         waitForRequiredPlasma: true,
       );
 
-      // Optionally delay after account block creation
-      await Future.delayed(kDelayAfterAccountBlockCreationCall);
+      await Future.delayed(duration);
 
       emit(
         state.copyWith(

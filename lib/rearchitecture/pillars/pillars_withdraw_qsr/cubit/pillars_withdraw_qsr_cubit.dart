@@ -3,8 +3,8 @@ import 'dart:async';
 import 'package:equatable/equatable.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
 import 'package:json_annotation/json_annotation.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/account_block_utils.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/address_utils.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/dependency_injection_helpers/account_block_utils_helper.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/dependency_injection_helpers/zenon_address_utils_helper.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/zts_utils.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
@@ -15,10 +15,28 @@ part 'pillars_withdraw_qsr_state.dart';
 /// A cubit responsible for handling the QSR withdrawal from Pillar slots.
 class PillarsWithdrawQsrCubit extends HydratedCubit<PillarsWithdrawQsrState> {
   /// Creates a new instance of [PillarsWithdrawQsrCubit].
-  PillarsWithdrawQsrCubit(this.zenon) : super(const PillarsWithdrawQsrState());
+  PillarsWithdrawQsrCubit({
+    required this.zenon,
+    this.duration = kDelayAfterAccountBlockCreationCall,
+    AccountBlockUtilsHelper? accountBlockUtilsHelper,
+    ZenonAddressUtilsHelper? zenonAddressUtilsHelper,
+  })  : zenonAddressUtilsHelper =
+            zenonAddressUtilsHelper ?? ZenonAddressUtilsHelper(),
+        accountBlockUtilsHelper =
+            accountBlockUtilsHelper ?? AccountBlockUtilsHelper(),
+        super(const PillarsWithdrawQsrState());
 
   /// The Zenon SDK instance used for network interactions.
   final Zenon zenon;
+
+  /// The delay duration after account block creation.
+  final Duration duration;
+
+  /// Helper class with the purpose of facilitating dependency injections.
+  final AccountBlockUtilsHelper accountBlockUtilsHelper;
+
+  /// Helper class with the purpose of facilitating dependency injections.
+  final ZenonAddressUtilsHelper zenonAddressUtilsHelper;
 
   /// Initiates the QSR withdrawal from a Pillar slot.
   Future<void> withdrawQsr(String address) async {
@@ -26,22 +44,25 @@ class PillarsWithdrawQsrCubit extends HydratedCubit<PillarsWithdrawQsrState> {
       emit(state.copyWith(status: PillarsWithdrawQsrStatus.loading));
 
       final AccountBlockTemplate transactionParams =
-      zenon.embedded.pillar.withdrawQsr();
+          zenon.embedded.pillar.withdrawQsr();
 
-      final AccountBlockTemplate response = await AccountBlockUtils.createAccountBlock(
+      final AccountBlockTemplate response =
+          await accountBlockUtilsHelper.createAccountBlock(
         transactionParams,
         'withdraw ${kQsrCoin.symbol} from Pillar Slot',
         waitForRequiredPlasma: true,
       );
 
-      await Future.delayed(kDelayAfterAccountBlockCreationCall);
+      await Future.delayed(duration);
 
-      ZenonAddressUtils.refreshBalance();
+      await zenonAddressUtilsHelper.refreshBalance();
 
-      emit(state.copyWith(
-        status: PillarsWithdrawQsrStatus.success,
-        data: response,
-      ));
+      emit(
+        state.copyWith(
+          status: PillarsWithdrawQsrStatus.success,
+          data: response,
+        ),
+      );
     } catch (e) {
       emit(state.copyWith(
         status: PillarsWithdrawQsrStatus.failure,
