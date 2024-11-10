@@ -1,4 +1,6 @@
-class PillarsQsrInfo {
+import 'package:equatable/equatable.dart';
+
+class PillarsQsrInfo extends Equatable{
   PillarsQsrInfo({
     required this.cost,
     required this.deposit,
@@ -20,4 +22,7 @@ class PillarsQsrInfo {
       'deposit': deposit.toString(),
     };
   }
+
+  @override
+  List<Object?> get props => <Object?>[cost, deposit];
 }
