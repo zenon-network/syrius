@@ -6,7 +6,9 @@ import 'package:zenon_syrius_wallet_flutter/blocs/refresh_bloc_mixin.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 part 'multiple_balance_bloc.g.dart';
+
 part 'multiple_balance_event.dart';
+
 part 'multiple_balance_state.dart';
 
 /// A bloc responsible for managing transfer balances for a list of addresses.
@@ -24,22 +26,22 @@ class MultipleBalanceBloc
   final Zenon zenon;
 
   /// The list of addresses whose balances are being managed.
-  final List<String?> addressList;
+  final List<String> addressList;
 
   /// Handles the [MultipleBalanceFetch] event to fetch balances for all
   /// addresses.
   Future<void> _onFetchBalances(
-      MultipleBalanceFetch event,
-      Emitter<MultipleBalanceState> emit,
-      ) async {
+    MultipleBalanceFetch event,
+    Emitter<MultipleBalanceState> emit,
+  ) async {
     emit(state.copyWith(status: MultipleBalanceStatus.loading));
 
     try {
       final Map<String, AccountInfo> addressBalanceMap =
-        <String, AccountInfo>{};
+          <String, AccountInfo>{};
       final List<AccountInfo> accountInfoList = await Future.wait(
         addressList.map(
-              (String? address) => _getBalancePerAddress(address!),
+          _getBalancePerAddress,
         ),
       );
 

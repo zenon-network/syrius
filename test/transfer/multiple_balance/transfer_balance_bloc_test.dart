@@ -1,7 +1,7 @@
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
-import 'package:zenon_syrius_wallet_flutter/rearchitecture/transfer/multiple_balance/multiple_balance_bloc.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/transfer/multiple_balance/bloc/multiple_balance_bloc.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/exceptions/cubit_failure_exception.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/zts_utils.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
@@ -52,7 +52,7 @@ void main() {
         .thenAnswer((_) async => accountInfo);
     bloc = MultipleBalanceBloc(
         zenon: mockZenon,
-        addressList: <String?>[emptyAddress.toString()],
+        addressList: <String>[emptyAddress.toString()],
     );
   });
 

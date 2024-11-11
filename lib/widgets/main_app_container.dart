@@ -21,6 +21,7 @@ import 'package:zenon_syrius_wallet_flutter/model/model.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/send/bloc/bloc.dart'
     hide SendPaymentBloc;
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/transfer/multiple_balance/bloc/multiple_balance_bloc.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/clipboard_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
@@ -112,8 +113,18 @@ class _MainAppContainerState extends State<MainAppContainer>
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider<SendCardDimensionBloc>(
-      create: (_) => SendCardDimensionBloc(),
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider<SendCardDimensionBloc>(
+          create: (_) => SendCardDimensionBloc(),
+        ),
+        BlocProvider<MultipleBalanceBloc>(
+          create: (_) => MultipleBalanceBloc(
+            zenon: zenon!,
+            addressList: kDefaultAddressList.map((String? e) => e!).toList(),
+          ),
+        ),
+      ],
       child: Consumer<TextScalingNotifier>(
         builder: (BuildContext context, TextScalingNotifier textScalingNotifier,
                 Widget? child) =>
