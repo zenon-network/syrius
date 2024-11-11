@@ -6,10 +6,10 @@ class SendCardDimensionState extends Equatable {
   /// Creates a new instance with a specified [cardDimension]
   const SendCardDimensionState({required this.cardDimension});
 
-  /// Creates a new instance with a default value of [DimensionCard.medium] for
+  /// Creates a new instance with a default value of [CardDimension.medium] for
   /// [cardDimension]
   const SendCardDimensionState.initial(): this(
-    cardDimension: DimensionCard.medium,
+    cardDimension: CardDimension.medium,
   );
 
   /// {@macro state_from_json}
@@ -17,7 +17,7 @@ class SendCardDimensionState extends Equatable {
       _$SendCardDimensionStateFromJson(json);
 
   /// The current dimension
-  final DimensionCard cardDimension;
+  final CardDimension cardDimension;
 
   @override
   List<Object?> get props => <Object?>[cardDimension];

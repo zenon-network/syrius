@@ -8,7 +8,7 @@ class SendCardDimensionChanged extends SendCardDimensionEvent {
   /// Creates a new instance.
   SendCardDimensionChanged(this.newDimension);
   /// Thew new dimension of the card.
-  final DimensionCard newDimension;
+  final CardDimension newDimension;
   @override
   List<Object?> get props => <Object?>[newDimension];
 }

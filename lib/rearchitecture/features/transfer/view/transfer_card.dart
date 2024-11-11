@@ -32,7 +32,7 @@ class _TransferCardState extends State<TransferCard> {
           IconButton(
             onPressed: () {
               context.read<SendCardDimensionBloc>().add(
-                    SendCardDimensionChanged(DimensionCard.large),
+                    SendCardDimensionChanged(CardDimension.large),
                   );
               widget.changePage!(
                 Tabs.transfer,
@@ -50,7 +50,7 @@ class _TransferCardState extends State<TransferCard> {
           IconButton(
             onPressed: () {
               context.read<SendCardDimensionBloc>().add(
-                    SendCardDimensionChanged(DimensionCard.small),
+                    SendCardDimensionChanged(CardDimension.small),
                   );
               widget.changePage!(
                 Tabs.transfer,

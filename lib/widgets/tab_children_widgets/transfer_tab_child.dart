@@ -4,7 +4,7 @@ import 'package:layout/layout.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/send/send.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 
-enum DimensionCard { small, medium, large }
+enum CardDimension { small, medium, large }
 
 class TransferTabChild extends StatefulWidget {
   TransferTabChild({
@@ -40,15 +40,15 @@ class _TransferTabChildState extends State<TransferTabChild> {
     );
   }
 
-  FluidCell _getReceiveCard({required DimensionCard sendCardDimension}) {
+  FluidCell _getReceiveCard({required CardDimension sendCardDimension}) {
     return switch (sendCardDimension) {
-      DimensionCard.large => _getSmallFluidCell(ReceiveSmallCard(_onCollapse)),
-      DimensionCard.medium => _getMediumFluidCell(
+      CardDimension.large => _getSmallFluidCell(ReceiveSmallCard(_onCollapse)),
+      CardDimension.medium => _getMediumFluidCell(
           ReceiveMediumCard(
             onExpandClicked: _onExpandReceiveCard,
           ),
         ),
-      DimensionCard.small => _getLargeFluidCell(
+      CardDimension.small => _getLargeFluidCell(
           ReceiveLargeCard(
             extendIcon: true,
             onCollapseClicked: _onCollapse,
@@ -57,13 +57,13 @@ class _TransferTabChildState extends State<TransferTabChild> {
     };
   }
 
-  FluidCell _getSendCard({required DimensionCard sendCardDimension}) {
+  FluidCell _getSendCard({required CardDimension sendCardDimension}) {
     return switch (sendCardDimension) {
-      DimensionCard.small => _getSmallFluidCell(SendSmallCard(_onCollapse)),
-      DimensionCard.medium => _getMediumFluidCell(
+      CardDimension.small => _getSmallFluidCell(SendSmallCard(_onCollapse)),
+      CardDimension.medium => _getMediumFluidCell(
           SendMediumCard(onExpandClicked: _onExpandSendCard),
         ),
-      DimensionCard.large => _getLargeFluidCell(
+      CardDimension.large => _getLargeFluidCell(
           SendLargeCard(
             extendIcon: true,
             onCollapsePressed: _onCollapse,
@@ -113,19 +113,19 @@ class _TransferTabChildState extends State<TransferTabChild> {
 
   void _onExpandSendCard() {
     context.read<SendCardDimensionBloc>().add(
-          SendCardDimensionChanged(DimensionCard.large),
+          SendCardDimensionChanged(CardDimension.large),
         );
   }
 
   void _onExpandReceiveCard() {
     context.read<SendCardDimensionBloc>().add(
-          SendCardDimensionChanged(DimensionCard.small),
+          SendCardDimensionChanged(CardDimension.small),
         );
   }
 
   void _onCollapse() {
     context.read<SendCardDimensionBloc>().add(
-          SendCardDimensionChanged(DimensionCard.medium),
+          SendCardDimensionChanged(CardDimension.medium),
         );
   }
 }
