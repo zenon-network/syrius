@@ -1,7 +1,7 @@
-part of 'transfer_balance_bloc.dart';
+part of 'multiple_balance_bloc.dart';
 
 /// Represents the status of the balance fetching process.
-enum TransferBalanceStatus {
+enum MultipleBalanceStatus {
   /// The initial state before any balance fetching has occurred.
   initial,
 
@@ -15,25 +15,25 @@ enum TransferBalanceStatus {
   failure,
 }
 
-/// Holds the state of [TransferBalanceBloc], including status, data,
+/// Holds the state of [MultipleBalanceBloc], including status, data,
 /// and error information.
 @JsonSerializable(explicitToJson: true)
-class TransferBalanceState extends Equatable {
-  /// Creates a new instance of [TransferBalanceState].
+class MultipleBalanceState extends Equatable {
+  /// Creates a new instance of [MultipleBalanceState].
   ///
-  /// The [status] defaults to [TransferBalanceStatus.initial] if not specified.
-  const TransferBalanceState({
-    this.status = TransferBalanceStatus.initial,
+  /// The [status] defaults to [MultipleBalanceStatus.initial] if not specified.
+  const MultipleBalanceState({
+    this.status = MultipleBalanceStatus.initial,
     this.data,
     this.error,
   });
 
   /// Creates a new instance from a JSON map.
-  factory TransferBalanceState.fromJson(Map<String, dynamic> json) =>
-      _$TransferBalanceStateFromJson(json);
+  factory MultipleBalanceState.fromJson(Map<String, dynamic> json) =>
+      _$MultipleBalanceStateFromJson(json);
 
   /// The current status of the balance fetching operation.
-  final TransferBalanceStatus status;
+  final MultipleBalanceStatus status;
 
   /// A map of addresses to their corresponding [AccountInfo].
   ///
@@ -44,12 +44,12 @@ class TransferBalanceState extends Equatable {
   final Object? error;
 
   /// {@macro state_copy_with}
-  TransferBalanceState copyWith({
-    TransferBalanceStatus? status,
+  MultipleBalanceState copyWith({
+    MultipleBalanceStatus? status,
     Map<String, AccountInfo>? data,
     Object? error,
   }) {
-    return TransferBalanceState(
+    return MultipleBalanceState(
       status: status ?? this.status,
       data: data ?? this.data,
       error: error ?? this.error,
@@ -57,7 +57,7 @@ class TransferBalanceState extends Equatable {
   }
 
   /// {@macro state_to_json}
-  Map<String, dynamic> toJson() => _$TransferBalanceStateToJson(this);
+  Map<String, dynamic> toJson() => _$MultipleBalanceStateToJson(this);
 
 
   @override

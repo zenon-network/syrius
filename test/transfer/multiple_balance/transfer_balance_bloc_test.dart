@@ -1,7 +1,7 @@
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
-import 'package:zenon_syrius_wallet_flutter/rearchitecture/transfer/transfer_balance/transfer_balance_bloc.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/transfer/multiple_balance/multiple_balance_bloc.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/exceptions/cubit_failure_exception.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/zts_utils.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
@@ -22,7 +22,7 @@ void main() {
   late MockZenon mockZenon;
   late MockLedger mockLedger;
   late MockWsClient mockWsClient;
-  late TransferBalanceBloc bloc;
+  late MultipleBalanceBloc bloc;
   late String testAddress;
   late BalanceInfoListItem balanceInfoListItem;
   late AccountInfo accountInfo;
@@ -50,7 +50,7 @@ void main() {
     when(() => mockZenon.ledger).thenReturn(mockLedger);
     when(() => mockLedger.getAccountInfoByAddress(any()))
         .thenAnswer((_) async => accountInfo);
-    bloc = TransferBalanceBloc(
+    bloc = MultipleBalanceBloc(
         zenon: mockZenon,
         addressList: <String?>[emptyAddress.toString()],
     );
@@ -61,31 +61,31 @@ void main() {
   });
 
     test('initial state is correct', () {
-      expect(bloc.state.status, TransferBalanceStatus.initial);
+      expect(bloc.state.status, MultipleBalanceStatus.initial);
     });
 
   group('fromJson/toJson', () {
     test('can (de)serialize initial state', () {
-      const TransferBalanceState initialState = TransferBalanceState();
+      const MultipleBalanceState initialState = MultipleBalanceState();
 
       final Map<String, dynamic>? serialized = bloc.toJson(
         initialState,
       );
-      final TransferBalanceState? deserialized =
+      final MultipleBalanceState? deserialized =
       bloc.fromJson(serialized!);
 
       expect(deserialized, equals(initialState));
     });
 
     test('can (de)serialize loading state', () {
-      const TransferBalanceState loadingState = TransferBalanceState(
-        status: TransferBalanceStatus.loading,
+      const MultipleBalanceState loadingState = MultipleBalanceState(
+        status: MultipleBalanceStatus.loading,
       );
 
       final Map<String, dynamic>? serialized = bloc.toJson(
         loadingState,
       );
-      final TransferBalanceState? deserialized =
+      final MultipleBalanceState? deserialized =
       bloc.fromJson(
         serialized!,
       );
@@ -93,33 +93,33 @@ void main() {
     });
 
     test('can (de)serialize success state', () {
-      final TransferBalanceState successState = TransferBalanceState(
-        status: TransferBalanceStatus.success,
+      final MultipleBalanceState successState = MultipleBalanceState(
+        status: MultipleBalanceStatus.success,
         data: <String, AccountInfo>{testAddress : accountInfo},
       );
 
       final Map<String, dynamic>? serialized = bloc.toJson(
         successState,
       );
-      final TransferBalanceState? deserialized =
+      final MultipleBalanceState? deserialized =
       bloc.fromJson(
         serialized!,
       );
-      expect(deserialized, isA<TransferBalanceState>());
-      expect(deserialized!.status, equals(TransferBalanceStatus.success));
+      expect(deserialized, isA<MultipleBalanceState>());
+      expect(deserialized!.status, equals(MultipleBalanceStatus.success));
       expect(deserialized.data, isA<Map<String, AccountInfo>>());
     });
 
     test('can (de)serialize failure state', () {
-      final TransferBalanceState failureState = TransferBalanceState(
-        status: TransferBalanceStatus.failure,
+      final MultipleBalanceState failureState = MultipleBalanceState(
+        status: MultipleBalanceStatus.failure,
         error: exception,
       );
 
       final Map<String, dynamic>? serialized = bloc.toJson(
         failureState,
       );
-      final TransferBalanceState? deserialized =
+      final MultipleBalanceState? deserialized =
       bloc.fromJson(
         serialized!,
       );
@@ -127,31 +127,31 @@ void main() {
     });
   });
 
-    blocTest<TransferBalanceBloc, TransferBalanceState>(
+    blocTest<MultipleBalanceBloc, MultipleBalanceState>(
       'emits [loading, success] with data on successful fetch',
       build: () => bloc,
-      act: (TransferBalanceBloc bloc) => bloc.add(FetchBalances()),
-      expect: () => <TransferBalanceState>[
-        const TransferBalanceState(status: TransferBalanceStatus.loading),
-        TransferBalanceState(
-          status: TransferBalanceStatus.success,
+      act: (MultipleBalanceBloc bloc) => bloc.add(MultipleBalanceFetch()),
+      expect: () => <MultipleBalanceState>[
+        const MultipleBalanceState(status: MultipleBalanceStatus.loading),
+        MultipleBalanceState(
+          status: MultipleBalanceStatus.success,
           data: <String, AccountInfo>{testAddress: accountInfo},
         ),
       ],
     );
 
-    blocTest<TransferBalanceBloc, TransferBalanceState>(
+    blocTest<MultipleBalanceBloc, MultipleBalanceState>(
       'emits [loading, failure] when fetching balances fails',
       setUp: () {
         when(() => mockZenon.ledger.getAccountInfoByAddress(any()))
             .thenThrow(exception);
       },
       build: () => bloc,
-      act: (TransferBalanceBloc bloc) => bloc.add(FetchBalances()),
-      expect: () => <TransferBalanceState>[
-        const TransferBalanceState(status: TransferBalanceStatus.loading),
-        TransferBalanceState(
-          status: TransferBalanceStatus.failure,
+      act: (MultipleBalanceBloc bloc) => bloc.add(MultipleBalanceFetch()),
+      expect: () => <MultipleBalanceState>[
+        const MultipleBalanceState(status: MultipleBalanceStatus.loading),
+        MultipleBalanceState(
+          status: MultipleBalanceStatus.failure,
           error: exception,
         ),
       ],

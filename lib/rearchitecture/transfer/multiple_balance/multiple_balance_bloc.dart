@@ -5,19 +5,19 @@ import 'package:json_annotation/json_annotation.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/refresh_bloc_mixin.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
-part 'transfer_balance_bloc.g.dart';
-part 'transfer_balance_event.dart';
-part 'transfer_balance_state.dart';
+part 'multiple_balance_bloc.g.dart';
+part 'multiple_balance_event.dart';
+part 'multiple_balance_state.dart';
 
 /// A bloc responsible for managing transfer balances for a list of addresses.
-class TransferBalanceBloc
-    extends HydratedBloc<TransferBalanceEvent, TransferBalanceState>
+class MultipleBalanceBloc
+    extends HydratedBloc<MultipleBalanceEvent, MultipleBalanceState>
     with RefreshBlocMixin {
-  /// Creates a new instance of [TransferBalanceBloc].
-  TransferBalanceBloc({required this.zenon, required this.addressList})
-      : super(const TransferBalanceState()) {
-    on<FetchBalances>(_onFetchBalances);
-    listenToWsRestart(() => add(FetchBalances()));
+  /// Creates a new instance of [MultipleBalanceBloc].
+  MultipleBalanceBloc({required this.zenon, required this.addressList})
+      : super(const MultipleBalanceState()) {
+    on<MultipleBalanceFetch>(_onFetchBalances);
+    listenToWsRestart(() => add(MultipleBalanceFetch()));
   }
 
   /// The Zenon SDK instance for ledger interactions.
@@ -26,12 +26,13 @@ class TransferBalanceBloc
   /// The list of addresses whose balances are being managed.
   final List<String?> addressList;
 
-  /// Handles the [FetchBalances] event to fetch balances for all addresses.
+  /// Handles the [MultipleBalanceFetch] event to fetch balances for all
+  /// addresses.
   Future<void> _onFetchBalances(
-      FetchBalances event,
-      Emitter<TransferBalanceState> emit,
+      MultipleBalanceFetch event,
+      Emitter<MultipleBalanceState> emit,
       ) async {
-    emit(state.copyWith(status: TransferBalanceStatus.loading));
+    emit(state.copyWith(status: MultipleBalanceStatus.loading));
 
     try {
       final Map<String, AccountInfo> addressBalanceMap =
@@ -48,14 +49,14 @@ class TransferBalanceBloc
 
       emit(
         state.copyWith(
-          status: TransferBalanceStatus.success,
+          status: MultipleBalanceStatus.success,
           data: addressBalanceMap,
         ),
       );
     } catch (error) {
       emit(
         state.copyWith(
-          status: TransferBalanceStatus.failure,
+          status: MultipleBalanceStatus.failure,
           error: error,
         ),
       );
@@ -71,10 +72,10 @@ class TransferBalanceBloc
 
   /// Deserializes the state from a JSON map.
   @override
-  TransferBalanceState? fromJson(Map<String, dynamic> json) =>
-      TransferBalanceState.fromJson(json);
+  MultipleBalanceState? fromJson(Map<String, dynamic> json) =>
+      MultipleBalanceState.fromJson(json);
 
   /// Serializes the current state into a JSON map for persistence.
   @override
-  Map<String, dynamic>? toJson(TransferBalanceState state) => state.toJson();
+  Map<String, dynamic>? toJson(MultipleBalanceState state) => state.toJson();
 }
