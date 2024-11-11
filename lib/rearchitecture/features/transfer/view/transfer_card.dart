@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_vector_icons/flutter_vector_icons.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/send/send.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
@@ -13,11 +15,7 @@ class TransferCard extends StatefulWidget {
   });
 
   /// Function that triggers the redirect to the Transfer tab
-  final Function(
-    Tabs, {
-    bool redirectWithSendContainerLarge,
-    bool redirectWithReceiveContainerLarge,
-  })? changePage;
+  final Function(Tabs)? changePage;
 
   @override
   State<TransferCard> createState() => _TransferCardState();
@@ -33,9 +31,11 @@ class _TransferCardState extends State<TransferCard> {
         children: <Widget>[
           IconButton(
             onPressed: () {
+              context.read<SendCardDimensionBloc>().add(
+                    SendCardDimensionChanged(DimensionCard.large),
+                  );
               widget.changePage!(
                 Tabs.transfer,
-                redirectWithSendContainerLarge: true,
               );
             },
             icon: const Icon(
@@ -49,9 +49,11 @@ class _TransferCardState extends State<TransferCard> {
           ),
           IconButton(
             onPressed: () {
+              context.read<SendCardDimensionBloc>().add(
+                    SendCardDimensionChanged(DimensionCard.small),
+                  );
               widget.changePage!(
                 Tabs.transfer,
-                redirectWithReceiveContainerLarge: true,
               );
             },
             icon: const Icon(

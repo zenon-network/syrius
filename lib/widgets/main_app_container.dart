@@ -19,6 +19,8 @@ import 'package:zenon_syrius_wallet_flutter/handlers/htlc_swaps_handler.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/model/model.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/send/bloc/bloc.dart'
+    hide SendPaymentBloc;
 import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/clipboard_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
@@ -75,7 +77,6 @@ class _MainAppContainerState extends State<MainAppContainer>
 
   Timer? _navigateToLockTimer;
   TabController? _tabController;
-  TransferTabChild? _transferTabChild;
   bool _initialUriIsHandled = false;
 
   final AppLinks _appLinks = AppLinks();
@@ -94,7 +95,6 @@ class _MainAppContainerState extends State<MainAppContainer>
 
     ClipboardUtils.toggleClipboardWatcherStatus();
 
-    _transferTabChild = TransferTabChild();
     _initTabController();
     _animationController = AnimationController(
       vsync: this,
@@ -112,47 +112,54 @@ class _MainAppContainerState extends State<MainAppContainer>
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<TextScalingNotifier>(
-      builder: (BuildContext context, TextScalingNotifier textScalingNotifier, Widget? child) => MediaQuery(
-        data: MediaQuery.of(context).copyWith(
-          textScaler: TextScaler.linear(
-              textScalingNotifier.getTextScaleFactor(context),),
-        ),
-        child: Scaffold(
-          body: Container(
-            margin: const EdgeInsets.all(
-              20,
+    return BlocProvider<SendCardDimensionBloc>(
+      create: (_) => SendCardDimensionBloc(),
+      child: Consumer<TextScalingNotifier>(
+        builder: (BuildContext context, TextScalingNotifier textScalingNotifier,
+                Widget? child) =>
+            MediaQuery(
+          data: MediaQuery.of(context).copyWith(
+            textScaler: TextScaler.linear(
+              textScalingNotifier.getTextScaleFactor(context),
             ),
-            child: Column(
-              children: <Widget>[
-                _getDesktopNavigationContainer(),
-                SizedBox(
-                  height:
-                      NotificationUtils.shouldShowNotification() ? 15.0 : 20.0,
-                ),
-                NotificationWidget(
-                  onSeeMorePressed: () {
-                    _navigateTo(Tabs.notifications);
-                  },
-                  onDismissPressed: () {
-                    setState(() {});
-                  },
-                  onNewNotificationCallback: () {
-                    setState(() {});
-                  },
-                  popBeforeSeeMoreIsPressed: false,
-                ),
-                Expanded(
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(
-                      15,
-                    ),
-                    child: Container(
-                      child: _getCurrentPageContainer(),
+          ),
+          child: Scaffold(
+            body: Container(
+              margin: const EdgeInsets.all(
+                20,
+              ),
+              child: Column(
+                children: <Widget>[
+                  _getDesktopNavigationContainer(),
+                  SizedBox(
+                    height: NotificationUtils.shouldShowNotification()
+                        ? 15.0
+                        : 20.0,
+                  ),
+                  NotificationWidget(
+                    onSeeMorePressed: () {
+                      _navigateTo(Tabs.notifications);
+                    },
+                    onDismissPressed: () {
+                      setState(() {});
+                    },
+                    onNewNotificationCallback: () {
+                      setState(() {});
+                    },
+                    popBeforeSeeMoreIsPressed: false,
+                  ),
+                  Expanded(
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(
+                        15,
+                      ),
+                      child: Container(
+                        child: _getCurrentPageContainer(),
+                      ),
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),
@@ -402,7 +409,7 @@ class _MainAppContainerState extends State<MainAppContainer>
       controller: _tabController,
       children: <Widget>[
         DashboardTabChild(changePage: _navigateTo),
-        _transferTabChild!,
+        TransferTabChild(),
         PillarsTabChild(
           onStepperNotificationSeeMorePressed: () =>
               _navigateTo(Tabs.notifications),
@@ -505,18 +512,7 @@ class _MainAppContainerState extends State<MainAppContainer>
 
   int _getTabChildIndex(Tabs page) => kTabs.indexOf(page);
 
-  void _navigateTo(
-    Tabs page, {
-    bool redirectWithSendContainerLarge = false,
-    bool redirectWithReceiveContainerLarge = false,
-  }) {
-    if (redirectWithSendContainerLarge) {
-      _transferTabChild!.sendCard = DimensionCard.large;
-      _transferTabChild!.receiveCard = DimensionCard.small;
-    } else if (redirectWithReceiveContainerLarge) {
-      _transferTabChild!.sendCard = DimensionCard.small;
-      _transferTabChild!.receiveCard = DimensionCard.large;
-    }
+  void _navigateTo(Tabs page) {
     if (kCurrentPage != page) {
       kCurrentPage = page;
       _tabController!.animateTo(kTabs.indexOf(page));
@@ -582,7 +578,8 @@ class _MainAppContainerState extends State<MainAppContainer>
   }
 
   Timer _createAutoLockTimer() {
-    return Timer.periodic(Duration(minutes: kAutoLockWalletMinutes!), (Timer timer) {
+    return Timer.periodic(Duration(minutes: kAutoLockWalletMinutes!),
+        (Timer timer) {
       if (!sl<HtlcSwapsHandler>().hasActiveIncomingSwaps) {
         _lockBloc.addEvent(LockEvent.navigateToLock);
       }
@@ -609,7 +606,8 @@ class _MainAppContainerState extends State<MainAppContainer>
                 if (Platform.isWindows) {
                   uriRaw = uriRaw.replaceAll('/?', '?');
                 }
-                final String wcUri = Uri.decodeFull(uriRaw.split('wc?uri=').last);
+                final String wcUri =
+                    Uri.decodeFull(uriRaw.split('wc?uri=').last);
                 if (WalletConnectUri.tryParse(wcUri) != null) {
                   await _updateWalletConnectUri(wcUri);
                 }
@@ -625,7 +623,8 @@ class _MainAppContainerState extends State<MainAppContainer>
               Token? token;
 
               if (uri.hasQuery) {
-                uri.queryParametersAll.forEach((String key, List<String> value) async {
+                uri.queryParametersAll
+                    .forEach((String key, List<String> value) async {
                   if (key == 'amount') {
                     queryAmount = value.first;
                   } else if (key == 'zts') {
@@ -652,8 +651,10 @@ class _MainAppContainerState extends State<MainAppContainer>
               }
 
               final SendPaymentBloc sendPaymentBloc = SendPaymentBloc();
-              final StakingOptionsBloc stakingOptionsBloc = StakingOptionsBloc();
-              final DelegateButtonBloc delegateButtonBloc = DelegateButtonBloc();
+              final StakingOptionsBloc stakingOptionsBloc =
+                  StakingOptionsBloc();
+              final DelegateButtonBloc delegateButtonBloc =
+                  DelegateButtonBloc();
               final PlasmaOptionsBloc plasmaOptionsBloc = PlasmaOptionsBloc();
 
               if (context.mounted) {
@@ -891,7 +892,8 @@ class _MainAppContainerState extends State<MainAppContainer>
 
   @override
   Future<void> onClipboardChanged() async {
-    final ClipboardData? newClipboardData = await Clipboard.getData(Clipboard.kTextPlain);
+    final ClipboardData? newClipboardData =
+        await Clipboard.getData(Clipboard.kTextPlain);
     final String text = newClipboardData?.text ?? '';
     if (text.isNotEmpty && WalletConnectUri.tryParse(text) != null) {
       // This check is needed because onClipboardChanged is called twice sometimes

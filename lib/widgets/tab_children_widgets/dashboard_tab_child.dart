@@ -6,13 +6,9 @@ import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dar
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 
 class DashboardTabChild extends StatefulWidget {
-
   const DashboardTabChild({super.key, this.changePage});
-  final void Function(
-    Tabs, {
-    bool redirectWithSendContainerLarge,
-    bool redirectWithReceiveContainerLarge,
-  })? changePage;
+
+  final void Function(Tabs)? changePage;
 
   @override
   State<DashboardTabChild> createState() => _DashboardTabChildState();

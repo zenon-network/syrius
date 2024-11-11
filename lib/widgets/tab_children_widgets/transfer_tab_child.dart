@@ -1,18 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:layout/layout.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/send/send.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 
 enum DimensionCard { small, medium, large }
 
 class TransferTabChild extends StatefulWidget {
-
   TransferTabChild({
     super.key,
-    this.sendCard = DimensionCard.medium,
-    this.receiveCard = DimensionCard.medium,
   });
-  DimensionCard sendCard;
-  DimensionCard receiveCard;
 
   @override
   State<TransferTabChild> createState() => _TransferTabChildState();
@@ -21,51 +18,59 @@ class TransferTabChild extends StatefulWidget {
 class _TransferTabChildState extends State<TransferTabChild> {
   @override
   Widget build(BuildContext context) {
-    return StandardFluidLayout(
-      children: <FluidCell>[
-        _getSendCard(),
-        _getReceiveCard(),
-        const FluidCell(
-          child: LatestTransactions(),
-          width: kStaggeredNumOfColumns ~/ 2,
-          height: kStaggeredNumOfColumns / 3,
-        ),
-        const FluidCell(
-          child: PendingTransactions(),
-          width: kStaggeredNumOfColumns ~/ 2,
-          height: kStaggeredNumOfColumns / 3,
-        ),
-      ],
+    return BlocBuilder<SendCardDimensionBloc, SendCardDimensionState>(
+      builder: (_, SendCardDimensionState state) {
+        return StandardFluidLayout(
+          children: <FluidCell>[
+            _getSendCard(sendCardDimension: state.cardDimension),
+            _getReceiveCard(sendCardDimension: state.cardDimension),
+            const FluidCell(
+              child: LatestTransactions(),
+              width: kStaggeredNumOfColumns ~/ 2,
+              height: kStaggeredNumOfColumns / 3,
+            ),
+            const FluidCell(
+              child: PendingTransactions(),
+              width: kStaggeredNumOfColumns ~/ 2,
+              height: kStaggeredNumOfColumns / 3,
+            ),
+          ],
+        );
+      },
     );
   }
 
-  FluidCell _getReceiveCard() => widget.receiveCard == DimensionCard.medium
-      ? _getMediumFluidCell(
+  FluidCell _getReceiveCard({required DimensionCard sendCardDimension}) {
+    return switch (sendCardDimension) {
+      DimensionCard.large => _getSmallFluidCell(ReceiveSmallCard(_onCollapse)),
+      DimensionCard.medium => _getMediumFluidCell(
           ReceiveMediumCard(
             onExpandClicked: _onExpandReceiveCard,
           ),
-        )
-      : widget.receiveCard == DimensionCard.small
-          ? _getSmallFluidCell(ReceiveSmallCard(_onCollapse))
-          : _getLargeFluidCell(
-              ReceiveLargeCard(
-                extendIcon: true,
-                onCollapseClicked: _onCollapse,
-              ),
-            );
+        ),
+      DimensionCard.small => _getLargeFluidCell(
+          ReceiveLargeCard(
+            extendIcon: true,
+            onCollapseClicked: _onCollapse,
+          ),
+        ),
+    };
+  }
 
-  FluidCell _getSendCard() => widget.sendCard == DimensionCard.medium
-      ? _getMediumFluidCell(
+  FluidCell _getSendCard({required DimensionCard sendCardDimension}) {
+    return switch (sendCardDimension) {
+      DimensionCard.small => _getSmallFluidCell(SendSmallCard(_onCollapse)),
+      DimensionCard.medium => _getMediumFluidCell(
           SendMediumCard(onExpandClicked: _onExpandSendCard),
-        )
-      : widget.sendCard == DimensionCard.small
-          ? _getSmallFluidCell(SendSmallCard(_onCollapse))
-          : _getLargeFluidCell(
-              SendLargeCard(
-                extendIcon: true,
-                onCollapsePressed: _onCollapse,
-              ),
-            );
+        ),
+      DimensionCard.large => _getLargeFluidCell(
+          SendLargeCard(
+            extendIcon: true,
+            onCollapsePressed: _onCollapse,
+          ),
+        ),
+    };
+  }
 
   FluidCell _getMediumFluidCell(Widget child) {
     return FluidCell(
@@ -107,23 +112,20 @@ class _TransferTabChildState extends State<TransferTabChild> {
   }
 
   void _onExpandSendCard() {
-    setState(() {
-      widget.sendCard = DimensionCard.large;
-      widget.receiveCard = DimensionCard.small;
-    });
+    context.read<SendCardDimensionBloc>().add(
+          SendCardDimensionChanged(DimensionCard.large),
+        );
   }
 
   void _onExpandReceiveCard() {
-    setState(() {
-      widget.sendCard = DimensionCard.small;
-      widget.receiveCard = DimensionCard.large;
-    });
+    context.read<SendCardDimensionBloc>().add(
+          SendCardDimensionChanged(DimensionCard.small),
+        );
   }
 
   void _onCollapse() {
-    setState(() {
-      widget.sendCard = DimensionCard.medium;
-      widget.receiveCard = DimensionCard.medium;
-    });
+    context.read<SendCardDimensionBloc>().add(
+          SendCardDimensionChanged(DimensionCard.medium),
+        );
   }
 }
