@@ -1,4 +1,6 @@
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/pillars/pillar_rewards_history/exceptions/exceptions.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/pillars/pillars_deploy/exceptions/exceptions.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/cubits/timer_cubit.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/exceptions/exceptions.dart';
 
@@ -31,6 +33,10 @@ class SyriusException implements Exception {
           return NoDelegationStatsException.fromJson(json);
         case 'NotEnoughMomentumsException':
           return NotEnoughMomentumsException.fromJson(json);
+        case 'NoRewardsLastWeekException':
+          return NoRewardsLastWeekException.fromJson(json);
+        case 'PillarNameAlreadyExistsException':
+          return PillarNameAlreadyExistsException.fromJson(json);
         default:
           throw UnsupportedError('Unknown subclass: $type');
       }
