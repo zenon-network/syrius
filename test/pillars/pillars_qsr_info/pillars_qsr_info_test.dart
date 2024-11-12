@@ -2,8 +2,8 @@ import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:zenon_syrius_wallet_flutter/model/model.dart';
-import 'package:zenon_syrius_wallet_flutter/rearchitecture/pillars/pillars_qsr_info/cubit/pillars_qsr_info_cubit.dart';
-import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/exceptions/cubit_failure_exception.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/pillars/pillars.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/modular_widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 

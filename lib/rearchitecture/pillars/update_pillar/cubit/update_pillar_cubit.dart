@@ -1,7 +1,7 @@
 import 'package:equatable/equatable.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
 import 'package:json_annotation/json_annotation.dart';
-import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/dependency_injection_helpers/account_block_utils_helper.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 part 'update_pillar_cubit.g.dart';

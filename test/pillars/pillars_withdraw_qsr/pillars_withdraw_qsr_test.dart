@@ -1,10 +1,8 @@
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
-import 'package:zenon_syrius_wallet_flutter/rearchitecture/pillars/pillars_withdraw_qsr/cubit/pillars_withdraw_qsr_cubit.dart';
-import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/dependency_injection_helpers/account_block_utils_helper.dart';
-import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/dependency_injection_helpers/zenon_address_utils_helper.dart';
-import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/exceptions/cubit_failure_exception.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/pillars/pillars.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 import '../../helpers/hydrated_bloc.dart';
