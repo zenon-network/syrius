@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:layout/layout.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/send/send.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/send/view/send_card.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 
 enum CardDimension { small, medium, large }
@@ -18,26 +19,47 @@ class TransferTabChild extends StatefulWidget {
 class _TransferTabChildState extends State<TransferTabChild> {
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<SendCardDimensionBloc, SendCardDimensionState>(
-      builder: (_, SendCardDimensionState state) {
-        return StandardFluidLayout(
-          children: <FluidCell>[
-            _getSendCard(sendCardDimension: state.cardDimension),
-            _getReceiveCard(sendCardDimension: state.cardDimension),
-            const FluidCell(
-              child: LatestTransactions(),
-              width: kStaggeredNumOfColumns ~/ 2,
-              height: kStaggeredNumOfColumns / 3,
-            ),
-            const FluidCell(
-              child: PendingTransactions(),
-              width: kStaggeredNumOfColumns ~/ 2,
-              height: kStaggeredNumOfColumns / 3,
-            ),
-          ],
-        );
-      },
+    final SendCardDimensionState state =
+        context.watch<SendCardDimensionBloc>().state;
+
+    final CardDimension cardDimension = state.cardDimension;
+
+    final Widget sendCard = SendCard(cardDimension: cardDimension);
+
+    final FluidCell sendFluidCell = _buildFluidCell(
+      cardDimension: cardDimension,
+      child: sendCard,
+      context: context,
     );
+
+    return StandardFluidLayout(
+      children: <FluidCell>[
+        sendFluidCell,
+        _getReceiveCard(sendCardDimension: cardDimension),
+        const FluidCell(
+          child: LatestTransactions(),
+          width: kStaggeredNumOfColumns ~/ 2,
+          height: kStaggeredNumOfColumns / 3,
+        ),
+        const FluidCell(
+          child: PendingTransactions(),
+          width: kStaggeredNumOfColumns ~/ 2,
+          height: kStaggeredNumOfColumns / 3,
+        ),
+      ],
+    );
+  }
+
+  FluidCell _buildFluidCell({
+    required CardDimension cardDimension,
+    required Widget child,
+    required BuildContext context,
+  }) {
+    return switch (cardDimension) {
+      CardDimension.small => FluidCell.small(child: child, context: context),
+      CardDimension.medium => FluidCell.medium(child: child, context: context),
+      CardDimension.large => FluidCell.large(child: child, context: context),
+    };
   }
 
   FluidCell _getReceiveCard({required CardDimension sendCardDimension}) {
@@ -52,21 +74,6 @@ class _TransferTabChildState extends State<TransferTabChild> {
           ReceiveLargeCard(
             extendIcon: true,
             onCollapseClicked: _onCollapse,
-          ),
-        ),
-    };
-  }
-
-  FluidCell _getSendCard({required CardDimension sendCardDimension}) {
-    return switch (sendCardDimension) {
-      CardDimension.small => _getSmallFluidCell(SendSmallCard(_onCollapse)),
-      CardDimension.medium => _getMediumFluidCell(
-          SendMediumCard(onExpandClicked: _onExpandSendCard),
-        ),
-      CardDimension.large => _getLargeFluidCell(
-          SendLargeCard(
-            extendIcon: true,
-            onCollapsePressed: _onCollapse,
           ),
         ),
     };
@@ -109,12 +116,6 @@ class _TransferTabChildState extends State<TransferTabChild> {
       ),
       child: child,
     );
-  }
-
-  void _onExpandSendCard() {
-    context.read<SendCardDimensionBloc>().add(
-          SendCardDimensionChanged(CardDimension.large),
-        );
   }
 
   void _onExpandReceiveCard() {

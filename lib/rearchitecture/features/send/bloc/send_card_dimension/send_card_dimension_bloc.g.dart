@@ -9,17 +9,17 @@ part of 'send_card_dimension_bloc.dart';
 SendCardDimensionState _$SendCardDimensionStateFromJson(
         Map<String, dynamic> json) =>
     SendCardDimensionState(
-      cardDimension: $enumDecode(_$DimensionCardEnumMap, json['cardDimension']),
+      cardDimension: $enumDecode(_$CardDimensionEnumMap, json['cardDimension']),
     );
 
 Map<String, dynamic> _$SendCardDimensionStateToJson(
         SendCardDimensionState instance) =>
     <String, dynamic>{
-      'cardDimension': _$DimensionCardEnumMap[instance.cardDimension]!,
+      'cardDimension': _$CardDimensionEnumMap[instance.cardDimension]!,
     };
 
-const _$DimensionCardEnumMap = {
-  DimensionCard.small: 'small',
-  DimensionCard.medium: 'medium',
-  DimensionCard.large: 'large',
+const _$CardDimensionEnumMap = {
+  CardDimension.small: 'small',
+  CardDimension.medium: 'medium',
+  CardDimension.large: 'large',
 };
