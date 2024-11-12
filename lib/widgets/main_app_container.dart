@@ -122,7 +122,7 @@ class _MainAppContainerState extends State<MainAppContainer>
           create: (_) => MultipleBalanceBloc(
             zenon: zenon!,
             addressList: kDefaultAddressList.map((String? e) => e!).toList(),
-          ),
+          )..add(MultipleBalanceFetch()),
         ),
       ],
       child: Consumer<TextScalingNotifier>(

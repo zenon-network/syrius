@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:layout/layout.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/send/send.dart';
-import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/send/view/send_card.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 
 enum CardDimension { small, medium, large }

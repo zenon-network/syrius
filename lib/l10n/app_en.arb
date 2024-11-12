@@ -18,6 +18,7 @@
   "latestTransactionsTransferDescription": "This card displays the latest transactions (including ZTS tokens) involving your wallet addresses",
   "manageReceivingFunds": "Manage receiving funds",
   "manageSendingFunds": "Manage sending funds",
+  "max": "Max",
   "minAgo": "min ago",
   "password": "Password",
   "pending": "Pending",

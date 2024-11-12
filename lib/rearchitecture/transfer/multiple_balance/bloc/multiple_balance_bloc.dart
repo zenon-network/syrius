@@ -3,6 +3,7 @@ import 'package:equatable/equatable.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/refresh_bloc_mixin.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/exceptions/exceptions.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 part 'multiple_balance_bloc.g.dart';
@@ -55,11 +56,12 @@ class MultipleBalanceBloc
           data: addressBalanceMap,
         ),
       );
-    } catch (error) {
+    } catch (error, stackTrace) {
+      addError(error, stackTrace);
       emit(
         state.copyWith(
           status: MultipleBalanceStatus.failure,
-          error: error,
+          error: SyriusException('Something went wrong'),
         ),
       );
     }

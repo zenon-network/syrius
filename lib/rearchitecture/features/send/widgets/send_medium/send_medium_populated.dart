@@ -3,11 +3,10 @@ import 'package:stacked/stacked.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/model/model.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/constants/app_sizes.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/extensions/buildcontext_extension.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/address_utils.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/clipboard_utils.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/extensions.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/format_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
@@ -17,19 +16,30 @@ import 'package:zenon_syrius_wallet_flutter/utils/zts_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
-class SendMediumCard extends StatefulWidget {
-
-  const SendMediumCard({
+/// A widget that helps the user send a transaction
+///
+/// It has two [TextField]s, one for the recipient - a valid Zenon address -
+/// and one for the amount to be send
+///
+/// Through the [CoinDropdown], the user can select the coin or token to be sent
+class SendMediumPopulated extends StatefulWidget {
+  ///
+  const SendMediumPopulated({
+    required this.balances,
     required this.onExpandClicked,
     super.key,
   });
+
+  /// Callback called when the user wants to expand the widget
   final VoidCallback onExpandClicked;
+  /// A map with wallet addresses as keys, and account info objects as values
+  final Map<String, AccountInfo> balances;
 
   @override
-  State<SendMediumCard> createState() => _SendMediumCardState();
+  State<SendMediumPopulated> createState() => _SendMediumPopulatedState();
 }
 
-class _SendMediumCardState extends State<SendMediumCard> {
+class _SendMediumPopulatedState extends State<SendMediumPopulated> {
   TextEditingController _recipientController = TextEditingController();
   TextEditingController _amountController = TextEditingController();
 
@@ -53,122 +63,100 @@ class _SendMediumCardState extends State<SendMediumCard> {
 
   @override
   Widget build(BuildContext context) {
-    return CardScaffold(
-      title: context.l10n.send,
-      titleFontSize: Theme.of(context).textTheme.headlineSmall!.fontSize,
-      description: context.l10n.manageSendingFunds,
-      childBuilder: _getBalanceStreamBuilder,
-    );
-  }
+    if (_tokensWithBalance.length == kDualCoin.length) {
+      _addTokensWithBalance(widget.balances[kSelectedAddress!]!);
+    }
 
-  Widget _getBalanceStreamBuilder() {
-    return StreamBuilder<Map<String, AccountInfo>?>(
-      stream: sl.get<TransferWidgetsBalanceBloc>().stream,
-      builder: (_, AsyncSnapshot<Map<String, AccountInfo>?> snapshot) {
-        if (snapshot.hasError) {
-          return SyriusErrorWidget(snapshot.error!);
-        }
-        if (snapshot.connectionState == ConnectionState.active) {
-          if (snapshot.hasData) {
-            if (_tokensWithBalance.length == kDualCoin.length) {
-              _addTokensWithBalance(snapshot.data![kSelectedAddress!]!);
-            }
-            return _getBody(
-              context,
-              snapshot.data![kSelectedAddress!]!,
-            );
-          }
-          return const SyriusLoadingWidget();
-        }
-        return const SyriusLoadingWidget();
-      },
-    );
-  }
+    final AccountInfo accountInfo = widget.balances[kSelectedAddress!]!;
 
-  Widget _getBody(BuildContext context, AccountInfo accountInfo) {
+    final String? recipientErrorText = _recipientController.text.isNotEmpty
+        ? InputValidators.checkAddress(_recipientController.text)
+        : null;
+
+    final String? amountErrorText = _amountController.text.isNotEmpty
+        ? InputValidators.correctValue(
+            _amountController.text,
+            accountInfo.getBalance(
+              _selectedToken.tokenStandard,
+            ),
+            _selectedToken.decimals,
+            BigInt.zero,
+          )
+        : null;
+
+    final bool thereAreInputErrors =
+        recipientErrorText != null && amountErrorText != null;
+
     return Container(
-      margin: const EdgeInsets.only(
-        left: 20,
-        top: 20,
-      ),
+      margin: const EdgeInsets.all(16),
       child: ListView(
         shrinkWrap: true,
         children: <Widget>[
-          Container(
-            margin: const EdgeInsets.only(right: 20),
-            child: Form(
-              key: _recipientKey,
-              autovalidateMode: AutovalidateMode.onUserInteraction,
-              child: InputField(
-                onChanged: (String value) {
-                  setState(() {});
-                },
-                thisNode: _recipientFocusNode,
-                validator: InputValidators.checkAddress,
-                controller: _recipientController,
-                suffixIcon: RawMaterialButton(
-                  shape: const CircleBorder(),
+          ListenableBuilder(
+            listenable: _recipientController,
+            builder: (_, __) => TextField(
+              decoration: InputDecoration(
+                errorText: recipientErrorText,
+                hintText: context.l10n.recipientAddress,
+                suffixIcon: IconButton(
                   onPressed: () {
                     ClipboardUtils.pasteToClipboard(context, (String value) {
                       _recipientController.text = value;
-                      setState(() {});
                     });
                   },
-                  child: const Icon(
+                  icon: const Icon(
                     Icons.content_paste,
-                    color: AppColors.darkHintTextColor,
-                    size: 15,
                   ),
                 ),
-                suffixIconConstraints: const BoxConstraints(
-                  maxWidth: 45,
-                  maxHeight: 20,
-                ),
-                hintText: context.l10n.recipientAddress,
               ),
+              focusNode: _recipientFocusNode,
+              controller: _recipientController,
             ),
           ),
-          kVerticalSpacing,
-          Container(
-            margin: const EdgeInsets.only(right: 20),
-            child: Form(
-              key: _amountKey,
-              autovalidateMode: AutovalidateMode.onUserInteraction,
-              child: InputField(
-                onChanged: (String value) {
-                  setState(() {});
-                },
+          kVerticalGap16,
+          ListenableBuilder(
+            listenable: _amountController,
+            builder: (_, __) {
+              return TextField(
+                controller: _amountController,
+                decoration: InputDecoration(
+                  errorText: amountErrorText,
+                  hintText: context.l10n.amount,
+                  suffixIcon: Padding(
+                    padding: const EdgeInsetsDirectional.only(end: 8),
+                    child: _getAmountSuffix(accountInfo),
+                  ),
+                ),
                 inputFormatters: FormatUtils.getAmountTextInputFormatters(
                   _amountController.text,
                 ),
-                validator: (String? value) => InputValidators.correctValue(
-                  value,
-                  accountInfo.getBalance(
-                    _selectedToken.tokenStandard,
+              );
+            },
+          ),
+          kVerticalGap16,
+          SizedBox(
+            height: kMinInteractiveDimension,
+            child: Stack(
+              alignment: Alignment.center,
+              children: <Widget>[
+                Positioned(
+                  right: 0,
+                  child: TransferToggleCardSizeButton(
+                    onPressed: widget.onExpandClicked,
+                    iconData: Icons.navigate_next,
                   ),
-                  _selectedToken.decimals,
-                  BigInt.zero,
                 ),
-                controller: _amountController,
-                suffixIcon: _getAmountSuffix(accountInfo),
-                hintText: context.l10n.amount,
-              ),
+                ListenableBuilder(
+                  listenable: Listenable.merge(<Listenable>[
+                    _amountController,
+                    _recipientController,
+                  ]),
+                  builder: (_, __) {
+                    return _getSendPaymentViewModel(accountInfo);
+                  },
+                ),
+              ],
             ),
-          ),
-          kVerticalSpacing,
-          Center(
-            child: Container(
-              child: _getSendPaymentViewModel(accountInfo),
-            ),
-          ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: <Widget>[
-              TransferToggleCardSizeButton(
-                onPressed: widget.onExpandClicked,
-                iconData: Icons.navigate_next,
-              ),
-            ],
           ),
         ],
       ),
@@ -202,7 +190,6 @@ class _SendMediumCardState extends State<SendMediumCard> {
 
   Widget _getAmountSuffix(AccountInfo accountInfo) {
     return Row(
-      mainAxisAlignment: MainAxisAlignment.end,
       mainAxisSize: MainAxisSize.min,
       children: <Widget>[
         _getCoinDropdown(),
@@ -212,9 +199,6 @@ class _SendMediumCardState extends State<SendMediumCard> {
         AmountSuffixMaxWidget(
           onPressed: () => _onMaxPressed(accountInfo),
           context: context,
-        ),
-        const SizedBox(
-          width: 15,
         ),
       ],
     );
@@ -293,10 +277,12 @@ class _SendMediumCardState extends State<SendMediumCard> {
   Future<void> _sendConfirmationNotification() async {
     await sl.get<NotificationsBloc>().addNotification(
           WalletNotification(
-            title: '${context.l10n.send} ${_amountController.text} ${_selectedToken.symbol} '
+            title:
+                '${context.l10n.send} ${_amountController.text} ${_selectedToken.symbol} '
                 '${context.l10n.to} ${ZenonAddressUtils.getLabel(_recipientController.text)}',
             timestamp: DateTime.now().millisecondsSinceEpoch,
-            details: '${context.l10n.sent} ${_amountController.text} ${_selectedToken.symbol} '
+            details:
+                '${context.l10n.sent} ${_amountController.text} ${_selectedToken.symbol} '
                 '${context.l10n.from} '
                 '${ZenonAddressUtils.getLabel(kSelectedAddress!)} '
                 '${context.l10n.to} '
@@ -313,7 +299,8 @@ class _SendMediumCardState extends State<SendMediumCard> {
       BigInt.zero;
 
   void _addTokensWithBalance(AccountInfo accountInfo) {
-    for (final BalanceInfoListItem balanceInfo in accountInfo.balanceInfoList!) {
+    for (final BalanceInfoListItem balanceInfo
+        in accountInfo.balanceInfoList!) {
       if (balanceInfo.balance! > BigInt.zero &&
           !_tokensWithBalance.contains(balanceInfo.token)) {
         _tokensWithBalance.add(balanceInfo.token);
