@@ -19,8 +19,7 @@ import 'package:zenon_syrius_wallet_flutter/handlers/htlc_swaps_handler.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/model/model.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
-import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/send/bloc/bloc.dart'
-    hide SendPaymentBloc;
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/send/bloc/bloc.dart' as send;
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/transfer/multiple_balance/bloc/multiple_balance_bloc.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/clipboard_utils.dart';
@@ -115,8 +114,11 @@ class _MainAppContainerState extends State<MainAppContainer>
   Widget build(BuildContext context) {
     return MultiBlocProvider(
       providers: [
-        BlocProvider<SendCardDimensionBloc>(
-          create: (_) => SendCardDimensionBloc(),
+        BlocProvider<send.SendCardDimensionBloc>(
+          create: (_) => send.SendCardDimensionBloc(),
+        ),
+        BlocProvider<send.SendPaymentBloc>(
+          create: (_) => send.SendPaymentBloc(),
         ),
         BlocProvider<MultipleBalanceBloc>(
           create: (_) => MultipleBalanceBloc(

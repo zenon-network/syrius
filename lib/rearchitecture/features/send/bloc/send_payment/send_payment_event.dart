@@ -4,9 +4,9 @@ part of 'send_payment_bloc.dart';
 sealed class SendPaymentEvent extends Equatable {}
 
 /// Event to initiate sending a transfer.
-class SendTransfer extends SendPaymentEvent {
+class SendPaymentTransfer extends SendPaymentEvent {
   /// Creates a `SendTransfer` event.
-  SendTransfer({
+  SendPaymentTransfer({
     required this.fromAddress,
     required this.toAddress,
     required this.amount,

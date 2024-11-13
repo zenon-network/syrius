@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:stacked/stacked.dart';
-import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart'
+    hide SendPaymentBloc;
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/model/model.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/send/bloc/send_payment/send_payment_bloc.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/constants/app_sizes.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/extensions/buildcontext_extension.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/address_utils.dart';
@@ -32,6 +34,7 @@ class SendMediumPopulated extends StatefulWidget {
 
   /// Callback called when the user wants to expand the widget
   final VoidCallback onExpandClicked;
+
   /// A map with wallet addresses as keys, and account info objects as values
   final Map<String, AccountInfo> balances;
 
@@ -40,11 +43,8 @@ class SendMediumPopulated extends StatefulWidget {
 }
 
 class _SendMediumPopulatedState extends State<SendMediumPopulated> {
-  TextEditingController _recipientController = TextEditingController();
-  TextEditingController _amountController = TextEditingController();
-
-  GlobalKey<FormState> _recipientKey = GlobalKey();
-  GlobalKey<FormState> _amountKey = GlobalKey();
+  final TextEditingController _recipientController = TextEditingController();
+  final TextEditingController _amountController = TextEditingController();
 
   Token _selectedToken = kDualCoin.first;
 
@@ -57,7 +57,6 @@ class _SendMediumPopulatedState extends State<SendMediumPopulated> {
   @override
   void initState() {
     super.initState();
-    sl.get<TransferWidgetsBalanceBloc>().getBalanceForAllAddresses();
     _tokensWithBalance.addAll(kDualCoin);
   }
 
@@ -69,54 +68,59 @@ class _SendMediumPopulatedState extends State<SendMediumPopulated> {
 
     final AccountInfo accountInfo = widget.balances[kSelectedAddress!]!;
 
-    final String? recipientErrorText = _recipientController.text.isNotEmpty
+    String? recipientErrorText = _recipientController.text.isNotEmpty
         ? InputValidators.checkAddress(_recipientController.text)
         : null;
 
-    final String? amountErrorText = _amountController.text.isNotEmpty
-        ? InputValidators.correctValue(
-            _amountController.text,
-            accountInfo.getBalance(
-              _selectedToken.tokenStandard,
-            ),
-            _selectedToken.decimals,
-            BigInt.zero,
-          )
-        : null;
-
-    final bool thereAreInputErrors =
-        recipientErrorText != null && amountErrorText != null;
+    String? amountErrorText;
 
     return Container(
       margin: const EdgeInsets.all(16),
       child: ListView(
         shrinkWrap: true,
         children: <Widget>[
-          ListenableBuilder(
-            listenable: _recipientController,
-            builder: (_, __) => TextField(
-              decoration: InputDecoration(
-                errorText: recipientErrorText,
-                hintText: context.l10n.recipientAddress,
-                suffixIcon: IconButton(
-                  onPressed: () {
-                    ClipboardUtils.pasteToClipboard(context, (String value) {
-                      _recipientController.text = value;
-                    });
-                  },
-                  icon: const Icon(
-                    Icons.content_paste,
+          ValueListenableBuilder<TextEditingValue>(
+            valueListenable: _recipientController,
+            builder: (_, TextEditingValue recipient, __) {
+              recipientErrorText = _recipientController.text.isNotEmpty
+                  ? InputValidators.checkAddress(_recipientController.text)
+                  : null;
+
+              return TextField(
+                decoration: InputDecoration(
+                  errorText: recipientErrorText,
+                  hintText: context.l10n.recipientAddress,
+                  suffixIcon: IconButton(
+                    onPressed: () {
+                      ClipboardUtils.pasteToClipboard(context, (String value) {
+                        _recipientController.text = value;
+                      });
+                    },
+                    icon: const Icon(
+                      Icons.content_paste,
+                    ),
                   ),
                 ),
-              ),
-              focusNode: _recipientFocusNode,
-              controller: _recipientController,
-            ),
+                focusNode: _recipientFocusNode,
+                controller: _recipientController,
+              );
+            },
           ),
           kVerticalGap16,
-          ListenableBuilder(
-            listenable: _amountController,
-            builder: (_, __) {
+          ValueListenableBuilder<TextEditingValue>(
+            valueListenable: _amountController,
+            builder: (_, TextEditingValue amount, __) {
+              amountErrorText = _amountController.text.isNotEmpty
+                  ? InputValidators.correctValue(
+                      _amountController.text,
+                      accountInfo.getBalance(
+                        _selectedToken.tokenStandard,
+                      ),
+                      _selectedToken.decimals,
+                      BigInt.zero,
+                    )
+                  : null;
+
               return TextField(
                 controller: _amountController,
                 decoration: InputDecoration(
@@ -152,7 +156,16 @@ class _SendMediumPopulatedState extends State<SendMediumPopulated> {
                     _recipientController,
                   ]),
                   builder: (_, __) {
-                    return _getSendPaymentViewModel(accountInfo);
+                    final bool isInputValid =
+                        recipientErrorText == null &&
+                            amountErrorText == null &&
+                            _amountController.text.isNotEmpty &&
+                            _recipientController.text.isNotEmpty;
+
+                    return _getSendPaymentViewModel(
+                      accountInfo: accountInfo,
+                      isInputValid: isInputValid,
+                    );
                   },
                 ),
               ],
@@ -163,29 +176,27 @@ class _SendMediumPopulatedState extends State<SendMediumPopulated> {
     );
   }
 
-  void _onSendPaymentPressed(SendPaymentBloc model) {
-    if (_recipientKey.currentState!.validate() &&
-        _amountKey.currentState!.validate()) {
-      showDialogWithNoAndYesOptions(
-        context: context,
-        isBarrierDismissible: true,
-        title: context.l10n.send,
-        description: '${context.l10n.areYouSureTranfer} '
-            '${_amountController.text} ${_selectedToken.symbol} ${context.l10n.to} '
-            '${ZenonAddressUtils.getLabel(_recipientController.text)} ?',
-        onYesButtonPressed: () => _sendPayment(model),
-      );
-    }
+  void _onSendPaymentPressed() {
+    showDialogWithNoAndYesOptions(
+      context: context,
+      isBarrierDismissible: true,
+      title: context.l10n.send,
+      description: '${context.l10n.areYouSureTranfer} '
+          '${_amountController.text} ${_selectedToken.symbol} ${context.l10n.to} '
+          '${ZenonAddressUtils.getLabel(_recipientController.text)} ?',
+      onYesButtonPressed: _sendPayment,
+    );
   }
 
-  void _sendPayment(SendPaymentBloc model) {
+  void _sendPayment() {
     _sendPaymentButtonKey.currentState?.animateForward();
-    model.sendTransfer(
-      fromAddress: kSelectedAddress,
-      toAddress: _recipientController.text,
-      amount: _amountController.text.extractDecimals(_selectedToken.decimals),
-      token: _selectedToken,
-    );
+    context.read<SendPaymentBloc>().add(SendPaymentTransfer(
+          fromAddress: kSelectedAddress!,
+          toAddress: _recipientController.text,
+          amount:
+              _amountController.text.extractDecimals(_selectedToken.decimals),
+          token: _selectedToken,
+        ));
   }
 
   Widget _getAmountSuffix(AccountInfo accountInfo) {
@@ -233,36 +244,28 @@ class _SendMediumPopulatedState extends State<SendMediumPopulated> {
     }
   }
 
-  Widget _getSendPaymentViewModel(AccountInfo? accountInfo) {
-    return ViewModelBuilder<SendPaymentBloc>.reactive(
-      fireOnViewModelReadyOnce: true,
-      onViewModelReady: (SendPaymentBloc model) {
-        model.stream.listen(
-          (AccountBlockTemplate? event) async {
-            if (event is AccountBlockTemplate) {
-              await _sendConfirmationNotification();
-              setState(() {
-                _sendPaymentButtonKey.currentState?.animateReverse();
-                _amountController = TextEditingController();
-                _recipientController = TextEditingController();
-                _amountKey = GlobalKey();
-                _recipientKey = GlobalKey();
-              });
-            }
-          },
-          onError: (error) async {
-            _sendPaymentButtonKey.currentState?.animateReverse();
-            await _sendErrorNotification(error);
-          },
-        );
+  Widget _getSendPaymentViewModel({
+    required AccountInfo accountInfo,
+    required bool isInputValid,
+  }) {
+    return BlocListener<SendPaymentBloc, SendPaymentState>(
+      listener: (_, SendPaymentState state) {
+        if (state.status == SendPaymentStatus.success) {
+          _sendConfirmationNotification();
+          _sendPaymentButtonKey.currentState?.animateReverse();
+          _amountController.clear();
+          _recipientController.clear();
+        } else if (state.status == SendPaymentStatus.failure) {
+          _sendPaymentButtonKey.currentState?.animateReverse();
+          _sendErrorNotification(state.error);
+        }
       },
-      builder: (_, SendPaymentBloc model, __) => SendPaymentButton(
-        onPressed: _hasBalance(accountInfo!) && _isInputValid(accountInfo)
-            ? () => _onSendPaymentPressed(model)
+      child: SendPaymentButton(
+        onPressed: _hasBalance(accountInfo) && isInputValid
+            ? _onSendPaymentPressed
             : null,
         key: _sendPaymentButtonKey,
       ),
-      viewModelBuilder: SendPaymentBloc.new,
     );
   }
 
@@ -307,19 +310,6 @@ class _SendMediumPopulatedState extends State<SendMediumPopulated> {
       }
     }
   }
-
-  bool _isInputValid(AccountInfo accountInfo) =>
-      InputValidators.checkAddress(_recipientController.text) == null &&
-      InputValidators.correctValue(
-            _amountController.text,
-            accountInfo.getBalance(
-              _selectedToken.tokenStandard,
-            ),
-            _selectedToken.decimals,
-            BigInt.one,
-            canBeEqualToMin: true,
-          ) ==
-          null;
 
   @override
   void dispose() {
