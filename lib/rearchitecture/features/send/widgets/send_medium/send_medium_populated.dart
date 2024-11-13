@@ -4,7 +4,7 @@ import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart'
     hide SendPaymentBloc;
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/model/model.dart';
-import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/send/bloc/send_payment/send_payment_bloc.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/send/bloc/bloc.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/constants/app_sizes.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/extensions/buildcontext_extension.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/address_utils.dart';
@@ -190,7 +190,7 @@ class _SendMediumPopulatedState extends State<SendMediumPopulated> {
 
   void _sendPayment() {
     _sendPaymentButtonKey.currentState?.animateForward();
-    context.read<SendPaymentBloc>().add(SendPaymentTransfer(
+    context.read<SendTransactionBloc>().add(SendTransactionInitiate(
           fromAddress: kSelectedAddress!,
           toAddress: _recipientController.text,
           amount:
@@ -248,8 +248,8 @@ class _SendMediumPopulatedState extends State<SendMediumPopulated> {
     required AccountInfo accountInfo,
     required bool isInputValid,
   }) {
-    return BlocListener<SendPaymentBloc, SendPaymentState>(
-      listener: (_, SendPaymentState state) {
+    return BlocListener<SendTransactionBloc, SendTransactionState>(
+      listener: (_, SendTransactionState state) {
         if (state.status == SendPaymentStatus.success) {
           _sendConfirmationNotification();
           _sendPaymentButtonKey.currentState?.animateReverse();

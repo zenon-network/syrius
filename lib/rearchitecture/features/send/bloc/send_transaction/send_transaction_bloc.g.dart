@@ -1,13 +1,14 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'send_payment_bloc.dart';
+part of 'send_transaction_bloc.dart';
 
 // **************************************************************************
 // JsonSerializableGenerator
 // **************************************************************************
 
-SendPaymentState _$SendPaymentStateFromJson(Map<String, dynamic> json) =>
-    SendPaymentState(
+SendTransactionState _$SendTransactionStateFromJson(
+        Map<String, dynamic> json) =>
+    SendTransactionState(
       status: $enumDecodeNullable(_$SendPaymentStatusEnumMap, json['status']) ??
           SendPaymentStatus.initial,
       data: json['data'] == null
@@ -16,7 +17,8 @@ SendPaymentState _$SendPaymentStateFromJson(Map<String, dynamic> json) =>
       error: json['error'],
     );
 
-Map<String, dynamic> _$SendPaymentStateToJson(SendPaymentState instance) =>
+Map<String, dynamic> _$SendTransactionStateToJson(
+        SendTransactionState instance) =>
     <String, dynamic>{
       'status': _$SendPaymentStatusEnumMap[instance.status]!,
       'data': instance.data?.toJson(),

@@ -1,12 +1,12 @@
-part of 'send_payment_bloc.dart';
+part of 'send_transaction_bloc.dart';
 
 /// The base class for events in `SendPaymentBloc`.
-sealed class SendPaymentEvent extends Equatable {}
+sealed class SendTransactionEvent extends Equatable {}
 
 /// Event to initiate sending a transfer.
-class SendPaymentTransfer extends SendPaymentEvent {
-  /// Creates a `SendTransfer` event.
-  SendPaymentTransfer({
+class SendTransactionInitiate extends SendTransactionEvent {
+  /// Creates a [SendTransactionInitiate] event.
+  SendTransactionInitiate({
     required this.fromAddress,
     required this.toAddress,
     required this.amount,
@@ -35,9 +35,9 @@ class SendPaymentTransfer extends SendPaymentEvent {
 }
 
 /// Event to initiate sending a transfer using an existing account block.
-class SendTransferWithBlock extends SendPaymentEvent {
-  /// Creates a `SendTransferWithBlock` event.
-  SendTransferWithBlock({
+class SendTransferInitiateFromBlock extends SendTransactionEvent {
+  /// Creates a [SendTransferInitiateFromBlock] event.
+  SendTransferInitiateFromBlock({
     required this.block,
     required this.fromAddress,
   });

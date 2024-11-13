@@ -1,4 +1,4 @@
-part of 'send_payment_bloc.dart';
+part of 'send_transaction_bloc.dart';
 
 /// Represents the possible statuses of the send payment operation.
 enum SendPaymentStatus {
@@ -15,22 +15,22 @@ enum SendPaymentStatus {
   failure
 }
 
-/// Holds the state for [SendPaymentBloc], including status, data,
+/// Holds the state for [SendTransactionBloc], including status, data,
 /// and error information.
 @JsonSerializable(explicitToJson: true)
-class SendPaymentState extends Equatable {
-  /// Creates a new instance of [SendPaymentState].
+class SendTransactionState extends Equatable {
+  /// Creates a new instance of [SendTransactionState].
   ///
   /// The [status] defaults to [SendPaymentStatus.initial] if not specified.
-  const SendPaymentState({
+  const SendTransactionState({
     this.status = SendPaymentStatus.initial,
     this.data,
     this.error,
   });
 
   /// Creates a new instance from a JSON map.
-  factory SendPaymentState.fromJson(Map<String, dynamic> json) =>
-      _$SendPaymentStateFromJson(json);
+  factory SendTransactionState.fromJson(Map<String, dynamic> json) =>
+      _$SendTransactionStateFromJson(json);
 
   /// The current status of the send payment operation.
   final SendPaymentStatus status;
@@ -44,12 +44,12 @@ class SendPaymentState extends Equatable {
   final Object? error;
 
   /// {@macro state_copy_with}
-  SendPaymentState copyWith({
+  SendTransactionState copyWith({
     SendPaymentStatus? status,
     AccountBlockTemplate? data,
     Object? error,
   }) {
-    return SendPaymentState(
+    return SendTransactionState(
       status: status ?? this.status,
       data: data ?? this.data,
       error: error ?? this.error,
@@ -57,7 +57,7 @@ class SendPaymentState extends Equatable {
   }
 
   /// {@macro state_to_json}
-  Map<String, dynamic> toJson() => _$SendPaymentStateToJson(this);
+  Map<String, dynamic> toJson() => _$SendTransactionStateToJson(this);
 
   @override
   List<Object?> get props => <Object?>[status, data, error];
