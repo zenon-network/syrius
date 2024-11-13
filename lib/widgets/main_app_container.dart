@@ -114,9 +114,6 @@ class _MainAppContainerState extends State<MainAppContainer>
   Widget build(BuildContext context) {
     return MultiBlocProvider(
       providers: [
-        BlocProvider<SendCardDimensionBloc>(
-          create: (_) => SendCardDimensionBloc(),
-        ),
         BlocProvider<SendTransactionBloc>(
           create: (_) => SendTransactionBloc(),
         ),

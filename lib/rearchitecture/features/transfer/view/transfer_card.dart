@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_vector_icons/flutter_vector_icons.dart';
-import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/send/send.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
@@ -31,9 +29,6 @@ class _TransferCardState extends State<TransferCard> {
         children: <Widget>[
           IconButton(
             onPressed: () {
-              context.read<SendCardDimensionBloc>().add(
-                    SendCardDimensionChanged(CardDimension.large),
-                  );
               widget.changePage!(
                 Tabs.transfer,
               );
@@ -49,9 +44,6 @@ class _TransferCardState extends State<TransferCard> {
           ),
           IconButton(
             onPressed: () {
-              context.read<SendCardDimensionBloc>().add(
-                    SendCardDimensionChanged(CardDimension.small),
-                  );
               widget.changePage!(
                 Tabs.transfer,
               );

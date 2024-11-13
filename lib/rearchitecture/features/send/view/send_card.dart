@@ -1,41 +1,28 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/send/send.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/transfer/multiple_balance/bloc/multiple_balance_bloc.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 
-/// A widget that handles returning the correct sized widget, depending on the
-/// provided [cardDimension]
+/// A widget to be used along with `Receive` card.
 class SendCard extends StatelessWidget {
   /// Creates a new instance.
-  const SendCard({required this.cardDimension, super.key});
-  /// The dimension that the card should have
-  final CardDimension cardDimension;
+  const SendCard({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return switch (cardDimension) {
-      CardDimension.small => SendSmallCard(
-          () => _onCollapse(context: context),
-        ),
-      CardDimension.medium => SendMediumCard(
-          onExpandClicked: () => _onExpandSendCard(context: context),
-        ),
-      CardDimension.large => SendLargeCard(
-          extendIcon: true,
-          onCollapsePressed: () => _onCollapse(context: context),
-        ),
-    };
-  }
-
-  void _onCollapse({required BuildContext context}) {
-    context.read<SendCardDimensionBloc>().add(
-          SendCardDimensionChanged(CardDimension.medium),
-        );
-  }
-
-  void _onExpandSendCard({required BuildContext context}) {
-    context.read<SendCardDimensionBloc>().add(
-          SendCardDimensionChanged(CardDimension.large),
-        );
+    return NewCardScaffold(
+      data: CardType.send.getData(context: context),
+      body: BlocBuilder<MultipleBalanceBloc, MultipleBalanceState>(
+        builder: (_, MultipleBalanceState state) => switch (state.status) {
+          MultipleBalanceStatus.failure => SendMediumError(error: state.error!),
+          MultipleBalanceStatus.initial => const SendMediumEmpty(),
+          MultipleBalanceStatus.loading => const SendMediumLoading(),
+          MultipleBalanceStatus.success => SendLargeCard(
+            balances: state.data!,
+          ),
+        },
+      ),
+    );
   }
 }
