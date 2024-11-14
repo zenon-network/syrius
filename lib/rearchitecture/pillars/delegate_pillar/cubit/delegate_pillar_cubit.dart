@@ -5,19 +5,19 @@ import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
-part 'delegate_button_cubit.g.dart';
-part 'delegate_button_state.dart';
+part 'delegate_pillar_cubit.g.dart';
+part 'delegate_pillar_state.dart';
 
 /// A cubit responsible for handling delegation to a Pillar.
-class DelegateButtonCubit extends HydratedCubit<DelegateButtonState> {
-  /// Creates a new instance of [DelegateButtonCubit].
-  DelegateButtonCubit({
+class DelegatePillarCubit extends HydratedCubit<DelegatePillarState> {
+  /// Creates a new instance of [DelegatePillarCubit].
+  DelegatePillarCubit({
     required this.zenon,
     this.duration = kDelayAfterAccountBlockCreationCall,
     AccountBlockUtilsHelper? accountBlockUtilsHelper,
   })  : accountBlockUtilsHelper =
             accountBlockUtilsHelper ?? AccountBlockUtilsHelper(),
-        super(const DelegateButtonState());
+        super(const DelegatePillarState());
 
   /// The Zenon SDK instance used for network interactions.
   final Zenon zenon;
@@ -31,7 +31,7 @@ class DelegateButtonCubit extends HydratedCubit<DelegateButtonState> {
   /// Initiates delegation to a Pillar with the given [pillarName].
   Future<void> delegateToPillar(String pillarName) async {
     try {
-      emit(state.copyWith(status: DelegateButtonStatus.loading));
+      emit(state.copyWith(status: DelegatePillarStatus.loading));
 
       final AccountBlockTemplate transactionParams =
           zenon.embedded.pillar.delegate(pillarName);
@@ -47,26 +47,26 @@ class DelegateButtonCubit extends HydratedCubit<DelegateButtonState> {
 
       emit(
         state.copyWith(
-          status: DelegateButtonStatus.success,
+          status: DelegatePillarStatus.success,
           data: response,
         ),
       );
     } catch (e) {
       emit(
         state.copyWith(
-          status: DelegateButtonStatus.failure,
+          status: DelegatePillarStatus.failure,
           error: e,
         ),
       );
     }
   }
 
-  /// Deserializes the JSON map into a [DelegateButtonState].
+  /// Deserializes the JSON map into a [DelegatePillarState].
   @override
-  DelegateButtonState? fromJson(Map<String, dynamic> json) =>
-      DelegateButtonState.fromJson(json);
+  DelegatePillarState? fromJson(Map<String, dynamic> json) =>
+      DelegatePillarState.fromJson(json);
 
   /// Serializes the current state into a JSON map.
   @override
-  Map<String, dynamic>? toJson(DelegateButtonState state) => state.toJson();
+  Map<String, dynamic>? toJson(DelegatePillarState state) => state.toJson();
 }

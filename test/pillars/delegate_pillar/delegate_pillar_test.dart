@@ -24,11 +24,11 @@ void main() {
     registerFallbackValue(FakeAccountBlockTemplate());
   });
 
-  group('DelegateButtonCubit', () {
+  group('DelegatePillarCubit', () {
     late MockZenon mockZenon;
     late MockEmbedded mockEmbedded;
     late MockPillarApi mockPillarApi;
-    late DelegateButtonCubit delegateButtonCubit;
+    late DelegatePillarCubit delegatePillarCubit;
     late AccountBlockTemplate testAccBlockTemplate;
     late MockAccountBlockUtils mockAccountBlockUtils;
     late CubitFailureException exception;
@@ -55,42 +55,42 @@ void main() {
         ),
       ).thenAnswer((_) async => testAccBlockTemplate);
 
-      delegateButtonCubit = DelegateButtonCubit(
+      delegatePillarCubit = DelegatePillarCubit(
         zenon: mockZenon,
         accountBlockUtilsHelper: mockAccountBlockUtils,
       );
     });
 
     tearDown(() {
-      delegateButtonCubit.close();
+      delegatePillarCubit.close();
     });
 
     test('initial state is correct', () {
       expect(
-        delegateButtonCubit.state.status,
-        equals(DelegateButtonStatus.initial),
+        delegatePillarCubit.state.status,
+        equals(DelegatePillarStatus.initial),
       );
     });
 
-    group('DelegateButtonCubit fromJson/toJson', () {
+    group('DelegatePillarCubit fromJson/toJson', () {
       test('can (de)serialize initial state', () {
-        const DelegateButtonState initialState = DelegateButtonState();
+        const DelegatePillarState initialState = DelegatePillarState();
 
         final Map<String, dynamic> serialized = initialState.toJson();
-        final DelegateButtonState deserialized =
-            DelegateButtonState.fromJson(serialized);
+        final DelegatePillarState deserialized =
+            DelegatePillarState.fromJson(serialized);
 
         expect(deserialized, equals(initialState));
       });
 
       test('can (de)serialize loading state', () {
-        const DelegateButtonState loadingState = DelegateButtonState(
-          status: DelegateButtonStatus.loading,
+        const DelegatePillarState loadingState = DelegatePillarState(
+          status: DelegatePillarStatus.loading,
         );
 
         final Map<String, dynamic> serialized = loadingState.toJson();
-        final DelegateButtonState deserialized =
-            DelegateButtonState.fromJson(serialized);
+        final DelegatePillarState deserialized =
+            DelegatePillarState.fromJson(serialized);
 
         expect(deserialized, equals(loadingState));
       });
@@ -100,60 +100,60 @@ void main() {
             AccountBlockTemplate(
           blockType: 1,
         );
-        final DelegateButtonState successState = DelegateButtonState(
-          status: DelegateButtonStatus.success,
+        final DelegatePillarState successState = DelegatePillarState(
+          status: DelegatePillarStatus.success,
           data: testAccountBlockTemplate,
         );
 
         final Map<String, dynamic> serialized = successState.toJson();
-        final DelegateButtonState deserialized =
-            DelegateButtonState.fromJson(serialized);
+        final DelegatePillarState deserialized =
+            DelegatePillarState.fromJson(serialized);
 
-        expect(deserialized, isA<DelegateButtonState>());
-        expect(deserialized.status, equals(DelegateButtonStatus.success));
+        expect(deserialized, isA<DelegatePillarState>());
+        expect(deserialized.status, equals(DelegatePillarStatus.success));
         expect(deserialized.data, equals(testAccountBlockTemplate));
       });
 
       test('can (de)serialize failure state', () {
         final Exception testException = Exception('Test error');
-        final DelegateButtonState failureState = DelegateButtonState(
-          status: DelegateButtonStatus.failure,
+        final DelegatePillarState failureState = DelegatePillarState(
+          status: DelegatePillarStatus.failure,
           error: testException,
         );
 
         final Map<String, dynamic> serialized = failureState.toJson();
-        final DelegateButtonState deserialized =
-            DelegateButtonState.fromJson(serialized);
+        final DelegatePillarState deserialized =
+            DelegatePillarState.fromJson(serialized);
 
         expect(deserialized, equals(failureState));
       });
     });
 
     group('delegateToPillar', () {
-      blocTest<DelegateButtonCubit, DelegateButtonState>(
+      blocTest<DelegatePillarCubit, DelegatePillarState>(
         'emits [loading, success] when delegateToPillar succeeds',
-        build: () => delegateButtonCubit,
-        act: (DelegateButtonCubit cubit) => cubit.delegateToPillar('test'),
-        expect: () => <DelegateButtonState>[
-          const DelegateButtonState(status: DelegateButtonStatus.loading),
-          DelegateButtonState(
-            status: DelegateButtonStatus.success,
+        build: () => delegatePillarCubit,
+        act: (DelegatePillarCubit cubit) => cubit.delegateToPillar('test'),
+        expect: () => <DelegatePillarState>[
+          const DelegatePillarState(status: DelegatePillarStatus.loading),
+          DelegatePillarState(
+            status: DelegatePillarStatus.success,
             data: testAccBlockTemplate,
           ),
         ],
       );
 
-      blocTest<DelegateButtonCubit, DelegateButtonState>(
+      blocTest<DelegatePillarCubit, DelegatePillarState>(
         'emits [loading, failure] when createAccountBlock throws an exception',
         setUp: () {
           when(() => mockPillarApi.delegate(any())).thenThrow(exception);
         },
-        build: () => delegateButtonCubit,
-        act: (DelegateButtonCubit cubit) => cubit.delegateToPillar('test'),
-        expect: () => <DelegateButtonState>[
-          const DelegateButtonState(status: DelegateButtonStatus.loading),
-          DelegateButtonState(
-            status: DelegateButtonStatus.failure,
+        build: () => delegatePillarCubit,
+        act: (DelegatePillarCubit cubit) => cubit.delegateToPillar('test'),
+        expect: () => <DelegatePillarState>[
+          const DelegatePillarState(status: DelegatePillarStatus.loading),
+          DelegatePillarState(
+            status: DelegatePillarStatus.failure,
             error: exception,
           ),
         ],

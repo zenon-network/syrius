@@ -1,7 +1,7 @@
-part of 'delegate_button_cubit.dart';
+part of 'delegate_pillar_cubit.dart';
 
-/// Represents the possible statuses for the delegate button operation.
-enum DelegateButtonStatus {
+/// Represents the possible statuses for the delegate pillar operation.
+enum DelegatePillarStatus {
   /// The initial state before any action has been taken.
   initial,
 
@@ -15,25 +15,25 @@ enum DelegateButtonStatus {
   success,
 }
 
-/// Holds the state for [DelegateButtonCubit], including status, data,
+/// Holds the state for [DelegatePillarCubit], including status, data,
 /// and error information.
 @JsonSerializable(explicitToJson: true)
-class DelegateButtonState extends Equatable {
-  /// Creates a new instance of [DelegateButtonState].
+class DelegatePillarState extends Equatable {
+  /// Creates a new instance of [DelegatePillarState].
   ///
-  /// The [status] defaults to [DelegateButtonStatus.initial] if not specified.
-  const DelegateButtonState({
-    this.status = DelegateButtonStatus.initial,
+  /// The [status] defaults to [DelegatePillarStatus.initial] if not specified.
+  const DelegatePillarState({
+    this.status = DelegatePillarStatus.initial,
     this.data,
     this.error,
   });
 
   /// Creates a new instance from a JSON object.
-  factory DelegateButtonState.fromJson(Map<String, dynamic> json) =>
-      _$DelegateButtonStateFromJson(json);
+  factory DelegatePillarState.fromJson(Map<String, dynamic> json) =>
+      _$DelegatePillarStateFromJson(json);
 
-  /// The current status of the delegate button operation.
-  final DelegateButtonStatus status;
+  /// The current status of the delegate pillar operation.
+  final DelegatePillarStatus status;
 
   /// The response data from the delegate operation.
   ///
@@ -44,12 +44,12 @@ class DelegateButtonState extends Equatable {
   final Object? error;
 
   /// {@macro state_copy_with}
-  DelegateButtonState copyWith({
-    DelegateButtonStatus? status,
+  DelegatePillarState copyWith({
+    DelegatePillarStatus? status,
     AccountBlockTemplate? data,
     Object? error,
   }) {
-    return DelegateButtonState(
+    return DelegatePillarState(
       status: status ?? this.status,
       data: data ?? this.data,
       error: error ?? this.error,
@@ -57,8 +57,8 @@ class DelegateButtonState extends Equatable {
   }
 
   /// {@macro state_to_json}
-  Map<String, dynamic> toJson() => _$DelegateButtonStateToJson(this);
+  Map<String, dynamic> toJson() => _$DelegatePillarStateToJson(this);
 
   @override
-  List<Object?> get props => [status, data, error];
+  List<Object?> get props => <Object?>[status, data, error];
 }

@@ -1,4 +1,4 @@
-export 'delegate_button/delegate_button.dart';
+export 'delegate_pillar/delegate_pillar.dart';
 export 'delegation_info/delegation_info.dart';
 export 'disassemble_pillar/disassemble_pillar.dart';
 export 'get_pillar_by_owner/get_pillar_by_owner.dart';
