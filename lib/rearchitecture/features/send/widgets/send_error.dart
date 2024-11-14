@@ -3,9 +3,9 @@ import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/exceptions/exce
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/error_widget.dart';
 
 /// A widget that display an error message
-class SendMediumError extends StatelessWidget {
+class SendError extends StatelessWidget {
   /// Creates a new instance.
-  const SendMediumError({required this.error, super.key});
+  const SendError({required this.error, super.key});
   /// The object containing the error message
   final SyriusException error;
 

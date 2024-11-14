@@ -17,8 +17,8 @@ import 'package:zenon_syrius_wallet_flutter/utils/zts_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
-class SendLargeCard extends StatefulWidget {
-  const SendLargeCard({
+class SendPopulated extends StatefulWidget {
+  const SendPopulated({
     required this.balances,
     super.key,
   });
@@ -27,10 +27,10 @@ class SendLargeCard extends StatefulWidget {
   final Map<String, AccountInfo> balances;
 
   @override
-  State<SendLargeCard> createState() => _SendLargeCardState();
+  State<SendPopulated> createState() => _SendPopulatedState();
 }
 
-class _SendLargeCardState extends State<SendLargeCard> {
+class _SendPopulatedState extends State<SendPopulated> {
   final TextEditingController _recipientController = TextEditingController();
   final TextEditingController _amountController = TextEditingController();
 
@@ -261,8 +261,9 @@ class _SendLargeCardState extends State<SendLargeCard> {
           _sendErrorNotification(state.error);
         }
       },
-      child: SendPaymentButton(
+      child: SendButton(
         key: _sendPaymentButtonKey,
+        text: context.l10n.send,
         onPressed: _hasBalance(accountInfo) && isInputValid
             ? _onSendPaymentPressed
             : null,

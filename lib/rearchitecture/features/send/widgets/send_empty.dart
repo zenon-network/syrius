@@ -4,9 +4,9 @@ import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/reusable_wi
 
 /// A widget that display a error message - indicating that no data was yet
 /// loaded
-class SendMediumEmpty extends StatelessWidget {
+class SendEmpty extends StatelessWidget {
   /// Creates new instance.
-  const SendMediumEmpty({super.key});
+  const SendEmpty({super.key});
 
   @override
   Widget build(BuildContext context) {

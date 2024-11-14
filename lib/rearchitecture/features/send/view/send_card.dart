@@ -15,10 +15,10 @@ class SendCard extends StatelessWidget {
       data: CardType.send.getData(context: context),
       body: BlocBuilder<MultipleBalanceBloc, MultipleBalanceState>(
         builder: (_, MultipleBalanceState state) => switch (state.status) {
-          MultipleBalanceStatus.failure => SendMediumError(error: state.error!),
-          MultipleBalanceStatus.initial => const SendMediumEmpty(),
-          MultipleBalanceStatus.loading => const SendMediumLoading(),
-          MultipleBalanceStatus.success => SendLargeCard(
+          MultipleBalanceStatus.failure => SendError(error: state.error!),
+          MultipleBalanceStatus.initial => const SendEmpty(),
+          MultipleBalanceStatus.loading => const SendLoading(),
+          MultipleBalanceStatus.success => SendPopulated(
             balances: state.data!,
           ),
         },
