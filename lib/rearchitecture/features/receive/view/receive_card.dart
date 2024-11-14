@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
-import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/extensions/buildcontext_extension.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/extensions.dart';
@@ -12,28 +12,23 @@ import 'package:zenon_syrius_wallet_flutter/utils/zts_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
-class ReceiveLargeCard extends StatefulWidget {
-
-  const ReceiveLargeCard({
-    required this.onCollapseClicked, super.key,
-    this.extendIcon,
+class ReceiveCard extends StatefulWidget {
+  const ReceiveCard({
+    super.key,
   });
-  final bool? extendIcon;
-  final VoidCallback onCollapseClicked;
 
   @override
-  State<ReceiveLargeCard> createState() => _ReceiveLargeCardState();
+  State<ReceiveCard> createState() => _ReceiveCardState();
 }
 
-class _ReceiveLargeCardState extends State<ReceiveLargeCard> {
+class _ReceiveCardState extends State<ReceiveCard> {
   final TextEditingController _transferAddressController =
       TextEditingController();
   final TextEditingController _amountController = TextEditingController();
 
   final GlobalKey<FormState> _formKey = GlobalKey();
-  final GlobalKey<FormState> _amountKey = GlobalKey();
 
-  String? _selectedSelfAddress = kSelectedAddress;
+  String _selectedSelfAddress = kSelectedAddress!;
 
   Token _selectedToken = kDualCoin.first;
   final List<Token> _tokens = <Token>[];
@@ -88,8 +83,7 @@ class _ReceiveLargeCardState extends State<ReceiveLargeCard> {
       child: Form(
         key: _formKey,
         autovalidateMode: AutovalidateMode.onUserInteraction,
-        child: ListView(
-          shrinkWrap: true,
+        child: Column(
           children: <Widget>[
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -113,7 +107,6 @@ class _ReceiveLargeCardState extends State<ReceiveLargeCard> {
                       Row(
                         children: <Widget>[
                           Expanded(
-                            flex: 7,
                             child: _getDefaultAddressDropdown(),
                           ),
                           CopyToClipboardIcon(
@@ -122,47 +115,32 @@ class _ReceiveLargeCardState extends State<ReceiveLargeCard> {
                           ),
                         ],
                       ),
-                      kVerticalSpacing,
-                      Form(
-                        key: _amountKey,
-                        autovalidateMode: AutovalidateMode.onUserInteraction,
-                        child: InputField(
-                          validator: (String? value) => InputValidators.correctValue(
-                              value,
-                              kBigP255m1,
-                              _selectedToken.decimals,
-                              BigInt.zero,),
-                          onChanged: (String value) => setState(() {}),
-                          inputFormatters:
-                              FormatUtils.getAmountTextInputFormatters(
-                            _amountController.text,
-                          ),
-                          controller: _amountController,
-                          suffixIcon: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            mainAxisAlignment: MainAxisAlignment.end,
-                            children: <Widget>[
-                              _getCoinDropdown(),
-                              const SizedBox(
-                                width: 15,
-                              ),
-                            ],
-                          ),
-                          hintText: context.l10n.amount,
+                      kVerticalGap16,
+                      ZtsDropdown(
+                        availableTokens: _tokens,
+                        onChangeCallback: (Token token) => setState(() {
+                          _selectedToken = token;
+                        }),
+                        selectedToken: _selectedToken,
+                      ),
+                      kVerticalGap16,
+                      InputField(
+                        validator: (String? value) =>
+                            InputValidators.correctValue(
+                          value,
+                          kBigP255m1,
+                          _selectedToken.decimals,
+                          BigInt.zero,
                         ),
+                        onChanged: (String value) => setState(() {}),
+                        inputFormatters:
+                            FormatUtils.getAmountTextInputFormatters(
+                          _amountController.text,
+                        ),
+                        controller: _amountController,
+                        hintText: context.l10n.amount,
                       ),
                     ],
-                  ),
-                ),
-              ],
-            ),
-            Row(
-              children: <Widget>[
-                Visibility(
-                  visible: widget.extendIcon!,
-                  child: TransferToggleCardSizeButton(
-                    onPressed: widget.onCollapseClicked,
-                    iconData: Icons.navigate_next,
                   ),
                 ),
               ],
@@ -194,31 +172,16 @@ class _ReceiveLargeCardState extends State<ReceiveLargeCard> {
   }
 
   Widget _getDefaultAddressDropdown() {
-    return AddressesDropdown(
-      _selectedSelfAddress,
-      (String? value) => setState(
+    return NewAddressesDropdown(
+      addresses: kDefaultAddressList.map((String? e) => e!).toList(),
+      selectedAddress: _selectedSelfAddress,
+      onSelectedCallback: (String value) => setState(
         () {
-          _selectedToken = kDualCoin.first;
           _selectedSelfAddress = value;
-          _tokensBloc.getDataAsync();
         },
       ),
     );
   }
-
-  Widget _getCoinDropdown() => CoinDropdown(
-        _tokens,
-        _selectedToken,
-        (Token? value) {
-          if (_selectedToken.tokenStandard != value!.tokenStandard) {
-            setState(
-              () {
-                _selectedToken = value;
-              },
-            );
-          }
-        },
-      );
 
   void _initTokens(List<Token> tokens) {
     if (_tokens.isNotEmpty) {

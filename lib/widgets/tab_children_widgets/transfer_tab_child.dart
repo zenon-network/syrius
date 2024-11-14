@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:layout/layout.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/send/send.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 
@@ -35,10 +36,7 @@ class _TransferTabChildState extends State<TransferTabChild> {
             sm: kStaggeredNumOfColumns,
             xs: kStaggeredNumOfColumns,
           ),
-          child: ReceiveLargeCard(
-            extendIcon: false,
-            onCollapseClicked: () {},
-          ),
+          child: ReceiveCard(),
         ),
         const FluidCell(
           child: LatestTransactions(),
