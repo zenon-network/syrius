@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:layout/layout.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
-import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/send/send.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 
 class TransferTabChild extends StatefulWidget {
