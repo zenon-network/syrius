@@ -23,12 +23,12 @@ void main() {
 
   registerFallbackValue(FakeAccountBlockTemplate());
 
-  group('UndelegateButtonCubit', () {
+  group('UndelegatePillarCubit', () {
     late MockZenon mockZenon;
     late MockEmbedded mockEmbedded;
     late MockPillarApi mockPillarApi;
     late MockAccountBlockUtilsHelper mockAccountBlockUtilsHelper;
-    late UndelegateButtonCubit undelegateButtonCubit;
+    late UndelegatePillarCubit undelegatePillarCubit;
     late AccountBlockTemplate testAccountBlockTemplate;
     late CubitFailureException exception;
 
@@ -52,97 +52,97 @@ void main() {
         ),
       ).thenAnswer((_) async => testAccountBlockTemplate);
 
-      undelegateButtonCubit = UndelegateButtonCubit(
+      undelegatePillarCubit = UndelegatePillarCubit(
         zenon: mockZenon,
         accountBlockUtilsHelper: mockAccountBlockUtilsHelper,
       );
     });
 
     tearDown(() {
-      undelegateButtonCubit.close();
+      undelegatePillarCubit.close();
     });
 
     test('initial state is correct', () {
       expect(
-        undelegateButtonCubit.state.status,
-        UndelegateButtonStatus.initial,
+        undelegatePillarCubit.state.status,
+        UndelegatePillarStatus.initial,
       );
     });
 
     group('fromJson/toJson', () {
       test('can (de)serialize initial state', () {
-        const UndelegateButtonState initialState = UndelegateButtonState();
+        const UndelegatePillarState initialState = UndelegatePillarState();
 
         final Map<String, dynamic>? serialized =
-            undelegateButtonCubit.toJson(initialState);
+            undelegatePillarCubit.toJson(initialState);
 
-        final UndelegateButtonState? deserialized =
-            undelegateButtonCubit.fromJson(serialized!);
+        final UndelegatePillarState? deserialized =
+            undelegatePillarCubit.fromJson(serialized!);
 
         expect(deserialized, equals(initialState));
       });
 
       test('can (de)serialize loading state', () {
-        const UndelegateButtonState loadingState = UndelegateButtonState(
-          status: UndelegateButtonStatus.loading,
+        const UndelegatePillarState loadingState = UndelegatePillarState(
+          status: UndelegatePillarStatus.loading,
         );
 
         final Map<String, dynamic>? serialized =
-            undelegateButtonCubit.toJson(loadingState);
+            undelegatePillarCubit.toJson(loadingState);
 
-        final UndelegateButtonState? deserialized =
-            undelegateButtonCubit.fromJson(serialized!);
+        final UndelegatePillarState? deserialized =
+            undelegatePillarCubit.fromJson(serialized!);
 
         expect(deserialized, equals(loadingState));
       });
 
       test('can (de)serialize success state', () {
-        final UndelegateButtonState successState = UndelegateButtonState(
-          status: UndelegateButtonStatus.success,
+        final UndelegatePillarState successState = UndelegatePillarState(
+          status: UndelegatePillarStatus.success,
           data: testAccountBlockTemplate,
         );
 
         final Map<String, dynamic>? serialized =
-            undelegateButtonCubit.toJson(successState);
+            undelegatePillarCubit.toJson(successState);
 
-        final UndelegateButtonState? deserialized =
-            undelegateButtonCubit.fromJson(serialized!);
+        final UndelegatePillarState? deserialized =
+            undelegatePillarCubit.fromJson(serialized!);
 
-        expect(deserialized, isA<UndelegateButtonState>());
-        expect(deserialized!.status, equals(UndelegateButtonStatus.success));
+        expect(deserialized, isA<UndelegatePillarState>());
+        expect(deserialized!.status, equals(UndelegatePillarStatus.success));
         expect(deserialized.data, equals(successState.data));
       });
 
       test('can (de)serialize failure state', () {
-        final UndelegateButtonState failureState = UndelegateButtonState(
-          status: UndelegateButtonStatus.failure,
+        final UndelegatePillarState failureState = UndelegatePillarState(
+          status: UndelegatePillarStatus.failure,
           error: exception,
         );
 
         final Map<String, dynamic>? serialized =
-            undelegateButtonCubit.toJson(failureState);
+            undelegatePillarCubit.toJson(failureState);
 
-        final UndelegateButtonState? deserialized =
-            undelegateButtonCubit.fromJson(serialized!);
+        final UndelegatePillarState? deserialized =
+            undelegatePillarCubit.fromJson(serialized!);
 
         expect(deserialized, equals(failureState));
       });
     });
 
-    blocTest<UndelegateButtonCubit, UndelegateButtonState>(
+    blocTest<UndelegatePillarCubit, UndelegatePillarState>(
       'emits [loading, success] when cancelPillarVoting succeeds',
-      build: () => undelegateButtonCubit,
-      act: (UndelegateButtonCubit cubit) => cubit.cancelPillarVoting(),
-      expect: () => <UndelegateButtonState>[
-        const UndelegateButtonState(status: UndelegateButtonStatus.loading),
-        UndelegateButtonState(
-          status: UndelegateButtonStatus.success,
+      build: () => undelegatePillarCubit,
+      act: (UndelegatePillarCubit cubit) => cubit.cancelPillarVoting(),
+      expect: () => <UndelegatePillarState>[
+        const UndelegatePillarState(status: UndelegatePillarStatus.loading),
+        UndelegatePillarState(
+          status: UndelegatePillarStatus.success,
           data: testAccountBlockTemplate,
         ),
       ],
     );
 
-    blocTest<UndelegateButtonCubit, UndelegateButtonState>(
+    blocTest<UndelegatePillarCubit, UndelegatePillarState>(
       'emits [loading, failure] when cancelPillarVoting throws an exception',
       setUp: () {
         when(
@@ -153,12 +153,12 @@ void main() {
           ),
         ).thenThrow(exception);
       },
-      build: () => undelegateButtonCubit,
-      act: (UndelegateButtonCubit cubit) => cubit.cancelPillarVoting(),
-      expect: () => <UndelegateButtonState>[
-        const UndelegateButtonState(status: UndelegateButtonStatus.loading),
-        UndelegateButtonState(
-          status: UndelegateButtonStatus.failure,
+      build: () => undelegatePillarCubit,
+      act: (UndelegatePillarCubit cubit) => cubit.cancelPillarVoting(),
+      expect: () => <UndelegatePillarState>[
+        const UndelegatePillarState(status: UndelegatePillarStatus.loading),
+        UndelegatePillarState(
+          status: UndelegatePillarStatus.failure,
           error: exception,
         ),
       ],

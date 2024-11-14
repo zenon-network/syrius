@@ -5,20 +5,19 @@ import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
-part 'undelegate_button_cubit.g.dart';
-
-part 'undelegate_button_state.dart';
+part 'undelegate_pillar_cubit.g.dart';
+part 'undelegate_pillar_state.dart';
 
 /// A cubit responsible for handling the undelegation from a Pillar.
-class UndelegateButtonCubit extends HydratedCubit<UndelegateButtonState> {
-  /// Creates a new instance of [UndelegateButtonCubit].
-  UndelegateButtonCubit({
+class UndelegatePillarCubit extends HydratedCubit<UndelegatePillarState> {
+  /// Creates a new instance of [UndelegatePillarCubit].
+  UndelegatePillarCubit({
     required this.zenon,
     this.duration = kDelayAfterAccountBlockCreationCall,
     AccountBlockUtilsHelper? accountBlockUtilsHelper,
   })  : accountBlockUtilsHelper =
             accountBlockUtilsHelper ?? AccountBlockUtilsHelper(),
-        super(const UndelegateButtonState());
+        super(const UndelegatePillarState());
 
   /// The Zenon SDK instance used for network interactions.
   final Zenon zenon;
@@ -32,7 +31,7 @@ class UndelegateButtonCubit extends HydratedCubit<UndelegateButtonState> {
   /// Initiates the undelegation process.
   Future<void> cancelPillarVoting() async {
     try {
-      emit(state.copyWith(status: UndelegateButtonStatus.loading));
+      emit(state.copyWith(status: UndelegatePillarStatus.loading));
 
       final AccountBlockTemplate transactionParams =
           zenon.embedded.pillar.undelegate();
@@ -48,26 +47,26 @@ class UndelegateButtonCubit extends HydratedCubit<UndelegateButtonState> {
 
       emit(
         state.copyWith(
-          status: UndelegateButtonStatus.success,
+          status: UndelegatePillarStatus.success,
           data: response,
         ),
       );
     } catch (e) {
       emit(
         state.copyWith(
-          status: UndelegateButtonStatus.failure,
+          status: UndelegatePillarStatus.failure,
           error: e,
         ),
       );
     }
   }
 
-  /// Deserializes the [UndelegateButtonState] from the provided JSON [Map].
+  /// Deserializes the [UndelegatePillarState] from the provided JSON [Map].
   @override
-  UndelegateButtonState? fromJson(Map<String, dynamic> json) =>
-      UndelegateButtonState.fromJson(json);
+  UndelegatePillarState? fromJson(Map<String, dynamic> json) =>
+      UndelegatePillarState.fromJson(json);
 
-  /// Serializes the current [UndelegateButtonState] into a JSON [Map].
+  /// Serializes the current [UndelegatePillarState] into a JSON [Map].
   @override
-  Map<String, dynamic>? toJson(UndelegateButtonState state) => state.toJson();
+  Map<String, dynamic>? toJson(UndelegatePillarState state) => state.toJson();
 }

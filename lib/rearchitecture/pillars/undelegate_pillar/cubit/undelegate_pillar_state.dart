@@ -1,7 +1,7 @@
-part of 'undelegate_button_cubit.dart';
+part of 'undelegate_pillar_cubit.dart';
 
-/// Represents the possible statuses for the undelegate button operation.
-enum UndelegateButtonStatus {
+/// Represents the possible statuses for the undelegate pillar operation.
+enum UndelegatePillarStatus {
   /// The initial state before any action has been taken.
   initial,
 
@@ -15,25 +15,25 @@ enum UndelegateButtonStatus {
   success,
 }
 
-/// Holds the state for [UndelegateButtonCubit], including status, data,
+/// Holds the state for [UndelegatePillarCubit], including status, data,
 /// and error information.
 @JsonSerializable(explicitToJson: true)
-class UndelegateButtonState extends Equatable {
-  /// Creates a new instance of [UndelegateButtonState].
+class UndelegatePillarState extends Equatable {
+  /// Creates a new instance of [UndelegatePillarState].
   ///
-  /// The [status] defaults to [UndelegateButtonStatus.initial].
-  const UndelegateButtonState({
-    this.status = UndelegateButtonStatus.initial,
+  /// The [status] defaults to [UndelegatePillarStatus.initial].
+  const UndelegatePillarState({
+    this.status = UndelegatePillarStatus.initial,
     this.data,
     this.error,
   });
 
   /// Creates a new instance from a JSON map.
-  factory UndelegateButtonState.fromJson(Map<String, dynamic> json) =>
-      _$UndelegateButtonStateFromJson(json);
+  factory UndelegatePillarState.fromJson(Map<String, dynamic> json) =>
+      _$UndelegatePillarStateFromJson(json);
 
-  /// The current status of the undelegate button operation.
-  final UndelegateButtonStatus status;
+  /// The current status of the undelegate pillar operation.
+  final UndelegatePillarStatus status;
 
   /// The response data from the undelegation operation.
   ///
@@ -44,12 +44,12 @@ class UndelegateButtonState extends Equatable {
   final Object? error;
 
   /// {@macro state_copy_with}
-  UndelegateButtonState copyWith({
-    UndelegateButtonStatus? status,
+  UndelegatePillarState copyWith({
+    UndelegatePillarStatus? status,
     AccountBlockTemplate? data,
     Object? error,
   }) {
-    return UndelegateButtonState(
+    return UndelegatePillarState(
       status: status ?? this.status,
       data: data ?? this.data,
       error: error ?? this.error,
@@ -57,7 +57,7 @@ class UndelegateButtonState extends Equatable {
   }
 
   /// {@macro state_to_json}
-  Map<String, dynamic> toJson() => _$UndelegateButtonStateToJson(this);
+  Map<String, dynamic> toJson() => _$UndelegatePillarStateToJson(this);
 
   @override
   List<Object?> get props => <Object?>[status, data, error];
