@@ -58,7 +58,7 @@ enum CardType {
           ),
         ),
       CardType.pillars => CardData(
-          title: context.l10n.pillars,
+          title: context.l10n.pillarsTitle,
           description: context.l10n.pillarsDescription,
         ),
       CardType.realtimeStatistics => CardData(

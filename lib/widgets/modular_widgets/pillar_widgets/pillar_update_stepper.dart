@@ -129,10 +129,13 @@ class _PillarUpdateStepperState extends State<PillarUpdateStepper> {
           StepperUtils.getMaterialStep(
             stepTitle: context.l10n.pillarMomentumAddress,
             stepContent: _getPillarMomentumRewardsStepContent(),
-            stepSubtitle:
-                '${context.l10n.momentumPercentageGiven} $_momentumRewardPercentageGiven'
-                '\n'
-                '${context.l10n.delegationPercentageGiven} $_delegateRewardPercentageGiven',
+            stepSubtitle: '${context.l10n.momentumPercentageGiven(
+                _momentumRewardPercentageGiven,
+            )}'
+                '\n '
+                '${context.l10n.delegationPercentageGiven(
+                _delegateRewardPercentageGiven,
+            )}',
             stepState: StepperUtils.getStepState(
               PillarUpdateStep.pillarMomentumReward.index,
               _lastCompletedStep?.index,
@@ -262,11 +265,13 @@ class _PillarUpdateStepperState extends State<PillarUpdateStepper> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: <Widget>[
             Text(
-              '${context.l10n.pillar}: ${100 - _momentumRewardPercentageGiven.toInt()}',
+              context.l10n.pillars(
+                  100 - _momentumRewardPercentageGiven.toInt(),
+              ),
               style: Theme.of(context).textTheme.titleMedium,
             ),
             Text(
-              '${context.l10n.delegators} ${_momentumRewardPercentageGiven.toInt()}',
+              context.l10n.delegators(_momentumRewardPercentageGiven.toInt()),
               style: Theme.of(context).textTheme.titleMedium,
             ),
           ],
@@ -296,11 +301,13 @@ class _PillarUpdateStepperState extends State<PillarUpdateStepper> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: <Widget>[
             Text(
-              '${context.l10n.pillar}: ${100 - _delegateRewardPercentageGiven.toInt()}',
+              context.l10n.pillars(
+                  100 - _delegateRewardPercentageGiven.toInt(),
+              ),
               style: Theme.of(context).textTheme.titleMedium,
             ),
             Text(
-              '${context.l10n.delegators} ${_delegateRewardPercentageGiven.toInt()}',
+              context.l10n.delegators(_delegateRewardPercentageGiven.toInt()),
               style: Theme.of(context).textTheme.titleMedium,
             ),
           ],
