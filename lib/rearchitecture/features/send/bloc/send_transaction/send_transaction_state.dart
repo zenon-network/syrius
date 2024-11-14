@@ -41,13 +41,13 @@ class SendTransactionState extends Equatable {
   final AccountBlockTemplate? data;
 
   /// An object representing any error occurring during the payment operation.
-  final Object? error;
+  final SyriusException? error;
 
   /// {@macro state_copy_with}
   SendTransactionState copyWith({
     SendPaymentStatus? status,
     AccountBlockTemplate? data,
-    Object? error,
+    SyriusException? error,
   }) {
     return SendTransactionState(
       status: status ?? this.status,

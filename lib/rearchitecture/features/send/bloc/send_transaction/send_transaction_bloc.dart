@@ -1,10 +1,13 @@
+import 'dart:async';
+
 import 'package:equatable/equatable.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
 import 'package:json_annotation/json_annotation.dart';
+import 'package:logging/logging.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/dependency_injection_helpers/account_block_template_send.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/dependency_injection_helpers/account_block_utils_helper.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/dependency_injection_helpers/zenon_address_utils_helper.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/account_block_utils.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/exceptions/exceptions.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 part 'send_transaction_bloc.g.dart';
@@ -14,11 +17,12 @@ part 'send_transaction_event.dart';
 part 'send_transaction_state.dart';
 
 /// A bloc that handles sending payments.
-class SendTransactionBloc extends HydratedBloc<SendTransactionEvent, SendTransactionState> {
+class SendTransactionBloc
+    extends HydratedBloc<SendTransactionEvent, SendTransactionState> {
   /// Creates a new instance of [SendTransactionBloc].
   ///
   /// Initializes the Bloc with the initial state and sets up event handlers for
-  /// [SendTransactionInitiate] and [SendTransferInitiateFromBlock] events.
+  /// [SendTransactionInitiate] and [SendTransactionInitiateFromBlock] events.
   SendTransactionBloc({
     AccountBlockUtilsHelper? accountBlockUtilsHelper,
     ZenonAddressUtilsHelper? zenonAddressUtilsHelper,
@@ -31,7 +35,7 @@ class SendTransactionBloc extends HydratedBloc<SendTransactionEvent, SendTransac
             zenonAddressUtilsHelper ?? ZenonAddressUtilsHelper(),
         super(const SendTransactionState()) {
     on<SendTransactionInitiate>(_onSendTransfer);
-    on<SendTransferInitiateFromBlock>(_onSendTransferWithBlock);
+    on<SendTransactionInitiateFromBlock>(_onSendTransferWithBlock);
   }
 
   /// Helper class with the purpose of facilitating dependency injections.
@@ -43,10 +47,6 @@ class SendTransactionBloc extends HydratedBloc<SendTransactionEvent, SendTransac
   /// Helper class with the purpose of facilitating dependency injections.
   final AccountBlockTemplateSend accountBlockTemplateSend;
 
-  /// Handles the [SendTransactionInitiate] event to send a transfer.
-  ///
-  /// Constructs an [AccountBlockTemplate] for the transfer and uses
-  /// [AccountBlockUtils] to create and send the account block.
   Future<void> _onSendTransfer(
     SendTransactionInitiate event,
     Emitter<SendTransactionState> emit,
@@ -77,20 +77,19 @@ class SendTransactionBloc extends HydratedBloc<SendTransactionEvent, SendTransac
           data: response,
         ),
       );
-    } catch (error) {
+    } catch (error, stackTrace) {
       emit(
         state.copyWith(
           status: SendPaymentStatus.failure,
-          error: error,
+          error: CubitFailureException(),
         ),
       );
+      addError(error, stackTrace);
     }
   }
 
-  /// Handles the [SendTransferInitiateFromBlock] event to send a transfer using
-  /// an existing block.
   Future<void> _onSendTransferWithBlock(
-    SendTransferInitiateFromBlock event,
+    SendTransactionInitiateFromBlock event,
     Emitter<SendTransactionState> emit,
   ) async {
     try {
@@ -103,7 +102,7 @@ class SendTransactionBloc extends HydratedBloc<SendTransactionEvent, SendTransac
         waitForRequiredPlasma: true,
       );
 
-      zenonAddressUtilsHelper.refreshBalance();
+      unawaited(zenonAddressUtilsHelper.refreshBalance());
       emit(
         state.copyWith(
           status: SendPaymentStatus.success,
@@ -114,18 +113,26 @@ class SendTransactionBloc extends HydratedBloc<SendTransactionEvent, SendTransac
       emit(
         state.copyWith(
           status: SendPaymentStatus.failure,
-          error: error,
+          error: CubitFailureException(),
         ),
       );
     }
   }
 
-  /// Deserializes the `SendPaymentState` from a JSON map.
   @override
   SendTransactionState? fromJson(Map<String, dynamic> json) =>
       SendTransactionState.fromJson(json);
 
-  /// Serializes the current `SendPaymentState` into a JSON map for persistence.
   @override
   Map<String, dynamic>? toJson(SendTransactionState state) => state.toJson();
+
+  @override
+  void onError(Object error, StackTrace stackTrace) {
+    Logger('SendTransactionBloc').warning(
+      'onError triggered',
+      error,
+      stackTrace,
+    );
+    super.onError(error, stackTrace);
+  }
 }

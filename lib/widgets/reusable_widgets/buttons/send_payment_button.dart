@@ -8,7 +8,7 @@ class SendPaymentButton extends LoadingButton {
     required super.key,
     String super.text = 'Send',
     super.outlineColor,
-    super.minimumSize = const Size(100, 40),
+    super.minimumSize = const Size(100, 48),
   }) : super(
           paddingAroundChild: const EdgeInsets.symmetric(
             horizontal: 10,

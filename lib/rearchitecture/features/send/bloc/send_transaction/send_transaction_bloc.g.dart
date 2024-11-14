@@ -14,7 +14,9 @@ SendTransactionState _$SendTransactionStateFromJson(
       data: json['data'] == null
           ? null
           : AccountBlockTemplate.fromJson(json['data'] as Map<String, dynamic>),
-      error: json['error'],
+      error: json['error'] == null
+          ? null
+          : SyriusException.fromJson(json['error'] as Map<String, dynamic>),
     );
 
 Map<String, dynamic> _$SendTransactionStateToJson(
@@ -22,7 +24,7 @@ Map<String, dynamic> _$SendTransactionStateToJson(
     <String, dynamic>{
       'status': _$SendPaymentStatusEnumMap[instance.status]!,
       'data': instance.data?.toJson(),
-      'error': instance.error,
+      'error': instance.error?.toJson(),
     };
 
 const _$SendPaymentStatusEnumMap = {

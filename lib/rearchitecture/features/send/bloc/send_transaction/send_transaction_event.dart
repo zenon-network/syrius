@@ -35,9 +35,9 @@ class SendTransactionInitiate extends SendTransactionEvent {
 }
 
 /// Event to initiate sending a transfer using an existing account block.
-class SendTransferInitiateFromBlock extends SendTransactionEvent {
-  /// Creates a [SendTransferInitiateFromBlock] event.
-  SendTransferInitiateFromBlock({
+class SendTransactionInitiateFromBlock extends SendTransactionEvent {
+  /// Creates a [SendTransactionInitiateFromBlock] event.
+  SendTransactionInitiateFromBlock({
     required this.block,
     required this.fromAddress,
   });
