@@ -84,7 +84,7 @@
   "pillars": "Pillars: {number}",
   "pillarsDescription": "This card displays the number of active Pillars in the network",
   "pillarsListDescription": "This card displays Pillar Nodes that are currently active in the network. The list contains the name of the Pillar, the associated producer address, the weight (total number of delegations) and your delegation status. You can choose to delegate your {kZnnCoinSymbol} balance to any Pillar in order to receive delegation rewards in {kZnnCoinSymbol}. You can undelegate the balance at any time, without any penalties. Minimum delegation amount is 1 {kZnnCoinSymbol} per address",
-  "pillarsListTitle": "Pllars List",
+  "pillarsListTitle": "Pillars List",
   "pillarsTitle": "Pillars",
   "producerAddress": "Producer Address",
   "quasarTransactions": "{quasar} transactions",
