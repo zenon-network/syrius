@@ -119,10 +119,7 @@ class _MainAppContainerState extends State<MainAppContainer>
           create: (_) => SendTransactionBloc(),
         ),
         BlocProvider<MultipleBalanceBloc>(
-          create: (_) => MultipleBalanceBloc(
-            zenon: zenon!,
-            addressList: kDefaultAddressList.map((String? e) => e!).toList(),
-          )..add(MultipleBalanceFetch()),
+          create: (_) => sl.get<MultipleBalanceBloc>(),
         ),
         BlocProvider<TokensCubit>(
           create: (_) => TokensCubit(
@@ -666,7 +663,6 @@ class _MainAppContainerState extends State<MainAppContainer>
                 }
               }
 
-              final SendPaymentBloc sendPaymentBloc = SendPaymentBloc();
               final StakingOptionsBloc stakingOptionsBloc =
                   StakingOptionsBloc();
               final DelegateButtonBloc delegateButtonBloc =
@@ -689,28 +685,32 @@ class _MainAppContainerState extends State<MainAppContainer>
                       _navigateTo(Tabs.transfer);
 
                       if (token != null) {
-                        showDialogWithNoAndYesOptions(
-                          context: context,
-                          title: 'Transfer action',
-                          isBarrierDismissible: true,
-                          content: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: <Widget>[
-                              Text(
-                                'Are you sure you want transfer $queryAmount ${token.symbol} from $kSelectedAddress to $queryAddress?',
-                              ),
-                            ],
+                        unawaited(
+                          showDialogWithNoAndYesOptions(
+                            context: context,
+                            title: 'Transfer action',
+                            isBarrierDismissible: true,
+                            content: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: <Widget>[
+                                Text(
+                                  'Are you sure you want transfer $queryAmount ${token.symbol} from $kSelectedAddress to $queryAddress?',
+                                ),
+                              ],
+                            ),
+                            onYesButtonPressed: () {
+                              context.read<SendTransactionBloc>().add(
+                                    SendTransactionInitiate(
+                                      fromAddress: kSelectedAddress!,
+                                      toAddress: queryAddress,
+                                      amount: queryAmount
+                                          .extractDecimals(token!.decimals),
+                                      token: token,
+                                    ),
+                                  );
+                            },
+                            onNoButtonPressed: () {},
                           ),
-                          onYesButtonPressed: () {
-                            sendPaymentBloc.sendTransfer(
-                              fromAddress: kSelectedAddress,
-                              toAddress: queryAddress,
-                              amount:
-                                  queryAmount.extractDecimals(token!.decimals),
-                              token: token,
-                            );
-                          },
-                          onNoButtonPressed: () {},
                         );
                       }
                     }

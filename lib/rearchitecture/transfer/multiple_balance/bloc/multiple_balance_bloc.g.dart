@@ -15,7 +15,9 @@ MultipleBalanceState _$MultipleBalanceStateFromJson(
       data: (json['data'] as Map<String, dynamic>?)?.map(
         (k, e) => MapEntry(k, AccountInfo.fromJson(e as Map<String, dynamic>)),
       ),
-      error: json['error'],
+      error: json['error'] == null
+          ? null
+          : SyriusException.fromJson(json['error'] as Map<String, dynamic>),
     );
 
 Map<String, dynamic> _$MultipleBalanceStateToJson(
@@ -23,12 +25,12 @@ Map<String, dynamic> _$MultipleBalanceStateToJson(
     <String, dynamic>{
       'status': _$MultipleBalanceStatusEnumMap[instance.status]!,
       'data': instance.data?.map((k, e) => MapEntry(k, e.toJson())),
-      'error': instance.error,
+      'error': instance.error?.toJson(),
     };
 
 const _$MultipleBalanceStatusEnumMap = {
+  MultipleBalanceStatus.failure: 'failure',
   MultipleBalanceStatus.initial: 'initial',
   MultipleBalanceStatus.loading: 'loading',
   MultipleBalanceStatus.success: 'success',
-  MultipleBalanceStatus.failure: 'failure',
 };

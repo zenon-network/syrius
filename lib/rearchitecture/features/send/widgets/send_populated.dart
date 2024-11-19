@@ -92,14 +92,14 @@ class _SendPopulatedState extends State<SendPopulated> {
 
     return BlocListener<SendTransactionBloc, SendTransactionState>(
       listener: (_, SendTransactionState state) {
-        if (state.status == SendPaymentStatus.loading) {
+        if (state.status == SendTransactionStatus.loading) {
           _sendPaymentButtonKey.currentState?.animateForward();
-        } else if (state.status == SendPaymentStatus.success) {
+        } else if (state.status == SendTransactionStatus.success) {
           _sendConfirmationNotification();
           _sendPaymentButtonKey.currentState?.animateReverse();
           _amountController.clear();
           _recipientController.clear();
-        } else if (state.status == SendPaymentStatus.failure) {
+        } else if (state.status == SendTransactionStatus.failure) {
           _sendPaymentButtonKey.currentState?.animateReverse();
           _sendErrorNotification(state.error!);
         }

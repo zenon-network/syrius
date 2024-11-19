@@ -1,6 +1,5 @@
 import 'package:zenon_syrius_wallet_flutter/blocs/notifications_bloc.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/pow_generating_status_bloc.dart';
-import 'package:zenon_syrius_wallet_flutter/blocs/transfer/transfer_widgets_balance_bloc.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/model/database/notification_type.dart';
 import 'package:zenon_syrius_wallet_flutter/model/database/wallet_notification.dart';
@@ -53,9 +52,6 @@ class AccountBlockUtilsHelper {
           },
           waitForRequiredPlasma: waitForRequiredPlasma,
         );
-        if (BlockUtils.isReceiveBlock(transactionParams.blockType)) {
-          sl.get<TransferWidgetsBalanceBloc>().getBalanceForAllAddresses();
-        }
         await sl.get<NotificationsBloc>().addNotification(
           WalletNotification(
             title: 'Account-block published',

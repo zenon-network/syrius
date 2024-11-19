@@ -53,9 +53,6 @@ class AccountBlockUtils {
           },
           waitForRequiredPlasma: waitForRequiredPlasma,
         );
-        if (BlockUtils.isReceiveBlock(transactionParams.blockType)) {
-          sl.get<TransferWidgetsBalanceBloc>().getBalanceForAllAddresses();
-        }
         await sl.get<NotificationsBloc>().addNotification(
               WalletNotification(
                 title: 'Account-block published',

@@ -4,6 +4,7 @@ import 'package:hydrated_bloc/hydrated_bloc.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/refresh_bloc_mixin.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/exceptions/exceptions.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 part 'multiple_balance_bloc.g.dart';
@@ -17,17 +18,20 @@ class MultipleBalanceBloc
     extends HydratedBloc<MultipleBalanceEvent, MultipleBalanceState>
     with RefreshBlocMixin {
   /// Creates a new instance of [MultipleBalanceBloc].
-  MultipleBalanceBloc({required this.zenon, required this.addressList})
+  MultipleBalanceBloc({required this.zenon})
       : super(const MultipleBalanceState()) {
     on<MultipleBalanceFetch>(_onFetchBalances);
-    listenToWsRestart(() => add(MultipleBalanceFetch()));
+    listenToWsRestart(
+      () => add(
+        MultipleBalanceFetch(
+          addresses: kDefaultAddressList.map((String? e) => e!).toList(),
+        ),
+      ),
+    );
   }
 
   /// The Zenon SDK instance for ledger interactions.
   final Zenon zenon;
-
-  /// The list of addresses whose balances are being managed.
-  final List<String> addressList;
 
   /// Handles the [MultipleBalanceFetch] event to fetch balances for all
   /// addresses.
@@ -41,7 +45,7 @@ class MultipleBalanceBloc
       final Map<String, AccountInfo> addressBalanceMap =
           <String, AccountInfo>{};
       final List<AccountInfo> accountInfoList = await Future.wait(
-        addressList.map(
+        event.addresses.map(
           _getBalancePerAddress,
         ),
       );

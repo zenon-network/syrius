@@ -101,7 +101,7 @@ void main() {
 
     test('can (de)serialize loading state', () {
       const SendTransactionState loadingState = SendTransactionState(
-        status: SendPaymentStatus.loading,
+        status: SendTransactionStatus.loading,
       );
 
       final Map<String, dynamic>? serialized = sendTransactionBloc.toJson(
@@ -115,7 +115,7 @@ void main() {
 
     test('can (de)serialize success state', () {
       final SendTransactionState successState = SendTransactionState(
-        status: SendPaymentStatus.success,
+        status: SendTransactionStatus.success,
         data: testAccBlockTemplate,
       );
 
@@ -126,13 +126,13 @@ void main() {
         serialized!,
       );
       expect(deserialized, isA<SendTransactionState>());
-      expect(deserialized!.status, equals(SendPaymentStatus.success));
+      expect(deserialized!.status, equals(SendTransactionStatus.success));
       expect(deserialized.data, isA<AccountBlockTemplate?>());
     });
 
     test('can (de)serialize failure state', () {
       final SendTransactionState failureState = SendTransactionState(
-        status: SendPaymentStatus.failure,
+        status: SendTransactionStatus.failure,
         error: exception,
       );
       final Map<String, dynamic>? serialized = sendTransactionBloc.toJson(
@@ -159,9 +159,9 @@ void main() {
         ),
       ),
       expect: () => <SendTransactionState>[
-        const SendTransactionState(status: SendPaymentStatus.loading),
+        const SendTransactionState(status: SendTransactionStatus.loading),
         SendTransactionState(
-          status: SendPaymentStatus.success,
+          status: SendTransactionStatus.success,
           data: testAccBlockTemplate,
         ),
       ],
@@ -190,9 +190,9 @@ void main() {
         ),
       ),
       expect: () => <SendTransactionState>[
-        const SendTransactionState(status: SendPaymentStatus.loading),
+        const SendTransactionState(status: SendTransactionStatus.loading),
         SendTransactionState(
-          status: SendPaymentStatus.failure,
+          status: SendTransactionStatus.failure,
           error: exception,
         ),
       ],
@@ -208,9 +208,9 @@ void main() {
         ),
       ),
       expect: () => <SendTransactionState>[
-        const SendTransactionState(status: SendPaymentStatus.loading),
+        const SendTransactionState(status: SendTransactionStatus.loading),
         SendTransactionState(
-          status: SendPaymentStatus.success,
+          status: SendTransactionStatus.success,
           data: testAccBlockTemplate,
         ),
       ],
@@ -236,9 +236,9 @@ void main() {
         ),
       ),
       expect: () => <SendTransactionState>[
-        const SendTransactionState(status: SendPaymentStatus.loading),
+        const SendTransactionState(status: SendTransactionStatus.loading),
         SendTransactionState(
-          status: SendPaymentStatus.failure,
+          status: SendTransactionStatus.failure,
           error: exception,
         ),
       ],

@@ -52,7 +52,7 @@ class SendTransactionBloc
     Emitter<SendTransactionState> emit,
   ) async {
     try {
-      emit(state.copyWith(status: SendPaymentStatus.loading));
+      emit(state.copyWith(status: SendTransactionStatus.loading));
 
       final AccountBlockTemplate accountBlock =
           accountBlockTemplateSend.createSendBlock(
@@ -73,14 +73,14 @@ class SendTransactionBloc
       await zenonAddressUtilsHelper.refreshBalance();
       emit(
         state.copyWith(
-          status: SendPaymentStatus.success,
+          status: SendTransactionStatus.success,
           data: response,
         ),
       );
     } catch (error, stackTrace) {
       emit(
         state.copyWith(
-          status: SendPaymentStatus.failure,
+          status: SendTransactionStatus.failure,
           error: CubitFailureException(),
         ),
       );
@@ -93,7 +93,7 @@ class SendTransactionBloc
     Emitter<SendTransactionState> emit,
   ) async {
     try {
-      emit(state.copyWith(status: SendPaymentStatus.loading));
+      emit(state.copyWith(status: SendTransactionStatus.loading));
       final AccountBlockTemplate response =
           await accountBlockUtilsHelper.createAccountBlock(
         event.block,
@@ -105,14 +105,14 @@ class SendTransactionBloc
       unawaited(zenonAddressUtilsHelper.refreshBalance());
       emit(
         state.copyWith(
-          status: SendPaymentStatus.success,
+          status: SendTransactionStatus.success,
           data: response,
         ),
       );
     } catch (error) {
       emit(
         state.copyWith(
-          status: SendPaymentStatus.failure,
+          status: SendTransactionStatus.failure,
           error: CubitFailureException(),
         ),
       );

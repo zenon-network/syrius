@@ -1,7 +1,7 @@
 part of 'send_transaction_bloc.dart';
 
 /// Represents the possible statuses of the send payment operation.
-enum SendPaymentStatus {
+enum SendTransactionStatus {
   /// The initial state before any payment action has been taken.
   initial,
 
@@ -21,9 +21,9 @@ enum SendPaymentStatus {
 class SendTransactionState extends Equatable {
   /// Creates a new instance of [SendTransactionState].
   ///
-  /// The [status] defaults to [SendPaymentStatus.initial] if not specified.
+  /// The [status] defaults to [SendTransactionStatus.initial] if not specified.
   const SendTransactionState({
-    this.status = SendPaymentStatus.initial,
+    this.status = SendTransactionStatus.initial,
     this.data,
     this.error,
   });
@@ -33,7 +33,7 @@ class SendTransactionState extends Equatable {
       _$SendTransactionStateFromJson(json);
 
   /// The current status of the send payment operation.
-  final SendPaymentStatus status;
+  final SendTransactionStatus status;
 
   /// The response data from the send payment operation.
   ///
@@ -45,7 +45,7 @@ class SendTransactionState extends Equatable {
 
   /// {@macro state_copy_with}
   SendTransactionState copyWith({
-    SendPaymentStatus? status,
+    SendTransactionStatus? status,
     AccountBlockTemplate? data,
     SyriusException? error,
   }) {
