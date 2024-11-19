@@ -5,7 +5,7 @@ import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/send/send.da
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/dependency_injection_helpers/account_block_template_send.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/dependency_injection_helpers/account_block_utils_helper.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/dependency_injection_helpers/zenon_address_utils_helper.dart';
-import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/exceptions/cubit_failure_exception.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/exceptions/exceptions.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
@@ -34,7 +34,7 @@ void main() {
     registerFallbackValue(FakeAddress());
   });
 
-  late SendPaymentBloc sendPaymentBloc;
+  late SendTransactionBloc sendTransactionBloc;
   late AccountBlockTemplate testAccBlockTemplate;
   late MockAccountBlockUtils mockAccountBlockUtils;
   late MockZenonAddressUtils mockZenonAddressUtils;
@@ -43,16 +43,16 @@ void main() {
   late String testFromAddress;
   late int testAmount;
   late List<int> testData;
-  late Exception exception;
+  late SyriusException exception;
 
   setUp(() {
     mockAccountBlockUtils = MockAccountBlockUtils();
     mockZenonAddressUtils = MockZenonAddressUtils();
     mockAccountBlockTemplateSend = MockAccountBlockTemplateSend();
-    sendPaymentBloc = SendPaymentBloc(
-      mockAccountBlockUtils,
-      mockZenonAddressUtils,
-      mockAccountBlockTemplateSend,
+    sendTransactionBloc = SendTransactionBloc(
+      accountBlockUtilsHelper: mockAccountBlockUtils,
+      zenonAddressUtilsHelper: mockZenonAddressUtils,
+      accountBlockTemplateSend: mockAccountBlockTemplateSend,
     );
     testToAddress = emptyAddress.toString();
     testFromAddress = emptyAddress.toString();
@@ -83,77 +83,74 @@ void main() {
   });
 
   tearDown(() {
-    sendPaymentBloc.close();
+    sendTransactionBloc.close();
   });
 
   group('fromJson/toJson', () {
     test('can (de)serialize initial state', () {
-      const SendPaymentState initialState = SendPaymentState();
+      const SendTransactionState initialState = SendTransactionState();
 
-      final Map<String, dynamic>? serialized = sendPaymentBloc.toJson(
+      final Map<String, dynamic>? serialized = sendTransactionBloc.toJson(
         initialState,
       );
-      final SendPaymentState? deserialized =
-      sendPaymentBloc.fromJson(serialized!);
+      final SendTransactionState? deserialized =
+          sendTransactionBloc.fromJson(serialized!);
 
       expect(deserialized, equals(initialState));
     });
 
     test('can (de)serialize loading state', () {
-      const SendPaymentState loadingState = SendPaymentState(
+      const SendTransactionState loadingState = SendTransactionState(
         status: SendPaymentStatus.loading,
       );
 
-      final Map<String, dynamic>? serialized = sendPaymentBloc.toJson(
+      final Map<String, dynamic>? serialized = sendTransactionBloc.toJson(
         loadingState,
       );
-      final SendPaymentState? deserialized =
-      sendPaymentBloc.fromJson(
+      final SendTransactionState? deserialized = sendTransactionBloc.fromJson(
         serialized!,
       );
       expect(deserialized, equals(loadingState));
     });
 
     test('can (de)serialize success state', () {
-      final SendPaymentState successState = SendPaymentState(
+      final SendTransactionState successState = SendTransactionState(
         status: SendPaymentStatus.success,
         data: testAccBlockTemplate,
       );
 
-      final Map<String, dynamic>? serialized = sendPaymentBloc.toJson(
+      final Map<String, dynamic>? serialized = sendTransactionBloc.toJson(
         successState,
       );
-      final SendPaymentState? deserialized =
-      sendPaymentBloc.fromJson(
+      final SendTransactionState? deserialized = sendTransactionBloc.fromJson(
         serialized!,
       );
-      expect(deserialized, isA<SendPaymentState>());
+      expect(deserialized, isA<SendTransactionState>());
       expect(deserialized!.status, equals(SendPaymentStatus.success));
       expect(deserialized.data, isA<AccountBlockTemplate?>());
     });
 
     test('can (de)serialize failure state', () {
-      final SendPaymentState failureState = SendPaymentState(
+      final SendTransactionState failureState = SendTransactionState(
         status: SendPaymentStatus.failure,
         error: exception,
       );
-      final Map<String, dynamic>? serialized = sendPaymentBloc.toJson(
+      final Map<String, dynamic>? serialized = sendTransactionBloc.toJson(
         failureState,
       );
-      final SendPaymentState? deserialized =
-      sendPaymentBloc.fromJson(
+      final SendTransactionState? deserialized = sendTransactionBloc.fromJson(
         serialized!,
       );
       expect(deserialized, equals(failureState));
     });
   });
 
-      group('SendPaymentBloc', () {
-    blocTest<SendPaymentBloc, SendPaymentState>(
+  group('SendTransactionBloc', () {
+    blocTest<SendTransactionBloc, SendTransactionState>(
       'emits [loading, success] when SendTransfer is successful',
-      build: () => sendPaymentBloc,
-      act: (SendPaymentBloc bloc) => bloc.add(
-        SendTransfer(
+      build: () => sendTransactionBloc,
+      act: (SendTransactionBloc bloc) => bloc.add(
+        SendTransactionInitiate(
           toAddress: testToAddress,
           fromAddress: testFromAddress,
           token: kZnnCoin,
@@ -161,16 +158,16 @@ void main() {
           data: testData,
         ),
       ),
-      expect: () => <SendPaymentState>[
-        const SendPaymentState(status: SendPaymentStatus.loading),
-        SendPaymentState(
+      expect: () => <SendTransactionState>[
+        const SendTransactionState(status: SendPaymentStatus.loading),
+        SendTransactionState(
           status: SendPaymentStatus.success,
           data: testAccBlockTemplate,
         ),
       ],
     );
 
-    blocTest<SendPaymentBloc, SendPaymentState>(
+    blocTest<SendTransactionBloc, SendTransactionState>(
       'emits [loading, failure] when SendTransfer fails',
       setUp: () {
         when(
@@ -182,59 +179,65 @@ void main() {
           ),
         ).thenThrow(exception);
       },
-      build: () => sendPaymentBloc,
-      act: (SendPaymentBloc bloc) => bloc.add(SendTransfer(
-        toAddress: testToAddress,
-        fromAddress: testFromAddress,
-        token: kZnnCoin,
-        amount: BigInt.from(testAmount),
-        data: testData,
-      ),),
-      expect: () => <SendPaymentState>[
-        const SendPaymentState(status: SendPaymentStatus.loading),
-        SendPaymentState(
+      build: () => sendTransactionBloc,
+      act: (SendTransactionBloc bloc) => bloc.add(
+        SendTransactionInitiate(
+          toAddress: testToAddress,
+          fromAddress: testFromAddress,
+          token: kZnnCoin,
+          amount: BigInt.from(testAmount),
+          data: testData,
+        ),
+      ),
+      expect: () => <SendTransactionState>[
+        const SendTransactionState(status: SendPaymentStatus.loading),
+        SendTransactionState(
           status: SendPaymentStatus.failure,
           error: exception,
         ),
       ],
     );
 
-    blocTest<SendPaymentBloc, SendPaymentState>(
+    blocTest<SendTransactionBloc, SendTransactionState>(
       'emits [loading, success] when SendTransferWithBlock is successful',
-      build: () => sendPaymentBloc,
-      act: (SendPaymentBloc bloc) => bloc.add(
-        SendTransferWithBlock(
+      build: () => sendTransactionBloc,
+      act: (SendTransactionBloc bloc) => bloc.add(
+        SendTransactionInitiateFromBlock(
           block: testAccBlockTemplate,
           fromAddress: testFromAddress,
         ),
       ),
-      expect: () => <SendPaymentState>[
-        const SendPaymentState(status: SendPaymentStatus.loading),
-        SendPaymentState(
+      expect: () => <SendTransactionState>[
+        const SendTransactionState(status: SendPaymentStatus.loading),
+        SendTransactionState(
           status: SendPaymentStatus.success,
           data: testAccBlockTemplate,
         ),
       ],
     );
 
-    blocTest<SendPaymentBloc, SendPaymentState>(
+    blocTest<SendTransactionBloc, SendTransactionState>(
       'emits [loading, failure] when SendTransferWithBlock fails',
       setUp: () {
-        when(() => mockAccountBlockUtils.createAccountBlock(
-              any(),
-              any(),
-              address: any(named: 'address'),
-              waitForRequiredPlasma: any(named: 'waitForRequiredPlasma'),
-            ),).thenThrow(exception);
+        when(
+          () => mockAccountBlockUtils.createAccountBlock(
+            any(),
+            any(),
+            address: any(named: 'address'),
+            waitForRequiredPlasma: any(named: 'waitForRequiredPlasma'),
+          ),
+        ).thenThrow(exception);
       },
-      build: () => sendPaymentBloc,
-      act: (SendPaymentBloc bloc) => bloc.add(SendTransferWithBlock(
-        block: testAccBlockTemplate,
-        fromAddress: testFromAddress,
-      ),),
-      expect: () => <SendPaymentState>[
-        const SendPaymentState(status: SendPaymentStatus.loading),
-        SendPaymentState(
+      build: () => sendTransactionBloc,
+      act: (SendTransactionBloc bloc) => bloc.add(
+        SendTransactionInitiateFromBlock(
+          block: testAccBlockTemplate,
+          fromAddress: testFromAddress,
+        ),
+      ),
+      expect: () => <SendTransactionState>[
+        const SendTransactionState(status: SendPaymentStatus.loading),
+        SendTransactionState(
           status: SendPaymentStatus.failure,
           error: exception,
         ),
