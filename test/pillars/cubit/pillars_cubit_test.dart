@@ -3,7 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/rearchitecture.dart';
-import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/exceptions/cubit_failure_exception.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/exceptions/failure_exception.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 import '../../helpers/hydrated_bloc.dart';
@@ -29,7 +29,7 @@ void main() {
     late MockEmbedded mockEmbedded;
     late MockPillar mockPillar;
     late PillarsCubit pillarsCubit;
-    late CubitFailureException exception;
+    late FailureException exception;
 
     setUp(() async {
       mockZenon = MockZenon();
@@ -39,7 +39,7 @@ void main() {
       pillarsCubit = PillarsCubit(
         zenon: mockZenon,
       );
-      exception = CubitFailureException();
+      exception = FailureException();
 
       when(() => mockZenon.wsClient).thenReturn(mockWsClient);
       when(() => mockWsClient.isClosed()).thenReturn(false);

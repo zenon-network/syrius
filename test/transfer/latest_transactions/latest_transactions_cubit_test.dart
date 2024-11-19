@@ -2,7 +2,7 @@ import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/transfer/latest_transactions/cubit/latest_transactions_cubit.dart';
-import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/exceptions/cubit_failure_exception.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/exceptions/failure_exception.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/zts_utils.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
@@ -29,7 +29,7 @@ void main() {
     late AccountBlockList accountBlockList;
     late int pageKey;
     late int pageSize;
-    late CubitFailureException exception;
+    late FailureException exception;
 
     setUp(() async {
       final Map<String, dynamic> confirmationDetailJson = <String, dynamic>{
@@ -81,7 +81,7 @@ void main() {
         more: false,
       );
 
-      exception = CubitFailureException();
+      exception = FailureException();
       when(() => mockZenon.ledger).thenReturn(mockLedger);
       when(
         () => mockLedger.getAccountBlocksByPage(

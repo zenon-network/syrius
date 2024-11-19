@@ -4,7 +4,7 @@ import 'package:mocktail/mocktail.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/auto_receive_tx_worker.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/rearchitecture.dart';
-import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/exceptions/cubit_failure_exception.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/exceptions/failure_exception.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
@@ -26,7 +26,7 @@ void main() {
     late MockWsClient mockWsClient;
     late MockStatsApi mockStatsApi;
     late NodeSyncStatusCubit nodeSyncStatusCubit;
-    late CubitFailureException exception;
+    late FailureException exception;
     late SyncInfo syncInfo;
     late Pair<SyncState, SyncInfo> syncPair;
 
@@ -34,7 +34,7 @@ void main() {
       mockZenon = MockZenon();
       mockWsClient = MockWsClient();
       mockStatsApi = MockStatsApi();
-      exception = CubitFailureException();
+      exception = FailureException();
       nodeSyncStatusCubit = NodeSyncStatusCubit(
         zenon: mockZenon,
       );

@@ -27,7 +27,7 @@ void main() {
     late MockEmbedded mockEmbedded;
     late MockSentinel mockSentinel;
     late SentinelsCubit sentinelsCubit;
-    late CubitFailureException exception;
+    late FailureException exception;
     late SentinelInfo sentinelInfo;
     late SentinelInfoList sentinelInfoList;
 
@@ -52,7 +52,7 @@ void main() {
       sentinelsCubit = SentinelsCubit(
         zenon: mockZenon,
       );
-      exception = CubitFailureException();
+      exception = FailureException();
 
       when(() => mockZenon.wsClient).thenReturn(mockWsClient);
       when(() => mockWsClient.isClosed()).thenReturn(false);

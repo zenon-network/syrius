@@ -33,14 +33,14 @@ void main() {
     late MockWsClient mockWsClient;
     late MockTokenApi mockTokenApi;
     late DualCoinStatsCubit dualCoinStatsCubit;
-    late CubitFailureException exception;
+    late FailureException exception;
 
     setUp(() async {
       mockZenon = MockZenon();
       mockEmbedded = MockEmbedded();
       mockTokenApi = MockTokenApi();
       mockWsClient = MockWsClient();
-      exception = CubitFailureException();
+      exception = FailureException();
       dualCoinStatsCubit = DualCoinStatsCubit(
           zenon: mockZenon,
       );

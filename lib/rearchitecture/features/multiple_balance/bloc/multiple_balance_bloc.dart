@@ -65,7 +65,7 @@ class MultipleBalanceBloc
       emit(
         state.copyWith(
           status: MultipleBalanceStatus.failure,
-          error: CubitFailureException(),
+          error: FailureException(),
         ),
       );
     }

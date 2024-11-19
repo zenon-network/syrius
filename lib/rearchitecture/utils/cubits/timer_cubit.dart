@@ -84,7 +84,7 @@ abstract class TimerCubit<T, S extends TimerState<T>> extends HydratedCubit<S> {
       emit(
         state.copyWith(
           status: TimerStatus.failure,
-          error: CubitFailureException(),
+          error: FailureException(),
         ) as S,
       );
       // Reports only the unexpected errors

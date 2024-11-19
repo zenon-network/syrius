@@ -35,7 +35,7 @@ class TokensCubit extends HydratedCubit<TokensState> with RefreshBlocMixin {
     } catch (error, stackTrace) {
       emit(
         state.copyWith(
-          error: CubitFailureException(),
+          error: FailureException(),
         ),
       );
       addError(error, stackTrace);

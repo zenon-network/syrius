@@ -4,7 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/auto_receive_tx_worker.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/transfer/receive_transaction/cubit/receive_transaction_cubit.dart';
-import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/exceptions/cubit_failure_exception.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/exceptions/failure_exception.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 import '../../helpers/hydrated_bloc.dart';
@@ -26,12 +26,12 @@ void main() {
     late MockAutoReceiveTxWorker mockAutoReceiveTxWorker;
     late ReceiveTransactionCubit receiveTransactionCubit;
     late AccountBlockTemplate testAccBlockTemplate;
-    late CubitFailureException exception;
+    late FailureException exception;
 
     setUp(() {
       mockAutoReceiveTxWorker = MockAutoReceiveTxWorker();
       testAccBlockTemplate = AccountBlockTemplate(blockType: 1);
-      exception = CubitFailureException();
+      exception = FailureException();
 
       receiveTransactionCubit = ReceiveTransactionCubit(
         mockAutoReceiveTxWorker,

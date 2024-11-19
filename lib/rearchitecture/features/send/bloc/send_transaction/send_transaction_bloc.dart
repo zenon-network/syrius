@@ -81,7 +81,7 @@ class SendTransactionBloc
       emit(
         state.copyWith(
           status: SendTransactionStatus.failure,
-          error: CubitFailureException(),
+          error: FailureException(),
         ),
       );
       addError(error, stackTrace);
@@ -113,7 +113,7 @@ class SendTransactionBloc
       emit(
         state.copyWith(
           status: SendTransactionStatus.failure,
-          error: CubitFailureException(),
+          error: FailureException(),
         ),
       );
     }

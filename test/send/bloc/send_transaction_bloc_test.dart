@@ -59,7 +59,7 @@ void main() {
     testAmount = 1000;
     testData = <int>[1, 2, 3];
     testAccBlockTemplate = AccountBlockTemplate(blockType: 1);
-    exception = CubitFailureException();
+    exception = FailureException();
 
     when(
       () => mockAccountBlockUtils.createAccountBlock(
