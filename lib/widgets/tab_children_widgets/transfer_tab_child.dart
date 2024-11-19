@@ -35,7 +35,7 @@ class _TransferTabChildState extends State<TransferTabChild> {
             sm: kStaggeredNumOfColumns,
             xs: kStaggeredNumOfColumns,
           ),
-          child: ReceiveCard(),
+          child: const ReceiveCard(),
         ),
         const FluidCell(
           child: LatestTransactions(),

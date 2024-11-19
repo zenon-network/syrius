@@ -20,6 +20,7 @@ import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/model/model.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/send/bloc/bloc.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/tokens/cubit/tokens_cubit.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/transfer/multiple_balance/bloc/multiple_balance_bloc.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/clipboard_utils.dart';
@@ -122,6 +123,11 @@ class _MainAppContainerState extends State<MainAppContainer>
             zenon: zenon!,
             addressList: kDefaultAddressList.map((String? e) => e!).toList(),
           )..add(MultipleBalanceFetch()),
+        ),
+        BlocProvider<TokensCubit>(
+          create: (_) => TokensCubit(
+            zenon: zenon!,
+          )..fetch(),
         ),
       ],
       child: Consumer<TextScalingNotifier>(

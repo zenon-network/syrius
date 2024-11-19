@@ -19,6 +19,9 @@ enum CardType {
   /// A type for a card displaying information in realtime
   realtimeStatistics,
 
+  /// A type for a card that has input fields for receiving a transaction
+  receive,
+
   /// A type for a card that handles the process of sending a transaction
   send,
 
@@ -69,6 +72,10 @@ enum CardType {
           description: context.l10n
               .realtimeStatsDescription(kQsrCoin.symbol, kZnnCoin.symbol),
         ),
+      CardType.receive => CardData(
+        description: context.l10n.manageReceivingFunds,
+        title: context.l10n.receive,
+      ),
       CardType.send => CardData(
         title: context.l10n.send,
         description: context.l10n.manageSendingFunds,
