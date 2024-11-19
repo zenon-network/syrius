@@ -1,12 +1,12 @@
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
-import 'package:zenon_syrius_wallet_flutter/rearchitecture/transfer/multiple_balance/bloc/multiple_balance_bloc.dart';
-import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/exceptions/cubit_failure_exception.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/exceptions/failure_exception.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/zts_utils.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
-import '../../helpers/hydrated_bloc.dart';
+import '../helpers/hydrated_bloc.dart';
 
 class MockZenon extends Mock implements Zenon {}
 
@@ -29,14 +29,14 @@ void main() {
     late String testAddress;
     late BalanceInfoListItem balanceInfoListItem;
     late AccountInfo accountInfo;
-    late CubitFailureException exception;
+    late FailureException exception;
 
     setUp(() {
       mockZenon = MockZenon();
       mockLedger = MockLedger();
       mockWsClient = MockWsClient();
       testAddress = emptyAddress.toString();
-      exception = CubitFailureException();
+      exception = FailureException();
 
       balanceInfoListItem = BalanceInfoListItem(
         token: kZnnCoin,
@@ -72,7 +72,7 @@ void main() {
         failure,
         MultipleBalanceState(
           status: MultipleBalanceStatus.failure,
-          error: CubitFailureException(),
+          error: FailureException(),
         ),
       );
     });

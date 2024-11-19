@@ -7,7 +7,7 @@ import 'package:zenon_syrius_wallet_flutter/blocs/auto_unlock_htlc_worker.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/model/model.dart';
-import 'package:zenon_syrius_wallet_flutter/rearchitecture/transfer/multiple_balance/bloc/multiple_balance_bloc.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
