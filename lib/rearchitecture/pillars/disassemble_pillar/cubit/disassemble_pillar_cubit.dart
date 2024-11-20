@@ -65,12 +65,12 @@ class DisassemblePillarCubit extends HydratedCubit<DisassemblePillarState> {
     }
   }
 
-  /// Deserializes the [DisassemblePillarState] from the provided JSON [Map].
+  /// Deserializes the [DisassemblePillarState] from the provided JSON Map.
   @override
   DisassemblePillarState? fromJson(Map<String, dynamic> json) =>
       DisassemblePillarState.fromJson(json);
 
-  /// Serializes the current [DisassemblePillarState] into a JSON [Map].
+  /// Serializes the current [DisassemblePillarState] into a JSON Map.
   @override
   Map<String, dynamic>? toJson(DisassemblePillarState state) => state.toJson();
 }

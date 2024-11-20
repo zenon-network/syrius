@@ -28,7 +28,7 @@ class UndelegatePillarState extends Equatable {
     this.error,
   });
 
-  /// Creates a new instance from a JSON map.
+  /// {@macro instance_from_json}
   factory UndelegatePillarState.fromJson(Map<String, dynamic> json) =>
       _$UndelegatePillarStateFromJson(json);
 
@@ -36,8 +36,6 @@ class UndelegatePillarState extends Equatable {
   final UndelegatePillarStatus status;
 
   /// The response data from the undelegation operation.
-  ///
-  /// Contains the [AccountBlockTemplate] resulting from the undelegation.
   final AccountBlockTemplate? data;
 
   /// An error message representing any error occurring during the operation.

@@ -12,7 +12,7 @@ class GetPillarByOwnerState extends IndicatorState<List<PillarInfo>> {
     super.error,
   });
 
-  /// Creates a new instance from a JSON object.
+  /// {@macro instance_from_json}
   factory GetPillarByOwnerState.fromJson(Map<String, dynamic> json) =>
       _$GetPillarByOwnerStateFromJson(json);
 

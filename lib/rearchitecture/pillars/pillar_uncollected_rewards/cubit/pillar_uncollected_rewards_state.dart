@@ -12,7 +12,7 @@ class PillarUncollectedRewardsState extends IndicatorState<UncollectedReward> {
     super.error,
   });
 
-  /// Creates a new instance from a JSON object.
+  /// {@macro instance_from_json}
   factory PillarUncollectedRewardsState.fromJson(Map<String, dynamic> json) =>
       _$PillarUncollectedRewardsStateFromJson(json);
 

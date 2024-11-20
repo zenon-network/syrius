@@ -24,7 +24,7 @@ class PillarUncollectedRewardsCubit extends CubitForReloadingIndicator<
     const PillarUncollectedRewardsState(),
   );
 
-  /// The [Address] for which the cubit fetches and manages uncollected rewards.
+  /// The [address] for which the cubit fetches and manages uncollected rewards.
   final Address address;
 
   /// Fetches the uncollected rewards for the specified [address].

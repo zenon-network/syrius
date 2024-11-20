@@ -28,7 +28,7 @@ class DelegatePillarState extends Equatable {
     this.error,
   });
 
-  /// Creates a new instance from a JSON object.
+  /// {@macro instance_from_json}
   factory DelegatePillarState.fromJson(Map<String, dynamic> json) =>
       _$DelegatePillarStateFromJson(json);
 
@@ -36,8 +36,6 @@ class DelegatePillarState extends Equatable {
   final DelegatePillarStatus status;
 
   /// The response data from the delegate operation.
-  ///
-  /// Contains the [AccountBlockTemplate] resulting from the delegation.
   final AccountBlockTemplate? data;
 
   /// An object representing any error occurring during the delegate operation.

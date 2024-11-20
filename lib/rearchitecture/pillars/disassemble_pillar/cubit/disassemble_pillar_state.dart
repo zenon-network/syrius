@@ -28,7 +28,7 @@ class DisassemblePillarState extends Equatable {
     this.error,
   });
 
-  /// Creates a new instance from a JSON map.
+  /// {@macro state_from_json}
   factory DisassemblePillarState.fromJson(Map<String, dynamic> json) =>
       _$DisassemblePillarStateFromJson(json);
 
@@ -36,14 +36,12 @@ class DisassemblePillarState extends Equatable {
   final DisassemblePillarStatus status;
 
   /// The response data from the disassemble operation.
-  ///
-  /// Contains the [AccountBlockTemplate] resulting from the disassembly.
   final AccountBlockTemplate? data;
 
   /// An error message representing any error occurring during the operation.
   final Object? error;
 
-  /// {@macro state_copy_with}
+  /// {@macro instance_from_json}
   DisassemblePillarState copyWith({
     DisassemblePillarStatus? status,
     AccountBlockTemplate? data,

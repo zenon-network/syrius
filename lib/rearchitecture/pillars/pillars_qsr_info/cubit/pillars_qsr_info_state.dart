@@ -28,7 +28,7 @@ class PillarsQsrInfoState extends Equatable {
     this.error,
   });
 
-  /// Creates a new instance from a JSON map.
+  /// {@macro instance_from_json}
   factory PillarsQsrInfoState.fromJson(Map<String, dynamic> json) =>
       _$PillarsQsrInfoStateFromJson(json);
 
@@ -36,8 +36,6 @@ class PillarsQsrInfoState extends Equatable {
   final PillarsQsrInfoStatus status;
 
   /// The QSR management information data.
-  ///
-  /// Contains the [PillarsQsrInfo] object with deposit and cost information.
   final PillarsQsrInfo? data;
 
   /// An error message representing any error occurring during the operation.

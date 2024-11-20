@@ -9,6 +9,7 @@ import 'package:zenon_syrius_wallet_flutter/utils/zts_utils.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 part 'pillars_withdraw_qsr_cubit.g.dart';
+
 part 'pillars_withdraw_qsr_state.dart';
 
 /// A cubit responsible for handling the QSR withdrawal from Pillar slots.
@@ -63,10 +64,12 @@ class PillarsWithdrawQsrCubit extends HydratedCubit<PillarsWithdrawQsrState> {
         ),
       );
     } catch (e) {
-      emit(state.copyWith(
-        status: PillarsWithdrawQsrStatus.failure,
-        error: e,
-      ));
+      emit(
+        state.copyWith(
+          status: PillarsWithdrawQsrStatus.failure,
+          error: e,
+        ),
+      );
     }
   }
 

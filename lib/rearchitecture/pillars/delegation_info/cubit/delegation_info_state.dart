@@ -12,7 +12,7 @@ class DelegationInfoState extends IndicatorState<DelegationInfo> {
     super.error,
   });
 
-  /// Creates a new instance from a JSON object.
+  /// {@macro instance_from_json}
   factory DelegationInfoState.fromJson(Map<String, dynamic> json) =>
       _$DelegationInfoStateFromJson(json);
 

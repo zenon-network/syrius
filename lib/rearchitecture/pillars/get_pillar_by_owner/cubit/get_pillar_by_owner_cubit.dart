@@ -22,7 +22,7 @@ class GetPillarByOwnerCubit extends CubitWithRefreshMixin<List<PillarInfo>,
     const GetPillarByOwnerState(),
   );
 
-  /// The [Address] for which the cubit fetches and manages pillar data.
+  /// The [address] for which the cubit fetches and manages pillar data.
   final Address address;
 
   /// Overrides [getData] method to define how data is fetched for the cubit.

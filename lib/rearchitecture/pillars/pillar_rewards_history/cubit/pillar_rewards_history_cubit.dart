@@ -26,7 +26,7 @@ class PillarRewardsHistoryCubit extends CubitForReloadingIndicator<
     const PillarRewardsHistoryState(),
   );
 
-  /// The [Address] for which the cubit fetches and manages reward history data.
+  /// The [address] for which the cubit fetches and manages reward history data.
   final Address address;
 
   /// The number of reward history entries to request per page.

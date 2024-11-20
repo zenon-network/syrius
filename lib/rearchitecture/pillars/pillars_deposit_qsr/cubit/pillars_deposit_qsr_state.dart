@@ -28,7 +28,7 @@ class PillarsDepositQsrState extends Equatable {
     this.error,
   });
 
-  /// Creates a new instance from a JSON map.
+  /// {@macro instance_from_json}
   factory PillarsDepositQsrState.fromJson(Map<String, dynamic> json) =>
       _$PillarsDepositQsrStateFromJson(json);
 
@@ -36,14 +36,12 @@ class PillarsDepositQsrState extends Equatable {
   final PillarsDepositQsrStatus status;
 
   /// The response data from the QSR deposit operation.
-  ///
-  /// Contains the [AccountBlockTemplate] resulting from the deposit.
   final AccountBlockTemplate? data;
 
   /// An error message representing any error occurring during the operation.
   final Object? error;
 
-  ///
+  /// {@macro state_copy_with}
   PillarsDepositQsrState copyWith({
     PillarsDepositQsrStatus? status,
     AccountBlockTemplate? data,

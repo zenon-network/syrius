@@ -22,7 +22,7 @@ class DelegationInfoCubit
     const DelegationInfoState(),
   );
 
-  /// The [Address] for which the cubit fetches and manages delegation data.
+  /// The [address] for which the cubit fetches and manages delegation data.
   final Address address;
 
   /// Fetches the delegation information for the specified [address].

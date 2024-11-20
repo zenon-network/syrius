@@ -28,7 +28,7 @@ class UpdatePillarState extends Equatable {
     this.error,
   });
 
-  /// Creates a new instance from a JSON map.
+  /// {@macro instance_from_json}
   factory UpdatePillarState.fromJson(Map<String, dynamic> json) =>
       _$UpdatePillarStateFromJson(json);
 
@@ -36,8 +36,6 @@ class UpdatePillarState extends Equatable {
   final UpdatePillarStatus status;
 
   /// The response data from the pillar update operation.
-  ///
-  /// Contains the [AccountBlockTemplate] resulting from the update.
   final AccountBlockTemplate? data;
 
   /// An error message representing any error occurring during the operation.
@@ -56,7 +54,7 @@ class UpdatePillarState extends Equatable {
     );
   }
 
-  /// Converts this state into a JSON map for persistence.
+  /// {@macro state_to_json}
   Map<String, dynamic> toJson() => _$UpdatePillarStateToJson(this);
 
   @override

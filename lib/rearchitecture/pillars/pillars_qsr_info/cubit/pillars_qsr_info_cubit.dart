@@ -6,6 +6,7 @@ import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/pillar_widge
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 part 'pillars_qsr_info_cubit.g.dart';
+
 part 'pillars_qsr_info_state.dart';
 
 /// A cubit responsible for fetching QSR deposit and cost
@@ -19,9 +20,9 @@ class PillarsQsrInfoCubit extends HydratedCubit<PillarsQsrInfoState> {
 
   /// Fetches the QSR management information for a Pillar slot.
   Future<void> getQsrManagementInfo(
-      PillarType? pillarType,
-      String address,
-      ) async {
+    PillarType? pillarType,
+    String address,
+  ) async {
     try {
       emit(state.copyWith(status: PillarsQsrInfoStatus.loading));
 
@@ -30,15 +31,19 @@ class PillarsQsrInfoCubit extends HydratedCubit<PillarsQsrInfoState> {
       );
       final BigInt cost = await zenon.embedded.pillar.getQsrRegistrationCost();
 
-      emit(state.copyWith(
-        status: PillarsQsrInfoStatus.success,
-        data: PillarsQsrInfo(deposit: deposit, cost: cost),
-      ),);
+      emit(
+        state.copyWith(
+          status: PillarsQsrInfoStatus.success,
+          data: PillarsQsrInfo(deposit: deposit, cost: cost),
+        ),
+      );
     } catch (e) {
-      emit(state.copyWith(
-        status: PillarsQsrInfoStatus.failure,
-        error: e,
-      ),);
+      emit(
+        state.copyWith(
+          status: PillarsQsrInfoStatus.failure,
+          error: e,
+        ),
+      );
     }
   }
 
