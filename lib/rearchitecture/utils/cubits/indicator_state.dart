@@ -2,19 +2,17 @@ import 'package:equatable/equatable.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/exceptions/exceptions.dart';
 
 /// Represents the various statuses a cubit's request can have.
-///
-/// This enum is used to track and emit states with different statuses.
 enum IndicatorStatus {
-  /// Indicates that the cubit has encountered an error.
+  /// {@macro failure_status}
   failure,
 
-  /// The initial state before any data has been loaded.
+  /// {@macro initial_status}
   initial,
 
-  /// Data is currently being fetched.
+  /// {@macro loading_status}
   loading,
 
-  /// Data has been successfully loaded.
+  /// {@macro success_status}
   success,
 }
 
@@ -50,8 +48,7 @@ abstract class IndicatorState<T> extends Equatable {
       'when status is failure, error must be different than null',
   );
 
-  /// Represents the current status of the cubit, such as loading, success, or
-  /// failure.
+  /// Represents the current status of the cubit.
   final IndicatorStatus status;
 
   /// The data of type [T] managed by the cubit, which can be null if no data
@@ -61,12 +58,7 @@ abstract class IndicatorState<T> extends Equatable {
   /// An optional error object that holds a message to be presented to the user.
   final SyriusException? error;
 
-  /// Creates a copy of the current state with the option to modify specific
-  /// fields.
-  ///
-  /// - [status]: The new status of the cubit (e.g., loading, success).
-  /// - [data]: The new data of type [T], if it has changed.
-  /// - [error]: The new error, if any occurred.
+  /// {@macro state_copy_with}
   IndicatorState<T> copyWith({
     IndicatorStatus? status,
     T? data,

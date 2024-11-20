@@ -2,16 +2,16 @@ part of 'pillars_deposit_qsr_cubit.dart';
 
 /// Represents the possible statuses for the QSR deposit operation.
 enum PillarsDepositQsrStatus{
-  /// The initial state before any action has been taken.
+  /// {@macro initial_status}
   initial,
 
-  /// Indicates that the data is currently being loaded.
+  /// {@macro loading_status}
   loading,
 
-  /// Indicates that an error occurred during the data fetching process.
+  /// {@macro failure_status}
   failure,
 
-  /// Indicates that data has been successfully fetched.
+  /// {@macro success_status}
   success,
 }
 

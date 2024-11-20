@@ -2,16 +2,24 @@ part of 'delegate_pillar_cubit.dart';
 
 /// Represents the possible statuses for the delegate pillar operation.
 enum DelegatePillarStatus {
+  /// {@template initial_status}
   /// The initial state before any action has been taken.
+  /// {@endtemplate}
   initial,
 
+  /// {@template loading_status}
   /// Indicates that the data is currently being loaded.
+  /// {@endtemplate}
   loading,
 
+  /// {@template failure_status}
   /// Indicates that an error occurred during the data fetching process.
+  /// {@endtemplate}
   failure,
 
+  /// {@template success_status}
   /// Indicates that data has been successfully fetched.
+  /// {@endtemplate}
   success,
 }
 

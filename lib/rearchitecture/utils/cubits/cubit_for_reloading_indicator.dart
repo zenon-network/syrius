@@ -6,14 +6,15 @@ import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/exceptions/exce
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 /// A cubit used to manage reloading and updating indicator states.
+///
 /// This cubit can be used for any data-fetching operations that require
 /// real-time updates from the Zenon SDK. In contrast with
 /// [CubitWithRefreshMixin], this cubit emits a loading indicator state before
 /// any data fetching.
 abstract class CubitForReloadingIndicator<T, S extends IndicatorState<T>>
     extends HydratedCubit<S> with RefreshBlocMixin {
-
   /// Constructor for [CubitForReloadingIndicator].
+  ///
   /// [callUpdateStream] determines if [updateStream] is called initially.
   CubitForReloadingIndicator(
       super.initialState, {
@@ -34,7 +35,8 @@ abstract class CubitForReloadingIndicator<T, S extends IndicatorState<T>>
   /// Abstract method [getData] that must be implemented by subclasses.
   Future<T> getData();
 
-  /// [updateStream] is a method that fetches data and updates the state.
+  /// [updateStream] handles the data fetching process and updates the state
+  /// accordingly.
   Future<void> updateStream() async {
     try {
       // Emit a loading state before attempting to fetch data.
@@ -67,6 +69,7 @@ abstract class CubitForReloadingIndicator<T, S extends IndicatorState<T>>
   }
 
   /// Overrides the [close] method to clean up resources.
+  ///
   /// Cancels the WebSocket subscription before closing the cubit.
   @override
   Future<void> close() {

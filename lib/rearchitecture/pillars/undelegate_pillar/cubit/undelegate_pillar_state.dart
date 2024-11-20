@@ -2,16 +2,16 @@ part of 'undelegate_pillar_cubit.dart';
 
 /// Represents the possible statuses for the undelegate pillar operation.
 enum UndelegatePillarStatus {
-  /// The initial state before any action has been taken.
+  /// {@macro initial_status}
   initial,
 
-  /// Indicates that the data is currently being loaded.
+  /// {@macro loading_status}
   loading,
 
-  /// Indicates that an error occurred during the data fetching process.
+  /// {@macro failure_status}
   failure,
 
-  /// Indicates that data has been successfully fetched.
+  /// {@macro success_status}
   success,
 }
 

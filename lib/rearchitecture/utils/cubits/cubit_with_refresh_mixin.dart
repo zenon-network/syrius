@@ -6,6 +6,7 @@ import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/exceptions/exce
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 /// A cubit used to manage reloading and updating indicator states.
+///
 /// This cubit can be used for any data-fetching operations that require
 /// real-time updates from the Zenon SDK. In contrast with
 /// [CubitForReloadingIndicator], this cubit emits a loading indicator state
@@ -13,6 +14,7 @@ import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 abstract class CubitWithRefreshMixin<T, S extends IndicatorState<T>>
     extends HydratedCubit<S> with RefreshBlocMixin {
   /// Constructor for [CubitWithRefreshMixin].
+  ///
   /// [callUpdateStream] controls whether [updateStream] is called immediately.
   CubitWithRefreshMixin(
     super.initialState, {
@@ -27,15 +29,16 @@ abstract class CubitWithRefreshMixin<T, S extends IndicatorState<T>>
     }
   }
 
-  /// The Zenon instance used for establishing WebSocket connections
-  /// and for retrieving data from the Zenon SDK.
+  /// An instance of [Zenon] used for data fetching and managing connections.
   final Zenon zenon;
 
   /// Abstract method [getData] that subclasses must implement.
   Future<T?> getData();
 
   /// [updateStream] handles the data fetching process and updates the state
-  /// accordingly. It emits a loading state only if the previous status was
+  /// accordingly.
+  ///
+  /// It emits a loading state only if the previous status was
   /// not successful, then attempts to fetch data using [getData].
   Future<void> updateStream() async {
     try {
@@ -71,6 +74,7 @@ abstract class CubitWithRefreshMixin<T, S extends IndicatorState<T>>
   }
 
   /// Overrides the [close] method to perform cleanup before closing the cubit.
+  ///
   /// Cancels any active WebSocket subscriptions managed by the mixin.
   @override
   Future<void> close() {
