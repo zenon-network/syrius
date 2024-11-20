@@ -1,12 +1,9 @@
-part of 'latest_transactions_cubit.dart';
+part of 'latest_transactions_bloc.dart';
 
 /// Represents the possible statuses for the latest transactions operation.
 enum LatestTransactionsStatus {
   /// The initial state before any action has been taken.
   initial,
-
-  /// Indicates that the data is currently being loaded.
-  loading,
 
   /// Indicates that an error occurred during the data fetching process.
   failure,
@@ -24,8 +21,9 @@ class LatestTransactionsState extends Equatable {
   /// The [status] defaults to [LatestTransactionsStatus.initial].
   const LatestTransactionsState({
     this.status = LatestTransactionsStatus.initial,
-    this.data,
+    this.data = const <AccountBlock>[],
     this.error,
+    this.hasReachedMax = false,
   });
 
   /// Creates a new instance from a JSON object.
@@ -38,24 +36,29 @@ class LatestTransactionsState extends Equatable {
   /// The list of [AccountBlock] instances representing the latest transactions.
   ///
   /// It is populated when the [status] is [LatestTransactionsStatus.success].
-  final List<AccountBlock>? data;
+  final List<AccountBlock> data;
 
   /// An object representing any error that occurred during data fetching.
   ///
   /// This is typically an exception or error message. It is populated when
   /// the [status] is [LatestTransactionsStatus.failure].
-  final Object? error;
+  final SyriusException? error;
+
+  /// Whether there are more account blocks to be fetched.
+  final bool hasReachedMax;
 
   ///{@macro state_copy_with}
   LatestTransactionsState copyWith({
     LatestTransactionsStatus? status,
     List<AccountBlock>? data,
-    Object? error,
+    SyriusException? error,
+    bool? hasReachedMax,
   }) {
     return LatestTransactionsState(
       status: status ?? this.status,
       data: data ?? this.data,
       error: error ?? this.error,
+      hasReachedMax: hasReachedMax ?? this.hasReachedMax,
     );
   }
 

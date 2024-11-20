@@ -11,10 +11,12 @@ import 'package:flutter_svg/svg.dart';
 import 'package:flutter_vector_icons/flutter_vector_icons.dart';
 import 'package:logging/logging.dart';
 import 'package:lottie/lottie.dart';
+import 'package:nested/nested.dart';
 import 'package:provider/provider.dart';
 import 'package:wallet_connect_uri_validator/wallet_connect_uri_validator.dart';
 import 'package:window_manager/window_manager.dart';
-import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
+import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart'
+    hide LatestTransactionsBloc;
 import 'package:zenon_syrius_wallet_flutter/handlers/htlc_swaps_handler.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/model/model.dart';
@@ -112,7 +114,16 @@ class _MainAppContainerState extends State<MainAppContainer>
   @override
   Widget build(BuildContext context) {
     return MultiBlocProvider(
-      providers: [
+      providers: <SingleChildWidget>[
+        BlocProvider<LatestTransactionsBloc>(
+          create: (_) => LatestTransactionsBloc(
+            zenon: zenon!,
+          )..add(
+              LatestTransactionsRequested(
+                address: Address.parse(kSelectedAddress!),
+              ),
+            ),
+        ),
         BlocProvider<SendTransactionBloc>(
           create: (_) => SendTransactionBloc(),
         ),

@@ -13,6 +13,9 @@ enum CardType {
   /// A type for a card displaying information related to ZNN and QSR
   dualCoinStats,
 
+  /// A type for a card displaying the latest transactions for an address
+  latestTransactions,
+
   /// A type for a card displaying information related to pillars
   pillars,
 
@@ -63,6 +66,10 @@ enum CardType {
             kZnnCoin.symbol,
           ),
         ),
+      CardType.latestTransactions => CardData(
+        description: context.l10n.latestTransactionsDescription,
+        title: context.l10n.latestTransactionsTitle,
+      ),
       CardType.pillars => CardData(
           title: context.l10n.pillars,
           description: context.l10n.pillarsDescription,

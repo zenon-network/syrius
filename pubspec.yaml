@@ -80,6 +80,7 @@ dependencies:
   hydrated_bloc: ^9.1.5
   json_annotation: ^4.9.0
   bloc_concurrency: ^0.2.5
+  stream_transform: ^2.1.0
 
 
 dependency_overrides:

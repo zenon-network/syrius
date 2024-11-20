@@ -1,12 +1,12 @@
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
-import 'package:zenon_syrius_wallet_flutter/rearchitecture/transfer/latest_transactions/cubit/latest_transactions_cubit.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/exceptions/failure_exception.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/zts_utils.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
-import '../../helpers/hydrated_bloc.dart';
+import '../helpers/hydrated_bloc.dart';
 
 class MockZenon extends Mock implements Zenon {}
 
@@ -21,10 +21,10 @@ void main() {
     registerFallbackValue(FakeAddress());
   });
 
-  group('LatestTransactionsCubit', () {
+  group('LatestTransactionsBloc', () {
     late MockZenon mockZenon;
     late MockLedger mockLedger;
-    late LatestTransactionsCubit latestTransactionsCubit;
+    late LatestTransactionsBloc latestTransactionsBloc;
     late AccountBlock accountBlock;
     late AccountBlockList accountBlockList;
     late int pageKey;
@@ -91,19 +91,18 @@ void main() {
         ),
       ).thenAnswer((_) async => accountBlockList);
 
-      latestTransactionsCubit = LatestTransactionsCubit(
+      latestTransactionsBloc = LatestTransactionsBloc(
         zenon: mockZenon,
-        address: emptyAddress,
       );
     });
 
     tearDown(() {
-      latestTransactionsCubit.close();
+      latestTransactionsBloc.close();
     });
 
     test('initial state is correct', () {
       expect(
-        latestTransactionsCubit.state.status,
+        latestTransactionsBloc.state.status,
         LatestTransactionsStatus.initial,
       );
     });
@@ -112,28 +111,13 @@ void main() {
       test('can (de)serialize initial state', () {
         const LatestTransactionsState initialState = LatestTransactionsState();
 
-        final Map<String, dynamic>? serialized = latestTransactionsCubit.toJson(
+        final Map<String, dynamic>? serialized = latestTransactionsBloc.toJson(
           initialState,
         );
         final LatestTransactionsState? deserialized =
-            latestTransactionsCubit.fromJson(serialized!);
+            latestTransactionsBloc.fromJson(serialized!);
 
         expect(deserialized, equals(initialState));
-      });
-
-      test('can (de)serialize loading state', () {
-        const LatestTransactionsState loadingState = LatestTransactionsState(
-          status: LatestTransactionsStatus.loading,
-        );
-
-        final Map<String, dynamic>? serialized = latestTransactionsCubit.toJson(
-          loadingState,
-        );
-        final LatestTransactionsState? deserialized =
-            latestTransactionsCubit.fromJson(
-          serialized!,
-        );
-        expect(deserialized, equals(loadingState));
       });
 
       test('can (de)serialize success state', () {
@@ -142,11 +126,11 @@ void main() {
           data: <AccountBlock>[accountBlock],
         );
 
-        final Map<String, dynamic>? serialized = latestTransactionsCubit.toJson(
+        final Map<String, dynamic>? serialized = latestTransactionsBloc.toJson(
           successState,
         );
         final LatestTransactionsState? deserialized =
-            latestTransactionsCubit.fromJson(
+            latestTransactionsBloc.fromJson(
           serialized!,
         );
         expect(deserialized, isA<LatestTransactionsState>());
@@ -160,23 +144,26 @@ void main() {
           error: exception,
         );
 
-        final Map<String, dynamic>? serialized = latestTransactionsCubit.toJson(
+        final Map<String, dynamic>? serialized = latestTransactionsBloc.toJson(
           failureState,
         );
         final LatestTransactionsState? deserialized =
-            latestTransactionsCubit.fromJson(
+            latestTransactionsBloc.fromJson(
           serialized!,
         );
         expect(deserialized, equals(failureState));
       });
     });
 
-    blocTest<LatestTransactionsCubit, LatestTransactionsState>(
-      'emits [loading, success] with data on successful fetch',
-      build: () => latestTransactionsCubit,
-      act: (LatestTransactionsCubit cubit) => cubit.getData(pageKey, pageSize),
+    blocTest<LatestTransactionsBloc, LatestTransactionsState>(
+      'emits [success] with data is successfully fetched',
+      build: () => latestTransactionsBloc,
+      act: (LatestTransactionsBloc cubit) => cubit.add(
+        LatestTransactionsRequested(
+          address: emptyAddress,
+        ),
+      ),
       expect: () => <LatestTransactionsState>[
-        const LatestTransactionsState(status: LatestTransactionsStatus.loading),
         LatestTransactionsState(
           status: LatestTransactionsStatus.success,
           data: <AccountBlock>[accountBlock],
@@ -184,9 +171,8 @@ void main() {
       ],
     );
 
-    // TODO(maznwell): test not working. seems to be equatable-related problem
-    blocTest<LatestTransactionsCubit, LatestTransactionsState>(
-      'emits [loading, failure] on fetch failure',
+    blocTest<LatestTransactionsBloc, LatestTransactionsState>(
+      'emits [failure] on fetch failure',
       setUp: () {
         when(
           () => mockLedger.getAccountBlocksByPage(
@@ -196,13 +182,33 @@ void main() {
           ),
         ).thenThrow(exception);
       },
-      build: () => latestTransactionsCubit,
-      act: (LatestTransactionsCubit cubit) => cubit.getData(pageKey, pageSize),
+      build: () => latestTransactionsBloc,
+      act: (LatestTransactionsBloc cubit) => cubit.add(
+        LatestTransactionsRequested(
+          address: emptyAddress,
+        ),
+      ),
       expect: () => <LatestTransactionsState>[
-        const LatestTransactionsState(status: LatestTransactionsStatus.loading),
         LatestTransactionsState(
           status: LatestTransactionsStatus.failure,
           error: exception,
+        ),
+      ],
+    );
+
+    blocTest<LatestTransactionsBloc, LatestTransactionsState>(
+      'emits [initial, success] when refresh is requested',
+      build: () => latestTransactionsBloc,
+      act: (LatestTransactionsBloc cubit) => cubit.add(
+        LatestTransactionsRefreshRequested(
+          address: emptyAddress,
+        ),
+      ),
+      expect: () => <LatestTransactionsState>[
+        const LatestTransactionsState(),
+        LatestTransactionsState(
+          status: LatestTransactionsStatus.success,
+          data: <AccountBlock>[accountBlock],
         ),
       ],
     );
