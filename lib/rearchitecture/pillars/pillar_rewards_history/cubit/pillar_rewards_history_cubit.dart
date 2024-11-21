@@ -13,9 +13,13 @@ part 'pillar_rewards_history_state.dart';
 class PillarRewardsHistoryCubit extends CubitForReloadingIndicator<
     RewardHistoryList, PillarRewardsHistoryState> {
 
-  /// Constructs a [PillarRewardsHistoryCubit] with the necessary Zenon
-  /// instance, the target [address] for which reward history data is fetched,
-  /// and an optional [pageSize] to control the number of entries retrieved.
+  /// Constructs a [PillarRewardsHistoryCubit].
+  ///
+  /// The parameters are a [Zenon] instance,
+  /// the target [address] for which reward history data is fetched,
+  /// an optional [pageSize] to control the number of entries retrieved,
+  /// and an optional flag [callUpdateStream] to control
+  /// whether data is fetched on initialization.
   PillarRewardsHistoryCubit({
     required super.zenon,
     required this.address,

@@ -11,8 +11,12 @@ part 'delegation_info_state.dart';
 class DelegationInfoCubit
     extends CubitWithRefreshMixin<DelegationInfo, DelegationInfoState> {
 
-  /// Constructs a [DelegationInfoCubit] with a [zenon] instance and the
-  /// [address] for which delegation data is to be retrieved.
+  /// Constructs a [DelegationInfoCubit].
+  ///
+  /// The parameters are a [Zenon] instance,
+  /// an [address] for which delegation data is to be retrieved,
+  /// and an optional flag [callUpdateStream] to control
+  /// whether data is fetched on initialization.
   DelegationInfoCubit({
     required super.zenon,
     required this.address,

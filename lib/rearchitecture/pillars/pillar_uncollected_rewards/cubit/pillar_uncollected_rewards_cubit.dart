@@ -11,8 +11,9 @@ part 'pillar_uncollected_rewards_state.dart';
 class PillarUncollectedRewardsCubit extends CubitForReloadingIndicator<
     UncollectedReward, PillarUncollectedRewardsState> {
 
-  /// Constructs a [PillarUncollectedRewardsCubit]
-  /// with a specified Zenon instance, the target [address] to retrieve
+  /// Constructs a [PillarUncollectedRewardsCubit].
+  ///
+  /// The parameters are a [Zenon] instance, the target [address] to retrieve
   /// uncollected rewards, and an optional flag [callUpdateStream] to control
   /// whether data is fetched on initialization.
   PillarUncollectedRewardsCubit({

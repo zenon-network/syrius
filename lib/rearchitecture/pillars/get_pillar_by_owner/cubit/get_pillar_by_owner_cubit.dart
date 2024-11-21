@@ -11,8 +11,12 @@ part 'get_pillar_by_owner_state.dart';
 class GetPillarByOwnerCubit extends CubitWithRefreshMixin<List<PillarInfo>,
     GetPillarByOwnerState> {
 
-  /// Constructs a [GetPillarByOwnerCubit] with a [zenon] instance and the
-  /// [address] for which pillar data is to be retrieved.
+  /// Constructs a [GetPillarByOwnerCubit].
+  ///
+  /// The parameters are a [Zenon] instance, the
+  /// [address] for which pillar data is to be retrieved,
+  /// and an optional flag [callUpdateStream] to control
+  /// whether data is fetched on initialization.
   GetPillarByOwnerCubit({
     required super.zenon,
     required this.address,
