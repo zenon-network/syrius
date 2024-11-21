@@ -16,7 +16,8 @@ class WidgetUtils {
       listen: false,
     );
     final ThemeMode savedThemeMode = ThemeMode.values.firstWhere(
-      (ThemeMode element) => element.toString() == sharedPrefsService!.get(kThemeModeKey),
+      (ThemeMode element) =>
+          element.toString() == sharedPrefsService!.get(kThemeModeKey),
       orElse: () => kDefaultThemeMode,
     );
     if (appThemeNotifier.currentThemeMode != savedThemeMode) {
@@ -25,7 +26,8 @@ class WidgetUtils {
   }
 
   static void setTextScale(BuildContext context) {
-    final TextScalingNotifier textScalingNotifier = Provider.of<TextScalingNotifier>(
+    final TextScalingNotifier textScalingNotifier =
+        Provider.of<TextScalingNotifier>(
       context,
       listen: false,
     );
@@ -90,21 +92,14 @@ class WidgetUtils {
     bool isShortVersion = true,
     bool showCopyToClipboardIcon = false,
   }) {
-    TextStyle? textStyle = address != null && address.isEmbedded()
+    final TextStyle? textStyle = address != null && address.isEmbedded() ||
+            (checkIfStakeAddress && address.toString() == kSelectedAddress)
         ? Theme.of(context).textTheme.bodyMedium?.copyWith(
               color: AppColors.znnColor,
               fontWeight: FontWeight.bold,
             )
         : null;
 
-    if (checkIfStakeAddress) {
-      textStyle = address != null && address.toString() == kSelectedAddress
-          ? Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: AppColors.znnColor,
-                fontWeight: FontWeight.bold,
-              )
-          : null;
-    }
     if (address != null && kAddressLabelMap.containsKey(address.toString())) {
       return InfiniteScrollTableCell.tooltipWithText(
         context,

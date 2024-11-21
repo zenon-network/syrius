@@ -5,6 +5,7 @@ import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/extensions/buil
 import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
+import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 /// A table for displaying a large set of items
 ///
@@ -26,13 +27,11 @@ class NewInfiniteScrollTable<T> extends StatefulWidget {
     required this.generateRowCells,
     required this.onScrollReachedBottom,
     required this.headerColumns,
-    this.onRowTappedCallback,
     super.key,
   });
 
   final List<NewInfiniteScrollTableHeaderColumn> headerColumns;
   final List<Widget> Function(T, bool) generateRowCells;
-  final void Function(int index)? onRowTappedCallback;
   final VoidCallback onScrollReachedBottom;
   final List<T> items;
   final bool hasReachedMax;
@@ -76,18 +75,22 @@ class _NewInfiniteScrollTableState<T> extends State<NewInfiniteScrollTable<T>> {
         PinnedHeaderSliver(
           child: _Header(columns: widget.headerColumns),
         ),
-        SliverList.builder(
+        SliverList.separated(
+          separatorBuilder: (_, __) => const Divider(
+            thickness: 0.75,
+          ),
           itemCount: widget.items.length + 1,
           itemBuilder: (BuildContext context, int index) {
-            // TODO(maznnwell): localize
             final Widget lastChild = widget.hasReachedMax
                 ? SyriusErrorWidget(context.l10n.noItemsFound)
                 : const SyriusLoadingWidget();
 
-            return index == widget.items.length ? lastChild : _getTableRow(
-              widget.items[index],
-              index,
-            );
+            return index == widget.items.length
+                ? lastChild
+                : _getTableRow(
+                    widget.items[index],
+                    index,
+                  );
           },
         ),
       ],
@@ -110,49 +113,24 @@ class _NewInfiniteScrollTableState<T> extends State<NewInfiniteScrollTable<T>> {
   Widget _getTableRow(dynamic item, int indexOfRow) {
     final bool isSelected = _selectedRowIndex == indexOfRow;
 
-    return InkWell(
-      onTap: () {
-        widget.onRowTappedCallback?.call(indexOfRow);
-        setState(() {
-          if (_selectedRowIndex != indexOfRow) {
-            _selectedRowIndex = indexOfRow;
-          } else {
-            _selectedRowIndex = null;
-          }
-        });
-      },
-      child: Container(
-        decoration: BoxDecoration(
-          color: isSelected
-              ? Theme.of(context).colorScheme.primaryContainer
-              : Colors.transparent,
-          border: Border(
-            top: indexOfRow != 0
-                ? const BorderSide(
-                    width: 0.75,
-                  )
-                : BorderSide.none,
-            left: isSelected
-                ? const BorderSide(
-                    color: AppColors.znnColor,
-                    width: 2,
-                  )
-                : BorderSide.none,
-          ),
-        ),
-        padding: const EdgeInsets.symmetric(
-          vertical: 15,
-        ),
-        child: Row(
-          children: List<Widget>.from(
-                <SizedBox>[
-                  const SizedBox(
-                    width: 20,
-                  ),
-                ],
-              ) +
-              widget.generateRowCells(item, isSelected),
-        ),
+    return Container(
+      decoration: BoxDecoration(
+        color: isSelected
+            ? Theme.of(context).colorScheme.primaryContainer
+            : Colors.transparent,
+      ),
+      padding: const EdgeInsets.symmetric(
+        vertical: 15,
+      ),
+      child: Row(
+        children: List<Widget>.from(
+              <SizedBox>[
+                const SizedBox(
+                  width: 20,
+                ),
+              ],
+            ) +
+            widget.generateRowCells(item, isSelected),
       ),
     );
   }
@@ -288,32 +266,36 @@ class NewInfiniteScrollTableCell extends StatelessWidget {
   factory NewInfiniteScrollTableCell.withText(
     BuildContext context,
     String text, {
-    Key? key,
-    bool showCopyToClipboardIcon = false,
+    String? textToBeCopied,
     TextStyle? textStyle,
     Color textColor = AppColors.subtitleColor,
     TextAlign textAlign = TextAlign.start,
     int flex = 1,
+    String tooltipMessage = '',
   }) =>
       NewInfiniteScrollTableCell(
         Row(
           children: <Widget>[
-            Expanded(
-              child: Text(
-                text,
-                textAlign: textAlign,
-                style: textStyle ??
-                    Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: textColor,
-                        ),
+            Flexible(
+              child: Tooltip(
+                message: tooltipMessage,
+                child: Text(
+                  text,
+                  textAlign: textAlign,
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 1,
+                  style: textStyle ??
+                      Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            color: textColor,
+                          ),
+                ),
               ),
             ),
-            Visibility(
-              visible: showCopyToClipboardIcon,
-              child: Row(
+            if (textToBeCopied != null)
+              Row(
                 children: <Widget>[
                   CopyToClipboardIcon(
-                    text,
+                    textToBeCopied,
                     materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                   ),
                   const SizedBox(
@@ -321,12 +303,43 @@ class NewInfiniteScrollTableCell extends StatelessWidget {
                   ),
                 ],
               ),
-            ),
           ],
         ),
         flex: flex,
-        key: key,
       );
+
+  factory NewInfiniteScrollTableCell.textFromAddress(
+    Address address,
+    BuildContext context, {
+    bool checkIfStakeAddress = false,
+    bool isShortVersion = true,
+  }) {
+    final TextStyle? textStyle = address.isEmbedded() ||
+            (checkIfStakeAddress && address.toString() == kSelectedAddress)
+        ? Theme.of(context).textTheme.bodyMedium?.copyWith(
+              color: AppColors.znnColor,
+              fontWeight: FontWeight.bold,
+            )
+        : null;
+
+    final bool hasLabel = kAddressLabelMap[address.toString()] != null;
+
+    final String text = hasLabel
+        ? ZenonAddressUtils.getLabel(address.toString())
+        : isShortVersion
+            ? address.toShortString()
+            : address.toString();
+
+    return NewInfiniteScrollTableCell.withText(
+      context,
+      text,
+      flex: 2,
+      textStyle: textStyle,
+      tooltipMessage: address.toString(),
+      textToBeCopied: address.toString(),
+    );
+  }
+
   final Widget child;
   final int flex;
 
