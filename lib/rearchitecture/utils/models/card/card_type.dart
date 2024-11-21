@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/zts_utils.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/tab_children_widgets/tab_children_widgets.dart';
 
 /// A class that helps distinguish between the card widgets
 enum CardType {
@@ -15,6 +16,10 @@ enum CardType {
 
   /// A type for a card displaying the latest transactions for an address
   latestTransactions,
+
+  /// A type for a card displaying the latest transactions for an address,
+  /// adjusted to be displayed in the [DashboardTabChild] tab.
+  latestTransactionsDashboard,
 
   /// A type for a card displaying information related to pillars
   pillars,
@@ -67,6 +72,10 @@ enum CardType {
           ),
         ),
       CardType.latestTransactions => CardData(
+        description: context.l10n.latestTransactionsDescription,
+        title: context.l10n.latestTransactionsTitle,
+      ),
+      CardType.latestTransactionsDashboard => CardData(
         description: context.l10n.latestTransactionsDescription,
         title: context.l10n.latestTransactionsTitle,
       ),

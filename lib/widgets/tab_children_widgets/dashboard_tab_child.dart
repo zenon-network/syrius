@@ -3,6 +3,7 @@ import 'package:layout/layout.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/models/card/card.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 
 class DashboardTabChild extends StatefulWidget {
@@ -76,8 +77,8 @@ class _DashboardTabChildState extends State<DashboardTabChild> {
         width: defaultCellWidth * 2,
       ),
       FluidCell(
-        child: const LatestTransactions(
-          version: LatestTransactionsVersion.dashboard,
+        child: LatestTransactionsCard(
+          type: CardType.latestTransactionsDashboard,
         ),
         width: defaultCellWidth * 2,
       ),

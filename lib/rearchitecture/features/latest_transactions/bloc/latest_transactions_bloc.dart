@@ -54,12 +54,12 @@ class LatestTransactionsBloc
   ) async {
     if (state.hasReachedMax) return;
     final int previousNumOfItems = state.data.length;
-    final int previousPageIndex = previousNumOfItems ~/ _pageSize;
+    final int pageIndex = previousNumOfItems ~/ _pageSize;
     try {
       final AccountBlockList accountBlock =
           await zenon.ledger.getAccountBlocksByPage(
         event.address,
-        pageIndex: previousPageIndex + 1,
+        pageIndex: pageIndex,
         pageSize: _pageSize,
       );
 
@@ -69,7 +69,10 @@ class LatestTransactionsBloc
 
       emit(
         state.copyWith(
-          data: data,
+          data: <AccountBlock>[
+            ...state.data,
+            ...data,
+          ],
           hasReachedMax: hasReachedMax,
           status: LatestTransactionsStatus.success,
         ),

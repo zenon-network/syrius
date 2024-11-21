@@ -70,5 +70,5 @@ class LatestTransactionsState extends Equatable {
   Map<String, dynamic> toJson() => _$LatestTransactionsStateToJson(this);
 
   @override
-  List<Object?> get props => <Object?>[status, data, error];
+  List<Object?> get props => <Object?>[status, data, error, hasReachedMax];
 }

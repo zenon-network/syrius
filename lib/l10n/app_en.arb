@@ -20,6 +20,8 @@
   "manageSendingFunds": "Manage sending funds",
   "max": "Max",
   "minAgo": "min ago",
+  "noItemsFound": "No items found",
+  "noMoreItems": "No more items",
   "password": "Password",
   "pending": "Pending",
   "pendingTransactionsDescription": "This card displays the pending transactions (including ZTS tokens) for the selected address",
