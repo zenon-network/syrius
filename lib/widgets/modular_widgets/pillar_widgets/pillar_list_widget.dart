@@ -362,7 +362,7 @@ class _PillarListWidgetState extends State<PillarListWidget> {
         });
         model.delegateToPillar(pillarInfo.name);
       },
-      text: context.l10n.delegateKey,
+      text: context.l10n.delegate,
       textStyle: Theme.of(context).textTheme.titleSmall!.copyWith(
             color: Theme.of(context).textTheme.bodyLarge!.color,
           ),

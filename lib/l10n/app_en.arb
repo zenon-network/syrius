@@ -17,7 +17,7 @@
   "currentAmounts": "This card displays the current {kZnnCoinSymbol} and {kQsrCoinSymbol} amounts for the selected address",
   "currentPillarSlotFee": "Current Pillar Slot fee\n{coins} {kQsrCoinSymbol}",
   "date":"Date",
-  "delegateKey": "DELEGATE",
+  "delegate": "DELEGATE",
   "delegation": "Delegation",
   "delegationPercentageGiven": "Delegation percentage given: {percentage}",
   "delegationReward": "Delegation reward",
