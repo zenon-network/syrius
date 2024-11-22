@@ -16,7 +16,9 @@ LatestTransactionsState _$LatestTransactionsStateFromJson(
               ?.map((e) => AccountBlock.fromJson(e as Map<String, dynamic>))
               .toList() ??
           const <AccountBlock>[],
-      error: json['error'],
+      error: json['error'] == null
+          ? null
+          : SyriusException.fromJson(json['error'] as Map<String, dynamic>),
       hasReachedMax: json['hasReachedMax'] as bool? ?? false,
     );
 
@@ -25,7 +27,7 @@ Map<String, dynamic> _$LatestTransactionsStateToJson(
     <String, dynamic>{
       'status': _$LatestTransactionsStatusEnumMap[instance.status]!,
       'data': instance.data.map((e) => e.toJson()).toList(),
-      'error': instance.error,
+      'error': instance.error?.toJson(),
       'hasReachedMax': instance.hasReachedMax,
     };
 
