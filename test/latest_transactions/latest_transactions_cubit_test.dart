@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/exceptions/failure_exception.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/zts_utils.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
@@ -27,8 +28,6 @@ void main() {
     late LatestTransactionsBloc latestTransactionsBloc;
     late AccountBlock accountBlock;
     late AccountBlockList accountBlockList;
-    late int pageKey;
-    late int pageSize;
     late FailureException exception;
 
     setUp(() async {
@@ -72,8 +71,6 @@ void main() {
 
       mockZenon = MockZenon();
       mockLedger = MockLedger();
-      pageKey = 1;
-      pageSize = 10;
       accountBlock = AccountBlock.fromJson(accountBlockJson);
       accountBlockList = AccountBlockList(
         count: 1,
@@ -167,6 +164,7 @@ void main() {
         LatestTransactionsState(
           status: LatestTransactionsStatus.success,
           data: <AccountBlock>[accountBlock],
+          hasReachedMax: true,
         ),
       ],
     );
@@ -177,8 +175,7 @@ void main() {
         when(
           () => mockLedger.getAccountBlocksByPage(
             any(),
-            pageIndex: pageKey,
-            pageSize: pageSize,
+            pageSize: kPageSize,
           ),
         ).thenThrow(exception);
       },
@@ -204,13 +201,20 @@ void main() {
           address: emptyAddress,
         ),
       ),
-      expect: () => <LatestTransactionsState>[
-        const LatestTransactionsState(),
-        LatestTransactionsState(
-          status: LatestTransactionsStatus.success,
-          data: <AccountBlock>[accountBlock],
-        ),
-      ],
+      expect: () {
+        final List<AccountBlock> data = <AccountBlock>[accountBlock];
+
+        final bool hasReachedMax = data.length < kPageSize;
+
+        return <LatestTransactionsState>[
+          const LatestTransactionsState(),
+          LatestTransactionsState(
+            status: LatestTransactionsStatus.success,
+            data: data,
+            hasReachedMax: hasReachedMax,
+          ),
+        ];
+      },
     );
   });
 }
