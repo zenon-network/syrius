@@ -1,12 +1,13 @@
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
-import 'package:zenon_syrius_wallet_flutter/rearchitecture/transfer/pending_transactions/cubit/pending_transactions_cubit.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/pending_transactions/pending_transactions.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/exceptions/failure_exception.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/zts_utils.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
-import '../../helpers/hydrated_bloc.dart';
+import '../helpers/hydrated_bloc.dart';
 
 class MockZenon extends Mock implements Zenon {}
 
@@ -24,11 +25,9 @@ void main() {
   group('PendingTransactionsCubit', () {
     late MockZenon mockZenon;
     late MockLedger mockLedger;
-    late PendingTransactionsCubit pendingTransactionsCubit;
+    late PendingTransactionsBloc pendingTransactionsBloc;
     late AccountBlock accountBlock;
     late AccountBlockList accountBlockList;
-    late int pageKey;
-    late int pageSize;
     late FailureException exception;
 
     setUp(() async {
@@ -72,8 +71,6 @@ void main() {
 
       mockZenon = MockZenon();
       mockLedger = MockLedger();
-      pageKey = 1;
-      pageSize = 10;
       accountBlock = AccountBlock.fromJson(accountBlockJson);
       accountBlockList = AccountBlockList(
         count: 1,
@@ -91,19 +88,18 @@ void main() {
         ),
       ).thenAnswer((_) async => accountBlockList);
 
-      pendingTransactionsCubit = PendingTransactionsCubit(
+      pendingTransactionsBloc = PendingTransactionsBloc(
         zenon: mockZenon,
-        address: emptyAddress,
       );
     });
 
     tearDown(() {
-      pendingTransactionsCubit.close();
+      pendingTransactionsBloc.close();
     });
 
     test('initial state is correct', () {
       expect(
-        pendingTransactionsCubit.state.status,
+        pendingTransactionsBloc.state.status,
         PendingTransactionsStatus.initial,
       );
     });
@@ -113,30 +109,13 @@ void main() {
         const PendingTransactionsState initialState =
             PendingTransactionsState();
 
-        final Map<String, dynamic>? serialized =
-            pendingTransactionsCubit.toJson(
+        final Map<String, dynamic>? serialized = pendingTransactionsBloc.toJson(
           initialState,
         );
         final PendingTransactionsState? deserialized =
-            pendingTransactionsCubit.fromJson(serialized!);
+            pendingTransactionsBloc.fromJson(serialized!);
 
         expect(deserialized, equals(initialState));
-      });
-
-      test('can (de)serialize loading state', () {
-        const PendingTransactionsState loadingState = PendingTransactionsState(
-          status: PendingTransactionsStatus.loading,
-        );
-
-        final Map<String, dynamic>? serialized =
-            pendingTransactionsCubit.toJson(
-          loadingState,
-        );
-        final PendingTransactionsState? deserialized =
-            pendingTransactionsCubit.fromJson(
-          serialized!,
-        );
-        expect(deserialized, equals(loadingState));
       });
 
       test('can (de)serialize success state', () {
@@ -145,12 +124,11 @@ void main() {
           data: <AccountBlock>[accountBlock],
         );
 
-        final Map<String, dynamic>? serialized =
-            pendingTransactionsCubit.toJson(
+        final Map<String, dynamic>? serialized = pendingTransactionsBloc.toJson(
           successState,
         );
         final PendingTransactionsState? deserialized =
-            pendingTransactionsCubit.fromJson(
+            pendingTransactionsBloc.fromJson(
           serialized!,
         );
         expect(deserialized, isA<PendingTransactionsState>());
@@ -164,50 +142,52 @@ void main() {
           error: exception,
         );
 
-        final Map<String, dynamic>? serialized =
-            pendingTransactionsCubit.toJson(
+        final Map<String, dynamic>? serialized = pendingTransactionsBloc.toJson(
           failureState,
         );
         final PendingTransactionsState? deserialized =
-            pendingTransactionsCubit.fromJson(
+            pendingTransactionsBloc.fromJson(
           serialized!,
         );
         expect(deserialized, equals(failureState));
       });
     });
 
-    blocTest<PendingTransactionsCubit, PendingTransactionsState>(
-      'emits [loading, success] with data on successful fetch',
-      build: () => pendingTransactionsCubit,
-      act: (PendingTransactionsCubit cubit) => cubit.getData(pageKey, pageSize),
-      expect: () => <PendingTransactionsState>[
-        const PendingTransactionsState(
-          status: PendingTransactionsStatus.loading,
+    blocTest<PendingTransactionsBloc, PendingTransactionsState>(
+      'emits [success] with data on successful fetch',
+      build: () => pendingTransactionsBloc,
+      act: (PendingTransactionsBloc bloc) => bloc.add(
+        PendingTransactionsRequested(
+          emptyAddress,
         ),
+      ),
+      expect: () => <PendingTransactionsState>[
         PendingTransactionsState(
           status: PendingTransactionsStatus.success,
           data: <AccountBlock>[accountBlock],
+          hasReachedMax: true,
         ),
       ],
     );
 
-    blocTest<PendingTransactionsCubit, PendingTransactionsState>(
-      'emits [loading, failure] on fetch failure',
+    blocTest<PendingTransactionsBloc, PendingTransactionsState>(
+      'emits [failure] on fetch failure',
       setUp: () {
         when(
           () => mockLedger.getUnreceivedBlocksByAddress(
             any(),
-            pageIndex: pageKey,
-            pageSize: pageSize,
+            pageSize: kPageSize,
           ),
         ).thenThrow(exception);
       },
-      build: () => pendingTransactionsCubit,
-      act: (PendingTransactionsCubit cubit) => cubit.getData(pageKey, pageSize),
+      build: () => pendingTransactionsBloc,
+      act: (PendingTransactionsBloc bloc) =>
+          bloc.add(
+            PendingTransactionsRequested(
+              emptyAddress,
+            ),
+          ),
       expect: () => <PendingTransactionsState>[
-        const PendingTransactionsState(
-          status: PendingTransactionsStatus.loading,
-        ),
         PendingTransactionsState(
           status: PendingTransactionsStatus.failure,
           error: exception,

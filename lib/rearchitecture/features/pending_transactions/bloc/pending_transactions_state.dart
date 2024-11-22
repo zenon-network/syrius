@@ -1,12 +1,9 @@
-part of 'pending_transactions_cubit.dart';
+part of 'pending_transactions_bloc.dart';
 
 /// Represents the various statuses of pending transactions.
 enum PendingTransactionsStatus {
   /// The initial state before any action has been taken.
   initial,
-
-  /// Indicates that data is currently being loaded.
-  loading,
 
   /// Indicates that an error occurred during the data fetching process.
   failure,
@@ -24,8 +21,9 @@ class PendingTransactionsState extends Equatable {
   /// The [status] defaults to [PendingTransactionsStatus.initial].
   const PendingTransactionsState({
     this.status = PendingTransactionsStatus.initial,
-    this.data,
+    this.data = const <AccountBlock>[],
     this.error,
+    this.hasReachedMax = false,
   });
 
   /// Creates a new instance from a JSON map.
@@ -36,25 +34,29 @@ class PendingTransactionsState extends Equatable {
   final PendingTransactionsStatus status;
 
   /// The list of [AccountBlock] instances representing pending transactions.
-  ///
-  /// It is populated when [status] is [PendingTransactionsStatus.success].
-  final List<AccountBlock>? data;
+  final List<AccountBlock> data;
 
   /// An object representing any error that occurred during data fetching.
   ///
   /// Populated when the [status] is [PendingTransactionsStatus.failure].
-  final Object? error;
+  final SyriusException? error;
+
+  /// Whether the API has reached the maximum limit of available pending
+  /// transactions
+  final bool hasReachedMax;
 
   /// {@macro state_copy_with}
   PendingTransactionsState copyWith({
     PendingTransactionsStatus? status,
     List<AccountBlock>? data,
-    Object? error,
+    SyriusException? error,
+    bool? hasReachedMax,
   }) {
     return PendingTransactionsState(
       status: status ?? this.status,
       data: data ?? this.data,
       error: error ?? this.error,
+      hasReachedMax: hasReachedMax ?? this.hasReachedMax,
     );
   }
 
@@ -62,5 +64,5 @@ class PendingTransactionsState extends Equatable {
   Map<String, dynamic> toJson() => _$PendingTransactionsStateToJson(this);
 
   @override
-  List<Object?> get props => <Object?>[status, data, error];
+  List<Object?> get props => <Object?>[status, data, error, hasReachedMax];
 }
