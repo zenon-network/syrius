@@ -21,6 +21,9 @@ enum CardType {
   /// adjusted to be displayed in the [DashboardTabChild] tab.
   latestTransactionsDashboard,
 
+  /// A type for a card displaying the pending transactions.
+  pendingTransactions,
+
   /// A type for a card displaying information related to pillars
   pillars,
 
@@ -78,6 +81,10 @@ enum CardType {
       CardType.latestTransactionsDashboard => CardData(
         description: context.l10n.latestTransactionsDescription,
         title: context.l10n.latestTransactionsTitle,
+      ),
+      CardType.pendingTransactions => CardData(
+        description: context.l10n.pendingTransactionsDescription,
+        title: context.l10n.pendingTransactionsTitle,
       ),
       CardType.pillars => CardData(
           title: context.l10n.pillars,

@@ -130,6 +130,15 @@ class _MainAppContainerState extends State<MainAppContainer>
         BlocProvider<MultipleBalanceBloc>(
           create: (_) => sl.get<MultipleBalanceBloc>(),
         ),
+        BlocProvider<PendingTransactionsBloc>(
+          create: (_) => PendingTransactionsBloc(
+            zenon: zenon!,
+          )..add(
+            PendingTransactionsRequested(
+              Address.parse(kSelectedAddress!),
+            ),
+          ),
+        ),
         BlocProvider<TokensCubit>(
           create: (_) => TokensCubit(
             zenon: zenon!,

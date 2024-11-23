@@ -81,7 +81,7 @@ class PendingTransactionsBloc
     Emitter<PendingTransactionsState> emit,
   ) {
     emit(const PendingTransactionsState());
-    add(PendingTransactionsRefreshRequested(event.address));
+    add(PendingTransactionsRequested(event.address));
   }
 
   @override
