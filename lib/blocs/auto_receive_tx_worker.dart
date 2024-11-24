@@ -132,10 +132,20 @@ class AutoReceiveTxWorker extends BaseBloc<WalletNotification> {
 
   void _onSuccess(AccountBlockTemplate block, String toAddress) {
     sl.get<MultipleBalanceBloc>().add(
-      MultipleBalanceFetch(
-        addresses: kDefaultAddressList.map((String? e) => e!).toList(),
-      ),
+          MultipleBalanceFetch(
+            addresses: kDefaultAddressList.map((String? e) => e!).toList(),
+          ),
+        );
+
+    final Address address = Address.parse(kSelectedAddress!);
+    sl.get<LatestTransactionsBloc>().add(
+      LatestTransactionsRefreshRequested(address: address),
     );
+    sl.get<PendingTransactionsBloc>().add(
+          PendingTransactionsRefreshRequested(
+            address,
+          ),
+        );
     _sendSuccessNotification(block, toAddress);
   }
 

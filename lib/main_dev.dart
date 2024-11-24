@@ -214,6 +214,16 @@ void setup() {
     instanceName: NoMChainId.mainnet.chain(),
   );
 
+  sl.registerSingleton<LatestTransactionsBloc>(
+    LatestTransactionsBloc(
+      zenon: zenon!,
+    ),
+  );
+  sl.registerSingleton<PendingTransactionsBloc>(
+    PendingTransactionsBloc(
+      zenon: zenon!,
+    ),
+  );
   sl.registerSingleton<MultipleBalanceBloc>(MultipleBalanceBloc(zenon: zenon!));
   sl.registerSingleton<AutoReceiveTxWorker>(AutoReceiveTxWorker.getInstance());
   sl.registerSingleton<AutoUnlockHtlcWorker>(

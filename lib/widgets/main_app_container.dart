@@ -115,9 +115,8 @@ class _MainAppContainerState extends State<MainAppContainer>
     return MultiBlocProvider(
       providers: <SingleChildWidget>[
         BlocProvider<LatestTransactionsBloc>(
-          create: (_) => LatestTransactionsBloc(
-            zenon: zenon!,
-          )..add(
+          create: (_) => sl.get<LatestTransactionsBloc>()
+            ..add(
               LatestTransactionsRequested(
                 address: Address.parse(kSelectedAddress!),
               ),
@@ -130,13 +129,12 @@ class _MainAppContainerState extends State<MainAppContainer>
           create: (_) => sl.get<MultipleBalanceBloc>(),
         ),
         BlocProvider<PendingTransactionsBloc>(
-          create: (_) => PendingTransactionsBloc(
-            zenon: zenon!,
-          )..add(
-            PendingTransactionsRequested(
-              Address.parse(kSelectedAddress!),
+          create: (_) => sl.get<PendingTransactionsBloc>()
+            ..add(
+              PendingTransactionsRequested(
+                Address.parse(kSelectedAddress!),
+              ),
             ),
-          ),
         ),
         BlocProvider<TokensCubit>(
           create: (_) => TokensCubit(

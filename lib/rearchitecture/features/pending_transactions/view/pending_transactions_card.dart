@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_vector_icons/flutter_vector_icons.dart';
-import 'package:stacked/stacked.dart';
-import 'package:zenon_syrius_wallet_flutter/blocs/transfer/receive_transaction_bloc.dart';
+import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
+import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/pending_transactions/pending_transactions.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
@@ -10,7 +10,6 @@ import 'package:zenon_syrius_wallet_flutter/utils/color_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/extensions.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/format_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/notification_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
@@ -300,58 +299,23 @@ class _PendingTransactionsPopulatedState
   ) {
     return Align(
       alignment: Alignment.centerLeft,
-      child: _getReceiveButtonViewModel(model, isSelected, transaction),
+      child: _getReceiveButton(hash: transaction.hash),
     );
   }
 
-  Widget _getReceiveButtonViewModel(
-    PendingTransactionsBloc transactionModel,
-    bool isSelected,
-    AccountBlock transactionItem,
-  ) {
-    return ViewModelBuilder<ReceiveTransactionBloc>.reactive(
-      onViewModelReady: (ReceiveTransactionBloc model) {
-        model.stream.listen(
-          (AccountBlockTemplate? event) {
-            if (event != null) {
-              transactionModel.add(
-                PendingTransactionsRefreshRequested(
-                  Address.parse(kSelectedAddress!),
-                ),
-              );
-            }
-          },
-          onError: (error) {
-            NotificationUtils.sendNotificationError(
-              error,
-              context.l10n.transactionError,
-            );
-          },
-        );
-      },
-      builder: (_, ReceiveTransactionBloc model, __) => _getReceiveButton(
-        model,
-        transactionItem.hash.toString(),
-      ),
-      viewModelBuilder: () => ReceiveTransactionBloc(),
-    );
-  }
-
-  Widget _getReceiveButton(
-    ReceiveTransactionBloc model,
-    String transactionHash,
+  Widget _getReceiveButton({
+    required Hash hash,
+}
   ) {
     return IconButton(
       icon: const Icon(MaterialCommunityIcons.arrow_down),
       color: AppColors.znnColor,
       onPressed: () {
-        _onReceivePressed(model, transactionHash);
+        sl<AutoReceiveTxWorker>().autoReceiveTransactionHash(
+          hash,
+        );
       },
     );
-  }
-
-  void _onReceivePressed(ReceiveTransactionBloc model, String id) {
-    model.receiveTransaction(id, context);
   }
 
   NewInfiniteScrollTableCell _assetsCell(AccountBlock infoBlock) {

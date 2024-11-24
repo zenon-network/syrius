@@ -222,6 +222,16 @@ void setup() {
     instanceName: NoMChainId.mainnet.chain(),
   );
 
+  sl.registerSingleton<LatestTransactionsBloc>(
+    LatestTransactionsBloc(
+      zenon: zenon!,
+    ),
+  );
+  sl.registerSingleton<PendingTransactionsBloc>(
+    PendingTransactionsBloc(
+      zenon: zenon!,
+    ),
+  );
   sl.registerSingleton<MultipleBalanceBloc>(MultipleBalanceBloc(zenon: zenon!));
   sl.registerSingleton<AutoReceiveTxWorker>(AutoReceiveTxWorker.getInstance());
   sl.registerSingleton<AutoUnlockHtlcWorker>(
@@ -343,11 +353,13 @@ class _MyAppState extends State<MyApp> with WindowListener, TrayListener {
                             themeMode: appThemeNotifier.currentThemeMode,
                             initialRoute: SplashScreen.route,
                             scrollBehavior: RemoveOverscrollEffect(),
-                            localizationsDelegates: AppLocalizations.localizationsDelegates,
+                            localizationsDelegates:
+                                AppLocalizations.localizationsDelegates,
                             supportedLocales: AppLocalizations.supportedLocales,
                             routes: <String, WidgetBuilder>{
-                              AccessWalletScreen.route: (BuildContext context) =>
-                                  const AccessWalletScreen(),
+                              AccessWalletScreen.route:
+                                  (BuildContext context) =>
+                                      const AccessWalletScreen(),
                               SplashScreen.route: (BuildContext context) =>
                                   const SplashScreen(),
                               MainAppContainer.route: (BuildContext context) =>
@@ -357,8 +369,9 @@ class _MyAppState extends State<MyApp> with WindowListener, TrayListener {
                             },
                             onGenerateRoute: (RouteSettings settings) {
                               if (settings.name == SyriusErrorWidget.route) {
-                                final CustomSyriusErrorWidgetArguments args = settings.arguments!
-                                    as CustomSyriusErrorWidgetArguments;
+                                final CustomSyriusErrorWidgetArguments args =
+                                    settings.arguments!
+                                        as CustomSyriusErrorWidgetArguments;
                                 return MaterialPageRoute(
                                   builder: (BuildContext context) =>
                                       SyriusErrorWidget(args.errorText),
