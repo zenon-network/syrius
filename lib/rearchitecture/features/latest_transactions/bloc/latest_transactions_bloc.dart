@@ -1,11 +1,9 @@
 import 'dart:async';
 
-import 'package:bloc_concurrency/bloc_concurrency.dart';
 import 'package:equatable/equatable.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
 import 'package:json_annotation/json_annotation.dart';
-import 'package:stream_transform/stream_transform.dart';
-import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/exceptions/exceptions.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 part 'latest_transactions_bloc.g.dart';
@@ -13,15 +11,6 @@ part 'latest_transactions_bloc.g.dart';
 part 'latest_transactions_event.dart';
 
 part 'latest_transactions_state.dart';
-
-const int _pageSize = 10;
-const Duration _throttleDuration = Duration(milliseconds: 100);
-
-EventTransformer<E> _throttleDroppable<E>(Duration duration) {
-  return (Stream<E> events, EventMapper<E> mapper) {
-    return droppable<E>().call(events.throttle(duration), mapper);
-  };
-}
 
 /// A bloc that manages the state of the latest transactions for a specific
 /// address.
@@ -36,9 +25,7 @@ class LatestTransactionsBloc
         ) {
     on<LatestTransactionsRequested>(
       _onLatestTransactionsRequested,
-      transformer: _throttleDroppable(
-        _throttleDuration,
-      ),
+      transformer: throttleDroppable(kThrottleDuration),
     );
     on<LatestTransactionsRefreshRequested>(
       _onLatestTransactionsRefreshRequested,
@@ -54,18 +41,18 @@ class LatestTransactionsBloc
   ) async {
     if (state.hasReachedMax) return;
     final int previousNumOfItems = state.data.length;
-    final int pageIndex = previousNumOfItems ~/ _pageSize;
+    final int pageIndex = previousNumOfItems ~/ kPageSize;
     try {
       final AccountBlockList accountBlock =
           await zenon.ledger.getAccountBlocksByPage(
         event.address,
         pageIndex: pageIndex,
-        pageSize: _pageSize,
+        pageSize: kPageSize,
       );
 
       final List<AccountBlock> data = accountBlock.list!;
 
-      final bool hasReachedMax = data.length < _pageSize;
+      final bool hasReachedMax = data.length < kPageSize;
 
       emit(
         state.copyWith(
