@@ -109,7 +109,7 @@ class _LatestTransactionsPopulatedState
       generateRowCells: _rowCellsGenerator,
       onScrollReachedBottom: () {
         context.read<LatestTransactionsBloc>().add(
-              LatestTransactionsRequested(
+              LatestTransactionsMoreRequested(
                 address: Address.parse(kSelectedAddress!),
               ),
             );

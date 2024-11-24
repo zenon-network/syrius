@@ -17,6 +17,17 @@ class LatestTransactionsRequested extends LatestTransactionsEvent {
   List<Object?> get props => <Object>[address];
 }
 
+/// Event to be used when we want to fetch more latest transactions of an
+/// [address]
+class LatestTransactionsMoreRequested extends LatestTransactionsEvent {
+  /// Creates a new instance.
+  const LatestTransactionsMoreRequested({required this.address});
+  /// The [address] whose latest transactions are being requested.
+  final Address address;
+  @override
+  List<Object?> get props => <Object>[address];
+}
+
 /// Event to be used when we want to refresh the list of the latest
 /// transactions
 class LatestTransactionsRefreshRequested extends LatestTransactionsEvent {
