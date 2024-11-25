@@ -1,7 +1,7 @@
-part of 'latest_transactions_bloc.dart';
+part of 'infinite_list_bloc.dart';
 
 /// Represents the possible statuses for the latest transactions operation.
-enum LatestTransactionsStatus {
+enum InfiniteListStatus {
   /// The initial state before any action has been taken.
   initial,
 
@@ -14,47 +14,56 @@ enum LatestTransactionsStatus {
 
 /// Holds the state for the latest transactions, including status, data,
 /// and error information.
-@JsonSerializable(explicitToJson: true)
-class LatestTransactionsState extends Equatable {
+@JsonSerializable(explicitToJson: true, genericArgumentFactories: true)
+class InfiniteListState<T> extends Equatable {
   /// Creates a new instance of LatestTransactionsState.
   ///
-  /// The [status] defaults to [LatestTransactionsStatus.initial].
-  const LatestTransactionsState({
-    this.status = LatestTransactionsStatus.initial,
-    this.data = const <AccountBlock>[],
+  /// The [status] defaults to [InfiniteListStatus.initial].
+  const InfiniteListState({
+    required this.status,
+    required this.data,
     this.error,
     this.hasReachedMax = false,
   });
 
+  InfiniteListState.initial()
+      : this(
+          data: <T>[],
+          status: InfiniteListStatus.initial,
+        );
+
   /// Creates a new instance from a JSON object.
-  factory LatestTransactionsState.fromJson(Map<String, dynamic> json) =>
-      _$LatestTransactionsStateFromJson(json);
+  factory InfiniteListState.fromJson(
+    Map<String, dynamic> json,
+    T Function(Object?) fromJsonT,
+  ) =>
+      _$InfiniteListStateFromJson(json, fromJsonT);
 
   /// The current status of the latest transactions operation.
-  final LatestTransactionsStatus status;
+  final InfiniteListStatus status;
 
   /// The list of [AccountBlock] instances representing the latest transactions.
   ///
-  /// It is populated when the [status] is [LatestTransactionsStatus.success].
-  final List<AccountBlock> data;
+  /// It is populated when the [status] is [InfiniteListStatus.success].
+  final List<T> data;
 
   /// An object representing any error that occurred during data fetching.
   ///
   /// This is typically an exception or error message. It is populated when
-  /// the [status] is [LatestTransactionsStatus.failure].
+  /// the [status] is [InfiniteListStatus.failure].
   final SyriusException? error;
 
   /// Whether there are more account blocks to be fetched.
   final bool hasReachedMax;
 
   ///{@macro state_copy_with}
-  LatestTransactionsState copyWith({
-    LatestTransactionsStatus? status,
-    List<AccountBlock>? data,
+  InfiniteListState<T> copyWith({
+    InfiniteListStatus? status,
+    List<T>? data,
     SyriusException? error,
     bool? hasReachedMax,
   }) {
-    return LatestTransactionsState(
+    return InfiniteListState<T>(
       status: status ?? this.status,
       data: data ?? this.data,
       error: error ?? this.error,
@@ -67,7 +76,11 @@ class LatestTransactionsState extends Equatable {
   ///
   /// This is used during serialization to save the state across app restarts.
   /// {@endtemplate}
-  Map<String, dynamic> toJson() => _$LatestTransactionsStateToJson(this);
+  Map<String, dynamic> toJson(Object? Function(T) toJsonT) =>
+      _$InfiniteListStateToJson(
+        this,
+        toJsonT,
+      );
 
   @override
   List<Object?> get props => <Object?>[status, data, error, hasReachedMax];

@@ -29,24 +29,24 @@ class LatestTransactionsCard extends StatelessWidget {
       data: CardType.latestTransactions.getData(context: context),
       onRefreshPressed: () {
         context.read<LatestTransactionsBloc>().add(
-              LatestTransactionsRefreshRequested(
+              InfiniteListRefreshRequested(
                 address: Address.parse(kSelectedAddress!),
               ),
             );
       },
-      body: BlocBuilder<LatestTransactionsBloc, LatestTransactionsState>(
-        builder: (_, LatestTransactionsState state) {
-          final LatestTransactionsStatus status = state.status;
+      body: BlocBuilder<LatestTransactionsBloc, InfiniteListState>(
+        builder: (_, InfiniteListState state) {
+          final InfiniteListStatus status = state.status;
 
           return switch (status) {
-            LatestTransactionsStatus.initial =>
+            InfiniteListStatus.initial =>
               const _LatestTransactionsInitial(),
-            LatestTransactionsStatus.failure => _LatestTransactionsFailure(
+            InfiniteListStatus.failure => _LatestTransactionsFailure(
                 exception: state.error!,
               ),
-            LatestTransactionsStatus.success => _LatestTransactionsPopulated(
+            InfiniteListStatus.success => _LatestTransactionsPopulated(
                 hasReachedMax: state.hasReachedMax,
-                transactions: state.data,
+                transactions: state.data as List<AccountBlock>,
                 type: type,
               ),
           };
@@ -109,7 +109,7 @@ class _LatestTransactionsPopulatedState
       generateRowCells: _rowCellsGenerator,
       onScrollReachedBottom: () {
         context.read<LatestTransactionsBloc>().add(
-              LatestTransactionsMoreRequested(
+              InfiniteListMoreRequested(
                 address: Address.parse(kSelectedAddress!),
               ),
             );

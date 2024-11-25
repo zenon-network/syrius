@@ -8,6 +8,7 @@ import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/model/model.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
@@ -139,7 +140,7 @@ class AutoReceiveTxWorker extends BaseBloc<WalletNotification> {
 
     final Address address = Address.parse(kSelectedAddress!);
     sl.get<LatestTransactionsBloc>().add(
-      LatestTransactionsRefreshRequested(address: address),
+      InfiniteListRefreshRequested(address: address),
     );
     sl.get<PendingTransactionsBloc>().add(
           PendingTransactionsRefreshRequested(

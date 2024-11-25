@@ -21,6 +21,7 @@ import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/model/model.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/tokens/cubit/tokens_cubit.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/clipboard_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
@@ -117,7 +118,7 @@ class _MainAppContainerState extends State<MainAppContainer>
         BlocProvider<LatestTransactionsBloc>(
           create: (_) => sl.get<LatestTransactionsBloc>()
             ..add(
-              LatestTransactionsRequested(
+              InfiniteListRequested(
                 address: Address.parse(kSelectedAddress!),
               ),
             ),
