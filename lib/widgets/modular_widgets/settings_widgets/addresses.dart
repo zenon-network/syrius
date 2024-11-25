@@ -4,7 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'package:number_selector/number_selector.dart';
 import 'package:provider/provider.dart';
-import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
+import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart'
+    hide LatestTransactionsBloc;
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/latest_transactions/bloc/latest_transactions_bloc.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/address_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
@@ -12,13 +14,14 @@ import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/notifiers/default_address_notifier.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/notifiers/plasma_beneficiary_address_notifier.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
+import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 class Addresses extends StatefulWidget {
-
   const Addresses({
     required this.accountChainStatsBloc,
     super.key,
   });
+
   final AccountChainStatsBloc accountChainStatsBloc;
 
   @override
@@ -70,6 +73,11 @@ class AddressesState extends State<Addresses> {
       );
       widget.accountChainStatsBloc.updateStream();
       _selectedAddress = newDefaultAddress;
+      context.read<LatestTransactionsBloc>().add(
+            LatestTransactionsRefreshRequested(
+              address: Address.parse(_selectedAddress!),
+            ),
+          );
     } catch (e) {
       rethrow;
     }
@@ -102,34 +110,35 @@ class AddressesState extends State<Addresses> {
               setState(() {
                 _futureGenerateNewAddress =
                     ZenonAddressUtils.generateNewAddress(
-                        numAddr: numberOfAddressesToAdd,
-                        callback: () {
-                          setState(() {
-                            _shouldScrollToTheEnd = true;
-                          });
-                        },);
+                  numAddr: numberOfAddressesToAdd,
+                  callback: () {
+                    setState(() {
+                      _shouldScrollToTheEnd = true;
+                    });
+                  },
+                );
               });
             },
             child: Container(
-                constraints:
-                    const BoxConstraints(minWidth: 150, minHeight: 50),
-                alignment: Alignment.center,
-                child: Row(
-                  children: <Widget>[
-                    const Icon(
-                      Icons.add_circle,
-                      color: AppColors.znnColor,
-                      size: 20,
-                    ),
-                    const SizedBox(width: 10),
-                    Text(
-                      (numberOfAddressesToAdd == 1)
-                          ? 'Add $numberOfAddressesToAdd address  '
-                          : 'Add $numberOfAddressesToAdd addresses',
-                      style: Theme.of(context).textTheme.bodyLarge,
-                    ),
-                  ],
-                ),),
+              constraints: const BoxConstraints(minWidth: 150, minHeight: 50),
+              alignment: Alignment.center,
+              child: Row(
+                children: <Widget>[
+                  const Icon(
+                    Icons.add_circle,
+                    color: AppColors.znnColor,
+                    size: 20,
+                  ),
+                  const SizedBox(width: 10),
+                  Text(
+                    (numberOfAddressesToAdd == 1)
+                        ? 'Add $numberOfAddressesToAdd address  '
+                        : 'Add $numberOfAddressesToAdd addresses',
+                    style: Theme.of(context).textTheme.bodyLarge,
+                  ),
+                ],
+              ),
+            ),
           ),
           const SizedBox(width: 10),
         ],

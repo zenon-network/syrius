@@ -35,18 +35,13 @@ class TransferToggleCardSizeButton extends StatelessWidget {
     );
   }
 
-  RawMaterialButton _getButton(
+  Widget _getButton(
     BuildContext context,
     VoidCallback? onButtonPressed,
   ) {
-    return RawMaterialButton(
-      constraints: const BoxConstraints.tightForFinite(),
-      padding: const EdgeInsets.all(
-        20,
-      ),
-      shape: const CircleBorder(),
+    return IconButton(
       onPressed: onButtonPressed,
-      child: Icon(
+      icon: Icon(
         iconData,
         color: onPressed == null
             ? Colors.grey

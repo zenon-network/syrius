@@ -54,7 +54,7 @@ class HideWidgetCubit extends HydratedCubit<HideWidgetState> {
       emit(
         state.copyWith(
           status: HideWidgetStatus.failure,
-          exception: CubitFailureException(),
+          exception: FailureException(),
         ),
       );
       addError(error, stackTrace);

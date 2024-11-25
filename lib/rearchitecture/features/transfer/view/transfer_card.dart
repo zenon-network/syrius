@@ -4,7 +4,7 @@ import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 
-/// A card with two [IconButton] widgets that redirect to the Transfer tab.
+/// A card with two [IconButton] widgets that redirect to the Transfer tab
 class TransferCard extends StatefulWidget {
   /// Creates a Transfer object.
   const TransferCard({
@@ -12,12 +12,8 @@ class TransferCard extends StatefulWidget {
     this.changePage,
   });
 
-  /// Function that triggers the redirect to the Transfer tab.
-  final Function(
-    Tabs, {
-    bool redirectWithSendContainerLarge,
-    bool redirectWithReceiveContainerLarge,
-  })? changePage;
+  /// Function that triggers the redirect to the Transfer tab
+  final Function(Tabs)? changePage;
 
   @override
   State<TransferCard> createState() => _TransferCardState();
@@ -35,7 +31,6 @@ class _TransferCardState extends State<TransferCard> {
             onPressed: () {
               widget.changePage!(
                 Tabs.transfer,
-                redirectWithSendContainerLarge: true,
               );
             },
             icon: const Icon(
@@ -51,7 +46,6 @@ class _TransferCardState extends State<TransferCard> {
             onPressed: () {
               widget.changePage!(
                 Tabs.transfer,
-                redirectWithReceiveContainerLarge: true,
               );
             },
             icon: const Icon(

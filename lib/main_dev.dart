@@ -28,6 +28,7 @@ import 'package:zenon_syrius_wallet_flutter/blocs/wallet_connect/wallet_connect_
 import 'package:zenon_syrius_wallet_flutter/handlers/htlc_swaps_handler.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/model/model.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
 import 'package:zenon_syrius_wallet_flutter/screens/screens.dart';
 import 'package:zenon_syrius_wallet_flutter/services/htlc_swaps_service.dart';
 import 'package:zenon_syrius_wallet_flutter/services/i_web3wallet_service.dart';
@@ -55,22 +56,23 @@ main() async {
 
   // Setup logger
   final Directory syriusLogDir =
-  Directory(path.join(znnDefaultCacheDirectory.path, 'log'));
+      Directory(path.join(znnDefaultCacheDirectory.path, 'log'));
   if (!syriusLogDir.existsSync()) {
     syriusLogDir.createSync(recursive: true);
   }
   final File logFile = File(
-      '${syriusLogDir.path}${path.separator}syrius-${DateTime.now().millisecondsSinceEpoch}.log',);
+    '${syriusLogDir.path}${path.separator}syrius-${DateTime.now().millisecondsSinceEpoch}.log',
+  );
   Logger.root.level = Level.ALL;
   Logger.root.onRecord.listen((LogRecord record) {
     if (kDebugMode) {
       print(
           '${record.level.name} ${record.loggerName} ${record.message} ${record.time}: '
-              '${record.error} ${record.stackTrace}\n');
+          '${record.error} ${record.stackTrace}\n');
     }
     logFile.writeAsString(
       '${record.level.name} ${record.loggerName} ${record.message} ${record.time}: '
-          '${record.error} ${record.stackTrace}\n',
+      '${record.error} ${record.stackTrace}\n',
       mode: FileMode.append,
       flush: true,
     );
@@ -85,9 +87,11 @@ main() async {
   // Setup services
   setup();
 
-  retry(() => web3WalletService!.init(),
-      retryIf: (Exception e) => e is SocketException || e is TimeoutException,
-      maxAttempts: 0x7FFFFFFFFFFFFFFF,);
+  retry(
+    () => web3WalletService!.init(),
+    retryIf: (Exception e) => e is SocketException || e is TimeoutException,
+    maxAttempts: 0x7FFFFFFFFFFFFFFF,
+  );
 
   // Setup local_notifier
   await localNotifier.setup(
@@ -118,8 +122,10 @@ main() async {
     await windowManager.show();
 
     if (sharedPrefsService != null) {
-      final double? windowSizeWidth = sharedPrefsService!.get(kWindowSizeWidthKey);
-      final double? windowSizeHeight = sharedPrefsService!.get(kWindowSizeHeightKey);
+      final double? windowSizeWidth =
+          sharedPrefsService!.get(kWindowSizeWidthKey);
+      final double? windowSizeHeight =
+          sharedPrefsService!.get(kWindowSizeHeightKey);
       if (windowSizeWidth != null &&
           windowSizeWidth >= 1200 &&
           windowSizeHeight != null &&
@@ -138,7 +144,8 @@ main() async {
             .setPosition(Offset(windowPositionX, windowPositionY));
       }
 
-      final bool? windowMaximized = sharedPrefsService!.get(kWindowMaximizedKey);
+      final bool? windowMaximized =
+          sharedPrefsService!.get(kWindowMaximizedKey);
       if (windowMaximized == true) {
         await windowManager.maximize();
       }
@@ -180,7 +187,7 @@ Future<void> _setupTrayManager() async {
 Future<void> _loadDefaultCommunityNodes() async {
   try {
     final List nodes = await loadJsonFromAssets('assets/community-nodes.json')
-    as List<dynamic>;
+        as List<dynamic>;
     kDefaultCommunityNodes = nodes
         .map((node) => node.toString())
         .where((String node) => InputValidators.node(node) == null)
@@ -195,7 +202,9 @@ void setup() {
   sl.registerSingleton<Zenon>(Zenon());
   zenon = sl<Zenon>();
   sl.registerLazySingletonAsync<SharedPrefsService>(
-      () => SharedPrefsService.getInstance().then((SharedPrefsService? value) => value!),);
+    () => SharedPrefsService.getInstance()
+        .then((SharedPrefsService? value) => value!),
+  );
   sl.registerSingleton<HtlcSwapsService>(HtlcSwapsService.getInstance());
 
   // Initialize WalletConnect service
@@ -205,22 +214,25 @@ void setup() {
     instanceName: NoMChainId.mainnet.chain(),
   );
 
+  sl.registerSingleton<MultipleBalanceBloc>(MultipleBalanceBloc(zenon: zenon!));
   sl.registerSingleton<AutoReceiveTxWorker>(AutoReceiveTxWorker.getInstance());
   sl.registerSingleton<AutoUnlockHtlcWorker>(
-      AutoUnlockHtlcWorker.getInstance(),);
+    AutoUnlockHtlcWorker.getInstance(),
+  );
 
   sl.registerSingleton<HtlcSwapsHandler>(HtlcSwapsHandler.getInstance());
 
-  sl.registerSingleton<ReceivePort>(ReceivePort(),
-      instanceName: 'embeddedStoppedPort',);
+  sl.registerSingleton<ReceivePort>(
+    ReceivePort(),
+    instanceName: 'embeddedStoppedPort',
+  );
   sl.registerSingleton<Stream>(
-      sl<ReceivePort>(instanceName: 'embeddedStoppedPort').asBroadcastStream(),
-      instanceName: 'embeddedStoppedStream',);
+    sl<ReceivePort>(instanceName: 'embeddedStoppedPort').asBroadcastStream(),
+    instanceName: 'embeddedStoppedStream',
+  );
 
   sl.registerSingleton<PlasmaStatsBloc>(PlasmaStatsBloc());
   sl.registerSingleton<BalanceBloc>(BalanceBloc());
-  sl.registerSingleton<TransferWidgetsBalanceBloc>(
-      TransferWidgetsBalanceBloc(),);
   sl.registerSingleton<NotificationsBloc>(NotificationsBloc());
   sl.registerSingleton<AcceleratorBalanceBloc>(AcceleratorBalanceBloc());
   sl.registerSingleton<PowGeneratingStatusBloc>(PowGeneratingStatusBloc());
@@ -253,7 +265,7 @@ class _MyAppState extends State<MyApp> with WindowListener, TrayListener {
   // Platform messages are asynchronous, so we initialize in an async method
   Future<void> initPlatformState() async {
     kLocalIpAddress =
-    await NetworkUtils.getLocalIpAddress(InternetAddressType.IPv4);
+        await NetworkUtils.getLocalIpAddress(InternetAddressType.IPv4);
 
     if (!mounted) return;
   }

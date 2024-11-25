@@ -3,6 +3,7 @@ export 'cubits/cubits.dart';
 export 'dependency_injection_helpers/dependency_injection_helpers.dart';
 export 'exceptions/exceptions.dart';
 export 'extensions/extensions.dart';
+export 'functions/functions.dart';
 export 'models/models.dart';
 export 'widgets/widgets.dart';
 
