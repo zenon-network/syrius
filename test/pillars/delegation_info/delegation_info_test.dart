@@ -29,7 +29,7 @@ void main() {
     late DelegationInfoCubit cubit;
     late DelegationInfo delegationInfo;
     late Address testAddress;
-    late CubitFailureException exception;
+    late FailureException exception;
 
     setUp(() {
       mockZenon = MockZenon();
@@ -37,7 +37,7 @@ void main() {
       mockPillarApi = MockPillarApi();
       mockWsClient = MockWsClient();
       testAddress = emptyAddress;
-      exception = CubitFailureException();
+      exception = FailureException();
 
       delegationInfo =
           DelegationInfo(name: 'test', status: 1, weight: BigInt.from(1));

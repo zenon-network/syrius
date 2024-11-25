@@ -21,7 +21,7 @@ void main() {
 
   registerFallbackValue(FakeAddress());
 
-  group('TransferBalanceBloc', () {
+  group('MultipleBalanceBloc', () {
     late MockZenon mockZenon;
     late MockLedger mockLedger;
     late MockWsClient mockWsClient;

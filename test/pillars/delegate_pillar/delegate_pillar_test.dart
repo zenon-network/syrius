@@ -31,7 +31,7 @@ void main() {
     late DelegatePillarCubit delegatePillarCubit;
     late AccountBlockTemplate testAccBlockTemplate;
     late MockAccountBlockUtils mockAccountBlockUtils;
-    late CubitFailureException exception;
+    late FailureException exception;
 
     setUp(() {
       mockZenon = MockZenon();
@@ -41,7 +41,7 @@ void main() {
       testAccBlockTemplate = AccountBlockTemplate(
         blockType: 1,
       );
-      exception = CubitFailureException();
+      exception = FailureException();
 
       when(() => mockZenon.embedded).thenReturn(mockEmbedded);
       when(() => mockEmbedded.pillar).thenReturn(mockPillarApi);

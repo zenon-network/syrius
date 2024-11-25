@@ -36,7 +36,7 @@ void main() {
     late MockPillarApi mockPillarApi;
     late MockAccountBlockUtils mockAccountBlockUtilsHelper;
     late MockZenonAddressUtils mockZenonAddressUtils;
-    late CubitFailureException exception;
+    late FailureException exception;
     late PillarsDepositQsrCubit pillarsDepositQsrCubit;
     late AccountBlockTemplate testAccBlockTemplate;
     late BigInt testAmount;
@@ -49,7 +49,7 @@ void main() {
       mockZenonAddressUtils = MockZenonAddressUtils();
       testAccBlockTemplate = AccountBlockTemplate(blockType: 1);
       testAmount = BigInt.from(1000);
-      exception = CubitFailureException();
+      exception = FailureException();
 
       when(() => mockZenon.embedded).thenReturn(mockEmbedded);
       when(() => mockEmbedded.pillar).thenReturn(mockPillarApi);

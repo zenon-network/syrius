@@ -28,7 +28,7 @@ void main() {
     late MockPillarApi mockPillarApi;
     late GetPillarByOwnerCubit cubit;
     late Address testAddress;
-    late CubitFailureException exception;
+    late FailureException exception;
     late List<PillarInfo> pillarInfo;
 
     setUp(() {
@@ -37,7 +37,7 @@ void main() {
       mockPillarApi = MockPillarApi();
       mockWsClient = MockWsClient();
       testAddress = emptyAddress;
-      exception = CubitFailureException();
+      exception = FailureException();
 
       final Map<String, int> pillarEpochJson = <String, int> {
         'producedMomentums': 100,

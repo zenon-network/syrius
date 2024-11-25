@@ -65,7 +65,7 @@ abstract class CubitWithRefreshMixin<T, S extends IndicatorState<T>>
       emit(
         state.copyWith(
           status: IndicatorStatus.failure,
-          error: CubitFailureException(),
+          error: FailureException(),
         ) as S,
       );
       // Log unexpected errors and their stack traces for further investigation.

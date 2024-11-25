@@ -34,7 +34,7 @@ void main() {
     late MockZenonAddressUtils mockZenonAddressUtils;
     late DisassemblePillarCubit disassemblePillarCubit;
     late AccountBlockTemplate testAccBlockTemplate;
-    late CubitFailureException exception;
+    late FailureException exception;
 
     setUp(() {
       mockZenon = MockZenon();
@@ -43,7 +43,7 @@ void main() {
       mockAccountBlockUtilsHelper = MockAccountBlockUtils();
       mockZenonAddressUtils = MockZenonAddressUtils();
       testAccBlockTemplate = AccountBlockTemplate(blockType: 1);
-      exception = CubitFailureException();
+      exception = FailureException();
 
       when(() => mockZenon.embedded).thenReturn(mockEmbedded);
       when(() => mockEmbedded.pillar).thenReturn(mockPillarApi);

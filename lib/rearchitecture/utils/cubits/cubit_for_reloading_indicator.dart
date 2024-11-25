@@ -60,7 +60,7 @@ abstract class CubitForReloadingIndicator<T, S extends IndicatorState<T>>
       emit(
         state.copyWith(
           status: IndicatorStatus.failure,
-          error: CubitFailureException(),
+          error: FailureException(),
         ) as S,
       );
       // Log unexpected errors along with their stack trace for debugging.

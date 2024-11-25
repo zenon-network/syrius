@@ -33,7 +33,7 @@ void main() {
     late BigInt cost;
     late String testAddress;
     late PillarType testPillarType;
-    late CubitFailureException exception;
+    late FailureException exception;
 
     setUp(() async {
       mockZenon = MockZenon();
@@ -41,7 +41,7 @@ void main() {
       mockPillarApi = MockPillarApi();
       deposit = BigInt.from(1000);
       cost = BigInt.from(500);
-      exception = CubitFailureException();
+      exception = FailureException();
       testAddress = emptyAddress.toString();
       testPillarType = PillarType.regularPillar;
 

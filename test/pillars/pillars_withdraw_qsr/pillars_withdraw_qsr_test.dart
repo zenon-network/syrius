@@ -35,7 +35,7 @@ void main() {
     late PillarsWithdrawQsrCubit pillarsWithdrawQsrCubit;
     late AccountBlockTemplate testAccountBlockTemplate;
     late String testAddress;
-    late CubitFailureException exception;
+    late FailureException exception;
 
     setUp(() {
       mockZenon = MockZenon();
@@ -45,7 +45,7 @@ void main() {
       mockZenonAddressUtilsHelper = MockZenonAddressUtilsHelper();
       testAccountBlockTemplate = AccountBlockTemplate(blockType: 1);
       testAddress = emptyAddress.toString();
-      exception = CubitFailureException();
+      exception = FailureException();
 
       when(() => mockZenon.embedded).thenReturn(mockEmbedded);
       when(() => mockEmbedded.pillar).thenReturn(mockPillarApi);
