@@ -25,22 +25,23 @@ class PendingTransactionsCard extends StatelessWidget {
       data: CardType.pendingTransactions.getData(context: context),
       onRefreshPressed: () {
         bloc.add(
-          PendingTransactionsRefreshRequested(
-            Address.parse(kSelectedAddress!),
+          InfiniteListRefreshRequested(
+            address: Address.parse(kSelectedAddress!),
           ),
         );
       },
-      body: BlocBuilder<PendingTransactionsBloc, PendingTransactionsState>(
-        builder: (_, PendingTransactionsState state) {
-          final PendingTransactionsStatus status = state.status;
+      body:
+          BlocBuilder<PendingTransactionsBloc, InfiniteListState<AccountBlock>>(
+        builder: (_, InfiniteListState<AccountBlock> state) {
+          final InfiniteListStatus status = state.status;
 
           return switch (status) {
-            PendingTransactionsStatus.initial =>
+            InfiniteListStatus.initial =>
               const _PendingTransactionsInitial(),
-            PendingTransactionsStatus.failure => _PendingTransactionsFailure(
+            InfiniteListStatus.failure => _PendingTransactionsFailure(
                 exception: state.error!,
               ),
-            PendingTransactionsStatus.success => _PendingTransactionsPopulated(
+            InfiniteListStatus.success => _PendingTransactionsPopulated(
                 bloc: bloc,
                 hasReachedMax: state.hasReachedMax,
                 transactions: state.data,
@@ -101,8 +102,8 @@ class _PendingTransactionsPopulatedState
       items: widget.transactions,
       onScrollReachedBottom: () {
         widget.bloc.add(
-          PendingTransactionsRequested(
-            Address.parse(kSelectedAddress!),
+          InfiniteListRequested(
+            address: Address.parse(kSelectedAddress!),
           ),
         );
       },
@@ -305,8 +306,7 @@ class _PendingTransactionsPopulatedState
 
   Widget _getReceiveButton({
     required Hash hash,
-}
-  ) {
+  }) {
     return IconButton(
       icon: const Icon(MaterialCommunityIcons.arrow_down),
       color: AppColors.znnColor,

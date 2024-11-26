@@ -143,8 +143,8 @@ class AutoReceiveTxWorker extends BaseBloc<WalletNotification> {
       InfiniteListRefreshRequested(address: address),
     );
     sl.get<PendingTransactionsBloc>().add(
-          PendingTransactionsRefreshRequested(
-            address,
+          InfiniteListRefreshRequested(
+            address: address,
           ),
         );
     _sendSuccessNotification(block, toAddress);

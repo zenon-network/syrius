@@ -132,8 +132,8 @@ class _MainAppContainerState extends State<MainAppContainer>
         BlocProvider<PendingTransactionsBloc>(
           create: (_) => sl.get<PendingTransactionsBloc>()
             ..add(
-              PendingTransactionsRequested(
-                Address.parse(kSelectedAddress!),
+              InfiniteListRequested(
+                address: Address.parse(kSelectedAddress!),
               ),
             ),
         ),
