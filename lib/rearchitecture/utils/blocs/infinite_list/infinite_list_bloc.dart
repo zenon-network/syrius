@@ -72,7 +72,6 @@ abstract class InfiniteListBloc<T>
     InfiniteListRequested event,
     Emitter<InfiniteListState<T>> emit,
   ) async {
-    final List<T>? currentData = state.data;
     try {
       final List<T> newData = await paginationFetch(
         address: event.address,
@@ -82,19 +81,9 @@ abstract class InfiniteListBloc<T>
 
       final bool hasReachedMax = newData.length < pageSize;
 
-      final List<T> finalData = <T>[
-        ...currentData ?? <T>[],
-      ];
-
-      if (currentData?.first != newData.first) {
-        finalData
-          ..clear()
-          ..addAll(newData);
-      }
-
       emit(
         state.copyWith(
-          data: finalData,
+          data: newData,
           hasReachedMax: hasReachedMax,
           status: InfiniteListStatus.success,
         ),
