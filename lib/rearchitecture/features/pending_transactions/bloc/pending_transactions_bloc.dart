@@ -30,7 +30,7 @@ class PendingTransactionsBloc extends InfiniteListBloc<AccountBlock> {
         await zenon.ledger.getUnreceivedBlocksByAddress(
       address,
       pageIndex: pageIndex,
-      pageSize: kPageSize,
+      pageSize: pageSize,
     );
 
     return accountBlock.list!;

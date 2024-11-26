@@ -27,7 +27,7 @@ class LatestTransactionsBloc extends InfiniteListBloc<AccountBlock> {
         await zenon.ledger.getAccountBlocksByPage(
       address,
       pageIndex: pageIndex,
-      pageSize: kPageSize,
+      pageSize: pageSize,
     );
 
     return accountBlock.list!;
