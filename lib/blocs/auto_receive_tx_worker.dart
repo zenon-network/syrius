@@ -115,6 +115,11 @@ class AutoReceiveTxWorker extends BaseBloc<WalletNotification> {
               (syncInfo.targetHeight > 0 &&
                   syncInfo.currentHeight > 0 &&
                   (syncInfo.targetHeight - syncInfo.currentHeight) < 3))) {
+        sl.get<PendingTransactionsBloc>().add(
+          InfiniteListRefreshRequested(
+            address: Address.parse(kSelectedAddress!),
+          ),
+        );
         pool.add(hash);
       }
     });
