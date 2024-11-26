@@ -29,6 +29,7 @@ import 'package:zenon_syrius_wallet_flutter/blocs/wallet_connect/wallet_connect_
 import 'package:zenon_syrius_wallet_flutter/handlers/htlc_swaps_handler.dart';
 import 'package:zenon_syrius_wallet_flutter/model/model.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/screens/screens.dart';
 import 'package:zenon_syrius_wallet_flutter/services/htlc_swaps_service.dart';
 import 'package:zenon_syrius_wallet_flutter/services/i_web3wallet_service.dart';
@@ -51,6 +52,7 @@ final GlobalKey<NavigatorState> globalNavigatorKey =
 
 main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  Bloc.observer = CustomBlocObserver();
   // Init hydrated bloc storage
   HydratedBloc.storage = await HydratedStorage.build(
     storageDirectory: kIsWeb

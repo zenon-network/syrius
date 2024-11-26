@@ -1,3 +1,4 @@
+export 'bloc_observers/bloc_observers.dart';
 export 'blocs/blocs.dart';
 export 'constants/constants.dart';
 export 'cubits/cubits.dart';
