@@ -2,7 +2,6 @@ import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
-import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/exceptions/failure_exception.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/zts_utils.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
@@ -100,51 +99,55 @@ void main() {
     test('initial state is correct', () {
       expect(
         latestTransactionsBloc.state.status,
-        LatestTransactionsStatus.initial,
+        InfiniteListStatus.initial,
       );
     });
 
     group('fromJson/toJson', () {
       test('can (de)serialize initial state', () {
-        const LatestTransactionsState initialState = LatestTransactionsState();
+        final InfiniteListState<AccountBlock> initialState =
+            InfiniteListState<AccountBlock>.initial();
 
         final Map<String, dynamic>? serialized = latestTransactionsBloc.toJson(
           initialState,
         );
-        final LatestTransactionsState? deserialized =
+        final InfiniteListState<AccountBlock>? deserialized =
             latestTransactionsBloc.fromJson(serialized!);
 
         expect(deserialized, equals(initialState));
       });
 
       test('can (de)serialize success state', () {
-        final LatestTransactionsState successState = LatestTransactionsState(
-          status: LatestTransactionsStatus.success,
+        final InfiniteListState<AccountBlock> successState =
+            InfiniteListState<AccountBlock>(
+          status: InfiniteListStatus.success,
           data: <AccountBlock>[accountBlock],
         );
 
         final Map<String, dynamic>? serialized = latestTransactionsBloc.toJson(
           successState,
         );
-        final LatestTransactionsState? deserialized =
+        final InfiniteListState<AccountBlock>? deserialized =
             latestTransactionsBloc.fromJson(
           serialized!,
         );
-        expect(deserialized, isA<LatestTransactionsState>());
-        expect(deserialized!.status, equals(LatestTransactionsStatus.success));
+        expect(deserialized, isA<InfiniteListState<AccountBlock>>());
+        expect(deserialized!.status, equals(InfiniteListStatus.success));
         expect(deserialized.data, isA<List<AccountBlock>?>());
       });
 
       test('can (de)serialize failure state', () {
-        final LatestTransactionsState failureState = LatestTransactionsState(
-          status: LatestTransactionsStatus.failure,
+        final InfiniteListState<AccountBlock> failureState =
+            InfiniteListState<AccountBlock>(
+          data: const <AccountBlock>[],
+          status: InfiniteListStatus.failure,
           error: exception,
         );
 
         final Map<String, dynamic>? serialized = latestTransactionsBloc.toJson(
           failureState,
         );
-        final LatestTransactionsState? deserialized =
+        final InfiniteListState<AccountBlock>? deserialized =
             latestTransactionsBloc.fromJson(
           serialized!,
         );
@@ -152,24 +155,24 @@ void main() {
       });
     });
 
-    blocTest<LatestTransactionsBloc, LatestTransactionsState>(
+    blocTest<LatestTransactionsBloc, InfiniteListState<AccountBlock>>(
       'emits [success] with data is successfully fetched',
       build: () => latestTransactionsBloc,
       act: (LatestTransactionsBloc cubit) => cubit.add(
-        LatestTransactionsRequested(
+        InfiniteListRequested(
           address: emptyAddress,
         ),
       ),
-      expect: () => <LatestTransactionsState>[
-        LatestTransactionsState(
-          status: LatestTransactionsStatus.success,
+      expect: () => <InfiniteListState<AccountBlock>>[
+        InfiniteListState<AccountBlock>(
+          status: InfiniteListStatus.success,
           data: <AccountBlock>[accountBlock],
           hasReachedMax: true,
         ),
       ],
     );
 
-    blocTest<LatestTransactionsBloc, LatestTransactionsState>(
+    blocTest<LatestTransactionsBloc, InfiniteListState<AccountBlock>>(
       'emits [failure] on fetch failure',
       setUp: () {
         when(
@@ -181,23 +184,24 @@ void main() {
       },
       build: () => latestTransactionsBloc,
       act: (LatestTransactionsBloc cubit) => cubit.add(
-        LatestTransactionsRequested(
+        InfiniteListRequested(
           address: emptyAddress,
         ),
       ),
-      expect: () => <LatestTransactionsState>[
-        LatestTransactionsState(
-          status: LatestTransactionsStatus.failure,
+      expect: () => <InfiniteListState<AccountBlock>>[
+        InfiniteListState<AccountBlock>(
+          data: const <AccountBlock>[],
+          status: InfiniteListStatus.failure,
           error: exception,
         ),
       ],
     );
 
-    blocTest<LatestTransactionsBloc, LatestTransactionsState>(
+    blocTest<LatestTransactionsBloc, InfiniteListState<AccountBlock>>(
       'emits [initial, success] when refresh is requested',
       build: () => latestTransactionsBloc,
       act: (LatestTransactionsBloc cubit) => cubit.add(
-        LatestTransactionsRefreshRequested(
+        InfiniteListRefreshRequested(
           address: emptyAddress,
         ),
       ),
@@ -206,10 +210,10 @@ void main() {
 
         final bool hasReachedMax = data.length < kPageSize;
 
-        return <LatestTransactionsState>[
-          const LatestTransactionsState(),
-          LatestTransactionsState(
-            status: LatestTransactionsStatus.success,
+        return <InfiniteListState<AccountBlock>>[
+          InfiniteListState<AccountBlock>.initial(),
+          InfiniteListState<AccountBlock>(
+            status: InfiniteListStatus.success,
             data: data,
             hasReachedMax: hasReachedMax,
           ),
