@@ -21,7 +21,8 @@ void main() {
     registerFallbackValue(FakeAddress());
   });
 
-  group('PendingTransactionsCubit', () {
+  group('PendingTransactionsBloc', () {
+    const int kTestPageSize = 1;
     late MockZenon mockZenon;
     late MockLedger mockLedger;
     late PendingTransactionsBloc pendingTransactionsBloc;
@@ -88,6 +89,7 @@ void main() {
       ).thenAnswer((_) async => accountBlockList);
 
       pendingTransactionsBloc = PendingTransactionsBloc(
+        pageSize: kTestPageSize,
         zenon: mockZenon,
       );
     });
@@ -139,7 +141,6 @@ void main() {
       test('can (de)serialize failure state', () {
         final InfiniteListState<AccountBlock> failureState =
             InfiniteListState<AccountBlock>(
-          data: const <AccountBlock>[],
           status: InfiniteListStatus.failure,
           error: exception,
         );
@@ -163,13 +164,19 @@ void main() {
           address: emptyAddress,
         ),
       ),
-      expect: () => <InfiniteListState<AccountBlock>>[
-        InfiniteListState<AccountBlock>(
-          status: InfiniteListStatus.success,
-          data: <AccountBlock>[accountBlock],
-          hasReachedMax: true,
-        ),
-      ],
+      expect: () {
+        final List<AccountBlock> data = <AccountBlock>[accountBlock];
+
+        final bool hasReachedMax = data.length < kTestPageSize;
+
+        return <InfiniteListState<AccountBlock>>[
+          InfiniteListState<AccountBlock>(
+            status: InfiniteListStatus.success,
+            data: <AccountBlock>[accountBlock],
+            hasReachedMax: hasReachedMax,
+          ),
+        ];
+      },
     );
 
     blocTest<PendingTransactionsBloc, InfiniteListState<AccountBlock>>(
@@ -190,11 +197,78 @@ void main() {
       ),
       expect: () => <InfiniteListState<AccountBlock>>[
         InfiniteListState<AccountBlock>(
-          data: const <AccountBlock>[],
           status: InfiniteListStatus.failure,
           error: exception,
         ),
       ],
+    );
+
+    blocTest<PendingTransactionsBloc, InfiniteListState<AccountBlock>>(
+      'emits [initial, success] when refresh is requested',
+      build: () => pendingTransactionsBloc,
+      act: (PendingTransactionsBloc bloc) => bloc.add(
+        InfiniteListRefreshRequested(
+          address: emptyAddress,
+        ),
+      ),
+      expect: () {
+        final List<AccountBlock> data = <AccountBlock>[accountBlock];
+
+        final bool hasReachedMax = data.length < kTestPageSize;
+
+        return <InfiniteListState<AccountBlock>>[
+          InfiniteListState<AccountBlock>.initial(),
+          InfiniteListState<AccountBlock>(
+            status: InfiniteListStatus.success,
+            data: data,
+            hasReachedMax: hasReachedMax,
+          ),
+        ];
+      },
+    );
+
+    blocTest<PendingTransactionsBloc, InfiniteListState<AccountBlock>>(
+      'emits [initial, success, success] when more transactions are requested',
+      build: () => pendingTransactionsBloc,
+      act: (PendingTransactionsBloc bloc) async {
+        bloc
+            .add(
+          InfiniteListRefreshRequested(
+            address: emptyAddress,
+          ),
+        );
+
+        // New events sent immediately one after the other will be dropped
+        await Future<void>.delayed(const Duration(milliseconds: 200));
+
+        bloc.add(
+          InfiniteListMoreRequested(
+            address: emptyAddress,
+          ),
+        );
+      },
+      expect: () {
+        final List<AccountBlock> data = <AccountBlock>[accountBlock];
+
+        final bool hasReachedMax = data.length < kTestPageSize;
+
+        return <InfiniteListState<AccountBlock>>[
+          InfiniteListState<AccountBlock>.initial(),
+          InfiniteListState<AccountBlock>(
+            status: InfiniteListStatus.success,
+            data: data,
+            hasReachedMax: hasReachedMax,
+          ),
+          InfiniteListState<AccountBlock>(
+            status: InfiniteListStatus.success,
+            data: <AccountBlock>[
+              ...data,
+              ...data,
+            ],
+            hasReachedMax: hasReachedMax,
+          ),
+        ];
+      },
     );
   });
 }

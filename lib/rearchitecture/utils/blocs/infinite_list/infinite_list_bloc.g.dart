@@ -12,7 +12,7 @@ InfiniteListState<T> _$InfiniteListStateFromJson<T>(
 ) =>
     InfiniteListState<T>(
       status: $enumDecode(_$InfiniteListStatusEnumMap, json['status']),
-      data: (json['data'] as List<dynamic>).map(fromJsonT).toList(),
+      data: (json['data'] as List<dynamic>?)?.map(fromJsonT).toList(),
       error: json['error'] == null
           ? null
           : SyriusException.fromJson(json['error'] as Map<String, dynamic>),
@@ -25,7 +25,7 @@ Map<String, dynamic> _$InfiniteListStateToJson<T>(
 ) =>
     <String, dynamic>{
       'status': _$InfiniteListStatusEnumMap[instance.status]!,
-      'data': instance.data.map(toJsonT).toList(),
+      'data': instance.data?.map(toJsonT).toList(),
       'error': instance.error?.toJson(),
       'hasReachedMax': instance.hasReachedMax,
     };

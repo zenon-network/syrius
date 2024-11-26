@@ -34,19 +34,19 @@ class LatestTransactionsCard extends StatelessWidget {
               ),
             );
       },
-      body: BlocBuilder<LatestTransactionsBloc, InfiniteListState>(
-        builder: (_, InfiniteListState state) {
+      body:
+          BlocBuilder<LatestTransactionsBloc, InfiniteListState<AccountBlock>>(
+        builder: (_, InfiniteListState<AccountBlock> state) {
           final InfiniteListStatus status = state.status;
 
           return switch (status) {
-            InfiniteListStatus.initial =>
-              const _LatestTransactionsInitial(),
+            InfiniteListStatus.initial => const _LatestTransactionsInitial(),
             InfiniteListStatus.failure => _LatestTransactionsFailure(
                 exception: state.error!,
               ),
             InfiniteListStatus.success => _LatestTransactionsPopulated(
                 hasReachedMax: state.hasReachedMax,
-                transactions: state.data as List<AccountBlock>,
+                transactions: state.data!,
                 type: type,
               ),
           };
@@ -340,101 +340,101 @@ class _LatestTransactionsPopulatedState
       case 'Sender':
         _sortAscending
             ? _transactions.sort(
-              (AccountBlock a, AccountBlock b) =>
-              a.address.toString().compareTo(
-                b.address.toString(),
-              ),
-        )
+                (AccountBlock a, AccountBlock b) =>
+                    a.address.toString().compareTo(
+                          b.address.toString(),
+                        ),
+              )
             : _transactions.sort(
-              (AccountBlock a, AccountBlock b) =>
-              b.address.toString().compareTo(
-                a.address.toString(),
-              ),
-        );
+                (AccountBlock a, AccountBlock b) =>
+                    b.address.toString().compareTo(
+                          a.address.toString(),
+                        ),
+              );
       case 'Receiver':
         _sortAscending
             ? _transactions.sort(
-              (AccountBlock a, AccountBlock b) =>
-              a.toAddress.toString().compareTo(
-                b.toAddress.toString(),
-              ),
-        )
+                (AccountBlock a, AccountBlock b) =>
+                    a.toAddress.toString().compareTo(
+                          b.toAddress.toString(),
+                        ),
+              )
             : _transactions.sort(
-              (AccountBlock a, AccountBlock b) =>
-              b.toAddress.toString().compareTo(
-                a.toAddress.toString(),
-              ),
-        );
+                (AccountBlock a, AccountBlock b) =>
+                    b.toAddress.toString().compareTo(
+                          a.toAddress.toString(),
+                        ),
+              );
       case 'Hash':
         _sortAscending
             ? _transactions.sort(
-              (AccountBlock a, AccountBlock b) => a.hash.toString().compareTo(
-            b.hash.toString(),
-          ),
-        )
+                (AccountBlock a, AccountBlock b) => a.hash.toString().compareTo(
+                      b.hash.toString(),
+                    ),
+              )
             : _transactions.sort(
-              (AccountBlock a, AccountBlock b) => b.hash.toString().compareTo(
-            a.hash.toString(),
-          ),
-        );
+                (AccountBlock a, AccountBlock b) => b.hash.toString().compareTo(
+                      a.hash.toString(),
+                    ),
+              );
       case 'Amount':
         _sortAscending
             ? _transactions.sort(
-              (AccountBlock a, AccountBlock b) =>
-              a.amount.compareTo(b.amount),
-        )
+                (AccountBlock a, AccountBlock b) =>
+                    a.amount.compareTo(b.amount),
+              )
             : _transactions.sort(
-              (AccountBlock a, AccountBlock b) =>
-              b.amount.compareTo(a.amount),
-        );
+                (AccountBlock a, AccountBlock b) =>
+                    b.amount.compareTo(a.amount),
+              );
       case 'Date':
         _sortAscending
             ? _transactions.sort(
-              (AccountBlock a, AccountBlock b) =>
-              a.confirmationDetail!.momentumTimestamp.compareTo(
-                b.confirmationDetail!.momentumTimestamp,
-              ),
-        )
+                (AccountBlock a, AccountBlock b) =>
+                    a.confirmationDetail!.momentumTimestamp.compareTo(
+                  b.confirmationDetail!.momentumTimestamp,
+                ),
+              )
             : _transactions.sort(
-              (AccountBlock a, AccountBlock b) =>
-              b.confirmationDetail!.momentumTimestamp.compareTo(
-                a.confirmationDetail!.momentumTimestamp,
-              ),
-        );
+                (AccountBlock a, AccountBlock b) =>
+                    b.confirmationDetail!.momentumTimestamp.compareTo(
+                  a.confirmationDetail!.momentumTimestamp,
+                ),
+              );
       case 'Type':
         _sortAscending
             ? _transactions.sort(
-              (AccountBlock a, AccountBlock b) =>
-              a.blockType.compareTo(b.blockType),
-        )
+                (AccountBlock a, AccountBlock b) =>
+                    a.blockType.compareTo(b.blockType),
+              )
             : _transactions.sort(
-              (AccountBlock a, AccountBlock b) =>
-              b.blockType.compareTo(a.blockType),
-        );
+                (AccountBlock a, AccountBlock b) =>
+                    b.blockType.compareTo(a.blockType),
+              );
       case 'Assets':
         _sortAscending
             ? _transactions.sort(
-              (AccountBlock a, AccountBlock b) =>
-              a.token!.symbol.compareTo(b.token!.symbol),
-        )
+                (AccountBlock a, AccountBlock b) =>
+                    a.token!.symbol.compareTo(b.token!.symbol),
+              )
             : _transactions.sort(
-              (AccountBlock a, AccountBlock b) =>
-              b.token!.symbol.compareTo(a.token!.symbol),
-        );
+                (AccountBlock a, AccountBlock b) =>
+                    b.token!.symbol.compareTo(a.token!.symbol),
+              );
       default:
         _sortAscending
             ? _transactions.sort(
-              (AccountBlock a, AccountBlock b) =>
-              a.tokenStandard.toString().compareTo(
-                b.tokenStandard.toString(),
-              ),
-        )
+                (AccountBlock a, AccountBlock b) =>
+                    a.tokenStandard.toString().compareTo(
+                          b.tokenStandard.toString(),
+                        ),
+              )
             : _transactions.sort(
-              (AccountBlock a, AccountBlock b) =>
-              b.tokenStandard.toString().compareTo(
-                a.tokenStandard.toString(),
-              ),
-        );
+                (AccountBlock a, AccountBlock b) =>
+                    b.tokenStandard.toString().compareTo(
+                          a.tokenStandard.toString(),
+                        ),
+              );
         break;
     }
 

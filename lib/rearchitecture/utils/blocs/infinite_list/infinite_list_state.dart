@@ -21,14 +21,13 @@ class InfiniteListState<T> extends Equatable {
   /// The [status] defaults to [InfiniteListStatus.initial].
   const InfiniteListState({
     required this.status,
-    required this.data,
+    this.data,
     this.error,
     this.hasReachedMax = false,
   });
 
   InfiniteListState.initial()
       : this(
-          data: <T>[],
           status: InfiniteListStatus.initial,
         );
 
@@ -45,7 +44,7 @@ class InfiniteListState<T> extends Equatable {
   /// The list of [AccountBlock] instances representing the latest transactions.
   ///
   /// It is populated when the [status] is [InfiniteListStatus.success].
-  final List<T> data;
+  final List<T>? data;
 
   /// An object representing any error that occurred during data fetching.
   ///

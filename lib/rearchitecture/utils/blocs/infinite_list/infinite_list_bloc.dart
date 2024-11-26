@@ -38,6 +38,7 @@ abstract class InfiniteListBloc<T>
     required this.fromJsonT,
     required this.toJsonT,
     required this.zenon,
+    required this.pageSize,
   }) : super(
           InfiniteListState<T>.initial(),
         ) {
@@ -56,6 +57,8 @@ abstract class InfiniteListBloc<T>
   /// The [Zenon] SDK instance used for ledger interactions.
   final Zenon zenon;
 
+  /// THe number of results to be returned per page.
+  final int pageSize;
   final T Function(Object?) fromJsonT;
   final Object? Function(T) toJsonT;
 
@@ -69,21 +72,21 @@ abstract class InfiniteListBloc<T>
     InfiniteListRequested event,
     Emitter<InfiniteListState<T>> emit,
   ) async {
-    final List<T> currentData = state.data;
+    final List<T>? currentData = state.data;
     try {
       final List<T> newData = await paginationFetch(
         address: event.address,
         pageIndex: 0,
-        pageSize: kPageSize,
+        pageSize: pageSize,
       );
 
-      final bool hasReachedMax = newData.length < kPageSize;
+      final bool hasReachedMax = newData.length < pageSize;
 
       final List<T> finalData = <T>[
-        ...currentData,
+        ...currentData ?? <T>[],
       ];
 
-      if (currentData.isEmpty || currentData.first != newData.first) {
+      if (currentData?.first != newData.first) {
         finalData
           ..clear()
           ..addAll(newData);
@@ -112,22 +115,22 @@ abstract class InfiniteListBloc<T>
     Emitter<InfiniteListState<T>> emit,
   ) async {
     if (state.hasReachedMax) return;
-    final List<T> currentData = state.data;
+    final List<T> currentData = state.data ?? <T>[];
     final int previousNumOfItems = currentData.length;
-    final int pageIndex = previousNumOfItems ~/ kPageSize;
+    final int pageIndex = previousNumOfItems ~/ pageSize;
     try {
       final List<T> data = await paginationFetch(
         address: event.address,
         pageIndex: pageIndex,
-        pageSize: kPageSize,
+        pageSize: pageSize,
       );
 
-      final bool hasReachedMax = data.length < kPageSize;
+      final bool hasReachedMax = data.length < pageSize;
 
       emit(
         state.copyWith(
           data: <T>[
-            ...state.data,
+            ...currentData,
             ...data,
           ],
           hasReachedMax: hasReachedMax,

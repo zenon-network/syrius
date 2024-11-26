@@ -12,6 +12,7 @@ class PendingTransactionsBloc extends InfiniteListBloc<AccountBlock> {
   /// Requires a [Zenon] instance to interact with the ledger
   PendingTransactionsBloc({
     required super.zenon,
+    super.pageSize = kPageSize,
   }) : super(
           fromJsonT: (Object? map) => AccountBlock.fromJson(
             map! as Map<String, dynamic>,

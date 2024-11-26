@@ -44,7 +44,7 @@ class PendingTransactionsCard extends StatelessWidget {
             InfiniteListStatus.success => _PendingTransactionsPopulated(
                 bloc: bloc,
                 hasReachedMax: state.hasReachedMax,
-                transactions: state.data,
+                transactions: state.data!,
               ),
           };
         },

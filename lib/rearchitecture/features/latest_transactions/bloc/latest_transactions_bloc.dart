@@ -9,7 +9,7 @@ class LatestTransactionsBloc extends InfiniteListBloc<AccountBlock> {
   /// Creates an instance of [LatestTransactionsBloc].
   ///
   /// The constructor requires a [Zenon] SDK instance.
-  LatestTransactionsBloc({required super.zenon})
+  LatestTransactionsBloc({required super.zenon, super.pageSize = kPageSize})
       : super(
           fromJsonT: (Object? map) => AccountBlock.fromJson(
             map! as Map<String, dynamic>,
