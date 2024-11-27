@@ -107,7 +107,7 @@ void main() {
 
     group('fromJson/toJson', () {
       test('can (de)serialize initial state', () {
-        final InfiniteListState<AccountBlock> initialState =
+        const InfiniteListState<AccountBlock> initialState =
             InfiniteListState<AccountBlock>.initial();
 
         final Map<String, dynamic>? serialized = latestTransactionsBloc.toJson(
@@ -217,7 +217,7 @@ void main() {
         final bool hasReachedMax = data.length < kTestPageSize;
 
         return <InfiniteListState<AccountBlock>>[
-          InfiniteListState<AccountBlock>.initial(),
+          const InfiniteListState<AccountBlock>.initial(),
           InfiniteListState<AccountBlock>(
             status: InfiniteListStatus.success,
             data: data,
@@ -231,21 +231,20 @@ void main() {
       'emits [initial, success, success] when more transactions are requested',
       build: () => latestTransactionsBloc,
       act: (LatestTransactionsBloc bloc) async {
-        bloc
-          .add(
-            InfiniteListRefreshRequested(
-              address: emptyAddress,
-            ),
-          );
+        bloc.add(
+          InfiniteListRefreshRequested(
+            address: emptyAddress,
+          ),
+        );
 
         // New events sent immediately one after the other will be dropped
         await Future<void>.delayed(const Duration(milliseconds: 200));
 
-          bloc.add(
-            InfiniteListMoreRequested(
-              address: emptyAddress,
-            ),
-          );
+        bloc.add(
+          InfiniteListMoreRequested(
+            address: emptyAddress,
+          ),
+        );
       },
       expect: () {
         final List<AccountBlock> data = <AccountBlock>[accountBlock];
@@ -253,7 +252,7 @@ void main() {
         final bool hasReachedMax = data.length < kTestPageSize;
 
         return <InfiniteListState<AccountBlock>>[
-          InfiniteListState<AccountBlock>.initial(),
+          const InfiniteListState<AccountBlock>.initial(),
           InfiniteListState<AccountBlock>(
             status: InfiniteListStatus.success,
             data: data,

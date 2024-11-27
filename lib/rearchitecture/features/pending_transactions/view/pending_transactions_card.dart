@@ -212,80 +212,90 @@ class _PendingTransactionsPopulatedState
       case 'Sender':
         _sortAscending
             ? widget.transactions.sort(
-                (a, b) => a.address.toString().compareTo(
-                      b.address.toString(),
-                    ),
+                (AccountBlock a, AccountBlock b) =>
+                    a.address.toString().compareTo(
+                          b.address.toString(),
+                        ),
               )
             : widget.transactions.sort(
-                (a, b) => b.address.toString().compareTo(
-                      a.address.toString(),
-                    ),
+                (AccountBlock a, AccountBlock b) =>
+                    b.address.toString().compareTo(
+                          a.address.toString(),
+                        ),
               );
-        break;
       case 'Receiver':
         _sortAscending
             ? widget.transactions.sort(
-                (a, b) => a.toAddress.toString().compareTo(
-                      b.toAddress.toString(),
-                    ),
+                (AccountBlock a, AccountBlock b) =>
+                    a.toAddress.toString().compareTo(
+                          b.toAddress.toString(),
+                        ),
               )
             : widget.transactions.sort(
-                (a, b) => b.toAddress.toString().compareTo(
-                      a.toAddress.toString(),
-                    ),
+                (AccountBlock a, AccountBlock b) =>
+                    b.toAddress.toString().compareTo(
+                          a.toAddress.toString(),
+                        ),
               );
-        break;
       case 'Hash':
         _sortAscending
             ? widget.transactions.sort(
-                (a, b) => a.hash.toString().compareTo(
+                (AccountBlock a, AccountBlock b) => a.hash.toString().compareTo(
                       b.hash.toString(),
                     ),
               )
             : widget.transactions.sort(
-                (a, b) => b.hash.toString().compareTo(
+                (AccountBlock a, AccountBlock b) => b.hash.toString().compareTo(
                       a.hash.toString(),
                     ),
               );
-        break;
       case 'Amount':
         _sortAscending
-            ? widget.transactions.sort((a, b) => a.amount.compareTo(b.amount))
-            : widget.transactions.sort((a, b) => b.amount.compareTo(a.amount));
-        break;
+            ? widget.transactions.sort(
+                (AccountBlock a, AccountBlock b) =>
+                    a.amount.compareTo(b.amount),
+              )
+            : widget.transactions.sort(
+                (AccountBlock a, AccountBlock b) =>
+                    b.amount.compareTo(a.amount),
+              );
       case 'Date':
         _sortAscending
             ? widget.transactions.sort(
-                (a, b) => a.confirmationDetail!.momentumTimestamp.compareTo(
+                (AccountBlock a, AccountBlock b) =>
+                    a.confirmationDetail!.momentumTimestamp.compareTo(
                   b.confirmationDetail!.momentumTimestamp,
                 ),
               )
             : widget.transactions.sort(
-                (a, b) => b.confirmationDetail!.momentumTimestamp.compareTo(
+                (AccountBlock a, AccountBlock b) =>
+                    b.confirmationDetail!.momentumTimestamp.compareTo(
                   a.confirmationDetail!.momentumTimestamp,
                 ),
               );
-        break;
       case 'Assets':
         _sortAscending
             ? widget.transactions.sort(
-                (a, b) => a.token!.symbol.compareTo(b.token!.symbol),
+                (AccountBlock a, AccountBlock b) =>
+                    a.token!.symbol.compareTo(b.token!.symbol),
               )
             : widget.transactions.sort(
-                (a, b) => b.token!.symbol.compareTo(a.token!.symbol),
+                (AccountBlock a, AccountBlock b) =>
+                    b.token!.symbol.compareTo(a.token!.symbol),
               );
-        break;
       default:
         _sortAscending
             ? widget.transactions.sort(
-                (a, b) => a.tokenStandard.toString().compareTo(
-                      b.tokenStandard.toString(),
-                    ),
+                (AccountBlock a, AccountBlock b) =>
+                    a.tokenStandard.toString().compareTo(
+                          b.tokenStandard.toString(),
+                        ),
               )
             : widget.transactions.sort(
-                (a, b) => b.tokenStandard.toString().compareTo(
-                      a.tokenStandard.toString(),
-                    ),
+                (AccountBlock a, AccountBlock b) =>
+                    b.tokenStandard.toString().compareTo(
+                          a.tokenStandard.toString(),
+                        ),
               );
         break;
     }

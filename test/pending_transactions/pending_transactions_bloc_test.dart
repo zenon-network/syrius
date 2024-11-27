@@ -107,7 +107,7 @@ void main() {
 
     group('fromJson/toJson', () {
       test('can (de)serialize initial state', () {
-        final InfiniteListState<AccountBlock> initialState =
+        const InfiniteListState<AccountBlock> initialState =
             InfiniteListState<AccountBlock>.initial();
 
         final Map<String, dynamic>? serialized = pendingTransactionsBloc.toJson(
@@ -217,7 +217,7 @@ void main() {
         final bool hasReachedMax = data.length < kTestPageSize;
 
         return <InfiniteListState<AccountBlock>>[
-          InfiniteListState<AccountBlock>.initial(),
+          const InfiniteListState<AccountBlock>.initial(),
           InfiniteListState<AccountBlock>(
             status: InfiniteListStatus.success,
             data: data,
@@ -231,8 +231,7 @@ void main() {
       'emits [initial, success, success] when more transactions are requested',
       build: () => pendingTransactionsBloc,
       act: (PendingTransactionsBloc bloc) async {
-        bloc
-            .add(
+        bloc.add(
           InfiniteListRefreshRequested(
             address: emptyAddress,
           ),
@@ -253,7 +252,7 @@ void main() {
         final bool hasReachedMax = data.length < kTestPageSize;
 
         return <InfiniteListState<AccountBlock>>[
-          InfiniteListState<AccountBlock>.initial(),
+          const InfiniteListState<AccountBlock>.initial(),
           InfiniteListState<AccountBlock>(
             status: InfiniteListStatus.success,
             data: data,
