@@ -1,12 +1,24 @@
 part of 'infinite_scroll_table.dart';
 
+/// A cell in a table
+///
+/// It's based on the [Expanded] widgets, so the [child] will be forced to
+/// occupy the entire available space. The space in the row is determined by
+/// the [flex].
 class InfiniteScrollTableCell extends StatelessWidget {
+  /// Creates a new instance.
   const InfiniteScrollTableCell({
     required this.child,
     this.flex = 1,
     super.key,
   });
 
+  /// A constructor used when the main child widget is a [Text].
+  ///
+  /// If [tooltipMessage] is not empty, then a tooltip message will appear
+  /// If [textToBeCopied] is not null, then the cell will also have a
+  /// [CopyToClipboardButton] widget that copies to clipboard the
+  /// [textToBeCopied] - which is not already the same as the [content] value.
   factory InfiniteScrollTableCell.withText({
     required BuildContext context,
     required String content,
@@ -48,14 +60,18 @@ class InfiniteScrollTableCell extends StatelessWidget {
         ),
       );
 
+  /// A constructor that helps creating cell content starting from an [address].
+  ///
+  /// Useful especially for styling cell content when the address is one of the
+  /// user's wallet
   factory InfiniteScrollTableCell.textFromAddress({
     required Address address,
     required BuildContext context,
-    bool checkIfStakeAddress = false,
+    bool isStakeAddress = false,
     bool isShortVersion = true,
   }) {
     final TextStyle? textStyle = address.isEmbedded() ||
-            (checkIfStakeAddress && address.toString() == kSelectedAddress)
+            (isStakeAddress && address.toString() == kSelectedAddress)
         ? Theme.of(context).textTheme.bodyMedium?.copyWith(
               color: AppColors.znnColor,
               fontWeight: FontWeight.bold,
@@ -80,14 +96,15 @@ class InfiniteScrollTableCell extends StatelessWidget {
     );
   }
 
+  /// The child that represents the content of the cell
   final Widget child;
+  /// Represents the space amount in a row assign to the cell
   final int flex;
 
   @override
   Widget build(BuildContext context) {
-    return Flexible(
+    return Expanded(
       flex: flex,
-      fit: FlexFit.tight,
       child: child,
     );
   }

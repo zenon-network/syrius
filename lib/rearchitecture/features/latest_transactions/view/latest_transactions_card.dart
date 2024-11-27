@@ -9,7 +9,10 @@ import 'package:zenon_syrius_wallet_flutter/utils/extensions.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/format_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart'
-    hide InfiniteScrollTable, InfiniteScrollTableCell;
+    hide
+        InfiniteScrollTable,
+        InfiniteScrollTableCell,
+        InfiniteScrollTableHeaderColumn;
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 class LatestTransactionsCard extends StatelessWidget {
@@ -162,8 +165,8 @@ class _LatestTransactionsPopulatedState
       content: infoBlock.confirmationDetail?.momentumTimestamp == null
           ? context.l10n.pending
           : FormatUtils.formatData(
-        infoBlock.confirmationDetail!.momentumTimestamp * 1000,
-      ),
+              infoBlock.confirmationDetail!.momentumTimestamp * 1000,
+            ),
       context: context,
     );
   }
