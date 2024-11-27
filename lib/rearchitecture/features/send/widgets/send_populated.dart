@@ -47,9 +47,9 @@ class _SendPopulatedState extends State<SendPopulated> {
 
   // The two coins - ZNN and QSR - should always be in this list
   List<Token> get _availableTokens => <Token>[
-    ..._initialTokens,
-    ..._tokensWithBalance,
-  ];
+        ..._initialTokens,
+        ..._tokensWithBalance,
+      ];
 
   Token _selectedToken = kDualCoin.first;
 
@@ -95,7 +95,7 @@ class _SendPopulatedState extends State<SendPopulated> {
         if (state.status == SendTransactionStatus.loading) {
           _sendPaymentButtonKey.currentState?.animateForward();
         } else if (state.status == SendTransactionStatus.success) {
-          _sendConfirmationNotification();
+          _sendConfirmationNotification(block: state.data!);
           _sendPaymentButtonKey.currentState?.animateReverse();
           _amountController.clear();
           _recipientController.clear();
@@ -290,7 +290,9 @@ class _SendPopulatedState extends State<SendPopulated> {
     );
   }
 
-  Future<void> _sendConfirmationNotification() async {
+  Future<void> _sendConfirmationNotification({
+    required AccountBlockTemplate block,
+  }) async {
     final String recipient = ZenonAddressUtils.getLabel(_recipient);
 
     final String sender = ZenonAddressUtils.getLabel(_selectedSenderAddress);
@@ -308,8 +310,7 @@ class _SendPopulatedState extends State<SendPopulated> {
           WalletNotification(
             title: title,
             timestamp: DateTime.now().millisecondsSinceEpoch,
-            // TODO(maznnwell): Add details - the hash, for example
-            details: title,
+            details: context.l10n.hashValue(block.hash.toString()),
             type: NotificationType.paymentSent,
           ),
         );

@@ -13,6 +13,7 @@
   "from": "from",
   "hAgo": "h ago",
   "hash": "Hash",
+  "hashValue": "Hash: {value}",
   "latestTransactionsDescription": "This card displays the latest transactions (including ZTS tokens) of your selected address",
   "latestTransactionsTitle": "Latest Transactions",
   "latestTransactionsTransferDescription": "This card displays the latest transactions (including ZTS tokens) involving your wallet addresses",
