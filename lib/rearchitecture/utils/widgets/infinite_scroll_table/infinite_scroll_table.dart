@@ -81,7 +81,7 @@ class _InfiniteScrollTableState<T> extends State<InfiniteScrollTable<T>> {
           itemCount: widget.items.length + 1,
           itemBuilder: (BuildContext context, int index) {
             final Widget lastChild = widget.hasReachedMax
-                ? SyriusErrorWidget(context.l10n.noItemsFound)
+                ? SyriusErrorWidget(context.l10n.noMoreItems)
                 : const SyriusLoadingWidget();
 
             return index == widget.items.length
