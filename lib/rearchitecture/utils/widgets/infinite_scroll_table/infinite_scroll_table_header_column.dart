@@ -41,7 +41,7 @@ class InfiniteScrollTableHeaderColumn extends StatelessWidget {
             child: InkWell(
               onTap: () => onSortArrowsPressed!(columnName),
               child: Icon(
-                Entypo.select_arrows,
+                Icons.sort,
                 size: 15,
                 color: Theme.of(context).iconTheme.color,
               ),
