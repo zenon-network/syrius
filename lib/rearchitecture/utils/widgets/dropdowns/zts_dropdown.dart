@@ -3,7 +3,9 @@ import 'package:flutter_vector_icons/flutter_vector_icons.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
+/// A dropdown for all the network assets - tokens and coins
 class ZtsDropdown extends StatelessWidget {
+  /// Creates a new instance.
   const ZtsDropdown({
     required List<Token> availableTokens,
     required void Function(Token) onChangeCallback,

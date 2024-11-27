@@ -113,11 +113,10 @@ class _PendingTransactionsPopulatedState
     );
   }
 
-  List<Widget> _rowCellsGenerator(AccountBlock transaction, bool isSelected) =>
-      _getCellsForPendingTransactions(isSelected, transaction);
+  List<Widget> _rowCellsGenerator(AccountBlock transaction) =>
+      _getCellsForPendingTransactions(transaction);
 
   List<Widget> _getCellsForPendingTransactions(
-    bool isSelected,
     AccountBlock transaction,
   ) {
     final AccountBlock infoBlock =
@@ -167,7 +166,7 @@ class _PendingTransactionsPopulatedState
       ),
       _assetsCell(infoBlock),
       InfiniteScrollTableCell(
-        child: _getReceiveContainer(isSelected, infoBlock, widget.bloc),
+        child: _getReceiveContainer(infoBlock, widget.bloc),
       ),
     ];
   }
@@ -297,7 +296,6 @@ class _PendingTransactionsPopulatedState
   }
 
   Widget _getReceiveContainer(
-    bool isSelected,
     AccountBlock transaction,
     PendingTransactionsBloc model,
   ) {

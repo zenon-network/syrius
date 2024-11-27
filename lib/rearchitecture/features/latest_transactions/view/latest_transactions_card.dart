@@ -123,14 +123,12 @@ class _LatestTransactionsPopulatedState
 
   List<Widget> _rowCellsGenerator(
     AccountBlock transaction,
-    bool isSelected,
   ) =>
       widget.type == CardType.latestTransactionsDashboard
-          ? _getCellsForDashboardWidget(isSelected, transaction)
-          : _getCellsForTransferWidget(isSelected, transaction);
+          ? _getCellsForDashboardWidget(transaction)
+          : _getCellsForTransferWidget(transaction);
 
   List<Widget> _getCellsForTransferWidget(
-    bool isSelected,
     AccountBlock transactionBlock,
   ) {
     final AccountBlock infoBlock =
@@ -238,7 +236,6 @@ class _LatestTransactionsPopulatedState
   }
 
   List<Widget> _getCellsForDashboardWidget(
-    bool isSelected,
     AccountBlock transactionBlock,
   ) {
     final AccountBlock infoBlock =

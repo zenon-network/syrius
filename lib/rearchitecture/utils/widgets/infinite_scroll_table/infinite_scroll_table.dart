@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_vector_icons/flutter_vector_icons.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/constants/app_sizes.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/extensions/buildcontext_extension.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
@@ -31,10 +32,15 @@ class InfiniteScrollTable<T> extends StatefulWidget {
     super.key,
   });
 
+  /// The columns that will the organized in an fixed header
   final List<InfiniteScrollTableHeaderColumn> headerColumns;
-  final List<Widget> Function(T, bool) generateRowCells;
+  /// Function that takes in an item and returns the cells consisting the row
+  final List<Widget> Function(T) generateRowCells;
+  /// Callback to be executed when the bottom of the table was reached.
   final VoidCallback onScrollReachedBottom;
+  /// List of items that constitutes the rows.
   final List<T> items;
+  /// Whether there are still items that can be fetched.
   final bool hasReachedMax;
 
   @override
@@ -42,7 +48,6 @@ class InfiniteScrollTable<T> extends StatefulWidget {
 }
 
 class _InfiniteScrollTableState<T> extends State<InfiniteScrollTable<T>> {
-  int? _selectedRowIndex;
   final ScrollController _scrollController = ScrollController();
 
   @override
@@ -111,27 +116,15 @@ class _InfiniteScrollTableState<T> extends State<InfiniteScrollTable<T>> {
     return currentScroll >= (maxScroll * 0.9);
   }
 
-  Widget _getTableRow(dynamic item, int indexOfRow) {
-    final bool isSelected = _selectedRowIndex == indexOfRow;
-
-    return Container(
-      decoration: BoxDecoration(
-        color: isSelected
-            ? Theme.of(context).colorScheme.primaryContainer
-            : Colors.transparent,
-      ),
-      padding: const EdgeInsets.symmetric(
-        vertical: 15,
+  Widget _getTableRow(T item, int indexOfRow) {
+    return Padding(
+      padding: const EdgeInsets.only(
+        top: 8,
+        bottom: 8,
+        left: kInfiniteTableLeftPadding,
       ),
       child: Row(
-        children: List<Widget>.from(
-              <SizedBox>[
-                const SizedBox(
-                  width: 20,
-                ),
-              ],
-            ) +
-            widget.generateRowCells(item, isSelected),
+        children: widget.generateRowCells(item),
       ),
     );
   }
@@ -156,7 +149,7 @@ class _Header extends StatelessWidget {
             height: 50,
             child: Padding(
               padding: const EdgeInsets.only(
-                left: 20,
+                left: kInfiniteTableLeftPadding,
               ),
               child: Row(
                 children: columns,
