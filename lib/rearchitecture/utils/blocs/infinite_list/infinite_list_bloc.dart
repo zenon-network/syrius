@@ -3,9 +3,11 @@ import 'dart:async';
 import 'package:equatable/equatable.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
 import 'package:json_annotation/json_annotation.dart';
+import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/constants/api.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/exceptions/exceptions.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/functions/functions.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 part 'infinite_list_bloc.g.dart';
@@ -32,7 +34,8 @@ part 'infinite_list_state.dart';
 /// followed by an event of [InfiniteListRequested] that restarts the
 /// fetching process for the new address
 abstract class InfiniteListBloc<T>
-    extends HydratedBloc<InfiniteListEvent, InfiniteListState<T>> {
+    extends HydratedBloc<InfiniteListEvent, InfiniteListState<T>>
+    with RefreshBlocMixin {
   /// Creates a new instance.
   InfiniteListBloc({
     required this.fromJsonT,
@@ -42,6 +45,15 @@ abstract class InfiniteListBloc<T>
   }) : super(
           InfiniteListState<T>.initial(),
         ) {
+    listenToWsRestart(
+      () {
+        add(
+          InfiniteListRefreshRequested(
+            address: Address.parse(kSelectedAddress!),
+          ),
+        );
+      },
+    );
     on<InfiniteListRequested>(
       _onInfiniteListRequested,
       transformer: throttleDroppable(kThrottleDuration),
