@@ -2,7 +2,6 @@ import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
-// TODO(maznwell): re-architecture this cubit
 class PillarsListBloc extends InfiniteScrollBloc<PillarInfo> {
   @override
   Future<List<PillarInfo>> getData(int pageKey, int pageSize) async =>
