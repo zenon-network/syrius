@@ -22,13 +22,13 @@ class PendingTransactionsBloc extends InfiniteListBloc<AccountBlock> {
 
   @override
   Future<List<AccountBlock>> paginationFetch({
-    required Address address,
+    Address? address,
     required int pageIndex,
     required int pageSize,
   }) async {
     final AccountBlockList accountBlock =
         await zenon.ledger.getUnreceivedBlocksByAddress(
-      address,
+      address!,
       pageIndex: pageIndex,
       pageSize: pageSize,
     );

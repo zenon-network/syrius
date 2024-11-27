@@ -63,9 +63,9 @@ abstract class InfiniteListBloc<T>
   final Object? Function(T) toJsonT;
 
   Future<List<T>> paginationFetch({
-    required Address address,
     required int pageIndex,
     required int pageSize,
+    Address? address,
   });
 
   Future<void> _onInfiniteListRequested(
