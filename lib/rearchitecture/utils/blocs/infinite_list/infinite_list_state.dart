@@ -26,7 +26,8 @@ class InfiniteListState<T> extends Equatable {
     this.hasReachedMax = false,
   });
 
-  InfiniteListState.initial()
+  /// Creates a new instance, with the [status] of [InfiniteListStatus.initial]
+  const InfiniteListState.initial()
       : this(
           status: InfiniteListStatus.initial,
         );

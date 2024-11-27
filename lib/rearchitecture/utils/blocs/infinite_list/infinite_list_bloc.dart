@@ -71,9 +71,12 @@ abstract class InfiniteListBloc<T>
 
   /// THe number of results to be returned per page.
   final int pageSize;
+  /// Method that helps deserializing the generic [T] type
   final T Function(Object?) fromJsonT;
+  /// Method that helps serializing the generic [T] type
   final Object? Function(T) toJsonT;
 
+  /// Retrieves the data in a pagination manner, with the first page being 0
   Future<List<T>> paginationFetch({
     required Address address,
     required int pageIndex,

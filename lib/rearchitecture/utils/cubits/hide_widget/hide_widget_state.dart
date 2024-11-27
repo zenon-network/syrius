@@ -7,6 +7,7 @@ enum HideWidgetStatus {
   success,
 }
 
+
 @JsonSerializable()
 class HideWidgetState extends Equatable {
   /// Creates a new instance.
