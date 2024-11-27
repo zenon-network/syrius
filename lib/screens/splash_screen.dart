@@ -29,28 +29,32 @@ class SplashScreen extends StatefulWidget {
   State<SplashScreen> createState() => _SplashScreenState();
 }
 
-class _SplashScreenState extends State<SplashScreen>
-    with TickerProviderStateMixin {
-  late AnimationController _controller;
+class _SplashScreenState extends State<SplashScreen> {
+  late final Future<LottieComposition> _composition;
 
   @override
   void initState() {
     super.initState();
-    _controller = AnimationController(vsync: this);
+    _composition = AssetLottie('assets/lottie/ic_anim_splash.json').load();
   }
 
   @override
   Widget build(BuildContext context) {
-    return Lottie.asset(
-      'assets/lottie/ic_anim_splash.json',
-      animate: true,
-      controller: _controller,
-      onLoaded: (composition) {
-        _controller
-          ..duration = composition.duration
-          ..forward().whenComplete(
-            () => _splashInits(),
+    return FutureBuilder<LottieComposition>(
+      future: _composition,
+      builder: (context, snapshot) {
+        var composition = snapshot.data;
+        if (composition != null) {
+          Future.delayed(composition.duration, () {
+            _splashInits();
+          });
+          return Lottie(
+            composition: composition,
+            repeat: false,
           );
+        } else {
+          return const Center(child: CircularProgressIndicator());
+        }
       },
     );
   }
@@ -73,7 +77,6 @@ class _SplashScreenState extends State<SplashScreen>
   }
 
   void _navigateToNextScreen() {
-    _controller.stop();
     return kWalletPath != null
         ? _checkForDefaultNode()
         : Navigator.pushReplacementNamed(
@@ -149,7 +152,6 @@ class _SplashScreenState extends State<SplashScreen>
 
   @override
   void dispose() {
-    _controller.dispose();
     super.dispose();
   }
 }

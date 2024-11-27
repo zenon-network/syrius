@@ -60,29 +60,26 @@ class _WalletConnectCameraCardState extends State<WalletConnectCameraCard> {
                     await Navigator.of(context).push(
                       MaterialPageRoute(
                         builder: (context) => AiBarcodeScanner(
-                          validator: (value) {
-                            return (canParseWalletConnectUri(value));
-                          },
-                          canPop: true,
-                          onScan: (String value) async {
+                          validator: (capture) => _filterBarcodes(capture) != null,
+                          onDetect: (value) async {
+                            Logger('WalletConnectCameraCard').log(
+                              Level.INFO,
+                              'onDetect',
+                              value.toString(),
+                            );
                             final wcService = sl.get<IWeb3WalletService>();
-                            final pairingInfo =
-                                await wcService.pair(Uri.parse(value));
-                            Logger('WalletConnectCameraCard').log(Level.INFO,
-                                'pairing info', pairingInfo.toJson());
-                            setState(() {});
-                          },
-                          onScannerStarted: (p0) {
-                            // Pop navigator and close camera after 10 seconds
-                            Timer(const Duration(seconds: 30), () {
-                              Navigator.pop(context);
-                            });
-                            Logger('WalletConnectCameraCard')
-                                .log(Level.INFO, 'onScannerStarted');
-                          },
-                          onDetect: (p0) {
-                            Logger('WalletConnectCameraCard')
-                                .log(Level.INFO, 'onDetect', p0.toString());
+                            final Barcode? barcode = _filterBarcodes(value);
+                            if (barcode != null) {
+                              final pairingInfo = await wcService.pair(
+                                Uri.parse(value.barcodes.first.displayValue!),
+                              );
+                              Logger('WalletConnectCameraCard').log(
+                                Level.INFO,
+                                'pairing info',
+                                pairingInfo.toJson(),
+                              );
+                              setState(() {});
+                            }
                           },
                           onDispose: () {
                             Logger('WalletConnectCameraCard')
@@ -142,5 +139,19 @@ class _WalletConnectCameraCardState extends State<WalletConnectCameraCard> {
       return true;
     }
     return false;
+  }
+
+  /// A BarcodeCapture can contain multiple barcodes. This function returns
+  /// the first valid WC barcode
+  Barcode? _filterBarcodes(BarcodeCapture capture) {
+    for (final barcode in capture.barcodes) {
+      final String? uri = barcode.displayValue;
+      if (uri != null) {
+        if (!canParseWalletConnectUri(uri)) {
+          return barcode;
+        }
+      }
+    }
+    return null;
   }
 }

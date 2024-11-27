@@ -9,7 +9,7 @@ on:
   workflow_dispatch:
 
 env:
-  FLUTTER_VERSION: "3.19.x"
+  FLUTTER_VERSION: "3.24.3"
 
 jobs:
   build-macos:
@@ -20,7 +20,7 @@ jobs:
       - name: Checkout zenon-node-database repository
         uses: actions/checkout@v4
         with:
-          repository: HyperCore-One/zenon-node-database
+          repository: zenon-network/zenon-node-database
           path: ./node-db
           ref: main
       - name: Copy community nodes
@@ -68,7 +68,7 @@ jobs:
       - name: Checkout zenon-node-database repository
         uses: actions/checkout@v4
         with:
-          repository: HyperCore-One/zenon-node-database
+          repository: zenon-network/zenon-node-database
           path: ./node-db
           ref: main
       - name: Copy community nodes
@@ -101,7 +101,7 @@ jobs:
       - name: Checkout zenon-node-database repository
         uses: actions/checkout@v4
         with:
-          repository: HyperCore-One/zenon-node-database
+          repository: zenon-network/zenon-node-database
           path: ./node-db
           ref: main
       - name: Copy community nodes
