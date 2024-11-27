@@ -10,7 +10,8 @@ import 'package:zenon_syrius_wallet_flutter/utils/color_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/extensions.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/format_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart'
+    hide InfiniteScrollTable, InfiniteScrollTableCell;
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 class PendingTransactionsCard extends StatelessWidget {
@@ -36,8 +37,7 @@ class PendingTransactionsCard extends StatelessWidget {
           final InfiniteListStatus status = state.status;
 
           return switch (status) {
-            InfiniteListStatus.initial =>
-              const _PendingTransactionsInitial(),
+            InfiniteListStatus.initial => const _PendingTransactionsInitial(),
             InfiniteListStatus.failure => _PendingTransactionsFailure(
                 exception: state.error!,
               ),
@@ -95,7 +95,7 @@ class _PendingTransactionsPopulatedState
 
   @override
   Widget build(BuildContext context) {
-    return NewInfiniteScrollTable<AccountBlock>(
+    return InfiniteScrollTable<AccountBlock>(
       generateRowCells: _rowCellsGenerator,
       hasReachedMax: widget.hasReachedMax,
       headerColumns: _getHeaderColumnsForPendingTransactions(),
@@ -122,23 +122,23 @@ class _PendingTransactionsPopulatedState
             ? transaction.pairedAccountBlock!
             : transaction;
     return <Widget>[
-      NewInfiniteScrollTableCell.textFromAddress(
-        infoBlock.address,
-        context,
+      InfiniteScrollTableCell.textFromAddress(
+        address: infoBlock.address,
+        context: context,
       ),
-      NewInfiniteScrollTableCell.textFromAddress(
-        infoBlock.toAddress,
-        context,
+      InfiniteScrollTableCell.textFromAddress(
+        address: infoBlock.toAddress,
+        context: context,
       ),
-      NewInfiniteScrollTableCell.withText(
-        context,
-        infoBlock.hash.toShortString(),
+      InfiniteScrollTableCell.withText(
+        content: infoBlock.hash.toShortString(),
+        context: context,
         flex: 2,
-        tooltipMessage: infoBlock.hash.toString(),
         textToBeCopied: infoBlock.hash.toString(),
+        tooltipMessage: infoBlock.hash.toString(),
       ),
-      NewInfiniteScrollTableCell(
-        Padding(
+      InfiniteScrollTableCell(
+        child: Padding(
           padding: const EdgeInsets.only(right: 10),
           child: FormattedAmountWithTooltip(
             amount: infoBlock.amount.addDecimals(
@@ -154,52 +154,52 @@ class _PendingTransactionsPopulatedState
           ),
         ),
       ),
-      NewInfiniteScrollTableCell.withText(
-        context,
-        infoBlock.confirmationDetail?.momentumTimestamp == null
+      InfiniteScrollTableCell.withText(
+        content: infoBlock.confirmationDetail?.momentumTimestamp == null
             ? context.l10n.pending
             : FormatUtils.formatData(
                 infoBlock.confirmationDetail!.momentumTimestamp * 1000,
               ),
+        context: context,
       ),
       _assetsCell(infoBlock),
-      NewInfiniteScrollTableCell(
-        _getReceiveContainer(isSelected, infoBlock, widget.bloc),
+      InfiniteScrollTableCell(
+        child: _getReceiveContainer(isSelected, infoBlock, widget.bloc),
       ),
     ];
   }
 
-  List<NewInfiniteScrollTableHeaderColumn>
+  List<InfiniteScrollTableHeaderColumn>
       _getHeaderColumnsForPendingTransactions() {
-    return <NewInfiniteScrollTableHeaderColumn>[
-      NewInfiniteScrollTableHeaderColumn(
+    return <InfiniteScrollTableHeaderColumn>[
+      InfiniteScrollTableHeaderColumn(
         columnName: context.l10n.sender,
         onSortArrowsPressed: _onSortArrowsPressed,
         flex: 2,
       ),
-      NewInfiniteScrollTableHeaderColumn(
+      InfiniteScrollTableHeaderColumn(
         columnName: context.l10n.receiver,
         onSortArrowsPressed: _onSortArrowsPressed,
         flex: 2,
       ),
-      NewInfiniteScrollTableHeaderColumn(
+      InfiniteScrollTableHeaderColumn(
         columnName: context.l10n.hash,
         onSortArrowsPressed: _onSortArrowsPressed,
         flex: 2,
       ),
-      NewInfiniteScrollTableHeaderColumn(
+      InfiniteScrollTableHeaderColumn(
         columnName: context.l10n.amount,
         onSortArrowsPressed: _onSortArrowsPressed,
       ),
-      NewInfiniteScrollTableHeaderColumn(
+      InfiniteScrollTableHeaderColumn(
         columnName: context.l10n.date,
         onSortArrowsPressed: _onSortArrowsPressed,
       ),
-      NewInfiniteScrollTableHeaderColumn(
+      InfiniteScrollTableHeaderColumn(
         columnName: context.l10n.assets,
         onSortArrowsPressed: _onSortArrowsPressed,
       ),
-      const NewInfiniteScrollTableHeaderColumn(
+      const InfiniteScrollTableHeaderColumn(
         columnName: '',
       ),
     ];
@@ -318,7 +318,7 @@ class _PendingTransactionsPopulatedState
     );
   }
 
-  NewInfiniteScrollTableCell _assetsCell(AccountBlock infoBlock) {
+  InfiniteScrollTableCell _assetsCell(AccountBlock infoBlock) {
     late final Widget child;
     if (infoBlock.token == null) {
       child = const SizedBox.shrink();
@@ -331,8 +331,8 @@ class _PendingTransactionsPopulatedState
       );
     }
 
-    return NewInfiniteScrollTableCell(
-      Align(
+    return InfiniteScrollTableCell(
+      child: Align(
         alignment: Alignment.centerLeft,
         child: child,
       ),
