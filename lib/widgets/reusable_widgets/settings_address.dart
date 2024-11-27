@@ -95,9 +95,8 @@ class _SettingsAddressState extends State<SettingsAddress> {
         const SizedBox(
           width: 5,
         ),
-        CopyToClipboardIcon(
-          widget.address,
-          materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+        CopyToClipboardButton(
+          widget.address!,
         ),
         const SizedBox(
           width: 5,

@@ -46,7 +46,7 @@ class _TransferTabChildState extends State<TransferTabChild> {
           height: kStaggeredNumOfColumns / 3,
         ),
         const FluidCell(
-          child: PendingTransactions(),
+          child: PendingTransactionsCard(),
           width: kStaggeredNumOfColumns ~/ 2,
           height: kStaggeredNumOfColumns / 3,
         ),

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/extensions.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/format_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
@@ -76,9 +75,8 @@ class _ReceivePopulatedState extends State<ReceivePopulated> {
                     Expanded(
                       child: _getDefaultAddressDropdown(),
                     ),
-                    CopyToClipboardIcon(
+                    CopyToClipboardButton(
                       _selectedSenderAddress,
-                      iconColor: AppColors.darkHintTextColor,
                     ),
                   ],
                 ),

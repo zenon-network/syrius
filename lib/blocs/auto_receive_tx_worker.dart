@@ -8,6 +8,7 @@ import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/model/model.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
@@ -114,6 +115,11 @@ class AutoReceiveTxWorker extends BaseBloc<WalletNotification> {
               (syncInfo.targetHeight > 0 &&
                   syncInfo.currentHeight > 0 &&
                   (syncInfo.targetHeight - syncInfo.currentHeight) < 3))) {
+        sl.get<PendingTransactionsBloc>().add(
+          InfiniteListRefreshRequested(
+            address: Address.parse(kSelectedAddress!),
+          ),
+        );
         pool.add(hash);
       }
     });
@@ -132,10 +138,20 @@ class AutoReceiveTxWorker extends BaseBloc<WalletNotification> {
 
   void _onSuccess(AccountBlockTemplate block, String toAddress) {
     sl.get<MultipleBalanceBloc>().add(
-      MultipleBalanceFetch(
-        addresses: kDefaultAddressList.map((String? e) => e!).toList(),
-      ),
+          MultipleBalanceFetch(
+            addresses: kDefaultAddressList.map((String? e) => e!).toList(),
+          ),
+        );
+
+    final Address address = Address.parse(kSelectedAddress!);
+    sl.get<LatestTransactionsBloc>().add(
+      InfiniteListRefreshRequested(address: address),
     );
+    sl.get<PendingTransactionsBloc>().add(
+          InfiniteListRefreshRequested(
+            address: address,
+          ),
+        );
     _sendSuccessNotification(block, toAddress);
   }
 

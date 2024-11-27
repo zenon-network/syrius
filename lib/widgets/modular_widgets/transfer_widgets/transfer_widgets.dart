@@ -1,2 +1,2 @@
-export 'pending_transactions/pending_transactions.dart';
+export '../../../rearchitecture/features/pending_transactions/view/pending_transactions_card.dart';
 

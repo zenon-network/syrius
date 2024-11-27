@@ -29,6 +29,7 @@ import 'package:zenon_syrius_wallet_flutter/blocs/wallet_connect/wallet_connect_
 import 'package:zenon_syrius_wallet_flutter/handlers/htlc_swaps_handler.dart';
 import 'package:zenon_syrius_wallet_flutter/model/model.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/screens/screens.dart';
 import 'package:zenon_syrius_wallet_flutter/services/htlc_swaps_service.dart';
 import 'package:zenon_syrius_wallet_flutter/services/i_web3wallet_service.dart';
@@ -51,6 +52,7 @@ final GlobalKey<NavigatorState> globalNavigatorKey =
 
 main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  Bloc.observer = CustomBlocObserver();
   // Init hydrated bloc storage
   HydratedBloc.storage = await HydratedStorage.build(
     storageDirectory: kIsWeb
@@ -222,6 +224,16 @@ void setup() {
     instanceName: NoMChainId.mainnet.chain(),
   );
 
+  sl.registerSingleton<LatestTransactionsBloc>(
+    LatestTransactionsBloc(
+      zenon: zenon!,
+    ),
+  );
+  sl.registerSingleton<PendingTransactionsBloc>(
+    PendingTransactionsBloc(
+      zenon: zenon!,
+    ),
+  );
   sl.registerSingleton<MultipleBalanceBloc>(MultipleBalanceBloc(zenon: zenon!));
   sl.registerSingleton<AutoReceiveTxWorker>(AutoReceiveTxWorker.getInstance());
   sl.registerSingleton<AutoUnlockHtlcWorker>(
@@ -343,11 +355,13 @@ class _MyAppState extends State<MyApp> with WindowListener, TrayListener {
                             themeMode: appThemeNotifier.currentThemeMode,
                             initialRoute: SplashScreen.route,
                             scrollBehavior: RemoveOverscrollEffect(),
-                            localizationsDelegates: AppLocalizations.localizationsDelegates,
+                            localizationsDelegates:
+                                AppLocalizations.localizationsDelegates,
                             supportedLocales: AppLocalizations.supportedLocales,
                             routes: <String, WidgetBuilder>{
-                              AccessWalletScreen.route: (BuildContext context) =>
-                                  const AccessWalletScreen(),
+                              AccessWalletScreen.route:
+                                  (BuildContext context) =>
+                                      const AccessWalletScreen(),
                               SplashScreen.route: (BuildContext context) =>
                                   const SplashScreen(),
                               MainAppContainer.route: (BuildContext context) =>
@@ -357,8 +371,9 @@ class _MyAppState extends State<MyApp> with WindowListener, TrayListener {
                             },
                             onGenerateRoute: (RouteSettings settings) {
                               if (settings.name == SyriusErrorWidget.route) {
-                                final CustomSyriusErrorWidgetArguments args = settings.arguments!
-                                    as CustomSyriusErrorWidgetArguments;
+                                final CustomSyriusErrorWidgetArguments args =
+                                    settings.arguments!
+                                        as CustomSyriusErrorWidgetArguments;
                                 return MaterialPageRoute(
                                   builder: (BuildContext context) =>
                                       SyriusErrorWidget(args.errorText),

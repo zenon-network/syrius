@@ -2,7 +2,6 @@ import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/pending_transactions/pending_transactions.dart';
-import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/exceptions/failure_exception.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/zts_utils.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
@@ -22,7 +21,8 @@ void main() {
     registerFallbackValue(FakeAddress());
   });
 
-  group('PendingTransactionsCubit', () {
+  group('PendingTransactionsBloc', () {
+    const int kTestPageSize = 1;
     late MockZenon mockZenon;
     late MockLedger mockLedger;
     late PendingTransactionsBloc pendingTransactionsBloc;
@@ -89,6 +89,7 @@ void main() {
       ).thenAnswer((_) async => accountBlockList);
 
       pendingTransactionsBloc = PendingTransactionsBloc(
+        pageSize: kTestPageSize,
         zenon: mockZenon,
       );
     });
@@ -100,52 +101,54 @@ void main() {
     test('initial state is correct', () {
       expect(
         pendingTransactionsBloc.state.status,
-        PendingTransactionsStatus.initial,
+        InfiniteListStatus.initial,
       );
     });
 
     group('fromJson/toJson', () {
       test('can (de)serialize initial state', () {
-        const PendingTransactionsState initialState =
-            PendingTransactionsState();
+        final InfiniteListState<AccountBlock> initialState =
+            InfiniteListState<AccountBlock>.initial();
 
         final Map<String, dynamic>? serialized = pendingTransactionsBloc.toJson(
           initialState,
         );
-        final PendingTransactionsState? deserialized =
+        final InfiniteListState<AccountBlock>? deserialized =
             pendingTransactionsBloc.fromJson(serialized!);
 
         expect(deserialized, equals(initialState));
       });
 
       test('can (de)serialize success state', () {
-        final PendingTransactionsState successState = PendingTransactionsState(
-          status: PendingTransactionsStatus.success,
+        final InfiniteListState<AccountBlock> successState =
+            InfiniteListState<AccountBlock>(
+          status: InfiniteListStatus.success,
           data: <AccountBlock>[accountBlock],
         );
 
         final Map<String, dynamic>? serialized = pendingTransactionsBloc.toJson(
           successState,
         );
-        final PendingTransactionsState? deserialized =
+        final InfiniteListState<AccountBlock>? deserialized =
             pendingTransactionsBloc.fromJson(
           serialized!,
         );
-        expect(deserialized, isA<PendingTransactionsState>());
-        expect(deserialized!.status, equals(PendingTransactionsStatus.success));
+        expect(deserialized, isA<InfiniteListState<AccountBlock>>());
+        expect(deserialized!.status, equals(InfiniteListStatus.success));
         expect(deserialized.data, isA<List<AccountBlock>?>());
       });
 
       test('can (de)serialize failure state', () {
-        final PendingTransactionsState failureState = PendingTransactionsState(
-          status: PendingTransactionsStatus.failure,
+        final InfiniteListState<AccountBlock> failureState =
+            InfiniteListState<AccountBlock>(
+          status: InfiniteListStatus.failure,
           error: exception,
         );
 
         final Map<String, dynamic>? serialized = pendingTransactionsBloc.toJson(
           failureState,
         );
-        final PendingTransactionsState? deserialized =
+        final InfiniteListState<AccountBlock>? deserialized =
             pendingTransactionsBloc.fromJson(
           serialized!,
         );
@@ -153,24 +156,30 @@ void main() {
       });
     });
 
-    blocTest<PendingTransactionsBloc, PendingTransactionsState>(
+    blocTest<PendingTransactionsBloc, InfiniteListState<AccountBlock>>(
       'emits [success] with data on successful fetch',
       build: () => pendingTransactionsBloc,
       act: (PendingTransactionsBloc bloc) => bloc.add(
-        PendingTransactionsRequested(
-          emptyAddress,
+        InfiniteListRequested(
+          address: emptyAddress,
         ),
       ),
-      expect: () => <PendingTransactionsState>[
-        PendingTransactionsState(
-          status: PendingTransactionsStatus.success,
-          data: <AccountBlock>[accountBlock],
-          hasReachedMax: true,
-        ),
-      ],
+      expect: () {
+        final List<AccountBlock> data = <AccountBlock>[accountBlock];
+
+        final bool hasReachedMax = data.length < kTestPageSize;
+
+        return <InfiniteListState<AccountBlock>>[
+          InfiniteListState<AccountBlock>(
+            status: InfiniteListStatus.success,
+            data: <AccountBlock>[accountBlock],
+            hasReachedMax: hasReachedMax,
+          ),
+        ];
+      },
     );
 
-    blocTest<PendingTransactionsBloc, PendingTransactionsState>(
+    blocTest<PendingTransactionsBloc, InfiniteListState<AccountBlock>>(
       'emits [failure] on fetch failure',
       setUp: () {
         when(
@@ -181,18 +190,85 @@ void main() {
         ).thenThrow(exception);
       },
       build: () => pendingTransactionsBloc,
-      act: (PendingTransactionsBloc bloc) =>
-          bloc.add(
-            PendingTransactionsRequested(
-              emptyAddress,
-            ),
-          ),
-      expect: () => <PendingTransactionsState>[
-        PendingTransactionsState(
-          status: PendingTransactionsStatus.failure,
+      act: (PendingTransactionsBloc bloc) => bloc.add(
+        InfiniteListRequested(
+          address: emptyAddress,
+        ),
+      ),
+      expect: () => <InfiniteListState<AccountBlock>>[
+        InfiniteListState<AccountBlock>(
+          status: InfiniteListStatus.failure,
           error: exception,
         ),
       ],
+    );
+
+    blocTest<PendingTransactionsBloc, InfiniteListState<AccountBlock>>(
+      'emits [initial, success] when refresh is requested',
+      build: () => pendingTransactionsBloc,
+      act: (PendingTransactionsBloc bloc) => bloc.add(
+        InfiniteListRefreshRequested(
+          address: emptyAddress,
+        ),
+      ),
+      expect: () {
+        final List<AccountBlock> data = <AccountBlock>[accountBlock];
+
+        final bool hasReachedMax = data.length < kTestPageSize;
+
+        return <InfiniteListState<AccountBlock>>[
+          InfiniteListState<AccountBlock>.initial(),
+          InfiniteListState<AccountBlock>(
+            status: InfiniteListStatus.success,
+            data: data,
+            hasReachedMax: hasReachedMax,
+          ),
+        ];
+      },
+    );
+
+    blocTest<PendingTransactionsBloc, InfiniteListState<AccountBlock>>(
+      'emits [initial, success, success] when more transactions are requested',
+      build: () => pendingTransactionsBloc,
+      act: (PendingTransactionsBloc bloc) async {
+        bloc
+            .add(
+          InfiniteListRefreshRequested(
+            address: emptyAddress,
+          ),
+        );
+
+        // New events sent immediately one after the other will be dropped
+        await Future<void>.delayed(const Duration(milliseconds: 200));
+
+        bloc.add(
+          InfiniteListMoreRequested(
+            address: emptyAddress,
+          ),
+        );
+      },
+      expect: () {
+        final List<AccountBlock> data = <AccountBlock>[accountBlock];
+
+        final bool hasReachedMax = data.length < kTestPageSize;
+
+        return <InfiniteListState<AccountBlock>>[
+          InfiniteListState<AccountBlock>.initial(),
+          InfiniteListState<AccountBlock>(
+            status: InfiniteListStatus.success,
+            data: data,
+            hasReachedMax: hasReachedMax,
+          ),
+          InfiniteListState<AccountBlock>(
+            status: InfiniteListStatus.success,
+            data: <AccountBlock>[
+              ...data,
+              ...data,
+            ],
+            hasReachedMax: hasReachedMax,
+          ),
+        ];
+      },
     );
   });
 }

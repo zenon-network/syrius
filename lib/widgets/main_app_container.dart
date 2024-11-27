@@ -15,13 +15,13 @@ import 'package:nested/nested.dart';
 import 'package:provider/provider.dart';
 import 'package:wallet_connect_uri_validator/wallet_connect_uri_validator.dart';
 import 'package:window_manager/window_manager.dart';
-import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart'
-    hide LatestTransactionsBloc;
+import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/handlers/htlc_swaps_handler.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/model/model.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/tokens/cubit/tokens_cubit.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/clipboard_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
@@ -116,10 +116,9 @@ class _MainAppContainerState extends State<MainAppContainer>
     return MultiBlocProvider(
       providers: <SingleChildWidget>[
         BlocProvider<LatestTransactionsBloc>(
-          create: (_) => LatestTransactionsBloc(
-            zenon: zenon!,
-          )..add(
-              LatestTransactionsRequested(
+          create: (_) => sl.get<LatestTransactionsBloc>()
+            ..add(
+              InfiniteListRequested(
                 address: Address.parse(kSelectedAddress!),
               ),
             ),
@@ -129,6 +128,14 @@ class _MainAppContainerState extends State<MainAppContainer>
         ),
         BlocProvider<MultipleBalanceBloc>(
           create: (_) => sl.get<MultipleBalanceBloc>(),
+        ),
+        BlocProvider<PendingTransactionsBloc>(
+          create: (_) => sl.get<PendingTransactionsBloc>()
+            ..add(
+              InfiniteListRequested(
+                address: Address.parse(kSelectedAddress!),
+              ),
+            ),
         ),
         BlocProvider<TokensCubit>(
           create: (_) => TokensCubit(
