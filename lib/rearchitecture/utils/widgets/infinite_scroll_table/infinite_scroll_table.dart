@@ -5,8 +5,11 @@ import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
+part 'infinite_scroll_table_column_type.dart';
+
 part 'infinite_scroll_table_cell.dart';
-part 'infinite_scroll_table_header_column.dart';
+
+part 'infinite_scroll_table_column.dart';
 
 /// A table for displaying a large set of items
 ///
@@ -27,18 +30,22 @@ class InfiniteScrollTable<T> extends StatefulWidget {
     required this.hasReachedMax,
     required this.generateRowCells,
     required this.onScrollReachedBottom,
-    required this.headerColumns,
+    required this.columns,
     super.key,
   });
 
   /// The columns that will the organized in an fixed header
-  final List<Widget> headerColumns;
+  final List<InfiniteScrollTableColumnType> columns;
+
   /// Function that takes in an item and returns the cells consisting the row
   final List<Widget> Function(T) generateRowCells;
+
   /// Callback to be executed when the bottom of the table was reached.
   final VoidCallback onScrollReachedBottom;
+
   /// List of items that constitutes the rows.
   final List<T> items;
+
   /// Whether there are still items that can be fetched.
   final bool hasReachedMax;
 
@@ -78,7 +85,7 @@ class _InfiniteScrollTableState<T> extends State<InfiniteScrollTable<T>> {
       controller: _scrollController,
       slivers: <Widget>[
         PinnedHeaderSliver(
-          child: _Header(columns: widget.headerColumns),
+          child: _Header(columns: widget.columns),
         ),
         SliverList.separated(
           separatorBuilder: (_, __) => const Divider(
@@ -132,13 +139,29 @@ class _InfiniteScrollTableState<T> extends State<InfiniteScrollTable<T>> {
 class _Header extends StatelessWidget {
   const _Header({required this.columns});
 
-  final List<Widget> columns;
+  final List<InfiniteScrollTableColumnType> columns;
 
   @override
   Widget build(BuildContext context) {
     // The content is scrolled under the header, hence we need to cover it up
     final Color background =
         context.isDarkMode ? AppColors.darkPrimary : Colors.white;
+
+    final List<Widget> children = List<Widget>.generate(
+      columns.length,
+      (int index) {
+        final InfiniteScrollTableColumnType column = columns[index];
+
+        final int flex = column.flex;
+
+        final String name = column.name(context: context);
+
+        return InfiniteScrollTableColumn(
+          name: name,
+          flex: flex,
+        );
+      },
+    );
 
     return ColoredBox(
       color: background,
@@ -151,7 +174,7 @@ class _Header extends StatelessWidget {
                 left: kInfiniteTableLeftPadding,
               ),
               child: Row(
-                children: columns,
+                children: children,
               ),
             ),
           ),

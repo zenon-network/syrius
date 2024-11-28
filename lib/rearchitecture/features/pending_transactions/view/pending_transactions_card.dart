@@ -100,7 +100,7 @@ class _PendingTransactionsPopulatedState
     return InfiniteScrollTable<AccountBlock>(
       generateRowCells: _rowCellsGenerator,
       hasReachedMax: widget.hasReachedMax,
-      headerColumns: _getHeaderColumnsForPendingTransactions(),
+      columns: _getHeaderColumnsForPendingTransactions(),
       items: widget.transactions,
       onScrollReachedBottom: () {
         widget.bloc.add(
@@ -170,39 +170,16 @@ class _PendingTransactionsPopulatedState
     ];
   }
 
-  List<InfiniteScrollTableHeaderColumn>
+  List<InfiniteScrollTableColumnType>
       _getHeaderColumnsForPendingTransactions() {
-    return <InfiniteScrollTableHeaderColumn>[
-      InfiniteScrollTableHeaderColumn(
-        columnName: context.l10n.sender,
-        onSortArrowsPressed: _onSortArrowsPressed,
-        flex: 2,
-      ),
-      InfiniteScrollTableHeaderColumn(
-        columnName: context.l10n.receiver,
-        onSortArrowsPressed: _onSortArrowsPressed,
-        flex: 2,
-      ),
-      InfiniteScrollTableHeaderColumn(
-        columnName: context.l10n.hash,
-        onSortArrowsPressed: _onSortArrowsPressed,
-        flex: 2,
-      ),
-      InfiniteScrollTableHeaderColumn(
-        columnName: context.l10n.amount,
-        onSortArrowsPressed: _onSortArrowsPressed,
-      ),
-      InfiniteScrollTableHeaderColumn(
-        columnName: context.l10n.date,
-        onSortArrowsPressed: _onSortArrowsPressed,
-      ),
-      InfiniteScrollTableHeaderColumn(
-        columnName: context.l10n.asset,
-        onSortArrowsPressed: _onSortArrowsPressed,
-      ),
-      const InfiniteScrollTableHeaderColumn(
-        columnName: '',
-      ),
+    return <InfiniteScrollTableColumnType>[
+      InfiniteScrollTableColumnType.sender,
+      InfiniteScrollTableColumnType.receiver,
+      InfiniteScrollTableColumnType.hash,
+      InfiniteScrollTableColumnType.amount,
+      InfiniteScrollTableColumnType.date,
+      InfiniteScrollTableColumnType.asset,
+      InfiniteScrollTableColumnType.blank,
     ];
   }
 

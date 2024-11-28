@@ -3,9 +3,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/infinite_scroll_table/cells/asset_cell.dart';
-import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/infinite_scroll_table/columns/asset_column.dart';
-import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/infinite_scroll_table/columns/columns.dart';
-import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/infinite_scroll_table/columns/date_column.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/extensions.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/format_utils.dart';
@@ -109,7 +106,7 @@ class _LatestTransactionsPopulatedState
     return InfiniteScrollTable<AccountBlock>(
       items: widget.transactions,
       hasReachedMax: widget.hasReachedMax,
-      headerColumns: widget.type == CardType.latestTransactionsDashboard
+      columns: widget.type == CardType.latestTransactionsDashboard
           ? _getHeaderColumnsForDashboardWidget()
           : _getHeaderColumnsForTransferWidget(),
       generateRowCells: _rowCellsGenerator,
@@ -171,25 +168,25 @@ class _LatestTransactionsPopulatedState
     );
   }
 
-  List<Widget> _getHeaderColumnsForTransferWidget() {
-    return <Widget>[
-      const SenderColumn(),
-      const ReceiverColumn(),
-      const HashColumn(),
-      const AmountColumn(),
-      const DateColumn(),
-      const TypeColumn(),
-      const AssetColumn(),
+  List<InfiniteScrollTableColumnType> _getHeaderColumnsForTransferWidget() {
+    return <InfiniteScrollTableColumnType>[
+      InfiniteScrollTableColumnType.sender,
+      InfiniteScrollTableColumnType.receiver,
+      InfiniteScrollTableColumnType.hash,
+      InfiniteScrollTableColumnType.amount,
+      InfiniteScrollTableColumnType.date,
+      InfiniteScrollTableColumnType.type,
+      InfiniteScrollTableColumnType.asset,
     ];
   }
 
-  List<Widget> _getHeaderColumnsForDashboardWidget() {
-    return <Widget>[
-      const SenderColumn(),
-      const AmountColumn(),
-      const DateColumn(),
-      const TypeColumn(),
-      const AssetColumn(),
+  List<InfiniteScrollTableColumnType> _getHeaderColumnsForDashboardWidget() {
+    return <InfiniteScrollTableColumnType>[
+      InfiniteScrollTableColumnType.sender,
+      InfiniteScrollTableColumnType.amount,
+      InfiniteScrollTableColumnType.date,
+      InfiniteScrollTableColumnType.type,
+      InfiniteScrollTableColumnType.asset,
     ];
   }
 
