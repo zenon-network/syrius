@@ -29,6 +29,7 @@
   "pendingTransactionsTitle": "Pending Transactions",
   "pillars": "Pillars",
   "pillarsDescription": "This card displays the number of active Pillars in the network",
+  "pressToReceive": "Press to receive the transaction",
   "realtimeStats": "Realtime Stats",
   "realtimeStatsDescription": "This card displays the number of {kZnnCoinSymbol} and {kQsrCoinSymbol} transactions. For example, a delegation is considered a {kZnnCoinSymbol} transaction from the network's perspective. Every interaction with the network embedded contracts is internally considered a transaction",
   "receive": "Receive",

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_vector_icons/flutter_vector_icons.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/pending_transactions/pending_transactions.dart';
@@ -166,7 +165,7 @@ class _PendingTransactionsPopulatedState
       ),
       _assetsCell(infoBlock),
       InfiniteScrollTableCell(
-        child: _getReceiveContainer(infoBlock, widget.bloc),
+        child: _getReceiveButton(hash: infoBlock.hash),
       ),
     ];
   }
@@ -305,27 +304,21 @@ class _PendingTransactionsPopulatedState
     });
   }
 
-  Widget _getReceiveContainer(
-    AccountBlock transaction,
-    PendingTransactionsBloc model,
-  ) {
-    return Align(
-      alignment: Alignment.centerLeft,
-      child: _getReceiveButton(hash: transaction.hash),
-    );
-  }
-
   Widget _getReceiveButton({
     required Hash hash,
   }) {
-    return IconButton(
-      icon: const Icon(MaterialCommunityIcons.arrow_down),
-      color: AppColors.znnColor,
-      onPressed: () {
-        sl<AutoReceiveTxWorker>().autoReceiveTransactionHash(
-          hash,
-        );
-      },
+    return Align(
+      alignment: Alignment.centerLeft,
+      child: IconButton(
+        tooltip: context.l10n.pressToReceive,
+        icon: const Icon(Icons.call_received_rounded),
+        color: AppColors.znnColor,
+        onPressed: () {
+          sl<AutoReceiveTxWorker>().autoReceiveTransactionHash(
+            hash,
+          );
+        },
+      ),
     );
   }
 
