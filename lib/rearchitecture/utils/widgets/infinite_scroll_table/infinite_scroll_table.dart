@@ -124,10 +124,9 @@ class _InfiniteScrollTableState<T> extends State<InfiniteScrollTable<T>> {
 
   Widget _getTableRow(T item, int indexOfRow) {
     return Padding(
-      padding: const EdgeInsets.only(
-        top: 8,
-        bottom: 8,
-        left: kInfiniteTableLeftPadding,
+      padding: const EdgeInsets.symmetric(
+        horizontal: kInfiniteTableHorizontalPadding,
+        vertical: kInfiniteTableHorizontalPadding / 2,
       ),
       child: Row(
         children: widget.generateRowCells(item),
@@ -170,8 +169,8 @@ class _Header extends StatelessWidget {
           SizedBox(
             height: 50,
             child: Padding(
-              padding: const EdgeInsets.only(
-                left: kInfiniteTableLeftPadding,
+              padding: const EdgeInsets.symmetric(
+                horizontal: kInfiniteTableHorizontalPadding,
               ),
               child: Row(
                 children: children,
