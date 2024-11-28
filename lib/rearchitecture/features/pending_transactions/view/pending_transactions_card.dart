@@ -125,15 +125,12 @@ class _PendingTransactionsPopulatedState
     return <Widget>[
       InfiniteScrollTableCell.textFromAddress(
         address: infoBlock.address,
-        context: context,
       ),
       InfiniteScrollTableCell.textFromAddress(
         address: infoBlock.toAddress,
-        context: context,
       ),
       InfiniteScrollTableCell.withText(
         content: infoBlock.hash.toShortString(),
-        context: context,
         flex: 2,
         textToBeCopied: infoBlock.hash.toString(),
         tooltipMessage: infoBlock.hash.toString(),
@@ -161,7 +158,6 @@ class _PendingTransactionsPopulatedState
             : FormatUtils.formatData(
                 infoBlock.confirmationDetail!.momentumTimestamp * 1000,
               ),
-        context: context,
       ),
       AssetCell(block: infoBlock),
       InfiniteScrollTableCell(

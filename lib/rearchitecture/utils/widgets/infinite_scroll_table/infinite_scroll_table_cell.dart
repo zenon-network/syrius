@@ -20,7 +20,6 @@ class InfiniteScrollTableCell extends StatelessWidget {
   /// [CopyToClipboardButton] widget that copies to clipboard the
   /// [textToBeCopied] - which is not already the same as the [content] value.
   factory InfiniteScrollTableCell.withText({
-    required BuildContext context,
     required String content,
     String? textToBeCopied,
     TextStyle? textStyle,
@@ -38,10 +37,7 @@ class InfiniteScrollTableCell extends StatelessWidget {
                   content,
                   overflow: TextOverflow.ellipsis,
                   maxLines: 1,
-                  style: textStyle ??
-                      Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color: AppColors.subtitleColor,
-                          ),
+                  style: textStyle,
                 ),
               ),
             ),
@@ -66,13 +62,12 @@ class InfiniteScrollTableCell extends StatelessWidget {
   /// user's wallet
   factory InfiniteScrollTableCell.textFromAddress({
     required Address address,
-    required BuildContext context,
     bool isStakeAddress = false,
     bool isShortVersion = true,
   }) {
     final TextStyle? textStyle = address.isEmbedded() ||
             (isStakeAddress && address.toString() == kSelectedAddress)
-        ? Theme.of(context).textTheme.bodyMedium?.copyWith(
+        ? const TextStyle(
               color: AppColors.znnColor,
               fontWeight: FontWeight.bold,
             )
@@ -88,7 +83,6 @@ class InfiniteScrollTableCell extends StatelessWidget {
 
     return InfiniteScrollTableCell.withText(
       content: content,
-      context: context,
       flex: 2,
       textStyle: textStyle,
       tooltipMessage: address.toString(),

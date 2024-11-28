@@ -137,15 +137,12 @@ class _LatestTransactionsPopulatedState
     return <Widget>[
       InfiniteScrollTableCell.textFromAddress(
         address: infoBlock.address,
-        context: context,
       ),
       InfiniteScrollTableCell.textFromAddress(
         address: infoBlock.toAddress,
-        context: context,
       ),
       InfiniteScrollTableCell.withText(
         content: infoBlock.hash.toShortString(),
-        context: context,
         flex: 2,
         tooltipMessage: infoBlock.hash.toString(),
         textToBeCopied: infoBlock.hash.toString(),
@@ -164,7 +161,6 @@ class _LatestTransactionsPopulatedState
           : FormatUtils.formatData(
               infoBlock.confirmationDetail!.momentumTimestamp * 1000,
             ),
-      context: context,
     );
   }
 
@@ -229,9 +225,6 @@ class _LatestTransactionsPopulatedState
           tokenSymbol: infoBlock.token?.symbol ?? '',
           builder: (String formattedAmount, String tokenSymbol) => Text(
             formattedAmount,
-            style: Theme.of(context).textTheme.titleMedium!.copyWith(
-                  color: AppColors.subtitleColor,
-                ),
           ),
         ),
       ),
@@ -241,7 +234,6 @@ class _LatestTransactionsPopulatedState
   InfiniteScrollTableCell _senderCell({required Address address}) =>
       InfiniteScrollTableCell.textFromAddress(
         address: address,
-        context: context,
       );
 
   Widget _getTransactionTypeIcon(AccountBlock block) {

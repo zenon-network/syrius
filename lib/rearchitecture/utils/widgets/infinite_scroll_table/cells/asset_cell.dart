@@ -17,7 +17,6 @@ class AssetCell extends StatelessWidget {
     final String tooltipMessage = block.token!.tokenStandard.toString();
 
     return InfiniteScrollTableCell.withText(
-      context: context,
       content: content,
       tooltipMessage: tooltipMessage,
       textStyle: TextStyle(
