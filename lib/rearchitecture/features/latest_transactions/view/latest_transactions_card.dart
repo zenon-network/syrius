@@ -2,8 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/infinite_scroll_table/cells/asset_cell.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/infinite_scroll_table/columns/asset_column.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/infinite_scroll_table/columns/columns.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/infinite_scroll_table/columns/date_column.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/color_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/extensions.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/format_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
@@ -153,7 +156,7 @@ class _LatestTransactionsPopulatedState
       _amountCell(infoBlock),
       _dateCell(infoBlock),
       _typeCell(transactionBlock),
-      _assetsCell(infoBlock),
+      AssetCell(block: infoBlock),
     ];
   }
 
@@ -168,70 +171,26 @@ class _LatestTransactionsPopulatedState
     );
   }
 
-  List<InfiniteScrollTableHeaderColumn> _getHeaderColumnsForTransferWidget() {
-    return <InfiniteScrollTableHeaderColumn>[
-      _senderColumn(),
-      InfiniteScrollTableHeaderColumn(
-        columnName: context.l10n.receiver,
-        onSortArrowsPressed: _onSortArrowsPressed,
-        flex: 2,
-      ),
-      InfiniteScrollTableHeaderColumn(
-        columnName: context.l10n.hash,
-        onSortArrowsPressed: _onSortArrowsPressed,
-        flex: 2,
-      ),
-      _amountColumn(),
-      _dateColumn(),
-      _typeColumn(),
-      _assetsColumn(),
+  List<Widget> _getHeaderColumnsForTransferWidget() {
+    return <Widget>[
+      const SenderColumn(),
+      const ReceiverColumn(),
+      const HashColumn(),
+      const AmountColumn(),
+      const DateColumn(),
+      const TypeColumn(),
+      const AssetColumn(),
     ];
   }
 
-  InfiniteScrollTableHeaderColumn _amountColumn() {
-    return InfiniteScrollTableHeaderColumn(
-      columnName: context.l10n.amount,
-      onSortArrowsPressed: _onSortArrowsPressed,
-    );
-  }
-
-  InfiniteScrollTableHeaderColumn _senderColumn() {
-    return InfiniteScrollTableHeaderColumn(
-      columnName: context.l10n.sender,
-      onSortArrowsPressed: _onSortArrowsPressed,
-      flex: 2,
-    );
-  }
-
-  List<InfiniteScrollTableHeaderColumn> _getHeaderColumnsForDashboardWidget() {
-    return <InfiniteScrollTableHeaderColumn>[
-      _senderColumn(),
-      _amountColumn(),
-      _dateColumn(),
-      _typeColumn(),
-      _assetsColumn(),
+  List<Widget> _getHeaderColumnsForDashboardWidget() {
+    return <Widget>[
+      const SenderColumn(),
+      const AmountColumn(),
+      const DateColumn(),
+      const TypeColumn(),
+      const AssetColumn(),
     ];
-  }
-
-  InfiniteScrollTableHeaderColumn _assetsColumn() {
-    return InfiniteScrollTableHeaderColumn(
-      columnName: context.l10n.asset,
-      onSortArrowsPressed: _onSortArrowsPressed,
-    );
-  }
-
-  InfiniteScrollTableHeaderColumn _typeColumn() {
-    return InfiniteScrollTableHeaderColumn(
-      columnName: context.l10n.type,
-      onSortArrowsPressed: _onSortArrowsPressed,
-    );
-  }
-
-  InfiniteScrollTableHeaderColumn _dateColumn() {
-    return InfiniteScrollTableHeaderColumn(
-      columnName: context.l10n.date,
-      onSortArrowsPressed: _onSortArrowsPressed,
-    );
   }
 
   List<Widget> _getCellsForDashboardWidget(
@@ -247,7 +206,7 @@ class _LatestTransactionsPopulatedState
       _amountCell(infoBlock),
       _dateCell(infoBlock),
       _typeCell(transactionBlock),
-      _assetsCell(infoBlock),
+      AssetCell(block: infoBlock),
     ];
   }
 
@@ -313,27 +272,6 @@ class _LatestTransactionsPopulatedState
       ),
       textAlign: TextAlign.start,
       style: Theme.of(context).textTheme.titleSmall,
-    );
-  }
-
-  InfiniteScrollTableCell _assetsCell(AccountBlock infoBlock) {
-    late final Widget child;
-    if (infoBlock.token == null) {
-      child = const SizedBox.shrink();
-    } else {
-      child = Tooltip(
-        message: infoBlock.token!.tokenStandard.toString(),
-        child: Text(
-          infoBlock.token!.name,
-          style: TextStyle(
-            color: ColorUtils.getTokenColor(infoBlock.tokenStandard),
-          ),
-        ),
-      );
-    }
-
-    return InfiniteScrollTableCell(
-      child: child,
     );
   }
 

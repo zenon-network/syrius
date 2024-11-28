@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_vector_icons/flutter_vector_icons.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/constants/app_sizes.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/extensions/buildcontext_extension.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
@@ -33,7 +32,7 @@ class InfiniteScrollTable<T> extends StatefulWidget {
   });
 
   /// The columns that will the organized in an fixed header
-  final List<InfiniteScrollTableHeaderColumn> headerColumns;
+  final List<Widget> headerColumns;
   /// Function that takes in an item and returns the cells consisting the row
   final List<Widget> Function(T) generateRowCells;
   /// Callback to be executed when the bottom of the table was reached.
