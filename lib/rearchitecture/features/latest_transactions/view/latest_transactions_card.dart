@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_vector_icons/flutter_vector_icons.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
@@ -291,17 +290,21 @@ class _LatestTransactionsPopulatedState
 
   Widget _getTransactionTypeIcon(AccountBlock block) {
     if (BlockUtils.isSendBlock(block.blockType)) {
-      return const Icon(
-        MaterialCommunityIcons.arrow_up,
-        color: AppColors.darkHintTextColor,
-        size: 20,
+      return Tooltip(
+        message: context.l10n.send,
+        child: const Icon(
+          Icons.call_made_rounded,
+          color: AppColors.errorColor,
+        ),
       );
     }
     if (BlockUtils.isReceiveBlock(block.blockType)) {
-      return const Icon(
-        MaterialCommunityIcons.arrow_down,
-        color: AppColors.lightHintTextColor,
-        size: 20,
+      return Tooltip(
+        message: context.l10n.receive,
+        child: const Icon(
+          Icons.call_received_rounded,
+          color: AppColors.znnColor,
+        ),
       );
     }
     return Text(
