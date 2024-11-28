@@ -215,7 +215,7 @@ class _LatestTransactionsPopulatedState
 
   InfiniteScrollTableHeaderColumn _assetsColumn() {
     return InfiniteScrollTableHeaderColumn(
-      columnName: context.l10n.assets,
+      columnName: context.l10n.asset,
       onSortArrowsPressed: _onSortArrowsPressed,
     );
   }
@@ -324,7 +324,7 @@ class _LatestTransactionsPopulatedState
       child = Tooltip(
         message: infoBlock.token!.tokenStandard.toString(),
         child: Text(
-          infoBlock.token?.symbol ?? '',
+          infoBlock.token!.name,
           style: TextStyle(
             color: ColorUtils.getTokenColor(infoBlock.tokenStandard),
           ),

@@ -1,7 +1,7 @@
 {
   "amount": "Amount",
   "areYouSureTranfer": "Are you sure you want to transfer {amount} {symbol} to {recipient} ?",
-  "assets": "Assets",
+  "asset": "Asset",
   "balance": "Balance",
   "couldNotSend": "Couldn't send {amount} {symbol} to {recipient}",
   "currentAmounts": "This card displays the current {kZnnCoinSymbol} and {kQsrCoinSymbol} amounts for the selected address",

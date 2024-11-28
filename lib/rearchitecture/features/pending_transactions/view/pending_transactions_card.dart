@@ -197,7 +197,7 @@ class _PendingTransactionsPopulatedState
         onSortArrowsPressed: _onSortArrowsPressed,
       ),
       InfiniteScrollTableHeaderColumn(
-        columnName: context.l10n.assets,
+        columnName: context.l10n.asset,
         onSortArrowsPressed: _onSortArrowsPressed,
       ),
       const InfiniteScrollTableHeaderColumn(
