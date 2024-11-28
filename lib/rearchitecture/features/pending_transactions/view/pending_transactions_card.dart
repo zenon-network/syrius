@@ -4,8 +4,8 @@ import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/pending_transactions/pending_transactions.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/infinite_scroll_table/cells/cells.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/color_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/extensions.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/format_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
@@ -163,7 +163,7 @@ class _PendingTransactionsPopulatedState
               ),
         context: context,
       ),
-      _assetsCell(infoBlock),
+      AssetCell(block: infoBlock),
       InfiniteScrollTableCell(
         child: _getReceiveButton(hash: infoBlock.hash),
       ),
@@ -295,27 +295,6 @@ class _PendingTransactionsPopulatedState
             hash,
           );
         },
-      ),
-    );
-  }
-
-  InfiniteScrollTableCell _assetsCell(AccountBlock infoBlock) {
-    late final Widget child;
-    if (infoBlock.token == null) {
-      child = const SizedBox.shrink();
-    } else {
-      child = Chip(
-        backgroundColor: ColorUtils.getTokenColor(infoBlock.tokenStandard),
-        label: Text(infoBlock.token?.symbol ?? ''),
-        side: BorderSide.none,
-        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-      );
-    }
-
-    return InfiniteScrollTableCell(
-      child: Align(
-        alignment: Alignment.centerLeft,
-        child: child,
       ),
     );
   }
