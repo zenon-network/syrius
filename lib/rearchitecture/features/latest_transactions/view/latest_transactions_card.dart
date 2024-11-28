@@ -321,19 +321,19 @@ class _LatestTransactionsPopulatedState
     if (infoBlock.token == null) {
       child = const SizedBox.shrink();
     } else {
-      child = Chip(
-        backgroundColor: ColorUtils.getTokenColor(infoBlock.tokenStandard),
-        label: Text(infoBlock.token?.symbol ?? ''),
-        side: BorderSide.none,
-        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+      child = Tooltip(
+        message: infoBlock.token!.tokenStandard.toString(),
+        child: Text(
+          infoBlock.token?.symbol ?? '',
+          style: TextStyle(
+            color: ColorUtils.getTokenColor(infoBlock.tokenStandard),
+          ),
+        ),
       );
     }
 
     return InfiniteScrollTableCell(
-      child: Align(
-        alignment: Alignment.centerLeft,
-        child: child,
-      ),
+      child: child,
     );
   }
 
