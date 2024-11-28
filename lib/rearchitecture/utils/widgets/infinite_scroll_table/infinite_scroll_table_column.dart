@@ -28,7 +28,9 @@ class InfiniteScrollTableColumn extends StatelessWidget {
           Expanded(
             child: Text(
               name,
-              style: Theme.of(context).textTheme.bodyMedium,
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: AppColors.znnColor,
+              ),
             ),
           ),
           // TODO(community): enable row sorting
