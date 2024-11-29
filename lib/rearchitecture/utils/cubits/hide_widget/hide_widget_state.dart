@@ -1,13 +1,19 @@
 part of 'hide_widget_cubit.dart';
 
+/// The status of hiding or un-hiding the widget.
 enum HideWidgetStatus {
+  /// Operation failed.
   failure,
+  /// Operation not started.
   initial,
+  /// Operation is in progress.
   loading,
+  /// Operation succeeded.
   success,
 }
 
-
+/// A class designed to tell us the current state of the two operations:
+/// hiding or un-hiding a widget
 @JsonSerializable()
 class HideWidgetState extends Equatable {
   /// Creates a new instance.
@@ -27,13 +33,18 @@ class HideWidgetState extends Equatable {
   factory HideWidgetState.fromJson(Map<String, dynamic> json) =>
       _$HideWidgetStateFromJson(json);
 
+  /// An exception that occurred during the hiding or un-hiding operation.
   final SyriusException? exception;
+  /// Specifies if the current status is hidden or not.
   final bool? isHidden;
+  /// The status of hiding or un-hiding the widget.
   final HideWidgetStatus status;
 
   @override
-  List<Object?> get props => [isHidden, exception, status];
+  List<Object?> get props => <Object?>[isHidden, exception, status];
 
+  /// Creates a copy of the current state with the option to modify specific
+  /// fields.
   HideWidgetState copyWith({
     SyriusException? exception,
     bool? isHidden,

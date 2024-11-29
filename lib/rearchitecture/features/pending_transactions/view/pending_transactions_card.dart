@@ -16,7 +16,11 @@ import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart'
         InfiniteScrollTableHeaderColumn;
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
+/// A widget that displays the current pending transactions.
+///
+/// Optionally, the user can request for a specific transaction to be received.
 class PendingTransactionsCard extends StatelessWidget {
+  /// Creates a new instance.
   const PendingTransactionsCard({super.key});
 
   @override

@@ -14,7 +14,12 @@ import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart'
         InfiniteScrollTableHeaderColumn;
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
+/// A widget that displayed the latest transactions for an address
 class LatestTransactionsCard extends StatelessWidget {
+  /// Creates a new instance.
+  ///
+  /// There is also a check to make sure that the [type] can be found among
+  /// the supported list of types
   LatestTransactionsCard({required this.type, super.key})
       : assert(
           <CardType>[
@@ -24,6 +29,8 @@ class LatestTransactionsCard extends StatelessWidget {
           'make sure that the type refers only to latest transactions types',
         );
 
+  /// The card type, either [CardType.latestTransactions] or
+  /// [CardType.latestTransactionsDashboard]
   final CardType type;
 
   @override

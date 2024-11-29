@@ -1,9 +1,6 @@
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/balance/balance.dart';
-import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/balance/cubit/balance_cubit.dart';
-import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/constants/app_sizes.dart';
-import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/cubits/timer_cubit.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
@@ -71,7 +68,8 @@ class _BalancePopulatedState extends State<BalancePopulated> {
                                 accountInfo: widget.accountInfo,
                                 constraints: constraints,
                                 tokenStandard: TokenStandard.parse(
-                                    _touchedSectionId.value!),
+                                  _touchedSectionId.value!,
+                                ),
                               )
                             : const SizedBox.shrink();
 
