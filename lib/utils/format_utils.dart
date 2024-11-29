@@ -65,7 +65,7 @@ class FormatUtils {
         .millisecondsSinceEpoch;
   }
 
-  static String formatData(int transactionMillis) {
+  static String formatDateForTable(int transactionMillis) {
     final int currentMillis = DateTime.now().millisecondsSinceEpoch;
     if (currentMillis - transactionMillis <=
         const Duration(days: 1).inMilliseconds) {

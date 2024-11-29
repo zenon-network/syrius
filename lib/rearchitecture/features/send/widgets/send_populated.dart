@@ -233,16 +233,19 @@ class _SendPopulatedState extends State<SendPopulated> {
   }
 
   Widget _getDefaultAddressDropdown() {
-    return NewAddressesDropdown(
-      addresses: kDefaultAddressList.map((String? e) => e!).toList(),
-      onSelectedCallback: (String value) => setState(
-        () {
-          _selectedSenderAddress = value;
-          _selectedToken = kDualCoin.first;
-          _availableTokens.clear();
-        },
+    return Tooltip(
+      message: context.l10n.senderAddressDescription,
+      child: NewAddressesDropdown(
+        addresses: kDefaultAddressList.map((String? e) => e!).toList(),
+        onSelectedCallback: (String value) => setState(
+          () {
+            _selectedSenderAddress = value;
+            _selectedToken = kDualCoin.first;
+            _availableTokens.clear();
+          },
+        ),
+        selectedAddress: _selectedSenderAddress,
       ),
-      selectedAddress: _selectedSenderAddress,
     );
   }
 

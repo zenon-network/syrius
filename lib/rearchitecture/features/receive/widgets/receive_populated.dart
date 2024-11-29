@@ -62,11 +62,14 @@ class _ReceivePopulatedState extends State<ReceivePopulated> {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
-          ReceiveQrImage(
-            data: _getQrString(),
-            size: 150,
-            tokenStandard: _selectedToken.tokenStandard,
-            context: context,
+          Tooltip(
+            message: _getQrString(),
+            child: ReceiveQrImage(
+              data: _getQrString(),
+              size: 150,
+              tokenStandard: _selectedToken.tokenStandard,
+              context: context,
+            ),
           ),
           kHorizontalGap16,
           Expanded(

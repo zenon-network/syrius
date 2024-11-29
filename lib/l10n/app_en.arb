@@ -30,6 +30,7 @@
   "pillars": "Pillars",
   "pillarsDescription": "This card displays the number of active Pillars in the network",
   "pressToReceive": "Press to receive the transaction",
+  "quasarTransactions": "{quasar} transactions",
   "realtimeStats": "Realtime Stats",
   "realtimeStatsDescription": "This card displays the number of {kZnnCoinSymbol} and {kQsrCoinSymbol} transactions. For example, a delegation is considered a {kZnnCoinSymbol} transaction from the network's perspective. Every interaction with the network embedded contracts is internally considered a transaction",
   "receive": "Receive",
@@ -37,7 +38,7 @@
   "recipientAddress": "Recipient Address",
   "sAgo": "s ago",
   "send": "Send",
-  "sendFrom": "Send from",
+  "senderAddressDescription": "The address from which the transaction will be sent",
   "sendTransaction": "send transaction",
   "sender": "Sender",
   "sent": "Sent",
@@ -57,6 +58,5 @@
   "type": "Type",
   "usDateFormat": "MM/dd/yyyy",
   "waitingForDataFetching": "Waiting for data fetching",
-  "quasarTransactions": "{quasar} transactions",
   "zenonTransactions": "{zenon} transactions"
 }
