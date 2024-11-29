@@ -1,13 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
-import 'package:zenon_syrius_wallet_flutter/main.dart';
-import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/pending_transactions/pending_transactions.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
-import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/infinite_scroll_table/cells/cells.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/extensions.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/format_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart'
     hide
@@ -127,46 +121,21 @@ class _PendingTransactionsPopulatedState
             ? transaction.pairedAccountBlock!
             : transaction;
     return <Widget>[
-      InfiniteScrollTableCell.textFromAddress(
+      AddressCell(
         address: infoBlock.address,
       ),
-      InfiniteScrollTableCell.textFromAddress(
+      AddressCell(
         address: infoBlock.toAddress,
       ),
-      InfiniteScrollTableCell.withText(
-        content: infoBlock.hash.toShortString(),
-        flex: 2,
-        textToBeCopied: infoBlock.hash.toString(),
-        tooltipMessage: infoBlock.hash.toString(),
+      HashCell(
+        hash: infoBlock.hash,
       ),
-      InfiniteScrollTableCell(
-        child: Padding(
-          padding: const EdgeInsets.only(right: 10),
-          child: FormattedAmountWithTooltip(
-            amount: infoBlock.amount.addDecimals(
-              infoBlock.token?.decimals ?? 0,
-            ),
-            tokenSymbol: infoBlock.token?.symbol ?? '',
-            builder: (String formattedAmount, String tokenSymbol) => Text(
-              formattedAmount,
-              style: Theme.of(context).textTheme.titleMedium!.copyWith(
-                    color: AppColors.subtitleColor,
-                  ),
-            ),
-          ),
-        ),
-      ),
-      InfiniteScrollTableCell.withText(
-        content: infoBlock.confirmationDetail?.momentumTimestamp == null
-            ? context.l10n.pending
-            : FormatUtils.formatData(
-                infoBlock.confirmationDetail!.momentumTimestamp * 1000,
-              ),
+      AmountCell(block: infoBlock),
+      DateCell(
+        block: infoBlock,
       ),
       AssetCell(block: infoBlock),
-      InfiniteScrollTableCell(
-        child: _getReceiveButton(hash: infoBlock.hash),
-      ),
+      ReceiveCell(hash: infoBlock.hash),
     ];
   }
 
@@ -280,23 +249,5 @@ class _PendingTransactionsPopulatedState
     setState(() {
       _sortAscending = !_sortAscending;
     });
-  }
-
-  Widget _getReceiveButton({
-    required Hash hash,
-  }) {
-    return Align(
-      alignment: Alignment.centerLeft,
-      child: IconButton(
-        tooltip: context.l10n.pressToReceive,
-        icon: const Icon(Icons.call_received_rounded),
-        color: AppColors.znnColor,
-        onPressed: () {
-          sl<AutoReceiveTxWorker>().autoReceiveTransactionHash(
-            hash,
-          );
-        },
-      ),
-    );
   }
 }

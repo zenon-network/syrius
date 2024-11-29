@@ -2,10 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
-import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/infinite_scroll_table/cells/asset_cell.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/extensions.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/format_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart'
     hide
@@ -142,33 +138,18 @@ class _LatestTransactionsPopulatedState
             ? transactionBlock.pairedAccountBlock!
             : transactionBlock;
     return <Widget>[
-      InfiniteScrollTableCell.textFromAddress(
+      AddressCell(
         address: infoBlock.address,
       ),
-      InfiniteScrollTableCell.textFromAddress(
+      AddressCell(
         address: infoBlock.toAddress,
       ),
-      InfiniteScrollTableCell.withText(
-        content: infoBlock.hash.toShortString(),
-        flex: 2,
-        tooltipMessage: infoBlock.hash.toString(),
-        textToBeCopied: infoBlock.hash.toString(),
-      ),
-      _amountCell(infoBlock),
-      _dateCell(infoBlock),
-      _typeCell(transactionBlock),
+      HashCell(hash: infoBlock.hash),
+      AmountCell(block: infoBlock),
+      DateCell(block: infoBlock),
+      TypeCell(block: transactionBlock),
       AssetCell(block: infoBlock),
     ];
-  }
-
-  InfiniteScrollTableCell _dateCell(AccountBlock infoBlock) {
-    return InfiniteScrollTableCell.withText(
-      content: infoBlock.confirmationDetail?.momentumTimestamp == null
-          ? context.l10n.pending
-          : FormatUtils.formatData(
-              infoBlock.confirmationDetail!.momentumTimestamp * 1000,
-            ),
-    );
   }
 
   List<InfiniteScrollTableColumnType> _getHeaderColumnsForTransferWidget() {
@@ -202,73 +183,12 @@ class _LatestTransactionsPopulatedState
             : transactionBlock;
 
     return <Widget>[
-      _senderCell(address: infoBlock.address),
-      _amountCell(infoBlock),
-      _dateCell(infoBlock),
-      _typeCell(transactionBlock),
+      AddressCell(address: infoBlock.address),
+      AmountCell(block: infoBlock),
+      DateCell(block: infoBlock),
+      TypeCell(block: infoBlock),
       AssetCell(block: infoBlock),
     ];
-  }
-
-  InfiniteScrollTableCell _typeCell(
-    AccountBlock transactionBlock,
-  ) {
-    return InfiniteScrollTableCell(
-      child: Align(
-        alignment: Alignment.centerLeft,
-        child: _getTransactionTypeIcon(transactionBlock),
-      ),
-    );
-  }
-
-  InfiniteScrollTableCell _amountCell(AccountBlock infoBlock) {
-    return InfiniteScrollTableCell(
-      child: Padding(
-        padding: const EdgeInsets.only(right: 10),
-        child: FormattedAmountWithTooltip(
-          amount: infoBlock.amount.addDecimals(
-            infoBlock.token?.decimals ?? 0,
-          ),
-          tokenSymbol: infoBlock.token?.symbol ?? '',
-          builder: (String formattedAmount, String tokenSymbol) => Text(
-            formattedAmount,
-          ),
-        ),
-      ),
-    );
-  }
-
-  InfiniteScrollTableCell _senderCell({required Address address}) =>
-      InfiniteScrollTableCell.textFromAddress(
-        address: address,
-      );
-
-  Widget _getTransactionTypeIcon(AccountBlock block) {
-    if (BlockUtils.isSendBlock(block.blockType)) {
-      return Tooltip(
-        message: context.l10n.send,
-        child: const Icon(
-          Icons.call_made_rounded,
-          color: AppColors.errorColor,
-        ),
-      );
-    }
-    if (BlockUtils.isReceiveBlock(block.blockType)) {
-      return Tooltip(
-        message: context.l10n.receive,
-        child: const Icon(
-          Icons.call_received_rounded,
-          color: AppColors.znnColor,
-        ),
-      );
-    }
-    return Text(
-      FormatUtils.extractNameFromEnum<BlockTypeEnum>(
-        BlockTypeEnum.values[block.blockType],
-      ),
-      textAlign: TextAlign.start,
-      style: Theme.of(context).textTheme.titleSmall,
-    );
   }
 
   // TODO(maznnwell): to be used when sorting is enabled
