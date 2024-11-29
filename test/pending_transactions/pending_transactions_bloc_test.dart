@@ -185,7 +185,7 @@ void main() {
         when(
           () => mockLedger.getUnreceivedBlocksByAddress(
             any(),
-            pageSize: kPageSize,
+            pageSize: kTestPageSize,
           ),
         ).thenThrow(exception);
       },

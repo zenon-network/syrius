@@ -185,7 +185,7 @@ void main() {
         when(
           () => mockLedger.getAccountBlocksByPage(
             any(),
-            pageSize: kPageSize,
+            pageSize: kTestPageSize,
           ),
         ).thenThrow(exception);
       },
