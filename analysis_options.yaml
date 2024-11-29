@@ -19,3 +19,4 @@ linter:
     # This rule is in contradiction with always_specify_types, so it must be disabled if the other
     # one is enabled
     omit_local_variable_types: false
+    no_default_cases: false

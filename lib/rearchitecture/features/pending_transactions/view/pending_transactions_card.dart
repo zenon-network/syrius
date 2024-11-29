@@ -183,9 +183,11 @@ class _PendingTransactionsPopulatedState
     ];
   }
 
-  void _onSortArrowsPressed(String columnName) {
-    switch (columnName) {
-      case 'Sender':
+  // TODO(maznnwell): to be used when sorting is enabled
+  // ignore: unused_element
+  void _onSortArrowsPressed(InfiniteScrollTableColumnType columnType) {
+    switch (columnType) {
+      case InfiniteScrollTableColumnType.sender:
         _sortAscending
             ? widget.transactions.sort(
                 (AccountBlock a, AccountBlock b) =>
@@ -199,7 +201,7 @@ class _PendingTransactionsPopulatedState
                           a.address.toString(),
                         ),
               );
-      case 'Receiver':
+      case InfiniteScrollTableColumnType.receiver:
         _sortAscending
             ? widget.transactions.sort(
                 (AccountBlock a, AccountBlock b) =>
@@ -213,7 +215,7 @@ class _PendingTransactionsPopulatedState
                           a.toAddress.toString(),
                         ),
               );
-      case 'Hash':
+      case InfiniteScrollTableColumnType.hash:
         _sortAscending
             ? widget.transactions.sort(
                 (AccountBlock a, AccountBlock b) => a.hash.toString().compareTo(
@@ -225,7 +227,7 @@ class _PendingTransactionsPopulatedState
                       a.hash.toString(),
                     ),
               );
-      case 'Amount':
+      case InfiniteScrollTableColumnType.amount:
         _sortAscending
             ? widget.transactions.sort(
                 (AccountBlock a, AccountBlock b) =>
@@ -235,7 +237,7 @@ class _PendingTransactionsPopulatedState
                 (AccountBlock a, AccountBlock b) =>
                     b.amount.compareTo(a.amount),
               );
-      case 'Date':
+      case InfiniteScrollTableColumnType.date:
         _sortAscending
             ? widget.transactions.sort(
                 (AccountBlock a, AccountBlock b) =>
@@ -249,7 +251,7 @@ class _PendingTransactionsPopulatedState
                   a.confirmationDetail!.momentumTimestamp,
                 ),
               );
-      case 'Assets':
+      case InfiniteScrollTableColumnType.asset:
         _sortAscending
             ? widget.transactions.sort(
                 (AccountBlock a, AccountBlock b) =>
@@ -273,7 +275,6 @@ class _PendingTransactionsPopulatedState
                           a.tokenStandard.toString(),
                         ),
               );
-        break;
     }
 
     setState(() {

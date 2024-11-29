@@ -271,9 +271,11 @@ class _LatestTransactionsPopulatedState
     );
   }
 
-  void _onSortArrowsPressed(String columnName) {
-    switch (columnName) {
-      case 'Sender':
+  // TODO(maznnwell): to be used when sorting is enabled
+  // ignore: unused_element
+  void _onSortArrowsPressed(InfiniteScrollTableColumnType columnType) {
+    switch (columnType) {
+      case InfiniteScrollTableColumnType.sender:
         _sortAscending
             ? _transactions.sort(
                 (AccountBlock a, AccountBlock b) =>
@@ -287,7 +289,7 @@ class _LatestTransactionsPopulatedState
                           a.address.toString(),
                         ),
               );
-      case 'Receiver':
+      case InfiniteScrollTableColumnType.receiver:
         _sortAscending
             ? _transactions.sort(
                 (AccountBlock a, AccountBlock b) =>
@@ -301,7 +303,7 @@ class _LatestTransactionsPopulatedState
                           a.toAddress.toString(),
                         ),
               );
-      case 'Hash':
+      case InfiniteScrollTableColumnType.hash:
         _sortAscending
             ? _transactions.sort(
                 (AccountBlock a, AccountBlock b) => a.hash.toString().compareTo(
@@ -313,7 +315,7 @@ class _LatestTransactionsPopulatedState
                       a.hash.toString(),
                     ),
               );
-      case 'Amount':
+      case InfiniteScrollTableColumnType.amount:
         _sortAscending
             ? _transactions.sort(
                 (AccountBlock a, AccountBlock b) =>
@@ -323,7 +325,7 @@ class _LatestTransactionsPopulatedState
                 (AccountBlock a, AccountBlock b) =>
                     b.amount.compareTo(a.amount),
               );
-      case 'Date':
+      case InfiniteScrollTableColumnType.date:
         _sortAscending
             ? _transactions.sort(
                 (AccountBlock a, AccountBlock b) =>
@@ -337,7 +339,7 @@ class _LatestTransactionsPopulatedState
                   a.confirmationDetail!.momentumTimestamp,
                 ),
               );
-      case 'Type':
+      case InfiniteScrollTableColumnType.type:
         _sortAscending
             ? _transactions.sort(
                 (AccountBlock a, AccountBlock b) =>
@@ -347,7 +349,7 @@ class _LatestTransactionsPopulatedState
                 (AccountBlock a, AccountBlock b) =>
                     b.blockType.compareTo(a.blockType),
               );
-      case 'Assets':
+      case InfiniteScrollTableColumnType.asset:
         _sortAscending
             ? _transactions.sort(
                 (AccountBlock a, AccountBlock b) =>
