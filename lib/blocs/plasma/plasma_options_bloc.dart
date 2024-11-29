@@ -13,13 +13,13 @@ class PlasmaOptionsBloc extends BaseBloc<AccountBlockTemplate?> {
         Address.parse(beneficiaryAddress),
         amount,
       );
-      AccountBlockUtils.createAccountBlock(
+      AccountBlockUtils().createAccountBlock(
         transactionParams,
         'fuse ${kQsrCoin.symbol} for Plasma',
         waitForRequiredPlasma: true,
       ).then(
         (AccountBlockTemplate response) {
-          ZenonAddressUtils.refreshBalance();
+          ZenonAddressUtils().refreshBalance();
           addEvent(response);
         },
       ).onError(

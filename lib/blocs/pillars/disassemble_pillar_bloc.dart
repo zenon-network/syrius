@@ -15,13 +15,13 @@ class DisassemblePillarBloc extends BaseBloc<AccountBlockTemplate?> {
       final AccountBlockTemplate transactionParams = zenon!.embedded.pillar.revoke(
         pillarName,
       );
-      AccountBlockUtils.createAccountBlock(
+      AccountBlockUtils().createAccountBlock(
         transactionParams,
         'disassemble Pillar',
         waitForRequiredPlasma: true,
       ).then(
         (AccountBlockTemplate response) {
-          ZenonAddressUtils.refreshBalance();
+          ZenonAddressUtils().refreshBalance();
           addEvent(response);
         },
       ).onError(

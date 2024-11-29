@@ -16,7 +16,7 @@ import 'package:znn_ledger_dart/znn_ledger_dart.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 class ZenonAddressUtils {
-  static void refreshBalance() {
+  void refreshBalance() {
     sl.get<BalanceBloc>().getBalanceForAllAddresses();
     sl.get<MultipleBalanceBloc>().add(
       MultipleBalanceFetch(

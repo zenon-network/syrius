@@ -14,11 +14,11 @@ class BurnTokenBloc extends BaseBloc<AccountBlockTemplate> {
         token.tokenStandard,
         amount,
       );
-      AccountBlockUtils.createAccountBlock(transactionParams, 'burn token',
+      AccountBlockUtils().createAccountBlock(transactionParams, 'burn token',
               waitForRequiredPlasma: true,)
           .then(
         (AccountBlockTemplate response) {
-          ZenonAddressUtils.refreshBalance();
+          ZenonAddressUtils().refreshBalance();
           addEvent(response);
         },
       ).onError(

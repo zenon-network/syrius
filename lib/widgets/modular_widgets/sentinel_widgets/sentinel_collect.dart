@@ -104,7 +104,7 @@ class _SentinelCollectState extends State<SentinelCollect> {
   Future<void> _onCollectPressed() async {
     try {
       _collectButtonKey.currentState?.animateForward();
-      await AccountBlockUtils.createAccountBlock(
+      await AccountBlockUtils().createAccountBlock(
         zenon!.embedded.sentinel.collectReward(),
         'collect Sentinel rewards',
         waitForRequiredPlasma: true,

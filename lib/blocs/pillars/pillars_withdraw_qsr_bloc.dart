@@ -14,14 +14,14 @@ class PillarsWithdrawQsrBloc extends BaseBloc<AccountBlockTemplate?> {
       addEvent(null);
       final AccountBlockTemplate transactionParams =
           zenon!.embedded.pillar.withdrawQsr();
-      AccountBlockUtils.createAccountBlock(
+      AccountBlockUtils().createAccountBlock(
         transactionParams,
         'withdraw ${kQsrCoin.symbol} from Pillar Slot',
         waitForRequiredPlasma: true,
       ).then(
         (AccountBlockTemplate response) async {
           await Future.delayed(kDelayAfterAccountBlockCreationCall);
-          ZenonAddressUtils.refreshBalance();
+          ZenonAddressUtils().refreshBalance();
           addEvent(response);
         },
       ).onError(

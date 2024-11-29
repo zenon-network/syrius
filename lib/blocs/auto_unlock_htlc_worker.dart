@@ -42,7 +42,7 @@ class AutoUnlockHtlcWorker extends BaseBloc<WalletNotification> {
         final AccountBlockTemplate transactionParams = zenon!.embedded.htlc
             .unlock(htlc.id, FormatUtils.decodeHexString(swap.preimage!));
         final AccountBlockTemplate response =
-            await AccountBlockUtils.createAccountBlock(
+            await AccountBlockUtils().createAccountBlock(
           transactionParams,
           'complete swap',
           address: htlc.hashLocked,

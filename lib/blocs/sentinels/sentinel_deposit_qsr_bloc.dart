@@ -20,7 +20,7 @@ class SentinelsDepositQsrBloc extends BaseBloc<AccountBlockTemplate?> {
             zenon!.embedded.sentinel.depositQsr(
           amount,
         );
-        AccountBlockUtils.createAccountBlock(
+        AccountBlockUtils().createAccountBlock(
           transactionParams,
           'deposit ${kQsrCoin.symbol} for Sentinel Slot',
           waitForRequiredPlasma: true,
@@ -29,7 +29,7 @@ class SentinelsDepositQsrBloc extends BaseBloc<AccountBlockTemplate?> {
             await Future.delayed(
               kDelayAfterAccountBlockCreationCall,
             );
-            ZenonAddressUtils.refreshBalance();
+            ZenonAddressUtils().refreshBalance();
             addEvent(response);
           },
         ).onError(
