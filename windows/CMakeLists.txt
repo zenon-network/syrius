@@ -5,6 +5,7 @@ project(syrius LANGUAGES CXX)
 # The name of the executable created for the application. Change this to change
 # the on-disk name of your application.
 set(BINARY_NAME "syrius")
+set(APPLICATION_ID "network.zenon.syrius")
 
 # Explicitly opt in to modern CMake behaviors to avoid warnings with recent
 # versions of CMake.
@@ -106,3 +107,13 @@ install(DIRECTORY "${PROJECT_BUILD_DIR}/${FLUTTER_ASSET_DIR_NAME}"
 install(FILES "${AOT_LIBRARY}" DESTINATION "${INSTALL_BUNDLE_DATA_DIR}"
   CONFIGURATIONS Profile;Release
   COMPONENT Runtime)
+
+# Bundle required ZNN libraries for Syrius
+set(SYRIUS_PROJECT_DIRECTORY "${CMAKE_HOME_DIRECTORY}/..")
+
+# Leveraging flutter to identify dependency locations
+file(STRINGS "${SYRIUS_PROJECT_DIRECTORY}/.dart_tool/package_config.json"
+        ZNN_SDK_DART_PATH REGEX "(file:).*(znn_sdk_dart).*\\/\"" )
+
+string(REPLACE "\"rootUri\": \"file:///" "" ZNN_SDK_DART_PATH "${ZNN_SDK_DART_PATH}")
+string(REPLACE "/\"," "" ZNN_SDK_DART_PATH "${ZNN_SDK_DART_PATH}")
