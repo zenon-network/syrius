@@ -7,6 +7,7 @@ import 'package:zenon_syrius_wallet_flutter/blocs/base_bloc.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/model/database/notification_type.dart';
 import 'package:zenon_syrius_wallet_flutter/model/database/wallet_notification.dart';
+import 'package:zenon_syrius_wallet_flutter/model/p2p_swap/htlc_swap.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/account_block_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/address_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/format_utils.dart';
@@ -27,10 +28,10 @@ class AutoUnlockHtlcWorker extends BaseBloc<WalletNotification> {
   Future<void> autoUnlock() async {
     if (pool.isNotEmpty && !running && kWalletFile != null) {
       running = true;
-      Hash currentHash = pool.first;
+      final Hash currentHash = pool.first;
       try {
-        final htlc = await zenon!.embedded.htlc.getById(currentHash);
-        final swap = htlcSwapsService!
+        final HtlcInfo htlc = await zenon!.embedded.htlc.getById(currentHash);
+        final HtlcSwap? swap = htlcSwapsService!
             .getSwapByHashLock(FormatUtils.encodeHexString(htlc.hashLock));
         if (swap == null || swap.preimage == null) {
           throw 'Invalid swap';
@@ -38,9 +39,9 @@ class AutoUnlockHtlcWorker extends BaseBloc<WalletNotification> {
         if (!kDefaultAddressList.contains(htlc.hashLocked.toString())) {
           throw 'Swap address not in default addresses. Please add the address in the addresses list.';
         }
-        AccountBlockTemplate transactionParams = zenon!.embedded.htlc
+        final AccountBlockTemplate transactionParams = zenon!.embedded.htlc
             .unlock(htlc.id, FormatUtils.decodeHexString(swap.preimage!));
-        AccountBlockTemplate response =
+        final AccountBlockTemplate response =
             await AccountBlockUtils.createAccountBlock(
           transactionParams,
           'complete swap',
@@ -91,7 +92,7 @@ class AutoUnlockHtlcWorker extends BaseBloc<WalletNotification> {
 
   void addHash(Hash hash) {
     if (!processedHashes.contains(hash)) {
-      zenon!.stats.syncInfo().then((syncInfo) {
+      zenon!.stats.syncInfo().then((SyncInfo syncInfo) {
         if (!processedHashes.contains(hash) &&
             (syncInfo.state == SyncState.syncDone ||
                 (syncInfo.targetHeight > 0 &&
@@ -101,7 +102,7 @@ class AutoUnlockHtlcWorker extends BaseBloc<WalletNotification> {
           processedHashes.add(hash);
         }
       }).onError(
-        (e, stackTrace) {
+        (Object? e, StackTrace stackTrace) {
           Logger('AutoUnlockHtlcWorker')
               .log(Level.WARNING, 'addHash', e, stackTrace);
         },
@@ -117,6 +118,6 @@ class AutoUnlockHtlcWorker extends BaseBloc<WalletNotification> {
   // allowing for it to be retried.
   void _removeHashFromHashSetAfterDelay(Hash hash) {
     Future.delayed(
-        const Duration(minutes: 2), () => processedHashes.remove(hash));
+        const Duration(minutes: 2), () => processedHashes.remove(hash),);
   }
 }

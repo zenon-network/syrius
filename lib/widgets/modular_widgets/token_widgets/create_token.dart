@@ -5,12 +5,12 @@ import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 
 class CreateToken extends StatefulWidget {
-  final VoidCallback onStepperNotificationSeeMorePressed;
 
   const CreateToken({
     required this.onStepperNotificationSeeMorePressed,
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
+  final VoidCallback onStepperNotificationSeeMorePressed;
 
   @override
   State createState() {
@@ -24,28 +24,28 @@ class _CreateTokenState extends State<CreateToken> {
     return CardScaffold(
       title: 'Create Token',
       description: 'Create a token following the ZTS specification',
-      childBuilder: () => _getWidgetBody(),
+      childBuilder: _getWidgetBody,
     );
   }
 
   Widget _getWidgetBody() {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
-      children: [
+      children: <Widget>[
         Lottie.asset(
           'assets/lottie/ic_anim_zts.json',
-          width: 128.0,
-          height: 128.0,
+          width: 128,
+          height: 128,
           repeat: false,
         ),
         Container(
-          padding: const EdgeInsets.symmetric(horizontal: 48.0, vertical: 12.0),
+          padding: const EdgeInsets.symmetric(horizontal: 48, vertical: 12),
           child: SyriusElevatedButton(
             onPressed: () {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => StepperScreen(
+                  builder: (BuildContext context) => StepperScreen(
                     stepper: const TokenStepper(),
                     onStepperNotificationSeeMorePressed:
                         widget.onStepperNotificationSeeMorePressed,
@@ -72,7 +72,7 @@ class _CreateTokenState extends State<CreateToken> {
       child: const Icon(
         Icons.add,
         color: Colors.white,
-        size: 15.0,
+        size: 15,
       ),
     );
   }

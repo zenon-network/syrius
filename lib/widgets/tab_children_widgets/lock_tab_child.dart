@@ -9,20 +9,19 @@ import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/extensions.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/init_utils.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/wallet_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/navigation_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/notification_utils.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/wallet_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_ledger_dart/znn_ledger_dart.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 class LockTabChild extends StatefulWidget {
-  final Future<void> Function(String) afterUnlockCallback;
-  final Function() afterInitCallback;
 
   const LockTabChild(this.afterUnlockCallback, this.afterInitCallback,
-      {Key? key})
-      : super(key: key);
+      {super.key,});
+  final Future<void> Function(String) afterUnlockCallback;
+  final Function() afterInitCallback;
 
   @override
   State<LockTabChild> createState() => _LockTabChildState();
@@ -48,30 +47,29 @@ class _LockTabChildState extends State<LockTabChild> {
     return Container(
       color: Theme.of(context).colorScheme.primary,
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.center,
         mainAxisAlignment: MainAxisAlignment.center,
         children: <Widget>[
           const Icon(
             Fontisto.locked,
             color: AppColors.znnColor,
-            size: 50.0,
+            size: 50,
           ),
           const SizedBox(
-            height: 40.0,
+            height: 40,
           ),
           Text(
             'Welcome Back',
             style: Theme.of(context).textTheme.headlineMedium,
           ),
           const SizedBox(
-            height: 20.0,
+            height: 20,
           ),
           Text(
             'Enter the password to access the wallet',
             style: Theme.of(context).textTheme.headlineSmall,
           ),
           const SizedBox(
-            height: 40.0,
+            height: 40,
           ),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -79,18 +77,18 @@ class _LockTabChildState extends State<LockTabChild> {
               PasswordInputField(
                 controller: _passwordController,
                 hintText: 'Current password',
-                onSubmitted: (value) {
+                onSubmitted: (String value) {
                   _actionButton!.onPressed!();
                 },
               ),
               const SizedBox(
-                width: 10.0,
+                width: 10,
               ),
               _actionButton!,
             ],
           ),
           const SizedBox(
-            height: 30.0,
+            height: 30,
           ),
           Visibility(
             visible: _messageToUser.isEmpty,
@@ -110,7 +108,7 @@ class _LockTabChildState extends State<LockTabChild> {
           Visibility(
             visible: _messageToUser.isNotEmpty,
             child: Padding(
-              padding: const EdgeInsets.only(top: 30.0),
+              padding: const EdgeInsets.only(top: 30),
               child: Text(
                 _messageToUser,
                 style: Theme.of(context).textTheme.bodyLarge,
@@ -129,7 +127,7 @@ class _LockTabChildState extends State<LockTabChild> {
       icon: const Icon(
         AntDesign.arrowright,
         color: AppColors.znnColor,
-        size: 25.0,
+        size: 25,
       ),
     );
   }
@@ -169,7 +167,7 @@ class _LockTabChildState extends State<LockTabChild> {
             _messageToUser = 'Initializing wallet, please wait';
           });
           await InitUtils.initWalletAfterDecryption(
-              Crypto.digest(utf8.encode(_passwordController.text)));
+              Crypto.digest(utf8.encode(_passwordController.text)),);
           widget.afterInitCallback();
         } else {
           await widget.afterUnlockCallback(_passwordController.text);
@@ -196,9 +194,7 @@ class _LockTabChildState extends State<LockTabChild> {
   }
 
   void _resetScreenState() {
-    setState(() {
-      _cleanScreen();
-    });
+    setState(_cleanScreen);
   }
 
   void _cleanScreen() {

@@ -3,19 +3,18 @@ import 'dart:math';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/extensions.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/zts_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 class SentinelRewardsChart extends StatefulWidget {
-  final RewardHistoryList? rewardsHistory;
 
   const SentinelRewardsChart(
     this.rewardsHistory, {
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
+  final RewardHistoryList? rewardsHistory;
 
   @override
   State createState() {
@@ -27,9 +26,6 @@ class _SentinelRewardsChart extends State<SentinelRewardsChart> {
   @override
   Widget build(BuildContext context) {
     return StandardChart(
-      yValuesInterval: _getMaxValueOfRewards() > kNumOfChartLeftSideTitles
-          ? _getMaxValueOfRewards() / kNumOfChartLeftSideTitles
-          : null,
       maxY: _getMaxValueOfRewards() < 1.0
           ? _getMaxValueOfRewards().toDouble()
           : _getMaxValueOfRewards().ceilToDouble(),
@@ -46,7 +42,7 @@ class _SentinelRewardsChart extends State<SentinelRewardsChart> {
 
   List<FlSpot> _getZnnRewardsSpots() => List.generate(
         widget.rewardsHistory!.list.length,
-        (index) => FlSpot(
+        (int index) => FlSpot(
           index.toDouble(),
           _getRewardsByIndex(index, kZnnCoin.tokenStandard).toDouble(),
         ),
@@ -54,13 +50,13 @@ class _SentinelRewardsChart extends State<SentinelRewardsChart> {
 
   List<FlSpot> _getQsrRewardsSpots() => List.generate(
         widget.rewardsHistory!.list.length,
-        (index) => FlSpot(
+        (int index) => FlSpot(
           index.toDouble(),
           _getRewardsByIndex(index, kQsrCoin.tokenStandard).toDouble(),
         ),
       );
 
-  List<LineChartBarData> _linesBarData() => [
+  List<LineChartBarData> _linesBarData() => <LineChartBarData>[
         StandardLineChartBarData(
           color: AppColors.znnColor,
           spots: _getZnnRewardsSpots(),
@@ -90,12 +86,12 @@ class _SentinelRewardsChart extends State<SentinelRewardsChart> {
   }
 
   num _getMaxValueOfRewards() {
-    num maxZnn = _getMaxValueOfZnnRewards()
+    final num maxZnn = _getMaxValueOfZnnRewards()
         .addDecimals(
           coinDecimals,
         )
         .toNum();
-    num maxQsr = _getMaxValueOfQsrRewards()
+    final num maxQsr = _getMaxValueOfQsrRewards()
         .addDecimals(
           coinDecimals,
         )
@@ -105,7 +101,7 @@ class _SentinelRewardsChart extends State<SentinelRewardsChart> {
 
   BigInt _getMaxValueOfZnnRewards() {
     BigInt max = widget.rewardsHistory!.list.first.znnAmount;
-    for (var element in widget.rewardsHistory!.list) {
+    for (final RewardHistoryEntry element in widget.rewardsHistory!.list) {
       if (element.znnAmount > max) {
         max = element.znnAmount;
       }
@@ -115,7 +111,7 @@ class _SentinelRewardsChart extends State<SentinelRewardsChart> {
 
   BigInt _getMaxValueOfQsrRewards() {
     BigInt max = widget.rewardsHistory!.list.first.qsrAmount;
-    for (var element in widget.rewardsHistory!.list) {
+    for (final RewardHistoryEntry element in widget.rewardsHistory!.list) {
       if (element.qsrAmount > max) {
         max = element.qsrAmount;
       }

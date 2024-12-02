@@ -4,5 +4,5 @@ import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 class PeersBloc extends BaseBlocWithRefreshMixin<NetworkInfo> {
   @override
-  Future<NetworkInfo> getDataAsync() async => await zenon!.stats.networkInfo();
+  Future<NetworkInfo> getDataAsync() async => zenon!.stats.networkInfo();
 }

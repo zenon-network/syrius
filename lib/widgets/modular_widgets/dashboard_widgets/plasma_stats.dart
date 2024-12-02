@@ -25,19 +25,19 @@ final String _kWidgetDescription = 'This card displays information about '
 enum PlasmaStatsWidgetVersion { dashboardTab, plasmaTab }
 
 class PlasmaStats extends StatefulWidget {
-  final PlasmaStatsWidgetVersion version;
 
   const PlasmaStats({
     this.version = PlasmaStatsWidgetVersion.dashboardTab,
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
+  final PlasmaStatsWidgetVersion version;
 
   @override
   State<PlasmaStats> createState() => _PlasmaStatsState();
 }
 
 class _PlasmaStatsState extends State<PlasmaStats> {
-  final List<String> _addresses = [];
+  final List<String> _addresses = <String>[];
 
   bool _sortAscending = true;
 
@@ -54,7 +54,7 @@ class _PlasmaStatsState extends State<PlasmaStats> {
       title: kPlasmaStatsWidgetTitle,
       description: _kWidgetDescription,
       childStream: sl.get<PlasmaStatsBloc>().stream,
-      onCompletedStatusCallback: (data) => _getTable(data),
+      onCompletedStatusCallback: _getTable,
       onRefreshPressed: widget.version == PlasmaStatsWidgetVersion.plasmaTab
           ? () => sl.get<PlasmaStatsBloc>().getPlasmas()
           : null,
@@ -68,7 +68,7 @@ class _PlasmaStatsState extends State<PlasmaStats> {
           : null,
       items: plasmaInfoStats,
       headerColumns: widget.version == PlasmaStatsWidgetVersion.plasmaTab
-          ? [
+          ? <CustomHeaderColumn>[
               CustomHeaderColumn(
                 columnName: 'Address',
                 onSortArrowsPressed: _onSortArrowsPressed,
@@ -80,20 +80,16 @@ class _PlasmaStatsState extends State<PlasmaStats> {
               ),
             ]
           : null,
-      generateRowCells: (plasmaStatsWrapper, isSelected) {
-        return [
-          widget.version == PlasmaStatsWidgetVersion.plasmaTab
-              ? isSelected
+      generateRowCells: (PlasmaInfoWrapper plasmaStatsWrapper, bool isSelected) {
+        return <Widget>[
+          if (widget.version == PlasmaStatsWidgetVersion.plasmaTab) isSelected
                   ? CustomTableCell.tooltipWithMarquee(
                       Address.parse(plasmaStatsWrapper.address),
-                      flex: 1,
                     )
                   : CustomTableCell.tooltipWithText(
                       context,
                       Address.parse(plasmaStatsWrapper.address),
-                      flex: 1,
-                    )
-              : isSelected
+                    ) else isSelected
                   ? CustomTableCell.tooltipWithMarquee(
                       Address.parse(plasmaStatsWrapper.address),
                       flex: 2,
@@ -124,14 +120,13 @@ class _PlasmaStatsState extends State<PlasmaStats> {
     switch (columnName) {
       case 'Address':
         _sortAscending
-            ? _addresses.sort((a, b) => a.compareTo(b))
-            : _addresses.sort((a, b) => b.compareTo(a));
-        break;
+            ? _addresses.sort((String a, String b) => a.compareTo(b))
+            : _addresses.sort((String a, String b) => b.compareTo(a));
 
       default:
         _sortAscending
-            ? _addresses.sort((a, b) => a.compareTo(b))
-            : _addresses.sort((a, b) => b.compareTo(a));
+            ? _addresses.sort((String a, String b) => a.compareTo(b))
+            : _addresses.sort((String a, String b) => b.compareTo(a));
         break;
     }
 

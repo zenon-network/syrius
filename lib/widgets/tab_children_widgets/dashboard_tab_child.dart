@@ -2,16 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:layout/layout.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 
 class DashboardTabChild extends StatefulWidget {
+
+  const DashboardTabChild({super.key, this.changePage});
   final void Function(
     Tabs, {
     bool redirectWithSendContainerLarge,
     bool redirectWithReceiveContainerLarge,
   })? changePage;
-
-  const DashboardTabChild({Key? key, this.changePage}) : super(key: key);
 
   @override
   State<DashboardTabChild> createState() => _DashboardTabChildState();
@@ -38,44 +39,44 @@ class _DashboardTabChildState extends State<DashboardTabChild> {
       xs: kStaggeredNumOfColumns ~/ 2,
     );
 
-    final List<FluidCell> children = [
+    final List<FluidCell> children = <FluidCell>[
       const FluidCell(
-        child: DualCoinStats(),
+        child: DualCoinStatsCard(),
       ),
       const FluidCell(
         child: PlasmaStats(),
       ),
       FluidCell(
-        child: Transfer(
+        child: TransferCard(
           changePage: widget.changePage,
         ),
       ),
       const FluidCell(
-        child: TotalHourlyTransactions(),
+        child: TotalHourlyTransactionsCard(),
         height: kStaggeredNumOfColumns / 4,
       ),
       const FluidCell(
-        child: Pillars(),
+        child: PillarsCard(),
         height: kStaggeredNumOfColumns / 8,
       ),
       const FluidCell(
-        child: Staking(),
+        child: StakingCard(),
         height: kStaggeredNumOfColumns / 8,
       ),
       const FluidCell(
-        child: DelegationStats(),
+        child: DelegationCard(),
         height: kStaggeredNumOfColumns / 8,
       ),
       const FluidCell(
-        child: Sentinels(),
+        child: SentinelsCard(),
         height: kStaggeredNumOfColumns / 8,
       ),
       FluidCell(
-        child: const BalanceWidget(),
+        child: const BalanceCard(),
         width: defaultCellWidth * 2,
       ),
       FluidCell(
-        child: const RealtimeStatistics(),
+        child: const RealtimeStatisticsCard(),
         width: defaultCellWidth * 2,
       ),
       FluidCell(
@@ -88,7 +89,6 @@ class _DashboardTabChildState extends State<DashboardTabChild> {
 
     return StandardFluidLayout(
       defaultCellWidth: defaultCellWidth,
-      defaultCellHeight: kStaggeredNumOfColumns / 4,
       children: children,
     );
   }

@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/wallet_file.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 class DumpMnemonicScreen extends StatefulWidget {
-  const DumpMnemonicScreen({Key? key}) : super(key: key);
+  const DumpMnemonicScreen({super.key});
 
   @override
   State<DumpMnemonicScreen> createState() => _DumpMnemonicScreenState();
@@ -27,7 +28,7 @@ class _DumpMnemonicScreenState extends State<DumpMnemonicScreen> {
     return Scaffold(
       body: Container(
         padding: const EdgeInsets.symmetric(
-          vertical: 30.0,
+          vertical: 30,
         ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -44,10 +45,10 @@ class _DumpMnemonicScreenState extends State<DumpMnemonicScreen> {
               child: PasswordInputField(
                 controller: _passwordController,
                 hintText: 'Current password',
-                onSubmitted: (value) {
+                onSubmitted: (String value) {
                   _continueButton!.onPressed!();
                 },
-                onChanged: (value) {
+                onChanged: (String value) {
                   setState(() {});
                 },
                 errorText: _passwordError,
@@ -65,12 +66,12 @@ class _DumpMnemonicScreenState extends State<DumpMnemonicScreen> {
               ),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
-              children: [
+              children: <Widget>[
                 _getLockButton(),
                 Visibility(
                   visible: _seedWords == null,
                   child: Row(
-                    children: [
+                    children: <Widget>[
                       kSpacingBetweenActionButtons,
                       _continueButton!,
                     ],
@@ -103,11 +104,11 @@ class _DumpMnemonicScreenState extends State<DumpMnemonicScreen> {
     if (_passwordController.text.isNotEmpty) {
       try {
         _continueButtonKey.currentState!.animateForward();
-        var walletFile = await WalletUtils.decryptWalletFile(
+        final WalletFile walletFile = await WalletUtils.decryptWalletFile(
           kWalletPath!,
           _passwordController.text,
         );
-        walletFile.open().then((wallet) {
+        walletFile.open().then((Wallet wallet) {
           setState(() {
             _passwordController.clear();
             _seedWords = (wallet as KeyStore).mnemonic!.split(' ');

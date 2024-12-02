@@ -4,12 +4,6 @@ import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 
 class PasswordInputField extends StatefulWidget {
-  final TextEditingController controller;
-  final String hintText;
-  final void Function(String)? onSubmitted;
-  final void Function(String)? onChanged;
-  final String? Function(String?)? validator;
-  final String? errorText;
 
   const PasswordInputField({
     required this.controller,
@@ -18,8 +12,14 @@ class PasswordInputField extends StatefulWidget {
     this.onChanged,
     this.validator,
     this.errorText,
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
+  final TextEditingController controller;
+  final String hintText;
+  final void Function(String)? onSubmitted;
+  final void Function(String)? onChanged;
+  final String? Function(String?)? validator;
+  final String? errorText;
 
   @override
   State<PasswordInputField> createState() => _PasswordInputFieldState();
@@ -44,8 +44,8 @@ class _PasswordInputFieldState extends State<PasswordInputField> {
             });
           },
           child: SizedBox(
-            height: 10.0,
-            width: 10.0,
+            height: 10,
+            width: 10,
             child: Icon(
               _obscureText
                   ? Icons.visibility_off_outlined

@@ -1,19 +1,18 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/extensions.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/zts_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 class StakingRewardsChart extends StatefulWidget {
-  final RewardHistoryList? rewardsHistory;
 
   const StakingRewardsChart(
     this.rewardsHistory, {
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
+  final RewardHistoryList? rewardsHistory;
 
   @override
   State createState() => _StakingRewardsChart();
@@ -23,9 +22,6 @@ class _StakingRewardsChart extends State<StakingRewardsChart> {
   @override
   Widget build(BuildContext context) {
     return StandardChart(
-      yValuesInterval: _getMaxValueOfQsrRewards() > kNumOfChartLeftSideTitles
-          ? _getMaxValueOfQsrRewards() / kNumOfChartLeftSideTitles
-          : null,
       maxY: _getMaxValueOfQsrRewards() < 1.0
           ? _getMaxValueOfQsrRewards().toDouble()
           : _getMaxValueOfQsrRewards().ceilToDouble(),
@@ -43,13 +39,13 @@ class _StakingRewardsChart extends State<StakingRewardsChart> {
 
   List<FlSpot> _getRewardsSpots() => List.generate(
         widget.rewardsHistory!.list.length,
-        (index) => FlSpot(
+        (int index) => FlSpot(
           index.toDouble(),
           _getRewardsByIndex(index).toDouble(),
         ),
       );
 
-  _linesBarData() => [
+  List<StandardLineChartBarData> _linesBarData() => <StandardLineChartBarData>[
         StandardLineChartBarData(
           color: AppColors.qsrColor,
           spots: _getRewardsSpots(),
@@ -66,7 +62,7 @@ class _StakingRewardsChart extends State<StakingRewardsChart> {
 
   num _getMaxValueOfQsrRewards() {
     BigInt max = widget.rewardsHistory!.list.first.qsrAmount;
-    for (var element in widget.rewardsHistory!.list) {
+    for (final RewardHistoryEntry element in widget.rewardsHistory!.list) {
       if (element.qsrAmount > max) {
         max = element.qsrAmount;
       }

@@ -11,7 +11,7 @@ import 'package:zenon_syrius_wallet_flutter/utils/format_utils.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 class StartHtlcSwapBloc extends BaseBloc<HtlcSwap?> {
-  void startHtlcSwap({
+  Future<void> startHtlcSwap({
     required Address selfAddress,
     required Address counterpartyAddress,
     required Token fromToken,
@@ -24,10 +24,10 @@ class StartHtlcSwapBloc extends BaseBloc<HtlcSwap?> {
   }) async {
     try {
       addEvent(null);
-      final preimage = _generatePreimage();
-      final hashLock = await _getHashLock(hashType, preimage);
-      final expirationTime = await _getExpirationTime(initialHtlcDuration);
-      AccountBlockTemplate transactionParams = zenon!.embedded.htlc.create(
+      final List<int> preimage = _generatePreimage();
+      final Hash hashLock = await _getHashLock(hashType, preimage);
+      final int expirationTime = await _getExpirationTime(initialHtlcDuration);
+      final AccountBlockTemplate transactionParams = zenon!.embedded.htlc.create(
         fromToken,
         fromAmount,
         counterpartyAddress,
@@ -37,10 +37,10 @@ class StartHtlcSwapBloc extends BaseBloc<HtlcSwap?> {
         hashLock.getBytes(),
       );
       AccountBlockUtils.createAccountBlock(transactionParams, 'start swap',
-              address: selfAddress, waitForRequiredPlasma: true)
+              address: selfAddress, waitForRequiredPlasma: true,)
           .then(
-        (response) async {
-          final swap = HtlcSwap(
+        (AccountBlockTemplate response) async {
+          final HtlcSwap swap = HtlcSwap(
             id: response.hash.toString(),
             chainId: response.chainIdentifier,
             type: swapType,
@@ -66,7 +66,7 @@ class StartHtlcSwapBloc extends BaseBloc<HtlcSwap?> {
           addEvent(swap);
         },
       ).onError(
-        (error, stackTrace) {
+        (Object? error, StackTrace stackTrace) {
           addError(error.toString(), stackTrace);
         },
       );
@@ -76,9 +76,9 @@ class StartHtlcSwapBloc extends BaseBloc<HtlcSwap?> {
   }
 
   List<int> _generatePreimage() {
-    const maxInt = 256;
+    const int maxInt = 256;
     return List<int>.generate(
-        htlcPreimageDefaultLength, (i) => Random.secure().nextInt(maxInt));
+        htlcPreimageDefaultLength, (int i) => Random.secure().nextInt(maxInt),);
   }
 
   Future<Hash> _getHashLock(int hashType, List<int> preimage) async {

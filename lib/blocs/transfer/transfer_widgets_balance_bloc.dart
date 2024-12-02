@@ -14,13 +14,13 @@ class TransferWidgetsBalanceBloc extends BaseBloc<Map<String, AccountInfo>?>
   Future<void> getBalanceForAllAddresses() async {
     try {
       addEvent(null);
-      Map<String, AccountInfo> addressBalanceMap = {};
-      List<AccountInfo> accountInfoList = await Future.wait(
+      final Map<String, AccountInfo> addressBalanceMap = <String, AccountInfo>{};
+      final List<AccountInfo> accountInfoList = await Future.wait(
         kDefaultAddressList.map(
-          (address) => _getBalancePerAddress(address!),
+          (String? address) => _getBalancePerAddress(address!),
         ),
       );
-      for (var accountInfo in accountInfoList) {
+      for (final AccountInfo accountInfo in accountInfoList) {
         addressBalanceMap[accountInfo.address!] = accountInfo;
       }
       addEvent(addressBalanceMap);
@@ -30,7 +30,7 @@ class TransferWidgetsBalanceBloc extends BaseBloc<Map<String, AccountInfo>?>
   }
 
   Future<AccountInfo> _getBalancePerAddress(String address) async =>
-      await zenon!.ledger.getAccountInfoByAddress(
+      zenon!.ledger.getAccountInfoByAddress(
         Address.parse(address),
       );
 }

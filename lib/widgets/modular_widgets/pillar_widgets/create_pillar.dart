@@ -9,12 +9,12 @@ import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 class CreatePillar extends StatefulWidget {
-  final VoidCallback onStepperNotificationSeeMorePressed;
 
   const CreatePillar({
     required this.onStepperNotificationSeeMorePressed,
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
+  final VoidCallback onStepperNotificationSeeMorePressed;
 
   @override
   State<CreatePillar> createState() => _CreatePillarState();
@@ -36,7 +36,7 @@ class _CreatePillarState extends State<CreatePillar> {
   Widget _getStreamBuilder(BuildContext context) {
     return StreamBuilder<List<PillarInfo>>(
       stream: _getPillarByOwnerBloc.stream,
-      builder: (_, snapshot) {
+      builder: (_, AsyncSnapshot<List<PillarInfo>> snapshot) {
         if (snapshot.hasData) {
           if (snapshot.data!.isNotEmpty) {
             return _getUpdatePillarWidgetBody(context, snapshot.data!.first);
@@ -54,17 +54,17 @@ class _CreatePillarState extends State<CreatePillar> {
   Widget _getCreatePillarWidgetBody(BuildContext context) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceAround,
-      children: [
+      children: <Widget>[
         Lottie.asset('assets/lottie/ic_anim_pillar.json', repeat: false),
         Column(
           mainAxisAlignment: MainAxisAlignment.center,
-          children: [
+          children: <Widget>[
             SyriusElevatedButton(
               onPressed: () {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => StepperScreen(
+                    builder: (BuildContext context) => StepperScreen(
                       stepper: const PillarStepperContainer(),
                       onStepperNotificationSeeMorePressed:
                           widget.onStepperNotificationSeeMorePressed,
@@ -79,7 +79,7 @@ class _CreatePillarState extends State<CreatePillar> {
           ],
         ),
         const SizedBox(
-          width: 10.0,
+          width: 10,
         ),
       ],
     );
@@ -91,7 +91,7 @@ class _CreatePillarState extends State<CreatePillar> {
   ) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceAround,
-      children: [
+      children: <Widget>[
         Expanded(
           child: Lottie.asset(
             'assets/lottie/ic_anim_pillar.json',
@@ -102,7 +102,7 @@ class _CreatePillarState extends State<CreatePillar> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisAlignment: MainAxisAlignment.center,
-            children: [
+            children: <Widget>[
               Text(
                 'Update Pillar settings',
                 style: Theme.of(context).textTheme.headlineSmall,
@@ -110,13 +110,13 @@ class _CreatePillarState extends State<CreatePillar> {
               kVerticalSpacing,
               Row(
                 mainAxisSize: MainAxisSize.min,
-                children: [
+                children: <Widget>[
                   SyriusElevatedButton(
                     onPressed: () {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => StepperScreen(
+                          builder: (BuildContext context) => StepperScreen(
                             stepper: PillarUpdateStepper(pillarInfo),
                             onStepperNotificationSeeMorePressed:
                                 widget.onStepperNotificationSeeMorePressed,
@@ -147,7 +147,7 @@ class _CreatePillarState extends State<CreatePillar> {
       child: const Icon(
         MaterialCommunityIcons.plus,
         color: Colors.white,
-        size: 15.0,
+        size: 15,
       ),
     );
   }

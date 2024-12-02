@@ -8,18 +8,16 @@ import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 class AcceleratorProjectListItem extends StatefulWidget {
+
+  const AcceleratorProjectListItem({
+    required this.acceleratorProject, required this.onStepperNotificationSeeMorePressed, super.key,
+    this.pillarInfo,
+    this.project,
+  });
   final AcceleratorProject acceleratorProject;
   final PillarInfo? pillarInfo;
   final Project? project;
   final VoidCallback onStepperNotificationSeeMorePressed;
-
-  const AcceleratorProjectListItem({
-    Key? key,
-    required this.acceleratorProject,
-    this.pillarInfo,
-    this.project,
-    required this.onStepperNotificationSeeMorePressed,
-  }) : super(key: key);
 
   @override
   State<AcceleratorProjectListItem> createState() =>
@@ -38,7 +36,7 @@ class _AcceleratorProjectListItemState
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => ProjectDetailsScreen(
+                  builder: (BuildContext context) => ProjectDetailsScreen(
                     pillarInfo: widget.pillarInfo,
                     project: widget.acceleratorProject,
                     onStepperNotificationSeeMorePressed:
@@ -50,20 +48,20 @@ class _AcceleratorProjectListItemState
           : null,
       child: Container(
         padding: const EdgeInsets.symmetric(
-          horizontal: 20.0,
-          vertical: 10.0,
+          horizontal: 20,
+          vertical: 10,
         ),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(
-            10.0,
+            10,
           ),
           color: Theme.of(context).colorScheme.primaryContainer,
         ),
         child: Column(
-          children: [
+          children: <Widget>[
             _getProjectTitle(context),
             const SizedBox(
-              height: 10.0,
+              height: 10,
             ),
             AcceleratorProjectDetails(
               owner: widget.acceleratorProject is Project
@@ -72,18 +70,18 @@ class _AcceleratorProjectListItemState
               hash: widget.acceleratorProject.id,
               creationTimestamp: widget.acceleratorProject.creationTimestamp,
               acceleratorProjectStatus: widget.acceleratorProject.status,
-              isPhase: widget.acceleratorProject is Phase
+              isPhase: widget.acceleratorProject is Phase,
             ),
             const SizedBox(
-              height: 10.0,
+              height: 10,
             ),
             _getProjectDescription(context),
             const SizedBox(
-              height: 10.0,
+              height: 10,
             ),
             _getProjectStatuses(context),
             const SizedBox(
-              height: 10.0,
+              height: 10,
             ),
             _getProjectVoteBreakdownViewModel(context),
           ],
@@ -100,7 +98,7 @@ class _AcceleratorProjectListItemState
   ) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
+      children: <Widget>[
         Visibility(
           visible: voteBreakdown.total > 0,
           child: _getVotingResults(context, voteBreakdown),
@@ -116,7 +114,7 @@ class _AcceleratorProjectListItemState
 
   Widget _getProjectTitle(BuildContext context) {
     return Row(
-      children: [
+      children: <Widget>[
         Text(
           widget.acceleratorProject.name,
           style: Theme.of(context).textTheme.headlineSmall,
@@ -127,7 +125,7 @@ class _AcceleratorProjectListItemState
 
   Widget _getProjectDescription(BuildContext context) {
     return Row(
-      children: [
+      children: <Widget>[
         Expanded(
           child: Text(
             widget.acceleratorProject.description,
@@ -139,7 +137,7 @@ class _AcceleratorProjectListItemState
   }
 
   Widget _getProjectStatuses(BuildContext context) {
-    List<Widget> tags = [
+    final List<Widget> tags = <Widget>[
       _getProjectStatusTag(),
     ];
 
@@ -172,8 +170,8 @@ class _AcceleratorProjectListItemState
       children: tags.zip(
         List.generate(
           tags.length - 1,
-          (index) => const SizedBox(
-            width: 5.0,
+          (int index) => const SizedBox(
+            width: 5,
           ),
         ),
       ),
@@ -241,30 +239,30 @@ class _AcceleratorProjectListItemState
     BuildContext context,
     VoteBreakdown voteBreakdown,
   ) {
-    int yesVotes = voteBreakdown.yes;
-    int noVotes = voteBreakdown.no;
-    int quorum = voteBreakdown.total;
-    int quorumNeeded = (kNumOfPillars! * 0.33).ceil();
-    int votesToAchieveQuorum = quorumNeeded - quorum;
-    int pillarsThatCanStillVote = kNumOfPillars! -
+    final int yesVotes = voteBreakdown.yes;
+    final int noVotes = voteBreakdown.no;
+    final int quorum = voteBreakdown.total;
+    final int quorumNeeded = (kNumOfPillars! * 0.33).ceil();
+    final int votesToAchieveQuorum = quorumNeeded - quorum;
+    final int pillarsThatCanStillVote = kNumOfPillars! -
         quorum -
         (votesToAchieveQuorum > 0 ? votesToAchieveQuorum : 0);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
+      children: <Widget>[
         const Row(
-          children: [
+          children: <Widget>[
             Text('Voting results'),
           ],
         ),
         kVerticalSpacing,
         Row(
-          children: [
+          children: <Widget>[
             AcceleratorProgressBar(
               context: context,
               child: Row(
-                children: [
+                children: <Widget>[
                   AcceleratorProgressBarSpan(
                     value: yesVotes / (yesVotes + noVotes),
                     color: AppColors.znnColor,
@@ -279,7 +277,7 @@ class _AcceleratorProjectListItemState
               ),
             ),
             const SizedBox(
-              width: 10.0,
+              width: 10,
             ),
             Tooltip(
               message: yesVotes > noVotes
@@ -290,20 +288,20 @@ class _AcceleratorProjectListItemState
                 color: yesVotes > noVotes
                     ? AppColors.znnColor
                     : Theme.of(context).colorScheme.secondary,
-                size: 15.0,
+                size: 15,
               ),
             ),
           ],
         ),
         const SizedBox(
-          height: 10.0,
+          height: 10,
         ),
         Row(
-          children: [
+          children: <Widget>[
             AcceleratorProgressBar(
                 context: context,
                 child: Row(
-                  children: [
+                  children: <Widget>[
                     AcceleratorProgressBarSpan(
                       value: quorum / kNumOfPillars!,
                       color: AppColors.qsrColor,
@@ -323,9 +321,9 @@ class _AcceleratorProjectListItemState
                           '$pillarsThatCanStillVote Pillars that can still cast a vote',
                     ),
                   ],
-                )),
+                ),),
             const SizedBox(
-              width: 10.0,
+              width: 10,
             ),
             Tooltip(
               message: quorum >= quorumNeeded
@@ -336,7 +334,7 @@ class _AcceleratorProjectListItemState
                 color: quorum >= quorumNeeded
                     ? AppColors.znnColor
                     : Theme.of(context).colorScheme.secondary,
-                size: 15.0,
+                size: 15,
               ),
             ),
           ],
@@ -348,8 +346,8 @@ class _AcceleratorProjectListItemState
   Widget _getOpenLinkIcon(BuildContext context) {
     return RawMaterialButton(
       constraints: const BoxConstraints(
-        minWidth: 50.0,
-        minHeight: 50.0,
+        minWidth: 50,
+        minHeight: 50,
       ),
       materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
       shape: const CircleBorder(),
@@ -357,8 +355,8 @@ class _AcceleratorProjectListItemState
       child: Tooltip(
         message: 'Visit ${widget.acceleratorProject.url}',
         child: Container(
-          height: 50.0,
-          width: 50.0,
+          height: 50,
+          width: 50,
           padding: const EdgeInsets.all(4),
           decoration: const BoxDecoration(
             shape: BoxShape.circle,
@@ -366,7 +364,7 @@ class _AcceleratorProjectListItemState
           ),
           child: const Icon(
             Icons.open_in_new,
-            size: 25.0,
+            size: 25,
             color: AppColors.znnColor,
           ),
         ),
@@ -380,7 +378,7 @@ class _AcceleratorProjectListItemState
     ProjectVoteBreakdownBloc projectVoteBreakdownViewModel,
   ) {
     return Row(
-      children: [
+      children: <Widget>[
         if (pillarVoteList != null &&
             ((widget.acceleratorProject is Phase &&
                     (widget.acceleratorProject as Phase).status ==
@@ -392,15 +390,15 @@ class _AcceleratorProjectListItemState
             pillarVoteList,
             projectVoteBreakdownViewModel,
           ),
-        if ([
+        if (<AcceleratorProjectStatus>[
           AcceleratorProjectStatus.voting,
           AcceleratorProjectStatus.active,
           AcceleratorProjectStatus.paid,
         ].contains(widget.acceleratorProject.status))
           Row(
-            children: [
+            children: <Widget>[
               const SizedBox(
-                width: 10.0,
+                width: 10,
               ),
               _getOpenLinkIcon(context),
             ],
@@ -410,13 +408,13 @@ class _AcceleratorProjectListItemState
                 AcceleratorProjectStatus.voting &&
             widget.project!.owner.toString() == kSelectedAddress)
           Row(
-            children: [
+            children: <Widget>[
               const SizedBox(
-                width: 10.0,
+                width: 10,
               ),
               _getUpdatePhaseIcon(context),
             ],
-          )
+          ),
       ],
     );
   }
@@ -427,81 +425,81 @@ class _AcceleratorProjectListItemState
     List<PillarVote?> pillarVoteList,
   ) {
     return Row(
-      children: [
+      children: <Widget>[
         Tooltip(
           message: 'No',
           child: RawMaterialButton(
             constraints: const BoxConstraints(
-              minWidth: 50.0,
-              minHeight: 50.0,
+              minWidth: 50,
+              minHeight: 50,
             ),
             materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
             shape: const CircleBorder(),
             onPressed: () {
               model.voteProject(
-                  widget.acceleratorProject.id, AcceleratorProjectVote.no);
+                  widget.acceleratorProject.id, AcceleratorProjectVote.no,);
             },
             child: Container(
-              height: 50.0,
-              width: 50.0,
+              height: 50,
+              width: 50,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 color: _ifOptionVotedByUser(
-                        pillarVoteList, AcceleratorProjectVote.no)
+                        pillarVoteList, AcceleratorProjectVote.no,)
                     ? AppColors.errorColor
                     : Theme.of(context).colorScheme.secondary,
               ),
               child: Icon(
                 Icons.close_rounded,
-                size: 35.0,
+                size: 35,
                 color: Theme.of(context).colorScheme.primary,
               ),
             ),
           ),
         ),
         const SizedBox(
-          width: 10.0,
+          width: 10,
         ),
         Tooltip(
           message: 'Yes',
           child: RawMaterialButton(
             constraints: const BoxConstraints(
-              minWidth: 50.0,
-              minHeight: 50.0,
+              minWidth: 50,
+              minHeight: 50,
             ),
             materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
             shape: const CircleBorder(),
             onPressed: () {
               model.voteProject(
-                  widget.acceleratorProject.id, AcceleratorProjectVote.yes);
+                  widget.acceleratorProject.id, AcceleratorProjectVote.yes,);
             },
             child: Container(
-              height: 50.0,
-              width: 50.0,
+              height: 50,
+              width: 50,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 color: _ifOptionVotedByUser(
-                        pillarVoteList, AcceleratorProjectVote.yes)
+                        pillarVoteList, AcceleratorProjectVote.yes,)
                     ? AppColors.znnColor
                     : Theme.of(context).colorScheme.secondary,
               ),
               child: Icon(
                 Icons.check_rounded,
-                size: 35.0,
+                size: 35,
                 color: Theme.of(context).colorScheme.primary,
               ),
             ),
           ),
         ),
         const SizedBox(
-          width: 10.0,
+          width: 10,
         ),
         Tooltip(
           message: 'Abstain',
           child: RawMaterialButton(
             constraints: const BoxConstraints(
-              minWidth: 50.0,
-              minHeight: 50.0,
+              minWidth: 50,
+              minHeight: 50,
             ),
             materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
             shape: const CircleBorder(),
@@ -512,8 +510,8 @@ class _AcceleratorProjectListItemState
               );
             },
             child: Container(
-              height: 50.0,
-              width: 50.0,
+              height: 50,
+              width: 50,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 color: _ifOptionVotedByUser(
@@ -525,7 +523,7 @@ class _AcceleratorProjectListItemState
               ),
               child: Icon(
                 Icons.stop,
-                size: 35.0,
+                size: 35,
                 color: Theme.of(context).colorScheme.primary,
               ),
             ),
@@ -540,8 +538,8 @@ class _AcceleratorProjectListItemState
       message: 'Update phase',
       child: RawMaterialButton(
         constraints: const BoxConstraints(
-          minWidth: 50.0,
-          minHeight: 50.0,
+          minWidth: 50,
+          minHeight: 50,
         ),
         materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
         shape: const CircleBorder(),
@@ -549,7 +547,7 @@ class _AcceleratorProjectListItemState
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => StepperScreen(
+              builder: (BuildContext context) => StepperScreen(
                 stepper: UpdatePhaseStepper(
                   widget.acceleratorProject as Phase,
                   widget.project!,
@@ -561,8 +559,8 @@ class _AcceleratorProjectListItemState
           );
         },
         child: Container(
-          height: 50.0,
-          width: 50.0,
+          height: 50,
+          width: 50,
           padding: const EdgeInsets.all(4),
           decoration: const BoxDecoration(
             shape: BoxShape.circle,
@@ -570,7 +568,7 @@ class _AcceleratorProjectListItemState
           ),
           child: const Icon(
             Icons.edit,
-            size: 25.0,
+            size: 25,
             color: AppColors.znnColor,
           ),
         ),
@@ -584,8 +582,8 @@ class _AcceleratorProjectListItemState
     ProjectVoteBreakdownBloc projectVoteBreakdownViewModel,
   ) {
     return ViewModelBuilder<VoteProjectBloc>.reactive(
-      onViewModelReady: (model) {
-        model.stream.listen((event) {
+      onViewModelReady: (VoteProjectBloc model) {
+        model.stream.listen((AccountBlockTemplate? event) {
           if (event != null) {
             projectVoteBreakdownViewModel.getVoteBreakdown(
               widget.pillarInfo?.name,
@@ -597,11 +595,11 @@ class _AcceleratorProjectListItemState
             error,
             'Error while voting project',
           );
-        });
+        },);
       },
-      builder: (_, model, __) => StreamBuilder<AccountBlockTemplate?>(
+      builder: (_, VoteProjectBloc model, __) => StreamBuilder<AccountBlockTemplate?>(
           stream: model.stream,
-          builder: (_, snapshot) {
+          builder: (_, AsyncSnapshot<AccountBlockTemplate?> snapshot) {
             if (snapshot.hasError) {
               return _getVotingIcons(context, model, pillarVoteList);
             }
@@ -612,27 +610,27 @@ class _AcceleratorProjectListItemState
               return const SyriusLoadingWidget();
             }
             return _getVotingIcons(context, model, pillarVoteList);
-          }),
-      viewModelBuilder: () => VoteProjectBloc(),
+          },),
+      viewModelBuilder: VoteProjectBloc.new,
     );
   }
 
   Widget _getProjectVoteBreakdownViewModel(BuildContext context) {
     return ViewModelBuilder<ProjectVoteBreakdownBloc>.reactive(
-      onViewModelReady: (model) {
+      onViewModelReady: (ProjectVoteBreakdownBloc model) {
         model.getVoteBreakdown(
-            widget.pillarInfo?.name, widget.acceleratorProject.id);
-        model.stream.listen((event) {}, onError: (error) async {
+            widget.pillarInfo?.name, widget.acceleratorProject.id,);
+        model.stream.listen((Pair<VoteBreakdown, List<PillarVote?>?>? event) {}, onError: (error) async {
           await NotificationUtils.sendNotificationError(
             error,
             'Error while trying to get the vote breakdown',
           );
-        });
+        },);
       },
-      builder: (_, model, __) =>
+      builder: (_, ProjectVoteBreakdownBloc model, __) =>
           StreamBuilder<Pair<VoteBreakdown, List<PillarVote?>?>?>(
         stream: model.stream,
-        builder: (_, snapshot) {
+        builder: (_, AsyncSnapshot<Pair<VoteBreakdown, List<PillarVote?>?>?> snapshot) {
           if (snapshot.hasError) {
             return SyriusErrorWidget(snapshot.error!);
           }
@@ -650,15 +648,15 @@ class _AcceleratorProjectListItemState
           return const SyriusLoadingWidget();
         },
       ),
-      viewModelBuilder: () => ProjectVoteBreakdownBloc(),
+      viewModelBuilder: ProjectVoteBreakdownBloc.new,
     );
   }
 
   bool _ifOptionVotedByUser(
-      List<PillarVote?> pillarVoteList, AcceleratorProjectVote vote) {
+      List<PillarVote?> pillarVoteList, AcceleratorProjectVote vote,) {
     try {
-      PillarVote? pillarVote = pillarVoteList.firstWhere(
-        (pillarVote) => pillarVote?.name == widget.pillarInfo!.name,
+      final PillarVote? pillarVote = pillarVoteList.firstWhere(
+        (PillarVote? pillarVote) => pillarVote?.name == widget.pillarInfo!.name,
       );
       return pillarVote!.vote == vote.index;
     } catch (e) {

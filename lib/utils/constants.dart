@@ -6,26 +6,26 @@ import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 // WalletConnect
 const String kWcProjectId = '6106aa8c2f308b338f31465bef999a1f';
 const String kZenonNameSpace = 'zenon';
-const walletConnectDirName = 'walletconnect';
+const String walletConnectDirName = 'walletconnect';
 
 // Dimensions
-const double kAmountSuffixHeight = 25.0;
-const double kAmountSuffixWidth = 40.0;
-const double kAmountSuffixRadius = 5.0;
-const double kContentPadding = 8.0;
-const double kSeedWordCellWidth = 200.0;
-const double kPasswordInputFieldWidth = 360.0;
+const double kAmountSuffixHeight = 25;
+const double kAmountSuffixWidth = 40;
+const double kAmountSuffixRadius = 5;
+const double kContentPadding = 8;
+const double kSeedWordCellWidth = 200;
+const double kPasswordInputFieldWidth = 360;
 
 // Size widgets
-const Size kLoadingButtonMinSize = Size(120.0, 40.0);
-const Size kSettingsButtonMinSize = Size(100.0, 35.0);
+const Size kLoadingButtonMinSize = Size(120, 40);
+const Size kSettingsButtonMinSize = Size(100, 35);
 const SizedBox kVerticalSpacing = SizedBox(
-  height: 15.0,
+  height: 15,
 );
 const SizedBox kSpacingBetweenActionButtons = SizedBox(
-  width: 70.0,
+  width: 70,
 );
-const Size kAcceleratorProgressBarSize = Size(300.0, 10.0);
+const Size kAcceleratorProgressBarSize = Size(300, 10);
 
 // Wallet version
 const String kWalletVersion = '0.2.2';
@@ -42,7 +42,7 @@ const String kKeyStoreBox = 'key_store_box';
 const String kHtlcSwapsBox = 'htlc_swaps_box';
 const String kLastCheckedHtlcBlockBox = 'last_checked_htlc_block_box';
 
-const List<String> kCacheBoxesToBeDeleted = [
+const List<String> kCacheBoxesToBeDeleted = <String>[
   kFavoriteTokensBox,
   kAddressesBox,
   kAddressLabelsBox,
@@ -50,7 +50,7 @@ const List<String> kCacheBoxesToBeDeleted = [
   kRecipientAddressBox,
   kSharedPrefsBox,
   kNodesBox,
-  kLastCheckedHtlcBlockBox
+  kLastCheckedHtlcBlockBox,
 ];
 
 // Wallet file name
@@ -82,7 +82,7 @@ const String kP2pAtomicUnlockKey = 'p2p_atomic_unlock_key';
 const String kP2pAutoReclaimKey = 'p2p_auto_reclaim_key';
 const String kLastCheckedHtlcBlockKey = 'last_checked_htlc_block_key';
 
-const double kDefaultBorderOutlineWidth = 1.0;
+const double kDefaultBorderOutlineWidth = 1;
 const double kStandardChartNumDays = 7;
 
 const int kAddressLabelMaxLength = 80;
@@ -108,12 +108,12 @@ const int kAmountInputMaxCharacterLength = 21;
 const int kSecondsPerMomentum = 10;
 const int kMaxP2pSwapsToStore = 500;
 
-const List<int> kNormalUsersPlasmaRequirements = [
+const List<int> kNormalUsersPlasmaRequirements = <int>[
   kStakePlasmaAmountNeeded,
   kDelegatePlasmaAmountNeeded,
 ];
 
-const List<int> kPowerUsersPlasmaRequirements = [
+const List<int> kPowerUsersPlasmaRequirements = <int>[
   kPillarPlasmaAmountNeeded,
   kSentinelPlasmaAmountNeeded,
   kIssueTokenPlasmaAmountNeeded,
@@ -123,7 +123,7 @@ const String kEmbeddedNode = 'Embedded Node';
 const String kLocalhostDefaultNodeUrl = 'ws://127.0.0.1:$kDefaultPort';
 const int kDefaultPort = 35998;
 
-const List<String> kWalletActions = [
+const List<String> kWalletActions = <String>[
   'pillar',
   'sentinel',
   'delegation',
@@ -188,7 +188,7 @@ const String kThemeModeKey = 'theme_mode_key';
 const ThemeMode kDefaultThemeMode = ThemeMode.dark;
 const TextScaling kDefaultTextScaling = TextScaling.system;
 
-const kBlockTypeColorMap = {
+const Map<BlockTypeEnum, Color> kBlockTypeColorMap = <BlockTypeEnum, Color>{
   BlockTypeEnum.userReceive: AppColors.darkHintTextColor,
   BlockTypeEnum.userSend: AppColors.lightHintTextColor,
 };
@@ -201,7 +201,7 @@ const Duration kProjectVotingPeriod = Duration(days: 14);
 const Duration kEmbeddedConnectionDelay = Duration(seconds: 30);
 
 // Tabs
-const List<Tabs> kTabsWithTextTitles = [
+const List<Tabs> kTabsWithTextTitles = <Tabs>[
   Tabs.dashboard,
   Tabs.transfer,
   Tabs.pillars,

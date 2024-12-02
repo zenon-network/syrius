@@ -6,18 +6,18 @@ import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 
 class NotificationWidget extends StatefulWidget {
-  final VoidCallback? onSeeMorePressed;
-  final VoidCallback? onDismissPressed;
-  final VoidCallback? onNewNotificationCallback;
-  final bool popBeforeSeeMoreIsPressed;
 
   const NotificationWidget({
     this.onSeeMorePressed,
     this.onDismissPressed,
     this.onNewNotificationCallback,
     this.popBeforeSeeMoreIsPressed = true,
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
+  final VoidCallback? onSeeMorePressed;
+  final VoidCallback? onDismissPressed;
+  final VoidCallback? onNewNotificationCallback;
+  final bool popBeforeSeeMoreIsPressed;
 
   @override
   State<NotificationWidget> createState() => _NotificationWidgetState();
@@ -37,23 +37,22 @@ class _NotificationWidgetState extends State<NotificationWidget> {
     return _shouldShowNotification()
         ? Padding(
             padding: const EdgeInsets.only(
-              bottom: 15.0,
+              bottom: 15,
             ),
             child: WidgetAnimator(
-              curve: Curves.linear,
               child: Container(
                 decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(10.0),
+                  borderRadius: BorderRadius.circular(10),
                   color: Theme.of(context).colorScheme.primary,
                 ),
                 child: Padding(
                   padding: const EdgeInsets.symmetric(
-                    vertical: 15.0,
-                    horizontal: 50.0,
+                    vertical: 15,
+                    horizontal: 50,
                   ),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
+                    children: <Widget>[
                       _getNotificationDetails(kLastNotification!),
                       _getNotificationOptions(kLastNotification!),
                     ],
@@ -72,7 +71,7 @@ class _NotificationWidgetState extends State<NotificationWidget> {
   void _initNotificationsBloc() {
     _notificationsBloc = sl.get<NotificationsBloc>();
     _notificationsBloc.stream.listen(
-      (value) {
+      (WalletNotification? value) {
         if (mounted) {
           setState(() {
             kLastNotification = value;
@@ -85,10 +84,10 @@ class _NotificationWidgetState extends State<NotificationWidget> {
 
   Row _getNotificationDetails(WalletNotification notification) {
     return Row(
-      children: [
+      children: <Widget>[
         notification.getIcon(),
         const SizedBox(
-          width: 15.0,
+          width: 15,
         ),
         Text(
           notification.title!,
@@ -100,14 +99,14 @@ class _NotificationWidgetState extends State<NotificationWidget> {
 
   Row _getNotificationOptions(WalletNotification notification) {
     return Row(
-      children: [
+      children: <Widget>[
         Visibility(
           visible: kCurrentPage != Tabs.lock && widget.onSeeMorePressed != null,
           child: RawMaterialButton(
             materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
             constraints: const BoxConstraints.tightFor(),
             padding: const EdgeInsets.all(
-              4.0,
+              4,
             ),
             onPressed: _navigateToNotification,
             child: Text(
@@ -119,13 +118,13 @@ class _NotificationWidgetState extends State<NotificationWidget> {
           ),
         ),
         const SizedBox(
-          width: 15.0,
+          width: 15,
         ),
         RawMaterialButton(
           materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
           constraints: const BoxConstraints.tightFor(),
           padding: const EdgeInsets.all(
-            4.0,
+            4,
           ),
           onPressed: _dismissNotification,
           child: Text(

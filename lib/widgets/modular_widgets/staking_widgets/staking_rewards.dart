@@ -4,12 +4,12 @@ import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 class StakingRewards extends StatefulWidget {
-  final StakingRewardsHistoryBloc stakingRewardsHistoryBloc;
 
   const StakingRewards({
     required this.stakingRewardsHistoryBloc,
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
+  final StakingRewardsHistoryBloc stakingRewardsHistoryBloc;
 
   @override
   State createState() {
@@ -26,7 +26,7 @@ class _StakingRewardsState extends State<StakingRewards> {
           'your staking entries',
       childBuilder: () => Padding(
         padding: const EdgeInsets.all(
-          16.0,
+          16,
         ),
         child: _getStreamBody(),
       ),
@@ -36,7 +36,7 @@ class _StakingRewardsState extends State<StakingRewards> {
   Widget _getStreamBody() {
     return StreamBuilder<RewardHistoryList?>(
       stream: widget.stakingRewardsHistoryBloc.stream,
-      builder: (_, snapshot) {
+      builder: (_, AsyncSnapshot<RewardHistoryList?> snapshot) {
         if (snapshot.hasError) {
           return SyriusErrorWidget(snapshot.error!);
         }

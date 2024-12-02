@@ -5,7 +5,7 @@ import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 
 class CommunityCard extends StatelessWidget {
-  const CommunityCard({Key? key}) : super(key: key);
+  const CommunityCard({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -21,7 +21,7 @@ class CommunityCard extends StatelessWidget {
     return ListView(
       physics: const ClampingScrollPhysics(),
       shrinkWrap: true,
-      children: [
+      children: <Widget>[
         CustomExpandablePanel(
           'Websites',
           _getWebsitesExpandableChild(context),
@@ -46,7 +46,7 @@ class CommunityCard extends StatelessWidget {
     return ListView(
       physics: const ClampingScrollPhysics(),
       shrinkWrap: true,
-      children: [
+      children: <Widget>[
         _getListViewChild(
           iconData: MaterialCommunityIcons.home,
           title: 'Zenon Network',
@@ -85,7 +85,7 @@ class CommunityCard extends StatelessWidget {
     return ListView(
       physics: const ClampingScrollPhysics(),
       shrinkWrap: true,
-      children: [
+      children: <Widget>[
         _getListViewChild(
           iconData: Icons.explore,
           title: 'Zenon Explorer',
@@ -97,7 +97,7 @@ class CommunityCard extends StatelessWidget {
           title: 'Zenon Hub Explorer',
           url: kHubCommunityExplorer,
           context: context,
-        )
+        ),
       ],
     );
   }
@@ -106,7 +106,7 @@ class CommunityCard extends StatelessWidget {
     return ListView(
       physics: const ClampingScrollPhysics(),
       shrinkWrap: true,
-      children: [
+      children: <Widget>[
         _getListViewChild(
           iconData: MaterialCommunityIcons.twitter,
           title: 'Zenon Twitter',
@@ -163,7 +163,7 @@ class CommunityCard extends StatelessWidget {
     return ListView(
       physics: const ClampingScrollPhysics(),
       shrinkWrap: true,
-      children: [
+      children: <Widget>[
         _getListViewChild(
           iconData: MaterialCommunityIcons.book_open_page_variant,
           title: 'Zenon Wiki',
@@ -193,22 +193,21 @@ class CommunityCard extends StatelessWidget {
     required BuildContext context,
   }) {
     return Row(
-      mainAxisAlignment: MainAxisAlignment.start,
-      children: [
+      children: <Widget>[
         Icon(
           iconData,
           color: AppColors.znnColor,
-          size: 20.0,
+          size: 20,
         ),
         const SizedBox(
-          width: 10.0,
+          width: 10,
         ),
         Text(
           title,
           style: Theme.of(context).textTheme.titleMedium,
         ),
         const SizedBox(
-          width: 10.0,
+          width: 10,
         ),
         LinkIcon(url: url),
       ],

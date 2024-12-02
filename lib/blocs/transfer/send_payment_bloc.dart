@@ -4,7 +4,7 @@ import 'package:zenon_syrius_wallet_flutter/utils/address_utils.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 class SendPaymentBloc extends BaseBloc<AccountBlockTemplate?> {
-  void sendTransfer({
+  Future<void> sendTransfer({
     // TODO: make this argument non-nullable
     String? fromAddress,
     String? toAddress,
@@ -23,7 +23,7 @@ class SendPaymentBloc extends BaseBloc<AccountBlockTemplate?> {
     );
     try {
       addEvent(null);
-      AccountBlockTemplate accountBlock = block ??
+      final AccountBlockTemplate accountBlock = block ??
           AccountBlockTemplate.send(
             Address.parse(toAddress!),
             token!.tokenStandard,
@@ -36,14 +36,12 @@ class SendPaymentBloc extends BaseBloc<AccountBlockTemplate?> {
         address: Address.parse(fromAddress!),
         waitForRequiredPlasma: true,
       ).then(
-        (response) {
+        (AccountBlockTemplate response) {
           ZenonAddressUtils.refreshBalance();
           addEvent(response);
         },
       ).onError(
-        (error, stackTrace) {
-          addError(error, stackTrace);
-        },
+        addError,
       );
     } catch (e, stackTrace) {
       addError(e, stackTrace);

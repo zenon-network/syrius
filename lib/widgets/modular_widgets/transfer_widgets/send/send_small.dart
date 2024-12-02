@@ -4,12 +4,12 @@ import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 
 class SendSmallCard extends StatefulWidget {
-  final VoidCallback onClicked;
 
   const SendSmallCard(
     this.onClicked, {
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
+  final VoidCallback onClicked;
 
   @override
   State<SendSmallCard> createState() => _SendSmallCardState();
@@ -24,24 +24,23 @@ class _SendSmallCardState extends State<SendSmallCard> {
         decoration: BoxDecoration(
           color: Theme.of(context).colorScheme.primary,
           borderRadius: BorderRadius.circular(
-            15.0,
+            15,
           ),
         ),
         child: Container(
           padding: const EdgeInsets.all(
-            20.0,
+            20,
           ),
           child: const Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
             mainAxisAlignment: MainAxisAlignment.center,
             children: <Widget>[
               Icon(
                 SimpleLineIcons.arrow_up_circle,
-                size: 60.0,
+                size: 60,
                 color: AppColors.darkHintTextColor,
               ),
               SizedBox(
-                height: 20.0,
+                height: 20,
               ),
               TransferIconLegend(
                 legendText: '● Send',

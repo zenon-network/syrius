@@ -26,14 +26,14 @@ enum TokenCardBackVersion {
 }
 
 class TokenCard extends StatefulWidget {
-  final Token token;
-  final VoidCallback _favoritesCallback;
 
   const TokenCard(
     this.token,
     this._favoritesCallback, {
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
+  final Token token;
+  final VoidCallback _favoritesCallback;
 
   @override
   State<TokenCard> createState() => _TokenCardState();
@@ -75,9 +75,6 @@ class _TokenCardState extends State<TokenCard> {
       key: _cardKey,
       rotateSide: RotateSide.right,
       animationDuration: const Duration(milliseconds: 500),
-      axis: FlipAxis.vertical,
-      disableSplashEffect: false,
-      onTapFlipping: false,
       controller: _flipCardController,
       frontWidget: _getFrontOfCard(),
       backWidget: _getBackOfCard(),
@@ -91,16 +88,16 @@ class _TokenCardState extends State<TokenCard> {
   Widget _getBackOfCard() {
     return Container(
         padding: const EdgeInsets.symmetric(
-          horizontal: 20.0,
-          vertical: 10.0,
+          horizontal: 20,
+          vertical: 10,
         ),
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(10.0),
+          borderRadius: BorderRadius.circular(10),
           color: Theme.of(context).colorScheme.primaryContainer,
         ),
         child: StreamBuilder<Map<String, AccountInfo>?>(
           stream: sl.get<BalanceBloc>().stream,
-          builder: (_, snapshot) {
+          builder: (_, AsyncSnapshot<Map<String, AccountInfo>?> snapshot) {
             if (snapshot.hasError) {
               return SyriusErrorWidget(snapshot.error!);
             }
@@ -112,35 +109,35 @@ class _TokenCardState extends State<TokenCard> {
             }
             return const SyriusLoadingWidget();
           },
-        ));
+        ),);
   }
 
   Container _getFrontOfCard() {
     return Container(
       padding: const EdgeInsets.symmetric(
-        horizontal: 20.0,
-        vertical: 10.0,
+        horizontal: 20,
+        vertical: 10,
       ),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(10.0),
+        borderRadius: BorderRadius.circular(10),
         color: Theme.of(context).colorScheme.primaryContainer,
       ),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
+        children: <Widget>[
           Row(
-            children: [
+            children: <Widget>[
               Container(
-                height: 5.0,
-                width: 5.0,
+                height: 5,
+                width: 5,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   color: ColorUtils.getTokenColor(widget.token.tokenStandard),
                 ),
               ),
               const SizedBox(
-                width: 5.0,
+                width: 5,
               ),
               Tooltip(
                 message: '${widget.token.name}: ${widget.token.symbol}',
@@ -150,18 +147,18 @@ class _TokenCardState extends State<TokenCard> {
                 ),
               ),
               const SizedBox(
-                width: 5.0,
+                width: 5,
               ),
             ],
           ),
           Row(
-            children: [
+            children: <Widget>[
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
+                  children: <Widget>[
                     Row(
-                      children: [
+                      children: <Widget>[
                         Expanded(
                           child: Marquee(
                             child: Text(
@@ -178,10 +175,10 @@ class _TokenCardState extends State<TokenCard> {
                       ],
                     ),
                     const SizedBox(
-                      height: 5.0,
+                      height: 5,
                     ),
                     Wrap(
-                      children: [
+                      children: <Widget>[
                         if (kDefaultAddressList
                             .contains(widget.token.owner.toString()))
                           _getTokenOptionIconButton(
@@ -238,7 +235,6 @@ class _TokenCardState extends State<TokenCard> {
                           _getTokenOptionIconButton(
                             tooltip: 'Utility token',
                             mouseCursor: SystemMouseCursors.basic,
-                            onPressed: null,
                             iconData: Icons.settings,
                           ),
                         TokenFavorite(
@@ -248,7 +244,7 @@ class _TokenCardState extends State<TokenCard> {
                       ],
                     ),
                     const SizedBox(
-                      height: 10.0,
+                      height: 10,
                     ),
                     Text(
                       '${widget.token.decimals} decimals',
@@ -257,14 +253,14 @@ class _TokenCardState extends State<TokenCard> {
                   ],
                 ),
               ),
-              _getAnimatedChart(widget.token)
+              _getAnimatedChart(widget.token),
             ],
           ),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
+            children: <Widget>[
               Row(
-                children: [
+                children: <Widget>[
                   Text(
                     kDefaultAddressList.contains(widget.token.owner.toString())
                         ? kAddressLabelMap[widget.token.owner.toString()]!
@@ -276,8 +272,8 @@ class _TokenCardState extends State<TokenCard> {
               ),
               RawMaterialButton(
                 constraints: const BoxConstraints(
-                  minWidth: 40.0,
-                  minHeight: 40.0,
+                  minWidth: 40,
+                  minHeight: 40,
                 ),
                 materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                 shape: const CircleBorder(),
@@ -285,8 +281,8 @@ class _TokenCardState extends State<TokenCard> {
                 child: Tooltip(
                   message: 'Visit ${widget.token.domain}',
                   child: Container(
-                    height: 25.0,
-                    width: 25.0,
+                    height: 25,
+                    width: 25,
                     padding: const EdgeInsets.all(4),
                     decoration: const BoxDecoration(
                       shape: BoxShape.circle,
@@ -294,12 +290,12 @@ class _TokenCardState extends State<TokenCard> {
                     ),
                     child: const Icon(
                       Icons.open_in_new,
-                      size: 13.0,
+                      size: 13,
                       color: AppColors.darkHintTextColor,
                     ),
                   ),
                 ),
-              )
+              ),
             ],
           ),
         ],
@@ -327,9 +323,9 @@ class _TokenCardState extends State<TokenCard> {
             : mouseCursor,
         tooltip: tooltip,
         padding: EdgeInsets.zero,
-        splashRadius: 18.0,
+        splashRadius: 18,
         onPressed: onPressed,
-        iconSize: 25.0,
+        iconSize: 25,
         icon: Icon(
           iconData,
           color: isOwner != null
@@ -343,27 +339,27 @@ class _TokenCardState extends State<TokenCard> {
   }
 
   Widget _getAnimatedChart(Token token) {
-    BigInt totalSupply = token.totalSupply;
+    final BigInt totalSupply = token.totalSupply;
 
-    BigInt maxSupply = token.maxSupply;
+    final BigInt maxSupply = token.maxSupply;
 
     return Stack(
       alignment: Alignment.center,
-      children: [
+      children: <Widget>[
         SizedBox(
-          height: 100.0,
-          width: 100.0,
+          height: 100,
+          width: 100,
           child: StandardPieChart(
-            sections: [
+            sections: <PieChartSectionData>[
               PieChartSectionData(
                 showTitle: false,
-                radius: 5.0,
+                radius: 5,
                 value: totalSupply / maxSupply,
                 color: ColorUtils.getTokenColor(widget.token.tokenStandard),
               ),
               PieChartSectionData(
                 showTitle: false,
-                radius: 5.0,
+                radius: 5,
                 value: (maxSupply - totalSupply) / maxSupply,
                 color: Colors.white12,
               ),
@@ -371,12 +367,12 @@ class _TokenCardState extends State<TokenCard> {
           ),
         ),
         SizedBox(
-          width: 70.0,
+          width: 70,
           child: Marquee(
             child: FormattedAmountWithTooltip(
               amount: totalSupply.addDecimals(token.decimals),
               tokenSymbol: token.symbol,
-              builder: (formattedAmount, tokenSymbol) => Text(
+              builder: (String formattedAmount, String tokenSymbol) => Text(
                 '$formattedAmount $tokenSymbol',
                 style: Theme.of(context).textTheme.bodyMedium,
                 textAlign: TextAlign.center,
@@ -395,7 +391,7 @@ class _TokenCardState extends State<TokenCard> {
 
     return ListView(
       shrinkWrap: true,
-      children: [
+      children: <Widget>[
         Form(
           key: _burnAmountKey,
           autovalidateMode: AutovalidateMode.onUserInteraction,
@@ -407,30 +403,28 @@ class _TokenCardState extends State<TokenCard> {
               _burnAmountController.text,
             ),
             controller: _burnAmountController,
-            validator: (value) => InputValidators.correctValue(
-                value, _burnMaxAmount, widget.token.decimals, BigInt.zero),
+            validator: (String? value) => InputValidators.correctValue(
+                value, _burnMaxAmount, widget.token.decimals, BigInt.zero,),
             suffixIcon: _getAmountSuffix(),
-            suffixIconConstraints: const BoxConstraints(maxWidth: 50.0),
+            suffixIconConstraints: const BoxConstraints(maxWidth: 50),
             hintText: 'Amount',
-            contentLeftPadding: 20.0,
+            contentLeftPadding: 20,
           ),
         ),
         StepperUtils.getBalanceWidget(widget.token, accountInfo),
         Row(
           mainAxisSize: MainAxisSize.min,
           mainAxisAlignment: MainAxisAlignment.center,
-          children: [
+          children: <Widget>[
             Column(
-              children: [
+              children: <Widget>[
                 _getBurnButtonViewModel(),
                 const SizedBox(
-                  height: 10.0,
+                  height: 10,
                 ),
                 StepperButton(
                   text: 'Go back',
-                  onPressed: () {
-                    _flipCard();
-                  },
+                  onPressed: _flipCard,
                 ),
               ],
             ),
@@ -442,9 +436,9 @@ class _TokenCardState extends State<TokenCard> {
 
   Widget _getBurnButtonViewModel() {
     return ViewModelBuilder<BurnTokenBloc>.reactive(
-      onViewModelReady: (model) {
+      onViewModelReady: (BurnTokenBloc model) {
         model.stream.listen(
-          (event) {
+          (AccountBlockTemplate event) {
             setState(() {
               _burnAmountKey.currentState?.reset();
               _burnAmountController.clear();
@@ -462,13 +456,13 @@ class _TokenCardState extends State<TokenCard> {
           },
         );
       },
-      builder: (_, model, __) => _getBurnButton(model),
-      viewModelBuilder: () => BurnTokenBloc(),
+      builder: (_, BurnTokenBloc model, __) => _getBurnButton(model),
+      viewModelBuilder: BurnTokenBloc.new,
     );
   }
 
   Future<void> _sendBurnSuccessfulNotification(
-      AccountBlockTemplate event) async {
+      AccountBlockTemplate event,) async {
     await sl.get<NotificationsBloc>().addNotification(
           WalletNotification(
             title: 'Successfully burned ${event.amount.addDecimals(
@@ -478,7 +472,7 @@ class _TokenCardState extends State<TokenCard> {
             details: 'You have successfully burned the requested amount: '
                 '${event.amount.addDecimals(
               widget.token.decimals,
-            )} ${widget.token.symbol} ${event.hash.toString()}',
+            )} ${widget.token.symbol} ${event.hash}',
             type: NotificationType.burnToken,
           ),
         );
@@ -490,14 +484,14 @@ class _TokenCardState extends State<TokenCard> {
       onPressed: _burnMaxAmount > BigInt.zero &&
               _burnAmountController.text.isNotEmpty &&
               InputValidators.correctValue(_burnAmountController.text,
-                      _burnMaxAmount, widget.token.decimals, BigInt.zero) ==
+                      _burnMaxAmount, widget.token.decimals, BigInt.zero,) ==
                   null
           ? () {
               _burnButtonKey.currentState?.animateForward();
               model.burnToken(
                   widget.token,
                   _burnAmountController.text
-                      .extractDecimals(widget.token.decimals));
+                      .extractDecimals(widget.token.decimals),);
             }
           : null,
       key: _burnButtonKey,
@@ -506,7 +500,7 @@ class _TokenCardState extends State<TokenCard> {
 
   Widget _getAmountSuffix() {
     return Row(
-      children: [
+      children: <Widget>[
         AmountSuffixMaxWidget(
           onPressed: _onMaxPressed,
           context: context,
@@ -534,25 +528,25 @@ class _TokenCardState extends State<TokenCard> {
   }
 
   Widget _getMintBackOfCard(AccountInfo? accountInfo) {
-    _mintMaxAmount = (widget.token.maxSupply - widget.token.totalSupply);
+    _mintMaxAmount = widget.token.maxSupply - widget.token.totalSupply;
 
     return ListView(
       shrinkWrap: true,
-      children: [
+      children: <Widget>[
         Form(
           key: _beneficiaryAddressKey,
           autovalidateMode: AutovalidateMode.onUserInteraction,
           child: InputField(
-            onChanged: (value) {
+            onChanged: (String value) {
               setState(() {});
             },
-            inputFormatters: [
-              FilteringTextInputFormatter.allow(RegExp(r'[0-9a-z]')),
+            inputFormatters: <TextInputFormatter>[
+              FilteringTextInputFormatter.allow(RegExp('[0-9a-z]')),
             ],
             controller: _beneficiaryAddressController,
             hintText: 'Beneficiary address',
-            contentLeftPadding: 20.0,
-            validator: (value) => InputValidators.checkAddress(value),
+            contentLeftPadding: 20,
+            validator: InputValidators.checkAddress,
           ),
         ),
         StepperUtils.getBalanceWidget(widget.token, accountInfo!),
@@ -560,37 +554,35 @@ class _TokenCardState extends State<TokenCard> {
           key: _mintAmountKey,
           autovalidateMode: AutovalidateMode.onUserInteraction,
           child: InputField(
-            onChanged: (value) {
+            onChanged: (String value) {
               setState(() {});
             },
             inputFormatters: FormatUtils.getAmountTextInputFormatters(
               _mintAmountController.text,
             ),
             controller: _mintAmountController,
-            validator: (value) => InputValidators.correctValue(
-                value, _mintMaxAmount, widget.token.decimals, BigInt.zero),
+            validator: (String? value) => InputValidators.correctValue(
+                value, _mintMaxAmount, widget.token.decimals, BigInt.zero,),
             suffixIcon: _getAmountSuffix(),
-            suffixIconConstraints: const BoxConstraints(maxWidth: 50.0),
+            suffixIconConstraints: const BoxConstraints(maxWidth: 50),
             hintText: 'Amount',
-            contentLeftPadding: 20.0,
+            contentLeftPadding: 20,
           ),
         ),
         kVerticalSpacing,
         Row(
           mainAxisSize: MainAxisSize.min,
           mainAxisAlignment: MainAxisAlignment.center,
-          children: [
+          children: <Widget>[
             Column(
-              children: [
+              children: <Widget>[
                 _getMintButtonViewModel(),
                 const SizedBox(
-                  height: 10.0,
+                  height: 10,
                 ),
                 StepperButton(
                   text: 'Go back',
-                  onPressed: () {
-                    _flipCard();
-                  },
+                  onPressed: _flipCard,
                 ),
               ],
             ),
@@ -602,8 +594,8 @@ class _TokenCardState extends State<TokenCard> {
 
   Widget _getMintButtonViewModel() {
     return ViewModelBuilder<MintTokenBloc>.reactive(
-      onViewModelReady: (model) {
-        model.stream.listen((event) {
+      onViewModelReady: (MintTokenBloc model) {
+        model.stream.listen((AccountBlockTemplate event) {
           setState(() {
             _beneficiaryAddressKey.currentState!.reset();
             _mintAmountKey.currentState!.reset();
@@ -618,15 +610,15 @@ class _TokenCardState extends State<TokenCard> {
             'Error while trying to mint ${widget.token.symbol}}',
           );
           _mintButtonKey.currentState!.animateReverse();
-        });
+        },);
       },
-      builder: (_, model, __) => _getMintButton(model),
-      viewModelBuilder: () => MintTokenBloc(),
+      builder: (_, MintTokenBloc model, __) => _getMintButton(model),
+      viewModelBuilder: MintTokenBloc.new,
     );
   }
 
   Future<void> _sendMintSuccessfulNotification(
-      AccountBlockTemplate event) async {
+      AccountBlockTemplate event,) async {
     await sl.get<NotificationsBloc>().addNotification(
           WalletNotification(
             title: 'Successfully minted ${event.amount.addDecimals(
@@ -636,7 +628,7 @@ class _TokenCardState extends State<TokenCard> {
             details: 'You have successfully minted the requested amount: '
                 '${event.amount.addDecimals(
               widget.token.decimals,
-            )} ${widget.token.symbol} ${event.hash.toString()}',
+            )} ${widget.token.symbol} ${event.hash}',
             type: NotificationType.paymentSent,
           ),
         );
@@ -651,7 +643,7 @@ class _TokenCardState extends State<TokenCard> {
                   _mintMaxAmount > BigInt.zero &&
                   _mintAmountController.text.isNotEmpty &&
                   InputValidators.correctValue(_mintAmountController.text,
-                          _mintMaxAmount, widget.token.decimals, BigInt.zero) ==
+                          _mintMaxAmount, widget.token.decimals, BigInt.zero,) ==
                       null
               ? () {
                   _mintButtonKey.currentState!.animateForward();
@@ -677,7 +669,7 @@ class _TokenCardState extends State<TokenCard> {
   Widget _getTransferOwnershipBackOfCard() {
     return ListView(
       shrinkWrap: true,
-      children: [
+      children: <Widget>[
         Form(
           key: _newOwnerAddressKey,
           autovalidateMode: AutovalidateMode.onUserInteraction,
@@ -685,31 +677,29 @@ class _TokenCardState extends State<TokenCard> {
             onChanged: (String value) {
               setState(() {});
             },
-            inputFormatters: [
-              FilteringTextInputFormatter.allow(RegExp(r'[0-9a-z]')),
+            inputFormatters: <TextInputFormatter>[
+              FilteringTextInputFormatter.allow(RegExp('[0-9a-z]')),
             ],
             controller: _newOwnerAddressController,
             hintText: 'New owner address',
-            contentLeftPadding: 20.0,
-            validator: (value) => InputValidators.checkAddress(value),
+            contentLeftPadding: 20,
+            validator: InputValidators.checkAddress,
           ),
         ),
         kVerticalSpacing,
         Row(
           mainAxisSize: MainAxisSize.min,
           mainAxisAlignment: MainAxisAlignment.center,
-          children: [
+          children: <Widget>[
             Column(
-              children: [
+              children: <Widget>[
                 _getTransferOwnershipButtonViewModel(),
                 const SizedBox(
-                  height: 10.0,
+                  height: 10,
                 ),
                 StepperButton(
                   text: 'Go back',
-                  onPressed: () {
-                    _flipCard();
-                  },
+                  onPressed: _flipCard,
                 ),
               ],
             ),
@@ -724,7 +714,7 @@ class _TokenCardState extends State<TokenCard> {
       case TokenCardBackVersion.burn:
         return _getBurnBackOfCard(balanceMap[kSelectedAddress!]!);
       case TokenCardBackVersion.mint:
-        return _getMintBackOfCard(balanceMap[kSelectedAddress!]!);
+        return _getMintBackOfCard(balanceMap[kSelectedAddress!]);
       case TokenCardBackVersion.transferOwnership:
         return _getTransferOwnershipBackOfCard();
     }
@@ -732,8 +722,8 @@ class _TokenCardState extends State<TokenCard> {
 
   Widget _getTransferOwnershipButtonViewModel() {
     return ViewModelBuilder<TransferOwnershipBloc>.reactive(
-      onViewModelReady: (model) {
-        model.stream.listen((event) {
+      onViewModelReady: (TransferOwnershipBloc model) {
+        model.stream.listen((AccountBlockTemplate event) {
           _sendTransferSuccessfulNotification();
           if (mounted) {
             setState(() {
@@ -748,11 +738,11 @@ class _TokenCardState extends State<TokenCard> {
             error,
             'Error while trying to transfer token ownership',
           );
-        });
+        },);
       },
-      builder: (_, model, __) => StreamBuilder(
+      builder: (_, TransferOwnershipBloc model, __) => StreamBuilder(
         stream: model.stream,
-        builder: (_, snapshot) {
+        builder: (_, AsyncSnapshot<AccountBlockTemplate> snapshot) {
           if (snapshot.hasError) {
             return _getTransferOwnershipButton(model);
           }
@@ -765,7 +755,7 @@ class _TokenCardState extends State<TokenCard> {
           return _getTransferOwnershipButton(model);
         },
       ),
-      viewModelBuilder: () => TransferOwnershipBloc(),
+      viewModelBuilder: TransferOwnershipBloc.new,
     );
   }
 

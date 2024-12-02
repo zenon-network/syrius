@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
@@ -13,7 +15,7 @@ class CreateProjectBloc extends BaseBloc<AccountBlockTemplate?> {
   ) {
     try {
       addEvent(null);
-      AccountBlockTemplate transactionParams =
+      final AccountBlockTemplate transactionParams =
           zenon!.embedded.accelerator.createProject(
         name,
         description,
@@ -25,14 +27,12 @@ class CreateProjectBloc extends BaseBloc<AccountBlockTemplate?> {
         transactionParams,
         'creating project',
       ).then(
-        (block) {
+        (AccountBlockTemplate block) {
           ZenonAddressUtils.refreshBalance();
           addEvent(block);
         },
       ).onError(
-        (error, stackTrace) {
-          addError(error, stackTrace);
-        },
+        addError,
       );
     } catch (e, stackTrace) {
       addError(e, stackTrace);

@@ -34,7 +34,7 @@ enum PillarStepperStep {
 }
 
 class PillarStepperContainer extends StatefulWidget {
-  const PillarStepperContainer({Key? key}) : super(key: key);
+  const PillarStepperContainer({super.key});
 
   @override
   State createState() {
@@ -73,13 +73,13 @@ class _MainPillarState extends State<PillarStepperContainer> {
 
   final List<GlobalKey<FormState>> _pillarFormKeys = List.generate(
     3,
-    (index) => GlobalKey(),
+    (int index) => GlobalKey(),
   );
 
   late PillarsQsrInfoBloc _pillarsQsrInfoViewModel;
 
-  double _momentumRewardPercentageGiven = 0.0;
-  double _delegateRewardPercentageGiven = 0.0;
+  double _momentumRewardPercentageGiven = 0;
+  double _delegateRewardPercentageGiven = 0;
 
   @override
   void initState() {
@@ -97,7 +97,7 @@ class _MainPillarState extends State<PillarStepperContainer> {
   Widget build(BuildContext context) {
     return StreamBuilder<Map<String, AccountInfo>?>(
       stream: sl.get<BalanceBloc>().stream,
-      builder: (_, snapshot) {
+      builder: (_, AsyncSnapshot<Map<String, AccountInfo>?> snapshot) {
         if (snapshot.hasError) {
           return SyriusErrorWidget(snapshot.error!);
         }
@@ -117,14 +117,14 @@ class _MainPillarState extends State<PillarStepperContainer> {
 
   Widget _getQsrManagementStep(BuildContext context, AccountInfo accountInfo) {
     return ViewModelBuilder<PillarsQsrInfoBloc>.reactive(
-      onViewModelReady: (model) {
+      onViewModelReady: (PillarsQsrInfoBloc model) {
         _pillarsQsrInfoViewModel = model;
         model.getQsrManagementInfo(
           _selectedPillarType,
           _addressController.text,
         );
         model.stream.listen(
-          (event) {
+          (PillarsQsrInfo? event) {
             if (event != null) {
               _maxQsrAmount = MathUtils.bigMin(
                 accountInfo.getBalance(
@@ -140,9 +140,9 @@ class _MainPillarState extends State<PillarStepperContainer> {
           },
         );
       },
-      builder: (_, model, __) => StreamBuilder<PillarsQsrInfo?>(
+      builder: (_, PillarsQsrInfoBloc model, __) => StreamBuilder<PillarsQsrInfo?>(
         stream: model.stream,
-        builder: (_, snapshot) {
+        builder: (_, AsyncSnapshot<PillarsQsrInfo?> snapshot) {
           if (snapshot.hasData) {
             return _getQsrManagementStepBody(
               context,
@@ -153,12 +153,12 @@ class _MainPillarState extends State<PillarStepperContainer> {
             return SyriusErrorWidget(snapshot.error!);
           }
           return const Padding(
-            padding: EdgeInsets.all(8.0),
+            padding: EdgeInsets.all(8),
             child: SyriusLoadingWidget(),
           );
         },
       ),
-      viewModelBuilder: () => PillarsQsrInfoBloc(),
+      viewModelBuilder: PillarsQsrInfoBloc.new,
     );
   }
 
@@ -169,14 +169,14 @@ class _MainPillarState extends State<PillarStepperContainer> {
   ) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
+      children: <Widget>[
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
+            children: <Widget>[
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
+                children: <Widget>[
                   Row(
                     children: <Widget>[
                       Expanded(
@@ -185,13 +185,13 @@ class _MainPillarState extends State<PillarStepperContainer> {
                     ],
                   ),
                   const SizedBox(
-                    height: 10.0,
+                    height: 10,
                   ),
                   Padding(
-                    padding: const EdgeInsets.only(left: 20.0),
+                    padding: const EdgeInsets.only(left: 20),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
+                      children: <Widget>[
                         AvailableBalance(
                           kQsrCoin,
                           accountInfo,
@@ -205,10 +205,10 @@ class _MainPillarState extends State<PillarStepperContainer> {
                     ),
                   ),
                   const SizedBox(
-                    height: 10.0,
+                    height: 10,
                   ),
                   Row(
-                    children: [
+                    children: <Widget>[
                       Expanded(
                         child: Form(
                           key: _qsrFormKey,
@@ -219,7 +219,7 @@ class _MainPillarState extends State<PillarStepperContainer> {
                               _qsrAmountController.text,
                             ),
                             controller: _qsrAmountController,
-                            validator: (value) => InputValidators.correctValue(
+                            validator: (String? value) => InputValidators.correctValue(
                               value,
                               _maxQsrAmount,
                               kQsrCoin.decimals,
@@ -227,9 +227,9 @@ class _MainPillarState extends State<PillarStepperContainer> {
                             ),
                             suffixIcon: _getAmountSuffix(accountInfo),
                             suffixIconConstraints:
-                                const BoxConstraints(maxWidth: 50.0),
+                                const BoxConstraints(maxWidth: 50),
                             hintText: 'Amount',
-                            onChanged: (value) {
+                            onChanged: (String value) {
                               setState(() {});
                             },
                           ),
@@ -238,7 +238,7 @@ class _MainPillarState extends State<PillarStepperContainer> {
                     ],
                   ),
                   Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 25.0),
+                    padding: const EdgeInsets.symmetric(vertical: 25),
                     child: DottedBorderInfoWidget(
                       text:
                           'All the deposited ${kQsrCoin.symbol} will be burned '
@@ -249,7 +249,7 @@ class _MainPillarState extends State<PillarStepperContainer> {
                 ],
               ),
               Row(
-                children: [
+                children: <Widget>[
                   Visibility(
                     visible: qsrInfo.deposit < qsrInfo.cost,
                     child: _getDepositQsrViewModel(accountInfo, qsrInfo),
@@ -262,44 +262,44 @@ class _MainPillarState extends State<PillarStepperContainer> {
                     ),
                   ),
                 ],
-              )
+              ),
             ],
           ),
         ),
         const SizedBox(
-          width: 45.0,
+          width: 45,
         ),
         Expanded(
           child: Visibility(
             visible: qsrInfo.deposit > BigInt.zero,
             child: Container(
               decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.background,
+                color: Theme.of(context).colorScheme.surface,
                 borderRadius: BorderRadius.circular(6),
               ),
               margin: const EdgeInsets.only(
-                bottom: 30.0,
+                bottom: 30,
               ),
               child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 30.0),
+                padding: const EdgeInsets.symmetric(vertical: 30),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
+                  children: <Widget>[
                     Column(
-                      children: [
+                      children: <Widget>[
                         Stack(
                           alignment: Alignment.center,
-                          children: [
+                          children: <Widget>[
                             SizedBox(
-                              width: 150.0,
-                              height: 150.0,
+                              width: 150,
+                              height: 150,
                               child: AspectRatio(
-                                aspectRatio: 1.0,
+                                aspectRatio: 1,
                                 child: StandardPieChart(
-                                  sections: [
+                                  sections: <PieChartSectionData>[
                                     PieChartSectionData(
                                       showTitle: false,
-                                      radius: 7.0,
+                                      radius: 7,
                                       value: (qsrInfo.cost - qsrInfo.deposit) /
                                           qsrInfo.cost,
                                       color:
@@ -307,7 +307,7 @@ class _MainPillarState extends State<PillarStepperContainer> {
                                     ),
                                     PieChartSectionData(
                                       showTitle: false,
-                                      radius: 7.0,
+                                      radius: 7,
                                       value: qsrInfo.deposit / qsrInfo.cost,
                                       color: AppColors.qsrColor,
                                     ),
@@ -327,9 +327,9 @@ class _MainPillarState extends State<PillarStepperContainer> {
                       ],
                     ),
                     Column(
-                      children: [
+                      children: <Widget>[
                         SizedBox(
-                          width: 130.0,
+                          width: 130,
                           child: Text(
                             'You have deposited ${qsrInfo.deposit.addDecimals(coinDecimals)} '
                             '${kQsrCoin.symbol}',
@@ -354,11 +354,11 @@ class _MainPillarState extends State<PillarStepperContainer> {
   }
 
   Widget _getDepositQsrViewModel(
-      AccountInfo accountInfo, PillarsQsrInfo qsrInfo) {
+      AccountInfo accountInfo, PillarsQsrInfo qsrInfo,) {
     return ViewModelBuilder<PillarsDepositQsrBloc>.reactive(
-      onViewModelReady: (model) {
+      onViewModelReady: (PillarsDepositQsrBloc model) {
         model.stream.listen(
-          (response) {
+          (AccountBlockTemplate? response) {
             if (response != null) {
               _depositQsrButtonKey.currentState?.animateReverse();
               _pillarsQsrInfoViewModel.getQsrManagementInfo(
@@ -380,9 +380,9 @@ class _MainPillarState extends State<PillarStepperContainer> {
           },
         );
       },
-      builder: (_, model, __) =>
+      builder: (_, PillarsDepositQsrBloc model, __) =>
           _getDepositQsrButton(model, accountInfo, qsrInfo),
-      viewModelBuilder: () => PillarsDepositQsrBloc(),
+      viewModelBuilder: PillarsDepositQsrBloc.new,
     );
   }
 
@@ -406,9 +406,9 @@ class _MainPillarState extends State<PillarStepperContainer> {
     BigInt qsrDeposit,
   ) {
     return ViewModelBuilder<PillarsWithdrawQsrBloc>.reactive(
-      onViewModelReady: (model) {
+      onViewModelReady: (PillarsWithdrawQsrBloc model) {
         model.stream.listen(
-          (event) {
+          (AccountBlockTemplate? event) {
             if (event != null) {
               _withdrawButtonKey.currentState?.animateReverse();
               _saveProgressAndNavigateToNextStep(
@@ -429,8 +429,8 @@ class _MainPillarState extends State<PillarStepperContainer> {
           },
         );
       },
-      builder: (_, model, __) => _getWithdrawQsrButton(model, qsrDeposit),
-      viewModelBuilder: () => PillarsWithdrawQsrBloc(),
+      builder: (_, PillarsWithdrawQsrBloc model, __) => _getWithdrawQsrButton(model, qsrDeposit),
+      viewModelBuilder: PillarsWithdrawQsrBloc.new,
     );
   }
 
@@ -459,7 +459,7 @@ class _MainPillarState extends State<PillarStepperContainer> {
       child: custom_material_stepper.Stepper(
         currentStep: _currentStep.index,
         onStepTapped: (int index) {},
-        steps: [
+        steps: <custom_material_stepper.Step>[
           StepperUtils.getMaterialStep(
             stepTitle: 'Pillar deployment: Plasma check',
             stepContent: _getPlasmaCheckFutureBuilder(),
@@ -508,9 +508,9 @@ class _MainPillarState extends State<PillarStepperContainer> {
 
   Widget _getAmountSuffix(AccountInfo accountInfo) {
     return Row(
-      children: [
+      children: <Widget>[
         Container(
-          height: 20.0,
+          height: 20,
           alignment: Alignment.center,
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(3),
@@ -518,11 +518,11 @@ class _MainPillarState extends State<PillarStepperContainer> {
           ),
           child: Padding(
             padding: const EdgeInsets.symmetric(
-              vertical: 3.0,
-              horizontal: 7.0,
+              vertical: 3,
+              horizontal: 7,
             ),
             child: Row(
-              children: [
+              children: <Widget>[
                 Text(
                   kQsrCoin.symbol,
                   style: Theme.of(context).textTheme.titleSmall!.copyWith(
@@ -539,12 +539,12 @@ class _MainPillarState extends State<PillarStepperContainer> {
 
   Widget _getDeployPillarStepBody(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 25.0),
+      padding: const EdgeInsets.only(bottom: 25),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
+        children: <Widget>[
           Row(
-            children: [
+            children: <Widget>[
               Expanded(
                 child: Form(
                   key: _pillarFormKeys[0],
@@ -554,23 +554,21 @@ class _MainPillarState extends State<PillarStepperContainer> {
                     controller: _pillarNameController,
                     thisNode: _pillarNameNode,
                     nextNode: _pillarRewardNode,
-                    validator: (value) => Validations.pillarName(
-                      value,
-                    ),
-                    onChanged: (value) {
+                    validator: Validations.pillarName,
+                    onChanged: (String value) {
                       setState(() {});
                     },
                   ),
                 ),
               ),
               const SizedBox(
-                width: 23.0,
-              )
+                width: 23,
+              ),
             ],
           ),
           kVerticalSpacing,
           Row(
-            children: [
+            children: <Widget>[
               Expanded(
                 child: Form(
                   key: _pillarFormKeys[1],
@@ -581,7 +579,7 @@ class _MainPillarState extends State<PillarStepperContainer> {
                     thisNode: _pillarRewardNode,
                     nextNode: _pillarMomentumNode,
                     validator: InputValidators.checkAddress,
-                    onChanged: (value) {
+                    onChanged: (String value) {
                       setState(() {});
                     },
                   ),
@@ -595,7 +593,7 @@ class _MainPillarState extends State<PillarStepperContainer> {
           ),
           kVerticalSpacing,
           Row(
-            children: [
+            children: <Widget>[
               Expanded(
                 child: Form(
                   key: _pillarFormKeys[2],
@@ -604,9 +602,8 @@ class _MainPillarState extends State<PillarStepperContainer> {
                     hintText: 'Pillar producer address',
                     controller: _pillarMomentumController,
                     thisNode: _pillarMomentumNode,
-                    validator: (value) =>
-                        InputValidators.validatePillarMomentumAddress(value),
-                    onChanged: (value) {
+                    validator: InputValidators.validatePillarMomentumAddress,
+                    onChanged: (String value) {
                       setState(() {});
                     },
                   ),
@@ -621,7 +618,7 @@ class _MainPillarState extends State<PillarStepperContainer> {
           kVerticalSpacing,
           _getPillarMomentumRewardsStepContent(),
           const SizedBox(
-            height: 25.0,
+            height: 25,
           ),
           _getDeployButton(),
         ],
@@ -631,9 +628,9 @@ class _MainPillarState extends State<PillarStepperContainer> {
 
   Widget _getDeployButton() {
     return ViewModelBuilder<PillarsDeployBloc>.reactive(
-      onViewModelReady: (model) {
+      onViewModelReady: (PillarsDeployBloc model) {
         model.stream.listen(
-          (response) {
+          (AccountBlockTemplate? response) {
             if (response != null) {
               _registerButtonKey.currentState?.animateReverse();
               _saveProgressAndNavigateToNextStep(
@@ -647,13 +644,13 @@ class _MainPillarState extends State<PillarStepperContainer> {
           onError: (error) async {
             _registerButtonKey.currentState?.animateReverse();
             await NotificationUtils.sendNotificationError(
-                error, 'Error while deploying a Pillar');
+                error, 'Error while deploying a Pillar',);
             setState(() {});
           },
         );
       },
-      builder: (_, model, __) => _getRegisterPillarButton(model),
-      viewModelBuilder: () => PillarsDeployBloc(),
+      builder: (_, PillarsDeployBloc model, __) => _getRegisterPillarButton(model),
+      viewModelBuilder: PillarsDeployBloc.new,
     );
   }
 
@@ -671,9 +668,8 @@ class _MainPillarState extends State<PillarStepperContainer> {
   ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
+      children: <Widget>[
         Row(
-          mainAxisAlignment: MainAxisAlignment.start,
           children: <Widget>[
             Expanded(
               child: DisabledAddressField(_addressController),
@@ -684,7 +680,7 @@ class _MainPillarState extends State<PillarStepperContainer> {
         StepperUtils.getBalanceWidget(kZnnCoin, accountInfo),
         kVerticalSpacing,
         Row(
-          children: [
+          children: <Widget>[
             Expanded(
               child: InputField(
                 enabled: false,
@@ -695,11 +691,10 @@ class _MainPillarState extends State<PillarStepperContainer> {
           ],
         ),
         Padding(
-          padding: const EdgeInsets.symmetric(vertical: 25.0),
+          padding: const EdgeInsets.symmetric(vertical: 25),
           child: DottedBorderInfoWidget(
             text: 'You will be able to unlock the ${kZnnCoin.symbol} if you '
                 'choose to disassemble the Pillar',
-            borderColor: AppColors.znnColor,
           ),
         ),
         StepperButton(
@@ -745,7 +740,7 @@ class _MainPillarState extends State<PillarStepperContainer> {
   void _onDeployPressed(PillarsDeployBloc model) {
     if (_lastCompletedStep == PillarStepperStep.znnManagement) {
       if (_pillarFormKeys
-          .every((element) => element.currentState!.validate())) {
+          .every((GlobalKey<FormState> element) => element.currentState!.validate())) {
         _registerButtonKey.currentState?.animateForward();
         model.deployPillar(
           pillarType: _selectedPillarType!,
@@ -756,7 +751,7 @@ class _MainPillarState extends State<PillarStepperContainer> {
           giveDelegateRewardPercentage: _delegateRewardPercentageGiven.toInt(),
         );
       } else {
-        for (var element in _pillarFormKeys) {
+        for (final GlobalKey<FormState> element in _pillarFormKeys) {
           element.currentState!.validate();
         }
       }
@@ -775,30 +770,29 @@ class _MainPillarState extends State<PillarStepperContainer> {
 
   Widget _getWidgetBody(BuildContext context, AccountInfo accountInfo) {
     return Stack(
-      children: [
+      children: <Widget>[
         ListView(
-          children: [
+          children: <Widget>[
             _getMaterialStepper(context, accountInfo),
             Visibility(
               visible: (_lastCompletedStep?.index ?? -1) == _numSteps - 1,
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
+                children: <Widget>[
                   Container(
                     padding: const EdgeInsets.symmetric(
-                      vertical: 40.0,
-                      horizontal: 50.0,
+                      vertical: 40,
+                      horizontal: 50,
                     ),
                     margin: const EdgeInsets.symmetric(
-                      vertical: 20.0,
-                      horizontal: 50.0,
+                      vertical: 20,
+                      horizontal: 50,
                     ),
                     decoration: BoxDecoration(
                       color: Theme.of(context).colorScheme.secondaryContainer,
                       borderRadius: const BorderRadius.all(
                         Radius.circular(
-                          10.0,
+                          10,
                         ),
                       ),
                     ),
@@ -806,7 +800,7 @@ class _MainPillarState extends State<PillarStepperContainer> {
                       textAlign: TextAlign.center,
                       text: TextSpan(
                         style: Theme.of(context).textTheme.headlineSmall,
-                        children: [
+                        children: <InlineSpan>[
                           TextSpan(
                             text: 'Pillar ',
                             style: Theme.of(context).textTheme.headlineSmall,
@@ -840,7 +834,7 @@ class _MainPillarState extends State<PillarStepperContainer> {
                           ),
                           const WidgetSpan(
                             child: Icon(MaterialCommunityIcons.link,
-                                size: 20.0, color: AppColors.znnColor),
+                                size: 20, color: AppColors.znnColor,),
                           ),
                           TextSpan(
                             text: ' to check the Pillar status',
@@ -852,20 +846,19 @@ class _MainPillarState extends State<PillarStepperContainer> {
                   ),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
+                    children: <Widget>[
                       StepperButton.icon(
-                        context: context,
                         label: 'Register another Pillar',
                         onPressed: _onDeployAnotherPillarButtonPressed,
                         iconData: Icons.refresh,
                       ),
                       const SizedBox(
-                        width: 80.0,
+                        width: 80,
                       ),
-                      _getViewPillarsButton()
+                      _getViewPillarsButton(),
                     ],
                   ),
-                  Container(height: 20.0)
+                  Container(height: 20),
                 ],
               ),
             ),
@@ -874,10 +867,10 @@ class _MainPillarState extends State<PillarStepperContainer> {
         Visibility(
           visible: (_lastCompletedStep?.index ?? -1) == _numSteps - 1,
           child: Positioned(
-            right: 50.0,
+            right: 50,
             child: SizedBox(
-              width: 400.0,
-              height: 400.0,
+              width: 400,
+              height: 400,
               child: Center(
                 child: Lottie.asset(
                   'assets/lottie/ic_anim_pillar.json',
@@ -893,7 +886,6 @@ class _MainPillarState extends State<PillarStepperContainer> {
 
   Widget _getViewPillarsButton() {
     return StepperButton.icon(
-      context: context,
       label: 'View Pillars',
       onPressed: () {
         Navigator.pop(context);
@@ -902,7 +894,7 @@ class _MainPillarState extends State<PillarStepperContainer> {
     );
   }
 
-  void _onDeployAnotherPillarButtonPressed() async {
+  Future<void> _onDeployAnotherPillarButtonPressed() async {
     _pillarNameController.clear();
     _pillarRewardAddressController.clear();
     _pillarMomentumController.clear();
@@ -911,9 +903,7 @@ class _MainPillarState extends State<PillarStepperContainer> {
       _selectedPillarType,
       _addressController.text,
     );
-    setState(() {
-      _iniStepperControllers();
-    });
+    setState(_iniStepperControllers);
   }
 
   void _saveProgressAndNavigateToNextStep(PillarStepperStep completedStep) {
@@ -971,14 +961,14 @@ class _MainPillarState extends State<PillarStepperContainer> {
   Widget _getPlasmaCheckFutureBuilder() {
     return FutureBuilder<PlasmaInfo?>(
       future: zenon!.embedded.plasma.get(Address.parse(kSelectedAddress!)),
-      builder: (_, snapshot) {
+      builder: (_, AsyncSnapshot<PlasmaInfo?> snapshot) {
         if (snapshot.hasError) {
           return SyriusErrorWidget(snapshot.error!);
         } else if (snapshot.hasData) {
           return _getPlasmaCheckBody(snapshot.data!);
         }
         return const Padding(
-          padding: EdgeInsets.all(8.0),
+          padding: EdgeInsets.all(8),
           child: SyriusLoadingWidget(),
         );
       },
@@ -988,28 +978,27 @@ class _MainPillarState extends State<PillarStepperContainer> {
   Widget _getPlasmaCheckBody(PlasmaInfo plasmaInfo) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
+      children: <Widget>[
         Text(
           'More Plasma is required to perform complex transactions. Please fuse enough QSR before proceeding.',
           style: Theme.of(context).textTheme.headlineSmall,
         ),
         const SizedBox(
-          height: 25.0,
+          height: 25,
         ),
         Row(
-          mainAxisAlignment: MainAxisAlignment.start,
           children: <Widget>[
             Expanded(
               child: DisabledAddressField(_addressController),
             ),
             const SizedBox(
-              width: 25.0,
+              width: 25,
             ),
             PlasmaIcon(plasmaInfo),
           ],
         ),
         const SizedBox(
-          height: 25.0,
+          height: 25,
         ),
         StepperButton(
           text: 'Next',
@@ -1037,10 +1026,10 @@ class _MainPillarState extends State<PillarStepperContainer> {
 
   Widget _getPillarMomentumRewardsStepContent() {
     return Column(
-      children: [
+      children: <Widget>[
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
-          children: [
+          children: <Widget>[
             Text(
               'Percentage of momentum rewards given to the delegators',
               style: Theme.of(context).textTheme.headlineSmall,
@@ -1048,11 +1037,10 @@ class _MainPillarState extends State<PillarStepperContainer> {
           ],
         ),
         CustomSlider(
-          activeColor: AppColors.znnColor,
           description: '',
-          startValue: 0.0,
+          startValue: 0,
           min: 0,
-          maxValue: 100.0,
+          maxValue: 100,
           callback: (double value) {
             setState(() {
               _momentumRewardPercentageGiven = value;
@@ -1061,7 +1049,7 @@ class _MainPillarState extends State<PillarStepperContainer> {
         ),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
+          children: <Widget>[
             Text(
               'Pillar: ${100 - _momentumRewardPercentageGiven.toInt()}',
               style: Theme.of(context).textTheme.titleMedium,
@@ -1075,7 +1063,7 @@ class _MainPillarState extends State<PillarStepperContainer> {
         kVerticalSpacing,
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
-          children: [
+          children: <Widget>[
             Text(
               'Percentage of delegation rewards given to the delegators',
               style: Theme.of(context).textTheme.headlineSmall,
@@ -1083,11 +1071,10 @@ class _MainPillarState extends State<PillarStepperContainer> {
           ],
         ),
         CustomSlider(
-          activeColor: AppColors.znnColor,
           description: '',
-          startValue: 0.0,
+          startValue: 0,
           min: 0,
-          maxValue: 100.0,
+          maxValue: 100,
           callback: (double value) {
             setState(() {
               _delegateRewardPercentageGiven = value;
@@ -1096,7 +1083,7 @@ class _MainPillarState extends State<PillarStepperContainer> {
         ),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
+          children: <Widget>[
             Text(
               'Pillar: ${100 - _delegateRewardPercentageGiven.toInt()}',
               style: Theme.of(context).textTheme.titleMedium,
