@@ -140,50 +140,77 @@ endif()
 # Bundle required ZNN libraries for Syrius
 set(SYRIUS_PROJECT_DIRECTORY "${CMAKE_HOME_DIRECTORY}/..")
 
-# Leveraging flutter to identify dependency locations
-file(STRINGS "${SYRIUS_PROJECT_DIRECTORY}/.dart_tool/package_config.json"
-  ZNN_SDK_DART_PATH REGEX "(file:).*(znn_sdk_dart).*\\/\"" )
+# Read lines from the file `package_config_subset` that match the regex pattern
+# looking for paths containing "znn_sdk_dart" and ending with a "/".
+file(STRINGS "${SYRIUS_PROJECT_DIRECTORY}/.dart_tool/package_config_subset"
+        ZNN_SDK_DART_PATHS REGEX "(file:).*(znn_sdk_dart).*/$" )
 
-if (ZNN_SDK_DART_PATH STREQUAL "")
-  file(STRINGS "${SYRIUS_PROJECT_DIRECTORY}/.dart_tool/package_config.json"
-    ZNN_SDK_DART_PATH REGEX "(rootUri).*(znn_sdk_dart).*\"" )
-  string(REPLACE "\"rootUri\": \"" "" ZNN_SDK_DART_PATH "${ZNN_SDK_DART_PATH}")
-  string(REPLACE "/\"," "" ZNN_SDK_DART_PATH "${ZNN_SDK_DART_PATH}")
-  string(REPLACE "\"," "" ZNN_SDK_DART_PATH "${ZNN_SDK_DART_PATH}")
-  string(STRIP "${ZNN_SDK_DART_PATH}" ZNN_SDK_DART_PATH)
-else()
-  string(REPLACE "\"rootUri\": \"file://" "" ZNN_SDK_DART_PATH "${ZNN_SDK_DART_PATH}")
-  string(REPLACE "/\"," "" ZNN_SDK_DART_PATH "${ZNN_SDK_DART_PATH}")
-  string(STRIP "${ZNN_SDK_DART_PATH}" ZNN_SDK_DART_PATH)
-endif()
+# Initialize an empty variable to store the final znn_sdk_dart path
+set(ZNN_SDK_DART_PATH "")
 
-file(STRINGS "${SYRIUS_PROJECT_DIRECTORY}/.dart_tool/package_config.json"
-  ZNN_LEDGER_DART_PATH REGEX "(file:).*(znn_ledger_dart).*\\/\"" )
+# Loop through each path found by the file command
+foreach(PATH ${ZNN_SDK_DART_PATHS})
+  # Exclude paths containing "/lib/" using a conditional check
+  if(NOT "${PATH}" MATCHES ".*/lib/.*")
+    # If the condition is met, set the current path as ZNN_SDK_DART_PATH
+    set(ZNN_SDK_DART_PATH ${PATH})
+  endif()
+endforeach()
 
-if (ZNN_LEDGER_DART_PATH STREQUAL "")
-  file(STRINGS "${SYRIUS_PROJECT_DIRECTORY}/.dart_tool/package_config.json"
-    ZNN_LEDGER_DART_PATH REGEX "(rootUri).*(znn_ledger_dart).*\"" )
-  string(REPLACE "\"rootUri\": \"" "" ZNN_LEDGER_DART_PATH "${ZNN_LEDGER_DART_PATH}")
-  string(REPLACE "/\"," "" ZNN_LEDGER_DART_PATH "${ZNN_LEDGER_DART_PATH}")
-  string(REPLACE "\"," "" ZNN_LEDGER_DART_PATH "${ZNN_LEDGER_DART_PATH}")
-  string(STRIP "${ZNN_LEDGER_DART_PATH}" ZNN_LEDGER_DART_PATH)
-else()
-  string(REPLACE "\"rootUri\": \"file://" "" ZNN_LEDGER_DART_PATH "${ZNN_LEDGER_DART_PATH}")
-  string(REPLACE "/\"," "" ZNN_LEDGER_DART_PATH "${ZNN_LEDGER_DART_PATH}")
-  string(STRIP "${ZNN_LEDGER_DART_PATH}" ZNN_LEDGER_DART_PATH)
-endif()
+# Remove the "file:///" prefix from the selected path, if present
+string(REPLACE "file:///" "" ZNN_SDK_DART_PATH "${ZNN_SDK_DART_PATH}")
 
+# Strip any leading or trailing whitespace from the cleaned path
+string(STRIP "${ZNN_SDK_DART_PATH}" ZNN_SDK_DART_PATH)
+
+# Repeat the same process for "znn_ledger_dart" paths:
+
+# Read lines from the file `package_config_subset` that match the regex pattern
+# looking for paths containing "znn_ledger_dart" and ending with a "/".
+file(STRINGS "${SYRIUS_PROJECT_DIRECTORY}/.dart_tool/package_config_subset"
+        ZNN_LEDGER_DART_PATHS REGEX "(file:).*(znn_ledger_dart).*/$" )
+
+# Initialize an empty variable to store the final znn_ledger_dart path
+set(ZNN_LEDGER_DART_PATH "")
+
+# Loop through each path found by the file command
+foreach(PATH ${ZNN_LEDGER_DART_PATHS})
+  # Exclude paths containing "/lib/" using a conditional check
+  if(NOT "${PATH}" MATCHES ".*/lib/.*")
+    # If the condition is met, set the current path as ZNN_LEDGER_DART_PATH
+    set(ZNN_LEDGER_DART_PATH ${PATH})
+  endif()
+endforeach()
+
+# Remove the "file:///" prefix from the selected path, if present
+string(REPLACE "file:///" "" ZNN_LEDGER_DART_PATH "${ZNN_LEDGER_DART_PATH}")
+
+# Strip any leading or trailing whitespace from the cleaned path
+string(STRIP "${ZNN_LEDGER_DART_PATH}" ZNN_LEDGER_DART_PATH)
+
+# Append the paths to various library files into the `SYRIUS_LIBRARIES` list.
+# These paths include:
+# 1. A static path to `libznn.dll` located in the `embedded_node/blobs` directory.
+# 2. Dynamically constructed paths based on `ZNN_SDK_DART_PATH` and `ZNN_LEDGER_DART_PATH`.
+#    These paths point to shared libraries for argon2, proof-of-work, and ledger functionality.
 list(APPEND SYRIUS_LIBRARIES
-  "${SYRIUS_PROJECT_DIRECTORY}/lib/embedded_node/blobs/libznn.so"
-  "${ZNN_SDK_DART_PATH}/lib/src/argon2/blobs/libargon2_ffi_plugin.so"
-  "${ZNN_SDK_DART_PATH}/lib/src/pow/blobs/libpow_links.so"
-  "${ZNN_LEDGER_DART_PATH}/lib/src/ledger/blobs/libledger_ffi.so"
-)
+        "${SYRIUS_PROJECT_DIRECTORY}/lib/embedded_node/blobs/libznn.dll" # Path to libznn.dll
+        "${ZNN_SDK_DART_PATH}/lib/src/argon2/blobs/argon2_ffi_plugin.dll" # Argon2 plugin
+        "${ZNN_SDK_DART_PATH}/lib/src/pow/blobs/libpow_links.dll" # Proof-of-work library
+        "${ZNN_LEDGER_DART_PATH}/lib/src/ledger/blobs/libledger_ffi.dll" # Ledger FFI library
+        )
 
+# Loop over each library in the `SYRIUS_LIBRARIES` list.
 foreach(znn_library ${SYRIUS_LIBRARIES})
+  # Install the library to the destination specified by `CMAKE_INSTALL_PREFIX`.
+  # `FILES` specifies the file to copy.
+  # `DESTINATION` specifies where the file should be installed.
+  # `COMPONENT` groups the installation under the "Runtime" component for packaging or deployment tools.
   install(FILES "${znn_library}"
-    DESTINATION "${CMAKE_INSTALL_PREFIX}"
-    COMPONENT Runtime)
+          DESTINATION "${CMAKE_INSTALL_PREFIX}"
+          COMPONENT Runtime)
+
+  # Print a status message indicating that the current library is being copied.
   message(STATUS "Copy ZNN library: \"${znn_library}\"")
 endforeach(znn_library)
 
