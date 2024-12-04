@@ -1,7 +1,7 @@
 import Cocoa
 import FlutterMacOS
 
-@NSApplicationMain
+@main
 class AppDelegate: FlutterAppDelegate {
   override func applicationShouldTerminate(_: NSApplication) -> NSApplication.TerminateReply {
     print("applicationShouldTerminate")
