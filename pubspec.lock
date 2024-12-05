@@ -1947,20 +1947,20 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: "v0.0.5"
-      resolved-ref: "9c6b251f4be5ab05447f17f63acd56f7a9ff040b"
+      ref: "v0.0.6"
+      resolved-ref: "17f2503dd91d2a3705f598e6beb25ed7a8eb8e4f"
       url: "https://github.com/zenon-network/znn_ledger_dart.git"
     source: git
-    version: "0.0.5"
+    version: "0.0.6"
   znn_sdk_dart:
     dependency: "direct main"
     description:
       path: "."
-      ref: "1fa766fc342360dfed93a2fce247d69674cb7272"
-      resolved-ref: "1fa766fc342360dfed93a2fce247d69674cb7272"
-      url: "https://github.com/maznnwell/znn_sdk_dart.git"
+      ref: "v0.0.8"
+      resolved-ref: "32e4b0cbd7dc57e4e98e3dbdb9728a8b787494b8"
+      url: "https://github.com/zenon-network/znn_sdk_dart.git"
     source: git
-    version: "0.0.7"
+    version: "0.0.8"
   zxing2:
     dependency: "direct main"
     description:
