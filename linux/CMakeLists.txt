@@ -157,8 +157,8 @@ foreach(PATH ${ZNN_SDK_DART_PATHS})
   endif()
 endforeach()
 
-# Remove the "file:///" prefix from the selected path, if present
-string(REPLACE "file:///" "" ZNN_SDK_DART_PATH "${ZNN_SDK_DART_PATH}")
+# Remove the "file://" prefix from the selected path, if present
+string(REPLACE "file://" "" ZNN_SDK_DART_PATH "${ZNN_SDK_DART_PATH}")
 
 # Strip any leading or trailing whitespace from the cleaned path
 string(STRIP "${ZNN_SDK_DART_PATH}" ZNN_SDK_DART_PATH)
@@ -182,22 +182,22 @@ foreach(PATH ${ZNN_LEDGER_DART_PATHS})
   endif()
 endforeach()
 
-# Remove the "file:///" prefix from the selected path, if present
-string(REPLACE "file:///" "" ZNN_LEDGER_DART_PATH "${ZNN_LEDGER_DART_PATH}")
+# Remove the "file://" prefix from the selected path, if present
+string(REPLACE "file://" "" ZNN_LEDGER_DART_PATH "${ZNN_LEDGER_DART_PATH}")
 
 # Strip any leading or trailing whitespace from the cleaned path
 string(STRIP "${ZNN_LEDGER_DART_PATH}" ZNN_LEDGER_DART_PATH)
 
 # Append the paths to various library files into the `SYRIUS_LIBRARIES` list.
 # These paths include:
-# 1. A static path to `libznn.dll` located in the `embedded_node/blobs` directory.
+# 1. A static path to `libznn.so` located in the `embedded_node/blobs` directory.
 # 2. Dynamically constructed paths based on `ZNN_SDK_DART_PATH` and `ZNN_LEDGER_DART_PATH`.
 #    These paths point to shared libraries for argon2, proof-of-work, and ledger functionality.
 list(APPEND SYRIUS_LIBRARIES
-        "${SYRIUS_PROJECT_DIRECTORY}/lib/embedded_node/blobs/libznn.dll" # Path to libznn.dll
-        "${ZNN_SDK_DART_PATH}/lib/src/argon2/blobs/argon2_ffi_plugin.dll" # Argon2 plugin
-        "${ZNN_SDK_DART_PATH}/lib/src/pow/blobs/libpow_links.dll" # Proof-of-work library
-        "${ZNN_LEDGER_DART_PATH}/lib/src/ledger/blobs/libledger_ffi.dll" # Ledger FFI library
+        "${SYRIUS_PROJECT_DIRECTORY}/lib/embedded_node/blobs/libznn.so" # Path to libznn.so
+        "${ZNN_SDK_DART_PATH}/lib/src/argon2/blobs/libargon2_ffi_plugin.so" # Argon2 plugin
+        "${ZNN_SDK_DART_PATH}/lib/src/pow/blobs/libpow_links.so" # Proof-of-work library
+        "${ZNN_LEDGER_DART_PATH}/lib/src/ledger/blobs/libledger_ffi.so" # Ledger FFI library
         )
 
 # Loop over each library in the `SYRIUS_LIBRARIES` list.
