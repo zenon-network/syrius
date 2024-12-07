@@ -9,7 +9,7 @@ import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 class TokenMap extends StatefulWidget {
-  const TokenMap({Key? key}) : super(key: key);
+  const TokenMap({super.key});
 
   @override
   State createState() {
@@ -42,14 +42,14 @@ class _TokenMapState extends State<TokenMap> {
           const Duration(seconds: 1),
         )
         .distinct()
-        .listen((text) {
+        .listen((String text) {
       _bloc.onSearchInputChangedSink.add(text);
     });
-    _pagingController.addPageRequestListener((pageKey) {
+    _pagingController.addPageRequestListener((int pageKey) {
       _bloc.onPageRequestSink.add(pageKey);
     });
     _blocListingStateSubscription = _bloc.onNewListingState.listen(
-      (listingState) {
+      (InfiniteScrollBlocListingState<Token> listingState) {
         _pagingController.value = PagingState(
           nextPageKey: listingState.nextPageKey,
           error: listingState.error,
@@ -75,9 +75,9 @@ class _TokenMapState extends State<TokenMap> {
 
   Widget _getWidgetBody(TokenMapBloc bloc) {
     return Padding(
-      padding: const EdgeInsets.all(15.0),
+      padding: const EdgeInsets.all(15),
       child: Column(
-        children: [
+        children: <Widget>[
           InputField(
             controller: _searchKeyWordController,
             hintText: 'Search token by symbol',
@@ -101,7 +101,7 @@ class _TokenMapState extends State<TokenMap> {
                   crossAxisCount: 2,
                 ),
                 builderDelegate: PagedChildBuilderDelegate<Token>(
-                  itemBuilder: (_, token, __) => TokenCard(
+                  itemBuilder: (_, Token token, __) => TokenCard(
                     token,
                     () {
                       bloc.refreshResults();

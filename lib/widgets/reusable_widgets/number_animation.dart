@@ -1,6 +1,31 @@
 import 'package:flutter/material.dart';
 
 class NumberAnimation extends StatefulWidget {
+
+  /// constructor
+  NumberAnimation({
+    super.key,
+    this.start = 0.0,
+    this.end,
+    this.isInt = false,
+    this.style,
+    this.textAlign,
+    this.strutStyle,
+    this.duration = const Duration(milliseconds: 1000),
+    this.decimalPoint = 2,
+    this.before = '',
+    this.after = '',
+    this.isLoading = false,
+    this.loadingPlaceHolder = '',
+  }) {
+    if (isLoading == false) {
+      assert(end != null);
+      if (isInt) {
+        assert(start.toInt() == start);
+        assert(end!.toInt() == end);
+      }
+    }
+  }
   /// start number
   final num start;
 
@@ -37,31 +62,6 @@ class NumberAnimation extends StatefulWidget {
   /// loading placeholder
   final String loadingPlaceHolder;
 
-  /// constructor
-  NumberAnimation({
-    Key? key,
-    this.start = 0.0,
-    this.end,
-    this.isInt = false,
-    this.style,
-    this.textAlign,
-    this.strutStyle,
-    this.duration = const Duration(milliseconds: 1000),
-    this.decimalPoint = 2,
-    this.before = '',
-    this.after = '',
-    this.isLoading = false,
-    this.loadingPlaceHolder = '',
-  }) : super(key: key) {
-    if (isLoading == false) {
-      assert(end != null);
-      if (isInt) {
-        assert(start.toInt() == start);
-        assert(end!.toInt() == end);
-      }
-    }
-  }
-
   /// create state
   @override
   State<NumberAnimation> createState() => _NumberAnimationState();
@@ -82,8 +82,8 @@ class _NumberAnimationState extends State<NumberAnimation>
     controller = AnimationController(duration: widget.duration, vsync: this);
     _curve = CurvedAnimation(parent: controller!, curve: Curves.easeOut);
     if (widget.isLoading == false) {
-      Animation<double> animation = Tween<double>(
-              begin: widget.start.toDouble(), end: widget.end!.toDouble())
+      final Animation<double> animation = Tween<double>(
+              begin: widget.start.toDouble(), end: widget.end!.toDouble(),)
           .animate(_curve as Animation<double>);
       _animation = animation;
       controller!.forward();
@@ -107,11 +107,11 @@ class _NumberAnimationState extends State<NumberAnimation>
     if (oldWidget.end == widget.end && _hasShowNumber == true) {
       return;
     }
-    Animation<double> animation = Tween<double>(
+    final Animation<double> animation = Tween<double>(
             begin: _animation != null
                 ? _animation!.value
                 : widget.start.toDouble(),
-            end: widget.end!.toDouble())
+            end: widget.end!.toDouble(),)
         .animate(_curve as Animation<double>);
     _animation = animation;
     controller!
@@ -124,9 +124,9 @@ class _NumberAnimationState extends State<NumberAnimation>
   /// build
   @override
   Widget build(BuildContext context) {
-    TextStyle? style = widget.style;
-    TextAlign? textAlign = widget.textAlign;
-    StrutStyle? strutStyle = widget.strutStyle;
+    final TextStyle? style = widget.style;
+    final TextAlign? textAlign = widget.textAlign;
+    final StrutStyle? strutStyle = widget.strutStyle;
     if (widget.isLoading == true) {
       return Text(
         widget.loadingPlaceHolder,
@@ -137,7 +137,7 @@ class _NumberAnimationState extends State<NumberAnimation>
     }
     return AnimatedBuilder(
       animation: _animation!,
-      builder: (context, child) {
+      builder: (BuildContext context, Widget? child) {
         if (widget.isLoading == true) {
           return Text(
             widget.loadingPlaceHolder,
@@ -148,7 +148,7 @@ class _NumberAnimationState extends State<NumberAnimation>
         }
         if (widget.isInt) {
           return Text(
-            '${widget.before}${_animation!.value.toInt().toString()}${widget.after}',
+            '${widget.before}${_animation!.value.toInt()}${widget.after}',
             style: style,
             textAlign: textAlign,
             strutStyle: strutStyle,

@@ -15,12 +15,12 @@ import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 class StakingOptions extends StatefulWidget {
-  final StakingListBloc? stakingListViewModel;
 
   const StakingOptions(
     this.stakingListViewModel, {
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
+  final StakingListBloc? stakingListViewModel;
 
   @override
   State createState() {
@@ -32,10 +32,10 @@ class _StakingOptionsState extends State<StakingOptions> {
   Duration? _selectedStakeDuration;
 
   final List<Duration> _durations = List.generate(
-      (stakeTimeMaxSec ~/ stakeTimeUnitSec),
-      (index) => Duration(
+      stakeTimeMaxSec ~/ stakeTimeUnitSec,
+      (int index) => Duration(
             seconds: (index + 1) * stakeTimeUnitSec,
-          ));
+          ),);
 
   BigInt _maxZnnAmount = BigInt.zero;
 
@@ -58,7 +58,7 @@ class _StakingOptionsState extends State<StakingOptions> {
     _addressController.text = kSelectedAddress!;
 
     return LayoutBuilder(
-      builder: (_, constraints) {
+      builder: (_, BoxConstraints constraints) {
         _maxWidth = constraints.maxWidth;
         return CardScaffold(
           title: 'Staking Options',
@@ -68,7 +68,7 @@ class _StakingOptionsState extends State<StakingOptions> {
               '${kQsrCoin.symbol}',
           childBuilder: () => StreamBuilder<Map<String, AccountInfo>?>(
             stream: sl.get<BalanceBloc>().stream,
-            builder: (_, snapshot) {
+            builder: (_, AsyncSnapshot<Map<String, AccountInfo>?> snapshot) {
               if (snapshot.hasError) {
                 return SyriusErrorWidget(snapshot.error!);
               }
@@ -95,21 +95,21 @@ class _StakingOptionsState extends State<StakingOptions> {
   Widget _getWidgetBody(AccountInfo? accountInfo) {
     return Container(
       margin: const EdgeInsets.all(
-        20.0,
+        20,
       ),
       child: ListView(
         shrinkWrap: true,
-        children: [
+        children: <Widget>[
           DisabledAddressField(
             _addressController,
-            contentLeftPadding: 20.0,
+            contentLeftPadding: 20,
           ),
           StepperUtils.getBalanceWidget(kZnnCoin, accountInfo!),
           Container(
-            padding: const EdgeInsets.only(left: 20.0),
+            padding: const EdgeInsets.only(left: 20),
             decoration: BoxDecoration(
               color: Theme.of(context).inputDecorationTheme.fillColor,
-              borderRadius: BorderRadius.circular(5.0),
+              borderRadius: BorderRadius.circular(5),
             ),
             child: _getStakeDurationDropdown(),
           ),
@@ -125,7 +125,7 @@ class _StakingOptionsState extends State<StakingOptions> {
                 _znnAmountController.text,
               ),
               controller: _znnAmountController,
-              validator: (value) => InputValidators.correctValue(
+              validator: (String? value) => InputValidators.correctValue(
                 value,
                 _maxZnnAmount,
                 kZnnCoin.decimals,
@@ -134,13 +134,13 @@ class _StakingOptionsState extends State<StakingOptions> {
               ),
               suffixIcon: _getZnnAmountSuffix(),
               hintText: 'Amount',
-              contentLeftPadding: 20.0,
+              contentLeftPadding: 20,
             ),
           ),
           kVerticalSpacing,
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
-            children: [
+            children: <Widget>[
               _getStakeForQsrViewModel(),
             ],
           ),
@@ -151,9 +151,9 @@ class _StakingOptionsState extends State<StakingOptions> {
 
   Widget _getStakeForQsrViewModel() {
     return ViewModelBuilder<StakingOptionsBloc>.reactive(
-      onViewModelReady: (model) {
+      onViewModelReady: (StakingOptionsBloc model) {
         model.stream.listen(
-          (event) {
+          (AccountBlockTemplate? event) {
             if (event != null) {
               _stakeButtonKey.currentState?.animateReverse();
               widget.stakingListViewModel!.refreshResults();
@@ -173,21 +173,21 @@ class _StakingOptionsState extends State<StakingOptions> {
           },
         );
       },
-      builder: (_, model, __) => _getStakeForQsrButton(model),
-      viewModelBuilder: () => StakingOptionsBloc(),
+      builder: (_, StakingOptionsBloc model, __) => _getStakeForQsrButton(model),
+      viewModelBuilder: StakingOptionsBloc.new,
     );
   }
 
   Widget _getStakeForQsrButton(StakingOptionsBloc model) {
-    Widget icon = Container(
+    final Widget icon = Container(
       decoration: const BoxDecoration(
         shape: BoxShape.circle,
         color: AppColors.znnColor,
       ),
-      padding: const EdgeInsets.symmetric(horizontal: 5.0, vertical: 15.0),
+      padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 15),
       child: const Icon(
         MaterialCommunityIcons.lock_smart,
-        size: 15.0,
+        size: 15,
         color: Colors.white,
       ),
     );
@@ -197,7 +197,7 @@ class _StakingOptionsState extends State<StakingOptions> {
       label: 'Stake',
       icon: icon,
       key: _stakeButtonKey,
-      minimumSize: Size(_maxWidth! - 2 * 20.0, 40.0),
+      minimumSize: Size(_maxWidth! - 2 * 20.0, 40),
     );
   }
 
@@ -209,23 +209,23 @@ class _StakingOptionsState extends State<StakingOptions> {
           style: Theme.of(context).inputDecorationTheme.hintStyle,
         ),
         icon: Container(
-          margin: const EdgeInsets.symmetric(horizontal: 10.0),
+          margin: const EdgeInsets.symmetric(horizontal: 10),
           child: Icon(
             SimpleLineIcons.arrow_down,
-            size: 10.0,
+            size: 10,
             color: Theme.of(context).inputDecorationTheme.hintStyle!.color,
           ),
         ),
         value: _selectedStakeDuration,
         items: _durations
             .map(
-              (duration) => DropdownMenuItem<Duration>(
+              (Duration duration) => DropdownMenuItem<Duration>(
                 value: duration,
                 child: Text(
                   '${duration.inSeconds ~/ stakeTimeUnitSec} $stakeUnitDurationName'
                   '${(duration.inSeconds ~/ stakeTimeUnitSec) > 1 ? 's' : ''}',
                   style: Theme.of(context).textTheme.bodyLarge!.copyWith(
-                        fontSize: 12.0,
+                        fontSize: 12,
                         color: _selectedStakeDuration?.inDays == duration.inDays
                             ? AppColors.znnColor
                             : null,
@@ -234,7 +234,7 @@ class _StakingOptionsState extends State<StakingOptions> {
               ),
             )
             .toList(),
-        onChanged: (value) {
+        onChanged: (Duration? value) {
           setState(() {
             _selectedStakeDuration = value;
           });

@@ -11,12 +11,12 @@ import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 class StakeCollect extends StatefulWidget {
-  final StakingRewardsHistoryBloc stakingRewardsHistoryBloc;
 
   const StakeCollect({
     required this.stakingRewardsHistoryBloc,
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
+  final StakingRewardsHistoryBloc stakingRewardsHistoryBloc;
 
   @override
   State<StakeCollect> createState() => _StakeCollectState();
@@ -36,7 +36,7 @@ class _StakeCollectState extends State<StakeCollect> {
           'ready to be collected. If there are any rewards available, you '
           'will be able to collect them',
       childBuilder: () => Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(16),
         child: _getFutureBuilder(),
       ),
     );
@@ -45,7 +45,7 @@ class _StakeCollectState extends State<StakeCollect> {
   Widget _getFutureBuilder() {
     return StreamBuilder<UncollectedReward?>(
       stream: _stakingUncollectedRewardsBloc.stream,
-      builder: (_, snapshot) {
+      builder: (_, AsyncSnapshot<UncollectedReward?> snapshot) {
         if (snapshot.hasError) {
           return SyriusErrorWidget(snapshot.error!);
         } else if (snapshot.hasData) {
@@ -62,14 +62,13 @@ class _StakeCollectState extends State<StakeCollect> {
   Widget _getWidgetBody(UncollectedReward uncollectedReward) {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
-      children: [
+      children: <Widget>[
         NumberAnimation(
           end: uncollectedReward.qsrAmount.addDecimals(coinDecimals).toNum(),
-          isInt: false,
           after: ' ${kQsrCoin.symbol}',
           style: Theme.of(context).textTheme.headlineLarge!.copyWith(
                 color: AppColors.qsrColor,
-                fontSize: 30.0,
+                fontSize: 30,
               ),
         ),
         kVerticalSpacing,
@@ -88,7 +87,7 @@ class _StakeCollectState extends State<StakeCollect> {
     );
   }
 
-  void _onCollectPressed() async {
+  Future<void> _onCollectPressed() async {
     try {
       _collectButtonKey.currentState?.animateForward();
       await AccountBlockUtils.createAccountBlock(
@@ -96,7 +95,7 @@ class _StakeCollectState extends State<StakeCollect> {
         'collect staking rewards',
         waitForRequiredPlasma: true,
       ).then(
-        (response) async {
+        (AccountBlockTemplate response) async {
           await Future.delayed(kDelayAfterAccountBlockCreationCall);
           if (mounted) {
             _stakingUncollectedRewardsBloc.updateStream();

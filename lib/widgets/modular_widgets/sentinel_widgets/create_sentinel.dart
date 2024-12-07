@@ -8,12 +8,12 @@ import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 class CreateSentinel extends StatefulWidget {
-  final VoidCallback onStepperNotificationSeeMorePressed;
 
   const CreateSentinel({
     required this.onStepperNotificationSeeMorePressed,
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
+  final VoidCallback onStepperNotificationSeeMorePressed;
 
   @override
   State<CreateSentinel> createState() => _CreateSentinelState();
@@ -36,7 +36,7 @@ class _CreateSentinelState extends State<CreateSentinel> {
   Widget _getStreamBuilder(BuildContext context) {
     return StreamBuilder<SentinelInfo?>(
       stream: _getSentinelByOwnerBloc.stream,
-      builder: (context, snapshot) {
+      builder: (BuildContext context, AsyncSnapshot<SentinelInfo?> snapshot) {
         if (snapshot.hasError) {
           return SyriusErrorWidget(snapshot.error!);
         }
@@ -56,7 +56,7 @@ class _CreateSentinelState extends State<CreateSentinel> {
     return Center(
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
-        children: [
+        children: <Widget>[
           Text(
             'Sentinel detected on this address',
             style: Theme.of(context).textTheme.bodyLarge,
@@ -74,14 +74,14 @@ class _CreateSentinelState extends State<CreateSentinel> {
   Row _getCreateSentinelWidgetBody(BuildContext context) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceAround,
-      children: [
+      children: <Widget>[
         Lottie.asset('assets/lottie/ic_anim_sentinel.json', repeat: false),
         SyriusElevatedButton(
           onPressed: () {
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) => StepperScreen(
+                builder: (BuildContext context) => StepperScreen(
                   stepper: const SentinelStepperContainer(),
                   onStepperNotificationSeeMorePressed:
                       widget.onStepperNotificationSeeMorePressed,
@@ -94,8 +94,8 @@ class _CreateSentinelState extends State<CreateSentinel> {
           icon: _getFilledButtonIcon(),
         ),
         const SizedBox(
-          width: 10.0,
-        )
+          width: 10,
+        ),
       ],
     );
   }
@@ -110,7 +110,7 @@ class _CreateSentinelState extends State<CreateSentinel> {
       child: const Icon(
         MaterialCommunityIcons.eye,
         color: Colors.white,
-        size: 15.0,
+        size: 15,
       ),
     );
   }

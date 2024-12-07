@@ -19,16 +19,15 @@ import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 class PlasmaOptions extends StatefulWidget {
-  final List<PlasmaInfoWrapper> plasmaStatsResults;
-  final String? errorText;
-  final PlasmaListBloc plasmaListBloc;
 
   const PlasmaOptions({
     required this.plasmaListBloc,
-    this.errorText,
-    required this.plasmaStatsResults,
-    Key? key,
-  }) : super(key: key);
+    required this.plasmaStatsResults, this.errorText,
+    super.key,
+  });
+  final List<PlasmaInfoWrapper> plasmaStatsResults;
+  final String? errorText;
+  final PlasmaListBloc plasmaListBloc;
 
   @override
   State createState() {
@@ -50,8 +49,8 @@ class _PlasmaOptionsState extends State<PlasmaOptions> {
   BigInt _maxQsrAmount = BigInt.zero;
   double? _maxWidth;
 
-  final double _marginWidth = 20.0;
-  final double _spaceBetweenExpandedWidgets = 10.0;
+  final double _marginWidth = 20;
+  final double _spaceBetweenExpandedWidgets = 10;
   final int _beneficiaryAddressExpandedFlex = 8;
   final int _fuseButtonExpandedFlex = 6;
 
@@ -72,12 +71,12 @@ class _PlasmaOptionsState extends State<PlasmaOptions> {
   @override
   Widget build(BuildContext context) {
     return Consumer<SelectedAddressNotifier>(
-      builder: (_, __, child) {
+      builder: (_, __, Widget? child) {
         _addressController.text = kSelectedAddress!;
         return child!;
       },
       child: LayoutBuilder(
-        builder: (_, constraints) {
+        builder: (_, BoxConstraints constraints) {
           _maxWidth = constraints.maxWidth;
           return CardScaffold(
             title: 'Plasma Options',
@@ -96,7 +95,7 @@ class _PlasmaOptionsState extends State<PlasmaOptions> {
                 ? SyriusErrorWidget(widget.errorText!)
                 : StreamBuilder<Map<String, AccountInfo>?>(
                     stream: sl.get<BalanceBloc>().stream,
-                    builder: (_, snapshot) {
+                    builder: (_, AsyncSnapshot<Map<String, AccountInfo>?> snapshot) {
                       if (snapshot.hasError) {
                         return SyriusErrorWidget(snapshot.error!);
                       }
@@ -112,12 +111,12 @@ class _PlasmaOptionsState extends State<PlasmaOptions> {
                           );
                         }
                         return const Padding(
-                          padding: EdgeInsets.all(8.0),
+                          padding: EdgeInsets.all(8),
                           child: SyriusLoadingWidget(),
                         );
                       }
                       return const Padding(
-                        padding: EdgeInsets.all(8.0),
+                        padding: EdgeInsets.all(8),
                         child: SyriusLoadingWidget(),
                       );
                     },
@@ -140,15 +139,15 @@ class _PlasmaOptionsState extends State<PlasmaOptions> {
       margin: EdgeInsets.all(_marginWidth),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
+        children: <Widget>[
           Expanded(
             flex: _beneficiaryAddressExpandedFlex,
             child: ListView(
               shrinkWrap: true,
-              children: [
+              children: <Widget>[
                 DisabledAddressField(
                   _addressController,
-                  contentLeftPadding: 20.0,
+                  contentLeftPadding: 20,
                 ),
                 StepperUtils.getBalanceWidget(kQsrCoin, accountInfo!),
                 Form(
@@ -158,13 +157,13 @@ class _PlasmaOptionsState extends State<PlasmaOptions> {
                     onChanged: (String value) {
                       _beneficiaryAddressString.value = value;
                     },
-                    inputFormatters: [
-                      FilteringTextInputFormatter.allow(RegExp(r'[0-9a-z]')),
+                    inputFormatters: <TextInputFormatter>[
+                      FilteringTextInputFormatter.allow(RegExp('[0-9a-z]')),
                     ],
                     controller: _beneficiaryAddressController,
                     hintText: 'Beneficiary address',
-                    contentLeftPadding: 20.0,
-                    validator: (value) => InputValidators.checkAddress(value),
+                    contentLeftPadding: 20,
+                    validator: InputValidators.checkAddress,
                   ),
                 ),
               ],
@@ -177,9 +176,9 @@ class _PlasmaOptionsState extends State<PlasmaOptions> {
             flex: _fuseButtonExpandedFlex,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
+              children: <Widget>[
                 SizedBox(
-                  height: 87.0,
+                  height: 87,
                   child: Form(
                     key: _qsrAmountKey,
                     autovalidateMode: AutovalidateMode.onUserInteraction,
@@ -193,7 +192,7 @@ class _PlasmaOptionsState extends State<PlasmaOptions> {
                         _qsrAmountController.text,
                       ),
                       controller: _qsrAmountController,
-                      validator: (value) => InputValidators.correctValue(
+                      validator: (String? value) => InputValidators.correctValue(
                         value,
                         _maxQsrAmount,
                         kQsrCoin.decimals,
@@ -202,7 +201,7 @@ class _PlasmaOptionsState extends State<PlasmaOptions> {
                       ),
                       suffixIcon: _getAmountSuffix(),
                       hintText: 'Amount',
-                      contentLeftPadding: 20.0,
+                      contentLeftPadding: 20,
                     ),
                   ),
                 ),
@@ -210,19 +209,19 @@ class _PlasmaOptionsState extends State<PlasmaOptions> {
                   valueListenable: _beneficiaryAddressString,
                   builder: (_, __, ___) {
                     return Row(
-                      children: [
+                      children: <Widget>[
                         _getGeneratePlasmaButtonStreamBuilder(),
                         Visibility(
                           visible: _isInputValid(),
                           child: Row(
-                            children: [
+                            children: <Widget>[
                               const SizedBox(
-                                width: 10.0,
+                                width: 10,
                               ),
                               _getPlasmaIcon(),
                             ],
                           ),
-                        )
+                        ),
                       ],
                     );
                   },
@@ -238,12 +237,12 @@ class _PlasmaOptionsState extends State<PlasmaOptions> {
   PlasmaIcon _getPlasmaIcon() {
     return PlasmaIcon(
       PlasmaInfo.fromJson(
-        {
+        <String, dynamic>{
           'currentPlasma': ((_qsrAmountController.text.isNotEmpty
                       ? BigInt.parse(zenon!.embedded.plasma
                           .getPlasmaByQsr(_qsrAmountController.text
-                              .extractDecimals(coinDecimals))
-                          .addDecimals(coinDecimals))
+                              .extractDecimals(coinDecimals),)
+                          .addDecimals(coinDecimals),)
                       : BigInt.zero) +
                   BigInt.from(_getPlasmaForCurrentBeneficiary()))
               .toInt(),
@@ -258,7 +257,7 @@ class _PlasmaOptionsState extends State<PlasmaOptions> {
     try {
       return widget.plasmaStatsResults
           .firstWhere(
-            (plasmaInfo) =>
+            (PlasmaInfoWrapper plasmaInfo) =>
                 plasmaInfo.address == _beneficiaryAddressController.text,
           )
           .plasmaInfo
@@ -269,21 +268,21 @@ class _PlasmaOptionsState extends State<PlasmaOptions> {
   }
 
   Widget _getGeneratePlasmaButton(PlasmaOptionsBloc model) {
-    Widget icon = Container(
+    final Widget icon = Container(
       decoration: const BoxDecoration(
         shape: BoxShape.circle,
         color: AppColors.qsrColor,
       ),
-      padding: const EdgeInsets.symmetric(horizontal: 5.0, vertical: 15.0),
+      padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 15),
       child: const Icon(
         MaterialCommunityIcons.lightning_bolt,
-        size: 15.0,
+        size: 15,
         color: Colors.white,
       ),
     );
 
-    double widthOfPlasmaIcon = _isInputValid() ? 20.0 : 0.0;
-    double plasmaIconMargin = _isInputValid() ? 10.0 : 0.0;
+    final double widthOfPlasmaIcon = _isInputValid() ? 20.0 : 0.0;
+    final double plasmaIconMargin = _isInputValid() ? 10.0 : 0.0;
 
     return LoadingButton.icon(
       onPressed: _isInputValid() ? () => _onGeneratePlasmaPressed(model) : null,
@@ -291,12 +290,12 @@ class _PlasmaOptionsState extends State<PlasmaOptions> {
       outlineColor: AppColors.qsrColor,
       icon: icon,
       minimumSize: Size(
-          ((_maxWidth! - _marginWidth * 2 - _spaceBetweenExpandedWidgets) /
+          (_maxWidth! - _marginWidth * 2 - _spaceBetweenExpandedWidgets) /
                   (_beneficiaryAddressExpandedFlex + _fuseButtonExpandedFlex) *
                   _fuseButtonExpandedFlex -
               widthOfPlasmaIcon -
-              plasmaIconMargin),
-          40.0),
+              plasmaIconMargin,
+          40,),
       key: _fuseButtonKey,
     );
   }
@@ -331,9 +330,9 @@ class _PlasmaOptionsState extends State<PlasmaOptions> {
 
   Widget _getGeneratePlasmaButtonStreamBuilder() {
     return ViewModelBuilder<PlasmaOptionsBloc>.reactive(
-      onViewModelReady: (model) {
+      onViewModelReady: (PlasmaOptionsBloc model) {
         model.stream.listen(
-          (event) {
+          (AccountBlockTemplate? event) {
             if (event != null) {
               _fuseButtonKey.currentState?.animateReverse();
               _qsrAmountKey.currentState?.reset();
@@ -342,7 +341,7 @@ class _PlasmaOptionsState extends State<PlasmaOptions> {
               widget.plasmaListBloc.refreshResults();
             }
           },
-          onError: (error) async {
+          onError: (Object error) async {
             _fuseButtonKey.currentState?.animateReverse();
             await NotificationUtils.sendNotificationError(
               error,
@@ -351,8 +350,8 @@ class _PlasmaOptionsState extends State<PlasmaOptions> {
           },
         );
       },
-      builder: (_, model, __) => _getGeneratePlasmaButton(model),
-      viewModelBuilder: () => PlasmaOptionsBloc(),
+      builder: (_, PlasmaOptionsBloc model, __) => _getGeneratePlasmaButton(model),
+      viewModelBuilder: PlasmaOptionsBloc.new,
     );
   }
 

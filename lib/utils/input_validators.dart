@@ -1,8 +1,8 @@
+import 'package:convert/convert.dart';
 import 'package:logging/logging.dart';
 import 'package:validators/validators.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
-import 'package:convert/convert.dart';
 
 class InputValidators {
   static String kEVMAddressRegex = r'^(0x)([a-fA-F0-9]){40}$';
@@ -90,7 +90,7 @@ class InputValidators {
           }
         }
 
-        BigInt inputNum = value.extractDecimals(decimals);
+        final BigInt inputNum = value.extractDecimals(decimals);
 
         if (value.contains('.') && value.split('.')[1].length > decimals) {
           return 'Inputted number has too many decimals';
@@ -116,7 +116,7 @@ class InputValidators {
         return 'Error';
       }
     }
-    return 'Value can\'t be empty';
+    return "Value can't be empty";
   }
 
   static String? checkAddress(String? value) {
@@ -142,9 +142,9 @@ class InputValidators {
       if (value.length < 8) {
         return 'Password not strong enough';
       }
-      String pattern =
+      const String pattern =
           r'''^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[`~!@#$%^&*()\-_=+\[\]\{\}\\|;:",<.>\/\?']).{8,}$''';
-      RegExp regExp = RegExp(pattern);
+      final RegExp regExp = RegExp(pattern);
       if (regExp.hasMatch(value)) {
         return null;
       }
@@ -207,7 +207,7 @@ class InputValidators {
   static Future<String?> checkSecret(HtlcInfo htlc, String? value) async {
     if (value != null) {
       try {
-        final preimageCheck = htlc.hashType == htlcHashTypeSha3
+        final Hash preimageCheck = htlc.hashType == htlcHashTypeSha3
             ? Hash.digest(hex.decode(value))
             : Hash.fromBytes(await Crypto.sha256Bytes(hex.decode(value)));
 

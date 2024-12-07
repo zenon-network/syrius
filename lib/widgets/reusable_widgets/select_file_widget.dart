@@ -8,16 +8,16 @@ import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
 const String _kInitialMessage = 'Click to browse or drag and drop a file';
 
 class SelectFileWidget extends StatefulWidget {
-  final void Function(String) onPathFoundCallback;
-  final String? fileExtension;
-  final TextStyle? textStyle;
 
   const SelectFileWidget({
     required this.onPathFoundCallback,
     this.fileExtension,
     this.textStyle,
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
+  final void Function(String) onPathFoundCallback;
+  final String? fileExtension;
+  final TextStyle? textStyle;
 
   @override
   SelectFileWidgetState createState() => SelectFileWidgetState();
@@ -32,8 +32,8 @@ class SelectFileWidgetState extends State<SelectFileWidget> {
   @override
   Widget build(BuildContext context) {
     return DropTarget(
-      onDragDone: (detail) {
-        String walletFilePath = detail.files.first.path;
+      onDragDone: (DropDoneDetails detail) {
+        final String walletFilePath = detail.files.first.path;
         if (walletFilePath.contains(widget.fileExtension ?? '')) {
           setState(() {
             widget.onPathFoundCallback(walletFilePath);
@@ -41,12 +41,12 @@ class SelectFileWidgetState extends State<SelectFileWidget> {
           });
         }
       },
-      onDragEntered: (detail) {
+      onDragEntered: (DropEventDetails detail) {
         setState(() {
           _dragging = true;
         });
       },
-      onDragExited: (detail) {
+      onDragExited: (DropEventDetails detail) {
         setState(() {
           _dragging = false;
         });
@@ -55,7 +55,7 @@ class SelectFileWidgetState extends State<SelectFileWidget> {
         onTap: () async {
           String? initialDirectory;
           initialDirectory = (await getApplicationDocumentsDirectory()).path;
-          final selectedFile = await openFile(
+          final XFile? selectedFile = await openFile(
             acceptedTypeGroups: <XTypeGroup>[
               XTypeGroup(
                 label: 'file',
@@ -76,7 +76,7 @@ class SelectFileWidgetState extends State<SelectFileWidget> {
           }
         },
         child: FocusableActionDetector(
-          onShowHoverHighlight: (x) {
+          onShowHoverHighlight: (bool x) {
             if (x) {
               setState(() {
                 _browseButtonHover = true;
@@ -92,17 +92,17 @@ class SelectFileWidgetState extends State<SelectFileWidget> {
             color: _browseButtonHover
                 ? AppColors.znnColor
                 : Theme.of(context).textTheme.headlineSmall!.color!,
-            strokeWidth: 2.0,
-            dashPattern: const [8.0, 5.0],
-            radius: const Radius.circular(10.0),
+            strokeWidth: 2,
+            dashPattern: const <double>[8, 5],
+            radius: const Radius.circular(10),
             child: Container(
-              height: 100.0,
+              height: 100,
               decoration: BoxDecoration(
                 color: _dragging
                     ? Colors.blue.withOpacity(0.4)
                     : Theme.of(context).colorScheme.primary,
                 borderRadius: const BorderRadius.all(
-                  Radius.circular(10.0),
+                  Radius.circular(10),
                 ),
               ),
               child: Row(
@@ -117,7 +117,7 @@ class SelectFileWidgetState extends State<SelectFileWidget> {
                       softWrap: true,
                       textAlign: TextAlign.center,
                     ),
-                  )
+                  ),
                 ],
               ),
             ),

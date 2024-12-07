@@ -4,26 +4,26 @@ import 'package:zenon_syrius_wallet_flutter/model/basic_dropdown_item.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
 
 class BasicDropdown<T> extends StatelessWidget {
-  final String _hint;
-  final BasicDropdownItem<T>? _selectedValue;
-  final List<BasicDropdownItem<T>> _items;
-  final Function(BasicDropdownItem<T>?)? onChangedCallback;
 
   const BasicDropdown(
     this._hint,
     this._selectedValue,
     this._items,
     this.onChangedCallback, {
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
+  final String _hint;
+  final BasicDropdownItem<T>? _selectedValue;
+  final List<BasicDropdownItem<T>> _items;
+  final Function(BasicDropdownItem<T>?)? onChangedCallback;
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.only(left: 10.0),
+      padding: const EdgeInsets.only(left: 10),
       decoration: BoxDecoration(
         color: Theme.of(context).inputDecorationTheme.fillColor,
-        borderRadius: BorderRadius.circular(5.0),
+        borderRadius: BorderRadius.circular(5),
       ),
       child: DropdownButtonHideUnderline(
         child: DropdownButton<BasicDropdownItem<T>>(
@@ -32,10 +32,10 @@ class BasicDropdown<T> extends StatelessWidget {
             style: Theme.of(context).inputDecorationTheme.hintStyle,
           ),
           icon: Container(
-            margin: const EdgeInsets.fromLTRB(10.0, 0.0, 17.5, 0.0),
+            margin: const EdgeInsets.fromLTRB(10, 0, 17.5, 0),
             child: Icon(
               SimpleLineIcons.arrow_down,
-              size: 10.0,
+              size: 10,
               color: _selectedValue != null
                   ? AppColors.znnColor
                   : AppColors.lightSecondary,

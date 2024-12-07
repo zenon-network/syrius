@@ -16,7 +16,7 @@ class SentinelsDepositQsrBloc extends BaseBloc<AccountBlockTemplate?> {
     try {
       addEvent(null);
       if (!justMarkStepCompleted) {
-        AccountBlockTemplate transactionParams =
+        final AccountBlockTemplate transactionParams =
             zenon!.embedded.sentinel.depositQsr(
           amount,
         );
@@ -25,7 +25,7 @@ class SentinelsDepositQsrBloc extends BaseBloc<AccountBlockTemplate?> {
           'deposit ${kQsrCoin.symbol} for Sentinel Slot',
           waitForRequiredPlasma: true,
         ).then(
-          (response) async {
+          (AccountBlockTemplate response) async {
             await Future.delayed(
               kDelayAfterAccountBlockCreationCall,
             );
@@ -33,9 +33,7 @@ class SentinelsDepositQsrBloc extends BaseBloc<AccountBlockTemplate?> {
             addEvent(response);
           },
         ).onError(
-          (error, stackTrace) {
-            addError(error, stackTrace);
-          },
+          addError,
         );
       }
     } catch (e, stackTrace) {

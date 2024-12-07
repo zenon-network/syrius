@@ -4,7 +4,7 @@ import 'package:zenon_syrius_wallet_flutter/utils/navigation_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 
 class UpdateCard extends StatelessWidget {
-  const UpdateCard({Key? key}) : super(key: key);
+  const UpdateCard({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -18,7 +18,7 @@ class UpdateCard extends StatelessWidget {
   Widget _getWidgetBody(BuildContext context) {
     return ListView(
       shrinkWrap: true,
-      children: [
+      children: <Widget>[
         CustomExpandablePanel(
           'Check update',
           _getCheckUpdateExpandableChild(context),

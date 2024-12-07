@@ -2,28 +2,33 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:isolate';
 
-import 'package:flutter/foundation.dart' show kDebugMode;
+import 'package:flutter/foundation.dart' show kDebugMode, kIsWeb;
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:get_it/get_it.dart';
 import 'package:hive/hive.dart';
+import 'package:hydrated_bloc/hydrated_bloc.dart';
 import 'package:layout/layout.dart';
 import 'package:local_notifier/local_notifier.dart';
 import 'package:logging/logging.dart';
+import 'package:nested/nested.dart';
 import 'package:overlay_support/overlay_support.dart';
 import 'package:path/path.dart' as path;
+import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:retry/retry.dart';
 import 'package:tray_manager/tray_manager.dart';
 import 'package:window_manager/window_manager.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/auto_unlock_htlc_worker.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
-import 'package:zenon_syrius_wallet_flutter/handlers/htlc_swaps_handler.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/wallet_connect/chains/i_chain.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/wallet_connect/chains/nom_service.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/wallet_connect/wallet_connect_pairings_bloc.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/wallet_connect/wallet_connect_sessions_bloc.dart';
+import 'package:zenon_syrius_wallet_flutter/handlers/htlc_swaps_handler.dart';
 import 'package:zenon_syrius_wallet_flutter/model/model.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/screens/screens.dart';
 import 'package:zenon_syrius_wallet_flutter/services/htlc_swaps_service.dart';
 import 'package:zenon_syrius_wallet_flutter/services/i_web3wallet_service.dart';
@@ -39,26 +44,34 @@ SharedPrefsService? sharedPrefsService;
 HtlcSwapsService? htlcSwapsService;
 IWeb3WalletService? web3WalletService;
 
-final sl = GetIt.instance;
+final GetIt sl = GetIt.instance;
 
-final globalNavigatorKey = GlobalKey<NavigatorState>();
+final GlobalKey<NavigatorState> globalNavigatorKey = GlobalKey<NavigatorState>();
 
 main() async {
   WidgetsFlutterBinding.ensureInitialized();
-
+  if (Platform.isWindows) {
+    registerProtocolHandler(kDeepLinkingUrlScheme);
+  }
+  // Init hydrated bloc storage
+  HydratedBloc.storage = await HydratedStorage.build(
+    storageDirectory: kIsWeb
+        ? HydratedStorage.webStorageDirectory
+        : await getApplicationDocumentsDirectory(),
+  );
   Provider.debugCheckInvalidValueType = null;
 
   ensureDirectoriesExist();
-  Hive.init(znnDefaultPaths.cache.path.toString());
+  Hive.init(znnDefaultPaths.cache.path);
 
   // Setup logger
-  Directory syriusLogDir =
+  final Directory syriusLogDir =
       Directory(path.join(znnDefaultCacheDirectory.path, 'log'));
   if (!syriusLogDir.existsSync()) {
     syriusLogDir.createSync(recursive: true);
   }
-  final logFile = File(
-      '${syriusLogDir.path}${path.separator}syrius-${DateTime.now().millisecondsSinceEpoch}.log');
+  final File logFile = File(
+      '${syriusLogDir.path}${path.separator}syrius-${DateTime.now().millisecondsSinceEpoch}.log',);
   Logger.root.level = Level.ALL;
   Logger.root.onRecord.listen((LogRecord record) {
     if (kDebugMode) {
@@ -84,14 +97,12 @@ main() async {
   setup();
 
   retry(() => web3WalletService!.init(),
-      retryIf: (e) => e is SocketException || e is TimeoutException,
-      maxAttempts: 0x7FFFFFFFFFFFFFFF);
+      retryIf: (Exception e) => e is SocketException || e is TimeoutException,
+      maxAttempts: 0x7FFFFFFFFFFFFFFF,);
 
   // Setup local_notifier
   await localNotifier.setup(
     appName: 's y r i u s',
-    // The parameter shortcutPolicy only works on Windows
-    shortcutPolicy: ShortcutPolicy.requireCreate,
   );
 
   // Setup tray manager
@@ -118,8 +129,8 @@ main() async {
     await windowManager.show();
 
     if (sharedPrefsService != null) {
-      double? windowSizeWidth = sharedPrefsService!.get(kWindowSizeWidthKey);
-      double? windowSizeHeight = sharedPrefsService!.get(kWindowSizeHeightKey);
+      final double? windowSizeWidth = sharedPrefsService!.get(kWindowSizeWidthKey);
+      final double? windowSizeHeight = sharedPrefsService!.get(kWindowSizeHeightKey);
       if (windowSizeWidth != null &&
           windowSizeWidth >= 1200 &&
           windowSizeHeight != null &&
@@ -138,7 +149,7 @@ main() async {
             .setPosition(Offset(windowPositionX, windowPositionY));
       }
 
-      bool? windowMaximized = sharedPrefsService!.get(kWindowMaximizedKey);
+      final bool? windowMaximized = sharedPrefsService!.get(kWindowMaximizedKey);
       if (windowMaximized == true) {
         await windowManager.maximize();
       }
@@ -159,7 +170,7 @@ Future<void> _setupTrayManager() async {
   if (Platform.isMacOS) {
     await trayManager.setToolTip('s y r i u s');
   }
-  List<MenuItem> items = [
+  final List<MenuItem> items = <MenuItem>[
     MenuItem(
       key: 'show_wallet',
       label: 'Show wallet',
@@ -179,11 +190,11 @@ Future<void> _setupTrayManager() async {
 
 Future<void> _loadDefaultCommunityNodes() async {
   try {
-    var nodes = await loadJsonFromAssets('assets/community-nodes.json')
+    final List nodes = await loadJsonFromAssets('assets/community-nodes.json')
         as List<dynamic>;
     kDefaultCommunityNodes = nodes
         .map((node) => node.toString())
-        .where((node) => InputValidators.node(node) == null)
+        .where((String node) => InputValidators.node(node) == null)
         .toList();
   } catch (e, stackTrace) {
     Logger('main')
@@ -195,7 +206,7 @@ void setup() {
   sl.registerSingleton<Zenon>(Zenon());
   zenon = sl<Zenon>();
   sl.registerLazySingletonAsync<SharedPrefsService>(
-      (() => SharedPrefsService.getInstance().then((value) => value!)));
+      () => SharedPrefsService.getInstance().then((SharedPrefsService? value) => value!),);
   sl.registerSingleton<HtlcSwapsService>(HtlcSwapsService.getInstance());
 
   // Initialize WalletConnect service
@@ -207,20 +218,20 @@ void setup() {
 
   sl.registerSingleton<AutoReceiveTxWorker>(AutoReceiveTxWorker.getInstance());
   sl.registerSingleton<AutoUnlockHtlcWorker>(
-      AutoUnlockHtlcWorker.getInstance());
+      AutoUnlockHtlcWorker.getInstance(),);
 
   sl.registerSingleton<HtlcSwapsHandler>(HtlcSwapsHandler.getInstance());
 
   sl.registerSingleton<ReceivePort>(ReceivePort(),
-      instanceName: 'embeddedStoppedPort');
+      instanceName: 'embeddedStoppedPort',);
   sl.registerSingleton<Stream>(
       sl<ReceivePort>(instanceName: 'embeddedStoppedPort').asBroadcastStream(),
-      instanceName: 'embeddedStoppedStream');
+      instanceName: 'embeddedStoppedStream',);
 
   sl.registerSingleton<PlasmaStatsBloc>(PlasmaStatsBloc());
   sl.registerSingleton<BalanceBloc>(BalanceBloc());
   sl.registerSingleton<TransferWidgetsBalanceBloc>(
-      TransferWidgetsBalanceBloc());
+      TransferWidgetsBalanceBloc(),);
   sl.registerSingleton<NotificationsBloc>(NotificationsBloc());
   sl.registerSingleton<AcceleratorBalanceBloc>(AcceleratorBalanceBloc());
   sl.registerSingleton<PowGeneratingStatusBloc>(PowGeneratingStatusBloc());
@@ -233,7 +244,7 @@ void setup() {
 }
 
 class MyApp extends StatefulWidget {
-  const MyApp({Key? key}) : super(key: key);
+  const MyApp({super.key});
 
   @override
   State<StatefulWidget> createState() {
@@ -261,7 +272,7 @@ class _MyAppState extends State<MyApp> with WindowListener, TrayListener {
   @override
   Widget build(BuildContext context) {
     return MultiProvider(
-      providers: [
+      providers: <SingleChildWidget>[
         ChangeNotifierProvider<SelectedAddressNotifier>(
           create: (_) => SelectedAddressNotifier(),
         ),
@@ -279,19 +290,19 @@ class _MyAppState extends State<MyApp> with WindowListener, TrayListener {
         ),
         ChangeNotifierProvider<ValueNotifier<List<String>>>(
           create: (_) => ValueNotifier<List<String>>(
-            [],
+            <String>[],
           ),
         ),
         Provider<LockBloc>(
           create: (_) => LockBloc(),
-          builder: (context, child) {
+          builder: (BuildContext context, Widget? child) {
             return Consumer<AppThemeNotifier>(
-              builder: (_, appThemeNotifier, __) {
-                LockBloc lockBloc =
+              builder: (_, AppThemeNotifier appThemeNotifier, __) {
+                final LockBloc lockBloc =
                     Provider.of<LockBloc>(context, listen: false);
                 return OverlaySupport(
                   child: Listener(
-                    onPointerSignal: (event) {
+                    onPointerSignal: (PointerSignalEvent event) {
                       if (event is PointerScrollEvent) {
                         lockBloc.addEvent(LockEvent.resetTimer);
                       }
@@ -308,9 +319,9 @@ class _MyAppState extends State<MyApp> with WindowListener, TrayListener {
                     child: MouseRegion(
                       onEnter: (_) => lockBloc.addEvent(LockEvent.resetTimer),
                       onExit: (_) => lockBloc.addEvent(LockEvent.resetTimer),
-                      child: RawKeyboardListener(
+                      child: KeyboardListener(
                         focusNode: FocusNode(),
-                        onKey: (RawKeyEvent event) {
+                        onKeyEvent: (KeyEvent event) {
                           lockBloc.addEvent(LockEvent.resetTimer);
                         },
                         child: Layout(
@@ -323,22 +334,24 @@ class _MyAppState extends State<MyApp> with WindowListener, TrayListener {
                             themeMode: appThemeNotifier.currentThemeMode,
                             initialRoute: SplashScreen.route,
                             scrollBehavior: RemoveOverscrollEffect(),
-                            routes: {
-                              AccessWalletScreen.route: (context) =>
+                            localizationsDelegates: AppLocalizations.localizationsDelegates,
+                            supportedLocales: AppLocalizations.supportedLocales,
+                            routes: <String, WidgetBuilder>{
+                              AccessWalletScreen.route: (BuildContext context) =>
                                   const AccessWalletScreen(),
-                              SplashScreen.route: (context) =>
+                              SplashScreen.route: (BuildContext context) =>
                                   const SplashScreen(),
-                              MainAppContainer.route: (context) =>
+                              MainAppContainer.route: (BuildContext context) =>
                                   const MainAppContainer(),
                               NodeManagementScreen.route: (_) =>
                                   const NodeManagementScreen(),
                             },
-                            onGenerateRoute: (settings) {
+                            onGenerateRoute: (RouteSettings settings) {
                               if (settings.name == SyriusErrorWidget.route) {
-                                final args = settings.arguments
+                                final CustomSyriusErrorWidgetArguments args = settings.arguments!
                                     as CustomSyriusErrorWidgetArguments;
                                 return MaterialPageRoute(
-                                  builder: (context) =>
+                                  builder: (BuildContext context) =>
                                       SyriusErrorWidget(args.errorText),
                                 );
                               }
@@ -359,15 +372,15 @@ class _MyAppState extends State<MyApp> with WindowListener, TrayListener {
   }
 
   @override
-  void onWindowClose() async {
-    bool windowMaximized = await windowManager.isMaximized();
+  Future<void> onWindowClose() async {
+    final bool windowMaximized = await windowManager.isMaximized();
     await sharedPrefsService!.put(
       kWindowMaximizedKey,
       windowMaximized,
     );
 
     if (windowMaximized != true) {
-      Size windowSize = await windowManager.getSize();
+      final Size windowSize = await windowManager.getSize();
       await sharedPrefsService!.put(
         kWindowSizeWidthKey,
         windowSize.width,
@@ -377,7 +390,7 @@ class _MyAppState extends State<MyApp> with WindowListener, TrayListener {
         windowSize.height,
       );
 
-      Offset windowPosition = await windowManager.getPosition();
+      final Offset windowPosition = await windowManager.getPosition();
       await sharedPrefsService!.put(
         kWindowPositionXKey,
         windowPosition.dx,
@@ -410,19 +423,16 @@ class _MyAppState extends State<MyApp> with WindowListener, TrayListener {
   void onTrayIconRightMouseUp() {}
 
   @override
-  void onTrayMenuItemClick(MenuItem menuItem) async {
+  Future<void> onTrayMenuItemClick(MenuItem menuItem) async {
     switch (menuItem.key) {
       case 'show_wallet':
         windowManager.show();
-        break;
       case 'hide_wallet':
         if (!await windowManager.isMinimized()) {
           windowManager.minimize();
         }
-        break;
       case 'exit':
         windowManager.destroy();
-        break;
       default:
         break;
     }

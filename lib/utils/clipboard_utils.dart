@@ -24,12 +24,12 @@ class ClipboardUtils {
         text: stringValue,
       ),
     ).then((_) =>
-        ToastUtils.showToast(context, 'Copied', color: AppColors.znnColor));
+        ToastUtils.showToast(context, 'Copied', color: AppColors.znnColor),);
   }
 
   static void pasteToClipboard(
-      BuildContext context, Function(String) callback) {
-    Clipboard.getData('text/plain').then((value) async {
+      BuildContext context, Function(String) callback,) {
+    Clipboard.getData('text/plain').then((ClipboardData? value) async {
       if (value != null) {
         callback(value.text!);
       } else {

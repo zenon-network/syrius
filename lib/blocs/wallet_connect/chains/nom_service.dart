@@ -28,10 +28,8 @@ extension NoMChainIdX on NoMChainId {
     switch (this) {
       case NoMChainId.mainnet:
         name = '1';
-        break;
       case NoMChainId.testnet:
         name = '3';
-        break;
     }
 
     return '${NoMService.namespace}:$name';
@@ -39,18 +37,6 @@ extension NoMChainIdX on NoMChainId {
 }
 
 class NoMService extends IChain {
-  static const namespace = 'zenon';
-
-  final IWeb3WalletService _web3WalletService = sl<IWeb3WalletService>();
-
-  final NoMChainId reference;
-
-  final _walletLockedError = const WalletConnectError(
-    code: 9000,
-    message: 'Wallet is locked',
-  );
-
-  Web3Wallet? wallet;
 
   NoMService({
     required this.reference,
@@ -78,6 +64,18 @@ class NoMService extends IChain {
       handler: _methodZnnSend,
     );
   }
+  static const String namespace = 'zenon';
+
+  final IWeb3WalletService _web3WalletService = sl<IWeb3WalletService>();
+
+  final NoMChainId reference;
+
+  final WalletConnectError _walletLockedError = const WalletConnectError(
+    code: 9000,
+    message: 'Wallet is locked',
+  );
+
+  Web3Wallet? wallet;
 
   @override
   String getNamespace() {
@@ -91,17 +89,17 @@ class NoMService extends IChain {
 
   @override
   List<String> getEvents() {
-    return ['chainIdChange', 'addressChange'];
+    return <String>['chainIdChange', 'addressChange'];
   }
 
   Future _methodZnnInfo(String topic, dynamic params) async {
     if (!await windowManager.isFocused() || !await windowManager.isVisible()) {
       windowManager.show();
     }
-    final dAppMetadata = wallet!
+    final PairingMetadata dAppMetadata = wallet!
         .getActiveSessions()
         .values
-        .firstWhere((element) => element.topic == topic)
+        .firstWhere((SessionData element) => element.topic == topic)
         .peer
         .metadata;
 
@@ -113,14 +111,13 @@ class NoMService extends IChain {
           title: '${dAppMetadata.name} - Information',
           content: Column(
             mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
+            children: <Widget>[
               Text('Are you sure you want to allow ${dAppMetadata.name} to '
                   'retrieve the current address, node URL and chain identifier information?'),
               kVerticalSpacing,
               Image(
                 image: NetworkImage(dAppMetadata.icons.first),
-                height: 100.0,
+                height: 100,
                 fit: BoxFit.fitHeight,
               ),
               kVerticalSpacing,
@@ -128,11 +125,11 @@ class NoMService extends IChain {
               kVerticalSpacing,
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
-                children: [
+                children: <Widget>[
                   Text(dAppMetadata.url),
                   LinkIcon(
                     url: dAppMetadata.url,
-                  )
+                  ),
                 ],
               ),
             ],
@@ -142,7 +139,7 @@ class NoMService extends IChain {
         );
 
         if (actionWasAccepted) {
-          return {
+          return <String, Object?>{
             'address': kSelectedAddress,
             'nodeUrl': kCurrentNode,
             'chainId': getChainIdentifier(),
@@ -150,7 +147,7 @@ class NoMService extends IChain {
         } else {
           await NotificationUtils.sendNotificationError(
               Errors.getSdkError(Errors.USER_REJECTED),
-              'You have rejected the WalletConnect request');
+              'You have rejected the WalletConnect request',);
           throw Errors.getSdkError(Errors.USER_REJECTED);
         }
       } else {
@@ -165,14 +162,14 @@ class NoMService extends IChain {
     if (!await windowManager.isFocused() || !await windowManager.isVisible()) {
       windowManager.show();
     }
-    final dAppMetadata = wallet!
+    final PairingMetadata dAppMetadata = wallet!
         .getActiveSessions()
         .values
-        .firstWhere((element) => element.topic == topic)
+        .firstWhere((SessionData element) => element.topic == topic)
         .peer
         .metadata;
     if (kCurrentPage != Tabs.lock) {
-      final message = params as String;
+      final String message = params as String;
 
       if (globalNavigatorKey.currentContext!.mounted) {
         final actionWasAccepted = await showDialogWithNoAndYesOptions(
@@ -181,14 +178,13 @@ class NoMService extends IChain {
           title: '${dAppMetadata.name} - Sign Message',
           content: Column(
             mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
+            children: <Widget>[
               Text('Are you sure you want to '
                   'sign message $message ?'),
               kVerticalSpacing,
               Image(
                 image: NetworkImage(dAppMetadata.icons.first),
-                height: 100.0,
+                height: 100,
                 fit: BoxFit.fitHeight,
               ),
               kVerticalSpacing,
@@ -196,11 +192,11 @@ class NoMService extends IChain {
               kVerticalSpacing,
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
-                children: [
+                children: <Widget>[
                   Text(dAppMetadata.url),
                   LinkIcon(
                     url: dAppMetadata.url,
-                  )
+                  ),
                 ],
               ),
             ],
@@ -210,11 +206,11 @@ class NoMService extends IChain {
         );
 
         if (actionWasAccepted) {
-          return await walletSign(message.codeUnits);
+          return walletSign(message.codeUnits);
         } else {
           await NotificationUtils.sendNotificationError(
               Errors.getSdkError(Errors.USER_REJECTED),
-              'You have rejected the WalletConnect request');
+              'You have rejected the WalletConnect request',);
           throw Errors.getSdkError(Errors.USER_REJECTED);
         }
       } else {
@@ -229,26 +225,26 @@ class NoMService extends IChain {
     if (!await windowManager.isFocused() || !await windowManager.isVisible()) {
       windowManager.show();
     }
-    final dAppMetadata = wallet!
+    final PairingMetadata dAppMetadata = wallet!
         .getActiveSessions()
         .values
-        .firstWhere((element) => element.topic == topic)
+        .firstWhere((SessionData element) => element.topic == topic)
         .peer
         .metadata;
     if (kCurrentPage != Tabs.lock) {
-      final accountBlock =
+      final AccountBlockTemplate accountBlock =
           AccountBlockTemplate.fromJson(params['accountBlock']);
 
-      final toAddress = ZenonAddressUtils.getLabel(
+      final String toAddress = ZenonAddressUtils.getLabel(
         accountBlock.toAddress.toString(),
       );
 
-      final token =
+      final Token? token =
           await zenon!.embedded.token.getByZts(accountBlock.tokenStandard);
 
-      final amount = accountBlock.amount.addDecimals(token!.decimals);
+      final String amount = accountBlock.amount.addDecimals(token!.decimals);
 
-      final sendPaymentBloc = SendPaymentBloc();
+      final SendPaymentBloc sendPaymentBloc = SendPaymentBloc();
 
       if (globalNavigatorKey.currentContext!.mounted) {
         final wasActionAccepted = await showDialogWithNoAndYesOptions(
@@ -257,15 +253,14 @@ class NoMService extends IChain {
           title: '${dAppMetadata.name} - Send Payment',
           content: Column(
             mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
+            children: <Widget>[
               Text('Are you sure you want to transfer '
                   '$amount ${token.symbol} to '
                   '$toAddress ?'),
               kVerticalSpacing,
               Image(
                 image: NetworkImage(dAppMetadata.icons.first),
-                height: 100.0,
+                height: 100,
                 fit: BoxFit.fitHeight,
               ),
               kVerticalSpacing,
@@ -273,11 +268,11 @@ class NoMService extends IChain {
               kVerticalSpacing,
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
-                children: [
+                children: <Widget>[
                   Text(dAppMetadata.url),
                   LinkIcon(
                     url: dAppMetadata.url,
-                  )
+                  ),
                 ],
               ),
             ],
@@ -295,15 +290,15 @@ class NoMService extends IChain {
             block: AccountBlockTemplate.fromJson(params['accountBlock']),
           );
 
-          final result = await sendPaymentBloc.stream.firstWhere(
-            (element) => element != null,
+          final AccountBlockTemplate? result = await sendPaymentBloc.stream.firstWhere(
+            (AccountBlockTemplate? element) => element != null,
           );
 
           return result!;
         } else {
           await NotificationUtils.sendNotificationError(
               Errors.getSdkError(Errors.USER_REJECTED),
-              'You have rejected the WalletConnect request');
+              'You have rejected the WalletConnect request',);
           throw Errors.getSdkError(Errors.USER_REJECTED);
         }
       } else {

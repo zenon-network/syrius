@@ -13,12 +13,12 @@ import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 class AccountChainStatsWidget extends StatefulWidget {
-  final AccountChainStatsBloc accountChainStatsBloc;
 
   const AccountChainStatsWidget({
     required this.accountChainStatsBloc,
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
+  final AccountChainStatsBloc accountChainStatsBloc;
 
   @override
   State createState() {
@@ -33,7 +33,7 @@ class _AccountChainStatsState extends State<AccountChainStatsWidget> {
       title: 'Account-chain Stats',
       description: 'This card displays information regarding the account-chain '
           'for the specified address',
-      childBuilder: () => _getStreamBuilder(),
+      childBuilder: _getStreamBuilder,
     );
   }
 
@@ -43,7 +43,7 @@ class _AccountChainStatsState extends State<AccountChainStatsWidget> {
         shrinkWrap: true,
         children: <Widget>[
           Padding(
-            padding: const EdgeInsets.symmetric(vertical: 12.0),
+            padding: const EdgeInsets.symmetric(vertical: 12),
             child: Column(
               children: <Widget>[
                 Text(
@@ -52,7 +52,7 @@ class _AccountChainStatsState extends State<AccountChainStatsWidget> {
                 ),
                 Stack(
                   alignment: Alignment.center,
-                  children: [
+                  children: <Widget>[
                     NumberAnimation(
                       end: stats.blockCount,
                       isInt: true,
@@ -64,8 +64,8 @@ class _AccountChainStatsState extends State<AccountChainStatsWidget> {
                 _getChartLegend(stats),
                 RawMaterialButton(
                   constraints: const BoxConstraints(
-                    minWidth: 40.0,
-                    minHeight: 40.0,
+                    minWidth: 40,
+                    minHeight: 40,
                   ),
                   materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                   onPressed: () => NavigationUtils.openUrl(
@@ -78,23 +78,23 @@ class _AccountChainStatsState extends State<AccountChainStatsWidget> {
                         'Block hash',
                         style: Theme.of(context).textTheme.bodyMedium,
                       ),
-                      Container(width: 10.0),
+                      Container(width: 10),
                       const Icon(
                         MaterialCommunityIcons.compass,
-                        size: 20.0,
+                        size: 20,
                         color: AppColors.qsrColor,
                       ),
                     ],
                   ),
                 ),
                 Row(
-                  children: [
+                  children: <Widget>[
                     Expanded(
                       child: Container(
                         padding: const EdgeInsets.only(
-                          top: 12.0,
-                          right: 22.0,
-                          left: 22.0,
+                          top: 12,
+                          right: 22,
+                          left: 22,
                         ),
                         child: Marquee(
                           child: Text(
@@ -103,7 +103,7 @@ class _AccountChainStatsState extends State<AccountChainStatsWidget> {
                           ),
                         ),
                       ),
-                    )
+                    ),
                   ],
                 ),
               ],
@@ -116,10 +116,10 @@ class _AccountChainStatsState extends State<AccountChainStatsWidget> {
 
   Container _getChart(AccountChainStats stats) {
     return Container(
-      width: 150.0,
-      height: 150.0,
+      width: 150,
+      height: 150,
       margin: const EdgeInsets.all(
-        10.0,
+        10,
       ),
       child: StandardPieChart(
         sections: _getChartSections(stats),
@@ -131,11 +131,11 @@ class _AccountChainStatsState extends State<AccountChainStatsWidget> {
     AccountChainStats stats,
     BlockTypeEnum blockType,
   ) {
-    int blockTypeCount = stats.blockTypeNumOfBlocksMap[blockType]!;
+    final int blockTypeCount = stats.blockTypeNumOfBlocksMap[blockType]!;
 
     return PieChartSectionData(
       showTitle: false,
-      radius: 7.0,
+      radius: 7,
       color: kBlockTypeColorMap[blockType] ?? AppColors.errorColor,
       value: 100.0 * blockTypeCount / stats.blockCount,
     );
@@ -144,7 +144,7 @@ class _AccountChainStatsState extends State<AccountChainStatsWidget> {
   Widget _getStreamBuilder() {
     return StreamBuilder<AccountChainStats?>(
       stream: widget.accountChainStatsBloc.stream,
-      builder: (_, snapshot) {
+      builder: (_, AsyncSnapshot<AccountChainStats?> snapshot) {
         if (snapshot.hasError) {
           return SyriusErrorWidget(snapshot.error!);
         }
@@ -162,7 +162,7 @@ class _AccountChainStatsState extends State<AccountChainStatsWidget> {
   List<PieChartSectionData> _getChartSections(AccountChainStats stats) =>
       List.generate(
         BlockTypeEnum.values.length,
-        (index) => _getChartSection(
+        (int index) => _getChartSection(
           stats,
           BlockTypeEnum.values.elementAt(index),
         ),
@@ -174,12 +174,12 @@ class _AccountChainStatsState extends State<AccountChainStatsWidget> {
   ) {
     return Container(
       margin: const EdgeInsets.symmetric(
-        horizontal: 20.0,
-        vertical: 4.0,
+        horizontal: 20,
+        vertical: 4,
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
-        children: [
+        children: <Widget>[
           Text(
             '● ',
             style: Theme.of(context).textTheme.bodyMedium!.copyWith(
@@ -191,7 +191,7 @@ class _AccountChainStatsState extends State<AccountChainStatsWidget> {
             style: Theme.of(context).textTheme.bodyMedium,
           ),
           const SizedBox(
-            width: 10.0,
+            width: 10,
           ),
           AutoSizeText(
             blockTypeCount.toString(),
@@ -203,14 +203,14 @@ class _AccountChainStatsState extends State<AccountChainStatsWidget> {
   }
 
   Widget _getChartLegend(AccountChainStats stats) {
-    List<BlockTypeEnum> typesWithBlocks = stats.blockTypeNumOfBlocksMap.keys
-        .where((key) => stats.blockTypeNumOfBlocksMap[key]! > 0)
+    final List<BlockTypeEnum> typesWithBlocks = stats.blockTypeNumOfBlocksMap.keys
+        .where((BlockTypeEnum key) => stats.blockTypeNumOfBlocksMap[key]! > 0)
         .toList();
 
     return ListView.builder(
       shrinkWrap: true,
       itemCount: typesWithBlocks.length,
-      itemBuilder: (context, index) => _getBlockTypeCountDetails(
+      itemBuilder: (BuildContext context, int index) => _getBlockTypeCountDetails(
         typesWithBlocks[index],
         stats.blockTypeNumOfBlocksMap[typesWithBlocks[index]],
       ),

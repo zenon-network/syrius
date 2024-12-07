@@ -10,18 +10,18 @@ enum AcceleratorProjectsFilterTag {
 }
 
 class AcceleratorProjectList extends StatefulWidget {
-  final PillarInfo? pillarInfo;
-  final List<AcceleratorProject> acceleratorProjects;
-  final Project? projects;
-  final VoidCallback onStepperNotificationSeeMorePressed;
 
   const AcceleratorProjectList(
     this.pillarInfo,
     this.acceleratorProjects, {
     required this.onStepperNotificationSeeMorePressed,
     this.projects,
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
+  final PillarInfo? pillarInfo;
+  final List<AcceleratorProject> acceleratorProjects;
+  final Project? projects;
+  final VoidCallback onStepperNotificationSeeMorePressed;
 
   @override
   State<AcceleratorProjectList> createState() => _AcceleratorProjectListState();
@@ -31,7 +31,7 @@ class _AcceleratorProjectListState extends State<AcceleratorProjectList> {
   final TextEditingController _searchKeyWordController =
       TextEditingController();
 
-  final List<AcceleratorProjectsFilterTag> _selectedProjectsFilterTag = [];
+  final List<AcceleratorProjectsFilterTag> _selectedProjectsFilterTag = <AcceleratorProjectsFilterTag>[];
 
   final ScrollController _scrollController = ScrollController();
 
@@ -40,18 +40,18 @@ class _AcceleratorProjectListState extends State<AcceleratorProjectList> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.all(15.0),
+      margin: const EdgeInsets.all(15),
       child: Column(
-        children: [
+        children: <Widget>[
           _getSearchInputField(),
           const SizedBox(
-            height: 10.0,
+            height: 10,
           ),
           if (widget.acceleratorProjects.first is Project)
             _getProjectsFilterTags(),
           if (widget.acceleratorProjects.first is Project)
             const SizedBox(
-              height: 10.0,
+              height: 10,
             ),
           Expanded(
             child: Scrollbar(
@@ -59,13 +59,13 @@ class _AcceleratorProjectListState extends State<AcceleratorProjectList> {
               thumbVisibility: true,
               child: ListView.separated(
                 separatorBuilder: (_, __) => const SizedBox(
-                  height: 15.0,
+                  height: 15,
                 ),
                 controller: _scrollController,
                 shrinkWrap: true,
                 itemCount:
                     _filterBaseProjects(widget.acceleratorProjects).length,
-                itemBuilder: (context, index) => AcceleratorProjectListItem(
+                itemBuilder: (BuildContext context, int index) => AcceleratorProjectListItem(
                   key: ValueKey(
                     _filterBaseProjects(widget.acceleratorProjects)
                         .elementAt(index)
@@ -96,7 +96,7 @@ class _AcceleratorProjectListState extends State<AcceleratorProjectList> {
         Icons.search,
         color: Colors.green,
       ),
-      onChanged: (value) {
+      onChanged: (String value) {
         setState(() {
           _searchKeyWord = value;
         });
@@ -105,13 +105,13 @@ class _AcceleratorProjectListState extends State<AcceleratorProjectList> {
   }
 
   Set<AcceleratorProject> _filterBaseProjects(
-      List<AcceleratorProject> acceleratorProjects) {
-    var filteredBaseProjects =
+      List<AcceleratorProject> acceleratorProjects,) {
+    Set<AcceleratorProject> filteredBaseProjects =
         _filterBaseProjectsBySearchKeyWord(acceleratorProjects);
     if (widget.acceleratorProjects.first is Project &&
         _selectedProjectsFilterTag.isNotEmpty) {
       filteredBaseProjects = _filterProjectsByFilterTags(
-        filteredBaseProjects.map((e) => e as Project).toList(),
+        filteredBaseProjects.map((AcceleratorProject e) => e as Project).toList(),
       );
     }
     return filteredBaseProjects;
@@ -120,10 +120,10 @@ class _AcceleratorProjectListState extends State<AcceleratorProjectList> {
   Set<AcceleratorProject> _filterBaseProjectsBySearchKeyWord(
     List<AcceleratorProject> acceleratorProjects,
   ) {
-    var filteredBaseProjects = <AcceleratorProject>{};
+    final Set<AcceleratorProject> filteredBaseProjects = <AcceleratorProject>{};
     filteredBaseProjects.addAll(
       acceleratorProjects.where(
-        (element) => element.id.toString().toLowerCase().contains(
+        (AcceleratorProject element) => element.id.toString().toLowerCase().contains(
               _searchKeyWord.toLowerCase(),
             ),
       ),
@@ -131,7 +131,7 @@ class _AcceleratorProjectListState extends State<AcceleratorProjectList> {
     if (acceleratorProjects.first is Project) {
       filteredBaseProjects.addAll(
         acceleratorProjects.where(
-          (element) =>
+          (AcceleratorProject element) =>
               (element as Project).owner.toString().toLowerCase().contains(
                     _searchKeyWord.toLowerCase(),
                   ),
@@ -140,21 +140,21 @@ class _AcceleratorProjectListState extends State<AcceleratorProjectList> {
     }
     filteredBaseProjects.addAll(
       acceleratorProjects.where(
-        (element) => element.name.toLowerCase().contains(
+        (AcceleratorProject element) => element.name.toLowerCase().contains(
               _searchKeyWord.toLowerCase(),
             ),
       ),
     );
     filteredBaseProjects.addAll(
       acceleratorProjects.where(
-        (element) => element.description.toLowerCase().contains(
+        (AcceleratorProject element) => element.description.toLowerCase().contains(
               _searchKeyWord.toLowerCase(),
             ),
       ),
     );
     filteredBaseProjects.addAll(
       acceleratorProjects.where(
-        (element) => element.url.toLowerCase().contains(
+        (AcceleratorProject element) => element.url.toLowerCase().contains(
               _searchKeyWord.toLowerCase(),
             ),
       ),
@@ -164,7 +164,7 @@ class _AcceleratorProjectListState extends State<AcceleratorProjectList> {
 
   Widget _getProjectsFilterTags() {
     return Row(
-      children: [
+      children: <Widget>[
         _getProjectsFilterTag(AcceleratorProjectsFilterTag.myProjects),
         _getProjectsFilterTag(AcceleratorProjectsFilterTag.onlyAccepted),
         if (widget.pillarInfo != null)
@@ -176,7 +176,7 @@ class _AcceleratorProjectListState extends State<AcceleratorProjectList> {
   Widget _getProjectsFilterTag(AcceleratorProjectsFilterTag filterTag) {
     return TagWidget(
       text: FormatUtils.extractNameFromEnum<AcceleratorProjectsFilterTag>(
-          filterTag),
+          filterTag,),
       hexColorCode: Theme.of(context)
           .colorScheme
           .primaryContainer
@@ -199,22 +199,22 @@ class _AcceleratorProjectListState extends State<AcceleratorProjectList> {
   }
 
   Set<AcceleratorProject> _filterProjectsByFilterTags(List<Project> projects) {
-    var filteredBaseProjects = const Iterable<Project>.empty();
+    Iterable<Project> filteredBaseProjects = const Iterable<Project>.empty();
     if (_selectedProjectsFilterTag
         .contains(AcceleratorProjectsFilterTag.myProjects)) {
       filteredBaseProjects = projects.where(
-        (project) => project.owner.toString() == kSelectedAddress,
+        (Project project) => project.owner.toString() == kSelectedAddress,
       );
     }
     if (_selectedProjectsFilterTag
         .contains(AcceleratorProjectsFilterTag.onlyAccepted)) {
       if (filteredBaseProjects.isNotEmpty) {
         filteredBaseProjects = filteredBaseProjects.where(
-          (project) => project.status == AcceleratorProjectStatus.active,
+          (Project project) => project.status == AcceleratorProjectStatus.active,
         );
       } else {
         filteredBaseProjects = projects.where(
-          (project) => project.status == AcceleratorProjectStatus.active,
+          (Project project) => project.status == AcceleratorProjectStatus.active,
         );
       }
     }
@@ -222,11 +222,11 @@ class _AcceleratorProjectListState extends State<AcceleratorProjectList> {
         .contains(AcceleratorProjectsFilterTag.votingOpened)) {
       if (filteredBaseProjects.isNotEmpty) {
         filteredBaseProjects = filteredBaseProjects.where(
-          (project) => project.status == AcceleratorProjectStatus.voting,
+          (Project project) => project.status == AcceleratorProjectStatus.voting,
         );
       } else {
         filteredBaseProjects = projects.where(
-          (project) => project.status == AcceleratorProjectStatus.voting,
+          (Project project) => project.status == AcceleratorProjectStatus.voting,
         );
       }
     }

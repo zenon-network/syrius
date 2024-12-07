@@ -9,6 +9,14 @@ part 'wallet_notification.g.dart';
 
 @HiveType(typeId: kWalletNotificationHiveTypeId)
 class WalletNotification extends HiveObject {
+
+  WalletNotification({
+    required this.title,
+    required this.timestamp,
+    required this.details,
+    required this.type,
+    this.id,
+  });
   @HiveField(0)
   final String? title;
 
@@ -23,14 +31,6 @@ class WalletNotification extends HiveObject {
 
   @HiveField(4)
   final int? id;
-
-  WalletNotification({
-    required this.title,
-    required this.timestamp,
-    required this.details,
-    required this.type,
-    this.id,
-  });
 
   Color getColor() {
     switch (type) {
@@ -47,11 +47,11 @@ class WalletNotification extends HiveObject {
     switch (type) {
       case NotificationType.stakingDeactivated:
         return _getCircledIcon(MaterialCommunityIcons.alert_circle_outline,
-            iconColor: Colors.grey);
+            iconColor: Colors.grey,);
       case NotificationType.error:
         return const Icon(
           MaterialCommunityIcons.alert_circle_outline,
-          size: 20.0,
+          size: 20,
           color: AppColors.errorColor,
         );
       case NotificationType.paymentSent:
@@ -80,7 +80,7 @@ class WalletNotification extends HiveObject {
         return _getCircledIcon(Icons.delete_forever);
       case NotificationType.confirm:
         return _getCircledIcon(Icons.remove_red_eye,
-            iconColor: AppColors.alertNotification);
+            iconColor: AppColors.alertNotification,);
       default:
         return _getCircledIcon(MaterialCommunityIcons.arrow_top_right);
     }
@@ -91,20 +91,19 @@ class WalletNotification extends HiveObject {
     Color iconColor = AppColors.znnColor,
   }) {
     return Container(
-      padding: const EdgeInsets.all(2.0),
+      padding: const EdgeInsets.all(2),
       decoration: BoxDecoration(
         border: Border.all(
-          width: 1.0,
           color: iconColor,
         ),
         borderRadius: BorderRadius.circular(
-          50.0,
+          50,
         ),
       ),
       child: Icon(
         iconData,
         color: iconColor,
-        size: 10.0,
+        size: 10,
       ),
     );
   }

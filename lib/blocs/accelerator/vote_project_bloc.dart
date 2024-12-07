@@ -8,11 +8,11 @@ class VoteProjectBloc extends BaseBloc<AccountBlockTemplate?> {
   Future<void> voteProject(Hash id, AcceleratorProjectVote vote) async {
     try {
       addEvent(null);
-      PillarInfo pillarInfo = (await zenon!.embedded.pillar.getByOwner(
+      final PillarInfo pillarInfo = (await zenon!.embedded.pillar.getByOwner(
         Address.parse(kSelectedAddress!),
       ))
           .first;
-      AccountBlockTemplate transactionParams =
+      final AccountBlockTemplate transactionParams =
           zenon!.embedded.accelerator.voteByName(
         id,
         pillarInfo.name,
@@ -23,12 +23,10 @@ class VoteProjectBloc extends BaseBloc<AccountBlockTemplate?> {
         'vote for project',
       )
           .then(
-        (block) => addEvent(block),
+        addEvent,
       )
           .onError(
-        (error, stackTrace) {
-          addError(error, stackTrace);
-        },
+        addError,
       );
     } catch (e, stackTrace) {
       addError(e, stackTrace);

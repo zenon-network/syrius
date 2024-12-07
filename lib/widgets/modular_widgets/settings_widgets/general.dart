@@ -9,7 +9,7 @@ import 'package:zenon_syrius_wallet_flutter/utils/navigation_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 
 class GeneralWidget extends StatefulWidget {
-  const GeneralWidget({Key? key}) : super(key: key);
+  const GeneralWidget({super.key});
 
   @override
   State createState() {
@@ -31,7 +31,7 @@ class GeneralWidgetState extends State<GeneralWidget> {
     return CardScaffold(
       title: 'General',
       description: 'Generic wallet & network information',
-      childBuilder: () => _getStreamBuilder(),
+      childBuilder: _getStreamBuilder,
     );
   }
 
@@ -46,15 +46,15 @@ class GeneralWidgetState extends State<GeneralWidget> {
                 'Momentum height',
                 style: Theme.of(context).textTheme.titleMedium,
               ),
-              Container(height: 10.0),
+              Container(height: 10),
               Container(
-                width: 150.0,
-                height: 150.0,
+                width: 150,
+                height: 150,
                 decoration: const ShapeDecoration(
                   color: Colors.transparent,
                   shape: CircleBorder(
                     side: BorderSide(
-                      width: 6.0,
+                      width: 6,
                       color: AppColors.znnColor,
                     ),
                   ),
@@ -67,62 +67,56 @@ class GeneralWidgetState extends State<GeneralWidget> {
                   ),
                 ),
               ),
-              Container(height: 10.0),
+              Container(height: 10),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: <Widget>[
-                  (generalStats.networkInfo.peers.isNotEmpty)
-                      ? const Icon(
+                  if (generalStats.networkInfo.peers.isNotEmpty) const Icon(
                           MaterialCommunityIcons.lan_connect,
-                          size: 15.0,
+                          size: 15,
                           color: AppColors.znnColor,
-                        )
-                      : const Icon(
+                        ) else const Icon(
                           MaterialCommunityIcons.lan_disconnect,
-                          size: 15.0,
+                          size: 15,
                           color: AppColors.errorColor,
                         ),
                   const SizedBox(
-                    width: 4.0,
+                    width: 4,
                   ),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      (generalStats.networkInfo.peers.isNotEmpty)
-                          ? Text(
+                    children: <Widget>[
+                      if (generalStats.networkInfo.peers.isNotEmpty) Text(
                               'Peers connected',
                               style: Theme.of(context).textTheme.bodyMedium,
-                            )
-                          : const Text('Peers available'),
+                            ) else const Text('Peers available'),
                       const SizedBox(
-                        width: 10.0,
+                        width: 10,
                       ),
-                      (generalStats.networkInfo.peers.isNotEmpty)
-                          ? Text(
+                      if (generalStats.networkInfo.peers.isNotEmpty) Text(
                               '${generalStats.networkInfo.peers.length}',
                               style: Theme.of(context).textTheme.titleMedium,
-                            )
-                          : Text(
+                            ) else Text(
                               'No peers found',
                               style: Theme.of(context).textTheme.bodyMedium,
                             ),
                     ],
-                  )
+                  ),
                 ],
               ),
               const SizedBox(
-                height: 10.0,
+                height: 10,
               ),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: <Widget>[
                   const Icon(
                     MaterialCommunityIcons.timer,
-                    size: 15.0,
+                    size: 15,
                     color: AppColors.qsrColor,
                   ),
                   const SizedBox(
-                    width: 4.0,
+                    width: 4,
                   ),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -133,7 +127,7 @@ class GeneralWidgetState extends State<GeneralWidget> {
                       ),
                     ],
                   ),
-                  const SizedBox(width: 10.0),
+                  const SizedBox(width: 10),
                   Text(
                     '${generalStats.frontierMomentum.timestamp}',
                     style: Theme.of(context).textTheme.titleMedium,
@@ -145,7 +139,7 @@ class GeneralWidgetState extends State<GeneralWidget> {
               ),
               RawMaterialButton(
                 constraints: const BoxConstraints(
-                  minHeight: 40.0,
+                  minHeight: 40,
                 ),
                 materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                 onPressed: () => NavigationUtils.openUrl(
@@ -158,23 +152,23 @@ class GeneralWidgetState extends State<GeneralWidget> {
                       'Momentum hash',
                       style: Theme.of(context).textTheme.bodyMedium,
                     ),
-                    Container(width: 10.0),
+                    Container(width: 10),
                     const Icon(
                       MaterialCommunityIcons.compass,
-                      size: 20.0,
+                      size: 20,
                       color: AppColors.znnColor,
                     ),
                   ],
                 ),
               ),
               Row(
-                children: [
+                children: <Widget>[
                   Expanded(
                     child: Container(
                       padding: const EdgeInsets.only(
-                        top: 12.0,
-                        right: 22.0,
-                        left: 22.0,
+                        top: 12,
+                        right: 22,
+                        left: 22,
                       ),
                       child: Marquee(
                         child: Text(
@@ -183,9 +177,9 @@ class GeneralWidgetState extends State<GeneralWidget> {
                         ),
                       ),
                     ),
-                  )
+                  ),
                 ],
-              )
+              ),
             ],
           ),
         ],
@@ -196,7 +190,7 @@ class GeneralWidgetState extends State<GeneralWidget> {
   Widget _getStreamBuilder() {
     return StreamBuilder<GeneralStats>(
       stream: _generalStatsBloc!.stream,
-      builder: (_, snapshot) {
+      builder: (_, AsyncSnapshot<GeneralStats> snapshot) {
         if (snapshot.hasData) {
           return _getNewBody(snapshot.data!);
         } else if (snapshot.hasError) {

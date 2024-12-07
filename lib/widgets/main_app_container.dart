@@ -6,6 +6,7 @@ import 'package:clipboard_watcher/clipboard_watcher.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:flutter_vector_icons/flutter_vector_icons.dart';
 import 'package:logging/logging.dart';
@@ -17,6 +18,7 @@ import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/handlers/htlc_swaps_handler.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/model/model.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/clipboard_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
@@ -50,14 +52,14 @@ enum Tabs {
 }
 
 class MainAppContainer extends StatefulWidget {
+  const MainAppContainer({
+    super.key,
+    this.redirectedFromWalletSuccess = false,
+  });
+
   final bool redirectedFromWalletSuccess;
 
   static const String route = 'main-app-container';
-
-  const MainAppContainer({
-    Key? key,
-    this.redirectedFromWalletSuccess = false,
-  }) : super(key: key);
 
   @override
   State<MainAppContainer> createState() => _MainAppContainerState();
@@ -76,11 +78,13 @@ class _MainAppContainerState extends State<MainAppContainer>
   TransferTabChild? _transferTabChild;
   bool _initialUriIsHandled = false;
 
-  final NodeSyncStatusBloc _netSyncStatusBloc = NodeSyncStatusBloc();
-  final _appLinks = AppLinks();
+  final AppLinks _appLinks = AppLinks();
   final FocusNode _focusNode = FocusNode(
     skipTraversal: true,
     canRequestFocus: false,
+  );
+  final NodeSyncStatusCubit _nodeSyncStatusCubit = NodeSyncStatusCubit(
+    zenon: zenon!,
   );
 
   @override
@@ -90,8 +94,6 @@ class _MainAppContainerState extends State<MainAppContainer>
 
     ClipboardUtils.toggleClipboardWatcherStatus();
 
-    _netSyncStatusBloc.getDataPeriodically();
-
     _transferTabChild = TransferTabChild();
     _initTabController();
     _animationController = AnimationController(
@@ -99,7 +101,7 @@ class _MainAppContainerState extends State<MainAppContainer>
       duration: const Duration(milliseconds: 500),
     );
     _animationController.repeat(reverse: true);
-    _animation = Tween(begin: 1.0, end: 3.0).animate(_animationController);
+    _animation = Tween<double>(begin: 1, end: 3).animate(_animationController);
     kCurrentPage = kWalletInitCompleted ? Tabs.dashboard : Tabs.lock;
     _initLockBlock();
     _handleIncomingLinks();
@@ -111,14 +113,15 @@ class _MainAppContainerState extends State<MainAppContainer>
   @override
   Widget build(BuildContext context) {
     return Consumer<TextScalingNotifier>(
-      builder: (context, textScalingNotifier, child) => MediaQuery(
+      builder: (BuildContext context, TextScalingNotifier textScalingNotifier, Widget? child) => MediaQuery(
         data: MediaQuery.of(context).copyWith(
-          textScaleFactor: textScalingNotifier.getTextScaleFactor(context),
+          textScaler: TextScaler.linear(
+              textScalingNotifier.getTextScaleFactor(context),),
         ),
         child: Scaffold(
           body: Container(
             margin: const EdgeInsets.all(
-              20.0,
+              20,
             ),
             child: Column(
               children: <Widget>[
@@ -142,7 +145,7 @@ class _MainAppContainerState extends State<MainAppContainer>
                 Expanded(
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(
-                      15.0,
+                      15,
                     ),
                     child: Container(
                       child: _getCurrentPageContainer(),
@@ -158,52 +161,52 @@ class _MainAppContainerState extends State<MainAppContainer>
   }
 
   Widget _getDesktopNavigationContainer() {
-    Color borderColor = NotificationUtils.shouldShowNotification()
+    final Color borderColor = NotificationUtils.shouldShowNotification()
         ? kLastNotification!.getColor()
         : Colors.transparent;
 
     return AnimatedBuilder(
       animation: _animationController,
-      builder: (context, widget) {
+      builder: (BuildContext context, Widget? widget) {
         return Row(
-          children: [
+          children: <Widget>[
             Expanded(
               child: Container(
                 alignment: Alignment.center,
                 decoration: BoxDecoration(
                   borderRadius: const BorderRadius.all(
                     Radius.circular(
-                      15.0,
+                      15,
                     ),
                   ),
                   boxShadow: (borderColor != Colors.transparent)
-                      ? [
+                      ? <BoxShadow>[
                           BoxShadow(
                             color: borderColor,
                             blurRadius: _animation.value,
                             spreadRadius: _animation.value,
-                          )
+                          ),
                         ]
-                      : [
+                      : <BoxShadow>[
                           const BoxShadow(
                             color: Colors.transparent,
-                          )
+                          ),
                         ],
                 ),
                 child: Material(
                   color: Theme.of(context).colorScheme.primary,
                   borderRadius: const BorderRadius.all(
                     Radius.circular(
-                      15.0,
+                      15,
                     ),
                   ),
                   child: Padding(
                     padding: const EdgeInsets.symmetric(
-                      horizontal: 12.0,
+                      horizontal: 12,
                     ),
                     child: Focus(
                       focusNode: _focusNode,
-                      onKeyEvent: (focusNode, KeyEvent event) {
+                      onKeyEvent: (FocusNode focusNode, KeyEvent event) {
                         if ((event.physicalKey == PhysicalKeyboardKey.tab ||
                                 event.physicalKey ==
                                     PhysicalKeyboardKey.enter ||
@@ -223,7 +226,7 @@ class _MainAppContainerState extends State<MainAppContainer>
                               .textTheme
                               .headlineSmall!
                               .copyWith(
-                                fontSize: 15.0,
+                                fontSize: 15,
                               ),
                           labelColor:
                               Theme.of(context).textTheme.headlineSmall!.color,
@@ -233,7 +236,7 @@ class _MainAppContainerState extends State<MainAppContainer>
                             }
                           },
                           labelPadding: const EdgeInsets.symmetric(
-                            vertical: 5.0,
+                            vertical: 5,
                           ),
                           indicator: UnderlineTabIndicator(
                             borderSide: BorderSide(
@@ -242,10 +245,10 @@ class _MainAppContainerState extends State<MainAppContainer>
                                   : _isIconTabSelected()
                                       ? Colors.transparent
                                       : AppColors.znnColor,
-                              width: 2.0,
+                              width: 2,
                             ),
                           ),
-                          dividerHeight: 0.0,
+                          dividerHeight: 0,
                           controller: _tabController,
                           tabs: _getTabs(),
                         ),
@@ -261,7 +264,7 @@ class _MainAppContainerState extends State<MainAppContainer>
     );
   }
 
-  void _onNavigateToLock() async {
+  Future<void> _onNavigateToLock() async {
     if (kWalletFile != null) kWalletFile!.close();
     kWalletFile = null;
     _navigateToLockTimer?.cancel();
@@ -279,10 +282,11 @@ class _MainAppContainerState extends State<MainAppContainer>
   List<Tab> _getTextTabs() {
     return kTabsWithTextTitles
         .map<Tab>(
-          (e) => e == Tabs.p2pSwap
+          (Tabs e) => e == Tabs.p2pSwap
               ? const Tab(text: 'P2P Swap')
               : Tab(
-                  text: FormatUtils.extractNameFromEnum<Tabs>(e).capitalize()),
+                  text: FormatUtils.extractNameFromEnum<Tabs>(e).capitalize(),
+                ),
         )
         .toList();
   }
@@ -293,18 +297,20 @@ class _MainAppContainerState extends State<MainAppContainer>
         Tab(
           child: SvgPicture.asset(
             'assets/svg/walletconnect-logo.svg',
-            width: 24.0,
+            width: 24,
             fit: BoxFit.fitWidth,
             colorFilter: _isTabSelected(Tabs.walletConnect)
                 ? const ColorFilter.mode(AppColors.znnColor, BlendMode.srcIn)
                 : ColorFilter.mode(
-                    Theme.of(context).iconTheme.color!, BlendMode.srcIn),
+                    Theme.of(context).iconTheme.color!,
+                    BlendMode.srcIn,
+                  ),
           ),
         ),
       Tab(
         child: Icon(
           MaterialCommunityIcons.rocket,
-          size: 24.0,
+          size: 24,
           color: _isTabSelected(Tabs.accelerator)
               ? AppColors.znnColor
               : Theme.of(context).iconTheme.color,
@@ -313,7 +319,7 @@ class _MainAppContainerState extends State<MainAppContainer>
       Tab(
         child: Icon(
           Icons.info,
-          size: 24.0,
+          size: 24,
           color: _isTabSelected(Tabs.help)
               ? AppColors.znnColor
               : Theme.of(context).iconTheme.color,
@@ -322,7 +328,7 @@ class _MainAppContainerState extends State<MainAppContainer>
       Tab(
         child: Icon(
           Icons.notifications,
-          size: 24.0,
+          size: 24,
           color: _isTabSelected(Tabs.notifications)
               ? AppColors.znnColor
               : Theme.of(context).iconTheme.color,
@@ -331,7 +337,7 @@ class _MainAppContainerState extends State<MainAppContainer>
       Tab(
         child: Icon(
           Icons.settings,
-          size: 24.0,
+          size: 24,
           color: _isTabSelected(Tabs.settings)
               ? AppColors.znnColor
               : Theme.of(context).iconTheme.color,
@@ -341,52 +347,40 @@ class _MainAppContainerState extends State<MainAppContainer>
         child: _getGenerationStatus(),
       ),
       Tab(
-        child: _getSyncStatus(),
+        child: BlocProvider.value(
+          value: _nodeSyncStatusCubit,
+          child: const NodeSyncStatusIcon(),
+        ),
       ),
       Tab(
         child: _isTabSelected(Tabs.lock)
             ? Icon(
                 Icons.lock,
-                size: 24.0,
+                size: 24,
                 color: _isTabSelected(Tabs.lock)
                     ? AppColors.znnColor
                     : Theme.of(context).iconTheme.color,
               )
             : Icon(
                 MaterialCommunityIcons.lock_open_variant,
-                size: 24.0,
+                size: 24,
                 color: Theme.of(context).iconTheme.color,
               ),
       ),
     ];
   }
 
-  Widget _getSyncStatus() {
-    return StreamBuilder<SyncInfo>(
-      stream: _netSyncStatusBloc.stream,
-      builder: (_, snapshot) {
-        if (snapshot.hasError) {
-          return _getSyncingStatusIcon(SyncState.unknown);
-        } else if (snapshot.hasData) {
-          return _getSyncingStatusIcon(snapshot.data!.state, snapshot.data);
-        } else {
-          return _getSyncingStatusIcon(SyncState.unknown);
-        }
-      },
-    );
-  }
-
   Widget _getGenerationStatus() {
     return StreamBuilder<PowStatus>(
       stream: sl.get<PowGeneratingStatusBloc>().stream,
-      builder: (_, snapshot) {
+      builder: (_, AsyncSnapshot<PowStatus> snapshot) {
         if (snapshot.hasData && snapshot.data == PowStatus.generating) {
           return Tooltip(
             message: 'Generating Plasma',
             child: Lottie.asset(
               'assets/lottie/ic_anim_plasma_generation.json',
               fit: BoxFit.contain,
-              width: 30.0,
+              width: 30,
               repeat: true,
             ),
           );
@@ -402,148 +396,11 @@ class _MainAppContainerState extends State<MainAppContainer>
     );
   }
 
-  Widget _getSyncingStatusIcon(SyncState syncState, [SyncInfo? syncInfo]) {
-    String message = 'Connected and synced';
-
-    if (syncState != SyncState.notEnoughPeers &&
-        syncState != SyncState.syncDone &&
-        syncState != SyncState.syncing &&
-        syncState != SyncState.unknown) {
-      syncState = SyncState.unknown;
-    }
-
-    if (syncState == SyncState.unknown) {
-      message = 'Not ready';
-      return Tooltip(
-          message: message,
-          child: Icon(
-            Icons.sync_disabled,
-            size: 24.0,
-            color: _getSyncIconColor(syncState),
-          ));
-    } else if (syncState == SyncState.syncing) {
-      if (syncInfo != null) {
-        if (syncInfo.targetHeight > 0 &&
-            syncInfo.currentHeight > 0 &&
-            (syncInfo.targetHeight - syncInfo.currentHeight) < 3) {
-          message = 'Connected and synced';
-          syncState = SyncState.syncDone;
-          return Tooltip(
-              message: message,
-              child: Icon(
-                Icons.radio_button_unchecked,
-                size: 24.0,
-                color: _getSyncIconColor(syncState),
-              ));
-        } else if (syncInfo.targetHeight == 0 || syncInfo.currentHeight == 0) {
-          message = 'Started syncing with the network, please wait';
-          syncState = SyncState.syncing;
-          return Tooltip(
-              message: message,
-              child: Icon(Icons.sync,
-                  size: 24.0, color: _getSyncIconColor(syncState)));
-        } else {
-          message =
-              'Sync progress: momentum ${syncInfo.currentHeight} of ${syncInfo.targetHeight}';
-          return Tooltip(
-            message: message,
-            child: SizedBox(
-              height: 18.0,
-              width: 18.0,
-              child: Center(
-                  child: CircularProgressIndicator(
-                backgroundColor: Theme.of(context).iconTheme.color,
-                color: _getSyncIconColor(syncState),
-                value: syncInfo.currentHeight / syncInfo.targetHeight,
-                strokeWidth: 3.0,
-              )),
-            ),
-          );
-        }
-      } else {
-        message = 'Syncing momentums';
-        return Tooltip(
-            message: message,
-            child: Icon(Icons.sync,
-                size: 24.0, color: _getSyncIconColor(syncState)));
-      }
-    } else if (syncState == SyncState.notEnoughPeers) {
-      if (syncInfo != null) {
-        if (syncInfo.targetHeight > 0 &&
-            syncInfo.currentHeight > 0 &&
-            (syncInfo.targetHeight - syncInfo.currentHeight) < 20) {
-          message = 'Connecting to peers';
-          syncState = SyncState.syncing;
-          return Tooltip(
-              message: message,
-              child: SizedBox(
-                  height: 18.0,
-                  width: 18.0,
-                  child: Center(
-                      child: CircularProgressIndicator(
-                    backgroundColor: Theme.of(context).iconTheme.color,
-                    color: _getSyncIconColor(syncState),
-                    value: syncInfo.currentHeight / syncInfo.targetHeight,
-                    strokeWidth: 3.0,
-                  ))));
-        } else if (syncInfo.targetHeight == 0 || syncInfo.currentHeight == 0) {
-          message = 'Connecting to peers, please wait';
-          syncState = SyncState.syncing;
-          return Tooltip(
-              message: message,
-              child: Icon(Icons.sync,
-                  size: 24.0, color: _getSyncIconColor(syncState)));
-        } else {
-          message =
-              'Sync progress: momentum ${syncInfo.currentHeight} of ${syncInfo.targetHeight}';
-          syncState = SyncState.syncing;
-          return Tooltip(
-              message: message,
-              child: SizedBox(
-                  height: 18.0,
-                  width: 18.0,
-                  child: Center(
-                      child: CircularProgressIndicator(
-                    backgroundColor: Theme.of(context).iconTheme.color,
-                    color: _getSyncIconColor(syncState),
-                    value: syncInfo.currentHeight / syncInfo.targetHeight,
-                    strokeWidth: 3.0,
-                  ))));
-        }
-      } else {
-        message = 'Connecting to peers';
-        syncState = SyncState.syncing;
-        return Tooltip(
-            message: message,
-            child: Icon(Icons.sync_problem,
-                size: 24.0, color: _getSyncIconColor(syncState)));
-      }
-    } else {
-      message = 'Connected and synced';
-      syncState = SyncState.syncDone;
-    }
-
-    return Tooltip(
-      message: message,
-      child: SizedBox(
-        height: 18.0,
-        width: 18.0,
-        child: Center(
-            child: CircularProgressIndicator(
-          backgroundColor: Theme.of(context).iconTheme.color,
-          color: _getSyncIconColor(syncState),
-          value: 1,
-          strokeWidth: 2.0,
-        )),
-      ),
-    );
-  }
-
   Widget _getCurrentPageContainer() {
     return TabBarView(
       physics: const NeverScrollableScrollPhysics(),
       controller: _tabController,
-      children: [
+      children: <Widget>[
         DashboardTabChild(changePage: _navigateTo),
         _transferTabChild!,
         PillarsTabChild(
@@ -599,9 +456,8 @@ class _MainAppContainerState extends State<MainAppContainer>
   @override
   void dispose() {
     windowManager.removeListener(this);
-
+    _nodeSyncStatusCubit.close();
     _animationController.dispose();
-    _netSyncStatusBloc.dispose();
     _navigateToLockTimer?.cancel();
     _lockBlockStreamSubscription.cancel();
     _incomingLinkSubscription.cancel();
@@ -616,7 +472,6 @@ class _MainAppContainerState extends State<MainAppContainer>
             details: 'Auto-lock interval changed successfully to '
                 '$kAutoLockWalletMinutes minutes.',
             timestamp: DateTime.now().millisecondsSinceEpoch,
-            id: null,
             type: NotificationType.autoLockIntervalChanged,
           ),
         );
@@ -624,6 +479,7 @@ class _MainAppContainerState extends State<MainAppContainer>
   }
 
   void _afterAppInitCallback() {
+    _nodeSyncStatusCubit.fetchDataPeriodically();
     _navigateToLockTimer = _createAutoLockTimer();
     if (kLastWalletConnectUriNotifier.value != null) {
       _tabController!.animateTo(_getTabChildIndex(Tabs.walletConnect));
@@ -635,7 +491,7 @@ class _MainAppContainerState extends State<MainAppContainer>
   }
 
   void _listenToAutoReceiveTxWorkerNotifications() {
-    sl<AutoReceiveTxWorker>().stream.listen((event) {
+    sl<AutoReceiveTxWorker>().stream.listen((WalletNotification event) {
       sl<NotificationsBloc>().addNotification(event);
     });
   }
@@ -648,19 +504,6 @@ class _MainAppContainerState extends State<MainAppContainer>
       );
 
   int _getTabChildIndex(Tabs page) => kTabs.indexOf(page);
-
-  Color? _getSyncIconColor(SyncState syncState) {
-    if (syncState == SyncState.syncDone) {
-      return AppColors.znnColor;
-    }
-    if (syncState == SyncState.unknown) {
-      return Theme.of(context).iconTheme.color;
-    }
-    if (syncState == SyncState.syncing) {
-      return Colors.orange;
-    }
-    return AppColors.errorColor;
-  }
 
   void _navigateTo(
     Tabs page, {
@@ -692,7 +535,7 @@ class _MainAppContainerState extends State<MainAppContainer>
         if (kDisabledTabs.contains(
           kTabs[_tabController!.index],
         )) {
-          int index = _tabController!.previousIndex;
+          final int index = _tabController!.previousIndex;
           setState(() {
             _tabController!.index = index;
           });
@@ -705,16 +548,14 @@ class _MainAppContainerState extends State<MainAppContainer>
 
   void _initLockBlock() {
     _lockBloc = Provider.of<LockBloc>(context, listen: false);
-    _lockBlockStreamSubscription = _lockBloc.stream.listen((event) {
+    _lockBlockStreamSubscription = _lockBloc.stream.listen((LockEvent event) {
       switch (event) {
         case LockEvent.countDown:
           if (kCurrentPage != Tabs.lock) {
             _navigateToLockTimer = _createAutoLockTimer();
           }
-          break;
         case LockEvent.navigateToDashboard:
           _tabController!.animateTo(_getTabChildIndex(Tabs.dashboard));
-          break;
         case LockEvent.navigateToLock:
           if (Navigator.of(context).canPop()) {
             Navigator.popUntil(
@@ -726,16 +567,13 @@ class _MainAppContainerState extends State<MainAppContainer>
           _tabController!.animateTo(
             _getTabChildIndex(Tabs.lock),
           );
-          break;
         case LockEvent.resetTimer:
           if (_navigateToLockTimer != null && _navigateToLockTimer!.isActive) {
             _navigateToLockTimer?.cancel();
             _navigateToLockTimer = _createAutoLockTimer();
           }
-          break;
         case LockEvent.navigateToPreviousTab:
           _tabController!.animateTo(_tabController!.previousIndex);
-          break;
       }
     });
     if (widget.redirectedFromWalletSuccess) {
@@ -744,281 +582,282 @@ class _MainAppContainerState extends State<MainAppContainer>
   }
 
   Timer _createAutoLockTimer() {
-    return Timer.periodic(Duration(minutes: kAutoLockWalletMinutes!), (timer) {
+    return Timer.periodic(Duration(minutes: kAutoLockWalletMinutes!), (Timer timer) {
       if (!sl<HtlcSwapsHandler>().hasActiveIncomingSwaps) {
         _lockBloc.addEvent(LockEvent.navigateToLock);
       }
     });
   }
 
-  void _handleIncomingLinks() async {
+  Future<void> _handleIncomingLinks() async {
     if (!kIsWeb && !Platform.isLinux) {
-      _incomingLinkSubscription =
-          _appLinks.uriLinkStream.listen((Uri? uri) async {
-        if (!await windowManager.isFocused() ||
-            !await windowManager.isVisible()) {
-          windowManager.show();
-        }
+      _incomingLinkSubscription = _appLinks.uriLinkStream.listen(
+        (Uri? uri) async {
+          if (!await windowManager.isFocused() ||
+              !await windowManager.isVisible()) {
+            windowManager.show();
+          }
 
-        if (uri != null) {
-          String uriRaw = uri.toString();
+          if (uri != null) {
+            String uriRaw = uri.toString();
 
-          Logger('MainAppContainer')
-              .log(Level.INFO, '_handleIncomingLinks $uriRaw');
-
-          if (context.mounted) {
-            if (uriRaw.contains('wc')) {
-              if (Platform.isWindows) {
-                uriRaw = uriRaw.replaceAll('/?', '?');
-              }
-              String wcUri = Uri.decodeFull(uriRaw.split('wc?uri=').last);
-              if (WalletConnectUri.tryParse(wcUri) != null) {
-                await _updateWalletConnectUri(wcUri);
-              }
-              return;
-            }
-
-            // Deep link query parameters
-            String queryAddress = '';
-            String queryAmount = ''; // with decimals
-            int queryDuration = 0; // in months
-            String queryZTS = '';
-            String queryPillarName = '';
-            Token? token;
-
-            if (uri.hasQuery) {
-              uri.queryParametersAll.forEach((key, value) async {
-                if (key == 'amount') {
-                  queryAmount = value.first;
-                } else if (key == 'zts') {
-                  queryZTS = value.first;
-                } else if (key == 'address') {
-                  queryAddress = value.first;
-                } else if (key == 'duration') {
-                  queryDuration = int.parse(value.first);
-                } else if (key == 'pillar') {
-                  queryPillarName = value.first;
-                }
-              });
-            }
-
-            if (queryZTS.isNotEmpty) {
-              if (queryZTS == 'znn' || queryZTS == 'ZNN') {
-                token = kZnnCoin;
-              } else if (queryZTS == 'qsr' || queryZTS == 'QSR') {
-                token = kQsrCoin;
-              } else {
-                token = await zenon!.embedded.token
-                    .getByZts(TokenStandard.parse(queryZTS));
-              }
-            }
-
-            final sendPaymentBloc = SendPaymentBloc();
-            final stakingOptionsBloc = StakingOptionsBloc();
-            final delegateButtonBloc = DelegateButtonBloc();
-            final plasmaOptionsBloc = PlasmaOptionsBloc();
+            Logger('MainAppContainer')
+                .log(Level.INFO, '_handleIncomingLinks $uriRaw');
 
             if (context.mounted) {
-              switch (uri.host) {
-                case 'transfer':
-                  await sl<NotificationsBloc>().addNotification(
-                    WalletNotification(
-                      title: 'Transfer action detected',
-                      timestamp: DateTime.now().millisecondsSinceEpoch,
-                      details: 'Deep link: $uriRaw',
-                      type: NotificationType.paymentReceived,
-                    ),
-                  );
+              if (uriRaw.contains('wc')) {
+                if (Platform.isWindows) {
+                  uriRaw = uriRaw.replaceAll('/?', '?');
+                }
+                final String wcUri = Uri.decodeFull(uriRaw.split('wc?uri=').last);
+                if (WalletConnectUri.tryParse(wcUri) != null) {
+                  await _updateWalletConnectUri(wcUri);
+                }
+                return;
+              }
 
-                  if (kCurrentPage != Tabs.lock) {
-                    _navigateTo(Tabs.transfer);
+              // Deep link query parameters
+              String queryAddress = '';
+              String queryAmount = ''; // with decimals
+              int queryDuration = 0; // in months
+              String queryZTS = '';
+              String queryPillarName = '';
+              Token? token;
 
-                    if (token != null) {
+              if (uri.hasQuery) {
+                uri.queryParametersAll.forEach((String key, List<String> value) async {
+                  if (key == 'amount') {
+                    queryAmount = value.first;
+                  } else if (key == 'zts') {
+                    queryZTS = value.first;
+                  } else if (key == 'address') {
+                    queryAddress = value.first;
+                  } else if (key == 'duration') {
+                    queryDuration = int.parse(value.first);
+                  } else if (key == 'pillar') {
+                    queryPillarName = value.first;
+                  }
+                });
+              }
+
+              if (queryZTS.isNotEmpty) {
+                if (queryZTS == 'znn' || queryZTS == 'ZNN') {
+                  token = kZnnCoin;
+                } else if (queryZTS == 'qsr' || queryZTS == 'QSR') {
+                  token = kQsrCoin;
+                } else {
+                  token = await zenon!.embedded.token
+                      .getByZts(TokenStandard.parse(queryZTS));
+                }
+              }
+
+              final SendPaymentBloc sendPaymentBloc = SendPaymentBloc();
+              final StakingOptionsBloc stakingOptionsBloc = StakingOptionsBloc();
+              final DelegateButtonBloc delegateButtonBloc = DelegateButtonBloc();
+              final PlasmaOptionsBloc plasmaOptionsBloc = PlasmaOptionsBloc();
+
+              if (context.mounted) {
+                switch (uri.host) {
+                  case 'transfer':
+                    await sl<NotificationsBloc>().addNotification(
+                      WalletNotification(
+                        title: 'Transfer action detected',
+                        timestamp: DateTime.now().millisecondsSinceEpoch,
+                        details: 'Deep link: $uriRaw',
+                        type: NotificationType.paymentReceived,
+                      ),
+                    );
+
+                    if (kCurrentPage != Tabs.lock) {
+                      _navigateTo(Tabs.transfer);
+
+                      if (token != null) {
+                        showDialogWithNoAndYesOptions(
+                          context: context,
+                          title: 'Transfer action',
+                          isBarrierDismissible: true,
+                          content: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: <Widget>[
+                              Text(
+                                'Are you sure you want transfer $queryAmount ${token.symbol} from $kSelectedAddress to $queryAddress?',
+                              ),
+                            ],
+                          ),
+                          onYesButtonPressed: () {
+                            sendPaymentBloc.sendTransfer(
+                              fromAddress: kSelectedAddress,
+                              toAddress: queryAddress,
+                              amount:
+                                  queryAmount.extractDecimals(token!.decimals),
+                              token: token,
+                            );
+                          },
+                          onNoButtonPressed: () {},
+                        );
+                      }
+                    }
+
+                  case 'stake':
+                    await sl<NotificationsBloc>().addNotification(
+                      WalletNotification(
+                        title: 'Stake action detected',
+                        timestamp: DateTime.now().millisecondsSinceEpoch,
+                        details: 'Deep link: $uriRaw',
+                        type: NotificationType.paymentReceived,
+                      ),
+                    );
+
+                    if (kCurrentPage != Tabs.lock) {
+                      _navigateTo(Tabs.staking);
+
                       showDialogWithNoAndYesOptions(
                         context: context,
-                        title: 'Transfer action',
+                        title: 'Stake ${kZnnCoin.symbol} action',
                         isBarrierDismissible: true,
                         content: Column(
                           mainAxisSize: MainAxisSize.min,
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
+                          children: <Widget>[
                             Text(
-                                'Are you sure you want transfer $queryAmount ${token.symbol} from $kSelectedAddress to $queryAddress?'),
+                              'Are you sure you want stake $queryAmount ${kZnnCoin.symbol} for $queryDuration month(s)?',
+                            ),
                           ],
                         ),
                         onYesButtonPressed: () {
-                          sendPaymentBloc.sendTransfer(
-                            fromAddress: kSelectedAddress,
-                            toAddress: queryAddress,
-                            amount:
-                                queryAmount.extractDecimals(token!.decimals),
-                            data: null,
-                            token: token,
+                          stakingOptionsBloc.stakeForQsr(
+                            Duration(seconds: queryDuration * stakeTimeUnitSec),
+                            queryAmount.extractDecimals(kZnnCoin.decimals),
                           );
                         },
                         onNoButtonPressed: () {},
                       );
                     }
-                  }
-                  break;
 
-                case 'stake':
-                  await sl<NotificationsBloc>().addNotification(
-                    WalletNotification(
-                      title: 'Stake action detected',
-                      timestamp: DateTime.now().millisecondsSinceEpoch,
-                      details: 'Deep link: $uriRaw',
-                      type: NotificationType.paymentReceived,
-                    ),
-                  );
-
-                  if (kCurrentPage != Tabs.lock) {
-                    _navigateTo(Tabs.staking);
-
-                    showDialogWithNoAndYesOptions(
-                      context: context,
-                      title: 'Stake ${kZnnCoin.symbol} action',
-                      isBarrierDismissible: true,
-                      content: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          Text(
-                              'Are you sure you want stake $queryAmount ${kZnnCoin.symbol} for $queryDuration month(s)?'),
-                        ],
+                  case 'delegate':
+                    await sl<NotificationsBloc>().addNotification(
+                      WalletNotification(
+                        title: 'Delegate action detected',
+                        timestamp: DateTime.now().millisecondsSinceEpoch,
+                        details: 'Deep link: $uriRaw',
+                        type: NotificationType.paymentReceived,
                       ),
-                      onYesButtonPressed: () {
-                        stakingOptionsBloc.stakeForQsr(
-                            Duration(seconds: queryDuration * stakeTimeUnitSec),
-                            queryAmount.extractDecimals(kZnnCoin.decimals));
-                      },
-                      onNoButtonPressed: () {},
                     );
-                  }
-                  break;
 
-                case 'delegate':
-                  await sl<NotificationsBloc>().addNotification(
-                    WalletNotification(
-                      title: 'Delegate action detected',
-                      timestamp: DateTime.now().millisecondsSinceEpoch,
-                      details: 'Deep link: $uriRaw',
-                      type: NotificationType.paymentReceived,
-                    ),
-                  );
+                    if (kCurrentPage != Tabs.lock) {
+                      _navigateTo(Tabs.pillars);
 
-                  if (kCurrentPage != Tabs.lock) {
-                    _navigateTo(Tabs.pillars);
+                      showDialogWithNoAndYesOptions(
+                        context: context,
+                        title: 'Delegate ${kZnnCoin.symbol} action',
+                        isBarrierDismissible: true,
+                        content: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: <Widget>[
+                            Text(
+                              'Are you sure you want delegate the ${kZnnCoin.symbol} from $kSelectedAddress to Pillar $queryPillarName?',
+                            ),
+                          ],
+                        ),
+                        onYesButtonPressed: () {
+                          delegateButtonBloc.delegateToPillar(queryPillarName);
+                        },
+                        onNoButtonPressed: () {},
+                      );
+                    }
 
-                    showDialogWithNoAndYesOptions(
-                      context: context,
-                      title: 'Delegate ${kZnnCoin.symbol} action',
-                      isBarrierDismissible: true,
-                      content: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          Text(
-                              'Are you sure you want delegate the ${kZnnCoin.symbol} from $kSelectedAddress to Pillar $queryPillarName?'),
-                        ],
+                  case 'fuse':
+                    await sl<NotificationsBloc>().addNotification(
+                      WalletNotification(
+                        title: 'Fuse ${kQsrCoin.symbol} action detected',
+                        timestamp: DateTime.now().millisecondsSinceEpoch,
+                        details: 'Deep link: $uriRaw',
+                        type: NotificationType.paymentReceived,
                       ),
-                      onYesButtonPressed: () {
-                        delegateButtonBloc.delegateToPillar(queryPillarName);
-                      },
-                      onNoButtonPressed: () {},
                     );
-                  }
-                  break;
 
-                case 'fuse':
-                  await sl<NotificationsBloc>().addNotification(
-                    WalletNotification(
-                      title: 'Fuse ${kQsrCoin.symbol} action detected',
-                      timestamp: DateTime.now().millisecondsSinceEpoch,
-                      details: 'Deep link: $uriRaw',
-                      type: NotificationType.paymentReceived,
-                    ),
-                  );
+                    if (kCurrentPage != Tabs.lock) {
+                      _navigateTo(Tabs.plasma);
 
-                  if (kCurrentPage != Tabs.lock) {
-                    _navigateTo(Tabs.plasma);
+                      showDialogWithNoAndYesOptions(
+                        context: context,
+                        title: 'Fuse ${kQsrCoin.symbol} action',
+                        isBarrierDismissible: true,
+                        content: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: <Widget>[
+                            Text(
+                              'Are you sure you want fuse $queryAmount ${kQsrCoin.symbol} for address $queryAddress?',
+                            ),
+                          ],
+                        ),
+                        onYesButtonPressed: () {
+                          plasmaOptionsBloc.generatePlasma(
+                            queryAddress,
+                            queryAmount.extractDecimals(kZnnCoin.decimals),
+                          );
+                        },
+                        onNoButtonPressed: () {},
+                      );
+                    }
 
-                    showDialogWithNoAndYesOptions(
-                      context: context,
-                      title: 'Fuse ${kQsrCoin.symbol} action',
-                      isBarrierDismissible: true,
-                      content: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          Text(
-                              'Are you sure you want fuse $queryAmount ${kQsrCoin.symbol} for address $queryAddress?'),
-                        ],
+                  case 'sentinel':
+                    await sl<NotificationsBloc>().addNotification(
+                      WalletNotification(
+                        title: 'Deploy Sentinel action detected',
+                        timestamp: DateTime.now().millisecondsSinceEpoch,
+                        details: 'Deep link: $uriRaw',
+                        type: NotificationType.paymentReceived,
                       ),
-                      onYesButtonPressed: () {
-                        plasmaOptionsBloc.generatePlasma(queryAddress,
-                            queryAmount.extractDecimals(kZnnCoin.decimals));
-                      },
-                      onNoButtonPressed: () {},
                     );
-                  }
-                  break;
 
-                case 'sentinel':
-                  await sl<NotificationsBloc>().addNotification(
-                    WalletNotification(
-                      title: 'Deploy Sentinel action detected',
-                      timestamp: DateTime.now().millisecondsSinceEpoch,
-                      details: 'Deep link: $uriRaw',
-                      type: NotificationType.paymentReceived,
-                    ),
-                  );
+                    if (kCurrentPage != Tabs.lock) {
+                      _navigateTo(Tabs.sentinels);
+                    }
 
-                  if (kCurrentPage != Tabs.lock) {
-                    _navigateTo(Tabs.sentinels);
-                  }
-                  break;
+                  case 'pillar':
+                    await sl<NotificationsBloc>().addNotification(
+                      WalletNotification(
+                        title: 'Deploy Pillar action detected',
+                        timestamp: DateTime.now().millisecondsSinceEpoch,
+                        details: 'Deep link: $uriRaw',
+                        type: NotificationType.paymentReceived,
+                      ),
+                    );
 
-                case 'pillar':
-                  await sl<NotificationsBloc>().addNotification(
-                    WalletNotification(
-                      title: 'Deploy Pillar action detected',
-                      timestamp: DateTime.now().millisecondsSinceEpoch,
-                      details: 'Deep link: $uriRaw',
-                      type: NotificationType.paymentReceived,
-                    ),
-                  );
+                    if (kCurrentPage != Tabs.lock) {
+                      _navigateTo(Tabs.pillars);
+                    }
 
-                  if (kCurrentPage != Tabs.lock) {
-                    _navigateTo(Tabs.pillars);
-                  }
-                  break;
-
-                default:
-                  await sl<NotificationsBloc>().addNotification(
-                    WalletNotification(
-                      title: 'Incoming link detected',
-                      timestamp: DateTime.now().millisecondsSinceEpoch,
-                      details: 'Deep link: $uriRaw',
-                      type: NotificationType.paymentReceived,
-                    ),
-                  );
-                  break;
+                  default:
+                    await sl<NotificationsBloc>().addNotification(
+                      WalletNotification(
+                        title: 'Incoming link detected',
+                        timestamp: DateTime.now().millisecondsSinceEpoch,
+                        details: 'Deep link: $uriRaw',
+                        type: NotificationType.paymentReceived,
+                      ),
+                    );
+                    break;
+                }
               }
+              return;
             }
-            return;
           }
-        }
-      }, onDone: () {
-        Logger('MainAppContainer')
-            .log(Level.INFO, '_handleIncomingLinks', 'done');
-      }, onError: (Object err) async {
-        await NotificationUtils.sendNotificationError(
-            err, 'Handle incoming link failed');
-        Logger('MainAppContainer')
-            .log(Level.WARNING, '_handleIncomingLinks', err);
-        if (!mounted) return;
-      });
+        },
+        onDone: () {
+          Logger('MainAppContainer')
+              .log(Level.INFO, '_handleIncomingLinks', 'done');
+        },
+        onError: (Object err) async {
+          await NotificationUtils.sendNotificationError(
+            err,
+            'Handle incoming link failed',
+          );
+          Logger('MainAppContainer')
+              .log(Level.WARNING, '_handleIncomingLinks', err);
+          if (!mounted) return;
+        },
+      );
     }
   }
 
@@ -1026,27 +865,34 @@ class _MainAppContainerState extends State<MainAppContainer>
     if (!_initialUriIsHandled) {
       _initialUriIsHandled = true;
       try {
-        final uri = await _appLinks.getInitialLink();
+        final Uri? uri = await _appLinks.getInitialLink();
         if (uri != null) {
           Logger('MainAppContainer').log(Level.INFO, '_handleInitialUri $uri');
         }
         if (!mounted) return;
       } on PlatformException catch (e, stackTrace) {
-        Logger('MainAppContainer').log(Level.WARNING,
-            '_handleInitialUri PlatformException', e, stackTrace);
+        Logger('MainAppContainer').log(
+          Level.WARNING,
+          '_handleInitialUri PlatformException',
+          e,
+          stackTrace,
+        );
       } on FormatException catch (e, stackTrace) {
         Logger('MainAppContainer').log(
-            Level.WARNING, '_handleInitialUri FormatException', e, stackTrace);
+          Level.WARNING,
+          '_handleInitialUri FormatException',
+          e,
+          stackTrace,
+        );
         if (!mounted) return;
       }
     }
   }
 
   @override
-  void onClipboardChanged() async {
-    ClipboardData? newClipboardData =
-        await Clipboard.getData(Clipboard.kTextPlain);
-    final text = newClipboardData?.text ?? '';
+  Future<void> onClipboardChanged() async {
+    final ClipboardData? newClipboardData = await Clipboard.getData(Clipboard.kTextPlain);
+    final String text = newClipboardData?.text ?? '';
     if (text.isNotEmpty && WalletConnectUri.tryParse(text) != null) {
       // This check is needed because onClipboardChanged is called twice sometimes
       if (kLastWalletConnectUriNotifier.value != text) {

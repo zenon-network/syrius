@@ -8,12 +8,12 @@ import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/p2p_swap_wid
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 
 class P2pSwapsCard extends StatefulWidget {
-  final VoidCallback onStepperNotificationSeeMorePressed;
 
   const P2pSwapsCard({
     required this.onStepperNotificationSeeMorePressed,
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
+  final VoidCallback onStepperNotificationSeeMorePressed;
 
   @override
   State<P2pSwapsCard> createState() => _P2pSwapsCardState();
@@ -54,10 +54,10 @@ class _P2pSwapsCardState extends State<P2pSwapsCard> {
     return CardScaffold<List<P2pSwap>>(
       title: 'P2P Swaps',
       childStream: _p2pSwapsListBloc.stream,
-      onCompletedStatusCallback: (data) => data.isEmpty
+      onCompletedStatusCallback: (List<P2pSwap> data) => data.isEmpty
           ? const SyriusErrorWidget('No P2P swaps')
           : _getTable(data),
-      onRefreshPressed: () => _p2pSwapsListBloc.getData(),
+      onRefreshPressed: _p2pSwapsListBloc.getData,
       description:
           'This card displays a list of P2P swaps that have been conducted '
           'with this wallet.',
@@ -66,15 +66,15 @@ class _P2pSwapsCardState extends State<P2pSwapsCard> {
         child: GestureDetector(
           onTap: _onDeleteSwapHistoryTapped,
           child: Row(
-            children: [
+            children: <Widget>[
               const Icon(
                 Icons.delete,
                 color: AppColors.znnColor,
-                size: 20.0,
+                size: 20,
               ),
               const SizedBox(
-                width: 5.0,
-                height: 38.0,
+                width: 5,
+                height: 38,
               ),
               Expanded(
                 child: Text(
@@ -110,7 +110,7 @@ class _P2pSwapsCardState extends State<P2pSwapsCard> {
             await htlcSwapsService!.deleteSwap(swap.id);
           }
           _p2pSwapsListBloc.getData();
-        });
+        },);
   }
 
   Future<void> _onDeleteSwapHistoryTapped() async {
@@ -123,17 +123,17 @@ class _P2pSwapsCardState extends State<P2pSwapsCard> {
         onYesButtonPressed: () async {
           await htlcSwapsService!.deleteInactiveSwaps();
           _p2pSwapsListBloc.getData();
-        });
+        },);
   }
 
   Widget _getTable(List<P2pSwap> swaps) {
     return Padding(
-      padding: const EdgeInsets.all(15.0),
+      padding: const EdgeInsets.all(15),
       child: Column(
-        children: [
+        children: <Widget>[
           _getHeader(),
           const SizedBox(
-            height: 15.0,
+            height: 15,
           ),
           Visibility(
             visible: _isListScrolled,
@@ -148,17 +148,17 @@ class _P2pSwapsCardState extends State<P2pSwapsCard> {
                   itemCount: swaps.length,
                   separatorBuilder: (_, __) {
                     return const SizedBox(
-                      height: 15.0,
+                      height: 15,
                     );
                   },
-                  itemBuilder: (_, index) {
+                  itemBuilder: (_, int index) {
                     return P2pSwapsListItem(
                       key: ValueKey(swaps.elementAt(index).id),
                       swap: swaps.elementAt(index),
                       onTap: _onSwapTapped,
                       onDelete: _onDeleteSwapTapped,
                     );
-                  }),
+                  },),
             ),
           ),
         ],
@@ -168,9 +168,9 @@ class _P2pSwapsCardState extends State<P2pSwapsCard> {
 
   Widget _getHeader() {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20.0),
+      padding: const EdgeInsets.symmetric(horizontal: 20),
       child: Row(
-        children: [
+        children: <Widget>[
           Expanded(
             flex: 20,
             child: _getHeaderItem('Status'),
@@ -193,24 +193,24 @@ class _P2pSwapsCardState extends State<P2pSwapsCard> {
               visible: htlcSwapsService!.isMaxSwapsReached,
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.end,
-                children: [
+                children: <Widget>[
                   _getHeaderItem(
                     'Swap history is full',
                     textColor: AppColors.errorColor,
-                    textHeight: 1.0,
+                    textHeight: 1,
                   ),
                   const SizedBox(
-                    width: 5.0,
+                    width: 5,
                   ),
                   const Tooltip(
                     message:
                         'The oldest swap entry will be deleted when a new swap is started.',
                     child: Padding(
-                      padding: EdgeInsets.only(top: 3.0),
+                      padding: EdgeInsets.only(top: 3),
                       child: Icon(
                         Icons.info,
                         color: AppColors.errorColor,
-                        size: 12.0,
+                        size: 12,
                       ),
                     ),
                   ),
@@ -226,7 +226,7 @@ class _P2pSwapsCardState extends State<P2pSwapsCard> {
   Widget _getHeaderItem(String text, {Color? textColor, double? textHeight}) {
     return Text(
       text,
-      style: TextStyle(fontSize: 12.0, height: textHeight, color: textColor),
+      style: TextStyle(fontSize: 12, height: textHeight, color: textColor),
     );
   }
 }
