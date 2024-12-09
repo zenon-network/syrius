@@ -1,5 +1,6 @@
 import 'package:json_annotation/json_annotation.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 part 'pillars_cubit.g.dart';
@@ -26,6 +27,7 @@ class PillarsCubit extends TimerCubit<int, PillarsState> {
   Future<int> fetch() async {
     final PillarInfoList pillarInfoList = await zenon.embedded.pillar.getAll();
     final int data = pillarInfoList.list.length;
+    kNumOfPillars = data;
     return data;
   }
 
