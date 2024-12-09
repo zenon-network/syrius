@@ -3,18 +3,18 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 class WidgetAnimator extends StatefulWidget {
-  final Widget? child;
-  final Duration duration;
-  final Curve curve;
-  final Duration animationOffset;
 
   const WidgetAnimator({
     required this.child,
     this.animationOffset = const Duration(milliseconds: 100),
     this.duration = const Duration(milliseconds: 300),
     this.curve = Curves.linear,
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
+  final Widget? child;
+  final Duration duration;
+  final Curve curve;
+  final Duration animationOffset;
 
   @override
   State<WidgetAnimator> createState() => _WidgetAnimatorState();
@@ -60,7 +60,7 @@ class _WidgetAnimatorState extends State<WidgetAnimator>
           opacity: _animation!.value,
           child: Transform.translate(
             offset: Offset(
-              0.0,
+              0,
               (1.0 - _animation!.value) * 20.0,
             ),
             child: child,

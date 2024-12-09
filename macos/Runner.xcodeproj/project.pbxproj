@@ -217,7 +217,7 @@
 			isa = PBXProject;
 			attributes = {
 				LastSwiftUpdateCheck = 0920;
-				LastUpgradeCheck = 1300;
+				LastUpgradeCheck = 1510;
 				ORGANIZATIONNAME = "";
 				TargetAttributes = {
 					33CC10EC2044A3C60003C045 = {
@@ -382,7 +382,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "OUTPUT_DIRECTORY=\"./\"\n\nPACKAGE_CONFIG=\"../.dart_tool/package_config.json\"\nZNN_SDK_DART_PATH=`cat $PACKAGE_CONFIG | grep git/znn_sdk_dart | sed 's/\"rootUri\": \"file:\\/\\///' | sed 's/\\/\",//' | xargs`  \n\nSYRIUS_LIBRARIES=(\n  \"$ZNN_SDK_DART_PATH/lib/src/argon2/blobs/libargon2_ffi.dylib\"\n  \"$ZNN_SDK_DART_PATH/lib/src/pow/blobs/libpow_links.dylib\"\n)\n\necho \"$OUTPUT_DIRECTORY\"\n\nfor znn_library in ${SYRIUS_LIBRARIES[@]}; do\n  echo \"Copy ZNN library: $znn_library\"\n  cp $znn_library \"$OUTPUT_DIRECTORY\"\ndone\n";
+			shellScript = "OUTPUT_DIRECTORY=\"./\"\n\nPACKAGE_CONFIG=\"../.dart_tool/package_config_subset\"\n\n# Locate the line containing the desired path for znn_sdk_dart (not ending with /lib/)\nZNN_SDK_DART_PATH=$(grep \"file:///.*znn_sdk_dart\" $PACKAGE_CONFIG | grep -v \"/lib/\" | sed 's|file:///||' | sed 's|//|/|g')\n\n# Ensure the path starts with a slash for macOS or Unix-based systems\nZNN_SDK_DART_PATH=\"/$ZNN_SDK_DART_PATH\"\n\nSYRIUS_LIBRARIES=(\n  \"$ZNN_SDK_DART_PATH/lib/src/argon2/blobs/libargon2_ffi.dylib\"\n  \"$ZNN_SDK_DART_PATH/lib/src/pow/blobs/libpow_links.dylib\"\n)\n\necho \"$OUTPUT_DIRECTORY\"\n\nfor znn_library in ${SYRIUS_LIBRARIES[@]}; do\n  # Clean up any accidental double slashes in the paths\n  znn_library=$(echo $znn_library | sed 's|//|/|g')\n  echo \"Copy ZNN library: $znn_library\"\n  cp $znn_library \"$OUTPUT_DIRECTORY\"\ndone\n";
 		};
 		96DA2500296EB70F00545E88 /* ShellScript */ = {
 			isa = PBXShellScriptBuildPhase;
@@ -399,7 +399,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "OUTPUT_DIRECTORY=\"./\"\n\nPACKAGE_CONFIG=\"../.dart_tool/package_config.json\"\nZNN_LEDGER_DART_PATH=`cat $PACKAGE_CONFIG | grep git/znn_ledger_dart | sed 's/\"rootUri\": \"file:\\/\\///' | sed 's/\\/\",//' | xargs`  \n\nSYRIUS_LIBRARIES=(\n  \"$ZNN_LEDGER_DART_PATH/lib/src/ledger/blobs/libledger_ffi.dylib\"\n)\n\necho \"$OUTPUT_DIRECTORY\"\n\nfor znn_library in ${SYRIUS_LIBRARIES[@]}; do\n  echo \"Copy ZNN library: $znn_library\"\n  cp $znn_library \"$OUTPUT_DIRECTORY\"\ndone\n";
+			shellScript = "OUTPUT_DIRECTORY=\"./\"\n\nPACKAGE_CONFIG=\"../.dart_tool/package_config_subset\"\n\n# Locate the line containing the desired path for znn_ledger_dart (not ending with /lib/)\nZNN_LEDGER_DART_PATH=$(grep \"file:///.*znn_ledger_dart\" $PACKAGE_CONFIG | grep -v \"/lib/\" | sed 's|file:///||' | sed 's|//|/|g')\n\n# Ensure the path starts with a slash for macOS or Unix-based systems\nZNN_LEDGER_DART_PATH=\"/$ZNN_LEDGER_DART_PATH\"\n\nSYRIUS_LIBRARIES=(\n  \"$ZNN_LEDGER_DART_PATH/lib/src/ledger/blobs/libledger_ffi.dylib\"\n)\n\necho \"$OUTPUT_DIRECTORY\"\n\nfor znn_library in ${SYRIUS_LIBRARIES[@]}; do\n  # Clean up any accidental double slashes in the paths\n  znn_library=$(echo $znn_library | sed 's|//|/|g')\n  echo \"Copy ZNN library: $znn_library\"\n  cp $znn_library \"$OUTPUT_DIRECTORY\"\ndone\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 

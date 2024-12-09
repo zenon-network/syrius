@@ -3,11 +3,6 @@ import 'package:flutter_vector_icons/flutter_vector_icons.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
 
 class SyriusElevatedButton extends StatefulWidget {
-  final String text;
-  final Color initialFillColor;
-  final VoidCallback? onPressed;
-  final Widget? icon;
-  final ButtonStyle? style;
 
   const SyriusElevatedButton({
     required this.text,
@@ -15,8 +10,13 @@ class SyriusElevatedButton extends StatefulWidget {
     this.icon,
     this.initialFillColor = AppColors.qsrColor,
     this.style,
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
+  final String text;
+  final Color initialFillColor;
+  final VoidCallback? onPressed;
+  final Widget? icon;
+  final ButtonStyle? style;
 
   @override
   State createState() {
@@ -33,7 +33,7 @@ class SyriusElevatedButton extends StatefulWidget {
       child: const Icon(
         MaterialCommunityIcons.plus,
         color: Colors.white,
-        size: 15.0,
+        size: 15,
       ),
     );
   }
@@ -47,20 +47,20 @@ class _SyriusElevatedButtonState extends State<SyriusElevatedButton> {
       style: widget.style,
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
-        children: [
+        children: <Widget>[
           Visibility(
             visible: widget.icon != null,
             child: Container(
               alignment: Alignment.center,
-              height: 20.0,
-              width: 20.0,
+              height: 20,
+              width: 20,
               child: widget.icon,
             ),
           ),
           Visibility(
             visible: widget.icon != null,
             child: const SizedBox(
-              width: 5.0,
+              width: 5,
             ),
           ),
           Text(

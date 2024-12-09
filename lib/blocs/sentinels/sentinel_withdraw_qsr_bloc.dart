@@ -12,22 +12,20 @@ class SentinelsWithdrawQsrBloc extends BaseBloc<AccountBlockTemplate?> {
   withdrawQsr(String address) async {
     try {
       addEvent(null);
-      AccountBlockTemplate transactionParams =
+      final AccountBlockTemplate transactionParams =
           zenon!.embedded.sentinel.withdrawQsr();
       AccountBlockUtils.createAccountBlock(
         transactionParams,
         'withdraw ${kQsrCoin.symbol} from Sentinel Slot',
         waitForRequiredPlasma: true,
       ).then(
-        (response) async {
+        (AccountBlockTemplate response) async {
           await Future.delayed(kDelayAfterAccountBlockCreationCall);
           ZenonAddressUtils.refreshBalance();
           addEvent(response);
         },
       ).onError(
-        (error, stackTrace) {
-          addError(error, stackTrace);
-        },
+        addError,
       );
     } catch (e, stackTrace) {
       addError(e, stackTrace);

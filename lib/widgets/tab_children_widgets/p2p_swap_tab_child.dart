@@ -2,17 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:layout/layout.dart';
 import 'package:provider/provider.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/p2p_swap_widgets/p2p_swaps_card.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/p2p_swap_widgets/p2p_swap_options_card.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/p2p_swap_widgets/p2p_swaps_card.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 
 class P2pSwapTabChild extends StatefulWidget {
-  final VoidCallback onStepperNotificationSeeMorePressed;
 
   const P2pSwapTabChild({
     required this.onStepperNotificationSeeMorePressed,
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
+  final VoidCallback onStepperNotificationSeeMorePressed;
 
   @override
   State createState() => P2pSwapTabChildState();
@@ -34,7 +34,7 @@ class P2pSwapTabChildState extends State<P2pSwapTabChild> {
 
   StandardFluidLayout _getLayout(BuildContext context) {
     return StandardFluidLayout(
-      children: [
+      children: <FluidCell>[
         FluidCell(
           height: kStaggeredNumOfColumns / 2,
           width: context.layout.value(

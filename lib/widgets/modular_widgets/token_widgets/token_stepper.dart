@@ -30,7 +30,7 @@ enum TokenStepperStep {
 }
 
 class TokenStepper extends StatefulWidget {
-  const TokenStepper({Key? key}) : super(key: key);
+  const TokenStepper({super.key});
 
   @override
   State createState() {
@@ -92,7 +92,7 @@ class _TokenStepperState extends State<TokenStepper> {
   Widget build(BuildContext context) {
     return StreamBuilder<Map<String, AccountInfo>?>(
       stream: sl.get<BalanceBloc>().stream,
-      builder: (_, snapshot) {
+      builder: (_, AsyncSnapshot<Map<String, AccountInfo>?> snapshot) {
         if (snapshot.hasError) {
           return SyriusErrorWidget(snapshot.error!);
         }
@@ -115,9 +115,8 @@ class _TokenStepperState extends State<TokenStepper> {
       actions: _actionMap,
       shortcuts: _shortcutMap,
       child: Column(
-        children: [
+        children: <Widget>[
           Row(
-            mainAxisAlignment: MainAxisAlignment.start,
             children: <Widget>[
               Expanded(
                 child: Form(
@@ -125,7 +124,7 @@ class _TokenStepperState extends State<TokenStepper> {
                   autovalidateMode: AutovalidateMode.onUserInteraction,
                   child: InputField(
                     thisNode: _focusNodes[0],
-                    onChanged: (value) {
+                    onChanged: (String value) {
                       setState(() {});
                     },
                     controller: _tokenNameController,
@@ -138,14 +137,14 @@ class _TokenStepperState extends State<TokenStepper> {
           ),
           kVerticalSpacing,
           Row(
-            children: [
+            children: <Widget>[
               Expanded(
                 child: Form(
                   key: _tokenSymbolKey,
                   autovalidateMode: AutovalidateMode.onUserInteraction,
                   child: InputField(
                     thisNode: _focusNodes[1],
-                    onChanged: (value) {
+                    onChanged: (String value) {
                       setState(() {});
                     },
                     controller: _tokenSymbolController,
@@ -162,7 +161,7 @@ class _TokenStepperState extends State<TokenStepper> {
             autovalidateMode: AutovalidateMode.onUserInteraction,
             child: InputField(
               thisNode: _focusNodes[2],
-              onChanged: (value) {
+              onChanged: (String value) {
                 setState(() {});
               },
               controller: _tokenDomainController,
@@ -171,7 +170,7 @@ class _TokenStepperState extends State<TokenStepper> {
             ),
           ),
           const SizedBox(
-            height: 25.0,
+            height: 25,
           ),
           _getTokenDetailsActionButtons(),
         ],
@@ -197,7 +196,7 @@ class _TokenStepperState extends State<TokenStepper> {
         activeColor: AppColors.ztsColor,
         currentStep: _currentStep.index,
         onStepTapped: (int index) {},
-        steps: [
+        steps: <custom_material_stepper.Step>[
           StepperUtils.getMaterialStep(
             stepTitle: 'Token creation: Plasma check',
             stepContent: _getPlasmaCheckFutureBuilder(),
@@ -281,7 +280,7 @@ class _TokenStepperState extends State<TokenStepper> {
   Widget _getPlasmaCheckFutureBuilder() {
     return FutureBuilder<PlasmaInfo?>(
       future: zenon!.embedded.plasma.get(Address.parse(kSelectedAddress!)),
-      builder: (_, snapshot) {
+      builder: (_, AsyncSnapshot<PlasmaInfo?> snapshot) {
         if (snapshot.hasError) {
           return SyriusErrorWidget(snapshot.error!);
         } else if (snapshot.hasData) {
@@ -295,28 +294,27 @@ class _TokenStepperState extends State<TokenStepper> {
   Widget _getPlasmaCheckBody(PlasmaInfo plasmaInfo) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
+      children: <Widget>[
         Text(
           'More Plasma is required to perform complex transactions. Please fuse enough QSR before proceeding.',
           style: Theme.of(context).textTheme.headlineSmall,
         ),
         const SizedBox(
-          height: 25.0,
+          height: 25,
         ),
         Row(
-          mainAxisAlignment: MainAxisAlignment.start,
           children: <Widget>[
             Expanded(
               child: DisabledAddressField(_addressController),
             ),
             const SizedBox(
-              width: 25.0,
+              width: 25,
             ),
             PlasmaIcon(plasmaInfo),
           ],
         ),
         const SizedBox(
-          height: 25.0,
+          height: 25,
         ),
         StepperButton(
           text: 'Next',
@@ -344,16 +342,16 @@ class _TokenStepperState extends State<TokenStepper> {
 
   Widget _getIssueTokenStepContent(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 25.0),
+      margin: const EdgeInsets.only(bottom: 25),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
+        children: <Widget>[
           Row(
-            children: [
+            children: <Widget>[
               Checkbox(
                 activeColor: AppColors.ztsColor,
                 value: _isUtility,
-                onChanged: (value) {
+                onChanged: (bool? value) {
                   setState(() {
                     _isUtility = value!;
                   });
@@ -364,9 +362,9 @@ class _TokenStepperState extends State<TokenStepper> {
                 style: Theme.of(context).inputDecorationTheme.hintStyle,
               ),
               const SizedBox(
-                width: 3.0,
+                width: 3,
               ),
-              const Icon(Icons.settings, size: 15.0, color: AppColors.ztsColor),
+              const Icon(Icons.settings, size: 15, color: AppColors.ztsColor),
               const StandardTooltipIcon(
                 'Token status: utility or '
                 'non-utility (e.g. security token)',
@@ -376,7 +374,7 @@ class _TokenStepperState extends State<TokenStepper> {
             ],
           ),
           Padding(
-            padding: const EdgeInsets.only(top: 25.0, bottom: 25.0, left: 15.0),
+            padding: const EdgeInsets.only(top: 25, bottom: 25, left: 15),
             child: DottedBorderInfoWidget(
               text: 'You will need to burn '
                   '${tokenZtsIssueFeeInZnn.addDecimals(
@@ -387,18 +385,18 @@ class _TokenStepperState extends State<TokenStepper> {
             ),
           ),
           Padding(
-            padding: const EdgeInsets.only(left: 15.0),
+            padding: const EdgeInsets.only(left: 15),
             child: Row(
-              children: [
+              children: <Widget>[
                 Visibility(
                   visible: (_createButtonKey.currentState?.btnState ??
                           ButtonState.idle) ==
                       ButtonState.idle,
                   child: Row(
-                    children: [
+                    children: <Widget>[
                       _getStepBackButton(),
                       const SizedBox(
-                        width: 25.0,
+                        width: 25,
                       ),
                     ],
                   ),
@@ -426,15 +424,15 @@ class _TokenStepperState extends State<TokenStepper> {
     AccountInfo accountInfo,
   ) {
     return Column(
-      children: [
+      children: <Widget>[
         Padding(
-          padding: const EdgeInsets.only(bottom: 20.0),
+          padding: const EdgeInsets.only(bottom: 20),
           child: CustomSlider(
             activeColor: AppColors.ztsColor,
-            description: 'Number of decimals: ${_selectedNumDecimals.toInt()}',
-            startValue: 0.0,
-            min: 0.0,
-            maxValue: 18.0,
+            description: 'Number of decimals: $_selectedNumDecimals',
+            startValue: 0,
+            min: 0,
+            maxValue: 18,
             callback: (double value) {
               setState(() {
                 _selectedNumDecimals = value.toInt();
@@ -445,9 +443,8 @@ class _TokenStepperState extends State<TokenStepper> {
         Visibility(
           visible: _isMintable,
           child: Container(
-            margin: const EdgeInsets.only(bottom: 15.0),
+            margin: const EdgeInsets.only(bottom: 15),
             child: Row(
-              mainAxisAlignment: MainAxisAlignment.start,
               children: <Widget>[
                 Expanded(
                   child: Form(
@@ -457,7 +454,7 @@ class _TokenStepperState extends State<TokenStepper> {
                       inputFormatters: FormatUtils.getAmountTextInputFormatters(
                         _maxSupplyController.text,
                       ),
-                      onChanged: (value) {
+                      onChanged: (String value) {
                         setState(() {});
                       },
                       controller: _maxSupplyController,
@@ -466,12 +463,11 @@ class _TokenStepperState extends State<TokenStepper> {
                           ? (String? value) => InputValidators.correctValue(
                                 value,
                                 kBigP255m1,
-                                _selectedNumDecimals.toInt(),
+                                _selectedNumDecimals,
                                 kMinTokenTotalMaxSupply,
                                 canBeEqualToMin: true,
                               )
-                          : (String? value) =>
-                              InputValidators.isMaxSupplyZero(value),
+                          : InputValidators.isMaxSupplyZero,
                     ),
                   ),
                 ),
@@ -480,7 +476,6 @@ class _TokenStepperState extends State<TokenStepper> {
           ),
         ),
         Row(
-          mainAxisAlignment: MainAxisAlignment.start,
           children: <Widget>[
             Expanded(
               child: Form(
@@ -490,12 +485,12 @@ class _TokenStepperState extends State<TokenStepper> {
                   inputFormatters: FormatUtils.getAmountTextInputFormatters(
                     _totalSupplyController.text,
                   ),
-                  onChanged: (value) {
+                  onChanged: (String value) {
                     setState(() {});
                   },
                   controller: _totalSupplyController,
                   hintText: 'Total supply',
-                  validator: (value) => InputValidators.correctValue(
+                  validator: (String? value) => InputValidators.correctValue(
                     value,
                     _isMintable
                         ? _maxSupplyController.text.isNotEmpty
@@ -503,7 +498,7 @@ class _TokenStepperState extends State<TokenStepper> {
                                 .extractDecimals(_selectedNumDecimals)
                             : kBigP255m1
                         : kBigP255m1,
-                    _selectedNumDecimals.toInt(),
+                    _selectedNumDecimals,
                     _isMintable ? BigInt.zero : kMinTokenTotalMaxSupply,
                     canBeEqualToMin: true,
                   ),
@@ -520,12 +515,12 @@ class _TokenStepperState extends State<TokenStepper> {
 
   Row _getTokenMetricsActionButtons() {
     return Row(
-      children: [
+      children: <Widget>[
         Row(
-          children: [
+          children: <Widget>[
             _getStepBackButton(),
             const SizedBox(
-              width: 25.0,
+              width: 25,
             ),
             _getTokenMetricsContinueButton(),
           ],
@@ -554,28 +549,27 @@ class _TokenStepperState extends State<TokenStepper> {
 
   Widget _getBody(BuildContext context, AccountInfo accountInfo) {
     return Stack(
-      children: [
+      children: <Widget>[
         ListView(
-          children: [
+          children: <Widget>[
             _getMaterialStepper(context, accountInfo),
             Padding(
               padding: const EdgeInsets.only(
-                top: 50.0,
-                bottom: 20.0,
+                top: 50,
+                bottom: 20,
               ),
               child: Visibility(
                 visible: (_lastCompletedStep?.index ?? -1) == _numSteps - 1,
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
+                  children: <Widget>[
                     StepperButton.icon(
                       label: 'Create another Token',
                       onPressed: _onCreateAnotherTokenPressed,
                       iconData: Icons.refresh,
-                      context: context,
                     ),
                     const SizedBox(
-                      width: 80.0,
+                      width: 80,
                     ),
                     _getViewTokensButton(),
                   ],
@@ -587,10 +581,10 @@ class _TokenStepperState extends State<TokenStepper> {
         Visibility(
           visible: (_lastCompletedStep?.index ?? -1) == _numSteps - 1,
           child: Positioned(
-            right: 50.0,
+            right: 50,
             child: SizedBox(
-              width: 400.0,
-              height: 400.0,
+              width: 400,
+              height: 400,
               child: Center(
                 child: Lottie.asset(
                   'assets/lottie/ic_anim_zts.json',
@@ -626,22 +620,19 @@ class _TokenStepperState extends State<TokenStepper> {
     _tokenDomainKey = GlobalKey();
     _tokenDomainController = TextEditingController();
     _lastCompletedStep = null;
-    setState(() {
-      _initStepperControllers();
-    });
+    setState(_initStepperControllers);
   }
 
   Widget _getTokenCreationStepContent(AccountInfo accountInfo) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
+      children: <Widget>[
         Text(
           'This will be your issuance address',
           style: Theme.of(context).textTheme.headlineSmall,
         ),
         kVerticalSpacing,
         Row(
-          mainAxisAlignment: MainAxisAlignment.start,
           children: <Widget>[
             Expanded(
               child: DisabledAddressField(_addressController),
@@ -698,7 +689,7 @@ class _TokenStepperState extends State<TokenStepper> {
   void _onTokenMetricsContinuePressed() {
     if ((!_isMintable || _maxSupplyKey.currentState!.validate()) &&
         _totalSupplyKey.currentState!.validate()) {
-      _tokenStepperData.decimals = _selectedNumDecimals.toInt();
+      _tokenStepperData.decimals = _selectedNumDecimals;
       _tokenStepperData.totalSupply =
           _totalSupplyController.text.extractDecimals(_selectedNumDecimals);
       _tokenStepperData.isMintable = _isMintable;
@@ -712,9 +703,9 @@ class _TokenStepperState extends State<TokenStepper> {
 
   Widget _getIssueTokenViewModel() {
     return ViewModelBuilder<IssueTokenBloc>.reactive(
-      onViewModelReady: (model) {
+      onViewModelReady: (IssueTokenBloc model) {
         model.stream.listen(
-          (response) {
+          (AccountBlockTemplate response) {
             _createButtonKey.currentState?.animateReverse();
             _saveProgressAndNavigateToNextStep(TokenStepperStep.issueToken);
           },
@@ -727,8 +718,8 @@ class _TokenStepperState extends State<TokenStepper> {
           },
         );
       },
-      builder: (_, model, __) => _getCreateButton(model),
-      viewModelBuilder: () => IssueTokenBloc(),
+      builder: (_, IssueTokenBloc model, __) => _getCreateButton(model),
+      viewModelBuilder: IssueTokenBloc.new,
     );
   }
 
@@ -746,10 +737,10 @@ class _TokenStepperState extends State<TokenStepper> {
 
   Widget _getTokenDetailsActionButtons() {
     return Row(
-      children: [
+      children: <Widget>[
         _getStepBackButton(),
         const SizedBox(
-          width: 25.0,
+          width: 25,
         ),
         _getTokenDetailsContinueButton(),
       ],
@@ -791,7 +782,7 @@ class _TokenStepperState extends State<TokenStepper> {
           ? InputValidators.correctValue(
                 _maxSupplyController.text,
                 kBigP255m1,
-                _selectedNumDecimals.toInt(),
+                _selectedNumDecimals,
                 kMinTokenTotalMaxSupply,
                 canBeEqualToMin: true,
               ) ==
@@ -801,9 +792,9 @@ class _TokenStepperState extends State<TokenStepper> {
             _totalSupplyController.text,
             _isMintable
                 ? _maxSupplyController.text
-                    .extractDecimals(_selectedNumDecimals.toInt())
+                    .extractDecimals(_selectedNumDecimals)
                 : kBigP255m1,
-            _selectedNumDecimals.toInt(),
+            _selectedNumDecimals,
             _isMintable ? BigInt.zero : kMinTokenTotalMaxSupply,
             canBeEqualToMin: true,
           ) ==
@@ -811,13 +802,13 @@ class _TokenStepperState extends State<TokenStepper> {
 
   void _initFocusNodes(int length) => _focusNodes = List.generate(
         length,
-        (index) => FocusNode(),
+        (int index) => FocusNode(),
       );
 
   void _changeFocusToNextNode() {
-    int indexOfFocusedNode = _focusNodes.indexOf(
+    final int indexOfFocusedNode = _focusNodes.indexOf(
       _focusNodes.firstWhere(
-        (node) => node.hasFocus,
+        (FocusNode node) => node.hasFocus,
       ),
     );
     if (indexOfFocusedNode + 1 < _focusNodes.length) {
@@ -829,16 +820,16 @@ class _TokenStepperState extends State<TokenStepper> {
 
   Widget _getTokenMintableAndBurnableStepContent() {
     return Column(
-      children: [
+      children: <Widget>[
         Row(
-          children: [
+          children: <Widget>[
             const SizedBox(
-              width: 20.0,
+              width: 20,
             ),
             Checkbox(
               activeColor: AppColors.ztsColor,
               value: _isMintable,
-              onChanged: (value) {
+              onChanged: (bool? value) {
                 setState(() {
                   if (value! && _totalSupplyController.text.isNotEmpty) {
                     _maxSupplyController.text = _totalSupplyController.text;
@@ -859,14 +850,14 @@ class _TokenStepperState extends State<TokenStepper> {
           ],
         ),
         Row(
-          children: [
+          children: <Widget>[
             const SizedBox(
-              width: 20.0,
+              width: 20,
             ),
             Checkbox(
               activeColor: AppColors.ztsColor,
               value: _isBurnable,
-              onChanged: (value) {
+              onChanged: (bool? value) {
                 setState(() {
                   _isBurnable = value!;
                 });
@@ -878,7 +869,7 @@ class _TokenStepperState extends State<TokenStepper> {
             ),
             const Icon(
               Icons.whatshot,
-              size: 15.0,
+              size: 15,
               color: AppColors.ztsColor,
             ),
             const StandardTooltipIcon(
@@ -890,10 +881,10 @@ class _TokenStepperState extends State<TokenStepper> {
         ),
         kVerticalSpacing,
         Row(
-          children: [
+          children: <Widget>[
             _getStepBackButton(),
             const SizedBox(
-              width: 25.0,
+              width: 25,
             ),
             StepperButton(
               text: 'Continue',

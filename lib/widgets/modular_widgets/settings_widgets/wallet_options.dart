@@ -12,7 +12,7 @@ import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 
 class WalletOptions extends StatefulWidget {
-  const WalletOptions({Key? key}) : super(key: key);
+  const WalletOptions({super.key});
 
   @override
   State<WalletOptions> createState() => _WalletOptionsState();
@@ -50,14 +50,14 @@ class _WalletOptionsState extends State<WalletOptions> {
     return CardScaffold(
       title: 'Wallet Options',
       description: 'Other wallet options',
-      childBuilder: () => _getWidgetBody(),
+      childBuilder: _getWidgetBody,
     );
   }
 
   Widget _getWidgetBody() {
     return ListView(
       shrinkWrap: true,
-      children: [
+      children: <Widget>[
         CustomExpandablePanel('Delete cache', _getDeleteCacheExpandedWidget()),
         CustomExpandablePanel('Reset wallet', _getResetWalletExpandedWidget()),
         CustomExpandablePanel('Preferences', _getPreferencesExpandedWidget()),
@@ -116,24 +116,24 @@ class _WalletOptionsState extends State<WalletOptions> {
 
   Widget _getPreferencesExpandedWidget() {
     return Column(
-      children: [
+      children: <Widget>[
         _getLaunchAtStartupWidget(),
         _getEnableDesktopNotifications(),
         _buildEnableClipboardWatcher(),
-        _getAutoReceiveWidget()
+        _getAutoReceiveWidget(),
       ],
     );
   }
 
   Widget _getLaunchAtStartupWidget() {
     return Row(
-      children: [
+      children: <Widget>[
         Text(
           'Launch at startup ',
           style: Theme.of(context).textTheme.bodyMedium,
         ),
         SyriusCheckbox(
-          onChanged: (value) async {
+          onChanged: (bool? value) async {
             setState(() {
               _launchAtStartup = value;
             });
@@ -148,19 +148,19 @@ class _WalletOptionsState extends State<WalletOptions> {
 
   Widget _getAutoReceiveWidget() {
     return Row(
-      children: [
+      children: <Widget>[
         Text(
           'Auto-receiver',
           style: Theme.of(context).textTheme.bodyMedium,
         ),
         SyriusCheckbox(
-          onChanged: (value) async {
+          onChanged: (bool? value) async {
             if (value == true) {
               NodeUtils.getUnreceivedTransactions().then((value) {
                 sl<AutoReceiveTxWorker>().autoReceive();
-              }).onError((error, stackTrace) {
+              }).onError((Object? error, StackTrace stackTrace) {
                 Logger('MainAppContainer').log(
-                    Level.WARNING, '_getAutoReceiveWidget', error, stackTrace);
+                    Level.WARNING, '_getAutoReceiveWidget', error, stackTrace,);
               });
             } else if (value == false &&
                 sl<AutoReceiveTxWorker>().pool.isNotEmpty) {
@@ -183,7 +183,7 @@ class _WalletOptionsState extends State<WalletOptions> {
   }
 
   Future<void> _setupLaunchAtStartup() async {
-    PackageInfo packageInfo = await PackageInfo.fromPlatform();
+    final PackageInfo packageInfo = await PackageInfo.fromPlatform();
     launchAtStartup.setup(
       appName: packageInfo.appName,
       appPath: Platform.resolvedExecutable,
@@ -260,13 +260,13 @@ class _WalletOptionsState extends State<WalletOptions> {
 
   Widget _getEnableDesktopNotifications() {
     return Row(
-      children: [
+      children: <Widget>[
         Text(
           'Enable desktop notifications ',
           style: Theme.of(context).textTheme.bodyMedium,
         ),
         SyriusCheckbox(
-          onChanged: (value) {
+          onChanged: (bool? value) {
             setState(() {
               _enableDesktopNotifications = value;
               _changeEnableDesktopNotificationsStatus(value ?? false);
@@ -281,13 +281,13 @@ class _WalletOptionsState extends State<WalletOptions> {
 
   Widget _buildEnableClipboardWatcher() {
     return Row(
-      children: [
+      children: <Widget>[
         Text(
           'Enable clipboard watcher',
           style: Theme.of(context).textTheme.bodyMedium,
         ),
         SyriusCheckbox(
-          onChanged: (value) {
+          onChanged: (bool? value) {
             setState(() {
               _enabledClipboardWatcher = value;
               _changeEnableClipboardWatcherStatus(value ?? false);
@@ -331,7 +331,7 @@ class _WalletOptionsState extends State<WalletOptions> {
   }
 
   Future<void> _sendEnabledDesktopNotificationsStatusNotification(
-      bool enabled) async {
+      bool enabled,) async {
     await sl.get<NotificationsBloc>().addNotification(
           WalletNotification(
             title: 'Desktop notifications ${enabled ? 'enabled' : 'disabled'}',
@@ -344,7 +344,7 @@ class _WalletOptionsState extends State<WalletOptions> {
   }
 
   Future<void> _sendEnableClipboardWatcherStatusNotification(
-      bool enabled) async {
+      bool enabled,) async {
     await sl.get<NotificationsBloc>().addNotification(
           WalletNotification(
             title: 'Clipboard watcher ${enabled ? 'enabled' : 'disabled'}',

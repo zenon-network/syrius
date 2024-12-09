@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:zenon_syrius_wallet_flutter/blocs/base_bloc.dart';
 
 abstract class PeriodicP2pSwapBaseBloc<T> extends BaseBloc<T> {
-  final _refreshInterval = const Duration(seconds: 5);
+  final Duration _refreshInterval = const Duration(seconds: 5);
 
   Timer? _autoRefresher;
 
@@ -11,7 +11,7 @@ abstract class PeriodicP2pSwapBaseBloc<T> extends BaseBloc<T> {
 
   void getDataPeriodically() {
     try {
-      T data = makeCall();
+      final data = makeCall();
       addEvent(data);
     } catch (e, stackTrace) {
       addError(e, stackTrace);

@@ -6,7 +6,7 @@ import 'package:zenon_syrius_wallet_flutter/utils/notifiers/default_address_noti
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 
 class StakingTabChild extends StatefulWidget {
-  const StakingTabChild({Key? key}) : super(key: key);
+  const StakingTabChild({super.key});
 
   @override
   State createState() {
@@ -25,7 +25,7 @@ class _StakingTabChildState extends State<StakingTabChild> {
   }
 
   Widget _getFluidLayout() {
-    final List<FluidCell> children = [
+    final List<FluidCell> children = <FluidCell>[
       FluidCell(
         child: StakingRewards(
           stakingRewardsHistoryBloc: _stakingRewardsHistoryBloc,
@@ -52,7 +52,7 @@ class _StakingTabChildState extends State<StakingTabChild> {
       ),
       FluidCell(
         child: Consumer<SelectedAddressNotifier>(
-          builder: (_, __, child) => StakingOptions(_stakingListBloc),
+          builder: (_, __, Widget? child) => StakingOptions(_stakingListBloc),
         ),
         width: context.layout.value(
           xl: kStaggeredNumOfColumns ~/ 3,

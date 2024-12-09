@@ -9,7 +9,7 @@ import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/icons/clear
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 
 class NotificationsTabChild extends StatefulWidget {
-  const NotificationsTabChild({Key? key}) : super(key: key);
+  const NotificationsTabChild({super.key});
 
   @override
   State<NotificationsTabChild> createState() => _NotificationsTabChildState();
@@ -23,7 +23,6 @@ class _NotificationsTabChildState extends State<NotificationsTabChild> {
     _loadNotifications();
 
     return WidgetAnimator(
-      curve: Curves.linear,
       child: _getNotificationsContainer(),
     );
   }
@@ -35,7 +34,7 @@ class _NotificationsTabChildState extends State<NotificationsTabChild> {
           'wallet notifications',
       childBuilder: () => CustomTable<WalletNotification>(
           items: _notifications,
-          headerColumns: const [
+          headerColumns: const <CustomHeaderColumn>[
             CustomHeaderColumn(columnName: 'Description', flex: 5),
             CustomHeaderColumn(columnName: 'Date', flex: 2),
             CustomHeaderColumn(columnName: 'Time', flex: 2),
@@ -43,12 +42,12 @@ class _NotificationsTabChildState extends State<NotificationsTabChild> {
               columnName: '',
             ),
           ],
-          generateRowCells: _rowCellsGenerator),
+          generateRowCells: _rowCellsGenerator,),
     );
   }
 
   ExpandablePanel _getNotificationExpandablePanel(
-      WalletNotification notification) {
+      WalletNotification notification,) {
     return ExpandablePanel(
       collapsed: Container(),
       theme: ExpandableThemeData(
@@ -57,10 +56,10 @@ class _NotificationsTabChildState extends State<NotificationsTabChild> {
         iconPlacement: ExpandablePanelIconPlacement.right,
       ),
       header: Row(
-        children: [
+        children: <Widget>[
           notification.getIcon(),
           const SizedBox(
-            width: 10.0,
+            width: 10,
           ),
           Expanded(
             child: Text(
@@ -71,9 +70,9 @@ class _NotificationsTabChildState extends State<NotificationsTabChild> {
         ],
       ),
       expanded: Padding(
-        padding: const EdgeInsets.only(left: 14.0, top: 5.0, bottom: 5.0),
+        padding: const EdgeInsets.only(left: 14, top: 5, bottom: 5),
         child: Row(
-          children: [
+          children: <Widget>[
             Expanded(
               child: Text(
                 notification.details!,
@@ -96,8 +95,8 @@ class _NotificationsTabChildState extends State<NotificationsTabChild> {
 
   List<WalletNotification> _getNotificationsFromDb() {
     try {
-      Box notificationsBox = Hive.box(kNotificationsBox);
-      List<dynamic> keys = notificationsBox.keys.toList();
+      final Box notificationsBox = Hive.box(kNotificationsBox);
+      final List keys = notificationsBox.keys.toList();
       if (keys.length >= kNotificationsResultLimit) {
         return List<WalletNotification>.from(
           notificationsBox.valuesBetween(
@@ -112,14 +111,14 @@ class _NotificationsTabChildState extends State<NotificationsTabChild> {
           )
           .toList();
     } catch (e) {
-      return [];
+      return <WalletNotification>[];
     }
   }
 
   Future<void> _deleteNotification(int? notificationTimestamp) async {
-    Box notificationsBox = Hive.box(kNotificationsBox);
+    final Box notificationsBox = Hive.box(kNotificationsBox);
 
-    var notificationKey = notificationsBox.keys.firstWhere(
+    final notificationKey = notificationsBox.keys.firstWhere(
       (key) => notificationsBox.get(key).timestamp == notificationTimestamp,
     );
 
@@ -130,7 +129,7 @@ class _NotificationsTabChildState extends State<NotificationsTabChild> {
 
   void _loadNotifications() {
     _notifications = _getNotificationsFromDb();
-    _notifications!.sort((a, b) => b.timestamp!.compareTo(a.timestamp!));
+    _notifications!.sort((WalletNotification a, WalletNotification b) => b.timestamp!.compareTo(a.timestamp!));
   }
 
   List<Widget> _rowCellsGenerator<WalletNotification>(
@@ -138,7 +137,7 @@ class _NotificationsTabChildState extends State<NotificationsTabChild> {
     isSelected, {
     SentinelsListBloc? model,
   }) {
-    return [
+    return <Widget>[
       CustomTableCell(
         _getNotificationExpandablePanel(notification),
         flex: 5,
@@ -151,7 +150,7 @@ class _NotificationsTabChildState extends State<NotificationsTabChild> {
       CustomTableCell.withText(
         context,
         FormatUtils.formatDate(notification.timestamp,
-            dateFormat: kNotificationsTimeFormat),
+            dateFormat: kNotificationsTimeFormat,),
         flex: 2,
       ),
       CustomTableCell(_getClearIcon(notification)),

@@ -38,11 +38,11 @@ abstract class InfiniteScrollBloc<T> with RefreshBlocMixin {
     yield* _fetchList(0);
   }
 
-  static const _pageSize = 10;
+  static const int _pageSize = 10;
 
-  final _subscriptions = CompositeSubscription();
+  final CompositeSubscription _subscriptions = CompositeSubscription();
 
-  final _onNewListingStateController =
+  final BehaviorSubject<InfiniteScrollBlocListingState<T>> _onNewListingStateController =
       BehaviorSubject<InfiniteScrollBlocListingState<T>>.seeded(
     InfiniteScrollBlocListingState<T>(),
   );
@@ -50,8 +50,8 @@ abstract class InfiniteScrollBloc<T> with RefreshBlocMixin {
   Stream<InfiniteScrollBlocListingState<T>> get onNewListingState =>
       _onNewListingStateController.stream;
 
-  final _onPageRequest = StreamController<int>();
-  final _onRefreshResultsRequest = StreamController<bool>();
+  final StreamController<int> _onPageRequest = StreamController<int>();
+  final StreamController<bool> _onRefreshResultsRequest = StreamController<bool>();
 
   Sink<int> get onPageRequestSink => _onPageRequest.sink;
 
@@ -60,19 +60,18 @@ abstract class InfiniteScrollBloc<T> with RefreshBlocMixin {
   List<T>? get lastListingItems => _onNewListingStateController.value.itemList;
 
   Stream<InfiniteScrollBlocListingState<T>> _fetchList(int pageKey) async* {
-    final lastListingState = _onNewListingStateController.value;
+    final InfiniteScrollBlocListingState<T> lastListingState = _onNewListingStateController.value;
     try {
-      final newItems = await getData(pageKey, _pageSize);
-      final isLastPage = newItems.length < _pageSize || !isDataRequestPaginated;
-      final nextPageKey = isLastPage ? null : pageKey + 1;
+      final List<T> newItems = await getData(pageKey, _pageSize);
+      final bool isLastPage = newItems.length < _pageSize || !isDataRequestPaginated;
+      final int? nextPageKey = isLastPage ? null : pageKey + 1;
       List<T> allItems = isDataRequestPaginated
-          ? [...lastListingState.itemList ?? [], ...newItems]
+          ? <T>[...lastListingState.itemList ?? <T>[], ...newItems]
           : newItems;
       if (filterItemsFunction != null) {
         allItems = filterItemsFunction!(allItems);
       }
       yield InfiniteScrollBlocListingState<T>(
-        error: null,
         nextPageKey: nextPageKey,
         itemList: allItems,
       );

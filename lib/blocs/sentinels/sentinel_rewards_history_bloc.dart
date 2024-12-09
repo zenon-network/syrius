@@ -8,13 +8,13 @@ class SentinelRewardsHistoryBloc
     extends BaseBlocForReloadingIndicator<RewardHistoryList> {
   @override
   Future<RewardHistoryList> getDataAsync() async {
-    RewardHistoryList response =
+    final RewardHistoryList response =
         await zenon!.embedded.sentinel.getFrontierRewardByPage(
       Address.parse(kSelectedAddress!),
       pageSize: kStandardChartNumDays.toInt(),
     );
     if (response.list.any(
-      (element) =>
+      (RewardHistoryEntry element) =>
           element.qsrAmount > BigInt.zero || element.znnAmount > BigInt.zero,
     )) {
       return response;

@@ -5,20 +5,20 @@ import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 class AmountSuffixWidgets extends StatelessWidget {
-  final Token tokenId;
-  final VoidCallback? onMaxPressed;
 
   const AmountSuffixWidgets(
     this.tokenId, {
     this.onMaxPressed,
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
+  final Token tokenId;
+  final VoidCallback? onMaxPressed;
 
   @override
   Widget build(BuildContext context) {
     return Row(
       mainAxisSize: MainAxisSize.min,
-      children: [
+      children: <Widget>[
         AmountSuffixTokenSymbolWidget(
           token: tokenId,
           context: context,
@@ -39,9 +39,8 @@ class AmountSuffixTokenSymbolWidget extends Container {
   AmountSuffixTokenSymbolWidget({
     required Token token,
     required BuildContext context,
-    Key? key,
+    super.key,
   }) : super(
-          key: key,
           height: kAmountSuffixHeight,
           width: kAmountSuffixWidth,
           alignment: Alignment.center,
@@ -65,9 +64,8 @@ class AmountSuffixMaxWidget extends InkWell {
   AmountSuffixMaxWidget({
     required VoidCallback onPressed,
     required BuildContext context,
-    Key? key,
+    super.key,
   }) : super(
-          key: key,
           onTap: onPressed,
           child: Container(
             height: kAmountSuffixHeight,

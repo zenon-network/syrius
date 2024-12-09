@@ -3,7 +3,7 @@ import 'dart:io';
 class FileUtils {
   static Future<void> deleteFile(String path) async {
     try {
-      final file = File(path);
+      final File file = File(path);
       if (file.existsSync()) {
         await file.delete();
       } else {
@@ -16,7 +16,7 @@ class FileUtils {
 
   static Future<void> deleteDirectory(String path) async {
     try {
-      final directory = Directory(path);
+      final Directory directory = Directory(path);
       if (directory.existsSync()) {
         await directory.delete(recursive: true);
       } else {
