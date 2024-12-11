@@ -10,7 +10,7 @@ import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 class SentinelListWidget extends StatefulWidget {
-  const SentinelListWidget({Key? key}) : super(key: key);
+  const SentinelListWidget({super.key});
 
   @override
   State<SentinelListWidget> createState() => _SentinelListWidgetState();
@@ -19,7 +19,7 @@ class SentinelListWidget extends StatefulWidget {
 class _SentinelListWidgetState extends State<SentinelListWidget> {
   late SentinelsListBloc _bloc;
 
-  final List<SentinelInfo> _sentinels = [];
+  final List<SentinelInfo> _sentinels = <SentinelInfo>[];
   bool _sortAscending = true;
 
   @override
@@ -40,7 +40,7 @@ class _SentinelListWidgetState extends State<SentinelListWidget> {
   Widget _getTable(SentinelsListBloc bloc) {
     return InfiniteScrollTable<SentinelInfo>(
       bloc: _bloc,
-      headerColumns: [
+      headerColumns: <InfiniteScrollTableHeaderColumn>[
         InfiniteScrollTableHeaderColumn(
           columnName: 'Sentinel Address',
           onSortArrowsPressed: _onSortArrowsPressed,
@@ -50,11 +50,10 @@ class _SentinelListWidgetState extends State<SentinelListWidget> {
         ),
         const InfiniteScrollTableHeaderColumn(
           columnName: '',
-          onSortArrowsPressed: null,
         ),
       ],
-      generateRowCells: (sentinelInfo, isSelected) {
-        return [
+      generateRowCells: (SentinelInfo sentinelInfo, bool isSelected) {
+        return <Widget>[
           WidgetUtils.getTextAddressTableCell(
             sentinelInfo.owner,
             context,
@@ -65,11 +64,9 @@ class _SentinelListWidgetState extends State<SentinelListWidget> {
           InfiniteScrollTableCell(
             _getSentinelRevokeTimer(sentinelInfo, bloc),
           ),
-          isStakeAddressDefault(sentinelInfo)
-              ? InfiniteScrollTableCell(
+          if (isStakeAddressDefault(sentinelInfo)) InfiniteScrollTableCell(
                   _getCancelContainer(isSelected, sentinelInfo, bloc),
-                )
-              : const Spacer(),
+                ) else const Spacer(),
         ];
       },
     );
@@ -82,12 +79,10 @@ class _SentinelListWidgetState extends State<SentinelListWidget> {
     return Visibility(
       visible: isStakeAddressDefault(sentinelInfo),
       child: Stack(
-        fit: StackFit.loose,
-        children: [
+        children: <Widget>[
           Row(
-            children: [
-              sentinelInfo.isRevocable
-                  ? CancelTimer(
+            children: <Widget>[
+              if (sentinelInfo.isRevocable) CancelTimer(
                       Duration(
                         seconds: sentinelInfo.revokeCooldown,
                       ),
@@ -95,8 +90,7 @@ class _SentinelListWidgetState extends State<SentinelListWidget> {
                       onTimeFinishedCallback: () {
                         model.refreshResults();
                       },
-                    )
-                  : CancelTimer(
+                    ) else CancelTimer(
                       Duration(
                         seconds: sentinelInfo.revokeCooldown,
                       ),
@@ -106,7 +100,7 @@ class _SentinelListWidgetState extends State<SentinelListWidget> {
                       },
                     ),
               const SizedBox(
-                width: 5.0,
+                width: 5,
               ),
               StandardTooltipIcon(
                 sentinelInfo.isRevocable
@@ -136,9 +130,8 @@ class _SentinelListWidgetState extends State<SentinelListWidget> {
     return Visibility(
       visible: sentinelInfo.isRevocable,
       child: Stack(
-        fit: StackFit.loose,
         alignment: Alignment.center,
-        children: [
+        children: <Widget>[
           _getDisassembleButtonViewModel(isSelected, model, sentinelInfo),
         ],
       ),
@@ -151,7 +144,7 @@ class _SentinelListWidgetState extends State<SentinelListWidget> {
     SentinelInfo sentinelInfo,
   ) {
     return MyOutlinedButton(
-      minimumSize: const Size(55.0, 25.0),
+      minimumSize: const Size(55, 25),
       outlineColor: isSelected
           ? AppColors.errorColor
           : Theme.of(context).textTheme.titleSmall!.color,
@@ -162,7 +155,7 @@ class _SentinelListWidgetState extends State<SentinelListWidget> {
           : null,
       child: Row(
         mainAxisSize: MainAxisSize.min,
-        children: [
+        children: <Widget>[
           Text(
             'DISASSEMBLE',
             style: isSelected
@@ -172,11 +165,11 @@ class _SentinelListWidgetState extends State<SentinelListWidget> {
                 : Theme.of(context).textTheme.titleSmall,
           ),
           const SizedBox(
-            width: 20.0,
+            width: 20,
           ),
           Icon(
             SimpleLineIcons.close,
-            size: 11.0,
+            size: 11,
             color: isSelected
                 ? AppColors.errorColor
                 : Theme.of(context).textTheme.titleSmall!.color,
@@ -190,16 +183,14 @@ class _SentinelListWidgetState extends State<SentinelListWidget> {
     switch (columnName) {
       case 'Sentinel Owner':
         _sortAscending
-            ? _sentinels.sort((a, b) => a.owner.compareTo(b.owner))
-            : _sentinels.sort((a, b) => b.owner.compareTo(a.owner));
-        break;
+            ? _sentinels.sort((SentinelInfo a, SentinelInfo b) => a.owner.compareTo(b.owner))
+            : _sentinels.sort((SentinelInfo a, SentinelInfo b) => b.owner.compareTo(a.owner));
       case 'Registration time':
         _sortAscending
-            ? _sentinels.sort((a, b) =>
-                a.registrationTimestamp.compareTo(b.registrationTimestamp))
-            : _sentinels.sort((a, b) =>
-                b.registrationTimestamp.compareTo(a.registrationTimestamp));
-        break;
+            ? _sentinels.sort((SentinelInfo a, SentinelInfo b) =>
+                a.registrationTimestamp.compareTo(b.registrationTimestamp),)
+            : _sentinels.sort((SentinelInfo a, SentinelInfo b) =>
+                b.registrationTimestamp.compareTo(a.registrationTimestamp),);
       case 'Reward Address':
       default:
         break;
@@ -216,9 +207,9 @@ class _SentinelListWidgetState extends State<SentinelListWidget> {
     SentinelInfo sentinelInfo,
   ) {
     return ViewModelBuilder<DisassembleButtonBloc>.reactive(
-      onViewModelReady: (model) {
+      onViewModelReady: (DisassembleButtonBloc model) {
         model.stream.listen(
-          (event) {
+          (AccountBlockTemplate? event) {
             if (event != null) {
               sentinelsModel.refreshResults();
             }
@@ -231,9 +222,9 @@ class _SentinelListWidgetState extends State<SentinelListWidget> {
           },
         );
       },
-      builder: (_, model, __) => StreamBuilder<AccountBlockTemplate?>(
+      builder: (_, DisassembleButtonBloc model, __) => StreamBuilder<AccountBlockTemplate?>(
         stream: model.stream,
-        builder: (_, snapshot) {
+        builder: (_, AsyncSnapshot<AccountBlockTemplate?> snapshot) {
           if (snapshot.hasError) {
             return _getDisassembleButton(isSelected, model, sentinelInfo);
           }
@@ -241,12 +232,12 @@ class _SentinelListWidgetState extends State<SentinelListWidget> {
             if (snapshot.hasData) {
               return _getDisassembleButton(isSelected, model, sentinelInfo);
             }
-            return const SyriusLoadingWidget(size: 25.0);
+            return const SyriusLoadingWidget(size: 25);
           }
           return _getDisassembleButton(isSelected, model, sentinelInfo);
         },
       ),
-      viewModelBuilder: () => DisassembleButtonBloc(),
+      viewModelBuilder: DisassembleButtonBloc.new,
     );
   }
 }

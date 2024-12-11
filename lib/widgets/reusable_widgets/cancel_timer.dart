@@ -3,16 +3,16 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 class CancelTimer extends StatefulWidget {
-  final Duration timerDuration;
-  final Color borderColor;
-  final VoidCallback onTimeFinishedCallback;
 
   const CancelTimer(
     this.timerDuration,
     this.borderColor, {
     required this.onTimeFinishedCallback,
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
+  final Duration timerDuration;
+  final Color borderColor;
+  final VoidCallback onTimeFinishedCallback;
 
   @override
   State<CancelTimer> createState() => _CancelTimerState();
@@ -32,11 +32,11 @@ class _CancelTimerState extends State<CancelTimer> {
       const Duration(
         seconds: 1,
       ),
-      (v) {
+      (Timer v) {
         if (mounted &&
             _currentDuration >
                 const Duration(
-                  seconds: 0,
+                  
                 )) {
           setState(() {
             _currentDuration = _currentDuration -
@@ -56,7 +56,7 @@ class _CancelTimerState extends State<CancelTimer> {
     return Container(
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(
-          5.0,
+          5,
         ),
         border: Border.all(
           color: _borderColor,
@@ -64,8 +64,8 @@ class _CancelTimerState extends State<CancelTimer> {
       ),
       child: Padding(
         padding: const EdgeInsets.symmetric(
-          horizontal: 10.0,
-          vertical: 5.0,
+          horizontal: 10,
+          vertical: 5,
         ),
         child: Text(
           _currentDuration.toString().split('.').first,

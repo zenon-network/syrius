@@ -8,28 +8,27 @@ class AccountChainStatsBloc
     extends BaseBlocForReloadingIndicator<AccountChainStats> {
   @override
   Future<AccountChainStats> getDataAsync() async {
-    AccountInfo accountInfo = await zenon!.ledger.getAccountInfoByAddress(
+    final AccountInfo accountInfo = await zenon!.ledger.getAccountInfoByAddress(
       Address.parse(
         kSelectedAddress!,
       ),
     );
 
-    int pageSize = accountInfo.blockCount!;
-    int pageCount = ((pageSize + 1) / rpcMaxPageSize).ceil();
+    final int pageSize = accountInfo.blockCount!;
+    final int pageCount = ((pageSize + 1) / rpcMaxPageSize).ceil();
 
     if (pageSize > 0) {
-      List<AccountBlock> allBlocks = [];
+      final List<AccountBlock> allBlocks = <AccountBlock>[];
 
-      for (var i = 0; i < pageCount; i++) {
+      for (int i = 0; i < pageCount; i++) {
         allBlocks.addAll((await zenon!.ledger.getAccountBlocksByHeight(
               Address.parse(
                 kSelectedAddress!,
               ),
               (rpcMaxPageSize * i) + 1,
-              rpcMaxPageSize,
             ))
                 .list ??
-            []);
+            <AccountBlock>[],);
       }
 
       return AccountChainStats(
@@ -43,10 +42,10 @@ class AccountChainStatsBloc
   }
 
   Map<BlockTypeEnum, int> _getNumOfBlocksForEachBlockType(
-          List<AccountBlock> blocks) =>
+          List<AccountBlock> blocks,) =>
       BlockTypeEnum.values.fold<Map<BlockTypeEnum, int>>(
-        {},
-        (previousValue, blockType) {
+        <BlockTypeEnum, int>{},
+        (Map<BlockTypeEnum, int> previousValue, BlockTypeEnum blockType) {
           previousValue[blockType] =
               _getNumOfBlockForBlockType(blocks, blockType);
           return previousValue;
@@ -54,10 +53,10 @@ class AccountChainStatsBloc
       );
 
   int _getNumOfBlockForBlockType(
-          List<AccountBlock> blocks, BlockTypeEnum blockType) =>
+          List<AccountBlock> blocks, BlockTypeEnum blockType,) =>
       blocks.fold<int>(
         0,
-        (dynamic previousValue, element) {
+        (int previousValue, AccountBlock element) {
           if (element.blockType == blockType.index) {
             return previousValue + 1;
           }

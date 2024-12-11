@@ -1,0 +1,123 @@
+import 'package:fl_chart/fl_chart.dart';
+import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/color_utils.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/format_utils.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/zts_utils.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
+import 'package:znn_sdk_dart/znn_sdk_dart.dart';
+
+/// Shows a chart based on the provided [transactions]
+class RealtimeTxsChart extends StatefulWidget {
+  /// Creates a RealtimeTxsChart object.
+  const RealtimeTxsChart(
+    this.transactions, {
+    super.key,
+  });
+
+  /// The data needed to generate the chart
+  final List<AccountBlock> transactions;
+
+  @override
+  State<StatefulWidget> createState() => _RealtimeTxsChartState();
+}
+
+class _RealtimeTxsChartState extends State<RealtimeTxsChart> {
+  double _maxTransactionsPerDay = 0;
+
+  List<FlSpot>? _znnSpots;
+  List<FlSpot>? _qsrSpots;
+
+  @override
+  void initState() {
+    super.initState();
+    _znnSpots = _generateZnnSpots();
+    _qsrSpots = _generateQsrSpots();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return StandardChart(
+      maxY: _maxTransactionsPerDay,
+      lineBarsData: _linesBarData(),
+      lineBarDotSymbol: 'txs',
+      titlesReferenceDate: DateTime.now(),
+      convertLeftSideTitlesToInt: true,
+    );
+  }
+
+  double _getTransactionsByDay(TokenStandard tokenId, DateTime date) {
+    final List<AccountBlock> transactions = <AccountBlock>[];
+    for (final AccountBlock transaction in widget.transactions) {
+      AccountBlock? pairedAccountBlock;
+      if (transaction.blockType == 3 &&
+          transaction.pairedAccountBlock != null) {
+        pairedAccountBlock = transaction.pairedAccountBlock;
+      }
+
+      if (DateFormat('d MMM, yyyy').format(date) ==
+          DateFormat('d MMM, yyyy').format(
+            DateTime.fromMillisecondsSinceEpoch(
+              (transaction.confirmationDetail?.momentumTimestamp ?? 0) * 1000,
+            ),
+          )) {
+        if (transaction.tokenStandard == tokenId ||
+            (pairedAccountBlock != null &&
+                pairedAccountBlock.tokenStandard == tokenId)) {
+          transactions.add(transaction);
+        }
+      }
+    }
+
+    final double transactionsPerDay = transactions.length.toDouble();
+
+    if (transactionsPerDay > _maxTransactionsPerDay) {
+      _maxTransactionsPerDay = transactionsPerDay;
+    }
+    return transactionsPerDay;
+  }
+
+  List<LineChartBarData> _linesBarData() {
+    return <LineChartBarData>[
+      StandardLineChartBarData(
+        color: ColorUtils.getTokenColor(kZnnCoin.tokenStandard),
+        spots: _znnSpots,
+      ),
+      StandardLineChartBarData(
+        color: ColorUtils.getTokenColor(kQsrCoin.tokenStandard),
+        spots: _qsrSpots,
+      ),
+    ];
+  }
+
+  List<FlSpot> _generateQsrSpots() {
+    return List<FlSpot>.generate(
+      kStandardChartNumDays.toInt(),
+      (int index) => FlSpot(
+        index.toDouble(),
+        _getTransactionsByDay(
+          kQsrCoin.tokenStandard,
+          DateTime.fromMillisecondsSinceEpoch(
+            FormatUtils.subtractDaysFromDate(index, DateTime.now()),
+          ),
+        ),
+      ),
+    );
+  }
+
+  List<FlSpot> _generateZnnSpots() {
+    return List<FlSpot>.generate(
+      kStandardChartNumDays.toInt(),
+      (int index) => FlSpot(
+        index.toDouble(),
+        _getTransactionsByDay(
+          kZnnCoin.tokenStandard,
+          DateTime.fromMillisecondsSinceEpoch(
+            FormatUtils.subtractDaysFromDate(index, DateTime.now()),
+          ),
+        ),
+      ),
+    );
+  }
+}

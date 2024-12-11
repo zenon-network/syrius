@@ -1,5 +1,5 @@
 class CustomSyriusErrorWidgetArguments {
-  final String errorText;
 
   CustomSyriusErrorWidgetArguments(this.errorText);
+  final String errorText;
 }

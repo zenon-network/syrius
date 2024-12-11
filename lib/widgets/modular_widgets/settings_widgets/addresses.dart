@@ -14,12 +14,12 @@ import 'package:zenon_syrius_wallet_flutter/utils/notifiers/plasma_beneficiary_a
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 
 class Addresses extends StatefulWidget {
-  final AccountChainStatsBloc accountChainStatsBloc;
 
   const Addresses({
     required this.accountChainStatsBloc,
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
+  final AccountChainStatsBloc accountChainStatsBloc;
 
   @override
   State createState() {
@@ -51,13 +51,13 @@ class AddressesState extends State<Addresses> {
       title: 'Addresses',
       description: 'Select the default address that will be used throughout '
           'the wallet for any network operation',
-      childBuilder: () => _getGenerateNewAddressFutureBuilder(),
+      childBuilder: _getGenerateNewAddressFutureBuilder,
     );
   }
 
   Future<void> _changeDefaultAddress(String? newDefaultAddress) async {
     try {
-      Box box = Hive.box(kSharedPrefsBox);
+      final Box box = Hive.box(kSharedPrefsBox);
       await box.put(kDefaultAddressKey, newDefaultAddress);
       if (!mounted) return;
       Provider.of<SelectedAddressNotifier>(
@@ -77,23 +77,21 @@ class AddressesState extends State<Addresses> {
 
   Widget _getAddAddressWidget() {
     return Padding(
-      padding: const EdgeInsets.all(8.0),
+      padding: const EdgeInsets.all(8),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children: [
+        children: <Widget>[
           Expanded(
-            flex: 1,
             child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 20.0),
+              padding: const EdgeInsets.symmetric(horizontal: 20),
               child: NumberSelector.plain(
                 borderColor: AppColors.znnColor,
                 iconColor: AppColors.znnColor,
                 dividerColor: AppColors.znnColor,
-                step: 1,
                 current: 1,
                 min: 1,
                 max: 10,
-                onUpdate: (val) {
+                onUpdate: (int val) {
                   _onAddAddressPressedCallback(val);
                 },
               ),
@@ -109,21 +107,21 @@ class AddressesState extends State<Addresses> {
                           setState(() {
                             _shouldScrollToTheEnd = true;
                           });
-                        });
+                        },);
               });
             },
             child: Container(
                 constraints:
-                    const BoxConstraints(minWidth: 150.0, minHeight: 50.0),
+                    const BoxConstraints(minWidth: 150, minHeight: 50),
                 alignment: Alignment.center,
                 child: Row(
-                  children: [
+                  children: <Widget>[
                     const Icon(
                       Icons.add_circle,
                       color: AppColors.znnColor,
-                      size: 20.0,
+                      size: 20,
                     ),
-                    const SizedBox(width: 10.0),
+                    const SizedBox(width: 10),
                     Text(
                       (numberOfAddressesToAdd == 1)
                           ? 'Add $numberOfAddressesToAdd address  '
@@ -131,19 +129,19 @@ class AddressesState extends State<Addresses> {
                       style: Theme.of(context).textTheme.bodyLarge,
                     ),
                   ],
-                )),
+                ),),
           ),
-          const SizedBox(width: 10.0),
+          const SizedBox(width: 10),
         ],
       ),
     );
   }
 
   Widget _getAddresses() {
-    List<Widget> addresses = kDefaultAddressList
+    final List<Widget> addresses = kDefaultAddressList
         .map(
-          (e) => Row(
-            children: [
+          (String? e) => Row(
+            children: <Widget>[
               Radio<String?>(
                 value: e,
                 groupValue: _selectedAddress,
@@ -160,12 +158,12 @@ class AddressesState extends State<Addresses> {
         )
         .toList();
 
-    Widget listView = ListView.builder(
+    final Widget listView = ListView.builder(
       controller: _scrollController,
       key: const PageStorageKey('Addresses list view'),
       shrinkWrap: true,
       itemCount: addresses.length,
-      itemBuilder: (context, index) {
+      itemBuilder: (BuildContext context, int index) {
         return addresses[index];
       },
     );
@@ -191,7 +189,7 @@ class AddressesState extends State<Addresses> {
 
   Widget _getCardBody() {
     return Column(
-      children: [
+      children: <Widget>[
         Expanded(
           child: _getAddresses(),
         ),
@@ -204,10 +202,10 @@ class AddressesState extends State<Addresses> {
   Widget _getGenerateNewAddressFutureBuilder() {
     return FutureBuilder(
       future: _futureGenerateNewAddress,
-      builder: (_, snapshot) {
+      builder: (_, AsyncSnapshot<void> snapshot) {
         if (snapshot.hasError) {
           return SyriusErrorWidget(snapshot.error!);
-        } else if ([
+        } else if (<ConnectionState>[
           ConnectionState.none,
           ConnectionState.done,
         ].contains(snapshot.connectionState)) {
@@ -221,10 +219,10 @@ class AddressesState extends State<Addresses> {
   Widget _getChangeDefaultAddressFutureBuilder() {
     return FutureBuilder(
       future: _futureChangeDefaultAddress,
-      builder: (_, snapshot) {
+      builder: (_, AsyncSnapshot<void> snapshot) {
         if (snapshot.hasError) {
           return SyriusErrorWidget(snapshot.error!);
-        } else if ([
+        } else if (<ConnectionState>[
           ConnectionState.none,
           ConnectionState.done,
         ].contains(snapshot.connectionState)) {

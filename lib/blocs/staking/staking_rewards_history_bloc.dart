@@ -8,12 +8,12 @@ class StakingRewardsHistoryBloc
     extends BaseBlocForReloadingIndicator<RewardHistoryList> {
   @override
   Future<RewardHistoryList> getDataAsync() async {
-    RewardHistoryList? response =
+    final RewardHistoryList response =
         await zenon!.embedded.stake.getFrontierRewardByPage(
       Address.parse(kSelectedAddress!),
       pageSize: kStandardChartNumDays.toInt(),
     );
-    if (response.list.any((element) => element.qsrAmount > BigInt.zero)) {
+    if (response.list.any((RewardHistoryEntry element) => element.qsrAmount > BigInt.zero)) {
       return response;
     } else {
       throw 'No rewards in the last week';

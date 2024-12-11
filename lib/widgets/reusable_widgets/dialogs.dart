@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
 
-showWarningDialog({
+Future<bool> showWarningDialog({
   required BuildContext context,
   required String title,
   required String description,
@@ -11,22 +11,22 @@ showWarningDialog({
   bool isPressed = false;
   await showDialog(
     context: context,
-    builder: (context) => AlertDialog(
+    builder: (BuildContext context) => AlertDialog(
       icon: const Icon(
         Icons.warning,
-        size: 24.0,
+        size: 24,
         color: Colors.orange,
       ),
       title: Text(title),
       content: Text(description),
-      actions: [
+      actions: <Widget>[
         TextButton(
           onPressed: onActionButtonPressed ??
               () {
                 Navigator.pop(context);
               },
           style: const ButtonStyle(
-            backgroundColor: MaterialStatePropertyAll(Colors.amber),
+            backgroundColor: WidgetStatePropertyAll(Colors.amber),
           ),
           child: Text(
             'Cancel',
@@ -40,13 +40,13 @@ showWarningDialog({
                 Navigator.pop(context);
               },
           style: const ButtonStyle(
-            backgroundColor: MaterialStatePropertyAll(Colors.orange),
+            backgroundColor: WidgetStatePropertyAll(Colors.orange),
           ),
           child: Text(
             buttonText.isEmpty ? 'OK' : buttonText,
             style: Theme.of(context).textTheme.bodyMedium,
           ),
-        )
+        ),
       ],
     ),
     barrierDismissible: false,
@@ -54,7 +54,7 @@ showWarningDialog({
   return isPressed;
 }
 
-showDialogWithNoAndYesOptions({
+Future showDialogWithNoAndYesOptions({
   required BuildContext context,
   required String title,
   required VoidCallback onYesButtonPressed,
@@ -66,10 +66,10 @@ showDialogWithNoAndYesOptions({
     showDialog(
       barrierDismissible: isBarrierDismissible,
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (BuildContext context) => AlertDialog(
         title: Text(title),
         content: content ?? Text(description!),
-        actions: [
+        actions: <Widget>[
           TextButton(
             onPressed: () {
               onNoButtonPressed?.call();
@@ -82,8 +82,8 @@ showDialogWithNoAndYesOptions({
           ),
           TextButton(
             style: Theme.of(context).textButtonTheme.style!.copyWith(
-                  backgroundColor: MaterialStateColor.resolveWith(
-                      (states) => AppColors.errorColor),
+                  backgroundColor: WidgetStateColor.resolveWith(
+                      (Set<WidgetState> states) => AppColors.errorColor,),
                 ),
             onPressed: () {
               onYesButtonPressed.call();
@@ -98,15 +98,15 @@ showDialogWithNoAndYesOptions({
       ),
     );
 
-showCustomDialog({required BuildContext context, required Widget content}) =>
+Future<Object?> showCustomDialog({required BuildContext context, required Widget content}) =>
     showGeneralDialog(
       context: context,
       barrierLabel: '',
       barrierDismissible: true,
-      pageBuilder: (context, Animation<double> animation,
-              Animation<double> secondaryAnimation) =>
+      pageBuilder: (BuildContext context, Animation<double> animation,
+              Animation<double> secondaryAnimation,) =>
           Center(
         child: ClipRRect(
-            borderRadius: BorderRadius.circular(15.0), child: content),
+            borderRadius: BorderRadius.circular(15), child: content,),
       ),
     );

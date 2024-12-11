@@ -29,8 +29,8 @@ class HtlcSwapsHandler {
   }
 
   bool get hasActiveIncomingSwaps =>
-      htlcSwapsService!.getSwapsByState([P2pSwapState.active]).firstWhereOrNull(
-          (e) => e.direction == P2pSwapDirection.incoming) !=
+      htlcSwapsService!.getSwapsByState(<P2pSwapState>[P2pSwapState.active]).firstWhereOrNull(
+          (HtlcSwap e) => e.direction == P2pSwapDirection.incoming,) !=
       null;
 
   Future<void> _runPeriodically() async {
@@ -38,14 +38,14 @@ class HtlcSwapsHandler {
       _isRunning = true;
       await _enableWakelockIfNeeded();
       if (!zenon!.wsClient.isClosed()) {
-        final unresolvedSwaps = htlcSwapsService!.getSwapsByState([
+        final List<HtlcSwap> unresolvedSwaps = htlcSwapsService!.getSwapsByState(<P2pSwapState>[
           P2pSwapState.pending,
           P2pSwapState.active,
-          P2pSwapState.reclaimable
+          P2pSwapState.reclaimable,
         ]);
         if (unresolvedSwaps.isNotEmpty) {
           if (await _areThereNewHtlcBlocks()) {
-            final newBlocks = await _getNewHtlcBlocks(unresolvedSwaps);
+            final List<AccountBlock> newBlocks = await _getNewHtlcBlocks(unresolvedSwaps);
             await _goThroughHtlcBlocks(newBlocks);
           }
           await _checkForExpiredSwaps();
@@ -56,7 +56,7 @@ class HtlcSwapsHandler {
     } catch (e) {
       Logger('HtlcSwapsHandler').log(Level.WARNING, '_runPeriodically', e);
     } finally {
-      Future.delayed(const Duration(seconds: 5), () => _runPeriodically());
+      Future.delayed(const Duration(seconds: 5), _runPeriodically);
     }
   }
 
@@ -73,7 +73,7 @@ class HtlcSwapsHandler {
 
   Future<int?> _getHtlcFrontierHeight() async {
     try {
-      final frontier = await zenon!.ledger.getFrontierAccountBlock(htlcAddress);
+      final AccountBlock? frontier = await zenon!.ledger.getFrontierAccountBlock(htlcAddress);
       return frontier?.height;
     } catch (e, stackTrace) {
       Logger('HtlcSwapsHandler')
@@ -83,41 +83,41 @@ class HtlcSwapsHandler {
   }
 
   Future<bool> _areThereNewHtlcBlocks() async {
-    final frontier = await _getHtlcFrontierHeight();
+    final int? frontier = await _getHtlcFrontierHeight();
     return frontier != null &&
         frontier > htlcSwapsService!.getLastCheckedHtlcBlockHeight();
   }
 
   Future<List<AccountBlock>> _getNewHtlcBlocks(List<HtlcSwap> swaps) async {
-    final lastCheckedHeight = htlcSwapsService!.getLastCheckedHtlcBlockHeight();
-    final oldestSwapStartTime = _getOldestSwapStartTime(swaps) ?? 0;
+    final int lastCheckedHeight = htlcSwapsService!.getLastCheckedHtlcBlockHeight();
+    final int oldestSwapStartTime = _getOldestSwapStartTime(swaps) ?? 0;
     int lastCheckedBlockTime = 0;
 
     if (lastCheckedHeight > 0) {
       try {
         lastCheckedBlockTime =
             (await AccountBlockUtils.getTimeForAccountBlockHeight(
-                    htlcAddress, lastCheckedHeight)) ??
+                    htlcAddress, lastCheckedHeight,)) ??
                 lastCheckedBlockTime;
       } catch (e, stackTrace) {
         Logger('HtlcSwapsHandler')
             .log(Level.WARNING, '_getNewHtlcBlocks', e, stackTrace);
-        return [];
+        return <AccountBlock>[];
       }
     }
 
     try {
       return await AccountBlockUtils.getAccountBlocksAfterTime(
-          htlcAddress, max(oldestSwapStartTime, lastCheckedBlockTime));
+          htlcAddress, max(oldestSwapStartTime, lastCheckedBlockTime),);
     } catch (e, stackTrace) {
       Logger('HtlcSwapsHandler')
           .log(Level.WARNING, '_getNewHtlcBlocks', e, stackTrace);
-      return [];
+      return <AccountBlock>[];
     }
   }
 
   Future<void> _goThroughHtlcBlocks(List<AccountBlock> blocks) async {
-    for (final block in blocks) {
+    for (final AccountBlock block in blocks) {
       await _extractSwapDataFromBlock(block);
       await htlcSwapsService!.storeLastCheckedHtlcBlockHeight(block.height);
     }
@@ -128,15 +128,15 @@ class HtlcSwapsHandler {
       return;
     }
 
-    final pairedBlock = htlcBlock.pairedAccountBlock!;
-    final blockData = AccountBlockUtils.getDecodedBlockData(
-        Definitions.htlc, pairedBlock.data);
+    final AccountBlock pairedBlock = htlcBlock.pairedAccountBlock!;
+    final BlockData? blockData = AccountBlockUtils.getDecodedBlockData(
+        Definitions.htlc, pairedBlock.data,);
 
     if (blockData == null) {
       return;
     }
 
-    final swap = _tryGetSwapFromBlockData(blockData);
+    final HtlcSwap? swap = _tryGetSwapFromBlockData(blockData);
     if (swap == null) {
       return;
     }
@@ -221,7 +221,7 @@ class HtlcSwapsHandler {
     }
     if (data.params.containsKey('hashLock') && swap == null) {
       swap = htlcSwapsService!.getSwapByHashLock(
-          Hash.fromBytes(data.params['hashLock']).toString());
+          Hash.fromBytes(data.params['hashLock']).toString(),);
     }
     return swap;
   }
@@ -253,10 +253,10 @@ class HtlcSwapsHandler {
   }
 
   Future<void> _checkForExpiredSwaps() async {
-    final swaps = htlcSwapsService!
-        .getSwapsByState([P2pSwapState.pending, P2pSwapState.active]);
-    final now = DateTimeUtils.unixTimeNow;
-    for (final swap in swaps) {
+    final List<HtlcSwap> swaps = htlcSwapsService!
+        .getSwapsByState(<P2pSwapState>[P2pSwapState.pending, P2pSwapState.active]);
+    final int now = DateTimeUtils.unixTimeNow;
+    for (final HtlcSwap swap in swaps) {
       if (swap.initialHtlcExpirationTime < now ||
           (swap.counterHtlcExpirationTime != null &&
               swap.counterHtlcExpirationTime! -
@@ -273,9 +273,9 @@ class HtlcSwapsHandler {
     // since the counterparty may have published the preimage at the last moment
     // before the HTLC would have expired. In this situation the swap's state
     // may have already been changed to reclaimable.
-    final swaps = htlcSwapsService!
-        .getSwapsByState([P2pSwapState.active, P2pSwapState.reclaimable]);
-    for (final swap in swaps) {
+    final List<HtlcSwap> swaps = htlcSwapsService!
+        .getSwapsByState(<P2pSwapState>[P2pSwapState.active, P2pSwapState.reclaimable]);
+    for (final HtlcSwap swap in swaps) {
       if (swap.direction == P2pSwapDirection.incoming &&
           swap.preimage != null) {
         sl<AutoUnlockHtlcWorker>().addHash(Hash.parse(swap.initialHtlcId));
@@ -286,7 +286,7 @@ class HtlcSwapsHandler {
   int? _getOldestSwapStartTime(List<HtlcSwap> swaps) {
     return swaps.isNotEmpty
         ? swaps
-            .reduce((e1, e2) => e1.startTime > e2.startTime ? e1 : e2)
+            .reduce((HtlcSwap e1, HtlcSwap e2) => e1.startTime > e2.startTime ? e1 : e2)
             .startTime
         : null;
   }

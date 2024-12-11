@@ -17,19 +17,19 @@ import 'package:zenon_syrius_wallet_flutter/utils/notification_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
-const double _kMaxMinutesOfInactivity = 30.0;
-const double _kMinUnlockAttempts = 3.0;
-const double _kMaxUnlockAttempts = 10.0;
+const double _kMaxMinutesOfInactivity = 30;
+const double _kMinUnlockAttempts = 3;
+const double _kMaxUnlockAttempts = 10;
 
 class SecurityWidget extends StatefulWidget {
-  final VoidCallback _onChangeAutoLockTime;
-  final VoidCallback onStepperNotificationSeeMorePressed;
 
   const SecurityWidget(
     this._onChangeAutoLockTime, {
     required this.onStepperNotificationSeeMorePressed,
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
+  final VoidCallback _onChangeAutoLockTime;
+  final VoidCallback onStepperNotificationSeeMorePressed;
 
   @override
   State createState() {
@@ -91,7 +91,7 @@ class _SecurityWidgetState extends State<SecurityWidget> {
   Widget _getWidgetBody(BuildContext context) {
     return ListView(
       shrinkWrap: true,
-      children: [
+      children: <Widget>[
         CustomExpandablePanel(
           'Change password',
           _getChangePasswordExpandedWidget(),
@@ -127,7 +127,7 @@ class _SecurityWidgetState extends State<SecurityWidget> {
 
   Widget _getAutoLockSlider() {
     return Column(
-      children: [
+      children: <Widget>[
         CustomSlider(
           description:
               'Lock after $_autoLockWalletMinutes minutes of inactivity',
@@ -147,7 +147,7 @@ class _SecurityWidgetState extends State<SecurityWidget> {
 
   Widget _getAutoEraseSlider() {
     return Column(
-      children: [
+      children: <Widget>[
         CustomSlider(
           description: 'Erase after ${_autoEraseWalletLimit!.toInt()} '
               'failed password attempts',
@@ -174,7 +174,7 @@ class _SecurityWidgetState extends State<SecurityWidget> {
     );
   }
 
-  void _onConfirmAutoLockDurationButtonPressed() async {
+  Future<void> _onConfirmAutoLockDurationButtonPressed() async {
     try {
       _confirmIntervalButtonKey.currentState?.animateForward();
       await sharedPrefsService!
@@ -223,7 +223,6 @@ class _SecurityWidgetState extends State<SecurityWidget> {
                   details: 'The auto-erase limit has now '
                       '$kAutoEraseWalletLimit attempt(s)',
                   timestamp: DateTime.now().millisecondsSinceEpoch,
-                  id: null,
                   type: NotificationType.autoEraseNumAttemptsChanged,
                 ),
               );
@@ -241,7 +240,7 @@ class _SecurityWidgetState extends State<SecurityWidget> {
 
   Widget _getSignExpandedWidget() {
     return Column(
-      children: [
+      children: <Widget>[
         kVerticalSpacing,
         InputField(
           controller: _textToBeSignedController,
@@ -266,16 +265,16 @@ class _SecurityWidgetState extends State<SecurityWidget> {
           visible: _signedTextController.text.isNotEmpty,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
+            children: <Widget>[
               const SizedBox(
-                height: 10.0,
+                height: 10,
               ),
               const Text('Signature:'),
               const SizedBox(
-                height: 10.0,
+                height: 10,
               ),
               Row(
-                children: [
+                children: <Widget>[
                   Expanded(
                     child: InputField(
                       enabled: false,
@@ -286,14 +285,14 @@ class _SecurityWidgetState extends State<SecurityWidget> {
                 ],
               ),
               const SizedBox(
-                height: 10.0,
+                height: 10,
               ),
               const Text('Public key:'),
               const SizedBox(
-                height: 10.0,
+                height: 10,
               ),
               Row(
-                children: [
+                children: <Widget>[
                   Expanded(
                     child: InputField(
                       enabled: false,
@@ -313,7 +312,7 @@ class _SecurityWidgetState extends State<SecurityWidget> {
   Future<void> _onSignButtonPressed() async {
     try {
       _signButtonKey.currentState?.animateForward();
-      final signature = await walletSign(
+      final Signature signature = await walletSign(
         _textToBeSignedController.text.codeUnits,
       );
       setState(() {
@@ -329,10 +328,10 @@ class _SecurityWidgetState extends State<SecurityWidget> {
 
   Widget _getVerifyExpandedWidget() {
     return Column(
-      children: [
+      children: <Widget>[
         kVerticalSpacing,
         InputField(
-          onChanged: (value) {
+          onChanged: (String value) {
             setState(() {});
           },
           controller: _textToBeVerifiedController,
@@ -353,17 +352,17 @@ class _SecurityWidgetState extends State<SecurityWidget> {
             child: const Icon(
               Icons.content_paste,
               color: AppColors.darkHintTextColor,
-              size: 15.0,
+              size: 15,
             ),
           ),
           suffixIconConstraints: const BoxConstraints(
-            maxWidth: 45.0,
-            maxHeight: 20.0,
+            maxWidth: 45,
+            maxHeight: 20,
           ),
         ),
         kVerticalSpacing,
         InputField(
-          onChanged: (value) {
+          onChanged: (String value) {
             setState(() {});
           },
           controller: _signatureController,
@@ -384,17 +383,17 @@ class _SecurityWidgetState extends State<SecurityWidget> {
             child: const Icon(
               Icons.content_paste,
               color: AppColors.darkHintTextColor,
-              size: 15.0,
+              size: 15,
             ),
           ),
           suffixIconConstraints: const BoxConstraints(
-            maxWidth: 45.0,
-            maxHeight: 20.0,
+            maxWidth: 45,
+            maxHeight: 20,
           ),
         ),
         kVerticalSpacing,
         InputField(
-          onChanged: (value) {
+          onChanged: (String value) {
             setState(() {});
           },
           controller: _publicKeyToBeFilledController,
@@ -415,12 +414,12 @@ class _SecurityWidgetState extends State<SecurityWidget> {
             child: const Icon(
               Icons.content_paste,
               color: AppColors.darkHintTextColor,
-              size: 15.0,
+              size: 15,
             ),
           ),
           suffixIconConstraints: const BoxConstraints(
-            maxWidth: 45.0,
-            maxHeight: 20.0,
+            maxWidth: 45,
+            maxHeight: 20,
           ),
         ),
         kVerticalSpacing,
@@ -440,7 +439,7 @@ class _SecurityWidgetState extends State<SecurityWidget> {
   Future<void> _onVerifyButtonPressed() async {
     try {
       _verifyButtonKey.currentState?.animateForward();
-      bool verified = await Crypto.verify(
+      final bool verified = await Crypto.verify(
         FormatUtils.decodeHexString(_signatureController.text),
         Uint8List.fromList(_textToBeVerifiedController.text.codeUnits),
         FormatUtils.decodeHexString(_publicKeyToBeFilledController.text),
@@ -466,7 +465,7 @@ class _SecurityWidgetState extends State<SecurityWidget> {
       }
     } catch (e) {
       await NotificationUtils.sendNotificationError(
-          e, 'Error while verifying message');
+          e, 'Error while verifying message',);
     } finally {
       _verifyButtonKey.currentState?.animateReverse();
     }
@@ -483,7 +482,7 @@ class _SecurityWidgetState extends State<SecurityWidget> {
 
   Widget _getSignFileExpandedWidget() {
     return Column(
-      children: [
+      children: <Widget>[
         SelectFileWidget(
           onPathFoundCallback: (String path) {
             setState(() {
@@ -496,7 +495,7 @@ class _SecurityWidgetState extends State<SecurityWidget> {
         Visibility(
           visible: _toBeSignedFilePath != null,
           child: Column(
-            children: [
+            children: <Widget>[
               kVerticalSpacing,
               LoadingButton.settings(
                 key: _signFileButtonKey,
@@ -510,12 +509,12 @@ class _SecurityWidgetState extends State<SecurityWidget> {
           visible: _fileHashController.text.isNotEmpty,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
+            children: <Widget>[
               kVerticalSpacing,
               const Text('Signed hash:'),
               kVerticalSpacing,
               Row(
-                children: [
+                children: <Widget>[
                   Expanded(
                     child: InputField(
                       enabled: false,
@@ -529,7 +528,7 @@ class _SecurityWidgetState extends State<SecurityWidget> {
               const Text('Public key:'),
               kVerticalSpacing,
               Row(
-                children: [
+                children: <Widget>[
                   Expanded(
                     child: InputField(
                       enabled: false,
@@ -546,15 +545,15 @@ class _SecurityWidgetState extends State<SecurityWidget> {
     );
   }
 
-  void _onSignFileButtonPressed() async {
+  Future<void> _onSignFileButtonPressed() async {
     try {
       _signFileButtonKey.currentState?.animateForward();
-      File droppedFile = File(
+      final File droppedFile = File(
         _toBeSignedFilePath!,
       );
-      final fileSignature = await walletSign(Crypto.digest(
+      final Signature fileSignature = await walletSign(Crypto.digest(
         await droppedFile.readAsBytes(),
-      ));
+      ),);
       setState(() {
         _fileHashController.text = fileSignature.signature;
         _publicKeySignFileController.text = fileSignature.publicKey;
@@ -570,7 +569,7 @@ class _SecurityWidgetState extends State<SecurityWidget> {
 
   Widget _getVerifyFileExpandedWidget() {
     return Column(
-      children: [
+      children: <Widget>[
         SelectFileWidget(
           onPathFoundCallback: (String path) {
             setState(() {
@@ -583,7 +582,7 @@ class _SecurityWidgetState extends State<SecurityWidget> {
         Visibility(
           visible: _toBeVerifiedFilePath != null,
           child: Column(
-            children: [
+            children: <Widget>[
               kVerticalSpacing,
               LoadingButton.settings(
                 key: _verifyFileButtonKey,
@@ -597,10 +596,10 @@ class _SecurityWidgetState extends State<SecurityWidget> {
           ),
         ),
         Column(
-          children: [
+          children: <Widget>[
             kVerticalSpacing,
             InputField(
-              onChanged: (value) {
+              onChanged: (String value) {
                 setState(() {});
               },
               controller: _fileHashVerifyController,
@@ -621,17 +620,17 @@ class _SecurityWidgetState extends State<SecurityWidget> {
                 child: const Icon(
                   Icons.content_paste,
                   color: AppColors.darkHintTextColor,
-                  size: 15.0,
+                  size: 15,
                 ),
               ),
               suffixIconConstraints: const BoxConstraints(
-                maxWidth: 45.0,
-                maxHeight: 20.0,
+                maxWidth: 45,
+                maxHeight: 20,
               ),
             ),
             kVerticalSpacing,
             InputField(
-              onChanged: (value) {
+              onChanged: (String value) {
                 setState(() {});
               },
               controller: _publicKeyVerifyFileController,
@@ -652,15 +651,15 @@ class _SecurityWidgetState extends State<SecurityWidget> {
                 child: const Icon(
                   Icons.content_paste,
                   color: AppColors.darkHintTextColor,
-                  size: 15.0,
+                  size: 15,
                 ),
               ),
               suffixIconConstraints: const BoxConstraints(
-                maxWidth: 45.0,
-                maxHeight: 20.0,
+                maxWidth: 45,
+                maxHeight: 20,
               ),
             ),
-            kVerticalSpacing
+            kVerticalSpacing,
           ],
         ),
       ],
@@ -670,11 +669,11 @@ class _SecurityWidgetState extends State<SecurityWidget> {
   Future<void> _onVerifyFileButtonPressed() async {
     try {
       _verifyFileButtonKey.currentState?.animateForward();
-      bool verified = await Crypto.verify(
+      final bool verified = await Crypto.verify(
         FormatUtils.decodeHexString(_fileHashVerifyController.text),
         Uint8List.fromList(Crypto.digest(await File(
           _toBeVerifiedFilePath!,
-        ).readAsBytes())),
+        ).readAsBytes(),),),
         FormatUtils.decodeHexString(_publicKeyVerifyFileController.text),
       );
       if (verified) {
@@ -699,7 +698,7 @@ class _SecurityWidgetState extends State<SecurityWidget> {
       }
     } catch (e) {
       await NotificationUtils.sendNotificationError(
-          e, 'Error while verifying file hash:');
+          e, 'Error while verifying file hash:',);
     } finally {
       _verifyFileButtonKey.currentState?.animateReverse();
     }

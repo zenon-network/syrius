@@ -8,9 +8,9 @@ class WalletConnectSessionsBloc extends InfiniteScrollBloc<SessionData> {
 
   @override
   Future<List<SessionData>> getData(int pageKey, int pageSize) async {
-    final wcService = sl.get<IWeb3WalletService>();
-    final sessions = <SessionData>[];
-    for (var pairing in wcService.pairings.value) {
+    final IWeb3WalletService wcService = sl.get<IWeb3WalletService>();
+    final List<SessionData> sessions = <SessionData>[];
+    for (final PairingInfo pairing in wcService.pairings.value) {
       sessions.addAll(
         wcService.getSessionsForPairing(pairing.topic).values,
       );

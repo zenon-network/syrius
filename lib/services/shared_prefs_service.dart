@@ -25,10 +25,10 @@ class SharedPrefsService {
     }
   }
 
-  Future<void> close() async => await _sharedPrefsBox!.close();
+  Future<void> close() async => _sharedPrefsBox!.close();
 
   Future<void> put(String key, dynamic value) async =>
-      await _sharedPrefsBox!.put(
+      _sharedPrefsBox!.put(
         key,
         value,
       );

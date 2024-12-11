@@ -8,24 +8,24 @@ import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 class AcceleratorTabChild extends StatelessWidget {
-  final VoidCallback onStepperNotificationSeeMorePressed;
 
   const AcceleratorTabChild({
     required this.onStepperNotificationSeeMorePressed,
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
+  final VoidCallback onStepperNotificationSeeMorePressed;
 
   @override
   Widget build(BuildContext context) {
     return FutureBuilder<List<PillarInfo>>(
       future:
           zenon!.embedded.pillar.getByOwner(Address.parse(kSelectedAddress!)),
-      builder: (_, snapshot) {
+      builder: (_, AsyncSnapshot<List<PillarInfo>> snapshot) {
         if (snapshot.hasError) {
           return SyriusErrorWidget(snapshot.error.toString());
         } else if (snapshot.hasData) {
           return _getLayout(
-              context, snapshot.data!.isNotEmpty ? snapshot.data!.first : null);
+              context, snapshot.data!.isNotEmpty ? snapshot.data!.first : null,);
         }
         return const SyriusLoadingWidget();
       },
@@ -34,7 +34,7 @@ class AcceleratorTabChild extends StatelessWidget {
 
   StandardFluidLayout _getLayout(BuildContext context, PillarInfo? pillarInfo) {
     return StandardFluidLayout(
-      children: [
+      children: <FluidCell>[
         FluidCell(
           width: context.layout.value(
             xl: kStaggeredNumOfColumns ~/ 3,

@@ -6,9 +6,9 @@ import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/p2p_swap_widgets/modals/join_native_swap_modal.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/p2p_swap_widgets/modals/native_p2p_swap_modal.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/p2p_swap_widgets/modals/p2p_swap_warning_modal.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/p2p_swap_widgets/modals/recover_deposit_modal.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/p2p_swap_widgets/modals/start_native_swap_modal.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/p2p_swap_widgets/modals/p2p_swap_warning_modal.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/p2p_swap_widgets/p2p_swap_options_button.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/dialogs.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/error_widget.dart';
@@ -17,8 +17,8 @@ import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 class P2pSwapOptionsCard extends StatefulWidget {
   const P2pSwapOptionsCard({
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   State<P2pSwapOptionsCard> createState() => _P2pSwapOptionsCardState();
@@ -46,15 +46,15 @@ class _P2pSwapOptionsCardState extends State<P2pSwapOptionsCard> {
             );
           },
           child: Row(
-            children: [
+            children: <Widget>[
               const Icon(
                 Icons.refresh,
                 color: AppColors.znnColor,
-                size: 20.0,
+                size: 20,
               ),
               const SizedBox(
-                width: 5.0,
-                height: 38.0,
+                width: 5,
+                height: 38,
               ),
               Expanded(
                 child: Text(
@@ -72,32 +72,32 @@ class _P2pSwapOptionsCardState extends State<P2pSwapOptionsCard> {
   Widget _getWidgetBody(BuildContext context) {
     return StreamBuilder<PowStatus>(
       stream: sl.get<PowGeneratingStatusBloc>().stream,
-      builder: (_, snapshot) {
+      builder: (_, AsyncSnapshot<PowStatus> snapshot) {
         if (snapshot.hasError) {
           return SyriusErrorWidget(snapshot.error!);
         }
-        final isGeneratingPlasma = _isGeneratingPlasma(snapshot.data);
+        final bool isGeneratingPlasma = _isGeneratingPlasma(snapshot.data);
         return Container(
-          margin: const EdgeInsets.all(20.0),
+          margin: const EdgeInsets.all(20),
           child: _getNativeOptions(isGeneratingPlasma),
         );
       },
     );
   }
 
-  void _showUserWarningModalIfNeeded({required Function() onContinue}) {
+  void _showUserWarningModalIfNeeded({required VoidCallback onContinue}) {
     final hasReadWarning = sharedPrefsService!.get(
       kHasReadP2pSwapWarningKey,
       defaultValue: kHasReadP2pSwapWarningDefaultValue,
     );
-    if (!hasReadWarning) {
+    if (hasReadWarning == false) {
       showCustomDialog(
         context: context,
         content: P2PSwapWarningModal(onAccepted: () {
           Navigator.pop(context);
           sharedPrefsService!.put(kHasReadP2pSwapWarningKey, true);
           Timer.run(onContinue);
-        }),
+        },),
       );
     } else {
       onContinue();
@@ -118,7 +118,7 @@ class _P2pSwapOptionsCardState extends State<P2pSwapOptionsCard> {
 
   Column _getNativeOptions(bool isGeneratingPlasma) {
     return Column(
-      children: [
+      children: <Widget>[
         P2pSwapOptionsButton(
           primaryText: 'Start swap',
           secondaryText: 'Start a native swap with a counterparty.',
@@ -128,11 +128,11 @@ class _P2pSwapOptionsCardState extends State<P2pSwapOptionsCard> {
                   onContinue: () => showCustomDialog(
                         context: context,
                         content: StartNativeSwapModal(
-                            onSwapStarted: _showNativeSwapModal),
-                      )),
+                            onSwapStarted: _showNativeSwapModal,),
+                      ),),
         ),
         const SizedBox(
-          height: 25.0,
+          height: 25,
         ),
         P2pSwapOptionsButton(
           primaryText: 'Join swap',
@@ -148,27 +148,27 @@ class _P2pSwapOptionsCardState extends State<P2pSwapOptionsCard> {
                 ),
         ),
         const SizedBox(
-          height: 40.0,
+          height: 40,
         ),
         MouseRegion(
           cursor: SystemMouseCursors.click,
           child: GestureDetector(
             child: const Row(
               mainAxisAlignment: MainAxisAlignment.center,
-              children: [
+              children: <Widget>[
                 Text(
                   'View swap tutorial',
                   style: TextStyle(
                     color: AppColors.subtitleColor,
-                    fontSize: 14.0,
+                    fontSize: 14,
                   ),
                 ),
                 SizedBox(
-                  width: 3.0,
+                  width: 3,
                 ),
                 Icon(
                   Icons.open_in_new,
-                  size: 18.0,
+                  size: 18,
                   color: AppColors.subtitleColor,
                 ),
               ],
@@ -177,7 +177,7 @@ class _P2pSwapOptionsCardState extends State<P2pSwapOptionsCard> {
           ),
         ),
         const SizedBox(
-          height: 40.0,
+          height: 40,
         ),
       ],
     );

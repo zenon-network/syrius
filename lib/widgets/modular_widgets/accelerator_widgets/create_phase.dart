@@ -6,14 +6,14 @@ import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 class CreatePhase extends StatelessWidget {
-  final VoidCallback onStepperNotificationSeeMorePressed;
-  final Project project;
 
   const CreatePhase({
     required this.onStepperNotificationSeeMorePressed,
     required this.project,
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
+  final VoidCallback onStepperNotificationSeeMorePressed;
+  final Project project;
 
   @override
   Widget build(BuildContext context) {
@@ -29,18 +29,18 @@ class CreatePhase extends StatelessWidget {
   Widget _getWidgetBody(BuildContext context) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceAround,
-      children: [
+      children: <Widget>[
         const Icon(
           MaterialCommunityIcons.creation,
-          size: 100.0,
+          size: 100,
           color: AppColors.znnColor,
         ),
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisAlignment: MainAxisAlignment.center,
-          children: [
+          children: <Widget>[
             SizedBox(
-              width: 200.0,
+              width: 200,
               child: Text(
                 'Start the project by creating a phase to unlock funds',
                 style: Theme.of(context).textTheme.headlineSmall,
@@ -53,7 +53,7 @@ class CreatePhase extends StatelessWidget {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => StepperScreen(
+                          builder: (BuildContext context) => StepperScreen(
                             stepper: PhaseCreationStepper(project),
                             onStepperNotificationSeeMorePressed:
                                 onStepperNotificationSeeMorePressed,

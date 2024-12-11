@@ -13,8 +13,8 @@ import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 class RecoverDepositModal extends StatefulWidget {
   const RecoverDepositModal({
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   State<RecoverDepositModal> createState() => _RecoverDepositModalState();
@@ -59,13 +59,13 @@ class _RecoverDepositModalState extends State<RecoverDepositModal> {
   Widget _getPendingFundsView() {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
-      children: [
+      children: <Widget>[
         const SizedBox(
-          height: 10.0,
+          height: 10,
         ),
         Container(
-          width: 72.0,
-          height: 72.0,
+          width: 72,
+          height: 72,
           color: Colors.transparent,
           child: SvgPicture.asset(
             'assets/svg/ic_completed_symbol.svg',
@@ -74,16 +74,16 @@ class _RecoverDepositModalState extends State<RecoverDepositModal> {
           ),
         ),
         const SizedBox(
-          height: 30.0,
+          height: 30,
         ),
         const Text(
           'Recovery transaction sent. You will receive the funds shortly.',
           style: TextStyle(
-            fontSize: 16.0,
+            fontSize: 16,
           ),
         ),
         const SizedBox(
-          height: 30.0,
+          height: 30,
         ),
       ],
     );
@@ -91,37 +91,37 @@ class _RecoverDepositModalState extends State<RecoverDepositModal> {
 
   Widget _getSearchView() {
     return Column(
-      children: [
+      children: <Widget>[
         const SizedBox(
-          height: 20.0,
+          height: 20,
         ),
         const Text(
-          'If you have lost access to the machine that a swap was started on, the deposited funds can be recovered with the deposit ID.\n\nIf you don\'t have the deposit ID, please refer to the swap tutorial for instructions on how to recover it using a block explorer.',
+          "If you have lost access to the machine that a swap was started on, the deposited funds can be recovered with the deposit ID.\n\nIf you don't have the deposit ID, please refer to the swap tutorial for instructions on how to recover it using a block explorer.",
           style: TextStyle(
-            fontSize: 14.0,
+            fontSize: 14,
           ),
         ),
         const SizedBox(
-          height: 20.0,
+          height: 20,
         ),
         MouseRegion(
           cursor: SystemMouseCursors.click,
           child: GestureDetector(
             child: const Row(
-              children: [
+              children: <Widget>[
                 Text(
                   'View swap tutorial',
                   style: TextStyle(
                     color: AppColors.subtitleColor,
-                    fontSize: 14.0,
+                    fontSize: 14,
                   ),
                 ),
                 SizedBox(
-                  width: 3.0,
+                  width: 3,
                 ),
                 Icon(
                   Icons.open_in_new,
-                  size: 18.0,
+                  size: 18,
                   color: AppColors.subtitleColor,
                 ),
               ],
@@ -130,15 +130,15 @@ class _RecoverDepositModalState extends State<RecoverDepositModal> {
           ),
         ),
         const SizedBox(
-          height: 25.0,
+          height: 25,
         ),
         Form(
           autovalidateMode: AutovalidateMode.onUserInteraction,
           child: InputField(
-            onChanged: (value) {
+            onChanged: (String value) {
               setState(() {});
             },
-            validator: (value) => InputValidators.checkHash(value),
+            validator: InputValidators.checkHash,
             controller: _depositIdController,
             suffixIcon: RawMaterialButton(
               shape: const CircleBorder(),
@@ -152,30 +152,30 @@ class _RecoverDepositModalState extends State<RecoverDepositModal> {
               child: const Icon(
                 Icons.content_paste,
                 color: AppColors.darkHintTextColor,
-                size: 15.0,
+                size: 15,
               ),
             ),
             suffixIconConstraints: const BoxConstraints(
-              maxWidth: 45.0,
-              maxHeight: 20.0,
+              maxWidth: 45,
+              maxHeight: 20,
             ),
             hintText: 'Deposit ID',
-            contentLeftPadding: 10.0,
+            contentLeftPadding: 10,
           ),
         ),
         const SizedBox(
-          height: 25.0,
+          height: 25,
         ),
         Visibility(
           visible: _errorText != null,
           child: Column(
-            children: [
+            children: <Widget>[
               ImportantTextContainer(
                 text: _errorText ?? '',
                 showBorder: true,
               ),
               const SizedBox(
-                height: 20.0,
+                height: 20,
               ),
             ],
           ),
@@ -187,9 +187,9 @@ class _RecoverDepositModalState extends State<RecoverDepositModal> {
 
   Widget _getRecoverButton() {
     return ViewModelBuilder<RecoverHtlcSwapFundsBloc>.reactive(
-      onViewModelReady: (model) {
+      onViewModelReady: (RecoverHtlcSwapFundsBloc model) {
         model.stream.listen(
-          (event) async {
+          (AccountBlockTemplate? event) async {
             if (event is AccountBlockTemplate) {
               setState(() {
                 _isPendingFunds = true;
@@ -204,7 +204,7 @@ class _RecoverDepositModalState extends State<RecoverDepositModal> {
           },
         );
       },
-      builder: (_, model, __) => InstructionButton(
+      builder: (_, RecoverHtlcSwapFundsBloc model, __) => InstructionButton(
         text: 'Recover deposit',
         isEnabled: _isHashValid(),
         isLoading: _isLoading,
@@ -218,7 +218,7 @@ class _RecoverDepositModalState extends State<RecoverDepositModal> {
           model.recoverFunds(htlcId: Hash.parse(_depositIdController.text));
         },
       ),
-      viewModelBuilder: () => RecoverHtlcSwapFundsBloc(),
+      viewModelBuilder: RecoverHtlcSwapFundsBloc.new,
     );
   }
 

@@ -3,12 +3,6 @@ import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/loading_info_text.dart';
 
 class InstructionButton extends StatefulWidget {
-  final String text;
-  final bool isEnabled;
-  final bool isLoading;
-  final VoidCallback onPressed;
-  final String? instructionText;
-  final String? loadingText;
 
   const InstructionButton({
     required this.text,
@@ -17,8 +11,14 @@ class InstructionButton extends StatefulWidget {
     required this.onPressed,
     this.instructionText,
     this.loadingText,
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
+  final String text;
+  final bool isEnabled;
+  final bool isLoading;
+  final VoidCallback onPressed;
+  final String? instructionText;
+  final String? loadingText;
 
   @override
   State<InstructionButton> createState() => _InstructionButtonState();

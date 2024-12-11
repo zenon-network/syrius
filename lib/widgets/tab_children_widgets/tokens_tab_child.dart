@@ -3,17 +3,17 @@ import 'package:layout/layout.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 
 class TokensTabChild extends StatelessWidget {
-  final VoidCallback onStepperNotificationSeeMorePressed;
 
   const TokensTabChild({
     required this.onStepperNotificationSeeMorePressed,
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
+  final VoidCallback onStepperNotificationSeeMorePressed;
 
   @override
   Widget build(BuildContext context) {
     return StandardFluidLayout(
-      children: [
+      children: <FluidCell>[
         FluidCell(
           width: context.layout.value(
             xl: kStaggeredNumOfColumns ~/ 3,

@@ -3,14 +3,14 @@ import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 class AvailableBalance extends StatelessWidget {
-  final Token token;
-  final AccountInfo accountInfo;
 
   const AvailableBalance(
     this.token,
     this.accountInfo, {
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
+  final Token token;
+  final AccountInfo accountInfo;
 
   @override
   Widget build(BuildContext context) {

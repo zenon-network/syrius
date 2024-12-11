@@ -6,7 +6,7 @@ import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 class BackupWidget extends StatefulWidget {
-  const BackupWidget({Key? key}) : super(key: key);
+  const BackupWidget({super.key});
 
   @override
   State<BackupWidget> createState() => _BackupWidgetState();
@@ -45,16 +45,16 @@ class _BackupWidgetState extends State<BackupWidget> {
     );
   }
 
-  void _onBackupWalletPressed() async {
+  Future<void> _onBackupWalletPressed() async {
     kWalletFile!
-        .access((wallet) => Future.value((wallet as KeyStore).mnemonic!))
-        .then((value) => NavigationUtils.push(
+        .access((Wallet wallet) => Future.value((wallet as KeyStore).mnemonic!))
+        .then((String value) => NavigationUtils.push(
               context,
               ExportWalletInfoScreen(
                 value,
                 backupWalletFlow: true,
               ),
-            ));
+            ),);
   }
 
   Widget _getDumpMnemonicButton() {

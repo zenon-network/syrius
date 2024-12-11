@@ -7,16 +7,16 @@ import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 class ProjectDetailsScreen extends StatefulWidget {
-  final VoidCallback onStepperNotificationSeeMorePressed;
-  final AcceleratorProject project;
-  final PillarInfo? pillarInfo;
 
   const ProjectDetailsScreen({
     required this.project,
     required this.pillarInfo,
     required this.onStepperNotificationSeeMorePressed,
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
+  final VoidCallback onStepperNotificationSeeMorePressed;
+  final AcceleratorProject project;
+  final PillarInfo? pillarInfo;
 
   @override
   State<ProjectDetailsScreen> createState() => _ProjectDetailsScreenState();
@@ -29,17 +29,17 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
       body: SafeArea(
         child: Container(
           margin: const EdgeInsets.only(
-            left: 20.0,
-            right: 20.0,
-            bottom: 20.0,
+            left: 20,
+            right: 20,
+            bottom: 20,
           ),
           child: Column(
-            children: [
+            children: <Widget>[
               Row(
                 mainAxisAlignment: MainAxisAlignment.end,
-                children: [
+                children: <Widget>[
                   IconButton(
-                    splashRadius: 20.0,
+                    splashRadius: 20,
                     onPressed: () {
                       Navigator.pop(context);
                     },
@@ -68,7 +68,7 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
     RefreshProjectBloc refreshProjectViewModel,
   ) {
     return StandardFluidLayout(
-      children: [
+      children: <FluidCell>[
         FluidCell(
           width: project.owner.toString() == kSelectedAddress!
               ? context.layout.value(
@@ -115,12 +115,12 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
 
   Widget _getStreamBuilder() {
     return ViewModelBuilder<RefreshProjectBloc>.reactive(
-      onViewModelReady: (model) {
+      onViewModelReady: (RefreshProjectBloc model) {
         model.refreshProject(widget.project.id);
       },
-      builder: (_, model, __) => StreamBuilder<Project?>(
+      builder: (_, RefreshProjectBloc model, __) => StreamBuilder<Project?>(
         stream: model.stream,
-        builder: (_, snapshot) {
+        builder: (_, AsyncSnapshot<Project?> snapshot) {
           if (snapshot.hasError) {
             return SyriusErrorWidget(snapshot.error!);
           }
@@ -133,7 +133,7 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
           return const SyriusLoadingWidget();
         },
       ),
-      viewModelBuilder: () => RefreshProjectBloc(),
+      viewModelBuilder: RefreshProjectBloc.new,
     );
   }
 }

@@ -3,14 +3,14 @@ import 'package:flutter/material.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
 
 class CustomExpandablePanel extends StatefulWidget {
-  final String header;
-  final Widget expandedChild;
 
   const CustomExpandablePanel(
     this.header,
     this.expandedChild, {
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
+  final String header;
+  final Widget expandedChild;
 
   @override
   State<CustomExpandablePanel> createState() => _CustomExpandablePanelState();
@@ -39,7 +39,7 @@ class _CustomExpandablePanelState extends State<CustomExpandablePanel> {
         collapsed: Container(),
         header: Padding(
           padding: const EdgeInsets.only(
-            left: 15.0,
+            left: 15,
           ),
           child: Text(
             widget.header,
@@ -48,8 +48,8 @@ class _CustomExpandablePanelState extends State<CustomExpandablePanel> {
         ),
         expanded: Padding(
           padding: const EdgeInsets.symmetric(
-            vertical: 5.0,
-            horizontal: 15.0,
+            vertical: 5,
+            horizontal: 15,
           ),
           child: widget.expandedChild,
         ),

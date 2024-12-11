@@ -8,9 +8,9 @@ class FormatUtils {
   static List<TextInputFormatter> getAmountTextInputFormatters(
     String replacementString,
   ) =>
-      [
+      <TextInputFormatter>[
         FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*?$'),
-            replacementString: replacementString),
+            replacementString: replacementString,),
         FilteringTextInputFormatter.deny(
           RegExp(r'^0\d+'),
           replacementString: replacementString,
@@ -20,7 +20,7 @@ class FormatUtils {
   static List<TextInputFormatter> getPlasmaAmountTextInputFormatters(
     String replacementString,
   ) =>
-      [
+      <TextInputFormatter>[
         FilteringTextInputFormatter.digitsOnly,
         FilteringTextInputFormatter.deny(
           RegExp(r'^0\d+'),
@@ -32,17 +32,17 @@ class FormatUtils {
   static List<int> decodeHexString(String input) => HEX.decode(input);
 
   static String formatDate(int timestampMillis,
-      {String dateFormat = kDefaultDateFormat}) {
-    DateTime date = DateTime.fromMillisecondsSinceEpoch(timestampMillis);
+      {String dateFormat = kDefaultDateFormat,}) {
+    final DateTime date = DateTime.fromMillisecondsSinceEpoch(timestampMillis);
     return DateFormat(dateFormat).format(date);
   }
 
   static String extractNameFromEnum<T>(T enumValue) {
-    String valueName = enumValue.toString().split('.')[1];
-    if (RegExp(r'^[a-z]+[A-Z]+').hasMatch(valueName)) {
-      List<String> parts = valueName
-          .split(RegExp(r'(?<=[a-z])(?=[A-Z])'))
-          .map((e) => e.toLowerCase())
+    final String valueName = enumValue.toString().split('.')[1];
+    if (RegExp('^[a-z]+[A-Z]+').hasMatch(valueName)) {
+      final List<String> parts = valueName
+          .split(RegExp('(?<=[a-z])(?=[A-Z])'))
+          .map((String e) => e.toLowerCase())
           .toList();
       parts.first = parts.first.capitalize();
       return parts.join(' ');
@@ -61,7 +61,7 @@ class FormatUtils {
   }
 
   static String formatData(int transactionMillis) {
-    int currentMillis = DateTime.now().millisecondsSinceEpoch;
+    final int currentMillis = DateTime.now().millisecondsSinceEpoch;
     if (currentMillis - transactionMillis <=
         const Duration(days: 1).inMilliseconds) {
       return formatDataShort(currentMillis - transactionMillis);
@@ -70,7 +70,7 @@ class FormatUtils {
   }
 
   static String formatDataShort(int i) {
-    Duration duration = Duration(milliseconds: i);
+    final Duration duration = Duration(milliseconds: i);
     if (duration.inHours > 0) {
       return '${duration.inHours} h ago';
     }

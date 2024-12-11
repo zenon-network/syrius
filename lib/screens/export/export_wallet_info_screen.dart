@@ -6,14 +6,14 @@ import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 
 class ExportWalletInfoScreen extends StatefulWidget {
-  final String seed;
-  final bool backupWalletFlow;
 
   const ExportWalletInfoScreen(
     this.seed, {
     this.backupWalletFlow = false,
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
+  final String seed;
+  final bool backupWalletFlow;
 
   @override
   State<ExportWalletInfoScreen> createState() => _ExportWalletInfoScreenState();
@@ -27,7 +27,7 @@ class _ExportWalletInfoScreenState extends State<ExportWalletInfoScreen> {
     return Scaffold(
       body: Container(
         padding: const EdgeInsets.symmetric(
-          vertical: 30.0,
+          vertical: 30,
         ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -42,7 +42,7 @@ class _ExportWalletInfoScreenState extends State<ExportWalletInfoScreen> {
                 'assets/svg/ic_export_seed.svg',
                 colorFilter:
                     const ColorFilter.mode(AppColors.znnColor, BlendMode.srcIn),
-                height: 55.0,
+                height: 55,
               ),
             ),
             Text(
@@ -60,23 +60,23 @@ class _ExportWalletInfoScreenState extends State<ExportWalletInfoScreen> {
   }
 
   Widget _getSeedFieldsGrid() {
-    double seedFieldsGridWidth = MediaQuery.of(context).size.width * 0.5;
-    String text = 'A Seed Vault is an encrypted file for backing up your Seed.'
+    final double seedFieldsGridWidth = MediaQuery.of(context).size.width * 0.5;
+    const String text = 'A Seed Vault is an encrypted file for backing up your Seed.'
         ' The Seed is encrypted with a Seed Vault Key and cannot be accessed '
         'without it. Make sure you backup your Seed Vault in multiple offline locations '
         '(e.g. USB, external HDD) and do not lose your Seed Vault Key.'
-        ' If you lose the Seed Vault file or you don\'t remember the Seed Vault '
+        " If you lose the Seed Vault file or you don't remember the Seed Vault "
         'Key you lose access to your funds.';
     return Container(
       width: seedFieldsGridWidth,
       padding: const EdgeInsets.symmetric(
-        vertical: 40.0,
-        horizontal: 50.0,
+        vertical: 40,
+        horizontal: 50,
       ),
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.secondaryContainer,
         borderRadius: const BorderRadius.all(
-          Radius.circular(10.0),
+          Radius.circular(10),
         ),
       ),
       child: Text(
@@ -102,33 +102,33 @@ class _ExportWalletInfoScreenState extends State<ExportWalletInfoScreen> {
                 child: SvgPicture.asset(
                   'assets/svg/ic_seed.svg',
                   colorFilter: const ColorFilter.mode(
-                      AppColors.qsrColor, BlendMode.srcIn),
-                  height: 50.0,
+                      AppColors.qsrColor, BlendMode.srcIn,),
+                  height: 50,
                 ),
               ),
               const Padding(
-                padding: EdgeInsets.only(top: 8.0),
+                padding: EdgeInsets.only(top: 8),
               ),
               Text(
                 'Seed',
                 style: Theme.of(context).textTheme.bodyLarge,
-              )
+              ),
             ],
           ),
           Column(
             children: <Widget>[
               const Icon(
                 SimpleLineIcons.key,
-                size: 50.0,
+                size: 50,
                 color: AppColors.errorColor,
               ),
               const Padding(
-                padding: EdgeInsets.only(top: 8.0),
+                padding: EdgeInsets.only(top: 8),
               ),
               Text(
                 'Seed Vault Key',
                 style: Theme.of(context).textTheme.bodyLarge,
-              )
+              ),
             ],
           ),
           Column(
@@ -138,17 +138,17 @@ class _ExportWalletInfoScreenState extends State<ExportWalletInfoScreen> {
                 child: SvgPicture.asset(
                   'assets/svg/ic_vault_seed.svg',
                   colorFilter: const ColorFilter.mode(
-                      AppColors.znnColor, BlendMode.srcIn),
-                  height: 50.0,
+                      AppColors.znnColor, BlendMode.srcIn,),
+                  height: 50,
                 ),
               ),
               const Padding(
-                padding: EdgeInsets.only(top: 8.0),
+                padding: EdgeInsets.only(top: 8),
               ),
               Text(
                 'Seed Vault',
                 style: Theme.of(context).textTheme.bodyLarge,
-              )
+              ),
             ],
           ),
         ],
@@ -173,7 +173,7 @@ class _ExportWalletInfoScreenState extends State<ExportWalletInfoScreen> {
         Text(
           'I will securely store the Seed Vault & Seed Vault Key',
           style: Theme.of(context).textTheme.headlineSmall,
-        )
+        ),
       ],
     );
   }

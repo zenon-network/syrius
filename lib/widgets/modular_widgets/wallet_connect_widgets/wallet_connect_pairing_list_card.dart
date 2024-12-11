@@ -17,7 +17,7 @@ const String _kWidgetDescription =
     'securely over the Internet';
 
 class WalletConnectPairingsCard extends StatefulWidget {
-  const WalletConnectPairingsCard({Key? key}) : super(key: key);
+  const WalletConnectPairingsCard({super.key});
 
   @override
   State<WalletConnectPairingsCard> createState() =>
@@ -38,8 +38,8 @@ class _WalletConnectPairingsCardState extends State<WalletConnectPairingsCard> {
     return CardScaffold(
       title: _kWidgetTitle,
       description: _kWidgetDescription,
-      childBuilder: () => _getCardBody(),
-      onRefreshPressed: () => _pairingsBloc.refreshResults(),
+      childBuilder: _getCardBody,
+      onRefreshPressed: _pairingsBloc.refreshResults,
     );
   }
 
@@ -51,7 +51,7 @@ class _WalletConnectPairingsCardState extends State<WalletConnectPairingsCard> {
     return InfiniteScrollTable<PairingInfo>(
       disposeBloc: false,
       bloc: _pairingsBloc,
-      headerColumns: const [
+      headerColumns: const <InfiniteScrollTableHeaderColumn>[
         InfiniteScrollTableHeaderColumn(
           columnName: 'Name',
         ),
@@ -72,8 +72,8 @@ class _WalletConnectPairingsCardState extends State<WalletConnectPairingsCard> {
           columnName: '',
         ),
       ],
-      generateRowCells: (pairingInfo, bool isSelected) {
-        return [
+      generateRowCells: (PairingInfo pairingInfo, bool isSelected) {
+        return <Widget>[
           InfiniteScrollTableCell.withText(
             context,
             pairingInfo.peerMetadata?.name ?? 'Empty',
@@ -82,17 +82,15 @@ class _WalletConnectPairingsCardState extends State<WalletConnectPairingsCard> {
             _buildTableUrlWidget(pairingInfo),
             flex: 2,
           ),
-          isSelected
-              ? InfiniteScrollTableCell.withMarquee(
+          if (isSelected) InfiniteScrollTableCell.withMarquee(
                   pairingInfo.topic,
-                )
-              : InfiniteScrollTableCell.withText(
+                ) else InfiniteScrollTableCell.withText(
                   context,
                   pairingInfo.topic.short,
                 ),
           InfiniteScrollTableCell.withText(
             context,
-            _formatExpiryDateTime(pairingInfo.expiry).toString(),
+            _formatExpiryDateTime(pairingInfo.expiry),
           ),
           InfiniteScrollTableCell.withText(
             context,
@@ -115,7 +113,7 @@ class _WalletConnectPairingsCardState extends State<WalletConnectPairingsCard> {
 
   Row _buildTableUrlWidget(PairingInfo pairingInfo) {
     return Row(
-      children: [
+      children: <Widget>[
         Text(pairingInfo.peerMetadata?.url ?? 'Empty'),
         Visibility(
           visible: pairingInfo.peerMetadata?.url != null,
@@ -128,7 +126,7 @@ class _WalletConnectPairingsCardState extends State<WalletConnectPairingsCard> {
   }
 
   String _formatExpiryDateTime(int expirySeconds) {
-    final expiryDateTime =
+    final DateTime expiryDateTime =
         DateTime.fromMillisecondsSinceEpoch(expirySeconds * 1000);
 
     return DateFormat('MMM dd, y HH:mm:ss').format(expiryDateTime);

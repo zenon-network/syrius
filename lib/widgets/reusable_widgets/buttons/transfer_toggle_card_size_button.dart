@@ -4,20 +4,20 @@ import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 class TransferToggleCardSizeButton extends StatelessWidget {
-  final VoidCallback? onPressed;
-  final IconData iconData;
 
   const TransferToggleCardSizeButton({
     required this.onPressed,
     required this.iconData,
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
+  final VoidCallback? onPressed;
+  final IconData iconData;
 
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<PowStatus>(
       stream: sl.get<PowGeneratingStatusBloc>().stream,
-      builder: (_, snapshot) {
+      builder: (_, AsyncSnapshot<PowStatus> snapshot) {
         if (snapshot.hasError) {
           return _getButton(context, onPressed);
         } else if (snapshot.hasData) {
@@ -42,7 +42,7 @@ class TransferToggleCardSizeButton extends StatelessWidget {
     return RawMaterialButton(
       constraints: const BoxConstraints.tightForFinite(),
       padding: const EdgeInsets.all(
-        20.0,
+        20,
       ),
       shape: const CircleBorder(),
       onPressed: onButtonPressed,

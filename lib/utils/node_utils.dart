@@ -18,7 +18,7 @@ int _kHeight = 0;
 
 class NodeUtils {
   static Future<bool> establishConnectionToNode(String url) async {
-    bool connectionStatus = await zenon!.wsClient.initialize(
+    final bool connectionStatus = await zenon!.wsClient.initialize(
       url,
       retry: false,
     );
@@ -28,7 +28,7 @@ class NodeUtils {
   static Future<int> getNodeChainIdentifier() async {
     int nodeChainId = 1;
     try {
-      await zenon!.ledger.getFrontierMomentum().then((value) {
+      await zenon!.ledger.getFrontierMomentum().then((Momentum value) {
         nodeChainId = value.chainIdentifier;
       });
     } catch (e, stackTrace) {
@@ -58,7 +58,7 @@ class NodeUtils {
             );
 
         // If the message is null, it means that the isolate has closed
-        Completer embeddedStoppedCompleter = Completer();
+        final Completer embeddedStoppedCompleter = Completer();
         sl<Stream>(instanceName: 'embeddedStoppedStream').listen(
           (message) {
             kEmbeddedNodeRunning = false;
@@ -84,7 +84,7 @@ class NodeUtils {
 
   static initWebSocketClient() async {
     addOnWebSocketConnectedCallback();
-    var url = kCurrentNode == kEmbeddedNode
+    final String url = kCurrentNode == kEmbeddedNode
           ? kLocalhostDefaultNodeUrl
           : kCurrentNode ?? '';
     bool connected = false;
@@ -100,7 +100,7 @@ class NodeUtils {
 
   static Future<void> addOnWebSocketConnectedCallback() async {
     zenon!.wsClient
-        .addOnConnectionEstablishedCallback((allResponseBroadcaster) async {
+        .addOnConnectionEstablishedCallback((Stream<Map<String, dynamic>?> allResponseBroadcaster) async {
       kNodeChainId = await getNodeChainIdentifier();
       await _getSubscriptionForMomentums();
       await _getSubscriptionForAllAccountEvents();
@@ -108,7 +108,7 @@ class NodeUtils {
 
       sl<AutoReceiveTxWorker>().autoReceive();
       Future.delayed(const Duration(seconds: 30))
-          .then((value) async => await NotificationUtils.sendNodeSyncingNotification());
+          .then((value) async => NotificationUtils.sendNodeSyncingNotification());
       _initListenForUnreceivedAccountBlocks(allResponseBroadcaster);
     });
   }
@@ -116,7 +116,7 @@ class NodeUtils {
   static Future<void> getUnreceivedTransactions() async {
     await Future.forEach<String?>(
       kDefaultAddressList,
-      (address) async => await getUnreceivedTransactionsByAddress(
+      (String? address) async => getUnreceivedTransactionsByAddress(
         Address.parse(address!),
       ),
     );
@@ -125,14 +125,14 @@ class NodeUtils {
   static Future<void> getUnreceivedTransactionsByAddress(
     Address address,
   ) async {
-    List<AccountBlock> unreceivedBlocks =
+    final List<AccountBlock> unreceivedBlocks =
         (await zenon!.ledger.getUnreceivedBlocksByAddress(
       address,
     ))
             .list!;
 
     if (unreceivedBlocks.isNotEmpty) {
-      for (AccountBlock unreceivedBlock in unreceivedBlocks) {
+      for (final AccountBlock unreceivedBlock in unreceivedBlocks) {
         if (sharedPrefsService!.get(
           kAutoReceiveKey,
           defaultValue: kAutoReceiveDefaultValue,
@@ -144,18 +144,18 @@ class NodeUtils {
   }
 
   static Future<void> checkForLocalTimeDiscrepancy(
-      String warningMessage) async {
-    const maxAllowedDiscrepancy = Duration(minutes: 5);
+      String warningMessage,) async {
+    const Duration maxAllowedDiscrepancy = Duration(minutes: 5);
     try {
-      final syncInfo = await zenon!.stats.syncInfo();
-      bool nodeIsSynced = (syncInfo.state == SyncState.syncDone ||
+      final SyncInfo syncInfo = await zenon!.stats.syncInfo();
+      final bool nodeIsSynced = syncInfo.state == SyncState.syncDone ||
           (syncInfo.targetHeight > 0 &&
               syncInfo.currentHeight > 0 &&
-              (syncInfo.targetHeight - syncInfo.currentHeight) < 20));
+              (syncInfo.targetHeight - syncInfo.currentHeight) < 20);
       if (nodeIsSynced) {
-        final frontierTime =
+        final int frontierTime =
             (await zenon!.ledger.getFrontierMomentum()).timestamp;
-        final timeDifference = (frontierTime - DateTimeUtils.unixTimeNow).abs();
+        final int timeDifference = (frontierTime - DateTimeUtils.unixTimeNow).abs();
         if (timeDifference > maxAllowedDiscrepancy.inSeconds) {
           await NotificationUtils.sendNotificationError(
             Exception('Local time discrepancy detected.'),
@@ -177,16 +177,16 @@ class NodeUtils {
             event['method'] == 'ledger.subscription' &&
             sharedPrefsService!
                 .get(kAutoReceiveKey, defaultValue: kAutoReceiveDefaultValue)) {
-          for (var i = 0; i < event['params']['result'].length; i += 1) {
-            var tx = event['params']['result'][i];
+          for (int i = 0; i < event['params']['result'].length; i += 1) {
+            final tx = event['params']['result'][i];
             if (tx.containsKey('toAddress') &&
                 kDefaultAddressList.contains(tx['toAddress'])) {
-              var hash = Hash.parse(tx['hash']);
+              final Hash hash = Hash.parse(tx['hash']);
               sl<AutoReceiveTxWorker>().addHash(hash);
             }
           }
 
-          Map result = (event['params']['result'] as List).first;
+          final Map result = (event['params']['result'] as List).first;
           if (!result.containsKey('blockType') &&
               result['height'] != null &&
               (_kHeight == 0 || result['height'] >= _kHeight + 1)) {
@@ -202,23 +202,23 @@ class NodeUtils {
   }
 
   static Future<void> _getSubscriptionForMomentums() async =>
-      await zenon!.subscribe.toMomentums();
+      zenon!.subscribe.toMomentums();
 
   static Future<void> _getSubscriptionForAllAccountEvents() async =>
-      await zenon!.subscribe.toAllAccountBlocks();
+      zenon!.subscribe.toAllAccountBlocks();
 
   static Future<void> loadDbNodes() async {
     if (!Hive.isBoxOpen(kNodesBox)) {
       await Hive.openBox<String>(kNodesBox);
     }
-    Box<String> nodesBox = Hive.box<String>(kNodesBox);
+    final Box<String> nodesBox = Hive.box<String>(kNodesBox);
     if (kDbNodes.isNotEmpty) {
       kDbNodes.clear();
     }
     kDbNodes.addAll(nodesBox.values);
     // Handle the case in which some default nodes were deleted
     // so they can't be found in the cache
-    String? currentNode = kCurrentNode;
+    final String? currentNode = kCurrentNode;
     if (currentNode != null &&
         !kDefaultNodes.contains(currentNode) &&
         !kDbNodes.contains(currentNode)) {
@@ -227,12 +227,12 @@ class NodeUtils {
   }
 
   static Future<void> setNode() async {
-    String? savedNode = sharedPrefsService!.get(kSelectedNodeKey);
+    final String? savedNode = sharedPrefsService!.get(kSelectedNodeKey);
     kCurrentNode = savedNode;
 
     if (savedNode == kEmbeddedNode) {
       // First we need to check if the node is not already running
-      bool isConnectionEstablished =
+      final bool isConnectionEstablished =
           await NodeUtils.establishConnectionToNode(kLocalhostDefaultNodeUrl);
       if (isConnectionEstablished == false) {
         // Acquire WakeLock
@@ -240,9 +240,9 @@ class NodeUtils {
           WakelockPlus.enable();
         }
         // Initialize local full node
-        await Isolate.spawn(EmbeddedNode.runNode, [''],
+        await Isolate.spawn(EmbeddedNode.runNode, <String>[''],
             onExit:
-                sl<ReceivePort>(instanceName: 'embeddedStoppedPort').sendPort);
+                sl<ReceivePort>(instanceName: 'embeddedStoppedPort').sendPort,);
 
         kEmbeddedNodeRunning = true;
       }

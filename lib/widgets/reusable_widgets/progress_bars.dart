@@ -5,21 +5,21 @@ import 'package:zenon_syrius_wallet_flutter/utils/extensions.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/input_validators.dart';
 
 class PasswordProgressBar extends StatefulWidget {
-  final String password;
-  final GlobalKey<FormState> passwordKey;
 
   const PasswordProgressBar({
     required this.password,
     required this.passwordKey,
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
+  final String password;
+  final GlobalKey<FormState> passwordKey;
 
   @override
   State<PasswordProgressBar> createState() => _PasswordProgressBarState();
 }
 
 class _PasswordProgressBarState extends State<PasswordProgressBar> {
-  final List<Color> _colors = [
+  final List<Color> _colors = <Color>[
     AppColors.accessWalletContainersGray,
     AppColors.accessWalletContainersGray,
     AppColors.accessWalletContainersGray,
@@ -33,7 +33,7 @@ class _PasswordProgressBarState extends State<PasswordProgressBar> {
       width: kPasswordInputFieldWidth,
       child: Padding(
         padding: const EdgeInsets.symmetric(
-          horizontal: 5.0,
+          horizontal: 5,
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -45,18 +45,18 @@ class _PasswordProgressBarState extends State<PasswordProgressBar> {
 
   List<Widget> _getProgressBars() => List.generate(
         _colors.length,
-        (index) => _getPasswordProgressBar(_colors[index]),
+        (int index) => _getPasswordProgressBar(_colors[index]),
       );
 
   List<Widget> _getSpacers() => List.generate(
         _colors.length - 1,
-        (index) => _getSpacer(),
+        (int index) => _getSpacer(),
       );
 
   Expanded _getPasswordProgressBar(Color color) {
     return Expanded(
       child: Container(
-        height: 5.0,
+        height: 5,
         color: color,
       ),
     );
@@ -64,7 +64,7 @@ class _PasswordProgressBarState extends State<PasswordProgressBar> {
 
   SizedBox _getSpacer() {
     return const SizedBox(
-      width: 10.0,
+      width: 10,
     );
   }
 
@@ -93,38 +93,37 @@ class _PasswordProgressBarState extends State<PasswordProgressBar> {
 }
 
 class ProgressBar extends StatelessWidget {
-  final int currentLevel;
-  final int numLevels;
 
   const ProgressBar({
     required this.currentLevel,
     this.numLevels = 5,
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
+  final int currentLevel;
+  final int numLevels;
 
   @override
   Widget build(BuildContext context) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
-      crossAxisAlignment: CrossAxisAlignment.center,
       children: _getProgressBars().zip(_getSpacers()),
     );
   }
 
   List<Widget> _getProgressBars() => List.generate(
         numLevels,
-        (index) => _getProgressBar(index + 1),
+        (int index) => _getProgressBar(index + 1),
       );
 
   List<Widget> _getSpacers() => List.generate(
         numLevels - 1,
-        (index) => _getSpacer(),
+        (int index) => _getSpacer(),
       );
 
   Container _getProgressBar(int level) {
     return Container(
-      width: 125.0,
-      height: 5.0,
+      width: 125,
+      height: 5,
       color: currentLevel >= level
           ? AppColors.znnColor
           : AppColors.accessWalletContainersGray,
@@ -133,22 +132,22 @@ class ProgressBar extends StatelessWidget {
 
   SizedBox _getSpacer() {
     return const SizedBox(
-      width: 25.0,
+      width: 25,
     );
   }
 }
 
 class AcceleratorProgressBarSpan extends StatelessWidget {
-  final double value;
-  final Color color;
-  final String tooltipMessage;
 
   const AcceleratorProgressBarSpan({
     required this.value,
     required this.color,
     required this.tooltipMessage,
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
+  final double value;
+  final Color color;
+  final String tooltipMessage;
 
   @override
   Widget build(BuildContext context) {
@@ -166,17 +165,16 @@ class AcceleratorProgressBarSpan extends StatelessWidget {
 }
 
 class AcceleratorProgressBar extends StatelessWidget {
-  final Widget child;
-  final BuildContext context;
 
   const AcceleratorProgressBar(
-      {required this.child, required this.context, Key? key})
-      : super(key: key);
+      {required this.child, required this.context, super.key,});
+  final Widget child;
+  final BuildContext context;
 
   @override
   Widget build(BuildContext context) {
     return ClipRRect(
-      borderRadius: BorderRadius.circular(20.0),
+      borderRadius: BorderRadius.circular(20),
       child: Container(
         width: kAcceleratorProgressBarSize.width,
         height: kAcceleratorProgressBarSize.height,

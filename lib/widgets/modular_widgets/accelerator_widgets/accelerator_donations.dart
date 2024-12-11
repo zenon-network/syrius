@@ -5,12 +5,12 @@ import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 
 class AcceleratorDonations extends StatelessWidget {
-  final VoidCallback onStepperNotificationSeeMorePressed;
 
   const AcceleratorDonations({
     required this.onStepperNotificationSeeMorePressed,
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
+  final VoidCallback onStepperNotificationSeeMorePressed;
 
   @override
   Widget build(BuildContext context) {
@@ -24,18 +24,18 @@ class AcceleratorDonations extends StatelessWidget {
   Widget _getWidgetBody(BuildContext context) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-      children: [
+      children: <Widget>[
         const Icon(
           MaterialCommunityIcons.ufo_outline,
-          size: 75.0,
+          size: 75,
           color: AppColors.znnColor,
         ),
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisAlignment: MainAxisAlignment.center,
-          children: [
+          children: <Widget>[
             SizedBox(
-              width: 200.0,
+              width: 200,
               child: Text(
                 'Fuel for the Mothership',
                 style: Theme.of(context).textTheme.headlineSmall,
@@ -47,7 +47,7 @@ class AcceleratorDonations extends StatelessWidget {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => StepperScreen(
+                    builder: (BuildContext context) => StepperScreen(
                       stepper: const AcceleratorDonationStepper(),
                       onStepperNotificationSeeMorePressed:
                           onStepperNotificationSeeMorePressed,

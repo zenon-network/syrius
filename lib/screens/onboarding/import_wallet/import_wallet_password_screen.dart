@@ -4,14 +4,14 @@ import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 
 class ImportWalletPasswordScreen extends StatefulWidget {
-  final String seed;
-  final int progressBarNumLevels;
 
   const ImportWalletPasswordScreen(
     this.seed, {
     this.progressBarNumLevels = 5,
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
+  final String seed;
+  final int progressBarNumLevels;
 
   @override
   State<ImportWalletPasswordScreen> createState() =>
@@ -32,19 +32,19 @@ class _ImportWalletPasswordScreenState
     return Scaffold(
       body: Container(
         padding: const EdgeInsets.symmetric(
-          vertical: 30.0,
+          vertical: 30,
         ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: <Widget>[
             Column(
-              children: [
+              children: <Widget>[
                 ProgressBar(
                   currentLevel: widget.progressBarNumLevels - 2,
                   numLevels: widget.progressBarNumLevels,
                 ),
                 const SizedBox(
-                  height: 30.0,
+                  height: 30,
                 ),
                 Text(
                   'Create a wallet password',
@@ -56,10 +56,10 @@ class _ImportWalletPasswordScreenState
                   style: Theme.of(context).textTheme.headlineMedium,
                 ),
                 const SizedBox(
-                  height: 100.0,
+                  height: 100,
                 ),
                 Column(
-                  children: [
+                  children: <Widget>[
                     Form(
                       key: _passwordKey,
                       autovalidateMode: AutovalidateMode.onUserInteraction,
@@ -67,10 +67,10 @@ class _ImportWalletPasswordScreenState
                         hintText: 'Password',
                         controller: _passwordController,
                         validator: InputValidators.validatePassword,
-                        onChanged: (value) {
+                        onChanged: (String value) {
                           setState(() {});
                         },
-                        onSubmitted: (value) {
+                        onSubmitted: (String value) {
                           if (_arePasswordsValid()) {
                             NavigationUtils.push(
                               context,
@@ -92,15 +92,15 @@ class _ImportWalletPasswordScreenState
                       child: PasswordInputField(
                         hintText: 'Confirm password',
                         controller: _confirmPasswordController,
-                        validator: (value) =>
+                        validator: (String? value) =>
                             InputValidators.checkPasswordMatch(
                           _passwordController.text,
                           value,
                         ),
-                        onChanged: (value) {
+                        onChanged: (String value) {
                           setState(() {});
                         },
-                        onSubmitted: (value) {
+                        onSubmitted: (String value) {
                           if (_arePasswordsValid()) {
                             NavigationUtils.push(
                               context,

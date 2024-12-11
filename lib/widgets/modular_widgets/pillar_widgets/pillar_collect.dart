@@ -11,12 +11,12 @@ import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 class PillarCollect extends StatefulWidget {
-  final PillarRewardsHistoryBloc pillarRewardsHistoryBloc;
 
   const PillarCollect({
     required this.pillarRewardsHistoryBloc,
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
+  final PillarRewardsHistoryBloc pillarRewardsHistoryBloc;
 
   @override
   State<PillarCollect> createState() => _PillarCollectState();
@@ -40,7 +40,7 @@ class _PillarCollectState extends State<PillarCollect> {
           'registered in the network, but also deployed (use znn-controller for '
           'this operation) and it must produce momentums',
       childBuilder: () => Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(16),
         child: _getFutureBuilder(),
       ),
     );
@@ -49,7 +49,7 @@ class _PillarCollectState extends State<PillarCollect> {
   Widget _getFutureBuilder() {
     return StreamBuilder<UncollectedReward?>(
       stream: _pillarCollectRewardsBloc.stream,
-      builder: (_, snapshot) {
+      builder: (_, AsyncSnapshot<UncollectedReward?> snapshot) {
         if (snapshot.hasError) {
           return SyriusErrorWidget(snapshot.error!);
         } else if (snapshot.hasData) {
@@ -66,18 +66,17 @@ class _PillarCollectState extends State<PillarCollect> {
   Widget _getWidgetBody(UncollectedReward uncollectedReward) {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
-      children: [
+      children: <Widget>[
         NumberAnimation(
           end: uncollectedReward.znnAmount
               .addDecimals(
                 coinDecimals,
               )
               .toNum(),
-          isInt: false,
           after: ' ${kZnnCoin.symbol}',
           style: Theme.of(context).textTheme.headlineLarge!.copyWith(
                 color: AppColors.znnColor,
-                fontSize: 30.0,
+                fontSize: 30,
               ),
         ),
         kVerticalSpacing,
@@ -103,7 +102,7 @@ class _PillarCollectState extends State<PillarCollect> {
         'collect Pillar rewards',
         waitForRequiredPlasma: true,
       ).then(
-        (response) async {
+        (AccountBlockTemplate response) async {
           await Future.delayed(kDelayAfterAccountBlockCreationCall);
           if (mounted) {
             _pillarCollectRewardsBloc.updateStream();
@@ -113,7 +112,7 @@ class _PillarCollectState extends State<PillarCollect> {
       );
     } catch (e) {
       await NotificationUtils.sendNotificationError(
-          e, 'Error while collecting Pillar rewards');
+          e, 'Error while collecting Pillar rewards',);
     } finally {
       _collectButtonKey.currentState?.animateReverse();
     }

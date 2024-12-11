@@ -10,7 +10,7 @@ import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 class IssueTokenBloc extends BaseBloc<AccountBlockTemplate> {
   void issueToken(NewTokenData tokenStepperData) {
     try {
-      AccountBlockTemplate transactionParams = zenon!.embedded.token.issueToken(
+      final AccountBlockTemplate transactionParams = zenon!.embedded.token.issueToken(
           tokenStepperData.tokenName,
           tokenStepperData.tokenSymbol,
           tokenStepperData.tokenDomain,
@@ -19,21 +19,19 @@ class IssueTokenBloc extends BaseBloc<AccountBlockTemplate> {
           tokenStepperData.decimals,
           tokenStepperData.isMintable!,
           tokenStepperData.isOwnerBurnOnly!,
-          tokenStepperData.isUtility!);
+          tokenStepperData.isUtility!,);
       AccountBlockUtils.createAccountBlock(
         transactionParams,
         'issue token',
         waitForRequiredPlasma: true,
       ).then(
-        (response) {
+        (AccountBlockTemplate response) {
           Hive.box(kFavoriteTokensBox).add(response.tokenStandard.toString());
           ZenonAddressUtils.refreshBalance();
           addEvent(response);
         },
       ).onError(
-        (error, stackTrace) {
-          addError(error, stackTrace);
-        },
+        addError,
       );
     } catch (e, stackTrace) {
       addError(e, stackTrace);

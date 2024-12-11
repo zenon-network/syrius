@@ -2,16 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
 
 class BaseModal extends StatelessWidget {
+
+  const BaseModal({
+    required this.title, required this.child, super.key,
+    this.subtitle = '',
+  });
   final String title;
   final String subtitle;
   final Widget child;
-
-  const BaseModal({
-    Key? key,
-    required this.title,
-    required this.child,
-    this.subtitle = '',
-  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -25,28 +23,28 @@ class BaseModal extends StatelessWidget {
             duration: const Duration(milliseconds: 100),
             curve: Curves.easeInOut,
             child: Container(
-              width: 570.0,
+              width: 570,
               color: Theme.of(context).colorScheme.primaryContainer,
               child: Padding(
-                padding: const EdgeInsets.all(25.0),
+                padding: const EdgeInsets.all(25),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
-                  children: [
+                  children: <Widget>[
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
+                      children: <Widget>[
                         Column(
-                          children: [
+                          children: <Widget>[
                             Text(
                               title,
                               style: const TextStyle(
-                                fontSize: 18.0,
+                                fontSize: 18,
                               ),
                             ),
                             Visibility(
                               visible: subtitle.isNotEmpty,
                               child: const SizedBox(
-                                height: 3.0,
+                                height: 3,
                               ),
                             ),
                             Visibility(
@@ -62,13 +60,13 @@ class BaseModal extends StatelessWidget {
                             child: const Icon(
                               Icons.clear,
                               color: AppColors.lightSecondary,
-                              size: 22.0,
+                              size: 22,
                             ),
                           ),
                         ),
                       ],
                     ),
-                    child
+                    child,
                   ],
                 ),
               ),

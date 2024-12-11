@@ -12,22 +12,22 @@ class TextScalingNotifier extends ChangeNotifier {
     }
   }
 
-  getTextScaleFactor(BuildContext context) {
+  double getTextScaleFactor(BuildContext context) {
     switch (_currentTextScaling) {
       case TextScaling.system:
-        return MediaQuery.of(context).textScaleFactor;
+        return MediaQuery.of(context).textScaler.scale(1);
       case TextScaling.normal:
-        return 1.0;
+        return 1;
       case TextScaling.small:
         return 0.8;
       case TextScaling.large:
         return 1.5;
       case TextScaling.huge:
-        return 2.0;
+        return 2;
       case null:
-        return 1.0;
+        return 1;
     }
   }
 
-  get currentTextScaling => _currentTextScaling;
+  TextScaling? get currentTextScaling => _currentTextScaling;
 }

@@ -4,12 +4,12 @@ import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 
 class SentinelsTabChild extends StatefulWidget {
-  final VoidCallback onStepperNotificationSeeMorePressed;
 
   const SentinelsTabChild({
     required this.onStepperNotificationSeeMorePressed,
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
+  final VoidCallback onStepperNotificationSeeMorePressed;
 
   @override
   State<SentinelsTabChild> createState() => _SentinelsTabChildState();
@@ -21,7 +21,7 @@ class _SentinelsTabChildState extends State<SentinelsTabChild> {
 
   @override
   Widget build(BuildContext context) {
-    final List<FluidCell> children = [
+    final List<FluidCell> children = <FluidCell>[
       FluidCell(
         child: SentinelRewards(
           sentinelRewardsHistoryBloc: _sentinelRewardsHistoryBloc,

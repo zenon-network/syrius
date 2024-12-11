@@ -2,7 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 typedef ContextMenuBuilder = Widget Function(
-    BuildContext context, Offset offset);
+    BuildContext context, Offset offset,);
 
 /// Shows and hides the context menu based on user gestures.
 ///
@@ -10,10 +10,8 @@ typedef ContextMenuBuilder = Widget Function(
 class ContextMenuRegion extends StatefulWidget {
   /// Creates an instance of [ContextMenuRegion].
   const ContextMenuRegion({
-    Key? key,
-    required this.child,
-    required this.contextMenuBuilder,
-  }) : super(key: key);
+    required this.child, required this.contextMenuBuilder, super.key,
+  });
 
   /// Builds the context menu.
   final ContextMenuBuilder contextMenuBuilder;
@@ -67,7 +65,7 @@ class _ContextMenuRegionState extends State<ContextMenuRegion> {
   void _show(Offset position) {
     _contextMenuController.show(
       context: context,
-      contextMenuBuilder: (context) {
+      contextMenuBuilder: (BuildContext context) {
         return widget.contextMenuBuilder(context, position);
       },
     );

@@ -9,25 +9,23 @@ import 'package:logging/logging.dart';
 import 'package:path/path.dart' as path;
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
-var invalidZnnLibPathException =
+ZnnSdkException invalidZnnLibPathException =
     ZnnSdkException('Library libznn could not be found');
 
 typedef _StopNodeFunc = Pointer<Utf8> Function();
-typedef _StopNode = Pointer<Utf8> Function();
 _StopNodeFunc? _stopNodeFunction;
 
 typedef _RunNodeFunc = Pointer<Utf8> Function();
-typedef _RunNode = Pointer<Utf8> Function();
 _RunNodeFunc? _runNodeFunction;
 
 class EmbeddedNode {
   static void initializeNodeLib() {
-    var insideSdk = path.join('syrius', 'lib', 'embedded_node', 'blobs');
-    var currentPathListParts = path.split(Directory.current.path);
+    final String insideSdk = path.join('syrius', 'lib', 'embedded_node', 'blobs');
+    final List<String> currentPathListParts = path.split(Directory.current.path);
     currentPathListParts.removeLast();
-    var executablePathListParts = path.split(Platform.resolvedExecutable);
+    final List<String> executablePathListParts = path.split(Platform.resolvedExecutable);
     executablePathListParts.removeLast();
-    var possiblePaths = List<String>.empty(growable: true);
+    final List<String> possiblePaths = List<String>.empty(growable: true);
     possiblePaths.add(Directory.current.path);
     possiblePaths.add(
       path.join(
@@ -43,10 +41,10 @@ class EmbeddedNode {
         .add(path.join(path.joinAll(executablePathListParts), 'Resources'));
     possiblePaths.add(path.join(path.joinAll(currentPathListParts), insideSdk));
 
-    var libraryPath = '';
-    var found = false;
+    String libraryPath = '';
+    bool found = false;
 
-    for (var currentPath in possiblePaths) {
+    for (final String currentPath in possiblePaths) {
       libraryPath = path.join(currentPath, 'libznn.so');
 
       if (Platform.isMacOS) {
@@ -56,7 +54,7 @@ class EmbeddedNode {
         libraryPath = path.join(currentPath, 'libznn.dll');
       }
 
-      var libFile = File(libraryPath);
+      final File libFile = File(libraryPath);
 
       if (libFile.existsSync()) {
         found = true;
@@ -73,20 +71,20 @@ class EmbeddedNode {
     }
 
     // Open the dynamic library
-    final dylib = DynamicLibrary.open(libraryPath);
+    final DynamicLibrary dylib = DynamicLibrary.open(libraryPath);
 
-    final stopNodeFunctionPointer =
+    final Pointer<NativeFunction<_StopNodeFunc>> stopNodeFunctionPointer =
         dylib.lookup<NativeFunction<_StopNodeFunc>>('StopNode');
-    _stopNodeFunction = stopNodeFunctionPointer.asFunction<_StopNode>();
+    _stopNodeFunction = stopNodeFunctionPointer.asFunction<Pointer<Utf8> Function()>();
 
-    final runNodeFunctionPointer =
+    final Pointer<NativeFunction<_RunNodeFunc>> runNodeFunctionPointer =
         dylib.lookup<NativeFunction<_RunNodeFunc>>('RunNode');
-    _runNodeFunction = runNodeFunctionPointer.asFunction<_RunNode>();
+    _runNodeFunction = runNodeFunctionPointer.asFunction<Pointer<Utf8> Function()>();
   }
 
-  static void runNode(List<String> args) async {
-    ReceivePort commandsPort = ReceivePort();
-    SendPort sendPort = commandsPort.sendPort;
+  static Future<void> runNode(List<String> args) async {
+    final ReceivePort commandsPort = ReceivePort();
+    final SendPort sendPort = commandsPort.sendPort;
 
     IsolateNameServer.registerPortWithName(sendPort, 'embeddedIsolate');
 
@@ -95,7 +93,7 @@ class EmbeddedNode {
     }
     _runNodeFunction!();
 
-    Completer embeddedIsolateCompleter = Completer();
+    final Completer embeddedIsolateCompleter = Completer();
     commandsPort.listen((event) {
       _stopNodeFunction!();
       IsolateNameServer.removePortNameMapping('embeddedIsolate');
@@ -113,7 +111,7 @@ class EmbeddedNode {
   }
 
   static bool stopNode() {
-    SendPort? embeddedIsolate =
+    final SendPort? embeddedIsolate =
         IsolateNameServer.lookupPortByName('embeddedIsolate');
     if (embeddedIsolate != null) {
       embeddedIsolate.send('stop');

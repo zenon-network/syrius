@@ -15,12 +15,12 @@ import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 class NodeManagement extends StatefulWidget {
-  final VoidCallback onNodeChangedCallback;
 
   const NodeManagement({
     required this.onNodeChangedCallback,
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
+  final VoidCallback onNodeChangedCallback;
 
   @override
   State<NodeManagement> createState() => _NodeManagementState();
@@ -73,14 +73,14 @@ class _NodeManagementState extends State<NodeManagement> {
           'This card allows one to set the ZNN Node used to connect to. '
           'By default the wallet is connected to the Embedded Node. '
           'If you are running a local ZNN Node, please use the localhost option',
-      childBuilder: () => _getWidgetBody(),
+      childBuilder: _getWidgetBody,
     );
   }
 
   Widget _getWidgetBody() {
     return ListView(
       shrinkWrap: true,
-      children: [
+      children: <Widget>[
         CustomExpandablePanel(
           'Client chain identifier selection',
           _getChainIdSelectionExpandableChild(),
@@ -99,17 +99,17 @@ class _NodeManagementState extends State<NodeManagement> {
 
   Widget _getNodeSelectionExpandableChild() {
     return Column(
-      children: [
+      children: <Widget>[
         _getNodeTiles(),
         _getConfirmNodeSelectionButton(),
       ],
     );
   }
 
-  _getConfirmNodeSelectionButton() {
+  Row _getConfirmNodeSelectionButton() {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
-      children: [
+      children: <Widget>[
         LoadingButton.settings(
           text: 'Confirm node',
           onPressed: _onConfirmNodeButtonPressed,
@@ -127,7 +127,7 @@ class _NodeManagementState extends State<NodeManagement> {
 
     try {
       _confirmNodeButtonKey.currentState?.animateForward();
-      var isConnectionEstablished =
+      final bool isConnectionEstablished =
           await _establishConnectionToNode(_selectedNode);
       if (isConnectionEstablished) {
         kNodeChainId = await NodeUtils.getNodeChainIdentifier();
@@ -137,14 +137,14 @@ class _NodeManagementState extends State<NodeManagement> {
             kSelectedNodeKey,
             _selectedNode,
           );
-          kCurrentNode = _selectedNode!;
+          kCurrentNode = _selectedNode;
           await _sendChangingNodeSuccessNotification();
           widget.onNodeChangedCallback();
         } else {
           await _establishConnectionToNode(kCurrentNode);
           kNodeChainId = await NodeUtils.getNodeChainIdentifier();
           setState(() {
-            _selectedNode = kCurrentNode!;
+            _selectedNode = kCurrentNode;
           });
         }
       } else {
@@ -156,7 +156,7 @@ class _NodeManagementState extends State<NodeManagement> {
         'Connection failed',
       );
       setState(() {
-        _selectedNode = kCurrentNode!;
+        _selectedNode = kCurrentNode;
       });
     } finally {
       _confirmNodeButtonKey.currentState?.animateReverse();
@@ -164,16 +164,16 @@ class _NodeManagementState extends State<NodeManagement> {
   }
 
   Future<bool> _establishConnectionToNode(String? url) async {
-    String targetUrl = url == kEmbeddedNode ? kLocalhostDefaultNodeUrl : url!;
+    final String targetUrl = url == kEmbeddedNode ? kLocalhostDefaultNodeUrl : url!;
     bool isConnectionEstablished =
         await NodeUtils.establishConnectionToNode(targetUrl);
     if (url == kEmbeddedNode) {
       // Check if node is already running
       if (!isConnectionEstablished) {
         // Initialize local full node
-        await Isolate.spawn(EmbeddedNode.runNode, [''],
+        await Isolate.spawn(EmbeddedNode.runNode, <String>[''],
             onExit:
-                sl<ReceivePort>(instanceName: 'embeddedStoppedPort').sendPort);
+                sl<ReceivePort>(instanceName: 'embeddedStoppedPort').sendPort,);
         kEmbeddedNodeRunning = true;
         // The node needs a couple of seconds to actually start
         await Future.delayed(kEmbeddedConnectionDelay);
@@ -192,14 +192,14 @@ class _NodeManagementState extends State<NodeManagement> {
 
   Widget _getAddNodeExpandableChild() {
     return Column(
-      children: [
+      children: <Widget>[
         Form(
           key: _newNodeKey,
           autovalidateMode: AutovalidateMode.onUserInteraction,
           child: InputField(
             controller: _newNodeController,
             hintText: 'Node address with port',
-            onSubmitted: (value) {
+            onSubmitted: (String value) {
               if (_ifUserInputValid()) {
                 _onAddNodePressed();
               }
@@ -226,11 +226,11 @@ class _NodeManagementState extends State<NodeManagement> {
       InputValidators.node(_newNodeController.text) == null;
 
   Future<void> _onAddNodePressed() async {
-    if ([...kDbNodes, ...kDefaultCommunityNodes, ...kDefaultNodes]
+    if (<String>[...kDbNodes, ...kDefaultCommunityNodes, ...kDefaultNodes]
         .contains(_newNodeController.text)) {
       await NotificationUtils.sendNotificationError(
           'Node ${_newNodeController.text} already exists',
-          'Node already exists');
+          'Node already exists',);
     } else {
       _addNodeToDb();
     }
@@ -259,18 +259,18 @@ class _NodeManagementState extends State<NodeManagement> {
       children: <String>{
         ...kDefaultNodes,
         ...kDefaultCommunityNodes,
-        ...kDbNodes
-      }.toList().map((e) => _getNodeTile(e)).toList(),
+        ...kDbNodes,
+      }.toList().map(_getNodeTile).toList(),
     );
   }
 
   Row _getNodeTile(String node) {
     return Row(
-      children: [
+      children: <Widget>[
         Radio<String?>(
           value: node,
           groupValue: _selectedNode,
-          onChanged: (value) {
+          onChanged: (String? value) {
             setState(() {
               _selectedNode = value;
             });
@@ -280,7 +280,7 @@ class _NodeManagementState extends State<NodeManagement> {
           child: SettingsNode(
             key: ValueKey(node),
             node: node,
-            onNodePressed: (value) {
+            onNodePressed: (String? value) {
               setState(() {
                 _selectedNode = value;
               });
@@ -326,22 +326,21 @@ class _NodeManagementState extends State<NodeManagement> {
 
   Widget _getChainIdSelectionExpandableChild() {
     return Column(
-      children: [
+      children: <Widget>[
         Row(
-          mainAxisAlignment: MainAxisAlignment.start,
-          children: [
+          children: <Widget>[
             Expanded(
                 child: Form(
               key: _newChainIdKey,
               autovalidateMode: AutovalidateMode.onUserInteraction,
               child: InputField(
-                inputFormatters: [
+                inputFormatters: <TextInputFormatter>[
                   FilteringTextInputFormatter.digitsOnly,
                 ],
                 controller: _newChainIdController,
                 hintText:
-                    'Current client chain identifier is ${getChainIdentifier().toString()}',
-                onSubmitted: (value) async {
+                    'Current client chain identifier is ${getChainIdentifier()}',
+                onSubmitted: (String value) async {
                   if (_isChainIdSelectionInputIsValid()) {
                     _onConfirmChainIdPressed();
                   }
@@ -353,7 +352,7 @@ class _NodeManagementState extends State<NodeManagement> {
                 },
                 validator: InputValidators.validateNumber,
               ),
-            )),
+            ),),
             StandardTooltipIcon(
               (getChainIdentifier() == 1)
                   ? 'Alphanet chain identifier'
@@ -421,8 +420,8 @@ class _NodeManagementState extends State<NodeManagement> {
 
   Future<bool> _checkForChainIdMismatch() async {
     bool match = false;
-    await zenon!.ledger.getFrontierMomentum().then((momentum) async {
-      int nodeChainId = momentum.chainIdentifier;
+    await zenon!.ledger.getFrontierMomentum().then((Momentum momentum) async {
+      final int nodeChainId = momentum.chainIdentifier;
       if (nodeChainId != _currentChainId) {
         match = await _showChainIdWarningDialog(nodeChainId, _currentChainId);
       } else {
@@ -433,8 +432,8 @@ class _NodeManagementState extends State<NodeManagement> {
   }
 
   Future<bool> _showChainIdWarningDialog(
-      int nodeChainId, int currentChainId) async {
-    return await showWarningDialog(
+      int nodeChainId, int currentChainId,) async {
+    return showWarningDialog(
       context: context,
       title: 'Chain identifier mismatch',
       buttonText: 'Proceed anyway',

@@ -12,13 +12,13 @@ class SubmitDonationBloc extends BaseBloc<AccountBlockTemplate?> {
         await _sendDonationBlock(zenon!.embedded.accelerator.donate(
           znnAmount,
           kZnnCoin.tokenStandard,
-        ));
+        ),);
       }
       if (qsrAmount > BigInt.zero) {
         await _sendDonationBlock(zenon!.embedded.accelerator.donate(
           qsrAmount,
           kQsrCoin.tokenStandard,
-        ));
+        ),);
       }
     } catch (e, stackTrace) {
       addError(e, stackTrace);
@@ -26,19 +26,17 @@ class SubmitDonationBloc extends BaseBloc<AccountBlockTemplate?> {
   }
 
   Future<void> _sendDonationBlock(
-      AccountBlockTemplate transactionParams) async {
+      AccountBlockTemplate transactionParams,) async {
     await AccountBlockUtils.createAccountBlock(
       transactionParams,
       'donate for accelerator',
     ).then(
-      (block) {
+      (AccountBlockTemplate block) {
         sl.get<AcceleratorBalanceBloc>().getAcceleratorBalance();
         addEvent(block);
       },
     ).onError(
-      (error, stackTrace) {
-        addError(error, stackTrace);
-      },
+      addError,
     );
   }
 }

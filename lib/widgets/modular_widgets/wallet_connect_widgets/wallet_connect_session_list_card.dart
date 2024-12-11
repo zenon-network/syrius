@@ -8,12 +8,12 @@ import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 
 const String _kWidgetTitle = 'WalletConnect Sessions List';
 const String _kWidgetDescription =
-    'A session refers to a live connection between a user\'s wallet and a dApp '
+    "A session refers to a live connection between a user's wallet and a dApp "
     'A session allows the dApp to communicate with the wallet '
     'securely over the Internet';
 
 class WalletConnectSessionsCard extends StatefulWidget {
-  const WalletConnectSessionsCard({Key? key}) : super(key: key);
+  const WalletConnectSessionsCard({super.key});
 
   @override
   State<WalletConnectSessionsCard> createState() =>
@@ -29,8 +29,8 @@ class _WalletConnectSessionsCardState extends State<WalletConnectSessionsCard> {
     return CardScaffold(
       title: _kWidgetTitle,
       description: _kWidgetDescription,
-      childBuilder: () => _getCardBody(),
-      onRefreshPressed: () => _sessionsBloc.refreshResults(),
+      childBuilder: _getCardBody,
+      onRefreshPressed: _sessionsBloc.refreshResults,
     );
   }
 
@@ -42,7 +42,7 @@ class _WalletConnectSessionsCardState extends State<WalletConnectSessionsCard> {
     return InfiniteScrollTable<SessionData>(
       disposeBloc: false,
       bloc: _sessionsBloc,
-      headerColumns: const [
+      headerColumns: const <InfiniteScrollTableHeaderColumn>[
         InfiniteScrollTableHeaderColumn(
           columnName: 'Name',
         ),
@@ -63,8 +63,8 @@ class _WalletConnectSessionsCardState extends State<WalletConnectSessionsCard> {
           columnName: 'Acknowledged',
         ),
       ],
-      generateRowCells: (sessionData, bool isSelected) {
-        return [
+      generateRowCells: (SessionData sessionData, bool isSelected) {
+        return <Widget>[
           InfiniteScrollTableCell.withText(
             context,
             sessionData.peer.metadata.name,
@@ -73,25 +73,21 @@ class _WalletConnectSessionsCardState extends State<WalletConnectSessionsCard> {
             _buildTableUrlWidget(sessionData.peer.metadata.url),
             flex: 2,
           ),
-          isSelected
-              ? InfiniteScrollTableCell.withMarquee(
+          if (isSelected) InfiniteScrollTableCell.withMarquee(
                   sessionData.pairingTopic,
-                )
-              : InfiniteScrollTableCell.withText(
+                ) else InfiniteScrollTableCell.withText(
                   context,
                   sessionData.pairingTopic.short,
                 ),
-          isSelected
-              ? InfiniteScrollTableCell.withMarquee(
+          if (isSelected) InfiniteScrollTableCell.withMarquee(
                   sessionData.topic,
-                )
-              : InfiniteScrollTableCell.withText(
+                ) else InfiniteScrollTableCell.withText(
                   context,
                   sessionData.topic.short,
                 ),
           InfiniteScrollTableCell.withText(
             context,
-            _formatExpiryDateTime(sessionData.expiry).toString(),
+            _formatExpiryDateTime(sessionData.expiry),
           ),
           InfiniteScrollTableCell.withText(
             context,
@@ -104,7 +100,7 @@ class _WalletConnectSessionsCardState extends State<WalletConnectSessionsCard> {
 
   Row _buildTableUrlWidget(String? peerUrl) {
     return Row(
-      children: [
+      children: <Widget>[
         Text(peerUrl ?? 'Empty'),
         Visibility(
           visible: peerUrl != null,
@@ -117,7 +113,7 @@ class _WalletConnectSessionsCardState extends State<WalletConnectSessionsCard> {
   }
 
   String _formatExpiryDateTime(int expirySeconds) {
-    final expiryDateTime =
+    final DateTime expiryDateTime =
         DateTime.fromMillisecondsSinceEpoch(expirySeconds * 1000);
 
     return DateFormat('MMM dd, y HH:mm:ss').format(expiryDateTime);

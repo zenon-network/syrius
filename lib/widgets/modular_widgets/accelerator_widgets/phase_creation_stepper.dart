@@ -15,9 +15,9 @@ enum PhaseCreationStep {
 }
 
 class PhaseCreationStepper extends StatefulWidget {
-  final Project project;
 
-  const PhaseCreationStepper(this.project, {Key? key}) : super(key: key);
+  const PhaseCreationStepper(this.project, {super.key});
+  final Project project;
 
   @override
   State<PhaseCreationStepper> createState() => _PhaseCreationStepperState();
@@ -53,7 +53,7 @@ class _PhaseCreationStepperState extends State<PhaseCreationStepper> {
   Widget build(BuildContext context) {
     return StreamBuilder<Map<String, AccountInfo>?>(
       stream: sl.get<BalanceBloc>().stream,
-      builder: (_, snapshot) {
+      builder: (_, AsyncSnapshot<Map<String, AccountInfo>?> snapshot) {
         if (snapshot.hasError) {
           return SyriusErrorWidget(snapshot.error!);
         }
@@ -73,21 +73,21 @@ class _PhaseCreationStepperState extends State<PhaseCreationStepper> {
 
   Widget _getWidgetBody(BuildContext context, AccountInfo accountInfo) {
     return Stack(
-      children: [
+      children: <Widget>[
         ListView(
-          children: [
+          children: <Widget>[
             _getMaterialStepper(context, accountInfo),
           ],
         ),
         Visibility(
           visible: _lastCompletedStep == PhaseCreationStep.values.last,
           child: Positioned(
-            bottom: 20.0,
-            right: 0.0,
-            left: 0.0,
+            bottom: 20,
+            right: 0,
+            left: 0,
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
-              children: [
+              children: <Widget>[
                 StepperButton.icon(
                   label: 'Create another phase',
                   onPressed: () {
@@ -98,10 +98,9 @@ class _PhaseCreationStepperState extends State<PhaseCreationStepper> {
                     });
                   },
                   iconData: Icons.refresh,
-                  context: context,
                 ),
                 const SizedBox(
-                  width: 75.0,
+                  width: 75,
                 ),
                 StepperButton(
                   text: 'View phases',
@@ -116,10 +115,10 @@ class _PhaseCreationStepperState extends State<PhaseCreationStepper> {
         Visibility(
           visible: _lastCompletedStep == PhaseCreationStep.values.last,
           child: Positioned(
-            right: 50.0,
+            right: 50,
             child: SizedBox(
-              width: 400.0,
-              height: 400.0,
+              width: 400,
+              height: 400,
               child: Center(
                 child: Lottie.asset(
                   'assets/lottie/ic_anim_zts.json',
@@ -143,7 +142,7 @@ class _PhaseCreationStepperState extends State<PhaseCreationStepper> {
       child: custom_material_stepper.Stepper(
         currentStep: _currentStep.index,
         onStepTapped: (int index) {},
-        steps: [
+        steps: <custom_material_stepper.Step>[
           StepperUtils.getMaterialStep(
             stepTitle: 'Phase details',
             stepContent: _getPhaseDetailsStepContent(accountInfo),
@@ -174,12 +173,12 @@ class _PhaseCreationStepperState extends State<PhaseCreationStepper> {
   Widget _getPhaseDetailsStepContent(AccountInfo accountInfo) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
+      children: <Widget>[
         Text('This phase belongs to Project ID '
             '${widget.project.id.toShortString()}'),
         kVerticalSpacing,
         Row(
-          children: [
+          children: <Widget>[
             Expanded(
               child: Form(
                 key: _phaseNameKey,
@@ -187,7 +186,7 @@ class _PhaseCreationStepperState extends State<PhaseCreationStepper> {
                 child: InputField(
                   controller: _phaseNameController,
                   hintText: 'Phase name',
-                  onChanged: (value) {
+                  onChanged: (String value) {
                     setState(() {});
                   },
                   validator: Validations.projectName,
@@ -196,13 +195,13 @@ class _PhaseCreationStepperState extends State<PhaseCreationStepper> {
             ),
             // Empty space so that all the right edges will align
             const SizedBox(
-              width: 23.0,
+              width: 23,
             ),
           ],
         ),
         kVerticalSpacing,
         Row(
-          children: [
+          children: <Widget>[
             Expanded(
               child: Form(
                 key: _phaseDescriptionKey,
@@ -210,7 +209,7 @@ class _PhaseCreationStepperState extends State<PhaseCreationStepper> {
                 child: InputField(
                   controller: _phaseDescriptionController,
                   hintText: 'Phase description',
-                  onChanged: (value) {
+                  onChanged: (String value) {
                     setState(() {});
                   },
                   validator: Validations.projectDescription,
@@ -219,13 +218,13 @@ class _PhaseCreationStepperState extends State<PhaseCreationStepper> {
             ),
             // Empty space so that all the right edges will align
             const SizedBox(
-              width: 23.0,
+              width: 23,
             ),
           ],
         ),
         kVerticalSpacing,
         Row(
-          children: [
+          children: <Widget>[
             Expanded(
               child: Form(
                 key: _phaseUrlKey,
@@ -233,7 +232,7 @@ class _PhaseCreationStepperState extends State<PhaseCreationStepper> {
                 child: InputField(
                   controller: _phaseUrlController,
                   hintText: 'Phase URL',
-                  onChanged: (value) {
+                  onChanged: (String value) {
                     setState(() {});
                   },
                   validator: InputValidators.checkUrl,
@@ -248,7 +247,7 @@ class _PhaseCreationStepperState extends State<PhaseCreationStepper> {
         ),
         kVerticalSpacing,
         Row(
-          children: [
+          children: <Widget>[
             Text(
               'Total phase budget',
               style: Theme.of(context).textTheme.bodyLarge,
@@ -261,7 +260,7 @@ class _PhaseCreationStepperState extends State<PhaseCreationStepper> {
         ),
         kVerticalSpacing,
         Row(
-          children: [
+          children: <Widget>[
             Expanded(
               child: Form(
                 key: _phaseZnnAmountKey,
@@ -282,14 +281,14 @@ class _PhaseCreationStepperState extends State<PhaseCreationStepper> {
                   inputFormatters: FormatUtils.getAmountTextInputFormatters(
                     _phaseZnnAmountController.text,
                   ),
-                  validator: (value) => InputValidators.correctValue(
+                  validator: (String? value) => InputValidators.correctValue(
                     value,
                     widget.project.getRemainingZnnFunds(),
                     coinDecimals,
                     BigInt.zero,
                     canBeEqualToMin: true,
                   ),
-                  onChanged: (value) {
+                  onChanged: (String value) {
                     setState(() {});
                   },
                 ),
@@ -297,13 +296,13 @@ class _PhaseCreationStepperState extends State<PhaseCreationStepper> {
             ),
             // Empty space so that all the right edges will align
             const SizedBox(
-              width: 23.0,
+              width: 23,
             ),
           ],
         ),
         kVerticalSpacing,
         Row(
-          children: [
+          children: <Widget>[
             Expanded(
               child: Form(
                 key: _phaseQsrAmountKey,
@@ -324,14 +323,14 @@ class _PhaseCreationStepperState extends State<PhaseCreationStepper> {
                   inputFormatters: FormatUtils.getAmountTextInputFormatters(
                     _phaseQsrAmountController.text,
                   ),
-                  validator: (value) => InputValidators.correctValue(
+                  validator: (String? value) => InputValidators.correctValue(
                     value,
                     widget.project.getRemainingQsrFunds(),
                     coinDecimals,
                     BigInt.zero,
                     canBeEqualToMin: true,
                   ),
-                  onChanged: (value) {
+                  onChanged: (String value) {
                     setState(() {});
                   },
                 ),
@@ -339,13 +338,13 @@ class _PhaseCreationStepperState extends State<PhaseCreationStepper> {
             ),
             // Empty space so that all the right edges will align
             const SizedBox(
-              width: 23.0,
+              width: 23,
             ),
           ],
         ),
         kVerticalSpacing,
         Row(
-          children: [
+          children: <Widget>[
             StepperButton(
               text: 'Cancel',
               onPressed: () {
@@ -353,7 +352,7 @@ class _PhaseCreationStepperState extends State<PhaseCreationStepper> {
               },
             ),
             const SizedBox(
-              width: 15.0,
+              width: 15,
             ),
             StepperButton(
               text: 'Continue',
@@ -373,19 +372,19 @@ class _PhaseCreationStepperState extends State<PhaseCreationStepper> {
   }
 
   Widget _getSubmitPhaseStepContent() {
-    BigInt remainingZnnBudget = widget.project.getRemainingZnnFunds() -
+    final BigInt remainingZnnBudget = widget.project.getRemainingZnnFunds() -
         (_phaseZnnAmountController.text.isNotEmpty
             ? _phaseZnnAmountController.text.extractDecimals(coinDecimals)
             : BigInt.zero);
 
-    BigInt remainingQsrBudget = widget.project.getRemainingQsrFunds() -
+    final BigInt remainingQsrBudget = widget.project.getRemainingQsrFunds() -
         (_phaseQsrAmountController.text.isNotEmpty
             ? _phaseQsrAmountController.text.extractDecimals(coinDecimals)
             : BigInt.zero);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
+      children: <Widget>[
         DottedBorderInfoWidget(
           text: 'Remaining budget for the next phases is '
               '${remainingZnnBudget.addDecimals(coinDecimals)} ${kZnnCoin.symbol} and '
@@ -393,7 +392,7 @@ class _PhaseCreationStepperState extends State<PhaseCreationStepper> {
         ),
         kVerticalSpacing,
         Row(
-          children: [
+          children: <Widget>[
             StepperButton(
               onPressed: () {
                 setState(() {
@@ -404,7 +403,7 @@ class _PhaseCreationStepperState extends State<PhaseCreationStepper> {
               text: 'Go back',
             ),
             const SizedBox(
-              width: 15.0,
+              width: 15,
             ),
             _getCreatePhaseViewModel(),
           ],
@@ -437,9 +436,9 @@ class _PhaseCreationStepperState extends State<PhaseCreationStepper> {
 
   Widget _getCreatePhaseViewModel() {
     return ViewModelBuilder<CreatePhaseBloc>.reactive(
-      onViewModelReady: (model) {
+      onViewModelReady: (CreatePhaseBloc model) {
         model.stream.listen(
-          (event) {
+          (AccountBlockTemplate? event) {
             if (event != null) {
               _submitButtonKey.currentState?.animateReverse();
               setState(() {
@@ -456,8 +455,8 @@ class _PhaseCreationStepperState extends State<PhaseCreationStepper> {
           },
         );
       },
-      builder: (_, model, __) => _getSubmitButton(model),
-      viewModelBuilder: () => CreatePhaseBloc(),
+      builder: (_, CreatePhaseBloc model, __) => _getSubmitButton(model),
+      viewModelBuilder: CreatePhaseBloc.new,
     );
   }
 

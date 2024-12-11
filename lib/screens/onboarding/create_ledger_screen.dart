@@ -7,16 +7,16 @@ import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 class CreateLedgerWalletScreen extends StatefulWidget {
-  final WalletDefinition deviceInfo;
-  final String password;
-  final int progressBarNumLevels;
 
   const CreateLedgerWalletScreen(
     this.deviceInfo,
     this.password, {
     this.progressBarNumLevels = 4,
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
+  final WalletDefinition deviceInfo;
+  final String password;
+  final int progressBarNumLevels;
 
   @override
   State<CreateLedgerWalletScreen> createState() =>
@@ -42,15 +42,15 @@ class _CreateLedgerWalletScreenState extends State<CreateLedgerWalletScreen> {
     return Scaffold(
       body: Container(
         padding: const EdgeInsets.symmetric(
-          vertical: 30.0,
+          vertical: 30,
         ),
         child: Center(
           child: StreamBuilder<LedgerWalletFile?>(
             stream: _ledgerWalletFileBloc.stream,
-            builder: (_, snapshot) {
+            builder: (_, AsyncSnapshot<LedgerWalletFile?> snapshot) {
               if (snapshot.hasData) {
                 return Column(
-                  children: [
+                  children: <Widget>[
                     ProgressBar(
                       currentLevel: widget.progressBarNumLevels - 1,
                       numLevels: widget.progressBarNumLevels,

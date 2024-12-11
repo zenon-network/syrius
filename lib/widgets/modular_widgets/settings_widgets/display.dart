@@ -23,7 +23,7 @@ enum LocaleType {
 }
 
 class DisplayWidget extends StatefulWidget {
-  const DisplayWidget({Key? key}) : super(key: key);
+  const DisplayWidget({super.key});
 
   @override
   State<DisplayWidget> createState() => _DisplayWidget();
@@ -40,24 +40,24 @@ class _DisplayWidget extends State<DisplayWidget> {
     return CardScaffold(
       title: 'Display',
       description: 'Wallet appearance and theme settings',
-      childBuilder: () => _getWidgetBody(),
+      childBuilder: _getWidgetBody,
     );
   }
 
   Widget _getWidgetBody() {
     return ListView(
       shrinkWrap: true,
-      children: [
+      children: <Widget>[
         CustomExpandablePanel('Text scaling', _getTextScalingExpandableChild()),
         CustomExpandablePanel('Locale', _getLocaleExpandableChild()),
-        CustomExpandablePanel('Theme', _getThemeExpandableChild())
+        CustomExpandablePanel('Theme', _getThemeExpandableChild()),
       ],
     );
   }
 
   Widget _getTextScalingExpandableChild() {
     return Column(
-      children: [
+      children: <Widget>[
         _getTextScalingTiles(),
         _getConfirmScaleButton(),
       ],
@@ -69,7 +69,7 @@ class _DisplayWidget extends State<DisplayWidget> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: TextScaling.values
           .map(
-            (e) => _getListTile<TextScaling>(
+            (TextScaling e) => _getListTile<TextScaling>(
               FormatUtils.extractNameFromEnum<TextScaling>(e),
               e,
             ),
@@ -80,7 +80,7 @@ class _DisplayWidget extends State<DisplayWidget> {
 
   Widget _getListTile<T>(String text, T value) {
     return Row(
-      children: [
+      children: <Widget>[
         Radio<T>(
           materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
           value: value,
@@ -88,7 +88,7 @@ class _DisplayWidget extends State<DisplayWidget> {
               ? Provider.of<TextScalingNotifier>(
                   context,
                   listen: false,
-                ).currentTextScaling
+                ).currentTextScaling as T
               : value is LocaleType
                   ? _selectedLocaleType as T?
                   : Provider.of<AppThemeNotifier>(
@@ -117,7 +117,7 @@ class _DisplayWidget extends State<DisplayWidget> {
           child: Text(
             text,
             style: Theme.of(context).textTheme.bodyLarge!.copyWith(
-                  fontSize: 10.0,
+                  fontSize: 10,
                 ),
           ),
         ),
@@ -130,7 +130,7 @@ class _DisplayWidget extends State<DisplayWidget> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: LocaleType.values
           .map(
-            (e) => _getListTile<LocaleType>(
+            (LocaleType e) => _getListTile<LocaleType>(
               FormatUtils.extractNameFromEnum<LocaleType>(e),
               e,
             ),
@@ -141,7 +141,7 @@ class _DisplayWidget extends State<DisplayWidget> {
 
   Widget _getThemeExpandableChild() {
     return Column(
-      children: [
+      children: <Widget>[
         _getThemeModeTiles(),
         _getConfirmThemeButton(),
       ],
@@ -153,7 +153,7 @@ class _DisplayWidget extends State<DisplayWidget> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: ThemeMode.values
           .map(
-            (e) => _getListTile<ThemeMode>(
+            (ThemeMode e) => _getListTile<ThemeMode>(
               FormatUtils.extractNameFromEnum<ThemeMode>(e),
               e,
             ),
@@ -165,9 +165,9 @@ class _DisplayWidget extends State<DisplayWidget> {
   Widget _getConfirmThemeButton() {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
-      children: [
+      children: <Widget>[
         Padding(
-          padding: const EdgeInsets.all(8.0),
+          padding: const EdgeInsets.all(8),
           child: LoadingButton.settings(
             text: 'Confirm theme',
             onPressed: _onConfirmThemeButtonPressed,
@@ -181,7 +181,7 @@ class _DisplayWidget extends State<DisplayWidget> {
   Future<void> _onConfirmThemeButtonPressed() async {
     try {
       _confirmThemeButtonKey.currentState!.animateForward();
-      ThemeMode? currentThemeMode = Provider.of<AppThemeNotifier>(
+      final ThemeMode? currentThemeMode = Provider.of<AppThemeNotifier>(
         context,
         listen: false,
       ).currentThemeMode;
@@ -213,9 +213,9 @@ class _DisplayWidget extends State<DisplayWidget> {
   Widget _getConfirmScaleButton() {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
-      children: [
+      children: <Widget>[
         Padding(
-          padding: const EdgeInsets.all(8.0),
+          padding: const EdgeInsets.all(8),
           child: LoadingButton.settings(
             text: 'Confirm scale',
             onPressed: _onConfirmScaleButtonPressed,
@@ -226,11 +226,11 @@ class _DisplayWidget extends State<DisplayWidget> {
     );
   }
 
-  void _onConfirmScaleButtonPressed() async {
+  Future<void> _onConfirmScaleButtonPressed() async {
     try {
       _confirmScaleButtonKey.currentState!.animateForward();
 
-      TextScaling? currentTextScaling = Provider.of<TextScalingNotifier>(
+      final TextScaling? currentTextScaling = Provider.of<TextScalingNotifier>(
         context,
         listen: false,
       ).currentTextScaling;
@@ -246,7 +246,7 @@ class _DisplayWidget extends State<DisplayWidget> {
                 timestamp: DateTime.now().millisecondsSinceEpoch,
                 details: 'Text scale successfully changed to '
                     '${FormatUtils.extractNameFromEnum<TextScaling?>(currentTextScaling)}',
-                type: NotificationType.paymentSent),
+                type: NotificationType.paymentSent,),
           );
     } catch (e) {
       await NotificationUtils.sendNotificationError(e, 'Text scale change failed');

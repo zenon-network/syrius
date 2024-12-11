@@ -7,7 +7,7 @@ import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 class TokenBalance extends StatefulWidget {
-  const TokenBalance({Key? key}) : super(key: key);
+  const TokenBalance({super.key});
 
   @override
   State createState() {
@@ -16,7 +16,7 @@ class TokenBalance extends StatefulWidget {
 }
 
 class _TokenBalanceState extends State<TokenBalance> {
-  List<BalanceInfoListItem> _newTokenIds = [];
+  List<BalanceInfoListItem> _newTokenIds = <BalanceInfoListItem>[];
 
   @override
   void initState() {
@@ -29,9 +29,9 @@ class _TokenBalanceState extends State<TokenBalance> {
       _newTokenIds.clear();
     }
     _newTokenIds = accountInfo.balanceInfoList!.fold(
-      [],
-      (previousValue, element) {
-        if (![kZnnCoin.tokenStandard, kQsrCoin.tokenStandard]
+      <BalanceInfoListItem>[],
+      (List<BalanceInfoListItem> previousValue, BalanceInfoListItem element) {
+        if (!<TokenStandard>[kZnnCoin.tokenStandard, kQsrCoin.tokenStandard]
             .contains(element.token!.tokenStandard)) {
           previousValue.add(element);
         }
@@ -48,7 +48,7 @@ class _TokenBalanceState extends State<TokenBalance> {
           'currently hold in your wallet',
       childBuilder: () => StreamBuilder<Map<String, AccountInfo>?>(
         stream: sl.get<BalanceBloc>().stream,
-        builder: (_, snapshot) {
+        builder: (_, AsyncSnapshot<Map<String, AccountInfo>?> snapshot) {
           if (snapshot.hasError) {
             return SyriusErrorWidget(snapshot.error!);
           }
@@ -72,7 +72,7 @@ class _TokenBalanceState extends State<TokenBalance> {
 
   Widget _getWidgetBody(AccountInfo? accountInfo) {
     return Column(
-      children: [
+      children: <Widget>[
         kVerticalSpacing,
         Expanded(child: _getNewTokensGridViewStatus(accountInfo)),
       ],
@@ -81,7 +81,7 @@ class _TokenBalanceState extends State<TokenBalance> {
 
   Widget _getTokenStatus(String formattedAmount, String tokenSymbol) {
     return Row(
-      children: [
+      children: <Widget>[
         Text(
           '$formattedAmount $tokenSymbol',
           style: Theme.of(context).textTheme.bodyLarge,
@@ -97,28 +97,28 @@ class _TokenBalanceState extends State<TokenBalance> {
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 2,
         childAspectRatio: 100 / 20,
-        crossAxisSpacing: 10.0,
-        mainAxisSpacing: 10.0,
+        crossAxisSpacing: 10,
+        mainAxisSpacing: 10,
       ),
-      itemBuilder: (context, index) => Padding(
-        padding: const EdgeInsets.all(8.0),
+      itemBuilder: (BuildContext context, int index) => Padding(
+        padding: const EdgeInsets.all(8),
         child: Marquee(
           child: FormattedAmountWithTooltip(
             amount: _newTokenIds[index]
                 .balance!
                 .addDecimals(_newTokenIds[index].token!.decimals),
             tokenSymbol: _newTokenIds[index].token!.symbol,
-            builder: (amount, symbol) => Row(
+            builder: (String amount, String symbol) => Row(
               mainAxisAlignment: MainAxisAlignment.center,
-              children: [
+              children: <Widget>[
                 Text(
                   '● ',
                   style: Theme.of(context).textTheme.bodyLarge!.copyWith(
                         color: ColorUtils.getTokenColor(
-                            _newTokenIds[index].token!.tokenStandard),
+                            _newTokenIds[index].token!.tokenStandard,),
                       ),
                 ),
-                _getTokenStatus(amount, symbol)
+                _getTokenStatus(amount, symbol),
               ],
             ),
           ),

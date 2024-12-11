@@ -8,12 +8,12 @@ import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/p2p_swap_wid
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 class HtlcSwapDetailsWidget extends StatefulWidget {
-  final HtlcSwap swap;
 
   const HtlcSwapDetailsWidget({
     required this.swap,
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
+  final HtlcSwap swap;
 
   @override
   State<HtlcSwapDetailsWidget> createState() => _HtlcSwapDetailsWidgetState();
@@ -40,7 +40,7 @@ class _HtlcSwapDetailsWidgetState extends State<HtlcSwapDetailsWidget>
   Widget build(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
+      children: <Widget>[
         InkWell(
           borderRadius: BorderRadius.circular(4),
           hoverColor: Colors.transparent,
@@ -53,25 +53,25 @@ class _HtlcSwapDetailsWidgetState extends State<HtlcSwapDetailsWidget>
             });
           },
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 10.0),
+            padding: const EdgeInsets.symmetric(horizontal: 10),
             child: Row(
               mainAxisSize: MainAxisSize.min,
               mainAxisAlignment: MainAxisAlignment.center,
-              children: [
+              children: <Widget>[
                 Text(
                   _isExpanded ? 'Hide details' : 'Show details',
                   style: const TextStyle(
-                    fontSize: 14.0,
+                    fontSize: 14,
                     color: AppColors.subtitleColor,
                   ),
                 ),
                 const SizedBox(
-                  width: 3.0,
+                  width: 3,
                 ),
                 RotationTransition(
                   turns:
-                      Tween(begin: 0.0, end: 0.5).animate(_animationController),
-                  child: const Icon(Icons.keyboard_arrow_down, size: 18.0),
+                      Tween<double>(begin: 0, end: 0.5).animate(_animationController),
+                  child: const Icon(Icons.keyboard_arrow_down, size: 18),
                 ),
               ],
             ),
@@ -83,11 +83,11 @@ class _HtlcSwapDetailsWidgetState extends State<HtlcSwapDetailsWidget>
           child: Visibility(
             visible: _isExpanded,
             child: Column(
-              children: [
-                const SizedBox(height: 20.0),
+              children: <Widget>[
+                const SizedBox(height: 20),
                 Divider(color: Colors.white.withOpacity(0.1)),
-                const SizedBox(height: 20.0),
-                _getDetailsList(widget.swap)
+                const SizedBox(height: 20),
+                _getDetailsList(widget.swap),
               ],
             ),
           ),
@@ -97,11 +97,11 @@ class _HtlcSwapDetailsWidgetState extends State<HtlcSwapDetailsWidget>
   }
 
   Widget _getDetailsList(HtlcSwap swap) {
-    final List<Widget> children = [];
-    final yourDepositId = swap.direction == P2pSwapDirection.outgoing
+    final List<Widget> children = <Widget>[];
+    final String yourDepositId = swap.direction == P2pSwapDirection.outgoing
         ? swap.initialHtlcId
         : swap.counterHtlcId!;
-    final counterpartyDepositId = swap.direction == P2pSwapDirection.incoming
+    final String? counterpartyDepositId = swap.direction == P2pSwapDirection.incoming
         ? swap.initialHtlcId
         : swap.counterHtlcId;
     children.add(
@@ -138,7 +138,7 @@ class _HtlcSwapDetailsWidgetState extends State<HtlcSwapDetailsWidget>
       DetailRow(
           label: 'Hashlock',
           value: swap.hashLock,
-          valueToShow: Hash.parse(swap.hashLock).toShortString()),
+          valueToShow: Hash.parse(swap.hashLock).toShortString(),),
     );
     if (swap.preimage != null) {
       children.add(
@@ -154,8 +154,8 @@ class _HtlcSwapDetailsWidgetState extends State<HtlcSwapDetailsWidget>
       children: children.zip(
         List.generate(
           children.length - 1,
-          (index) => const SizedBox(
-            height: 15.0,
+          (int index) => const SizedBox(
+            height: 15,
           ),
         ),
       ),

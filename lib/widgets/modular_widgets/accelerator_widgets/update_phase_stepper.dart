@@ -15,14 +15,14 @@ enum UpdatePhaseStep {
 }
 
 class UpdatePhaseStepper extends StatefulWidget {
-  final Phase phase;
-  final Project project;
 
   const UpdatePhaseStepper(
     this.phase,
     this.project, {
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
+  final Phase phase;
+  final Project project;
 
   @override
   State<UpdatePhaseStepper> createState() => _UpdatePhaseStepperState();
@@ -67,7 +67,7 @@ class _UpdatePhaseStepperState extends State<UpdatePhaseStepper> {
   Widget build(BuildContext context) {
     return StreamBuilder<Map<String, AccountInfo>?>(
       stream: sl.get<BalanceBloc>().stream,
-      builder: (_, snapshot) {
+      builder: (_, AsyncSnapshot<Map<String, AccountInfo>?> snapshot) {
         if (snapshot.hasError) {
           return SyriusErrorWidget(snapshot.error!);
         }
@@ -87,21 +87,21 @@ class _UpdatePhaseStepperState extends State<UpdatePhaseStepper> {
 
   Widget _getWidgetBody(BuildContext context, AccountInfo accountInfo) {
     return Stack(
-      children: [
+      children: <Widget>[
         ListView(
-          children: [
+          children: <Widget>[
             _getMaterialStepper(context, accountInfo),
           ],
         ),
         Visibility(
           visible: _lastCompletedStep == UpdatePhaseStep.updatePhase,
           child: Positioned(
-            bottom: 20.0,
-            right: 0.0,
-            left: 0.0,
+            bottom: 20,
+            right: 0,
+            left: 0,
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
-              children: [
+              children: <Widget>[
                 StepperButton(
                   text: 'View Phases',
                   onPressed: () {
@@ -115,10 +115,10 @@ class _UpdatePhaseStepperState extends State<UpdatePhaseStepper> {
         Visibility(
           visible: _lastCompletedStep == UpdatePhaseStep.updatePhase,
           child: Positioned(
-            right: 50.0,
+            right: 50,
             child: SizedBox(
-              width: 400.0,
-              height: 400.0,
+              width: 400,
+              height: 400,
               child: Center(
                 child: Lottie.asset(
                   'assets/lottie/ic_anim_zts.json',
@@ -142,7 +142,7 @@ class _UpdatePhaseStepperState extends State<UpdatePhaseStepper> {
       child: custom_material_stepper.Stepper(
         currentStep: _currentStep.index,
         onStepTapped: (int index) {},
-        steps: [
+        steps: <custom_material_stepper.Step>[
           StepperUtils.getMaterialStep(
             stepTitle: 'Phase details',
             stepContent: _getPhaseDetailsStepContent(accountInfo),
@@ -165,7 +165,7 @@ class _UpdatePhaseStepperState extends State<UpdatePhaseStepper> {
   }
 
   custom_material_stepper.StepState _getStepState(UpdatePhaseStep step) {
-    int stepIndex = step.index;
+    final int stepIndex = step.index;
     return stepIndex <= (_lastCompletedStep?.index ?? -1)
         ? custom_material_stepper.StepState.complete
         : custom_material_stepper.StepState.indexed;
@@ -174,9 +174,9 @@ class _UpdatePhaseStepperState extends State<UpdatePhaseStepper> {
   Widget _getPhaseDetailsStepContent(AccountInfo accountInfo) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
+      children: <Widget>[
         Row(
-          children: [
+          children: <Widget>[
             Expanded(
               child: Text(
                 'This phase belongs to Project ID '
@@ -193,7 +193,7 @@ class _UpdatePhaseStepperState extends State<UpdatePhaseStepper> {
           child: InputField(
             controller: _phaseNameController,
             hintText: 'Phase name',
-            onChanged: (value) {
+            onChanged: (String value) {
               setState(() {});
             },
             validator: Validations.projectName,
@@ -206,7 +206,7 @@ class _UpdatePhaseStepperState extends State<UpdatePhaseStepper> {
           child: InputField(
             controller: _phaseDescriptionController,
             hintText: 'Phase description',
-            onChanged: (value) {
+            onChanged: (String value) {
               setState(() {});
             },
             validator: Validations.projectDescription,
@@ -219,7 +219,7 @@ class _UpdatePhaseStepperState extends State<UpdatePhaseStepper> {
           child: InputField(
             controller: _phaseUrlController,
             hintText: 'Phase URL',
-            onChanged: (value) {
+            onChanged: (String value) {
               setState(() {});
             },
             validator: InputValidators.checkUrl,
@@ -250,14 +250,14 @@ class _UpdatePhaseStepperState extends State<UpdatePhaseStepper> {
             inputFormatters: FormatUtils.getAmountTextInputFormatters(
               _phaseZnnAmountController.text,
             ),
-            validator: (value) => InputValidators.correctValue(
+            validator: (String? value) => InputValidators.correctValue(
               value,
               widget.project.getRemainingZnnFunds(),
               kZnnCoin.decimals,
               BigInt.zero,
               canBeEqualToMin: true,
             ),
-            onChanged: (value) {
+            onChanged: (String value) {
               setState(() {});
             },
           ),
@@ -282,21 +282,21 @@ class _UpdatePhaseStepperState extends State<UpdatePhaseStepper> {
             inputFormatters: FormatUtils.getAmountTextInputFormatters(
               _phaseQsrAmountController.text,
             ),
-            validator: (value) => InputValidators.correctValue(
+            validator: (String? value) => InputValidators.correctValue(
               value,
               widget.project.getRemainingQsrFunds(),
               kQsrCoin.decimals,
               BigInt.zero,
               canBeEqualToMin: true,
             ),
-            onChanged: (value) {
+            onChanged: (String value) {
               setState(() {});
             },
           ),
         ),
         kVerticalSpacing,
         Row(
-          children: [
+          children: <Widget>[
             StepperButton(
               text: 'Cancel',
               onPressed: () {
@@ -304,7 +304,7 @@ class _UpdatePhaseStepperState extends State<UpdatePhaseStepper> {
               },
             ),
             const SizedBox(
-              width: 15.0,
+              width: 15,
             ),
             StepperButton(
               text: 'Continue',
@@ -326,13 +326,13 @@ class _UpdatePhaseStepperState extends State<UpdatePhaseStepper> {
   Widget _getUpdatePhaseStepContent() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
+      children: <Widget>[
         const DottedBorderInfoWidget(
           text: 'Updating this phase will reset all current votes',
         ),
         kVerticalSpacing,
         Row(
-          children: [
+          children: <Widget>[
             StepperButton(
               onPressed: () {
                 setState(() {
@@ -343,7 +343,7 @@ class _UpdatePhaseStepperState extends State<UpdatePhaseStepper> {
               text: 'Go back',
             ),
             const SizedBox(
-              width: 15.0,
+              width: 15,
             ),
             _getUpdatePhaseViewModel(),
           ],
@@ -392,9 +392,9 @@ class _UpdatePhaseStepperState extends State<UpdatePhaseStepper> {
 
   Widget _getUpdatePhaseViewModel() {
     return ViewModelBuilder<UpdatePhaseBloc>.reactive(
-      onViewModelReady: (model) {
+      onViewModelReady: (UpdatePhaseBloc model) {
         model.stream.listen(
-          (event) {
+          (AccountBlockTemplate? event) {
             if (event != null) {
               setState(() {
                 _lastCompletedStep = UpdatePhaseStep.updatePhase;
@@ -409,9 +409,9 @@ class _UpdatePhaseStepperState extends State<UpdatePhaseStepper> {
           },
         );
       },
-      builder: (_, model, __) => StreamBuilder<AccountBlockTemplate?>(
+      builder: (_, UpdatePhaseBloc model, __) => StreamBuilder<AccountBlockTemplate?>(
         stream: model.stream,
-        builder: (_, snapshot) {
+        builder: (_, AsyncSnapshot<AccountBlockTemplate?> snapshot) {
           if (snapshot.hasError) {
             return _getUpdatePhaseButton(model);
           }
@@ -424,7 +424,7 @@ class _UpdatePhaseStepperState extends State<UpdatePhaseStepper> {
           return _getUpdatePhaseButton(model);
         },
       ),
-      viewModelBuilder: () => UpdatePhaseBloc(),
+      viewModelBuilder: UpdatePhaseBloc.new,
     );
   }
 

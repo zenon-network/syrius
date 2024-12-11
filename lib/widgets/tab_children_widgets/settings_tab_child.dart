@@ -4,16 +4,16 @@ import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 
 class SettingsTabChild extends StatefulWidget {
-  final VoidCallback _onChangeAutoLockTime;
-  final VoidCallback onStepperNotificationSeeMorePressed;
-  final VoidCallback onNodeChangedCallback;
 
   const SettingsTabChild(
     this._onChangeAutoLockTime, {
     required this.onStepperNotificationSeeMorePressed,
     required this.onNodeChangedCallback,
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
+  final VoidCallback _onChangeAutoLockTime;
+  final VoidCallback onStepperNotificationSeeMorePressed;
+  final VoidCallback onNodeChangedCallback;
 
   @override
   State<SettingsTabChild> createState() => _SettingsTabChildState();
@@ -32,7 +32,7 @@ class _SettingsTabChildState extends State<SettingsTabChild> {
         sm: kStaggeredNumOfColumns,
         xs: kStaggeredNumOfColumns,
       ),
-      children: [
+      children: <FluidCell>[
         FluidCell(
           width: context.layout.value(
             xl: kStaggeredNumOfColumns ~/ 2,
@@ -79,7 +79,7 @@ class _SettingsTabChildState extends State<SettingsTabChild> {
             onStepperNotificationSeeMorePressed:
                 widget.onStepperNotificationSeeMorePressed,
           ),
-          height: kStaggeredNumOfColumns / 2
+          height: kStaggeredNumOfColumns / 2,
         ),
         FluidCell(
           width: context.layout.value(
@@ -90,7 +90,7 @@ class _SettingsTabChildState extends State<SettingsTabChild> {
             xs: kStaggeredNumOfColumns,
           ),
           child: const DisplayWidget(),
-          height: kStaggeredNumOfColumns / 2
+          height: kStaggeredNumOfColumns / 2,
         ),
         FluidCell(
           child: const WalletOptions(),

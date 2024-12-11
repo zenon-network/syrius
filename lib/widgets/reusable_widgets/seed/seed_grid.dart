@@ -6,18 +6,18 @@ import 'package:zenon_syrius_wallet_flutter/utils/extensions.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart' show Mnemonic;
 
 class SeedGrid extends StatefulWidget {
-  final List<String> seedWords;
-  final bool isContinueButtonDisabled;
-  final bool enableSeedInputFields;
-  final VoidCallback? onTextFieldChangedCallback;
 
   const SeedGrid(
     this.seedWords, {
     this.isContinueButtonDisabled = false,
     this.enableSeedInputFields = true,
     this.onTextFieldChangedCallback,
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
+  final List<String> seedWords;
+  final bool isContinueButtonDisabled;
+  final bool enableSeedInputFields;
+  final VoidCallback? onTextFieldChangedCallback;
 
   @override
   State createState() {
@@ -26,7 +26,7 @@ class SeedGrid extends StatefulWidget {
 }
 
 class SeedGridState extends State<SeedGrid> {
-  final List<SeedGridElement> _seedGridElements = [];
+  final List<SeedGridElement> _seedGridElements = <SeedGridElement>[];
 
   int? _textCursor;
   int? _onHoverText;
@@ -61,16 +61,16 @@ class SeedGridState extends State<SeedGrid> {
   }
 
   Widget _getSeedInputWidgetsGrid() {
-    int divider = widget.seedWords.length ~/ kSeedGridNumOfRows;
+    final int divider = widget.seedWords.length ~/ kSeedGridNumOfRows;
 
-    List<Widget> columnChildren = [];
+    List<Widget> columnChildren = <Widget>[];
 
     for (int i = 0; i <= widget.seedWords.length / divider - 1; i++) {
       columnChildren.add(
         _getSeedRow(
           List.generate(
             divider,
-            (index) => index + (divider * i),
+            (int index) => index + (divider * i),
           ),
         ),
       );
@@ -79,8 +79,8 @@ class SeedGridState extends State<SeedGrid> {
     columnChildren = columnChildren.zip<Widget>(
       List.generate(
         kSeedGridNumOfRows - 1,
-        (index) => const SizedBox(
-          height: 10.0,
+        (int index) => const SizedBox(
+          height: 10,
         ),
       ),
     );
@@ -93,14 +93,14 @@ class SeedGridState extends State<SeedGrid> {
   }
 
   Widget _getSeedRow(List<int> rangeIndexes) {
-    List<Widget> children = rangeIndexes.fold<List<Widget>>(
-      [],
-      (previousValue, index) {
+    final List<Widget> children = rangeIndexes.fold<List<Widget>>(
+      <Widget>[],
+      (List<Widget> previousValue, int index) {
         previousValue.add(_seedWordWidget(index));
         if (rangeIndexes.last != index) {
           previousValue.add(const SizedBox(
-            width: 10.0,
-          ));
+            width: 10,
+          ),);
         }
         return previousValue;
       },
@@ -112,7 +112,7 @@ class SeedGridState extends State<SeedGrid> {
   }
 
   Widget _seedWordWidget(int seedWordIndex) {
-    String seedWord = _seedGridElements[seedWordIndex].word;
+    final String seedWord = _seedGridElements[seedWordIndex].word;
 
     final TextEditingController controller = TextEditingController();
     controller.text = seedWord;
@@ -124,7 +124,7 @@ class SeedGridState extends State<SeedGrid> {
     }
     return SizedBox(
       width: kSeedWordCellWidth,
-      height: 30.0,
+      height: 30,
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         mainAxisSize: MainAxisSize.min,
@@ -136,7 +136,7 @@ class SeedGridState extends State<SeedGrid> {
             },
             child: FocusableActionDetector(
               mouseCursor: SystemMouseCursors.click,
-              onShowHoverHighlight: (x) {
+              onShowHoverHighlight: (bool x) {
                 if (x) {
                   setState(() {
                     _onHoverText = seedWordIndex;
@@ -148,11 +148,11 @@ class SeedGridState extends State<SeedGrid> {
                 }
               },
               child: Container(
-                width: 30.0,
-                height: 30.0,
+                width: 30,
+                height: 30,
                 decoration: BoxDecoration(
                   border: Border.all(
-                    width: 2.0,
+                    width: 2,
                     color: _getSeedNumberBorderColor(seedWordIndex, seedWord),
                   ),
                   color: _getSeedNumberColor(seedWordIndex, seedWord),
@@ -170,13 +170,13 @@ class SeedGridState extends State<SeedGrid> {
             ),
           ),
           const SizedBox(
-            width: 10.0,
+            width: 10,
           ),
           Expanded(
             child: FocusableActionDetector(
               actions: _actionMap,
               shortcuts: _shortcutMap,
-              onShowHoverHighlight: (x) {
+              onShowHoverHighlight: (bool x) {
                 if (x) {
                   setState(() {
                     _onHoverText = seedWordIndex;
@@ -191,7 +191,7 @@ class SeedGridState extends State<SeedGrid> {
                 color: Colors.transparent,
                 child: TextField(
                   focusNode: _focusNodes[seedWordIndex],
-                  onChanged: (text) {
+                  onChanged: (String text) {
                     controller.text = text;
                     _seedGridElements[seedWordIndex].word = text;
                     _seedGridElements[seedWordIndex].isValid =
@@ -202,7 +202,7 @@ class SeedGridState extends State<SeedGrid> {
                     _checkIfSeedIsValid();
                     widget.onTextFieldChangedCallback?.call();
                   },
-                  inputFormatters: [LengthLimitingTextInputFormatter(8)],
+                  inputFormatters: <TextInputFormatter>[LengthLimitingTextInputFormatter(8)],
                   enabled: widget.enableSeedInputFields,
                   controller: controller,
                   obscureText: _onHoverText == seedWordIndex
@@ -214,7 +214,7 @@ class SeedGridState extends State<SeedGrid> {
                             _onHoverText == seedWordIndex
                         ? Colors.white
                         : getIndicatorColor(seedWord),
-                    fontSize: 12.0,
+                    fontSize: 12,
                   ),
                   decoration: InputDecoration(
                     contentPadding: EdgeInsets.all(8.0),
@@ -284,14 +284,14 @@ class SeedGridState extends State<SeedGrid> {
       return const UnderlineInputBorder(
         borderSide: BorderSide(
           color: AppColors.seedUnderlineBorderColor,
-          width: 3.0,
+          width: 3,
         ),
       );
     } else if (Mnemonic.isValidWord(seedValue)) {
       return const UnderlineInputBorder(
         borderSide: BorderSide(
           color: AppColors.znnColor,
-          width: 3.0,
+          width: 3,
         ),
       );
     } else if (Mnemonic.isValidWord(seedValue) == false && seedValue != '' ||
@@ -299,14 +299,14 @@ class SeedGridState extends State<SeedGrid> {
       return const UnderlineInputBorder(
         borderSide: BorderSide(
           color: AppColors.errorColor,
-          width: 3.0,
+          width: 3,
         ),
       );
     } else {
       return const UnderlineInputBorder(
         borderSide: BorderSide(
           color: AppColors.seedUnderlineBorderColor,
-          width: 3.0,
+          width: 3,
         ),
       );
     }
@@ -323,7 +323,7 @@ class SeedGridState extends State<SeedGrid> {
   }
 
   bool _foundInvalidSeedGridElement() {
-    return _seedGridElements.any((element) => !element.isValid);
+    return _seedGridElements.any((SeedGridElement element) => !element.isValid);
   }
 
   void changedSeed(List<String> newSeed) {
@@ -335,19 +335,19 @@ class SeedGridState extends State<SeedGrid> {
   }
 
   List<String> get getSeedWords =>
-      _seedGridElements.map((e) => e.word).toList();
+      _seedGridElements.map((SeedGridElement e) => e.word).toList();
 
   String get getSeed => getSeedWords.join(' ');
 
   void _initFocusNodes(int length) => _focusNodes = List.generate(
         length,
-        (index) => FocusNode(),
+        (int index) => FocusNode(),
       );
 
   void _changeFocusToNextNode() {
-    int indexOfFocusedNode = _focusNodes.indexOf(
+    final int indexOfFocusedNode = _focusNodes.indexOf(
       _focusNodes.firstWhere(
-        (node) => node.hasFocus,
+        (FocusNode node) => node.hasFocus,
       ),
     );
     if (indexOfFocusedNode + 1 < _focusNodes.length) {
@@ -358,7 +358,7 @@ class SeedGridState extends State<SeedGrid> {
   }
 
   void _initSeedGridElements(List<String> seed) {
-    for (var word in seed) {
+    for (final String word in seed) {
       _seedGridElements.add(
         SeedGridElement(
           word: word,
@@ -371,7 +371,7 @@ class SeedGridState extends State<SeedGrid> {
 
   @override
   void dispose() {
-    for (var focusNode in _focusNodes) {
+    for (final FocusNode focusNode in _focusNodes) {
       focusNode.dispose();
     }
     super.dispose();
@@ -379,13 +379,13 @@ class SeedGridState extends State<SeedGrid> {
 }
 
 class SeedGridElement {
-  String word;
-  bool isValid;
-  bool isShown;
 
   SeedGridElement({
     required this.word,
     required this.isValid,
     required this.isShown,
   });
+  String word;
+  bool isValid;
+  bool isShown;
 }

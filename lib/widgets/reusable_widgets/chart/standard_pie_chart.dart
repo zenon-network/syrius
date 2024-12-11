@@ -2,21 +2,16 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 
 class StandardPieChart extends PieChart {
-  final List<PieChartSectionData> sections;
-  final void Function(PieTouchedSection?)? onChartSectionTouched;
-  final double? centerSpaceRadius;
-  final double sectionsSpace;
 
   StandardPieChart({
-    Key? key,
-    required this.sections,
+    required this.sections, Key? key,
     this.sectionsSpace = 0.0,
     this.centerSpaceRadius,
     this.onChartSectionTouched,
   }) : super(
           PieChartData(
             pieTouchData: PieTouchData(
-              touchCallback: (event, pieTouchResponse) {
+              touchCallback: (FlTouchEvent event, PieTouchResponse? pieTouchResponse) {
                 if (!event.isInterestedForInteractions ||
                     pieTouchResponse == null ||
                     pieTouchResponse.touchedSection == null) {
@@ -24,7 +19,7 @@ class StandardPieChart extends PieChart {
                   return;
                 }
                 onChartSectionTouched?.call(
-                  pieTouchResponse.touchedSection!,
+                  pieTouchResponse.touchedSection,
                 );
               },
             ),
@@ -37,4 +32,8 @@ class StandardPieChart extends PieChart {
           ),
           key: key,
         );
+  final List<PieChartSectionData> sections;
+  final void Function(PieTouchedSection?)? onChartSectionTouched;
+  final double? centerSpaceRadius;
+  final double sectionsSpace;
 }

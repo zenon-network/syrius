@@ -7,10 +7,10 @@ import 'package:zenon_syrius_wallet_flutter/model/model.dart';
 
 class NavigationUtils {
   static Future<void> openUrl(String url) async {
-    if (!RegExp(r'^http').hasMatch(url)) {
+    if (!RegExp('^http').hasMatch(url)) {
       url = 'http://$url';
     }
-    var uri = Uri.parse(url);
+    final Uri uri = Uri.parse(url);
     if (await canLaunchUrl(uri)) {
       await launchUrl(uri);
     } else {
@@ -47,6 +47,6 @@ class NavigationUtils {
 
   static void popRepeated(context, int times) {
     int count = 0;
-    Navigator.popUntil(context, (route) => count++ == times);
+    Navigator.popUntil(context, (Route route) => count++ == times);
   }
 }

@@ -15,24 +15,24 @@ class AccountBlockUtils {
     Address? address,
     bool waitForRequiredPlasma = false,
   }) async {
-    SyncInfo syncInfo = await zenon!.stats.syncInfo();
-    bool nodeIsSynced = (syncInfo.state == SyncState.syncDone ||
+    final SyncInfo syncInfo = await zenon!.stats.syncInfo();
+    final bool nodeIsSynced = syncInfo.state == SyncState.syncDone ||
         (syncInfo.targetHeight > 0 &&
             syncInfo.currentHeight > 0 &&
-            (syncInfo.targetHeight - syncInfo.currentHeight) < 20));
+            (syncInfo.targetHeight - syncInfo.currentHeight) < 20);
     if (nodeIsSynced) {
       // Acquire wallet lock to prevent concurrent access.
-      final wallet = await kWalletFile!.open();
+      final Wallet wallet = await kWalletFile!.open();
       try {
         address ??= Address.parse(kSelectedAddress!);
-        final walletAccount = await wallet
+        final WalletAccount walletAccount = await wallet
             .getAccount(kDefaultAddressList.indexOf(address.toString()));
 
-        bool needPlasma = await zenon!.requiresPoW(
+        final bool needPlasma = await zenon!.requiresPoW(
           transactionParams,
           blockSigningKey: walletAccount,
         );
-        bool needReview = kWalletFile!.isHardwareWallet;
+        final bool needReview = kWalletFile!.isHardwareWallet;
 
         if (needPlasma) {
           await sl
@@ -44,7 +44,7 @@ class AccountBlockUtils {
         final AccountBlockTemplate response = await zenon!.send(
           transactionParams,
           currentKeyPair: walletAccount,
-          generatingPowCallback: (status) async {
+          generatingPowCallback: (PowStatus status) async {
             // Wait for plasma to be generated before sending review notification
             if (needReview && status == PowStatus.done) {
               await _sendReviewNotification(transactionParams);
@@ -89,14 +89,14 @@ class AccountBlockUtils {
     if (encodedData.length < AbiFunction.encodedSignLength) {
       return null;
     }
-    final eq = const ListEquality().equals;
+    final bool Function(List? list1, List? list2) eq = const ListEquality().equals;
     try {
-      for (final entry in abi.entries) {
+      for (final Entry entry in abi.entries) {
         if (eq(AbiFunction.extractSignature(entry.encodeSignature()),
-            AbiFunction.extractSignature(encodedData))) {
-          final decoded =
+            AbiFunction.extractSignature(encodedData),)) {
+          final List decoded =
               AbiFunction(entry.name!, entry.inputs!).decode(encodedData);
-          final Map<String, dynamic> params = {};
+          final Map<String, dynamic> params = <String, dynamic>{};
           for (int i = 0; i < entry.inputs!.length; i += 1) {
             params[entry.inputs![i].name!] = decoded[i];
           }
@@ -112,19 +112,19 @@ class AccountBlockUtils {
   // Returns a list of AccountBlocks that are newer than a given timestamp.
   // The list is returned in ascending order.
   static Future<List<AccountBlock>> getAccountBlocksAfterTime(
-      Address address, int time) async {
-    final List<AccountBlock> blocks = [];
+      Address address, int time,) async {
+    final List<AccountBlock> blocks = <AccountBlock>[];
     int pageIndex = 0;
     try {
       while (true) {
-        final fetched = await zenon!.ledger.getAccountBlocksByPage(address,
-            pageIndex: pageIndex, pageSize: 100);
+        final AccountBlockList fetched = await zenon!.ledger.getAccountBlocksByPage(address,
+            pageIndex: pageIndex, pageSize: 100,);
 
-        final lastBlockConfirmation = fetched.list!.last.confirmationDetail;
+        final AccountBlockConfirmationDetail? lastBlockConfirmation = fetched.list!.last.confirmationDetail;
         if (lastBlockConfirmation == null ||
             lastBlockConfirmation.momentumTimestamp <= time) {
-          for (final block in fetched.list!) {
-            final confirmation = block.confirmationDetail;
+          for (final AccountBlock block in fetched.list!) {
+            final AccountBlockConfirmationDetail? confirmation = block.confirmationDetail;
             if (confirmation == null ||
                 confirmation.momentumTimestamp <= time) {
               break;
@@ -149,10 +149,10 @@ class AccountBlockUtils {
   }
 
   static Future<int?> getTimeForAccountBlockHeight(
-      Address address, int height) async {
+      Address address, int height,) async {
     if (height >= 1) {
       try {
-        final block =
+        final AccountBlockList block =
             await zenon!.ledger.getAccountBlocksByHeight(address, height, 1);
         if (block.count != null && block.count! > 0) {
           return block.list?.first.confirmationDetail?.momentumTimestamp;
@@ -165,7 +165,7 @@ class AccountBlockUtils {
   }
 
   static Future<void> _sendReviewNotification(
-      AccountBlockTemplate transactionParams) async {
+      AccountBlockTemplate transactionParams,) async {
     await sl.get<NotificationsBloc>().addNotification(
           WalletNotification(
             title:

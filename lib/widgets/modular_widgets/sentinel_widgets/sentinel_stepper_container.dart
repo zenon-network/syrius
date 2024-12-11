@@ -30,7 +30,7 @@ enum SentinelStepperStep {
 }
 
 class SentinelStepperContainer extends StatefulWidget {
-  const SentinelStepperContainer({Key? key}) : super(key: key);
+  const SentinelStepperContainer({super.key});
 
   @override
   State createState() {
@@ -72,7 +72,7 @@ class _MainSentinelState extends State<SentinelStepperContainer> {
   Widget build(BuildContext context) {
     return StreamBuilder<Map<String, AccountInfo>?>(
       stream: sl.get<BalanceBloc>().stream,
-      builder: (_, snapshot) {
+      builder: (_, AsyncSnapshot<Map<String, AccountInfo>?> snapshot) {
         if (snapshot.hasError) {
           return SyriusErrorWidget(snapshot.error!);
         }
@@ -92,11 +92,11 @@ class _MainSentinelState extends State<SentinelStepperContainer> {
 
   Widget _getQsrManagementStep(BuildContext context, AccountInfo accountInfo) {
     return ViewModelBuilder<SentinelsQsrInfoBloc>.reactive(
-      onViewModelReady: (model) {
+      onViewModelReady: (SentinelsQsrInfoBloc model) {
         _sentinelsQsrInfoViewModel = model;
         model.getQsrManagementInfo(_addressController.text);
         model.stream.listen(
-          (event) {
+          (SentinelsQsrInfo? event) {
             if (event != null) {
               _maxQsrAmount = MathUtils.bigMin(
                 accountInfo.getBalance(
@@ -112,9 +112,9 @@ class _MainSentinelState extends State<SentinelStepperContainer> {
           },
         );
       },
-      builder: (_, model, __) => StreamBuilder<SentinelsQsrInfo?>(
+      builder: (_, SentinelsQsrInfoBloc model, __) => StreamBuilder<SentinelsQsrInfo?>(
         stream: model.stream,
-        builder: (_, snapshot) {
+        builder: (_, AsyncSnapshot<SentinelsQsrInfo?> snapshot) {
           if (snapshot.hasData) {
             return _getQsrManagementStepBody(
               context,
@@ -125,12 +125,12 @@ class _MainSentinelState extends State<SentinelStepperContainer> {
             return SyriusErrorWidget(snapshot.error!);
           }
           return const Padding(
-            padding: EdgeInsets.all(8.0),
+            padding: EdgeInsets.all(8),
             child: SyriusLoadingWidget(),
           );
         },
       ),
-      viewModelBuilder: () => SentinelsQsrInfoBloc(),
+      viewModelBuilder: SentinelsQsrInfoBloc.new,
     );
   }
 
@@ -141,14 +141,14 @@ class _MainSentinelState extends State<SentinelStepperContainer> {
   ) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
+      children: <Widget>[
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
+            children: <Widget>[
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
+                children: <Widget>[
                   Row(
                     children: <Widget>[
                       Expanded(
@@ -157,13 +157,13 @@ class _MainSentinelState extends State<SentinelStepperContainer> {
                     ],
                   ),
                   const SizedBox(
-                    height: 10.0,
+                    height: 10,
                   ),
                   Padding(
-                    padding: const EdgeInsets.only(left: 20.0),
+                    padding: const EdgeInsets.only(left: 20),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
+                      children: <Widget>[
                         AvailableBalance(
                           kQsrCoin,
                           accountInfo,
@@ -177,10 +177,10 @@ class _MainSentinelState extends State<SentinelStepperContainer> {
                     ),
                   ),
                   const SizedBox(
-                    height: 10.0,
+                    height: 10,
                   ),
                   Row(
-                    children: [
+                    children: <Widget>[
                       Expanded(
                         child: Form(
                           key: _qsrFormKey,
@@ -191,7 +191,7 @@ class _MainSentinelState extends State<SentinelStepperContainer> {
                               _qsrAmountController.text,
                             ),
                             controller: _qsrAmountController,
-                            validator: (value) => InputValidators.correctValue(
+                            validator: (String? value) => InputValidators.correctValue(
                               value,
                               _maxQsrAmount,
                               kQsrCoin.decimals,
@@ -199,9 +199,9 @@ class _MainSentinelState extends State<SentinelStepperContainer> {
                             ),
                             suffixIcon: _getAmountSuffix(accountInfo),
                             suffixIconConstraints:
-                                const BoxConstraints(maxWidth: 50.0),
+                                const BoxConstraints(maxWidth: 50),
                             hintText: 'Amount',
-                            onChanged: (value) {
+                            onChanged: (String value) {
                               setState(() {});
                             },
                           ),
@@ -210,7 +210,7 @@ class _MainSentinelState extends State<SentinelStepperContainer> {
                     ],
                   ),
                   Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 25.0),
+                    padding: const EdgeInsets.symmetric(vertical: 25),
                     child: DottedBorderInfoWidget(
                       text:
                           'You will be able to unlock the ${kQsrCoin.symbol} if you '
@@ -221,7 +221,7 @@ class _MainSentinelState extends State<SentinelStepperContainer> {
                 ],
               ),
               Row(
-                children: [
+                children: <Widget>[
                   Visibility(
                     visible: qsrInfo.deposit < qsrInfo.cost,
                     child: _getDepositQsrViewModel(accountInfo, qsrInfo),
@@ -234,44 +234,44 @@ class _MainSentinelState extends State<SentinelStepperContainer> {
                     ),
                   ),
                 ],
-              )
+              ),
             ],
           ),
         ),
         const SizedBox(
-          width: 45.0,
+          width: 45,
         ),
         Expanded(
           child: Visibility(
             visible: qsrInfo.deposit > BigInt.zero,
             child: Container(
               decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.background,
+                color: Theme.of(context).colorScheme.surface,
                 borderRadius: BorderRadius.circular(6),
               ),
               margin: const EdgeInsets.only(
-                bottom: 30.0,
+                bottom: 30,
               ),
               child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 30.0),
+                padding: const EdgeInsets.symmetric(vertical: 30),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
+                  children: <Widget>[
                     Column(
-                      children: [
+                      children: <Widget>[
                         Stack(
                           alignment: Alignment.center,
-                          children: [
+                          children: <Widget>[
                             SizedBox(
-                              width: 150.0,
-                              height: 150.0,
+                              width: 150,
+                              height: 150,
                               child: AspectRatio(
-                                aspectRatio: 1.0,
+                                aspectRatio: 1,
                                 child: StandardPieChart(
-                                  sections: [
+                                  sections: <PieChartSectionData>[
                                     PieChartSectionData(
                                       showTitle: false,
-                                      radius: 7.0,
+                                      radius: 7,
                                       value: (qsrInfo.cost - qsrInfo.deposit) /
                                           qsrInfo.cost,
                                       color:
@@ -279,7 +279,7 @@ class _MainSentinelState extends State<SentinelStepperContainer> {
                                     ),
                                     PieChartSectionData(
                                       showTitle: false,
-                                      radius: 7.0,
+                                      radius: 7,
                                       value: qsrInfo.deposit / qsrInfo.cost,
                                       color: AppColors.qsrColor,
                                     ),
@@ -298,9 +298,9 @@ class _MainSentinelState extends State<SentinelStepperContainer> {
                       ],
                     ),
                     Column(
-                      children: [
+                      children: <Widget>[
                         SizedBox(
-                          width: 130.0,
+                          width: 130,
                           child: Text(
                             'You have deposited ${qsrInfo.deposit.addDecimals(coinDecimals)} '
                             '${kQsrCoin.symbol}',
@@ -325,11 +325,11 @@ class _MainSentinelState extends State<SentinelStepperContainer> {
   }
 
   Widget _getDepositQsrViewModel(
-      AccountInfo accountInfo, SentinelsQsrInfo qsrInfo) {
+      AccountInfo accountInfo, SentinelsQsrInfo qsrInfo,) {
     return ViewModelBuilder<SentinelsDepositQsrBloc>.reactive(
-      onViewModelReady: (model) {
+      onViewModelReady: (SentinelsDepositQsrBloc model) {
         model.stream.listen(
-          (response) {
+          (AccountBlockTemplate? response) {
             if (response != null) {
               _depositQsrButtonKey.currentState?.animateReverse();
               _sentinelsQsrInfoViewModel.getQsrManagementInfo(
@@ -350,9 +350,9 @@ class _MainSentinelState extends State<SentinelStepperContainer> {
           },
         );
       },
-      builder: (_, model, __) =>
+      builder: (_, SentinelsDepositQsrBloc model, __) =>
           _getDepositQsrButton(model, accountInfo, qsrInfo),
-      viewModelBuilder: () => SentinelsDepositQsrBloc(),
+      viewModelBuilder: SentinelsDepositQsrBloc.new,
     );
   }
 
@@ -374,9 +374,9 @@ class _MainSentinelState extends State<SentinelStepperContainer> {
 
   Widget _getWithdrawQsrButtonViewModel(BigInt qsrDeposit) {
     return ViewModelBuilder<SentinelsWithdrawQsrBloc>.reactive(
-      onViewModelReady: (model) {
+      onViewModelReady: (SentinelsWithdrawQsrBloc model) {
         model.stream.listen(
-          (event) {
+          (AccountBlockTemplate? event) {
             if (event != null) {
               _withdrawButtonKey.currentState?.animateReverse();
               _saveProgressAndNavigateToNextStep(
@@ -396,8 +396,8 @@ class _MainSentinelState extends State<SentinelStepperContainer> {
           },
         );
       },
-      builder: (_, model, __) => _getWithdrawQsrButton(model, qsrDeposit),
-      viewModelBuilder: () => SentinelsWithdrawQsrBloc(),
+      builder: (_, SentinelsWithdrawQsrBloc model, __) => _getWithdrawQsrButton(model, qsrDeposit),
+      viewModelBuilder: SentinelsWithdrawQsrBloc.new,
     );
   }
 
@@ -426,7 +426,7 @@ class _MainSentinelState extends State<SentinelStepperContainer> {
       child: custom_material_stepper.Stepper(
         currentStep: _currentStep.index,
         onStepTapped: (int index) {},
-        steps: [
+        steps: <custom_material_stepper.Step>[
           StepperUtils.getMaterialStep(
             stepTitle: 'Sentinel deployment: Plasma check',
             stepContent: _getPlasmaCheckFutureBuilder(),
@@ -483,10 +483,10 @@ class _MainSentinelState extends State<SentinelStepperContainer> {
   Widget _getDeploySentinelStepBody(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.only(
-        bottom: 25.0,
+        bottom: 25,
       ),
       child: Row(
-        children: [
+        children: <Widget>[
           _getDeployButtonViewModel(),
         ],
       ),
@@ -495,13 +495,13 @@ class _MainSentinelState extends State<SentinelStepperContainer> {
 
   Widget _getDeployButtonViewModel() {
     return ViewModelBuilder<SentinelsDeployBloc>.reactive(
-      onViewModelReady: (model) {
+      onViewModelReady: (SentinelsDeployBloc model) {
         model.stream.listen(
-          (response) {
+          (AccountBlockTemplate? response) {
             if (response != null) {
               _registerButtonKey.currentState?.animateReverse();
               _saveProgressAndNavigateToNextStep(
-                  SentinelStepperStep.deploySentinel);
+                  SentinelStepperStep.deploySentinel,);
               setState(() {});
             } else {
               setState(() {});
@@ -517,8 +517,8 @@ class _MainSentinelState extends State<SentinelStepperContainer> {
           },
         );
       },
-      builder: (_, model, __) => _getRegisterSentinelButton(model),
-      viewModelBuilder: () => SentinelsDeployBloc(),
+      builder: (_, SentinelsDeployBloc model, __) => _getRegisterSentinelButton(model),
+      viewModelBuilder: SentinelsDeployBloc.new,
     );
   }
 
@@ -536,9 +536,8 @@ class _MainSentinelState extends State<SentinelStepperContainer> {
   ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
+      children: <Widget>[
         Row(
-          mainAxisAlignment: MainAxisAlignment.start,
           children: <Widget>[
             Expanded(
               child: DisabledAddressField(_addressController),
@@ -549,7 +548,7 @@ class _MainSentinelState extends State<SentinelStepperContainer> {
         StepperUtils.getBalanceWidget(kZnnCoin, accountInfo),
         kVerticalSpacing,
         Row(
-          children: [
+          children: <Widget>[
             Expanded(
               child: InputField(
                 enabled: false,
@@ -560,11 +559,10 @@ class _MainSentinelState extends State<SentinelStepperContainer> {
           ],
         ),
         Padding(
-          padding: const EdgeInsets.symmetric(vertical: 25.0),
+          padding: const EdgeInsets.symmetric(vertical: 25),
           child: DottedBorderInfoWidget(
             text: 'You will be able to unlock the ${kZnnCoin.symbol} if you '
                 'choose to disassemble the Sentinel',
-            borderColor: AppColors.znnColor,
           ),
         ),
         StepperButton(
@@ -576,7 +574,7 @@ class _MainSentinelState extends State<SentinelStepperContainer> {
   }
 
   void _onDepositButtonPressed(
-      SentinelsDepositQsrBloc model, SentinelsQsrInfo qsrInfo) {
+      SentinelsDepositQsrBloc model, SentinelsQsrInfo qsrInfo,) {
     if (qsrInfo.deposit >= qsrInfo.cost) {
       _depositQsrButtonKey.currentState?.animateForward();
       model.depositQsr(
@@ -609,7 +607,7 @@ class _MainSentinelState extends State<SentinelStepperContainer> {
     if (_lastCompletedStep == SentinelStepperStep.znnManagement) {
       _registerButtonKey.currentState?.animateForward();
       model.deploySentinel(
-          _znnAmountController.text.extractDecimals(coinDecimals));
+          _znnAmountController.text.extractDecimals(coinDecimals),);
     }
   }
 
@@ -625,30 +623,29 @@ class _MainSentinelState extends State<SentinelStepperContainer> {
 
   Widget _getWidgetBody(BuildContext context, AccountInfo accountInfo) {
     return Stack(
-      children: [
+      children: <Widget>[
         ListView(
-          children: [
+          children: <Widget>[
             _getMaterialStepper(context, accountInfo),
             Visibility(
               visible: _lastCompletedStep == SentinelStepperStep.deploySentinel,
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
+                children: <Widget>[
                   Container(
                     padding: const EdgeInsets.symmetric(
-                      vertical: 40.0,
-                      horizontal: 50.0,
+                      vertical: 40,
+                      horizontal: 50,
                     ),
                     margin: const EdgeInsets.symmetric(
-                      vertical: 20.0,
-                      horizontal: 50.0,
+                      vertical: 20,
+                      horizontal: 50,
                     ),
                     decoration: BoxDecoration(
                       color: Theme.of(context).colorScheme.secondaryContainer,
                       borderRadius: const BorderRadius.all(
                         Radius.circular(
-                          10.0,
+                          10,
                         ),
                       ),
                     ),
@@ -656,7 +653,7 @@ class _MainSentinelState extends State<SentinelStepperContainer> {
                       textAlign: TextAlign.center,
                       text: TextSpan(
                         style: Theme.of(context).textTheme.headlineSmall,
-                        children: [
+                        children: <InlineSpan>[
                           TextSpan(
                             text: 'Sentinel ',
                             style: Theme.of(context).textTheme.headlineSmall,
@@ -691,7 +688,7 @@ class _MainSentinelState extends State<SentinelStepperContainer> {
                           const WidgetSpan(
                             child: Icon(
                               MaterialCommunityIcons.link,
-                              size: 20.0,
+                              size: 20,
                               color: AppColors.znnColor,
                             ),
                           ),
@@ -705,11 +702,11 @@ class _MainSentinelState extends State<SentinelStepperContainer> {
                   ),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
+                    children: <Widget>[
                       _getViewSentinelsButton(),
                     ],
                   ),
-                  Container(height: 20.0)
+                  Container(height: 20),
                 ],
               ),
             ),
@@ -718,10 +715,10 @@ class _MainSentinelState extends State<SentinelStepperContainer> {
         Visibility(
           visible: _lastCompletedStep == SentinelStepperStep.deploySentinel,
           child: Positioned(
-            right: 50.0,
+            right: 50,
             child: SizedBox(
-              width: 400.0,
-              height: 400.0,
+              width: 400,
+              height: 400,
               child: Center(
                 child: Lottie.asset(
                   'assets/lottie/ic_anim_sentinel.json',
@@ -737,7 +734,6 @@ class _MainSentinelState extends State<SentinelStepperContainer> {
 
   Widget _getViewSentinelsButton() {
     return StepperButton.icon(
-      context: context,
       label: 'View Sentinels',
       onPressed: () {
         Navigator.pop(context);
@@ -783,14 +779,14 @@ class _MainSentinelState extends State<SentinelStepperContainer> {
   Widget _getPlasmaCheckFutureBuilder() {
     return FutureBuilder<PlasmaInfo?>(
       future: zenon!.embedded.plasma.get(Address.parse(kSelectedAddress!)),
-      builder: (_, snapshot) {
+      builder: (_, AsyncSnapshot<PlasmaInfo?> snapshot) {
         if (snapshot.hasError) {
           return SyriusErrorWidget(snapshot.error!);
         } else if (snapshot.hasData) {
           return _getPlasmaCheckBody(snapshot.data!);
         }
         return const Padding(
-          padding: EdgeInsets.all(8.0),
+          padding: EdgeInsets.all(8),
           child: SyriusLoadingWidget(),
         );
       },
@@ -800,28 +796,27 @@ class _MainSentinelState extends State<SentinelStepperContainer> {
   Widget _getPlasmaCheckBody(PlasmaInfo plasmaInfo) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
+      children: <Widget>[
         Text(
           'More Plasma is required to perform complex transactions. Please fuse enough QSR before proceeding.',
           style: Theme.of(context).textTheme.headlineSmall,
         ),
         const SizedBox(
-          height: 25.0,
+          height: 25,
         ),
         Row(
-          mainAxisAlignment: MainAxisAlignment.start,
           children: <Widget>[
             Expanded(
               child: DisabledAddressField(_addressController),
             ),
             const SizedBox(
-              width: 25.0,
+              width: 25,
             ),
             PlasmaIcon(plasmaInfo),
           ],
         ),
         const SizedBox(
-          height: 25.0,
+          height: 25,
         ),
         StepperButton(
           text: 'Next',

@@ -1,19 +1,18 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/extensions.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/zts_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 class PillarRewardsChart extends StatefulWidget {
-  final RewardHistoryList? rewardsHistory;
 
   const PillarRewardsChart(
     this.rewardsHistory, {
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
+  final RewardHistoryList? rewardsHistory;
 
   @override
   State createState() => PillarRewardsChartState();
@@ -23,9 +22,6 @@ class PillarRewardsChartState extends State<PillarRewardsChart> {
   @override
   Widget build(BuildContext context) {
     return StandardChart(
-      yValuesInterval: _getMaxValueOfZnnRewards() > kNumOfChartLeftSideTitles
-          ? _getMaxValueOfZnnRewards() / kNumOfChartLeftSideTitles
-          : null,
       maxY: _getMaxValueOfZnnRewards() < 1.0
           ? _getMaxValueOfZnnRewards().toDouble()
           : _getMaxValueOfZnnRewards().ceilToDouble(),
@@ -43,13 +39,13 @@ class PillarRewardsChartState extends State<PillarRewardsChart> {
 
   List<FlSpot> _getRewardsSpots() => List.generate(
         widget.rewardsHistory!.list.length,
-        (index) => FlSpot(
+        (int index) => FlSpot(
           index.toDouble(),
           _getRewardsByIndex(index).toDouble(),
         ),
       );
 
-  List<LineChartBarData> _linesBarData() => [
+  List<LineChartBarData> _linesBarData() => <LineChartBarData>[
         StandardLineChartBarData(
           color: AppColors.znnColor,
           spots: _getRewardsSpots(),
@@ -66,7 +62,7 @@ class PillarRewardsChartState extends State<PillarRewardsChart> {
 
   num _getMaxValueOfZnnRewards() {
     BigInt? max = widget.rewardsHistory!.list.first.znnAmount;
-    for (var element in widget.rewardsHistory!.list) {
+    for (final RewardHistoryEntry element in widget.rewardsHistory!.list) {
       if (element.znnAmount > max!) {
         max = element.znnAmount;
       }
