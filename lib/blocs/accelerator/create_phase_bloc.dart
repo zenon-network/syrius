@@ -23,7 +23,7 @@ class CreatePhaseBloc extends BaseBloc<AccountBlockTemplate?> {
         znnFundsNeeded,
         qsrFundsNeeded,
       );
-      AccountBlockUtils.createAccountBlock(transactionParams, 'create phase')
+      AccountBlockUtils().createAccountBlock(transactionParams, 'create phase')
           .then(
         addEvent,
       )

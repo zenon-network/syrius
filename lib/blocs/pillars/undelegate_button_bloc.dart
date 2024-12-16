@@ -11,7 +11,7 @@ class UndelegateButtonBloc extends BaseBloc<AccountBlockTemplate?> {
       addEvent(null);
       final AccountBlockTemplate transactionParams =
           zenon!.embedded.pillar.undelegate();
-      AccountBlockUtils.createAccountBlock(
+      AccountBlockUtils().createAccountBlock(
         transactionParams,
         'undelegate',
         waitForRequiredPlasma: true,

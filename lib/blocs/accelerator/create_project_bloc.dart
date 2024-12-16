@@ -23,12 +23,12 @@ class CreateProjectBloc extends BaseBloc<AccountBlockTemplate?> {
         znnFundsNeeded,
         qsrFundsNeeded,
       );
-      AccountBlockUtils.createAccountBlock(
+      AccountBlockUtils().createAccountBlock(
         transactionParams,
         'creating project',
       ).then(
         (AccountBlockTemplate block) {
-          ZenonAddressUtils.refreshBalance();
+          ZenonAddressUtils().refreshBalance();
           addEvent(block);
         },
       ).onError(

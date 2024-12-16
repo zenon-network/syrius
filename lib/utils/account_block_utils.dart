@@ -9,7 +9,7 @@ import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 class AccountBlockUtils {
-  static Future<AccountBlockTemplate> createAccountBlock(
+  Future<AccountBlockTemplate> createAccountBlock(
     AccountBlockTemplate transactionParams,
     String purposeOfGeneratingPlasma, {
     Address? address,
@@ -53,9 +53,6 @@ class AccountBlockUtils {
           },
           waitForRequiredPlasma: waitForRequiredPlasma,
         );
-        if (BlockUtils.isReceiveBlock(transactionParams.blockType)) {
-          sl.get<TransferWidgetsBalanceBloc>().getBalanceForAllAddresses();
-        }
         await sl.get<NotificationsBloc>().addNotification(
               WalletNotification(
                 title: 'Account-block published',

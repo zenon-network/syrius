@@ -12,8 +12,9 @@ enum HideWidgetStatus {
   success,
 }
 
+/// A class designed to tell us the current state of the two operations:
+/// hiding or un-hiding a widget
 @JsonSerializable()
-/// A class that holds the state emitted by the [HideWidgetCubit]
 class HideWidgetState extends Equatable {
   /// Creates a new instance.
   const HideWidgetState({
@@ -32,12 +33,11 @@ class HideWidgetState extends Equatable {
   factory HideWidgetState.fromJson(Map<String, dynamic> json) =>
       _$HideWidgetStateFromJson(json);
 
-  /// The exception that can be contained by a state emitted when the cubit
-  /// encounters an error
+  /// An exception that occurred during the hiding or un-hiding operation.
   final SyriusException? exception;
-  /// A field that tells if a widget should be hidden or not
+  /// Specifies if the current status is hidden or not.
   final bool? isHidden;
-  /// The current status of hiding or un-hiding a widget
+  /// The status of hiding or un-hiding the widget.
   final HideWidgetStatus status;
 
   @override

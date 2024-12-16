@@ -1,2 +1,2 @@
-export 'cubit_failure_exception.dart';
+export 'failure_exception.dart';
 export 'syrius_exception.dart';

@@ -81,10 +81,9 @@ Future showDialogWithNoAndYesOptions({
             ),
           ),
           TextButton(
-            style: Theme.of(context).textButtonTheme.style!.copyWith(
-                  backgroundColor: WidgetStateColor.resolveWith(
-                      (Set<WidgetState> states) => AppColors.errorColor,),
-                ),
+            style: TextButton.styleFrom(
+              backgroundColor: AppColors.errorColor,
+            ),
             onPressed: () {
               onYesButtonPressed.call();
               Navigator.pop(context, true);

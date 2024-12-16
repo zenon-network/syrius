@@ -12,13 +12,13 @@ class CancelStakeBloc extends BaseBloc<AccountBlockTemplate?> {
       final AccountBlockTemplate transactionParams = zenon!.embedded.stake.cancel(
         Hash.parse(hash),
       );
-      AccountBlockUtils.createAccountBlock(
+      AccountBlockUtils().createAccountBlock(
         transactionParams,
         'cancel stake',
         waitForRequiredPlasma: true,
       ).then(
         (AccountBlockTemplate response) {
-          ZenonAddressUtils.refreshBalance();
+          ZenonAddressUtils().refreshBalance();
           addEvent(response);
         },
       ).onError(

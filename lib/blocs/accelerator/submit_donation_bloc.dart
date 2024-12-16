@@ -27,7 +27,7 @@ class SubmitDonationBloc extends BaseBloc<AccountBlockTemplate?> {
 
   Future<void> _sendDonationBlock(
       AccountBlockTemplate transactionParams,) async {
-    await AccountBlockUtils.createAccountBlock(
+    await AccountBlockUtils().createAccountBlock(
       transactionParams,
       'donate for accelerator',
     ).then(

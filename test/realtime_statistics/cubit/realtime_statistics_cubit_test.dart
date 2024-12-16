@@ -1,4 +1,3 @@
-// ignore_for_file: prefer_const_constructors
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
@@ -120,7 +119,7 @@ void main() {
 
     group('fromJson/toJson', () {
       test('can (de)serialize initial state', () {
-        final RealtimeStatisticsState initialState = RealtimeStatisticsState();
+        const RealtimeStatisticsState initialState = RealtimeStatisticsState();
 
         final Map<String, dynamic>? serialized = statsCubit.toJson(
           initialState,
@@ -132,7 +131,7 @@ void main() {
       });
 
       test('can (de)serialize loading state', () {
-        final RealtimeStatisticsState loadingState = RealtimeStatisticsState(
+        const RealtimeStatisticsState loadingState = RealtimeStatisticsState(
           status: TimerStatus.loading,
         );
 
@@ -197,7 +196,7 @@ void main() {
         build: () => statsCubit,
         act: (RealtimeStatisticsCubit cubit) => cubit.fetchDataPeriodically(),
         expect: () => <RealtimeStatisticsState>[
-          RealtimeStatisticsState(status: TimerStatus.loading),
+          const RealtimeStatisticsState(status: TimerStatus.loading),
           RealtimeStatisticsState(
             status: TimerStatus.success,
             data: <AccountBlock>[accountBlock],
@@ -214,7 +213,7 @@ void main() {
         build: () => statsCubit,
         act: (RealtimeStatisticsCubit cubit) => cubit.fetchDataPeriodically(),
         expect: () => <RealtimeStatisticsState>[
-          RealtimeStatisticsState(status: TimerStatus.loading),
+          const RealtimeStatisticsState(status: TimerStatus.loading),
           RealtimeStatisticsState(
             status: TimerStatus.failure,
             error: statsException,

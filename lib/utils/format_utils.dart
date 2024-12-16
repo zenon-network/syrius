@@ -9,8 +9,10 @@ class FormatUtils {
     String replacementString,
   ) =>
       <TextInputFormatter>[
-        FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*?$'),
-            replacementString: replacementString,),
+        FilteringTextInputFormatter.allow(
+          RegExp(r'^\d*\.?\d*?$'),
+          replacementString: replacementString,
+        ),
         FilteringTextInputFormatter.deny(
           RegExp(r'^0\d+'),
           replacementString: replacementString,
@@ -29,10 +31,13 @@ class FormatUtils {
       ];
 
   static String encodeHexString(List<int> input) => HEX.encode(input);
+
   static List<int> decodeHexString(String input) => HEX.decode(input);
 
-  static String formatDate(int timestampMillis,
-      {String dateFormat = kDefaultDateFormat,}) {
+  static String formatDate(
+    int timestampMillis, {
+    String dateFormat = kDefaultDateFormat,
+  }) {
     final DateTime date = DateTime.fromMillisecondsSinceEpoch(timestampMillis);
     return DateFormat(dateFormat).format(date);
   }
@@ -60,13 +65,24 @@ class FormatUtils {
         .millisecondsSinceEpoch;
   }
 
-  static String formatData(int transactionMillis) {
+  static String formatDateForTable(int transactionMillis) {
     final int currentMillis = DateTime.now().millisecondsSinceEpoch;
     if (currentMillis - transactionMillis <=
         const Duration(days: 1).inMilliseconds) {
       return formatDataShort(currentMillis - transactionMillis);
     }
-    return FormatUtils.formatDate(transactionMillis, dateFormat: 'MM/dd/yyyy');
+
+    final DateTime now = DateTime.now();
+    final DateTime date = DateTime.fromMillisecondsSinceEpoch(
+      transactionMillis,
+    );
+    final bool isCurrentYear = date.year == now.year;
+
+    // Use different formats based on the year condition
+    final String dateFormat = isCurrentYear
+        ? 'MMM d' // Format without the year
+        : 'MMM d, y'; // Format with the year
+    return FormatUtils.formatDate(transactionMillis, dateFormat: dateFormat);
   }
 
   static String formatDataShort(int i) {

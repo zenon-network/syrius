@@ -6,6 +6,7 @@ import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/model/database/notification_type.dart';
 import 'package:zenon_syrius_wallet_flutter/model/database/wallet_notification.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/node_utils.dart';
@@ -15,9 +16,14 @@ import 'package:znn_ledger_dart/znn_ledger_dart.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 class ZenonAddressUtils {
-  static void refreshBalance() =>
-      sl.get<BalanceBloc>().getBalanceForAllAddresses();
-
+  void refreshBalance() {
+    sl.get<BalanceBloc>().getBalanceForAllAddresses();
+    sl.get<MultipleBalanceBloc>().add(
+      MultipleBalanceFetch(
+        addresses: kDefaultAddressList.map((String? e) => e!).toList(),
+      ),
+    );
+  }
   static String getLabel(String address) =>
       kAddressLabelMap[address] ?? address;
 
@@ -51,6 +57,7 @@ class ZenonAddressUtils {
         final Box addressesBox = Hive.box(kAddressesBox);
         await addressesBox.add(listAddr.elementAt(i).toString());
         _initAddresses(addressesBox);
+
         final Box addressLabelsBox = Hive.box(kAddressLabelsBox);
         await addressLabelsBox.put(
           listAddr.elementAt(i).toString(),
@@ -60,6 +67,11 @@ class ZenonAddressUtils {
         NodeUtils.getUnreceivedTransactionsByAddress(listAddr[i]!);
         callback?.call();
       }
+      sl.get<MultipleBalanceBloc>().add(
+        MultipleBalanceFetch(
+          addresses: kDefaultAddressList.map((String? e) => e!).toList(),
+        ),
+      );
       listAddr.clear();
     } catch (e) {
       await NotificationUtils.sendNotificationError(

@@ -36,7 +36,7 @@ class StartHtlcSwapBloc extends BaseBloc<HtlcSwap?> {
         htlcPreimageMaxLength,
         hashLock.getBytes(),
       );
-      AccountBlockUtils.createAccountBlock(transactionParams, 'start swap',
+      AccountBlockUtils().createAccountBlock(transactionParams, 'start swap',
               address: selfAddress, waitForRequiredPlasma: true,)
           .then(
         (AccountBlockTemplate response) async {
@@ -62,7 +62,7 @@ class StartHtlcSwapBloc extends BaseBloc<HtlcSwap?> {
             hashType: hashType,
           );
           await htlcSwapsService!.storeSwap(swap);
-          ZenonAddressUtils.refreshBalance();
+          ZenonAddressUtils().refreshBalance();
           addEvent(swap);
         },
       ).onError(

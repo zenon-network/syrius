@@ -18,7 +18,7 @@ class VoteProjectBloc extends BaseBloc<AccountBlockTemplate?> {
         pillarInfo.name,
         vote.index,
       );
-      AccountBlockUtils.createAccountBlock(
+      AccountBlockUtils().createAccountBlock(
         transactionParams,
         'vote for project',
       )
