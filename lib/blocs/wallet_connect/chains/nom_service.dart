@@ -78,19 +78,6 @@ class NoMService extends IChain {
 
   Web3Wallet? wallet;
 
-  static const String namespace = 'zenon';
-
-  final IWeb3WalletService _web3WalletService = sl<IWeb3WalletService>();
-
-  final NoMChainId reference;
-
-  final WalletConnectError _walletLockedError = const WalletConnectError(
-    code: 9000,
-    message: 'Wallet is locked',
-  );
-
-  Web3Wallet? wallet;
-
   @override
   String getNamespace() {
     return namespace;

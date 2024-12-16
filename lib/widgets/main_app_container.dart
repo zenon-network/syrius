@@ -151,7 +151,6 @@ class _MainAppContainerState extends State<MainAppContainer>
             textScaler: TextScaler.linear(
               textScalingNotifier.getTextScaleFactor(context),),
             ),
-          ),
           child: Scaffold(
             body: Container(
               margin: const EdgeInsets.all(

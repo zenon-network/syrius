@@ -17,10 +17,6 @@ class StandardFluidLayout extends StatelessWidget {
   final int? defaultCellWidth;
   final double? defaultCellHeight;
 
-  final List<FluidCell> children;
-  final int? defaultCellWidth;
-  final double? defaultCellHeight;
-
   @override
   Widget build(BuildContext context) {
     return Layout(
