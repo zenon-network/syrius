@@ -34,10 +34,9 @@ class StakingCubit extends TimerCubit<StakeList, StakingState> {
   /// occurs during the fetching process.
   @override
   Future<StakeList> fetch() async {
-    // Retrieve the list of staking entries for the demo address
     final StakeList data = await _getStakeList(address);
     if (data.list.isNotEmpty) {
-      return data; // Return the fetched stake data if not empty
+      return data;
     } else {
       throw NoActiveStakingEntriesException();
     }

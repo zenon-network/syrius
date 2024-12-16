@@ -19,7 +19,7 @@ class SentinelsState extends TimerState<SentinelInfoList> {
     super.error,
   });
 
-  /// {@macro state_from_json}
+  /// {@macro instance_from_json}
   factory SentinelsState.fromJson(Map<String, dynamic> json) =>
       _$SentinelsStateFromJson(json);
 

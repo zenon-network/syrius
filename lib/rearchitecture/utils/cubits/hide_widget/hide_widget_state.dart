@@ -1,14 +1,14 @@
 part of 'hide_widget_cubit.dart';
 
-/// The status of hiding or un-hiding the widget.
+/// A class that represents the status of hiding a widget
 enum HideWidgetStatus {
-  /// Operation failed.
+  /// The hiding process has failed
   failure,
-  /// Operation not started.
+  /// The hiding process has not started
   initial,
-  /// Operation is in progress.
+  /// The hiding process is ongoing
   loading,
-  /// Operation succeeded.
+  /// The hiding process has succeeded
   success,
 }
 
@@ -43,8 +43,7 @@ class HideWidgetState extends Equatable {
   @override
   List<Object?> get props => <Object?>[isHidden, exception, status];
 
-  /// Creates a copy of the current state with the option to modify specific
-  /// fields.
+  /// {@macro state_copy_with}
   HideWidgetState copyWith({
     SyriusException? exception,
     bool? isHidden,

@@ -10,9 +10,6 @@ part 'realtime_statistics_state.dart';
 
 /// [RealtimeStatisticsCubit] manages the fetching and state of real-time
 /// account block statistics for a specific address.
-///
-/// It uses a list of [AccountBlock] objects to represent the account blocks
-/// fetched from the Zenon network.
 class RealtimeStatisticsCubit
     extends TimerCubit<List<AccountBlock>, RealtimeStatisticsState> {
   /// Constructs a [RealtimeStatisticsCubit], passing the [zenon] client and

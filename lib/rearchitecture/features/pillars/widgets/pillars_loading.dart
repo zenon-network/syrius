@@ -5,9 +5,9 @@ import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/reusable_wi
 
 /// A widget associated with the [PillarsState] when it's status is
 /// [TimerStatus.loading] that uses the [SyriusLoadingWidget] to display a
-/// loading indicator
+/// loading indicator.
 class PillarsLoading extends StatelessWidget {
-  /// Creates a PillarsLoading object
+  /// Creates a PillarsLoading object.
   const PillarsLoading({super.key});
 
   @override

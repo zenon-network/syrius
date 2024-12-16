@@ -20,7 +20,7 @@ class DualCoinStatsState extends TimerState<List<Token>> {
     super.error,
   });
 
-  /// {@macro state_from_json}
+  /// {@macro instance_from_json}
   factory DualCoinStatsState.fromJson(Map<String, dynamic> json) =>
       _$DualCoinStatsStateFromJson(json);
 

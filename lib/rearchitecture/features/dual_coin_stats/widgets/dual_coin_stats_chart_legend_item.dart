@@ -4,12 +4,12 @@ import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/reusable_wi
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 /// Generic legend item that takes a [token] and customizes
-/// a [FormattedAmountWithTooltip] widget
+/// a [FormattedAmountWithTooltip] widget.
 class DualCoinStatsChartLegendItem extends StatelessWidget {
-  /// Creates a DualCoinStatsCharLegendItem
+  /// Creates a DualCoinStatsCharLegendItem instance.
   const DualCoinStatsChartLegendItem({required this.token, super.key});
 
-  /// Provides the needed take that will be displayed
+  /// Provides the needed data that will be displayed.
   final Token token;
 
   @override

@@ -44,12 +44,12 @@ dependencies:
   number_selector: ^1.0.5
   znn_sdk_dart:
     git:
-      url: https://github.com/maznnwell/znn_sdk_dart.git
-      ref: 1fa766fc342360dfed93a2fce247d69674cb7272
+      url: https://github.com/zenon-network/znn_sdk_dart.git
+      ref: v0.0.8
   znn_ledger_dart:
     git:
       url: https://github.com/zenon-network/znn_ledger_dart.git
-      ref: v0.0.5
+      ref: v0.0.6
   json_rpc_2: ^3.0.2
   path: ^1.8.2
   ffi: ^2.1.0
@@ -81,13 +81,7 @@ dependencies:
   json_annotation: ^4.9.0
   bloc_concurrency: ^0.2.5
   stream_transform: ^2.1.0
-
-
-dependency_overrides:
-  znn_sdk_dart:
-    git:
-      url: https://github.com/maznnwell/znn_sdk_dart.git
-      ref: 1fa766fc342360dfed93a2fce247d69674cb7272
+  win32: ^5.9.0
 
 dev_dependencies:
   build_runner: ^2.4.6

@@ -20,10 +20,6 @@ class BalancePopulated extends StatefulWidget {
   });
 
   /// The balance data that has been successfully fetched.
-  ///
-  /// The data is a map where the key is a string (representing the account
-  /// address), and the value is an [AccountInfo] object containing the balance
-  /// details.
   final AccountInfo accountInfo;
 
   /// The address for which the [accountInfo] was retrieved.

@@ -30,6 +30,7 @@ import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/model/model.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/screens/screens.dart';
 import 'package:zenon_syrius_wallet_flutter/services/htlc_swaps_service.dart';
 import 'package:zenon_syrius_wallet_flutter/services/i_web3wallet_service.dart';
@@ -44,6 +45,10 @@ const String p = String.fromEnvironment('PASSWORD');
 
 main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  if (Platform.isWindows) {
+    registerProtocolHandler(kDeepLinkingUrlScheme);
+  }
+
   Bloc.observer = CustomBlocObserver();
   // Init hydrated bloc storage
   HydratedBloc.storage = await HydratedStorage.build(

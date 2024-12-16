@@ -1,4 +1,6 @@
 {
+  "activePillars": "Active Pillars",
+  "activeSentinels": "Active Sentinels",
   "amount": "Amount",
   "areYouSureTranfer": "Are you sure you want to transfer {amount} {symbol} to {recipient} ?",
   "asset": "Asset",
