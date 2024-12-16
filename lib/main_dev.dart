@@ -30,7 +30,6 @@ import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/model/model.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
-import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/screens/screens.dart';
 import 'package:zenon_syrius_wallet_flutter/services/htlc_swaps_service.dart';
 import 'package:zenon_syrius_wallet_flutter/services/i_web3wallet_service.dart';
@@ -68,14 +67,14 @@ main() async {
     syriusLogDir.createSync(recursive: true);
   }
   final File logFile = File(
-    '${syriusLogDir.path}${path.separator}syrius-${DateTime.now().millisecondsSinceEpoch}.log',
+      '${syriusLogDir.path}${path.separator}syrius-${DateTime.now().millisecondsSinceEpoch}.log',
   );
   Logger.root.level = Level.ALL;
   Logger.root.onRecord.listen((LogRecord record) {
     if (kDebugMode) {
       print(
           '${record.level.name} ${record.loggerName} ${record.message} ${record.time}: '
-          '${record.error} ${record.stackTrace}\n');
+              '${record.error} ${record.stackTrace}\n');
     }
     logFile.writeAsString(
       '${record.level.name} ${record.loggerName} ${record.message} ${record.time}: '
@@ -129,10 +128,8 @@ main() async {
     await windowManager.show();
 
     if (sharedPrefsService != null) {
-      final double? windowSizeWidth =
-          sharedPrefsService!.get(kWindowSizeWidthKey);
-      final double? windowSizeHeight =
-          sharedPrefsService!.get(kWindowSizeHeightKey);
+      final double? windowSizeWidth = sharedPrefsService!.get(kWindowSizeWidthKey);
+      final double? windowSizeHeight = sharedPrefsService!.get(kWindowSizeHeightKey);
       if (windowSizeWidth != null &&
           windowSizeWidth >= 1200 &&
           windowSizeHeight != null &&

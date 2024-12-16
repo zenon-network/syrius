@@ -5,6 +5,7 @@ import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 class CoinDropdown extends StatelessWidget {
+
   const CoinDropdown(
     this._availableTokens,
     this._selectedToken,

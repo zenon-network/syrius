@@ -149,7 +149,7 @@ class _MainAppContainerState extends State<MainAppContainer>
             MediaQuery(
           data: MediaQuery.of(context).copyWith(
             textScaler: TextScaler.linear(
-              textScalingNotifier.getTextScaleFactor(context),
+              textScalingNotifier.getTextScaleFactor(context),),
             ),
           ),
           child: Scaffold(
@@ -924,8 +924,7 @@ class _MainAppContainerState extends State<MainAppContainer>
 
   @override
   Future<void> onClipboardChanged() async {
-    final ClipboardData? newClipboardData =
-        await Clipboard.getData(Clipboard.kTextPlain);
+    final ClipboardData? newClipboardData = await Clipboard.getData(Clipboard.kTextPlain);
     final String text = newClipboardData?.text ?? '';
     if (text.isNotEmpty && WalletConnectUri.tryParse(text) != null) {
       // This check is needed because onClipboardChanged is called twice sometimes
