@@ -23,7 +23,7 @@ class PendingTransactionsCard extends StatelessWidget {
         context.read<PendingTransactionsBloc>();
 
     return NewCardScaffold(
-      data: CardType.pendingTransactions.getData(context: context),
+      data: _buildCardData(context: context),
       onRefreshPressed: () {
         bloc.add(
           InfiniteListRefreshRequested(
@@ -51,6 +51,11 @@ class PendingTransactionsCard extends StatelessWidget {
       ),
     );
   }
+
+  CardData _buildCardData({required BuildContext context}) => CardData(
+    description: context.l10n.pendingTransactionsDescription,
+    title: context.l10n.pendingTransactionsTitle,
+  );
 }
 
 class _PendingTransactionsInitial extends StatelessWidget {

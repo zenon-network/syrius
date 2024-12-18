@@ -13,7 +13,7 @@ class ReceiveCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return NewCardScaffold(
-      data: CardType.receive.getData(context: context),
+      data: _buildCardData(context: context),
       body: BlocBuilder<TokensCubit, TokensState>(
         builder: (_, TokensState state) {
           final TokensStatus status = state.status;
@@ -26,4 +26,9 @@ class ReceiveCard extends StatelessWidget {
       ),
     );
   }
+
+  CardData _buildCardData({required BuildContext context}) => CardData(
+    description: context.l10n.manageReceivingFunds,
+    title: context.l10n.receive,
+  );
 }

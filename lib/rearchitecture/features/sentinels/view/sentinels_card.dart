@@ -18,7 +18,7 @@ class SentinelsCard extends StatelessWidget {
         zenon: zenon!,
       )..fetchDataPeriodically(),
       child: NewCardScaffold(
-        data: CardType.sentinels.getData(context: context),
+        data: _buildCardData(context: context),
         body: BlocBuilder<SentinelsCubit, SentinelsState>(
           builder: (BuildContext context, SentinelsState state) {
             return switch (state.status) {
@@ -36,4 +36,9 @@ class SentinelsCard extends StatelessWidget {
       ),
     );
   }
+
+  CardData _buildCardData({required BuildContext context}) => CardData(
+    title: context.l10n.sentinels,
+    description: context.l10n.sentinelsDescription,
+  );
 }

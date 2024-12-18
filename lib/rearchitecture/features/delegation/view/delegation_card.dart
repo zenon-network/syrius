@@ -3,7 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 /// A card that receives [DelegationState] updates from the [DelegationCubit]
@@ -20,7 +20,7 @@ class DelegationCard extends StatelessWidget {
         zenon: zenon!,
       )..fetchDataPeriodically(),
       child: NewCardScaffold(
-        data: CardType.delegationStats.getData(context: context),
+        data: _buildCardData(context: context),
         body: BlocBuilder<DelegationCubit, DelegationState>(
           builder: (BuildContext context, DelegationState state) {
             return switch (state.status) {
@@ -38,4 +38,9 @@ class DelegationCard extends StatelessWidget {
       ),
     );
   }
+
+  CardData _buildCardData({required BuildContext context}) => CardData(
+    title: context.l10n.delegationStats,
+    description: context.l10n.delegationStatsDescription(kZnnCoin.symbol),
+  );
 }

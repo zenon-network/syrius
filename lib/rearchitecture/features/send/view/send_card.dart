@@ -11,7 +11,7 @@ class SendCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return NewCardScaffold(
-      data: CardType.send.getData(context: context),
+      data: _buildCardData(context: context),
       body: BlocBuilder<MultipleBalanceBloc, MultipleBalanceState>(
         builder: (_, MultipleBalanceState state) => switch (state.status) {
           MultipleBalanceStatus.failure => SendError(error: state.error!),
@@ -24,4 +24,9 @@ class SendCard extends StatelessWidget {
       ),
     );
   }
+
+  CardData _buildCardData({required BuildContext context}) => CardData(
+    title: context.l10n.send,
+    description: context.l10n.manageSendingFunds,
+  );
 }

@@ -18,7 +18,7 @@ class PillarsCard extends StatelessWidget {
         zenon: zenon!,
       )..fetchDataPeriodically(),
       child: NewCardScaffold(
-        data: CardType.pillars.getData(context: context),
+        data: _buildCardData(context: context),
         body: BlocBuilder<PillarsCubit, PillarsState>(
           builder: (BuildContext context, PillarsState state) {
             return switch (state.status) {
@@ -36,4 +36,9 @@ class PillarsCard extends StatelessWidget {
       ),
     );
   }
+
+  CardData _buildCardData({required BuildContext context}) => CardData(
+    title: context.l10n.pillarsTitle,
+    description: context.l10n.pillarsDescription,
+  );
 }
