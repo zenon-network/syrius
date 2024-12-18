@@ -5,6 +5,7 @@ export 'latest_transactions/latest_transactions.dart';
 export 'multiple_balance/multiple_balance.dart';
 export 'node_sync_status/node_sync_status.dart';
 export 'pending_transactions/pending_transactions.dart';
+export 'pillar_rewards_history/pillar_rewards_history.dart';
 export 'pillars/pillars.dart';
 export 'realtime_statistics/realtime_statistics.dart';
 export 'receive/receive.dart';
