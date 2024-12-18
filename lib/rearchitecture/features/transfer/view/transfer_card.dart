@@ -13,11 +13,7 @@ class TransferCard extends StatefulWidget {
   });
 
   /// Function that triggers the redirect to the Transfer tab
-  final Function(
-    Tabs, {
-    bool redirectWithSendContainerLarge,
-    bool redirectWithReceiveContainerLarge,
-  })? changePage;
+  final Function(Tabs)? changePage;
 
   @override
   State<TransferCard> createState() => _TransferCardState();
@@ -35,7 +31,6 @@ class _TransferCardState extends State<TransferCard> {
             onPressed: () {
               widget.changePage!(
                 Tabs.transfer,
-                redirectWithSendContainerLarge: true,
               );
             },
             icon: const Icon(
@@ -51,7 +46,6 @@ class _TransferCardState extends State<TransferCard> {
             onPressed: () {
               widget.changePage!(
                 Tabs.transfer,
-                redirectWithReceiveContainerLarge: true,
               );
             },
             icon: const Icon(

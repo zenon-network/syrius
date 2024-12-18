@@ -263,9 +263,8 @@ class InfiniteScrollTableCell extends StatelessWidget {
                 ),
               ),
             ),
-            CopyToClipboardIcon(
+            CopyToClipboardButton(
               address.toString(),
-              materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
             ),
             const SizedBox(
               width: 10,
@@ -308,9 +307,8 @@ class InfiniteScrollTableCell extends StatelessWidget {
               visible: showCopyToClipboardIcon,
               child: Row(
                 children: <Widget>[
-                  CopyToClipboardIcon(
+                  CopyToClipboardButton(
                     text,
-                    materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                   ),
                   const SizedBox(
                     width: 10,
@@ -355,9 +353,8 @@ class InfiniteScrollTableCell extends StatelessWidget {
               visible: showCopyToClipboardIcon,
               child: Row(
                 children: <Widget>[
-                  CopyToClipboardIcon(
+                  CopyToClipboardButton(
                     address.toString(),
-                    materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                   ),
                   const SizedBox(
                     width: 10,
@@ -398,9 +395,8 @@ class InfiniteScrollTableCell extends StatelessWidget {
               visible: showCopyToClipboardIcon,
               child: Row(
                 children: <Widget>[
-                  CopyToClipboardIcon(
+                  CopyToClipboardButton(
                     text,
-                    materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                   ),
                   const SizedBox(
                     width: 10,

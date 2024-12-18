@@ -24,9 +24,8 @@ class SentinelsCubit extends TimerCubit<SentinelInfoList, SentinelsState> {
   /// Fetches a list of active sentinels from the Zenon network.
   @override
   Future<SentinelInfoList> fetch() async {
-    // Fetches the list of all active sentinels from the Zenon network
     final SentinelInfoList data = await zenon.embedded.sentinel.getAllActive();
-    return data; // Returns the fetched sentinel information
+    return data;
   }
 
   @override

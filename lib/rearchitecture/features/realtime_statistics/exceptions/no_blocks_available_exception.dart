@@ -15,11 +15,10 @@ class NoBlocksAvailableException extends SyriusException {
     String message = 'No account blocks available',
   }) : super(message);
 
-  /// Creates a [NoBlocksAvailableException] instance from a JSON map.
+  /// {@macro instance_from_json}
   factory NoBlocksAvailableException.fromJson(Map<String, dynamic> json) =>
       _$NoBlocksAvailableExceptionFromJson(json);
 
-  /// Converts this [NoBlocksAvailableException] instance to a JSON map.
   @override
   Map<String, dynamic> toJson() => _$NoBlocksAvailableExceptionToJson(this)
     ..['runtimeType'] = 'NoBlocksAvailableException';

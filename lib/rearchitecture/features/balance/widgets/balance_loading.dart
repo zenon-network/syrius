@@ -3,7 +3,7 @@ import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dar
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/cubits/timer_cubit.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/loading_widget.dart';
 
-/// A widget that displays a loading message while the balance data is being
+/// A widget that displays a loading indicator while the balance data is being
 /// fetched.
 ///
 /// This widget is shown when the [BalanceCubit] sends a [BalanceState] update

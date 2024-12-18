@@ -6,13 +6,13 @@ import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/layout_scaf
 const int kStaggeredNumOfColumns = 12;
 
 class StandardFluidLayout extends StatelessWidget {
-
   const StandardFluidLayout({
     required this.children,
     this.defaultCellWidth,
     this.defaultCellHeight = kStaggeredNumOfColumns / 4,
     super.key,
   });
+
   final List<FluidCell> children;
   final int? defaultCellWidth;
   final double? defaultCellHeight;
@@ -32,7 +32,8 @@ class StandardFluidLayout extends StatelessWidget {
 
           final int durationPerTile = totalDurationMs ~/ children.length;
 
-          final List<StaggeredGridTile> tiles = List<StaggeredGridTile>.generate(
+          final List<StaggeredGridTile> tiles =
+              List<StaggeredGridTile>.generate(
             children.length,
             (int index) {
               final int widgetAnimatorOffset = durationPerTile * (index + 1);
@@ -75,12 +76,50 @@ class StandardFluidLayout extends StatelessWidget {
 }
 
 class FluidCell {
-
   const FluidCell({
     required this.child,
     this.width,
     this.height,
   });
+
+  FluidCell.large({
+    required Widget child,
+    required BuildContext context,
+  }) : this(
+          width: context.layout.value(
+            xl: kStaggeredNumOfColumns ~/ 1.2,
+            lg: kStaggeredNumOfColumns ~/ 1.2,
+            md: kStaggeredNumOfColumns ~/ 1.2,
+            sm: kStaggeredNumOfColumns,
+            xs: kStaggeredNumOfColumns,
+          ),
+          child: child,
+        );
+
+  FluidCell.medium({required Widget child, required BuildContext context})
+      : this(
+          width: context.layout.value(
+            xl: kStaggeredNumOfColumns ~/ 2,
+            lg: kStaggeredNumOfColumns ~/ 2,
+            md: kStaggeredNumOfColumns ~/ 2,
+            sm: kStaggeredNumOfColumns,
+            xs: kStaggeredNumOfColumns,
+          ),
+          child: child,
+        );
+
+  FluidCell.small({required Widget child, required BuildContext context})
+      : this(
+          width: context.layout.value(
+            xl: kStaggeredNumOfColumns ~/ 6,
+            lg: kStaggeredNumOfColumns ~/ 6,
+            md: kStaggeredNumOfColumns ~/ 6,
+            sm: kStaggeredNumOfColumns,
+            xs: kStaggeredNumOfColumns,
+          ),
+          child: child,
+        );
+
   final int? width;
   final double? height;
   final Widget child;

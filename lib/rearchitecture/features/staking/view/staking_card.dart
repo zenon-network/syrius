@@ -8,7 +8,7 @@ import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 /// A widget connected to the [StakingCubit] that receives the state
 /// - [StakingState] - updates and rebuilds the UI according to the
-/// state's status - [TimerStatus]
+/// state's status - [TimerStatus].
 class StakingCard extends StatelessWidget {
   /// Creates a StakingCard object.
   const StakingCard({super.key});

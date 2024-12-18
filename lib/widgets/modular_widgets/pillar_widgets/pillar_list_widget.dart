@@ -6,6 +6,7 @@ import 'package:infinite_scroll_pagination/infinite_scroll_pagination.dart';
 import 'package:stacked/stacked.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/extensions/buildcontext_extension.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/extensions.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
@@ -67,15 +68,8 @@ class _PillarListWidgetState extends State<PillarListWidget> {
   @override
   Widget build(BuildContext context) {
     return CardScaffold(
-      title: 'Pillar List',
-      description: 'This card displays Pillar Nodes that are currently active '
-          'in the network. The list contains the name of the Pillar, the '
-          'associated producer address, the weight (total number of delegations) '
-          'and your delegation status. You can choose to delegate your '
-          '${kZnnCoin.symbol} balance to any Pillar in order to receive delegation '
-          'rewards in ${kZnnCoin.symbol}. You can undelegate the balance at any '
-          'time, without any penalties. Minimum delegation amount is 1 '
-          '${kZnnCoin.symbol} per address',
+      title: context.l10n.pillarsListTitle,
+      description: context.l10n.pillarsListDescription(kZnnCoin.symbol),
       childBuilder: () => _getDelegationInfo(
         _pillarsListBloc,
         _delegationInfoBloc,
@@ -130,9 +124,9 @@ class _PillarListWidgetState extends State<PillarListWidget> {
                 newPageProgressIndicatorBuilder: (_) =>
                     const SyriusLoadingWidget(),
                 noMoreItemsIndicatorBuilder: (_) =>
-                    const SyriusErrorWidget('No more items'),
+                     SyriusErrorWidget(context.l10n.noMoreItems),
                 noItemsFoundIndicatorBuilder: (_) =>
-                    const SyriusErrorWidget('No items found'),
+                     SyriusErrorWidget(context.l10n.noItemsFound),
               ),
             ),
           ),
@@ -163,28 +157,29 @@ class _PillarListWidgetState extends State<PillarListWidget> {
               ) +
               <Widget>[
                 InfiniteScrollTableHeaderColumn(
-                  columnName: 'Name',
+                  columnName: context.l10n.name,
                   onSortArrowsPressed: _onSortArrowsPressed,
                 ),
                 InfiniteScrollTableHeaderColumn(
-                  columnName: 'Producer Address',
+                  columnName: context.l10n.producerAddress,
                   onSortArrowsPressed: _onSortArrowsPressed,
                   flex: 3,
                 ),
                 InfiniteScrollTableHeaderColumn(
-                  columnName: 'Weight',
+                  columnName: context.l10n.weight,
                   onSortArrowsPressed: _onSortArrowsPressed,
                 ),
-                const InfiniteScrollTableHeaderColumn(columnName: 'Delegation'),
-                const InfiniteScrollTableHeaderColumn(
-                    columnName: 'Momentum reward',),
-                const InfiniteScrollTableHeaderColumn(
-                    columnName: 'Delegation reward',),
-                const InfiniteScrollTableHeaderColumn(
-                  columnName: 'Expected/produced momentums',
+                 InfiniteScrollTableHeaderColumn(
+                    columnName: context.l10n.delegation),
+                 InfiniteScrollTableHeaderColumn(
+                    columnName: context.l10n.momentumReward,),
+                 InfiniteScrollTableHeaderColumn(
+                    columnName: context.l10n.delegationReward,),
+                 InfiniteScrollTableHeaderColumn(
+                  columnName: context.l10n.expectedProducedMomentums,
                 ),
-                const InfiniteScrollTableHeaderColumn(
-                  columnName: 'Uptime',
+                 InfiniteScrollTableHeaderColumn(
+                  columnName: context.l10n.uptime,
                 ),
                 const InfiniteScrollTableHeaderColumn(
                   columnName: '',
@@ -367,7 +362,7 @@ class _PillarListWidgetState extends State<PillarListWidget> {
         });
         model.delegateToPillar(pillarInfo.name);
       },
-      text: 'DELEGATE',
+      text: context.l10n.delegateKey,
       textStyle: Theme.of(context).textTheme.titleSmall!.copyWith(
             color: Theme.of(context).textTheme.bodyLarge!.color,
           ),
@@ -422,8 +417,8 @@ class _PillarListWidgetState extends State<PillarListWidget> {
           Expanded(
             child: StandardTooltipIcon(
               pillarItem.isRevocable
-                  ? 'Revocation window is open'
-                  : 'Until revocation window opens',
+                  ? context.l10n.revocationWindowOpen
+                  : context.l10n.untilRevocationWindowOpens,
               Icons.help,
               iconColor: pillarItem.isRevocable
                   ? AppColors.znnColor
@@ -451,7 +446,7 @@ class _PillarListWidgetState extends State<PillarListWidget> {
           onError: (error) async {
             await NotificationUtils.sendNotificationError(
               error,
-              'Error while disassembling Pillar',
+              context.l10n.errorDisassemblingPillar,
             );
           },
         );
@@ -497,7 +492,7 @@ class _PillarListWidgetState extends State<PillarListWidget> {
         mainAxisSize: MainAxisSize.min,
         children: <Widget>[
           Text(
-            'DISASSEMBLE',
+            context.l10n.disassemble,
             style: isSelected
                 ? Theme.of(context).textTheme.titleSmall!.copyWith(
                       color: Theme.of(context).textTheme.bodyLarge!.color,
@@ -528,7 +523,7 @@ class _PillarListWidgetState extends State<PillarListWidget> {
         key.currentState?.animateForward();
         model.cancelPillarVoting(context);
       },
-      text: 'UNDELEGATE',
+      text: context.l10n.undelegate,
       textStyle: Theme.of(context).textTheme.titleSmall!.copyWith(
             color: Theme.of(context).textTheme.bodyLarge!.color,
           ),
@@ -581,7 +576,7 @@ class _PillarListWidgetState extends State<PillarListWidget> {
             undelegateButtonKey.currentState?.animateReverse();
             await NotificationUtils.sendNotificationError(
               error,
-              'Error while undelegating',
+              context.l10n.errorUndelegating,
             );
           },
         );
@@ -653,7 +648,7 @@ class _PillarListWidgetState extends State<PillarListWidget> {
               delegateButtonKey.currentState?.animateReverse();
               await NotificationUtils.sendNotificationError(
                 error,
-                'Pillar delegation error',
+                context.l10n.pillarDelegationError,
               );
               setState(() {
                 _currentlyDelegatingToPillar = null;

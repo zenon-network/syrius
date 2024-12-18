@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
 import 'package:stacked/stacked.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/extensions/buildcontext_extension.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/input_validators.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/notification_utils.dart';
@@ -77,7 +78,7 @@ class _PillarUpdateStepperState extends State<PillarUpdateStepper> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: <Widget>[
                 StepperButton(
-                  text: 'View Pillars',
+                  text: context.l10n.viewPillars,
                   onPressed: () {
                     Navigator.pop(context);
                   },
@@ -116,7 +117,7 @@ class _PillarUpdateStepperState extends State<PillarUpdateStepper> {
         onStepTapped: (int index) {},
         steps: <custom_material_stepper.Step>[
           StepperUtils.getMaterialStep(
-            stepTitle: 'Pillar details',
+            stepTitle: context.l10n.pillarDetails,
             stepContent: _getPillarDetailsStepContent(),
             stepSubtitle: _pillarNameController.text,
             stepState: StepperUtils.getStepState(
@@ -126,12 +127,15 @@ class _PillarUpdateStepperState extends State<PillarUpdateStepper> {
             context: context,
           ),
           StepperUtils.getMaterialStep(
-            stepTitle: 'Pillar momentum rewards',
+            stepTitle: context.l10n.pillarMomentumAddress,
             stepContent: _getPillarMomentumRewardsStepContent(),
-            stepSubtitle:
-                'Momentum percentage given: $_momentumRewardPercentageGiven'
-                '\n'
-                'Delegation percentage given: $_delegateRewardPercentageGiven',
+            stepSubtitle: '${context.l10n.momentumPercentageGiven(
+                _momentumRewardPercentageGiven,
+            )}'
+                '\n '
+                '${context.l10n.delegationPercentageGiven(
+                _delegateRewardPercentageGiven,
+            )}',
             stepState: StepperUtils.getStepState(
               PillarUpdateStep.pillarMomentumReward.index,
               _lastCompletedStep?.index,
@@ -139,9 +143,9 @@ class _PillarUpdateStepperState extends State<PillarUpdateStepper> {
             context: context,
           ),
           StepperUtils.getMaterialStep(
-            stepTitle: 'Pillar update',
+            stepTitle: context.l10n.pillarUpdate,
             stepContent: _getPillarUpdateStepContent(),
-            stepSubtitle: 'Pillar updated',
+            stepSubtitle: context.l10n.pillarUpdated,
             stepState: StepperUtils.getStepState(
               PillarUpdateStep.pillarUpdate.index,
               _lastCompletedStep?.index,
@@ -158,7 +162,7 @@ class _PillarUpdateStepperState extends State<PillarUpdateStepper> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
         Text(
-          'Pillar name',
+          context.l10n.pillarName,
           style: Theme.of(context).textTheme.bodyLarge,
         ),
         kVerticalSpacing,
@@ -168,7 +172,7 @@ class _PillarUpdateStepperState extends State<PillarUpdateStepper> {
         ),
         kVerticalSpacing,
         Text(
-          'Pillar reward address',
+          context.l10n.pillarRewardAddress,
           style: Theme.of(context).textTheme.bodyLarge,
         ),
         kVerticalSpacing,
@@ -176,7 +180,7 @@ class _PillarUpdateStepperState extends State<PillarUpdateStepper> {
           key: _pillarRewardKey,
           autovalidateMode: AutovalidateMode.onUserInteraction,
           child: InputField(
-            hintText: 'Pillar reward address',
+            hintText: context.l10n.pillarRewardAddress,
             controller: _pillarRewardController,
             thisNode: _pillarRewardNode,
             nextNode: _pillarMomentumNode,
@@ -188,7 +192,7 @@ class _PillarUpdateStepperState extends State<PillarUpdateStepper> {
         ),
         kVerticalSpacing,
         Text(
-          'Pillar producer address',
+          context.l10n.pillarProducerAddress,
           style: Theme.of(context).textTheme.bodyLarge,
         ),
         kVerticalSpacing,
@@ -196,7 +200,7 @@ class _PillarUpdateStepperState extends State<PillarUpdateStepper> {
           key: _pillarMomentumKey,
           autovalidateMode: AutovalidateMode.onUserInteraction,
           child: InputField(
-            hintText: 'Pillar producer address',
+            hintText: context.l10n.pillarProducerAddress,
             controller: _pillarProducerController,
             thisNode: _pillarMomentumNode,
             validator: InputValidators.validatePillarMomentumAddress,
@@ -212,7 +216,7 @@ class _PillarUpdateStepperState extends State<PillarUpdateStepper> {
               onPressed: () {
                 Navigator.pop(context);
               },
-              text: 'Cancel',
+              text: context.l10n.cancel,
             ),
             const SizedBox(
               width: 25,
@@ -226,7 +230,7 @@ class _PillarUpdateStepperState extends State<PillarUpdateStepper> {
                       });
                     }
                   : null,
-              text: 'Next',
+              text: context.l10n.next,
             ),
           ],
         ),
@@ -241,7 +245,7 @@ class _PillarUpdateStepperState extends State<PillarUpdateStepper> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
             Text(
-              'Percentage of momentum rewards given to the delegators',
+              context.l10n.percentageOfMomentumRewards,
               style: Theme.of(context).textTheme.headlineSmall,
             ),
           ],
@@ -261,11 +265,13 @@ class _PillarUpdateStepperState extends State<PillarUpdateStepper> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: <Widget>[
             Text(
-              'Pillar: ${100 - _momentumRewardPercentageGiven.toInt()}',
+              context.l10n.pillars(
+                  100 - _momentumRewardPercentageGiven.toInt(),
+              ),
               style: Theme.of(context).textTheme.titleMedium,
             ),
             Text(
-              'Delegators: ${_momentumRewardPercentageGiven.toInt()}',
+              context.l10n.delegators(_momentumRewardPercentageGiven.toInt()),
               style: Theme.of(context).textTheme.titleMedium,
             ),
           ],
@@ -275,7 +281,7 @@ class _PillarUpdateStepperState extends State<PillarUpdateStepper> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
             Text(
-              'Percentage of delegation rewards given to the delegators',
+              context.l10n.percentageDelegationRewardsGiven,
               style: Theme.of(context).textTheme.headlineSmall,
             ),
           ],
@@ -295,11 +301,13 @@ class _PillarUpdateStepperState extends State<PillarUpdateStepper> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: <Widget>[
             Text(
-              'Pillar: ${100 - _delegateRewardPercentageGiven.toInt()}',
+              context.l10n.pillars(
+                  100 - _delegateRewardPercentageGiven.toInt(),
+              ),
               style: Theme.of(context).textTheme.titleMedium,
             ),
             Text(
-              'Delegators: ${_delegateRewardPercentageGiven.toInt()}',
+              context.l10n.delegators(_delegateRewardPercentageGiven.toInt()),
               style: Theme.of(context).textTheme.titleMedium,
             ),
           ],
@@ -314,7 +322,7 @@ class _PillarUpdateStepperState extends State<PillarUpdateStepper> {
                   _currentStep = PillarUpdateStep.pillarDetails;
                 });
               },
-              text: 'Go back',
+              text: context.l10n.goBack,
             ),
             const SizedBox(
               width: 25,
@@ -326,7 +334,7 @@ class _PillarUpdateStepperState extends State<PillarUpdateStepper> {
                   _currentStep = PillarUpdateStep.pillarUpdate;
                 });
               },
-              text: 'Next',
+              text: context.l10n.next,
             ),
           ],
         ),
@@ -344,7 +352,7 @@ class _PillarUpdateStepperState extends State<PillarUpdateStepper> {
               _currentStep = PillarUpdateStep.pillarMomentumReward;
             });
           },
-          text: 'Go back',
+          text: context.l10n.goBack,
         ),
         const SizedBox(
           width: 25,
@@ -366,7 +374,7 @@ class _PillarUpdateStepperState extends State<PillarUpdateStepper> {
           _delegateRewardPercentageGiven.toInt(),
         );
       },
-      text: 'Update',
+      text: context.l10n.update,
       key: _updateButtonKey,
     );
   }
@@ -393,7 +401,7 @@ class _PillarUpdateStepperState extends State<PillarUpdateStepper> {
             _updateButtonKey.currentState?.animateReverse();
             await NotificationUtils.sendNotificationError(
               error,
-              'Error while updating Pillar',
+              context.l10n.errorUpdatingPillar,
             );
           },
         );

@@ -2,6 +2,7 @@ import 'package:flutter/widgets.dart';
 
 // ignore_for_file: public_member_api_docs
 /// Constant vertical gaps
+const SizedBox kVerticalGap8 = SizedBox(height: 8);
 const SizedBox kVerticalGap16 = SizedBox(height: 16);
 
 /// Constants horizontal gaps

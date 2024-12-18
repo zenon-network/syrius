@@ -11,7 +11,7 @@ class NodeSyncStatusState extends TimerState<Pair<SyncState, SyncInfo>> {
     super.error,
   });
 
-  /// {@macro state_from_json}
+  /// {@macro instance_from_json}
   factory NodeSyncStatusState.fromJson(Map<String, dynamic> json) =>
       _$NodeSyncStatusStateFromJson(json);
 

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/extensions/buildcontext_extension.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/account_block_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
@@ -31,14 +32,8 @@ class _PillarCollectState extends State<PillarCollect> {
   @override
   Widget build(BuildContext context) {
     return CardScaffold(
-      title: 'Pillar Collect',
-      description:
-          'This card displays your current Pillar rewards (either from your '
-          'Pillar Node or from your delegation) that are ready to be collected. '
-          'If there are any rewards available, you will be able to collect them. '
-          'In order to receive rewards, the Pillar Node needs to be not only '
-          'registered in the network, but also deployed (use znn-controller for '
-          'this operation) and it must produce momentums',
+      title: context.l10n.pillarCollectTitle,
+      description:context.l10n.pillarCollectDescription,
       childBuilder: () => Padding(
         padding: const EdgeInsets.all(16),
         child: _getFutureBuilder(),
@@ -56,7 +51,7 @@ class _PillarCollectState extends State<PillarCollect> {
           if (snapshot.data!.znnAmount > BigInt.zero) {
             return _getWidgetBody(snapshot.data!);
           }
-          return const SyriusErrorWidget('No rewards to collect');
+          return SyriusErrorWidget(context.l10n.noRewardsCollect);
         }
         return const SyriusLoadingWidget();
       },
@@ -84,7 +79,7 @@ class _PillarCollectState extends State<PillarCollect> {
           visible: uncollectedReward.znnAmount > BigInt.zero,
           child: LoadingButton.stepper(
             key: _collectButtonKey,
-            text: 'Collect',
+            text: context.l10n.collect,
             onPressed: uncollectedReward.znnAmount > BigInt.zero
                 ? _onCollectPressed
                 : null,
@@ -99,7 +94,7 @@ class _PillarCollectState extends State<PillarCollect> {
       _collectButtonKey.currentState?.animateForward();
       await AccountBlockUtils.createAccountBlock(
         zenon!.embedded.pillar.collectReward(),
-        'collect Pillar rewards',
+        context.l10n.collectPillarRewards,
         waitForRequiredPlasma: true,
       ).then(
         (AccountBlockTemplate response) async {
@@ -112,7 +107,7 @@ class _PillarCollectState extends State<PillarCollect> {
       );
     } catch (e) {
       await NotificationUtils.sendNotificationError(
-          e, 'Error while collecting Pillar rewards',);
+          e, context.l10n.errorCollectingPillarRewards,);
     } finally {
       _collectButtonKey.currentState?.animateReverse();
     }

@@ -6,7 +6,7 @@ import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 
 /// Widget connected to the [SentinelsCubit] that receives the state
 /// - [SentinelsState] - updates and rebuilds the UI according to the
-/// state's status - [TimerStatus]
+/// state's status - [TimerStatus].
 class SentinelsCard extends StatelessWidget {
   /// Creates a SentinelsCard object.
   const SentinelsCard({super.key});

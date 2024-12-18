@@ -9,8 +9,6 @@ part of 'pillars_cubit.dart';
 class PillarsState extends TimerState<int> {
   /// Constructs a new [PillarsState] object.
   ///
-  /// This state is initialized with the default [status], [data], and [error]
-  /// values from the parent [TimerState] class.
   /// The [data] field in this case represents the count of active pillars on
   /// the Zenon network.
   const PillarsState({
@@ -19,7 +17,7 @@ class PillarsState extends TimerState<int> {
     super.error,
   });
 
-  /// {@macro state_from_json}
+  /// {@macro instance_from_json}
   factory PillarsState.fromJson(Map<String, dynamic> json) =>
       _$PillarsStateFromJson(json);
 

@@ -7,6 +7,7 @@ import 'package:stacked/stacked.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/model/model.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/extensions/buildcontext_extension.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/extensions.dart';
@@ -197,7 +198,10 @@ class _MainPillarState extends State<PillarStepperContainer> {
                           accountInfo,
                         ),
                         Text(
-                          '${qsrInfo.cost.addDecimals(coinDecimals)} ${kQsrCoin.symbol} required for a Pillar slot',
+                          context.l10n.requiredForPillarSlot(
+                              qsrInfo.cost.addDecimals(coinDecimals),
+                              kQsrCoin.symbol,
+                          ),
                           style:
                               Theme.of(context).inputDecorationTheme.hintStyle,
                         ),
@@ -228,7 +232,7 @@ class _MainPillarState extends State<PillarStepperContainer> {
                             suffixIcon: _getAmountSuffix(accountInfo),
                             suffixIconConstraints:
                                 const BoxConstraints(maxWidth: 50),
-                            hintText: 'Amount',
+                            hintText: context.l10n.amount,
                             onChanged: (String value) {
                               setState(() {});
                             },
@@ -240,10 +244,8 @@ class _MainPillarState extends State<PillarStepperContainer> {
                   Padding(
                     padding: const EdgeInsets.symmetric(vertical: 25),
                     child: DottedBorderInfoWidget(
-                      text:
-                          'All the deposited ${kQsrCoin.symbol} will be burned '
-                          'in order to create the Pillar Slot',
                       borderColor: AppColors.qsrColor,
+                      text: context.l10n.depositedCoinWillBurn(kQsrCoin.symbol),
                     ),
                   ),
                 ],
@@ -257,7 +259,7 @@ class _MainPillarState extends State<PillarStepperContainer> {
                   Visibility(
                     visible: qsrInfo.deposit >= qsrInfo.cost,
                     child: StepperButton(
-                      text: 'Next',
+                      text: context.l10n.next,
                       onPressed: _onQsrNextPressed,
                     ),
                   ),
@@ -316,8 +318,10 @@ class _MainPillarState extends State<PillarStepperContainer> {
                               ),
                             ),
                             Text(
-                              'Current Pillar Slot fee\n${qsrInfo.cost.addDecimals(coinDecimals)} '
-                              '${kQsrCoin.symbol}',
+                              context.l10n.currentPillarSlotFee(
+                                  qsrInfo.cost.addDecimals(coinDecimals),
+                                  kQsrCoin.symbol,
+                              ),
                               style: Theme.of(context).textTheme.bodyMedium,
                               textAlign: TextAlign.center,
                             ),
@@ -331,8 +335,10 @@ class _MainPillarState extends State<PillarStepperContainer> {
                         SizedBox(
                           width: 130,
                           child: Text(
-                            'You have deposited ${qsrInfo.deposit.addDecimals(coinDecimals)} '
-                            '${kQsrCoin.symbol}',
+                            context.l10n.youHaveDeposited(
+                                qsrInfo.deposit.addDecimals(coinDecimals),
+                                kQsrCoin.symbol,
+                            ),
                             textAlign: TextAlign.center,
                             style: Theme.of(context).textTheme.bodyLarge,
                           ),
@@ -374,7 +380,7 @@ class _MainPillarState extends State<PillarStepperContainer> {
             _depositQsrButtonKey.currentState?.animateReverse();
             await NotificationUtils.sendNotificationError(
               error,
-              'Error while depositing ${kQsrCoin.symbol}',
+              context.l10n.errorWhileDepositing(kQsrCoin.symbol),
             );
             setState(() {});
           },
@@ -393,7 +399,7 @@ class _MainPillarState extends State<PillarStepperContainer> {
   ) {
     return LoadingButton.stepper(
       key: _depositQsrButtonKey,
-      text: 'Deposit',
+      text: context.l10n.deposit,
       onPressed: _hasQsrBalance(accountInfo) &&
               _qsrAmountValidator(_qsrAmountController.text, qsrInfo) == null
           ? () => _onDepositButtonPressed(model, qsrInfo)
@@ -424,7 +430,7 @@ class _MainPillarState extends State<PillarStepperContainer> {
             _withdrawButtonKey.currentState?.animateReverse();
             await NotificationUtils.sendNotificationError(
               error,
-              'Error while withdrawing ${kQsrCoin.symbol}',
+              context.l10n.errorWhileWithdrawing(kQsrCoin.symbol),
             );
           },
         );
@@ -441,7 +447,7 @@ class _MainPillarState extends State<PillarStepperContainer> {
     return Visibility(
       visible: qsrDeposit > BigInt.zero,
       child: LoadingButton.stepper(
-        text: 'Withdraw',
+        text: context.l10n.withdraw,
         onPressed: () => _onWithdrawButtonPressed(model, qsrDeposit),
         key: _withdrawButtonKey,
         outlineColor: AppColors.qsrColor,
@@ -461,9 +467,9 @@ class _MainPillarState extends State<PillarStepperContainer> {
         onStepTapped: (int index) {},
         steps: <custom_material_stepper.Step>[
           StepperUtils.getMaterialStep(
-            stepTitle: 'Pillar deployment: Plasma check',
+            stepTitle: context.l10n.pillarDeployment,
             stepContent: _getPlasmaCheckFutureBuilder(),
-            stepSubtitle: 'Sufficient Plasma',
+            stepSubtitle: context.l10n.sufficientPlasma,
             stepState: StepperUtils.getStepState(
               PillarStepperStep.checkPlasma.index,
               _lastCompletedStep?.index,
@@ -471,9 +477,9 @@ class _MainPillarState extends State<PillarStepperContainer> {
             context: context,
           ),
           StepperUtils.getMaterialStep(
-            stepTitle: '${kQsrCoin.symbol} management',
+            stepTitle: context.l10n.management(kQsrCoin.symbol),
             stepContent: _getQsrManagementStep(context, accountInfo),
-            stepSubtitle: '${kQsrCoin.symbol} deposited',
+            stepSubtitle: context.l10n.deposited(kQsrCoin.symbol),
             stepState: StepperUtils.getStepState(
               PillarStepperStep.qsrManagement.index,
               _lastCompletedStep?.index,
@@ -482,9 +488,9 @@ class _MainPillarState extends State<PillarStepperContainer> {
             expanded: true,
           ),
           StepperUtils.getMaterialStep(
-            stepTitle: '${kZnnCoin.symbol} management',
+            stepTitle: context.l10n.management(kQsrCoin.symbol),
             stepContent: _getZnnManagementStepBody(context, accountInfo),
-            stepSubtitle: '${kZnnCoin.symbol} locked',
+            stepSubtitle: context.l10n.locked(kQsrCoin.symbol),
             stepState: StepperUtils.getStepState(
               PillarStepperStep.znnManagement.index,
               _lastCompletedStep?.index,
@@ -492,9 +498,9 @@ class _MainPillarState extends State<PillarStepperContainer> {
             context: context,
           ),
           StepperUtils.getMaterialStep(
-            stepTitle: 'Register Pillar',
+            stepTitle: context.l10n.registerPillar,
             stepContent: _getDeployPillarStepBody(context),
-            stepSubtitle: 'Pillar registered',
+            stepSubtitle: context.l10n.pillarRegistered,
             stepState: StepperUtils.getStepState(
               PillarStepperStep.deployPillar.index,
               _lastCompletedStep?.index,
@@ -550,7 +556,7 @@ class _MainPillarState extends State<PillarStepperContainer> {
                   key: _pillarFormKeys[0],
                   autovalidateMode: AutovalidateMode.onUserInteraction,
                   child: InputField(
-                    hintText: 'Pillar name',
+                    hintText: context.l10n.pillarName,
                     controller: _pillarNameController,
                     thisNode: _pillarNameNode,
                     nextNode: _pillarRewardNode,
@@ -574,7 +580,7 @@ class _MainPillarState extends State<PillarStepperContainer> {
                   key: _pillarFormKeys[1],
                   autovalidateMode: AutovalidateMode.onUserInteraction,
                   child: InputField(
-                    hintText: 'Pillar reward address',
+                    hintText: context.l10n.pillarRewardAddress,
                     controller: _pillarRewardAddressController,
                     thisNode: _pillarRewardNode,
                     nextNode: _pillarMomentumNode,
@@ -585,8 +591,8 @@ class _MainPillarState extends State<PillarStepperContainer> {
                   ),
                 ),
               ),
-              const StandardTooltipIcon(
-                'The address that will be able to collect the Pillar rewards',
+              StandardTooltipIcon(
+                context.l10n.addressToCollectRewards,
                 Icons.help,
               ),
             ],
@@ -599,7 +605,7 @@ class _MainPillarState extends State<PillarStepperContainer> {
                   key: _pillarFormKeys[2],
                   autovalidateMode: AutovalidateMode.onUserInteraction,
                   child: InputField(
-                    hintText: 'Pillar producer address',
+                    hintText: context.l10n.pillarProducerAddress,
                     controller: _pillarMomentumController,
                     thisNode: _pillarMomentumNode,
                     validator: InputValidators.validatePillarMomentumAddress,
@@ -609,8 +615,8 @@ class _MainPillarState extends State<PillarStepperContainer> {
                   ),
                 ),
               ),
-              const StandardTooltipIcon(
-                'The address that will produce momentums, get it from znn-controller',
+              StandardTooltipIcon(
+                context.l10n.addressToProduceMomentums,
                 Icons.help,
               ),
             ],
@@ -644,7 +650,7 @@ class _MainPillarState extends State<PillarStepperContainer> {
           onError: (error) async {
             _registerButtonKey.currentState?.animateReverse();
             await NotificationUtils.sendNotificationError(
-                error, 'Error while deploying a Pillar',);
+                error, context.l10n.errorDeployingPillar,);
             setState(() {});
           },
         );
@@ -656,7 +662,7 @@ class _MainPillarState extends State<PillarStepperContainer> {
 
   Widget _getRegisterPillarButton(PillarsDeployBloc model) {
     return LoadingButton.stepper(
-      text: 'Register',
+      text: context.l10n.register,
       onPressed: _canDeployPillar() ? () => _onDeployPressed(model) : null,
       key: _registerButtonKey,
     );
@@ -693,12 +699,11 @@ class _MainPillarState extends State<PillarStepperContainer> {
         Padding(
           padding: const EdgeInsets.symmetric(vertical: 25),
           child: DottedBorderInfoWidget(
-            text: 'You will be able to unlock the ${kZnnCoin.symbol} if you '
-                'choose to disassemble the Pillar',
+            text: context.l10n.disassemblePillarToUnlockCoin(kZnnCoin.symbol),
           ),
         ),
         StepperButton(
-          text: 'Next',
+          text: context.l10n.next,
           onPressed: _hasEnoughZnn(accountInfo) ? _onNextPressed : null,
         ),
       ],
@@ -802,11 +807,11 @@ class _MainPillarState extends State<PillarStepperContainer> {
                         style: Theme.of(context).textTheme.headlineSmall,
                         children: <InlineSpan>[
                           TextSpan(
-                            text: 'Pillar ',
+                            text: '${context.l10n.pillar} ',
                             style: Theme.of(context).textTheme.headlineSmall,
                           ),
                           TextSpan(
-                            text: 'successfully',
+                            text: context.l10n.successfully,
                             style: Theme.of(context)
                                 .textTheme
                                 .headlineSmall!
@@ -815,11 +820,11 @@ class _MainPillarState extends State<PillarStepperContainer> {
                                 ),
                           ),
                           TextSpan(
-                            text: ' registered. Use ',
+                            text: context.l10n.registeredUse,
                             style: Theme.of(context).textTheme.headlineSmall,
                           ),
                           TextSpan(
-                            text: 'znn-controller ',
+                            text: context.l10n.znnController,
                             style: Theme.of(context)
                                 .textTheme
                                 .headlineSmall!
@@ -837,7 +842,7 @@ class _MainPillarState extends State<PillarStepperContainer> {
                                 size: 20, color: AppColors.znnColor,),
                           ),
                           TextSpan(
-                            text: ' to check the Pillar status',
+                            text: context.l10n.checkPillarStatus,
                             style: Theme.of(context).textTheme.headlineSmall,
                           ),
                         ],
@@ -848,7 +853,7 @@ class _MainPillarState extends State<PillarStepperContainer> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: <Widget>[
                       StepperButton.icon(
-                        label: 'Register another Pillar',
+                        label: context.l10n.registerAnotherPillar,
                         onPressed: _onDeployAnotherPillarButtonPressed,
                         iconData: Icons.refresh,
                       ),
@@ -886,7 +891,7 @@ class _MainPillarState extends State<PillarStepperContainer> {
 
   Widget _getViewPillarsButton() {
     return StepperButton.icon(
-      label: 'View Pillars',
+      label: context.l10n.viewPillars,
       onPressed: () {
         Navigator.pop(context);
       },
@@ -925,17 +930,17 @@ class _MainPillarState extends State<PillarStepperContainer> {
 
   bool _canDeployPillar() =>
       InputValidators.notEmpty(
-            'Pillar name',
+        context.l10n.pillarName,
             _pillarNameController.text,
           ) ==
           null &&
       InputValidators.notEmpty(
-            'Pillar reward address',
+        context.l10n.pillarRewardAddress,
             _pillarRewardAddressController.text,
           ) ==
           null &&
       InputValidators.notEmpty(
-            'Pillar momentum address',
+        context.l10n.pillarMomentumAddress,
             _pillarMomentumController.text,
           ) ==
           null;
@@ -980,7 +985,7 @@ class _MainPillarState extends State<PillarStepperContainer> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
         Text(
-          'More Plasma is required to perform complex transactions. Please fuse enough QSR before proceeding.',
+          context.l10n.morePlasmaRequired,
           style: Theme.of(context).textTheme.headlineSmall,
         ),
         const SizedBox(
@@ -1001,7 +1006,7 @@ class _MainPillarState extends State<PillarStepperContainer> {
           height: 25,
         ),
         StepperButton(
-          text: 'Next',
+          text: context.l10n.next,
           onPressed: plasmaInfo.currentPlasma >= kPillarPlasmaAmountNeeded
               ? _onPlasmaCheckNextPressed
               : null,
@@ -1031,7 +1036,7 @@ class _MainPillarState extends State<PillarStepperContainer> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
             Text(
-              'Percentage of momentum rewards given to the delegators',
+              context.l10n.percentageOfMomentumRewards,
               style: Theme.of(context).textTheme.headlineSmall,
             ),
           ],
@@ -1051,11 +1056,13 @@ class _MainPillarState extends State<PillarStepperContainer> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: <Widget>[
             Text(
-              'Pillar: ${100 - _momentumRewardPercentageGiven.toInt()}',
+              context.l10n.pillars(
+                  100 - _momentumRewardPercentageGiven.toInt(),
+              ),
               style: Theme.of(context).textTheme.titleMedium,
             ),
             Text(
-              'Delegators: ${_momentumRewardPercentageGiven.toInt()}',
+              context.l10n.delegators(_momentumRewardPercentageGiven.toInt()),
               style: Theme.of(context).textTheme.titleMedium,
             ),
           ],
@@ -1065,7 +1072,7 @@ class _MainPillarState extends State<PillarStepperContainer> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
             Text(
-              'Percentage of delegation rewards given to the delegators',
+              context.l10n.percentageDelegationRewardsGiven,
               style: Theme.of(context).textTheme.headlineSmall,
             ),
           ],
@@ -1085,11 +1092,13 @@ class _MainPillarState extends State<PillarStepperContainer> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: <Widget>[
             Text(
-              'Pillar: ${100 - _delegateRewardPercentageGiven.toInt()}',
+              context.l10n.pillars(
+                  100 - _delegateRewardPercentageGiven.toInt(),
+              ),
               style: Theme.of(context).textTheme.titleMedium,
             ),
             Text(
-              'Delegators: ${_delegateRewardPercentageGiven.toInt()}',
+              context.l10n.delegators(_delegateRewardPercentageGiven.toInt()),
               style: Theme.of(context).textTheme.titleMedium,
             ),
           ],

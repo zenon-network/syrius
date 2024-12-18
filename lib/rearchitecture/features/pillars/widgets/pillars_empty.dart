@@ -5,7 +5,7 @@ import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/reusable_wi
 
 /// A widget associated with the [PillarsState] when it's status is
 /// [TimerStatus.initial] that uses the [SyriusErrorWidget] to display a
-/// message
+/// message.
 class PillarsEmpty extends StatelessWidget {
   /// Creates a PillarsEmpty instance
   const PillarsEmpty({super.key});
