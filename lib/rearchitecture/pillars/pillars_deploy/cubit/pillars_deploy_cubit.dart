@@ -3,7 +3,7 @@ import 'package:equatable/equatable.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/pillars/pillars.dart';
-import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/pillar_widgets/pillar_stepper_container.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
@@ -16,22 +16,22 @@ class PillarsDeployCubit extends HydratedCubit<PillarsDeployState> {
   /// Creates a new instance of [PillarsDeployCubit].
   PillarsDeployCubit({
     required this.zenon,
-    AccountBlockUtilsHelper? accountBlockUtilsHelper,
-    ZenonAddressUtilsHelper? zenonAddressUtilsHelper,
+    AccountBlockUtils? accountBlockUtilsHelper,
+    ZenonAddressUtils? zenonAddressUtilsHelper,
   })  : zenonAddressUtilsHelper =
-            zenonAddressUtilsHelper ?? ZenonAddressUtilsHelper(),
+            zenonAddressUtilsHelper ?? ZenonAddressUtils(),
         accountBlockUtilsHelper =
-            accountBlockUtilsHelper ?? AccountBlockUtilsHelper(),
+            accountBlockUtilsHelper ?? AccountBlockUtils(),
         super(const PillarsDeployState());
 
   /// The Zenon SDK instance used for network interactions.
   final Zenon zenon;
 
   /// Helper class with the purpose of facilitating dependency injections.
-  final AccountBlockUtilsHelper accountBlockUtilsHelper;
+  final AccountBlockUtils accountBlockUtilsHelper;
 
   /// Helper class with the purpose of facilitating dependency injections.
-  final ZenonAddressUtilsHelper zenonAddressUtilsHelper;
+  final ZenonAddressUtils zenonAddressUtilsHelper;
 
   /// Initiates the deployment of a Pillar with the given parameters.
   Future<void> deployPillar({
@@ -67,7 +67,7 @@ class PillarsDeployCubit extends HydratedCubit<PillarsDeployState> {
         waitForRequiredPlasma: true,
       );
 
-      await zenonAddressUtilsHelper.refreshBalance();
+      zenonAddressUtilsHelper.refreshBalance();
 
       emit(
         state.copyWith(

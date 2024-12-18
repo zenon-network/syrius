@@ -3,9 +3,7 @@ import 'dart:async';
 import 'package:equatable/equatable.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
 import 'package:json_annotation/json_annotation.dart';
-import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/zts_utils.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 part 'pillars_withdraw_qsr_cubit.g.dart';
@@ -18,12 +16,12 @@ class PillarsWithdrawQsrCubit extends HydratedCubit<PillarsWithdrawQsrState> {
   PillarsWithdrawQsrCubit({
     required this.zenon,
     this.duration = kDelayAfterAccountBlockCreationCall,
-    AccountBlockUtilsHelper? accountBlockUtilsHelper,
-    ZenonAddressUtilsHelper? zenonAddressUtilsHelper,
+    AccountBlockUtils? accountBlockUtilsHelper,
+    ZenonAddressUtils? zenonAddressUtilsHelper,
   })  : zenonAddressUtilsHelper =
-            zenonAddressUtilsHelper ?? ZenonAddressUtilsHelper(),
+            zenonAddressUtilsHelper ?? ZenonAddressUtils(),
         accountBlockUtilsHelper =
-            accountBlockUtilsHelper ?? AccountBlockUtilsHelper(),
+            accountBlockUtilsHelper ?? AccountBlockUtils(),
         super(const PillarsWithdrawQsrState());
 
   /// The Zenon SDK instance used for network interactions.
@@ -33,10 +31,10 @@ class PillarsWithdrawQsrCubit extends HydratedCubit<PillarsWithdrawQsrState> {
   final Duration duration;
 
   /// Helper class with the purpose of facilitating dependency injections.
-  final AccountBlockUtilsHelper accountBlockUtilsHelper;
+  final AccountBlockUtils accountBlockUtilsHelper;
 
   /// Helper class with the purpose of facilitating dependency injections.
-  final ZenonAddressUtilsHelper zenonAddressUtilsHelper;
+  final ZenonAddressUtils zenonAddressUtilsHelper;
 
   /// Initiates the QSR withdrawal from a Pillar slot.
   Future<void> withdrawQsr(String address) async {
@@ -55,7 +53,7 @@ class PillarsWithdrawQsrCubit extends HydratedCubit<PillarsWithdrawQsrState> {
 
       await Future.delayed(duration);
 
-      await zenonAddressUtilsHelper.refreshBalance();
+      zenonAddressUtilsHelper.refreshBalance();
 
       emit(
         state.copyWith(

@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/pillars/pillars.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 import '../../helpers/hydrated_bloc.dart';
@@ -15,7 +16,7 @@ class MockPillarApi extends Mock implements PillarApi {}
 
 class FakeAccountBlockTemplate extends Fake implements AccountBlockTemplate {}
 
-class MockAccountBlockUtils extends Mock implements AccountBlockUtilsHelper {}
+class MockAccountBlockUtils extends Mock implements AccountBlockUtils {}
 
 void main() {
   initHydratedStorage();

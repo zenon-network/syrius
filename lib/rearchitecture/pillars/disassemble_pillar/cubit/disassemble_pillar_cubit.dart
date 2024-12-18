@@ -1,7 +1,7 @@
 import 'package:equatable/equatable.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
 import 'package:json_annotation/json_annotation.dart';
-import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 part 'disassemble_pillar_cubit.g.dart';
@@ -13,22 +13,22 @@ class DisassemblePillarCubit extends HydratedCubit<DisassemblePillarState> {
   /// Creates a new instance of [DisassemblePillarCubit].
   DisassemblePillarCubit({
     required this.zenon,
-    AccountBlockUtilsHelper? accountBlockUtilsHelper,
-    ZenonAddressUtilsHelper? zenonAddressUtilsHelper,
+    AccountBlockUtils? accountBlockUtilsHelper,
+    ZenonAddressUtils? zenonAddressUtilsHelper,
   })  : zenonAddressUtilsHelper =
-            zenonAddressUtilsHelper ?? ZenonAddressUtilsHelper(),
+            zenonAddressUtilsHelper ?? ZenonAddressUtils(),
         accountBlockUtilsHelper =
-            accountBlockUtilsHelper ?? AccountBlockUtilsHelper(),
+            accountBlockUtilsHelper ?? AccountBlockUtils(),
         super(const DisassemblePillarState());
 
   /// The Zenon SDK instance used for network interactions.
   final Zenon zenon;
 
   /// Helper class with the purpose of facilitating dependency injections.
-  final AccountBlockUtilsHelper accountBlockUtilsHelper;
+  final AccountBlockUtils accountBlockUtilsHelper;
 
   /// Helper class with the purpose of facilitating dependency injections.
-  final ZenonAddressUtilsHelper zenonAddressUtilsHelper;
+  final ZenonAddressUtils zenonAddressUtilsHelper;
 
   /// Initiates the disassembly of a Pillar with the given [pillarName].
   Future<void> disassemblePillar(String pillarName) async {
@@ -47,7 +47,7 @@ class DisassemblePillarCubit extends HydratedCubit<DisassemblePillarState> {
         waitForRequiredPlasma: true,
       );
 
-      await zenonAddressUtilsHelper.refreshBalance();
+      zenonAddressUtilsHelper.refreshBalance();
 
       emit(
         state.copyWith(

@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/pillars/pillars.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 import '../../helpers/hydrated_bloc.dart';
@@ -13,11 +14,11 @@ class MockEmbedded extends Mock implements EmbeddedApi {}
 
 class MockPillarApi extends Mock implements PillarApi {}
 
-class MockAccountBlockUtils extends Mock implements AccountBlockUtilsHelper {}
+class MockAccountBlockUtils extends Mock implements AccountBlockUtils {}
 
 class FakeAccountBlockTemplate extends Fake implements AccountBlockTemplate {}
 
-class MockZenonAddressUtils extends Mock implements ZenonAddressUtilsHelper {}
+class MockZenonAddressUtils extends Mock implements ZenonAddressUtils {}
 
 
 void main() {
@@ -34,7 +35,7 @@ void main() {
     late MockZenon mockZenon;
     late MockEmbedded mockEmbedded;
     late MockPillarApi mockPillarApi;
-    late MockAccountBlockUtils mockAccountBlockUtilsHelper;
+    late MockAccountBlockUtils mockAccountBlockUtils;
     late MockZenonAddressUtils mockZenonAddressUtils;
     late FailureException exception;
     late PillarsDepositQsrCubit pillarsDepositQsrCubit;
@@ -45,7 +46,7 @@ void main() {
       mockZenon = MockZenon();
       mockEmbedded = MockEmbedded();
       mockPillarApi = MockPillarApi();
-      mockAccountBlockUtilsHelper = MockAccountBlockUtils();
+      mockAccountBlockUtils = MockAccountBlockUtils();
       mockZenonAddressUtils = MockZenonAddressUtils();
       testAccBlockTemplate = AccountBlockTemplate(blockType: 1);
       testAmount = BigInt.from(1000);
@@ -58,7 +59,7 @@ void main() {
 
       pillarsDepositQsrCubit = PillarsDepositQsrCubit(
         zenon: mockZenon,
-        accountBlockUtilsHelper: mockAccountBlockUtilsHelper,
+        accountBlockUtilsHelper: mockAccountBlockUtils,
         zenonAddressUtilsHelper: mockZenonAddressUtils,
       );
     });
@@ -135,7 +136,7 @@ void main() {
           when(() => mockPillarApi.depositQsr(any()))
               .thenReturn(testAccBlockTemplate);
           when(
-            () => mockAccountBlockUtilsHelper.createAccountBlock(
+            () => mockAccountBlockUtils.createAccountBlock(
               any(),
               any(),
               waitForRequiredPlasma: any(named: 'waitForRequiredPlasma'),
@@ -165,7 +166,7 @@ void main() {
         verify: (_) {
           verifyNever(() => mockPillarApi.depositQsr(any()));
           verifyNever(
-            () => mockAccountBlockUtilsHelper.createAccountBlock(
+            () => mockAccountBlockUtils.createAccountBlock(
               any(),
               any(),
               waitForRequiredPlasma: any(named: 'waitForRequiredPlasma'),

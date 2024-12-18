@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/pillars/pillars.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 import '../../helpers/hydrated_bloc.dart';
@@ -13,8 +14,7 @@ class MockEmbedded extends Mock implements EmbeddedApi {}
 
 class MockPillarApi extends Mock implements PillarApi {}
 
-class MockAccountBlockUtilsHelper extends Mock
-    implements AccountBlockUtilsHelper {}
+class MockAccountBlockUtils extends Mock implements AccountBlockUtils {}
 
 class FakeAccountBlockTemplate extends Fake implements AccountBlockTemplate {}
 
@@ -27,7 +27,7 @@ void main() {
     late MockZenon mockZenon;
     late MockEmbedded mockEmbedded;
     late MockPillarApi mockPillarApi;
-    late MockAccountBlockUtilsHelper mockAccountBlockUtilsHelper;
+    late MockAccountBlockUtils mockAccountBlockUtils;
     late UndelegatePillarCubit undelegatePillarCubit;
     late AccountBlockTemplate testAccountBlockTemplate;
     late FailureException exception;
@@ -36,7 +36,7 @@ void main() {
       mockZenon = MockZenon();
       mockEmbedded = MockEmbedded();
       mockPillarApi = MockPillarApi();
-      mockAccountBlockUtilsHelper = MockAccountBlockUtilsHelper();
+      mockAccountBlockUtils = MockAccountBlockUtils();
       testAccountBlockTemplate = AccountBlockTemplate(blockType: 1);
       exception = FailureException();
 
@@ -45,7 +45,7 @@ void main() {
       when(() => mockPillarApi.undelegate())
           .thenReturn(testAccountBlockTemplate);
       when(
-        () => mockAccountBlockUtilsHelper.createAccountBlock(
+        () => mockAccountBlockUtils.createAccountBlock(
           any(),
           any(),
           waitForRequiredPlasma: any(named: 'waitForRequiredPlasma'),
@@ -54,7 +54,7 @@ void main() {
 
       undelegatePillarCubit = UndelegatePillarCubit(
         zenon: mockZenon,
-        accountBlockUtilsHelper: mockAccountBlockUtilsHelper,
+        accountBlockUtilsHelper: mockAccountBlockUtils,
       );
     });
 
@@ -146,7 +146,7 @@ void main() {
       'emits [loading, failure] when cancelPillarVoting throws an exception',
       setUp: () {
         when(
-          () => mockAccountBlockUtilsHelper.createAccountBlock(
+          () => mockAccountBlockUtils.createAccountBlock(
             any(),
             any(),
             waitForRequiredPlasma: any(named: 'waitForRequiredPlasma'),

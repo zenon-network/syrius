@@ -1,8 +1,7 @@
 import 'package:equatable/equatable.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
 import 'package:json_annotation/json_annotation.dart';
-import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 part 'delegate_pillar_cubit.g.dart';
@@ -14,9 +13,9 @@ class DelegatePillarCubit extends HydratedCubit<DelegatePillarState> {
   DelegatePillarCubit({
     required this.zenon,
     this.duration = kDelayAfterAccountBlockCreationCall,
-    AccountBlockUtilsHelper? accountBlockUtilsHelper,
+    AccountBlockUtils? accountBlockUtilsHelper,
   })  : accountBlockUtilsHelper =
-            accountBlockUtilsHelper ?? AccountBlockUtilsHelper(),
+            accountBlockUtilsHelper ?? AccountBlockUtils(),
         super(const DelegatePillarState());
 
   /// The Zenon SDK instance used for network interactions.
@@ -26,7 +25,7 @@ class DelegatePillarCubit extends HydratedCubit<DelegatePillarState> {
   final Duration duration;
 
   /// Helper class with the purpose of facilitating dependency injections.
-  final AccountBlockUtilsHelper accountBlockUtilsHelper;
+  final AccountBlockUtils accountBlockUtilsHelper;
 
   /// Initiates delegation to a Pillar with the given [pillarName].
   Future<void> delegateToPillar(String pillarName) async {
@@ -43,7 +42,7 @@ class DelegatePillarCubit extends HydratedCubit<DelegatePillarState> {
         waitForRequiredPlasma: true,
       );
 
-      await Future.delayed(duration);
+      await Future<void>.delayed(duration);
 
       emit(
         state.copyWith(

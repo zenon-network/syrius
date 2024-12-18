@@ -3,9 +3,7 @@ import 'dart:async';
 import 'package:equatable/equatable.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
 import 'package:json_annotation/json_annotation.dart';
-import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/zts_utils.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 part 'pillars_deposit_qsr_cubit.g.dart';
@@ -18,12 +16,12 @@ class PillarsDepositQsrCubit extends HydratedCubit<PillarsDepositQsrState> {
   PillarsDepositQsrCubit({
     required this.zenon,
     this.duration = kDelayAfterAccountBlockCreationCall,
-    AccountBlockUtilsHelper? accountBlockUtilsHelper,
-    ZenonAddressUtilsHelper? zenonAddressUtilsHelper,
+    AccountBlockUtils? accountBlockUtilsHelper,
+    ZenonAddressUtils? zenonAddressUtilsHelper,
   })  : zenonAddressUtilsHelper =
-            zenonAddressUtilsHelper ?? ZenonAddressUtilsHelper(),
+            zenonAddressUtilsHelper ?? ZenonAddressUtils(),
         accountBlockUtilsHelper =
-            accountBlockUtilsHelper ?? AccountBlockUtilsHelper(),
+            accountBlockUtilsHelper ?? AccountBlockUtils(),
         super(const PillarsDepositQsrState());
 
   /// The Zenon SDK instance used for network interactions.
@@ -33,10 +31,10 @@ class PillarsDepositQsrCubit extends HydratedCubit<PillarsDepositQsrState> {
   final Duration duration;
 
   /// Helper class with the purpose of facilitating dependency injections.
-  final AccountBlockUtilsHelper accountBlockUtilsHelper;
+  final AccountBlockUtils accountBlockUtilsHelper;
 
   /// Helper class with the purpose of facilitating dependency injections.
-  final ZenonAddressUtilsHelper zenonAddressUtilsHelper;
+  final ZenonAddressUtils zenonAddressUtilsHelper;
 
   /// Initiates the QSR deposit for a Pillar slot with the specified [amount].
   Future<void> depositQsr(
@@ -57,9 +55,9 @@ class PillarsDepositQsrCubit extends HydratedCubit<PillarsDepositQsrState> {
           waitForRequiredPlasma: true,
         );
 
-        await Future.delayed(duration);
+        await Future<void>.delayed(duration);
 
-        await zenonAddressUtilsHelper.refreshBalance();
+        zenonAddressUtilsHelper.refreshBalance();
 
         emit(
           state.copyWith(
