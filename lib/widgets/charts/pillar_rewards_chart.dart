@@ -1,7 +1,6 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/extensions.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/zts_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
@@ -23,9 +22,6 @@ class PillarRewardsChartState extends State<PillarRewardsChart> {
   @override
   Widget build(BuildContext context) {
     return StandardChart(
-      yValuesInterval: _getMaxValueOfZnnRewards() > kNumOfChartLeftSideTitles
-          ? _getMaxValueOfZnnRewards() / kNumOfChartLeftSideTitles
-          : null,
       maxY: _getMaxValueOfZnnRewards() < 1.0
           ? _getMaxValueOfZnnRewards().toDouble()
           : _getMaxValueOfZnnRewards().ceilToDouble(),

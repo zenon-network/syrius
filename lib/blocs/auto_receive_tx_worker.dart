@@ -35,7 +35,7 @@ class AutoReceiveTxWorker extends BaseBloc<WalletNotification> {
           currentHash,
         );
         final AccountBlockTemplate response =
-            await AccountBlockUtils.createAccountBlock(
+            await AccountBlockUtils().createAccountBlock(
           transactionParams,
           'receive transaction',
           address: toAddress,
@@ -76,7 +76,7 @@ class AutoReceiveTxWorker extends BaseBloc<WalletNotification> {
           currentHash,
         );
         final AccountBlockTemplate response =
-            await AccountBlockUtils.createAccountBlock(
+            await AccountBlockUtils().createAccountBlock(
           transactionParams,
           'receive transaction',
           address: toAddress,

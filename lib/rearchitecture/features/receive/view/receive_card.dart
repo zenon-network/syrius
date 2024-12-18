@@ -4,7 +4,10 @@ import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dar
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/tokens/cubit/tokens_cubit.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 
+/// A card that listens to state updates from the [TokensCubit] and rebuilds,
+/// feeding a specific widget, depending on the [TokensState.status].
 class ReceiveCard extends StatelessWidget {
+  /// Creates a new instance.
   const ReceiveCard({super.key});
 
   @override

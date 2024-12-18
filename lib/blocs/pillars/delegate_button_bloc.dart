@@ -13,7 +13,7 @@ class DelegateButtonBloc extends BaseBloc<AccountBlockTemplate?> {
       final AccountBlockTemplate transactionParams = zenon!.embedded.pillar.delegate(
         pillarName!,
       );
-      AccountBlockUtils.createAccountBlock(
+      AccountBlockUtils().createAccountBlock(
         transactionParams,
         'delegate to Pillar',
         waitForRequiredPlasma: true,

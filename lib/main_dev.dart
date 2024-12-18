@@ -44,6 +44,10 @@ const String p = String.fromEnvironment('PASSWORD');
 
 main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  if (Platform.isWindows) {
+    registerProtocolHandler(kDeepLinkingUrlScheme);
+  }
+
   Bloc.observer = CustomBlocObserver();
   // Init hydrated bloc storage
   HydratedBloc.storage = await HydratedStorage.build(
@@ -63,14 +67,14 @@ main() async {
     syriusLogDir.createSync(recursive: true);
   }
   final File logFile = File(
-    '${syriusLogDir.path}${path.separator}syrius-${DateTime.now().millisecondsSinceEpoch}.log',
+      '${syriusLogDir.path}${path.separator}syrius-${DateTime.now().millisecondsSinceEpoch}.log',
   );
   Logger.root.level = Level.ALL;
   Logger.root.onRecord.listen((LogRecord record) {
     if (kDebugMode) {
       print(
           '${record.level.name} ${record.loggerName} ${record.message} ${record.time}: '
-          '${record.error} ${record.stackTrace}\n');
+              '${record.error} ${record.stackTrace}\n');
     }
     logFile.writeAsString(
       '${record.level.name} ${record.loggerName} ${record.message} ${record.time}: '
@@ -124,10 +128,8 @@ main() async {
     await windowManager.show();
 
     if (sharedPrefsService != null) {
-      final double? windowSizeWidth =
-          sharedPrefsService!.get(kWindowSizeWidthKey);
-      final double? windowSizeHeight =
-          sharedPrefsService!.get(kWindowSizeHeightKey);
+      final double? windowSizeWidth = sharedPrefsService!.get(kWindowSizeWidthKey);
+      final double? windowSizeHeight = sharedPrefsService!.get(kWindowSizeHeightKey);
       if (windowSizeWidth != null &&
           windowSizeWidth >= 1200 &&
           windowSizeHeight != null &&

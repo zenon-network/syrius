@@ -40,16 +40,18 @@ class _ReceivePopulatedState extends State<ReceivePopulated> {
   String get _amount => _amountController.text;
 
   String? get _amountErrorText => InputValidators.correctValue(
-    _amount,
-    kBigP255m1,
-    _selectedToken.decimals,
-    BigInt.zero,
-  );
+        _amount,
+        kBigP255m1,
+        _selectedToken.decimals,
+        BigInt.zero,
+      );
 
   @override
   void initState() {
     super.initState();
-    _selectedToken = widget.assets.first;
+    _selectedToken = widget.assets.firstWhere(
+      (Token asset) => asset.tokenStandard.toString() == znnTokenStandard,
+    );
   }
 
   @override
@@ -60,11 +62,14 @@ class _ReceivePopulatedState extends State<ReceivePopulated> {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
-          ReceiveQrImage(
-            data: _getQrString(),
-            size: 150,
-            tokenStandard: _selectedToken.tokenStandard,
-            context: context,
+          Tooltip(
+            message: _getQrString(),
+            child: ReceiveQrImage(
+              data: _getQrString(),
+              size: 150,
+              tokenStandard: _selectedToken.tokenStandard,
+              context: context,
+            ),
           ),
           kHorizontalGap16,
           Expanded(
@@ -92,11 +97,10 @@ class _ReceivePopulatedState extends State<ReceivePopulated> {
                 TextField(
                   decoration: InputDecoration(
                     errorText: _amount.isNotEmpty ? _amountErrorText : null,
-                      hintText: context.l10n.amount,
+                    hintText: context.l10n.amount,
                   ),
                   onChanged: (String value) => setState(() {}),
-                  inputFormatters:
-                  FormatUtils.getAmountTextInputFormatters(
+                  inputFormatters: FormatUtils.getAmountTextInputFormatters(
                     _amountController.text,
                   ),
                   controller: _amountController,

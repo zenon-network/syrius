@@ -38,6 +38,7 @@ extension NoMChainIdX on NoMChainId {
 }
 
 class NoMService extends IChain {
+
   NoMService({
     required this.reference,
   }) {
@@ -64,7 +65,6 @@ class NoMService extends IChain {
       handler: _methodZnnSend,
     );
   }
-
   static const String namespace = 'zenon';
 
   final IWeb3WalletService _web3WalletService = sl<IWeb3WalletService>();

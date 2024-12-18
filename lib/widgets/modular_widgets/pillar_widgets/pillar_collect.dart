@@ -92,7 +92,7 @@ class _PillarCollectState extends State<PillarCollect> {
   _onCollectPressed() async {
     try {
       _collectButtonKey.currentState?.animateForward();
-      await AccountBlockUtils.createAccountBlock(
+      await AccountBlockUtils().createAccountBlock(
         zenon!.embedded.pillar.collectReward(),
         context.l10n.collectPillarRewards,
         waitForRequiredPlasma: true,

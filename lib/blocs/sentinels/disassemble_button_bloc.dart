@@ -11,13 +11,13 @@ class DisassembleButtonBloc extends BaseBloc<AccountBlockTemplate?> {
       addEvent(null);
       final AccountBlockTemplate transactionParams =
           zenon!.embedded.sentinel.revoke();
-      AccountBlockUtils.createAccountBlock(
+      AccountBlockUtils().createAccountBlock(
         transactionParams,
         'disassemble Sentinel',
         waitForRequiredPlasma: true,
       ).then(
         (AccountBlockTemplate response) {
-          ZenonAddressUtils.refreshBalance();
+          ZenonAddressUtils().refreshBalance();
           addEvent(response);
         },
       ).onError(

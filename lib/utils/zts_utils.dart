@@ -9,6 +9,8 @@ final List<Token> kDualCoin = <Token>[
   kQsrCoin,
 ];
 
+
+// TODO(maznnwell): these should match the coin details on the networks
 final Token kZnnCoin = Token(
   'Zenon',
   'ZNN',

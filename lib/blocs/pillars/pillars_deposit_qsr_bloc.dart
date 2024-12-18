@@ -20,7 +20,7 @@ class PillarsDepositQsrBloc extends BaseBloc<AccountBlockTemplate?> {
             zenon!.embedded.pillar.depositQsr(
           amount,
         );
-        AccountBlockUtils.createAccountBlock(
+        AccountBlockUtils().createAccountBlock(
           transactionParams,
           'deposit ${kQsrCoin.symbol} for Pillar Slot',
           waitForRequiredPlasma: true,
@@ -29,7 +29,7 @@ class PillarsDepositQsrBloc extends BaseBloc<AccountBlockTemplate?> {
             await Future.delayed(
               kDelayAfterAccountBlockCreationCall,
             );
-            ZenonAddressUtils.refreshBalance();
+            ZenonAddressUtils().refreshBalance();
             addEvent(response);
           },
         ).onError(

@@ -7,7 +7,6 @@ import 'package:zenon_syrius_wallet_flutter/utils/format_utils.dart';
 class StandardChart extends StatelessWidget {
 
   const StandardChart({
-    required this.yValuesInterval,
     required this.maxY,
     required this.lineBarsData,
     required this.titlesReferenceDate,
@@ -16,7 +15,6 @@ class StandardChart extends StatelessWidget {
     this.convertLeftSideTitlesToInt = false,
     super.key,
   });
-  final double? yValuesInterval;
   final double maxX;
   final double maxY;
   final List<LineChartBarData> lineBarsData;
@@ -90,27 +88,13 @@ class StandardChart extends StatelessWidget {
                 interval: 1,
               ),
             ),
-            leftTitles: AxisTitles(
+            leftTitles: const AxisTitles(
               sideTitles: SideTitles(
-                interval: yValuesInterval,
                 showTitles: true,
-                getTitlesWidget: (double value, _) => Padding(
-                  padding: const EdgeInsets.only(top: 8),
-                  child: Text(
-                    value != 0
-                        ? convertLeftSideTitlesToInt
-                            ? '${value.toInt()}'
-                            : value.toStringAsFixed(2)
-                        : '',
-                    style: Theme.of(context).textTheme.labelMedium,
-                  ),
-                ),
-                reservedSize: 26,
+                reservedSize: 32,
               ),
             ),
-            rightTitles: const AxisTitles(
-
-            ),
+            rightTitles: const AxisTitles(),
             topTitles: const AxisTitles(),
           ),
           borderData: FlBorderData(show: false),

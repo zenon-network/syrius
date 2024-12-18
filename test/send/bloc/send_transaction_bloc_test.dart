@@ -2,23 +2,17 @@ import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/send/send.dart';
-import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/dependency_injection_helpers/account_block_template_send.dart';
-import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/dependency_injection_helpers/account_block_utils_helper.dart';
-import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/dependency_injection_helpers/zenon_address_utils_helper.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/exceptions/exceptions.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 import '../../helpers/hydrated_bloc.dart';
 
-class MockZenonAddressUtils extends Mock implements ZenonAddressUtilsHelper {}
+class MockZenonAddressUtils extends Mock implements ZenonAddressUtils {}
 
-class MockAccountBlockUtils extends Mock implements AccountBlockUtilsHelper {}
+class MockAccountBlockUtils extends Mock implements AccountBlockUtils {}
 
 class FakeAddress extends Fake implements Address {}
-
-class MockAccountBlockTemplateSend extends Mock
-    implements AccountBlockTemplateSend {}
 
 void main() {
   initHydratedStorage();
@@ -38,7 +32,6 @@ void main() {
   late AccountBlockTemplate testAccBlockTemplate;
   late MockAccountBlockUtils mockAccountBlockUtils;
   late MockZenonAddressUtils mockZenonAddressUtils;
-  late MockAccountBlockTemplateSend mockAccountBlockTemplateSend;
   late String testToAddress;
   late String testFromAddress;
   late int testAmount;
@@ -48,11 +41,9 @@ void main() {
   setUp(() {
     mockAccountBlockUtils = MockAccountBlockUtils();
     mockZenonAddressUtils = MockZenonAddressUtils();
-    mockAccountBlockTemplateSend = MockAccountBlockTemplateSend();
     sendTransactionBloc = SendTransactionBloc(
       accountBlockUtilsHelper: mockAccountBlockUtils,
-      zenonAddressUtilsHelper: mockZenonAddressUtils,
-      accountBlockTemplateSend: mockAccountBlockTemplateSend,
+      zenonAddressUtils: mockZenonAddressUtils,
     );
     testToAddress = emptyAddress.toString();
     testFromAddress = emptyAddress.toString();
@@ -70,16 +61,7 @@ void main() {
       ),
     ).thenAnswer((_) async => testAccBlockTemplate);
 
-    when(
-      () => mockAccountBlockTemplateSend.createSendBlock(
-        any(),
-        any(),
-        any(),
-        any(),
-      ),
-    ).thenReturn(testAccBlockTemplate);
-
-    when(() => mockZenonAddressUtils.refreshBalance()).thenAnswer((_) async {});
+    when(() => mockZenonAddressUtils.refreshBalance()).thenAnswer((_) {});
   });
 
   tearDown(() {
@@ -171,11 +153,11 @@ void main() {
       'emits [loading, failure] when SendTransfer fails',
       setUp: () {
         when(
-          () => mockAccountBlockTemplateSend.createSendBlock(
+          () => mockAccountBlockUtils.createAccountBlock(
             any(),
             any(),
-            any(),
-            any(),
+            address: any(named: 'address'),
+            waitForRequiredPlasma: any(named: 'waitForRequiredPlasma'),
           ),
         ).thenThrow(exception);
       },

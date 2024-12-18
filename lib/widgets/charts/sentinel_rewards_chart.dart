@@ -3,7 +3,6 @@ import 'dart:math';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/extensions.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/zts_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
@@ -27,9 +26,6 @@ class _SentinelRewardsChart extends State<SentinelRewardsChart> {
   @override
   Widget build(BuildContext context) {
     return StandardChart(
-      yValuesInterval: _getMaxValueOfRewards() > kNumOfChartLeftSideTitles
-          ? _getMaxValueOfRewards() / kNumOfChartLeftSideTitles
-          : null,
       maxY: _getMaxValueOfRewards() < 1.0
           ? _getMaxValueOfRewards().toDouble()
           : _getMaxValueOfRewards().ceilToDouble(),

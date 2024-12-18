@@ -18,7 +18,7 @@ class TransferOwnershipBloc extends BaseBloc<AccountBlockTemplate> {
         isMintable,
         isBurnable,
       );
-      AccountBlockUtils.createAccountBlock(
+      AccountBlockUtils().createAccountBlock(
         transactionParams,
         'transfer token',
         waitForRequiredPlasma: true,

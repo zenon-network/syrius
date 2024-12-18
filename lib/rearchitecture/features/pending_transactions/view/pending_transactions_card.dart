@@ -1,19 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_vector_icons/flutter_vector_icons.dart';
-import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
-import 'package:zenon_syrius_wallet_flutter/main.dart';
-import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/pending_transactions/pending_transactions.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/color_utils.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/extensions.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/format_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart'
+    hide
+        InfiniteScrollTable,
+        InfiniteScrollTableCell,
+        InfiniteScrollTableHeaderColumn;
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
+/// A widget that displays the current pending transactions.
+///
+/// Optionally, the user can request for a specific transaction to be received.
 class PendingTransactionsCard extends StatelessWidget {
+  /// Creates a new instance.
   const PendingTransactionsCard({super.key});
 
   @override
@@ -36,8 +37,7 @@ class PendingTransactionsCard extends StatelessWidget {
           final InfiniteListStatus status = state.status;
 
           return switch (status) {
-            InfiniteListStatus.initial =>
-              const _PendingTransactionsInitial(),
+            InfiniteListStatus.initial => const _PendingTransactionsInitial(),
             InfiniteListStatus.failure => _PendingTransactionsFailure(
                 exception: state.error!,
               ),
@@ -95,10 +95,10 @@ class _PendingTransactionsPopulatedState
 
   @override
   Widget build(BuildContext context) {
-    return NewInfiniteScrollTable<AccountBlock>(
+    return InfiniteScrollTable<AccountBlock>(
       generateRowCells: _rowCellsGenerator,
       hasReachedMax: widget.hasReachedMax,
-      headerColumns: _getHeaderColumnsForPendingTransactions(),
+      columns: _getHeaderColumnsForPendingTransactions(),
       items: widget.transactions,
       onScrollReachedBottom: () {
         widget.bloc.add(
@@ -110,11 +110,10 @@ class _PendingTransactionsPopulatedState
     );
   }
 
-  List<Widget> _rowCellsGenerator(AccountBlock transaction, bool isSelected) =>
-      _getCellsForPendingTransactions(isSelected, transaction);
+  List<Widget> _rowCellsGenerator(AccountBlock transaction) =>
+      _getCellsForPendingTransactions(transaction);
 
   List<Widget> _getCellsForPendingTransactions(
-    bool isSelected,
     AccountBlock transaction,
   ) {
     final AccountBlock infoBlock =
@@ -122,220 +121,133 @@ class _PendingTransactionsPopulatedState
             ? transaction.pairedAccountBlock!
             : transaction;
     return <Widget>[
-      NewInfiniteScrollTableCell.textFromAddress(
-        infoBlock.address,
-        context,
+      AddressCell(
+        address: infoBlock.address,
       ),
-      NewInfiniteScrollTableCell.textFromAddress(
-        infoBlock.toAddress,
-        context,
+      AddressCell(
+        address: infoBlock.toAddress,
       ),
-      NewInfiniteScrollTableCell.withText(
-        context,
-        infoBlock.hash.toShortString(),
-        flex: 2,
-        tooltipMessage: infoBlock.hash.toString(),
-        textToBeCopied: infoBlock.hash.toString(),
+      HashCell(
+        hash: infoBlock.hash,
       ),
-      NewInfiniteScrollTableCell(
-        Padding(
-          padding: const EdgeInsets.only(right: 10),
-          child: FormattedAmountWithTooltip(
-            amount: infoBlock.amount.addDecimals(
-              infoBlock.token?.decimals ?? 0,
-            ),
-            tokenSymbol: infoBlock.token?.symbol ?? '',
-            builder: (String formattedAmount, String tokenSymbol) => Text(
-              formattedAmount,
-              style: Theme.of(context).textTheme.titleMedium!.copyWith(
-                    color: AppColors.subtitleColor,
-                  ),
-            ),
-          ),
-        ),
+      AmountCell(block: infoBlock),
+      DateCell(
+        block: infoBlock,
       ),
-      NewInfiniteScrollTableCell.withText(
-        context,
-        infoBlock.confirmationDetail?.momentumTimestamp == null
-            ? context.l10n.pending
-            : FormatUtils.formatData(
-                infoBlock.confirmationDetail!.momentumTimestamp * 1000,
-              ),
-      ),
-      _assetsCell(infoBlock),
-      NewInfiniteScrollTableCell(
-        _getReceiveContainer(isSelected, infoBlock, widget.bloc),
-      ),
+      AssetCell(block: infoBlock),
+      ReceiveCell(hash: infoBlock.hash),
     ];
   }
 
-  List<NewInfiniteScrollTableHeaderColumn>
+  List<InfiniteScrollTableColumnType>
       _getHeaderColumnsForPendingTransactions() {
-    return <NewInfiniteScrollTableHeaderColumn>[
-      NewInfiniteScrollTableHeaderColumn(
-        columnName: context.l10n.sender,
-        onSortArrowsPressed: _onSortArrowsPressed,
-        flex: 2,
-      ),
-      NewInfiniteScrollTableHeaderColumn(
-        columnName: context.l10n.receiver,
-        onSortArrowsPressed: _onSortArrowsPressed,
-        flex: 2,
-      ),
-      NewInfiniteScrollTableHeaderColumn(
-        columnName: context.l10n.hash,
-        onSortArrowsPressed: _onSortArrowsPressed,
-        flex: 2,
-      ),
-      NewInfiniteScrollTableHeaderColumn(
-        columnName: context.l10n.amount,
-        onSortArrowsPressed: _onSortArrowsPressed,
-      ),
-      NewInfiniteScrollTableHeaderColumn(
-        columnName: context.l10n.date,
-        onSortArrowsPressed: _onSortArrowsPressed,
-      ),
-      NewInfiniteScrollTableHeaderColumn(
-        columnName: context.l10n.assets,
-        onSortArrowsPressed: _onSortArrowsPressed,
-      ),
-      const NewInfiniteScrollTableHeaderColumn(
-        columnName: '',
-      ),
+    return <InfiniteScrollTableColumnType>[
+      InfiniteScrollTableColumnType.sender,
+      InfiniteScrollTableColumnType.receiver,
+      InfiniteScrollTableColumnType.hash,
+      InfiniteScrollTableColumnType.amount,
+      InfiniteScrollTableColumnType.date,
+      InfiniteScrollTableColumnType.asset,
+      InfiniteScrollTableColumnType.blank,
     ];
   }
 
-  void _onSortArrowsPressed(String columnName) {
-    switch (columnName) {
-      case 'Sender':
+  // TODO(maznnwell): to be used when sorting is enabled
+  // ignore: unused_element
+  void _onSortArrowsPressed(InfiniteScrollTableColumnType columnType) {
+    switch (columnType) {
+      case InfiniteScrollTableColumnType.sender:
         _sortAscending
             ? widget.transactions.sort(
-                (a, b) => a.address.toString().compareTo(
-                      b.address.toString(),
-                    ),
+                (AccountBlock a, AccountBlock b) =>
+                    a.address.toString().compareTo(
+                          b.address.toString(),
+                        ),
               )
             : widget.transactions.sort(
-                (a, b) => b.address.toString().compareTo(
-                      a.address.toString(),
-                    ),
+                (AccountBlock a, AccountBlock b) =>
+                    b.address.toString().compareTo(
+                          a.address.toString(),
+                        ),
               );
-        break;
-      case 'Receiver':
+      case InfiniteScrollTableColumnType.receiver:
         _sortAscending
             ? widget.transactions.sort(
-                (a, b) => a.toAddress.toString().compareTo(
-                      b.toAddress.toString(),
-                    ),
+                (AccountBlock a, AccountBlock b) =>
+                    a.toAddress.toString().compareTo(
+                          b.toAddress.toString(),
+                        ),
               )
             : widget.transactions.sort(
-                (a, b) => b.toAddress.toString().compareTo(
-                      a.toAddress.toString(),
-                    ),
+                (AccountBlock a, AccountBlock b) =>
+                    b.toAddress.toString().compareTo(
+                          a.toAddress.toString(),
+                        ),
               );
-        break;
-      case 'Hash':
+      case InfiniteScrollTableColumnType.hash:
         _sortAscending
             ? widget.transactions.sort(
-                (a, b) => a.hash.toString().compareTo(
+                (AccountBlock a, AccountBlock b) => a.hash.toString().compareTo(
                       b.hash.toString(),
                     ),
               )
             : widget.transactions.sort(
-                (a, b) => b.hash.toString().compareTo(
+                (AccountBlock a, AccountBlock b) => b.hash.toString().compareTo(
                       a.hash.toString(),
                     ),
               );
-        break;
-      case 'Amount':
-        _sortAscending
-            ? widget.transactions.sort((a, b) => a.amount.compareTo(b.amount))
-            : widget.transactions.sort((a, b) => b.amount.compareTo(a.amount));
-        break;
-      case 'Date':
+      case InfiniteScrollTableColumnType.amount:
         _sortAscending
             ? widget.transactions.sort(
-                (a, b) => a.confirmationDetail!.momentumTimestamp.compareTo(
+                (AccountBlock a, AccountBlock b) =>
+                    a.amount.compareTo(b.amount),
+              )
+            : widget.transactions.sort(
+                (AccountBlock a, AccountBlock b) =>
+                    b.amount.compareTo(a.amount),
+              );
+      case InfiniteScrollTableColumnType.date:
+        _sortAscending
+            ? widget.transactions.sort(
+                (AccountBlock a, AccountBlock b) =>
+                    a.confirmationDetail!.momentumTimestamp.compareTo(
                   b.confirmationDetail!.momentumTimestamp,
                 ),
               )
             : widget.transactions.sort(
-                (a, b) => b.confirmationDetail!.momentumTimestamp.compareTo(
+                (AccountBlock a, AccountBlock b) =>
+                    b.confirmationDetail!.momentumTimestamp.compareTo(
                   a.confirmationDetail!.momentumTimestamp,
                 ),
               );
-        break;
-      case 'Assets':
+      case InfiniteScrollTableColumnType.asset:
         _sortAscending
             ? widget.transactions.sort(
-                (a, b) => a.token!.symbol.compareTo(b.token!.symbol),
+                (AccountBlock a, AccountBlock b) =>
+                    a.token!.symbol.compareTo(b.token!.symbol),
               )
             : widget.transactions.sort(
-                (a, b) => b.token!.symbol.compareTo(a.token!.symbol),
+                (AccountBlock a, AccountBlock b) =>
+                    b.token!.symbol.compareTo(a.token!.symbol),
               );
-        break;
       default:
         _sortAscending
             ? widget.transactions.sort(
-                (a, b) => a.tokenStandard.toString().compareTo(
-                      b.tokenStandard.toString(),
-                    ),
+                (AccountBlock a, AccountBlock b) =>
+                    a.tokenStandard.toString().compareTo(
+                          b.tokenStandard.toString(),
+                        ),
               )
             : widget.transactions.sort(
-                (a, b) => b.tokenStandard.toString().compareTo(
-                      a.tokenStandard.toString(),
-                    ),
+                (AccountBlock a, AccountBlock b) =>
+                    b.tokenStandard.toString().compareTo(
+                          a.tokenStandard.toString(),
+                        ),
               );
-        break;
     }
 
     setState(() {
       _sortAscending = !_sortAscending;
     });
-  }
-
-  Widget _getReceiveContainer(
-    bool isSelected,
-    AccountBlock transaction,
-    PendingTransactionsBloc model,
-  ) {
-    return Align(
-      alignment: Alignment.centerLeft,
-      child: _getReceiveButton(hash: transaction.hash),
-    );
-  }
-
-  Widget _getReceiveButton({
-    required Hash hash,
-  }) {
-    return IconButton(
-      icon: const Icon(MaterialCommunityIcons.arrow_down),
-      color: AppColors.znnColor,
-      onPressed: () {
-        sl<AutoReceiveTxWorker>().autoReceiveTransactionHash(
-          hash,
-        );
-      },
-    );
-  }
-
-  NewInfiniteScrollTableCell _assetsCell(AccountBlock infoBlock) {
-    late final Widget child;
-    if (infoBlock.token == null) {
-      child = const SizedBox.shrink();
-    } else {
-      child = Chip(
-        backgroundColor: ColorUtils.getTokenColor(infoBlock.tokenStandard),
-        label: Text(infoBlock.token?.symbol ?? ''),
-        side: BorderSide.none,
-        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-      );
-    }
-
-    return NewInfiniteScrollTableCell(
-      Align(
-        alignment: Alignment.centerLeft,
-        child: child,
-      ),
-    );
   }
 }

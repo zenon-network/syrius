@@ -41,15 +41,7 @@ class _SendPopulatedState extends State<SendPopulated> {
 
   final GlobalKey<LoadingButtonState> _sendPaymentButtonKey = GlobalKey();
 
-  final List<Token> _initialTokens = kDualCoin;
-
-  final List<Token> _tokensWithBalance = <Token>[];
-
-  // The two coins - ZNN and QSR - should always be in this list
-  List<Token> get _availableTokens => <Token>[
-    ..._initialTokens,
-    ..._tokensWithBalance,
-  ];
+  final List<Token> _availableTokens = <Token>[];
 
   Token _selectedToken = kDualCoin.first;
 
@@ -86,8 +78,13 @@ class _SendPopulatedState extends State<SendPopulated> {
 
   @override
   Widget build(BuildContext context) {
-    if (_availableTokens.length == _initialTokens.length) {
-      _addTokensWithBalance(widget.balances[_selectedSenderAddress]!);
+    if (_availableTokens.isEmpty) {
+      _fillAvailableTokens(
+        initialTokens: kDualCoin,
+        tokensWithBalance: _getTokensWithBalance(
+          widget.balances[_selectedSenderAddress]!,
+        ),
+      );
     }
 
     return BlocListener<SendTransactionBloc, SendTransactionState>(
@@ -95,7 +92,7 @@ class _SendPopulatedState extends State<SendPopulated> {
         if (state.status == SendTransactionStatus.loading) {
           _sendPaymentButtonKey.currentState?.animateForward();
         } else if (state.status == SendTransactionStatus.success) {
-          _sendConfirmationNotification();
+          _sendConfirmationNotification(block: state.data!);
           _sendPaymentButtonKey.currentState?.animateReverse();
           _amountController.clear();
           _recipientController.clear();
@@ -236,16 +233,19 @@ class _SendPopulatedState extends State<SendPopulated> {
   }
 
   Widget _getDefaultAddressDropdown() {
-    return NewAddressesDropdown(
-      addresses: kDefaultAddressList.map((String? e) => e!).toList(),
-      onSelectedCallback: (String value) => setState(
-        () {
-          _selectedSenderAddress = value;
-          _selectedToken = kDualCoin.first;
-          _tokensWithBalance.clear();
-        },
+    return Tooltip(
+      message: context.l10n.senderAddressDescription,
+      child: NewAddressesDropdown(
+        addresses: kDefaultAddressList.map((String? e) => e!).toList(),
+        onSelectedCallback: (String value) => setState(
+          () {
+            _selectedSenderAddress = value;
+            _selectedToken = kDualCoin.first;
+            _availableTokens.clear();
+          },
+        ),
+        selectedAddress: _selectedSenderAddress,
       ),
-      selectedAddress: _selectedSenderAddress,
     );
   }
 
@@ -290,7 +290,9 @@ class _SendPopulatedState extends State<SendPopulated> {
     );
   }
 
-  Future<void> _sendConfirmationNotification() async {
+  Future<void> _sendConfirmationNotification({
+    required AccountBlockTemplate block,
+  }) async {
     final String recipient = ZenonAddressUtils.getLabel(_recipient);
 
     final String sender = ZenonAddressUtils.getLabel(_selectedSenderAddress);
@@ -308,8 +310,7 @@ class _SendPopulatedState extends State<SendPopulated> {
           WalletNotification(
             title: title,
             timestamp: DateTime.now().millisecondsSinceEpoch,
-            // TODO(maznnwell): Add details - the hash, for example
-            details: title,
+            details: context.l10n.hashValue(block.hash.toString()),
             type: NotificationType.paymentSent,
           ),
         );
@@ -321,17 +322,20 @@ class _SendPopulatedState extends State<SendPopulated> {
       ) >
       BigInt.zero;
 
-  void _addTokensWithBalance(AccountInfo accountInfo) {
+  List<Token> _getTokensWithBalance(AccountInfo accountInfo) {
+    final List<Token> tokens = <Token>[];
     final List<BalanceInfoListItem> balanceInfoList =
         accountInfo.balanceInfoList!;
 
     for (final BalanceInfoListItem balanceInfo in balanceInfoList) {
       final BigInt balance = balanceInfo.balance!;
       final Token token = balanceInfo.token!;
-      if (balance > BigInt.zero && !_initialTokens.contains(token)) {
-        _tokensWithBalance.add(token);
+      if (balance > BigInt.zero) {
+        tokens.add(token);
       }
     }
+
+    return tokens;
   }
 
   @override
@@ -339,5 +343,19 @@ class _SendPopulatedState extends State<SendPopulated> {
     _recipientController.dispose();
     _amountController.dispose();
     super.dispose();
+  }
+
+  void _fillAvailableTokens({
+    required List<Token> initialTokens,
+    required List<Token> tokensWithBalance,
+  }) {
+    _availableTokens.addAll(tokensWithBalance);
+    // The available tokens should always contain the two coins
+    if (!_availableTokens.contains(kQsrCoin)) {
+      _availableTokens.insert(0, kQsrCoin);
+    }
+    if (!_availableTokens.contains(kZnnCoin)) {
+      _availableTokens.insert(0, kZnnCoin);
+    }
   }
 }

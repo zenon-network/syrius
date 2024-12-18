@@ -90,7 +90,7 @@ class _StakeCollectState extends State<StakeCollect> {
   Future<void> _onCollectPressed() async {
     try {
       _collectButtonKey.currentState?.animateForward();
-      await AccountBlockUtils.createAccountBlock(
+      await AccountBlockUtils().createAccountBlock(
         zenon!.embedded.stake.collectReward(),
         'collect staking rewards',
         waitForRequiredPlasma: true,
