@@ -40,7 +40,7 @@ class _PillarRewardsCardState extends State<PillarRewardsCard> {
               CubitWithRefreshMixinStatus.loading =>
                 const SyriusLoadingWidget(),
               CubitWithRefreshMixinStatus.success => PillarRewardsChart(
-                  state.data!,
+                  rewardsHistoryList: state.data!,
                 ),
             };
           },

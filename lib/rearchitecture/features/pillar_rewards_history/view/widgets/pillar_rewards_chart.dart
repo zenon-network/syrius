@@ -6,19 +6,16 @@ import 'package:zenon_syrius_wallet_flutter/utils/zts_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
-class PillarRewardsChart extends StatefulWidget {
-
-  const PillarRewardsChart(
-    this.rewardsHistory, {
+/// A [StandardChart] adapted to show the pillar rewards
+class PillarRewardsChart extends StatelessWidget {
+  /// Constructs a new instance.
+  const PillarRewardsChart({
+    required RewardHistoryList rewardsHistoryList,
     super.key,
-  });
-  final RewardHistoryList rewardsHistory;
+  }) : _rewardsHistoryList = rewardsHistoryList;
 
-  @override
-  State createState() => PillarRewardsChartState();
-}
+  final RewardHistoryList _rewardsHistoryList;
 
-class PillarRewardsChartState extends State<PillarRewardsChart> {
   @override
   Widget build(BuildContext context) {
     return StandardChart(
@@ -31,14 +28,14 @@ class PillarRewardsChartState extends State<PillarRewardsChart> {
           DateTime.fromMillisecondsSinceEpoch(genesisTimestamp * 1000).add(
         Duration(
           // First epoch is zero
-          days: widget.rewardsHistory.list.reversed.last.epoch + 1,
+          days: _rewardsHistoryList.list.reversed.last.epoch + 1,
         ),
       ),
     );
   }
 
-  List<FlSpot> _getRewardsSpots() => List.generate(
-        widget.rewardsHistory.list.length,
+  List<FlSpot> _getRewardsSpots() => List<FlSpot>.generate(
+        _rewardsHistoryList.list.length,
         (int index) => FlSpot(
           index.toDouble(),
           _getRewardsByIndex(index).toDouble(),
@@ -52,7 +49,7 @@ class PillarRewardsChartState extends State<PillarRewardsChart> {
         ),
       ];
 
-  num _getRewardsByIndex(int index) => widget.rewardsHistory.list.reversed
+  num _getRewardsByIndex(int index) => _rewardsHistoryList.list.reversed
       .toList()[index]
       .znnAmount
       .addDecimals(
@@ -61,12 +58,12 @@ class PillarRewardsChartState extends State<PillarRewardsChart> {
       .toNum();
 
   num _getMaxValueOfZnnRewards() {
-    BigInt? max = widget.rewardsHistory.list.first.znnAmount;
-    for (final RewardHistoryEntry element in widget.rewardsHistory.list) {
-      if (element.znnAmount > max!) {
+    BigInt max = _rewardsHistoryList.list.first.znnAmount;
+    for (final RewardHistoryEntry element in _rewardsHistoryList.list) {
+      if (element.znnAmount > max) {
         max = element.znnAmount;
       }
     }
-    return max!.addDecimals(coinDecimals).toNum();
+    return max.addDecimals(coinDecimals).toNum();
   }
 }
