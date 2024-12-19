@@ -8,8 +8,9 @@ part of 'delegation_info_cubit.dart';
 
 DelegationInfoState _$DelegationInfoStateFromJson(Map<String, dynamic> json) =>
     DelegationInfoState(
-      status: $enumDecodeNullable(_$IndicatorStatusEnumMap, json['status']) ??
-          IndicatorStatus.initial,
+      status: $enumDecodeNullable(
+              _$CubitWithRefreshMixinStatusEnumMap, json['status']) ??
+          CubitWithRefreshMixinStatus.loading,
       data: json['data'] == null
           ? null
           : DelegationInfo.fromJson(json['data'] as Map<String, dynamic>),
@@ -21,14 +22,13 @@ DelegationInfoState _$DelegationInfoStateFromJson(Map<String, dynamic> json) =>
 Map<String, dynamic> _$DelegationInfoStateToJson(
         DelegationInfoState instance) =>
     <String, dynamic>{
-      'status': _$IndicatorStatusEnumMap[instance.status]!,
+      'status': _$CubitWithRefreshMixinStatusEnumMap[instance.status]!,
       'data': instance.data?.toJson(),
       'error': instance.error?.toJson(),
     };
 
-const _$IndicatorStatusEnumMap = {
-  IndicatorStatus.failure: 'failure',
-  IndicatorStatus.initial: 'initial',
-  IndicatorStatus.loading: 'loading',
-  IndicatorStatus.success: 'success',
+const _$CubitWithRefreshMixinStatusEnumMap = {
+  CubitWithRefreshMixinStatus.failure: 'failure',
+  CubitWithRefreshMixinStatus.loading: 'loading',
+  CubitWithRefreshMixinStatus.success: 'success',
 };

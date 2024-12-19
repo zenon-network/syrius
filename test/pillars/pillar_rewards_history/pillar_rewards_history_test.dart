@@ -1,7 +1,7 @@
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
-import 'package:zenon_syrius_wallet_flutter/rearchitecture/pillars/pillars.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
@@ -43,7 +43,7 @@ void main() {
       exception = NoRewardsLastWeekException();
 
       final Map<String, dynamic> rewardHistoryListJson = <String, dynamic>{
-        'count' : 2,
+        'count': 2,
         'list': <Map<String, dynamic>>[
           <String, dynamic>{
             'epoch': 1,
@@ -78,7 +78,7 @@ void main() {
     test('initial state is correct', () {
       expect(
         pillarRewardsHistoryCubit.state.status,
-        IndicatorStatus.initial,
+        CubitWithRefreshMixinStatus.loading,
       );
     });
 
@@ -96,9 +96,7 @@ void main() {
 
       test('can (de)serialize loading state', () {
         const PillarRewardsHistoryState loadingState =
-            PillarRewardsHistoryState(
-          status: IndicatorStatus.loading,
-        );
+            PillarRewardsHistoryState();
 
         final Map<String, dynamic> serialized = loadingState.toJson();
         final PillarRewardsHistoryState deserialized =
@@ -110,7 +108,7 @@ void main() {
       test('can (de)serialize success state', () {
         final PillarRewardsHistoryState successState =
             PillarRewardsHistoryState(
-          status: IndicatorStatus.success,
+          status: CubitWithRefreshMixinStatus.success,
           data: rewardHistoryList,
         );
 
@@ -121,7 +119,7 @@ void main() {
         expect(deserialized, isA<PillarRewardsHistoryState>());
         expect(
           deserialized.status,
-          equals(IndicatorStatus.success),
+          equals(CubitWithRefreshMixinStatus.success),
         );
         expect(deserialized.data, equals(rewardHistoryList));
       });
@@ -129,7 +127,7 @@ void main() {
       test('can (de)serialize failure state', () {
         final PillarRewardsHistoryState failureState =
             PillarRewardsHistoryState(
-          status: IndicatorStatus.failure,
+          status: CubitWithRefreshMixinStatus.failure,
           error: exception,
         );
 
@@ -140,7 +138,7 @@ void main() {
         expect(deserialized, isA<PillarRewardsHistoryState>());
         expect(
           deserialized.status,
-          equals(IndicatorStatus.failure),
+          equals(CubitWithRefreshMixinStatus.failure),
         );
       });
     });
@@ -159,11 +157,9 @@ void main() {
         build: () => pillarRewardsHistoryCubit,
         act: (PillarRewardsHistoryCubit cubit) => cubit.updateStream(),
         expect: () => <PillarRewardsHistoryState>[
-          const PillarRewardsHistoryState(
-            status: IndicatorStatus.loading,
-          ),
+          const PillarRewardsHistoryState(),
           PillarRewardsHistoryState(
-            status: IndicatorStatus.success,
+            status: CubitWithRefreshMixinStatus.success,
             data: rewardHistoryList,
           ),
         ],
@@ -182,11 +178,9 @@ void main() {
         build: () => pillarRewardsHistoryCubit,
         act: (PillarRewardsHistoryCubit cubit) => cubit.updateStream(),
         expect: () => <PillarRewardsHistoryState>[
-          const PillarRewardsHistoryState(
-            status: IndicatorStatus.loading,
-          ),
+          const PillarRewardsHistoryState(),
           PillarRewardsHistoryState(
-            status: IndicatorStatus.failure,
+            status: CubitWithRefreshMixinStatus.failure,
             error: exception,
           ),
         ],

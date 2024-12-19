@@ -9,8 +9,9 @@ part of 'pillar_rewards_history_cubit.dart';
 PillarRewardsHistoryState _$PillarRewardsHistoryStateFromJson(
         Map<String, dynamic> json) =>
     PillarRewardsHistoryState(
-      status: $enumDecodeNullable(_$IndicatorStatusEnumMap, json['status']) ??
-          IndicatorStatus.initial,
+      status: $enumDecodeNullable(
+              _$CubitWithRefreshMixinStatusEnumMap, json['status']) ??
+          CubitWithRefreshMixinStatus.loading,
       data: json['data'] == null
           ? null
           : RewardHistoryList.fromJson(json['data'] as Map<String, dynamic>),
@@ -22,14 +23,13 @@ PillarRewardsHistoryState _$PillarRewardsHistoryStateFromJson(
 Map<String, dynamic> _$PillarRewardsHistoryStateToJson(
         PillarRewardsHistoryState instance) =>
     <String, dynamic>{
-      'status': _$IndicatorStatusEnumMap[instance.status]!,
+      'status': _$CubitWithRefreshMixinStatusEnumMap[instance.status]!,
       'data': instance.data?.toJson(),
       'error': instance.error?.toJson(),
     };
 
-const _$IndicatorStatusEnumMap = {
-  IndicatorStatus.failure: 'failure',
-  IndicatorStatus.initial: 'initial',
-  IndicatorStatus.loading: 'loading',
-  IndicatorStatus.success: 'success',
+const _$CubitWithRefreshMixinStatusEnumMap = {
+  CubitWithRefreshMixinStatus.failure: 'failure',
+  CubitWithRefreshMixinStatus.loading: 'loading',
+  CubitWithRefreshMixinStatus.success: 'success',
 };

@@ -50,8 +50,7 @@ void main() {
       // Initialize the cubit without calling updateStream automatically
       cubit = DelegationInfoCubit(
         zenon: mockZenon,
-        address: testAddress,
-        callUpdateStream: false, // Prevent automatic data fetching
+        address: testAddress, // Prevent automatic data fetching
       );
     });
 
@@ -60,7 +59,7 @@ void main() {
     });
 
     test('initial state is correct', () {
-      expect(cubit.state.status, IndicatorStatus.initial);
+      expect(cubit.state.status, CubitWithRefreshMixinStatus.loading);
     });
 
     group('DelegationInfo toJson/fromJson', () {
@@ -75,9 +74,7 @@ void main() {
       });
 
       test('can (de)serialize loading state', () {
-        const DelegationInfoState loadingState = DelegationInfoState(
-          status: IndicatorStatus.loading,
-        );
+        const DelegationInfoState loadingState = DelegationInfoState();
 
         final Map<String, dynamic> serialized = loadingState.toJson();
         final DelegationInfoState deserialized =
@@ -88,7 +85,7 @@ void main() {
 
       test('can (de)serialize success state', () {
         final DelegationInfoState successState = DelegationInfoState(
-          status: IndicatorStatus.success,
+          status: CubitWithRefreshMixinStatus.success,
           data: delegationInfo,
         );
 
@@ -101,7 +98,7 @@ void main() {
 
       test('can (de)serialize failure state', () {
         final DelegationInfoState failureState = DelegationInfoState(
-          status: IndicatorStatus.failure,
+          status: CubitWithRefreshMixinStatus.failure,
           error: exception,
         );
 
@@ -109,7 +106,7 @@ void main() {
         final DelegationInfoState deserialized =
             DelegationInfoState.fromJson(serialized);
 
-        expect(deserialized.status, equals(IndicatorStatus.failure));
+        expect(deserialized.status, equals(CubitWithRefreshMixinStatus.failure));
       });
     });
 
@@ -123,9 +120,9 @@ void main() {
         build: () => cubit,
         act: (DelegationInfoCubit cubit) => cubit.updateStream(),
         expect: () => <DelegationInfoState>[
-          const DelegationInfoState(status: IndicatorStatus.loading),
+          const DelegationInfoState(),
           DelegationInfoState(
-            status: IndicatorStatus.success,
+            status: CubitWithRefreshMixinStatus.success,
             data: delegationInfo,
           ),
         ],
@@ -143,9 +140,9 @@ void main() {
         build: () => cubit,
         act: (DelegationInfoCubit cubit) => cubit.updateStream(),
         expect: () => <DelegationInfoState>[
-          const DelegationInfoState(status: IndicatorStatus.loading),
+          const DelegationInfoState(),
           DelegationInfoState(
-            status: IndicatorStatus.failure,
+            status: CubitWithRefreshMixinStatus.failure,
             error: exception,
           ),
         ],

@@ -14,16 +14,12 @@ class GetPillarByOwnerCubit extends CubitWithRefreshMixin<List<PillarInfo>,
   /// Constructs a [GetPillarByOwnerCubit].
   ///
   /// The parameters are a [Zenon] instance, the
-  /// [address] for which pillar data is to be retrieved,
-  /// and an optional flag [callUpdateStream] to control
-  /// whether data is fetched on initialization.
+  /// [address] for which pillar data is to be retrieved
   GetPillarByOwnerCubit({
     required super.zenon,
     required this.address,
-    bool callUpdateStream = true,
   }) : super(
-    callUpdateStream: callUpdateStream,
-    const GetPillarByOwnerState(),
+    initialState: const GetPillarByOwnerState(),
   );
 
   /// The [address] for which the cubit fetches and manages pillar data.

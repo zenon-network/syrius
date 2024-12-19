@@ -1,46 +1,56 @@
 import 'package:flutter/material.dart';
-import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
-import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/extensions/buildcontext_extension.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:zenon_syrius_wallet_flutter/main.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
-class PillarRewards extends StatefulWidget {
-
-  const PillarRewards({required this.pillarRewardsHistoryBloc, super.key});
-  final PillarRewardsHistoryBloc pillarRewardsHistoryBloc;
+/// A widget that displays the pillar rewards
+///
+/// It receives updates from a [PillarRewardsHistoryCubit] and displays a
+/// [PillarRewardsChart] when data is available
+class PillarRewardsCard extends StatefulWidget {
+  /// Constructs a new instance.
+  const PillarRewardsCard({super.key});
 
   @override
-  State createState() => _PillarRewardsState();
+  State createState() => _PillarRewardsCardState();
 }
 
-class _PillarRewardsState extends State<PillarRewards> {
+class _PillarRewardsCardState extends State<PillarRewardsCard> {
   @override
   Widget build(BuildContext context) {
-    return CardScaffold(
-      title: context.l10n.pillarRewardsTitle,
-      description: context.l10n.pillarRewardsDescription,
-      childBuilder: () => Padding(
-        padding: const EdgeInsets.all(16),
-        child: _getStreamBody(),
+    return BlocProvider<PillarRewardsHistoryCubit>(
+      create: (_) => PillarRewardsHistoryCubit(
+        address: Address.parse(kSelectedAddress!),
+        zenon: zenon!,
+      ),
+      child: NewCardScaffold(
+        data: _buildCardData(context: context),
+        body: BlocBuilder<PillarRewardsHistoryCubit, PillarRewardsHistoryState>(
+          builder: (_, PillarRewardsHistoryState state) {
+            final CubitWithRefreshMixinStatus status = state.status;
+
+            return switch (status) {
+              CubitWithRefreshMixinStatus.failure => SyriusErrorWidget(
+                  state.error!,
+                ),
+              CubitWithRefreshMixinStatus.loading =>
+                const SyriusLoadingWidget(),
+              CubitWithRefreshMixinStatus.success => PillarRewardsChart(
+                  state.data!,
+                ),
+            };
+          },
+        ),
       ),
     );
   }
 
-  Widget _getStreamBody() {
-    return StreamBuilder<RewardHistoryList?>(
-      stream: widget.pillarRewardsHistoryBloc.stream,
-      builder: (_, AsyncSnapshot<RewardHistoryList?> snapshot) {
-        if (snapshot.hasError) {
-          return SyriusErrorWidget(snapshot.error!);
-        }
-        if (snapshot.connectionState == ConnectionState.active) {
-          if (snapshot.hasData) {
-            return PillarRewardsChart(snapshot.data);
-          }
-          return const SyriusLoadingWidget();
-        }
-        return const SyriusLoadingWidget();
-      },
-    );
-  }
+  CardData _buildCardData({required BuildContext context}) => CardData(
+        description: context.l10n.pillarRewardsDescription,
+        title: context.l10n.pillarRewardsTitle,
+      );
 }

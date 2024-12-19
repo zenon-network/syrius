@@ -2,12 +2,13 @@ part of 'pillar_rewards_history_cubit.dart';
 
 /// The state representation of [PillarRewardsHistoryCubit].
 @JsonSerializable(explicitToJson: true)
-class PillarRewardsHistoryState extends IndicatorState<RewardHistoryList> {
+class PillarRewardsHistoryState
+    extends CubitWithRefreshMixinState<RewardHistoryList> {
   /// Creates a new instance of [PillarRewardsHistoryState].
   ///
-  /// The [status] defaults to [IndicatorStatus.initial].
+  /// The [status] defaults to [CubitWithRefreshMixinStatus.loading].
   const PillarRewardsHistoryState({
-    super.status,
+    super.status = CubitWithRefreshMixinStatus.loading,
     super.data,
     super.error,
   });
@@ -18,8 +19,8 @@ class PillarRewardsHistoryState extends IndicatorState<RewardHistoryList> {
 
   /// {@macro state_copy_with}
   @override
-  IndicatorState<RewardHistoryList> copyWith({
-    IndicatorStatus? status,
+  CubitWithRefreshMixinState<RewardHistoryList> copyWith({
+    CubitWithRefreshMixinStatus? status,
     RewardHistoryList? data,
     SyriusException? error,
   }) {
@@ -32,5 +33,4 @@ class PillarRewardsHistoryState extends IndicatorState<RewardHistoryList> {
 
   /// {@macro state_to_json}
   Map<String, dynamic> toJson() => _$PillarRewardsHistoryStateToJson(this);
-
 }

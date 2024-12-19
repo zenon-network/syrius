@@ -9,8 +9,9 @@ part of 'pillar_uncollected_rewards_cubit.dart';
 PillarUncollectedRewardsState _$PillarUncollectedRewardsStateFromJson(
         Map<String, dynamic> json) =>
     PillarUncollectedRewardsState(
-      status: $enumDecodeNullable(_$IndicatorStatusEnumMap, json['status']) ??
-          IndicatorStatus.initial,
+      status: $enumDecodeNullable(
+              _$CubitWithRefreshMixinStatusEnumMap, json['status']) ??
+          CubitWithRefreshMixinStatus.loading,
       data: json['data'] == null
           ? null
           : UncollectedReward.fromJson(json['data'] as Map<String, dynamic>),
@@ -22,14 +23,13 @@ PillarUncollectedRewardsState _$PillarUncollectedRewardsStateFromJson(
 Map<String, dynamic> _$PillarUncollectedRewardsStateToJson(
         PillarUncollectedRewardsState instance) =>
     <String, dynamic>{
-      'status': _$IndicatorStatusEnumMap[instance.status]!,
+      'status': _$CubitWithRefreshMixinStatusEnumMap[instance.status]!,
       'data': instance.data?.toJson(),
       'error': instance.error?.toJson(),
     };
 
-const _$IndicatorStatusEnumMap = {
-  IndicatorStatus.failure: 'failure',
-  IndicatorStatus.initial: 'initial',
-  IndicatorStatus.loading: 'loading',
-  IndicatorStatus.success: 'success',
+const _$CubitWithRefreshMixinStatusEnumMap = {
+  CubitWithRefreshMixinStatus.failure: 'failure',
+  CubitWithRefreshMixinStatus.loading: 'loading',
+  CubitWithRefreshMixinStatus.success: 'success',
 };

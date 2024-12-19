@@ -9,8 +9,9 @@ part of 'get_pillar_by_owner_cubit.dart';
 GetPillarByOwnerState _$GetPillarByOwnerStateFromJson(
         Map<String, dynamic> json) =>
     GetPillarByOwnerState(
-      status: $enumDecodeNullable(_$IndicatorStatusEnumMap, json['status']) ??
-          IndicatorStatus.initial,
+      status: $enumDecodeNullable(
+              _$CubitWithRefreshMixinStatusEnumMap, json['status']) ??
+          CubitWithRefreshMixinStatus.loading,
       data: (json['data'] as List<dynamic>?)
           ?.map((e) => PillarInfo.fromJson(e as Map<String, dynamic>))
           .toList(),
@@ -22,14 +23,13 @@ GetPillarByOwnerState _$GetPillarByOwnerStateFromJson(
 Map<String, dynamic> _$GetPillarByOwnerStateToJson(
         GetPillarByOwnerState instance) =>
     <String, dynamic>{
-      'status': _$IndicatorStatusEnumMap[instance.status]!,
+      'status': _$CubitWithRefreshMixinStatusEnumMap[instance.status]!,
       'data': instance.data?.map((e) => e.toJson()).toList(),
       'error': instance.error?.toJson(),
     };
 
-const _$IndicatorStatusEnumMap = {
-  IndicatorStatus.failure: 'failure',
-  IndicatorStatus.initial: 'initial',
-  IndicatorStatus.loading: 'loading',
-  IndicatorStatus.success: 'success',
+const _$CubitWithRefreshMixinStatusEnumMap = {
+  CubitWithRefreshMixinStatus.failure: 'failure',
+  CubitWithRefreshMixinStatus.loading: 'loading',
+  CubitWithRefreshMixinStatus.success: 'success',
 };

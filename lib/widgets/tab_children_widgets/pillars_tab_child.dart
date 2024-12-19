@@ -23,9 +23,7 @@ class _PillarsTabChildState extends State<PillarsTabChild> {
   Widget build(BuildContext context) {
     final List<FluidCell> children = <FluidCell>[
       FluidCell(
-        child: PillarRewards(
-          pillarRewardsHistoryBloc: _pillarRewardsHistoryBloc,
-        ),
+        child: const PillarRewardsCard(),
         width: context.layout.value(
           xl: kStaggeredNumOfColumns ~/ 3,
           lg: kStaggeredNumOfColumns ~/ 3,

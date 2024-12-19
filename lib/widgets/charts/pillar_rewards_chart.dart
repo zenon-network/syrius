@@ -12,7 +12,7 @@ class PillarRewardsChart extends StatefulWidget {
     this.rewardsHistory, {
     super.key,
   });
-  final RewardHistoryList? rewardsHistory;
+  final RewardHistoryList rewardsHistory;
 
   @override
   State createState() => PillarRewardsChartState();
@@ -31,14 +31,14 @@ class PillarRewardsChartState extends State<PillarRewardsChart> {
           DateTime.fromMillisecondsSinceEpoch(genesisTimestamp * 1000).add(
         Duration(
           // First epoch is zero
-          days: widget.rewardsHistory!.list.reversed.last.epoch + 1,
+          days: widget.rewardsHistory.list.reversed.last.epoch + 1,
         ),
       ),
     );
   }
 
   List<FlSpot> _getRewardsSpots() => List.generate(
-        widget.rewardsHistory!.list.length,
+        widget.rewardsHistory.list.length,
         (int index) => FlSpot(
           index.toDouble(),
           _getRewardsByIndex(index).toDouble(),
@@ -52,7 +52,7 @@ class PillarRewardsChartState extends State<PillarRewardsChart> {
         ),
       ];
 
-  num _getRewardsByIndex(int index) => widget.rewardsHistory!.list.reversed
+  num _getRewardsByIndex(int index) => widget.rewardsHistory.list.reversed
       .toList()[index]
       .znnAmount
       .addDecimals(
@@ -61,8 +61,8 @@ class PillarRewardsChartState extends State<PillarRewardsChart> {
       .toNum();
 
   num _getMaxValueOfZnnRewards() {
-    BigInt? max = widget.rewardsHistory!.list.first.znnAmount;
-    for (final RewardHistoryEntry element in widget.rewardsHistory!.list) {
+    BigInt? max = widget.rewardsHistory.list.first.znnAmount;
+    for (final RewardHistoryEntry element in widget.rewardsHistory.list) {
       if (element.znnAmount > max!) {
         max = element.znnAmount;
       }

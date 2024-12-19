@@ -39,12 +39,12 @@ void main() {
       testAddress = emptyAddress;
       exception = FailureException();
 
-      final Map<String, int> pillarEpochJson = <String, int> {
+      final Map<String, int> pillarEpochJson = <String, int>{
         'producedMomentums': 100,
         'expectedMomentums': 150,
       };
 
-      final Map<String, dynamic> pillarInfoJson = <String, dynamic> {
+      final Map<String, dynamic> pillarInfoJson = <String, dynamic>{
         'name': 'PillarOne',
         'rank': 1,
         'type': 2,
@@ -75,7 +75,6 @@ void main() {
       cubit = GetPillarByOwnerCubit(
         zenon: mockZenon,
         address: testAddress,
-        callUpdateStream: false, // Prevent automatic data fetching
       );
     });
 
@@ -84,7 +83,7 @@ void main() {
     });
 
     test('initial state is correct', () {
-      expect(cubit.state.status, IndicatorStatus.initial);
+      expect(cubit.state.status, CubitWithRefreshMixinStatus.loading);
     });
 
     group('GetPillarByOwn toJson/fromJson', () {
@@ -99,9 +98,7 @@ void main() {
       });
 
       test('can (de)serialize loading state', () {
-        const GetPillarByOwnerState loadingState = GetPillarByOwnerState(
-          status: IndicatorStatus.loading,
-        );
+        const GetPillarByOwnerState loadingState = GetPillarByOwnerState();
 
         final Map<String, dynamic> serialized = loadingState.toJson();
         final GetPillarByOwnerState deserialized =
@@ -112,7 +109,7 @@ void main() {
 
       test('can (de)serialize success state', () {
         final GetPillarByOwnerState successState = GetPillarByOwnerState(
-          status: IndicatorStatus.success,
+          status: CubitWithRefreshMixinStatus.success,
           data: pillarInfo,
         );
 
@@ -120,16 +117,17 @@ void main() {
         final GetPillarByOwnerState deserialized =
             GetPillarByOwnerState.fromJson(serialized);
 
-
         expect(deserialized, isA<GetPillarByOwnerState>());
-        expect(deserialized.status,
-          equals(IndicatorStatus.success),);
+        expect(
+          deserialized.status,
+          equals(CubitWithRefreshMixinStatus.success),
+        );
         expect(deserialized.data, equals(pillarInfo));
       });
 
       test('can (de)serialize failure state', () {
         final GetPillarByOwnerState failureState = GetPillarByOwnerState(
-          status: IndicatorStatus.failure,
+          status: CubitWithRefreshMixinStatus.failure,
           error: exception,
         );
 
@@ -137,7 +135,7 @@ void main() {
         final GetPillarByOwnerState deserialized =
             GetPillarByOwnerState.fromJson(serialized);
 
-        expect(deserialized.status, equals(IndicatorStatus.failure));
+        expect(deserialized.status, equals(CubitWithRefreshMixinStatus.failure));
       });
     });
 
@@ -151,9 +149,9 @@ void main() {
         build: () => cubit,
         act: (GetPillarByOwnerCubit cubit) => cubit.updateStream(),
         expect: () => <GetPillarByOwnerState>[
-          const GetPillarByOwnerState(status: IndicatorStatus.loading),
+          const GetPillarByOwnerState(),
           GetPillarByOwnerState(
-            status: IndicatorStatus.success,
+            status: CubitWithRefreshMixinStatus.success,
             data: pillarInfo,
           ),
         ],
@@ -170,9 +168,9 @@ void main() {
         build: () => cubit,
         act: (GetPillarByOwnerCubit cubit) => cubit.updateStream(),
         expect: () => <GetPillarByOwnerState>[
-          const GetPillarByOwnerState(status: IndicatorStatus.loading),
+          const GetPillarByOwnerState(),
           GetPillarByOwnerState(
-            status: IndicatorStatus.failure,
+            status: CubitWithRefreshMixinStatus.failure,
             error: exception,
           ),
         ],

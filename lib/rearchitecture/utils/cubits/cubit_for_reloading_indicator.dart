@@ -1,7 +1,7 @@
 import 'package:hydrated_bloc/hydrated_bloc.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/cubits/cubit_with_refresh_mixin.dart';
-import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/cubits/indicator_state.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/cubits/cubit_with_refresh_mixin_state.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/exceptions/exceptions.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
@@ -11,7 +11,7 @@ import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 /// real-time updates from the Zenon SDK. In contrast with
 /// [CubitWithRefreshMixin], this cubit emits a loading indicator state before
 /// any data fetching.
-abstract class CubitForReloadingIndicator<T, S extends IndicatorState<T>>
+abstract class CubitForReloadingIndicator<T, S extends CubitWithRefreshMixinState<T>>
     extends HydratedCubit<S> with RefreshBlocMixin {
   /// Constructor for [CubitForReloadingIndicator].
   ///
@@ -40,26 +40,26 @@ abstract class CubitForReloadingIndicator<T, S extends IndicatorState<T>>
   Future<void> updateStream() async {
     try {
       // Emit a loading state before attempting to fetch data.
-      emit(state.copyWith(status: IndicatorStatus.loading) as S);
+      emit(state.copyWith(status: CubitWithRefreshMixinStatus.loading) as S);
 
       // Check if the WebSocket client is connected before fetching data.
       if (!zenon.wsClient.isClosed()) {
         final T data = await getData();
 
         // Emit a success state with the fetched data.
-        emit(state.copyWith(data: data, status: IndicatorStatus.success) as S);
+        emit(state.copyWith(data: data, status: CubitWithRefreshMixinStatus.success) as S);
       } else {
         // Throws an exception if WebSocket is disconnected.
         throw noConnectionException;
       }
     } on SyriusException catch (e) {
       // If a [SyriusException] occurs, emit a failure state with the error.
-      emit(state.copyWith(status: IndicatorStatus.failure, error: e) as S);
+      emit(state.copyWith(status: CubitWithRefreshMixinStatus.failure, error: e) as S);
     } catch (e, stackTrace) {
       // For any unexpected errors, emit a failure state and log the error.
       emit(
         state.copyWith(
-          status: IndicatorStatus.failure,
+          status: CubitWithRefreshMixinStatus.failure,
           error: FailureException(),
         ) as S,
       );

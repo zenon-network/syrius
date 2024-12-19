@@ -2,10 +2,10 @@ part of 'pillar_uncollected_rewards_cubit.dart';
 
 /// The state representation of [PillarUncollectedRewardsCubit].
 @JsonSerializable(explicitToJson: true)
-class PillarUncollectedRewardsState extends IndicatorState<UncollectedReward> {
+class PillarUncollectedRewardsState extends CubitWithRefreshMixinState<UncollectedReward> {
   /// Creates a new instance of [PillarUncollectedRewardsState].
   ///
-  /// The [status] defaults to [IndicatorStatus.initial].
+  /// The [status] defaults to [CubitWithRefreshMixinStatus.initial].
   const PillarUncollectedRewardsState({
     super.status,
     super.data,
@@ -18,8 +18,8 @@ class PillarUncollectedRewardsState extends IndicatorState<UncollectedReward> {
 
   /// {@macro state_copy_with}
   @override
-  IndicatorState<UncollectedReward> copyWith({
-    IndicatorStatus? status,
+  CubitWithRefreshMixinState<UncollectedReward> copyWith({
+    CubitWithRefreshMixinStatus? status,
     UncollectedReward? data,
     SyriusException? error,
   }) {

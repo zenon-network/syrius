@@ -68,7 +68,7 @@ void main() {
     test('initial state is correct', () {
       expect(
         pillarUncollectedRewardsCubit.state.status,
-        IndicatorStatus.initial,
+        CubitWithRefreshMixinStatus.loading,
       );
     });
 
@@ -86,9 +86,7 @@ void main() {
 
       test('can (de)serialize loading state', () {
         const PillarUncollectedRewardsState loadingState =
-            PillarUncollectedRewardsState(
-          status: IndicatorStatus.loading,
-        );
+            PillarUncollectedRewardsState();
 
         final Map<String, dynamic> serialized = loadingState.toJson();
         final PillarUncollectedRewardsState deserialized =
@@ -100,7 +98,7 @@ void main() {
       test('can (de)serialize success state', () {
         final PillarUncollectedRewardsState successState =
             PillarUncollectedRewardsState(
-          status: IndicatorStatus.success,
+          status: CubitWithRefreshMixinStatus.success,
           data: uncollectedReward,
         );
 
@@ -110,14 +108,14 @@ void main() {
 
         expect(deserialized, isA<PillarUncollectedRewardsState>());
         expect(deserialized.status,
-            equals(IndicatorStatus.success),);
+            equals(CubitWithRefreshMixinStatus.success),);
         expect(deserialized.data, equals(uncollectedReward));
       });
 
       test('can (de)serialize failure state', () {
         final PillarUncollectedRewardsState failureState =
             PillarUncollectedRewardsState(
-          status: IndicatorStatus.failure,
+          status: CubitWithRefreshMixinStatus.failure,
           error: exception,
         );
         final Map<String, dynamic> serialized = failureState.toJson();
@@ -138,11 +136,9 @@ void main() {
         build: () => pillarUncollectedRewardsCubit,
         act: (PillarUncollectedRewardsCubit cubit) => cubit.updateStream(),
         expect: () => <PillarUncollectedRewardsState>[
-          const PillarUncollectedRewardsState(
-            status: IndicatorStatus.loading,
-          ),
+          const PillarUncollectedRewardsState(),
           PillarUncollectedRewardsState(
-            status: IndicatorStatus.success,
+            status: CubitWithRefreshMixinStatus.success,
             data: uncollectedReward,
           ),
         ],
@@ -157,11 +153,9 @@ void main() {
         build: () => pillarUncollectedRewardsCubit,
         act: (PillarUncollectedRewardsCubit cubit) => cubit.updateStream(),
         expect: () => <PillarUncollectedRewardsState>[
-          const PillarUncollectedRewardsState(
-            status: IndicatorStatus.loading,
-          ),
+          const PillarUncollectedRewardsState(),
           PillarUncollectedRewardsState(
-            status: IndicatorStatus.failure,
+            status: CubitWithRefreshMixinStatus.failure,
             error: exception,
           ),
         ],
