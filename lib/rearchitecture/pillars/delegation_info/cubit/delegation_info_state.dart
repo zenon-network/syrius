@@ -5,7 +5,7 @@ part of 'delegation_info_cubit.dart';
 class DelegationInfoState extends CubitWithRefreshMixinState<DelegationInfo> {
   /// Creates a new instance of [DelegationInfoState].
   ///
-  /// The [status] defaults to [CubitWithRefreshMixinStatus.initial].
+  /// The [status] defaults to [CubitWithRefreshMixinStatus.loading].
   const DelegationInfoState({
     super.status,
     super.data,

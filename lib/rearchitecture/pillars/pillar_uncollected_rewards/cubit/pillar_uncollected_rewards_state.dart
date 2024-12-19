@@ -2,10 +2,11 @@ part of 'pillar_uncollected_rewards_cubit.dart';
 
 /// The state representation of [PillarUncollectedRewardsCubit].
 @JsonSerializable(explicitToJson: true)
-class PillarUncollectedRewardsState extends CubitWithRefreshMixinState<UncollectedReward> {
+class PillarUncollectedRewardsState
+    extends CubitWithRefreshMixinState<UncollectedReward> {
   /// Creates a new instance of [PillarUncollectedRewardsState].
   ///
-  /// The [status] defaults to [CubitWithRefreshMixinStatus.initial].
+  /// The [status] defaults to [CubitWithRefreshMixinStatus.loading].
   const PillarUncollectedRewardsState({
     super.status,
     super.data,
@@ -32,5 +33,4 @@ class PillarUncollectedRewardsState extends CubitWithRefreshMixinState<Uncollect
 
   /// {@macro state_to_json}
   Map<String, dynamic> toJson() => _$PillarUncollectedRewardsStateToJson(this);
-
 }

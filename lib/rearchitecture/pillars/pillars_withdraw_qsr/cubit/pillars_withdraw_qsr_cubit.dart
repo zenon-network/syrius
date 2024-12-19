@@ -51,7 +51,7 @@ class PillarsWithdrawQsrCubit extends HydratedCubit<PillarsWithdrawQsrState> {
         waitForRequiredPlasma: true,
       );
 
-      await Future.delayed(duration);
+      await Future<void>.delayed(duration);
 
       zenonAddressUtilsHelper.refreshBalance();
 

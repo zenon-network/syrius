@@ -81,6 +81,7 @@ dependencies:
   json_annotation: ^4.9.0
   bloc_concurrency: ^0.2.5
   stream_transform: ^2.1.0
+  win32: ^5.9.0
 
 dependency_overrides:
   znn_sdk_dart:

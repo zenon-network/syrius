@@ -65,7 +65,7 @@ final ThemeData newDarkTheme = ThemeData(
     ),
     disabledBorder: kOutlineInputBorder.copyWith(
       borderSide: BorderSide(
-        color: Colors.white.withOpacity(0.1),
+        color: Colors.white.withValues(alpha: 0.1),
       ),
     ),
     focusedBorder: kOutlineInputBorder.copyWith(

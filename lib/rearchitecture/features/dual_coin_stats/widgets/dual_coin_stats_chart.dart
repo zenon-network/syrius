@@ -68,7 +68,7 @@ class DualCoinStatsChart extends StatelessWidget {
         final double opacity = isTouched ? 1.0 : 0.5;
         return PieChartSectionData(
           color: ColorUtils.getTokenColor(currentTokenInfo.tokenStandard)
-              .withOpacity(opacity),
+              .withValues(alpha: opacity),
           value: currentTokenInfo.totalSupply / totalSupply,
           title: currentTokenInfo.symbol,
           radius: 60,

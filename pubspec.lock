@@ -1896,7 +1896,7 @@ packages:
     source: hosted
     version: "1.2.1"
   win32:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: win32
       sha256: "8b338d4486ab3fbc0ba0db9f9b4f5239b6697fcee427939a40e720cbb9ee0a69"

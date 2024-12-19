@@ -19,8 +19,8 @@ enum CubitWithRefreshMixinStatus {
 /// representing the type of data that is managed by each specific cubit state.
 ///
 /// The state includes:
-/// - [status]: An [CubitWithRefreshMixinStatus] that indicates the current state (loading,
-/// success, etc.).
+/// - [status]: An [CubitWithRefreshMixinStatus] that indicates the current
+/// state (loading, success, etc.).
 /// - [data]: The data of type [T] that is managed by the cubit.
 /// - [error]: An optional [error] object that contains error details if the
 /// cubit is in a failure state.
@@ -28,7 +28,8 @@ abstract class CubitWithRefreshMixinState<T> extends Equatable {
   /// Constructs an [CubitWithRefreshMixinState] with a [status], [data], and
   /// [error].
   ///
-  /// - The [status] defaults to [CubitWithRefreshMixinStatus.loading] if not provided.
+  /// - The [status] defaults to [CubitWithRefreshMixinStatus.loading] if not
+  /// provided.
   /// - The [data] and [error] can be null, indicating that either no data has
   /// been fetched yet, or an error has occurred.
   const CubitWithRefreshMixinState({

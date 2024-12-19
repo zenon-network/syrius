@@ -2,10 +2,11 @@ part of 'get_pillar_by_owner_cubit.dart';
 
 /// The state representation of [GetPillarByOwnerCubit].
 @JsonSerializable(explicitToJson: true)
-class GetPillarByOwnerState extends CubitWithRefreshMixinState<List<PillarInfo>> {
+class GetPillarByOwnerState
+    extends CubitWithRefreshMixinState<List<PillarInfo>> {
   /// Creates a new instance of [GetPillarByOwnerState].
   ///
-  /// The [status] defaults to [CubitWithRefreshMixinStatus.initial].
+  /// The [status] defaults to [CubitWithRefreshMixinStatus.loading].
   const GetPillarByOwnerState({
     super.status,
     super.data,
@@ -32,5 +33,4 @@ class GetPillarByOwnerState extends CubitWithRefreshMixinState<List<PillarInfo>>
 
   /// {@macro state_to_json}
   Map<String, dynamic> toJson() => _$GetPillarByOwnerStateToJson(this);
-
 }

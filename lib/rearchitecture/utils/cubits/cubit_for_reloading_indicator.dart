@@ -11,16 +11,17 @@ import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 /// real-time updates from the Zenon SDK. In contrast with
 /// [CubitWithRefreshMixin], this cubit emits a loading indicator state before
 /// any data fetching.
-abstract class CubitForReloadingIndicator<T, S extends CubitWithRefreshMixinState<T>>
-    extends HydratedCubit<S> with RefreshBlocMixin {
+abstract class CubitForReloadingIndicator<T,
+        S extends CubitWithRefreshMixinState<T>> extends HydratedCubit<S>
+    with RefreshBlocMixin {
   /// Constructor for [CubitForReloadingIndicator].
   ///
   /// [callUpdateStream] determines if [updateStream] is called initially.
   CubitForReloadingIndicator(
-      super.initialState, {
-        required this.zenon,
-        bool callUpdateStream = true,
-      }) {
+    super.initialState, {
+    required this.zenon,
+    bool callUpdateStream = true,
+  }) {
     if (callUpdateStream) {
       // Calls the [updateStream] method to fetch data initially and starts
       // listening for WebSocket restart events to trigger [updateStream].
@@ -47,14 +48,22 @@ abstract class CubitForReloadingIndicator<T, S extends CubitWithRefreshMixinStat
         final T data = await getData();
 
         // Emit a success state with the fetched data.
-        emit(state.copyWith(data: data, status: CubitWithRefreshMixinStatus.success) as S);
+        emit(
+          state.copyWith(
+            data: data,
+            status: CubitWithRefreshMixinStatus.success,
+          ) as S,
+        );
       } else {
         // Throws an exception if WebSocket is disconnected.
         throw noConnectionException;
       }
     } on SyriusException catch (e) {
       // If a [SyriusException] occurs, emit a failure state with the error.
-      emit(state.copyWith(status: CubitWithRefreshMixinStatus.failure, error: e) as S);
+      emit(
+        state.copyWith(status: CubitWithRefreshMixinStatus.failure, error: e)
+            as S,
+      );
     } catch (e, stackTrace) {
       // For any unexpected errors, emit a failure state and log the error.
       emit(

@@ -44,14 +44,24 @@ abstract class CubitWithRefreshMixin<T, S extends CubitWithRefreshMixinState<T>>
         final T? data = await getData();
 
         // On successful data retrieval, emit a success state with the data.
-        emit(state.copyWith(data: data, status: CubitWithRefreshMixinStatus.success) as S);
+        emit(
+          state.copyWith(
+            data: data,
+            status: CubitWithRefreshMixinStatus.success,
+          ) as S,
+        );
       } else {
         // Throw an exception if there is no WebSocket connection.
         throw noConnectionException;
       }
     } on SyriusException catch (e) {
       // Emit a failure state with the specific error.
-      emit(state.copyWith(status: CubitWithRefreshMixinStatus.failure, error: e) as S);
+      emit(
+        state.copyWith(
+          status: CubitWithRefreshMixinStatus.failure,
+          error: e,
+        ) as S,
+      );
     } catch (e, stackTrace) {
       // For unexpected errors, emit a failure state with a generic error.
       emit(
