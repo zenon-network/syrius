@@ -1,2 +1,2 @@
 export './widgets/widgets.dart';
-export 'pillar_rewards.dart';
+export 'pillar_rewards_card.dart';
