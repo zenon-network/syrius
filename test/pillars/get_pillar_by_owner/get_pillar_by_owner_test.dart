@@ -147,7 +147,9 @@ void main() {
               .thenAnswer((_) async => pillarInfo);
         },
         build: () => cubit,
-        act: (GetPillarByOwnerCubit cubit) => cubit.updateStream(),
+        act: (GetPillarByOwnerCubit cubit) => cubit.updateStream(
+          address: testAddress
+        ),
         expect: () => <GetPillarByOwnerState>[
           const GetPillarByOwnerState(),
           GetPillarByOwnerState(
@@ -166,7 +168,9 @@ void main() {
           when(() => mockPillarApi.getByOwner(any())).thenThrow(exception);
         },
         build: () => cubit,
-        act: (GetPillarByOwnerCubit cubit) => cubit.updateStream(),
+        act: (GetPillarByOwnerCubit cubit) => cubit.updateStream(
+          address: testAddress,
+        ),
         expect: () => <GetPillarByOwnerState>[
           const GetPillarByOwnerState(),
           GetPillarByOwnerState(

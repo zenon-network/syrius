@@ -118,7 +118,9 @@ void main() {
               .thenAnswer((_) async => delegationInfo);
         },
         build: () => cubit,
-        act: (DelegationInfoCubit cubit) => cubit.updateStream(),
+        act: (DelegationInfoCubit cubit) => cubit.updateStream(
+          address: testAddress,
+        ),
         expect: () => <DelegationInfoState>[
           const DelegationInfoState(),
           DelegationInfoState(
@@ -138,7 +140,9 @@ void main() {
               .thenThrow(exception);
         },
         build: () => cubit,
-        act: (DelegationInfoCubit cubit) => cubit.updateStream(),
+        act: (DelegationInfoCubit cubit) => cubit.updateStream(
+          address: testAddress,
+        ),
         expect: () => <DelegationInfoState>[
           const DelegationInfoState(),
           DelegationInfoState(

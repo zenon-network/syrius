@@ -5,6 +5,7 @@ import 'package:hive/hive.dart';
 import 'package:number_selector/number_selector.dart';
 import 'package:provider/provider.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/latest_transactions/bloc/latest_transactions_bloc.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/address_utils.dart';
@@ -17,7 +18,6 @@ import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 class Addresses extends StatefulWidget {
-
   const Addresses({
     required this.accountChainStatsBloc,
     super.key,
@@ -74,11 +74,19 @@ class AddressesState extends State<Addresses> {
       );
       widget.accountChainStatsBloc.updateStream();
       _selectedAddress = newDefaultAddress;
+
+      final Address newAddress = Address.parse(_selectedAddress!);
+
       context.read<LatestTransactionsBloc>().add(
             InfiniteListRefreshRequested(
-              address: Address.parse(_selectedAddress!),
+              address: newAddress,
             ),
           );
+      unawaited(
+        context.read<PillarRewardsHistoryCubit>().updateStream(
+              address: newAddress,
+            ),
+      );
     } catch (e) {
       rethrow;
     }

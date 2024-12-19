@@ -2,6 +2,7 @@ import 'package:hydrated_bloc/hydrated_bloc.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/cubits/cubit_with_refresh_mixin_state.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/exceptions/exceptions.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 /// A cubit used to manage reloading and updating indicator states.
@@ -15,35 +16,32 @@ abstract class CubitWithRefreshMixin<T, S extends CubitWithRefreshMixinState<T>>
     required S initialState,
     required this.zenon,
   }) : super(initialState) {
-    // Calls [updateStream] to initiate data fetching and sets up
-    // a listener to restart [updateStream] if the WebSocket reconnects.
-    updateStream();
-    listenToWsRestart(updateStream);
+    listenToWsRestart(
+      () => updateStream(
+        address: Address.parse(kSelectedAddress!),
+      ),
+    );
   }
 
   /// An instance of [Zenon] used for data fetching and managing connections.
   final Zenon zenon;
 
   /// Abstract method [getData] that subclasses must implement.
-  Future<T> getData();
+  Future<T> getData({required Address address});
 
   /// [updateStream] handles the data fetching process and updates the state
   /// accordingly.
   ///
   /// It emits a loading state only if the previous status was
   /// not successful, then attempts to fetch data using [getData].
-  Future<void> updateStream() async {
+  Future<void> updateStream({required Address address}) async {
     try {
-      // Only emit loading state if current status is not already successful.
-      if (state.status != CubitWithRefreshMixinStatus.success) {
-        emit(state.copyWith(status: CubitWithRefreshMixinStatus.loading) as S);
-      }
-
       // Proceed with data fetching only if the WebSocket connection is open.
       if (!zenon.wsClient.isClosed()) {
-        final T? data = await getData();
+        final T? data = await getData(
+          address: address,
+        );
 
-        // On successful data retrieval, emit a success state with the data.
         emit(
           state.copyWith(
             data: data,
@@ -52,9 +50,9 @@ abstract class CubitWithRefreshMixin<T, S extends CubitWithRefreshMixinState<T>>
         );
       } else {
         // Throw an exception if there is no WebSocket connection.
-        throw noConnectionException;
+        throw SyriusException(noConnectionException.message!);
       }
-    } on SyriusException catch (e) {
+    } on SyriusException catch (e, stackTrace) {
       // Emit a failure state with the specific error.
       emit(
         state.copyWith(
@@ -62,12 +60,13 @@ abstract class CubitWithRefreshMixin<T, S extends CubitWithRefreshMixinState<T>>
           error: e,
         ) as S,
       );
+      addError(e, stackTrace);
     } catch (e, stackTrace) {
       // For unexpected errors, emit a failure state with a generic error.
       emit(
         state.copyWith(
           status: CubitWithRefreshMixinStatus.failure,
-          error: FailureException(),
+          error: SyriusException(e.toString() + stackTrace.toString()),
         ) as S,
       );
       // Log unexpected errors and their stack traces for further investigation.

@@ -27,7 +27,7 @@ class DelegationInfoCubit
 
   /// Fetches the delegation information for the specified [address].
   @override
-  Future<DelegationInfo?> getData() async {
+  Future<DelegationInfo?> getData({required Address address}) async {
     try {
       final DelegationInfo? response =
       await zenon.embedded.pillar.getDelegatedPillar(

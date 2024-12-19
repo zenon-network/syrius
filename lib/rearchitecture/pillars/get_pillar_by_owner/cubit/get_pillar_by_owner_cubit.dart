@@ -27,7 +27,7 @@ class GetPillarByOwnerCubit extends CubitWithRefreshMixin<List<PillarInfo>,
 
   /// Overrides [getData] method to define how data is fetched for the cubit.
   @override
-  Future<List<PillarInfo>> getData() async {
+  Future<List<PillarInfo>> getData({required Address address}) async {
     try {
       final List<PillarInfo> response = await zenon.embedded.pillar.getByOwner(
         address,

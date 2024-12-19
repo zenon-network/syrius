@@ -137,6 +137,13 @@ class _MainAppContainerState extends State<MainAppContainer>
               ),
             ),
         ),
+        BlocProvider<PillarRewardsHistoryCubit>(
+          create: (_) => PillarRewardsHistoryCubit(
+            zenon: zenon!,
+          )..updateStream(
+            address: Address.parse(kSelectedAddress!),
+          ),
+        ),
         BlocProvider<TokensCubit>(
           create: (_) => TokensCubit(
             zenon: zenon!,

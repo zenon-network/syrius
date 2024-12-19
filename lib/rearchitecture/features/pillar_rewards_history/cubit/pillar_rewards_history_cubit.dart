@@ -9,41 +9,25 @@ part 'pillar_rewards_history_state.dart';
 
 /// A cubit that manages the state of reward history for a specific pillar
 /// address.
-class PillarRewardsHistoryCubit extends CubitForReloadingIndicator<
+class PillarRewardsHistoryCubit extends CubitWithRefreshMixin<
     RewardHistoryList, PillarRewardsHistoryState> {
 
   /// Constructs a [PillarRewardsHistoryCubit].
-  ///
-  /// The parameters are a [Zenon] instance,
-  /// the target [address] for which reward history data is fetched,
-  /// an optional [pageSize] to control the number of entries retrieved,
-  /// and an optional flag [callUpdateStream] to control
-  /// whether data is fetched on initialization.
   PillarRewardsHistoryCubit({
     required super.zenon,
-    required this.address,
-    this.pageSize = kStandardChartNumDays,
-    bool callUpdateStream = true,
   }) : super(
-    callUpdateStream: callUpdateStream,
-    const PillarRewardsHistoryState(),
+    initialState: const PillarRewardsHistoryState(),
   );
 
-  /// The [address] for which the cubit fetches and manages reward history data.
-  final Address address;
-
-  /// The number of reward history entries to request per page.
-  final double pageSize;
-
   /// Fetches the reward history data for the specified [address]
-  /// with the defined [pageSize].
+  /// with the defined [kStandardChartNumDays].
   @override
-  Future<RewardHistoryList> getData() async {
+  Future<RewardHistoryList> getData({required Address address}) async {
     try {
       final RewardHistoryList response =
       await zenon.embedded.pillar.getFrontierRewardByPage(
         address,
-        pageSize: pageSize.toInt(),
+        pageSize: kStandardChartNumDays.toInt(),
       );
       if (response.list.any(
             (RewardHistoryEntry element) => element.znnAmount > BigInt.zero,

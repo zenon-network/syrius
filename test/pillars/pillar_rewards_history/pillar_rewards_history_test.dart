@@ -66,8 +66,6 @@ void main() {
 
       pillarRewardsHistoryCubit = PillarRewardsHistoryCubit(
         zenon: mockZenon,
-        address: testAddress,
-        callUpdateStream: false,
       );
     });
 
@@ -145,7 +143,7 @@ void main() {
 
     group('updateStream', () {
       blocTest<PillarRewardsHistoryCubit, PillarRewardsHistoryState>(
-        'emits [loading, success] when getData succeeds',
+        'emits [success] when getData succeeds',
         setUp: () {
           when(
             () => mockPillarApi.getFrontierRewardByPage(
@@ -155,9 +153,10 @@ void main() {
           ).thenAnswer((_) async => rewardHistoryList);
         },
         build: () => pillarRewardsHistoryCubit,
-        act: (PillarRewardsHistoryCubit cubit) => cubit.updateStream(),
+        act: (PillarRewardsHistoryCubit cubit) => cubit.updateStream(
+          address: testAddress,
+        ),
         expect: () => <PillarRewardsHistoryState>[
-          const PillarRewardsHistoryState(),
           PillarRewardsHistoryState(
             status: CubitWithRefreshMixinStatus.success,
             data: rewardHistoryList,
@@ -166,7 +165,7 @@ void main() {
       );
 
       blocTest<PillarRewardsHistoryCubit, PillarRewardsHistoryState>(
-        'emits [loading, failure] when getData throws exception',
+        'emits [failure] when getData throws exception',
         setUp: () {
           when(
             () => mockPillarApi.getFrontierRewardByPage(
@@ -176,9 +175,10 @@ void main() {
           ).thenThrow(exception);
         },
         build: () => pillarRewardsHistoryCubit,
-        act: (PillarRewardsHistoryCubit cubit) => cubit.updateStream(),
+        act: (PillarRewardsHistoryCubit cubit) => cubit.updateStream(
+          address: testAddress,
+        ),
         expect: () => <PillarRewardsHistoryState>[
-          const PillarRewardsHistoryState(),
           PillarRewardsHistoryState(
             status: CubitWithRefreshMixinStatus.failure,
             error: exception,

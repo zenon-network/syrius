@@ -83,6 +83,7 @@ const String kP2pAutoReclaimKey = 'p2p_auto_reclaim_key';
 const String kLastCheckedHtlcBlockKey = 'last_checked_htlc_block_key';
 
 const double kDefaultBorderOutlineWidth = 1;
+// TODO(maznnwell): to change to int
 const double kStandardChartNumDays = 7;
 
 const int kAddressLabelMaxLength = 80;
