@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
 
@@ -43,9 +44,7 @@ class _NewAddressesDropdownState extends State<NewAddressesDropdown> {
 
     return DropdownMenu<String>(
       controller: _searchController,
-      enableFilter: true,
       expandedInsets: EdgeInsets.zero,
-      filterCallback: _filterCallback,
       initialSelection: widget._selectedAddress,
       inputDecorationTheme: const InputDecorationTheme(
         filled: true,
@@ -55,6 +54,7 @@ class _NewAddressesDropdownState extends State<NewAddressesDropdown> {
         color: color,
       ),
       dropdownMenuEntries: entries,
+      menuHeight: kDropdownMenuHeight,
       onSelected: (String? address) {
         if (address != null) {
           widget._onSelectedCallback(address);
@@ -79,24 +79,7 @@ class _NewAddressesDropdownState extends State<NewAddressesDropdown> {
     final int index = entries.indexWhere(
           (DropdownMenuEntry<String> entry) => _matchTest(entry, searchText),
     );
-
     return index != -1 ? index : null;
-  }
-
-  List<DropdownMenuEntry<String>> _filterCallback(
-      List<DropdownMenuEntry<String>> entries,
-      String filter,
-      ) {
-    final String searchText = filter.toLowerCase();
-    if (searchText.isEmpty) {
-      return entries;
-    }
-
-    final Iterable<DropdownMenuEntry<String>> filtered = entries.where(
-          (DropdownMenuEntry<String> entry) => _matchTest(entry, searchText),
-    );
-
-    return filtered.toList();
   }
 
   bool _matchTest(DropdownMenuEntry<String> entry, String searchText) =>
