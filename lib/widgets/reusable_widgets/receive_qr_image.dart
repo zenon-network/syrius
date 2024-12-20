@@ -2,34 +2,32 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_vector_icons/flutter_vector_icons.dart';
 import 'package:lottie/lottie.dart';
 import 'package:open_filex/open_filex.dart';
 import 'package:path/path.dart' as path;
 import 'package:pretty_qr_code/pretty_qr_code.dart';
 import 'package:share_plus/share_plus.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/color_utils.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/context_menu_region.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 class ReceiveQrImage extends StatelessWidget {
   const ReceiveQrImage({
-    required this.data,
-    required this.size,
-    required this.tokenStandard,
-    required this.context,
+    required String data,
+    required double size,
+    required TokenStandard tokenStandard,
     super.key,
-  });
+  })  : _data = data,
+        _size = size,
+        _tokenStandard = tokenStandard;
 
-  final String data;
-  final double size;
-  final TokenStandard tokenStandard;
-  final BuildContext context;
+  final String _data;
+  final double _size;
+  final TokenStandard _tokenStandard;
 
   PrettyQrDecorationImage get _decorationImage => PrettyQrDecorationImage(
         colorFilter: ColorFilter.mode(
-          ColorUtils.getTokenColor(tokenStandard),
+          ColorUtils.getTokenColor(_tokenStandard),
           BlendMode.srcIn,
         ),
         image: const AssetImage(
@@ -40,152 +38,117 @@ class ReceiveQrImage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    late Widget qrWidget;
+    PrettyQrDecoration? qrDecoration;
+    QrImage? qrImage;
+
     // onSurface is a color that ensures a strong contrast
     final Color qrCodeColor = Theme.of(context).colorScheme.onSurface;
 
-    return SizedBox.square(
-      dimension: size,
-      child: ContextMenuRegion(
-        contextMenuBuilder: (BuildContext context, Offset offset) {
-          return AdaptiveTextSelectionToolbar(
-            anchors: TextSelectionToolbarAnchors(
-              primaryAnchor: offset,
-            ),
-            children: <Widget>[
-              Row(
-                children: <Widget>[
-                  Expanded(
-                    child: Directionality(
-                      textDirection: TextDirection.rtl,
-                      child: TextButton.icon(
-                        icon: Icon(
-                          MaterialCommunityIcons.share,
-                          color: Theme.of(context).colorScheme.onSurface,
-                          size: 14,
-                        ),
-                        onPressed: () {
-                          ContextMenuController.removeAny();
-                          _shareQR();
-                        },
-                        style: TextButton.styleFrom(
-                          shape: const RoundedRectangleBorder(),
-                        ),
-                        label: Text(
-                          AdaptiveTextSelectionToolbar.getButtonLabel(
-                            context,
-                            ContextMenuButtonItem(
-                              label: 'Share QR',
-                              onPressed: () {},
-                            ),
-                          ),
-                          style: Theme.of(context).textTheme.bodyMedium,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: <Widget>[
-                  Expanded(
-                    child: Directionality(
-                      textDirection: TextDirection.rtl,
-                      child: TextButton.icon(
-                        icon: Icon(
-                          Icons.save_alt,
-                          color: Theme.of(context).colorScheme.onSurface,
-                          size: 14,
-                        ),
-                        onPressed: () {
-                          ContextMenuController.removeAny();
-                          _saveQR();
-                        },
-                        style: TextButton.styleFrom(
-                          shape: const RoundedRectangleBorder(),
-                        ),
-                        label: Text(
-                          AdaptiveTextSelectionToolbar.getButtonLabel(
-                            context,
-                            ContextMenuButtonItem(
-                              label: 'Save QR',
-                              onPressed: () {},
-                            ),
-                          ),
-                          style: Theme.of(context).textTheme.bodyMedium,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          );
-        },
-        child: PrettyQrView.data(
-          data: data,
-          decoration: PrettyQrDecoration(
-            shape: PrettyQrSmoothSymbol(
-              roundFactor: 0,
-              color: qrCodeColor,
-            ),
-            image: _decorationImage,
-          ),
+    try {
+      qrImage = QrImage(
+        QrCode.fromData(
+          data: _data,
           errorCorrectLevel: QrErrorCorrectLevel.M,
-          errorBuilder:
-              (BuildContext context, Object error, StackTrace? stack) => Center(
-            child: Padding(
-              padding: const EdgeInsets.all(5),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: <Widget>[
-                  Lottie.asset(
-                    'assets/lottie/ic_anim_no_data.json',
-                    width: 32,
-                    height: 32,
-                  ),
-                  Tooltip(
-                    message: error.toString(),
-                    child: Text(
-                      'Failed to create QR code',
-                      textAlign: TextAlign.center,
-                      style: Theme.of(context).textTheme.bodyMedium,
-                    ),
-                  ),
-                ],
-              ),
+        ),
+      );
+
+      qrDecoration = PrettyQrDecoration(
+        shape: PrettyQrSmoothSymbol(
+          color: qrCodeColor,
+          roundFactor: 0,
+        ),
+        image: _decorationImage,
+      );
+
+      qrWidget = PrettyQrView(
+        qrImage: qrImage,
+        decoration: qrDecoration,
+      );
+    } on Exception catch (e) {
+      qrWidget = Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: <Widget>[
+          Lottie.asset(
+            'assets/lottie/ic_anim_no_data.json',
+            width: 32,
+            height: 32,
+          ),
+          Tooltip(
+            message: e.toString(),
+            child: Text(
+              'Failed to create QR code',
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.bodyMedium,
             ),
+          ),
+        ],
+      );
+    }
+
+    return Column(
+      children: <Widget>[
+        Tooltip(
+          message: _data,
+          child: SizedBox.square(
+            dimension: _size,
+            child: qrWidget,
           ),
         ),
-      ),
+        kVerticalGap16,
+        if (qrDecoration != null && qrImage != null)
+          Row(
+            children: <Widget>[
+              IconButton(
+                tooltip: context.l10n.shareQr,
+                onPressed: () => _shareQR(
+                  qrDecoration: qrDecoration!,
+                  qrImage: qrImage!,
+                ),
+                icon: const Icon(
+                  Icons.share_rounded,
+                  color: AppColors.znnColor,
+                ),
+              ),
+              kHorizontalGap16,
+              IconButton(
+                tooltip: context.l10n.saveQr,
+                onPressed: () => _saveQR(
+                  qrDecoration: qrDecoration!,
+                  qrImage: qrImage!,
+                ),
+                icon: const Icon(
+                  Icons.save_alt_rounded,
+                  color: AppColors.znnColor,
+                ),
+              ),
+            ],
+          ),
+      ],
     );
   }
 
-  Future<Uint8List?> _getQRImageData() async {
-    final QrImage qr = QrImage(
-      QrCode.fromData(
-        data: data,
-        errorCorrectLevel: QrErrorCorrectLevel.M,
-      ),
-    );
-
-    final ByteData? b = await qr.toImageAsBytes(
-      size: size.toInt(),
-      decoration: PrettyQrDecoration(
-        shape: PrettyQrSmoothSymbol(
-          roundFactor: 0,
-          color: ColorUtils.getTokenColor(tokenStandard),
-        ),
-        image: _decorationImage,
-      ),
+  Future<Uint8List?> _getQRImageData({
+    required PrettyQrDecoration qrDecoration,
+    required QrImage qrImage,
+  }) async {
+    final ByteData? b = await qrImage.toImageAsBytes(
+      size: _size.toInt(),
+      decoration: qrDecoration,
     );
 
     if (b != null) return b.buffer.asUint8List();
     return null;
   }
 
-  Future<void> _saveQR() async {
-    final Uint8List? imageData = await _getQRImageData();
+  Future<void> _saveQR({
+    required PrettyQrDecoration qrDecoration,
+    required QrImage qrImage,
+  }) async {
+    final Uint8List? imageData = await _getQRImageData(
+      qrDecoration: qrDecoration,
+      qrImage: qrImage,
+    );
     if (imageData != null) {
       final String fileName = DateTime.now().millisecondsSinceEpoch.toString();
       final File imagePath = await File(
@@ -196,8 +159,14 @@ class ReceiveQrImage extends StatelessWidget {
     }
   }
 
-  Future<void> _shareQR() async {
-    final Uint8List? imageData = await _getQRImageData();
+  Future<void> _shareQR({
+    required PrettyQrDecoration qrDecoration,
+    required QrImage qrImage,
+  }) async {
+    final Uint8List? imageData = await _getQRImageData(
+      qrDecoration: qrDecoration,
+      qrImage: qrImage,
+    );
     if (imageData != null) {
       final String fileName = DateTime.now().millisecondsSinceEpoch.toString();
       final File imagePath = await File(
