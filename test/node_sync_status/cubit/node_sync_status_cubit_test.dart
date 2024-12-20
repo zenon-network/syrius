@@ -1,12 +1,10 @@
-// ignore_for_file: prefer_const_constructors
-
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/auto_receive_tx_worker.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/rearchitecture.dart';
-import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/exceptions/cubit_failure_exception.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/exceptions/failure_exception.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
@@ -28,7 +26,7 @@ void main() {
     late MockWsClient mockWsClient;
     late MockStatsApi mockStatsApi;
     late NodeSyncStatusCubit nodeSyncStatusCubit;
-    late CubitFailureException exception;
+    late FailureException exception;
     late SyncInfo syncInfo;
     late Pair<SyncState, SyncInfo> syncPair;
 
@@ -36,7 +34,7 @@ void main() {
       mockZenon = MockZenon();
       mockWsClient = MockWsClient();
       mockStatsApi = MockStatsApi();
-      exception = CubitFailureException();
+      exception = FailureException();
       nodeSyncStatusCubit = NodeSyncStatusCubit(
         zenon: mockZenon,
       );
@@ -64,7 +62,7 @@ void main() {
 
     group('fromJson/toJson', () {
       test('can (de)serialize initial state', () {
-        final NodeSyncStatusState initialState = NodeSyncStatusState();
+        const NodeSyncStatusState initialState = NodeSyncStatusState();
 
         final Map<String, dynamic>? serialized = nodeSyncStatusCubit.toJson(
           initialState,
@@ -76,7 +74,7 @@ void main() {
       });
 
       test('can (de)serialize loading state', () {
-        final NodeSyncStatusState loadingState = NodeSyncStatusState(
+        const NodeSyncStatusState loadingState = NodeSyncStatusState(
           status: TimerStatus.loading,
         );
 
@@ -132,7 +130,7 @@ void main() {
         build: () => nodeSyncStatusCubit,
         act: (NodeSyncStatusCubit cubit) => cubit.fetchDataPeriodically(),
         expect: () => <NodeSyncStatusState>[ // Expected state changes
-          NodeSyncStatusState(status: TimerStatus.loading),
+          const NodeSyncStatusState(status: TimerStatus.loading),
           NodeSyncStatusState(
             status: TimerStatus.success,
             data: syncPair,
@@ -149,7 +147,7 @@ void main() {
         build: () => nodeSyncStatusCubit,
         act: (NodeSyncStatusCubit cubit) => cubit.fetchDataPeriodically(),
         expect: () => <NodeSyncStatusState>[
-          NodeSyncStatusState(status: TimerStatus.loading),
+          const NodeSyncStatusState(status: TimerStatus.loading),
           NodeSyncStatusState(
             status: TimerStatus.failure,
             error: exception,

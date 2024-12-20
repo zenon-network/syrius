@@ -32,7 +32,8 @@ class StandardFluidLayout extends StatelessWidget {
 
           final int durationPerTile = totalDurationMs ~/ children.length;
 
-          final List<StaggeredGridTile> tiles = List<StaggeredGridTile>.generate(
+          final List<StaggeredGridTile> tiles =
+              List<StaggeredGridTile>.generate(
             children.length,
             (int index) {
               final int widgetAnimatorOffset = durationPerTile * (index + 1);
@@ -81,6 +82,45 @@ class FluidCell {
     this.width,
     this.height,
   });
+
+  FluidCell.large({
+    required Widget child,
+    required BuildContext context,
+  }) : this(
+          width: context.layout.value(
+            xl: kStaggeredNumOfColumns ~/ 1.2,
+            lg: kStaggeredNumOfColumns ~/ 1.2,
+            md: kStaggeredNumOfColumns ~/ 1.2,
+            sm: kStaggeredNumOfColumns,
+            xs: kStaggeredNumOfColumns,
+          ),
+          child: child,
+        );
+
+  FluidCell.medium({required Widget child, required BuildContext context})
+      : this(
+          width: context.layout.value(
+            xl: kStaggeredNumOfColumns ~/ 2,
+            lg: kStaggeredNumOfColumns ~/ 2,
+            md: kStaggeredNumOfColumns ~/ 2,
+            sm: kStaggeredNumOfColumns,
+            xs: kStaggeredNumOfColumns,
+          ),
+          child: child,
+        );
+
+  FluidCell.small({required Widget child, required BuildContext context})
+      : this(
+          width: context.layout.value(
+            xl: kStaggeredNumOfColumns ~/ 6,
+            lg: kStaggeredNumOfColumns ~/ 6,
+            md: kStaggeredNumOfColumns ~/ 6,
+            sm: kStaggeredNumOfColumns,
+            xs: kStaggeredNumOfColumns,
+          ),
+          child: child,
+        );
+
   final int? width;
   final double? height;
   final Widget child;

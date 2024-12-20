@@ -30,13 +30,13 @@ class PillarsDeployBloc extends BaseBloc<AccountBlockTemplate?> {
         giveBlockRewardPercentage,
         giveDelegateRewardPercentage,
       );
-      await AccountBlockUtils.createAccountBlock(
+      await AccountBlockUtils().createAccountBlock(
         transactionParams,
         'register Pillar',
         waitForRequiredPlasma: true,
       ).then(
         (AccountBlockTemplate response) {
-          ZenonAddressUtils.refreshBalance();
+          ZenonAddressUtils().refreshBalance();
           addEvent(response);
         },
       ).onError(

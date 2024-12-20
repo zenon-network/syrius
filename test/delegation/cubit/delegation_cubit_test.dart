@@ -1,5 +1,3 @@
-// ignore_for_file: prefer_const_constructors
-
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
@@ -65,7 +63,7 @@ void main() {
 
     group('fromJson/toJson', () {
       test('can (de)serialize initial state', () {
-        final DelegationState initialState = DelegationState();
+        const DelegationState initialState = DelegationState();
 
         final Map<String, dynamic>? serialized = delegationCubit.toJson(
           initialState,
@@ -77,7 +75,7 @@ void main() {
       });
 
       test('can (de)serialize loading state', () {
-        final DelegationState loadingState = DelegationState(
+        const DelegationState loadingState = DelegationState(
           status: TimerStatus.loading,
         );
 
@@ -148,7 +146,7 @@ void main() {
         build: () => delegationCubit,
         act: (DelegationCubit cubit) => cubit.fetchDataPeriodically(),
         expect: () => <DelegationState>[
-          DelegationState(status: TimerStatus.loading),
+          const DelegationState(status: TimerStatus.loading),
           DelegationState(
             status: TimerStatus.failure,
             error: delegationException,
@@ -162,7 +160,7 @@ void main() {
         build: () => delegationCubit,
         act: (DelegationCubit cubit) => cubit.fetchDataPeriodically(),
         expect: () => <dynamic>[
-          DelegationState(status: TimerStatus.loading),
+          const DelegationState(status: TimerStatus.loading),
           DelegationState(status: TimerStatus.success, data: delegationInfo),
         ],
       );

@@ -169,7 +169,7 @@ class _TokenCardState extends State<TokenCard> {
                             ),
                           ),
                         ),
-                        CopyToClipboardIcon(
+                        CopyToClipboardButton(
                           widget.token.tokenStandard.toString(),
                         ),
                       ],
@@ -267,7 +267,7 @@ class _TokenCardState extends State<TokenCard> {
                         : widget.token.owner.toShortString(),
                     style: Theme.of(context).textTheme.titleSmall,
                   ),
-                  CopyToClipboardIcon(widget.token.owner.toString()),
+                  CopyToClipboardButton(widget.token.owner.toString()),
                 ],
               ),
               RawMaterialButton(

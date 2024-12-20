@@ -1,4 +1,3 @@
-// ignore_for_file: prefer_const_constructors
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
@@ -76,7 +75,7 @@ void main() {
 
     group('fromJson/toJson', () {
       test('can (de)serialize initial state', () {
-        final StakingState initialState = StakingState();
+        const StakingState initialState = StakingState();
 
         final Map<String, dynamic>? serialized = stakingCubit.toJson(
           initialState,
@@ -88,7 +87,7 @@ void main() {
       });
 
       test('can (de)serialize loading state', () {
-        final StakingState loadingState = StakingState(
+        const StakingState loadingState = StakingState(
           status: TimerStatus.loading,
         );
 
@@ -156,7 +155,7 @@ void main() {
         build: () => stakingCubit,
         act: (StakingCubit cubit) => cubit.fetchDataPeriodically(),
         expect: () => <StakingState>[
-          StakingState(status: TimerStatus.loading),
+          const StakingState(status: TimerStatus.loading),
           StakingState(
             status: TimerStatus.failure,
             error: stakingException,
@@ -169,7 +168,7 @@ void main() {
         build: () => stakingCubit,
         act: (StakingCubit cubit) => cubit.fetchDataPeriodically(),
         expect: () => <StakingState>[
-          StakingState(status: TimerStatus.loading),
+          const StakingState(status: TimerStatus.loading),
           StakingState(
             status: TimerStatus.success,
             data: testStakeList,

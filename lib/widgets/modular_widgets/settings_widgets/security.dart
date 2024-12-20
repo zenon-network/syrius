@@ -248,9 +248,8 @@ class _SecurityWidgetState extends State<SecurityWidget> {
           onChanged: (String? value) {
             setState(() {});
           },
-          suffixIcon: CopyToClipboardIcon(
+          suffixIcon: CopyToClipboardButton(
             _textToBeSignedController.text,
-            hoverColor: Colors.transparent,
           ),
         ),
         kVerticalSpacing,
@@ -281,7 +280,7 @@ class _SecurityWidgetState extends State<SecurityWidget> {
                       controller: _signedTextController,
                     ),
                   ),
-                  CopyToClipboardIcon(_signedTextController.text),
+                  CopyToClipboardButton(_signedTextController.text),
                 ],
               ),
               const SizedBox(
@@ -299,7 +298,7 @@ class _SecurityWidgetState extends State<SecurityWidget> {
                       controller: _publicKeyController,
                     ),
                   ),
-                  CopyToClipboardIcon(_publicKeyController.text),
+                  CopyToClipboardButton(_publicKeyController.text),
                 ],
               ),
             ],
@@ -521,7 +520,7 @@ class _SecurityWidgetState extends State<SecurityWidget> {
                       controller: _fileHashController,
                     ),
                   ),
-                  CopyToClipboardIcon(_fileHashController.text),
+                  CopyToClipboardButton(_fileHashController.text),
                 ],
               ),
               kVerticalSpacing,
@@ -535,7 +534,7 @@ class _SecurityWidgetState extends State<SecurityWidget> {
                       controller: _publicKeySignFileController,
                     ),
                   ),
-                  CopyToClipboardIcon(_publicKeySignFileController.text),
+                  CopyToClipboardButton(_publicKeySignFileController.text),
                 ],
               ),
             ],
