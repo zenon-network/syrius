@@ -1,6 +1,7 @@
 {
   "activePillars": "Active Pillars",
   "activeSentinels": "Active Sentinels",
+  "addressSearchDescription": "Addresses can be searched by label - \"Address 1\" - and by hex value - \"z1qxemdeddedxt0kenxxxxxxxxxxxxxxxxh9amk0\"",
   "amount": "Amount",
   "areYouSureTranfer": "Are you sure you want to transfer {amount} {symbol} to {recipient} ?",
   "asset": "Asset",
@@ -59,5 +60,6 @@
   "type": "Type",
   "usDateFormat": "MM/dd/yyyy",
   "waitingForDataFetching": "Waiting for data fetching",
-  "zenonTransactions": "{zenon} transactions"
+  "zenonTransactions": "{zenon} transactions",
+  "ztsSearchDescription": "Coins and tokens can be searched by name - \"Zenon\" -, by symbol - \"ZNN\" -, and by token standard - \"zts1znnxxxxxxxxxxxxx9z4ulx\""
 }

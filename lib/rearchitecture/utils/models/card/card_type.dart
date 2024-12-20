@@ -75,17 +75,17 @@ enum CardType {
           ),
         ),
       CardType.latestTransactions => CardData(
-        description: context.l10n.latestTransactionsDescription,
-        title: context.l10n.latestTransactionsTitle,
-      ),
+          description: context.l10n.latestTransactionsDescription,
+          title: context.l10n.latestTransactionsTitle,
+        ),
       CardType.latestTransactionsDashboard => CardData(
-        description: context.l10n.latestTransactionsDescription,
-        title: context.l10n.latestTransactionsTitle,
-      ),
+          description: context.l10n.latestTransactionsDescription,
+          title: context.l10n.latestTransactionsTitle,
+        ),
       CardType.pendingTransactions => CardData(
-        description: context.l10n.pendingTransactionsDescription,
-        title: context.l10n.pendingTransactionsTitle,
-      ),
+          description: context.l10n.pendingTransactionsDescription,
+          title: context.l10n.pendingTransactionsTitle,
+        ),
       CardType.pillars => CardData(
           title: context.l10n.pillars,
           description: context.l10n.pillarsDescription,
@@ -96,13 +96,17 @@ enum CardType {
               .realtimeStatsDescription(kQsrCoin.symbol, kZnnCoin.symbol),
         ),
       CardType.receive => CardData(
-        description: context.l10n.manageReceivingFunds,
-        title: context.l10n.receive,
-      ),
+          description: context.l10n.manageReceivingFunds,
+          title: '${context.l10n.receive}\n'
+              '${context.l10n.addressSearchDescription}\n'
+              '${context.l10n.ztsSearchDescription}',
+        ),
       CardType.send => CardData(
-        title: context.l10n.send,
-        description: context.l10n.manageSendingFunds,
-      ),
+          title: context.l10n.send,
+          description: '${context.l10n.manageSendingFunds}\n'
+              '${context.l10n.addressSearchDescription}\n'
+              '${context.l10n.ztsSearchDescription}',
+        ),
       CardType.sentinels => CardData(
           title: context.l10n.sentinels,
           description: context.l10n.sentinelsDescription,
