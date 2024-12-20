@@ -186,7 +186,7 @@ class _LatestTransactionsPopulatedState
       AddressCell(address: infoBlock.address),
       AmountCell(block: infoBlock),
       DateCell(block: infoBlock),
-      TypeCell(block: infoBlock),
+      TypeCell(block: transactionBlock),
       AssetCell(block: infoBlock),
     ];
   }
