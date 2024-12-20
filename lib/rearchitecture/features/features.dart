@@ -9,6 +9,7 @@ export 'pillar_rewards_history/pillar_rewards_history.dart';
 export 'pillars/pillars.dart';
 export 'realtime_statistics/realtime_statistics.dart';
 export 'receive/receive.dart';
+export 'refresh_button/refresh_button.dart';
 export 'send/send.dart';
 export 'sentinels/sentinels.dart';
 export 'staking/staking.dart';

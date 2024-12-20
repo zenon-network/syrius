@@ -23,8 +23,8 @@ class _PillarRewardsCardState extends State<PillarRewardsCard> {
   Widget build(BuildContext context) {
     return NewCardScaffold(
       data: _buildCardData(context: context),
-      onRefreshPressed: () {
-        context.read<PillarRewardsHistoryCubit>().updateStream(
+      onRefreshPressed: () async {
+        await context.read<PillarRewardsHistoryCubit>().updateStream(
           address: Address.parse(kSelectedAddress!),
         );
       },

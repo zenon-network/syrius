@@ -33,7 +33,7 @@ class LatestTransactionsCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return NewCardScaffold(
       data: _buildCardData(context: context),
-      onRefreshPressed: () {
+      onRefreshPressed: () async {
         context.read<LatestTransactionsBloc>().add(
               InfiniteListRefreshRequested(
                 address: Address.parse(kSelectedAddress!),
