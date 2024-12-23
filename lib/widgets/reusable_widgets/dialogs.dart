@@ -54,16 +54,14 @@ Future<bool> showWarningDialog({
   return isPressed;
 }
 
-Future showDialogWithNoAndYesOptions({
+Future<bool?> showDialogWithNoAndYesOptions({
   required BuildContext context,
   required String title,
-  required VoidCallback onYesButtonPressed,
-  required isBarrierDismissible,
-  VoidCallback? onNoButtonPressed,
+  required bool isBarrierDismissible,
   Widget? content,
   String? description,
 }) =>
-    showDialog(
+    showDialog<bool>(
       barrierDismissible: isBarrierDismissible,
       context: context,
       builder: (BuildContext context) => AlertDialog(
@@ -71,8 +69,10 @@ Future showDialogWithNoAndYesOptions({
         content: content ?? Text(description!),
         actions: <Widget>[
           TextButton(
+            style: TextButton.styleFrom(
+              backgroundColor: AppColors.znnColor,
+            ),
             onPressed: () {
-              onNoButtonPressed?.call();
               Navigator.pop(context, false);
             },
             child: Text(
@@ -85,7 +85,6 @@ Future showDialogWithNoAndYesOptions({
               backgroundColor: AppColors.errorColor,
             ),
             onPressed: () {
-              onYesButtonPressed.call();
               Navigator.pop(context, true);
             },
             child: Text(

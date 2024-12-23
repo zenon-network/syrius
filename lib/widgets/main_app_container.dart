@@ -149,8 +149,9 @@ class _MainAppContainerState extends State<MainAppContainer>
             MediaQuery(
           data: MediaQuery.of(context).copyWith(
             textScaler: TextScaler.linear(
-              textScalingNotifier.getTextScaleFactor(context),),
+              textScalingNotifier.getTextScaleFactor(context),
             ),
+          ),
           child: Scaffold(
             body: Container(
               margin: const EdgeInsets.all(
@@ -700,36 +701,34 @@ class _MainAppContainerState extends State<MainAppContainer>
                       _navigateTo(Tabs.transfer);
 
                       if (token != null) {
-                        unawaited(
-                          showDialogWithNoAndYesOptions(
-                            context: context,
-                            title: 'Transfer action',
-                            isBarrierDismissible: true,
-                            content: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: <Widget>[
-                                Text(
-                                  'Are you sure you want transfer $queryAmount ${token.symbol} from $kSelectedAddress to $queryAddress?',
-                                ),
-                              ],
-                            ),
-                            onYesButtonPressed: () {
-                              context.read<SendTransactionBloc>().add(
-                                    SendTransactionInitiate(
-                                      fromAddress: kSelectedAddress!,
-                                      toAddress: queryAddress,
-                                      amount: queryAmount
-                                          .extractDecimals(token!.decimals),
-                                      token: token,
-                                    ),
-                                  );
-                            },
-                            onNoButtonPressed: () {},
+                        final bool? actionAccepted =
+                            await showDialogWithNoAndYesOptions(
+                          context: context,
+                          title: 'Transfer action',
+                          isBarrierDismissible: true,
+                          content: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: <Widget>[
+                              Text(
+                                'Are you sure you want transfer $queryAmount ${token.symbol} from $kSelectedAddress to $queryAddress?',
+                              ),
+                            ],
                           ),
                         );
+
+                        if (actionAccepted ?? false) {
+                          context.read<SendTransactionBloc>().add(
+                                SendTransactionInitiate(
+                                  fromAddress: kSelectedAddress!,
+                                  toAddress: queryAddress,
+                                  amount: queryAmount
+                                      .extractDecimals(token.decimals),
+                                  token: token,
+                                ),
+                              );
+                        }
                       }
                     }
-
                   case 'stake':
                     await sl<NotificationsBloc>().addNotification(
                       WalletNotification(
@@ -743,7 +742,7 @@ class _MainAppContainerState extends State<MainAppContainer>
                     if (kCurrentPage != Tabs.lock) {
                       _navigateTo(Tabs.staking);
 
-                      showDialogWithNoAndYesOptions(
+                      final bool? actionAccepted = await showDialogWithNoAndYesOptions(
                         context: context,
                         title: 'Stake ${kZnnCoin.symbol} action',
                         isBarrierDismissible: true,
@@ -755,14 +754,14 @@ class _MainAppContainerState extends State<MainAppContainer>
                             ),
                           ],
                         ),
-                        onYesButtonPressed: () {
-                          stakingOptionsBloc.stakeForQsr(
-                            Duration(seconds: queryDuration * stakeTimeUnitSec),
-                            queryAmount.extractDecimals(kZnnCoin.decimals),
-                          );
-                        },
-                        onNoButtonPressed: () {},
                       );
+
+                      if (actionAccepted ?? false) {
+                        stakingOptionsBloc.stakeForQsr(
+                          Duration(seconds: queryDuration * stakeTimeUnitSec),
+                          queryAmount.extractDecimals(kZnnCoin.decimals),
+                        );
+                      }
                     }
 
                   case 'delegate':
@@ -778,7 +777,7 @@ class _MainAppContainerState extends State<MainAppContainer>
                     if (kCurrentPage != Tabs.lock) {
                       _navigateTo(Tabs.pillars);
 
-                      showDialogWithNoAndYesOptions(
+                      final bool? actionAccepted = await showDialogWithNoAndYesOptions(
                         context: context,
                         title: 'Delegate ${kZnnCoin.symbol} action',
                         isBarrierDismissible: true,
@@ -790,11 +789,11 @@ class _MainAppContainerState extends State<MainAppContainer>
                             ),
                           ],
                         ),
-                        onYesButtonPressed: () {
-                          delegateButtonBloc.delegateToPillar(queryPillarName);
-                        },
-                        onNoButtonPressed: () {},
                       );
+
+                      if (actionAccepted ?? false) {
+                        delegateButtonBloc.delegateToPillar(queryPillarName);
+                      }
                     }
 
                   case 'fuse':
@@ -810,7 +809,7 @@ class _MainAppContainerState extends State<MainAppContainer>
                     if (kCurrentPage != Tabs.lock) {
                       _navigateTo(Tabs.plasma);
 
-                      showDialogWithNoAndYesOptions(
+                      final bool? actionAccepted = await showDialogWithNoAndYesOptions(
                         context: context,
                         title: 'Fuse ${kQsrCoin.symbol} action',
                         isBarrierDismissible: true,
@@ -822,14 +821,14 @@ class _MainAppContainerState extends State<MainAppContainer>
                             ),
                           ],
                         ),
-                        onYesButtonPressed: () {
-                          plasmaOptionsBloc.generatePlasma(
-                            queryAddress,
-                            queryAmount.extractDecimals(kZnnCoin.decimals),
-                          );
-                        },
-                        onNoButtonPressed: () {},
                       );
+
+                      if (actionAccepted ?? false) {
+                        plasmaOptionsBloc.generatePlasma(
+                          queryAddress,
+                          queryAmount.extractDecimals(kZnnCoin.decimals),
+                        );
+                      }
                     }
 
                   case 'sentinel':
@@ -923,7 +922,8 @@ class _MainAppContainerState extends State<MainAppContainer>
 
   @override
   Future<void> onClipboardChanged() async {
-    final ClipboardData? newClipboardData = await Clipboard.getData(Clipboard.kTextPlain);
+    final ClipboardData? newClipboardData =
+        await Clipboard.getData(Clipboard.kTextPlain);
     final String text = newClipboardData?.text ?? '';
     if (text.isNotEmpty && WalletConnectUri.tryParse(text) != null) {
       // This check is needed because onClipboardChanged is called twice sometimes

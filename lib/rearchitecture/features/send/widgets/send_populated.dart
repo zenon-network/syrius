@@ -199,7 +199,7 @@ class _SendPopulatedState extends State<SendPopulated> {
     );
   }
 
-  void _onSendPaymentPressed() {
+  void _onSendPaymentPressed() async {
     final String title = context.l10n.send;
 
     final String symbol = _selectedToken.symbol;
@@ -212,13 +212,16 @@ class _SendPopulatedState extends State<SendPopulated> {
       symbol,
     );
 
-    showDialogWithNoAndYesOptions(
+    final bool? txConfirmed = await showDialogWithNoAndYesOptions(
       isBarrierDismissible: false,
       context: context,
       title: title,
       description: description,
-      onYesButtonPressed: _sendPayment,
     );
+
+    if (txConfirmed ?? false) {
+      _sendPayment();
+    }
   }
 
   void _sendPayment() {

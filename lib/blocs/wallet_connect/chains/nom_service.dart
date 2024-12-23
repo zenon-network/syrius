@@ -106,7 +106,7 @@ class NoMService extends IChain {
 
     if (kCurrentPage != Tabs.lock) {
       if (globalNavigatorKey.currentContext!.mounted) {
-        final actionWasAccepted = await showDialogWithNoAndYesOptions(
+        final bool? actionWasAccepted = await showDialogWithNoAndYesOptions(
           context: globalNavigatorKey.currentContext!,
           isBarrierDismissible: false,
           title: '${dAppMetadata.name} - Information',
@@ -135,11 +135,9 @@ class NoMService extends IChain {
               ),
             ],
           ),
-          onYesButtonPressed: () async {},
-          onNoButtonPressed: () {},
         );
 
-        if (actionWasAccepted) {
+        if (actionWasAccepted ?? false) {
           return <String, Object?>{
             'address': kSelectedAddress,
             'nodeUrl': kCurrentNode,
@@ -174,7 +172,7 @@ class NoMService extends IChain {
       final String message = params as String;
 
       if (globalNavigatorKey.currentContext!.mounted) {
-        final actionWasAccepted = await showDialogWithNoAndYesOptions(
+        final bool? actionWasAccepted = await showDialogWithNoAndYesOptions(
           context: globalNavigatorKey.currentContext!,
           isBarrierDismissible: false,
           title: '${dAppMetadata.name} - Sign Message',
@@ -203,11 +201,9 @@ class NoMService extends IChain {
               ),
             ],
           ),
-          onYesButtonPressed: () async {},
-          onNoButtonPressed: () {},
         );
 
-        if (actionWasAccepted) {
+        if (actionWasAccepted ?? false) {
           return walletSign(message.codeUnits);
         } else {
           await NotificationUtils.sendNotificationError(
@@ -281,11 +277,9 @@ class NoMService extends IChain {
           description: 'Are you sure you want to transfer '
               '$amount ${token.symbol} to '
               '$toAddress ?',
-          onYesButtonPressed: () {},
-          onNoButtonPressed: () {},
         );
 
-        if (wasActionAccepted) {
+        if (wasActionAccepted ?? false) {
           final SendTransactionBloc sendTransactionBloc =
           globalNavigatorKey.currentContext!.read<SendTransactionBloc>()..add(
             SendTransactionInitiateFromBlock(
