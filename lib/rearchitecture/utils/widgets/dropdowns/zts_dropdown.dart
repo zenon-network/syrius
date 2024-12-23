@@ -28,17 +28,22 @@ class _ZtsDropdownState extends State<ZtsDropdown> {
 
   @override
   Widget build(BuildContext context) {
-    final List<DropdownMenuEntry<Token>> entries = widget._availableTokens
-        .map(
-          (Token token) => DropdownMenuEntry<Token>(
-            label: token.name,
-            style: MenuItemButton.styleFrom(
-              foregroundColor: ColorUtils.getTokenColor(token.tokenStandard),
-            ),
-            value: token,
+    final List<DropdownMenuEntry<Token>> entries = widget._availableTokens.map(
+      (Token token) {
+        final String labelSuffix =
+            token.isCoin ? 'Coin' : token.tokenStandard.toString().short;
+
+        final String label = '${token.name} - $labelSuffix';
+
+        return DropdownMenuEntry<Token>(
+          label: label,
+          style: MenuItemButton.styleFrom(
+            foregroundColor: ColorUtils.getTokenColor(token.tokenStandard),
           ),
-        )
-        .toList();
+          value: token,
+        );
+      },
+    ).toList();
 
     final Color color = ColorUtils.getTokenColor(
       widget._selectedToken.tokenStandard,
