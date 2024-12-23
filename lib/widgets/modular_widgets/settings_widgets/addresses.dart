@@ -5,6 +5,7 @@ import 'package:hive/hive.dart';
 import 'package:number_selector/number_selector.dart';
 import 'package:provider/provider.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/latest_transactions/bloc/latest_transactions_bloc.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/address_utils.dart';
@@ -79,6 +80,11 @@ class AddressesState extends State<Addresses> {
               address: Address.parse(_selectedAddress!),
             ),
           );
+      context.read<PendingTransactionsBloc>().add(
+        InfiniteListRefreshRequested(
+          address: Address.parse(_selectedAddress!),
+        ),
+      );
     } catch (e) {
       rethrow;
     }
