@@ -30,8 +30,9 @@ class _ZtsDropdownState extends State<ZtsDropdown> {
   Widget build(BuildContext context) {
     final List<DropdownMenuEntry<Token>> entries = widget._availableTokens.map(
       (Token token) {
-        final String labelSuffix =
-            token.isCoin ? 'Coin' : token.tokenStandard.toString().short;
+        final String labelSuffix = token.isCoin
+            ? context.l10n.coin
+            : token.tokenStandard.toString().short;
 
         final String label = '${token.name} - $labelSuffix';
 

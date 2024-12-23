@@ -6,6 +6,7 @@
   "areYouSureTranfer": "Are you sure you want to transfer {amount} {symbol} to {recipient} ?",
   "asset": "Asset",
   "balance": "Balance",
+  "coin": "Coin",
   "couldNotSend": "Couldn't send {amount} {symbol} to {recipient}",
   "currentAmounts": "This card displays the current {kZnnCoinSymbol} and {kQsrCoinSymbol} amounts for the selected address",
   "date":"Date",
