@@ -41,7 +41,7 @@ class _SendPopulatedState extends State<SendPopulated> {
 
   final GlobalKey<LoadingButtonState> _sendPaymentButtonKey = GlobalKey();
 
-  final List<Token> _availableTokens = <Token>[];
+  final List<Token> _availableAssets = <Token>[];
 
   Token _selectedToken = kDualCoin.first;
 
@@ -78,13 +78,15 @@ class _SendPopulatedState extends State<SendPopulated> {
 
   @override
   Widget build(BuildContext context) {
-    if (_availableTokens.isEmpty) {
+    if (_availableAssets.isEmpty) {
       _fillAvailableTokens(
         initialTokens: kDualCoin,
+        list: _availableAssets,
         tokensWithBalance: _getTokensWithBalance(
           widget.balances[_selectedSenderAddress]!,
         ),
       );
+
     }
 
     return BlocListener<SendTransactionBloc, SendTransactionState>(
@@ -199,7 +201,7 @@ class _SendPopulatedState extends State<SendPopulated> {
     );
   }
 
-  void _onSendPaymentPressed() async {
+  Future<void> _onSendPaymentPressed() async {
     final String title = context.l10n.send;
 
     final String symbol = _selectedToken.symbol;
@@ -244,7 +246,7 @@ class _SendPopulatedState extends State<SendPopulated> {
           () {
             _selectedSenderAddress = value;
             _selectedToken = kDualCoin.first;
-            _availableTokens.clear();
+            _availableAssets.clear();
           },
         ),
         selectedAddress: _selectedSenderAddress,
@@ -253,7 +255,7 @@ class _SendPopulatedState extends State<SendPopulated> {
   }
 
   Widget _getCoinDropdown() => ZtsDropdown(
-        availableTokens: _availableTokens,
+        availableTokens: _availableAssets,
         selectedToken: _selectedToken,
         onChangeCallback: (Token value) {
           if (_selectedToken != value) {
@@ -350,15 +352,18 @@ class _SendPopulatedState extends State<SendPopulated> {
 
   void _fillAvailableTokens({
     required List<Token> initialTokens,
+    required List<Token> list,
     required List<Token> tokensWithBalance,
   }) {
-    _availableTokens.addAll(tokensWithBalance);
+    final List<Token> emptyList = <Token>[...tokensWithBalance];
     // The available tokens should always contain the two coins
-    if (!_availableTokens.contains(kQsrCoin)) {
-      _availableTokens.insert(0, kQsrCoin);
+    if (!emptyList.contains(kZnnCoin)) {
+      emptyList.insert(0, kZnnCoin);
     }
-    if (!_availableTokens.contains(kZnnCoin)) {
-      _availableTokens.insert(0, kZnnCoin);
+    if (!emptyList.contains(kQsrCoin)) {
+      emptyList.insert(0, kQsrCoin);
     }
+
+    list.addAll(sortAssets(emptyList));
   }
 }

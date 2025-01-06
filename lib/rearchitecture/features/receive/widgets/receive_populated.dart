@@ -56,7 +56,7 @@ class _ReceivePopulatedState extends State<ReceivePopulated> {
 
   @override
   Widget build(BuildContext context) {
-    final List<Token> sortedAssets = _sortAssets(widget.assets);
+    final List<Token> sortedAssets = sortAssets(widget.assets);
 
     return Padding(
       padding: const EdgeInsets.all(16),
@@ -135,15 +135,6 @@ class _ReceivePopulatedState extends State<ReceivePopulated> {
         },
       ),
     );
-  }
-
-  List<Token> _sortAssets(List<Token> assets) {
-    assets.sort((Token a, Token b) {
-      if (a.isCoin && !b.isCoin) return -1; // Coins come first
-      if (!a.isCoin && b.isCoin) return 1;  // Tokens come second
-      return 0; // Preserve original order within the same type
-    });
-    return assets;
   }
 
   @override
