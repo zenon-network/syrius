@@ -31,12 +31,34 @@ class _ZtsDropdownState extends State<ZtsDropdown> {
     final List<DropdownMenuEntry<Token>> entries = widget._availableTokens.map(
       (Token token) {
         final String labelSuffix = token.isCoin
-            ? '${context.l10n.coin} (${token.tokenStandard.toString().short})'
+            ? context.l10n.coin
             : token.tokenStandard.toString().short;
 
         final String label = '${token.name} - $labelSuffix';
 
+        final Widget znnIcon = Image(
+          color: ColorUtils.getTokenColor(token.tokenStandard),
+          fit: BoxFit.contain,
+          height: 15,
+          image: const AssetImage(
+            'assets/images/qr_code_child_image_znn_cut.png',
+          ),
+        );
+
+        final Widget? trailingIcon = token.isCoin ? znnIcon : null;
+
         return DropdownMenuEntry<Token>(
+          labelWidget: Row(
+            children: <Widget>[
+              Text(label),
+              if (trailingIcon != null) Row(
+                children: <Widget>[
+                  kHorizontalGap8,
+                  trailingIcon,
+                ],
+              ),
+            ],
+          ),
           label: label,
           style: MenuItemButton.styleFrom(
             foregroundColor: ColorUtils.getTokenColor(token.tokenStandard),
