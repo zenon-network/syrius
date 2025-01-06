@@ -7,6 +7,7 @@ import 'package:stacked/stacked.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/model/model.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/tokens/cubit/tokens_cubit.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/extensions.dart';
@@ -708,6 +709,7 @@ class _TokenStepperState extends State<TokenStepper> {
           (AccountBlockTemplate response) {
             _createButtonKey.currentState?.animateReverse();
             _saveProgressAndNavigateToNextStep(TokenStepperStep.issueToken);
+            sl.get<TokensCubit>().fetch();
           },
           onError: (error) async {
             _createButtonKey.currentState?.animateReverse();

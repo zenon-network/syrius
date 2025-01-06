@@ -138,9 +138,7 @@ class _MainAppContainerState extends State<MainAppContainer>
             ),
         ),
         BlocProvider<TokensCubit>(
-          create: (_) => TokensCubit(
-            zenon: zenon!,
-          )..fetch(),
+          create: (_) => sl.get<TokensCubit>()..fetch(),
         ),
       ],
       child: Consumer<TextScalingNotifier>(

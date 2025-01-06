@@ -14,6 +14,9 @@ class ReceiveCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return NewCardScaffold(
       data: CardType.receive.getData(context: context),
+      onRefreshPressed: () {
+        context.read<TokensCubit>().fetch();
+      },
       body: BlocBuilder<TokensCubit, TokensState>(
         builder: (_, TokensState state) {
           final TokensStatus status = state.status;
