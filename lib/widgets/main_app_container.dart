@@ -115,14 +115,6 @@ class _MainAppContainerState extends State<MainAppContainer>
   Widget build(BuildContext context) {
     return MultiBlocProvider(
       providers: <SingleChildWidget>[
-        BlocProvider<LatestTransactionsBloc>(
-          create: (_) => sl.get<LatestTransactionsBloc>()
-            ..add(
-              InfiniteListRequested(
-                address: Address.parse(kSelectedAddress!),
-              ),
-            ),
-        ),
         BlocProvider<SendTransactionBloc>(
           create: (_) => SendTransactionBloc(),
         ),
