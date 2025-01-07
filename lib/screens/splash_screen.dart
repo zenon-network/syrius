@@ -33,6 +33,11 @@ class SplashScreen extends StatefulWidget {
 class _SplashScreenState extends State<SplashScreen> {
   late final Future<LottieComposition> _composition;
 
+  // The lottie uses a cache to load a file, if the file was previously loaded
+  // the Future.builder will fire twice with the snapshot.hasData = true, and
+  // it will call _splashInits method twice
+  bool _splashInitsCalled = false;
+
   @override
   void initState() {
     super.initState();
@@ -46,7 +51,7 @@ class _SplashScreenState extends State<SplashScreen> {
       builder: (BuildContext context, AsyncSnapshot<LottieComposition> snapshot) {
         final LottieComposition? composition = snapshot.data;
         if (composition != null) {
-          Future.delayed(composition.duration, _splashInits);
+          Future<void>.delayed(composition.duration, _splashInits);
           return Lottie(
             composition: composition,
             repeat: false,
@@ -60,12 +65,15 @@ class _SplashScreenState extends State<SplashScreen> {
 
   Future<void> _splashInits() async {
     try {
-      widget.resetWalletFlow
-          ? await _resetWallet()
-          : widget.deleteCacheFlow
-              ? await _deleteCache().then((value) => exit(0))
-              : await InitUtils.initApp(context);
-      _navigateToNextScreen();
+      if (!_splashInitsCalled) {
+        _splashInitsCalled = true;
+        widget.resetWalletFlow
+            ? await _resetWallet()
+            : widget.deleteCacheFlow
+                ? await _deleteCache().then((value) => exit(0))
+                : await InitUtils.initApp(context);
+        _navigateToNextScreen();
+      }
     } on Exception catch (e) {
       Navigator.pushReplacementNamed(
         context,
@@ -138,8 +146,10 @@ class _SplashScreenState extends State<SplashScreen> {
     await Hive.deleteBoxFromDisk(kKeyStoreBox);
     if (kWalletFile != null) kWalletFile!.close();
     kWalletFile = null;
-    await FileUtils.deleteFile(kWalletPath!);
-    kWalletPath = null;
+    if (kWalletPath != null) {
+      await FileUtils.deleteFile(kWalletPath!);
+      kWalletPath = null;
+    }
   }
 
   void _checkForDefaultNode() => sharedPrefsService!.get(
