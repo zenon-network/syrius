@@ -10,7 +10,7 @@ dependencies:
     sdk: flutter
   flutter_localizations:
     sdk: flutter
-  fl_chart: ^0.69.0
+  fl_chart: ^0.70.1
   overlay_support: ^2.1.0
   lottie: ^3.1.2
   dotted_border: ^2.0.0+2
@@ -97,7 +97,7 @@ dev_dependencies:
   bloc_test: ^9.0.0
   flutter_test:
     sdk: flutter
-  very_good_analysis: ^6.0.0
+  very_good_analysis: ^7.0.0
   json_serializable: ^6.8.0
 
 
