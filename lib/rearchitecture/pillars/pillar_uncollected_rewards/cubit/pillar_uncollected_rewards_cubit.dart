@@ -4,40 +4,26 @@ import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/exceptions/exce
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 part 'pillar_uncollected_rewards_cubit.g.dart';
+
 part 'pillar_uncollected_rewards_state.dart';
 
 /// A cubit responsible for fetching and managing the state of
 /// uncollected rewards for a specific pillar address.
-class PillarUncollectedRewardsCubit extends CubitForReloadingIndicator<
+class PillarUncollectedRewardsCubit extends CubitWithRefreshMixin<
     UncollectedReward, PillarUncollectedRewardsState> {
-
-  /// Constructs a [PillarUncollectedRewardsCubit].
-  ///
-  /// The parameters are a [Zenon] instance, the target [address] to retrieve
-  /// uncollected rewards, and an optional flag [callUpdateStream] to control
-  /// whether data is fetched on initialization.
+  /// Constructs a [PillarUncollectedRewardsCubit]
   PillarUncollectedRewardsCubit({
     required super.zenon,
-    required this.address,
-    bool callUpdateStream = true,
   }) : super(
-    callUpdateStream: callUpdateStream,
-    const PillarUncollectedRewardsState(),
-  );
-
-  /// The [address] for which the cubit fetches and manages uncollected rewards.
-  final Address address;
+          initialState: const PillarUncollectedRewardsState(),
+        );
 
   /// Fetches the uncollected rewards for the specified [address].
   @override
-  Future<UncollectedReward> getData() async {
-    try {
-      final UncollectedReward response =
-      await zenon.embedded.pillar.getUncollectedReward(address);
-      return response;
-    } catch (e) {
-      rethrow;
-    }
+  Future<UncollectedReward> getData({required Address address}) async {
+    final UncollectedReward response =
+        await zenon.embedded.pillar.getUncollectedReward(address);
+    return response;
   }
 
   /// Deserializes a JSON map into a [PillarUncollectedRewardsState] instance.
