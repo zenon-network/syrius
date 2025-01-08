@@ -1,7 +1,7 @@
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
-import 'package:zenon_syrius_wallet_flutter/rearchitecture/pillars/pillars.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
@@ -56,8 +56,6 @@ void main() {
 
       pillarUncollectedRewardsCubit = PillarUncollectedRewardsCubit(
         zenon: mockZenon,
-        address: testAddress,
-        callUpdateStream: false,
       );
     });
 
@@ -107,8 +105,10 @@ void main() {
             PillarUncollectedRewardsState.fromJson(serialized);
 
         expect(deserialized, isA<PillarUncollectedRewardsState>());
-        expect(deserialized.status,
-            equals(CubitWithRefreshMixinStatus.success),);
+        expect(
+          deserialized.status,
+          equals(CubitWithRefreshMixinStatus.success),
+        );
         expect(deserialized.data, equals(uncollectedReward));
       });
 
@@ -134,7 +134,9 @@ void main() {
               .thenAnswer((_) async => uncollectedReward);
         },
         build: () => pillarUncollectedRewardsCubit,
-        act: (PillarUncollectedRewardsCubit cubit) => cubit.updateStream(),
+        act: (PillarUncollectedRewardsCubit cubit) => cubit.getData(
+          address: testAddress,
+        ),
         expect: () => <PillarUncollectedRewardsState>[
           const PillarUncollectedRewardsState(),
           PillarUncollectedRewardsState(
@@ -151,7 +153,9 @@ void main() {
               .thenThrow(exception);
         },
         build: () => pillarUncollectedRewardsCubit,
-        act: (PillarUncollectedRewardsCubit cubit) => cubit.updateStream(),
+        act: (PillarUncollectedRewardsCubit cubit) => cubit.getData(
+          address: testAddress,
+        ),
         expect: () => <PillarUncollectedRewardsState>[
           const PillarUncollectedRewardsState(),
           PillarUncollectedRewardsState(
