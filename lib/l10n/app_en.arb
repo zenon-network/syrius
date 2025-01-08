@@ -79,6 +79,7 @@
   "pillarProducerAddress": "Pillar producer address",
   "pillarRegistered": "Pillar registered",
   "pillarRewardAddress": "Pillar reward address",
+  "pillarRewardsBlockCreated": "Successfully created block for collecting the pillar rewards. It will take at least 30 seconds for the data to update and to be able to receive the rewards.",
   "pillarRewardsDescription": "This card displays a chart with your Pillar rewards. Pillar rewards are generated either by operating a Pillar Node or from delegations to a Pillar Node",
   "pillarRewardsTitle": "Pillar Rewards",
   "pillarUpdate": "Pillar update",

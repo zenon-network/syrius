@@ -88,7 +88,7 @@ class SendTransactionBloc
       final AccountBlockTemplate response =
           await accountBlockUtilsHelper.createAccountBlock(
         event.block,
-        'send transaction',
+        event.reasonForGeneratingPlasma,
         address: Address.parse(event.fromAddress),
         waitForRequiredPlasma: true,
       );

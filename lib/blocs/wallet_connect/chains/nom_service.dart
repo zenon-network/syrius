@@ -291,6 +291,7 @@ class NoMService extends IChain {
             SendTransactionInitiateFromBlock(
               fromAddress: params['fromAddress'],
               block: AccountBlockTemplate.fromJson(params['accountBlock']),
+              reasonForGeneratingPlasma: 'send transaction'
             ),
           );
 
