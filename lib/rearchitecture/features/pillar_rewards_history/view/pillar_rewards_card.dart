@@ -10,15 +10,10 @@ import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 ///
 /// It receives updates from a [PillarRewardsHistoryCubit] and displays a
 /// [PillarRewardsChart] when data is available
-class PillarRewardsCard extends StatefulWidget {
+class PillarRewardsCard extends StatelessWidget {
   /// Constructs a new instance.
   const PillarRewardsCard({super.key});
 
-  @override
-  State createState() => _PillarRewardsCardState();
-}
-
-class _PillarRewardsCardState extends State<PillarRewardsCard> {
   @override
   Widget build(BuildContext context) {
     return NewCardScaffold(
