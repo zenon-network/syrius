@@ -187,6 +187,7 @@ void main() {
         SendTransactionInitiateFromBlock(
           block: testAccBlockTemplate,
           fromAddress: testFromAddress,
+          reasonForGeneratingPlasma: 'send transaction',
         ),
       ),
       expect: () => <SendTransactionState>[
@@ -215,6 +216,7 @@ void main() {
         SendTransactionInitiateFromBlock(
           block: testAccBlockTemplate,
           fromAddress: testFromAddress,
+          reasonForGeneratingPlasma: 'send transaction',
         ),
       ),
       expect: () => <SendTransactionState>[
