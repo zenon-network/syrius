@@ -307,7 +307,24 @@ class _MyAppState extends State<MyApp> with WindowListener, TrayListener {
                 address: Address.parse(kSelectedAddress!),
               ),
             ),
-        )
+        ),
+        BlocProvider<PendingTransactionsBloc>(
+          create: (_) => sl.get<PendingTransactionsBloc>()
+            ..add(
+              InfiniteListRequested(
+                address: Address.parse(kSelectedAddress!),
+              ),
+            ),
+        ),
+        BlocProvider<SendTransactionBloc>(
+          create: (_) => SendTransactionBloc(),
+        ),
+        BlocProvider<MultipleBalanceBloc>(
+          create: (_) => sl.get<MultipleBalanceBloc>(),
+        ),
+        BlocProvider<TokensCubit>(
+          create: (_) => sl.get<TokensCubit>()..fetch(),
+        ),
       ],
       child: MultiProvider(
         providers: <SingleChildWidget>[
