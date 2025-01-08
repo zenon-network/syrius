@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:layout/layout.dart';
 import 'package:nested/nested.dart';
-import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
@@ -22,8 +21,6 @@ class PillarsTabChild extends StatefulWidget {
 }
 
 class _PillarsTabChildState extends State<PillarsTabChild> {
-  final PillarRewardsHistoryBloc _pillarRewardsHistoryBloc =
-      PillarRewardsHistoryBloc();
 
   @override
   Widget build(BuildContext context) {
@@ -83,11 +80,5 @@ class _PillarsTabChildState extends State<PillarsTabChild> {
     return StandardFluidLayout(
       children: children,
     );
-  }
-
-  @override
-  void dispose() {
-    _pillarRewardsHistoryBloc.dispose();
-    super.dispose();
   }
 }
