@@ -83,7 +83,7 @@ void main() {
     });
 
     test('initial state is correct', () {
-      expect(cubit.state.status, CubitWithRefreshMixinStatus.loading);
+      expect(cubit.state.status, CubitWithRefreshOptionStatus.loading);
     });
 
     group('GetPillarByOwn toJson/fromJson', () {
@@ -109,7 +109,7 @@ void main() {
 
       test('can (de)serialize success state', () {
         final GetPillarByOwnerState successState = GetPillarByOwnerState(
-          status: CubitWithRefreshMixinStatus.success,
+          status: CubitWithRefreshOptionStatus.success,
           data: pillarInfo,
         );
 
@@ -120,14 +120,14 @@ void main() {
         expect(deserialized, isA<GetPillarByOwnerState>());
         expect(
           deserialized.status,
-          equals(CubitWithRefreshMixinStatus.success),
+          equals(CubitWithRefreshOptionStatus.success),
         );
         expect(deserialized.data, equals(pillarInfo));
       });
 
       test('can (de)serialize failure state', () {
         final GetPillarByOwnerState failureState = GetPillarByOwnerState(
-          status: CubitWithRefreshMixinStatus.failure,
+          status: CubitWithRefreshOptionStatus.failure,
           error: exception,
         );
 
@@ -135,7 +135,7 @@ void main() {
         final GetPillarByOwnerState deserialized =
             GetPillarByOwnerState.fromJson(serialized);
 
-        expect(deserialized.status, equals(CubitWithRefreshMixinStatus.failure));
+        expect(deserialized.status, equals(CubitWithRefreshOptionStatus.failure));
       });
     });
 
@@ -153,7 +153,7 @@ void main() {
         expect: () => <GetPillarByOwnerState>[
           const GetPillarByOwnerState(),
           GetPillarByOwnerState(
-            status: CubitWithRefreshMixinStatus.success,
+            status: CubitWithRefreshOptionStatus.success,
             data: pillarInfo,
           ),
         ],
@@ -174,7 +174,7 @@ void main() {
         expect: () => <GetPillarByOwnerState>[
           const GetPillarByOwnerState(),
           GetPillarByOwnerState(
-            status: CubitWithRefreshMixinStatus.failure,
+            status: CubitWithRefreshOptionStatus.failure,
             error: exception,
           ),
         ],

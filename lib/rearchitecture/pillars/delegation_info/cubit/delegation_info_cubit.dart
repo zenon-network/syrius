@@ -9,7 +9,7 @@ part 'delegation_info_state.dart';
 /// A cubit that manages the state of delegation information
 /// for a specific address.
 class DelegationInfoCubit
-    extends CubitWithRefreshMixin<DelegationInfo?, DelegationInfoState> {
+    extends CubitWithRefreshOption<DelegationInfo?, DelegationInfoState> {
 
   /// Constructs a [DelegationInfoCubit].
   ///

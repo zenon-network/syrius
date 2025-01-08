@@ -1,27 +1,35 @@
+import 'dart:async';
+
 import 'package:hydrated_bloc/hydrated_bloc.dart';
-import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
-import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/cubits/cubit_with_refresh_mixin_state.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/cubits/cubit_with_refresh_option_state.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/exceptions/exceptions.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 /// A cubit used to manage reloading and updating indicator states.
 ///
 /// This cubit can be used for any data-fetching operations that require
 /// real-time updates from the Zenon SDK.
-abstract class CubitWithRefreshMixin<T, S extends CubitWithRefreshMixinState<T>>
-    extends HydratedCubit<S> with RefreshBlocMixin {
-  /// Constructor for [CubitWithRefreshMixin].
-  CubitWithRefreshMixin({
+abstract class CubitWithRefreshOption<T, S extends CubitWithRefreshOptionState<T>>
+    extends HydratedCubit<S> {
+  /// Constructor for [CubitWithRefreshOption].
+  CubitWithRefreshOption({
     required S initialState,
     required this.zenon,
   }) : super(initialState) {
-    listenToWsRestart(
-      () => updateStream(
-        address: Address.parse(kSelectedAddress!),
-      ),
+    _restartWsStreamSubscription = zenon.wsClient.restartedStream.listen(
+      (bool restarted) {
+        if (restarted) {
+          final CubitWithRefreshOptionState<T> lastState =
+              state as CubitWithRefreshOptionState<T>;
+          updateStream(
+            address: lastState.address!,
+          );
+        }
+      },
     );
   }
+
+  StreamSubscription<bool>? _restartWsStreamSubscription;
 
   /// An instance of [Zenon] used for data fetching and managing connections.
   final Zenon zenon;
@@ -44,8 +52,9 @@ abstract class CubitWithRefreshMixin<T, S extends CubitWithRefreshMixinState<T>>
 
         emit(
           state.copyWith(
+            address: address,
             data: data,
-            status: CubitWithRefreshMixinStatus.success,
+            status: CubitWithRefreshOptionStatus.success,
           ) as S,
         );
       } else {
@@ -56,7 +65,8 @@ abstract class CubitWithRefreshMixin<T, S extends CubitWithRefreshMixinState<T>>
       // Emit a failure state with the specific error.
       emit(
         state.copyWith(
-          status: CubitWithRefreshMixinStatus.failure,
+          address: address,
+          status: CubitWithRefreshOptionStatus.failure,
           error: e,
         ) as S,
       );
@@ -65,7 +75,8 @@ abstract class CubitWithRefreshMixin<T, S extends CubitWithRefreshMixinState<T>>
       // For unexpected errors, emit a failure state with a generic error.
       emit(
         state.copyWith(
-          status: CubitWithRefreshMixinStatus.failure,
+          address: address,
+          status: CubitWithRefreshOptionStatus.failure,
           error: SyriusException(e.toString() + stackTrace.toString()),
         ) as S,
       );
@@ -79,7 +90,7 @@ abstract class CubitWithRefreshMixin<T, S extends CubitWithRefreshMixinState<T>>
   /// Cancels any active WebSocket subscriptions managed by the mixin.
   @override
   Future<void> close() {
-    cancelStreamSubscription();
+    _restartWsStreamSubscription?.cancel();
     return super.close();
   }
 }

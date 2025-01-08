@@ -9,7 +9,7 @@ part 'pillar_uncollected_rewards_state.dart';
 
 /// A cubit responsible for fetching and managing the state of
 /// uncollected rewards for a specific pillar address.
-class PillarUncollectedRewardsCubit extends CubitWithRefreshMixin<
+class PillarUncollectedRewardsCubit extends CubitWithRefreshOption<
     UncollectedReward, PillarUncollectedRewardsState> {
   /// Constructs a [PillarUncollectedRewardsCubit]
   PillarUncollectedRewardsCubit({

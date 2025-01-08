@@ -9,9 +9,12 @@ part of 'get_pillar_by_owner_cubit.dart';
 GetPillarByOwnerState _$GetPillarByOwnerStateFromJson(
         Map<String, dynamic> json) =>
     GetPillarByOwnerState(
+      address: json['address'] == null
+          ? null
+          : Address.fromJson(json['address'] as Map<String, dynamic>),
       status: $enumDecodeNullable(
-              _$CubitWithRefreshMixinStatusEnumMap, json['status']) ??
-          CubitWithRefreshMixinStatus.loading,
+              _$CubitWithRefreshOptionStatusEnumMap, json['status']) ??
+          CubitWithRefreshOptionStatus.loading,
       data: (json['data'] as List<dynamic>?)
           ?.map((e) => PillarInfo.fromJson(e as Map<String, dynamic>))
           .toList(),
@@ -23,13 +26,14 @@ GetPillarByOwnerState _$GetPillarByOwnerStateFromJson(
 Map<String, dynamic> _$GetPillarByOwnerStateToJson(
         GetPillarByOwnerState instance) =>
     <String, dynamic>{
-      'status': _$CubitWithRefreshMixinStatusEnumMap[instance.status]!,
+      'address': instance.address?.toJson(),
+      'status': _$CubitWithRefreshOptionStatusEnumMap[instance.status]!,
       'data': instance.data?.map((e) => e.toJson()).toList(),
       'error': instance.error?.toJson(),
     };
 
-const _$CubitWithRefreshMixinStatusEnumMap = {
-  CubitWithRefreshMixinStatus.failure: 'failure',
-  CubitWithRefreshMixinStatus.loading: 'loading',
-  CubitWithRefreshMixinStatus.success: 'success',
+const _$CubitWithRefreshOptionStatusEnumMap = {
+  CubitWithRefreshOptionStatus.failure: 'failure',
+  CubitWithRefreshOptionStatus.loading: 'loading',
+  CubitWithRefreshOptionStatus.success: 'success',
 };

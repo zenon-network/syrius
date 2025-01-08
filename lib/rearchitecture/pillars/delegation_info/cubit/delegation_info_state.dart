@@ -2,11 +2,12 @@ part of 'delegation_info_cubit.dart';
 
 /// The state representation of [DelegationInfoCubit].
 @JsonSerializable(explicitToJson: true)
-class DelegationInfoState extends CubitWithRefreshMixinState<DelegationInfo> {
+class DelegationInfoState extends CubitWithRefreshOptionState<DelegationInfo> {
   /// Creates a new instance of [DelegationInfoState].
   ///
-  /// The [status] defaults to [CubitWithRefreshMixinStatus.loading].
+  /// The [status] defaults to [CubitWithRefreshOptionStatus.loading].
   const DelegationInfoState({
+    super.address,
     super.status,
     super.data,
     super.error,
@@ -18,12 +19,14 @@ class DelegationInfoState extends CubitWithRefreshMixinState<DelegationInfo> {
 
   /// {@macro state_copy_with}
   @override
-  CubitWithRefreshMixinState<DelegationInfo> copyWith({
-    CubitWithRefreshMixinStatus? status,
+  CubitWithRefreshOptionState<DelegationInfo> copyWith({
+    Address? address,
+    CubitWithRefreshOptionStatus? status,
     DelegationInfo? data,
     SyriusException? error,
   }) {
     return DelegationInfoState(
+      address: address ?? this.address,
       status: status ?? this.status,
       data: data ?? this.data,
       error: error ?? this.error,

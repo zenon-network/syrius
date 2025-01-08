@@ -30,15 +30,15 @@ class _PillarRewardsCardState extends State<PillarRewardsCard> {
       },
       body: BlocBuilder<PillarRewardsHistoryCubit, PillarRewardsHistoryState>(
         builder: (_, PillarRewardsHistoryState state) {
-          final CubitWithRefreshMixinStatus status = state.status;
+          final CubitWithRefreshOptionStatus status = state.status;
 
           return switch (status) {
-            CubitWithRefreshMixinStatus.failure => SyriusErrorWidget(
+            CubitWithRefreshOptionStatus.failure => SyriusErrorWidget(
               state.error!,
             ),
-            CubitWithRefreshMixinStatus.loading =>
+            CubitWithRefreshOptionStatus.loading =>
             const SyriusLoadingWidget(),
-            CubitWithRefreshMixinStatus.success => PillarRewardsChart(
+            CubitWithRefreshOptionStatus.success => PillarRewardsChart(
               rewardsHistoryList: state.data!,
             ),
           };

@@ -3,11 +3,12 @@ part of 'get_pillar_by_owner_cubit.dart';
 /// The state representation of [GetPillarByOwnerCubit].
 @JsonSerializable(explicitToJson: true)
 class GetPillarByOwnerState
-    extends CubitWithRefreshMixinState<List<PillarInfo>> {
+    extends CubitWithRefreshOptionState<List<PillarInfo>> {
   /// Creates a new instance of [GetPillarByOwnerState].
   ///
-  /// The [status] defaults to [CubitWithRefreshMixinStatus.loading].
+  /// The [status] defaults to [CubitWithRefreshOptionStatus.loading].
   const GetPillarByOwnerState({
+    super.address,
     super.status,
     super.data,
     super.error,
@@ -19,12 +20,14 @@ class GetPillarByOwnerState
 
   /// {@macro state_copy_with}
   @override
-  CubitWithRefreshMixinState<List<PillarInfo>> copyWith({
-    CubitWithRefreshMixinStatus? status,
+  CubitWithRefreshOptionState<List<PillarInfo>> copyWith({
+    Address? address,
+    CubitWithRefreshOptionStatus? status,
     List<PillarInfo>? data,
     SyriusException? error,
   }) {
     return GetPillarByOwnerState(
+      address: address ?? this.address,
       status: status ?? this.status,
       data: data ?? this.data,
       error: error ?? this.error,

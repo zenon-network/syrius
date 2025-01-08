@@ -8,7 +8,7 @@ part 'get_pillar_by_owner_state.dart';
 
 /// A cubit responsible for fetching and managing the state
 /// of pillars owned by a specific address.
-class GetPillarByOwnerCubit extends CubitWithRefreshMixin<List<PillarInfo>,
+class GetPillarByOwnerCubit extends CubitWithRefreshOption<List<PillarInfo>,
     GetPillarByOwnerState> {
 
   /// Constructs a [GetPillarByOwnerCubit].

@@ -9,7 +9,7 @@ part 'pillar_rewards_history_state.dart';
 
 /// A cubit that manages the state of reward history for a specific pillar
 /// address.
-class PillarRewardsHistoryCubit extends CubitWithRefreshMixin<
+class PillarRewardsHistoryCubit extends CubitWithRefreshOption<
     RewardHistoryList, PillarRewardsHistoryState> {
 
   /// Constructs a [PillarRewardsHistoryCubit].

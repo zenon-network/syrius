@@ -87,7 +87,7 @@ dependency_overrides:
   znn_sdk_dart:
     git:
       url: https://github.com/maznnwell/znn_sdk_dart.git
-      ref: refactor
+      ref: 5171013d9bf646c81202a681cf4fe670f3000825
 
 dev_dependencies:
   build_runner: ^2.4.6

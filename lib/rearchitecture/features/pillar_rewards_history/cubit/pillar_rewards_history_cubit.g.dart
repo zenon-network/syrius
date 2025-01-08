@@ -9,9 +9,12 @@ part of 'pillar_rewards_history_cubit.dart';
 PillarRewardsHistoryState _$PillarRewardsHistoryStateFromJson(
         Map<String, dynamic> json) =>
     PillarRewardsHistoryState(
+      address: json['address'] == null
+          ? null
+          : Address.fromJson(json['address'] as Map<String, dynamic>),
       status: $enumDecodeNullable(
-              _$CubitWithRefreshMixinStatusEnumMap, json['status']) ??
-          CubitWithRefreshMixinStatus.loading,
+              _$CubitWithRefreshOptionStatusEnumMap, json['status']) ??
+          CubitWithRefreshOptionStatus.loading,
       data: json['data'] == null
           ? null
           : RewardHistoryList.fromJson(json['data'] as Map<String, dynamic>),
@@ -23,13 +26,14 @@ PillarRewardsHistoryState _$PillarRewardsHistoryStateFromJson(
 Map<String, dynamic> _$PillarRewardsHistoryStateToJson(
         PillarRewardsHistoryState instance) =>
     <String, dynamic>{
-      'status': _$CubitWithRefreshMixinStatusEnumMap[instance.status]!,
+      'address': instance.address?.toJson(),
+      'status': _$CubitWithRefreshOptionStatusEnumMap[instance.status]!,
       'data': instance.data?.toJson(),
       'error': instance.error?.toJson(),
     };
 
-const _$CubitWithRefreshMixinStatusEnumMap = {
-  CubitWithRefreshMixinStatus.failure: 'failure',
-  CubitWithRefreshMixinStatus.loading: 'loading',
-  CubitWithRefreshMixinStatus.success: 'success',
+const _$CubitWithRefreshOptionStatusEnumMap = {
+  CubitWithRefreshOptionStatus.failure: 'failure',
+  CubitWithRefreshOptionStatus.loading: 'loading',
+  CubitWithRefreshOptionStatus.success: 'success',
 };

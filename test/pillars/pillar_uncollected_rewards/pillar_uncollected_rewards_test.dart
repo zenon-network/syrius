@@ -66,7 +66,7 @@ void main() {
     test('initial state is correct', () {
       expect(
         pillarUncollectedRewardsCubit.state.status,
-        CubitWithRefreshMixinStatus.loading,
+        CubitWithRefreshOptionStatus.loading,
       );
     });
 
@@ -96,7 +96,7 @@ void main() {
       test('can (de)serialize success state', () {
         final PillarUncollectedRewardsState successState =
             PillarUncollectedRewardsState(
-          status: CubitWithRefreshMixinStatus.success,
+          status: CubitWithRefreshOptionStatus.success,
           data: uncollectedReward,
         );
 
@@ -107,7 +107,7 @@ void main() {
         expect(deserialized, isA<PillarUncollectedRewardsState>());
         expect(
           deserialized.status,
-          equals(CubitWithRefreshMixinStatus.success),
+          equals(CubitWithRefreshOptionStatus.success),
         );
         expect(deserialized.data, equals(uncollectedReward));
       });
@@ -115,7 +115,7 @@ void main() {
       test('can (de)serialize failure state', () {
         final PillarUncollectedRewardsState failureState =
             PillarUncollectedRewardsState(
-          status: CubitWithRefreshMixinStatus.failure,
+          status: CubitWithRefreshOptionStatus.failure,
           error: exception,
         );
         final Map<String, dynamic> serialized = failureState.toJson();
@@ -140,7 +140,7 @@ void main() {
         expect: () => <PillarUncollectedRewardsState>[
           const PillarUncollectedRewardsState(),
           PillarUncollectedRewardsState(
-            status: CubitWithRefreshMixinStatus.success,
+            status: CubitWithRefreshOptionStatus.success,
             data: uncollectedReward,
           ),
         ],
@@ -159,7 +159,7 @@ void main() {
         expect: () => <PillarUncollectedRewardsState>[
           const PillarUncollectedRewardsState(),
           PillarUncollectedRewardsState(
-            status: CubitWithRefreshMixinStatus.failure,
+            status: CubitWithRefreshOptionStatus.failure,
             error: exception,
           ),
         ],

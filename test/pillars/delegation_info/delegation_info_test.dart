@@ -59,7 +59,7 @@ void main() {
     });
 
     test('initial state is correct', () {
-      expect(cubit.state.status, CubitWithRefreshMixinStatus.loading);
+      expect(cubit.state.status, CubitWithRefreshOptionStatus.loading);
     });
 
     group('DelegationInfo toJson/fromJson', () {
@@ -85,7 +85,7 @@ void main() {
 
       test('can (de)serialize success state', () {
         final DelegationInfoState successState = DelegationInfoState(
-          status: CubitWithRefreshMixinStatus.success,
+          status: CubitWithRefreshOptionStatus.success,
           data: delegationInfo,
         );
 
@@ -98,7 +98,7 @@ void main() {
 
       test('can (de)serialize failure state', () {
         final DelegationInfoState failureState = DelegationInfoState(
-          status: CubitWithRefreshMixinStatus.failure,
+          status: CubitWithRefreshOptionStatus.failure,
           error: exception,
         );
 
@@ -106,7 +106,7 @@ void main() {
         final DelegationInfoState deserialized =
             DelegationInfoState.fromJson(serialized);
 
-        expect(deserialized.status, equals(CubitWithRefreshMixinStatus.failure));
+        expect(deserialized.status, equals(CubitWithRefreshOptionStatus.failure));
       });
     });
 
@@ -124,7 +124,7 @@ void main() {
         expect: () => <DelegationInfoState>[
           const DelegationInfoState(),
           DelegationInfoState(
-            status: CubitWithRefreshMixinStatus.success,
+            status: CubitWithRefreshOptionStatus.success,
             data: delegationInfo,
           ),
         ],
@@ -146,7 +146,7 @@ void main() {
         expect: () => <DelegationInfoState>[
           const DelegationInfoState(),
           DelegationInfoState(
-            status: CubitWithRefreshMixinStatus.failure,
+            status: CubitWithRefreshOptionStatus.failure,
             error: exception,
           ),
         ],

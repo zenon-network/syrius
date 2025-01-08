@@ -60,6 +60,11 @@ void main() {
       rewardHistoryList = RewardHistoryList.fromJson(rewardHistoryListJson);
 
       when(() => mockZenon.wsClient).thenReturn(mockWsClient);
+      when(() => mockWsClient.restartedStream).thenAnswer(
+        (_) => Stream<bool>.fromIterable(
+          <bool>[],
+        ),
+      );
       when(() => mockWsClient.isClosed()).thenReturn(false);
       when(() => mockZenon.embedded).thenReturn(mockEmbedded);
       when(() => mockEmbedded.pillar).thenReturn(mockPillarApi);
@@ -76,7 +81,7 @@ void main() {
     test('initial state is correct', () {
       expect(
         pillarRewardsHistoryCubit.state.status,
-        CubitWithRefreshMixinStatus.loading,
+        CubitWithRefreshOptionStatus.loading,
       );
     });
 
@@ -106,7 +111,7 @@ void main() {
       test('can (de)serialize success state', () {
         final PillarRewardsHistoryState successState =
             PillarRewardsHistoryState(
-          status: CubitWithRefreshMixinStatus.success,
+          status: CubitWithRefreshOptionStatus.success,
           data: rewardHistoryList,
         );
 
@@ -117,7 +122,7 @@ void main() {
         expect(deserialized, isA<PillarRewardsHistoryState>());
         expect(
           deserialized.status,
-          equals(CubitWithRefreshMixinStatus.success),
+          equals(CubitWithRefreshOptionStatus.success),
         );
         expect(deserialized.data, equals(rewardHistoryList));
       });
@@ -125,7 +130,7 @@ void main() {
       test('can (de)serialize failure state', () {
         final PillarRewardsHistoryState failureState =
             PillarRewardsHistoryState(
-          status: CubitWithRefreshMixinStatus.failure,
+          status: CubitWithRefreshOptionStatus.failure,
           error: exception,
         );
 
@@ -136,7 +141,7 @@ void main() {
         expect(deserialized, isA<PillarRewardsHistoryState>());
         expect(
           deserialized.status,
-          equals(CubitWithRefreshMixinStatus.failure),
+          equals(CubitWithRefreshOptionStatus.failure),
         );
       });
     });
@@ -158,7 +163,7 @@ void main() {
         ),
         expect: () => <PillarRewardsHistoryState>[
           PillarRewardsHistoryState(
-            status: CubitWithRefreshMixinStatus.success,
+            status: CubitWithRefreshOptionStatus.success,
             data: rewardHistoryList,
           ),
         ],
@@ -180,7 +185,7 @@ void main() {
         ),
         expect: () => <PillarRewardsHistoryState>[
           PillarRewardsHistoryState(
-            status: CubitWithRefreshMixinStatus.failure,
+            status: CubitWithRefreshOptionStatus.failure,
             error: exception,
           ),
         ],
