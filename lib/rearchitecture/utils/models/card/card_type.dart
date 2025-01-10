@@ -96,7 +96,7 @@ enum CardType {
               .realtimeStatsDescription(kQsrCoin.symbol, kZnnCoin.symbol),
         ),
       CardType.receive => CardData(
-          description: '${context.l10n.manageReceivingFunds}'
+          description: '${context.l10n.manageReceivingFunds}\n'
               '${context.l10n.addressSearchDescription}\n'
               '${context.l10n.ztsSearchDescription}',
           title: context.l10n.receive,
