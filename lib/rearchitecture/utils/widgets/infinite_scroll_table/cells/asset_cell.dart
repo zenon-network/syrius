@@ -10,7 +10,7 @@ class AssetCell extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final String content = block.token!.name;
+    final String content = block.token!.symbol;
 
     final Color textColor = ColorUtils.getTokenColor(block.tokenStandard);
 

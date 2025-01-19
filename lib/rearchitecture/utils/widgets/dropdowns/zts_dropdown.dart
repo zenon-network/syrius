@@ -34,7 +34,7 @@ class _ZtsDropdownState extends State<ZtsDropdown> {
             ? ''
             : ' (${token.tokenStandard.toString().short})';
 
-        final String label = '${token.name} $labelSuffix';
+        final String label = '${token.symbol} $labelSuffix';
 
         return DropdownMenuEntry<Token>(
           label: label,
