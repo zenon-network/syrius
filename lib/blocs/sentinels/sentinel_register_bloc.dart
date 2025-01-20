@@ -10,13 +10,13 @@ class SentinelsDeployBloc extends BaseBloc<AccountBlockTemplate?> {
       addEvent(null);
       final AccountBlockTemplate transactionParams =
           zenon!.embedded.sentinel.register();
-      AccountBlockUtils.createAccountBlock(
+      AccountBlockUtils().createAccountBlock(
         transactionParams,
         'register Sentinel',
         waitForRequiredPlasma: true,
       ).then(
         (AccountBlockTemplate response) {
-          ZenonAddressUtils.refreshBalance();
+          ZenonAddressUtils().refreshBalance();
           addEvent(response);
         },
       ).onError(

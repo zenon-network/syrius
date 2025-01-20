@@ -75,7 +75,6 @@ class _MainAppContainerState extends State<MainAppContainer>
 
   Timer? _navigateToLockTimer;
   TabController? _tabController;
-  TransferTabChild? _transferTabChild;
   bool _initialUriIsHandled = false;
 
   final AppLinks _appLinks = AppLinks();
@@ -94,7 +93,6 @@ class _MainAppContainerState extends State<MainAppContainer>
 
     ClipboardUtils.toggleClipboardWatcherStatus();
 
-    _transferTabChild = TransferTabChild();
     _initTabController();
     _animationController = AnimationController(
       vsync: this,
@@ -113,10 +111,13 @@ class _MainAppContainerState extends State<MainAppContainer>
   @override
   Widget build(BuildContext context) {
     return Consumer<TextScalingNotifier>(
-      builder: (BuildContext context, TextScalingNotifier textScalingNotifier, Widget? child) => MediaQuery(
+      builder: (BuildContext context, TextScalingNotifier textScalingNotifier,
+              Widget? child) =>
+          MediaQuery(
         data: MediaQuery.of(context).copyWith(
           textScaler: TextScaler.linear(
-              textScalingNotifier.getTextScaleFactor(context),),
+            textScalingNotifier.getTextScaleFactor(context),
+          ),
         ),
         child: Scaffold(
           body: Container(
@@ -127,8 +128,9 @@ class _MainAppContainerState extends State<MainAppContainer>
               children: <Widget>[
                 _getDesktopNavigationContainer(),
                 SizedBox(
-                  height:
-                      NotificationUtils.shouldShowNotification() ? 15.0 : 20.0,
+                  height: NotificationUtils.shouldShowNotification()
+                      ? 15.0
+                      : 20.0,
                 ),
                 NotificationWidget(
                   onSeeMorePressed: () {
@@ -402,7 +404,7 @@ class _MainAppContainerState extends State<MainAppContainer>
       controller: _tabController,
       children: <Widget>[
         DashboardTabChild(changePage: _navigateTo),
-        _transferTabChild!,
+        TransferTabChild(),
         PillarsTabChild(
           onStepperNotificationSeeMorePressed: () =>
               _navigateTo(Tabs.notifications),
@@ -505,18 +507,7 @@ class _MainAppContainerState extends State<MainAppContainer>
 
   int _getTabChildIndex(Tabs page) => kTabs.indexOf(page);
 
-  void _navigateTo(
-    Tabs page, {
-    bool redirectWithSendContainerLarge = false,
-    bool redirectWithReceiveContainerLarge = false,
-  }) {
-    if (redirectWithSendContainerLarge) {
-      _transferTabChild!.sendCard = DimensionCard.large;
-      _transferTabChild!.receiveCard = DimensionCard.small;
-    } else if (redirectWithReceiveContainerLarge) {
-      _transferTabChild!.sendCard = DimensionCard.small;
-      _transferTabChild!.receiveCard = DimensionCard.large;
-    }
+  void _navigateTo(Tabs page) {
     if (kCurrentPage != page) {
       kCurrentPage = page;
       _tabController!.animateTo(kTabs.indexOf(page));
@@ -582,7 +573,8 @@ class _MainAppContainerState extends State<MainAppContainer>
   }
 
   Timer _createAutoLockTimer() {
-    return Timer.periodic(Duration(minutes: kAutoLockWalletMinutes!), (Timer timer) {
+    return Timer.periodic(Duration(minutes: kAutoLockWalletMinutes!),
+        (Timer timer) {
       if (!sl<HtlcSwapsHandler>().hasActiveIncomingSwaps) {
         _lockBloc.addEvent(LockEvent.navigateToLock);
       }
@@ -609,7 +601,8 @@ class _MainAppContainerState extends State<MainAppContainer>
                 if (Platform.isWindows) {
                   uriRaw = uriRaw.replaceAll('/?', '?');
                 }
-                final String wcUri = Uri.decodeFull(uriRaw.split('wc?uri=').last);
+                final String wcUri =
+                    Uri.decodeFull(uriRaw.split('wc?uri=').last);
                 if (WalletConnectUri.tryParse(wcUri) != null) {
                   await _updateWalletConnectUri(wcUri);
                 }
@@ -625,7 +618,8 @@ class _MainAppContainerState extends State<MainAppContainer>
               Token? token;
 
               if (uri.hasQuery) {
-                uri.queryParametersAll.forEach((String key, List<String> value) async {
+                uri.queryParametersAll
+                    .forEach((String key, List<String> value) async {
                   if (key == 'amount') {
                     queryAmount = value.first;
                   } else if (key == 'zts') {
@@ -651,9 +645,10 @@ class _MainAppContainerState extends State<MainAppContainer>
                 }
               }
 
-              final SendPaymentBloc sendPaymentBloc = SendPaymentBloc();
-              final StakingOptionsBloc stakingOptionsBloc = StakingOptionsBloc();
-              final DelegateButtonBloc delegateButtonBloc = DelegateButtonBloc();
+              final StakingOptionsBloc stakingOptionsBloc =
+                  StakingOptionsBloc();
+              final DelegateButtonBloc delegateButtonBloc =
+                  DelegateButtonBloc();
               final PlasmaOptionsBloc plasmaOptionsBloc = PlasmaOptionsBloc();
 
               if (context.mounted) {
@@ -672,7 +667,8 @@ class _MainAppContainerState extends State<MainAppContainer>
                       _navigateTo(Tabs.transfer);
 
                       if (token != null) {
-                        showDialogWithNoAndYesOptions(
+                        final bool? actionAccepted =
+                            await showDialogWithNoAndYesOptions(
                           context: context,
                           title: 'Transfer action',
                           isBarrierDismissible: true,
@@ -684,20 +680,21 @@ class _MainAppContainerState extends State<MainAppContainer>
                               ),
                             ],
                           ),
-                          onYesButtonPressed: () {
-                            sendPaymentBloc.sendTransfer(
-                              fromAddress: kSelectedAddress,
-                              toAddress: queryAddress,
-                              amount:
-                                  queryAmount.extractDecimals(token!.decimals),
-                              token: token,
-                            );
-                          },
-                          onNoButtonPressed: () {},
                         );
+
+                        if (actionAccepted ?? false) {
+                          context.read<SendTransactionBloc>().add(
+                                SendTransactionInitiate(
+                                  fromAddress: kSelectedAddress!,
+                                  toAddress: queryAddress,
+                                  amount: queryAmount
+                                      .extractDecimals(token.decimals),
+                                  token: token,
+                                ),
+                              );
+                        }
                       }
                     }
-
                   case 'stake':
                     await sl<NotificationsBloc>().addNotification(
                       WalletNotification(
@@ -711,7 +708,7 @@ class _MainAppContainerState extends State<MainAppContainer>
                     if (kCurrentPage != Tabs.lock) {
                       _navigateTo(Tabs.staking);
 
-                      showDialogWithNoAndYesOptions(
+                      final bool? actionAccepted = await showDialogWithNoAndYesOptions(
                         context: context,
                         title: 'Stake ${kZnnCoin.symbol} action',
                         isBarrierDismissible: true,
@@ -723,14 +720,14 @@ class _MainAppContainerState extends State<MainAppContainer>
                             ),
                           ],
                         ),
-                        onYesButtonPressed: () {
-                          stakingOptionsBloc.stakeForQsr(
-                            Duration(seconds: queryDuration * stakeTimeUnitSec),
-                            queryAmount.extractDecimals(kZnnCoin.decimals),
-                          );
-                        },
-                        onNoButtonPressed: () {},
                       );
+
+                      if (actionAccepted ?? false) {
+                        stakingOptionsBloc.stakeForQsr(
+                          Duration(seconds: queryDuration * stakeTimeUnitSec),
+                          queryAmount.extractDecimals(kZnnCoin.decimals),
+                        );
+                      }
                     }
 
                   case 'delegate':
@@ -746,7 +743,7 @@ class _MainAppContainerState extends State<MainAppContainer>
                     if (kCurrentPage != Tabs.lock) {
                       _navigateTo(Tabs.pillars);
 
-                      showDialogWithNoAndYesOptions(
+                      final bool? actionAccepted = await showDialogWithNoAndYesOptions(
                         context: context,
                         title: 'Delegate ${kZnnCoin.symbol} action',
                         isBarrierDismissible: true,
@@ -758,11 +755,11 @@ class _MainAppContainerState extends State<MainAppContainer>
                             ),
                           ],
                         ),
-                        onYesButtonPressed: () {
-                          delegateButtonBloc.delegateToPillar(queryPillarName);
-                        },
-                        onNoButtonPressed: () {},
                       );
+
+                      if (actionAccepted ?? false) {
+                        delegateButtonBloc.delegateToPillar(queryPillarName);
+                      }
                     }
 
                   case 'fuse':
@@ -778,7 +775,7 @@ class _MainAppContainerState extends State<MainAppContainer>
                     if (kCurrentPage != Tabs.lock) {
                       _navigateTo(Tabs.plasma);
 
-                      showDialogWithNoAndYesOptions(
+                      final bool? actionAccepted = await showDialogWithNoAndYesOptions(
                         context: context,
                         title: 'Fuse ${kQsrCoin.symbol} action',
                         isBarrierDismissible: true,
@@ -790,14 +787,14 @@ class _MainAppContainerState extends State<MainAppContainer>
                             ),
                           ],
                         ),
-                        onYesButtonPressed: () {
-                          plasmaOptionsBloc.generatePlasma(
-                            queryAddress,
-                            queryAmount.extractDecimals(kZnnCoin.decimals),
-                          );
-                        },
-                        onNoButtonPressed: () {},
                       );
+
+                      if (actionAccepted ?? false) {
+                        plasmaOptionsBloc.generatePlasma(
+                          queryAddress,
+                          queryAmount.extractDecimals(kZnnCoin.decimals),
+                        );
+                      }
                     }
 
                   case 'sentinel':
@@ -891,7 +888,8 @@ class _MainAppContainerState extends State<MainAppContainer>
 
   @override
   Future<void> onClipboardChanged() async {
-    final ClipboardData? newClipboardData = await Clipboard.getData(Clipboard.kTextPlain);
+    final ClipboardData? newClipboardData =
+        await Clipboard.getData(Clipboard.kTextPlain);
     final String text = newClipboardData?.text ?? '';
     if (text.isNotEmpty && WalletConnectUri.tryParse(text) != null) {
       // This check is needed because onClipboardChanged is called twice sometimes

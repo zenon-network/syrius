@@ -1,5 +1,3 @@
-// ignore_for_file: prefer_const_constructors
-
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
@@ -75,7 +73,7 @@ void main() {
 
     group('fromJson/toJson', () {
       test('can (de)serialize initial state', () {
-        final BalanceState initialState = BalanceState();
+        const BalanceState initialState = BalanceState();
 
         final Map<String, dynamic>? serialized = balanceCubit.toJson(
           initialState,
@@ -87,7 +85,7 @@ void main() {
       });
 
       test('can (de)serialize loading state', () {
-        final BalanceState loadingState = BalanceState(
+        const BalanceState loadingState = BalanceState(
           status: TimerStatus.loading,
         );
 
@@ -159,7 +157,7 @@ void main() {
         },
         act: (BalanceCubit cubit) => cubit.fetchDataPeriodically(),
           expect: () => <BalanceState>[
-            BalanceState(status: TimerStatus.loading),
+            const BalanceState(status: TimerStatus.loading),
             BalanceState(
               status: TimerStatus.failure,
               error: balanceException,
@@ -172,7 +170,7 @@ void main() {
         build: () => balanceCubit,
         act: (BalanceCubit cubit) => cubit.fetchDataPeriodically(),
           expect: () => <BalanceState>[
-            BalanceState(status: TimerStatus.loading),
+            const BalanceState(status: TimerStatus.loading),
             BalanceState(status: TimerStatus.success,
             data: accountInfo,
             ),

@@ -30,7 +30,7 @@ class JoinHtlcSwapBloc extends BaseBloc<HtlcSwap?> {
         initialHtlc.keyMaxSize,
         initialHtlc.hashLock,
       );
-      AccountBlockUtils.createAccountBlock(transactionParams, 'join swap',
+      AccountBlockUtils().createAccountBlock(transactionParams, 'join swap',
               address: initialHtlc.hashLocked, waitForRequiredPlasma: true,)
           .then(
         (AccountBlockTemplate response) async {
@@ -61,7 +61,7 @@ class JoinHtlcSwapBloc extends BaseBloc<HtlcSwap?> {
             hashType: initialHtlc.hashType,
           );
           await htlcSwapsService!.storeSwap(swap);
-          ZenonAddressUtils.refreshBalance();
+          ZenonAddressUtils().refreshBalance();
           addEvent(swap);
         },
       ).onError(

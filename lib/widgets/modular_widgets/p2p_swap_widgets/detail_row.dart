@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/icons/copy_to_clipboard_icon.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/buttons/copy_to_clipboard_button.dart';
 
 class DetailRow extends StatelessWidget {
 
@@ -38,11 +38,8 @@ class DetailRow extends StatelessWidget {
                     fontSize: 12, color: AppColors.subtitleColor,),),
             Visibility(
               visible: canBeCopied,
-              child: CopyToClipboardIcon(
+              child: CopyToClipboardButton(
                 value,
-                iconColor: AppColors.subtitleColor,
-                materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                padding: const EdgeInsets.only(left: 8),
               ),
             ),
           ],

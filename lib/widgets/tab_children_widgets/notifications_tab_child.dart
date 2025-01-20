@@ -79,7 +79,7 @@ class _NotificationsTabChildState extends State<NotificationsTabChild> {
                 style: Theme.of(context).textTheme.titleMedium,
               ),
             ),
-            CopyToClipboardIcon(notification.details),
+            CopyToClipboardButton(notification.details!),
           ],
         ),
       ),

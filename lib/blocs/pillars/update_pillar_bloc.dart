@@ -21,7 +21,7 @@ class UpdatePillarBloc extends BaseBloc<AccountBlockTemplate?> {
         giveBlockRewardPercentage,
         giveDelegateRewardPercentage,
       );
-      AccountBlockUtils.createAccountBlock(
+      AccountBlockUtils().createAccountBlock(
         transactionParams,
         'update pillar',
       )

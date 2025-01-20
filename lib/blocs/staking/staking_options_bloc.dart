@@ -15,11 +15,11 @@ class StakingOptionsBloc extends BaseBloc<AccountBlockTemplate?> {
         stakeDuration.inSeconds,
         amount,
       );
-      AccountBlockUtils.createAccountBlock(transactionParams, 'create stake',
+      AccountBlockUtils().createAccountBlock(transactionParams, 'create stake',
               waitForRequiredPlasma: true,)
           .then(
         (AccountBlockTemplate response) {
-          ZenonAddressUtils.refreshBalance();
+          ZenonAddressUtils().refreshBalance();
           addEvent(response);
         },
       ).onError(

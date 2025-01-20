@@ -7,9 +7,9 @@ import 'package:zenon_syrius_wallet_flutter/blocs/auto_unlock_htlc_worker.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/model/model.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/account_block_utils.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/address_utils.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/blocs/blocs.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 class AutoReceiveTxWorker extends BaseBloc<WalletNotification> {
@@ -23,23 +23,25 @@ class AutoReceiveTxWorker extends BaseBloc<WalletNotification> {
   }
 
   Future<AccountBlockTemplate?> autoReceiveTransactionHash(
-      Hash currentHash,) async {
+    Hash currentHash,
+  ) async {
     if (!running) {
       running = true;
       try {
         final Address toAddress =
             (await zenon!.ledger.getAccountBlockByHash(currentHash))!.toAddress;
-        final AccountBlockTemplate transactionParams = AccountBlockTemplate.receive(
+        final AccountBlockTemplate transactionParams =
+            AccountBlockTemplate.receive(
           currentHash,
         );
         final AccountBlockTemplate response =
-            await AccountBlockUtils.createAccountBlock(
+            await AccountBlockUtils().createAccountBlock(
           transactionParams,
           'receive transaction',
           address: toAddress,
           waitForRequiredPlasma: true,
         );
-        _sendSuccessNotification(response, toAddress.toString());
+        _onSuccess(response, toAddress.toString());
         return response;
       } on RpcException catch (e, stackTrace) {
         _sendErrorNotification(e.toString());
@@ -54,9 +56,10 @@ class AutoReceiveTxWorker extends BaseBloc<WalletNotification> {
 
   Future<void> autoReceive() async {
     if (sharedPrefsService!.get(
-      kAutoReceiveKey,
-      defaultValue: kAutoReceiveDefaultValue,
-    ) == false) {
+          kAutoReceiveKey,
+          defaultValue: kAutoReceiveDefaultValue,
+        ) ==
+        false) {
       pool.clear();
       return;
     }
@@ -68,17 +71,18 @@ class AutoReceiveTxWorker extends BaseBloc<WalletNotification> {
       try {
         final Address toAddress =
             (await zenon!.ledger.getAccountBlockByHash(currentHash))!.toAddress;
-        final AccountBlockTemplate transactionParams = AccountBlockTemplate.receive(
+        final AccountBlockTemplate transactionParams =
+            AccountBlockTemplate.receive(
           currentHash,
         );
         final AccountBlockTemplate response =
-            await AccountBlockUtils.createAccountBlock(
+            await AccountBlockUtils().createAccountBlock(
           transactionParams,
           'receive transaction',
           address: toAddress,
           waitForRequiredPlasma: true,
         );
-        _sendSuccessNotification(response, toAddress.toString());
+        _onSuccess(response, toAddress.toString());
         if (pool.isNotEmpty) {
           pool.removeFirst();
         }
@@ -111,6 +115,11 @@ class AutoReceiveTxWorker extends BaseBloc<WalletNotification> {
               (syncInfo.targetHeight > 0 &&
                   syncInfo.currentHeight > 0 &&
                   (syncInfo.targetHeight - syncInfo.currentHeight) < 3))) {
+        sl.get<PendingTransactionsBloc>().add(
+          InfiniteListRefreshRequested(
+            address: Address.parse(kSelectedAddress!),
+          ),
+        );
         pool.add(hash);
       }
     });
@@ -125,6 +134,25 @@ class AutoReceiveTxWorker extends BaseBloc<WalletNotification> {
         type: NotificationType.error,
       ),
     );
+  }
+
+  void _onSuccess(AccountBlockTemplate block, String toAddress) {
+    sl.get<MultipleBalanceBloc>().add(
+          MultipleBalanceFetch(
+            addresses: kDefaultAddressList.map((String? e) => e!).toList(),
+          ),
+        );
+
+    final Address address = Address.parse(kSelectedAddress!);
+    sl.get<LatestTransactionsBloc>().add(
+      InfiniteListRefreshRequested(address: address),
+    );
+    sl.get<PendingTransactionsBloc>().add(
+          InfiniteListRefreshRequested(
+            address: address,
+          ),
+        );
+    _sendSuccessNotification(block, toAddress);
   }
 
   void _sendSuccessNotification(AccountBlockTemplate block, String toAddress) {

@@ -16,12 +16,12 @@ class MintTokenBloc extends BaseBloc<AccountBlockTemplate> {
         amount,
         beneficiaryAddress,
       );
-      AccountBlockUtils.createAccountBlock(transactionParams, 'mint token',
+      AccountBlockUtils().createAccountBlock(transactionParams, 'mint token',
               waitForRequiredPlasma: true,)
           .then(
         (AccountBlockTemplate response) {
           response.amount = amount;
-          ZenonAddressUtils.refreshBalance();
+          ZenonAddressUtils().refreshBalance();
           addEvent(response);
         },
       ).onError(

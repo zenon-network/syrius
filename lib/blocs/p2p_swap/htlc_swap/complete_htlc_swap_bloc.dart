@@ -30,13 +30,13 @@ class CompleteHtlcSwapBloc extends BaseBloc<HtlcSwap?> {
 
       final AccountBlockTemplate transactionParams = zenon!.embedded.htlc.unlock(
           Hash.parse(htlcId), FormatUtils.decodeHexString(swap.preimage!),);
-      AccountBlockUtils.createAccountBlock(transactionParams, 'complete swap',
+      AccountBlockUtils().createAccountBlock(transactionParams, 'complete swap',
               address: Address.parse(swap.selfAddress), waitForRequiredPlasma: true,)
           .then(
         (AccountBlockTemplate response) async {
           swap.state = P2pSwapState.completed;
           await htlcSwapsService!.storeSwap(swap);
-          ZenonAddressUtils.refreshBalance();
+          ZenonAddressUtils().refreshBalance();
           addEvent(swap);
         },
       ).onError(

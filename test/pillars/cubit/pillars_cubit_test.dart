@@ -1,10 +1,9 @@
-// ignore_for_file: prefer_const_constructors
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/rearchitecture.dart';
-import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/exceptions/cubit_failure_exception.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/exceptions/failure_exception.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 import '../../helpers/hydrated_bloc.dart';
@@ -30,7 +29,7 @@ void main() {
     late MockEmbedded mockEmbedded;
     late MockPillar mockPillar;
     late PillarsCubit pillarsCubit;
-    late CubitFailureException exception;
+    late FailureException exception;
 
     setUp(() async {
       mockZenon = MockZenon();
@@ -40,7 +39,7 @@ void main() {
       pillarsCubit = PillarsCubit(
         zenon: mockZenon,
       );
-      exception = CubitFailureException();
+      exception = FailureException();
 
       when(() => mockZenon.wsClient).thenReturn(mockWsClient);
       when(() => mockWsClient.isClosed()).thenReturn(false);
@@ -57,7 +56,7 @@ void main() {
 
     group('fromJson/toJson', () {
       test('can (de)serialize initial state', () {
-        final PillarsState initialState = PillarsState();
+        const PillarsState initialState = PillarsState();
 
         final Map<String, dynamic>? serialized = pillarsCubit.toJson(
           initialState,
@@ -69,7 +68,7 @@ void main() {
       });
 
       test('can (de)serialize loading state', () {
-        final PillarsState loadingState = PillarsState(
+        const PillarsState loadingState = PillarsState(
           status: TimerStatus.loading,
         );
 
@@ -83,7 +82,7 @@ void main() {
       });
 
       test('can (de)serialize success state', () {
-        final PillarsState successState = PillarsState(
+        const PillarsState successState = PillarsState(
           status: TimerStatus.success,
           data: 100,
         );
@@ -127,8 +126,8 @@ void main() {
         },
         act: (PillarsCubit cubit) => cubit.fetchDataPeriodically(),
         expect: () => <PillarsState>[
-          PillarsState(status: TimerStatus.loading),
-          PillarsState(status: TimerStatus.success, data: 100),
+          const PillarsState(status: TimerStatus.loading),
+          const PillarsState(status: TimerStatus.success, data: 100),
         ],
         verify: (_) {
           verify(() => mockPillar.getAll()).called(1);
@@ -143,7 +142,7 @@ void main() {
         build: () => pillarsCubit,
         act: (PillarsCubit cubit) => cubit.fetchDataPeriodically(),
         expect: () => <PillarsState>[
-          PillarsState(status: TimerStatus.loading),
+          const PillarsState(status: TimerStatus.loading),
           PillarsState(status: TimerStatus.failure, error: exception),
         ],
       );

@@ -7,17 +7,11 @@ import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 class ColorUtils {
   static Color getTokenColor(TokenStandard tokenStandard) {
     return kCoinIdColor[tokenStandard] ??
-        getColorFromHexCode(_getHexCodeFromTokenZts(tokenStandard));
+        AppColors.ztsColor;
   }
 
   static Color getColorFromHexCode(String hexCode) {
     return Color(int.parse(hexCode, radix: 16) + 0xFF000000);
-  }
-
-  static String _getHexCodeFromTokenZts(TokenStandard tokenStandard) {
-    final List<int> bytes =
-        tokenStandard.getBytes().sublist(tokenStandard.getBytes().length - 3);
-    return BytesUtils.bytesToHex(bytes);
   }
 
   static Color getPlasmaColor(PlasmaInfo plasmaInfo) {

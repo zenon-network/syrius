@@ -20,14 +20,14 @@ class IssueTokenBloc extends BaseBloc<AccountBlockTemplate> {
           tokenStepperData.isMintable!,
           tokenStepperData.isOwnerBurnOnly!,
           tokenStepperData.isUtility!,);
-      AccountBlockUtils.createAccountBlock(
+      AccountBlockUtils().createAccountBlock(
         transactionParams,
         'issue token',
         waitForRequiredPlasma: true,
       ).then(
         (AccountBlockTemplate response) {
           Hive.box(kFavoriteTokensBox).add(response.tokenStandard.toString());
-          ZenonAddressUtils.refreshBalance();
+          ZenonAddressUtils().refreshBalance();
           addEvent(response);
         },
       ).onError(

@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_vector_icons/flutter_vector_icons.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
 import 'package:zenon_syrius_wallet_flutter/screens/screens.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
@@ -168,6 +169,11 @@ class _LockTabChildState extends State<LockTabChild> {
           });
           await InitUtils.initWalletAfterDecryption(
               Crypto.digest(utf8.encode(_passwordController.text)),);
+          sl.get<MultipleBalanceBloc>().add(
+            MultipleBalanceFetch(
+              addresses: kDefaultAddressList.map((String? e) => e!).toList(),
+            ),
+          );
           widget.afterInitCallback();
         } else {
           await widget.afterUnlockCallback(_passwordController.text);

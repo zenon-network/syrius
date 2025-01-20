@@ -25,8 +25,8 @@ class SyriusException implements Exception {
           return NoBalanceException.fromJson(json);
         case 'NoBlocksAvailableException':
           return NoBlocksAvailableException.fromJson(json);
-        case 'CubitFailureException':
-          return CubitFailureException.fromJson(json);
+        case 'FailureException':
+          return FailureException.fromJson(json);
         case 'NoDelegationStatsException':
           return NoDelegationStatsException.fromJson(json);
         case 'NotEnoughMomentumsException':

@@ -1,5 +1,3 @@
-// ignore_for_file: prefer_const_constructors
-
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
@@ -35,14 +33,14 @@ void main() {
     late MockWsClient mockWsClient;
     late MockTokenApi mockTokenApi;
     late DualCoinStatsCubit dualCoinStatsCubit;
-    late CubitFailureException exception;
+    late FailureException exception;
 
     setUp(() async {
       mockZenon = MockZenon();
       mockEmbedded = MockEmbedded();
       mockTokenApi = MockTokenApi();
       mockWsClient = MockWsClient();
-      exception = CubitFailureException();
+      exception = FailureException();
       dualCoinStatsCubit = DualCoinStatsCubit(
           zenon: mockZenon,
       );
@@ -67,7 +65,7 @@ void main() {
     });
     group('fromJson/toJson', () {
       test('can (de)serialize initial state', () {
-        final DualCoinStatsState initialState = DualCoinStatsState();
+        const DualCoinStatsState initialState = DualCoinStatsState();
 
         final Map<String, dynamic>? serialized = dualCoinStatsCubit.toJson(
           initialState,
@@ -79,7 +77,7 @@ void main() {
       });
 
       test('can (de)serialize loading state', () {
-        final DualCoinStatsState loadingState = DualCoinStatsState(
+        const DualCoinStatsState loadingState = DualCoinStatsState(
           status: TimerStatus.loading,
         );
 
@@ -147,7 +145,7 @@ void main() {
       build: () => dualCoinStatsCubit,
       act: (DualCoinStatsCubit cubit) => cubit.fetchDataPeriodically(),
       expect: () => <DualCoinStatsState>[
-        DualCoinStatsState(status: TimerStatus.loading),
+        const DualCoinStatsState(status: TimerStatus.loading),
         DualCoinStatsState(
           status: TimerStatus.failure,
           error: exception,
@@ -160,7 +158,7 @@ void main() {
         build: () => dualCoinStatsCubit,
         act: (DualCoinStatsCubit cubit) => cubit.fetchDataPeriodically(),
         expect: () => <DualCoinStatsState>[
-          DualCoinStatsState(status: TimerStatus.loading),
+          const DualCoinStatsState(status: TimerStatus.loading),
           DualCoinStatsState(
             status: TimerStatus.success,
             data: <Token>[kZnnCoin, kQsrCoin],

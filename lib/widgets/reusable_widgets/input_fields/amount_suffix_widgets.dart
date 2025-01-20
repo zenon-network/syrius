@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/color_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
@@ -69,20 +70,18 @@ class AmountSuffixMaxWidget extends InkWell {
           onTap: onPressed,
           child: Container(
             height: kAmountSuffixHeight,
-            width: kAmountSuffixWidth,
             alignment: Alignment.center,
-            margin: const EdgeInsets.only(
-              right: kContentPadding,
-            ),
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(kAmountSuffixRadius),
               border: Border.all(
                 color: AppColors.maxAmountBorder,
               ),
             ),
+            padding: const EdgeInsetsDirectional.symmetric(
+              horizontal: 8,
+            ),
             child: Text(
-              'MAX',
-              style: Theme.of(context).textTheme.titleMedium,
+              context.l10n.max.toUpperCase(),
             ),
           ),
         );

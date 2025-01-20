@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/zts_utils.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/tab_children_widgets/tab_children_widgets.dart';
 
 /// A class that helps distinguish between the card widgets
 enum CardType {
@@ -13,11 +14,27 @@ enum CardType {
   /// A type for a card displaying information related to ZNN and QSR
   dualCoinStats,
 
+  /// A type for a card displaying the latest transactions for an address
+  latestTransactions,
+
+  /// A type for a card displaying the latest transactions for an address,
+  /// adjusted to be displayed in the [DashboardTabChild] tab.
+  latestTransactionsDashboard,
+
+  /// A type for a card displaying the pending transactions.
+  pendingTransactions,
+
   /// A type for a card displaying information related to pillars
   pillars,
 
   /// A type for a card displaying information in realtime
   realtimeStatistics,
+
+  /// A type for a card that has input fields for receiving a transaction
+  receive,
+
+  /// A type for a card that handles the process of sending a transaction
+  send,
 
   /// A type for a card displaying information related to sentinels
   sentinels,
@@ -57,6 +74,18 @@ enum CardType {
             kZnnCoin.symbol,
           ),
         ),
+      CardType.latestTransactions => CardData(
+          description: context.l10n.latestTransactionsDescription,
+          title: context.l10n.latestTransactionsTitle,
+        ),
+      CardType.latestTransactionsDashboard => CardData(
+          description: context.l10n.latestTransactionsDescription,
+          title: context.l10n.latestTransactionsTitle,
+        ),
+      CardType.pendingTransactions => CardData(
+          description: context.l10n.pendingTransactionsDescription,
+          title: context.l10n.pendingTransactionsTitle,
+        ),
       CardType.pillars => CardData(
           title: context.l10n.pillars,
           description: context.l10n.pillarsDescription,
@@ -65,6 +94,18 @@ enum CardType {
           title: context.l10n.realtimeStats,
           description: context.l10n
               .realtimeStatsDescription(kQsrCoin.symbol, kZnnCoin.symbol),
+        ),
+      CardType.receive => CardData(
+          description: '${context.l10n.manageReceivingFunds}\n'
+              '${context.l10n.addressSearchDescription}\n'
+              '${context.l10n.ztsSearchDescription}',
+          title: context.l10n.receive,
+        ),
+      CardType.send => CardData(
+          title: context.l10n.send,
+          description: '${context.l10n.manageSendingFunds}\n'
+              '${context.l10n.addressSearchDescription}\n'
+              '${context.l10n.ztsSearchDescription}',
         ),
       CardType.sentinels => CardData(
           title: context.l10n.sentinels,

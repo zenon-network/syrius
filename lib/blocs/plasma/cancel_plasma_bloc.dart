@@ -12,11 +12,11 @@ class CancelPlasmaBloc extends BaseBloc<AccountBlockTemplate?> {
       final AccountBlockTemplate transactionParams = zenon!.embedded.plasma.cancel(
         Hash.parse(id),
       );
-      AccountBlockUtils.createAccountBlock(transactionParams, 'cancel Plasma',
+      AccountBlockUtils().createAccountBlock(transactionParams, 'cancel Plasma',
               waitForRequiredPlasma: true,)
           .then(
         (AccountBlockTemplate response) {
-          ZenonAddressUtils.refreshBalance();
+          ZenonAddressUtils().refreshBalance();
           addEvent(response);
         },
       ).onError(

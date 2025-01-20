@@ -1,9 +1,14 @@
 export 'balance/balance.dart';
 export 'delegation/delegation.dart';
 export 'dual_coin_stats/dual_coin_stats.dart';
+export 'latest_transactions/latest_transactions.dart';
+export 'multiple_balance/multiple_balance.dart';
 export 'node_sync_status/node_sync_status.dart';
+export 'pending_transactions/pending_transactions.dart';
 export 'pillars/pillars.dart';
 export 'realtime_statistics/realtime_statistics.dart';
+export 'receive/receive.dart';
+export 'send/send.dart';
 export 'sentinels/sentinels.dart';
 export 'staking/staking.dart';
 export 'total_hourly_transactions/total_hourly_transactions.dart';
