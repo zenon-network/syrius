@@ -87,7 +87,6 @@ class _ImportWalletSeedChoiceScreenState
       ),
       width: _isSeed12Selected ? 3 * kSeedWordCellWidth : double.infinity,
       child: SelectFileWidget(
-          fileExtension: 'json',
           onPathFoundCallback: (String path) {
             setState(() {
               _walletFilePath = path;
