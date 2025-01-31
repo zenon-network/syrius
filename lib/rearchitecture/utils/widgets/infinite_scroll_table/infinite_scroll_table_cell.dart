@@ -46,6 +46,7 @@ class InfiniteScrollTableCell extends StatelessWidget {
                 children: <Widget>[
                   CopyToClipboardButton(
                     textToBeCopied,
+                    iconSize: 15,
                   ),
                   const SizedBox(
                     width: 10,

@@ -56,20 +56,18 @@ class _ReceivePopulatedState extends State<ReceivePopulated> {
 
   @override
   Widget build(BuildContext context) {
+    final List<Token> sortedAssets = sortAssets(widget.assets);
+
     return Padding(
       padding: const EdgeInsets.all(16),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
-          Tooltip(
-            message: _getQrString(),
-            child: ReceiveQrImage(
-              data: _getQrString(),
-              size: 150,
-              tokenStandard: _selectedToken.tokenStandard,
-              context: context,
-            ),
+          ReceiveQrImage(
+            data: _getQrString(),
+            size: 150,
+            tokenStandard: _selectedToken.tokenStandard,
           ),
           kHorizontalGap16,
           Expanded(
@@ -87,7 +85,7 @@ class _ReceivePopulatedState extends State<ReceivePopulated> {
                 ),
                 kVerticalGap16,
                 ZtsDropdown(
-                  availableTokens: widget.assets,
+                  availableTokens: sortedAssets,
                   onChangeCallback: (Token token) => setState(() {
                     _selectedToken = token;
                   }),

@@ -67,6 +67,10 @@ abstract class TimerCubit<T, S extends TimerState<T>> extends HydratedCubit<S> {
   /// the outcome.
   /// If the WebSocket client is closed, it throws a [noConnectionException].
   Future<void> fetchDataPeriodically() async {
+    if (isClosed) {
+      _autoRefresher?.cancel();
+      return;
+    }
     try {
       if (state.status != TimerStatus.success) {
         emit(state.copyWith(status: TimerStatus.loading) as S);

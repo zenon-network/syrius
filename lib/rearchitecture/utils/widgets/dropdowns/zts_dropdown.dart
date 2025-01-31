@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
@@ -27,17 +28,23 @@ class _ZtsDropdownState extends State<ZtsDropdown> {
 
   @override
   Widget build(BuildContext context) {
-    final List<DropdownMenuEntry<Token>> entries = widget._availableTokens
-        .map(
-          (Token token) => DropdownMenuEntry<Token>(
-            label: token.name,
-            style: MenuItemButton.styleFrom(
-              foregroundColor: ColorUtils.getTokenColor(token.tokenStandard),
-            ),
-            value: token,
+    final List<DropdownMenuEntry<Token>> entries = widget._availableTokens.map(
+      (Token token) {
+        final String labelSuffix = token.isCoin
+            ? ''
+            : ' (${token.tokenStandard.toString().short})';
+
+        final String label = '${token.symbol} $labelSuffix';
+
+        return DropdownMenuEntry<Token>(
+          label: label,
+          style: MenuItemButton.styleFrom(
+            foregroundColor: ColorUtils.getTokenColor(token.tokenStandard),
           ),
-        )
-        .toList();
+          value: token,
+        );
+      },
+    ).toList();
 
     final Color color = ColorUtils.getTokenColor(
       widget._selectedToken.tokenStandard,
@@ -45,9 +52,7 @@ class _ZtsDropdownState extends State<ZtsDropdown> {
 
     return DropdownMenu<Token>(
       controller: _searchController,
-      enableFilter: true,
       expandedInsets: EdgeInsets.zero,
-      filterCallback: _filterCallback,
       initialSelection: widget._selectedToken,
       inputDecorationTheme: const InputDecorationTheme(
         filled: true,
@@ -57,6 +62,7 @@ class _ZtsDropdownState extends State<ZtsDropdown> {
         color: color,
       ),
       dropdownMenuEntries: entries,
+      menuHeight: kDropdownMenuHeight,
       onSelected: (Token? token) {
         if (token != null) {
           widget._onChangeCallback(token);
@@ -83,22 +89,6 @@ class _ZtsDropdownState extends State<ZtsDropdown> {
     );
 
     return index != -1 ? index : null;
-  }
-
-  List<DropdownMenuEntry<Token>> _filterCallback(
-    List<DropdownMenuEntry<Token>> entries,
-    String filter,
-  ) {
-    final String searchText = filter.toLowerCase();
-    if (searchText.isEmpty) {
-      return entries;
-    }
-
-    final Iterable<DropdownMenuEntry<Token>> filtered = entries.where(
-      (DropdownMenuEntry<Token> entry) => _matchTest(entry, searchText),
-    );
-
-    return filtered.toList();
   }
 
   bool _matchTest(DropdownMenuEntry<Token> entry, String searchText) =>

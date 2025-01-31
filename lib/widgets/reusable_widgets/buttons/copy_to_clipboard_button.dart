@@ -6,11 +6,13 @@ import 'package:zenon_syrius_wallet_flutter/utils/clipboard_utils.dart';
 
 class CopyToClipboardButton extends StatefulWidget {
   const CopyToClipboardButton(
-    this.textToBeCopied, {
+    this._textToBeCopied, {
+    this.iconSize,
     super.key,
   });
 
-  final String textToBeCopied;
+  final String _textToBeCopied;
+  final double? iconSize;
 
   @override
   State<CopyToClipboardButton> createState() => _CopyToClipboardIcon();
@@ -21,14 +23,18 @@ class _CopyToClipboardIcon extends State<CopyToClipboardButton> {
 
   @override
   Widget build(BuildContext context) {
-    const Widget firstChild = Icon(
+    final double iconSize = widget.iconSize ?? 24;
+
+    final Widget firstChild = Icon(
       Icons.content_copy,
       color: AppColors.znnColor,
+      size: iconSize,
     );
 
-    const Widget secondChild = Icon(
+    final Widget secondChild = Icon(
       Icons.check,
       color: AppColors.znnColor,
+      size: iconSize,
     );
 
     return IconButton(
@@ -45,7 +51,7 @@ class _CopyToClipboardIcon extends State<CopyToClipboardButton> {
             _isCopied = true;
           });
         }
-        ClipboardUtils.copyToClipboard(widget.textToBeCopied, context);
+        ClipboardUtils.copyToClipboard(widget._textToBeCopied, context);
       },
       icon: AnimatedCrossFade(
         duration: const Duration(milliseconds: 100),

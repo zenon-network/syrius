@@ -19,6 +19,7 @@ class LatestTransactionsBloc extends InfiniteListBloc<AccountBlock> {
 
   @override
   Future<List<AccountBlock>> paginationFetch({
+    required Address address,
     required int pageIndex,
     required int pageSize,
     Address? address,

@@ -293,7 +293,7 @@ class Web3WalletService extends IWeb3WalletService {
 
       final PairingMetadata dAppMetadata = event.params.proposer.metadata;
 
-      final actionWasAccepted = await showDialogWithNoAndYesOptions(
+      final bool? actionWasAccepted = await showDialogWithNoAndYesOptions(
         context: globalNavigatorKey.currentContext!,
         isBarrierDismissible: false,
         title: 'Approve session',
@@ -322,11 +322,9 @@ class Web3WalletService extends IWeb3WalletService {
             ),
           ],
         ),
-        onYesButtonPressed: () async {},
-        onNoButtonPressed: () async {},
       );
 
-      if (actionWasAccepted) {
+      if (actionWasAccepted ?? false) {
         if (!_idSessionsApproved.contains(event.id)) {
           _idSessionsApproved.add(event.id);
           try {

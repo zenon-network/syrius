@@ -82,6 +82,11 @@ class AddressesState extends State<Addresses> {
               address: newAddress,
             ),
           );
+      context.read<PendingTransactionsBloc>().add(
+        InfiniteListRefreshRequested(
+          address: newAddress,
+        ),
+      );
       unawaited(
         context.read<PillarRewardsHistoryCubit>().updateStream(
               address: newAddress,

@@ -8,11 +8,11 @@ import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/p2p_swap_wid
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 
 class P2pSwapsCard extends StatefulWidget {
-
   const P2pSwapsCard({
     required this.onStepperNotificationSeeMorePressed,
     super.key,
   });
+
   final VoidCallback onStepperNotificationSeeMorePressed;
 
   @override
@@ -99,31 +99,35 @@ class _P2pSwapsCardState extends State<P2pSwapsCard> {
   }
 
   Future<void> _onDeleteSwapTapped(P2pSwap swap) async {
-    showDialogWithNoAndYesOptions(
-        context: context,
-        isBarrierDismissible: true,
-        title: 'Delete swap',
-        description:
-            'Are you sure you want to delete this swap? This action cannot be undone.',
-        onYesButtonPressed: () async {
-          if (swap.mode == P2pSwapMode.htlc) {
-            await htlcSwapsService!.deleteSwap(swap.id);
-          }
-          _p2pSwapsListBloc.getData();
-        },);
+    final bool? deleteConfirmed = await showDialogWithNoAndYesOptions(
+      context: context,
+      isBarrierDismissible: true,
+      title: 'Delete swap',
+      description:
+          'Are you sure you want to delete this swap? This action cannot be undone.',
+    );
+
+    if (deleteConfirmed ?? false) {
+      if (swap.mode == P2pSwapMode.htlc) {
+        await htlcSwapsService!.deleteSwap(swap.id);
+      }
+      _p2pSwapsListBloc.getData();
+    }
   }
 
   Future<void> _onDeleteSwapHistoryTapped() async {
-    showDialogWithNoAndYesOptions(
-        context: context,
-        isBarrierDismissible: true,
-        title: 'Delete swap history',
-        description:
-            'Are you sure you want to delete your swap history? Active swaps cannot be deleted.',
-        onYesButtonPressed: () async {
-          await htlcSwapsService!.deleteInactiveSwaps();
-          _p2pSwapsListBloc.getData();
-        },);
+    final bool? deleteHistoryConfirmed =  await showDialogWithNoAndYesOptions(
+      context: context,
+      isBarrierDismissible: true,
+      title: 'Delete swap history',
+      description:
+          'Are you sure you want to delete your swap history? Active swaps cannot be deleted.',
+    );
+
+    if (deleteHistoryConfirmed ?? false) {
+      await htlcSwapsService!.deleteInactiveSwaps();
+      _p2pSwapsListBloc.getData();
+    }
   }
 
   Widget _getTable(List<P2pSwap> swaps) {
@@ -143,22 +147,23 @@ class _P2pSwapsCardState extends State<P2pSwapsCard> {
             child: Scrollbar(
               controller: _scrollController,
               child: ListView.separated(
-                  controller: _scrollController,
-                  cacheExtent: 1000,
-                  itemCount: swaps.length,
-                  separatorBuilder: (_, __) {
-                    return const SizedBox(
-                      height: 15,
-                    );
-                  },
-                  itemBuilder: (_, int index) {
-                    return P2pSwapsListItem(
-                      key: ValueKey(swaps.elementAt(index).id),
-                      swap: swaps.elementAt(index),
-                      onTap: _onSwapTapped,
-                      onDelete: _onDeleteSwapTapped,
-                    );
-                  },),
+                controller: _scrollController,
+                cacheExtent: 1000,
+                itemCount: swaps.length,
+                separatorBuilder: (_, __) {
+                  return const SizedBox(
+                    height: 15,
+                  );
+                },
+                itemBuilder: (_, int index) {
+                  return P2pSwapsListItem(
+                    key: ValueKey(swaps.elementAt(index).id),
+                    swap: swaps.elementAt(index),
+                    onTap: _onSwapTapped,
+                    onDelete: _onDeleteSwapTapped,
+                  );
+                },
+              ),
             ),
           ),
         ],

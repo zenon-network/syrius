@@ -5,6 +5,7 @@ import 'dart:isolate';
 import 'package:flutter/foundation.dart' show kDebugMode, kIsWeb;
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:hive/hive.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
@@ -29,6 +30,7 @@ import 'package:zenon_syrius_wallet_flutter/handlers/htlc_swaps_handler.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/model/model.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/tokens/cubit/tokens_cubit.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/screens/screens.dart';
 import 'package:zenon_syrius_wallet_flutter/services/htlc_swaps_service.dart';
@@ -229,6 +231,7 @@ void setup() {
     ),
   );
   sl.registerSingleton<MultipleBalanceBloc>(MultipleBalanceBloc(zenon: zenon!));
+  sl.registerSingleton<TokensCubit>(TokensCubit(zenon: zenon!));
   sl.registerSingleton<AutoReceiveTxWorker>(AutoReceiveTxWorker.getInstance());
   sl.registerSingleton<AutoUnlockHtlcWorker>(
     AutoUnlockHtlcWorker.getInstance(),
@@ -286,103 +289,132 @@ class _MyAppState extends State<MyApp> with WindowListener, TrayListener {
 
   @override
   Widget build(BuildContext context) {
-    return MultiProvider(
+    return MultiBlocProvider(
       providers: <SingleChildWidget>[
-        ChangeNotifierProvider<SelectedAddressNotifier>(
-          create: (_) => SelectedAddressNotifier(),
+        BlocProvider<LatestTransactionsBloc>(
+          create: (_) => sl.get<LatestTransactionsBloc>()
+            ..add(
+              InfiniteListRequested(
+                address: Address.parse(kSelectedAddress!),
+              ),
+            ),
         ),
-        ChangeNotifierProvider<PlasmaBeneficiaryAddressNotifier>(
-          create: (_) => PlasmaBeneficiaryAddressNotifier(),
+        BlocProvider<PendingTransactionsBloc>(
+          create: (_) => sl.get<PendingTransactionsBloc>()
+            ..add(
+              InfiniteListRequested(
+                address: Address.parse(kSelectedAddress!),
+              ),
+            ),
         ),
-        ChangeNotifierProvider<PlasmaGeneratedNotifier>(
-          create: (_) => PlasmaGeneratedNotifier(),
+        BlocProvider<SendTransactionBloc>(
+          create: (_) => SendTransactionBloc(),
         ),
-        ChangeNotifierProvider<TextScalingNotifier>(
-          create: (_) => TextScalingNotifier(),
+        BlocProvider<MultipleBalanceBloc>(
+          create: (_) => sl.get<MultipleBalanceBloc>(),
         ),
-        ChangeNotifierProvider<AppThemeNotifier>(
-          create: (_) => AppThemeNotifier(),
+        BlocProvider<TokensCubit>(
+          create: (_) => sl.get<TokensCubit>()..fetch(),
         ),
-        ChangeNotifierProvider<ValueNotifier<List<String>>>(
-          create: (_) => ValueNotifier<List<String>>(
-            <String>[],
+      ],
+      child: MultiProvider(
+        providers: <SingleChildWidget>[
+          ChangeNotifierProvider<SelectedAddressNotifier>(
+            create: (_) => SelectedAddressNotifier(),
           ),
-        ),
-        Provider<LockBloc>(
-          create: (_) => LockBloc(),
-          builder: (BuildContext context, Widget? child) {
-            return Consumer<AppThemeNotifier>(
-              builder: (_, AppThemeNotifier appThemeNotifier, __) {
-                final LockBloc lockBloc =
-                Provider.of<LockBloc>(context, listen: false);
-                return OverlaySupport(
-                  child: Listener(
-                    onPointerSignal: (PointerSignalEvent event) {
-                      if (event is PointerScrollEvent) {
-                        lockBloc.addEvent(LockEvent.resetTimer);
-                      }
-                    },
-                    onPointerCancel: (_) =>
-                        lockBloc.addEvent(LockEvent.resetTimer),
-                    onPointerDown: (_) =>
-                        lockBloc.addEvent(LockEvent.resetTimer),
-                    onPointerHover: (_) =>
-                        lockBloc.addEvent(LockEvent.resetTimer),
-                    onPointerMove: (_) =>
-                        lockBloc.addEvent(LockEvent.resetTimer),
-                    onPointerUp: (_) => lockBloc.addEvent(LockEvent.resetTimer),
-                    child: MouseRegion(
-                      onEnter: (_) => lockBloc.addEvent(LockEvent.resetTimer),
-                      onExit: (_) => lockBloc.addEvent(LockEvent.resetTimer),
-                      child: KeyboardListener(
-                        focusNode: FocusNode(),
-                        onKeyEvent: (KeyEvent event) {
+          ChangeNotifierProvider<PlasmaBeneficiaryAddressNotifier>(
+            create: (_) => PlasmaBeneficiaryAddressNotifier(),
+          ),
+          ChangeNotifierProvider<PlasmaGeneratedNotifier>(
+            create: (_) => PlasmaGeneratedNotifier(),
+          ),
+          ChangeNotifierProvider<TextScalingNotifier>(
+            create: (_) => TextScalingNotifier(),
+          ),
+          ChangeNotifierProvider<AppThemeNotifier>(
+            create: (_) => AppThemeNotifier(),
+          ),
+          ChangeNotifierProvider<ValueNotifier<List<String>>>(
+            create: (_) => ValueNotifier<List<String>>(
+              <String>[],
+            ),
+          ),
+          Provider<LockBloc>(
+            create: (_) => LockBloc(),
+            builder: (BuildContext context, Widget? child) {
+              return Consumer<AppThemeNotifier>(
+                builder: (_, AppThemeNotifier appThemeNotifier, __) {
+                  final LockBloc lockBloc =
+                  Provider.of<LockBloc>(context, listen: false);
+                  return OverlaySupport(
+                    child: Listener(
+                      onPointerSignal: (PointerSignalEvent event) {
+                        if (event is PointerScrollEvent) {
                           lockBloc.addEvent(LockEvent.resetTimer);
-                        },
-                        child: Layout(
-                          child: MaterialApp(
-                            title: 's y r i u s',
-                            navigatorKey: globalNavigatorKey,
-                            debugShowCheckedModeBanner: false,
-                            theme: AppTheme.lightTheme,
-                            darkTheme: AppTheme.darkTheme,
-                            themeMode: appThemeNotifier.currentThemeMode,
-                            initialRoute: DevelopmentInitializationScreen.route,
-                            scrollBehavior: RemoveOverscrollEffect(),
-                            localizationsDelegates: AppLocalizations.localizationsDelegates,
-                            supportedLocales: AppLocalizations.supportedLocales,
-                            routes: <String, WidgetBuilder>{
-                              AccessWalletScreen.route: (BuildContext context) =>
-                              const AccessWalletScreen(),
-                              DevelopmentInitializationScreen.route: (BuildContext context) =>
-                              const DevelopmentInitializationScreen(),
-                              MainAppContainer.route: (BuildContext context) =>
-                              const MainAppContainer(),
-                              NodeManagementScreen.route: (_) =>
-                              const NodeManagementScreen(),
-                            },
-                            onGenerateRoute: (RouteSettings settings) {
-                              if (settings.name == SyriusErrorWidget.route) {
-                                final CustomSyriusErrorWidgetArguments args = settings.arguments!
-                                as CustomSyriusErrorWidgetArguments;
-                                return MaterialPageRoute(
-                                  builder: (BuildContext context) =>
-                                      SyriusErrorWidget(args.errorText),
-                                );
-                              }
-                              return null;
-                            },
+                        }
+                      },
+                      onPointerCancel: (_) =>
+                          lockBloc.addEvent(LockEvent.resetTimer),
+                      onPointerDown: (_) =>
+                          lockBloc.addEvent(LockEvent.resetTimer),
+                      onPointerHover: (_) =>
+                          lockBloc.addEvent(LockEvent.resetTimer),
+                      onPointerMove: (_) =>
+                          lockBloc.addEvent(LockEvent.resetTimer),
+                      onPointerUp: (_) => lockBloc.addEvent(LockEvent.resetTimer),
+                      child: MouseRegion(
+                        onEnter: (_) => lockBloc.addEvent(LockEvent.resetTimer),
+                        onExit: (_) => lockBloc.addEvent(LockEvent.resetTimer),
+                        child: KeyboardListener(
+                          focusNode: FocusNode(),
+                          onKeyEvent: (KeyEvent event) {
+                            lockBloc.addEvent(LockEvent.resetTimer);
+                          },
+                          child: Layout(
+                            child: MaterialApp(
+                              title: 's y r i u s',
+                              navigatorKey: globalNavigatorKey,
+                              debugShowCheckedModeBanner: false,
+                              theme: AppTheme.lightTheme,
+                              darkTheme: AppTheme.darkTheme,
+                              themeMode: appThemeNotifier.currentThemeMode,
+                              initialRoute: DevelopmentInitializationScreen.route,
+                              scrollBehavior: RemoveOverscrollEffect(),
+                              localizationsDelegates: AppLocalizations.localizationsDelegates,
+                              supportedLocales: AppLocalizations.supportedLocales,
+                              routes: <String, WidgetBuilder>{
+                                AccessWalletScreen.route: (BuildContext context) =>
+                                const AccessWalletScreen(),
+                                DevelopmentInitializationScreen.route: (BuildContext context) =>
+                                const DevelopmentInitializationScreen(),
+                                MainAppContainer.route: (BuildContext context) =>
+                                const MainAppContainer(),
+                                NodeManagementScreen.route: (_) =>
+                                const NodeManagementScreen(),
+                              },
+                              onGenerateRoute: (RouteSettings settings) {
+                                if (settings.name == SyriusErrorWidget.route) {
+                                  final CustomSyriusErrorWidgetArguments args = settings.arguments!
+                                  as CustomSyriusErrorWidgetArguments;
+                                  return MaterialPageRoute(
+                                    builder: (BuildContext context) =>
+                                        SyriusErrorWidget(args.errorText),
+                                  );
+                                }
+                                return null;
+                              },
+                            ),
                           ),
                         ),
                       ),
                     ),
-                  ),
-                );
-              },
-            );
-          },
-        ),
-      ],
+                  );
+                },
+              );
+            },
+          ),
+        ],
+      ),
     );
   }
 

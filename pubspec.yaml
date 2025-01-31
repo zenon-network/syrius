@@ -57,7 +57,7 @@ dependencies:
   hex: ^0.2.0
   local_notifier: ^0.1.5
   tray_manager: ^0.3.1
-  open_filex: ^4.3.2
+  open_filex: ^4.6.0
   launch_at_startup: ^0.3.1
   logging: ^1.2.0
   collection: ^1.17.0

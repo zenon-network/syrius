@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_vector_icons/flutter_vector_icons.dart';
 import 'package:hive/hive.dart';
@@ -11,7 +13,6 @@ import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 class SettingsNode extends StatefulWidget {
-
   const SettingsNode({
     required this.node,
     required this.onNodePressed,
@@ -19,6 +20,7 @@ class SettingsNode extends StatefulWidget {
     required this.currentNode,
     super.key,
   });
+
   final String node;
   final void Function(String?) onNodePressed;
   final VoidCallback onChangedOrDeletedNode;
@@ -70,8 +72,7 @@ class _SettingsNodeState extends State<SettingsNode> {
             ),
             onTap: () => widget.onNodePressed(widget.node),
             child: Padding(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 5, vertical: 5),
+              padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 5),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[
@@ -82,7 +83,7 @@ class _SettingsNodeState extends State<SettingsNode> {
                               .textTheme
                               .bodyLarge!
                               .color!
-                              .withOpacity(0.7),
+                              .withValues(alpha: 0.7),
                         ),
                   ),
                 ],
@@ -91,19 +92,20 @@ class _SettingsNodeState extends State<SettingsNode> {
           ),
         ),
         Visibility(
-            visible: widget.currentNode.contains(widget.node),
-            child: StandardTooltipIcon(
-                (connectedNodeChainIdentifier == getChainIdentifier())
-                    ? 'Client chain identifier: ${getChainIdentifier()}\n'
-                        'Node chain identifier: $connectedNodeChainIdentifier'
-                    : 'Chain identifier mismatch\n'
-                        'Client chain identifier: ${getChainIdentifier()}\n'
-                        'Node chain identifier: $connectedNodeChainIdentifier',
-                MaterialCommunityIcons.identifier,
-                iconColor:
-                    (getChainIdentifier() == connectedNodeChainIdentifier)
-                        ? AppColors.znnColor
-                        : AppColors.errorColor,),),
+          visible: widget.currentNode.contains(widget.node),
+          child: StandardTooltipIcon(
+            (connectedNodeChainIdentifier == getChainIdentifier())
+                ? 'Client chain identifier: ${getChainIdentifier()}\n'
+                    'Node chain identifier: $connectedNodeChainIdentifier'
+                : 'Chain identifier mismatch\n'
+                    'Client chain identifier: ${getChainIdentifier()}\n'
+                    'Node chain identifier: $connectedNodeChainIdentifier',
+            MaterialCommunityIcons.identifier,
+            iconColor: (getChainIdentifier() == connectedNodeChainIdentifier)
+                ? AppColors.znnColor
+                : AppColors.errorColor,
+          ),
+        ),
         Visibility(
           visible: widget.node.contains('wss://'),
           child: const StandardTooltipIcon('Encrypted connection', Icons.lock),
@@ -141,49 +143,54 @@ class _SettingsNodeState extends State<SettingsNode> {
           ),
         ),
         Visibility(
-            visible: !kDefaultNodes.contains(widget.node) &&
-                !kDefaultCommunityNodes.contains(widget.node),
-            child: IconButton(
-              hoverColor: Colors.transparent,
-              padding: const EdgeInsets.all(4),
-              constraints: const BoxConstraints(),
-              iconSize: 15,
-              icon: const Icon(
-                Icons.edit,
-                color: AppColors.znnColor,
-              ),
-              onPressed: () {
-                setState(() {
-                  _editable = true;
-                });
-              },
-              tooltip: 'Edit node',
-            ),),
+          visible: !kDefaultNodes.contains(widget.node) &&
+              !kDefaultCommunityNodes.contains(widget.node),
+          child: IconButton(
+            hoverColor: Colors.transparent,
+            padding: const EdgeInsets.all(4),
+            constraints: const BoxConstraints(),
+            iconSize: 15,
+            icon: const Icon(
+              Icons.edit,
+              color: AppColors.znnColor,
+            ),
+            onPressed: () {
+              setState(() {
+                _editable = true;
+              });
+            },
+            tooltip: 'Edit node',
+          ),
+        ),
         Visibility(
-            visible: !kDefaultNodes.contains(widget.node) &&
-                !kDefaultCommunityNodes.contains(widget.node),
-            child: IconButton(
-              hoverColor: Colors.transparent,
-              padding: const EdgeInsets.all(4),
-              constraints: const BoxConstraints(),
-              iconSize: 15,
-              icon: const Icon(
-                Icons.delete_forever,
-                color: AppColors.znnColor,
-              ),
-              onPressed: () => showDialogWithNoAndYesOptions(
+          visible: !kDefaultNodes.contains(widget.node) &&
+              !kDefaultCommunityNodes.contains(widget.node),
+          child: IconButton(
+            hoverColor: Colors.transparent,
+            padding: const EdgeInsets.all(4),
+            constraints: const BoxConstraints(),
+            iconSize: 15,
+            icon: const Icon(
+              Icons.delete_forever,
+              color: AppColors.znnColor,
+            ),
+            onPressed: () async {
+              final bool? deleteConfirmed = await showDialogWithNoAndYesOptions(
                 isBarrierDismissible: true,
                 context: context,
                 title: 'Node Management',
                 description: 'Are you sure you want to delete '
                     '${widget.node} from the list of nodes? This action '
                     "can't be undone.",
-                onYesButtonPressed: () {
-                  _deleteNodeFromDb(widget.node);
-                },
-              ),
-              tooltip: 'Delete node',
-            ),),
+              );
+
+              if (deleteConfirmed ?? false) {
+                unawaited(_deleteNodeFromDb(widget.node));
+              }
+            },
+            tooltip: 'Delete node',
+          ),
+        ),
       ],
     );
   }
@@ -200,23 +207,24 @@ class _SettingsNodeState extends State<SettingsNode> {
                   key: widget.key,
                   autovalidateMode: AutovalidateMode.onUserInteraction,
                   child: InputField(
-                      controller: _nodeController,
-                      hintText: 'Node address with port',
-                      onSubmitted: (String value) {
-                        if (_nodeController.text != widget.node &&
-                            _ifUserInputValid()) {
-                          _onChangeButtonPressed();
-                        }
-                      },
-                      onChanged: (String value) {
-                        if (value.isNotEmpty) {
-                          setState(() {
-                            _nodeError = null;
-                          });
-                        }
-                      },
-                      validator: (String? value) =>
-                          InputValidators.node(value) ?? _nodeError,),
+                    controller: _nodeController,
+                    hintText: 'Node address with port',
+                    onSubmitted: (String value) {
+                      if (_nodeController.text != widget.node &&
+                          _ifUserInputValid()) {
+                        _onChangeButtonPressed();
+                      }
+                    },
+                    onChanged: (String value) {
+                      if (value.isNotEmpty) {
+                        setState(() {
+                          _nodeError = null;
+                        });
+                      }
+                    },
+                    validator: (String? value) =>
+                        InputValidators.node(value) ?? _nodeError,
+                  ),
                 ),
               ),
             ),

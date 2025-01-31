@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
 
@@ -55,6 +56,7 @@ class _NewAddressesDropdownState extends State<NewAddressesDropdown> {
         color: color,
       ),
       dropdownMenuEntries: entries,
+      menuHeight: kDropdownMenuHeight,
       onSelected: (String? address) {
         if (address != null) {
           widget._onSelectedCallback(address);

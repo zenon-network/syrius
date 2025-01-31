@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 
 class AppColors {
   static const Color znnColor = Color(0xFF4FD166);
-  static const Color qsrColor = Color(0xFF005FE3);
-  static const Color ztsColor = Color(0xFFF91690);
+  static const Color qsrColor = Color(0xFF006AFF);
+  static const Color ztsColor = Color(0xFFFC54AE);
 
-  static const Color errorColor = Color.fromRGBO(244, 4, 88, 1);
+  static const Color errorColor = Color(0xFFF40442);
 
   static const Color backgroundLight = Color(0xFFEAEAEA);
   static const Color backgroundDark = Color(0xFF1E1E1E);

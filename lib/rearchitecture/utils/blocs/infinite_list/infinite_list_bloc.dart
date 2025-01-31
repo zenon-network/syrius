@@ -78,6 +78,7 @@ abstract class InfiniteListBloc<T>
 
   /// Retrieves the data in a pagination manner, with the first page being 0
   Future<List<T>> paginationFetch({
+    required Address address,
     required int pageIndex,
     required int pageSize,
     Address? address,

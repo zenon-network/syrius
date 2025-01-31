@@ -5,6 +5,7 @@ import 'dart:isolate';
 import 'package:flutter/foundation.dart' show kDebugMode, kIsWeb;
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:get_it/get_it.dart';
 import 'package:hive/hive.dart';
@@ -28,6 +29,7 @@ import 'package:zenon_syrius_wallet_flutter/blocs/wallet_connect/wallet_connect_
 import 'package:zenon_syrius_wallet_flutter/blocs/wallet_connect/wallet_connect_sessions_bloc.dart';
 import 'package:zenon_syrius_wallet_flutter/handlers/htlc_swaps_handler.dart';
 import 'package:zenon_syrius_wallet_flutter/model/model.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/tokens/cubit/tokens_cubit.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/screens/screens.dart';
@@ -238,6 +240,7 @@ void setup() {
     ),
   );
   sl.registerSingleton<MultipleBalanceBloc>(MultipleBalanceBloc(zenon: zenon!));
+  sl.registerSingleton<TokensCubit>(TokensCubit(zenon: zenon!));
   sl.registerSingleton<AutoReceiveTxWorker>(AutoReceiveTxWorker.getInstance());
   sl.registerSingleton<AutoUnlockHtlcWorker>(
     AutoUnlockHtlcWorker.getInstance(),
@@ -295,9 +298,36 @@ class _MyAppState extends State<MyApp> with WindowListener, TrayListener {
 
   @override
   Widget build(BuildContext context) {
-    return MultiProvider(
+    return MultiBlocProvider(
       providers: <SingleChildWidget>[
-        ChangeNotifierProvider<SelectedAddressNotifier>(
+        BlocProvider<LatestTransactionsBloc>(
+          create: (_) => sl.get<LatestTransactionsBloc>()
+            ..add(
+              InfiniteListRequested(
+                address: Address.parse(kSelectedAddress!),
+              ),
+            ),
+        ),
+        BlocProvider<PendingTransactionsBloc>(
+          create: (_) => sl.get<PendingTransactionsBloc>()
+            ..add(
+              InfiniteListRequested(
+                address: Address.parse(kSelectedAddress!),
+              ),
+            ),
+        ),
+        BlocProvider<SendTransactionBloc>(
+          create: (_) => SendTransactionBloc(),
+        ),
+        BlocProvider<MultipleBalanceBloc>(
+          create: (_) => sl.get<MultipleBalanceBloc>(),
+        ),
+        BlocProvider<TokensCubit>(
+          create: (_) => sl.get<TokensCubit>()..fetch(),
+        ),
+      ],
+      child: MultiProvider(
+        providers: <SingleChildWidget>[ChangeNotifierProvider<SelectedAddressNotifier>(
           create: (_) => SelectedAddressNotifier(),
         ),
         ChangeNotifierProvider<PlasmaBeneficiaryAddressNotifier>(
@@ -394,7 +424,7 @@ class _MyAppState extends State<MyApp> with WindowListener, TrayListener {
             );
           },
         ),
-      ],
+      ],),
     );
   }
 

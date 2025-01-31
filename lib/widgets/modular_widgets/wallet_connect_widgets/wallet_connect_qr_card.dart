@@ -75,7 +75,7 @@ class _WalletConnectQrCardState extends State<WalletConnectQrCard> {
                       scale: 0.3,
                       padding: EdgeInsets.only(top: 10, bottom: 10),
                       image: AssetImage(
-                          'assets/images/qr_code_child_image_znn.png',),),),
+                          'assets/images/qr_code_child_image_znn_cut.png',),),),
               errorCorrectLevel: QrErrorCorrectLevel.H,
             ),
           ),
