@@ -219,7 +219,6 @@ class _SendPopulatedState extends State<SendPopulated> {
       context: context,
       title: title,
       description: description,
-      onYesButtonPressed: _sendPayment,
     );
 
     if (txConfirmed ?? false) {

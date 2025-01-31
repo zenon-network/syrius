@@ -265,7 +265,7 @@ class _PillarUpdateStepperState extends State<PillarUpdateStepper> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: <Widget>[
             Text(
-              context.l10n.pillars(
+              context.l10n.pillarsWithNumber(
                   100 - _momentumRewardPercentageGiven.toInt(),
               ),
               style: Theme.of(context).textTheme.titleMedium,
@@ -301,7 +301,7 @@ class _PillarUpdateStepperState extends State<PillarUpdateStepper> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: <Widget>[
             Text(
-              context.l10n.pillars(
+              context.l10n.pillarsWithNumber(
                   100 - _delegateRewardPercentageGiven.toInt(),
               ),
               style: Theme.of(context).textTheme.titleMedium,

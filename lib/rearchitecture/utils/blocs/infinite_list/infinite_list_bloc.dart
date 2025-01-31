@@ -81,7 +81,6 @@ abstract class InfiniteListBloc<T>
     required Address address,
     required int pageIndex,
     required int pageSize,
-    Address? address,
   });
 
   Future<void> _onInfiniteListRequested(

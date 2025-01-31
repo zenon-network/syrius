@@ -22,11 +22,10 @@ class LatestTransactionsBloc extends InfiniteListBloc<AccountBlock> {
     required Address address,
     required int pageIndex,
     required int pageSize,
-    Address? address,
   }) async {
     final AccountBlockList accountBlock =
         await zenon.ledger.getAccountBlocksByPage(
-      address!,
+      address,
       pageIndex: pageIndex,
       pageSize: pageSize,
     );

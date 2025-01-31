@@ -14,7 +14,7 @@ class SendCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return NewCardScaffold(
       data: _buildCardData(context: context),
-      onRefreshPressed: () {
+      onRefreshPressed: () async {
         sl.get<MultipleBalanceBloc>().add(
           MultipleBalanceFetch(
             addresses: kDefaultAddressList.map((String? e) => e!).toList(),
