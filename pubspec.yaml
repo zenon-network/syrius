@@ -58,7 +58,7 @@ dependencies:
   local_notifier: ^0.1.5
   tray_manager: ^0.3.1
   open_filex: ^4.6.0
-  launch_at_startup: ^0.3.1
+  launch_at_startup: ^0.4.0
   logging: ^1.2.0
   collection: ^1.17.0
   app_links: ^6.3.2
@@ -74,12 +74,12 @@ dependencies:
   version: ^3.0.0
   mutex: ^3.1.0
   retry: ^3.1.2
-  flutter_bloc: ^8.1.6
-  bloc: ^8.1.4
+  flutter_bloc: ^9.1.0
+  bloc: ^9.0.0
   equatable: ^2.0.5
-  hydrated_bloc: ^9.1.5
+  hydrated_bloc: ^10.0.0
   json_annotation: ^4.9.0
-  bloc_concurrency: ^0.2.5
+  bloc_concurrency: ^0.3.0
   stream_transform: ^2.1.0
   win32: ^5.9.0
 
@@ -94,7 +94,7 @@ dev_dependencies:
   hive_generator: ^2.0.0
   dependency_validator: ^4.1.1
   mocktail: ^1.0.4
-  bloc_test: ^9.0.0
+  bloc_test: ^10.0.0
   flutter_test:
     sdk: flutter
   very_good_analysis: ^7.0.0
