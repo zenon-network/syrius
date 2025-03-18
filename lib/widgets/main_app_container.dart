@@ -137,12 +137,14 @@ class _MainAppContainerState extends State<MainAppContainer>
               ),
             ),
         ),
-        BlocProvider<PillarRewardsHistoryCubit>(
-          create: (_) => PillarRewardsHistoryCubit(
+        BlocProvider<PillarRewardsHistoryBloc>(
+          create: (_) => PillarRewardsHistoryBloc(
             zenon: zenon!,
-          )..updateStream(
-            address: Address.parse(kSelectedAddress!),
-          ),
+          )..add(
+              FetchRequestData(
+                address: Address.parse(kSelectedAddress!),
+              ),
+            ),
         ),
         BlocProvider<TokensCubit>(
           create: (_) => TokensCubit(
@@ -156,8 +158,9 @@ class _MainAppContainerState extends State<MainAppContainer>
             MediaQuery(
           data: MediaQuery.of(context).copyWith(
             textScaler: TextScaler.linear(
-              textScalingNotifier.getTextScaleFactor(context),),
+              textScalingNotifier.getTextScaleFactor(context),
             ),
+          ),
           child: Scaffold(
             body: Container(
               margin: const EdgeInsets.all(
@@ -748,7 +751,8 @@ class _MainAppContainerState extends State<MainAppContainer>
                     if (kCurrentPage != Tabs.lock) {
                       _navigateTo(Tabs.staking);
 
-                      final bool? actionAccepted = await showDialogWithNoAndYesOptions(
+                      final bool? actionAccepted =
+                          await showDialogWithNoAndYesOptions(
                         context: context,
                         title: 'Stake ${kZnnCoin.symbol} action',
                         isBarrierDismissible: true,
@@ -783,7 +787,8 @@ class _MainAppContainerState extends State<MainAppContainer>
                     if (kCurrentPage != Tabs.lock) {
                       _navigateTo(Tabs.pillars);
 
-                      final bool? actionAccepted = await showDialogWithNoAndYesOptions(
+                      final bool? actionAccepted =
+                          await showDialogWithNoAndYesOptions(
                         context: context,
                         title: 'Delegate ${kZnnCoin.symbol} action',
                         isBarrierDismissible: true,
@@ -815,7 +820,8 @@ class _MainAppContainerState extends State<MainAppContainer>
                     if (kCurrentPage != Tabs.lock) {
                       _navigateTo(Tabs.plasma);
 
-                      final bool? actionAccepted = await showDialogWithNoAndYesOptions(
+                      final bool? actionAccepted =
+                          await showDialogWithNoAndYesOptions(
                         context: context,
                         title: 'Fuse ${kQsrCoin.symbol} action',
                         isBarrierDismissible: true,

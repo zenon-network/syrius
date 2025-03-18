@@ -22,19 +22,21 @@ sealed class FetchState<T extends Object> extends Equatable {
     };
   }
 
-  FetchState<Object> fromJson(
-      Map<String, dynamic> json,
-      T Function(Map<String, dynamic>) fromJsonT,
-      ) {
+  FetchState<T> fromJson(
+    Map<String, dynamic> json,
+    T Function(Map<String, dynamic>) fromJsonT,
+  ) {
     switch (json['state']) {
       case 'failure':
         final Map<String, dynamic> exceptionJson = json['exception'];
 
-        final SyriusException exception = SyriusException.fromJson(exceptionJson);
+        final SyriusException exception = SyriusException.fromJson(
+          exceptionJson,
+        );
 
-        return FetchFailure(exception: exception);
+        return FetchFailure<T>(exception: exception);
       case 'initial':
-        return const FetchInitial();
+        return FetchInitial<T>();
       case 'populated':
         final Map<String, dynamic> dataJson = json['data'];
 
@@ -45,7 +47,7 @@ sealed class FetchState<T extends Object> extends Equatable {
   }
 }
 
-final class FetchFailure extends FetchState {
+final class FetchFailure<T extends Object> extends FetchState<T> {
   const FetchFailure({required this.exception});
 
   final SyriusException exception;
@@ -54,14 +56,13 @@ final class FetchFailure extends FetchState {
   List<Object> get props => <Object>[exception];
 }
 
-final class FetchInitial extends FetchState {
+final class FetchInitial<T extends Object> extends FetchState<T> {
   const FetchInitial();
 
-  factory FetchInitial.fromJson(Map<String, dynamic> json) =>
-      FetchInitial();
+  factory FetchInitial.fromJson(Map<String, dynamic> json) => FetchInitial();
 }
 
-final class FetchPopulated<T extends Object> extends FetchState {
+final class FetchPopulated<T extends Object> extends FetchState<T> {
   const FetchPopulated({required this.data});
 
   final T data;

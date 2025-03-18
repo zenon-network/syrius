@@ -8,16 +8,18 @@ part 'fetch_event.dart';
 part 'fetch_state.dart';
 
 abstract class FetchBloc<T extends Object>
-    extends HydratedBloc<FetchEvent, FetchState> {
+    extends HydratedBloc<FetchEvent, FetchState<T>> {
   FetchBloc({
     required this.fromJsonT,
     required this.toJsonT,
-  }) : super(const FetchInitial()) {
+    required this.zenon,
+  }) : super(FetchInitial<T>()) {
     on<FetchRequestData>(_requestData);
   }
 
   final T Function(Map<String, dynamic>) fromJsonT;
-  final Map<String, dynamic> Function(Object) toJsonT;
+  final Map<String, dynamic> Function(T) toJsonT;
+  final Zenon zenon;
 
   Future<T> getData({required Address address});
 
@@ -30,7 +32,7 @@ abstract class FetchBloc<T extends Object>
       emit(FetchPopulated<T>(data: data));
     } on Exception catch (e, stackTrace) {
       emit(
-        FetchFailure(
+        FetchFailure<T>(
           exception: FailureException(),
         ),
       );
@@ -39,10 +41,10 @@ abstract class FetchBloc<T extends Object>
   }
 
   @override
-  FetchState<Object> fromJson(Map<String, dynamic> json) =>
+  FetchState<T> fromJson(Map<String, dynamic> json) =>
       state.fromJson(json, fromJsonT);
 
   @override
-  Map<String, dynamic>? toJson(FetchState<Object> state) =>
+  Map<String, dynamic>? toJson(FetchState<T> state) =>
       state.toJson(toJsonT);
 }

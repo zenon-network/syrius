@@ -8,7 +8,7 @@ import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 /// A widget that displays the pillar rewards
 ///
-/// It receives updates from a [PillarRewardsHistoryCubit] and displays a
+/// It receives updates from a [PillarRewardsHistoryBloc] and displays a
 /// [PillarRewardsChart] when data is available
 class PillarRewardsCard extends StatelessWidget {
   /// Constructs a new instance.
@@ -16,28 +16,39 @@ class PillarRewardsCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return NewCardScaffold(
-      data: _buildCardData(context: context),
-      onRefreshPressed: () async {
-        await context.read<PillarRewardsHistoryCubit>().updateStream(
-          address: Address.parse(kSelectedAddress!),
-        );
-      },
-      body: BlocBuilder<PillarRewardsHistoryCubit, PillarRewardsHistoryState>(
-        builder: (_, PillarRewardsHistoryState state) {
-          final CubitWithRefreshOptionStatus status = state.status;
-
-          return switch (status) {
-            CubitWithRefreshOptionStatus.failure => SyriusErrorWidget(
-              state.error!,
+    return BlocProvider<RefreshButtonCubit>(
+      create: (_) => RefreshButtonCubit(
+        refreshCallback: () async {
+          context.read<PillarRewardsHistoryBloc>().add(
+            FetchRequestData(
+              address: Address.parse(kSelectedAddress!),
             ),
-            CubitWithRefreshOptionStatus.loading =>
-            const SyriusLoadingWidget(),
-            CubitWithRefreshOptionStatus.success => PillarRewardsChart(
-              rewardsHistoryList: state.data!,
-            ),
-          };
+          );
         },
+      ),
+      child: NewCardScaffold(
+        data: _buildCardData(context: context),
+        onRefreshPressed: () async {
+          context.read<PillarRewardsHistoryBloc>().add(
+            FetchRequestData(
+              address: Address.parse(kSelectedAddress!),
+            ),
+          );
+        },
+        body: BlocBuilder<PillarRewardsHistoryBloc,
+            FetchState<RewardHistoryList>>(
+          builder: (_, FetchState<RewardHistoryList> state) {
+            return switch (state) {
+              FetchFailure<RewardHistoryList>() => SyriusErrorWidget(
+                  state.exception,
+                ),
+              FetchInitial<RewardHistoryList>() => const SyriusLoadingWidget(),
+              FetchPopulated<RewardHistoryList>() => PillarRewardsChart(
+                  rewardsHistoryList: state.data,
+                ),
+            };
+          },
+        ),
       ),
     );
   }
