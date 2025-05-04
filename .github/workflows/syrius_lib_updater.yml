@@ -21,7 +21,7 @@ jobs:
       - name: Extract libznn library
         run: |
           tar -xvf libznn-linux-amd64.tar.gz
-          tar -xvf libznn-darwin-universal.tar.gz
+          tar -xvf libznn-darwin-amd64.tar.gz
           unzip -j libznn-windows-amd64.zip -d ./
       - name: Check if changes are present
         run: |
@@ -29,10 +29,10 @@ jobs:
           LIBZNN_LINUX_AMD64_LOCAL=$(sha256sum ./lib/embedded_node/blobs/libznn.so | head -c 64)
           LIBZNN_WINDOWS_AMD64=$(sha256sum ./libznn-windows-amd64.dll | head -c 64)
           LIBZNN_WINDOWS_AMD64_LOCAL=$(sha256sum ./lib/embedded_node/blobs/libznn.dll | head -c 64)
-          LIBZNN_DARWIN_UNIVERSAL=$(sha256sum ./libznn-darwin-universal.dylib | head -c 64)
-          LIBZNN_DARWIN_UNIVERSAL_LOCAL=$(sha256sum ./lib/embedded_node/blobs/libznn.dylib | head -c 64)
+          LIBZNN_DARWIN_AMD64=$(sha256sum ./libznn-darwin-amd64.dylib | head -c 64)
+          LIBZNN_DARWIN_AMD64_LOCAL=$(sha256sum ./lib/embedded_node/blobs/libznn.dylib | head -c 64)
           function check() {
-            if [[ "$LIBZNN_LINUX_AMD64" == "$LIBZNN_LINUX_AMD64_LOCAL" && "$LIBZNN_WINDOWS_AMD64" == "$LIBZNN_WINDOWS_AMD64_LOCAL" && "$LIBZNN_DARWIN_UNIVERSAL" == "$LIBZNN_DARWIN_UNIVERSAL_LOCAL" ]];
+            if [[ "$LIBZNN_LINUX_AMD64" == "$LIBZNN_LINUX_AMD64_LOCAL" && "$LIBZNN_WINDOWS_AMD64" == "$LIBZNN_WINDOWS_AMD64_LOCAL" && "$LIBZNN_DARWIN_AMD64" == "$LIBZNN_DARWIN_AMD64_LOCAL" ]];
             then
               echo "0"
             else
@@ -44,7 +44,7 @@ jobs:
         if: ${{ env.CHANGED == '1' }}
         run: |
           mv libznn-linux-amd64.so lib/embedded_node/blobs/libznn.so
-          mv libznn-darwin-universal.dylib lib/embedded_node/blobs/libznn.dylib
+          mv libznn-darwin-amd64.dylib lib/embedded_node/blobs/libznn.dylib
           mv libznn-windows-amd64.dll lib/embedded_node/blobs/libznn.dll
       - name: Push if changes are present
         if: ${{ env.CHANGED == '1' }}
