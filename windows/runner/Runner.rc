@@ -63,13 +63,13 @@ IDI_APP_ICON            ICON                    "resources\\app_icon.ico"
 #ifdef FLUTTER_BUILD_NUMBER
 #define VERSION_AS_NUMBER FLUTTER_BUILD_NUMBER
 #else
-#define VERSION_AS_NUMBER 0,2,3
+#define VERSION_AS_NUMBER 0,2,4
 #endif
 
 #ifdef FLUTTER_BUILD_NAME
 #define VERSION_AS_STRING #FLUTTER_BUILD_NAME
 #else
-#define VERSION_AS_STRING "v0.2.3-alphanet"
+#define VERSION_AS_STRING "v0.2.4-alphanet"
 #endif
 
 VS_VERSION_INFO VERSIONINFO
@@ -93,7 +93,7 @@ BEGIN
             VALUE "FileDescription", "s y r i u s (" VERSION_AS_STRING ")" "\0"
             VALUE "FileVersion", VERSION_AS_STRING "\0"
             VALUE "InternalName", "syrius" "\0"
-            VALUE "LegalCopyright", "(C) 2024 Zenon Network" "\0"
+            VALUE "LegalCopyright", "(C) 2025 Zenon Network" "\0"
             VALUE "OriginalFilename", "syrius.exe" "\0"
             VALUE "ProductName", "syrius" "\0"
             VALUE "ProductVersion", VERSION_AS_STRING "\0"
