@@ -89,7 +89,7 @@ class _WalletConnectCameraCardState extends State<WalletConnectCameraCard> {
                             facing: CameraFacing.front,
                             detectionSpeed: DetectionSpeed.noDuplicates,
                           ),
-                          errorBuilder: (p0, p1, p2) {
+                          errorBuilder: (p0, p1,) {
                             // Pop navigator and close camera after 10 seconds
                             Timer(const Duration(seconds: 10), () {
                               Navigator.pop(context);

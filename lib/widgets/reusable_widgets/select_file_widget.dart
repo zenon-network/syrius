@@ -88,13 +88,14 @@ class SelectFileWidgetState extends State<SelectFileWidget> {
             }
           },
           child: DottedBorder(
-            borderType: BorderType.RRect,
-            color: _browseButtonHover
-                ? AppColors.znnColor
-                : Theme.of(context).textTheme.headlineSmall!.color!,
-            strokeWidth: 2.0,
-            dashPattern: const [8.0, 5.0],
-            radius: const Radius.circular(10.0),
+            options: RoundedRectDottedBorderOptions(
+              color: _browseButtonHover
+                  ? AppColors.znnColor
+                  : Theme.of(context).textTheme.headlineSmall!.color!,
+              strokeWidth: 2.0,
+              dashPattern: const [8.0, 5.0],
+              radius: const Radius.circular(10.0),
+            ),
             child: Container(
               height: 100.0,
               decoration: BoxDecoration(
