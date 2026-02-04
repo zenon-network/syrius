@@ -12,7 +12,6 @@ import 'package:flutter_vector_icons/flutter_vector_icons.dart';
 import 'package:logging/logging.dart';
 import 'package:lottie/lottie.dart';
 import 'package:provider/provider.dart';
-import 'package:wallet_connect_uri_validator/wallet_connect_uri_validator.dart';
 import 'package:window_manager/window_manager.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/handlers/htlc_swaps_handler.dart';
@@ -603,7 +602,7 @@ class _MainAppContainerState extends State<MainAppContainer>
                 }
                 final String wcUri =
                     Uri.decodeFull(uriRaw.split('wc?uri=').last);
-                if (WalletConnectUri.tryParse(wcUri) != null) {
+                if (Uri.tryParse(wcUri) != null) {
                   await _updateWalletConnectUri(wcUri);
                 }
                 return;
@@ -891,7 +890,7 @@ class _MainAppContainerState extends State<MainAppContainer>
     final ClipboardData? newClipboardData =
         await Clipboard.getData(Clipboard.kTextPlain);
     final String text = newClipboardData?.text ?? '';
-    if (text.isNotEmpty && WalletConnectUri.tryParse(text) != null) {
+    if (text.isNotEmpty && Uri.tryParse(text) != null) {
       // This check is needed because onClipboardChanged is called twice sometimes
       if (kLastWalletConnectUriNotifier.value != text) {
         _updateWalletConnectUri(text);

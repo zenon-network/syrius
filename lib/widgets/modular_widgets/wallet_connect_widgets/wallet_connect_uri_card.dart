@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:logging/logging.dart';
-import 'package:wallet_connect_uri_validator/wallet_connect_uri_validator.dart';
-import 'package:walletconnect_flutter_v2/apis/core/pairing/utils/pairing_models.dart';
+import 'package:reown_walletkit/reown_walletkit.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/services/i_web3wallet_service.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
@@ -62,7 +61,7 @@ class _WalletConnectUriCardState extends State<WalletConnectUriCard> {
                       autovalidateMode: AutovalidateMode.onUserInteraction,
                       child: InputField(
                         validator: (String? value) {
-                          if (WalletConnectUri.tryParse(value ?? '') != null) {
+                          if (Uri.tryParse(value ?? '') != null) {
                             return null;
                           } else {
                             return 'URI invalid';
@@ -100,7 +99,7 @@ class _WalletConnectUriCardState extends State<WalletConnectUriCard> {
               MyOutlinedButton(
                 text: 'Connect',
                 onPressed:
-                    WalletConnectUri.tryParse(_uriController.text) != null
+                    Uri.tryParse(_uriController.text) != null
                         ? () {
                             _pairWithDapp(
                               Uri.parse(_uriController.text),

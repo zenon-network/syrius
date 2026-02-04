@@ -35,7 +35,7 @@ extension FixedNumDecimals on double {
 
 extension BigIntExtensions on BigInt {
   String addDecimals(int decimals) {
-    return BigDecimal.createAndStripZerosForScale(this, decimals, 0)
+    return BigDecimal.fromBigInt(this).withScale(decimals)
         .toPlainString();
   }
 }

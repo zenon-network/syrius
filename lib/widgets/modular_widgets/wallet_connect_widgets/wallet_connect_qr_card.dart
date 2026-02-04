@@ -5,9 +5,8 @@ import 'package:image/image.dart' as img;
 import 'package:logging/logging.dart';
 import 'package:path/path.dart' as path;
 import 'package:pretty_qr_code/pretty_qr_code.dart';
+import 'package:reown_walletkit/reown_walletkit.dart';
 import 'package:screen_capturer/screen_capturer.dart';
-import 'package:wallet_connect_uri_validator/wallet_connect_uri_validator.dart';
-import 'package:walletconnect_flutter_v2/apis/core/pairing/utils/pairing_models.dart';
 import 'package:window_manager/window_manager.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
@@ -144,7 +143,7 @@ class _WalletConnectQrCardState extends State<WalletConnectQrCard> {
 
         if (result.rawBytes!.isNotEmpty) {
           if (result.text.isNotEmpty &&
-              WalletConnectUri.tryParse(result.text) != null) {
+              Uri.tryParse(result.text) != null) {
             await windowManager.show();
             _uriController.text = result.text;
           } else {

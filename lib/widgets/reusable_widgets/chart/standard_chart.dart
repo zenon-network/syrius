@@ -38,7 +38,7 @@ class StandardChart extends StatelessWidget {
               fitInsideHorizontally: true,
               tooltipMargin: 14,
               tooltipPadding: const EdgeInsets.all(4),
-              tooltipRoundedRadius: 6,
+              tooltipBorderRadius: BorderRadius.circular(6),
               getTooltipColor: (LineBarSpot lineBarSpot) =>
                   context.themeData.colorScheme.surface,
               getTooltipItems: (List<LineBarSpot> touchedSpots) {

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:walletconnect_flutter_v2/walletconnect_flutter_v2.dart';
+import 'package:reown_walletkit/reown_walletkit.dart';
 import 'package:window_manager/window_manager.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/wallet_connect/chains/i_chain.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
@@ -71,12 +71,12 @@ class NoMService extends IChain {
 
   final NoMChainId reference;
 
-  final WalletConnectError _walletLockedError = const WalletConnectError(
+  final ReownCoreError _walletLockedError = const ReownCoreError(
     code: 9000,
     message: 'Wallet is locked',
   );
 
-  Web3Wallet? wallet;
+  ReownWalletKit? wallet;
 
   @override
   String getNamespace() {

@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:logging/logging.dart';
-import 'package:walletconnect_flutter_v2/walletconnect_flutter_v2.dart';
+import 'package:reown_walletkit/reown_walletkit.dart';
 import 'package:window_manager/window_manager.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/notifications_bloc.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/wallet_connect/wallet_connect_pairings_bloc.dart';
@@ -17,7 +17,7 @@ import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/icons/link_
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 class Web3WalletService extends IWeb3WalletService {
-  Web3Wallet? _wcClient;
+  ReownWalletKit? _walletKit;
 
   /// The list of requests from the dapp
   /// Potential types include, but aren't limited to:
@@ -28,16 +28,14 @@ class Web3WalletService extends IWeb3WalletService {
   @override
   ValueNotifier<List<SessionData>> sessions =
       ValueNotifier<List<SessionData>>(<SessionData>[]);
-  @override
-  ValueNotifier<List<StoredCacao>> auth = ValueNotifier<List<StoredCacao>>(<StoredCacao>[]);
 
   final List<int> _idSessionsApproved = <int>[];
 
   @override
   void create() {
     if (kWcProjectId.isNotEmpty) {
-      _wcClient = Web3Wallet(
-        core: Core(
+      _walletKit = ReownWalletKit(
+        core: ReownCore(
           projectId: kWcProjectId,
         ),
         metadata: const PairingMetadata(
@@ -51,27 +49,27 @@ class Web3WalletService extends IWeb3WalletService {
       );
 
       // Setup our listeners
-      _wcClient!.core.relayClient.onRelayClientConnect
+      _walletKit!.core.relayClient.onRelayClientConnect
           .subscribe(_onRelayClientConnect);
-      _wcClient!.core.relayClient.onRelayClientDisconnect
+      _walletKit!.core.relayClient.onRelayClientDisconnect
           .subscribe(_onRelayClientDisconnect);
-      _wcClient!.core.relayClient.onRelayClientError
+      _walletKit!.core.relayClient.onRelayClientError
           .subscribe(_onRelayClientError);
 
-      _wcClient!.core.pairing.onPairingCreate.subscribe(_onPairingCreate);
-      _wcClient!.core.pairing.onPairingActivate.subscribe(_onPairingActivate);
-      _wcClient!.core.pairing.onPairingPing.subscribe(_onPairingPing);
-      _wcClient!.core.pairing.onPairingInvalid.subscribe(_onPairingInvalid);
-      _wcClient!.core.pairing.onPairingDelete.subscribe(_onPairingDelete);
+      _walletKit!.core.pairing.onPairingCreate.subscribe(_onPairingCreate);
+      _walletKit!.core.pairing.onPairingActivate.subscribe(_onPairingActivate);
+      _walletKit!.core.pairing.onPairingPing.subscribe(_onPairingPing);
+      _walletKit!.core.pairing.onPairingInvalid.subscribe(_onPairingInvalid);
+      _walletKit!.core.pairing.onPairingDelete.subscribe(_onPairingDelete);
 
-      _wcClient!.pairings.onSync.subscribe(_onPairingsSync);
-      _wcClient!.sessions.onSync.subscribe(_onSessionsSync);
+      _walletKit!.pairings.onSync.subscribe(_onPairingsSync);
+      _walletKit!.sessions.onSync.subscribe(_onSessionsSync);
 
-      _wcClient!.onSessionProposal.subscribe(_onSessionProposal);
-      _wcClient!.onSessionConnect.subscribe(_onSessionConnect);
-      _wcClient!.onSessionRequest.subscribe(_onSessionRequest);
-      _wcClient!.onSessionProposalError.subscribe(_onSessionProposalError);
-      _wcClient!.onSessionDelete.subscribe(_onSessionDelete);
+      _walletKit!.onSessionProposal.subscribe(_onSessionProposal);
+      _walletKit!.onSessionConnect.subscribe(_onSessionConnect);
+      _walletKit!.onSessionRequest.subscribe(_onSessionRequest);
+      _walletKit!.onSessionProposalError.subscribe(_onSessionProposalError);
+      _walletKit!.onSessionDelete.subscribe(_onSessionDelete);
       // _wcClient!.onAuthRequest.subscribe(_onAuthRequest);
     } else {
       Logger('WalletConnectService').log(Level.INFO, 'kWcProjectId missing');
@@ -82,58 +80,56 @@ class Web3WalletService extends IWeb3WalletService {
   Future<void> init() async {
     // Await the initialization of the web3wallet
     Logger('WalletConnectService').log(Level.INFO, 'initialization');
-    await _wcClient!.init();
+    await _walletKit!.init();
 
-    pairings.value = _wcClient!.pairings.getAll();
-    sessions.value = _wcClient!.sessions.getAll();
-    auth.value = _wcClient!.completeRequests.getAll();
+    pairings.value = _walletKit!.pairings.getAll();
+    sessions.value = _walletKit!.sessions.getAll();
   }
 
   @override
   FutureOr onDispose() {
-    _wcClient!.core.relayClient.onRelayClientConnect
+    _walletKit!.core.relayClient.onRelayClientConnect
         .unsubscribe(_onRelayClientConnect);
-    _wcClient!.core.relayClient.onRelayClientDisconnect
+    _walletKit!.core.relayClient.onRelayClientDisconnect
         .unsubscribe(_onRelayClientDisconnect);
-    _wcClient!.core.relayClient.onRelayClientError
+    _walletKit!.core.relayClient.onRelayClientError
         .unsubscribe(_onRelayClientError);
 
-    _wcClient!.core.pairing.onPairingCreate.unsubscribe(_onPairingCreate);
-    _wcClient!.core.pairing.onPairingActivate.unsubscribe(_onPairingActivate);
-    _wcClient!.core.pairing.onPairingPing.unsubscribe(_onPairingPing);
-    _wcClient!.core.pairing.onPairingInvalid.unsubscribe(_onPairingInvalid);
-    _wcClient!.core.pairing.onPairingDelete.unsubscribe(_onPairingDelete);
+    _walletKit!.core.pairing.onPairingCreate.unsubscribe(_onPairingCreate);
+    _walletKit!.core.pairing.onPairingActivate.unsubscribe(_onPairingActivate);
+    _walletKit!.core.pairing.onPairingPing.unsubscribe(_onPairingPing);
+    _walletKit!.core.pairing.onPairingInvalid.unsubscribe(_onPairingInvalid);
+    _walletKit!.core.pairing.onPairingDelete.unsubscribe(_onPairingDelete);
 
-    _wcClient!.pairings.onSync.unsubscribe(_onPairingsSync);
-    _wcClient!.sessions.onSync.unsubscribe(_onSessionsSync);
+    _walletKit!.pairings.onSync.unsubscribe(_onPairingsSync);
+    _walletKit!.sessions.onSync.unsubscribe(_onSessionsSync);
 
-    _wcClient!.onSessionProposal.unsubscribe(_onSessionProposal);
-    _wcClient!.onSessionConnect.unsubscribe(_onSessionConnect);
-    _wcClient!.onSessionRequest.unsubscribe(_onSessionRequest);
-    _wcClient!.onSessionProposalError.unsubscribe(_onSessionProposalError);
-    _wcClient!.onSessionDelete.unsubscribe(_onSessionDelete);
+    _walletKit!.onSessionProposal.unsubscribe(_onSessionProposal);
+    _walletKit!.onSessionConnect.unsubscribe(_onSessionConnect);
+    _walletKit!.onSessionRequest.unsubscribe(_onSessionRequest);
+    _walletKit!.onSessionProposalError.unsubscribe(_onSessionProposalError);
+    _walletKit!.onSessionDelete.unsubscribe(_onSessionDelete);
     // _wcClient!.onAuthRequest.unsubscribe(_onAuthRequest);
 
     pairings.dispose();
     sessions.dispose();
-    auth.dispose();
   }
 
   @override
-  Web3Wallet getWeb3Wallet() {
-    return _wcClient!;
+  ReownWalletKit getWeb3Wallet() {
+    return _walletKit!;
   }
 
   @override
   Future<PairingInfo> pair(Uri uri) {
-    return _wcClient!.pair(uri: uri);
+    return _walletKit!.pair(uri: uri);
   }
 
   @override
   Future<void> activatePairing({
     required String topic,
   }) {
-    return _wcClient!.core.pairing.activate(
+    return _walletKit!.core.pairing.activate(
       topic: topic,
     );
   }
@@ -143,9 +139,9 @@ class Web3WalletService extends IWeb3WalletService {
     required String topic,
   }) async {
     try {
-      _wcClient!.core.pairing.disconnect(topic: topic);
+      _walletKit!.core.pairing.disconnect(topic: topic);
       _idSessionsApproved.clear();
-    } on WalletConnectError catch (e) {
+    } on ReownCoreError catch (e) {
       // technically look for WalletConnectError 6 : Expired.  to consider it a warning
       Logger('WalletConnectService')
           .log(Level.INFO, 'deactivatePairing ${e.code} : ${e.message}');
@@ -158,7 +154,7 @@ class Web3WalletService extends IWeb3WalletService {
 
   @override
   Map<String, SessionData> getSessionsForPairing(String pairingTopic) {
-    return _wcClient!.getSessionsForPairing(
+    return _walletKit!.getSessionsForPairing(
       pairingTopic: pairingTopic,
     );
   }
@@ -184,9 +180,9 @@ class Web3WalletService extends IWeb3WalletService {
     Logger('WalletConnectService')
         .log(Level.INFO, 'disconnectSessions triggered');
     for (int i = 0; i < pairings.value.length; i++) {
-      await _wcClient!.disconnectSession(
+      await _walletKit!.disconnectSession(
           topic: pairings.value[i].topic,
-          reason: Errors.getSdkError(Errors.USER_DISCONNECTED),);
+          reason: Errors.getSdkError(Errors.USER_DISCONNECTED).toSignError(),);
     }
     _idSessionsApproved.clear();
   }
@@ -195,9 +191,9 @@ class Web3WalletService extends IWeb3WalletService {
   Future<void> disconnectSession({required String topic}) async {
     Logger('WalletConnectService')
         .log(Level.INFO, 'disconnectSession triggered', topic);
-    _wcClient!.disconnectSession(
+    _walletKit!.disconnectSession(
       topic: topic,
-      reason: Errors.getSdkError(Errors.USER_DISCONNECTED),
+      reason: Errors.getSdkError(Errors.USER_DISCONNECTED).toSignError(),
     );
   }
 
@@ -205,7 +201,7 @@ class Web3WalletService extends IWeb3WalletService {
   Map<String, SessionData> getActiveSessions() {
     Logger('WalletConnectService')
         .log(Level.INFO, 'getActiveSessions triggered');
-    return _wcClient!.getActiveSessions();
+    return _walletKit!.getActiveSessions();
   }
 
   Future<void> _onRelayClientConnect(var args) async {
@@ -227,7 +223,7 @@ class Web3WalletService extends IWeb3WalletService {
     if (args != null) {
       Logger('WalletConnectService')
           .log(Level.INFO, '_onSessionsSync triggered', args.toString());
-      sessions.value = _wcClient!.sessions.getAll();
+      sessions.value = _walletKit!.sessions.getAll();
     }
   }
 
@@ -262,7 +258,7 @@ class Web3WalletService extends IWeb3WalletService {
     if (args != null) {
       Logger('WalletConnectService')
           .log(Level.INFO, '_onPairingsSync triggered', args.toString());
-      pairings.value = _wcClient!.pairings.getAll();
+      pairings.value = _walletKit!.pairings.getAll();
     }
   }
 
@@ -329,9 +325,13 @@ class Web3WalletService extends IWeb3WalletService {
           _idSessionsApproved.add(event.id);
           try {
             final ApproveResponse approveResponse =
-                await _approveSession(id: event.id);
-            await _sendSuccessfullyApprovedSessionNotification(dAppMetadata);
-            sessions.value.add(approveResponse.session);
+            await _approveSession(id: event.id);
+            if (approveResponse.session != null) {
+              await _sendSuccessfullyApprovedSessionNotification(dAppMetadata);
+              sessions.value.add(approveResponse.session!);
+            } else {
+              //TODO(mazzwell): throw error
+            }
           } catch (e, stackTrace) {
             await NotificationUtils.sendNotificationError(
                 e, 'WalletConnect session approval failed',);
@@ -340,11 +340,11 @@ class Web3WalletService extends IWeb3WalletService {
           }
         }
       } else {
-        await _wcClient!.rejectSession(
+        await _walletKit!.rejectSession(
           id: event.id,
           reason: Errors.getSdkError(
             Errors.USER_REJECTED,
-          ),
+          ).toSignError(),
         );
       }
     }
@@ -390,7 +390,7 @@ class Web3WalletService extends IWeb3WalletService {
             events: <String>['chainIdChange', 'addressChange'],
           ),
         };
-    return _wcClient!.approveSession(
+    return _walletKit!.approveSession(
       id: id,
       namespaces: namespaces,
     );
@@ -432,7 +432,7 @@ class Web3WalletService extends IWeb3WalletService {
     required String changeName,
     required String newValue,
   }) {
-    return _wcClient!.emitSessionEvent(
+    return _walletKit!.emitSessionEvent(
       topic: sessionTopic,
       chainId: 'zenon:1',
       event: SessionEventParams(

@@ -5,8 +5,7 @@ import 'package:ai_barcode_scanner/ai_barcode_scanner.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_vector_icons/flutter_vector_icons.dart';
 import 'package:logging/logging.dart';
-import 'package:wallet_connect_uri_validator/wallet_connect_uri_validator.dart';
-import 'package:walletconnect_flutter_v2/apis/core/pairing/utils/pairing_models.dart';
+import 'package:reown_walletkit/reown_walletkit.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/services/i_web3wallet_service.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
@@ -89,7 +88,7 @@ class _WalletConnectCameraCardState extends State<WalletConnectCameraCard> {
                             facing: CameraFacing.front,
                             detectionSpeed: DetectionSpeed.noDuplicates,
                           ),
-                          errorBuilder: (BuildContext p0, MobileScannerException p1, Widget? p2) {
+                          errorBuilder: (BuildContext p0, MobileScannerException p1) {
                             // Pop navigator and close camera after 10 seconds
                             Timer(const Duration(seconds: 10), () {
                               Navigator.pop(context);
@@ -132,12 +131,7 @@ class _WalletConnectCameraCardState extends State<WalletConnectCameraCard> {
   }
 
   bool canParseWalletConnectUri(String wcUri) {
-    WalletConnectUri? walletConnectUri;
-    walletConnectUri = WalletConnectUri.tryParse(wcUri);
-    if (walletConnectUri != null) {
-      return true;
-    }
-    return false;
+    return Uri.tryParse(wcUri) != null;
   }
 
   /// A BarcodeCapture can contain multiple barcodes. This function returns

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:zenon_syrius_wallet_flutter/l10n/app_localizations.dart';
 
 /// Extension on the [BuildContext] class
 extension BuildContextExtension on BuildContext {

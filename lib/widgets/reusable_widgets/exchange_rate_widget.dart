@@ -64,10 +64,11 @@ class _ExchangeRateWidgetState extends State<ExchangeRateWidget> {
     if (widget.fromAmount <= BigInt.zero || widget.toAmount <= BigInt.zero) {
       return '-';
     }
-    final BigDecimal fromAmountWithDecimals = BigDecimal.createAndStripZerosForScale(
-        widget.fromAmount, widget.fromDecimals, widget.fromDecimals,);
-    final BigDecimal toAmountWithDecimals = BigDecimal.createAndStripZerosForScale(
-        widget.toAmount, widget.toDecimals, widget.toDecimals,);
+    // TODO: test convertion
+    final BigDecimal fromAmountWithDecimals = BigDecimal.fromBigInt(
+        widget.fromAmount).withScale(widget.fromDecimals);
+    final BigDecimal toAmountWithDecimals = BigDecimal.fromBigInt(
+        widget.toAmount).withScale(widget.toDecimals);
     if (_isToggled) {
       final BigDecimal rate = fromAmountWithDecimals.divide(toAmountWithDecimals,
           roundingMode: RoundingMode.DOWN,);

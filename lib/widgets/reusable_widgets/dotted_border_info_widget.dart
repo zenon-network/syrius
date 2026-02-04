@@ -21,12 +21,13 @@ class _DottedBorderInfoWidgetState extends State<DottedBorderInfoWidget> {
   @override
   Widget build(BuildContext context) {
     return DottedBorder(
-      padding: const EdgeInsets.all(5),
-      color: widget.borderColor,
-      borderType: BorderType.RRect,
-      radius: const Radius.circular(6),
-      dashPattern: const <double>[3],
-      strokeWidth: 2,
+      options: RoundedRectDottedBorderOptions(
+        padding: const EdgeInsets.all(5),
+        color: widget.borderColor,
+        radius: const Radius.circular(6),
+        dashPattern: const <double>[3],
+        strokeWidth: 2,
+      ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         mainAxisAlignment: MainAxisAlignment.center,
