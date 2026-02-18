@@ -46,12 +46,12 @@ dependencies:
   znn_sdk_dart:
     git:
       url: https://github.com/zenon-network/znn_sdk_dart.git
-      ref: v0.0.7
+      ref: chore/upgrade-packages
   znn_ledger_dart:
     git:
       url: https://github.com/zenon-network/znn_ledger_dart.git
-      ref: v0.0.5
-  json_rpc_2: ^3.0.2
+      ref: chore/upgrade-packages
+  json_rpc_2: ^4.0.0
   path: ^1.8.2
   ffi: ^2.1.0
   get_it: ^8.3.0
@@ -63,14 +63,13 @@ dependencies:
   logging: ^1.2.0
   collection: ^1.17.0
   app_links: ^7.0.0
-  walletconnect_flutter_v2: ^2.0.14
+  reown_walletkit: ^1.4.0
   preference_list: ^0.0.1
   screen_capturer: ^0.2.3
   zxing2: ^0.2.0
   image: ^4.0.10
   clipboard_watcher: ^0.3.0
-  wallet_connect_uri_validator: ^0.1.0
-  big_decimal: ^0.5.0
+  big_decimal: ^0.7.0
   ai_barcode_scanner: ^7.1.0
   version: ^3.0.0
   mutex: ^3.1.0

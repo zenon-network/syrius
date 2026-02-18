@@ -125,26 +125,26 @@ packages:
     dependency: "direct main"
     description:
       name: big_decimal
-      sha256: "301158ec5a646d1e1a0ca7a97fbfab7be18a8df700adb7f7cb9c4149e75c8f0c"
+      sha256: "6413818091e80c907bb73bae383418db5c148fd7fd283e56197bfeeeb212d5bd"
       url: "https://pub.dev"
     source: hosted
-    version: "0.5.0"
-  bip32:
+    version: "0.7.0"
+  bip32_plus:
     dependency: transitive
     description:
-      name: bip32
-      sha256: "54787cd7a111e9d37394aabbf53d1fc5e2e0e0af2cd01c459147a97c0e3f8a97"
+      name: bip32_plus
+      sha256: e5ff21f3bd2f4fa063db1f851f0d7a736d46d2e81617f0613ab3f6d17b26608e
       url: "https://pub.dev"
     source: hosted
-    version: "2.0.0"
-  bip39:
+    version: "1.0.0"
+  bip39_mnemonic:
     dependency: transitive
     description:
-      name: bip39
-      sha256: de1ee27ebe7d96b84bb3a04a4132a0a3007dcdd5ad27dd14aa87a29d97c45edc
+      name: bip39_mnemonic
+      sha256: dd6bdfc2547d986b2c00f99bba209c69c0b6fa5c1a185e1f728998282f1249d5
       url: "https://pub.dev"
     source: hosted
-    version: "1.0.6"
+    version: "4.0.1"
   boolean_selector:
     dependency: transitive
     description:
@@ -297,6 +297,22 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.19.1"
+  connectivity_plus:
+    dependency: transitive
+    description:
+      name: connectivity_plus
+      sha256: "33bae12a398f841c6cda09d1064212957265869104c478e5ad51e2fb26c3973c"
+      url: "https://pub.dev"
+    source: hosted
+    version: "7.0.0"
+  connectivity_plus_platform_interface:
+    dependency: transitive
+    description:
+      name: connectivity_plus_platform_interface
+      sha256: "42657c1715d48b167930d5f34d00222ac100475f73d10162ddf43e714932f204"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.0.1"
   convert:
     dependency: transitive
     description:
@@ -405,10 +421,10 @@ packages:
     dependency: transitive
     description:
       name: eip55
-      sha256: "213a9b86add87a5216328e8494b0ab836e401210c4d55eb5e521bd39e39169e1"
+      sha256: a81d6afe386ec965e584541fe8f19719bed8a7ae23a5f5061112e96c50e6521b
       url: "https://pub.dev"
     source: hosted
-    version: "1.0.2"
+    version: "1.0.3"
   equatable:
     dependency: transitive
     description:
@@ -421,10 +437,10 @@ packages:
     dependency: transitive
     description:
       name: event
-      sha256: eb4814de94cbf6a10da9c4f652bc654087d7066e33566b5036822e6c0b24befb
+      sha256: "5809a742e6274146a23d9cba63c24caf2f4c87a9a781fdf16ef07f052becaf72"
       url: "https://pub.dev"
     source: hosted
-    version: "2.1.2"
+    version: "3.1.0"
   expandable:
     dependency: "direct main"
     description:
@@ -571,6 +587,54 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.0.33"
+  flutter_secure_storage:
+    dependency: transitive
+    description:
+      name: flutter_secure_storage
+      sha256: "9cad52d75ebc511adfae3d447d5d13da15a55a92c9410e50f67335b6d21d16ea"
+      url: "https://pub.dev"
+    source: hosted
+    version: "9.2.4"
+  flutter_secure_storage_linux:
+    dependency: transitive
+    description:
+      name: flutter_secure_storage_linux
+      sha256: be76c1d24a97d0b98f8b54bce6b481a380a6590df992d0098f868ad54dc8f688
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.2.3"
+  flutter_secure_storage_macos:
+    dependency: transitive
+    description:
+      name: flutter_secure_storage_macos
+      sha256: "6c0a2795a2d1de26ae202a0d78527d163f4acbb11cde4c75c670f3a0fc064247"
+      url: "https://pub.dev"
+    source: hosted
+    version: "3.1.3"
+  flutter_secure_storage_platform_interface:
+    dependency: transitive
+    description:
+      name: flutter_secure_storage_platform_interface
+      sha256: cf91ad32ce5adef6fba4d736a542baca9daf3beac4db2d04be350b87f69ac4a8
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.1.2"
+  flutter_secure_storage_web:
+    dependency: transitive
+    description:
+      name: flutter_secure_storage_web
+      sha256: f4ebff989b4f07b2656fb16b47852c0aab9fed9b4ec1c70103368337bc1886a9
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.2.1"
+  flutter_secure_storage_windows:
+    dependency: transitive
+    description:
+      name: flutter_secure_storage_windows
+      sha256: b20b07cb5ed4ed74fc567b78a72936203f587eba460af1df11281c9326cd3709
+      url: "https://pub.dev"
+    source: hosted
+    version: "3.1.2"
   flutter_staggered_grid_view:
     dependency: "direct main"
     description:
@@ -604,10 +668,10 @@ packages:
     dependency: transitive
     description:
       name: freezed_annotation
-      sha256: c2e2d632dd9b8a2b7751117abcfc2b4888ecfe181bd9fca7170d9ef02e595fe2
+      sha256: "7294967ff0a6d98638e7acb774aac3af2550777accd8149c90af5b014e6d44d8"
       url: "https://pub.dev"
     source: hosted
-    version: "2.4.4"
+    version: "3.1.0"
   frontend_server_client:
     dependency: transitive
     description:
@@ -812,10 +876,10 @@ packages:
     dependency: transitive
     description:
       name: js
-      sha256: "53385261521cc4a0c4658fd0ad07a7d14591cf8fc33abbceae306ddb974888dc"
+      sha256: f2c445dce49627136094980615a031419f7f3eb393237e4ecd97ac15dea343f3
       url: "https://pub.dev"
     source: hosted
-    version: "0.7.2"
+    version: "0.6.7"
   json_annotation:
     dependency: transitive
     description:
@@ -828,10 +892,10 @@ packages:
     dependency: "direct main"
     description:
       name: json_rpc_2
-      sha256: "246b321532f0e8e2ba474b4d757eaa558ae4fdd0688fdbc1e1ca9705f9b8ca0e"
+      sha256: "82dfd37d3b2e5030ae4729e1d7f5538cbc45eb1c73d618b9272931facac3bec1"
       url: "https://pub.dev"
     source: hosted
-    version: "3.0.3"
+    version: "4.1.0"
   launch_at_startup:
     dependency: "direct main"
     description:
@@ -868,10 +932,10 @@ packages:
     dependency: transitive
     description:
       name: logger
-      sha256: "7ad7215c15420a102ec687bb320a7312afd449bac63bfb1c60d9787c27b9767f"
+      sha256: a7967e31b703831a893bbc3c3dd11db08126fe5f369b5c648a36f821979f5be3
       url: "https://pub.dev"
     source: hosted
-    version: "1.4.0"
+    version: "2.6.2"
   logging:
     dependency: "direct main"
     description:
@@ -944,6 +1008,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "7.1.4"
+  msgpack_dart:
+    dependency: transitive
+    description:
+      name: msgpack_dart
+      sha256: c2d235ed01f364719b5296aecf43ac330f0d7bc865fa134d0d7910a40454dffb
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.0.1"
   mutex:
     dependency: "direct main"
     description:
@@ -968,6 +1040,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.0.0"
+  nm:
+    dependency: transitive
+    description:
+      name: nm
+      sha256: "2c9aae4127bdc8993206464fcc063611e0e36e72018696cd9631023a31b24254"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.5.0"
   number_selector:
     dependency: "direct main"
     description:
@@ -1124,10 +1204,10 @@ packages:
     dependency: transitive
     description:
       name: pointycastle
-      sha256: "4be0097fcf3fd3e8449e53730c631200ebc7b88016acecab2b0da2f0149222fe"
+      sha256: "92aa3841d083cc4b0f4709b5c74fd6409a3e6ba833ffc7dc6a8fee096366acf5"
       url: "https://pub.dev"
     source: hosted
-    version: "3.9.1"
+    version: "4.0.0"
   pool:
     dependency: transitive
     description:
@@ -1192,6 +1272,30 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.0.2"
+  reown_core:
+    dependency: transitive
+    description:
+      name: reown_core
+      sha256: "41295f6bc7a656af3b7bf20f69c0e41a4ee83a1d10803269e46f2213184e136b"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.3.8"
+  reown_sign:
+    dependency: transitive
+    description:
+      name: reown_sign
+      sha256: "96061ed17109fe768196cad782e50ae59818fc91b7470a49d950423755e9d641"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.3.9"
+  reown_walletkit:
+    dependency: "direct main"
+    description:
+      name: reown_walletkit
+      sha256: "43da9b8852c77a01aa0c4a513a71b7276c5c840d137de690937391bf3a451e61"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.4.0"
   retry:
     dependency: "direct main"
     description:
@@ -1292,10 +1396,10 @@ packages:
     dependency: transitive
     description:
       name: sec
-      sha256: "8bbd56df884502192a441b5f5d667265498f2f8728a282beccd9db79e215f379"
+      sha256: "52a93800943642e0b5225408d0973a1837e2452b9aa8a501fdfbc8e76b6ac135"
       url: "https://pub.dev"
     source: hosted
-    version: "1.1.0"
+    version: "1.1.1"
   sha3:
     dependency: transitive
     description:
@@ -1549,6 +1653,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.1.0"
+  unorm_dart:
+    dependency: transitive
+    description:
+      name: unorm_dart
+      sha256: "0c69186b03ca6addab0774bcc0f4f17b88d4ce78d9d4d8f0619e30a99ead58e7"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.3.2"
   url_launcher:
     dependency: "direct main"
     description:
@@ -1617,10 +1729,10 @@ packages:
     dependency: transitive
     description:
       name: uuid
-      sha256: "648e103079f7c64a36dc7d39369cabb358d377078a051d6ae2ad3aa539519313"
+      sha256: a11b666489b1954e01d992f3d601b1804a33937b5a8fe677bd26b8a9f96f96e8
       url: "https://pub.dev"
     source: hosted
-    version: "3.0.7"
+    version: "4.5.2"
   validators:
     dependency: "direct main"
     description:
@@ -1689,26 +1801,18 @@ packages:
     dependency: transitive
     description:
       name: wallet
-      sha256: "687fd89a16557649b26189e597792962f405797fc64113e8758eabc2c2605c32"
+      sha256: "20b6d8440039726841bd23b2bac64f888ec1ce1509edcc3ed2ad1753f613521e"
       url: "https://pub.dev"
     source: hosted
-    version: "0.0.13"
-  wallet_connect_uri_validator:
-    dependency: "direct main"
+    version: "0.0.18"
+  walletconnect_pay:
+    dependency: transitive
     description:
-      name: wallet_connect_uri_validator
-      sha256: "447de085956b87f0ce0051a237ed44bbbb440db1266a7db6a27b8f3edfa13cec"
+      name: walletconnect_pay
+      sha256: e41dc37b3541f87c1b9b402cc01b733e9d26ed98467690a87c12ee8b7f0a28b1
       url: "https://pub.dev"
     source: hosted
-    version: "0.1.0"
-  walletconnect_flutter_v2:
-    dependency: "direct main"
-    description:
-      name: walletconnect_flutter_v2
-      sha256: "87295fb305767bb089e6c5a78f273b52e30ade6eaa5fa89c3e103970f0ce6721"
-      url: "https://pub.dev"
-    source: hosted
-    version: "2.0.14"
+    version: "1.0.0"
   watcher:
     dependency: transitive
     description:
@@ -1729,18 +1833,26 @@ packages:
     dependency: transitive
     description:
       name: web3dart
-      sha256: bebbea9278723cef51d21caf65668860e7547f59114fe9f8af01b873a72ba0e6
+      sha256: b7401f8c57833fbde08aaaa8c56e020c5cbdef6bab7f946f69bcc342c9c492b2
       url: "https://pub.dev"
     source: hosted
-    version: "2.7.1"
+    version: "3.0.2"
+  web_socket:
+    dependency: transitive
+    description:
+      name: web_socket
+      sha256: "34d64019aa8e36bf9842ac014bb5d2f5586ca73df5e4d9bf5c936975cae6982c"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.0.1"
   web_socket_channel:
     dependency: transitive
     description:
       name: web_socket_channel
-      sha256: d88238e5eac9a42bb43ca4e721edba3c08c6354d4a53063afaa568516217621b
+      sha256: d645757fb0f4773d602444000a8131ff5d48c9e47adfe9772652dd1a4f2d45c8
       url: "https://pub.dev"
     source: hosted
-    version: "2.4.0"
+    version: "3.0.3"
   win32:
     dependency: transitive
     description:
@@ -1801,20 +1913,20 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: "v0.0.5"
-      resolved-ref: "9c6b251f4be5ab05447f17f63acd56f7a9ff040b"
+      ref: "chore/upgrade-packages"
+      resolved-ref: "11cb75dadf35f88f7f18266bd283b2eea26c40bd"
       url: "https://github.com/zenon-network/znn_ledger_dart.git"
     source: git
-    version: "0.0.5"
+    version: "1.0.0"
   znn_sdk_dart:
     dependency: "direct main"
     description:
       path: "."
-      ref: "v0.0.7"
-      resolved-ref: "8511f17a0dfa721e8f0ec2e0b0aae409f509e102"
+      ref: "chore/upgrade-packages"
+      resolved-ref: e2b76337f95be4419a54d07b449287ced6c45684
       url: "https://github.com/zenon-network/znn_sdk_dart.git"
     source: git
-    version: "0.0.7"
+    version: "1.0.0"
   zxing2:
     dependency: "direct main"
     description:

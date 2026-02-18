@@ -1,6 +1,6 @@
 import 'dart:math' show pow;
-import 'package:big_decimal/big_decimal.dart';
 import 'package:znn_ledger_dart/znn_ledger_dart.dart';
+import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 extension StringExtensions on String {
   String capitalize() {
@@ -35,8 +35,8 @@ extension FixedNumDecimals on double {
 
 extension BigIntExtensions on BigInt {
   String addDecimals(int decimals) {
-    return BigDecimal.createAndStripZerosForScale(this, decimals, 0)
-        .toPlainString();
+
+    return AmountUtils.addDecimals(this, decimals);
   }
 }
 

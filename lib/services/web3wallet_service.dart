@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:logging/logging.dart';
-import 'package:walletconnect_flutter_v2/walletconnect_flutter_v2.dart';
+import 'package:reown_walletkit/reown_walletkit.dart';
 import 'package:window_manager/window_manager.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/notifications_bloc.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/wallet_connect/wallet_connect_pairings_bloc.dart';
@@ -17,7 +17,7 @@ import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/icons/link_
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 class Web3WalletService extends IWeb3WalletService {
-  Web3Wallet? _wcClient;
+  ReownWalletKit? _wcClient;
 
   /// The list of requests from the dapp
   /// Potential types include, but aren't limited to:
@@ -28,16 +28,14 @@ class Web3WalletService extends IWeb3WalletService {
   @override
   ValueNotifier<List<SessionData>> sessions =
       ValueNotifier<List<SessionData>>([]);
-  @override
-  ValueNotifier<List<StoredCacao>> auth = ValueNotifier<List<StoredCacao>>([]);
 
   final List<int> _idSessionsApproved = [];
 
   @override
   void create() {
     if (kWcProjectId.isNotEmpty) {
-      _wcClient = Web3Wallet(
-        core: Core(
+      _wcClient = ReownWalletKit(
+        core: ReownCore(
           projectId: kWcProjectId,
         ),
         metadata: const PairingMetadata(
@@ -86,7 +84,6 @@ class Web3WalletService extends IWeb3WalletService {
 
     pairings.value = _wcClient!.pairings.getAll();
     sessions.value = _wcClient!.sessions.getAll();
-    auth.value = _wcClient!.completeRequests.getAll();
   }
 
   @override
@@ -116,11 +113,10 @@ class Web3WalletService extends IWeb3WalletService {
 
     pairings.dispose();
     sessions.dispose();
-    auth.dispose();
   }
 
   @override
-  Web3Wallet getWeb3Wallet() {
+  ReownWalletKit getWeb3Wallet() {
     return _wcClient!;
   }
 
@@ -145,7 +141,7 @@ class Web3WalletService extends IWeb3WalletService {
     try {
       _wcClient!.core.pairing.disconnect(topic: topic);
       _idSessionsApproved.clear();
-    } on WalletConnectError catch (e) {
+    } on ReownCoreError catch (e) {
       // technically look for WalletConnectError 6 : Expired.  to consider it a warning
       Logger('WalletConnectService')
           .log(Level.INFO, 'deactivatePairing ${e.code} : ${e.message}');
@@ -185,8 +181,9 @@ class Web3WalletService extends IWeb3WalletService {
         .log(Level.INFO, 'disconnectSessions triggered');
     for (int i = 0; i < pairings.value.length; i++) {
       await _wcClient!.disconnectSession(
-          topic: pairings.value[i].topic,
-          reason: Errors.getSdkError(Errors.USER_DISCONNECTED));
+        topic: pairings.value[i].topic,
+        reason: Errors.getSdkError(Errors.USER_DISCONNECTED).toSignError(),
+      );
     }
     _idSessionsApproved.clear();
   }
@@ -197,7 +194,7 @@ class Web3WalletService extends IWeb3WalletService {
         .log(Level.INFO, 'disconnectSession triggered', topic);
     _wcClient!.disconnectSession(
       topic: topic,
-      reason: Errors.getSdkError(Errors.USER_DISCONNECTED),
+      reason: Errors.getSdkError(Errors.USER_DISCONNECTED).toSignError(),
     );
   }
 
@@ -334,7 +331,11 @@ class Web3WalletService extends IWeb3WalletService {
             ApproveResponse approveResponse =
                 await _approveSession(id: event.id);
             await _sendSuccessfullyApprovedSessionNotification(dAppMetadata);
-            sessions.value.add(approveResponse.session);
+            if (approveResponse.session != null) {
+              sessions.value.add(approveResponse.session!);
+            } else {
+              // TODO(maznnwell): handle error
+            }
           } catch (e, stackTrace) {
             await NotificationUtils.sendNotificationError(
                 e, 'WalletConnect session approval failed');
@@ -347,7 +348,7 @@ class Web3WalletService extends IWeb3WalletService {
           id: event.id,
           reason: Errors.getSdkError(
             Errors.USER_REJECTED,
-          ),
+          ).toSignError(),
         );
       }
     }

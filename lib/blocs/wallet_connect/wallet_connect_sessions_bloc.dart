@@ -1,4 +1,4 @@
-import 'package:walletconnect_flutter_v2/walletconnect_flutter_v2.dart';
+import 'package:reown_walletkit/reown_walletkit.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/infinite_scroll_bloc.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/services/i_web3wallet_service.dart';
