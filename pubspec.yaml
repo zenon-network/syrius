@@ -46,11 +46,11 @@ dependencies:
   znn_sdk_dart:
     git:
       url: https://github.com/zenon-network/znn_sdk_dart.git
-      ref: chore/upgrade-packages
+      ref: v1.0.0
   znn_ledger_dart:
     git:
       url: https://github.com/zenon-network/znn_ledger_dart.git
-      ref: chore/upgrade-packages
+      ref: v1.0.0
   json_rpc_2: ^4.0.0
   path: ^1.8.2
   ffi: ^2.1.0
@@ -63,7 +63,11 @@ dependencies:
   logging: ^1.2.0
   collection: ^1.17.0
   app_links: ^7.0.0
-  reown_walletkit: ^1.4.0
+  reown_walletkit:
+    git:
+      url: https://github.com/hypercore-one/reown_flutter.git
+      ref: fix-win-user-agent
+      path: packages/reown_walletkit
   preference_list: ^0.0.1
   screen_capturer: ^0.2.3
   zxing2: ^0.2.0
