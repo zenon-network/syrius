@@ -9,7 +9,7 @@ on:
   workflow_dispatch:
 
 env:
-  FLUTTER_VERSION: "3.29.3"
+  FLUTTER_VERSION: "3.38.9"
 
 jobs:
   build-macos:
