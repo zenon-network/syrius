@@ -1,7 +1,8 @@
 import 'package:big_decimal/big_decimal.dart';
 import 'package:flutter/material.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/extensions.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
+import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 class ExchangeRateWidget extends StatefulWidget {
   final BigInt fromAmount;
@@ -64,10 +65,10 @@ class _ExchangeRateWidgetState extends State<ExchangeRateWidget> {
     if (widget.fromAmount <= BigInt.zero || widget.toAmount <= BigInt.zero) {
       return '-';
     }
-    final fromAmountWithDecimals = BigDecimal.createAndStripZerosForScale(
-        widget.fromAmount, widget.fromDecimals, widget.fromDecimals);
-    final toAmountWithDecimals = BigDecimal.createAndStripZerosForScale(
-        widget.toAmount, widget.toDecimals, widget.toDecimals);
+    final fromAmountWithDecimals = BigDecimal.parse(
+        AmountUtils.addDecimals(widget.fromAmount, widget.fromDecimals));
+    final toAmountWithDecimals = BigDecimal.parse(
+        AmountUtils.addDecimals(widget.toAmount, widget.toDecimals));
     if (_isToggled) {
       final rate = (fromAmountWithDecimals.divide(toAmountWithDecimals,
           roundingMode: RoundingMode.DOWN));

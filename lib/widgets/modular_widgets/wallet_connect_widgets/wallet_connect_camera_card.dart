@@ -5,7 +5,6 @@ import 'package:ai_barcode_scanner/ai_barcode_scanner.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_vector_icons/flutter_vector_icons.dart';
 import 'package:logging/logging.dart';
-import 'package:wallet_connect_uri_validator/wallet_connect_uri_validator.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/services/i_web3wallet_service.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
@@ -89,7 +88,7 @@ class _WalletConnectCameraCardState extends State<WalletConnectCameraCard> {
                             facing: CameraFacing.front,
                             detectionSpeed: DetectionSpeed.noDuplicates,
                           ),
-                          errorBuilder: (p0, p1, p2) {
+                          errorBuilder: (p0, p1,) {
                             // Pop navigator and close camera after 10 seconds
                             Timer(const Duration(seconds: 10), () {
                               Navigator.pop(context);
@@ -133,8 +132,8 @@ class _WalletConnectCameraCardState extends State<WalletConnectCameraCard> {
   }
 
   bool canParseWalletConnectUri(String wcUri) {
-    WalletConnectUri? walletConnectUri;
-    walletConnectUri = WalletConnectUri.tryParse(wcUri);
+    Uri? walletConnectUri;
+    walletConnectUri = Uri.tryParse(wcUri);
     if (walletConnectUri != null) {
       return true;
     }
