@@ -13,7 +13,6 @@ import 'package:logging/logging.dart';
 import 'package:overlay_support/overlay_support.dart';
 import 'package:path/path.dart' as path;
 import 'package:provider/provider.dart';
-import 'package:retry/retry.dart';
 import 'package:tray_manager/tray_manager.dart';
 import 'package:window_manager/window_manager.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/auto_unlock_htlc_worker.dart';
@@ -77,15 +76,8 @@ main() async {
   windowManager.ensureInitialized();
   await windowManager.setPreventClose(true);
 
-  web3WalletService = Web3WalletService();
-  web3WalletService!.create();
-
   // Setup services
   setup();
-
-  retry(() => web3WalletService!.init(),
-      retryIf: (e) => e is SocketException || e is TimeoutException,
-      maxAttempts: 0x7FFFFFFFFFFFFFFF);
 
   // Setup local_notifier
   await localNotifier.setup(
@@ -110,6 +102,7 @@ main() async {
     await sharedPrefsService!.checkIfBoxIsOpen();
   }
 
+  web3WalletService ??= sl.get<IWeb3WalletService>();
   htlcSwapsService ??= sl.get<HtlcSwapsService>();
 
   windowManager.waitUntilReadyToShow().then((_) async {
@@ -198,8 +191,9 @@ void setup() {
       (() => SharedPrefsService.getInstance().then((value) => value!)));
   sl.registerSingleton<HtlcSwapsService>(HtlcSwapsService.getInstance());
 
-  // Initialize WalletConnect service
-  sl.registerSingleton<IWeb3WalletService>(web3WalletService!);
+  // Register WalletConnect service
+  sl.registerSingleton<IWeb3WalletService>(Web3WalletService.getInstance());
+
   sl.registerSingleton<IChain>(
     NoMService(reference: NoMChainId.mainnet),
     instanceName: NoMChainId.mainnet.chain(),

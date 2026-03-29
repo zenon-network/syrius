@@ -1,10 +1,13 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'package:version/version.dart';
 import 'package:zenon_syrius_wallet_flutter/handlers/htlc_swaps_handler.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
+import 'package:retry/retry.dart';
+import 'package:zenon_syrius_wallet_flutter/services/i_web3wallet_service.dart';
 import 'package:zenon_syrius_wallet_flutter/services/shared_prefs_service.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/address_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
@@ -87,6 +90,9 @@ class InitUtils {
       await htlcSwapsService!
           .openBoxes(WalletUtils.baseAddress.toString(), cipherKey);
     }
+    retry(() => sl<IWeb3WalletService>().init(),
+      retryIf: (e) => e is SocketException || e is TimeoutException,
+      maxAttempts: 0x7FFFFFFFFFFFFFFF);
     sl<HtlcSwapsHandler>().start();
     kWalletInitCompleted = true;
   }
