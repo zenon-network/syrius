@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:walletconnect_flutter_v2/walletconnect_flutter_v2.dart';
+import 'package:reown_walletkit/reown_walletkit.dart';
 import 'package:window_manager/window_manager.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/wallet_connect/chains/i_chain.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
@@ -38,6 +37,18 @@ extension NoMChainIdX on NoMChainId {
 }
 
 class NoMService extends IChain {
+  static const namespace = 'zenon';
+
+  final IWeb3WalletService _web3WalletService = sl<IWeb3WalletService>();
+
+  final NoMChainId reference;
+
+  final _walletLockedError = const ReownCoreError(
+    code: 9000,
+    message: 'Wallet is locked',
+  );
+
+  ReownWalletKit? wallet;
 
   NoMService({
     required this.reference,
@@ -65,18 +76,6 @@ class NoMService extends IChain {
       handler: _methodZnnSend,
     );
   }
-  static const String namespace = 'zenon';
-
-  final IWeb3WalletService _web3WalletService = sl<IWeb3WalletService>();
-
-  final NoMChainId reference;
-
-  final WalletConnectError _walletLockedError = const WalletConnectError(
-    code: 9000,
-    message: 'Wallet is locked',
-  );
-
-  Web3Wallet? wallet;
 
   @override
   String getNamespace() {
@@ -112,13 +111,14 @@ class NoMService extends IChain {
           title: '${dAppMetadata.name} - Information',
           content: Column(
             mainAxisSize: MainAxisSize.min,
-            children: <Widget>[
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
               Text('Are you sure you want to allow ${dAppMetadata.name} to '
                   'retrieve the current address, node URL and chain identifier information?'),
               kVerticalSpacing,
               Image(
                 image: NetworkImage(dAppMetadata.icons.first),
-                height: 100,
+                height: 100.0,
                 fit: BoxFit.fitHeight,
               ),
               kVerticalSpacing,
@@ -178,7 +178,8 @@ class NoMService extends IChain {
           title: '${dAppMetadata.name} - Sign Message',
           content: Column(
             mainAxisSize: MainAxisSize.min,
-            children: <Widget>[
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
               Text('Are you sure you want to '
                   'sign message $message ?'),
               kVerticalSpacing,
@@ -241,7 +242,9 @@ class NoMService extends IChain {
       final Token? token =
       await zenon!.embedded.token.getByZts(accountBlock.tokenStandard);
 
-      final String amount = accountBlock.amount.addDecimals(token!.decimals);
+      final amount = accountBlock.amount.addDecimals(token!.decimals);
+
+      final sendPaymentBloc = SendPaymentBloc();
 
       if (globalNavigatorKey.currentContext!.mounted) {
         final wasActionAccepted = await showDialogWithNoAndYesOptions(
@@ -250,7 +253,8 @@ class NoMService extends IChain {
           title: '${dAppMetadata.name} - Send Payment',
           content: Column(
             mainAxisSize: MainAxisSize.min,
-            children: <Widget>[
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
               Text('Are you sure you want to transfer '
                   '$amount ${token.symbol} to '
                   '$toAddress ?'),
@@ -280,29 +284,20 @@ class NoMService extends IChain {
         );
 
         if (wasActionAccepted ?? false) {
-          final SendTransactionBloc sendTransactionBloc =
-          globalNavigatorKey.currentContext!.read<SendTransactionBloc>()..add(
-            SendTransactionInitiateFromBlock(
-              fromAddress: params['fromAddress'],
-              block: AccountBlockTemplate.fromJson(params['accountBlock']),
-              reasonForGeneratingPlasma: 'send transaction',
-            ),
+          sendPaymentBloc.sendTransfer(
+            fromAddress: params['fromAddress'],
+            block: AccountBlockTemplate.fromJson(params['accountBlock']),
           );
 
-          final SendTransactionState state = await sendTransactionBloc.stream
-              .firstWhere(
-                (SendTransactionState newState) =>
-            newState.status == SendTransactionStatus.success,
+          final result = await sendPaymentBloc.stream.firstWhere(
+            (element) => element != null,
           );
 
-          final AccountBlockTemplate result = state.data!;
-
-          return result;
+          return result!;
         } else {
           await NotificationUtils.sendNotificationError(
-            Errors.getSdkError(Errors.USER_REJECTED),
-            'You have rejected the WalletConnect request',
-          );
+              Errors.getSdkError(Errors.USER_REJECTED),
+              'You have rejected the WalletConnect request');
           throw Errors.getSdkError(Errors.USER_REJECTED);
         }
       } else {

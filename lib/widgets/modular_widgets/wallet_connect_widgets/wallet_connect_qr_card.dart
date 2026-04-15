@@ -6,8 +6,6 @@ import 'package:logging/logging.dart';
 import 'package:path/path.dart' as path;
 import 'package:pretty_qr_code/pretty_qr_code.dart';
 import 'package:screen_capturer/screen_capturer.dart';
-import 'package:wallet_connect_uri_validator/wallet_connect_uri_validator.dart';
-import 'package:walletconnect_flutter_v2/apis/core/pairing/utils/pairing_models.dart';
 import 'package:window_manager/window_manager.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
@@ -144,7 +142,7 @@ class _WalletConnectQrCardState extends State<WalletConnectQrCard> {
 
         if (result.rawBytes!.isNotEmpty) {
           if (result.text.isNotEmpty &&
-              WalletConnectUri.tryParse(result.text) != null) {
+              Uri.tryParse(result.text) != null) {
             await windowManager.show();
             _uriController.text = result.text;
           } else {
@@ -161,7 +159,7 @@ class _WalletConnectQrCardState extends State<WalletConnectQrCard> {
               title: 'QR code scan failed',
               timestamp: DateTime.now().millisecondsSinceEpoch,
               details: 'Please scan a valid WalletConnect QR code',
-              type: NotificationType.error,),);
+              type: NotificationType.error));
         }
         await _pairWithDapp(Uri.parse(result.text));
       } else {
@@ -186,7 +184,7 @@ class _WalletConnectQrCardState extends State<WalletConnectQrCard> {
             timestamp: DateTime.now().millisecondsSinceEpoch,
             details:
                 'Screen Recording permission is required to scan and process the on-screen WalletConnect QR code',
-            type: NotificationType.generatingPlasma,),);
+            type: NotificationType.generatingPlasma));
         return false;
       }
       return true;

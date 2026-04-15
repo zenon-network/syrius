@@ -9,11 +9,11 @@ on:
   workflow_dispatch:
 
 env:
-  FLUTTER_VERSION: "3.27.1"
+  FLUTTER_VERSION: "3.38.9"
 
 jobs:
   build-macos:
-    runs-on: macos-14
+    runs-on: macos-15
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -94,7 +94,7 @@ jobs:
           name: windows-artifacts
           path: syrius-alphanet-windows-amd64.zip
   build-linux:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -109,6 +109,8 @@ jobs:
       - name: Prepare environment
         run: |
           sudo apt update
+          sudo apt update
+          sudo apt install -y libsecret-1-dev libjsoncpp-dev
           sudo apt install -y curl clang cmake ninja-build pkg-config libgtk-3-dev liblzma-dev unzip xz-utils zip libnotify-dev libayatana-appindicator3-dev
       - name: Setup Flutter
         uses: subosito/flutter-action@v2

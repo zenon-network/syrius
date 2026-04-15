@@ -5,22 +5,24 @@ import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/format_utils.dart';
 
 class StandardChart extends StatelessWidget {
-
-  const StandardChart({
-    required this.maxY,
-    required this.lineBarsData,
-    required this.titlesReferenceDate,
-    this.maxX = kStandardChartNumDays - 1,
-    this.lineBarDotSymbol = '',
-    this.convertLeftSideTitlesToInt = false,
-    super.key,
-  });
+  final double? yValuesInterval;
   final double maxX;
   final double maxY;
   final List<LineChartBarData> lineBarsData;
   final String lineBarDotSymbol;
   final DateTime titlesReferenceDate;
   final bool convertLeftSideTitlesToInt;
+
+  const StandardChart({
+    required this.yValuesInterval,
+    required this.maxY,
+    required this.lineBarsData,
+    required this.titlesReferenceDate,
+    this.maxX = kStandardChartNumDays - 1,
+    this.lineBarDotSymbol = '',
+    this.convertLeftSideTitlesToInt = false,
+    Key? key,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -34,14 +36,15 @@ class StandardChart extends StatelessWidget {
       child: LineChart(
         LineChartData(
           lineTouchData: LineTouchData(
+            enabled: true,
             touchTooltipData: LineTouchTooltipData(
               fitInsideHorizontally: true,
               tooltipMargin: 14,
               tooltipPadding: const EdgeInsets.all(4),
-              tooltipRoundedRadius: 6,
+              tooltipBorderRadius: BorderRadius.circular(6),
               getTooltipColor: (LineBarSpot lineBarSpot) =>
-                  context.themeData.colorScheme.surface,
-              getTooltipItems: (List<LineBarSpot> touchedSpots) {
+                  Theme.of(context).colorScheme.background,
+              getTooltipItems: (touchedSpots) {
                 return touchedSpots.map(
                   (LineBarSpot touchedSpot) {
                     final TextStyle textStyle = TextStyle(
@@ -62,6 +65,7 @@ class StandardChart extends StatelessWidget {
           gridData: FlGridData(
             show: false,
             drawVerticalLine: false,
+            drawHorizontalLine: true,
             getDrawingHorizontalLine: (_) {
               return const FlLine(
                 strokeWidth: 1,
@@ -78,17 +82,17 @@ class StandardChart extends StatelessWidget {
                   child: Text(
                     FormatUtils.formatDate(
                       FormatUtils.subtractDaysFromDate(
-                          value.toInt(), titlesReferenceDate,),
+                          value.toInt(), titlesReferenceDate),
                       dateFormat: 'd MMM',
                     ),
-                    style: Theme.of(context).textTheme.labelMedium,
+                    style: Theme.of(context).textTheme.titleSmall!,
                   ),
                 ),
                 showTitles: true,
                 interval: 1,
               ),
             ),
-            leftTitles: const AxisTitles(
+            leftTitles: AxisTitles(
               sideTitles: SideTitles(
                 showTitles: true,
                 reservedSize: 32,

@@ -5,8 +5,6 @@ import 'package:ai_barcode_scanner/ai_barcode_scanner.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_vector_icons/flutter_vector_icons.dart';
 import 'package:logging/logging.dart';
-import 'package:wallet_connect_uri_validator/wallet_connect_uri_validator.dart';
-import 'package:walletconnect_flutter_v2/apis/core/pairing/utils/pairing_models.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/services/i_web3wallet_service.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
@@ -17,7 +15,7 @@ const String _kWidgetDescription =
     'Scan a WalletConnect QR code using the built-in camera of this device';
 
 class WalletConnectCameraCard extends StatefulWidget {
-  const WalletConnectCameraCard({super.key});
+  const WalletConnectCameraCard({Key? key}) : super(key: key);
 
   @override
   State<WalletConnectCameraCard> createState() =>
@@ -35,7 +33,7 @@ class _WalletConnectCameraCardState extends State<WalletConnectCameraCard> {
     return CardScaffold(
       title: _kWidgetTitle,
       description: _kWidgetDescription,
-      childBuilder: _getCardBody,
+      childBuilder: () => _getCardBody(),
     );
   }
 
@@ -54,23 +52,24 @@ class _WalletConnectCameraCardState extends State<WalletConnectCameraCard> {
               size: 60,
             ),
           ),
-          if (Platform.isMacOS) MyOutlinedButton(
+          Platform.isMacOS
+              ? MyOutlinedButton(
                   text: 'Scan QR',
                   onPressed: () async {
                     await Navigator.of(context).push(
                       MaterialPageRoute(
-                        builder: (BuildContext context) => AiBarcodeScanner(
-                          validator: (BarcodeCapture capture) => _filterBarcodes(capture) != null,
-                          onDetect: (BarcodeCapture value) async {
+                        builder: (context) => AiBarcodeScanner(
+                          validator: (capture) => _filterBarcodes(capture) != null,
+                          onDetect: (value) async {
                             Logger('WalletConnectCameraCard').log(
                               Level.INFO,
                               'onDetect',
                               value.toString(),
                             );
-                            final IWeb3WalletService wcService = sl.get<IWeb3WalletService>();
+                            final wcService = sl.get<IWeb3WalletService>();
                             final Barcode? barcode = _filterBarcodes(value);
                             if (barcode != null) {
-                              final PairingInfo pairingInfo = await wcService.pair(
+                              final pairingInfo = await wcService.pair(
                                 Uri.parse(value.barcodes.first.displayValue!),
                               );
                               Logger('WalletConnectCameraCard').log(
@@ -101,7 +100,7 @@ class _WalletConnectCameraCardState extends State<WalletConnectCameraCard> {
                                   Text('${p1.errorCode}',
                                       style: Theme.of(context)
                                           .textTheme
-                                          .bodyMedium,),
+                                          .bodyMedium),
                                   Container(height: 16),
                                   const Icon(
                                     MaterialCommunityIcons.camera_off,
@@ -117,7 +116,8 @@ class _WalletConnectCameraCardState extends State<WalletConnectCameraCard> {
                     );
                   },
                   minimumSize: kLoadingButtonMinSize,
-                ) else Text(
+                )
+              : Text(
                   'Only MacOS is supported at the moment',
                   style: Theme.of(context).textTheme.bodyLarge,
                 ),
@@ -132,8 +132,8 @@ class _WalletConnectCameraCardState extends State<WalletConnectCameraCard> {
   }
 
   bool canParseWalletConnectUri(String wcUri) {
-    WalletConnectUri? walletConnectUri;
-    walletConnectUri = WalletConnectUri.tryParse(wcUri);
+    Uri? walletConnectUri;
+    walletConnectUri = Uri.tryParse(wcUri);
     if (walletConnectUri != null) {
       return true;
     }

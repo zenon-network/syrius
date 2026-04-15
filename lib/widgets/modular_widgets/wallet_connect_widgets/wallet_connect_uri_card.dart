@@ -61,8 +61,8 @@ class _WalletConnectUriCardState extends State<WalletConnectUriCard> {
                       key: _uriKey,
                       autovalidateMode: AutovalidateMode.onUserInteraction,
                       child: InputField(
-                        validator: (String? value) {
-                          if (WalletConnectUri.tryParse(value ?? '') != null) {
+                        validator: (value) {
+                          if (Uri.tryParse(value ?? '') != null) {
                             return null;
                           } else {
                             return 'URI invalid';
@@ -100,7 +100,7 @@ class _WalletConnectUriCardState extends State<WalletConnectUriCard> {
               MyOutlinedButton(
                 text: 'Connect',
                 onPressed:
-                    WalletConnectUri.tryParse(_uriController.text) != null
+                    Uri.tryParse(_uriController.text) != null
                         ? () {
                             _pairWithDapp(
                               Uri.parse(_uriController.text),

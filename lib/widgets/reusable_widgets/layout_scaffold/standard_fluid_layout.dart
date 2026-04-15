@@ -6,6 +6,9 @@ import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/layout_scaf
 const int kStaggeredNumOfColumns = 12;
 
 class StandardFluidLayout extends StatelessWidget {
+  final List<FluidCell> children;
+  final int? defaultCellWidth;
+  final double? defaultCellHeight;
 
   const StandardFluidLayout({
     required this.children,
@@ -13,9 +16,6 @@ class StandardFluidLayout extends StatelessWidget {
     this.defaultCellHeight = kStaggeredNumOfColumns / 4,
     super.key,
   });
-  final List<FluidCell> children;
-  final int? defaultCellWidth;
-  final double? defaultCellHeight;
 
   @override
   Widget build(BuildContext context) {

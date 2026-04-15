@@ -13,7 +13,6 @@ import 'package:logging/logging.dart';
 import 'package:lottie/lottie.dart';
 import 'package:nested/nested.dart';
 import 'package:provider/provider.dart';
-import 'package:wallet_connect_uri_validator/wallet_connect_uri_validator.dart';
 import 'package:window_manager/window_manager.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/handlers/htlc_swaps_handler.dart';
@@ -293,7 +292,7 @@ class _MainAppContainerState extends State<MainAppContainer>
                               width: 2,
                             ),
                           ),
-                          dividerHeight: 0,
+                          dividerHeight: 0.0,
                           controller: _tabController,
                           tabs: _getTabs(),
                         ),
@@ -624,33 +623,32 @@ class _MainAppContainerState extends State<MainAppContainer>
     });
   }
 
-  Future<void> _handleIncomingLinks() async {
+  void _handleIncomingLinks() async {
     if (!kIsWeb && !Platform.isLinux) {
-      _incomingLinkSubscription = _appLinks.uriLinkStream.listen(
-        (Uri? uri) async {
-          if (!await windowManager.isFocused() ||
-              !await windowManager.isVisible()) {
-            windowManager.show();
-          }
+      _incomingLinkSubscription =
+          _appLinks.uriLinkStream.listen((Uri? uri) async {
+        if (!await windowManager.isFocused() ||
+            !await windowManager.isVisible()) {
+          windowManager.show();
+        }
 
-          if (uri != null) {
-            String uriRaw = uri.toString();
+        if (uri != null) {
+          String uriRaw = uri.toString();
 
-            Logger('MainAppContainer')
-                .log(Level.INFO, '_handleIncomingLinks $uriRaw');
+          Logger('MainAppContainer')
+              .log(Level.INFO, '_handleIncomingLinks $uriRaw');
 
-            if (context.mounted) {
-              if (uriRaw.contains('wc')) {
-                if (Platform.isWindows) {
-                  uriRaw = uriRaw.replaceAll('/?', '?');
-                }
-                final String wcUri =
-                    Uri.decodeFull(uriRaw.split('wc?uri=').last);
-                if (WalletConnectUri.tryParse(wcUri) != null) {
-                  await _updateWalletConnectUri(wcUri);
-                }
-                return;
+          if (context.mounted) {
+            if (uriRaw.contains('wc')) {
+              if (Platform.isWindows) {
+                uriRaw = uriRaw.replaceAll('/?', '?');
               }
+              String wcUri = Uri.decodeFull(uriRaw.split('wc?uri=').last);
+              if (Uri.tryParse(wcUri) != null) {
+                await _updateWalletConnectUri(wcUri);
+              }
+              return;
+            }
 
               // Deep link query parameters
               String queryAddress = '';
@@ -936,8 +934,8 @@ class _MainAppContainerState extends State<MainAppContainer>
   Future<void> onClipboardChanged() async {
     final ClipboardData? newClipboardData =
         await Clipboard.getData(Clipboard.kTextPlain);
-    final String text = newClipboardData?.text ?? '';
-    if (text.isNotEmpty && WalletConnectUri.tryParse(text) != null) {
+    final text = newClipboardData?.text ?? '';
+    if (text.isNotEmpty && Uri.tryParse(text) != null) {
       // This check is needed because onClipboardChanged is called twice sometimes
       if (kLastWalletConnectUriNotifier.value != text) {
         _updateWalletConnectUri(text);

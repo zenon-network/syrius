@@ -28,6 +28,7 @@ import 'package:zenon_syrius_wallet_flutter/blocs/wallet_connect/chains/nom_serv
 import 'package:zenon_syrius_wallet_flutter/blocs/wallet_connect/wallet_connect_pairings_bloc.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/wallet_connect/wallet_connect_sessions_bloc.dart';
 import 'package:zenon_syrius_wallet_flutter/handlers/htlc_swaps_handler.dart';
+import 'package:zenon_syrius_wallet_flutter/l10n/app_localizations.dart';
 import 'package:zenon_syrius_wallet_flutter/model/model.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/tokens/cubit/tokens_cubit.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
@@ -102,11 +103,9 @@ main() async {
   // Setup services
   setup();
 
-  retry(
-    () => web3WalletService!.init(),
-    retryIf: (Exception e) => e is SocketException || e is TimeoutException,
-    maxAttempts: 0x7FFFFFFFFFFFFFFF,
-  );
+  retry(() => web3WalletService!.init(),
+      retryIf: (e) => e is SocketException || e is TimeoutException,
+      maxAttempts: 0x7FFFFFFFFFFFFFFF);
 
   // Setup local_notifier
   await localNotifier.setup(
