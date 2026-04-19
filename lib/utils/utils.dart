@@ -21,6 +21,7 @@ export 'notification_utils.dart';
 export 'pair.dart';
 export 'toast_utils.dart';
 export 'utils.dart';
+export 'wallet_connect_uri_utils.dart';
 export 'widget_utils.dart';
 export 'zts_utils.dart';
 export 'notifiers/notifiers.dart';
