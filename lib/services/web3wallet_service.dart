@@ -5,6 +5,8 @@ import 'package:logging/logging.dart';
 import 'package:reown_walletkit/reown_walletkit.dart';
 import 'package:window_manager/window_manager.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/notifications_bloc.dart';
+import 'package:zenon_syrius_wallet_flutter/blocs/wallet_connect/chains/i_chain.dart';
+import 'package:zenon_syrius_wallet_flutter/blocs/wallet_connect/chains/nom_service.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/wallet_connect/wallet_connect_pairings_bloc.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/wallet_connect/wallet_connect_sessions_bloc.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
@@ -18,7 +20,6 @@ import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 class Web3WalletService extends IWeb3WalletService {
   static const Duration _pendingRequestsPollInterval = Duration(seconds: 1);
-
   static Web3WalletService? _instance;
 
   static Web3WalletService getInstance() {
@@ -31,10 +32,10 @@ class Web3WalletService extends IWeb3WalletService {
 
   ReownWalletKit? _wcClient;
   Timer? _pendingRequestsPollTimer;
-
   final Set<int> _approvedProposalIds = <int>{};
-  final Set<int> _handledRequestIds = <int>{};
-
+  final Set<int> _inFlightRequestIds = <int>{};
+  final Set<int> _completedRequestIds = <int>{};
+  final Set<String> _stalePendingTopics = <String>{};
   @override
   ValueNotifier<List<PairingInfo>> pairings =
       ValueNotifier<List<PairingInfo>>(<PairingInfo>[]);
@@ -94,14 +95,14 @@ class Web3WalletService extends IWeb3WalletService {
   FutureOr<void> onDispose() {
     _pendingRequestsPollTimer?.cancel();
     _pendingRequestsPollTimer = null;
-
     if (_wcClient != null) {
       _unsubscribeListeners();
     }
 
     _approvedProposalIds.clear();
-    _handledRequestIds.clear();
-
+    _inFlightRequestIds.clear();
+    _completedRequestIds.clear();
+    _stalePendingTopics.clear();
     _wcClient = null;
 
     _registeredAccounts.clear();
@@ -144,8 +145,7 @@ class Web3WalletService extends IWeb3WalletService {
 
       if (!hasSessions) {
         try {
-          _logger
-              .info('Removing orphan pairing: ${pairing.topic}');
+          _logger.info('Removing orphan pairing: ${pairing.topic}');
           await _wcClient!.core.pairing.disconnect(topic: pairing.topic);
         } catch (e, s) {
           _logger.warning(
@@ -383,6 +383,68 @@ class Web3WalletService extends IWeb3WalletService {
     );
   }
 
+  IChain _resolveChainService(
+    String topic, {
+    String? chainId,
+  }) {
+    String resolvedChainId = chainId ?? _namespaceChainId;
+
+    try {
+      final session = _wcClient!
+          .getActiveSessions()
+          .values
+          .firstWhere((element) => element.topic == topic);
+
+      final chains = session.namespaces['zenon']?.chains;
+      if (chains != null && chains.isNotEmpty) {
+        resolvedChainId = chains.first;
+      }
+    } catch (_) {
+      // Session may not be in active store yet; fallback to provided chainId.
+    }
+
+    return sl<IChain>(instanceName: resolvedChainId);
+  }
+
+  Future<dynamic> _handleZnnInfoRequest(
+    String topic,
+    dynamic params, {
+    String? chainId,
+  }) {
+    final chain = _resolveChainService(topic, chainId: chainId);
+    if (chain is NoMService) {
+      return chain.handleZnnInfo(topic, params);
+    }
+    throw UnsupportedError(
+        'znn_info not implemented for chain ${chain.getChainId()}');
+  }
+
+  Future<dynamic> _handleZnnSignRequest(
+    String topic,
+    dynamic params, {
+    String? chainId,
+  }) {
+    final chain = _resolveChainService(topic, chainId: chainId);
+    if (chain is NoMService) {
+      return chain.handleZnnSign(topic, params);
+    }
+    throw UnsupportedError(
+        'znn_sign not implemented for chain ${chain.getChainId()}');
+  }
+
+  Future<dynamic> _handleZnnSendRequest(
+    String topic,
+    dynamic params, {
+    String? chainId,
+  }) {
+    final chain = _resolveChainService(topic, chainId: chainId);
+    if (chain is NoMService) {
+      return chain.handleZnnSend(topic, params);
+    }
+    throw UnsupportedError(
+        'znn_send not implemented for chain ${chain.getChainId()}');
+  }
+
   void _startPendingRequestsPolling() {
     _pendingRequestsPollTimer?.cancel();
     _pendingRequestsPollTimer = Timer.periodic(
@@ -404,15 +466,25 @@ class Web3WalletService extends IWeb3WalletService {
       final String? chainId = _tryGet(() => request.chainId);
       final dynamic params = _tryGet(() => request.params);
 
-      if (id == null || topic == null || method == null || chainId == null) {
+      if (id == null || topic == null || method == null) {
         continue;
       }
 
-      if (_handledRequestIds.contains(id)) {
+      if (!_markRequestInFlight(id)) {
         continue;
       }
 
-      _handledRequestIds.add(id);
+      if (!_hasActiveSessionTopic(topic)) {
+        _markRequestCompleted(id);
+        final staleKey = '$method:$topic';
+        if (_stalePendingTopics.add(staleKey)) {
+          _logger.finer(
+            'Skipping stale pending WalletConnect request without active session: '
+            '$method ($id) topic=$topic',
+          );
+        }
+        continue;
+      }
 
       try {
         _logger.fine(
@@ -422,6 +494,8 @@ class Web3WalletService extends IWeb3WalletService {
 
         final result = await _dispatchSessionRequest(
           topic: topic,
+          chainId: chainId,
+          requestId: id,
           method: method,
           params: params,
         );
@@ -431,7 +505,27 @@ class Web3WalletService extends IWeb3WalletService {
           requestId: id,
           result: result,
         );
+
+        _markRequestCompleted(id);
       } catch (e, s) {
+        if (_isStaleSessionError(e)) {
+          _logger.finer(
+            'Dropping stale pending WalletConnect request: $method ($id) '
+            'topic=$topic error=$e',
+          );
+          _markRequestCompleted(id);
+          continue;
+        }
+
+        if (_isAlreadyRespondedError(e)) {
+          _logger.fine(
+            'WalletConnect request already responded by live handler: '
+            '$method ($id)',
+          );
+          _markRequestCompleted(id);
+          continue;
+        }
+
         _logger.severe(
           'Failed handling pending session request: $method',
           e,
@@ -445,14 +539,49 @@ class Web3WalletService extends IWeb3WalletService {
             code: 5000,
             message: e.toString(),
           );
+          _markRequestCompleted(id);
         } catch (responseError, responseStack) {
-          _logger.severe(
-            'Failed sending error response for request $id',
-            responseError,
-            responseStack,
-          );
+          if (_isStaleSessionError(responseError)) {
+            _logger.finer(
+              'WalletConnect stale error response skipped: $method ($id) '
+              'topic=$topic error=$responseError',
+            );
+            _markRequestCompleted(id);
+          } else if (_isAlreadyRespondedError(responseError)) {
+            _logger.fine(
+              'WalletConnect error response skipped (already responded): '
+              '$method ($id)',
+            );
+            _markRequestCompleted(id);
+          } else {
+            _markRequestFailed(id);
+            _logger.severe(
+              'Failed sending error response for request $id',
+              responseError,
+              responseStack,
+            );
+          }
         }
       }
+    }
+  }
+
+  Future<dynamic> _dispatchSessionRequest({
+    required String topic,
+    String? chainId,
+    int? requestId,
+    required String method,
+    required dynamic params,
+  }) {
+    switch (method) {
+      case 'znn_info':
+        return _handleZnnInfoRequest(topic, params, chainId: chainId);
+      case 'znn_sign':
+        return _handleZnnSignRequest(topic, params, chainId: chainId);
+      case 'znn_send':
+        return _handleZnnSendRequest(topic, params, chainId: chainId);
+      default:
+        throw UnsupportedError('Unsupported WalletConnect method: $method');
     }
   }
 
@@ -464,67 +593,54 @@ class Web3WalletService extends IWeb3WalletService {
     }
   }
 
+  bool _markRequestInFlight(int id) {
+    if (_completedRequestIds.contains(id) || _inFlightRequestIds.contains(id)) {
+      return false;
+    }
+    _inFlightRequestIds.add(id);
+    return true;
+  }
+
+  bool _hasActiveSessionTopic(String topic) {
+    try {
+      return _wcClient!.getActiveSessions().containsKey(topic);
+    } catch (_) {
+      return false;
+    }
+  }
+
+  bool _isStaleSessionError(Object error) {
+    final message = error.toString().toLowerCase();
+    return message.contains('session not found') ||
+        message.contains("session topic doesn't exist") ||
+        message.contains('session topic does not exist') ||
+        message.contains('no matching key. session topic');
+  }
+
+  void _markRequestCompleted(int id) {
+    _inFlightRequestIds.remove(id);
+    _completedRequestIds.add(id);
+  }
+
+  void _markRequestFailed(int id) {
+    _inFlightRequestIds.remove(id);
+  }
+
+  bool _isAlreadyRespondedError(Object error) {
+    final message = error.toString().toLowerCase();
+    return message.contains('already responded') ||
+        message.contains('response already') ||
+        message.contains('request already') ||
+        message.contains('duplicate response') ||
+        message.contains('request not found');
+  }
+
   T? _tryGet<T>(T Function() fn) {
     try {
       return fn();
     } catch (_) {
       return null;
     }
-  }
-
-  void _reloadStores() {
-    if (_wcClient == null) return;
-
-    final updatedPairings =
-        List<PairingInfo>.from(_wcClient!.pairings.getAll());
-    final updatedSessions =
-        List<SessionData>.from(_wcClient!.sessions.getAll());
-
-    pairings.value = updatedPairings;
-    sessions.value = updatedSessions;
-
-    _logger.info(
-      'Reloaded WalletConnect stores: '
-      '${updatedPairings.length} pairings, ${updatedSessions.length} sessions',
-    );
-  }
-
-  void _refreshUi() {
-    sl.get<WalletConnectPairingsBloc>().refreshResults();
-    sl.get<WalletConnectSessionsBloc>().refreshResults();
-  }
-
-  Future<dynamic> _dispatchSessionRequest({
-    required String topic,
-    required String method,
-    required dynamic params,
-  }) {
-    switch (method) {
-      case 'znn_info':
-        return _handleZnnInfoRequest(topic, params);
-      case 'znn_sign':
-        return _handleZnnSignRequest(topic, params);
-      case 'znn_send':
-        return _handleZnnSendRequest(topic, params);
-      default:
-        throw UnsupportedError('Unsupported WalletConnect method: $method');
-    }
-  }
-
-  Future<dynamic> _handleZnnInfoRequest(String topic, dynamic params) async {
-    return <String, dynamic>{
-      'address': _primaryAddress(),
-      'chainId': getChainIdentifier(),
-      'nodeUrl': kCurrentNode,
-    };
-  }
-
-  Future<dynamic> _handleZnnSignRequest(String topic, dynamic params) async {
-    throw UnimplementedError('znn_sign is not implemented');
-  }
-
-  Future<dynamic> _handleZnnSendRequest(String topic, dynamic params) async {
-    throw UnimplementedError('znn_send is not implemented');
   }
 
   Future<void> _respondSuccess({
@@ -565,12 +681,26 @@ class Web3WalletService extends IWeb3WalletService {
     );
   }
 
-  String _primaryAddress() {
-    if (kAddressLabelMap.isEmpty) {
-      throw StateError('No Zenon address available');
-    }
+  void _reloadStores() {
+    if (_wcClient == null) return;
 
-    return kAddressLabelMap.keys.first;
+    final updatedPairings =
+        List<PairingInfo>.from(_wcClient!.pairings.getAll());
+    final updatedSessions =
+        List<SessionData>.from(_wcClient!.sessions.getAll());
+
+    pairings.value = updatedPairings;
+    sessions.value = updatedSessions;
+
+    _logger.info(
+      'Reloaded WalletConnect stores: '
+      '${updatedPairings.length} pairings, ${updatedSessions.length} sessions',
+    );
+  }
+
+  void _refreshUi() {
+    sl.get<WalletConnectPairingsBloc>().refreshResults();
+    sl.get<WalletConnectSessionsBloc>().refreshResults();
   }
 
   Future<void> _onSessionProposal(SessionProposalEvent? event) async {
@@ -656,7 +786,6 @@ class Web3WalletService extends IWeb3WalletService {
       reason: Errors.getSdkError(Errors.USER_REJECTED).toSignError(),
     );
 
-    await _cleanupAfterReject(event);
 
     _reloadStores();
     _refreshUi();
@@ -768,14 +897,6 @@ class Web3WalletService extends IWeb3WalletService {
     );
   }
 
-  Future<void> _cleanupAfterReject(SessionProposalEvent event) async {
-    try {
-      final pairingTopic = event.params.pairingTopic;
-      await _wcClient!.core.pairing.disconnect(topic: pairingTopic);
-    } catch (e, s) {
-      _logger.warning('Failed cleanup after reject', e, s);
-    }
-  }
 
   void _onSessionsSync(StoreSyncEvent? args) {
     if (args == null) return;
