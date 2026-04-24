@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:walletconnect_flutter_v2/walletconnect_flutter_v2.dart';
+import 'package:logging/logging.dart';
+import 'package:reown_walletkit/reown_walletkit.dart';
 import 'package:window_manager/window_manager.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/transfer/send_payment_bloc.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/wallet_connect/chains/i_chain.dart';
@@ -42,41 +43,23 @@ class NoMService extends IChain {
   static const namespace = 'zenon';
 
   final IWeb3WalletService _web3WalletService = sl<IWeb3WalletService>();
+  final Logger _logger = Logger('NoMWalletConnectService');
 
   final NoMChainId reference;
 
-  final _walletLockedError = const WalletConnectError(
+  final _walletLockedError = const ReownCoreError(
     code: 9000,
     message: 'Wallet is locked',
   );
 
-  Web3Wallet? wallet;
+  ReownWalletKit? wallet;
+  final Map<String, Future<dynamic>> _interactiveRequestFutures =
+      <String, Future<dynamic>>{};
 
   NoMService({
     required this.reference,
   }) {
     wallet = _web3WalletService.getWeb3Wallet();
-
-    // Register event emitters
-    // wallet!.registerEventEmitter(chainId: getChainId(), event: 'chainIdChange');
-    // wallet!.registerEventEmitter(chainId: getChainId(), event: 'addressChange');
-
-    // Register request handlers
-    wallet!.registerRequestHandler(
-      chainId: getChainId(),
-      method: 'znn_info',
-      handler: _methodZnnInfo,
-    );
-    wallet!.registerRequestHandler(
-      chainId: getChainId(),
-      method: 'znn_sign',
-      handler: _methodZnnSign,
-    );
-    wallet!.registerRequestHandler(
-      chainId: getChainId(),
-      method: 'znn_send',
-      handler: _methodZnnSend,
-    );
   }
 
   @override
@@ -94,16 +77,109 @@ class NoMService extends IChain {
     return ['chainIdChange', 'addressChange'];
   }
 
+  Future<dynamic> handleZnnInfo(String topic, dynamic params) {
+    final key = 'znn_info:$topic';
+    return _runSingleFlight(key, () => _methodZnnInfo(topic, params));
+  }
+
+  Future<dynamic> handleZnnSign(String topic, dynamic params) {
+    final key = 'znn_sign:$topic:${params.hashCode}';
+    return _runSingleFlight(key, () => _methodZnnSign(topic, params));
+  }
+
+  Future<dynamic> handleZnnSend(String topic, dynamic params) {
+    final key = 'znn_send:$topic:${params.hashCode}';
+    return _runSingleFlight(key, () => _methodZnnSend(topic, params));
+  }
+
+  SessionData _sessionByTopic(String topic) {
+    return wallet!.getActiveSessions().values.firstWhere(
+          (element) => element.topic == topic,
+          orElse: () => throw const ReownCoreError(
+            code: 5001,
+            message: 'WalletConnect session not found',
+          ),
+        );
+  }
+
+  String _resolveActiveAddress() {
+    final selected = kSelectedAddress;
+    if (selected == null || selected.isEmpty) {
+      throw const ReownCoreError(
+        code: 5002,
+        message: 'No selected address available',
+      );
+    }
+    return selected;
+  }
+
+  String? _extractRequestedFromAddress(dynamic params) {
+    if (params is Map) {
+      final fromAddress = params['fromAddress'];
+      if (fromAddress is String && fromAddress.isNotEmpty) {
+        return fromAddress;
+      }
+    }
+    return null;
+  }
+
+  String _resolveSignerAddress({
+    required String activeAddress,
+    required String? requestedFromAddress,
+    required String method,
+    required String topic,
+  }) {
+    if (requestedFromAddress == null || requestedFromAddress.isEmpty) {
+      return activeAddress;
+    }
+
+    final isWalletOwned = kAddressLabelMap.containsKey(requestedFromAddress) ||
+        kDefaultAddressList.contains(requestedFromAddress);
+
+    if (isWalletOwned) {
+      if (requestedFromAddress != activeAddress) {
+        _logger.info(
+          'WalletConnect using requested fromAddress for method=$method '
+          'topic=$topic requested=$requestedFromAddress active=$activeAddress',
+        );
+      }
+      return requestedFromAddress;
+    }
+
+    _logger.warning(
+      'WalletConnect requested fromAddress not wallet-owned; '
+      'fallback to active - method=$method topic=$topic '
+      'requested=$requestedFromAddress active=$activeAddress',
+    );
+    return activeAddress;
+  }
+
+  Future<dynamic> _runSingleFlight(
+    String key,
+    Future<dynamic> Function() action,
+  ) {
+    final existing = _interactiveRequestFutures[key];
+    if (existing != null) {
+      _logger.fine('Reusing in-flight interactive request: $key');
+      return existing;
+    }
+
+    final future = action();
+    _interactiveRequestFutures[key] = future;
+    future.whenComplete(() => _interactiveRequestFutures.remove(key));
+    return future;
+  }
+
   Future _methodZnnInfo(String topic, dynamic params) async {
     if (!await windowManager.isFocused() || !await windowManager.isVisible()) {
       windowManager.show();
     }
-    final dAppMetadata = wallet!
-        .getActiveSessions()
-        .values
-        .firstWhere((element) => element.topic == topic)
-        .peer
-        .metadata;
+    final session = _sessionByTopic(topic);
+    final dAppMetadata = session.peer.metadata;
+
+    final activeAddress = _resolveActiveAddress();
+    _logger.info(
+        'WalletConnect request method=znn_info topic=$topic activeAddress=$activeAddress');
 
     if (kCurrentPage != Tabs.lock) {
       if (globalNavigatorKey.currentContext!.mounted) {
@@ -143,7 +219,7 @@ class NoMService extends IChain {
 
         if (actionWasAccepted) {
           return {
-            'address': kSelectedAddress,
+            'address': activeAddress,
             'nodeUrl': kCurrentNode,
             'chainId': getChainIdentifier(),
           };
@@ -165,14 +241,25 @@ class NoMService extends IChain {
     if (!await windowManager.isFocused() || !await windowManager.isVisible()) {
       windowManager.show();
     }
-    final dAppMetadata = wallet!
-        .getActiveSessions()
-        .values
-        .firstWhere((element) => element.topic == topic)
-        .peer
-        .metadata;
+    final session = _sessionByTopic(topic);
+    final dAppMetadata = session.peer.metadata;
+    final activeAddress = _resolveActiveAddress();
+    final requestedFromAddress = _extractRequestedFromAddress(params);
+    final signerAddress = _resolveSignerAddress(
+      activeAddress: activeAddress,
+      requestedFromAddress: requestedFromAddress,
+      method: 'znn_sign',
+      topic: topic,
+    );
+
     if (kCurrentPage != Tabs.lock) {
-      final message = params as String;
+      final message = params is String
+          ? params
+          : (params is Map ? (params['message']?.toString() ?? '') : '');
+      _logger.info(
+        'WalletConnect request method=znn_sign topic=$topic '
+        'activeAddress=$activeAddress requestedFrom=$requestedFromAddress',
+      );
 
       if (globalNavigatorKey.currentContext!.mounted) {
         final actionWasAccepted = await showDialogWithNoAndYesOptions(
@@ -210,7 +297,7 @@ class NoMService extends IChain {
         );
 
         if (actionWasAccepted) {
-          return await walletSign(message.codeUnits);
+          return await walletSign(message.codeUnits, address: signerAddress);
         } else {
           await NotificationUtils.sendNotificationError(
               Errors.getSdkError(Errors.USER_REJECTED),
@@ -229,15 +316,26 @@ class NoMService extends IChain {
     if (!await windowManager.isFocused() || !await windowManager.isVisible()) {
       windowManager.show();
     }
-    final dAppMetadata = wallet!
-        .getActiveSessions()
-        .values
-        .firstWhere((element) => element.topic == topic)
-        .peer
-        .metadata;
+    final session = _sessionByTopic(topic);
+    final dAppMetadata = session.peer.metadata;
+    final activeAddress = _resolveActiveAddress();
+    final requestedFromAddress = _extractRequestedFromAddress(params);
+    final signerAddress = _resolveSignerAddress(
+      activeAddress: activeAddress,
+      requestedFromAddress: requestedFromAddress,
+      method: 'znn_send',
+      topic: topic,
+    );
+
     if (kCurrentPage != Tabs.lock) {
       final accountBlock =
           AccountBlockTemplate.fromJson(params['accountBlock']);
+
+      _logger.info(
+        'WalletConnect request method=znn_send topic=$topic '
+        'activeAddress=$activeAddress requestedFrom=$requestedFromAddress '
+        'to=${accountBlock.toAddress}',
+      );
 
       final toAddress = ZenonAddressUtils.getLabel(
         accountBlock.toAddress.toString(),
@@ -291,7 +389,7 @@ class NoMService extends IChain {
 
         if (wasActionAccepted) {
           sendPaymentBloc.sendTransfer(
-            fromAddress: params['fromAddress'],
+            fromAddress: signerAddress,
             block: AccountBlockTemplate.fromJson(params['accountBlock']),
           );
 

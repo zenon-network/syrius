@@ -40,7 +40,7 @@ class StandardChart extends StatelessWidget {
               fitInsideHorizontally: true,
               tooltipMargin: 14.0,
               tooltipPadding: const EdgeInsets.all(4.0),
-              tooltipRoundedRadius: 6.0,
+              tooltipBorderRadius: BorderRadius.circular(6),
               getTooltipColor: (LineBarSpot lineBarSpot) =>
                   Theme.of(context).colorScheme.background,
               getTooltipItems: (touchedSpots) {

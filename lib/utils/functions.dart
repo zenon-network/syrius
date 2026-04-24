@@ -11,11 +11,20 @@ class Signature {
   Signature(this.signature, this.publicKey);
 }
 
-Future<Signature> walletSign(List<int> message) async {
+Future<Signature> walletSign(
+  List<int> message, {
+  String? address,
+}) async {
   final wallet = await kWalletFile!.open();
   try {
-    final walletAccount = await wallet
-        .getAccount(kDefaultAddressList.indexOf(kSelectedAddress));
+    final signerAddress = address ?? kSelectedAddress;
+    final signerIndex = kDefaultAddressList.indexOf(signerAddress);
+
+    if (signerAddress == null || signerIndex < 0) {
+      throw StateError('Unable to resolve signing address: $signerAddress');
+    }
+
+    final walletAccount = await wallet.getAccount(signerIndex);
     List<int> publicKey = await walletAccount.getPublicKey();
     List<int> signature = await walletAccount.sign(
       Uint8List.fromList(
@@ -23,7 +32,9 @@ Future<Signature> walletSign(List<int> message) async {
       ),
     );
     return Signature(
-        BytesUtils.bytesToHex(signature), BytesUtils.bytesToHex(publicKey));
+      BytesUtils.bytesToHex(signature),
+      BytesUtils.bytesToHex(publicKey),
+    );
   } finally {
     kWalletFile!.close();
   }
