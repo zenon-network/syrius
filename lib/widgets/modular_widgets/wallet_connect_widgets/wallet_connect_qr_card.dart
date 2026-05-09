@@ -5,6 +5,7 @@ import 'package:image/image.dart' as img;
 import 'package:logging/logging.dart';
 import 'package:path/path.dart' as path;
 import 'package:pretty_qr_code/pretty_qr_code.dart';
+import 'package:reown_walletkit/reown_walletkit.dart';
 import 'package:screen_capturer/screen_capturer.dart';
 import 'package:window_manager/window_manager.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';

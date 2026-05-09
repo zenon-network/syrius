@@ -233,18 +233,18 @@ class NoMService extends IChain {
         .metadata;
     if (kCurrentPage != Tabs.lock) {
       final AccountBlockTemplate accountBlock =
-      AccountBlockTemplate.fromJson(params['accountBlock']);
+          AccountBlockTemplate.fromJson(params['accountBlock']);
 
       final String toAddress = ZenonAddressUtils.getLabel(
         accountBlock.toAddress.toString(),
       );
 
       final Token? token =
-      await zenon!.embedded.token.getByZts(accountBlock.tokenStandard);
+          await zenon!.embedded.token.getByZts(accountBlock.tokenStandard);
 
       final amount = accountBlock.amount.addDecimals(token!.decimals);
 
-      final sendPaymentBloc = SendPaymentBloc();
+      final sendPaymentBloc = SendTransactionBloc();
 
       if (globalNavigatorKey.currentContext!.mounted) {
         final wasActionAccepted = await showDialogWithNoAndYesOptions(
@@ -284,9 +284,17 @@ class NoMService extends IChain {
         );
 
         if (wasActionAccepted ?? false) {
-          sendPaymentBloc.sendTransfer(
-            fromAddress: params['fromAddress'],
-            block: AccountBlockTemplate.fromJson(params['accountBlock']),
+          final String fromAddress = params['fromAddress'];
+          final AccountBlockTemplate block =
+              AccountBlockTemplate.fromJson(params['accountBlock']);
+
+          sendPaymentBloc.add(
+            SendTransactionInitiateFromBlock(
+              block: block,
+              fromAddress: fromAddress,
+              //TODO(maxwell): check if it's worth localizing strings
+              reasonForGeneratingPlasma: 'Execute transfer',
+            ),
           );
 
           final result = await sendPaymentBloc.stream.firstWhere(

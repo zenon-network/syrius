@@ -441,8 +441,6 @@ class Web3WalletService extends IWeb3WalletService {
           ),
         ],
       ),
-      onYesButtonPressed: () async {},
-      onNoButtonPressed: () async {},
     );
 
     if (accepted == true) {

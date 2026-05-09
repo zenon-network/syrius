@@ -1,11 +1,9 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
-import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/format_utils.dart';
 
 class StandardChart extends StatelessWidget {
-  final double? yValuesInterval;
   final double maxX;
   final double maxY;
   final List<LineChartBarData> lineBarsData;
@@ -14,7 +12,6 @@ class StandardChart extends StatelessWidget {
   final bool convertLeftSideTitlesToInt;
 
   const StandardChart({
-    required this.yValuesInterval,
     required this.maxY,
     required this.lineBarsData,
     required this.titlesReferenceDate,
@@ -43,8 +40,8 @@ class StandardChart extends StatelessWidget {
               tooltipPadding: const EdgeInsets.all(4),
               tooltipBorderRadius: BorderRadius.circular(6),
               getTooltipColor: (LineBarSpot lineBarSpot) =>
-                  Theme.of(context).colorScheme.background,
-              getTooltipItems: (touchedSpots) {
+                  Theme.of(context).colorScheme.surface,
+              getTooltipItems: (List<LineBarSpot> touchedSpots) {
                 return touchedSpots.map(
                   (LineBarSpot touchedSpot) {
                     final TextStyle textStyle = TextStyle(
@@ -92,7 +89,7 @@ class StandardChart extends StatelessWidget {
                 interval: 1,
               ),
             ),
-            leftTitles: AxisTitles(
+            leftTitles: const AxisTitles(
               sideTitles: SideTitles(
                 showTitles: true,
                 reservedSize: 32,
