@@ -5,13 +5,11 @@ import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 /// [TextFormField]
 class ContentPasteButton extends IconButton {
   ContentPasteButton({
-    //TODO: to delete
-    required BuildContext context,
     required TextEditingController controller,
     super.key,
   }) : super(
           onPressed: () {
-            ClipboardUtils.pasteToClipboard(context, (String value) {
+            ClipboardUtils.pasteToClipboard(callback: (String value) {
               controller.text = value;
             });
           },

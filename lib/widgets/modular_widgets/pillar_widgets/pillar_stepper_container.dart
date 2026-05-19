@@ -563,7 +563,6 @@ class _MainPillarState extends State<PillarStepperContainer> {
                   decoration: InputDecoration(
                     hintText: context.l10n.pillarRewardAddress,
                     suffixIcon: ContentPasteButton(
-                        context: context,
                         controller: _pillarRewardAddressController),
                   ),
                   focusNode: _pillarRewardNode,
@@ -588,7 +587,6 @@ class _MainPillarState extends State<PillarStepperContainer> {
                     decoration: InputDecoration(
                       hintText: context.l10n.pillarProducerAddress,
                       suffixIcon: ContentPasteButton(
-                        context: context,
                         controller: _pillarMomentumController,
                       ),
                     ),

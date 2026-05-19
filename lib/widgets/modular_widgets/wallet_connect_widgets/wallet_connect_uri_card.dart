@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:logging/logging.dart';
 import 'package:reown_walletkit/reown_walletkit.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/services/i_web3wallet_service.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
@@ -71,25 +72,7 @@ class _WalletConnectUriCardState extends State<WalletConnectUriCard> {
                           setState(() {});
                         },
                         controller: _uriController,
-                        suffixIcon: RawMaterialButton(
-                          shape: const CircleBorder(),
-                          onPressed: () {
-                            ClipboardUtils.pasteToClipboard(context,
-                                (String value) {
-                              _uriController.text = value;
-                              setState(() {});
-                            });
-                          },
-                          child: const Icon(
-                            Icons.content_paste,
-                            color: AppColors.darkHintTextColor,
-                            size: 15,
-                          ),
-                        ),
-                        suffixIconConstraints: const BoxConstraints(
-                          maxWidth: 45,
-                          maxHeight: 20,
-                        ),
+                        suffixIcon: ContentPasteButton(controller: _uriController),
                         hintText: 'WalletConnect URI',
                       ),
                     ),

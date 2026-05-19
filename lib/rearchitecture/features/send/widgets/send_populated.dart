@@ -133,17 +133,7 @@ class _SendPopulatedState extends State<SendPopulated> {
                   decoration: InputDecoration(
                     errorText: _recipientErrorText,
                     hintText: context.l10n.recipientAddress,
-                    suffixIcon: IconButton(
-                      onPressed: () {
-                        ClipboardUtils.pasteToClipboard(context,
-                            (String value) {
-                          _recipientController.text = value;
-                        });
-                      },
-                      icon: const Icon(
-                        Icons.content_paste,
-                      ),
-                    ),
+                    suffixIcon: ContentPasteButton(controller: _recipientController),
                   ),
                   focusNode: _recipientFocusNode,
                   onSubmitted: (_) {
