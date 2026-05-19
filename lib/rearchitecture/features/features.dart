@@ -1,4 +1,5 @@
 export 'balance/balance.dart';
+export 'create_pillar/create_pillar.dart';
 export 'delegation/delegation.dart';
 export 'dual_coin_stats/dual_coin_stats.dart';
 export 'latest_transactions/latest_transactions.dart';

@@ -7,6 +7,12 @@ final ThemeData newLightTheme = ThemeData(
     seedColor: AppColors.znnColor,
   ),
   dividerTheme: kDefaultDividerThemeData,
+  elevatedButtonTheme: ElevatedButtonThemeData(
+    style: ElevatedButton.styleFrom(
+      backgroundColor: AppColors.znnColor,
+      foregroundColor: Colors.white,
+    ),
+  ),
   inputDecorationTheme: InputDecorationTheme(
     fillColor: AppColors.lightTextFormFieldFill,
     filled: true,
@@ -53,6 +59,12 @@ final ThemeData newDarkTheme = ThemeData(
     seedColor: AppColors.znnColor,
   ),
   dividerTheme: kDefaultDividerThemeData,
+  elevatedButtonTheme: ElevatedButtonThemeData(
+    style: ElevatedButton.styleFrom(
+      backgroundColor: AppColors.znnColor,
+      foregroundColor: Colors.white,
+    ),
+  ),
   inputDecorationTheme: InputDecorationTheme(
     fillColor: AppColors.darkTextFormFieldFill,
     filled: true,

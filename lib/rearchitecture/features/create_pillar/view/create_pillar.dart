@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_vector_icons/flutter_vector_icons.dart';
 import 'package:lottie/lottie.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
-import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/extensions/buildcontext_extension.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/screens/screens.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
@@ -10,11 +9,11 @@ import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 class CreatePillar extends StatefulWidget {
-
   const CreatePillar({
     required this.onStepperNotificationSeeMorePressed,
     super.key,
   });
+
   final VoidCallback onStepperNotificationSeeMorePressed;
 
   @override
@@ -26,10 +25,12 @@ class _CreatePillarState extends State<CreatePillar> {
 
   @override
   Widget build(BuildContext context) {
-    return CardScaffold(
-      title: context.l10n.createPillarTitle,
-      description: context.l10n.createPillarDescription,
-      childBuilder: () => _getStreamBuilder(context),
+    return NewCardScaffold(
+      body: _getStreamBuilder(context),
+      data: CardData(
+        description: context.l10n.createPillarDescription,
+        title: context.l10n.createPillarTitle,
+      ),
     );
   }
 
@@ -59,11 +60,11 @@ class _CreatePillarState extends State<CreatePillar> {
         Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
-            SyriusElevatedButton(
+            ElevatedButton.icon(
               onPressed: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(
+                  MaterialPageRoute<void>(
                     builder: (BuildContext context) => StepperScreen(
                       stepper: const PillarStepperContainer(),
                       onStepperNotificationSeeMorePressed:
@@ -72,9 +73,8 @@ class _CreatePillarState extends State<CreatePillar> {
                   ),
                 );
               },
-              text: context.l10n.spawn,
-              initialFillColor: AppColors.znnColor,
-              icon: _getFilledButtonIcon(),
+              label: Text(context.l10n.spawn),
+              icon: const Icon(Icons.add),
             ),
           ],
         ),
@@ -115,7 +115,7 @@ class _CreatePillarState extends State<CreatePillar> {
                     onPressed: () {
                       Navigator.push(
                         context,
-                        MaterialPageRoute(
+                        MaterialPageRoute<void>(
                           builder: (BuildContext context) => StepperScreen(
                             stepper: PillarUpdateStepper(pillarInfo),
                             onStepperNotificationSeeMorePressed:
@@ -126,7 +126,7 @@ class _CreatePillarState extends State<CreatePillar> {
                     },
                     text: context.l10n.updatePillar,
                     initialFillColor: AppColors.znnColor,
-                    icon: _getFilledButtonIcon(),
+                    icon: const Icon(Icons.edit),
                   ),
                 ],
               ),
@@ -134,21 +134,6 @@ class _CreatePillarState extends State<CreatePillar> {
           ),
         ),
       ],
-    );
-  }
-
-  Widget _getFilledButtonIcon() {
-    return Container(
-      decoration: const BoxDecoration(
-        shape: BoxShape.circle,
-        color: AppColors.znnColor,
-      ),
-      alignment: Alignment.center,
-      child: const Icon(
-        MaterialCommunityIcons.plus,
-        color: Colors.white,
-        size: 15,
-      ),
     );
   }
 
