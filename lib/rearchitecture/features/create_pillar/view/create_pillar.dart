@@ -25,7 +25,7 @@ class _CreatePillarState extends State<CreatePillar> {
   @override
   Widget build(BuildContext context) {
     return NewCardScaffold(
-      body: _getStreamBuilder(context),
+      body: _buildBody(context),
       data: _buildCardData(context: context),
       onRefreshPressed: () async {
         context.read<GetPillarsByOwnerBloc>().add(
@@ -44,7 +44,7 @@ class _CreatePillarState extends State<CreatePillar> {
     );
   }
 
-  Widget _getStreamBuilder(BuildContext context) {
+  Widget _buildBody(BuildContext context) {
     return BlocBuilder<GetPillarsByOwnerBloc, FetchState<List<PillarInfo>>>(
       builder: (_, FetchState<List<PillarInfo>> state) {
         return switch (state) {
@@ -62,32 +62,23 @@ class _CreatePillarState extends State<CreatePillar> {
 
   Widget _getCreatePillarWidgetBody(BuildContext context) {
     return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceAround,
       children: <Widget>[
         Lottie.asset('assets/lottie/ic_anim_pillar.json', repeat: false),
-        Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            ElevatedButton.icon(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute<void>(
-                    builder: (BuildContext context) => StepperScreen(
-                      stepper: const PillarStepperContainer(),
-                      onStepperNotificationSeeMorePressed:
-                          widget.onStepperNotificationSeeMorePressed,
-                    ),
-                  ),
-                );
-              },
-              label: Text(context.l10n.spawn),
-              icon: const Icon(Icons.add),
-            ),
-          ],
-        ),
-        const SizedBox(
-          width: 10,
+        ElevatedButton.icon(
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute<void>(
+                builder: (BuildContext context) => StepperScreen(
+                  stepper: const PillarStepperContainer(),
+                  onStepperNotificationSeeMorePressed:
+                      widget.onStepperNotificationSeeMorePressed,
+                ),
+              ),
+            );
+          },
+          label: Text(context.l10n.spawn),
+          icon: const Icon(Icons.add),
         ),
       ],
     );
@@ -98,48 +89,26 @@ class _CreatePillarState extends State<CreatePillar> {
     PillarInfo pillarInfo,
   ) {
     return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceAround,
       children: <Widget>[
-        Expanded(
-          child: Lottie.asset(
-            'assets/lottie/ic_anim_pillar.json',
-            repeat: false,
-          ),
+        Lottie.asset(
+          'assets/lottie/ic_anim_pillar.json',
+          repeat: false,
         ),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: <Widget>[
-              Text(
-                context.l10n.updatePillarSettings,
-                style: Theme.of(context).textTheme.headlineSmall,
+        ElevatedButton.icon(
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute<void>(
+                builder: (BuildContext context) => StepperScreen(
+                  stepper: PillarUpdateStepper(pillarInfo),
+                  onStepperNotificationSeeMorePressed:
+                      widget.onStepperNotificationSeeMorePressed,
+                ),
               ),
-              kVerticalSpacing,
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: <Widget>[
-                  SyriusElevatedButton(
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute<void>(
-                          builder: (BuildContext context) => StepperScreen(
-                            stepper: PillarUpdateStepper(pillarInfo),
-                            onStepperNotificationSeeMorePressed:
-                                widget.onStepperNotificationSeeMorePressed,
-                          ),
-                        ),
-                      );
-                    },
-                    text: context.l10n.updatePillar,
-                    initialFillColor: AppColors.znnColor,
-                    icon: const Icon(Icons.edit),
-                  ),
-                ],
-              ),
-            ],
-          ),
+            );
+          },
+          label: Text(context.l10n.updatePillar),
+          icon: const Icon(Icons.edit),
         ),
       ],
     );
