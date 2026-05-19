@@ -10,11 +10,11 @@ class AssetCell extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final String content = block.token!.symbol;
+    final String content = block.token?.symbol ?? 'UNK';
 
     final Color textColor = ColorUtils.getTokenColor(block.tokenStandard);
 
-    final String tooltipMessage = block.token!.tokenStandard.toString();
+    final String tooltipMessage = block.token?.tokenStandard.toString() ?? 'Unknown token standard';
 
     return InfiniteScrollTableCell.withText(
       content: content,
