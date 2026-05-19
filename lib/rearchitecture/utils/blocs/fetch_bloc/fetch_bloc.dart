@@ -30,6 +30,13 @@ abstract class FetchBloc<T extends Object>
     try {
       final T data = await getData(address: event.address);
       emit(FetchPopulated<T>(data: data));
+    } on SyriusException catch (e, stackTrace) {
+      emit(
+        FetchFailure<T>(
+          exception: e,
+        ),
+      );
+      addError(e, stackTrace);
     } on Exception catch (e, stackTrace) {
       emit(
         FetchFailure<T>(

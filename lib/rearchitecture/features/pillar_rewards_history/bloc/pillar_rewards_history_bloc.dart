@@ -1,3 +1,4 @@
+import 'package:logging/logging.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
@@ -25,7 +26,8 @@ class PillarRewardsHistoryBloc extends FetchBloc<RewardHistoryList> {
       } else {
         throw NoRewardsLastWeekException();
       }
-    } catch (e) {
+    } catch (e, st) {
+      Logger('PillarRewardsHistoryBloc').severe(e.runtimeType, e, st);
       rethrow;
     }
   }

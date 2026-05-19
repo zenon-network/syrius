@@ -27,10 +27,14 @@ class _CreatePillarState extends State<CreatePillar> {
   Widget build(BuildContext context) {
     return NewCardScaffold(
       body: _getStreamBuilder(context),
-      data: CardData(
-        description: context.l10n.createPillarDescription,
-        title: context.l10n.createPillarTitle,
-      ),
+      data: _buildCardData(context: context),
+    );
+  }
+
+  CardData _buildCardData({required BuildContext context}) {
+    return CardData(
+      description: context.l10n.createPillarDescription,
+      title: context.l10n.createPillarTitle,
     );
   }
 
