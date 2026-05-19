@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:zenon_syrius_wallet_flutter/l10n/app_localizations.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/theming/new_app_themes.dart';
 
 /// Extension on the [BuildContext] class
 extension BuildContextExtension on BuildContext {
@@ -14,4 +15,8 @@ extension BuildContextExtension on BuildContext {
 
   /// Whether the app is currently in dark mode
   bool get isDarkMode => Theme.of(this).brightness == Brightness.dark;
+
+  /// Return the current new theme data
+  //TODO(maznnwell): to be deleted/replaced
+  ThemeData get newThemeData => isDarkMode ? newDarkTheme : newLightTheme;
 }

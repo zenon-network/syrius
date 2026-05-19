@@ -49,11 +49,18 @@ final ThemeData newLightTheme = ThemeData(
       ),
     ),
   ),
+  scaffoldBackgroundColor: AppColors.backgroundLight,
 );
 
 /// The new dark theme closer to the default Material ThemeData
 final ThemeData newDarkTheme = ThemeData(
   brightness: Brightness.dark,
+  cardTheme: CardThemeData(
+    color: AppColors.darkPrimary,
+    shape: RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(16)
+    ),
+  ),
   colorScheme: ColorScheme.fromSeed(
     brightness: Brightness.dark,
     seedColor: AppColors.znnColor,
@@ -103,4 +110,5 @@ final ThemeData newDarkTheme = ThemeData(
       ),
     ),
   ),
+  scaffoldBackgroundColor: AppColors.backgroundDark
 );
