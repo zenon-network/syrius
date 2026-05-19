@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lottie/lottie.dart';
-import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/screens/screens.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
@@ -21,13 +21,19 @@ class CreatePillar extends StatefulWidget {
 }
 
 class _CreatePillarState extends State<CreatePillar> {
-  final GetPillarByOwnerBloc _getPillarByOwnerBloc = GetPillarByOwnerBloc();
 
   @override
   Widget build(BuildContext context) {
     return NewCardScaffold(
       body: _getStreamBuilder(context),
       data: _buildCardData(context: context),
+      onRefreshPressed: () async {
+        context.read<GetPillarsByOwnerBloc>().add(
+          FetchRequestData(
+            address: Address.parse(kSelectedAddress!),
+          ),
+        );
+      },
     );
   }
 
@@ -39,19 +45,17 @@ class _CreatePillarState extends State<CreatePillar> {
   }
 
   Widget _getStreamBuilder(BuildContext context) {
-    return StreamBuilder<List<PillarInfo>>(
-      stream: _getPillarByOwnerBloc.stream,
-      builder: (_, AsyncSnapshot<List<PillarInfo>> snapshot) {
-        if (snapshot.hasData) {
-          if (snapshot.data!.isNotEmpty) {
-            return _getUpdatePillarWidgetBody(context, snapshot.data!.first);
-          } else {
-            return _getCreatePillarWidgetBody(context);
-          }
-        } else if (snapshot.hasError) {
-          return SyriusErrorWidget(snapshot.error!);
-        }
-        return const SyriusLoadingWidget();
+    return BlocBuilder<GetPillarsByOwnerBloc, FetchState<List<PillarInfo>>>(
+      builder: (_, FetchState<List<PillarInfo>> state) {
+        return switch (state) {
+          FetchFailure<List<PillarInfo>>() => SyriusErrorWidget(
+              state.exception,
+            ),
+          FetchInitial<List<PillarInfo>>() => const SyriusLoadingWidget(),
+          FetchPopulated<List<PillarInfo>>() => state.data.isNotEmpty
+              ? _getUpdatePillarWidgetBody(context, state.data.first)
+              : _getCreatePillarWidgetBody(context),
+        };
       },
     );
   }
@@ -139,11 +143,5 @@ class _CreatePillarState extends State<CreatePillar> {
         ),
       ],
     );
-  }
-
-  @override
-  void dispose() {
-    _getPillarByOwnerBloc.dispose();
-    super.dispose();
   }
 }

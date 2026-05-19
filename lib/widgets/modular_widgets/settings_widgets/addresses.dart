@@ -92,6 +92,11 @@ class AddressesState extends State<Addresses> {
               address: newAddress,
             ),
           );
+      context.read<GetPillarsByOwnerBloc>().add(
+        FetchRequestData(
+          address: newAddress,
+        ),
+      );
     } catch (e) {
       rethrow;
     }

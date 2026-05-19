@@ -145,6 +145,15 @@ class _MainAppContainerState extends State<MainAppContainer>
               ),
             ),
         ),
+        BlocProvider<GetPillarsByOwnerBloc>(
+          create: (_) => GetPillarsByOwnerBloc(
+            zenon: zenon!,
+          )..add(
+            FetchRequestData(
+              address: Address.parse(kSelectedAddress!),
+            ),
+          ),
+        ),
         BlocProvider<TokensCubit>(
           create: (_) => TokensCubit(
             zenon: zenon!,
