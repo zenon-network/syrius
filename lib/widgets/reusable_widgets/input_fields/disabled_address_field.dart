@@ -16,12 +16,14 @@ class DisabledAddressField extends StatelessWidget {
   Widget build(BuildContext context) {
     return Tooltip(
       message: _addressController.text,
-      child: InputField(
+      child: TextField(
         enabled: false,
         controller: TextEditingController(
           text: kAddressLabelMap[_addressController.text],
         ),
-        contentLeftPadding: contentLeftPadding,
+        decoration: InputDecoration(
+          contentPadding: EdgeInsets.only(left: contentLeftPadding),
+        ),
       ),
     );
   }

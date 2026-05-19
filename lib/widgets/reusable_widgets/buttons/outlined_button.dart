@@ -65,6 +65,7 @@ class MyOutlinedButtonState extends State<MyOutlinedButton> {
         padding: widget.padding,
         minimumSize: widget.minimumSize,
         textStyle: widget.textStyle,
+        //TODO: standardize circular border radius
         shape: widget.circularBorderRadius != null
             ? RoundedRectangleBorder(
                 borderRadius:

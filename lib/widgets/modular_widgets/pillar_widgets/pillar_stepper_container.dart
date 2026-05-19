@@ -8,6 +8,7 @@ import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/model/model.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/extensions/buildcontext_extension.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/extensions.dart';
@@ -64,12 +65,19 @@ class _MainPillarState extends State<PillarStepperContainer> {
   final FocusNode _pillarRewardNode = FocusNode();
   final FocusNode _pillarMomentumNode = FocusNode();
 
-  final GlobalKey<FormState> _qsrFormKey = GlobalKey();
+  final GlobalKey<FormFieldState> _qsrFormKey = GlobalKey();
 
   final GlobalKey<LoadingButtonState> _depositQsrButtonKey = GlobalKey();
   final GlobalKey<LoadingButtonState> _withdrawButtonKey = GlobalKey();
   final GlobalKey<LoadingButtonState> _registerButtonKey = GlobalKey();
 
+  /// The minimum value between available and needed QSR to cover the cost
+  ///
+  /// For example: if 100 is available to be deposited, and only 25 needed,
+  /// then this variable is equal to 25
+  ///
+  /// If 100 more QSR is needed, and 100 is available, then variable is equal
+  /// to 100
   BigInt _maxQsrAmount = BigInt.zero;
 
   final List<GlobalKey<FormState>> _pillarFormKeys = List.generate(
@@ -141,7 +149,8 @@ class _MainPillarState extends State<PillarStepperContainer> {
           },
         );
       },
-      builder: (_, PillarsQsrInfoBloc model, __) => StreamBuilder<PillarsQsrInfo?>(
+      builder: (_, PillarsQsrInfoBloc model, __) =>
+          StreamBuilder<PillarsQsrInfo?>(
         stream: model.stream,
         builder: (_, AsyncSnapshot<PillarsQsrInfo?> snapshot) {
           if (snapshot.hasData) {
@@ -168,6 +177,8 @@ class _MainPillarState extends State<PillarStepperContainer> {
     AccountInfo accountInfo,
     PillarsQsrInfo qsrInfo,
   ) {
+    final bool qsrCostCovered = qsrInfo.deposit >= qsrInfo.cost;
+
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
@@ -178,16 +189,8 @@ class _MainPillarState extends State<PillarStepperContainer> {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[
-                  Row(
-                    children: <Widget>[
-                      Expanded(
-                        child: DisabledAddressField(_addressController),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(
-                    height: 10,
-                  ),
+                  DisabledAddressField(_addressController),
+                  kVerticalSpacing,
                   Padding(
                     padding: const EdgeInsets.only(left: 20),
                     child: Column(
@@ -199,8 +202,8 @@ class _MainPillarState extends State<PillarStepperContainer> {
                         ),
                         Text(
                           context.l10n.requiredForPillarSlot(
-                              qsrInfo.cost.addDecimals(coinDecimals),
-                              kQsrCoin.symbol,
+                            qsrInfo.cost.addDecimals(coinDecimals),
+                            kQsrCoin.symbol,
                           ),
                           style:
                               Theme.of(context).inputDecorationTheme.hintStyle,
@@ -208,38 +211,49 @@ class _MainPillarState extends State<PillarStepperContainer> {
                       ],
                     ),
                   ),
-                  const SizedBox(
-                    height: 10,
-                  ),
-                  Row(
-                    children: <Widget>[
-                      Expanded(
-                        child: Form(
-                          key: _qsrFormKey,
-                          autovalidateMode: AutovalidateMode.onUserInteraction,
-                          child: InputField(
-                            inputFormatters:
-                                FormatUtils.getAmountTextInputFormatters(
-                              _qsrAmountController.text,
+                  Visibility(
+                    visible: !qsrCostCovered,
+                    child: Column(
+                      children: [
+                        kVerticalSpacing,
+                        TextFormField(
+                          autovalidateMode: AutovalidateMode.always,
+                          controller: _qsrAmountController,
+                          cursorColor: AppColors.qsrColor,
+                          decoration: InputDecoration(
+                            border: const OutlineInputBorder(
+                                borderSide: BorderSide(
+                              color: AppColors.qsrColor,
+                            )),
+                            enabledBorder: const OutlineInputBorder(
+                                borderSide: BorderSide(
+                              color: AppColors.qsrColor,
+                            )),
+                            focusedBorder: const OutlineInputBorder(
+                              borderSide: BorderSide(
+                                color: AppColors.qsrColor,
+                              ),
                             ),
-                            controller: _qsrAmountController,
-                            validator: (String? value) => InputValidators.correctValue(
-                              value,
-                              _maxQsrAmount,
-                              kQsrCoin.decimals,
-                              BigInt.zero,
-                            ),
-                            suffixIcon: _getAmountSuffix(accountInfo),
-                            suffixIconConstraints:
-                                const BoxConstraints(maxWidth: 50),
                             hintText: context.l10n.amount,
-                            onChanged: (String value) {
-                              setState(() {});
-                            },
+                          ),
+                          inputFormatters:
+                              FormatUtils.getAmountTextInputFormatters(
+                            _qsrAmountController.text,
+                          ),
+                          key: _qsrFormKey,
+                          style: const TextStyle(
+                            color: AppColors.qsrColor,
+                          ),
+                          validator: (String? value) =>
+                              InputValidators.correctValue(
+                            value,
+                            _maxQsrAmount,
+                            kQsrCoin.decimals,
+                            BigInt.zero,
                           ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                   Padding(
                     padding: const EdgeInsets.symmetric(vertical: 25),
@@ -253,14 +267,14 @@ class _MainPillarState extends State<PillarStepperContainer> {
               Row(
                 children: <Widget>[
                   Visibility(
-                    visible: qsrInfo.deposit < qsrInfo.cost,
+                    visible: !qsrCostCovered,
                     child: _getDepositQsrViewModel(accountInfo, qsrInfo),
                   ),
                   Visibility(
-                    visible: qsrInfo.deposit >= qsrInfo.cost,
-                    child: StepperButton(
-                      text: context.l10n.next,
+                    visible: qsrCostCovered,
+                    child: OutlinedButton(
                       onPressed: _onQsrNextPressed,
+                      child: Text(context.l10n.next),
                     ),
                   ),
                 ],
@@ -274,28 +288,20 @@ class _MainPillarState extends State<PillarStepperContainer> {
         Expanded(
           child: Visibility(
             visible: qsrInfo.deposit > BigInt.zero,
-            child: Container(
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.surface,
-                borderRadius: BorderRadius.circular(6),
-              ),
-              margin: const EdgeInsets.only(
-                bottom: 30,
-              ),
+            child: Card(
+              color: context.themeData.inputDecorationTheme.fillColor,
               child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 30),
+                padding: const EdgeInsets.all(20),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: <Widget>[
-                    Column(
-                      children: <Widget>[
-                        Stack(
-                          alignment: Alignment.center,
-                          children: <Widget>[
-                            SizedBox(
-                              width: 150,
-                              height: 150,
-                              child: AspectRatio(
+                    Expanded(
+                      child: Column(
+                        children: <Widget>[
+                          Stack(
+                            alignment: Alignment.center,
+                            children: <Widget>[
+                              AspectRatio(
                                 aspectRatio: 1,
                                 child: StandardPieChart(
                                   sections: <PieChartSectionData>[
@@ -316,38 +322,39 @@ class _MainPillarState extends State<PillarStepperContainer> {
                                   ],
                                 ),
                               ),
-                            ),
-                            Text(
-                              context.l10n.currentPillarSlotFee(
-                                  qsrInfo.cost.addDecimals(coinDecimals),
-                                  kQsrCoin.symbol,
+                              Padding(
+                                padding: const EdgeInsets.all(8),
+                                child: Text(
+                                  context.l10n.currentPillarSlotFee(
+                                    qsrInfo.cost.addDecimals(coinDecimals),
+                                    kQsrCoin.symbol,
+                                  ),
+                                  textAlign: TextAlign.center,
+                                ),
                               ),
-                              style: Theme.of(context).textTheme.bodyMedium,
-                              textAlign: TextAlign.center,
-                            ),
-                          ],
-                        ),
-                        kVerticalSpacing,
-                      ],
+                            ],
+                          ),
+                        ],
+                      ),
                     ),
-                    Column(
-                      children: <Widget>[
-                        SizedBox(
-                          width: 130,
-                          child: Text(
+                    Expanded(
+                      flex: 2,
+                      child: Column(
+                        children: <Widget>[
+                          Text(
                             context.l10n.youHaveDeposited(
-                                qsrInfo.deposit.addDecimals(coinDecimals),
-                                kQsrCoin.symbol,
+                              qsrInfo.deposit.addDecimals(coinDecimals),
+                              kQsrCoin.symbol,
                             ),
                             textAlign: TextAlign.center,
                             style: Theme.of(context).textTheme.bodyLarge,
                           ),
-                        ),
-                        kVerticalSpacing,
-                        _getWithdrawQsrButtonViewModel(
-                          qsrInfo.deposit,
-                        ),
-                      ],
+                          kVerticalSpacing,
+                          _getWithdrawQsrButtonViewModel(
+                            qsrInfo.deposit,
+                          ),
+                        ],
+                      ),
                     ),
                   ],
                 ),
@@ -360,7 +367,9 @@ class _MainPillarState extends State<PillarStepperContainer> {
   }
 
   Widget _getDepositQsrViewModel(
-      AccountInfo accountInfo, PillarsQsrInfo qsrInfo,) {
+    AccountInfo accountInfo,
+    PillarsQsrInfo qsrInfo,
+  ) {
     return ViewModelBuilder<PillarsDepositQsrBloc>.reactive(
       onViewModelReady: (PillarsDepositQsrBloc model) {
         model.stream.listen(
@@ -397,7 +406,7 @@ class _MainPillarState extends State<PillarStepperContainer> {
     AccountInfo accountInfo,
     PillarsQsrInfo qsrInfo,
   ) {
-    return LoadingButton.stepper(
+    return LoadingButton(
       key: _depositQsrButtonKey,
       text: context.l10n.deposit,
       onPressed: _hasQsrBalance(accountInfo) &&
@@ -405,6 +414,9 @@ class _MainPillarState extends State<PillarStepperContainer> {
           ? () => _onDepositButtonPressed(model, qsrInfo)
           : null,
       outlineColor: AppColors.qsrColor,
+      textStyle: const TextStyle(
+        color: AppColors.qsrColor,
+      ),
     );
   }
 
@@ -435,7 +447,8 @@ class _MainPillarState extends State<PillarStepperContainer> {
           },
         );
       },
-      builder: (_, PillarsWithdrawQsrBloc model, __) => _getWithdrawQsrButton(model, qsrDeposit),
+      builder: (_, PillarsWithdrawQsrBloc model, __) =>
+          _getWithdrawQsrButton(model, qsrDeposit),
       viewModelBuilder: PillarsWithdrawQsrBloc.new,
     );
   }
@@ -446,11 +459,14 @@ class _MainPillarState extends State<PillarStepperContainer> {
   ) {
     return Visibility(
       visible: qsrDeposit > BigInt.zero,
-      child: LoadingButton.stepper(
+      child: LoadingButton(
         text: context.l10n.withdraw,
         onPressed: () => _onWithdrawButtonPressed(model, qsrDeposit),
         key: _withdrawButtonKey,
         outlineColor: AppColors.qsrColor,
+        textStyle: const TextStyle(
+          color: AppColors.qsrColor,
+        ),
       ),
     );
   }
@@ -488,9 +504,9 @@ class _MainPillarState extends State<PillarStepperContainer> {
             expanded: true,
           ),
           StepperUtils.getMaterialStep(
-            stepTitle: context.l10n.management(kQsrCoin.symbol),
+            stepTitle: context.l10n.management(kZnnCoin.symbol),
             stepContent: _getZnnManagementStepBody(context, accountInfo),
-            stepSubtitle: context.l10n.locked(kQsrCoin.symbol),
+            stepSubtitle: context.l10n.locked(kZnnCoin.symbol),
             stepState: StepperUtils.getStepState(
               PillarStepperStep.znnManagement.index,
               _lastCompletedStep?.index,
@@ -512,37 +528,6 @@ class _MainPillarState extends State<PillarStepperContainer> {
     );
   }
 
-  Widget _getAmountSuffix(AccountInfo accountInfo) {
-    return Row(
-      children: <Widget>[
-        Container(
-          height: 20,
-          alignment: Alignment.center,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(3),
-            color: AppColors.qsrColor,
-          ),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(
-              vertical: 3,
-              horizontal: 7,
-            ),
-            child: Row(
-              children: <Widget>[
-                Text(
-                  kQsrCoin.symbol,
-                  style: Theme.of(context).textTheme.titleSmall!.copyWith(
-                        color: Colors.white,
-                      ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
   Widget _getDeployPillarStepBody(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 25),
@@ -552,19 +537,15 @@ class _MainPillarState extends State<PillarStepperContainer> {
           Row(
             children: <Widget>[
               Expanded(
-                child: Form(
-                  key: _pillarFormKeys[0],
+                child: TextFormField(
                   autovalidateMode: AutovalidateMode.onUserInteraction,
-                  child: InputField(
+                  controller: _pillarNameController,
+                  decoration: InputDecoration(
                     hintText: context.l10n.pillarName,
-                    controller: _pillarNameController,
-                    thisNode: _pillarNameNode,
-                    nextNode: _pillarRewardNode,
-                    validator: Validations.pillarName,
-                    onChanged: (String value) {
-                      setState(() {});
-                    },
                   ),
+                  focusNode: _pillarNameNode,
+                  key: _pillarFormKeys[0],
+                  validator: Validations.pillarName,
                 ),
               ),
               const SizedBox(
@@ -576,19 +557,18 @@ class _MainPillarState extends State<PillarStepperContainer> {
           Row(
             children: <Widget>[
               Expanded(
-                child: Form(
-                  key: _pillarFormKeys[1],
+                child: TextFormField(
                   autovalidateMode: AutovalidateMode.onUserInteraction,
-                  child: InputField(
+                  controller: _pillarRewardAddressController,
+                  decoration: InputDecoration(
                     hintText: context.l10n.pillarRewardAddress,
-                    controller: _pillarRewardAddressController,
-                    thisNode: _pillarRewardNode,
-                    nextNode: _pillarMomentumNode,
-                    validator: InputValidators.checkAddress,
-                    onChanged: (String value) {
-                      setState(() {});
-                    },
+                    suffixIcon: ContentPasteButton(
+                        context: context,
+                        controller: _pillarRewardAddressController),
                   ),
+                  focusNode: _pillarRewardNode,
+                  key: _pillarFormKeys[1],
+                  validator: InputValidators.checkAddress,
                 ),
               ),
               StandardTooltipIcon(
@@ -602,16 +582,19 @@ class _MainPillarState extends State<PillarStepperContainer> {
             children: <Widget>[
               Expanded(
                 child: Form(
-                  key: _pillarFormKeys[2],
-                  autovalidateMode: AutovalidateMode.onUserInteraction,
-                  child: InputField(
-                    hintText: context.l10n.pillarProducerAddress,
+                  child: TextFormField(
+                    autovalidateMode: AutovalidateMode.onUserInteraction,
                     controller: _pillarMomentumController,
-                    thisNode: _pillarMomentumNode,
+                    decoration: InputDecoration(
+                      hintText: context.l10n.pillarProducerAddress,
+                      suffixIcon: ContentPasteButton(
+                        context: context,
+                        controller: _pillarMomentumController,
+                      ),
+                    ),
+                    focusNode: _pillarMomentumNode,
+                    key: _pillarFormKeys[2],
                     validator: InputValidators.validatePillarMomentumAddress,
-                    onChanged: (String value) {
-                      setState(() {});
-                    },
                   ),
                 ),
               ),
@@ -650,18 +633,21 @@ class _MainPillarState extends State<PillarStepperContainer> {
           onError: (error) async {
             _registerButtonKey.currentState?.animateReverse();
             await NotificationUtils.sendNotificationError(
-                error, context.l10n.errorDeployingPillar,);
+              error,
+              context.l10n.errorDeployingPillar,
+            );
             setState(() {});
           },
         );
       },
-      builder: (_, PillarsDeployBloc model, __) => _getRegisterPillarButton(model),
+      builder: (_, PillarsDeployBloc model, __) =>
+          _getRegisterPillarButton(model),
       viewModelBuilder: PillarsDeployBloc.new,
     );
   }
 
   Widget _getRegisterPillarButton(PillarsDeployBloc model) {
-    return LoadingButton.stepper(
+    return LoadingButton(
       text: context.l10n.register,
       onPressed: _canDeployPillar() ? () => _onDeployPressed(model) : null,
       key: _registerButtonKey,
@@ -682,16 +668,16 @@ class _MainPillarState extends State<PillarStepperContainer> {
             ),
           ],
         ),
-        kVerticalSpacing,
         StepperUtils.getBalanceWidget(kZnnCoin, accountInfo),
-        kVerticalSpacing,
         Row(
           children: <Widget>[
             Expanded(
-              child: InputField(
+              child: TextField(
                 enabled: false,
                 controller: _znnAmountController,
-                validator: InputValidators.validateAmount,
+                style: const TextStyle(
+                  color: AppColors.znnColor,
+                ),
               ),
             ),
           ],
@@ -702,9 +688,9 @@ class _MainPillarState extends State<PillarStepperContainer> {
             text: context.l10n.disassemblePillarToUnlockCoin(kZnnCoin.symbol),
           ),
         ),
-        StepperButton(
-          text: context.l10n.next,
+        OutlinedButton(
           onPressed: _hasEnoughZnn(accountInfo) ? _onNextPressed : null,
+          child: Text(context.l10n.next),
         ),
       ],
     );
@@ -744,8 +730,8 @@ class _MainPillarState extends State<PillarStepperContainer> {
 
   void _onDeployPressed(PillarsDeployBloc model) {
     if (_lastCompletedStep == PillarStepperStep.znnManagement) {
-      if (_pillarFormKeys
-          .every((GlobalKey<FormState> element) => element.currentState!.validate())) {
+      if (_pillarFormKeys.every(
+          (GlobalKey<FormState> element) => element.currentState!.validate())) {
         _registerButtonKey.currentState?.animateForward();
         model.deployPillar(
           pillarType: _selectedPillarType!,
@@ -804,30 +790,30 @@ class _MainPillarState extends State<PillarStepperContainer> {
                     child: RichText(
                       textAlign: TextAlign.center,
                       text: TextSpan(
-                        style: Theme.of(context).textTheme.headlineSmall,
+                        style: Theme.of(context).textTheme.titleMedium,
                         children: <InlineSpan>[
                           TextSpan(
                             text: '${context.l10n.pillar} ',
-                            style: Theme.of(context).textTheme.headlineSmall,
+                            style: Theme.of(context).textTheme.titleMedium,
                           ),
                           TextSpan(
                             text: context.l10n.successfully,
                             style: Theme.of(context)
                                 .textTheme
-                                .headlineSmall!
+                                .titleMedium!
                                 .copyWith(
                                   color: AppColors.znnColor,
                                 ),
                           ),
                           TextSpan(
                             text: context.l10n.registeredUse,
-                            style: Theme.of(context).textTheme.headlineSmall,
+                            style: Theme.of(context).textTheme.titleMedium,
                           ),
                           TextSpan(
                             text: context.l10n.znnController,
                             style: Theme.of(context)
                                 .textTheme
-                                .headlineSmall!
+                                .titleMedium!
                                 .copyWith(
                                   color: AppColors.znnColor,
                                   decoration: TextDecoration.underline,
@@ -838,12 +824,15 @@ class _MainPillarState extends State<PillarStepperContainer> {
                               },
                           ),
                           const WidgetSpan(
-                            child: Icon(MaterialCommunityIcons.link,
-                                size: 20, color: AppColors.znnColor,),
+                            child: Icon(
+                              MaterialCommunityIcons.link,
+                              size: 20,
+                              color: AppColors.znnColor,
+                            ),
                           ),
                           TextSpan(
                             text: context.l10n.checkPillarStatus,
-                            style: Theme.of(context).textTheme.headlineSmall,
+                            style: Theme.of(context).textTheme.titleMedium,
                           ),
                         ],
                       ),
@@ -930,17 +919,17 @@ class _MainPillarState extends State<PillarStepperContainer> {
 
   bool _canDeployPillar() =>
       InputValidators.notEmpty(
-        context.l10n.pillarName,
+            context.l10n.pillarName,
             _pillarNameController.text,
           ) ==
           null &&
       InputValidators.notEmpty(
-        context.l10n.pillarRewardAddress,
+            context.l10n.pillarRewardAddress,
             _pillarRewardAddressController.text,
           ) ==
           null &&
       InputValidators.notEmpty(
-        context.l10n.pillarMomentumAddress,
+            context.l10n.pillarMomentumAddress,
             _pillarMomentumController.text,
           ) ==
           null;
@@ -986,7 +975,7 @@ class _MainPillarState extends State<PillarStepperContainer> {
       children: <Widget>[
         Text(
           context.l10n.morePlasmaRequired,
-          style: Theme.of(context).textTheme.headlineSmall,
+          style: Theme.of(context).textTheme.titleMedium,
         ),
         const SizedBox(
           height: 25,
@@ -1005,12 +994,12 @@ class _MainPillarState extends State<PillarStepperContainer> {
         const SizedBox(
           height: 25,
         ),
-        StepperButton(
-          text: context.l10n.next,
+        OutlinedButton(
           onPressed: plasmaInfo.currentPlasma >= kPillarPlasmaAmountNeeded
               ? _onPlasmaCheckNextPressed
               : null,
-        ),
+          child: Text(context.l10n.next),
+        )
       ],
     );
   }
@@ -1032,17 +1021,9 @@ class _MainPillarState extends State<PillarStepperContainer> {
   Widget _getPillarMomentumRewardsStepContent() {
     return Column(
       children: <Widget>[
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            Text(
-              context.l10n.percentageOfMomentumRewards,
-              style: Theme.of(context).textTheme.headlineSmall,
-            ),
-          ],
-        ),
         CustomSlider(
-          description: '',
+          description: context.l10n.percentageOfMomentumRewards,
+          descriptionPosition: SliderDescriptionPosition.top,
           startValue: 0,
           min: 0,
           maxValue: 100,
@@ -1057,28 +1038,20 @@ class _MainPillarState extends State<PillarStepperContainer> {
           children: <Widget>[
             Text(
               context.l10n.pillarsWithNumber(
-                  100 - _momentumRewardPercentageGiven.toInt(),
+                100 - _momentumRewardPercentageGiven.toInt(),
               ),
-              style: Theme.of(context).textTheme.titleMedium,
+              style: Theme.of(context).textTheme.titleSmall,
             ),
             Text(
               context.l10n.delegators(_momentumRewardPercentageGiven.toInt()),
-              style: Theme.of(context).textTheme.titleMedium,
+              style: Theme.of(context).textTheme.titleSmall,
             ),
           ],
         ),
         kVerticalSpacing,
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            Text(
-              context.l10n.percentageDelegationRewardsGiven,
-              style: Theme.of(context).textTheme.headlineSmall,
-            ),
-          ],
-        ),
         CustomSlider(
-          description: '',
+          description: context.l10n.percentageDelegationRewardsGiven,
+          descriptionPosition: SliderDescriptionPosition.top,
           startValue: 0,
           min: 0,
           maxValue: 100,
@@ -1093,13 +1066,13 @@ class _MainPillarState extends State<PillarStepperContainer> {
           children: <Widget>[
             Text(
               context.l10n.pillarsWithNumber(
-                  100 - _delegateRewardPercentageGiven.toInt(),
+                100 - _delegateRewardPercentageGiven.toInt(),
               ),
-              style: Theme.of(context).textTheme.titleMedium,
+              style: Theme.of(context).textTheme.titleSmall,
             ),
             Text(
               context.l10n.delegators(_delegateRewardPercentageGiven.toInt()),
-              style: Theme.of(context).textTheme.titleMedium,
+              style: Theme.of(context).textTheme.titleSmall,
             ),
           ],
         ),
@@ -1117,7 +1090,7 @@ class _MainPillarState extends State<PillarStepperContainer> {
     _addressController.dispose();
     _pillarNameNode.dispose();
     _pillarRewardNode.dispose();
-    _pillarMomentumNode.dispose;
+    _pillarMomentumNode.dispose();
     super.dispose();
   }
 }
