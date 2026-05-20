@@ -6,7 +6,6 @@ import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 class PillarsQsrInfoBloc extends BaseBloc<PillarsQsrInfo?> {
   Future<void> getQsrManagementInfo(
-    PillarType? pillarType,
     String address,
   ) async {
     try {

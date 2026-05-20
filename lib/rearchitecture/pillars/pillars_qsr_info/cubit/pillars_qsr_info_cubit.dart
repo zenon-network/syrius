@@ -20,7 +20,6 @@ class PillarsQsrInfoCubit extends HydratedCubit<PillarsQsrInfoState> {
 
   /// Fetches the QSR management information for a Pillar slot.
   Future<void> getQsrManagementInfo(
-    PillarType? pillarType,
     String address,
   ) async {
     try {

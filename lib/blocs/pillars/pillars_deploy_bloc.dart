@@ -9,7 +9,6 @@ import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 class PillarsDeployBloc extends BaseBloc<AccountBlockTemplate?> {
   Future<void> deployPillar({
-    required PillarType pillarType,
     required String pillarName,
     required String rewardAddress,
     required String blockProducingAddress,

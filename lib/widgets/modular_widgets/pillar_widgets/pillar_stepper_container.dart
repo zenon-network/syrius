@@ -24,10 +24,6 @@ import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/custom_mate
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
-enum PillarType {
-  regularPillar,
-}
-
 enum PillarStepperStep {
   checkPlasma,
   qsrManagement,
@@ -49,8 +45,6 @@ class _MainPillarState extends State<PillarStepperContainer> {
   PillarStepperStep? _lastCompletedStep;
 
   final int _numSteps = PillarStepperStep.values.length;
-
-  PillarType? _selectedPillarType = PillarType.regularPillar;
 
   final TextEditingController _qsrAmountController = TextEditingController();
   final TextEditingController _pillarNameController = TextEditingController();
@@ -129,7 +123,6 @@ class _MainPillarState extends State<PillarStepperContainer> {
       onViewModelReady: (PillarsQsrInfoBloc model) {
         _pillarsQsrInfoViewModel = model;
         model.getQsrManagementInfo(
-          _selectedPillarType,
           _addressController.text,
         );
         model.stream.listen(
@@ -377,7 +370,6 @@ class _MainPillarState extends State<PillarStepperContainer> {
             if (response != null) {
               _depositQsrButtonKey.currentState?.animateReverse();
               _pillarsQsrInfoViewModel.getQsrManagementInfo(
-                _selectedPillarType,
                 _addressController.text,
               );
               setState(() {});
@@ -433,7 +425,6 @@ class _MainPillarState extends State<PillarStepperContainer> {
                 PillarStepperStep.checkPlasma,
               );
               _pillarsQsrInfoViewModel.getQsrManagementInfo(
-                _selectedPillarType,
                 _addressController.text,
               );
             }
@@ -732,7 +723,6 @@ class _MainPillarState extends State<PillarStepperContainer> {
           (GlobalKey<FormState> element) => element.currentState!.validate())) {
         _registerButtonKey.currentState?.animateForward();
         model.deployPillar(
-          pillarType: _selectedPillarType!,
           pillarName: _pillarNameController.text,
           rewardAddress: _pillarRewardAddressController.text,
           blockProducingAddress: _pillarMomentumController.text,
@@ -892,7 +882,6 @@ class _MainPillarState extends State<PillarStepperContainer> {
     _pillarMomentumController.clear();
     _lastCompletedStep = null;
     _pillarsQsrInfoViewModel.getQsrManagementInfo(
-      _selectedPillarType,
       _addressController.text,
     );
     setState(_iniStepperControllers);
@@ -909,7 +898,6 @@ class _MainPillarState extends State<PillarStepperContainer> {
 
   void _iniStepperControllers() {
     _currentStep = PillarStepperStep.values.first;
-    _selectedPillarType = PillarType.values.first;
   }
 
   bool _hasEnoughZnn(AccountInfo accountInfo) =>

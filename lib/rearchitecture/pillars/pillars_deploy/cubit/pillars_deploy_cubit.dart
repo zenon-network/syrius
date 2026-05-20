@@ -4,7 +4,6 @@ import 'package:hydrated_bloc/hydrated_bloc.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/pillars/pillars.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/pillar_widgets/pillar_stepper_container.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 part 'pillars_deploy_cubit.g.dart';
@@ -35,7 +34,6 @@ class PillarsDeployCubit extends HydratedCubit<PillarsDeployState> {
 
   /// Initiates the deployment of a Pillar with the given parameters.
   Future<void> deployPillar({
-    required PillarType pillarType,
     required String pillarName,
     required String rewardAddress,
     required String blockProducingAddress,
