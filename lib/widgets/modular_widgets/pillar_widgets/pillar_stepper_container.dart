@@ -1,12 +1,14 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_vector_icons/flutter_vector_icons.dart';
 import 'package:lottie/lottie.dart';
 import 'package:stacked/stacked.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/model/model.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
@@ -91,28 +93,25 @@ class _MainPillarState extends State<PillarStepperContainer> {
     );
     _addressController.text = kSelectedAddress!;
     _pillarRewardAddressController.text = kSelectedAddress!;
-    sl.get<BalanceBloc>().getBalanceForAllAddresses();
+    sl.get<MultipleBalanceBloc>().add(
+      MultipleBalanceFetch(
+        addresses: kDefaultAddressList.map((String? e) => e!).toList(),
+      ),
+    );
     _iniStepperControllers();
   }
 
   @override
   Widget build(BuildContext context) {
-    return StreamBuilder<Map<String, AccountInfo>?>(
-      stream: sl.get<BalanceBloc>().stream,
-      builder: (_, AsyncSnapshot<Map<String, AccountInfo>?> snapshot) {
-        if (snapshot.hasError) {
-          return SyriusErrorWidget(snapshot.error!);
-        }
-        if (snapshot.connectionState == ConnectionState.active) {
-          if (snapshot.hasData) {
-            return _getWidgetBody(
-              context,
-              snapshot.data![_addressController.text]!,
-            );
-          }
-          return const SyriusLoadingWidget();
-        }
-        return const SyriusLoadingWidget();
+    return BlocBuilder<MultipleBalanceBloc, MultipleBalanceState>(
+      builder: (_, MultipleBalanceState state) => switch (state.status) {
+        MultipleBalanceStatus.failure => SyriusErrorWidget(state.error!),
+        MultipleBalanceStatus.initial => const SyriusLoadingWidget(),
+        MultipleBalanceStatus.loading => const SyriusLoadingWidget(),
+        MultipleBalanceStatus.success => _getWidgetBody(
+          context,
+          state.data![_addressController.text]!,
+        ),
       },
     );
   }
