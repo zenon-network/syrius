@@ -133,7 +133,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String dualCoinStatsDescription(
-      Object kQsrCoinSymbol, Object kZnnCoinSymbol) {
+    Object kQsrCoinSymbol,
+    Object kZnnCoinSymbol,
+  ) {
     return 'This card displays the circulating $kZnnCoinSymbol and $kQsrCoinSymbol supply from the network';
   }
 
@@ -357,7 +359,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String realtimeStatsDescription(
-      Object kQsrCoinSymbol, Object kZnnCoinSymbol) {
+    Object kQsrCoinSymbol,
+    Object kZnnCoinSymbol,
+  ) {
     return 'This card displays the number of $kZnnCoinSymbol and $kQsrCoinSymbol transactions. For example, a delegation is considered a $kZnnCoinSymbol transaction from the network\'s perspective. Every interaction with the network embedded contracts is internally considered a transaction';
   }
 
@@ -414,7 +418,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String sentDetails(
-      Object amount, Object recipient, Object sender, Object symbol) {
+    Object amount,
+    Object recipient,
+    Object sender,
+    Object symbol,
+  ) {
     return 'Sent $amount $symbol from $sender to $recipient';
   }
 
