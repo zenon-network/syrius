@@ -42,10 +42,11 @@ class PillarStepperContainer extends StatefulWidget {
 }
 
 class _MainPillarState extends State<PillarStepperContainer> {
-  late PillarStepperStep _currentStep;
+  PillarStepperStep _currentStep = PillarStepperStep.checkPlasma;
   PillarStepperStep? _lastCompletedStep;
 
-  final int _numSteps = PillarStepperStep.values.length;
+  bool get _hasPillarBeenRegistered =>
+      _lastCompletedStep == PillarStepperStep.deployPillar;
 
   final TextEditingController _qsrAmountController = TextEditingController();
   final TextEditingController _pillarNameController = TextEditingController();
@@ -98,7 +99,6 @@ class _MainPillarState extends State<PillarStepperContainer> {
         addresses: kDefaultAddressList.map((String? e) => e!).toList(),
       ),
     );
-    _iniStepperControllers();
   }
 
   @override
@@ -755,16 +755,13 @@ class _MainPillarState extends State<PillarStepperContainer> {
   }
 
   Widget _getWidgetBody(BuildContext context, AccountInfo accountInfo) {
-    final bool hasPillarBeenRegistered =
-        (_lastCompletedStep?.index ?? -1) == _numSteps - 1;
-
     return Stack(
       children: <Widget>[
         ListView(
           children: <Widget>[
             _getMaterialStepper(context, accountInfo),
             Visibility(
-              visible: hasPillarBeenRegistered,
+              visible: _hasPillarBeenRegistered,
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: <Widget>[
@@ -855,7 +852,7 @@ class _MainPillarState extends State<PillarStepperContainer> {
           ],
         ),
         Visibility(
-          visible: hasPillarBeenRegistered,
+          visible: _hasPillarBeenRegistered,
           child: Positioned(
             right: 50,
             child: SizedBox(
@@ -908,20 +905,18 @@ class _MainPillarState extends State<PillarStepperContainer> {
     _pillarsQsrInfoViewModel.getQsrManagementInfo(
       _addressController.text,
     );
-    setState(_iniStepperControllers);
+    setState(() {
+      _currentStep = PillarStepperStep.values.first;
+    });
   }
 
   void _saveProgressAndNavigateToNextStep(PillarStepperStep completedStep) {
     setState(() {
       _lastCompletedStep = completedStep;
-      if (_lastCompletedStep!.index + 1 < _numSteps) {
+      if (!_hasPillarBeenRegistered) {
         _currentStep = PillarStepperStep.values[completedStep.index + 1];
       }
     });
-  }
-
-  void _iniStepperControllers() {
-    _currentStep = PillarStepperStep.values.first;
   }
 
   bool _hasEnoughZnn(AccountInfo accountInfo) =>
