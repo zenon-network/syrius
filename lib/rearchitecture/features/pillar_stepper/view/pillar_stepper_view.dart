@@ -71,8 +71,6 @@ class _MainPillarState extends State<PillarStepperView> {
         _pillarMomentumController.text,
       );
 
-  final GlobalKey<FormFieldState> _qsrFormKey = GlobalKey();
-
   final GlobalKey<LoadingButtonState> _depositQsrButtonKey = GlobalKey();
   final GlobalKey<LoadingButtonState> _withdrawButtonKey = GlobalKey();
   final GlobalKey<LoadingButtonState> _registerButtonKey = GlobalKey();
@@ -234,17 +232,10 @@ class _MainPillarState extends State<PillarStepperView> {
                               FormatUtils.getAmountTextInputFormatters(
                                 _qsrAmountController.text,
                               ),
-                          key: _qsrFormKey,
                           style: const TextStyle(
                             color: AppColors.qsrColor,
                           ),
-                          validator: (String? value) =>
-                              InputValidators.correctValue(
-                                value,
-                                _maxQsrAmount,
-                                kQsrCoin.decimals,
-                                BigInt.zero,
-                              ),
+                          validator: _qsrAmountValidator,
                         ),
                       ],
                     ),
@@ -388,7 +379,7 @@ class _MainPillarState extends State<PillarStepperView> {
         text: context.l10n.deposit,
         onPressed:
             _hasQsrBalance(accountInfo) &&
-                _qsrAmountValidator(_qsrAmountController.text, qsrInfo) == null
+                _qsrAmountValidator(_qsrAmountController.text) == null
             ? () => _onDepositButtonPressed(qsrInfo)
             : null,
         outlineColor: AppColors.qsrColor,
@@ -654,13 +645,19 @@ class _MainPillarState extends State<PillarStepperView> {
   void _onDepositButtonPressed(
     CreatePillarQsrInfoData qsrInfo,
   ) {
-    if (qsrInfo.deposit + _maxQsrAmount <= qsrInfo.cost &&
-        _qsrFormKey.currentState!.validate() &&
-        _qsrAmountController.text.extractDecimals(coinDecimals) > BigInt.zero) {
+    final BigInt qsrAmount = _qsrAmountController.text.extractDecimals(
+      coinDecimals,
+    );
+
+    final bool willDepositExceedCost =
+        qsrInfo.deposit + _maxQsrAmount <= qsrInfo.cost;
+
+    if (!willDepositExceedCost &&
+        qsrAmount > BigInt.zero) {
       context.read<PillarDepositQsrBloc>().add(
         PillarDepositQsrRequested(
           address: Address.parse(_addressController.text),
-          amount: _qsrAmountController.text.extractDecimals(coinDecimals),
+          amount: qsrAmount,
         ),
       );
     }
@@ -874,14 +871,13 @@ class _MainPillarState extends State<PillarStepperView> {
   bool _hasQsrBalance(AccountInfo accountInfo) =>
       accountInfo.qsr()! > BigInt.zero;
 
-  String? _qsrAmountValidator(String? value, CreatePillarQsrInfoData qsrInfo) =>
-      InputValidators.correctValue(
-        value,
-        _maxQsrAmount,
-        kQsrCoin.decimals,
-        BigInt.one,
-        canBeEqualToMin: true,
-      );
+  String? _qsrAmountValidator(String? value) => InputValidators.correctValue(
+    value,
+    _maxQsrAmount,
+    kQsrCoin.decimals,
+    BigInt.one,
+    canBeEqualToMin: true,
+  );
 
   void _onQsrNextPressed() {
     setState(() {
