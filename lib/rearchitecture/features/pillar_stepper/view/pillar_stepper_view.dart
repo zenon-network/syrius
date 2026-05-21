@@ -635,7 +635,13 @@ class _MainPillarState extends State<PillarStepperView> {
         ),
         kVerticalGap25,
         OutlinedButton(
-          onPressed: _hasEnoughZnn(accountInfo) ? _onNextPressed : null,
+          onPressed: _hasEnoughZnn(accountInfo)
+              ? () {
+                  _saveProgressAndNavigateToNextStep(
+                    _PillarStepperStep.znnManagement,
+                  );
+                }
+              : null,
           child: Text(context.l10n.next),
         ),
       ],
@@ -652,20 +658,13 @@ class _MainPillarState extends State<PillarStepperView> {
     final bool willDepositExceedCost =
         qsrInfo.deposit + _maxQsrAmount <= qsrInfo.cost;
 
-    if (!willDepositExceedCost &&
-        qsrAmount > BigInt.zero) {
+    if (!willDepositExceedCost && qsrAmount > BigInt.zero) {
       context.read<PillarDepositQsrBloc>().add(
         PillarDepositQsrRequested(
           address: Address.parse(_addressController.text),
           amount: qsrAmount,
         ),
       );
-    }
-  }
-
-  void _onNextPressed() {
-    if (_lastCompletedStep == _PillarStepperStep.qsrManagement) {
-      _saveProgressAndNavigateToNextStep(_PillarStepperStep.znnManagement);
     }
   }
 
@@ -880,9 +879,7 @@ class _MainPillarState extends State<PillarStepperView> {
   );
 
   void _onQsrNextPressed() {
-    setState(() {
-      _saveProgressAndNavigateToNextStep(_PillarStepperStep.qsrManagement);
-    });
+    _saveProgressAndNavigateToNextStep(_PillarStepperStep.qsrManagement);
   }
 
   Widget _getPlasmaCheckFutureBuilder() {
@@ -940,14 +937,6 @@ class _MainPillarState extends State<PillarStepperView> {
   void _onPlasmaCheckNextPressed() {
     if (_lastCompletedStep == null) {
       _saveProgressAndNavigateToNextStep(_PillarStepperStep.checkPlasma);
-    } else if (StepperUtils.getStepState(
-          _PillarStepperStep.checkPlasma.index,
-          _lastCompletedStep?.index,
-        ) ==
-        custom_material_stepper.StepState.complete) {
-      setState(() {
-        _currentStep = _PillarStepperStep.values[_currentStep.index + 1];
-      });
     }
     context.read<CreatePillarQsrInfoBloc>().add(
       FetchRequestData(address: Address.parse(_addressController.text)),
