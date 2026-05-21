@@ -204,7 +204,7 @@ class _MainPillarState extends State<PillarStepperView> {
                   Visibility(
                     visible: !qsrCostCovered,
                     child: Column(
-                      children: [
+                      children: <Widget>[
                         kVerticalSpacing,
                         TextFormField(
                           autovalidateMode: AutovalidateMode.always,
@@ -296,8 +296,8 @@ class _MainPillarState extends State<PillarStepperView> {
                                       value:
                                           (qsrInfo.cost - qsrInfo.deposit) /
                                           qsrInfo.cost,
-                                      color: AppColors.qsrColor.withOpacity(
-                                        0.3,
+                                      color: AppColors.qsrColor.withAlpha(
+                                        (255 * 0.3).round(),
                                       ),
                                     ),
                                     PieChartSectionData(
@@ -591,7 +591,7 @@ class _MainPillarState extends State<PillarStepperView> {
         }
       },
       child: ListenableBuilder(
-        listenable: Listenable.merge([
+        listenable: Listenable.merge(<Listenable>[
           _pillarNameController,
           _pillarMomentumController,
           _pillarRewardAddressController,
@@ -753,7 +753,9 @@ class _MainPillarState extends State<PillarStepperView> {
                                 ),
                             recognizer: TapGestureRecognizer()
                               ..onTap = () {
-                                NavigationUtils.openUrl(kZnnController);
+                                unawaited(
+                                  NavigationUtils.openUrl(kZnnController),
+                                );
                               },
                           ),
                           const WidgetSpan(
