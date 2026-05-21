@@ -472,7 +472,7 @@ class _MainPillarState extends State<PillarStepperView> {
           ),
           StepperUtils.getMaterialStep(
             stepTitle: context.l10n.management(kZnnCoin.symbol),
-            stepContent: _getZnnManagementStepBody(context, accountInfo),
+            stepContent: _buildZnnManagementStepBody(context, accountInfo),
             stepSubtitle: context.l10n.locked(kZnnCoin.symbol),
             stepState: StepperUtils.getStepState(
               _PillarStepperStep.znnManagement.index,
@@ -482,7 +482,7 @@ class _MainPillarState extends State<PillarStepperView> {
           ),
           StepperUtils.getMaterialStep(
             stepTitle: context.l10n.registerPillar,
-            stepContent: _getDeployPillarStepBody(context),
+            stepContent: _buildDeployPillarStepBody(context),
             stepSubtitle: context.l10n.pillarRegistered,
             stepState: StepperUtils.getStepState(
               _PillarStepperStep.deployPillar.index,
@@ -495,7 +495,7 @@ class _MainPillarState extends State<PillarStepperView> {
     );
   }
 
-  Widget _getDeployPillarStepBody(BuildContext context) {
+  Widget _buildDeployPillarStepBody(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 25),
       child: Column(
@@ -620,21 +620,15 @@ class _MainPillarState extends State<PillarStepperView> {
     );
   }
 
-  Widget _getZnnManagementStepBody(
+  Widget _buildZnnManagementStepBody(
     BuildContext context,
     AccountInfo accountInfo,
   ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
-        Row(
-          children: <Widget>[
-            Expanded(
-              child: DisabledAddressField(_addressController),
-            ),
-          ],
-        ),
-        StepperUtils.getBalanceWidget(kZnnCoin, accountInfo),
+        DisabledAddressField(_addressController),
+        AvailableBalance.stepper(kZnnCoin, accountInfo),
         Row(
           children: <Widget>[
             Expanded(
@@ -648,12 +642,11 @@ class _MainPillarState extends State<PillarStepperView> {
             ),
           ],
         ),
-        Padding(
-          padding: const EdgeInsets.symmetric(vertical: 25),
-          child: DottedBorderInfoWidget(
-            text: context.l10n.disassemblePillarToUnlockCoin(kZnnCoin.symbol),
-          ),
+        kVerticalGap25,
+        DottedBorderInfoWidget(
+          text: context.l10n.disassemblePillarToUnlockCoin(kZnnCoin.symbol),
         ),
+        kVerticalGap25,
         OutlinedButton(
           onPressed: _hasEnoughZnn(accountInfo) ? _onNextPressed : null,
           child: Text(context.l10n.next),
@@ -680,14 +673,6 @@ class _MainPillarState extends State<PillarStepperView> {
   void _onNextPressed() {
     if (_lastCompletedStep == _PillarStepperStep.qsrManagement) {
       _saveProgressAndNavigateToNextStep(_PillarStepperStep.znnManagement);
-    } else if (StepperUtils.getStepState(
-          _PillarStepperStep.qsrManagement.index,
-          _lastCompletedStep?.index,
-        ) ==
-        custom_material_stepper.StepState.complete) {
-      setState(() {
-        _currentStep = _PillarStepperStep.values[_currentStep.index + 1];
-      });
     }
   }
 
