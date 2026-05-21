@@ -72,7 +72,7 @@ class _WalletConnectUriCardState extends State<WalletConnectUriCard> {
                           setState(() {});
                         },
                         controller: _uriController,
-                        suffixIcon: ContentPasteButton(controller: _uriController),
+                        suffixIcon: PasteContentButton(controller: _uriController),
                         hintText: 'WalletConnect URI',
                       ),
                     ),

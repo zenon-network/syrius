@@ -3,8 +3,8 @@ import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 
 /// A simple button that helps paste content inside a [TextField] or
 /// [TextFormField]
-class ContentPasteButton extends IconButton {
-  ContentPasteButton({
+class PasteContentButton extends IconButton {
+  PasteContentButton({
     required TextEditingController controller,
     super.key,
   }) : super(
@@ -13,7 +13,6 @@ class ContentPasteButton extends IconButton {
               controller.text = value;
             });
           },
-    // TODO: show clear icon when controller is not empty
           icon: const Icon(
             Icons.content_paste,
           ),

@@ -533,7 +533,7 @@ class _MainPillarState extends State<PillarStepperView> {
                       ? _pillarRewardAddressError
                       : null,
                   hintText: context.l10n.pillarRewardAddress,
-                  suffixIcon: ContentPasteButton(
+                  suffixIcon: FieldSuffixButtons(
                     controller: _pillarRewardAddressController,
                   ),
                 ),
@@ -557,7 +557,7 @@ class _MainPillarState extends State<PillarStepperView> {
                       ? _pillarMomentumError
                       : null,
                   hintText: context.l10n.pillarProducerAddress,
-                  suffixIcon: ContentPasteButton(
+                  suffixIcon: FieldSuffixButtons(
                     controller: _pillarMomentumController,
                   ),
                 ),

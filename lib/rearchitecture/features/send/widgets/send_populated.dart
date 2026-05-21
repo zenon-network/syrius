@@ -86,7 +86,6 @@ class _SendPopulatedState extends State<SendPopulated> {
           widget.balances[_selectedSenderAddress]!,
         ),
       );
-
     }
 
     return BlocListener<SendTransactionBloc, SendTransactionState>(
@@ -133,7 +132,9 @@ class _SendPopulatedState extends State<SendPopulated> {
                   decoration: InputDecoration(
                     errorText: _recipientErrorText,
                     hintText: context.l10n.recipientAddress,
-                    suffixIcon: ContentPasteButton(controller: _recipientController),
+                    suffixIcon: FieldSuffixButtons(
+                      controller: _recipientController,
+                    ),
                   ),
                   focusNode: _recipientFocusNode,
                   onSubmitted: (_) {
@@ -179,8 +180,9 @@ class _SendPopulatedState extends State<SendPopulated> {
                   return SendButton(
                     key: _sendPaymentButtonKey,
                     text: context.l10n.send,
-                    onPressed:
-                        _isValidTransaction ? _onSendPaymentPressed : null,
+                    onPressed: _isValidTransaction
+                        ? _onSendPaymentPressed
+                        : null,
                   );
                 },
               ),
@@ -218,13 +220,13 @@ class _SendPopulatedState extends State<SendPopulated> {
 
   void _sendPayment() {
     context.read<SendTransactionBloc>().add(
-          SendTransactionInitiate(
-            amount: _amount.extractDecimals(_selectedToken.decimals),
-            fromAddress: _selectedSenderAddress,
-            toAddress: _recipient,
-            token: _selectedToken,
-          ),
-        );
+      SendTransactionInitiate(
+        amount: _amount.extractDecimals(_selectedToken.decimals),
+        fromAddress: _selectedSenderAddress,
+        toAddress: _recipient,
+        token: _selectedToken,
+      ),
+    );
   }
 
   Widget _getDefaultAddressDropdown() {
@@ -245,18 +247,18 @@ class _SendPopulatedState extends State<SendPopulated> {
   }
 
   Widget _getCoinDropdown() => ZtsDropdown(
-        availableTokens: _availableAssets,
-        selectedToken: _selectedToken,
-        onChangeCallback: (Token value) {
-          if (_selectedToken != value) {
-            setState(
-              () {
-                _selectedToken = value;
-              },
-            );
-          }
-        },
-      );
+    availableTokens: _availableAssets,
+    selectedToken: _selectedToken,
+    onChangeCallback: (Token value) {
+      if (_selectedToken != value) {
+        setState(
+          () {
+            _selectedToken = value;
+          },
+        );
+      }
+    },
+  );
 
   void _onMaxPressed(AccountInfo accountInfo) {
     final BigInt maxBalance = accountInfo.getBalance(
@@ -302,13 +304,13 @@ class _SendPopulatedState extends State<SendPopulated> {
     );
 
     await sl.get<NotificationsBloc>().addNotification(
-          WalletNotification(
-            title: title,
-            timestamp: DateTime.now().millisecondsSinceEpoch,
-            details: context.l10n.hashValue(block.hash.toString()),
-            type: NotificationType.paymentSent,
-          ),
-        );
+      WalletNotification(
+        title: title,
+        timestamp: DateTime.now().millisecondsSinceEpoch,
+        details: context.l10n.hashValue(block.hash.toString()),
+        type: NotificationType.paymentSent,
+      ),
+    );
   }
 
   bool _hasBalance(AccountInfo accountInfo) =>
