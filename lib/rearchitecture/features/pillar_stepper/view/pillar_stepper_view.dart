@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
@@ -20,7 +22,7 @@ import 'package:zenon_syrius_wallet_flutter/utils/navigation_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/notification_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/zts_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/custom_material_stepper.dart'
-    as custom_material_stepper;
+as custom_material_stepper;
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
@@ -50,9 +52,9 @@ class _MainPillarState extends State<PillarStepperView> {
   final TextEditingController _qsrAmountController = TextEditingController();
   final TextEditingController _pillarNameController = TextEditingController();
   final TextEditingController _pillarRewardAddressController =
-      TextEditingController();
+  TextEditingController();
   final TextEditingController _pillarMomentumController =
-      TextEditingController();
+  TextEditingController();
   final TextEditingController _znnAmountController = TextEditingController();
   final TextEditingController _addressController = TextEditingController();
 
@@ -77,7 +79,7 @@ class _MainPillarState extends State<PillarStepperView> {
 
   final List<GlobalKey<FormState>> _pillarFormKeys = List.generate(
     3,
-    (int index) => GlobalKey(),
+        (int index) => GlobalKey(),
   );
 
   double _momentumRewardPercentageGiven = 0;
@@ -101,39 +103,44 @@ class _MainPillarState extends State<PillarStepperView> {
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<MultipleBalanceBloc, MultipleBalanceState>(
-      builder: (_, MultipleBalanceState state) => switch (state.status) {
+      builder: (_, MultipleBalanceState state) =>
+      switch (state.status) {
         MultipleBalanceStatus.failure => SyriusErrorWidget(state.error!),
         MultipleBalanceStatus.initial => const SyriusLoadingWidget(),
         MultipleBalanceStatus.loading => const SyriusLoadingWidget(),
-        MultipleBalanceStatus.success => _getWidgetBody(
-          context,
-          state.data![_addressController.text]!,
-        ),
+        MultipleBalanceStatus.success =>
+            _getWidgetBody(
+              context,
+              state.data![_addressController.text]!,
+            ),
       },
     );
   }
 
-  Widget _getQsrManagementStep(BuildContext context, AccountInfo accountInfo) {
+  Widget _buildQsrManagementStep(BuildContext context,
+      AccountInfo accountInfo,) {
     return BlocConsumer<
-      CreatePillarQsrInfoBloc,
-      FetchState<CreatePillarQsrInfoData>
+        CreatePillarQsrInfoBloc,
+        FetchState<CreatePillarQsrInfoData>
     >(
       builder: (_, FetchState<CreatePillarQsrInfoData> state) =>
-          switch (state) {
-            FetchFailure<CreatePillarQsrInfoData>() => SyriusErrorWidget(
+      switch (state) {
+        FetchFailure<CreatePillarQsrInfoData>() =>
+            SyriusErrorWidget(
               state.exception,
             ),
-            FetchInitial<CreatePillarQsrInfoData>() => const Padding(
-              padding: EdgeInsets.all(8),
-              child: SyriusLoadingWidget(),
+        FetchInitial<CreatePillarQsrInfoData>() =>
+        const Padding(
+          padding: EdgeInsets.all(8),
+          child: SyriusLoadingWidget(),
+        ),
+        FetchPopulated<CreatePillarQsrInfoData>() =>
+            _buildQsrManagementStepBody(
+              context,
+              accountInfo,
+              state.data,
             ),
-            FetchPopulated<CreatePillarQsrInfoData>() =>
-              _getQsrManagementStepBody(
-                context,
-                accountInfo,
-                state.data,
-              ),
-          },
+      },
       listener: (_, FetchState<CreatePillarQsrInfoData> state) {
         if (state is FetchPopulated<CreatePillarQsrInfoData>) {
           final CreatePillarQsrInfoData data = state.data;
@@ -154,11 +161,9 @@ class _MainPillarState extends State<PillarStepperView> {
     );
   }
 
-  Row _getQsrManagementStepBody(
-    BuildContext context,
-    AccountInfo accountInfo,
-    CreatePillarQsrInfoData qsrInfo,
-  ) {
+  Row _buildQsrManagementStepBody(BuildContext context,
+      AccountInfo accountInfo,
+      CreatePillarQsrInfoData qsrInfo,) {
     final bool qsrCostCovered = qsrInfo.deposit >= qsrInfo.cost;
 
     return Row(
@@ -187,9 +192,12 @@ class _MainPillarState extends State<PillarStepperView> {
                             qsrInfo.cost.addDecimals(coinDecimals),
                             kQsrCoin.symbol,
                           ),
-                          style: Theme.of(
+                          style: Theme
+                              .of(
                             context,
-                          ).inputDecorationTheme.hintStyle,
+                          )
+                              .inputDecorationTheme
+                              .hintStyle,
                         ),
                       ],
                     ),
@@ -222,9 +230,9 @@ class _MainPillarState extends State<PillarStepperView> {
                             hintText: context.l10n.amount,
                           ),
                           inputFormatters:
-                              FormatUtils.getAmountTextInputFormatters(
-                                _qsrAmountController.text,
-                              ),
+                          FormatUtils.getAmountTextInputFormatters(
+                            _qsrAmountController.text,
+                          ),
                           key: _qsrFormKey,
                           style: const TextStyle(
                             color: AppColors.qsrColor,
@@ -294,7 +302,7 @@ class _MainPillarState extends State<PillarStepperView> {
                                       showTitle: false,
                                       radius: 7,
                                       value:
-                                          (qsrInfo.cost - qsrInfo.deposit) /
+                                      (qsrInfo.cost - qsrInfo.deposit) /
                                           qsrInfo.cost,
                                       color: AppColors.qsrColor.withOpacity(
                                         0.3,
@@ -334,10 +342,13 @@ class _MainPillarState extends State<PillarStepperView> {
                               kQsrCoin.symbol,
                             ),
                             textAlign: TextAlign.center,
-                            style: Theme.of(context).textTheme.bodyLarge,
+                            style: Theme
+                                .of(context)
+                                .textTheme
+                                .bodyLarge,
                           ),
                           kVerticalSpacing,
-                          _getWithdrawQsrButtonViewModel(
+                          _buildWithdrawQsrButton(
                             qsrInfo.deposit,
                           ),
                         ],
@@ -353,14 +364,12 @@ class _MainPillarState extends State<PillarStepperView> {
     );
   }
 
-  Widget _getDepositQsrViewModel(
-    AccountInfo accountInfo,
-    CreatePillarQsrInfoData qsrInfo,
-  ) {
+  Widget _getDepositQsrViewModel(AccountInfo accountInfo,
+      CreatePillarQsrInfoData qsrInfo,) {
     return ViewModelBuilder<PillarsDepositQsrBloc>.reactive(
       onViewModelReady: (PillarsDepositQsrBloc model) {
         model.stream.listen(
-          (AccountBlockTemplate? response) {
+              (AccountBlockTemplate? response) {
             if (response != null) {
               _depositQsrButtonKey.currentState?.animateReverse();
               _refreshPillarQsrInfo();
@@ -393,17 +402,15 @@ class _MainPillarState extends State<PillarStepperView> {
     );
   }
 
-  Widget _getDepositQsrButton(
-    PillarsDepositQsrBloc model,
-    AccountInfo accountInfo,
-    CreatePillarQsrInfoData qsrInfo,
-  ) {
+  Widget _getDepositQsrButton(PillarsDepositQsrBloc model,
+      AccountInfo accountInfo,
+      CreatePillarQsrInfoData qsrInfo,) {
     return LoadingButton(
       key: _depositQsrButtonKey,
       text: context.l10n.deposit,
       onPressed:
-          _hasQsrBalance(accountInfo) &&
-              _qsrAmountValidator(_qsrAmountController.text, qsrInfo) == null
+      _hasQsrBalance(accountInfo) &&
+          _qsrAmountValidator(_qsrAmountController.text, qsrInfo) == null
           ? () => _onDepositButtonPressed(model, qsrInfo)
           : null,
       outlineColor: AppColors.qsrColor,
@@ -413,45 +420,30 @@ class _MainPillarState extends State<PillarStepperView> {
     );
   }
 
-  Widget _getWithdrawQsrButtonViewModel(
-    BigInt qsrDeposit,
-  ) {
-    return ViewModelBuilder<PillarsWithdrawQsrBloc>.reactive(
-      onViewModelReady: (PillarsWithdrawQsrBloc model) {
-        model.stream.listen(
-          (AccountBlockTemplate? event) {
-            if (event != null) {
-              _withdrawButtonKey.currentState?.animateReverse();
-              _saveProgressAndNavigateToNextStep(
-                _PillarStepperStep.checkPlasma,
-              );
-              _refreshPillarQsrInfo();
-            }
-          },
-          onError: (error) async {
-            _withdrawButtonKey.currentState?.animateReverse();
-            await NotificationUtils.sendNotificationError(
-              error,
+  Widget _buildWithdrawQsrButton(BigInt qsrDeposit,) {
+    return BlocListener<PillarWithdrawQsrBloc, PillarWithdrawQsrState>(
+      listener: (_, PillarWithdrawQsrState state) {
+        if (state is PillarWithdrawQsrLoading) {
+          _withdrawButtonKey.currentState?.animateForward();
+        } else if (state is PillarWithdrawQsrFailure) {
+          _withdrawButtonKey.currentState?.animateReverse();
+          unawaited(
+            NotificationUtils.sendNotificationError(
+              state.exception,
               context.l10n.errorWhileWithdrawing(kQsrCoin.symbol),
-            );
-          },
-        );
+            ),
+          );
+        } else if (state is PillarWithdrawQsrPopulated) {
+          _withdrawButtonKey.currentState?.animateReverse();
+          _saveProgressAndNavigateToNextStep(
+            _PillarStepperStep.checkPlasma,
+          );
+          _refreshPillarQsrInfo();
+        }
       },
-      builder: (_, PillarsWithdrawQsrBloc model, __) =>
-          _getWithdrawQsrButton(model, qsrDeposit),
-      viewModelBuilder: PillarsWithdrawQsrBloc.new,
-    );
-  }
-
-  Widget _getWithdrawQsrButton(
-    PillarsWithdrawQsrBloc model,
-    BigInt qsrDeposit,
-  ) {
-    return Visibility(
-      visible: qsrDeposit > BigInt.zero,
       child: LoadingButton(
         text: context.l10n.withdraw,
-        onPressed: () => _onWithdrawButtonPressed(model, qsrDeposit),
+        onPressed: () => _onWithdrawButtonPressed(qsrDeposit),
         key: _withdrawButtonKey,
         outlineColor: AppColors.qsrColor,
         textStyle: const TextStyle(
@@ -484,7 +476,7 @@ class _MainPillarState extends State<PillarStepperView> {
           ),
           StepperUtils.getMaterialStep(
             stepTitle: context.l10n.management(kQsrCoin.symbol),
-            stepContent: _getQsrManagementStep(context, accountInfo),
+            stepContent: _buildQsrManagementStep(context, accountInfo),
             stepSubtitle: context.l10n.deposited(kQsrCoin.symbol),
             stepState: StepperUtils.getStepState(
               _PillarStepperStep.qsrManagement.index,
@@ -608,7 +600,7 @@ class _MainPillarState extends State<PillarStepperView> {
     return ViewModelBuilder<PillarsDeployBloc>.reactive(
       onViewModelReady: (PillarsDeployBloc model) {
         model.stream.listen(
-          (AccountBlockTemplate? response) {
+              (AccountBlockTemplate? response) {
             if (response != null) {
               _registerButtonKey.currentState?.animateReverse();
               _saveProgressAndNavigateToNextStep(
@@ -643,10 +635,8 @@ class _MainPillarState extends State<PillarStepperView> {
     );
   }
 
-  Widget _getZnnManagementStepBody(
-    BuildContext context,
-    AccountInfo accountInfo,
-  ) {
+  Widget _getZnnManagementStepBody(BuildContext context,
+      AccountInfo accountInfo,) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
@@ -685,10 +675,8 @@ class _MainPillarState extends State<PillarStepperView> {
     );
   }
 
-  void _onDepositButtonPressed(
-    PillarsDepositQsrBloc model,
-    CreatePillarQsrInfoData qsrInfo,
-  ) {
+  void _onDepositButtonPressed(PillarsDepositQsrBloc model,
+      CreatePillarQsrInfoData qsrInfo,) {
     if (qsrInfo.deposit >= qsrInfo.cost) {
       _depositQsrButtonKey.currentState?.animateForward();
       model.depositQsr(
@@ -707,9 +695,9 @@ class _MainPillarState extends State<PillarStepperView> {
     if (_lastCompletedStep == _PillarStepperStep.qsrManagement) {
       _saveProgressAndNavigateToNextStep(_PillarStepperStep.znnManagement);
     } else if (StepperUtils.getStepState(
-          _PillarStepperStep.qsrManagement.index,
-          _lastCompletedStep?.index,
-        ) ==
+      _PillarStepperStep.qsrManagement.index,
+      _lastCompletedStep?.index,
+    ) ==
         custom_material_stepper.StepState.complete) {
       setState(() {
         _currentStep = _PillarStepperStep.values[_currentStep.index + 1];
@@ -720,7 +708,7 @@ class _MainPillarState extends State<PillarStepperView> {
   void _onDeployPressed(PillarsDeployBloc model) {
     if (_lastCompletedStep == _PillarStepperStep.znnManagement) {
       if (_pillarFormKeys.every(
-        (GlobalKey<FormState> element) => element.currentState!.validate(),
+            (GlobalKey<FormState> element) => element.currentState!.validate(),
       )) {
         _registerButtonKey.currentState?.animateForward();
         model.deployPillar(
@@ -738,13 +726,11 @@ class _MainPillarState extends State<PillarStepperView> {
     }
   }
 
-  void _onWithdrawButtonPressed(
-    PillarsWithdrawQsrBloc viewModel,
-    BigInt qsrDeposit,
-  ) {
+  void _onWithdrawButtonPressed(BigInt qsrDeposit,) {
     if (qsrDeposit > BigInt.zero) {
-      _withdrawButtonKey.currentState?.animateForward();
-      viewModel.withdrawQsr(_addressController.text);
+      context.read<PillarWithdrawQsrBloc>().add(
+        PillarWithdrawQsrRequested(address: Address.parse(_addressController.text)),
+      );
     }
   }
 
@@ -769,7 +755,10 @@ class _MainPillarState extends State<PillarStepperView> {
                       horizontal: 50,
                     ),
                     decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.secondaryContainer,
+                      color: Theme
+                          .of(context)
+                          .colorScheme
+                          .secondaryContainer,
                       borderRadius: const BorderRadius.all(
                         Radius.circular(
                           10,
@@ -779,30 +768,45 @@ class _MainPillarState extends State<PillarStepperView> {
                     child: RichText(
                       textAlign: TextAlign.center,
                       text: TextSpan(
-                        style: Theme.of(context).textTheme.titleMedium,
+                        style: Theme
+                            .of(context)
+                            .textTheme
+                            .titleMedium,
                         children: <InlineSpan>[
                           TextSpan(
                             text: '${context.l10n.pillar} ',
-                            style: Theme.of(context).textTheme.titleMedium,
+                            style: Theme
+                                .of(context)
+                                .textTheme
+                                .titleMedium,
                           ),
                           TextSpan(
                             text: context.l10n.successfully,
-                            style: Theme.of(context).textTheme.titleMedium!
+                            style: Theme
+                                .of(context)
+                                .textTheme
+                                .titleMedium!
                                 .copyWith(
-                                  color: AppColors.znnColor,
-                                ),
+                              color: AppColors.znnColor,
+                            ),
                           ),
                           TextSpan(
                             text: context.l10n.registeredUse,
-                            style: Theme.of(context).textTheme.titleMedium,
+                            style: Theme
+                                .of(context)
+                                .textTheme
+                                .titleMedium,
                           ),
                           TextSpan(
                             text: context.l10n.znnController,
-                            style: Theme.of(context).textTheme.titleMedium!
+                            style: Theme
+                                .of(context)
+                                .textTheme
+                                .titleMedium!
                                 .copyWith(
-                                  color: AppColors.znnColor,
-                                  decoration: TextDecoration.underline,
-                                ),
+                              color: AppColors.znnColor,
+                              decoration: TextDecoration.underline,
+                            ),
                             recognizer: TapGestureRecognizer()
                               ..onTap = () {
                                 NavigationUtils.openUrl(kZnnController);
@@ -817,7 +821,10 @@ class _MainPillarState extends State<PillarStepperView> {
                           ),
                           TextSpan(
                             text: context.l10n.checkPillarStatus,
-                            style: Theme.of(context).textTheme.titleMedium,
+                            style: Theme
+                                .of(context)
+                                .textTheme
+                                .titleMedium,
                           ),
                         ],
                       ),
@@ -916,20 +923,20 @@ class _MainPillarState extends State<PillarStepperView> {
 
   bool _canDeployPillar() =>
       InputValidators.notEmpty(
-            context.l10n.pillarName,
-            _pillarNameController.text,
-          ) ==
+        context.l10n.pillarName,
+        _pillarNameController.text,
+      ) ==
           null &&
-      InputValidators.notEmpty(
+          InputValidators.notEmpty(
             context.l10n.pillarRewardAddress,
             _pillarRewardAddressController.text,
           ) ==
-          null &&
-      InputValidators.notEmpty(
+              null &&
+          InputValidators.notEmpty(
             context.l10n.pillarMomentumAddress,
             _pillarMomentumController.text,
           ) ==
-          null;
+              null;
 
   bool _hasQsrBalance(AccountInfo accountInfo) =>
       accountInfo.qsr()! > BigInt.zero;
@@ -972,7 +979,10 @@ class _MainPillarState extends State<PillarStepperView> {
       children: <Widget>[
         Text(
           context.l10n.morePlasmaRequired,
-          style: Theme.of(context).textTheme.titleMedium,
+          style: Theme
+              .of(context)
+              .textTheme
+              .titleMedium,
         ),
         const SizedBox(
           height: 25,
@@ -1005,9 +1015,9 @@ class _MainPillarState extends State<PillarStepperView> {
     if (_lastCompletedStep == null) {
       _saveProgressAndNavigateToNextStep(_PillarStepperStep.checkPlasma);
     } else if (StepperUtils.getStepState(
-          _PillarStepperStep.checkPlasma.index,
-          _lastCompletedStep?.index,
-        ) ==
+      _PillarStepperStep.checkPlasma.index,
+      _lastCompletedStep?.index,
+    ) ==
         custom_material_stepper.StepState.complete) {
       setState(() {
         _currentStep = _PillarStepperStep.values[_currentStep.index + 1];
@@ -1040,11 +1050,17 @@ class _MainPillarState extends State<PillarStepperView> {
               context.l10n.pillarsWithNumber(
                 100 - _momentumRewardPercentageGiven.toInt(),
               ),
-              style: Theme.of(context).textTheme.titleSmall,
+              style: Theme
+                  .of(context)
+                  .textTheme
+                  .titleSmall,
             ),
             Text(
               context.l10n.delegators(_momentumRewardPercentageGiven.toInt()),
-              style: Theme.of(context).textTheme.titleSmall,
+              style: Theme
+                  .of(context)
+                  .textTheme
+                  .titleSmall,
             ),
           ],
         ),
@@ -1068,11 +1084,17 @@ class _MainPillarState extends State<PillarStepperView> {
               context.l10n.pillarsWithNumber(
                 100 - _delegateRewardPercentageGiven.toInt(),
               ),
-              style: Theme.of(context).textTheme.titleSmall,
+              style: Theme
+                  .of(context)
+                  .textTheme
+                  .titleSmall,
             ),
             Text(
               context.l10n.delegators(_delegateRewardPercentageGiven.toInt()),
-              style: Theme.of(context).textTheme.titleSmall,
+              style: Theme
+                  .of(context)
+                  .textTheme
+                  .titleSmall,
             ),
           ],
         ),

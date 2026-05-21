@@ -159,7 +159,7 @@ void main() {
         },
         build: () => pillarRewardsHistoryCubit,
         act: (PillarRewardsHistoryCubit cubit) => cubit.updateStream(
-          address: testAddress,
+          _address: testAddress,
         ),
         expect: () => <PillarRewardsHistoryState>[
           PillarRewardsHistoryState(
@@ -181,7 +181,7 @@ void main() {
         },
         build: () => pillarRewardsHistoryCubit,
         act: (PillarRewardsHistoryCubit cubit) => cubit.updateStream(
-          address: testAddress,
+          _address: testAddress,
         ),
         expect: () => <PillarRewardsHistoryState>[
           PillarRewardsHistoryState(

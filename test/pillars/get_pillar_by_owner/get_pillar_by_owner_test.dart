@@ -74,7 +74,7 @@ void main() {
       // Initialize the cubit without calling updateStream automatically
       cubit = GetPillarByOwnerCubit(
         zenon: mockZenon,
-        address: testAddress,
+        _address: testAddress,
       );
     });
 
@@ -148,7 +148,7 @@ void main() {
         },
         build: () => cubit,
         act: (GetPillarByOwnerCubit cubit) => cubit.updateStream(
-          address: testAddress
+          _address: testAddress
         ),
         expect: () => <GetPillarByOwnerState>[
           const GetPillarByOwnerState(),
@@ -169,7 +169,7 @@ void main() {
         },
         build: () => cubit,
         act: (GetPillarByOwnerCubit cubit) => cubit.updateStream(
-          address: testAddress,
+          _address: testAddress,
         ),
         expect: () => <GetPillarByOwnerState>[
           const GetPillarByOwnerState(),
