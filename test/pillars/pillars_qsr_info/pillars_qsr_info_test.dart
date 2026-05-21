@@ -96,7 +96,7 @@ void main() {
       test('can (de)serialize success state', () {
         final PillarsQsrInfoState successState = PillarsQsrInfoState(
           status: PillarsQsrInfoStatus.success,
-          data: PillarsQsrInfo(deposit: deposit, cost: cost),
+          data: CreatePillarQsrInfoData(deposit: deposit, cost: cost),
         );
 
         final Map<String, dynamic>? serialized = pillarsQsrInfoCubit.toJson(
@@ -135,7 +135,7 @@ void main() {
         const PillarsQsrInfoState(status: PillarsQsrInfoStatus.loading),
         PillarsQsrInfoState(
           status: PillarsQsrInfoStatus.success,
-          data: PillarsQsrInfo(deposit: deposit, cost: cost),
+          data: CreatePillarQsrInfoData(deposit: deposit, cost: cost),
         ),
       ],
     );

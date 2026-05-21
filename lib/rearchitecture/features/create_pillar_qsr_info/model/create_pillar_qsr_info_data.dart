@@ -1,13 +1,13 @@
 import 'package:equatable/equatable.dart';
 
-class PillarsQsrInfo extends Equatable{
-  PillarsQsrInfo({
+class CreatePillarQsrInfoData extends Equatable{
+  CreatePillarQsrInfoData({
     required this.cost,
     required this.deposit,
   });
 
-  factory PillarsQsrInfo.fromJson(Map<String, dynamic> json) {
-    return PillarsQsrInfo(
+  factory CreatePillarQsrInfoData.fromJson(Map<String, dynamic> json) {
+    return CreatePillarQsrInfoData(
       cost: BigInt.parse(json['cost'] as String),
       deposit: BigInt.parse(json['deposit'] as String),
     );

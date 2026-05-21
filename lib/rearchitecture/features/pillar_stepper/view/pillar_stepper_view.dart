@@ -7,7 +7,6 @@ import 'package:lottie/lottie.dart';
 import 'package:stacked/stacked.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
-import 'package:zenon_syrius_wallet_flutter/model/model.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
@@ -32,8 +31,8 @@ enum PillarStepperStep {
   deployPillar,
 }
 
-class PillarStepperContainer extends StatefulWidget {
-  const PillarStepperContainer({super.key});
+class PillarStepperView extends StatefulWidget {
+  const PillarStepperView({super.key});
 
   @override
   State createState() {
@@ -41,7 +40,7 @@ class PillarStepperContainer extends StatefulWidget {
   }
 }
 
-class _MainPillarState extends State<PillarStepperContainer> {
+class _MainPillarState extends State<PillarStepperView> {
   PillarStepperStep _currentStep = PillarStepperStep.checkPlasma;
   PillarStepperStep? _lastCompletedStep;
 
@@ -81,8 +80,6 @@ class _MainPillarState extends State<PillarStepperContainer> {
     (int index) => GlobalKey(),
   );
 
-  late PillarsQsrInfoBloc _pillarsQsrInfoViewModel;
-
   double _momentumRewardPercentageGiven = 0;
   double _delegateRewardPercentageGiven = 0;
 
@@ -117,57 +114,50 @@ class _MainPillarState extends State<PillarStepperContainer> {
   }
 
   Widget _getQsrManagementStep(BuildContext context, AccountInfo accountInfo) {
-    return ViewModelBuilder<PillarsQsrInfoBloc>.reactive(
-      onViewModelReady: (PillarsQsrInfoBloc model) {
-        _pillarsQsrInfoViewModel = model;
-        model.getQsrManagementInfo(
-          _addressController.text,
-        );
-        model.stream.listen(
-          (PillarsQsrInfo? event) {
-            if (event != null) {
-              _maxQsrAmount = MathUtils.bigMin(
-                accountInfo.getBalance(
-                  kQsrCoin.tokenStandard,
-                ),
-                MathUtils.bigMax(BigInt.zero, event.cost - event.deposit),
-              );
-              setState(() {
-                _qsrAmountController.text = _maxQsrAmount.addDecimals(
-                  coinDecimals,
-                );
-              });
-            }
+    return BlocConsumer<
+      CreatePillarQsrInfoBloc,
+      FetchState<CreatePillarQsrInfoData>
+    >(
+      builder: (_, FetchState<CreatePillarQsrInfoData> state) =>
+          switch (state) {
+            FetchFailure<CreatePillarQsrInfoData>() => SyriusErrorWidget(
+              state.exception,
+            ),
+            FetchInitial<CreatePillarQsrInfoData>() => const Padding(
+              padding: EdgeInsets.all(8),
+              child: SyriusLoadingWidget(),
+            ),
+            FetchPopulated<CreatePillarQsrInfoData>() =>
+              _getQsrManagementStepBody(
+                context,
+                accountInfo,
+                state.data,
+              ),
           },
-        );
+      listener: (_, FetchState<CreatePillarQsrInfoData> state) {
+        if (state is FetchPopulated<CreatePillarQsrInfoData>) {
+          final CreatePillarQsrInfoData data = state.data;
+
+          _maxQsrAmount = MathUtils.bigMin(
+            accountInfo.getBalance(
+              kQsrCoin.tokenStandard,
+            ),
+            MathUtils.bigMax(BigInt.zero, data.cost - data.deposit),
+          );
+          setState(() {
+            _qsrAmountController.text = _maxQsrAmount.addDecimals(
+              coinDecimals,
+            );
+          });
+        }
       },
-      builder: (_, PillarsQsrInfoBloc model, __) =>
-          StreamBuilder<PillarsQsrInfo?>(
-            stream: model.stream,
-            builder: (_, AsyncSnapshot<PillarsQsrInfo?> snapshot) {
-              if (snapshot.hasData) {
-                return _getQsrManagementStepBody(
-                  context,
-                  accountInfo,
-                  snapshot.data!,
-                );
-              } else if (snapshot.hasError) {
-                return SyriusErrorWidget(snapshot.error!);
-              }
-              return const Padding(
-                padding: EdgeInsets.all(8),
-                child: SyriusLoadingWidget(),
-              );
-            },
-          ),
-      viewModelBuilder: PillarsQsrInfoBloc.new,
     );
   }
 
   Row _getQsrManagementStepBody(
     BuildContext context,
     AccountInfo accountInfo,
-    PillarsQsrInfo qsrInfo,
+    CreatePillarQsrInfoData qsrInfo,
   ) {
     final bool qsrCostCovered = qsrInfo.deposit >= qsrInfo.cost;
 
@@ -365,7 +355,7 @@ class _MainPillarState extends State<PillarStepperContainer> {
 
   Widget _getDepositQsrViewModel(
     AccountInfo accountInfo,
-    PillarsQsrInfo qsrInfo,
+    CreatePillarQsrInfoData qsrInfo,
   ) {
     return ViewModelBuilder<PillarsDepositQsrBloc>.reactive(
       onViewModelReady: (PillarsDepositQsrBloc model) {
@@ -373,9 +363,7 @@ class _MainPillarState extends State<PillarStepperContainer> {
           (AccountBlockTemplate? response) {
             if (response != null) {
               _depositQsrButtonKey.currentState?.animateReverse();
-              _pillarsQsrInfoViewModel.getQsrManagementInfo(
-                _addressController.text,
-              );
+              _refreshPillarQsrInfo();
               setState(() {});
             } else {
               setState(() {});
@@ -397,10 +385,18 @@ class _MainPillarState extends State<PillarStepperContainer> {
     );
   }
 
+  void _refreshPillarQsrInfo() {
+    context.read<CreatePillarQsrInfoBloc>().add(
+      FetchRequestData(
+        address: Address.parse(_addressController.text),
+      ),
+    );
+  }
+
   Widget _getDepositQsrButton(
     PillarsDepositQsrBloc model,
     AccountInfo accountInfo,
-    PillarsQsrInfo qsrInfo,
+    CreatePillarQsrInfoData qsrInfo,
   ) {
     return LoadingButton(
       key: _depositQsrButtonKey,
@@ -429,9 +425,7 @@ class _MainPillarState extends State<PillarStepperContainer> {
               _saveProgressAndNavigateToNextStep(
                 PillarStepperStep.checkPlasma,
               );
-              _pillarsQsrInfoViewModel.getQsrManagementInfo(
-                _addressController.text,
-              );
+              _refreshPillarQsrInfo();
             }
           },
           onError: (error) async {
@@ -693,7 +687,7 @@ class _MainPillarState extends State<PillarStepperContainer> {
 
   void _onDepositButtonPressed(
     PillarsDepositQsrBloc model,
-    PillarsQsrInfo qsrInfo,
+    CreatePillarQsrInfoData qsrInfo,
   ) {
     if (qsrInfo.deposit >= qsrInfo.cost) {
       _depositQsrButtonKey.currentState?.animateForward();
@@ -902,9 +896,7 @@ class _MainPillarState extends State<PillarStepperContainer> {
     _pillarRewardAddressController.clear();
     _pillarMomentumController.clear();
     _lastCompletedStep = null;
-    _pillarsQsrInfoViewModel.getQsrManagementInfo(
-      _addressController.text,
-    );
+    _refreshPillarQsrInfo();
     setState(() {
       _currentStep = PillarStepperStep.values.first;
     });
@@ -942,7 +934,7 @@ class _MainPillarState extends State<PillarStepperContainer> {
   bool _hasQsrBalance(AccountInfo accountInfo) =>
       accountInfo.qsr()! > BigInt.zero;
 
-  String? _qsrAmountValidator(String? value, PillarsQsrInfo qsrInfo) =>
+  String? _qsrAmountValidator(String? value, CreatePillarQsrInfoData qsrInfo) =>
       InputValidators.correctValue(
         value,
         _maxQsrAmount,
@@ -1021,6 +1013,9 @@ class _MainPillarState extends State<PillarStepperContainer> {
         _currentStep = PillarStepperStep.values[_currentStep.index + 1];
       });
     }
+    context.read<CreatePillarQsrInfoBloc>().add(
+      FetchRequestData(address: Address.parse(_addressController.text)),
+    );
   }
 
   Widget _getPillarMomentumRewardsStepContent() {
