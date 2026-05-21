@@ -7,6 +7,7 @@ export 'latest_transactions/latest_transactions.dart';
 export 'multiple_balance/multiple_balance.dart';
 export 'node_sync_status/node_sync_status.dart';
 export 'pending_transactions/pending_transactions.dart';
+export 'pillar_deposit_qsr/pillar_deposit_qsr.dart';
 export 'pillar_rewards_history/pillar_rewards_history.dart';
 export 'pillar_stepper/pillar_stepper.dart';
 export 'pillar_uncollected_rewards/pillar_uncollected_rewards.dart';
