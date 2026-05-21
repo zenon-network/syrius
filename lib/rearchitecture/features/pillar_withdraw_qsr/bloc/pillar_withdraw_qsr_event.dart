@@ -8,11 +8,10 @@ sealed class PillarWithdrawQsrEvent extends Equatable {
 }
 
 final class PillarWithdrawQsrRequested extends PillarWithdrawQsrEvent {
-  const PillarWithdrawQsrRequested({required Address address})
-    : _address = address;
+  const PillarWithdrawQsrRequested({required this.address});
 
-  final Address _address;
+  final Address address;
 
   @override
-  List<Object> get props => <Object>[_address];
+  List<Object> get props => <Object>[address];
 }

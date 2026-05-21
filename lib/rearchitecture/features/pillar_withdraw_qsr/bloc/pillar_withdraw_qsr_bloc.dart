@@ -39,6 +39,7 @@ class PillarWithdrawQsrBloc extends Bloc<PillarWithdrawQsrEvent, PillarWithdrawQ
           .createAccountBlock(
             transactionParams,
             'withdraw ${kQsrCoin.symbol} from Pillar Slot',
+            address: event.address,
             waitForRequiredPlasma: true,
           );
 
