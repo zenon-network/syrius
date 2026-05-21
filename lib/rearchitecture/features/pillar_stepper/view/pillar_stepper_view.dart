@@ -24,7 +24,7 @@ import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/custom_mate
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
-enum PillarStepperStep {
+enum _PillarStepperStep {
   checkPlasma,
   qsrManagement,
   znnManagement,
@@ -41,11 +41,11 @@ class PillarStepperView extends StatefulWidget {
 }
 
 class _MainPillarState extends State<PillarStepperView> {
-  PillarStepperStep _currentStep = PillarStepperStep.checkPlasma;
-  PillarStepperStep? _lastCompletedStep;
+  _PillarStepperStep _currentStep = _PillarStepperStep.checkPlasma;
+  _PillarStepperStep? _lastCompletedStep;
 
   bool get _hasPillarBeenRegistered =>
-      _lastCompletedStep == PillarStepperStep.deployPillar;
+      _lastCompletedStep == _PillarStepperStep.deployPillar;
 
   final TextEditingController _qsrAmountController = TextEditingController();
   final TextEditingController _pillarNameController = TextEditingController();
@@ -423,7 +423,7 @@ class _MainPillarState extends State<PillarStepperView> {
             if (event != null) {
               _withdrawButtonKey.currentState?.animateReverse();
               _saveProgressAndNavigateToNextStep(
-                PillarStepperStep.checkPlasma,
+                _PillarStepperStep.checkPlasma,
               );
               _refreshPillarQsrInfo();
             }
@@ -477,7 +477,7 @@ class _MainPillarState extends State<PillarStepperView> {
             stepContent: _getPlasmaCheckFutureBuilder(),
             stepSubtitle: context.l10n.sufficientPlasma,
             stepState: StepperUtils.getStepState(
-              PillarStepperStep.checkPlasma.index,
+              _PillarStepperStep.checkPlasma.index,
               _lastCompletedStep?.index,
             ),
             context: context,
@@ -487,7 +487,7 @@ class _MainPillarState extends State<PillarStepperView> {
             stepContent: _getQsrManagementStep(context, accountInfo),
             stepSubtitle: context.l10n.deposited(kQsrCoin.symbol),
             stepState: StepperUtils.getStepState(
-              PillarStepperStep.qsrManagement.index,
+              _PillarStepperStep.qsrManagement.index,
               _lastCompletedStep?.index,
             ),
             context: context,
@@ -498,7 +498,7 @@ class _MainPillarState extends State<PillarStepperView> {
             stepContent: _getZnnManagementStepBody(context, accountInfo),
             stepSubtitle: context.l10n.locked(kZnnCoin.symbol),
             stepState: StepperUtils.getStepState(
-              PillarStepperStep.znnManagement.index,
+              _PillarStepperStep.znnManagement.index,
               _lastCompletedStep?.index,
             ),
             context: context,
@@ -508,7 +508,7 @@ class _MainPillarState extends State<PillarStepperView> {
             stepContent: _getDeployPillarStepBody(context),
             stepSubtitle: context.l10n.pillarRegistered,
             stepState: StepperUtils.getStepState(
-              PillarStepperStep.deployPillar.index,
+              _PillarStepperStep.deployPillar.index,
               _lastCompletedStep?.index,
             ),
             context: context,
@@ -612,7 +612,7 @@ class _MainPillarState extends State<PillarStepperView> {
             if (response != null) {
               _registerButtonKey.currentState?.animateReverse();
               _saveProgressAndNavigateToNextStep(
-                PillarStepperStep.deployPillar,
+                _PillarStepperStep.deployPillar,
               );
               setState(() {});
             } else {
@@ -704,21 +704,21 @@ class _MainPillarState extends State<PillarStepperView> {
   }
 
   void _onNextPressed() {
-    if (_lastCompletedStep == PillarStepperStep.qsrManagement) {
-      _saveProgressAndNavigateToNextStep(PillarStepperStep.znnManagement);
+    if (_lastCompletedStep == _PillarStepperStep.qsrManagement) {
+      _saveProgressAndNavigateToNextStep(_PillarStepperStep.znnManagement);
     } else if (StepperUtils.getStepState(
-          PillarStepperStep.qsrManagement.index,
+          _PillarStepperStep.qsrManagement.index,
           _lastCompletedStep?.index,
         ) ==
         custom_material_stepper.StepState.complete) {
       setState(() {
-        _currentStep = PillarStepperStep.values[_currentStep.index + 1];
+        _currentStep = _PillarStepperStep.values[_currentStep.index + 1];
       });
     }
   }
 
   void _onDeployPressed(PillarsDeployBloc model) {
-    if (_lastCompletedStep == PillarStepperStep.znnManagement) {
+    if (_lastCompletedStep == _PillarStepperStep.znnManagement) {
       if (_pillarFormKeys.every(
         (GlobalKey<FormState> element) => element.currentState!.validate(),
       )) {
@@ -898,15 +898,15 @@ class _MainPillarState extends State<PillarStepperView> {
     _lastCompletedStep = null;
     _refreshPillarQsrInfo();
     setState(() {
-      _currentStep = PillarStepperStep.values.first;
+      _currentStep = _PillarStepperStep.values.first;
     });
   }
 
-  void _saveProgressAndNavigateToNextStep(PillarStepperStep completedStep) {
+  void _saveProgressAndNavigateToNextStep(_PillarStepperStep completedStep) {
     setState(() {
       _lastCompletedStep = completedStep;
       if (!_hasPillarBeenRegistered) {
-        _currentStep = PillarStepperStep.values[completedStep.index + 1];
+        _currentStep = _PillarStepperStep.values[completedStep.index + 1];
       }
     });
   }
@@ -945,7 +945,7 @@ class _MainPillarState extends State<PillarStepperView> {
 
   void _onQsrNextPressed() {
     setState(() {
-      _saveProgressAndNavigateToNextStep(PillarStepperStep.qsrManagement);
+      _saveProgressAndNavigateToNextStep(_PillarStepperStep.qsrManagement);
     });
   }
 
@@ -1003,14 +1003,14 @@ class _MainPillarState extends State<PillarStepperView> {
 
   void _onPlasmaCheckNextPressed() {
     if (_lastCompletedStep == null) {
-      _saveProgressAndNavigateToNextStep(PillarStepperStep.checkPlasma);
+      _saveProgressAndNavigateToNextStep(_PillarStepperStep.checkPlasma);
     } else if (StepperUtils.getStepState(
-          PillarStepperStep.checkPlasma.index,
+          _PillarStepperStep.checkPlasma.index,
           _lastCompletedStep?.index,
         ) ==
         custom_material_stepper.StepState.complete) {
       setState(() {
-        _currentStep = PillarStepperStep.values[_currentStep.index + 1];
+        _currentStep = _PillarStepperStep.values[_currentStep.index + 1];
       });
     }
     context.read<CreatePillarQsrInfoBloc>().add(
