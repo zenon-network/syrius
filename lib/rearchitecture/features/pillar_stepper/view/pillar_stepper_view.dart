@@ -6,8 +6,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_vector_icons/flutter_vector_icons.dart';
 import 'package:lottie/lottie.dart';
-import 'package:stacked/stacked.dart';
-import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
@@ -62,6 +60,17 @@ class _MainPillarState extends State<PillarStepperView> {
   final FocusNode _pillarRewardNode = FocusNode();
   final FocusNode _pillarMomentumNode = FocusNode();
 
+  String? get _pillarNameError =>
+      Validations.pillarName(_pillarNameController.text);
+
+  String? get _pillarRewardAddressError =>
+      InputValidators.checkAddress(_pillarRewardAddressController.text);
+
+  String? get _pillarMomentumError =>
+      InputValidators.validatePillarMomentumAddress(
+        _pillarMomentumController.text,
+      );
+
   final GlobalKey<FormFieldState> _qsrFormKey = GlobalKey();
 
   final GlobalKey<LoadingButtonState> _depositQsrButtonKey = GlobalKey();
@@ -76,11 +85,6 @@ class _MainPillarState extends State<PillarStepperView> {
   /// If 100 more QSR is needed, and 100 is available, then variable is equal
   /// to 100
   BigInt _maxQsrAmount = BigInt.zero;
-
-  final List<GlobalKey<FormState>> _pillarFormKeys = List.generate(
-    3,
-    (int index) => GlobalKey(),
-  );
 
   double _momentumRewardPercentageGiven = 0;
   double _delegateRewardPercentageGiven = 0;
@@ -383,8 +387,8 @@ class _MainPillarState extends State<PillarStepperView> {
         key: _depositQsrButtonKey,
         text: context.l10n.deposit,
         onPressed:
-        _hasQsrBalance(accountInfo) &&
-            _qsrAmountValidator(_qsrAmountController.text, qsrInfo) == null
+            _hasQsrBalance(accountInfo) &&
+                _qsrAmountValidator(_qsrAmountController.text, qsrInfo) == null
             ? () => _onDepositButtonPressed(qsrInfo)
             : null,
         outlineColor: AppColors.qsrColor,
@@ -496,127 +500,119 @@ class _MainPillarState extends State<PillarStepperView> {
   }
 
   Widget _buildDeployPillarStepBody(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 25),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-          Row(
-            children: <Widget>[
-              Expanded(
-                child: TextFormField(
-                  autovalidateMode: AutovalidateMode.onUserInteraction,
-                  controller: _pillarNameController,
-                  decoration: InputDecoration(
-                    hintText: context.l10n.pillarName,
-                  ),
-                  focusNode: _pillarNameNode,
-                  key: _pillarFormKeys[0],
-                  validator: Validations.pillarName,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: <Widget>[
+        Row(
+          children: <Widget>[
+            Expanded(
+              child: TextField(
+                controller: _pillarNameController,
+                decoration: InputDecoration(
+                  errorText: _pillarNameController.text.isNotEmpty
+                      ? _pillarNameError
+                      : null,
+                  hintText: context.l10n.pillarName,
                 ),
+                focusNode: _pillarNameNode,
               ),
-              const SizedBox(
-                width: 23,
-              ),
-            ],
-          ),
-          kVerticalSpacing,
-          Row(
-            children: <Widget>[
-              Expanded(
-                child: TextFormField(
-                  autovalidateMode: AutovalidateMode.onUserInteraction,
-                  controller: _pillarRewardAddressController,
-                  decoration: InputDecoration(
-                    hintText: context.l10n.pillarRewardAddress,
-                    suffixIcon: ContentPasteButton(
-                      controller: _pillarRewardAddressController,
-                    ),
+            ),
+            const SizedBox(
+              width: 23,
+            ),
+          ],
+        ),
+        kVerticalSpacing,
+        Row(
+          children: <Widget>[
+            Expanded(
+              child: TextField(
+                controller: _pillarRewardAddressController,
+                decoration: InputDecoration(
+                  errorText: _pillarRewardAddressController.text.isNotEmpty
+                      ? _pillarRewardAddressError
+                      : null,
+                  hintText: context.l10n.pillarRewardAddress,
+                  suffixIcon: ContentPasteButton(
+                    controller: _pillarRewardAddressController,
                   ),
-                  focusNode: _pillarRewardNode,
-                  key: _pillarFormKeys[1],
-                  validator: InputValidators.checkAddress,
                 ),
+                focusNode: _pillarRewardNode,
               ),
-              StandardTooltipIcon(
-                context.l10n.addressToCollectRewards,
-                Icons.help,
-              ),
-            ],
-          ),
-          kVerticalSpacing,
-          Row(
-            children: <Widget>[
-              Expanded(
-                child: Form(
-                  child: TextFormField(
-                    autovalidateMode: AutovalidateMode.onUserInteraction,
+            ),
+            StandardTooltipIcon(
+              context.l10n.addressToCollectRewards,
+              Icons.help,
+            ),
+          ],
+        ),
+        kVerticalSpacing,
+        Row(
+          children: <Widget>[
+            Expanded(
+              child: TextField(
+                controller: _pillarMomentumController,
+                decoration: InputDecoration(
+                  errorText: _pillarMomentumController.text.isNotEmpty
+                      ? _pillarMomentumError
+                      : null,
+                  hintText: context.l10n.pillarProducerAddress,
+                  suffixIcon: ContentPasteButton(
                     controller: _pillarMomentumController,
-                    decoration: InputDecoration(
-                      hintText: context.l10n.pillarProducerAddress,
-                      suffixIcon: ContentPasteButton(
-                        controller: _pillarMomentumController,
-                      ),
-                    ),
-                    focusNode: _pillarMomentumNode,
-                    key: _pillarFormKeys[2],
-                    validator: InputValidators.validatePillarMomentumAddress,
                   ),
                 ),
+                focusNode: _pillarMomentumNode,
               ),
-              StandardTooltipIcon(
-                context.l10n.addressToProduceMomentums,
-                Icons.help,
-              ),
-            ],
-          ),
-          kVerticalSpacing,
-          _getPillarMomentumRewardsStepContent(),
-          const SizedBox(
-            height: 25,
-          ),
-          _getDeployButton(),
-        ],
-      ),
+            ),
+            StandardTooltipIcon(
+              context.l10n.addressToProduceMomentums,
+              Icons.help,
+            ),
+          ],
+        ),
+        kVerticalSpacing,
+        _buildPillarMomentumRewardsStepContent(),
+        kVerticalGap25,
+        _buildDeployButton(),
+        kVerticalGap25,
+      ],
     );
   }
 
-  Widget _getDeployButton() {
-    return ViewModelBuilder<PillarsDeployBloc>.reactive(
-      onViewModelReady: (PillarsDeployBloc model) {
-        model.stream.listen(
-          (AccountBlockTemplate? response) {
-            if (response != null) {
-              _registerButtonKey.currentState?.animateReverse();
-              _saveProgressAndNavigateToNextStep(
-                _PillarStepperStep.deployPillar,
-              );
-              setState(() {});
-            } else {
-              setState(() {});
-            }
-          },
-          onError: (error) async {
-            _registerButtonKey.currentState?.animateReverse();
-            await NotificationUtils.sendNotificationError(
-              error,
+  Widget _buildDeployButton() {
+    return BlocListener<DeployPillarBloc, DeployPillarState>(
+      listener: (_, DeployPillarState state) {
+        if (state is DeployPillarDone) {
+          _registerButtonKey.currentState?.animateReverse();
+          _saveProgressAndNavigateToNextStep(
+            _PillarStepperStep.deployPillar,
+          );
+        } else if (state is DeployPillarFailure) {
+          _registerButtonKey.currentState?.animateReverse();
+          unawaited(
+            NotificationUtils.sendNotificationError(
+              state.exception,
               context.l10n.errorDeployingPillar,
-            );
-            setState(() {});
-          },
-        );
+            ),
+          );
+        } else if (state is DeployPillarLoading) {
+          _registerButtonKey.currentState?.animateForward();
+        }
       },
-      builder: (_, PillarsDeployBloc model, __) =>
-          _getRegisterPillarButton(model),
-      viewModelBuilder: PillarsDeployBloc.new,
-    );
-  }
-
-  Widget _getRegisterPillarButton(PillarsDeployBloc model) {
-    return LoadingButton(
-      text: context.l10n.register,
-      onPressed: _canDeployPillar() ? () => _onDeployPressed(model) : null,
-      key: _registerButtonKey,
+      child: ListenableBuilder(
+        listenable: Listenable.merge([
+          _pillarNameController,
+          _pillarMomentumController,
+          _pillarRewardAddressController,
+        ]),
+        builder: (_, _) {
+          return LoadingButton(
+            text: context.l10n.register,
+            onPressed: _canDeployPillar() ? _onDeployPressed : null,
+            key: _registerButtonKey,
+          );
+        },
+      ),
     );
   }
 
@@ -676,24 +672,19 @@ class _MainPillarState extends State<PillarStepperView> {
     }
   }
 
-  void _onDeployPressed(PillarsDeployBloc model) {
+  void _onDeployPressed() {
     if (_lastCompletedStep == _PillarStepperStep.znnManagement) {
-      if (_pillarFormKeys.every(
-        (GlobalKey<FormState> element) => element.currentState!.validate(),
-      )) {
-        _registerButtonKey.currentState?.animateForward();
-        model.deployPillar(
+      context.read<DeployPillarBloc>().add(
+        DeployPillarRequested(
           pillarName: _pillarNameController.text,
-          rewardAddress: _pillarRewardAddressController.text,
-          blockProducingAddress: _pillarMomentumController.text,
+          rewardAddress: Address.parse(_pillarRewardAddressController.text),
+          blockProducingAddress: Address.parse(
+            _pillarMomentumController.text,
+          ),
           giveBlockRewardPercentage: _momentumRewardPercentageGiven.toInt(),
           giveDelegateRewardPercentage: _delegateRewardPercentageGiven.toInt(),
-        );
-      } else {
-        for (final GlobalKey<FormState> element in _pillarFormKeys) {
-          element.currentState!.validate();
-        }
-      }
+        ),
+      );
     }
   }
 
@@ -876,21 +867,9 @@ class _MainPillarState extends State<PillarStepperView> {
       accountInfo.znn()! >= pillarRegisterZnnAmount;
 
   bool _canDeployPillar() =>
-      InputValidators.notEmpty(
-            context.l10n.pillarName,
-            _pillarNameController.text,
-          ) ==
-          null &&
-      InputValidators.notEmpty(
-            context.l10n.pillarRewardAddress,
-            _pillarRewardAddressController.text,
-          ) ==
-          null &&
-      InputValidators.notEmpty(
-            context.l10n.pillarMomentumAddress,
-            _pillarMomentumController.text,
-          ) ==
-          null;
+      _pillarNameError == null &&
+      _pillarRewardAddressError == null &&
+      _pillarMomentumError == null;
 
   bool _hasQsrBalance(AccountInfo accountInfo) =>
       accountInfo.qsr()! > BigInt.zero;
@@ -979,7 +958,7 @@ class _MainPillarState extends State<PillarStepperView> {
     );
   }
 
-  Widget _getPillarMomentumRewardsStepContent() {
+  Widget _buildPillarMomentumRewardsStepContent() {
     return Column(
       children: <Widget>[
         CustomSlider(

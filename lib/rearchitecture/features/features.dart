@@ -2,6 +2,7 @@ export 'balance/balance.dart';
 export 'create_pillar/create_pillar.dart';
 export 'create_pillar_qsr_info/create_pillar_qsr_info.dart';
 export 'delegation/delegation.dart';
+export 'deploy_pillar/deploy_pillar.dart';
 export 'dual_coin_stats/dual_coin_stats.dart';
 export 'latest_transactions/latest_transactions.dart';
 export 'multiple_balance/multiple_balance.dart';

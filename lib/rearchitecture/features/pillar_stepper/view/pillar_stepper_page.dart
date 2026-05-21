@@ -29,7 +29,14 @@ class PillarStepperPage extends StatelessWidget {
             zenon: zenon!,
             zenonAddressUtils: ZenonAddressUtils(),
           ),
-        )
+        ),
+        BlocProvider<DeployPillarBloc>(
+          create: (_) => DeployPillarBloc(
+            accountBlockUtils: AccountBlockUtils(),
+            zenon: zenon!,
+            zenonAddressUtils: ZenonAddressUtils(),
+          ),
+        ),
       ],
       child: const PillarStepperView(),
     );
