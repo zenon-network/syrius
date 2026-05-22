@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lottie/lottie.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
-import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/pillar_stepper/view/pillar_stepper_page.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/screens/screens.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
@@ -71,7 +70,7 @@ class _CreatePillarState extends State<CreatePillar> {
               context,
               MaterialPageRoute<void>(
                 builder: (BuildContext context) => StepperScreen(
-                  stepper: const PillarStepperPage(),
+                  stepper: const CreatePillarStepperPage(),
                   onStepperNotificationSeeMorePressed:
                       widget.onStepperNotificationSeeMorePressed,
                 ),

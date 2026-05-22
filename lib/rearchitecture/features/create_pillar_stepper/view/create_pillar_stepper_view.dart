@@ -31,8 +31,8 @@ enum _PillarStepperStep {
   deployPillar,
 }
 
-class PillarStepperView extends StatefulWidget {
-  const PillarStepperView({super.key});
+class CreatePillarStepperView extends StatefulWidget {
+  const CreatePillarStepperView({super.key});
 
   @override
   State createState() {
@@ -40,7 +40,7 @@ class PillarStepperView extends StatefulWidget {
   }
 }
 
-class _MainPillarState extends State<PillarStepperView> {
+class _MainPillarState extends State<CreatePillarStepperView> {
   _PillarStepperStep _currentStep = _PillarStepperStep.checkPlasma;
   _PillarStepperStep? _lastCompletedStep;
 

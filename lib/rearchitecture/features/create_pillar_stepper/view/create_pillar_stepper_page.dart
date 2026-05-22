@@ -6,8 +6,8 @@ import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dar
 import 'package:zenon_syrius_wallet_flutter/utils/account_block_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/address_utils.dart';
 
-class PillarStepperPage extends StatelessWidget {
-  const PillarStepperPage({super.key});
+class CreatePillarStepperPage extends StatelessWidget {
+  const CreatePillarStepperPage({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -38,7 +38,7 @@ class PillarStepperPage extends StatelessWidget {
           ),
         ),
       ],
-      child: const PillarStepperView(),
+      child: const CreatePillarStepperView(),
     );
   }
 }
