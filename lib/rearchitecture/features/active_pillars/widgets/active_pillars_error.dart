@@ -3,12 +3,12 @@ import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dar
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/reusable_widgets.dart';
 
-/// A widget associated with the [PillarsState] when it's status is
+/// A widget associated with the [ActivePillarsState] when it's status is
 /// [TimerStatus.failure] that uses the [SyriusErrorWidget] to display the
 /// error message.
-class PillarsError extends StatelessWidget {
+class ActivePillarsError extends StatelessWidget {
   /// Creates a PillarsError object.
-  const PillarsError({required this.error, super.key});
+  const ActivePillarsError({required this.error, super.key});
 
   /// Holds the data that will be displayed.
   final SyriusException error;

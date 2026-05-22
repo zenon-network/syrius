@@ -1,13 +1,15 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'pillars_cubit.dart';
+part of 'active_pillars_cubit.dart';
 
 // **************************************************************************
 // JsonSerializableGenerator
 // **************************************************************************
 
-PillarsState _$PillarsStateFromJson(Map<String, dynamic> json) => PillarsState(
-      status: $enumDecodeNullable(_$TimerStatusEnumMap, json['status']) ??
+ActivePillarsState _$ActivePillarsStateFromJson(Map<String, dynamic> json) =>
+    ActivePillarsState(
+      status:
+          $enumDecodeNullable(_$TimerStatusEnumMap, json['status']) ??
           TimerStatus.initial,
       data: (json['data'] as num?)?.toInt(),
       error: json['error'] == null
@@ -15,7 +17,7 @@ PillarsState _$PillarsStateFromJson(Map<String, dynamic> json) => PillarsState(
           : SyriusException.fromJson(json['error'] as Map<String, dynamic>),
     );
 
-Map<String, dynamic> _$PillarsStateToJson(PillarsState instance) =>
+Map<String, dynamic> _$ActivePillarsStateToJson(ActivePillarsState instance) =>
     <String, dynamic>{
       'status': _$TimerStatusEnumMap[instance.status]!,
       'data': instance.data,
