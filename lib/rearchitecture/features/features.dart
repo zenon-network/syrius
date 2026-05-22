@@ -22,3 +22,4 @@ export 'sentinels/sentinels.dart';
 export 'staking/staking.dart';
 export 'total_hourly_transactions/total_hourly_transactions.dart';
 export 'transfer/transfer.dart';
+export 'update_pillar_stepper/update_pillar_stepper.dart';

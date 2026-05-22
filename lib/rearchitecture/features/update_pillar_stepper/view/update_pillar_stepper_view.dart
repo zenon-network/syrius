@@ -3,23 +3,25 @@ import 'package:lottie/lottie.dart';
 import 'package:stacked/stacked.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/extensions/buildcontext_extension.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/input_validators.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/notification_utils.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/custom_material_stepper.dart'
     as custom_material_stepper;
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
-enum PillarUpdateStep {
+enum _PillarUpdateStep {
   pillarDetails,
   pillarMomentumReward,
   pillarUpdate,
 }
 
 class PillarUpdateStepper extends StatefulWidget {
-
   const PillarUpdateStepper(this.pillarInfo, {super.key});
+
   final PillarInfo pillarInfo;
 
   @override
@@ -27,19 +29,14 @@ class PillarUpdateStepper extends StatefulWidget {
 }
 
 class _PillarUpdateStepperState extends State<PillarUpdateStepper> {
-  PillarUpdateStep? _lastCompletedStep;
-  PillarUpdateStep _currentStep = PillarUpdateStep.values.first;
+  _PillarUpdateStep? _lastCompletedStep;
+  _PillarUpdateStep _currentStep = _PillarUpdateStep.values.first;
 
   final TextEditingController _pillarNameController = TextEditingController();
   final TextEditingController _pillarRewardController = TextEditingController();
   final TextEditingController _pillarProducerController =
       TextEditingController();
 
-  final FocusNode _pillarRewardNode = FocusNode();
-  final FocusNode _pillarMomentumNode = FocusNode();
-
-  final GlobalKey<FormState> _pillarRewardKey = GlobalKey();
-  final GlobalKey<FormState> _pillarMomentumKey = GlobalKey();
   final GlobalKey<LoadingButtonState> _updateButtonKey = GlobalKey();
 
   late double _momentumRewardPercentageGiven;
@@ -51,12 +48,16 @@ class _PillarUpdateStepperState extends State<PillarUpdateStepper> {
     super.initState();
     _pillarNameController.text = widget.pillarInfo.name;
     _pillarRewardController.text = widget.pillarInfo.withdrawAddress.toString();
-    _pillarProducerController.text =
-        widget.pillarInfo.producerAddress.toString();
-    _momentumRewardPercentageGiven =
-        widget.pillarInfo.giveMomentumRewardPercentage.toDouble();
-    _delegateRewardPercentageGiven =
-        widget.pillarInfo.giveDelegateRewardPercentage.toDouble();
+    _pillarProducerController.text = widget.pillarInfo.producerAddress
+        .toString();
+    _momentumRewardPercentageGiven = widget
+        .pillarInfo
+        .giveMomentumRewardPercentage
+        .toDouble();
+    _delegateRewardPercentageGiven = widget
+        .pillarInfo
+        .giveDelegateRewardPercentage
+        .toDouble();
   }
 
   @override
@@ -69,7 +70,7 @@ class _PillarUpdateStepperState extends State<PillarUpdateStepper> {
           ],
         ),
         Visibility(
-          visible: _lastCompletedStep == PillarUpdateStep.pillarUpdate,
+          visible: _lastCompletedStep == _PillarUpdateStep.pillarUpdate,
           child: Positioned(
             bottom: 20,
             right: 0,
@@ -88,15 +89,17 @@ class _PillarUpdateStepperState extends State<PillarUpdateStepper> {
           ),
         ),
         Visibility(
-          visible: _lastCompletedStep == PillarUpdateStep.pillarUpdate,
+          visible: _lastCompletedStep == _PillarUpdateStep.pillarUpdate,
           child: Positioned(
             right: 50,
             child: SizedBox(
               width: 400,
               height: 400,
               child: Center(
-                child: Lottie.asset('assets/lottie/ic_anim_pillar.json',
-                    repeat: false,),
+                child: Lottie.asset(
+                  'assets/lottie/ic_anim_pillar.json',
+                  repeat: false,
+                ),
               ),
             ),
           ),
@@ -106,58 +109,52 @@ class _PillarUpdateStepperState extends State<PillarUpdateStepper> {
   }
 
   Widget _getMaterialStepper() {
-    return Theme(
-      data: Theme.of(context).copyWith(
-        highlightColor: Colors.transparent,
-        splashColor: Colors.transparent,
-        hoverColor: Colors.transparent,
-      ),
-      child: custom_material_stepper.Stepper(
-        currentStep: _currentStep.index,
-        onStepTapped: (int index) {},
-        steps: <custom_material_stepper.Step>[
-          StepperUtils.getMaterialStep(
-            stepTitle: context.l10n.pillarDetails,
-            stepContent: _getPillarDetailsStepContent(),
-            stepSubtitle: _pillarNameController.text,
-            stepState: StepperUtils.getStepState(
-              PillarUpdateStep.pillarDetails.index,
-              _lastCompletedStep?.index,
-            ),
-            context: context,
+    return custom_material_stepper.Stepper(
+      currentStep: _currentStep.index,
+      onStepTapped: (int index) {},
+      steps: <custom_material_stepper.Step>[
+        StepperUtils.getMaterialStep(
+          stepTitle: context.l10n.pillarDetails,
+          stepContent: _buildPillarDetailsStepContent(),
+          stepSubtitle: _pillarNameController.text,
+          stepState: StepperUtils.getStepState(
+            _PillarUpdateStep.pillarDetails.index,
+            _lastCompletedStep?.index,
           ),
-          StepperUtils.getMaterialStep(
-            stepTitle: context.l10n.pillarMomentumAddress,
-            stepContent: _getPillarMomentumRewardsStepContent(),
-            stepSubtitle: '${context.l10n.momentumPercentageGiven(
+          context: context,
+        ),
+        StepperUtils.getMaterialStep(
+          stepTitle: context.l10n.pillarMomentumAddress,
+          stepContent: _getPillarMomentumRewardsStepContent(),
+          stepSubtitle:
+              '${context.l10n.momentumPercentageGiven(
                 _momentumRewardPercentageGiven,
-            )}'
-                '\n '
-                '${context.l10n.delegationPercentageGiven(
+              )}'
+              '\n '
+              '${context.l10n.delegationPercentageGiven(
                 _delegateRewardPercentageGiven,
-            )}',
-            stepState: StepperUtils.getStepState(
-              PillarUpdateStep.pillarMomentumReward.index,
-              _lastCompletedStep?.index,
-            ),
-            context: context,
+              )}',
+          stepState: StepperUtils.getStepState(
+            _PillarUpdateStep.pillarMomentumReward.index,
+            _lastCompletedStep?.index,
           ),
-          StepperUtils.getMaterialStep(
-            stepTitle: context.l10n.pillarUpdate,
-            stepContent: _getPillarUpdateStepContent(),
-            stepSubtitle: context.l10n.pillarUpdated,
-            stepState: StepperUtils.getStepState(
-              PillarUpdateStep.pillarUpdate.index,
-              _lastCompletedStep?.index,
-            ),
-            context: context,
+          context: context,
+        ),
+        StepperUtils.getMaterialStep(
+          stepTitle: context.l10n.pillarUpdate,
+          stepContent: _getPillarUpdateStepContent(),
+          stepSubtitle: context.l10n.pillarUpdated,
+          stepState: StepperUtils.getStepState(
+            _PillarUpdateStep.pillarUpdate.index,
+            _lastCompletedStep?.index,
           ),
-        ],
-      ),
+          context: context,
+        ),
+      ],
     );
   }
 
-  Widget _getPillarDetailsStepContent() {
+  Widget _buildPillarDetailsStepContent() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
@@ -166,9 +163,12 @@ class _PillarUpdateStepperState extends State<PillarUpdateStepper> {
           style: Theme.of(context).textTheme.bodyLarge,
         ),
         kVerticalSpacing,
-        InputField(
+        TextField(
           controller: _pillarNameController,
           enabled: false,
+          style: const TextStyle(
+            color: AppColors.znnColor,
+          ),
         ),
         kVerticalSpacing,
         Text(
@@ -176,18 +176,16 @@ class _PillarUpdateStepperState extends State<PillarUpdateStepper> {
           style: Theme.of(context).textTheme.bodyLarge,
         ),
         kVerticalSpacing,
-        Form(
-          key: _pillarRewardKey,
+        TextFormField(
           autovalidateMode: AutovalidateMode.onUserInteraction,
-          child: InputField(
+          decoration: InputDecoration(
             hintText: context.l10n.pillarRewardAddress,
-            controller: _pillarRewardController,
-            thisNode: _pillarRewardNode,
-            nextNode: _pillarMomentumNode,
-            validator: InputValidators.checkAddress,
-            onChanged: (String value) {
-              setState(() {});
-            },
+            suffixIcon: FieldSuffixButtons(controller: _pillarRewardController),
+          ),
+          controller: _pillarRewardController,
+          validator: InputValidators.checkAddress,
+          style: const TextStyle(
+            color: AppColors.znnColor,
           ),
         ),
         kVerticalSpacing,
@@ -196,41 +194,48 @@ class _PillarUpdateStepperState extends State<PillarUpdateStepper> {
           style: Theme.of(context).textTheme.bodyLarge,
         ),
         kVerticalSpacing,
-        Form(
-          key: _pillarMomentumKey,
+        TextFormField(
           autovalidateMode: AutovalidateMode.onUserInteraction,
-          child: InputField(
+          controller: _pillarProducerController,
+          decoration: InputDecoration(
             hintText: context.l10n.pillarProducerAddress,
-            controller: _pillarProducerController,
-            thisNode: _pillarMomentumNode,
-            validator: InputValidators.validatePillarMomentumAddress,
-            onChanged: (String value) {
-              setState(() {});
-            },
+            suffixIcon: FieldSuffixButtons(
+              controller: _pillarProducerController,
+            ),
           ),
+          style: const TextStyle(
+            color: AppColors.znnColor,
+          ),
+          validator: InputValidators.validatePillarMomentumAddress,
         ),
         kVerticalSpacing,
         Row(
           children: <Widget>[
-            StepperButton(
+            OutlinedButton(
               onPressed: () {
                 Navigator.pop(context);
               },
-              text: context.l10n.cancel,
+              child: Text(context.l10n.cancel),
             ),
             const SizedBox(
               width: 25,
             ),
-            StepperButton(
-              onPressed: _arePillarDetailsValid()
-                  ? () {
-                      setState(() {
-                        _lastCompletedStep = PillarUpdateStep.pillarDetails;
-                        _currentStep = PillarUpdateStep.pillarMomentumReward;
-                      });
-                    }
-                  : null,
-              text: context.l10n.next,
+            ListenableBuilder(
+              listenable: Listenable.merge([
+                _pillarRewardController,
+                _pillarProducerController,
+              ]),
+              builder: (_, _) => OutlinedButton(
+                onPressed: _arePillarDetailsValid()
+                    ? () {
+                        setState(() {
+                          _lastCompletedStep = _PillarUpdateStep.pillarDetails;
+                          _currentStep = _PillarUpdateStep.pillarMomentumReward;
+                        });
+                      }
+                    : null,
+                child: Text(context.l10n.next),
+              ),
             ),
           ],
         ),
@@ -266,7 +271,7 @@ class _PillarUpdateStepperState extends State<PillarUpdateStepper> {
           children: <Widget>[
             Text(
               context.l10n.pillarsWithNumber(
-                  100 - _momentumRewardPercentageGiven.toInt(),
+                100 - _momentumRewardPercentageGiven.toInt(),
               ),
               style: Theme.of(context).textTheme.titleMedium,
             ),
@@ -302,7 +307,7 @@ class _PillarUpdateStepperState extends State<PillarUpdateStepper> {
           children: <Widget>[
             Text(
               context.l10n.pillarsWithNumber(
-                  100 - _delegateRewardPercentageGiven.toInt(),
+                100 - _delegateRewardPercentageGiven.toInt(),
               ),
               style: Theme.of(context).textTheme.titleMedium,
             ),
@@ -319,7 +324,7 @@ class _PillarUpdateStepperState extends State<PillarUpdateStepper> {
               onPressed: () {
                 setState(() {
                   _lastCompletedStep = null;
-                  _currentStep = PillarUpdateStep.pillarDetails;
+                  _currentStep = _PillarUpdateStep.pillarDetails;
                 });
               },
               text: context.l10n.goBack,
@@ -330,8 +335,8 @@ class _PillarUpdateStepperState extends State<PillarUpdateStepper> {
             StepperButton(
               onPressed: () {
                 setState(() {
-                  _lastCompletedStep = PillarUpdateStep.pillarMomentumReward;
-                  _currentStep = PillarUpdateStep.pillarUpdate;
+                  _lastCompletedStep = _PillarUpdateStep.pillarMomentumReward;
+                  _currentStep = _PillarUpdateStep.pillarUpdate;
                 });
               },
               text: context.l10n.next,
@@ -348,8 +353,8 @@ class _PillarUpdateStepperState extends State<PillarUpdateStepper> {
         StepperButton(
           onPressed: () {
             setState(() {
-              _lastCompletedStep = PillarUpdateStep.pillarDetails;
-              _currentStep = PillarUpdateStep.pillarMomentumReward;
+              _lastCompletedStep = _PillarUpdateStep.pillarDetails;
+              _currentStep = _PillarUpdateStep.pillarMomentumReward;
             });
           },
           text: context.l10n.goBack,
@@ -382,7 +387,8 @@ class _PillarUpdateStepperState extends State<PillarUpdateStepper> {
   bool _arePillarDetailsValid() =>
       InputValidators.checkAddress(_pillarRewardController.text) == null &&
       InputValidators.validatePillarMomentumAddress(
-              _pillarProducerController.text,) ==
+            _pillarProducerController.text,
+          ) ==
           null;
 
   Widget _getUpdatePillarViewModel() {
@@ -393,7 +399,7 @@ class _PillarUpdateStepperState extends State<PillarUpdateStepper> {
             if (event != null) {
               _updateButtonKey.currentState?.animateReverse();
               setState(() {
-                _lastCompletedStep = PillarUpdateStep.pillarUpdate;
+                _lastCompletedStep = _PillarUpdateStep.pillarUpdate;
               });
             }
           },
@@ -416,8 +422,6 @@ class _PillarUpdateStepperState extends State<PillarUpdateStepper> {
     _pillarNameController.dispose();
     _pillarRewardController.dispose();
     _pillarProducerController.dispose();
-    _pillarMomentumNode.dispose();
-    _pillarRewardNode.dispose();
     super.dispose();
   }
 }
