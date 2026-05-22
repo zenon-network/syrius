@@ -216,9 +216,7 @@ class _UpdatePillarStepperViewState extends State<UpdatePillarStepperView> {
               },
               child: Text(context.l10n.cancel),
             ),
-            const SizedBox(
-              width: 25,
-            ),
+            kHorizontalGap25,
             ListenableBuilder(
               listenable: Listenable.merge([
                 _pillarRewardController,
@@ -314,9 +312,7 @@ class _UpdatePillarStepperViewState extends State<UpdatePillarStepperView> {
               },
               child: Text(context.l10n.goBack),
             ),
-            const SizedBox(
-              width: 25,
-            ),
+            kHorizontalGap25,
             OutlinedButton(
               onPressed: () {
                 setState(() {
@@ -344,9 +340,7 @@ class _UpdatePillarStepperViewState extends State<UpdatePillarStepperView> {
           },
           child: Text(context.l10n.goBack),
         ),
-        const SizedBox(
-          width: 25,
-        ),
+        kHorizontalGap25,
         _buildUpdatePillarButton(),
       ],
     );
