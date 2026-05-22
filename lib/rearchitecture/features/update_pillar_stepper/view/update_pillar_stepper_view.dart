@@ -125,7 +125,7 @@ class _PillarUpdateStepperState extends State<PillarUpdateStepper> {
         ),
         StepperUtils.getMaterialStep(
           stepTitle: context.l10n.pillarMomentumAddress,
-          stepContent: _getPillarMomentumRewardsStepContent(),
+          stepContent: _buildPillarMomentumRewardsStepContent(),
           stepSubtitle:
               '${context.l10n.momentumPercentageGiven(
                 _momentumRewardPercentageGiven,
@@ -243,20 +243,12 @@ class _PillarUpdateStepperState extends State<PillarUpdateStepper> {
     );
   }
 
-  Widget _getPillarMomentumRewardsStepContent() {
+  Widget _buildPillarMomentumRewardsStepContent() {
     return Column(
       children: <Widget>[
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            Text(
-              context.l10n.percentageOfMomentumRewards,
-              style: Theme.of(context).textTheme.headlineSmall,
-            ),
-          ],
-        ),
         CustomSlider(
-          description: '',
+          description: context.l10n.percentageOfMomentumRewards,
+          descriptionPosition: .top,
           startValue: widget.pillarInfo.giveMomentumRewardPercentage.toDouble(),
           min: 0,
           maxValue: 100,
@@ -266,33 +258,26 @@ class _PillarUpdateStepperState extends State<PillarUpdateStepper> {
             });
           },
         ),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: <Widget>[
-            Text(
-              context.l10n.pillarsWithNumber(
-                100 - _momentumRewardPercentageGiven.toInt(),
+        DefaultTextStyle(
+          style: context.newThemeData.textTheme.titleSmall!,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: <Widget>[
+              Text(
+                context.l10n.pillarsWithNumber(
+                  100 - _momentumRewardPercentageGiven.toInt(),
+                ),
               ),
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-            Text(
-              context.l10n.delegators(_momentumRewardPercentageGiven.toInt()),
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-          ],
+              Text(
+                context.l10n.delegators(_momentumRewardPercentageGiven.toInt()),
+              ),
+            ],
+          ),
         ),
         kVerticalSpacing,
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            Text(
-              context.l10n.percentageDelegationRewardsGiven,
-              style: Theme.of(context).textTheme.headlineSmall,
-            ),
-          ],
-        ),
         CustomSlider(
-          description: '',
+          description: context.l10n.percentageDelegationRewardsGiven,
+          descriptionPosition: .top,
           startValue: widget.pillarInfo.giveDelegateRewardPercentage.toDouble(),
           min: 0,
           maxValue: 100,
@@ -302,44 +287,45 @@ class _PillarUpdateStepperState extends State<PillarUpdateStepper> {
             });
           },
         ),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: <Widget>[
-            Text(
-              context.l10n.pillarsWithNumber(
-                100 - _delegateRewardPercentageGiven.toInt(),
+        DefaultTextStyle(
+          style: context.newThemeData.textTheme.titleSmall!,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: <Widget>[
+              Text(
+                context.l10n.pillarsWithNumber(
+                  100 - _delegateRewardPercentageGiven.toInt(),
+                ),
               ),
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-            Text(
-              context.l10n.delegators(_delegateRewardPercentageGiven.toInt()),
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-          ],
+              Text(
+                context.l10n.delegators(_delegateRewardPercentageGiven.toInt()),
+              ),
+            ],
+          ),
         ),
         kVerticalSpacing,
         Row(
           children: <Widget>[
-            StepperButton(
+            OutlinedButton(
               onPressed: () {
                 setState(() {
                   _lastCompletedStep = null;
                   _currentStep = _PillarUpdateStep.pillarDetails;
                 });
               },
-              text: context.l10n.goBack,
+              child: Text(context.l10n.goBack),
             ),
             const SizedBox(
               width: 25,
             ),
-            StepperButton(
+            OutlinedButton(
               onPressed: () {
                 setState(() {
                   _lastCompletedStep = _PillarUpdateStep.pillarMomentumReward;
                   _currentStep = _PillarUpdateStep.pillarUpdate;
                 });
               },
-              text: context.l10n.next,
+              child: Text(context.l10n.next),
             ),
           ],
         ),
