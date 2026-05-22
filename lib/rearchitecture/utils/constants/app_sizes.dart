@@ -10,6 +10,7 @@ const SizedBox kVerticalGap25 = SizedBox(height: 25);
 const SizedBox kHorizontalGap4 = SizedBox(width: 4);
 const SizedBox kHorizontalGap8 = SizedBox(width: 8);
 const SizedBox kHorizontalGap16 = SizedBox(width: 16);
+const SizedBox kHorizontalGap25 = SizedBox(width: 25);
 
 const double kInfiniteTableHorizontalPadding = 16;
 const double kDropdownMenuHeight = 400;

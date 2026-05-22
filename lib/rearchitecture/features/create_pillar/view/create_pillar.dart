@@ -21,7 +21,6 @@ class CreatePillar extends StatefulWidget {
 }
 
 class _CreatePillarState extends State<CreatePillar> {
-
   @override
   Widget build(BuildContext context) {
     return NewCardScaffold(
@@ -49,12 +48,13 @@ class _CreatePillarState extends State<CreatePillar> {
       builder: (_, FetchState<List<PillarInfo>> state) {
         return switch (state) {
           FetchFailure<List<PillarInfo>>() => SyriusErrorWidget(
-              state.exception,
-            ),
+            state.exception,
+          ),
           FetchInitial<List<PillarInfo>>() => const SyriusLoadingWidget(),
-          FetchPopulated<List<PillarInfo>>() => state.data.isNotEmpty
-              ? _getUpdatePillarWidgetBody(context, state.data.first)
-              : _getCreatePillarWidgetBody(context),
+          FetchPopulated<List<PillarInfo>>() =>
+            state.data.isNotEmpty
+                ? _getUpdatePillarWidgetBody(context, state.data.first)
+                : _getCreatePillarWidgetBody(context),
         };
       },
     );
@@ -100,7 +100,7 @@ class _CreatePillarState extends State<CreatePillar> {
               context,
               MaterialPageRoute<void>(
                 builder: (BuildContext context) => StepperScreen(
-                  stepper: PillarUpdateStepper(pillarInfo),
+                  stepper: UpdatePillarStepperPage(pillarInfo: pillarInfo),
                   onStepperNotificationSeeMorePressed:
                       widget.onStepperNotificationSeeMorePressed,
                 ),

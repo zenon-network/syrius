@@ -1,12 +1,10 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lottie/lottie.dart';
-import 'package:stacked/stacked.dart';
-import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
-import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/extensions/buildcontext_extension.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/input_validators.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/notification_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/custom_material_stepper.dart'
     as custom_material_stepper;
@@ -19,16 +17,17 @@ enum _PillarUpdateStep {
   pillarUpdate,
 }
 
-class PillarUpdateStepper extends StatefulWidget {
-  const PillarUpdateStepper(this.pillarInfo, {super.key});
+class UpdatePillarStepperView extends StatefulWidget {
+  const UpdatePillarStepperView(this.pillarInfo, {super.key});
 
   final PillarInfo pillarInfo;
 
   @override
-  State<PillarUpdateStepper> createState() => _PillarUpdateStepperState();
+  State<UpdatePillarStepperView> createState() =>
+      _UpdatePillarStepperViewState();
 }
 
-class _PillarUpdateStepperState extends State<PillarUpdateStepper> {
+class _UpdatePillarStepperViewState extends State<UpdatePillarStepperView> {
   _PillarUpdateStep? _lastCompletedStep;
   _PillarUpdateStep _currentStep = _PillarUpdateStep.values.first;
 
@@ -142,7 +141,7 @@ class _PillarUpdateStepperState extends State<PillarUpdateStepper> {
         ),
         StepperUtils.getMaterialStep(
           stepTitle: context.l10n.pillarUpdate,
-          stepContent: _getPillarUpdateStepContent(),
+          stepContent: _buildPillarUpdateStepContent(),
           stepSubtitle: context.l10n.pillarUpdated,
           stepState: StepperUtils.getStepState(
             _PillarUpdateStep.pillarUpdate.index,
@@ -333,40 +332,23 @@ class _PillarUpdateStepperState extends State<PillarUpdateStepper> {
     );
   }
 
-  Widget _getPillarUpdateStepContent() {
+  Widget _buildPillarUpdateStepContent() {
     return Row(
       children: <Widget>[
-        StepperButton(
+        OutlinedButton(
           onPressed: () {
             setState(() {
               _lastCompletedStep = _PillarUpdateStep.pillarDetails;
               _currentStep = _PillarUpdateStep.pillarMomentumReward;
             });
           },
-          text: context.l10n.goBack,
+          child: Text(context.l10n.goBack),
         ),
         const SizedBox(
           width: 25,
         ),
-        _getUpdatePillarViewModel(),
+        _buildUpdatePillarButton(),
       ],
-    );
-  }
-
-  Widget _getUpdatePillarButton(UpdatePillarBloc model) {
-    return LoadingButton.stepper(
-      onPressed: () {
-        _updateButtonKey.currentState?.animateForward();
-        model.updatePillar(
-          _pillarNameController.text,
-          Address.parse(_pillarProducerController.text),
-          Address.parse(_pillarRewardController.text),
-          _momentumRewardPercentageGiven.toInt(),
-          _delegateRewardPercentageGiven.toInt(),
-        );
-      },
-      text: context.l10n.update,
-      key: _updateButtonKey,
     );
   }
 
@@ -377,29 +359,45 @@ class _PillarUpdateStepperState extends State<PillarUpdateStepper> {
           ) ==
           null;
 
-  Widget _getUpdatePillarViewModel() {
-    return ViewModelBuilder<UpdatePillarBloc>.reactive(
-      onViewModelReady: (UpdatePillarBloc model) {
-        model.stream.listen(
-          (AccountBlockTemplate? event) {
-            if (event != null) {
-              _updateButtonKey.currentState?.animateReverse();
-              setState(() {
-                _lastCompletedStep = _PillarUpdateStep.pillarUpdate;
-              });
-            }
-          },
-          onError: (error) async {
-            _updateButtonKey.currentState?.animateReverse();
-            await NotificationUtils.sendNotificationError(
-              error,
+  Widget _buildUpdatePillarButton() {
+    return BlocListener<UpdatePillarBloc, UpdatePillarState>(
+      listener: (_, UpdatePillarState state) {
+        if (state is UpdatePillarDone) {
+          _updateButtonKey.currentState?.animateReverse();
+          setState(() {
+            _lastCompletedStep = _PillarUpdateStep.pillarUpdate;
+          });
+        } else if (state is UpdatePillarFailure) {
+          _updateButtonKey.currentState?.animateReverse();
+          unawaited(
+            NotificationUtils.sendNotificationError(
+              state.exception,
               context.l10n.errorUpdatingPillar,
-            );
-          },
-        );
+            ),
+          );
+        } else if (state is UpdatePillarLoading) {
+          _updateButtonKey.currentState?.animateForward();
+        }
       },
-      builder: (_, UpdatePillarBloc model, __) => _getUpdatePillarButton(model),
-      viewModelBuilder: UpdatePillarBloc.new,
+      child: LoadingButton.stepper(
+        onPressed: () {
+          _updateButtonKey.currentState?.animateForward();
+          context.read<UpdatePillarBloc>().add(
+            UpdatePillarRequested(
+              pillarName: _pillarNameController.text,
+              blockProducingAddress: Address.parse(
+                _pillarProducerController.text,
+              ),
+              rewardAddress: Address.parse(_pillarRewardController.text),
+              giveBlockRewardPercentage: _momentumRewardPercentageGiven.toInt(),
+              giveDelegateRewardPercentage: _delegateRewardPercentageGiven
+                  .toInt(),
+            ),
+          );
+        },
+        text: context.l10n.update,
+        key: _updateButtonKey,
+      ),
     );
   }
 
