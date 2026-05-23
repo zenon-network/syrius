@@ -1,30 +1,92 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_vector_icons/flutter_vector_icons.dart';
 import 'package:infinite_scroll_pagination/infinite_scroll_pagination.dart';
 import 'package:stacked/stacked.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/pillars/pillars.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/extensions/buildcontext_extension.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/models/models.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/infinite_scroll_table/infinite_scroll_table.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/extensions.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/notification_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/zts_utils.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart'
+    hide
+        InfiniteScrollTable,
+        InfiniteScrollTableCell,
+        InfiniteScrollTableHeaderColumn;
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
-class PillarListWidget extends StatefulWidget {
-
-  const PillarListWidget({super.key, this.title});
-  final String? title;
+class PillarsCard extends StatelessWidget {
+  const PillarsCard({super.key});
 
   @override
-  State<PillarListWidget> createState() => _PillarListWidgetState();
+  Widget build(BuildContext context) {
+    return NewCardScaffold(
+      data: _buildCardData(context: context),
+      onRefreshPressed: () async {
+        context.read<PillarsBloc>().add(
+          InfiniteListRefreshRequested(
+            address: Address.parse(kSelectedAddress!),
+          ),
+        );
+      },
+      body: BlocBuilder<PillarsBloc, InfiniteListState<PillarInfo>>(
+        builder:
+            (
+              _,
+              InfiniteListState<PillarInfo> state,
+            ) {
+              final InfiniteListStatus status = state.status;
+
+              return switch (status) {
+                InfiniteListStatus.initial => const SyriusLoadingWidget(),
+                InfiniteListStatus.failure => SyriusErrorWidget(
+                  state.error!,
+                ),
+                InfiniteListStatus.success => Populated(
+                  hasReachedMax: state.hasReachedMax,
+                  pillars: state.data!,
+                ),
+              };
+            },
+      ),
+    );
+  }
+
+  CardData _buildCardData({
+    required BuildContext context,
+  }) {
+    return CardData(
+      description: context.l10n.pillarsListDescription(kZnnCoin.symbol),
+      title: context.l10n.pillarsListTitle,
+    );
+  }
 }
 
-class _PillarListWidgetState extends State<PillarListWidget> {
+class Populated extends StatefulWidget {
+  const Populated({
+    required this.hasReachedMax,
+    required this.pillars,
+    super.key,
+  });
+
+  final bool hasReachedMax;
+  final List<PillarInfo> pillars;
+
+  @override
+  State<Populated> createState() => _PopulatedState();
+}
+
+class _PopulatedState extends State<Populated> {
   final ScrollController _scrollController = ScrollController();
 
   final PagingController<int, PillarInfo> _pagingController = PagingController(
@@ -37,7 +99,8 @@ class _PillarListWidgetState extends State<PillarListWidget> {
 
   final List<PillarInfo> _pillarInfoWrappers = <PillarInfo>[];
 
-  final Map<String, GlobalKey<LoadingButtonState>> _delegateButtonKeys = <String, GlobalKey<LoadingButtonState>>{};
+  final Map<String, GlobalKey<LoadingButtonState>> _delegateButtonKeys =
+      <String, GlobalKey<LoadingButtonState>>{};
 
   bool _sortAscending = true;
 
@@ -67,6 +130,19 @@ class _PillarListWidgetState extends State<PillarListWidget> {
 
   @override
   Widget build(BuildContext context) {
+    return InfiniteScrollTable<PillarInfo>(
+      items: widget.pillars,
+      hasReachedMax: widget.hasReachedMax,
+      columns: _buildHeaderColumns(),
+      generateRowCells: _rowCellsGenerator,
+      onScrollReachedBottom: () {
+        context.read<LatestTransactionsBloc>().add(
+          InfiniteListMoreRequested(
+            address: Address.parse(kSelectedAddress!),
+          ),
+        );
+      },
+    );
     return CardScaffold(
       title: context.l10n.pillarsListTitle,
       description: context.l10n.pillarsListDescription(kZnnCoin.symbol),
@@ -124,9 +200,9 @@ class _PillarListWidgetState extends State<PillarListWidget> {
                 newPageProgressIndicatorBuilder: (_) =>
                     const SyriusLoadingWidget(),
                 noMoreItemsIndicatorBuilder: (_) =>
-                     SyriusErrorWidget(context.l10n.noMoreItems),
+                    SyriusErrorWidget(context.l10n.noMoreItems),
                 noItemsFoundIndicatorBuilder: (_) =>
-                     SyriusErrorWidget(context.l10n.noItemsFound),
+                    SyriusErrorWidget(context.l10n.noItemsFound),
               ),
             ),
           ),
@@ -148,58 +224,21 @@ class _PillarListWidgetState extends State<PillarListWidget> {
         vertical: 15,
       ),
       child: Row(
-          children: List<Widget>.from(
-                <SizedBox>[
-                  const SizedBox(
-                    width: 20,
-                  ),
-                ],
-              ) +
-              <Widget>[
-                InfiniteScrollTableHeaderColumn(
-                  columnName: context.l10n.name,
-                  onSortArrowsPressed: _onSortArrowsPressed,
+        children: <Widget>[
+          SizedBox(
+            width: 110,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: <Widget>[
+                Visibility(
+                  visible: _delegationInfo?.name != null,
+                  child: _getUndelegateButtonViewModel(bloc),
                 ),
-                InfiniteScrollTableHeaderColumn(
-                  columnName: context.l10n.producerAddress,
-                  onSortArrowsPressed: _onSortArrowsPressed,
-                  flex: 3,
-                ),
-                InfiniteScrollTableHeaderColumn(
-                  columnName: context.l10n.weight,
-                  onSortArrowsPressed: _onSortArrowsPressed,
-                ),
-                 InfiniteScrollTableHeaderColumn(
-                    columnName: context.l10n.delegation),
-                 InfiniteScrollTableHeaderColumn(
-                    columnName: context.l10n.momentumReward,),
-                 InfiniteScrollTableHeaderColumn(
-                    columnName: context.l10n.delegationReward,),
-                 InfiniteScrollTableHeaderColumn(
-                  columnName: context.l10n.expectedProducedMomentums,
-                ),
-                 InfiniteScrollTableHeaderColumn(
-                  columnName: context.l10n.uptime,
-                ),
-                const InfiniteScrollTableHeaderColumn(
-                  columnName: '',
-                ),
-                const SizedBox(
-                  width: 5,
-                ),
-              ] +
-              <Widget>[
-                SizedBox(
-                    width: 110,
-                    child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: <Widget>[
-                          Visibility(
-                            visible: _delegationInfo?.name != null,
-                            child: _getUndelegateButtonViewModel(bloc),
-                          ),
-                        ],),),
-              ],),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -240,19 +279,20 @@ class _PillarListWidgetState extends State<PillarListWidget> {
           ),
         ),
         child: Row(
-            children: List<Widget>.from(
-                  <SizedBox>[
-                    const SizedBox(
-                      width: 20,
-                    ),
-                  ],
-                ) +
-                generateRowCells(item, isSelected) +
-                <Widget>[
+          children:
+              List<Widget>.from(
+                <SizedBox>[
                   const SizedBox(
-                    width: 110,
+                    width: 20,
                   ),
-                ],),
+                ],
+              ) +
+              <Widget>[
+                const SizedBox(
+                  width: 110,
+                ),
+              ],
+        ),
       ),
     );
   }
@@ -261,29 +301,25 @@ class _PillarListWidgetState extends State<PillarListWidget> {
     return pillarInfo.ownerAddress.toString() == kSelectedAddress;
   }
 
-  List<InfiniteScrollTableCell> generateRowCells(
+  List<InfiniteScrollTableCell> _rowCellsGenerator(
     PillarInfo pillarInfo,
-    bool isSelected,
   ) {
     return <InfiniteScrollTableCell>[
       InfiniteScrollTableCell.withText(
-        context,
-        pillarInfo.name,
-        textColor: _isStakeAddressDefault(pillarInfo)
-            ? AppColors.znnColor
-            : AppColors.subtitleColor,
+        content: pillarInfo.name,
+        textStyle: TextStyle(
+          color: _isStakeAddressDefault(pillarInfo)
+              ? AppColors.znnColor
+              : AppColors.subtitleColor,
+        ),
       ),
-      InfiniteScrollTableCell.withText(
-        context,
-        pillarInfo.producerAddress.toString(),
-        textColor: _isStakeAddressDefault(pillarInfo)
-            ? AppColors.znnColor
-            : AppColors.subtitleColor,
+      InfiniteScrollTableCell.textFromAddress(
+        address: pillarInfo.producerAddress,
         flex: 3,
-        showCopyToClipboardIcon: isSelected ? true : false,
+        isStakeAddress: _isStakeAddressDefault(pillarInfo),
       ),
       InfiniteScrollTableCell(
-        FormattedAmountWithTooltip(
+        child: FormattedAmountWithTooltip(
           amount: pillarInfo.weight.addDecimals(
             kZnnCoin.decimals,
           ),
@@ -291,40 +327,39 @@ class _PillarListWidgetState extends State<PillarListWidget> {
           builder: (String formattedAmount, String tokenSymbol) => Text(
             '$formattedAmount $tokenSymbol',
             style: Theme.of(context).textTheme.titleMedium!.copyWith(
-                  color: _isStakeAddressDefault(pillarInfo)
-                      ? AppColors.znnColor
-                      : AppColors.subtitleColor,
-                ),
+              color: _isStakeAddressDefault(pillarInfo)
+                  ? AppColors.znnColor
+                  : AppColors.subtitleColor,
+            ),
           ),
         ),
       ),
       InfiniteScrollTableCell(
-        _getDelegateContainer(
+        child: _getDelegateContainer(
           pillarInfo,
           _pillarsListBloc,
         ),
       ),
       InfiniteScrollTableCell.withText(
-        context,
-        '${pillarInfo.giveMomentumRewardPercentage} %',
+        content: '${pillarInfo.giveMomentumRewardPercentage} %',
       ),
       InfiniteScrollTableCell.withText(
-        context,
-        '${pillarInfo.giveDelegateRewardPercentage} %',
+        content: '${pillarInfo.giveDelegateRewardPercentage} %',
       ),
-      InfiniteScrollTableCell.withText(context,
-          '${pillarInfo.expectedMomentums}/${pillarInfo.producedMomentums} ',),
       InfiniteScrollTableCell.withText(
-        context,
-        '${_getMomentumsPercentage(pillarInfo)} %',
+        content:
+            '${pillarInfo.expectedMomentums}/${pillarInfo.producedMomentums} ',
+      ),
+      InfiniteScrollTableCell.withText(
+        content: '${_getMomentumsPercentage(pillarInfo)} %',
       ),
       InfiniteScrollTableCell(
-        _getRevokeTimer(
-          isSelected,
+        child: _getRevokeTimer(
           pillarInfo,
           _pillarsListBloc,
         ),
       ),
+      InfiniteScrollTableCell.withText(content: 'Button'),
     ];
   }
 
@@ -364,14 +399,13 @@ class _PillarListWidgetState extends State<PillarListWidget> {
       },
       text: context.l10n.delegateKey,
       textStyle: Theme.of(context).textTheme.titleSmall!.copyWith(
-            color: Theme.of(context).textTheme.bodyLarge!.color,
-          ),
+        color: Theme.of(context).textTheme.bodyLarge!.color,
+      ),
       key: key,
     );
   }
 
   Widget _getRevokeTimer(
-    bool isSelected,
     PillarInfo pillarItem,
     PillarsListBloc model,
   ) {
@@ -382,7 +416,6 @@ class _PillarListWidgetState extends State<PillarListWidget> {
           Visibility(
             visible: pillarItem.isRevocable,
             child: _getDisassemblePillarViewModel(
-              isSelected,
               model,
               pillarItem,
             ),
@@ -393,7 +426,7 @@ class _PillarListWidgetState extends State<PillarListWidget> {
               width: 5,
             ),
           ),
-          SizedBox( 
+          SizedBox(
             child: pillarItem.isRevocable
                 ? CancelTimer(
                     Duration(
@@ -431,7 +464,6 @@ class _PillarListWidgetState extends State<PillarListWidget> {
   }
 
   Widget _getDisassemblePillarViewModel(
-    bool isSelected,
     PillarsListBloc pillarsListModel,
     PillarInfo pillarInfo,
   ) {
@@ -451,53 +483,48 @@ class _PillarListWidgetState extends State<PillarListWidget> {
           },
         );
       },
-      builder: (_, DisassemblePillarBloc model, __) => StreamBuilder<AccountBlockTemplate?>(
-        stream: model.stream,
-        builder: (_, AsyncSnapshot<AccountBlockTemplate?> snapshot) {
-          if (snapshot.hasError) {
-            return _getDisassembleButton(isSelected, model, pillarInfo);
-          }
-          if (snapshot.connectionState == ConnectionState.active) {
-            if (snapshot.hasData) {
-              return _getDisassembleButton(isSelected, model, pillarInfo);
-            }
-            return const SyriusLoadingWidget(size: 25);
-          }
-          return _getDisassembleButton(isSelected, model, pillarInfo);
-        },
-      ),
+      builder: (_, DisassemblePillarBloc model, __) =>
+          StreamBuilder<AccountBlockTemplate?>(
+            stream: model.stream,
+            builder: (_, AsyncSnapshot<AccountBlockTemplate?> snapshot) {
+              if (snapshot.hasError) {
+                return _getDisassembleButton(model, pillarInfo);
+              }
+              if (snapshot.connectionState == ConnectionState.active) {
+                if (snapshot.hasData) {
+                  return _getDisassembleButton(model, pillarInfo);
+                }
+                return const SyriusLoadingWidget(size: 25);
+              }
+              return _getDisassembleButton(model, pillarInfo);
+            },
+          ),
       viewModelBuilder: DisassemblePillarBloc.new,
     );
   }
 
   Widget _getDisassembleButton(
-    bool isSelected,
     DisassemblePillarBloc model,
     PillarInfo pillarItem,
   ) {
     return MyOutlinedButton(
       minimumSize: const Size(55, 25),
-      outlineColor: isSelected
-          ? AppColors.errorColor
-          : Theme.of(context).textTheme.titleSmall!.color,
-      onPressed: isSelected
-          ? () {
+      outlineColor: AppColors.errorColor,
+      // TODO(maznnwell): add confirmation dialog
+      onPressed: () {
               model.disassemblePillar(
                 context,
                 pillarItem.name,
               );
-            }
-          : null,
+            },
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: <Widget>[
           Text(
             context.l10n.disassemble,
-            style: isSelected
-                ? Theme.of(context).textTheme.titleSmall!.copyWith(
-                      color: Theme.of(context).textTheme.bodyLarge!.color,
-                    )
-                : Theme.of(context).textTheme.titleSmall,
+            style:Theme.of(context).textTheme.titleSmall!.copyWith(
+                    color: Theme.of(context).textTheme.bodyLarge!.color,
+                  ),
           ),
           const SizedBox(
             width: 20,
@@ -505,9 +532,7 @@ class _PillarListWidgetState extends State<PillarListWidget> {
           Icon(
             SimpleLineIcons.close,
             size: 11,
-            color: isSelected
-                ? AppColors.errorColor
-                : Theme.of(context).textTheme.titleSmall!.color,
+            color: AppColors.errorColor,
           ),
         ],
       ),
@@ -525,8 +550,8 @@ class _PillarListWidgetState extends State<PillarListWidget> {
       },
       text: context.l10n.undelegate,
       textStyle: Theme.of(context).textTheme.titleSmall!.copyWith(
-            color: Theme.of(context).textTheme.bodyLarge!.color,
-          ),
+        color: Theme.of(context).textTheme.bodyLarge!.color,
+      ),
       outlineColor: AppColors.errorColor,
       key: key,
     );
@@ -536,22 +561,38 @@ class _PillarListWidgetState extends State<PillarListWidget> {
     switch (columnName) {
       case 'Name':
         _sortAscending
-            ? _pillarInfoWrappers.sort((PillarInfo a, PillarInfo b) => a.name.compareTo(b.name))
-            : _pillarInfoWrappers.sort((PillarInfo a, PillarInfo b) => b.name.compareTo(a.name));
+            ? _pillarInfoWrappers.sort(
+                (PillarInfo a, PillarInfo b) => a.name.compareTo(b.name),
+              )
+            : _pillarInfoWrappers.sort(
+                (PillarInfo a, PillarInfo b) => b.name.compareTo(a.name),
+              );
       case 'Producer Address':
         _sortAscending
-            ? _pillarInfoWrappers
-                .sort((PillarInfo a, PillarInfo b) => a.producerAddress.compareTo(b.producerAddress))
-            : _pillarInfoWrappers
-                .sort((PillarInfo a, PillarInfo b) => b.producerAddress.compareTo(a.producerAddress));
+            ? _pillarInfoWrappers.sort(
+                (PillarInfo a, PillarInfo b) =>
+                    a.producerAddress.compareTo(b.producerAddress),
+              )
+            : _pillarInfoWrappers.sort(
+                (PillarInfo a, PillarInfo b) =>
+                    b.producerAddress.compareTo(a.producerAddress),
+              );
       case 'Weight':
         _sortAscending
-            ? _pillarInfoWrappers.sort((PillarInfo a, PillarInfo b) => a.weight.compareTo(b.weight))
-            : _pillarInfoWrappers.sort((PillarInfo a, PillarInfo b) => b.weight.compareTo(a.weight));
+            ? _pillarInfoWrappers.sort(
+                (PillarInfo a, PillarInfo b) => a.weight.compareTo(b.weight),
+              )
+            : _pillarInfoWrappers.sort(
+                (PillarInfo a, PillarInfo b) => b.weight.compareTo(a.weight),
+              );
       default:
         _sortAscending
-            ? _pillarInfoWrappers.sort((PillarInfo a, PillarInfo b) => a.name.compareTo(b.name))
-            : _pillarInfoWrappers.sort((PillarInfo a, PillarInfo b) => b.name.compareTo(a.name));
+            ? _pillarInfoWrappers.sort(
+                (PillarInfo a, PillarInfo b) => a.name.compareTo(b.name),
+              )
+            : _pillarInfoWrappers.sort(
+                (PillarInfo a, PillarInfo b) => b.name.compareTo(a.name),
+              );
         break;
     }
 
@@ -561,7 +602,8 @@ class _PillarListWidgetState extends State<PillarListWidget> {
   }
 
   Widget _getUndelegateButtonViewModel(PillarsListBloc pillarsModel) {
-    final GlobalKey<LoadingButtonState> undelegateButtonKey = GlobalKey<LoadingButtonState>();
+    final GlobalKey<LoadingButtonState> undelegateButtonKey =
+        GlobalKey<LoadingButtonState>();
 
     return ViewModelBuilder<UndelegateButtonBloc>.reactive(
       onViewModelReady: (UndelegateButtonBloc model) {
@@ -628,7 +670,8 @@ class _PillarListWidgetState extends State<PillarListWidget> {
     delegateButtonKey = _delegateButtonKeys[pillarInfo.name]!;
 
     return Visibility(
-      visible: accountInfo.znn()! >= kMinDelegationAmount &&
+      visible:
+          accountInfo.znn()! >= kMinDelegationAmount &&
           (_currentlyDelegatingToPillar == null
               ? true
               : _currentlyDelegatingToPillar == pillarInfo.name),
@@ -682,4 +725,18 @@ class _PillarListWidgetState extends State<PillarListWidget> {
     }
     return percentage.round();
   }
+
+  List<InfiniteScrollTableColumnType> _buildHeaderColumns() => [
+    .pillarName,
+    .producerAddress,
+    .weight,
+    .delegation,
+    .momentumReward,
+    .delegationReward,
+    .expectedProducedMomentums,
+    .uptime,
+    // For the disassemble timer
+    .blank,
+    .undelegate,
+  ];
 }

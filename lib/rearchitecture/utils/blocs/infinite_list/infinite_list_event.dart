@@ -6,7 +6,7 @@ sealed class InfiniteListEvent extends Equatable {
   const InfiniteListEvent({required this.address});
 
   /// The [address] for which data will be fetched.
-  final Address address;
+  final Address? address;
 }
 
 /// Event to be used when we want to fetch the latest transactions of an
@@ -16,7 +16,7 @@ class InfiniteListRequested extends InfiniteListEvent {
   const InfiniteListRequested({required super.address});
 
   @override
-  List<Object?> get props => <Object>[address];
+  List<Object?> get props => <Object?>[address];
 }
 
 /// Event to be used when we want to fetch more latest transactions of an
@@ -26,7 +26,7 @@ class InfiniteListMoreRequested extends InfiniteListEvent {
   const InfiniteListMoreRequested({required super.address});
 
   @override
-  List<Object?> get props => <Object>[address];
+  List<Object?> get props => <Object?>[address];
 }
 
 /// Event to be used when we want to refresh the list of the latest
@@ -36,5 +36,5 @@ class InfiniteListRefreshRequested extends InfiniteListEvent {
   const InfiniteListRefreshRequested({required super.address});
 
   @override
-  List<Object?> get props => <Object>[address];
+  List<Object?> get props => <Object?>[address];
 }

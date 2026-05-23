@@ -65,6 +65,7 @@ class InfiniteScrollTableCell extends StatelessWidget {
     required Address address,
     bool isStakeAddress = false,
     bool isShortVersion = true,
+    int flex = 2,
   }) {
     final TextStyle? textStyle = address.isEmbedded() ||
             (isStakeAddress && address.toString() == kSelectedAddress)
@@ -84,7 +85,7 @@ class InfiniteScrollTableCell extends StatelessWidget {
 
     return InfiniteScrollTableCell.withText(
       content: content,
-      flex: 2,
+      flex: flex,
       textStyle: textStyle,
       tooltipMessage: address.toString(),
       textToBeCopied: address.toString(),
