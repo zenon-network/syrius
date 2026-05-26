@@ -89,13 +89,6 @@ class Populated extends StatefulWidget {
 class _PopulatedState extends State<Populated> {
   final ScrollController _scrollController = ScrollController();
 
-  final PagingController<int, PillarInfo> _pagingController = PagingController(
-    firstPageKey: 0,
-  );
-  late StreamSubscription _blocListingStateSubscription;
-
-  final PillarsListBloc _pillarsListBloc = PillarsListBloc();
-
   final List<PillarInfo> _pillarInfoWrappers = <PillarInfo>[];
 
   final Map<String, GlobalKey<LoadingButtonState>> _delegateButtonKeys =
@@ -113,18 +106,6 @@ class _PopulatedState extends State<Populated> {
   void initState() {
     super.initState();
     sl.get<BalanceBloc>().getBalanceForAllAddresses();
-    _pagingController.addPageRequestListener((int pageKey) {
-      _pillarsListBloc.onPageRequestSink.add(pageKey);
-    });
-    _blocListingStateSubscription = _pillarsListBloc.onNewListingState.listen(
-      (InfiniteScrollBlocListingState<PillarInfo> listingState) {
-        _pagingController.value = PagingState(
-          nextPageKey: listingState.nextPageKey,
-          error: listingState.error,
-          itemList: listingState.itemList,
-        );
-      },
-    );
   }
 
   @override
@@ -202,7 +183,6 @@ class _PopulatedState extends State<Populated> {
       InfiniteScrollTableCell(
         child: _getDelegateContainer(
           pillarInfo,
-          _pillarsListBloc,
         ),
       ),
       InfiniteScrollTableCell.withText(
@@ -219,17 +199,13 @@ class _PopulatedState extends State<Populated> {
         content: '${_getMomentumsPercentage(pillarInfo)} %',
       ),
       InfiniteScrollTableCell(
-        child: _getRevokeTimer(
-          pillarInfo,
-          _pillarsListBloc,
-        ),
+        child: _getRevokeTimer(pillarInfo),
       ),
     ];
   }
 
   Widget _getDelegateContainer(
     PillarInfo pillarInfo,
-    PillarsListBloc model,
   ) {
     return Row(
       children: <Widget>[
@@ -238,7 +214,7 @@ class _PopulatedState extends State<Populated> {
               ? true
               : _currentlyDelegatingToPillar == pillarInfo.name,
           child: _delegationInfo == null
-              ? _getBalanceStreamBuilder(pillarInfo, model)
+              ? _getBalanceStreamBuilder(pillarInfo)
               : Visibility(
                   visible: pillarInfo.name == _delegationInfo!.name,
                   child: const Text('Undelegate'),
@@ -271,7 +247,6 @@ class _PopulatedState extends State<Populated> {
 
   Widget _getRevokeTimer(
     PillarInfo pillarItem,
-    PillarsListBloc model,
   ) {
     return Visibility(
       visible: _isStakeAddressDefault(pillarItem),
@@ -280,7 +255,6 @@ class _PopulatedState extends State<Populated> {
           Visibility(
             visible: pillarItem.isRevocable,
             child: _getDisassemblePillarViewModel(
-              model,
               pillarItem,
             ),
           ),
@@ -298,7 +272,9 @@ class _PopulatedState extends State<Populated> {
                     ),
                     AppColors.znnColor,
                     onTimeFinishedCallback: () {
-                      model.refreshResults();
+                      context.read<PillarsBloc>().add(
+                        const InfiniteListRefreshRequested(address: null),
+                      );
                     },
                   )
                 : CancelTimer(
@@ -307,7 +283,9 @@ class _PopulatedState extends State<Populated> {
                     ),
                     AppColors.errorColor,
                     onTimeFinishedCallback: () {
-                      model.refreshResults();
+                      context.read<PillarsBloc>().add(
+                        const InfiniteListRefreshRequested(address: null),
+                      );
                     },
                   ),
           ),
@@ -328,7 +306,6 @@ class _PopulatedState extends State<Populated> {
   }
 
   Widget _getDisassemblePillarViewModel(
-    PillarsListBloc pillarsListModel,
     PillarInfo pillarInfo,
   ) {
     return ViewModelBuilder<DisassemblePillarBloc>.reactive(
@@ -336,7 +313,9 @@ class _PopulatedState extends State<Populated> {
         model.stream.listen(
           (AccountBlockTemplate? event) {
             if (event != null) {
-              pillarsListModel.refreshResults();
+              context.read<PillarsBloc>().add(
+                const InfiniteListRefreshRequested(address: null),
+              );
             }
           },
           onError: (error) async {
@@ -449,7 +428,6 @@ class _PopulatedState extends State<Populated> {
 
   Widget _getBalanceStreamBuilder(
     PillarInfo pillarInfo,
-    PillarsListBloc pillarsModel,
   ) {
     return StreamBuilder<Map<String?, AccountInfo>?>(
       stream: sl.get<BalanceBloc>().stream,
@@ -461,7 +439,6 @@ class _PopulatedState extends State<Populated> {
           if (snapshot.hasData) {
             return _getDelegateButtonViewModel(
               pillarInfo,
-              pillarsModel,
               snapshot.data![kSelectedAddress]!,
             );
           }
@@ -474,7 +451,6 @@ class _PopulatedState extends State<Populated> {
 
   Widget _getDelegateButtonViewModel(
     PillarInfo pillarInfo,
-    PillarsListBloc pillarsModel,
     AccountInfo accountInfo,
   ) {
     GlobalKey<LoadingButtonState> delegateButtonKey;
@@ -530,8 +506,6 @@ class _PopulatedState extends State<Populated> {
   @override
   void dispose() {
     _scrollController.dispose();
-    _pillarsListBloc.dispose();
-    _blocListingStateSubscription.cancel();
     super.dispose();
   }
 
