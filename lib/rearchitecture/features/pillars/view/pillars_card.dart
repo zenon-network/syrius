@@ -3,16 +3,11 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_vector_icons/flutter_vector_icons.dart';
-import 'package:infinite_scroll_pagination/infinite_scroll_pagination.dart';
 import 'package:stacked/stacked.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
-import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/pillars/pillars.dart';
-import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/extensions/buildcontext_extension.dart';
-import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/models/models.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
-import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/infinite_scroll_table/infinite_scroll_table.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/extensions.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
@@ -143,7 +138,7 @@ class _PopulatedState extends State<Populated> {
     );
   }
 
-  bool _isStakeAddressDefault(PillarInfo pillarInfo) {
+  bool _isOwnerAddressSelected(PillarInfo pillarInfo) {
     return pillarInfo.ownerAddress.toString() == kSelectedAddress;
   }
 
@@ -154,7 +149,7 @@ class _PopulatedState extends State<Populated> {
       InfiniteScrollTableCell.withText(
         content: pillarInfo.name,
         textStyle: TextStyle(
-          color: _isStakeAddressDefault(pillarInfo)
+          color: _isOwnerAddressSelected(pillarInfo)
               ? AppColors.znnColor
               : AppColors.subtitleColor,
         ),
@@ -162,7 +157,7 @@ class _PopulatedState extends State<Populated> {
       InfiniteScrollTableCell.textFromAddress(
         address: pillarInfo.producerAddress,
         flex: 3,
-        isStakeAddress: _isStakeAddressDefault(pillarInfo),
+        isStakeAddress: _isOwnerAddressSelected(pillarInfo),
       ),
       InfiniteScrollTableCell(
         child: FormattedAmountWithTooltip(
@@ -173,7 +168,7 @@ class _PopulatedState extends State<Populated> {
           builder: (String formattedAmount, String tokenSymbol) => Text(
             '$formattedAmount $tokenSymbol',
             style: Theme.of(context).textTheme.titleMedium!.copyWith(
-              color: _isStakeAddressDefault(pillarInfo)
+              color: _isOwnerAddressSelected(pillarInfo)
                   ? AppColors.znnColor
                   : AppColors.subtitleColor,
             ),
@@ -249,7 +244,7 @@ class _PopulatedState extends State<Populated> {
     PillarInfo pillarItem,
   ) {
     return Visibility(
-      visible: _isStakeAddressDefault(pillarItem),
+      visible: _isOwnerAddressSelected(pillarItem),
       child: Row(
         children: <Widget>[
           Visibility(
