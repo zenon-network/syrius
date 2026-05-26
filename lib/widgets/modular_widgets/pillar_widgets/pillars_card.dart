@@ -225,18 +225,6 @@ class _PopulatedState extends State<Populated> {
       ),
       child: Row(
         children: <Widget>[
-          SizedBox(
-            width: 110,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: <Widget>[
-                Visibility(
-                  visible: _delegationInfo?.name != null,
-                  child: _getUndelegateButtonViewModel(bloc),
-                ),
-              ],
-            ),
-          ),
         ],
       ),
     );
@@ -377,7 +365,7 @@ class _PopulatedState extends State<Populated> {
               ? _getBalanceStreamBuilder(pillarInfo, model)
               : Visibility(
                   visible: pillarInfo.name == _delegationInfo!.name,
-                  child: _getUndelegateButtonViewModel(model),
+                  child: Text('Undelegate'),
                 ),
         ),
       ],
@@ -539,24 +527,6 @@ class _PopulatedState extends State<Populated> {
     );
   }
 
-  Widget _getUndelegateButton(
-    UndelegateButtonBloc model,
-    GlobalKey<LoadingButtonState> key,
-  ) {
-    return LoadingButton.infiniteScrollTable(
-      onPressed: () {
-        key.currentState?.animateForward();
-        model.cancelPillarVoting(context);
-      },
-      text: context.l10n.undelegate,
-      textStyle: Theme.of(context).textTheme.titleSmall!.copyWith(
-        color: Theme.of(context).textTheme.bodyLarge!.color,
-      ),
-      outlineColor: AppColors.errorColor,
-      key: key,
-    );
-  }
-
   void _onSortArrowsPressed(String columnName) {
     switch (columnName) {
       case 'Name':
@@ -599,36 +569,6 @@ class _PopulatedState extends State<Populated> {
     setState(() {
       _sortAscending = !_sortAscending;
     });
-  }
-
-  Widget _getUndelegateButtonViewModel(PillarsListBloc pillarsModel) {
-    final GlobalKey<LoadingButtonState> undelegateButtonKey =
-        GlobalKey<LoadingButtonState>();
-
-    return ViewModelBuilder<UndelegateButtonBloc>.reactive(
-      onViewModelReady: (UndelegateButtonBloc model) {
-        model.stream.listen(
-          (AccountBlockTemplate? event) {
-            if (event != null) {
-              undelegateButtonKey.currentState?.animateReverse();
-              _delegationInfoBloc.updateStream();
-            }
-          },
-          onError: (error) async {
-            undelegateButtonKey.currentState?.animateReverse();
-            await NotificationUtils.sendNotificationError(
-              error,
-              context.l10n.errorUndelegating,
-            );
-          },
-        );
-      },
-      builder: (_, UndelegateButtonBloc model, __) => _getUndelegateButton(
-        model,
-        undelegateButtonKey,
-      ),
-      viewModelBuilder: UndelegateButtonBloc.new,
-    );
   }
 
   Widget _getBalanceStreamBuilder(

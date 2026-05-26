@@ -14,11 +14,21 @@ class DelegationCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider<DelegationCubit>(
-      create: (_) => DelegationCubit(
-        address: Address.parse(kSelectedAddress!),
-        zenon: zenon!,
-      )..fetchDataPeriodically(),
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider<DelegationCubit>(
+          create: (_) => DelegationCubit(
+            address: Address.parse(kSelectedAddress!),
+            zenon: zenon!,
+          )..fetchDataPeriodically(),
+        ),
+        BlocProvider<UndelegateBloc>(
+          create: (_) => UndelegateBloc(
+            accountBlockUtils: AccountBlockUtils(),
+            zenon: zenon!,
+          ),
+        ),
+      ],
       child: NewCardScaffold(
         data: _buildCardData(context: context),
         body: BlocBuilder<DelegationCubit, DelegationState>(
@@ -27,11 +37,11 @@ class DelegationCard extends StatelessWidget {
               TimerStatus.initial => const DelegationEmpty(),
               TimerStatus.loading => const DelegationLoading(),
               TimerStatus.failure => DelegationError(
-                  error: state.error!,
-                ),
+                error: state.error!,
+              ),
               TimerStatus.success => DelegationPopulated(
-                  delegationInfo: state.data!,
-                ),
+                delegationInfo: state.data!,
+              ),
             };
           },
         ),
