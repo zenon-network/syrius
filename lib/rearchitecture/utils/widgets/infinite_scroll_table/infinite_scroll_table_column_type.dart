@@ -16,7 +16,6 @@ enum InfiniteScrollTableColumnType {
   receiver,
   sender,
   type,
-  undelegate,
   uptime,
   weight;
 
@@ -35,7 +34,6 @@ enum InfiniteScrollTableColumnType {
     receiver => 2,
     sender => 2,
     type => 1,
-    undelegate => 1,
     uptime => 1,
     weight => 1,
   };
@@ -55,7 +53,6 @@ enum InfiniteScrollTableColumnType {
     receiver => context.l10n.receiver,
     sender => context.l10n.sender,
     type => context.l10n.type,
-    undelegate => context.l10n.undelegate,
     uptime => context.l10n.uptime,
     weight => context.l10n.weight,
   };

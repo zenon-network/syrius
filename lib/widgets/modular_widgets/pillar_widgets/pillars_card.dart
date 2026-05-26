@@ -95,7 +95,6 @@ class _PopulatedState extends State<Populated> {
   late StreamSubscription _blocListingStateSubscription;
 
   final PillarsListBloc _pillarsListBloc = PillarsListBloc();
-  final DelegationInfoBloc _delegationInfoBloc = DelegationInfoBloc();
 
   final List<PillarInfo> _pillarInfoWrappers = <PillarInfo>[];
 
@@ -130,158 +129,36 @@ class _PopulatedState extends State<Populated> {
 
   @override
   Widget build(BuildContext context) {
-    return InfiniteScrollTable<PillarInfo>(
-      items: widget.pillars,
-      hasReachedMax: widget.hasReachedMax,
-      columns: _buildHeaderColumns(),
-      generateRowCells: _rowCellsGenerator,
-      onScrollReachedBottom: () {
-        context.read<LatestTransactionsBloc>().add(
-          InfiniteListMoreRequested(
-            address: Address.parse(kSelectedAddress!),
-          ),
-        );
-      },
-    );
-    return CardScaffold(
-      title: context.l10n.pillarsListTitle,
-      description: context.l10n.pillarsListDescription(kZnnCoin.symbol),
-      childBuilder: () => _getDelegationInfo(
-        _pillarsListBloc,
-        _delegationInfoBloc,
-      ),
-      onRefreshPressed: () {
-        _delegationInfoBloc.updateStream();
-        _pillarsListBloc.refreshResults();
-      },
-    );
-  }
-
-  Widget _getDelegationInfo(
-    PillarsListBloc pillarsListBloc,
-    DelegationInfoBloc delegationInfoBloc,
-  ) {
-    return StreamBuilder<DelegationInfo?>(
-      stream: _delegationInfoBloc.stream,
-      builder: (_, AsyncSnapshot<DelegationInfo?> snapshot) {
-        if (snapshot.hasError) {
-          return SyriusErrorWidget(snapshot.error!);
-        }
-        if (snapshot.connectionState == ConnectionState.active) {
-          if (snapshot.hasData) {
-            _delegationInfo = snapshot.data;
-          } else {
-            _delegationInfo = null;
-          }
-          return _getTable(pillarsListBloc);
-        }
-        return const SyriusLoadingWidget();
-      },
-    );
-  }
-
-  Widget _getTable(PillarsListBloc bloc) {
-    return Column(
-      children: <Widget>[
-        _getTableHeader(bloc),
-        Expanded(
-          child: Scrollbar(
-            controller: _scrollController,
-            child: PagedListView<int, PillarInfo>(
-              scrollController: _scrollController,
-              pagingController: _pagingController,
-              builderDelegate: PagedChildBuilderDelegate<PillarInfo>(
-                itemBuilder: (_, PillarInfo item, int index) => _getTableRow(
-                  item,
-                  index,
-                ),
-                firstPageProgressIndicatorBuilder: (_) =>
-                    const SyriusLoadingWidget(),
-                newPageProgressIndicatorBuilder: (_) =>
-                    const SyriusLoadingWidget(),
-                noMoreItemsIndicatorBuilder: (_) =>
-                    SyriusErrorWidget(context.l10n.noMoreItems),
-                noItemsFoundIndicatorBuilder: (_) =>
-                    SyriusErrorWidget(context.l10n.noItemsFound),
+    return BlocBuilder<DelegationCubit, DelegationState>(
+      builder: (BuildContext context, DelegationState state) {
+        final Widget table = InfiniteScrollTable<PillarInfo>(
+          items: widget.pillars,
+          hasReachedMax: widget.hasReachedMax,
+          columns: _buildHeaderColumns(),
+          generateRowCells: _rowCellsGenerator,
+          onScrollReachedBottom: () {
+            context.read<LatestTransactionsBloc>().add(
+              InfiniteListMoreRequested(
+                address: Address.parse(kSelectedAddress!),
               ),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
+            );
+          },
+        );
 
-  Container _getTableHeader(PillarsListBloc bloc) {
-    return Container(
-      decoration: BoxDecoration(
-        border: Border(
-          bottom: BorderSide(
-            color: Theme.of(context).dividerTheme.color!,
-          ),
-        ),
-      ),
-      padding: const EdgeInsets.symmetric(
-        vertical: 15,
-      ),
-      child: Row(
-        children: <Widget>[
-        ],
-      ),
-    );
-  }
+        if (state.status == TimerStatus.success) {
+          _delegationInfo = state.data;
+        }
 
-  Widget _getTableRow(dynamic item, int indexOfRow) {
-    final bool isSelected = _selectedRowIndex == indexOfRow;
-
-    return InkWell(
-      onTap: () {
-        setState(() {
-          if (_selectedRowIndex != indexOfRow) {
-            _selectedRowIndex = indexOfRow;
-          } else {
-            _selectedRowIndex = null;
-          }
-        });
+        return switch (state.status) {
+          TimerStatus.initial => const SyriusLoadingWidget(),
+          TimerStatus.loading => const SyriusLoadingWidget(),
+          TimerStatus.failure =>
+            state.error! is NoDelegationStatsException
+                ? table
+                : SyriusErrorWidget(state.error!),
+          TimerStatus.success => table,
+        };
       },
-      child: Container(
-        constraints: const BoxConstraints(
-          minHeight: 75,
-        ),
-        decoration: BoxDecoration(
-          color: isSelected
-              ? Theme.of(context).colorScheme.primaryContainer
-              : Colors.transparent,
-          border: Border(
-            top: indexOfRow != 0
-                ? BorderSide(
-                    color: Theme.of(context).dividerTheme.color!,
-                    width: 0.75,
-                  )
-                : BorderSide.none,
-            left: isSelected
-                ? const BorderSide(
-                    color: AppColors.znnColor,
-                    width: 2,
-                  )
-                : BorderSide.none,
-          ),
-        ),
-        child: Row(
-          children:
-              List<Widget>.from(
-                <SizedBox>[
-                  const SizedBox(
-                    width: 20,
-                  ),
-                ],
-              ) +
-              <Widget>[
-                const SizedBox(
-                  width: 110,
-                ),
-              ],
-        ),
-      ),
     );
   }
 
@@ -347,7 +224,6 @@ class _PopulatedState extends State<Populated> {
           _pillarsListBloc,
         ),
       ),
-      InfiniteScrollTableCell.withText(content: 'Button'),
     ];
   }
 
@@ -365,7 +241,7 @@ class _PopulatedState extends State<Populated> {
               ? _getBalanceStreamBuilder(pillarInfo, model)
               : Visibility(
                   visible: pillarInfo.name == _delegationInfo!.name,
-                  child: Text('Undelegate'),
+                  child: const Text('Undelegate'),
                 ),
         ),
       ],
@@ -500,24 +376,24 @@ class _PopulatedState extends State<Populated> {
       outlineColor: AppColors.errorColor,
       // TODO(maznnwell): add confirmation dialog
       onPressed: () {
-              model.disassemblePillar(
-                context,
-                pillarItem.name,
-              );
-            },
+        model.disassemblePillar(
+          context,
+          pillarItem.name,
+        );
+      },
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: <Widget>[
           Text(
             context.l10n.disassemble,
-            style:Theme.of(context).textTheme.titleSmall!.copyWith(
-                    color: Theme.of(context).textTheme.bodyLarge!.color,
-                  ),
+            style: Theme.of(context).textTheme.titleSmall!.copyWith(
+              color: Theme.of(context).textTheme.bodyLarge!.color,
+            ),
           ),
           const SizedBox(
             width: 20,
           ),
-          Icon(
+          const Icon(
             SimpleLineIcons.close,
             size: 11,
             color: AppColors.errorColor,
@@ -620,7 +496,9 @@ class _PopulatedState extends State<Populated> {
           model.stream.listen(
             (AccountBlockTemplate? event) {
               if (event != null) {
-                _delegationInfoBloc.updateStream();
+                unawaited(
+                  context.read<DelegationCubit>().fetchDataPeriodically(),
+                );
                 delegateButtonKey.currentState?.animateReverse();
                 setState(() {
                   _currentlyDelegatingToPillar = null;
@@ -677,6 +555,5 @@ class _PopulatedState extends State<Populated> {
     .uptime,
     // For the disassemble timer
     .blank,
-    .undelegate,
   ];
 }

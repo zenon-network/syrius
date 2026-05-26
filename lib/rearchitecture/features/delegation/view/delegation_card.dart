@@ -16,12 +16,6 @@ class DelegationCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiBlocProvider(
       providers: [
-        BlocProvider<DelegationCubit>(
-          create: (_) => DelegationCubit(
-            address: Address.parse(kSelectedAddress!),
-            zenon: zenon!,
-          )..fetchDataPeriodically(),
-        ),
         BlocProvider<UndelegateBloc>(
           create: (_) => UndelegateBloc(
             accountBlockUtils: AccountBlockUtils(),

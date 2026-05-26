@@ -159,6 +159,12 @@ class _MainAppContainerState extends State<MainAppContainer>
             zenon: zenon!,
           )..fetch(),
         ),
+        BlocProvider<DelegationCubit>(
+          create: (_) => DelegationCubit(
+            address: Address.parse(kSelectedAddress!),
+            zenon: zenon!,
+          )..fetchDataPeriodically(),
+        ),
       ],
       child: Consumer<TextScalingNotifier>(
         builder: (BuildContext context, TextScalingNotifier textScalingNotifier,
