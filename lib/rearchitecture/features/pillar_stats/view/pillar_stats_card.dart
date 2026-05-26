@@ -1,5 +1,8 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_vector_icons/flutter_vector_icons.dart';
 import 'package:lottie/lottie.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
@@ -8,8 +11,8 @@ import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
-class PillarStats extends StatefulWidget {
-  const PillarStats({
+class PillarStatsCard extends StatefulWidget {
+  const PillarStatsCard({
     required this.onStepperNotificationSeeMorePressed,
     super.key,
   });
@@ -17,10 +20,10 @@ class PillarStats extends StatefulWidget {
   final VoidCallback onStepperNotificationSeeMorePressed;
 
   @override
-  State<PillarStats> createState() => _PillarStatsState();
+  State<PillarStatsCard> createState() => _PillarStatsCardState();
 }
 
-class _PillarStatsState extends State<PillarStats> {
+class _PillarStatsCardState extends State<PillarStatsCard> {
   @override
   Widget build(BuildContext context) {
     return NewCardScaffold(
@@ -95,22 +98,134 @@ class _PillarStatsState extends State<PillarStats> {
           'assets/lottie/ic_anim_pillar.json',
           repeat: false,
         ),
-        ElevatedButton.icon(
-          onPressed: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute<void>(
-                builder: (BuildContext context) => StepperScreen(
-                  stepper: UpdatePillarStepperPage(pillarInfo: pillarInfo),
-                  onStepperNotificationSeeMorePressed:
-                      widget.onStepperNotificationSeeMorePressed,
-                ),
+        Column(
+          mainAxisAlignment: .center,
+          children: [
+            Padding(
+              padding: const EdgeInsets.only(
+                right: 15,
               ),
+              child: ElevatedButton.icon(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute<void>(
+                      builder: (BuildContext context) => StepperScreen(
+                        stepper: UpdatePillarStepperPage(pillarInfo: pillarInfo),
+                        onStepperNotificationSeeMorePressed:
+                            widget.onStepperNotificationSeeMorePressed,
+                      ),
+                    ),
+                  );
+                },
+                label: Text(context.l10n.updatePillar),
+                icon: const Icon(Icons.edit),
+              ),
+            ),
+            kVerticalSpacing,
+            _buildRevokeTimer(pillarInfo),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildRevokeTimer(
+    PillarInfo pillarInfo,
+  ) {
+    final bool isRevocable = pillarInfo.isRevocable;
+
+    return Column(
+      children: [
+        Visibility(
+          visible: isRevocable,
+          child: _buildRevokePillarBlocConsumer(
+            pillarInfo,
+          ),
+        ),
+        Row(
+          children: <Widget>[
+            CancelTimer(
+              Duration(
+                seconds: pillarInfo.revokeCooldown,
+              ),
+              isRevocable ? AppColors.znnColor : AppColors.errorColor,
+              onTimeFinishedCallback: () {
+                context.read<PillarsBloc>().add(
+                  const InfiniteListRefreshRequested(address: null),
+                );
+              },
+            ),
+            StandardTooltipIcon(
+              isRevocable
+                  ? context.l10n.revocationWindowOpen
+                  : context.l10n.untilRevocationWindowOpens,
+              Icons.help,
+              iconColor: isRevocable
+                  ? AppColors.znnColor
+                  : AppColors.errorColor,
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildRevokePillarBlocConsumer(
+    PillarInfo pillarInfo,
+  ) {
+    return BlocConsumer<RevokePillarBloc, RevokePillarState>(
+      listener: (_, RevokePillarState state) {
+        if (state is RevokePillarDone) {
+          context.read<PillarsBloc>().add(
+            const InfiniteListRefreshRequested(address: null),
+          );
+        } else if (state is RevokePillarFailure) {
+          unawaited(
+            NotificationUtils.sendNotificationError(
+              state.exception,
+              context.l10n.errorDisassemblingPillar,
+            ),
+          );
+        }
+      },
+      builder: (_, RevokePillarState state) => switch (state) {
+        RevokePillarInitial() => _buildDisassembleButton(pillarInfo),
+        RevokePillarFailure() => _buildDisassembleButton(pillarInfo),
+        RevokePillarDone() => _buildDisassembleButton(pillarInfo),
+        RevokePillarLoading() => const SyriusLoadingWidget(size: 25),
+      },
+    );
+  }
+
+  Widget _buildDisassembleButton(
+    PillarInfo pillarItem,
+  ) {
+    return Column(
+      children: [
+        OutlinedButton.icon(
+          style: OutlinedButton.styleFrom(
+            iconColor: AppColors.errorColor,
+            side: const BorderSide(
+              color: AppColors.errorColor,
+            ),
+          ),
+          // TODO(maznnwell): add confirmation dialog
+          onPressed: () {
+            context.read<RevokePillarBloc>().add(
+              RevokePillarRequested(pillarName: pillarItem.name),
             );
           },
-          label: Text(context.l10n.updatePillar),
-          icon: const Icon(Icons.edit),
+          icon: const Icon(Icons.close),
+          iconAlignment: .end,
+          label: Text(
+            context.l10n.disassemble,
+            style: TextStyle(
+              color: context.newThemeData.textTheme.titleSmall!.color,
+            ),
+          ),
         ),
+        kVerticalSpacing,
       ],
     );
   }

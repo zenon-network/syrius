@@ -5,6 +5,8 @@ import 'package:nested/nested.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/blocs/blocs.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/account_block_utils.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/address_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
@@ -59,9 +61,16 @@ class _PillarsTabChildState extends State<PillarsTabChild> {
         ),
       ),
       FluidCell(
-        child: PillarStats(
-          onStepperNotificationSeeMorePressed:
-              widget.onStepperNotificationSeeMorePressed,
+        child: BlocProvider<RevokePillarBloc>(
+          create: (_) => RevokePillarBloc(
+            accountBlockUtils: AccountBlockUtils(),
+            zenon: zenon!,
+            zenonAddressUtils: ZenonAddressUtils(),
+          ),
+          child: PillarStatsCard(
+            onStepperNotificationSeeMorePressed:
+                widget.onStepperNotificationSeeMorePressed,
+          ),
         ),
         width: context.layout.value(
           xl: kStaggeredNumOfColumns ~/ 3,
@@ -72,10 +81,14 @@ class _PillarsTabChildState extends State<PillarsTabChild> {
         ),
       ),
       FluidCell(
-        child: BlocProvider<PillarsBloc>(
-          create: (_) =>
-              PillarsBloc(zenon: zenon!)
-                ..add(const InfiniteListRequested(address: null)),
+        child: MultiBlocProvider(
+          providers: [
+            BlocProvider<PillarsBloc>(
+              create: (_) =>
+                  PillarsBloc(zenon: zenon!)
+                    ..add(const InfiniteListRequested(address: null)),
+            ),
+          ],
           child: const PillarsCard(),
         ),
         width: kStaggeredNumOfColumns,

@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_vector_icons/flutter_vector_icons.dart';
 import 'package:stacked/stacked.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
@@ -193,9 +192,6 @@ class _PopulatedState extends State<Populated> {
       InfiniteScrollTableCell.withText(
         content: '${_getMomentumsPercentage(pillarInfo)} %',
       ),
-      InfiniteScrollTableCell(
-        child: _getRevokeTimer(pillarInfo),
-      ),
     ];
   }
 
@@ -237,143 +233,6 @@ class _PopulatedState extends State<Populated> {
         color: Theme.of(context).textTheme.bodyLarge!.color,
       ),
       key: key,
-    );
-  }
-
-  Widget _getRevokeTimer(
-    PillarInfo pillarItem,
-  ) {
-    return Visibility(
-      visible: _isOwnerAddressSelected(pillarItem),
-      child: Row(
-        children: <Widget>[
-          Visibility(
-            visible: pillarItem.isRevocable,
-            child: _getDisassemblePillarViewModel(
-              pillarItem,
-            ),
-          ),
-          Visibility(
-            visible: pillarItem.isRevocable,
-            child: const SizedBox(
-              width: 5,
-            ),
-          ),
-          SizedBox(
-            child: pillarItem.isRevocable
-                ? CancelTimer(
-                    Duration(
-                      seconds: pillarItem.revokeCooldown,
-                    ),
-                    AppColors.znnColor,
-                    onTimeFinishedCallback: () {
-                      context.read<PillarsBloc>().add(
-                        const InfiniteListRefreshRequested(address: null),
-                      );
-                    },
-                  )
-                : CancelTimer(
-                    Duration(
-                      seconds: pillarItem.revokeCooldown,
-                    ),
-                    AppColors.errorColor,
-                    onTimeFinishedCallback: () {
-                      context.read<PillarsBloc>().add(
-                        const InfiniteListRefreshRequested(address: null),
-                      );
-                    },
-                  ),
-          ),
-          Expanded(
-            child: StandardTooltipIcon(
-              pillarItem.isRevocable
-                  ? context.l10n.revocationWindowOpen
-                  : context.l10n.untilRevocationWindowOpens,
-              Icons.help,
-              iconColor: pillarItem.isRevocable
-                  ? AppColors.znnColor
-                  : AppColors.errorColor,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _getDisassemblePillarViewModel(
-    PillarInfo pillarInfo,
-  ) {
-    return ViewModelBuilder<DisassemblePillarBloc>.reactive(
-      onViewModelReady: (DisassemblePillarBloc model) {
-        model.stream.listen(
-          (AccountBlockTemplate? event) {
-            if (event != null) {
-              context.read<PillarsBloc>().add(
-                const InfiniteListRefreshRequested(address: null),
-              );
-            }
-          },
-          onError: (error) async {
-            await NotificationUtils.sendNotificationError(
-              error,
-              context.l10n.errorDisassemblingPillar,
-            );
-          },
-        );
-      },
-      builder: (_, DisassemblePillarBloc model, __) =>
-          StreamBuilder<AccountBlockTemplate?>(
-            stream: model.stream,
-            builder: (_, AsyncSnapshot<AccountBlockTemplate?> snapshot) {
-              if (snapshot.hasError) {
-                return _getDisassembleButton(model, pillarInfo);
-              }
-              if (snapshot.connectionState == ConnectionState.active) {
-                if (snapshot.hasData) {
-                  return _getDisassembleButton(model, pillarInfo);
-                }
-                return const SyriusLoadingWidget(size: 25);
-              }
-              return _getDisassembleButton(model, pillarInfo);
-            },
-          ),
-      viewModelBuilder: DisassemblePillarBloc.new,
-    );
-  }
-
-  Widget _getDisassembleButton(
-    DisassemblePillarBloc model,
-    PillarInfo pillarItem,
-  ) {
-    return MyOutlinedButton(
-      minimumSize: const Size(55, 25),
-      outlineColor: AppColors.errorColor,
-      // TODO(maznnwell): add confirmation dialog
-      onPressed: () {
-        model.disassemblePillar(
-          context,
-          pillarItem.name,
-        );
-      },
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: <Widget>[
-          Text(
-            context.l10n.disassemble,
-            style: Theme.of(context).textTheme.titleSmall!.copyWith(
-              color: Theme.of(context).textTheme.bodyLarge!.color,
-            ),
-          ),
-          const SizedBox(
-            width: 20,
-          ),
-          const Icon(
-            SimpleLineIcons.close,
-            size: 11,
-            color: AppColors.errorColor,
-          ),
-        ],
-      ),
     );
   }
 
@@ -522,7 +381,5 @@ class _PopulatedState extends State<Populated> {
     .delegationReward,
     .expectedProducedMomentums,
     .uptime,
-    // For the disassemble timer
-    .blank,
   ];
 }
