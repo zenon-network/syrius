@@ -8,8 +8,8 @@ import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
-class CreatePillar extends StatefulWidget {
-  const CreatePillar({
+class PillarStats extends StatefulWidget {
+  const PillarStats({
     required this.onStepperNotificationSeeMorePressed,
     super.key,
   });
@@ -17,10 +17,10 @@ class CreatePillar extends StatefulWidget {
   final VoidCallback onStepperNotificationSeeMorePressed;
 
   @override
-  State<CreatePillar> createState() => _CreatePillarState();
+  State<PillarStats> createState() => _PillarStatsState();
 }
 
-class _CreatePillarState extends State<CreatePillar> {
+class _PillarStatsState extends State<PillarStats> {
   @override
   Widget build(BuildContext context) {
     return NewCardScaffold(
@@ -38,8 +38,9 @@ class _CreatePillarState extends State<CreatePillar> {
 
   CardData _buildCardData({required BuildContext context}) {
     return CardData(
+      // TODO(maznnwell): to update
       description: context.l10n.createPillarDescription,
-      title: context.l10n.createPillarTitle,
+      title: context.l10n.pillarStats,
     );
   }
 

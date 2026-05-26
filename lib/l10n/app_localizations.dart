@@ -604,6 +604,12 @@ abstract class AppLocalizations {
   /// **'Pillar Rewards'**
   String get pillarRewardsTitle;
 
+  /// No description provided for @pillarStats.
+  ///
+  /// In en, this message translates to:
+  /// **'Pillar Stats'**
+  String get pillarStats;
+
   /// No description provided for @pillarUpdate.
   ///
   /// In en, this message translates to:

@@ -315,6 +315,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get pillarRewardsTitle => 'Pillar Rewards';
 
   @override
+  String get pillarStats => 'Pillar Stats';
+
+  @override
   String get pillarUpdate => 'Pillar update';
 
   @override

@@ -1,6 +1,5 @@
 export 'active_pillars/active_pillars.dart';
 export 'balance/balance.dart';
-export 'create_pillar/create_pillar.dart';
 export 'create_pillar_qsr_info/create_pillar_qsr_info.dart';
 export 'create_pillar_stepper/create_pillar_stepper.dart';
 export 'delegation/delegation.dart';
@@ -12,6 +11,7 @@ export 'node_sync_status/node_sync_status.dart';
 export 'pending_transactions/pending_transactions.dart';
 export 'pillar_deposit_qsr/pillar_deposit_qsr.dart';
 export 'pillar_rewards_history/pillar_rewards_history.dart';
+export 'pillar_stats/pillar_stats.dart';
 export 'pillar_uncollected_rewards/pillar_uncollected_rewards.dart';
 export 'pillar_withdraw_qsr/pillar_withdraw_qsr.dart';
 export 'pillars/pillars.dart';

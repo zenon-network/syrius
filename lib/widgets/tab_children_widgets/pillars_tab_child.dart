@@ -59,7 +59,7 @@ class _PillarsTabChildState extends State<PillarsTabChild> {
         ),
       ),
       FluidCell(
-        child: CreatePillar(
+        child: PillarStats(
           onStepperNotificationSeeMorePressed:
               widget.onStepperNotificationSeeMorePressed,
         ),
