@@ -2,8 +2,6 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:stacked/stacked.dart';
-import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
@@ -81,8 +79,6 @@ class Populated extends StatefulWidget {
 }
 
 class _PopulatedState extends State<Populated> {
-  final ScrollController _scrollController = ScrollController();
-
   final List<PillarInfo> _pillarInfoWrappers = <PillarInfo>[];
 
   final Map<String, GlobalKey<LoadingButtonState>> _delegateButtonKeys =
@@ -92,48 +88,91 @@ class _PopulatedState extends State<Populated> {
 
   String? _currentlyDelegatingToPillar;
 
-  int? _selectedRowIndex;
-
   DelegationInfo? _delegationInfo;
+
+  GlobalKey<LoadingButtonState>? _currentlyActiveButtonKey;
+
+  AccountInfo? _accountInfo;
 
   @override
   void initState() {
     super.initState();
-    sl.get<BalanceBloc>().getBalanceForAllAddresses();
+    sl.get<MultipleBalanceBloc>().add(
+      MultipleBalanceFetch(
+        addresses: kDefaultAddressList.map((String? e) => e!).toList(),
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<DelegationStatsCubit, DelegationStatsState>(
-      builder: (BuildContext context, DelegationStatsState state) {
-        final Widget table = InfiniteScrollTable<PillarInfo>(
-          items: widget.pillars,
-          hasReachedMax: widget.hasReachedMax,
-          columns: _buildHeaderColumns(),
-          generateRowCells: _rowCellsGenerator,
-          onScrollReachedBottom: () {
-            context.read<LatestTransactionsBloc>().add(
-              InfiniteListMoreRequested(
-                address: Address.parse(kSelectedAddress!),
-              ),
-            );
-          },
-        );
+    final MultipleBalanceState multipleBalanceState = context
+        .watch<MultipleBalanceBloc>()
+        .state;
 
-        if (state.status == TimerStatus.success) {
-          _delegationInfo = state.data;
+    if (multipleBalanceState.status == .initial ||
+        multipleBalanceState.status == .loading) {
+      return const SyriusLoadingWidget();
+    } else if (multipleBalanceState.status == .failure) {
+      return SyriusErrorWidget(multipleBalanceState.error!);
+    } else {
+      _accountInfo = multipleBalanceState.data![kSelectedAddress!];
+    }
+
+    return BlocListener<DelegationBloc, DelegationState>(
+      listener: (_, DelegationState state) {
+        if (state is DelegationDone) {
+          unawaited(
+            context.read<DelegationStatsCubit>().fetchDataPeriodically(),
+          );
+          _currentlyActiveButtonKey?.currentState?.animateReverse();
+          setState(() {
+            _currentlyDelegatingToPillar = null;
+          });
+        } else if (state is DelegationFailure) {
+          _currentlyActiveButtonKey?.currentState?.animateReverse();
+          unawaited(
+            NotificationUtils.sendNotificationError(
+              state.exception,
+              context.l10n.pillarDelegationError,
+            ),
+          );
+          setState(() {
+            _currentlyDelegatingToPillar = null;
+          });
         }
-
-        return switch (state.status) {
-          TimerStatus.initial => const SyriusLoadingWidget(),
-          TimerStatus.loading => const SyriusLoadingWidget(),
-          TimerStatus.failure =>
-            state.error! is NoDelegationStatsException
-                ? table
-                : SyriusErrorWidget(state.error!),
-          TimerStatus.success => table,
-        };
       },
+      child: BlocBuilder<DelegationStatsCubit, DelegationStatsState>(
+        builder: (BuildContext context, DelegationStatsState state) {
+          final Widget table = InfiniteScrollTable<PillarInfo>(
+            items: widget.pillars,
+            hasReachedMax: widget.hasReachedMax,
+            columns: _buildHeaderColumns(),
+            generateRowCells: _rowCellsGenerator,
+            onScrollReachedBottom: () {
+              context.read<LatestTransactionsBloc>().add(
+                InfiniteListMoreRequested(
+                  address: Address.parse(kSelectedAddress!),
+                ),
+              );
+            },
+          );
+
+          if (state.status == TimerStatus.success) {
+            _delegationInfo = state.data;
+          }
+
+          return switch (state.status) {
+            TimerStatus.initial => const SyriusLoadingWidget(),
+            TimerStatus.loading => const SyriusLoadingWidget(),
+            TimerStatus.failure =>
+              state.error! is NoDelegationStatsException
+                  ? table
+                  : SyriusErrorWidget(state.error!),
+            TimerStatus.success => table,
+          };
+        },
+      ),
     );
   }
 
@@ -189,15 +228,15 @@ class _PopulatedState extends State<Populated> {
       ),
       InfiniteScrollTableCell(
         child: _buildDelegateCell(
-          pillarInfo,
+          pillarInfo: pillarInfo,
         ),
       ),
     ];
   }
 
-  Widget _buildDelegateCell(
-    PillarInfo pillarInfo,
-  ) {
+  Widget _buildDelegateCell({
+    required PillarInfo pillarInfo,
+  }) {
     final bool currentlyDelegatingToAPillar =
         _currentlyDelegatingToPillar != null;
     final bool currentlyDelegatingToThisPillar =
@@ -206,7 +245,7 @@ class _PopulatedState extends State<Populated> {
     final bool delegatedToThisPillar = _delegationInfo?.name == pillarInfo.name;
 
     if (currentlyDelegatingToThisPillar) {
-      return _getBalanceStreamBuilder(pillarInfo);
+      return _buildDelegateButton(pillarInfo: pillarInfo);
     } else if (delegatedToThisPillar) {
       // TODO(maznnwell): check if we can tell with how many ZNN were delegated
       return const Text(
@@ -220,29 +259,8 @@ class _PopulatedState extends State<Populated> {
     if (currentlyDelegatingToAPillar) {
       return const SizedBox.shrink();
     } else {
-      return _getBalanceStreamBuilder(pillarInfo);
+      return _buildDelegateButton(pillarInfo: pillarInfo);
     }
-  }
-
-  Widget _getDelegateButton(
-    PillarInfo pillarInfo,
-    DelegateButtonBloc model,
-    GlobalKey<LoadingButtonState> key,
-  ) {
-    return LoadingButton(
-      onPressed: () {
-        key.currentState?.animateForward();
-        setState(() {
-          _currentlyDelegatingToPillar = pillarInfo.name;
-        });
-        model.delegateToPillar(pillarInfo.name);
-      },
-      text: context.l10n.delegateKey.capitalize(),
-      textStyle: const TextStyle(
-        color: Colors.white,
-      ),
-      key: key,
-    );
   }
 
   void _onSortArrowsPressed(String columnName) {
@@ -289,87 +307,36 @@ class _PopulatedState extends State<Populated> {
     });
   }
 
-  Widget _getBalanceStreamBuilder(
-    PillarInfo pillarInfo,
-  ) {
-    return StreamBuilder<Map<String?, AccountInfo>?>(
-      stream: sl.get<BalanceBloc>().stream,
-      builder: (_, AsyncSnapshot<Map<String?, AccountInfo>?> snapshot) {
-        if (snapshot.hasError) {
-          return Expanded(child: SyriusErrorWidget(snapshot.error!));
-        }
-        if (snapshot.connectionState == ConnectionState.active) {
-          if (snapshot.hasData) {
-            return _getDelegateButtonViewModel(
-              pillarInfo,
-              snapshot.data![kSelectedAddress]!,
-            );
-          }
-          return const SyriusLoadingWidget();
-        }
-        return const SyriusLoadingWidget();
-      },
-    );
-  }
-
-  Widget _getDelegateButtonViewModel(
-    PillarInfo pillarInfo,
-    AccountInfo accountInfo,
-  ) {
-    GlobalKey<LoadingButtonState> delegateButtonKey;
-
-    if (_delegateButtonKeys[pillarInfo.name] == null) {
-      _delegateButtonKeys[pillarInfo.name] = GlobalKey();
-    }
-
-    delegateButtonKey = _delegateButtonKeys[pillarInfo.name]!;
+  Widget _buildDelegateButton({
+    required PillarInfo pillarInfo,
+  }) {
+    _delegateButtonKeys[pillarInfo.name] ??= GlobalKey<LoadingButtonState>();
+    final GlobalKey<LoadingButtonState> delegateButtonKey =
+        _delegateButtonKeys[pillarInfo.name]!;
 
     return Visibility(
-      visible:
-          accountInfo.znn()! >= kMinDelegationAmount &&
-          (_currentlyDelegatingToPillar == null
-              ? true
-              : _currentlyDelegatingToPillar == pillarInfo.name),
-      child: ViewModelBuilder<DelegateButtonBloc>.reactive(
-        onViewModelReady: (DelegateButtonBloc model) {
-          model.stream.listen(
-            (AccountBlockTemplate? event) {
-              if (event != null) {
-                unawaited(
-                  context.read<DelegationStatsCubit>().fetchDataPeriodically(),
-                );
-                delegateButtonKey.currentState?.animateReverse();
-                setState(() {
-                  _currentlyDelegatingToPillar = null;
-                });
-              }
-            },
-            onError: (error) async {
-              delegateButtonKey.currentState?.animateReverse();
-              await NotificationUtils.sendNotificationError(
-                error,
-                context.l10n.pillarDelegationError,
-              );
-              setState(() {
-                _currentlyDelegatingToPillar = null;
-              });
-            },
+      visible: _accountInfo!.znn()! >= kMinDelegationAmount,
+      child: LoadingButton(
+        onPressed: () {
+          delegateButtonKey.currentState?.animateForward();
+          setState(() {
+            _currentlyDelegatingToPillar = pillarInfo.name;
+            _currentlyActiveButtonKey = delegateButtonKey;
+          });
+          context.read<DelegationBloc>().add(
+            DelegationRequested(
+              address: Address.parse(kSelectedAddress!),
+              pillarName: pillarInfo.name,
+            ),
           );
         },
-        builder: (_, DelegateButtonBloc model, __) => _getDelegateButton(
-          pillarInfo,
-          model,
-          delegateButtonKey,
+        text: context.l10n.delegateKey.capitalize(),
+        textStyle: const TextStyle(
+          color: Colors.white,
         ),
-        viewModelBuilder: DelegateButtonBloc.new,
+        key: delegateButtonKey,
       ),
     );
-  }
-
-  @override
-  void dispose() {
-    _scrollController.dispose();
-    super.dispose();
   }
 
   int _getMomentumsPercentage(PillarInfo pillarInfo) {
@@ -381,14 +348,15 @@ class _PopulatedState extends State<Populated> {
     return percentage.round();
   }
 
-  List<InfiniteScrollTableColumnType> _buildHeaderColumns() => [
-    .pillarName,
-    .producerAddress,
-    .weight,
-    .momentumReward,
-    .delegationReward,
-    .expectedProducedMomentums,
-    .uptime,
-    .delegation,
-  ];
+  List<InfiniteScrollTableColumnType> _buildHeaderColumns() =>
+      <InfiniteScrollTableColumnType>[
+        .pillarName,
+        .producerAddress,
+        .weight,
+        .momentumReward,
+        .delegationReward,
+        .expectedProducedMomentums,
+        .uptime,
+        .delegation,
+      ];
 }

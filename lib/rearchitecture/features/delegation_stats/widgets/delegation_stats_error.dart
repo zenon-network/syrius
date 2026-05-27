@@ -3,9 +3,9 @@ import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/error_widget.dart';
 
 /// A widget that display the [error] message
-class DelegationError extends StatelessWidget {
+class DelegationStatsError extends StatelessWidget {
   /// Creates a DelegationError object.
-  const DelegationError({required this.error, super.key});
+  const DelegationStatsError({required this.error, super.key});
 
   /// The object that holds the representation of the error
   final SyriusException error;

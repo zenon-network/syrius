@@ -88,6 +88,12 @@ class _PillarsTabChildState extends State<PillarsTabChild> {
                   PillarsBloc(zenon: zenon!)
                     ..add(const InfiniteListRequested(address: null)),
             ),
+            BlocProvider<DelegationBloc>(
+              create: (_) => DelegationBloc(
+                accountBlockUtils: AccountBlockUtils(),
+                zenon: zenon!,
+              ),
+            ),
           ],
           child: const PillarsCard(),
         ),

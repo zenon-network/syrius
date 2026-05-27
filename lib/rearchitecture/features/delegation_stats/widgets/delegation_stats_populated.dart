@@ -11,9 +11,9 @@ import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 /// A widget that displays the delegation_stats amount and to which pillar the amount
 /// was delegated to.
-class DelegationPopulated extends StatelessWidget {
+class DelegationStatsPopulated extends StatelessWidget {
   /// Creates a DelegationPopulated object.
-  const DelegationPopulated({required this.delegationInfo, super.key});
+  const DelegationStatsPopulated({required this.delegationInfo, super.key});
 
   /// Field that holds the needed details
   final DelegationInfo delegationInfo;
