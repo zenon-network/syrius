@@ -31,6 +31,7 @@ class InfiniteScrollTable<T> extends StatefulWidget {
     required this.generateRowCells,
     required this.onScrollReachedBottom,
     required this.columns,
+    this.itemKeyGenerator,
     super.key,
   });
 
@@ -48,6 +49,8 @@ class InfiniteScrollTable<T> extends StatefulWidget {
 
   /// Whether there are still items that can be fetched.
   final bool hasReachedMax;
+
+  final Key Function(T)? itemKeyGenerator;
 
   @override
   State createState() => _InfiniteScrollTableState<T>();
@@ -124,6 +127,7 @@ class _InfiniteScrollTableState<T> extends State<InfiniteScrollTable<T>> {
 
   Widget _getTableRow(T item, int indexOfRow) {
     return Padding(
+      key: widget.itemKeyGenerator?.call(item),
       padding: const EdgeInsets.symmetric(
         horizontal: kInfiniteTableHorizontalPadding,
         vertical: kInfiniteTableHorizontalPadding / 2,

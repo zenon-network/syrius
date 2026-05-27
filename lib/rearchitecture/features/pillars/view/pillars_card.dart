@@ -145,6 +145,8 @@ class _PopulatedState extends State<_Populated> {
       child: BlocBuilder<DelegationStatsBloc, FetchState<DelegationInfo>>(
         builder: (BuildContext context, FetchState<DelegationInfo> state) {
           final Widget table = InfiniteScrollTable<PillarInfo>(
+            itemKeyGenerator: (PillarInfo pillarInfo) =>
+                ValueKey<String>(pillarInfo.name),
             items: widget.pillars,
             hasReachedMax: widget.hasReachedMax,
             columns: _buildHeaderColumns(),
