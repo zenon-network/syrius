@@ -104,8 +104,8 @@ class _PopulatedState extends State<Populated> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<DelegationCubit, DelegationState>(
-      builder: (BuildContext context, DelegationState state) {
+    return BlocBuilder<DelegationStatsCubit, DelegationStatsState>(
+      builder: (BuildContext context, DelegationStatsState state) {
         final Widget table = InfiniteScrollTable<PillarInfo>(
           items: widget.pillars,
           hasReachedMax: widget.hasReachedMax,
@@ -336,7 +336,7 @@ class _PopulatedState extends State<Populated> {
             (AccountBlockTemplate? event) {
               if (event != null) {
                 unawaited(
-                  context.read<DelegationCubit>().fetchDataPeriodically(),
+                  context.read<DelegationStatsCubit>().fetchDataPeriodically(),
                 );
                 delegateButtonKey.currentState?.animateReverse();
                 setState(() {

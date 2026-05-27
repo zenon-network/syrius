@@ -3,32 +3,32 @@ import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dar
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
-part 'delegation_cubit.g.dart';
+part 'delegation_stats_cubit.g.dart';
 
-part 'delegation_state.dart';
+part 'delegation_stats_state.dart';
 
-/// A cubit that manages the fetching and state of delegation information
+/// A cubit that manages the fetching and state of delegation_stats information
 /// for a specific account.
-class DelegationCubit extends TimerCubit<DelegationInfo, DelegationState> {
+class DelegationStatsCubit extends TimerCubit<DelegationInfo, DelegationStatsState> {
   /// Constructs a DelegationCubit object, passing the [zenon] client and the
   /// initial state to the parent class.
   ///
   /// The [zenon] client is used to interact with the Zenon network to retrieve
-  /// delegation information.
-  DelegationCubit({
+  /// delegation_stats information.
+  DelegationStatsCubit({
     required this.address,
     required super.zenon,
-    super.initialState = const DelegationState(),
+    super.initialState = const DelegationStatsState(),
   });
 
   /// The address for which the [DelegationInfo] will be fetched
   final Address address;
 
-  /// Fetches the delegation information for the account identified by its
+  /// Fetches the delegation_stats information for the account identified by its
   /// address.
   ///
-  /// This method retrieves delegation stats
-  /// It checks if the delegation information is available:
+  /// This method retrieves delegation_stats stats
+  /// It checks if the delegation_stats information is available:
   /// - If available, it returns the [DelegationInfo].
   /// - If not available, it throws an exception
   @override
@@ -38,7 +38,7 @@ class DelegationCubit extends TimerCubit<DelegationInfo, DelegationState> {
       address,
     );
 
-    // Check if delegation information is available
+    // Check if delegation_stats information is available
     if (delegationInfo != null) {
       return delegationInfo;
     } else {
@@ -47,11 +47,11 @@ class DelegationCubit extends TimerCubit<DelegationInfo, DelegationState> {
   }
 
   @override
-  DelegationState? fromJson(Map<String, dynamic> json) =>
-      DelegationState.fromJson(
+  DelegationStatsState? fromJson(Map<String, dynamic> json) =>
+      DelegationStatsState.fromJson(
         json,
       );
 
   @override
-  Map<String, dynamic>? toJson(DelegationState state) => state.toJson();
+  Map<String, dynamic>? toJson(DelegationStatsState state) => state.toJson();
 }

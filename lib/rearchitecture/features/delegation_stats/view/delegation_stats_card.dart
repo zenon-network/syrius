@@ -6,7 +6,7 @@ import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
-/// A card that receives [DelegationState] updates from the [DelegationCubit]
+/// A card that receives [DelegationStatsState] updates from the [DelegationStatsCubit]
 /// and changes the UI according to the request status - [TimerStatus]
 class DelegationCard extends StatelessWidget {
   /// Creates a DelegationCard object.
@@ -25,8 +25,8 @@ class DelegationCard extends StatelessWidget {
       ],
       child: NewCardScaffold(
         data: _buildCardData(context: context),
-        body: BlocBuilder<DelegationCubit, DelegationState>(
-          builder: (BuildContext context, DelegationState state) {
+        body: BlocBuilder<DelegationStatsCubit, DelegationStatsState>(
+          builder: (BuildContext context, DelegationStatsState state) {
             return switch (state.status) {
               TimerStatus.initial => const DelegationEmpty(),
               TimerStatus.loading => const DelegationLoading(),

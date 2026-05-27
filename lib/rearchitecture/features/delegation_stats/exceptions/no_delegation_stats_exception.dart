@@ -4,13 +4,13 @@ import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 
 part 'no_delegation_stats_exception.g.dart';
 
-/// An exception used when there are no delegation info available
+/// An exception used when there are no delegation_stats info available
 @immutable
 @JsonSerializable()
 class NoDelegationStatsException extends SyriusException {
   /// Creates a [NoDelegationStatsException] instance
   NoDelegationStatsException({
-    String message = 'No delegation stats available',
+    String message = 'No delegation_stats stats available',
   }) : super(message);
 
   /// {@macro instance_from_json}

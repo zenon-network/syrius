@@ -10,7 +10,7 @@ DelegatePillarState _$DelegatePillarStateFromJson(Map<String, dynamic> json) =>
     DelegatePillarState(
       status:
           $enumDecodeNullable(_$DelegatePillarStatusEnumMap, json['status']) ??
-              DelegatePillarStatus.initial,
+          DelegatePillarStatus.initial,
       data: json['data'] == null
           ? null
           : AccountBlockTemplate.fromJson(json['data'] as Map<String, dynamic>),
@@ -18,12 +18,12 @@ DelegatePillarState _$DelegatePillarStateFromJson(Map<String, dynamic> json) =>
     );
 
 Map<String, dynamic> _$DelegatePillarStateToJson(
-        DelegatePillarState instance) =>
-    <String, dynamic>{
-      'status': _$DelegatePillarStatusEnumMap[instance.status]!,
-      'data': instance.data?.toJson(),
-      'error': instance.error,
-    };
+  DelegatePillarState instance,
+) => <String, dynamic>{
+  'status': _$DelegatePillarStatusEnumMap[instance.status]!,
+  'data': instance.data?.toJson(),
+  'error': instance.error,
+};
 
 const _$DelegatePillarStatusEnumMap = {
   DelegatePillarStatus.initial: 'initial',

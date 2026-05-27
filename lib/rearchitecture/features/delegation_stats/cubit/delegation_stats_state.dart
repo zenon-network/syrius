@@ -1,26 +1,26 @@
-part of 'delegation_cubit.dart';
+part of 'delegation_stats_cubit.dart';
 
-/// The state class for the [DelegationCubit].
+/// The state class for the [DelegationStatsCubit].
 ///
-/// It holds a [DelegationInfo] object that represents the retrieved delegation
+/// It holds a [DelegationInfo] object that represents the retrieved delegation_stats
 /// details.
 
 @JsonSerializable(explicitToJson: true)
-class DelegationState extends TimerState<DelegationInfo> {
+class DelegationStatsState extends TimerState<DelegationInfo> {
   /// Constructs a new DelegationState object.
   ///
   /// This state is initialized with default [status], [data], and [error]
   /// values from the parent class.
-  /// It manages delegation information for an account.
-  const DelegationState({
+  /// It manages delegation_stats information for an account.
+  const DelegationStatsState({
     super.status,
     super.data,
     super.error,
   });
 
   /// {@macro instance_from_json}
-  factory DelegationState.fromJson(Map<String, dynamic> json) =>
-      _$DelegationStateFromJson(json);
+  factory DelegationStatsState.fromJson(Map<String, dynamic> json) =>
+      _$DelegationStatsStateFromJson(json);
 
   /// {@macro state_copy_with}
   @override
@@ -29,7 +29,7 @@ class DelegationState extends TimerState<DelegationInfo> {
     DelegationInfo? data,
     SyriusException? error,
   }) {
-    return DelegationState(
+    return DelegationStatsState(
       status: status ?? this.status,
       data: data ?? this.data,
       error: error ?? this.error,
@@ -37,5 +37,5 @@ class DelegationState extends TimerState<DelegationInfo> {
   }
 
   /// {@macro state_to_json}
-  Map<String, dynamic> toJson() => _$DelegationStateToJson(this);
+  Map<String, dynamic> toJson() => _$DelegationStatsStateToJson(this);
 }

@@ -7,24 +7,24 @@ part of 'disassemble_pillar_cubit.dart';
 // **************************************************************************
 
 DisassemblePillarState _$DisassemblePillarStateFromJson(
-        Map<String, dynamic> json) =>
-    DisassemblePillarState(
-      status: $enumDecodeNullable(
-              _$DisassemblePillarStatusEnumMap, json['status']) ??
-          DisassemblePillarStatus.initial,
-      data: json['data'] == null
-          ? null
-          : AccountBlockTemplate.fromJson(json['data'] as Map<String, dynamic>),
-      error: json['error'],
-    );
+  Map<String, dynamic> json,
+) => DisassemblePillarState(
+  status:
+      $enumDecodeNullable(_$DisassemblePillarStatusEnumMap, json['status']) ??
+      DisassemblePillarStatus.initial,
+  data: json['data'] == null
+      ? null
+      : AccountBlockTemplate.fromJson(json['data'] as Map<String, dynamic>),
+  error: json['error'],
+);
 
 Map<String, dynamic> _$DisassemblePillarStateToJson(
-        DisassemblePillarState instance) =>
-    <String, dynamic>{
-      'status': _$DisassemblePillarStatusEnumMap[instance.status]!,
-      'data': instance.data?.toJson(),
-      'error': instance.error,
-    };
+  DisassemblePillarState instance,
+) => <String, dynamic>{
+  'status': _$DisassemblePillarStatusEnumMap[instance.status]!,
+  'data': instance.data?.toJson(),
+  'error': instance.error,
+};
 
 const _$DisassemblePillarStatusEnumMap = {
   DisassemblePillarStatus.initial: 'initial',

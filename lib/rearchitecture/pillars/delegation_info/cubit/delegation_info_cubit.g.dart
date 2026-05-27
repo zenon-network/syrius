@@ -11,8 +11,11 @@ DelegationInfoState _$DelegationInfoStateFromJson(Map<String, dynamic> json) =>
       address: json['address'] == null
           ? null
           : Address.fromJson(json['address'] as Map<String, dynamic>),
-      status: $enumDecodeNullable(
-              _$CubitWithRefreshOptionStatusEnumMap, json['status']) ??
+      status:
+          $enumDecodeNullable(
+            _$CubitWithRefreshOptionStatusEnumMap,
+            json['status'],
+          ) ??
           CubitWithRefreshOptionStatus.loading,
       data: json['data'] == null
           ? null
@@ -23,13 +26,13 @@ DelegationInfoState _$DelegationInfoStateFromJson(Map<String, dynamic> json) =>
     );
 
 Map<String, dynamic> _$DelegationInfoStateToJson(
-        DelegationInfoState instance) =>
-    <String, dynamic>{
-      'address': instance.address?.toJson(),
-      'status': _$CubitWithRefreshOptionStatusEnumMap[instance.status]!,
-      'data': instance.data?.toJson(),
-      'error': instance.error?.toJson(),
-    };
+  DelegationInfoState instance,
+) => <String, dynamic>{
+  'address': instance.address?.toJson(),
+  'status': _$CubitWithRefreshOptionStatusEnumMap[instance.status]!,
+  'data': instance.data?.toJson(),
+  'error': instance.error?.toJson(),
+};
 
 const _$CubitWithRefreshOptionStatusEnumMap = {
   CubitWithRefreshOptionStatus.failure: 'failure',
