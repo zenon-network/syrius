@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_vector_icons/flutter_vector_icons.dart';
 import 'package:lottie/lottie.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
@@ -70,13 +69,15 @@ class _PillarStatsCardState extends State<PillarStatsCard> {
         Lottie.asset('assets/lottie/ic_anim_pillar.json', repeat: false),
         ElevatedButton.icon(
           onPressed: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute<void>(
-                builder: (BuildContext context) => StepperScreen(
-                  stepper: const CreatePillarStepperPage(),
-                  onStepperNotificationSeeMorePressed:
-                      widget.onStepperNotificationSeeMorePressed,
+            unawaited(
+              Navigator.push(
+                context,
+                MaterialPageRoute<void>(
+                  builder: (BuildContext context) => StepperScreen(
+                    stepper: const CreatePillarStepperPage(),
+                    onStepperNotificationSeeMorePressed:
+                        widget.onStepperNotificationSeeMorePressed,
+                  ),
                 ),
               ),
             );
@@ -100,20 +101,24 @@ class _PillarStatsCardState extends State<PillarStatsCard> {
         ),
         Column(
           mainAxisAlignment: .center,
-          children: [
+          children: <Widget>[
             Padding(
               padding: const EdgeInsets.only(
                 right: 15,
               ),
               child: ElevatedButton.icon(
                 onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute<void>(
-                      builder: (BuildContext context) => StepperScreen(
-                        stepper: UpdatePillarStepperPage(pillarInfo: pillarInfo),
-                        onStepperNotificationSeeMorePressed:
-                            widget.onStepperNotificationSeeMorePressed,
+                  unawaited(
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute<void>(
+                        builder: (BuildContext context) => StepperScreen(
+                          stepper: UpdatePillarStepperPage(
+                            pillarInfo: pillarInfo,
+                          ),
+                          onStepperNotificationSeeMorePressed:
+                              widget.onStepperNotificationSeeMorePressed,
+                        ),
                       ),
                     ),
                   );
@@ -136,7 +141,7 @@ class _PillarStatsCardState extends State<PillarStatsCard> {
     final bool isRevocable = pillarInfo.isRevocable;
 
     return Column(
-      children: [
+      children: <Widget>[
         Visibility(
           visible: isRevocable,
           child: _buildRevokePillarBlocConsumer(
@@ -202,7 +207,7 @@ class _PillarStatsCardState extends State<PillarStatsCard> {
     PillarInfo pillarItem,
   ) {
     return Column(
-      children: [
+      children: <Widget>[
         OutlinedButton.icon(
           style: OutlinedButton.styleFrom(
             iconColor: AppColors.errorColor,
