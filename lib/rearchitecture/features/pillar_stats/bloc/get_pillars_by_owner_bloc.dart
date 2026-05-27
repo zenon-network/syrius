@@ -5,8 +5,8 @@ class GetPillarsByOwnerBloc extends FetchBloc<List<PillarInfo>> {
   GetPillarsByOwnerBloc({required super.zenon})
       : super(
           fromJsonT: (Map<String, dynamic> data) =>
-              List<Map<String, dynamic>>.from(
-                      data['list'] as List<Map<String, dynamic>>)
+              List.castFrom<dynamic, Map<String, dynamic>>(
+                      data['list'])
                   .map(PillarInfo.fromJson)
                   .toList(),
           toJsonT: (List<PillarInfo> list) => {
