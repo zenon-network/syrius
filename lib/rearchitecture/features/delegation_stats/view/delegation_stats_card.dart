@@ -25,6 +25,11 @@ class DelegationCard extends StatelessWidget {
       ],
       child: NewCardScaffold(
         data: _buildCardData(context: context),
+        onRefreshPressed: () async {
+          context.read<DelegationStatsBloc>().add(
+            FetchRequestData(address: Address.parse(kSelectedAddress!)),
+          );
+        },
         body: BlocBuilder<DelegationStatsBloc, FetchState<DelegationInfo>>(
           builder: (BuildContext context, FetchState<DelegationInfo> state) =>
               switch (state) {
