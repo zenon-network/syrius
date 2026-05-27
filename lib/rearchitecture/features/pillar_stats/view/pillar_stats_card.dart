@@ -47,45 +47,45 @@ class _PillarStatsCardState extends State<PillarStatsCard> {
   }
 
   Widget _buildBody(BuildContext context) {
-    return BlocBuilder<GetPillarsByOwnerBloc, FetchState<List<PillarInfo>>>(
-      builder: (_, FetchState<List<PillarInfo>> state) {
-        return switch (state) {
-          FetchFailure<List<PillarInfo>>() => SyriusErrorWidget(
-            state.exception,
-          ),
-          FetchInitial<List<PillarInfo>>() => const SyriusLoadingWidget(),
-          FetchPopulated<List<PillarInfo>>() =>
-            state.data.isNotEmpty
-                ? _getUpdatePillarWidgetBody(context, state.data.first)
-                : _getCreatePillarWidgetBody(context),
-        };
-      },
+    return Row(
+      children: [
+        Lottie.asset('assets/lottie/ic_anim_pillar.json', repeat: false),
+        BlocBuilder<GetPillarsByOwnerBloc, FetchState<List<PillarInfo>>>(
+          builder: (_, FetchState<List<PillarInfo>> state) {
+            return switch (state) {
+              FetchFailure<List<PillarInfo>>() => SyriusErrorWidget(
+                state.exception,
+              ),
+              FetchInitial<List<PillarInfo>>() => const SyriusLoadingWidget(),
+              FetchPopulated<List<PillarInfo>>() =>
+                state.data.isNotEmpty
+                    ? _getUpdatePillarWidgetBody(context, state.data.first)
+                    : _getCreatePillarWidgetBody(context),
+            };
+          },
+        ),
+      ],
     );
   }
 
   Widget _getCreatePillarWidgetBody(BuildContext context) {
-    return Row(
-      children: <Widget>[
-        Lottie.asset('assets/lottie/ic_anim_pillar.json', repeat: false),
-        ElevatedButton.icon(
-          onPressed: () {
-            unawaited(
-              Navigator.push(
-                context,
-                MaterialPageRoute<void>(
-                  builder: (BuildContext context) => StepperScreen(
-                    stepper: const CreatePillarStepperPage(),
-                    onStepperNotificationSeeMorePressed:
-                        widget.onStepperNotificationSeeMorePressed,
-                  ),
-                ),
+    return ElevatedButton.icon(
+      onPressed: () {
+        unawaited(
+          Navigator.push(
+            context,
+            MaterialPageRoute<void>(
+              builder: (BuildContext context) => StepperScreen(
+                stepper: const CreatePillarStepperPage(),
+                onStepperNotificationSeeMorePressed:
+                    widget.onStepperNotificationSeeMorePressed,
               ),
-            );
-          },
-          label: Text(context.l10n.spawn),
-          icon: const Icon(Icons.add),
-        ),
-      ],
+            ),
+          ),
+        );
+      },
+      label: Text(context.l10n.spawn),
+      icon: const Icon(Icons.add),
     );
   }
 
@@ -93,44 +93,36 @@ class _PillarStatsCardState extends State<PillarStatsCard> {
     BuildContext context,
     PillarInfo pillarInfo,
   ) {
-    return Row(
+    return Column(
+      mainAxisAlignment: .center,
       children: <Widget>[
-        Lottie.asset(
-          'assets/lottie/ic_anim_pillar.json',
-          repeat: false,
-        ),
-        Column(
-          mainAxisAlignment: .center,
-          children: <Widget>[
-            Padding(
-              padding: const EdgeInsets.only(
-                right: 15,
-              ),
-              child: ElevatedButton.icon(
-                onPressed: () {
-                  unawaited(
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute<void>(
-                        builder: (BuildContext context) => StepperScreen(
-                          stepper: UpdatePillarStepperPage(
-                            pillarInfo: pillarInfo,
-                          ),
-                          onStepperNotificationSeeMorePressed:
-                              widget.onStepperNotificationSeeMorePressed,
-                        ),
+        Padding(
+          padding: const EdgeInsets.only(
+            right: 15,
+          ),
+          child: ElevatedButton.icon(
+            onPressed: () {
+              unawaited(
+                Navigator.push(
+                  context,
+                  MaterialPageRoute<void>(
+                    builder: (BuildContext context) => StepperScreen(
+                      stepper: UpdatePillarStepperPage(
+                        pillarInfo: pillarInfo,
                       ),
+                      onStepperNotificationSeeMorePressed:
+                          widget.onStepperNotificationSeeMorePressed,
                     ),
-                  );
-                },
-                label: Text(context.l10n.updatePillar),
-                icon: const Icon(Icons.edit),
-              ),
-            ),
-            kVerticalSpacing,
-            _buildRevokeTimer(pillarInfo),
-          ],
+                  ),
+                ),
+              );
+            },
+            label: Text(context.l10n.updatePillar),
+            icon: const Icon(Icons.edit),
+          ),
         ),
+        kVerticalSpacing,
+        _buildRevokeTimer(pillarInfo),
       ],
     );
   }
