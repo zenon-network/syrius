@@ -25,19 +25,17 @@ class DelegationCard extends StatelessWidget {
       ],
       child: NewCardScaffold(
         data: _buildCardData(context: context),
-        body: BlocBuilder<DelegationStatsCubit, DelegationStatsState>(
-          builder: (BuildContext context, DelegationStatsState state) {
-            return switch (state.status) {
-              TimerStatus.initial => const DelegationStatsEmpty(),
-              TimerStatus.loading => const DelegationStatsLoading(),
-              TimerStatus.failure => DelegationStatsError(
-                error: state.error!,
-              ),
-              TimerStatus.success => DelegationStatsPopulated(
-                delegationInfo: state.data!,
-              ),
-            };
-          },
+        body: BlocBuilder<DelegationStatsBloc, FetchState<DelegationInfo>>(
+          builder: (BuildContext context, FetchState<DelegationInfo> state) =>
+              switch (state) {
+                FetchFailure<DelegationInfo>() => DelegationStatsError(
+                  error: state.exception,
+                ),
+                FetchInitial<DelegationInfo>() => const DelegationStatsEmpty(),
+                FetchPopulated<DelegationInfo>() => DelegationStatsPopulated(
+                  delegationInfo: state.data,
+                ),
+              },
         ),
       ),
     );

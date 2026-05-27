@@ -77,7 +77,9 @@ class DelegationStatsPopulated extends StatelessWidget {
       listener: (_, UndelegateState state) {
         if (state is UndelegateDone) {
           undelegateButtonKey.currentState?.animateReverse();
-          unawaited(context.read<DelegationStatsCubit>().fetchDataPeriodically());
+          context.read<DelegationStatsBloc>().add(
+            FetchRequestData(address: Address.parse(kSelectedAddress!)),
+          );
         } else if (state is UndelegateFailure) {
           undelegateButtonKey.currentState?.animateReverse();
           unawaited(

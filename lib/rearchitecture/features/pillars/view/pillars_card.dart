@@ -122,8 +122,8 @@ class _PopulatedState extends State<_Populated> {
     return BlocListener<DelegationBloc, DelegationState>(
       listener: (_, DelegationState state) {
         if (state is DelegationDone) {
-          unawaited(
-            context.read<DelegationStatsCubit>().fetchDataPeriodically(),
+          context.read<DelegationStatsBloc>().add(
+            FetchRequestData(address: Address.parse(kSelectedAddress!)),
           );
           _currentlyActiveButtonKey?.currentState?.animateReverse();
           setState(() {
@@ -142,8 +142,8 @@ class _PopulatedState extends State<_Populated> {
           });
         }
       },
-      child: BlocBuilder<DelegationStatsCubit, DelegationStatsState>(
-        builder: (BuildContext context, DelegationStatsState state) {
+      child: BlocBuilder<DelegationStatsBloc, FetchState<DelegationInfo>>(
+        builder: (BuildContext context, FetchState<DelegationInfo> state) {
           final Widget table = InfiniteScrollTable<PillarInfo>(
             items: widget.pillars,
             hasReachedMax: widget.hasReachedMax,
@@ -158,18 +158,17 @@ class _PopulatedState extends State<_Populated> {
             },
           );
 
-          if (state.status == TimerStatus.success) {
+          if (state is FetchPopulated<DelegationInfo>) {
             _delegationInfo = state.data;
           }
 
-          return switch (state.status) {
-            TimerStatus.initial => const SyriusLoadingWidget(),
-            TimerStatus.loading => const SyriusLoadingWidget(),
-            TimerStatus.failure =>
-              state.error! is NoDelegationStatsException
+          return switch (state) {
+            FetchFailure<DelegationInfo>() =>
+              state.exception is NoDelegationStatsException
                   ? table
-                  : SyriusErrorWidget(state.error!),
-            TimerStatus.success => table,
+                  : SyriusErrorWidget(state.exception),
+            FetchInitial<DelegationInfo>() => const SyriusLoadingWidget(),
+            FetchPopulated<DelegationInfo>() => table,
           };
         },
       ),

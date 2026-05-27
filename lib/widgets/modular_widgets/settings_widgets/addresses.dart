@@ -97,6 +97,11 @@ class AddressesState extends State<Addresses> {
           address: newAddress,
         ),
       );
+      context.read<DelegationStatsBloc>().add(
+        FetchRequestData(
+          address: newAddress,
+        ),
+      );
     } catch (e) {
       rethrow;
     }
