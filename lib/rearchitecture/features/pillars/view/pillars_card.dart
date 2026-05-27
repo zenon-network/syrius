@@ -44,7 +44,7 @@ class PillarsCard extends StatelessWidget {
                 InfiniteListStatus.failure => SyriusErrorWidget(
                   state.error!,
                 ),
-                InfiniteListStatus.success => Populated(
+                InfiniteListStatus.success => _Populated(
                   hasReachedMax: state.hasReachedMax,
                   pillars: state.data!,
                 ),
@@ -64,8 +64,8 @@ class PillarsCard extends StatelessWidget {
   }
 }
 
-class Populated extends StatefulWidget {
-  const Populated({
+class _Populated extends StatefulWidget {
+  const _Populated({
     required this.hasReachedMax,
     required this.pillars,
     super.key,
@@ -75,10 +75,10 @@ class Populated extends StatefulWidget {
   final List<PillarInfo> pillars;
 
   @override
-  State<Populated> createState() => _PopulatedState();
+  State<_Populated> createState() => _PopulatedState();
 }
 
-class _PopulatedState extends State<Populated> {
+class _PopulatedState extends State<_Populated> {
   final List<PillarInfo> _pillarInfoWrappers = <PillarInfo>[];
 
   final Map<String, GlobalKey<LoadingButtonState>> _delegateButtonKeys =
@@ -263,6 +263,8 @@ class _PopulatedState extends State<Populated> {
     }
   }
 
+  // TODO(maznnwell): to be used when sorting is enabled
+  // ignore: unused_element
   void _onSortArrowsPressed(String columnName) {
     switch (columnName) {
       case 'Name':
@@ -299,7 +301,6 @@ class _PopulatedState extends State<Populated> {
             : _pillarInfoWrappers.sort(
                 (PillarInfo a, PillarInfo b) => b.name.compareTo(a.name),
               );
-        break;
     }
 
     setState(() {
