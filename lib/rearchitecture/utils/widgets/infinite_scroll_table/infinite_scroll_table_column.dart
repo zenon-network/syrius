@@ -7,6 +7,7 @@ part of 'infinite_scroll_table.dart';
 class InfiniteScrollTableColumn extends StatelessWidget {
   /// Creates a new instance.
   const InfiniteScrollTableColumn({
+    required this.alignment,
     required this.name,
     this.onSortArrowsPressed,
     this.flex = 1,
@@ -19,13 +20,16 @@ class InfiniteScrollTableColumn extends StatelessWidget {
   /// Defines how much space the column should take.
   final int flex;
 
+  final MainAxisAlignment alignment;
+
   @override
   Widget build(BuildContext context) {
     return Expanded(
       flex: flex,
       child: Row(
+        mainAxisAlignment: alignment,
         children: <Widget>[
-          Expanded(
+          Flexible(
             child: Text(
               name,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(

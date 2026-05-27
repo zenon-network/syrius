@@ -56,4 +56,9 @@ enum InfiniteScrollTableColumnType {
     uptime => context.l10n.uptime,
     weight => context.l10n.weight,
   };
+
+  MainAxisAlignment get aligment => switch (this) {
+    delegation => MainAxisAlignment.center,
+    _ => MainAxisAlignment.start,
+  };
 }

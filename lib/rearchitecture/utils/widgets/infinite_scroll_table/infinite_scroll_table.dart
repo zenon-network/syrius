@@ -159,7 +159,10 @@ class _Header extends StatelessWidget {
 
         final String name = column.name(context: context);
 
+        final MainAxisAlignment alignment = column.aligment;
+
         return InfiniteScrollTableColumn(
+          alignment: alignment,
           name: name,
           flex: flex,
         );

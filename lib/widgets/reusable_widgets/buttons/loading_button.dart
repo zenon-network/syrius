@@ -19,7 +19,7 @@ class LoadingButton extends StatefulWidget {
     this.outlineColor,
     this.paddingAroundChild = EdgeInsets.zero,
     this.borderWidth = kDefaultBorderOutlineWidth,
-    this.circularBorderRadius = 6.0,
+    this.circularBorderRadius = 16.0,
     this.textStyle,
   })  : assert(text != null || child != null),
         super(key: key);

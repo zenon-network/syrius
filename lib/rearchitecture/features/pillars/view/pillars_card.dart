@@ -316,28 +316,34 @@ class _PopulatedState extends State<_Populated> {
     final GlobalKey<LoadingButtonState> delegateButtonKey =
         _delegateButtonKeys[pillarInfo.name]!;
 
-    return Visibility(
-      visible: _accountInfo!.znn()! >= kMinDelegationAmount,
-      child: LoadingButton(
-        onPressed: () {
-          delegateButtonKey.currentState?.animateForward();
-          setState(() {
-            _currentlyDelegatingToPillar = pillarInfo.name;
-            _currentlyActiveButtonKey = delegateButtonKey;
-          });
-          context.read<DelegationBloc>().add(
-            DelegationRequested(
-              address: Address.parse(kSelectedAddress!),
-              pillarName: pillarInfo.name,
+    return Row(
+      mainAxisAlignment: .center,
+      mainAxisSize: .min,
+      children: [
+        Visibility(
+          visible: _accountInfo!.znn()! >= kMinDelegationAmount,
+          child: LoadingButton(
+            onPressed: () {
+              delegateButtonKey.currentState?.animateForward();
+              setState(() {
+                _currentlyDelegatingToPillar = pillarInfo.name;
+                _currentlyActiveButtonKey = delegateButtonKey;
+              });
+              context.read<DelegationBloc>().add(
+                DelegationRequested(
+                  address: Address.parse(kSelectedAddress!),
+                  pillarName: pillarInfo.name,
+                ),
+              );
+            },
+            text: context.l10n.delegateKey.capitalize(),
+            textStyle: const TextStyle(
+              color: Colors.white,
             ),
-          );
-        },
-        text: context.l10n.delegateKey.capitalize(),
-        textStyle: const TextStyle(
-          color: Colors.white,
+            key: delegateButtonKey,
+          ),
         ),
-        key: delegateButtonKey,
-      ),
+      ],
     );
   }
 
