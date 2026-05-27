@@ -2,7 +2,7 @@ part of 'delegation_stats_cubit.dart';
 
 /// The state class for the [DelegationStatsCubit].
 ///
-/// It holds a [DelegationInfo] object that represents the retrieved delegation_stats
+/// It holds a [DelegationInfo] object that represents the retrieved delegation stats
 /// details.
 
 @JsonSerializable(explicitToJson: true)
@@ -11,7 +11,7 @@ class DelegationStatsState extends TimerState<DelegationInfo> {
   ///
   /// This state is initialized with default [status], [data], and [error]
   /// values from the parent class.
-  /// It manages delegation_stats information for an account.
+  /// It manages delegation stats information for an account.
   const DelegationStatsState({
     super.status,
     super.data,

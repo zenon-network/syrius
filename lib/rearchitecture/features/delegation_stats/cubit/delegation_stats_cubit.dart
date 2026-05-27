@@ -7,14 +7,14 @@ part 'delegation_stats_cubit.g.dart';
 
 part 'delegation_stats_state.dart';
 
-/// A cubit that manages the fetching and state of delegation_stats information
+/// A cubit that manages the fetching and state of delegation stats information
 /// for a specific account.
 class DelegationStatsCubit extends TimerCubit<DelegationInfo, DelegationStatsState> {
   /// Constructs a DelegationCubit object, passing the [zenon] client and the
   /// initial state to the parent class.
   ///
   /// The [zenon] client is used to interact with the Zenon network to retrieve
-  /// delegation_stats information.
+  /// delegation stats information.
   DelegationStatsCubit({
     required this.address,
     required super.zenon,
@@ -24,11 +24,11 @@ class DelegationStatsCubit extends TimerCubit<DelegationInfo, DelegationStatsSta
   /// The address for which the [DelegationInfo] will be fetched
   final Address address;
 
-  /// Fetches the delegation_stats information for the account identified by its
+  /// Fetches the delegation stats information for the account identified by its
   /// address.
   ///
-  /// This method retrieves delegation_stats stats
-  /// It checks if the delegation_stats information is available:
+  /// This method retrieves delegation stats stats
+  /// It checks if the delegation stats information is available:
   /// - If available, it returns the [DelegationInfo].
   /// - If not available, it throws an exception
   @override
@@ -38,7 +38,7 @@ class DelegationStatsCubit extends TimerCubit<DelegationInfo, DelegationStatsSta
       address,
     );
 
-    // Check if delegation_stats information is available
+    // Check if delegation stats information is available
     if (delegationInfo != null) {
       return delegationInfo;
     } else {
