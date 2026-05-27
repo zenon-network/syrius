@@ -174,11 +174,6 @@ class _PopulatedState extends State<Populated> {
           ),
         ),
       ),
-      InfiniteScrollTableCell(
-        child: _getDelegateContainer(
-          pillarInfo,
-        ),
-      ),
       InfiniteScrollTableCell.withText(
         content: '${pillarInfo.giveMomentumRewardPercentage} %',
       ),
@@ -192,27 +187,41 @@ class _PopulatedState extends State<Populated> {
       InfiniteScrollTableCell.withText(
         content: '${_getMomentumsPercentage(pillarInfo)} %',
       ),
+      InfiniteScrollTableCell(
+        child: _buildDelegateCell(
+          pillarInfo,
+        ),
+      ),
     ];
   }
 
-  Widget _getDelegateContainer(
+  Widget _buildDelegateCell(
     PillarInfo pillarInfo,
   ) {
-    return Row(
-      children: <Widget>[
-        Visibility(
-          visible: _currentlyDelegatingToPillar == null
-              ? true
-              : _currentlyDelegatingToPillar == pillarInfo.name,
-          child: _delegationInfo == null
-              ? _getBalanceStreamBuilder(pillarInfo)
-              : Visibility(
-                  visible: pillarInfo.name == _delegationInfo!.name,
-                  child: const Text('Undelegate'),
-                ),
+    final bool currentlyDelegatingToAPillar =
+        _currentlyDelegatingToPillar != null;
+    final bool currentlyDelegatingToThisPillar =
+        _currentlyDelegatingToPillar == pillarInfo.name;
+
+    final bool delegatedToThisPillar = _delegationInfo?.name == pillarInfo.name;
+
+    if (currentlyDelegatingToThisPillar) {
+      return _getBalanceStreamBuilder(pillarInfo);
+    } else if (delegatedToThisPillar) {
+      // TODO(maznnwell): check if we can tell with how many ZNN were delegated
+      return const Text(
+        'Delegated',
+        style: TextStyle(
+          color: AppColors.znnColor,
         ),
-      ],
-    );
+        textAlign: .center,
+      );
+    }
+    if (currentlyDelegatingToAPillar) {
+      return const SizedBox.shrink();
+    } else {
+      return _getBalanceStreamBuilder(pillarInfo);
+    }
   }
 
   Widget _getDelegateButton(
@@ -220,7 +229,7 @@ class _PopulatedState extends State<Populated> {
     DelegateButtonBloc model,
     GlobalKey<LoadingButtonState> key,
   ) {
-    return LoadingButton.infiniteScrollTable(
+    return LoadingButton(
       onPressed: () {
         key.currentState?.animateForward();
         setState(() {
@@ -228,9 +237,9 @@ class _PopulatedState extends State<Populated> {
         });
         model.delegateToPillar(pillarInfo.name);
       },
-      text: context.l10n.delegateKey,
-      textStyle: Theme.of(context).textTheme.titleSmall!.copyWith(
-        color: Theme.of(context).textTheme.bodyLarge!.color,
+      text: context.l10n.delegateKey.capitalize(),
+      textStyle: const TextStyle(
+        color: Colors.white,
       ),
       key: key,
     );
@@ -376,10 +385,10 @@ class _PopulatedState extends State<Populated> {
     .pillarName,
     .producerAddress,
     .weight,
-    .delegation,
     .momentumReward,
     .delegationReward,
     .expectedProducedMomentums,
     .uptime,
+    .delegation,
   ];
 }
