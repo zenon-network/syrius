@@ -92,7 +92,7 @@ class AddressesState extends State<Addresses> {
               address: newAddress,
             ),
           );
-      context.read<GetPillarsByOwnerBloc>().add(
+      context.read<PillarsByOwnerBloc>().add(
         FetchRequestData(
           address: newAddress,
         ),

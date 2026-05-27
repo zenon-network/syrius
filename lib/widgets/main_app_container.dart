@@ -147,9 +147,9 @@ class _MainAppContainerState extends State<MainAppContainer>
                 ),
               ),
         ),
-        BlocProvider<GetPillarsByOwnerBloc>(
+        BlocProvider<PillarsByOwnerBloc>(
           create: (_) =>
-              GetPillarsByOwnerBloc(
+              PillarsByOwnerBloc(
                 zenon: zenon!,
               )..add(
                 FetchRequestData(

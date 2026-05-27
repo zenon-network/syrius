@@ -29,7 +29,7 @@ class _PillarStatsCardState extends State<PillarStatsCard> {
       body: _buildBody(context),
       data: _buildCardData(context: context),
       onRefreshPressed: () async {
-        context.read<GetPillarsByOwnerBloc>().add(
+        context.read<PillarsByOwnerBloc>().add(
           FetchRequestData(
             address: Address.parse(kSelectedAddress!),
           ),
@@ -50,7 +50,7 @@ class _PillarStatsCardState extends State<PillarStatsCard> {
     return Row(
       children: [
         Lottie.asset('assets/lottie/ic_anim_pillar.json', repeat: false),
-        BlocBuilder<GetPillarsByOwnerBloc, FetchState<List<PillarInfo>>>(
+        BlocBuilder<PillarsByOwnerBloc, FetchState<List<PillarInfo>>>(
           builder: (_, FetchState<List<PillarInfo>> state) {
             return switch (state) {
               FetchFailure<List<PillarInfo>>() => SyriusErrorWidget(
