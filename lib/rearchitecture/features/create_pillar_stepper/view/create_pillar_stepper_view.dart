@@ -655,10 +655,15 @@ class _MainPillarState extends State<CreatePillarStepperView> {
       coinDecimals,
     );
 
-    final bool willDepositExceedCost =
-        qsrInfo.deposit + _maxQsrAmount <= qsrInfo.cost;
+    final bool isQsrAvailableToDeposit = qsrAmount > BigInt.zero;
 
-    if (!willDepositExceedCost && qsrAmount > BigInt.zero) {
+    final bool willDepositExceedCost =
+        qsrInfo.deposit + _maxQsrAmount > qsrInfo.cost;
+
+    final bool canDepositBeExecuted =
+        isQsrAvailableToDeposit && !willDepositExceedCost;
+
+    if (canDepositBeExecuted) {
       context.read<PillarDepositQsrBloc>().add(
         PillarDepositQsrRequested(
           address: Address.parse(_addressController.text),
