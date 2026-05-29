@@ -3,19 +3,15 @@ import 'package:layout/layout.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 
-class PillarsTabChild extends StatefulWidget {
+class PillarsTabChild extends StatelessWidget {
   const PillarsTabChild({
-    required this.onStepperNotificationSeeMorePressed,
+    required VoidCallback onStepperNotificationSeeMorePressed,
     super.key,
-  });
+  }) : _onStepperNotificationSeeMorePressed =
+           onStepperNotificationSeeMorePressed;
 
-  final VoidCallback onStepperNotificationSeeMorePressed;
+  final VoidCallback _onStepperNotificationSeeMorePressed;
 
-  @override
-  State<PillarsTabChild> createState() => _PillarsTabChildState();
-}
-
-class _PillarsTabChildState extends State<PillarsTabChild> {
   @override
   Widget build(BuildContext context) {
     final List<FluidCell> children = <FluidCell>[
@@ -42,7 +38,7 @@ class _PillarsTabChildState extends State<PillarsTabChild> {
       FluidCell(
         child: PillarStatsCard(
           onStepperNotificationSeeMorePressed:
-              widget.onStepperNotificationSeeMorePressed,
+              _onStepperNotificationSeeMorePressed,
         ),
         width: context.layout.value(
           xl: kStaggeredNumOfColumns ~/ 3,
