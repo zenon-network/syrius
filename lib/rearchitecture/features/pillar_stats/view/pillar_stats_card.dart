@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lottie/lottie.dart';
+import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/screens/screens.dart';
@@ -10,19 +11,38 @@ import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
-class PillarStatsCard extends StatefulWidget {
+class PillarStatsCard extends StatelessWidget {
   const PillarStatsCard({
-    required this.onStepperNotificationSeeMorePressed,
+    required VoidCallback onStepperNotificationSeeMorePressed,
     super.key,
+  }) : _onStepperNotificationSeeMorePressed =
+           onStepperNotificationSeeMorePressed;
+
+  final VoidCallback _onStepperNotificationSeeMorePressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocProvider<RevokePillarBloc>(
+      create: (_) => RevokePillarBloc(
+        accountBlockUtils: AccountBlockUtils(),
+        zenon: zenon!,
+        zenonAddressUtils: ZenonAddressUtils(),
+      ),
+      child: _PillarStatsView(
+        onStepperNotificationSeeMorePressed:
+            _onStepperNotificationSeeMorePressed,
+      ),
+    );
+  }
+}
+
+class _PillarStatsView extends StatelessWidget {
+  const _PillarStatsView({
+    required this.onStepperNotificationSeeMorePressed,
   });
 
   final VoidCallback onStepperNotificationSeeMorePressed;
 
-  @override
-  State<PillarStatsCard> createState() => _PillarStatsCardState();
-}
-
-class _PillarStatsCardState extends State<PillarStatsCard> {
   @override
   Widget build(BuildContext context) {
     return NewCardScaffold(
@@ -48,7 +68,7 @@ class _PillarStatsCardState extends State<PillarStatsCard> {
 
   Widget _buildBody(BuildContext context) {
     return Row(
-      children: [
+      children: <Widget>[
         Lottie.asset('assets/lottie/ic_anim_pillar.json', repeat: false),
         BlocBuilder<PillarsByOwnerBloc, FetchState<List<PillarInfo>>>(
           builder: (_, FetchState<List<PillarInfo>> state) {
@@ -78,7 +98,7 @@ class _PillarStatsCardState extends State<PillarStatsCard> {
               builder: (BuildContext context) => StepperScreen(
                 stepper: const CreatePillarStepperPage(),
                 onStepperNotificationSeeMorePressed:
-                    widget.onStepperNotificationSeeMorePressed,
+                    onStepperNotificationSeeMorePressed,
               ),
             ),
           ),
@@ -111,7 +131,7 @@ class _PillarStatsCardState extends State<PillarStatsCard> {
                         pillarInfo: pillarInfo,
                       ),
                       onStepperNotificationSeeMorePressed:
-                          widget.onStepperNotificationSeeMorePressed,
+                          onStepperNotificationSeeMorePressed,
                     ),
                   ),
                 ),
@@ -122,14 +142,15 @@ class _PillarStatsCardState extends State<PillarStatsCard> {
           ),
         ),
         kVerticalSpacing,
-        _buildRevokeTimer(pillarInfo),
+        _buildRevokeTimer(context: context, pillarInfo: pillarInfo),
       ],
     );
   }
 
-  Widget _buildRevokeTimer(
-    PillarInfo pillarInfo,
-  ) {
+  Widget _buildRevokeTimer({
+    required BuildContext context,
+    required PillarInfo pillarInfo,
+  }) {
     final bool isRevocable = pillarInfo.isRevocable;
 
     return Column(
@@ -137,7 +158,8 @@ class _PillarStatsCardState extends State<PillarStatsCard> {
         Visibility(
           visible: isRevocable,
           child: _buildRevokePillarBlocConsumer(
-            pillarInfo,
+            context: context,
+            pillarInfo: pillarInfo,
           ),
         ),
         Row(
@@ -168,9 +190,10 @@ class _PillarStatsCardState extends State<PillarStatsCard> {
     );
   }
 
-  Widget _buildRevokePillarBlocConsumer(
-    PillarInfo pillarInfo,
-  ) {
+  Widget _buildRevokePillarBlocConsumer({
+    required BuildContext context,
+    required PillarInfo pillarInfo,
+  }) {
     return BlocConsumer<RevokePillarBloc, RevokePillarState>(
       listener: (_, RevokePillarState state) {
         if (state is RevokePillarDone) {
@@ -186,18 +209,26 @@ class _PillarStatsCardState extends State<PillarStatsCard> {
           );
         }
       },
-      builder: (_, RevokePillarState state) => switch (state) {
-        RevokePillarInitial() => _buildDisassembleButton(pillarInfo),
-        RevokePillarFailure() => _buildDisassembleButton(pillarInfo),
-        RevokePillarDone() => _buildDisassembleButton(pillarInfo),
-        RevokePillarLoading() => const SyriusLoadingWidget(size: 25),
+      builder: (_, RevokePillarState state) {
+        final Widget button = _buildDisassembleButton(
+          context: context,
+          pillarInfo: pillarInfo,
+        );
+
+        return switch (state) {
+          RevokePillarInitial() => button,
+          RevokePillarFailure() => button,
+          RevokePillarDone() => button,
+          RevokePillarLoading() => const SyriusLoadingWidget(size: 25),
+        };
       },
     );
   }
 
-  Widget _buildDisassembleButton(
-    PillarInfo pillarItem,
-  ) {
+  Widget _buildDisassembleButton({
+    required PillarInfo pillarInfo,
+    required BuildContext context,
+  }) {
     return Column(
       children: <Widget>[
         OutlinedButton.icon(
@@ -210,7 +241,7 @@ class _PillarStatsCardState extends State<PillarStatsCard> {
           // TODO(maznnwell): add confirmation dialog
           onPressed: () {
             context.read<RevokePillarBloc>().add(
-              RevokePillarRequested(pillarName: pillarItem.name),
+              RevokePillarRequested(pillarName: pillarInfo.name),
             );
           },
           icon: const Icon(Icons.close),

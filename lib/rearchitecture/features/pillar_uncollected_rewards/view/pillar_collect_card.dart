@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:provider/single_child_widget.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/model/model.dart';
@@ -12,9 +13,29 @@ import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 class PillarCollectCard extends StatelessWidget {
-  const PillarCollectCard({
-    super.key,
-  });
+  const PillarCollectCard({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return MultiBlocProvider(
+      providers: <SingleChildWidget>[
+        BlocProvider<PillarUncollectedRewardsCubit>(
+          create: (_) =>
+              PillarUncollectedRewardsCubit(zenon: zenon!)..updateStream(
+                address: Address.parse(kSelectedAddress!),
+              ),
+        ),
+        BlocProvider<SendTransactionBloc>(
+          create: (_) => SendTransactionBloc(),
+        ),
+      ],
+      child: const _PillarCollectView(),
+    );
+  }
+}
+
+class _PillarCollectView extends StatelessWidget {
+  const _PillarCollectView();
 
   @override
   Widget build(BuildContext context) {
@@ -22,45 +43,48 @@ class PillarCollectCard extends StatelessWidget {
       data: _buildCardData(context: context),
       onRefreshPressed: () async {
         await context.read<PillarUncollectedRewardsCubit>().updateStream(
-              address: Address.parse(kSelectedAddress!),
-            );
+          address: Address.parse(kSelectedAddress!),
+        );
       },
-      body: BlocBuilder<PillarUncollectedRewardsCubit,
-          PillarUncollectedRewardsState>(
-        builder: (_, PillarUncollectedRewardsState state) {
-          final CubitWithRefreshOptionStatus status = state.status;
+      body:
+          BlocBuilder<
+            PillarUncollectedRewardsCubit,
+            PillarUncollectedRewardsState
+          >(
+            builder: (_, PillarUncollectedRewardsState state) {
+              final CubitWithRefreshOptionStatus status = state.status;
 
-          return switch (status) {
-            CubitWithRefreshOptionStatus.failure => SyriusErrorWidget(
-                state.error!,
-              ),
-            CubitWithRefreshOptionStatus.loading => const SyriusLoadingWidget(),
-            CubitWithRefreshOptionStatus.success => _PillarCollectPopulated(
-                uncollectedReward: state.data!,
-              ),
-          };
-        },
-      ),
+              return switch (status) {
+                CubitWithRefreshOptionStatus.failure => SyriusErrorWidget(
+                  state.error!,
+                ),
+                CubitWithRefreshOptionStatus.loading =>
+                  const SyriusLoadingWidget(),
+                CubitWithRefreshOptionStatus.success => _Populated(
+                  uncollectedReward: state.data!,
+                ),
+              };
+            },
+          ),
     );
   }
 
   CardData _buildCardData({required BuildContext context}) => CardData(
-        description: context.l10n.pillarCollectDescription,
-        title: context.l10n.pillarCollectTitle,
-      );
+    description: context.l10n.pillarCollectDescription,
+    title: context.l10n.pillarCollectTitle,
+  );
 }
 
-class _PillarCollectPopulated extends StatefulWidget {
-  const _PillarCollectPopulated({required this.uncollectedReward});
+class _Populated extends StatefulWidget {
+  const _Populated({required this.uncollectedReward});
 
   final UncollectedReward uncollectedReward;
 
   @override
-  State<_PillarCollectPopulated> createState() =>
-      _PillarCollectPopulatedState();
+  State<_Populated> createState() => _PopulatedState();
 }
 
-class _PillarCollectPopulatedState extends State<_PillarCollectPopulated> {
+class _PopulatedState extends State<_Populated> {
   final GlobalKey<LoadingButtonState> _collectButtonKey = GlobalKey();
 
   @override
@@ -80,9 +104,9 @@ class _PillarCollectPopulatedState extends State<_PillarCollectPopulated> {
               .toNum(),
           after: ' ${kZnnCoin.symbol}',
           style: Theme.of(context).textTheme.headlineLarge!.copyWith(
-                color: AppColors.znnColor,
-                fontSize: 30,
-              ),
+            color: AppColors.znnColor,
+            fontSize: 30,
+          ),
         ),
         kVerticalGap16,
         BlocListener<SendTransactionBloc, SendTransactionState>(
@@ -96,19 +120,23 @@ class _PillarCollectPopulatedState extends State<_PillarCollectPopulated> {
                 kDelayAfterAccountBlockCreationCall,
                 () {
                   if (context.mounted) {
-                    context
-                        .read<PillarUncollectedRewardsCubit>()
-                        .updateStream(
-                          address: Address.parse(kSelectedAddress!),
-                        );
+                    unawaited(
+                      context
+                          .read<PillarUncollectedRewardsCubit>()
+                          .updateStream(
+                            address: Address.parse(kSelectedAddress!),
+                          ),
+                    );
                   }
                 },
               );
             } else if (state.status == SendTransactionStatus.failure) {
               _collectButtonKey.currentState?.animateReverse();
-              NotificationUtils.sendNotificationError(
-                state.error!,
-                context.l10n.errorCollectingPillarRewards,
+              unawaited(
+                NotificationUtils.sendNotificationError(
+                  state.error!,
+                  context.l10n.errorCollectingPillarRewards,
+                ),
               );
             }
           },
@@ -117,8 +145,8 @@ class _PillarCollectPopulatedState extends State<_PillarCollectPopulated> {
             text: context.l10n.collect,
             onPressed: widget.uncollectedReward.znnAmount > BigInt.zero
                 ? () => _onCollectPressed(
-                      bloc: context.read<SendTransactionBloc>(),
-                    )
+                    bloc: context.read<SendTransactionBloc>(),
+                  )
                 : null,
           ),
         ),
@@ -143,13 +171,13 @@ class _PillarCollectPopulatedState extends State<_PillarCollectPopulated> {
 
     unawaited(
       sl.get<NotificationsBloc>().addNotification(
-            WalletNotification(
-              title: title,
-              timestamp: DateTime.now().millisecondsSinceEpoch,
-              details: context.l10n.hashValue(block.hash.toString()),
-              type: NotificationType.paymentSent,
-            ),
-          ),
+        WalletNotification(
+          title: title,
+          timestamp: DateTime.now().millisecondsSinceEpoch,
+          details: context.l10n.hashValue(block.hash.toString()),
+          type: NotificationType.paymentSent,
+        ),
+      ),
     );
   }
 }

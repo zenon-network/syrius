@@ -2,14 +2,11 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:provider/single_child_widget.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/extensions.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/notification_utils.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/zts_utils.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart'
     hide
         InfiniteScrollTable,
@@ -19,6 +16,31 @@ import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 class PillarsCard extends StatelessWidget {
   const PillarsCard({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return MultiBlocProvider(
+      providers: <SingleChildWidget>[
+        BlocProvider<PillarsBloc>(
+          create: (_) =>
+          PillarsBloc(zenon: zenon!)
+            ..add(const InfiniteListRequested(address: null)),
+        ),
+        BlocProvider<DelegationBloc>(
+          create: (_) => DelegationBloc(
+            accountBlockUtils: AccountBlockUtils(),
+            zenon: zenon!,
+          ),
+        ),
+      ],
+      child: const _PillarsView(),
+    );
+  }
+}
+
+
+class _PillarsView extends StatelessWidget {
+  const _PillarsView();
 
   @override
   Widget build(BuildContext context) {
@@ -68,7 +90,6 @@ class _Populated extends StatefulWidget {
   const _Populated({
     required this.hasReachedMax,
     required this.pillars,
-    super.key,
   });
 
   final bool hasReachedMax;
@@ -319,7 +340,7 @@ class _PopulatedState extends State<_Populated> {
     return Row(
       mainAxisAlignment: .center,
       mainAxisSize: .min,
-      children: [
+      children: <Widget>[
         Visibility(
           visible: _accountInfo!.znn()! >= kMinDelegationAmount,
           child: LoadingButton(
