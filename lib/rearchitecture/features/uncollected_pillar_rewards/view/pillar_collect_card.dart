@@ -12,7 +12,12 @@ import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
+/// A widget that display the amount of uncollected pillar rewards
+///
+/// If it's higher than zero, then a button to trigger their collection is
+/// displayed
 class PillarCollectCard extends StatelessWidget {
+  /// {@macro default_constructor}
   const PillarCollectCard({super.key});
 
   @override
@@ -57,7 +62,8 @@ class _PillarCollectView extends StatelessWidget {
                   FetchFailure<UncollectedReward>() => SyriusErrorWidget(
                     state.exception,
                   ),
-                  FetchInitial<UncollectedReward>() => const SyriusLoadingWidget(),
+                  FetchInitial<UncollectedReward>() =>
+                    const SyriusLoadingWidget(),
                   FetchPopulated<UncollectedReward>() => _Populated(
                     uncollectedReward: state.data,
                   ),
