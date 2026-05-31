@@ -24,7 +24,7 @@ class PendingTransactionsCard extends StatelessWidget {
 
     return NewCardScaffold(
       data: _buildCardData(context: context),
-      onRefreshPressed: () async {
+      onRefreshPressed: () {
         bloc.add(
           InfiniteListRefreshRequested(
             address: Address.parse(kSelectedAddress!),

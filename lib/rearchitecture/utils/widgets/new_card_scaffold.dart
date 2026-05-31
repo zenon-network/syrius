@@ -39,7 +39,7 @@ class NewCardScaffold extends StatefulWidget {
   final CardData data;
 
   /// Optional callback that can be trigger from the card
-  final RefreshCallback? onRefreshPressed;
+  final VoidCallback? onRefreshPressed;
 
   @override
   State<NewCardScaffold> createState() => _NewCardScaffoldState();

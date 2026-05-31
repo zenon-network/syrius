@@ -3,31 +3,57 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/loading_widget.dart';
 
+/// A button that, initially, shows a refresh icon but re-builds to show a
+/// loading indicator to show to the user that an async operation is being done
+///
+/// Future not fully implemented
 class RefreshButton extends StatelessWidget {
   /// Constructs a new instance.
   const RefreshButton({
+    required VoidCallback onPressed,
     super.key,
-  });
+  }) : _onPressed = onPressed;
+
+  final VoidCallback _onPressed;
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<RefreshButtonCubit, RefreshButtonState>(
-      builder: (_, RefreshButtonState state) => switch (state) {
-        RefreshCardInitial() => IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: () {
-              context.read<RefreshButtonCubit>().executeRefreshOperation();
-            },
-          ),
-        RefreshCardLoading() => const IconButton(
-            onPressed: null,
-            icon: SyriusLoadingWidget(
-              padding: 0,
-              strokeWidth: 2,
-              size: 20,
-            ),
-          ),
-      },
+    const bool isLoading = false;
+    // TODO(maznnwell): implement re-building via a listener
+    return isLoading ? _Loading() : _Initial(onPressed: _onPressed,);
+  }
+}
+
+class _Loading extends StatelessWidget {
+  const _Loading();
+
+  @override
+  Widget build(BuildContext context) {
+    return const IconButton(
+      onPressed: null,
+      icon: SyriusLoadingWidget(
+        padding: 0,
+        strokeWidth: 2,
+        size: 20,
+      ),
     );
   }
 }
+
+class _Initial extends StatelessWidget {
+  const _Initial({
+    required this.onPressed,
+});
+
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return IconButton(
+      icon: const Icon(Icons.refresh),
+      onPressed: onPressed,
+    );
+  }
+}
+
+

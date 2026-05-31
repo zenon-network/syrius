@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/refresh_button/view/view.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/constants/constants.dart';
@@ -21,7 +20,7 @@ class CardScaffoldHeader extends StatelessWidget {
   final VoidCallback onMoreIconPressed;
 
   /// Optional callback that can be trigger from the refresh icon.
-  final RefreshCallback? onRefreshPressed;
+  final VoidCallback? onRefreshPressed;
 
   @override
   Widget build(BuildContext context) {
@@ -49,12 +48,7 @@ class CardScaffoldHeader extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.end,
           children: <Widget>[
             if (onRefreshPressed != null)
-              BlocProvider<RefreshButtonCubit>(
-                create: (_) => RefreshButtonCubit(
-                  refreshCallback: onRefreshPressed!,
-                ),
-                child: const RefreshButton(),
-              ),
+              RefreshButton(onPressed: onRefreshPressed!,),
             IconButton(
               icon: const Icon(Icons.more_horiz),
               onPressed: onMoreIconPressed,

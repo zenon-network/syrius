@@ -11,7 +11,7 @@ part 'hide_widget_cubit.g.dart';
 
 part 'hide_widget_state.dart';
 
-/// A cubit that handles saving whether a widget is hidden or not
+/// A bloc that handles saving whether a widget is hidden or not
 ///
 /// When the user wants to make the widget visible, it checks that the provided
 /// wallet password is correct

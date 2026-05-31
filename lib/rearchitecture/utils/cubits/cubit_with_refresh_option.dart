@@ -5,9 +5,9 @@ import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/cubits/cubit_wi
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/exceptions/exceptions.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
-/// A cubit used to manage reloading and updating indicator states.
+/// A bloc used to manage reloading and updating indicator states.
 ///
-/// This cubit can be used for any data-fetching operations that require
+/// This bloc can be used for any data-fetching operations that require
 /// real-time updates from the Zenon SDK.
 abstract class CubitWithRefreshOption<T, S extends CubitWithRefreshOptionState<T>>
     extends HydratedCubit<S> {
@@ -85,7 +85,7 @@ abstract class CubitWithRefreshOption<T, S extends CubitWithRefreshOptionState<T
     }
   }
 
-  /// Overrides the [close] method to perform cleanup before closing the cubit.
+  /// Overrides the [close] method to perform cleanup before closing the bloc.
   ///
   /// Cancels any active WebSocket subscriptions managed by the mixin.
   @override

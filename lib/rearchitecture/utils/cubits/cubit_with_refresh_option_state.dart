@@ -2,7 +2,7 @@ import 'package:equatable/equatable.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/exceptions/exceptions.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
-/// Represents the various statuses a cubit's request can have.
+/// Represents the various statuses a bloc's request can have.
 enum CubitWithRefreshOptionStatus {
   /// {@macro failure_status}
   failure,
@@ -14,17 +14,17 @@ enum CubitWithRefreshOptionStatus {
   success,
 }
 
-/// An abstract class that defines the common structure for cubit states.
+/// An abstract class that defines the common structure for bloc states.
 ///
 /// The [CubitWithRefreshOptionState] is designed to be generic, with [T]
-/// representing the type of data that is managed by each specific cubit state.
+/// representing the type of data that is managed by each specific bloc state.
 ///
 /// The state includes:
 /// - [status]: An [CubitWithRefreshOptionStatus] that indicates the current
 /// state (loading, success, etc.).
-/// - [data]: The data of type [T] that is managed by the cubit.
+/// - [data]: The data of type [T] that is managed by the bloc.
 /// - [error]: An optional [error] object that contains error details if the
-/// cubit is in a failure state.
+/// bloc is in a failure state.
 abstract class CubitWithRefreshOptionState<T> extends Equatable {
   /// Constructs an [CubitWithRefreshOptionState] with a [status], [data], and
   /// [error].
@@ -50,10 +50,10 @@ abstract class CubitWithRefreshOptionState<T> extends Equatable {
   /// The address for witch data is fetched. Can change along the way.
   final Address? address;
 
-  /// Represents the current status of the cubit.
+  /// Represents the current status of the bloc.
   final CubitWithRefreshOptionStatus status;
 
-  /// The data of type [T] managed by the cubit, which can be null if no data
+  /// The data of type [T] managed by the bloc, which can be null if no data
   /// has been loaded or if there was an error.
   final T? data;
 

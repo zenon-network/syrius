@@ -16,39 +16,28 @@ class PillarRewardsCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider<RefreshButtonCubit>(
-      create: (_) => RefreshButtonCubit(
-        refreshCallback: () async {
-          context.read<PillarRewardsHistoryBloc>().add(
-            FetchRequestData(
-              address: Address.parse(kSelectedAddress!),
-            ),
-          );
+    return NewCardScaffold(
+      data: _buildCardData(context: context),
+      onRefreshPressed: () {
+        context.read<PillarRewardsHistoryBloc>().add(
+          FetchRequestData(
+            address: Address.parse(kSelectedAddress!),
+          ),
+        );
+      },
+      body: BlocBuilder<PillarRewardsHistoryBloc,
+          FetchState<RewardHistoryList>>(
+        builder: (_, FetchState<RewardHistoryList> state) {
+          return switch (state) {
+            FetchFailure<RewardHistoryList>() => SyriusErrorWidget(
+                state.exception,
+              ),
+            FetchInitial<RewardHistoryList>() => const SyriusLoadingWidget(),
+            FetchPopulated<RewardHistoryList>() => PillarRewardsChart(
+                rewardsHistoryList: state.data,
+              ),
+          };
         },
-      ),
-      child: NewCardScaffold(
-        data: _buildCardData(context: context),
-        onRefreshPressed: () async {
-          context.read<PillarRewardsHistoryBloc>().add(
-            FetchRequestData(
-              address: Address.parse(kSelectedAddress!),
-            ),
-          );
-        },
-        body: BlocBuilder<PillarRewardsHistoryBloc,
-            FetchState<RewardHistoryList>>(
-          builder: (_, FetchState<RewardHistoryList> state) {
-            return switch (state) {
-              FetchFailure<RewardHistoryList>() => SyriusErrorWidget(
-                  state.exception,
-                ),
-              FetchInitial<RewardHistoryList>() => const SyriusLoadingWidget(),
-              FetchPopulated<RewardHistoryList>() => PillarRewardsChart(
-                  rewardsHistoryList: state.data,
-                ),
-            };
-          },
-        ),
       ),
     );
   }

@@ -7,7 +7,7 @@ part 'balance_cubit.g.dart';
 
 part 'balance_state.dart';
 
-/// A cubit that is responsible for managing and fetching the account balance
+/// A bloc that is responsible for managing and fetching the account balance
 /// of the provided [address].
 
 class BalanceCubit extends TimerCubit<AccountInfo, BalanceState> {

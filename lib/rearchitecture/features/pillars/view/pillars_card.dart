@@ -46,7 +46,7 @@ class _PillarsView extends StatelessWidget {
   Widget build(BuildContext context) {
     return NewCardScaffold(
       data: _buildCardData(context: context),
-      onRefreshPressed: () async {
+      onRefreshPressed: () {
         context.read<PillarsBloc>().add(
           InfiniteListRefreshRequested(
             address: Address.parse(kSelectedAddress!),

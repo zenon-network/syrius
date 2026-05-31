@@ -19,11 +19,15 @@ class PillarCollectCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiBlocProvider(
       providers: <SingleChildWidget>[
-        BlocProvider<PillarUncollectedRewardsCubit>(
-          create: (_) =>
-              PillarUncollectedRewardsCubit(zenon: zenon!)..updateStream(
-                address: Address.parse(kSelectedAddress!),
+        BlocProvider<UncollectedPillarRewards>(
+          create: (_) => UncollectedPillarRewards(zenon: zenon!)
+            ..add(
+              FetchRequestData(
+                address: Address.parse(
+                  kSelectedAddress!,
+                ),
               ),
+            ),
         ),
         BlocProvider<SendTransactionBloc>(
           create: (_) => SendTransactionBloc(),
@@ -41,30 +45,23 @@ class _PillarCollectView extends StatelessWidget {
   Widget build(BuildContext context) {
     return NewCardScaffold(
       data: _buildCardData(context: context),
-      onRefreshPressed: () async {
-        await context.read<PillarUncollectedRewardsCubit>().updateStream(
-          address: Address.parse(kSelectedAddress!),
+      onRefreshPressed: () {
+        context.read<UncollectedPillarRewards>().add(
+          FetchRequestData(address: Address.parse(kSelectedAddress!)),
         );
       },
       body:
-          BlocBuilder<
-            PillarUncollectedRewardsCubit,
-            PillarUncollectedRewardsState
-          >(
-            builder: (_, PillarUncollectedRewardsState state) {
-              final CubitWithRefreshOptionStatus status = state.status;
-
-              return switch (status) {
-                CubitWithRefreshOptionStatus.failure => SyriusErrorWidget(
-                  state.error!,
-                ),
-                CubitWithRefreshOptionStatus.loading =>
-                  const SyriusLoadingWidget(),
-                CubitWithRefreshOptionStatus.success => _Populated(
-                  uncollectedReward: state.data!,
-                ),
-              };
-            },
+          BlocBuilder<UncollectedPillarRewards, FetchState<UncollectedReward>>(
+            builder: (_, FetchState<UncollectedReward> state) =>
+                switch (state) {
+                  FetchFailure<UncollectedReward>() => SyriusErrorWidget(
+                    state.exception,
+                  ),
+                  FetchInitial<UncollectedReward>() => const SyriusLoadingWidget(),
+                  FetchPopulated<UncollectedReward>() => _Populated(
+                    uncollectedReward: state.data,
+                  ),
+                },
           ),
     );
   }
@@ -120,12 +117,10 @@ class _PopulatedState extends State<_Populated> {
                 kDelayAfterAccountBlockCreationCall,
                 () {
                   if (context.mounted) {
-                    unawaited(
-                      context
-                          .read<PillarUncollectedRewardsCubit>()
-                          .updateStream(
-                            address: Address.parse(kSelectedAddress!),
-                          ),
+                    context.read<UncollectedPillarRewards>().add(
+                      FetchRequestData(
+                        address: Address.parse(kSelectedAddress!),
+                      ),
                     );
                   }
                 },

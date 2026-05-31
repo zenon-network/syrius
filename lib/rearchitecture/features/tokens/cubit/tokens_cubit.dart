@@ -9,7 +9,7 @@ part 'tokens_state.dart';
 
 part 'tokens_cubit.g.dart';
 
-/// A cubit who's purpose is to retrieve the available list of tokens
+/// A bloc who's purpose is to retrieve the available list of tokens
 ///
 /// It uses the class [TokensState] to send updates to the UI
 class TokensCubit extends HydratedCubit<TokensState> with RefreshBlocMixin {

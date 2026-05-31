@@ -47,7 +47,7 @@ void main() {
       when(() => mockZenon.embedded).thenReturn(mockEmbedded);
       when(() => mockEmbedded.pillar).thenReturn(mockPillarApi);
 
-      // Initialize the cubit without calling updateStream automatically
+      // Initialize the bloc without calling updateStream automatically
       cubit = DelegationInfoCubit(
         zenon: mockZenon,
         address: testAddress, // Prevent automatic data fetching

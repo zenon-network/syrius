@@ -11,18 +11,18 @@ part 'timer_state.dart';
 
 /// An abstract class that manages periodic data fetching for a
 ///
-/// The cubit emits different states based on data loading,
+/// The bloc emits different states based on data loading,
 /// success, or failure, and it periodically refreshes the data automatically.
 ///
-/// The generic type [T] represents the type of data managed by this cubit.
+/// The generic type [T] represents the type of data managed by this bloc.
 ///
-/// The generic type [S] represents the type of the states emitted by the cubit.
+/// The generic type [S] represents the type of the states emitted by the bloc.
 /// [S] extends [TimerState]
 abstract class TimerCubit<T, S extends TimerState<T>> extends HydratedCubit<S> {
   /// Constructs a [TimerCubit] with the provided [zenon] client and initial
   /// state.
   ///
-  /// The auto-refresh functionality is initialized upon the cubit's creation.
+  /// The auto-refresh functionality is initialized upon the bloc's creation.
   TimerCubit({
     required this.zenon,
     required S initialState,
@@ -38,7 +38,7 @@ abstract class TimerCubit<T, S extends TimerState<T>> extends HydratedCubit<S> {
   /// The interval at which to fetch the data again.
   final Duration refreshInterval;
 
-  /// Fetches data of type [T] that is managed by the cubit.
+  /// Fetches data of type [T] that is managed by the bloc.
   ///
   /// This method needs to be implemented by subclasses, and it should define
   /// the specific data-fetching logic (e.g., fetching account information).
@@ -108,10 +108,10 @@ abstract class TimerCubit<T, S extends TimerState<T>> extends HydratedCubit<S> {
   /// Checks if a timer was set and if it's active
   bool get isTimerActive => _autoRefresher?.isActive ?? false;
 
-  /// Cancels the auto-refresh timer and closes the cubit.
+  /// Cancels the auto-refresh timer and closes the bloc.
   ///
-  /// This method is called when the cubit is closed, ensuring that no
-  /// background tasks remain active after the cubit is disposed.
+  /// This method is called when the bloc is closed, ensuring that no
+  /// background tasks remain active after the bloc is disposed.
   @override
   Future<void> close() {
     _autoRefresher?.cancel();
@@ -124,7 +124,7 @@ abstract class TimerCubit<T, S extends TimerState<T>> extends HydratedCubit<S> {
     if (error is SyriusException) {
       logLevel = Level.INFO;
     }
-    // state.runtimeType has the roll to identify in which cubit subclass
+    // state.runtimeType has the roll to identify in which bloc subclass
     // the error happened
     Logger('TimerCubit - ${state.runtimeType}').log(
       logLevel,
