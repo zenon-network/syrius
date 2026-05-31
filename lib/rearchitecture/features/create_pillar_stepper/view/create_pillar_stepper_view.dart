@@ -31,7 +31,17 @@ enum _PillarStepperStep {
   deployPillar,
 }
 
+/// A stepper that guides the user along the needed steps that they have to
+/// take to create a pillar.
+///
+/// The deposit QSR step works in such a way as to not allow the user to
+/// deposit, by mistake, more QSR than it's needed for the creation of a
+/// pillar.
+///
+/// For example, if 150k QSR are needed, then that's how much the user is
+/// allowed to deposit totally.
 class CreatePillarStepperView extends StatefulWidget {
+  /// {@macro default_constructor}
   const CreatePillarStepperView({super.key});
 
   @override

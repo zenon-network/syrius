@@ -14,7 +14,14 @@ import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart'
         InfiniteScrollTableHeaderColumn;
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
+/// A widget that displays the list of pillars, each UI item from the list
+/// showing some specific information about the represented pillar
+///
+/// If a user has delegated to a pillar, a 'Delegated' mention is shown
+/// If a user hasn't delegated to a pillar, than a 'Delegate' button is shown
+/// which allow the user to delegate without un-delegating first
 class PillarsCard extends StatelessWidget {
+  /// {@macro default_constructor}
   const PillarsCard({super.key});
 
   @override

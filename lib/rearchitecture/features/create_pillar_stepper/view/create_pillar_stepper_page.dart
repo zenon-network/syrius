@@ -6,7 +6,12 @@ import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dar
 import 'package:zenon_syrius_wallet_flutter/utils/account_block_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/address_utils.dart';
 
+/// A wrapper widget that helps with registering dependencies inside the
+/// context object.
+///
+/// Dependencies latter used by the view [CreatePillarStepperView].
 class CreatePillarStepperPage extends StatelessWidget {
+  /// {@macro default_constructor}
   const CreatePillarStepperPage({super.key});
 
   @override

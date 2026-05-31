@@ -11,7 +11,18 @@ import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
+/// A widget that shows some information depending on the pillar status
+///
+/// If the current selected address is not registered as a owner for a pillar,
+/// then it shows a button to create one
+///
+/// If it is registered, then the widgets show:
+/// 1. button to update the pillar
+/// 2. a timer which clocks the time until revocation window opens; afterwards,
+/// it changes to show the time until revocation window closes
+/// 3. revocation button when the time condition is meet
 class PillarStatsCard extends StatelessWidget {
+  /// {@macro default_constructor}
   const PillarStatsCard({
     required VoidCallback onStepperNotificationSeeMorePressed,
     super.key,

@@ -1,9 +1,9 @@
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
-/// A bloc that manages the list of pillars.
+/// A bloc that fetchers the list of pillars.
 class PillarsBloc extends InfiniteListBloc<PillarInfo> {
-  /// Constructs a new instance of the bloc.
+  /// {@macro default_constructor}
   PillarsBloc({required super.zenon, super.pageSize = kPageSize})
       : super(
           fromJsonT: (Object? map) => PillarInfo.fromJson(
