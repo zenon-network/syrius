@@ -34,9 +34,9 @@ class TestFetchBloc extends FetchBloc<TestData> {
     required super.zenon,
     required this.getDataCallback,
   }) : super(
-          fromJsonT: TestData.fromJson,
-          toJsonT: (TestData data) => data.toJson(),
-        );
+         fromJsonT: TestData.fromJson,
+         toJsonT: (TestData data) => data.toJson(),
+       );
 
   final Future<TestData> Function(Address address) getDataCallback;
 
@@ -90,8 +90,9 @@ void main() {
           getDataCallback: (Address address) async => testData,
         );
 
-        final FetchPopulated<TestData> successState =
-            FetchPopulated<TestData>(data: testData);
+        final FetchPopulated<TestData> successState = FetchPopulated<TestData>(
+          data: testData,
+        );
         final Map<String, dynamic>? serialized = bloc.toJson(successState);
         final FetchState<TestData> deserialized = bloc.fromJson(serialized!);
         expect(deserialized, equals(successState));
@@ -103,8 +104,9 @@ void main() {
           getDataCallback: (Address address) async => testData,
         );
 
-        final FetchFailure<TestData> failureState =
-            FetchFailure<TestData>(exception: syriusException);
+        final FetchFailure<TestData> failureState = FetchFailure<TestData>(
+          exception: syriusException,
+        );
         final Map<String, dynamic>? serialized = bloc.toJson(failureState);
         final FetchState<TestData> deserialized = bloc.fromJson(serialized!);
         expect(deserialized, equals(failureState));
@@ -128,8 +130,7 @@ void main() {
       'emits FetchFailure with same SyriusException when getData throws it',
       build: () => TestFetchBloc(
         zenon: mockZenon,
-        getDataCallback: (Address address) async =>
-            throw syriusException,
+        getDataCallback: (Address address) async => throw syriusException,
       ),
       act: (TestFetchBloc bloc) =>
           bloc.add(FetchRequestData(address: emptyAddress)),
@@ -142,8 +143,7 @@ void main() {
       'emits FetchFailure(FailureException) when getData throws Exception',
       build: () => TestFetchBloc(
         zenon: mockZenon,
-        getDataCallback: (Address address) async =>
-            throw Exception('boom'),
+        getDataCallback: (Address address) async => throw Exception('boom'),
       ),
       act: (TestFetchBloc bloc) =>
           bloc.add(FetchRequestData(address: emptyAddress)),

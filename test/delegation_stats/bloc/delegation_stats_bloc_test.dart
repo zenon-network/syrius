@@ -15,8 +15,6 @@ class MockEmbedded extends Mock implements EmbeddedApi {}
 
 class MockPillar extends Mock implements PillarApi {}
 
-class MockDelegationInfo extends Mock implements DelegationInfo {}
-
 class FakeAddress extends Fake implements Address {}
 
 void main() {

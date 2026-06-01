@@ -9,10 +9,15 @@ import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 import '../../helpers/hydrated_bloc.dart';
 
 class MockZenon extends Mock implements Zenon {}
+
 class MockEmbedded extends Mock implements EmbeddedApi {}
+
 class MockPillarApi extends Mock implements PillarApi {}
+
 class MockAccountBlockUtils extends Mock implements AccountBlockUtils {}
+
 class MockAccountBlockTemplate extends Mock implements AccountBlockTemplate {}
+
 class FakeAddress extends Fake implements Address {}
 
 void main() {
@@ -46,7 +51,10 @@ void main() {
         () => accountBlockUtils.createAccountBlock(any(), any()),
       ).thenAnswer((_) async => template);
 
-      bloc = UpdatePillarBloc(accountBlockUtils: accountBlockUtils, zenon: zenon);
+      bloc = UpdatePillarBloc(
+        accountBlockUtils: accountBlockUtils,
+        zenon: zenon,
+      );
     });
 
     test('initial state is correct', () {

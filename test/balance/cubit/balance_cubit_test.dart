@@ -15,7 +15,6 @@ class MockLedger extends Mock implements LedgerApi {}
 
 class FakeAddress extends Fake implements Address {}
 
-
 void main() {
   initHydratedStorage();
 
@@ -38,19 +37,19 @@ void main() {
       mockWsClient = MockWsClient();
 
       balanceInfoListItem = BalanceInfoListItem(
-          token: kZnnCoin,
-          balance: BigInt.from(5),
+        token: kZnnCoin,
+        balance: BigInt.from(5),
       );
 
       accountInfo = AccountInfo(
-          address: emptyAddress.toString(),
-          blockCount: 1,
-          balanceInfoList: <BalanceInfoListItem>[balanceInfoListItem],
+        address: emptyAddress.toString(),
+        blockCount: 1,
+        balanceInfoList: <BalanceInfoListItem>[balanceInfoListItem],
       );
 
       balanceCubit = BalanceCubit(
-          address: emptyAddress,
-          zenon: mockZenon,
+        address: emptyAddress,
+        zenon: mockZenon,
       );
       balanceException = NoBalanceException();
 
@@ -58,9 +57,9 @@ void main() {
       when(() => mockWsClient.isClosed()).thenReturn(false);
       when(() => mockZenon.ledger).thenReturn(mockLedger);
 
-      when(() => mockLedger.getAccountInfoByAddress(any()),
+      when(
+        () => mockLedger.getAccountInfoByAddress(any()),
       ).thenAnswer((_) async => accountInfo);
-
     });
 
     test('initial status is correct', () {
@@ -114,7 +113,6 @@ void main() {
         expect(deserialized, balanceState);
       });
 
-
       test('can (de)serialize failure state', () {
         final BalanceState failureState = BalanceState(
           status: TimerStatus.failure,
@@ -131,20 +129,20 @@ void main() {
       });
     });
 
-
     group('fetchDataPeriodically', () {
       blocTest<BalanceCubit, BalanceState>(
         'calls getAccountInfoByAddress once',
         build: () => balanceCubit,
         setUp: () {
-          when(() => mockLedger.getAccountInfoByAddress(any()),
+          when(
+            () => mockLedger.getAccountInfoByAddress(any()),
           ).thenAnswer((_) async => accountInfo);
         },
         act: (BalanceCubit cubit) => cubit.fetch(),
         verify: (_) {
-            verify(() =>
-                mockLedger.getAccountInfoByAddress(any()),
-            ).called(1);
+          verify(
+            () => mockLedger.getAccountInfoByAddress(any()),
+          ).called(1);
         },
       );
 
@@ -152,16 +150,17 @@ void main() {
         'emits [loading, failure] when fetch throws',
         build: () => balanceCubit,
         setUp: () {
-          when(() => mockLedger.getAccountInfoByAddress(any()),
+          when(
+            () => mockLedger.getAccountInfoByAddress(any()),
           ).thenThrow(balanceException);
         },
         act: (BalanceCubit cubit) => cubit.fetchDataPeriodically(),
-          expect: () => <BalanceState>[
-            const BalanceState(status: TimerStatus.loading),
-            BalanceState(
-              status: TimerStatus.failure,
-              error: balanceException,
-            ),
+        expect: () => <BalanceState>[
+          const BalanceState(status: TimerStatus.loading),
+          BalanceState(
+            status: TimerStatus.failure,
+            error: balanceException,
+          ),
         ],
       );
 
@@ -169,12 +168,13 @@ void main() {
         'emits [loading, success] when fetch returns',
         build: () => balanceCubit,
         act: (BalanceCubit cubit) => cubit.fetchDataPeriodically(),
-          expect: () => <BalanceState>[
-            const BalanceState(status: TimerStatus.loading),
-            BalanceState(status: TimerStatus.success,
+        expect: () => <BalanceState>[
+          const BalanceState(status: TimerStatus.loading),
+          BalanceState(
+            status: TimerStatus.success,
             data: accountInfo,
-            ),
-          ],
+          ),
+        ],
       );
     });
   });

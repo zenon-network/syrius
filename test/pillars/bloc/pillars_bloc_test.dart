@@ -3,7 +3,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 import '../../helpers/hydrated_bloc.dart';
@@ -44,20 +43,20 @@ void main() {
       pillarInfo = MockPillarInfo();
 
       when(() => pillarInfo.toJson()).thenReturn(<String, dynamic>{
-            'name': 'pillar-name',
-            'rank': 1,
-            'type': 0,
-            'ownerAddress': emptyAddress.toString(),
-            'producerAddress': emptyAddress.toString(),
-            'withdrawAddress': emptyAddress.toString(),
-            'isRevocable': false,
-            'revokeCooldown': 0,
-            'revokeTimestamp': 0,
-            'currentStats': <String, dynamic>{},
-            'weight': '1',
-            'giveMomentumRewardPercentage': 0,
-            'giveDelegateRewardPercentage': 0,
-          });
+        'name': 'pillar-name',
+        'rank': 1,
+        'type': 0,
+        'ownerAddress': emptyAddress.toString(),
+        'producerAddress': emptyAddress.toString(),
+        'withdrawAddress': emptyAddress.toString(),
+        'isRevocable': false,
+        'revokeCooldown': 0,
+        'revokeTimestamp': 0,
+        'currentStats': <String, dynamic>{},
+        'weight': '1',
+        'giveMomentumRewardPercentage': 0,
+        'giveDelegateRewardPercentage': 0,
+      });
       when(() => mockZenon.embedded).thenReturn(mockEmbedded);
       when(() => mockEmbedded.pillar).thenReturn(mockPillarApi);
       when(() => mockPillarInfoList.list).thenReturn(<PillarInfo>[pillarInfo]);
@@ -83,7 +82,6 @@ void main() {
       verify: (_) {
         verify(
           () => mockPillarApi.getAll(
-            pageIndex: 0,
             pageSize: pageSize,
           ),
         ).called(1);

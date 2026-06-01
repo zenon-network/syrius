@@ -9,11 +9,17 @@ import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 import '../../helpers/hydrated_bloc.dart';
 
 class MockZenon extends Mock implements Zenon {}
+
 class MockEmbedded extends Mock implements EmbeddedApi {}
+
 class MockPillarApi extends Mock implements PillarApi {}
+
 class MockAccountBlockUtils extends Mock implements AccountBlockUtils {}
+
 class MockZenonAddressUtils extends Mock implements ZenonAddressUtils {}
+
 class MockAccountBlockTemplate extends Mock implements AccountBlockTemplate {}
+
 class FakeAddress extends Fake implements Address {}
 
 void main() {

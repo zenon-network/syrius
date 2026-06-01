@@ -3,7 +3,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/blocs/infinite_list/infinite_list_bloc.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/exceptions/exceptions.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 import '../../../../helpers/hydrated_bloc.dart';
@@ -18,23 +17,23 @@ class TestInfiniteListBloc extends InfiniteListBloc<int> {
     required this.paginationFetchCallback,
     super.pageSize = 2,
   }) : super(
-          fromJsonT: (Object? value) => value! as int,
-          toJsonT: (int value) => value,
-        );
+         fromJsonT: (Object? value) => value! as int,
+         toJsonT: (int value) => value,
+       );
 
   final Future<List<int>> Function(
     Address? address,
     int pageIndex,
     int pageSize,
-  ) paginationFetchCallback;
+  )
+  paginationFetchCallback;
 
   @override
   Future<List<int>> paginationFetch({
     required Address? address,
     required int pageIndex,
     required int pageSize,
-  }) =>
-      paginationFetchCallback(address, pageIndex, pageSize);
+  }) => paginationFetchCallback(address, pageIndex, pageSize);
 }
 
 void main() {
@@ -54,7 +53,7 @@ void main() {
     test('initial state is correct', () {
       final TestInfiniteListBloc bloc = TestInfiniteListBloc(
         zenon: mockZenon,
-        paginationFetchCallback: (_, __, ___) async => <int>[1],
+        paginationFetchCallback: (_, _, _) async => <int>[1],
       );
       expect(bloc.state, const InfiniteListState<int>.initial());
     });
@@ -63,7 +62,7 @@ void main() {
       'requested emits success with fetched data',
       build: () => TestInfiniteListBloc(
         zenon: mockZenon,
-        paginationFetchCallback: (_, __, ___) async => <int>[1, 2],
+        paginationFetchCallback: (_, _, _) async => <int>[1, 2],
       ),
       act: (TestInfiniteListBloc bloc) =>
           bloc.add(InfiniteListRequested(address: emptyAddress)),
@@ -71,7 +70,6 @@ void main() {
         const InfiniteListState<int>(
           status: InfiniteListStatus.success,
           data: <int>[1, 2],
-          hasReachedMax: false,
         ),
       ],
     );
@@ -80,7 +78,7 @@ void main() {
       'more requested appends data',
       build: () => TestInfiniteListBloc(
         zenon: mockZenon,
-        paginationFetchCallback: (_, int pageIndex, __) async {
+        paginationFetchCallback: (_, int pageIndex, _) async {
           if (pageIndex == 0) {
             return <int>[1, 2];
           }
@@ -96,7 +94,6 @@ void main() {
         const InfiniteListState<int>(
           status: InfiniteListStatus.success,
           data: <int>[1, 2],
-          hasReachedMax: false,
         ),
         const InfiniteListState<int>(
           status: InfiniteListStatus.success,
@@ -110,7 +107,7 @@ void main() {
       'refresh requested emits initial then success',
       build: () => TestInfiniteListBloc(
         zenon: mockZenon,
-        paginationFetchCallback: (_, __, ___) async => <int>[9],
+        paginationFetchCallback: (_, _, _) async => <int>[9],
       ),
       act: (TestInfiniteListBloc bloc) =>
           bloc.add(InfiniteListRefreshRequested(address: emptyAddress)),
@@ -128,14 +125,22 @@ void main() {
       'requested emits failure when fetch throws',
       build: () => TestInfiniteListBloc(
         zenon: mockZenon,
-        paginationFetchCallback: (_, __, ___) async => throw Exception('err'),
+        paginationFetchCallback: (_, _, _) async => throw Exception('err'),
       ),
       act: (TestInfiniteListBloc bloc) =>
           bloc.add(InfiniteListRequested(address: emptyAddress)),
       expect: () => <Matcher>[
         isA<InfiniteListState<int>>()
-            .having((InfiniteListState<int> s) => s.status, 'status', InfiniteListStatus.failure)
-            .having((InfiniteListState<int> s) => s.error, 'error', isA<FailureException>()),
+            .having(
+              (InfiniteListState<int> s) => s.status,
+              'status',
+              InfiniteListStatus.failure,
+            )
+            .having(
+              (InfiniteListState<int> s) => s.error,
+              'error',
+              isA<FailureException>(),
+            ),
       ],
     );
   });

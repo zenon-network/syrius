@@ -15,17 +15,21 @@ class TestTimerState extends TimerState<int> {
   const TestTimerState({super.status, super.data, super.error});
 
   factory TestTimerState.fromJson(Map<String, dynamic> json) => TestTimerState(
-        status: TimerStatus.values.firstWhere(
-          (TimerStatus s) => s.name == json['status'],
-        ),
-        data: json['data'] as int?,
-        error: json['error'] == null
-            ? null
-            : SyriusException.fromJson(json['error'] as Map<String, dynamic>),
-      );
+    status: TimerStatus.values.firstWhere(
+      (TimerStatus s) => s.name == json['status'],
+    ),
+    data: json['data'] as int?,
+    error: json['error'] == null
+        ? null
+        : SyriusException.fromJson(json['error'] as Map<String, dynamic>),
+  );
 
   @override
-  TimerState<int> copyWith({TimerStatus? status, int? data, SyriusException? error}) {
+  TimerState<int> copyWith({
+    TimerStatus? status,
+    int? data,
+    SyriusException? error,
+  }) {
     return TestTimerState(
       status: status ?? this.status,
       data: data ?? this.data,
@@ -34,10 +38,10 @@ class TestTimerState extends TimerState<int> {
   }
 
   Map<String, dynamic> toJson() => <String, dynamic>{
-        'status': status.name,
-        'data': data,
-        'error': error?.toJson(),
-      };
+    'status': status.name,
+    'data': data,
+    'error': error?.toJson(),
+  };
 }
 
 class TestTimerCubit extends TimerCubit<int, TestTimerState> {
@@ -45,9 +49,9 @@ class TestTimerCubit extends TimerCubit<int, TestTimerState> {
     required super.zenon,
     required this.fetchCallback,
   }) : super(
-          initialState: const TestTimerState(),
-          refreshInterval: const Duration(days: 1),
-        );
+         initialState: const TestTimerState(),
+         refreshInterval: const Duration(days: 1),
+       );
 
   final Future<int> Function() fetchCallback;
 
@@ -111,8 +115,16 @@ void main() {
           TimerStatus.loading,
         ),
         isA<TestTimerState>()
-            .having((TestTimerState s) => s.status, 'status', TimerStatus.failure)
-            .having((TestTimerState s) => s.error, 'error', isA<FailureException>()),
+            .having(
+              (TestTimerState s) => s.status,
+              'status',
+              TimerStatus.failure,
+            )
+            .having(
+              (TestTimerState s) => s.error,
+              'error',
+              isA<FailureException>(),
+            ),
       ],
     );
 

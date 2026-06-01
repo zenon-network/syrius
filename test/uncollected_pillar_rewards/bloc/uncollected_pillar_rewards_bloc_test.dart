@@ -3,7 +3,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 import '../../helpers/hydrated_bloc.dart';
@@ -43,11 +42,12 @@ void main() {
       when(() => mockZenon.embedded).thenReturn(mockEmbedded);
       when(() => mockEmbedded.pillar).thenReturn(mockPillar);
       when(() => reward.toJson()).thenReturn(<String, dynamic>{
-            'znnAmount': '1',
-            'qsrAmount': '1',
-          });
-      when(() => mockPillar.getUncollectedReward(any()))
-          .thenAnswer((_) async => reward);
+        'znnAmount': '1',
+        'qsrAmount': '1',
+      });
+      when(
+        () => mockPillar.getUncollectedReward(any()),
+      ).thenAnswer((_) async => reward);
 
       bloc = UncollectedPillarRewardsBloc(zenon: mockZenon);
     });

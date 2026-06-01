@@ -41,9 +41,12 @@ void main() {
       when(() => mockWsClient.isClosed()).thenReturn(false);
       when(() => mockZenon.embedded).thenReturn(mockEmbedded);
       when(() => mockEmbedded.pillar).thenReturn(mockPillar);
-      when(() => mockPillarInfoList.list)
-          .thenReturn(<PillarInfo>[MockPillarInfo(), MockPillarInfo()]);
-      when(() => mockPillar.getAll()).thenAnswer((_) async => mockPillarInfoList);
+      when(
+        () => mockPillarInfoList.list,
+      ).thenReturn(<PillarInfo>[MockPillarInfo(), MockPillarInfo()]);
+      when(
+        () => mockPillar.getAll(),
+      ).thenAnswer((_) async => mockPillarInfoList);
 
       cubit = ActivePillarsCubit(zenon: mockZenon);
     });

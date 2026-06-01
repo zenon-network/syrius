@@ -1,8 +1,8 @@
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
-import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/exceptions/exceptions.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/tokens/cubit/tokens_cubit.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/exceptions/exceptions.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 import '../../helpers/hydrated_bloc.dart';
@@ -36,18 +36,18 @@ void main() {
       token = MockToken();
 
       when(() => token.toJson()).thenReturn(<String, dynamic>{
-            'name': 'token',
-            'symbol': 'TKN',
-            'domain': 'zenon.network',
-            'totalSupply': '1',
-            'decimals': 8,
-            'owner': emptyAddress.toString(),
-            'tokenStandard': znnZts.toString(),
-            'maxSupply': '1',
-            'isBurnable': false,
-            'isMintable': false,
-            'isUtility': true,
-          });
+        'name': 'token',
+        'symbol': 'TKN',
+        'domain': 'zenon.network',
+        'totalSupply': '1',
+        'decimals': 8,
+        'owner': emptyAddress.toString(),
+        'tokenStandard': znnZts.toString(),
+        'maxSupply': '1',
+        'isBurnable': false,
+        'isMintable': false,
+        'isUtility': true,
+      });
       when(() => mockZenon.embedded).thenReturn(mockEmbedded);
       when(() => mockEmbedded.token).thenReturn(mockTokenApi);
       when(() => mockTokenList.list).thenReturn(<Token>[token]);
@@ -85,7 +85,11 @@ void main() {
       expect: () => <Matcher>[
         isA<TokensState>()
             .having((TokensState s) => s.status, 'status', TokensStatus.initial)
-            .having((TokensState s) => s.error, 'error', isA<FailureException>()),
+            .having(
+              (TokensState s) => s.error,
+              'error',
+              isA<FailureException>(),
+            ),
       ],
     );
   });

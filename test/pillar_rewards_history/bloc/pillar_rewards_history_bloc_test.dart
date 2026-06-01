@@ -43,17 +43,19 @@ void main() {
 
       when(() => mockZenon.embedded).thenReturn(mockEmbedded);
       when(() => mockEmbedded.pillar).thenReturn(mockPillar);
-      when(() => rewardHistoryList.list).thenReturn(<RewardHistoryEntry>[rewardEntry]);
+      when(
+        () => rewardHistoryList.list,
+      ).thenReturn(<RewardHistoryEntry>[rewardEntry]);
       when(() => rewardHistoryList.toJson()).thenReturn(<String, dynamic>{
-            'count': 1,
-            'list': <Map<String, dynamic>>[
-              <String, dynamic>{
-                'epoch': 1,
-                'znnAmount': '1',
-                'qsrAmount': '0',
-              },
-            ],
-          });
+        'count': 1,
+        'list': <Map<String, dynamic>>[
+          <String, dynamic>{
+            'epoch': 1,
+            'znnAmount': '1',
+            'qsrAmount': '0',
+          },
+        ],
+      });
       when(() => rewardEntry.znnAmount).thenReturn(BigInt.one);
       when(
         () => mockPillar.getFrontierRewardByPage(

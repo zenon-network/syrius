@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
@@ -51,15 +53,16 @@ void main() {
 
       when(() => mockZenon.wsClient).thenReturn(mockWsClient);
       when(() => mockZenon.ledger).thenReturn(mockLedger);
-      when(() => mockLedger.getAccountInfoByAddress(any()))
-          .thenAnswer((_) async => accountInfo);
+      when(
+        () => mockLedger.getAccountInfoByAddress(any()),
+      ).thenAnswer((_) async => accountInfo);
       bloc = MultipleBalanceBloc(
         zenon: mockZenon,
       );
     });
 
     tearDown(() {
-      bloc.close();
+      unawaited(bloc.close());
     });
 
     test('failure equality', () {
@@ -160,8 +163,9 @@ void main() {
     blocTest<MultipleBalanceBloc, MultipleBalanceState>(
       'emits [loading, failure] when fetching balances fails',
       setUp: () {
-        when(() => mockLedger.getAccountInfoByAddress(any()))
-            .thenThrow(exception);
+        when(
+          () => mockLedger.getAccountInfoByAddress(any()),
+        ).thenThrow(exception);
       },
       build: () => bloc,
       act: (MultipleBalanceBloc bloc) => bloc.add(

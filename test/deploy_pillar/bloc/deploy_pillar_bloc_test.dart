@@ -2,18 +2,23 @@ import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
-import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/exceptions/exceptions.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 import '../../helpers/hydrated_bloc.dart';
 
 class MockZenon extends Mock implements Zenon {}
+
 class MockEmbedded extends Mock implements EmbeddedApi {}
+
 class MockPillarApi extends Mock implements PillarApi {}
+
 class MockAccountBlockUtils extends Mock implements AccountBlockUtils {}
+
 class MockZenonAddressUtils extends Mock implements ZenonAddressUtils {}
+
 class MockAccountBlockTemplate extends Mock implements AccountBlockTemplate {}
+
 class FakeAddress extends Fake implements Address {}
 
 void main() {
@@ -42,9 +47,12 @@ void main() {
 
       when(() => zenon.embedded).thenReturn(embedded);
       when(() => embedded.pillar).thenReturn(pillarApi);
-      when(() => pillarApi.checkNameAvailability(any())).thenAnswer((_) async => true);
-      when(() => pillarApi.register(any(), any(), any(), any(), any()))
-          .thenReturn(template);
+      when(
+        () => pillarApi.checkNameAvailability(any()),
+      ).thenAnswer((_) async => true);
+      when(
+        () => pillarApi.register(any(), any(), any(), any(), any()),
+      ).thenReturn(template);
       when(
         () => accountBlockUtils.createAccountBlock(
           any(),
@@ -89,8 +97,9 @@ void main() {
     blocTest<DeployPillarBloc, DeployPillarState>(
       'emits failure when pillar name already exists',
       setUp: () {
-        when(() => pillarApi.checkNameAvailability(any()))
-            .thenAnswer((_) async => false);
+        when(
+          () => pillarApi.checkNameAvailability(any()),
+        ).thenAnswer((_) async => false);
       },
       build: () => bloc,
       act: (DeployPillarBloc bloc) => bloc.add(

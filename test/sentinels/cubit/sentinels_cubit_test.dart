@@ -8,7 +8,6 @@ import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 import '../../helpers/hydrated_bloc.dart';
 
-
 class MockZenon extends Mock implements Zenon {}
 
 class MockWsClient extends Mock implements WsClient {}
@@ -17,7 +16,6 @@ class MockSentinel extends Mock implements SentinelApi {}
 
 class MockEmbedded extends Mock implements EmbeddedApi {}
 
-class MockSentinelInfoList extends Mock implements SentinelInfoList {}
 
 void main() {
   initHydratedStorage();

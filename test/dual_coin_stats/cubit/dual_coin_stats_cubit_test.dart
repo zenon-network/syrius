@@ -9,7 +9,6 @@ import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 import '../../helpers/hydrated_bloc.dart';
 
-
 class MockZenon extends Mock implements Zenon {}
 
 class MockWsClient extends Mock implements WsClient {}
@@ -17,7 +16,6 @@ class MockWsClient extends Mock implements WsClient {}
 class MockEmbedded extends Mock implements EmbeddedApi {}
 
 class MockTokenApi extends Mock implements TokenApi {}
-
 
 class FakeTokenStandard extends Fake implements TokenStandard {}
 
@@ -43,7 +41,7 @@ void main() {
       mockWsClient = MockWsClient();
       exception = FailureException();
       dualCoinStatsCubit = DualCoinStatsCubit(
-          zenon: mockZenon,
+        zenon: mockZenon,
       );
 
       when(() => mockZenon.wsClient).thenReturn(mockWsClient);
@@ -51,11 +49,12 @@ void main() {
       when(() => mockZenon.embedded).thenReturn(mockEmbedded);
       when(() => mockEmbedded.token).thenReturn(mockTokenApi);
 
-
-      when(() => mockTokenApi.getByZts(znnZts))
-          .thenAnswer((_) async => kZnnCoin);
-      when(() => mockTokenApi.getByZts(qsrZts))
-          .thenAnswer((_) async => kQsrCoin);
+      when(
+        () => mockTokenApi.getByZts(znnZts),
+      ).thenAnswer((_) async => kZnnCoin);
+      when(
+        () => mockTokenApi.getByZts(qsrZts),
+      ).thenAnswer((_) async => kQsrCoin);
     });
 
     test('initial status is correct', () {
@@ -97,7 +96,7 @@ void main() {
           status: TimerStatus.success,
         );
 
-        final Map<String, dynamic>? serialized =dualCoinStatsCubit.toJson(
+        final Map<String, dynamic>? serialized = dualCoinStatsCubit.toJson(
           dualCoinStatsState,
         );
         final DualCoinStatsState? deserialized = dualCoinStatsCubit.fromJson(
@@ -122,25 +121,22 @@ void main() {
       });
     });
 
-
-      blocTest<DualCoinStatsCubit, DualCoinStatsState>(
-        'calls getByZts for each address in token once',
-        build: () => dualCoinStatsCubit,
-        setUp: () {
-
-        },
-        act: (DualCoinStatsCubit cubit) => cubit.fetch(),
-        verify: (_) {
-          verify(() => mockTokenApi.getByZts(znnZts)).called(1);
-          verify(() => mockTokenApi.getByZts(qsrZts)).called(1);
-        },
-      );
+    blocTest<DualCoinStatsCubit, DualCoinStatsState>(
+      'calls getByZts for each address in token once',
+      build: () => dualCoinStatsCubit,
+      setUp: () {},
+      act: (DualCoinStatsCubit cubit) => cubit.fetch(),
+      verify: (_) {
+        verify(() => mockTokenApi.getByZts(znnZts)).called(1);
+        verify(() => mockTokenApi.getByZts(qsrZts)).called(1);
+      },
+    );
 
     blocTest<DualCoinStatsCubit, DualCoinStatsState>(
       'emits [loading, failure] when getByZts throws',
       setUp: () {
         when(
-                () => mockTokenApi.getByZts(any()),
+          () => mockTokenApi.getByZts(any()),
         ).thenThrow(exception);
       },
       build: () => dualCoinStatsCubit,
@@ -155,16 +151,16 @@ void main() {
     );
 
     blocTest<DualCoinStatsCubit, DualCoinStatsState>(
-        'emits [loading, success] when getByZts returns',
-        build: () => dualCoinStatsCubit,
-        act: (DualCoinStatsCubit cubit) => cubit.fetchDataPeriodically(),
-        expect: () => <DualCoinStatsState>[
-          const DualCoinStatsState(status: TimerStatus.loading),
-          DualCoinStatsState(
-            status: TimerStatus.success,
-            data: <Token>[kZnnCoin, kQsrCoin],
-          ),
-        ],
+      'emits [loading, success] when getByZts returns',
+      build: () => dualCoinStatsCubit,
+      act: (DualCoinStatsCubit cubit) => cubit.fetchDataPeriodically(),
+      expect: () => <DualCoinStatsState>[
+        const DualCoinStatsState(status: TimerStatus.loading),
+        DualCoinStatsState(
+          status: TimerStatus.success,
+          data: <Token>[kZnnCoin, kQsrCoin],
+        ),
+      ],
     );
   });
 }

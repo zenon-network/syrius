@@ -40,10 +40,12 @@ void main() {
 
       when(() => mockZenon.embedded).thenReturn(mockEmbedded);
       when(() => mockEmbedded.pillar).thenReturn(mockPillar);
-      when(() => mockPillar.getDepositedQsr(any()))
-          .thenAnswer((_) async => data.deposit);
-      when(() => mockPillar.getQsrRegistrationCost())
-          .thenAnswer((_) async => data.cost);
+      when(
+        () => mockPillar.getDepositedQsr(any()),
+      ).thenAnswer((_) async => data.deposit);
+      when(
+        () => mockPillar.getQsrRegistrationCost(),
+      ).thenAnswer((_) async => data.cost);
 
       bloc = CreatePillarQsrInfoBloc(zenon: mockZenon);
     });
@@ -69,8 +71,9 @@ void main() {
     blocTest<CreatePillarQsrInfoBloc, FetchState<CreatePillarQsrInfoData>>(
       'emits failure when dependency throws',
       setUp: () {
-        when(() => mockPillar.getDepositedQsr(any()))
-            .thenThrow(FailureException());
+        when(
+          () => mockPillar.getDepositedQsr(any()),
+        ).thenThrow(FailureException());
       },
       build: () => bloc,
       act: (CreatePillarQsrInfoBloc bloc) =>
