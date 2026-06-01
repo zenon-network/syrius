@@ -205,34 +205,39 @@ class _PillarStatsView extends StatelessWidget {
     required BuildContext context,
     required PillarInfo pillarInfo,
   }) {
-    return BlocConsumer<RevokePillarBloc, RevokePillarState>(
-      listener: (_, RevokePillarState state) {
-        if (state is RevokePillarDone) {
-          context.read<PillarsBloc>().add(
-            const InfiniteListRefreshRequested(address: null),
-          );
-        } else if (state is RevokePillarFailure) {
-          unawaited(
-            NotificationUtils.sendNotificationError(
-              state.exception,
-              context.l10n.errorDisassemblingPillar,
-            ),
-          );
-        }
-      },
-      builder: (_, RevokePillarState state) {
-        final Widget button = _buildDisassembleButton(
-          context: context,
-          pillarInfo: pillarInfo,
-        );
+    return Column(
+      children: [
+        BlocConsumer<RevokePillarBloc, RevokePillarState>(
+          listener: (_, RevokePillarState state) {
+            if (state is RevokePillarDone) {
+              context.read<PillarsBloc>().add(
+                const InfiniteListRefreshRequested(address: null),
+              );
+            } else if (state is RevokePillarFailure) {
+              unawaited(
+                NotificationUtils.sendNotificationError(
+                  state.exception,
+                  context.l10n.errorDisassemblingPillar,
+                ),
+              );
+            }
+          },
+          builder: (_, RevokePillarState state) {
+            final Widget button = _buildDisassembleButton(
+              context: context,
+              pillarInfo: pillarInfo,
+            );
 
-        return switch (state) {
-          RevokePillarInitial() => button,
-          RevokePillarFailure() => button,
-          RevokePillarDone() => button,
-          RevokePillarLoading() => const SyriusLoadingWidget(size: 25),
-        };
-      },
+            return switch (state) {
+              RevokePillarInitial() => button,
+              RevokePillarFailure() => button,
+              RevokePillarDone() => button,
+              RevokePillarLoading() => const SyriusLoadingWidget(size: 25),
+            };
+          },
+        ),
+        kVerticalSpacing
+      ],
     );
   }
 
@@ -240,32 +245,38 @@ class _PillarStatsView extends StatelessWidget {
     required PillarInfo pillarInfo,
     required BuildContext context,
   }) {
-    return Column(
-      children: <Widget>[
-        OutlinedButton.icon(
-          style: OutlinedButton.styleFrom(
-            iconColor: AppColors.errorColor,
-            side: const BorderSide(
-              color: AppColors.errorColor,
-            ),
-          ),
-          // TODO(maznnwell): add confirmation dialog
-          onPressed: () {
-            context.read<RevokePillarBloc>().add(
-              RevokePillarRequested(pillarName: pillarInfo.name),
-            );
-          },
-          icon: const Icon(Icons.close),
-          iconAlignment: .end,
-          label: Text(
-            context.l10n.disassemble,
-            style: TextStyle(
-              color: context.newThemeData.textTheme.titleSmall!.color,
-            ),
-          ),
+    final RevokePillarBloc revokePillarBloc = context.read<RevokePillarBloc>();
+
+    return OutlinedButton.icon(
+      style: OutlinedButton.styleFrom(
+        iconColor: AppColors.errorColor,
+        side: const BorderSide(
+          color: AppColors.errorColor,
         ),
-        kVerticalSpacing,
-      ],
+      ),
+      onPressed: () async {
+        final bool? revocationConfirmed = await showDialogWithNoAndYesOptions(
+          isBarrierDismissible: false,
+          context: context,
+          title: context.l10n.disassemble,
+          // TODO(maznnwell): localize if the description is okay
+          description: 'Are you sure you want to revoke the pillar?',
+        );
+
+        if (revocationConfirmed ?? false) {
+          revokePillarBloc.add(
+            RevokePillarRequested(pillarName: pillarInfo.name),
+          );
+        }
+      },
+      icon: const Icon(Icons.close),
+      iconAlignment: .end,
+      label: Text(
+        context.l10n.disassemble,
+        style: TextStyle(
+          color: context.newThemeData.textTheme.titleSmall!.color,
+        ),
+      ),
     );
   }
 }
