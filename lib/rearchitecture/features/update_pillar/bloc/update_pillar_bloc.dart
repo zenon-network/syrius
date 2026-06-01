@@ -10,7 +10,9 @@ part 'update_pillar_event.dart';
 
 part 'update_pillar_state.dart';
 
+/// A bloc that helps update some pillar details
 class UpdatePillarBloc extends Bloc<UpdatePillarEvent, UpdatePillarState> {
+  /// {@macro default_constructor}
   UpdatePillarBloc({
     required AccountBlockUtils accountBlockUtils,
     required Zenon zenon,

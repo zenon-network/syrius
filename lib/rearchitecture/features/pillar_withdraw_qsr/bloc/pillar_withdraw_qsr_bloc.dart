@@ -10,7 +10,11 @@ part 'pillar_withdraw_qsr_event.dart';
 
 part 'pillar_withdraw_qsr_state.dart';
 
-class PillarWithdrawQsrBloc extends Bloc<PillarWithdrawQsrEvent, PillarWithdrawQsrState> {
+/// A bloc that helps with withdrawing the deposited QSR for the pillar
+/// creation
+class PillarWithdrawQsrBloc
+    extends Bloc<PillarWithdrawQsrEvent, PillarWithdrawQsrState> {
+  /// {@macro default_constructor}
   PillarWithdrawQsrBloc({
     required AccountBlockUtils accountBlockUtils,
     required Zenon zenon,
@@ -35,15 +39,14 @@ class PillarWithdrawQsrBloc extends Bloc<PillarWithdrawQsrEvent, PillarWithdrawQ
       final AccountBlockTemplate transactionParams = _zenon.embedded.pillar
           .withdrawQsr();
 
-      await _accountBlockUtils
-          .createAccountBlock(
-            transactionParams,
-            'withdraw ${kQsrCoin.symbol} from Pillar Slot',
-            address: event.address,
-            waitForRequiredPlasma: true,
-          );
+      await _accountBlockUtils.createAccountBlock(
+        transactionParams,
+        'withdraw ${kQsrCoin.symbol} from Pillar Slot',
+        address: event.address,
+        waitForRequiredPlasma: true,
+      );
 
-      // TODO: check if this delay should be in place
+      // Needed delay to make sure that the blockchain synced
       await Future<void>.delayed(kDelayAfterAccountBlockCreationCall);
 
       _zenonAddressUtils.refreshBalance();

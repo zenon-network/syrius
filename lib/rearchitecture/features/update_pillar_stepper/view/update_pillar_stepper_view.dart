@@ -17,10 +17,13 @@ enum _PillarUpdateStep {
   pillarUpdate,
 }
 
+/// A stepper that aids the user in the process of updating pillar details
 class UpdatePillarStepperView extends StatefulWidget {
-  const UpdatePillarStepperView(this.pillarInfo, {super.key});
+  /// {@macro default_constructor}
+  const UpdatePillarStepperView({required PillarInfo pillarInfo, super.key})
+    : _pillarInfo = pillarInfo;
 
-  final PillarInfo pillarInfo;
+  final PillarInfo _pillarInfo;
 
   @override
   State<UpdatePillarStepperView> createState() =>
@@ -45,16 +48,17 @@ class _UpdatePillarStepperViewState extends State<UpdatePillarStepperView> {
   @override
   void initState() {
     super.initState();
-    _pillarNameController.text = widget.pillarInfo.name;
-    _pillarRewardController.text = widget.pillarInfo.withdrawAddress.toString();
-    _pillarProducerController.text = widget.pillarInfo.producerAddress
+    _pillarNameController.text = widget._pillarInfo.name;
+    _pillarRewardController.text = widget._pillarInfo.withdrawAddress
+        .toString();
+    _pillarProducerController.text = widget._pillarInfo.producerAddress
         .toString();
     _momentumRewardPercentageGiven = widget
-        .pillarInfo
+        ._pillarInfo
         .giveMomentumRewardPercentage
         .toDouble();
     _delegateRewardPercentageGiven = widget
-        .pillarInfo
+        ._pillarInfo
         .giveDelegateRewardPercentage
         .toDouble();
   }
@@ -218,7 +222,7 @@ class _UpdatePillarStepperViewState extends State<UpdatePillarStepperView> {
             ),
             kHorizontalGap25,
             ListenableBuilder(
-              listenable: Listenable.merge([
+              listenable: Listenable.merge(<Listenable?>[
                 _pillarRewardController,
                 _pillarProducerController,
               ]),
@@ -246,7 +250,8 @@ class _UpdatePillarStepperViewState extends State<UpdatePillarStepperView> {
         CustomSlider(
           description: context.l10n.percentageOfMomentumRewards,
           descriptionPosition: .top,
-          startValue: widget.pillarInfo.giveMomentumRewardPercentage.toDouble(),
+          startValue: widget._pillarInfo.giveMomentumRewardPercentage
+              .toDouble(),
           min: 0,
           maxValue: 100,
           callback: (double value) {
@@ -275,7 +280,8 @@ class _UpdatePillarStepperViewState extends State<UpdatePillarStepperView> {
         CustomSlider(
           description: context.l10n.percentageDelegationRewardsGiven,
           descriptionPosition: .top,
-          startValue: widget.pillarInfo.giveDelegateRewardPercentage.toDouble(),
+          startValue: widget._pillarInfo.giveDelegateRewardPercentage
+              .toDouble(),
           min: 0,
           maxValue: 100,
           callback: (double value) {

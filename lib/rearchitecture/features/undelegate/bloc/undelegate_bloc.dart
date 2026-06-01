@@ -10,7 +10,9 @@ part 'undelegate_event.dart';
 
 part 'undelegate_state.dart';
 
+/// A bloc that helps with un-delegating from a pillar
 class UndelegateBloc extends Bloc<UndelegateEvent, UndelegateState> {
+  /// {@macro default_constructor}
   UndelegateBloc({
     required AccountBlockUtils accountBlockUtils,
     required Zenon zenon,
@@ -38,6 +40,7 @@ class UndelegateBloc extends Bloc<UndelegateEvent, UndelegateState> {
         waitForRequiredPlasma: true,
       );
 
+      // Needed delay to make sure that the blockchain synced
       await Future<void>.delayed(kDelayAfterAccountBlockCreationCall);
 
       emit(const UndelegateDone());

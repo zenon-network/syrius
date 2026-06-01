@@ -10,7 +10,12 @@ part 'revoke_pillar_event.dart';
 
 part 'revoke_pillar_state.dart';
 
+/// A bloc that helps with revoking a pillar
+///
+/// To be remembered that this operation can be done only in a certain window
+/// of time
 class RevokePillarBloc extends Bloc<RevokePillarEvent, RevokePillarState> {
+  /// {@macro default_constructor}
   RevokePillarBloc({
     required AccountBlockUtils accountBlockUtils,
     required Zenon zenon,

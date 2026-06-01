@@ -10,7 +10,10 @@ part 'pillar_deposit_qsr_event.dart';
 
 part 'pillar_deposit_qsr_state.dart';
 
+/// A bloc that helps with depositing the needed QSR for the creation of a
+/// pillar
 class PillarDepositQsrBloc extends Bloc<PillarDepositQsrEvent, PillarDepositQsrState> {
+  /// {@macro default_constructor}
   PillarDepositQsrBloc({
     required AccountBlockUtils accountBlockUtils,
     required Zenon zenon,
@@ -43,7 +46,7 @@ class PillarDepositQsrBloc extends Bloc<PillarDepositQsrEvent, PillarDepositQsrS
             waitForRequiredPlasma: true,
           );
 
-      // TODO: check if this delay should be in place
+      // Needed delay to make sure that the blockchain synced
       await Future<void>.delayed(kDelayAfterAccountBlockCreationCall);
 
       _zenonAddressUtils.refreshBalance();
