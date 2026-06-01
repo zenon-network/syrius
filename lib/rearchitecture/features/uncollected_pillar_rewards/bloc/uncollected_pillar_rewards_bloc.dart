@@ -3,9 +3,9 @@ import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 /// A bloc responsible for fetching and managing the state of
 /// uncollected rewards for a specific address.
-class UncollectedPillarRewards extends FetchBloc<UncollectedReward> {
+class UncollectedPillarRewardsBloc extends FetchBloc<UncollectedReward> {
   /// {@macro default_constructor}
-  UncollectedPillarRewards({
+  UncollectedPillarRewardsBloc({
     required super.zenon,
   }) : super(
          fromJsonT: UncollectedReward.fromJson,

@@ -24,8 +24,8 @@ class PillarCollectCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiBlocProvider(
       providers: <SingleChildWidget>[
-        BlocProvider<UncollectedPillarRewards>(
-          create: (_) => UncollectedPillarRewards(zenon: zenon!)
+        BlocProvider<UncollectedPillarRewardsBloc>(
+          create: (_) => UncollectedPillarRewardsBloc(zenon: zenon!)
             ..add(
               FetchRequestData(
                 address: Address.parse(
@@ -51,12 +51,12 @@ class _PillarCollectView extends StatelessWidget {
     return NewCardScaffold(
       data: _buildCardData(context: context),
       onRefreshPressed: () {
-        context.read<UncollectedPillarRewards>().add(
+        context.read<UncollectedPillarRewardsBloc>().add(
           FetchRequestData(address: Address.parse(kSelectedAddress!)),
         );
       },
       body:
-          BlocBuilder<UncollectedPillarRewards, FetchState<UncollectedReward>>(
+          BlocBuilder<UncollectedPillarRewardsBloc, FetchState<UncollectedReward>>(
             builder: (_, FetchState<UncollectedReward> state) =>
                 switch (state) {
                   FetchFailure<UncollectedReward>() => SyriusErrorWidget(
@@ -123,7 +123,7 @@ class _PopulatedState extends State<_Populated> {
                 kDelayAfterAccountBlockCreationCall,
                 () {
                   if (context.mounted) {
-                    context.read<UncollectedPillarRewards>().add(
+                    context.read<UncollectedPillarRewardsBloc>().add(
                       FetchRequestData(
                         address: Address.parse(kSelectedAddress!),
                       ),
