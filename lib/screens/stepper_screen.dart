@@ -27,7 +27,7 @@ class StepperScreen extends StatelessWidget {
                 onSeeMorePressed: onStepperNotificationSeeMorePressed,
               ),
               Expanded(
-                child: Card(
+                child: Card.filled(
                   child: Stack(
                     fit: StackFit.expand,
                     children: <Widget>[

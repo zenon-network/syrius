@@ -283,7 +283,7 @@ class _MainPillarState extends State<CreatePillarStepperView> {
         Expanded(
           child: Visibility(
             visible: qsrInfo.deposit > BigInt.zero,
-            child: Card(
+            child: Card.filled(
               color: context.themeData.inputDecorationTheme.fillColor,
               child: Padding(
                 padding: const EdgeInsets.all(20),

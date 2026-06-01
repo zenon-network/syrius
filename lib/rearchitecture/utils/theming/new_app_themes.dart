@@ -6,7 +6,6 @@ final ThemeData newLightTheme = ThemeData(
   cardTheme: CardThemeData(
     //TODO: check if it's okay
     color: AppColors.darkPrimary,
-    elevation: 0,
     margin: EdgeInsets.zero,
     shape: RoundedRectangleBorder(
       borderRadius: BorderRadius.circular(16),
@@ -66,7 +65,6 @@ final ThemeData newDarkTheme = ThemeData(
   brightness: Brightness.dark,
   cardTheme: CardThemeData(
     color: AppColors.darkPrimary,
-    elevation: 0,
     margin: EdgeInsets.zero,
     shape: RoundedRectangleBorder(
       borderRadius: BorderRadius.circular(16),
