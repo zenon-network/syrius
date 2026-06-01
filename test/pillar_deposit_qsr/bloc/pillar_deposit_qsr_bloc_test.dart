@@ -58,6 +58,7 @@ void main() {
         accountBlockUtils: accountBlockUtils,
         zenon: zenon,
         zenonAddressUtils: zenonAddressUtils,
+        postTransactionDelay: Duration.zero,
       );
     });
 
@@ -66,13 +67,15 @@ void main() {
     });
 
     blocTest<PillarDepositQsrBloc, PillarDepositQsrState>(
-      'emits loading and calls dependencies on success',
+      'emits [loading, done] on success',
       build: () => bloc,
       act: (PillarDepositQsrBloc bloc) => bloc.add(
         PillarDepositQsrRequested(address: emptyAddress, amount: BigInt.one),
       ),
+      wait: const Duration(milliseconds: 1),
       expect: () => <PillarDepositQsrState>[
         const PillarDepositQsrLoading(),
+        const PillarDepositQsrDone(),
       ],
     );
 

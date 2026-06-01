@@ -16,7 +16,9 @@ class UndelegateBloc extends Bloc<UndelegateEvent, UndelegateState> {
   UndelegateBloc({
     required AccountBlockUtils accountBlockUtils,
     required Zenon zenon,
+    Duration postTransactionDelay = kDelayAfterAccountBlockCreationCall,
   }) : _accountBlockUtils = accountBlockUtils,
+       _postTransactionDelay = postTransactionDelay,
        _zenon = zenon,
        super(const UndelegateInitial()) {
     on<UndelegateRequested>(_onUndelegateRequested);
@@ -24,6 +26,7 @@ class UndelegateBloc extends Bloc<UndelegateEvent, UndelegateState> {
 
   final Zenon _zenon;
   final AccountBlockUtils _accountBlockUtils;
+  final Duration _postTransactionDelay;
 
   FutureOr<void> _onUndelegateRequested(
     UndelegateRequested event,
@@ -41,7 +44,7 @@ class UndelegateBloc extends Bloc<UndelegateEvent, UndelegateState> {
       );
 
       // Needed delay to make sure that the blockchain synced
-      await Future<void>.delayed(kDelayAfterAccountBlockCreationCall);
+      await Future<void>.delayed(_postTransactionDelay);
 
       emit(const UndelegateDone());
     } on SyriusException catch (e, stackTrace) {

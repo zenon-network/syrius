@@ -49,7 +49,11 @@ void main() {
         ),
       ).thenAnswer((_) async => template);
 
-      bloc = UndelegateBloc(accountBlockUtils: accountBlockUtils, zenon: zenon);
+      bloc = UndelegateBloc(
+        accountBlockUtils: accountBlockUtils,
+        zenon: zenon,
+        postTransactionDelay: Duration.zero,
+      );
     });
 
     test('initial state is correct', () {
@@ -57,12 +61,14 @@ void main() {
     });
 
     blocTest<UndelegateBloc, UndelegateState>(
-      'emits loading and calls dependencies on success',
+      'emits [loading, done] on success',
       build: () => bloc,
       act: (UndelegateBloc bloc) =>
           bloc.add(UndelegateRequested(address: emptyAddress)),
+      wait: const Duration(milliseconds: 1),
       expect: () => <UndelegateState>[
         const UndelegateLoading(),
+        const UndelegateDone(),
       ],
     );
 

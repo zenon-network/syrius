@@ -19,16 +19,19 @@ class PillarWithdrawQsrBloc
     required AccountBlockUtils accountBlockUtils,
     required Zenon zenon,
     required ZenonAddressUtils zenonAddressUtils,
+    Duration postTransactionDelay = kDelayAfterAccountBlockCreationCall,
   }) : _zenonAddressUtils = zenonAddressUtils,
-       _accountBlockUtils = accountBlockUtils,
-       _zenon = zenon,
-       super(const PillarWithdrawQsrInitial()) {
+        _postTransactionDelay = postTransactionDelay,
+        _accountBlockUtils = accountBlockUtils,
+        _zenon = zenon,
+        super(const PillarWithdrawQsrInitial()) {
     on<PillarWithdrawQsrRequested>(_onWithdrawQsrRequested);
   }
 
   final Zenon _zenon;
   final AccountBlockUtils _accountBlockUtils;
   final ZenonAddressUtils _zenonAddressUtils;
+  final Duration _postTransactionDelay;
 
   FutureOr<void> _onWithdrawQsrRequested(
     PillarWithdrawQsrRequested event,
@@ -47,7 +50,7 @@ class PillarWithdrawQsrBloc
       );
 
       // Needed delay to make sure that the blockchain synced
-      await Future<void>.delayed(kDelayAfterAccountBlockCreationCall);
+      await Future<void>.delayed(_postTransactionDelay);
 
       _zenonAddressUtils.refreshBalance();
 

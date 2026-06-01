@@ -49,7 +49,11 @@ void main() {
         ),
       ).thenAnswer((_) async => template);
 
-      bloc = DelegationBloc(accountBlockUtils: accountBlockUtils, zenon: zenon);
+      bloc = DelegationBloc(
+        accountBlockUtils: accountBlockUtils,
+        zenon: zenon,
+        postTransactionDelay: Duration.zero,
+      );
     });
 
     test('initial state is correct', () {
@@ -57,11 +61,12 @@ void main() {
     });
 
     blocTest<DelegationBloc, DelegationState>(
-      'emits loading and calls dependencies on successful delegation',
+      'emits [loading, done] on successful delegation',
       build: () => bloc,
       act: (DelegationBloc bloc) => bloc.add(
         DelegationRequested(address: emptyAddress, pillarName: 'pillar'),
       ),
+      wait: const Duration(milliseconds: 1),
       verify: (_) {
         verify(() => pillarApi.delegate('pillar')).called(1);
         verify(
@@ -75,6 +80,7 @@ void main() {
       },
       expect: () => <DelegationState>[
         const DelegationLoading(),
+        const DelegationDone(),
       ],
     );
 

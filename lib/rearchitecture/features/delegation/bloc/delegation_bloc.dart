@@ -14,14 +14,17 @@ class DelegationBloc extends Bloc<DelegationEvent, DelegationState> {
   DelegationBloc({
     required AccountBlockUtils accountBlockUtils,
     required Zenon zenon,
+    Duration postTransactionDelay = kDelayAfterAccountBlockCreationCall,
   }) : _accountBlockUtils = accountBlockUtils,
-       _zenon = zenon,
-       super(const DelegationInitial()) {
+        _postTransactionDelay = postTransactionDelay,
+        _zenon = zenon,
+        super(const DelegationInitial()) {
     on<DelegationRequested>(_onDelegationRequested);
   }
 
   final Zenon _zenon;
   final AccountBlockUtils _accountBlockUtils;
+  final Duration _postTransactionDelay;
 
   FutureOr<void> _onDelegationRequested(
     DelegationRequested event,
@@ -42,7 +45,7 @@ class DelegationBloc extends Bloc<DelegationEvent, DelegationState> {
         waitForRequiredPlasma: true,
       );
 
-      await Future<void>.delayed(kDelayAfterAccountBlockCreationCall);
+      await Future<void>.delayed(_postTransactionDelay);
 
       emit(const DelegationDone());
     } on SyriusException catch (e, stackTrace) {
