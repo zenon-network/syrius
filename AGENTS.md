@@ -25,6 +25,17 @@
 - On Linux with Ledger/HID usage, udev rules from `udev/` are required (`udev/README.md`).
 - Currently, the repo is going through a rearchitecture phase: from an MVVM architecture, using stacked, to a classical BLoC feature-based architecture.
 
-## Architecture
-- The architecture that should be followed is a BLoC feature-based architecture
-- All feature should be added to rearchitecture/features; and there you will find other features that follow the specified architecture
+## Rearchitecture principles
+- replace the layered architecture with a feature based architecture
+- use bloc both as a state management solution, but also as a feature architecture
+- bring UI closer to the original SDK components
+
+## How to implement the rearchitecture
+- All feature should be added to rearchitecture/features; and there you will find other features that follow the specified architecture, like pillar_rewards
+- All classes that extend from BaseBloc, which further extends from BaseViewModel, should be reconstructed as proper Bloc classes
+- If a bloc needs some data based on an address, the FetchBloc class can be extended from
+- Let's say you have a UI widget that depends on a bloc. You create the {{Feature}}Card widget to initialize and inject the bloc. Inside this widget you will have a _View class that consumes this bloc and rebuilds the UI according to the state. Look at the pillars_card feature for an example.
+- Everything inside the feature should be private, unless needed to be otherwise. The pillars_card is again a good example: you have classes like _View or _Populated used only in that feature, for this reason they should be private.
+- The fields of a class should also be private
+- Each new feature must also have basic unit tests for the bloc or cubit class; take pillars_card as an example
+- Do not execute commands to check the formatting or if tests are running
