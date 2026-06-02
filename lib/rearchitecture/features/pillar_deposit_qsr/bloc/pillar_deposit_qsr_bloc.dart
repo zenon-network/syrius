@@ -13,7 +13,10 @@ part 'pillar_deposit_qsr_state.dart';
 /// A bloc that helps with depositing the needed QSR for the creation of a
 /// pillar
 class PillarDepositQsrBloc extends Bloc<PillarDepositQsrEvent, PillarDepositQsrState> {
-  /// {@macro default_constructor}
+  /// Creates a new [PillarDepositQsrBloc].
+  ///
+  /// The optional [postTransactionDelay] is used to wait for chain sync after
+  /// account block creation.
   PillarDepositQsrBloc({
     required AccountBlockUtils accountBlockUtils,
     required Zenon zenon,

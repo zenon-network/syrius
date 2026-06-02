@@ -15,7 +15,7 @@ part 'revoke_pillar_state.dart';
 /// To be remembered that this operation can be done only in a certain window
 /// of time
 class RevokePillarBloc extends Bloc<RevokePillarEvent, RevokePillarState> {
-  /// {@macro default_constructor}
+  /// Creates a new [RevokePillarBloc].
   RevokePillarBloc({
     required AccountBlockUtils accountBlockUtils,
     required Zenon zenon,

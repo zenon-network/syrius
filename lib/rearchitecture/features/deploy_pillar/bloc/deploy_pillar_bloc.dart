@@ -11,7 +11,9 @@ part 'deploy_pillar_event.dart';
 
 part 'deploy_pillar_state.dart';
 
+/// A bloc that registers a new pillar on-chain.
 class DeployPillarBloc extends Bloc<DeployPillarEvent, DeployPillarState> {
+  /// Creates a new [DeployPillarBloc].
   DeployPillarBloc({
     required AccountBlockUtils accountBlockUtils,
     required Zenon zenon,

@@ -14,7 +14,10 @@ part 'pillar_withdraw_qsr_state.dart';
 /// creation
 class PillarWithdrawQsrBloc
     extends Bloc<PillarWithdrawQsrEvent, PillarWithdrawQsrState> {
-  /// {@macro default_constructor}
+  /// Creates a new [PillarWithdrawQsrBloc].
+  ///
+  /// The optional [postTransactionDelay] is used to wait for chain sync after
+  /// account block creation.
   PillarWithdrawQsrBloc({
     required AccountBlockUtils accountBlockUtils,
     required Zenon zenon,

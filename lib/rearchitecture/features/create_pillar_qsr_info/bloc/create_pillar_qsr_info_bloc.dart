@@ -2,7 +2,9 @@ import 'package:zenon_syrius_wallet_flutter/model/model.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
+/// A bloc that fetches QSR deposit and registration cost for pillar creation.
 class CreatePillarQsrInfoBloc extends FetchBloc<CreatePillarQsrInfoData> {
+  /// Creates a new [CreatePillarQsrInfoBloc].
   CreatePillarQsrInfoBloc({required super.zenon})
     : super(
         fromJsonT: CreatePillarQsrInfoData.fromJson,
