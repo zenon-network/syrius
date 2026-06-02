@@ -25,7 +25,7 @@ class SentinelsTabChild extends StatelessWidget {
         ),
       ),
       FluidCell(
-        child: const SentinelCollect(),
+        child: const SentinelCollectCard(),
         width: context.layout.value(
           xl: kStaggeredNumOfColumns ~/ 3,
           lg: kStaggeredNumOfColumns ~/ 3,

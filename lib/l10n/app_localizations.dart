@@ -178,6 +178,12 @@ abstract class AppLocalizations {
   /// **'Collect Pillar rewards'**
   String get collectPillarRewards;
 
+  /// No description provided for @collectSentinelRewards.
+  ///
+  /// In en, this message translates to:
+  /// **'Collect Sentinel rewards'**
+  String get collectSentinelRewards;
+
   /// No description provided for @couldNotSend.
   ///
   /// In en, this message translates to:
@@ -303,6 +309,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Error while collecting Pillar rewards'**
   String get errorCollectingPillarRewards;
+
+  /// No description provided for @errorCollectingSentinelRewards.
+  ///
+  /// In en, this message translates to:
+  /// **'Error while collecting Sentinel rewards'**
+  String get errorCollectingSentinelRewards;
 
   /// No description provided for @errorDeployingPillar.
   ///
@@ -794,6 +806,24 @@ abstract class AppLocalizations {
     Object sender,
     Object symbol,
   );
+
+  /// No description provided for @sentinelCollectDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'This card displays your current Sentinel rewards that are ready to be collected. If there are any rewards available, you will be able to collect them. In order to receive rewards, the Sentinel Node needs to be not only registered in the network, but also deployed (use znn-controller for this operation) and it must have >90% daily uptime'**
+  String get sentinelCollectDescription;
+
+  /// No description provided for @sentinelCollectTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Sentinel Collect'**
+  String get sentinelCollectTitle;
+
+  /// No description provided for @sentinelRewardsBlockCreated.
+  ///
+  /// In en, this message translates to:
+  /// **'Successfully created block for collecting the sentinel rewards. It will take at least 30 seconds for the data to update and to be able to receive the rewards.'**
+  String get sentinelRewardsBlockCreated;
 
   /// No description provided for @sentinels.
   ///

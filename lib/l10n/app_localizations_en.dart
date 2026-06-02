@@ -56,6 +56,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get collectPillarRewards => 'Collect Pillar rewards';
 
   @override
+  String get collectSentinelRewards => 'Collect Sentinel rewards';
+
+  @override
   String couldNotSend(Object amount, Object recipient, Object symbol) {
     return 'Couldn\'t send $amount $symbol to $recipient';
   }
@@ -142,6 +145,10 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get errorCollectingPillarRewards =>
       'Error while collecting Pillar rewards';
+
+  @override
+  String get errorCollectingSentinelRewards =>
+      'Error while collecting Sentinel rewards';
 
   @override
   String get errorDeployingPillar => 'Error while deploying a Pillar';
@@ -428,6 +435,17 @@ class AppLocalizationsEn extends AppLocalizations {
   ) {
     return 'Sent $amount $symbol from $sender to $recipient';
   }
+
+  @override
+  String get sentinelCollectDescription =>
+      'This card displays your current Sentinel rewards that are ready to be collected. If there are any rewards available, you will be able to collect them. In order to receive rewards, the Sentinel Node needs to be not only registered in the network, but also deployed (use znn-controller for this operation) and it must have >90% daily uptime';
+
+  @override
+  String get sentinelCollectTitle => 'Sentinel Collect';
+
+  @override
+  String get sentinelRewardsBlockCreated =>
+      'Successfully created block for collecting the sentinel rewards. It will take at least 30 seconds for the data to update and to be able to receive the rewards.';
 
   @override
   String get sentinels => 'Sentinels';
