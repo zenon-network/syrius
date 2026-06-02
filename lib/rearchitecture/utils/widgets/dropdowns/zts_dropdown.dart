@@ -7,13 +7,11 @@ import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 class ZtsDropdown extends StatefulWidget {
   /// Creates a new instance.
   const ZtsDropdown({
-    required List<Token> availableTokens,
-    required void Function(Token) onChangeCallback,
-    required Token selectedToken,
+    required this._availableTokens,
+    required this._onChangeCallback,
+    required this._selectedToken,
     super.key,
-  })  : _onChangeCallback = onChangeCallback,
-        _availableTokens = availableTokens,
-        _selectedToken = selectedToken;
+  });
 
   final void Function(Token) _onChangeCallback;
   final Token _selectedToken;

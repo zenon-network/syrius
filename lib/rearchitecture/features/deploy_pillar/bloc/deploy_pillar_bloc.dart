@@ -15,13 +15,10 @@ part 'deploy_pillar_state.dart';
 class DeployPillarBloc extends Bloc<DeployPillarEvent, DeployPillarState> {
   /// Creates a new [DeployPillarBloc].
   DeployPillarBloc({
-    required AccountBlockUtils accountBlockUtils,
-    required Zenon zenon,
-    required ZenonAddressUtils zenonAddressUtils,
-  }) : _zenonAddressUtils = zenonAddressUtils,
-       _accountBlockUtils = accountBlockUtils,
-       _zenon = zenon,
-       super(const DeployPillarInitial()) {
+    required this._accountBlockUtils,
+    required this._zenon,
+    required this._zenonAddressUtils,
+  }) : super(const DeployPillarInitial()) {
     on<DeployPillarRequested>(_onDeployPillarRequested);
   }
 

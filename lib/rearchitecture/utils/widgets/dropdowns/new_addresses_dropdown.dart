@@ -7,14 +7,11 @@ import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
 class NewAddressesDropdown extends StatefulWidget {
   /// Creates a new instance.
   const NewAddressesDropdown({
-    required List<String> addresses,
-    required void Function(String) onSelectedCallback,
-    required String selectedAddress,
+    required this._addresses,
+    required this._onSelectedCallback,
+    required this._selectedAddress,
     super.key,
-  })  :
-        _addresses = addresses,
-        _onSelectedCallback = onSelectedCallback,
-        _selectedAddress = selectedAddress;
+  });
   final List<String> _addresses;
   final void Function(String) _onSelectedCallback;
   final String _selectedAddress;

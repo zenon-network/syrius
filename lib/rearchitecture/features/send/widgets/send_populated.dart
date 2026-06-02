@@ -125,7 +125,7 @@ class _SendPopulatedState extends State<SendPopulated> {
             kVerticalGap8,
             ValueListenableBuilder<TextEditingValue>(
               valueListenable: _recipientController,
-              builder: (_, TextEditingValue recipient, __) {
+              builder: (_, TextEditingValue recipient, _) {
                 return TextField(
                   controller: _recipientController,
                   decoration: InputDecoration(
@@ -145,7 +145,7 @@ class _SendPopulatedState extends State<SendPopulated> {
             kVerticalGap16,
             ValueListenableBuilder<TextEditingValue>(
               valueListenable: _amountController,
-              builder: (_, TextEditingValue amount, __) {
+              builder: (_, TextEditingValue amount, _) {
                 return TextField(
                   controller: _amountController,
                   decoration: InputDecoration(
@@ -175,7 +175,7 @@ class _SendPopulatedState extends State<SendPopulated> {
                   _amountController,
                   _recipientController,
                 ]),
-                builder: (_, __) {
+                builder: (_, _) {
                   return SendButton(
                     key: _sendPaymentButtonKey,
                     text: context.l10n.send,

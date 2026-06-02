@@ -28,7 +28,7 @@ class DualCoinStatsChart extends StatelessWidget {
   Widget build(BuildContext context) {
     return ValueListenableBuilder<int?>(
       valueListenable: touchedSectionIndexNotifier,
-      builder: (_, int? index, ___) => AspectRatio(
+      builder: (_, int? index, _) => AspectRatio(
         aspectRatio: 1,
         child: StandardPieChart(
           sectionsSpace: 4,

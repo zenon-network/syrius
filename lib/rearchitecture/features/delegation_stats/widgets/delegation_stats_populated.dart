@@ -25,7 +25,7 @@ class DelegationStatsPopulated extends StatelessWidget {
 
     return Column(
       mainAxisAlignment: .spaceEvenly,
-      children: [
+      children: <Widget>[
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[

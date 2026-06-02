@@ -311,7 +311,6 @@ class _LatestTransactionsPopulatedState
                           a.tokenStandard.toString(),
                         ),
               );
-        break;
     }
 
     setState(() {

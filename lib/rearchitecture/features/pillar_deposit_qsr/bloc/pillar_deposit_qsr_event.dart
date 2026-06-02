@@ -13,10 +13,9 @@ sealed class PillarDepositQsrEvent extends Equatable {
 final class PillarDepositQsrRequested extends PillarDepositQsrEvent {
   /// Creates a new [PillarDepositQsrRequested] event.
   const PillarDepositQsrRequested({
-    required Address address,
-    required BigInt amount,
-  }) : _address = address,
-       _amount = amount;
+    required this._address,
+    required this._amount,
+  });
 
   final Address _address;
   final BigInt _amount;

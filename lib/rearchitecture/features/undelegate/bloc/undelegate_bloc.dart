@@ -14,16 +14,13 @@ part 'undelegate_state.dart';
 class UndelegateBloc extends Bloc<UndelegateEvent, UndelegateState> {
   /// Creates a new [UndelegateBloc].
   ///
-  /// The optional [postTransactionDelay] is used to wait for chain sync after
+  /// The optional [_postTransactionDelay] is used to wait for chain sync after
   /// account block creation.
   UndelegateBloc({
-    required AccountBlockUtils accountBlockUtils,
-    required Zenon zenon,
-    Duration postTransactionDelay = kDelayAfterAccountBlockCreationCall,
-  }) : _accountBlockUtils = accountBlockUtils,
-       _postTransactionDelay = postTransactionDelay,
-       _zenon = zenon,
-       super(const UndelegateInitial()) {
+    required this._accountBlockUtils,
+    required this._zenon,
+    this._postTransactionDelay = kDelayAfterAccountBlockCreationCall,
+  }) : super(const UndelegateInitial()) {
     on<UndelegateRequested>(_onUndelegateRequested);
   }
 

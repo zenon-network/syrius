@@ -91,7 +91,7 @@ class _InfiniteScrollTableState<T> extends State<InfiniteScrollTable<T>> {
           child: _Header(columns: widget.columns),
         ),
         SliverList.separated(
-          separatorBuilder: (_, __) => const Divider(
+          separatorBuilder: (_, _) => const Divider(
             thickness: 0.75,
           ),
           itemCount: widget.items.length + 1,

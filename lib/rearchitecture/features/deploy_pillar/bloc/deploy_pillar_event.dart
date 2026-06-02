@@ -13,16 +13,12 @@ sealed class DeployPillarEvent extends Equatable {
 final class DeployPillarRequested extends DeployPillarEvent {
   /// Creates a new [DeployPillarRequested] event.
   const DeployPillarRequested({
-    required Address blockProducingAddress,
-    required int giveBlockRewardPercentage,
-    required int giveDelegateRewardPercentage,
-    required String pillarName,
-    required Address rewardAddress,
-  }) : _blockProducingAddress = blockProducingAddress,
-       _rewardAddress = rewardAddress,
-       _pillarName = pillarName,
-       _giveBlockRewardPercentage = giveBlockRewardPercentage,
-       _giveDelegateRewardPercentage = giveDelegateRewardPercentage;
+    required this._blockProducingAddress,
+    required this._giveBlockRewardPercentage,
+    required this._giveDelegateRewardPercentage,
+    required this._pillarName,
+    required this._rewardAddress,
+  });
 
   final Address _blockProducingAddress;
   final Address _rewardAddress;

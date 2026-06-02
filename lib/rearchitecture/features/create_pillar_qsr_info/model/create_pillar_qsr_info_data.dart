@@ -1,7 +1,7 @@
 import 'package:equatable/equatable.dart';
 
 class CreatePillarQsrInfoData extends Equatable{
-  CreatePillarQsrInfoData({
+  const CreatePillarQsrInfoData({
     required this.cost,
     required this.deposit,
   });

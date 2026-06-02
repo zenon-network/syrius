@@ -17,13 +17,10 @@ part 'revoke_pillar_state.dart';
 class RevokePillarBloc extends Bloc<RevokePillarEvent, RevokePillarState> {
   /// Creates a new [RevokePillarBloc].
   RevokePillarBloc({
-    required AccountBlockUtils accountBlockUtils,
-    required Zenon zenon,
-    required ZenonAddressUtils zenonAddressUtils,
-  }) : _accountBlockUtils = accountBlockUtils,
-       _zenon = zenon,
-       _zenonAddressUtils = zenonAddressUtils,
-       super(const RevokePillarInitial()) {
+    required this._accountBlockUtils,
+    required this._zenon,
+    required this._zenonAddressUtils,
+  }) : super(const RevokePillarInitial()) {
     on<RevokePillarRequested>(_onRevokePillarRequested);
   }
 

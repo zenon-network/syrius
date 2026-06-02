@@ -18,8 +18,7 @@ final class DeployPillarInitial extends DeployPillarState {
 /// Failure state emitted when deployment fails.
 final class DeployPillarFailure extends DeployPillarState {
   /// Creates a new [DeployPillarFailure] state.
-  const DeployPillarFailure({required SyriusException exception})
-    : _exception = exception;
+  const DeployPillarFailure({required this._exception});
 
   final SyriusException _exception;
 

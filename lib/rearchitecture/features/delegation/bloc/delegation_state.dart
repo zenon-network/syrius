@@ -18,8 +18,7 @@ final class DelegationInitial extends DelegationState {
 /// Failure state emitted when delegation fails.
 final class DelegationFailure extends DelegationState {
   /// Creates a new [DelegationFailure] state.
-  const DelegationFailure({required SyriusException exception})
-    : _exception = exception;
+  const DelegationFailure({required this._exception});
 
   final SyriusException _exception;
 

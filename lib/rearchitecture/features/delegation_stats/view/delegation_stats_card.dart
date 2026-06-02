@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:nested/nested.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
@@ -15,7 +16,7 @@ class DelegationCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MultiBlocProvider(
-      providers: [
+      providers: <SingleChildWidget>[
         BlocProvider<UndelegateBloc>(
           create: (_) => UndelegateBloc(
             accountBlockUtils: AccountBlockUtils(),

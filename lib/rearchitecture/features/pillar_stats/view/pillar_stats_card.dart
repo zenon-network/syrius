@@ -24,10 +24,9 @@ import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 class PillarStatsCard extends StatelessWidget {
   /// {@macro default_constructor}
   const PillarStatsCard({
-    required VoidCallback onStepperNotificationSeeMorePressed,
+    required this._onStepperNotificationSeeMorePressed,
     super.key,
-  }) : _onStepperNotificationSeeMorePressed =
-           onStepperNotificationSeeMorePressed;
+  });
 
   final VoidCallback _onStepperNotificationSeeMorePressed;
 
@@ -206,7 +205,7 @@ class _PillarStatsView extends StatelessWidget {
     required PillarInfo pillarInfo,
   }) {
     return Column(
-      children: [
+      children: <Widget>[
         BlocConsumer<RevokePillarBloc, RevokePillarState>(
           listener: (_, RevokePillarState state) {
             if (state is RevokePillarDone) {

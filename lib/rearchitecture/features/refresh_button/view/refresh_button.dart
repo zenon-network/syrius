@@ -8,9 +8,9 @@ import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/loading_wid
 class RefreshButton extends StatelessWidget {
   /// Constructs a new instance.
   const RefreshButton({
-    required VoidCallback onPressed,
+    required this._onPressed,
     super.key,
-  }) : _onPressed = onPressed;
+  });
 
   final VoidCallback _onPressed;
 
@@ -18,7 +18,7 @@ class RefreshButton extends StatelessWidget {
   Widget build(BuildContext context) {
     const bool isLoading = false;
     // TODO(maznnwell): implement re-building via a listener
-    return isLoading ? _Loading() : _Initial(onPressed: _onPressed,);
+    return isLoading ? const _Loading() : _Initial(onPressed: _onPressed,);
   }
 }
 

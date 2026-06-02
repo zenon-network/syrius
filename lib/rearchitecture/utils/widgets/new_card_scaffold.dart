@@ -209,7 +209,7 @@ class _NewCardScaffoldState extends State<NewCardScaffold> {
                     Expanded(
                       child: ValueListenableBuilder<bool>(
                         valueListenable: _obscureTextNotifier,
-                        builder: (_, bool obscureText, __) {
+                        builder: (_, bool obscureText, _) {
                           return CardScaffoldPasswordField(
                             controller: _passwordController,
                             errorText: _error?.toString(),

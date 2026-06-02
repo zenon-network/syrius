@@ -13,8 +13,8 @@ sealed class RevokePillarEvent extends Equatable {
 final class RevokePillarRequested extends RevokePillarEvent {
   /// Creates a new [RevokePillarRequested] event.
   const RevokePillarRequested({
-    required String pillarName,
-  }) : _pillarName = pillarName;
+    required this._pillarName,
+  });
 
   final String _pillarName;
 

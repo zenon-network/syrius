@@ -13,10 +13,9 @@ sealed class DelegationEvent extends Equatable {
 final class DelegationRequested extends DelegationEvent {
   /// Creates a new [DelegationRequested] event.
   const DelegationRequested({
-    required Address address,
-    required String pillarName,
-  }) : _address = address,
-       _pillarName = pillarName;
+    required this._address,
+    required this._pillarName,
+  });
 
   final Address _address;
   final String _pillarName;

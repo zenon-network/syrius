@@ -16,18 +16,14 @@ class PillarWithdrawQsrBloc
     extends Bloc<PillarWithdrawQsrEvent, PillarWithdrawQsrState> {
   /// Creates a new [PillarWithdrawQsrBloc].
   ///
-  /// The optional [postTransactionDelay] is used to wait for chain sync after
+  /// The optional [_postTransactionDelay] is used to wait for chain sync after
   /// account block creation.
   PillarWithdrawQsrBloc({
-    required AccountBlockUtils accountBlockUtils,
-    required Zenon zenon,
-    required ZenonAddressUtils zenonAddressUtils,
-    Duration postTransactionDelay = kDelayAfterAccountBlockCreationCall,
-  }) : _zenonAddressUtils = zenonAddressUtils,
-        _postTransactionDelay = postTransactionDelay,
-        _accountBlockUtils = accountBlockUtils,
-        _zenon = zenon,
-        super(const PillarWithdrawQsrInitial()) {
+    required this._accountBlockUtils,
+    required this._zenon,
+    required this._zenonAddressUtils,
+    this._postTransactionDelay = kDelayAfterAccountBlockCreationCall,
+  }) : super(const PillarWithdrawQsrInitial()) {
     on<PillarWithdrawQsrRequested>(_onWithdrawQsrRequested);
   }
 

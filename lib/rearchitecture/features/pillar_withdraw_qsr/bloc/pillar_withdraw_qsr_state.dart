@@ -18,8 +18,7 @@ final class PillarWithdrawQsrInitial extends PillarWithdrawQsrState {
 /// Failure state emitted when withdrawal fails.
 final class PillarWithdrawQsrFailure extends PillarWithdrawQsrState {
   /// Creates a new [PillarWithdrawQsrFailure] state.
-  const PillarWithdrawQsrFailure({required SyriusException exception})
-    : _exception = exception;
+  const PillarWithdrawQsrFailure({required this._exception});
 
   final SyriusException _exception;
 

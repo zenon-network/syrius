@@ -18,8 +18,7 @@ final class PillarDepositQsrInitial extends PillarDepositQsrState {
 /// Failure state emitted when deposit fails.
 final class PillarDepositQsrFailure extends PillarDepositQsrState {
   /// Creates a new [PillarDepositQsrFailure] state.
-  const PillarDepositQsrFailure({required SyriusException exception})
-    : _exception = exception;
+  const PillarDepositQsrFailure({required this._exception});
 
   final SyriusException _exception;
 

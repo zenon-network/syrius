@@ -9,8 +9,7 @@ import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 /// A widget that helps with DI
 class UpdatePillarStepperPage extends StatelessWidget {
   /// {@macro default_constructor}
-  const UpdatePillarStepperPage({required PillarInfo pillarInfo, super.key})
-    : _pillarInfo = pillarInfo;
+  const UpdatePillarStepperPage({required this._pillarInfo, super.key});
 
   final PillarInfo _pillarInfo;
 

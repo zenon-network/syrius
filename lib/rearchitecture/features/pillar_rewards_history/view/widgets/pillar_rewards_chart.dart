@@ -10,9 +10,9 @@ import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 class PillarRewardsChart extends StatelessWidget {
   /// Constructs a new instance.
   const PillarRewardsChart({
-    required RewardHistoryList rewardsHistoryList,
+    required this._rewardsHistoryList,
     super.key,
-  }) : _rewardsHistoryList = rewardsHistoryList;
+  });
 
   final RewardHistoryList _rewardsHistoryList;
 

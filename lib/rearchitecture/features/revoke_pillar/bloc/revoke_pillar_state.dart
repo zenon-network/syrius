@@ -18,8 +18,7 @@ final class RevokePillarInitial extends RevokePillarState {
 /// Failure state emitted when revocation fails.
 final class RevokePillarFailure extends RevokePillarState {
   /// Creates a new [RevokePillarFailure] state.
-  const RevokePillarFailure({required SyriusException exception})
-    : _exception = exception;
+  const RevokePillarFailure({required this._exception});
 
   final SyriusException _exception;
 
