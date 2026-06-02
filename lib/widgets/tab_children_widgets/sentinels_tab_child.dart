@@ -1,31 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:layout/layout.dart';
-import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 
-class SentinelsTabChild extends StatefulWidget {
-
+class SentinelsTabChild extends StatelessWidget {
   const SentinelsTabChild({
     required this.onStepperNotificationSeeMorePressed,
     super.key,
   });
+
   final VoidCallback onStepperNotificationSeeMorePressed;
-
-  @override
-  State<SentinelsTabChild> createState() => _SentinelsTabChildState();
-}
-
-class _SentinelsTabChildState extends State<SentinelsTabChild> {
-  final SentinelRewardsHistoryBloc _sentinelRewardsHistoryBloc =
-      SentinelRewardsHistoryBloc();
 
   @override
   Widget build(BuildContext context) {
     final List<FluidCell> children = <FluidCell>[
       FluidCell(
-        child: SentinelRewards(
-          sentinelRewardsHistoryBloc: _sentinelRewardsHistoryBloc,
-        ),
+        child: const SentinelRewardsCard(),
         width: context.layout.value(
           xl: kStaggeredNumOfColumns ~/ 3,
           lg: kStaggeredNumOfColumns ~/ 3,
@@ -35,9 +25,7 @@ class _SentinelsTabChildState extends State<SentinelsTabChild> {
         ),
       ),
       FluidCell(
-        child: SentinelCollect(
-          sentinelRewardsHistoryBloc: _sentinelRewardsHistoryBloc,
-        ),
+        child: const SentinelCollect(),
         width: context.layout.value(
           xl: kStaggeredNumOfColumns ~/ 3,
           lg: kStaggeredNumOfColumns ~/ 3,
@@ -49,7 +37,7 @@ class _SentinelsTabChildState extends State<SentinelsTabChild> {
       FluidCell(
         child: CreateSentinel(
           onStepperNotificationSeeMorePressed:
-              widget.onStepperNotificationSeeMorePressed,
+              onStepperNotificationSeeMorePressed,
         ),
         width: context.layout.value(
           xl: kStaggeredNumOfColumns ~/ 3,
@@ -69,11 +57,5 @@ class _SentinelsTabChildState extends State<SentinelsTabChild> {
     return StandardFluidLayout(
       children: children,
     );
-  }
-
-  @override
-  void dispose() {
-    _sentinelRewardsHistoryBloc.dispose();
-    super.dispose();
   }
 }

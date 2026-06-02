@@ -22,6 +22,7 @@ export 'refresh_button/refresh_button.dart';
 export 'revoke_pillar/revoke_pillar.dart';
 export 'send/send.dart';
 export 'sentinels/sentinels.dart';
+export 'sentinel_rewards_history/sentinel_rewards_history.dart';
 export 'staking/staking.dart';
 export 'total_hourly_transactions/total_hourly_transactions.dart';
 export 'transfer/transfer.dart';

@@ -147,6 +147,16 @@ class _MainAppContainerState extends State<MainAppContainer>
                 ),
               ),
         ),
+        BlocProvider<SentinelRewardsHistoryBloc>(
+          create: (_) =>
+              SentinelRewardsHistoryBloc(
+                zenon: zenon!,
+              )..add(
+                FetchRequestData(
+                  address: Address.parse(kSelectedAddress!),
+                ),
+              ),
+        ),
         BlocProvider<PillarsByOwnerBloc>(
           create: (_) =>
               PillarsByOwnerBloc(

@@ -1,22 +1,21 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/account_block_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/extensions.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/notification_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/zts_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 class SentinelCollect extends StatefulWidget {
-
-  const SentinelCollect({
-    required this.sentinelRewardsHistoryBloc,
-    super.key,
-  });
-  final SentinelRewardsHistoryBloc sentinelRewardsHistoryBloc;
+  const SentinelCollect({super.key});
 
   @override
   State<SentinelCollect> createState() => _SentinelCollectState();
@@ -114,7 +113,13 @@ class _SentinelCollectState extends State<SentinelCollect> {
           if (mounted) {
             _sentinelCollectRewardsBloc.updateStream();
           }
-          widget.sentinelRewardsHistoryBloc.updateStream();
+          if (mounted) {
+            context.read<SentinelRewardsHistoryBloc>().add(
+                  FetchRequestData(
+                    address: Address.parse(kSelectedAddress!),
+                  ),
+                );
+          }
         },
       );
     } catch (e) {

@@ -92,6 +92,11 @@ class AddressesState extends State<Addresses> {
               address: newAddress,
             ),
           );
+      context.read<SentinelRewardsHistoryBloc>().add(
+            FetchRequestData(
+              address: newAddress,
+            ),
+          );
       context.read<PillarsByOwnerBloc>().add(
         FetchRequestData(
           address: newAddress,

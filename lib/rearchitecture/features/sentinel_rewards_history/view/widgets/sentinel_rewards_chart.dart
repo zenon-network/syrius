@@ -8,21 +8,16 @@ import 'package:zenon_syrius_wallet_flutter/utils/zts_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
-class SentinelRewardsChart extends StatefulWidget {
-
-  const SentinelRewardsChart(
-    this.rewardsHistory, {
+/// A [StandardChart] adapted to show the sentinel rewards.
+class SentinelRewardsChart extends StatelessWidget {
+  /// Constructs a new instance.
+  const SentinelRewardsChart({
+    required this._rewardsHistoryList,
     super.key,
   });
-  final RewardHistoryList? rewardsHistory;
 
-  @override
-  State createState() {
-    return _SentinelRewardsChart();
-  }
-}
+  final RewardHistoryList _rewardsHistoryList;
 
-class _SentinelRewardsChart extends State<SentinelRewardsChart> {
   @override
   Widget build(BuildContext context) {
     return StandardChart(
@@ -34,22 +29,22 @@ class _SentinelRewardsChart extends State<SentinelRewardsChart> {
           DateTime.fromMillisecondsSinceEpoch(genesisTimestamp * 1000).add(
         Duration(
           // First epoch is zero
-          days: widget.rewardsHistory!.list.reversed.last.epoch + 1,
+          days: _rewardsHistoryList.list.reversed.last.epoch + 1,
         ),
       ),
     );
   }
 
-  List<FlSpot> _getZnnRewardsSpots() => List.generate(
-        widget.rewardsHistory!.list.length,
+  List<FlSpot> _getZnnRewardsSpots() => List<FlSpot>.generate(
+        _rewardsHistoryList.list.length,
         (int index) => FlSpot(
           index.toDouble(),
           _getRewardsByIndex(index, kZnnCoin.tokenStandard).toDouble(),
         ),
       );
 
-  List<FlSpot> _getQsrRewardsSpots() => List.generate(
-        widget.rewardsHistory!.list.length,
+  List<FlSpot> _getQsrRewardsSpots() => List<FlSpot>.generate(
+        _rewardsHistoryList.list.length,
         (int index) => FlSpot(
           index.toDouble(),
           _getRewardsByIndex(index, kQsrCoin.tokenStandard).toDouble(),
@@ -68,21 +63,11 @@ class _SentinelRewardsChart extends State<SentinelRewardsChart> {
       ];
 
   num _getRewardsByIndex(int index, TokenStandard tokenId) {
+    final RewardHistoryEntry entry = _rewardsHistoryList.list.reversed
+        .toList()[index];
     return tokenId == kZnnCoin.tokenStandard
-        ? widget.rewardsHistory!.list.reversed
-            .toList()[index]
-            .znnAmount
-            .addDecimals(
-              coinDecimals,
-            )
-            .toNum()
-        : widget.rewardsHistory!.list.reversed
-            .toList()[index]
-            .qsrAmount
-            .addDecimals(
-              coinDecimals,
-            )
-            .toNum();
+        ? entry.znnAmount.addDecimals(coinDecimals).toNum()
+        : entry.qsrAmount.addDecimals(coinDecimals).toNum();
   }
 
   num _getMaxValueOfRewards() {
@@ -100,8 +85,8 @@ class _SentinelRewardsChart extends State<SentinelRewardsChart> {
   }
 
   BigInt _getMaxValueOfZnnRewards() {
-    BigInt max = widget.rewardsHistory!.list.first.znnAmount;
-    for (final RewardHistoryEntry element in widget.rewardsHistory!.list) {
+    BigInt max = _rewardsHistoryList.list.first.znnAmount;
+    for (final RewardHistoryEntry element in _rewardsHistoryList.list) {
       if (element.znnAmount > max) {
         max = element.znnAmount;
       }
@@ -110,8 +95,8 @@ class _SentinelRewardsChart extends State<SentinelRewardsChart> {
   }
 
   BigInt _getMaxValueOfQsrRewards() {
-    BigInt max = widget.rewardsHistory!.list.first.qsrAmount;
-    for (final RewardHistoryEntry element in widget.rewardsHistory!.list) {
+    BigInt max = _rewardsHistoryList.list.first.qsrAmount;
+    for (final RewardHistoryEntry element in _rewardsHistoryList.list) {
       if (element.qsrAmount > max) {
         max = element.qsrAmount;
       }
