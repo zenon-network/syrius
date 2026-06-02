@@ -39,3 +39,4 @@
 - The fields of a class should also be private
 - Each new feature must also have basic unit tests for the bloc or cubit class; take pillars_card as an example
 - Do not execute commands to check the formatting or if tests are running
+- If a Widget class, or other class that has a BuildContext field, uses hard-coded strings, try to localize them
