@@ -10,9 +10,9 @@ part 'update_pillar_event.dart';
 
 part 'update_pillar_state.dart';
 
-/// A bloc that helps update some pillar details
+/// A bloc that updates pillar registration details.
 class UpdatePillarBloc extends Bloc<UpdatePillarEvent, UpdatePillarState> {
-  /// {@macro default_constructor}
+  /// Creates a new [UpdatePillarBloc].
   UpdatePillarBloc({
     required AccountBlockUtils accountBlockUtils,
     required Zenon zenon,
@@ -31,14 +31,14 @@ class UpdatePillarBloc extends Bloc<UpdatePillarEvent, UpdatePillarState> {
   ) async {
     try {
       emit(const UpdatePillarLoading());
-      final AccountBlockTemplate transactionParams =
-      _zenon.embedded.pillar.updatePillar(
-        event.pillarName,
-        event.blockProducingAddress,
-        event.rewardAddress,
-        event.giveBlockRewardPercentage,
-        event.giveDelegateRewardPercentage,
-      );
+      final AccountBlockTemplate transactionParams = _zenon.embedded.pillar
+          .updatePillar(
+            event.pillarName,
+            event.blockProducingAddress,
+            event.rewardAddress,
+            event.giveBlockRewardPercentage,
+            event.giveDelegateRewardPercentage,
+          );
       await _accountBlockUtils.createAccountBlock(
         transactionParams,
         'update pillar',

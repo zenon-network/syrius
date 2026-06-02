@@ -10,9 +10,12 @@ part 'undelegate_event.dart';
 
 part 'undelegate_state.dart';
 
-/// A bloc that helps with un-delegating from a pillar
+/// A bloc that removes an address delegation from its current pillar.
 class UndelegateBloc extends Bloc<UndelegateEvent, UndelegateState> {
-  /// {@macro default_constructor}
+  /// Creates a new [UndelegateBloc].
+  ///
+  /// The optional [postTransactionDelay] is used to wait for chain sync after
+  /// account block creation.
   UndelegateBloc({
     required AccountBlockUtils accountBlockUtils,
     required Zenon zenon,
