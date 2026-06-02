@@ -40,14 +40,14 @@ class PillarsCard extends StatelessWidget {
           ),
         ),
       ],
-      child: const _PillarsView(),
+      child: const _View(),
     );
   }
 }
 
 
-class _PillarsView extends StatelessWidget {
-  const _PillarsView();
+class _View extends StatelessWidget {
+  const _View();
 
   @override
   Widget build(BuildContext context) {

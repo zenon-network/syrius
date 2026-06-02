@@ -38,13 +38,13 @@ class PillarCollectCard extends StatelessWidget {
           create: (_) => SendTransactionBloc(),
         ),
       ],
-      child: const _PillarCollectView(),
+      child: const _View(),
     );
   }
 }
 
-class _PillarCollectView extends StatelessWidget {
-  const _PillarCollectView();
+class _View extends StatelessWidget {
+  const _View();
 
   @override
   Widget build(BuildContext context) {
