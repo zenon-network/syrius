@@ -55,20 +55,18 @@ class _View extends StatelessWidget {
           FetchRequestData(address: Address.parse(kSelectedAddress!)),
         );
       },
-      body:
-          BlocBuilder<UncollectedPillarRewardsBloc, FetchState<UncollectedReward>>(
-            builder: (_, FetchState<UncollectedReward> state) =>
-                switch (state) {
-                  FetchFailure<UncollectedReward>() => SyriusErrorWidget(
-                    state.exception,
-                  ),
-                  FetchInitial<UncollectedReward>() =>
-                    const SyriusLoadingWidget(),
-                  FetchPopulated<UncollectedReward>() => _Populated(
-                    uncollectedReward: state.data,
-                  ),
-                },
-          ),
+      body: BlocBuilder<UncollectedPillarRewardsBloc,
+          FetchState<UncollectedReward>>(
+        builder: (_, FetchState<UncollectedReward> state) => switch (state) {
+          FetchFailure<UncollectedReward>() => SyriusErrorWidget(
+              state.exception,
+            ),
+          FetchInitial<UncollectedReward>() => const SyriusLoadingWidget(),
+          FetchPopulated<UncollectedReward>() => _Populated(
+              uncollectedReward: state.data,
+            ),
+        },
+      ),
     );
   }
 
@@ -78,21 +76,14 @@ class _View extends StatelessWidget {
   );
 }
 
-class _Populated extends StatefulWidget {
+class _Populated extends StatelessWidget {
   const _Populated({required this.uncollectedReward});
 
   final UncollectedReward uncollectedReward;
 
   @override
-  State<_Populated> createState() => _PopulatedState();
-}
-
-class _PopulatedState extends State<_Populated> {
-  final GlobalKey<LoadingButtonState> _collectButtonKey = GlobalKey();
-
-  @override
   Widget build(BuildContext context) {
-    if (widget.uncollectedReward.znnAmount == BigInt.zero) {
+    if (uncollectedReward.znnAmount == BigInt.zero) {
       return SyriusErrorWidget(context.l10n.noRewardsCollect);
     }
 
@@ -100,7 +91,7 @@ class _PopulatedState extends State<_Populated> {
       mainAxisAlignment: MainAxisAlignment.center,
       children: <Widget>[
         NumberAnimation(
-          end: widget.uncollectedReward.znnAmount
+          end: uncollectedReward.znnAmount
               .addDecimals(
                 coinDecimals,
               )
@@ -112,46 +103,67 @@ class _PopulatedState extends State<_Populated> {
           ),
         ),
         kVerticalGap16,
-        BlocListener<SendTransactionBloc, SendTransactionState>(
-          listener: (_, SendTransactionState state) {
-            if (state.status == SendTransactionStatus.loading) {
-              _collectButtonKey.currentState?.animateForward();
-            } else if (state.status == SendTransactionStatus.success) {
-              _collectButtonKey.currentState?.animateReverse();
-              _sendConfirmationNotification(block: state.data!);
-              Future<void>.delayed(
-                kDelayAfterAccountBlockCreationCall,
-                () {
-                  if (context.mounted) {
-                    context.read<UncollectedPillarRewardsBloc>().add(
-                      FetchRequestData(
-                        address: Address.parse(kSelectedAddress!),
-                      ),
-                    );
-                  }
-                },
-              );
-            } else if (state.status == SendTransactionStatus.failure) {
-              _collectButtonKey.currentState?.animateReverse();
-              unawaited(
-                NotificationUtils.sendNotificationError(
-                  state.error!,
-                  context.l10n.errorCollectingPillarRewards,
-                ),
-              );
-            }
-          },
-          child: LoadingButton.stepper(
-            key: _collectButtonKey,
-            text: context.l10n.collect,
-            onPressed: widget.uncollectedReward.znnAmount > BigInt.zero
-                ? () => _onCollectPressed(
-                    bloc: context.read<SendTransactionBloc>(),
-                  )
-                : null,
-          ),
-        ),
+        const _CollectButton(),
       ],
+    );
+  }
+}
+
+class _CollectButton extends StatefulWidget {
+  const _CollectButton();
+
+  @override
+  State<_CollectButton> createState() => _CollectButtonState();
+}
+
+class _CollectButtonState extends State<_CollectButton> {
+  final GlobalKey<LoadingButtonState> _collectButtonKey = GlobalKey();
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocListener<SendTransactionBloc, SendTransactionState>(
+      listener: (_, SendTransactionState state) =>
+          _onTransactionStateChanged(state),
+      child: LoadingButton.stepper(
+        key: _collectButtonKey,
+        text: context.l10n.collect,
+        onPressed: () => _onCollectPressed(
+          bloc: context.read<SendTransactionBloc>(),
+        ),
+      ),
+    );
+  }
+
+  void _onTransactionStateChanged(SendTransactionState state) {
+    if (state.status == SendTransactionStatus.loading) {
+      _collectButtonKey.currentState?.animateForward();
+    } else if (state.status == SendTransactionStatus.success) {
+      _collectButtonKey.currentState?.animateReverse();
+      _sendConfirmationNotification(block: state.data!);
+      _refreshUncollectedRewardsAfterDelay();
+    } else if (state.status == SendTransactionStatus.failure) {
+      _collectButtonKey.currentState?.animateReverse();
+      unawaited(
+        NotificationUtils.sendNotificationError(
+          state.error!,
+          context.l10n.errorCollectingPillarRewards,
+        ),
+      );
+    }
+  }
+
+  void _refreshUncollectedRewardsAfterDelay() {
+    Future<void>.delayed(
+      kDelayAfterAccountBlockCreationCall,
+      () {
+        if (mounted) {
+          context.read<UncollectedPillarRewardsBloc>().add(
+            FetchRequestData(
+              address: Address.parse(kSelectedAddress!),
+            ),
+          );
+        }
+      },
     );
   }
 

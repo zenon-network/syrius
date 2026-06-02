@@ -26,6 +26,7 @@ export 'sentinel_rewards_history/sentinel_rewards_history.dart';
 export 'staking/staking.dart';
 export 'total_hourly_transactions/total_hourly_transactions.dart';
 export 'transfer/transfer.dart';
+export 'pillar_collect/pillar_collect.dart';
 export 'uncollected_pillar_rewards/uncollected_pillar_rewards.dart';
 export 'undelegate/undelegate.dart';
 export 'update_pillar/update_pillar.dart';
