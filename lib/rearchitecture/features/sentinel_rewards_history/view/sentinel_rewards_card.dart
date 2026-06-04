@@ -17,36 +17,39 @@ class SentinelRewardsCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return NewCardScaffold(
-      data: _buildCardData(),
+      data: _buildCardData(context: context),
       onRefreshPressed: () {
         context.read<SentinelRewardsHistoryBloc>().add(
-              FetchRequestData(
-                address: Address.parse(kSelectedAddress!),
-              ),
-            );
+          FetchRequestData(
+            address: Address.parse(kSelectedAddress!),
+          ),
+        );
       },
-      body: BlocBuilder<SentinelRewardsHistoryBloc,
-          FetchState<RewardHistoryList>>(
-        builder: (_, FetchState<RewardHistoryList> state) {
-          return switch (state) {
-            FetchFailure<RewardHistoryList>() => SyriusErrorWidget(
-                state.exception,
-              ),
-            FetchInitial<RewardHistoryList>() => const SyriusLoadingWidget(),
-            FetchPopulated<RewardHistoryList>() => _Chart(
-                rewardsHistoryList: state.data,
-              ),
-          };
-        },
-      ),
+      body:
+          BlocBuilder<
+            SentinelRewardsHistoryBloc,
+            FetchState<RewardHistoryList>
+          >(
+            builder: (_, FetchState<RewardHistoryList> state) {
+              return switch (state) {
+                FetchFailure<RewardHistoryList>() => SyriusErrorWidget(
+                  state.exception,
+                ),
+                FetchInitial<RewardHistoryList>() =>
+                  const SyriusLoadingWidget(),
+                FetchPopulated<RewardHistoryList>() => _Chart(
+                  rewardsHistoryList: state.data,
+                ),
+              };
+            },
+          ),
     );
   }
 
-  CardData _buildCardData() => CardData(
-        description: 'This card displays a chart with your Sentinel rewards '
-            'from your Sentinel Node',
-        title: 'Sentinel Rewards',
-      );
+  CardData _buildCardData({required BuildContext context}) => CardData(
+    description: context.l10n.sentinelRewardsDescription,
+    title: context.l10n.sentinelRewardsTitle,
+  );
 }
 
 /// A [StandardChart] adapted to show the sentinel rewards.
@@ -66,18 +69,18 @@ class _Chart extends StatelessWidget {
           : _getMaxValueOfRewards().ceilToDouble(),
       lineBarsData: _linesBarData(),
       titlesReferenceDate:
-      DateTime.fromMillisecondsSinceEpoch(genesisTimestamp * 1000).add(
-        Duration(
-          // First epoch is zero
-          days: _rewardsHistoryList.list.reversed.last.epoch + 1,
-        ),
-      ),
+          DateTime.fromMillisecondsSinceEpoch(genesisTimestamp * 1000).add(
+            Duration(
+              // First epoch is zero
+              days: _rewardsHistoryList.list.reversed.last.epoch + 1,
+            ),
+          ),
     );
   }
 
   List<FlSpot> _getZnnRewardsSpots() => List<FlSpot>.generate(
     _rewardsHistoryList.list.length,
-        (int index) => FlSpot(
+    (int index) => FlSpot(
       index.toDouble(),
       _getRewardsByIndex(index, kZnnCoin.tokenStandard).toDouble(),
     ),
@@ -85,7 +88,7 @@ class _Chart extends StatelessWidget {
 
   List<FlSpot> _getQsrRewardsSpots() => List<FlSpot>.generate(
     _rewardsHistoryList.list.length,
-        (int index) => FlSpot(
+    (int index) => FlSpot(
       index.toDouble(),
       _getRewardsByIndex(index, kQsrCoin.tokenStandard).toDouble(),
     ),
@@ -113,13 +116,13 @@ class _Chart extends StatelessWidget {
   num _getMaxValueOfRewards() {
     final num maxZnn = _getMaxValueOfZnnRewards()
         .addDecimals(
-      coinDecimals,
-    )
+          coinDecimals,
+        )
         .toNum();
     final num maxQsr = _getMaxValueOfQsrRewards()
         .addDecimals(
-      coinDecimals,
-    )
+          coinDecimals,
+        )
         .toNum();
     return max(maxQsr, maxZnn);
   }

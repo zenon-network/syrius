@@ -885,11 +885,23 @@ abstract class AppLocalizations {
   /// **'Sentinel Collect'**
   String get sentinelCollectTitle;
 
+  /// No description provided for @sentinelRewardsDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'This card displays a chart with your Sentinel rewards from your Sentinel Node'**
+  String get sentinelRewardsDescription;
+
   /// No description provided for @sentinelRewardsBlockCreated.
   ///
   /// In en, this message translates to:
   /// **'Successfully created block for collecting the sentinel rewards. It will take at least 30 seconds for the data to update and to be able to receive the rewards.'**
   String get sentinelRewardsBlockCreated;
+
+  /// No description provided for @sentinelRewardsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Sentinel Rewards'**
+  String get sentinelRewardsTitle;
 
   /// No description provided for @sentinelDetectedOnThisAddress.
   ///

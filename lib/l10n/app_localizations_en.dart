@@ -486,8 +486,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get sentinelCollectTitle => 'Sentinel Collect';
 
   @override
+  String get sentinelRewardsDescription =>
+      'This card displays a chart with your Sentinel rewards from your Sentinel Node';
+
+  @override
   String get sentinelRewardsBlockCreated =>
       'Successfully created block for collecting the sentinel rewards. It will take at least 30 seconds for the data to update and to be able to receive the rewards.';
+
+  @override
+  String get sentinelRewardsTitle => 'Sentinel Rewards';
 
   @override
   String get sentinelDetectedOnThisAddress =>
