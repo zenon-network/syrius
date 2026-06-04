@@ -9,11 +9,11 @@ part 'active_pillars_state.dart';
 
 /// [ActivePillarsCubit] manages the fetching and state of pillar statistics.
 ///
-/// It uses an integer to represent the total number of active_pillars fetched from
-/// the Zenon network.
+/// It uses an integer to represent the total number of active_pillars fetched
+/// from the Zenon network.
 class ActivePillarsCubit extends TimerCubit<int, ActivePillarsState> {
-  /// Constructs a [ActivePillarsCubit], passing the [zenon] client and the initial
-  /// state to the parent class.
+  /// Constructs a [ActivePillarsCubit], passing the [zenon] client and the
+  /// initial state to the parent class.
   ///
   /// The [zenon] client is used to interact with the Zenon network to retrieve
   /// pillar information.
