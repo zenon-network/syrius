@@ -184,6 +184,12 @@ abstract class AppLocalizations {
   /// **'Collect Sentinel rewards'**
   String get collectSentinelRewards;
 
+  /// No description provided for @cannotReuseAddressForSentinel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cannot reuse address.\nPlease use another address to spawn a new Sentinel Node'**
+  String get cannotReuseAddressForSentinel;
+
   /// No description provided for @couldNotSend.
   ///
   /// In en, this message translates to:
@@ -201,6 +207,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Create Pillar'**
   String get createPillarTitle;
+
+  /// No description provided for @createSentinelDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Start the process of deploying a Sentinel Node in the network'**
+  String get createSentinelDescription;
 
   /// No description provided for @currentAmounts.
   ///
@@ -824,6 +836,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Successfully created block for collecting the sentinel rewards. It will take at least 30 seconds for the data to update and to be able to receive the rewards.'**
   String get sentinelRewardsBlockCreated;
+
+  /// No description provided for @sentinelDetectedOnThisAddress.
+  ///
+  /// In en, this message translates to:
+  /// **'Sentinel detected on this address'**
+  String get sentinelDetectedOnThisAddress;
+
+  /// No description provided for @sentinelStats.
+  ///
+  /// In en, this message translates to:
+  /// **'Sentinel Stats'**
+  String get sentinelStats;
 
   /// No description provided for @sentinels.
   ///

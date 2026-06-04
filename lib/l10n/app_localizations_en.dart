@@ -59,6 +59,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get collectSentinelRewards => 'Collect Sentinel rewards';
 
   @override
+  String get cannotReuseAddressForSentinel =>
+      'Cannot reuse address.\nPlease use another address to spawn a new Sentinel Node';
+
+  @override
   String couldNotSend(Object amount, Object recipient, Object symbol) {
     return 'Couldn\'t send $amount $symbol to $recipient';
   }
@@ -69,6 +73,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get createPillarTitle => 'Create Pillar';
+
+  @override
+  String get createSentinelDescription =>
+      'Start the process of deploying a Sentinel Node in the network';
 
   @override
   String currentAmounts(Object kQsrCoinSymbol, Object kZnnCoinSymbol) {
@@ -446,6 +454,13 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get sentinelRewardsBlockCreated =>
       'Successfully created block for collecting the sentinel rewards. It will take at least 30 seconds for the data to update and to be able to receive the rewards.';
+
+  @override
+  String get sentinelDetectedOnThisAddress =>
+      'Sentinel detected on this address';
+
+  @override
+  String get sentinelStats => 'Sentinel Stats';
 
   @override
   String get sentinels => 'Sentinels';

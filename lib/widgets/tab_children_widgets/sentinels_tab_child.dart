@@ -3,12 +3,15 @@ import 'package:layout/layout.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 
+/// Displays the Sentinels tab content in a responsive fluid layout.
 class SentinelsTabChild extends StatelessWidget {
+  /// Creates a Sentinels tab child.
   const SentinelsTabChild({
     required this.onStepperNotificationSeeMorePressed,
     super.key,
   });
 
+  /// Called when the stepper notification asks to show more details.
   final VoidCallback onStepperNotificationSeeMorePressed;
 
   @override
@@ -35,7 +38,7 @@ class SentinelsTabChild extends StatelessWidget {
         ),
       ),
       FluidCell(
-        child: CreateSentinel(
+        child: SentinelStatsCard(
           onStepperNotificationSeeMorePressed:
               onStepperNotificationSeeMorePressed,
         ),
