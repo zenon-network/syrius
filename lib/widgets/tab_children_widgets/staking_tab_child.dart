@@ -2,22 +2,23 @@ import 'package:flutter/material.dart';
 import 'package:layout/layout.dart';
 import 'package:provider/provider.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/notifiers/default_address_notifier.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 
+/// Tab content for staking-related cards and lists.
 class StakingTabChild extends StatefulWidget {
+  /// Creates a staking tab child.
   const StakingTabChild({super.key});
 
   @override
-  State createState() {
+  State<StakingTabChild> createState() {
     return _StakingTabChildState();
   }
 }
 
 class _StakingTabChildState extends State<StakingTabChild> {
   final StakingListBloc _stakingListBloc = StakingListBloc();
-  final StakingRewardsHistoryBloc _stakingRewardsHistoryBloc =
-      StakingRewardsHistoryBloc();
 
   @override
   Widget build(BuildContext context) {
@@ -27,9 +28,7 @@ class _StakingTabChildState extends State<StakingTabChild> {
   Widget _getFluidLayout() {
     final List<FluidCell> children = <FluidCell>[
       FluidCell(
-        child: StakingRewards(
-          stakingRewardsHistoryBloc: _stakingRewardsHistoryBloc,
-        ),
+        child: const StakingRewardsCard(),
         width: context.layout.value(
           xl: kStaggeredNumOfColumns ~/ 3,
           lg: kStaggeredNumOfColumns ~/ 3,
@@ -39,9 +38,7 @@ class _StakingTabChildState extends State<StakingTabChild> {
         ),
       ),
       FluidCell(
-        child: StakeCollect(
-          stakingRewardsHistoryBloc: _stakingRewardsHistoryBloc,
-        ),
+        child: const StakeCollect(),
         width: context.layout.value(
           xl: kStaggeredNumOfColumns ~/ 3,
           lg: kStaggeredNumOfColumns ~/ 3,
@@ -52,7 +49,12 @@ class _StakingTabChildState extends State<StakingTabChild> {
       ),
       FluidCell(
         child: Consumer<SelectedAddressNotifier>(
-          builder: (_, __, Widget? child) => StakingOptions(_stakingListBloc),
+          builder:
+              (
+                BuildContext context,
+                SelectedAddressNotifier notifier,
+                Widget? child,
+              ) => StakingOptions(_stakingListBloc),
         ),
         width: context.layout.value(
           xl: kStaggeredNumOfColumns ~/ 3,
@@ -77,7 +79,6 @@ class _StakingTabChildState extends State<StakingTabChild> {
   @override
   void dispose() {
     _stakingListBloc.dispose();
-    _stakingRewardsHistoryBloc.dispose();
     super.dispose();
   }
 }

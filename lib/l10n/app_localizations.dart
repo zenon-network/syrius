@@ -190,6 +190,12 @@ abstract class AppLocalizations {
   /// **'Collect Sentinel rewards'**
   String get collectSentinelRewards;
 
+  /// No description provided for @collectStakingRewards.
+  ///
+  /// In en, this message translates to:
+  /// **'Collect staking rewards'**
+  String get collectStakingRewards;
+
   /// No description provided for @cannotReuseAddressForSentinel.
   ///
   /// In en, this message translates to:
@@ -369,6 +375,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Error while disassembling Sentinel'**
   String get errorDisassemblingSentinel;
+
+  /// No description provided for @errorCollectingStakingRewards.
+  ///
+  /// In en, this message translates to:
+  /// **'Error while collecting staking rewards'**
+  String get errorCollectingStakingRewards;
 
   /// No description provided for @errorUndelegating.
   ///
@@ -963,6 +975,18 @@ abstract class AppLocalizations {
   /// **'Spawn'**
   String get spawn;
 
+  /// No description provided for @stakeCollectDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'This card displays your current staking rewards that are ready to be collected. If there are any rewards available, you will be able to collect them'**
+  String get stakeCollectDescription;
+
+  /// No description provided for @stakeCollectTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Stake Collect'**
+  String get stakeCollectTitle;
+
   /// No description provided for @stakingStats.
   ///
   /// In en, this message translates to:
@@ -974,6 +998,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'This card displays the number of staking entries and the total {kZnnCoinSymbol} that you are currently staking'**
   String stakingStatsDescription(Object kZnnCoinSymbol);
+
+  /// No description provided for @stakingRewardsDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'This card displays a chart with your staking rewards from your staking entries'**
+  String get stakingRewardsDescription;
+
+  /// No description provided for @stakingRewardsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Staking Rewards'**
+  String get stakingRewardsTitle;
 
   /// No description provided for @successfully.
   ///

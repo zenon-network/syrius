@@ -62,6 +62,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get collectSentinelRewards => 'Collect Sentinel rewards';
 
   @override
+  String get collectStakingRewards => 'Collect staking rewards';
+
+  @override
   String get cannotReuseAddressForSentinel =>
       'If this address previously revoked a Sentinel, it cannot create a new Sentinel again. Use a different address before depositing QSR.';
 
@@ -183,6 +186,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get errorDisassemblingSentinel => 'Error while disassembling Sentinel';
+
+  @override
+  String get errorCollectingStakingRewards =>
+      'Error while collecting staking rewards';
 
   @override
   String get errorUndelegating => 'Error while undelegating';
@@ -530,12 +537,26 @@ class AppLocalizationsEn extends AppLocalizations {
   String get spawn => 'Spawn';
 
   @override
+  String get stakeCollectDescription =>
+      'This card displays your current staking rewards that are ready to be collected. If there are any rewards available, you will be able to collect them';
+
+  @override
+  String get stakeCollectTitle => 'Stake Collect';
+
+  @override
   String get stakingStats => 'Staking Stats';
 
   @override
   String stakingStatsDescription(Object kZnnCoinSymbol) {
     return 'This card displays the number of staking entries and the total $kZnnCoinSymbol that you are currently staking';
   }
+
+  @override
+  String get stakingRewardsDescription =>
+      'This card displays a chart with your staking rewards from your staking entries';
+
+  @override
+  String get stakingRewardsTitle => 'Staking Rewards';
 
   @override
   String get successfully => 'successfully';

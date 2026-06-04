@@ -157,6 +157,16 @@ class _MainAppContainerState extends State<MainAppContainer>
                 ),
               ),
         ),
+        BlocProvider<StakingRewardsHistoryBloc>(
+          create: (_) =>
+              StakingRewardsHistoryBloc(
+                zenon: zenon!,
+              )..add(
+                FetchRequestData(
+                  address: Address.parse(kSelectedAddress!),
+                ),
+              ),
+        ),
         BlocProvider<PillarsByOwnerBloc>(
           create: (_) =>
               PillarsByOwnerBloc(

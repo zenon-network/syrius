@@ -1,22 +1,25 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/account_block_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/extensions.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/notification_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/zts_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
+/// A card that displays and collects pending staking rewards.
 class StakeCollect extends StatefulWidget {
-
-  const StakeCollect({
-    required this.stakingRewardsHistoryBloc,
-    super.key,
-  });
-  final StakingRewardsHistoryBloc stakingRewardsHistoryBloc;
+  /// Creates a widget that displays and collects staking rewards.
+  const StakeCollect({super.key});
 
   @override
   State<StakeCollect> createState() => _StakeCollectState();
@@ -30,15 +33,17 @@ class _StakeCollectState extends State<StakeCollect> {
 
   @override
   Widget build(BuildContext context) {
-    return CardScaffold(
-      title: 'Stake Collect',
-      description: 'This card displays your current staking rewards that are '
-          'ready to be collected. If there are any rewards available, you '
-          'will be able to collect them',
-      childBuilder: () => Padding(
-        padding: const EdgeInsets.all(16),
-        child: _getFutureBuilder(),
-      ),
+    return CardScaffold<void>(
+      title: context.l10n.stakeCollectTitle,
+      description: context.l10n.stakeCollectDescription,
+      childBuilder: _buildChild,
+    );
+  }
+
+  Widget _buildChild() {
+    return Padding(
+      padding: const EdgeInsets.all(16),
+      child: _getFutureBuilder(),
     );
   }
 
@@ -52,7 +57,7 @@ class _StakeCollectState extends State<StakeCollect> {
           if (snapshot.data!.qsrAmount > BigInt.zero) {
             return _getWidgetBody(snapshot.data!);
           }
-          return const SyriusErrorWidget('No rewards to collect');
+          return SyriusErrorWidget(context.l10n.noRewardsCollect);
         }
         return const SyriusLoadingWidget();
       },
@@ -67,16 +72,16 @@ class _StakeCollectState extends State<StakeCollect> {
           end: uncollectedReward.qsrAmount.addDecimals(coinDecimals).toNum(),
           after: ' ${kQsrCoin.symbol}',
           style: Theme.of(context).textTheme.headlineLarge!.copyWith(
-                color: AppColors.qsrColor,
-                fontSize: 30,
-              ),
+            color: AppColors.qsrColor,
+            fontSize: 30,
+          ),
         ),
         kVerticalSpacing,
         Visibility(
           visible: uncollectedReward.qsrAmount > BigInt.zero,
           child: LoadingButton.stepper(
             key: _collectButtonKey,
-            text: 'Collect',
+            text: context.l10n.collect,
             outlineColor: AppColors.qsrColor,
             onPressed: uncollectedReward.qsrAmount > BigInt.zero
                 ? _onCollectPressed
@@ -88,25 +93,31 @@ class _StakeCollectState extends State<StakeCollect> {
   }
 
   Future<void> _onCollectPressed() async {
+    final StakingRewardsHistoryBloc stakingRewardsHistoryBloc = context
+        .read<StakingRewardsHistoryBloc>();
+    final String collectStakingRewards = context.l10n.collectStakingRewards;
+    final String errorCollectingStakingRewards =
+        context.l10n.errorCollectingStakingRewards;
+
     try {
       _collectButtonKey.currentState?.animateForward();
       await AccountBlockUtils().createAccountBlock(
         zenon!.embedded.stake.collectReward(),
-        'collect staking rewards',
+        collectStakingRewards,
         waitForRequiredPlasma: true,
-      ).then(
-        (AccountBlockTemplate response) async {
-          await Future.delayed(kDelayAfterAccountBlockCreationCall);
-          if (mounted) {
-            _stakingUncollectedRewardsBloc.updateStream();
-          }
-          widget.stakingRewardsHistoryBloc.updateStream();
-        },
       );
-    } catch (e) {
+      await Future<void>.delayed(kDelayAfterAccountBlockCreationCall);
+
+      if (mounted) {
+        unawaited(_stakingUncollectedRewardsBloc.updateStream());
+        stakingRewardsHistoryBloc.add(
+          FetchRequestData(address: Address.parse(kSelectedAddress!)),
+        );
+      }
+    } on Object catch (e) {
       await NotificationUtils.sendNotificationError(
         e,
-        'Error while collecting staking rewards',
+        errorCollectingStakingRewards,
       );
     } finally {
       _collectButtonKey.currentState?.animateReverse();

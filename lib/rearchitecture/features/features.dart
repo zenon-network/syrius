@@ -35,6 +35,7 @@ export 'sentinel_withdraw_qsr/sentinel_withdraw_qsr.dart';
 export 'sentinels/sentinels.dart';
 export 'sentinels_by_owner/sentinels_by_owner.dart';
 export 'staking/staking.dart';
+export 'staking_rewards_history/staking_rewards_history.dart';
 export 'total_hourly_transactions/total_hourly_transactions.dart';
 export 'transfer/transfer.dart';
 export 'uncollected_pillar_rewards/uncollected_pillar_rewards.dart';
