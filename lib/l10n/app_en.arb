@@ -150,6 +150,7 @@
   "stakingStats": "Staking Stats",
   "stakingStatsDescription": "This card displays the number of staking entries and the total {kZnnCoinSymbol} that you are currently staking",
   "stakingRewardsDescription": "This card displays a chart with your staking rewards from your staking entries",
+  "stakingRewardsBlockCreated": "Successfully created block for collecting the staking rewards. It will take at least 30 seconds for the data to update and to be able to receive the rewards.",
   "stakingRewardsTitle": "Staking Rewards",
   "successfully": "successfully",
   "sufficientPlasma": "Sufficient Plasma",

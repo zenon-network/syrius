@@ -38,7 +38,7 @@ class _StakingTabChildState extends State<StakingTabChild> {
         ),
       ),
       FluidCell(
-        child: const StakeCollect(),
+        child: const StakeCollectCard(),
         width: context.layout.value(
           xl: kStaggeredNumOfColumns ~/ 3,
           lg: kStaggeredNumOfColumns ~/ 3,

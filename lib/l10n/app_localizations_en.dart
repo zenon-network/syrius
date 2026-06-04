@@ -556,6 +556,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'This card displays a chart with your staking rewards from your staking entries';
 
   @override
+  String get stakingRewardsBlockCreated =>
+      'Successfully created block for collecting the staking rewards. It will take at least 30 seconds for the data to update and to be able to receive the rewards.';
+
+  @override
   String get stakingRewardsTitle => 'Staking Rewards';
 
   @override
