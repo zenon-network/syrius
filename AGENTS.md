@@ -38,5 +38,5 @@
 - Everything inside the feature should be private, unless needed to be otherwise. The pillars_card is again a good example: you have classes like _View or _Populated used only in that feature, for this reason they should be private.
 - The fields of a class should also be private
 - Each new feature must also have basic unit tests for the bloc or cubit class; take pillars_card as an example
-- Do not execute commands to check the formatting or if tests are running
 - If a Widget class, or other class that has a BuildContext field, uses hard-coded strings, try to localize them
+- Inside the build method of a Widget, when other methods return an object of type Widget - Row, Column, etc - the method's name should by prefixed by _build; for example, instead of _getColletButton(), use _buildCollectButton()
