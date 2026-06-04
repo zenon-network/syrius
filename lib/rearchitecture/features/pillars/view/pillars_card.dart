@@ -88,7 +88,7 @@ class _View extends StatelessWidget {
   }) {
     return CardData(
       description: context.l10n.pillarsListDescription(kZnnCoin.symbol),
-      title: context.l10n.pillarsListTitle,
+      title: context.l10n.pillars,
     );
   }
 }
