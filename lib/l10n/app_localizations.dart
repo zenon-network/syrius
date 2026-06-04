@@ -160,6 +160,12 @@ abstract class AppLocalizations {
   /// **' to check the Pillar status'**
   String get checkPillarStatus;
 
+  /// No description provided for @checkSentinelStatus.
+  ///
+  /// In en, this message translates to:
+  /// **' to check the Sentinel status'**
+  String get checkSentinelStatus;
+
   /// No description provided for @coin.
   ///
   /// In en, this message translates to:
@@ -225,6 +231,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Current Pillar Slot fee\n{coins} {kQsrCoinSymbol}'**
   String currentPillarSlotFee(Object coins, Object kQsrCoinSymbol);
+
+  /// No description provided for @currentSentinelSlotFee.
+  ///
+  /// In en, this message translates to:
+  /// **'Current Sentinel Slot fee\n{coins} {kQsrCoinSymbol}'**
+  String currentSentinelSlotFee(Object coins, Object kQsrCoinSymbol);
 
   /// No description provided for @date.
   ///
@@ -304,6 +316,12 @@ abstract class AppLocalizations {
   /// **'You will be able to unlock the {kZnnCoinSymbol} if you choose to disassemble the Pillar'**
   String disassemblePillarToUnlockCoin(Object kZnnCoinSymbol);
 
+  /// No description provided for @disassembleSentinelToUnlockCoin.
+  ///
+  /// In en, this message translates to:
+  /// **'You will be able to unlock the {kZnnCoinSymbol} if you choose to disassemble the Sentinel'**
+  String disassembleSentinelToUnlockCoin(Object kZnnCoinSymbol);
+
   /// No description provided for @dualCoinStats.
   ///
   /// In en, this message translates to:
@@ -333,6 +351,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Error while deploying a Pillar'**
   String get errorDeployingPillar;
+
+  /// No description provided for @errorDeployingSentinel.
+  ///
+  /// In en, this message translates to:
+  /// **'Error while deploying the Sentinel Node'**
+  String get errorDeployingSentinel;
 
   /// No description provided for @errorDisassemblingPillar.
   ///
@@ -748,6 +772,12 @@ abstract class AppLocalizations {
   /// **'Register Pillar'**
   String get registerPillar;
 
+  /// No description provided for @registerSentinel.
+  ///
+  /// In en, this message translates to:
+  /// **'Register Sentinel'**
+  String get registerSentinel;
+
   /// No description provided for @registeredUse.
   ///
   /// In en, this message translates to:
@@ -759,6 +789,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{coins} {kQsrCoinSymbol} required for a Pillar slot'**
   String requiredForPillarSlot(Object coins, Object kQsrCoinSymbol);
+
+  /// No description provided for @requiredForSentinelNode.
+  ///
+  /// In en, this message translates to:
+  /// **'{coins} {kQsrCoinSymbol} required for a Sentinel Node'**
+  String requiredForSentinelNode(Object coins, Object kQsrCoinSymbol);
 
   /// No description provided for @revocationWindowOpen.
   ///
@@ -789,6 +825,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'send transaction'**
   String get sendTransaction;
+
+  /// No description provided for @sentinel.
+  ///
+  /// In en, this message translates to:
+  /// **'Sentinel'**
+  String get sentinel;
 
   /// No description provided for @sender.
   ///
@@ -842,6 +884,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Sentinel detected on this address'**
   String get sentinelDetectedOnThisAddress;
+
+  /// No description provided for @sentinelDeployment.
+  ///
+  /// In en, this message translates to:
+  /// **'Sentinel deployment: Plasma check'**
+  String get sentinelDeployment;
+
+  /// No description provided for @sentinelRegistered.
+  ///
+  /// In en, this message translates to:
+  /// **'Sentinel registered'**
+  String get sentinelRegistered;
 
   /// No description provided for @sentinelStats.
   ///
@@ -998,6 +1052,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'View Pillars'**
   String get viewPillars;
+
+  /// No description provided for @viewSentinels.
+  ///
+  /// In en, this message translates to:
+  /// **'View Sentinels'**
+  String get viewSentinels;
 
   /// No description provided for @waitingForDataFetching.
   ///

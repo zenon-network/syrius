@@ -79,22 +79,24 @@ class _View extends StatelessWidget {
       children: <Widget>[
         Lottie.asset('assets/lottie/ic_anim_sentinel.json', repeat: false),
         Expanded(
-          child: BlocBuilder<SentinelsByOwnerBloc, FetchState<List<SentinelInfo>>>(
-            builder: (_, FetchState<List<SentinelInfo>> state) {
-              return switch (state) {
-                FetchFailure<List<SentinelInfo>>() => SyriusErrorWidget(
-                  state.exception,
-                ),
-                FetchInitial<List<SentinelInfo>>() => const SyriusLoadingWidget(),
-                FetchPopulated<List<SentinelInfo>>() =>
-                  state.data.any(
-                        (SentinelInfo sentinelInfo) => sentinelInfo.active,
-                      )
-                      ? _buildAlreadyCreatedSentinelWidgetBody(context)
-                      : _buildCreateSentinelWidgetBody(context),
-              };
-            },
-          ),
+          child:
+              BlocBuilder<SentinelsByOwnerBloc, FetchState<List<SentinelInfo>>>(
+                builder: (_, FetchState<List<SentinelInfo>> state) {
+                  return switch (state) {
+                    FetchFailure<List<SentinelInfo>>() => SyriusErrorWidget(
+                      state.exception,
+                    ),
+                    FetchInitial<List<SentinelInfo>>() =>
+                      const SyriusLoadingWidget(),
+                    FetchPopulated<List<SentinelInfo>>() =>
+                      state.data.any(
+                            (SentinelInfo sentinelInfo) => sentinelInfo.active,
+                          )
+                          ? _buildAlreadyCreatedSentinelWidgetBody(context)
+                          : _buildCreateSentinelWidgetBody(context),
+                  };
+                },
+              ),
         ),
       ],
     );
@@ -122,7 +124,7 @@ class _View extends StatelessWidget {
   Widget _buildCreateSentinelWidgetBody(BuildContext context) {
     return Row(
       mainAxisSize: .min,
-      children: [
+      children: <Widget>[
         ElevatedButton.icon(
           onPressed: () {
             unawaited(
@@ -130,7 +132,7 @@ class _View extends StatelessWidget {
                 context,
                 MaterialPageRoute<void>(
                   builder: (BuildContext context) => StepperScreen(
-                    stepper: const SentinelStepperContainer(),
+                    stepper: const CreateSentinelStepperPage(),
                     onStepperNotificationSeeMorePressed:
                         onStepperNotificationSeeMorePressed,
                   ),

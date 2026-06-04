@@ -47,6 +47,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get checkPillarStatus => ' to check the Pillar status';
 
   @override
+  String get checkSentinelStatus => ' to check the Sentinel status';
+
+  @override
   String get coin => 'Coin';
 
   @override
@@ -86,6 +89,11 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String currentPillarSlotFee(Object coins, Object kQsrCoinSymbol) {
     return 'Current Pillar Slot fee\n$coins $kQsrCoinSymbol';
+  }
+
+  @override
+  String currentSentinelSlotFee(Object coins, Object kQsrCoinSymbol) {
+    return 'Current Sentinel Slot fee\n$coins $kQsrCoinSymbol';
   }
 
   @override
@@ -140,6 +148,11 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String disassembleSentinelToUnlockCoin(Object kZnnCoinSymbol) {
+    return 'You will be able to unlock the $kZnnCoinSymbol if you choose to disassemble the Sentinel';
+  }
+
+  @override
   String get dualCoinStats => 'Dual Coin Stats';
 
   @override
@@ -160,6 +173,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get errorDeployingPillar => 'Error while deploying a Pillar';
+
+  @override
+  String get errorDeployingSentinel =>
+      'Error while deploying the Sentinel Node';
 
   @override
   String get errorDisassemblingPillar => 'Error while disassembling Pillar';
@@ -402,11 +419,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String get registerPillar => 'Register Pillar';
 
   @override
+  String get registerSentinel => 'Register Sentinel';
+
+  @override
   String get registeredUse => ' registered. Use ';
 
   @override
   String requiredForPillarSlot(Object coins, Object kQsrCoinSymbol) {
     return '$coins $kQsrCoinSymbol required for a Pillar slot';
+  }
+
+  @override
+  String requiredForSentinelNode(Object coins, Object kQsrCoinSymbol) {
+    return '$coins $kQsrCoinSymbol required for a Sentinel Node';
   }
 
   @override
@@ -423,6 +448,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get sendTransaction => 'send transaction';
+
+  @override
+  String get sentinel => 'Sentinel';
 
   @override
   String get sender => 'Sender';
@@ -458,6 +486,12 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get sentinelDetectedOnThisAddress =>
       'Sentinel detected on this address';
+
+  @override
+  String get sentinelDeployment => 'Sentinel deployment: Plasma check';
+
+  @override
+  String get sentinelRegistered => 'Sentinel registered';
 
   @override
   String get sentinelStats => 'Sentinel Stats';
@@ -541,6 +575,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get viewPillars => 'View Pillars';
+
+  @override
+  String get viewSentinels => 'View Sentinels';
 
   @override
   String get waitingForDataFetching => 'Waiting for data fetching';
