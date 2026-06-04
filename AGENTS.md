@@ -32,6 +32,7 @@
 
 ## How to implement the rearchitecture
 - All feature should be added to rearchitecture/features; and there you will find other features that follow the specified architecture, like pillar_rewards
+- Most of the times, a refactored feature starts from already existing files: don't create new files, but prefer to adapt the existing Widget and bloc classes, renaming and moving the old files into the new feature folder - this is done in order to preserve the Git history of those files
 - All classes that extend from BaseBloc, which further extends from BaseViewModel, should be reconstructed as proper Bloc classes
 - If a bloc needs some data based on an address, the FetchBloc class can be extended from
 - Let's say you have a UI widget that depends on a bloc. You create the {{Feature}}Card widget to initialize and inject the bloc. Inside this widget you will have a _View class that consumes this bloc and rebuilds the UI according to the state. Look at the pillars_card feature for an example.
