@@ -3,7 +3,9 @@ import 'package:layout/layout.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 
+/// Displays the Pillars tab content in a responsive fluid layout.
 class PillarsTabChild extends StatelessWidget {
+  /// Creates a Pillars tab child.
   const PillarsTabChild({
     required VoidCallback onStepperNotificationSeeMorePressed,
     super.key,
