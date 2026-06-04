@@ -2,23 +2,24 @@ import 'package:json_annotation/json_annotation.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
-part 'sentinels_cubit.g.dart';
+part 'active_sentinels_cubit.g.dart';
 
-part 'sentinels_state.dart';
+part 'active_sentinels_state.dart';
 
-/// [SentinelsCubit] manages the fetching and state of sentinel information.
+/// [ActiveSentinelsCubit] manages active sentinel summary information.
 ///
 /// It uses a [SentinelInfoList] object to represent the list of active
 /// sentinels fetched from the Zenon network.
-class SentinelsCubit extends TimerCubit<SentinelInfoList, SentinelsState> {
-  /// Constructs a [SentinelsCubit], passing the [zenon] client and the initial
-  /// state to the parent class.
+class ActiveSentinelsCubit
+    extends TimerCubit<SentinelInfoList, ActiveSentinelsState> {
+  /// Constructs an [ActiveSentinelsCubit], passing the [zenon] client and the
+  /// initial state to the parent class.
   ///
   /// The [zenon] client is used to interact with the Zenon network to retrieve
   /// sentinel information.
-  SentinelsCubit({
+  ActiveSentinelsCubit({
     required super.zenon,
-    super.initialState = const SentinelsState(),
+    super.initialState = const ActiveSentinelsState(),
   });
 
   /// Fetches a list of active sentinels from the Zenon network.
@@ -29,11 +30,11 @@ class SentinelsCubit extends TimerCubit<SentinelInfoList, SentinelsState> {
   }
 
   @override
-  SentinelsState? fromJson(Map<String, dynamic> json) =>
-      SentinelsState.fromJson(
+  ActiveSentinelsState? fromJson(Map<String, dynamic> json) =>
+      ActiveSentinelsState.fromJson(
         json,
       );
 
   @override
-  Map<String, dynamic>? toJson(SentinelsState state) => state.toJson();
+  Map<String, dynamic>? toJson(ActiveSentinelsState state) => state.toJson();
 }

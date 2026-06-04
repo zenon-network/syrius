@@ -3,12 +3,12 @@ import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dar
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 
-/// A widget associated with the [SentinelsState] when it's status is
+/// A widget associated with the [ActiveSentinelsState] when its status is
 /// [TimerStatus.initial] that uses the [SyriusErrorWidget] to display a
 /// message
-class SentinelsEmpty extends StatelessWidget {
-  /// Creates a SentinelsEmpty object
-  const SentinelsEmpty({super.key});
+class ActiveSentinelsEmpty extends StatelessWidget {
+  /// Creates an [ActiveSentinelsEmpty].
+  const ActiveSentinelsEmpty({super.key});
 
   @override
   Widget build(BuildContext context) {

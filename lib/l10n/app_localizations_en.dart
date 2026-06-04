@@ -182,6 +182,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get errorDisassemblingPillar => 'Error while disassembling Pillar';
 
   @override
+  String get errorDisassemblingSentinel => 'Error while disassembling Sentinel';
+
+  @override
   String get errorUndelegating => 'Error while undelegating';
 
   @override
@@ -473,6 +476,9 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get sentinelAddress => 'Sentinel Address';
+
+  @override
   String get sentinelCollectDescription =>
       'This card displays your current Sentinel rewards that are ready to be collected. If there are any rewards available, you will be able to collect them. In order to receive rewards, the Sentinel Node needs to be not only registered in the network, but also deployed (use znn-controller for this operation) and it must have >90% daily uptime';
 
@@ -502,6 +508,13 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get sentinelsDescription =>
       'This card displays the number of active Sentinels in the network';
+
+  @override
+  String get sentinelsListDescription =>
+      'This card displays information about the Sentinels that are currently active in the network';
+
+  @override
+  String get sentinelsListTitle => 'Sentinels List';
 
   @override
   String get shareQr => 'Share QR';

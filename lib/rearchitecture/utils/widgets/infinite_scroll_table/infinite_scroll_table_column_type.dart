@@ -1,5 +1,6 @@
 part of 'infinite_scroll_table.dart';
 
+// Internal enum values are self-described by the localized column names.
 // ignore_for_file: public_member_api_docs
 enum InfiniteScrollTableColumnType {
   amount,
@@ -15,6 +16,7 @@ enum InfiniteScrollTableColumnType {
   producerAddress,
   receiver,
   sender,
+  sentinelAddress,
   type,
   uptime,
   weight;
@@ -33,6 +35,7 @@ enum InfiniteScrollTableColumnType {
     producerAddress => 3,
     receiver => 2,
     sender => 2,
+    sentinelAddress => 3,
     type => 1,
     uptime => 1,
     weight => 1,
@@ -52,6 +55,7 @@ enum InfiniteScrollTableColumnType {
     producerAddress => context.l10n.producerAddress,
     receiver => context.l10n.receiver,
     sender => context.l10n.sender,
+    sentinelAddress => context.l10n.sentinelAddress,
     type => context.l10n.type,
     uptime => context.l10n.uptime,
     weight => context.l10n.weight,

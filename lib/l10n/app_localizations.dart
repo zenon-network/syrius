@@ -364,6 +364,12 @@ abstract class AppLocalizations {
   /// **'Error while disassembling Pillar'**
   String get errorDisassemblingPillar;
 
+  /// No description provided for @errorDisassemblingSentinel.
+  ///
+  /// In en, this message translates to:
+  /// **'Error while disassembling Sentinel'**
+  String get errorDisassemblingSentinel;
+
   /// No description provided for @errorUndelegating.
   ///
   /// In en, this message translates to:
@@ -861,6 +867,12 @@ abstract class AppLocalizations {
     Object symbol,
   );
 
+  /// No description provided for @sentinelAddress.
+  ///
+  /// In en, this message translates to:
+  /// **'Sentinel Address'**
+  String get sentinelAddress;
+
   /// No description provided for @sentinelCollectDescription.
   ///
   /// In en, this message translates to:
@@ -914,6 +926,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'This card displays the number of active Sentinels in the network'**
   String get sentinelsDescription;
+
+  /// No description provided for @sentinelsListDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'This card displays information about the Sentinels that are currently active in the network'**
+  String get sentinelsListDescription;
+
+  /// No description provided for @sentinelsListTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Sentinels List'**
+  String get sentinelsListTitle;
 
   /// No description provided for @shareQr.
   ///

@@ -16,16 +16,15 @@ class MockSentinel extends Mock implements SentinelApi {}
 
 class MockEmbedded extends Mock implements EmbeddedApi {}
 
-
 void main() {
   initHydratedStorage();
 
-  group('SentinelsCubit', () {
+  group('ActiveSentinelsCubit', () {
     late MockZenon mockZenon;
     late MockWsClient mockWsClient;
     late MockEmbedded mockEmbedded;
     late MockSentinel mockSentinel;
-    late SentinelsCubit sentinelsCubit;
+    late ActiveSentinelsCubit activeSentinelsCubit;
     late FailureException exception;
     late SentinelInfo sentinelInfo;
     late SentinelInfoList sentinelInfoList;
@@ -48,7 +47,7 @@ void main() {
         count: 1,
         list: <SentinelInfo>[sentinelInfo],
       );
-      sentinelsCubit = SentinelsCubit(
+      activeSentinelsCubit = ActiveSentinelsCubit(
         zenon: mockZenon,
       );
       exception = FailureException();
@@ -67,105 +66,109 @@ void main() {
     });
 
     test('initial status is correct', () {
-      final SentinelsCubit sentinelsCubit = SentinelsCubit(
+      final ActiveSentinelsCubit activeSentinelsCubit = ActiveSentinelsCubit(
         zenon: mockZenon,
       );
-      expect(sentinelsCubit.state.status, TimerStatus.initial);
+      expect(activeSentinelsCubit.state.status, TimerStatus.initial);
     });
 
     group('fromJson/toJson', () {
       test('can (de)serialize initial state', () {
-        const SentinelsState initialState = SentinelsState();
+        const ActiveSentinelsState initialState = ActiveSentinelsState();
 
-        final Map<String, dynamic>? serialized = sentinelsCubit.toJson(
+        final Map<String, dynamic>? serialized = activeSentinelsCubit.toJson(
           initialState,
         );
-        final SentinelsState? deserialized = sentinelsCubit.fromJson(
-          serialized!,
-        );
+        final ActiveSentinelsState? deserialized = activeSentinelsCubit
+            .fromJson(
+              serialized!,
+            );
         expect(deserialized, equals(initialState));
       });
 
       test('can (de)serialize loading state', () {
-        const SentinelsState loadingState = SentinelsState(
+        const ActiveSentinelsState loadingState = ActiveSentinelsState(
           status: TimerStatus.loading,
         );
 
-        final Map<String, dynamic>? serialized = sentinelsCubit.toJson(
+        final Map<String, dynamic>? serialized = activeSentinelsCubit.toJson(
           loadingState,
         );
-        final SentinelsState? deserialized = sentinelsCubit.fromJson(
-          serialized!,
-        );
+        final ActiveSentinelsState? deserialized = activeSentinelsCubit
+            .fromJson(
+              serialized!,
+            );
         expect(deserialized, equals(loadingState));
       });
 
       test('can (de)serialize success state', () {
-        final SentinelsState successState = SentinelsState(
+        final ActiveSentinelsState successState = ActiveSentinelsState(
           status: TimerStatus.success,
           data: sentinelInfoList,
         );
 
-        final Map<String, dynamic>? serialized = sentinelsCubit.toJson(
+        final Map<String, dynamic>? serialized = activeSentinelsCubit.toJson(
           successState,
         );
-        final SentinelsState? deserialized = sentinelsCubit.fromJson(
-          serialized!,
-        );
+        final ActiveSentinelsState? deserialized = activeSentinelsCubit
+            .fromJson(
+              serialized!,
+            );
         expect(deserialized, equals(successState));
       });
 
       test('can (de)serialize failure state', () {
-        final SentinelsState failureState = SentinelsState(
+        final ActiveSentinelsState failureState = ActiveSentinelsState(
           status: TimerStatus.failure,
           error: exception,
         );
 
-        final Map<String, dynamic>? serialized = sentinelsCubit.toJson(
+        final Map<String, dynamic>? serialized = activeSentinelsCubit.toJson(
           failureState,
         );
-        final SentinelsState? deserialized = sentinelsCubit.fromJson(
-          serialized!,
-        );
+        final ActiveSentinelsState? deserialized = activeSentinelsCubit
+            .fromJson(
+              serialized!,
+            );
         expect(deserialized, equals(failureState));
       });
     });
 
     group('fetchDataPeriodically', () {
-      blocTest<SentinelsCubit, SentinelsState>(
+      blocTest<ActiveSentinelsCubit, ActiveSentinelsState>(
         'calls getAllActive() once',
-        build: () => sentinelsCubit,
-        act: (SentinelsCubit cubit) => cubit.fetchDataPeriodically(),
+        build: () => activeSentinelsCubit,
+        act: (ActiveSentinelsCubit cubit) => cubit.fetchDataPeriodically(),
         verify: (_) {
           verify(() => mockZenon.embedded.sentinel.getAllActive()).called(1);
         },
       );
 
-      blocTest<SentinelsCubit, SentinelsState>(
+      blocTest<ActiveSentinelsCubit, ActiveSentinelsState>(
         'emits [loading, failure] when getAllActive() throws',
         setUp: () {
           when(
             () => mockSentinel.getAllActive(),
           ).thenThrow(exception);
         },
-        build: () => sentinelsCubit,
-        act: (SentinelsCubit cubit) => cubit.fetchDataPeriodically(),
-        expect: () => <SentinelsState>[
-          const SentinelsState(status: TimerStatus.loading),
-          SentinelsState(
+        build: () => activeSentinelsCubit,
+        act: (ActiveSentinelsCubit cubit) => cubit.fetchDataPeriodically(),
+        expect: () => <ActiveSentinelsState>[
+          const ActiveSentinelsState(status: TimerStatus.loading),
+          ActiveSentinelsState(
             status: TimerStatus.failure,
             error: exception,
           ),
         ],
       );
 
-      blocTest<SentinelsCubit, SentinelsState>(
+      blocTest<ActiveSentinelsCubit, ActiveSentinelsState>(
         'emits [loading, success] when getAllActive() returns successfully',
-        build: () => sentinelsCubit,
-        act: (SentinelsCubit cubit) => cubit.fetchDataPeriodically(),
-        expect: () => <SentinelsState>[
-          const SentinelsState(status: TimerStatus.loading),
-          SentinelsState(
+        build: () => activeSentinelsCubit,
+        act: (ActiveSentinelsCubit cubit) => cubit.fetchDataPeriodically(),
+        expect: () => <ActiveSentinelsState>[
+          const ActiveSentinelsState(status: TimerStatus.loading),
+          ActiveSentinelsState(
             status: TimerStatus.success,
             data: sentinelInfoList,
           ),

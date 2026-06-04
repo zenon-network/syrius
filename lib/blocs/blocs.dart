@@ -14,7 +14,6 @@ export 'notifications_bloc.dart';
 export 'plasma/plasma.dart';
 export 'pow_generating_status_bloc.dart';
 export 'refresh_bloc_mixin.dart';
-export 'sentinels/sentinels.dart';
 export 'settings/settings.dart';
 export 'staking/staking.dart';
 export 'tokens/tokens.dart';

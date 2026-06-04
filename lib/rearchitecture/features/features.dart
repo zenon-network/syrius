@@ -1,4 +1,5 @@
 export 'active_pillars/active_pillars.dart';
+export 'active_sentinels/active_sentinels.dart';
 export 'balance/balance.dart';
 export 'create_pillar_qsr_info/create_pillar_qsr_info.dart';
 export 'create_pillar_stepper/create_pillar_stepper.dart';
@@ -24,6 +25,7 @@ export 'realtime_statistics/realtime_statistics.dart';
 export 'receive/receive.dart';
 export 'refresh_button/refresh_button.dart';
 export 'revoke_pillar/revoke_pillar.dart';
+export 'revoke_sentinel/revoke_sentinel.dart';
 export 'send/send.dart';
 export 'sentinel_collect/sentinel_collect.dart';
 export 'sentinel_deposit_qsr/sentinel_deposit_qsr.dart';

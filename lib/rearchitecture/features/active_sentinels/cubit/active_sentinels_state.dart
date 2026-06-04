@@ -1,27 +1,27 @@
-part of 'sentinels_cubit.dart';
+part of 'active_sentinels_cubit.dart';
 
-/// The state class for [SentinelsCubit], which extends [TimerState] to
+/// The state class for [ActiveSentinelsCubit], which extends [TimerState] to
 /// manage sentinel-related data.
 ///
 /// This class manages a [SentinelInfoList] object representing information
 /// about active sentinels. It is used to track
-/// the state of sentinel data loading within the [SentinelsCubit].
+/// the state of sentinel data loading within the [ActiveSentinelsCubit].
 @JsonSerializable(explicitToJson: true)
-class SentinelsState extends TimerState<SentinelInfoList> {
-  /// Constructs a new [SentinelsState] with optional values for [status],
+class ActiveSentinelsState extends TimerState<SentinelInfoList> {
+  /// Constructs a new [ActiveSentinelsState] with optional values for [status],
   /// [data], and [error].
   ///
   /// The [data] field stores a [SentinelInfoList] object, which contains the
   /// details of all active sentinels on the network.
-  const SentinelsState({
+  const ActiveSentinelsState({
     super.status,
     super.data,
     super.error,
   });
 
   /// {@macro instance_from_json}
-  factory SentinelsState.fromJson(Map<String, dynamic> json) =>
-      _$SentinelsStateFromJson(json);
+  factory ActiveSentinelsState.fromJson(Map<String, dynamic> json) =>
+      _$ActiveSentinelsStateFromJson(json);
 
   /// {@macro state_copy_with}
   @override
@@ -30,7 +30,7 @@ class SentinelsState extends TimerState<SentinelInfoList> {
     SentinelInfoList? data,
     SyriusException? error,
   }) {
-    return SentinelsState(
+    return ActiveSentinelsState(
       status: status ?? this.status,
       data: data ?? this.data,
       error: error ?? this.error,
@@ -38,5 +38,5 @@ class SentinelsState extends TimerState<SentinelInfoList> {
   }
 
   /// {@macro state_to_json}
-  Map<String, dynamic> toJson() => _$SentinelsStateToJson(this);
+  Map<String, dynamic> toJson() => _$ActiveSentinelsStateToJson(this);
 }
