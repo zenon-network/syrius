@@ -15,7 +15,7 @@
   "collect": "Collect",
   "collectPillarRewards": "Collect Pillar rewards",
   "collectSentinelRewards": "Collect Sentinel rewards",
-  "cannotReuseAddressForSentinel": "Cannot reuse address.\nPlease use another address to spawn a new Sentinel Node",
+  "cannotReuseAddressForSentinel": "If this address previously revoked a Sentinel, it cannot create a new Sentinel again. Use a different address before depositing QSR.",
   "couldNotSend": "Couldn't send {amount} {symbol} to {recipient}",
   "createPillarDescription": "Start the process of deploying a Pillar Node in the network",
   "createPillarTitle" : "Create Pillar",

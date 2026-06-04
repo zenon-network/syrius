@@ -141,6 +141,11 @@ class _MainSentinelState extends State<CreateSentinelStepperView> {
                 children: <Widget>[
                   DisabledAddressField(_addressController),
                   kVerticalSpacing,
+                  DottedBorderInfoWidget(
+                    borderColor: AppColors.qsrColor,
+                    text: context.l10n.cannotReuseAddressForSentinel,
+                  ),
+                  kVerticalSpacing,
                   Padding(
                     padding: const EdgeInsets.only(left: 20),
                     child: Column(

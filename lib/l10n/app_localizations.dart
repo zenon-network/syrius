@@ -193,7 +193,7 @@ abstract class AppLocalizations {
   /// No description provided for @cannotReuseAddressForSentinel.
   ///
   /// In en, this message translates to:
-  /// **'Cannot reuse address.\nPlease use another address to spawn a new Sentinel Node'**
+  /// **'If this address previously revoked a Sentinel, it cannot create a new Sentinel again. Use a different address before depositing QSR.'**
   String get cannotReuseAddressForSentinel;
 
   /// No description provided for @couldNotSend.

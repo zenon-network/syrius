@@ -63,7 +63,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get cannotReuseAddressForSentinel =>
-      'Cannot reuse address.\nPlease use another address to spawn a new Sentinel Node';
+      'If this address previously revoked a Sentinel, it cannot create a new Sentinel again. Use a different address before depositing QSR.';
 
   @override
   String couldNotSend(Object amount, Object recipient, Object symbol) {
