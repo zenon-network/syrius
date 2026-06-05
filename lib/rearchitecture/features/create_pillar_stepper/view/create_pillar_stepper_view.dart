@@ -51,8 +51,6 @@ class CreatePillarStepperView extends StatefulWidget {
 }
 
 class _MainPillarState extends State<CreatePillarStepperView> {
-  bool get _hasPillarBeenRegistered => _currentStep.value == null;
-
   final TextEditingController _qsrAmountController = TextEditingController();
   final TextEditingController _pillarNameController = TextEditingController();
   final TextEditingController _pillarRewardAddressController =
@@ -131,6 +129,8 @@ class _MainPillarState extends State<CreatePillarStepperView> {
     return ValueListenableBuilder<_PillarStepperStep?>(
       valueListenable: _currentStep,
       builder: (_, _PillarStepperStep? currentStep, _) {
+        final bool hasPillarBeenRegistered = _currentStep.value == null;
+
         return Stack(
           children: <Widget>[
             ListView(
@@ -139,7 +139,7 @@ class _MainPillarState extends State<CreatePillarStepperView> {
                   accountInfo: accountInfo,
                   currentStep: currentStep,
                 ),
-                if (_hasPillarBeenRegistered)
+                if (hasPillarBeenRegistered)
                   PillarRegisteredSuccess(
                     onRegisterAnotherPressed:
                         _onDeployAnotherPillarButtonPressed,
@@ -149,7 +149,7 @@ class _MainPillarState extends State<CreatePillarStepperView> {
                   ),
               ],
             ),
-            if (_hasPillarBeenRegistered)
+            if (hasPillarBeenRegistered)
               const PillarRegisteredSuccessAnimation(),
           ],
         );
