@@ -51,11 +51,7 @@ class CreatePillarStepperView extends StatefulWidget {
 }
 
 class _MainPillarState extends State<CreatePillarStepperView> {
-  _PillarStepperStep _currentStep = _PillarStepperStep.checkPlasma;
-  _PillarStepperStep? _lastCompletedStep;
-
-  bool get _hasPillarBeenRegistered =>
-      _lastCompletedStep == _PillarStepperStep.deployPillar;
+  bool get _hasPillarBeenRegistered => _currentStep.value == null;
 
   final TextEditingController _qsrAmountController = TextEditingController();
   final TextEditingController _pillarNameController = TextEditingController();
@@ -96,6 +92,11 @@ class _MainPillarState extends State<CreatePillarStepperView> {
   double _momentumRewardPercentageGiven = 0;
   double _delegateRewardPercentageGiven = 0;
 
+  // When value is null, it means the stepper has completed
+  final ValueNotifier<_PillarStepperStep?> _currentStep = .new(
+    .checkPlasma,
+  );
+
   @override
   void initState() {
     super.initState();
@@ -127,112 +128,128 @@ class _MainPillarState extends State<CreatePillarStepperView> {
   }
 
   Widget _buildBody(BuildContext context, AccountInfo accountInfo) {
-    return Stack(
-      children: <Widget>[
-        ListView(
+    return ValueListenableBuilder<_PillarStepperStep?>(
+      valueListenable: _currentStep,
+      builder: (_, _PillarStepperStep? currentStep, _) {
+        return Stack(
           children: <Widget>[
-            _getMaterialStepper(context, accountInfo),
+            ListView(
+              children: <Widget>[
+                _getMaterialStepper(
+                  accountInfo: accountInfo,
+                  currentStep: currentStep,
+                ),
+                if (_hasPillarBeenRegistered)
+                  PillarRegisteredSuccess(
+                    onRegisterAnotherPressed:
+                        _onDeployAnotherPillarButtonPressed,
+                    onViewPillarsPressed: () {
+                      Navigator.pop(context);
+                    },
+                  ),
+              ],
+            ),
             if (_hasPillarBeenRegistered)
-              PillarRegisteredSuccess(
-                onRegisterAnotherPressed: _onDeployAnotherPillarButtonPressed,
-                onViewPillarsPressed: () {
-                  Navigator.pop(context);
-                },
-              ),
+              const PillarRegisteredSuccessAnimation(),
           ],
-        ),
-        if (_hasPillarBeenRegistered) const PillarRegisteredSuccessAnimation(),
-      ],
+        );
+      },
     );
   }
 
-  Widget _getMaterialStepper(BuildContext context, AccountInfo accountInfo) {
-    return Theme(
-      data: Theme.of(context).copyWith(
-        highlightColor: Colors.transparent,
-        splashColor: Colors.transparent,
-        hoverColor: Colors.transparent,
-      ),
-      child: custom_material_stepper.Stepper(
-        currentStep: _currentStep.index,
-        onStepTapped: (int index) {},
-        steps: <custom_material_stepper.Step>[
-          StepperUtils.getMaterialStep(
-            stepTitle: context.l10n.pillarDeployment,
-            stepContent: PillarPlasmaCheckStep(
-              addressController: _addressController,
-              onNextPressed: _onPlasmaCheckNextPressed,
-            ),
-            stepSubtitle: context.l10n.sufficientPlasma,
-            stepState: StepperUtils.getStepState(
-              _PillarStepperStep.checkPlasma.index,
-              _lastCompletedStep?.index,
-            ),
-            context: context,
+  Widget _getMaterialStepper({
+    required AccountInfo accountInfo,
+    required _PillarStepperStep? currentStep,
+  }) {
+
+    // TODO(maznnwell): to be extracted to StepperUtils
+    custom_material_stepper.StepState getStepState(
+        _PillarStepperStep step, _PillarStepperStep? currentStep)
+    {
+      return step.index < (currentStep?.index ?? -1)
+          ? custom_material_stepper.StepState.complete
+          : custom_material_stepper.StepState.indexed;
+    }
+
+    return custom_material_stepper.Stepper(
+      currentStep: currentStep?.index ?? 0,
+      onStepTapped: (int index) {},
+      steps: <custom_material_stepper.Step>[
+        StepperUtils.getMaterialStep(
+          stepTitle: context.l10n.pillarDeployment,
+          stepContent: PillarPlasmaCheckStep(
+            addressController: _addressController,
+            onNextPressed: _onPlasmaCheckNextPressed,
           ),
-          StepperUtils.getMaterialStep(
-            stepTitle: context.l10n.management(kQsrCoin.symbol),
-            stepContent: _buildQsrManagementStep(context, accountInfo),
-            stepSubtitle: context.l10n.deposited(kQsrCoin.symbol),
-            stepState: StepperUtils.getStepState(
-              _PillarStepperStep.qsrManagement.index,
-              _lastCompletedStep?.index,
-            ),
-            context: context,
-            expanded: true,
+          stepSubtitle: context.l10n.sufficientPlasma,
+          stepState: getStepState(
+            _PillarStepperStep.checkPlasma,
+            _currentStep.value,
           ),
-          StepperUtils.getMaterialStep(
-            stepTitle: context.l10n.management(kZnnCoin.symbol),
-            stepContent: PillarZnnManagementStep(
-              accountInfo: accountInfo,
-              addressController: _addressController,
-              onNextPressed: _onZnnNextPressed,
-              znnAmountController: _znnAmountController,
-            ),
-            stepSubtitle: context.l10n.locked(kZnnCoin.symbol),
-            stepState: StepperUtils.getStepState(
-              _PillarStepperStep.znnManagement.index,
-              _lastCompletedStep?.index,
-            ),
-            context: context,
+          context: context,
+        ),
+        StepperUtils.getMaterialStep(
+          stepTitle: context.l10n.management(kQsrCoin.symbol),
+          stepContent: _buildQsrManagementStep(context, accountInfo),
+          stepSubtitle: context.l10n.deposited(kQsrCoin.symbol),
+          stepState: getStepState(
+            _PillarStepperStep.qsrManagement,
+            _currentStep.value,
           ),
-          StepperUtils.getMaterialStep(
-            stepTitle: context.l10n.registerPillar,
-            stepContent: DeployPillarStep(
-              canDeployPillar: _canDeployPillar,
-              delegateRewardPercentage: _delegateRewardPercentageGiven,
-              momentumRewardPercentage: _momentumRewardPercentageGiven,
-              onDeployDone: _onDeployDone,
-              onDeployPressed: _onDeployPressed,
-              onDelegateRewardChanged: (double value) {
-                setState(() {
-                  _delegateRewardPercentageGiven = value;
-                });
-              },
-              onMomentumRewardChanged: (double value) {
-                setState(() {
-                  _momentumRewardPercentageGiven = value;
-                });
-              },
-              pillarMomentumController: _pillarMomentumController,
-              pillarMomentumError: () => _pillarMomentumError,
-              pillarMomentumNode: _pillarMomentumNode,
-              pillarNameController: _pillarNameController,
-              pillarNameError: () => _pillarNameError,
-              pillarNameNode: _pillarNameNode,
-              pillarRewardAddressController: _pillarRewardAddressController,
-              pillarRewardAddressError: () => _pillarRewardAddressError,
-              pillarRewardNode: _pillarRewardNode,
-            ),
-            stepSubtitle: context.l10n.pillarRegistered,
-            stepState: StepperUtils.getStepState(
-              _PillarStepperStep.deployPillar.index,
-              _lastCompletedStep?.index,
-            ),
-            context: context,
+          context: context,
+          expanded: true,
+        ),
+        StepperUtils.getMaterialStep(
+          stepTitle: context.l10n.management(kZnnCoin.symbol),
+          stepContent: PillarZnnManagementStep(
+            accountInfo: accountInfo,
+            addressController: _addressController,
+            onNextPressed: _navigateToNextStep,
+            znnAmountController: _znnAmountController,
           ),
-        ],
-      ),
+          stepSubtitle: context.l10n.locked(kZnnCoin.symbol),
+          stepState: getStepState(
+            _PillarStepperStep.znnManagement,
+            _currentStep.value,
+          ),
+          context: context,
+        ),
+        StepperUtils.getMaterialStep(
+          stepTitle: context.l10n.registerPillar,
+          stepContent: DeployPillarStep(
+            canDeployPillar: _canDeployPillar,
+            delegateRewardPercentage: _delegateRewardPercentageGiven,
+            momentumRewardPercentage: _momentumRewardPercentageGiven,
+            onDeployDone: _onDeployDone,
+            onDeployPressed: _onDeployPressed,
+            onDelegateRewardChanged: (double value) {
+              setState(() {
+                _delegateRewardPercentageGiven = value;
+              });
+            },
+            onMomentumRewardChanged: (double value) {
+              setState(() {
+                _momentumRewardPercentageGiven = value;
+              });
+            },
+            pillarMomentumController: _pillarMomentumController,
+            pillarMomentumError: () => _pillarMomentumError,
+            pillarMomentumNode: _pillarMomentumNode,
+            pillarNameController: _pillarNameController,
+            pillarNameError: () => _pillarNameError,
+            pillarNameNode: _pillarNameNode,
+            pillarRewardAddressController: _pillarRewardAddressController,
+            pillarRewardAddressError: () => _pillarRewardAddressError,
+            pillarRewardNode: _pillarRewardNode,
+          ),
+          stepSubtitle: context.l10n.pillarRegistered,
+          stepState: getStepState(
+            _PillarStepperStep.deployPillar,
+            _currentStep.value,
+          ),
+          context: context,
+        ),
+      ],
     );
   }
 
@@ -377,7 +394,7 @@ class _MainPillarState extends State<CreatePillarStepperView> {
                   Visibility(
                     visible: qsrCostCovered,
                     child: OutlinedButton(
-                      onPressed: _onQsrNextPressed,
+                      onPressed: _navigateToNextStep,
                       child: Text(context.l10n.next),
                     ),
                   ),
@@ -534,9 +551,7 @@ class _MainPillarState extends State<CreatePillarStepperView> {
           );
         } else if (state is PillarWithdrawQsrPopulated) {
           _withdrawButtonKey.currentState?.animateReverse();
-          _saveProgressAndNavigateToNextStep(
-            _PillarStepperStep.checkPlasma,
-          );
+          _navigateToNextStep();
           _refreshPillarQsrInfo();
         }
       },
@@ -553,11 +568,8 @@ class _MainPillarState extends State<CreatePillarStepperView> {
   }
 
   void _onDeployDone() {
-    _saveProgressAndNavigateToNextStep(_PillarStepperStep.deployPillar);
-  }
-
-  void _onZnnNextPressed() {
-    _saveProgressAndNavigateToNextStep(_PillarStepperStep.znnManagement);
+    // All steps have been completed
+    _currentStep.value = null;
   }
 
   void _onDepositButtonPressed(
@@ -586,19 +598,17 @@ class _MainPillarState extends State<CreatePillarStepperView> {
   }
 
   void _onDeployPressed() {
-    if (_lastCompletedStep == _PillarStepperStep.znnManagement) {
-      context.read<DeployPillarBloc>().add(
-        DeployPillarRequested(
-          pillarName: _pillarNameController.text,
-          rewardAddress: Address.parse(_pillarRewardAddressController.text),
-          blockProducingAddress: Address.parse(
-            _pillarMomentumController.text,
-          ),
-          giveBlockRewardPercentage: _momentumRewardPercentageGiven.toInt(),
-          giveDelegateRewardPercentage: _delegateRewardPercentageGiven.toInt(),
+    context.read<DeployPillarBloc>().add(
+      DeployPillarRequested(
+        pillarName: _pillarNameController.text,
+        rewardAddress: Address.parse(_pillarRewardAddressController.text),
+        blockProducingAddress: Address.parse(
+          _pillarMomentumController.text,
         ),
-      );
-    }
+        giveBlockRewardPercentage: _momentumRewardPercentageGiven.toInt(),
+        giveDelegateRewardPercentage: _delegateRewardPercentageGiven.toInt(),
+      ),
+    );
   }
 
   void _onWithdrawButtonPressed(
@@ -617,20 +627,15 @@ class _MainPillarState extends State<CreatePillarStepperView> {
     _pillarNameController.clear();
     _pillarRewardAddressController.clear();
     _pillarMomentumController.clear();
-    _lastCompletedStep = null;
+    _currentStep.value = .checkPlasma;
     _refreshPillarQsrInfo();
-    setState(() {
-      _currentStep = _PillarStepperStep.values.first;
-    });
+    _currentStep.value = _PillarStepperStep.values.first;
   }
 
-  void _saveProgressAndNavigateToNextStep(_PillarStepperStep completedStep) {
-    setState(() {
-      _lastCompletedStep = completedStep;
-      if (!_hasPillarBeenRegistered) {
-        _currentStep = _PillarStepperStep.values[completedStep.index + 1];
-      }
-    });
+  void _navigateToNextStep() {
+    final int currentStepIndex = _currentStep.value!.index;
+
+    _currentStep.value = _PillarStepperStep.values[currentStepIndex + 1];
   }
 
   bool _canDeployPillar() =>
@@ -649,14 +654,8 @@ class _MainPillarState extends State<CreatePillarStepperView> {
     canBeEqualToMin: true,
   );
 
-  void _onQsrNextPressed() {
-    _saveProgressAndNavigateToNextStep(_PillarStepperStep.qsrManagement);
-  }
-
   void _onPlasmaCheckNextPressed() {
-    if (_lastCompletedStep == null) {
-      _saveProgressAndNavigateToNextStep(_PillarStepperStep.checkPlasma);
-    }
+    _navigateToNextStep();
     context.read<CreatePillarQsrInfoBloc>().add(
       FetchRequestData(address: Address.parse(_addressController.text)),
     );
