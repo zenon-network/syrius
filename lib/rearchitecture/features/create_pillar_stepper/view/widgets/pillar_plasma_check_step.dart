@@ -69,7 +69,7 @@ class _Body extends StatelessWidget {
             Expanded(
               child: DisabledAddressField(addressController),
             ),
-            const SizedBox(width: 25),
+            kHorizontalGap25,
             PlasmaIcon(plasmaInfo),
           ],
         ),
