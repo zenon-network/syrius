@@ -731,17 +731,17 @@ class _MainSentinelState extends State<CreateSentinelStepperView> {
           context.l10n.morePlasmaRequired,
           style: Theme.of(context).textTheme.titleMedium,
         ),
-        const SizedBox(height: 25),
+        kVerticalGap25,
         Row(
           children: <Widget>[
             Expanded(
               child: DisabledAddressField(_addressController),
             ),
-            const SizedBox(width: 25),
+            kHorizontalGap25,
             PlasmaIcon(plasmaInfo),
           ],
         ),
-        const SizedBox(height: 25),
+        kVerticalGap25,
         OutlinedButton(
           onPressed: plasmaInfo.currentPlasma >= kSentinelPlasmaAmountNeeded
               ? _onPlasmaCheckNextPressed
