@@ -180,9 +180,9 @@ class _PopulatedState extends State<_Populated> {
             columns: _buildHeaderColumns(),
             generateRowCells: _rowCellsGenerator,
             onScrollReachedBottom: () {
-              context.read<LatestTransactionsBloc>().add(
-                InfiniteListMoreRequested(
-                  address: Address.parse(kSelectedAddress!),
+              context.read<PillarsBloc>().add(
+                const InfiniteListMoreRequested(
+                  address: null,
                 ),
               );
             },
