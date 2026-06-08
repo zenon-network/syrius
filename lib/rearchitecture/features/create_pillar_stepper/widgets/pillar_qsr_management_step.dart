@@ -21,6 +21,7 @@ import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 /// to 100
 ///
 class PillarQsrManagementStep extends StatefulWidget {
+  /// Creates a [PillarQsrManagementStep].
   const PillarQsrManagementStep({
     required this.accountInfo,
     required this.addressController,
@@ -29,9 +30,16 @@ class PillarQsrManagementStep extends StatefulWidget {
     super.key,
   });
 
+  /// Account balances for the selected address.
   final AccountInfo accountInfo;
+
+  /// Selected address controller displayed by the disabled address field.
   final TextEditingController addressController;
+
+  /// Controller containing the QSR amount to deposit.
   final TextEditingController qsrAmountController;
+
+  /// Called when the user can continue to the next step.
   final VoidCallback onNextPressed;
 
   @override
@@ -40,7 +48,6 @@ class PillarQsrManagementStep extends StatefulWidget {
 }
 
 class _PillarQsrManagementStepState extends State<PillarQsrManagementStep> {
-
   final GlobalKey<LoadingButtonState> _depositQsrButtonKey = GlobalKey();
   final GlobalKey<LoadingButtonState> _withdrawButtonKey = GlobalKey();
 

@@ -2,12 +2,13 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/create_pillar_stepper/view/widgets/pillar_reward_sliders.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
+
+import 'pillar_reward_sliders.dart';
 
 /// Deploy step for registering a pillar.
 class DeployPillarStep extends StatefulWidget {
@@ -99,7 +100,7 @@ class _DeployPillarStepState extends State<DeployPillarStep> {
 
   Column _buildTextFields(BuildContext context) {
     return Column(
-      children: [
+      children: <Widget>[
         Row(
           children: <Widget>[
             Expanded(
