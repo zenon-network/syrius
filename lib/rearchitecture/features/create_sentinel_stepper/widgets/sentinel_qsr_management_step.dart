@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/math_utils.dart';
@@ -231,18 +232,19 @@ class _SentinelQsrManagementStepState extends State<SentinelQsrManagementStep> {
             valueListenable: widget.qsrAmountController,
             builder: (_, TextEditingValue value, _) {
               return _DepositButton(
-                accountInfo: accountInfo,
-                depositAddress: widget.addressController.text,
-                depositQsrButtonKey: _depositQsrButtonKey,
-                isQsrAmountValid:
-                    _qsrAmountValidator(
-                      value: value.text,
+                loadingKey: _depositQsrButtonKey,
+                onDone: _refreshSentinelQsrInfo,
+                onPressed:
+                    _canDeposit(
+                      accountInfo: accountInfo,
                       maxQsrAmount: maxQsrAmount,
-                    ) ==
-                    null,
-                onDepositDone: _refreshSentinelQsrInfo,
-                qsrAmountText: value.text,
-                qsrInfo: qsrInfo,
+                      qsrAmountText: value.text,
+                    )
+                    ? () => _onDepositButtonPressed(
+                        qsrAmountText: value.text,
+                        qsrInfo: qsrInfo,
+                      )
+                    : null,
               );
             },
           ),
@@ -308,9 +310,45 @@ class _SentinelQsrManagementStepState extends State<SentinelQsrManagementStep> {
   );
 
   void _refreshSentinelQsrInfo() {
+    sl.get<MultipleBalanceBloc>().add(
+      MultipleBalanceFetch(
+        addresses: kDefaultAddressList.map((String? e) => e!).toList(),
+      ),
+    );
     context.read<CreateSentinelQsrInfoBloc>().add(
       FetchRequestData(
         address: Address.parse(widget.addressController.text),
+      ),
+    );
+  }
+
+  bool _canDeposit({
+    required AccountInfo accountInfo,
+    required BigInt maxQsrAmount,
+    required String qsrAmountText,
+  }) =>
+      _hasQsrBalance(accountInfo) &&
+      _qsrAmountValidator(
+            value: qsrAmountText,
+            maxQsrAmount: maxQsrAmount,
+          ) ==
+          null;
+
+  bool _hasQsrBalance(AccountInfo accountInfo) =>
+      accountInfo.qsr()! > BigInt.zero;
+
+  void _onDepositButtonPressed({
+    required String qsrAmountText,
+    required CreateSentinelQsrInfoData qsrInfo,
+  }) {
+    final BigInt qsrAmount = qsrAmountText.extractDecimals(
+      coinDecimals,
+    );
+
+    context.read<SentinelDepositQsrBloc>().add(
+      SentinelDepositQsrRequested(
+        address: Address.parse(widget.addressController.text),
+        amount: qsrAmount,
       ),
     );
   }
@@ -318,34 +356,26 @@ class _SentinelQsrManagementStepState extends State<SentinelQsrManagementStep> {
 
 class _DepositButton extends StatelessWidget {
   const _DepositButton({
-    required this.accountInfo,
-    required this.depositAddress,
-    required this.depositQsrButtonKey,
-    required this.isQsrAmountValid,
-    required this.onDepositDone,
-    required this.qsrAmountText,
-    required this.qsrInfo,
+    required this.loadingKey,
+    required this.onDone,
+    required this.onPressed,
   });
 
-  final AccountInfo accountInfo;
-  final String depositAddress;
-  final GlobalKey<LoadingButtonState> depositQsrButtonKey;
-  final bool isQsrAmountValid;
-  final VoidCallback onDepositDone;
-  final String qsrAmountText;
-  final CreateSentinelQsrInfoData qsrInfo;
+  final GlobalKey<LoadingButtonState> loadingKey;
+  final VoidCallback onDone;
+  final VoidCallback? onPressed;
 
   @override
   Widget build(BuildContext context) {
     return BlocListener<SentinelDepositQsrBloc, SentinelDepositQsrState>(
       listener: (_, SentinelDepositQsrState state) {
         if (state is SentinelDepositQsrDone) {
-          depositQsrButtonKey.currentState?.animateReverse();
-          onDepositDone();
+          loadingKey.currentState?.animateReverse();
+          onDone();
         } else if (state is SentinelDepositQsrLoading) {
-          depositQsrButtonKey.currentState?.animateForward();
+          loadingKey.currentState?.animateForward();
         } else if (state is SentinelDepositQsrFailure) {
-          depositQsrButtonKey.currentState?.animateReverse();
+          loadingKey.currentState?.animateReverse();
           unawaited(
             NotificationUtils.sendNotificationError(
               state.exception,
@@ -355,11 +385,9 @@ class _DepositButton extends StatelessWidget {
         }
       },
       child: LoadingButton(
-        key: depositQsrButtonKey,
+        key: loadingKey,
         text: context.l10n.deposit,
-        onPressed: _hasQsrBalance(accountInfo) && isQsrAmountValid
-            ? () => _onDepositButtonPressed(context: context, qsrInfo: qsrInfo)
-            : null,
+        onPressed: onPressed,
         outlineColor: AppColors.qsrColor,
         // TODO(maznnwell): make sure that the outline and text colors are the same
         textStyle: const TextStyle(
@@ -367,35 +395,6 @@ class _DepositButton extends StatelessWidget {
         ),
       ),
     );
-  }
-
-  bool _hasQsrBalance(AccountInfo accountInfo) =>
-      accountInfo.qsr()! > BigInt.zero;
-
-  void _onDepositButtonPressed({
-    required BuildContext context,
-    required CreateSentinelQsrInfoData qsrInfo,
-  }) {
-    final BigInt qsrAmount = qsrAmountText.extractDecimals(
-      coinDecimals,
-    );
-
-    final bool isQsrAvailableToDeposit = qsrAmount > BigInt.zero;
-
-    final bool willDepositExceedCost =
-        qsrInfo.deposit + qsrAmount > qsrInfo.cost;
-
-    final bool canDepositBeExecuted =
-        isQsrAvailableToDeposit && !willDepositExceedCost;
-
-    if (canDepositBeExecuted) {
-      context.read<SentinelDepositQsrBloc>().add(
-        SentinelDepositQsrRequested(
-          address: Address.parse(depositAddress),
-          amount: qsrAmount,
-        ),
-      );
-    }
   }
 }
 
