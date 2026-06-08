@@ -1,17 +1,12 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:lottie/lottie.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/custom_material_stepper.dart'
     as custom_material_stepper;
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
-enum _PillarUpdateStep {
+enum _Step {
   pillarDetails,
   pillarMomentumReward,
   pillarUpdate,
@@ -30,19 +25,18 @@ class UpdatePillarStepperView extends StatefulWidget {
 }
 
 class _UpdatePillarStepperViewState extends State<UpdatePillarStepperView> {
-  _PillarUpdateStep? _lastCompletedStep;
-  _PillarUpdateStep _currentStep = _PillarUpdateStep.values.first;
-
   final TextEditingController _pillarNameController = TextEditingController();
   final TextEditingController _pillarRewardController = TextEditingController();
   final TextEditingController _pillarProducerController =
       TextEditingController();
 
-  final GlobalKey<LoadingButtonState> _updateButtonKey = GlobalKey();
+  // When value is null, it means the stepper has completed.
+  final ValueNotifier<_Step?> _currentStep = .new(
+    .pillarDetails,
+  );
 
-  late double _momentumRewardPercentageGiven;
-
-  late double _delegateRewardPercentageGiven;
+  late final ValueNotifier<double> _momentumRewardPercentageGiven;
+  late final ValueNotifier<double> _delegateRewardPercentageGiven;
 
   @override
   void initState() {
@@ -52,103 +46,106 @@ class _UpdatePillarStepperViewState extends State<UpdatePillarStepperView> {
         .toString();
     _pillarProducerController.text = widget._pillarInfo.producerAddress
         .toString();
-    _momentumRewardPercentageGiven = widget
-        ._pillarInfo
-        .giveMomentumRewardPercentage
-        .toDouble();
-    _delegateRewardPercentageGiven = widget
-        ._pillarInfo
-        .giveDelegateRewardPercentage
-        .toDouble();
+    _momentumRewardPercentageGiven = ValueNotifier<double>(
+      widget._pillarInfo.giveMomentumRewardPercentage.toDouble(),
+    );
+    _delegateRewardPercentageGiven = ValueNotifier<double>(
+      widget._pillarInfo.giveDelegateRewardPercentage.toDouble(),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    return Stack(
-      children: <Widget>[
-        ListView(
+    return ValueListenableBuilder<_Step?>(
+      valueListenable: _currentStep,
+      builder: (_, _Step? currentStep, _) {
+        final bool hasPillarBeenUpdated = currentStep == null;
+
+        return Stack(
           children: <Widget>[
-            _getMaterialStepper(),
-          ],
-        ),
-        Visibility(
-          visible: _lastCompletedStep == _PillarUpdateStep.pillarUpdate,
-          child: Positioned(
-            bottom: 20,
-            right: 0,
-            left: 0,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
+            ListView(
               children: <Widget>[
-                StepperButton(
-                  text: context.l10n.viewPillars,
-                  onPressed: () {
-                    Navigator.pop(context);
-                  },
-                ),
+                _getMaterialStepper(currentStep: currentStep),
               ],
             ),
-          ),
-        ),
-        Visibility(
-          visible: _lastCompletedStep == _PillarUpdateStep.pillarUpdate,
-          child: Positioned(
-            right: 50,
-            child: SizedBox(
-              width: 400,
-              height: 400,
-              child: Center(
-                child: Lottie.asset(
-                  'assets/lottie/ic_anim_pillar.json',
-                  repeat: false,
-                ),
-              ),
-            ),
-          ),
-        ),
-      ],
+            if (hasPillarBeenUpdated)
+              PillarUpdatedSuccess(onViewPillarsPressed: _onViewPillarsPressed),
+            if (hasPillarBeenUpdated) const PillarUpdatedSuccessAnimation(),
+          ],
+        );
+      },
     );
   }
 
-  Widget _getMaterialStepper() {
+  Widget _getMaterialStepper({required _Step? currentStep}) {
+    final int lastStepIndex = _Step.values.last.index;
+
+    custom_material_stepper.StepState getStepState(
+      _Step step,
+      _Step? currentStep,
+    ) {
+      return step.index < (currentStep?.index ?? lastStepIndex + 1)
+          ? custom_material_stepper.StepState.complete
+          : custom_material_stepper.StepState.indexed;
+    }
+
     return custom_material_stepper.Stepper(
-      currentStep: _currentStep.index,
+      currentStep: currentStep?.index ?? lastStepIndex,
       onStepTapped: (int index) {},
       steps: <custom_material_stepper.Step>[
         StepperUtils.getMaterialStep(
           stepTitle: context.l10n.pillarDetails,
-          stepContent: _buildPillarDetailsStepContent(),
+          stepContent: PillarUpdateDetailsStep(
+            onCancelPressed: _onCancelPressed,
+            onNextPressed: _navigateToNextStep,
+            pillarNameController: _pillarNameController,
+            pillarProducerController: _pillarProducerController,
+            pillarRewardController: _pillarRewardController,
+          ),
           stepSubtitle: _pillarNameController.text,
-          stepState: StepperUtils.getStepState(
-            _PillarUpdateStep.pillarDetails.index,
-            _lastCompletedStep?.index,
+          stepState: getStepState(
+            _Step.pillarDetails,
+            currentStep,
           ),
           context: context,
         ),
         StepperUtils.getMaterialStep(
           stepTitle: context.l10n.pillarMomentumAddress,
-          stepContent: _buildPillarMomentumRewardsStepContent(),
+          stepContent: PillarUpdateRewardsStep(
+            delegateRewardPercentage: _delegateRewardPercentageGiven,
+            momentumRewardPercentage: _momentumRewardPercentageGiven,
+            onBackPressed: _navigateToPreviousStep,
+            onNextPressed: _navigateToNextStep,
+          ),
           stepSubtitle:
               '${context.l10n.momentumPercentageGiven(
-                _momentumRewardPercentageGiven,
+                _momentumRewardPercentageGiven.value,
               )}'
-              '\n '
+              '\n'
               '${context.l10n.delegationPercentageGiven(
-                _delegateRewardPercentageGiven,
+                _delegateRewardPercentageGiven.value,
               )}',
-          stepState: StepperUtils.getStepState(
-            _PillarUpdateStep.pillarMomentumReward.index,
-            _lastCompletedStep?.index,
+          stepState: getStepState(
+            _Step.pillarMomentumReward,
+            currentStep,
           ),
           context: context,
         ),
         StepperUtils.getMaterialStep(
           stepTitle: context.l10n.pillarUpdate,
-          stepContent: _buildPillarUpdateStepContent(),
+          stepContent: SubmitPillarUpdateStep(
+            delegateRewardPercentage: _delegateRewardPercentageGiven,
+            momentumRewardPercentage: _momentumRewardPercentageGiven,
+            onBackPressed: _navigateToPreviousStep,
+            onUpdateDone: _onUpdateDone,
+            pillarNameController: _pillarNameController,
+            pillarProducerController: _pillarProducerController,
+            pillarRewardController: _pillarRewardController,
+          ),
           stepSubtitle: context.l10n.pillarUpdated,
-          stepState: StepperUtils.getStepState(
-            _PillarUpdateStep.pillarUpdate.index,
-            _lastCompletedStep?.index,
+          stepState: getStepState(
+            _Step.pillarUpdate,
+            currentStep,
           ),
           context: context,
         ),
@@ -156,248 +153,29 @@ class _UpdatePillarStepperViewState extends State<UpdatePillarStepperView> {
     );
   }
 
-  Widget _buildPillarDetailsStepContent() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: <Widget>[
-        Text(
-          context.l10n.pillarName,
-          style: Theme.of(context).textTheme.bodyLarge,
-        ),
-        kVerticalSpacing,
-        TextField(
-          controller: _pillarNameController,
-          enabled: false,
-          style: const TextStyle(
-            color: AppColors.znnColor,
-          ),
-        ),
-        kVerticalSpacing,
-        Text(
-          context.l10n.pillarRewardAddress,
-          style: Theme.of(context).textTheme.bodyLarge,
-        ),
-        kVerticalSpacing,
-        TextFormField(
-          autovalidateMode: AutovalidateMode.onUserInteraction,
-          decoration: InputDecoration(
-            hintText: context.l10n.pillarRewardAddress,
-            suffixIcon: FieldSuffixButtons(controller: _pillarRewardController),
-          ),
-          controller: _pillarRewardController,
-          validator: InputValidators.checkAddress,
-          style: const TextStyle(
-            color: AppColors.znnColor,
-          ),
-        ),
-        kVerticalSpacing,
-        Text(
-          context.l10n.pillarProducerAddress,
-          style: Theme.of(context).textTheme.bodyLarge,
-        ),
-        kVerticalSpacing,
-        TextFormField(
-          autovalidateMode: AutovalidateMode.onUserInteraction,
-          controller: _pillarProducerController,
-          decoration: InputDecoration(
-            hintText: context.l10n.pillarProducerAddress,
-            suffixIcon: FieldSuffixButtons(
-              controller: _pillarProducerController,
-            ),
-          ),
-          style: const TextStyle(
-            color: AppColors.znnColor,
-          ),
-          validator: InputValidators.validatePillarMomentumAddress,
-        ),
-        kVerticalSpacing,
-        Row(
-          children: <Widget>[
-            OutlinedButton(
-              onPressed: () {
-                Navigator.pop(context);
-              },
-              child: Text(context.l10n.cancel),
-            ),
-            kHorizontalGap25,
-            ListenableBuilder(
-              listenable: Listenable.merge(<Listenable?>[
-                _pillarRewardController,
-                _pillarProducerController,
-              ]),
-              builder: (_, _) => OutlinedButton(
-                onPressed: _arePillarDetailsValid()
-                    ? () {
-                        setState(() {
-                          _lastCompletedStep = _PillarUpdateStep.pillarDetails;
-                          _currentStep = _PillarUpdateStep.pillarMomentumReward;
-                        });
-                      }
-                    : null,
-                child: Text(context.l10n.next),
-              ),
-            ),
-          ],
-        ),
-      ],
-    );
+  void _onCancelPressed() {
+    Navigator.pop(context);
   }
 
-  Widget _buildPillarMomentumRewardsStepContent() {
-    return Column(
-      children: <Widget>[
-        CustomSlider(
-          description: context.l10n.percentageOfMomentumRewards,
-          descriptionPosition: .top,
-          startValue: widget._pillarInfo.giveMomentumRewardPercentage
-              .toDouble(),
-          min: 0,
-          maxValue: 100,
-          callback: (double value) {
-            setState(() {
-              _momentumRewardPercentageGiven = value;
-            });
-          },
-        ),
-        DefaultTextStyle(
-          style: context.newThemeData.textTheme.titleSmall!,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: <Widget>[
-              Text(
-                context.l10n.pillarsWithNumber(
-                  100 - _momentumRewardPercentageGiven.toInt(),
-                ),
-              ),
-              Text(
-                context.l10n.delegators(_momentumRewardPercentageGiven.toInt()),
-              ),
-            ],
-          ),
-        ),
-        kVerticalSpacing,
-        CustomSlider(
-          description: context.l10n.percentageDelegationRewardsGiven,
-          descriptionPosition: .top,
-          startValue: widget._pillarInfo.giveDelegateRewardPercentage
-              .toDouble(),
-          min: 0,
-          maxValue: 100,
-          callback: (double value) {
-            setState(() {
-              _delegateRewardPercentageGiven = value;
-            });
-          },
-        ),
-        DefaultTextStyle(
-          style: context.newThemeData.textTheme.titleSmall!,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: <Widget>[
-              Text(
-                context.l10n.pillarsWithNumber(
-                  100 - _delegateRewardPercentageGiven.toInt(),
-                ),
-              ),
-              Text(
-                context.l10n.delegators(_delegateRewardPercentageGiven.toInt()),
-              ),
-            ],
-          ),
-        ),
-        kVerticalSpacing,
-        Row(
-          children: <Widget>[
-            OutlinedButton(
-              onPressed: () {
-                setState(() {
-                  _lastCompletedStep = null;
-                  _currentStep = _PillarUpdateStep.pillarDetails;
-                });
-              },
-              child: Text(context.l10n.goBack),
-            ),
-            kHorizontalGap25,
-            OutlinedButton(
-              onPressed: () {
-                setState(() {
-                  _lastCompletedStep = _PillarUpdateStep.pillarMomentumReward;
-                  _currentStep = _PillarUpdateStep.pillarUpdate;
-                });
-              },
-              child: Text(context.l10n.next),
-            ),
-          ],
-        ),
-      ],
-    );
+  void _onViewPillarsPressed() {
+    Navigator.pop(context);
   }
 
-  Widget _buildPillarUpdateStepContent() {
-    return Row(
-      children: <Widget>[
-        OutlinedButton(
-          onPressed: () {
-            setState(() {
-              _lastCompletedStep = _PillarUpdateStep.pillarDetails;
-              _currentStep = _PillarUpdateStep.pillarMomentumReward;
-            });
-          },
-          child: Text(context.l10n.goBack),
-        ),
-        kHorizontalGap25,
-        _buildUpdatePillarButton(),
-      ],
-    );
+  void _onUpdateDone() {
+    // All steps have been completed.
+    _currentStep.value = null;
   }
 
-  bool _arePillarDetailsValid() =>
-      InputValidators.checkAddress(_pillarRewardController.text) == null &&
-      InputValidators.validatePillarMomentumAddress(
-            _pillarProducerController.text,
-          ) ==
-          null;
+  void _navigateToNextStep() {
+    final int currentStepIndex = _currentStep.value!.index;
 
-  Widget _buildUpdatePillarButton() {
-    return BlocListener<UpdatePillarBloc, UpdatePillarState>(
-      listener: (_, UpdatePillarState state) {
-        if (state is UpdatePillarDone) {
-          _updateButtonKey.currentState?.animateReverse();
-          setState(() {
-            _lastCompletedStep = _PillarUpdateStep.pillarUpdate;
-          });
-        } else if (state is UpdatePillarFailure) {
-          _updateButtonKey.currentState?.animateReverse();
-          unawaited(
-            NotificationUtils.sendNotificationError(
-              state.exception,
-              context.l10n.errorUpdatingPillar,
-            ),
-          );
-        } else if (state is UpdatePillarLoading) {
-          _updateButtonKey.currentState?.animateForward();
-        }
-      },
-      child: LoadingButton.stepper(
-        onPressed: () {
-          _updateButtonKey.currentState?.animateForward();
-          context.read<UpdatePillarBloc>().add(
-            UpdatePillarRequested(
-              pillarName: _pillarNameController.text,
-              blockProducingAddress: Address.parse(
-                _pillarProducerController.text,
-              ),
-              rewardAddress: Address.parse(_pillarRewardController.text),
-              giveBlockRewardPercentage: _momentumRewardPercentageGiven.toInt(),
-              giveDelegateRewardPercentage: _delegateRewardPercentageGiven
-                  .toInt(),
-            ),
-          );
-        },
-        text: context.l10n.update,
-        key: _updateButtonKey,
-      ),
-    );
+    _currentStep.value = _Step.values[currentStepIndex + 1];
+  }
+
+  void _navigateToPreviousStep() {
+    final int currentStepIndex = _currentStep.value!.index;
+
+    _currentStep.value = _Step.values[currentStepIndex - 1];
   }
 
   @override
@@ -405,6 +183,9 @@ class _UpdatePillarStepperViewState extends State<UpdatePillarStepperView> {
     _pillarNameController.dispose();
     _pillarRewardController.dispose();
     _pillarProducerController.dispose();
+    _momentumRewardPercentageGiven.dispose();
+    _delegateRewardPercentageGiven.dispose();
+    _currentStep.dispose();
     super.dispose();
   }
 }
