@@ -8,8 +8,6 @@ import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
-import 'pillar_reward_sliders.dart';
-
 /// Deploy step for registering a pillar.
 class DeployPillarStep extends StatefulWidget {
   /// Creates a [DeployPillarStep].
