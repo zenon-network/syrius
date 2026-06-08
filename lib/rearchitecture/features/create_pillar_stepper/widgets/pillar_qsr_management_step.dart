@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/math_utils.dart';
@@ -241,18 +242,19 @@ class _PillarQsrManagementStepState extends State<PillarQsrManagementStep> {
             valueListenable: widget.qsrAmountController,
             builder: (_, TextEditingValue value, _) {
               return _DepositButton(
-                onDepositDone: _refreshPillarQsrInfo,
-                qsrAmountText: value.text,
-                depositAddress: widget.addressController.text,
-                accountInfo: accountInfo,
-                qsrInfo: qsrInfo,
-                depositQsrButtonKey: _depositQsrButtonKey,
-                isQsrAmountValid:
-                    _qsrAmountValidator(
-                      value: value.text,
+                loadingKey: _depositQsrButtonKey,
+                onDone: _refreshPillarQsrInfo,
+                onPressed:
+                    _canDeposit(
+                      accountInfo: accountInfo,
                       maxQsrAmount: maxQsrAmount,
-                    ) ==
-                    null,
+                      qsrAmountText: value.text,
+                    )
+                    ? () => _onDepositButtonPressed(
+                        qsrAmountText: value.text,
+                        qsrInfo: qsrInfo,
+                      )
+                    : null,
               );
             },
           ),
@@ -318,9 +320,45 @@ class _PillarQsrManagementStepState extends State<PillarQsrManagementStep> {
   );
 
   void _refreshPillarQsrInfo() {
+    sl.get<MultipleBalanceBloc>().add(
+      MultipleBalanceFetch(
+        addresses: kDefaultAddressList.map((String? e) => e!).toList(),
+      ),
+    );
     context.read<CreatePillarQsrInfoBloc>().add(
       FetchRequestData(
         address: Address.parse(widget.addressController.text),
+      ),
+    );
+  }
+
+  bool _canDeposit({
+    required AccountInfo accountInfo,
+    required BigInt maxQsrAmount,
+    required String qsrAmountText,
+  }) =>
+      _hasQsrBalance(accountInfo) &&
+      _qsrAmountValidator(
+            value: qsrAmountText,
+            maxQsrAmount: maxQsrAmount,
+          ) ==
+          null;
+
+  bool _hasQsrBalance(AccountInfo accountInfo) =>
+      accountInfo.qsr()! > BigInt.zero;
+
+  void _onDepositButtonPressed({
+    required String qsrAmountText,
+    required CreatePillarQsrInfoData qsrInfo,
+  }) {
+    final BigInt qsrAmount = qsrAmountText.extractDecimals(
+      coinDecimals,
+    );
+
+    context.read<PillarDepositQsrBloc>().add(
+      PillarDepositQsrRequested(
+        address: Address.parse(widget.addressController.text),
+        amount: qsrAmount,
       ),
     );
   }
@@ -328,34 +366,26 @@ class _PillarQsrManagementStepState extends State<PillarQsrManagementStep> {
 
 class _DepositButton extends StatelessWidget {
   const _DepositButton({
-    required this.onDepositDone,
-    required this.qsrAmountText,
-    required this.depositAddress,
-    required this.accountInfo,
-    required this.qsrInfo,
-    required this.depositQsrButtonKey,
-    required this.isQsrAmountValid,
+    required this.loadingKey,
+    required this.onDone,
+    required this.onPressed,
   });
 
-  final AccountInfo accountInfo;
-  final GlobalKey<LoadingButtonState> depositQsrButtonKey;
-  final CreatePillarQsrInfoData qsrInfo;
-  final String qsrAmountText;
-  final String depositAddress;
-  final VoidCallback onDepositDone;
-  final bool isQsrAmountValid;
+  final GlobalKey<LoadingButtonState> loadingKey;
+  final VoidCallback onDone;
+  final VoidCallback? onPressed;
 
   @override
   Widget build(BuildContext context) {
     return BlocListener<PillarDepositQsrBloc, PillarDepositQsrState>(
       listener: (_, PillarDepositQsrState state) {
         if (state is PillarDepositQsrDone) {
-          depositQsrButtonKey.currentState?.animateReverse();
-          onDepositDone();
+          loadingKey.currentState?.animateReverse();
+          onDone();
         } else if (state is PillarDepositQsrLoading) {
-          depositQsrButtonKey.currentState?.animateForward();
+          loadingKey.currentState?.animateForward();
         } else if (state is PillarDepositQsrFailure) {
-          depositQsrButtonKey.currentState?.animateReverse();
+          loadingKey.currentState?.animateReverse();
           unawaited(
             NotificationUtils.sendNotificationError(
               state.exception,
@@ -365,46 +395,15 @@ class _DepositButton extends StatelessWidget {
         }
       },
       child: LoadingButton(
-        key: depositQsrButtonKey,
+        key: loadingKey,
         text: context.l10n.deposit,
-        onPressed: _hasQsrBalance(accountInfo) && isQsrAmountValid
-            ? () => _onDepositButtonPressed(context: context, qsrInfo: qsrInfo)
-            : null,
+        onPressed: onPressed,
         outlineColor: AppColors.qsrColor,
         textStyle: const TextStyle(
           color: AppColors.qsrColor,
         ),
       ),
     );
-  }
-
-  bool _hasQsrBalance(AccountInfo accountInfo) =>
-      accountInfo.qsr()! > BigInt.zero;
-
-  void _onDepositButtonPressed({
-    required BuildContext context,
-    required CreatePillarQsrInfoData qsrInfo,
-  }) {
-    final BigInt qsrAmount = qsrAmountText.extractDecimals(
-      coinDecimals,
-    );
-
-    final bool isQsrAvailableToDeposit = qsrAmount > BigInt.zero;
-
-    final bool willDepositExceedCost =
-        qsrInfo.deposit + qsrAmount > qsrInfo.cost;
-
-    final bool canDepositBeExecuted =
-        isQsrAvailableToDeposit && !willDepositExceedCost;
-
-    if (canDepositBeExecuted) {
-      context.read<PillarDepositQsrBloc>().add(
-        PillarDepositQsrRequested(
-          address: Address.parse(depositAddress),
-          amount: qsrAmount,
-        ),
-      );
-    }
   }
 }
 
