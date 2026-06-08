@@ -18,7 +18,7 @@ import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/custom_mate
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
-enum _PillarStepperStep {
+enum _Step {
   checkPlasma,
   qsrManagement,
   znnManagement,
@@ -50,7 +50,7 @@ class _MainPillarState extends State<CreatePillarStepperView> {
   final TextEditingController _addressController = TextEditingController();
 
   // When value is null, it means the stepper has completed
-  final ValueNotifier<_PillarStepperStep?> _currentStep = .new(
+  final ValueNotifier<_Step?> _currentStep = .new(
     .checkPlasma,
   );
 
@@ -84,9 +84,9 @@ class _MainPillarState extends State<CreatePillarStepperView> {
   }
 
   Widget _buildBody(BuildContext context, AccountInfo accountInfo) {
-    return ValueListenableBuilder<_PillarStepperStep?>(
+    return ValueListenableBuilder<_Step?>(
       valueListenable: _currentStep,
-      builder: (_, _PillarStepperStep? currentStep, _) {
+      builder: (_, _Step? currentStep, _) {
         final bool hasPillarBeenRegistered = _currentStep.value == null;
 
         return Stack(
@@ -117,14 +117,14 @@ class _MainPillarState extends State<CreatePillarStepperView> {
 
   Widget _getMaterialStepper({
     required AccountInfo accountInfo,
-    required _PillarStepperStep? currentStep,
+    required _Step? currentStep,
   }) {
-    final int lastStepIndex = _PillarStepperStep.values.last.index;
+    final int lastStepIndex = _Step.values.last.index;
 
     // TODO(maznnwell): to be extracted to StepperUtils
     custom_material_stepper.StepState getStepState(
-      _PillarStepperStep step,
-      _PillarStepperStep? currentStep,
+      _Step step,
+      _Step? currentStep,
     ) {
       return step.index < (currentStep?.index ?? lastStepIndex + 1)
           ? custom_material_stepper.StepState.complete
@@ -143,7 +143,7 @@ class _MainPillarState extends State<CreatePillarStepperView> {
           ),
           stepSubtitle: context.l10n.sufficientPlasma,
           stepState: getStepState(
-            _PillarStepperStep.checkPlasma,
+            _Step.checkPlasma,
             _currentStep.value,
           ),
           context: context,
@@ -158,7 +158,7 @@ class _MainPillarState extends State<CreatePillarStepperView> {
           ),
           stepSubtitle: context.l10n.deposited(kQsrCoin.symbol),
           stepState: getStepState(
-            _PillarStepperStep.qsrManagement,
+            _Step.qsrManagement,
             _currentStep.value,
           ),
           context: context,
@@ -174,7 +174,7 @@ class _MainPillarState extends State<CreatePillarStepperView> {
           ),
           stepSubtitle: context.l10n.locked(kZnnCoin.symbol),
           stepState: getStepState(
-            _PillarStepperStep.znnManagement,
+            _Step.znnManagement,
             _currentStep.value,
           ),
           context: context,
@@ -186,7 +186,7 @@ class _MainPillarState extends State<CreatePillarStepperView> {
           ),
           stepSubtitle: context.l10n.pillarRegistered,
           stepState: getStepState(
-            _PillarStepperStep.deployPillar,
+            _Step.deployPillar,
             _currentStep.value,
           ),
           context: context,
@@ -211,15 +211,14 @@ class _MainPillarState extends State<CreatePillarStepperView> {
   Future<void> _onDeployAnotherPillarButtonPressed() async {
     _currentStep.value = .checkPlasma;
     _refreshPillarQsrInfo();
-    _currentStep.value = _PillarStepperStep.values.first;
+    _currentStep.value = _Step.values.first;
   }
 
   void _navigateToNextStep() {
     final int currentStepIndex = _currentStep.value!.index;
 
-    _currentStep.value = _PillarStepperStep.values[currentStepIndex + 1];
+    _currentStep.value = _Step.values[currentStepIndex + 1];
   }
-
 
   void _onPlasmaCheckNextPressed() {
     _navigateToNextStep();
