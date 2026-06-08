@@ -7,77 +7,18 @@ import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dar
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
+import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 /// Deploy step for registering a pillar.
 class DeployPillarStep extends StatefulWidget {
   /// Creates a [DeployPillarStep].
   const DeployPillarStep({
-    required this.canDeployPillar,
-    required this.delegateRewardPercentage,
-    required this.momentumRewardPercentage,
     required this.onDeployDone,
-    required this.onDeployPressed,
-    required this.onDelegateRewardChanged,
-    required this.onMomentumRewardChanged,
-    required this.pillarMomentumController,
-    required this.pillarMomentumError,
-    required this.pillarMomentumNode,
-    required this.pillarNameController,
-    required this.pillarNameError,
-    required this.pillarNameNode,
-    required this.pillarRewardAddressController,
-    required this.pillarRewardAddressError,
-    required this.pillarRewardNode,
     super.key,
   });
 
-  /// Returns whether the deploy button can be enabled.
-  final bool Function() canDeployPillar;
-
-  /// Percentage of delegation rewards given to delegators.
-  final double delegateRewardPercentage;
-
-  /// Percentage of momentum rewards given to delegators.
-  final double momentumRewardPercentage;
-
   /// Called when deployment completes.
   final VoidCallback onDeployDone;
-
-  /// Called when the deploy button is pressed.
-  final VoidCallback onDeployPressed;
-
-  /// Called when delegation reward percentage changes.
-  final ValueChanged<double> onDelegateRewardChanged;
-
-  /// Called when momentum reward percentage changes.
-  final ValueChanged<double> onMomentumRewardChanged;
-
-  /// Pillar momentum address controller.
-  final TextEditingController pillarMomentumController;
-
-  /// Current pillar momentum validation error.
-  final String? Function() pillarMomentumError;
-
-  /// Pillar momentum focus node.
-  final FocusNode pillarMomentumNode;
-
-  /// Pillar name controller.
-  final TextEditingController pillarNameController;
-
-  /// Current pillar name validation error.
-  final String? Function() pillarNameError;
-
-  /// Pillar name focus node.
-  final FocusNode pillarNameNode;
-
-  /// Pillar reward address controller.
-  final TextEditingController pillarRewardAddressController;
-
-  /// Current pillar reward address validation error.
-  final String? Function() pillarRewardAddressError;
-
-  /// Pillar reward focus node.
-  final FocusNode pillarRewardNode;
 
   @override
   State<DeployPillarStep> createState() => _DeployPillarStepState();
@@ -86,15 +27,49 @@ class DeployPillarStep extends StatefulWidget {
 class _DeployPillarStepState extends State<DeployPillarStep> {
   final GlobalKey<LoadingButtonState> _registerButtonKey = GlobalKey();
 
+  final TextEditingController _pillarNameController = TextEditingController();
+  final TextEditingController _pillarRewardAddressController =
+      TextEditingController();
+  final TextEditingController _pillarMomentumController =
+      TextEditingController();
+
+  String? get _pillarNameError =>
+      Validations.pillarName(_pillarNameController.text);
+
+  String? get _pillarRewardAddressError =>
+      InputValidators.checkAddress(_pillarRewardAddressController.text);
+
+  String? get _pillarMomentumError =>
+      InputValidators.validatePillarMomentumAddress(
+        _pillarMomentumController.text,
+      );
+
+  final ValueNotifier<double> _momentumRewardPercentage = .new(0);
+  final ValueNotifier<double> _delegateRewardPercentage = .new(0);
+
+  @override
+  void initState() {
+    super.initState();
+    _pillarRewardAddressController.text = kSelectedAddress!;
+  }
+
+  @override
+  void dispose() {
+    _pillarNameController.dispose();
+    _pillarRewardAddressController.dispose();
+    _pillarMomentumController.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return BlocListener<DeployPillarBloc, DeployPillarState>(
       listener: (_, DeployPillarState state) => _onDeployStateChanged(state),
       child: ListenableBuilder(
         listenable: Listenable.merge(<Listenable>[
-          widget.pillarNameController,
-          widget.pillarMomentumController,
-          widget.pillarRewardAddressController,
+          _pillarNameController,
+          _pillarMomentumController,
+          _pillarRewardAddressController,
         ]),
         builder: (_, _) => _buildBody(context),
       ),
@@ -105,18 +80,37 @@ class _DeployPillarStepState extends State<DeployPillarStep> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
+        _buildTextFields(context),
+        kVerticalSpacing,
+        PillarRewardSliders(
+          delegateRewardPercentage: _delegateRewardPercentage,
+          momentumRewardPercentage: _momentumRewardPercentage,
+        ),
+        kVerticalGap25,
+        LoadingButton(
+          text: context.l10n.register,
+          onPressed: _isInputValid() ? _onDeployPressed : null,
+          key: _registerButtonKey,
+        ),
+        kVerticalGap25,
+      ],
+    );
+  }
+
+  Column _buildTextFields(BuildContext context) {
+    return Column(
+      children: [
         Row(
           children: <Widget>[
             Expanded(
               child: TextField(
-                controller: widget.pillarNameController,
+                controller: _pillarNameController,
                 decoration: InputDecoration(
-                  errorText: widget.pillarNameController.text.isNotEmpty
-                      ? widget.pillarNameError()
+                  errorText: _pillarNameController.text.isNotEmpty
+                      ? _pillarNameError
                       : null,
                   hintText: context.l10n.pillarName,
                 ),
-                focusNode: widget.pillarNameNode,
               ),
             ),
             const SizedBox(width: 23),
@@ -127,18 +121,16 @@ class _DeployPillarStepState extends State<DeployPillarStep> {
           children: <Widget>[
             Expanded(
               child: TextField(
-                controller: widget.pillarRewardAddressController,
+                controller: _pillarRewardAddressController,
                 decoration: InputDecoration(
-                  errorText:
-                      widget.pillarRewardAddressController.text.isNotEmpty
-                      ? widget.pillarRewardAddressError()
+                  errorText: _pillarRewardAddressController.text.isNotEmpty
+                      ? _pillarRewardAddressError
                       : null,
                   hintText: context.l10n.pillarRewardAddress,
                   suffixIcon: FieldSuffixButtons(
-                    controller: widget.pillarRewardAddressController,
+                    controller: _pillarRewardAddressController,
                   ),
                 ),
-                focusNode: widget.pillarRewardNode,
               ),
             ),
             StandardTooltipIcon(
@@ -152,17 +144,16 @@ class _DeployPillarStepState extends State<DeployPillarStep> {
           children: <Widget>[
             Expanded(
               child: TextField(
-                controller: widget.pillarMomentumController,
+                controller: _pillarMomentumController,
                 decoration: InputDecoration(
-                  errorText: widget.pillarMomentumController.text.isNotEmpty
-                      ? widget.pillarMomentumError()
+                  errorText: _pillarMomentumController.text.isNotEmpty
+                      ? _pillarMomentumError
                       : null,
                   hintText: context.l10n.pillarProducerAddress,
                   suffixIcon: FieldSuffixButtons(
-                    controller: widget.pillarMomentumController,
+                    controller: _pillarMomentumController,
                   ),
                 ),
-                focusNode: widget.pillarMomentumNode,
               ),
             ),
             StandardTooltipIcon(
@@ -171,20 +162,6 @@ class _DeployPillarStepState extends State<DeployPillarStep> {
             ),
           ],
         ),
-        kVerticalSpacing,
-        PillarRewardSliders(
-          delegateRewardPercentage: widget.delegateRewardPercentage,
-          momentumRewardPercentage: widget.momentumRewardPercentage,
-          onDelegateRewardChanged: widget.onDelegateRewardChanged,
-          onMomentumRewardChanged: widget.onMomentumRewardChanged,
-        ),
-        kVerticalGap25,
-        LoadingButton(
-          text: context.l10n.register,
-          onPressed: widget.canDeployPillar() ? widget.onDeployPressed : null,
-          key: _registerButtonKey,
-        ),
-        kVerticalGap25,
       ],
     );
   }
@@ -192,6 +169,9 @@ class _DeployPillarStepState extends State<DeployPillarStep> {
   void _onDeployStateChanged(DeployPillarState state) {
     if (state is DeployPillarDone) {
       _registerButtonKey.currentState?.animateReverse();
+      _pillarNameController.clear();
+      _pillarRewardAddressController.clear();
+      _pillarMomentumController.clear();
       widget.onDeployDone();
     } else if (state is DeployPillarFailure) {
       _registerButtonKey.currentState?.animateReverse();
@@ -204,5 +184,24 @@ class _DeployPillarStepState extends State<DeployPillarStep> {
     } else if (state is DeployPillarLoading) {
       _registerButtonKey.currentState?.animateForward();
     }
+  }
+
+  bool _isInputValid() =>
+      _pillarNameError == null &&
+      _pillarRewardAddressError == null &&
+      _pillarMomentumError == null;
+
+  void _onDeployPressed() {
+    context.read<DeployPillarBloc>().add(
+      DeployPillarRequested(
+        pillarName: _pillarNameController.text,
+        rewardAddress: Address.parse(_pillarRewardAddressController.text),
+        blockProducingAddress: Address.parse(
+          _pillarMomentumController.text,
+        ),
+        giveBlockRewardPercentage: _momentumRewardPercentage.value.toInt(),
+        giveDelegateRewardPercentage: _delegateRewardPercentage.value.toInt(),
+      ),
+    );
   }
 }

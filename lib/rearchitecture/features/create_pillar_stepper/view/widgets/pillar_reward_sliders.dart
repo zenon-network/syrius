@@ -9,46 +9,60 @@ class PillarRewardSliders extends StatelessWidget {
   const PillarRewardSliders({
     required this.delegateRewardPercentage,
     required this.momentumRewardPercentage,
-    required this.onDelegateRewardChanged,
-    required this.onMomentumRewardChanged,
     super.key,
   });
 
   /// Percentage of delegation rewards given to delegators.
-  final double delegateRewardPercentage;
+  final ValueNotifier<double> delegateRewardPercentage;
 
   /// Percentage of momentum rewards given to delegators.
-  final double momentumRewardPercentage;
-
-  /// Called when the delegation reward percentage changes.
-  final ValueChanged<double> onDelegateRewardChanged;
-
-  /// Called when the momentum reward percentage changes.
-  final ValueChanged<double> onMomentumRewardChanged;
+  final ValueNotifier<double> momentumRewardPercentage;
 
   @override
   Widget build(BuildContext context) {
     return Column(
       children: <Widget>[
-        CustomSlider(
-          description: context.l10n.percentageOfMomentumRewards,
-          descriptionPosition: SliderDescriptionPosition.top,
-          startValue: momentumRewardPercentage,
-          min: 0,
-          maxValue: 100,
-          callback: onMomentumRewardChanged,
+        ValueListenableBuilder<double>(
+          valueListenable: momentumRewardPercentage,
+          builder: (BuildContext context, double value, _) {
+            return Column(
+              children: <Widget>[
+                CustomSlider(
+                  description: context.l10n.percentageOfMomentumRewards,
+                  descriptionPosition: SliderDescriptionPosition.top,
+                  startValue: value,
+                  min: 0,
+                  maxValue: 100,
+                  callback: (double newValue) {
+                    momentumRewardPercentage.value = newValue;
+                  },
+                ),
+                _RewardSplitLabels(percentage: momentumRewardPercentage.value),
+              ],
+            );
+          },
         ),
-        _RewardSplitLabels(percentage: momentumRewardPercentage),
         kVerticalSpacing,
-        CustomSlider(
-          description: context.l10n.percentageDelegationRewardsGiven,
-          descriptionPosition: SliderDescriptionPosition.top,
-          startValue: delegateRewardPercentage,
-          min: 0,
-          maxValue: 100,
-          callback: onDelegateRewardChanged,
+        ValueListenableBuilder<double>(
+          valueListenable: delegateRewardPercentage,
+          builder: (BuildContext context, double value, _) {
+            return Column(
+              children: <Widget>[
+                CustomSlider(
+                  description: context.l10n.percentageDelegationRewardsGiven,
+                  descriptionPosition: SliderDescriptionPosition.top,
+                  startValue: value,
+                  min: 0,
+                  maxValue: 100,
+                  callback: (double newValue) {
+                    delegateRewardPercentage.value = newValue;
+                  },
+                ),
+                _RewardSplitLabels(percentage: delegateRewardPercentage.value),
+              ],
+            );
+          },
         ),
-        _RewardSplitLabels(percentage: delegateRewardPercentage),
       ],
     );
   }

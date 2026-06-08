@@ -12,7 +12,6 @@ import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dar
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/extensions.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/input_validators.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/zts_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/custom_material_stepper.dart'
     as custom_material_stepper;
@@ -47,31 +46,8 @@ class CreatePillarStepperView extends StatefulWidget {
 
 class _MainPillarState extends State<CreatePillarStepperView> {
   final TextEditingController _qsrAmountController = TextEditingController();
-  final TextEditingController _pillarNameController = TextEditingController();
-  final TextEditingController _pillarRewardAddressController =
-      TextEditingController();
-  final TextEditingController _pillarMomentumController =
-      TextEditingController();
   final TextEditingController _znnAmountController = TextEditingController();
   final TextEditingController _addressController = TextEditingController();
-
-  final FocusNode _pillarNameNode = FocusNode();
-  final FocusNode _pillarRewardNode = FocusNode();
-  final FocusNode _pillarMomentumNode = FocusNode();
-
-  String? get _pillarNameError =>
-      Validations.pillarName(_pillarNameController.text);
-
-  String? get _pillarRewardAddressError =>
-      InputValidators.checkAddress(_pillarRewardAddressController.text);
-
-  String? get _pillarMomentumError =>
-      InputValidators.validatePillarMomentumAddress(
-        _pillarMomentumController.text,
-      );
-
-  double _momentumRewardPercentageGiven = 0;
-  double _delegateRewardPercentageGiven = 0;
 
   // When value is null, it means the stepper has completed
   final ValueNotifier<_PillarStepperStep?> _currentStep = .new(
@@ -85,7 +61,6 @@ class _MainPillarState extends State<CreatePillarStepperView> {
       coinDecimals,
     );
     _addressController.text = kSelectedAddress!;
-    _pillarRewardAddressController.text = kSelectedAddress!;
     sl.get<MultipleBalanceBloc>().add(
       MultipleBalanceFetch(
         addresses: kDefaultAddressList.map((String? e) => e!).toList(),
@@ -144,18 +119,20 @@ class _MainPillarState extends State<CreatePillarStepperView> {
     required AccountInfo accountInfo,
     required _PillarStepperStep? currentStep,
   }) {
+    final int lastStepIndex = _PillarStepperStep.values.last.index;
+
     // TODO(maznnwell): to be extracted to StepperUtils
     custom_material_stepper.StepState getStepState(
       _PillarStepperStep step,
       _PillarStepperStep? currentStep,
     ) {
-      return step.index < (currentStep?.index ?? -1)
+      return step.index < (currentStep?.index ?? lastStepIndex + 1)
           ? custom_material_stepper.StepState.complete
           : custom_material_stepper.StepState.indexed;
     }
 
     return custom_material_stepper.Stepper(
-      currentStep: currentStep?.index ?? 0,
+      currentStep: currentStep?.index ?? lastStepIndex,
       onStepTapped: (int index) {},
       steps: <custom_material_stepper.Step>[
         StepperUtils.getMaterialStep(
@@ -205,30 +182,7 @@ class _MainPillarState extends State<CreatePillarStepperView> {
         StepperUtils.getMaterialStep(
           stepTitle: context.l10n.registerPillar,
           stepContent: DeployPillarStep(
-            canDeployPillar: _canDeployPillar,
-            delegateRewardPercentage: _delegateRewardPercentageGiven,
-            momentumRewardPercentage: _momentumRewardPercentageGiven,
             onDeployDone: _onDeployDone,
-            onDeployPressed: _onDeployPressed,
-            onDelegateRewardChanged: (double value) {
-              setState(() {
-                _delegateRewardPercentageGiven = value;
-              });
-            },
-            onMomentumRewardChanged: (double value) {
-              setState(() {
-                _momentumRewardPercentageGiven = value;
-              });
-            },
-            pillarMomentumController: _pillarMomentumController,
-            pillarMomentumError: () => _pillarMomentumError,
-            pillarMomentumNode: _pillarMomentumNode,
-            pillarNameController: _pillarNameController,
-            pillarNameError: () => _pillarNameError,
-            pillarNameNode: _pillarNameNode,
-            pillarRewardAddressController: _pillarRewardAddressController,
-            pillarRewardAddressError: () => _pillarRewardAddressError,
-            pillarRewardNode: _pillarRewardNode,
           ),
           stepSubtitle: context.l10n.pillarRegistered,
           stepState: getStepState(
@@ -254,24 +208,7 @@ class _MainPillarState extends State<CreatePillarStepperView> {
     _currentStep.value = null;
   }
 
-  void _onDeployPressed() {
-    context.read<DeployPillarBloc>().add(
-      DeployPillarRequested(
-        pillarName: _pillarNameController.text,
-        rewardAddress: Address.parse(_pillarRewardAddressController.text),
-        blockProducingAddress: Address.parse(
-          _pillarMomentumController.text,
-        ),
-        giveBlockRewardPercentage: _momentumRewardPercentageGiven.toInt(),
-        giveDelegateRewardPercentage: _delegateRewardPercentageGiven.toInt(),
-      ),
-    );
-  }
-
   Future<void> _onDeployAnotherPillarButtonPressed() async {
-    _pillarNameController.clear();
-    _pillarRewardAddressController.clear();
-    _pillarMomentumController.clear();
     _currentStep.value = .checkPlasma;
     _refreshPillarQsrInfo();
     _currentStep.value = _PillarStepperStep.values.first;
@@ -283,10 +220,6 @@ class _MainPillarState extends State<CreatePillarStepperView> {
     _currentStep.value = _PillarStepperStep.values[currentStepIndex + 1];
   }
 
-  bool _canDeployPillar() =>
-      _pillarNameError == null &&
-      _pillarRewardAddressError == null &&
-      _pillarMomentumError == null;
 
   void _onPlasmaCheckNextPressed() {
     _navigateToNextStep();
@@ -298,14 +231,8 @@ class _MainPillarState extends State<CreatePillarStepperView> {
   @override
   void dispose() {
     _qsrAmountController.dispose();
-    _pillarNameController.dispose();
-    _pillarRewardAddressController.dispose();
-    _pillarMomentumController.dispose();
     _znnAmountController.dispose();
     _addressController.dispose();
-    _pillarNameNode.dispose();
-    _pillarRewardNode.dispose();
-    _pillarMomentumNode.dispose();
     super.dispose();
   }
 }
