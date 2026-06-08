@@ -88,7 +88,7 @@ class _MainPillarState extends State<CreatePillarStepperView> {
           children: <Widget>[
             ListView(
               children: <Widget>[
-                _getMaterialStepper(
+                _buildMaterialStepper(
                   accountInfo: accountInfo,
                   currentStep: currentStep,
                 ),
@@ -110,7 +110,7 @@ class _MainPillarState extends State<CreatePillarStepperView> {
     );
   }
 
-  Widget _getMaterialStepper({
+  Widget _buildMaterialStepper({
     required AccountInfo accountInfo,
     required _Step? currentStep,
   }) {
