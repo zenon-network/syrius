@@ -1,8 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/update_pillar_stepper/view/widgets/pillar_update_details_step.dart';
-import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/update_pillar_stepper/view/widgets/pillar_update_rewards_step.dart';
-import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/update_pillar_stepper/view/widgets/pillar_updated_success.dart';
-import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/update_pillar_stepper/view/widgets/submit_pillar_update_step.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/custom_material_stepper.dart'
     as custom_material_stepper;
