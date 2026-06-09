@@ -171,42 +171,61 @@ class _Populated extends StatelessWidget {
   Widget _buildRevokeSentinelBlocConsumer({
     required BuildContext context,
   }) {
-    return BlocConsumer<RevokeSentinelBloc, RevokeSentinelState>(
-      listener: (_, RevokeSentinelState state) {
-        if (state is RevokeSentinelDone) {
-          context.read<SentinelsBloc>().add(
-            const InfiniteListRefreshRequested(address: null),
-          );
-        } else if (state is RevokeSentinelFailure) {
-          unawaited(
-            NotificationUtils.sendNotificationError(
-              state.exception,
-              context.l10n.errorDisassemblingSentinel,
-            ),
-          );
-        }
-      },
-      builder: (_, RevokeSentinelState state) {
-        return switch (state) {
-          RevokeSentinelInitial() => _buildDisassembleButton(context),
-          RevokeSentinelFailure() => _buildDisassembleButton(context),
-          RevokeSentinelDone() => _buildDisassembleButton(context),
-          RevokeSentinelLoading() => const SyriusLoadingWidget(size: 25),
-        };
-      },
+    return Row(
+      mainAxisAlignment: .center,
+      mainAxisSize: .min,
+      children: [
+        BlocConsumer<RevokeSentinelBloc, RevokeSentinelState>(
+          listener: (_, RevokeSentinelState state) {
+            if (state is RevokeSentinelDone) {
+              context.read<SentinelsBloc>().add(
+                const InfiniteListRefreshRequested(address: null),
+              );
+            } else if (state is RevokeSentinelFailure) {
+              unawaited(
+                NotificationUtils.sendNotificationError(
+                  state.exception,
+                  context.l10n.errorDisassemblingSentinel,
+                ),
+              );
+            }
+          },
+          builder: (_, RevokeSentinelState state) {
+            return switch (state) {
+              RevokeSentinelInitial() => _buildDisassembleButton(context),
+              RevokeSentinelFailure() => _buildDisassembleButton(context),
+              RevokeSentinelDone() => _buildDisassembleButton(context),
+              RevokeSentinelLoading() => const SyriusLoadingWidget(size: 25),
+            };
+          },
+        ),
+      ],
     );
   }
 
   Widget _buildDisassembleButton(BuildContext context) {
+    final RevokeSentinelBloc revokeSentinelBloc = context
+        .read<RevokeSentinelBloc>();
+
     return OutlinedButton.icon(
       style: OutlinedButton.styleFrom(
         iconColor: AppColors.errorColor,
         side: const BorderSide(color: AppColors.errorColor),
       ),
-      onPressed: () {
-        context.read<RevokeSentinelBloc>().add(
-          const RevokeSentinelRequested(),
+      onPressed: () async {
+        final bool? revocationConfirmed = await showDialogWithNoAndYesOptions(
+          isBarrierDismissible: false,
+          context: context,
+          title: context.l10n.disassemble,
+          // TODO(maznnwell): localize if the description is okay
+          description: 'Are you sure you want to revoke the sentinel?',
         );
+
+        if (revocationConfirmed ?? false) {
+          revokeSentinelBloc.add(
+            const RevokeSentinelRequested(),
+          );
+        }
       },
       icon: const Icon(Icons.close),
       iconAlignment: .end,
