@@ -85,6 +85,9 @@ class AppLocalizationsEn extends AppLocalizations {
       'Start the process of deploying a Sentinel Node in the network';
 
   @override
+  String get createStake => 'create stake';
+
+  @override
   String currentAmounts(Object kQsrCoinSymbol, Object kZnnCoinSymbol) {
     return 'This card displays the current $kZnnCoinSymbol and $kQsrCoinSymbol amounts for the selected address';
   }
@@ -201,6 +204,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String errorWhileDepositing(Object kQsrCoinSymbol) {
     return 'Error while depositing $kQsrCoinSymbol';
   }
+
+  @override
+  String get errorWhileGeneratingStake => 'Error while generating stake';
 
   @override
   String errorWhileWithdrawing(Object kQsrCoinSymbol) {
@@ -537,11 +543,28 @@ class AppLocalizationsEn extends AppLocalizations {
   String get spawn => 'Spawn';
 
   @override
+  String get stake => 'Stake';
+
+  @override
   String get stakeCollectDescription =>
       'This card displays your current staking rewards that are ready to be collected. If there are any rewards available, you will be able to collect them';
 
   @override
   String get stakeCollectTitle => 'Stake Collect';
+
+  @override
+  String get stakingDuration => 'Staking duration';
+
+  @override
+  String stakingOptionsDescription(
+    Object kQsrCoinSymbol,
+    Object kZnnCoinSymbol,
+  ) {
+    return 'This card displays information about staking per wallet address. Choose the duration and the amount in $kZnnCoinSymbol for staking in order to receive $kQsrCoinSymbol';
+  }
+
+  @override
+  String get stakingOptionsTitle => 'Staking Options';
 
   @override
   String get stakingStats => 'Staking Stats';

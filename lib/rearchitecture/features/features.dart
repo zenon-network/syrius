@@ -36,6 +36,7 @@ export 'sentinels/sentinels.dart';
 export 'sentinels_by_owner/sentinels_by_owner.dart';
 export 'stake_collect/stake_collect.dart';
 export 'staking/staking.dart';
+export 'staking_options/staking_options.dart';
 export 'staking_rewards_history/staking_rewards_history.dart';
 export 'total_hourly_transactions/total_hourly_transactions.dart';
 export 'transfer/transfer.dart';

@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:layout/layout.dart';
-import 'package:provider/provider.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/notifiers/default_address_notifier.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 
 /// Tab content for staking-related cards and lists.
@@ -48,13 +46,8 @@ class _StakingTabChildState extends State<StakingTabChild> {
         ),
       ),
       FluidCell(
-        child: Consumer<SelectedAddressNotifier>(
-          builder:
-              (
-                BuildContext context,
-                SelectedAddressNotifier notifier,
-                Widget? child,
-              ) => StakingOptions(_stakingListBloc),
+        child: StakingOptionsCard(
+          onStakeCreated: _stakingListBloc.refreshResults,
         ),
         width: context.layout.value(
           xl: kStaggeredNumOfColumns ~/ 3,
