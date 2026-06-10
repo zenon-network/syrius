@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lottie/lottie.dart';
-import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/screens/screens.dart';
@@ -33,16 +32,8 @@ class PillarStatsCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider<RevokePillarBloc>(
-      create: (_) => RevokePillarBloc(
-        accountBlockUtils: AccountBlockUtils(),
-        zenon: zenon!,
-        zenonAddressUtils: ZenonAddressUtils(),
-      ),
-      child: _PillarStatsView(
-        onStepperNotificationSeeMorePressed:
-            _onStepperNotificationSeeMorePressed,
-      ),
+    return _PillarStatsView(
+      onStepperNotificationSeeMorePressed: _onStepperNotificationSeeMorePressed,
     );
   }
 }
@@ -168,9 +159,18 @@ class _PillarStatsView extends StatelessWidget {
       children: <Widget>[
         Visibility(
           visible: isRevocable,
-          child: _buildRevokePillarBlocConsumer(
-            context: context,
-            pillarInfo: pillarInfo,
+          child: Column(
+            children: <Widget>[
+              RevokePillarButton(
+                pillarName: pillarInfo.name,
+                onRevoked: () {
+                  context.read<PillarsBloc>().add(
+                    const InfiniteListRefreshRequested(address: null),
+                  );
+                },
+              ),
+              kVerticalSpacing,
+            ],
           ),
         ),
         Row(
@@ -198,85 +198,6 @@ class _PillarStatsView extends StatelessWidget {
           ],
         ),
       ],
-    );
-  }
-
-  Widget _buildRevokePillarBlocConsumer({
-    required BuildContext context,
-    required PillarInfo pillarInfo,
-  }) {
-    return Column(
-      children: [
-        BlocConsumer<RevokePillarBloc, RevokePillarState>(
-          listener: (_, RevokePillarState state) {
-            if (state is RevokePillarDone) {
-              context.read<PillarsBloc>().add(
-                const InfiniteListRefreshRequested(address: null),
-              );
-            } else if (state is RevokePillarFailure) {
-              unawaited(
-                NotificationUtils.sendNotificationError(
-                  state.exception,
-                  context.l10n.errorDisassemblingPillar,
-                ),
-              );
-            }
-          },
-          builder: (_, RevokePillarState state) {
-            final Widget button = _buildDisassembleButton(
-              context: context,
-              pillarInfo: pillarInfo,
-            );
-
-            return switch (state) {
-              RevokePillarInitial() => button,
-              RevokePillarFailure() => button,
-              RevokePillarDone() => button,
-              RevokePillarLoading() => const SyriusLoadingWidget(size: 25),
-            };
-          },
-        ),
-        kVerticalSpacing
-      ],
-    );
-  }
-
-  Widget _buildDisassembleButton({
-    required PillarInfo pillarInfo,
-    required BuildContext context,
-  }) {
-    final RevokePillarBloc revokePillarBloc = context.read<RevokePillarBloc>();
-
-    return OutlinedButton.icon(
-      style: OutlinedButton.styleFrom(
-        iconColor: AppColors.errorColor,
-        side: const BorderSide(
-          color: AppColors.errorColor,
-        ),
-      ),
-      onPressed: () async {
-        final bool? revocationConfirmed = await showDialogWithNoAndYesOptions(
-          isBarrierDismissible: false,
-          context: context,
-          title: context.l10n.disassemble,
-          // TODO(maznnwell): localize if the description is okay
-          description: 'Are you sure you want to revoke the pillar?',
-        );
-
-        if (revocationConfirmed ?? false) {
-          revokePillarBloc.add(
-            RevokePillarRequested(pillarName: pillarInfo.name),
-          );
-        }
-      },
-      icon: const Icon(Icons.close),
-      iconAlignment: .end,
-      label: Text(
-        context.l10n.disassemble,
-        style: TextStyle(
-          color: context.newThemeData.textTheme.titleSmall!.color,
-        ),
-      ),
     );
   }
 }
