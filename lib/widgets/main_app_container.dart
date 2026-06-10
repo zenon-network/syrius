@@ -23,6 +23,7 @@ import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/tokens/cubit
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/extensions/buildcontext_extension.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/account_block_utils.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/address_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/clipboard_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
@@ -737,7 +738,11 @@ class _MainAppContainerState extends State<MainAppContainer>
                 accountBlockUtils: AccountBlockUtils(),
                 zenon: zenon!,
               );
-              final PlasmaOptionsBloc plasmaOptionsBloc = PlasmaOptionsBloc();
+              final FusePlasmaBloc fusePlasmaBloc = FusePlasmaBloc(
+                accountBlockUtils: AccountBlockUtils(),
+                zenon: zenon!,
+                zenonAddressUtils: ZenonAddressUtils(),
+              );
 
               if (context.mounted) {
                 switch (uri.host) {
@@ -896,9 +901,13 @@ class _MainAppContainerState extends State<MainAppContainer>
                       );
 
                       if (actionAccepted ?? false) {
-                        plasmaOptionsBloc.generatePlasma(
-                          queryAddress,
-                          queryAmount.extractDecimals(kZnnCoin.decimals),
+                        fusePlasmaBloc.add(
+                          FusePlasmaRequested(
+                            beneficiaryAddress: queryAddress,
+                            amount: queryAmount.extractDecimals(
+                              kQsrCoin.decimals,
+                            ),
+                          ),
                         );
                       }
                     }

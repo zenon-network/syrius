@@ -1,13 +1,18 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:layout/layout.dart';
 import 'package:provider/provider.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/model/model.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/notifiers/plasma_generated_notifier.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 
+/// Tab content for Plasma-related cards and lists.
 class PlasmaTabChild extends StatefulWidget {
+  /// Creates a Plasma tab child.
   const PlasmaTabChild({super.key});
 
   @override
@@ -23,7 +28,7 @@ class _PlasmaTabChildState extends State<PlasmaTabChild> {
   void initState() {
     super.initState();
     _plasmaListBloc = PlasmaListBloc();
-    sl.get<PlasmaStatsBloc>().getPlasmas();
+    unawaited(sl.get<PlasmaStatsBloc>().getPlasmas());
   }
 
   @override
@@ -32,7 +37,10 @@ class _PlasmaTabChildState extends State<PlasmaTabChild> {
       stream: sl.get<PlasmaStatsBloc>().stream,
       builder: (_, AsyncSnapshot<List<PlasmaInfoWrapper>> snapshot) {
         if (snapshot.hasError) {
-          return _getFluidLayout(<PlasmaInfoWrapper>[], errorText: snapshot.error.toString());
+          return _getFluidLayout(
+            <PlasmaInfoWrapper>[],
+            errorText: snapshot.error.toString(),
+          );
         }
         if (snapshot.connectionState == ConnectionState.active) {
           if (snapshot.hasData) {
@@ -53,7 +61,7 @@ class _PlasmaTabChildState extends State<PlasmaTabChild> {
       children: <FluidCell>[
         FluidCell(
           child: Consumer<PlasmaGeneratedNotifier>(
-            builder: (_, __, ___) => const PlasmaStats(
+            builder: (_, _, _) => const PlasmaStats(
               version: PlasmaStatsWidgetVersion.plasmaTab,
             ),
           ),
@@ -66,10 +74,10 @@ class _PlasmaTabChildState extends State<PlasmaTabChild> {
           ),
         ),
         FluidCell(
-          child: PlasmaOptions(
-            plasmaListBloc: _plasmaListBloc,
+          child: FusePlasmaCard(
             plasmaStatsResults: plasmaStatsResults,
             errorText: errorText,
+            onPlasmaFused: _plasmaListBloc.refreshResults,
           ),
           width: context.layout.value(
             xl: kStaggeredNumOfColumns ~/ 1.5,

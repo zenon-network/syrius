@@ -154,6 +154,12 @@ abstract class AppLocalizations {
   /// **'Balance'**
   String get balance;
 
+  /// No description provided for @beneficiaryAddress.
+  ///
+  /// In en, this message translates to:
+  /// **'Beneficiary address'**
+  String get beneficiaryAddress;
+
   /// No description provided for @cancel.
   ///
   /// In en, this message translates to:
@@ -430,6 +436,12 @@ abstract class AppLocalizations {
   /// **'Error while cancelling stake'**
   String get errorWhileCancellingStake;
 
+  /// No description provided for @errorGeneratingPlasma.
+  ///
+  /// In en, this message translates to:
+  /// **'Error while generating Plasma'**
+  String get errorGeneratingPlasma;
+
   /// No description provided for @errorWhileDepositing.
   ///
   /// In en, this message translates to:
@@ -465,6 +477,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'from'**
   String get from;
+
+  /// No description provided for @fuse.
+  ///
+  /// In en, this message translates to:
+  /// **'Fuse'**
+  String get fuse;
+
+  /// No description provided for @fusePlasmaDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'This card displays information about Plasma available per wallet address. A minimum of 10 {kQsrCoinSymbol} are needed to be fused in order to generate Plasma. The more {kQsrCoinSymbol} fused, the more Plasma is produced for the beneficiary address\n\nInsufficient Plasma: Proof-of-work for Plasma generation; limited to 1 transaction per momentum\nLow Plasma: between 10 and 89 {kQsrCoinSymbol}\nAverage Plasma: between 90 and 119 {kQsrCoinSymbol}\nHigh Plasma: over 120 {kQsrCoinSymbol}; recommended for complex transactions (register Pillars, Sentinels, staking and issuing ZTS tokens)'**
+  String fusePlasmaDescription(Object kQsrCoinSymbol);
+
+  /// No description provided for @fusePlasmaTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Fuse Plasma'**
+  String get fusePlasmaTitle;
 
   /// No description provided for @goBack.
   ///

@@ -12,6 +12,7 @@ export 'delegation_stats/delegation_stats.dart';
 export 'deploy_pillar/deploy_pillar.dart';
 export 'deploy_sentinel/deploy_sentinel.dart';
 export 'dual_coin_stats/dual_coin_stats.dart';
+export 'fuse_plasma/fuse_plasma.dart';
 export 'latest_transactions/latest_transactions.dart';
 export 'multiple_balance/multiple_balance.dart';
 export 'node_sync_status/node_sync_status.dart';

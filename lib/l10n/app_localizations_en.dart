@@ -44,6 +44,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get balance => 'Balance';
 
   @override
+  String get beneficiaryAddress => 'Beneficiary address';
+
+  @override
   String get cancel => 'Cancel';
 
   @override
@@ -218,6 +221,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get errorWhileCancellingStake => 'Error while cancelling stake';
 
   @override
+  String get errorGeneratingPlasma => 'Error while generating Plasma';
+
+  @override
   String errorWhileDepositing(Object kQsrCoinSymbol) {
     return 'Error while depositing $kQsrCoinSymbol';
   }
@@ -238,6 +244,17 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get from => 'from';
+
+  @override
+  String get fuse => 'Fuse';
+
+  @override
+  String fusePlasmaDescription(Object kQsrCoinSymbol) {
+    return 'This card displays information about Plasma available per wallet address. A minimum of 10 $kQsrCoinSymbol are needed to be fused in order to generate Plasma. The more $kQsrCoinSymbol fused, the more Plasma is produced for the beneficiary address\n\nInsufficient Plasma: Proof-of-work for Plasma generation; limited to 1 transaction per momentum\nLow Plasma: between 10 and 89 $kQsrCoinSymbol\nAverage Plasma: between 90 and 119 $kQsrCoinSymbol\nHigh Plasma: over 120 $kQsrCoinSymbol; recommended for complex transactions (register Pillars, Sentinels, staking and issuing ZTS tokens)';
+  }
+
+  @override
+  String get fusePlasmaTitle => 'Fuse Plasma';
 
   @override
   String get goBack => 'Go back';
