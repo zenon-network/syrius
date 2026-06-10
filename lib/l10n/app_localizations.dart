@@ -106,6 +106,12 @@ abstract class AppLocalizations {
   /// **'Active Sentinels'**
   String get activeSentinels;
 
+  /// No description provided for @address.
+  ///
+  /// In en, this message translates to:
+  /// **'Address'**
+  String get address;
+
   /// No description provided for @addressSearchDescription.
   ///
   /// In en, this message translates to:
@@ -345,6 +351,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'This card displays the circulating {kZnnCoinSymbol} and {kQsrCoinSymbol} supply from the network'**
   String dualCoinStatsDescription(Object kQsrCoinSymbol, Object kZnnCoinSymbol);
+
+  /// No description provided for @duration.
+  ///
+  /// In en, this message translates to:
+  /// **'Duration'**
+  String get duration;
 
   /// No description provided for @errorCollectingPillarRewards.
   ///

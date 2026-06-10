@@ -205,7 +205,7 @@ class _PopulatedState extends State<_Populated> {
         .toList();
 
     return DropdownMenu<Duration>(
-      hintText: context.l10n.stakingDuration,
+      hintText: context.l10n.duration,
       dropdownMenuEntries: entries,
       onSelected: _onStakeDurationChanged,
       selectOnly: true,

@@ -15,6 +15,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get activeSentinels => 'Active Sentinels';
 
   @override
+  String get address => 'Address';
+
+  @override
   String get addressSearchDescription =>
       'Addresses can be searched by label - \"Address 1\" - and by hex value - \"z1qxemdeddedxt0kenxxxxxxxxxxxxxxxxh9amk0\"';
 
@@ -168,6 +171,9 @@ class AppLocalizationsEn extends AppLocalizations {
   ) {
     return 'This card displays the circulating $kZnnCoinSymbol and $kQsrCoinSymbol supply from the network';
   }
+
+  @override
+  String get duration => 'Duration';
 
   @override
   String get errorCollectingPillarRewards =>

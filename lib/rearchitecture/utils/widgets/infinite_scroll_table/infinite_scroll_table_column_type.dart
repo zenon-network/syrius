@@ -3,12 +3,14 @@ part of 'infinite_scroll_table.dart';
 // Internal enum values are self-described by the localized column names.
 // ignore_for_file: public_member_api_docs
 enum InfiniteScrollTableColumnType {
+  address,
   amount,
   asset,
   blank,
   date,
   delegation,
   delegationReward,
+  duration,
   expiration,
   expectedProducedMomentums,
   hash,
@@ -25,12 +27,14 @@ enum InfiniteScrollTableColumnType {
   weight;
 
   int get flex => switch (this) {
+    address => 2,
     amount => 1,
     asset => 1,
     blank => 1,
     date => 1,
     delegation => 1,
     delegationReward => 1,
+    duration => 1,
     expiration => 1,
     expectedProducedMomentums => 1,
     hash => 2,
@@ -48,12 +52,14 @@ enum InfiniteScrollTableColumnType {
   };
 
   String name({required BuildContext context}) => switch (this) {
+    address => context.l10n.address,
     amount => context.l10n.amount,
     asset => context.l10n.asset,
     blank => '',
     date => context.l10n.date,
     delegation => context.l10n.delegation,
     delegationReward => context.l10n.delegationReward,
+    duration => context.l10n.duration,
     expiration => context.l10n.expiration,
     expectedProducedMomentums => context.l10n.expectedProducedMomentums,
     hash => context.l10n.hash,

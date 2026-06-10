@@ -133,14 +133,13 @@ class _Populated extends StatelessWidget {
     );
   }
 
-  List<InfiniteScrollTableColumnType>
-  _buildHeaderColumns() => <InfiniteScrollTableColumnType>[
-    .amount,
-    .stakingDuration,
-    // TODO(maznnwell): check if you can stake from an address for another one
-    .recipientAddress,
-    .expiration,
-  ];
+  List<InfiniteScrollTableColumnType> _buildHeaderColumns() =>
+      <InfiniteScrollTableColumnType>[
+        .amount,
+        .duration,
+        .address,
+        .expiration,
+      ];
 
   bool _isStakeExpired(StakeEntry stakeEntry) =>
       stakeEntry.expirationTimestamp * 1000 <

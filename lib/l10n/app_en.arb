@@ -1,6 +1,7 @@
 {
   "activePillars": "Active Pillars",
   "activeSentinels": "Active Sentinels",
+  "address": "Address",
   "addressSearchDescription": "Addresses can be searched by label - \"Address 1\" - and by hex value - \"z1qxemdeddedxt0kenxxxxxxxxxxxxxxxxh9amk0\"",
   "addressToCollectRewards": "The address that will be able to collect the Pillar rewards",
   "addressToProduceMomentums": "The address that will produce momentums, get it from znn-controller",
@@ -41,6 +42,7 @@
   "disassembleSentinelToUnlockCoin": "You will be able to unlock the {kZnnCoinSymbol} if you choose to disassemble the Sentinel",
   "dualCoinStats": "Dual Coin Stats",
   "dualCoinStatsDescription": "This card displays the circulating {kZnnCoinSymbol} and {kQsrCoinSymbol} supply from the network",
+  "duration": "Duration",
   "errorCollectingPillarRewards": "Error while collecting Pillar rewards",
   "errorCollectingSentinelRewards": "Error while collecting Sentinel rewards",
   "errorDeployingPillar": "Error while deploying a Pillar",
