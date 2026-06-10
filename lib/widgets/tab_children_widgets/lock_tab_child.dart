@@ -122,11 +122,12 @@ class _LockTabChildState extends State<LockTabChild> {
   }
 
   LoadingButton _getActionButton() {
-    return LoadingButton.icon(
+    return LoadingButton(
       onPressed: _onActionButtonPressed,
       key: _actionButtonKey,
-      icon: const Icon(
-        AntDesign.arrowright,
+      minimumSize: const Size(50, 50),
+      child: const Icon(
+        Icons.keyboard_arrow_right,
         color: AppColors.znnColor,
         size: 25,
       ),
