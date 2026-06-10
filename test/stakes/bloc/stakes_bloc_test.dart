@@ -22,12 +22,12 @@ void main() {
     registerFallbackValue(FakeAddress());
   });
 
-  group('StakingsBloc', () {
+  group('StakesBloc', () {
     const int pageSize = 2;
     late MockZenon mockZenon;
     late MockEmbedded mockEmbedded;
     late MockStakeApi mockStakeApi;
-    late StakingsBloc bloc;
+    late StakesBloc bloc;
     late StakeEntry stakeEntry;
     late StakeList stakeList;
 
@@ -60,23 +60,22 @@ void main() {
         ),
       ).thenAnswer((_) async => stakeList);
 
-      bloc = StakingsBloc(zenon: mockZenon, pageSize: pageSize);
+      bloc = StakesBloc(zenon: mockZenon, pageSize: pageSize);
     });
 
     test('initial state is initial', () {
       expect(bloc.state, const InfiniteListState<StakeEntry>.initial());
     });
 
-    blocTest<StakingsBloc, InfiniteListState<StakeEntry>>(
+    blocTest<StakesBloc, InfiniteListState<StakeEntry>>(
       'requested emits success and calls api once',
       build: () => bloc,
-      act: (StakingsBloc bloc) =>
+      act: (StakesBloc bloc) =>
           bloc.add(InfiniteListRequested(address: emptyAddress)),
       verify: (_) {
         verify(
           () => mockStakeApi.getEntriesByAddress(
             emptyAddress,
-            pageIndex: 0,
             pageSize: pageSize,
           ),
         ).called(1);
@@ -90,7 +89,7 @@ void main() {
       ],
     );
 
-    blocTest<StakingsBloc, InfiniteListState<StakeEntry>>(
+    blocTest<StakesBloc, InfiniteListState<StakeEntry>>(
       'requested emits failure when api throws',
       setUp: () {
         when(
@@ -102,7 +101,7 @@ void main() {
         ).thenThrow(Exception('boom'));
       },
       build: () => bloc,
-      act: (StakingsBloc bloc) =>
+      act: (StakesBloc bloc) =>
           bloc.add(InfiniteListRequested(address: emptyAddress)),
       expect: () => <Matcher>[
         isA<InfiniteListState<StakeEntry>>().having(

@@ -1050,17 +1050,17 @@ abstract class AppLocalizations {
   /// **'This card displays the number of staking entries and the total {kZnnCoinSymbol} that you are currently staking'**
   String stakingStatsDescription(Object kZnnCoinSymbol);
 
-  /// No description provided for @stakingsListDescription.
+  /// No description provided for @stakesListDescription.
   ///
   /// In en, this message translates to:
-  /// **'This card displays information about the staking entries for the selected address'**
-  String get stakingsListDescription;
+  /// **'This card displays information about the stake entries for the selected address'**
+  String get stakesListDescription;
 
-  /// No description provided for @stakingsListTitle.
+  /// No description provided for @stakesListTitle.
   ///
   /// In en, this message translates to:
-  /// **'Staking List'**
-  String get stakingsListTitle;
+  /// **'Stakes'**
+  String get stakesListTitle;
 
   /// No description provided for @stakingRewardsDescription.
   ///

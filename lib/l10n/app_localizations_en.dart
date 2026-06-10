@@ -581,11 +581,11 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get stakingsListDescription =>
-      'This card displays information about the staking entries for the selected address';
+  String get stakesListDescription =>
+      'This card displays information about the stake entries for the selected address';
 
   @override
-  String get stakingsListTitle => 'Staking List';
+  String get stakesListTitle => 'Stakes';
 
   @override
   String get stakingRewardsDescription =>

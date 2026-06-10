@@ -1,10 +1,10 @@
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
-/// A bloc that fetches staking entries for a wallet address.
-class StakingsBloc extends InfiniteListBloc<StakeEntry> {
-  /// Creates a new [StakingsBloc].
-  StakingsBloc({required super.zenon, super.pageSize = kPageSize})
+/// A bloc that fetches stake entries for a wallet address.
+class StakesBloc extends InfiniteListBloc<StakeEntry> {
+  /// Creates a new [StakesBloc].
+  StakesBloc({required super.zenon, super.pageSize = kPageSize})
     : super(
         fromJsonT: (Object? map) => StakeEntry.fromJson(
           map! as Map<String, dynamic>,

@@ -11,9 +11,9 @@ import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart'
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 /// A card that displays staking entries for the selected address.
-class StakingsCard extends StatelessWidget {
-  /// Creates a staking list card.
-  const StakingsCard({super.key});
+class StakesCard extends StatelessWidget {
+  /// Creates a stakes list card.
+  const StakesCard({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -28,15 +28,15 @@ class _View extends StatelessWidget {
   Widget build(BuildContext context) {
     return NewCardScaffold(
       data: _buildCardData(context: context),
-      onRefreshPressed: () => _refreshStakings(context),
-      body: BlocBuilder<StakingsBloc, InfiniteListState<StakeEntry>>(
+      onRefreshPressed: () => _refreshStakes(context),
+      body: BlocBuilder<StakesBloc, InfiniteListState<StakeEntry>>(
         builder: (_, InfiniteListState<StakeEntry> state) {
           return switch (state.status) {
             InfiniteListStatus.initial => const SyriusLoadingWidget(),
             InfiniteListStatus.failure => SyriusErrorWidget(state.error!),
             InfiniteListStatus.success => _Populated(
               hasReachedMax: state.hasReachedMax,
-              stakings: state.data!,
+              stakes: state.data!,
             ),
           };
         },
@@ -45,26 +45,26 @@ class _View extends StatelessWidget {
   }
 
   CardData _buildCardData({required BuildContext context}) => CardData(
-    description: context.l10n.stakingsListDescription,
-    title: context.l10n.stakingsListTitle,
+    description: context.l10n.stakesListDescription,
+    title: context.l10n.stakesListTitle,
   );
 }
 
 class _Populated extends StatelessWidget {
   const _Populated({
     required this.hasReachedMax,
-    required this.stakings,
+    required this.stakes,
   });
 
   final bool hasReachedMax;
-  final List<StakeEntry> stakings;
+  final List<StakeEntry> stakes;
 
   @override
   Widget build(BuildContext context) {
     return InfiniteScrollTable<StakeEntry>(
       itemKeyGenerator: (StakeEntry stakeEntry) =>
           ValueKey<String>(stakeEntry.id.toString()),
-      items: stakings,
+      items: stakes,
       hasReachedMax: hasReachedMax,
       columns: _buildHeaderColumns(),
       generateRowCells: (StakeEntry stakeEntry) => _buildRowCells(
@@ -72,7 +72,7 @@ class _Populated extends StatelessWidget {
         stakeEntry: stakeEntry,
       ),
       onScrollReachedBottom: () {
-        context.read<StakingsBloc>().add(
+        context.read<StakesBloc>().add(
           InfiniteListMoreRequested(address: Address.parse(kSelectedAddress!)),
         );
       },
@@ -117,16 +117,17 @@ class _Populated extends StatelessWidget {
     if (_isStakeExpired(stakeEntry)) {
       return CancelStakeButton(
         stakeHash: stakeEntry.id,
-        onCancelled: () => _refreshStakings(context),
+        onCancelled: () => _refreshStakes(context),
       );
     }
 
     return Row(
+      mainAxisAlignment: .center,
       children: <Widget>[
         CancelTimer(
           Duration(seconds: _secondsUntilExpiration(stakeEntry)),
           AppColors.errorColor,
-          onTimeFinishedCallback: () => _refreshStakings(context),
+          onTimeFinishedCallback: () => _refreshStakes(context),
         ),
       ],
     );
@@ -157,8 +158,8 @@ class _Populated extends StatelessWidget {
   }
 }
 
-void _refreshStakings(BuildContext context) {
-  context.read<StakingsBloc>().add(
+void _refreshStakes(BuildContext context) {
+  context.read<StakesBloc>().add(
     InfiniteListRefreshRequested(address: Address.parse(kSelectedAddress!)),
   );
 }

@@ -22,8 +22,8 @@ class StakingTabChild extends StatefulWidget {
 class _StakingTabChildState extends State<StakingTabChild> {
   @override
   Widget build(BuildContext context) {
-    return BlocProvider<StakingsBloc>(
-      create: (_) => StakingsBloc(zenon: zenon!)
+    return BlocProvider<StakesBloc>(
+      create: (_) => StakesBloc(zenon: zenon!)
         ..add(
           InfiniteListRequested(address: Address.parse(kSelectedAddress!)),
         ),
@@ -58,7 +58,7 @@ class _StakingTabChildState extends State<StakingTabChild> {
       FluidCell(
         child: StakingOptionsCard(
           onStakeCreated: () {
-            context.read<StakingsBloc>().add(
+            context.read<StakesBloc>().add(
               InfiniteListRefreshRequested(
                 address: Address.parse(kSelectedAddress!),
               ),
@@ -74,7 +74,7 @@ class _StakingTabChildState extends State<StakingTabChild> {
         ),
       ),
       const FluidCell(
-        child: StakingsCard(),
+        child: StakesCard(),
         width: kStaggeredNumOfColumns,
         height: kStaggeredNumOfColumns / 2,
       ),
