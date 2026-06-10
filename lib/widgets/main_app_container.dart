@@ -21,6 +21,7 @@ import 'package:zenon_syrius_wallet_flutter/model/model.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/tokens/cubit/tokens_cubit.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/blocs/blocs.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/extensions/buildcontext_extension.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/account_block_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/clipboard_utils.dart';
@@ -730,8 +731,8 @@ class _MainAppContainerState extends State<MainAppContainer>
                 }
               }
 
-              final StakingOptionsBloc stakingOptionsBloc =
-                  StakingOptionsBloc();
+              final SendTransactionBloc sendTransactionBloc =
+                  SendTransactionBloc();
               final DelegationBloc delegationBloc = DelegationBloc(
                 accountBlockUtils: AccountBlockUtils(),
                 zenon: zenon!,
@@ -812,9 +813,18 @@ class _MainAppContainerState extends State<MainAppContainer>
                       );
 
                       if (actionAccepted ?? false) {
-                        stakingOptionsBloc.stakeForQsr(
-                          Duration(seconds: queryDuration * stakeTimeUnitSec),
-                          queryAmount.extractDecimals(kZnnCoin.decimals),
+                        final AccountBlockTemplate block = zenon!.embedded.stake
+                            .stake(
+                              queryDuration * stakeTimeUnitSec,
+                              queryAmount.extractDecimals(kZnnCoin.decimals),
+                            );
+
+                        sendTransactionBloc.add(
+                          SendTransactionInitiateFromBlock(
+                            block: block,
+                            fromAddress: kSelectedAddress!,
+                            reasonForGeneratingPlasma: context.l10n.createStake,
+                          ),
                         );
                       }
                     }
