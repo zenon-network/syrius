@@ -202,51 +202,25 @@ class _PopulatedState extends State<_Populated> {
   Widget _buildBody(AccountInfo accountInfo) {
     return Container(
       margin: EdgeInsets.all(_marginWidth),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-          Expanded(
-            child: Column(
-              crossAxisAlignment: .start,
-              children: <Widget>[
-                DisabledAddressField(
-                  _addressController,
+      child: Column(
+        crossAxisAlignment: .start,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: .start,
+                  children: <Widget>[
+                    DisabledAddressField(
+                      _addressController,
+                    ),
+                  ],
                 ),
-                AvailableBalance.stepper(kQsrCoin, accountInfo),
-                ValueListenableBuilder<TextEditingValue>(
-                  valueListenable: _beneficiaryAddressController,
-                  builder: (_, TextEditingValue value, _) {
-                    return TextField(
-                      decoration: InputDecoration(
-                        errorText: value.text.isNotEmpty
-                            ? _beneficiaryAddressError
-                            : null,
-                        hintText: context.l10n.beneficiaryAddress,
-                        suffixIcon: FieldSuffixButtons(
-                          controller: _beneficiaryAddressController,
-                        ),
-                      ),
-                      onChanged: (String value) {
-                        _beneficiaryAddressString.value = value;
-                      },
-                      inputFormatters: <TextInputFormatter>[
-                        FilteringTextInputFormatter.allow(
-                          RegExp('[0-9a-z]'),
-                        ),
-                      ],
-                      controller: _beneficiaryAddressController,
-                    );
-                  },
-                ),
-              ],
-            ),
-          ),
-          SizedBox(width: _spaceBetweenExpandedWidgets),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: .stretch,
-              children: <Widget>[
-                ValueListenableBuilder<TextEditingValue>(
+              ),
+              SizedBox(width: _spaceBetweenExpandedWidgets),
+              Expanded(
+                child: ValueListenableBuilder<TextEditingValue>(
                   valueListenable: _qsrAmountController,
                   builder: (_, TextEditingValue value, _) {
                     return TextField(
@@ -272,33 +246,65 @@ class _PopulatedState extends State<_Populated> {
                         setState(() {});
                       },
                       inputFormatters:
-                          FormatUtils.getPlasmaAmountTextInputFormatters(
-                            value.text,
-                          ),
+                      FormatUtils.getPlasmaAmountTextInputFormatters(
+                        value.text,
+                      ),
                       controller: _qsrAmountController,
                     );
                   },
                 ),
-                // Dummy widget added to make sure that the gap is equal
-                Visibility(
-                  maintainAnimation: true,
-                  maintainState: true,
-                  maintainSize: true,
-                  visible: false,
-                  child: AvailableBalance.stepper(kQsrCoin, accountInfo),
-                ),
-                ListenableBuilder(
-                  listenable: Listenable.merge([
-                    _beneficiaryAddressString,
-                    _beneficiaryAddressController,
-                    _qsrAmountController,
-                  ]),
-                  builder: (_, _) {
-                    return _buildFuseButton();
+              ),
+            ],
+          ),
+          AvailableBalance.stepper(kQsrCoin, accountInfo),
+          Row(
+            children: <Widget>[
+              Expanded(
+                child: ValueListenableBuilder<TextEditingValue>(
+                  valueListenable: _beneficiaryAddressController,
+                  builder: (_, TextEditingValue value, _) {
+                    return TextField(
+                      decoration: InputDecoration(
+                        errorText: value.text.isNotEmpty
+                            ? _beneficiaryAddressError
+                            : null,
+                        hintText: context.l10n.beneficiaryAddress,
+                        suffixIcon: FieldSuffixButtons(
+                          controller: _beneficiaryAddressController,
+                        ),
+                      ),
+                      onChanged: (String value) {
+                        _beneficiaryAddressString.value = value;
+                      },
+                      inputFormatters: <TextInputFormatter>[
+                        FilteringTextInputFormatter.allow(
+                          RegExp('[0-9a-z]'),
+                        ),
+                      ],
+                      controller: _beneficiaryAddressController,
+                    );
                   },
                 ),
-              ],
-            ),
+              ),
+              SizedBox(width: _spaceBetweenExpandedWidgets),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: .stretch,
+                  children: <Widget>[
+                    ListenableBuilder(
+                      listenable: Listenable.merge([
+                        _beneficiaryAddressString,
+                        _beneficiaryAddressController,
+                        _qsrAmountController,
+                      ]),
+                      builder: (_, _) {
+                        return _buildFuseButton();
+                      },
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
         ],
       ),
@@ -346,6 +352,7 @@ class _PopulatedState extends State<_Populated> {
       Icons.bolt,
     );
 
+    // TODO(maznnwell): make sure the button is as tall as the text field
     return LoadingButton.icon(
       key: _fuseButtonKey,
       onPressed: _isInputValid ? _onFusePressed : null,
