@@ -10,9 +10,9 @@ import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 /// A card that lets the user create a stake for the selected address.
-class StakingOptionsCard extends StatelessWidget {
-  /// Creates a staking options widget.
-  const StakingOptionsCard({
+class CreateStakeCard extends StatelessWidget {
+  /// Creates a stake creation widget.
+  const CreateStakeCard({
     required this.onStakeCreated,
     super.key,
   });
@@ -54,10 +54,10 @@ class _View extends StatelessWidget {
   }
 
   CardData _buildCardData({required BuildContext context}) => CardData(
-    title: context.l10n.stakingOptionsTitle,
-    description: context.l10n.stakingOptionsDescription(
-      kZnnCoin.symbol,
+    title: context.l10n.createStakeTitle,
+    description: context.l10n.createStakeDescription(
       kQsrCoin.symbol,
+      kZnnCoin.symbol,
     ),
   );
 }

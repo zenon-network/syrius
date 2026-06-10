@@ -238,6 +238,18 @@ abstract class AppLocalizations {
   /// **'create stake'**
   String get createStake;
 
+  /// No description provided for @createStakeDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'This card displays information about staking per wallet address. Choose the duration and the amount in {kZnnCoinSymbol} for staking in order to receive {kQsrCoinSymbol}'**
+  String createStakeDescription(Object kQsrCoinSymbol, Object kZnnCoinSymbol);
+
+  /// No description provided for @createStakeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Create Stake'**
+  String get createStakeTitle;
+
   /// No description provided for @currentAmounts.
   ///
   /// In en, this message translates to:
@@ -1034,21 +1046,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Staking duration'**
   String get stakingDuration;
-
-  /// No description provided for @stakingOptionsDescription.
-  ///
-  /// In en, this message translates to:
-  /// **'This card displays information about staking per wallet address. Choose the duration and the amount in {kZnnCoinSymbol} for staking in order to receive {kQsrCoinSymbol}'**
-  String stakingOptionsDescription(
-    Object kQsrCoinSymbol,
-    Object kZnnCoinSymbol,
-  );
-
-  /// No description provided for @stakingOptionsTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Staking Options'**
-  String get stakingOptionsTitle;
 
   /// No description provided for @stakingStats.
   ///

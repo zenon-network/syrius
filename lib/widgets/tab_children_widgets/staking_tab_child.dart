@@ -56,7 +56,7 @@ class _StakingTabChildState extends State<StakingTabChild> {
         ),
       ),
       FluidCell(
-        child: StakingOptionsCard(
+        child: CreateStakeCard(
           onStakeCreated: () {
             context.read<StakesBloc>().add(
               InfiniteListRefreshRequested(

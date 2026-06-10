@@ -91,6 +91,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get createStake => 'create stake';
 
   @override
+  String createStakeDescription(Object kQsrCoinSymbol, Object kZnnCoinSymbol) {
+    return 'This card displays information about staking per wallet address. Choose the duration and the amount in $kZnnCoinSymbol for staking in order to receive $kQsrCoinSymbol';
+  }
+
+  @override
+  String get createStakeTitle => 'Create Stake';
+
+  @override
   String currentAmounts(Object kQsrCoinSymbol, Object kZnnCoinSymbol) {
     return 'This card displays the current $kZnnCoinSymbol and $kQsrCoinSymbol amounts for the selected address';
   }
@@ -566,17 +574,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get stakingDuration => 'Staking duration';
-
-  @override
-  String stakingOptionsDescription(
-    Object kQsrCoinSymbol,
-    Object kZnnCoinSymbol,
-  ) {
-    return 'This card displays information about staking per wallet address. Choose the duration and the amount in $kZnnCoinSymbol for staking in order to receive $kQsrCoinSymbol';
-  }
-
-  @override
-  String get stakingOptionsTitle => 'Staking Options';
 
   @override
   String get stakingStats => 'Staking Stats';
