@@ -24,16 +24,10 @@ class StandardChart extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.only(
-        left: 5,
-        right: 20,
-        top: 20,
-        bottom: 10,
-      ),
+      margin: const EdgeInsets.all(20),
       child: LineChart(
         LineChartData(
           lineTouchData: LineTouchData(
-            enabled: true,
             touchTooltipData: LineTouchTooltipData(
               fitInsideHorizontally: true,
               tooltipMargin: 14,
@@ -62,7 +56,6 @@ class StandardChart extends StatelessWidget {
           gridData: FlGridData(
             show: false,
             drawVerticalLine: false,
-            drawHorizontalLine: true,
             getDrawingHorizontalLine: (_) {
               return const FlLine(
                 strokeWidth: 1,
@@ -74,25 +67,33 @@ class StandardChart extends StatelessWidget {
           titlesData: FlTitlesData(
             bottomTitles: AxisTitles(
               sideTitles: SideTitles(
-                getTitlesWidget: (double value, TitleMeta titleMeta) => Padding(
-                  padding: const EdgeInsets.only(top: 8),
-                  child: Text(
-                    FormatUtils.formatDate(
-                      FormatUtils.subtractDaysFromDate(
-                          value.toInt(), titlesReferenceDate),
-                      dateFormat: 'd MMM',
+                getTitlesWidget: (double value, TitleMeta titleMeta) =>
+                    SideTitleWidget(
+                      meta: titleMeta,
+                      fitInside: SideTitleFitInsideData.fromTitleMeta(
+                        titleMeta,
+                        distanceFromEdge: 0,
+                      ),
+                      child: Text(
+                        FormatUtils.formatDate(
+                          FormatUtils.subtractDaysFromDate(
+                            value.toInt(),
+                            titlesReferenceDate,
+                          ),
+                          dateFormat: 'd MMM',
+                        ),
+                        style: Theme.of(context).textTheme.titleSmall,
+                      ),
                     ),
-                    style: Theme.of(context).textTheme.titleSmall!,
-                  ),
-                ),
                 showTitles: true,
                 interval: 1,
+                reservedSize: 25,
               ),
             ),
             leftTitles: const AxisTitles(
               sideTitles: SideTitles(
                 showTitles: true,
-                reservedSize: 32,
+                reservedSize: 40,
               ),
             ),
             rightTitles: const AxisTitles(),
