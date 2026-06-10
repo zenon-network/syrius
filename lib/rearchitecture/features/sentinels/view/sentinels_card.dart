@@ -1,8 +1,5 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:provider/single_child_widget.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
@@ -21,21 +18,10 @@ class SentinelsCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MultiBlocProvider(
-      providers: <SingleChildWidget>[
-        BlocProvider<SentinelsBloc>(
-          create: (_) =>
-              SentinelsBloc(zenon: zenon!)
-                ..add(const InfiniteListRequested(address: null)),
-        ),
-        BlocProvider<RevokeSentinelBloc>(
-          create: (_) => RevokeSentinelBloc(
-            accountBlockUtils: AccountBlockUtils(),
-            zenon: zenon!,
-            zenonAddressUtils: ZenonAddressUtils(),
-          ),
-        ),
-      ],
+    return BlocProvider<SentinelsBloc>(
+      create: (_) =>
+          SentinelsBloc(zenon: zenon!)
+            ..add(const InfiniteListRequested(address: null)),
       child: const _View(),
     );
   }
@@ -127,8 +113,12 @@ class _Populated extends StatelessWidget {
       ),
       InfiniteScrollTableCell(
         child: isOwnerAddressSelected && sentinelInfo.isRevocable
-            ? _buildRevokeSentinelBlocConsumer(
-                context: context,
+            ? RevokeSentinelButton(
+                onRevoked: () {
+                  context.read<SentinelsBloc>().add(
+                    const InfiniteListRefreshRequested(address: null),
+                  );
+                },
               )
             : const SizedBox.shrink(),
       ),
@@ -165,76 +155,6 @@ class _Populated extends StatelessWidget {
           iconColor: isRevocable ? AppColors.znnColor : AppColors.errorColor,
         ),
       ],
-    );
-  }
-
-  Widget _buildRevokeSentinelBlocConsumer({
-    required BuildContext context,
-  }) {
-    return Row(
-      mainAxisAlignment: .center,
-      mainAxisSize: .min,
-      children: [
-        BlocConsumer<RevokeSentinelBloc, RevokeSentinelState>(
-          listener: (_, RevokeSentinelState state) {
-            if (state is RevokeSentinelDone) {
-              context.read<SentinelsBloc>().add(
-                const InfiniteListRefreshRequested(address: null),
-              );
-            } else if (state is RevokeSentinelFailure) {
-              unawaited(
-                NotificationUtils.sendNotificationError(
-                  state.exception,
-                  context.l10n.errorDisassemblingSentinel,
-                ),
-              );
-            }
-          },
-          builder: (_, RevokeSentinelState state) {
-            return switch (state) {
-              RevokeSentinelInitial() => _buildDisassembleButton(context),
-              RevokeSentinelFailure() => _buildDisassembleButton(context),
-              RevokeSentinelDone() => _buildDisassembleButton(context),
-              RevokeSentinelLoading() => const SyriusLoadingWidget(size: 25),
-            };
-          },
-        ),
-      ],
-    );
-  }
-
-  Widget _buildDisassembleButton(BuildContext context) {
-    final RevokeSentinelBloc revokeSentinelBloc = context
-        .read<RevokeSentinelBloc>();
-
-    return OutlinedButton.icon(
-      style: OutlinedButton.styleFrom(
-        iconColor: AppColors.errorColor,
-        side: const BorderSide(color: AppColors.errorColor),
-      ),
-      onPressed: () async {
-        final bool? revocationConfirmed = await showDialogWithNoAndYesOptions(
-          isBarrierDismissible: false,
-          context: context,
-          title: context.l10n.disassemble,
-          // TODO(maznnwell): localize if the description is okay
-          description: 'Are you sure you want to revoke the sentinel?',
-        );
-
-        if (revocationConfirmed ?? false) {
-          revokeSentinelBloc.add(
-            const RevokeSentinelRequested(),
-          );
-        }
-      },
-      icon: const Icon(Icons.close),
-      iconAlignment: .end,
-      label: Text(
-        context.l10n.disassemble,
-        style: TextStyle(
-          color: context.newThemeData.textTheme.titleSmall!.color,
-        ),
-      ),
     );
   }
 
