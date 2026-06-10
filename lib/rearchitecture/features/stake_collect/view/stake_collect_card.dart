@@ -124,6 +124,7 @@ class _CollectButtonState extends State<_CollectButton> {
         key: _collectButtonKey,
         text: context.l10n.collect,
         outlineColor: AppColors.qsrColor,
+        textColor: AppColors.qsrColor,
         onPressed: () => _onCollectPressed(
           bloc: context.read<SendTransactionBloc>(),
         ),
