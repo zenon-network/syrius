@@ -1,9 +1,5 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:provider/single_child_widget.dart';
-import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
@@ -21,18 +17,7 @@ class StakingsCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MultiBlocProvider(
-      providers: <SingleChildWidget>[
-        BlocProvider<CancelStakeBloc>(
-          create: (_) => CancelStakeBloc(
-            accountBlockUtils: AccountBlockUtils(),
-            zenon: zenon!,
-            zenonAddressUtils: ZenonAddressUtils(),
-          ),
-        ),
-      ],
-      child: const _View(),
-    );
+    return const _View();
   }
 }
 
@@ -130,9 +115,9 @@ class _Populated extends StatelessWidget {
     required StakeEntry stakeEntry,
   }) {
     if (_isStakeExpired(stakeEntry)) {
-      return _buildCancelStakeBlocConsumer(
-        context: context,
+      return CancelStakeButton(
         stakeHash: stakeEntry.id,
+        onCancelled: () => _refreshStakings(context),
       );
     }
 
@@ -144,65 +129,6 @@ class _Populated extends StatelessWidget {
           onTimeFinishedCallback: () => _refreshStakings(context),
         ),
       ],
-    );
-  }
-
-  Widget _buildCancelStakeBlocConsumer({
-    required BuildContext context,
-    required Hash stakeHash,
-  }) {
-    return Row(
-      mainAxisAlignment: .center,
-      mainAxisSize: .min,
-      children: <Widget>[
-        BlocConsumer<CancelStakeBloc, CancelStakeState>(
-          listener: (_, CancelStakeState state) {
-            if (state is CancelStakeDone) {
-              _refreshStakings(context);
-            } else if (state is CancelStakeFailure) {
-              unawaited(
-                NotificationUtils.sendNotificationError(
-                  state.exception,
-                  context.l10n.errorWhileCancellingStake,
-                ),
-              );
-            }
-          },
-          builder: (_, CancelStakeState state) {
-            return switch (state) {
-              CancelStakeLoading() => const SyriusLoadingWidget(size: 25),
-              _ => _buildCancelButton(
-                context: context,
-                stakeHash: stakeHash,
-              ),
-            };
-          },
-        ),
-      ],
-    );
-  }
-
-  Widget _buildCancelButton({
-    required BuildContext context,
-    required Hash stakeHash,
-  }) {
-    return OutlinedButton.icon(
-      style: OutlinedButton.styleFrom(
-        iconColor: AppColors.errorColor,
-        side: const BorderSide(color: AppColors.errorColor),
-      ),
-      onPressed: () {
-        context.read<CancelStakeBloc>().add(
-          CancelStakeRequested(stakeHash: stakeHash),
-        );
-      },
-      label: Text(
-        context.l10n.cancel.toUpperCase(),
-        style: TextStyle(
-          color: context.newThemeData.textTheme.titleSmall!.color,
-        ),
-      ),
-      icon: const Icon(Icons.close),
     );
   }
 
