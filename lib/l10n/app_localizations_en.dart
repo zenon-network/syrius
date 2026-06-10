@@ -201,6 +201,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get errorUpdatingPillar => 'Error while updating Pillar';
 
   @override
+  String get errorWhileCancellingStake => 'Error while cancelling stake';
+
+  @override
   String errorWhileDepositing(Object kQsrCoinSymbol) {
     return 'Error while depositing $kQsrCoinSymbol';
   }
@@ -212,6 +215,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String errorWhileWithdrawing(Object kQsrCoinSymbol) {
     return 'Error while withdrawing $kQsrCoinSymbol';
   }
+
+  @override
+  String get expiration => 'Expiration';
 
   @override
   String get expectedProducedMomentums => 'Expected/produced momentums';
@@ -573,6 +579,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String stakingStatsDescription(Object kZnnCoinSymbol) {
     return 'This card displays the number of staking entries and the total $kZnnCoinSymbol that you are currently staking';
   }
+
+  @override
+  String get stakingsListDescription =>
+      'This card displays information about the staking entries for the selected address';
+
+  @override
+  String get stakingsListTitle => 'Staking List';
 
   @override
   String get stakingRewardsDescription =>

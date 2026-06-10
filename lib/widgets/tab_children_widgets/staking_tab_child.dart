@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:layout/layout.dart';
-import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
+import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
+import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 /// Tab content for staking-related cards and lists.
 class StakingTabChild extends StatefulWidget {
@@ -16,14 +20,20 @@ class StakingTabChild extends StatefulWidget {
 }
 
 class _StakingTabChildState extends State<StakingTabChild> {
-  final StakingListBloc _stakingListBloc = StakingListBloc();
-
   @override
   Widget build(BuildContext context) {
-    return _getFluidLayout();
+    return BlocProvider<StakingsBloc>(
+      create: (_) => StakingsBloc(zenon: zenon!)
+        ..add(
+          InfiniteListRequested(address: Address.parse(kSelectedAddress!)),
+        ),
+      child: Builder(
+        builder: _buildFluidLayout,
+      ),
+    );
   }
 
-  Widget _getFluidLayout() {
+  Widget _buildFluidLayout(BuildContext context) {
     final List<FluidCell> children = <FluidCell>[
       FluidCell(
         child: const StakingRewardsCard(),
@@ -47,7 +57,13 @@ class _StakingTabChildState extends State<StakingTabChild> {
       ),
       FluidCell(
         child: StakingOptionsCard(
-          onStakeCreated: _stakingListBloc.refreshResults,
+          onStakeCreated: () {
+            context.read<StakingsBloc>().add(
+              InfiniteListRefreshRequested(
+                address: Address.parse(kSelectedAddress!),
+              ),
+            );
+          },
         ),
         width: context.layout.value(
           xl: kStaggeredNumOfColumns ~/ 3,
@@ -57,8 +73,8 @@ class _StakingTabChildState extends State<StakingTabChild> {
           xs: kStaggeredNumOfColumns,
         ),
       ),
-      FluidCell(
-        child: StakingList(_stakingListBloc),
+      const FluidCell(
+        child: StakingsCard(),
         width: kStaggeredNumOfColumns,
         height: kStaggeredNumOfColumns / 2,
       ),
@@ -67,11 +83,5 @@ class _StakingTabChildState extends State<StakingTabChild> {
     return StandardFluidLayout(
       children: children,
     );
-  }
-
-  @override
-  void dispose() {
-    _stakingListBloc.dispose();
-    super.dispose();
   }
 }

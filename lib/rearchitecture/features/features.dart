@@ -1,6 +1,7 @@
 export 'active_pillars/active_pillars.dart';
 export 'active_sentinels/active_sentinels.dart';
 export 'balance/balance.dart';
+export 'cancel_stake/cancel_stake.dart';
 export 'create_pillar_qsr_info/create_pillar_qsr_info.dart';
 export 'create_pillar_stepper/create_pillar_stepper.dart';
 export 'create_sentinel_qsr_info/create_sentinel_qsr_info.dart';
@@ -38,6 +39,7 @@ export 'stake_collect/stake_collect.dart';
 export 'staking/staking.dart';
 export 'staking_options/staking_options.dart';
 export 'staking_rewards_history/staking_rewards_history.dart';
+export 'stakings/stakings.dart';
 export 'total_hourly_transactions/total_hourly_transactions.dart';
 export 'transfer/transfer.dart';
 export 'uncollected_pillar_rewards/uncollected_pillar_rewards.dart';

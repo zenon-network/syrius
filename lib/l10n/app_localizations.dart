@@ -400,6 +400,12 @@ abstract class AppLocalizations {
   /// **'Error while updating Pillar'**
   String get errorUpdatingPillar;
 
+  /// No description provided for @errorWhileCancellingStake.
+  ///
+  /// In en, this message translates to:
+  /// **'Error while cancelling stake'**
+  String get errorWhileCancellingStake;
+
   /// No description provided for @errorWhileDepositing.
   ///
   /// In en, this message translates to:
@@ -417,6 +423,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Error while withdrawing {kQsrCoinSymbol}'**
   String errorWhileWithdrawing(Object kQsrCoinSymbol);
+
+  /// No description provided for @expiration.
+  ///
+  /// In en, this message translates to:
+  /// **'Expiration'**
+  String get expiration;
 
   /// No description provided for @expectedProducedMomentums.
   ///
@@ -1037,6 +1049,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'This card displays the number of staking entries and the total {kZnnCoinSymbol} that you are currently staking'**
   String stakingStatsDescription(Object kZnnCoinSymbol);
+
+  /// No description provided for @stakingsListDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'This card displays information about the staking entries for the selected address'**
+  String get stakingsListDescription;
+
+  /// No description provided for @stakingsListTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Staking List'**
+  String get stakingsListTitle;
 
   /// No description provided for @stakingRewardsDescription.
   ///
