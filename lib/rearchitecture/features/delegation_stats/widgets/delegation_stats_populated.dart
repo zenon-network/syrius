@@ -11,7 +11,7 @@ import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 /// A widget that displays the delegation stats amount and to which pillar the amount
 /// was delegated to.
-class DelegationStatsPopulated extends StatelessWidget {
+class DelegationStatsPopulated extends StatefulWidget {
   /// Creates a DelegationPopulated object.
   const DelegationStatsPopulated({required this.delegationInfo, super.key});
 
@@ -19,9 +19,18 @@ class DelegationStatsPopulated extends StatelessWidget {
   final DelegationInfo delegationInfo;
 
   @override
+  State<DelegationStatsPopulated> createState() =>
+      _DelegationStatsPopulatedState();
+}
+
+class _DelegationStatsPopulatedState extends State<DelegationStatsPopulated> {
+  final GlobalKey<LoadingButtonState> _undelegateButtonKey =
+      GlobalKey<LoadingButtonState>();
+
+  @override
   Widget build(BuildContext context) {
-    final String pillarName = delegationInfo.name;
-    final BigInt weight = delegationInfo.weight;
+    final String pillarName = widget.delegationInfo.name;
+    final BigInt weight = widget.delegationInfo.weight;
 
     return Column(
       mainAxisAlignment: .spaceEvenly,
@@ -35,7 +44,7 @@ class DelegationStatsPopulated extends StatelessWidget {
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   border: Border.all(
-                    color: delegationInfo.status == 1
+                    color: widget.delegationInfo.status == 1
                         ? AppColors.znnColor
                         : AppColors.errorColor,
                   ),
@@ -70,18 +79,15 @@ class DelegationStatsPopulated extends StatelessWidget {
   Widget _getUndelegateButton({
     required BuildContext context,
   }) {
-    final GlobalKey<LoadingButtonState> undelegateButtonKey =
-        GlobalKey<LoadingButtonState>();
-
     return BlocListener<UndelegateBloc, UndelegateState>(
       listener: (_, UndelegateState state) {
         if (state is UndelegateDone) {
-          undelegateButtonKey.currentState?.animateReverse();
+          _undelegateButtonKey.currentState?.animateReverse();
           context.read<DelegationStatsBloc>().add(
             FetchRequestData(address: Address.parse(kSelectedAddress!)),
           );
         } else if (state is UndelegateFailure) {
-          undelegateButtonKey.currentState?.animateReverse();
+          _undelegateButtonKey.currentState?.animateReverse();
           unawaited(
             NotificationUtils.sendNotificationError(
               state.exception,
@@ -89,7 +95,7 @@ class DelegationStatsPopulated extends StatelessWidget {
             ),
           );
         } else if (state is UndelegateLoading) {
-          undelegateButtonKey.currentState?.animateForward();
+          _undelegateButtonKey.currentState?.animateForward();
         }
       },
       child: LoadingButton(
@@ -103,7 +109,7 @@ class DelegationStatsPopulated extends StatelessWidget {
           color: Colors.white,
         ),
         outlineColor: AppColors.errorColor,
-        key: undelegateButtonKey,
+        key: _undelegateButtonKey,
       ),
     );
   }
