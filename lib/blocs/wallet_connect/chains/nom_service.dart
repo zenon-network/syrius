@@ -298,7 +298,7 @@ class NoMService extends IChain {
           );
 
           final result = await sendPaymentBloc.stream.firstWhere(
-            (element) => element != null,
+            (element) => element.status == .success,
           );
 
           return result!;
