@@ -30,6 +30,14 @@ final String _kWidgetDescription =
 
 enum PlasmaStatsWidgetVersion { dashboardTab, plasmaTab }
 
+/// This widget shows the plasma level for each user address, in the form of a
+/// table.
+///
+/// Personal note: because fetching the plasma level has to be done
+/// individually, for each address, that means that ten addresses equals ten
+/// API calls.
+///
+/// Ways to optimize this widget should be found
 class PlasmaStatsCard extends StatefulWidget {
   const PlasmaStatsCard({
     this.version = PlasmaStatsWidgetVersion.dashboardTab,
