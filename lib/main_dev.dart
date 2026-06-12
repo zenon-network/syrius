@@ -321,8 +321,8 @@ class _MyAppState extends State<MyApp> with WindowListener, TrayListener {
           ChangeNotifierProvider<SelectedAddressNotifier>(
             create: (_) => SelectedAddressNotifier(),
           ),
-          ChangeNotifierProvider<PlasmaBeneficiaryAddressNotifier>(
-            create: (_) => PlasmaBeneficiaryAddressNotifier(),
+          BlocProvider<PlasmaBeneficiaryAddressCubit>(
+            create: (_) => PlasmaBeneficiaryAddressCubit(),
           ),
           ChangeNotifierProvider<PlasmaGeneratedNotifier>(
             create: (_) => PlasmaGeneratedNotifier(),

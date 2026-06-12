@@ -12,7 +12,7 @@ import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/notifiers/default_address_notifier.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/notifiers/plasma_beneficiary_address_notifier.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/notifiers/plasma_beneficiary_address_cubit.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
@@ -68,10 +68,7 @@ class AddressesState extends State<Addresses> {
         context,
         listen: false,
       ).changeSelectedAddress(newDefaultAddress);
-      Provider.of<PlasmaBeneficiaryAddressNotifier>(
-        context,
-        listen: false,
-      ).changePlasmaBeneficiaryAddress(
+      context.read<PlasmaBeneficiaryAddressCubit>().changeAddress(
         newDefaultAddress,
       );
       widget.accountChainStatsBloc.updateStream();

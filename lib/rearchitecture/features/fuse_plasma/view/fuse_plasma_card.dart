@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:provider/provider.dart';
-import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/plasma_stats/bloc/plasma_stats_bloc.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/model/model.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
@@ -18,7 +17,8 @@ import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 class FusePlasmaCard extends StatelessWidget {
   /// Creates a [FusePlasmaCard].
   const FusePlasmaCard({
-    required this.onPlasmaFused, this.plasmaStatsResults,
+    required this.onPlasmaFused,
+    this.plasmaStatsResults,
     this.errorText,
     super.key,
   });
@@ -51,7 +51,9 @@ class FusePlasmaCard extends StatelessWidget {
 
 class _View extends StatelessWidget {
   const _View({
-    required this.onPlasmaFused, required this.errorText, this.plasmaStatsResults,
+    required this.onPlasmaFused,
+    required this.errorText,
+    this.plasmaStatsResults,
   });
 
   final List<PlasmaInfoWrapper>? plasmaStatsResults;
@@ -122,7 +124,6 @@ class _PopulatedState extends State<_Populated> {
     '',
   );
 
-  late final PlasmaBeneficiaryAddressNotifier _plasmaBeneficiaryAddress;
   final double _marginWidth = 20;
   final double _spaceBetweenExpandedWidgets = 10;
 
@@ -155,17 +156,11 @@ class _PopulatedState extends State<_Populated> {
   void initState() {
     super.initState();
     _addressController.text = kSelectedAddress!;
-    _plasmaBeneficiaryAddress = Provider.of<PlasmaBeneficiaryAddressNotifier>(
-      context,
-      listen: false,
-    );
-    _plasmaBeneficiaryAddress.addListener(_beneficiaryAddressListener);
     _fetchBalance();
   }
 
   @override
   void dispose() {
-    _plasmaBeneficiaryAddress.removeListener(_beneficiaryAddressListener);
     _qsrAmountController.dispose();
     _addressController.dispose();
     _beneficiaryAddressController.dispose();
@@ -176,21 +171,28 @@ class _PopulatedState extends State<_Populated> {
   @override
   Widget build(BuildContext context) {
     return BlocListener<FusePlasmaBloc, FusePlasmaState>(
-      listener: (_, FusePlasmaState state) => _onFusePlasmaStateChanged(state),
-      child: Consumer<SelectedAddressNotifier>(
-        builder: (_, _, Widget? child) {
-          _addressController.text = kSelectedAddress!;
-          return child!;
-        },
-        child: LayoutBuilder(
-          builder: (_, BoxConstraints constraints) {
-            final AccountInfo? accountInfo = _accountInfo;
-            if (accountInfo == null) {
-              return const SyriusLoadingWidget();
-            }
-
-            return _buildBody(accountInfo);
+      listener: (_, FusePlasmaState state) => _onFusePlasmaStateChanged(
+        state,
+      ),
+      child: BlocListener<PlasmaBeneficiaryAddressCubit, String?>(
+        listener: (_, String? address) => _onBeneficiaryAddressChanged(
+          address,
+        ),
+        child: Consumer<SelectedAddressNotifier>(
+          builder: (_, _, Widget? child) {
+            _addressController.text = kSelectedAddress!;
+            return child!;
           },
+          child: LayoutBuilder(
+            builder: (_, BoxConstraints constraints) {
+              final AccountInfo? accountInfo = _accountInfo;
+              if (accountInfo == null) {
+                return const SyriusLoadingWidget();
+              }
+
+              return _buildBody(accountInfo);
+            },
+          ),
         ),
       ),
     );
@@ -413,10 +415,13 @@ class _PopulatedState extends State<_Populated> {
     }
   }
 
-  void _beneficiaryAddressListener() {
-    _beneficiaryAddressController.text = _plasmaBeneficiaryAddress
-        .getBeneficiaryAddress()!;
-    _beneficiaryAddressString.value = _beneficiaryAddressController.text;
+  void _onBeneficiaryAddressChanged(String? address) {
+    if (address == null) {
+      return;
+    }
+
+    _beneficiaryAddressController.text = address;
+    _beneficiaryAddressString.value = address;
   }
 
   void _onFusePlasmaStateChanged(FusePlasmaState state) {
