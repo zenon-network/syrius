@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:layout/layout.dart';
+import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 
 /// Displays the Pillars tab content in a responsive fluid layout.
@@ -56,8 +59,13 @@ class PillarsTabChild extends StatelessWidget {
         height: kStaggeredNumOfColumns / 2,
       ),
     ];
-    return StandardFluidLayout(
-      children: children,
+    return BlocProvider<PillarsBloc>(
+      create: (_) =>
+          PillarsBloc(zenon: zenon!)
+            ..add(const InfiniteListRequested(address: null)),
+      child: StandardFluidLayout(
+        children: children,
+      ),
     );
   }
 }

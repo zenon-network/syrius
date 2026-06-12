@@ -28,11 +28,6 @@ class PillarsCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiBlocProvider(
       providers: <SingleChildWidget>[
-        BlocProvider<PillarsBloc>(
-          create: (_) =>
-          PillarsBloc(zenon: zenon!)
-            ..add(const InfiniteListRequested(address: null)),
-        ),
         BlocProvider<DelegationBloc>(
           create: (_) => DelegationBloc(
             accountBlockUtils: AccountBlockUtils(),
