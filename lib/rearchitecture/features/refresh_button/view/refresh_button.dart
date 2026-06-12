@@ -48,6 +48,7 @@ class _Initial extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return IconButton(
+      mouseCursor: SystemMouseCursors.click,
       icon: const Icon(Icons.refresh),
       onPressed: onPressed,
     );
