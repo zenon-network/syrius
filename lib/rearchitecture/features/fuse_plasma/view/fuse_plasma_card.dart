@@ -120,9 +120,6 @@ class _PopulatedState extends State<_Populated> {
   final TextEditingController _beneficiaryAddressController =
       TextEditingController();
   final GlobalKey<LoadingButtonState> _fuseButtonKey = GlobalKey();
-  final ValueNotifier<String> _beneficiaryAddressString = ValueNotifier<String>(
-    '',
-  );
 
   final double _marginWidth = 20;
   final double _spaceBetweenExpandedWidgets = 10;
@@ -156,6 +153,7 @@ class _PopulatedState extends State<_Populated> {
   void initState() {
     super.initState();
     _addressController.text = kSelectedAddress!;
+    _initializeBeneficiaryAddress();
     _fetchBalance();
   }
 
@@ -164,7 +162,6 @@ class _PopulatedState extends State<_Populated> {
     _qsrAmountController.dispose();
     _addressController.dispose();
     _beneficiaryAddressController.dispose();
-    _beneficiaryAddressString.dispose();
     super.dispose();
   }
 
@@ -272,9 +269,6 @@ class _PopulatedState extends State<_Populated> {
                           controller: _beneficiaryAddressController,
                         ),
                       ),
-                      onChanged: (String value) {
-                        _beneficiaryAddressString.value = value;
-                      },
                       inputFormatters: <TextInputFormatter>[
                         FilteringTextInputFormatter.allow(
                           RegExp('[0-9a-z]'),
@@ -292,7 +286,6 @@ class _PopulatedState extends State<_Populated> {
                   children: <Widget>[
                     ListenableBuilder(
                       listenable: Listenable.merge([
-                        _beneficiaryAddressString,
                         _beneficiaryAddressController,
                         _qsrAmountController,
                       ]),
@@ -415,13 +408,24 @@ class _PopulatedState extends State<_Populated> {
     }
   }
 
+  void _initializeBeneficiaryAddress() {
+    final String? beneficiaryAddress = context
+        .read<PlasmaBeneficiaryAddressCubit>()
+        .state;
+
+    if (beneficiaryAddress == null) {
+      return;
+    }
+
+    _beneficiaryAddressController.text = beneficiaryAddress;
+  }
+
   void _onBeneficiaryAddressChanged(String? address) {
     if (address == null) {
       return;
     }
 
     _beneficiaryAddressController.text = address;
-    _beneficiaryAddressString.value = address;
   }
 
   void _onFusePlasmaStateChanged(FusePlasmaState state) {
