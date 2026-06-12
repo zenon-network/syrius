@@ -50,6 +50,7 @@ class CardScaffoldHeader extends StatelessWidget {
             if (onRefreshPressed != null)
               RefreshButton(onPressed: onRefreshPressed!,),
             IconButton(
+              mouseCursor: SystemMouseCursors.click,
               icon: const Icon(Icons.more_horiz),
               onPressed: onMoreIconPressed,
             ),
