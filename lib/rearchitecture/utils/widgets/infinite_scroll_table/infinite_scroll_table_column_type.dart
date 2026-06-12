@@ -67,8 +67,7 @@ enum InfiniteScrollTableColumnType {
     hash => context.l10n.hash,
     momentumReward => context.l10n.momentumReward,
     pillarName => context.l10n.name,
-    // TODO(by AI): localize
-    plasma => 'Plasma',
+    plasma => context.l10n.plasma,
     producerAddress => context.l10n.producerAddress,
     recipientAddress => context.l10n.recipientAddress,
     receiver => context.l10n.receiver,

@@ -748,6 +748,18 @@ abstract class AppLocalizations {
   /// **'Pillar Rewards'**
   String get pillarRewardsTitle;
 
+  /// No description provided for @plasmaStatsDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'This card displays information about current Plasma level for each wallet address. Plasma is used as an anti-spam mechanism. More Plasma you have per address, more transactions you will be able to send or receive on that address. Low or insufficient Plasma will require proof-of-work for generation. Fuse 10 {kQsrCoinSymbol} or more in order to obtain Plasma for any given address\n\nInsufficient Plasma: Proof-of-work for Plasma generation; limited to 1 transaction per momentum\nLow Plasma: between 10 and 50 {kQsrCoinSymbol}\nAverage Plasma: between 50 and 119 {kQsrCoinSymbol}\nHigh Plasma: over 120 {kQsrCoinSymbol}; recommended to make complex transactions (deploy Pillars, Sentinels, staking and issuing ZTS tokens)'**
+  String plasmaStatsDescription(Object kQsrCoinSymbol);
+
+  /// No description provided for @plasmaStatsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Plasma Stats'**
+  String get plasmaStatsTitle;
+
   /// No description provided for @pillarStats.
   ///
   /// In en, this message translates to:
@@ -801,6 +813,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Pillars'**
   String get pillarsTitle;
+
+  /// No description provided for @plasma.
+  ///
+  /// In en, this message translates to:
+  /// **'Plasma'**
+  String get plasma;
 
   /// No description provided for @pressToReceive.
   ///

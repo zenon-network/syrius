@@ -9,24 +9,10 @@ import 'package:zenon_syrius_wallet_flutter/utils/notifiers/plasma_beneficiary_a
 import 'package:zenon_syrius_wallet_flutter/utils/zts_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart'
     hide
-    InfiniteScrollTable,
-    InfiniteScrollTableCell,
-    InfiniteScrollTableHeaderColumn;
+        InfiniteScrollTable,
+        InfiniteScrollTableCell,
+        InfiniteScrollTableHeaderColumn;
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
-
-const String kPlasmaStatsWidgetTitle = 'Plasma Stats';
-final String _kWidgetDescription =
-    'This card displays information about '
-    'current Plasma level for each wallet address. Plasma is used as an anti-spam '
-    'mechanism. More Plasma you have per address, more transactions you will be '
-    'able to send or receive on that address. Low or insufficient Plasma '
-    'will require proof-of-work for generation. Fuse 10 ${kQsrCoin.symbol} or more in order '
-    'to obtain Plasma for any given address\n\nInsufficient Plasma: Proof-of-work '
-    'for Plasma generation; limited to 1 transaction per momentum\nLow Plasma: '
-    'between 10 and 50 ${kQsrCoin.symbol}\nAverage Plasma: between 50 and 119 '
-    '${kQsrCoin.symbol}\nHigh Plasma: over 120 ${kQsrCoin.symbol}; recommended to '
-    'make complex transactions (deploy Pillars, Sentinels, staking and issuing '
-    'ZTS tokens)';
 
 enum PlasmaStatsWidgetVersion { dashboardTab, plasmaTab }
 
@@ -80,10 +66,9 @@ class _PlasmaStatsCardState extends State<PlasmaStatsCard> {
     );
   }
 
-  // TODO(by AI): localize description and title strings
   CardData _buildCard() => CardData(
-    description: _kWidgetDescription,
-    title: kPlasmaStatsWidgetTitle,
+    description: context.l10n.plasmaStatsDescription(kQsrCoin.symbol),
+    title: context.l10n.plasmaStatsTitle,
   );
 }
 
@@ -115,19 +100,18 @@ class _Populated extends StatelessWidget {
         .address,
         .plasma,
       ],
-      generateRowCells:
-          (PlasmaInfoWrapper plasmaStatsWrapper) {
-            return <Widget>[
-              InfiniteScrollTableCell.textFromAddress(
-                address: Address.parse(plasmaStatsWrapper.address),
-              ),
-              InfiniteScrollTableCell(
-                child: PlasmaIcon(
-                  plasmaStatsWrapper.plasmaInfo,
-                ),
-              ),
-            ];
-          },
+      generateRowCells: (PlasmaInfoWrapper plasmaStatsWrapper) {
+        return <Widget>[
+          InfiniteScrollTableCell.textFromAddress(
+            address: Address.parse(plasmaStatsWrapper.address),
+          ),
+          InfiniteScrollTableCell(
+            child: PlasmaIcon(
+              plasmaStatsWrapper.plasmaInfo,
+            ),
+          ),
+        ];
+      },
     );
   }
 

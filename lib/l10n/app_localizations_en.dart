@@ -400,6 +400,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get pillarRewardsTitle => 'Pillar Rewards';
 
   @override
+  String plasmaStatsDescription(Object kQsrCoinSymbol) {
+    return 'This card displays information about current Plasma level for each wallet address. Plasma is used as an anti-spam mechanism. More Plasma you have per address, more transactions you will be able to send or receive on that address. Low or insufficient Plasma will require proof-of-work for generation. Fuse 10 $kQsrCoinSymbol or more in order to obtain Plasma for any given address\n\nInsufficient Plasma: Proof-of-work for Plasma generation; limited to 1 transaction per momentum\nLow Plasma: between 10 and 50 $kQsrCoinSymbol\nAverage Plasma: between 50 and 119 $kQsrCoinSymbol\nHigh Plasma: over 120 $kQsrCoinSymbol; recommended to make complex transactions (deploy Pillars, Sentinels, staking and issuing ZTS tokens)';
+  }
+
+  @override
+  String get plasmaStatsTitle => 'Plasma Stats';
+
+  @override
   String get pillarStats => 'Pillar Stats';
 
   @override
@@ -430,6 +438,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get pillarsTitle => 'Pillars';
+
+  @override
+  String get plasma => 'Plasma';
 
   @override
   String get pressToReceive => 'Press to receive the transaction';
