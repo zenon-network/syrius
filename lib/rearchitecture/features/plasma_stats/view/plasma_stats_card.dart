@@ -93,10 +93,9 @@ class _Populated extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return InfiniteScrollTable<PlasmaInfoWrapper>(
-      // TODO(maznnwell): enable on click callback
-      // onRowTappedCallback: version == PlasmaStatsWidgetVersion.plasmaTab
-      //     ? (int index) => _getChangeBeneficiaryAddressCallback(index, context)
-      //     : null,
+      onItemTap: version == PlasmaStatsWidgetVersion.plasmaTab
+          ? (int index) => _getChangeBeneficiaryAddressCallback(index, context)
+          : null,
       onScrollReachedBottom: () {
         context.read<PlasmaStatsBloc>().add(
           const InfiniteListMoreRequested(),
