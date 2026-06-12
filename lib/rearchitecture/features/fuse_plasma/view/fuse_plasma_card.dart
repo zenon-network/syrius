@@ -36,11 +36,12 @@ class FusePlasmaCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider<FusePlasmaBloc>(
-      create: (_) => FusePlasmaBloc(
-        accountBlockUtils: AccountBlockUtils(),
-        zenon: zenon!,
-        zenonAddressUtils: ZenonAddressUtils(),
-      ),
+      create: (_) =>
+          FusePlasmaBloc(
+            accountBlockUtils: AccountBlockUtils(),
+            zenon: zenon!,
+            zenonAddressUtils: ZenonAddressUtils(),
+          ),
       child: _View(
         plasmaStatsResults: plasmaStatsResults,
         onPlasmaFused: onPlasmaFused,
@@ -69,27 +70,31 @@ class _View extends StatelessWidget {
       body: errorText != null
           ? SyriusErrorWidget(errorText!)
           : BlocBuilder<MultipleBalanceBloc, MultipleBalanceState>(
-              builder: (_, MultipleBalanceState state) => switch (state
-                  .status) {
-                MultipleBalanceStatus.failure => SyriusErrorWidget(
-                  state.error!,
-                ),
-                MultipleBalanceStatus.initial => const SyriusLoadingWidget(),
-                MultipleBalanceStatus.loading => const SyriusLoadingWidget(),
-                MultipleBalanceStatus.success => _Populated(
-                  mapAccountInfo: state.data!,
-                  plasmaStatsResults: plasmaStatsResults,
-                  onPlasmaFused: onPlasmaFused,
-                ),
-              },
-            ),
+        builder: (_, MultipleBalanceState state) =>
+        switch (state
+            .status) {
+          MultipleBalanceStatus.failure =>
+              SyriusErrorWidget(
+                state.error!,
+              ),
+          MultipleBalanceStatus.initial => const SyriusLoadingWidget(),
+          MultipleBalanceStatus.loading => const SyriusLoadingWidget(),
+          MultipleBalanceStatus.success =>
+              _Populated(
+                mapAccountInfo: state.data!,
+                plasmaStatsResults: plasmaStatsResults,
+                onPlasmaFused: onPlasmaFused,
+              ),
+        },
+      ),
     );
   }
 
-  CardData _buildCardData({required BuildContext context}) => CardData(
-    title: context.l10n.fusePlasmaTitle,
-    description: context.l10n.fusePlasmaDescription(kQsrCoin.symbol),
-  );
+  CardData _buildCardData({required BuildContext context}) =>
+      CardData(
+        title: context.l10n.fusePlasmaTitle,
+        description: context.l10n.fusePlasmaDescription(kQsrCoin.symbol),
+      );
 }
 
 void _fetchBalance() {
@@ -119,7 +124,7 @@ class _PopulatedState extends State<_Populated> {
   final TextEditingController _qsrAmountController = TextEditingController();
   final TextEditingController _addressController = TextEditingController();
   final TextEditingController _beneficiaryAddressController =
-      TextEditingController();
+  TextEditingController();
   final GlobalKey<LoadingButtonState> _fuseButtonKey = GlobalKey();
   final ValueNotifier<String> _beneficiaryAddressString = ValueNotifier<String>(
     '',
@@ -133,26 +138,27 @@ class _PopulatedState extends State<_Populated> {
       widget.mapAccountInfo[kSelectedAddress!]?.getBalance(
         kQsrCoin.tokenStandard,
       ) ??
-      BigInt.zero;
+          BigInt.zero;
 
   AccountInfo? get _accountInfo => widget.mapAccountInfo[kSelectedAddress!];
 
-  String? get _qsrAmountError => InputValidators.correctValue(
-    _qsrAmountController.text,
-    _maxQsrAmount,
-    kQsrCoin.decimals,
-    fuseMinQsrAmount,
-    canBeEqualToMin: true,
-  );
+  String? get _qsrAmountError =>
+      InputValidators.correctValue(
+        _qsrAmountController.text,
+        _maxQsrAmount,
+        kQsrCoin.decimals,
+        fuseMinQsrAmount,
+        canBeEqualToMin: true,
+      );
 
   String? get _beneficiaryAddressError =>
       InputValidators.checkAddress(_beneficiaryAddressController.text);
 
   bool get _isInputValid =>
       _qsrAmountController.text.isNotEmpty &&
-      _qsrAmountError == null &&
-      _beneficiaryAddressController.text.isNotEmpty &&
-      _beneficiaryAddressError == null;
+          _qsrAmountError == null &&
+          _beneficiaryAddressController.text.isNotEmpty &&
+          _beneficiaryAddressError == null;
 
   @override
   void initState() {
@@ -306,30 +312,66 @@ class _PopulatedState extends State<_Populated> {
               ),
             ],
           ),
+          kVerticalGap16,
+          ListenableBuilder(
+            listenable: Listenable.merge([
+              _beneficiaryAddressController,
+              _qsrAmountController,
+            ]),
+            builder: (_, _) {
+              return Visibility(
+                visible: _isInputValid,
+                child: Row(
+                  children: [
+                    const Text('Future plasma: '),
+                    kHorizontalGap8,
+                    _buildPlasmaIcon(),
+                  ],
+                ),
+              );
+            },
+          ),
         ],
       ),
     );
   }
 
-  // TODO(maznnwell): move mechanism inside Plasma Stats
+  /// How plasma is calculated: 1 QSR equals a plasma value of 2100
+  ///
+  /// The text field seems to not allow the user to enter decimals. Which is
+  /// good because the way the plasma value is calculated, converted and
+  /// handled, it seems that the decimals are disregarded
+  ///
+  /// So a number with decimals might break the flow, or those decimals might
+  /// be lost in data type conversions
   PlasmaIcon _buildPlasmaIcon() {
+    BigInt currentPlasma = BigInt.zero;
+    if (_qsrAmountController.text.isNotEmpty) {
+      final BigInt qsrAmountWithoutDecimals = _qsrAmountController.text
+          .extractDecimals(
+        kQsrCoin.decimals,
+      );
+
+      final BigInt plasmaValueWithoutDecimals = zenon!.embedded.plasma
+          .getPlasmaByQsr(qsrAmountWithoutDecimals);
+
+      final String plasmaValue = plasmaValueWithoutDecimals.addDecimals(
+        kQsrCoin.decimals,
+      );
+
+      currentPlasma = BigInt.parse(plasmaValue);
+    }
+
+    final BigInt pastPlasma = BigInt.from(_getPlasmaForCurrentBeneficiary());
+
+    final BigInt finalPlasma = currentPlasma + pastPlasma;
+
     return PlasmaIcon(
       PlasmaInfo.fromJson(
         <String, dynamic>{
           'currentPlasma':
-              ((_qsrAmountController.text.isNotEmpty
-                          ? BigInt.parse(
-                              zenon!.embedded.plasma
-                                  .getPlasmaByQsr(
-                                    _qsrAmountController.text.extractDecimals(
-                                      kQsrCoin.decimals,
-                                    ),
-                                  )
-                                  .addDecimals(coinDecimals),
-                            )
-                          : BigInt.zero) +
-                      BigInt.from(_getPlasmaForCurrentBeneficiary()))
-                  .toInt(),
+          finalPlasma
+              .toInt(),
           'maxPlasma': 0,
           'qsrAmount': '0',
         },
@@ -341,8 +383,8 @@ class _PopulatedState extends State<_Populated> {
     final PlasmaInfoWrapper? plasmaInfoWrapper = widget.plasmaStatsResults
         .firstWhereOrNull(
           (PlasmaInfoWrapper plasmaInfo) =>
-              plasmaInfo.address == _beneficiaryAddressController.text,
-        );
+      plasmaInfo.address == _beneficiaryAddressController.text,
+    );
 
     return plasmaInfoWrapper?.plasmaInfo.currentPlasma ?? 0;
   }
@@ -378,8 +420,7 @@ class _PopulatedState extends State<_Populated> {
     if (_qsrAmountController.text.isEmpty ||
         _qsrAmountController.text.extractDecimals(kQsrCoin.decimals) !=
             _maxQsrAmount) {
-      _qsrAmountController.text = _maxQsrAmount
-          .addDecimals(kQsrCoin.decimals);
+      _qsrAmountController.text = _maxQsrAmount.addDecimals(kQsrCoin.decimals);
     }
   }
 
