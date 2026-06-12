@@ -24,6 +24,7 @@ export 'pillar_stats/pillar_stats.dart';
 export 'pillar_withdraw_qsr/pillar_withdraw_qsr.dart';
 export 'pillars/pillars.dart';
 export 'pillars_by_owner/pillars_by_owner.dart';
+export 'plasma_stats/plasma_stats.dart';
 export 'realtime_statistics/realtime_statistics.dart';
 export 'receive/receive.dart';
 export 'refresh_button/refresh_button.dart';

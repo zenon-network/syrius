@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:layout/layout.dart';
-import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
-import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/models/card/card.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
@@ -19,7 +17,6 @@ class _DashboardTabChildState extends State<DashboardTabChild> {
   @override
   void initState() {
     super.initState();
-    sl.get<PlasmaStatsBloc>().getPlasmas();
   }
 
   @override
@@ -41,7 +38,7 @@ class _DashboardTabChildState extends State<DashboardTabChild> {
         child: DualCoinStatsCard(),
       ),
       const FluidCell(
-        child: PlasmaStats(),
+        child: PlasmaStatsCard(),
       ),
       FluidCell(
         child: TransferCard(

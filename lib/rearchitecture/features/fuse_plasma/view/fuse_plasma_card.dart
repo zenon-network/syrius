@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:provider/provider.dart';
-import 'package:zenon_syrius_wallet_flutter/blocs/plasma/plasma_stats_bloc.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/plasma_stats/bloc/plasma_stats_bloc.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/model/model.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
@@ -18,14 +18,13 @@ import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 class FusePlasmaCard extends StatelessWidget {
   /// Creates a [FusePlasmaCard].
   const FusePlasmaCard({
-    required this.plasmaStatsResults,
-    required this.onPlasmaFused,
+    required this.onPlasmaFused, this.plasmaStatsResults,
     this.errorText,
     super.key,
   });
 
   /// Plasma stats used to preview generated Plasma for the beneficiary address.
-  final List<PlasmaInfoWrapper> plasmaStatsResults;
+  final List<PlasmaInfoWrapper>? plasmaStatsResults;
 
   /// Called after a fuse transaction was successfully created.
   final VoidCallback onPlasmaFused;
@@ -36,12 +35,11 @@ class FusePlasmaCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider<FusePlasmaBloc>(
-      create: (_) =>
-          FusePlasmaBloc(
-            accountBlockUtils: AccountBlockUtils(),
-            zenon: zenon!,
-            zenonAddressUtils: ZenonAddressUtils(),
-          ),
+      create: (_) => FusePlasmaBloc(
+        accountBlockUtils: AccountBlockUtils(),
+        zenon: zenon!,
+        zenonAddressUtils: ZenonAddressUtils(),
+      ),
       child: _View(
         plasmaStatsResults: plasmaStatsResults,
         onPlasmaFused: onPlasmaFused,
@@ -53,12 +51,10 @@ class FusePlasmaCard extends StatelessWidget {
 
 class _View extends StatelessWidget {
   const _View({
-    required this.plasmaStatsResults,
-    required this.onPlasmaFused,
-    required this.errorText,
+    required this.onPlasmaFused, required this.errorText, this.plasmaStatsResults,
   });
 
-  final List<PlasmaInfoWrapper> plasmaStatsResults;
+  final List<PlasmaInfoWrapper>? plasmaStatsResults;
   final VoidCallback onPlasmaFused;
   final String? errorText;
 
@@ -70,31 +66,27 @@ class _View extends StatelessWidget {
       body: errorText != null
           ? SyriusErrorWidget(errorText!)
           : BlocBuilder<MultipleBalanceBloc, MultipleBalanceState>(
-        builder: (_, MultipleBalanceState state) =>
-        switch (state
-            .status) {
-          MultipleBalanceStatus.failure =>
-              SyriusErrorWidget(
-                state.error!,
-              ),
-          MultipleBalanceStatus.initial => const SyriusLoadingWidget(),
-          MultipleBalanceStatus.loading => const SyriusLoadingWidget(),
-          MultipleBalanceStatus.success =>
-              _Populated(
-                mapAccountInfo: state.data!,
-                plasmaStatsResults: plasmaStatsResults,
-                onPlasmaFused: onPlasmaFused,
-              ),
-        },
-      ),
+              builder: (_, MultipleBalanceState state) => switch (state
+                  .status) {
+                MultipleBalanceStatus.failure => SyriusErrorWidget(
+                  state.error!,
+                ),
+                MultipleBalanceStatus.initial => const SyriusLoadingWidget(),
+                MultipleBalanceStatus.loading => const SyriusLoadingWidget(),
+                MultipleBalanceStatus.success => _Populated(
+                  mapAccountInfo: state.data!,
+                  plasmaStatsResults: plasmaStatsResults!,
+                  onPlasmaFused: onPlasmaFused,
+                ),
+              },
+            ),
     );
   }
 
-  CardData _buildCardData({required BuildContext context}) =>
-      CardData(
-        title: context.l10n.fusePlasmaTitle,
-        description: context.l10n.fusePlasmaDescription(kQsrCoin.symbol),
-      );
+  CardData _buildCardData({required BuildContext context}) => CardData(
+    title: context.l10n.fusePlasmaTitle,
+    description: context.l10n.fusePlasmaDescription(kQsrCoin.symbol),
+  );
 }
 
 void _fetchBalance() {
@@ -124,7 +116,7 @@ class _PopulatedState extends State<_Populated> {
   final TextEditingController _qsrAmountController = TextEditingController();
   final TextEditingController _addressController = TextEditingController();
   final TextEditingController _beneficiaryAddressController =
-  TextEditingController();
+      TextEditingController();
   final GlobalKey<LoadingButtonState> _fuseButtonKey = GlobalKey();
   final ValueNotifier<String> _beneficiaryAddressString = ValueNotifier<String>(
     '',
@@ -138,27 +130,26 @@ class _PopulatedState extends State<_Populated> {
       widget.mapAccountInfo[kSelectedAddress!]?.getBalance(
         kQsrCoin.tokenStandard,
       ) ??
-          BigInt.zero;
+      BigInt.zero;
 
   AccountInfo? get _accountInfo => widget.mapAccountInfo[kSelectedAddress!];
 
-  String? get _qsrAmountError =>
-      InputValidators.correctValue(
-        _qsrAmountController.text,
-        _maxQsrAmount,
-        kQsrCoin.decimals,
-        fuseMinQsrAmount,
-        canBeEqualToMin: true,
-      );
+  String? get _qsrAmountError => InputValidators.correctValue(
+    _qsrAmountController.text,
+    _maxQsrAmount,
+    kQsrCoin.decimals,
+    fuseMinQsrAmount,
+    canBeEqualToMin: true,
+  );
 
   String? get _beneficiaryAddressError =>
       InputValidators.checkAddress(_beneficiaryAddressController.text);
 
   bool get _isInputValid =>
       _qsrAmountController.text.isNotEmpty &&
-          _qsrAmountError == null &&
-          _beneficiaryAddressController.text.isNotEmpty &&
-          _beneficiaryAddressError == null;
+      _qsrAmountError == null &&
+      _beneficiaryAddressController.text.isNotEmpty &&
+      _beneficiaryAddressError == null;
 
   @override
   void initState() {
@@ -252,9 +243,9 @@ class _PopulatedState extends State<_Populated> {
                         setState(() {});
                       },
                       inputFormatters:
-                      FormatUtils.getPlasmaAmountTextInputFormatters(
-                        value.text,
-                      ),
+                          FormatUtils.getPlasmaAmountTextInputFormatters(
+                            value.text,
+                          ),
                       controller: _qsrAmountController,
                     );
                   },
@@ -349,8 +340,8 @@ class _PopulatedState extends State<_Populated> {
     if (_qsrAmountController.text.isNotEmpty) {
       final BigInt qsrAmountWithoutDecimals = _qsrAmountController.text
           .extractDecimals(
-        kQsrCoin.decimals,
-      );
+            kQsrCoin.decimals,
+          );
 
       final BigInt plasmaValueWithoutDecimals = zenon!.embedded.plasma
           .getPlasmaByQsr(qsrAmountWithoutDecimals);
@@ -369,9 +360,7 @@ class _PopulatedState extends State<_Populated> {
     return PlasmaIcon(
       PlasmaInfo.fromJson(
         <String, dynamic>{
-          'currentPlasma':
-          finalPlasma
-              .toInt(),
+          'currentPlasma': finalPlasma.toInt(),
           'maxPlasma': 0,
           'qsrAmount': '0',
         },
@@ -383,8 +372,8 @@ class _PopulatedState extends State<_Populated> {
     final PlasmaInfoWrapper? plasmaInfoWrapper = widget.plasmaStatsResults
         .firstWhereOrNull(
           (PlasmaInfoWrapper plasmaInfo) =>
-      plasmaInfo.address == _beneficiaryAddressController.text,
-    );
+              plasmaInfo.address == _beneficiaryAddressController.text,
+        );
 
     return plasmaInfoWrapper?.plasmaInfo.currentPlasma ?? 0;
   }
@@ -438,7 +427,9 @@ class _PopulatedState extends State<_Populated> {
       _qsrAmountController.clear();
       _beneficiaryAddressController.clear();
       _fetchBalance();
-      unawaited(sl.get<PlasmaStatsBloc>().getPlasmas());
+      sl.get<PlasmaStatsBloc>().add(
+        const InfiniteListRefreshRequested(),
+      );
       widget.onPlasmaFused();
     } else if (state is FusePlasmaFailure) {
       _fuseButtonKey.currentState?.animateReverse();

@@ -248,7 +248,6 @@ void setup() {
     instanceName: 'embeddedStoppedStream',
   );
 
-  sl.registerSingleton<PlasmaStatsBloc>(PlasmaStatsBloc());
   sl.registerSingleton<BalanceBloc>(BalanceBloc());
   sl.registerSingleton<NotificationsBloc>(NotificationsBloc());
   sl.registerSingleton<AcceleratorBalanceBloc>(AcceleratorBalanceBloc());

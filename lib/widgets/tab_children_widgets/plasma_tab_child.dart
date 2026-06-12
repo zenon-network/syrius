@@ -1,12 +1,11 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:layout/layout.dart';
 import 'package:provider/provider.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
-import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/model/model.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/notifiers/plasma_generated_notifier.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 
@@ -28,40 +27,36 @@ class _PlasmaTabChildState extends State<PlasmaTabChild> {
   void initState() {
     super.initState();
     _plasmaListBloc = PlasmaListBloc();
-    unawaited(sl.get<PlasmaStatsBloc>().getPlasmas());
   }
 
   @override
   Widget build(BuildContext context) {
-    return StreamBuilder<List<PlasmaInfoWrapper>>(
-      stream: sl.get<PlasmaStatsBloc>().stream,
-      builder: (_, AsyncSnapshot<List<PlasmaInfoWrapper>> snapshot) {
-        if (snapshot.hasError) {
-          return _getFluidLayout(
-            <PlasmaInfoWrapper>[],
-            errorText: snapshot.error.toString(),
-          );
-        }
-        if (snapshot.connectionState == ConnectionState.active) {
-          if (snapshot.hasData) {
-            return _getFluidLayout(snapshot.data!);
-          }
-          return const SyriusLoadingWidget();
-        }
-        return const SyriusLoadingWidget();
+    return BlocBuilder<PlasmaStatsBloc, InfiniteListState<PlasmaInfoWrapper>>(
+      builder: (_, InfiniteListState<PlasmaInfoWrapper> state) {
+        final InfiniteListStatus status = state.status;
+
+        return switch (status) {
+          InfiniteListStatus.initial => const SyriusLoadingWidget(),
+          InfiniteListStatus.failure => _getFluidLayout(
+            errorText: state.error.toString(),
+          ),
+          InfiniteListStatus.success => _getFluidLayout(
+            plasmaStatsResults: state.data,
+          ),
+        };
       },
     );
   }
 
-  Widget _getFluidLayout(
-    List<PlasmaInfoWrapper> plasmaStatsResults, {
+  Widget _getFluidLayout({
+    List<PlasmaInfoWrapper>? plasmaStatsResults,
     String? errorText,
   }) {
     return StandardFluidLayout(
       children: <FluidCell>[
         FluidCell(
           child: Consumer<PlasmaGeneratedNotifier>(
-            builder: (_, _, _) => const PlasmaStats(
+            builder: (_, _, _) => const PlasmaStatsCard(
               version: PlasmaStatsWidgetVersion.plasmaTab,
             ),
           ),

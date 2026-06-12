@@ -16,6 +16,7 @@ enum InfiniteScrollTableColumnType {
   hash,
   momentumReward,
   pillarName,
+  plasma,
   producerAddress,
   recipientAddress,
   receiver,
@@ -40,6 +41,7 @@ enum InfiniteScrollTableColumnType {
     hash => 2,
     momentumReward => 1,
     pillarName => 1,
+    plasma => 1,
     producerAddress => 3,
     recipientAddress => 2,
     receiver => 2,
@@ -65,6 +67,8 @@ enum InfiniteScrollTableColumnType {
     hash => context.l10n.hash,
     momentumReward => context.l10n.momentumReward,
     pillarName => context.l10n.name,
+    // TODO(by AI): localize
+    plasma => 'Plasma',
     producerAddress => context.l10n.producerAddress,
     recipientAddress => context.l10n.recipientAddress,
     receiver => context.l10n.receiver,
@@ -79,6 +83,7 @@ enum InfiniteScrollTableColumnType {
   MainAxisAlignment get aligment => switch (this) {
     delegation => .center,
     expiration => .center,
+    plasma => .center,
     _ => MainAxisAlignment.start,
   };
 }
