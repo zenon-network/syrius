@@ -96,7 +96,7 @@ class _Populated extends StatelessWidget {
       items: plasmaInfoStats,
       columns: const <InfiniteScrollTableColumnType>[
         .address,
-        .plasma,
+        .level,
       ],
       generateRowCells: (PlasmaInfoWrapper plasmaStatsWrapper) {
         return <Widget>[

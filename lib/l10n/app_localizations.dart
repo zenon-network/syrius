@@ -562,6 +562,12 @@ abstract class AppLocalizations {
   /// **'This card displays the latest transactions (including ZTS tokens) involving your wallet addresses'**
   String get latestTransactionsTransferDescription;
 
+  /// No description provided for @level.
+  ///
+  /// In en, this message translates to:
+  /// **'Level'**
+  String get level;
+
   /// No description provided for @locked.
   ///
   /// In en, this message translates to:

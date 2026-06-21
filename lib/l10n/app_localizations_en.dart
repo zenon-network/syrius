@@ -297,6 +297,9 @@ class AppLocalizationsEn extends AppLocalizations {
       'This card displays the latest transactions (including ZTS tokens) involving your wallet addresses';
 
   @override
+  String get level => 'Level';
+
+  @override
   String locked(Object kQsrCoinSymbol) {
     return '$kQsrCoinSymbol locked';
   }

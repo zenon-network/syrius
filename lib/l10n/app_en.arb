@@ -77,6 +77,7 @@
   "latestTransactionsDescription": "This card displays the latest transactions (including ZTS tokens) of your selected address",
   "latestTransactionsTitle": "Latest Transactions",
   "latestTransactionsTransferDescription": "This card displays the latest transactions (including ZTS tokens) involving your wallet addresses",
+  "level": "Level",
   "locked": "{kQsrCoinSymbol} locked",
   "manageReceivingFunds": "Manage receiving funds",
   "manageSendingFunds": "Manage sending funds",
