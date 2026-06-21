@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/fused_plasma/model/fusion_entry_wrapper.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
@@ -29,8 +30,8 @@ class _View extends StatelessWidget {
     return NewCardScaffold(
       data: _buildCardData(context: context),
       onRefreshPressed: () => _refreshFusedPlasma(context),
-      body: BlocBuilder<FusedPlasmaBloc, InfiniteListState<FusionEntry>>(
-        builder: (_, InfiniteListState<FusionEntry> state) {
+      body: BlocBuilder<FusedPlasmaBloc, InfiniteListState<FusionEntryWrapper>>(
+        builder: (_, InfiniteListState<FusionEntryWrapper> state) {
           return switch (state.status) {
             InfiniteListStatus.initial => const SyriusLoadingWidget(),
             InfiniteListStatus.failure => SyriusErrorWidget(state.error!),
@@ -57,20 +58,21 @@ class _Populated extends StatelessWidget {
   });
 
   final bool hasReachedMax;
-  final List<FusionEntry> fusionEntries;
+  final List<FusionEntryWrapper> fusionEntries;
 
   @override
   Widget build(BuildContext context) {
-    return InfiniteScrollTable<FusionEntry>(
-      itemKeyGenerator: (FusionEntry fusionEntry) =>
-          ValueKey<String>(fusionEntry.id.toString()),
+    return InfiniteScrollTable<FusionEntryWrapper>(
+      itemKeyGenerator: (FusionEntryWrapper fusionEntryWrapper) =>
+          ValueKey<String>(fusionEntryWrapper.fusionEntry.id.toString()),
       items: fusionEntries,
       hasReachedMax: hasReachedMax,
       columns: _buildHeaderColumns(),
-      generateRowCells: (FusionEntry fusionEntry) => _buildRowCells(
-        context: context,
-        fusionEntry: fusionEntry,
-      ),
+      generateRowCells: (FusionEntryWrapper fusionEntryWrapper) =>
+          _buildRowCells(
+            context: context,
+            fusionEntryWrapper: fusionEntryWrapper,
+          ),
       onScrollReachedBottom: () {
         context.read<FusedPlasmaBloc>().add(
           InfiniteListMoreRequested(address: Address.parse(kSelectedAddress!)),
@@ -81,8 +83,10 @@ class _Populated extends StatelessWidget {
 
   List<InfiniteScrollTableCell> _buildRowCells({
     required BuildContext context,
-    required FusionEntry fusionEntry,
+    required FusionEntryWrapper fusionEntryWrapper,
   }) {
+    final FusionEntry fusionEntry = fusionEntryWrapper.fusionEntry;
+
     return <InfiniteScrollTableCell>[
       InfiniteScrollTableCell(
         child: FormattedAmountWithTooltip(
@@ -103,7 +107,7 @@ class _Populated extends StatelessWidget {
       InfiniteScrollTableCell(
         child: _buildExpirationCell(
           context: context,
-          fusionEntry: fusionEntry,
+          fusionEntryWrapper: fusionEntryWrapper,
         ),
       ),
     ];
@@ -111,9 +115,11 @@ class _Populated extends StatelessWidget {
 
   Widget _buildExpirationCell({
     required BuildContext context,
-    required FusionEntry fusionEntry,
+    required FusionEntryWrapper fusionEntryWrapper,
   }) {
-    if (fusionEntry.isRevocable!) {
+    final FusionEntry fusionEntry = fusionEntryWrapper.fusionEntry;
+
+    if (fusionEntryWrapper.isRevocable) {
       return CancelPlasmaButton(
         plasmaHash: fusionEntry.id,
         onCancelled: () => _refreshFusedPlasma(context),

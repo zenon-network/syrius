@@ -74,11 +74,11 @@ void main() {
     });
 
     test('initial state is initial', () {
-      expect(bloc.state, const InfiniteListState<FusionEntry>.initial());
+      expect(bloc.state, const InfiniteListState<FusionEntryWrapper>.initial());
     });
 
-    blocTest<FusedPlasmaBloc, InfiniteListState<FusionEntry>>(
-      'requested emits success and marks revocable entries',
+    blocTest<FusedPlasmaBloc, InfiniteListState<FusionEntryWrapper>>(
+      'requested emits success and wraps revocable entries',
       build: () => bloc,
       act: (FusedPlasmaBloc bloc) =>
           bloc.add(InfiniteListRequested(address: emptyAddress)),
@@ -92,23 +92,24 @@ void main() {
         verify(() => mockLedger.getFrontierMomentum()).called(1);
         expect(bloc.lastMomentumHeight, 11);
         expect(bloc.state.data!.single.isRevocable, isTrue);
+        expect(bloc.state.data!.single.fusionEntry.id, emptyHash);
       },
       expect: () => <Matcher>[
-        isA<InfiniteListState<FusionEntry>>()
+        isA<InfiniteListState<FusionEntryWrapper>>()
             .having(
-              (InfiniteListState<FusionEntry> s) => s.status,
+              (InfiniteListState<FusionEntryWrapper> s) => s.status,
               'status',
               InfiniteListStatus.success,
             )
             .having(
-              (InfiniteListState<FusionEntry> s) => s.hasReachedMax,
+              (InfiniteListState<FusionEntryWrapper> s) => s.hasReachedMax,
               'hasReachedMax',
               isTrue,
             ),
       ],
     );
 
-    blocTest<FusedPlasmaBloc, InfiniteListState<FusionEntry>>(
+    blocTest<FusedPlasmaBloc, InfiniteListState<FusionEntryWrapper>>(
       'requested emits failure when api throws',
       setUp: () {
         when(
@@ -123,8 +124,8 @@ void main() {
       act: (FusedPlasmaBloc bloc) =>
           bloc.add(InfiniteListRequested(address: emptyAddress)),
       expect: () => <Matcher>[
-        isA<InfiniteListState<FusionEntry>>().having(
-          (InfiniteListState<FusionEntry> s) => s.status,
+        isA<InfiniteListState<FusionEntryWrapper>>().having(
+          (InfiniteListState<FusionEntryWrapper> s) => s.status,
           'status',
           InfiniteListStatus.failure,
         ),
