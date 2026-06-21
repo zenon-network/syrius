@@ -7,4 +7,3 @@ export 'navigation_arguments.dart';
 export 'new_token_data.dart';
 export 'p2p_swap/htlc_swap.dart';
 export 'p2p_swap/p2p_swap.dart';
-export 'plasma_info_wrapper.dart';

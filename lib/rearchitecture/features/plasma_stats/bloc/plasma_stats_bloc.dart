@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:zenon_syrius_wallet_flutter/main.dart';
-import 'package:zenon_syrius_wallet_flutter/model/model.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/constants/constants.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
