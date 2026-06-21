@@ -72,7 +72,7 @@ class CancelStakeButton extends StatelessWidget {
         final bool? cancellationConfirmed = await showDialogWithNoAndYesOptions(
           isBarrierDismissible: false,
           context: context,
-          title: context.l10n.cancel.toUpperCase(),
+          title: context.l10n.cancel,
           // TODO(maznnwell): localize if the description is okay
           description: 'Are you sure you want to cancel the stake?',
         );
@@ -84,7 +84,7 @@ class CancelStakeButton extends StatelessWidget {
         }
       },
       label: Text(
-        context.l10n.cancel.toUpperCase(),
+        context.l10n.cancel,
         style: TextStyle(
           color: context.newThemeData.textTheme.titleSmall!.color,
         ),

@@ -10,7 +10,7 @@ part 'no_delegation_stats_exception.g.dart';
 class NoDelegationStatsException extends SyriusException {
   /// Creates a [NoDelegationStatsException] instance
   NoDelegationStatsException({
-    String message = 'No delegation stats stats available',
+    String message = 'No delegation stats available',
   }) : super(message);
 
   /// {@macro instance_from_json}

@@ -170,4 +170,10 @@ abstract class InfiniteListBloc<T>
   Map<String, dynamic>? toJson(InfiniteListState<T> state) => state.toJson(
         toJsonT,
       );
+
+  @override
+  Future<void> close() async {
+    cancelStreamSubscription();
+    await super.close();
+  }
 }
