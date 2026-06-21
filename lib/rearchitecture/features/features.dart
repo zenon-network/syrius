@@ -1,6 +1,7 @@
 export 'active_pillars/active_pillars.dart';
 export 'active_sentinels/active_sentinels.dart';
 export 'balance/balance.dart';
+export 'cancel_plasma/cancel_plasma.dart';
 export 'cancel_stake/cancel_stake.dart';
 export 'create_pillar_qsr_info/create_pillar_qsr_info.dart';
 export 'create_pillar_stepper/create_pillar_stepper.dart';
@@ -13,6 +14,7 @@ export 'deploy_pillar/deploy_pillar.dart';
 export 'deploy_sentinel/deploy_sentinel.dart';
 export 'dual_coin_stats/dual_coin_stats.dart';
 export 'fuse_plasma/fuse_plasma.dart';
+export 'fused_plasma/fused_plasma.dart';
 export 'latest_transactions/latest_transactions.dart';
 export 'multiple_balance/multiple_balance.dart';
 export 'node_sync_status/node_sync_status.dart';
