@@ -78,7 +78,7 @@ abstract class InfiniteListBloc<T>
 
   /// Retrieves the data in a pagination manner, with the first page being 0
   Future<List<T>> paginationFetch({
-    required Address address,
+    required Address? address,
     required int pageIndex,
     required int pageSize,
   });
@@ -170,4 +170,10 @@ abstract class InfiniteListBloc<T>
   Map<String, dynamic>? toJson(InfiniteListState<T> state) => state.toJson(
         toJsonT,
       );
+
+  @override
+  Future<void> close() async {
+    cancelStreamSubscription();
+    await super.close();
+  }
 }

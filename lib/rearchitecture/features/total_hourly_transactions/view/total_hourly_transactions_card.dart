@@ -18,7 +18,7 @@ class TotalHourlyTransactionsCard extends StatelessWidget {
         zenon: zenon!,
       )..fetchDataPeriodically(),
       child: NewCardScaffold(
-        data: CardType.totalHourlyTransactions.getData(context: context),
+        data: _buildCardData(context: context),
         body: BlocBuilder<TotalHourlyTransactionsCubit,
             TotalHourlyTransactionsState>(
           builder: (BuildContext context, TotalHourlyTransactionsState state) {
@@ -37,4 +37,9 @@ class TotalHourlyTransactionsCard extends StatelessWidget {
       ),
     );
   }
+
+  CardData _buildCardData({required BuildContext context}) => CardData(
+    description: context.l10n.transactionsDescription,
+    title: context.l10n.transactions,
+  );
 }

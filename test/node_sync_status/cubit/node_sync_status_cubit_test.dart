@@ -16,7 +16,6 @@ class MockWsClient extends Mock implements WsClient {}
 
 class MockStatsApi extends Mock implements StatsApi {}
 
-class MockAutoReceiveTxWorker extends Mock implements AutoReceiveTxWorker {}
 
 void main() {
   initHydratedStorage();
@@ -48,7 +47,6 @@ void main() {
       when(() => mockZenon.wsClient).thenReturn(mockWsClient);
       when(() => mockWsClient.isClosed()).thenReturn(false);
       when(() => mockWsClient.status()).thenReturn(WebsocketStatus.running);
-
 
       when(() => mockZenon.stats).thenReturn(mockStatsApi);
       when(() => mockStatsApi.syncInfo()).thenAnswer((_) async => syncInfo);
@@ -126,10 +124,11 @@ void main() {
     group('fetch', () {
       blocTest<NodeSyncStatusCubit, NodeSyncStatusState>(
         'emits [loading, success] when websocket is running and '
-          'fetch returns syncInfo',
+        'fetch returns syncInfo',
         build: () => nodeSyncStatusCubit,
         act: (NodeSyncStatusCubit cubit) => cubit.fetchDataPeriodically(),
-        expect: () => <NodeSyncStatusState>[ // Expected state changes
+        expect: () => <NodeSyncStatusState>[
+          // Expected state changes
           const NodeSyncStatusState(status: TimerStatus.loading),
           NodeSyncStatusState(
             status: TimerStatus.success,
@@ -137,7 +136,6 @@ void main() {
           ),
         ],
       );
-
 
       blocTest<NodeSyncStatusCubit, NodeSyncStatusState>(
         'emits [loading, failure] when fetch throws an error',

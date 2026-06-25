@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
@@ -13,9 +15,9 @@ class ReceiveCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return NewCardScaffold(
-      data: CardType.receive.getData(context: context),
+      data: _buildCardData(context: context),
       onRefreshPressed: () {
-        context.read<TokensCubit>().fetch();
+        unawaited(context.read<TokensCubit>().fetch());
       },
       body: BlocBuilder<TokensCubit, TokensState>(
         builder: (_, TokensState state) {
@@ -29,4 +31,9 @@ class ReceiveCard extends StatelessWidget {
       ),
     );
   }
+
+  CardData _buildCardData({required BuildContext context}) => CardData(
+    description: context.l10n.manageReceivingFunds,
+    title: context.l10n.receive,
+  );
 }

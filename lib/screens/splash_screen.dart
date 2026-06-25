@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'package:logging/logging.dart';
 import 'package:lottie/lottie.dart';
-import 'package:walletconnect_flutter_v2/apis/core/pairing/utils/pairing_models.dart';
+import 'package:reown_walletkit/reown_walletkit.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/model/model.dart';
@@ -15,16 +15,16 @@ import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 
 class SplashScreen extends StatefulWidget {
-
-  const SplashScreen({
-    this.resetWalletFlow = false,
-    this.deleteCacheFlow = false,
-    super.key,
-  });
   static const String route = 'splash-screen';
 
   final bool resetWalletFlow;
   final bool deleteCacheFlow;
+
+  const SplashScreen({
+    this.resetWalletFlow = false,
+    this.deleteCacheFlow = false,
+    Key? key,
+  }) : super(key: key);
 
   @override
   State<SplashScreen> createState() => _SplashScreenState();
@@ -32,11 +32,6 @@ class SplashScreen extends StatefulWidget {
 
 class _SplashScreenState extends State<SplashScreen> {
   late final Future<LottieComposition> _composition;
-
-  // The lottie uses a cache to load a file, if the file was previously loaded
-  // the Future.builder will fire twice with the snapshot.hasData = true, and
-  // it will call _splashInits method twice
-  bool _splashInitsCalled = false;
 
   @override
   void initState() {
@@ -48,10 +43,12 @@ class _SplashScreenState extends State<SplashScreen> {
   Widget build(BuildContext context) {
     return FutureBuilder<LottieComposition>(
       future: _composition,
-      builder: (BuildContext context, AsyncSnapshot<LottieComposition> snapshot) {
-        final LottieComposition? composition = snapshot.data;
+      builder: (context, snapshot) {
+        var composition = snapshot.data;
         if (composition != null) {
-          Future<void>.delayed(composition.duration, _splashInits);
+          Future.delayed(composition.duration, () {
+            _splashInits();
+          });
           return Lottie(
             composition: composition,
             repeat: false,
@@ -65,15 +62,12 @@ class _SplashScreenState extends State<SplashScreen> {
 
   Future<void> _splashInits() async {
     try {
-      if (!_splashInitsCalled) {
-        _splashInitsCalled = true;
-        widget.resetWalletFlow
-            ? await _resetWallet()
-            : widget.deleteCacheFlow
-                ? await _deleteCache().then((value) => exit(0))
-                : await InitUtils.initApp(context);
-        _navigateToNextScreen();
-      }
+      widget.resetWalletFlow
+          ? await _resetWallet()
+          : widget.deleteCacheFlow
+              ? await _deleteCache().then((value) => exit(0))
+              : await InitUtils.initApp(context);
+      _navigateToNextScreen();
     } on Exception catch (e) {
       Navigator.pushReplacementNamed(
         context,
@@ -125,7 +119,7 @@ class _SplashScreenState extends State<SplashScreen> {
     await Hive.close();
     await Future.forEach<String>(
       kCacheBoxesToBeDeleted,
-      (String boxName) async => Hive.deleteBoxFromDisk(boxName),
+      (boxName) async => await Hive.deleteBoxFromDisk(boxName),
     );
     await _deleteWeb3Cache();
   }

@@ -32,7 +32,7 @@ class LatestTransactionsCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return NewCardScaffold(
-      data: CardType.latestTransactions.getData(context: context),
+      data: _buildCardData(context: context),
       onRefreshPressed: () {
         context.read<LatestTransactionsBloc>().add(
               InfiniteListRefreshRequested(
@@ -42,7 +42,10 @@ class LatestTransactionsCard extends StatelessWidget {
       },
       body:
           BlocBuilder<LatestTransactionsBloc, InfiniteListState<AccountBlock>>(
-        builder: (_, InfiniteListState<AccountBlock> state) {
+        builder: (
+          _,
+          InfiniteListState<AccountBlock> state,
+        ) {
           final InfiniteListStatus status = state.status;
 
           return switch (status) {
@@ -59,6 +62,21 @@ class LatestTransactionsCard extends StatelessWidget {
         },
       ),
     );
+  }
+
+  CardData _buildCardData({
+    required BuildContext context,
+  }) {
+    return switch (type) {
+      CardType.latestTransactions => CardData(
+          description: context.l10n.latestTransactionsDescription,
+          title: context.l10n.latestTransactionsTitle,
+        ),
+      CardType.latestTransactionsDashboard => CardData(
+          description: context.l10n.latestTransactionsDescription,
+          title: context.l10n.latestTransactionsTitle,
+        ),
+    };
   }
 }
 

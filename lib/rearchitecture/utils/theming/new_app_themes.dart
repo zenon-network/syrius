@@ -3,10 +3,24 @@ import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 
 /// The new light theme closer to the default Material ThemeData
 final ThemeData newLightTheme = ThemeData(
+  cardTheme: CardThemeData(
+    //TODO: check if it's okay
+    color: AppColors.darkPrimary,
+    margin: EdgeInsets.zero,
+    shape: RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(16),
+    ),
+  ),
   colorScheme: ColorScheme.fromSeed(
     seedColor: AppColors.znnColor,
   ),
   dividerTheme: kDefaultDividerThemeData,
+  elevatedButtonTheme: ElevatedButtonThemeData(
+    style: ElevatedButton.styleFrom(
+      backgroundColor: AppColors.znnColor,
+      foregroundColor: Colors.white,
+    ),
+  ),
   inputDecorationTheme: InputDecorationTheme(
     fillColor: AppColors.lightTextFormFieldFill,
     filled: true,
@@ -43,16 +57,30 @@ final ThemeData newLightTheme = ThemeData(
       ),
     ),
   ),
+  scaffoldBackgroundColor: AppColors.backgroundLight,
 );
 
 /// The new dark theme closer to the default Material ThemeData
 final ThemeData newDarkTheme = ThemeData(
   brightness: Brightness.dark,
+  cardTheme: CardThemeData(
+    color: AppColors.darkPrimary,
+    margin: EdgeInsets.zero,
+    shape: RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(16),
+    ),
+  ),
   colorScheme: ColorScheme.fromSeed(
     brightness: Brightness.dark,
     seedColor: AppColors.znnColor,
   ),
   dividerTheme: kDefaultDividerThemeData,
+  elevatedButtonTheme: ElevatedButtonThemeData(
+    style: ElevatedButton.styleFrom(
+      backgroundColor: AppColors.znnColor,
+      foregroundColor: Colors.white,
+    ),
+  ),
   inputDecorationTheme: InputDecorationTheme(
     fillColor: AppColors.darkTextFormFieldFill,
     filled: true,
@@ -65,7 +93,7 @@ final ThemeData newDarkTheme = ThemeData(
     ),
     disabledBorder: kOutlineInputBorder.copyWith(
       borderSide: BorderSide(
-        color: Colors.white.withOpacity(0.1),
+        color: Colors.white.withValues(alpha: 0.1),
       ),
     ),
     focusedBorder: kOutlineInputBorder.copyWith(
@@ -91,4 +119,5 @@ final ThemeData newDarkTheme = ThemeData(
       ),
     ),
   ),
+  scaffoldBackgroundColor: AppColors.backgroundDark
 );

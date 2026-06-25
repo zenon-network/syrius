@@ -107,7 +107,7 @@ class _StartNativeSwapModalState extends State<StartNativeSwapModal> {
                     suffixIcon: RawMaterialButton(
                       shape: const CircleBorder(),
                       onPressed: () {
-                        ClipboardUtils.pasteToClipboard(context,
+                        ClipboardUtils.pasteToClipboard(callback:
                             (String value) {
                           _counterpartyAddressController.text = value;
                           setState(() {});

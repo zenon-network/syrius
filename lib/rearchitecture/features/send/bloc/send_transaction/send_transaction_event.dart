@@ -40,6 +40,7 @@ class SendTransactionInitiateFromBlock extends SendTransactionEvent {
   SendTransactionInitiateFromBlock({
     required this.block,
     required this.fromAddress,
+    required this.reasonForGeneratingPlasma,
   });
 
   /// The account block template representing the transfer.
@@ -47,6 +48,10 @@ class SendTransactionInitiateFromBlock extends SendTransactionEvent {
 
   /// The address from which the payment is sent.
   final String fromAddress;
+
+  /// The reason for generating plasma that will be displayed to the user, in a
+  /// notification.
+  final String reasonForGeneratingPlasma;
 
   @override
   List<Object?> get props => <Object?>[block, fromAddress];

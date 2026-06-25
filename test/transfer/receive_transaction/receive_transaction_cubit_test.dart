@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -9,7 +11,6 @@ import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 import '../../helpers/hydrated_bloc.dart';
 
-class MockZenon extends Mock implements Zenon {}
 
 class MockAutoReceiveTxWorker extends Mock implements AutoReceiveTxWorker {}
 
@@ -37,12 +38,13 @@ void main() {
         mockAutoReceiveTxWorker,
       );
 
-      when(() => mockAutoReceiveTxWorker.autoReceiveTransactionHash(any()))
-          .thenAnswer((_) async => testAccBlockTemplate);
+      when(
+        () => mockAutoReceiveTxWorker.autoReceiveTransactionHash(any()),
+      ).thenAnswer((_) async => testAccBlockTemplate);
     });
 
     tearDown(() {
-      receiveTransactionCubit.close();
+      unawaited(receiveTransactionCubit.close());
     });
 
     test('initial state is correct', () {
@@ -59,8 +61,8 @@ void main() {
         final Map<String, dynamic>? serialized = receiveTransactionCubit.toJson(
           initialState,
         );
-        final ReceiveTransactionState? deserialized =
-            receiveTransactionCubit.fromJson(serialized!);
+        final ReceiveTransactionState? deserialized = receiveTransactionCubit
+            .fromJson(serialized!);
 
         expect(deserialized, equals(initialState));
       });
@@ -73,10 +75,10 @@ void main() {
         final Map<String, dynamic>? serialized = receiveTransactionCubit.toJson(
           loadingState,
         );
-        final ReceiveTransactionState? deserialized =
-            receiveTransactionCubit.fromJson(
-          serialized!,
-        );
+        final ReceiveTransactionState? deserialized = receiveTransactionCubit
+            .fromJson(
+              serialized!,
+            );
         expect(deserialized, equals(loadingState));
       });
 
@@ -89,10 +91,10 @@ void main() {
         final Map<String, dynamic>? serialized = receiveTransactionCubit.toJson(
           successState,
         );
-        final ReceiveTransactionState? deserialized =
-            receiveTransactionCubit.fromJson(
-          serialized!,
-        );
+        final ReceiveTransactionState? deserialized = receiveTransactionCubit
+            .fromJson(
+              serialized!,
+            );
         expect(deserialized, isA<ReceiveTransactionState>());
         expect(deserialized!.status, equals(ReceiveTransactionStatus.success));
         expect(deserialized.data, isA<AccountBlockTemplate?>());
@@ -107,10 +109,10 @@ void main() {
         final Map<String, dynamic>? serialized = receiveTransactionCubit.toJson(
           failureState,
         );
-        final ReceiveTransactionState? deserialized =
-            receiveTransactionCubit.fromJson(
-          serialized!,
-        );
+        final ReceiveTransactionState? deserialized = receiveTransactionCubit
+            .fromJson(
+              serialized!,
+            );
         expect(deserialized, equals(failureState));
       });
     });
@@ -134,8 +136,9 @@ void main() {
     blocTest<ReceiveTransactionCubit, ReceiveTransactionState>(
       'emits [loading, failure] on transaction receipt failure',
       setUp: () {
-        when(() => mockAutoReceiveTxWorker.autoReceiveTransactionHash(any()))
-            .thenThrow(exception);
+        when(
+          () => mockAutoReceiveTxWorker.autoReceiveTransactionHash(any()),
+        ).thenThrow(exception);
       },
       build: () => receiveTransactionCubit,
       act: (ReceiveTransactionCubit cubit) => cubit.receiveTransaction(

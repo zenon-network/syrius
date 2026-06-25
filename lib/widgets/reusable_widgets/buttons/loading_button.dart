@@ -9,7 +9,6 @@ import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 enum ButtonState { busy, idle }
 
 class LoadingButton extends StatefulWidget {
-
   const LoadingButton({
     required this.onPressed,
     required Key key,
@@ -20,7 +19,7 @@ class LoadingButton extends StatefulWidget {
     this.outlineColor,
     this.paddingAroundChild = EdgeInsets.zero,
     this.borderWidth = kDefaultBorderOutlineWidth,
-    this.circularBorderRadius = 6.0,
+    this.circularBorderRadius = 16.0,
     this.textStyle,
   })  : assert(text != null || child != null),
         super(key: key);
@@ -90,6 +89,7 @@ class LoadingButton extends StatefulWidget {
     required Key key,
     EdgeInsets paddingAroundChild = EdgeInsets.zero,
     Color? outlineColor,
+    Color? textColor,
   }) =>
       LoadingButton(
         onPressed: onPressed,
@@ -97,6 +97,7 @@ class LoadingButton extends StatefulWidget {
         key: key,
         outlineColor: outlineColor,
         paddingAroundChild: paddingAroundChild,
+        textStyle: TextStyle(color: textColor),
       );
 
   factory LoadingButton.icon({
@@ -213,7 +214,10 @@ class LoadingButtonState extends State<LoadingButton>
   }
 
   Widget buttonBody() {
+    final Color? textColor = widget.textStyle?.color;
+
     return MyOutlinedButton(
+      textColor: textColor,
       textStyle: widget.textStyle,
       borderWidth: widget.borderWidth,
       outlineColor: widget.outlineColor,
@@ -231,12 +235,12 @@ class LoadingButtonState extends State<LoadingButton>
       padding: widget.paddingAroundChild,
       child: btnState == ButtonState.idle
           ? widget.child ?? Text(widget.text!)
-          : const SizedBox(
-              width: 15,
-              height: 15,
+          : SizedBox.square(
+              dimension: 15,
               child: CircularProgressIndicator(
                 strokeWidth: 1,
-                valueColor: AlwaysStoppedAnimation<Color>(AppColors.znnColor),
+                valueColor: AlwaysStoppedAnimation<Color>(
+                    textColor ?? AppColors.znnColor),
               ),
             ),
     );

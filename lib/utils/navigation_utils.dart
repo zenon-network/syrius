@@ -1,5 +1,5 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:page_transition/page_transition.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
@@ -25,12 +25,12 @@ class NavigationUtils {
     }
   }
 
+  //TODO(maznnwell): check if there is a desire to impose a right-to-left transition
   static void push(context, Widget child) {
     Navigator.push(
       context,
-      PageTransition(
-        child: child,
-        type: PageTransitionType.rightToLeft,
+       MaterialPageRoute<void>(
+         builder: (_) => child,
       ),
     );
   }
@@ -38,9 +38,8 @@ class NavigationUtils {
   static void pushReplacement(context, Widget child) {
     Navigator.pushReplacement(
       context,
-      PageTransition(
-        child: child,
-        type: PageTransitionType.rightToLeft,
+      MaterialPageRoute<void>(
+        builder: (_) => child,
       ),
     );
   }

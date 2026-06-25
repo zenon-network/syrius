@@ -6,7 +6,6 @@ import 'package:flutter/foundation.dart' show kDebugMode, kIsWeb;
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:get_it/get_it.dart';
 import 'package:hive/hive.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
@@ -28,6 +27,7 @@ import 'package:zenon_syrius_wallet_flutter/blocs/wallet_connect/chains/nom_serv
 import 'package:zenon_syrius_wallet_flutter/blocs/wallet_connect/wallet_connect_pairings_bloc.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/wallet_connect/wallet_connect_sessions_bloc.dart';
 import 'package:zenon_syrius_wallet_flutter/handlers/htlc_swaps_handler.dart';
+import 'package:zenon_syrius_wallet_flutter/l10n/app_localizations.dart';
 import 'package:zenon_syrius_wallet_flutter/model/model.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/tokens/cubit/tokens_cubit.dart';
@@ -61,8 +61,8 @@ main() async {
   // Init hydrated bloc storage
   HydratedBloc.storage = await HydratedStorage.build(
     storageDirectory: kIsWeb
-        ? HydratedStorage.webStorageDirectory
-        : await getApplicationDocumentsDirectory(),
+        ? HydratedStorageDirectory.web
+        : HydratedStorageDirectory((await getTemporaryDirectory()).path),
   );
   Provider.debugCheckInvalidValueType = null;
 
@@ -102,11 +102,9 @@ main() async {
   // Setup services
   setup();
 
-  retry(
-    () => web3WalletService!.init(),
-    retryIf: (Exception e) => e is SocketException || e is TimeoutException,
-    maxAttempts: 0x7FFFFFFFFFFFFFFF,
-  );
+  retry(() => web3WalletService!.init(),
+      retryIf: (e) => e is SocketException || e is TimeoutException,
+      maxAttempts: 0x7FFFFFFFFFFFFFFF);
 
   // Setup local_notifier
   await localNotifier.setup(
@@ -327,106 +325,104 @@ class _MyAppState extends State<MyApp> with WindowListener, TrayListener {
         ),
       ],
       child: MultiProvider(
-        providers: <SingleChildWidget>[
-          ChangeNotifierProvider<SelectedAddressNotifier>(
-            create: (_) => SelectedAddressNotifier(),
+        providers: <SingleChildWidget>[ChangeNotifierProvider<SelectedAddressNotifier>(
+          create: (_) => SelectedAddressNotifier(),
+        ),
+        ChangeNotifierProvider<PlasmaBeneficiaryAddressNotifier>(
+          create: (_) => PlasmaBeneficiaryAddressNotifier(),
+        ),
+        ChangeNotifierProvider<PlasmaGeneratedNotifier>(
+          create: (_) => PlasmaGeneratedNotifier(),
+        ),
+        ChangeNotifierProvider<TextScalingNotifier>(
+          create: (_) => TextScalingNotifier(),
+        ),
+        ChangeNotifierProvider<AppThemeNotifier>(
+          create: (_) => AppThemeNotifier(),
+        ),
+        ChangeNotifierProvider<ValueNotifier<List<String>>>(
+          create: (_) => ValueNotifier<List<String>>(
+            <String>[],
           ),
-          ChangeNotifierProvider<PlasmaBeneficiaryAddressNotifier>(
-            create: (_) => PlasmaBeneficiaryAddressNotifier(),
-          ),
-          ChangeNotifierProvider<PlasmaGeneratedNotifier>(
-            create: (_) => PlasmaGeneratedNotifier(),
-          ),
-          ChangeNotifierProvider<TextScalingNotifier>(
-            create: (_) => TextScalingNotifier(),
-          ),
-          ChangeNotifierProvider<AppThemeNotifier>(
-            create: (_) => AppThemeNotifier(),
-          ),
-          ChangeNotifierProvider<ValueNotifier<List<String>>>(
-            create: (_) => ValueNotifier<List<String>>(
-              <String>[],
-            ),
-          ),
-          Provider<LockBloc>(
-            create: (_) => LockBloc(),
-            builder: (BuildContext context, Widget? child) {
-              return Consumer<AppThemeNotifier>(
-                builder: (_, AppThemeNotifier appThemeNotifier, __) {
-                  final LockBloc lockBloc =
-                      Provider.of<LockBloc>(context, listen: false);
-                  return OverlaySupport(
-                    child: Listener(
-                      onPointerSignal: (PointerSignalEvent event) {
-                        if (event is PointerScrollEvent) {
+        ),
+        Provider<LockBloc>(
+          create: (_) => LockBloc(),
+          builder: (BuildContext context, Widget? child) {
+            return Consumer<AppThemeNotifier>(
+              builder: (_, AppThemeNotifier appThemeNotifier, __) {
+                final LockBloc lockBloc =
+                    Provider.of<LockBloc>(context, listen: false);
+                return OverlaySupport(
+                  child: Listener(
+                    onPointerSignal: (PointerSignalEvent event) {
+                      if (event is PointerScrollEvent) {
+                        lockBloc.addEvent(LockEvent.resetTimer);
+                      }
+                    },
+                    onPointerCancel: (_) =>
+                        lockBloc.addEvent(LockEvent.resetTimer),
+                    onPointerDown: (_) =>
+                        lockBloc.addEvent(LockEvent.resetTimer),
+                    onPointerHover: (_) =>
+                        lockBloc.addEvent(LockEvent.resetTimer),
+                    onPointerMove: (_) =>
+                        lockBloc.addEvent(LockEvent.resetTimer),
+                    onPointerUp: (_) => lockBloc.addEvent(LockEvent.resetTimer),
+                    child: MouseRegion(
+                      onEnter: (_) => lockBloc.addEvent(LockEvent.resetTimer),
+                      onExit: (_) => lockBloc.addEvent(LockEvent.resetTimer),
+                      child: KeyboardListener(
+                        focusNode: FocusNode(),
+                        onKeyEvent: (KeyEvent event) {
                           lockBloc.addEvent(LockEvent.resetTimer);
-                        }
-                      },
-                      onPointerCancel: (_) =>
-                          lockBloc.addEvent(LockEvent.resetTimer),
-                      onPointerDown: (_) =>
-                          lockBloc.addEvent(LockEvent.resetTimer),
-                      onPointerHover: (_) =>
-                          lockBloc.addEvent(LockEvent.resetTimer),
-                      onPointerMove: (_) =>
-                          lockBloc.addEvent(LockEvent.resetTimer),
-                      onPointerUp: (_) => lockBloc.addEvent(LockEvent.resetTimer),
-                      child: MouseRegion(
-                        onEnter: (_) => lockBloc.addEvent(LockEvent.resetTimer),
-                        onExit: (_) => lockBloc.addEvent(LockEvent.resetTimer),
-                        child: KeyboardListener(
-                          focusNode: FocusNode(),
-                          onKeyEvent: (KeyEvent event) {
-                            lockBloc.addEvent(LockEvent.resetTimer);
-                          },
-                          child: Layout(
-                            child: MaterialApp(
-                              title: 's y r i u s',
-                              navigatorKey: globalNavigatorKey,
-                              debugShowCheckedModeBanner: false,
-                              theme: AppTheme.lightTheme,
-                              darkTheme: AppTheme.darkTheme,
-                              themeMode: appThemeNotifier.currentThemeMode,
-                              initialRoute: SplashScreen.route,
-                              scrollBehavior: RemoveOverscrollEffect(),
-                              localizationsDelegates:
-                                  AppLocalizations.localizationsDelegates,
-                              supportedLocales: AppLocalizations.supportedLocales,
-                              routes: <String, WidgetBuilder>{
-                                AccessWalletScreen.route:
-                                    (BuildContext context) =>
-                                        const AccessWalletScreen(),
-                                SplashScreen.route: (BuildContext context) =>
-                                    const SplashScreen(),
-                                MainAppContainer.route: (BuildContext context) =>
-                                    const MainAppContainer(),
-                                NodeManagementScreen.route: (_) =>
-                                    const NodeManagementScreen(),
-                              },
-                              onGenerateRoute: (RouteSettings settings) {
-                                if (settings.name == SyriusErrorWidget.route) {
-                                  final CustomSyriusErrorWidgetArguments args =
-                                      settings.arguments!
-                                          as CustomSyriusErrorWidgetArguments;
-                                  return MaterialPageRoute(
-                                    builder: (BuildContext context) =>
-                                        SyriusErrorWidget(args.errorText),
-                                  );
-                                }
-                                return null;
-                              },
-                            ),
+                        },
+                        child: Layout(
+                          child: MaterialApp(
+                            title: 's y r i u s',
+                            navigatorKey: globalNavigatorKey,
+                            debugShowCheckedModeBanner: false,
+                            theme: AppTheme.lightTheme,
+                            darkTheme: AppTheme.darkTheme,
+                            themeMode: appThemeNotifier.currentThemeMode,
+                            initialRoute: SplashScreen.route,
+                            scrollBehavior: RemoveOverscrollEffect(),
+                            localizationsDelegates:
+                                AppLocalizations.localizationsDelegates,
+                            supportedLocales: AppLocalizations.supportedLocales,
+                            routes: <String, WidgetBuilder>{
+                              AccessWalletScreen.route:
+                                  (BuildContext context) =>
+                                      const AccessWalletScreen(),
+                              SplashScreen.route: (BuildContext context) =>
+                                  const SplashScreen(),
+                              MainAppContainer.route: (BuildContext context) =>
+                                  const MainAppContainer(),
+                              NodeManagementScreen.route: (_) =>
+                                  const NodeManagementScreen(),
+                            },
+                            onGenerateRoute: (RouteSettings settings) {
+                              if (settings.name == SyriusErrorWidget.route) {
+                                final CustomSyriusErrorWidgetArguments args =
+                                    settings.arguments!
+                                        as CustomSyriusErrorWidgetArguments;
+                                return MaterialPageRoute(
+                                  builder: (BuildContext context) =>
+                                      SyriusErrorWidget(args.errorText),
+                                );
+                              }
+                              return null;
+                            },
                           ),
                         ),
                       ),
                     ),
-                  );
-                },
-              );
-            },
-          ),
-        ],
-      ),
+                  ),
+                );
+              },
+            );
+          },
+        ),
+      ],),
     );
   }
 

@@ -13,7 +13,7 @@ class SendCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return NewCardScaffold(
-      data: CardType.send.getData(context: context),
+      data: _buildCardData(context: context),
       onRefreshPressed: () {
         sl.get<MultipleBalanceBloc>().add(
           MultipleBalanceFetch(
@@ -33,4 +33,9 @@ class SendCard extends StatelessWidget {
       ),
     );
   }
+
+  CardData _buildCardData({required BuildContext context}) => CardData(
+    title: context.l10n.send,
+    description: context.l10n.manageSendingFunds,
+  );
 }

@@ -1,66 +1,53 @@
 import 'package:flutter/material.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/extensions/buildcontext_extension.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 
 class StepperScreen extends StatelessWidget {
-
   const StepperScreen({
     required this.stepper,
     required this.onStepperNotificationSeeMorePressed,
     super.key,
   });
+
   final VoidCallback onStepperNotificationSeeMorePressed;
   final Widget stepper;
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Container(
-        margin: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: <Widget>[
-            NotificationWidget(
-              onSeeMorePressed: onStepperNotificationSeeMorePressed,
-            ),
-            Expanded(
-              child: Container(
-                decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.primary,
-                  borderRadius: BorderRadius.circular(
-                    15,
+    //TODO: to delete Theme widget once only the new theme is being used
+    return Theme(
+      data: context.newThemeData,
+      child: Scaffold(
+        body: Container(
+          margin: const EdgeInsets.all(20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: <Widget>[
+              NotificationWidget(
+                onSeeMorePressed: onStepperNotificationSeeMorePressed,
+              ),
+              Expanded(
+                child: Card.filled(
+                  child: Stack(
+                    fit: StackFit.expand,
+                    children: <Widget>[
+                      stepper,
+                      Positioned(
+                        top: 10,
+                        right: 10,
+                        child: IconButton(
+                          onPressed: () {
+                            Navigator.pop(context);
+                          },
+                          icon: const Icon(Icons.clear),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-                child: Stack(
-                  fit: StackFit.expand,
-                  children: <Widget>[
-                    stepper,
-                    Positioned(
-                      top: 0,
-                      right: 0,
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.end,
-                        children: <Widget>[
-                          RawMaterialButton(
-                            constraints: const BoxConstraints.tightForFinite(),
-                            materialTapTargetSize:
-                                MaterialTapTargetSize.shrinkWrap,
-                            padding: const EdgeInsets.all(20),
-                            shape: const CircleBorder(),
-                            onPressed: () {
-                              Navigator.pop(context);
-                            },
-                            child: const Icon(
-                              Icons.clear,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

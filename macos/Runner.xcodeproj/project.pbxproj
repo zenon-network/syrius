@@ -12,7 +12,7 @@
 			buildConfigurationList = 33CC111B2044C6BA0003C045 /* Build configuration list for PBXAggregateTarget "Flutter Assemble" */;
 			buildPhases = (
 				96A0E3322987BEC500EDD131 /* ShellScript */,
-				33CC111E2044C6BF0003C045 /* ShellScript */,
+				33CC111E2044C6BF0003C045 /* Run Script */,
 			);
 			dependencies = (
 			);
@@ -28,10 +28,11 @@
 		33CC10F62044A3C60003C045 /* MainMenu.xib in Resources */ = {isa = PBXBuildFile; fileRef = 33CC10F42044A3C60003C045 /* MainMenu.xib */; };
 		33CC11132044BFA00003C045 /* MainFlutterWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33CC11122044BFA00003C045 /* MainFlutterWindow.swift */; };
 		74B27E3AADF4DA759158BD4B /* Pods_Runner.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E5DFBCCB2F3B416824983EAB /* Pods_Runner.framework */; };
-		9631FB752956060A007ED711 /* ../lib/embedded_node/blobs/libznn.dylib in Resources */ = {isa = PBXBuildFile; fileRef = 04CC766027C81F7E00DBC357 /* ../lib/embedded_node/blobs/libznn.dylib */; };
+		9631FB752956060A007ED711 /* libznn.dylib in Resources */ = {isa = PBXBuildFile; fileRef = 04CC766027C81F7E00DBC357 /* libznn.dylib */; };
 		9631FB86295610FB007ED711 /* libargon2_ffi.dylib in Resources */ = {isa = PBXBuildFile; fileRef = 9631FB7A29560ECB007ED711 /* libargon2_ffi.dylib */; };
 		9631FB87295610FF007ED711 /* libpow_links.dylib in Resources */ = {isa = PBXBuildFile; fileRef = 9631FB8229560F53007ED711 /* libpow_links.dylib */; };
 		9631FB88295610FF007ED711 /* libledger_ffi.dylib in Resources */ = {isa = PBXBuildFile; fileRef = 9631FB8A29561054007ED711 /* libledger_ffi.dylib */; };
+		78A318202AECB46A00862997 /* FlutterGeneratedPluginSwiftPackage in Frameworks */ = {isa = PBXBuildFile; productRef = 78A3181F2AECB46A00862997 /* FlutterGeneratedPluginSwiftPackage */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -58,7 +59,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		04CC766027C81F7E00DBC357 /* ../lib/embedded_node/blobs/libznn.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; path = ../lib/embedded_node/blobs/libznn.dylib; sourceTree = "<group>"; };
+		04CC766027C81F7E00DBC357 /* libznn.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; path = ../lib/embedded_node/blobs/libznn.dylib; sourceTree = "<group>"; };
 		159BBDEDF6B164A788D81F92 /* Pods-Runner.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Runner.debug.xcconfig"; path = "Target Support Files/Pods-Runner/Pods-Runner.debug.xcconfig"; sourceTree = "<group>"; };
 		333000ED22D3DE5D00554162 /* Warnings.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Warnings.xcconfig; sourceTree = "<group>"; };
 		335BBD1A22A9A15E00E9071D /* GeneratedPluginRegistrant.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = GeneratedPluginRegistrant.swift; sourceTree = "<group>"; };
@@ -82,6 +83,7 @@
 		9740EEB21CF90195004384FC /* Debug.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; path = Debug.xcconfig; sourceTree = "<group>"; };
 		DDCA1E2CBCCC96B9436CF502 /* Pods-Runner.profile.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Runner.profile.xcconfig"; path = "Target Support Files/Pods-Runner/Pods-Runner.profile.xcconfig"; sourceTree = "<group>"; };
 		E5DFBCCB2F3B416824983EAB /* Pods_Runner.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Runner.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		78E0A7A72DC9AD7400C4905E /* FlutterGeneratedPluginSwiftPackage */ = {isa = PBXFileReference; lastKnownFileType = wrapper; name = FlutterGeneratedPluginSwiftPackage; path = ephemeral/Packages/FlutterGeneratedPluginSwiftPackage; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -89,6 +91,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				78A318202AECB46A00862997 /* FlutterGeneratedPluginSwiftPackage in Frameworks */,
 				74B27E3AADF4DA759158BD4B /* Pods_Runner.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -132,7 +135,7 @@
 				9631FB7A29560ECB007ED711 /* libargon2_ffi.dylib */,
 				9631FB8229560F53007ED711 /* libpow_links.dylib */,
 				9631FB8A29561054007ED711 /* libledger_ffi.dylib */,
-				04CC766027C81F7E00DBC357 /* ../lib/embedded_node/blobs/libznn.dylib */,
+				04CC766027C81F7E00DBC357 /* libznn.dylib */,
 				33CC10F22044A3C60003C045 /* Assets.xcassets */,
 				33CC10F42044A3C60003C045 /* MainMenu.xib */,
 				33CC10F72044A3C60003C045 /* Info.plist */,
@@ -144,6 +147,7 @@
 		33CEB47122A05771004F2AC0 /* Flutter */ = {
 			isa = PBXGroup;
 			children = (
+				78E0A7A72DC9AD7400C4905E /* FlutterGeneratedPluginSwiftPackage */,
 				335BBD1A22A9A15E00E9071D /* GeneratedPluginRegistrant.swift */,
 				33CEB47222A05771004F2AC0 /* Flutter-Debug.xcconfig */,
 				33CEB47422A05771004F2AC0 /* Flutter-Release.xcconfig */,
@@ -187,6 +191,9 @@
 
 /* Begin PBXNativeTarget section */
 		33CC10EC2044A3C60003C045 /* Runner */ = {
+			packageProductDependencies = (
+				78A3181F2AECB46A00862997 /* FlutterGeneratedPluginSwiftPackage */,
+			);
 			isa = PBXNativeTarget;
 			buildConfigurationList = 33CC10FB2044A3C60003C045 /* Build configuration list for PBXNativeTarget "Runner" */;
 			buildPhases = (
@@ -214,8 +221,12 @@
 
 /* Begin PBXProject section */
 		33CC10E52044A3C60003C045 /* Project object */ = {
+			packageReferences = (
+				781AD8BC2B33823900A9FFBB /* XCLocalSwiftPackageReference "Flutter/ephemeral/Packages/FlutterGeneratedPluginSwiftPackage" */,
+			);
 			isa = PBXProject;
 			attributes = {
+				BuildIndependentTargetsInParallel = YES;
 				LastSwiftUpdateCheck = 0920;
 				LastUpgradeCheck = 1510;
 				ORGANIZATIONNAME = "";
@@ -263,7 +274,7 @@
 				9631FB87295610FF007ED711 /* libpow_links.dylib in Resources */,
 				9631FB86295610FB007ED711 /* libargon2_ffi.dylib in Resources */,
 				9631FB88295610FF007ED711 /* libledger_ffi.dylib in Resources */,
-				9631FB752956060A007ED711 /* ../lib/embedded_node/blobs/libznn.dylib in Resources */,
+				9631FB752956060A007ED711 /* libznn.dylib in Resources */,
 				33CC10F32044A3C60003C045 /* Assets.xcassets in Resources */,
 				33CC10F62044A3C60003C045 /* MainMenu.xib in Resources */,
 			);
@@ -313,7 +324,7 @@
 			shellPath = /bin/sh;
 			shellScript = "echo \"$PRODUCT_NAME.app\" > \"$PROJECT_DIR\"/Flutter/ephemeral/.app_filename && \"$FLUTTER_ROOT\"/packages/flutter_tools/bin/macos_assemble.sh embed\n";
 		};
-		33CC111E2044C6BF0003C045 /* ShellScript */ = {
+		33CC111E2044C6BF0003C045 /* Run Script */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -324,6 +335,7 @@
 			inputPaths = (
 				Flutter/ephemeral/tripwire,
 			);
+			name = "Run Script";
 			outputFileListPaths = (
 				Flutter/ephemeral/FlutterOutputs.xcfilelist,
 			);
@@ -382,7 +394,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "OUTPUT_DIRECTORY=\"./\"\n\nPACKAGE_CONFIG=\"../.dart_tool/package_config_subset\"\n\n# Locate the line containing the desired path for znn_sdk_dart (not ending with /lib/)\nZNN_SDK_DART_PATH=$(grep \"file:///.*znn_sdk_dart\" $PACKAGE_CONFIG | grep -v \"/lib/\" | sed 's|file:///||' | sed 's|//|/|g')\n\n# Ensure the path starts with a slash for macOS or Unix-based systems\nZNN_SDK_DART_PATH=\"/$ZNN_SDK_DART_PATH\"\n\nSYRIUS_LIBRARIES=(\n  \"$ZNN_SDK_DART_PATH/lib/src/argon2/blobs/libargon2_ffi.dylib\"\n  \"$ZNN_SDK_DART_PATH/lib/src/pow/blobs/libpow_links.dylib\"\n)\n\necho \"$OUTPUT_DIRECTORY\"\n\nfor znn_library in ${SYRIUS_LIBRARIES[@]}; do\n  # Clean up any accidental double slashes in the paths\n  znn_library=$(echo $znn_library | sed 's|//|/|g')\n  echo \"Copy ZNN library: $znn_library\"\n  cp $znn_library \"$OUTPUT_DIRECTORY\"\ndone\n";
+			shellScript = "OUTPUT_DIRECTORY=\"./\"\n\nPACKAGE_CONFIG=\"../.dart_tool/package_config.json\"\nZNN_SDK_DART_PATH=`cat $PACKAGE_CONFIG | grep git/znn_sdk_dart | sed 's/\"rootUri\": \"file:\\/\\///' | sed 's/\\/\",//' | xargs`  \n\nSYRIUS_LIBRARIES=(\n  \"$ZNN_SDK_DART_PATH/lib/src/argon2/blobs/libargon2_ffi.dylib\"\n  \"$ZNN_SDK_DART_PATH/lib/src/pow/blobs/libpow_links.dylib\"\n)\n\necho \"$OUTPUT_DIRECTORY\"\n\nfor znn_library in ${SYRIUS_LIBRARIES[@]}; do\n  echo \"Copy ZNN library: $znn_library\"\n  cp $znn_library \"$OUTPUT_DIRECTORY\"\ndone\n";
 		};
 		96DA2500296EB70F00545E88 /* ShellScript */ = {
 			isa = PBXShellScriptBuildPhase;
@@ -399,7 +411,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "OUTPUT_DIRECTORY=\"./\"\n\nPACKAGE_CONFIG=\"../.dart_tool/package_config_subset\"\n\n# Locate the line containing the desired path for znn_ledger_dart (not ending with /lib/)\nZNN_LEDGER_DART_PATH=$(grep \"file:///.*znn_ledger_dart\" $PACKAGE_CONFIG | grep -v \"/lib/\" | sed 's|file:///||' | sed 's|//|/|g')\n\n# Ensure the path starts with a slash for macOS or Unix-based systems\nZNN_LEDGER_DART_PATH=\"/$ZNN_LEDGER_DART_PATH\"\n\nSYRIUS_LIBRARIES=(\n  \"$ZNN_LEDGER_DART_PATH/lib/src/ledger/blobs/libledger_ffi.dylib\"\n)\n\necho \"$OUTPUT_DIRECTORY\"\n\nfor znn_library in ${SYRIUS_LIBRARIES[@]}; do\n  # Clean up any accidental double slashes in the paths\n  znn_library=$(echo $znn_library | sed 's|//|/|g')\n  echo \"Copy ZNN library: $znn_library\"\n  cp $znn_library \"$OUTPUT_DIRECTORY\"\ndone\n";
+			shellScript = "OUTPUT_DIRECTORY=\"./\"\n\nPACKAGE_CONFIG=\"../.dart_tool/package_config.json\"\nZNN_LEDGER_DART_PATH=`cat $PACKAGE_CONFIG | grep git/znn_ledger_dart | sed 's/\"rootUri\": \"file:\\/\\///' | sed 's/\\/\",//' | xargs`  \n\nSYRIUS_LIBRARIES=(\n  \"$ZNN_LEDGER_DART_PATH/lib/src/ledger/blobs/libledger_ffi.dylib\"\n)\n\necho \"$OUTPUT_DIRECTORY\"\n\nfor znn_library in ${SYRIUS_LIBRARIES[@]}; do\n  echo \"Copy ZNN library: $znn_library\"\n  cp $znn_library \"$OUTPUT_DIRECTORY\"\ndone\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 
@@ -469,6 +481,7 @@
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
@@ -479,6 +492,7 @@
 				MACOSX_DEPLOYMENT_TARGET = "$(RECOMMENDED_MACOSX_DEPLOYMENT_TARGET)";
 				MTL_ENABLE_DEBUG_INFO = NO;
 				SDKROOT = macosx;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_COMPILATION_MODE = wholemodule;
 				SWIFT_OPTIMIZATION_LEVEL = "-O";
 			};
@@ -493,6 +507,11 @@
 				CODE_SIGN_ENTITLEMENTS = Runner/DebugProfile.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
+				ENABLE_APP_SANDBOX = YES;
+				ENABLE_INCOMING_NETWORK_CONNECTIONS = YES;
+				ENABLE_OUTGOING_NETWORK_CONNECTIONS = YES;
+				ENABLE_RESOURCE_ACCESS_CAMERA = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				INFOPLIST_FILE = Runner/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -502,10 +521,11 @@
 					"$(inherited)",
 					"$(PROJECT_DIR)",
 				);
-				MACOSX_DEPLOYMENT_TARGET = "$(RECOMMENDED_MACOSX_DEPLOYMENT_TARGET)";
-				MARKETING_VERSION = "v0.2.2-alphanet";
+				MACOSX_DEPLOYMENT_TARGET = 11.0;
+				MARKETING_VERSION = "v0.2.5-alphanet";
 				PRODUCT_BUNDLE_IDENTIFIER = network.zenon.syrius;
 				PROVISIONING_PROFILE_SPECIFIER = "";
+				RUNTIME_EXCEPTION_ALLOW_JIT = YES;
 				SWIFT_VERSION = 5.0;
 			};
 			name = Profile;
@@ -515,7 +535,7 @@
 			buildSettings = {
 				CODE_SIGN_STYLE = Manual;
 				DEAD_CODE_STRIPPING = YES;
-				MACOSX_DEPLOYMENT_TARGET = "$(RECOMMENDED_MACOSX_DEPLOYMENT_TARGET)";
+				MACOSX_DEPLOYMENT_TARGET = 11.0;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Profile;
@@ -552,6 +572,7 @@
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_NO_COMMON_BLOCKS = YES;
@@ -569,6 +590,7 @@
 				MTL_ENABLE_DEBUG_INFO = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = macosx;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 			};
@@ -606,6 +628,7 @@
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
@@ -616,6 +639,7 @@
 				MACOSX_DEPLOYMENT_TARGET = "$(RECOMMENDED_MACOSX_DEPLOYMENT_TARGET)";
 				MTL_ENABLE_DEBUG_INFO = NO;
 				SDKROOT = macosx;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_COMPILATION_MODE = wholemodule;
 				SWIFT_OPTIMIZATION_LEVEL = "-O";
 			};
@@ -630,6 +654,11 @@
 				CODE_SIGN_ENTITLEMENTS = Runner/DebugProfile.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
+				ENABLE_APP_SANDBOX = YES;
+				ENABLE_INCOMING_NETWORK_CONNECTIONS = YES;
+				ENABLE_OUTGOING_NETWORK_CONNECTIONS = YES;
+				ENABLE_RESOURCE_ACCESS_CAMERA = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				INFOPLIST_FILE = Runner/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -639,10 +668,11 @@
 					"$(inherited)",
 					"$(PROJECT_DIR)",
 				);
-				MACOSX_DEPLOYMENT_TARGET = "$(RECOMMENDED_MACOSX_DEPLOYMENT_TARGET)";
-				MARKETING_VERSION = "v0.2.2-alphanet";
+				MACOSX_DEPLOYMENT_TARGET = 11.0;
+				MARKETING_VERSION = "v0.2.5-alphanet";
 				PRODUCT_BUNDLE_IDENTIFIER = network.zenon.syrius;
 				PROVISIONING_PROFILE_SPECIFIER = "";
+				RUNTIME_EXCEPTION_ALLOW_JIT = YES;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
 			};
@@ -657,6 +687,11 @@
 				CODE_SIGN_ENTITLEMENTS = Runner/Release.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
+				ENABLE_APP_SANDBOX = YES;
+				ENABLE_INCOMING_NETWORK_CONNECTIONS = YES;
+				ENABLE_OUTGOING_NETWORK_CONNECTIONS = YES;
+				ENABLE_RESOURCE_ACCESS_CAMERA = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				INFOPLIST_FILE = Runner/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -666,10 +701,11 @@
 					"$(inherited)",
 					"$(PROJECT_DIR)",
 				);
-				MACOSX_DEPLOYMENT_TARGET = "$(RECOMMENDED_MACOSX_DEPLOYMENT_TARGET)";
-				MARKETING_VERSION = "v0.2.2-alphanet";
+				MACOSX_DEPLOYMENT_TARGET = 11.0;
+				MARKETING_VERSION = "v0.2.5-alphanet";
 				PRODUCT_BUNDLE_IDENTIFIER = network.zenon.syrius;
 				PROVISIONING_PROFILE_SPECIFIER = "";
+				RUNTIME_EXCEPTION_ALLOW_JIT = YES;
 				SWIFT_VERSION = 5.0;
 			};
 			name = Release;
@@ -679,7 +715,7 @@
 			buildSettings = {
 				CODE_SIGN_STYLE = Manual;
 				DEAD_CODE_STRIPPING = YES;
-				MACOSX_DEPLOYMENT_TARGET = "$(RECOMMENDED_MACOSX_DEPLOYMENT_TARGET)";
+				MACOSX_DEPLOYMENT_TARGET = 11.0;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
@@ -689,7 +725,7 @@
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
 				DEAD_CODE_STRIPPING = YES;
-				MACOSX_DEPLOYMENT_TARGET = "$(RECOMMENDED_MACOSX_DEPLOYMENT_TARGET)";
+				MACOSX_DEPLOYMENT_TARGET = 11.0;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
@@ -728,6 +764,18 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+/* Begin XCLocalSwiftPackageReference section */
+		781AD8BC2B33823900A9FFBB /* XCLocalSwiftPackageReference "Flutter/ephemeral/Packages/FlutterGeneratedPluginSwiftPackage" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = Flutter/ephemeral/Packages/FlutterGeneratedPluginSwiftPackage;
+		};
+/* End XCLocalSwiftPackageReference section */
+/* Begin XCSwiftPackageProductDependency section */
+		78A3181F2AECB46A00862997 /* FlutterGeneratedPluginSwiftPackage */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = FlutterGeneratedPluginSwiftPackage;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 33CC10E52044A3C60003C045 /* Project object */;
 }

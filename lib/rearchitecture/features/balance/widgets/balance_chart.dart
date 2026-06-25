@@ -70,7 +70,9 @@ class BalanceChart extends StatelessWidget {
       title: token.tokenStandard.toString(),
       showTitle: false,
       radius: 7,
-      color: ColorUtils.getTokenColor(token.tokenStandard).withOpacity(opacity),
+      color: ColorUtils.getTokenColor(token.tokenStandard).withValues(
+        alpha: opacity,
+      ),
       value: value,
     );
   }

@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/refresh_button/view/view.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/constants/constants.dart';
 
 /// A widget showing a [title] along with some icon buttons
@@ -13,8 +15,10 @@ class CardScaffoldHeader extends StatelessWidget {
 
   /// Title that will appear in the header.
   final String title;
+
   /// Callback triggered when the more icon is pressed.
   final VoidCallback onMoreIconPressed;
+
   /// Optional callback that can be trigger from the refresh icon.
   final VoidCallback? onRefreshPressed;
 
@@ -43,13 +47,8 @@ class CardScaffoldHeader extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           mainAxisAlignment: MainAxisAlignment.end,
           children: <Widget>[
-            Visibility(
-              visible: onRefreshPressed != null,
-              child: IconButton(
-                icon: const Icon(Icons.refresh),
-                onPressed: onRefreshPressed,
-              ),
-            ),
+            if (onRefreshPressed != null)
+              RefreshButton(onPressed: onRefreshPressed!,),
             IconButton(
               icon: const Icon(Icons.more_horiz),
               onPressed: onMoreIconPressed,

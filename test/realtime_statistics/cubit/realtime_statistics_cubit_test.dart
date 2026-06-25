@@ -7,7 +7,6 @@ import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/exceptions/exce
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
-
 import '../../helpers/hydrated_bloc.dart';
 
 class MockZenon extends Mock implements Zenon {}
@@ -18,12 +17,7 @@ class MockLedger extends Mock implements LedgerApi {}
 
 class FakeAddress extends Fake implements Address {}
 
-class MockAccountBlock extends Mock implements AccountBlock {}
-
 class MockMomentum extends Mock implements Momentum {}
-
-class MockAccountBlockList extends Mock implements AccountBlockList {}
-
 
 void main() {
   initHydratedStorage();
@@ -83,18 +77,17 @@ void main() {
       accountBlock = AccountBlock.fromJson(accountBlockJson);
 
       final AccountBlockList accountBlockList = AccountBlockList(
-          count: 1,
-          list: <AccountBlock>[accountBlock],
-          more: false,
+        count: 1,
+        list: <AccountBlock>[accountBlock],
+        more: false,
       );
-
 
       mockZenon = MockZenon();
       mockLedger = MockLedger();
       mockWsClient = MockWsClient();
       statsCubit = RealtimeStatisticsCubit(
-          address: emptyAddress,
-          zenon: mockZenon,
+        address: emptyAddress,
+        zenon: mockZenon,
       );
       statsException = NoBlocksAvailableException();
       mockMomentum = MockMomentum();
@@ -102,13 +95,15 @@ void main() {
       when(() => mockZenon.wsClient).thenReturn(mockWsClient);
       when(() => mockWsClient.isClosed()).thenReturn(false);
       when(() => mockZenon.ledger).thenReturn(mockLedger);
-      when(() => mockLedger.getFrontierMomentum())
-          .thenAnswer((_) async => mockMomentum);
-      when(() => mockMomentum.height)
-          .thenReturn(kMomentumsPerWeek + 100);
-      when(() => mockLedger.getAccountBlocksByPage(any(),
-        pageIndex: any(named: 'pageIndex'),
-        pageSize: any(named: 'pageSize'),
+      when(
+        () => mockLedger.getFrontierMomentum(),
+      ).thenAnswer((_) async => mockMomentum);
+      when(() => mockMomentum.height).thenReturn(kMomentumsPerWeek + 100);
+      when(
+        () => mockLedger.getAccountBlocksByPage(
+          any(),
+          pageIndex: any(named: 'pageIndex'),
+          pageSize: any(named: 'pageSize'),
         ),
       ).thenAnswer((_) async => accountBlockList);
     });
@@ -182,10 +177,11 @@ void main() {
         act: (RealtimeStatisticsCubit cubit) => cubit.fetch(),
         verify: (_) {
           verify(() => mockLedger.getFrontierMomentum()).called(1);
-          verify(() => mockLedger.getAccountBlocksByPage(
+          verify(
+            () => mockLedger.getAccountBlocksByPage(
               any(),
-            pageIndex: any(named: 'pageIndex'),
-            pageSize: any(named: 'pageSize'),
+              pageIndex: any(named: 'pageIndex'),
+              pageSize: any(named: 'pageSize'),
             ),
           ).called(1);
         },
@@ -207,8 +203,9 @@ void main() {
       blocTest<RealtimeStatisticsCubit, RealtimeStatisticsState>(
         'emits [loading, failure] when fetch throws an error',
         setUp: () {
-          when(() => mockLedger.getFrontierMomentum())
-              .thenThrow(statsException);
+          when(
+            () => mockLedger.getFrontierMomentum(),
+          ).thenThrow(statsException);
         },
         build: () => statsCubit,
         act: (RealtimeStatisticsCubit cubit) => cubit.fetchDataPeriodically(),

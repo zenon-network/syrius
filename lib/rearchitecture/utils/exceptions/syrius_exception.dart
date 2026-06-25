@@ -31,6 +31,10 @@ class SyriusException implements Exception {
           return NoDelegationStatsException.fromJson(json);
         case 'NotEnoughMomentumsException':
           return NotEnoughMomentumsException.fromJson(json);
+        case 'NoRewardsLastWeekException':
+          return NoRewardsLastWeekException.fromJson(json);
+        case 'PillarNameAlreadyExistsException':
+          return PillarNameAlreadyExistsException.fromJson(json);
         default:
           throw UnsupportedError('Unknown subclass: $type');
       }

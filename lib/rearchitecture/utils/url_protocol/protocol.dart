@@ -9,9 +9,9 @@ abstract class ProtocolHandler {
   void unregister(String scheme);
   /// Gets arguments from the scheme.
   List<String> getArguments(List<String>? arguments) {
-    if (arguments == null) return ['%s'];
+    if (arguments == null) return <String>['%s'];
 
-    if (arguments.isEmpty && !arguments.any((e) => e.contains('%s'))) {
+    if (arguments.isEmpty && !arguments.any((String e) => e.contains('%s'))) {
       throw ArgumentError('arguments must contain at least 1 instance of "%s"');
     }
 

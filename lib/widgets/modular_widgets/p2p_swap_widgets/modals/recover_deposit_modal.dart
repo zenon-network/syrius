@@ -143,8 +143,7 @@ class _RecoverDepositModalState extends State<RecoverDepositModal> {
             suffixIcon: RawMaterialButton(
               shape: const CircleBorder(),
               onPressed: () => ClipboardUtils.pasteToClipboard(
-                context,
-                (String value) {
+                callback: (String value) {
                   _depositIdController.text = value;
                   setState(() {});
                 },

@@ -1,5 +1,5 @@
-const String gitBranchName = '';
-const String gitCommitHash = '';
-const String gitCommitMessage = '';
-const String gitCommitDate = '';
-const String gitOriginUrl = '';
+const String gitBranchName = r'';
+const String gitCommitHash = r'';
+const String gitCommitMessage = r'';
+const String gitCommitDate = r'';
+const String gitOriginUrl = r'';

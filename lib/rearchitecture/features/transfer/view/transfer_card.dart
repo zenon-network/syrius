@@ -23,7 +23,7 @@ class _TransferCardState extends State<TransferCard> {
   @override
   Widget build(BuildContext context) {
     return NewCardScaffold(
-      data: CardType.transfer.getData(context: context),
+      data: _buildCardData(context: context),
       body: Column(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: <Widget>[
@@ -61,4 +61,9 @@ class _TransferCardState extends State<TransferCard> {
       ),
     );
   }
+
+  CardData _buildCardData({required BuildContext context}) => CardData(
+    description: context.l10n.transferDescription,
+    title: context.l10n.transfer,
+  );
 }

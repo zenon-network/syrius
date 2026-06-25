@@ -1,6 +1,7 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:walletconnect_flutter_v2/walletconnect_flutter_v2.dart';
+import 'package:reown_walletkit/reown_walletkit.dart';
 import 'package:window_manager/window_manager.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/wallet_connect/chains/i_chain.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
@@ -38,6 +39,18 @@ extension NoMChainIdX on NoMChainId {
 }
 
 class NoMService extends IChain {
+  static const namespace = 'zenon';
+
+  final IWeb3WalletService _web3WalletService = sl<IWeb3WalletService>();
+
+  final NoMChainId reference;
+
+  final _walletLockedError = const ReownCoreError(
+    code: 9000,
+    message: 'Wallet is locked',
+  );
+
+  ReownWalletKit? wallet;
 
   NoMService({
     required this.reference,
@@ -65,18 +78,6 @@ class NoMService extends IChain {
       handler: _methodZnnSend,
     );
   }
-  static const String namespace = 'zenon';
-
-  final IWeb3WalletService _web3WalletService = sl<IWeb3WalletService>();
-
-  final NoMChainId reference;
-
-  final WalletConnectError _walletLockedError = const WalletConnectError(
-    code: 9000,
-    message: 'Wallet is locked',
-  );
-
-  Web3Wallet? wallet;
 
   @override
   String getNamespace() {
@@ -112,13 +113,16 @@ class NoMService extends IChain {
           title: '${dAppMetadata.name} - Information',
           content: Column(
             mainAxisSize: MainAxisSize.min,
-            children: <Widget>[
-              Text('Are you sure you want to allow ${dAppMetadata.name} to '
-                  'retrieve the current address, node URL and chain identifier information?'),
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Text(
+                'Are you sure you want to allow ${dAppMetadata.name} to '
+                'retrieve the current address, node URL and chain identifier information?',
+              ),
               kVerticalSpacing,
               Image(
                 image: NetworkImage(dAppMetadata.icons.first),
-                height: 100,
+                height: 100.0,
                 fit: BoxFit.fitHeight,
               ),
               kVerticalSpacing,
@@ -178,9 +182,12 @@ class NoMService extends IChain {
           title: '${dAppMetadata.name} - Sign Message',
           content: Column(
             mainAxisSize: MainAxisSize.min,
-            children: <Widget>[
-              Text('Are you sure you want to '
-                  'sign message $message ?'),
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Text(
+                'Are you sure you want to '
+                'sign message $message ?',
+              ),
               kVerticalSpacing,
               Image(
                 image: NetworkImage(dAppMetadata.icons.first),
@@ -231,17 +238,21 @@ class NoMService extends IChain {
         .peer
         .metadata;
     if (kCurrentPage != Tabs.lock) {
-      final AccountBlockTemplate accountBlock =
-      AccountBlockTemplate.fromJson(params['accountBlock']);
+      final AccountBlockTemplate accountBlock = AccountBlockTemplate.fromJson(
+        params['accountBlock'],
+      );
 
       final String toAddress = ZenonAddressUtils.getLabel(
         accountBlock.toAddress.toString(),
       );
 
-      final Token? token =
-      await zenon!.embedded.token.getByZts(accountBlock.tokenStandard);
+      final Token? token = await zenon!.embedded.token.getByZts(
+        accountBlock.tokenStandard,
+      );
 
-      final String amount = accountBlock.amount.addDecimals(token!.decimals);
+      final amount = accountBlock.amount.addDecimals(token!.decimals);
+
+      final sendPaymentBloc = SendTransactionBloc();
 
       if (globalNavigatorKey.currentContext!.mounted) {
         final wasActionAccepted = await showDialogWithNoAndYesOptions(
@@ -250,10 +261,13 @@ class NoMService extends IChain {
           title: '${dAppMetadata.name} - Send Payment',
           content: Column(
             mainAxisSize: MainAxisSize.min,
-            children: <Widget>[
-              Text('Are you sure you want to transfer '
-                  '$amount ${token.symbol} to '
-                  '$toAddress ?'),
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Text(
+                'Are you sure you want to transfer '
+                '$amount ${token.symbol} to '
+                '$toAddress ?',
+              ),
               kVerticalSpacing,
               Image(
                 image: NetworkImage(dAppMetadata.icons.first),
@@ -274,29 +288,40 @@ class NoMService extends IChain {
               ),
             ],
           ),
-          description: 'Are you sure you want to transfer '
+          description:
+              'Are you sure you want to transfer '
               '$amount ${token.symbol} to '
               '$toAddress ?',
         );
 
         if (wasActionAccepted ?? false) {
-          final SendTransactionBloc sendTransactionBloc =
-          globalNavigatorKey.currentContext!.read<SendTransactionBloc>()..add(
+          final String fromAddress = params['fromAddress'];
+          final AccountBlockTemplate block = AccountBlockTemplate.fromJson(
+            params['accountBlock'],
+          );
+
+          sendPaymentBloc.add(
             SendTransactionInitiateFromBlock(
-              fromAddress: params['fromAddress'],
-              block: AccountBlockTemplate.fromJson(params['accountBlock']),
+              block: block,
+              fromAddress: fromAddress,
+              //TODO(maxwell): check if it's worth localizing strings
+              reasonForGeneratingPlasma: 'Execute transfer',
             ),
           );
 
-          final SendTransactionState state = await sendTransactionBloc.stream
+          final SendTransactionState result = await sendPaymentBloc.stream
               .firstWhere(
-                (SendTransactionState newState) =>
-            newState.status == SendTransactionStatus.success,
-          );
+                (SendTransactionState element) =>
+                    element.status == .success || element.status == .failure,
+              );
 
-          final AccountBlockTemplate result = state.data!;
+          unawaited(sendPaymentBloc.close());
 
-          return result;
+          if (result.status == .success) {
+            return result.data;
+          } else {
+            throw result.error!;
+          }
         } else {
           await NotificationUtils.sendNotificationError(
             Errors.getSdkError(Errors.USER_REJECTED),

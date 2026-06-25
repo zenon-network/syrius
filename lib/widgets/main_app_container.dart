@@ -11,14 +11,17 @@ import 'package:flutter_svg/svg.dart';
 import 'package:flutter_vector_icons/flutter_vector_icons.dart';
 import 'package:logging/logging.dart';
 import 'package:lottie/lottie.dart';
+import 'package:nested/nested.dart';
 import 'package:provider/provider.dart';
-import 'package:wallet_connect_uri_validator/wallet_connect_uri_validator.dart';
 import 'package:window_manager/window_manager.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/handlers/htlc_swaps_handler.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/model/model.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/tokens/cubit/tokens_cubit.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/blocs/blocs.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/account_block_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/clipboard_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
@@ -110,54 +113,112 @@ class _MainAppContainerState extends State<MainAppContainer>
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<TextScalingNotifier>(
-      builder: (BuildContext context, TextScalingNotifier textScalingNotifier,
-              Widget? child) =>
-          MediaQuery(
-        data: MediaQuery.of(context).copyWith(
-          textScaler: TextScaler.linear(
-            textScalingNotifier.getTextScaleFactor(context),
-          ),
-        ),
-        child: Scaffold(
-          body: Container(
-            margin: const EdgeInsets.all(
-              20,
+    return MultiBlocProvider(
+      providers: <SingleChildWidget>[
+        BlocProvider<LatestTransactionsBloc>(
+          create: (_) => sl.get<LatestTransactionsBloc>()
+            ..add(
+              InfiniteListRequested(
+                address: Address.parse(kSelectedAddress!),
+              ),
             ),
-            child: Column(
-              children: <Widget>[
-                _getDesktopNavigationContainer(),
-                SizedBox(
-                  height: NotificationUtils.shouldShowNotification()
-                      ? 15.0
-                      : 20.0,
+        ),
+        BlocProvider<SendTransactionBloc>(
+          create: (_) => SendTransactionBloc(),
+        ),
+        BlocProvider<MultipleBalanceBloc>(
+          create: (_) => sl.get<MultipleBalanceBloc>(),
+        ),
+        BlocProvider<PendingTransactionsBloc>(
+          create: (_) => sl.get<PendingTransactionsBloc>()
+            ..add(
+              InfiniteListRequested(
+                address: Address.parse(kSelectedAddress!),
+              ),
+            ),
+        ),
+        BlocProvider<PillarRewardsHistoryBloc>(
+          create: (_) =>
+              PillarRewardsHistoryBloc(
+                zenon: zenon!,
+              )..add(
+                FetchRequestData(
+                  address: Address.parse(kSelectedAddress!),
                 ),
-                NotificationWidget(
-                  onSeeMorePressed: () {
-                    _navigateTo(Tabs.notifications);
-                  },
-                  onDismissPressed: () {
-                    setState(() {});
-                  },
-                  onNewNotificationCallback: () {
-                    setState(() {});
-                  },
-                  popBeforeSeeMoreIsPressed: false,
+              ),
+        ),
+        BlocProvider<PillarsByOwnerBloc>(
+          create: (_) =>
+              PillarsByOwnerBloc(
+                zenon: zenon!,
+              )..add(
+                FetchRequestData(
+                  address: Address.parse(kSelectedAddress!),
                 ),
-                Expanded(
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(
-                      15,
-                    ),
-                    child: Container(
-                      child: _getCurrentPageContainer(),
-                    ),
+              ),
+        ),
+        BlocProvider<TokensCubit>(
+          create: (_) => TokensCubit(
+            zenon: zenon!,
+          )..fetch(),
+        ),
+        BlocProvider<DelegationStatsBloc>(
+          create: (_) => DelegationStatsBloc(zenon: zenon!)
+            ..add(FetchRequestData(address: Address.parse(kSelectedAddress!))),
+        ),
+      ],
+      child: Consumer<TextScalingNotifier>(
+        builder:
+            (
+              BuildContext context,
+              TextScalingNotifier textScalingNotifier,
+              Widget? child,
+            ) => MediaQuery(
+              data: MediaQuery.of(context).copyWith(
+                textScaler: TextScaler.linear(
+                  textScalingNotifier.getTextScaleFactor(context),
+                ),
+              ),
+              child: Scaffold(
+                body: Container(
+                  margin: const EdgeInsets.all(
+                    20,
+                  ),
+                  child: Column(
+                    children: <Widget>[
+                      _getDesktopNavigationContainer(),
+                      SizedBox(
+                        height: NotificationUtils.shouldShowNotification()
+                            ? 15.0
+                            : 20.0,
+                      ),
+                      NotificationWidget(
+                        onSeeMorePressed: () {
+                          _navigateTo(Tabs.notifications);
+                        },
+                        onDismissPressed: () {
+                          setState(() {});
+                        },
+                        onNewNotificationCallback: () {
+                          setState(() {});
+                        },
+                        popBeforeSeeMoreIsPressed: false,
+                      ),
+                      Expanded(
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(
+                            15,
+                          ),
+                          child: Container(
+                            child: _getCurrentPageContainer(),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-              ],
+              ),
             ),
-          ),
-        ),
       ),
     );
   }
@@ -224,14 +285,13 @@ class _MainAppContainerState extends State<MainAppContainer>
                       child: IgnorePointer(
                         ignoring: _isWalletLocked(),
                         child: TabBar(
-                          labelStyle: Theme.of(context)
-                              .textTheme
-                              .headlineSmall!
+                          labelStyle: Theme.of(context).textTheme.headlineSmall!
                               .copyWith(
                                 fontSize: 15,
                               ),
-                          labelColor:
-                              Theme.of(context).textTheme.headlineSmall!.color,
+                          labelColor: Theme.of(
+                            context,
+                          ).textTheme.headlineSmall!.color,
                           onTap: (int index) {
                             if (_isTabSelected(Tabs.lock)) {
                               _onNavigateToLock();
@@ -245,12 +305,12 @@ class _MainAppContainerState extends State<MainAppContainer>
                               color: NotificationUtils.shouldShowNotification()
                                   ? Colors.transparent
                                   : _isIconTabSelected()
-                                      ? Colors.transparent
-                                      : AppColors.znnColor,
+                                  ? Colors.transparent
+                                  : AppColors.znnColor,
                               width: 2,
                             ),
                           ),
-                          dividerHeight: 0,
+                          dividerHeight: 0.0,
                           controller: _tabController,
                           tabs: _getTabs(),
                         ),
@@ -469,14 +529,15 @@ class _MainAppContainerState extends State<MainAppContainer>
 
   Future<void> _onChangeAutoLockTime() async {
     await sl.get<NotificationsBloc>().addNotification(
-          WalletNotification(
-            title: 'Auto-lock interval changed successfully',
-            details: 'Auto-lock interval changed successfully to '
-                '$kAutoLockWalletMinutes minutes.',
-            timestamp: DateTime.now().millisecondsSinceEpoch,
-            type: NotificationType.autoLockIntervalChanged,
-          ),
-        );
+      WalletNotification(
+        title: 'Auto-lock interval changed successfully',
+        details:
+            'Auto-lock interval changed successfully to '
+            '$kAutoLockWalletMinutes minutes.',
+        timestamp: DateTime.now().millisecondsSinceEpoch,
+        type: NotificationType.autoLockIntervalChanged,
+      ),
+    );
     _lockBloc.addEvent(LockEvent.resetTimer);
   }
 
@@ -502,8 +563,8 @@ class _MainAppContainerState extends State<MainAppContainer>
       _tabController!.index == kTabs.indexOf(page);
 
   bool _isIconTabSelected() => kTabsWithIconTitles.contains(
-        kTabs[_tabController!.index],
-      );
+    kTabs[_tabController!.index],
+  );
 
   int _getTabChildIndex(Tabs page) => kTabs.indexOf(page);
 
@@ -573,15 +634,16 @@ class _MainAppContainerState extends State<MainAppContainer>
   }
 
   Timer _createAutoLockTimer() {
-    return Timer.periodic(Duration(minutes: kAutoLockWalletMinutes!),
-        (Timer timer) {
+    return Timer.periodic(Duration(minutes: kAutoLockWalletMinutes!), (
+      Timer timer,
+    ) {
       if (!sl<HtlcSwapsHandler>().hasActiveIncomingSwaps) {
         _lockBloc.addEvent(LockEvent.navigateToLock);
       }
     });
   }
 
-  Future<void> _handleIncomingLinks() async {
+  void _handleIncomingLinks() async {
     if (!kIsWeb && !Platform.isLinux) {
       _incomingLinkSubscription = _appLinks.uriLinkStream.listen(
         (Uri? uri) async {
@@ -593,17 +655,17 @@ class _MainAppContainerState extends State<MainAppContainer>
           if (uri != null) {
             String uriRaw = uri.toString();
 
-            Logger('MainAppContainer')
-                .log(Level.INFO, '_handleIncomingLinks $uriRaw');
+            Logger(
+              'MainAppContainer',
+            ).log(Level.INFO, '_handleIncomingLinks $uriRaw');
 
             if (context.mounted) {
               if (uriRaw.contains('wc')) {
                 if (Platform.isWindows) {
                   uriRaw = uriRaw.replaceAll('/?', '?');
                 }
-                final String wcUri =
-                    Uri.decodeFull(uriRaw.split('wc?uri=').last);
-                if (WalletConnectUri.tryParse(wcUri) != null) {
+                String wcUri = Uri.decodeFull(uriRaw.split('wc?uri=').last);
+                if (Uri.tryParse(wcUri) != null) {
                   await _updateWalletConnectUri(wcUri);
                 }
                 return;
@@ -618,8 +680,10 @@ class _MainAppContainerState extends State<MainAppContainer>
               Token? token;
 
               if (uri.hasQuery) {
-                uri.queryParametersAll
-                    .forEach((String key, List<String> value) async {
+                uri.queryParametersAll.forEach((
+                  String key,
+                  List<String> value,
+                ) async {
                   if (key == 'amount') {
                     queryAmount = value.first;
                   } else if (key == 'zts') {
@@ -640,15 +704,18 @@ class _MainAppContainerState extends State<MainAppContainer>
                 } else if (queryZTS == 'qsr' || queryZTS == 'QSR') {
                   token = kQsrCoin;
                 } else {
-                  token = await zenon!.embedded.token
-                      .getByZts(TokenStandard.parse(queryZTS));
+                  token = await zenon!.embedded.token.getByZts(
+                    TokenStandard.parse(queryZTS),
+                  );
                 }
               }
 
               final StakingOptionsBloc stakingOptionsBloc =
                   StakingOptionsBloc();
-              final DelegateButtonBloc delegateButtonBloc =
-                  DelegateButtonBloc();
+              final DelegationBloc delegationBloc = DelegationBloc(
+                accountBlockUtils: AccountBlockUtils(),
+                zenon: zenon!,
+              );
               final PlasmaOptionsBloc plasmaOptionsBloc = PlasmaOptionsBloc();
 
               if (context.mounted) {
@@ -667,8 +734,8 @@ class _MainAppContainerState extends State<MainAppContainer>
                       _navigateTo(Tabs.transfer);
 
                       if (token != null) {
-                        final bool? actionAccepted =
-                            await showDialogWithNoAndYesOptions(
+                        final bool?
+                        actionAccepted = await showDialogWithNoAndYesOptions(
                           context: context,
                           title: 'Transfer action',
                           isBarrierDismissible: true,
@@ -684,14 +751,15 @@ class _MainAppContainerState extends State<MainAppContainer>
 
                         if (actionAccepted ?? false) {
                           context.read<SendTransactionBloc>().add(
-                                SendTransactionInitiate(
-                                  fromAddress: kSelectedAddress!,
-                                  toAddress: queryAddress,
-                                  amount: queryAmount
-                                      .extractDecimals(token.decimals),
-                                  token: token,
-                                ),
-                              );
+                            SendTransactionInitiate(
+                              fromAddress: kSelectedAddress!,
+                              toAddress: queryAddress,
+                              amount: queryAmount.extractDecimals(
+                                token.decimals,
+                              ),
+                              token: token,
+                            ),
+                          );
                         }
                       }
                     }
@@ -708,7 +776,8 @@ class _MainAppContainerState extends State<MainAppContainer>
                     if (kCurrentPage != Tabs.lock) {
                       _navigateTo(Tabs.staking);
 
-                      final bool? actionAccepted = await showDialogWithNoAndYesOptions(
+                      final bool?
+                      actionAccepted = await showDialogWithNoAndYesOptions(
                         context: context,
                         title: 'Stake ${kZnnCoin.symbol} action',
                         isBarrierDismissible: true,
@@ -743,7 +812,8 @@ class _MainAppContainerState extends State<MainAppContainer>
                     if (kCurrentPage != Tabs.lock) {
                       _navigateTo(Tabs.pillars);
 
-                      final bool? actionAccepted = await showDialogWithNoAndYesOptions(
+                      final bool?
+                      actionAccepted = await showDialogWithNoAndYesOptions(
                         context: context,
                         title: 'Delegate ${kZnnCoin.symbol} action',
                         isBarrierDismissible: true,
@@ -758,7 +828,12 @@ class _MainAppContainerState extends State<MainAppContainer>
                       );
 
                       if (actionAccepted ?? false) {
-                        delegateButtonBloc.delegateToPillar(queryPillarName);
+                        delegationBloc.add(
+                          DelegationRequested(
+                            address: Address.parse(kSelectedAddress!),
+                            pillarName: queryPillarName,
+                          ),
+                        );
                       }
                     }
 
@@ -775,7 +850,8 @@ class _MainAppContainerState extends State<MainAppContainer>
                     if (kCurrentPage != Tabs.lock) {
                       _navigateTo(Tabs.plasma);
 
-                      final bool? actionAccepted = await showDialogWithNoAndYesOptions(
+                      final bool?
+                      actionAccepted = await showDialogWithNoAndYesOptions(
                         context: context,
                         title: 'Fuse ${kQsrCoin.symbol} action',
                         isBarrierDismissible: true,
@@ -842,16 +918,18 @@ class _MainAppContainerState extends State<MainAppContainer>
           }
         },
         onDone: () {
-          Logger('MainAppContainer')
-              .log(Level.INFO, '_handleIncomingLinks', 'done');
+          Logger(
+            'MainAppContainer',
+          ).log(Level.INFO, '_handleIncomingLinks', 'done');
         },
         onError: (Object err) async {
           await NotificationUtils.sendNotificationError(
             err,
             'Handle incoming link failed',
           );
-          Logger('MainAppContainer')
-              .log(Level.WARNING, '_handleIncomingLinks', err);
+          Logger(
+            'MainAppContainer',
+          ).log(Level.WARNING, '_handleIncomingLinks', err);
           if (!mounted) return;
         },
       );
@@ -888,10 +966,11 @@ class _MainAppContainerState extends State<MainAppContainer>
 
   @override
   Future<void> onClipboardChanged() async {
-    final ClipboardData? newClipboardData =
-        await Clipboard.getData(Clipboard.kTextPlain);
-    final String text = newClipboardData?.text ?? '';
-    if (text.isNotEmpty && WalletConnectUri.tryParse(text) != null) {
+    final ClipboardData? newClipboardData = await Clipboard.getData(
+      Clipboard.kTextPlain,
+    );
+    final text = newClipboardData?.text ?? '';
+    if (text.isNotEmpty && Uri.tryParse(text) != null) {
       // This check is needed because onClipboardChanged is called twice sometimes
       if (kLastWalletConnectUriNotifier.value != text) {
         _updateWalletConnectUri(text);
@@ -908,7 +987,8 @@ class _MainAppContainerState extends State<MainAppContainer>
             title:
                 'WalletConnect link detected. Go to WalletConnect tab to connect.',
             timestamp: DateTime.now().millisecondsSinceEpoch,
-            details: 'A WalletConnect link has been copied to clipboard. '
+            details:
+                'A WalletConnect link has been copied to clipboard. '
                 'Go to the WalletConnect tab to connect to the dApp through ${kLastWalletConnectUriNotifier.value}',
             type: NotificationType.copiedToClipboard,
           ),

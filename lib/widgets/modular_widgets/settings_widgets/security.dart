@@ -22,12 +22,12 @@ const double _kMinUnlockAttempts = 3;
 const double _kMaxUnlockAttempts = 10;
 
 class SecurityWidget extends StatefulWidget {
-
   const SecurityWidget(
     this._onChangeAutoLockTime, {
     required this.onStepperNotificationSeeMorePressed,
     super.key,
   });
+
   final VoidCallback _onChangeAutoLockTime;
   final VoidCallback onStepperNotificationSeeMorePressed;
 
@@ -319,7 +319,8 @@ class _SecurityWidgetState extends State<SecurityWidget> {
         _publicKeyController.text = signature.publicKey;
       });
     } catch (e) {
-      await NotificationUtils.sendNotificationError(e, 'Error while signing message');
+      await NotificationUtils.sendNotificationError(
+          e, 'Error while signing message');
     } finally {
       _signButtonKey.currentState?.animateReverse();
     }
@@ -341,8 +342,7 @@ class _SecurityWidgetState extends State<SecurityWidget> {
             onPressed: () {
               setState(() {
                 ClipboardUtils.pasteToClipboard(
-                  context,
-                  (String value) {
+                  callback: (String value) {
                     _textToBeVerifiedController.text = value;
                   },
                 );
@@ -372,8 +372,7 @@ class _SecurityWidgetState extends State<SecurityWidget> {
             onPressed: () {
               setState(() {
                 ClipboardUtils.pasteToClipboard(
-                  context,
-                  (String value) {
+                  callback: (String value) {
                     _signatureController.text = value;
                   },
                 );
@@ -403,8 +402,7 @@ class _SecurityWidgetState extends State<SecurityWidget> {
             onPressed: () {
               setState(() {
                 ClipboardUtils.pasteToClipboard(
-                  context,
-                  (String value) {
+                  callback: (String value) {
                     _publicKeyToBeFilledController.text = value;
                   },
                 );
@@ -464,7 +462,9 @@ class _SecurityWidgetState extends State<SecurityWidget> {
       }
     } catch (e) {
       await NotificationUtils.sendNotificationError(
-          e, 'Error while verifying message',);
+        e,
+        'Error while verifying message',
+      );
     } finally {
       _verifyButtonKey.currentState?.animateReverse();
     }
@@ -550,9 +550,11 @@ class _SecurityWidgetState extends State<SecurityWidget> {
       final File droppedFile = File(
         _toBeSignedFilePath!,
       );
-      final Signature fileSignature = await walletSign(Crypto.digest(
-        await droppedFile.readAsBytes(),
-      ),);
+      final Signature fileSignature = await walletSign(
+        Crypto.digest(
+          await droppedFile.readAsBytes(),
+        ),
+      );
       setState(() {
         _fileHashController.text = fileSignature.signature;
         _publicKeySignFileController.text = fileSignature.publicKey;
@@ -560,7 +562,8 @@ class _SecurityWidgetState extends State<SecurityWidget> {
         _signSelectFileWidgetKey.currentState!.resetMessageToUser();
       });
     } catch (e) {
-      await NotificationUtils.sendNotificationError(e, 'Error while signing message');
+      await NotificationUtils.sendNotificationError(
+          e, 'Error while signing message');
     } finally {
       _signFileButtonKey.currentState?.animateReverse();
     }
@@ -609,8 +612,7 @@ class _SecurityWidgetState extends State<SecurityWidget> {
                 onPressed: () {
                   setState(() {
                     ClipboardUtils.pasteToClipboard(
-                      context,
-                      (String value) {
+                      callback: (String value) {
                         _fileHashVerifyController.text = value;
                       },
                     );
@@ -640,8 +642,7 @@ class _SecurityWidgetState extends State<SecurityWidget> {
                 onPressed: () {
                   setState(() {
                     ClipboardUtils.pasteToClipboard(
-                      context,
-                      (String value) {
+                      callback: (String value) {
                         _publicKeyVerifyFileController.text = value;
                       },
                     );
@@ -670,9 +671,13 @@ class _SecurityWidgetState extends State<SecurityWidget> {
       _verifyFileButtonKey.currentState?.animateForward();
       final bool verified = await Crypto.verify(
         FormatUtils.decodeHexString(_fileHashVerifyController.text),
-        Uint8List.fromList(Crypto.digest(await File(
-          _toBeVerifiedFilePath!,
-        ).readAsBytes(),),),
+        Uint8List.fromList(
+          Crypto.digest(
+            await File(
+              _toBeVerifiedFilePath!,
+            ).readAsBytes(),
+          ),
+        ),
         FormatUtils.decodeHexString(_publicKeyVerifyFileController.text),
       );
       if (verified) {
@@ -697,7 +702,9 @@ class _SecurityWidgetState extends State<SecurityWidget> {
       }
     } catch (e) {
       await NotificationUtils.sendNotificationError(
-          e, 'Error while verifying file hash:',);
+        e,
+        'Error while verifying file hash:',
+      );
     } finally {
       _verifyFileButtonKey.currentState?.animateReverse();
     }

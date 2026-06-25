@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/model/model.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/extensions/buildcontext_extension.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 
@@ -35,32 +36,35 @@ class _NotificationWidgetState extends State<NotificationWidget> {
   @override
   Widget build(BuildContext context) {
     return _shouldShowNotification()
-        ? Padding(
-            padding: const EdgeInsets.only(
-              bottom: 15,
-            ),
-            child: WidgetAnimator(
-              child: Container(
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(10),
-                  color: Theme.of(context).colorScheme.primary,
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                    vertical: 15,
-                    horizontal: 50,
+        ? Theme(
+      //TODO(maznnwell): to be removed when the new theme data will default
+          data: context.newThemeData,
+          child: Padding(
+              padding: const EdgeInsets.only(
+                bottom: 15,
+              ),
+              child: WidgetAnimator(
+                child: Card.filled(
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10)
                   ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: <Widget>[
-                      _getNotificationDetails(kLastNotification!),
-                      _getNotificationOptions(kLastNotification!),
-                    ],
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      vertical: 15,
+                      horizontal: 50,
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: <Widget>[
+                        _getNotificationDetails(kLastNotification!),
+                        _getNotificationOptions(kLastNotification!),
+                      ],
+                    ),
                   ),
                 ),
               ),
             ),
-          )
+        )
         : Container();
   }
 

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
@@ -20,8 +22,9 @@ void main() {
   setUpAll(() {
     final BigInt testAmount = BigInt.from(1000);
     final TokenStandard tokenStandard = znnZts;
-    final AccountBlockTemplate accountBlockTemplate =
-        AccountBlockTemplate(blockType: 1);
+    final AccountBlockTemplate accountBlockTemplate = AccountBlockTemplate(
+      blockType: 1,
+    );
     registerFallbackValue(testAmount);
     registerFallbackValue(accountBlockTemplate);
     registerFallbackValue(tokenStandard);
@@ -65,7 +68,7 @@ void main() {
   });
 
   tearDown(() {
-    sendTransactionBloc.close();
+    unawaited(sendTransactionBloc.close());
   });
 
   group('fromJson/toJson', () {
@@ -75,8 +78,9 @@ void main() {
       final Map<String, dynamic>? serialized = sendTransactionBloc.toJson(
         initialState,
       );
-      final SendTransactionState? deserialized =
-          sendTransactionBloc.fromJson(serialized!);
+      final SendTransactionState? deserialized = sendTransactionBloc.fromJson(
+        serialized!,
+      );
 
       expect(deserialized, equals(initialState));
     });
@@ -187,6 +191,7 @@ void main() {
         SendTransactionInitiateFromBlock(
           block: testAccBlockTemplate,
           fromAddress: testFromAddress,
+          reasonForGeneratingPlasma: 'send transaction',
         ),
       ),
       expect: () => <SendTransactionState>[
@@ -215,6 +220,7 @@ void main() {
         SendTransactionInitiateFromBlock(
           block: testAccBlockTemplate,
           fromAddress: testFromAddress,
+          reasonForGeneratingPlasma: 'send transaction',
         ),
       ),
       expect: () => <SendTransactionState>[

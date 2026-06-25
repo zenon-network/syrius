@@ -10,11 +10,10 @@ mixin RefreshBlocMixin {
     _restartWsStreamSubscription = zenon?.wsClient.restartedStream.listen(
           (bool restarted) {
         _restartWsStreamSubscription = zenon?.wsClient.restartedStream.listen(
-              (bool restarted) {
-            if (restarted) {
-              onWsConnectionRestartedCallback();
-            }
-          },
+          (bool restarted) {
+        if (restarted) {
+          onWsConnectionRestartedCallback();
+        }},
         );
       },
     );

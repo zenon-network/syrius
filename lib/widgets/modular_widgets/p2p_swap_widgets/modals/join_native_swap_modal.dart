@@ -28,11 +28,11 @@ import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/modals/base
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 class JoinNativeSwapModal extends StatefulWidget {
-
   const JoinNativeSwapModal({
     required this.onJoinedSwap,
     super.key,
   });
+
   final Function(String) onJoinedSwap;
 
   @override
@@ -120,8 +120,7 @@ class _JoinNativeSwapModalState extends State<JoinNativeSwapModal> {
             suffixIcon: RawMaterialButton(
               shape: const CircleBorder(),
               onPressed: () => ClipboardUtils.pasteToClipboard(
-                context,
-                (String value) {
+                callback: (String value) {
                   _depositIdController.text = value;
                   setState(() {});
                 },
@@ -186,7 +185,8 @@ class _JoinNativeSwapModalState extends State<JoinNativeSwapModal> {
           },
         );
       },
-      builder: (_, InitialHtlcForSwapBloc model, __) => _getContinueButton(model),
+      builder: (_, InitialHtlcForSwapBloc model, __) =>
+          _getContinueButton(model),
       viewModelBuilder: InitialHtlcForSwapBloc.new,
     );
   }
@@ -288,8 +288,7 @@ class _JoinNativeSwapModalState extends State<JoinNativeSwapModal> {
             children: <Widget>[
               const Text(
                 'Exchange Rate',
-                style:
-                    TextStyle(fontSize: 14, color: AppColors.subtitleColor),
+                style: TextStyle(fontSize: 14, color: AppColors.subtitleColor),
               ),
               _getExchangeRateWidget(tokenToReceive),
             ],
@@ -306,10 +305,13 @@ class _JoinNativeSwapModalState extends State<JoinNativeSwapModal> {
                   'You have ',
                   children: <TextSpan>[
                     TextSpan(
-                        text:
-                            '${(((_initialHltc!.expirationTime - kMinSafeTimeToFindPreimage.inSeconds - kCounterHtlcDuration.inSeconds) - DateTimeUtils.unixTimeNow) / 60).ceil()} minutes',
-                        style: const TextStyle(
-                            fontSize: 14, color: Colors.white,),),
+                      text:
+                          '${(((_initialHltc!.expirationTime - kMinSafeTimeToFindPreimage.inSeconds - kCounterHtlcDuration.inSeconds) - DateTimeUtils.unixTimeNow) / 60).ceil()} minutes',
+                      style: const TextStyle(
+                        fontSize: 14,
+                        color: Colors.white,
+                      ),
+                    ),
                     BulletPointCard.textSpan(' left to join the swap.'),
                   ],
                 ),
@@ -319,9 +321,12 @@ class _JoinNativeSwapModalState extends State<JoinNativeSwapModal> {
                   'The counterparty will have ',
                   children: <TextSpan>[
                     TextSpan(
-                        text: '~${kCounterHtlcDuration.inHours} hour',
-                        style: const TextStyle(
-                            fontSize: 14, color: Colors.white,),),
+                      text: '~${kCounterHtlcDuration.inHours} hour',
+                      style: const TextStyle(
+                        fontSize: 14,
+                        color: Colors.white,
+                      ),
+                    ),
                     BulletPointCard.textSpan(' to complete the swap.'),
                   ],
                 ),
@@ -334,31 +339,37 @@ class _JoinNativeSwapModalState extends State<JoinNativeSwapModal> {
             ],
           ),
         const SizedBox(height: 20),
-        if (_safeExpirationTime != null) Column(children: <Widget>[
-                Visibility(
-                  visible:
-                      !isTrustedToken(tokenToReceive.tokenStandard.toString()),
-                  child: Padding(
-                    padding: const EdgeInsets.only(bottom: 20),
-                    child: ImportantTextContainer(
-                      text:
-                          '''You are receiving a token that is not in your favorites. '''
-                          '''Please verify that the token standard is correct: ${tokenToReceive.tokenStandard}''',
-                      isSelectable: true,
-                    ),
+        if (_safeExpirationTime != null)
+          Column(
+            children: <Widget>[
+              Visibility(
+                visible:
+                    !isTrustedToken(tokenToReceive.tokenStandard.toString()),
+                child: Padding(
+                  padding: const EdgeInsets.only(bottom: 20),
+                  child: ImportantTextContainer(
+                    text:
+                        '''You are receiving a token that is not in your favorites. '''
+                        '''Please verify that the token standard is correct: ${tokenToReceive.tokenStandard}''',
+                    isSelectable: true,
                   ),
                 ),
-                _getJoinSwapViewModel(tokenToReceive),
-              ],) else const ImportantTextContainer(
-                text:
-                    'Cannot join swap. The swap will expire too soon for a safe swap.',
-                showBorder: true,
               ),
+              _getJoinSwapViewModel(tokenToReceive),
+            ],
+          )
+        else
+          const ImportantTextContainer(
+            text:
+                'Cannot join swap. The swap will expire too soon for a safe swap.',
+            showBorder: true,
+          ),
       ],
     );
   }
 
-  ViewModelBuilder<JoinHtlcSwapBloc> _getJoinSwapViewModel(Token tokenToReceive) {
+  ViewModelBuilder<JoinHtlcSwapBloc> _getJoinSwapViewModel(
+      Token tokenToReceive) {
     return ViewModelBuilder<JoinHtlcSwapBloc>.reactive(
       onViewModelReady: (JoinHtlcSwapBloc model) {
         model.stream.listen(
@@ -375,7 +386,8 @@ class _JoinNativeSwapModalState extends State<JoinNativeSwapModal> {
           },
         );
       },
-      builder: (_, JoinHtlcSwapBloc model, __) => _getJoinSwapButton(model, tokenToReceive),
+      builder: (_, JoinHtlcSwapBloc model, __) =>
+          _getJoinSwapButton(model, tokenToReceive),
       viewModelBuilder: JoinHtlcSwapBloc.new,
     );
   }
@@ -392,20 +404,23 @@ class _JoinNativeSwapModalState extends State<JoinNativeSwapModal> {
   }
 
   Future<void> _onJoinButtonPressed(
-      JoinHtlcSwapBloc model, Token tokenToReceive,) async {
+    JoinHtlcSwapBloc model,
+    Token tokenToReceive,
+  ) async {
     setState(() {
       _isLoading = true;
     });
     model.joinHtlcSwap(
-        initialHtlc: _initialHltc!,
-        fromToken: _selectedToken,
-        toToken: tokenToReceive,
-        fromAmount:
-            _amountController.text.extractDecimals(_selectedToken.decimals),
-        swapType: P2pSwapType.native,
-        fromChain: P2pSwapChain.nom,
-        toChain: P2pSwapChain.nom,
-        counterHtlcExpirationTime: _safeExpirationTime!,);
+      initialHtlc: _initialHltc!,
+      fromToken: _selectedToken,
+      toToken: tokenToReceive,
+      fromAmount:
+          _amountController.text.extractDecimals(_selectedToken.decimals),
+      swapType: P2pSwapType.native,
+      fromChain: P2pSwapChain.nom,
+      toChain: P2pSwapChain.nom,
+      counterHtlcExpirationTime: _safeExpirationTime!,
+    );
   }
 
   int? _calculateSafeExpirationTime(int initialHtlcExpiration) {
@@ -420,13 +435,14 @@ class _JoinNativeSwapModalState extends State<JoinNativeSwapModal> {
 
   Widget _getExchangeRateWidget(Token tokenToReceive) {
     return ExchangeRateWidget(
-        fromAmount:
-            _amountController.text.extractDecimals(_selectedToken.decimals),
-        fromDecimals: _selectedToken.decimals,
-        fromSymbol: _selectedToken.symbol,
-        toAmount: _initialHltc!.amount,
-        toDecimals: tokenToReceive.decimals,
-        toSymbol: tokenToReceive.symbol,);
+      fromAmount:
+          _amountController.text.extractDecimals(_selectedToken.decimals),
+      fromDecimals: _selectedToken.decimals,
+      fromSymbol: _selectedToken.symbol,
+      toAmount: _initialHltc!.amount,
+      toDecimals: tokenToReceive.decimals,
+      toSymbol: tokenToReceive.symbol,
+    );
   }
 
   bool _isInputValid() => _isAmountValid;

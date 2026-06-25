@@ -8,16 +8,16 @@ import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
 const String _kInitialMessage = 'Click to browse or drag and drop a file';
 
 class SelectFileWidget extends StatefulWidget {
+  final void Function(String) onPathFoundCallback;
+  final String? fileExtension;
+  final TextStyle? textStyle;
 
   const SelectFileWidget({
     required this.onPathFoundCallback,
     this.fileExtension,
     this.textStyle,
-    super.key,
-  });
-  final void Function(String) onPathFoundCallback;
-  final String? fileExtension;
-  final TextStyle? textStyle;
+    Key? key,
+  }) : super(key: key);
 
   @override
   SelectFileWidgetState createState() => SelectFileWidgetState();
@@ -88,13 +88,14 @@ class SelectFileWidgetState extends State<SelectFileWidget> {
             }
           },
           child: DottedBorder(
-            borderType: BorderType.RRect,
-            color: _browseButtonHover
-                ? AppColors.znnColor
-                : Theme.of(context).textTheme.headlineSmall!.color!,
-            strokeWidth: 2,
-            dashPattern: const <double>[8, 5],
-            radius: const Radius.circular(10),
+            options: RoundedRectDottedBorderOptions(
+              color: _browseButtonHover
+                  ? AppColors.znnColor
+                  : Theme.of(context).textTheme.headlineSmall!.color!,
+              strokeWidth: 2.0,
+              dashPattern: const [8.0, 5.0],
+              radius: const Radius.circular(10.0),
+            ),
             child: Container(
               height: 100,
               decoration: BoxDecoration(

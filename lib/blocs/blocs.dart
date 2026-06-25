@@ -1,4 +1,3 @@
-
 export 'accelerator/accelerator.dart';
 export 'auto_receive_tx_worker.dart';
 export 'base_bloc.dart';
@@ -12,7 +11,6 @@ export 'key_store_file_bloc.dart';
 export 'ledger_wallet_file_bloc.dart';
 export 'lock_bloc.dart';
 export 'notifications_bloc.dart';
-export 'pillars/pillars.dart';
 export 'plasma/plasma.dart';
 export 'pow_generating_status_bloc.dart';
 export 'refresh_bloc_mixin.dart';

@@ -4,14 +4,14 @@ import 'package:flutter_vector_icons/flutter_vector_icons.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
 
 class DottedBorderInfoWidget extends StatefulWidget {
+  final String text;
+  final Color borderColor;
 
   const DottedBorderInfoWidget({
     required this.text,
     this.borderColor = AppColors.znnColor,
-    super.key,
-  });
-  final String text;
-  final Color borderColor;
+    Key? key,
+  }) : super(key: key);
 
   @override
   State<DottedBorderInfoWidget> createState() => _DottedBorderInfoWidgetState();
@@ -21,20 +21,26 @@ class _DottedBorderInfoWidgetState extends State<DottedBorderInfoWidget> {
   @override
   Widget build(BuildContext context) {
     return DottedBorder(
-      padding: const EdgeInsets.all(5),
-      color: widget.borderColor,
-      borderType: BorderType.RRect,
-      radius: const Radius.circular(6),
-      dashPattern: const <double>[3],
-      strokeWidth: 2,
+      options: RoundedRectDottedBorderOptions(
+        padding: const EdgeInsets.all(10),
+        color: widget.borderColor,
+        radius: const Radius.circular(6),
+        dashPattern: const <double>[3],
+        strokeWidth: 2,
+      ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         mainAxisAlignment: MainAxisAlignment.center,
         children: <Widget>[
+          const SizedBox(
+            width: 5,
+          ),
           Icon(
-            MaterialCommunityIcons.exclamation_thick,
-            size: 25,
+            Icons.info_outline,
             color: widget.borderColor,
+          ),
+          const SizedBox(
+            width: 10,
           ),
           Flexible(
             child: Text(

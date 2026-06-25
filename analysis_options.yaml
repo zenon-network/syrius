@@ -20,3 +20,5 @@ linter:
     # one is enabled
     omit_local_variable_types: false
     no_default_cases: false
+    # We want to always specify types, so this should be false
+    avoid_types_on_closure_parameters: false

@@ -6,7 +6,6 @@ import 'package:zenon_syrius_wallet_flutter/model/model.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/send/send.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/address_utils.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/clipboard_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/extensions.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/format_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
@@ -86,7 +85,6 @@ class _SendPopulatedState extends State<SendPopulated> {
           widget.balances[_selectedSenderAddress]!,
         ),
       );
-
     }
 
     return BlocListener<SendTransactionBloc, SendTransactionState>(
@@ -133,16 +131,8 @@ class _SendPopulatedState extends State<SendPopulated> {
                   decoration: InputDecoration(
                     errorText: _recipientErrorText,
                     hintText: context.l10n.recipientAddress,
-                    suffixIcon: IconButton(
-                      onPressed: () {
-                        ClipboardUtils.pasteToClipboard(context,
-                            (String value) {
-                          _recipientController.text = value;
-                        });
-                      },
-                      icon: const Icon(
-                        Icons.content_paste,
-                      ),
+                    suffixIcon: FieldSuffixButtons(
+                      controller: _recipientController,
                     ),
                   ),
                   focusNode: _recipientFocusNode,
@@ -189,8 +179,9 @@ class _SendPopulatedState extends State<SendPopulated> {
                   return SendButton(
                     key: _sendPaymentButtonKey,
                     text: context.l10n.send,
-                    onPressed:
-                        _isValidTransaction ? _onSendPaymentPressed : null,
+                    onPressed: _isValidTransaction
+                        ? _onSendPaymentPressed
+                        : null,
                   );
                 },
               ),
@@ -228,13 +219,13 @@ class _SendPopulatedState extends State<SendPopulated> {
 
   void _sendPayment() {
     context.read<SendTransactionBloc>().add(
-          SendTransactionInitiate(
-            amount: _amount.extractDecimals(_selectedToken.decimals),
-            fromAddress: _selectedSenderAddress,
-            toAddress: _recipient,
-            token: _selectedToken,
-          ),
-        );
+      SendTransactionInitiate(
+        amount: _amount.extractDecimals(_selectedToken.decimals),
+        fromAddress: _selectedSenderAddress,
+        toAddress: _recipient,
+        token: _selectedToken,
+      ),
+    );
   }
 
   Widget _getDefaultAddressDropdown() {
@@ -255,18 +246,18 @@ class _SendPopulatedState extends State<SendPopulated> {
   }
 
   Widget _getCoinDropdown() => ZtsDropdown(
-        availableTokens: _availableAssets,
-        selectedToken: _selectedToken,
-        onChangeCallback: (Token value) {
-          if (_selectedToken != value) {
-            setState(
-              () {
-                _selectedToken = value;
-              },
-            );
-          }
-        },
-      );
+    availableTokens: _availableAssets,
+    selectedToken: _selectedToken,
+    onChangeCallback: (Token value) {
+      if (_selectedToken != value) {
+        setState(
+          () {
+            _selectedToken = value;
+          },
+        );
+      }
+    },
+  );
 
   void _onMaxPressed(AccountInfo accountInfo) {
     final BigInt maxBalance = accountInfo.getBalance(
@@ -312,13 +303,13 @@ class _SendPopulatedState extends State<SendPopulated> {
     );
 
     await sl.get<NotificationsBloc>().addNotification(
-          WalletNotification(
-            title: title,
-            timestamp: DateTime.now().millisecondsSinceEpoch,
-            details: context.l10n.hashValue(block.hash.toString()),
-            type: NotificationType.paymentSent,
-          ),
-        );
+      WalletNotification(
+        title: title,
+        timestamp: DateTime.now().millisecondsSinceEpoch,
+        details: context.l10n.hashValue(block.hash.toString()),
+        type: NotificationType.paymentSent,
+      ),
+    );
   }
 
   bool _hasBalance(AccountInfo accountInfo) =>

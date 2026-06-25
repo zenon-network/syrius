@@ -9,9 +9,9 @@ part 'receive_transaction_cubit.g.dart';
 
 part 'receive_transaction_state.dart';
 
-/// A cubit responsible for handling the reception of transactions.
+/// A bloc responsible for handling the reception of transactions.
 ///
-/// This cubit uses an [AutoReceiveTxWorker] to automatically receive a
+/// This bloc uses an [AutoReceiveTxWorker] to automatically receive a
 /// transaction given its [id].
 class ReceiveTransactionCubit extends HydratedCubit<ReceiveTransactionState> {
   /// Creates a new [ReceiveTransactionCubit] instance.

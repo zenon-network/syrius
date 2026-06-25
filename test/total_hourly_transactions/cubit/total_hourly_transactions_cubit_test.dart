@@ -25,7 +25,7 @@ class MockAccountBlock extends Mock implements AccountBlock {}
 
 void main() {
   initHydratedStorage();
-  
+
   group('TotalHourlyTransactionsCubit', () {
     late MockZenon mockZenon;
     late MockWsClient mockWsClient;
@@ -42,7 +42,7 @@ void main() {
       mockLedger = MockLedger();
       mockWsClient = MockWsClient();
       transactionsCubit = TotalHourlyTransactionsCubit(
-          zenon: mockZenon,
+        zenon: mockZenon,
       );
       fetchException = NotEnoughMomentumsException();
       mockMomentum = MockMomentum();
@@ -54,21 +54,24 @@ void main() {
       when(() => mockWsClient.isClosed()).thenReturn(false);
       when(() => mockZenon.ledger).thenReturn(mockLedger);
 
-      when(() => mockLedger.getFrontierMomentum())
-          .thenAnswer((_) async => mockMomentum);
-      when(() => mockMomentum.height)
-          .thenReturn(kMomentumsPerHour + 1);
-      when(() => mockLedger.getDetailedMomentumsByHeight(any(), any()))
-          .thenAnswer((_) async => mockDetailedMomentumList);
-      when(() => mockDetailedMomentumList.list)
-          .thenReturn(<DetailedMomentum>[mockDetailedMomentum]);
-      when(() => mockDetailedMomentum.blocks)
-          .thenReturn(<AccountBlock>[mockAccBlock, mockAccBlock]);
+      when(
+        () => mockLedger.getFrontierMomentum(),
+      ).thenAnswer((_) async => mockMomentum);
+      when(() => mockMomentum.height).thenReturn(kMomentumsPerHour + 1);
+      when(
+        () => mockLedger.getDetailedMomentumsByHeight(any(), any()),
+      ).thenAnswer((_) async => mockDetailedMomentumList);
+      when(
+        () => mockDetailedMomentumList.list,
+      ).thenReturn(<DetailedMomentum>[mockDetailedMomentum]);
+      when(
+        () => mockDetailedMomentum.blocks,
+      ).thenReturn(<AccountBlock>[mockAccBlock, mockAccBlock]);
     });
 
     test('initial status is correct', () {
       final TotalHourlyTransactionsCubit cubit = TotalHourlyTransactionsCubit(
-         zenon: mockZenon,
+        zenon: mockZenon,
       );
       expect(cubit.state.status, TimerStatus.initial);
     });
@@ -76,65 +79,65 @@ void main() {
     group('fromJson/toJson', () {
       test('can (de)serialize initial state', () {
         const TotalHourlyTransactionsState initialState =
-        TotalHourlyTransactionsState();
+            TotalHourlyTransactionsState();
 
         final Map<String, dynamic>? serialized = transactionsCubit.toJson(
           initialState,
         );
-        final TotalHourlyTransactionsState? deserialized =
-        transactionsCubit.fromJson(
-          serialized!,
-        );
+        final TotalHourlyTransactionsState? deserialized = transactionsCubit
+            .fromJson(
+              serialized!,
+            );
         expect(deserialized, equals(initialState));
       });
 
       test('can (de)serialize loading state', () {
         const TotalHourlyTransactionsState loadingState =
-        TotalHourlyTransactionsState(
-          status: TimerStatus.loading,
-        );
+            TotalHourlyTransactionsState(
+              status: TimerStatus.loading,
+            );
 
         final Map<String, dynamic>? serialized = transactionsCubit.toJson(
           loadingState,
         );
-        final TotalHourlyTransactionsState? deserialized =
-        transactionsCubit.fromJson(
-          serialized!,
-        );
+        final TotalHourlyTransactionsState? deserialized = transactionsCubit
+            .fromJson(
+              serialized!,
+            );
         expect(deserialized, equals(loadingState));
       });
 
       test('can (de)serialize success state', () {
         const TotalHourlyTransactionsState successState =
-        TotalHourlyTransactionsState(
-          status: TimerStatus.success,
-          data: 2,
-        );
+            TotalHourlyTransactionsState(
+              status: TimerStatus.success,
+              data: 2,
+            );
 
         final Map<String, dynamic>? serialized = transactionsCubit.toJson(
           successState,
         );
-        final TotalHourlyTransactionsState? deserialized =
-        transactionsCubit.fromJson(
-          serialized!,
-        );
+        final TotalHourlyTransactionsState? deserialized = transactionsCubit
+            .fromJson(
+              serialized!,
+            );
         expect(deserialized, equals(successState));
       });
 
       test('can (de)serialize failure state', () {
         final TotalHourlyTransactionsState failureState =
-        TotalHourlyTransactionsState(
-          status: TimerStatus.failure,
-          error: fetchException,
-        );
+            TotalHourlyTransactionsState(
+              status: TimerStatus.failure,
+              error: fetchException,
+            );
 
         final Map<String, dynamic>? serialized = transactionsCubit.toJson(
           failureState,
         );
-        final TotalHourlyTransactionsState? deserialized =
-        transactionsCubit.fromJson(
-          serialized!,
-        );
+        final TotalHourlyTransactionsState? deserialized = transactionsCubit
+            .fromJson(
+              serialized!,
+            );
         expect(deserialized, equals(failureState));
       });
     });
@@ -146,16 +149,17 @@ void main() {
         act: (TotalHourlyTransactionsCubit cubit) => cubit.fetch(),
         verify: (_) {
           verify(() => mockLedger.getFrontierMomentum()).called(1);
-          verify(() => mockLedger.getDetailedMomentumsByHeight(any(), any()))
-              .called(1);
+          verify(
+            () => mockLedger.getDetailedMomentumsByHeight(any(), any()),
+          ).called(1);
         },
       );
 
       blocTest<TotalHourlyTransactionsCubit, TotalHourlyTransactionsState>(
         'emits [loading, success] when fetch returns',
         build: () => transactionsCubit,
-        act: (TotalHourlyTransactionsCubit cubit)
-                                        => cubit.fetchDataPeriodically(),
+        act: (TotalHourlyTransactionsCubit cubit) =>
+            cubit.fetchDataPeriodically(),
         expect: () => <TotalHourlyTransactionsState>[
           const TotalHourlyTransactionsState(status: TimerStatus.loading),
           const TotalHourlyTransactionsState(
@@ -168,12 +172,13 @@ void main() {
       blocTest<TotalHourlyTransactionsCubit, TotalHourlyTransactionsState>(
         'emits [loading, failure] when fetch throws an error',
         setUp: () {
-          when(() => mockLedger.getFrontierMomentum())
-              .thenThrow(fetchException);
+          when(
+            () => mockLedger.getFrontierMomentum(),
+          ).thenThrow(fetchException);
         },
         build: () => transactionsCubit,
-        act: (TotalHourlyTransactionsCubit cubit)
-                                            => cubit.fetchDataPeriodically(),
+        act: (TotalHourlyTransactionsCubit cubit) =>
+            cubit.fetchDataPeriodically(),
         expect: () => <TotalHourlyTransactionsState>[
           const TotalHourlyTransactionsState(status: TimerStatus.loading),
           TotalHourlyTransactionsState(

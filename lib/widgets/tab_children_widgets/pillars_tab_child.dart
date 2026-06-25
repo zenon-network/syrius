@@ -1,31 +1,27 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:layout/layout.dart';
-import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
+import 'package:zenon_syrius_wallet_flutter/main.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 
-class PillarsTabChild extends StatefulWidget {
-
+/// Displays the Pillars tab content in a responsive fluid layout.
+class PillarsTabChild extends StatelessWidget {
+  /// Creates a Pillars tab child.
   const PillarsTabChild({
-    required this.onStepperNotificationSeeMorePressed,
+    required VoidCallback onStepperNotificationSeeMorePressed,
     super.key,
-  });
-  final VoidCallback onStepperNotificationSeeMorePressed;
+  }) : _onStepperNotificationSeeMorePressed =
+           onStepperNotificationSeeMorePressed;
 
-  @override
-  State<PillarsTabChild> createState() => _PillarsTabChildState();
-}
-
-class _PillarsTabChildState extends State<PillarsTabChild> {
-  final PillarRewardsHistoryBloc _pillarRewardsHistoryBloc =
-      PillarRewardsHistoryBloc();
+  final VoidCallback _onStepperNotificationSeeMorePressed;
 
   @override
   Widget build(BuildContext context) {
     final List<FluidCell> children = <FluidCell>[
       FluidCell(
-        child: PillarRewards(
-          pillarRewardsHistoryBloc: _pillarRewardsHistoryBloc,
-        ),
+        child: const PillarRewardsCard(),
         width: context.layout.value(
           xl: kStaggeredNumOfColumns ~/ 3,
           lg: kStaggeredNumOfColumns ~/ 3,
@@ -35,9 +31,7 @@ class _PillarsTabChildState extends State<PillarsTabChild> {
         ),
       ),
       FluidCell(
-        child: PillarCollect(
-          pillarRewardsHistoryBloc: _pillarRewardsHistoryBloc,
-        ),
+        child: const PillarCollectCard(),
         width: context.layout.value(
           xl: kStaggeredNumOfColumns ~/ 3,
           lg: kStaggeredNumOfColumns ~/ 3,
@@ -47,9 +41,9 @@ class _PillarsTabChildState extends State<PillarsTabChild> {
         ),
       ),
       FluidCell(
-        child: CreatePillar(
+        child: PillarStatsCard(
           onStepperNotificationSeeMorePressed:
-              widget.onStepperNotificationSeeMorePressed,
+              _onStepperNotificationSeeMorePressed,
         ),
         width: context.layout.value(
           xl: kStaggeredNumOfColumns ~/ 3,
@@ -60,19 +54,18 @@ class _PillarsTabChildState extends State<PillarsTabChild> {
         ),
       ),
       const FluidCell(
-        child: PillarListWidget(),
+        child: PillarsCard(),
         width: kStaggeredNumOfColumns,
         height: kStaggeredNumOfColumns / 2,
       ),
     ];
-    return StandardFluidLayout(
-      children: children,
+    return BlocProvider<PillarsBloc>(
+      create: (_) =>
+          PillarsBloc(zenon: zenon!)
+            ..add(const InfiniteListRequested(address: null)),
+      child: StandardFluidLayout(
+        children: children,
+      ),
     );
-  }
-
-  @override
-  void dispose() {
-    _pillarRewardsHistoryBloc.dispose();
-    super.dispose();
   }
 }

@@ -16,7 +16,6 @@ class MockSentinel extends Mock implements SentinelApi {}
 
 class MockEmbedded extends Mock implements EmbeddedApi {}
 
-class MockSentinelInfoList extends Mock implements SentinelInfoList {}
 
 void main() {
   initHydratedStorage();

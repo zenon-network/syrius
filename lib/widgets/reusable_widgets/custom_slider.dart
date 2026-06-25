@@ -5,7 +5,13 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/extensions/buildcontext_extension.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
+
+enum SliderDescriptionPosition {
+  bottom,
+  top,
+}
 
 Path _downTriangle(double size, Offset thumbCenter, {bool invert = false}) {
   final Path thumbPath = Path();
@@ -51,18 +57,19 @@ class _CustomThumbShape extends SliderComponentShape {
   );
 
   @override
-  void paint(
-    PaintingContext context,
-    Offset thumbCenter, {
-    required Animation<double> enableAnimation, required SliderThemeData sliderTheme, Animation<double>? activationAnimation,
-    bool? isDiscrete,
-    TextPainter? labelPainter,
-    RenderBox? parentBox,
-    TextDirection? textDirection,
-    double? value,
-    double? textScaleFactor,
-    Size? sizeWithOverflow,
-  }) {
+  void paint(PaintingContext context,
+      Offset thumbCenter, {
+        required Animation<double> enableAnimation,
+        required SliderThemeData sliderTheme,
+        Animation<double>? activationAnimation,
+        bool? isDiscrete,
+        TextPainter? labelPainter,
+        RenderBox? parentBox,
+        TextDirection? textDirection,
+        double? value,
+        double? textScaleFactor,
+        Size? sizeWithOverflow,
+      }) {
     final Canvas canvas = context.canvas;
     final ColorTween colorTween = ColorTween(
       begin: sliderTheme.disabledThumbColor,
@@ -72,7 +79,8 @@ class _CustomThumbShape extends SliderComponentShape {
     final Path thumbPath = _downTriangle(size, thumbCenter);
     canvas.drawPath(
       thumbPath,
-      Paint()..color = colorTween.evaluate(enableAnimation)!,
+      Paint()
+        ..color = colorTween.evaluate(enableAnimation)!,
     );
   }
 }
@@ -95,18 +103,19 @@ class _CustomValueIndicatorShape extends SliderComponentShape {
   );
 
   @override
-  void paint(
-    PaintingContext context,
-    Offset thumbCenter, {
-    required Animation<double> activationAnimation,
-    required Animation<double> enableAnimation,
-    required TextPainter labelPainter, required SliderThemeData sliderTheme, bool? isDiscrete,
-    RenderBox? parentBox,
-    TextDirection? textDirection,
-    double? value,
-    double? textScaleFactor,
-    Size? sizeWithOverflow,
-  }) {
+  void paint(PaintingContext context,
+      Offset thumbCenter, {
+        required Animation<double> activationAnimation,
+        required Animation<double> enableAnimation,
+        required TextPainter labelPainter,
+        required SliderThemeData sliderTheme,
+        bool? isDiscrete,
+        RenderBox? parentBox,
+        TextDirection? textDirection,
+        double? value,
+        double? textScaleFactor,
+        Size? sizeWithOverflow,
+      }) {
     final Canvas canvas = context.canvas;
     final ColorTween enableColor = ColorTween(
       begin: sliderTheme.disabledThumbColor,
@@ -118,22 +127,24 @@ class _CustomValueIndicatorShape extends SliderComponentShape {
     );
     final double size = _indicatorSize * sizeTween.evaluate(enableAnimation);
     final Offset slideUpOffset =
-        Offset(0, -slideUpTween.evaluate(activationAnimation));
+    Offset(0, -slideUpTween.evaluate(activationAnimation));
     final Path thumbPath = _upTriangle(size, thumbCenter + slideUpOffset);
     final Color paintColor = enableColor
         .evaluate(enableAnimation)!
         .withAlpha((255.0 * activationAnimation.value).round());
     canvas.drawPath(
       thumbPath,
-      Paint()..color = paintColor,
+      Paint()
+        ..color = paintColor,
     );
     canvas.drawLine(
-        thumbCenter,
-        thumbCenter + slideUpOffset,
-        Paint()
-          ..color = paintColor
-          ..style = PaintingStyle.stroke
-          ..strokeWidth = 2.0,);
+      thumbCenter,
+      thumbCenter + slideUpOffset,
+      Paint()
+        ..color = paintColor
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 2.0,
+    );
     labelPainter.paint(
       canvas,
       thumbCenter +
@@ -144,7 +155,6 @@ class _CustomValueIndicatorShape extends SliderComponentShape {
 }
 
 class CustomSlider extends StatefulWidget {
-
   const CustomSlider({
     required this.description,
     required this.startValue,
@@ -152,14 +162,17 @@ class CustomSlider extends StatefulWidget {
     required this.callback,
     this.min = 1.0,
     this.activeColor = AppColors.znnColor,
+    this.descriptionPosition = SliderDescriptionPosition.bottom,
     super.key,
   });
+
   final String description;
   final double? startValue;
   final double maxValue;
   final Function callback;
   final double min;
   final Color activeColor;
+  final SliderDescriptionPosition descriptionPosition;
 
   @override
   State<CustomSlider> createState() => _CustomSliderState();
@@ -172,54 +185,55 @@ class _CustomSliderState extends State<CustomSlider> {
   Widget build(BuildContext context) {
     _discreteCustomValue ??= widget.startValue;
 
+    final Widget description = Text(
+      widget.description,
+      style: Theme
+          .of(context)
+          .textTheme
+          .titleMedium,
+    );
+
     final ThemeData theme = Theme.of(context);
     return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
+      mainAxisSize: MainAxisSize.min,
       children: <Widget>[
-        Column(
-          mainAxisSize: MainAxisSize.min,
-          children: <Widget>[
-            SliderTheme(
-              data: theme.sliderTheme.copyWith(
-                trackHeight: 2,
-                activeTrackColor: widget.activeColor,
-                inactiveTrackColor:
-                    theme.colorScheme.onSurface.withOpacity(0.5),
-                activeTickMarkColor:
-                    theme.colorScheme.onSurface.withOpacity(0.7),
-                inactiveTickMarkColor:
-                    theme.colorScheme.surface.withOpacity(0.7),
-                overlayColor: theme.colorScheme.onSurface.withOpacity(0.12),
-                thumbColor: widget.activeColor,
-                valueIndicatorColor: widget.activeColor,
-                thumbShape: const _CustomThumbShape(),
-                valueIndicatorShape: const _CustomValueIndicatorShape(),
-                valueIndicatorTextStyle: theme.textTheme.bodyLarge!.copyWith(
-                  color: Colors.white,
-                ),
-              ),
-              child: Slider(
-                inactiveColor: AppColors.maxAmountBorder,
-                value: _discreteCustomValue!,
-                min: widget.min,
-                max: widget.maxValue,
-                divisions: (widget.maxValue - widget.min).toInt(),
-                semanticFormatterCallback: (double value) => value.round().toString(),
-                label: '${_discreteCustomValue!.round()}',
-                onChanged: (double value) {
-                  setState(() {
-                    _discreteCustomValue = value;
-                    widget.callback(value);
-                  });
-                },
-              ),
+        if (widget.descriptionPosition ==
+            SliderDescriptionPosition.top) description,
+        SliderTheme(
+          data: theme.sliderTheme.copyWith(
+            trackHeight: 2,
+            activeTrackColor: widget.activeColor,
+            inactiveTrackColor: theme.colorScheme.onSurface.withOpacity(0.5),
+            activeTickMarkColor: theme.colorScheme.onSurface.withOpacity(0.7),
+            inactiveTickMarkColor: theme.colorScheme.surface.withOpacity(0.7),
+            overlayColor: theme.colorScheme.onSurface.withOpacity(0.12),
+            thumbColor: widget.activeColor,
+            valueIndicatorColor: widget.activeColor,
+            thumbShape: const _CustomThumbShape(),
+            valueIndicatorShape: const _CustomValueIndicatorShape(),
+            valueIndicatorTextStyle: theme.textTheme.bodyLarge!.copyWith(
+              color: Colors.white,
             ),
-            Text(
-              widget.description,
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-          ],
+          ),
+          child: Slider(
+            inactiveColor: AppColors.maxAmountBorder,
+            value: _discreteCustomValue!,
+            min: widget.min,
+            max: widget.maxValue,
+            divisions: (widget.maxValue - widget.min).toInt(),
+            semanticFormatterCallback: (double value) =>
+                value.round().toString(),
+            label: '${_discreteCustomValue!.round()}',
+            onChanged: (double value) {
+              setState(() {
+                _discreteCustomValue = value;
+                widget.callback(value);
+              });
+            },
+          ),
         ),
+    if (widget.descriptionPosition ==
+    SliderDescriptionPosition.bottom) description,
       ],
     );
   }

@@ -28,7 +28,7 @@ const SizedBox kSpacingBetweenActionButtons = SizedBox(
 const Size kAcceleratorProgressBarSize = Size(300, 10);
 
 // Wallet version
-const String kWalletVersion = '0.2.2';
+const String kWalletVersion = '0.2.5';
 
 // Boxes constants
 const String kFavoriteTokensBox = 'favourite_tokens_box';
@@ -83,6 +83,7 @@ const String kP2pAutoReclaimKey = 'p2p_auto_reclaim_key';
 const String kLastCheckedHtlcBlockKey = 'last_checked_htlc_block_key';
 
 const double kDefaultBorderOutlineWidth = 1;
+// TODO(maznnwell): to change to int
 const double kStandardChartNumDays = 7;
 
 const int kAddressLabelMaxLength = 80;

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
@@ -95,7 +97,7 @@ void main() {
     });
 
     tearDown(() {
-      pendingTransactionsBloc.close();
+      unawaited(pendingTransactionsBloc.close());
     });
 
     test('initial state is correct', () {
@@ -122,17 +124,17 @@ void main() {
       test('can (de)serialize success state', () {
         final InfiniteListState<AccountBlock> successState =
             InfiniteListState<AccountBlock>(
-          status: InfiniteListStatus.success,
-          data: <AccountBlock>[accountBlock],
-        );
+              status: InfiniteListStatus.success,
+              data: <AccountBlock>[accountBlock],
+            );
 
         final Map<String, dynamic>? serialized = pendingTransactionsBloc.toJson(
           successState,
         );
         final InfiniteListState<AccountBlock>? deserialized =
             pendingTransactionsBloc.fromJson(
-          serialized!,
-        );
+              serialized!,
+            );
         expect(deserialized, isA<InfiniteListState<AccountBlock>>());
         expect(deserialized!.status, equals(InfiniteListStatus.success));
         expect(deserialized.data, isA<List<AccountBlock>?>());
@@ -141,17 +143,17 @@ void main() {
       test('can (de)serialize failure state', () {
         final InfiniteListState<AccountBlock> failureState =
             InfiniteListState<AccountBlock>(
-          status: InfiniteListStatus.failure,
-          error: exception,
-        );
+              status: InfiniteListStatus.failure,
+              error: exception,
+            );
 
         final Map<String, dynamic>? serialized = pendingTransactionsBloc.toJson(
           failureState,
         );
         final InfiniteListState<AccountBlock>? deserialized =
             pendingTransactionsBloc.fromJson(
-          serialized!,
-        );
+              serialized!,
+            );
         expect(deserialized, equals(failureState));
       });
     });
