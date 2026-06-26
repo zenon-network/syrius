@@ -22,6 +22,95 @@ For the initial scope, add a widget-driven send transaction test that enters a Z
 12. Add a GitHub Actions job that starts the Docker devnet, waits for it to be ready, and runs the generated integration test on Linux.
 13. Add separate GitHub Actions build jobs for Linux, macOS, and Windows desktop release builds.
 
+## Staged Rollout Plan
+
+Use this staged approach when the integration-test infrastructure is developed in a fork first and moved to the original repository later.
+
+### Stage 1: Build in the Fork
+
+Add the full testing infrastructure in the fork first:
+
+- `integration_test/features/send_transaction.feature`
+- `integration_test/steps/`
+- `integration_test/support/`
+- `build.yaml` configuration for `bdd_widget_test`
+- stable Send UI keys
+- Docker devnet wait script
+- a manual GitHub Actions workflow using `workflow_dispatch`
+
+The first workflow should be manually triggered from the fork's Actions tab. This avoids requiring any changes or permissions in the original repository while the setup is still being proven.
+
+### Stage 2: Use Fork Runs as PR Evidence
+
+Before opening or updating a PR to the original repository:
+
+1. Push the branch to the fork.
+2. Manually run the blockchain integration workflow in the fork.
+3. Confirm that the workflow passes.
+4. Link the successful workflow run in the PR description or in a PR comment.
+
+This is not as strong as a workflow run inside the original repository, but it gives maintainers a concrete proof-of-concept and a reproducible CI log.
+
+### Stage 3: Add PR-Friendly Triggers in the Fork
+
+After the manual workflow is stable, optionally add automatic fork-side triggers:
+
+```yaml
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - dev
+      - integration-tests
+  pull_request:
+    branches:
+      - dev
+```
+
+This keeps the fork self-validating while still avoiding any dependency on the original repository's CI configuration.
+
+### Stage 4: Propose Migration to the Original Repository
+
+Once the workflow is stable, propose moving the infrastructure upstream:
+
+- Add the BDD integration test files.
+- Add the devnet wait script.
+- Add the `bdd_widget_test` and `integration_test` dependencies.
+- Add or update `build.yaml`.
+- Add the GitHub Actions workflow.
+
+A safe first upstream version can be manual-only:
+
+```yaml
+on:
+  workflow_dispatch:
+```
+
+After maintainers trust the setup, enable automatic PR checks against the original repository's `dev` branch:
+
+```yaml
+on:
+  pull_request:
+    branches:
+      - dev
+  workflow_dispatch:
+```
+
+### Stage 5: Security-Focused Assertions
+
+The first security-oriented scenario should prove more than "the expected transfer exists". It should also check that no unexpected outgoing transfer happened during the tested action.
+
+For the Send flow, record the sender account-chain state before the UI action, then inspect all new outgoing account blocks after the action and assert:
+
+- the expected ZNN transfer exists
+- the recipient equals the address typed into the UI
+- the amount equals the amount typed into the UI
+- the token standard is ZNN
+- no additional outgoing ZNN transfers were created
+- no outgoing transfer was created to an unexpected address
+
+Use randomized recipient addresses and amounts where practical, so malicious code cannot easily special-case one hard-coded test value.
+
 ## Test Strategy
 
 - Keep unit and BLoC tests mocked and fast under `test/`.

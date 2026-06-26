@@ -1,0 +1,80 @@
+name: Blockchain Integration Tests
+
+on:
+  workflow_dispatch:
+    inputs:
+      run_chain_tests:
+        description: Run blockchain integration tests
+        required: true
+        default: "true"
+        type: choice
+        options:
+          - "true"
+          - "false"
+
+jobs:
+  chain-integration-test:
+    name: Devnet BDD Integration Tests
+    runs-on: ubuntu-latest
+    if: ${{ inputs.run_chain_tests == 'true' }}
+
+    services:
+      devnet:
+        # Replace this image with the Dockerized devnet node used by your fork.
+        image: ghcr.io/your-org/zenon-devnet:latest
+        ports:
+          - 35998:35998
+        options: >-
+          --health-cmd "true"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 12
+
+    env:
+      RUN_CHAIN_TESTS: "true"
+      ZNN_TEST_NODE_URL: ws://127.0.0.1:35998
+      # Use a devnet-only mnemonic. It must never hold real funds.
+      ZNN_TEST_MNEMONIC: ${{ vars.ZNN_TEST_MNEMONIC }}
+      ZNN_TEST_PASSWORD: test-password
+      ZNN_TEST_RECIPIENT_ADDRESS: ${{ vars.ZNN_TEST_RECIPIENT_ADDRESS }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+
+      - name: Install Linux desktop dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            clang \
+            cmake \
+            libgtk-3-dev \
+            ninja-build \
+            pkg-config \
+            xvfb
+
+      - name: Enable Linux desktop
+        run: flutter config --enable-linux-desktop
+
+      - name: Install Flutter dependencies
+        run: flutter pub get
+
+      - name: Wait for devnet
+        run: |
+          if [ -x ./scripts/wait-for-devnet.sh ]; then
+            ./scripts/wait-for-devnet.sh
+          else
+            echo "scripts/wait-for-devnet.sh is not available yet; sleeping as a temporary placeholder."
+            sleep 30
+          fi
+
+      - name: Generate BDD tests
+        run: dart run build_runner build --delete-conflicting-outputs
+
+      - name: Run blockchain integration tests
+        run: xvfb-run -a flutter test integration_test -d linux
