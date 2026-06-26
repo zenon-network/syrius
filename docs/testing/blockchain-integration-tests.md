@@ -227,6 +227,14 @@ Before adding broad BDD coverage, verify one generated `bdd_widget_test` scenari
 
 The CI job should run a Dockerized devnet node locally inside the GitHub Actions runner. Avoid using a shared external devnet for PR checks because shared chain state makes tests flaky and can cause PRs to interfere with each other.
 
+The current devnet reference is the Docker devnet work from `digitalSloth/go-zenon`:
+
+```text
+https://github.com/digitalSloth/go-zenon/tree/feature/docker-devnet
+```
+
+During local development, this can be started manually from Docker Desktop. For CI, the same devnet setup should eventually be published or made available as a Docker image that GitHub Actions can run as a service container.
+
 The Docker devnet should provide:
 
 - A WebSocket RPC endpoint exposed to the runner, for example `ws://127.0.0.1:35998`.
@@ -340,6 +348,7 @@ jobs:
 ```
 
 Adjust the Docker image, port, Linux desktop dependencies, and Flutter version to match the final CI environment.
+The placeholder image `ghcr.io/your-org/zenon-devnet:latest` should be replaced with the image built from the `digitalSloth/go-zenon` Docker devnet branch, or with the equivalent image used by the original repository.
 
 ## Local Run Shape
 

@@ -20,7 +20,8 @@ jobs:
 
     services:
       devnet:
-        # Replace this image with the Dockerized devnet node used by your fork.
+        # Replace this with the image built from the Docker devnet branch:
+        # https://github.com/digitalSloth/go-zenon/tree/feature/docker-devnet
         image: ghcr.io/your-org/zenon-devnet:latest
         ports:
           - 35998:35998
