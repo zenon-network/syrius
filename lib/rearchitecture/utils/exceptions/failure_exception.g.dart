@@ -12,6 +12,4 @@ FailureException _$FailureExceptionFromJson(Map<String, dynamic> json) =>
     );
 
 Map<String, dynamic> _$FailureExceptionToJson(FailureException instance) =>
-    <String, dynamic>{
-      'message': instance.message,
-    };
+    <String, dynamic>{'message': instance.message};

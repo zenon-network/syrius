@@ -7,15 +7,16 @@ part of 'staking_cubit.dart';
 // **************************************************************************
 
 StakingState _$StakingStateFromJson(Map<String, dynamic> json) => StakingState(
-      status: $enumDecodeNullable(_$TimerStatusEnumMap, json['status']) ??
-          TimerStatus.initial,
-      data: json['data'] == null
-          ? null
-          : StakeList.fromJson(json['data'] as Map<String, dynamic>),
-      error: json['error'] == null
-          ? null
-          : SyriusException.fromJson(json['error'] as Map<String, dynamic>),
-    );
+  status:
+      $enumDecodeNullable(_$TimerStatusEnumMap, json['status']) ??
+      TimerStatus.initial,
+  data: json['data'] == null
+      ? null
+      : StakeList.fromJson(json['data'] as Map<String, dynamic>),
+  error: json['error'] == null
+      ? null
+      : SyriusException.fromJson(json['error'] as Map<String, dynamic>),
+);
 
 Map<String, dynamic> _$StakingStateToJson(StakingState instance) =>
     <String, dynamic>{

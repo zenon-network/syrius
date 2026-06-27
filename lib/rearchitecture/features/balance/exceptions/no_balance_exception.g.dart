@@ -13,6 +13,4 @@ NoBalanceException _$NoBalanceExceptionFromJson(Map<String, dynamic> json) =>
     );
 
 Map<String, dynamic> _$NoBalanceExceptionToJson(NoBalanceException instance) =>
-    <String, dynamic>{
-      'message': instance.message,
-    };
+    <String, dynamic>{'message': instance.message};
