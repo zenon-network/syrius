@@ -96,7 +96,10 @@ dev_dependencies:
   dependency_validator: ^5.0.5
   mocktail: ^1.0.4
   bloc_test: ^10.0.0
+  bdd_widget_test: ^2.1.4
   flutter_test:
+    sdk: flutter
+  integration_test:
     sdk: flutter
   very_good_analysis: ^10.2.0
   json_serializable: ^6.8.0

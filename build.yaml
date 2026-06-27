@@ -1,0 +1,12 @@
+targets:
+  $default:
+    sources:
+      - integration_test/**
+      - test/**
+      - lib/**
+      - $package$
+    builders:
+      bdd_widget_test|featureBuilder:
+        options:
+          relativeToTestFolder: false
+          stepFolderName: integration_test/steps

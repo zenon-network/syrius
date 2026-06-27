@@ -34,10 +34,12 @@ jobs:
     env:
       RUN_CHAIN_TESTS: "true"
       ZNN_TEST_NODE_URL: ws://127.0.0.1:35998
-      # Use a devnet-only mnemonic. It must never hold real funds.
-      ZNN_TEST_MNEMONIC: ${{ vars.ZNN_TEST_MNEMONIC }}
-      ZNN_TEST_PASSWORD: test-password
-      ZNN_TEST_RECIPIENT_ADDRESS: ${{ vars.ZNN_TEST_RECIPIENT_ADDRESS }}
+      # Public Docker devnet mnemonic/password from digitalSloth/go-zenon.
+      # Devnet-only: never reuse these values on mainnet.
+      ZNN_TEST_MNEMONIC: "abstract affair idle position alien fluid board ordinary exist afraid chapter wood wood guide sun walnut crew perfect place firm poverty model side million"
+      ZNN_TEST_PASSWORD: devnet
+      ZNN_TEST_SENDER_INDEX: "3"
+      ZNN_TEST_RECIPIENT_INDEX: "8"
 
     steps:
       - name: Checkout

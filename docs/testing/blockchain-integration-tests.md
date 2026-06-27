@@ -4,7 +4,7 @@
 
 Blockchain integration tests validate wallet behavior against a real devnet node. They should cover the full wallet path whenever practical: user input in the Flutter UI, BLoC/event handling, wallet signing, node submission, and blockchain state assertions.
 
-For the initial scope, add a widget-driven send transaction test that enters a ZNN amount and recipient address in the Send UI, confirms the send action, and verifies that the devnet blockchain reflects the same amount, token, and recipient.
+For the initial scope, add a component-level widget-driven send transaction test that pumps the Send widget with real devnet wallet state, enters a ZNN amount and recipient address, confirms the send action, and verifies that the devnet blockchain reflects the same amount, token, and recipient.
 
 ## Step-by-Step Setup
 
@@ -16,7 +16,7 @@ For the initial scope, add a widget-driven send transaction test that enters a Z
 6. Add stable keys to the Send UI fields and button so the generated test steps can reliably find them.
 7. Add `integration_test/features/send_transaction.feature` with the Gherkin send scenario.
 8. Generate the Dart test and step files with `dart run build_runner build --delete-conflicting-outputs`.
-9. Implement the generated steps so they type the recipient and amount into the Send UI, confirm the dialog, and wait for the published account-block hash.
+9. Implement the generated steps so they prepare devnet wallet state, pump the Send widget, type the recipient and amount into the Send UI, confirm the dialog, and wait for the published account-block hash.
 10. Poll the devnet node until the published block is available on-chain.
 11. Assert that the on-chain block has the same recipient, ZNN token standard, and amount that was typed in the UI.
 12. Add a GitHub Actions job that starts the Docker devnet, waits for it to be ready, and runs the generated integration test on Linux.
@@ -115,11 +115,12 @@ Use randomized recipient addresses and amounts where practical, so malicious cod
 
 - Keep unit and BLoC tests mocked and fast under `test/`.
 - Put blockchain tests under `integration_test/`.
+- Start with a component-level integration test that pumps the real Send widget, but still uses the real devnet, wallet signing path, and blockchain assertions.
 - Drive the Send UI with Flutter test APIs instead of calling SDK send methods directly.
 - Use the real `SendTransactionBloc` and `AccountBlockUtils` path where possible.
 - Query the devnet node only for setup and final assertions.
 - Poll for blockchain state because account blocks and momentum confirmation are eventually consistent.
-- Start with one high-value send test before expanding coverage.
+- Add a later full app-journey test for `splash -> locked screen -> password unlock -> dashboard -> Send tab` after the component-level Send test is stable.
 
 ## BDD and Gherkin Scope
 
@@ -251,12 +252,13 @@ Use environment variables so the same test can run locally and in CI:
 ```text
 RUN_CHAIN_TESTS=true
 ZNN_TEST_NODE_URL=ws://127.0.0.1:35998
-ZNN_TEST_MNEMONIC=<devnet-only funded mnemonic>
-ZNN_TEST_PASSWORD=test-password
-ZNN_TEST_RECIPIENT_ADDRESS=<recipient address>
+ZNN_TEST_MNEMONIC="abstract affair idle position alien fluid board ordinary exist afraid chapter wood wood guide sun walnut crew perfect place firm poverty model side million"
+ZNN_TEST_PASSWORD=devnet
+ZNN_TEST_SENDER_INDEX=3
+ZNN_TEST_RECIPIENT_INDEX=8
 ```
 
-The mnemonic must be devnet-only. Do not use a real wallet or a mainnet-funded mnemonic in CI.
+These values come from the `digitalSloth/go-zenon` Docker devnet README. They are devnet-only and must never be reused on mainnet.
 
 ## Send Transaction Test Flow
 
@@ -265,19 +267,18 @@ The first integration test should verify that an amount typed into the wallet UI
 Recommended flow:
 
 1. Skip the test unless `RUN_CHAIN_TESTS=true`.
-2. Connect the app SDK singleton to `ZNN_TEST_NODE_URL`.
-3. Create or open a deterministic test wallet from `ZNN_TEST_MNEMONIC`.
-4. Configure wallet globals used by the Send feature, including selected address and default address list.
-5. Fetch the sender account info from the devnet and ensure it has enough ZNN.
-6. Pump a widget tree containing the Send feature with real BLoC wiring.
-7. Enter `ZNN_TEST_RECIPIENT_ADDRESS` into the recipient field.
-8. Enter the test ZNN amount into the amount field.
-9. Tap the Send button.
-10. Confirm the dialog.
-11. Wait for the send BLoC to report success and capture the returned account-block hash.
-12. Poll `zenon.ledger.getAccountBlockByHash(hash)` until the block is available and confirmed, or until a timeout is reached.
-13. Assert that the block recipient, amount, and token standard match the UI input.
-14. Assert that the receiver has the sent block as an unreceived transaction via `getUnreceivedBlocksByAddress`, unless the test also drives the receive flow.
+2. Connect the test world to `ZNN_TEST_NODE_URL` and verify devnet chain ID `69`.
+3. Derive the sender and recipient from the devnet mnemonic and configured indices.
+4. Configure the in-memory wallet state required by `AccountBlockUtils` while preserving the sender account index.
+5. Fetch the sender balance and snapshot the sender account height.
+6. Pump the real Send widget with real BLoC wiring and devnet account info.
+7. Enter the recipient address and test ZNN amount.
+8. Tap the Send button and confirm the dialog.
+9. Wait for `SendTransactionBloc` to report success.
+10. Fetch all new account blocks from the sender since the pre-send snapshot.
+11. Assert there is exactly one outgoing ZNN send block.
+12. Assert that the block recipient, amount, and token standard match the UI input.
+13. Poll `zenon.ledger.getAccountBlockByHash(hash)` until the send block is confirmed.
 
 For the first version, prefer asserting the published send block and the receiver's unreceived transaction. Receiver balance assertions require a receive block, so they test a broader flow and should be added separately.
 
@@ -286,12 +287,16 @@ For the first version, prefer asserting the published send block and the receive
 Before adding the integration test, add stable keys to the Send UI so tests do not depend on localized strings or widget ordering:
 
 ```dart
+const Key('wallet_password_field')
+const Key('wallet_unlock_button')
+const Key('dashboard_screen')
+const Key('send_tab')
 const Key('send_recipient_field')
 const Key('send_amount_field')
 const Key('send_submit_button')
 ```
 
-These keys should be attached to the recipient field, amount field, and send button in the Send feature.
+These keys should be attached to the real app flow: locked wallet screen, Dashboard, Send tab, recipient field, amount field, and send button.
 
 ## GitHub Actions Shape
 
@@ -335,9 +340,10 @@ jobs:
     env:
       RUN_CHAIN_TESTS: "true"
       ZNN_TEST_NODE_URL: ws://127.0.0.1:35998
-      ZNN_TEST_MNEMONIC: ${{ secrets.ZNN_TEST_MNEMONIC }}
-      ZNN_TEST_PASSWORD: test-password
-      ZNN_TEST_RECIPIENT_ADDRESS: ${{ vars.ZNN_TEST_RECIPIENT_ADDRESS }}
+      ZNN_TEST_MNEMONIC: "abstract affair idle position alien fluid board ordinary exist afraid chapter wood wood guide sun walnut crew perfect place firm poverty model side million"
+      ZNN_TEST_PASSWORD: devnet
+      ZNN_TEST_SENDER_INDEX: "3"
+      ZNN_TEST_RECIPIENT_INDEX: "8"
     steps:
       - uses: actions/checkout@v4
       - uses: subosito/flutter-action@v2
@@ -357,16 +363,18 @@ Run the devnet Docker container locally, then run:
 ```bash
 RUN_CHAIN_TESTS=true \
 ZNN_TEST_NODE_URL=ws://127.0.0.1:35998 \
-ZNN_TEST_MNEMONIC="<devnet-only funded mnemonic>" \
-ZNN_TEST_PASSWORD=test-password \
-ZNN_TEST_RECIPIENT_ADDRESS="<recipient address>" \
+ZNN_TEST_MNEMONIC="abstract affair idle position alien fluid board ordinary exist afraid chapter wood wood guide sun walnut crew perfect place firm poverty model side million" \
+ZNN_TEST_PASSWORD=devnet \
+ZNN_TEST_SENDER_INDEX=3 \
+ZNN_TEST_RECIPIENT_INDEX=8 \
 dart run build_runner build --delete-conflicting-outputs
 
 RUN_CHAIN_TESTS=true \
 ZNN_TEST_NODE_URL=ws://127.0.0.1:35998 \
-ZNN_TEST_MNEMONIC="<devnet-only funded mnemonic>" \
-ZNN_TEST_PASSWORD=test-password \
-ZNN_TEST_RECIPIENT_ADDRESS="<recipient address>" \
+ZNN_TEST_MNEMONIC="abstract affair idle position alien fluid board ordinary exist afraid chapter wood wood guide sun walnut crew perfect place firm poverty model side million" \
+ZNN_TEST_PASSWORD=devnet \
+ZNN_TEST_SENDER_INDEX=3 \
+ZNN_TEST_RECIPIENT_INDEX=8 \
 flutter test integration_test -d linux
 ```
 

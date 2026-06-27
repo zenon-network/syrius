@@ -18,9 +18,11 @@ import 'package:znn_ledger_dart/znn_ledger_dart.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 class LockTabChild extends StatefulWidget {
-
-  const LockTabChild(this.afterUnlockCallback, this.afterInitCallback,
-      {super.key,});
+  const LockTabChild(
+    this.afterUnlockCallback,
+    this.afterInitCallback, {
+    super.key,
+  });
   final Future<void> Function(String) afterUnlockCallback;
   final Function() afterInitCallback;
 
@@ -76,6 +78,7 @@ class _LockTabChildState extends State<LockTabChild> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: <Widget>[
               PasswordInputField(
+                key: const Key('wallet_password_field'),
                 controller: _passwordController,
                 hintText: 'Current password',
                 onSubmitted: (String value) {
@@ -85,7 +88,10 @@ class _LockTabChildState extends State<LockTabChild> {
               const SizedBox(
                 width: 10,
               ),
-              _actionButton!,
+              KeyedSubtree(
+                key: const Key('wallet_unlock_button'),
+                child: _actionButton!,
+              ),
             ],
           ),
           const SizedBox(
@@ -95,16 +101,16 @@ class _LockTabChildState extends State<LockTabChild> {
             visible: _messageToUser.isEmpty,
             child:
                 (kAutoEraseWalletLimit!.toInt() - kNumFailedUnlockAttempts! ==
-                        1)
-                    ? Text(
-                        'Last attempt. The wallet will be reset if this '
-                        'attempt fails',
-                        style: Theme.of(context).textTheme.headlineSmall,
-                      )
-                    : Text(
-                        '${kAutoEraseWalletLimit!.toInt() - kNumFailedUnlockAttempts!} attempts left',
-                        style: Theme.of(context).textTheme.headlineSmall,
-                      ),
+                    1)
+                ? Text(
+                    'Last attempt. The wallet will be reset if this '
+                    'attempt fails',
+                    style: Theme.of(context).textTheme.headlineSmall,
+                  )
+                : Text(
+                    '${kAutoEraseWalletLimit!.toInt() - kNumFailedUnlockAttempts!} attempts left',
+                    style: Theme.of(context).textTheme.headlineSmall,
+                  ),
           ),
           Visibility(
             visible: _messageToUser.isNotEmpty,
@@ -168,7 +174,8 @@ class _LockTabChildState extends State<LockTabChild> {
             _messageToUser = 'Initializing wallet, please wait';
           });
           await InitUtils.initWalletAfterDecryption(
-              Crypto.digest(utf8.encode(_passwordController.text)),);
+            Crypto.digest(utf8.encode(_passwordController.text)),
+          );
           sl.get<MultipleBalanceBloc>().add(
             MultipleBalanceFetch(
               addresses: kDefaultAddressList.map((String? e) => e!).toList(),
@@ -219,8 +226,9 @@ class _LockTabChildState extends State<LockTabChild> {
   void _restNumOfFailedAttempts() {
     _saveNumFailedUnlockAttempts(0).then(
       (_) {
-        kNumFailedUnlockAttempts =
-            sharedPrefsService!.get(kNumUnlockFailedAttemptsKey);
+        kNumFailedUnlockAttempts = sharedPrefsService!.get(
+          kNumUnlockFailedAttemptsKey,
+        );
       },
     );
   }
