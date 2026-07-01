@@ -11,15 +11,15 @@ import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 import '../support/devnet_test_context.dart';
 
-/// Usage: I send {'0.001'} ZNN from sender address {'z1qp3yph55qgresyytz83anynr2f4z39x2z3ej3e'} to recipient address {'z1qpeet8dcjg0m6x6m3tg437wnc42aa2nez2fzth'} from the Send screen
-Future<void> iSendZnnFromSenderAddressToRecipientAddressFromTheSendScreen(
+/// Usage: I send <amount> ZNN from <sender> address to <recipient> address from the Send screen
+Future<void> iSendZnnFromAddressToAddressFromTheSendScreen(
   WidgetTester tester,
   String amount,
-  String senderAddress,
-  String recipientAddress,
+  String sender,
+  String recipient,
 ) async {
   final DevnetTestContext context = app.sl<DevnetTestContext>();
-  final Address expectedSenderAddress = Address.parse(senderAddress);
+  final Address expectedSenderAddress = Address.parse(sender);
   final BigInt blockchainAmount = amount.extractDecimals(coinDecimals);
   final SendTransactionBloc sendTransactionBloc = SendTransactionBloc();
 
@@ -51,7 +51,7 @@ Future<void> iSendZnnFromSenderAddressToRecipientAddressFromTheSendScreen(
 
   await tester.enterText(
     find.byKey(const Key('send_recipient_field')),
-    recipientAddress,
+    recipient,
   );
   await tester.enterText(find.byKey(const Key('send_amount_field')), amount);
   await tester.pumpAndSettle();
@@ -61,19 +61,19 @@ Future<void> iSendZnnFromSenderAddressToRecipientAddressFromTheSendScreen(
 
   final Completer<AccountBlockTemplate> completer =
       Completer<AccountBlockTemplate>();
-  final StreamSubscription<SendTransactionState> subscription = sendTransactionBloc.stream
-      .listen((SendTransactionState state) {
-    if (state.status == SendTransactionStatus.success &&
-        state.data != null &&
-        !completer.isCompleted) {
-      completer.complete(state.data);
-    } else if (state.status == SendTransactionStatus.failure &&
-        !completer.isCompleted) {
-      completer.completeError(
-        state.error ?? StateError('Send transaction failed'),
-      );
-    }
-  });
+  final StreamSubscription<SendTransactionState> subscription =
+      sendTransactionBloc.stream.listen((SendTransactionState state) {
+        if (state.status == SendTransactionStatus.success &&
+            state.data != null &&
+            !completer.isCompleted) {
+          completer.complete(state.data);
+        } else if (state.status == SendTransactionStatus.failure &&
+            !completer.isCompleted) {
+          completer.completeError(
+            state.error ?? StateError('Send transaction failed'),
+          );
+        }
+      });
 
   try {
     await tester.tap(find.byKey(const Key('dialog_yes_button')));

@@ -8,11 +8,8 @@ import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 import '../support/devnet_test_context.dart';
 
-/// Usage: sender address {'z1qp3yph55qgresyytz83anynr2f4z39x2z3ej3e'} has funds
-Future<void> senderAddressHasFunds(
-  WidgetTester tester,
-  String senderAddress,
-) async {
+/// Usage: <sender> address has funds
+Future<void> addressHasFunds(WidgetTester tester, String sender) async {
   HydratedBloc.storage = InMemoryHydratedStorage();
   _registerTestServices();
 
@@ -20,7 +17,7 @@ Future<void> senderAddressHasFunds(
     devnetEnv('ZNN_TEST_MNEMONIC', DevnetTestContext.defaultMnemonic),
   );
 
-  final Address derivedSenderAddress = Address.parse(senderAddress);
+  final Address derivedSenderAddress = Address.parse(sender);
 
   await _configureWalletGlobals(wallet, derivedSenderAddress);
 
@@ -51,10 +48,10 @@ void _registerTestServices() {
 }
 
 Future<void> _configureWalletGlobals(
-  KeyStore wallet,
-  Address senderAddress,
-) async {
-  final int maxIndex = 9;
+    KeyStore wallet,
+    Address senderAddress,
+    ) async {
+  const int maxIndex = 9;
   final List<String> addresses = <String>[];
 
   for (int i = 0; i <= maxIndex; i += 1) {

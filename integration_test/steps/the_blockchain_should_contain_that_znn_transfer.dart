@@ -7,7 +7,7 @@ import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 import '../support/devnet_test_context.dart';
 
-/// Usage: the blockchain should contain that {'0.001'} ZNN transfer to {'z1qpeet8dcjg0m6x6m3tg437wnc42aa2nez2fzth'}
+/// Usage: the blockchain should contain that <amount> ZNN transfer to <recipient>
 Future<void> theBlockchainShouldContainThatZnnTransferTo(
   WidgetTester tester,
   String amount,
