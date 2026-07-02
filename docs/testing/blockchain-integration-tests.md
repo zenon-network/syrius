@@ -368,10 +368,10 @@ jobs:
           path: go-zenon-devnet
       - name: Set up Docker
         run: |
-          brew install colima docker docker-compose
+          brew install colima docker docker-compose qemu
           mkdir -p "$HOME/.docker/cli-plugins"
           ln -sfn "$(brew --prefix docker-compose)/bin/docker-compose" "$HOME/.docker/cli-plugins/docker-compose"
-          colima start --cpu 2 --memory 4 --disk 20
+          colima start --vm-type qemu --cpu 2 --memory 4 --disk 20
           docker info
           docker compose version
       - name: Start devnet
