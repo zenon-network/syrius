@@ -19,7 +19,7 @@ For the initial scope, add a component-level widget-driven send transaction test
 9. Implement the generated steps so they prepare devnet wallet state, pump the Send widget, type the recipient and amount into the Send UI, confirm the dialog, and wait for the published account-block hash.
 10. Poll the devnet node until the published block is available on-chain.
 11. Assert that the on-chain block has the same recipient, ZNN token standard, and amount that was typed in the UI.
-12. Add a GitHub Actions job that starts the Docker devnet, waits for it to be ready, and runs the generated integration test on Linux.
+12. Add a GitHub Actions job that starts the Docker devnet, waits for it to be ready, and runs the generated integration test on macOS.
 13. Add separate GitHub Actions build jobs for Linux, macOS, and Windows desktop release builds.
 
 ## Staged Rollout Plan
@@ -347,7 +347,7 @@ jobs:
       - run: flutter build ${{ matrix.target }} --release
 
   chain-integration-test:
-    runs-on: ubuntu-latest
+    runs-on: macos-latest
     if: ${{ github.event_name == 'pull_request' || inputs.run_chain_tests == 'true' }}
     env:
       RUN_CHAIN_TESTS: "true"
@@ -366,26 +366,24 @@ jobs:
           repository: digitalSloth/go-zenon
           ref: feature/docker-devnet
           path: go-zenon-devnet
+      - name: Set up Docker
+        run: |
+          brew install colima docker docker-compose
+          mkdir -p "$HOME/.docker/cli-plugins"
+          ln -sfn "$(brew --prefix docker-compose)/bin/docker-compose" "$HOME/.docker/cli-plugins/docker-compose"
+          colima start --cpu 2 --memory 4 --disk 20
+          docker info
+          docker compose version
       - name: Start devnet
         working-directory: go-zenon-devnet
         run: make devnet-up
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
-      - name: Install Linux desktop dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y \
-            clang \
-            cmake \
-            libgtk-3-dev \
-            ninja-build \
-            pkg-config \
-            xvfb
-      - run: flutter config --enable-linux-desktop
+      - run: flutter config --enable-macos-desktop
       - run: flutter pub get
       - run: ./scripts/wait-for-devnet.sh
       - run: dart run build_runner build --delete-conflicting-outputs
-      - run: xvfb-run -a flutter test integration_test -d linux
+      - run: flutter test integration_test -d macos
       - name: Dump devnet logs
         if: failure()
         working-directory: go-zenon-devnet
@@ -427,7 +425,7 @@ ZNN_TEST_MNEMONIC="abstract affair idle position alien fluid board ordinary exis
 ZNN_TEST_PASSWORD=devnet \
 ZNN_TEST_SENDER_INDEX=3 \
 ZNN_TEST_RECIPIENT_INDEX=8 \
-flutter test integration_test -d linux
+flutter test integration_test -d macos
 ```
 
 Use the matching desktop target for the local platform when needed.
