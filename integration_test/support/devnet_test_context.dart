@@ -1,8 +1,12 @@
 import 'dart:io';
 
+import 'package:flutter_test/flutter_test.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
+import 'package:zenon_syrius_wallet_flutter/main.dart' as app;
 import 'package:zenon_syrius_wallet_flutter/model/model.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/wallet_file.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
@@ -24,7 +28,74 @@ class DevnetTestContext {
     9: 'z1qqcam4ycu0ta8333hx38r5j2z3ry9jjfxkc7t5',
   };
 
+  static String get defaultSenderAddress =>
+      fundedDevAddresses[defaultSenderIndex]!;
+
   AccountBlockTemplate? sentBlock;
+}
+
+Future<void> initializeDevnetIntegrationTests() async {
+  expect(
+    devnetEnv('RUN_CHAIN_TESTS', 'true'),
+    'true',
+    reason: 'Set RUN_CHAIN_TESTS=true to run blockchain integration tests',
+  );
+
+  app.zenon ??= Zenon();
+  if (app.sl.isRegistered<DevnetTestContext>()) {
+    await app.sl.unregister<DevnetTestContext>();
+  }
+  app.sl.registerSingleton<DevnetTestContext>(DevnetTestContext());
+
+  final String nodeUrl = devnetEnv(
+    'ZNN_TEST_NODE_URL',
+    DevnetTestContext.defaultNodeUrl,
+  );
+  final bool connected = await app.zenon!.wsClient
+      .initialize(nodeUrl, retry: false)
+      .timeout(const Duration(seconds: 15));
+
+  expect(
+    connected,
+    isTrue,
+    reason: 'Could not connect to devnet at $nodeUrl',
+  );
+
+  final Momentum momentum = await app.zenon!.ledger.getFrontierMomentum();
+  expect(
+    momentum.chainIdentifier,
+    DevnetTestContext.chainId,
+    reason:
+        'Integration tests must run against docker devnet chain ID '
+        '${DevnetTestContext.chainId}',
+  );
+  setChainIdentifier(chainIdentifier: momentum.chainIdentifier);
+
+  HydratedBloc.storage = InMemoryHydratedStorage();
+  _registerTestServices();
+
+  final KeyStore wallet = KeyStore.fromMnemonic(
+    devnetEnv('ZNN_TEST_MNEMONIC', DevnetTestContext.defaultMnemonic),
+  );
+  await _configureWalletGlobals(wallet);
+}
+
+void resetDevnetScenarioState() {
+  app.sl<DevnetTestContext>().sentBlock = null;
+  selectDevnetSender(DevnetTestContext.defaultSenderAddress);
+}
+
+void selectDevnetSender(String senderAddress) {
+  if (!kDefaultAddressList.contains(senderAddress)) {
+    throw StateError(
+      'Sender address $senderAddress is not in the devnet wallet',
+    );
+  }
+  kSelectedAddress = senderAddress;
+}
+
+void disposeDevnetIntegrationTests() {
+  app.zenon?.wsClient.stop();
 }
 
 String devnetEnv(String name, String fallback) {
@@ -93,4 +164,44 @@ class TestNotificationsBloc extends NotificationsBloc {
 
   @override
   Future<void> sendPlasmaNotification(String purposeOfGeneratingPlasma) async {}
+}
+
+void _registerTestServices() {
+  if (!app.sl.isRegistered<Zenon>()) {
+    app.sl.registerSingleton<Zenon>(app.zenon!);
+  }
+  if (!app.sl.isRegistered<NotificationsBloc>()) {
+    app.sl.registerSingleton<NotificationsBloc>(TestNotificationsBloc());
+  }
+  if (!app.sl.isRegistered<BalanceBloc>()) {
+    app.sl.registerSingleton<BalanceBloc>(BalanceBloc());
+  }
+  if (!app.sl.isRegistered<MultipleBalanceBloc>()) {
+    app.sl.registerSingleton<MultipleBalanceBloc>(
+      MultipleBalanceBloc(zenon: app.zenon!),
+    );
+  }
+  if (!app.sl.isRegistered<PowGeneratingStatusBloc>()) {
+    app.sl.registerSingleton<PowGeneratingStatusBloc>(
+      PowGeneratingStatusBloc(),
+    );
+  }
+}
+
+Future<void> _configureWalletGlobals(KeyStore wallet) async {
+  const int maxIndex = 9;
+  final List<String> addresses = <String>[];
+
+  for (int i = 0; i <= maxIndex; i += 1) {
+    final WalletAccount account = await wallet.getAccount(i);
+    addresses.add((await account.getAddress()).toString());
+  }
+
+  kWalletFile = DevnetWalletFile(wallet);
+  kDefaultAddressList = addresses;
+  kAddressLabelMap = <String, String>{
+    for (int i = 0; i < addresses.length; i += 1) addresses[i]: 'Address $i',
+  };
+  kWalletInitCompleted = true;
+  selectDevnetSender(DevnetTestContext.defaultSenderAddress);
 }

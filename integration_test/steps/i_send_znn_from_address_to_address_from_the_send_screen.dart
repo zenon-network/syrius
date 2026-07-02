@@ -1,3 +1,6 @@
+// BDD Usage comments intentionally mirror Gherkin placeholders.
+// ignore_for_file: unintended_html_in_doc_comment, lines_longer_than_80_chars
+
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -19,6 +22,7 @@ Future<void> iSendZnnFromAddressToAddressFromTheSendScreen(
   String recipient,
 ) async {
   final DevnetTestContext context = app.sl<DevnetTestContext>();
+  selectDevnetSender(sender);
   final Address expectedSenderAddress = Address.parse(sender);
   final BigInt blockchainAmount = amount.extractDecimals(coinDecimals);
   final SendTransactionBloc sendTransactionBloc = SendTransactionBloc();

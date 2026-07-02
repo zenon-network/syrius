@@ -2,8 +2,7 @@
 Feature: Send ZNN on devnet
 
   Scenario Outline: Sending ZNN from the wallet UI is recorded on-chain
-    Given the devnet node is running
-    And <sender> address has funds
+    Given <sender> address has funds
     When I send <amount> ZNN from <sender> address to <recipient> address from the Send screen
     Then the blockchain should contain that <amount> ZNN transfer to <recipient>
 
