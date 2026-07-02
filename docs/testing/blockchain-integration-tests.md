@@ -79,11 +79,14 @@ Once the workflow is stable, propose moving the infrastructure upstream:
 - Add or update `build.yaml`.
 - Add the GitHub Actions workflow.
 
-A safe first upstream version can be manual-only:
+A safe first fork version can run manually and on PRs targeting the fork's `develop` branch:
 
 ```yaml
 on:
   workflow_dispatch:
+  pull_request:
+    branches:
+      - develop
 ```
 
 After maintainers trust the setup, enable automatic PR checks against the original repository's `dev` branch:
@@ -303,6 +306,19 @@ These keys should be attached to the real app flow: locked wallet screen, Dashbo
 Use separate jobs for fast validation, desktop builds, and blockchain integration tests.
 
 ```yaml
+on:
+  workflow_dispatch:
+    inputs:
+      run_chain_tests:
+        default: "true"
+        type: choice
+        options:
+          - "true"
+          - "false"
+  pull_request:
+    branches:
+      - develop
+
 jobs:
   analyze-and-unit-test:
     runs-on: ubuntu-latest
@@ -332,6 +348,7 @@ jobs:
 
   chain-integration-test:
     runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'pull_request' || inputs.run_chain_tests == 'true' }}
     env:
       RUN_CHAIN_TESTS: "true"
       ZNN_TEST_HTTP_URL: http://127.0.0.1:35997

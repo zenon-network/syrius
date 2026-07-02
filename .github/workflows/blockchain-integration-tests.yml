@@ -11,12 +11,15 @@ on:
         options:
           - "true"
           - "false"
+  pull_request:
+    branches:
+      - develop
 
 jobs:
   chain-integration-test:
     name: Devnet BDD Integration Tests
     runs-on: ubuntu-latest
-    if: ${{ inputs.run_chain_tests == 'true' }}
+    if: ${{ github.event_name == 'pull_request' || inputs.run_chain_tests == 'true' }}
 
     env:
       RUN_CHAIN_TESTS: "true"
