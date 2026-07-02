@@ -321,6 +321,9 @@ on:
     branches:
       - develop
 
+env:
+  FLUTTER_VERSION: "3.44.0"
+
 jobs:
   analyze-and-unit-test:
     runs-on: ubuntu-latest
@@ -349,7 +352,7 @@ jobs:
       - run: flutter build ${{ matrix.target }} --release
 
   chain-integration-test:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     if: ${{ github.event_name == 'pull_request' || inputs.run_chain_tests == 'true' }}
     env:
       RUN_CHAIN_TESTS: "true"
@@ -373,21 +376,22 @@ jobs:
         run: make devnet-up
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{env.FLUTTER_VERSION}}
+          channel: "stable"
       - name: Install Linux desktop dependencies
         run: |
-          sudo apt-get update
-          sudo apt-get install -y \
-            clang \
-            cmake \
-            libayatana-appindicator3-dev \
-            libgtk-3-dev \
-            libjsoncpp-dev \
-            liblzma-dev \
-            libnotify-dev \
-            libsecret-1-dev \
-            ninja-build \
-            pkg-config \
-            xvfb
+          sudo apt update
+          sudo apt update
+          sudo apt install -y libsecret-1-dev libjsoncpp-dev
+          sudo apt install -y curl clang cmake ninja-build pkg-config libgtk-3-dev liblzma-dev unzip xz-utils zip libnotify-dev libayatana-appindicator3-dev xvfb
+      - name: Set permissions
+        run: |
+          sudo chmod -R 777 linux/
+      - name: Check flutter version
+        run: |
+          which flutter
+          flutter --version
       - run: flutter config --enable-linux-desktop
       - run: flutter pub get
       - run: ./scripts/wait-for-devnet.sh
