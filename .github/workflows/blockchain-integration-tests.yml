@@ -18,7 +18,7 @@ on:
 jobs:
   chain-integration-test:
     name: Devnet BDD Integration Tests
-    runs-on: macos-latest
+    runs-on: ubuntu-latest
     if: ${{ github.event_name == 'pull_request' || inputs.run_chain_tests == 'true' }}
 
     env:
@@ -43,15 +43,6 @@ jobs:
           ref: feature/docker-devnet
           path: go-zenon-devnet
 
-      - name: Set up Docker
-        run: |
-          brew install colima docker docker-compose qemu
-          mkdir -p "$HOME/.docker/cli-plugins"
-          ln -sfn "$(brew --prefix docker-compose)/bin/docker-compose" "$HOME/.docker/cli-plugins/docker-compose"
-          colima start --vm-type qemu --cpu 2 --memory 4 --disk 20
-          docker info
-          docker compose version
-
       - name: Start devnet
         working-directory: go-zenon-devnet
         run: make devnet-up
@@ -61,8 +52,24 @@ jobs:
         with:
           channel: stable
 
-      - name: Enable macOS desktop
-        run: flutter config --enable-macos-desktop
+      - name: Install Linux desktop dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            clang \
+            cmake \
+            libayatana-appindicator3-dev \
+            libgtk-3-dev \
+            libjsoncpp-dev \
+            liblzma-dev \
+            libnotify-dev \
+            libsecret-1-dev \
+            ninja-build \
+            pkg-config \
+            xvfb
+
+      - name: Enable Linux desktop
+        run: flutter config --enable-linux-desktop
 
       - name: Install Flutter dependencies
         run: flutter pub get
@@ -74,7 +81,7 @@ jobs:
         run: dart run build_runner build --delete-conflicting-outputs
 
       - name: Run blockchain integration tests
-        run: flutter test integration_test -d macos
+        run: xvfb-run -a flutter test integration_test -d linux
 
       - name: Dump devnet logs
         if: failure()
