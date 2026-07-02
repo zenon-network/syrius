@@ -332,35 +332,70 @@ jobs:
 
   chain-integration-test:
     runs-on: ubuntu-latest
-    services:
-      devnet:
-        image: ghcr.io/your-org/zenon-devnet:latest
-        ports:
-          - 35998:35998
     env:
       RUN_CHAIN_TESTS: "true"
+      ZNN_TEST_HTTP_URL: http://127.0.0.1:35997
       ZNN_TEST_NODE_URL: ws://127.0.0.1:35998
       ZNN_TEST_MNEMONIC: "abstract affair idle position alien fluid board ordinary exist afraid chapter wood wood guide sun walnut crew perfect place firm poverty model side million"
       ZNN_TEST_PASSWORD: devnet
       ZNN_TEST_SENDER_INDEX: "3"
       ZNN_TEST_RECIPIENT_INDEX: "8"
     steps:
-      - uses: actions/checkout@v4
-      - uses: subosito/flutter-action@v2
+      - name: Checkout syrius
+        uses: actions/checkout@v4
+      - name: Checkout devnet
+        uses: actions/checkout@v4
+        with:
+          repository: digitalSloth/go-zenon
+          ref: feature/docker-devnet
+          path: go-zenon-devnet
+      - name: Start devnet
+        working-directory: go-zenon-devnet
+        run: make devnet-up
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+      - name: Install Linux desktop dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            clang \
+            cmake \
+            libgtk-3-dev \
+            ninja-build \
+            pkg-config \
+            xvfb
+      - run: flutter config --enable-linux-desktop
       - run: flutter pub get
       - run: ./scripts/wait-for-devnet.sh
       - run: dart run build_runner build --delete-conflicting-outputs
-      - run: flutter test integration_test -d linux
+      - run: xvfb-run -a flutter test integration_test -d linux
+      - name: Dump devnet logs
+        if: failure()
+        working-directory: go-zenon-devnet
+        run: docker compose logs --no-color
+      - name: Stop devnet
+        if: always()
+        working-directory: go-zenon-devnet
+        run: make devnet-down || true
 ```
 
-Adjust the Docker image, port, Linux desktop dependencies, and Flutter version to match the final CI environment.
-The placeholder image `ghcr.io/your-org/zenon-devnet:latest` should be replaced with the image built from the `digitalSloth/go-zenon` Docker devnet branch, or with the equivalent image used by the original repository.
+The blockchain integration job starts the Docker Compose devnet in the same GitHub Actions job that runs the tests. This is required because GitHub Actions jobs are isolated from each other, and the test process needs to connect to the devnet through `ws://127.0.0.1:35998` on the same runner.
+
+The devnet checkout currently tracks `digitalSloth/go-zenon@feature/docker-devnet`. Once the setup is stable, pin this checkout to a commit SHA or move the devnet source to the canonical upstream location.
 
 ## Local Run Shape
 
-Run the devnet Docker container locally, then run:
+Run the Docker Compose devnet locally, then wait for the RPC endpoint and run:
 
 ```bash
+RUN_CHAIN_TESTS=true \
+ZNN_TEST_NODE_URL=ws://127.0.0.1:35998 \
+ZNN_TEST_MNEMONIC="abstract affair idle position alien fluid board ordinary exist afraid chapter wood wood guide sun walnut crew perfect place firm poverty model side million" \
+ZNN_TEST_PASSWORD=devnet \
+ZNN_TEST_SENDER_INDEX=3 \
+ZNN_TEST_RECIPIENT_INDEX=8 \
+./scripts/wait-for-devnet.sh
+
 RUN_CHAIN_TESTS=true \
 ZNN_TEST_NODE_URL=ws://127.0.0.1:35998 \
 ZNN_TEST_MNEMONIC="abstract affair idle position alien fluid board ordinary exist afraid chapter wood wood guide sun walnut crew perfect place firm poverty model side million" \

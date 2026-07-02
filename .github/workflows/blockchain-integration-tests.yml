@@ -18,21 +18,9 @@ jobs:
     runs-on: ubuntu-latest
     if: ${{ inputs.run_chain_tests == 'true' }}
 
-    services:
-      devnet:
-        # Replace this with the image built from the Docker devnet branch:
-        # https://github.com/digitalSloth/go-zenon/tree/feature/docker-devnet
-        image: ghcr.io/your-org/zenon-devnet:latest
-        ports:
-          - 35998:35998
-        options: >-
-          --health-cmd "true"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 12
-
     env:
       RUN_CHAIN_TESTS: "true"
+      ZNN_TEST_HTTP_URL: http://127.0.0.1:35997
       ZNN_TEST_NODE_URL: ws://127.0.0.1:35998
       # Public Docker devnet mnemonic/password from digitalSloth/go-zenon.
       # Devnet-only: never reuse these values on mainnet.
@@ -42,8 +30,19 @@ jobs:
       ZNN_TEST_RECIPIENT_INDEX: "8"
 
     steps:
-      - name: Checkout
+      - name: Checkout syrius
         uses: actions/checkout@v4
+
+      - name: Checkout devnet
+        uses: actions/checkout@v4
+        with:
+          repository: digitalSloth/go-zenon
+          ref: feature/docker-devnet
+          path: go-zenon-devnet
+
+      - name: Start devnet
+        working-directory: go-zenon-devnet
+        run: make devnet-up
 
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
@@ -68,16 +67,20 @@ jobs:
         run: flutter pub get
 
       - name: Wait for devnet
-        run: |
-          if [ -x ./scripts/wait-for-devnet.sh ]; then
-            ./scripts/wait-for-devnet.sh
-          else
-            echo "scripts/wait-for-devnet.sh is not available yet; sleeping as a temporary placeholder."
-            sleep 30
-          fi
+        run: ./scripts/wait-for-devnet.sh
 
       - name: Generate BDD tests
         run: dart run build_runner build --delete-conflicting-outputs
 
       - name: Run blockchain integration tests
         run: xvfb-run -a flutter test integration_test -d linux
+
+      - name: Dump devnet logs
+        if: failure()
+        working-directory: go-zenon-devnet
+        run: docker compose logs --no-color
+
+      - name: Stop devnet
+        if: always()
+        working-directory: go-zenon-devnet
+        run: make devnet-down || true
