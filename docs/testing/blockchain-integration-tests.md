@@ -142,6 +142,37 @@ integration_test/
 
 BDD is appropriate here because these tests describe user-visible behavior and verify real on-chain effects. It should not be used for low-level implementation tests where plain Dart tests are clearer and faster.
 
+## Chain Test Tag
+
+Use the Gherkin `@chain` tag on scenarios that require a real devnet node or validate blockchain state.
+
+`bdd_widget_test` converts Gherkin tags into Dart test metadata. For example, this feature tag:
+
+```gherkin
+@chain
+Feature: Send ZNN on devnet
+```
+
+generates Dart test metadata like:
+
+```dart
+@Tags(['chain'])
+```
+
+The custom `chain` tag is declared in `dart_test.yaml` so Dart's `package:test` runner, and therefore `flutter test`, recognizes it. This keeps devnet-dependent tests distinguishable from fast mocked unit/widget tests.
+
+Run only chain tests with:
+
+```bash
+flutter test integration_test --tags chain
+```
+
+Run tests while excluding chain tests with:
+
+```bash
+flutter test --exclude-tags chain
+```
+
 Good Gherkin candidates:
 
 - Send ZNN from the Send UI.

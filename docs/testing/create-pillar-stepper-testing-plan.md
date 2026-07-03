@@ -160,6 +160,7 @@ Those tests can improve maintainability, but they do not prove that user funds a
 
 Each security integration test should:
 
+- Use the Gherkin `@chain` tag because these tests require a real devnet node and inspect blockchain state.
 - Use a fresh or deterministic local devnet state.
 - Use a deterministic devnet-only wallet.
 - Prepare required funds and plasma before the action under test.
