@@ -284,7 +284,6 @@ The Docker devnet should provide:
 Use environment variables so the same test can run locally and in CI:
 
 ```text
-RUN_CHAIN_TESTS=true
 ZNN_TEST_HTTP_URL=http://127.0.0.1:35997
 ZNN_TEST_NODE_URL=ws://127.0.0.1:35998
 ZNN_TEST_MNEMONIC="abstract affair idle position alien fluid board ordinary exist afraid chapter wood wood guide sun walnut crew perfect place firm poverty model side million"
@@ -301,7 +300,7 @@ The first integration test should verify that an amount typed into the wallet UI
 
 Recommended flow:
 
-1. Skip the test unless `RUN_CHAIN_TESTS=true`.
+1. Run the test through the `chain` tag so non-devnet integration tests can be included or excluded separately.
 2. Connect the test world to `ZNN_TEST_NODE_URL` and verify devnet chain ID `69`.
 3. Derive the sender and recipient from the devnet mnemonic and configured indices.
 4. Configure the in-memory wallet state required by `AccountBlockUtils` while preserving the sender account index.
@@ -339,13 +338,6 @@ Use separate jobs for fast validation, desktop builds, and blockchain integratio
 ```yaml
 on:
   workflow_dispatch:
-    inputs:
-      run_chain_tests:
-        default: "true"
-        type: choice
-        options:
-          - "true"
-          - "false"
   pull_request:
     branches:
       - develop
@@ -382,9 +374,7 @@ jobs:
 
   chain-integration-test:
     runs-on: ubuntu-24.04
-    if: ${{ github.event_name == 'pull_request' || inputs.run_chain_tests == 'true' }}
     env:
-      RUN_CHAIN_TESTS: "true"
       ZNN_TEST_HTTP_URL: http://127.0.0.1:35997
       ZNN_TEST_NODE_URL: ws://127.0.0.1:35998
       ZNN_TEST_MNEMONIC: "abstract affair idle position alien fluid board ordinary exist afraid chapter wood wood guide sun walnut crew perfect place firm poverty model side million"
@@ -425,7 +415,7 @@ jobs:
       - run: flutter pub get
       - run: ./scripts/wait-for-devnet.sh
       - run: dart run build_runner build --delete-conflicting-outputs
-      - run: xvfb-run -a flutter test integration_test -d linux
+      - run: xvfb-run -a flutter test integration_test -d linux --tags chain
       - name: Dump devnet logs
         if: failure()
         working-directory: go-zenon-devnet
@@ -445,7 +435,6 @@ The devnet checkout currently tracks `digitalSloth/go-zenon@feature/docker-devne
 Run the Docker Compose devnet locally, then wait for the RPC endpoint and run:
 
 ```bash
-RUN_CHAIN_TESTS=true \
 ZNN_TEST_HTTP_URL=http://127.0.0.1:35997 \
 ZNN_TEST_NODE_URL=ws://127.0.0.1:35998 \
 ZNN_TEST_MNEMONIC="abstract affair idle position alien fluid board ordinary exist afraid chapter wood wood guide sun walnut crew perfect place firm poverty model side million" \
@@ -454,7 +443,6 @@ ZNN_TEST_SENDER_INDEX=3 \
 ZNN_TEST_RECIPIENT_INDEX=8 \
 ./scripts/wait-for-devnet.sh
 
-RUN_CHAIN_TESTS=true \
 ZNN_TEST_HTTP_URL=http://127.0.0.1:35997 \
 ZNN_TEST_NODE_URL=ws://127.0.0.1:35998 \
 ZNN_TEST_MNEMONIC="abstract affair idle position alien fluid board ordinary exist afraid chapter wood wood guide sun walnut crew perfect place firm poverty model side million" \
@@ -463,14 +451,13 @@ ZNN_TEST_SENDER_INDEX=3 \
 ZNN_TEST_RECIPIENT_INDEX=8 \
 dart run build_runner build --delete-conflicting-outputs
 
-RUN_CHAIN_TESTS=true \
 ZNN_TEST_HTTP_URL=http://127.0.0.1:35997 \
 ZNN_TEST_NODE_URL=ws://127.0.0.1:35998 \
 ZNN_TEST_MNEMONIC="abstract affair idle position alien fluid board ordinary exist afraid chapter wood wood guide sun walnut crew perfect place firm poverty model side million" \
 ZNN_TEST_PASSWORD=devnet \
 ZNN_TEST_SENDER_INDEX=3 \
 ZNN_TEST_RECIPIENT_INDEX=8 \
-flutter test integration_test -d linux
+flutter test integration_test -d linux --tags chain
 ```
 
 Use the matching desktop target for the local platform when needed.

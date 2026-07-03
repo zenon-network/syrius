@@ -37,12 +37,6 @@ class DevnetTestContext {
 }
 
 Future<void> initializeDevnetIntegrationTests() async {
-  expect(
-    devnetEnv('RUN_CHAIN_TESTS', 'true'),
-    'true',
-    reason: 'Set RUN_CHAIN_TESTS=true to run blockchain integration tests',
-  );
-
   app.zenon ??= Zenon();
   if (app.sl.isRegistered<DevnetTestContext>()) {
     await app.sl.unregister<DevnetTestContext>();

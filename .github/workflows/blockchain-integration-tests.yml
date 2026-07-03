@@ -2,15 +2,6 @@ name: Blockchain Integration Tests
 
 on:
   workflow_dispatch:
-    inputs:
-      run_chain_tests:
-        description: Run blockchain integration tests
-        required: true
-        default: "true"
-        type: choice
-        options:
-          - "true"
-          - "false"
   pull_request:
     branches:
       - develop
@@ -22,10 +13,8 @@ jobs:
   chain-integration-test:
     name: Devnet BDD Integration Tests
     runs-on: ubuntu-24.04
-    if: ${{ github.event_name == 'pull_request' || inputs.run_chain_tests == 'true' }}
 
     env:
-      RUN_CHAIN_TESTS: "true"
       ZNN_TEST_HTTP_URL: http://127.0.0.1:35997
       ZNN_TEST_NODE_URL: ws://127.0.0.1:35998
       # Public Docker devnet mnemonic/password from digitalSloth/go-zenon.
@@ -85,7 +74,7 @@ jobs:
         run: dart run build_runner build --delete-conflicting-outputs
 
       - name: Run blockchain integration tests
-        run: xvfb-run -a flutter test integration_test -d linux
+        run: xvfb-run -a flutter test integration_test -d linux --tags chain
 
       - name: Dump devnet logs
         if: failure()
