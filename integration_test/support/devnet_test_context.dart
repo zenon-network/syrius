@@ -32,6 +32,8 @@ class DevnetTestContext {
       fundedDevAddresses[defaultSenderIndex]!;
 
   AccountBlockTemplate? sentBlock;
+  AccountBlockTemplate? plasmaFuseBlock;
+  BigInt? plasmaFuseAmount;
 }
 
 Future<void> initializeDevnetIntegrationTests() async {
@@ -81,7 +83,10 @@ Future<void> initializeDevnetIntegrationTests() async {
 }
 
 void resetDevnetScenarioState() {
-  app.sl<DevnetTestContext>().sentBlock = null;
+  app.sl<DevnetTestContext>()
+  ..sentBlock = null
+  ..plasmaFuseBlock = null
+  ..plasmaFuseAmount = null;
   selectDevnetSender(DevnetTestContext.defaultSenderAddress);
 }
 

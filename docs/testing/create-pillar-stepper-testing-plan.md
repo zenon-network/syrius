@@ -10,11 +10,10 @@ The most important tests are real devnet integration tests that inspect the bloc
 
 Use this order:
 
-1. Add devnet integration test for plasma fusion when plasma is insufficient.
-2. Add devnet integration test for QSR deposit.
-3. Add devnet integration test for pillar deployment/registration.
-4. Add minimal mocked widget tests only for input-to-event wiring if needed.
-5. Add QSR withdraw integration test later if withdraw is in scope.
+1. Add devnet integration test for QSR deposit.
+2. Add devnet integration test for pillar deployment/registration.
+3. Add minimal mocked widget tests only for input-to-event wiring if needed.
+4. Add QSR withdraw integration test later if withdraw is in scope.
 
 Do not spend time writing broad stepper widget tests for every UI state before the security tests exist.
 
@@ -35,43 +34,7 @@ Validation pattern:
 
 For example, when sending a transfer, the UI submits recipient, token, and amount. The wallet publishes a send block and receives a hash. The test fetches the block with that hash and asserts that the on-chain block has the same recipient, token, and amount that were submitted from the UI.
 
-Use the same mechanism for plasma fusion, QSR deposit, pillar deployment, and QSR withdraw.
-
-## Test 0: Plasma Fusion Publishes Expected Block
-
-This test is required when the deterministic devnet sender has enough funds for pillar creation but does not have enough plasma.
-
-Pillar tests must not continue until the sender has enough plasma. If plasma is insufficient, run the real plasma fusion flow and verify the fund-safety of that fusion action before moving on to QSR deposit or pillar deployment tests.
-
-Suggested scenario:
-
-```gherkin
-Scenario: Fusing plasma for pillar creation publishes the expected block
-```
-
-Drive the real UI:
-
-1. Select a deterministic devnet sender with enough funds but insufficient plasma.
-2. Open the flow that fuses plasma for the selected address.
-3. Enter or accept the fusion amount required by the UI.
-4. Click fuse and confirm.
-5. Capture the account-block hash returned by the fuse action.
-6. Fetch the published block by hash.
-7. Poll plasma info until the selected address has enough plasma for pillar creation.
-
-Assert:
-
-- A block exists for the returned fuse hash.
-- The fetched block hash equals the returned hash.
-- The fetched block address equals the selected sender address.
-- The fetched block destination is the expected embedded plasma contract.
-- The fetched block token standard is QSR.
-- The fetched block amount equals the fusion amount shown or entered in the UI.
-- The fetched block data decodes to the expected plasma `Fuse` operation.
-- The decoded plasma beneficiary is the selected wallet address.
-- After confirmation, `currentPlasma >= kPillarPlasmaAmountNeeded`.
-
-This test should fail if the wallet displays a safe plasma fusion flow but the block found by the returned hash contains different data.
+Use the same mechanism for QSR deposit, pillar deployment, and QSR withdraw.
 
 ## Test 1: QSR Deposit Publishes Expected Block
 
@@ -117,7 +80,7 @@ Scenario: Deploying a pillar registers the exact details entered by the user
 
 Drive the real UI:
 
-1. Start from a deterministic devnet wallet that already satisfies the required plasma, QSR, and ZNN conditions.
+1. Start from a deterministic devnet wallet that has been prepared with the required plasma, QSR, and ZNN conditions.
 2. Open the Create Pillar stepper.
 3. Continue to the deploy/register step.
 4. Enter a randomized pillar name.
@@ -212,7 +175,17 @@ Each security integration test should:
 
 Some deterministic devnet addresses may have enough funds for pillar creation but not enough plasma.
 
-For QSR deposit and pillar deployment tests, sufficient plasma is a prerequisite. However, if plasma is insufficient, the fusion action must also be tested for fund safety before those tests continue.
+For QSR deposit and pillar deployment tests, sufficient plasma is a prerequisite. If plasma is insufficient when entering those scenarios, fuse plasma as setup and wait until the required plasma is available.
+
+Do not repeat plasma fusion blockchain safety assertions inside the QSR deposit or pillar deployment tests. The dedicated plasma fusion test already validates the fusion block by hash. The pillar tests should focus on their own published blocks.
+
+Suggested create pillar setup wording:
+
+```gherkin
+And <sender> address is prepared with at least <required_plasma> plasma using <setup_qsr_fuse_amount> QSR if needed
+```
+
+The `setup_qsr_fuse_amount` value should live in the Scenario Outline Examples table so the setup remains visible and deterministic.
 
 Recommended pattern:
 
@@ -221,7 +194,8 @@ beforeEach:
   select deterministic devnet sender
   ensure sender has required ZNN and QSR
   if sender plasma is insufficient:
-    run the plasma fusion fund-safety flow
+    fuse setup_qsr_fuse_amount QSR
+    wait until sender plasma is sufficient
   assert required ZNN, QSR, and plasma preconditions
 
 test:
@@ -231,7 +205,7 @@ test:
   assert the fetched block matches the original UI inputs
 ```
 
-Do not use account-chain snapshots or counts as the primary validation mechanism. Plasma fusion, QSR deposit, and pillar deployment should each validate the exact block returned by the wallet action using its hash.
+Do not use account-chain snapshots or counts as the primary validation mechanism. Dedicated security actions should validate the exact block returned by the wallet action using its hash.
 
 Before starting the measured UI action, explicitly assert:
 
@@ -239,13 +213,13 @@ Before starting the measured UI action, explicitly assert:
 - Sender has enough QSR for the scenario.
 - Sender has `currentPlasma >= kPillarPlasmaAmountNeeded`.
 
-If plasma is still insufficient after the fusion flow, fail early with a clear setup error, for example:
+If plasma is still insufficient after setup fusion, fail early with a clear setup error, for example:
 
 ```text
 Test setup failed: pillar sender does not have enough plasma
 ```
 
-The plasma fusion fund-safety flow may be implemented as a reusable helper, but it must still validate the block returned by the fusion transaction hash when it creates a fusion transaction.
+The setup fusion helper used by pillar tests does not need to validate the block by hash. That validation belongs in the dedicated plasma fusion security test.
 
 ## Rule Of Thumb
 

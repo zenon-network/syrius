@@ -9,7 +9,7 @@ import 'package:integration_test/integration_test.dart';
 import '../../integration_test/bdd_hooks/hooks.dart';
 import './../steps/address_has_funds.dart';
 import './../steps/i_send_znn_from_address_to_address_from_the_send_screen.dart';
-import '../../integration_test/steps/the_blockchain_should_contain_that_znn_transfer_to.dart';
+import './../steps/the_blockchain_should_contain_that_znn_transfer_to.dart';
 
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
