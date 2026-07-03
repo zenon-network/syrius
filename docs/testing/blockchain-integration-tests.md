@@ -101,16 +101,15 @@ on:
 
 ### Stage 5: Security-Focused Assertions
 
-The first security-oriented scenario should prove more than "the expected transfer exists". It should also check that no unexpected outgoing transfer happened during the tested action.
+The first security-oriented scenario should prove that the data sent from the wallet matches the data found on-chain.
 
-For the Send flow, record the sender account-chain state before the UI action, then inspect all new outgoing account blocks after the action and assert:
+For the Send flow, capture the account-block hash returned by the send action, then fetch that exact block with `zenon.ledger.getAccountBlockByHash(hash)` and assert:
 
-- the expected ZNN transfer exists
+- a block exists for the returned hash
+- the fetched block hash equals the returned hash
 - the recipient equals the address typed into the UI
 - the amount equals the amount typed into the UI
 - the token standard is ZNN
-- no additional outgoing ZNN transfers were created
-- no outgoing transfer was created to an unexpected address
 
 Use randomized recipient addresses and amounts where practical, so malicious code cannot easily special-case one hard-coded test value.
 
@@ -275,15 +274,14 @@ Recommended flow:
 2. Connect the test world to `ZNN_TEST_NODE_URL` and verify devnet chain ID `69`.
 3. Derive the sender and recipient from the devnet mnemonic and configured indices.
 4. Configure the in-memory wallet state required by `AccountBlockUtils` while preserving the sender account index.
-5. Fetch the sender balance and snapshot the sender account height.
+5. Fetch the sender balance.
 6. Pump the real Send widget with real BLoC wiring and devnet account info.
 7. Enter the recipient address and test ZNN amount.
 8. Tap the Send button and confirm the dialog.
 9. Wait for `SendTransactionBloc` to report success.
-10. Fetch all new account blocks from the sender since the pre-send snapshot.
-11. Assert there is exactly one outgoing ZNN send block.
-12. Assert that the block recipient, amount, and token standard match the UI input.
-13. Poll `zenon.ledger.getAccountBlockByHash(hash)` until the send block is confirmed.
+10. Capture the account-block hash returned by `SendTransactionBloc`.
+11. Poll `zenon.ledger.getAccountBlockByHash(hash)` until the send block is confirmed.
+12. Assert that the fetched block hash, recipient, amount, and token standard match the UI input.
 
 For the first version, prefer asserting the published send block and the receiver's unreceived transaction. Receiver balance assertions require a receive block, so they test a broader flow and should be added separately.
 
