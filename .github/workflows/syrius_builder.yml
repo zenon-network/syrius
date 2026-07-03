@@ -56,7 +56,7 @@ jobs:
           --hdiutil-verbose syrius-alphanet-macos-universal.dmg build/macos/Build/Products/Release/s\ y\ r\ i\ u\ s.app \
           syrius-alphanet-macos-universal.dmg build/macos/Build/Products/Release/s\ y\ r\ i\ u\ s.app
       - name: Upload artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: macos-artifacts
           path: syrius-alphanet-macos-universal.dmg
@@ -89,7 +89,7 @@ jobs:
         run: |
           Compress-Archive -Path build\windows\x64\runner\Release\* -DestinationPath .\syrius-alphanet-windows-amd64.zip
       - name: Upload artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: windows-artifacts
           path: syrius-alphanet-windows-amd64.zip
@@ -133,7 +133,7 @@ jobs:
           cd build/linux/x64/release/bundle
           zip -r ../../../../../syrius-alphanet-linux-amd64.zip *
       - name: Upload artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: linux-artifacts
           path: syrius-alphanet-linux-amd64.zip
