@@ -1,5 +1,8 @@
 part of 'pillar_deposit_qsr_bloc.dart';
 
+// Keep state fields private while exposing public constructor parameters.
+// ignore_for_file: prefer_initializing_formals
+
 /// Base class for all pillar deposit QSR states.
 sealed class PillarDepositQsrState extends Equatable {
   /// Creates a new [PillarDepositQsrState].
@@ -32,7 +35,16 @@ final class PillarDepositQsrFailure extends PillarDepositQsrState {
 /// Success state emitted when deposit completes.
 final class PillarDepositQsrDone extends PillarDepositQsrState {
   /// Creates a new [PillarDepositQsrDone] state.
-  const PillarDepositQsrDone();
+  const PillarDepositQsrDone({required AccountBlockTemplate accountBlock})
+    : _accountBlock = accountBlock;
+
+  final AccountBlockTemplate _accountBlock;
+
+  /// The published account block returned by the node.
+  AccountBlockTemplate get accountBlock => _accountBlock;
+
+  @override
+  List<Object> get props => <Object>[_accountBlock];
 }
 
 /// Loading state emitted while deposit is in progress.

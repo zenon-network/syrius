@@ -127,6 +127,7 @@ class _SendPopulatedState extends State<SendPopulated> {
               valueListenable: _recipientController,
               builder: (_, TextEditingValue recipient, _) {
                 return TextField(
+                  key: const Key('send_recipient_field'),
                   controller: _recipientController,
                   decoration: InputDecoration(
                     errorText: _recipientErrorText,
@@ -147,6 +148,7 @@ class _SendPopulatedState extends State<SendPopulated> {
               valueListenable: _amountController,
               builder: (_, TextEditingValue amount, _) {
                 return TextField(
+                  key: const Key('send_amount_field'),
                   controller: _amountController,
                   decoration: InputDecoration(
                     errorText: _amountErrorText,
@@ -176,12 +178,15 @@ class _SendPopulatedState extends State<SendPopulated> {
                   _recipientController,
                 ]),
                 builder: (_, _) {
-                  return SendButton(
-                    key: _sendPaymentButtonKey,
-                    text: context.l10n.send,
-                    onPressed: _isValidTransaction
-                        ? _onSendPaymentPressed
-                        : null,
+                  return KeyedSubtree(
+                    key: const Key('send_submit_button'),
+                    child: SendButton(
+                      key: _sendPaymentButtonKey,
+                      text: context.l10n.send,
+                      onPressed: _isValidTransaction
+                          ? _onSendPaymentPressed
+                          : null,
+                    ),
                   );
                 },
               ),

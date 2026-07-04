@@ -1,0 +1,14 @@
+targets:
+  $default:
+    sources:
+      - integration_test/**
+      - test/**
+      - lib/**
+      - $package$
+    builders:
+      bdd_widget_test|featureBuilder:
+        options:
+          addHooks: true
+          hookFolderName: integration_test/bdd_hooks
+          relativeToTestFolder: false
+          stepFolderName: integration_test/steps

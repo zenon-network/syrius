@@ -68,14 +68,22 @@ class SendTransactionBloc
           data: response,
         ),
       );
-    } catch (error, stackTrace) {
+    } on SyriusException catch (error, stackTrace) {
+      addError(error, stackTrace);
+      emit(
+        state.copyWith(
+          status: SendTransactionStatus.failure,
+          error: error,
+        ),
+      );
+    } on Exception catch (error, stackTrace) {
+      addError(error, stackTrace);
       emit(
         state.copyWith(
           status: SendTransactionStatus.failure,
           error: FailureException(),
         ),
       );
-      addError(error, stackTrace);
     }
   }
 
@@ -100,13 +108,22 @@ class SendTransactionBloc
           data: response,
         ),
       );
-    } catch (error) {
+    } on SyriusException catch (error, stackTrace) {
+      emit(
+        state.copyWith(
+          status: SendTransactionStatus.failure,
+          error: error,
+        ),
+      );
+      addError(error, stackTrace);
+    } on Exception catch (error, stackTrace) {
       emit(
         state.copyWith(
           status: SendTransactionStatus.failure,
           error: FailureException(),
         ),
       );
+      addError(error, stackTrace);
     }
   }
 

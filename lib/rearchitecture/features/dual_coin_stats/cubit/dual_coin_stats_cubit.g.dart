@@ -8,7 +8,8 @@ part of 'dual_coin_stats_cubit.dart';
 
 DualCoinStatsState _$DualCoinStatsStateFromJson(Map<String, dynamic> json) =>
     DualCoinStatsState(
-      status: $enumDecodeNullable(_$TimerStatusEnumMap, json['status']) ??
+      status:
+          $enumDecodeNullable(_$TimerStatusEnumMap, json['status']) ??
           TimerStatus.initial,
       data: (json['data'] as List<dynamic>?)
           ?.map((e) => Token.fromJson(e as Map<String, dynamic>))

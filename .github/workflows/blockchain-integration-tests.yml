@@ -1,0 +1,90 @@
+name: Blockchain Integration Tests
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches:
+      - develop
+
+env:
+  FLUTTER_VERSION: "3.44.0"
+
+jobs:
+  chain-integration-test:
+    name: Devnet BDD Integration Tests
+    runs-on: ubuntu-24.04
+
+    env:
+      ZNN_TEST_HTTP_URL: http://127.0.0.1:35997
+      ZNN_TEST_NODE_URL: ws://127.0.0.1:35998
+      # Public Docker devnet mnemonic/password from digitalSloth/go-zenon.
+      # Devnet-only: never reuse these values on mainnet.
+      ZNN_TEST_MNEMONIC: "abstract affair idle position alien fluid board ordinary exist afraid chapter wood wood guide sun walnut crew perfect place firm poverty model side million"
+      ZNN_TEST_PASSWORD: devnet
+      ZNN_TEST_SENDER_INDEX: "3"
+      ZNN_TEST_RECIPIENT_INDEX: "8"
+
+    steps:
+      - name: Checkout syrius
+        uses: actions/checkout@v6
+
+      - name: Checkout devnet
+        uses: actions/checkout@v6
+        with:
+          repository: digitalSloth/go-zenon
+          ref: feature/docker-devnet
+          path: go-zenon-devnet
+
+      - name: Start devnet
+        working-directory: go-zenon-devnet
+        run: make devnet-up
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{env.FLUTTER_VERSION}}
+          channel: "stable"
+
+      - name: Install Linux desktop dependencies
+        run: |
+          sudo apt update
+          sudo apt update
+          sudo apt install -y libsecret-1-dev libjsoncpp-dev
+          sudo apt install -y curl clang cmake ninja-build pkg-config libgtk-3-dev liblzma-dev unzip xz-utils zip libnotify-dev libayatana-appindicator3-dev xvfb
+
+      - name: Set permissions
+        run: |
+          sudo chmod -R 777 linux/
+
+      - name: Check flutter version
+        run: |
+          which flutter
+          flutter --version
+
+      - name: Enable Linux desktop
+        run: flutter config --enable-linux-desktop
+
+      - name: Install Flutter dependencies
+        run: flutter pub get
+
+      - name: Wait for devnet
+        run: ./scripts/wait-for-devnet.sh
+
+      - name: Generate BDD tests
+        run: dart run build_runner build --delete-conflicting-outputs
+
+      - name: Run blockchain integration tests
+        run: |
+          for test_file in integration_test/features/*_test.dart; do
+            xvfb-run -a flutter test "$test_file" -d linux --tags chain
+          done
+
+      - name: Dump devnet logs
+        if: failure()
+        working-directory: go-zenon-devnet
+        run: docker compose logs --no-color
+
+      - name: Stop devnet
+        if: always()
+        working-directory: go-zenon-devnet
+        run: make devnet-down || true
