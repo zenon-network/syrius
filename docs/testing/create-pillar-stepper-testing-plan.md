@@ -6,6 +6,8 @@ Prove that the Create Pillar stepper does not steal or misroute user funds.
 
 The most important tests are real devnet integration tests that inspect the blockchain after fund-moving UI actions. Mocked tests are useful only as support; they cannot prove what was actually signed and published on-chain.
 
+These tests are not primarily UI tests, but they should use the UI to perform the action whenever practical. The goal is to verify that the values the user sees and submits through the wallet produce a published block with matching on-chain data.
+
 ## Testing Priority
 
 Use this order:
@@ -25,7 +27,7 @@ For fund-moving wallet actions, the wallet publishes an account block and receiv
 
 Validation pattern:
 
-1. Drive the real wallet UI action.
+1. Drive the real wallet UI action by entering values and tapping the visible action button.
 2. Capture the returned `AccountBlockTemplate` or published account-block hash from the BLoC/action result.
 3. Poll `zenon.ledger.getAccountBlockByHash(hash)` until the block is available on-chain.
 4. Assert the fetched block exists.

@@ -4,6 +4,8 @@
 
 Blockchain integration tests validate wallet behavior against a real devnet node. They should cover the full wallet path whenever practical: user input in the Flutter UI, BLoC/event handling, wallet signing, node submission, and blockchain state assertions.
 
+The purpose of these tests is not visual UI coverage. The UI is used as the entry point so the test exercises the same values and actions that a user sees and performs. For fund-moving actions, prefer driving the real widget fields/buttons over calling BLoCs or SDK methods directly.
+
 For the initial scope, add a component-level widget-driven send transaction test that pumps the Send widget with real devnet wallet state, enters a ZNN amount and recipient address, confirms the send action, and verifies that the devnet blockchain reflects the same amount, token, and recipient.
 
 ## Step-by-Step Setup
