@@ -66,6 +66,8 @@ Future<void> iCreatePillarTestpillarFromTheCreatePillarStepper(
 
   final Finder registerButton = find.byKey(const Key('pillar_register_button'));
   await _pumpUntilFound(tester, registerButton);
+  await tester.ensureVisible(registerButton);
+  await tester.pumpAndSettle();
   final DeployPillarBloc deployPillarBloc = tester
       .element(registerButton)
       .read<DeployPillarBloc>();
