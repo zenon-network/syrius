@@ -15,6 +15,7 @@ Future<void> theDevnetPillarOwnerIsPreparedForCreatingTestpillar(
   WidgetTester tester,
 ) async {
   const String owner = DevnetTestContext.testPillarOwnerAddress;
+  const String plasmaFuser = 'z1qq6eg8n43g032hanpsfp02qcdmv7zfj3y2lt5d';
   const String name = DevnetTestContext.testPillarName;
   const String setupQsrFuseAmount =
       DevnetTestContext.testPillarSetupQsrFuseAmount;
@@ -55,18 +56,31 @@ Future<void> theDevnetPillarOwnerIsPreparedForCreatingTestpillar(
   );
   expect(
     accountInfo.getBalance(qsrZts),
-    greaterThanOrEqualTo(
-      remainingQsr + (needsPlasma ? setupFuseAmount : BigInt.zero),
-    ),
+    greaterThanOrEqualTo(remainingQsr),
     reason: 'Pillar owner does not have enough QSR for setup and slot deposit',
   );
 
   if (needsPlasma) {
-    await iFuseQsrTo(tester, setupQsrFuseAmount, owner);
-    await addressShouldHaveAtLeastPlasma(
-      tester,
-      owner,
-      kPillarPlasmaAmountNeeded.toString(),
+    final AccountInfo plasmaFuserAccountInfo = await app.zenon!.ledger
+        .getAccountInfoByAddress(Address.parse(plasmaFuser));
+    expect(
+      plasmaFuserAccountInfo.getBalance(qsrZts),
+      greaterThanOrEqualTo(setupFuseAmount),
+      reason: 'Plasma fuser does not have enough QSR for setup',
     );
+
+    // The z1qq6eg8n43g032hanpsfp02qcdmv7zfj3y2lt5d address already has a
+    // high plasma level, so the fuse transaction will be faster.
+    selectDevnetSender(plasmaFuser);
+    try {
+      await iFuseQsrTo(tester, setupQsrFuseAmount, owner);
+      await addressShouldHaveAtLeastPlasma(
+        tester,
+        owner,
+        kPillarPlasmaAmountNeeded.toString(),
+      );
+    } finally {
+      selectDevnetSender(owner);
+    }
   }
 }
