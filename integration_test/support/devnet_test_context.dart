@@ -20,6 +20,16 @@ class DevnetTestContext {
       'abstract affair idle position alien fluid board ordinary exist afraid '
       'chapter wood wood guide sun walnut crew perfect place firm poverty '
       'model side million';
+  static const String testPillarOwnerAddress =
+      'z1qp3yph55qgresyytz83anynr2f4z39x2z3ej3e';
+  static const String testPillarName = 'testPillar';
+  static const String testPillarRewardAddress =
+      'z1qp3yph55qgresyytz83anynr2f4z39x2z3ej3e';
+  static const String testPillarProducerAddress =
+      'z1qzh6xyndzcuagylguxxlyp6s6kxz7lgh9zx093';
+  static const int testPillarMomentumReward = 30;
+  static const int testPillarDelegationReward = 55;
+  static const String testPillarSetupQsrFuseAmount = '120';
 
   static const Map<int, String> fundedDevAddresses = <int, String>{
     1: 'z1qq6eg8n43g032hanpsfp02qcdmv7zfj3y2lt5d',
@@ -34,6 +44,7 @@ class DevnetTestContext {
   AccountBlockTemplate? sentBlock;
   AccountBlockTemplate? plasmaFuseBlock;
   AccountBlockTemplate? pillarQsrDepositBlock;
+  AccountBlockTemplate? deployPillarBlock;
   BigInt? plasmaFuseAmount;
   BigInt? pillarQsrDepositAmount;
 }
@@ -83,6 +94,7 @@ void resetDevnetScenarioState() {
     ..sentBlock = null
     ..plasmaFuseBlock = null
     ..pillarQsrDepositBlock = null
+    ..deployPillarBlock = null
     ..plasmaFuseAmount = null
     ..pillarQsrDepositAmount = null;
   selectDevnetSender(DevnetTestContext.defaultSenderAddress);

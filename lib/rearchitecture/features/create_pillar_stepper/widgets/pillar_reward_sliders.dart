@@ -28,6 +28,7 @@ class PillarRewardSliders extends StatelessWidget {
             return Column(
               children: <Widget>[
                 CustomSlider(
+                  sliderKey: const Key('pillar_momentum_reward_slider'),
                   description: context.l10n.percentageOfMomentumRewards,
                   descriptionPosition: SliderDescriptionPosition.top,
                   startValue: value,
@@ -49,6 +50,7 @@ class PillarRewardSliders extends StatelessWidget {
             return Column(
               children: <Widget>[
                 CustomSlider(
+                  sliderKey: const Key('pillar_delegation_reward_slider'),
                   description: context.l10n.percentageDelegationRewardsGiven,
                   descriptionPosition: SliderDescriptionPosition.top,
                   startValue: value,

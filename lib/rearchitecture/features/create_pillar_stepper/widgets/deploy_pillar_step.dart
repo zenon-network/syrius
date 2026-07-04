@@ -86,10 +86,13 @@ class _DeployPillarStepState extends State<DeployPillarStep> {
           momentumRewardPercentage: _momentumRewardPercentage,
         ),
         kVerticalGap25,
-        LoadingButton(
-          text: context.l10n.register,
-          onPressed: _isInputValid() ? _onDeployPressed : null,
-          key: _registerButtonKey,
+        KeyedSubtree(
+          key: const Key('pillar_register_button'),
+          child: LoadingButton(
+            text: context.l10n.register,
+            onPressed: _isInputValid() ? _onDeployPressed : null,
+            key: _registerButtonKey,
+          ),
         ),
         kVerticalGap25,
       ],
@@ -103,6 +106,7 @@ class _DeployPillarStepState extends State<DeployPillarStep> {
           children: <Widget>[
             Expanded(
               child: TextField(
+                key: const Key('pillar_name_field'),
                 controller: _pillarNameController,
                 decoration: InputDecoration(
                   errorText: _pillarNameController.text.isNotEmpty
@@ -120,6 +124,7 @@ class _DeployPillarStepState extends State<DeployPillarStep> {
           children: <Widget>[
             Expanded(
               child: TextField(
+                key: const Key('pillar_reward_address_field'),
                 controller: _pillarRewardAddressController,
                 decoration: InputDecoration(
                   errorText: _pillarRewardAddressController.text.isNotEmpty
@@ -143,6 +148,7 @@ class _DeployPillarStepState extends State<DeployPillarStep> {
           children: <Widget>[
             Expanded(
               child: TextField(
+                key: const Key('pillar_producer_address_field'),
                 controller: _pillarMomentumController,
                 decoration: InputDecoration(
                   errorText: _pillarMomentumController.text.isNotEmpty

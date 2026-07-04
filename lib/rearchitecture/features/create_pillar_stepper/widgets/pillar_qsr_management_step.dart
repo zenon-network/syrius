@@ -259,9 +259,12 @@ class _PillarQsrManagementStepState extends State<PillarQsrManagementStep> {
             },
           ),
         if (qsrCostCovered)
-          OutlinedButton(
-            onPressed: widget.onNextPressed,
-            child: Text(context.l10n.next),
+          KeyedSubtree(
+            key: const Key('pillar_qsr_next_button'),
+            child: OutlinedButton(
+              onPressed: widget.onNextPressed,
+              child: Text(context.l10n.next),
+            ),
           ),
       ],
     );
