@@ -8,7 +8,7 @@ import 'package:zenon_syrius_wallet_flutter/main.dart' as app;
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 /// Usage: the blockchain should contain a sentinel for <sentinel_owner>
-Future<void> theBlockchainShouldContainASentinelForTheSelectedOwner(
+Future<void> theBlockchainShouldContainASentinelFor(
   WidgetTester tester,
   String owner,
 ) async {

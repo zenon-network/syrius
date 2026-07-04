@@ -15,7 +15,7 @@ import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 import '../support/devnet_test_context.dart';
 
 /// Usage: I create a sentinel from the Create Sentinel stepper for <sentinel_owner>
-Future<void> iCreateASentinelFromTheCreateSentinelStepper(
+Future<void> iCreateASentinelFromTheCreateSentinelStepperFor(
   WidgetTester tester,
   String owner,
 ) async {

@@ -9,7 +9,7 @@ import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 import '../support/devnet_test_context.dart';
 
 /// Usage: <sentinel_owner> devnet sentinel owner is prepared for creating a sentinel
-Future<void> theDevnetSentinelOwnerIsPreparedForCreatingASentinel(
+Future<void> devnetSentinelOwnerIsPreparedForCreatingASentinel(
   WidgetTester tester,
   String owner,
 ) async {
