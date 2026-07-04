@@ -33,7 +33,9 @@ class DevnetTestContext {
 
   AccountBlockTemplate? sentBlock;
   AccountBlockTemplate? plasmaFuseBlock;
+  AccountBlockTemplate? pillarQsrDepositBlock;
   BigInt? plasmaFuseAmount;
+  BigInt? pillarQsrDepositAmount;
 }
 
 Future<void> initializeDevnetIntegrationTests() async {
@@ -78,9 +80,11 @@ Future<void> initializeDevnetIntegrationTests() async {
 
 void resetDevnetScenarioState() {
   app.sl<DevnetTestContext>()
-  ..sentBlock = null
-  ..plasmaFuseBlock = null
-  ..plasmaFuseAmount = null;
+    ..sentBlock = null
+    ..plasmaFuseBlock = null
+    ..pillarQsrDepositBlock = null
+    ..plasmaFuseAmount = null
+    ..pillarQsrDepositAmount = null;
   selectDevnetSender(DevnetTestContext.defaultSenderAddress);
 }
 

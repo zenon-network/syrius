@@ -7,7 +7,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 
 import '../../integration_test/bdd_hooks/hooks.dart';
-import '../../integration_test/steps/address_is_selected_for_plasma_fusion.dart';
+import './../steps/address_is_selected_for_plasma_fusion.dart';
 import './../steps/i_fuse_qsr_to.dart';
 import './../steps/the_published_fuse_block_should_match_and_qsr.dart';
 import './../steps/address_should_have_at_least_plasma.dart';

@@ -272,6 +272,7 @@ class _PillarQsrManagementStepState extends State<PillarQsrManagementStep> {
       children: <Widget>[
         kVerticalSpacing,
         TextFormField(
+          key: const Key('pillar_qsr_amount_field'),
           autovalidateMode: AutovalidateMode.always,
           controller: widget.qsrAmountController,
           cursorColor: AppColors.qsrColor,
@@ -394,13 +395,16 @@ class _DepositButton extends StatelessWidget {
           );
         }
       },
-      child: LoadingButton(
-        key: loadingKey,
-        text: context.l10n.deposit,
-        onPressed: onPressed,
-        outlineColor: AppColors.qsrColor,
-        textStyle: const TextStyle(
-          color: AppColors.qsrColor,
+      child: KeyedSubtree(
+        key: const Key('pillar_qsr_deposit_button'),
+        child: LoadingButton(
+          key: loadingKey,
+          text: context.l10n.deposit,
+          onPressed: onPressed,
+          outlineColor: AppColors.qsrColor,
+          textStyle: const TextStyle(
+            color: AppColors.qsrColor,
+          ),
         ),
       ),
     );
