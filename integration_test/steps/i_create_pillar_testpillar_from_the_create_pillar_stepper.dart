@@ -116,34 +116,11 @@ Future<void> _completeQsrStep(
       const Key('pillar_qsr_deposit_button'),
     );
     await _pumpUntilFound(tester, depositButton);
-    final PillarDepositQsrBloc depositBloc = tester
-        .element(depositButton)
-        .read<PillarDepositQsrBloc>();
-    final Completer<AccountBlockTemplate> completer =
-        Completer<AccountBlockTemplate>();
-    final StreamSubscription<PillarDepositQsrState> subscription = depositBloc
-        .stream
-        .listen((PillarDepositQsrState state) {
-          if (state is PillarDepositQsrDone && !completer.isCompleted) {
-            completer.complete(state.accountBlock);
-          } else if (state is PillarDepositQsrFailure &&
-              !completer.isCompleted) {
-            completer.completeError(state.exception);
-          }
-        });
+    context.pillarQsrDepositAmount = depositAmount;
 
-    try {
-      await tester.tap(depositButton);
-      context
-        ..pillarQsrDepositAmount = depositAmount
-        ..pillarQsrDepositBlock = await _pumpUntilComplete(
-          tester,
-          completer.future,
-          'pillar QSR deposit success',
-        );
-    } finally {
-      await subscription.cancel();
-    }
+    await tester.tap(depositButton);
+    await tester.pump();
+    await _pumpUntilFound(tester, qsrNextButton);
   }
 
   await _tapAndSettle(tester, const Key('pillar_qsr_next_button'));

@@ -244,6 +244,8 @@ dart run build_runner build --delete-conflicting-outputs
 
 Do not manually edit generated Dart test files. Implement and maintain the generated step files and shared helpers instead.
 
+Generated BDD files are committed to the repository. Developers must regenerate and test them locally before pushing changes to `.feature` files, BDD hooks, or step definitions. The GitHub Actions blockchain integration workflow intentionally does not run `build_runner`; it only runs the committed generated tests, so generation errors should be caught during local development instead of debugged in the pipeline.
+
 Example feature file:
 
 ```gherkin
@@ -416,7 +418,6 @@ jobs:
       - run: flutter config --enable-linux-desktop
       - run: flutter pub get
       - run: ./scripts/wait-for-devnet.sh
-      - run: dart run build_runner build --delete-conflicting-outputs
       - run: xvfb-run -a flutter test integration_test -d linux --tags chain
       - name: Dump devnet logs
         if: failure()
