@@ -7,9 +7,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 
 import '../../integration_test/bdd_hooks/hooks.dart';
-import '../../integration_test/steps/address_has_funds_for_staking_znn.dart';
-import '../../integration_test/steps/i_create_a_month_stake_of_znn_from.dart';
-import '../../integration_test/steps/the_blockchain_should_contain_that_month_stake_of_znn_from.dart';
+import './../steps/address_has_funds_for_staking_znn.dart';
+import './../steps/i_create_a_month_stake_of_znn_from.dart';
+import './../steps/the_blockchain_should_contain_that_month_stake_of_znn_from.dart';
 
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
