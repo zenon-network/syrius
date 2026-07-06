@@ -22,7 +22,5 @@ abstract class Hooks {
     List<String>? tags,
   ]) {}
 
-  static FutureOr<void> afterAll() {
-    disposeDevnetIntegrationTests();
-  }
+  static FutureOr<void> afterAll() => disposeDevnetIntegrationTests();
 }

@@ -1,14 +1,18 @@
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:hive_ce/hive_ce.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart' as app;
 import 'package:zenon_syrius_wallet_flutter/model/model.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
+import 'package:zenon_syrius_wallet_flutter/services/shared_prefs_service.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/wallet_file.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
+
+Directory? _hiveDirectory;
 
 class DevnetTestContext {
   static const int chainId = 69;
@@ -45,11 +49,13 @@ class DevnetTestContext {
   AccountBlockTemplate? plasmaFuseBlock;
   AccountBlockTemplate? pillarQsrDepositBlock;
   AccountBlockTemplate? deployPillarBlock;
+  AccountBlockTemplate? stakeBlock;
   BigInt? plasmaFuseAmount;
   BigInt? pillarQsrDepositAmount;
 }
 
 Future<void> initializeDevnetIntegrationTests() async {
+  await _initializeSharedPrefs();
   app.zenon ??= Zenon();
   if (app.sl.isRegistered<DevnetTestContext>()) {
     await app.sl.unregister<DevnetTestContext>();
@@ -95,6 +101,7 @@ void resetDevnetScenarioState() {
     ..plasmaFuseBlock = null
     ..pillarQsrDepositBlock = null
     ..deployPillarBlock = null
+    ..stakeBlock = null
     ..plasmaFuseAmount = null
     ..pillarQsrDepositAmount = null;
   selectDevnetSender(DevnetTestContext.defaultSenderAddress);
@@ -109,8 +116,16 @@ void selectDevnetSender(String senderAddress) {
   kSelectedAddress = senderAddress;
 }
 
-void disposeDevnetIntegrationTests() {
+Future<void> disposeDevnetIntegrationTests() async {
   app.zenon?.wsClient.stop();
+  await app.sharedPrefsService?.close();
+  app.sharedPrefsService = null;
+  if (app.sl.isRegistered<SharedPrefsService>()) {
+    await app.sl.unregister<SharedPrefsService>();
+  }
+  await Hive.close();
+  _hiveDirectory?.deleteSync(recursive: true);
+  _hiveDirectory = null;
 }
 
 String devnetEnv(String name, String fallback) {
@@ -123,6 +138,18 @@ String devnetEnv(String name, String fallback) {
   return platformValue == null || platformValue.isEmpty
       ? fallback
       : platformValue;
+}
+
+Future<void> _initializeSharedPrefs() async {
+  _hiveDirectory ??= Directory.systemTemp.createTempSync(
+    'syrius_devnet_integration_',
+  );
+  Hive.init(_hiveDirectory!.path);
+  app.sharedPrefsService = await SharedPrefsService.getInstance();
+  if (app.sl.isRegistered<SharedPrefsService>()) {
+    await app.sl.unregister<SharedPrefsService>();
+  }
+  app.sl.registerSingleton<SharedPrefsService>(app.sharedPrefsService!);
 }
 
 class DevnetWalletFile extends WalletFile {

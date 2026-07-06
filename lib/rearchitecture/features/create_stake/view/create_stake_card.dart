@@ -159,6 +159,7 @@ class _PopulatedState extends State<_Populated> {
               valueListenable: _amountController,
               builder: (_, TextEditingValue amount, _) {
                 return TextField(
+                  key: const Key('create_stake_amount_field'),
                   controller: _amountController,
                   decoration: InputDecoration(
                     errorText: _amountErrorText,
@@ -205,6 +206,7 @@ class _PopulatedState extends State<_Populated> {
         .toList();
 
     return DropdownMenu<Duration>(
+      key: const Key('create_stake_duration_dropdown'),
       hintText: context.l10n.duration,
       dropdownMenuEntries: entries,
       onSelected: _onStakeDurationChanged,
@@ -302,12 +304,15 @@ class _StakeButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // TODO(maznnwell): when in loading state, the button should shrink
-    return LoadingButton.icon(
-      key: buttonKey,
-      onPressed: isInputValid ? onPressed : null,
-      label: context.l10n.stake,
-      icon: const Icon(
-        Icons.lock_clock,
+    return KeyedSubtree(
+      key: const Key('create_stake_submit_button'),
+      child: LoadingButton.icon(
+        key: buttonKey,
+        onPressed: isInputValid ? onPressed : null,
+        label: context.l10n.stake,
+        icon: const Icon(
+          Icons.lock_clock,
+        ),
       ),
     );
   }
