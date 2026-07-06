@@ -2,10 +2,10 @@ name: Build and release syrius
 
 on:
   push:
-    branches-ignore:
+    branches:
       - master
     tags:
-      - '*'
+      - 'v*'
   workflow_dispatch:
 
 env:
