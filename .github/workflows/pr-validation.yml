@@ -1,0 +1,42 @@
+name: PR Fast Validation
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches:
+      - develop
+
+env:
+  FLUTTER_VERSION: "3.44.0"
+
+jobs:
+  analyze-and-test:
+    name: Analyze and Unit Tests
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+
+      - name: Install Flutter dependencies
+        run: flutter pub get
+
+      - name: Analyze rearchitecture code
+        run: flutter analyze lib/rearchitecture
+
+      - name: Run unit and widget tests
+        run: flutter test test --exclude-tags chain
+
+      - name: Check generated files are up to date
+        run: |
+          # Generated Dart files are committed in this repository. Regenerating
+          # them in CI catches stale JSON/Hive/BDD outputs before they are merged.
+          dart run build_runner build --delete-conflicting-outputs
+          git diff --exit-code
