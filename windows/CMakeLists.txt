@@ -111,53 +111,26 @@ install(FILES "${AOT_LIBRARY}" DESTINATION "${INSTALL_BUNDLE_DATA_DIR}"
 # Bundle required ZNN libraries for Syrius
 set(SYRIUS_PROJECT_DIRECTORY "${CMAKE_HOME_DIRECTORY}/..")
 
-# Read lines from the file `package_config_subset` that match the regex pattern
-# looking for paths containing "znn_sdk_dart" and ending with a "/".
-file(STRINGS "${SYRIUS_PROJECT_DIRECTORY}/.dart_tool/package_config_subset"
-        ZNN_SDK_DART_PATHS REGEX "(file:).*(znn_sdk_dart).*/$" )
+function(GET_PACKAGE_ROOT_URI PACKAGE_NAME OUTPUT_VARIABLE)
+  file(READ "${SYRIUS_PROJECT_DIRECTORY}/.dart_tool/package_config.json" PACKAGE_CONFIG_JSON)
+  string(REGEX MATCH
+    "\\{[^{}]*\"name\"[ \\r\\n\\t]*:[ \\r\\n\\t]*\"${PACKAGE_NAME}\"[^{}]*\"rootUri\"[ \\r\\n\\t]*:[ \\r\\n\\t]*\"([^\"]+)\"[^{}]*\\}"
+    PACKAGE_CONFIG_ENTRY
+    "${PACKAGE_CONFIG_JSON}")
 
-# Initialize an empty variable to store the final znn_sdk_dart path
-set(ZNN_SDK_DART_PATH "")
-
-# Loop through each path found by the file command
-foreach(PATH ${ZNN_SDK_DART_PATHS})
-  # Exclude paths containing "/lib/" using a conditional check
-  if(NOT "${PATH}" MATCHES ".*/lib/.*")
-    # If the condition is met, set the current path as ZNN_SDK_DART_PATH
-    set(ZNN_SDK_DART_PATH ${PATH})
+  if(NOT PACKAGE_CONFIG_ENTRY)
+    message(FATAL_ERROR "Unable to find ${PACKAGE_NAME} in .dart_tool/package_config.json. Run `flutter pub get` and try again.")
   endif()
-endforeach()
 
-# Remove the "file:///" prefix from the selected path, if present
-string(REPLACE "file:///" "" ZNN_SDK_DART_PATH "${ZNN_SDK_DART_PATH}")
+  set(PACKAGE_ROOT_URI "${CMAKE_MATCH_1}")
+  string(REPLACE "file:///" "" PACKAGE_ROOT_URI "${PACKAGE_ROOT_URI}")
+  string(REPLACE "file://" "" PACKAGE_ROOT_URI "${PACKAGE_ROOT_URI}")
+  string(STRIP "${PACKAGE_ROOT_URI}" PACKAGE_ROOT_URI)
+  set(${OUTPUT_VARIABLE} "${PACKAGE_ROOT_URI}" PARENT_SCOPE)
+endfunction()
 
-# Strip any leading or trailing whitespace from the cleaned path
-string(STRIP "${ZNN_SDK_DART_PATH}" ZNN_SDK_DART_PATH)
-
-# Repeat the same process for "znn_ledger_dart" paths:
-
-# Read lines from the file `package_config_subset` that match the regex pattern
-# looking for paths containing "znn_ledger_dart" and ending with a "/".
-file(STRINGS "${SYRIUS_PROJECT_DIRECTORY}/.dart_tool/package_config_subset"
-        ZNN_LEDGER_DART_PATHS REGEX "(file:).*(znn_ledger_dart).*/$" )
-
-# Initialize an empty variable to store the final znn_ledger_dart path
-set(ZNN_LEDGER_DART_PATH "")
-
-# Loop through each path found by the file command
-foreach(PATH ${ZNN_LEDGER_DART_PATHS})
-  # Exclude paths containing "/lib/" using a conditional check
-  if(NOT "${PATH}" MATCHES ".*/lib/.*")
-    # If the condition is met, set the current path as ZNN_LEDGER_DART_PATH
-    set(ZNN_LEDGER_DART_PATH ${PATH})
-  endif()
-endforeach()
-
-# Remove the "file:///" prefix from the selected path, if present
-string(REPLACE "file:///" "" ZNN_LEDGER_DART_PATH "${ZNN_LEDGER_DART_PATH}")
-
-# Strip any leading or trailing whitespace from the cleaned path
-string(STRIP "${ZNN_LEDGER_DART_PATH}" ZNN_LEDGER_DART_PATH)
+get_package_root_uri("znn_sdk_dart" ZNN_SDK_DART_PATH)
+get_package_root_uri("znn_ledger_dart" ZNN_LEDGER_DART_PATH)
 
 # Append the paths to various library files into the `SYRIUS_LIBRARIES` list.
 # These paths include:
