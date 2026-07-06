@@ -395,7 +395,7 @@ class _DepositButton extends StatelessWidget {
           text: context.l10n.deposit,
           onPressed: onPressed,
           outlineColor: AppColors.qsrColor,
-          // TODO(maznnwell): make sure that the outline and text colors are the same
+          // TODO(maznnwell): make sure that the outline and text colors match
           textStyle: const TextStyle(
             color: AppColors.qsrColor,
           ),

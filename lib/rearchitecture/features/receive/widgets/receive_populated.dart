@@ -120,7 +120,7 @@ class _ReceivePopulatedState extends State<ReceivePopulated> {
   BigInt _getAmount() {
     try {
       return _amountController.text.extractDecimals(_selectedToken.decimals);
-    } catch (e) {
+    } on Exception catch (_) {
       return BigInt.zero;
     }
   }

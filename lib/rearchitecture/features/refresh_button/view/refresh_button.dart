@@ -16,9 +16,8 @@ class RefreshButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const bool isLoading = false;
     // TODO(maznnwell): implement re-building via a listener
-    return isLoading ? const _Loading() : _Initial(onPressed: _onPressed,);
+    return _Initial(onPressed: _onPressed,);
   }
 }
 
@@ -53,5 +52,3 @@ class _Initial extends StatelessWidget {
     );
   }
 }
-
-

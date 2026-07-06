@@ -1,6 +1,7 @@
 import 'package:equatable/equatable.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
 import 'package:json_annotation/json_annotation.dart';
+import 'package:json_rpc_2/json_rpc_2.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
@@ -32,7 +33,7 @@ class TokensCubit extends HydratedCubit<TokensState> with RefreshBlocMixin {
           data: tokens,
         ),
       );
-    } catch (error, stackTrace) {
+    } on RpcException catch (error, stackTrace) {
       emit(
         state.copyWith(
           error: FailureException(),

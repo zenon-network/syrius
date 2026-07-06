@@ -81,6 +81,7 @@ dependencies:
   bloc_concurrency: ^0.3.0
   stream_transform: ^2.1.0
   win32: ^5.9.0
+  nested: ^1.0.0
 
 dependency_overrides:
   reown_core:
