@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
@@ -14,26 +16,36 @@ class TotalHourlyTransactionsCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider<TotalHourlyTransactionsCubit>(
-      create: (_) => TotalHourlyTransactionsCubit(
-        zenon: zenon!,
-      )..fetchDataPeriodically(),
+      create: (_) {
+        final TotalHourlyTransactionsCubit cubit = TotalHourlyTransactionsCubit(
+          zenon: zenon!,
+        );
+        unawaited(cubit.fetchDataPeriodically());
+        return cubit;
+      },
       child: NewCardScaffold(
         data: _buildCardData(context: context),
-        body: BlocBuilder<TotalHourlyTransactionsCubit,
-            TotalHourlyTransactionsState>(
-          builder: (BuildContext context, TotalHourlyTransactionsState state) {
-            return switch (state.status) {
-              TimerStatus.initial => const TotalHourlyTransactionsEmpty(),
-              TimerStatus.loading => const TotalHourlyTransactionsLoading(),
-              TimerStatus.failure => TotalHourlyTransactionsError(
-                  error: state.error!,
-                ),
-              TimerStatus.success => TotalHourlyTransactionsPopulated(
-                  count: state.data!,
-                ),
-            };
-          },
-        ),
+        body:
+            BlocBuilder<
+              TotalHourlyTransactionsCubit,
+              TotalHourlyTransactionsState
+            >(
+              builder:
+                  (BuildContext context, TotalHourlyTransactionsState state) {
+                    return switch (state.status) {
+                      TimerStatus.initial =>
+                        const TotalHourlyTransactionsEmpty(),
+                      TimerStatus.loading =>
+                        const TotalHourlyTransactionsLoading(),
+                      TimerStatus.failure => TotalHourlyTransactionsError(
+                        error: state.error!,
+                      ),
+                      TimerStatus.success => TotalHourlyTransactionsPopulated(
+                        count: state.data!,
+                      ),
+                    };
+                  },
+            ),
       ),
     );
   }

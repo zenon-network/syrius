@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
@@ -92,13 +94,13 @@ class _SendPopulatedState extends State<SendPopulated> {
         if (state.status == SendTransactionStatus.loading) {
           _sendPaymentButtonKey.currentState?.animateForward();
         } else if (state.status == SendTransactionStatus.success) {
-          _sendConfirmationNotification(block: state.data!);
+          unawaited(_sendConfirmationNotification(block: state.data!));
           _sendPaymentButtonKey.currentState?.animateReverse();
           _amountController.clear();
           _recipientController.clear();
         } else if (state.status == SendTransactionStatus.failure) {
           _sendPaymentButtonKey.currentState?.animateReverse();
-          _sendErrorNotification(state.error!);
+          unawaited(_sendErrorNotification(state.error!));
         }
       },
       child: Padding(
@@ -164,7 +166,7 @@ class _SendPopulatedState extends State<SendPopulated> {
                   ),
                   onSubmitted: (String value) {
                     if (_isValidTransaction) {
-                      _onSendPaymentPressed();
+                      unawaited(_onSendPaymentPressed());
                     }
                   },
                 );

@@ -27,8 +27,8 @@ class NodeSyncStatusCubit
     required super.zenon,
     super.initialState = const NodeSyncStatusState(),
   }) : super(
-          refreshInterval: kNodeSyncStatusRefreshInterval,
-        );
+         refreshInterval: kNodeSyncStatusRefreshInterval,
+       );
 
   SyncState _lastSyncState = SyncState.unknown;
 
@@ -44,10 +44,9 @@ class NodeSyncStatusCubit
         _lastSyncState = syncInfo.state;
         if (syncInfo.state == SyncState.syncDone) {
           unawaited(
-            Future<void>.delayed(const Duration(seconds: 5)).then((_) {
-              NodeUtils.getUnreceivedTransactions().then((_) {
-                sl<AutoReceiveTxWorker>().autoReceive();
-              });
+            Future<void>.delayed(const Duration(seconds: 5)).then((_) async {
+              await NodeUtils.getUnreceivedTransactions();
+              await sl<AutoReceiveTxWorker>().autoReceive();
             }),
           );
         }

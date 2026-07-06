@@ -52,12 +52,12 @@ abstract class TimerCubit<T, S extends TimerState<T>> extends HydratedCubit<S> {
   /// This method cancels any existing timers and initiates a new periodic
   /// fetch cycle by calling [fetchDataPeriodically].
   Timer _getAutoRefreshTimer() => Timer(
-        refreshInterval,
-        () {
-          _autoRefresher!.cancel();
-          fetchDataPeriodically();
-        },
-      );
+    refreshInterval,
+    () {
+      _autoRefresher!.cancel();
+      unawaited(fetchDataPeriodically());
+    },
+  );
 
   /// Periodically fetches data and updates the state with either success or
   /// failure.
@@ -86,9 +86,10 @@ abstract class TimerCubit<T, S extends TimerState<T>> extends HydratedCubit<S> {
     } catch (e, stackTrace) {
       emit(
         state.copyWith(
-          status: TimerStatus.failure,
-          error: FailureException(),
-        ) as S,
+              status: TimerStatus.failure,
+              error: FailureException(),
+            )
+            as S,
       );
       // Reports only the unexpected errors
       addError(e, stackTrace);
