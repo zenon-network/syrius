@@ -50,6 +50,7 @@ class InfiniteScrollTable<T> extends StatefulWidget {
   /// Whether there are still items that can be fetched.
   final bool hasReachedMax;
 
+  /// Generates a stable key for an item row.
   final Key Function(T)? itemKeyGenerator;
 
   @override
@@ -147,8 +148,9 @@ class _Header extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // The content is scrolled under the header, hence we need to cover it up
-    final Color background =
-        context.isDarkMode ? AppColors.darkPrimary : Colors.white;
+    final Color background = context.isDarkMode
+        ? AppColors.darkPrimary
+        : Colors.white;
 
     final List<Widget> children = List<Widget>.generate(
       columns.length,
