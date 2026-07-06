@@ -83,7 +83,7 @@ abstract class TimerCubit<T, S extends TimerState<T>> extends HydratedCubit<S> {
       }
     } on SyriusException catch (e) {
       emit(state.copyWith(status: TimerStatus.failure, error: e) as S);
-    } catch (e, stackTrace) {
+    } on Object catch (e, stackTrace) {
       emit(
         state.copyWith(
               status: TimerStatus.failure,

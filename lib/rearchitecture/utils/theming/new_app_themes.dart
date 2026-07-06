@@ -4,7 +4,7 @@ import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 /// The new light theme closer to the default Material ThemeData
 final ThemeData newLightTheme = ThemeData(
   cardTheme: CardThemeData(
-    //TODO: check if it's okay
+    //TODO(maznnwell): check if it's okay
     color: AppColors.darkPrimary,
     margin: EdgeInsets.zero,
     shape: RoundedRectangleBorder(

@@ -43,8 +43,8 @@ abstract class InfiniteListBloc<T>
     required this.zenon,
     required this.pageSize,
   }) : super(
-          InfiniteListState<T>.initial(),
-        ) {
+         InfiniteListState<T>.initial(),
+       ) {
     listenToWsRestart(
       () {
         add(
@@ -71,8 +71,10 @@ abstract class InfiniteListBloc<T>
 
   /// THe number of results to be returned per page.
   final int pageSize;
+
   /// Method that helps deserializing the generic [T] type
   final T Function(Object?) fromJsonT;
+
   /// Method that helps serializing the generic [T] type
   final Object? Function(T) toJsonT;
 
@@ -103,7 +105,7 @@ abstract class InfiniteListBloc<T>
           status: InfiniteListStatus.success,
         ),
       );
-    } catch (error, stackTrace) {
+    } on Object catch (error, stackTrace) {
       addError(error, stackTrace);
       emit(
         state.copyWith(
@@ -141,7 +143,7 @@ abstract class InfiniteListBloc<T>
           status: InfiniteListStatus.success,
         ),
       );
-    } catch (error, stackTrace) {
+    } on Object catch (error, stackTrace) {
       addError(error, stackTrace);
       emit(
         state.copyWith(
@@ -168,8 +170,8 @@ abstract class InfiniteListBloc<T>
   /// Serializes the current state into a JSON map.
   @override
   Map<String, dynamic>? toJson(InfiniteListState<T> state) => state.toJson(
-        toJsonT,
-      );
+    toJsonT,
+  );
 
   @override
   Future<void> close() async {
