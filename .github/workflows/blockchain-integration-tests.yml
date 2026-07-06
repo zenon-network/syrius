@@ -84,9 +84,6 @@ jobs:
       - name: Wait for devnet
         run: ./scripts/wait-for-devnet.sh
 
-      - name: Generate BDD tests
-        run: dart run build_runner build --delete-conflicting-outputs
-
       - name: Run blockchain integration tests
         run: |
           for test_file in integration_test/features/*_test.dart; do
