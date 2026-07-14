@@ -5,12 +5,12 @@ import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 class PillarsBloc extends InfiniteListBloc<PillarInfo> {
   /// {@macro default_constructor}
   PillarsBloc({required super.zenon, super.pageSize = kPageSize})
-      : super(
-          fromJsonT: (Object? map) => PillarInfo.fromJson(
-            map! as Map<String, dynamic>,
-          ),
-          toJsonT: (PillarInfo pillarInfo) => pillarInfo.toJson(),
-        );
+    : super(
+        fromJsonT: (Object? map) => PillarInfo.fromJson(
+          map! as Map<String, dynamic>,
+        ),
+        toJsonT: (PillarInfo pillarInfo) => pillarInfo.toJson(),
+      );
 
   @override
   Future<List<PillarInfo>> paginationFetch({

@@ -8,17 +8,17 @@ class SentinelRewardsHistoryBloc extends FetchBloc<RewardHistoryList> {
   SentinelRewardsHistoryBloc({
     required super.zenon,
   }) : super(
-          fromJsonT: RewardHistoryList.fromJson,
-          toJsonT: (RewardHistoryList list) => list.toJson(),
-        );
+         fromJsonT: RewardHistoryList.fromJson,
+         toJsonT: (RewardHistoryList list) => list.toJson(),
+       );
 
   @override
   Future<RewardHistoryList> getData({required Address address}) async {
-    final RewardHistoryList response =
-        await zenon.embedded.sentinel.getFrontierRewardByPage(
-      address,
-      pageSize: kStandardChartNumDays.toInt(),
-    );
+    final RewardHistoryList response = await zenon.embedded.sentinel
+        .getFrontierRewardByPage(
+          address,
+          pageSize: kStandardChartNumDays.toInt(),
+        );
     if (response.list.any(
       (RewardHistoryEntry element) =>
           element.znnAmount > BigInt.zero || element.qsrAmount > BigInt.zero,

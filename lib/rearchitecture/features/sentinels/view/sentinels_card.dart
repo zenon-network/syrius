@@ -20,8 +20,7 @@ class SentinelsCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocProvider<SentinelsBloc>(
       create: (_) =>
-          SentinelsBloc(zenon: zenon!)
-            ..add(const InfiniteListRequested()),
+          SentinelsBloc(zenon: zenon!)..add(const InfiniteListRequested()),
       child: const _View(),
     );
   }

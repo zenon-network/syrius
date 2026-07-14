@@ -50,25 +50,30 @@ class _View extends StatelessWidget {
           FetchRequestData(address: Address.parse(kSelectedAddress!)),
         );
       },
-      body: BlocBuilder<UncollectedSentinelRewardsBloc,
-          FetchState<UncollectedReward>>(
-        builder: (_, FetchState<UncollectedReward> state) => switch (state) {
-          FetchFailure<UncollectedReward>() => SyriusErrorWidget(
-              state.exception,
-            ),
-          FetchInitial<UncollectedReward>() => const SyriusLoadingWidget(),
-          FetchPopulated<UncollectedReward>() => _Populated(
-              uncollectedReward: state.data,
-            ),
-        },
-      ),
+      body:
+          BlocBuilder<
+            UncollectedSentinelRewardsBloc,
+            FetchState<UncollectedReward>
+          >(
+            builder: (_, FetchState<UncollectedReward> state) =>
+                switch (state) {
+                  FetchFailure<UncollectedReward>() => SyriusErrorWidget(
+                    state.exception,
+                  ),
+                  FetchInitial<UncollectedReward>() =>
+                    const SyriusLoadingWidget(),
+                  FetchPopulated<UncollectedReward>() => _Populated(
+                    uncollectedReward: state.data,
+                  ),
+                },
+          ),
     );
   }
 
   CardData _buildCardData({required BuildContext context}) => CardData(
-        description: context.l10n.sentinelCollectDescription,
-        title: context.l10n.sentinelCollectTitle,
-      );
+    description: context.l10n.sentinelCollectDescription,
+    title: context.l10n.sentinelCollectTitle,
+  );
 }
 
 class _Populated extends StatelessWidget {
@@ -90,18 +95,18 @@ class _Populated extends StatelessWidget {
           end: uncollectedReward.znnAmount.addDecimals(coinDecimals).toNum(),
           after: ' ${kZnnCoin.symbol}',
           style: Theme.of(context).textTheme.headlineLarge!.copyWith(
-                color: AppColors.znnColor,
-                fontSize: 30,
-              ),
+            color: AppColors.znnColor,
+            fontSize: 30,
+          ),
         ),
         kVerticalGap16,
         NumberAnimation(
           end: uncollectedReward.qsrAmount.addDecimals(coinDecimals).toNum(),
           after: ' ${kQsrCoin.symbol}',
           style: Theme.of(context).textTheme.headlineLarge!.copyWith(
-                color: AppColors.qsrColor,
-                fontSize: 30,
-              ),
+            color: AppColors.qsrColor,
+            fontSize: 30,
+          ),
         ),
         kVerticalGap16,
         const _CollectButton(),

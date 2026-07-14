@@ -20,8 +20,9 @@ class NoBlocksAvailableException extends SyriusException {
       _$NoBlocksAvailableExceptionFromJson(json);
 
   @override
-  Map<String, dynamic> toJson() => _$NoBlocksAvailableExceptionToJson(this)
-    ..['runtimeType'] = 'NoBlocksAvailableException';
+  Map<String, dynamic> toJson() =>
+      _$NoBlocksAvailableExceptionToJson(this)
+        ..['runtimeType'] = 'NoBlocksAvailableException';
 
   @override
   bool operator ==(Object other) {

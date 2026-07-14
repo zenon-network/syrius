@@ -40,7 +40,6 @@ class PillarsCard extends StatelessWidget {
   }
 }
 
-
 class _View extends StatelessWidget {
   const _View();
 
@@ -176,9 +175,7 @@ class _PopulatedState extends State<_Populated> {
             generateRowCells: _rowCellsGenerator,
             onScrollReachedBottom: () {
               context.read<PillarsBloc>().add(
-                const InfiniteListMoreRequested(
-
-                ),
+                const InfiniteListMoreRequested(),
               );
             },
           );

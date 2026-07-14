@@ -4,10 +4,13 @@ part of 'hide_widget_cubit.dart';
 enum HideWidgetStatus {
   /// The hiding process has failed
   failure,
+
   /// The hiding process has not started
   initial,
+
   /// The hiding process is ongoing
   loading,
+
   /// The hiding process has succeeded
   success,
 }
@@ -25,9 +28,9 @@ class HideWidgetState extends Equatable {
 
   /// Creates a new instance with the [status] of [HideWidgetStatus.initial]
   const HideWidgetState.initial()
-      : this(
-          status: HideWidgetStatus.initial,
-        );
+    : this(
+        status: HideWidgetStatus.initial,
+      );
 
   /// Creates a new instance from a JSON map.
   factory HideWidgetState.fromJson(Map<String, dynamic> json) =>
@@ -35,8 +38,10 @@ class HideWidgetState extends Equatable {
 
   /// An exception that occurred during the hiding or un-hiding operation.
   final SyriusException? exception;
+
   /// Specifies if the current status is hidden or not.
   final bool? isHidden;
+
   /// The status of hiding or un-hiding the widget.
   final HideWidgetStatus status;
 

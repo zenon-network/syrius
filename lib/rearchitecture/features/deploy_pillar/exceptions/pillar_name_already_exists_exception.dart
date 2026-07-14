@@ -17,8 +17,7 @@ class PillarNameAlreadyExistsException extends SyriusException {
   /// {@macro instance_from_json}
   factory PillarNameAlreadyExistsException.fromJson(
     Map<String, dynamic> json,
-  ) =>
-      _$PillarNameAlreadyExistsExceptionFromJson(json);
+  ) => _$PillarNameAlreadyExistsExceptionFromJson(json);
 
   @override
   Map<String, dynamic> toJson() =>

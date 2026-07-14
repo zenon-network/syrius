@@ -8,7 +8,7 @@ import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 List<Token> sortAssets(List<Token> assets) {
   assets.sort((Token a, Token b) {
     if (a.isCoin && !b.isCoin) return -1; // Coins come first
-    if (!a.isCoin && b.isCoin) return 1;  // Tokens come second
+    if (!a.isCoin && b.isCoin) return 1; // Tokens come second
     if (a.isCoin && b.isCoin) {
       if (a.tokenStandard == znnZts) {
         return -1; // Zenon comes first

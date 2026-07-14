@@ -10,12 +10,12 @@ class LatestTransactionsBloc extends InfiniteListBloc<AccountBlock> {
   ///
   /// The constructor requires a [Zenon] SDK instance.
   LatestTransactionsBloc({required super.zenon, super.pageSize = kPageSize})
-      : super(
-          fromJsonT: (Object? map) => AccountBlock.fromJson(
-            map! as Map<String, dynamic>,
-          ),
-          toJsonT: (AccountBlock block) => block.toJson(),
-        );
+    : super(
+        fromJsonT: (Object? map) => AccountBlock.fromJson(
+          map! as Map<String, dynamic>,
+        ),
+        toJsonT: (AccountBlock block) => block.toJson(),
+      );
 
   @override
   Future<List<AccountBlock>> paginationFetch({
@@ -23,12 +23,12 @@ class LatestTransactionsBloc extends InfiniteListBloc<AccountBlock> {
     required int pageIndex,
     required int pageSize,
   }) async {
-    final AccountBlockList accountBlock =
-        await zenon.ledger.getAccountBlocksByPage(
-      address!,
-      pageIndex: pageIndex,
-      pageSize: pageSize,
-    );
+    final AccountBlockList accountBlock = await zenon.ledger
+        .getAccountBlocksByPage(
+          address!,
+          pageIndex: pageIndex,
+          pageSize: pageSize,
+        );
 
     return accountBlock.list!;
   }

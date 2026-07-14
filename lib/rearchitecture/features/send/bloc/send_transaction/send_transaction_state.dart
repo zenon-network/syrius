@@ -12,7 +12,7 @@ enum SendTransactionStatus {
   success,
 
   /// Indicates that an error occurred during the payment process.
-  failure
+  failure,
 }
 
 /// Holds the state for [SendTransactionBloc], including status, data,

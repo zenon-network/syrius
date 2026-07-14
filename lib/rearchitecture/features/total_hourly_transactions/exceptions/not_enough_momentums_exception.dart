@@ -20,8 +20,9 @@ class NotEnoughMomentumsException extends SyriusException {
       _$NotEnoughMomentumsExceptionFromJson(json);
 
   @override
-  Map<String, dynamic> toJson() => _$NotEnoughMomentumsExceptionToJson(this)
-    ..['runtimeType'] = 'NotEnoughMomentumsException';
+  Map<String, dynamic> toJson() =>
+      _$NotEnoughMomentumsExceptionToJson(this)
+        ..['runtimeType'] = 'NotEnoughMomentumsException';
 
   @override
   bool operator ==(Object other) {

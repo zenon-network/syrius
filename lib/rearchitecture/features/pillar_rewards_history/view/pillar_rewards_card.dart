@@ -26,27 +26,28 @@ class PillarRewardsCard extends StatelessWidget {
           ),
         );
       },
-      body: BlocBuilder<PillarRewardsHistoryBloc,
-          FetchState<RewardHistoryList>>(
-        builder: (_, FetchState<RewardHistoryList> state) {
-          return switch (state) {
-            FetchFailure<RewardHistoryList>() => SyriusErrorWidget(
-                state.exception,
-              ),
-            FetchInitial<RewardHistoryList>() => const SyriusLoadingWidget(),
-            FetchPopulated<RewardHistoryList>() => _Chart(
-                rewardsHistoryList: state.data,
-              ),
-          };
-        },
-      ),
+      body:
+          BlocBuilder<PillarRewardsHistoryBloc, FetchState<RewardHistoryList>>(
+            builder: (_, FetchState<RewardHistoryList> state) {
+              return switch (state) {
+                FetchFailure<RewardHistoryList>() => SyriusErrorWidget(
+                  state.exception,
+                ),
+                FetchInitial<RewardHistoryList>() =>
+                  const SyriusLoadingWidget(),
+                FetchPopulated<RewardHistoryList>() => _Chart(
+                  rewardsHistoryList: state.data,
+                ),
+              };
+            },
+          ),
     );
   }
 
   CardData _buildCardData({required BuildContext context}) => CardData(
-        description: context.l10n.pillarRewardsDescription,
-        title: context.l10n.pillarRewardsTitle,
-      );
+    description: context.l10n.pillarRewardsDescription,
+    title: context.l10n.pillarRewardsTitle,
+  );
 }
 
 /// A [StandardChart] adapted to show the pillar rewards
@@ -67,18 +68,18 @@ class _Chart extends StatelessWidget {
       lineBarsData: _linesBarData(),
       lineBarDotSymbol: kZnnCoin.symbol,
       titlesReferenceDate:
-      DateTime.fromMillisecondsSinceEpoch(genesisTimestamp * 1000).add(
-        Duration(
-          // First epoch is zero
-          days: _rewardsHistoryList.list.reversed.last.epoch + 1,
-        ),
-      ),
+          DateTime.fromMillisecondsSinceEpoch(genesisTimestamp * 1000).add(
+            Duration(
+              // First epoch is zero
+              days: _rewardsHistoryList.list.reversed.last.epoch + 1,
+            ),
+          ),
     );
   }
 
   List<FlSpot> _getRewardsSpots() => List<FlSpot>.generate(
     _rewardsHistoryList.list.length,
-        (int index) => FlSpot(
+    (int index) => FlSpot(
       index.toDouble(),
       _getRewardsByIndex(index).toDouble(),
     ),
@@ -95,8 +96,8 @@ class _Chart extends StatelessWidget {
       .toList()[index]
       .znnAmount
       .addDecimals(
-    coinDecimals,
-  )
+        coinDecimals,
+      )
       .toNum();
 
   num _getMaxValueOfZnnRewards() {

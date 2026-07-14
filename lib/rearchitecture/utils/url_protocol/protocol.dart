@@ -5,8 +5,10 @@ part of 'api.dart';
 abstract class ProtocolHandler {
   /// Registers the scheme.
   void register(String scheme, {String? executable, List<String>? arguments});
+
   /// Unregisters the scheme.
   void unregister(String scheme);
+
   /// Gets arguments from the scheme.
   List<String> getArguments(List<String>? arguments) {
     if (arguments == null) return <String>['%s'];

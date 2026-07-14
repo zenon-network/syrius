@@ -60,12 +60,12 @@ class RealtimeStatisticsCubit
     // Fetch account blocks until the last page is reached
     while (!isLastPage) {
       // Fetch account blocks for the current page
-      final AccountBlockList accountBlockList =
-          await zenon.ledger.getAccountBlocksByPage(
-        address,
-        pageIndex: pageIndex,
-        pageSize: pageSize,
-      );
+      final AccountBlockList accountBlockList = await zenon.ledger
+          .getAccountBlocksByPage(
+            address,
+            pageIndex: pageIndex,
+            pageSize: pageSize,
+          );
       // Default to an empty list if no blocks are found
       final List<AccountBlock> response =
           accountBlockList.list ?? <AccountBlock>[];

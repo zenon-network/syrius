@@ -15,10 +15,7 @@ class TypeCell extends StatelessWidget {
     if (BlockUtils.isSendBlock(block.blockType)) {
       child = Tooltip(
         message: context.l10n.send,
-        child: const Icon(
-          Icons.call_made_rounded,
-          color: AppColors.errorColor,
-        ),
+        child: const Icon(Icons.call_made_rounded, color: AppColors.errorColor),
       );
     } else {
       child = Tooltip(
@@ -31,10 +28,7 @@ class TypeCell extends StatelessWidget {
     }
 
     return InfiniteScrollTableCell(
-      child: Align(
-        alignment: Alignment.centerLeft,
-        child: child,
-      ),
+      child: Align(alignment: Alignment.centerLeft, child: child),
     );
   }
 }

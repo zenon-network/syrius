@@ -24,11 +24,9 @@ class SendTransactionBloc
   SendTransactionBloc({
     AccountBlockUtils? accountBlockUtilsHelper,
     ZenonAddressUtils? zenonAddressUtils,
-  })  :
-        accountBlockUtilsHelper =
-            accountBlockUtilsHelper ?? AccountBlockUtils(),
-        zenonAddressUtilsHelper = zenonAddressUtils ?? ZenonAddressUtils(),
-        super(const SendTransactionState()) {
+  }) : accountBlockUtilsHelper = accountBlockUtilsHelper ?? AccountBlockUtils(),
+       zenonAddressUtilsHelper = zenonAddressUtils ?? ZenonAddressUtils(),
+       super(const SendTransactionState()) {
     on<SendTransactionInitiate>(_onSendTransfer);
     on<SendTransactionInitiateFromBlock>(_onSendTransferWithBlock);
   }
@@ -53,13 +51,13 @@ class SendTransactionBloc
         event.data,
       );
 
-      final AccountBlockTemplate response =
-          await accountBlockUtilsHelper.createAccountBlock(
-        accountBlock,
-        'send transaction',
-        address: Address.parse(event.fromAddress),
-        waitForRequiredPlasma: true,
-      );
+      final AccountBlockTemplate response = await accountBlockUtilsHelper
+          .createAccountBlock(
+            accountBlock,
+            'send transaction',
+            address: Address.parse(event.fromAddress),
+            waitForRequiredPlasma: true,
+          );
 
       zenonAddressUtilsHelper.refreshBalance();
       emit(
@@ -93,13 +91,13 @@ class SendTransactionBloc
   ) async {
     try {
       emit(state.copyWith(status: SendTransactionStatus.loading));
-      final AccountBlockTemplate response =
-          await accountBlockUtilsHelper.createAccountBlock(
-        event.block,
-        event.reasonForGeneratingPlasma,
-        address: Address.parse(event.fromAddress),
-        waitForRequiredPlasma: true,
-      );
+      final AccountBlockTemplate response = await accountBlockUtilsHelper
+          .createAccountBlock(
+            event.block,
+            event.reasonForGeneratingPlasma,
+            address: Address.parse(event.fromAddress),
+            waitForRequiredPlasma: true,
+          );
 
       zenonAddressUtilsHelper.refreshBalance();
       emit(

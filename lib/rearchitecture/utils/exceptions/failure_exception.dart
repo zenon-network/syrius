@@ -20,8 +20,8 @@ class FailureException extends SyriusException {
 
   /// Converts this [FailureException] instance to a JSON map.
   @override
-  Map<String, dynamic> toJson() => _$FailureExceptionToJson(this)
-    ..['runtimeType'] = 'FailureException';
+  Map<String, dynamic> toJson() =>
+      _$FailureExceptionToJson(this)..['runtimeType'] = 'FailureException';
 
   @override
   bool operator ==(Object other) {

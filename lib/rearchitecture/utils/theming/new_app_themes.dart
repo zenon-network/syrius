@@ -119,5 +119,5 @@ final ThemeData newDarkTheme = ThemeData(
       ),
     ),
   ),
-  scaffoldBackgroundColor: AppColors.backgroundDark
+  scaffoldBackgroundColor: AppColors.backgroundDark,
 );

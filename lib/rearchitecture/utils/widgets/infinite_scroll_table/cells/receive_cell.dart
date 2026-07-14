@@ -20,9 +20,7 @@ class ReceiveCell extends StatelessWidget {
           icon: const Icon(Icons.call_received_rounded),
           color: AppColors.znnColor,
           onPressed: () {
-            sl<AutoReceiveTxWorker>().autoReceiveTransactionHash(
-              hash,
-            );
+            sl<AutoReceiveTxWorker>().autoReceiveTransactionHash(hash);
           },
         ),
       ),

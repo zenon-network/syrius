@@ -40,12 +40,12 @@ class BalanceCard extends StatelessWidget {
               TimerStatus.initial => const BalanceEmpty(),
               TimerStatus.loading => const BalanceLoading(),
               TimerStatus.failure => BalanceError(
-                  error: state.error!,
-                ),
+                error: state.error!,
+              ),
               TimerStatus.success => BalancePopulated(
-                  address: kSelectedAddress!,
-                  accountInfo: state.data!,
-                ),
+                address: kSelectedAddress!,
+                accountInfo: state.data!,
+              ),
             };
           },
         ),

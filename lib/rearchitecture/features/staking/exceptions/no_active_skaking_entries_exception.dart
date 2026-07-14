@@ -20,8 +20,9 @@ class NoActiveStakingEntriesException extends SyriusException {
       _$NoActiveStakingEntriesExceptionFromJson(json);
 
   @override
-  Map<String, dynamic> toJson() => _$NoActiveStakingEntriesExceptionToJson(this)
-    ..['runtimeType'] = 'NoActiveStakingEntriesException';
+  Map<String, dynamic> toJson() =>
+      _$NoActiveStakingEntriesExceptionToJson(this)
+        ..['runtimeType'] = 'NoActiveStakingEntriesException';
 
   @override
   bool operator ==(Object other) {

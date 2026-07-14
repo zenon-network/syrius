@@ -56,7 +56,8 @@ class NodeSyncPopulated extends StatelessWidget {
           ),
         );
       } else {
-        message = 'Sync progress: momentum ${syncInfo.currentHeight} of '
+        message =
+            'Sync progress: momentum ${syncInfo.currentHeight} of '
             '${syncInfo.targetHeight}';
         return Tooltip(
           message: message,
@@ -105,7 +106,8 @@ class NodeSyncPopulated extends StatelessWidget {
           ),
         );
       } else {
-        message = 'Sync progress: momentum ${syncInfo.currentHeight} of '
+        message =
+            'Sync progress: momentum ${syncInfo.currentHeight} of '
             '${syncInfo.targetHeight}';
         syncState = SyncState.syncing;
         return Tooltip(

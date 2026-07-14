@@ -40,11 +40,11 @@ class _ReceivePopulatedState extends State<ReceivePopulated> {
   String get _amount => _amountController.text;
 
   String? get _amountErrorText => InputValidators.correctValue(
-        _amount,
-        kBigP255m1,
-        _selectedToken.decimals,
-        BigInt.zero,
-      );
+    _amount,
+    kBigP255m1,
+    _selectedToken.decimals,
+    BigInt.zero,
+  );
 
   @override
   void initState() {

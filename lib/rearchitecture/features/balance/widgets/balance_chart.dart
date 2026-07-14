@@ -63,7 +63,8 @@ class BalanceChart extends StatelessWidget {
         token.tokenStandard.toString() == hoveredSectionId.value;
     final double opacity = isTouched ? 1.0 : 0.7;
 
-    final double value = accountInfo.getBalance(token.tokenStandard) /
+    final double value =
+        accountInfo.getBalance(token.tokenStandard) /
         (accountInfo.znn()! + accountInfo.qsr()!);
 
     return PieChartSectionData(

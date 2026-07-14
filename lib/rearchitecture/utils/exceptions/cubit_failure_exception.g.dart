@@ -7,13 +7,13 @@ part of 'cubit_failure_exception.dart';
 // **************************************************************************
 
 CubitFailureException _$CubitFailureExceptionFromJson(
-        Map<String, dynamic> json) =>
-    CubitFailureException(
-      message: json['message'] as String? ?? 'Something went wrong',
-    );
+  Map<String, dynamic> json,
+) => CubitFailureException(
+  message: json['message'] as String? ?? 'Something went wrong',
+);
 
 Map<String, dynamic> _$CubitFailureExceptionToJson(
-        CubitFailureException instance) =>
-    <String, dynamic>{
-      'message': instance.message,
-    };
+  CubitFailureException instance,
+) => <String, dynamic>{
+  'message': instance.message,
+};

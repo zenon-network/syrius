@@ -17,13 +17,13 @@ class LatestTransactionsCard extends StatelessWidget {
   /// There is also a check to make sure that the [type] can be found among
   /// the supported list of types
   LatestTransactionsCard({required this.type, super.key})
-      : assert(
-          <CardType>[
-            CardType.latestTransactions,
-            CardType.latestTransactionsDashboard,
-          ].contains(type),
-          'make sure that the type refers only to latest transactions types',
-        );
+    : assert(
+        <CardType>[
+          CardType.latestTransactions,
+          CardType.latestTransactionsDashboard,
+        ].contains(type),
+        'make sure that the type refers only to latest transactions types',
+      );
 
   /// The card type, either [CardType.latestTransactions] or
   /// [CardType.latestTransactionsDashboard]
@@ -35,32 +35,34 @@ class LatestTransactionsCard extends StatelessWidget {
       data: _buildCardData(context: context),
       onRefreshPressed: () {
         context.read<LatestTransactionsBloc>().add(
-              InfiniteListRefreshRequested(
-                address: Address.parse(kSelectedAddress!),
-              ),
-            );
+          InfiniteListRefreshRequested(
+            address: Address.parse(kSelectedAddress!),
+          ),
+        );
       },
       body:
           BlocBuilder<LatestTransactionsBloc, InfiniteListState<AccountBlock>>(
-        builder: (
-          _,
-          InfiniteListState<AccountBlock> state,
-        ) {
-          final InfiniteListStatus status = state.status;
+            builder:
+                (
+                  _,
+                  InfiniteListState<AccountBlock> state,
+                ) {
+                  final InfiniteListStatus status = state.status;
 
-          return switch (status) {
-            InfiniteListStatus.initial => const _LatestTransactionsInitial(),
-            InfiniteListStatus.failure => _LatestTransactionsFailure(
-                exception: state.error!,
-              ),
-            InfiniteListStatus.success => _LatestTransactionsPopulated(
-                hasReachedMax: state.hasReachedMax,
-                transactions: state.data!,
-                type: type,
-              ),
-          };
-        },
-      ),
+                  return switch (status) {
+                    InfiniteListStatus.initial =>
+                      const _LatestTransactionsInitial(),
+                    InfiniteListStatus.failure => _LatestTransactionsFailure(
+                      exception: state.error!,
+                    ),
+                    InfiniteListStatus.success => _LatestTransactionsPopulated(
+                      hasReachedMax: state.hasReachedMax,
+                      transactions: state.data!,
+                      type: type,
+                    ),
+                  };
+                },
+          ),
     );
   }
 
@@ -69,13 +71,13 @@ class LatestTransactionsCard extends StatelessWidget {
   }) {
     return switch (type) {
       CardType.latestTransactions => CardData(
-          description: context.l10n.latestTransactionsDescription,
-          title: context.l10n.latestTransactionsTitle,
-        ),
+        description: context.l10n.latestTransactionsDescription,
+        title: context.l10n.latestTransactionsTitle,
+      ),
       CardType.latestTransactionsDashboard => CardData(
-          description: context.l10n.latestTransactionsDescription,
-          title: context.l10n.latestTransactionsTitle,
-        ),
+        description: context.l10n.latestTransactionsDescription,
+        title: context.l10n.latestTransactionsTitle,
+      ),
     };
   }
 }
@@ -133,28 +135,27 @@ class _LatestTransactionsPopulatedState
       generateRowCells: _rowCellsGenerator,
       onScrollReachedBottom: () {
         context.read<LatestTransactionsBloc>().add(
-              InfiniteListMoreRequested(
-                address: Address.parse(kSelectedAddress!),
-              ),
-            );
+          InfiniteListMoreRequested(
+            address: Address.parse(kSelectedAddress!),
+          ),
+        );
       },
     );
   }
 
   List<Widget> _rowCellsGenerator(
     AccountBlock transaction,
-  ) =>
-      widget.type == CardType.latestTransactionsDashboard
-          ? _getCellsForDashboardWidget(transaction)
-          : _getCellsForTransferWidget(transaction);
+  ) => widget.type == CardType.latestTransactionsDashboard
+      ? _getCellsForDashboardWidget(transaction)
+      : _getCellsForTransferWidget(transaction);
 
   List<Widget> _getCellsForTransferWidget(
     AccountBlock transactionBlock,
   ) {
     final AccountBlock infoBlock =
         BlockUtils.isReceiveBlock(transactionBlock.blockType)
-            ? transactionBlock.pairedAccountBlock!
-            : transactionBlock;
+        ? transactionBlock.pairedAccountBlock!
+        : transactionBlock;
     return <Widget>[
       AddressCell(
         address: infoBlock.address,
@@ -197,8 +198,8 @@ class _LatestTransactionsPopulatedState
   ) {
     final AccountBlock infoBlock =
         BlockUtils.isReceiveBlock(transactionBlock.blockType)
-            ? transactionBlock.pairedAccountBlock!
-            : transactionBlock;
+        ? transactionBlock.pairedAccountBlock!
+        : transactionBlock;
 
     return <Widget>[
       AddressCell(address: infoBlock.address),
@@ -218,40 +219,40 @@ class _LatestTransactionsPopulatedState
             ? _transactions.sort(
                 (AccountBlock a, AccountBlock b) =>
                     a.address.toString().compareTo(
-                          b.address.toString(),
-                        ),
+                      b.address.toString(),
+                    ),
               )
             : _transactions.sort(
                 (AccountBlock a, AccountBlock b) =>
                     b.address.toString().compareTo(
-                          a.address.toString(),
-                        ),
+                      a.address.toString(),
+                    ),
               );
       case InfiniteScrollTableColumnType.receiver:
         _sortAscending
             ? _transactions.sort(
                 (AccountBlock a, AccountBlock b) =>
                     a.toAddress.toString().compareTo(
-                          b.toAddress.toString(),
-                        ),
+                      b.toAddress.toString(),
+                    ),
               )
             : _transactions.sort(
                 (AccountBlock a, AccountBlock b) =>
                     b.toAddress.toString().compareTo(
-                          a.toAddress.toString(),
-                        ),
+                      a.toAddress.toString(),
+                    ),
               );
       case InfiniteScrollTableColumnType.hash:
         _sortAscending
             ? _transactions.sort(
                 (AccountBlock a, AccountBlock b) => a.hash.toString().compareTo(
-                      b.hash.toString(),
-                    ),
+                  b.hash.toString(),
+                ),
               )
             : _transactions.sort(
                 (AccountBlock a, AccountBlock b) => b.hash.toString().compareTo(
-                      a.hash.toString(),
-                    ),
+                  a.hash.toString(),
+                ),
               );
       case InfiniteScrollTableColumnType.amount:
         _sortAscending
@@ -268,14 +269,14 @@ class _LatestTransactionsPopulatedState
             ? _transactions.sort(
                 (AccountBlock a, AccountBlock b) =>
                     a.confirmationDetail!.momentumTimestamp.compareTo(
-                  b.confirmationDetail!.momentumTimestamp,
-                ),
+                      b.confirmationDetail!.momentumTimestamp,
+                    ),
               )
             : _transactions.sort(
                 (AccountBlock a, AccountBlock b) =>
                     b.confirmationDetail!.momentumTimestamp.compareTo(
-                  a.confirmationDetail!.momentumTimestamp,
-                ),
+                      a.confirmationDetail!.momentumTimestamp,
+                    ),
               );
       case InfiniteScrollTableColumnType.type:
         _sortAscending
@@ -302,14 +303,14 @@ class _LatestTransactionsPopulatedState
             ? _transactions.sort(
                 (AccountBlock a, AccountBlock b) =>
                     a.tokenStandard.toString().compareTo(
-                          b.tokenStandard.toString(),
-                        ),
+                      b.tokenStandard.toString(),
+                    ),
               )
             : _transactions.sort(
                 (AccountBlock a, AccountBlock b) =>
                     b.tokenStandard.toString().compareTo(
-                          a.tokenStandard.toString(),
-                        ),
+                      a.tokenStandard.toString(),
+                    ),
               );
     }
 

@@ -25,37 +25,36 @@ class InfiniteScrollTableCell extends StatelessWidget {
     TextStyle? textStyle,
     int flex = 1,
     String tooltipMessage = '',
-  }) =>
-      InfiniteScrollTableCell(
-        flex: flex,
-        child: Row(
-          children: <Widget>[
-            Flexible(
-              child: Tooltip(
-                message: tooltipMessage,
-                child: Text(
-                  content,
-                  overflow: TextOverflow.ellipsis,
-                  maxLines: 1,
-                  style: textStyle,
-                ),
-              ),
+  }) => InfiniteScrollTableCell(
+    flex: flex,
+    child: Row(
+      children: <Widget>[
+        Flexible(
+          child: Tooltip(
+            message: tooltipMessage,
+            child: Text(
+              content,
+              overflow: TextOverflow.ellipsis,
+              maxLines: 1,
+              style: textStyle,
             ),
-            if (textToBeCopied != null)
-              Row(
-                children: <Widget>[
-                  CopyToClipboardButton(
-                    textToBeCopied,
-                    iconSize: 15,
-                  ),
-                  const SizedBox(
-                    width: 10,
-                  ),
-                ],
-              ),
-          ],
+          ),
         ),
-      );
+        if (textToBeCopied != null)
+          Row(
+            children: <Widget>[
+              CopyToClipboardButton(
+                textToBeCopied,
+                iconSize: 15,
+              ),
+              const SizedBox(
+                width: 10,
+              ),
+            ],
+          ),
+      ],
+    ),
+  );
 
   /// A constructor that helps creating cell content starting from an [address].
   ///
@@ -67,12 +66,13 @@ class InfiniteScrollTableCell extends StatelessWidget {
     bool isShortVersion = true,
     int flex = 2,
   }) {
-    final TextStyle? textStyle = address.isEmbedded() ||
+    final TextStyle? textStyle =
+        address.isEmbedded() ||
             (isStakeAddress && address.toString() == kSelectedAddress)
         ? const TextStyle(
-              color: AppColors.znnColor,
-              fontWeight: FontWeight.bold,
-            )
+            color: AppColors.znnColor,
+            fontWeight: FontWeight.bold,
+          )
         : null;
 
     final bool hasLabel = kAddressLabelMap[address.toString()] != null;
@@ -80,8 +80,8 @@ class InfiniteScrollTableCell extends StatelessWidget {
     final String content = hasLabel
         ? ZenonAddressUtils.getLabel(address.toString())
         : isShortVersion
-            ? address.toShortString()
-            : address.toString();
+        ? address.toShortString()
+        : address.toString();
 
     return InfiniteScrollTableCell.withText(
       content: content,
@@ -94,6 +94,7 @@ class InfiniteScrollTableCell extends StatelessWidget {
 
   /// The child that represents the content of the cell
   final Widget child;
+
   /// Represents the space amount in a row assign to the cell
   final int flex;
 

@@ -8,9 +8,9 @@ class UncollectedSentinelRewardsBloc extends FetchBloc<UncollectedReward> {
   UncollectedSentinelRewardsBloc({
     required super.zenon,
   }) : super(
-          fromJsonT: UncollectedReward.fromJson,
-          toJsonT: (UncollectedReward data) => data.toJson(),
-        );
+         fromJsonT: UncollectedReward.fromJson,
+         toJsonT: (UncollectedReward data) => data.toJson(),
+       );
 
   @override
   Future<UncollectedReward> getData({required Address address}) =>

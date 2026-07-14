@@ -25,9 +25,9 @@ class TokensState extends Equatable {
 
   /// Creates a new instance with the [status] of [TokensState.initial]
   const TokensState.initial()
-      : this(
-          status: TokensStatus.initial,
-        );
+    : this(
+        status: TokensStatus.initial,
+      );
 
   /// {@macro state_from_json}
   factory TokensState.fromJson(Map<String, dynamic> json) =>
@@ -47,12 +47,11 @@ class TokensState extends Equatable {
     List<Token>? data,
     TokensStatus? status,
     SyriusException? error,
-  }) =>
-      TokensState(
-        data: data ?? this.data,
-        error: error ?? this.error,
-        status: status ?? this.status,
-      );
+  }) => TokensState(
+    data: data ?? this.data,
+    error: error ?? this.error,
+    status: status ?? this.status,
+  );
 
   @override
   List<Object?> get props => <Object?>[error, status, data];

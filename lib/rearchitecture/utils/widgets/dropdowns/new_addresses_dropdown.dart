@@ -30,13 +30,15 @@ class _NewAddressesDropdownState extends State<NewAddressesDropdown> {
     final List<DropdownMenuEntry<String>> entries = widget._addresses
         .map(
           (String address) => DropdownMenuEntry<String>(
-        label: kAddressLabelMap[address]!,
-        style: MenuItemButton.styleFrom(
-          foregroundColor: address == widget._selectedAddress ? color : null,
-        ),
-        value: address,
-      ),
-    )
+            label: kAddressLabelMap[address]!,
+            style: MenuItemButton.styleFrom(
+              foregroundColor: address == widget._selectedAddress
+                  ? color
+                  : null,
+            ),
+            value: address,
+          ),
+        )
         .toList();
 
     return DropdownMenu<String>(
@@ -76,23 +78,23 @@ class _NewAddressesDropdownState extends State<NewAddressesDropdown> {
       return null;
     }
     final int index = entries.indexWhere(
-          (DropdownMenuEntry<String> entry) => _matchTest(entry, searchText),
+      (DropdownMenuEntry<String> entry) => _matchTest(entry, searchText),
     );
 
     return index != -1 ? index : null;
   }
 
   List<DropdownMenuEntry<String>> _filterCallback(
-      List<DropdownMenuEntry<String>> entries,
-      String filter,
-      ) {
+    List<DropdownMenuEntry<String>> entries,
+    String filter,
+  ) {
     final String searchText = filter.toLowerCase();
     if (searchText.isEmpty) {
       return entries;
     }
 
     final Iterable<DropdownMenuEntry<String>> filtered = entries.where(
-          (DropdownMenuEntry<String> entry) => _matchTest(entry, searchText),
+      (DropdownMenuEntry<String> entry) => _matchTest(entry, searchText),
     );
 
     return filtered.toList();
@@ -100,5 +102,5 @@ class _NewAddressesDropdownState extends State<NewAddressesDropdown> {
 
   bool _matchTest(DropdownMenuEntry<String> entry, String searchText) =>
       entry.label.toLowerCase().contains(searchText) ||
-          entry.value.toLowerCase().contains(searchText);
+      entry.value.toLowerCase().contains(searchText);
 }

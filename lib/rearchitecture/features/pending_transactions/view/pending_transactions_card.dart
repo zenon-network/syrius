@@ -19,8 +19,8 @@ class PendingTransactionsCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final PendingTransactionsBloc bloc =
-        context.read<PendingTransactionsBloc>();
+    final PendingTransactionsBloc bloc = context
+        .read<PendingTransactionsBloc>();
 
     return NewCardScaffold(
       data: _buildCardData(context: context),
@@ -33,22 +33,23 @@ class PendingTransactionsCard extends StatelessWidget {
       },
       body:
           BlocBuilder<PendingTransactionsBloc, InfiniteListState<AccountBlock>>(
-        builder: (_, InfiniteListState<AccountBlock> state) {
-          final InfiniteListStatus status = state.status;
+            builder: (_, InfiniteListState<AccountBlock> state) {
+              final InfiniteListStatus status = state.status;
 
-          return switch (status) {
-            InfiniteListStatus.initial => const _PendingTransactionsInitial(),
-            InfiniteListStatus.failure => _PendingTransactionsFailure(
-                exception: state.error!,
-              ),
-            InfiniteListStatus.success => _PendingTransactionsPopulated(
-                bloc: bloc,
-                hasReachedMax: state.hasReachedMax,
-                transactions: state.data!,
-              ),
-          };
-        },
-      ),
+              return switch (status) {
+                InfiniteListStatus.initial =>
+                  const _PendingTransactionsInitial(),
+                InfiniteListStatus.failure => _PendingTransactionsFailure(
+                  exception: state.error!,
+                ),
+                InfiniteListStatus.success => _PendingTransactionsPopulated(
+                  bloc: bloc,
+                  hasReachedMax: state.hasReachedMax,
+                  transactions: state.data!,
+                ),
+              };
+            },
+          ),
     );
   }
 
@@ -123,8 +124,8 @@ class _PendingTransactionsPopulatedState
   ) {
     final AccountBlock infoBlock =
         BlockUtils.isReceiveBlock(transaction.blockType)
-            ? transaction.pairedAccountBlock!
-            : transaction;
+        ? transaction.pairedAccountBlock!
+        : transaction;
     return <Widget>[
       AddressCell(
         address: infoBlock.address,
@@ -145,7 +146,7 @@ class _PendingTransactionsPopulatedState
   }
 
   List<InfiniteScrollTableColumnType>
-      _getHeaderColumnsForPendingTransactions() {
+  _getHeaderColumnsForPendingTransactions() {
     return <InfiniteScrollTableColumnType>[
       InfiniteScrollTableColumnType.sender,
       InfiniteScrollTableColumnType.receiver,
@@ -166,40 +167,40 @@ class _PendingTransactionsPopulatedState
             ? widget.transactions.sort(
                 (AccountBlock a, AccountBlock b) =>
                     a.address.toString().compareTo(
-                          b.address.toString(),
-                        ),
+                      b.address.toString(),
+                    ),
               )
             : widget.transactions.sort(
                 (AccountBlock a, AccountBlock b) =>
                     b.address.toString().compareTo(
-                          a.address.toString(),
-                        ),
+                      a.address.toString(),
+                    ),
               );
       case InfiniteScrollTableColumnType.receiver:
         _sortAscending
             ? widget.transactions.sort(
                 (AccountBlock a, AccountBlock b) =>
                     a.toAddress.toString().compareTo(
-                          b.toAddress.toString(),
-                        ),
+                      b.toAddress.toString(),
+                    ),
               )
             : widget.transactions.sort(
                 (AccountBlock a, AccountBlock b) =>
                     b.toAddress.toString().compareTo(
-                          a.toAddress.toString(),
-                        ),
+                      a.toAddress.toString(),
+                    ),
               );
       case InfiniteScrollTableColumnType.hash:
         _sortAscending
             ? widget.transactions.sort(
                 (AccountBlock a, AccountBlock b) => a.hash.toString().compareTo(
-                      b.hash.toString(),
-                    ),
+                  b.hash.toString(),
+                ),
               )
             : widget.transactions.sort(
                 (AccountBlock a, AccountBlock b) => b.hash.toString().compareTo(
-                      a.hash.toString(),
-                    ),
+                  a.hash.toString(),
+                ),
               );
       case InfiniteScrollTableColumnType.amount:
         _sortAscending
@@ -216,14 +217,14 @@ class _PendingTransactionsPopulatedState
             ? widget.transactions.sort(
                 (AccountBlock a, AccountBlock b) =>
                     a.confirmationDetail!.momentumTimestamp.compareTo(
-                  b.confirmationDetail!.momentumTimestamp,
-                ),
+                      b.confirmationDetail!.momentumTimestamp,
+                    ),
               )
             : widget.transactions.sort(
                 (AccountBlock a, AccountBlock b) =>
                     b.confirmationDetail!.momentumTimestamp.compareTo(
-                  a.confirmationDetail!.momentumTimestamp,
-                ),
+                      a.confirmationDetail!.momentumTimestamp,
+                    ),
               );
       case InfiniteScrollTableColumnType.asset:
         _sortAscending
@@ -240,14 +241,14 @@ class _PendingTransactionsPopulatedState
             ? widget.transactions.sort(
                 (AccountBlock a, AccountBlock b) =>
                     a.tokenStandard.toString().compareTo(
-                          b.tokenStandard.toString(),
-                        ),
+                      b.tokenStandard.toString(),
+                    ),
               )
             : widget.transactions.sort(
                 (AccountBlock a, AccountBlock b) =>
                     b.tokenStandard.toString().compareTo(
-                          a.tokenStandard.toString(),
-                        ),
+                      a.tokenStandard.toString(),
+                    ),
               );
     }
 

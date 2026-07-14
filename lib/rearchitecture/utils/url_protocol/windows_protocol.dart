@@ -61,7 +61,9 @@ class WindowsProtocolHandler extends ProtocolHandler {
   }
 
   String _sanitize(String value) {
-    final String finalValue = value.replaceAll('%s', '%1').replaceAll(
+    final String finalValue = value
+        .replaceAll('%s', '%1')
+        .replaceAll(
           '"',
           r'\"',
         );

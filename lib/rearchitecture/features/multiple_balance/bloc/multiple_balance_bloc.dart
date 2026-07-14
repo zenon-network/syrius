@@ -19,7 +19,7 @@ class MultipleBalanceBloc
     with RefreshBlocMixin {
   /// Creates a new instance of [MultipleBalanceBloc].
   MultipleBalanceBloc({required this.zenon})
-      : super(const MultipleBalanceState()) {
+    : super(const MultipleBalanceState()) {
     on<MultipleBalanceFetch>(_onFetchBalances);
     listenToWsRestart(
       () => add(

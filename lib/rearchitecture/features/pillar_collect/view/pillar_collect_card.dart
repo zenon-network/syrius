@@ -55,18 +55,23 @@ class _View extends StatelessWidget {
           FetchRequestData(address: Address.parse(kSelectedAddress!)),
         );
       },
-      body: BlocBuilder<UncollectedPillarRewardsBloc,
-          FetchState<UncollectedReward>>(
-        builder: (_, FetchState<UncollectedReward> state) => switch (state) {
-          FetchFailure<UncollectedReward>() => SyriusErrorWidget(
-              state.exception,
-            ),
-          FetchInitial<UncollectedReward>() => const SyriusLoadingWidget(),
-          FetchPopulated<UncollectedReward>() => _Populated(
-              uncollectedReward: state.data,
-            ),
-        },
-      ),
+      body:
+          BlocBuilder<
+            UncollectedPillarRewardsBloc,
+            FetchState<UncollectedReward>
+          >(
+            builder: (_, FetchState<UncollectedReward> state) =>
+                switch (state) {
+                  FetchFailure<UncollectedReward>() => SyriusErrorWidget(
+                    state.exception,
+                  ),
+                  FetchInitial<UncollectedReward>() =>
+                    const SyriusLoadingWidget(),
+                  FetchPopulated<UncollectedReward>() => _Populated(
+                    uncollectedReward: state.data,
+                  ),
+                },
+          ),
     );
   }
 

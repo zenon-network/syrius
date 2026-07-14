@@ -15,9 +15,8 @@ class NoRewardsLastWeekException extends SyriusException {
 
   /// {@macro instance_from_json}
   factory NoRewardsLastWeekException.fromJson(
-      Map<String, dynamic> json,
-      ) =>
-      _$NoRewardsLastWeekExceptionFromJson(json);
+    Map<String, dynamic> json,
+  ) => _$NoRewardsLastWeekExceptionFromJson(json);
 
   @override
   Map<String, dynamic> toJson() =>
