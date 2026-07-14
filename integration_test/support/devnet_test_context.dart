@@ -223,6 +223,11 @@ void _registerTestServices() {
       MultipleBalanceBloc(zenon: app.zenon!),
     );
   }
+  if (!app.sl.isRegistered<PlasmaStatsBloc>()) {
+    app.sl.registerSingleton<PlasmaStatsBloc>(
+      PlasmaStatsBloc(zenon: app.zenon!),
+    );
+  }
   if (!app.sl.isRegistered<PowGeneratingStatusBloc>()) {
     app.sl.registerSingleton<PowGeneratingStatusBloc>(
       PowGeneratingStatusBloc(),

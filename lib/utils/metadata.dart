@@ -1,5 +1,5 @@
-const String gitBranchName = r'rearchitecture-staking';
-const String gitCommitHash = r'4a23e9f712304fca13c0172724b856f15037eec5';
-const String gitCommitMessage = r'Merge';
-const String gitCommitDate = r'2026-07-06';
+const String gitBranchName = r'rearchitecture-plasma';
+const String gitCommitHash = r'5b5739f9108085a391e15c97fd084e70eb13ccb7';
+const String gitCommitMessage = r'fix:';
+const String gitCommitDate = r'2026-07-14';
 const String gitOriginUrl = r'git@github-maznnwell:maznnwell/syrius.git';

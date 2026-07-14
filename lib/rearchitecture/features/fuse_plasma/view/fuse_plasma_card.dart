@@ -220,6 +220,7 @@ class _PopulatedState extends State<_Populated> {
                   valueListenable: _qsrAmountController,
                   builder: (_, TextEditingValue value, _) {
                     return TextField(
+                      key: const Key('fuse_plasma_amount_field'),
                       decoration: InputDecoration(
                         errorText: value.text.isNotEmpty
                             ? _qsrAmountError
@@ -260,6 +261,7 @@ class _PopulatedState extends State<_Populated> {
                   valueListenable: _beneficiaryAddressController,
                   builder: (_, TextEditingValue value, _) {
                     return TextField(
+                      key: const Key('fuse_plasma_beneficiary_address_field'),
                       decoration: InputDecoration(
                         errorText: value.text.isNotEmpty
                             ? _beneficiaryAddressError
@@ -379,14 +381,17 @@ class _PopulatedState extends State<_Populated> {
     );
 
     // TODO(maznnwell): make sure the button is as tall as the text field
-    return LoadingButton.icon(
-      key: _fuseButtonKey,
-      onPressed: _isInputValid ? _onFusePressed : null,
-      label: context.l10n.fuse,
-      outlineColor: AppColors.qsrColor,
-      icon: icon,
-      textStyle: const TextStyle(
-        color: AppColors.qsrColor,
+    return KeyedSubtree(
+      key: const Key('fuse_plasma_submit_button'),
+      child: LoadingButton.icon(
+        key: _fuseButtonKey,
+        onPressed: _isInputValid ? _onFusePressed : null,
+        label: context.l10n.fuse,
+        outlineColor: AppColors.qsrColor,
+        icon: icon,
+        textStyle: const TextStyle(
+          color: AppColors.qsrColor,
+        ),
       ),
     );
   }
