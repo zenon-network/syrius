@@ -6,7 +6,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:provider/provider.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
-import 'package:zenon_syrius_wallet_flutter/model/model.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
@@ -200,7 +199,7 @@ class _PopulatedState extends State<_Populated> {
       margin: EdgeInsets.all(_marginWidth),
       child: Column(
         crossAxisAlignment: .start,
-        children: [
+        children: <Widget>[
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
@@ -287,7 +286,7 @@ class _PopulatedState extends State<_Populated> {
                   crossAxisAlignment: .stretch,
                   children: <Widget>[
                     ListenableBuilder(
-                      listenable: Listenable.merge([
+                      listenable: Listenable.merge(<Listenable?>[
                         _beneficiaryAddressController,
                         _qsrAmountController,
                       ]),
@@ -302,7 +301,7 @@ class _PopulatedState extends State<_Populated> {
           ),
           kVerticalGap16,
           ListenableBuilder(
-            listenable: Listenable.merge([
+            listenable: Listenable.merge(<Listenable?>[
               _beneficiaryAddressController,
               _qsrAmountController,
             ]),
@@ -310,7 +309,7 @@ class _PopulatedState extends State<_Populated> {
               return Visibility(
                 visible: _isInputValid,
                 child: Row(
-                  children: [
+                  children: <Widget>[
                     const Text('Future plasma: '),
                     kHorizontalGap8,
                     _buildPlasmaIcon(),

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:zenon_syrius_wallet_flutter/model/model.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/notifiers/plasma_beneficiary_address_cubit.dart';
@@ -12,7 +11,14 @@ import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart'
         InfiniteScrollTableHeaderColumn;
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
-enum PlasmaStatsWidgetVersion { dashboardTab, plasmaTab }
+/// Display variants for [PlasmaStatsCard].
+enum PlasmaStatsWidgetVersion {
+  /// Compact variant used on the dashboard tab.
+  dashboardTab,
+
+  /// Interactive variant used on the Plasma tab.
+  plasmaTab,
+}
 
 /// This widget shows the plasma level for each user address, in the form of a
 /// table.
@@ -23,11 +29,13 @@ enum PlasmaStatsWidgetVersion { dashboardTab, plasmaTab }
 ///
 /// Ways to optimize this widget should be found
 class PlasmaStatsCard extends StatefulWidget {
+  /// Creates a Plasma stats card.
   const PlasmaStatsCard({
     this.version = PlasmaStatsWidgetVersion.dashboardTab,
     super.key,
   });
 
+  /// Controls where the card is rendered and which interactions are enabled.
   final PlasmaStatsWidgetVersion version;
 
   @override

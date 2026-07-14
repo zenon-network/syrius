@@ -21,7 +21,7 @@ class SentinelsCard extends StatelessWidget {
     return BlocProvider<SentinelsBloc>(
       create: (_) =>
           SentinelsBloc(zenon: zenon!)
-            ..add(const InfiniteListRequested(address: null)),
+            ..add(const InfiniteListRequested()),
       child: const _View(),
     );
   }
@@ -36,7 +36,7 @@ class _View extends StatelessWidget {
       data: _buildCardData(context: context),
       onRefreshPressed: () {
         context.read<SentinelsBloc>().add(
-          const InfiniteListRefreshRequested(address: null),
+          const InfiniteListRefreshRequested(),
         );
       },
       body: BlocBuilder<SentinelsBloc, InfiniteListState<SentinelInfo>>(
@@ -87,7 +87,7 @@ class _Populated extends StatelessWidget {
       ),
       onScrollReachedBottom: () {
         context.read<SentinelsBloc>().add(
-          const InfiniteListMoreRequested(address: null),
+          const InfiniteListMoreRequested(),
         );
       },
     );
@@ -116,7 +116,7 @@ class _Populated extends StatelessWidget {
             ? RevokeSentinelButton(
                 onRevoked: () {
                   context.read<SentinelsBloc>().add(
-                    const InfiniteListRefreshRequested(address: null),
+                    const InfiniteListRefreshRequested(),
                   );
                 },
               )
@@ -142,7 +142,7 @@ class _Populated extends StatelessWidget {
           isRevocable ? AppColors.znnColor : AppColors.errorColor,
           onTimeFinishedCallback: () {
             context.read<SentinelsBloc>().add(
-              const InfiniteListRefreshRequested(address: null),
+              const InfiniteListRefreshRequested(),
             );
           },
         ),

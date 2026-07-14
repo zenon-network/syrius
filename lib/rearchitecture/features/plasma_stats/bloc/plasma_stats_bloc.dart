@@ -7,7 +7,9 @@ import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/constants/const
 import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
+/// Bloc that loads Plasma stats for wallet addresses.
 class PlasmaStatsBloc extends InfiniteListBloc<PlasmaInfoWrapper> {
+  /// Creates a [PlasmaStatsBloc].
   PlasmaStatsBloc({required super.zenon, super.pageSize = kPageSize})
     : super(
         fromJsonT: (Object? map) => PlasmaInfoWrapper.fromJson(

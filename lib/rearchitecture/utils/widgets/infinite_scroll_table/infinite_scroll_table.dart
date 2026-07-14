@@ -54,6 +54,7 @@ class InfiniteScrollTable<T> extends StatefulWidget {
   /// Generates a stable key for an item row.
   final Key Function(T)? itemKeyGenerator;
 
+  /// Callback to be executed when an item is tapped
   final void Function(int)? onItemTap;
 
   @override

@@ -177,7 +177,7 @@ class _PopulatedState extends State<_Populated> {
             onScrollReachedBottom: () {
               context.read<PillarsBloc>().add(
                 const InfiniteListMoreRequested(
-                  address: null,
+
                 ),
               );
             },

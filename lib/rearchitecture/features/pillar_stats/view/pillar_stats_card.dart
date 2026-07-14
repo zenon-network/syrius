@@ -164,7 +164,7 @@ class _PillarStatsView extends StatelessWidget {
                 pillarName: pillarInfo.name,
                 onRevoked: () {
                   context.read<PillarsBloc>().add(
-                    const InfiniteListRefreshRequested(address: null),
+                    const InfiniteListRefreshRequested(),
                   );
                 },
               ),
@@ -181,7 +181,7 @@ class _PillarStatsView extends StatelessWidget {
               isRevocable ? AppColors.znnColor : AppColors.errorColor,
               onTimeFinishedCallback: () {
                 context.read<PillarsBloc>().add(
-                  const InfiniteListRefreshRequested(address: null),
+                  const InfiniteListRefreshRequested(),
                 );
               },
             ),
