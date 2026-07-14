@@ -51,6 +51,7 @@ class InfiniteScrollTable<T> extends StatefulWidget {
   /// Whether there are still items that can be fetched.
   final bool hasReachedMax;
 
+  /// Generates a stable key for an item row.
   final Key Function(T)? itemKeyGenerator;
 
   final void Function(int)? onItemTap;

@@ -249,9 +249,12 @@ class _SentinelQsrManagementStepState extends State<SentinelQsrManagementStep> {
             },
           ),
         if (qsrCostCovered)
-          OutlinedButton(
-            onPressed: widget.onNextPressed,
-            child: Text(context.l10n.next),
+          KeyedSubtree(
+            key: const Key('sentinel_qsr_next_button'),
+            child: OutlinedButton(
+              onPressed: widget.onNextPressed,
+              child: Text(context.l10n.next),
+            ),
           ),
       ],
     );
@@ -262,6 +265,7 @@ class _SentinelQsrManagementStepState extends State<SentinelQsrManagementStep> {
       children: <Widget>[
         kVerticalSpacing,
         TextFormField(
+          key: const Key('sentinel_qsr_amount_field'),
           autovalidateMode: AutovalidateMode.always,
           controller: widget.qsrAmountController,
           cursorColor: AppColors.qsrColor,
@@ -384,14 +388,17 @@ class _DepositButton extends StatelessWidget {
           );
         }
       },
-      child: LoadingButton(
-        key: loadingKey,
-        text: context.l10n.deposit,
-        onPressed: onPressed,
-        outlineColor: AppColors.qsrColor,
-        // TODO(maznnwell): make sure that the outline and text colors are the same
-        textStyle: const TextStyle(
-          color: AppColors.qsrColor,
+      child: KeyedSubtree(
+        key: const Key('sentinel_qsr_deposit_button'),
+        child: LoadingButton(
+          key: loadingKey,
+          text: context.l10n.deposit,
+          onPressed: onPressed,
+          outlineColor: AppColors.qsrColor,
+          // TODO(maznnwell): make sure that the outline and text colors match
+          textStyle: const TextStyle(
+            color: AppColors.qsrColor,
+          ),
         ),
       ),
     );

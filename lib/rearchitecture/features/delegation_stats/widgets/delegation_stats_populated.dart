@@ -9,8 +9,8 @@ import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/reusable_widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
-/// A widget that displays the delegation stats amount and to which pillar the amount
-/// was delegated to.
+/// A widget that displays the delegation stats amount and to which pillar the
+/// amount was delegated to.
 class DelegationStatsPopulated extends StatefulWidget {
   /// Creates a DelegationPopulated object.
   const DelegationStatsPopulated({required this.delegationInfo, super.key});

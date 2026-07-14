@@ -18,7 +18,7 @@ class ReceiveTransactionCubit extends HydratedCubit<ReceiveTransactionState> {
   ///
   /// Requires an [AutoReceiveTxWorker] to process the transactions.
   ReceiveTransactionCubit(this.autoReceiveTxWorker)
-      : super(const ReceiveTransactionState());
+    : super(const ReceiveTransactionState());
 
   /// The worker responsible for automatically receiving transactions.
   final AutoReceiveTxWorker autoReceiveTxWorker;
@@ -30,8 +30,8 @@ class ReceiveTransactionCubit extends HydratedCubit<ReceiveTransactionState> {
     try {
       emit(state.copyWith(status: ReceiveTransactionStatus.loading));
 
-      final AccountBlockTemplate? response =
-      await autoReceiveTxWorker.autoReceiveTransactionHash(Hash.parse(id));
+      final AccountBlockTemplate? response = await autoReceiveTxWorker
+          .autoReceiveTransactionHash(Hash.parse(id));
 
       emit(
         state.copyWith(
@@ -39,7 +39,7 @@ class ReceiveTransactionCubit extends HydratedCubit<ReceiveTransactionState> {
           data: response,
         ),
       );
-    } catch (e) {
+    } on Object catch (e) {
       emit(
         state.copyWith(
           status: ReceiveTransactionStatus.failure,
@@ -49,15 +49,12 @@ class ReceiveTransactionCubit extends HydratedCubit<ReceiveTransactionState> {
     }
   }
 
+  /// Deserializes the [ReceiveTransactionState] from the provided JSON [Map].
+  @override
+  ReceiveTransactionState? fromJson(Map<String, dynamic> json) =>
+      ReceiveTransactionState.fromJson(json);
 
-    /// Deserializes the [ReceiveTransactionState] from the provided JSON [Map].
-    @override
-    ReceiveTransactionState? fromJson(Map<String, dynamic> json) =>
-        ReceiveTransactionState.fromJson(json);
-
-
-    /// Serializes the current [ReceiveTransactionState] into a JSON [Map].
-    @override
-    Map<String, dynamic>? toJson(ReceiveTransactionState state) =>
-        state.toJson();
-  }
+  /// Serializes the current [ReceiveTransactionState] into a JSON [Map].
+  @override
+  Map<String, dynamic>? toJson(ReceiveTransactionState state) => state.toJson();
+}

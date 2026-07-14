@@ -13,6 +13,11 @@
 - Run one test file: `flutter test test/path/to/file_test.dart`
 - Static analysis: `flutter analyze`
 
+## Blockchain integration tests
+- Planned blockchain integration tests are widget-driven tests that run against a Dockerized devnet node and verify on-chain effects of wallet actions, starting with sending ZNN from the Send UI.
+- Use Gherkin for these integration tests with `bdd_widget_test`; keep unit/BLoC tests as normal Dart tests.
+- Keep these tests separate from mocked unit/BLoC tests; see `docs/testing/blockchain-integration-tests.md` for the CI/devnet setup and test strategy.
+
 ## Codegen and generated files
 - The app uses generated Dart (`*.g.dart`) from `json_annotation`/`json_serializable`; regenerate with `dart run build_runner build --delete-conflicting-outputs` after model/annotation changes.
 - `analysis_options.yaml` excludes `**/*.g.dart`; do not manually lint-fix generated outputs.

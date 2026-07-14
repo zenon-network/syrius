@@ -74,11 +74,14 @@ class _Body extends StatelessWidget {
           ],
         ),
         kVerticalGap25,
-        OutlinedButton(
-          onPressed: plasmaInfo.currentPlasma >= kSentinelPlasmaAmountNeeded
-              ? onNextPressed
-              : null,
-          child: Text(context.l10n.next),
+        KeyedSubtree(
+          key: const Key('sentinel_plasma_next_button'),
+          child: OutlinedButton(
+            onPressed: plasmaInfo.currentPlasma >= kSentinelPlasmaAmountNeeded
+                ? onNextPressed
+                : null,
+            child: Text(context.l10n.next),
+          ),
         ),
       ],
     );

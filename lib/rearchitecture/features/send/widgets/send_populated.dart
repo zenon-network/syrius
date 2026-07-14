@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
@@ -92,13 +94,13 @@ class _SendPopulatedState extends State<SendPopulated> {
         if (state.status == SendTransactionStatus.loading) {
           _sendPaymentButtonKey.currentState?.animateForward();
         } else if (state.status == SendTransactionStatus.success) {
-          _sendConfirmationNotification(block: state.data!);
+          unawaited(_sendConfirmationNotification(block: state.data!));
           _sendPaymentButtonKey.currentState?.animateReverse();
           _amountController.clear();
           _recipientController.clear();
         } else if (state.status == SendTransactionStatus.failure) {
           _sendPaymentButtonKey.currentState?.animateReverse();
-          _sendErrorNotification(state.error!);
+          unawaited(_sendErrorNotification(state.error!));
         }
       },
       child: Padding(
@@ -127,6 +129,7 @@ class _SendPopulatedState extends State<SendPopulated> {
               valueListenable: _recipientController,
               builder: (_, TextEditingValue recipient, _) {
                 return TextField(
+                  key: const Key('send_recipient_field'),
                   controller: _recipientController,
                   decoration: InputDecoration(
                     errorText: _recipientErrorText,
@@ -147,6 +150,7 @@ class _SendPopulatedState extends State<SendPopulated> {
               valueListenable: _amountController,
               builder: (_, TextEditingValue amount, _) {
                 return TextField(
+                  key: const Key('send_amount_field'),
                   controller: _amountController,
                   decoration: InputDecoration(
                     errorText: _amountErrorText,
@@ -162,7 +166,7 @@ class _SendPopulatedState extends State<SendPopulated> {
                   ),
                   onSubmitted: (String value) {
                     if (_isValidTransaction) {
-                      _onSendPaymentPressed();
+                      unawaited(_onSendPaymentPressed());
                     }
                   },
                 );
@@ -176,12 +180,15 @@ class _SendPopulatedState extends State<SendPopulated> {
                   _recipientController,
                 ]),
                 builder: (_, _) {
-                  return SendButton(
-                    key: _sendPaymentButtonKey,
-                    text: context.l10n.send,
-                    onPressed: _isValidTransaction
-                        ? _onSendPaymentPressed
-                        : null,
+                  return KeyedSubtree(
+                    key: const Key('send_submit_button'),
+                    child: SendButton(
+                      key: _sendPaymentButtonKey,
+                      text: context.l10n.send,
+                      onPressed: _isValidTransaction
+                          ? _onSendPaymentPressed
+                          : null,
+                    ),
                   );
                 },
               ),

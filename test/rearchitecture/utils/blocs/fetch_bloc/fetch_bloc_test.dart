@@ -1,4 +1,5 @@
 import 'package:bloc_test/bloc_test.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/blocs/fetch_bloc/fetch_bloc.dart';
@@ -11,6 +12,7 @@ class MockZenon extends Mock implements Zenon {}
 
 class FakeAddress extends Fake implements Address {}
 
+@immutable
 class TestData {
   const TestData({required this.value});
 

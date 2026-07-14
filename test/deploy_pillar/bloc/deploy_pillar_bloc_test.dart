@@ -90,7 +90,7 @@ void main() {
       },
       expect: () => <DeployPillarState>[
         const DeployPillarLoading(),
-        const DeployPillarDone(),
+        DeployPillarDone(accountBlock: template),
       ],
     );
 

@@ -1,14 +1,60 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'notification_type.dart';
+part of 'hive_adapters.dart';
 
 // **************************************************************************
-// TypeAdapterGenerator
+// AdaptersGenerator
 // **************************************************************************
+
+class WalletNotificationAdapter extends TypeAdapter<WalletNotification> {
+  @override
+  final typeId = 100;
+
+  @override
+  WalletNotification read(BinaryReader reader) {
+    final numOfFields = reader.readByte();
+    final fields = <int, dynamic>{
+      for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
+    };
+    return WalletNotification(
+      title: fields[0] as String?,
+      timestamp: (fields[1] as num?)?.toInt(),
+      details: fields[2] as String?,
+      type: fields[3] as NotificationType?,
+      id: (fields[4] as num?)?.toInt(),
+    );
+  }
+
+  @override
+  void write(BinaryWriter writer, WalletNotification obj) {
+    writer
+      ..writeByte(5)
+      ..writeByte(0)
+      ..write(obj.title)
+      ..writeByte(1)
+      ..write(obj.timestamp)
+      ..writeByte(2)
+      ..write(obj.details)
+      ..writeByte(3)
+      ..write(obj.type)
+      ..writeByte(4)
+      ..write(obj.id);
+  }
+
+  @override
+  int get hashCode => typeId.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is WalletNotificationAdapter &&
+          runtimeType == other.runtimeType &&
+          typeId == other.typeId;
+}
 
 class NotificationTypeAdapter extends TypeAdapter<NotificationType> {
   @override
-  final int typeId = 101;
+  final typeId = 101;
 
   @override
   NotificationType read(BinaryReader reader) {
@@ -55,52 +101,36 @@ class NotificationTypeAdapter extends TypeAdapter<NotificationType> {
     switch (obj) {
       case NotificationType.paymentSent:
         writer.writeByte(0);
-        break;
       case NotificationType.error:
         writer.writeByte(1);
-        break;
       case NotificationType.stakingDeactivated:
         writer.writeByte(2);
-        break;
       case NotificationType.paymentReceived:
         writer.writeByte(3);
-        break;
       case NotificationType.autoLockIntervalChanged:
         writer.writeByte(4);
-        break;
       case NotificationType.copiedToClipboard:
         writer.writeByte(5);
-        break;
       case NotificationType.rewardReceived:
         writer.writeByte(6);
-        break;
       case NotificationType.autoEraseNumAttemptsChanged:
         writer.writeByte(7);
-        break;
       case NotificationType.generatingPlasma:
         writer.writeByte(8);
-        break;
       case NotificationType.burnToken:
         writer.writeByte(9);
-        break;
       case NotificationType.addedTokenFavourite:
         writer.writeByte(10);
-        break;
       case NotificationType.removedTokenFavourite:
         writer.writeByte(11);
-        break;
       case NotificationType.resetWallet:
         writer.writeByte(12);
-        break;
       case NotificationType.changedNode:
         writer.writeByte(13);
-        break;
       case NotificationType.delete:
         writer.writeByte(14);
-        break;
       case NotificationType.confirm:
         writer.writeByte(15);
-        break;
     }
   }
 

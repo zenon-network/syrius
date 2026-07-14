@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
@@ -16,10 +18,14 @@ class RealtimeStatisticsCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider<RealtimeStatisticsCubit>(
-      create: (_) => RealtimeStatisticsCubit(
-        address: Address.parse(kSelectedAddress!),
-        zenon: zenon!,
-      )..fetchDataPeriodically(),
+      create: (_) {
+        final RealtimeStatisticsCubit cubit = RealtimeStatisticsCubit(
+          address: Address.parse(kSelectedAddress!),
+          zenon: zenon!,
+        );
+        unawaited(cubit.fetchDataPeriodically());
+        return cubit;
+      },
       child: NewCardScaffold(
         data: _buildCardData(context: context),
         body: BlocBuilder<RealtimeStatisticsCubit, RealtimeStatisticsState>(
@@ -28,11 +34,11 @@ class RealtimeStatisticsCard extends StatelessWidget {
               TimerStatus.initial => const RealtimeStatisticsEmpty(),
               TimerStatus.loading => const RealtimeStatisticsLoading(),
               TimerStatus.failure => RealtimeStatisticsError(
-                  error: state.error!,
-                ),
+                error: state.error!,
+              ),
               TimerStatus.success => RealtimeStatisticsPopulated(
-                  accountBlocks: state.data!,
-                ),
+                accountBlocks: state.data!,
+              ),
             };
           },
         ),
@@ -42,7 +48,9 @@ class RealtimeStatisticsCard extends StatelessWidget {
 
   CardData _buildCardData({required BuildContext context}) => CardData(
     title: context.l10n.realtimeStats,
-    description: context.l10n
-        .realtimeStatsDescription(kQsrCoin.symbol, kZnnCoin.symbol),
+    description: context.l10n.realtimeStatsDescription(
+      kQsrCoin.symbol,
+      kZnnCoin.symbol,
+    ),
   );
 }

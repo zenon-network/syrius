@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
@@ -20,10 +22,16 @@ class BalanceCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider<BalanceCubit>(
-      create: (_) => BalanceCubit(
-        address: Address.parse(kSelectedAddress!),
-        zenon: zenon!,
-      )..fetchDataPeriodically(),
+      create: (_) {
+        final BalanceCubit cubit = BalanceCubit(
+          address: Address.parse(kSelectedAddress!),
+          zenon: zenon!,
+        );
+
+        unawaited(cubit.fetchDataPeriodically());
+
+        return cubit;
+      },
       child: NewCardScaffold(
         data: _buildCardData(context: context),
         body: BlocBuilder<BalanceCubit, BalanceState>(

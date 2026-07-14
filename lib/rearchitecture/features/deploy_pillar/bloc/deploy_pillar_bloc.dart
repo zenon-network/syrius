@@ -43,7 +43,7 @@ class DeployPillarBloc extends Bloc<DeployPillarEvent, DeployPillarState> {
             event.giveBlockRewardPercentage,
             event.giveDelegateRewardPercentage,
           );
-      await _accountBlockUtils
+      final AccountBlockTemplate response = await _accountBlockUtils
           .createAccountBlock(
             transactionParams,
             'register Pillar',
@@ -52,7 +52,7 @@ class DeployPillarBloc extends Bloc<DeployPillarEvent, DeployPillarState> {
 
       _zenonAddressUtils.refreshBalance();
 
-      emit(const DeployPillarDone());
+      emit(DeployPillarDone(accountBlock: response));
     } on SyriusException catch (e, stackTrace) {
       addError(e, stackTrace);
       emit(DeployPillarFailure(exception: e));

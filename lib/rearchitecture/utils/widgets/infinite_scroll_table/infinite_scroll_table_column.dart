@@ -13,13 +13,17 @@ class InfiniteScrollTableColumn extends StatelessWidget {
     this.flex = 1,
     super.key,
   });
+
   /// The name of the column.
   final String name;
+
   /// Callback to be executed when the sort arrows are pressed.
   final Function(String)? onSortArrowsPressed;
+
   /// Defines how much space the column should take.
   final int flex;
 
+  /// Alignment of the column header content.
   final MainAxisAlignment alignment;
 
   @override

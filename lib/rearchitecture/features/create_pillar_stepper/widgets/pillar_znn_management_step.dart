@@ -50,11 +50,14 @@ class PillarZnnManagementStep extends StatelessWidget {
           text: context.l10n.disassemblePillarToUnlockCoin(kZnnCoin.symbol),
         ),
         kVerticalGap25,
-        OutlinedButton(
-          onPressed: accountInfo.znn()! >= pillarRegisterZnnAmount
-              ? onNextPressed
-              : null,
-          child: Text(context.l10n.next),
+        KeyedSubtree(
+          key: const Key('pillar_znn_next_button'),
+          child: OutlinedButton(
+            onPressed: accountInfo.znn()! >= pillarRegisterZnnAmount
+                ? onNextPressed
+                : null,
+            child: Text(context.l10n.next),
+          ),
         ),
       ],
     );

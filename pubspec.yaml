@@ -28,7 +28,7 @@ dependencies:
   stacked: ^3.4.1
   path_provider: ^2.1.0
   rxdart: ^0.28.0
-  hive: ^2.0.5
+  hive_ce: ^2.19.3
   url_launcher: ^6.1.12
   provider: ^6.0.2
   intl: ^0.20.2
@@ -81,6 +81,7 @@ dependencies:
   bloc_concurrency: ^0.3.0
   stream_transform: ^2.1.0
   win32: ^5.9.0
+  nested: ^1.0.0
 
 dependency_overrides:
   reown_core:
@@ -88,15 +89,18 @@ dependency_overrides:
   znn_sdk_dart:
     git:
       url: https://github.com/maznnwell/znn_sdk_dart.git
-      ref: refactor
+      ref: 16bf294b3e347cb4f9c1f47a7da5d60034724f95
 
 dev_dependencies:
   build_runner: ^2.4.6
-  hive_ce_generator: any
+  hive_ce_generator: ^1.11.2
   dependency_validator: ^5.0.5
   mocktail: ^1.0.4
   bloc_test: ^10.0.0
+  bdd_widget_test: ^2.1.4
   flutter_test:
+    sdk: flutter
+  integration_test:
     sdk: flutter
   very_good_analysis: ^10.2.0
   json_serializable: ^6.8.0

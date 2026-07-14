@@ -60,7 +60,7 @@ class MultipleBalanceBloc
           data: addressBalanceMap,
         ),
       );
-    } catch (error, stackTrace) {
+    } on Exception catch (error, stackTrace) {
       addError(error, stackTrace);
       emit(
         state.copyWith(

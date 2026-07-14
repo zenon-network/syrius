@@ -52,11 +52,14 @@ class SentinelZnnManagementStep extends StatelessWidget {
           text: context.l10n.disassembleSentinelToUnlockCoin(kZnnCoin.symbol),
         ),
         kVerticalGap25,
-        OutlinedButton(
-          onPressed: accountInfo.znn()! >= sentinelRegisterZnnAmount
-              ? onNextPressed
-              : null,
-          child: Text(context.l10n.next),
+        KeyedSubtree(
+          key: const Key('sentinel_znn_next_button'),
+          child: OutlinedButton(
+            onPressed: accountInfo.znn()! >= sentinelRegisterZnnAmount
+                ? onNextPressed
+                : null,
+            child: Text(context.l10n.next),
+          ),
         ),
       ],
     );

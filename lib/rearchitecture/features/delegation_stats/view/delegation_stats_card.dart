@@ -7,8 +7,7 @@ import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
-/// A card that receives [DelegationStatsState] updates from the [DelegationStatsCubit]
-/// and changes the UI according to the request status - [TimerStatus]
+/// A card that displays delegation stats and updates from request states.
 class DelegationCard extends StatelessWidget {
   /// Creates a DelegationCard object.
   const DelegationCard({super.key});

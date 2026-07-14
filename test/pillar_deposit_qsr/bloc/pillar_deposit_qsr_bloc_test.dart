@@ -81,7 +81,7 @@ void main() {
       wait: const Duration(milliseconds: 1),
       expect: () => <PillarDepositQsrState>[
         const PillarDepositQsrLoading(),
-        const PillarDepositQsrDone(),
+        PillarDepositQsrDone(accountBlock: template),
       ],
     );
 

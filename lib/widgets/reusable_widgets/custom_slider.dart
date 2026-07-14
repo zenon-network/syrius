@@ -160,6 +160,7 @@ class CustomSlider extends StatefulWidget {
     required this.startValue,
     required this.maxValue,
     required this.callback,
+    this.sliderKey,
     this.min = 1.0,
     this.activeColor = AppColors.znnColor,
     this.descriptionPosition = SliderDescriptionPosition.bottom,
@@ -170,6 +171,7 @@ class CustomSlider extends StatefulWidget {
   final double? startValue;
   final double maxValue;
   final Function callback;
+  final Key? sliderKey;
   final double min;
   final Color activeColor;
   final SliderDescriptionPosition descriptionPosition;
@@ -216,6 +218,7 @@ class _CustomSliderState extends State<CustomSlider> {
             ),
           ),
           child: Slider(
+            key: widget.sliderKey,
             inactiveColor: AppColors.maxAmountBorder,
             value: _discreteCustomValue!,
             min: widget.min,

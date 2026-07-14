@@ -32,10 +32,13 @@ class _DeploySentinelStepState extends State<DeploySentinelStep> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
-          LoadingButton(
-            text: context.l10n.register,
-            onPressed: _onDeployPressed,
-            key: _registerButtonKey,
+          KeyedSubtree(
+            key: const Key('sentinel_register_button'),
+            child: LoadingButton(
+              text: context.l10n.register,
+              onPressed: _onDeployPressed,
+              key: _registerButtonKey,
+            ),
           ),
           kVerticalGap25,
         ],

@@ -1,5 +1,8 @@
 part of 'deploy_pillar_bloc.dart';
 
+// Keep state fields private while exposing public constructor parameters.
+// ignore_for_file: prefer_initializing_formals
+
 /// Base class for all deploy pillar states.
 sealed class DeployPillarState extends Equatable {
   /// Creates a new [DeployPillarState].
@@ -32,7 +35,16 @@ final class DeployPillarFailure extends DeployPillarState {
 /// Success state emitted when deployment finishes.
 final class DeployPillarDone extends DeployPillarState {
   /// Creates a new [DeployPillarDone] state.
-  const DeployPillarDone();
+  const DeployPillarDone({required AccountBlockTemplate accountBlock})
+    : _accountBlock = accountBlock;
+
+  final AccountBlockTemplate _accountBlock;
+
+  /// The published account block returned by the node.
+  AccountBlockTemplate get accountBlock => _accountBlock;
+
+  @override
+  List<Object> get props => <Object>[_accountBlock];
 }
 
 /// Loading state emitted while deployment is in progress.

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
@@ -15,9 +17,13 @@ class DualCoinStatsCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider<DualCoinStatsCubit>(
-      create: (_) => DualCoinStatsCubit(
-        zenon: zenon!,
-      )..fetchDataPeriodically(),
+      create: (_) {
+        final DualCoinStatsCubit cubit = DualCoinStatsCubit(
+          zenon: zenon!,
+        );
+        unawaited(cubit.fetchDataPeriodically());
+        return cubit;
+      },
       child: NewCardScaffold(
         data: _buildCardData(context: context),
         body: BlocBuilder<DualCoinStatsCubit, DualCoinStatsState>(
@@ -26,11 +32,11 @@ class DualCoinStatsCard extends StatelessWidget {
               TimerStatus.initial => const DualCoinStatsEmpty(),
               TimerStatus.loading => const DualCoinStatsLoading(),
               TimerStatus.failure => DualCoinStatsError(
-                  error: state.error!,
-                ),
+                error: state.error!,
+              ),
               TimerStatus.success => DualCoinStatsPopulated(
-                  tokens: state.data!,
-                ),
+                tokens: state.data!,
+              ),
             };
           },
         ),
