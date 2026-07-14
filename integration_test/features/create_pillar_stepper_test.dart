@@ -26,31 +26,37 @@ void main() {
       await Hooks.beforeEach(title, tags);
     }
 
-    Future<void> afterEach(String title, bool success,
-        [List<String>? tags]) async {
+    Future<void> afterEach(
+      String title,
+      bool success, [
+      List<String>? tags,
+    ]) async {
       await Hooks.afterEach(title, success, tags);
     }
 
     testWidgets(
-        '''Creating a pillar through the stepper registers the expected pillar''',
-        (tester) async {
-      var success = true;
-      try {
-        await beforeEach(
-            '''Creating a pillar through the stepper registers the expected pillar''');
-        await theDevnetPillarOwnerIsPreparedForCreatingTestpillar(tester);
-        await iCreatePillarTestpillarFromTheCreatePillarStepper(tester);
-        await theBlockchainShouldContainPillarTestpillarWithTheSubmittedStepperData(
-            tester);
-      } catch (_) {
-        success = false;
-        rethrow;
-      } finally {
-        await afterEach(
-          '''Creating a pillar through the stepper registers the expected pillar''',
-          success,
-        );
-      }
-    });
+      '''Creating a pillar through the stepper registers the expected pillar''',
+      (tester) async {
+        var success = true;
+        try {
+          await beforeEach(
+            '''Creating a pillar through the stepper registers the expected pillar''',
+          );
+          await theDevnetPillarOwnerIsPreparedForCreatingTestpillar(tester);
+          await iCreatePillarTestpillarFromTheCreatePillarStepper(tester);
+          await theBlockchainShouldContainPillarTestpillarWithTheSubmittedStepperData(
+            tester,
+          );
+        } catch (_) {
+          success = false;
+          rethrow;
+        } finally {
+          await afterEach(
+            '''Creating a pillar through the stepper registers the expected pillar''',
+            success,
+          );
+        }
+      },
+    );
   });
 }

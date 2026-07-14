@@ -16,8 +16,7 @@ Future<void> addressShouldHaveAtLeastPlasma(
   final int requiredPlasmaAmount = int.parse(requiredPlasma);
   final PlasmaInfo plasmaInfo = await _poll<PlasmaInfo>(
     () => app.zenon!.embedded.plasma.get(Address.parse(beneficiary)),
-    isReady: (PlasmaInfo value) =>
-        value.currentPlasma >= requiredPlasmaAmount,
+    isReady: (PlasmaInfo value) => value.currentPlasma >= requiredPlasmaAmount,
     description: '$beneficiary plasma to reach $requiredPlasmaAmount',
   );
 

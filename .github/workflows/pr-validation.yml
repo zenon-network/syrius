@@ -39,4 +39,5 @@ jobs:
           # Generated Dart files are committed in this repository. Regenerating
           # them in CI catches stale JSON/Hive/BDD outputs before they are merged.
           dart run build_runner build --delete-conflicting-outputs
+          dart format integration_test
           git diff --exit-code

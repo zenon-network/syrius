@@ -64,11 +64,12 @@ Future<void> iFuseQsrTo(
         amount: fuseAmount,
       ),
     );
-    context..plasmaFuseAmount = fuseAmount
-    ..plasmaFuseBlock = await _pumpUntilComplete(
-      tester,
-      completer.future,
-    );
+    context
+      ..plasmaFuseAmount = fuseAmount
+      ..plasmaFuseBlock = await _pumpUntilComplete(
+        tester,
+        completer.future,
+      );
   } finally {
     await subscription.cancel();
     await fusePlasmaBloc.close();

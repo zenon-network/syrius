@@ -26,33 +26,49 @@ void main() {
       await Hooks.beforeEach(title, tags);
     }
 
-    Future<void> afterEach(String title, bool success,
-        [List<String>? tags]) async {
+    Future<void> afterEach(
+      String title,
+      bool success, [
+      List<String>? tags,
+    ]) async {
       await Hooks.afterEach(title, success, tags);
     }
 
     testWidgets(
-        '''Outline: Creating a stake from the wallet UI is recorded on-chain ('z1qq6eg8n43g032hanpsfp02qcdmv7zfj3y2lt5d', '3', '100')''',
-        (tester) async {
-      var success = true;
-      try {
-        await beforeEach(
-            '''Outline: Creating a stake from the wallet UI is recorded on-chain ('z1qq6eg8n43g032hanpsfp02qcdmv7zfj3y2lt5d', '3', '100')''');
-        await addressHasFundsForStakingZnn(
-            tester, 'z1qq6eg8n43g032hanpsfp02qcdmv7zfj3y2lt5d', '100');
-        await iCreateAMonthStakeOfZnnFrom(
-            tester, '3', '100', 'z1qq6eg8n43g032hanpsfp02qcdmv7zfj3y2lt5d');
-        await theBlockchainShouldContainThatMonthStakeOfZnnFrom(
-            tester, '3', '100', 'z1qq6eg8n43g032hanpsfp02qcdmv7zfj3y2lt5d');
-      } catch (_) {
-        success = false;
-        rethrow;
-      } finally {
-        await afterEach(
-          '''Outline: Creating a stake from the wallet UI is recorded on-chain ('z1qq6eg8n43g032hanpsfp02qcdmv7zfj3y2lt5d', '3', '100')''',
-          success,
-        );
-      }
-    });
+      '''Outline: Creating a stake from the wallet UI is recorded on-chain ('z1qq6eg8n43g032hanpsfp02qcdmv7zfj3y2lt5d', '3', '100')''',
+      (tester) async {
+        var success = true;
+        try {
+          await beforeEach(
+            '''Outline: Creating a stake from the wallet UI is recorded on-chain ('z1qq6eg8n43g032hanpsfp02qcdmv7zfj3y2lt5d', '3', '100')''',
+          );
+          await addressHasFundsForStakingZnn(
+            tester,
+            'z1qq6eg8n43g032hanpsfp02qcdmv7zfj3y2lt5d',
+            '100',
+          );
+          await iCreateAMonthStakeOfZnnFrom(
+            tester,
+            '3',
+            '100',
+            'z1qq6eg8n43g032hanpsfp02qcdmv7zfj3y2lt5d',
+          );
+          await theBlockchainShouldContainThatMonthStakeOfZnnFrom(
+            tester,
+            '3',
+            '100',
+            'z1qq6eg8n43g032hanpsfp02qcdmv7zfj3y2lt5d',
+          );
+        } catch (_) {
+          success = false;
+          rethrow;
+        } finally {
+          await afterEach(
+            '''Outline: Creating a stake from the wallet UI is recorded on-chain ('z1qq6eg8n43g032hanpsfp02qcdmv7zfj3y2lt5d', '3', '100')''',
+            success,
+          );
+        }
+      },
+    );
   });
 }

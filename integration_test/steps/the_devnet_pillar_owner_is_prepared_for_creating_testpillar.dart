@@ -46,8 +46,7 @@ Future<void> theDevnetPillarOwnerIsPreparedForCreatingTestpillar(
   final BigInt setupFuseAmount = setupQsrFuseAmount.extractDecimals(
     coinDecimals,
   );
-  final bool needsPlasma =
-      plasmaInfo.currentPlasma < kPillarPlasmaAmountNeeded;
+  final bool needsPlasma = plasmaInfo.currentPlasma < kPillarPlasmaAmountNeeded;
 
   expect(
     accountInfo.getBalance(znnZts),

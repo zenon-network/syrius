@@ -26,36 +26,47 @@ void main() {
       await Hooks.beforeEach(title, tags);
     }
 
-    Future<void> afterEach(String title, bool success,
-        [List<String>? tags]) async {
+    Future<void> afterEach(
+      String title,
+      bool success, [
+      List<String>? tags,
+    ]) async {
       await Hooks.afterEach(title, success, tags);
     }
 
     testWidgets(
-        '''Outline: Sending ZNN from the wallet UI is recorded on-chain ('z1qp3yph55qgresyytz83anynr2f4z39x2z3ej3e', 'z1qpeet8dcjg0m6x6m3tg437wnc42aa2nez2fzth', '0.001')''',
-        (tester) async {
-      var success = true;
-      try {
-        await beforeEach(
-            '''Outline: Sending ZNN from the wallet UI is recorded on-chain ('z1qp3yph55qgresyytz83anynr2f4z39x2z3ej3e', 'z1qpeet8dcjg0m6x6m3tg437wnc42aa2nez2fzth', '0.001')''');
-        await addressHasFunds(
-            tester, 'z1qp3yph55qgresyytz83anynr2f4z39x2z3ej3e');
-        await iSendZnnFromAddressToAddressFromTheSendScreen(
+      '''Outline: Sending ZNN from the wallet UI is recorded on-chain ('z1qp3yph55qgresyytz83anynr2f4z39x2z3ej3e', 'z1qpeet8dcjg0m6x6m3tg437wnc42aa2nez2fzth', '0.001')''',
+      (tester) async {
+        var success = true;
+        try {
+          await beforeEach(
+            '''Outline: Sending ZNN from the wallet UI is recorded on-chain ('z1qp3yph55qgresyytz83anynr2f4z39x2z3ej3e', 'z1qpeet8dcjg0m6x6m3tg437wnc42aa2nez2fzth', '0.001')''',
+          );
+          await addressHasFunds(
+            tester,
+            'z1qp3yph55qgresyytz83anynr2f4z39x2z3ej3e',
+          );
+          await iSendZnnFromAddressToAddressFromTheSendScreen(
             tester,
             '0.001',
             'z1qp3yph55qgresyytz83anynr2f4z39x2z3ej3e',
-            'z1qpeet8dcjg0m6x6m3tg437wnc42aa2nez2fzth');
-        await theBlockchainShouldContainThatZnnTransferTo(
-            tester, '0.001', 'z1qpeet8dcjg0m6x6m3tg437wnc42aa2nez2fzth');
-      } catch (_) {
-        success = false;
-        rethrow;
-      } finally {
-        await afterEach(
-          '''Outline: Sending ZNN from the wallet UI is recorded on-chain ('z1qp3yph55qgresyytz83anynr2f4z39x2z3ej3e', 'z1qpeet8dcjg0m6x6m3tg437wnc42aa2nez2fzth', '0.001')''',
-          success,
-        );
-      }
-    });
+            'z1qpeet8dcjg0m6x6m3tg437wnc42aa2nez2fzth',
+          );
+          await theBlockchainShouldContainThatZnnTransferTo(
+            tester,
+            '0.001',
+            'z1qpeet8dcjg0m6x6m3tg437wnc42aa2nez2fzth',
+          );
+        } catch (_) {
+          success = false;
+          rethrow;
+        } finally {
+          await afterEach(
+            '''Outline: Sending ZNN from the wallet UI is recorded on-chain ('z1qp3yph55qgresyytz83anynr2f4z39x2z3ej3e', 'z1qpeet8dcjg0m6x6m3tg437wnc42aa2nez2fzth', '0.001')''',
+            success,
+          );
+        }
+      },
+    );
   });
 }

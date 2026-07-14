@@ -100,7 +100,9 @@ Future<void> _completeQsrStep(
   DevnetTestContext context,
 ) async {
   final Finder qsrNextButton = find.byKey(const Key('pillar_qsr_next_button'));
-  final Finder qsrAmountField = find.byKey(const Key('pillar_qsr_amount_field'));
+  final Finder qsrAmountField = find.byKey(
+    const Key('pillar_qsr_amount_field'),
+  );
   await _pumpUntilAnyFound(tester, <Finder>[qsrNextButton, qsrAmountField]);
 
   if (qsrAmountField.evaluate().isNotEmpty) {

@@ -26,33 +26,44 @@ void main() {
       await Hooks.beforeEach(title, tags);
     }
 
-    Future<void> afterEach(String title, bool success,
-        [List<String>? tags]) async {
+    Future<void> afterEach(
+      String title,
+      bool success, [
+      List<String>? tags,
+    ]) async {
       await Hooks.afterEach(title, success, tags);
     }
 
     testWidgets(
-        '''Outline: Creating a sentinel through the stepper registers the expected sentinel ('z1qq6eg8n43g032hanpsfp02qcdmv7zfj3y2lt5d')''',
-        (tester) async {
-      var success = true;
-      try {
-        await beforeEach(
-            '''Outline: Creating a sentinel through the stepper registers the expected sentinel ('z1qq6eg8n43g032hanpsfp02qcdmv7zfj3y2lt5d')''');
-        await devnetSentinelOwnerIsPreparedForCreatingASentinel(
-            tester, 'z1qq6eg8n43g032hanpsfp02qcdmv7zfj3y2lt5d');
-        await iCreateASentinelFromTheCreateSentinelStepperFor(
-            tester, 'z1qq6eg8n43g032hanpsfp02qcdmv7zfj3y2lt5d');
-        await theBlockchainShouldContainASentinelFor(
-            tester, 'z1qq6eg8n43g032hanpsfp02qcdmv7zfj3y2lt5d');
-      } catch (_) {
-        success = false;
-        rethrow;
-      } finally {
-        await afterEach(
-          '''Outline: Creating a sentinel through the stepper registers the expected sentinel ('z1qq6eg8n43g032hanpsfp02qcdmv7zfj3y2lt5d')''',
-          success,
-        );
-      }
-    });
+      '''Outline: Creating a sentinel through the stepper registers the expected sentinel ('z1qq6eg8n43g032hanpsfp02qcdmv7zfj3y2lt5d')''',
+      (tester) async {
+        var success = true;
+        try {
+          await beforeEach(
+            '''Outline: Creating a sentinel through the stepper registers the expected sentinel ('z1qq6eg8n43g032hanpsfp02qcdmv7zfj3y2lt5d')''',
+          );
+          await devnetSentinelOwnerIsPreparedForCreatingASentinel(
+            tester,
+            'z1qq6eg8n43g032hanpsfp02qcdmv7zfj3y2lt5d',
+          );
+          await iCreateASentinelFromTheCreateSentinelStepperFor(
+            tester,
+            'z1qq6eg8n43g032hanpsfp02qcdmv7zfj3y2lt5d',
+          );
+          await theBlockchainShouldContainASentinelFor(
+            tester,
+            'z1qq6eg8n43g032hanpsfp02qcdmv7zfj3y2lt5d',
+          );
+        } catch (_) {
+          success = false;
+          rethrow;
+        } finally {
+          await afterEach(
+            '''Outline: Creating a sentinel through the stepper registers the expected sentinel ('z1qq6eg8n43g032hanpsfp02qcdmv7zfj3y2lt5d')''',
+            success,
+          );
+        }
+      },
+    );
   });
 }

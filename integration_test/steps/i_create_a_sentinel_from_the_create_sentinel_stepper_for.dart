@@ -53,12 +53,12 @@ Future<void> iCreateASentinelFromTheCreateSentinelStepperFor(
   final Completer<void> completer = Completer<void>();
   final StreamSubscription<DeploySentinelState> subscription =
       deploySentinelBloc.stream.listen((DeploySentinelState state) {
-    if (state is DeploySentinelDone && !completer.isCompleted) {
-      completer.complete();
-    } else if (state is DeploySentinelFailure && !completer.isCompleted) {
-      completer.completeError(state.exception);
-    }
-  });
+        if (state is DeploySentinelDone && !completer.isCompleted) {
+          completer.complete();
+        } else if (state is DeploySentinelFailure && !completer.isCompleted) {
+          completer.completeError(state.exception);
+        }
+      });
 
   try {
     await tester.tap(registerButton);
@@ -116,15 +116,16 @@ Future<void> _completeQsrStep(
         .element(depositButton)
         .read<SentinelDepositQsrBloc>();
     final Completer<void> completer = Completer<void>();
-    final StreamSubscription<SentinelDepositQsrState> subscription =
-        depositBloc.stream.listen((SentinelDepositQsrState state) {
-      if (state is SentinelDepositQsrDone && !completer.isCompleted) {
-        completer.complete();
-      } else if (state is SentinelDepositQsrFailure &&
-          !completer.isCompleted) {
-        completer.completeError(state.exception);
-      }
-    });
+    final StreamSubscription<SentinelDepositQsrState> subscription = depositBloc
+        .stream
+        .listen((SentinelDepositQsrState state) {
+          if (state is SentinelDepositQsrDone && !completer.isCompleted) {
+            completer.complete();
+          } else if (state is SentinelDepositQsrFailure &&
+              !completer.isCompleted) {
+            completer.completeError(state.exception);
+          }
+        });
 
     try {
       await tester.tap(depositButton);

@@ -15,8 +15,12 @@ import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 import '../support/devnet_test_context.dart';
 
 /// Usage: I create a <duration_months> month stake of <amount> ZNN from <stake_address>
-Future<void> iCreateAMonthStakeOfZnnFrom(WidgetTester tester,
-    dynamic duration_months, dynamic amount, dynamic stake_address) async {
+Future<void> iCreateAMonthStakeOfZnnFrom(
+  WidgetTester tester,
+  dynamic duration_months,
+  dynamic amount,
+  dynamic stake_address,
+) async {
   final DevnetTestContext context = app.sl<DevnetTestContext>();
   final String durationMonths = duration_months as String;
   final String stakeAmount = amount as String;
@@ -69,17 +73,17 @@ Future<void> iCreateAMonthStakeOfZnnFrom(WidgetTester tester,
       Completer<AccountBlockTemplate>();
   final StreamSubscription<SendTransactionState> subscription =
       sendTransactionBloc.stream.listen((SendTransactionState state) {
-    if (state.status == SendTransactionStatus.success &&
-        state.data != null &&
-        !completer.isCompleted) {
-      completer.complete(state.data);
-    } else if (state.status == SendTransactionStatus.failure &&
-        !completer.isCompleted) {
-      completer.completeError(
-        state.error ?? StateError('Stake transaction failed'),
-      );
-    }
-  });
+        if (state.status == SendTransactionStatus.success &&
+            state.data != null &&
+            !completer.isCompleted) {
+          completer.complete(state.data);
+        } else if (state.status == SendTransactionStatus.failure &&
+            !completer.isCompleted) {
+          completer.completeError(
+            state.error ?? StateError('Stake transaction failed'),
+          );
+        }
+      });
 
   try {
     await tester.tap(submitButton);
@@ -104,9 +108,11 @@ Future<void> _selectDuration(
   await tester.tap(dropdown);
   await tester.pumpAndSettle();
 
-  final Finder durationOption = find.text(
-    '$durationMonths $stakeUnitDurationName${durationMonths == '1' ? '' : 's'}',
-  ).last;
+  final Finder durationOption = find
+      .text(
+        '$durationMonths $stakeUnitDurationName${durationMonths == '1' ? '' : 's'}',
+      )
+      .last;
   await _pumpUntilFound(tester, durationOption);
   await tester.tap(durationOption);
   await tester.pumpAndSettle();

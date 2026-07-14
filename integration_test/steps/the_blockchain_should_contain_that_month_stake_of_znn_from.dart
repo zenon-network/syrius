@@ -13,18 +13,19 @@ import '../support/devnet_test_context.dart';
 
 /// Usage: the blockchain should contain that <duration_months> month stake of <amount> ZNN from <stake_address>
 Future<void> theBlockchainShouldContainThatMonthStakeOfZnnFrom(
-    WidgetTester tester,
-    dynamic duration_months,
-    dynamic amount,
-    dynamic stake_address) async {
+  WidgetTester tester,
+  dynamic duration_months,
+  dynamic amount,
+  dynamic stake_address,
+) async {
   final DevnetTestContext context = app.sl<DevnetTestContext>();
   final AccountBlockTemplate expectedBlock = context.stakeBlock!;
   final String stakeAddressText = stake_address as String;
   final BigInt expectedAmount = (amount as String).extractDecimals(
     coinDecimals,
   );
-  final int expectedDuration = int.parse(duration_months as String) *
-      stakeTimeUnitSec;
+  final int expectedDuration =
+      int.parse(duration_months as String) * stakeTimeUnitSec;
   final Address expectedStakeAddress = Address.parse(stakeAddressText);
 
   final AccountBlock? createdBlock = await _poll<AccountBlock?>(

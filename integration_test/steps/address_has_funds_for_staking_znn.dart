@@ -10,7 +10,10 @@ import '../support/devnet_test_context.dart';
 
 /// Usage: <stake_address> address has funds for staking <amount> ZNN
 Future<void> addressHasFundsForStakingZnn(
-    WidgetTester tester, dynamic stake_address, dynamic amount) async {
+  WidgetTester tester,
+  dynamic stake_address,
+  dynamic amount,
+) async {
   final String stakeAddress = stake_address as String;
   final BigInt stakeAmount = (amount as String).extractDecimals(coinDecimals);
 
