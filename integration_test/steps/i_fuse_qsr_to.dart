@@ -4,8 +4,8 @@
 import 'dart:async';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart' as app;
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
@@ -34,33 +34,44 @@ Future<void> iFuseQsrTo(
     reason: 'Selected devnet sender does not have enough QSR to fuse plasma',
   );
 
-  final PlasmaOptionsBloc plasmaOptionsBloc = PlasmaOptionsBloc();
+  final FusePlasmaBloc fusePlasmaBloc = FusePlasmaBloc(
+    accountBlockUtils: AccountBlockUtils(),
+    zenon: app.zenon!,
+    zenonAddressUtils: ZenonAddressUtils(),
+  );
   final Completer<AccountBlockTemplate> completer =
       Completer<AccountBlockTemplate>();
-  final StreamSubscription<AccountBlockTemplate?> subscription =
-      plasmaOptionsBloc.stream.listen(
-    (AccountBlockTemplate? block) {
-      if (block != null && !completer.isCompleted) {
-        completer.complete(block);
-      }
-    },
-    onError: (Object error, StackTrace stackTrace) {
-      if (!completer.isCompleted) {
-        completer.completeError(error, stackTrace);
-      }
-    },
-  );
+  final StreamSubscription<FusePlasmaState> subscription = fusePlasmaBloc.stream
+      .listen(
+        (FusePlasmaState state) {
+          if (state is FusePlasmaDone && !completer.isCompleted) {
+            completer.complete(state.accountBlock);
+          } else if (state is FusePlasmaFailure && !completer.isCompleted) {
+            completer.completeError(state.exception);
+          }
+        },
+        onError: (Object error, StackTrace stackTrace) {
+          if (!completer.isCompleted) {
+            completer.completeError(error, stackTrace);
+          }
+        },
+      );
 
   try {
-    plasmaOptionsBloc.generatePlasma(beneficiary, fuseAmount);
-    context.plasmaFuseAmount = fuseAmount;
-    context.plasmaFuseBlock = await _pumpUntilComplete(
+    fusePlasmaBloc.add(
+      FusePlasmaRequested(
+        beneficiaryAddress: beneficiary,
+        amount: fuseAmount,
+      ),
+    );
+    context..plasmaFuseAmount = fuseAmount
+    ..plasmaFuseBlock = await _pumpUntilComplete(
       tester,
       completer.future,
     );
   } finally {
     await subscription.cancel();
-    plasmaOptionsBloc.dispose();
+    await fusePlasmaBloc.close();
   }
 }
 
