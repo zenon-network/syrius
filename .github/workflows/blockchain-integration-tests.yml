@@ -1,6 +1,9 @@
 name: Blockchain Integration Tests
 
 on:
+  pull_request:
+    branches:
+      - develop
   workflow_dispatch:
 
 env:

@@ -1,10 +1,10 @@
 name: PR Fast Validation
 
 on:
-  workflow_dispatch:
   pull_request:
     branches:
       - develop
+  workflow_dispatch:
 
 env:
   FLUTTER_VERSION: "3.44.0"
