@@ -1284,19 +1284,19 @@ abstract class AppLocalizations {
   /// No description provided for @tokenCreation.
   ///
   /// In en, this message translates to:
-  /// **'Token Creation'**
+  /// **'ZNN Check'**
   String get tokenCreation;
 
   /// No description provided for @tokenCreationPlasmaCheck.
   ///
   /// In en, this message translates to:
-  /// **'Token creation: Plasma check'**
+  /// **'Plasma Check'**
   String get tokenCreationPlasmaCheck;
 
   /// No description provided for @tokenDetails.
   ///
   /// In en, this message translates to:
-  /// **'Token Details'**
+  /// **'Details'**
   String get tokenDetails;
 
   /// No description provided for @tokenDomain.
@@ -1314,13 +1314,13 @@ abstract class AppLocalizations {
   /// No description provided for @tokenMetrics.
   ///
   /// In en, this message translates to:
-  /// **'Token Metrics'**
+  /// **'Metrics'**
   String get tokenMetrics;
 
   /// No description provided for @tokenMintableBurnableOptions.
   ///
   /// In en, this message translates to:
-  /// **'Token mintable and burnable options'**
+  /// **'Mintable and Burnable Options'**
   String get tokenMintableBurnableOptions;
 
   /// No description provided for @tokenMintableBurnableSubtitle.

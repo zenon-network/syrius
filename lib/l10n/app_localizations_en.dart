@@ -711,13 +711,13 @@ class AppLocalizationsEn extends AppLocalizations {
       'Whether or not only the token owner can burn it';
 
   @override
-  String get tokenCreation => 'Token Creation';
+  String get tokenCreation => 'ZNN Check';
 
   @override
-  String get tokenCreationPlasmaCheck => 'Token creation: Plasma check';
+  String get tokenCreationPlasmaCheck => 'Plasma Check';
 
   @override
-  String get tokenDetails => 'Token Details';
+  String get tokenDetails => 'Details';
 
   @override
   String get tokenDomain => 'Token Domain';
@@ -727,11 +727,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'This will be your issuance address';
 
   @override
-  String get tokenMetrics => 'Token Metrics';
+  String get tokenMetrics => 'Metrics';
 
   @override
-  String get tokenMintableBurnableOptions =>
-      'Token mintable and burnable options';
+  String get tokenMintableBurnableOptions => 'Mintable and Burnable Options';
 
   @override
   String tokenMintableBurnableSubtitle(Object burnable, Object mintable) {
