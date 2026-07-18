@@ -8,6 +8,7 @@ import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/model/model.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/tokens/cubit/tokens_cubit.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/extensions.dart';
@@ -161,12 +162,15 @@ class _TokenStepperState extends State<TokenStepper> {
             key: _tokenDomainKey,
             autovalidateMode: AutovalidateMode.onUserInteraction,
             child: InputField(
+              suffixIcon: FieldSuffixButtons(
+                controller: _tokenDomainController,
+              ),
               thisNode: _focusNodes[2],
               onChanged: (String value) {
                 setState(() {});
               },
               controller: _tokenDomainController,
-              validator: Validations.tokenDomain,
+              validator: InputValidators.checkUrl,
               hintText: 'Token Domain',
             ),
           ),
@@ -235,7 +239,8 @@ class _TokenStepperState extends State<TokenStepper> {
           StepperUtils.getMaterialStep(
             stepTitle: 'Token mintable and burnable options',
             stepContent: _getTokenMintableAndBurnableStepContent(),
-            stepSubtitle: 'Mintable: ${_isMintable ? 'yes' : 'no'}\n'
+            stepSubtitle:
+                'Mintable: ${_isMintable ? 'yes' : 'no'}\n'
                 'Burnable: ${_isBurnable ? 'yes' : 'no'}',
             stepState: StepperUtils.getStepState(
               TokenStepperStep.tokenMintableBurnable.index,
@@ -247,7 +252,8 @@ class _TokenStepperState extends State<TokenStepper> {
           StepperUtils.getMaterialStep(
             stepTitle: 'Token Metrics',
             stepContent: _getTokenMetricsStepContent(context, accountInfo),
-            stepSubtitle: '${_totalSupplyController.text} '
+            stepSubtitle:
+                '${_totalSupplyController.text} '
                 '${_tokenSymbolController.text}',
             stepState: StepperUtils.getStepState(
               TokenStepperStep.tokenMetrics.index,
@@ -262,10 +268,10 @@ class _TokenStepperState extends State<TokenStepper> {
             stepContent: _getIssueTokenStepContent(context),
             stepSubtitle: _isMintable
                 ? '${_totalSupplyController.text} out of '
-                    '${_maxSupplyController.text} ${_tokenSymbolController.text}'
+                      '${_maxSupplyController.text} ${_tokenSymbolController.text}'
                 : _isUtility
-                    ? 'Utility Token'
-                    : '',
+                ? 'Utility Token'
+                : '',
             stepState: StepperUtils.getStepState(
               TokenStepperStep.issueToken.index,
               _lastCompletedStep?.index,
@@ -377,10 +383,11 @@ class _TokenStepperState extends State<TokenStepper> {
           Padding(
             padding: const EdgeInsets.only(top: 25, bottom: 25, left: 15),
             child: DottedBorderInfoWidget(
-              text: 'You will need to burn '
+              text:
+                  'You will need to burn '
                   '${tokenZtsIssueFeeInZnn.addDecimals(
-                coinDecimals,
-              )} ${kZnnCoin.symbol} '
+                    coinDecimals,
+                  )} ${kZnnCoin.symbol} '
                   'to issue a token',
               borderColor: AppColors.ztsColor,
             ),
@@ -390,7 +397,8 @@ class _TokenStepperState extends State<TokenStepper> {
             child: Row(
               children: <Widget>[
                 Visibility(
-                  visible: (_createButtonKey.currentState?.btnState ??
+                  visible:
+                      (_createButtonKey.currentState?.btnState ??
                           ButtonState.idle) ==
                       ButtonState.idle,
                   child: Row(
@@ -462,12 +470,12 @@ class _TokenStepperState extends State<TokenStepper> {
                       hintText: 'Max supply',
                       validator: _isMintable
                           ? (String? value) => InputValidators.correctValue(
-                                value,
-                                kBigP255m1,
-                                _selectedNumDecimals,
-                                kMinTokenTotalMaxSupply,
-                                canBeEqualToMin: true,
-                              )
+                              value,
+                              kBigP255m1,
+                              _selectedNumDecimals,
+                              kMinTokenTotalMaxSupply,
+                              canBeEqualToMin: true,
+                            )
                           : InputValidators.isMaxSupplyZero,
                     ),
                   ),
@@ -495,9 +503,10 @@ class _TokenStepperState extends State<TokenStepper> {
                     value,
                     _isMintable
                         ? _maxSupplyController.text.isNotEmpty
-                            ? _maxSupplyController.text
-                                .extractDecimals(_selectedNumDecimals)
-                            : kBigP255m1
+                              ? _maxSupplyController.text.extractDecimals(
+                                  _selectedNumDecimals,
+                                )
+                              : kBigP255m1
                         : kBigP255m1,
                     _selectedNumDecimals,
                     _isMintable ? BigInt.zero : kMinTokenTotalMaxSupply,
@@ -642,10 +651,11 @@ class _TokenStepperState extends State<TokenStepper> {
         ),
         StepperUtils.getBalanceWidget(kZnnCoin, accountInfo),
         DottedBorderInfoWidget(
-          text: 'You will need to burn '
+          text:
+              'You will need to burn '
               '${tokenZtsIssueFeeInZnn.addDecimals(
-            coinDecimals,
-          )} ${kZnnCoin.symbol} '
+                coinDecimals,
+              )} ${kZnnCoin.symbol} '
               'to issue a token',
           borderColor: AppColors.ztsColor,
         ),
@@ -691,8 +701,8 @@ class _TokenStepperState extends State<TokenStepper> {
     if ((!_isMintable || _maxSupplyKey.currentState!.validate()) &&
         _totalSupplyKey.currentState!.validate()) {
       _tokenStepperData.decimals = _selectedNumDecimals;
-      _tokenStepperData.totalSupply =
-          _totalSupplyController.text.extractDecimals(_selectedNumDecimals);
+      _tokenStepperData.totalSupply = _totalSupplyController.text
+          .extractDecimals(_selectedNumDecimals);
       _tokenStepperData.isMintable = _isMintable;
       _tokenStepperData.maxSupply = (_isMintable
           ? _maxSupplyController.text.extractDecimals(_selectedNumDecimals)
@@ -728,7 +738,8 @@ class _TokenStepperState extends State<TokenStepper> {
   Widget _getTokenCreationContinueButton(AccountInfo accountInfo) {
     return StepperButton(
       text: 'Continue',
-      onPressed: accountInfo.getBalance(
+      onPressed:
+          accountInfo.getBalance(
                 kZnnCoin.tokenStandard,
               ) >=
               tokenZtsIssueFeeInZnn
@@ -752,8 +763,9 @@ class _TokenStepperState extends State<TokenStepper> {
   Widget _getTokenDetailsContinueButton() {
     return StepperButton(
       text: 'Continue',
-      onPressed:
-          _areTokenDetailsCorrect() ? _onTokenDetailsContinuePressed : null,
+      onPressed: _areTokenDetailsCorrect()
+          ? _onTokenDetailsContinuePressed
+          : null,
     );
   }
 
@@ -774,27 +786,29 @@ class _TokenStepperState extends State<TokenStepper> {
   Widget _getTokenMetricsContinueButton() {
     return StepperButton(
       text: 'Continue',
-      onPressed:
-          _areTokenMetricsCorrect() ? _onTokenMetricsContinuePressed : null,
+      onPressed: _areTokenMetricsCorrect()
+          ? _onTokenMetricsContinuePressed
+          : null,
     );
   }
 
   bool _areTokenMetricsCorrect() =>
       (_isMintable
           ? InputValidators.correctValue(
-                _maxSupplyController.text,
-                kBigP255m1,
-                _selectedNumDecimals,
-                kMinTokenTotalMaxSupply,
-                canBeEqualToMin: true,
-              ) ==
-              null
+                  _maxSupplyController.text,
+                  kBigP255m1,
+                  _selectedNumDecimals,
+                  kMinTokenTotalMaxSupply,
+                  canBeEqualToMin: true,
+                ) ==
+                null
           : true) &&
       InputValidators.correctValue(
             _totalSupplyController.text,
             _isMintable
-                ? _maxSupplyController.text
-                    .extractDecimals(_selectedNumDecimals)
+                ? _maxSupplyController.text.extractDecimals(
+                    _selectedNumDecimals,
+                  )
                 : kBigP255m1,
             _selectedNumDecimals,
             _isMintable ? BigInt.zero : kMinTokenTotalMaxSupply,
@@ -803,9 +817,9 @@ class _TokenStepperState extends State<TokenStepper> {
           null;
 
   void _initFocusNodes(int length) => _focusNodes = List.generate(
-        length,
-        (int index) => FocusNode(),
-      );
+    length,
+    (int index) => FocusNode(),
+  );
 
   void _changeFocusToNextNode() {
     final int indexOfFocusedNode = _focusNodes.indexOf(
