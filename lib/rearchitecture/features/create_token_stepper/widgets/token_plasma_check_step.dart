@@ -60,7 +60,7 @@ class _Populated extends StatelessWidget {
       children: <Widget>[
         Text(
           context.l10n.morePlasmaRequired,
-          style: Theme.of(context).textTheme.headlineSmall,
+          style: Theme.of(context).textTheme.titleMedium,
         ),
         kVerticalGap25,
         Row(

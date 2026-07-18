@@ -30,7 +30,7 @@ class TokenCreationStep extends StatelessWidget {
       children: <Widget>[
         Text(
           context.l10n.tokenIssuanceAddressDescription,
-          style: Theme.of(context).textTheme.headlineSmall,
+          style: Theme.of(context).textTheme.titleMedium,
         ),
         kVerticalGap16,
         Row(
