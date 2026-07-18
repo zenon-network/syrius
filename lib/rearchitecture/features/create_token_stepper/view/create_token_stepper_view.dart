@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter/services.dart';
 import 'package:lottie/lottie.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/model/model.dart';
@@ -67,32 +66,18 @@ class _CreateTokenStepperViewState extends State<CreateTokenStepperView> {
   bool _isBurnable = false;
   bool _isUtility = true;
 
-  late List<FocusNode> _focusNodes;
-
-  Map<Type, Action<Intent>>? _actionMap;
-  Map<LogicalKeySet, Intent>? _shortcutMap;
-
   final NewTokenData _tokenStepperData = NewTokenData();
 
   @override
   void initState() {
     super.initState();
     _addressController.text = kSelectedAddress!;
-    _initFocusNodes(3);
     sl.get<MultipleBalanceBloc>().add(
       MultipleBalanceFetch(
         addresses: kDefaultAddressList.map((String? e) => e!).toList(),
       ),
     );
     _initStepperControllers();
-    _actionMap = <Type, Action<Intent>>{
-      ActivateIntent: CallbackAction(
-        onInvoke: (Intent intent) => _changeFocusToNextNode(),
-      ),
-    };
-    _shortcutMap = <LogicalKeySet, Intent>{
-      LogicalKeySet(LogicalKeyboardKey.tab): const ActivateIntent(),
-    };
   }
 
   @override
@@ -114,73 +99,66 @@ class _CreateTokenStepperViewState extends State<CreateTokenStepperView> {
     BuildContext context,
     AccountInfo accountInfo,
   ) {
-    return FocusableActionDetector(
-      actions: _actionMap,
-      shortcuts: _shortcutMap,
-      child: Column(
-        children: <Widget>[
-          Row(
-            children: <Widget>[
-              Expanded(
-                child: Form(
-                  key: _tokenNameKey,
-                  autovalidateMode: AutovalidateMode.onUserInteraction,
-                  child: InputField(
-                    thisNode: _focusNodes[0],
-                    onChanged: (String value) {
-                      setState(() {});
-                    },
-                    controller: _tokenNameController,
-                    hintText: context.l10n.tokenName,
-                    validator: Validations.tokenName,
-                  ),
+    return Column(
+      children: <Widget>[
+        Row(
+          children: <Widget>[
+            Expanded(
+              child: Form(
+                key: _tokenNameKey,
+                autovalidateMode: AutovalidateMode.onUserInteraction,
+                child: InputField(
+                  onChanged: (String value) {
+                    setState(() {});
+                  },
+                  controller: _tokenNameController,
+                  hintText: context.l10n.tokenName,
+                  validator: Validations.tokenName,
                 ),
               ),
-            ],
-          ),
-          kVerticalSpacing,
-          Row(
-            children: <Widget>[
-              Expanded(
-                child: Form(
-                  key: _tokenSymbolKey,
-                  autovalidateMode: AutovalidateMode.onUserInteraction,
-                  child: InputField(
-                    thisNode: _focusNodes[1],
-                    onChanged: (String value) {
-                      setState(() {});
-                    },
-                    controller: _tokenSymbolController,
-                    validator: Validations.tokenSymbol,
-                    hintText: context.l10n.tokenSymbol,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          kVerticalSpacing,
-          Form(
-            key: _tokenDomainKey,
-            autovalidateMode: AutovalidateMode.onUserInteraction,
-            child: InputField(
-              suffixIcon: FieldSuffixButtons(
-                controller: _tokenDomainController,
-              ),
-              thisNode: _focusNodes[2],
-              onChanged: (String value) {
-                setState(() {});
-              },
-              controller: _tokenDomainController,
-              validator: InputValidators.checkUrl,
-              hintText: context.l10n.tokenDomain,
             ),
+          ],
+        ),
+        kVerticalSpacing,
+        Row(
+          children: <Widget>[
+            Expanded(
+              child: Form(
+                key: _tokenSymbolKey,
+                autovalidateMode: AutovalidateMode.onUserInteraction,
+                child: InputField(
+                  onChanged: (String value) {
+                    setState(() {});
+                  },
+                  controller: _tokenSymbolController,
+                  validator: Validations.tokenSymbol,
+                  hintText: context.l10n.tokenSymbol,
+                ),
+              ),
+            ),
+          ],
+        ),
+        kVerticalSpacing,
+        Form(
+          key: _tokenDomainKey,
+          autovalidateMode: AutovalidateMode.onUserInteraction,
+          child: InputField(
+            suffixIcon: FieldSuffixButtons(
+              controller: _tokenDomainController,
+            ),
+            onChanged: (String value) {
+              setState(() {});
+            },
+            controller: _tokenDomainController,
+            validator: InputValidators.checkUrl,
+            hintText: context.l10n.tokenDomain,
           ),
-          const SizedBox(
-            height: 25,
-          ),
-          _getTokenDetailsActionButtons(),
-        ],
-      ),
+        ),
+        const SizedBox(
+          height: 25,
+        ),
+        _getTokenDetailsActionButtons(),
+      ],
     );
   }
 
@@ -817,24 +795,6 @@ class _CreateTokenStepperViewState extends State<CreateTokenStepperView> {
             canBeEqualToMin: true,
           ) ==
           null;
-
-  void _initFocusNodes(int length) => _focusNodes = List.generate(
-    length,
-    (int index) => FocusNode(),
-  );
-
-  void _changeFocusToNextNode() {
-    final int indexOfFocusedNode = _focusNodes.indexOf(
-      _focusNodes.firstWhere(
-        (FocusNode node) => node.hasFocus,
-      ),
-    );
-    if (indexOfFocusedNode + 1 < _focusNodes.length) {
-      _focusNodes[indexOfFocusedNode + 1].requestFocus();
-    } else {
-      _focusNodes[0].requestFocus();
-    }
-  }
 
   Widget _getTokenMintableAndBurnableStepContent() {
     return Column(
