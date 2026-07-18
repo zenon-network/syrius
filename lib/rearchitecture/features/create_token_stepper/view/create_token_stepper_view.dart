@@ -12,7 +12,7 @@ import 'package:zenon_syrius_wallet_flutter/utils/extensions.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/input_validators.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/custom_material_stepper.dart'
-    as custom_material_stepper;
+    as syrius_stepper;
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
@@ -92,13 +92,13 @@ class _CreateTokenStepperViewState extends State<CreateTokenStepperView> {
   }) {
     final int lastStepIndex = _Step.values.last.index;
 
-    custom_material_stepper.StepState getStepState(
+    syrius_stepper.StepState getStepState(
       _Step step,
       _Step? currentStep,
     ) {
       return step.index < (currentStep?.index ?? lastStepIndex + 1)
-          ? custom_material_stepper.StepState.complete
-          : custom_material_stepper.StepState.indexed;
+          ? syrius_stepper.StepState.complete
+          : syrius_stepper.StepState.indexed;
     }
 
     return Theme(
@@ -107,11 +107,11 @@ class _CreateTokenStepperViewState extends State<CreateTokenStepperView> {
         splashColor: Colors.transparent,
         hoverColor: Colors.transparent,
       ),
-      child: custom_material_stepper.Stepper(
+      child: syrius_stepper.Stepper(
         activeColor: AppColors.ztsColor,
         currentStep: currentStep?.index ?? lastStepIndex,
         onStepTapped: (int index) {},
-        steps: <custom_material_stepper.Step>[
+        steps: <syrius_stepper.Step>[
           StepperUtils.getMaterialStep(
             stepTitle: context.l10n.plasmaCheck,
             stepContent: TokenPlasmaCheckStep(
