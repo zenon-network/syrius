@@ -270,7 +270,6 @@ class _CreateTokenStepperViewState extends State<CreateTokenStepperView> {
     _isMintable = false;
     _isBurnable = false;
     _isUtility = true;
-    setState(() {});
     _currentStep.value = _Step.checkPlasma;
   }
 

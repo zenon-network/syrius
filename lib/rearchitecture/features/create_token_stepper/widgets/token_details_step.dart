@@ -76,6 +76,8 @@ class _TokenDetailsStepState extends State<TokenDetailsStep> {
             ),
           ),
           kVerticalGap16,
+          // Blockchain seems to accept only "testing.com" URLs, not
+          // "https://testing.com" also
           TextField(
             controller: widget.tokenDomainController,
             decoration: InputDecoration(
