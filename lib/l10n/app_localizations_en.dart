@@ -84,6 +84,23 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get burn => 'Burn';
+
+  @override
+  String burnTokenIssueFee(Object amount, Object symbol) {
+    return 'You will need to burn $amount $symbol to issue a token';
+  }
+
+  @override
+  String get continueText => 'Continue';
+
+  @override
+  String get create => 'Create';
+
+  @override
+  String get createAnotherToken => 'Create another Token';
+
+  @override
   String get createPillarDescription =>
       'Start the process of deploying a Pillar Node in the network';
 
@@ -201,6 +218,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get duration => 'Duration';
 
   @override
+  String get errorCreatingToken => 'Error while creating a new ZTS token';
+
+  @override
   String get errorCollectingPillarRewards =>
       'Error while collecting Pillar rewards';
 
@@ -296,6 +316,9 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get issueToken => 'Issue Token';
+
+  @override
   String get latestTransactionsDescription =>
       'This card displays the latest transactions (including ZTS tokens) of your selected address';
 
@@ -329,7 +352,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get max => 'Max';
 
   @override
+  String get maxSupply => 'Max supply';
+
+  @override
   String get minAgo => 'min ago';
+
+  @override
+  String get mintable => 'Mintable';
 
   @override
   String momentumPercentageGiven(Object percentage) {
@@ -350,6 +379,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get next => 'Next';
 
   @override
+  String get no => 'no';
+
+  @override
   String get noItemsFound => 'No items founds';
 
   @override
@@ -357,6 +389,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get noRewardsCollect => 'No rewards to collect';
+
+  @override
+  String numberOfDecimals(Object number) {
+    return 'Number of decimals: $number';
+  }
 
   @override
   String get password => 'Password';
@@ -670,6 +707,64 @@ class AppLocalizationsEn extends AppLocalizations {
   String get tokenTransactions => 'Token Transactions';
 
   @override
+  String get tokenBurnTooltip =>
+      'Whether or not only the token owner can burn it';
+
+  @override
+  String get tokenCreation => 'Token Creation';
+
+  @override
+  String get tokenCreationPlasmaCheck => 'Token creation: Plasma check';
+
+  @override
+  String get tokenDetails => 'Token Details';
+
+  @override
+  String get tokenDomain => 'Token Domain';
+
+  @override
+  String get tokenIssuanceAddressDescription =>
+      'This will be your issuance address';
+
+  @override
+  String get tokenMetrics => 'Token Metrics';
+
+  @override
+  String get tokenMintableBurnableOptions =>
+      'Token mintable and burnable options';
+
+  @override
+  String tokenMintableBurnableSubtitle(Object burnable, Object mintable) {
+    return 'Mintable: $mintable\nBurnable: $burnable';
+  }
+
+  @override
+  String get tokenMintableTooltip =>
+      'Whether or not this token is mintable after creation';
+
+  @override
+  String get tokenName => 'Token Name';
+
+  @override
+  String get tokenStatusUtilityTooltip =>
+      'Token status: utility or non-utility (e.g. security token)';
+
+  @override
+  String tokenSupplyOutOfMax(
+    Object maxSupply,
+    Object symbol,
+    Object totalSupply,
+  ) {
+    return '$totalSupply out of $maxSupply $symbol';
+  }
+
+  @override
+  String get tokenSymbol => 'Token Symbol';
+
+  @override
+  String get totalSupply => 'Total supply';
+
+  @override
   String get transactionError => 'Error while receiving transaction';
 
   @override
@@ -711,10 +806,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get uptime => 'Uptime';
 
   @override
+  String get utilityToken => 'Utility token';
+
+  @override
   String get usDateFormat => 'MM/dd/yyyy';
 
   @override
   String get viewPillars => 'View Pillars';
+
+  @override
+  String get viewMyTokens => 'View my Tokens';
 
   @override
   String get viewSentinels => 'View Sentinels';
@@ -727,6 +828,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get withdraw => 'Withdraw';
+
+  @override
+  String get yes => 'yes';
 
   @override
   String youHaveDeposited(Object coins, Object kQsrCoinSymbol) {

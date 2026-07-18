@@ -1,12 +1,11 @@
-import 'dart:core';
-
+import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter/services.dart';
 import 'package:lottie/lottie.dart';
-import 'package:stacked/stacked.dart';
-import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/model/model.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/tokens/cubit/tokens_cubit.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
@@ -22,7 +21,7 @@ import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/custom_mate
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
-enum TokenStepperStep {
+enum _Step {
   checkPlasma,
   tokenCreation,
   tokenDetails,
@@ -31,20 +30,22 @@ enum TokenStepperStep {
   issueToken,
 }
 
-class TokenStepper extends StatefulWidget {
-  const TokenStepper({super.key});
+/// A stepper that guides the user through creating a ZTS token.
+class CreateTokenStepperView extends StatefulWidget {
+  /// Creates a [CreateTokenStepperView].
+  const CreateTokenStepperView({super.key});
 
   @override
   State createState() {
-    return _TokenStepperState();
+    return _CreateTokenStepperViewState();
   }
 }
 
-class _TokenStepperState extends State<TokenStepper> {
-  late TokenStepperStep _currentStep;
-  TokenStepperStep? _lastCompletedStep;
+class _CreateTokenStepperViewState extends State<CreateTokenStepperView> {
+  late _Step _currentStep;
+  _Step? _lastCompletedStep;
 
-  final int _numSteps = TokenStepperStep.values.length;
+  final int _numSteps = _Step.values.length;
 
   final TextEditingController _addressController = TextEditingController();
   TextEditingController _tokenNameController = TextEditingController();
@@ -78,7 +79,11 @@ class _TokenStepperState extends State<TokenStepper> {
     super.initState();
     _addressController.text = kSelectedAddress!;
     _initFocusNodes(3);
-    sl.get<BalanceBloc>().getBalanceForAllAddresses();
+    sl.get<MultipleBalanceBloc>().add(
+      MultipleBalanceFetch(
+        addresses: kDefaultAddressList.map((String? e) => e!).toList(),
+      ),
+    );
     _initStepperControllers();
     _actionMap = <Type, Action<Intent>>{
       ActivateIntent: CallbackAction(
@@ -92,19 +97,15 @@ class _TokenStepperState extends State<TokenStepper> {
 
   @override
   Widget build(BuildContext context) {
-    return StreamBuilder<Map<String, AccountInfo>?>(
-      stream: sl.get<BalanceBloc>().stream,
-      builder: (_, AsyncSnapshot<Map<String, AccountInfo>?> snapshot) {
-        if (snapshot.hasError) {
-          return SyriusErrorWidget(snapshot.error!);
-        }
-        if (snapshot.connectionState == ConnectionState.active) {
-          if (snapshot.hasData) {
-            return _getBody(context, snapshot.data![_addressController.text]!);
-          }
-          return const SyriusLoadingWidget();
-        }
-        return const SyriusLoadingWidget();
+    return BlocBuilder<MultipleBalanceBloc, MultipleBalanceState>(
+      builder: (_, MultipleBalanceState state) => switch (state.status) {
+        MultipleBalanceStatus.failure => SyriusErrorWidget(state.error!),
+        MultipleBalanceStatus.initial => const SyriusLoadingWidget(),
+        MultipleBalanceStatus.loading => const SyriusLoadingWidget(),
+        MultipleBalanceStatus.success => _getBody(
+          context,
+          state.data![_addressController.text]!,
+        ),
       },
     );
   }
@@ -130,7 +131,7 @@ class _TokenStepperState extends State<TokenStepper> {
                       setState(() {});
                     },
                     controller: _tokenNameController,
-                    hintText: 'Token Name',
+                    hintText: context.l10n.tokenName,
                     validator: Validations.tokenName,
                   ),
                 ),
@@ -151,7 +152,7 @@ class _TokenStepperState extends State<TokenStepper> {
                     },
                     controller: _tokenSymbolController,
                     validator: Validations.tokenSymbol,
-                    hintText: 'Token Symbol',
+                    hintText: context.l10n.tokenSymbol,
                   ),
                 ),
               ),
@@ -171,7 +172,7 @@ class _TokenStepperState extends State<TokenStepper> {
               },
               controller: _tokenDomainController,
               validator: InputValidators.checkUrl,
-              hintText: 'Token Domain',
+              hintText: context.l10n.tokenDomain,
             ),
           ),
           const SizedBox(
@@ -185,7 +186,7 @@ class _TokenStepperState extends State<TokenStepper> {
 
   Widget _getStepBackButton() {
     return StepperButton(
-      text: 'Go back',
+      text: context.l10n.goBack,
       onPressed: _onBackButtonPressed,
     );
   }
@@ -203,60 +204,61 @@ class _TokenStepperState extends State<TokenStepper> {
         onStepTapped: (int index) {},
         steps: <custom_material_stepper.Step>[
           StepperUtils.getMaterialStep(
-            stepTitle: 'Token creation: Plasma check',
+            stepTitle: context.l10n.tokenCreationPlasmaCheck,
             stepContent: _getPlasmaCheckFutureBuilder(),
-            stepSubtitle: 'Sufficient Plasma',
+            stepSubtitle: context.l10n.sufficientPlasma,
             stepState: StepperUtils.getStepState(
-              TokenStepperStep.checkPlasma.index,
+              _Step.checkPlasma.index,
               _lastCompletedStep?.index,
             ),
             context: context,
             stepSubtitleColor: AppColors.ztsColor,
           ),
           StepperUtils.getMaterialStep(
-            stepTitle: 'Token Creation',
+            stepTitle: context.l10n.tokenCreation,
             stepContent: _getTokenCreationStepContent(accountInfo),
             stepSubtitle: _addressController.text,
             stepState: StepperUtils.getStepState(
-              TokenStepperStep.tokenCreation.index,
+              _Step.tokenCreation.index,
               _lastCompletedStep?.index,
             ),
             context: context,
             stepSubtitleColor: AppColors.ztsColor,
           ),
           StepperUtils.getMaterialStep(
-            stepTitle: 'Token Details',
+            stepTitle: context.l10n.tokenDetails,
             stepContent: _getTokenDetailsStepContent(context, accountInfo),
             stepSubtitle:
                 '${_tokenNameController.text} ${_tokenSymbolController.text}',
             stepState: StepperUtils.getStepState(
-              TokenStepperStep.tokenDetails.index,
+              _Step.tokenDetails.index,
               _lastCompletedStep?.index,
             ),
             context: context,
             stepSubtitleColor: AppColors.ztsColor,
           ),
           StepperUtils.getMaterialStep(
-            stepTitle: 'Token mintable and burnable options',
+            stepTitle: context.l10n.tokenMintableBurnableOptions,
             stepContent: _getTokenMintableAndBurnableStepContent(),
-            stepSubtitle:
-                'Mintable: ${_isMintable ? 'yes' : 'no'}\n'
-                'Burnable: ${_isBurnable ? 'yes' : 'no'}',
+            stepSubtitle: context.l10n.tokenMintableBurnableSubtitle(
+              _isBurnable ? context.l10n.yes : context.l10n.no,
+              _isMintable ? context.l10n.yes : context.l10n.no,
+            ),
             stepState: StepperUtils.getStepState(
-              TokenStepperStep.tokenMintableBurnable.index,
+              _Step.tokenMintableBurnable.index,
               _lastCompletedStep?.index,
             ),
             stepSubtitleColor: AppColors.ztsColor,
             context: context,
           ),
           StepperUtils.getMaterialStep(
-            stepTitle: 'Token Metrics',
+            stepTitle: context.l10n.tokenMetrics,
             stepContent: _getTokenMetricsStepContent(context, accountInfo),
             stepSubtitle:
                 '${_totalSupplyController.text} '
                 '${_tokenSymbolController.text}',
             stepState: StepperUtils.getStepState(
-              TokenStepperStep.tokenMetrics.index,
+              _Step.tokenMetrics.index,
               _lastCompletedStep?.index,
             ),
             context: context,
@@ -264,16 +266,19 @@ class _TokenStepperState extends State<TokenStepper> {
             stepSubtitleIconData: Icons.whatshot,
           ),
           StepperUtils.getMaterialStep(
-            stepTitle: 'Issue Token',
+            stepTitle: context.l10n.issueToken,
             stepContent: _getIssueTokenStepContent(context),
             stepSubtitle: _isMintable
-                ? '${_totalSupplyController.text} out of '
-                      '${_maxSupplyController.text} ${_tokenSymbolController.text}'
+                ? context.l10n.tokenSupplyOutOfMax(
+                    _maxSupplyController.text,
+                    _tokenSymbolController.text,
+                    _totalSupplyController.text,
+                  )
                 : _isUtility
-                ? 'Utility Token'
+                ? context.l10n.utilityToken
                 : '',
             stepState: StepperUtils.getStepState(
-              TokenStepperStep.issueToken.index,
+              _Step.issueToken.index,
               _lastCompletedStep?.index,
             ),
             context: context,
@@ -303,7 +308,7 @@ class _TokenStepperState extends State<TokenStepper> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
         Text(
-          'More Plasma is required to perform complex transactions. Please fuse enough QSR before proceeding.',
+          context.l10n.morePlasmaRequired,
           style: Theme.of(context).textTheme.headlineSmall,
         ),
         const SizedBox(
@@ -324,7 +329,7 @@ class _TokenStepperState extends State<TokenStepper> {
           height: 25,
         ),
         StepperButton(
-          text: 'Next',
+          text: context.l10n.next,
           onPressed: plasmaInfo.currentPlasma >= kIssueTokenPlasmaAmountNeeded
               ? _onPlasmaCheckNextPressed
               : null,
@@ -335,14 +340,14 @@ class _TokenStepperState extends State<TokenStepper> {
 
   void _onPlasmaCheckNextPressed() {
     if (_lastCompletedStep == null) {
-      _saveProgressAndNavigateToNextStep(TokenStepperStep.checkPlasma);
+      _saveProgressAndNavigateToNextStep(_Step.checkPlasma);
     } else if (StepperUtils.getStepState(
-          TokenStepperStep.checkPlasma.index,
+          _Step.checkPlasma.index,
           _lastCompletedStep?.index,
         ) ==
         custom_material_stepper.StepState.complete) {
       setState(() {
-        _currentStep = TokenStepperStep.values[_currentStep.index + 1];
+        _currentStep = _Step.values[_currentStep.index + 1];
       });
     }
   }
@@ -365,16 +370,15 @@ class _TokenStepperState extends State<TokenStepper> {
                 },
               ),
               Text(
-                'Utility token',
+                context.l10n.utilityToken,
                 style: Theme.of(context).inputDecorationTheme.hintStyle,
               ),
               const SizedBox(
                 width: 3,
               ),
               const Icon(Icons.settings, size: 15, color: AppColors.ztsColor),
-              const StandardTooltipIcon(
-                'Token status: utility or '
-                'non-utility (e.g. security token)',
+              StandardTooltipIcon(
+                context.l10n.tokenStatusUtilityTooltip,
                 Icons.help,
                 iconColor: AppColors.ztsColor,
               ),
@@ -383,12 +387,10 @@ class _TokenStepperState extends State<TokenStepper> {
           Padding(
             padding: const EdgeInsets.only(top: 25, bottom: 25, left: 15),
             child: DottedBorderInfoWidget(
-              text:
-                  'You will need to burn '
-                  '${tokenZtsIssueFeeInZnn.addDecimals(
-                    coinDecimals,
-                  )} ${kZnnCoin.symbol} '
-                  'to issue a token',
+              text: context.l10n.burnTokenIssueFee(
+                tokenZtsIssueFeeInZnn.addDecimals(coinDecimals),
+                kZnnCoin.symbol,
+              ),
               borderColor: AppColors.ztsColor,
             ),
           ),
@@ -419,11 +421,11 @@ class _TokenStepperState extends State<TokenStepper> {
     );
   }
 
-  Widget _getCreateButton(IssueTokenBloc model) {
+  Widget _getCreateButton() {
     return LoadingButton.stepper(
-      text: 'Create',
+      text: context.l10n.create,
       outlineColor: AppColors.ztsColor,
-      onPressed: () => _onCreatePressed(model),
+      onPressed: _onCreatePressed,
       key: _createButtonKey,
     );
   }
@@ -438,7 +440,7 @@ class _TokenStepperState extends State<TokenStepper> {
           padding: const EdgeInsets.only(bottom: 20),
           child: CustomSlider(
             activeColor: AppColors.ztsColor,
-            description: 'Number of decimals: $_selectedNumDecimals',
+            description: context.l10n.numberOfDecimals(_selectedNumDecimals),
             startValue: 0,
             min: 0,
             maxValue: 18,
@@ -467,7 +469,7 @@ class _TokenStepperState extends State<TokenStepper> {
                         setState(() {});
                       },
                       controller: _maxSupplyController,
-                      hintText: 'Max supply',
+                      hintText: context.l10n.maxSupply,
                       validator: _isMintable
                           ? (String? value) => InputValidators.correctValue(
                               value,
@@ -498,7 +500,7 @@ class _TokenStepperState extends State<TokenStepper> {
                     setState(() {});
                   },
                   controller: _totalSupplyController,
-                  hintText: 'Total supply',
+                  hintText: context.l10n.totalSupply,
                   validator: (String? value) => InputValidators.correctValue(
                     value,
                     _isMintable
@@ -551,7 +553,7 @@ class _TokenStepperState extends State<TokenStepper> {
           ) !=
           custom_material_stepper.StepState.complete) {
         setState(() {
-          _currentStep = TokenStepperStep.values[_currentStep.index - 1];
+          _currentStep = _Step.values[_currentStep.index - 1];
         });
       }
     }
@@ -574,7 +576,7 @@ class _TokenStepperState extends State<TokenStepper> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: <Widget>[
                     StepperButton.icon(
-                      label: 'Create another Token',
+                      label: context.l10n.createAnotherToken,
                       onPressed: _onCreateAnotherTokenPressed,
                       iconData: Icons.refresh,
                     ),
@@ -610,7 +612,7 @@ class _TokenStepperState extends State<TokenStepper> {
 
   Widget _getViewTokensButton() {
     return StepperButton(
-      text: 'View my Tokens',
+      text: context.l10n.viewMyTokens,
       outlineColor: AppColors.ztsColor,
       onPressed: () {
         Navigator.pop(context);
@@ -638,7 +640,7 @@ class _TokenStepperState extends State<TokenStepper> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
         Text(
-          'This will be your issuance address',
+          context.l10n.tokenIssuanceAddressDescription,
           style: Theme.of(context).textTheme.headlineSmall,
         ),
         kVerticalSpacing,
@@ -651,12 +653,10 @@ class _TokenStepperState extends State<TokenStepper> {
         ),
         StepperUtils.getBalanceWidget(kZnnCoin, accountInfo),
         DottedBorderInfoWidget(
-          text:
-              'You will need to burn '
-              '${tokenZtsIssueFeeInZnn.addDecimals(
-                coinDecimals,
-              )} ${kZnnCoin.symbol} '
-              'to issue a token',
+          text: context.l10n.burnTokenIssueFee(
+            tokenZtsIssueFeeInZnn.addDecimals(coinDecimals),
+            kZnnCoin.symbol,
+          ),
           borderColor: AppColors.ztsColor,
         ),
         kVerticalSpacing,
@@ -667,34 +667,34 @@ class _TokenStepperState extends State<TokenStepper> {
 
   void _onTokenCreationContinuePressed() {
     _tokenStepperData.address = _addressController.text;
-    _saveProgressAndNavigateToNextStep(TokenStepperStep.tokenCreation);
+    _saveProgressAndNavigateToNextStep(_Step.tokenCreation);
   }
 
-  void _saveProgressAndNavigateToNextStep(TokenStepperStep completedStep) {
+  void _saveProgressAndNavigateToNextStep(_Step completedStep) {
     setState(() {
       _lastCompletedStep = completedStep;
       if (_lastCompletedStep!.index + 1 < _numSteps) {
-        _currentStep = TokenStepperStep.values[completedStep.index + 1];
+        _currentStep = _Step.values[completedStep.index + 1];
       }
     });
   }
 
   void _initStepperControllers() {
-    _currentStep = TokenStepperStep.values.first;
+    _currentStep = _Step.values.first;
   }
 
-  void _onCreatePressed(IssueTokenBloc model) {
+  void _onCreatePressed() {
     _tokenStepperData.isUtility = _isUtility;
-    _createButtonKey.currentState?.animateForward();
-    model.issueToken(_tokenStepperData);
-    setState(() {});
+    context.read<IssueTokenBloc>().add(
+      IssueTokenRequested(tokenData: _tokenStepperData),
+    );
   }
 
   void _onTokenDetailsContinuePressed() {
     _tokenStepperData.tokenName = _tokenNameController.text;
     _tokenStepperData.tokenSymbol = _tokenSymbolController.text;
     _tokenStepperData.tokenDomain = _tokenDomainController.text;
-    _saveProgressAndNavigateToNextStep(TokenStepperStep.tokenDetails);
+    _saveProgressAndNavigateToNextStep(_Step.tokenDetails);
   }
 
   void _onTokenMetricsContinuePressed() {
@@ -708,36 +708,38 @@ class _TokenStepperState extends State<TokenStepper> {
           ? _maxSupplyController.text.extractDecimals(_selectedNumDecimals)
           : _totalSupplyController.text.extractDecimals(_selectedNumDecimals));
       _tokenStepperData.isOwnerBurnOnly = _isBurnable;
-      _saveProgressAndNavigateToNextStep(TokenStepperStep.tokenMetrics);
+      _saveProgressAndNavigateToNextStep(_Step.tokenMetrics);
     }
   }
 
   Widget _getIssueTokenViewModel() {
-    return ViewModelBuilder<IssueTokenBloc>.reactive(
-      onViewModelReady: (IssueTokenBloc model) {
-        model.stream.listen(
-          (AccountBlockTemplate response) {
-            _createButtonKey.currentState?.animateReverse();
-            _saveProgressAndNavigateToNextStep(TokenStepperStep.issueToken);
-            sl.get<TokensCubit>().fetch();
-          },
-          onError: (error) async {
-            _createButtonKey.currentState?.animateReverse();
-            await NotificationUtils.sendNotificationError(
-              error,
-              'Error while creating a new ZTS token',
-            );
-          },
-        );
-      },
-      builder: (_, IssueTokenBloc model, __) => _getCreateButton(model),
-      viewModelBuilder: IssueTokenBloc.new,
+    return BlocListener<IssueTokenBloc, IssueTokenState>(
+      listener: (_, IssueTokenState state) => _onIssueTokenStateChanged(state),
+      child: _getCreateButton(),
     );
+  }
+
+  void _onIssueTokenStateChanged(IssueTokenState state) {
+    if (state is IssueTokenLoading) {
+      _createButtonKey.currentState?.animateForward();
+    } else if (state is IssueTokenDone) {
+      _createButtonKey.currentState?.animateReverse();
+      _saveProgressAndNavigateToNextStep(_Step.issueToken);
+      sl.get<TokensCubit>().fetch();
+    } else if (state is IssueTokenFailure) {
+      _createButtonKey.currentState?.animateReverse();
+      unawaited(
+        NotificationUtils.sendNotificationError(
+          state.exception,
+          context.l10n.errorCreatingToken,
+        ),
+      );
+    }
   }
 
   Widget _getTokenCreationContinueButton(AccountInfo accountInfo) {
     return StepperButton(
-      text: 'Continue',
+      text: context.l10n.continueText,
       onPressed:
           accountInfo.getBalance(
                 kZnnCoin.tokenStandard,
@@ -762,7 +764,7 @@ class _TokenStepperState extends State<TokenStepper> {
 
   Widget _getTokenDetailsContinueButton() {
     return StepperButton(
-      text: 'Continue',
+      text: context.l10n.continueText,
       onPressed: _areTokenDetailsCorrect()
           ? _onTokenDetailsContinuePressed
           : null,
@@ -778,14 +780,14 @@ class _TokenStepperState extends State<TokenStepper> {
             _tokenSymbolController.text,
           ) ==
           null &&
-      Validations.tokenDomain(
+      InputValidators.checkUrl(
             _tokenDomainController.text,
           ) ==
           null;
 
   Widget _getTokenMetricsContinueButton() {
     return StepperButton(
-      text: 'Continue',
+      text: context.l10n.continueText,
       onPressed: _areTokenMetricsCorrect()
           ? _onTokenMetricsContinuePressed
           : null,
@@ -855,11 +857,11 @@ class _TokenStepperState extends State<TokenStepper> {
               },
             ),
             Text(
-              'Mintable',
+              context.l10n.mintable,
               style: Theme.of(context).inputDecorationTheme.hintStyle,
             ),
-            const StandardTooltipIcon(
-              'Whether or not this token is mintable after creation',
+            StandardTooltipIcon(
+              context.l10n.tokenMintableTooltip,
               Icons.help,
               iconColor: AppColors.ztsColor,
             ),
@@ -880,7 +882,7 @@ class _TokenStepperState extends State<TokenStepper> {
               },
             ),
             Text(
-              'Burn',
+              context.l10n.burn,
               style: Theme.of(context).inputDecorationTheme.hintStyle,
             ),
             const Icon(
@@ -888,8 +890,8 @@ class _TokenStepperState extends State<TokenStepper> {
               size: 15,
               color: AppColors.ztsColor,
             ),
-            const StandardTooltipIcon(
-              'Whether or not only the token owner can burn it',
+            StandardTooltipIcon(
+              context.l10n.tokenBurnTooltip,
               Icons.help,
               iconColor: AppColors.ztsColor,
             ),
@@ -903,11 +905,11 @@ class _TokenStepperState extends State<TokenStepper> {
               width: 25,
             ),
             StepperButton(
-              text: 'Continue',
+              text: context.l10n.continueText,
               onPressed: () {
                 setState(() {
-                  _lastCompletedStep = TokenStepperStep.tokenMintableBurnable;
-                  _currentStep = TokenStepperStep.tokenMetrics;
+                  _lastCompletedStep = _Step.tokenMintableBurnable;
+                  _currentStep = _Step.tokenMetrics;
                 });
               },
             ),

@@ -2,9 +2,9 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/screens/screens.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/token_widgets/token_stepper.dart';
 
 /// A card that starts the token creation flow.
 class CreateTokenCard extends StatelessWidget {
@@ -58,7 +58,7 @@ class _View extends StatelessWidget {
                 context,
                 MaterialPageRoute<void>(
                   builder: (BuildContext context) => StepperScreen(
-                    stepper: const TokenStepper(),
+                    stepper: const CreateTokenStepperPage(),
                     onStepperNotificationSeeMorePressed:
                         onStepperNotificationSeeMorePressed,
                   ),
