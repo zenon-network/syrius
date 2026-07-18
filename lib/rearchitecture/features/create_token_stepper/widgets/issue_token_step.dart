@@ -50,76 +50,70 @@ class _IssueTokenStepState extends State<IssueTokenStep> {
   Widget build(BuildContext context) {
     return BlocListener<IssueTokenBloc, IssueTokenState>(
       listener: (_, IssueTokenState state) => _onIssueTokenStateChanged(state),
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 25),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: <Widget>[
-            Row(
-              children: <Widget>[
-                Checkbox(
-                  activeColor: AppColors.ztsColor,
-                  value: widget.isUtility,
-                  onChanged: (bool? value) {
-                    if (value != null) {
-                      widget.onUtilityChanged(value);
-                    }
-                  },
-                ),
-                Text(
-                  context.l10n.utilityToken,
-                  style: Theme.of(context).inputDecorationTheme.hintStyle,
-                ),
-                const SizedBox(width: 3),
-                const Icon(
-                  Icons.settings,
-                  size: 15,
-                  color: AppColors.ztsColor,
-                ),
-                StandardTooltipIcon(
-                  context.l10n.tokenStatusUtilityTooltip,
-                  Icons.help,
-                  iconColor: AppColors.ztsColor,
-                ),
-              ],
-            ),
-            Padding(
-              padding: const EdgeInsets.only(top: 25, bottom: 25, left: 15),
-              child: DottedBorderInfoWidget(
-                text: context.l10n.burnTokenIssueFee(
-                  tokenZtsIssueFeeInZnn.addDecimals(coinDecimals),
-                  kZnnCoin.symbol,
-                ),
-                borderColor: AppColors.ztsColor,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          Row(
+            children: <Widget>[
+              Checkbox(
+                activeColor: AppColors.ztsColor,
+                value: widget.isUtility,
+                onChanged: (bool? value) {
+                  if (value != null) {
+                    widget.onUtilityChanged(value);
+                  }
+                },
               ),
+              Text(
+                context.l10n.utilityToken,
+                style: Theme.of(context).inputDecorationTheme.hintStyle,
+              ),
+              kHorizontalGap8,
+              const Icon(
+                Icons.settings,
+                color: AppColors.ztsColor,
+              ),
+              StandardTooltipIcon(
+                context.l10n.tokenStatusUtilityTooltip,
+                Icons.help,
+                iconColor: AppColors.ztsColor,
+              ),
+            ],
+          ),
+          kVerticalGap25,
+          DottedBorderInfoWidget(
+            text: context.l10n.burnTokenIssueFee(
+              tokenZtsIssueFeeInZnn.addDecimals(coinDecimals),
+              kZnnCoin.symbol,
             ),
-            Padding(
-              padding: const EdgeInsets.only(left: 15),
-              child: Row(
-                children: <Widget>[
-                  Visibility(
-                    visible: !_isLoading,
-                    child: Row(
-                      children: <Widget>[
-                        StepperButton(
-                          text: context.l10n.goBack,
-                          onPressed: widget.onBackPressed,
-                        ),
-                        kHorizontalGap25,
-                      ],
+            borderColor: AppColors.ztsColor,
+          ),
+          kVerticalGap25,
+          Row(
+            children: <Widget>[
+              Visibility(
+                visible: !_isLoading,
+                child: Row(
+                  children: <Widget>[
+                    OutlinedButton(
+                      onPressed: widget.onBackPressed,
+                      child: Text(context.l10n.goBack),
                     ),
-                  ),
-                  LoadingButton.stepper(
-                    text: context.l10n.create,
-                    outlineColor: AppColors.ztsColor,
-                    onPressed: widget.onIssuePressed,
-                    key: _createButtonKey,
-                  ),
-                ],
+                    kHorizontalGap25,
+                  ],
+                ),
               ),
-            ),
-          ],
-        ),
+              LoadingButton.stepper(
+                textColor: AppColors.ztsColor,
+                text: context.l10n.create,
+                outlineColor: AppColors.ztsColor,
+                onPressed: widget.onIssuePressed,
+                key: _createButtonKey,
+              ),
+            ],
+          ),
+          kVerticalGap25,
+        ],
       ),
     );
   }

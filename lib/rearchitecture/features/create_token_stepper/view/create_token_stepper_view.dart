@@ -42,11 +42,11 @@ class _CreateTokenStepperViewState extends State<CreateTokenStepperView> {
   );
 
   final TextEditingController _addressController = TextEditingController();
-  TextEditingController _tokenNameController = TextEditingController();
-  TextEditingController _totalSupplyController = TextEditingController();
-  TextEditingController _maxSupplyController = TextEditingController();
-  TextEditingController _tokenDomainController = TextEditingController();
-  TextEditingController _tokenSymbolController = TextEditingController();
+  final TextEditingController _tokenNameController = TextEditingController();
+  final TextEditingController _totalSupplyController = TextEditingController();
+  final TextEditingController _maxSupplyController = TextEditingController();
+  final TextEditingController _tokenDomainController = TextEditingController();
+  final TextEditingController _tokenSymbolController = TextEditingController();
 
   final ValueNotifier<int> _selectedNumDecimals = .new(0);
 
@@ -268,17 +268,11 @@ class _CreateTokenStepperViewState extends State<CreateTokenStepperView> {
   }
 
   void _onCreateAnotherTokenPressed() {
-    _tokenNameController.dispose();
-    _tokenSymbolController.dispose();
-    _totalSupplyController.dispose();
-    _maxSupplyController.dispose();
-    _tokenDomainController.dispose();
-
-    _tokenNameController = TextEditingController();
-    _tokenSymbolController = TextEditingController();
-    _totalSupplyController = TextEditingController();
-    _maxSupplyController = TextEditingController();
-    _tokenDomainController = TextEditingController();
+    _tokenNameController.clear();
+    _tokenSymbolController.clear();
+    _totalSupplyController.clear();
+    _maxSupplyController.clear();
+    _tokenDomainController.clear();
     _selectedNumDecimals.value = 0;
     _isMintable = false;
     _isBurnable = false;

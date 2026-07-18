@@ -189,7 +189,7 @@ class InputValidators {
   static String? checkUrl(String? value) {
     final List<String> protocols = <String>['https'];
 
-    if (isURL(value, protocols: protocols, requireProtocol: true)) {
+    if (isURL(value, protocols: protocols)) {
       return null;
     }
     return 'Invalid URL';
