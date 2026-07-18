@@ -8,6 +8,7 @@ export 'create_pillar_stepper/create_pillar_stepper.dart';
 export 'create_sentinel_qsr_info/create_sentinel_qsr_info.dart';
 export 'create_sentinel_stepper/create_sentinel_stepper.dart';
 export 'create_stake/create_stake.dart';
+export 'create_token/create_token.dart';
 export 'delegation/delegation.dart';
 export 'delegation_stats/delegation_stats.dart';
 export 'deploy_pillar/deploy_pillar.dart';

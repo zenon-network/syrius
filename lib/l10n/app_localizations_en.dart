@@ -106,6 +106,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get createStakeTitle => 'Create Stake';
 
   @override
+  String get createToken => 'Create Token';
+
+  @override
+  String get createTokenDescription =>
+      'Create a token following the ZTS specification';
+
+  @override
+  String get createTokenTitle => 'Create Token';
+
+  @override
   String currentAmounts(Object kQsrCoinSymbol, Object kZnnCoinSymbol) {
     return 'This card displays the current $kZnnCoinSymbol and $kQsrCoinSymbol amounts for the selected address';
   }

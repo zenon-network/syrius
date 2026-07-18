@@ -262,6 +262,24 @@ abstract class AppLocalizations {
   /// **'Create Stake'**
   String get createStakeTitle;
 
+  /// No description provided for @createToken.
+  ///
+  /// In en, this message translates to:
+  /// **'Create Token'**
+  String get createToken;
+
+  /// No description provided for @createTokenDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Create a token following the ZTS specification'**
+  String get createTokenDescription;
+
+  /// No description provided for @createTokenTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Create Token'**
+  String get createTokenTitle;
+
   /// No description provided for @currentAmounts.
   ///
   /// In en, this message translates to:

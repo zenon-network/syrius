@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:layout/layout.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 
 class TokensTabChild extends StatelessWidget {
-
   const TokensTabChild({
     required this.onStepperNotificationSeeMorePressed,
     super.key,
@@ -43,7 +43,7 @@ class TokensTabChild extends StatelessWidget {
             sm: kStaggeredNumOfColumns,
             xs: kStaggeredNumOfColumns,
           ),
-          child: CreateToken(
+          child: CreateTokenCard(
             onStepperNotificationSeeMorePressed:
                 onStepperNotificationSeeMorePressed,
           ),
