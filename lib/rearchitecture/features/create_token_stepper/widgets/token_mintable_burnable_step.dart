@@ -40,8 +40,7 @@ class TokenMintableBurnableStep extends StatelessWidget {
       children: <Widget>[
         Row(
           children: <Widget>[
-            const SizedBox(width: 20),
-            Checkbox(
+            Checkbox.adaptive(
               activeColor: AppColors.ztsColor,
               value: isMintable,
               onChanged: (bool? value) {
@@ -50,6 +49,7 @@ class TokenMintableBurnableStep extends StatelessWidget {
                 }
               },
             ),
+            kHorizontalGap8,
             Text(
               context.l10n.mintable,
               style: Theme.of(context).inputDecorationTheme.hintStyle,
@@ -63,8 +63,7 @@ class TokenMintableBurnableStep extends StatelessWidget {
         ),
         Row(
           children: <Widget>[
-            const SizedBox(width: 20),
-            Checkbox(
+            Checkbox.adaptive(
               activeColor: AppColors.ztsColor,
               value: isBurnable,
               onChanged: (bool? value) {
@@ -73,13 +72,13 @@ class TokenMintableBurnableStep extends StatelessWidget {
                 }
               },
             ),
+            kHorizontalGap8,
             Text(
               context.l10n.burn,
               style: Theme.of(context).inputDecorationTheme.hintStyle,
             ),
             const Icon(
               Icons.whatshot,
-              size: 15,
               color: AppColors.ztsColor,
             ),
             StandardTooltipIcon(
@@ -92,14 +91,14 @@ class TokenMintableBurnableStep extends StatelessWidget {
         kVerticalSpacing,
         Row(
           children: <Widget>[
-            StepperButton(
-              text: context.l10n.goBack,
+            OutlinedButton(
               onPressed: onBackPressed,
+              child: Text(context.l10n.goBack),
             ),
             kHorizontalGap25,
-            StepperButton(
-              text: context.l10n.continueText,
+            OutlinedButton(
               onPressed: onContinuePressed,
+              child: Text(context.l10n.continueText),
             ),
           ],
         ),
