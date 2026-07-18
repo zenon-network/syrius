@@ -50,10 +50,7 @@ class _CreateTokenStepperViewState extends State<CreateTokenStepperView> {
   TextEditingController _tokenSymbolController = TextEditingController();
 
   GlobalKey<FormState> _maxSupplyKey = GlobalKey();
-  GlobalKey<FormState> _tokenSymbolKey = GlobalKey();
-  GlobalKey<FormState> _tokenNameKey = GlobalKey();
   GlobalKey<FormState> _totalSupplyKey = GlobalKey();
-  GlobalKey<FormState> _tokenDomainKey = GlobalKey();
 
   int _selectedNumDecimals = 0;
 
@@ -134,16 +131,11 @@ class _CreateTokenStepperViewState extends State<CreateTokenStepperView> {
           StepperUtils.getMaterialStep(
             stepTitle: context.l10n.tokenDetails,
             stepContent: TokenDetailsStep(
-              isContinueEnabled: _areTokenDetailsCorrect(),
               onBackPressed: _onBackButtonPressed,
-              onChanged: _onInputChanged,
               onContinuePressed: _onTokenDetailsContinuePressed,
               tokenDomainController: _tokenDomainController,
-              tokenDomainKey: _tokenDomainKey,
               tokenNameController: _tokenNameController,
-              tokenNameKey: _tokenNameKey,
               tokenSymbolController: _tokenSymbolController,
-              tokenSymbolKey: _tokenSymbolKey,
             ),
             stepSubtitle:
                 '${_tokenNameController.text} ${_tokenSymbolController.text}',
@@ -183,7 +175,7 @@ class _CreateTokenStepperViewState extends State<CreateTokenStepperView> {
               maxSupplyController: _maxSupplyController,
               maxSupplyKey: _maxSupplyKey,
               onBackPressed: _onBackButtonPressed,
-              onChanged: _onInputChanged,
+              onChanged: (_) {},
               onContinuePressed: _onTokenMetricsContinuePressed,
               onDecimalsChanged: _onDecimalsChanged,
               selectedNumDecimals: _selectedNumDecimals,
@@ -283,15 +275,12 @@ class _CreateTokenStepperViewState extends State<CreateTokenStepperView> {
   }
 
   void _onCreateAnotherTokenPressed() {
-    _tokenNameKey = GlobalKey();
     _tokenNameController = TextEditingController();
-    _tokenSymbolKey = GlobalKey();
     _tokenSymbolController = TextEditingController();
     _totalSupplyKey = GlobalKey();
     _totalSupplyController = TextEditingController();
     _maxSupplyKey = GlobalKey();
     _maxSupplyController = TextEditingController();
-    _tokenDomainKey = GlobalKey();
     _tokenDomainController = TextEditingController();
     _lastCompletedStep = null;
     setState(_initStepperControllers);
@@ -325,10 +314,6 @@ class _CreateTokenStepperViewState extends State<CreateTokenStepperView> {
   void _onIssueDone() {
     _saveProgressAndNavigateToNextStep(_Step.issueToken);
     unawaited(sl.get<TokensCubit>().fetch());
-  }
-
-  void _onInputChanged(String value) {
-    setState(() {});
   }
 
   void _onUtilityChanged(bool value) {
@@ -386,20 +371,6 @@ class _CreateTokenStepperViewState extends State<CreateTokenStepperView> {
       _saveProgressAndNavigateToNextStep(_Step.tokenMetrics);
     }
   }
-
-  bool _areTokenDetailsCorrect() =>
-      Validations.tokenName(
-            _tokenNameController.text,
-          ) ==
-          null &&
-      Validations.tokenSymbol(
-            _tokenSymbolController.text,
-          ) ==
-          null &&
-      InputValidators.checkUrl(
-            _tokenDomainController.text,
-          ) ==
-          null;
 
   bool _areTokenMetricsCorrect() =>
       (!_isMintable ||

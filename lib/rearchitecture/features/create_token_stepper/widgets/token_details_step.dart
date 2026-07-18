@@ -1,34 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 /// Step that collects token name, symbol, and domain.
-class TokenDetailsStep extends StatelessWidget {
+class TokenDetailsStep extends StatefulWidget {
   /// Creates a [TokenDetailsStep].
   const TokenDetailsStep({
-    required this.isContinueEnabled,
     required this.onBackPressed,
-    required this.onChanged,
     required this.onContinuePressed,
     required this.tokenDomainController,
-    required this.tokenDomainKey,
     required this.tokenNameController,
-    required this.tokenNameKey,
     required this.tokenSymbolController,
-    required this.tokenSymbolKey,
     super.key,
   });
 
-  /// Whether the continue button is enabled.
-  final bool isContinueEnabled;
-
   /// Called when the user wants to go back.
   final VoidCallback onBackPressed;
-
-  /// Called when any field changes.
-  final ValueChanged<String> onChanged;
 
   /// Called when the user can continue.
   final VoidCallback onContinuePressed;
@@ -36,87 +24,102 @@ class TokenDetailsStep extends StatelessWidget {
   /// Controller for token domain input.
   final TextEditingController tokenDomainController;
 
-  /// Form key for token domain input.
-  final GlobalKey<FormState> tokenDomainKey;
-
   /// Controller for token name input.
   final TextEditingController tokenNameController;
-
-  /// Form key for token name input.
-  final GlobalKey<FormState> tokenNameKey;
 
   /// Controller for token symbol input.
   final TextEditingController tokenSymbolController;
 
-  /// Form key for token symbol input.
-  final GlobalKey<FormState> tokenSymbolKey;
+  @override
+  State<TokenDetailsStep> createState() => _TokenDetailsStepState();
+}
+
+class _TokenDetailsStepState extends State<TokenDetailsStep> {
+
+  // TODO(maznnwell): the error messages from of validators seem to be mixed up
+  String? get _nameError =>
+      Validations.tokenName(widget.tokenNameController.text);
+
+  String? get _symbolError =>
+      Validations.tokenSymbol(widget.tokenSymbolController.text);
+
+  String? get _domainError =>
+      InputValidators.checkUrl(widget.tokenDomainController.text);
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: <Widget>[
-        Row(
-          children: <Widget>[
-            Expanded(
-              child: Form(
-                key: tokenNameKey,
-                autovalidateMode: AutovalidateMode.onUserInteraction,
-                child: InputField(
-                  onChanged: onChanged,
-                  controller: tokenNameController,
-                  hintText: context.l10n.tokenName,
-                  validator: Validations.tokenName,
-                ),
-              ),
+    return ListenableBuilder(
+      listenable: Listenable.merge(<Listenable>[
+        widget.tokenNameController,
+        widget.tokenSymbolController,
+        widget.tokenDomainController,
+      ]),
+      builder: (_, _) => Column(
+        children: <Widget>[
+          TextField(
+            controller: widget.tokenNameController,
+            decoration: InputDecoration(
+              errorText: widget.tokenNameController.text.isNotEmpty
+                  ? _nameError
+                  : null,
+              hintText: context.l10n.tokenName,
             ),
-          ],
-        ),
-        kVerticalSpacing,
-        Row(
-          children: <Widget>[
-            Expanded(
-              child: Form(
-                key: tokenSymbolKey,
-                autovalidateMode: AutovalidateMode.onUserInteraction,
-                child: InputField(
-                  onChanged: onChanged,
-                  controller: tokenSymbolController,
-                  validator: Validations.tokenSymbol,
-                  hintText: context.l10n.tokenSymbol,
-                ),
-              ),
-            ),
-          ],
-        ),
-        kVerticalSpacing,
-        Form(
-          key: tokenDomainKey,
-          autovalidateMode: AutovalidateMode.onUserInteraction,
-          child: InputField(
-            suffixIcon: FieldSuffixButtons(
-              controller: tokenDomainController,
-            ),
-            onChanged: onChanged,
-            controller: tokenDomainController,
-            validator: InputValidators.checkUrl,
-            hintText: context.l10n.tokenDomain,
           ),
-        ),
-        kVerticalGap25,
-        Row(
-          children: <Widget>[
-            StepperButton(
-              text: context.l10n.goBack,
-              onPressed: onBackPressed,
+          kVerticalGap16,
+          TextField(
+            controller: widget.tokenSymbolController,
+            decoration: InputDecoration(
+              errorText: widget.tokenSymbolController.text.isNotEmpty
+                  ? _symbolError
+                  : null,
+              hintText: context.l10n.tokenSymbol,
             ),
-            kHorizontalGap25,
-            StepperButton(
-              text: context.l10n.continueText,
-              onPressed: isContinueEnabled ? onContinuePressed : null,
+          ),
+          kVerticalGap16,
+          TextField(
+            controller: widget.tokenDomainController,
+            decoration: InputDecoration(
+              errorText: widget.tokenDomainController.text.isNotEmpty
+                  ? _domainError
+                  : null,
+              hintText: context.l10n.tokenDomain,
+              suffixIcon: FieldSuffixButtons(
+                controller: widget.tokenDomainController,
+              ),
             ),
-          ],
-        ),
-      ],
+          ),
+          kVerticalGap25,
+          Row(
+            children: <Widget>[
+              OutlinedButton(
+                onPressed: widget.onBackPressed,
+                child: Text(context.l10n.goBack),
+              ),
+              kHorizontalGap25,
+              OutlinedButton(
+                onPressed: _areTokenDetailsCorrect()
+                    ? widget.onContinuePressed
+                    : null,
+                child: Text(context.l10n.continueText),
+              ),
+            ],
+          ),
+        ],
+      ),
     );
   }
+
+  bool _areTokenDetailsCorrect() =>
+      Validations.tokenName(
+            widget.tokenNameController.text,
+          ) ==
+          null &&
+      Validations.tokenSymbol(
+            widget.tokenSymbolController.text,
+          ) ==
+          null &&
+      InputValidators.checkUrl(
+            widget.tokenDomainController.text,
+          ) ==
+          null;
 }

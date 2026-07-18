@@ -32,7 +32,7 @@ class TokenCreationStep extends StatelessWidget {
           context.l10n.tokenIssuanceAddressDescription,
           style: Theme.of(context).textTheme.headlineSmall,
         ),
-        kVerticalSpacing,
+        kVerticalGap16,
         Row(
           children: <Widget>[
             Expanded(
@@ -48,14 +48,14 @@ class TokenCreationStep extends StatelessWidget {
           ),
           borderColor: AppColors.ztsColor,
         ),
-        kVerticalSpacing,
-        StepperButton(
-          text: context.l10n.continueText,
+        kVerticalGap16,
+        OutlinedButton(
           onPressed:
               accountInfo.getBalance(kZnnCoin.tokenStandard) >=
                   tokenZtsIssueFeeInZnn
               ? onContinuePressed
               : null,
+          child: Text(context.l10n.continueText),
         ),
       ],
     );
