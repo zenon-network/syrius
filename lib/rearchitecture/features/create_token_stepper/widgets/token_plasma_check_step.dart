@@ -5,6 +5,8 @@ import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
+// TODO(maznnwell): the plasma check step can be one widget across all steppers
+
 /// Plasma check step for the token creation flow.
 class TokenPlasmaCheckStep extends StatelessWidget {
   /// Creates a [TokenPlasmaCheckStep].
@@ -28,7 +30,7 @@ class TokenPlasmaCheckStep extends StatelessWidget {
         if (snapshot.hasError) {
           return SyriusErrorWidget(snapshot.error!);
         } else if (snapshot.hasData) {
-          return _Body(
+          return _Populated(
             addressController: addressController,
             onNextPressed: onNextPressed,
             plasmaInfo: snapshot.data!,
@@ -40,8 +42,8 @@ class TokenPlasmaCheckStep extends StatelessWidget {
   }
 }
 
-class _Body extends StatelessWidget {
-  const _Body({
+class _Populated extends StatelessWidget {
+  const _Populated({
     required this.addressController,
     required this.onNextPressed,
     required this.plasmaInfo,
