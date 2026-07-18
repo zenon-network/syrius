@@ -10,7 +10,6 @@ import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/extensions.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/input_validators.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/custom_material_stepper.dart'
     as syrius_stepper;
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
@@ -49,10 +48,7 @@ class _CreateTokenStepperViewState extends State<CreateTokenStepperView> {
   TextEditingController _tokenDomainController = TextEditingController();
   TextEditingController _tokenSymbolController = TextEditingController();
 
-  GlobalKey<FormState> _maxSupplyKey = GlobalKey();
-  GlobalKey<FormState> _totalSupplyKey = GlobalKey();
-
-  int _selectedNumDecimals = 0;
+  final ValueNotifier<int> _selectedNumDecimals = .new(0);
 
   bool _isMintable = false;
   bool _isBurnable = false;
@@ -183,17 +179,12 @@ class _CreateTokenStepperViewState extends State<CreateTokenStepperView> {
           StepperUtils.getMaterialStep(
             stepTitle: context.l10n.tokenMetrics,
             stepContent: TokenMetricsStep(
-              isContinueEnabled: _areTokenMetricsCorrect(),
               isMintable: _isMintable,
               maxSupplyController: _maxSupplyController,
-              maxSupplyKey: _maxSupplyKey,
               onBackPressed: _onBackButtonPressed,
-              onChanged: (_) {},
               onContinuePressed: _onTokenMetricsContinuePressed,
-              onDecimalsChanged: _onDecimalsChanged,
               selectedNumDecimals: _selectedNumDecimals,
               totalSupplyController: _totalSupplyController,
-              totalSupplyKey: _totalSupplyKey,
             ),
             stepSubtitle:
                 '${_totalSupplyController.text} '
@@ -285,12 +276,10 @@ class _CreateTokenStepperViewState extends State<CreateTokenStepperView> {
 
     _tokenNameController = TextEditingController();
     _tokenSymbolController = TextEditingController();
-    _totalSupplyKey = GlobalKey();
     _totalSupplyController = TextEditingController();
-    _maxSupplyKey = GlobalKey();
     _maxSupplyController = TextEditingController();
     _tokenDomainController = TextEditingController();
-    _selectedNumDecimals = 0;
+    _selectedNumDecimals.value = 0;
     _isMintable = false;
     _isBurnable = false;
     _isUtility = true;
@@ -326,12 +315,6 @@ class _CreateTokenStepperViewState extends State<CreateTokenStepperView> {
     });
   }
 
-  void _onDecimalsChanged(int value) {
-    setState(() {
-      _selectedNumDecimals = value;
-    });
-  }
-
   void _onMintableChanged(bool value) {
     setState(() {
       if (value && _totalSupplyController.text.isNotEmpty) {
@@ -355,42 +338,18 @@ class _CreateTokenStepperViewState extends State<CreateTokenStepperView> {
   }
 
   void _onTokenMetricsContinuePressed() {
-    if ((!_isMintable || _maxSupplyKey.currentState!.validate()) &&
-        _totalSupplyKey.currentState!.validate()) {
-      _tokenStepperData.decimals = _selectedNumDecimals;
-      _tokenStepperData.totalSupply = _totalSupplyController.text
-          .extractDecimals(_selectedNumDecimals);
-      _tokenStepperData.isMintable = _isMintable;
-      _tokenStepperData.maxSupply = (_isMintable
-          ? _maxSupplyController.text.extractDecimals(_selectedNumDecimals)
-          : _totalSupplyController.text.extractDecimals(_selectedNumDecimals));
-      _tokenStepperData.isOwnerBurnOnly = _isBurnable;
-      _navigateToNextStep();
-    }
-  }
+    final int decimals = _selectedNumDecimals.value;
 
-  bool _areTokenMetricsCorrect() =>
-      (!_isMintable ||
-          InputValidators.correctValue(
-                _maxSupplyController.text,
-                kBigP255m1,
-                _selectedNumDecimals,
-                kMinTokenTotalMaxSupply,
-                canBeEqualToMin: true,
-              ) ==
-              null) &&
-      InputValidators.correctValue(
-            _totalSupplyController.text,
-            _isMintable
-                ? _maxSupplyController.text.extractDecimals(
-                    _selectedNumDecimals,
-                  )
-                : kBigP255m1,
-            _selectedNumDecimals,
-            _isMintable ? BigInt.zero : kMinTokenTotalMaxSupply,
-            canBeEqualToMin: true,
-          ) ==
-          null;
+    _tokenStepperData.decimals = decimals;
+    _tokenStepperData.totalSupply = _totalSupplyController.text
+        .extractDecimals(decimals);
+    _tokenStepperData.isMintable = _isMintable;
+    _tokenStepperData.maxSupply = (_isMintable
+        ? _maxSupplyController.text.extractDecimals(decimals)
+        : _totalSupplyController.text.extractDecimals(decimals));
+    _tokenStepperData.isOwnerBurnOnly = _isBurnable;
+    _navigateToNextStep();
+  }
 
   @override
   void dispose() {
