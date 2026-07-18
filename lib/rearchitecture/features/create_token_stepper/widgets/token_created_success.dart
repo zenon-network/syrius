@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 
 /// Success UI shown after a token has been created.
 class TokenCreatedSuccess extends StatelessWidget {
@@ -29,18 +28,22 @@ class TokenCreatedSuccess extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: <Widget>[
-          StepperButton.icon(
-            label: context.l10n.createAnotherToken,
+          OutlinedButton.icon(
+            label: Text(context.l10n.createAnotherToken),
             onPressed: onCreateAnotherTokenPressed,
-            iconData: Icons.refresh,
+            icon: const Icon(Icons.refresh, color: Colors.white,),
+            iconAlignment: .end,
           ),
           const SizedBox(
             width: 80,
           ),
-          StepperButton(
-            text: context.l10n.viewMyTokens,
-            outlineColor: AppColors.ztsColor,
+          OutlinedButton(
+            style: OutlinedButton.styleFrom(
+              foregroundColor: AppColors.ztsColor,
+              side: const BorderSide(color: AppColors.ztsColor),
+            ),
             onPressed: onViewTokensPressed,
+            child: Text(context.l10n.viewMyTokens),
           ),
         ],
       ),

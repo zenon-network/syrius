@@ -97,133 +97,126 @@ class _CreateTokenStepperViewState extends State<CreateTokenStepperView> {
           : syrius_stepper.StepState.indexed;
     }
 
-    return Theme(
-      data: Theme.of(context).copyWith(
-        highlightColor: Colors.transparent,
-        splashColor: Colors.transparent,
-        hoverColor: Colors.transparent,
-      ),
-      child: syrius_stepper.Stepper(
-        activeColor: AppColors.ztsColor,
-        currentStep: currentStep?.index ?? lastStepIndex,
-        onStepTapped: (int index) {},
-        steps: <syrius_stepper.Step>[
-          StepperUtils.getMaterialStep(
-            stepTitle: context.l10n.plasmaCheck,
-            stepContent: TokenPlasmaCheckStep(
-              addressController: _addressController,
-              onNextPressed: _navigateToNextStep,
-            ),
-            stepSubtitle: context.l10n.sufficientPlasma,
-            stepState: getStepState(
-              _Step.checkPlasma,
-              currentStep,
-            ),
-            context: context,
-            stepSubtitleColor: AppColors.ztsColor,
+    return syrius_stepper.Stepper(
+      activeColor: AppColors.ztsColor,
+      currentStep: currentStep?.index ?? lastStepIndex,
+      onStepTapped: (int index) {},
+      steps: <syrius_stepper.Step>[
+        StepperUtils.getMaterialStep(
+          stepTitle: context.l10n.plasmaCheck,
+          stepContent: TokenPlasmaCheckStep(
+            addressController: _addressController,
+            onNextPressed: _navigateToNextStep,
           ),
-          StepperUtils.getMaterialStep(
-            stepTitle: context.l10n.tokenCreation,
-            stepContent: TokenCreationStep(
-              accountInfo: accountInfo,
-              addressController: _addressController,
-              onContinuePressed: _onTokenCreationContinuePressed,
-            ),
-            stepSubtitle: _addressController.text,
-            stepState: getStepState(
-              _Step.tokenCreation,
-              currentStep,
-            ),
-            context: context,
-            stepSubtitleColor: AppColors.ztsColor,
+          stepSubtitle: context.l10n.sufficientPlasma,
+          stepState: getStepState(
+            _Step.checkPlasma,
+            currentStep,
           ),
-          StepperUtils.getMaterialStep(
-            stepTitle: context.l10n.tokenDetails,
-            stepContent: TokenDetailsStep(
-              onBackPressed: _onBackButtonPressed,
-              onContinuePressed: _onTokenDetailsContinuePressed,
-              tokenDomainController: _tokenDomainController,
-              tokenNameController: _tokenNameController,
-              tokenSymbolController: _tokenSymbolController,
-            ),
-            stepSubtitle:
-                '${_tokenNameController.text} ${_tokenSymbolController.text}',
-            stepState: getStepState(
-              _Step.tokenDetails,
-              currentStep,
-            ),
-            context: context,
-            stepSubtitleColor: AppColors.ztsColor,
+          context: context,
+          stepSubtitleColor: AppColors.ztsColor,
+        ),
+        StepperUtils.getMaterialStep(
+          stepTitle: context.l10n.tokenCreation,
+          stepContent: TokenCreationStep(
+            accountInfo: accountInfo,
+            addressController: _addressController,
+            onContinuePressed: _onTokenCreationContinuePressed,
           ),
-          StepperUtils.getMaterialStep(
-            stepTitle: context.l10n.tokenMintableBurnableOptions,
-            stepContent: TokenMintableBurnableStep(
-              isBurnable: _isBurnable,
-              isMintable: _isMintable,
-              onBackPressed: _onBackButtonPressed,
-              onBurnableChanged: _onBurnableChanged,
-              onContinuePressed: _navigateToNextStep,
-              onMintableChanged: _onMintableChanged,
-            ),
-            stepSubtitle: context.l10n.tokenMintableBurnableSubtitle(
-              _isBurnable ? context.l10n.yes : context.l10n.no,
-              _isMintable ? context.l10n.yes : context.l10n.no,
-            ),
-            stepState: getStepState(
-              _Step.tokenMintableBurnable,
-              currentStep,
-            ),
-            stepSubtitleColor: AppColors.ztsColor,
-            context: context,
+          stepSubtitle: _addressController.text,
+          stepState: getStepState(
+            _Step.tokenCreation,
+            currentStep,
           ),
-          StepperUtils.getMaterialStep(
-            stepTitle: context.l10n.tokenMetrics,
-            stepContent: TokenMetricsStep(
-              isMintable: _isMintable,
-              maxSupplyController: _maxSupplyController,
-              onBackPressed: _onBackButtonPressed,
-              onContinuePressed: _onTokenMetricsContinuePressed,
-              selectedNumDecimals: _selectedNumDecimals,
-              totalSupplyController: _totalSupplyController,
-            ),
-            stepSubtitle:
-                '${_totalSupplyController.text} '
-                '${_tokenSymbolController.text}',
-            stepState: getStepState(
-              _Step.tokenMetrics,
-              currentStep,
-            ),
-            context: context,
-            stepSubtitleColor: AppColors.ztsColor,
-            stepSubtitleIconData: Icons.whatshot,
+          context: context,
+          stepSubtitleColor: AppColors.ztsColor,
+        ),
+        StepperUtils.getMaterialStep(
+          stepTitle: context.l10n.tokenDetails,
+          stepContent: TokenDetailsStep(
+            onBackPressed: _onBackButtonPressed,
+            onContinuePressed: _onTokenDetailsContinuePressed,
+            tokenDomainController: _tokenDomainController,
+            tokenNameController: _tokenNameController,
+            tokenSymbolController: _tokenSymbolController,
           ),
-          StepperUtils.getMaterialStep(
-            stepTitle: context.l10n.issueToken,
-            stepContent: IssueTokenStep(
-              isUtility: _isUtility,
-              onBackPressed: _onBackButtonPressed,
-              onIssueDone: _onIssueDone,
-              onIssuePressed: _onCreatePressed,
-              onUtilityChanged: _onUtilityChanged,
-            ),
-            stepSubtitle: _isMintable
-                ? context.l10n.tokenSupplyOutOfMax(
-                    _maxSupplyController.text,
-                    _tokenSymbolController.text,
-                    _totalSupplyController.text,
-                  )
-                : _isUtility
-                ? context.l10n.utilityToken
-                : '',
-            stepState: getStepState(
-              _Step.issueToken,
-              currentStep,
-            ),
-            context: context,
-            stepSubtitleColor: AppColors.ztsColor,
+          stepSubtitle:
+              '${_tokenNameController.text} ${_tokenSymbolController.text}',
+          stepState: getStepState(
+            _Step.tokenDetails,
+            currentStep,
           ),
-        ],
-      ),
+          context: context,
+          stepSubtitleColor: AppColors.ztsColor,
+        ),
+        StepperUtils.getMaterialStep(
+          stepTitle: context.l10n.tokenMintableBurnableOptions,
+          stepContent: TokenMintableBurnableStep(
+            isBurnable: _isBurnable,
+            isMintable: _isMintable,
+            onBackPressed: _onBackButtonPressed,
+            onBurnableChanged: _onBurnableChanged,
+            onContinuePressed: _navigateToNextStep,
+            onMintableChanged: _onMintableChanged,
+          ),
+          stepSubtitle: context.l10n.tokenMintableBurnableSubtitle(
+            _isBurnable ? context.l10n.yes : context.l10n.no,
+            _isMintable ? context.l10n.yes : context.l10n.no,
+          ),
+          stepState: getStepState(
+            _Step.tokenMintableBurnable,
+            currentStep,
+          ),
+          stepSubtitleColor: AppColors.ztsColor,
+          context: context,
+        ),
+        StepperUtils.getMaterialStep(
+          stepTitle: context.l10n.tokenMetrics,
+          stepContent: TokenMetricsStep(
+            isMintable: _isMintable,
+            maxSupplyController: _maxSupplyController,
+            onBackPressed: _onBackButtonPressed,
+            onContinuePressed: _onTokenMetricsContinuePressed,
+            selectedNumDecimals: _selectedNumDecimals,
+            totalSupplyController: _totalSupplyController,
+          ),
+          stepSubtitle:
+              '${_totalSupplyController.text} '
+              '${_tokenSymbolController.text}',
+          stepState: getStepState(
+            _Step.tokenMetrics,
+            currentStep,
+          ),
+          context: context,
+          stepSubtitleColor: AppColors.ztsColor,
+          stepSubtitleIconData: Icons.whatshot,
+        ),
+        StepperUtils.getMaterialStep(
+          stepTitle: context.l10n.issueToken,
+          stepContent: IssueTokenStep(
+            isUtility: _isUtility,
+            onBackPressed: _onBackButtonPressed,
+            onIssueDone: _onIssueDone,
+            onIssuePressed: _onCreatePressed,
+            onUtilityChanged: _onUtilityChanged,
+          ),
+          stepSubtitle: _isMintable
+              ? context.l10n.tokenSupplyOutOfMax(
+                  _maxSupplyController.text,
+                  _tokenSymbolController.text,
+                  _totalSupplyController.text,
+                )
+              : _isUtility
+              ? context.l10n.utilityToken
+              : '',
+          stepState: getStepState(
+            _Step.issueToken,
+            currentStep,
+          ),
+          context: context,
+          stepSubtitleColor: AppColors.ztsColor,
+        ),
+      ],
     );
   }
 
