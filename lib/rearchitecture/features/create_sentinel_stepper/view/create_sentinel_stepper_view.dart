@@ -116,7 +116,7 @@ class _MainSentinelState extends State<CreateSentinelStepperView> {
       onStepTapped: (int index) {},
       steps: <custom_material_stepper.Step>[
         StepperUtils.getMaterialStep(
-          stepTitle: context.l10n.sentinelDeployment,
+          stepTitle: context.l10n.plasmaCheck,
           stepContent: SentinelPlasmaCheckStep(
             addressController: _addressController,
             onNextPressed: _onPlasmaCheckNextPressed,

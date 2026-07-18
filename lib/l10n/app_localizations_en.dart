@@ -430,9 +430,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get pillarDelegationError => 'Pillar delegation error';
 
   @override
-  String get pillarDeployment => 'Pillar deployment: Plasma check';
-
-  @override
   String get pillarDetails => 'Pillar details';
 
   @override
@@ -506,6 +503,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get plasma => 'Plasma';
+
+  @override
+  String get plasmaCheck => 'Plasma Check';
 
   @override
   String get pressToReceive => 'Press to receive the transaction';
@@ -627,9 +627,6 @@ class AppLocalizationsEn extends AppLocalizations {
       'Sentinel detected on this address';
 
   @override
-  String get sentinelDeployment => 'Sentinel deployment: Plasma check';
-
-  @override
   String get sentinelRegistered => 'Sentinel registered';
 
   @override
@@ -712,9 +709,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get tokenCreation => 'ZNN Check';
-
-  @override
-  String get tokenCreationPlasmaCheck => 'Plasma Check';
 
   @override
   String get tokenDetails => 'Details';

@@ -796,12 +796,6 @@ abstract class AppLocalizations {
   /// **'Pillar delegation error'**
   String get pillarDelegationError;
 
-  /// No description provided for @pillarDeployment.
-  ///
-  /// In en, this message translates to:
-  /// **'Pillar deployment: Plasma check'**
-  String get pillarDeployment;
-
   /// No description provided for @pillarDetails.
   ///
   /// In en, this message translates to:
@@ -933,6 +927,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Plasma'**
   String get plasma;
+
+  /// No description provided for @plasmaCheck.
+  ///
+  /// In en, this message translates to:
+  /// **'Plasma Check'**
+  String get plasmaCheck;
 
   /// No description provided for @pressToReceive.
   ///
@@ -1131,12 +1131,6 @@ abstract class AppLocalizations {
   /// **'Sentinel detected on this address'**
   String get sentinelDetectedOnThisAddress;
 
-  /// No description provided for @sentinelDeployment.
-  ///
-  /// In en, this message translates to:
-  /// **'Sentinel deployment: Plasma check'**
-  String get sentinelDeployment;
-
   /// No description provided for @sentinelRegistered.
   ///
   /// In en, this message translates to:
@@ -1286,12 +1280,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'ZNN Check'**
   String get tokenCreation;
-
-  /// No description provided for @tokenCreationPlasmaCheck.
-  ///
-  /// In en, this message translates to:
-  /// **'Plasma Check'**
-  String get tokenCreationPlasmaCheck;
 
   /// No description provided for @tokenDetails.
   ///

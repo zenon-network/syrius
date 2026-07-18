@@ -103,7 +103,7 @@ class _CreateTokenStepperViewState extends State<CreateTokenStepperView> {
         onStepTapped: (int index) {},
         steps: <custom_material_stepper.Step>[
           StepperUtils.getMaterialStep(
-            stepTitle: context.l10n.tokenCreationPlasmaCheck,
+            stepTitle: context.l10n.plasmaCheck,
             stepContent: TokenPlasmaCheckStep(
               addressController: _addressController,
               onNextPressed: _onPlasmaCheckNextPressed,
@@ -402,14 +402,15 @@ class _CreateTokenStepperViewState extends State<CreateTokenStepperView> {
           null;
 
   bool _areTokenMetricsCorrect() =>
-      (!_isMintable || InputValidators.correctValue(
-                  _maxSupplyController.text,
-                  kBigP255m1,
-                  _selectedNumDecimals,
-                  kMinTokenTotalMaxSupply,
-                  canBeEqualToMin: true,
-                ) ==
-                null) &&
+      (!_isMintable ||
+          InputValidators.correctValue(
+                _maxSupplyController.text,
+                kBigP255m1,
+                _selectedNumDecimals,
+                kMinTokenTotalMaxSupply,
+                canBeEqualToMin: true,
+              ) ==
+              null) &&
       InputValidators.correctValue(
             _totalSupplyController.text,
             _isMintable
