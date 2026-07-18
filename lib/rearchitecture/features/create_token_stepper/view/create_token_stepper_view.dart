@@ -1,20 +1,16 @@
 import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:lottie/lottie.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/model/model.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/tokens/cubit/tokens_cubit.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/extensions.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/format_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/input_validators.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/notification_utils.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/zts_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/custom_material_stepper.dart'
     as custom_material_stepper;
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
@@ -58,7 +54,6 @@ class _CreateTokenStepperViewState extends State<CreateTokenStepperView> {
   GlobalKey<FormState> _tokenNameKey = GlobalKey();
   GlobalKey<FormState> _totalSupplyKey = GlobalKey();
   GlobalKey<FormState> _tokenDomainKey = GlobalKey();
-  final GlobalKey<LoadingButtonState> _createButtonKey = GlobalKey();
 
   int _selectedNumDecimals = 0;
 
@@ -87,7 +82,7 @@ class _CreateTokenStepperViewState extends State<CreateTokenStepperView> {
         MultipleBalanceStatus.failure => SyriusErrorWidget(state.error!),
         MultipleBalanceStatus.initial => const SyriusLoadingWidget(),
         MultipleBalanceStatus.loading => const SyriusLoadingWidget(),
-        MultipleBalanceStatus.success => _getBody(
+        MultipleBalanceStatus.success => _buildBody(
           context,
           state.data![_addressController.text]!,
         ),
@@ -95,81 +90,7 @@ class _CreateTokenStepperViewState extends State<CreateTokenStepperView> {
     );
   }
 
-  Widget _getTokenDetailsStepContent(
-    BuildContext context,
-    AccountInfo accountInfo,
-  ) {
-    return Column(
-      children: <Widget>[
-        Row(
-          children: <Widget>[
-            Expanded(
-              child: Form(
-                key: _tokenNameKey,
-                autovalidateMode: AutovalidateMode.onUserInteraction,
-                child: InputField(
-                  onChanged: (String value) {
-                    setState(() {});
-                  },
-                  controller: _tokenNameController,
-                  hintText: context.l10n.tokenName,
-                  validator: Validations.tokenName,
-                ),
-              ),
-            ),
-          ],
-        ),
-        kVerticalSpacing,
-        Row(
-          children: <Widget>[
-            Expanded(
-              child: Form(
-                key: _tokenSymbolKey,
-                autovalidateMode: AutovalidateMode.onUserInteraction,
-                child: InputField(
-                  onChanged: (String value) {
-                    setState(() {});
-                  },
-                  controller: _tokenSymbolController,
-                  validator: Validations.tokenSymbol,
-                  hintText: context.l10n.tokenSymbol,
-                ),
-              ),
-            ),
-          ],
-        ),
-        kVerticalSpacing,
-        Form(
-          key: _tokenDomainKey,
-          autovalidateMode: AutovalidateMode.onUserInteraction,
-          child: InputField(
-            suffixIcon: FieldSuffixButtons(
-              controller: _tokenDomainController,
-            ),
-            onChanged: (String value) {
-              setState(() {});
-            },
-            controller: _tokenDomainController,
-            validator: InputValidators.checkUrl,
-            hintText: context.l10n.tokenDomain,
-          ),
-        ),
-        const SizedBox(
-          height: 25,
-        ),
-        _getTokenDetailsActionButtons(),
-      ],
-    );
-  }
-
-  Widget _getStepBackButton() {
-    return StepperButton(
-      text: context.l10n.goBack,
-      onPressed: _onBackButtonPressed,
-    );
-  }
-
-  Widget _getMaterialStepper(BuildContext context, AccountInfo accountInfo) {
+  Widget _buildMaterialStepper(BuildContext context, AccountInfo accountInfo) {
     return Theme(
       data: Theme.of(context).copyWith(
         highlightColor: Colors.transparent,
@@ -183,7 +104,10 @@ class _CreateTokenStepperViewState extends State<CreateTokenStepperView> {
         steps: <custom_material_stepper.Step>[
           StepperUtils.getMaterialStep(
             stepTitle: context.l10n.tokenCreationPlasmaCheck,
-            stepContent: _getPlasmaCheckFutureBuilder(),
+            stepContent: TokenPlasmaCheckStep(
+              addressController: _addressController,
+              onNextPressed: _onPlasmaCheckNextPressed,
+            ),
             stepSubtitle: context.l10n.sufficientPlasma,
             stepState: StepperUtils.getStepState(
               _Step.checkPlasma.index,
@@ -194,7 +118,11 @@ class _CreateTokenStepperViewState extends State<CreateTokenStepperView> {
           ),
           StepperUtils.getMaterialStep(
             stepTitle: context.l10n.tokenCreation,
-            stepContent: _getTokenCreationStepContent(accountInfo),
+            stepContent: TokenCreationStep(
+              accountInfo: accountInfo,
+              addressController: _addressController,
+              onContinuePressed: _onTokenCreationContinuePressed,
+            ),
             stepSubtitle: _addressController.text,
             stepState: StepperUtils.getStepState(
               _Step.tokenCreation.index,
@@ -205,7 +133,18 @@ class _CreateTokenStepperViewState extends State<CreateTokenStepperView> {
           ),
           StepperUtils.getMaterialStep(
             stepTitle: context.l10n.tokenDetails,
-            stepContent: _getTokenDetailsStepContent(context, accountInfo),
+            stepContent: TokenDetailsStep(
+              isContinueEnabled: _areTokenDetailsCorrect(),
+              onBackPressed: _onBackButtonPressed,
+              onChanged: _onInputChanged,
+              onContinuePressed: _onTokenDetailsContinuePressed,
+              tokenDomainController: _tokenDomainController,
+              tokenDomainKey: _tokenDomainKey,
+              tokenNameController: _tokenNameController,
+              tokenNameKey: _tokenNameKey,
+              tokenSymbolController: _tokenSymbolController,
+              tokenSymbolKey: _tokenSymbolKey,
+            ),
             stepSubtitle:
                 '${_tokenNameController.text} ${_tokenSymbolController.text}',
             stepState: StepperUtils.getStepState(
@@ -217,7 +156,14 @@ class _CreateTokenStepperViewState extends State<CreateTokenStepperView> {
           ),
           StepperUtils.getMaterialStep(
             stepTitle: context.l10n.tokenMintableBurnableOptions,
-            stepContent: _getTokenMintableAndBurnableStepContent(),
+            stepContent: TokenMintableBurnableStep(
+              isBurnable: _isBurnable,
+              isMintable: _isMintable,
+              onBackPressed: _onBackButtonPressed,
+              onBurnableChanged: _onBurnableChanged,
+              onContinuePressed: _onMintableBurnableContinuePressed,
+              onMintableChanged: _onMintableChanged,
+            ),
             stepSubtitle: context.l10n.tokenMintableBurnableSubtitle(
               _isBurnable ? context.l10n.yes : context.l10n.no,
               _isMintable ? context.l10n.yes : context.l10n.no,
@@ -231,7 +177,19 @@ class _CreateTokenStepperViewState extends State<CreateTokenStepperView> {
           ),
           StepperUtils.getMaterialStep(
             stepTitle: context.l10n.tokenMetrics,
-            stepContent: _getTokenMetricsStepContent(context, accountInfo),
+            stepContent: TokenMetricsStep(
+              isContinueEnabled: _areTokenMetricsCorrect(),
+              isMintable: _isMintable,
+              maxSupplyController: _maxSupplyController,
+              maxSupplyKey: _maxSupplyKey,
+              onBackPressed: _onBackButtonPressed,
+              onChanged: _onInputChanged,
+              onContinuePressed: _onTokenMetricsContinuePressed,
+              onDecimalsChanged: _onDecimalsChanged,
+              selectedNumDecimals: _selectedNumDecimals,
+              totalSupplyController: _totalSupplyController,
+              totalSupplyKey: _totalSupplyKey,
+            ),
             stepSubtitle:
                 '${_totalSupplyController.text} '
                 '${_tokenSymbolController.text}',
@@ -245,7 +203,13 @@ class _CreateTokenStepperViewState extends State<CreateTokenStepperView> {
           ),
           StepperUtils.getMaterialStep(
             stepTitle: context.l10n.issueToken,
-            stepContent: _getIssueTokenStepContent(context),
+            stepContent: IssueTokenStep(
+              isUtility: _isUtility,
+              onBackPressed: _onBackButtonPressed,
+              onIssueDone: _onIssueDone,
+              onIssuePressed: _onCreatePressed,
+              onUtilityChanged: _onUtilityChanged,
+            ),
             stepSubtitle: _isMintable
                 ? context.l10n.tokenSupplyOutOfMax(
                     _maxSupplyController.text,
@@ -267,55 +231,6 @@ class _CreateTokenStepperViewState extends State<CreateTokenStepperView> {
     );
   }
 
-  Widget _getPlasmaCheckFutureBuilder() {
-    return FutureBuilder<PlasmaInfo?>(
-      future: zenon!.embedded.plasma.get(Address.parse(kSelectedAddress!)),
-      builder: (_, AsyncSnapshot<PlasmaInfo?> snapshot) {
-        if (snapshot.hasError) {
-          return SyriusErrorWidget(snapshot.error!);
-        } else if (snapshot.hasData) {
-          return _getPlasmaCheckBody(snapshot.data!);
-        }
-        return const SyriusLoadingWidget();
-      },
-    );
-  }
-
-  Widget _getPlasmaCheckBody(PlasmaInfo plasmaInfo) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: <Widget>[
-        Text(
-          context.l10n.morePlasmaRequired,
-          style: Theme.of(context).textTheme.headlineSmall,
-        ),
-        const SizedBox(
-          height: 25,
-        ),
-        Row(
-          children: <Widget>[
-            Expanded(
-              child: DisabledAddressField(_addressController),
-            ),
-            const SizedBox(
-              width: 25,
-            ),
-            PlasmaIcon(plasmaInfo),
-          ],
-        ),
-        const SizedBox(
-          height: 25,
-        ),
-        StepperButton(
-          text: context.l10n.next,
-          onPressed: plasmaInfo.currentPlasma >= kIssueTokenPlasmaAmountNeeded
-              ? _onPlasmaCheckNextPressed
-              : null,
-        ),
-      ],
-    );
-  }
-
   void _onPlasmaCheckNextPressed() {
     if (_lastCompletedStep == null) {
       _saveProgressAndNavigateToNextStep(_Step.checkPlasma);
@@ -328,199 +243,6 @@ class _CreateTokenStepperViewState extends State<CreateTokenStepperView> {
         _currentStep = _Step.values[_currentStep.index + 1];
       });
     }
-  }
-
-  Widget _getIssueTokenStepContent(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 25),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-          Row(
-            children: <Widget>[
-              Checkbox(
-                activeColor: AppColors.ztsColor,
-                value: _isUtility,
-                onChanged: (bool? value) {
-                  setState(() {
-                    _isUtility = value!;
-                  });
-                },
-              ),
-              Text(
-                context.l10n.utilityToken,
-                style: Theme.of(context).inputDecorationTheme.hintStyle,
-              ),
-              const SizedBox(
-                width: 3,
-              ),
-              const Icon(Icons.settings, size: 15, color: AppColors.ztsColor),
-              StandardTooltipIcon(
-                context.l10n.tokenStatusUtilityTooltip,
-                Icons.help,
-                iconColor: AppColors.ztsColor,
-              ),
-            ],
-          ),
-          Padding(
-            padding: const EdgeInsets.only(top: 25, bottom: 25, left: 15),
-            child: DottedBorderInfoWidget(
-              text: context.l10n.burnTokenIssueFee(
-                tokenZtsIssueFeeInZnn.addDecimals(coinDecimals),
-                kZnnCoin.symbol,
-              ),
-              borderColor: AppColors.ztsColor,
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.only(left: 15),
-            child: Row(
-              children: <Widget>[
-                Visibility(
-                  visible:
-                      (_createButtonKey.currentState?.btnState ??
-                          ButtonState.idle) ==
-                      ButtonState.idle,
-                  child: Row(
-                    children: <Widget>[
-                      _getStepBackButton(),
-                      const SizedBox(
-                        width: 25,
-                      ),
-                    ],
-                  ),
-                ),
-                _getIssueTokenViewModel(),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _getCreateButton() {
-    return LoadingButton.stepper(
-      text: context.l10n.create,
-      outlineColor: AppColors.ztsColor,
-      onPressed: _onCreatePressed,
-      key: _createButtonKey,
-    );
-  }
-
-  Widget _getTokenMetricsStepContent(
-    BuildContext context,
-    AccountInfo accountInfo,
-  ) {
-    return Column(
-      children: <Widget>[
-        Padding(
-          padding: const EdgeInsets.only(bottom: 20),
-          child: CustomSlider(
-            activeColor: AppColors.ztsColor,
-            description: context.l10n.numberOfDecimals(_selectedNumDecimals),
-            startValue: 0,
-            min: 0,
-            maxValue: 18,
-            callback: (double value) {
-              setState(() {
-                _selectedNumDecimals = value.toInt();
-              });
-            },
-          ),
-        ),
-        Visibility(
-          visible: _isMintable,
-          child: Container(
-            margin: const EdgeInsets.only(bottom: 15),
-            child: Row(
-              children: <Widget>[
-                Expanded(
-                  child: Form(
-                    key: _maxSupplyKey,
-                    autovalidateMode: AutovalidateMode.onUserInteraction,
-                    child: InputField(
-                      inputFormatters: FormatUtils.getAmountTextInputFormatters(
-                        _maxSupplyController.text,
-                      ),
-                      onChanged: (String value) {
-                        setState(() {});
-                      },
-                      controller: _maxSupplyController,
-                      hintText: context.l10n.maxSupply,
-                      validator: _isMintable
-                          ? (String? value) => InputValidators.correctValue(
-                              value,
-                              kBigP255m1,
-                              _selectedNumDecimals,
-                              kMinTokenTotalMaxSupply,
-                              canBeEqualToMin: true,
-                            )
-                          : InputValidators.isMaxSupplyZero,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-        Row(
-          children: <Widget>[
-            Expanded(
-              child: Form(
-                key: _totalSupplyKey,
-                autovalidateMode: AutovalidateMode.onUserInteraction,
-                child: InputField(
-                  inputFormatters: FormatUtils.getAmountTextInputFormatters(
-                    _totalSupplyController.text,
-                  ),
-                  onChanged: (String value) {
-                    setState(() {});
-                  },
-                  controller: _totalSupplyController,
-                  hintText: context.l10n.totalSupply,
-                  validator: (String? value) => InputValidators.correctValue(
-                    value,
-                    _isMintable
-                        ? _maxSupplyController.text.isNotEmpty
-                              ? _maxSupplyController.text.extractDecimals(
-                                  _selectedNumDecimals,
-                                )
-                              : kBigP255m1
-                        : kBigP255m1,
-                    _selectedNumDecimals,
-                    _isMintable ? BigInt.zero : kMinTokenTotalMaxSupply,
-                    canBeEqualToMin: true,
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
-        kVerticalSpacing,
-        _getTokenMetricsActionButtons(),
-      ],
-    );
-  }
-
-  Row _getTokenMetricsActionButtons() {
-    return Row(
-      children: <Widget>[
-        Row(
-          children: <Widget>[
-            _getStepBackButton(),
-            const SizedBox(
-              width: 25,
-            ),
-            _getTokenMetricsContinueButton(),
-          ],
-        ),
-      ],
-    );
-  }
-
-  Widget _getTokenCreationActionButtons(AccountInfo accountInfo) {
-    return _getTokenCreationContinueButton(accountInfo);
   }
 
   void _onBackButtonPressed() {
@@ -537,64 +259,26 @@ class _CreateTokenStepperViewState extends State<CreateTokenStepperView> {
     }
   }
 
-  Widget _getBody(BuildContext context, AccountInfo accountInfo) {
+  Widget _buildBody(BuildContext context, AccountInfo accountInfo) {
     return Stack(
       children: <Widget>[
         ListView(
           children: <Widget>[
-            _getMaterialStepper(context, accountInfo),
-            Padding(
-              padding: const EdgeInsets.only(
-                top: 50,
-                bottom: 20,
-              ),
-              child: Visibility(
-                visible: (_lastCompletedStep?.index ?? -1) == _numSteps - 1,
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: <Widget>[
-                    StepperButton.icon(
-                      label: context.l10n.createAnotherToken,
-                      onPressed: _onCreateAnotherTokenPressed,
-                      iconData: Icons.refresh,
-                    ),
-                    const SizedBox(
-                      width: 80,
-                    ),
-                    _getViewTokensButton(),
-                  ],
-                ),
+            _buildMaterialStepper(context, accountInfo),
+            Visibility(
+              visible: (_lastCompletedStep?.index ?? -1) == _numSteps - 1,
+              child: TokenCreatedSuccess(
+                onCreateAnotherTokenPressed: _onCreateAnotherTokenPressed,
+                onViewTokensPressed: () {
+                  Navigator.pop(context);
+                },
               ),
             ),
           ],
         ),
-        Visibility(
-          visible: (_lastCompletedStep?.index ?? -1) == _numSteps - 1,
-          child: Positioned(
-            right: 50,
-            child: SizedBox(
-              width: 400,
-              height: 400,
-              child: Center(
-                child: Lottie.asset(
-                  'assets/lottie/ic_anim_zts.json',
-                  repeat: false,
-                ),
-              ),
-            ),
-          ),
-        ),
+        if ((_lastCompletedStep?.index ?? -1) == _numSteps - 1)
+          const TokenCreatedSuccessAnimation(),
       ],
-    );
-  }
-
-  Widget _getViewTokensButton() {
-    return StepperButton(
-      text: context.l10n.viewMyTokens,
-      outlineColor: AppColors.ztsColor,
-      onPressed: () {
-        Navigator.pop(context);
-      },
     );
   }
 
@@ -611,36 +295,6 @@ class _CreateTokenStepperViewState extends State<CreateTokenStepperView> {
     _tokenDomainController = TextEditingController();
     _lastCompletedStep = null;
     setState(_initStepperControllers);
-  }
-
-  Widget _getTokenCreationStepContent(AccountInfo accountInfo) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: <Widget>[
-        Text(
-          context.l10n.tokenIssuanceAddressDescription,
-          style: Theme.of(context).textTheme.headlineSmall,
-        ),
-        kVerticalSpacing,
-        Row(
-          children: <Widget>[
-            Expanded(
-              child: DisabledAddressField(_addressController),
-            ),
-          ],
-        ),
-        StepperUtils.getBalanceWidget(kZnnCoin, accountInfo),
-        DottedBorderInfoWidget(
-          text: context.l10n.burnTokenIssueFee(
-            tokenZtsIssueFeeInZnn.addDecimals(coinDecimals),
-            kZnnCoin.symbol,
-          ),
-          borderColor: AppColors.ztsColor,
-        ),
-        kVerticalSpacing,
-        _getTokenCreationActionButtons(accountInfo),
-      ],
-    );
   }
 
   void _onTokenCreationContinuePressed() {
@@ -668,6 +322,49 @@ class _CreateTokenStepperViewState extends State<CreateTokenStepperView> {
     );
   }
 
+  void _onIssueDone() {
+    _saveProgressAndNavigateToNextStep(_Step.issueToken);
+    unawaited(sl.get<TokensCubit>().fetch());
+  }
+
+  void _onInputChanged(String value) {
+    setState(() {});
+  }
+
+  void _onUtilityChanged(bool value) {
+    setState(() {
+      _isUtility = value;
+    });
+  }
+
+  void _onDecimalsChanged(int value) {
+    setState(() {
+      _selectedNumDecimals = value;
+    });
+  }
+
+  void _onMintableChanged(bool value) {
+    setState(() {
+      if (value && _totalSupplyController.text.isNotEmpty) {
+        _maxSupplyController.text = _totalSupplyController.text;
+      }
+      _isMintable = value;
+    });
+  }
+
+  void _onBurnableChanged(bool value) {
+    setState(() {
+      _isBurnable = value;
+    });
+  }
+
+  void _onMintableBurnableContinuePressed() {
+    setState(() {
+      _lastCompletedStep = _Step.tokenMintableBurnable;
+      _currentStep = _Step.tokenMetrics;
+    });
+  }
+
   void _onTokenDetailsContinuePressed() {
     _tokenStepperData.tokenName = _tokenNameController.text;
     _tokenStepperData.tokenSymbol = _tokenSymbolController.text;
@@ -690,65 +387,6 @@ class _CreateTokenStepperViewState extends State<CreateTokenStepperView> {
     }
   }
 
-  Widget _getIssueTokenViewModel() {
-    return BlocListener<IssueTokenBloc, IssueTokenState>(
-      listener: (_, IssueTokenState state) => _onIssueTokenStateChanged(state),
-      child: _getCreateButton(),
-    );
-  }
-
-  void _onIssueTokenStateChanged(IssueTokenState state) {
-    if (state is IssueTokenLoading) {
-      _createButtonKey.currentState?.animateForward();
-    } else if (state is IssueTokenDone) {
-      _createButtonKey.currentState?.animateReverse();
-      _saveProgressAndNavigateToNextStep(_Step.issueToken);
-      sl.get<TokensCubit>().fetch();
-    } else if (state is IssueTokenFailure) {
-      _createButtonKey.currentState?.animateReverse();
-      unawaited(
-        NotificationUtils.sendNotificationError(
-          state.exception,
-          context.l10n.errorCreatingToken,
-        ),
-      );
-    }
-  }
-
-  Widget _getTokenCreationContinueButton(AccountInfo accountInfo) {
-    return StepperButton(
-      text: context.l10n.continueText,
-      onPressed:
-          accountInfo.getBalance(
-                kZnnCoin.tokenStandard,
-              ) >=
-              tokenZtsIssueFeeInZnn
-          ? _onTokenCreationContinuePressed
-          : null,
-    );
-  }
-
-  Widget _getTokenDetailsActionButtons() {
-    return Row(
-      children: <Widget>[
-        _getStepBackButton(),
-        const SizedBox(
-          width: 25,
-        ),
-        _getTokenDetailsContinueButton(),
-      ],
-    );
-  }
-
-  Widget _getTokenDetailsContinueButton() {
-    return StepperButton(
-      text: context.l10n.continueText,
-      onPressed: _areTokenDetailsCorrect()
-          ? _onTokenDetailsContinuePressed
-          : null,
-    );
-  }
-
   bool _areTokenDetailsCorrect() =>
       Validations.tokenName(
             _tokenNameController.text,
@@ -763,26 +401,15 @@ class _CreateTokenStepperViewState extends State<CreateTokenStepperView> {
           ) ==
           null;
 
-  Widget _getTokenMetricsContinueButton() {
-    return StepperButton(
-      text: context.l10n.continueText,
-      onPressed: _areTokenMetricsCorrect()
-          ? _onTokenMetricsContinuePressed
-          : null,
-    );
-  }
-
   bool _areTokenMetricsCorrect() =>
-      (_isMintable
-          ? InputValidators.correctValue(
+      (!_isMintable || InputValidators.correctValue(
                   _maxSupplyController.text,
                   kBigP255m1,
                   _selectedNumDecimals,
                   kMinTokenTotalMaxSupply,
                   canBeEqualToMin: true,
                 ) ==
-                null
-          : true) &&
+                null) &&
       InputValidators.correctValue(
             _totalSupplyController.text,
             _isMintable
@@ -795,89 +422,6 @@ class _CreateTokenStepperViewState extends State<CreateTokenStepperView> {
             canBeEqualToMin: true,
           ) ==
           null;
-
-  Widget _getTokenMintableAndBurnableStepContent() {
-    return Column(
-      children: <Widget>[
-        Row(
-          children: <Widget>[
-            const SizedBox(
-              width: 20,
-            ),
-            Checkbox(
-              activeColor: AppColors.ztsColor,
-              value: _isMintable,
-              onChanged: (bool? value) {
-                setState(() {
-                  if (value! && _totalSupplyController.text.isNotEmpty) {
-                    _maxSupplyController.text = _totalSupplyController.text;
-                  }
-                  _isMintable = value;
-                });
-              },
-            ),
-            Text(
-              context.l10n.mintable,
-              style: Theme.of(context).inputDecorationTheme.hintStyle,
-            ),
-            StandardTooltipIcon(
-              context.l10n.tokenMintableTooltip,
-              Icons.help,
-              iconColor: AppColors.ztsColor,
-            ),
-          ],
-        ),
-        Row(
-          children: <Widget>[
-            const SizedBox(
-              width: 20,
-            ),
-            Checkbox(
-              activeColor: AppColors.ztsColor,
-              value: _isBurnable,
-              onChanged: (bool? value) {
-                setState(() {
-                  _isBurnable = value!;
-                });
-              },
-            ),
-            Text(
-              context.l10n.burn,
-              style: Theme.of(context).inputDecorationTheme.hintStyle,
-            ),
-            const Icon(
-              Icons.whatshot,
-              size: 15,
-              color: AppColors.ztsColor,
-            ),
-            StandardTooltipIcon(
-              context.l10n.tokenBurnTooltip,
-              Icons.help,
-              iconColor: AppColors.ztsColor,
-            ),
-          ],
-        ),
-        kVerticalSpacing,
-        Row(
-          children: <Widget>[
-            _getStepBackButton(),
-            const SizedBox(
-              width: 25,
-            ),
-            StepperButton(
-              text: context.l10n.continueText,
-              onPressed: () {
-                setState(() {
-                  _lastCompletedStep = _Step.tokenMintableBurnable;
-                  _currentStep = _Step.tokenMetrics;
-                });
-              },
-            ),
-          ],
-        ),
-      ],
-    );
-  }
 
   @override
   void dispose() {

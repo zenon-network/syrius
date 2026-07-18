@@ -1,0 +1,143 @@
+import 'dart:async';
+
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
+import 'package:znn_sdk_dart/znn_sdk_dart.dart';
+
+/// Final step that issues the token.
+class IssueTokenStep extends StatefulWidget {
+  /// Creates an [IssueTokenStep].
+  const IssueTokenStep({
+    required this.isUtility,
+    required this.onBackPressed,
+    required this.onIssueDone,
+    required this.onIssuePressed,
+    required this.onUtilityChanged,
+    super.key,
+  });
+
+  /// Whether the token is a utility token.
+  final bool isUtility;
+
+  /// Called when the user wants to go back.
+  final VoidCallback onBackPressed;
+
+  /// Called after the issue operation succeeds.
+  final VoidCallback onIssueDone;
+
+  /// Called when the user presses create.
+  final VoidCallback onIssuePressed;
+
+  /// Called when utility state changes.
+  final ValueChanged<bool> onUtilityChanged;
+
+  @override
+  State<IssueTokenStep> createState() => _IssueTokenStepState();
+}
+
+class _IssueTokenStepState extends State<IssueTokenStep> {
+  final GlobalKey<LoadingButtonState> _createButtonKey = GlobalKey();
+
+  bool get _isLoading =>
+      (_createButtonKey.currentState?.btnState ?? ButtonState.idle) !=
+      ButtonState.idle;
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocListener<IssueTokenBloc, IssueTokenState>(
+      listener: (_, IssueTokenState state) => _onIssueTokenStateChanged(state),
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 25),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: <Widget>[
+            Row(
+              children: <Widget>[
+                Checkbox(
+                  activeColor: AppColors.ztsColor,
+                  value: widget.isUtility,
+                  onChanged: (bool? value) {
+                    if (value != null) {
+                      widget.onUtilityChanged(value);
+                    }
+                  },
+                ),
+                Text(
+                  context.l10n.utilityToken,
+                  style: Theme.of(context).inputDecorationTheme.hintStyle,
+                ),
+                const SizedBox(width: 3),
+                const Icon(
+                  Icons.settings,
+                  size: 15,
+                  color: AppColors.ztsColor,
+                ),
+                StandardTooltipIcon(
+                  context.l10n.tokenStatusUtilityTooltip,
+                  Icons.help,
+                  iconColor: AppColors.ztsColor,
+                ),
+              ],
+            ),
+            Padding(
+              padding: const EdgeInsets.only(top: 25, bottom: 25, left: 15),
+              child: DottedBorderInfoWidget(
+                text: context.l10n.burnTokenIssueFee(
+                  tokenZtsIssueFeeInZnn.addDecimals(coinDecimals),
+                  kZnnCoin.symbol,
+                ),
+                borderColor: AppColors.ztsColor,
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.only(left: 15),
+              child: Row(
+                children: <Widget>[
+                  Visibility(
+                    visible: !_isLoading,
+                    child: Row(
+                      children: <Widget>[
+                        StepperButton(
+                          text: context.l10n.goBack,
+                          onPressed: widget.onBackPressed,
+                        ),
+                        kHorizontalGap25,
+                      ],
+                    ),
+                  ),
+                  LoadingButton.stepper(
+                    text: context.l10n.create,
+                    outlineColor: AppColors.ztsColor,
+                    onPressed: widget.onIssuePressed,
+                    key: _createButtonKey,
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _onIssueTokenStateChanged(IssueTokenState state) {
+    if (state is IssueTokenLoading) {
+      _createButtonKey.currentState?.animateForward();
+    } else if (state is IssueTokenDone) {
+      _createButtonKey.currentState?.animateReverse();
+      widget.onIssueDone();
+    } else if (state is IssueTokenFailure) {
+      _createButtonKey.currentState?.animateReverse();
+      unawaited(
+        NotificationUtils.sendNotificationError(
+          state.exception,
+          context.l10n.errorCreatingToken,
+        ),
+      );
+    }
+  }
+}
