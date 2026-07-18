@@ -37,10 +37,10 @@ class CreateTokenStepperView extends StatefulWidget {
 }
 
 class _CreateTokenStepperViewState extends State<CreateTokenStepperView> {
-  late _Step _currentStep;
-  _Step? _lastCompletedStep;
-
-  final int _numSteps = _Step.values.length;
+  // When value is null, it means the stepper has completed.
+  final ValueNotifier<_Step?> _currentStep = ValueNotifier<_Step?>(
+    _Step.checkPlasma,
+  );
 
   final TextEditingController _addressController = TextEditingController();
   TextEditingController _tokenNameController = TextEditingController();
@@ -69,7 +69,6 @@ class _CreateTokenStepperViewState extends State<CreateTokenStepperView> {
         addresses: kDefaultAddressList.map((String? e) => e!).toList(),
       ),
     );
-    _initStepperControllers();
   }
 
   @override
@@ -87,7 +86,21 @@ class _CreateTokenStepperViewState extends State<CreateTokenStepperView> {
     );
   }
 
-  Widget _buildMaterialStepper(BuildContext context, AccountInfo accountInfo) {
+  Widget _buildMaterialStepper({
+    required AccountInfo accountInfo,
+    required _Step? currentStep,
+  }) {
+    final int lastStepIndex = _Step.values.last.index;
+
+    custom_material_stepper.StepState getStepState(
+      _Step step,
+      _Step? currentStep,
+    ) {
+      return step.index < (currentStep?.index ?? lastStepIndex + 1)
+          ? custom_material_stepper.StepState.complete
+          : custom_material_stepper.StepState.indexed;
+    }
+
     return Theme(
       data: Theme.of(context).copyWith(
         highlightColor: Colors.transparent,
@@ -96,19 +109,19 @@ class _CreateTokenStepperViewState extends State<CreateTokenStepperView> {
       ),
       child: custom_material_stepper.Stepper(
         activeColor: AppColors.ztsColor,
-        currentStep: _currentStep.index,
+        currentStep: currentStep?.index ?? lastStepIndex,
         onStepTapped: (int index) {},
         steps: <custom_material_stepper.Step>[
           StepperUtils.getMaterialStep(
             stepTitle: context.l10n.plasmaCheck,
             stepContent: TokenPlasmaCheckStep(
               addressController: _addressController,
-              onNextPressed: _onPlasmaCheckNextPressed,
+              onNextPressed: _navigateToNextStep,
             ),
             stepSubtitle: context.l10n.sufficientPlasma,
-            stepState: StepperUtils.getStepState(
-              _Step.checkPlasma.index,
-              _lastCompletedStep?.index,
+            stepState: getStepState(
+              _Step.checkPlasma,
+              currentStep,
             ),
             context: context,
             stepSubtitleColor: AppColors.ztsColor,
@@ -121,9 +134,9 @@ class _CreateTokenStepperViewState extends State<CreateTokenStepperView> {
               onContinuePressed: _onTokenCreationContinuePressed,
             ),
             stepSubtitle: _addressController.text,
-            stepState: StepperUtils.getStepState(
-              _Step.tokenCreation.index,
-              _lastCompletedStep?.index,
+            stepState: getStepState(
+              _Step.tokenCreation,
+              currentStep,
             ),
             context: context,
             stepSubtitleColor: AppColors.ztsColor,
@@ -139,9 +152,9 @@ class _CreateTokenStepperViewState extends State<CreateTokenStepperView> {
             ),
             stepSubtitle:
                 '${_tokenNameController.text} ${_tokenSymbolController.text}',
-            stepState: StepperUtils.getStepState(
-              _Step.tokenDetails.index,
-              _lastCompletedStep?.index,
+            stepState: getStepState(
+              _Step.tokenDetails,
+              currentStep,
             ),
             context: context,
             stepSubtitleColor: AppColors.ztsColor,
@@ -153,16 +166,16 @@ class _CreateTokenStepperViewState extends State<CreateTokenStepperView> {
               isMintable: _isMintable,
               onBackPressed: _onBackButtonPressed,
               onBurnableChanged: _onBurnableChanged,
-              onContinuePressed: _onMintableBurnableContinuePressed,
+              onContinuePressed: _navigateToNextStep,
               onMintableChanged: _onMintableChanged,
             ),
             stepSubtitle: context.l10n.tokenMintableBurnableSubtitle(
               _isBurnable ? context.l10n.yes : context.l10n.no,
               _isMintable ? context.l10n.yes : context.l10n.no,
             ),
-            stepState: StepperUtils.getStepState(
-              _Step.tokenMintableBurnable.index,
-              _lastCompletedStep?.index,
+            stepState: getStepState(
+              _Step.tokenMintableBurnable,
+              currentStep,
             ),
             stepSubtitleColor: AppColors.ztsColor,
             context: context,
@@ -185,9 +198,9 @@ class _CreateTokenStepperViewState extends State<CreateTokenStepperView> {
             stepSubtitle:
                 '${_totalSupplyController.text} '
                 '${_tokenSymbolController.text}',
-            stepState: StepperUtils.getStepState(
-              _Step.tokenMetrics.index,
-              _lastCompletedStep?.index,
+            stepState: getStepState(
+              _Step.tokenMetrics,
+              currentStep,
             ),
             context: context,
             stepSubtitleColor: AppColors.ztsColor,
@@ -211,9 +224,9 @@ class _CreateTokenStepperViewState extends State<CreateTokenStepperView> {
                 : _isUtility
                 ? context.l10n.utilityToken
                 : '',
-            stepState: StepperUtils.getStepState(
-              _Step.issueToken.index,
-              _lastCompletedStep?.index,
+            stepState: getStepState(
+              _Step.issueToken,
+              currentStep,
             ),
             context: context,
             stepSubtitleColor: AppColors.ztsColor,
@@ -223,58 +236,53 @@ class _CreateTokenStepperViewState extends State<CreateTokenStepperView> {
     );
   }
 
-  void _onPlasmaCheckNextPressed() {
-    if (_lastCompletedStep == null) {
-      _saveProgressAndNavigateToNextStep(_Step.checkPlasma);
-    } else if (StepperUtils.getStepState(
-          _Step.checkPlasma.index,
-          _lastCompletedStep?.index,
-        ) ==
-        custom_material_stepper.StepState.complete) {
-      setState(() {
-        _currentStep = _Step.values[_currentStep.index + 1];
-      });
-    }
-  }
-
   void _onBackButtonPressed() {
-    if (_currentStep.index > 0) {
-      if (StepperUtils.getStepState(
-            _currentStep.index,
-            _lastCompletedStep?.index,
-          ) !=
-          custom_material_stepper.StepState.complete) {
-        setState(() {
-          _currentStep = _Step.values[_currentStep.index - 1];
-        });
-      }
+    final _Step? currentStep = _currentStep.value;
+
+    if (currentStep == null || currentStep.index == 0) {
+      return;
     }
+
+    _currentStep.value = _Step.values[currentStep.index - 1];
   }
 
   Widget _buildBody(BuildContext context, AccountInfo accountInfo) {
-    return Stack(
-      children: <Widget>[
-        ListView(
+    return ValueListenableBuilder<_Step?>(
+      valueListenable: _currentStep,
+      builder: (_, _Step? currentStep, _) {
+        final bool hasTokenBeenCreated = currentStep == null;
+
+        return Stack(
           children: <Widget>[
-            _buildMaterialStepper(context, accountInfo),
-            Visibility(
-              visible: (_lastCompletedStep?.index ?? -1) == _numSteps - 1,
-              child: TokenCreatedSuccess(
-                onCreateAnotherTokenPressed: _onCreateAnotherTokenPressed,
-                onViewTokensPressed: () {
-                  Navigator.pop(context);
-                },
-              ),
+            ListView(
+              children: <Widget>[
+                _buildMaterialStepper(
+                  accountInfo: accountInfo,
+                  currentStep: currentStep,
+                ),
+                if (hasTokenBeenCreated)
+                  TokenCreatedSuccess(
+                    onCreateAnotherTokenPressed: _onCreateAnotherTokenPressed,
+                    onViewTokensPressed: () {
+                      Navigator.pop(context);
+                    },
+                  ),
+              ],
             ),
+            if (hasTokenBeenCreated) const TokenCreatedSuccessAnimation(),
           ],
-        ),
-        if ((_lastCompletedStep?.index ?? -1) == _numSteps - 1)
-          const TokenCreatedSuccessAnimation(),
-      ],
+        );
+      },
     );
   }
 
   void _onCreateAnotherTokenPressed() {
+    _tokenNameController.dispose();
+    _tokenSymbolController.dispose();
+    _totalSupplyController.dispose();
+    _maxSupplyController.dispose();
+    _tokenDomainController.dispose();
+
     _tokenNameController = TextEditingController();
     _tokenSymbolController = TextEditingController();
     _totalSupplyKey = GlobalKey();
@@ -282,26 +290,22 @@ class _CreateTokenStepperViewState extends State<CreateTokenStepperView> {
     _maxSupplyKey = GlobalKey();
     _maxSupplyController = TextEditingController();
     _tokenDomainController = TextEditingController();
-    _lastCompletedStep = null;
-    setState(_initStepperControllers);
+    _selectedNumDecimals = 0;
+    _isMintable = false;
+    _isBurnable = false;
+    _isUtility = true;
+    setState(() {});
+    _currentStep.value = _Step.checkPlasma;
   }
 
   void _onTokenCreationContinuePressed() {
     _tokenStepperData.address = _addressController.text;
-    _saveProgressAndNavigateToNextStep(_Step.tokenCreation);
+    _navigateToNextStep();
   }
 
-  void _saveProgressAndNavigateToNextStep(_Step completedStep) {
-    setState(() {
-      _lastCompletedStep = completedStep;
-      if (_lastCompletedStep!.index + 1 < _numSteps) {
-        _currentStep = _Step.values[completedStep.index + 1];
-      }
-    });
-  }
-
-  void _initStepperControllers() {
-    _currentStep = _Step.values.first;
+  void _navigateToNextStep() {
+    final int currentStepIndex = _currentStep.value!.index;
+    _currentStep.value = _Step.values[currentStepIndex + 1];
   }
 
   void _onCreatePressed() {
@@ -312,7 +316,7 @@ class _CreateTokenStepperViewState extends State<CreateTokenStepperView> {
   }
 
   void _onIssueDone() {
-    _saveProgressAndNavigateToNextStep(_Step.issueToken);
+    _currentStep.value = null;
     unawaited(sl.get<TokensCubit>().fetch());
   }
 
@@ -343,18 +347,11 @@ class _CreateTokenStepperViewState extends State<CreateTokenStepperView> {
     });
   }
 
-  void _onMintableBurnableContinuePressed() {
-    setState(() {
-      _lastCompletedStep = _Step.tokenMintableBurnable;
-      _currentStep = _Step.tokenMetrics;
-    });
-  }
-
   void _onTokenDetailsContinuePressed() {
     _tokenStepperData.tokenName = _tokenNameController.text;
     _tokenStepperData.tokenSymbol = _tokenSymbolController.text;
     _tokenStepperData.tokenDomain = _tokenDomainController.text;
-    _saveProgressAndNavigateToNextStep(_Step.tokenDetails);
+    _navigateToNextStep();
   }
 
   void _onTokenMetricsContinuePressed() {
@@ -368,7 +365,7 @@ class _CreateTokenStepperViewState extends State<CreateTokenStepperView> {
           ? _maxSupplyController.text.extractDecimals(_selectedNumDecimals)
           : _totalSupplyController.text.extractDecimals(_selectedNumDecimals));
       _tokenStepperData.isOwnerBurnOnly = _isBurnable;
-      _saveProgressAndNavigateToNextStep(_Step.tokenMetrics);
+      _navigateToNextStep();
     }
   }
 
@@ -403,6 +400,7 @@ class _CreateTokenStepperViewState extends State<CreateTokenStepperView> {
     _maxSupplyController.dispose();
     _tokenDomainController.dispose();
     _tokenSymbolController.dispose();
+    _currentStep.dispose();
     super.dispose();
   }
 }
