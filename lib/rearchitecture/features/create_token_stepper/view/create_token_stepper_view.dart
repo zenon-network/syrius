@@ -102,10 +102,6 @@ class _CreateTokenStepperViewState extends State<CreateTokenStepperView> {
         final bool isMintable = value.isMintable;
         final bool isUtility = value.isUtility;
 
-        if (isMintable && _totalSupplyController.text.isNotEmpty) {
-          _maxSupplyController.text = _totalSupplyController.text;
-        }
-
         return syrius_stepper.Stepper(
           activeColor: AppColors.ztsColor,
           currentStep: currentStep?.index ?? lastStepIndex,
@@ -164,7 +160,7 @@ class _CreateTokenStepperViewState extends State<CreateTokenStepperView> {
               stepTitle: context.l10n.tokenMintableBurnableOptions,
               stepContent: TokenMintableBurnableStep(
                 onBackPressed: _onBackButtonPressed,
-                onContinuePressed: _navigateToNextStep,
+                onContinuePressed: _onTokenMintableBurnableContinuePressed,
                 tokenData: _tokenData,
               ),
               stepSubtitle: context.l10n.tokenMintableBurnableSubtitle(
@@ -300,6 +296,13 @@ class _CreateTokenStepperViewState extends State<CreateTokenStepperView> {
   void _onIssueDone() {
     _currentStep.value = null;
     unawaited(sl.get<TokensCubit>().fetch());
+  }
+
+  void _onTokenMintableBurnableContinuePressed() {
+    if (_tokenData.value.isMintable && _totalSupplyController.text.isNotEmpty) {
+      _maxSupplyController.text = _totalSupplyController.text;
+    }
+    _navigateToNextStep();
   }
 
   @override
