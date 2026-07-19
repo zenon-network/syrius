@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:zenon_syrius_wallet_flutter/model/model.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
@@ -12,16 +13,12 @@ import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 class IssueTokenStep extends StatefulWidget {
   /// Creates an [IssueTokenStep].
   const IssueTokenStep({
-    required this.isUtility,
     required this.onBackPressed,
     required this.onIssueDone,
     required this.onIssuePressed,
-    required this.onUtilityChanged,
+    required this.tokenData,
     super.key,
   });
-
-  /// Whether the token is a utility token.
-  final bool isUtility;
 
   /// Called when the user wants to go back.
   final VoidCallback onBackPressed;
@@ -32,8 +29,8 @@ class IssueTokenStep extends StatefulWidget {
   /// Called when the user presses create.
   final VoidCallback onIssuePressed;
 
-  /// Called when utility state changes.
-  final ValueChanged<bool> onUtilityChanged;
+  /// Token data draft updated by this step.
+  final ValueNotifier<NewTokenData> tokenData;
 
   @override
   State<IssueTokenStep> createState() => _IssueTokenStepState();
@@ -46,6 +43,15 @@ class _IssueTokenStepState extends State<IssueTokenStep> {
       (_createButtonKey.currentState?.btnState ?? ButtonState.idle) !=
       ButtonState.idle;
 
+  late final ValueNotifier<bool> _isUtility;
+
+
+  @override
+  void initState() {
+    super.initState();
+    _isUtility = .new(widget.tokenData.value.isUtility);
+  }
+
   @override
   Widget build(BuildContext context) {
     return BlocListener<IssueTokenBloc, IssueTokenState>(
@@ -55,13 +61,18 @@ class _IssueTokenStepState extends State<IssueTokenStep> {
         children: <Widget>[
           Row(
             children: <Widget>[
-              Checkbox(
-                activeColor: AppColors.ztsColor,
-                value: widget.isUtility,
-                onChanged: (bool? value) {
-                  if (value != null) {
-                    widget.onUtilityChanged(value);
-                  }
+              ValueListenableBuilder<bool>(
+                valueListenable: _isUtility,
+                builder: (_, bool value, _) {
+                  return Checkbox(
+                    activeColor: AppColors.ztsColor,
+                    value: value,
+                    onChanged: (bool? value) {
+                      if (value != null) {
+                        _isUtility.value = value;
+                      }
+                    },
+                  );
                 },
               ),
               Text(
@@ -107,7 +118,12 @@ class _IssueTokenStepState extends State<IssueTokenStep> {
                 textColor: AppColors.ztsColor,
                 text: context.l10n.create,
                 outlineColor: AppColors.ztsColor,
-                onPressed: widget.onIssuePressed,
+                onPressed: () {
+                  widget.tokenData.value = widget.tokenData.value.copyWith(
+                    isUtility: widget.tokenData.value.isUtility,
+                  );
+                  widget.onIssuePressed();
+                },
                 key: _createButtonKey,
               ),
             ],

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:zenon_syrius_wallet_flutter/model/model.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
@@ -8,17 +9,14 @@ import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 class TokenMetricsStep extends StatefulWidget {
   /// Creates a [TokenMetricsStep].
   const TokenMetricsStep({
-    required this.isMintable,
     required this.maxSupplyController,
     required this.onBackPressed,
     required this.onContinuePressed,
     required this.selectedNumDecimals,
+    required this.tokenData,
     required this.totalSupplyController,
     super.key,
   });
-
-  /// Whether max supply should be collected.
-  final bool isMintable;
 
   /// Controller for max supply input.
   final TextEditingController maxSupplyController;
@@ -32,6 +30,9 @@ class TokenMetricsStep extends StatefulWidget {
   /// Selected decimal count.
   final ValueNotifier<int> selectedNumDecimals;
 
+  /// Token data draft updated by this step.
+  final ValueNotifier<NewTokenData> tokenData;
+
   /// Controller for total supply input.
   final TextEditingController totalSupplyController;
 
@@ -42,7 +43,9 @@ class TokenMetricsStep extends StatefulWidget {
 class _TokenMetricsStepState extends State<TokenMetricsStep> {
   String get _maxSupply => widget.maxSupplyController.text;
 
-  String? get _maxSupplyError => widget.isMintable
+  bool get _isMintable => widget.tokenData.value.isMintable;
+
+  String? get _maxSupplyError => _isMintable
       ? InputValidators.correctValue(
           _maxSupply,
           kBigP255m1,
@@ -56,7 +59,7 @@ class _TokenMetricsStepState extends State<TokenMetricsStep> {
 
   String? get _totalSupplyError => InputValidators.correctValue(
     _totalSupply,
-    widget.isMintable
+    _isMintable
         ? _maxSupply.isNotEmpty
               ? _maxSupply.extractDecimals(
                   widget.selectedNumDecimals.value,
@@ -64,7 +67,7 @@ class _TokenMetricsStepState extends State<TokenMetricsStep> {
               : kBigP255m1
         : kBigP255m1,
     widget.selectedNumDecimals.value,
-    widget.isMintable ? BigInt.zero : kMinTokenTotalMaxSupply,
+    _isMintable ? BigInt.zero : kMinTokenTotalMaxSupply,
     canBeEqualToMin: true,
   );
 
@@ -91,7 +94,7 @@ class _TokenMetricsStepState extends State<TokenMetricsStep> {
         ),
         kVerticalGap16,
         Visibility(
-          visible: widget.isMintable,
+          visible: _isMintable,
           child: Column(
             children: <Widget>[
               TextField(
@@ -134,7 +137,7 @@ class _TokenMetricsStepState extends State<TokenMetricsStep> {
               builder: (_, _) => StepperButton(
                 text: context.l10n.continueText,
                 onPressed: _areTokenMetricsCorrect()
-                    ? widget.onContinuePressed
+                    ? _onContinuePressed
                     : null,
               ),
             ),
@@ -145,6 +148,19 @@ class _TokenMetricsStepState extends State<TokenMetricsStep> {
   }
 
   bool _areTokenMetricsCorrect() =>
-      (!widget.isMintable || _maxSupplyError == null) &&
+      (!_isMintable || _maxSupplyError == null) &&
       _totalSupplyError == null;
+
+  void _onContinuePressed() {
+    final int decimals = widget.selectedNumDecimals.value;
+
+    widget.tokenData.value = widget.tokenData.value.copyWith(
+      decimals: decimals,
+      maxSupply: _isMintable
+          ? _maxSupply.extractDecimals(decimals)
+          : _totalSupply.extractDecimals(decimals),
+      totalSupply: _totalSupply.extractDecimals(decimals),
+    );
+    widget.onContinuePressed();
+  }
 }

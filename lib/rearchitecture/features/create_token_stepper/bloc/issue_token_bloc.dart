@@ -55,16 +55,16 @@ class IssueTokenBloc extends Bloc<IssueTokenEvent, IssueTokenState> {
             tokenData.totalSupply,
             tokenData.maxSupply,
             tokenData.decimals,
-            tokenData.isMintable!,
-            tokenData.isOwnerBurnOnly!,
-            tokenData.isUtility!,
+            tokenData.isMintable,
+            tokenData.isOwnerBurnOnly,
+            tokenData.isUtility,
           );
 
       final AccountBlockTemplate response = await _accountBlockUtils
           .createAccountBlock(
             transactionParams,
             'issue token',
-            address: Address.parse(tokenData.address!),
+            address: Address.parse(tokenData.address),
             waitForRequiredPlasma: true,
           );
 

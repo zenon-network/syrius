@@ -1,38 +1,43 @@
 import 'package:flutter/material.dart';
+import 'package:zenon_syrius_wallet_flutter/model/model.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 
 /// Step that collects token mint and burn options.
-class TokenMintableBurnableStep extends StatelessWidget {
+class TokenMintableBurnableStep extends StatefulWidget {
   /// Creates a [TokenMintableBurnableStep].
   const TokenMintableBurnableStep({
-    required this.isBurnable,
-    required this.isMintable,
     required this.onBackPressed,
-    required this.onBurnableChanged,
     required this.onContinuePressed,
-    required this.onMintableChanged,
+    required this.tokenData,
     super.key,
   });
-
-  /// Whether only the owner can burn the token.
-  final bool isBurnable;
-
-  /// Whether the token can be minted after creation.
-  final bool isMintable;
 
   /// Called when the user wants to go back.
   final VoidCallback onBackPressed;
 
-  /// Called when burnable changes.
-  final ValueChanged<bool> onBurnableChanged;
-
   /// Called when the user continues.
   final VoidCallback onContinuePressed;
 
-  /// Called when mintable changes.
-  final ValueChanged<bool> onMintableChanged;
+  /// Token data draft updated by this step.
+  final ValueNotifier<NewTokenData> tokenData;
+
+  @override
+  State<TokenMintableBurnableStep> createState() =>
+      _TokenMintableBurnableStepState();
+}
+
+class _TokenMintableBurnableStepState extends State<TokenMintableBurnableStep> {
+  late final ValueNotifier<bool> _isBurnable;
+  late final ValueNotifier<bool> _isMintable;
+
+  @override
+  void initState() {
+    super.initState();
+    _isBurnable = .new(widget.tokenData.value.isOwnerBurnOnly);
+    _isMintable = .new(widget.tokenData.value.isMintable);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -40,13 +45,20 @@ class TokenMintableBurnableStep extends StatelessWidget {
       children: <Widget>[
         Row(
           children: <Widget>[
-            Checkbox.adaptive(
-              activeColor: AppColors.ztsColor,
-              value: isMintable,
-              onChanged: (bool? value) {
-                if (value != null) {
-                  onMintableChanged(value);
-                }
+            ValueListenableBuilder<bool>(
+              valueListenable: _isMintable,
+              builder: (_, bool value, _) {
+                return Checkbox.adaptive(
+                  activeColor: AppColors.ztsColor,
+                  value: value,
+                  onChanged: (bool? value) {
+                    if (value != null) {
+                      setState(() {
+                        _isMintable.value = value;
+                      });
+                    }
+                  },
+                );
               },
             ),
             kHorizontalGap8,
@@ -63,13 +75,20 @@ class TokenMintableBurnableStep extends StatelessWidget {
         ),
         Row(
           children: <Widget>[
-            Checkbox.adaptive(
-              activeColor: AppColors.ztsColor,
-              value: isBurnable,
-              onChanged: (bool? value) {
-                if (value != null) {
-                  onBurnableChanged(value);
-                }
+            ValueListenableBuilder<bool>(
+              valueListenable: _isBurnable,
+              builder: (_, bool value, _) {
+                return Checkbox.adaptive(
+                  activeColor: AppColors.ztsColor,
+                  value: value,
+                  onChanged: (bool? value) {
+                    if (value != null) {
+                      setState(() {
+                        _isBurnable.value = value;
+                      });
+                    }
+                  },
+                );
               },
             ),
             kHorizontalGap8,
@@ -92,12 +111,18 @@ class TokenMintableBurnableStep extends StatelessWidget {
         Row(
           children: <Widget>[
             OutlinedButton(
-              onPressed: onBackPressed,
+              onPressed: widget.onBackPressed,
               child: Text(context.l10n.goBack),
             ),
             kHorizontalGap25,
             OutlinedButton(
-              onPressed: onContinuePressed,
+              onPressed: () {
+                widget.tokenData.value = widget.tokenData.value.copyWith(
+                  isMintable: _isMintable.value,
+                  isOwnerBurnOnly: _isBurnable.value,
+                );
+                widget.onContinuePressed();
+              },
               child: Text(context.l10n.continueText),
             ),
           ],

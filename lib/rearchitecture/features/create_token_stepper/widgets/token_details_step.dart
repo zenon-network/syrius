@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:zenon_syrius_wallet_flutter/model/model.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
@@ -9,6 +10,7 @@ class TokenDetailsStep extends StatefulWidget {
   const TokenDetailsStep({
     required this.onBackPressed,
     required this.onContinuePressed,
+    required this.tokenData,
     required this.tokenDomainController,
     required this.tokenNameController,
     required this.tokenSymbolController,
@@ -20,6 +22,9 @@ class TokenDetailsStep extends StatefulWidget {
 
   /// Called when the user can continue.
   final VoidCallback onContinuePressed;
+
+  /// Token data draft updated by this step.
+  final ValueNotifier<NewTokenData> tokenData;
 
   /// Controller for token domain input.
   final TextEditingController tokenDomainController;
@@ -35,7 +40,6 @@ class TokenDetailsStep extends StatefulWidget {
 }
 
 class _TokenDetailsStepState extends State<TokenDetailsStep> {
-
   // TODO(maznnwell): the error messages from of validators seem to be mixed up
   String? get _nameError =>
       Validations.tokenName(widget.tokenNameController.text);
@@ -100,7 +104,7 @@ class _TokenDetailsStepState extends State<TokenDetailsStep> {
               kHorizontalGap25,
               OutlinedButton(
                 onPressed: _areTokenDetailsCorrect()
-                    ? widget.onContinuePressed
+                    ? _onContinuePressed
                     : null,
                 child: Text(context.l10n.continueText),
               ),
@@ -124,4 +128,13 @@ class _TokenDetailsStepState extends State<TokenDetailsStep> {
             widget.tokenDomainController.text,
           ) ==
           null;
+
+  void _onContinuePressed() {
+    widget.tokenData.value = widget.tokenData.value.copyWith(
+      tokenDomain: widget.tokenDomainController.text,
+      tokenName: widget.tokenNameController.text,
+      tokenSymbol: widget.tokenSymbolController.text,
+    );
+    widget.onContinuePressed();
+  }
 }

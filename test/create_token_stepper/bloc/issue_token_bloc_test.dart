@@ -54,17 +54,18 @@ void main() {
       template = MockAccountBlockTemplate();
       response = MockAccountBlockTemplate();
       favoriteTokensBox = MockBox();
-      tokenData = NewTokenData()
-        ..address = emptyAddress.toString()
-        ..tokenName = 'Token'
-        ..tokenSymbol = 'TKN'
-        ..tokenDomain = 'testing.com'
-        ..totalSupply = BigInt.one
-        ..maxSupply = BigInt.one
-        ..decimals = 0
-        ..isMintable = false
-        ..isOwnerBurnOnly = false
-        ..isUtility = true;
+      tokenData = NewTokenData(
+        address: emptyAddress.toString(),
+        tokenName: 'Token',
+        tokenSymbol: 'TKN',
+        tokenDomain: 'testing.com',
+        totalSupply: BigInt.one,
+        maxSupply: BigInt.one,
+        decimals: 0,
+        isMintable: false,
+        isOwnerBurnOnly: false,
+        isUtility: true,
+      );
 
       when(() => zenon.embedded).thenReturn(embedded);
       when(() => embedded.token).thenReturn(tokenApi);
@@ -120,9 +121,9 @@ void main() {
             tokenData.totalSupply,
             tokenData.maxSupply,
             tokenData.decimals,
-            tokenData.isMintable!,
-            tokenData.isOwnerBurnOnly!,
-            tokenData.isUtility!,
+            tokenData.isMintable,
+            tokenData.isOwnerBurnOnly,
+            tokenData.isUtility,
           ),
         ).called(1);
         verify(() => favoriteTokensBox.add(znnZts.toString())).called(1);

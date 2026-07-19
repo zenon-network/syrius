@@ -8,7 +8,6 @@ import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dar
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/tokens/cubit/tokens_cubit.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/extensions.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/custom_material_stepper.dart'
     as syrius_stepper;
@@ -41,7 +40,9 @@ class _CreateTokenStepperViewState extends State<CreateTokenStepperView> {
     _Step.checkPlasma,
   );
 
-  final TextEditingController _addressController = TextEditingController();
+  final TextEditingController _addressController = TextEditingController(
+    text: kSelectedAddress,
+  );
   final TextEditingController _tokenNameController = TextEditingController();
   final TextEditingController _totalSupplyController = TextEditingController();
   final TextEditingController _maxSupplyController = TextEditingController();
@@ -50,16 +51,13 @@ class _CreateTokenStepperViewState extends State<CreateTokenStepperView> {
 
   final ValueNotifier<int> _selectedNumDecimals = .new(0);
 
-  bool _isMintable = false;
-  bool _isBurnable = false;
-  bool _isUtility = true;
-
-  final NewTokenData _tokenStepperData = NewTokenData();
+  final ValueNotifier<NewTokenData> _tokenData = .new(
+    NewTokenData.initial(address: kSelectedAddress!),
+  );
 
   @override
   void initState() {
     super.initState();
-    _addressController.text = kSelectedAddress!;
     sl.get<MultipleBalanceBloc>().add(
       MultipleBalanceFetch(
         addresses: kDefaultAddressList.map((String? e) => e!).toList(),
@@ -97,126 +95,137 @@ class _CreateTokenStepperViewState extends State<CreateTokenStepperView> {
           : syrius_stepper.StepState.indexed;
     }
 
-    return syrius_stepper.Stepper(
-      activeColor: AppColors.ztsColor,
-      currentStep: currentStep?.index ?? lastStepIndex,
-      onStepTapped: (int index) {},
-      steps: <syrius_stepper.Step>[
-        StepperUtils.getMaterialStep(
-          stepTitle: context.l10n.plasmaCheck,
-          stepContent: TokenPlasmaCheckStep(
-            addressController: _addressController,
-            onNextPressed: _navigateToNextStep,
-          ),
-          stepSubtitle: context.l10n.sufficientPlasma,
-          stepState: getStepState(
-            _Step.checkPlasma,
-            currentStep,
-          ),
-          context: context,
-          stepSubtitleColor: AppColors.ztsColor,
-        ),
-        StepperUtils.getMaterialStep(
-          stepTitle: context.l10n.tokenCreation,
-          stepContent: TokenCreationStep(
-            accountInfo: accountInfo,
-            addressController: _addressController,
-            onContinuePressed: _onTokenCreationContinuePressed,
-          ),
-          stepSubtitle: _addressController.text,
-          stepState: getStepState(
-            _Step.tokenCreation,
-            currentStep,
-          ),
-          context: context,
-          stepSubtitleColor: AppColors.ztsColor,
-        ),
-        StepperUtils.getMaterialStep(
-          stepTitle: context.l10n.tokenDetails,
-          stepContent: TokenDetailsStep(
-            onBackPressed: _onBackButtonPressed,
-            onContinuePressed: _onTokenDetailsContinuePressed,
-            tokenDomainController: _tokenDomainController,
-            tokenNameController: _tokenNameController,
-            tokenSymbolController: _tokenSymbolController,
-          ),
-          stepSubtitle:
-              '${_tokenNameController.text} ${_tokenSymbolController.text}',
-          stepState: getStepState(
-            _Step.tokenDetails,
-            currentStep,
-          ),
-          context: context,
-          stepSubtitleColor: AppColors.ztsColor,
-        ),
-        StepperUtils.getMaterialStep(
-          stepTitle: context.l10n.tokenMintableBurnableOptions,
-          stepContent: TokenMintableBurnableStep(
-            isBurnable: _isBurnable,
-            isMintable: _isMintable,
-            onBackPressed: _onBackButtonPressed,
-            onBurnableChanged: _onBurnableChanged,
-            onContinuePressed: _navigateToNextStep,
-            onMintableChanged: _onMintableChanged,
-          ),
-          stepSubtitle: context.l10n.tokenMintableBurnableSubtitle(
-            _isBurnable ? context.l10n.yes : context.l10n.no,
-            _isMintable ? context.l10n.yes : context.l10n.no,
-          ),
-          stepState: getStepState(
-            _Step.tokenMintableBurnable,
-            currentStep,
-          ),
-          stepSubtitleColor: AppColors.ztsColor,
-          context: context,
-        ),
-        StepperUtils.getMaterialStep(
-          stepTitle: context.l10n.tokenMetrics,
-          stepContent: TokenMetricsStep(
-            isMintable: _isMintable,
-            maxSupplyController: _maxSupplyController,
-            onBackPressed: _onBackButtonPressed,
-            onContinuePressed: _onTokenMetricsContinuePressed,
-            selectedNumDecimals: _selectedNumDecimals,
-            totalSupplyController: _totalSupplyController,
-          ),
-          stepSubtitle:
-              '${_totalSupplyController.text} '
-              '${_tokenSymbolController.text}',
-          stepState: getStepState(
-            _Step.tokenMetrics,
-            currentStep,
-          ),
-          context: context,
-          stepSubtitleColor: AppColors.ztsColor,
-          stepSubtitleIconData: Icons.whatshot,
-        ),
-        StepperUtils.getMaterialStep(
-          stepTitle: context.l10n.issueToken,
-          stepContent: IssueTokenStep(
-            isUtility: _isUtility,
-            onBackPressed: _onBackButtonPressed,
-            onIssueDone: _onIssueDone,
-            onIssuePressed: _onCreatePressed,
-            onUtilityChanged: _onUtilityChanged,
-          ),
-          stepSubtitle: _isMintable
-              ? context.l10n.tokenSupplyOutOfMax(
-                  _maxSupplyController.text,
-                  _tokenSymbolController.text,
-                  _totalSupplyController.text,
-                )
-              : _isUtility
-              ? context.l10n.utilityToken
-              : '',
-          stepState: getStepState(
-            _Step.issueToken,
-            currentStep,
-          ),
-          context: context,
-          stepSubtitleColor: AppColors.ztsColor,
-        ),
-      ],
+    return ValueListenableBuilder<NewTokenData>(
+      valueListenable: _tokenData,
+      builder: (_, NewTokenData value, _) {
+        final bool isBurnable = value.isOwnerBurnOnly;
+        final bool isMintable = value.isMintable;
+        final bool isUtility = value.isUtility;
+
+        if (isMintable && _totalSupplyController.text.isNotEmpty) {
+          _maxSupplyController.text = _totalSupplyController.text;
+        }
+
+        return syrius_stepper.Stepper(
+          activeColor: AppColors.ztsColor,
+          currentStep: currentStep?.index ?? lastStepIndex,
+          onStepTapped: (int index) {},
+          steps: <syrius_stepper.Step>[
+            StepperUtils.getMaterialStep(
+              stepTitle: context.l10n.plasmaCheck,
+              stepContent: TokenPlasmaCheckStep(
+                addressController: _addressController,
+                onNextPressed: _navigateToNextStep,
+              ),
+              stepSubtitle: context.l10n.sufficientPlasma,
+              stepState: getStepState(
+                _Step.checkPlasma,
+                currentStep,
+              ),
+              context: context,
+              stepSubtitleColor: AppColors.ztsColor,
+            ),
+            StepperUtils.getMaterialStep(
+              stepTitle: context.l10n.tokenCreation,
+              stepContent: TokenCreationStep(
+                accountInfo: accountInfo,
+                addressController: _addressController,
+                onContinuePressed: _onTokenCreationContinuePressed,
+                tokenData: _tokenData,
+              ),
+              stepSubtitle: _addressController.text,
+              stepState: getStepState(
+                _Step.tokenCreation,
+                currentStep,
+              ),
+              context: context,
+              stepSubtitleColor: AppColors.ztsColor,
+            ),
+            StepperUtils.getMaterialStep(
+              stepTitle: context.l10n.tokenDetails,
+              stepContent: TokenDetailsStep(
+                onBackPressed: _onBackButtonPressed,
+                onContinuePressed: _navigateToNextStep,
+                tokenData: _tokenData,
+                tokenDomainController: _tokenDomainController,
+                tokenNameController: _tokenNameController,
+                tokenSymbolController: _tokenSymbolController,
+              ),
+              stepSubtitle:
+                  '${_tokenNameController.text} ${_tokenSymbolController.text}',
+              stepState: getStepState(
+                _Step.tokenDetails,
+                currentStep,
+              ),
+              context: context,
+              stepSubtitleColor: AppColors.ztsColor,
+            ),
+            StepperUtils.getMaterialStep(
+              stepTitle: context.l10n.tokenMintableBurnableOptions,
+              stepContent: TokenMintableBurnableStep(
+                onBackPressed: _onBackButtonPressed,
+                onContinuePressed: _navigateToNextStep,
+                tokenData: _tokenData,
+              ),
+              stepSubtitle: context.l10n.tokenMintableBurnableSubtitle(
+                isBurnable ? context.l10n.yes : context.l10n.no,
+                isMintable ? context.l10n.yes : context.l10n.no,
+              ),
+              stepState: getStepState(
+                _Step.tokenMintableBurnable,
+                currentStep,
+              ),
+              stepSubtitleColor: AppColors.ztsColor,
+              context: context,
+            ),
+            StepperUtils.getMaterialStep(
+              stepTitle: context.l10n.tokenMetrics,
+              stepContent: TokenMetricsStep(
+                maxSupplyController: _maxSupplyController,
+                onBackPressed: _onBackButtonPressed,
+                onContinuePressed: _navigateToNextStep,
+                selectedNumDecimals: _selectedNumDecimals,
+                tokenData: _tokenData,
+                totalSupplyController: _totalSupplyController,
+              ),
+              stepSubtitle:
+                  '${_totalSupplyController.text} '
+                  '${_tokenSymbolController.text}',
+              stepState: getStepState(
+                _Step.tokenMetrics,
+                currentStep,
+              ),
+              context: context,
+              stepSubtitleColor: AppColors.ztsColor,
+              stepSubtitleIconData: Icons.whatshot,
+            ),
+            StepperUtils.getMaterialStep(
+              stepTitle: context.l10n.issueToken,
+              stepContent: IssueTokenStep(
+                onBackPressed: _onBackButtonPressed,
+                onIssueDone: _onIssueDone,
+                onIssuePressed: _onCreatePressed,
+                tokenData: _tokenData,
+              ),
+              stepSubtitle: isMintable
+                  ? context.l10n.tokenSupplyOutOfMax(
+                      _maxSupplyController.text,
+                      _tokenSymbolController.text,
+                      _totalSupplyController.text,
+                    )
+                  : isUtility
+                  ? context.l10n.utilityToken
+                  : '',
+              stepState: getStepState(
+                _Step.issueToken,
+                currentStep,
+              ),
+              context: context,
+              stepSubtitleColor: AppColors.ztsColor,
+            ),
+          ],
+        );
+      },
     );
   }
 
@@ -267,14 +276,13 @@ class _CreateTokenStepperViewState extends State<CreateTokenStepperView> {
     _maxSupplyController.clear();
     _tokenDomainController.clear();
     _selectedNumDecimals.value = 0;
-    _isMintable = false;
-    _isBurnable = false;
-    _isUtility = true;
+    _tokenData.value = NewTokenData.initial(
+      address: _addressController.text,
+    );
     _currentStep.value = _Step.checkPlasma;
   }
 
   void _onTokenCreationContinuePressed() {
-    _tokenStepperData.address = _addressController.text;
     _navigateToNextStep();
   }
 
@@ -284,57 +292,14 @@ class _CreateTokenStepperViewState extends State<CreateTokenStepperView> {
   }
 
   void _onCreatePressed() {
-    _tokenStepperData.isUtility = _isUtility;
     context.read<IssueTokenBloc>().add(
-      IssueTokenRequested(tokenData: _tokenStepperData),
+      IssueTokenRequested(tokenData: _tokenData.value),
     );
   }
 
   void _onIssueDone() {
     _currentStep.value = null;
     unawaited(sl.get<TokensCubit>().fetch());
-  }
-
-  void _onUtilityChanged(bool value) {
-    setState(() {
-      _isUtility = value;
-    });
-  }
-
-  void _onMintableChanged(bool value) {
-    setState(() {
-      if (value && _totalSupplyController.text.isNotEmpty) {
-        _maxSupplyController.text = _totalSupplyController.text;
-      }
-      _isMintable = value;
-    });
-  }
-
-  void _onBurnableChanged(bool value) {
-    setState(() {
-      _isBurnable = value;
-    });
-  }
-
-  void _onTokenDetailsContinuePressed() {
-    _tokenStepperData.tokenName = _tokenNameController.text;
-    _tokenStepperData.tokenSymbol = _tokenSymbolController.text;
-    _tokenStepperData.tokenDomain = _tokenDomainController.text;
-    _navigateToNextStep();
-  }
-
-  void _onTokenMetricsContinuePressed() {
-    final int decimals = _selectedNumDecimals.value;
-
-    _tokenStepperData.decimals = decimals;
-    _tokenStepperData.totalSupply = _totalSupplyController.text
-        .extractDecimals(decimals);
-    _tokenStepperData.isMintable = _isMintable;
-    _tokenStepperData.maxSupply = (_isMintable
-        ? _maxSupplyController.text.extractDecimals(decimals)
-        : _totalSupplyController.text.extractDecimals(decimals));
-    _tokenStepperData.isOwnerBurnOnly = _isBurnable;
-    _navigateToNextStep();
   }
 
   @override
@@ -346,6 +311,7 @@ class _CreateTokenStepperViewState extends State<CreateTokenStepperView> {
     _tokenDomainController.dispose();
     _tokenSymbolController.dispose();
     _currentStep.dispose();
+    _tokenData.dispose();
     super.dispose();
   }
 }

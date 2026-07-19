@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:zenon_syrius_wallet_flutter/model/model.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
@@ -11,6 +12,7 @@ class TokenCreationStep extends StatelessWidget {
     required this.accountInfo,
     required this.addressController,
     required this.onContinuePressed,
+    required this.tokenData,
     super.key,
   });
 
@@ -22,6 +24,9 @@ class TokenCreationStep extends StatelessWidget {
 
   /// Called when the user can continue to token details.
   final VoidCallback onContinuePressed;
+
+  /// Token data draft updated by this step.
+  final ValueNotifier<NewTokenData> tokenData;
 
   @override
   Widget build(BuildContext context) {
@@ -53,7 +58,12 @@ class TokenCreationStep extends StatelessWidget {
           onPressed:
               accountInfo.getBalance(kZnnCoin.tokenStandard) >=
                   tokenZtsIssueFeeInZnn
-              ? onContinuePressed
+              ? () {
+                  tokenData.value = tokenData.value.copyWith(
+                    address: addressController.text,
+                  );
+                  onContinuePressed();
+                }
               : null,
           child: Text(context.l10n.continueText),
         ),
