@@ -9,6 +9,7 @@ class AmountInfoColumn extends Column {
     Color? tokenSymbolColor,
     super.key,
   }) : super(
+        mainAxisAlignment: .center,
          children: <Widget>[
            Text(
              tokenSymbol,

@@ -9,34 +9,52 @@ import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 /// certain coin (QSR or ZNN)
 class BalanceChartLegend extends StatelessWidget {
   /// Creates a BalanceChartLegend object.
-  const BalanceChartLegend({required this.accountInfo, super.key});
+  const BalanceChartLegend({
+    required this.accountInfo,
+    required this.zts,
+    super.key,
+  });
 
   /// Data used for the legend
   final AccountInfo accountInfo;
 
+  /// Coins and tokens for which to show the legend
+  final List<Token> zts;
+
   @override
   Widget build(BuildContext context) {
-    return Row(
-      children: <Widget>[
-        Expanded(
-          child: _getCoinBalanceInfo(
-            accountInfo: accountInfo,
-            coin: kZnnCoin,
-            context: context,
-          ),
-        ),
-        Expanded(
-          child: _getCoinBalanceInfo(
-            accountInfo: accountInfo,
-            coin: kQsrCoin,
-            context: context,
-          ),
-        ),
-      ],
+    return SizedBox(
+      height: 60,
+      child: LayoutBuilder(
+        builder: (BuildContext context, BoxConstraints constraints) {
+          const double minItemWidth = 96;
+          final double itemWidth = zts.isEmpty
+              ? minItemWidth
+              : (constraints.maxWidth / zts.length).clamp(
+                  minItemWidth,
+                  double.infinity,
+                );
+
+          return ListView.builder(
+            scrollDirection: Axis.horizontal,
+            itemCount: zts.length,
+            itemBuilder: (_, int index) => SizedBox(
+              width: itemWidth,
+              child: Center(
+                child: _buildZtsBalanceInfo(
+                  accountInfo: accountInfo,
+                  coin: zts[index],
+                  context: context,
+                ),
+              ),
+            ),
+          );
+        },
+      ),
     );
   }
 
-  FormattedAmountWithTooltip _getCoinBalanceInfo({
+  FormattedAmountWithTooltip _buildZtsBalanceInfo({
     required Token coin,
     required AccountInfo accountInfo,
     required BuildContext context,

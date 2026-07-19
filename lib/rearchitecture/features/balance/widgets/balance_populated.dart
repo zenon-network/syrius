@@ -55,12 +55,13 @@ class _BalancePopulatedState extends State<BalancePopulated> {
                     BalanceChart(
                       accountInfo: widget.accountInfo,
                       hoveredSectionId: _touchedSectionId,
+                      zts: <Token>[kZnnCoin, kQsrCoin],
                     ),
                     ValueListenableBuilder<String?>(
                       valueListenable: _touchedSectionId,
                       builder: (_, String? id, _) {
                         final Widget center = id != null
-                            ? _getBalance(
+                            ? _buildBalanceCenterLegend(
                                 accountInfo: widget.accountInfo,
                                 constraints: constraints,
                                 tokenStandard: TokenStandard.parse(
@@ -83,15 +84,15 @@ class _BalancePopulatedState extends State<BalancePopulated> {
           edgesColorNotifier: _addressEdgesColor,
         ),
         const Divider(),
-        Padding(
-          padding: const EdgeInsets.all(8),
-          child: BalanceChartLegend(accountInfo: widget.accountInfo),
+        BalanceChartLegend(
+          accountInfo: widget.accountInfo,
+          zts: <Token>[kZnnCoin, kQsrCoin],
         ),
       ],
     );
   }
 
-  Widget _getBalance({
+  Widget _buildBalanceCenterLegend({
     required AccountInfo accountInfo,
     required BoxConstraints constraints,
     required TokenStandard tokenStandard,
