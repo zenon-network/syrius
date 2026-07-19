@@ -16,25 +16,18 @@ part 'issue_token_state.dart';
 class IssueTokenBloc extends Bloc<IssueTokenEvent, IssueTokenState> {
   /// Creates an [IssueTokenBloc].
   IssueTokenBloc({
-    required AccountBlockUtils accountBlockUtils,
-    required Zenon zenon,
-    required ZenonAddressUtils zenonAddressUtils,
-    Box<dynamic>? favoriteTokensBox,
-  }) : _accountBlockUtils = accountBlockUtils,
-       _zenon = zenon,
-       _zenonAddressUtils = zenonAddressUtils,
-       _favoriteTokensBox = favoriteTokensBox,
-       super(const IssueTokenInitial()) {
+    required this._accountBlockUtils,
+    required this._zenon,
+    required this._zenonAddressUtils,
+    this._favoriteTokensBox,
+  }) : super(const IssueTokenInitial()) {
     on<IssueTokenRequested>(_onIssueTokenRequested);
   }
 
-  /// Helper used to create the account block.
   final AccountBlockUtils _accountBlockUtils;
 
-  /// Zenon SDK instance.
   final Zenon _zenon;
 
-  /// Helper used to refresh balances after issuing the token.
   final ZenonAddressUtils _zenonAddressUtils;
 
   final Box<dynamic>? _favoriteTokensBox;
