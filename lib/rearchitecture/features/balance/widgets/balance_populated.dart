@@ -16,6 +16,7 @@ class BalancePopulated extends StatefulWidget {
   const BalancePopulated({
     required this.address,
     required this.accountInfo,
+    required this.zts,
     super.key,
   });
 
@@ -24,6 +25,9 @@ class BalancePopulated extends StatefulWidget {
 
   /// The address for which the [accountInfo] was retrieved.
   final String address;
+
+  /// Coins and tokens for which to show the legend
+  final List<Token> zts;
 
   @override
   State<BalancePopulated> createState() => _BalancePopulatedState();
@@ -55,7 +59,7 @@ class _BalancePopulatedState extends State<BalancePopulated> {
                     BalanceChart(
                       accountInfo: widget.accountInfo,
                       hoveredSectionId: _touchedSectionId,
-                      zts: <Token>[kZnnCoin, kQsrCoin],
+                      zts: widget.zts,
                     ),
                     ValueListenableBuilder<String?>(
                       valueListenable: _touchedSectionId,
@@ -86,7 +90,7 @@ class _BalancePopulatedState extends State<BalancePopulated> {
         const Divider(),
         BalanceChartLegend(
           accountInfo: widget.accountInfo,
-          zts: <Token>[kZnnCoin, kQsrCoin],
+          zts: widget.zts,
         ),
       ],
     );
