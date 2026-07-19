@@ -6,9 +6,9 @@ import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 /// Step that displays the token issuance address and required ZNN fee.
-class TokenCreationStep extends StatelessWidget {
-  /// Creates a [TokenCreationStep].
-  const TokenCreationStep({
+class TokenZnnCheckStep extends StatelessWidget {
+  /// Creates a [TokenZnnCheckStep].
+  const TokenZnnCheckStep({
     required this.accountInfo,
     required this.addressController,
     required this.onContinuePressed,

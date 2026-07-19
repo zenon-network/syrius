@@ -123,10 +123,10 @@ class _CreateTokenStepperViewState extends State<CreateTokenStepperView> {
             ),
             StepperUtils.getMaterialStep(
               stepTitle: context.l10n.tokenCreation,
-              stepContent: TokenCreationStep(
+              stepContent: TokenZnnCheckStep(
                 accountInfo: accountInfo,
                 addressController: _addressController,
-                onContinuePressed: _onTokenCreationContinuePressed,
+                onContinuePressed: _navigateToNextStep,
                 tokenData: _tokenData,
               ),
               stepSubtitle: _addressController.text,
@@ -276,10 +276,6 @@ class _CreateTokenStepperViewState extends State<CreateTokenStepperView> {
       address: _addressController.text,
     );
     _currentStep.value = _Step.checkPlasma;
-  }
-
-  void _onTokenCreationContinuePressed() {
-    _navigateToNextStep();
   }
 
   void _navigateToNextStep() {
