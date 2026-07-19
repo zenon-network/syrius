@@ -78,20 +78,23 @@ class _Populated extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final AccountInfo? accountInfo = balances[kSelectedAddress!];
+    final AccountInfo accountInfo = balances[kSelectedAddress!]!;
     final List<BalanceInfoListItem> tokenBalances = _getTokenBalances(
       accountInfo,
     );
 
-    if (tokenBalances.isEmpty) {
+    final List<Token> tokens = tokenBalances
+        .map((BalanceInfoListItem e) => e.token!)
+        .toList();
+
+    if (tokens.isEmpty) {
       return _Empty(message: context.l10n.noZtsTokensAvailable);
     }
 
-    return Column(
-      children: <Widget>[
-        kVerticalSpacing,
-        Expanded(child: _buildTokenBalancesGridView(tokenBalances)),
-      ],
+    return BalancePopulated(
+      address: kSelectedAddress!,
+      accountInfo: accountInfo,
+      zts: tokens,
     );
   }
 
@@ -105,44 +108,5 @@ class _Populated extends StatelessWidget {
             )
             .toList() ??
         <BalanceInfoListItem>[];
-  }
-
-  Widget _buildTokenBalancesGridView(
-    List<BalanceInfoListItem> tokenBalances,
-  ) {
-    return GridView.builder(
-      itemCount: tokenBalances.length,
-      shrinkWrap: true,
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        childAspectRatio: 4,
-        crossAxisSpacing: 10,
-        mainAxisSpacing: 10,
-      ),
-      itemBuilder: (BuildContext context, int index) =>
-          FormattedAmountWithTooltip(
-            amount: tokenBalances[index].balance!.addDecimals(
-              tokenBalances[index].token!.decimals,
-            ),
-            tokenSymbol: tokenBalances[index].token!.symbol,
-            builder: (String amount, String symbol) => RichText(
-              text: TextSpan(
-                text: amount,
-                style: context.textTheme.bodyLarge,
-                children: <InlineSpan>[
-                  const TextSpan(text: ' '),
-                  TextSpan(
-                    text: symbol,
-                    style: TextStyle(
-                      color: ColorUtils.getTokenColor(
-                        tokenBalances[index].token!.tokenStandard,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-    );
   }
 }

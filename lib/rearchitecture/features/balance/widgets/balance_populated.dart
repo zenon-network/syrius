@@ -101,15 +101,14 @@ class _BalancePopulatedState extends State<BalancePopulated> {
     required BoxConstraints constraints,
     required TokenStandard tokenStandard,
   }) {
-    final String amount = accountInfo
-        .getBalance(
-          tokenStandard,
-        )
-        .addDecimals(coinDecimals);
+    final BalanceInfoListItem? balanceInfoListItem = accountInfo.getBalanceInfo(
+      tokenStandard: tokenStandard,
+    );
 
-    final String symbol = tokenStandard == kZnnCoin.tokenStandard
-        ? kZnnCoin.symbol
-        : kQsrCoin.symbol;
+    final String amount = balanceInfoListItem!.normalizedBalance.toString();
+
+    final String symbol = balanceInfoListItem.token!
+        .symbol;
 
     final double margin = constraints.maxWidth * 0.3;
 

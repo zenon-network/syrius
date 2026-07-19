@@ -1,4 +1,5 @@
 import 'package:big_decimal/big_decimal.dart';
+import 'package:collection/collection.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
@@ -90,8 +91,8 @@ class BalanceChart extends StatelessWidget {
     final bool isTouched = tokenStandard.toString() == hoveredSectionId.value;
     final double opacity = isTouched ? 1.0 : 0.7;
 
-    final double value = balanceInfo.normalizedBalance.toDouble() /
-        sum.toDouble();
+    final double value =
+        balanceInfo.normalizedBalance.toDouble() / sum.toDouble();
 
     return PieChartSectionData(
       title: tokenStandard.toString(),
@@ -105,11 +106,18 @@ class BalanceChart extends StatelessWidget {
   }
 }
 
+extension AccountInfoExtension on AccountInfo {
+  BalanceInfoListItem? getBalanceInfo({required TokenStandard tokenStandard}) =>
+      balanceInfoList!.firstWhereOrNull(
+        (BalanceInfoListItem element) =>
+            element.token!.tokenStandard == tokenStandard,
+      );
+}
+
 /// Extension used to enhance the class [BalanceInfoListItem]
 extension BalanceInfoListItemExtension on BalanceInfoListItem {
-
   /// Gets the balance as '1.0000004'
   BigDecimal get normalizedBalance => BigDecimal.fromBigInt(
     balance!,
-  ).divide(BigDecimal.parse(token!.decimals.toString()));
+  ).divide(BigDecimal.parse('10').pow(token!.decimals));
 }
