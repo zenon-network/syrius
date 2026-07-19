@@ -22,7 +22,7 @@ class TokensTabChild extends StatelessWidget {
             sm: kStaggeredNumOfColumns,
             xs: kStaggeredNumOfColumns,
           ),
-          child: const TokenBalance(),
+          child: const TokenBalanceCard(),
         ),
         FluidCell(
           height: kStaggeredNumOfColumns / 2,

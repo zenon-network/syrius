@@ -391,6 +391,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get noRewardsCollect => 'No rewards to collect';
 
   @override
+  String get noZtsTokensAvailable => 'No ZTS tokens available';
+
+  @override
   String numberOfDecimals(Object number) {
     return 'Number of decimals: $number';
   }
@@ -706,6 +709,13 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get tokenBurnTooltip =>
       'Whether or not only the token owner can burn it';
+
+  @override
+  String get tokenBalanceDescription =>
+      'This card displays information about ZTS tokens that you currently hold in your wallet';
+
+  @override
+  String get tokenBalanceTitle => 'Token Balance';
 
   @override
   String get tokenCreation => 'ZNN Check';

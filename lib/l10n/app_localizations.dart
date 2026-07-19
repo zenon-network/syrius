@@ -730,6 +730,12 @@ abstract class AppLocalizations {
   /// **'No rewards to collect'**
   String get noRewardsCollect;
 
+  /// No description provided for @noZtsTokensAvailable.
+  ///
+  /// In en, this message translates to:
+  /// **'No ZTS tokens available'**
+  String get noZtsTokensAvailable;
+
   /// No description provided for @numberOfDecimals.
   ///
   /// In en, this message translates to:
@@ -1274,6 +1280,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Whether or not only the token owner can burn it'**
   String get tokenBurnTooltip;
+
+  /// No description provided for @tokenBalanceDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'This card displays information about ZTS tokens that you currently hold in your wallet'**
+  String get tokenBalanceDescription;
+
+  /// No description provided for @tokenBalanceTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Token Balance'**
+  String get tokenBalanceTitle;
 
   /// No description provided for @tokenCreation.
   ///
