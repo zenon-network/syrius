@@ -51,6 +51,7 @@ class BalanceChartLegend extends StatelessWidget {
       builder: (String amount, String tokenSymbol) => AmountInfoColumn(
         context: context,
         amount: amount,
+        tokenSymbolColor: ColorUtils.getTokenColor(coin.tokenStandard),
         tokenSymbol: tokenSymbol,
       ),
     );
