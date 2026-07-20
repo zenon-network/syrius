@@ -7,6 +7,7 @@ import 'package:stacked/stacked.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/model/model.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/extensions/buildcontext_extension.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/color_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
@@ -93,7 +94,6 @@ class _TokenCardState extends State<TokenCard> {
         ),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(10),
-          color: Theme.of(context).colorScheme.primaryContainer,
         ),
         child: StreamBuilder<Map<String, AccountInfo>?>(
           stream: sl.get<BalanceBloc>().stream,
@@ -120,7 +120,7 @@ class _TokenCardState extends State<TokenCard> {
       ),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(10),
-        color: Theme.of(context).colorScheme.primaryContainer,
+        color: context.newThemeData.inputDecorationTheme.fillColor,
       ),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
