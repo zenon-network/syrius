@@ -69,7 +69,6 @@ class _ViewState extends State<_View> {
                 hintText: context.l10n.searchTokenHint,
                 prefixIcon: const Icon(
                   Icons.search,
-                  color: Colors.green,
                 ),
                 suffixIcon: ClearContentButton(controller: _searchController),
               ),

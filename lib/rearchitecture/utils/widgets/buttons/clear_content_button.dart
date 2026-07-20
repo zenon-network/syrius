@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/extensions/buildcontext_extension.dart';
 
 /// A simple button that helps clear content inside a [TextField] or
 /// [TextFormField]
@@ -14,10 +15,12 @@ class ClearContentButton extends StatelessWidget {
       valueListenable: _controller,
       builder: (_, TextEditingValue value, _) {
         final bool isActive = value.text.isNotEmpty;
-
         return IconButton(
           onPressed: isActive ? _controller.clear : null,
-          icon: const Icon(Icons.clear),
+          icon: Icon(
+            Icons.clear,
+            color: isActive ? null : context.newThemeData.disabledColor,
+          ),
         );
       },
     );
