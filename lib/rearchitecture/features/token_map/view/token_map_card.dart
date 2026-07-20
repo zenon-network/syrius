@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hive_ce/hive_ce.dart';
+import 'package:nested/nested.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/token_map/bloc/token_map_bloc.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/token_search/token_search.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
@@ -15,9 +17,17 @@ class TokenMapCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider<TokenMapBloc>(
-      create: (_) =>
-          TokenMapBloc(zenon: zenon!)..add(const InfiniteListRequested()),
+    return MultiBlocProvider(
+      providers: <SingleChildWidget>[
+        BlocProvider<TokenMapBloc>(
+          create: (_) =>
+              TokenMapBloc(zenon: zenon!)..add(const InfiniteListRequested()),
+        ),
+        BlocProvider<TokenSearchBloc>(
+          create: (_) => TokenSearchBloc(zenon: zenon!),
+          child: const _View(),
+        ),
+      ],
       child: const _View(),
     );
   }
@@ -45,6 +55,9 @@ class _ViewState extends State<_View> {
         context.read<TokenMapBloc>().add(
           const InfiniteListRefreshRequested(),
         );
+        context.read<TokenSearchBloc>().add(
+          const TokenSearchRequested(query: '', refresh: true),
+        );
       },
       body: Padding(
         padding: const EdgeInsets.all(15),
@@ -61,28 +74,12 @@ class _ViewState extends State<_View> {
             ),
             kVerticalSpacing,
             Expanded(
-              child: BlocBuilder<TokenMapBloc, InfiniteListState<Token>>(
-                builder: (_, InfiniteListState<Token> state) {
-                  return switch (state.status) {
-                    InfiniteListStatus.initial => const SyriusLoadingWidget(),
-                    InfiniteListStatus.failure => SyriusErrorWidget(
-                      state.error!,
-                    ),
-                    InfiniteListStatus.success => _TokenMapGrid(
-                      hasReachedMax: state.hasReachedMax,
-                      onScrollReachedBottom: () {
-                        context.read<TokenMapBloc>().add(
-                          const InfiniteListMoreRequested(),
-                        );
-                      },
-                      onTokenUpdated: () {
-                        context.read<TokenMapBloc>().add(
-                          const InfiniteListRefreshRequested(),
-                        );
-                      },
-                      tokens: state.data!,
-                    ),
-                  };
+              child: ValueListenableBuilder<TextEditingValue>(
+                valueListenable: _searchController,
+                builder: (_, TextEditingValue value, _) {
+                  return value.text.isEmpty
+                      ? _buildTokenMap()
+                      : _buildTokenSearch(searchQuery: value.text);
                 },
               ),
             ),
@@ -92,7 +89,69 @@ class _ViewState extends State<_View> {
     );
   }
 
-  void _onSearchChanged(String _) {}
+  Widget _buildTokenMap() {
+    return BlocBuilder<TokenMapBloc, InfiniteListState<Token>>(
+      builder: (BuildContext context, InfiniteListState<Token> state) {
+        return switch (state.status) {
+          InfiniteListStatus.initial => const SyriusLoadingWidget(),
+          InfiniteListStatus.failure => SyriusErrorWidget(state.error!),
+          InfiniteListStatus.success => _TokenMapGrid(
+            hasReachedMax: state.hasReachedMax,
+            onScrollReachedBottom: () {
+              context.read<TokenMapBloc>().add(
+                const InfiniteListMoreRequested(),
+              );
+            },
+            onTokenUpdated: () {
+              context.read<TokenMapBloc>().add(
+                const InfiniteListRefreshRequested(),
+              );
+            },
+            tokens: state.data!,
+          ),
+        };
+      },
+    );
+  }
+
+  Widget _buildTokenSearch({
+    required String searchQuery,
+}) {
+    return BlocBuilder<TokenSearchBloc, TokenSearchState>(
+      builder: (BuildContext context, TokenSearchState state) {
+        if (state.query != searchQuery) {
+          return const SyriusLoadingWidget();
+        }
+
+        return switch (state.status) {
+          TokenSearchStatus.initial => const SyriusLoadingWidget(),
+          TokenSearchStatus.loading => const SyriusLoadingWidget(),
+          TokenSearchStatus.failure => SyriusErrorWidget(state.error!),
+          TokenSearchStatus.success => _TokenMapGrid(
+            hasReachedMax: state.hasReachedMax,
+            onScrollReachedBottom: () {
+              context.read<TokenSearchBloc>().add(
+                const TokenSearchMoreRequested(),
+              );
+            },
+            onTokenUpdated: () {
+              context.read<TokenSearchBloc>().add(
+                TokenSearchRequested(query: searchQuery, refresh: true),
+              );
+            },
+            tokens: state.tokens,
+          ),
+        };
+      },
+    );
+  }
+
+  void _onSearchChanged(String value) {
+    final String query = value.trim();
+    context.read<TokenSearchBloc>().add(
+      TokenSearchRequested(query: query),
+    );
+  }
 
   @override
   void dispose() {
