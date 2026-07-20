@@ -576,6 +576,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get saveQr => 'Save QR';
 
   @override
+  String get searchTokenBySymbol => 'Search token by symbol';
+
+  @override
   String get send => 'Send';
 
   @override
@@ -729,6 +732,13 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get tokenIssuanceAddressDescription =>
       'This will be your issuance address';
+
+  @override
+  String get tokenMapDescription =>
+      'This card displays a grid with all the ZTS tokens from the network, including ZTS tokens issued by you';
+
+  @override
+  String get tokenMapTitle => 'Token Map';
 
   @override
   String get tokenMetrics => 'Metrics';

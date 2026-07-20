@@ -1048,6 +1048,12 @@ abstract class AppLocalizations {
   /// **'Save QR'**
   String get saveQr;
 
+  /// No description provided for @searchTokenBySymbol.
+  ///
+  /// In en, this message translates to:
+  /// **'Search token by symbol'**
+  String get searchTokenBySymbol;
+
   /// No description provided for @send.
   ///
   /// In en, this message translates to:
@@ -1316,6 +1322,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'This will be your issuance address'**
   String get tokenIssuanceAddressDescription;
+
+  /// No description provided for @tokenMapDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'This card displays a grid with all the ZTS tokens from the network, including ZTS tokens issued by you'**
+  String get tokenMapDescription;
+
+  /// No description provided for @tokenMapTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Token Map'**
+  String get tokenMapTitle;
 
   /// No description provided for @tokenMetrics.
   ///

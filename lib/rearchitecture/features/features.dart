@@ -47,6 +47,7 @@ export 'stakes/stakes.dart';
 export 'staking/staking.dart';
 export 'staking_rewards_history/staking_rewards_history.dart';
 export 'token_balance/token_balance.dart';
+export 'token_map/token_map.dart';
 export 'total_hourly_transactions/total_hourly_transactions.dart';
 export 'transfer/transfer.dart';
 export 'uncollected_pillar_rewards/uncollected_pillar_rewards.dart';

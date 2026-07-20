@@ -33,7 +33,7 @@ class TokensTabChild extends StatelessWidget {
             sm: kStaggeredNumOfColumns,
             xs: kStaggeredNumOfColumns,
           ),
-          child: const TokenMap(),
+          child: const TokenMapCard(),
         ),
         FluidCell(
           width: context.layout.value(
