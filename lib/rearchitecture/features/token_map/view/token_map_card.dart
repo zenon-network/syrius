@@ -63,12 +63,15 @@ class _ViewState extends State<_View> {
         padding: const EdgeInsets.all(15),
         child: Column(
           children: <Widget>[
-            InputField(
+            TextField(
               controller: _searchController,
-              hintText: context.l10n.searchTokenHint,
-              suffixIcon: const Icon(
-                Icons.search,
-                color: Colors.green,
+              decoration: InputDecoration(
+                hintText: context.l10n.searchTokenHint,
+                prefixIcon: const Icon(
+                  Icons.search,
+                  color: Colors.green,
+                ),
+                suffixIcon: ClearContentButton(controller: _searchController),
               ),
               onChanged: _onSearchChanged,
             ),
