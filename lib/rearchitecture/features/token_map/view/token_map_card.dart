@@ -65,7 +65,7 @@ class _ViewState extends State<_View> {
           children: <Widget>[
             InputField(
               controller: _searchController,
-              hintText: context.l10n.searchTokenBySymbol,
+              hintText: context.l10n.searchTokenHint,
               suffixIcon: const Icon(
                 Icons.search,
                 color: Colors.green,
@@ -116,7 +116,7 @@ class _ViewState extends State<_View> {
 
   Widget _buildTokenSearch({
     required String searchQuery,
-}) {
+  }) {
     return BlocBuilder<TokenSearchBloc, TokenSearchState>(
       builder: (BuildContext context, TokenSearchState state) {
         if (state.query != searchQuery) {

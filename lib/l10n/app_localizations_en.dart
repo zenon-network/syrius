@@ -576,7 +576,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get saveQr => 'Save QR';
 
   @override
-  String get searchTokenBySymbol => 'Search token by symbol';
+  String get searchTokenHint =>
+      'Search by name, symbol, owner, or token standard';
 
   @override
   String get send => 'Send';

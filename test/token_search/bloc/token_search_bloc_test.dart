@@ -16,7 +16,23 @@ class MockTokenList extends Mock implements TokenList {}
 
 class MockToken extends Mock implements Token {}
 
-class MockTokenStandard extends Mock implements TokenStandard {}
+class FakeTokenStandard extends Fake implements TokenStandard {
+  FakeTokenStandard(this.value);
+
+  final String value;
+
+  @override
+  String toString() => value;
+}
+
+class FakeAddress extends Fake implements Address {
+  FakeAddress(this.value);
+
+  final String value;
+
+  @override
+  String toString() => value;
+}
 
 void main() {
   group('TokenSearchBloc', () {
@@ -26,11 +42,21 @@ void main() {
     late MockTokenList tokenList;
     late List<Token> tokens;
 
-    MockToken createToken(String symbol) {
+    MockToken createToken(
+      String symbol, {
+      String name = 'Token',
+      String owner = 'z1qowner',
+      String? tokenStandard,
+    }) {
       final MockToken token = MockToken();
-      final MockTokenStandard tokenStandard = MockTokenStandard();
+      final FakeAddress ownerAddress = FakeAddress(owner);
+      final FakeTokenStandard standard = FakeTokenStandard(
+        tokenStandard ?? 'zts1${symbol.toLowerCase()}',
+      );
+      when(() => token.name).thenReturn(name);
       when(() => token.symbol).thenReturn(symbol);
-      when(() => token.tokenStandard).thenReturn(tokenStandard);
+      when(() => token.owner).thenReturn(ownerAddress);
+      when(() => token.tokenStandard).thenReturn(standard);
       return token;
     }
 
@@ -111,6 +137,69 @@ void main() {
         TokenSearchState.success(
           query: 'alp',
           tokens: tokens,
+          hasReachedMax: true,
+        ),
+      ],
+    );
+
+    blocTest<TokenSearchBloc, TokenSearchState>(
+      'searches tokens by name',
+      setUp: () {
+        tokens = <Token>[
+          createToken('ONE', name: 'First Token'),
+          createToken('TWO', name: 'Second Token'),
+        ];
+      },
+      build: createBloc,
+      act: (TokenSearchBloc bloc) =>
+          bloc.add(const TokenSearchRequested(query: 'SECOND')),
+      expect: () => <TokenSearchState>[
+        const TokenSearchState.loading(query: 'SECOND'),
+        TokenSearchState.success(
+          query: 'SECOND',
+          tokens: <Token>[tokens[1]],
+          hasReachedMax: true,
+        ),
+      ],
+    );
+
+    blocTest<TokenSearchBloc, TokenSearchState>(
+      'searches tokens by owner',
+      setUp: () {
+        tokens = <Token>[
+          createToken('ONE', owner: 'z1qfirstowner'),
+          createToken('TWO', owner: 'z1qsecondowner'),
+        ];
+      },
+      build: createBloc,
+      act: (TokenSearchBloc bloc) =>
+          bloc.add(const TokenSearchRequested(query: 'SECONDOWNER')),
+      expect: () => <TokenSearchState>[
+        const TokenSearchState.loading(query: 'SECONDOWNER'),
+        TokenSearchState.success(
+          query: 'SECONDOWNER',
+          tokens: <Token>[tokens[1]],
+          hasReachedMax: true,
+        ),
+      ],
+    );
+
+    blocTest<TokenSearchBloc, TokenSearchState>(
+      'searches tokens by token standard',
+      setUp: () {
+        tokens = <Token>[
+          createToken('ONE', tokenStandard: 'zts1firststandard'),
+          createToken('TWO', tokenStandard: 'zts1secondstandard'),
+        ];
+      },
+      build: createBloc,
+      act: (TokenSearchBloc bloc) =>
+          bloc.add(const TokenSearchRequested(query: 'SECONDSTANDARD')),
+      expect: () => <TokenSearchState>[
+        const TokenSearchState.loading(query: 'SECONDSTANDARD'),
+        TokenSearchState.success(
+          query: 'SECONDSTANDARD',
+          tokens: <Token>[tokens[1]],
           hasReachedMax: true,
         ),
       ],

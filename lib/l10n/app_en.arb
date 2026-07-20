@@ -158,7 +158,7 @@
   "revocationWindowOpen": "Revocation window is open",
   "sAgo": "s ago",
   "saveQr": "Save QR",
-  "searchTokenBySymbol": "Search token by symbol",
+  "searchTokenHint": "Search by name, symbol, owner, or token standard",
   "send": "Send",
   "sendTransaction": "send transaction",
   "sentinel": "Sentinel",

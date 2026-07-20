@@ -66,7 +66,7 @@ class TokenSearchBloc extends Bloc<TokenSearchEvent, TokenSearchState> {
                   kZnnCoin.tokenStandard,
                   kQsrCoin.tokenStandard,
                 }.contains(token.tokenStandard) &&
-                token.symbol.toLowerCase().contains(normalizedQuery),
+                _matchesQuery(token, normalizedQuery),
           )
           .toList();
 
@@ -148,6 +148,13 @@ class TokenSearchBloc extends Bloc<TokenSearchEvent, TokenSearchState> {
   Future<List<Token>> _fetchAllTokens() async {
     final TokenList tokenList = await _zenon.embedded.token.getAll();
     return tokenList.list ?? <Token>[];
+  }
+
+  bool _matchesQuery(Token token, String query) {
+    return token.name.toLowerCase().contains(query) ||
+        token.symbol.toLowerCase().contains(query) ||
+        token.owner.toString().toLowerCase().contains(query) ||
+        token.tokenStandard.toString().toLowerCase().contains(query);
   }
 }
 

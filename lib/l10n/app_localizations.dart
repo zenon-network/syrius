@@ -1048,11 +1048,11 @@ abstract class AppLocalizations {
   /// **'Save QR'**
   String get saveQr;
 
-  /// No description provided for @searchTokenBySymbol.
+  /// No description provided for @searchTokenHint.
   ///
   /// In en, this message translates to:
-  /// **'Search token by symbol'**
-  String get searchTokenBySymbol;
+  /// **'Search by name, symbol, owner, or token standard'**
+  String get searchTokenHint;
 
   /// No description provided for @send.
   ///
