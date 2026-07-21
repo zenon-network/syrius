@@ -53,6 +53,7 @@ export 'token_map/token_map.dart';
 export 'token_search/token_search.dart';
 export 'total_hourly_transactions/total_hourly_transactions.dart';
 export 'transfer/transfer.dart';
+export 'transfer_token/transfer_token.dart';
 export 'uncollected_pillar_rewards/uncollected_pillar_rewards.dart';
 export 'uncollected_sentinel_rewards/uncollected_sentinel_rewards.dart';
 export 'uncollected_staking_rewards/uncollected_staking_rewards.dart';

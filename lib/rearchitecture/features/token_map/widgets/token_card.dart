@@ -1,23 +1,16 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_flip_card/flutter_flip_card.dart';
 import 'package:marquee_widget/marquee_widget.dart';
-import 'package:stacked/stacked.dart';
-import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
-import 'package:zenon_syrius_wallet_flutter/model/model.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/extensions/buildcontext_extension.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/color_utils.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/extensions.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/input_validators.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/navigation_utils.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/notification_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
@@ -43,12 +36,8 @@ class TokenCard extends StatefulWidget {
 
 class _TokenCardState extends State<TokenCard> {
   final GlobalKey<FlipCardState> _cardKey = GlobalKey<FlipCardState>();
-  GlobalKey<FormState> _newOwnerAddressKey = GlobalKey();
 
   final FlipCardController _flipCardController = FlipCardController();
-  TextEditingController _newOwnerAddressController = TextEditingController();
-
-  final GlobalKey<LoadingButtonState> _transferButtonKey = GlobalKey();
 
   _BackVersion _backOfCardVersion = _BackVersion.burn;
 
@@ -158,7 +147,7 @@ class _TokenCardState extends State<TokenCard> {
                           _getTokenOptionIconButton(
                             tooltip: context.l10n.transferTokenOwnership,
                             iconData: Icons.compare_arrows,
-                            onPressed: _onTransferOwnershipIconPressed,
+                            onPressed: _onTransferTokenIconPressed,
                             iconColor: AppColors.znnColor,
                           ),
                         if (widget._token.isMintable &&
@@ -351,54 +340,11 @@ class _TokenCardState extends State<TokenCard> {
     );
   }
 
-  void _onTransferOwnershipIconPressed() {
+  void _onTransferTokenIconPressed() {
     setState(() {
       _backOfCardVersion = _BackVersion.transferOwnership;
       _flipCard();
     });
-  }
-
-  Widget _getTransferOwnershipBackOfCard() {
-    return ListView(
-      shrinkWrap: true,
-      children: <Widget>[
-        Form(
-          key: _newOwnerAddressKey,
-          autovalidateMode: AutovalidateMode.onUserInteraction,
-          child: InputField(
-            onChanged: (String value) {
-              setState(() {});
-            },
-            inputFormatters: <TextInputFormatter>[
-              FilteringTextInputFormatter.allow(RegExp('[0-9a-z]')),
-            ],
-            controller: _newOwnerAddressController,
-            hintText: context.l10n.newOwnerAddress,
-            contentLeftPadding: 20,
-            validator: InputValidators.checkAddress,
-          ),
-        ),
-        kVerticalSpacing,
-        Row(
-          mainAxisSize: MainAxisSize.min,
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            Column(
-              children: <Widget>[
-                _getTransferOwnershipButtonViewModel(),
-                const SizedBox(
-                  height: 10,
-                ),
-                StepperButton(
-                  text: context.l10n.goBack,
-                  onPressed: _flipCard,
-                ),
-              ],
-            ),
-          ],
-        ),
-      ],
-    );
   }
 
   Widget _getBackVersionOfCard(Map<String, AccountInfo> balanceMap) {
@@ -416,85 +362,11 @@ class _TokenCardState extends State<TokenCard> {
           token: widget._token,
         );
       case _BackVersion.transferOwnership:
-        return _getTransferOwnershipBackOfCard();
-    }
-  }
-
-  Widget _getTransferOwnershipButtonViewModel() {
-    return ViewModelBuilder<TransferOwnershipBloc>.reactive(
-      onViewModelReady: (TransferOwnershipBloc model) {
-        model.stream.listen(
-          (AccountBlockTemplate event) {
-            _sendTransferSuccessfulNotification();
-            if (mounted) {
-              setState(() {
-                _newOwnerAddressController = TextEditingController();
-                _newOwnerAddressKey = GlobalKey();
-              });
-            }
-            _transferButtonKey.currentState?.animateReverse();
-          },
-          onError: (error) async {
-            _transferButtonKey.currentState?.animateReverse();
-            await NotificationUtils.sendNotificationError(
-              error,
-              context.l10n.errorTransferringTokenOwnership,
-            );
-          },
+        return TransferTokenView(
+          onBackPressed: _flipCard,
+          token: widget._token,
         );
-      },
-      builder: (_, TransferOwnershipBloc model, __) => StreamBuilder(
-        stream: model.stream,
-        builder: (_, AsyncSnapshot<AccountBlockTemplate> snapshot) {
-          if (snapshot.hasError) {
-            return _getTransferOwnershipButton(model);
-          }
-          if (snapshot.connectionState == ConnectionState.active) {
-            if (snapshot.hasData) {
-              return _getTransferOwnershipButton(model);
-            }
-            return const SyriusLoadingWidget();
-          }
-          return _getTransferOwnershipButton(model);
-        },
-      ),
-      viewModelBuilder: TransferOwnershipBloc.new,
-    );
-  }
-
-  Future<void> _sendTransferSuccessfulNotification() async {
-    await sl.get<NotificationsBloc>().addNotification(
-      WalletNotification(
-        title: context.l10n.transferredTokenOwnership(
-          widget._token.name,
-        ),
-        timestamp: DateTime.now().millisecondsSinceEpoch,
-        details: context.l10n.transferredTokenOwnershipToAddress(
-          _newOwnerAddressController.text,
-          widget._token.name,
-        ),
-        type: NotificationType.paymentSent,
-      ),
-    );
-  }
-
-  Widget _getTransferOwnershipButton(TransferOwnershipBloc model) {
-    return LoadingButton.stepper(
-      text: context.l10n.transfer,
-      onPressed:
-          InputValidators.checkAddress(_newOwnerAddressController.text) == null
-          ? () {
-              _transferButtonKey.currentState!.animateForward();
-              model.transferOwnership(
-                widget._token.tokenStandard,
-                Address.parse(_newOwnerAddressController.text),
-                widget._token.isMintable,
-                widget._token.isBurnable,
-              );
-            }
-          : null,
-      key: _transferButtonKey,
-    );
+    }
   }
 
   void _refreshBalanceBloc() {
@@ -503,11 +375,5 @@ class _TokenCardState extends State<TokenCard> {
         addresses: kDefaultAddressList.map((String? e) => e!).toList(),
       ),
     );
-  }
-
-  @override
-  void dispose() {
-    _newOwnerAddressController.dispose();
-    super.dispose();
   }
 }
