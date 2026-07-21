@@ -11,13 +11,13 @@ import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 class TokenFavorite extends StatefulWidget {
-  const TokenFavorite(
-    this.token,
-    this._tokenFavoritesCallback, {
+  const TokenFavorite({
+    required this._token,
+    required this._callback,
     super.key,
   });
-  final Token token;
-  final VoidCallback _tokenFavoritesCallback;
+  final Token _token;
+  final VoidCallback _callback;
 
   @override
   State<TokenFavorite> createState() => _TokenFavoriteState();
@@ -53,7 +53,7 @@ class _TokenFavoriteState extends State<TokenFavorite> {
   }
 
   void _onFavoriteIconPressed() {
-    return _isTokenInFavorites(widget.token)
+    return _isTokenInFavorites(widget._token)
         ? _removeTokenFromFavorites()
         : _addTokenToFavorites();
   }
@@ -63,16 +63,16 @@ class _TokenFavoriteState extends State<TokenFavorite> {
       _showLoading = true;
     });
     _favoriteTokensBox
-        .add(widget.token.tokenStandard.toString())
+        .add(widget._token.tokenStandard.toString())
         .then(
           (int value) async {
             await sl.get<NotificationsBloc>().addNotification(
               WalletNotification(
-                title: context.l10n.tokenAddedToFavorites(widget.token.name),
+                title: context.l10n.tokenAddedToFavorites(widget._token.name),
                 details: context.l10n.tokenSummary(
-                  widget.token.name,
-                  widget.token.symbol,
-                  widget.token.tokenStandard,
+                  widget._token.name,
+                  widget._token.symbol,
+                  widget._token.tokenStandard,
                 ),
                 timestamp: DateTime.now().millisecondsSinceEpoch,
                 type: NotificationType.addedTokenFavourite,
@@ -81,12 +81,12 @@ class _TokenFavoriteState extends State<TokenFavorite> {
             setState(() {
               _showLoading = false;
             });
-            widget._tokenFavoritesCallback();
+            widget._callback();
           },
           onError: (error) async {
             await NotificationUtils.sendNotificationError(
               error,
-              context.l10n.errorAddingTokenToFavorites(widget.token.name),
+              context.l10n.errorAddingTokenToFavorites(widget._token.name),
             );
           },
         );
@@ -99,7 +99,7 @@ class _TokenFavoriteState extends State<TokenFavorite> {
     await _favoriteTokensBox
         .deleteAt(
           _favoriteTokensBox.values.toList().indexOf(
-            widget.token.tokenStandard.toString(),
+            widget._token.tokenStandard.toString(),
           ),
         )
         .then(
@@ -107,12 +107,12 @@ class _TokenFavoriteState extends State<TokenFavorite> {
             await sl.get<NotificationsBloc>().addNotification(
               WalletNotification(
                 title: context.l10n.tokenRemovedFromFavorites(
-                  widget.token.name,
+                  widget._token.name,
                 ),
                 details: context.l10n.tokenSummary(
-                  widget.token.name,
-                  widget.token.symbol,
-                  widget.token.tokenStandard,
+                  widget._token.name,
+                  widget._token.symbol,
+                  widget._token.tokenStandard,
                 ),
                 timestamp: DateTime.now().millisecondsSinceEpoch,
                 type: NotificationType.addedTokenFavourite,
@@ -121,29 +121,29 @@ class _TokenFavoriteState extends State<TokenFavorite> {
             setState(() {
               _showLoading = false;
             });
-            widget._tokenFavoritesCallback();
+            widget._callback();
           },
           onError: (error) async {
             await NotificationUtils.sendNotificationError(
               error,
-              context.l10n.errorRemovingTokenFromFavorites(widget.token.name),
+              context.l10n.errorRemovingTokenFromFavorites(widget._token.name),
             );
           },
         );
   }
 
-  IconData _getFavoriteIcons() => _isTokenInFavorites(widget.token)
+  IconData _getFavoriteIcons() => _isTokenInFavorites(widget._token)
       ? Icons.star_rounded
       : Icons.star_border_rounded;
 
   bool _isTokenInFavorites(Token token) =>
       _favoriteTokensBox.values.contains(token.tokenStandard.toString());
 
-  String _getToolTipMessage() => _isTokenInFavorites(widget.token)
+  String _getToolTipMessage() => _isTokenInFavorites(widget._token)
       ? context.l10n.clickToRemoveFromFavorites
       : context.l10n.clickToAddToFavorites;
 
-  Color _getIconColor() => _isTokenInFavorites(widget.token)
+  Color _getIconColor() => _isTokenInFavorites(widget._token)
       ? AppColors.znnColor
       : AppColors.lightSecondaryContainer;
 }

@@ -80,9 +80,32 @@ class _TokenCardState extends State<TokenCard> {
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
-            Text(
-              widget._token.name,
-              style: Theme.of(context).textTheme.bodyLarge,
+            Row(
+              spacing: kHorizontalGap8.width!,
+              children: <Widget>[
+                Text(
+                  widget._token.name,
+                  style: Theme.of(context).textTheme.bodyLarge,
+                ),
+                if (kDefaultAddressList.contains(
+                  widget._token.owner.toString(),
+                ))
+                  Tooltip(
+                    message: context.l10n.ownZtsToken,
+                    child: const Icon(
+                      Icons.account_circle,
+                      color: AppColors.znnColor,
+                    ),
+                  ),
+                if (widget._token.isUtility)
+                  Tooltip(
+                    message: context.l10n.utilityToken,
+                    child: const Icon(
+                      Icons.settings,
+                      color: AppColors.znnColor,
+                    ),
+                  ),
+              ],
             ),
             Text(
               widget._token.symbol.toUpperCase(),
@@ -112,14 +135,6 @@ class _TokenCardState extends State<TokenCard> {
                       kHorizontalGap8,
                       Wrap(
                         children: <Widget>[
-                          if (kDefaultAddressList.contains(
-                            widget._token.owner.toString(),
-                          ))
-                            _buildTokenOptionIconButton(
-                              tooltip: context.l10n.ownZtsToken,
-                              iconData: Icons.verified,
-                              iconColor: AppColors.znnColor,
-                            ),
                           if (kSelectedAddress ==
                               widget._token.owner.toString())
                             _buildTokenOptionIconButton(
@@ -132,17 +147,13 @@ class _TokenCardState extends State<TokenCard> {
                               widget._token.totalSupply <
                                   widget._token.maxSupply)
                             _buildTokenOptionIconButton(
-                              isOwner: kDefaultAddressList.contains(
-                                widget._token.owner.toString(),
-                              ),
                               tooltip: context.l10n.mintableToken,
                               onPressed:
-                                  kDefaultAddressList.contains(
-                                    widget._token.owner.toString(),
-                                  )
+                                  kSelectedAddress ==
+                                      widget._token.owner.toString()
                                   ? () {
-                                      _flipCard();
                                       _backOfCardVersion = _BackVersion.mint;
+                                      _flipCard();
                                       _refreshBalanceBloc();
                                     }
                                   : null,
@@ -150,37 +161,26 @@ class _TokenCardState extends State<TokenCard> {
                             ),
                           if (widget._token.isBurnable)
                             _buildTokenOptionIconButton(
-                              isOwner: kDefaultAddressList.contains(
-                                widget._token.owner.toString(),
-                              ),
                               tooltip: context.l10n.burnableToken,
                               onPressed:
                                   kDefaultAddressList.contains(
                                     widget._token.owner.toString(),
                                   )
                                   ? () {
-                                      _flipCard();
                                       _backOfCardVersion = _BackVersion.burn;
+                                      _flipCard();
                                       _refreshBalanceBloc();
                                     }
                                   : null,
                               iconData: Icons.whatshot,
                             ),
-                          if (widget._token.isUtility)
-                            _buildTokenOptionIconButton(
-                              tooltip: context.l10n.utilityToken,
-                              mouseCursor: SystemMouseCursors.basic,
-                              iconData: Icons.settings,
-                            ),
                           TokenFavorite(
-                            widget._token,
-                            widget._favoritesCallback,
+                            token: widget._token,
+                            callback: widget._favoritesCallback,
                           ),
                         ],
                       ),
-                      const SizedBox(
-                        height: 10,
-                      ),
+                      kHorizontalGap8,
                       Text(
                         context.l10n.decimals(widget._token.decimals),
                         style: Theme.of(context).textTheme.titleSmall,
@@ -224,37 +224,24 @@ class _TokenCardState extends State<TokenCard> {
     );
   }
 
-  Material _buildTokenOptionIconButton({
+  Widget _buildTokenOptionIconButton({
     required String tooltip,
     required IconData iconData,
     Color? iconColor,
     VoidCallback? onPressed,
-    MouseCursor mouseCursor = SystemMouseCursors.click,
-    bool? isOwner,
   }) {
-    return Material(
-      type: MaterialType.circle,
-      shadowColor: Colors.transparent,
-      color: Colors.transparent,
-      child: IconButton(
-        mouseCursor: isOwner != null
-            ? isOwner
-                  ? mouseCursor
-                  : SystemMouseCursors.forbidden
-            : mouseCursor,
-        tooltip: tooltip,
-        padding: EdgeInsets.zero,
-        splashRadius: 18,
-        onPressed: onPressed,
-        iconSize: 25,
-        icon: Icon(
-          iconData,
-          color: isOwner != null
-              ? kDefaultAddressList.contains(widget._token.owner.toString())
-                    ? AppColors.znnColor
-                    : AppColors.lightSecondaryContainer
-              : iconColor,
-        ),
+    return IconButton(
+      mouseCursor: onPressed != null
+          ? SystemMouseCursors.click
+          : SystemMouseCursors.forbidden,
+      style: IconButton.styleFrom(
+        foregroundColor: AppColors.znnColor,
+      ),
+      tooltip: tooltip,
+      onPressed: onPressed,
+      icon: Icon(
+        iconData,
+        color: iconColor,
       ),
     );
   }
