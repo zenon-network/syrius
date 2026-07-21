@@ -181,15 +181,15 @@ class _TokenMapGrid extends StatelessWidget {
 
     return InfiniteScrollGrid<Token>(
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        childAspectRatio: 100 / 80,
+        childAspectRatio: 1.25,
         crossAxisSpacing: 10,
         mainAxisSpacing: 10,
         crossAxisCount: 2,
       ),
       hasReachedMax: _hasReachedMax,
       itemBuilder: (_, Token token, _) => TokenCard(
-        token,
-        _onTokenUpdated,
+        favoritesCallback: _onTokenUpdated,
+        token: token,
       ),
       itemKeyGenerator: (Token token) => ValueKey<String>(
         token.tokenStandard.toString(),
