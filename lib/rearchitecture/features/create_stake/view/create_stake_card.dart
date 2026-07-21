@@ -88,6 +88,7 @@ class _PopulatedState extends State<_Populated> {
   final TextEditingController _amountController = TextEditingController();
   // TODO(maznnwell): this should be deleted because it wont change
   final TextEditingController _addressController = TextEditingController();
+  final TextEditingController _menuLabelController = .new();
 
   final GlobalKey<LoadingButtonState> _stakeButtonKey = GlobalKey();
 
@@ -205,6 +206,7 @@ class _PopulatedState extends State<_Populated> {
         .toList();
 
     return DropdownMenu<Duration>(
+      controller: _menuLabelController,
       key: const Key('create_stake_duration_dropdown'),
       hintText: context.l10n.duration,
       dropdownMenuEntries: entries,
@@ -273,6 +275,7 @@ class _PopulatedState extends State<_Populated> {
       _stakeButtonKey.currentState?.animateReverse();
       setState(() {
         _amountController.clear();
+        _menuLabelController.clear();
         _selectedStakeDuration = null;
       });
       widget.onStakeCreated();
