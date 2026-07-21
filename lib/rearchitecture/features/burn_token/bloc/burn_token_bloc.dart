@@ -14,13 +14,10 @@ part 'burn_token_state.dart';
 class BurnTokenBloc extends Bloc<BurnTokenEvent, BurnTokenState> {
   /// Creates a [BurnTokenBloc].
   BurnTokenBloc({
-    required AccountBlockUtils accountBlockUtils,
-    required Zenon zenon,
-    required ZenonAddressUtils zenonAddressUtils,
-  }) : _accountBlockUtils = accountBlockUtils,
-       _zenon = zenon,
-       _zenonAddressUtils = zenonAddressUtils,
-       super(const BurnTokenInitial()) {
+    required this._accountBlockUtils,
+    required this._zenon,
+    required this._zenonAddressUtils,
+  }) : super(const BurnTokenInitial()) {
     on<BurnTokenRequested>(_onBurnTokenRequested);
   }
 

@@ -106,7 +106,9 @@ class BalanceChart extends StatelessWidget {
   }
 }
 
+/// Provides token balance lookup helpers for [AccountInfo].
 extension AccountInfoExtension on AccountInfo {
+  /// Returns the balance information for [tokenStandard], when available.
   BalanceInfoListItem? getBalanceInfo({required TokenStandard tokenStandard}) =>
       balanceInfoList!.firstWhereOrNull(
         (BalanceInfoListItem element) =>
@@ -117,7 +119,11 @@ extension AccountInfoExtension on AccountInfo {
 /// Extension used to enhance the class [BalanceInfoListItem]
 extension BalanceInfoListItemExtension on BalanceInfoListItem {
   /// Gets the balance as '1.0000004'
-  BigDecimal get normalizedBalance => BigDecimal.fromBigInt(
-    balance!,
-  ).divide(BigDecimal.parse('10').pow(token!.decimals));
+  BigDecimal get normalizedBalance =>
+      BigDecimal.fromBigInt(
+        balance!,
+      ).divide(
+        BigDecimal.parse('10').pow(token!.decimals),
+        roundingMode: RoundingMode.UP,
+      );
 }

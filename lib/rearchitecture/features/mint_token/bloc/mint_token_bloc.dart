@@ -14,13 +14,10 @@ part 'mint_token_state.dart';
 class MintTokenBloc extends Bloc<MintTokenEvent, MintTokenState> {
   /// Creates a [MintTokenBloc].
   MintTokenBloc({
-    required AccountBlockUtils accountBlockUtils,
-    required Zenon zenon,
-    required ZenonAddressUtils zenonAddressUtils,
-  }) : _accountBlockUtils = accountBlockUtils,
-       _zenon = zenon,
-       _zenonAddressUtils = zenonAddressUtils,
-       super(const MintTokenInitial()) {
+    required this._accountBlockUtils,
+    required this._zenon,
+    required this._zenonAddressUtils,
+  }) : super(const MintTokenInitial()) {
     on<MintTokenRequested>(_onMintTokenRequested);
   }
 

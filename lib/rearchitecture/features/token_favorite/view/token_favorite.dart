@@ -12,7 +12,9 @@ import 'package:zenon_syrius_wallet_flutter/utils/notification_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
+/// Displays a button that adds or removes a token from favorites.
 class TokenFavorite extends StatelessWidget {
+  /// Creates a [TokenFavorite].
   const TokenFavorite({
     required this._token,
     required this._callback,

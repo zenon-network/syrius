@@ -22,7 +22,9 @@ enum _BackVersion {
   transferOwnership,
 }
 
+/// Displays token information and its available actions.
 class TokenCard extends StatefulWidget {
+  /// Creates a [TokenCard].
   const TokenCard({
     required this._token,
     required this._favoritesCallback,
