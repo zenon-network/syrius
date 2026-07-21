@@ -1,6 +1,7 @@
 export 'active_pillars/active_pillars.dart';
 export 'active_sentinels/active_sentinels.dart';
 export 'balance/balance.dart';
+export 'burn_token/burn_token.dart';
 export 'cancel_plasma/cancel_plasma.dart';
 export 'cancel_stake/cancel_stake.dart';
 export 'create_pillar_qsr_info/create_pillar_qsr_info.dart';

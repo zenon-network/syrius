@@ -45,21 +45,17 @@ class TokenCard extends StatefulWidget {
 class _TokenCardState extends State<TokenCard> {
   final GlobalKey<FlipCardState> _cardKey = GlobalKey<FlipCardState>();
   final GlobalKey<FormState> _beneficiaryAddressKey = GlobalKey();
-  final GlobalKey<FormState> _burnAmountKey = GlobalKey();
   final GlobalKey<FormState> _mintAmountKey = GlobalKey();
   GlobalKey<FormState> _newOwnerAddressKey = GlobalKey();
 
   final FlipCardController _flipCardController = FlipCardController();
   final TextEditingController _beneficiaryAddressController =
       TextEditingController();
-  final TextEditingController _burnAmountController = TextEditingController();
   final TextEditingController _mintAmountController = TextEditingController();
   TextEditingController _newOwnerAddressController = TextEditingController();
 
-  BigInt _burnMaxAmount = BigInt.zero;
   BigInt _mintMaxAmount = BigInt.zero;
 
-  final GlobalKey<LoadingButtonState> _burnButtonKey = GlobalKey();
   final GlobalKey<LoadingButtonState> _mintButtonKey = GlobalKey();
   final GlobalKey<LoadingButtonState> _transferButtonKey = GlobalKey();
 
@@ -370,163 +366,24 @@ class _TokenCardState extends State<TokenCard> {
     );
   }
 
-  Widget _getBurnBackOfCard(AccountInfo accountInfo) {
-    _burnMaxAmount = accountInfo.getBalance(
-      widget._token.tokenStandard,
-    );
-
-    return ListView(
-      shrinkWrap: true,
-      children: <Widget>[
-        Form(
-          key: _burnAmountKey,
-          autovalidateMode: AutovalidateMode.onUserInteraction,
-          child: InputField(
-            onChanged: (String value) {
-              setState(() {});
-            },
-            inputFormatters: FormatUtils.getAmountTextInputFormatters(
-              _burnAmountController.text,
-            ),
-            controller: _burnAmountController,
-            validator: (String? value) => InputValidators.correctValue(
-              value,
-              _burnMaxAmount,
-              widget._token.decimals,
-              BigInt.zero,
-            ),
-            suffixIcon: _getAmountSuffix(),
-            suffixIconConstraints: const BoxConstraints(maxWidth: 50),
-            hintText: context.l10n.amount,
-            contentLeftPadding: 20,
-          ),
-        ),
-        StepperUtils.getBalanceWidget(widget._token, accountInfo),
-        Row(
-          mainAxisSize: MainAxisSize.min,
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            Column(
-              children: <Widget>[
-                _getBurnButtonViewModel(),
-                const SizedBox(
-                  height: 10,
-                ),
-                StepperButton(
-                  text: context.l10n.goBack,
-                  onPressed: _flipCard,
-                ),
-              ],
-            ),
-          ],
-        ),
-      ],
-    );
-  }
-
-  Widget _getBurnButtonViewModel() {
-    return ViewModelBuilder<BurnTokenBloc>.reactive(
-      onViewModelReady: (BurnTokenBloc model) {
-        model.stream.listen(
-          (AccountBlockTemplate event) {
-            setState(() {
-              _burnAmountKey.currentState?.reset();
-              _burnAmountController.clear();
-            });
-            _burnButtonKey.currentState?.animateReverse();
-            _sendBurnSuccessfulNotification(event);
-            _refreshBalanceBloc();
-          },
-          onError: (error) async {
-            _burnButtonKey.currentState?.animateReverse();
-            await NotificationUtils.sendNotificationError(
-              error,
-              context.l10n.errorBurningZts,
-            );
-          },
-        );
-      },
-      builder: (_, BurnTokenBloc model, __) => _getBurnButton(model),
-      viewModelBuilder: BurnTokenBloc.new,
-    );
-  }
-
-  Future<void> _sendBurnSuccessfulNotification(
-    AccountBlockTemplate event,
-  ) async {
-    final String amount = event.amount.addDecimals(widget._token.decimals);
-
-    await sl.get<NotificationsBloc>().addNotification(
-      WalletNotification(
-        title: context.l10n.successfullyBurned(
-          amount,
-          widget._token.symbol,
-        ),
-        timestamp: DateTime.now().millisecondsSinceEpoch,
-        details: context.l10n.successfullyBurnedRequestedAmount(
-          amount,
-          event.hash,
-          widget._token.symbol,
-        ),
-        type: NotificationType.burnToken,
-      ),
-    );
-  }
-
-  Widget _getBurnButton(BurnTokenBloc model) {
-    return LoadingButton.stepper(
-      text: context.l10n.burn,
-      onPressed:
-          _burnMaxAmount > BigInt.zero &&
-              _burnAmountController.text.isNotEmpty &&
-              InputValidators.correctValue(
-                    _burnAmountController.text,
-                    _burnMaxAmount,
-                    widget._token.decimals,
-                    BigInt.zero,
-                  ) ==
-                  null
-          ? () {
-              _burnButtonKey.currentState?.animateForward();
-              model.burnToken(
-                widget._token,
-                _burnAmountController.text.extractDecimals(
-                  widget._token.decimals,
-                ),
-              );
-            }
-          : null,
-      key: _burnButtonKey,
-    );
-  }
-
-  Widget _getAmountSuffix() {
+  Widget _buildMintAmountSuffix() {
     return Row(
       children: <Widget>[
         AmountSuffixMaxWidget(
-          onPressed: _onMaxPressed,
+          onPressed: _onMintMaxPressed,
           context: context,
         ),
       ],
     );
   }
 
-  void _onMaxPressed() {
-    if (_burnAmountController.text.isEmpty ||
-        _burnAmountController.text.extractDecimals(widget._token.decimals) !=
-            _burnMaxAmount ||
-        _burnAmountController.text.extractDecimals(widget._token.decimals) !=
-            _mintMaxAmount) {
+  void _onMintMaxPressed() {
+    final String maxAmount = _mintMaxAmount.addDecimals(
+      widget._token.decimals,
+    );
+    if (_mintAmountController.text != maxAmount) {
       setState(() {
-        if (_backOfCardVersion == _BackVersion.burn) {
-          _burnAmountController.text = _burnMaxAmount.addDecimals(
-            widget._token.decimals,
-          );
-        } else {
-          _mintAmountController.text = _mintMaxAmount.addDecimals(
-            widget._token.decimals,
-          );
-        }
+        _mintAmountController.text = maxAmount;
       });
     }
   }
@@ -571,7 +428,7 @@ class _TokenCardState extends State<TokenCard> {
               widget._token.decimals,
               BigInt.zero,
             ),
-            suffixIcon: _getAmountSuffix(),
+            suffixIcon: _buildMintAmountSuffix(),
             suffixIconConstraints: const BoxConstraints(maxWidth: 50),
             hintText: context.l10n.amount,
             contentLeftPadding: 20,
@@ -733,7 +590,11 @@ class _TokenCardState extends State<TokenCard> {
   Widget _getBackVersionOfCard(Map<String, AccountInfo> balanceMap) {
     switch (_backOfCardVersion) {
       case _BackVersion.burn:
-        return _getBurnBackOfCard(balanceMap[kSelectedAddress!]!);
+        return BurnTokenView(
+          accountInfo: balanceMap[kSelectedAddress!]!,
+          onBackPressed: _flipCard,
+          token: widget._token,
+        );
       case _BackVersion.mint:
         return _getMintBackOfCard(balanceMap[kSelectedAddress!]);
       case _BackVersion.transferOwnership:
@@ -829,7 +690,6 @@ class _TokenCardState extends State<TokenCard> {
   @override
   void dispose() {
     _beneficiaryAddressController.dispose();
-    _burnAmountController.dispose();
     _mintAmountController.dispose();
     _newOwnerAddressController.dispose();
     super.dispose();
