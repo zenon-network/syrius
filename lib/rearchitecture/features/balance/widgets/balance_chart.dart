@@ -124,6 +124,9 @@ extension BalanceInfoListItemExtension on BalanceInfoListItem {
         balance!,
       ).divide(
         BigDecimal.parse('10').pow(token!.decimals),
+        // TODO(maznnwell): check if it's possible to coordinate rounding
+        // 9775.5 is show by BigDecimal, with UP rounding, as 9776
+        // intl, shrinking sums, show 9775.5 as 9.78K
         roundingMode: RoundingMode.UP,
       );
 }
