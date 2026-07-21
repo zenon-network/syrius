@@ -3,6 +3,7 @@ import 'package:hive_ce/hive_ce.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/model/model.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/extensions/buildcontext_extension.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/notification_utils.dart';
@@ -10,7 +11,6 @@ import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 class TokenFavorite extends StatefulWidget {
-
   const TokenFavorite(
     this.token,
     this._tokenFavoritesCallback, {
@@ -62,30 +62,34 @@ class _TokenFavoriteState extends State<TokenFavorite> {
     setState(() {
       _showLoading = true;
     });
-    _favoriteTokensBox.add(widget.token.tokenStandard.toString()).then(
-      (int value) async {
-        await sl.get<NotificationsBloc>().addNotification(
+    _favoriteTokensBox
+        .add(widget.token.tokenStandard.toString())
+        .then(
+          (int value) async {
+            await sl.get<NotificationsBloc>().addNotification(
               WalletNotification(
-                title: '${widget.token.name} token has been added to favorites',
-                details: 'Token ${widget.token.name} with symbol '
-                    '${widget.token.name} and ZTS '
-                    '${widget.token.tokenStandard}',
+                title: context.l10n.tokenAddedToFavorites(widget.token.name),
+                details: context.l10n.tokenSummary(
+                  widget.token.name,
+                  widget.token.symbol,
+                  widget.token.tokenStandard,
+                ),
                 timestamp: DateTime.now().millisecondsSinceEpoch,
                 type: NotificationType.addedTokenFavourite,
               ),
             );
-        setState(() {
-          _showLoading = false;
-        });
-        widget._tokenFavoritesCallback();
-      },
-      onError: (error) async {
-        await NotificationUtils.sendNotificationError(
-          error,
-          'Error adding ${widget.token.name} token to favorites',
+            setState(() {
+              _showLoading = false;
+            });
+            widget._tokenFavoritesCallback();
+          },
+          onError: (error) async {
+            await NotificationUtils.sendNotificationError(
+              error,
+              context.l10n.errorAddingTokenToFavorites(widget.token.name),
+            );
+          },
         );
-      },
-    );
   }
 
   Future<void> _removeTokenFromFavorites() async {
@@ -94,35 +98,38 @@ class _TokenFavoriteState extends State<TokenFavorite> {
     });
     await _favoriteTokensBox
         .deleteAt(
-      _favoriteTokensBox.values.toList().indexOf(
+          _favoriteTokensBox.values.toList().indexOf(
             widget.token.tokenStandard.toString(),
           ),
-    )
+        )
         .then(
-      (value) async {
-        await sl.get<NotificationsBloc>().addNotification(
+          (value) async {
+            await sl.get<NotificationsBloc>().addNotification(
               WalletNotification(
-                title: '${widget.token.name} token has been removed '
-                    'from favorites',
-                details: 'Token ${widget.token.name} with symbol '
-                    '${widget.token.name} and ZTS '
-                    '${widget.token.tokenStandard}',
+                title: context.l10n.tokenRemovedFromFavorites(
+                  widget.token.name,
+                ),
+                details: context.l10n.tokenSummary(
+                  widget.token.name,
+                  widget.token.symbol,
+                  widget.token.tokenStandard,
+                ),
                 timestamp: DateTime.now().millisecondsSinceEpoch,
                 type: NotificationType.addedTokenFavourite,
               ),
             );
-        setState(() {
-          _showLoading = false;
-        });
-        widget._tokenFavoritesCallback();
-      },
-      onError: (error) async {
-        await NotificationUtils.sendNotificationError(
-          error,
-          'Error removing ${widget.token.name} token from favorites',
+            setState(() {
+              _showLoading = false;
+            });
+            widget._tokenFavoritesCallback();
+          },
+          onError: (error) async {
+            await NotificationUtils.sendNotificationError(
+              error,
+              context.l10n.errorRemovingTokenFromFavorites(widget.token.name),
+            );
+          },
         );
-      },
-    );
   }
 
   IconData _getFavoriteIcons() => _isTokenInFavorites(widget.token)
@@ -133,8 +140,8 @@ class _TokenFavoriteState extends State<TokenFavorite> {
       _favoriteTokensBox.values.contains(token.tokenStandard.toString());
 
   String _getToolTipMessage() => _isTokenInFavorites(widget.token)
-      ? 'Click to remove from favorites'
-      : 'Click to add to favorites';
+      ? context.l10n.clickToRemoveFromFavorites
+      : context.l10n.clickToAddToFavorites;
 
   Color _getIconColor() => _isTokenInFavorites(widget.token)
       ? AppColors.znnColor

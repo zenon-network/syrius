@@ -60,6 +60,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get checkSentinelStatus => ' to check the Sentinel status';
 
   @override
+  String get clickToAddToFavorites => 'Click to add to favorites';
+
+  @override
+  String get clickToRemoveFromFavorites => 'Click to remove from favorites';
+
+  @override
   String get coin => 'Coin';
 
   @override
@@ -85,6 +91,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get burn => 'Burn';
+
+  @override
+  String get burnableToken => 'Burnable token';
 
   @override
   String burnTokenIssueFee(Object amount, Object symbol) {
@@ -149,6 +158,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get date => 'Date';
+
+  @override
+  String decimals(Object number) {
+    return '$number decimals';
+  }
 
   @override
   String get delegateKey => 'DELEGATE';
@@ -221,6 +235,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get errorCreatingToken => 'Error while creating a new ZTS token';
 
   @override
+  String errorAddingTokenToFavorites(Object name) {
+    return 'Error adding $name token to favorites';
+  }
+
+  @override
+  String get errorBurningZts => 'Error while trying to burn ZTS';
+
+  @override
   String get errorCollectingPillarRewards =>
       'Error while collecting Pillar rewards';
 
@@ -259,6 +281,20 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get errorGeneratingPlasma => 'Error while generating Plasma';
+
+  @override
+  String errorMintingToken(Object symbol) {
+    return 'Error while trying to mint $symbol';
+  }
+
+  @override
+  String errorRemovingTokenFromFavorites(Object name) {
+    return 'Error removing $name token from favorites';
+  }
+
+  @override
+  String get errorTransferringTokenOwnership =>
+      'Error while trying to transfer token ownership';
 
   @override
   String errorWhileDepositing(Object kQsrCoinSymbol) {
@@ -358,7 +394,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get minAgo => 'min ago';
 
   @override
+  String get mint => 'Mint';
+
+  @override
   String get mintable => 'Mintable';
+
+  @override
+  String get mintableToken => 'Mintable token';
 
   @override
   String momentumPercentageGiven(Object percentage) {
@@ -374,6 +416,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get name => 'Name';
+
+  @override
+  String get newOwnerAddress => 'New owner address';
 
   @override
   String get next => 'Next';
@@ -397,6 +442,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String numberOfDecimals(Object number) {
     return 'Number of decimals: $number';
   }
+
+  @override
+  String get ownZtsToken => 'You own this ZTS token';
 
   @override
   String get password => 'Password';
@@ -702,6 +750,34 @@ class AppLocalizationsEn extends AppLocalizations {
   String get successfully => 'successfully';
 
   @override
+  String successfullyBurned(Object amount, Object symbol) {
+    return 'Successfully burned $amount $symbol';
+  }
+
+  @override
+  String successfullyBurnedRequestedAmount(
+    Object amount,
+    Object hash,
+    Object symbol,
+  ) {
+    return 'You have successfully burned the requested amount: $amount $symbol $hash';
+  }
+
+  @override
+  String successfullyMinted(Object amount, Object symbol) {
+    return 'Successfully minted $amount $symbol';
+  }
+
+  @override
+  String successfullyMintedRequestedAmount(
+    Object amount,
+    Object hash,
+    Object symbol,
+  ) {
+    return 'You have successfully minted the requested amount: $amount $symbol $hash';
+  }
+
+  @override
   String get sufficientPlasma => 'Sufficient Plasma';
 
   @override
@@ -729,6 +805,21 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get tokenDomain => 'Token Domain';
+
+  @override
+  String tokenAddedToFavorites(Object name) {
+    return '$name token has been added to favorites';
+  }
+
+  @override
+  String tokenRemovedFromFavorites(Object name) {
+    return '$name token has been removed from favorites';
+  }
+
+  @override
+  String tokenSummary(Object name, Object symbol, Object tokenStandard) {
+    return 'Token $name with symbol $symbol and ZTS $tokenStandard';
+  }
 
   @override
   String get tokenIssuanceAddressDescription =>
@@ -776,6 +867,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get tokenSymbol => 'Token Symbol';
 
   @override
+  String visitDomain(Object domain) {
+    return 'Visit $domain';
+  }
+
+  @override
   String get totalSupply => 'Total supply';
 
   @override
@@ -797,6 +893,19 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get transferDescription =>
       'Redirects you to the Transfer tab where you can manage sending and receiving funds';
+
+  @override
+  String transferredTokenOwnership(Object name) {
+    return 'Successfully transferred ownership of $name token';
+  }
+
+  @override
+  String transferredTokenOwnershipToAddress(Object address, Object name) {
+    return 'Successfully transferred ownership of $name token to address $address';
+  }
+
+  @override
+  String get transferTokenOwnership => 'Transfer token ownership';
 
   @override
   String get type => 'Type';

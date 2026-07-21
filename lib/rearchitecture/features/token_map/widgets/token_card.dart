@@ -169,13 +169,13 @@ class _TokenCardState extends State<TokenCard> {
                           widget._token.owner.toString(),
                         ))
                           _getTokenOptionIconButton(
-                            tooltip: 'You own this ZTS token',
+                            tooltip: context.l10n.ownZtsToken,
                             iconData: Icons.verified,
                             iconColor: AppColors.znnColor,
                           ),
                         if (kSelectedAddress == widget._token.owner.toString())
                           _getTokenOptionIconButton(
-                            tooltip: 'Transfer token ownership',
+                            tooltip: context.l10n.transferTokenOwnership,
                             iconData: Icons.compare_arrows,
                             onPressed: _onTransferOwnershipIconPressed,
                             iconColor: AppColors.znnColor,
@@ -186,7 +186,7 @@ class _TokenCardState extends State<TokenCard> {
                             isOwner: kDefaultAddressList.contains(
                               widget._token.owner.toString(),
                             ),
-                            tooltip: 'Mintable token',
+                            tooltip: context.l10n.mintableToken,
                             onPressed:
                                 kDefaultAddressList.contains(
                                   widget._token.owner.toString(),
@@ -204,7 +204,7 @@ class _TokenCardState extends State<TokenCard> {
                             isOwner: kDefaultAddressList.contains(
                               widget._token.owner.toString(),
                             ),
-                            tooltip: 'Burnable token',
+                            tooltip: context.l10n.burnableToken,
                             onPressed:
                                 kDefaultAddressList.contains(
                                   widget._token.owner.toString(),
@@ -219,7 +219,7 @@ class _TokenCardState extends State<TokenCard> {
                           ),
                         if (widget._token.isUtility)
                           _getTokenOptionIconButton(
-                            tooltip: 'Utility token',
+                            tooltip: context.l10n.utilityToken,
                             mouseCursor: SystemMouseCursors.basic,
                             iconData: Icons.settings,
                           ),
@@ -233,7 +233,7 @@ class _TokenCardState extends State<TokenCard> {
                       height: 10,
                     ),
                     Text(
-                      '${widget._token.decimals} decimals',
+                      context.l10n.decimals(widget._token.decimals),
                       style: Theme.of(context).textTheme.titleSmall,
                     ),
                   ],
@@ -265,7 +265,7 @@ class _TokenCardState extends State<TokenCard> {
                 shape: const CircleBorder(),
                 onPressed: () => NavigationUtils.openUrl(widget._token.domain),
                 child: Tooltip(
-                  message: 'Visit ${widget._token.domain}',
+                  message: context.l10n.visitDomain(widget._token.domain),
                   child: Container(
                     height: 25,
                     width: 25,
@@ -397,7 +397,7 @@ class _TokenCardState extends State<TokenCard> {
             ),
             suffixIcon: _getAmountSuffix(),
             suffixIconConstraints: const BoxConstraints(maxWidth: 50),
-            hintText: 'Amount',
+            hintText: context.l10n.amount,
             contentLeftPadding: 20,
           ),
         ),
@@ -413,7 +413,7 @@ class _TokenCardState extends State<TokenCard> {
                   height: 10,
                 ),
                 StepperButton(
-                  text: 'Go back',
+                  text: context.l10n.goBack,
                   onPressed: _flipCard,
                 ),
               ],
@@ -441,7 +441,7 @@ class _TokenCardState extends State<TokenCard> {
             _burnButtonKey.currentState?.animateReverse();
             await NotificationUtils.sendNotificationError(
               error,
-              'Error while trying to burn ZTS',
+              context.l10n.errorBurningZts,
             );
           },
         );
@@ -454,18 +454,20 @@ class _TokenCardState extends State<TokenCard> {
   Future<void> _sendBurnSuccessfulNotification(
     AccountBlockTemplate event,
   ) async {
+    final String amount = event.amount.addDecimals(widget._token.decimals);
+
     await sl.get<NotificationsBloc>().addNotification(
       WalletNotification(
-        title:
-            'Successfully burned ${event.amount.addDecimals(
-              widget._token.decimals,
-            )} ${widget._token.symbol}',
+        title: context.l10n.successfullyBurned(
+          amount,
+          widget._token.symbol,
+        ),
         timestamp: DateTime.now().millisecondsSinceEpoch,
-        details:
-            'You have successfully burned the requested amount: '
-            '${event.amount.addDecimals(
-              widget._token.decimals,
-            )} ${widget._token.symbol} ${event.hash}',
+        details: context.l10n.successfullyBurnedRequestedAmount(
+          amount,
+          event.hash,
+          widget._token.symbol,
+        ),
         type: NotificationType.burnToken,
       ),
     );
@@ -473,7 +475,7 @@ class _TokenCardState extends State<TokenCard> {
 
   Widget _getBurnButton(BurnTokenBloc model) {
     return LoadingButton.stepper(
-      text: 'Burn',
+      text: context.l10n.burn,
       onPressed:
           _burnMaxAmount > BigInt.zero &&
               _burnAmountController.text.isNotEmpty &&
@@ -546,7 +548,7 @@ class _TokenCardState extends State<TokenCard> {
               FilteringTextInputFormatter.allow(RegExp('[0-9a-z]')),
             ],
             controller: _beneficiaryAddressController,
-            hintText: 'Beneficiary address',
+            hintText: context.l10n.beneficiaryAddress,
             contentLeftPadding: 20,
             validator: InputValidators.checkAddress,
           ),
@@ -571,7 +573,7 @@ class _TokenCardState extends State<TokenCard> {
             ),
             suffixIcon: _getAmountSuffix(),
             suffixIconConstraints: const BoxConstraints(maxWidth: 50),
-            hintText: 'Amount',
+            hintText: context.l10n.amount,
             contentLeftPadding: 20,
           ),
         ),
@@ -587,7 +589,7 @@ class _TokenCardState extends State<TokenCard> {
                   height: 10,
                 ),
                 StepperButton(
-                  text: 'Go back',
+                  text: context.l10n.goBack,
                   onPressed: _flipCard,
                 ),
               ],
@@ -615,7 +617,7 @@ class _TokenCardState extends State<TokenCard> {
           onError: (error) async {
             await NotificationUtils.sendNotificationError(
               error,
-              'Error while trying to mint ${widget._token.symbol}}',
+              context.l10n.errorMintingToken(widget._token.symbol),
             );
             _mintButtonKey.currentState!.animateReverse();
           },
@@ -629,18 +631,20 @@ class _TokenCardState extends State<TokenCard> {
   Future<void> _sendMintSuccessfulNotification(
     AccountBlockTemplate event,
   ) async {
+    final String amount = event.amount.addDecimals(widget._token.decimals);
+
     await sl.get<NotificationsBloc>().addNotification(
       WalletNotification(
-        title:
-            'Successfully minted ${event.amount.addDecimals(
-              widget._token.decimals,
-            )} ${widget._token.symbol}',
+        title: context.l10n.successfullyMinted(
+          amount,
+          widget._token.symbol,
+        ),
         timestamp: DateTime.now().millisecondsSinceEpoch,
-        details:
-            'You have successfully minted the requested amount: '
-            '${event.amount.addDecimals(
-              widget._token.decimals,
-            )} ${widget._token.symbol} ${event.hash}',
+        details: context.l10n.successfullyMintedRequestedAmount(
+          amount,
+          event.hash,
+          widget._token.symbol,
+        ),
         type: NotificationType.paymentSent,
       ),
     );
@@ -648,7 +652,7 @@ class _TokenCardState extends State<TokenCard> {
 
   Widget _getMintButton(MintTokenBloc model) {
     return LoadingButton.stepper(
-      text: 'Mint',
+      text: context.l10n.mint,
       onPressed:
           InputValidators.checkAddress(_beneficiaryAddressController.text) ==
                   null &&
@@ -698,7 +702,7 @@ class _TokenCardState extends State<TokenCard> {
               FilteringTextInputFormatter.allow(RegExp('[0-9a-z]')),
             ],
             controller: _newOwnerAddressController,
-            hintText: 'New owner address',
+            hintText: context.l10n.newOwnerAddress,
             contentLeftPadding: 20,
             validator: InputValidators.checkAddress,
           ),
@@ -715,7 +719,7 @@ class _TokenCardState extends State<TokenCard> {
                   height: 10,
                 ),
                 StepperButton(
-                  text: 'Go back',
+                  text: context.l10n.goBack,
                   onPressed: _flipCard,
                 ),
               ],
@@ -755,7 +759,7 @@ class _TokenCardState extends State<TokenCard> {
             _transferButtonKey.currentState?.animateReverse();
             await NotificationUtils.sendNotificationError(
               error,
-              'Error while trying to transfer token ownership',
+              context.l10n.errorTransferringTokenOwnership,
             );
           },
         );
@@ -782,14 +786,14 @@ class _TokenCardState extends State<TokenCard> {
   Future<void> _sendTransferSuccessfulNotification() async {
     await sl.get<NotificationsBloc>().addNotification(
       WalletNotification(
-        title:
-            'Successfully transferred ownership of '
-            '${widget._token.name} token',
+        title: context.l10n.transferredTokenOwnership(
+          widget._token.name,
+        ),
         timestamp: DateTime.now().millisecondsSinceEpoch,
-        details:
-            'Successfully transferred ownership of '
-            '${widget._token.name} token to address '
-            '${_newOwnerAddressController.text}',
+        details: context.l10n.transferredTokenOwnershipToAddress(
+          _newOwnerAddressController.text,
+          widget._token.name,
+        ),
         type: NotificationType.paymentSent,
       ),
     );
@@ -797,7 +801,7 @@ class _TokenCardState extends State<TokenCard> {
 
   Widget _getTransferOwnershipButton(TransferOwnershipBloc model) {
     return LoadingButton.stepper(
-      text: 'Transfer',
+      text: context.l10n.transfer,
       onPressed:
           InputValidators.checkAddress(_newOwnerAddressController.text) == null
           ? () {
