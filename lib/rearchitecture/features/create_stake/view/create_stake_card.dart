@@ -171,7 +171,6 @@ class _PopulatedState extends State<_Populated> {
                       child: Text(context.l10n.max.toUpperCase()),
                     ),
                   ),
-                  enabled: _maxZnnAmount > stakeMinZnnAmount,
                   inputFormatters: FormatUtils.getAmountTextInputFormatters(
                     _amountController.text,
                   ),
