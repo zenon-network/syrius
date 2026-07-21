@@ -19,6 +19,7 @@ export 'dual_coin_stats/dual_coin_stats.dart';
 export 'fuse_plasma/fuse_plasma.dart';
 export 'fused_plasma/fused_plasma.dart';
 export 'latest_transactions/latest_transactions.dart';
+export 'mint_token/mint_token.dart';
 export 'multiple_balance/multiple_balance.dart';
 export 'node_sync_status/node_sync_status.dart';
 export 'pending_transactions/pending_transactions.dart';

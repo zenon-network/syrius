@@ -14,7 +14,6 @@ import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/color_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/extensions.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/format_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/input_validators.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/navigation_utils.dart';
@@ -44,28 +43,14 @@ class TokenCard extends StatefulWidget {
 
 class _TokenCardState extends State<TokenCard> {
   final GlobalKey<FlipCardState> _cardKey = GlobalKey<FlipCardState>();
-  final GlobalKey<FormState> _beneficiaryAddressKey = GlobalKey();
-  final GlobalKey<FormState> _mintAmountKey = GlobalKey();
   GlobalKey<FormState> _newOwnerAddressKey = GlobalKey();
 
   final FlipCardController _flipCardController = FlipCardController();
-  final TextEditingController _beneficiaryAddressController =
-      TextEditingController();
-  final TextEditingController _mintAmountController = TextEditingController();
   TextEditingController _newOwnerAddressController = TextEditingController();
 
-  BigInt _mintMaxAmount = BigInt.zero;
-
-  final GlobalKey<LoadingButtonState> _mintButtonKey = GlobalKey();
   final GlobalKey<LoadingButtonState> _transferButtonKey = GlobalKey();
 
   _BackVersion _backOfCardVersion = _BackVersion.burn;
-
-  @override
-  void initState() {
-    super.initState();
-    _beneficiaryAddressController.text = kSelectedAddress!;
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -366,177 +351,6 @@ class _TokenCardState extends State<TokenCard> {
     );
   }
 
-  Widget _buildMintAmountSuffix() {
-    return Row(
-      children: <Widget>[
-        AmountSuffixMaxWidget(
-          onPressed: _onMintMaxPressed,
-          context: context,
-        ),
-      ],
-    );
-  }
-
-  void _onMintMaxPressed() {
-    final String maxAmount = _mintMaxAmount.addDecimals(
-      widget._token.decimals,
-    );
-    if (_mintAmountController.text != maxAmount) {
-      setState(() {
-        _mintAmountController.text = maxAmount;
-      });
-    }
-  }
-
-  Widget _getMintBackOfCard(AccountInfo? accountInfo) {
-    _mintMaxAmount = widget._token.maxSupply - widget._token.totalSupply;
-
-    return ListView(
-      shrinkWrap: true,
-      children: <Widget>[
-        Form(
-          key: _beneficiaryAddressKey,
-          autovalidateMode: AutovalidateMode.onUserInteraction,
-          child: InputField(
-            onChanged: (String value) {
-              setState(() {});
-            },
-            inputFormatters: <TextInputFormatter>[
-              FilteringTextInputFormatter.allow(RegExp('[0-9a-z]')),
-            ],
-            controller: _beneficiaryAddressController,
-            hintText: context.l10n.beneficiaryAddress,
-            contentLeftPadding: 20,
-            validator: InputValidators.checkAddress,
-          ),
-        ),
-        StepperUtils.getBalanceWidget(widget._token, accountInfo!),
-        Form(
-          key: _mintAmountKey,
-          autovalidateMode: AutovalidateMode.onUserInteraction,
-          child: InputField(
-            onChanged: (String value) {
-              setState(() {});
-            },
-            inputFormatters: FormatUtils.getAmountTextInputFormatters(
-              _mintAmountController.text,
-            ),
-            controller: _mintAmountController,
-            validator: (String? value) => InputValidators.correctValue(
-              value,
-              _mintMaxAmount,
-              widget._token.decimals,
-              BigInt.zero,
-            ),
-            suffixIcon: _buildMintAmountSuffix(),
-            suffixIconConstraints: const BoxConstraints(maxWidth: 50),
-            hintText: context.l10n.amount,
-            contentLeftPadding: 20,
-          ),
-        ),
-        kVerticalSpacing,
-        Row(
-          mainAxisSize: MainAxisSize.min,
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            Column(
-              children: <Widget>[
-                _getMintButtonViewModel(),
-                const SizedBox(
-                  height: 10,
-                ),
-                StepperButton(
-                  text: context.l10n.goBack,
-                  onPressed: _flipCard,
-                ),
-              ],
-            ),
-          ],
-        ),
-      ],
-    );
-  }
-
-  Widget _getMintButtonViewModel() {
-    return ViewModelBuilder<MintTokenBloc>.reactive(
-      onViewModelReady: (MintTokenBloc model) {
-        model.stream.listen(
-          (AccountBlockTemplate event) {
-            setState(() {
-              _beneficiaryAddressKey.currentState!.reset();
-              _mintAmountKey.currentState!.reset();
-              _mintAmountController.clear();
-            });
-            _mintButtonKey.currentState!.animateReverse();
-            _sendMintSuccessfulNotification(event);
-            _refreshBalanceBloc();
-          },
-          onError: (error) async {
-            await NotificationUtils.sendNotificationError(
-              error,
-              context.l10n.errorMintingToken(widget._token.symbol),
-            );
-            _mintButtonKey.currentState!.animateReverse();
-          },
-        );
-      },
-      builder: (_, MintTokenBloc model, __) => _getMintButton(model),
-      viewModelBuilder: MintTokenBloc.new,
-    );
-  }
-
-  Future<void> _sendMintSuccessfulNotification(
-    AccountBlockTemplate event,
-  ) async {
-    final String amount = event.amount.addDecimals(widget._token.decimals);
-
-    await sl.get<NotificationsBloc>().addNotification(
-      WalletNotification(
-        title: context.l10n.successfullyMinted(
-          amount,
-          widget._token.symbol,
-        ),
-        timestamp: DateTime.now().millisecondsSinceEpoch,
-        details: context.l10n.successfullyMintedRequestedAmount(
-          amount,
-          event.hash,
-          widget._token.symbol,
-        ),
-        type: NotificationType.paymentSent,
-      ),
-    );
-  }
-
-  Widget _getMintButton(MintTokenBloc model) {
-    return LoadingButton.stepper(
-      text: context.l10n.mint,
-      onPressed:
-          InputValidators.checkAddress(_beneficiaryAddressController.text) ==
-                  null &&
-              _mintMaxAmount > BigInt.zero &&
-              _mintAmountController.text.isNotEmpty &&
-              InputValidators.correctValue(
-                    _mintAmountController.text,
-                    _mintMaxAmount,
-                    widget._token.decimals,
-                    BigInt.zero,
-                  ) ==
-                  null
-          ? () {
-              _mintButtonKey.currentState!.animateForward();
-              model.mintToken(
-                widget._token,
-                _mintAmountController.text.extractDecimals(
-                  widget._token.decimals,
-                ),
-                Address.parse(_beneficiaryAddressController.text),
-              );
-            }
-          : null,
-      key: _mintButtonKey,
-    );
-  }
-
   void _onTransferOwnershipIconPressed() {
     setState(() {
       _backOfCardVersion = _BackVersion.transferOwnership;
@@ -596,7 +410,11 @@ class _TokenCardState extends State<TokenCard> {
           token: widget._token,
         );
       case _BackVersion.mint:
-        return _getMintBackOfCard(balanceMap[kSelectedAddress!]);
+        return MintTokenView(
+          accountInfo: balanceMap[kSelectedAddress!]!,
+          onBackPressed: _flipCard,
+          token: widget._token,
+        );
       case _BackVersion.transferOwnership:
         return _getTransferOwnershipBackOfCard();
     }
@@ -689,8 +507,6 @@ class _TokenCardState extends State<TokenCard> {
 
   @override
   void dispose() {
-    _beneficiaryAddressController.dispose();
-    _mintAmountController.dispose();
     _newOwnerAddressController.dispose();
     super.dispose();
   }
