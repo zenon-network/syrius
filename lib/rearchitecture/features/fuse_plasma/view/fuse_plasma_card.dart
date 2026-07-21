@@ -440,7 +440,7 @@ class _PopulatedState extends State<_Populated> {
       _qsrAmountController.clear();
       _beneficiaryAddressController.clear();
       _fetchBalance();
-      sl.get<PlasmaStatsBloc>().add(
+      context.read<PlasmaStatsBloc>().add(
         const InfiniteListRefreshRequested(),
       );
       widget.onPlasmaFused();
