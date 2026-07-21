@@ -1,12 +1,14 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_flip_card/flutter_flip_card.dart';
 import 'package:marquee_widget/marquee_widget.dart';
 import 'package:stacked/stacked.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/model/model.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/extensions/buildcontext_extension.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/color_utils.dart';
@@ -20,20 +22,20 @@ import 'package:zenon_syrius_wallet_flutter/utils/notification_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
-enum TokenCardBackVersion {
+enum _BackVersion {
   burn,
   mint,
   transferOwnership,
 }
 
 class TokenCard extends StatefulWidget {
-
-  const TokenCard(
-    this.token,
-    this._favoritesCallback, {
+  const TokenCard({
+    required this._token,
+    required this._favoritesCallback,
     super.key,
   });
-  final Token token;
+
+  final Token _token;
   final VoidCallback _favoritesCallback;
 
   @override
@@ -61,13 +63,12 @@ class _TokenCardState extends State<TokenCard> {
   final GlobalKey<LoadingButtonState> _mintButtonKey = GlobalKey();
   final GlobalKey<LoadingButtonState> _transferButtonKey = GlobalKey();
 
-  TokenCardBackVersion _backOfCardVersion = TokenCardBackVersion.burn;
+  _BackVersion _backOfCardVersion = _BackVersion.burn;
 
   @override
   void initState() {
     super.initState();
     _beneficiaryAddressController.text = kSelectedAddress!;
-    sl.get<BalanceBloc>().getBalanceForAllAddresses();
   }
 
   @override
@@ -87,29 +88,14 @@ class _TokenCardState extends State<TokenCard> {
   }
 
   Widget _getBackOfCard() {
-    return Container(
-        padding: const EdgeInsets.symmetric(
-          horizontal: 20,
-          vertical: 10,
-        ),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(10),
-        ),
-        child: StreamBuilder<Map<String, AccountInfo>?>(
-          stream: sl.get<BalanceBloc>().stream,
-          builder: (_, AsyncSnapshot<Map<String, AccountInfo>?> snapshot) {
-            if (snapshot.hasError) {
-              return SyriusErrorWidget(snapshot.error!);
-            }
-            if (snapshot.connectionState == ConnectionState.active) {
-              if (snapshot.hasData) {
-                return _getBackVersionOfCard(snapshot.data!);
-              }
-              return const SyriusLoadingWidget();
-            }
-            return const SyriusLoadingWidget();
-          },
-        ),);
+    return BlocBuilder<MultipleBalanceBloc, MultipleBalanceState>(
+      builder: (_, MultipleBalanceState state) => switch (state.status) {
+        MultipleBalanceStatus.failure => SyriusErrorWidget(state.error!),
+        MultipleBalanceStatus.initial => const SyriusLoadingWidget(),
+        MultipleBalanceStatus.loading => const SyriusLoadingWidget(),
+        MultipleBalanceStatus.success => _getBackVersionOfCard(state.data!),
+      },
+    );
   }
 
   Container _getFrontOfCard() {
@@ -133,16 +119,16 @@ class _TokenCardState extends State<TokenCard> {
                 width: 5,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: ColorUtils.getTokenColor(widget.token.tokenStandard),
+                  color: ColorUtils.getTokenColor(widget._token.tokenStandard),
                 ),
               ),
               const SizedBox(
                 width: 5,
               ),
               Tooltip(
-                message: '${widget.token.name}: ${widget.token.symbol}',
+                message: '${widget._token.name}: ${widget._token.symbol}',
                 child: Text(
-                  widget.token.symbol.toUpperCase(),
+                  widget._token.symbol.toUpperCase(),
                   style: Theme.of(context).textTheme.bodyLarge,
                 ),
               ),
@@ -162,7 +148,7 @@ class _TokenCardState extends State<TokenCard> {
                         Expanded(
                           child: Marquee(
                             child: Text(
-                              widget.token.tokenStandard
+                              widget._token.tokenStandard
                                   .toString()
                                   .toUpperCase(),
                               style: Theme.of(context).textTheme.titleMedium,
@@ -170,7 +156,7 @@ class _TokenCardState extends State<TokenCard> {
                           ),
                         ),
                         CopyToClipboardButton(
-                          widget.token.tokenStandard.toString(),
+                          widget._token.tokenStandard.toString(),
                         ),
                       ],
                     ),
@@ -179,66 +165,66 @@ class _TokenCardState extends State<TokenCard> {
                     ),
                     Wrap(
                       children: <Widget>[
-                        if (kDefaultAddressList
-                            .contains(widget.token.owner.toString()))
+                        if (kDefaultAddressList.contains(
+                          widget._token.owner.toString(),
+                        ))
                           _getTokenOptionIconButton(
                             tooltip: 'You own this ZTS token',
                             iconData: Icons.verified,
                             iconColor: AppColors.znnColor,
                           ),
-                        if (kSelectedAddress == widget.token.owner.toString())
+                        if (kSelectedAddress == widget._token.owner.toString())
                           _getTokenOptionIconButton(
                             tooltip: 'Transfer token ownership',
                             iconData: Icons.compare_arrows,
                             onPressed: _onTransferOwnershipIconPressed,
                             iconColor: AppColors.znnColor,
                           ),
-                        if (widget.token.isMintable &&
-                            widget.token.totalSupply < widget.token.maxSupply)
+                        if (widget._token.isMintable &&
+                            widget._token.totalSupply < widget._token.maxSupply)
                           _getTokenOptionIconButton(
-                            isOwner: kDefaultAddressList
-                                .contains(widget.token.owner.toString()),
+                            isOwner: kDefaultAddressList.contains(
+                              widget._token.owner.toString(),
+                            ),
                             tooltip: 'Mintable token',
-                            onPressed: kDefaultAddressList
-                                    .contains(widget.token.owner.toString())
+                            onPressed:
+                                kDefaultAddressList.contains(
+                                  widget._token.owner.toString(),
+                                )
                                 ? () {
                                     _flipCard();
-                                    _backOfCardVersion =
-                                        TokenCardBackVersion.mint;
-                                    sl
-                                        .get<BalanceBloc>()
-                                        .getBalanceForAllAddresses();
+                                    _backOfCardVersion = _BackVersion.mint;
+                                    _refreshBalanceBloc();
                                   }
                                 : null,
                             iconData: Icons.build,
                           ),
-                        if (widget.token.isBurnable)
+                        if (widget._token.isBurnable)
                           _getTokenOptionIconButton(
-                            isOwner: kDefaultAddressList
-                                .contains(widget.token.owner.toString()),
+                            isOwner: kDefaultAddressList.contains(
+                              widget._token.owner.toString(),
+                            ),
                             tooltip: 'Burnable token',
-                            onPressed: kDefaultAddressList.contains(
-                              widget.token.owner.toString(),
-                            )
+                            onPressed:
+                                kDefaultAddressList.contains(
+                                  widget._token.owner.toString(),
+                                )
                                 ? () {
                                     _flipCard();
-                                    _backOfCardVersion =
-                                        TokenCardBackVersion.burn;
-                                    sl
-                                        .get<BalanceBloc>()
-                                        .getBalanceForAllAddresses();
+                                    _backOfCardVersion = _BackVersion.burn;
+                                    _refreshBalanceBloc();
                                   }
                                 : null,
                             iconData: Icons.whatshot,
                           ),
-                        if (widget.token.isUtility)
+                        if (widget._token.isUtility)
                           _getTokenOptionIconButton(
                             tooltip: 'Utility token',
                             mouseCursor: SystemMouseCursors.basic,
                             iconData: Icons.settings,
                           ),
                         TokenFavorite(
-                          widget.token,
+                          widget._token,
                           widget._favoritesCallback,
                         ),
                       ],
@@ -247,13 +233,13 @@ class _TokenCardState extends State<TokenCard> {
                       height: 10,
                     ),
                     Text(
-                      '${widget.token.decimals} decimals',
+                      '${widget._token.decimals} decimals',
                       style: Theme.of(context).textTheme.titleSmall,
                     ),
                   ],
                 ),
               ),
-              _getAnimatedChart(widget.token),
+              _getAnimatedChart(widget._token),
             ],
           ),
           Row(
@@ -262,12 +248,12 @@ class _TokenCardState extends State<TokenCard> {
               Row(
                 children: <Widget>[
                   Text(
-                    kDefaultAddressList.contains(widget.token.owner.toString())
-                        ? kAddressLabelMap[widget.token.owner.toString()]!
-                        : widget.token.owner.toShortString(),
+                    kDefaultAddressList.contains(widget._token.owner.toString())
+                        ? kAddressLabelMap[widget._token.owner.toString()]!
+                        : widget._token.owner.toShortString(),
                     style: Theme.of(context).textTheme.titleSmall,
                   ),
-                  CopyToClipboardButton(widget.token.owner.toString()),
+                  CopyToClipboardButton(widget._token.owner.toString()),
                 ],
               ),
               RawMaterialButton(
@@ -277,9 +263,9 @@ class _TokenCardState extends State<TokenCard> {
                 ),
                 materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                 shape: const CircleBorder(),
-                onPressed: () => NavigationUtils.openUrl(widget.token.domain),
+                onPressed: () => NavigationUtils.openUrl(widget._token.domain),
                 child: Tooltip(
-                  message: 'Visit ${widget.token.domain}',
+                  message: 'Visit ${widget._token.domain}',
                   child: Container(
                     height: 25,
                     width: 25,
@@ -318,8 +304,8 @@ class _TokenCardState extends State<TokenCard> {
       child: IconButton(
         mouseCursor: isOwner != null
             ? isOwner
-                ? mouseCursor
-                : SystemMouseCursors.forbidden
+                  ? mouseCursor
+                  : SystemMouseCursors.forbidden
             : mouseCursor,
         tooltip: tooltip,
         padding: EdgeInsets.zero,
@@ -329,9 +315,9 @@ class _TokenCardState extends State<TokenCard> {
         icon: Icon(
           iconData,
           color: isOwner != null
-              ? kDefaultAddressList.contains(widget.token.owner.toString())
-                  ? AppColors.znnColor
-                  : AppColors.lightSecondaryContainer
+              ? kDefaultAddressList.contains(widget._token.owner.toString())
+                    ? AppColors.znnColor
+                    : AppColors.lightSecondaryContainer
               : iconColor,
         ),
       ),
@@ -355,7 +341,7 @@ class _TokenCardState extends State<TokenCard> {
                 showTitle: false,
                 radius: 5,
                 value: totalSupply / maxSupply,
-                color: ColorUtils.getTokenColor(widget.token.tokenStandard),
+                color: ColorUtils.getTokenColor(widget._token.tokenStandard),
               ),
               PieChartSectionData(
                 showTitle: false,
@@ -386,7 +372,7 @@ class _TokenCardState extends State<TokenCard> {
 
   Widget _getBurnBackOfCard(AccountInfo accountInfo) {
     _burnMaxAmount = accountInfo.getBalance(
-      widget.token.tokenStandard,
+      widget._token.tokenStandard,
     );
 
     return ListView(
@@ -404,14 +390,18 @@ class _TokenCardState extends State<TokenCard> {
             ),
             controller: _burnAmountController,
             validator: (String? value) => InputValidators.correctValue(
-                value, _burnMaxAmount, widget.token.decimals, BigInt.zero,),
+              value,
+              _burnMaxAmount,
+              widget._token.decimals,
+              BigInt.zero,
+            ),
             suffixIcon: _getAmountSuffix(),
             suffixIconConstraints: const BoxConstraints(maxWidth: 50),
             hintText: 'Amount',
             contentLeftPadding: 20,
           ),
         ),
-        StepperUtils.getBalanceWidget(widget.token, accountInfo),
+        StepperUtils.getBalanceWidget(widget._token, accountInfo),
         Row(
           mainAxisSize: MainAxisSize.min,
           mainAxisAlignment: MainAxisAlignment.center,
@@ -445,7 +435,7 @@ class _TokenCardState extends State<TokenCard> {
             });
             _burnButtonKey.currentState?.animateReverse();
             _sendBurnSuccessfulNotification(event);
-            sl.get<BalanceBloc>().getBalanceForAllAddresses();
+            _refreshBalanceBloc();
           },
           onError: (error) async {
             _burnButtonKey.currentState?.animateReverse();
@@ -462,36 +452,46 @@ class _TokenCardState extends State<TokenCard> {
   }
 
   Future<void> _sendBurnSuccessfulNotification(
-      AccountBlockTemplate event,) async {
+    AccountBlockTemplate event,
+  ) async {
     await sl.get<NotificationsBloc>().addNotification(
-          WalletNotification(
-            title: 'Successfully burned ${event.amount.addDecimals(
-              widget.token.decimals,
-            )} ${widget.token.symbol}',
-            timestamp: DateTime.now().millisecondsSinceEpoch,
-            details: 'You have successfully burned the requested amount: '
-                '${event.amount.addDecimals(
-              widget.token.decimals,
-            )} ${widget.token.symbol} ${event.hash}',
-            type: NotificationType.burnToken,
-          ),
-        );
+      WalletNotification(
+        title:
+            'Successfully burned ${event.amount.addDecimals(
+              widget._token.decimals,
+            )} ${widget._token.symbol}',
+        timestamp: DateTime.now().millisecondsSinceEpoch,
+        details:
+            'You have successfully burned the requested amount: '
+            '${event.amount.addDecimals(
+              widget._token.decimals,
+            )} ${widget._token.symbol} ${event.hash}',
+        type: NotificationType.burnToken,
+      ),
+    );
   }
 
   Widget _getBurnButton(BurnTokenBloc model) {
     return LoadingButton.stepper(
       text: 'Burn',
-      onPressed: _burnMaxAmount > BigInt.zero &&
+      onPressed:
+          _burnMaxAmount > BigInt.zero &&
               _burnAmountController.text.isNotEmpty &&
-              InputValidators.correctValue(_burnAmountController.text,
-                      _burnMaxAmount, widget.token.decimals, BigInt.zero,) ==
+              InputValidators.correctValue(
+                    _burnAmountController.text,
+                    _burnMaxAmount,
+                    widget._token.decimals,
+                    BigInt.zero,
+                  ) ==
                   null
           ? () {
               _burnButtonKey.currentState?.animateForward();
               model.burnToken(
-                  widget.token,
-                  _burnAmountController.text
-                      .extractDecimals(widget.token.decimals),);
+                widget._token,
+                _burnAmountController.text.extractDecimals(
+                  widget._token.decimals,
+                ),
+              );
             }
           : null,
       key: _burnButtonKey,
@@ -511,24 +511,26 @@ class _TokenCardState extends State<TokenCard> {
 
   void _onMaxPressed() {
     if (_burnAmountController.text.isEmpty ||
-        _burnAmountController.text.extractDecimals(widget.token.decimals) !=
+        _burnAmountController.text.extractDecimals(widget._token.decimals) !=
             _burnMaxAmount ||
-        _burnAmountController.text.extractDecimals(widget.token.decimals) !=
+        _burnAmountController.text.extractDecimals(widget._token.decimals) !=
             _mintMaxAmount) {
       setState(() {
-        if (_backOfCardVersion == TokenCardBackVersion.burn) {
-          _burnAmountController.text =
-              _burnMaxAmount.addDecimals(widget.token.decimals);
+        if (_backOfCardVersion == _BackVersion.burn) {
+          _burnAmountController.text = _burnMaxAmount.addDecimals(
+            widget._token.decimals,
+          );
         } else {
-          _mintAmountController.text =
-              _mintMaxAmount.addDecimals(widget.token.decimals);
+          _mintAmountController.text = _mintMaxAmount.addDecimals(
+            widget._token.decimals,
+          );
         }
       });
     }
   }
 
   Widget _getMintBackOfCard(AccountInfo? accountInfo) {
-    _mintMaxAmount = widget.token.maxSupply - widget.token.totalSupply;
+    _mintMaxAmount = widget._token.maxSupply - widget._token.totalSupply;
 
     return ListView(
       shrinkWrap: true,
@@ -549,7 +551,7 @@ class _TokenCardState extends State<TokenCard> {
             validator: InputValidators.checkAddress,
           ),
         ),
-        StepperUtils.getBalanceWidget(widget.token, accountInfo!),
+        StepperUtils.getBalanceWidget(widget._token, accountInfo!),
         Form(
           key: _mintAmountKey,
           autovalidateMode: AutovalidateMode.onUserInteraction,
@@ -562,7 +564,11 @@ class _TokenCardState extends State<TokenCard> {
             ),
             controller: _mintAmountController,
             validator: (String? value) => InputValidators.correctValue(
-                value, _mintMaxAmount, widget.token.decimals, BigInt.zero,),
+              value,
+              _mintMaxAmount,
+              widget._token.decimals,
+              BigInt.zero,
+            ),
             suffixIcon: _getAmountSuffix(),
             suffixIconConstraints: const BoxConstraints(maxWidth: 50),
             hintText: 'Amount',
@@ -595,22 +601,25 @@ class _TokenCardState extends State<TokenCard> {
   Widget _getMintButtonViewModel() {
     return ViewModelBuilder<MintTokenBloc>.reactive(
       onViewModelReady: (MintTokenBloc model) {
-        model.stream.listen((AccountBlockTemplate event) {
-          setState(() {
-            _beneficiaryAddressKey.currentState!.reset();
-            _mintAmountKey.currentState!.reset();
-            _mintAmountController.clear();
-          });
-          _mintButtonKey.currentState!.animateReverse();
-          _sendMintSuccessfulNotification(event);
-          sl.get<BalanceBloc>().getBalanceForAllAddresses();
-        }, onError: (error) async {
-          await NotificationUtils.sendNotificationError(
-            error,
-            'Error while trying to mint ${widget.token.symbol}}',
-          );
-          _mintButtonKey.currentState!.animateReverse();
-        },);
+        model.stream.listen(
+          (AccountBlockTemplate event) {
+            setState(() {
+              _beneficiaryAddressKey.currentState!.reset();
+              _mintAmountKey.currentState!.reset();
+              _mintAmountController.clear();
+            });
+            _mintButtonKey.currentState!.animateReverse();
+            _sendMintSuccessfulNotification(event);
+            _refreshBalanceBloc();
+          },
+          onError: (error) async {
+            await NotificationUtils.sendNotificationError(
+              error,
+              'Error while trying to mint ${widget._token.symbol}}',
+            );
+            _mintButtonKey.currentState!.animateReverse();
+          },
+        );
       },
       builder: (_, MintTokenBloc model, __) => _getMintButton(model),
       viewModelBuilder: MintTokenBloc.new,
@@ -618,20 +627,23 @@ class _TokenCardState extends State<TokenCard> {
   }
 
   Future<void> _sendMintSuccessfulNotification(
-      AccountBlockTemplate event,) async {
+    AccountBlockTemplate event,
+  ) async {
     await sl.get<NotificationsBloc>().addNotification(
-          WalletNotification(
-            title: 'Successfully minted ${event.amount.addDecimals(
-              widget.token.decimals,
-            )} ${widget.token.symbol}',
-            timestamp: DateTime.now().millisecondsSinceEpoch,
-            details: 'You have successfully minted the requested amount: '
-                '${event.amount.addDecimals(
-              widget.token.decimals,
-            )} ${widget.token.symbol} ${event.hash}',
-            type: NotificationType.paymentSent,
-          ),
-        );
+      WalletNotification(
+        title:
+            'Successfully minted ${event.amount.addDecimals(
+              widget._token.decimals,
+            )} ${widget._token.symbol}',
+        timestamp: DateTime.now().millisecondsSinceEpoch,
+        details:
+            'You have successfully minted the requested amount: '
+            '${event.amount.addDecimals(
+              widget._token.decimals,
+            )} ${widget._token.symbol} ${event.hash}',
+        type: NotificationType.paymentSent,
+      ),
+    );
   }
 
   Widget _getMintButton(MintTokenBloc model) {
@@ -639,29 +651,34 @@ class _TokenCardState extends State<TokenCard> {
       text: 'Mint',
       onPressed:
           InputValidators.checkAddress(_beneficiaryAddressController.text) ==
-                      null &&
-                  _mintMaxAmount > BigInt.zero &&
-                  _mintAmountController.text.isNotEmpty &&
-                  InputValidators.correctValue(_mintAmountController.text,
-                          _mintMaxAmount, widget.token.decimals, BigInt.zero,) ==
-                      null
-              ? () {
-                  _mintButtonKey.currentState!.animateForward();
-                  model.mintToken(
-                    widget.token,
-                    _mintAmountController.text
-                        .extractDecimals(widget.token.decimals),
-                    Address.parse(_beneficiaryAddressController.text),
-                  );
-                }
-              : null,
+                  null &&
+              _mintMaxAmount > BigInt.zero &&
+              _mintAmountController.text.isNotEmpty &&
+              InputValidators.correctValue(
+                    _mintAmountController.text,
+                    _mintMaxAmount,
+                    widget._token.decimals,
+                    BigInt.zero,
+                  ) ==
+                  null
+          ? () {
+              _mintButtonKey.currentState!.animateForward();
+              model.mintToken(
+                widget._token,
+                _mintAmountController.text.extractDecimals(
+                  widget._token.decimals,
+                ),
+                Address.parse(_beneficiaryAddressController.text),
+              );
+            }
+          : null,
       key: _mintButtonKey,
     );
   }
 
   void _onTransferOwnershipIconPressed() {
     setState(() {
-      _backOfCardVersion = TokenCardBackVersion.transferOwnership;
+      _backOfCardVersion = _BackVersion.transferOwnership;
       _flipCard();
     });
   }
@@ -711,11 +728,11 @@ class _TokenCardState extends State<TokenCard> {
 
   Widget _getBackVersionOfCard(Map<String, AccountInfo> balanceMap) {
     switch (_backOfCardVersion) {
-      case TokenCardBackVersion.burn:
+      case _BackVersion.burn:
         return _getBurnBackOfCard(balanceMap[kSelectedAddress!]!);
-      case TokenCardBackVersion.mint:
+      case _BackVersion.mint:
         return _getMintBackOfCard(balanceMap[kSelectedAddress!]);
-      case TokenCardBackVersion.transferOwnership:
+      case _BackVersion.transferOwnership:
         return _getTransferOwnershipBackOfCard();
     }
   }
@@ -723,22 +740,25 @@ class _TokenCardState extends State<TokenCard> {
   Widget _getTransferOwnershipButtonViewModel() {
     return ViewModelBuilder<TransferOwnershipBloc>.reactive(
       onViewModelReady: (TransferOwnershipBloc model) {
-        model.stream.listen((AccountBlockTemplate event) {
-          _sendTransferSuccessfulNotification();
-          if (mounted) {
-            setState(() {
-              _newOwnerAddressController = TextEditingController();
-              _newOwnerAddressKey = GlobalKey();
-            });
-          }
-          _transferButtonKey.currentState?.animateReverse();
-        }, onError: (error) async {
-          _transferButtonKey.currentState?.animateReverse();
-          await NotificationUtils.sendNotificationError(
-            error,
-            'Error while trying to transfer token ownership',
-          );
-        },);
+        model.stream.listen(
+          (AccountBlockTemplate event) {
+            _sendTransferSuccessfulNotification();
+            if (mounted) {
+              setState(() {
+                _newOwnerAddressController = TextEditingController();
+                _newOwnerAddressKey = GlobalKey();
+              });
+            }
+            _transferButtonKey.currentState?.animateReverse();
+          },
+          onError: (error) async {
+            _transferButtonKey.currentState?.animateReverse();
+            await NotificationUtils.sendNotificationError(
+              error,
+              'Error while trying to transfer token ownership',
+            );
+          },
+        );
       },
       builder: (_, TransferOwnershipBloc model, __) => StreamBuilder(
         stream: model.stream,
@@ -761,16 +781,18 @@ class _TokenCardState extends State<TokenCard> {
 
   Future<void> _sendTransferSuccessfulNotification() async {
     await sl.get<NotificationsBloc>().addNotification(
-          WalletNotification(
-            title: 'Successfully transferred ownership of '
-                '${widget.token.name} token',
-            timestamp: DateTime.now().millisecondsSinceEpoch,
-            details: 'Successfully transferred ownership of '
-                '${widget.token.name} token to address '
-                '${_newOwnerAddressController.text}',
-            type: NotificationType.paymentSent,
-          ),
-        );
+      WalletNotification(
+        title:
+            'Successfully transferred ownership of '
+            '${widget._token.name} token',
+        timestamp: DateTime.now().millisecondsSinceEpoch,
+        details:
+            'Successfully transferred ownership of '
+            '${widget._token.name} token to address '
+            '${_newOwnerAddressController.text}',
+        type: NotificationType.paymentSent,
+      ),
+    );
   }
 
   Widget _getTransferOwnershipButton(TransferOwnershipBloc model) {
@@ -778,17 +800,25 @@ class _TokenCardState extends State<TokenCard> {
       text: 'Transfer',
       onPressed:
           InputValidators.checkAddress(_newOwnerAddressController.text) == null
-              ? () {
-                  _transferButtonKey.currentState!.animateForward();
-                  model.transferOwnership(
-                    widget.token.tokenStandard,
-                    Address.parse(_newOwnerAddressController.text),
-                    widget.token.isMintable,
-                    widget.token.isBurnable,
-                  );
-                }
-              : null,
+          ? () {
+              _transferButtonKey.currentState!.animateForward();
+              model.transferOwnership(
+                widget._token.tokenStandard,
+                Address.parse(_newOwnerAddressController.text),
+                widget._token.isMintable,
+                widget._token.isBurnable,
+              );
+            }
+          : null,
       key: _transferButtonKey,
+    );
+  }
+
+  void _refreshBalanceBloc() {
+    sl.get<MultipleBalanceBloc>().add(
+      MultipleBalanceFetch(
+        addresses: kDefaultAddressList.map((String? e) => e!).toList(),
+      ),
     );
   }
 
