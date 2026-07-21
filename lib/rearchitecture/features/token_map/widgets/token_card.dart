@@ -1,10 +1,12 @@
+import 'dart:async';
+
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_flip_card/flutter_flip_card.dart';
-import 'package:marquee_widget/marquee_widget.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/constants/app_sizes.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/extensions/buildcontext_extension.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/color_utils.dart';
@@ -53,8 +55,8 @@ class _TokenCardState extends State<TokenCard> {
     );
   }
 
-  Future<void> _flipCard() async {
-    await _flipCardController.flipcard();
+  void _flipCard() {
+    unawaited(_flipCardController.flipcard());
   }
 
   Widget _getBackOfCard() {
@@ -68,198 +70,161 @@ class _TokenCardState extends State<TokenCard> {
     );
   }
 
-  Container _getFrontOfCard() {
-    return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: 20,
-        vertical: 10,
-      ),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(10),
-        color: context.newThemeData.inputDecorationTheme.fillColor,
-      ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-          Row(
-            children: <Widget>[
-              Container(
-                height: 5,
-                width: 5,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: ColorUtils.getTokenColor(widget._token.tokenStandard),
+  Widget _getFrontOfCard() {
+    return Card.filled(
+      color: context.newThemeData.inputDecorationTheme.fillColor,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5)),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: <Widget>[
+            Text(
+              widget._token.name,
+              style: Theme.of(context).textTheme.bodyLarge,
+            ),
+            Text(
+              widget._token.symbol.toUpperCase(),
+              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                color: ColorUtils.getTokenColor(widget._token.tokenStandard),
+              ),
+            ),
+            Row(
+              children: <Widget>[
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: <Widget>[
+                      Row(
+                        children: <Widget>[
+                          Text(
+                            widget._token.tokenStandard.toString(),
+                            style: context.textTheme.titleMedium?.copyWith(
+                              color: AppColors.znnColor,
+                            ),
+                          ),
+                          CopyToClipboardButton(
+                            widget._token.tokenStandard.toString(),
+                          ),
+                        ],
+                      ),
+                      kHorizontalGap8,
+                      Wrap(
+                        children: <Widget>[
+                          if (kDefaultAddressList.contains(
+                            widget._token.owner.toString(),
+                          ))
+                            _buildTokenOptionIconButton(
+                              tooltip: context.l10n.ownZtsToken,
+                              iconData: Icons.verified,
+                              iconColor: AppColors.znnColor,
+                            ),
+                          if (kSelectedAddress ==
+                              widget._token.owner.toString())
+                            _buildTokenOptionIconButton(
+                              tooltip: context.l10n.transferTokenOwnership,
+                              iconData: Icons.compare_arrows,
+                              onPressed: _onTransferTokenIconPressed,
+                              iconColor: AppColors.znnColor,
+                            ),
+                          if (widget._token.isMintable &&
+                              widget._token.totalSupply <
+                                  widget._token.maxSupply)
+                            _buildTokenOptionIconButton(
+                              isOwner: kDefaultAddressList.contains(
+                                widget._token.owner.toString(),
+                              ),
+                              tooltip: context.l10n.mintableToken,
+                              onPressed:
+                                  kDefaultAddressList.contains(
+                                    widget._token.owner.toString(),
+                                  )
+                                  ? () {
+                                      _flipCard();
+                                      _backOfCardVersion = _BackVersion.mint;
+                                      _refreshBalanceBloc();
+                                    }
+                                  : null,
+                              iconData: Icons.build,
+                            ),
+                          if (widget._token.isBurnable)
+                            _buildTokenOptionIconButton(
+                              isOwner: kDefaultAddressList.contains(
+                                widget._token.owner.toString(),
+                              ),
+                              tooltip: context.l10n.burnableToken,
+                              onPressed:
+                                  kDefaultAddressList.contains(
+                                    widget._token.owner.toString(),
+                                  )
+                                  ? () {
+                                      _flipCard();
+                                      _backOfCardVersion = _BackVersion.burn;
+                                      _refreshBalanceBloc();
+                                    }
+                                  : null,
+                              iconData: Icons.whatshot,
+                            ),
+                          if (widget._token.isUtility)
+                            _buildTokenOptionIconButton(
+                              tooltip: context.l10n.utilityToken,
+                              mouseCursor: SystemMouseCursors.basic,
+                              iconData: Icons.settings,
+                            ),
+                          TokenFavorite(
+                            widget._token,
+                            widget._favoritesCallback,
+                          ),
+                        ],
+                      ),
+                      const SizedBox(
+                        height: 10,
+                      ),
+                      Text(
+                        context.l10n.decimals(widget._token.decimals),
+                        style: Theme.of(context).textTheme.titleSmall,
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-              const SizedBox(
-                width: 5,
-              ),
-              Tooltip(
-                message: '${widget._token.name}: ${widget._token.symbol}',
-                child: Text(
-                  widget._token.symbol.toUpperCase(),
-                  style: Theme.of(context).textTheme.bodyLarge,
-                ),
-              ),
-              const SizedBox(
-                width: 5,
-              ),
-            ],
-          ),
-          Row(
-            children: <Widget>[
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                _buildAnimatedChart(widget._token),
+              ],
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: <Widget>[
+                Row(
                   children: <Widget>[
-                    Row(
-                      children: <Widget>[
-                        Expanded(
-                          child: Marquee(
-                            child: Text(
-                              widget._token.tokenStandard
-                                  .toString()
-                                  .toUpperCase(),
-                              style: Theme.of(context).textTheme.titleMedium,
-                            ),
-                          ),
-                        ),
-                        CopyToClipboardButton(
-                          widget._token.tokenStandard.toString(),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(
-                      height: 5,
-                    ),
-                    Wrap(
-                      children: <Widget>[
-                        if (kDefaultAddressList.contains(
-                          widget._token.owner.toString(),
-                        ))
-                          _getTokenOptionIconButton(
-                            tooltip: context.l10n.ownZtsToken,
-                            iconData: Icons.verified,
-                            iconColor: AppColors.znnColor,
-                          ),
-                        if (kSelectedAddress == widget._token.owner.toString())
-                          _getTokenOptionIconButton(
-                            tooltip: context.l10n.transferTokenOwnership,
-                            iconData: Icons.compare_arrows,
-                            onPressed: _onTransferTokenIconPressed,
-                            iconColor: AppColors.znnColor,
-                          ),
-                        if (widget._token.isMintable &&
-                            widget._token.totalSupply < widget._token.maxSupply)
-                          _getTokenOptionIconButton(
-                            isOwner: kDefaultAddressList.contains(
-                              widget._token.owner.toString(),
-                            ),
-                            tooltip: context.l10n.mintableToken,
-                            onPressed:
-                                kDefaultAddressList.contains(
-                                  widget._token.owner.toString(),
-                                )
-                                ? () {
-                                    _flipCard();
-                                    _backOfCardVersion = _BackVersion.mint;
-                                    _refreshBalanceBloc();
-                                  }
-                                : null,
-                            iconData: Icons.build,
-                          ),
-                        if (widget._token.isBurnable)
-                          _getTokenOptionIconButton(
-                            isOwner: kDefaultAddressList.contains(
-                              widget._token.owner.toString(),
-                            ),
-                            tooltip: context.l10n.burnableToken,
-                            onPressed:
-                                kDefaultAddressList.contains(
-                                  widget._token.owner.toString(),
-                                )
-                                ? () {
-                                    _flipCard();
-                                    _backOfCardVersion = _BackVersion.burn;
-                                    _refreshBalanceBloc();
-                                  }
-                                : null,
-                            iconData: Icons.whatshot,
-                          ),
-                        if (widget._token.isUtility)
-                          _getTokenOptionIconButton(
-                            tooltip: context.l10n.utilityToken,
-                            mouseCursor: SystemMouseCursors.basic,
-                            iconData: Icons.settings,
-                          ),
-                        TokenFavorite(
-                          widget._token,
-                          widget._favoritesCallback,
-                        ),
-                      ],
-                    ),
-                    const SizedBox(
-                      height: 10,
-                    ),
                     Text(
-                      context.l10n.decimals(widget._token.decimals),
+                      kDefaultAddressList.contains(
+                            widget._token.owner.toString(),
+                          )
+                          ? kAddressLabelMap[widget._token.owner.toString()]!
+                          : widget._token.owner.toShortString(),
                       style: Theme.of(context).textTheme.titleSmall,
                     ),
+                    CopyToClipboardButton(widget._token.owner.toString()),
                   ],
                 ),
-              ),
-              _getAnimatedChart(widget._token),
-            ],
-          ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: <Widget>[
-              Row(
-                children: <Widget>[
-                  Text(
-                    kDefaultAddressList.contains(widget._token.owner.toString())
-                        ? kAddressLabelMap[widget._token.owner.toString()]!
-                        : widget._token.owner.toShortString(),
-                    style: Theme.of(context).textTheme.titleSmall,
-                  ),
-                  CopyToClipboardButton(widget._token.owner.toString()),
-                ],
-              ),
-              RawMaterialButton(
-                constraints: const BoxConstraints(
-                  minWidth: 40,
-                  minHeight: 40,
-                ),
-                materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                shape: const CircleBorder(),
-                onPressed: () => NavigationUtils.openUrl(widget._token.domain),
-                child: Tooltip(
-                  message: context.l10n.visitDomain(widget._token.domain),
-                  child: Container(
-                    height: 25,
-                    width: 25,
-                    padding: const EdgeInsets.all(4),
-                    decoration: const BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: Colors.white12,
-                    ),
-                    child: const Icon(
-                      Icons.open_in_new,
-                      size: 13,
-                      color: AppColors.darkHintTextColor,
-                    ),
+                IconButton(
+                  onPressed: () =>
+                      NavigationUtils.openUrl(widget._token.domain),
+                  tooltip: context.l10n.visitDomain(widget._token.domain),
+                  icon: const Icon(
+                    Icons.open_in_new,
+                    color: AppColors.znnColor,
                   ),
                 ),
-              ),
-            ],
-          ),
-        ],
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
 
-  Material _getTokenOptionIconButton({
+  Material _buildTokenOptionIconButton({
     required String tooltip,
     required IconData iconData,
     Color? iconColor,
@@ -294,7 +259,7 @@ class _TokenCardState extends State<TokenCard> {
     );
   }
 
-  Widget _getAnimatedChart(Token token) {
+  Widget _buildAnimatedChart(Token token) {
     final BigInt totalSupply = token.totalSupply;
 
     final BigInt maxSupply = token.maxSupply;
@@ -324,15 +289,13 @@ class _TokenCardState extends State<TokenCard> {
         ),
         SizedBox(
           width: 70,
-          child: Marquee(
-            child: FormattedAmountWithTooltip(
-              amount: totalSupply.addDecimals(token.decimals),
-              tokenSymbol: token.symbol,
-              builder: (String formattedAmount, String tokenSymbol) => Text(
-                '$formattedAmount $tokenSymbol',
-                style: Theme.of(context).textTheme.bodyMedium,
-                textAlign: TextAlign.center,
-              ),
+          child: FormattedAmountWithTooltip(
+            amount: totalSupply.addDecimals(token.decimals),
+            tokenSymbol: token.symbol,
+            builder: (String formattedAmount, String tokenSymbol) => Text(
+              '$formattedAmount $tokenSymbol',
+              style: Theme.of(context).textTheme.bodyMedium,
+              textAlign: TextAlign.center,
             ),
           ),
         ),
