@@ -6,23 +6,23 @@ import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
-part 'token_search_event.dart';
+part 'search_token_event.dart';
 
-part 'token_search_state.dart';
+part 'search_token_state.dart';
 
 /// Searches all network tokens by symbol and paginates the local results.
-class TokenSearchBloc extends Bloc<TokenSearchEvent, TokenSearchState> {
+class SearchTokenBloc extends Bloc<SearchTokenEvent, SearchTokenState> {
   /// Creates a new instance.
-  TokenSearchBloc({
+  SearchTokenBloc({
     required this._zenon,
     this._pageSize = kPageSize,
     Duration debounceDuration = const Duration(milliseconds: 350),
-  }) : super(const TokenSearchState.initial()) {
-    on<TokenSearchRequested>(
+  }) : super(const SearchTokenState.initial()) {
+    on<SearchTokenRequested>(
       _onSearchRequested,
       transformer: _debounceRestartable(debounceDuration),
     );
-    on<TokenSearchMoreRequested>(
+    on<SearchTokenMoreRequested>(
       _onMoreRequested,
       transformer: droppable(),
     );
@@ -36,8 +36,8 @@ class TokenSearchBloc extends Bloc<TokenSearchEvent, TokenSearchState> {
   List<Token> _matchingTokens = <Token>[];
 
   Future<void> _onSearchRequested(
-    TokenSearchRequested event,
-    Emitter<TokenSearchState> emit,
+    SearchTokenRequested event,
+    Emitter<SearchTokenState> emit,
   ) async {
     final String query = event.query.trim();
 
@@ -48,11 +48,11 @@ class TokenSearchBloc extends Bloc<TokenSearchEvent, TokenSearchState> {
 
     if (query.isEmpty) {
       _matchingTokens = <Token>[];
-      emit(const TokenSearchState.initial());
+      emit(const SearchTokenState.initial());
       return;
     }
 
-    emit(TokenSearchState.loading(query: query));
+    emit(SearchTokenState.loading(query: query));
 
     try {
       final List<Token> allTokens = await _getAllTokens();
@@ -73,7 +73,7 @@ class TokenSearchBloc extends Bloc<TokenSearchEvent, TokenSearchState> {
       final List<Token> firstPage = _matchingTokens.take(_pageSize).toList();
 
       emit(
-        TokenSearchState.success(
+        SearchTokenState.success(
           query: query,
           tokens: firstPage,
           hasReachedMax: firstPage.length == _matchingTokens.length,
@@ -82,12 +82,12 @@ class TokenSearchBloc extends Bloc<TokenSearchEvent, TokenSearchState> {
     } on SyriusException catch (error, stackTrace) {
       if (emit.isDone) return;
       addError(error, stackTrace);
-      emit(TokenSearchState.failure(query: query, error: error));
+      emit(SearchTokenState.failure(query: query, error: error));
     } on Object catch (error, stackTrace) {
       if (emit.isDone) return;
       addError(error, stackTrace);
       emit(
-        TokenSearchState.failure(
+        SearchTokenState.failure(
           query: query,
           error: FailureException(),
         ),
@@ -96,10 +96,10 @@ class TokenSearchBloc extends Bloc<TokenSearchEvent, TokenSearchState> {
   }
 
   void _onMoreRequested(
-    TokenSearchMoreRequested _,
-    Emitter<TokenSearchState> emit,
+    SearchTokenMoreRequested _,
+    Emitter<SearchTokenState> emit,
   ) {
-    if (state.status != TokenSearchStatus.success || state.hasReachedMax) {
+    if (state.status != SearchTokenStatus.success || state.hasReachedMax) {
       return;
     }
 
@@ -114,7 +114,7 @@ class TokenSearchBloc extends Bloc<TokenSearchEvent, TokenSearchState> {
     ];
 
     emit(
-      TokenSearchState.success(
+      SearchTokenState.success(
         query: state.query,
         tokens: tokens,
         hasReachedMax: tokens.length == _matchingTokens.length,

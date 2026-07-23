@@ -1,14 +1,14 @@
-part of 'token_search_bloc.dart';
+part of 'search_token_bloc.dart';
 
 /// Base class for token search events.
-sealed class TokenSearchEvent extends Equatable {
-  const TokenSearchEvent();
+sealed class SearchTokenEvent extends Equatable {
+  const SearchTokenEvent();
 }
 
 /// Requests token results matching a symbol query.
-final class TokenSearchRequested extends TokenSearchEvent {
+final class SearchTokenRequested extends SearchTokenEvent {
   /// Creates a new instance.
-  const TokenSearchRequested({
+  const SearchTokenRequested({
     required this._query,
     this._refresh = false,
   });
@@ -27,9 +27,9 @@ final class TokenSearchRequested extends TokenSearchEvent {
 }
 
 /// Requests the next page of matching tokens.
-final class TokenSearchMoreRequested extends TokenSearchEvent {
+final class SearchTokenMoreRequested extends SearchTokenEvent {
   /// Creates a new instance.
-  const TokenSearchMoreRequested();
+  const SearchTokenMoreRequested();
 
   @override
   List<Object> get props => <Object>[];

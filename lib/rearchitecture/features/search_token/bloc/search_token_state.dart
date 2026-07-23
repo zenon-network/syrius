@@ -1,7 +1,7 @@
-part of 'token_search_bloc.dart';
+part of 'search_token_bloc.dart';
 
 /// Status of a token search operation.
-enum TokenSearchStatus {
+enum SearchTokenStatus {
   /// No search is active.
   initial,
 
@@ -15,43 +15,43 @@ enum TokenSearchStatus {
   success,
 }
 
-/// State emitted by [TokenSearchBloc].
-class TokenSearchState extends Equatable {
+/// State emitted by [SearchTokenBloc].
+class SearchTokenState extends Equatable {
   /// Creates an initial state.
-  const TokenSearchState.initial()
-    : _status = TokenSearchStatus.initial,
+  const SearchTokenState.initial()
+    : _status = SearchTokenStatus.initial,
       _query = '',
       _tokens = const <Token>[],
       _hasReachedMax = false,
       _error = null;
 
   /// Creates a loading state.
-  const TokenSearchState.loading({required this._query})
-    : _status = TokenSearchStatus.loading,
+  const SearchTokenState.loading({required this._query})
+    : _status = SearchTokenStatus.loading,
       _tokens = const <Token>[],
       _hasReachedMax = false,
       _error = null;
 
   /// Creates a failure state.
-  const TokenSearchState.failure({
+  const SearchTokenState.failure({
     required this._query,
     required SyriusException this._error,
-  }) : _status = TokenSearchStatus.failure,
+  }) : _status = SearchTokenStatus.failure,
        _tokens = const <Token>[],
        _hasReachedMax = false;
 
   /// Creates a successful state.
-  const TokenSearchState.success({
+  const SearchTokenState.success({
     required this._query,
     required this._tokens,
     required this._hasReachedMax,
-  }) : _status = TokenSearchStatus.success,
+  }) : _status = SearchTokenStatus.success,
        _error = null;
 
   final SyriusException? _error;
   final bool _hasReachedMax;
   final String _query;
-  final TokenSearchStatus _status;
+  final SearchTokenStatus _status;
   final List<Token> _tokens;
 
   /// The error encountered while searching.
@@ -64,7 +64,7 @@ class TokenSearchState extends Equatable {
   String get query => _query;
 
   /// The current search status.
-  TokenSearchStatus get status => _status;
+  SearchTokenStatus get status => _status;
 
   /// The currently emitted page of matching tokens.
   List<Token> get tokens => _tokens;

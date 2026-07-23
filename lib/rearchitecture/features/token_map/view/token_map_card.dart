@@ -22,8 +22,8 @@ class TokenMapCard extends StatelessWidget {
           create: (_) =>
               TokenMapBloc(zenon: zenon!)..add(const InfiniteListRequested()),
         ),
-        BlocProvider<TokenSearchBloc>(
-          create: (_) => TokenSearchBloc(zenon: zenon!),
+        BlocProvider<SearchTokenBloc>(
+          create: (_) => SearchTokenBloc(zenon: zenon!),
           child: const _View(),
         ),
       ],
@@ -54,8 +54,8 @@ class _ViewState extends State<_View> {
         context.read<TokenMapBloc>().add(
           const InfiniteListRefreshRequested(),
         );
-        context.read<TokenSearchBloc>().add(
-          const TokenSearchRequested(query: '', refresh: true),
+        context.read<SearchTokenBloc>().add(
+          const SearchTokenRequested(query: '', refresh: true),
         );
       },
       body: Padding(
@@ -80,7 +80,7 @@ class _ViewState extends State<_View> {
                 builder: (_, TextEditingValue value, _) {
                   return value.text.isEmpty
                       ? _buildTokenMap()
-                      : _buildTokenSearch(searchQuery: value.text);
+                      : _buildSearchToken(searchQuery: value.text);
                 },
               ),
             ),
@@ -115,29 +115,29 @@ class _ViewState extends State<_View> {
     );
   }
 
-  Widget _buildTokenSearch({
+  Widget _buildSearchToken({
     required String searchQuery,
   }) {
-    return BlocBuilder<TokenSearchBloc, TokenSearchState>(
-      builder: (BuildContext context, TokenSearchState state) {
+    return BlocBuilder<SearchTokenBloc, SearchTokenState>(
+      builder: (BuildContext context, SearchTokenState state) {
         if (state.query != searchQuery) {
           return const SyriusLoadingWidget();
         }
 
         return switch (state.status) {
-          TokenSearchStatus.initial => const SyriusLoadingWidget(),
-          TokenSearchStatus.loading => const SyriusLoadingWidget(),
-          TokenSearchStatus.failure => SyriusErrorWidget(state.error!),
-          TokenSearchStatus.success => _TokenMapGrid(
+          SearchTokenStatus.initial => const SyriusLoadingWidget(),
+          SearchTokenStatus.loading => const SyriusLoadingWidget(),
+          SearchTokenStatus.failure => SyriusErrorWidget(state.error!),
+          SearchTokenStatus.success => _TokenMapGrid(
             hasReachedMax: state.hasReachedMax,
             onScrollReachedBottom: () {
-              context.read<TokenSearchBloc>().add(
-                const TokenSearchMoreRequested(),
+              context.read<SearchTokenBloc>().add(
+                const SearchTokenMoreRequested(),
               );
             },
             onTokenUpdated: () {
-              context.read<TokenSearchBloc>().add(
-                TokenSearchRequested(query: searchQuery, refresh: true),
+              context.read<SearchTokenBloc>().add(
+                SearchTokenRequested(query: searchQuery, refresh: true),
               );
             },
             tokens: state.tokens,
@@ -149,8 +149,8 @@ class _ViewState extends State<_View> {
 
   void _onSearchChanged(String value) {
     final String query = value.trim();
-    context.read<TokenSearchBloc>().add(
-      TokenSearchRequested(query: query),
+    context.read<SearchTokenBloc>().add(
+      SearchTokenRequested(query: query),
     );
   }
 

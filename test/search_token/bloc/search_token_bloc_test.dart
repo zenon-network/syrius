@@ -35,7 +35,7 @@ class FakeAddress extends Fake implements Address {
 }
 
 void main() {
-  group('TokenSearchBloc', () {
+  group('SearchTokenBloc', () {
     late MockZenon zenon;
     late MockEmbedded embedded;
     late MockTokenApi tokenApi;
@@ -60,11 +60,11 @@ void main() {
       return token;
     }
 
-    TokenSearchBloc createBloc({
+    SearchTokenBloc createBloc({
       int pageSize = 10,
       Duration debounceDuration = Duration.zero,
     }) {
-      return TokenSearchBloc(
+      return SearchTokenBloc(
         zenon: zenon,
         pageSize: pageSize,
         debounceDuration: debounceDuration,
@@ -85,10 +85,10 @@ void main() {
     });
 
     test('initial state is correct', () {
-      expect(createBloc().state, const TokenSearchState.initial());
+      expect(createBloc().state, const SearchTokenState.initial());
     });
 
-    blocTest<TokenSearchBloc, TokenSearchState>(
+    blocTest<SearchTokenBloc, SearchTokenState>(
       'searches symbols case-insensitively and excludes native coins',
       setUp: () {
         tokens = <Token>[
@@ -98,14 +98,14 @@ void main() {
         ];
       },
       build: createBloc,
-      act: (TokenSearchBloc bloc) =>
-          bloc.add(const TokenSearchRequested(query: 'znn')),
+      act: (SearchTokenBloc bloc) =>
+          bloc.add(const SearchTokenRequested(query: 'znn')),
       verify: (_) {
         verify(() => tokenApi.getAll()).called(1);
       },
-      expect: () => <TokenSearchState>[
-        const TokenSearchState.loading(query: 'znn'),
-        TokenSearchState.success(
+      expect: () => <SearchTokenState>[
+        const SearchTokenState.loading(query: 'znn'),
+        SearchTokenState.success(
           query: 'znn',
           tokens: <Token>[tokens[1]],
           hasReachedMax: true,
@@ -113,7 +113,7 @@ void main() {
       ],
     );
 
-    blocTest<TokenSearchBloc, TokenSearchState>(
+    blocTest<SearchTokenBloc, SearchTokenState>(
       'paginates matching tokens locally',
       setUp: () {
         tokens = <Token>[
@@ -122,19 +122,19 @@ void main() {
         ];
       },
       build: () => createBloc(pageSize: 1),
-      act: (TokenSearchBloc bloc) async {
-        bloc.add(const TokenSearchRequested(query: 'alp'));
+      act: (SearchTokenBloc bloc) async {
+        bloc.add(const SearchTokenRequested(query: 'alp'));
         await Future<void>.delayed(const Duration(milliseconds: 10));
-        bloc.add(const TokenSearchMoreRequested());
+        bloc.add(const SearchTokenMoreRequested());
       },
-      expect: () => <TokenSearchState>[
-        const TokenSearchState.loading(query: 'alp'),
-        TokenSearchState.success(
+      expect: () => <SearchTokenState>[
+        const SearchTokenState.loading(query: 'alp'),
+        SearchTokenState.success(
           query: 'alp',
           tokens: <Token>[tokens[0]],
           hasReachedMax: false,
         ),
-        TokenSearchState.success(
+        SearchTokenState.success(
           query: 'alp',
           tokens: tokens,
           hasReachedMax: true,
@@ -142,7 +142,7 @@ void main() {
       ],
     );
 
-    blocTest<TokenSearchBloc, TokenSearchState>(
+    blocTest<SearchTokenBloc, SearchTokenState>(
       'searches tokens by name',
       setUp: () {
         tokens = <Token>[
@@ -151,11 +151,11 @@ void main() {
         ];
       },
       build: createBloc,
-      act: (TokenSearchBloc bloc) =>
-          bloc.add(const TokenSearchRequested(query: 'SECOND')),
-      expect: () => <TokenSearchState>[
-        const TokenSearchState.loading(query: 'SECOND'),
-        TokenSearchState.success(
+      act: (SearchTokenBloc bloc) =>
+          bloc.add(const SearchTokenRequested(query: 'SECOND')),
+      expect: () => <SearchTokenState>[
+        const SearchTokenState.loading(query: 'SECOND'),
+        SearchTokenState.success(
           query: 'SECOND',
           tokens: <Token>[tokens[1]],
           hasReachedMax: true,
@@ -163,7 +163,7 @@ void main() {
       ],
     );
 
-    blocTest<TokenSearchBloc, TokenSearchState>(
+    blocTest<SearchTokenBloc, SearchTokenState>(
       'searches tokens by owner',
       setUp: () {
         tokens = <Token>[
@@ -172,11 +172,11 @@ void main() {
         ];
       },
       build: createBloc,
-      act: (TokenSearchBloc bloc) =>
-          bloc.add(const TokenSearchRequested(query: 'SECONDOWNER')),
-      expect: () => <TokenSearchState>[
-        const TokenSearchState.loading(query: 'SECONDOWNER'),
-        TokenSearchState.success(
+      act: (SearchTokenBloc bloc) =>
+          bloc.add(const SearchTokenRequested(query: 'SECONDOWNER')),
+      expect: () => <SearchTokenState>[
+        const SearchTokenState.loading(query: 'SECONDOWNER'),
+        SearchTokenState.success(
           query: 'SECONDOWNER',
           tokens: <Token>[tokens[1]],
           hasReachedMax: true,
@@ -184,7 +184,7 @@ void main() {
       ],
     );
 
-    blocTest<TokenSearchBloc, TokenSearchState>(
+    blocTest<SearchTokenBloc, SearchTokenState>(
       'searches tokens by token standard',
       setUp: () {
         tokens = <Token>[
@@ -193,11 +193,11 @@ void main() {
         ];
       },
       build: createBloc,
-      act: (TokenSearchBloc bloc) =>
-          bloc.add(const TokenSearchRequested(query: 'SECONDSTANDARD')),
-      expect: () => <TokenSearchState>[
-        const TokenSearchState.loading(query: 'SECONDSTANDARD'),
-        TokenSearchState.success(
+      act: (SearchTokenBloc bloc) =>
+          bloc.add(const SearchTokenRequested(query: 'SECONDSTANDARD')),
+      expect: () => <SearchTokenState>[
+        const SearchTokenState.loading(query: 'SECONDSTANDARD'),
+        SearchTokenState.success(
           query: 'SECONDSTANDARD',
           tokens: <Token>[tokens[1]],
           hasReachedMax: true,
@@ -205,7 +205,7 @@ void main() {
       ],
     );
 
-    blocTest<TokenSearchBloc, TokenSearchState>(
+    blocTest<SearchTokenBloc, SearchTokenState>(
       'debounces input and searches only the latest query',
       setUp: () {
         tokens = <Token>[
@@ -216,18 +216,18 @@ void main() {
       build: () => createBloc(
         debounceDuration: const Duration(milliseconds: 50),
       ),
-      act: (TokenSearchBloc bloc) {
+      act: (SearchTokenBloc bloc) {
         bloc
-          ..add(const TokenSearchRequested(query: 'alp'))
-          ..add(const TokenSearchRequested(query: 'beta'));
+          ..add(const SearchTokenRequested(query: 'alp'))
+          ..add(const SearchTokenRequested(query: 'beta'));
       },
       wait: const Duration(milliseconds: 100),
       verify: (_) {
         verify(() => tokenApi.getAll()).called(1);
       },
-      expect: () => <TokenSearchState>[
-        const TokenSearchState.loading(query: 'beta'),
-        TokenSearchState.success(
+      expect: () => <SearchTokenState>[
+        const SearchTokenState.loading(query: 'beta'),
+        SearchTokenState.success(
           query: 'beta',
           tokens: <Token>[tokens[1]],
           hasReachedMax: true,
@@ -235,7 +235,7 @@ void main() {
       ],
     );
 
-    blocTest<TokenSearchBloc, TokenSearchState>(
+    blocTest<SearchTokenBloc, SearchTokenState>(
       'reuses cached tokens across queries',
       setUp: () {
         tokens = <Token>[
@@ -244,24 +244,24 @@ void main() {
         ];
       },
       build: createBloc,
-      act: (TokenSearchBloc bloc) async {
-        bloc.add(const TokenSearchRequested(query: 'alpha'));
+      act: (SearchTokenBloc bloc) async {
+        bloc.add(const SearchTokenRequested(query: 'alpha'));
         await Future<void>.delayed(const Duration(milliseconds: 10));
-        bloc.add(const TokenSearchRequested(query: 'beta'));
+        bloc.add(const SearchTokenRequested(query: 'beta'));
         await Future<void>.delayed(const Duration(milliseconds: 10));
       },
       verify: (_) {
         verify(() => tokenApi.getAll()).called(1);
       },
-      expect: () => <TokenSearchState>[
-        const TokenSearchState.loading(query: 'alpha'),
-        TokenSearchState.success(
+      expect: () => <SearchTokenState>[
+        const SearchTokenState.loading(query: 'alpha'),
+        SearchTokenState.success(
           query: 'alpha',
           tokens: <Token>[tokens[0]],
           hasReachedMax: true,
         ),
-        const TokenSearchState.loading(query: 'beta'),
-        TokenSearchState.success(
+        const SearchTokenState.loading(query: 'beta'),
+        SearchTokenState.success(
           query: 'beta',
           tokens: <Token>[tokens[1]],
           hasReachedMax: true,
@@ -269,24 +269,24 @@ void main() {
       ],
     );
 
-    blocTest<TokenSearchBloc, TokenSearchState>(
+    blocTest<SearchTokenBloc, SearchTokenState>(
       'emits failure when fetching all tokens fails',
       setUp: () {
         when(() => tokenApi.getAll()).thenThrow(Exception('boom'));
       },
       build: createBloc,
-      act: (TokenSearchBloc bloc) =>
-          bloc.add(const TokenSearchRequested(query: 'token')),
+      act: (SearchTokenBloc bloc) =>
+          bloc.add(const SearchTokenRequested(query: 'token')),
       expect: () => <Matcher>[
-        equals(const TokenSearchState.loading(query: 'token')),
-        isA<TokenSearchState>()
+        equals(const SearchTokenState.loading(query: 'token')),
+        isA<SearchTokenState>()
             .having(
-              (TokenSearchState state) => state.status,
+              (SearchTokenState state) => state.status,
               'status',
-              TokenSearchStatus.failure,
+              SearchTokenStatus.failure,
             )
             .having(
-              (TokenSearchState state) => state.error,
+              (SearchTokenState state) => state.error,
               'error',
               isA<FailureException>(),
             ),
