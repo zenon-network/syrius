@@ -10,17 +10,17 @@ import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 /// Displays the paginated list of ZTS tokens available on the network.
-class TokenMapCard extends StatelessWidget {
+class TokensCard extends StatelessWidget {
   /// Creates a new instance.
-  const TokenMapCard({super.key});
+  const TokensCard({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MultiBlocProvider(
       providers: <SingleChildWidget>[
-        BlocProvider<TokenMapBloc>(
+        BlocProvider<TokensBloc>(
           create: (_) =>
-              TokenMapBloc(zenon: zenon!)..add(const InfiniteListRequested()),
+              TokensBloc(zenon: zenon!)..add(const InfiniteListRequested()),
         ),
         BlocProvider<SearchTokenBloc>(
           create: (_) => SearchTokenBloc(zenon: zenon!),
@@ -51,7 +51,7 @@ class _ViewState extends State<_View> {
       ),
       onRefreshPressed: () {
         _searchController.clear();
-        context.read<TokenMapBloc>().add(
+        context.read<TokensBloc>().add(
           const InfiniteListRefreshRequested(),
         );
         context.read<SearchTokenBloc>().add(
@@ -91,7 +91,7 @@ class _ViewState extends State<_View> {
   }
 
   Widget _buildTokenMap() {
-    return BlocBuilder<TokenMapBloc, InfiniteListState<Token>>(
+    return BlocBuilder<TokensBloc, InfiniteListState<Token>>(
       builder: (BuildContext context, InfiniteListState<Token> state) {
         return switch (state.status) {
           InfiniteListStatus.initial => const SyriusLoadingWidget(),
@@ -99,12 +99,12 @@ class _ViewState extends State<_View> {
           InfiniteListStatus.success => _TokenMapGrid(
             hasReachedMax: state.hasReachedMax,
             onScrollReachedBottom: () {
-              context.read<TokenMapBloc>().add(
+              context.read<TokensBloc>().add(
                 const InfiniteListMoreRequested(),
               );
             },
             onTokenUpdated: () {
-              context.read<TokenMapBloc>().add(
+              context.read<TokensBloc>().add(
                 const InfiniteListRefreshRequested(),
               );
             },

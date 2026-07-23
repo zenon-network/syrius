@@ -27,7 +27,7 @@ void main() {
     late MockTokenApi tokenApi;
     late MockTokenList tokenList;
     late MockToken token;
-    late TokenMapBloc bloc;
+    late TokensBloc bloc;
 
     setUp(() {
       zenon = MockZenon();
@@ -59,17 +59,17 @@ void main() {
         ),
       ).thenAnswer((_) async => tokenList);
 
-      bloc = TokenMapBloc(zenon: zenon, pageSize: pageSize);
+      bloc = TokensBloc(zenon: zenon, pageSize: pageSize);
     });
 
     test('initial state is initial', () {
       expect(bloc.state, const InfiniteListState<Token>.initial());
     });
 
-    blocTest<TokenMapBloc, InfiniteListState<Token>>(
+    blocTest<TokensBloc, InfiniteListState<Token>>(
       'requested emits success with the first token page',
       build: () => bloc,
-      act: (TokenMapBloc bloc) => bloc.add(const InfiniteListRequested()),
+      act: (TokensBloc bloc) => bloc.add(const InfiniteListRequested()),
       verify: (_) {
         verify(
           () => tokenApi.getAll(
@@ -87,7 +87,7 @@ void main() {
       ],
     );
 
-    blocTest<TokenMapBloc, InfiniteListState<Token>>(
+    blocTest<TokensBloc, InfiniteListState<Token>>(
       'requested emits failure when the API throws',
       setUp: () {
         when(
@@ -98,7 +98,7 @@ void main() {
         ).thenThrow(Exception('boom'));
       },
       build: () => bloc,
-      act: (TokenMapBloc bloc) => bloc.add(const InfiniteListRequested()),
+      act: (TokensBloc bloc) => bloc.add(const InfiniteListRequested()),
       expect: () => <Matcher>[
         isA<InfiniteListState<Token>>().having(
           (InfiniteListState<Token> state) => state.status,

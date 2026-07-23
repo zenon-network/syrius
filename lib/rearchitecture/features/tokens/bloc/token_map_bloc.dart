@@ -2,9 +2,9 @@ import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 /// A bloc that fetches the paginated list of tokens from the network.
-class TokenMapBloc extends InfiniteListBloc<Token> {
+class TokensBloc extends InfiniteListBloc<Token> {
   /// Creates a new instance.
-  TokenMapBloc({required super.zenon, super.pageSize = kPageSize})
+  TokensBloc({required super.zenon, super.pageSize = kPageSize})
     : super(
         fromJsonT: (Object? map) => Token.fromJson(
           map! as Map<String, dynamic>,
