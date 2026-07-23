@@ -31,7 +31,6 @@ import 'package:zenon_syrius_wallet_flutter/hive/hive_registrar.g.dart';
 import 'package:zenon_syrius_wallet_flutter/l10n/app_localizations.dart';
 import 'package:zenon_syrius_wallet_flutter/model/model.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
-import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/tokens/cubit/tokens_cubit.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/screens/screens.dart';
 import 'package:zenon_syrius_wallet_flutter/services/htlc_swaps_service.dart';
@@ -249,7 +248,6 @@ void setup() {
     ),
   );
   sl.registerSingleton<MultipleBalanceBloc>(MultipleBalanceBloc(zenon: zenon!));
-  sl.registerSingleton<TokensCubit>(TokensCubit(zenon: zenon!));
   sl.registerSingleton<AutoReceiveTxWorker>(AutoReceiveTxWorker.getInstance());
   sl.registerSingleton<AutoUnlockHtlcWorker>(
     AutoUnlockHtlcWorker.getInstance(),
@@ -331,8 +329,8 @@ class _MyAppState extends State<MyApp> with WindowListener, TrayListener {
         BlocProvider<MultipleBalanceBloc>(
           create: (_) => sl.get<MultipleBalanceBloc>(),
         ),
-        BlocProvider<TokensCubit>(
-          create: (_) => sl.get<TokensCubit>()..fetch(),
+        BlocProvider<AllTokensBloc>(
+          create: (_) => sl.get<AllTokensBloc>()..add(const AllTokensRequested()),
         ),
         BlocProvider<PlasmaStatsBloc>(
           create: (_) => PlasmaStatsBloc(zenon: zenon!)

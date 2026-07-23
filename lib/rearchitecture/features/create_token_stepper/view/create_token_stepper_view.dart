@@ -1,11 +1,8 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/model/model.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
-import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/tokens/cubit/tokens_cubit.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
@@ -291,7 +288,7 @@ class _CreateTokenStepperViewState extends State<CreateTokenStepperView> {
 
   void _onIssueDone() {
     _currentStep.value = null;
-    unawaited(sl.get<TokensCubit>().fetch());
+    context.read<AllTokensBloc>().add(const AllTokensRequested());
   }
 
   void _onTokenMintableBurnableContinuePressed() {
