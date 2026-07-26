@@ -55,6 +55,7 @@ class TokenZnnCheckStep extends StatelessWidget {
         ),
         kVerticalGap16,
         OutlinedButton(
+          key: const Key('token_znn_next_button'),
           onPressed:
               accountInfo.getBalance(kZnnCoin.tokenStandard) >=
                   tokenZtsIssueFeeInZnn

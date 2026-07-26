@@ -61,6 +61,7 @@ class _TokenDetailsStepState extends State<TokenDetailsStep> {
       builder: (_, _) => Column(
         children: <Widget>[
           TextField(
+            key: const Key('token_name_field'),
             controller: widget.tokenNameController,
             decoration: InputDecoration(
               errorText: widget.tokenNameController.text.isNotEmpty
@@ -71,6 +72,7 @@ class _TokenDetailsStepState extends State<TokenDetailsStep> {
           ),
           kVerticalGap16,
           TextField(
+            key: const Key('token_symbol_field'),
             controller: widget.tokenSymbolController,
             decoration: InputDecoration(
               errorText: widget.tokenSymbolController.text.isNotEmpty
@@ -83,6 +85,7 @@ class _TokenDetailsStepState extends State<TokenDetailsStep> {
           // Blockchain seems to accept only "testing.com" URLs, not
           // "https://testing.com" also
           TextField(
+            key: const Key('token_domain_field'),
             controller: widget.tokenDomainController,
             decoration: InputDecoration(
               errorText: widget.tokenDomainController.text.isNotEmpty
@@ -103,6 +106,7 @@ class _TokenDetailsStepState extends State<TokenDetailsStep> {
               ),
               kHorizontalGap25,
               OutlinedButton(
+                key: const Key('token_details_next_button'),
                 onPressed: _areTokenDetailsCorrect()
                     ? _onContinuePressed
                     : null,

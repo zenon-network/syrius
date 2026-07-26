@@ -74,6 +74,7 @@ class _Populated extends StatelessWidget {
         ),
         kVerticalGap25,
         StepperButton(
+          key: const Key('token_plasma_next_button'),
           text: context.l10n.next,
           onPressed: plasmaInfo.currentPlasma >= kIssueTokenPlasmaAmountNeeded
               ? onNextPressed

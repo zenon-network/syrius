@@ -45,7 +45,6 @@ class _IssueTokenStepState extends State<IssueTokenStep> {
 
   late final ValueNotifier<bool> _isUtility;
 
-
   @override
   void initState() {
     super.initState();
@@ -65,6 +64,7 @@ class _IssueTokenStepState extends State<IssueTokenStep> {
                 valueListenable: _isUtility,
                 builder: (_, bool value, _) {
                   return Checkbox(
+                    key: const Key('token_utility_checkbox'),
                     activeColor: AppColors.ztsColor,
                     value: value,
                     onChanged: (bool? value) {
@@ -114,17 +114,20 @@ class _IssueTokenStepState extends State<IssueTokenStep> {
                   ],
                 ),
               ),
-              LoadingButton.stepper(
-                textColor: AppColors.ztsColor,
-                text: context.l10n.create,
-                outlineColor: AppColors.ztsColor,
-                onPressed: () {
-                  widget.tokenData.value = widget.tokenData.value.copyWith(
-                    isUtility: widget.tokenData.value.isUtility,
-                  );
-                  widget.onIssuePressed();
-                },
-                key: _createButtonKey,
+              KeyedSubtree(
+                key: const Key('token_create_button'),
+                child: LoadingButton.stepper(
+                  textColor: AppColors.ztsColor,
+                  text: context.l10n.create,
+                  outlineColor: AppColors.ztsColor,
+                  onPressed: () {
+                    widget.tokenData.value = widget.tokenData.value.copyWith(
+                      isUtility: widget.tokenData.value.isUtility,
+                    );
+                    widget.onIssuePressed();
+                  },
+                  key: _createButtonKey,
+                ),
               ),
             ],
           ),

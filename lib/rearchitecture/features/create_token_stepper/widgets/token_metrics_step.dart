@@ -86,6 +86,7 @@ class _TokenMetricsStepState extends State<TokenMetricsStep> {
               startValue: 0,
               min: 0,
               maxValue: 18,
+              sliderKey: const Key('token_decimals_slider'),
               callback: (double value) {
                 widget.selectedNumDecimals.value = value.toInt();
               },
@@ -98,6 +99,7 @@ class _TokenMetricsStepState extends State<TokenMetricsStep> {
           child: Column(
             children: <Widget>[
               TextField(
+                key: const Key('token_max_supply_field'),
                 inputFormatters: FormatUtils.getAmountTextInputFormatters(
                   widget.maxSupplyController.text,
                 ),
@@ -112,6 +114,7 @@ class _TokenMetricsStepState extends State<TokenMetricsStep> {
           ),
         ),
         TextField(
+          key: const Key('token_total_supply_field'),
           inputFormatters: FormatUtils.getAmountTextInputFormatters(
             widget.totalSupplyController.text,
           ),
@@ -135,6 +138,7 @@ class _TokenMetricsStepState extends State<TokenMetricsStep> {
                 widget.maxSupplyController,
               ]),
               builder: (_, _) => StepperButton(
+                key: const Key('token_metrics_next_button'),
                 text: context.l10n.continueText,
                 onPressed: _areTokenMetricsCorrect()
                     ? _onContinuePressed
@@ -148,8 +152,7 @@ class _TokenMetricsStepState extends State<TokenMetricsStep> {
   }
 
   bool _areTokenMetricsCorrect() =>
-      (!_isMintable || _maxSupplyError == null) &&
-      _totalSupplyError == null;
+      (!_isMintable || _maxSupplyError == null) && _totalSupplyError == null;
 
   void _onContinuePressed() {
     final int decimals = widget.selectedNumDecimals.value;

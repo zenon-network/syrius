@@ -49,6 +49,7 @@ class _TokenMintableBurnableStepState extends State<TokenMintableBurnableStep> {
               valueListenable: _isMintable,
               builder: (_, bool value, _) {
                 return Checkbox.adaptive(
+                  key: const Key('token_mintable_checkbox'),
                   activeColor: AppColors.ztsColor,
                   value: value,
                   onChanged: (bool? value) {
@@ -79,6 +80,7 @@ class _TokenMintableBurnableStepState extends State<TokenMintableBurnableStep> {
               valueListenable: _isBurnable,
               builder: (_, bool value, _) {
                 return Checkbox.adaptive(
+                  key: const Key('token_burnable_checkbox'),
                   activeColor: AppColors.ztsColor,
                   value: value,
                   onChanged: (bool? value) {
@@ -116,6 +118,7 @@ class _TokenMintableBurnableStepState extends State<TokenMintableBurnableStep> {
             ),
             kHorizontalGap25,
             OutlinedButton(
+              key: const Key('token_options_next_button'),
               onPressed: () {
                 widget.tokenData.value = widget.tokenData.value.copyWith(
                   isMintable: _isMintable.value,
