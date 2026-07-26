@@ -588,10 +588,11 @@ packages:
   fl_chart:
     dependency: "direct main"
     description:
-      name: fl_chart
-      sha256: b938f77d042cbcd822936a7a359a7235bad8bd72070de1f827efc2cc297ac888
-      url: "https://pub.dev"
-    source: hosted
+      path: "."
+      ref: f3a575827312b8f12628b66d12d08066eb4d2570
+      resolved-ref: f3a575827312b8f12628b66d12d08066eb4d2570
+      url: "https://github.com/imaNNeo/fl_chart.git"
+    source: git
     version: "1.2.0"
   flip_card:
     dependency: "direct main"

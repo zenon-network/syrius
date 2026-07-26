@@ -11,7 +11,11 @@ dependencies:
   flutter_localizations:
     sdk: flutter
 
-  fl_chart: ^1.1.1
+  # Use this commit for now because it solves a UI issue, to be updated when version > 1.2.0
+  fl_chart:
+    git:
+      url: https://github.com/imaNNeo/fl_chart.git
+      ref: f3a575827312b8f12628b66d12d08066eb4d2570
   overlay_support: ^2.1.0
   lottie: ^3.1.2
   dotted_border: ^3.1.0
