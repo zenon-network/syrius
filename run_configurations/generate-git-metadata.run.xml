@@ -1,0 +1,6 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="generate-git-metadata" type="DartCommandLineRunConfigurationType" factoryName="Dart Command Line Application">
+    <option name="filePath" value="$PROJECT_DIR$/tool/generate_git_metadata.dart" />
+    <method v="2" />
+  </configuration>
+</component>
