@@ -24,7 +24,6 @@ class TokensCard extends StatelessWidget {
         ),
         BlocProvider<SearchTokenBloc>(
           create: (_) => SearchTokenBloc(zenon: zenon!),
-          child: const _View(),
         ),
       ],
       child: const _View(),
