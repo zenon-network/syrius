@@ -784,11 +784,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get to => 'to';
 
   @override
-  String get tokenTransactions => 'Token Transactions';
-
-  @override
-  String get tokenBurnTooltip =>
-      'Whether or not only the token owner can burn it';
+  String tokenAddedToFavorites(Object name) {
+    return '$name token has been added to favorites';
+  }
 
   @override
   String get tokenBalanceDescription =>
@@ -796,6 +794,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get tokenBalanceTitle => 'Token Balance';
+
+  @override
+  String get tokenBurnTooltip =>
+      'Whether or not only the token owner can burn it';
 
   @override
   String get tokenCreation => 'ZNN Check';
@@ -807,30 +809,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get tokenDomain => 'Token Domain';
 
   @override
-  String tokenAddedToFavorites(Object name) {
-    return '$name token has been added to favorites';
-  }
-
-  @override
-  String tokenRemovedFromFavorites(Object name) {
-    return '$name token has been removed from favorites';
-  }
-
-  @override
-  String tokenSummary(Object name, Object symbol, Object tokenStandard) {
-    return 'Token $name with symbol $symbol and ZTS $tokenStandard';
-  }
-
-  @override
   String get tokenIssuanceAddressDescription =>
       'This will be your issuance address';
-
-  @override
-  String get tokenMapDescription =>
-      'This card displays a grid with all the ZTS tokens from the network, including ZTS tokens issued by you';
-
-  @override
-  String get tokenMapTitle => 'Token Map';
 
   @override
   String get tokenMetrics => 'Metrics';
@@ -851,8 +831,18 @@ class AppLocalizationsEn extends AppLocalizations {
   String get tokenName => 'Token Name';
 
   @override
+  String tokenRemovedFromFavorites(Object name) {
+    return '$name token has been removed from favorites';
+  }
+
+  @override
   String get tokenStatusUtilityTooltip =>
       'Token status: utility or non-utility (e.g. security token)';
+
+  @override
+  String tokenSummary(Object name, Object symbol, Object tokenStandard) {
+    return 'Token $name with symbol $symbol and ZTS $tokenStandard';
+  }
 
   @override
   String tokenSupplyOutOfMax(
@@ -867,15 +857,25 @@ class AppLocalizationsEn extends AppLocalizations {
   String get tokenSymbol => 'Token Symbol';
 
   @override
-  String visitDomain(Object domain) {
-    return 'Visit $domain';
-  }
+  String get tokenTransactions => 'Token Transactions';
+
+  @override
+  String get tokens => 'Tokens';
+
+  @override
+  String get tokensCardDescription =>
+      'This card displays a grid with all the ZTS tokens from the network, including ZTS tokens issued by you';
 
   @override
   String get totalSupply => 'Total supply';
 
   @override
   String get transactionError => 'Error while receiving transaction';
+
+  @override
+  String visitDomain(Object domain) {
+    return 'Visit $domain';
+  }
 
   @override
   String get transactions => 'Transactions';

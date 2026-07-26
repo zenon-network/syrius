@@ -46,8 +46,8 @@ class _ViewState extends State<_View> {
   Widget build(BuildContext context) {
     return NewCardScaffold(
       data: CardData(
-        title: context.l10n.tokenMapTitle,
-        description: context.l10n.tokenMapDescription,
+        title: context.l10n.tokens,
+        description: context.l10n.tokensCardDescription,
       ),
       onRefreshPressed: () {
         _searchController.clear();
@@ -79,7 +79,7 @@ class _ViewState extends State<_View> {
                 valueListenable: _searchController,
                 builder: (_, TextEditingValue value, _) {
                   return value.text.isEmpty
-                      ? _buildTokenMap()
+                      ? _buildTokensList()
                       : _buildSearchToken(searchQuery: value.text);
                 },
               ),
@@ -90,13 +90,13 @@ class _ViewState extends State<_View> {
     );
   }
 
-  Widget _buildTokenMap() {
+  Widget _buildTokensList() {
     return BlocBuilder<TokensBloc, InfiniteListState<Token>>(
       builder: (BuildContext context, InfiniteListState<Token> state) {
         return switch (state.status) {
           InfiniteListStatus.initial => const SyriusLoadingWidget(),
           InfiniteListStatus.failure => SyriusErrorWidget(state.error!),
-          InfiniteListStatus.success => _TokenMapGrid(
+          InfiniteListStatus.success => _TokensGrid(
             hasReachedMax: state.hasReachedMax,
             onScrollReachedBottom: () {
               context.read<TokensBloc>().add(
@@ -128,7 +128,7 @@ class _ViewState extends State<_View> {
           SearchTokenStatus.initial => const SyriusLoadingWidget(),
           SearchTokenStatus.loading => const SyriusLoadingWidget(),
           SearchTokenStatus.failure => SyriusErrorWidget(state.error!),
-          SearchTokenStatus.success => _TokenMapGrid(
+          SearchTokenStatus.success => _TokensGrid(
             hasReachedMax: state.hasReachedMax,
             onScrollReachedBottom: () {
               context.read<SearchTokenBloc>().add(
@@ -161,8 +161,8 @@ class _ViewState extends State<_View> {
   }
 }
 
-class _TokenMapGrid extends StatelessWidget {
-  const _TokenMapGrid({
+class _TokensGrid extends StatelessWidget {
+  const _TokensGrid({
     required this._hasReachedMax,
     required this._onScrollReachedBottom,
     required this._onTokenUpdated,

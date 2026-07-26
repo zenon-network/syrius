@@ -1385,17 +1385,11 @@ abstract class AppLocalizations {
   /// **'to'**
   String get to;
 
-  /// No description provided for @tokenTransactions.
+  /// No description provided for @tokenAddedToFavorites.
   ///
   /// In en, this message translates to:
-  /// **'Token Transactions'**
-  String get tokenTransactions;
-
-  /// No description provided for @tokenBurnTooltip.
-  ///
-  /// In en, this message translates to:
-  /// **'Whether or not only the token owner can burn it'**
-  String get tokenBurnTooltip;
+  /// **'{name} token has been added to favorites'**
+  String tokenAddedToFavorites(Object name);
 
   /// No description provided for @tokenBalanceDescription.
   ///
@@ -1408,6 +1402,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Token Balance'**
   String get tokenBalanceTitle;
+
+  /// No description provided for @tokenBurnTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Whether or not only the token owner can burn it'**
+  String get tokenBurnTooltip;
 
   /// No description provided for @tokenCreation.
   ///
@@ -1427,41 +1427,11 @@ abstract class AppLocalizations {
   /// **'Token Domain'**
   String get tokenDomain;
 
-  /// No description provided for @tokenAddedToFavorites.
-  ///
-  /// In en, this message translates to:
-  /// **'{name} token has been added to favorites'**
-  String tokenAddedToFavorites(Object name);
-
-  /// No description provided for @tokenRemovedFromFavorites.
-  ///
-  /// In en, this message translates to:
-  /// **'{name} token has been removed from favorites'**
-  String tokenRemovedFromFavorites(Object name);
-
-  /// No description provided for @tokenSummary.
-  ///
-  /// In en, this message translates to:
-  /// **'Token {name} with symbol {symbol} and ZTS {tokenStandard}'**
-  String tokenSummary(Object name, Object symbol, Object tokenStandard);
-
   /// No description provided for @tokenIssuanceAddressDescription.
   ///
   /// In en, this message translates to:
   /// **'This will be your issuance address'**
   String get tokenIssuanceAddressDescription;
-
-  /// No description provided for @tokenMapDescription.
-  ///
-  /// In en, this message translates to:
-  /// **'This card displays a grid with all the ZTS tokens from the network, including ZTS tokens issued by you'**
-  String get tokenMapDescription;
-
-  /// No description provided for @tokenMapTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Token Map'**
-  String get tokenMapTitle;
 
   /// No description provided for @tokenMetrics.
   ///
@@ -1493,11 +1463,23 @@ abstract class AppLocalizations {
   /// **'Token Name'**
   String get tokenName;
 
+  /// No description provided for @tokenRemovedFromFavorites.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} token has been removed from favorites'**
+  String tokenRemovedFromFavorites(Object name);
+
   /// No description provided for @tokenStatusUtilityTooltip.
   ///
   /// In en, this message translates to:
   /// **'Token status: utility or non-utility (e.g. security token)'**
   String get tokenStatusUtilityTooltip;
+
+  /// No description provided for @tokenSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'Token {name} with symbol {symbol} and ZTS {tokenStandard}'**
+  String tokenSummary(Object name, Object symbol, Object tokenStandard);
 
   /// No description provided for @tokenSupplyOutOfMax.
   ///
@@ -1515,11 +1497,23 @@ abstract class AppLocalizations {
   /// **'Token Symbol'**
   String get tokenSymbol;
 
-  /// No description provided for @visitDomain.
+  /// No description provided for @tokenTransactions.
   ///
   /// In en, this message translates to:
-  /// **'Visit {domain}'**
-  String visitDomain(Object domain);
+  /// **'Token Transactions'**
+  String get tokenTransactions;
+
+  /// No description provided for @tokens.
+  ///
+  /// In en, this message translates to:
+  /// **'Tokens'**
+  String get tokens;
+
+  /// No description provided for @tokensCardDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'This card displays a grid with all the ZTS tokens from the network, including ZTS tokens issued by you'**
+  String get tokensCardDescription;
 
   /// No description provided for @totalSupply.
   ///
@@ -1532,6 +1526,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Error while receiving transaction'**
   String get transactionError;
+
+  /// No description provided for @visitDomain.
+  ///
+  /// In en, this message translates to:
+  /// **'Visit {domain}'**
+  String visitDomain(Object domain);
 
   /// No description provided for @transactions.
   ///
