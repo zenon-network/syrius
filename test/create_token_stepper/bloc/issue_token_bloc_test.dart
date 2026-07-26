@@ -63,7 +63,7 @@ void main() {
         maxSupply: BigInt.one,
         decimals: 0,
         isMintable: false,
-        isOwnerBurnOnly: false,
+        isBurnable: false,
         isUtility: true,
       );
 
@@ -122,7 +122,7 @@ void main() {
             tokenData.maxSupply,
             tokenData.decimals,
             tokenData.isMintable,
-            tokenData.isOwnerBurnOnly,
+            tokenData.isBurnable,
             tokenData.isUtility,
           ),
         ).called(1);

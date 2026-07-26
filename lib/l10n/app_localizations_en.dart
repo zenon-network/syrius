@@ -93,7 +93,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get burn => 'Burn';
 
   @override
-  String get burnableToken => 'Burnable token';
+  String get burnableToken => 'Burnable by any holder';
 
   @override
   String burnTokenIssueFee(Object amount, Object symbol) {
@@ -797,7 +797,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get tokenBurnTooltip =>
-      'Whether or not only the token owner can burn it';
+      'When enabled, any holder can burn tokens from their own balance. When disabled, only the token owner can burn.';
 
   @override
   String get tokenCreation => 'ZNN Check';

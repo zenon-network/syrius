@@ -247,7 +247,7 @@ abstract class AppLocalizations {
   /// No description provided for @burnableToken.
   ///
   /// In en, this message translates to:
-  /// **'Burnable token'**
+  /// **'Burnable by any holder'**
   String get burnableToken;
 
   /// No description provided for @burnTokenIssueFee.
@@ -1406,7 +1406,7 @@ abstract class AppLocalizations {
   /// No description provided for @tokenBurnTooltip.
   ///
   /// In en, this message translates to:
-  /// **'Whether or not only the token owner can burn it'**
+  /// **'When enabled, any holder can burn tokens from their own balance. When disabled, only the token owner can burn.'**
   String get tokenBurnTooltip;
 
   /// No description provided for @tokenCreation.

@@ -95,7 +95,7 @@ class _CreateTokenStepperViewState extends State<CreateTokenStepperView> {
     return ValueListenableBuilder<NewTokenData>(
       valueListenable: _tokenData,
       builder: (_, NewTokenData value, _) {
-        final bool isBurnable = value.isOwnerBurnOnly;
+        final bool isBurnable = value.isBurnable;
         final bool isMintable = value.isMintable;
         final bool isUtility = value.isUtility;
 

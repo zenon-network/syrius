@@ -161,19 +161,17 @@ class _TokenCardState extends State<TokenCard> {
                                   : null,
                               iconData: Icons.build,
                             ),
-                          if (widget._token.isBurnable)
+                          if (widget._token.isBurnable ||
+                              kSelectedAddress ==
+                                  widget._token.owner.toString())
                             _buildTokenOptionIconButton(
-                              tooltip: context.l10n.burnableToken,
-                              onPressed:
-                                  kDefaultAddressList.contains(
-                                    widget._token.owner.toString(),
-                                  )
-                                  ? () {
-                                      _backOfCardVersion = _BackVersion.burn;
-                                      _flipCard();
-                                      _refreshBalanceBloc();
-                                    }
-                                  : null,
+                              key: const Key('token_burn_button'),
+                              tooltip: context.l10n.burn,
+                              onPressed: () {
+                                _backOfCardVersion = _BackVersion.burn;
+                                _flipCard();
+                                _refreshBalanceBloc();
+                              },
                               iconData: Icons.whatshot,
                             ),
                           TokenFavorite(
@@ -229,10 +227,12 @@ class _TokenCardState extends State<TokenCard> {
   Widget _buildTokenOptionIconButton({
     required String tooltip,
     required IconData iconData,
+    Key? key,
     Color? iconColor,
     VoidCallback? onPressed,
   }) {
     return IconButton(
+      key: key,
       mouseCursor: onPressed != null
           ? SystemMouseCursors.click
           : SystemMouseCursors.forbidden,

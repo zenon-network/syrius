@@ -35,7 +35,7 @@ class _TokenMintableBurnableStepState extends State<TokenMintableBurnableStep> {
   @override
   void initState() {
     super.initState();
-    _isBurnable = .new(widget.tokenData.value.isOwnerBurnOnly);
+    _isBurnable = .new(widget.tokenData.value.isBurnable);
     _isMintable = .new(widget.tokenData.value.isMintable);
   }
 
@@ -95,7 +95,7 @@ class _TokenMintableBurnableStepState extends State<TokenMintableBurnableStep> {
             ),
             kHorizontalGap8,
             Text(
-              context.l10n.burn,
+              context.l10n.burnableToken,
               style: Theme.of(context).inputDecorationTheme.hintStyle,
             ),
             const Icon(
@@ -122,7 +122,7 @@ class _TokenMintableBurnableStepState extends State<TokenMintableBurnableStep> {
               onPressed: () {
                 widget.tokenData.value = widget.tokenData.value.copyWith(
                   isMintable: _isMintable.value,
-                  isOwnerBurnOnly: _isBurnable.value,
+                  isBurnable: _isBurnable.value,
                 );
                 widget.onContinuePressed();
               },

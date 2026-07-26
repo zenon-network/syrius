@@ -49,7 +49,7 @@ class IssueTokenBloc extends Bloc<IssueTokenEvent, IssueTokenState> {
             tokenData.maxSupply,
             tokenData.decimals,
             tokenData.isMintable,
-            tokenData.isOwnerBurnOnly,
+            tokenData.isBurnable,
             tokenData.isUtility,
           );
 

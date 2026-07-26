@@ -10,7 +10,7 @@ class NewTokenData {
     required this.decimals,
     required this.maxSupply,
     required this.isMintable,
-    required this.isOwnerBurnOnly,
+    required this.isBurnable,
     required this.isUtility,
   });
 
@@ -25,7 +25,7 @@ class NewTokenData {
       decimals: 0,
       maxSupply: BigInt.zero,
       isMintable: false,
-      isOwnerBurnOnly: false,
+      isBurnable: false,
       isUtility: true,
     );
   }
@@ -40,7 +40,7 @@ class NewTokenData {
     int? decimals,
     BigInt? maxSupply,
     bool? isMintable,
-    bool? isOwnerBurnOnly,
+    bool? isBurnable,
     bool? isUtility,
   }) {
     return NewTokenData(
@@ -52,7 +52,7 @@ class NewTokenData {
       decimals: decimals ?? this.decimals,
       maxSupply: maxSupply ?? this.maxSupply,
       isMintable: isMintable ?? this.isMintable,
-      isOwnerBurnOnly: isOwnerBurnOnly ?? this.isOwnerBurnOnly,
+      isBurnable: isBurnable ?? this.isBurnable,
       isUtility: isUtility ?? this.isUtility,
     );
   }
@@ -81,8 +81,8 @@ class NewTokenData {
   /// Whether the token can be minted after issuance.
   final bool isMintable;
 
-  /// Whether only the owner can burn the token.
-  final bool isOwnerBurnOnly;
+  /// Whether any holder can burn tokens from their own balance.
+  final bool isBurnable;
 
   /// Whether the token is a utility token.
   final bool isUtility;
