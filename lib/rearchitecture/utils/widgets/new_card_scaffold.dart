@@ -67,20 +67,23 @@ class _NewCardScaffoldState extends State<NewCardScaffold> {
   Widget build(BuildContext context) {
     final Widget header = CardScaffoldHeader(
       onMoreIconPressed: () {
-        cardKey.currentState!.toggleCard();
+        unawaited(cardKey.currentState!.toggleCard());
       },
       onRefreshPressed: widget.onRefreshPressed,
       title: _title,
     );
 
-    final Widget front =
-        _isFrontWidgetHidden(_title) ? _getHiddenInfoWidget() : widget.body;
+    final Widget front = _isFrontWidgetHidden(_title)
+        ? _getHiddenInfoWidget()
+        : widget.body;
 
-    final Color background =
-        context.isDarkMode ? AppColors.darkPrimary : Colors.white;
+    final Color background = context.isDarkMode
+        ? AppColors.darkPrimary
+        : Colors.white;
 
-    final ThemeData themeData =
-        context.isDarkMode ? newDarkTheme : newLightTheme;
+    final ThemeData themeData = context.isDarkMode
+        ? newDarkTheme
+        : newLightTheme;
 
     return Theme(
       data: themeData,
@@ -187,10 +190,12 @@ class _NewCardScaffoldState extends State<NewCardScaffold> {
                     value: _isFrontWidgetHidden(_title),
                     onChanged: (bool shouldHideFrontWidget) {
                       if (shouldHideFrontWidget) {
-                        context.read<HideWidgetCubit>().saveValue(
-                              isHidden: shouldHideFrontWidget,
-                              widgetTitle: _title,
-                            );
+                        unawaited(
+                          context.read<HideWidgetCubit>().saveValue(
+                            isHidden: shouldHideFrontWidget,
+                            widgetTitle: _title,
+                          ),
+                        );
                       } else {
                         // To make the front widget visible, the user needs to
                         // confirm the action with it's wallet password
@@ -209,7 +214,7 @@ class _NewCardScaffoldState extends State<NewCardScaffold> {
                     Expanded(
                       child: ValueListenableBuilder<bool>(
                         valueListenable: _obscureTextNotifier,
-                        builder: (_, bool obscureText, __) {
+                        builder: (_, bool obscureText, _) {
                           return CardScaffoldPasswordField(
                             controller: _passwordController,
                             errorText: _error?.toString(),

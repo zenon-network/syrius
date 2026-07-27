@@ -28,16 +28,15 @@ class InfiniteListState<T> extends Equatable {
 
   /// Creates a new instance, with the [status] of [InfiniteListStatus.initial]
   const InfiniteListState.initial()
-      : this(
-          status: InfiniteListStatus.initial,
-        );
+    : this(
+        status: InfiniteListStatus.initial,
+      );
 
   /// Creates a new instance from a JSON object.
   factory InfiniteListState.fromJson(
     Map<String, dynamic> json,
     T Function(Object?) fromJsonT,
-  ) =>
-      _$InfiniteListStateFromJson(json, fromJsonT);
+  ) => _$InfiniteListStateFromJson(json, fromJsonT);
 
   /// The current status of the latest transactions operation.
   final InfiniteListStatus status;

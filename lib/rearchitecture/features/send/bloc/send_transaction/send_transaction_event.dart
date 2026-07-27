@@ -30,8 +30,13 @@ class SendTransactionInitiate extends SendTransactionEvent {
   final Token token;
 
   @override
-  List<Object?> get props =>
-      <Object?>[fromAddress, toAddress, amount, token, data];
+  List<Object?> get props => <Object?>[
+    fromAddress,
+    toAddress,
+    amount,
+    token,
+    data,
+  ];
 }
 
 /// Event to initiate sending a transfer using an existing account block.

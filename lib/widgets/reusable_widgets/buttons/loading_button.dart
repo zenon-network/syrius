@@ -36,7 +36,6 @@ class LoadingButton extends StatefulWidget {
         onPressed: onPressed,
         label: text,
         key: key,
-        minimumSize: const Size(90, 25),
         textStyle: textStyle,
         outlineColor: outlineColor,
         icon: icon,
@@ -105,13 +104,11 @@ class LoadingButton extends StatefulWidget {
     required Widget icon,
     required Key key,
     String label = '',
-    Size minimumSize = const Size(50, 50),
     Color? outlineColor,
     TextStyle? textStyle,
   }) =>
       LoadingButton(
         onPressed: onPressed,
-        minimumSize: minimumSize,
         outlineColor: outlineColor,
         textStyle: textStyle,
         key: key,

@@ -51,8 +51,8 @@ class StakingCubit extends TimerCubit<StakeList, StakingState> {
 
   @override
   StakingState? fromJson(Map<String, dynamic> json) => StakingState.fromJson(
-        json,
-      );
+    json,
+  );
 
   @override
   Map<String, dynamic>? toJson(StakingState state) => state.toJson();

@@ -58,7 +58,7 @@ class _BalancePopulatedState extends State<BalancePopulated> {
                     ),
                     ValueListenableBuilder<String?>(
                       valueListenable: _touchedSectionId,
-                      builder: (_, String? id, __) {
+                      builder: (_, String? id, _) {
                         final Widget center = id != null
                             ? _getBalance(
                                 accountInfo: widget.accountInfo,

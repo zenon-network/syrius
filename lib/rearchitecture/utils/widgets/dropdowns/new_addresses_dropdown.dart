@@ -7,14 +7,11 @@ import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
 class NewAddressesDropdown extends StatefulWidget {
   /// Creates a new instance.
   const NewAddressesDropdown({
-    required List<String> addresses,
-    required void Function(String) onSelectedCallback,
-    required String selectedAddress,
+    required this._addresses,
+    required this._onSelectedCallback,
+    required this._selectedAddress,
     super.key,
-  })  :
-        _addresses = addresses,
-        _onSelectedCallback = onSelectedCallback,
-        _selectedAddress = selectedAddress;
+  });
   final List<String> _addresses;
   final void Function(String) _onSelectedCallback;
   final String _selectedAddress;
@@ -33,13 +30,15 @@ class _NewAddressesDropdownState extends State<NewAddressesDropdown> {
     final List<DropdownMenuEntry<String>> entries = widget._addresses
         .map(
           (String address) => DropdownMenuEntry<String>(
-        label: kAddressLabelMap[address]!,
-        style: MenuItemButton.styleFrom(
-          foregroundColor: address == widget._selectedAddress ? color : null,
-        ),
-        value: address,
-      ),
-    )
+            label: kAddressLabelMap[address]!,
+            style: MenuItemButton.styleFrom(
+              foregroundColor: address == widget._selectedAddress
+                  ? color
+                  : null,
+            ),
+            value: address,
+          ),
+        )
         .toList();
 
     return DropdownMenu<String>(
@@ -79,23 +78,23 @@ class _NewAddressesDropdownState extends State<NewAddressesDropdown> {
       return null;
     }
     final int index = entries.indexWhere(
-          (DropdownMenuEntry<String> entry) => _matchTest(entry, searchText),
+      (DropdownMenuEntry<String> entry) => _matchTest(entry, searchText),
     );
 
     return index != -1 ? index : null;
   }
 
   List<DropdownMenuEntry<String>> _filterCallback(
-      List<DropdownMenuEntry<String>> entries,
-      String filter,
-      ) {
+    List<DropdownMenuEntry<String>> entries,
+    String filter,
+  ) {
     final String searchText = filter.toLowerCase();
     if (searchText.isEmpty) {
       return entries;
     }
 
     final Iterable<DropdownMenuEntry<String>> filtered = entries.where(
-          (DropdownMenuEntry<String> entry) => _matchTest(entry, searchText),
+      (DropdownMenuEntry<String> entry) => _matchTest(entry, searchText),
     );
 
     return filtered.toList();
@@ -103,5 +102,5 @@ class _NewAddressesDropdownState extends State<NewAddressesDropdown> {
 
   bool _matchTest(DropdownMenuEntry<String> entry, String searchText) =>
       entry.label.toLowerCase().contains(searchText) ||
-          entry.value.toLowerCase().contains(searchText);
+      entry.value.toLowerCase().contains(searchText);
 }

@@ -12,6 +12,7 @@ sealed class MultipleBalanceEvent extends Equatable {
 class MultipleBalanceFetch extends MultipleBalanceEvent {
   /// Creates a new instance.
   const MultipleBalanceFetch({required this.addresses});
+
   /// The list of addresses whose balances are being managed.
   final List<String> addresses;
   @override

@@ -15,13 +15,10 @@ class AmountCell extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsets.only(right: 10),
         child: FormattedAmountWithTooltip(
-          amount: block.amount.addDecimals(
-            block.token?.decimals ?? 0,
-          ),
+          amount: block.amount.addDecimals(block.token?.decimals ?? 0),
           tokenSymbol: block.token?.symbol ?? '',
-          builder: (String formattedAmount, String tokenSymbol) => Text(
-            formattedAmount,
-          ),
+          builder: (String formattedAmount, String tokenSymbol) =>
+              Text(formattedAmount),
         ),
       ),
     );

@@ -28,7 +28,7 @@ class BalanceAddress extends StatelessWidget {
   Widget build(BuildContext context) {
     return ValueListenableBuilder<Color?>(
       valueListenable: edgesColorNotifier,
-      builder: (_, Color? edgesColor, __) {
+      builder: (_, Color? edgesColor, _) {
         return FocusableActionDetector(
           onShowHoverHighlight: (bool x) {
             if (x) {

@@ -41,6 +41,7 @@ class SyriusException implements Exception {
     }
     return SyriusException(json['message'] as String);
   }
+
   /// The exception message
   final String message;
 

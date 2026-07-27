@@ -18,8 +18,9 @@ class NoDelegationStatsException extends SyriusException {
       _$NoDelegationStatsExceptionFromJson(json);
 
   @override
-  Map<String, dynamic> toJson() => _$NoDelegationStatsExceptionToJson(this)
-    ..['runtimeType'] = 'NoDelegationStatsException';
+  Map<String, dynamic> toJson() =>
+      _$NoDelegationStatsExceptionToJson(this)
+        ..['runtimeType'] = 'NoDelegationStatsException';
 
   @override
   bool operator ==(Object other) {

@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
-
 /// A bloc responsible for fetching and managing the list of pending
 /// transactions for an address.
 class PendingTransactionsBloc extends InfiniteListBloc<AccountBlock> {
@@ -14,11 +13,11 @@ class PendingTransactionsBloc extends InfiniteListBloc<AccountBlock> {
     required super.zenon,
     super.pageSize = kPageSize,
   }) : super(
-          fromJsonT: (Object? map) => AccountBlock.fromJson(
-            map! as Map<String, dynamic>,
-          ),
-          toJsonT: (AccountBlock block) => block.toJson(),
-        );
+         fromJsonT: (Object? map) => AccountBlock.fromJson(
+           map! as Map<String, dynamic>,
+         ),
+         toJsonT: (AccountBlock block) => block.toJson(),
+       );
 
   @override
   Future<List<AccountBlock>> paginationFetch({
@@ -26,12 +25,12 @@ class PendingTransactionsBloc extends InfiniteListBloc<AccountBlock> {
     required int pageIndex,
     required int pageSize,
   }) async {
-    final AccountBlockList accountBlock =
-        await zenon.ledger.getUnreceivedBlocksByAddress(
-      address!,
-      pageIndex: pageIndex,
-      pageSize: pageSize,
-    );
+    final AccountBlockList accountBlock = await zenon.ledger
+        .getUnreceivedBlocksByAddress(
+          address!,
+          pageIndex: pageIndex,
+          pageSize: pageSize,
+        );
 
     return accountBlock.list!;
   }

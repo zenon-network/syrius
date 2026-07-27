@@ -11,8 +11,8 @@ class SendButton extends LoadingButton {
     required super.text,
     super.minimumSize = const Size(100, 48),
   }) : super(
-          paddingAroundChild: const EdgeInsets.symmetric(
-            horizontal: 10,
-          ),
-        );
+         paddingAroundChild: const EdgeInsets.symmetric(
+           horizontal: 10,
+         ),
+       );
 }

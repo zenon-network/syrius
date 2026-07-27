@@ -14,11 +14,9 @@ part 'update_pillar_state.dart';
 class UpdatePillarBloc extends Bloc<UpdatePillarEvent, UpdatePillarState> {
   /// Creates a new [UpdatePillarBloc].
   UpdatePillarBloc({
-    required AccountBlockUtils accountBlockUtils,
-    required Zenon zenon,
-  }) : _accountBlockUtils = accountBlockUtils,
-       _zenon = zenon,
-       super(const UpdatePillarInitial()) {
+    required this._accountBlockUtils,
+    required this._zenon,
+  }) : super(const UpdatePillarInitial()) {
     on<UpdatePillarRequested>(_onUpdatePillarRequested);
   }
 

@@ -42,8 +42,8 @@ class BalanceCubit extends TimerCubit<AccountInfo, BalanceState> {
 
   @override
   BalanceState? fromJson(Map<String, dynamic> json) => BalanceState.fromJson(
-        json,
-      );
+    json,
+  );
 
   @override
   Map<String, dynamic>? toJson(BalanceState state) => state.toJson();

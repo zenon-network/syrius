@@ -10,16 +10,15 @@ import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 class PillarsByOwnerBloc extends FetchBloc<List<PillarInfo>> {
   /// {@macro default_constructor}
   PillarsByOwnerBloc({required super.zenon})
-      : super(
-          fromJsonT: (Map<String, dynamic> data) =>
-              List.castFrom<dynamic, Map<String, dynamic>>(
-                      data['list'])
-                  .map(PillarInfo.fromJson)
-                  .toList(),
-          toJsonT: (List<PillarInfo> list) => <String, dynamic>{
-            'list': list.map((PillarInfo entry) => entry.toJson()).toList(),
-          },
-        );
+    : super(
+        fromJsonT: (Map<String, dynamic> data) =>
+            List.castFrom<dynamic, Map<String, dynamic>>(
+              data['list'],
+            ).map(PillarInfo.fromJson).toList(),
+        toJsonT: (List<PillarInfo> list) => <String, dynamic>{
+          'list': list.map((PillarInfo entry) => entry.toJson()).toList(),
+        },
+      );
 
   @override
   Future<List<PillarInfo>> getData({required Address address}) =>

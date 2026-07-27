@@ -6,6 +6,7 @@ import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/error_widge
 class SendError extends StatelessWidget {
   /// Creates a new instance.
   const SendError({required this.error, super.key});
+
   /// The object containing the error message
   final SyriusException error;
 

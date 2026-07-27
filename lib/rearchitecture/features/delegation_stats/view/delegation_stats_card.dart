@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:nested/nested.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
-/// A card that receives [DelegationStatsState] updates from the [DelegationStatsCubit]
-/// and changes the UI according to the request status - [TimerStatus]
+/// A card that displays delegation stats and updates from request states.
 class DelegationCard extends StatelessWidget {
   /// Creates a DelegationCard object.
   const DelegationCard({super.key});
@@ -15,7 +15,7 @@ class DelegationCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MultiBlocProvider(
-      providers: [
+      providers: <SingleChildWidget>[
         BlocProvider<UndelegateBloc>(
           create: (_) => UndelegateBloc(
             accountBlockUtils: AccountBlockUtils(),

@@ -4,10 +4,13 @@ part of 'multiple_balance_bloc.dart';
 enum MultipleBalanceStatus {
   /// Indicates that an error occurred during balance fetching.
   failure,
+
   /// The initial state before any balance fetching has occurred.
   initial,
+
   /// Indicates that balance fetching is currently in progress.
   loading,
+
   /// Indicates that balance fetching was successful.
   success,
 }
@@ -55,7 +58,6 @@ class MultipleBalanceState extends Equatable {
 
   /// {@macro state_to_json}
   Map<String, dynamic> toJson() => _$MultipleBalanceStateToJson(this);
-
 
   @override
   List<Object?> get props => <Object?>[status, data, error];

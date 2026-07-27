@@ -7,25 +7,26 @@ part of 'realtime_statistics_cubit.dart';
 // **************************************************************************
 
 RealtimeStatisticsState _$RealtimeStatisticsStateFromJson(
-        Map<String, dynamic> json) =>
-    RealtimeStatisticsState(
-      status: $enumDecodeNullable(_$TimerStatusEnumMap, json['status']) ??
-          TimerStatus.initial,
-      data: (json['data'] as List<dynamic>?)
-          ?.map((e) => AccountBlock.fromJson(e as Map<String, dynamic>))
-          .toList(),
-      error: json['error'] == null
-          ? null
-          : SyriusException.fromJson(json['error'] as Map<String, dynamic>),
-    );
+  Map<String, dynamic> json,
+) => RealtimeStatisticsState(
+  status:
+      $enumDecodeNullable(_$TimerStatusEnumMap, json['status']) ??
+      TimerStatus.initial,
+  data: (json['data'] as List<dynamic>?)
+      ?.map((e) => AccountBlock.fromJson(e as Map<String, dynamic>))
+      .toList(),
+  error: json['error'] == null
+      ? null
+      : SyriusException.fromJson(json['error'] as Map<String, dynamic>),
+);
 
 Map<String, dynamic> _$RealtimeStatisticsStateToJson(
-        RealtimeStatisticsState instance) =>
-    <String, dynamic>{
-      'status': _$TimerStatusEnumMap[instance.status]!,
-      'data': instance.data?.map((e) => e.toJson()).toList(),
-      'error': instance.error?.toJson(),
-    };
+  RealtimeStatisticsState instance,
+) => <String, dynamic>{
+  'status': _$TimerStatusEnumMap[instance.status]!,
+  'data': instance.data?.map((e) => e.toJson()).toList(),
+  'error': instance.error?.toJson(),
+};
 
 const _$TimerStatusEnumMap = {
   TimerStatus.failure: 'failure',

@@ -1,0 +1,19 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "formatter": {
+    "dart": {
+      "command": ["dart", "format"],
+      "extensions": [".dart"]
+    }
+  },
+  "command": {
+    "test": {
+      "description": "Run Flutter tests",
+      "template": "Run `flutter test`"
+    },
+    "analyze": {
+      "description": "Run Flutter static analysis",
+      "template": "Run `flutter analyze`"
+    }
+  }
+}

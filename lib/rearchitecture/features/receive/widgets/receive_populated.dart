@@ -40,11 +40,11 @@ class _ReceivePopulatedState extends State<ReceivePopulated> {
   String get _amount => _amountController.text;
 
   String? get _amountErrorText => InputValidators.correctValue(
-        _amount,
-        kBigP255m1,
-        _selectedToken.decimals,
-        BigInt.zero,
-      );
+    _amount,
+    kBigP255m1,
+    _selectedToken.decimals,
+    BigInt.zero,
+  );
 
   @override
   void initState() {
@@ -120,7 +120,7 @@ class _ReceivePopulatedState extends State<ReceivePopulated> {
   BigInt _getAmount() {
     try {
       return _amountController.text.extractDecimals(_selectedToken.decimals);
-    } catch (e) {
+    } on Exception catch (_) {
       return BigInt.zero;
     }
   }

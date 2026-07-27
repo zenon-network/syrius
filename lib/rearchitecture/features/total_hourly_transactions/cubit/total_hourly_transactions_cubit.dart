@@ -42,11 +42,10 @@ class TotalHourlyTransactionsCubit
       // Fetch detailed momentums for the past hour
       final List<DetailedMomentum> response =
           (await zenon.ledger.getDetailedMomentumsByHeight(
-                chainHeight - kMomentumsPerHour,
-                kMomentumsPerHour,
-              ))
-                  .list ??
-              <DetailedMomentum>[];
+            chainHeight - kMomentumsPerHour,
+            kMomentumsPerHour,
+          )).list ??
+          <DetailedMomentum>[];
 
       // Prepare the transaction summary
       final int transactions = response.fold<int>(

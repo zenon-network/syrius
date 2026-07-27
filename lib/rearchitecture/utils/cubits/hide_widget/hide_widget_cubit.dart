@@ -50,7 +50,7 @@ class HideWidgetCubit extends HydratedCubit<HideWidgetState> {
         ),
       );
       addError(kIncorrectPasswordNotificationTitle, stackTrace);
-    } catch (error, stackTrace) {
+    } on Object catch (error, stackTrace) {
       emit(
         state.copyWith(
           status: HideWidgetStatus.failure,

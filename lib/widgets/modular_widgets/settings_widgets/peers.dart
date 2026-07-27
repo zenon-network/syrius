@@ -48,7 +48,7 @@ class _PeersWidget extends State<PeersWidget> {
           contentAlign: MainAxisAlignment.center,
         ),
       ],
-      generateRowCells: (Peer peer, bool isSelected, {SentinelsListBloc? model}) {
+      generateRowCells: (Peer peer, bool isSelected, {Object? model}) {
         return <Widget>[
           CustomTableCell.withText(context, peer.ip),
           CustomTableCell.withMarquee(
@@ -83,8 +83,12 @@ class _PeersWidget extends State<PeersWidget> {
             : _peers!.sort((Peer a, Peer b) => b.ip.compareTo(a.ip));
       case 'Public Key':
         _sortAscending
-            ? _peers!.sort((Peer a, Peer b) => a.publicKey.compareTo(b.publicKey))
-            : _peers!.sort((Peer a, Peer b) => b.publicKey.compareTo(a.publicKey));
+            ? _peers!.sort(
+                (Peer a, Peer b) => a.publicKey.compareTo(b.publicKey),
+              )
+            : _peers!.sort(
+                (Peer a, Peer b) => b.publicKey.compareTo(a.publicKey),
+              );
       default:
         _sortAscending
             ? _peers!.sort((Peer a, Peer b) => a.ip.compareTo(b.ip))

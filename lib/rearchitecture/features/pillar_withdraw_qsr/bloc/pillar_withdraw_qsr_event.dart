@@ -12,8 +12,7 @@ sealed class PillarWithdrawQsrEvent extends Equatable {
 /// Requests a QSR withdrawal from the pillar slot.
 final class PillarWithdrawQsrRequested extends PillarWithdrawQsrEvent {
   /// Creates a new [PillarWithdrawQsrRequested] event.
-  const PillarWithdrawQsrRequested({required Address address})
-    : _address = address;
+  const PillarWithdrawQsrRequested({required this._address});
 
   final Address _address;
 

@@ -14,16 +14,13 @@ part 'delegation_state.dart';
 class DelegationBloc extends Bloc<DelegationEvent, DelegationState> {
   /// Creates a new [DelegationBloc].
   ///
-  /// The optional [postTransactionDelay] is used to wait for chain sync after
+  /// The optional [_postTransactionDelay] is used to wait for chain sync after
   /// account block creation.
   DelegationBloc({
-    required AccountBlockUtils accountBlockUtils,
-    required Zenon zenon,
-    Duration postTransactionDelay = kDelayAfterAccountBlockCreationCall,
-  }) : _accountBlockUtils = accountBlockUtils,
-        _postTransactionDelay = postTransactionDelay,
-        _zenon = zenon,
-        super(const DelegationInitial()) {
+    required this._accountBlockUtils,
+    required this._zenon,
+    this._postTransactionDelay = kDelayAfterAccountBlockCreationCall,
+  }) : super(const DelegationInitial()) {
     on<DelegationRequested>(_onDelegationRequested);
   }
 

@@ -15,8 +15,7 @@ enum _Step {
 /// A stepper that aids the user in the process of updating pillar details
 class UpdatePillarStepperView extends StatefulWidget {
   /// {@macro default_constructor}
-  const UpdatePillarStepperView({required PillarInfo pillarInfo, super.key})
-    : _pillarInfo = pillarInfo;
+  const UpdatePillarStepperView({required this._pillarInfo, super.key});
 
   final PillarInfo _pillarInfo;
 

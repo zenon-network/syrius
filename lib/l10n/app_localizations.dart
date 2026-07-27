@@ -106,6 +106,12 @@ abstract class AppLocalizations {
   /// **'Active Sentinels'**
   String get activeSentinels;
 
+  /// No description provided for @address.
+  ///
+  /// In en, this message translates to:
+  /// **'Address'**
+  String get address;
+
   /// No description provided for @addressSearchDescription.
   ///
   /// In en, this message translates to:
@@ -148,17 +154,35 @@ abstract class AppLocalizations {
   /// **'Balance'**
   String get balance;
 
+  /// No description provided for @beneficiaryAddress.
+  ///
+  /// In en, this message translates to:
+  /// **'Beneficiary address'**
+  String get beneficiaryAddress;
+
   /// No description provided for @cancel.
   ///
   /// In en, this message translates to:
   /// **'Cancel'**
   String get cancel;
 
+  /// No description provided for @cancelPlasmaConfirmation.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to cancel the Plasma fusion?'**
+  String get cancelPlasmaConfirmation;
+
   /// No description provided for @checkPillarStatus.
   ///
   /// In en, this message translates to:
   /// **' to check the Pillar status'**
   String get checkPillarStatus;
+
+  /// No description provided for @checkSentinelStatus.
+  ///
+  /// In en, this message translates to:
+  /// **' to check the Sentinel status'**
+  String get checkSentinelStatus;
 
   /// No description provided for @coin.
   ///
@@ -178,6 +202,24 @@ abstract class AppLocalizations {
   /// **'Collect Pillar rewards'**
   String get collectPillarRewards;
 
+  /// No description provided for @collectSentinelRewards.
+  ///
+  /// In en, this message translates to:
+  /// **'Collect Sentinel rewards'**
+  String get collectSentinelRewards;
+
+  /// No description provided for @collectStakingRewards.
+  ///
+  /// In en, this message translates to:
+  /// **'Collect staking rewards'**
+  String get collectStakingRewards;
+
+  /// No description provided for @cannotReuseAddressForSentinel.
+  ///
+  /// In en, this message translates to:
+  /// **'If this address previously revoked a Sentinel, it cannot create a new Sentinel again. Use a different address before depositing QSR.'**
+  String get cannotReuseAddressForSentinel;
+
   /// No description provided for @couldNotSend.
   ///
   /// In en, this message translates to:
@@ -196,6 +238,30 @@ abstract class AppLocalizations {
   /// **'Create Pillar'**
   String get createPillarTitle;
 
+  /// No description provided for @createSentinelDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Start the process of deploying a Sentinel Node in the network'**
+  String get createSentinelDescription;
+
+  /// No description provided for @createStake.
+  ///
+  /// In en, this message translates to:
+  /// **'create stake'**
+  String get createStake;
+
+  /// No description provided for @createStakeDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'This card displays information about staking per wallet address. Choose the duration and the amount in {kZnnCoinSymbol} for staking in order to receive {kQsrCoinSymbol}'**
+  String createStakeDescription(Object kQsrCoinSymbol, Object kZnnCoinSymbol);
+
+  /// No description provided for @createStakeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Create Stake'**
+  String get createStakeTitle;
+
   /// No description provided for @currentAmounts.
   ///
   /// In en, this message translates to:
@@ -207,6 +273,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Current Pillar Slot fee\n{coins} {kQsrCoinSymbol}'**
   String currentPillarSlotFee(Object coins, Object kQsrCoinSymbol);
+
+  /// No description provided for @currentSentinelSlotFee.
+  ///
+  /// In en, this message translates to:
+  /// **'Current Sentinel Slot fee\n{coins} {kQsrCoinSymbol}'**
+  String currentSentinelSlotFee(Object coins, Object kQsrCoinSymbol);
 
   /// No description provided for @date.
   ///
@@ -286,6 +358,12 @@ abstract class AppLocalizations {
   /// **'You will be able to unlock the {kZnnCoinSymbol} if you choose to disassemble the Pillar'**
   String disassemblePillarToUnlockCoin(Object kZnnCoinSymbol);
 
+  /// No description provided for @disassembleSentinelToUnlockCoin.
+  ///
+  /// In en, this message translates to:
+  /// **'You will be able to unlock the {kZnnCoinSymbol} if you choose to disassemble the Sentinel'**
+  String disassembleSentinelToUnlockCoin(Object kZnnCoinSymbol);
+
   /// No description provided for @dualCoinStats.
   ///
   /// In en, this message translates to:
@@ -298,11 +376,23 @@ abstract class AppLocalizations {
   /// **'This card displays the circulating {kZnnCoinSymbol} and {kQsrCoinSymbol} supply from the network'**
   String dualCoinStatsDescription(Object kQsrCoinSymbol, Object kZnnCoinSymbol);
 
+  /// No description provided for @duration.
+  ///
+  /// In en, this message translates to:
+  /// **'Duration'**
+  String get duration;
+
   /// No description provided for @errorCollectingPillarRewards.
   ///
   /// In en, this message translates to:
   /// **'Error while collecting Pillar rewards'**
   String get errorCollectingPillarRewards;
+
+  /// No description provided for @errorCollectingSentinelRewards.
+  ///
+  /// In en, this message translates to:
+  /// **'Error while collecting Sentinel rewards'**
+  String get errorCollectingSentinelRewards;
 
   /// No description provided for @errorDeployingPillar.
   ///
@@ -310,11 +400,29 @@ abstract class AppLocalizations {
   /// **'Error while deploying a Pillar'**
   String get errorDeployingPillar;
 
+  /// No description provided for @errorDeployingSentinel.
+  ///
+  /// In en, this message translates to:
+  /// **'Error while deploying the Sentinel Node'**
+  String get errorDeployingSentinel;
+
   /// No description provided for @errorDisassemblingPillar.
   ///
   /// In en, this message translates to:
   /// **'Error while disassembling Pillar'**
   String get errorDisassemblingPillar;
+
+  /// No description provided for @errorDisassemblingSentinel.
+  ///
+  /// In en, this message translates to:
+  /// **'Error while disassembling Sentinel'**
+  String get errorDisassemblingSentinel;
+
+  /// No description provided for @errorCollectingStakingRewards.
+  ///
+  /// In en, this message translates to:
+  /// **'Error while collecting staking rewards'**
+  String get errorCollectingStakingRewards;
 
   /// No description provided for @errorUndelegating.
   ///
@@ -328,17 +436,47 @@ abstract class AppLocalizations {
   /// **'Error while updating Pillar'**
   String get errorUpdatingPillar;
 
+  /// No description provided for @errorWhileCancellingPlasma.
+  ///
+  /// In en, this message translates to:
+  /// **'Error while cancelling Plasma'**
+  String get errorWhileCancellingPlasma;
+
+  /// No description provided for @errorWhileCancellingStake.
+  ///
+  /// In en, this message translates to:
+  /// **'Error while cancelling stake'**
+  String get errorWhileCancellingStake;
+
+  /// No description provided for @errorGeneratingPlasma.
+  ///
+  /// In en, this message translates to:
+  /// **'Error while generating Plasma'**
+  String get errorGeneratingPlasma;
+
   /// No description provided for @errorWhileDepositing.
   ///
   /// In en, this message translates to:
   /// **'Error while depositing {kQsrCoinSymbol}'**
   String errorWhileDepositing(Object kQsrCoinSymbol);
 
+  /// No description provided for @errorWhileGeneratingStake.
+  ///
+  /// In en, this message translates to:
+  /// **'Error while generating stake'**
+  String get errorWhileGeneratingStake;
+
   /// No description provided for @errorWhileWithdrawing.
   ///
   /// In en, this message translates to:
   /// **'Error while withdrawing {kQsrCoinSymbol}'**
   String errorWhileWithdrawing(Object kQsrCoinSymbol);
+
+  /// No description provided for @expiration.
+  ///
+  /// In en, this message translates to:
+  /// **'Expiration'**
+  String get expiration;
 
   /// No description provided for @expectedProducedMomentums.
   ///
@@ -351,6 +489,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'from'**
   String get from;
+
+  /// No description provided for @fuse.
+  ///
+  /// In en, this message translates to:
+  /// **'Fuse'**
+  String get fuse;
+
+  /// No description provided for @fusePlasmaDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'This card displays information about Plasma available per wallet address. A minimum of 10 {kQsrCoinSymbol} are needed to be fused in order to generate Plasma. The more {kQsrCoinSymbol} fused, the more Plasma is produced for the beneficiary address\n\nInsufficient Plasma: Proof-of-work for Plasma generation; limited to 1 transaction per momentum\nLow Plasma: between 10 and 89 {kQsrCoinSymbol}\nAverage Plasma: between 90 and 119 {kQsrCoinSymbol}\nHigh Plasma: over 120 {kQsrCoinSymbol}; recommended for complex transactions (register Pillars, Sentinels, staking and issuing ZTS tokens)'**
+  String fusePlasmaDescription(Object kQsrCoinSymbol);
+
+  /// No description provided for @fusePlasmaTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Fuse Plasma'**
+  String get fusePlasmaTitle;
+
+  /// No description provided for @fusedPlasmaDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'This card displays all your addresses that have Plasma generated by fusing {kQsrCoinSymbol}'**
+  String fusedPlasmaDescription(Object kQsrCoinSymbol);
+
+  /// No description provided for @fusedPlasmaTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Fused Plasma'**
+  String get fusedPlasmaTitle;
 
   /// No description provided for @goBack.
   ///
@@ -393,6 +561,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'This card displays the latest transactions (including ZTS tokens) involving your wallet addresses'**
   String get latestTransactionsTransferDescription;
+
+  /// No description provided for @level.
+  ///
+  /// In en, this message translates to:
+  /// **'Level'**
+  String get level;
 
   /// No description provided for @locked.
   ///
@@ -604,6 +778,18 @@ abstract class AppLocalizations {
   /// **'Pillar Rewards'**
   String get pillarRewardsTitle;
 
+  /// No description provided for @plasmaStatsDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'This card displays information about current Plasma level for each wallet address. Plasma is used as an anti-spam mechanism. More Plasma you have per address, more transactions you will be able to send or receive on that address. Low or insufficient Plasma will require proof-of-work for generation. Fuse 10 {kQsrCoinSymbol} or more in order to obtain Plasma for any given address\n\nInsufficient Plasma: Proof-of-work for Plasma generation; limited to 1 transaction per momentum\nLow Plasma: between 10 and 50 {kQsrCoinSymbol}\nAverage Plasma: between 50 and 119 {kQsrCoinSymbol}\nHigh Plasma: over 120 {kQsrCoinSymbol}; recommended to make complex transactions (deploy Pillars, Sentinels, staking and issuing ZTS tokens)'**
+  String plasmaStatsDescription(Object kQsrCoinSymbol);
+
+  /// No description provided for @plasmaStatsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Plasma Stats'**
+  String get plasmaStatsTitle;
+
   /// No description provided for @pillarStats.
   ///
   /// In en, this message translates to:
@@ -657,6 +843,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Pillars'**
   String get pillarsTitle;
+
+  /// No description provided for @plasma.
+  ///
+  /// In en, this message translates to:
+  /// **'Plasma'**
+  String get plasma;
 
   /// No description provided for @pressToReceive.
   ///
@@ -724,6 +916,12 @@ abstract class AppLocalizations {
   /// **'Register Pillar'**
   String get registerPillar;
 
+  /// No description provided for @registerSentinel.
+  ///
+  /// In en, this message translates to:
+  /// **'Register Sentinel'**
+  String get registerSentinel;
+
   /// No description provided for @registeredUse.
   ///
   /// In en, this message translates to:
@@ -735,6 +933,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{coins} {kQsrCoinSymbol} required for a Pillar slot'**
   String requiredForPillarSlot(Object coins, Object kQsrCoinSymbol);
+
+  /// No description provided for @requiredForSentinelNode.
+  ///
+  /// In en, this message translates to:
+  /// **'{coins} {kQsrCoinSymbol} required for a Sentinel Node'**
+  String requiredForSentinelNode(Object coins, Object kQsrCoinSymbol);
 
   /// No description provided for @revocationWindowOpen.
   ///
@@ -766,6 +970,12 @@ abstract class AppLocalizations {
   /// **'send transaction'**
   String get sendTransaction;
 
+  /// No description provided for @sentinel.
+  ///
+  /// In en, this message translates to:
+  /// **'Sentinel'**
+  String get sentinel;
+
   /// No description provided for @sender.
   ///
   /// In en, this message translates to:
@@ -795,6 +1005,66 @@ abstract class AppLocalizations {
     Object symbol,
   );
 
+  /// No description provided for @sentinelAddress.
+  ///
+  /// In en, this message translates to:
+  /// **'Sentinel Address'**
+  String get sentinelAddress;
+
+  /// No description provided for @sentinelCollectDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'This card displays your current Sentinel rewards that are ready to be collected. If there are any rewards available, you will be able to collect them. In order to receive rewards, the Sentinel Node needs to be not only registered in the network, but also deployed (use znn-controller for this operation) and it must have >90% daily uptime'**
+  String get sentinelCollectDescription;
+
+  /// No description provided for @sentinelCollectTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Sentinel Collect'**
+  String get sentinelCollectTitle;
+
+  /// No description provided for @sentinelRewardsDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'This card displays a chart with your Sentinel rewards from your Sentinel Node'**
+  String get sentinelRewardsDescription;
+
+  /// No description provided for @sentinelRewardsBlockCreated.
+  ///
+  /// In en, this message translates to:
+  /// **'Successfully created block for collecting the sentinel rewards. It will take at least 30 seconds for the data to update and to be able to receive the rewards.'**
+  String get sentinelRewardsBlockCreated;
+
+  /// No description provided for @sentinelRewardsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Sentinel Rewards'**
+  String get sentinelRewardsTitle;
+
+  /// No description provided for @sentinelDetectedOnThisAddress.
+  ///
+  /// In en, this message translates to:
+  /// **'Sentinel detected on this address'**
+  String get sentinelDetectedOnThisAddress;
+
+  /// No description provided for @sentinelDeployment.
+  ///
+  /// In en, this message translates to:
+  /// **'Sentinel deployment: Plasma check'**
+  String get sentinelDeployment;
+
+  /// No description provided for @sentinelRegistered.
+  ///
+  /// In en, this message translates to:
+  /// **'Sentinel registered'**
+  String get sentinelRegistered;
+
+  /// No description provided for @sentinelStats.
+  ///
+  /// In en, this message translates to:
+  /// **'Sentinel Stats'**
+  String get sentinelStats;
+
   /// No description provided for @sentinels.
   ///
   /// In en, this message translates to:
@@ -806,6 +1076,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'This card displays the number of active Sentinels in the network'**
   String get sentinelsDescription;
+
+  /// No description provided for @sentinelsListDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'This card displays information about the Sentinels that are currently active in the network'**
+  String get sentinelsListDescription;
+
+  /// No description provided for @sentinelsListTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Sentinels List'**
+  String get sentinelsListTitle;
 
   /// No description provided for @shareQr.
   ///
@@ -819,6 +1101,30 @@ abstract class AppLocalizations {
   /// **'Spawn'**
   String get spawn;
 
+  /// No description provided for @stake.
+  ///
+  /// In en, this message translates to:
+  /// **'Stake'**
+  String get stake;
+
+  /// No description provided for @stakeCollectDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'This card displays your current staking rewards that are ready to be collected. If there are any rewards available, you will be able to collect them'**
+  String get stakeCollectDescription;
+
+  /// No description provided for @stakeCollectTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Stake Collect'**
+  String get stakeCollectTitle;
+
+  /// No description provided for @stakingDuration.
+  ///
+  /// In en, this message translates to:
+  /// **'Staking duration'**
+  String get stakingDuration;
+
   /// No description provided for @stakingStats.
   ///
   /// In en, this message translates to:
@@ -830,6 +1136,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'This card displays the number of staking entries and the total {kZnnCoinSymbol} that you are currently staking'**
   String stakingStatsDescription(Object kZnnCoinSymbol);
+
+  /// No description provided for @stakesListDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'This card displays information about the stake entries for the selected address'**
+  String get stakesListDescription;
+
+  /// No description provided for @stakesListTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Stakes'**
+  String get stakesListTitle;
+
+  /// No description provided for @stakingRewardsDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'This card displays a chart with your staking rewards from your staking entries'**
+  String get stakingRewardsDescription;
+
+  /// No description provided for @stakingRewardsBlockCreated.
+  ///
+  /// In en, this message translates to:
+  /// **'Successfully created block for collecting the staking rewards. It will take at least 30 seconds for the data to update and to be able to receive the rewards.'**
+  String get stakingRewardsBlockCreated;
+
+  /// No description provided for @stakingRewardsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Staking Rewards'**
+  String get stakingRewardsTitle;
 
   /// No description provided for @successfully.
   ///
@@ -944,6 +1280,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'View Pillars'**
   String get viewPillars;
+
+  /// No description provided for @viewSentinels.
+  ///
+  /// In en, this message translates to:
+  /// **'View Sentinels'**
+  String get viewSentinels;
 
   /// No description provided for @waitingForDataFetching.
   ///

@@ -1,19 +1,18 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:hive/hive.dart';
+import 'package:hive_ce/hive_ce.dart';
 import 'package:number_selector/number_selector.dart';
 import 'package:provider/provider.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
-import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/latest_transactions/bloc/latest_transactions_bloc.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/address_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/notifiers/default_address_notifier.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/notifiers/plasma_beneficiary_address_notifier.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/notifiers/plasma_beneficiary_address_cubit.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
@@ -53,7 +52,8 @@ class AddressesState extends State<Addresses> {
   Widget build(BuildContext context) {
     return CardScaffold(
       title: 'Addresses',
-      description: 'Select the default address that will be used throughout '
+      description:
+          'Select the default address that will be used throughout '
           'the wallet for any network operation',
       childBuilder: _getGenerateNewAddressFutureBuilder,
     );
@@ -68,8 +68,7 @@ class AddressesState extends State<Addresses> {
         context,
         listen: false,
       ).changeSelectedAddress(newDefaultAddress);
-      Provider.of<PlasmaBeneficiaryAddressNotifier>(context, listen: false)
-          .changePlasmaBeneficiaryAddress(
+      context.read<PlasmaBeneficiaryAddressCubit>().changeAddress(
         newDefaultAddress,
       );
       widget.accountChainStatsBloc.updateStream();
@@ -78,20 +77,30 @@ class AddressesState extends State<Addresses> {
       final Address newAddress = Address.parse(_selectedAddress!);
 
       context.read<LatestTransactionsBloc>().add(
-            InfiniteListRefreshRequested(
-              address: newAddress,
-            ),
-          );
+        InfiniteListRefreshRequested(
+          address: newAddress,
+        ),
+      );
       context.read<PendingTransactionsBloc>().add(
-            InfiniteListRefreshRequested(
-              address: newAddress,
-            ),
-          );
+        InfiniteListRefreshRequested(
+          address: newAddress,
+        ),
+      );
       context.read<PillarRewardsHistoryBloc>().add(
-            FetchRequestData(
-              address: newAddress,
-            ),
-          );
+        FetchRequestData(
+          address: newAddress,
+        ),
+      );
+      context.read<SentinelRewardsHistoryBloc>().add(
+        FetchRequestData(
+          address: newAddress,
+        ),
+      );
+      context.read<StakingRewardsHistoryBloc>().add(
+        FetchRequestData(
+          address: newAddress,
+        ),
+      );
       context.read<PillarsByOwnerBloc>().add(
         FetchRequestData(
           address: newAddress,
@@ -134,13 +143,13 @@ class AddressesState extends State<Addresses> {
               setState(() {
                 _futureGenerateNewAddress =
                     ZenonAddressUtils.generateNewAddress(
-                  numAddr: numberOfAddressesToAdd,
-                  callback: () {
-                    setState(() {
-                      _shouldScrollToTheEnd = true;
-                    });
-                  },
-                );
+                      numAddr: numberOfAddressesToAdd,
+                      callback: () {
+                        setState(() {
+                          _shouldScrollToTheEnd = true;
+                        });
+                      },
+                    );
               });
             },
             child: Container(
@@ -206,8 +215,9 @@ class AddressesState extends State<Addresses> {
         const Duration(milliseconds: 1),
         () {
           if (mounted && _scrollController.hasClients) {
-            _scrollController
-                .jumpTo(_scrollController.position.maxScrollExtent);
+            _scrollController.jumpTo(
+              _scrollController.position.maxScrollExtent,
+            );
             _shouldScrollToTheEnd = false;
           }
         },

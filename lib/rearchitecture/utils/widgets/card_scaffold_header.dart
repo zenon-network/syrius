@@ -48,8 +48,11 @@ class CardScaffoldHeader extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.end,
           children: <Widget>[
             if (onRefreshPressed != null)
-              RefreshButton(onPressed: onRefreshPressed!,),
+              RefreshButton(
+                onPressed: onRefreshPressed!,
+              ),
             IconButton(
+              mouseCursor: SystemMouseCursors.click,
               icon: const Icon(Icons.more_horiz),
               onPressed: onMoreIconPressed,
             ),

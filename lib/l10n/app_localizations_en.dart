@@ -15,6 +15,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get activeSentinels => 'Active Sentinels';
 
   @override
+  String get address => 'Address';
+
+  @override
   String get addressSearchDescription =>
       'Addresses can be searched by label - \"Address 1\" - and by hex value - \"z1qxemdeddedxt0kenxxxxxxxxxxxxxxxxh9amk0\"';
 
@@ -41,10 +44,20 @@ class AppLocalizationsEn extends AppLocalizations {
   String get balance => 'Balance';
 
   @override
+  String get beneficiaryAddress => 'Beneficiary address';
+
+  @override
   String get cancel => 'Cancel';
 
   @override
+  String get cancelPlasmaConfirmation =>
+      'Are you sure you want to cancel the Plasma fusion?';
+
+  @override
   String get checkPillarStatus => ' to check the Pillar status';
+
+  @override
+  String get checkSentinelStatus => ' to check the Sentinel status';
 
   @override
   String get coin => 'Coin';
@@ -54,6 +67,16 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get collectPillarRewards => 'Collect Pillar rewards';
+
+  @override
+  String get collectSentinelRewards => 'Collect Sentinel rewards';
+
+  @override
+  String get collectStakingRewards => 'Collect staking rewards';
+
+  @override
+  String get cannotReuseAddressForSentinel =>
+      'If this address previously revoked a Sentinel, it cannot create a new Sentinel again. Use a different address before depositing QSR.';
 
   @override
   String couldNotSend(Object amount, Object recipient, Object symbol) {
@@ -68,6 +91,21 @@ class AppLocalizationsEn extends AppLocalizations {
   String get createPillarTitle => 'Create Pillar';
 
   @override
+  String get createSentinelDescription =>
+      'Start the process of deploying a Sentinel Node in the network';
+
+  @override
+  String get createStake => 'create stake';
+
+  @override
+  String createStakeDescription(Object kQsrCoinSymbol, Object kZnnCoinSymbol) {
+    return 'This card displays information about staking per wallet address. Choose the duration and the amount in $kZnnCoinSymbol for staking in order to receive $kQsrCoinSymbol';
+  }
+
+  @override
+  String get createStakeTitle => 'Create Stake';
+
+  @override
   String currentAmounts(Object kQsrCoinSymbol, Object kZnnCoinSymbol) {
     return 'This card displays the current $kZnnCoinSymbol and $kQsrCoinSymbol amounts for the selected address';
   }
@@ -75,6 +113,11 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String currentPillarSlotFee(Object coins, Object kQsrCoinSymbol) {
     return 'Current Pillar Slot fee\n$coins $kQsrCoinSymbol';
+  }
+
+  @override
+  String currentSentinelSlotFee(Object coins, Object kQsrCoinSymbol) {
+    return 'Current Sentinel Slot fee\n$coins $kQsrCoinSymbol';
   }
 
   @override
@@ -129,6 +172,11 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String disassembleSentinelToUnlockCoin(Object kZnnCoinSymbol) {
+    return 'You will be able to unlock the $kZnnCoinSymbol if you choose to disassemble the Sentinel';
+  }
+
+  @override
   String get dualCoinStats => 'Dual Coin Stats';
 
   @override
@@ -140,14 +188,32 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get duration => 'Duration';
+
+  @override
   String get errorCollectingPillarRewards =>
       'Error while collecting Pillar rewards';
+
+  @override
+  String get errorCollectingSentinelRewards =>
+      'Error while collecting Sentinel rewards';
 
   @override
   String get errorDeployingPillar => 'Error while deploying a Pillar';
 
   @override
+  String get errorDeployingSentinel =>
+      'Error while deploying the Sentinel Node';
+
+  @override
   String get errorDisassemblingPillar => 'Error while disassembling Pillar';
+
+  @override
+  String get errorDisassemblingSentinel => 'Error while disassembling Sentinel';
+
+  @override
+  String get errorCollectingStakingRewards =>
+      'Error while collecting staking rewards';
 
   @override
   String get errorUndelegating => 'Error while undelegating';
@@ -156,9 +222,21 @@ class AppLocalizationsEn extends AppLocalizations {
   String get errorUpdatingPillar => 'Error while updating Pillar';
 
   @override
+  String get errorWhileCancellingPlasma => 'Error while cancelling Plasma';
+
+  @override
+  String get errorWhileCancellingStake => 'Error while cancelling stake';
+
+  @override
+  String get errorGeneratingPlasma => 'Error while generating Plasma';
+
+  @override
   String errorWhileDepositing(Object kQsrCoinSymbol) {
     return 'Error while depositing $kQsrCoinSymbol';
   }
+
+  @override
+  String get errorWhileGeneratingStake => 'Error while generating stake';
 
   @override
   String errorWhileWithdrawing(Object kQsrCoinSymbol) {
@@ -166,10 +244,32 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get expiration => 'Expiration';
+
+  @override
   String get expectedProducedMomentums => 'Expected/produced momentums';
 
   @override
   String get from => 'from';
+
+  @override
+  String get fuse => 'Fuse';
+
+  @override
+  String fusePlasmaDescription(Object kQsrCoinSymbol) {
+    return 'This card displays information about Plasma available per wallet address. A minimum of 10 $kQsrCoinSymbol are needed to be fused in order to generate Plasma. The more $kQsrCoinSymbol fused, the more Plasma is produced for the beneficiary address\n\nInsufficient Plasma: Proof-of-work for Plasma generation; limited to 1 transaction per momentum\nLow Plasma: between 10 and 89 $kQsrCoinSymbol\nAverage Plasma: between 90 and 119 $kQsrCoinSymbol\nHigh Plasma: over 120 $kQsrCoinSymbol; recommended for complex transactions (register Pillars, Sentinels, staking and issuing ZTS tokens)';
+  }
+
+  @override
+  String get fusePlasmaTitle => 'Fuse Plasma';
+
+  @override
+  String fusedPlasmaDescription(Object kQsrCoinSymbol) {
+    return 'This card displays all your addresses that have Plasma generated by fusing $kQsrCoinSymbol';
+  }
+
+  @override
+  String get fusedPlasmaTitle => 'Fused Plasma';
 
   @override
   String get goBack => 'Go back';
@@ -195,6 +295,9 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get latestTransactionsTransferDescription =>
       'This card displays the latest transactions (including ZTS tokens) involving your wallet addresses';
+
+  @override
+  String get level => 'Level';
 
   @override
   String locked(Object kQsrCoinSymbol) {
@@ -315,6 +418,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get pillarRewardsTitle => 'Pillar Rewards';
 
   @override
+  String plasmaStatsDescription(Object kQsrCoinSymbol) {
+    return 'This card displays information about current Plasma level for each wallet address. Plasma is used as an anti-spam mechanism. More Plasma you have per address, more transactions you will be able to send or receive on that address. Low or insufficient Plasma will require proof-of-work for generation. Fuse 10 $kQsrCoinSymbol or more in order to obtain Plasma for any given address\n\nInsufficient Plasma: Proof-of-work for Plasma generation; limited to 1 transaction per momentum\nLow Plasma: between 10 and 50 $kQsrCoinSymbol\nAverage Plasma: between 50 and 119 $kQsrCoinSymbol\nHigh Plasma: over 120 $kQsrCoinSymbol; recommended to make complex transactions (deploy Pillars, Sentinels, staking and issuing ZTS tokens)';
+  }
+
+  @override
+  String get plasmaStatsTitle => 'Plasma Stats';
+
+  @override
   String get pillarStats => 'Pillar Stats';
 
   @override
@@ -345,6 +456,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get pillarsTitle => 'Pillars';
+
+  @override
+  String get plasma => 'Plasma';
 
   @override
   String get pressToReceive => 'Press to receive the transaction';
@@ -387,11 +501,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String get registerPillar => 'Register Pillar';
 
   @override
+  String get registerSentinel => 'Register Sentinel';
+
+  @override
   String get registeredUse => ' registered. Use ';
 
   @override
   String requiredForPillarSlot(Object coins, Object kQsrCoinSymbol) {
     return '$coins $kQsrCoinSymbol required for a Pillar slot';
+  }
+
+  @override
+  String requiredForSentinelNode(Object coins, Object kQsrCoinSymbol) {
+    return '$coins $kQsrCoinSymbol required for a Sentinel Node';
   }
 
   @override
@@ -408,6 +530,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get sendTransaction => 'send transaction';
+
+  @override
+  String get sentinel => 'Sentinel';
 
   @override
   String get sender => 'Sender';
@@ -430,11 +555,52 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get sentinelAddress => 'Sentinel Address';
+
+  @override
+  String get sentinelCollectDescription =>
+      'This card displays your current Sentinel rewards that are ready to be collected. If there are any rewards available, you will be able to collect them. In order to receive rewards, the Sentinel Node needs to be not only registered in the network, but also deployed (use znn-controller for this operation) and it must have >90% daily uptime';
+
+  @override
+  String get sentinelCollectTitle => 'Sentinel Collect';
+
+  @override
+  String get sentinelRewardsDescription =>
+      'This card displays a chart with your Sentinel rewards from your Sentinel Node';
+
+  @override
+  String get sentinelRewardsBlockCreated =>
+      'Successfully created block for collecting the sentinel rewards. It will take at least 30 seconds for the data to update and to be able to receive the rewards.';
+
+  @override
+  String get sentinelRewardsTitle => 'Sentinel Rewards';
+
+  @override
+  String get sentinelDetectedOnThisAddress =>
+      'Sentinel detected on this address';
+
+  @override
+  String get sentinelDeployment => 'Sentinel deployment: Plasma check';
+
+  @override
+  String get sentinelRegistered => 'Sentinel registered';
+
+  @override
+  String get sentinelStats => 'Sentinel Stats';
+
+  @override
   String get sentinels => 'Sentinels';
 
   @override
   String get sentinelsDescription =>
       'This card displays the number of active Sentinels in the network';
+
+  @override
+  String get sentinelsListDescription =>
+      'This card displays information about the Sentinels that are currently active in the network';
+
+  @override
+  String get sentinelsListTitle => 'Sentinels List';
 
   @override
   String get shareQr => 'Share QR';
@@ -443,12 +609,43 @@ class AppLocalizationsEn extends AppLocalizations {
   String get spawn => 'Spawn';
 
   @override
+  String get stake => 'Stake';
+
+  @override
+  String get stakeCollectDescription =>
+      'This card displays your current staking rewards that are ready to be collected. If there are any rewards available, you will be able to collect them';
+
+  @override
+  String get stakeCollectTitle => 'Stake Collect';
+
+  @override
+  String get stakingDuration => 'Staking duration';
+
+  @override
   String get stakingStats => 'Staking Stats';
 
   @override
   String stakingStatsDescription(Object kZnnCoinSymbol) {
     return 'This card displays the number of staking entries and the total $kZnnCoinSymbol that you are currently staking';
   }
+
+  @override
+  String get stakesListDescription =>
+      'This card displays information about the stake entries for the selected address';
+
+  @override
+  String get stakesListTitle => 'Stakes';
+
+  @override
+  String get stakingRewardsDescription =>
+      'This card displays a chart with your staking rewards from your staking entries';
+
+  @override
+  String get stakingRewardsBlockCreated =>
+      'Successfully created block for collecting the staking rewards. It will take at least 30 seconds for the data to update and to be able to receive the rewards.';
+
+  @override
+  String get stakingRewardsTitle => 'Staking Rewards';
 
   @override
   String get successfully => 'successfully';
@@ -508,6 +705,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get viewPillars => 'View Pillars';
+
+  @override
+  String get viewSentinels => 'View Sentinels';
 
   @override
   String get waitingForDataFetching => 'Waiting for data fetching';

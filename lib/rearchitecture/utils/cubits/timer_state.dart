@@ -42,14 +42,14 @@ abstract class TimerState<T> extends Equatable {
     this.data,
     this.error,
   }) : assert(
-          (status == TimerStatus.initial && data == null && error == null) ||
-              (status == TimerStatus.success && data != null) ||
-              (status == TimerStatus.failure && error != null) ||
-              (status == TimerStatus.loading),
-          'when status is initial, data and error must be null, '
-          'when status is success, data must be different than null, '
-          'when status is failure, error must be different than null',
-        );
+         (status == TimerStatus.initial && data == null && error == null) ||
+             (status == TimerStatus.success && data != null) ||
+             (status == TimerStatus.failure && error != null) ||
+             (status == TimerStatus.loading),
+         'when status is initial, data and error must be null, '
+         'when status is success, data must be different than null, '
+         'when status is failure, error must be different than null',
+       );
 
   /// Represents the current status of the bloc, such as loading, success, or
   /// failure.

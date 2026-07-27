@@ -1,5 +1,3 @@
-export 'charts/sentinel_rewards_chart.dart';
-export 'charts/staking_rewards_chart.dart';
 export 'main_app_container.dart';
 export 'modular_widgets/modular_widgets.dart';
 export 'reusable_widgets/reusable_widgets.dart';

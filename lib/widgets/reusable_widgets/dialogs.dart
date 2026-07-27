@@ -69,6 +69,7 @@ Future<bool?> showDialogWithNoAndYesOptions({
         content: content ?? Text(description!),
         actions: <Widget>[
           TextButton(
+            key: const Key('dialog_no_button'),
             style: TextButton.styleFrom(
               backgroundColor: AppColors.znnColor,
             ),
@@ -81,6 +82,7 @@ Future<bool?> showDialogWithNoAndYesOptions({
             ),
           ),
           TextButton(
+            key: const Key('dialog_yes_button'),
             style: TextButton.styleFrom(
               backgroundColor: AppColors.errorColor,
             ),

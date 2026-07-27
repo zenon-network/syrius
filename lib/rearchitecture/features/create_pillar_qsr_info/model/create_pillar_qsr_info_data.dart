@@ -1,11 +1,14 @@
 import 'package:equatable/equatable.dart';
 
-class CreatePillarQsrInfoData extends Equatable{
-  CreatePillarQsrInfoData({
+/// QSR cost and deposit values required to create a pillar.
+class CreatePillarQsrInfoData extends Equatable {
+  /// Creates pillar QSR info data.
+  const CreatePillarQsrInfoData({
     required this.cost,
     required this.deposit,
   });
 
+  /// Creates pillar QSR info data from JSON.
   factory CreatePillarQsrInfoData.fromJson(Map<String, dynamic> json) {
     return CreatePillarQsrInfoData(
       cost: BigInt.parse(json['cost'] as String),
@@ -13,9 +16,13 @@ class CreatePillarQsrInfoData extends Equatable{
     );
   }
 
+  /// QSR amount required to create the pillar.
   final BigInt cost;
+
+  /// QSR amount deposited for pillar creation.
   final BigInt deposit;
 
+  /// Converts this data to JSON.
   Map<String, dynamic> toJson() {
     return <String, dynamic>{
       'cost': cost.toString(),

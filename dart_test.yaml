@@ -1,0 +1,8 @@
+# This file is read by Dart's package:test runner, and therefore by
+# `flutter test` as well.
+#
+# `chain` marks tests that require a real devnet node or inspect blockchain
+# state. Gherkin `@chain` tags are converted by bdd_widget_test into Dart
+# `@Tags(['chain'])` metadata in generated test files.
+tags:
+  chain:

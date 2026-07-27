@@ -9,8 +9,6 @@ class AddressCell extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return InfiniteScrollTableCell.textFromAddress(
-      address: address,
-    );
+    return InfiniteScrollTableCell.textFromAddress(address: address);
   }
 }

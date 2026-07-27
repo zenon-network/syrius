@@ -16,12 +16,16 @@ class CardScaffoldPasswordField extends StatelessWidget {
 
   /// Controller that holds the inputted text
   final TextEditingController controller;
+
   /// Text that will appear under the text field, if it's not null
   final String? errorText;
+
   /// Callback triggered when input is submitted
   final void Function(String) onSubmitted;
+
   /// Whether or not to obscure the password
   final bool obscureText;
+
   /// Callback triggered when the suffix icon is pressed
   final VoidCallback onSuffixIconPressed;
 

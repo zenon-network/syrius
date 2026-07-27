@@ -35,14 +35,13 @@ class PillarsCard extends StatelessWidget {
           ),
         ),
       ],
-      child: const _PillarsView(),
+      child: const _View(),
     );
   }
 }
 
-
-class _PillarsView extends StatelessWidget {
-  const _PillarsView();
+class _View extends StatelessWidget {
+  const _View();
 
   @override
   Widget build(BuildContext context) {
@@ -83,7 +82,7 @@ class _PillarsView extends StatelessWidget {
   }) {
     return CardData(
       description: context.l10n.pillarsListDescription(kZnnCoin.symbol),
-      title: context.l10n.pillarsListTitle,
+      title: context.l10n.pillars,
     );
   }
 }
@@ -176,9 +175,7 @@ class _PopulatedState extends State<_Populated> {
             generateRowCells: _rowCellsGenerator,
             onScrollReachedBottom: () {
               context.read<PillarsBloc>().add(
-                const InfiniteListMoreRequested(
-                  address: null,
-                ),
+                const InfiniteListMoreRequested(),
               );
             },
           );

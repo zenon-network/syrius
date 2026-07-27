@@ -1,15 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_vector_icons/flutter_vector_icons.dart';
-import 'package:hive/hive.dart';
 import 'package:zenon_syrius_wallet_flutter/model/model.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
 
-part 'wallet_notification.g.dart';
-
-@HiveType(typeId: kWalletNotificationHiveTypeId)
-class WalletNotification extends HiveObject {
-
+class WalletNotification {
   WalletNotification({
     required this.title,
     required this.timestamp,
@@ -17,19 +11,14 @@ class WalletNotification extends HiveObject {
     required this.type,
     this.id,
   });
-  @HiveField(0)
   final String? title;
 
-  @HiveField(1)
   final int? timestamp;
 
-  @HiveField(2)
   final String? details;
 
-  @HiveField(3)
   final NotificationType? type;
 
-  @HiveField(4)
   final int? id;
 
   Color getColor() {

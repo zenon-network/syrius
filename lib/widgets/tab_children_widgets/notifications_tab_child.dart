@@ -1,7 +1,6 @@
 import 'package:expandable/expandable.dart';
 import 'package:flutter/material.dart';
-import 'package:hive/hive.dart';
-import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
+import 'package:hive_ce/hive_ce.dart';
 import 'package:zenon_syrius_wallet_flutter/model/model.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/format_utils.dart';
@@ -30,24 +29,27 @@ class _NotificationsTabChildState extends State<NotificationsTabChild> {
   CardScaffold _getNotificationsContainer() {
     return CardScaffold(
       title: 'Notifications',
-      description: 'This card displays detailed information regarding the '
+      description:
+          'This card displays detailed information regarding the '
           'wallet notifications',
       childBuilder: () => CustomTable<WalletNotification>(
-          items: _notifications,
-          headerColumns: const <CustomHeaderColumn>[
-            CustomHeaderColumn(columnName: 'Description', flex: 5),
-            CustomHeaderColumn(columnName: 'Date', flex: 2),
-            CustomHeaderColumn(columnName: 'Time', flex: 2),
-            CustomHeaderColumn(
-              columnName: '',
-            ),
-          ],
-          generateRowCells: _rowCellsGenerator,),
+        items: _notifications,
+        headerColumns: const <CustomHeaderColumn>[
+          CustomHeaderColumn(columnName: 'Description', flex: 5),
+          CustomHeaderColumn(columnName: 'Date', flex: 2),
+          CustomHeaderColumn(columnName: 'Time', flex: 2),
+          CustomHeaderColumn(
+            columnName: '',
+          ),
+        ],
+        generateRowCells: _rowCellsGenerator,
+      ),
     );
   }
 
   ExpandablePanel _getNotificationExpandablePanel(
-      WalletNotification notification,) {
+    WalletNotification notification,
+  ) {
     return ExpandablePanel(
       collapsed: Container(),
       theme: ExpandableThemeData(
@@ -129,13 +131,16 @@ class _NotificationsTabChildState extends State<NotificationsTabChild> {
 
   void _loadNotifications() {
     _notifications = _getNotificationsFromDb();
-    _notifications!.sort((WalletNotification a, WalletNotification b) => b.timestamp!.compareTo(a.timestamp!));
+    _notifications!.sort(
+      (WalletNotification a, WalletNotification b) =>
+          b.timestamp!.compareTo(a.timestamp!),
+    );
   }
 
   List<Widget> _rowCellsGenerator<WalletNotification>(
     notification,
     isSelected, {
-    SentinelsListBloc? model,
+    Object? model,
   }) {
     return <Widget>[
       CustomTableCell(
@@ -149,8 +154,10 @@ class _NotificationsTabChildState extends State<NotificationsTabChild> {
       ),
       CustomTableCell.withText(
         context,
-        FormatUtils.formatDate(notification.timestamp,
-            dateFormat: kNotificationsTimeFormat,),
+        FormatUtils.formatDate(
+          notification.timestamp,
+          dateFormat: kNotificationsTimeFormat,
+        ),
         flex: 2,
       ),
       CustomTableCell(_getClearIcon(notification)),

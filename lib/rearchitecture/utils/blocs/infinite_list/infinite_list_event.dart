@@ -3,7 +3,7 @@ part of 'infinite_list_bloc.dart';
 /// The generic class for the events used in [InfiniteListBloc]
 sealed class InfiniteListEvent extends Equatable {
   /// Creates a new instance.
-  const InfiniteListEvent({required this.address});
+  const InfiniteListEvent({this.address});
 
   /// The [address] for which data will be fetched.
   final Address? address;
@@ -13,7 +13,7 @@ sealed class InfiniteListEvent extends Equatable {
 /// [address]
 class InfiniteListRequested extends InfiniteListEvent {
   /// Creates a new instance.
-  const InfiniteListRequested({required super.address});
+  const InfiniteListRequested({super.address});
 
   @override
   List<Object?> get props => <Object?>[address];
@@ -23,7 +23,7 @@ class InfiniteListRequested extends InfiniteListEvent {
 /// [address]
 class InfiniteListMoreRequested extends InfiniteListEvent {
   /// Creates a new instance.
-  const InfiniteListMoreRequested({required super.address});
+  const InfiniteListMoreRequested({super.address});
 
   @override
   List<Object?> get props => <Object?>[address];
@@ -33,7 +33,7 @@ class InfiniteListMoreRequested extends InfiniteListEvent {
 /// transactions
 class InfiniteListRefreshRequested extends InfiniteListEvent {
   /// Creates a new instance.
-  const InfiniteListRefreshRequested({required super.address});
+  const InfiniteListRefreshRequested({super.address});
 
   @override
   List<Object?> get props => <Object?>[address];

@@ -20,27 +20,25 @@ class RealtimeStatisticsPopulated extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        children: <Widget>[
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: <Widget>[
-              ChartLegend(
-                dotColor: ColorUtils.getTokenColor(kQsrCoin.tokenStandard),
-                mainText: context.l10n.quasarTransactions(kQsrCoin.symbol),
-              ),
-              kHorizontalGap8,
-              ChartLegend(
-                dotColor: ColorUtils.getTokenColor(kZnnCoin.tokenStandard),
-                mainText: context.l10n.zenonTransactions(kZnnCoin.symbol),
-              ),
-            ],
-          ),
-          Expanded(child: RealtimeTxsChart(accountBlocks)),
-        ],
-      ),
+    return Column(
+      children: <Widget>[
+        kVerticalGap16,
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            ChartLegend(
+              dotColor: ColorUtils.getTokenColor(kQsrCoin.tokenStandard),
+              mainText: context.l10n.quasarTransactions(kQsrCoin.symbol),
+            ),
+            kHorizontalGap8,
+            ChartLegend(
+              dotColor: ColorUtils.getTokenColor(kZnnCoin.tokenStandard),
+              mainText: context.l10n.zenonTransactions(kZnnCoin.symbol),
+            ),
+          ],
+        ),
+        Expanded(child: RealtimeTxsChart(accountBlocks)),
+      ],
     );
   }
 }

@@ -14,14 +14,13 @@ class AssetCell extends StatelessWidget {
 
     final Color textColor = ColorUtils.getTokenColor(block.tokenStandard);
 
-    final String tooltipMessage = block.token?.tokenStandard.toString() ?? 'Unknown token standard';
+    final String tooltipMessage =
+        block.token?.tokenStandard.toString() ?? 'Unknown token standard';
 
     return InfiniteScrollTableCell.withText(
       content: content,
       tooltipMessage: tooltipMessage,
-      textStyle: TextStyle(
-        color: textColor,
-      ),
+      textStyle: TextStyle(color: textColor),
     );
   }
 }

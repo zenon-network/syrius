@@ -1,3 +1,2 @@
-export 'cubit/sentinels_cubit.dart';
+export 'bloc/sentinels_bloc.dart';
 export 'view/sentinels_card.dart';
-export 'widgets/widgets.dart';

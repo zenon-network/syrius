@@ -15,13 +15,10 @@ part 'deploy_pillar_state.dart';
 class DeployPillarBloc extends Bloc<DeployPillarEvent, DeployPillarState> {
   /// Creates a new [DeployPillarBloc].
   DeployPillarBloc({
-    required AccountBlockUtils accountBlockUtils,
-    required Zenon zenon,
-    required ZenonAddressUtils zenonAddressUtils,
-  }) : _zenonAddressUtils = zenonAddressUtils,
-       _accountBlockUtils = accountBlockUtils,
-       _zenon = zenon,
-       super(const DeployPillarInitial()) {
+    required this._accountBlockUtils,
+    required this._zenon,
+    required this._zenonAddressUtils,
+  }) : super(const DeployPillarInitial()) {
     on<DeployPillarRequested>(_onDeployPillarRequested);
   }
 
@@ -46,7 +43,7 @@ class DeployPillarBloc extends Bloc<DeployPillarEvent, DeployPillarState> {
             event.giveBlockRewardPercentage,
             event.giveDelegateRewardPercentage,
           );
-      await _accountBlockUtils
+      final AccountBlockTemplate response = await _accountBlockUtils
           .createAccountBlock(
             transactionParams,
             'register Pillar',
@@ -55,7 +52,7 @@ class DeployPillarBloc extends Bloc<DeployPillarEvent, DeployPillarState> {
 
       _zenonAddressUtils.refreshBalance();
 
-      emit(const DeployPillarDone());
+      emit(DeployPillarDone(accountBlock: response));
     } on SyriusException catch (e, stackTrace) {
       addError(e, stackTrace);
       emit(DeployPillarFailure(exception: e));

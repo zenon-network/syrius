@@ -10,20 +10,16 @@ class DateCell extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final int millis = (block.confirmationDetail?.momentumTimestamp ?? 0) * 1000;
+    final int millis =
+        (block.confirmationDetail?.momentumTimestamp ?? 0) * 1000;
 
     return InfiniteScrollTableCell.withText(
       content: millis == 0
           ? context.l10n.pending
-          : FormatUtils.formatDateForTable(
-        millis,
-      ),
+          : FormatUtils.formatDateForTable(millis),
       tooltipMessage: millis == 0
           ? ''
-          : FormatUtils.formatDate(
-        millis,
-        dateFormat: 'MMM d, y HH:mm:ss'
-      ),
+          : FormatUtils.formatDate(millis, dateFormat: 'MMM d, y HH:mm:ss'),
     );
   }
 }

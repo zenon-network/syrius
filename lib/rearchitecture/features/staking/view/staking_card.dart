@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
@@ -16,10 +18,14 @@ class StakingCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider<StakingCubit>(
-      create: (_) => StakingCubit(
-        address: Address.parse(kSelectedAddress!),
-        zenon: zenon!,
-      )..fetchDataPeriodically(),
+      create: (_) {
+        final StakingCubit cubit = StakingCubit(
+          address: Address.parse(kSelectedAddress!),
+          zenon: zenon!,
+        );
+        unawaited(cubit.fetchDataPeriodically());
+        return cubit;
+      },
       child: NewCardScaffold(
         data: _buildCardData(context: context),
         body: BlocBuilder<StakingCubit, StakingState>(
@@ -28,11 +34,11 @@ class StakingCard extends StatelessWidget {
               TimerStatus.initial => const StakingEmpty(),
               TimerStatus.loading => const StakingLoading(),
               TimerStatus.failure => StakingError(
-                  error: state.error!,
-                ),
+                error: state.error!,
+              ),
               TimerStatus.success => StakingPopulated(
-                  stakingList: state.data!,
-                ),
+                stakingList: state.data!,
+              ),
             };
           },
         ),

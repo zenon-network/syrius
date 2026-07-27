@@ -23,10 +23,9 @@ import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 class PillarStatsCard extends StatelessWidget {
   /// {@macro default_constructor}
   const PillarStatsCard({
-    required VoidCallback onStepperNotificationSeeMorePressed,
+    required this._onStepperNotificationSeeMorePressed,
     super.key,
-  }) : _onStepperNotificationSeeMorePressed =
-           onStepperNotificationSeeMorePressed;
+  });
 
   final VoidCallback _onStepperNotificationSeeMorePressed;
 
@@ -165,7 +164,7 @@ class _PillarStatsView extends StatelessWidget {
                 pillarName: pillarInfo.name,
                 onRevoked: () {
                   context.read<PillarsBloc>().add(
-                    const InfiniteListRefreshRequested(address: null),
+                    const InfiniteListRefreshRequested(),
                   );
                 },
               ),
@@ -182,7 +181,7 @@ class _PillarStatsView extends StatelessWidget {
               isRevocable ? AppColors.znnColor : AppColors.errorColor,
               onTimeFinishedCallback: () {
                 context.read<PillarsBloc>().add(
-                  const InfiniteListRefreshRequested(address: null),
+                  const InfiniteListRefreshRequested(),
                 );
               },
             ),

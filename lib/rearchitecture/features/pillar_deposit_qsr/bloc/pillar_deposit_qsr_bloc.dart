@@ -12,21 +12,18 @@ part 'pillar_deposit_qsr_state.dart';
 
 /// A bloc that helps with depositing the needed QSR for the creation of a
 /// pillar
-class PillarDepositQsrBloc extends Bloc<PillarDepositQsrEvent, PillarDepositQsrState> {
+class PillarDepositQsrBloc
+    extends Bloc<PillarDepositQsrEvent, PillarDepositQsrState> {
   /// Creates a new [PillarDepositQsrBloc].
   ///
-  /// The optional [postTransactionDelay] is used to wait for chain sync after
+  /// The optional [_postTransactionDelay] is used to wait for chain sync after
   /// account block creation.
   PillarDepositQsrBloc({
-    required AccountBlockUtils accountBlockUtils,
-    required Zenon zenon,
-    required ZenonAddressUtils zenonAddressUtils,
-    Duration postTransactionDelay = kDelayAfterAccountBlockCreationCall,
-  }) : _zenonAddressUtils = zenonAddressUtils,
-        _postTransactionDelay = postTransactionDelay,
-        _accountBlockUtils = accountBlockUtils,
-        _zenon = zenon,
-        super(const PillarDepositQsrInitial()) {
+    required this._accountBlockUtils,
+    required this._zenon,
+    required this._zenonAddressUtils,
+    this._postTransactionDelay = kDelayAfterAccountBlockCreationCall,
+  }) : super(const PillarDepositQsrInitial()) {
     on<PillarDepositQsrRequested>(_onDepositQsrRequested);
   }
 
@@ -44,7 +41,7 @@ class PillarDepositQsrBloc extends Bloc<PillarDepositQsrEvent, PillarDepositQsrS
       final AccountBlockTemplate transactionParams = _zenon.embedded.pillar
           .depositQsr(event.amount);
 
-      await _accountBlockUtils
+      final AccountBlockTemplate response = await _accountBlockUtils
           .createAccountBlock(
             transactionParams,
             'deposit ${kQsrCoin.symbol} from Pillar Slot',
@@ -57,7 +54,7 @@ class PillarDepositQsrBloc extends Bloc<PillarDepositQsrEvent, PillarDepositQsrS
 
       _zenonAddressUtils.refreshBalance();
 
-      emit(const PillarDepositQsrDone());
+      emit(PillarDepositQsrDone(accountBlock: response));
     } on SyriusException catch (e, stackTrace) {
       addError(e, stackTrace);
       emit(PillarDepositQsrFailure(exception: e));

@@ -32,6 +32,7 @@ class InfiniteScrollTable<T> extends StatefulWidget {
     required this.onScrollReachedBottom,
     required this.columns,
     this.itemKeyGenerator,
+    this.onItemTap,
     super.key,
   });
 
@@ -50,7 +51,11 @@ class InfiniteScrollTable<T> extends StatefulWidget {
   /// Whether there are still items that can be fetched.
   final bool hasReachedMax;
 
+  /// Generates a stable key for an item row.
   final Key Function(T)? itemKeyGenerator;
+
+  /// Callback to be executed when an item is tapped
+  final void Function(int)? onItemTap;
 
   @override
   State createState() => _InfiniteScrollTableState<T>();
@@ -91,7 +96,7 @@ class _InfiniteScrollTableState<T> extends State<InfiniteScrollTable<T>> {
           child: _Header(columns: widget.columns),
         ),
         SliverList.separated(
-          separatorBuilder: (_, __) => const Divider(
+          separatorBuilder: (_, _) => const Divider(
             thickness: 0.75,
           ),
           itemCount: widget.items.length + 1,
@@ -126,14 +131,32 @@ class _InfiniteScrollTableState<T> extends State<InfiniteScrollTable<T>> {
   }
 
   Widget _getTableRow(T item, int indexOfRow) {
-    return Padding(
-      key: widget.itemKeyGenerator?.call(item),
+    final Key? key = widget.itemKeyGenerator?.call(item);
+
+    final Padding child = Padding(
       padding: const EdgeInsets.symmetric(
         horizontal: kInfiniteTableHorizontalPadding,
         vertical: kInfiniteTableHorizontalPadding / 2,
       ),
       child: Row(
         children: widget.generateRowCells(item),
+      ),
+    );
+
+    if (widget.onItemTap == null) {
+      return KeyedSubtree(
+        key: key,
+        child: child,
+      );
+    }
+
+    return Material(
+      key: key,
+      color: Colors.transparent,
+      child: InkWell(
+        mouseCursor: SystemMouseCursors.click,
+        onTap: () => widget.onItemTap!(indexOfRow),
+        child: child,
       ),
     );
   }
@@ -147,8 +170,9 @@ class _Header extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // The content is scrolled under the header, hence we need to cover it up
-    final Color background =
-        context.isDarkMode ? AppColors.darkPrimary : Colors.white;
+    final Color background = context.isDarkMode
+        ? AppColors.darkPrimary
+        : Colors.white;
 
     final List<Widget> children = List<Widget>.generate(
       columns.length,
