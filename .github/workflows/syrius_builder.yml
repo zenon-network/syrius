@@ -58,7 +58,7 @@ jobs:
           --window-size 600 325 \
           --hide-extension "s\ y\ r\ i\ u\ s.app" \
           --format ULFO \
-          --hdiutil-verbose syrius-alphanet-macos-universal.dmg build/macos/Build/Products/Release/s\ y\ r\ i\ u\ s.app \
+          --hdiutil-verbose \
           syrius-alphanet-macos-universal.dmg build/macos/Build/Products/Release/s\ y\ r\ i\ u\ s.app
       - name: Upload artifacts
         uses: actions/upload-artifact@v7
