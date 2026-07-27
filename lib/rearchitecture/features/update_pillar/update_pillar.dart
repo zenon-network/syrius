@@ -1,1 +1,1 @@
-export './bloc/update_pillar_bloc.dart';
+export 'bloc/update_pillar_bloc.dart';

@@ -1,1 +1,1 @@
-export './bloc/all_tokens_bloc.dart';
+export 'bloc/all_tokens_bloc.dart';
