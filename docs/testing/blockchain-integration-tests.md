@@ -268,7 +268,7 @@ The CI job should run a Dockerized devnet node locally inside the GitHub Actions
 The current devnet reference is the Docker devnet work from `digitalSloth/go-zenon`:
 
 ```text
-https://github.com/digitalSloth/go-zenon/tree/feature/docker-devnet
+https://github.com/digitalSloth/go-zenon/tree/bca9d950b07d379ff09a9a5aa74b09ce0fa92b3f
 ```
 
 During local development, this can be started manually from Docker Desktop. For CI, the same devnet setup should eventually be published or made available as a Docker image that GitHub Actions can run as a service container.
@@ -392,7 +392,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: digitalSloth/go-zenon
-          ref: feature/docker-devnet
+          ref: bca9d950b07d379ff09a9a5aa74b09ce0fa92b3f
           path: go-zenon-devnet
       - name: Start devnet
         working-directory: go-zenon-devnet
@@ -431,7 +431,7 @@ jobs:
 
 The blockchain integration job starts the Docker Compose devnet in the same GitHub Actions job that runs the tests. This is required because GitHub Actions jobs are isolated from each other, and the test process needs to connect to the devnet through `ws://127.0.0.1:35998` on the same runner.
 
-The devnet checkout currently tracks `digitalSloth/go-zenon@feature/docker-devnet`. Once the setup is stable, pin this checkout to a commit SHA or move the devnet source to the canonical upstream location.
+The devnet checkout is pinned to `digitalSloth/go-zenon@bca9d950b07d379ff09a9a5aa74b09ce0fa92b3f`. Update the pin deliberately when adopting devnet changes, or move the devnet source to the canonical upstream location.
 
 ## Local Run Shape
 
