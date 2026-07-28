@@ -7,9 +7,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 
 import '../../integration_test/bdd_hooks/hooks.dart';
-import '../../integration_test/steps/the_devnet_token_owner_is_prepared_for_issuing_newtoken.dart';
-import '../../integration_test/steps/i_create_newtoken_from_the_create_token_stepper.dart';
-import '../../integration_test/steps/the_blockchain_should_contain_newtoken_with_the_submitted_stepper_data.dart';
+import './../steps/the_devnet_token_owner_is_prepared_for_issuing_newtoken.dart';
+import './../steps/i_create_newtoken_from_the_create_token_stepper.dart';
+import './../steps/the_blockchain_should_contain_newtoken_with_the_submitted_stepper_data.dart';
 
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
