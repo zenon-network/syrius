@@ -81,7 +81,12 @@ void main() {
       when(() => zenon.embedded).thenReturn(embedded);
       when(() => embedded.token).thenReturn(tokenApi);
       when(() => tokenList.list).thenAnswer((_) => tokens);
-      when(() => tokenApi.getAll()).thenAnswer((_) async => tokenList);
+      when(
+        () => tokenApi.getAll(
+          pageIndex: any(named: 'pageIndex'),
+          pageSize: any(named: 'pageSize'),
+        ),
+      ).thenAnswer((_) async => tokenList);
     });
 
     test('initial state is correct', () {
@@ -101,7 +106,12 @@ void main() {
       act: (SearchTokenBloc bloc) =>
           bloc.add(const SearchTokenRequested(query: 'znn')),
       verify: (_) {
-        verify(() => tokenApi.getAll()).called(1);
+        verify(
+          () => tokenApi.getAll(
+            pageIndex: any(named: 'pageIndex'),
+            pageSize: any(named: 'pageSize'),
+          ),
+        ).called(1);
       },
       expect: () => <SearchTokenState>[
         const SearchTokenState.loading(query: 'znn'),
@@ -137,6 +147,60 @@ void main() {
         SearchTokenState.success(
           query: 'alp',
           tokens: tokens,
+          hasReachedMax: true,
+        ),
+      ],
+    );
+
+    late Token tokenOnSecondPage;
+
+    blocTest<SearchTokenBloc, SearchTokenState>(
+      'finds tokens from later RPC pages',
+      setUp: () {
+        tokenOnSecondPage = createToken(
+          'LATER',
+          name: 'Second Page Token',
+        );
+        final TokenList firstPage = TokenList(
+          count: rpcMaxPageSize + 1,
+          list: List<Token>.filled(
+            rpcMaxPageSize,
+            createToken('OTHER', name: 'Other Token'),
+          ),
+        );
+        final TokenList secondPage = TokenList(
+          count: rpcMaxPageSize + 1,
+          list: <Token>[tokenOnSecondPage],
+        );
+        when(
+          () => tokenApi.getAll(
+            pageIndex: any(named: 'pageIndex'),
+            pageSize: any(named: 'pageSize'),
+          ),
+        ).thenAnswer((Invocation invocation) async {
+          final int pageIndex = invocation.namedArguments[#pageIndex]! as int;
+          return pageIndex == 0 ? firstPage : secondPage;
+        });
+      },
+      build: createBloc,
+      act: (SearchTokenBloc bloc) =>
+          bloc.add(const SearchTokenRequested(query: 'later')),
+      verify: (_) {
+        expect(
+          verify(
+            () => tokenApi.getAll(
+              pageIndex: captureAny(named: 'pageIndex'),
+              pageSize: any(named: 'pageSize'),
+            ),
+          ).captured,
+          <int>[0, 1],
+        );
+      },
+      expect: () => <SearchTokenState>[
+        const SearchTokenState.loading(query: 'later'),
+        SearchTokenState.success(
+          query: 'later',
+          tokens: <Token>[tokenOnSecondPage],
           hasReachedMax: true,
         ),
       ],
@@ -223,7 +287,12 @@ void main() {
       },
       wait: const Duration(milliseconds: 100),
       verify: (_) {
-        verify(() => tokenApi.getAll()).called(1);
+        verify(
+          () => tokenApi.getAll(
+            pageIndex: any(named: 'pageIndex'),
+            pageSize: any(named: 'pageSize'),
+          ),
+        ).called(1);
       },
       expect: () => <SearchTokenState>[
         const SearchTokenState.loading(query: 'beta'),
@@ -251,7 +320,12 @@ void main() {
         await Future<void>.delayed(const Duration(milliseconds: 10));
       },
       verify: (_) {
-        verify(() => tokenApi.getAll()).called(1);
+        verify(
+          () => tokenApi.getAll(
+            pageIndex: any(named: 'pageIndex'),
+            pageSize: any(named: 'pageSize'),
+          ),
+        ).called(1);
       },
       expect: () => <SearchTokenState>[
         const SearchTokenState.loading(query: 'alpha'),
@@ -272,7 +346,12 @@ void main() {
     blocTest<SearchTokenBloc, SearchTokenState>(
       'emits failure when fetching all tokens fails',
       setUp: () {
-        when(() => tokenApi.getAll()).thenThrow(Exception('boom'));
+        when(
+          () => tokenApi.getAll(
+            pageIndex: any(named: 'pageIndex'),
+            pageSize: any(named: 'pageSize'),
+          ),
+        ).thenThrow(Exception('boom'));
       },
       build: createBloc,
       act: (SearchTokenBloc bloc) =>
