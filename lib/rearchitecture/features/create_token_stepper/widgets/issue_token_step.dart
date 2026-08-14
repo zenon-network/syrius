@@ -43,14 +43,6 @@ class _IssueTokenStepState extends State<IssueTokenStep> {
       (_createButtonKey.currentState?.btnState ?? ButtonState.idle) !=
       ButtonState.idle;
 
-  late final ValueNotifier<bool> _isUtility;
-
-  @override
-  void initState() {
-    super.initState();
-    _isUtility = .new(widget.tokenData.value.isUtility);
-  }
-
   @override
   Widget build(BuildContext context) {
     return BlocListener<IssueTokenBloc, IssueTokenState>(
@@ -60,19 +52,16 @@ class _IssueTokenStepState extends State<IssueTokenStep> {
         children: <Widget>[
           Row(
             children: <Widget>[
-              ValueListenableBuilder<bool>(
-                valueListenable: _isUtility,
-                builder: (_, bool value, _) {
-                  return Checkbox(
-                    key: const Key('token_utility_checkbox'),
-                    activeColor: AppColors.ztsColor,
-                    value: value,
-                    onChanged: (bool? value) {
-                      if (value != null) {
-                        _isUtility.value = value;
-                      }
-                    },
-                  );
+              Checkbox(
+                key: const Key('token_utility_checkbox'),
+                activeColor: AppColors.ztsColor,
+                value: widget.tokenData.value.isUtility,
+                onChanged: (bool? value) {
+                  if (value != null) {
+                    widget.tokenData.value = widget.tokenData.value.copyWith(
+                      isUtility: value
+                    );
+                  }
                 },
               ),
               Text(
@@ -121,9 +110,6 @@ class _IssueTokenStepState extends State<IssueTokenStep> {
                   text: context.l10n.create,
                   outlineColor: AppColors.ztsColor,
                   onPressed: () {
-                    widget.tokenData.value = widget.tokenData.value.copyWith(
-                      isUtility: widget.tokenData.value.isUtility,
-                    );
                     widget.onIssuePressed();
                   },
                   key: _createButtonKey,
