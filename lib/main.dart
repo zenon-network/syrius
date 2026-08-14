@@ -330,7 +330,10 @@ class _MyAppState extends State<MyApp> with WindowListener, TrayListener {
           create: (_) => sl.get<MultipleBalanceBloc>(),
         ),
         BlocProvider<AllTokensBloc>(
-          create: (_) => sl.get<AllTokensBloc>()..add(const AllTokensRequested()),
+          create: (_) => AllTokensBloc(zenon: zenon!)
+            ..add(
+              const AllTokensRequested(),
+            ),
         ),
         BlocProvider<PlasmaStatsBloc>(
           create: (_) => PlasmaStatsBloc(zenon: zenon!)
