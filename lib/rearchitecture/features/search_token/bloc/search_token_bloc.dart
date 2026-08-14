@@ -2,6 +2,7 @@ import 'package:bloc/bloc.dart';
 import 'package:bloc_concurrency/bloc_concurrency.dart';
 import 'package:equatable/equatable.dart';
 import 'package:stream_transform/stream_transform.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/all_tokens/all_tokens.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
@@ -35,10 +36,8 @@ class SearchTokenBloc extends Bloc<SearchTokenEvent, SearchTokenState> {
   Future<List<Token>>? _allTokensRequest;
   List<Token> _matchingTokens = <Token>[];
 
-  Future<void> _onSearchRequested(
-    SearchTokenRequested event,
-    Emitter<SearchTokenState> emit,
-  ) async {
+  Future<void> _onSearchRequested(SearchTokenRequested event,
+      Emitter<SearchTokenState> emit,) async {
     final String query = event.query.trim();
 
     if (event.refresh) {
@@ -62,12 +61,12 @@ class SearchTokenBloc extends Bloc<SearchTokenEvent, SearchTokenState> {
       _matchingTokens = allTokens
           .where(
             (Token token) =>
-                !<TokenStandard>{
-                  kZnnCoin.tokenStandard,
-                  kQsrCoin.tokenStandard,
-                }.contains(token.tokenStandard) &&
-                _matchesQuery(token, normalizedQuery),
-          )
+        !<TokenStandard>{
+          kZnnCoin.tokenStandard,
+          kQsrCoin.tokenStandard,
+        }.contains(token.tokenStandard) &&
+            _matchesQuery(token, normalizedQuery),
+      )
           .toList();
 
       final List<Token> firstPage = _matchingTokens.take(_pageSize).toList();
@@ -95,10 +94,8 @@ class SearchTokenBloc extends Bloc<SearchTokenEvent, SearchTokenState> {
     }
   }
 
-  void _onMoreRequested(
-    SearchTokenMoreRequested _,
-    Emitter<SearchTokenState> emit,
-  ) {
+  void _onMoreRequested(SearchTokenMoreRequested _,
+      Emitter<SearchTokenState> emit,) {
     if (state.status != SearchTokenStatus.success || state.hasReachedMax) {
       return;
     }
@@ -126,7 +123,8 @@ class SearchTokenBloc extends Bloc<SearchTokenEvent, SearchTokenState> {
     final List<Token>? cachedTokens = _allTokens;
     if (cachedTokens != null) return cachedTokens;
 
-    final Future<List<Token>> request = _allTokensRequest ??= _fetchAllTokens();
+    final Future<List<Token>> request =
+    _allTokensRequest ??= fetchAllTokens(zenon: _zenon);
 
     try {
       final List<Token> tokens = await request;
@@ -143,11 +141,6 @@ class SearchTokenBloc extends Bloc<SearchTokenEvent, SearchTokenState> {
       }
       rethrow;
     }
-  }
-
-  Future<List<Token>> _fetchAllTokens() async {
-    final TokenList tokenList = await _zenon.embedded.token.getAll();
-    return tokenList.list ?? <Token>[];
   }
 
   bool _matchesQuery(Token token, String query) {

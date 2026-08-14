@@ -1,6 +1,7 @@
 import 'package:equatable/equatable.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/all_tokens/all_tokens.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
@@ -27,25 +28,7 @@ class AllTokensBloc extends HydratedBloc<AllTokensEvent, AllTokensState>
     Emitter<AllTokensState> emit,
   ) async {
     try {
-      final List<Token> tokens = <Token>[];
-      int pageIndex = 0;
-
-      while (true) {
-        final TokenList tokenList = await zenon.embedded.token.getAll(
-          pageIndex: pageIndex,
-          // Keep the loop termination condition aligned with the RPC request.
-          // ignore: avoid_redundant_argument_values
-          pageSize: rpcMaxPageSize,
-        );
-        final List<Token> page = tokenList.list ?? <Token>[];
-        tokens.addAll(page);
-
-        if (page.length < rpcMaxPageSize) {
-          break;
-        }
-
-        pageIndex++;
-      }
+      final List<Token> tokens = await fetchAllTokens(zenon: zenon);
 
       emit(
         AllTokensPopulated(
