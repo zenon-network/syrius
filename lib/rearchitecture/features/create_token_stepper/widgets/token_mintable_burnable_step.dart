@@ -29,37 +29,22 @@ class TokenMintableBurnableStep extends StatefulWidget {
 }
 
 class _TokenMintableBurnableStepState extends State<TokenMintableBurnableStep> {
-  late final ValueNotifier<bool> _isBurnable;
-  late final ValueNotifier<bool> _isMintable;
-
-  @override
-  void initState() {
-    super.initState();
-    _isBurnable = .new(widget.tokenData.value.isBurnable);
-    _isMintable = .new(widget.tokenData.value.isMintable);
-  }
-
   @override
   Widget build(BuildContext context) {
     return Column(
       children: <Widget>[
         Row(
           children: <Widget>[
-            ValueListenableBuilder<bool>(
-              valueListenable: _isMintable,
-              builder: (_, bool value, _) {
-                return Checkbox.adaptive(
-                  key: const Key('token_mintable_checkbox'),
-                  activeColor: AppColors.ztsColor,
-                  value: value,
-                  onChanged: (bool? value) {
-                    if (value != null) {
-                      setState(() {
-                        _isMintable.value = value;
-                      });
-                    }
-                  },
-                );
+            Checkbox.adaptive(
+              key: const Key('token_mintable_checkbox'),
+              activeColor: AppColors.ztsColor,
+              value: widget.tokenData.value.isMintable,
+              onChanged: (bool? value) {
+                if (value != null) {
+                  widget.tokenData.value = widget.tokenData.value.copyWith(
+                    isMintable: value,
+                  );
+                }
               },
             ),
             kHorizontalGap8,
@@ -76,21 +61,16 @@ class _TokenMintableBurnableStepState extends State<TokenMintableBurnableStep> {
         ),
         Row(
           children: <Widget>[
-            ValueListenableBuilder<bool>(
-              valueListenable: _isBurnable,
-              builder: (_, bool value, _) {
-                return Checkbox.adaptive(
-                  key: const Key('token_burnable_checkbox'),
-                  activeColor: AppColors.ztsColor,
-                  value: value,
-                  onChanged: (bool? value) {
-                    if (value != null) {
-                      setState(() {
-                        _isBurnable.value = value;
-                      });
-                    }
-                  },
-                );
+            Checkbox.adaptive(
+              key: const Key('token_burnable_checkbox'),
+              activeColor: AppColors.ztsColor,
+              value: widget.tokenData.value.isBurnable,
+              onChanged: (bool? value) {
+                if (value != null) {
+                  widget.tokenData.value = widget.tokenData.value.copyWith(
+                    isBurnable: value,
+                  );
+                }
               },
             ),
             kHorizontalGap8,
@@ -120,10 +100,6 @@ class _TokenMintableBurnableStepState extends State<TokenMintableBurnableStep> {
             OutlinedButton(
               key: const Key('token_options_next_button'),
               onPressed: () {
-                widget.tokenData.value = widget.tokenData.value.copyWith(
-                  isMintable: _isMintable.value,
-                  isBurnable: _isBurnable.value,
-                );
                 widget.onContinuePressed();
               },
               child: Text(context.l10n.continueText),
