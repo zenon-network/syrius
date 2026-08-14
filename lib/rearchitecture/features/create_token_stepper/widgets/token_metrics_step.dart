@@ -12,7 +12,6 @@ class TokenMetricsStep extends StatefulWidget {
     required this.maxSupplyController,
     required this.onBackPressed,
     required this.onContinuePressed,
-    required this.selectedNumDecimals,
     required this.tokenData,
     required this.totalSupplyController,
     super.key,
@@ -26,9 +25,6 @@ class TokenMetricsStep extends StatefulWidget {
 
   /// Called when the user can continue.
   final VoidCallback onContinuePressed;
-
-  /// Selected decimal count.
-  final ValueNotifier<int> selectedNumDecimals;
 
   /// Token data draft updated by this step.
   final ValueNotifier<NewTokenData> tokenData;
@@ -45,51 +41,52 @@ class _TokenMetricsStepState extends State<TokenMetricsStep> {
 
   bool get _isMintable => widget.tokenData.value.isMintable;
 
-  String? get _maxSupplyError => _isMintable
-      ? InputValidators.correctValue(
-          _maxSupply,
-          kBigP255m1,
-          widget.selectedNumDecimals.value,
-          kMinTokenTotalMaxSupply,
-          canBeEqualToMin: true,
-        )
-      : InputValidators.isMaxSupplyZero(_maxSupply);
+  int get _decimals => widget.tokenData.value.decimals;
+
+  String? get _maxSupplyError =>
+      _isMintable
+          ? InputValidators.correctValue(
+        _maxSupply,
+        kBigP255m1,
+        _decimals,
+        kMinTokenTotalMaxSupply,
+        canBeEqualToMin: true,
+      )
+          : InputValidators.isMaxSupplyZero(_maxSupply);
 
   String get _totalSupply => widget.totalSupplyController.text;
 
-  String? get _totalSupplyError => InputValidators.correctValue(
-    _totalSupply,
-    _isMintable
-        ? _maxSupply.isNotEmpty
-              ? _maxSupply.extractDecimals(
-                  widget.selectedNumDecimals.value,
-                )
-              : kBigP255m1
-        : kBigP255m1,
-    widget.selectedNumDecimals.value,
-    _isMintable ? BigInt.zero : kMinTokenTotalMaxSupply,
-    canBeEqualToMin: true,
-  );
+  String? get _totalSupplyError =>
+      InputValidators.correctValue(
+        _totalSupply,
+        _isMintable
+            ? _maxSupply.isNotEmpty
+            ? _maxSupply.extractDecimals(
+          _decimals,
+        )
+            : kBigP255m1
+            : kBigP255m1,
+        _decimals,
+        _isMintable ? BigInt.zero : kMinTokenTotalMaxSupply,
+        canBeEqualToMin: true,
+      );
 
   @override
   Widget build(BuildContext context) {
     return Column(
       children: <Widget>[
-        ValueListenableBuilder<int>(
-          valueListenable: widget.selectedNumDecimals,
-          builder: (_, int value, _) {
-            return CustomSlider(
-              activeColor: AppColors.ztsColor,
-              description: context.l10n.numberOfDecimals(
-                value,
-              ),
-              startValue: 0,
-              min: 0,
-              maxValue: 18,
-              sliderKey: const Key('token_decimals_slider'),
-              callback: (double value) {
-                widget.selectedNumDecimals.value = value.toInt();
-              },
+        CustomSlider(
+          activeColor: AppColors.ztsColor,
+          description: context.l10n.numberOfDecimals(
+            _decimals,
+          ),
+          startValue: 0,
+          min: 0,
+          maxValue: 18,
+          sliderKey: const Key('token_decimals_slider'),
+          callback: (double value) {
+            widget.tokenData.value = widget.tokenData.value.copyWith(
+              decimals: value.toInt(),
             );
           },
         ),
@@ -137,13 +134,14 @@ class _TokenMetricsStepState extends State<TokenMetricsStep> {
                 widget.totalSupplyController,
                 widget.maxSupplyController,
               ]),
-              builder: (_, _) => StepperButton(
-                key: const Key('token_metrics_next_button'),
-                text: context.l10n.continueText,
-                onPressed: _areTokenMetricsCorrect()
-                    ? _onContinuePressed
-                    : null,
-              ),
+              builder: (_, _) =>
+                  StepperButton(
+                    key: const Key('token_metrics_next_button'),
+                    text: context.l10n.continueText,
+                    onPressed: _areTokenMetricsCorrect()
+                        ? _onContinuePressed
+                        : null,
+                  ),
             ),
           ],
         ),
@@ -155,14 +153,12 @@ class _TokenMetricsStepState extends State<TokenMetricsStep> {
       (!_isMintable || _maxSupplyError == null) && _totalSupplyError == null;
 
   void _onContinuePressed() {
-    final int decimals = widget.selectedNumDecimals.value;
-
     widget.tokenData.value = widget.tokenData.value.copyWith(
-      decimals: decimals,
+      decimals: _decimals,
       maxSupply: _isMintable
-          ? _maxSupply.extractDecimals(decimals)
-          : _totalSupply.extractDecimals(decimals),
-      totalSupply: _totalSupply.extractDecimals(decimals),
+          ? _maxSupply.extractDecimals(_decimals)
+          : _totalSupply.extractDecimals(_decimals),
+      totalSupply: _totalSupply.extractDecimals(_decimals),
     );
     widget.onContinuePressed();
   }

@@ -46,8 +46,6 @@ class _CreateTokenStepperViewState extends State<CreateTokenStepperView> {
   final TextEditingController _tokenDomainController = TextEditingController();
   final TextEditingController _tokenSymbolController = TextEditingController();
 
-  final ValueNotifier<int> _selectedNumDecimals = .new(0);
-
   final ValueNotifier<NewTokenData> _tokenData = .new(
     NewTokenData.initial(address: kSelectedAddress!),
   );
@@ -177,7 +175,6 @@ class _CreateTokenStepperViewState extends State<CreateTokenStepperView> {
                 maxSupplyController: _maxSupplyController,
                 onBackPressed: _onBackButtonPressed,
                 onContinuePressed: _navigateToNextStep,
-                selectedNumDecimals: _selectedNumDecimals,
                 tokenData: _tokenData,
                 totalSupplyController: _totalSupplyController,
               ),
@@ -268,7 +265,6 @@ class _CreateTokenStepperViewState extends State<CreateTokenStepperView> {
     _totalSupplyController.clear();
     _maxSupplyController.clear();
     _tokenDomainController.clear();
-    _selectedNumDecimals.value = 0;
     _tokenData.value = NewTokenData.initial(
       address: _addressController.text,
     );
