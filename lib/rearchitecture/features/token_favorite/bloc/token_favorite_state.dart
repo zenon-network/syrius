@@ -15,42 +15,26 @@ final class TokenFavoriteLoading extends TokenFavoriteState {
   const TokenFavoriteLoading();
 }
 
-/// Success state emitted after the token is added to favorites.
-final class TokenFavoriteAddSuccess extends TokenFavoriteState {
-  /// Creates a [TokenFavoriteAddSuccess] state.
-  const TokenFavoriteAddSuccess();
+/// State indicating that the token is a favorite.
+final class TokenFavoriteFavorited extends TokenFavoriteState {
+  /// Creates a [TokenFavoriteFavorited] state.
+  const TokenFavoriteFavorited();
 }
 
-/// Success state emitted after the token is removed from favorites.
-final class TokenFavoriteRemoveSuccess extends TokenFavoriteState {
-  /// Creates a [TokenFavoriteRemoveSuccess] state.
-  const TokenFavoriteRemoveSuccess();
+/// State indicating that the token is not a favorite.
+final class TokenFavoriteNotFavorited extends TokenFavoriteState {
+  /// Creates a [TokenFavoriteNotFavorited] state.
+  const TokenFavoriteNotFavorited();
 }
 
-/// Failure state emitted when adding the token fails.
-final class TokenFavoriteAddFailure extends TokenFavoriteState {
-  /// Creates a [TokenFavoriteAddFailure] state.
-  const TokenFavoriteAddFailure({required this._error});
+/// Failure state emitted when changing the favorite value fails.
+final class TokenFavoriteFailure extends TokenFavoriteState {
+  /// Creates a [TokenFavoriteFailure] state.
+  const TokenFavoriteFailure({required this.exception});
 
-  final Object _error;
-
-  /// Error that prevented the token from being added.
-  Object get error => _error;
+  /// Exception that describes the failed favorite-token operation.
+  final FavoriteTokensException exception;
 
   @override
-  List<Object?> get props => <Object?>[_error];
-}
-
-/// Failure state emitted when removing the token fails.
-final class TokenFavoriteRemoveFailure extends TokenFavoriteState {
-  /// Creates a [TokenFavoriteRemoveFailure] state.
-  const TokenFavoriteRemoveFailure({required this._error});
-
-  final Object _error;
-
-  /// Error that prevented the token from being removed.
-  Object get error => _error;
-
-  @override
-  List<Object?> get props => <Object?>[_error];
+  List<Object?> get props => <Object?>[exception];
 }

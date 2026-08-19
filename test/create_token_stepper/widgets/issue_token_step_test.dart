@@ -6,17 +6,25 @@ import 'package:mocktail/mocktail.dart';
 import 'package:zenon_syrius_wallet_flutter/l10n/app_localizations.dart';
 import 'package:zenon_syrius_wallet_flutter/model/model.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
+import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 class MockIssueTokenBloc extends MockBloc<IssueTokenEvent, IssueTokenState>
     implements IssueTokenBloc {}
 
+class MockFavoriteTokensRepository extends Mock
+    implements FavoriteTokensRepository {}
+
+class MockAccountBlockTemplate extends Mock implements AccountBlockTemplate {}
+
 void main() {
   group('IssueTokenStep', () {
     late MockIssueTokenBloc issueTokenBloc;
+    late MockFavoriteTokensRepository favoriteTokensRepository;
     late ValueNotifier<NewTokenData> tokenData;
 
     setUp(() {
       issueTokenBloc = MockIssueTokenBloc();
+      favoriteTokensRepository = MockFavoriteTokensRepository();
       when(() => issueTokenBloc.state).thenReturn(const IssueTokenInitial());
       tokenData = ValueNotifier<NewTokenData>(
         NewTokenData(
@@ -47,6 +55,7 @@ void main() {
         await _pumpIssueTokenStep(
           tester,
           issueTokenBloc: issueTokenBloc,
+          favoriteTokensRepository: favoriteTokensRepository,
           tokenData: tokenData,
           onIssuePressed: () {
             submittedTokenData = tokenData.value;
@@ -66,30 +75,65 @@ void main() {
         expect(submittedTokenData!.isUtility, isFalse);
       },
     );
+
+    testWidgets('adds an issued token to favorites before completing', (
+      WidgetTester tester,
+    ) async {
+      final MockAccountBlockTemplate accountBlock = MockAccountBlockTemplate();
+      final List<String> calls = <String>[];
+      when(() => accountBlock.tokenStandard).thenReturn(znnZts);
+      when(
+        () => favoriteTokensRepository.add(znnZts),
+      ).thenAnswer((_) async => calls.add('favorite'));
+      whenListen(
+        issueTokenBloc,
+        Stream<IssueTokenState>.value(
+          IssueTokenDone(accountBlock: accountBlock),
+        ),
+        initialState: const IssueTokenInitial(),
+      );
+      await _pumpIssueTokenStep(
+        tester,
+        issueTokenBloc: issueTokenBloc,
+        favoriteTokensRepository: favoriteTokensRepository,
+        tokenData: tokenData,
+        onIssuePressed: () {},
+        onIssueDone: () => calls.add('done'),
+      );
+      await tester.pumpAndSettle();
+
+      verify(() => favoriteTokensRepository.add(znnZts)).called(1);
+      expect(calls, <String>['favorite', 'done']);
+    });
   });
 }
 
 Future<void> _pumpIssueTokenStep(
   WidgetTester tester, {
   required IssueTokenBloc issueTokenBloc,
+  required FavoriteTokensRepository favoriteTokensRepository,
   required ValueNotifier<NewTokenData> tokenData,
   required VoidCallback onIssuePressed,
+  VoidCallback? onIssueDone,
 }) async {
   await tester.pumpWidget(
-    BlocProvider<IssueTokenBloc>.value(
-      value: issueTokenBloc,
-      child: MaterialApp(
-        localizationsDelegates: AppLocalizations.localizationsDelegates,
-        supportedLocales: AppLocalizations.supportedLocales,
-        home: Scaffold(
-          body: SizedBox(
-            width: 700,
-            height: 500,
-            child: IssueTokenStep(
-              onBackPressed: () {},
-              onIssueDone: () {},
-              onIssuePressed: onIssuePressed,
-              tokenData: tokenData,
+    RepositoryProvider<FavoriteTokensRepository>.value(
+      value: favoriteTokensRepository,
+      child: BlocProvider<IssueTokenBloc>.value(
+        value: issueTokenBloc,
+        child: MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Scaffold(
+            body: SizedBox(
+              width: 700,
+              height: 500,
+              child: IssueTokenStep(
+                onBackPressed: () {},
+                onIssueDone: onIssueDone ?? () {},
+                onIssuePressed: onIssuePressed,
+                tokenData: tokenData,
+              ),
             ),
           ),
         ),

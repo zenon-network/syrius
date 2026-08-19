@@ -6,6 +6,7 @@ import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/model/model.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/token_favorite/bloc/token_favorite_bloc.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/token_favorite/exceptions/favorite_tokens_exception.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/extensions/buildcontext_extension.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/notification_utils.dart';
@@ -47,10 +48,16 @@ class _View extends StatelessWidget {
       builder: (BuildContext context, TokenFavoriteState state) =>
           switch (state) {
             TokenFavoriteLoading() => const SyriusLoadingWidget(size: 15),
-            TokenFavoriteAddSuccess() => _buildRemoveButton(context),
-            TokenFavoriteRemoveSuccess() => _buildAddButton(context),
-            TokenFavoriteAddFailure() => _buildAddButton(context),
-            TokenFavoriteRemoveFailure() => _buildRemoveButton(context),
+            TokenFavoriteFavorited() => _buildRemoveButton(context),
+            TokenFavoriteNotFavorited() => _buildAddButton(context),
+            TokenFavoriteFailure(
+              exception: AddingToFavoriteTokensException(),
+            ) =>
+              _buildAddButton(context),
+            TokenFavoriteFailure(
+              exception: RemovingFromFavoriteTokensException(),
+            ) =>
+              _buildRemoveButton(context),
           },
     );
   }
@@ -86,22 +93,21 @@ class _View extends StatelessWidget {
     BuildContext context,
     TokenFavoriteState state,
   ) {
-    if (state is TokenFavoriteAddSuccess) {
+    if (state is TokenFavoriteFavorited) {
       unawaited(_sendAddedNotification(context));
-    } else if (state is TokenFavoriteRemoveSuccess) {
+    } else if (state is TokenFavoriteNotFavorited) {
       unawaited(_sendRemovedNotification(context));
-    } else if (state is TokenFavoriteAddFailure) {
-      unawaited(
-        NotificationUtils.sendNotificationError(
-          state.error,
+    } else if (state is TokenFavoriteFailure) {
+      final String title = switch (state.exception) {
+        AddingToFavoriteTokensException() =>
           context.l10n.errorAddingTokenToFavorites(_token.name),
-        ),
-      );
-    } else if (state is TokenFavoriteRemoveFailure) {
+        RemovingFromFavoriteTokensException() =>
+          context.l10n.errorRemovingTokenFromFavorites(_token.name),
+      };
       unawaited(
         NotificationUtils.sendNotificationError(
-          state.error,
-          context.l10n.errorRemovingTokenFromFavorites(_token.name),
+          state.exception,
+          title,
         ),
       );
     }

@@ -59,7 +59,7 @@ class _IssueTokenStepState extends State<IssueTokenStep> {
                 onChanged: (bool? value) {
                   if (value != null) {
                     widget.tokenData.value = widget.tokenData.value.copyWith(
-                      isUtility: value
+                      isUtility: value,
                     );
                   }
                 },
@@ -127,8 +127,12 @@ class _IssueTokenStepState extends State<IssueTokenStep> {
     if (state is IssueTokenLoading) {
       _createButtonKey.currentState?.animateForward();
     } else if (state is IssueTokenDone) {
-      _createButtonKey.currentState?.animateReverse();
-      widget.onIssueDone();
+      unawaited(
+        _onIssueTokenDone(
+          context: context,
+          tokenStandard: state.accountBlock.tokenStandard,
+        ),
+      );
     } else if (state is IssueTokenFailure) {
       _createButtonKey.currentState?.animateReverse();
       unawaited(
@@ -137,6 +141,29 @@ class _IssueTokenStepState extends State<IssueTokenStep> {
           context.l10n.errorCreatingToken,
         ),
       );
+    }
+  }
+
+  Future<void> _onIssueTokenDone({
+    required BuildContext context,
+    required TokenStandard tokenStandard,
+  }) async {
+    try {
+      await context.read<FavoriteTokensRepository>().add(tokenStandard);
+    } on Object catch (error) {
+      if (context.mounted) {
+        await NotificationUtils.sendNotificationError(
+          error,
+          context.l10n.errorAddingTokenToFavorites(
+            widget.tokenData.value.tokenName,
+          ),
+        );
+      }
+    } finally {
+      if (context.mounted) {
+        _createButtonKey.currentState?.animateReverse();
+        widget.onIssueDone();
+      }
     }
   }
 }

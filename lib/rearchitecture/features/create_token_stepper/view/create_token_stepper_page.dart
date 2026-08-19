@@ -12,17 +12,20 @@ class CreateTokenStepperPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MultiBlocProvider(
-      providers: <SingleChildWidget>[
-        BlocProvider<IssueTokenBloc>(
-          create: (_) => IssueTokenBloc(
-            accountBlockUtils: AccountBlockUtils(),
-            zenon: zenon!,
-            zenonAddressUtils: ZenonAddressUtils(),
+    return RepositoryProvider<FavoriteTokensRepository>(
+      create: (_) => HiveFavoriteTokensRepository(),
+      child: MultiBlocProvider(
+        providers: <SingleChildWidget>[
+          BlocProvider<IssueTokenBloc>(
+            create: (_) => IssueTokenBloc(
+              accountBlockUtils: AccountBlockUtils(),
+              zenon: zenon!,
+              zenonAddressUtils: ZenonAddressUtils(),
+            ),
           ),
-        ),
-      ],
-      child: const CreateTokenStepperView(),
+        ],
+        child: const CreateTokenStepperView(),
+      ),
     );
   }
 }

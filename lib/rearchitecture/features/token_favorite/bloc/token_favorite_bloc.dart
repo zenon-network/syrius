@@ -2,8 +2,8 @@ import 'dart:async';
 
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
-import 'package:hive_ce/hive_ce.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/token_favorite/exceptions/favorite_tokens_exception.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/token_favorite/repository/favorite_tokens_repository.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 part 'token_favorite_event.dart';
@@ -15,32 +15,32 @@ class TokenFavoriteBloc extends Bloc<TokenFavoriteEvent, TokenFavoriteState> {
   /// Creates a [TokenFavoriteBloc] for [tokenStandard].
   factory TokenFavoriteBloc({
     required TokenStandard tokenStandard,
-    Box<dynamic>? favoriteTokensBox,
+    FavoriteTokensRepository? repository,
   }) {
-    final Box<dynamic> box =
-        favoriteTokensBox ?? Hive.box<dynamic>(kFavoriteTokensBox);
+    final FavoriteTokensRepository favoriteTokensRepository =
+        repository ?? HiveFavoriteTokensRepository();
     return TokenFavoriteBloc._(
-      favoriteTokensBox: box,
-      tokenStandard: tokenStandard.toString(),
+      repository: favoriteTokensRepository,
+      tokenStandard: tokenStandard,
     );
   }
 
   TokenFavoriteBloc._({
-    required Box<dynamic> favoriteTokensBox,
-    required String tokenStandard,
-  }) : _favoriteTokensBox = favoriteTokensBox,
+    required FavoriteTokensRepository repository,
+    required TokenStandard tokenStandard,
+  }) : _repository = repository,
        _tokenStandard = tokenStandard,
        super(
-         favoriteTokensBox.values.contains(tokenStandard)
-             ? const TokenFavoriteAddSuccess()
-             : const TokenFavoriteRemoveSuccess(),
+         repository.contains(tokenStandard)
+             ? const TokenFavoriteFavorited()
+             : const TokenFavoriteNotFavorited(),
        ) {
     on<TokenFavoriteAdded>(_onTokenFavoriteAdded);
     on<TokenFavoriteRemoved>(_onTokenFavoriteRemoved);
   }
 
-  final Box<dynamic> _favoriteTokensBox;
-  final String _tokenStandard;
+  final FavoriteTokensRepository _repository;
+  final TokenStandard _tokenStandard;
 
   FutureOr<void> _onTokenFavoriteAdded(
     TokenFavoriteAdded event,
@@ -49,18 +49,18 @@ class TokenFavoriteBloc extends Bloc<TokenFavoriteEvent, TokenFavoriteState> {
     if (state is TokenFavoriteLoading) {
       return;
     }
-    if (_favoriteTokensBox.values.contains(_tokenStandard)) {
-      emit(const TokenFavoriteAddSuccess());
-      return;
-    }
 
     emit(const TokenFavoriteLoading());
     try {
-      await _favoriteTokensBox.add(_tokenStandard);
-      emit(const TokenFavoriteAddSuccess());
+      await _repository.add(_tokenStandard);
+      emit(const TokenFavoriteFavorited());
     } on Object catch (error, stackTrace) {
-      addError(error, stackTrace);
-      emit(TokenFavoriteAddFailure(error: error));
+      final AddingToFavoriteTokensException exception =
+          error is AddingToFavoriteTokensException
+          ? error
+          : AddingToFavoriteTokensException(cause: error);
+      addError(exception, stackTrace);
+      emit(TokenFavoriteFailure(exception: exception));
     }
   }
 
@@ -72,21 +72,17 @@ class TokenFavoriteBloc extends Bloc<TokenFavoriteEvent, TokenFavoriteState> {
       return;
     }
 
+    emit(const TokenFavoriteLoading());
     try {
-      final int index = _favoriteTokensBox.values.toList().indexOf(
-        _tokenStandard,
-      );
-      if (index == -1) {
-        emit(const TokenFavoriteRemoveSuccess());
-        return;
-      }
-
-      emit(const TokenFavoriteLoading());
-      await _favoriteTokensBox.deleteAt(index);
-      emit(const TokenFavoriteRemoveSuccess());
+      await _repository.remove(_tokenStandard);
+      emit(const TokenFavoriteNotFavorited());
     } on Object catch (error, stackTrace) {
-      addError(error, stackTrace);
-      emit(TokenFavoriteRemoveFailure(error: error));
+      final RemovingFromFavoriteTokensException exception =
+          error is RemovingFromFavoriteTokensException
+          ? error
+          : RemovingFromFavoriteTokensException(cause: error);
+      addError(exception, stackTrace);
+      emit(TokenFavoriteFailure(exception: exception));
     }
   }
 }
