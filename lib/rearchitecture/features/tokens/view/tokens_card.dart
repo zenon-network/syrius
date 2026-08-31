@@ -194,6 +194,9 @@ class _TokensGrid extends StatelessWidget {
     );
   }
 
+  // TODO(maznnwell): Remove this sorting. Reordering a partially loaded list
+  //  moves items as pages load or favorites change, disrupting the user's
+  //  position.
   List<Token> _sortTokens(List<Token> tokens) {
     final List<Token> ztsTokens = tokens
         .where(
