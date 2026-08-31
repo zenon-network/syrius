@@ -1,3 +1,6 @@
+// BDD Usage comments intentionally mirror Gherkin placeholders.
+// ignore_for_file: unintended_html_in_doc_comment, non_constant_identifier_names
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart' as app;
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
@@ -5,11 +8,12 @@ import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 import '../support/devnet_test_context.dart';
 
-/// Usage: the devnet token owner is prepared for issuing NewToken
-Future<void> theDevnetTokenOwnerIsPreparedForIssuingNewtoken(
+/// Usage: <token_owner> is prepared for issuing a token
+Future<void> isPreparedForIssuingAToken(
   WidgetTester tester,
+  dynamic token_owner,
 ) async {
-  const String owner = DevnetTestContext.testTokenOwnerAddress;
+  final String owner = token_owner as String;
   selectDevnetSender(owner);
 
   final Address ownerAddress = Address.parse(owner);

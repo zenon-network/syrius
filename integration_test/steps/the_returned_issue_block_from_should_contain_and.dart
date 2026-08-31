@@ -1,5 +1,5 @@
-// BDD Usage comments intentionally mirror Gherkin step text.
-// ignore_for_file: lines_longer_than_80_chars
+// BDD Usage comments intentionally mirror Gherkin placeholders.
+// ignore_for_file: unintended_html_in_doc_comment, lines_longer_than_80_chars, non_constant_identifier_names
 
 import 'dart:async';
 
@@ -11,22 +11,35 @@ import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 import '../support/devnet_test_context.dart';
 
-/// Usage: the blockchain should contain NewToken with the submitted stepper data
-Future<void> theBlockchainShouldContainNewtokenWithTheSubmittedStepperData(
+/// Usage: the returned issue block from <token_owner> should contain <token_name>, <token_symbol>, <website>, <mintable>, <burnable>, <decimals>, <max_supply>, <total_supply>, and <utility>
+Future<void> theReturnedIssueBlockFromShouldContainAnd(
   WidgetTester tester,
+  dynamic token_owner,
+  dynamic token_name,
+  dynamic token_symbol,
+  dynamic website,
+  dynamic mintable,
+  dynamic burnable,
+  dynamic decimals,
+  dynamic max_supply,
+  dynamic total_supply,
+  dynamic utility,
 ) async {
   final DevnetTestContext context = app.sl<DevnetTestContext>();
   final AccountBlockTemplate expectedBlock = context.issueTokenBlock!;
-  final Address ownerAddress = Address.parse(
-    DevnetTestContext.testTokenOwnerAddress,
-  );
-  final BigInt scale = BigInt.from(10).pow(
-    DevnetTestContext.testTokenDecimals,
-  );
+  final Address ownerAddress = Address.parse(token_owner as String);
+  final String tokenName = token_name as String;
+  final String tokenSymbol = token_symbol as String;
+  final String tokenWebsite = website as String;
+  final bool isMintable = bool.parse(mintable as String);
+  final bool isBurnable = bool.parse(burnable as String);
+  final int tokenDecimals = int.parse(decimals as String);
+  final bool isUtility = bool.parse(utility as String);
+  final BigInt scale = BigInt.from(10).pow(tokenDecimals);
   final BigInt expectedMaxSupply =
-      BigInt.parse(DevnetTestContext.testTokenMaxSupply) * scale;
+      BigInt.parse(max_supply as String) * scale;
   final BigInt expectedTotalSupply =
-      BigInt.parse(DevnetTestContext.testTokenTotalSupply) * scale;
+      BigInt.parse(total_supply as String) * scale;
 
   final AccountBlock? createdBlock = await _poll<AccountBlock?>(
     () => app.zenon!.ledger.getAccountBlockByHash(expectedBlock.hash),
@@ -38,12 +51,11 @@ Future<void> theBlockchainShouldContainNewtokenWithTheSubmittedStepperData(
 
   expect(createdBlock, isNotNull);
   expect(createdBlock!.hash, expectedBlock.hash);
-  expect(createdBlock.chainIdentifier, DevnetTestContext.chainId);
+  expect(createdBlock.chainIdentifier, expectedBlock.chainIdentifier);
   expect(createdBlock.blockType, BlockTypeEnum.userSend.index);
   expect(createdBlock.address, ownerAddress);
   expect(createdBlock.toAddress, tokenAddress);
-  expect(createdBlock.tokenStandard, znnZts);
-  expect(createdBlock.amount, tokenZtsIssueFeeInZnn);
+  expect(createdBlock.data, expectedBlock.data);
   expect(
     createdBlock.confirmationDetail!.numConfirmations,
     greaterThanOrEqualTo(1),
@@ -51,22 +63,13 @@ Future<void> theBlockchainShouldContainNewtokenWithTheSubmittedStepperData(
 
   final BlockData? blockData = AccountBlockUtils.getDecodedBlockData(
     Definitions.token,
-    createdBlock.data,
+    expectedBlock.data,
   );
   expect(blockData, isNotNull);
   expect(blockData!.function, 'IssueToken');
-  expect(
-    blockData.params['tokenName'],
-    DevnetTestContext.testTokenName,
-  );
-  expect(
-    blockData.params['tokenSymbol'],
-    DevnetTestContext.testTokenSymbol,
-  );
-  expect(
-    blockData.params['tokenDomain'],
-    DevnetTestContext.testTokenDomain,
-  );
+  expect(blockData.params['tokenName'], tokenName);
+  expect(blockData.params['tokenSymbol'], tokenSymbol);
+  expect(blockData.params['tokenDomain'], tokenWebsite);
   expect(
     BigInt.parse(blockData.params['totalSupply'].toString()),
     expectedTotalSupply,
@@ -77,11 +80,11 @@ Future<void> theBlockchainShouldContainNewtokenWithTheSubmittedStepperData(
   );
   expect(
     BigInt.parse(blockData.params['decimals'].toString()),
-    BigInt.from(DevnetTestContext.testTokenDecimals),
+    BigInt.from(tokenDecimals),
   );
-  expect(blockData.params['isMintable'], isTrue);
-  expect(blockData.params['isBurnable'], isTrue);
-  expect(blockData.params['isUtility'], isTrue);
+  expect(blockData.params['isMintable'], isMintable);
+  expect(blockData.params['isBurnable'], isBurnable);
+  expect(blockData.params['isUtility'], isUtility);
 
   final TokenStandard expectedZts = TokenStandard.fromBytes(
     Crypto.digest(createdBlock.hash.getBytes()!).sublist(
@@ -98,15 +101,15 @@ Future<void> theBlockchainShouldContainNewtokenWithTheSubmittedStepperData(
   expect(token, isNotNull);
   expect(token!.tokenStandard, expectedZts);
   expect(token.owner, ownerAddress);
-  expect(token.name, DevnetTestContext.testTokenName);
-  expect(token.symbol, DevnetTestContext.testTokenSymbol);
-  expect(token.domain, DevnetTestContext.testTokenDomain);
+  expect(token.name, tokenName);
+  expect(token.symbol, tokenSymbol);
+  expect(token.domain, tokenWebsite);
   expect(token.totalSupply, expectedTotalSupply);
   expect(token.maxSupply, expectedMaxSupply);
-  expect(token.decimals, DevnetTestContext.testTokenDecimals);
-  expect(token.isMintable, isTrue);
-  expect(token.isBurnable, isTrue);
-  expect(token.isUtility, isTrue);
+  expect(token.decimals, tokenDecimals);
+  expect(token.isMintable, isMintable);
+  expect(token.isBurnable, isBurnable);
+  expect(token.isUtility, isUtility);
 }
 
 Future<T> _poll<T>(

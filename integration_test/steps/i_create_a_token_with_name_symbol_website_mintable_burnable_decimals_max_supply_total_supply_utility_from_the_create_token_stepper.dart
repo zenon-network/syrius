@@ -1,3 +1,6 @@
+// BDD Usage comments intentionally mirror Gherkin placeholders.
+// ignore_for_file: unintended_html_in_doc_comment, non_constant_identifier_names
+
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -11,12 +14,30 @@ import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 import '../support/devnet_test_context.dart';
 
-/// Usage: I create NewToken from the Create Token stepper
-Future<void> iCreateNewtokenFromTheCreateTokenStepper(
+/// Usage: I create a token with name <token_name>, symbol <token_symbol>, website <website>, mintable <mintable>, burnable <burnable>, decimals <decimals>, max supply <max_supply>, total supply <total_supply>, utility <utility> from the Create Token stepper
+Future<void>
+iCreateATokenWithNameSymbolWebsiteMintableBurnableDecimalsMaxSupplyTotalSupplyUtilityFromTheCreateTokenStepper(
   WidgetTester tester,
+  dynamic token_name,
+  dynamic token_symbol,
+  dynamic website,
+  dynamic mintable,
+  dynamic burnable,
+  dynamic decimals,
+  dynamic max_supply,
+  dynamic total_supply,
+  dynamic utility,
 ) async {
   final DevnetTestContext context = app.sl<DevnetTestContext>();
-  selectDevnetSender(DevnetTestContext.testTokenOwnerAddress);
+  final String tokenName = token_name as String;
+  final String tokenSymbol = token_symbol as String;
+  final String tokenWebsite = website as String;
+  final bool isMintable = bool.parse(mintable as String);
+  final bool isBurnable = bool.parse(burnable as String);
+  final int tokenDecimals = int.parse(decimals as String);
+  final String maxSupply = max_supply as String;
+  final String totalSupply = total_supply as String;
+  final bool isUtility = bool.parse(utility as String);
 
   await tester.pumpWidget(
     MaterialApp(
@@ -41,29 +62,29 @@ Future<void> iCreateNewtokenFromTheCreateTokenStepper(
   await _enterText(
     tester,
     const Key('token_name_field'),
-    DevnetTestContext.testTokenName,
+    tokenName,
   );
   await _enterText(
     tester,
     const Key('token_symbol_field'),
-    DevnetTestContext.testTokenSymbol,
+    tokenSymbol,
   );
   await _enterText(
     tester,
     const Key('token_domain_field'),
-    DevnetTestContext.testTokenDomain,
+    tokenWebsite,
   );
   await _tapAndSettle(tester, const Key('token_details_next_button'));
 
   await _setCheckbox(
     tester,
     const Key('token_mintable_checkbox'),
-    value: true,
+    value: isMintable,
   );
   await _setCheckbox(
     tester,
     const Key('token_burnable_checkbox'),
-    value: true,
+    value: isBurnable,
   );
   await _tapAndSettle(tester, const Key('token_options_next_button'));
 
@@ -74,26 +95,26 @@ Future<void> iCreateNewtokenFromTheCreateTokenStepper(
   final Slider decimalsSlider = tester.widget<Slider>(
     find.byKey(const Key('token_decimals_slider')),
   );
-  decimalsSlider.onChanged!(DevnetTestContext.testTokenDecimals.toDouble());
+  decimalsSlider.onChanged!(tokenDecimals.toDouble());
   await tester.pumpAndSettle();
 
   await _enterText(
     tester,
     const Key('token_max_supply_field'),
-    DevnetTestContext.testTokenMaxSupply,
+    maxSupply,
   );
   await _enterText(
     tester,
     const Key('token_total_supply_field'),
-    DevnetTestContext.testTokenTotalSupply,
+    totalSupply,
   );
   await _tapAndSettle(tester, const Key('token_metrics_next_button'));
 
-  final Finder utilityCheckbox = find.byKey(
+  await _setCheckbox(
+    tester,
     const Key('token_utility_checkbox'),
+    value: isUtility,
   );
-  await _pumpUntilFound(tester, utilityCheckbox);
-  expect(tester.widget<Checkbox>(utilityCheckbox).value, isTrue);
 
   final Finder createButtonContainer = find.byKey(
     const Key('token_create_button'),

@@ -35,14 +35,6 @@ class DevnetTestContext {
   static const int testPillarMomentumReward = 30;
   static const int testPillarDelegationReward = 55;
   static const String testPillarSetupQsrFuseAmount = '120';
-  static const String testTokenOwnerAddress =
-      'z1qq6eg8n43g032hanpsfp02qcdmv7zfj3y2lt5d';
-  static const String testTokenName = 'NewToken';
-  static const String testTokenSymbol = 'TKK';
-  static const String testTokenDomain = 'zenon.org';
-  static const int testTokenDecimals = 5;
-  static const String testTokenMaxSupply = '100';
-  static const String testTokenTotalSupply = '85';
 
   static const Map<int, String> fundedDevAddresses = <int, String>{
     1: 'z1qq6eg8n43g032hanpsfp02qcdmv7zfj3y2lt5d',
