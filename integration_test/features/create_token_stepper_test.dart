@@ -7,9 +7,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 
 import '../../integration_test/bdd_hooks/hooks.dart';
-import '../../integration_test/steps/is_prepared_for_issuing_a_token.dart';
-import '../../integration_test/steps/i_create_a_token_with_name_symbol_website_mintable_burnable_decimals_max_supply_total_supply_utility_from_the_create_token_stepper.dart';
-import '../../integration_test/steps/the_returned_issue_block_from_should_contain_and.dart';
+import './../steps/is_prepared_for_issuing_a_token.dart';
+import './../steps/i_create_a_token_with_name_symbol_website_mintable_burnable_decimals_max_supply_total_supply_utility_from_the_create_token_stepper.dart';
+import './../steps/the_returned_issue_block_from_should_contain_and.dart';
 
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
