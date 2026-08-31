@@ -80,15 +80,21 @@ void main() {
       WidgetTester tester,
     ) async {
       final MockAccountBlockTemplate accountBlock = MockAccountBlockTemplate();
+      final TokenStandard newTokenStandard = TokenStandard.parse(
+        'zts1zdl4pmr425t0j97v4eu0du',
+      );
       final List<String> calls = <String>[];
       when(() => accountBlock.tokenStandard).thenReturn(znnZts);
       when(
-        () => favoriteTokensRepository.add(znnZts),
+        () => favoriteTokensRepository.add(newTokenStandard),
       ).thenAnswer((_) async => calls.add('favorite'));
       whenListen(
         issueTokenBloc,
         Stream<IssueTokenState>.value(
-          IssueTokenDone(accountBlock: accountBlock),
+          IssueTokenDone(
+            accountBlock: accountBlock,
+            newTokenStandard: newTokenStandard,
+          ),
         ),
         initialState: const IssueTokenInitial(),
       );
@@ -102,7 +108,9 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      verify(() => favoriteTokensRepository.add(znnZts)).called(1);
+      verify(
+        () => favoriteTokensRepository.add(newTokenStandard),
+      ).called(1);
       expect(calls, <String>['favorite', 'done']);
     });
   });

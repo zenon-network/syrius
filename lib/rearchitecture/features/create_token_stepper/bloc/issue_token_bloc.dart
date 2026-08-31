@@ -59,7 +59,23 @@ class IssueTokenBloc extends Bloc<IssueTokenEvent, IssueTokenState> {
 
       _zenonAddressUtils.refreshBalance();
 
-      emit(IssueTokenDone(accountBlock: response));
+      // Info on how the new token standard is generate can be found at:
+      // https://github.com/zenon-network/go-zenon/blob/667a69d9e9a418edf7580b08492ba5dcb9efd63a/vm/embedded/implementation/token.go#L71
+      // and
+      // https://github.com/zenon-network/go-zenon/blob/667a69d9e9a418edf7580b08492ba5dcb9efd63a/common/types/tokenstandard.go#L12-L25
+      final TokenStandard newTokenStandard = TokenStandard.fromBytes(
+        Crypto.digest(response.hash.getBytes()!).sublist(
+          0,
+          TokenStandard.coreSize,
+        ),
+      );
+
+      emit(
+        IssueTokenDone(
+          accountBlock: response,
+          newTokenStandard: newTokenStandard,
+        ),
+      );
     } on SyriusException catch (e, stackTrace) {
       addError(e, stackTrace);
       emit(IssueTokenFailure(exception: e));

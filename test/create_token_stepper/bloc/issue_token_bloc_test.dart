@@ -38,6 +38,8 @@ void main() {
     late MockZenonAddressUtils zenonAddressUtils;
     late MockAccountBlockTemplate template;
     late MockAccountBlockTemplate response;
+    late Hash sendBlockHash;
+    late TokenStandard newTokenStandard;
     late NewTokenData tokenData;
     late IssueTokenBloc bloc;
 
@@ -49,6 +51,13 @@ void main() {
       zenonAddressUtils = MockZenonAddressUtils();
       template = MockAccountBlockTemplate();
       response = MockAccountBlockTemplate();
+      sendBlockHash = Hash.parse(
+        '33f409250960e0c1c9f57b8a278f0937'
+        '49bf8844ea0ca4f4b7b5526d05cdd3ce',
+      );
+      newTokenStandard = TokenStandard.parse(
+        'zts1zdl4pmr425t0j97v4eu0du',
+      );
       tokenData = NewTokenData(
         address: emptyAddress.toString(),
         tokenName: 'Token',
@@ -77,6 +86,7 @@ void main() {
           any(),
         ),
       ).thenReturn(template);
+      when(() => response.hash).thenReturn(sendBlockHash);
       when(() => response.tokenStandard).thenReturn(znnZts);
       when(
         () => accountBlockUtils.createAccountBlock(
@@ -123,7 +133,10 @@ void main() {
       },
       expect: () => <IssueTokenState>[
         const IssueTokenLoading(),
-        IssueTokenDone(accountBlock: response),
+        IssueTokenDone(
+          accountBlock: response,
+          newTokenStandard: newTokenStandard,
+        ),
       ],
     );
 

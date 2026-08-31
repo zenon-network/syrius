@@ -24,13 +24,19 @@ final class IssueTokenLoading extends IssueTokenState {
 /// Success state emitted after the token has been issued.
 final class IssueTokenDone extends IssueTokenState {
   /// Creates an [IssueTokenDone] state.
-  const IssueTokenDone({required this.accountBlock});
+  const IssueTokenDone({
+    required this.accountBlock,
+    required this.newTokenStandard,
+  });
 
-  /// Account block returned after issuing the token.
+  /// Account block submitted to issue the token.
   final AccountBlockTemplate accountBlock;
 
+  /// Token standard derived from the submitted account block hash.
+  final TokenStandard newTokenStandard;
+
   @override
-  List<Object?> get props => <Object?>[accountBlock];
+  List<Object?> get props => <Object?>[accountBlock, newTokenStandard];
 }
 
 /// Failure state emitted when issuing fails.

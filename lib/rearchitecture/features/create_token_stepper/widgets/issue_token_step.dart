@@ -130,7 +130,7 @@ class _IssueTokenStepState extends State<IssueTokenStep> {
       unawaited(
         _onIssueTokenDone(
           context: context,
-          tokenStandard: state.accountBlock.tokenStandard,
+          tokenStandard: state.newTokenStandard,
         ),
       );
     } else if (state is IssueTokenFailure) {
