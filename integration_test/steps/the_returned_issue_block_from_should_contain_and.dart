@@ -36,8 +36,7 @@ Future<void> theReturnedIssueBlockFromShouldContainAnd(
   final int tokenDecimals = int.parse(decimals as String);
   final bool isUtility = bool.parse(utility as String);
   final BigInt scale = BigInt.from(10).pow(tokenDecimals);
-  final BigInt expectedMaxSupply =
-      BigInt.parse(max_supply as String) * scale;
+  final BigInt expectedMaxSupply = BigInt.parse(max_supply as String) * scale;
   final BigInt expectedTotalSupply =
       BigInt.parse(total_supply as String) * scale;
 
