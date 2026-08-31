@@ -1,80 +1,61 @@
 part of 'search_token_bloc.dart';
 
-/// Status of a token search operation.
-enum SearchTokenStatus {
-  /// No search is active.
-  initial,
+/// Base class for states emitted while searching network tokens.
+sealed class SearchTokenState extends Equatable {
+  /// Creates a token search state for [_query].
+  const SearchTokenState({required this._query});
 
-  /// Search results are being prepared.
-  loading,
-
-  /// Searching failed.
-  failure,
-
-  /// Search results are available.
-  success,
-}
-
-/// State emitted by [SearchTokenBloc].
-class SearchTokenState extends Equatable {
-  /// Creates an initial state.
-  const SearchTokenState.initial()
-    : _status = SearchTokenStatus.initial,
-      _query = '',
-      _tokens = const <Token>[],
-      _hasReachedMax = false,
-      _error = null;
-
-  /// Creates a loading state.
-  const SearchTokenState.loading({required this._query})
-    : _status = SearchTokenStatus.loading,
-      _tokens = const <Token>[],
-      _hasReachedMax = false,
-      _error = null;
-
-  /// Creates a failure state.
-  const SearchTokenState.failure({
-    required this._query,
-    required SyriusException this._error,
-  }) : _status = SearchTokenStatus.failure,
-       _tokens = const <Token>[],
-       _hasReachedMax = false;
-
-  /// Creates a successful state.
-  const SearchTokenState.success({
-    required this._query,
-    required this._tokens,
-    required this._hasReachedMax,
-  }) : _status = SearchTokenStatus.success,
-       _error = null;
-
-  final SyriusException? _error;
-  final bool _hasReachedMax;
   final String _query;
-  final SearchTokenStatus _status;
-  final List<Token> _tokens;
-
-  /// The error encountered while searching.
-  SyriusException? get error => _error;
-
-  /// Whether all matching tokens have been emitted.
-  bool get hasReachedMax => _hasReachedMax;
 
   /// The normalized search query represented by this state.
   String get query => _query;
 
-  /// The current search status.
-  SearchTokenStatus get status => _status;
+  @override
+  List<Object?> get props => <Object?>[_query];
+}
 
-  /// The currently emitted page of matching tokens.
+/// Initial state when no token search is active.
+final class SearchTokenInitial extends SearchTokenState {
+  /// Creates the initial token search state.
+  const SearchTokenInitial() : super(query: '');
+}
+
+/// Loading state while token search results are being prepared.
+final class SearchTokenLoading extends SearchTokenState {
+  /// Creates a loading token search state.
+  const SearchTokenLoading({required super.query});
+}
+
+/// Failure state emitted when searching tokens fails.
+final class SearchTokenFailure extends SearchTokenState {
+  /// Creates a token search failure state.
+  const SearchTokenFailure({
+    required super.query,
+    required this._exception,
+  });
+
+  final SyriusException _exception;
+
+  /// The error that prevented tokens from being searched.
+  SyriusException get exception => _exception;
+
+  @override
+  List<Object?> get props => <Object?>[...super.props, _exception];
+}
+
+/// Populated state containing every token matching the search query.
+final class SearchTokenPopulated extends SearchTokenState {
+  /// Creates a populated token search state.
+  const SearchTokenPopulated({
+    required super.query,
+    required this._tokens,
+  });
+
+  final List<Token> _tokens;
+
+  /// Every token matching the search query.
   List<Token> get tokens => _tokens;
 
   @override
-  List<Object?> get props => <Object?>[
-    _status,
-    _query,
-    _tokens,
-    _hasReachedMax,
-    _error,
-  ];
+  List<Object?> get props => <Object?>[...super.props, _tokens];
 }

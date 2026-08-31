@@ -123,23 +123,20 @@ class _ViewState extends State<_View> {
           return const SyriusLoadingWidget();
         }
 
-        return switch (state.status) {
-          SearchTokenStatus.initial => const SyriusLoadingWidget(),
-          SearchTokenStatus.loading => const SyriusLoadingWidget(),
-          SearchTokenStatus.failure => SyriusErrorWidget(state.error!),
-          SearchTokenStatus.success => _TokensGrid(
-            hasReachedMax: state.hasReachedMax,
-            onScrollReachedBottom: () {
-              context.read<SearchTokenBloc>().add(
-                const SearchTokenMoreRequested(),
-              );
-            },
+        return switch (state) {
+          SearchTokenInitial() ||
+          SearchTokenLoading() => const SyriusLoadingWidget(),
+          SearchTokenFailure(:final SyriusException exception) =>
+            SyriusErrorWidget(exception),
+          SearchTokenPopulated(:final List<Token> tokens) => _TokensGrid(
+            hasReachedMax: true,
+            onScrollReachedBottom: () {},
             onTokenUpdated: () {
               context.read<SearchTokenBloc>().add(
                 SearchTokenRequested(query: searchQuery, refresh: true),
               );
             },
-            tokens: state.tokens,
+            tokens: tokens,
           ),
         };
       },

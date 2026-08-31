@@ -25,12 +25,3 @@ final class SearchTokenRequested extends SearchTokenEvent {
   @override
   List<Object> get props => <Object>[_query, _refresh];
 }
-
-/// Requests the next page of matching tokens.
-final class SearchTokenMoreRequested extends SearchTokenEvent {
-  /// Creates a new instance.
-  const SearchTokenMoreRequested();
-
-  @override
-  List<Object> get props => <Object>[];
-}

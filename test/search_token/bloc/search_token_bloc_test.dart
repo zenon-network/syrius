@@ -61,12 +61,10 @@ void main() {
     }
 
     SearchTokenBloc createBloc({
-      int pageSize = 10,
       Duration debounceDuration = Duration.zero,
     }) {
       return SearchTokenBloc(
         zenon: zenon,
-        pageSize: pageSize,
         debounceDuration: debounceDuration,
       );
     }
@@ -90,7 +88,7 @@ void main() {
     });
 
     test('initial state is correct', () {
-      expect(createBloc().state, const SearchTokenState.initial());
+      expect(createBloc().state, const SearchTokenInitial());
     });
 
     blocTest<SearchTokenBloc, SearchTokenState>(
@@ -114,40 +112,30 @@ void main() {
         ).called(1);
       },
       expect: () => <SearchTokenState>[
-        const SearchTokenState.loading(query: 'znn'),
-        SearchTokenState.success(
+        const SearchTokenLoading(query: 'znn'),
+        SearchTokenPopulated(
           query: 'znn',
           tokens: <Token>[tokens[1]],
-          hasReachedMax: true,
         ),
       ],
     );
 
     blocTest<SearchTokenBloc, SearchTokenState>(
-      'paginates matching tokens locally',
+      'returns all matching tokens together',
       setUp: () {
         tokens = <Token>[
           createToken('ALPHA'),
           createToken('ALPINE'),
         ];
       },
-      build: () => createBloc(pageSize: 1),
-      act: (SearchTokenBloc bloc) async {
-        bloc.add(const SearchTokenRequested(query: 'alp'));
-        await Future<void>.delayed(const Duration(milliseconds: 10));
-        bloc.add(const SearchTokenMoreRequested());
-      },
+      build: createBloc,
+      act: (SearchTokenBloc bloc) =>
+          bloc.add(const SearchTokenRequested(query: 'alp')),
       expect: () => <SearchTokenState>[
-        const SearchTokenState.loading(query: 'alp'),
-        SearchTokenState.success(
-          query: 'alp',
-          tokens: <Token>[tokens[0]],
-          hasReachedMax: false,
-        ),
-        SearchTokenState.success(
+        const SearchTokenLoading(query: 'alp'),
+        SearchTokenPopulated(
           query: 'alp',
           tokens: tokens,
-          hasReachedMax: true,
         ),
       ],
     );
@@ -197,11 +185,10 @@ void main() {
         );
       },
       expect: () => <SearchTokenState>[
-        const SearchTokenState.loading(query: 'later'),
-        SearchTokenState.success(
+        const SearchTokenLoading(query: 'later'),
+        SearchTokenPopulated(
           query: 'later',
           tokens: <Token>[tokenOnSecondPage],
-          hasReachedMax: true,
         ),
       ],
     );
@@ -218,11 +205,10 @@ void main() {
       act: (SearchTokenBloc bloc) =>
           bloc.add(const SearchTokenRequested(query: 'SECOND')),
       expect: () => <SearchTokenState>[
-        const SearchTokenState.loading(query: 'SECOND'),
-        SearchTokenState.success(
+        const SearchTokenLoading(query: 'SECOND'),
+        SearchTokenPopulated(
           query: 'SECOND',
           tokens: <Token>[tokens[1]],
-          hasReachedMax: true,
         ),
       ],
     );
@@ -239,11 +225,10 @@ void main() {
       act: (SearchTokenBloc bloc) =>
           bloc.add(const SearchTokenRequested(query: 'SECONDOWNER')),
       expect: () => <SearchTokenState>[
-        const SearchTokenState.loading(query: 'SECONDOWNER'),
-        SearchTokenState.success(
+        const SearchTokenLoading(query: 'SECONDOWNER'),
+        SearchTokenPopulated(
           query: 'SECONDOWNER',
           tokens: <Token>[tokens[1]],
-          hasReachedMax: true,
         ),
       ],
     );
@@ -260,11 +245,10 @@ void main() {
       act: (SearchTokenBloc bloc) =>
           bloc.add(const SearchTokenRequested(query: 'SECONDSTANDARD')),
       expect: () => <SearchTokenState>[
-        const SearchTokenState.loading(query: 'SECONDSTANDARD'),
-        SearchTokenState.success(
+        const SearchTokenLoading(query: 'SECONDSTANDARD'),
+        SearchTokenPopulated(
           query: 'SECONDSTANDARD',
           tokens: <Token>[tokens[1]],
-          hasReachedMax: true,
         ),
       ],
     );
@@ -295,11 +279,10 @@ void main() {
         ).called(1);
       },
       expect: () => <SearchTokenState>[
-        const SearchTokenState.loading(query: 'beta'),
-        SearchTokenState.success(
+        const SearchTokenLoading(query: 'beta'),
+        SearchTokenPopulated(
           query: 'beta',
           tokens: <Token>[tokens[1]],
-          hasReachedMax: true,
         ),
       ],
     );
@@ -328,17 +311,15 @@ void main() {
         ).called(1);
       },
       expect: () => <SearchTokenState>[
-        const SearchTokenState.loading(query: 'alpha'),
-        SearchTokenState.success(
+        const SearchTokenLoading(query: 'alpha'),
+        SearchTokenPopulated(
           query: 'alpha',
           tokens: <Token>[tokens[0]],
-          hasReachedMax: true,
         ),
-        const SearchTokenState.loading(query: 'beta'),
-        SearchTokenState.success(
+        const SearchTokenLoading(query: 'beta'),
+        SearchTokenPopulated(
           query: 'beta',
           tokens: <Token>[tokens[1]],
-          hasReachedMax: true,
         ),
       ],
     );
@@ -357,18 +338,12 @@ void main() {
       act: (SearchTokenBloc bloc) =>
           bloc.add(const SearchTokenRequested(query: 'token')),
       expect: () => <Matcher>[
-        equals(const SearchTokenState.loading(query: 'token')),
-        isA<SearchTokenState>()
-            .having(
-              (SearchTokenState state) => state.status,
-              'status',
-              SearchTokenStatus.failure,
-            )
-            .having(
-              (SearchTokenState state) => state.error,
-              'error',
-              isA<FailureException>(),
-            ),
+        equals(const SearchTokenLoading(query: 'token')),
+        isA<SearchTokenFailure>().having(
+          (SearchTokenFailure state) => state.exception,
+          'exception',
+          isA<FailureException>(),
+        ),
       ],
     );
   });
