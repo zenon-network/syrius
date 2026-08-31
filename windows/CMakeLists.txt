@@ -157,7 +157,3 @@ foreach(znn_library ${SYRIUS_LIBRARIES})
   # Print a status message indicating that the current library is being copied.
   message(STATUS "Copy ZNN library: \"${znn_library}\"")
 endforeach(znn_library)
-
-find_program(POWERSHELL_PATH NAMES powershell)
-add_custom_target("git_metadata" ALL
-        COMMAND ${POWERSHELL_PATH} -ExecutionPolicy Bypass "${CMAKE_HOME_DIRECTORY}/CreateGitMetadata.ps1")

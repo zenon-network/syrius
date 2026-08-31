@@ -1,1 +1,1 @@
-export './bloc/pillars_by_owner_bloc.dart';
+export 'bloc/pillars_by_owner_bloc.dart';

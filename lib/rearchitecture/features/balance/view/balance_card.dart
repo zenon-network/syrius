@@ -45,6 +45,7 @@ class BalanceCard extends StatelessWidget {
               TimerStatus.success => BalancePopulated(
                 address: kSelectedAddress!,
                 accountInfo: state.data!,
+                zts: <Token>[kZnnCoin, kQsrCoin],
               ),
             };
           },

@@ -60,6 +60,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get checkSentinelStatus => ' to check the Sentinel status';
 
   @override
+  String get clickToAddToFavorites => 'Click to add to favorites';
+
+  @override
+  String get clickToRemoveFromFavorites => 'Click to remove from favorites';
+
+  @override
   String get coin => 'Coin';
 
   @override
@@ -84,6 +90,26 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get burn => 'Burn';
+
+  @override
+  String get burnableToken => 'Burnable by any holder';
+
+  @override
+  String burnTokenIssueFee(Object amount, Object symbol) {
+    return 'You will need to burn $amount $symbol to issue a token';
+  }
+
+  @override
+  String get continueText => 'Continue';
+
+  @override
+  String get create => 'Create';
+
+  @override
+  String get createAnotherToken => 'Create another Token';
+
+  @override
   String get createPillarDescription =>
       'Start the process of deploying a Pillar Node in the network';
 
@@ -106,6 +132,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get createStakeTitle => 'Create Stake';
 
   @override
+  String get createToken => 'Create Token';
+
+  @override
+  String get createTokenDescription =>
+      'Create a token following the ZTS specification';
+
+  @override
+  String get createTokenTitle => 'Create Token';
+
+  @override
   String currentAmounts(Object kQsrCoinSymbol, Object kZnnCoinSymbol) {
     return 'This card displays the current $kZnnCoinSymbol and $kQsrCoinSymbol amounts for the selected address';
   }
@@ -122,6 +158,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get date => 'Date';
+
+  @override
+  String decimals(Object number) {
+    return '$number decimals';
+  }
 
   @override
   String get delegateKey => 'DELEGATE';
@@ -191,6 +232,17 @@ class AppLocalizationsEn extends AppLocalizations {
   String get duration => 'Duration';
 
   @override
+  String get errorCreatingToken => 'Error while creating a new ZTS token';
+
+  @override
+  String errorAddingTokenToFavorites(Object name) {
+    return 'Error adding $name token to favorites';
+  }
+
+  @override
+  String get errorBurningZts => 'Error while trying to burn ZTS';
+
+  @override
   String get errorCollectingPillarRewards =>
       'Error while collecting Pillar rewards';
 
@@ -229,6 +281,20 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get errorGeneratingPlasma => 'Error while generating Plasma';
+
+  @override
+  String errorMintingToken(Object symbol) {
+    return 'Error while trying to mint $symbol';
+  }
+
+  @override
+  String errorRemovingTokenFromFavorites(Object name) {
+    return 'Error removing $name token from favorites';
+  }
+
+  @override
+  String get errorTransferringTokenOwnership =>
+      'Error while trying to transfer token ownership';
 
   @override
   String errorWhileDepositing(Object kQsrCoinSymbol) {
@@ -286,6 +352,9 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get issueToken => 'Issue Token';
+
+  @override
   String get latestTransactionsDescription =>
       'This card displays the latest transactions (including ZTS tokens) of your selected address';
 
@@ -319,7 +388,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String get max => 'Max';
 
   @override
+  String get maxSupply => 'Max supply';
+
+  @override
   String get minAgo => 'min ago';
+
+  @override
+  String get mint => 'Mint';
+
+  @override
+  String get mintable => 'Mintable';
+
+  @override
+  String get mintableToken => 'Mintable token';
 
   @override
   String momentumPercentageGiven(Object percentage) {
@@ -337,7 +418,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get name => 'Name';
 
   @override
+  String get newOwnerAddress => 'New owner address';
+
+  @override
   String get next => 'Next';
+
+  @override
+  String get no => 'no';
 
   @override
   String get noItemsFound => 'No items founds';
@@ -347,6 +434,17 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get noRewardsCollect => 'No rewards to collect';
+
+  @override
+  String get noZtsTokensAvailable => 'No ZTS tokens available';
+
+  @override
+  String numberOfDecimals(Object number) {
+    return 'Number of decimals: $number';
+  }
+
+  @override
+  String get ownZtsToken => 'You own this ZTS token';
 
   @override
   String get password => 'Password';
@@ -381,9 +479,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get pillarDelegationError => 'Pillar delegation error';
-
-  @override
-  String get pillarDeployment => 'Pillar deployment: Plasma check';
 
   @override
   String get pillarDetails => 'Pillar details';
@@ -461,6 +556,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get plasma => 'Plasma';
 
   @override
+  String get plasmaCheck => 'Plasma Check';
+
+  @override
   String get pressToReceive => 'Press to receive the transaction';
 
   @override
@@ -526,6 +624,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get saveQr => 'Save QR';
 
   @override
+  String get searchTokenHint =>
+      'Search by name, symbol, owner, or token standard';
+
+  @override
   String get send => 'Send';
 
   @override
@@ -578,9 +680,6 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get sentinelDetectedOnThisAddress =>
       'Sentinel detected on this address';
-
-  @override
-  String get sentinelDeployment => 'Sentinel deployment: Plasma check';
 
   @override
   String get sentinelRegistered => 'Sentinel registered';
@@ -651,16 +750,132 @@ class AppLocalizationsEn extends AppLocalizations {
   String get successfully => 'successfully';
 
   @override
+  String successfullyBurned(Object amount, Object symbol) {
+    return 'Successfully burned $amount $symbol';
+  }
+
+  @override
+  String successfullyBurnedRequestedAmount(
+    Object amount,
+    Object hash,
+    Object symbol,
+  ) {
+    return 'You have successfully burned the requested amount: $amount $symbol $hash';
+  }
+
+  @override
+  String successfullyMinted(Object amount, Object symbol) {
+    return 'Successfully minted $amount $symbol';
+  }
+
+  @override
+  String successfullyMintedRequestedAmount(
+    Object amount,
+    Object hash,
+    Object symbol,
+  ) {
+    return 'You have successfully minted the requested amount: $amount $symbol $hash';
+  }
+
+  @override
   String get sufficientPlasma => 'Sufficient Plasma';
 
   @override
   String get to => 'to';
 
   @override
+  String tokenAddedToFavorites(Object name) {
+    return '$name token has been added to favorites';
+  }
+
+  @override
+  String get tokenBalanceDescription =>
+      'This card displays information about ZTS tokens that you currently hold in your wallet';
+
+  @override
+  String get tokenBalanceTitle => 'Token Balance';
+
+  @override
+  String get tokenBurnTooltip =>
+      'When enabled, any holder can burn tokens from their own balance. When disabled, only the token owner can burn.';
+
+  @override
+  String get tokenCreation => 'ZNN Check';
+
+  @override
+  String get tokenDetails => 'Details';
+
+  @override
+  String get tokenDomain => 'Token Domain';
+
+  @override
+  String get tokenIssuanceAddressDescription =>
+      'This will be your issuance address';
+
+  @override
+  String get tokenMetrics => 'Metrics';
+
+  @override
+  String get tokenMintableBurnableOptions => 'Mintable and Burnable Options';
+
+  @override
+  String tokenMintableBurnableSubtitle(Object burnable, Object mintable) {
+    return 'Mintable: $mintable\nBurnable: $burnable';
+  }
+
+  @override
+  String get tokenMintableTooltip =>
+      'Whether or not this token is mintable after creation';
+
+  @override
+  String get tokenName => 'Token Name';
+
+  @override
+  String tokenRemovedFromFavorites(Object name) {
+    return '$name token has been removed from favorites';
+  }
+
+  @override
+  String get tokenStatusUtilityTooltip =>
+      'Token status: utility or non-utility (e.g. security token)';
+
+  @override
+  String tokenSummary(Object name, Object symbol, Object tokenStandard) {
+    return 'Token $name with symbol $symbol and ZTS $tokenStandard';
+  }
+
+  @override
+  String tokenSupplyOutOfMax(
+    Object maxSupply,
+    Object symbol,
+    Object totalSupply,
+  ) {
+    return '$totalSupply out of $maxSupply $symbol';
+  }
+
+  @override
+  String get tokenSymbol => 'Token Symbol';
+
+  @override
   String get tokenTransactions => 'Token Transactions';
 
   @override
+  String get tokens => 'Tokens';
+
+  @override
+  String get tokensCardDescription =>
+      'This card displays a grid with all the ZTS tokens from the network, including ZTS tokens issued by you';
+
+  @override
+  String get totalSupply => 'Total supply';
+
+  @override
   String get transactionError => 'Error while receiving transaction';
+
+  @override
+  String visitDomain(Object domain) {
+    return 'Visit $domain';
+  }
 
   @override
   String get transactions => 'Transactions';
@@ -678,6 +893,19 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get transferDescription =>
       'Redirects you to the Transfer tab where you can manage sending and receiving funds';
+
+  @override
+  String transferredTokenOwnership(Object name) {
+    return 'Successfully transferred ownership of $name token';
+  }
+
+  @override
+  String transferredTokenOwnershipToAddress(Object address, Object name) {
+    return 'Successfully transferred ownership of $name token to address $address';
+  }
+
+  @override
+  String get transferTokenOwnership => 'Transfer token ownership';
 
   @override
   String get type => 'Type';
@@ -701,10 +929,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get uptime => 'Uptime';
 
   @override
+  String get utilityToken => 'Utility token';
+
+  @override
   String get usDateFormat => 'MM/dd/yyyy';
 
   @override
   String get viewPillars => 'View Pillars';
+
+  @override
+  String get viewMyTokens => 'View my Tokens';
 
   @override
   String get viewSentinels => 'View Sentinels';
@@ -717,6 +951,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get withdraw => 'Withdraw';
+
+  @override
+  String get yes => 'yes';
 
   @override
   String youHaveDeposited(Object coins, Object kQsrCoinSymbol) {

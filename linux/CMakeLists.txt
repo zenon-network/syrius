@@ -185,9 +185,3 @@ foreach(znn_library ${SYRIUS_LIBRARIES})
   # Print a status message indicating that the current library is being copied.
   message(STATUS "Copy ZNN library: \"${znn_library}\"")
 endforeach(znn_library)
-
-add_custom_target(
-  "git_metadata" ALL
-  COMMAND "${CMAKE_HOME_DIRECTORY}/create-git-metadata.sh"
-  WORKING_DIRECTORY ${CMAKE_HOME_DIRECTORY}
-)

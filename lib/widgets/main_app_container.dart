@@ -19,7 +19,6 @@ import 'package:zenon_syrius_wallet_flutter/handlers/htlc_swaps_handler.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/model/model.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
-import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/tokens/cubit/tokens_cubit.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/extensions/buildcontext_extension.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/account_block_utils.dart';
@@ -179,10 +178,10 @@ class _MainAppContainerState extends State<MainAppContainer>
                 ),
               ),
         ),
-        BlocProvider<TokensCubit>(
-          create: (_) => TokensCubit(
+        BlocProvider<AllTokensBloc>(
+          create: (_) => AllTokensBloc(
             zenon: zenon!,
-          )..fetch(),
+          )..add(const AllTokensRequested()),
         ),
         BlocProvider<DelegationStatsBloc>(
           create: (_) => DelegationStatsBloc(zenon: zenon!)

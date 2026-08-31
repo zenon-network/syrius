@@ -1,5 +1,7 @@
-const String gitBranchName = r'rearchitecture-plasma';
-const String gitCommitHash = r'8048dbb3886eb07953aba2af8eac345b2eb937a6';
-const String gitCommitMessage = r'feat:';
-const String gitCommitDate = r'2026-07-21';
-const String gitOriginUrl = r'git@github-maznnwell:maznnwell/syrius.git';
+const String gitBranchName = String.fromEnvironment('SYRIUS_GIT_BRANCH_NAME');
+const String gitCommitHash = String.fromEnvironment('SYRIUS_GIT_COMMIT_HASH');
+const String gitCommitMessage = String.fromEnvironment(
+  'SYRIUS_GIT_COMMIT_MESSAGE',
+);
+const String gitCommitDate = String.fromEnvironment('SYRIUS_GIT_COMMIT_DATE');
+const String gitOriginUrl = String.fromEnvironment('SYRIUS_GIT_ORIGIN_URL');

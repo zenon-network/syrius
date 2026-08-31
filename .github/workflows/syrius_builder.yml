@@ -39,10 +39,12 @@ jobs:
           channel: "stable"
       - name: Check flutter version
         run: flutter --version
+      - name: Generate Git metadata
+        run: dart run tool/generate_git_metadata.dart
       - name: Build syrius desktop 
         run: |
           flutter config --enable-macos-desktop
-          flutter build macos --release
+          flutter build macos --release --dart-define-from-file=.dart_tool/git_metadata.json
       - name: Package into DMG
         run: |
           create-dmg --volname syrius \
@@ -84,10 +86,12 @@ jobs:
           channel: "stable"
       - name: Check flutter version
         run: flutter --version
+      - name: Generate Git metadata
+        run: dart run tool/generate_git_metadata.dart
       - name: Build syrius desktop
         run: |
           flutter config --enable-windows-desktop
-          flutter build windows --release   
+          flutter build windows --release --dart-define-from-file=.dart_tool/git_metadata.json
       - name: Package into zip
         run: |
           Compress-Archive -Path build\windows\x64\runner\Release\* -DestinationPath .\syrius-alphanet-windows-amd64.zip
@@ -127,10 +131,12 @@ jobs:
         run: |
           which flutter
           flutter --version
+      - name: Generate Git metadata
+        run: dart run tool/generate_git_metadata.dart
       - name: Build syrius desktop
         run: |
           flutter config --enable-linux-desktop
-          flutter build linux --release -v
+          flutter build linux --release --dart-define-from-file=.dart_tool/git_metadata.json -v
       - name: Package zip
         run: |
           cd build/linux/x64/release/bundle
