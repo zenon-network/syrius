@@ -32,7 +32,7 @@ jobs:
         uses: actions/checkout@v6
         with:
           repository: digitalSloth/go-zenon
-          ref: feature/docker-devnet
+          ref: bca9d950b07d379ff09a9a5aa74b09ce0fa92b3f
           path: go-zenon-devnet
 
       - name: Start devnet

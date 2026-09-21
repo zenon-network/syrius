@@ -6,82 +6,84 @@ environment:
   sdk: '>=3.12.0'
 
 dependencies:
+  ai_barcode_scanner: ^7.1.0
+  app_links: ^7.0.0
+  auto_size_text: ^3.0.0
+  big_decimal: ^0.7.0
+  bloc: ^9.0.0
+  bloc_concurrency: ^0.3.0
+  clipboard_watcher: ^0.3.0
+  collection: ^1.17.0
+  desktop_drop: ^0.7.0
+  device_info_plus: ^12.3.0
+  dotted_border: ^3.1.0
+  equatable: ^2.0.5
+  expandable: ^5.0.1
+  ffi: ^2.1.0
+  file_selector: ^1.0.0
+  # Use this commit for now because it solves a UI issue, to be updated when version > 1.2.0
+  fl_chart:
+    git:
+      url: https://github.com/imaNNeo/fl_chart.git
+      ref: f3a575827312b8f12628b66d12d08066eb4d2570
+  flip_card: ^0.7.0
   flutter:
     sdk: flutter
+  flutter_bloc: ^9.1.0
+  flutter_flip_card: ^0.0.5
   flutter_localizations:
     sdk: flutter
-
-  fl_chart: ^1.1.1
-  overlay_support: ^2.1.0
-  lottie: ^3.1.2
-  dotted_border: ^3.1.0
+  flutter_staggered_grid_view: ^0.7.0
   flutter_svg: ^2.0.0+1
   flutter_vector_icons: ^2.0.0
-  expandable: ^5.0.1
-  marquee_widget: ^1.2.0
-  layout: ^1.0.2
-  flutter_staggered_grid_view: ^0.7.0
-  flip_card: ^0.7.0
-  flutter_flip_card: ^0.0.5
-  auto_size_text: ^3.0.0
-  window_manager: ^0.5.1
-  stacked: ^3.4.1
-  path_provider: ^2.1.0
-  rxdart: ^0.28.0
+  get_it: ^8.3.0
+  hex: ^0.2.0
   hive_ce: ^2.19.3
-  url_launcher: ^6.1.12
-  provider: ^6.0.2
-  intl: ^0.20.2
-  package_info_plus: ^9.0.0
-  device_info_plus: ^12.3.0
+  hydrated_bloc: ^11.0.0
+  image: ^4.0.10
   infinite_scroll_pagination: ^4.0.0
-  share_plus: ^12.0.1
-  file_selector: ^1.0.0
-  pretty_qr_code: ^3.2.1
-  desktop_drop: ^0.7.0
-  validators: ^3.0.0
-  wakelock_plus: ^1.1.1
+  intl: ^0.20.2
+  json_annotation: ^4.9.0
+  json_rpc_2: ^4.0.0
+  launch_at_startup: ^0.5.1
+  layout: ^1.0.2
+  local_notifier: ^0.1.5
+  logging: ^1.2.0
+  lottie: ^3.1.2
+  marquee_widget: ^1.2.0
+  mutex: ^3.1.0
+  nested: ^1.0.0
   number_selector: ^1.0.5
-  znn_sdk_dart:
-    git:
-      url: https://github.com/zenon-network/znn_sdk_dart.git
-      ref: v1.0.0
+  open_filex: ^4.3.2
+  overlay_support: ^2.1.0
+  package_info_plus: ^9.0.0
+  path: ^1.8.2
+  path_provider: ^2.1.0
+  pretty_qr_code: ^3.2.1
+  provider: ^6.0.2
+  reown_walletkit: ^1.4.0
+  retry: ^3.1.2
+  rxdart: ^0.28.0
+  screen_capturer: ^0.2.3
+  share_plus: ^12.0.1
+  stacked: ^3.4.1
+  stream_transform: ^2.1.0
+  tray_manager: ^0.5.2
+  url_launcher: ^6.1.12
+  validators: ^3.0.0
+  version: ^3.0.0
+  wakelock_plus: ^1.1.1
+  win32: ^5.9.0
+  window_manager: ^0.5.1
   znn_ledger_dart:
     git:
       url: https://github.com/zenon-network/znn_ledger_dart.git
       ref: v1.0.0
-  json_rpc_2: ^4.0.0
-  path: ^1.8.2
-  ffi: ^2.1.0
-  get_it: ^8.3.0
-  hex: ^0.2.0
-  local_notifier: ^0.1.5
-  tray_manager: ^0.5.2
-  open_filex: ^4.3.2
-  launch_at_startup: ^0.5.1
-  logging: ^1.2.0
-  collection: ^1.17.0
-  app_links: ^7.0.0
-  reown_walletkit: ^1.4.0
-  preference_list: ^0.0.1
-  screen_capturer: ^0.2.3
+  znn_sdk_dart:
+    git:
+      url: https://github.com/zenon-network/znn_sdk_dart.git
+      ref: v1.0.0
   zxing2: ^0.2.0
-  image: ^4.0.10
-  clipboard_watcher: ^0.3.0
-  big_decimal: ^0.7.0
-  ai_barcode_scanner: ^7.1.0
-  version: ^3.0.0
-  mutex: ^3.1.0
-  retry: ^3.1.2
-  flutter_bloc: ^9.1.0
-  bloc: ^9.0.0
-  equatable: ^2.0.5
-  hydrated_bloc: ^11.0.0
-  json_annotation: ^4.9.0
-  bloc_concurrency: ^0.3.0
-  stream_transform: ^2.1.0
-  win32: ^5.9.0
-  nested: ^1.0.0
 
 dependency_overrides:
   reown_core:
@@ -92,19 +94,18 @@ dependency_overrides:
       ref: 16bf294b3e347cb4f9c1f47a7da5d60034724f95
 
 dev_dependencies:
-  build_runner: ^2.4.6
-  hive_ce_generator: ^1.11.2
-  dependency_validator: ^5.0.5
-  mocktail: ^1.0.4
-  bloc_test: ^10.0.0
   bdd_widget_test: ^2.1.4
+  bloc_test: ^10.0.0
+  build_runner: ^2.4.6
+  dependency_validator: ^5.0.5
   flutter_test:
     sdk: flutter
+  hive_ce_generator: ^1.11.2
   integration_test:
     sdk: flutter
-  very_good_analysis: ^10.2.0
   json_serializable: ^6.8.0
-  flutter_lints: ^6.0.0
+  mocktail: ^1.0.4
+  very_good_analysis: ^10.3.0
 
 flutter:
   generate: true

@@ -49,6 +49,9 @@ final ThemeData newLightTheme = ThemeData(
         width: 2,
       ),
     ),
+    iconColor: AppColors.znnColor,
+    prefixIconColor: AppColors.znnColor,
+    suffixIconColor: AppColors.znnColor,
   ),
   outlinedButtonTheme: OutlinedButtonThemeData(
     style: OutlinedButton.styleFrom(
@@ -111,6 +114,9 @@ final ThemeData newDarkTheme = ThemeData(
         width: 2,
       ),
     ),
+    iconColor: AppColors.znnColor,
+    prefixIconColor: AppColors.znnColor,
+    suffixIconColor: AppColors.znnColor,
   ),
   outlinedButtonTheme: OutlinedButtonThemeData(
     style: OutlinedButton.styleFrom(

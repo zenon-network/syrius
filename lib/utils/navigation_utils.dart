@@ -8,7 +8,7 @@ import 'package:zenon_syrius_wallet_flutter/model/model.dart';
 class NavigationUtils {
   static Future<void> openUrl(String url) async {
     if (!RegExp('^http').hasMatch(url)) {
-      url = 'http://$url';
+      url = 'https://$url';
     }
     final Uri uri = Uri.parse(url);
     if (await canLaunchUrl(uri)) {

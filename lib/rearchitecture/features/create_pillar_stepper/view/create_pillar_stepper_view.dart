@@ -131,7 +131,7 @@ class _MainPillarState extends State<CreatePillarStepperView> {
       onStepTapped: (int index) {},
       steps: <custom_material_stepper.Step>[
         StepperUtils.getMaterialStep(
-          stepTitle: context.l10n.pillarDeployment,
+          stepTitle: context.l10n.plasmaCheck,
           stepContent: PillarPlasmaCheckStep(
             addressController: _addressController,
             onNextPressed: _onPlasmaCheckNextPressed,

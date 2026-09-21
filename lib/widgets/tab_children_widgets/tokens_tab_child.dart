@@ -1,14 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:layout/layout.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 
+/// Tab that displays the cards related to tokens
 class TokensTabChild extends StatelessWidget {
-
+  /// Creates a new instance
   const TokensTabChild({
-    required this.onStepperNotificationSeeMorePressed,
+    required this._onStepperNotificationSeeMorePressed,
     super.key,
   });
-  final VoidCallback onStepperNotificationSeeMorePressed;
+  final VoidCallback _onStepperNotificationSeeMorePressed;
 
   @override
   Widget build(BuildContext context) {
@@ -22,7 +24,7 @@ class TokensTabChild extends StatelessWidget {
             sm: kStaggeredNumOfColumns,
             xs: kStaggeredNumOfColumns,
           ),
-          child: const TokenBalance(),
+          child: const TokenBalanceCard(),
         ),
         FluidCell(
           height: kStaggeredNumOfColumns / 2,
@@ -33,7 +35,7 @@ class TokensTabChild extends StatelessWidget {
             sm: kStaggeredNumOfColumns,
             xs: kStaggeredNumOfColumns,
           ),
-          child: const TokenMap(),
+          child: const TokensCard(),
         ),
         FluidCell(
           width: context.layout.value(
@@ -43,9 +45,9 @@ class TokensTabChild extends StatelessWidget {
             sm: kStaggeredNumOfColumns,
             xs: kStaggeredNumOfColumns,
           ),
-          child: CreateToken(
+          child: CreateTokenCard(
             onStepperNotificationSeeMorePressed:
-                onStepperNotificationSeeMorePressed,
+                _onStepperNotificationSeeMorePressed,
           ),
         ),
       ],

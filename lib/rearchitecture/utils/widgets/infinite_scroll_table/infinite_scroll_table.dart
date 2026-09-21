@@ -63,18 +63,24 @@ class InfiniteScrollTable<T> extends StatefulWidget {
 
 class _InfiniteScrollTableState<T> extends State<InfiniteScrollTable<T>> {
   final ScrollController _scrollController = ScrollController();
+  bool _isRequestingMore = false;
 
   @override
   void initState() {
     super.initState();
     _scrollController.addListener(_onScroll);
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (_scrollController.hasClients && !widget.hasReachedMax) {
-        if (_scrollController.position.maxScrollExtent == 0) {
-          widget.onScrollReachedBottom.call();
-        }
-      }
-    });
+    _requestMoreIfViewportIsNotFilled();
+  }
+
+  @override
+  void didUpdateWidget(covariant InfiniteScrollTable<T> oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
+    if (!identical(oldWidget.items, widget.items) ||
+        oldWidget.hasReachedMax != widget.hasReachedMax) {
+      _isRequestingMore = false;
+      _requestMoreIfViewportIsNotFilled();
+    }
   }
 
   @override
@@ -119,8 +125,30 @@ class _InfiniteScrollTableState<T> extends State<InfiniteScrollTable<T>> {
 
   void _onScroll() {
     if (_isBottom) {
-      widget.onScrollReachedBottom.call();
+      _requestMore();
     }
+  }
+
+  void _requestMore() {
+    if (_isRequestingMore || widget.hasReachedMax) return;
+
+    _isRequestingMore = true;
+    try {
+      widget.onScrollReachedBottom();
+    } on Object {
+      _isRequestingMore = false;
+      rethrow;
+    }
+  }
+
+  void _requestMoreIfViewportIsNotFilled() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || !_scrollController.hasClients) return;
+
+      if (_scrollController.position.maxScrollExtent == 0) {
+        _requestMore();
+      }
+    });
   }
 
   bool get _isBottom {

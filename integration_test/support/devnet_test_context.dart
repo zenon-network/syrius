@@ -8,6 +8,7 @@ import 'package:zenon_syrius_wallet_flutter/main.dart' as app;
 import 'package:zenon_syrius_wallet_flutter/model/model.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
 import 'package:zenon_syrius_wallet_flutter/services/shared_prefs_service.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/wallet_file.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
@@ -49,6 +50,7 @@ class DevnetTestContext {
   AccountBlockTemplate? plasmaFuseBlock;
   AccountBlockTemplate? pillarQsrDepositBlock;
   AccountBlockTemplate? deployPillarBlock;
+  AccountBlockTemplate? issueTokenBlock;
   AccountBlockTemplate? stakeBlock;
   BigInt? plasmaFuseAmount;
   BigInt? pillarQsrDepositAmount;
@@ -101,6 +103,7 @@ void resetDevnetScenarioState() {
     ..plasmaFuseBlock = null
     ..pillarQsrDepositBlock = null
     ..deployPillarBlock = null
+    ..issueTokenBlock = null
     ..stakeBlock = null
     ..plasmaFuseAmount = null
     ..pillarQsrDepositAmount = null;
@@ -146,6 +149,9 @@ Future<void> _initializeSharedPrefs() async {
   );
   Hive.init(_hiveDirectory!.path);
   app.sharedPrefsService = await SharedPrefsService.getInstance();
+  if (!Hive.isBoxOpen(kFavoriteTokensBox)) {
+    await Hive.openBox<dynamic>(kFavoriteTokensBox);
+  }
   if (app.sl.isRegistered<SharedPrefsService>()) {
     await app.sl.unregister<SharedPrefsService>();
   }

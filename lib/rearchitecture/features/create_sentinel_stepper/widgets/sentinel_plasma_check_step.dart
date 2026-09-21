@@ -28,7 +28,7 @@ class SentinelPlasmaCheckStep extends StatelessWidget {
         if (snapshot.hasError) {
           return SyriusErrorWidget(snapshot.error!);
         } else if (snapshot.hasData) {
-          return _Body(
+          return _Populated(
             addressController: addressController,
             onNextPressed: onNextPressed,
             plasmaInfo: snapshot.data!,
@@ -43,8 +43,8 @@ class SentinelPlasmaCheckStep extends StatelessWidget {
   }
 }
 
-class _Body extends StatelessWidget {
-  const _Body({
+class _Populated extends StatelessWidget {
+  const _Populated({
     required this.addressController,
     required this.onNextPressed,
     required this.plasmaInfo,

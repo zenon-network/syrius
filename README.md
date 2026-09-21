@@ -34,6 +34,36 @@ flutter run -d <os>
 flutter build <os>
 ```
 
+### Building with Git metadata
+
+Inside the Syrius wallet, in the "Info" tab there is some Git metadata being shown related to the repository from which the wallet was built: branch name, commit hash, origin URL, etc.
+
+The GitHub Actions release workflow generates the Git metadata before each build and saves it in `.dart_tool/git_metadata.json`. The command that creates the file is:
+
+```bash
+dart run tool/generate_git_metadata.dart
+```
+
+Afterward, the build command passes the values from the file as compile-time Dart defines:
+```bash
+flutter build macos --release --dart-define-from-file=.dart_tool/git_metadata.json
+```
+
+### Running the wallet with Git metadata
+
+If you are using Android Studio, select the `main-with-metadata` run configuration, that has a pre-launch step `run_configurations/generate-git-metadata.run.xml` which loads the generated values as Dart defines.
+
+If you are using an IDE that doesn't recognize the run configuration, you need to first run the command that generates the data:
+```bash
+dart run tool/generate_git_metadata.dart
+```
+
+Running or building the wallet without pre-generating the Git metadata won't break the wallet, but some information inside `About` card won't be filled.
+
+### Dev run configuration
+
+This is a work in progress feature that will have `main_dev.dart` as an entry point.
+
 ## Linux
 
 Note that on Linux you will need to install an udev rule file with your application for unprivileged users to be able to access HID devices with hidapi. 

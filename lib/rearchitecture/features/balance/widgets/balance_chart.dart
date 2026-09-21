@@ -1,3 +1,5 @@
+import 'package:big_decimal/big_decimal.dart';
+import 'package:collection/collection.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
@@ -14,6 +16,7 @@ class BalanceChart extends StatelessWidget {
   const BalanceChart({
     required this.accountInfo,
     required this.hoveredSectionId,
+    required this.zts,
     super.key,
   });
 
@@ -22,6 +25,9 @@ class BalanceChart extends StatelessWidget {
 
   /// Notifier that holds the id of the hovered chart section
   final ValueNotifier<String?> hoveredSectionId;
+
+  /// Coins and tokens for which to show the legend
+  final List<Token> zts;
 
   @override
   Widget build(BuildContext context) {
@@ -34,20 +40,17 @@ class BalanceChart extends StatelessWidget {
   }
 
   List<PieChartSectionData> _getChartSection(AccountInfo accountInfo) {
+    final List<BalanceInfoListItem> balances = _getTokenBalances(accountInfo);
+
     final List<PieChartSectionData> sections = <PieChartSectionData>[];
-    if (accountInfo.znn()! > BigInt.zero) {
+
+    final BigDecimal sum = _getTotalNormalizedBalance(balances: balances);
+
+    for (final BalanceInfoListItem balance in balances) {
       sections.add(
         _getBalanceChartSection(
-          accountInfo.findTokenByTokenStandard(kZnnCoin.tokenStandard)!,
-          accountInfo,
-        ),
-      );
-    }
-    if (accountInfo.qsr()! > BigInt.zero) {
-      sections.add(
-        _getBalanceChartSection(
-          accountInfo.findTokenByTokenStandard(kQsrCoin.tokenStandard)!,
-          accountInfo,
+          balanceInfo: balance,
+          sum: sum,
         ),
       );
     }
@@ -55,26 +58,75 @@ class BalanceChart extends StatelessWidget {
     return sections;
   }
 
-  PieChartSectionData _getBalanceChartSection(
-    Token token,
-    AccountInfo accountInfo,
-  ) {
-    final bool isTouched =
-        token.tokenStandard.toString() == hoveredSectionId.value;
+  List<BalanceInfoListItem> _getTokenBalances(AccountInfo accountInfo) {
+    final List<BalanceInfoListItem> balances =
+        accountInfo.balanceInfoList
+            ?.where(
+              (BalanceInfoListItem item) => zts.contains(item.token),
+            )
+            .toList() ??
+        <BalanceInfoListItem>[];
+
+    return balances;
+  }
+
+  BigDecimal _getTotalNormalizedBalance({
+    required List<BalanceInfoListItem> balances,
+  }) {
+    BigDecimal sum = BigDecimal.zero;
+
+    for (final BalanceInfoListItem balance in balances) {
+      sum += balance.normalizedBalance;
+    }
+
+    return sum;
+  }
+
+  PieChartSectionData _getBalanceChartSection({
+    required BalanceInfoListItem balanceInfo,
+    required BigDecimal sum,
+  }) {
+    final TokenStandard tokenStandard = balanceInfo.token!.tokenStandard;
+
+    final bool isTouched = tokenStandard.toString() == hoveredSectionId.value;
     final double opacity = isTouched ? 1.0 : 0.7;
 
     final double value =
-        accountInfo.getBalance(token.tokenStandard) /
-        (accountInfo.znn()! + accountInfo.qsr()!);
+        balanceInfo.normalizedBalance.toDouble() / sum.toDouble();
 
     return PieChartSectionData(
-      title: token.tokenStandard.toString(),
+      title: tokenStandard.toString(),
       showTitle: false,
       radius: 7,
-      color: ColorUtils.getTokenColor(token.tokenStandard).withValues(
+      color: ColorUtils.getTokenColor(tokenStandard).withValues(
         alpha: opacity,
       ),
       value: value,
     );
   }
+}
+
+/// Provides token balance lookup helpers for [AccountInfo].
+extension AccountInfoExtension on AccountInfo {
+  /// Returns the balance information for [tokenStandard], when available.
+  BalanceInfoListItem? getBalanceInfo({required TokenStandard tokenStandard}) =>
+      balanceInfoList!.firstWhereOrNull(
+        (BalanceInfoListItem element) =>
+            element.token!.tokenStandard == tokenStandard,
+      );
+}
+
+/// Extension used to enhance the class [BalanceInfoListItem]
+extension BalanceInfoListItemExtension on BalanceInfoListItem {
+  /// Gets the balance as '1.0000004'
+  BigDecimal get normalizedBalance =>
+      BigDecimal.fromBigInt(
+        balance!,
+      ).divide(
+        BigDecimal.parse('10').pow(token!.decimals),
+        // TODO(maznnwell): check if it's possible to coordinate rounding
+        // 9775.5 is show by BigDecimal, with UP rounding, as 9776
+        // intl, shrinking sums, show 9775.5 as 9.78K
+        roundingMode: RoundingMode.UP,
+      );
 }

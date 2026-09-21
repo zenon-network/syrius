@@ -184,6 +184,18 @@ abstract class AppLocalizations {
   /// **' to check the Sentinel status'**
   String get checkSentinelStatus;
 
+  /// No description provided for @clickToAddToFavorites.
+  ///
+  /// In en, this message translates to:
+  /// **'Click to add to favorites'**
+  String get clickToAddToFavorites;
+
+  /// No description provided for @clickToRemoveFromFavorites.
+  ///
+  /// In en, this message translates to:
+  /// **'Click to remove from favorites'**
+  String get clickToRemoveFromFavorites;
+
   /// No description provided for @coin.
   ///
   /// In en, this message translates to:
@@ -226,6 +238,42 @@ abstract class AppLocalizations {
   /// **'Couldn\'t send {amount} {symbol} to {recipient}'**
   String couldNotSend(Object amount, Object recipient, Object symbol);
 
+  /// No description provided for @burn.
+  ///
+  /// In en, this message translates to:
+  /// **'Burn'**
+  String get burn;
+
+  /// No description provided for @burnableToken.
+  ///
+  /// In en, this message translates to:
+  /// **'Burnable by any holder'**
+  String get burnableToken;
+
+  /// No description provided for @burnTokenIssueFee.
+  ///
+  /// In en, this message translates to:
+  /// **'You will need to burn {amount} {symbol} to issue a token'**
+  String burnTokenIssueFee(Object amount, Object symbol);
+
+  /// No description provided for @continueText.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue'**
+  String get continueText;
+
+  /// No description provided for @create.
+  ///
+  /// In en, this message translates to:
+  /// **'Create'**
+  String get create;
+
+  /// No description provided for @createAnotherToken.
+  ///
+  /// In en, this message translates to:
+  /// **'Create another Token'**
+  String get createAnotherToken;
+
   /// No description provided for @createPillarDescription.
   ///
   /// In en, this message translates to:
@@ -262,6 +310,24 @@ abstract class AppLocalizations {
   /// **'Create Stake'**
   String get createStakeTitle;
 
+  /// No description provided for @createToken.
+  ///
+  /// In en, this message translates to:
+  /// **'Create Token'**
+  String get createToken;
+
+  /// No description provided for @createTokenDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Create a token following the ZTS specification'**
+  String get createTokenDescription;
+
+  /// No description provided for @createTokenTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Create Token'**
+  String get createTokenTitle;
+
   /// No description provided for @currentAmounts.
   ///
   /// In en, this message translates to:
@@ -285,6 +351,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Date'**
   String get date;
+
+  /// No description provided for @decimals.
+  ///
+  /// In en, this message translates to:
+  /// **'{number} decimals'**
+  String decimals(Object number);
 
   /// No description provided for @delegateKey.
   ///
@@ -382,6 +454,24 @@ abstract class AppLocalizations {
   /// **'Duration'**
   String get duration;
 
+  /// No description provided for @errorCreatingToken.
+  ///
+  /// In en, this message translates to:
+  /// **'Error while creating a new ZTS token'**
+  String get errorCreatingToken;
+
+  /// No description provided for @errorAddingTokenToFavorites.
+  ///
+  /// In en, this message translates to:
+  /// **'Error adding {name} token to favorites'**
+  String errorAddingTokenToFavorites(Object name);
+
+  /// No description provided for @errorBurningZts.
+  ///
+  /// In en, this message translates to:
+  /// **'Error while trying to burn ZTS'**
+  String get errorBurningZts;
+
   /// No description provided for @errorCollectingPillarRewards.
   ///
   /// In en, this message translates to:
@@ -453,6 +543,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Error while generating Plasma'**
   String get errorGeneratingPlasma;
+
+  /// No description provided for @errorMintingToken.
+  ///
+  /// In en, this message translates to:
+  /// **'Error while trying to mint {symbol}'**
+  String errorMintingToken(Object symbol);
+
+  /// No description provided for @errorRemovingTokenFromFavorites.
+  ///
+  /// In en, this message translates to:
+  /// **'Error removing {name} token from favorites'**
+  String errorRemovingTokenFromFavorites(Object name);
+
+  /// No description provided for @errorTransferringTokenOwnership.
+  ///
+  /// In en, this message translates to:
+  /// **'Error while trying to transfer token ownership'**
+  String get errorTransferringTokenOwnership;
 
   /// No description provided for @errorWhileDepositing.
   ///
@@ -544,6 +652,12 @@ abstract class AppLocalizations {
   /// **'Hash: {value}'**
   String hashValue(Object value);
 
+  /// No description provided for @issueToken.
+  ///
+  /// In en, this message translates to:
+  /// **'Issue Token'**
+  String get issueToken;
+
   /// No description provided for @latestTransactionsDescription.
   ///
   /// In en, this message translates to:
@@ -598,11 +712,35 @@ abstract class AppLocalizations {
   /// **'Max'**
   String get max;
 
+  /// No description provided for @maxSupply.
+  ///
+  /// In en, this message translates to:
+  /// **'Max supply'**
+  String get maxSupply;
+
   /// No description provided for @minAgo.
   ///
   /// In en, this message translates to:
   /// **'min ago'**
   String get minAgo;
+
+  /// No description provided for @mint.
+  ///
+  /// In en, this message translates to:
+  /// **'Mint'**
+  String get mint;
+
+  /// No description provided for @mintable.
+  ///
+  /// In en, this message translates to:
+  /// **'Mintable'**
+  String get mintable;
+
+  /// No description provided for @mintableToken.
+  ///
+  /// In en, this message translates to:
+  /// **'Mintable token'**
+  String get mintableToken;
 
   /// No description provided for @momentumPercentageGiven.
   ///
@@ -628,11 +766,23 @@ abstract class AppLocalizations {
   /// **'Name'**
   String get name;
 
+  /// No description provided for @newOwnerAddress.
+  ///
+  /// In en, this message translates to:
+  /// **'New owner address'**
+  String get newOwnerAddress;
+
   /// No description provided for @next.
   ///
   /// In en, this message translates to:
   /// **'Next'**
   String get next;
+
+  /// No description provided for @no.
+  ///
+  /// In en, this message translates to:
+  /// **'no'**
+  String get no;
 
   /// No description provided for @noItemsFound.
   ///
@@ -651,6 +801,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No rewards to collect'**
   String get noRewardsCollect;
+
+  /// No description provided for @noZtsTokensAvailable.
+  ///
+  /// In en, this message translates to:
+  /// **'No ZTS tokens available'**
+  String get noZtsTokensAvailable;
+
+  /// No description provided for @numberOfDecimals.
+  ///
+  /// In en, this message translates to:
+  /// **'Number of decimals: {number}'**
+  String numberOfDecimals(Object number);
+
+  /// No description provided for @ownZtsToken.
+  ///
+  /// In en, this message translates to:
+  /// **'You own this ZTS token'**
+  String get ownZtsToken;
 
   /// No description provided for @password.
   ///
@@ -711,12 +879,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Pillar delegation error'**
   String get pillarDelegationError;
-
-  /// No description provided for @pillarDeployment.
-  ///
-  /// In en, this message translates to:
-  /// **'Pillar deployment: Plasma check'**
-  String get pillarDeployment;
 
   /// No description provided for @pillarDetails.
   ///
@@ -850,6 +1012,12 @@ abstract class AppLocalizations {
   /// **'Plasma'**
   String get plasma;
 
+  /// No description provided for @plasmaCheck.
+  ///
+  /// In en, this message translates to:
+  /// **'Plasma Check'**
+  String get plasmaCheck;
+
   /// No description provided for @pressToReceive.
   ///
   /// In en, this message translates to:
@@ -958,6 +1126,12 @@ abstract class AppLocalizations {
   /// **'Save QR'**
   String get saveQr;
 
+  /// No description provided for @searchTokenHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search by name, symbol, owner, or token standard'**
+  String get searchTokenHint;
+
   /// No description provided for @send.
   ///
   /// In en, this message translates to:
@@ -1046,12 +1220,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Sentinel detected on this address'**
   String get sentinelDetectedOnThisAddress;
-
-  /// No description provided for @sentinelDeployment.
-  ///
-  /// In en, this message translates to:
-  /// **'Sentinel deployment: Plasma check'**
-  String get sentinelDeployment;
 
   /// No description provided for @sentinelRegistered.
   ///
@@ -1173,6 +1341,38 @@ abstract class AppLocalizations {
   /// **'successfully'**
   String get successfully;
 
+  /// No description provided for @successfullyBurned.
+  ///
+  /// In en, this message translates to:
+  /// **'Successfully burned {amount} {symbol}'**
+  String successfullyBurned(Object amount, Object symbol);
+
+  /// No description provided for @successfullyBurnedRequestedAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'You have successfully burned the requested amount: {amount} {symbol} {hash}'**
+  String successfullyBurnedRequestedAmount(
+    Object amount,
+    Object hash,
+    Object symbol,
+  );
+
+  /// No description provided for @successfullyMinted.
+  ///
+  /// In en, this message translates to:
+  /// **'Successfully minted {amount} {symbol}'**
+  String successfullyMinted(Object amount, Object symbol);
+
+  /// No description provided for @successfullyMintedRequestedAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'You have successfully minted the requested amount: {amount} {symbol} {hash}'**
+  String successfullyMintedRequestedAmount(
+    Object amount,
+    Object hash,
+    Object symbol,
+  );
+
   /// No description provided for @sufficientPlasma.
   ///
   /// In en, this message translates to:
@@ -1185,17 +1385,153 @@ abstract class AppLocalizations {
   /// **'to'**
   String get to;
 
+  /// No description provided for @tokenAddedToFavorites.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} token has been added to favorites'**
+  String tokenAddedToFavorites(Object name);
+
+  /// No description provided for @tokenBalanceDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'This card displays information about ZTS tokens that you currently hold in your wallet'**
+  String get tokenBalanceDescription;
+
+  /// No description provided for @tokenBalanceTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Token Balance'**
+  String get tokenBalanceTitle;
+
+  /// No description provided for @tokenBurnTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'When enabled, any holder can burn tokens from their own balance. When disabled, only the token owner can burn.'**
+  String get tokenBurnTooltip;
+
+  /// No description provided for @tokenCreation.
+  ///
+  /// In en, this message translates to:
+  /// **'ZNN Check'**
+  String get tokenCreation;
+
+  /// No description provided for @tokenDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Details'**
+  String get tokenDetails;
+
+  /// No description provided for @tokenDomain.
+  ///
+  /// In en, this message translates to:
+  /// **'Token Domain'**
+  String get tokenDomain;
+
+  /// No description provided for @tokenIssuanceAddressDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'This will be your issuance address'**
+  String get tokenIssuanceAddressDescription;
+
+  /// No description provided for @tokenMetrics.
+  ///
+  /// In en, this message translates to:
+  /// **'Metrics'**
+  String get tokenMetrics;
+
+  /// No description provided for @tokenMintableBurnableOptions.
+  ///
+  /// In en, this message translates to:
+  /// **'Mintable and Burnable Options'**
+  String get tokenMintableBurnableOptions;
+
+  /// No description provided for @tokenMintableBurnableSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Mintable: {mintable}\nBurnable: {burnable}'**
+  String tokenMintableBurnableSubtitle(Object burnable, Object mintable);
+
+  /// No description provided for @tokenMintableTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Whether or not this token is mintable after creation'**
+  String get tokenMintableTooltip;
+
+  /// No description provided for @tokenName.
+  ///
+  /// In en, this message translates to:
+  /// **'Token Name'**
+  String get tokenName;
+
+  /// No description provided for @tokenRemovedFromFavorites.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} token has been removed from favorites'**
+  String tokenRemovedFromFavorites(Object name);
+
+  /// No description provided for @tokenStatusUtilityTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Token status: utility or non-utility (e.g. security token)'**
+  String get tokenStatusUtilityTooltip;
+
+  /// No description provided for @tokenSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'Token {name} with symbol {symbol} and ZTS {tokenStandard}'**
+  String tokenSummary(Object name, Object symbol, Object tokenStandard);
+
+  /// No description provided for @tokenSupplyOutOfMax.
+  ///
+  /// In en, this message translates to:
+  /// **'{totalSupply} out of {maxSupply} {symbol}'**
+  String tokenSupplyOutOfMax(
+    Object maxSupply,
+    Object symbol,
+    Object totalSupply,
+  );
+
+  /// No description provided for @tokenSymbol.
+  ///
+  /// In en, this message translates to:
+  /// **'Token Symbol'**
+  String get tokenSymbol;
+
   /// No description provided for @tokenTransactions.
   ///
   /// In en, this message translates to:
   /// **'Token Transactions'**
   String get tokenTransactions;
 
+  /// No description provided for @tokens.
+  ///
+  /// In en, this message translates to:
+  /// **'Tokens'**
+  String get tokens;
+
+  /// No description provided for @tokensCardDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'This card displays a grid with all the ZTS tokens from the network, including ZTS tokens issued by you'**
+  String get tokensCardDescription;
+
+  /// No description provided for @totalSupply.
+  ///
+  /// In en, this message translates to:
+  /// **'Total supply'**
+  String get totalSupply;
+
   /// No description provided for @transactionError.
   ///
   /// In en, this message translates to:
   /// **'Error while receiving transaction'**
   String get transactionError;
+
+  /// No description provided for @visitDomain.
+  ///
+  /// In en, this message translates to:
+  /// **'Visit {domain}'**
+  String visitDomain(Object domain);
 
   /// No description provided for @transactions.
   ///
@@ -1226,6 +1562,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Redirects you to the Transfer tab where you can manage sending and receiving funds'**
   String get transferDescription;
+
+  /// No description provided for @transferredTokenOwnership.
+  ///
+  /// In en, this message translates to:
+  /// **'Successfully transferred ownership of {name} token'**
+  String transferredTokenOwnership(Object name);
+
+  /// No description provided for @transferredTokenOwnershipToAddress.
+  ///
+  /// In en, this message translates to:
+  /// **'Successfully transferred ownership of {name} token to address {address}'**
+  String transferredTokenOwnershipToAddress(Object address, Object name);
+
+  /// No description provided for @transferTokenOwnership.
+  ///
+  /// In en, this message translates to:
+  /// **'Transfer token ownership'**
+  String get transferTokenOwnership;
 
   /// No description provided for @type.
   ///
@@ -1269,6 +1623,12 @@ abstract class AppLocalizations {
   /// **'Uptime'**
   String get uptime;
 
+  /// No description provided for @utilityToken.
+  ///
+  /// In en, this message translates to:
+  /// **'Utility token'**
+  String get utilityToken;
+
   /// No description provided for @usDateFormat.
   ///
   /// In en, this message translates to:
@@ -1280,6 +1640,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'View Pillars'**
   String get viewPillars;
+
+  /// No description provided for @viewMyTokens.
+  ///
+  /// In en, this message translates to:
+  /// **'View my Tokens'**
+  String get viewMyTokens;
 
   /// No description provided for @viewSentinels.
   ///
@@ -1304,6 +1670,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Withdraw'**
   String get withdraw;
+
+  /// No description provided for @yes.
+  ///
+  /// In en, this message translates to:
+  /// **'yes'**
+  String get yes;
 
   /// No description provided for @youHaveDeposited.
   ///
