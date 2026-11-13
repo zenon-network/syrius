@@ -249,9 +249,13 @@ class _SecurityWidgetState extends State<SecurityWidget> {
           onChanged: (String? value) {
             setState(() {});
           },
-          suffixIcon: CopyToClipboardIcon(
-            _textToBeSignedController.text,
+          suffixIcon: PasteFromClipboardIcon(
             hoverColor: Colors.transparent,
+            onValue: (String value) {
+              setState(() {
+                _textToBeSignedController.text = value;
+              });
+            },
           ),
         ),
         kVerticalSpacing,
@@ -337,24 +341,14 @@ class _SecurityWidgetState extends State<SecurityWidget> {
           },
           controller: _textToBeVerifiedController,
           hintText: 'Enter message',
-          suffixIcon: RawMaterialButton(
+          suffixIcon: PasteFromClipboardIcon(
             hoverColor: Colors.white12,
-            shape: const CircleBorder(),
-            onPressed: () {
+            iconColor: AppColors.darkHintTextColor,
+            onValue: (String value) {
               setState(() {
-                ClipboardUtils.pasteToClipboard(
-                  context,
-                  (String value) {
-                    _textToBeVerifiedController.text = value;
-                  },
-                );
+                _textToBeVerifiedController.text = value;
               });
             },
-            child: const Icon(
-              Icons.content_paste,
-              color: AppColors.darkHintTextColor,
-              size: 15.0,
-            ),
           ),
           suffixIconConstraints: const BoxConstraints(
             maxWidth: 45.0,
@@ -368,24 +362,14 @@ class _SecurityWidgetState extends State<SecurityWidget> {
           },
           controller: _signatureController,
           hintText: 'Enter signature',
-          suffixIcon: RawMaterialButton(
+          suffixIcon: PasteFromClipboardIcon(
             hoverColor: Colors.white12,
-            shape: const CircleBorder(),
-            onPressed: () {
+            iconColor: AppColors.darkHintTextColor,
+            onValue: (String value) {
               setState(() {
-                ClipboardUtils.pasteToClipboard(
-                  context,
-                  (String value) {
-                    _signatureController.text = value;
-                  },
-                );
+                _signatureController.text = value;
               });
             },
-            child: const Icon(
-              Icons.content_paste,
-              color: AppColors.darkHintTextColor,
-              size: 15.0,
-            ),
           ),
           suffixIconConstraints: const BoxConstraints(
             maxWidth: 45.0,
@@ -399,24 +383,14 @@ class _SecurityWidgetState extends State<SecurityWidget> {
           },
           controller: _publicKeyToBeFilledController,
           hintText: 'Enter public key',
-          suffixIcon: RawMaterialButton(
+          suffixIcon: PasteFromClipboardIcon(
             hoverColor: Colors.white12,
-            shape: const CircleBorder(),
-            onPressed: () {
+            iconColor: AppColors.darkHintTextColor,
+            onValue: (String value) {
               setState(() {
-                ClipboardUtils.pasteToClipboard(
-                  context,
-                  (String value) {
-                    _publicKeyToBeFilledController.text = value;
-                  },
-                );
+                _publicKeyToBeFilledController.text = value;
               });
             },
-            child: const Icon(
-              Icons.content_paste,
-              color: AppColors.darkHintTextColor,
-              size: 15.0,
-            ),
           ),
           suffixIconConstraints: const BoxConstraints(
             maxWidth: 45.0,
