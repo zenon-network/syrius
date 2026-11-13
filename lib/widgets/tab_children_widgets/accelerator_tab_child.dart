@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:layout/layout.dart';
 import 'package:provider/provider.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/accelerator_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/notifiers/default_address_notifier.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
@@ -17,19 +18,30 @@ class AcceleratorTabChild extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<List<PillarInfo>>(
-      future:
-          zenon!.embedded.pillar.getByOwner(Address.parse(kSelectedAddress!)),
+    return FutureBuilder<PillarInfo?>(
+      future: _getPillarForSelectedAddress(),
       builder: (_, snapshot) {
         if (snapshot.hasError) {
           return SyriusErrorWidget(snapshot.error.toString());
         } else if (snapshot.hasData) {
-          return _getLayout(
-              context, snapshot.data!.isNotEmpty ? snapshot.data!.first : null);
+          return _getLayout(context, snapshot.data);
         }
         return const SyriusLoadingWidget();
       },
     );
+  }
+
+  /// Resolves the selected account's pillar by owner address first,
+  /// then by block-producing address, so producer-key accounts can
+  /// vote on Accelerator projects too (VoteByProdAddress).
+  Future<PillarInfo?> _getPillarForSelectedAddress() async {
+    final address = Address.parse(kSelectedAddress!);
+    final byOwner = await zenon!.embedded.pillar.getByOwner(address);
+    if (byOwner.isNotEmpty) {
+      return byOwner.first;
+    }
+    final all = await zenon!.embedded.pillar.getAll();
+    return AcceleratorUtils.pillarForAddress(all.list, address);
   }
 
   StandardFluidLayout _getLayout(BuildContext context, PillarInfo? pillarInfo) {
