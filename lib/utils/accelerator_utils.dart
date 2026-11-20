@@ -1,3 +1,5 @@
+import 'package:zenon_syrius_wallet_flutter/main.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 /// How an address is authorised to cast a pillar vote on a votable hash.
@@ -13,6 +15,17 @@ enum AcceleratorVoteMethod {
 
 class AcceleratorUtils {
   AcceleratorUtils._();
+
+  /// Resolves the pillar that the currently selected address owns or
+  /// produces, or null when the address has no pillar role. A single
+  /// getAll RPC covers both cases (the node implements getByOwner as
+  /// getAll plus a filter); shared by the Accelerator tab and the
+  /// vote bloc so both keep the same owner-then-producer precedence.
+  static Future<PillarInfo?> selectedAddressPillar() async {
+    final address = Address.parse(kSelectedAddress!);
+    final all = await zenon!.embedded.pillar.getAll();
+    return pillarForAddress(all.list, address);
+  }
 
   /// Returns the pillar that [address] owns or produces, or null when
   /// the address has no pillar role. An owner match wins over a

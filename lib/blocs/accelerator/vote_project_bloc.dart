@@ -10,11 +10,8 @@ class VoteProjectBloc extends BaseBloc<AccountBlockTemplate?> {
     try {
       addEvent(null);
       final address = Address.parse(kSelectedAddress!);
-      final byOwner = await zenon!.embedded.pillar.getByOwner(address);
-      final PillarInfo? pillarInfo = byOwner.isNotEmpty
-          ? byOwner.first
-          : AcceleratorUtils.pillarForAddress(
-              (await zenon!.embedded.pillar.getAll()).list, address);
+      final PillarInfo? pillarInfo =
+          await AcceleratorUtils.selectedAddressPillar();
       if (pillarInfo == null) {
         addError('This address owns or produces no pillar', StackTrace.current);
         return;
