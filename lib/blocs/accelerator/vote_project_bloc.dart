@@ -28,9 +28,13 @@ class VoteProjectBloc extends BaseBloc<AccountBlockTemplate?> {
                   id,
                   vote.index,
                 );
+      // Pin the signing account to the address captured above: the
+      // selected address can change while awaits run, and the vote
+      // method was chosen for this address.
       AccountBlockUtils.createAccountBlock(
         transactionParams,
         'vote for project',
+        address: address,
       )
           .then(
         (block) => addEvent(block),

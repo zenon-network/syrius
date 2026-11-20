@@ -17,14 +17,26 @@ class AcceleratorUtils {
   AcceleratorUtils._();
 
   /// Resolves the pillar that the currently selected address owns or
-  /// produces, or null when the address has no pillar role. A single
-  /// getAll RPC covers both cases (the node implements getByOwner as
-  /// getAll plus a filter); shared by the Accelerator tab and the
-  /// vote bloc so both keep the same owner-then-producer precedence.
+  /// produces, or null when the address has no pillar role. Pages
+  /// through the full registry — getAll answers at most one RPC page
+  /// (rpcMaxPageSize entries) per call, and an owner past the first
+  /// page would otherwise be missed; shared by the Accelerator tab and
+  /// the vote bloc so both keep the same owner-then-producer precedence.
   static Future<PillarInfo?> selectedAddressPillar() async {
     final address = Address.parse(kSelectedAddress!);
-    final all = await zenon!.embedded.pillar.getAll();
-    return pillarForAddress(all.list, address);
+    final pillars = <PillarInfo>[];
+    const pageSize = 512;
+    var pageIndex = 0;
+    while (true) {
+      final page = await zenon!.embedded.pillar
+          .getAll(pageIndex: pageIndex, pageSize: pageSize);
+      pillars.addAll(page.list);
+      if (page.list.length < pageSize) {
+        break;
+      }
+      pageIndex += 1;
+    }
+    return pillarForAddress(pillars, address);
   }
 
   /// Returns the pillar that [address] owns or produces, or null when
