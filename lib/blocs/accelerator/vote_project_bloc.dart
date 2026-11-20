@@ -1,5 +1,6 @@
 import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/accelerator_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/account_block_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
@@ -8,19 +9,32 @@ class VoteProjectBloc extends BaseBloc<AccountBlockTemplate?> {
   Future<void> voteProject(Hash id, AcceleratorProjectVote vote) async {
     try {
       addEvent(null);
-      PillarInfo pillarInfo = (await zenon!.embedded.pillar.getByOwner(
-        Address.parse(kSelectedAddress!),
-      ))
-          .first;
+      final address = Address.parse(kSelectedAddress!);
+      final PillarInfo? pillarInfo =
+          await AcceleratorUtils.selectedAddressPillar();
+      if (pillarInfo == null) {
+        addError('This address owns or produces no pillar', StackTrace.current);
+        return;
+      }
       AccountBlockTemplate transactionParams =
-          zenon!.embedded.accelerator.voteByName(
-        id,
-        pillarInfo.name,
-        vote.index,
-      );
+          AcceleratorUtils.voteMethodFor(pillarInfo, address) ==
+                  AcceleratorVoteMethod.byName
+              ? zenon!.embedded.accelerator.voteByName(
+                  id,
+                  pillarInfo.name,
+                  vote.index,
+                )
+              : zenon!.embedded.accelerator.voteByProdAddress(
+                  id,
+                  vote.index,
+                );
+      // Pin the signing account to the address captured above: the
+      // selected address can change while awaits run, and the vote
+      // method was chosen for this address.
       AccountBlockUtils.createAccountBlock(
         transactionParams,
         'vote for project',
+        address: address,
       )
           .then(
         (block) => addEvent(block),

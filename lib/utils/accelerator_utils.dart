@@ -1,0 +1,73 @@
+import 'package:zenon_syrius_wallet_flutter/main.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
+import 'package:znn_sdk_dart/znn_sdk_dart.dart';
+
+/// How an address is authorised to cast a pillar vote on a votable hash.
+enum AcceleratorVoteMethod {
+  /// VoteByName — only the pillar's owner (stake) address may send it.
+  byName,
+
+  /// VoteByProdAddress — only the pillar's block-producing address may
+  /// send it. On-chain the vote is recorded under the pillar's name,
+  /// same as VoteByName.
+  byProdAddress,
+}
+
+class AcceleratorUtils {
+  AcceleratorUtils._();
+
+  /// Resolves the pillar that the currently selected address owns or
+  /// produces, or null when the address has no pillar role. Pages
+  /// through the full registry — getAll answers at most one RPC page
+  /// (rpcMaxPageSize entries) per call, and an owner past the first
+  /// page would otherwise be missed; shared by the Accelerator tab and
+  /// the vote bloc so both keep the same owner-then-producer precedence.
+  static Future<PillarInfo?> selectedAddressPillar() async {
+    final address = Address.parse(kSelectedAddress!);
+    final pillars = <PillarInfo>[];
+    const pageSize = 512;
+    var pageIndex = 0;
+    while (true) {
+      final page = await zenon!.embedded.pillar
+          .getAll(pageIndex: pageIndex, pageSize: pageSize);
+      pillars.addAll(page.list);
+      if (page.list.length < pageSize) {
+        break;
+      }
+      pageIndex += 1;
+    }
+    return pillarForAddress(pillars, address);
+  }
+
+  /// Returns the pillar that [address] owns or produces, or null when
+  /// the address has no pillar role. An owner match wins over a
+  /// producer match when an address is somehow both.
+  static PillarInfo? pillarForAddress(
+    List<PillarInfo> pillars,
+    Address address,
+  ) {
+    for (final pillar in pillars) {
+      if (pillar.ownerAddress.equals(address)) {
+        return pillar;
+      }
+    }
+    for (final pillar in pillars) {
+      if (pillar.producerAddress.equals(address)) {
+        return pillar;
+      }
+    }
+    return null;
+  }
+
+  /// Picks the protocol voting method [address] is allowed to use for
+  /// [pillar]: VoteByName for the owner, VoteByProdAddress otherwise
+  /// (the pillar was matched by producer address).
+  static AcceleratorVoteMethod voteMethodFor(
+    PillarInfo pillar,
+    Address address,
+  ) {
+    return pillar.ownerAddress.equals(address)
+        ? AcceleratorVoteMethod.byName
+        : AcceleratorVoteMethod.byProdAddress;
+  }
+}
