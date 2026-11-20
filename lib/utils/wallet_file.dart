@@ -10,6 +10,10 @@ import 'package:path/path.dart' as path;
 abstract class WalletFile {
   final String _path;
 
+  /// Keystore files are a few KB; anything far larger is a mistaken
+  /// drop/pick and would freeze the UI thread in readAsStringSync.
+  static const int maxWalletFileSizeBytes = 1024 * 1024;
+
   static Future<WalletFile> decrypt(String walletPath, String password) async {
     final encrypted = await WalletFile.read(walletPath);
     final walletType =
@@ -28,6 +32,11 @@ abstract class WalletFile {
     final file = File(walletPath);
     if (!file.existsSync()) {
       throw WalletException('Given wallet path does not exist ($walletPath)');
+    }
+    final fileSize = await file.length();
+    if (fileSize > maxWalletFileSizeBytes) {
+      throw WalletException(
+          'Wallet file is too large ($fileSize bytes, limit is $maxWalletFileSizeBytes) — is this a keystore file?');
     }
     return EncryptedFile.fromJson(json.decode(file.readAsStringSync()));
   }
