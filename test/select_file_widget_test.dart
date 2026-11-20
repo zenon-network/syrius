@@ -76,6 +76,18 @@ void main() {
       );
     });
 
+    test('accepts a file exactly at the limit into the parser', () async {
+      // Exactly maxWalletFileSizeBytes bytes: the bounded read must not
+      // reject it, so the parser is reached and fails on the content.
+      final exact = File('${tempDir.path}/exact.json')
+        ..writeAsStringSync('x' * WalletFile.maxWalletFileSizeBytes);
+
+      expect(
+        () => WalletFile.read(exact.path),
+        throwsA(isA<FormatException>()),
+      );
+    });
+
     test('reaches parsing for a file within the limit', () async {
       // Not valid keystore JSON — the guard must let it through to the
       // parser, which rejects it with a FormatException instead.
