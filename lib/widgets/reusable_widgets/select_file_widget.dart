@@ -33,13 +33,16 @@ class SelectFileWidgetState extends State<SelectFileWidget> {
   Widget build(BuildContext context) {
     return DropTarget(
       onDragDone: (detail) {
+        // Do not gate on the file name here: a valid keystore may carry any
+        // extension (or none), and an invalid file is rejected with a visible
+        // error when it is parsed at decrypt time. The extension only narrows
+        // the native file-picker dialog, it must not silently drop a dropped
+        // file (see issue #136).
         String walletFilePath = detail.files.first.path;
-        if (walletFilePath.contains(widget.fileExtension ?? '')) {
-          setState(() {
-            widget.onPathFoundCallback(walletFilePath);
-            _messageToUser = walletFilePath;
-          });
-        }
+        setState(() {
+          widget.onPathFoundCallback(walletFilePath);
+          _messageToUser = walletFilePath;
+        });
       },
       onDragEntered: (detail) {
         setState(() {
