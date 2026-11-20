@@ -7,7 +7,6 @@ import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/model/model.dart';
 import 'package:zenon_syrius_wallet_flutter/screens/screens.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/clipboard_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/format_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/functions.dart';
@@ -249,9 +248,14 @@ class _SecurityWidgetState extends State<SecurityWidget> {
           onChanged: (String? value) {
             setState(() {});
           },
-          suffixIcon: CopyToClipboardIcon(
-            _textToBeSignedController.text,
+          suffixIcon: PasteFromClipboardIcon(
             hoverColor: Colors.transparent,
+            onValue: (String value) {
+              if (!mounted) return;
+              setState(() {
+                _textToBeSignedController.text = value;
+              });
+            },
           ),
         ),
         kVerticalSpacing,
@@ -337,24 +341,18 @@ class _SecurityWidgetState extends State<SecurityWidget> {
           },
           controller: _textToBeVerifiedController,
           hintText: 'Enter message',
-          suffixIcon: RawMaterialButton(
+          suffixIcon: PasteFromClipboardIcon(
             hoverColor: Colors.white12,
-            shape: const CircleBorder(),
-            onPressed: () {
+            iconColor: AppColors.darkHintTextColor,
+            // The Verify fields cap the suffix height at 20 px, so the
+            // widget's default 8 px padding would clip the 15 px icon.
+            padding: EdgeInsets.zero,
+            onValue: (String value) {
+              if (!mounted) return;
               setState(() {
-                ClipboardUtils.pasteToClipboard(
-                  context,
-                  (String value) {
-                    _textToBeVerifiedController.text = value;
-                  },
-                );
+                _textToBeVerifiedController.text = value;
               });
             },
-            child: const Icon(
-              Icons.content_paste,
-              color: AppColors.darkHintTextColor,
-              size: 15.0,
-            ),
           ),
           suffixIconConstraints: const BoxConstraints(
             maxWidth: 45.0,
@@ -368,24 +366,16 @@ class _SecurityWidgetState extends State<SecurityWidget> {
           },
           controller: _signatureController,
           hintText: 'Enter signature',
-          suffixIcon: RawMaterialButton(
+          suffixIcon: PasteFromClipboardIcon(
             hoverColor: Colors.white12,
-            shape: const CircleBorder(),
-            onPressed: () {
+            iconColor: AppColors.darkHintTextColor,
+            padding: EdgeInsets.zero,
+            onValue: (String value) {
+              if (!mounted) return;
               setState(() {
-                ClipboardUtils.pasteToClipboard(
-                  context,
-                  (String value) {
-                    _signatureController.text = value;
-                  },
-                );
+                _signatureController.text = value;
               });
             },
-            child: const Icon(
-              Icons.content_paste,
-              color: AppColors.darkHintTextColor,
-              size: 15.0,
-            ),
           ),
           suffixIconConstraints: const BoxConstraints(
             maxWidth: 45.0,
@@ -399,24 +389,16 @@ class _SecurityWidgetState extends State<SecurityWidget> {
           },
           controller: _publicKeyToBeFilledController,
           hintText: 'Enter public key',
-          suffixIcon: RawMaterialButton(
+          suffixIcon: PasteFromClipboardIcon(
             hoverColor: Colors.white12,
-            shape: const CircleBorder(),
-            onPressed: () {
+            iconColor: AppColors.darkHintTextColor,
+            padding: EdgeInsets.zero,
+            onValue: (String value) {
+              if (!mounted) return;
               setState(() {
-                ClipboardUtils.pasteToClipboard(
-                  context,
-                  (String value) {
-                    _publicKeyToBeFilledController.text = value;
-                  },
-                );
+                _publicKeyToBeFilledController.text = value;
               });
             },
-            child: const Icon(
-              Icons.content_paste,
-              color: AppColors.darkHintTextColor,
-              size: 15.0,
-            ),
           ),
           suffixIconConstraints: const BoxConstraints(
             maxWidth: 45.0,
@@ -605,24 +587,16 @@ class _SecurityWidgetState extends State<SecurityWidget> {
               },
               controller: _fileHashVerifyController,
               hintText: 'Enter signed hash',
-              suffixIcon: RawMaterialButton(
+              suffixIcon: PasteFromClipboardIcon(
                 hoverColor: Colors.white12,
-                shape: const CircleBorder(),
-                onPressed: () {
+                iconColor: AppColors.darkHintTextColor,
+                padding: EdgeInsets.zero,
+                onValue: (String value) {
+                  if (!mounted) return;
                   setState(() {
-                    ClipboardUtils.pasteToClipboard(
-                      context,
-                      (String value) {
-                        _fileHashVerifyController.text = value;
-                      },
-                    );
+                    _fileHashVerifyController.text = value;
                   });
                 },
-                child: const Icon(
-                  Icons.content_paste,
-                  color: AppColors.darkHintTextColor,
-                  size: 15.0,
-                ),
               ),
               suffixIconConstraints: const BoxConstraints(
                 maxWidth: 45.0,
@@ -636,24 +610,16 @@ class _SecurityWidgetState extends State<SecurityWidget> {
               },
               controller: _publicKeyVerifyFileController,
               hintText: 'Enter public key',
-              suffixIcon: RawMaterialButton(
+              suffixIcon: PasteFromClipboardIcon(
                 hoverColor: Colors.white12,
-                shape: const CircleBorder(),
-                onPressed: () {
+                iconColor: AppColors.darkHintTextColor,
+                padding: EdgeInsets.zero,
+                onValue: (String value) {
+                  if (!mounted) return;
                   setState(() {
-                    ClipboardUtils.pasteToClipboard(
-                      context,
-                      (String value) {
-                        _publicKeyVerifyFileController.text = value;
-                      },
-                    );
+                    _publicKeyVerifyFileController.text = value;
                   });
                 },
-                child: const Icon(
-                  Icons.content_paste,
-                  color: AppColors.darkHintTextColor,
-                  size: 15.0,
-                ),
               ),
               suffixIconConstraints: const BoxConstraints(
                 maxWidth: 45.0,
