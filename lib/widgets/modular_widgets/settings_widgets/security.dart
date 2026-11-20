@@ -252,6 +252,7 @@ class _SecurityWidgetState extends State<SecurityWidget> {
           suffixIcon: PasteFromClipboardIcon(
             hoverColor: Colors.transparent,
             onValue: (String value) {
+              if (!mounted) return;
               setState(() {
                 _textToBeSignedController.text = value;
               });
@@ -344,7 +345,11 @@ class _SecurityWidgetState extends State<SecurityWidget> {
           suffixIcon: PasteFromClipboardIcon(
             hoverColor: Colors.white12,
             iconColor: AppColors.darkHintTextColor,
+            // The Verify fields cap the suffix height at 20 px, so the
+            // widget's default 8 px padding would clip the 15 px icon.
+            padding: EdgeInsets.zero,
             onValue: (String value) {
+              if (!mounted) return;
               setState(() {
                 _textToBeVerifiedController.text = value;
               });
@@ -365,7 +370,9 @@ class _SecurityWidgetState extends State<SecurityWidget> {
           suffixIcon: PasteFromClipboardIcon(
             hoverColor: Colors.white12,
             iconColor: AppColors.darkHintTextColor,
+            padding: EdgeInsets.zero,
             onValue: (String value) {
+              if (!mounted) return;
               setState(() {
                 _signatureController.text = value;
               });
@@ -386,7 +393,9 @@ class _SecurityWidgetState extends State<SecurityWidget> {
           suffixIcon: PasteFromClipboardIcon(
             hoverColor: Colors.white12,
             iconColor: AppColors.darkHintTextColor,
+            padding: EdgeInsets.zero,
             onValue: (String value) {
+              if (!mounted) return;
               setState(() {
                 _publicKeyToBeFilledController.text = value;
               });
@@ -579,24 +588,16 @@ class _SecurityWidgetState extends State<SecurityWidget> {
               },
               controller: _fileHashVerifyController,
               hintText: 'Enter signed hash',
-              suffixIcon: RawMaterialButton(
+              suffixIcon: PasteFromClipboardIcon(
                 hoverColor: Colors.white12,
-                shape: const CircleBorder(),
-                onPressed: () {
+                iconColor: AppColors.darkHintTextColor,
+                padding: EdgeInsets.zero,
+                onValue: (String value) {
+                  if (!mounted) return;
                   setState(() {
-                    ClipboardUtils.pasteToClipboard(
-                      context,
-                      (String value) {
-                        _fileHashVerifyController.text = value;
-                      },
-                    );
+                    _fileHashVerifyController.text = value;
                   });
                 },
-                child: const Icon(
-                  Icons.content_paste,
-                  color: AppColors.darkHintTextColor,
-                  size: 15.0,
-                ),
               ),
               suffixIconConstraints: const BoxConstraints(
                 maxWidth: 45.0,
@@ -610,24 +611,16 @@ class _SecurityWidgetState extends State<SecurityWidget> {
               },
               controller: _publicKeyVerifyFileController,
               hintText: 'Enter public key',
-              suffixIcon: RawMaterialButton(
+              suffixIcon: PasteFromClipboardIcon(
                 hoverColor: Colors.white12,
-                shape: const CircleBorder(),
-                onPressed: () {
+                iconColor: AppColors.darkHintTextColor,
+                padding: EdgeInsets.zero,
+                onValue: (String value) {
+                  if (!mounted) return;
                   setState(() {
-                    ClipboardUtils.pasteToClipboard(
-                      context,
-                      (String value) {
-                        _publicKeyVerifyFileController.text = value;
-                      },
-                    );
+                    _publicKeyVerifyFileController.text = value;
                   });
                 },
-                child: const Icon(
-                  Icons.content_paste,
-                  color: AppColors.darkHintTextColor,
-                  size: 15.0,
-                ),
               ),
               suffixIconConstraints: const BoxConstraints(
                 maxWidth: 45.0,

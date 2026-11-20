@@ -31,7 +31,11 @@ class PasteFromClipboardIcon extends StatelessWidget {
       padding: padding,
       shape: const CircleBorder(),
       onPressed: () {
-        ClipboardUtils.pasteToClipboard(context, onValue);
+        ClipboardUtils.pasteToClipboard(context, (String value) {
+          // The clipboard reply arrives asynchronously; ignore it if the
+          // widget (or its screen) has been disposed in the meantime.
+          if (context.mounted) onValue(value);
+        });
       },
       child: Icon(Icons.content_paste, color: iconColor, size: 15.0),
     );
