@@ -41,7 +41,18 @@ abstract class WalletFile {
     final reader = file.openSync();
     final Uint8List bytes;
     try {
-      bytes = reader.readSync(maxWalletFileSizeBytes + 1);
+      // readSync may return fewer bytes than requested without being at
+      // EOF, so accumulate from the same handle until EOF or until the
+      // bound is exceeded.
+      final builder = BytesBuilder();
+      var total = 0;
+      while (total <= maxWalletFileSizeBytes) {
+        final chunk = reader.readSync(maxWalletFileSizeBytes + 1 - total);
+        if (chunk.isEmpty) break;
+        builder.add(chunk);
+        total += chunk.length;
+      }
+      bytes = builder.toBytes();
     } finally {
       reader.closeSync();
     }
