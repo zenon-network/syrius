@@ -96,6 +96,13 @@ class HtlcSwapRepository extends P2pSwapRepository<HtlcSwap> {
     ],
   );
 
+  /// Atomically inserts [swaps] whose ids do not already exist, without
+  /// overwriting existing swaps or pruning history.
+  Future<void> storeMissingSwaps(List<HtlcSwap> swaps) =>
+      _dataProvider.insertMissingSwapEntries(
+        swaps.map(_encodeSwap).toList(),
+      );
+
   /// Stores the last processed HTLC block [height] for the active chain.
   Future<void> storeLastCheckedHtlcBlockHeight(int height) async {
     final int? chainId = _chainIdProvider();

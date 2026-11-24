@@ -6,6 +6,7 @@ import 'package:zenon_syrius_wallet_flutter/blocs/decrypt_wallet_file_bloc.dart'
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/p2p_swaps/services/htlc_swap_sync_service.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/p2p_swaps/data/htlc_swap_local_storage_api.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/p2p_swaps/data/legacy_htlc_swaps_migrator.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/wallet_file.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
@@ -161,6 +162,12 @@ class _ChangeWalletPasswordScreenState
 
     await handler.stop();
     try {
+      if (kDefaultAddressList.isNotEmpty && kDefaultAddressList.first != null) {
+        await sl<LegacyHtlcSwapsMigrator>().migrateIfNeeded(
+          walletBaseAddress: WalletUtils.baseAddress.toString(),
+          encryptionKey: oldEncryptionKey,
+        );
+      }
       await dataProvider.beginRekey(
         oldEncryptionKey: oldEncryptionKey,
         newEncryptionKey: newEncryptionKey,

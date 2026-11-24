@@ -178,6 +178,11 @@ class HtlcSwapLocalStorageApi {
             dao.writeLastCheckedHtlcBlockHeight(chainId, height),
       );
 
+  /// Atomically inserts swap [entries] whose ids are not yet stored, without
+  /// overwriting existing rows or pruning history.
+  Future<void> insertMissingSwapEntries(List<HtlcSwapEntry> entries) =>
+      _withDao((HtlcSwapsDao dao) => dao.insertMissingSwapEntries(entries));
+
   /// Deletes the swap identified by [swapId].
   Future<void> deleteSwapEntry(String swapId) =>
       _withDao((HtlcSwapsDao dao) => dao.deleteSwapEntry(swapId));

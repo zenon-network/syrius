@@ -1,6 +1,7 @@
 export 'cubit/p2p_swaps_cubit.dart';
 export 'data/htlc_swap_local_storage_api.dart';
 export 'data/htlc_swap_repository.dart';
+export 'data/legacy_htlc_swaps_migrator.dart';
 export 'data/p2p_swap_repository.dart';
 export 'services/htlc_swap_auto_unlock_service.dart';
 export 'services/htlc_swap_sync_service.dart';

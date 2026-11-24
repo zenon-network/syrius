@@ -120,6 +120,24 @@ class HtlcSwapsDao extends DatabaseAccessor<HtlcSwapsDatabase>
   Future<void> writeLastCheckedHtlcBlockHeight(int chainId, int height) =>
       _writeLastCheckedHtlcBlockHeight(chainId, height);
 
+  /// Atomically inserts swap [entries] whose ids do not already exist,
+  /// without overwriting existing rows or pruning history.
+  Future<void> insertMissingSwapEntries(List<HtlcSwapEntry> entries) async {
+    if (entries.isEmpty) {
+      return;
+    }
+
+    await transaction(() async {
+      await batch((Batch batch) {
+        batch.insertAll(
+          htlcSwapEntries,
+          entries,
+          mode: InsertMode.insertOrIgnore,
+        );
+      });
+    });
+  }
+
   /// Deletes the swap identified by [swapId].
   Future<void> deleteSwapEntry(String swapId) =>
       (delete(htlcSwapEntries)..where(

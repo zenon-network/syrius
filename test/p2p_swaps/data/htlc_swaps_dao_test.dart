@@ -167,6 +167,42 @@ void main() {
     expect(await dao.readAllSwapEntries(), isEmpty);
     expect(await dao.readLastCheckedHtlcBlockHeight(1), 0);
   });
+
+  test(
+    'insertMissingSwapEntries inserts new entries without overwriting or '
+    'pruning',
+    () async {
+      final HtlcSwapEntry existingCompleted = _buildEntry(
+        id: 'existing',
+        state: 'completed',
+        startTime: 10,
+      );
+      await _writeEntries(dao, <HtlcSwapEntry>[existingCompleted]);
+
+      final HtlcSwapEntry staleDuplicate = _buildEntry(id: 'existing');
+      final HtlcSwapEntry migratedFirst = _buildEntry(
+        id: 'migrated-1',
+        startTime: 2,
+      );
+      final HtlcSwapEntry migratedSecond = _buildEntry(
+        id: 'migrated-2',
+        chainId: 2,
+        startTime: 3,
+      );
+
+      await dao.insertMissingSwapEntries(<HtlcSwapEntry>[
+        staleDuplicate,
+        migratedFirst,
+        migratedSecond,
+      ]);
+
+      expect(await dao.readSwapEntryById('existing'), existingCompleted);
+      expect(
+        await dao.readAllSwapEntries(),
+        <HtlcSwapEntry>[existingCompleted, migratedSecond, migratedFirst],
+      );
+    },
+  );
 }
 
 Future<void> _writeEntries(

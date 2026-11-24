@@ -5,6 +5,7 @@ import 'package:hive_ce/hive_ce.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/p2p_swaps/services/htlc_swap_sync_service.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/p2p_swaps/data/htlc_swap_local_storage_api.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/p2p_swaps/data/legacy_htlc_swaps_migrator.dart';
 import 'package:zenon_syrius_wallet_flutter/services/shared_prefs_service.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/address_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
@@ -75,6 +76,10 @@ class InitUtils {
     await ZenonAddressUtils.setDefaultAddress();
     await NodeUtils.initWebSocketClient();
     await sl<HtlcSwapLocalStorageApi>().open(cipherKey);
+    await sl<LegacyHtlcSwapsMigrator>().migrateIfNeeded(
+      walletBaseAddress: WalletUtils.baseAddress.toString(),
+      encryptionKey: cipherKey,
+    );
     await _setWalletVersion();
     sl<HtlcSwapSyncService>().start();
     kWalletInitCompleted = true;

@@ -11,6 +11,7 @@ import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/p2p_swaps/se
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/model/model.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/p2p_swaps/data/htlc_swap_local_storage_api.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/p2p_swaps/data/legacy_htlc_swaps_migrator.dart';
 import 'package:zenon_syrius_wallet_flutter/screens/screens.dart';
 import 'package:zenon_syrius_wallet_flutter/services/i_web3wallet_service.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
@@ -112,14 +113,20 @@ class _SplashScreenState extends State<SplashScreen> {
       sl<AutoReceiveTxWorker>().pool.clear();
     }
     await _deleteCache();
+    await _deleteHtlcSwapsData();
     await _deleteWalletFile();
     if (!mounted) return;
     await InitUtils.initApp(context);
   }
 
+  Future<void> _deleteHtlcSwapsData() async {
+    await sl<HtlcSwapLocalStorageApi>().deleteDatabase();
+    await sl<LegacyHtlcSwapsMigrator>().deleteLegacyBoxesOnReset();
+  }
+
   Future<void> _deleteCache() async {
     await sl<HtlcSwapSyncService>().stop();
-    await sl<HtlcSwapLocalStorageApi>().deleteDatabase();
+    await sl<HtlcSwapLocalStorageApi>().close();
     await Hive.close();
     await Future.forEach<String>(
       kCacheBoxesToBeDeleted,

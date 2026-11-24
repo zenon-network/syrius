@@ -335,6 +335,11 @@ void setup() {
       dataProvider: sl<HtlcSwapLocalStorageApi>(),
     ),
   );
+  sl.registerLazySingleton<LegacyHtlcSwapsMigrator>(
+    () => LegacyHtlcSwapsMigrator(
+      swapRepository: sl<HtlcSwapRepository>(),
+    ),
+  );
 
   // Initialize WalletConnect service
   sl.registerSingleton<IWeb3WalletService>(web3WalletService!);
