@@ -580,12 +580,13 @@ class StickyFallbackSecureStore implements IStore<Map<String, dynamic>> {
         transientValue = _fallbackStorage.get(transientKey);
       } on Object catch (e) {
         // Omit exception details that could contain raw serialized values
-        // (CWE-532), and continue reconciling remaining healthy entries.
+        // (CWE-532), and abort before any OS mutations or cleanup so the
+        // marker and transient fallback copy remain recoverable on retry.
         _logger.warning(
           'Failed to read transient fallback entry $transientKey during '
           'reconciliation (${e.runtimeType})',
         );
-        continue;
+        rethrow;
       }
       if (transientValue == null) {
         continue;

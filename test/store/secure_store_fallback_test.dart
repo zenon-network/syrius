@@ -1207,8 +1207,9 @@ void main() {
       },
     );
 
-    test('skips corrupt transient entry during reconciliation without leaking '
-        'details and still reconciles healthy entries', () async {
+    test('aborts reconciliation before OS mutations or cleanup when reading a '
+        'transient entry fails, and recovers the entry once the read error '
+        'clears', () async {
       final List<LogRecord> warnings = <LogRecord>[];
       final StreamSubscription<LogRecord> sub =
           Logger('StickyFallbackSecureStore').onRecord.listen((
@@ -1226,12 +1227,12 @@ void main() {
         <String, dynamic>{
           'enabled': true,
           'authoritative': false,
-          'keys': <String>['corrupt_entry', 'healthy_entry'],
+          'keys': <String>['transient_entry', 'healthy_entry'],
         },
       );
-      await fallback.set('corrupt_entry', <String, dynamic>{'k': 'v'});
+      await fallback.set('transient_entry', <String, dynamic>{'k': 'v'});
       await fallback.set('healthy_entry', <String, dynamic>{'new': 'ok'});
-      fallback.shouldFailOnGet = (String key) => key == 'corrupt_entry';
+      fallback.shouldFailOnGet = (String key) => key == 'transient_entry';
 
       final _FakeSecureStorage keychain = _FakeSecureStorage(
         initialData: <String, String>{
@@ -1243,21 +1244,40 @@ void main() {
         fallbackStorage: fallback,
         secureStorage: keychain,
       );
-      await store.init();
 
-      expect(store.isUsingFallback, isFalse);
-      expect(store.get('os_existing'), equals(<String, dynamic>{'old': '1'}));
+      // Attempt 1: reading transient_entry throws -> init aborts without
+      // mutating OS keychain or deleting the marker/fallback copies.
+      await expectLater(store.init(), throwsStateError);
+      expect(fallback.has(StickyFallbackSecureStore.fallbackFlagKey), isTrue);
+      expect(fallback.has('transient_entry'), isTrue);
+      expect(fallback.has('healthy_entry'), isTrue);
       expect(
-        store.get('healthy_entry'),
-        equals(<String, dynamic>{'new': 'ok'}),
+        keychain.data.containsKey(
+          '${ReownConstants.CORE_STORAGE_PREFIX}healthy_entry',
+        ),
+        isFalse,
       );
       expect(
         warnings.any(
           (LogRecord r) =>
-              r.message.contains('corrupt_entry') && r.error == null,
+              r.message.contains('transient_entry') && r.error == null,
         ),
         isTrue,
       );
+
+      // Attempt 2: once the read failure clears, retrying init on the same
+      // store reconciles both entries into OS keychain and cleans up.
+      fallback.shouldFailOnGet = null;
+      await store.init();
+
+      expect(store.isUsingFallback, isFalse);
+      expect(store.get('os_existing'), equals(<String, dynamic>{'old': '1'}));
+      expect(store.get('transient_entry'), equals(<String, dynamic>{'k': 'v'}));
+      expect(
+        store.get('healthy_entry'),
+        equals(<String, dynamic>{'new': 'ok'}),
+      );
+      expect(fallback.has(StickyFallbackSecureStore.fallbackFlagKey), isFalse);
     });
   });
 }

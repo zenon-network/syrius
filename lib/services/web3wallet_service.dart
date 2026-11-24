@@ -56,12 +56,16 @@ class Web3WalletService extends IWeb3WalletService {
   Future<void>? _initFuture;
   Future<void>? _pendingResetMarkerPersist;
   Future<void>? _resetInFlight;
+  Future<void> _markerOpQueue = Future<void>.value();
   int _activeResetDepth = 0;
+  int _resetRequestEpoch = 0;
   bool _isInitialized = false;
   bool _isDisposed = false;
   bool _listenersSubscribed = false;
   bool _pendingDisconnectEverything = false;
   bool _hasUnresolvedReset = false;
+  bool _needsKeyChainPersist = false;
+  bool _needsExpirerPersist = false;
 
   bool get _isResetting => _activeResetDepth > 0;
 
@@ -227,9 +231,10 @@ class Web3WalletService extends IWeb3WalletService {
     _topicsNeedingSessionStorePersist.clear();
     _topicsNeedingPairingStorePersist.clear();
     _pendingDisconnectEverything = false;
-    _activeResetDepth = 0;
     _resetInFlight = null;
     _hasUnresolvedReset = false;
+    _needsKeyChainPersist = false;
+    _needsExpirerPersist = false;
     _pendingResetMarkerPersist = null;
     _initFuture = null;
     _isInitialized = false;
@@ -265,6 +270,7 @@ class Web3WalletService extends IWeb3WalletService {
           'pairing until the reset marker is cleared',
         );
       }
+      unawaited(_drainPendingSessionRequests());
     }
 
     if (kAddressLabelMap.isEmpty) {
@@ -520,6 +526,8 @@ class Web3WalletService extends IWeb3WalletService {
     if (_wcClient == null) return false;
 
     bool allLocalDeletesSucceeded = true;
+    bool keyChainDeletesSucceeded = true;
+    bool expirerDeleteSucceeded = true;
 
     try {
       await _wcClient!.sessions.delete(topic);
@@ -537,6 +545,8 @@ class Web3WalletService extends IWeb3WalletService {
         await _wcClient!.core.crypto.deleteKeyPair(publicKey);
       } on Object catch (e, s) {
         allLocalDeletesSucceeded = false;
+        keyChainDeletesSucceeded = false;
+        _needsKeyChainPersist = true;
         _logger.warning('Failed deleting session key pair for $topic', e, s);
       }
     }
@@ -544,13 +554,43 @@ class Web3WalletService extends IWeb3WalletService {
       await _wcClient!.core.crypto.deleteSymKey(topic);
     } on Object catch (e, s) {
       allLocalDeletesSucceeded = false;
+      keyChainDeletesSucceeded = false;
+      _needsKeyChainPersist = true;
       _logger.warning('Failed deleting session symKey for $topic', e, s);
+    }
+    if (keyChainDeletesSucceeded && _needsKeyChainPersist) {
+      try {
+        await _wcClient!.core.crypto.keyChain.persist();
+        _needsKeyChainPersist = false;
+      } on Object catch (e, s) {
+        allLocalDeletesSucceeded = false;
+        _logger.warning(
+          'Failed persisting keychain after deleting keys for session $topic',
+          e,
+          s,
+        );
+      }
     }
     try {
       await _wcClient!.core.expirer.delete(topic);
     } on Object catch (e, s) {
       allLocalDeletesSucceeded = false;
+      expirerDeleteSucceeded = false;
+      _needsExpirerPersist = true;
       _logger.warning('Failed deleting session expirer entry for $topic', e, s);
+    }
+    if (expirerDeleteSucceeded && _needsExpirerPersist) {
+      try {
+        await _wcClient!.core.expirer.persist();
+        _needsExpirerPersist = false;
+      } on Object catch (e, s) {
+        allLocalDeletesSucceeded = false;
+        _logger.warning(
+          'Failed persisting expirer after deleting session $topic',
+          e,
+          s,
+        );
+      }
     }
     try {
       await _wcClient!.core.relayClient.unsubscribe(topic: topic);
@@ -565,6 +605,8 @@ class Web3WalletService extends IWeb3WalletService {
     if (_wcClient == null) return false;
 
     bool allLocalDeletesSucceeded = true;
+    bool keyChainDeleteSucceeded = true;
+    bool expirerDeleteSucceeded = true;
 
     try {
       await _wcClient!.pairings.delete(topic);
@@ -581,13 +623,43 @@ class Web3WalletService extends IWeb3WalletService {
       await _wcClient!.core.crypto.deleteSymKey(topic);
     } on Object catch (e, s) {
       allLocalDeletesSucceeded = false;
+      keyChainDeleteSucceeded = false;
+      _needsKeyChainPersist = true;
       _logger.warning('Failed deleting pairing symKey for $topic', e, s);
+    }
+    if (keyChainDeleteSucceeded && _needsKeyChainPersist) {
+      try {
+        await _wcClient!.core.crypto.keyChain.persist();
+        _needsKeyChainPersist = false;
+      } on Object catch (e, s) {
+        allLocalDeletesSucceeded = false;
+        _logger.warning(
+          'Failed persisting keychain after deleting symKey for pairing $topic',
+          e,
+          s,
+        );
+      }
     }
     try {
       await _wcClient!.core.expirer.delete(topic);
     } on Object catch (e, s) {
       allLocalDeletesSucceeded = false;
+      expirerDeleteSucceeded = false;
+      _needsExpirerPersist = true;
       _logger.warning('Failed deleting pairing expirer entry for $topic', e, s);
+    }
+    if (expirerDeleteSucceeded && _needsExpirerPersist) {
+      try {
+        await _wcClient!.core.expirer.persist();
+        _needsExpirerPersist = false;
+      } on Object catch (e, s) {
+        allLocalDeletesSucceeded = false;
+        _logger.warning(
+          'Failed persisting expirer after deleting pairing $topic',
+          e,
+          s,
+        );
+      }
     }
     try {
       await _wcClient!.core.relayClient.unsubscribe(topic: topic);
@@ -670,6 +742,18 @@ class Web3WalletService extends IWeb3WalletService {
     return unfinishedPairings;
   }
 
+  Future<T> _synchronizedMarkerOp<T>(Future<T> Function() action) {
+    final Completer<T> completer = Completer<T>();
+    _markerOpQueue = _markerOpQueue.then((_) async {
+      try {
+        completer.complete(await action());
+      } on Object catch (e, s) {
+        completer.completeError(e, s);
+      }
+    });
+    return completer.future;
+  }
+
   @override
   Future<void> disconnectEverything() async {
     if (_wcClient == null) {
@@ -682,9 +766,24 @@ class Web3WalletService extends IWeb3WalletService {
       // uninitialized ReownWalletKit methods, and survive an immediate exit.
       _pendingDisconnectEverything = true;
       _hasUnresolvedReset = true;
-      final Future<void> persistFuture = _persistPendingResetMarker(
-        fullReset: true,
-      );
+      _resetRequestEpoch++;
+      final Future<void> persistFuture = _synchronizedMarkerOp<void>(() async {
+        await _wcClient!.core.storage.init();
+        final _PendingResetState existingMarker = _readPendingResetMarker();
+        final Map<String, String> mergedSessions = <String, String>{
+          ...existingMarker.pendingSessions,
+          ..._pendingSessionCleanups,
+        };
+        final Set<String> mergedPairings = <String>{
+          ...existingMarker.pendingPairings,
+          ..._pendingPairingCleanups,
+        };
+        await _persistPendingResetMarkerLocked(
+          fullReset: true,
+          pendingSessions: mergedSessions,
+          pendingPairings: mergedPairings,
+        );
+      });
       _pendingResetMarkerPersist = persistFuture;
       try {
         await persistFuture;
@@ -734,7 +833,9 @@ class Web3WalletService extends IWeb3WalletService {
         storesReady: storesReady,
       );
     } finally {
-      _activeResetDepth--;
+      if (_activeResetDepth > 0) {
+        _activeResetDepth--;
+      }
       if (identical(_resetInFlight, resetCompleter.future)) {
         _resetInFlight = null;
       }
@@ -760,45 +861,84 @@ class Web3WalletService extends IWeb3WalletService {
       }
     }
 
+    final int capturedEpoch = _resetRequestEpoch;
     _pendingDisconnectEverything = false;
 
-    final _PendingResetState markerState = _readPendingResetMarker();
-    final bool runFullSweep = forceFullReset || markerState.fullReset;
-    final Map<String, String> residualSessions = <String, String>{
-      ...markerState.pendingSessions,
-      ..._pendingSessionCleanups,
-    };
-    final Set<String> residualPairings = <String>{
-      ...markerState.pendingPairings,
-      ..._pendingPairingCleanups,
-    };
+    final ({
+      bool runFullSweep,
+      Map<String, String> residualSessions,
+      Set<String> residualPairings,
+    })
+    snapshot = await _synchronizedMarkerOp(() async {
+      final _PendingResetState markerState = _readPendingResetMarker();
+      final bool runFullSweep = forceFullReset || markerState.fullReset;
+      final Map<String, String> residualSessions = <String, String>{
+        ...markerState.pendingSessions,
+        ..._pendingSessionCleanups,
+      };
+      final Set<String> residualPairings = <String>{
+        ...markerState.pendingPairings,
+        ..._pendingPairingCleanups,
+      };
 
-    if (forceFullReset) {
-      // Persist reset intent BEFORE sweeping so a crash mid-sweep still
-      // finishes cleanup on the next launch.
-      _hasUnresolvedReset = true;
-      try {
-        await _persistPendingResetMarker(
-          fullReset: true,
-          pendingSessions: residualSessions,
-          pendingPairings: residualPairings,
-        );
-      } on Object {
-        if (rethrowMarkerWriteError) {
-          rethrow;
+      // Snapshot all live session (topic + publicKey) and pairing targets so
+      // they are persisted in the reset marker BEFORE the first destructive
+      // operation. A crash after deleting a record but before deleting its
+      // keys can then still finish key cleanup on restart.
+      final Map<String, String> targetSessions = <String, String>{
+        ...residualSessions,
+        if (runFullSweep) ...<String, String>{
+          for (final SessionData session in sessions.value)
+            session.topic: session.self.publicKey,
+          if (_isInitialized || storesReady)
+            for (final SessionData session in _wcClient!.sessions.getAll())
+              session.topic: session.self.publicKey,
+        },
+      };
+      final Set<String> targetPairings = <String>{
+        ...residualPairings,
+        if (runFullSweep) ...<String>{
+          for (final PairingInfo pairing in pairings.value) pairing.topic,
+          if (_isInitialized || storesReady)
+            for (final PairingInfo pairing in _wcClient!.pairings.getAll())
+              pairing.topic,
+        },
+      };
+
+      final bool hasNewLiveTargets =
+          targetSessions.length > residualSessions.length ||
+          targetPairings.length > residualPairings.length;
+      if (forceFullReset || (runFullSweep && hasNewLiveTargets)) {
+        _hasUnresolvedReset = true;
+        try {
+          await _persistPendingResetMarkerLocked(
+            fullReset: true,
+            pendingSessions: targetSessions,
+            pendingPairings: targetPairings,
+          );
+        } on Object {
+          if (rethrowMarkerWriteError) {
+            rethrow;
+          }
         }
       }
-    }
+
+      return (
+        runFullSweep: runFullSweep,
+        residualSessions: targetSessions,
+        residualPairings: targetPairings,
+      );
+    });
 
     final Map<String, String> unfinishedSessions =
         await _disconnectSessionsInternal(
-          includeLiveSessions: runFullSweep,
-          residualSessions: residualSessions,
+          includeLiveSessions: snapshot.runFullSweep,
+          residualSessions: snapshot.residualSessions,
           storesReady: storesReady,
         );
     final Set<String> unfinishedPairings = await _disconnectPairingsInternal(
-      includeLivePairings: runFullSweep,
-      residualPairings: residualPairings,
+      includeLivePairings: snapshot.runFullSweep,
+      residualPairings: snapshot.residualPairings,
       storesReady: storesReady,
     );
 
@@ -809,27 +949,40 @@ class Web3WalletService extends IWeb3WalletService {
       ..clear()
       ..addAll(unfinishedPairings);
 
-    if (unfinishedSessions.isNotEmpty || unfinishedPairings.isNotEmpty) {
-      _hasUnresolvedReset = true;
-      try {
-        await _persistPendingResetMarker(
-          fullReset: false,
-          pendingSessions: unfinishedSessions,
-          pendingPairings: unfinishedPairings,
-        );
-      } on Object {
-        if (rethrowMarkerWriteError) {
-          rethrow;
-        }
-      }
-      return;
-    }
+    await _synchronizedMarkerOp<void>(() async {
+      final bool newerResetRequested =
+          _resetRequestEpoch != capturedEpoch || _pendingDisconnectEverything;
 
-    final bool cleared = await _clearPendingResetMarker();
-    _hasUnresolvedReset = !cleared;
+      if (unfinishedSessions.isNotEmpty || unfinishedPairings.isNotEmpty) {
+        _hasUnresolvedReset = true;
+        try {
+          await _persistPendingResetMarkerLocked(
+            fullReset: newerResetRequested,
+            pendingSessions: unfinishedSessions,
+            pendingPairings: unfinishedPairings,
+          );
+        } on Object {
+          if (rethrowMarkerWriteError) {
+            rethrow;
+          }
+        }
+        return;
+      }
+
+      // If a newer full-reset request arrived while this run was in flight,
+      // preserve its marker on disk instead of deleting it in the gap before
+      // the next loop iteration executes.
+      if (newerResetRequested) {
+        _hasUnresolvedReset = true;
+        return;
+      }
+
+      final bool cleared = await _clearPendingResetMarkerLocked();
+      _hasUnresolvedReset = !cleared;
+    });
   }
 
-  Future<void> _persistPendingResetMarker({
+  Future<void> _persistPendingResetMarkerLocked({
     required bool fullReset,
     Map<String, String> pendingSessions = const <String, String>{},
     Set<String> pendingPairings = const <String>{},
@@ -926,7 +1079,7 @@ class Web3WalletService extends IWeb3WalletService {
     }
   }
 
-  Future<bool> _clearPendingResetMarker() async {
+  Future<bool> _clearPendingResetMarkerLocked() async {
     try {
       if (_wcClient != null &&
           _wcClient!.core.storage.has(pendingResetStorageKey)) {

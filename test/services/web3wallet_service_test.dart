@@ -7,6 +7,7 @@ import 'package:reown_core/crypto/i_crypto.dart';
 import 'package:reown_core/pairing/i_expirer.dart';
 import 'package:reown_core/pairing/i_pairing.dart';
 import 'package:reown_core/relay_client/i_relay_client.dart';
+import 'package:reown_core/store/i_generic_store.dart';
 import 'package:reown_core/store/i_store.dart';
 import 'package:reown_walletkit/reown_walletkit.dart' hide Address;
 import 'package:zenon_syrius_wallet_flutter/blocs/wallet_connect/chains/nom_service.dart';
@@ -30,6 +31,8 @@ class _MockSessionStore extends Mock implements ISessions {}
 class _MockCoreStorage extends Mock implements IStore<Map<String, dynamic>> {}
 
 class _MockCrypto extends Mock implements ICrypto {}
+
+class _MockKeyChainStore extends Mock implements IGenericStore<String> {}
 
 class _MockExpirer extends Mock implements IExpirer {}
 
@@ -87,6 +90,7 @@ void main() {
     late _MockSessionStore sessionStore;
     late _MockCoreStorage coreStorage;
     late _MockCrypto crypto;
+    late _MockKeyChainStore keyChainStore;
     late _MockExpirer expirer;
     late _FakeNoMService nomService;
     late Event<SessionRequestEvent> onSessionRequest;
@@ -130,6 +134,7 @@ void main() {
       sessionStore = _MockSessionStore();
       coreStorage = _MockCoreStorage();
       crypto = _MockCrypto();
+      keyChainStore = _MockKeyChainStore();
       expirer = _MockExpirer();
       nomService = _FakeNoMService();
 
@@ -163,9 +168,12 @@ void main() {
       when(() => coreStorage.get(any())).thenReturn(null);
       when(() => coreStorage.set(any(), any())).thenAnswer((_) async {});
       when(() => coreStorage.delete(any())).thenAnswer((_) async {});
+      when(() => crypto.keyChain).thenReturn(keyChainStore);
       when(() => crypto.deleteKeyPair(any())).thenAnswer((_) async {});
       when(() => crypto.deleteSymKey(any())).thenAnswer((_) async {});
+      when(keyChainStore.persist).thenAnswer((_) async {});
       when(() => expirer.delete(any())).thenAnswer((_) async {});
+      when(expirer.persist).thenAnswer((_) async {});
       when(
         () => relayClient.unsubscribe(topic: any(named: 'topic')),
       ).thenAnswer((_) async {});
@@ -1205,6 +1213,7 @@ void main() {
           final _MockSessionStore ss = _MockSessionStore();
           final _MockCoreStorage cs = _MockCoreStorage();
           final _MockCrypto cr = _MockCrypto();
+          final _MockKeyChainStore kc = _MockKeyChainStore();
           final _MockExpirer ex = _MockExpirer();
 
           when(() => kit.core).thenReturn(c);
@@ -1287,9 +1296,12 @@ void main() {
           });
           when(ps.persist).thenAnswer((_) async {});
 
+          when(() => cr.keyChain).thenReturn(kc);
           when(() => cr.deleteKeyPair(any())).thenAnswer((_) async {});
           when(() => cr.deleteSymKey(any())).thenAnswer((_) async {});
+          when(kc.persist).thenAnswer((_) async {});
           when(() => ex.delete(any())).thenAnswer((_) async {});
+          when(ex.persist).thenAnswer((_) async {});
           when(
             () => rc.unsubscribe(topic: any(named: 'topic')),
           ).thenAnswer((_) async {});
@@ -2055,14 +2067,27 @@ void main() {
       },
     );
 
-    test('runtime disconnectEverything persists reset marker before sweeping '
-        'sessions', () async {
+    test('runtime disconnectEverything persists live session and pairing '
+        'targets in reset marker before sweeping', () async {
+      final int now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
       final List<String> events = <String>[];
+      Map<String, dynamic>? persistedPayload;
       activeSessions['live-s1'] = _buildSession(topic: 'live-s1');
+      when(pairingStore.getAll).thenReturn(<PairingInfo>[
+        PairingInfo(
+          topic: 'live-p1',
+          expiry: now + 3600,
+          relay: Relay(ReownConstants.RELAYER_DEFAULT_PROTOCOL),
+          active: true,
+        ),
+      ]);
       when(
         () => coreStorage.set(Web3WalletService.pendingResetStorageKey, any()),
-      ).thenAnswer((_) async {
+      ).thenAnswer((Invocation i) async {
         events.add('persist_marker');
+        persistedPayload = Map<String, dynamic>.from(
+          i.positionalArguments[1] as Map<String, dynamic>,
+        );
       });
       when(
         () => walletKit.disconnectSession(
@@ -2073,6 +2098,9 @@ void main() {
         events.add('disconnect_session');
         activeSessions.remove('live-s1');
       });
+      when(() => pairing.disconnect(topic: 'live-p1')).thenAnswer((_) async {
+        events.add('disconnect_pairing');
+      });
 
       final Web3WalletService service = buildService();
       addTearDown(service.onDispose);
@@ -2080,7 +2108,342 @@ void main() {
       await service.init();
       await service.disconnectEverything();
 
-      expect(events, equals(<String>['persist_marker', 'disconnect_session']));
+      expect(
+        events,
+        equals(<String>[
+          'persist_marker',
+          'disconnect_session',
+          'disconnect_pairing',
+        ]),
+      );
+      expect(persistedPayload?['fullReset'], isTrue);
+      expect(
+        persistedPayload?['pendingSessions'],
+        equals(<Map<String, String>>[
+          <String, String>{'topic': 'live-s1', 'publicKey': 'self-key'},
+        ]),
+      );
+      expect(persistedPayload?['pendingPairings'], equals(<String>['live-p1']));
+    });
+
+    test('drains pending requests on surviving sessions after pair() finishes '
+        'a previously failed partial reset retry', () async {
+      final Map<String, Map<String, dynamic>> persistedStorage =
+          <String, Map<String, dynamic>>{
+            Web3WalletService.pendingResetStorageKey: <String, dynamic>{
+              'pending': true,
+              'fullReset': false,
+              'pendingSessions': <Map<String, String>>[
+                <String, String>{'topic': 'old-s1', 'publicKey': 'old-pk'},
+              ],
+            },
+          };
+      when(() => coreStorage.has(any())).thenAnswer(
+        (Invocation i) =>
+            persistedStorage.containsKey(i.positionalArguments[0]),
+      );
+      when(() => coreStorage.get(any())).thenAnswer(
+        (Invocation i) => persistedStorage[i.positionalArguments[0]],
+      );
+      when(() => coreStorage.set(any(), any())).thenAnswer((
+        Invocation i,
+      ) async {
+        persistedStorage[i.positionalArguments[0]
+            as String] = Map<String, dynamic>.from(
+          i.positionalArguments[1] as Map<String, dynamic>,
+        );
+      });
+      when(() => coreStorage.delete(any())).thenAnswer((Invocation i) async {
+        persistedStorage.remove(i.positionalArguments[0] as String);
+      });
+
+      bool failKeyDelete = true;
+      when(() => crypto.deleteKeyPair('old-pk')).thenAnswer((_) async {
+        if (failKeyDelete) {
+          throw StateError('keychain locked');
+        }
+      });
+
+      activeSessions['surviving-s2'] = _buildSession(topic: 'surviving-s2');
+      pendingRequests['920'] = const SessionRequest(
+        id: 920,
+        topic: 'surviving-s2',
+        method: 'znn_info',
+        chainId: 'zenon:1',
+        params: null,
+        verifyContext: VerifyContext(
+          origin: 'https://example.invalid',
+          validation: Validation.VALID,
+          verifyUrl: '',
+        ),
+      );
+      when(
+        () => nomService.handleZnnInfo(
+          'surviving-s2',
+          null,
+          requestId: 920,
+          verifyContext: any(named: 'verifyContext'),
+        ),
+      ).thenAnswer((_) async => <String, dynamic>{'address': 'z1...'});
+      when(() => walletKit.pair(uri: any(named: 'uri'))).thenAnswer(
+        (_) async => PairingInfo(
+          topic: 'new-p',
+          expiry: DateTime.now().millisecondsSinceEpoch ~/ 1000 + 3600,
+          relay: Relay(ReownConstants.RELAYER_DEFAULT_PROTOCOL),
+          active: false,
+        ),
+      );
+
+      final Web3WalletService service = buildService();
+      addTearDown(service.onDispose);
+      service.create();
+      await service.init();
+      await Future<void>.delayed(Duration.zero);
+
+      // Startup cleanup failed, so surviving-s2 was NOT drained yet.
+      verifyNever(
+        () => nomService.handleZnnInfo(
+          'surviving-s2',
+          null,
+          requestId: 920,
+          verifyContext: any(named: 'verifyContext'),
+        ),
+      );
+
+      // Once keychain unlocks and pair() retries cleanup, the gate clears
+      // and surviving-s2's pending request drains automatically.
+      failKeyDelete = false;
+      await service.pair(Uri.parse('wc:abc@2?relay-protocol=irn&symKey=def'));
+      await Future<void>.delayed(Duration.zero);
+
+      verify(
+        () => nomService.handleZnnInfo(
+          'surviving-s2',
+          null,
+          requestId: 920,
+          verifyContext: any(named: 'verifyContext'),
+        ),
+      ).called(1);
+    });
+
+    test('keeps pairing topic pending until keychain.persist() succeeds after '
+        'a failed deleteSymKey', () async {
+      final int now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+      final Map<String, Map<String, dynamic>> persistedStorage =
+          <String, Map<String, dynamic>>{
+            Web3WalletService.pendingResetStorageKey: <String, dynamic>{
+              'pending': true,
+              'fullReset': true,
+            },
+          };
+      when(() => coreStorage.has(any())).thenAnswer(
+        (Invocation i) =>
+            persistedStorage.containsKey(i.positionalArguments[0]),
+      );
+      when(() => coreStorage.get(any())).thenAnswer(
+        (Invocation i) => persistedStorage[i.positionalArguments[0]],
+      );
+      when(() => coreStorage.set(any(), any())).thenAnswer((
+        Invocation i,
+      ) async {
+        persistedStorage[i.positionalArguments[0]
+            as String] = Map<String, dynamic>.from(
+          i.positionalArguments[1] as Map<String, dynamic>,
+        );
+      });
+      when(() => coreStorage.delete(any())).thenAnswer((Invocation i) async {
+        persistedStorage.remove(i.positionalArguments[0] as String);
+      });
+
+      final List<PairingInfo> livePairings = <PairingInfo>[
+        PairingInfo(
+          topic: 'keychain-p1',
+          expiry: now + 3600,
+          relay: Relay(ReownConstants.RELAYER_DEFAULT_PROTOCOL),
+          active: true,
+        ),
+      ];
+      when(pairingStore.getAll).thenAnswer((_) => livePairings);
+      when(() => pairingStore.delete('keychain-p1')).thenAnswer((_) async {
+        livePairings.clear();
+      });
+      when(
+        () => pairing.disconnect(topic: 'keychain-p1'),
+      ).thenThrow(StateError('offline'));
+
+      int deleteSymKeyCalls = 0;
+      when(() => crypto.deleteSymKey('keychain-p1')).thenAnswer((_) async {
+        deleteSymKeyCalls++;
+        if (deleteSymKeyCalls == 1) {
+          // Attempt 1 evicts in memory then fails persist().
+          throw StateError('keychain persist failed');
+        }
+        // Subsequent calls return early (missing from memory).
+      });
+      bool failKeyChainPersist = true;
+      when(keyChainStore.persist).thenAnswer((_) async {
+        if (failKeyChainPersist) {
+          throw StateError('keychain persist still failing');
+        }
+      });
+
+      final Web3WalletService service = buildService();
+      addTearDown(service.onDispose);
+      service.create();
+      await service.init();
+
+      expect(
+        persistedStorage.containsKey(Web3WalletService.pendingResetStorageKey),
+        isTrue,
+      );
+
+      // Attempt 2: deleteSymKey is a no-op, so keyChain.persist() is called
+      // and still fails -> marker stays pending with keychain-p1.
+      await service.disconnectEverything();
+      verify(keyChainStore.persist).called(1);
+      expect(
+        persistedStorage[Web3WalletService
+            .pendingResetStorageKey]?['pendingPairings'],
+        equals(<String>['keychain-p1']),
+      );
+
+      // Attempt 3: keyChain.persist() succeeds -> marker finally clears.
+      failKeyChainPersist = false;
+      await service.disconnectEverything();
+      verify(keyChainStore.persist).called(1);
+      expect(
+        persistedStorage.containsKey(Web3WalletService.pendingResetStorageKey),
+        isFalse,
+      );
+    });
+
+    test(
+      'pre-init disconnectEverything merges existing residual targets into '
+      'new full-reset marker without dropping unrecoverable public keys',
+      () async {
+        final Map<String, Map<String, dynamic>> persistedStorage =
+            <String, Map<String, dynamic>>{
+              Web3WalletService.pendingResetStorageKey: <String, dynamic>{
+                'pending': true,
+                'fullReset': false,
+                'pendingSessions': <Map<String, String>>[
+                  <String, String>{
+                    'topic': 'orphan-s1',
+                    'publicKey': 'orphan-pk1',
+                  },
+                ],
+                'pendingPairings': <String>['orphan-p1'],
+              },
+            };
+        when(() => coreStorage.has(any())).thenAnswer(
+          (Invocation i) =>
+              persistedStorage.containsKey(i.positionalArguments[0]),
+        );
+        when(() => coreStorage.get(any())).thenAnswer(
+          (Invocation i) => persistedStorage[i.positionalArguments[0]],
+        );
+        when(() => coreStorage.set(any(), any())).thenAnswer((
+          Invocation i,
+        ) async {
+          persistedStorage[i.positionalArguments[0]
+              as String] = Map<String, dynamic>.from(
+            i.positionalArguments[1] as Map<String, dynamic>,
+          );
+        });
+
+        final Web3WalletService service = buildService();
+        addTearDown(service.onDispose);
+        service.create();
+        await service.disconnectEverything();
+
+        final Map<String, dynamic> updated =
+            persistedStorage[Web3WalletService.pendingResetStorageKey]!;
+        expect(updated['fullReset'], isTrue);
+        expect(
+          updated['pendingSessions'],
+          equals(<Map<String, String>>[
+            <String, String>{'topic': 'orphan-s1', 'publicKey': 'orphan-pk1'},
+          ]),
+        );
+        expect(updated['pendingPairings'], equals(<String>['orphan-p1']));
+      },
+    );
+
+    test('does not delete a newer pre-init full-reset marker written while an '
+        'earlier startup partial reset is in flight', () async {
+      final Map<String, Map<String, dynamic>> persistedStorage =
+          <String, Map<String, dynamic>>{
+            Web3WalletService.pendingResetStorageKey: <String, dynamic>{
+              'pending': true,
+              'fullReset': false,
+              'pendingSessions': <Map<String, String>>[
+                <String, String>{'topic': 'old-s1', 'publicKey': 'old-pk'},
+              ],
+            },
+          };
+      final List<String> markerOps = <String>[];
+      when(() => coreStorage.has(any())).thenAnswer(
+        (Invocation i) =>
+            persistedStorage.containsKey(i.positionalArguments[0]),
+      );
+      when(() => coreStorage.get(any())).thenAnswer(
+        (Invocation i) => persistedStorage[i.positionalArguments[0]],
+      );
+      when(() => coreStorage.set(any(), any())).thenAnswer((
+        Invocation i,
+      ) async {
+        final Map<String, dynamic> payload = Map<String, dynamic>.from(
+          i.positionalArguments[1] as Map<String, dynamic>,
+        );
+        markerOps.add('set:fullReset=${payload['fullReset']}');
+        persistedStorage[i.positionalArguments[0] as String] = payload;
+      });
+      when(() => coreStorage.delete(any())).thenAnswer((Invocation i) async {
+        markerOps.add('delete');
+        persistedStorage.remove(i.positionalArguments[0] as String);
+      });
+
+      activeSessions['live-s2'] = _buildSession(topic: 'live-s2');
+      final Completer<void> partialCleanupGate = Completer<void>();
+      when(
+        () => crypto.deleteKeyPair('old-pk'),
+      ).thenAnswer((_) => partialCleanupGate.future);
+      when(
+        () => walletKit.disconnectSession(
+          topic: 'live-s2',
+          reason: any(named: 'reason'),
+        ),
+      ).thenAnswer((_) async {
+        markerOps.add('disconnect:live-s2');
+        activeSessions.remove('live-s2');
+      });
+
+      final Web3WalletService service = buildService();
+      addTearDown(service.onDispose);
+      service.create();
+
+      final Future<void> initFuture = service.init();
+      await Future<void>.delayed(Duration.zero);
+
+      // While the startup partial cleanup is paused on old-pk, user triggers
+      // a full reset.
+      await service.disconnectEverything();
+
+      partialCleanupGate.complete();
+      await initFuture;
+
+      // The partial run must NOT have deleted the marker before the full
+      // sweep ran on live-s2; delete must occur ONLY after live-s2 is wiped.
+      expect(markerOps.where((String op) => op == 'delete'), hasLength(1));
+      expect(
+        markerOps.indexOf('disconnect:live-s2'),
+        lessThan(markerOps.indexOf('delete')),
+      );
+      expect(activeSessions, isEmpty);
+      expect(
+        persistedStorage.containsKey(Web3WalletService.pendingResetStorageKey),
+        isFalse,
+      );
     });
   });
 }
