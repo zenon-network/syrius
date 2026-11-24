@@ -656,7 +656,10 @@ class _MainAppContainerState extends State<MainAppContainer>
     return Timer.periodic(Duration(minutes: kAutoLockWalletMinutes!), (
       Timer timer,
     ) async {
-      if (!await sl<HtlcSwapSyncService>().hasActiveIncomingSwaps()) {
+      if (!await sl<HtlcSwapSyncService>().hasActiveIncomingSwaps() &&
+          mounted &&
+          timer.isActive &&
+          identical(_navigateToLockTimer, timer)) {
         _lockBloc.addEvent(LockEvent.navigateToLock);
       }
     });

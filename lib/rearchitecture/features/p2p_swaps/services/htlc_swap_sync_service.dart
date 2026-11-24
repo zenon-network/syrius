@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:math';
 
 import 'package:logging/logging.dart';
-import 'package:sqlite3/sqlite3.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 import 'package:zenon_syrius_wallet_flutter/model/block_data.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
@@ -10,9 +9,7 @@ import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/extensions/date
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
-const List<P2pSwapState> _kActiveStates = <P2pSwapState>[
-  P2pSwapState.active,
-];
+const List<P2pSwapState> _kActiveStates = <P2pSwapState>[P2pSwapState.active];
 const List<P2pSwapState> _kUnresolvedStates = <P2pSwapState>[
   P2pSwapState.pending,
   P2pSwapState.active,
@@ -90,12 +87,12 @@ class HtlcSwapSyncService {
       }
     } on Object catch (e) {
       // Avoid logging raw storage exceptions (e.g. SqliteException /
-      // DriftRemoteException) whose string representations can include SQL
-      // bind parameters containing secret HTLC preimages.
-      final String summary = e is SqliteException
-          ? '${e.runtimeType} (code=${e.extendedResultCode})'
-          : '${e.runtimeType}';
-      _logger.warning('_runPeriodically failed: $summary');
+      // DriftWrappedException / DriftRemoteException) whose string
+      // representations can include SQL bind parameters containing secret HTLC
+      // preimages.
+      _logger.warning(
+        '_runPeriodically failed: ${formatSafeSwapErrorSummary(e)}',
+      );
     } finally {
       _scheduleNextRun();
     }

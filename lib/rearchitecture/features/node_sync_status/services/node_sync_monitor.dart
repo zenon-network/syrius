@@ -28,7 +28,7 @@ class NodeSyncMonitor {
 
   Future<SyncInfo> _fetch() async {
     try {
-      return await _zenon.stats.syncInfo();
+      return await Future<SyncInfo>.sync(_zenon.stats.syncInfo);
     } finally {
       _inFlightRequest = null;
     }

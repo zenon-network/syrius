@@ -1,6 +1,9 @@
+import 'package:bloc/bloc.dart';
 import 'package:bloc_test/bloc_test.dart';
+import 'package:drift/drift.dart' show DriftWrappedException;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:sqlite3/sqlite3.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
@@ -26,6 +29,16 @@ class MockP2pSwapRepository extends Mock
 class MockZenonAddressUtils extends Mock implements ZenonAddressUtils {}
 
 class FakeHtlcSwap extends Fake implements HtlcSwap {}
+
+class _RecordingBlocObserver extends BlocObserver {
+  final List<Object> errors = <Object>[];
+
+  @override
+  void onError(BlocBase<dynamic> bloc, Object error, StackTrace stackTrace) {
+    errors.add(error);
+    super.onError(bloc, error, stackTrace);
+  }
+}
 
 void main() {
   initHydratedStorage();
@@ -53,6 +66,8 @@ void main() {
     late AccountBlockTemplate transactionParams;
     late AccountBlockTemplate response;
     late StartP2pSwapBloc bloc;
+    late BlocObserver previousObserver;
+    late _RecordingBlocObserver observer;
 
     StartP2pSwapRequested buildEvent() => StartP2pSwapRequested(
       selfAddress: selfAddress,
@@ -62,6 +77,9 @@ void main() {
     );
 
     setUp(() {
+      previousObserver = Bloc.observer;
+      observer = _RecordingBlocObserver();
+      Bloc.observer = observer;
       zenon = MockZenon();
       embedded = MockEmbedded();
       htlcApi = MockHtlcApi();
@@ -101,9 +119,7 @@ void main() {
           waitForRequiredPlasma: true,
         ),
       ).thenAnswer((_) async => response);
-      when(
-        () => swapRepository.storeSwap(any()),
-      ).thenAnswer((_) async {});
+      when(() => swapRepository.storeSwap(any())).thenAnswer((_) async {});
       when(() => zenonAddressUtils.refreshBalance()).thenAnswer((_) {});
 
       bloc = StartP2pSwapBloc(
@@ -112,6 +128,10 @@ void main() {
         zenon: zenon,
         zenonAddressUtils: zenonAddressUtils,
       );
+    });
+
+    tearDown(() {
+      Bloc.observer = previousObserver;
     });
 
     test('initial state is correct', () {
@@ -145,9 +165,7 @@ void main() {
         verify(() => zenonAddressUtils.refreshBalance()).called(1);
 
         final HtlcSwap swap =
-            verify(
-                  () => swapRepository.storeSwap(captureAny()),
-                ).captured.single
+            verify(() => swapRepository.storeSwap(captureAny())).captured.single
                 as HtlcSwap;
         final List<int> preimage = FormatUtils.decodeHexString(swap.preimage!);
 
@@ -217,6 +235,60 @@ void main() {
           isA<FailureException>(),
         ),
       ],
+      verify: (_) {
+        expect(observer.errors, hasLength(1));
+        expect(observer.errors.single, isA<RedactedSwapError>());
+      },
+    );
+
+    String? capturedPreimage;
+    blocTest<StartP2pSwapBloc, StartP2pSwapState>(
+      'redacts storage exceptions on storeSwap so preimage is never logged',
+      setUp: () {
+        capturedPreimage = null;
+        when(() => swapRepository.storeSwap(any())).thenAnswer((
+          Invocation invocation,
+        ) async {
+          final HtlcSwap stored =
+              invocation.positionalArguments.first as HtlcSwap;
+          capturedPreimage = stored.preimage;
+          throw DriftWrappedException(
+            message: 'insert failed: ${stored.preimage}',
+            cause: SqliteException(
+              extendedResultCode: 13,
+              message: 'database or disk is full',
+              causingStatement: 'INSERT INTO htlc_swaps VALUES (?)',
+              parametersToStatement: <Object?>[
+                '{"preimage":"${stored.preimage}"}',
+              ],
+            ),
+          );
+        });
+      },
+      build: () => bloc,
+      act: (StartP2pSwapBloc bloc) => bloc.add(buildEvent()),
+      expect: () => <Matcher>[
+        isA<StartP2pSwapLoading>(),
+        isA<StartP2pSwapFailure>().having(
+          (StartP2pSwapFailure state) => state.exception,
+          'exception',
+          isA<FailureException>(),
+        ),
+      ],
+      verify: (_) {
+        verifyNever(() => zenonAddressUtils.refreshBalance());
+        expect(capturedPreimage, isNotNull);
+        expect(observer.errors, hasLength(1));
+        expect(observer.errors.single, isA<RedactedSwapError>());
+        expect(
+          observer.errors.single.toString(),
+          'DriftWrappedException -> SqliteException (code=13)',
+        );
+        expect(
+          observer.errors.single.toString(),
+          isNot(contains(capturedPreimage)),
+        );
+      },
     );
   });
 }

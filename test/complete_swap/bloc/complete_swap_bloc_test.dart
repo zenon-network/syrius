@@ -1,6 +1,9 @@
+import 'package:bloc/bloc.dart';
 import 'package:bloc_test/bloc_test.dart';
+import 'package:drift/drift.dart' show DriftWrappedException;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:sqlite3/sqlite3.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
@@ -14,6 +17,16 @@ class MockP2pSwapRepository extends Mock
 class MockZenonAddressUtils extends Mock implements ZenonAddressUtils {}
 
 class FakeHtlcSwap extends Fake implements HtlcSwap {}
+
+class _RecordingBlocObserver extends BlocObserver {
+  final List<Object> errors = <Object>[];
+
+  @override
+  void onError(BlocBase<dynamic> bloc, Object error, StackTrace stackTrace) {
+    errors.add(error);
+    super.onError(bloc, error, stackTrace);
+  }
+}
 
 void main() {
   setUpAll(() {
@@ -31,8 +44,13 @@ void main() {
     late AccountBlockTemplate block;
     late HtlcSwap swap;
     late CompleteSwapBloc bloc;
+    late BlocObserver previousObserver;
+    late _RecordingBlocObserver observer;
 
     setUp(() {
+      previousObserver = Bloc.observer;
+      observer = _RecordingBlocObserver();
+      Bloc.observer = observer;
       unlockService = MockHtlcSwapUnlockService();
       swapRepository = MockP2pSwapRepository();
       zenonAddressUtils = MockZenonAddressUtils();
@@ -59,9 +77,7 @@ void main() {
       );
 
       when(() => unlockService.unlock(swap)).thenAnswer((_) async => block);
-      when(
-        () => swapRepository.storeSwap(any()),
-      ).thenAnswer((_) async {});
+      when(() => swapRepository.storeSwap(any())).thenAnswer((_) async {});
       when(() => zenonAddressUtils.refreshBalance()).thenAnswer((_) {});
 
       bloc = CompleteSwapBloc(
@@ -71,6 +87,10 @@ void main() {
       );
     });
 
+    tearDown(() {
+      Bloc.observer = previousObserver;
+    });
+
     test('initial state is correct', () {
       expect(bloc.state, const CompleteSwapInitial());
     });
@@ -78,9 +98,8 @@ void main() {
     blocTest<CompleteSwapBloc, CompleteSwapState>(
       'unlocks the swap, stores it as completed, and refreshes balances',
       build: () => bloc,
-      act: (CompleteSwapBloc bloc) => bloc.add(
-        CompleteSwapRequested(swap: swap),
-      ),
+      act: (CompleteSwapBloc bloc) =>
+          bloc.add(CompleteSwapRequested(swap: swap)),
       expect: () => <Matcher>[
         isA<CompleteSwapLoading>(),
         isA<CompleteSwapDone>()
@@ -98,9 +117,7 @@ void main() {
       verify: (_) {
         verify(() => unlockService.unlock(swap)).called(1);
         final HtlcSwap storedSwap =
-            verify(
-                  () => swapRepository.storeSwap(captureAny()),
-                ).captured.single
+            verify(() => swapRepository.storeSwap(captureAny())).captured.single
                 as HtlcSwap;
         expect(storedSwap.state, P2pSwapState.completed);
         verify(() => zenonAddressUtils.refreshBalance()).called(1);
@@ -115,9 +132,8 @@ void main() {
         ).thenThrow(SyriusException('Unable to complete swap.'));
       },
       build: () => bloc,
-      act: (CompleteSwapBloc bloc) => bloc.add(
-        CompleteSwapRequested(swap: swap),
-      ),
+      act: (CompleteSwapBloc bloc) =>
+          bloc.add(CompleteSwapRequested(swap: swap)),
       expect: () => <Matcher>[
         isA<CompleteSwapLoading>(),
         isA<CompleteSwapFailure>().having(
@@ -138,9 +154,8 @@ void main() {
         when(() => unlockService.unlock(swap)).thenThrow(StateError('boom'));
       },
       build: () => bloc,
-      act: (CompleteSwapBloc bloc) => bloc.add(
-        CompleteSwapRequested(swap: swap),
-      ),
+      act: (CompleteSwapBloc bloc) =>
+          bloc.add(CompleteSwapRequested(swap: swap)),
       expect: () => <Matcher>[
         isA<CompleteSwapLoading>(),
         isA<CompleteSwapFailure>().having(
@@ -152,6 +167,52 @@ void main() {
       verify: (_) {
         verifyNever(() => swapRepository.storeSwap(any()));
         verifyNever(() => zenonAddressUtils.refreshBalance());
+        expect(observer.errors, hasLength(1));
+        expect(observer.errors.single, isA<RedactedSwapError>());
+        expect(observer.errors.single.toString(), 'StateError');
+      },
+    );
+
+    blocTest<CompleteSwapBloc, CompleteSwapState>(
+      'redacts storage exceptions so swap preimage is never logged',
+      setUp: () {
+        when(() => swapRepository.storeSwap(any())).thenThrow(
+          DriftWrappedException(
+            message: 'write failed for ${swap.preimage}',
+            cause: SqliteException(
+              extendedResultCode: 13,
+              message: 'database or disk is full',
+              causingStatement: 'INSERT INTO htlc_swaps VALUES (?)',
+              parametersToStatement: <Object?>[
+                '{"preimage":"${swap.preimage}"}',
+              ],
+            ),
+          ),
+        );
+      },
+      build: () => bloc,
+      act: (CompleteSwapBloc bloc) =>
+          bloc.add(CompleteSwapRequested(swap: swap)),
+      expect: () => <Matcher>[
+        isA<CompleteSwapLoading>(),
+        isA<CompleteSwapFailure>().having(
+          (CompleteSwapFailure state) => state.exception,
+          'exception',
+          isA<FailureException>(),
+        ),
+      ],
+      verify: (_) {
+        verifyNever(() => zenonAddressUtils.refreshBalance());
+        expect(observer.errors, hasLength(1));
+        expect(observer.errors.single, isA<RedactedSwapError>());
+        expect(
+          observer.errors.single.toString(),
+          'DriftWrappedException -> SqliteException (code=13)',
+        );
+        expect(
+          observer.errors.single.toString(),
+          isNot(contains(swap.preimage)),
+        );
       },
     );
   });

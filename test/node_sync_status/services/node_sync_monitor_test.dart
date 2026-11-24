@@ -59,7 +59,7 @@ void main() {
     });
 
     test('can retry after a request fails', () async {
-      var attempts = 0;
+      int attempts = 0;
       when(() => statsApi.syncInfo()).thenAnswer((_) async {
         attempts += 1;
         if (attempts == 1) {
@@ -69,6 +69,21 @@ void main() {
       });
 
       await expectLater(monitor.fetch(), throwsException);
+      expect(await monitor.fetch(), same(syncInfo));
+      verify(() => statsApi.syncInfo()).called(2);
+    });
+
+    test('can retry after a synchronous failure', () async {
+      int attempts = 0;
+      when(() => statsApi.syncInfo()).thenAnswer((_) {
+        attempts += 1;
+        if (attempts == 1) {
+          throw StateError('sync info unavailable synchronously');
+        }
+        return Future<SyncInfo>.value(syncInfo);
+      });
+
+      await expectLater(monitor.fetch(), throwsStateError);
       expect(await monitor.fetch(), same(syncInfo));
       verify(() => statsApi.syncInfo()).called(2);
     });

@@ -1,6 +1,9 @@
+import 'package:bloc/bloc.dart';
 import 'package:bloc_test/bloc_test.dart';
+import 'package:drift/drift.dart' show DriftWrappedException;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:sqlite3/sqlite3.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
@@ -20,6 +23,16 @@ class MockP2pSwapRepository extends Mock
 class MockZenonAddressUtils extends Mock implements ZenonAddressUtils {}
 
 class FakeHtlcSwap extends Fake implements HtlcSwap {}
+
+class _RecordingBlocObserver extends BlocObserver {
+  final List<Object> errors = <Object>[];
+
+  @override
+  void onError(BlocBase<dynamic> bloc, Object error, StackTrace stackTrace) {
+    errors.add(error);
+    super.onError(bloc, error, stackTrace);
+  }
+}
 
 void main() {
   setUpAll(() {
@@ -45,6 +58,8 @@ void main() {
     late AccountBlockTemplate transactionParams;
     late AccountBlockTemplate response;
     late JoinP2pSwapBloc bloc;
+    late BlocObserver previousObserver;
+    late _RecordingBlocObserver observer;
 
     JoinP2pSwapRequested buildEvent() => JoinP2pSwapRequested(
       initialHtlc: initialHtlc,
@@ -69,15 +84,16 @@ void main() {
     );
 
     setUp(() {
+      previousObserver = Bloc.observer;
+      observer = _RecordingBlocObserver();
+      Bloc.observer = observer;
       zenon = MockZenon();
       embedded = MockEmbedded();
       htlcApi = MockHtlcApi();
       accountBlockUtils = MockAccountBlockUtils();
       swapRepository = MockP2pSwapRepository();
       zenonAddressUtils = MockZenonAddressUtils();
-      initialHtlc = buildInitialHtlc(
-        now + kInitialHtlcDuration.inSeconds,
-      );
+      initialHtlc = buildInitialHtlc(now + kInitialHtlcDuration.inSeconds);
       transactionParams = AccountBlockTemplate(blockType: 1);
       response = AccountBlockTemplate(blockType: 1)
         ..hash = Hash.digest(<int>[7, 8, 9])
@@ -104,9 +120,7 @@ void main() {
           waitForRequiredPlasma: true,
         ),
       ).thenAnswer((_) async => response);
-      when(
-        () => swapRepository.storeSwap(any()),
-      ).thenAnswer((_) async {});
+      when(() => swapRepository.storeSwap(any())).thenAnswer((_) async {});
       when(() => zenonAddressUtils.refreshBalance()).thenAnswer((_) {});
 
       bloc = JoinP2pSwapBloc(
@@ -116,6 +130,10 @@ void main() {
         zenonAddressUtils: zenonAddressUtils,
         unixTimeProvider: () => now,
       );
+    });
+
+    tearDown(() {
+      Bloc.observer = previousObserver;
     });
 
     test('initial state is correct', () {
@@ -149,9 +167,7 @@ void main() {
         verify(() => zenonAddressUtils.refreshBalance()).called(1);
 
         final HtlcSwap swap =
-            verify(
-                  () => swapRepository.storeSwap(captureAny()),
-                ).captured.single
+            verify(() => swapRepository.storeSwap(captureAny())).captured.single
                 as HtlcSwap;
 
         expect(swap.id, initialHtlcId.toString());
@@ -255,6 +271,49 @@ void main() {
       ],
       verify: (_) {
         verifyNever(() => zenonAddressUtils.refreshBalance());
+        expect(observer.errors, hasLength(1));
+        expect(observer.errors.single, isA<RedactedSwapError>());
+        expect(observer.errors.single.toString(), 'StateError');
+      },
+    );
+
+    blocTest<JoinP2pSwapBloc, JoinP2pSwapState>(
+      'redacts Drift/SQLite storage exceptions on storeSwap',
+      setUp: () {
+        when(() => swapRepository.storeSwap(any())).thenThrow(
+          DriftWrappedException(
+            message: 'insert failed with payloadJson',
+            cause: SqliteException(
+              extendedResultCode: 13,
+              message: 'database or disk is full',
+              causingStatement: 'INSERT INTO htlc_swaps VALUES (?)',
+              parametersToStatement: <Object?>['sensitive-payload-json'],
+            ),
+          ),
+        );
+      },
+      build: () => bloc,
+      act: (JoinP2pSwapBloc bloc) => bloc.add(buildEvent()),
+      expect: () => <Matcher>[
+        isA<JoinP2pSwapLoading>(),
+        isA<JoinP2pSwapFailure>().having(
+          (JoinP2pSwapFailure state) => state.exception,
+          'exception',
+          isA<FailureException>(),
+        ),
+      ],
+      verify: (_) {
+        verifyNever(() => zenonAddressUtils.refreshBalance());
+        expect(observer.errors, hasLength(1));
+        expect(observer.errors.single, isA<RedactedSwapError>());
+        expect(
+          observer.errors.single.toString(),
+          'DriftWrappedException -> SqliteException (code=13)',
+        );
+        expect(
+          observer.errors.single.toString(),
+          isNot(contains('sensitive-payload-json')),
+        );
       },
     );
   });

@@ -48,7 +48,7 @@ class CompleteSwapBloc extends Bloc<CompleteSwapEvent, CompleteSwapState> {
       addError(error, stackTrace);
       emit(CompleteSwapFailure(exception: error));
     } on Object catch (error, stackTrace) {
-      addError(error, stackTrace);
+      addError(sanitizeSwapErrorForLogging(error), stackTrace);
       emit(CompleteSwapFailure(exception: FailureException()));
     }
   }

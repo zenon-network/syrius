@@ -89,8 +89,8 @@ class StartP2pSwapBloc extends Bloc<StartP2pSwapEvent, StartP2pSwapState> {
     } on SyriusException catch (error, stackTrace) {
       addError(error, stackTrace);
       emit(StartP2pSwapFailure(exception: error));
-    } on Exception catch (error, stackTrace) {
-      addError(error, stackTrace);
+    } on Object catch (error, stackTrace) {
+      addError(sanitizeSwapErrorForLogging(error), stackTrace);
       emit(StartP2pSwapFailure(exception: FailureException()));
     }
   }

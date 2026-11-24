@@ -5,11 +5,7 @@ import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/extensions/buil
 /// A scrollable modal layout with a title, close button, and content.
 class BaseModal extends StatelessWidget {
   /// Creates a modal layout containing the supplied title and child.
-  const BaseModal({
-    required this._child,
-    required this._title,
-    super.key,
-  });
+  const BaseModal({required this._child, required this._title, super.key});
 
   final Widget _child;
   final String _title;
@@ -26,15 +22,11 @@ class BaseModal extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: <Widget>[
-                Text(
-                  _title,
-                  style: context.textTheme.titleLarge,
-                ),
+                Text(_title, style: context.textTheme.titleLarge),
                 IconButton(
                   onPressed: Navigator.of(context).pop,
-                  icon: const Icon(
-                    Icons.clear,
-                  ),
+                  tooltip: MaterialLocalizations.of(context).closeButtonTooltip,
+                  icon: const Icon(Icons.clear),
                 ),
               ],
             ),

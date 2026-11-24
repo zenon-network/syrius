@@ -4,9 +4,9 @@ import 'dart:io';
 import 'package:hive_ce/hive_ce.dart';
 import 'package:logging/logging.dart';
 import 'package:path/path.dart' as path;
-import 'package:sqlite3/sqlite3.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/p2p_swap/model/p2p_swap.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/p2p_swaps/data/htlc_swap_repository.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/p2p_swaps/utils/swap_storage_error_sanitizer.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
@@ -255,12 +255,7 @@ class LegacyHtlcSwapsMigrator {
     }
   }
 
-  String _safeErrorSummary(Object error) {
-    if (error is SqliteException) {
-      return '${error.runtimeType} (code=${error.extendedResultCode})';
-    }
-    return '${error.runtimeType}';
-  }
+  String _safeErrorSummary(Object error) => formatSafeSwapErrorSummary(error);
 
   Future<bool> _boxExistsOrIsOpen(String boxName) {
     if (_hive.isBoxOpen(boxName)) {

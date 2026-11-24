@@ -99,7 +99,7 @@ class JoinP2pSwapBloc extends Bloc<JoinP2pSwapEvent, JoinP2pSwapState> {
       addError(error, stackTrace);
       emit(JoinP2pSwapFailure(exception: error));
     } on Object catch (error, stackTrace) {
-      addError(error, stackTrace);
+      addError(sanitizeSwapErrorForLogging(error), stackTrace);
       emit(JoinP2pSwapFailure(exception: FailureException()));
     }
   }
