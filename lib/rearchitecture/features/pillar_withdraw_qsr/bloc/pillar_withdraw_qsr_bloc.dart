@@ -16,13 +16,17 @@ class PillarWithdrawQsrBloc
     extends Bloc<PillarWithdrawQsrEvent, PillarWithdrawQsrState> {
   /// Creates a new [PillarWithdrawQsrBloc].
   ///
-  /// The optional [_postTransactionDelay] is used to wait for chain sync after
-  /// account block creation.
+  /// Snapshots the pre-transaction deposit within [_snapshotReadTimeout], then
+  /// polls `pillar.getDepositedQsr` every [_pollInterval] up to
+  /// [_confirmationTimeout] after block submission so the withdrawal is
+  /// reflected on-chain before emitting [PillarWithdrawQsrPopulated].
   PillarWithdrawQsrBloc({
     required this._accountBlockUtils,
     required this._zenon,
     required this._zenonAddressUtils,
-    this._postTransactionDelay = kDelayAfterAccountBlockCreationCall,
+    this._pollInterval = kDefaultConfirmationPollInterval,
+    this._confirmationTimeout = kDefaultConfirmationTimeout,
+    this._snapshotReadTimeout = kDefaultSnapshotReadTimeout,
   }) : super(const PillarWithdrawQsrInitial()) {
     on<PillarWithdrawQsrRequested>(_onWithdrawQsrRequested);
   }
@@ -30,7 +34,9 @@ class PillarWithdrawQsrBloc
   final Zenon _zenon;
   final AccountBlockUtils _accountBlockUtils;
   final ZenonAddressUtils _zenonAddressUtils;
-  final Duration _postTransactionDelay;
+  final Duration _pollInterval;
+  final Duration _confirmationTimeout;
+  final Duration _snapshotReadTimeout;
 
   FutureOr<void> _onWithdrawQsrRequested(
     PillarWithdrawQsrRequested event,
@@ -40,6 +46,12 @@ class PillarWithdrawQsrBloc
       emit(const PillarWithdrawQsrLoading());
       final AccountBlockTemplate transactionParams = _zenon.embedded.pillar
           .withdrawQsr();
+      final BigInt? initialDepositedQsr = await _readDepositedQsr(
+        event.address,
+      );
+      if (isClosed) {
+        return;
+      }
 
       await _accountBlockUtils.createAccountBlock(
         transactionParams,
@@ -47,19 +59,49 @@ class PillarWithdrawQsrBloc
         address: event.address,
         waitForRequiredPlasma: true,
       );
+      if (isClosed) {
+        return;
+      }
 
-      // Needed delay to make sure that the blockchain synced
-      await Future<void>.delayed(_postTransactionDelay);
+      if (initialDepositedQsr == null || initialDepositedQsr > BigInt.zero) {
+        await pollUntilConfirmed<BigInt>(
+          fetch: () => _zenon.embedded.pillar.getDepositedQsr(event.address),
+          isConfirmed: (BigInt deposited) => initialDepositedQsr != null
+              ? deposited < initialDepositedQsr
+              : deposited == BigInt.zero,
+          pollInterval: _pollInterval,
+          timeout: _confirmationTimeout,
+          isCancelled: () => isClosed,
+        );
+      }
+
+      if (isClosed) {
+        return;
+      }
 
       _zenonAddressUtils.refreshBalance();
 
       emit(const PillarWithdrawQsrPopulated());
     } on SyriusException catch (e, stackTrace) {
       addError(e, stackTrace);
-      emit(PillarWithdrawQsrFailure(exception: e));
+      if (!isClosed) {
+        emit(PillarWithdrawQsrFailure(exception: e));
+      }
     } on Exception catch (e, stackTrace) {
       addError(e, stackTrace);
-      emit(PillarWithdrawQsrFailure(exception: FailureException()));
+      if (!isClosed) {
+        emit(PillarWithdrawQsrFailure(exception: FailureException()));
+      }
+    }
+  }
+
+  Future<BigInt?> _readDepositedQsr(Address address) async {
+    try {
+      return await _zenon.embedded.pillar
+          .getDepositedQsr(address)
+          .timeout(_snapshotReadTimeout);
+    } on Object {
+      return null;
     }
   }
 }

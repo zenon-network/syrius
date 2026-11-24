@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
@@ -39,6 +41,36 @@ void main() {
     late PillarDepositQsrBloc bloc;
     late AccountBlockTemplate template;
 
+    PillarDepositQsrBloc buildBloc({
+      Duration pollInterval = Duration.zero,
+      Duration confirmationTimeout = const Duration(seconds: 5),
+      Duration snapshotReadTimeout = const Duration(seconds: 5),
+      Duration postTransactionDelay = Duration.zero,
+    }) => PillarDepositQsrBloc(
+      accountBlockUtils: accountBlockUtils,
+      zenon: zenon,
+      zenonAddressUtils: zenonAddressUtils,
+      pollInterval: pollInterval,
+      confirmationTimeout: confirmationTimeout,
+      snapshotReadTimeout: snapshotReadTimeout,
+      postTransactionDelay: postTransactionDelay,
+    );
+
+    Future<void> dispatchAndWaitForCompletion(
+      PillarDepositQsrBloc target,
+      PillarDepositQsrRequested event,
+    ) async {
+      final Future<PillarDepositQsrState> completed = target.stream
+          .firstWhere(
+            (PillarDepositQsrState state) =>
+                state is PillarDepositQsrDone ||
+                state is PillarDepositQsrFailure,
+          )
+          .timeout(const Duration(seconds: 2));
+      target.add(event);
+      await completed;
+    }
+
     setUp(() {
       zenon = MockZenon();
       embedded = MockEmbedded();
@@ -51,6 +83,9 @@ void main() {
       when(() => embedded.pillar).thenReturn(pillarApi);
       when(() => pillarApi.depositQsr(any())).thenReturn(template);
       when(
+        () => pillarApi.getDepositedQsr(any()),
+      ).thenAnswer((_) async => BigInt.zero);
+      when(
         () => accountBlockUtils.createAccountBlock(
           any(),
           any(),
@@ -60,12 +95,7 @@ void main() {
       ).thenAnswer((_) async => template);
       when(() => zenonAddressUtils.refreshBalance()).thenAnswer((_) {});
 
-      bloc = PillarDepositQsrBloc(
-        accountBlockUtils: accountBlockUtils,
-        zenon: zenon,
-        zenonAddressUtils: zenonAddressUtils,
-        postTransactionDelay: Duration.zero,
-      );
+      bloc = buildBloc();
     });
 
     test('initial state is correct', () {
@@ -73,16 +103,107 @@ void main() {
     });
 
     blocTest<PillarDepositQsrBloc, PillarDepositQsrState>(
-      'emits [loading, done] on success',
-      build: () => bloc,
-      act: (PillarDepositQsrBloc bloc) => bloc.add(
-        PillarDepositQsrRequested(address: emptyAddress, amount: BigInt.one),
+      'polls getDepositedQsr across retries and transient errors until '
+      'deposit is confirmed',
+      setUp: () {
+        int calls = 0;
+        when(() => pillarApi.getDepositedQsr(emptyAddress)).thenAnswer((
+          _,
+        ) async {
+          calls += 1;
+          if (calls == 1) {
+            return BigInt.from(200);
+          }
+          if (calls == 2) {
+            return BigInt.from(200);
+          }
+          if (calls == 3) {
+            throw Exception('transient RPC error');
+          }
+          return BigInt.from(300);
+        });
+      },
+      build: buildBloc,
+      act: (PillarDepositQsrBloc bloc) => dispatchAndWaitForCompletion(
+        bloc,
+        PillarDepositQsrRequested(
+          address: emptyAddress,
+          amount: BigInt.from(100),
+        ),
       ),
-      wait: const Duration(milliseconds: 1),
       expect: () => <PillarDepositQsrState>[
         const PillarDepositQsrLoading(),
         PillarDepositQsrDone(accountBlock: template),
       ],
+      verify: (_) {
+        verify(() => pillarApi.getDepositedQsr(emptyAddress)).called(4);
+        verify(() => zenonAddressUtils.refreshBalance()).called(1);
+      },
+    );
+
+    blocTest<PillarDepositQsrBloc, PillarDepositQsrState>(
+      'still emits done and refreshes balance when confirmation polling '
+      'times out',
+      build: () => buildBloc(confirmationTimeout: Duration.zero),
+      act: (PillarDepositQsrBloc bloc) => dispatchAndWaitForCompletion(
+        bloc,
+        PillarDepositQsrRequested(address: emptyAddress, amount: BigInt.one),
+      ),
+      expect: () => <PillarDepositQsrState>[
+        const PillarDepositQsrLoading(),
+        PillarDepositQsrDone(accountBlock: template),
+      ],
+      verify: (_) {
+        verify(() => zenonAddressUtils.refreshBalance()).called(1);
+      },
+    );
+
+    blocTest<PillarDepositQsrBloc, PillarDepositQsrState>(
+      'falls back to postTransactionDelay when initial deposit snapshot fails',
+      setUp: () {
+        when(
+          () => pillarApi.getDepositedQsr(emptyAddress),
+        ).thenThrow(Exception('snapshot failed'));
+      },
+      build: buildBloc,
+      act: (PillarDepositQsrBloc bloc) => dispatchAndWaitForCompletion(
+        bloc,
+        PillarDepositQsrRequested(address: emptyAddress, amount: BigInt.one),
+      ),
+      expect: () => <PillarDepositQsrState>[
+        const PillarDepositQsrLoading(),
+        PillarDepositQsrDone(accountBlock: template),
+      ],
+      verify: (_) {
+        verify(() => pillarApi.getDepositedQsr(emptyAddress)).called(1);
+        verify(() => zenonAddressUtils.refreshBalance()).called(1);
+      },
+    );
+
+    blocTest<PillarDepositQsrBloc, PillarDepositQsrState>(
+      'falls back to postTransactionDelay when initial deposit snapshot times '
+      'out',
+      setUp: () {
+        final Completer<BigInt> stalledSnapshot = Completer<BigInt>();
+        when(
+          () => pillarApi.getDepositedQsr(emptyAddress),
+        ).thenAnswer((_) => stalledSnapshot.future);
+      },
+      build: () => buildBloc(
+        snapshotReadTimeout: const Duration(milliseconds: 10),
+      ),
+      act: (PillarDepositQsrBloc bloc) => dispatchAndWaitForCompletion(
+        bloc,
+        PillarDepositQsrRequested(address: emptyAddress, amount: BigInt.one),
+      ),
+      expect: () => <PillarDepositQsrState>[
+        const PillarDepositQsrLoading(),
+        PillarDepositQsrDone(accountBlock: template),
+      ],
+      verify: (_) {
+        verify(() => pillarApi.getDepositedQsr(emptyAddress)).called(1);
+        verify(() => zenonAddressUtils.refreshBalance()).called(1);
+      },
     );
 
     blocTest<PillarDepositQsrBloc, PillarDepositQsrState>(

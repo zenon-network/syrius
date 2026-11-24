@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
@@ -38,6 +40,34 @@ void main() {
     late PillarWithdrawQsrBloc bloc;
     late AccountBlockTemplate template;
 
+    PillarWithdrawQsrBloc buildBloc({
+      Duration pollInterval = Duration.zero,
+      Duration confirmationTimeout = const Duration(seconds: 5),
+      Duration snapshotReadTimeout = const Duration(seconds: 5),
+    }) => PillarWithdrawQsrBloc(
+      accountBlockUtils: accountBlockUtils,
+      zenon: zenon,
+      zenonAddressUtils: zenonAddressUtils,
+      pollInterval: pollInterval,
+      confirmationTimeout: confirmationTimeout,
+      snapshotReadTimeout: snapshotReadTimeout,
+    );
+
+    Future<void> dispatchAndWaitForCompletion(
+      PillarWithdrawQsrBloc target,
+      PillarWithdrawQsrRequested event,
+    ) async {
+      final Future<PillarWithdrawQsrState> completed = target.stream
+          .firstWhere(
+            (PillarWithdrawQsrState state) =>
+                state is PillarWithdrawQsrPopulated ||
+                state is PillarWithdrawQsrFailure,
+          )
+          .timeout(const Duration(seconds: 2));
+      target.add(event);
+      await completed;
+    }
+
     setUp(() {
       zenon = MockZenon();
       embedded = MockEmbedded();
@@ -50,6 +80,9 @@ void main() {
       when(() => embedded.pillar).thenReturn(pillarApi);
       when(() => pillarApi.withdrawQsr()).thenReturn(template);
       when(
+        () => pillarApi.getDepositedQsr(any()),
+      ).thenAnswer((_) async => BigInt.from(150000));
+      when(
         () => accountBlockUtils.createAccountBlock(
           any(),
           any(),
@@ -59,12 +92,7 @@ void main() {
       ).thenAnswer((_) async => template);
       when(() => zenonAddressUtils.refreshBalance()).thenAnswer((_) {});
 
-      bloc = PillarWithdrawQsrBloc(
-        accountBlockUtils: accountBlockUtils,
-        zenon: zenon,
-        zenonAddressUtils: zenonAddressUtils,
-        postTransactionDelay: Duration.zero,
-      );
+      bloc = buildBloc();
     });
 
     test('initial state is correct', () {
@@ -72,15 +100,138 @@ void main() {
     });
 
     blocTest<PillarWithdrawQsrBloc, PillarWithdrawQsrState>(
-      'emits [loading, populated] on success',
-      build: () => bloc,
-      act: (PillarWithdrawQsrBloc bloc) =>
-          bloc.add(PillarWithdrawQsrRequested(address: emptyAddress)),
-      wait: const Duration(milliseconds: 1),
+      'polls getDepositedQsr until withdrawn deposit decreases',
+      setUp: () {
+        int calls = 0;
+        when(() => pillarApi.getDepositedQsr(emptyAddress)).thenAnswer((
+          _,
+        ) async {
+          calls += 1;
+          if (calls <= 2) {
+            return BigInt.from(150000);
+          }
+          if (calls == 3) {
+            throw Exception('transient RPC error');
+          }
+          return BigInt.zero;
+        });
+      },
+      build: buildBloc,
+      act: (PillarWithdrawQsrBloc bloc) => dispatchAndWaitForCompletion(
+        bloc,
+        PillarWithdrawQsrRequested(address: emptyAddress),
+      ),
       expect: () => <PillarWithdrawQsrState>[
         const PillarWithdrawQsrLoading(),
         const PillarWithdrawQsrPopulated(),
       ],
+      verify: (_) {
+        verify(() => pillarApi.getDepositedQsr(emptyAddress)).called(4);
+        verify(() => zenonAddressUtils.refreshBalance()).called(1);
+      },
+    );
+
+    blocTest<PillarWithdrawQsrBloc, PillarWithdrawQsrState>(
+      'polls until deposit reaches zero when initial snapshot fails',
+      setUp: () {
+        int calls = 0;
+        when(() => pillarApi.getDepositedQsr(emptyAddress)).thenAnswer((
+          _,
+        ) async {
+          calls += 1;
+          if (calls == 1) {
+            throw Exception('snapshot failed');
+          }
+          if (calls == 2) {
+            return BigInt.from(150000);
+          }
+          return BigInt.zero;
+        });
+      },
+      build: buildBloc,
+      act: (PillarWithdrawQsrBloc bloc) => dispatchAndWaitForCompletion(
+        bloc,
+        PillarWithdrawQsrRequested(address: emptyAddress),
+      ),
+      expect: () => <PillarWithdrawQsrState>[
+        const PillarWithdrawQsrLoading(),
+        const PillarWithdrawQsrPopulated(),
+      ],
+      verify: (_) {
+        verify(() => pillarApi.getDepositedQsr(emptyAddress)).called(3);
+        verify(() => zenonAddressUtils.refreshBalance()).called(1);
+      },
+    );
+
+    blocTest<PillarWithdrawQsrBloc, PillarWithdrawQsrState>(
+      'polls until deposit reaches zero when initial snapshot times out',
+      setUp: () {
+        final Completer<BigInt> stalledSnapshot = Completer<BigInt>();
+        int calls = 0;
+        when(() => pillarApi.getDepositedQsr(emptyAddress)).thenAnswer((_) {
+          calls += 1;
+          if (calls == 1) {
+            return stalledSnapshot.future;
+          }
+          if (calls == 2) {
+            return Future<BigInt>.value(BigInt.from(150000));
+          }
+          return Future<BigInt>.value(BigInt.zero);
+        });
+      },
+      build: () => buildBloc(
+        snapshotReadTimeout: const Duration(milliseconds: 10),
+      ),
+      act: (PillarWithdrawQsrBloc bloc) => dispatchAndWaitForCompletion(
+        bloc,
+        PillarWithdrawQsrRequested(address: emptyAddress),
+      ),
+      expect: () => <PillarWithdrawQsrState>[
+        const PillarWithdrawQsrLoading(),
+        const PillarWithdrawQsrPopulated(),
+      ],
+      verify: (_) {
+        verify(() => pillarApi.getDepositedQsr(emptyAddress)).called(3);
+        verify(() => zenonAddressUtils.refreshBalance()).called(1);
+      },
+    );
+
+    blocTest<PillarWithdrawQsrBloc, PillarWithdrawQsrState>(
+      'skips confirmation polling when initial deposit is zero',
+      setUp: () {
+        when(
+          () => pillarApi.getDepositedQsr(emptyAddress),
+        ).thenAnswer((_) async => BigInt.zero);
+      },
+      build: buildBloc,
+      act: (PillarWithdrawQsrBloc bloc) => dispatchAndWaitForCompletion(
+        bloc,
+        PillarWithdrawQsrRequested(address: emptyAddress),
+      ),
+      expect: () => <PillarWithdrawQsrState>[
+        const PillarWithdrawQsrLoading(),
+        const PillarWithdrawQsrPopulated(),
+      ],
+      verify: (_) {
+        verify(() => pillarApi.getDepositedQsr(emptyAddress)).called(1);
+        verify(() => zenonAddressUtils.refreshBalance()).called(1);
+      },
+    );
+
+    blocTest<PillarWithdrawQsrBloc, PillarWithdrawQsrState>(
+      'still emits populated when confirmation polling times out',
+      build: () => buildBloc(confirmationTimeout: Duration.zero),
+      act: (PillarWithdrawQsrBloc bloc) => dispatchAndWaitForCompletion(
+        bloc,
+        PillarWithdrawQsrRequested(address: emptyAddress),
+      ),
+      expect: () => <PillarWithdrawQsrState>[
+        const PillarWithdrawQsrLoading(),
+        const PillarWithdrawQsrPopulated(),
+      ],
+      verify: (_) {
+        verify(() => zenonAddressUtils.refreshBalance()).called(1);
+      },
     );
 
     blocTest<PillarWithdrawQsrBloc, PillarWithdrawQsrState>(
