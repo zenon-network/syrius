@@ -164,6 +164,22 @@ void main() {
           equals(utf8.encode('\x19Zenon Signed Message:\n5\nhello')),
         );
 
+        // Even when total encoded payload length happens to be 32 bytes
+        // (7-byte ASCII message), the fixed 25-byte domain prefix guarantees
+        // domain separation from SHA3-256 block hashes.
+        const String sevenBytes = '1234567';
+        final Uint8List sevenBytePayload =
+            NoMService.encodeSignedMessagePayload(sevenBytes);
+        expect(sevenBytePayload.length, 32);
+        expect(
+          sevenBytePayload,
+          equals(utf8.encode('\x19Zenon Signed Message:\n7\n1234567')),
+        );
+        expect(
+          utf8.decode(sevenBytePayload.sublist(0, 25)),
+          '\x19Zenon Signed Message:\n7\n',
+        );
+
         // 32 CJK ideographs (96 UTF-8 bytes) must use UTF-8 encoding and
         // domain prefix so they can never forge a 32-byte account-block hash.
         final String cjk32 = String.fromCharCodes(

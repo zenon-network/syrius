@@ -202,8 +202,14 @@ class _ViewState extends State<_View> {
       text: context.l10n.connect,
       onPressed: _hasValidUri
           ? () {
+              final WalletConnectPairBloc pairBloc = context
+                  .read<WalletConnectPairBloc>();
+              if (_submittedInputRevision != null ||
+                  pairBloc.state.status == WalletConnectPairStatus.loading) {
+                return;
+              }
               _submittedInputRevision = _inputRevision;
-              context.read<WalletConnectPairBloc>().add(
+              pairBloc.add(
                 WalletConnectPairRequested(
                   rawUri: _uriController.text,
                   isWindows: Platform.isWindows,

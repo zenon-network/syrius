@@ -3,8 +3,11 @@ import 'dart:async';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:logging/logging.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:reown_core/crypto/i_crypto.dart';
+import 'package:reown_core/pairing/i_expirer.dart';
 import 'package:reown_core/pairing/i_pairing.dart';
 import 'package:reown_core/relay_client/i_relay_client.dart';
+import 'package:reown_core/store/i_store.dart';
 import 'package:reown_walletkit/reown_walletkit.dart' hide Address;
 import 'package:zenon_syrius_wallet_flutter/blocs/wallet_connect/chains/nom_service.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/wallet_connect_metadata_utils.dart';
@@ -23,6 +26,12 @@ class _MockPairing extends Mock implements IPairing {}
 class _MockPairingStore extends Mock implements IPairingStore {}
 
 class _MockSessionStore extends Mock implements ISessions {}
+
+class _MockCoreStorage extends Mock implements IStore<Map<String, dynamic>> {}
+
+class _MockCrypto extends Mock implements ICrypto {}
+
+class _MockExpirer extends Mock implements IExpirer {}
 
 class _FakeNoMService extends Mock implements NoMService {}
 
@@ -75,6 +84,9 @@ void main() {
     late _MockPairing pairing;
     late _MockPairingStore pairingStore;
     late _MockSessionStore sessionStore;
+    late _MockCoreStorage coreStorage;
+    late _MockCrypto crypto;
+    late _MockExpirer expirer;
     late _FakeNoMService nomService;
     late Event<SessionRequestEvent> onSessionRequest;
     late Event<SessionProposalEvent> onSessionProposal;
@@ -115,6 +127,9 @@ void main() {
       pairing = _MockPairing();
       pairingStore = _MockPairingStore();
       sessionStore = _MockSessionStore();
+      coreStorage = _MockCoreStorage();
+      crypto = _MockCrypto();
+      expirer = _MockExpirer();
       nomService = _FakeNoMService();
 
       onSessionRequest = Event<SessionRequestEvent>();
@@ -139,6 +154,21 @@ void main() {
       when(() => walletKit.core).thenReturn(core);
       when(() => core.relayClient).thenReturn(relayClient);
       when(() => core.pairing).thenReturn(pairing);
+      when(() => core.storage).thenReturn(coreStorage);
+      when(() => core.crypto).thenReturn(crypto);
+      when(() => core.expirer).thenReturn(expirer);
+      when(() => coreStorage.init()).thenAnswer((_) async {});
+      when(() => coreStorage.has(any())).thenReturn(false);
+      when(() => coreStorage.set(any(), any())).thenAnswer((_) async {});
+      when(() => coreStorage.delete(any())).thenAnswer((_) async {});
+      when(() => crypto.deleteKeyPair(any())).thenAnswer((_) async {});
+      when(() => crypto.deleteSymKey(any())).thenAnswer((_) async {});
+      when(() => expirer.delete(any())).thenAnswer((_) async {});
+      when(
+        () => relayClient.unsubscribe(topic: any(named: 'topic')),
+      ).thenAnswer((_) async {});
+      when(() => pairingStore.delete(any())).thenAnswer((_) async {});
+      when(() => sessionStore.delete(any())).thenAnswer((_) async {});
       when(() => walletKit.pairings).thenReturn(pairingStore);
       when(() => walletKit.sessions).thenReturn(sessionStore);
 
@@ -1132,5 +1162,83 @@ void main() {
         );
       });
     });
+
+    test(
+      'disconnectEverything persists reset marker across restart and deletes '
+      'local session/pairing records when relay disconnect fails offline',
+      () async {
+        final int now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+        final Map<String, Map<String, dynamic>> persistedStorage =
+            <String, Map<String, dynamic>>{};
+        when(() => coreStorage.has(any())).thenAnswer(
+          (Invocation i) =>
+              persistedStorage.containsKey(i.positionalArguments[0]),
+        );
+        when(() => coreStorage.set(any(), any())).thenAnswer((
+          Invocation i,
+        ) async {
+          persistedStorage[i.positionalArguments[0] as String] =
+              i.positionalArguments[1] as Map<String, dynamic>;
+        });
+        when(() => coreStorage.delete(any())).thenAnswer((Invocation i) async {
+          persistedStorage.remove(i.positionalArguments[0] as String);
+        });
+
+        activeSessions['offline-s1'] = _buildSession(topic: 'offline-s1');
+        when(() => pairingStore.getAll()).thenReturn(<PairingInfo>[
+          PairingInfo(
+            topic: 'offline-p1',
+            expiry: now + 3600,
+            relay: Relay(ReownConstants.RELAYER_DEFAULT_PROTOCOL),
+            active: true,
+          ),
+        ]);
+        when(
+          () => walletKit.disconnectSession(
+            topic: 'offline-s1',
+            reason: any(named: 'reason'),
+          ),
+        ).thenThrow(StateError('No internet connection'));
+        when(
+          () => pairing.disconnect(topic: 'offline-p1'),
+        ).thenThrow(StateError('No internet connection'));
+
+        // Launch 1: wallet reset runs before init() ever runs, then exits.
+        final Web3WalletService launch1 = buildService();
+        addTearDown(launch1.onDispose);
+        launch1.create();
+        await launch1.disconnectEverything();
+        expect(
+          persistedStorage.containsKey(
+            Web3WalletService.pendingResetStorageKey,
+          ),
+          isTrue,
+        );
+
+        // Launch 2: fresh service instance initializes offline; persisted reset
+        // marker triggers local deletion of sessions & pairings and clears
+        // marker afterwards.
+        final Web3WalletService launch2 = buildService();
+        addTearDown(launch2.onDispose);
+        launch2.create();
+        await launch2.init();
+
+        verify(() => sessionStore.delete('offline-s1')).called(1);
+        verify(() => crypto.deleteKeyPair('self-key')).called(1);
+        verify(() => crypto.deleteSymKey('offline-s1')).called(1);
+        verify(() => expirer.delete('offline-s1')).called(1);
+        verify(() => pairingStore.delete('offline-p1')).called(1);
+        verify(() => crypto.deleteSymKey('offline-p1')).called(1);
+        verify(() => expirer.delete('offline-p1')).called(1);
+        verify(() => relayClient.unsubscribe(topic: 'offline-s1')).called(1);
+        verify(() => relayClient.unsubscribe(topic: 'offline-p1')).called(1);
+        expect(
+          persistedStorage.containsKey(
+            Web3WalletService.pendingResetStorageKey,
+          ),
+          isFalse,
+        );
+      },
+    );
   });
 }

@@ -43,11 +43,18 @@ class Web3WalletService extends IWeb3WalletService {
 
   static const int _maxCompletedRequestIds = 512;
 
+  /// Storage key persisted in `core.storage` when [disconnectEverything] is
+  /// invoked before initialization completes (or while offline), ensuring a
+  /// wallet reset survives an immediate process exit.
+  @visibleForTesting
+  static const String pendingResetStorageKey = 'syrius_pending_wc_reset';
+
   final Logger _logger = Logger('WalletConnectService');
   final IChain Function(String chainId)? _chainResolver;
 
   ReownWalletKit? _wcClient;
   Future<void>? _initFuture;
+  Future<void>? _pendingResetMarkerPersist;
   bool _isInitialized = false;
   bool _isDisposed = false;
   bool _listenersSubscribed = false;
@@ -149,14 +156,14 @@ class Web3WalletService extends IWeb3WalletService {
     registerAccountsIfNeeded();
 
     _isInitialized = true;
-    _reloadStores();
 
-    if (_pendingDisconnectEverything) {
+    if (_pendingDisconnectEverything || _hasPendingResetMarker()) {
       _pendingDisconnectEverything = false;
       await disconnectEverything();
       return;
     }
 
+    _reloadStores();
     await _disconnectUnsupportedSessions();
     unawaited(_drainPendingSessionRequests());
   }
@@ -181,6 +188,7 @@ class Web3WalletService extends IWeb3WalletService {
     _stalePendingTopics.clear();
     _registeredAccounts.clear();
     _pendingDisconnectEverything = false;
+    _pendingResetMarkerPersist = null;
     _initFuture = null;
     _isInitialized = false;
     _wcClient = null;
@@ -219,17 +227,12 @@ class Web3WalletService extends IWeb3WalletService {
   Future<void> _cleanupStalePairings() async {
     if (_wcClient == null) return;
 
-    final int nowSeconds = DateTime.now().millisecondsSinceEpoch ~/ 1000;
-    final Set<String> protectedPairingTopics = <String>{
-      ..._proposalPairingTopicsInFlight.values,
-      ..._safeGetPendingProposalPairingTopics(),
-    };
     final List<PairingInfo> currentPairings = List<PairingInfo>.from(
       _wcClient!.pairings.getAll(),
     );
 
     for (final PairingInfo pairing in currentPairings) {
-      if (protectedPairingTopics.contains(pairing.topic)) {
+      if (_isPairingProtectedByProposal(pairing.topic)) {
         continue;
       }
 
@@ -239,6 +242,7 @@ class Web3WalletService extends IWeb3WalletService {
         continue;
       }
 
+      final int nowSeconds = DateTime.now().millisecondsSinceEpoch ~/ 1000;
       final bool isExpired = pairing.expiry <= nowSeconds;
       final bool isInactive = !pairing.active;
       if (!isInactive && !isExpired) {
@@ -258,6 +262,11 @@ class Web3WalletService extends IWeb3WalletService {
     }
 
     _reloadStores();
+  }
+
+  bool _isPairingProtectedByProposal(String pairingTopic) {
+    return _proposalPairingTopicsInFlight.containsValue(pairingTopic) ||
+        _safeGetPendingProposalPairingTopics().contains(pairingTopic);
   }
 
   Set<String> _safeGetPendingProposalPairingTopics() {
@@ -387,13 +396,92 @@ class Web3WalletService extends IWeb3WalletService {
           reason: Errors.getSdkError(Errors.USER_DISCONNECTED).toSignError(),
         );
       } on Object catch (e, s) {
-        _logger.warning('Failed to disconnect session ${session.topic}', e, s);
+        _logger.warning(
+          'Failed to disconnect session ${session.topic} remotely; '
+          'purging local session state and key material',
+          e,
+          s,
+        );
+        await _purgeSessionLocally(session);
       }
     }
 
     _approvedProposalIds.clear();
     _pendingUnsentResponses.clear();
     _reloadStores();
+  }
+
+  Future<void> _purgeSessionLocally(SessionData session) async {
+    if (_wcClient == null) return;
+    try {
+      await _wcClient!.sessions.delete(session.topic);
+    } on Object catch (e, s) {
+      _logger.warning('Failed deleting local session ${session.topic}', e, s);
+    }
+    try {
+      await _wcClient!.core.crypto.deleteKeyPair(session.self.publicKey);
+    } on Object catch (e, s) {
+      _logger.warning(
+        'Failed deleting session key pair for ${session.topic}',
+        e,
+        s,
+      );
+    }
+    try {
+      await _wcClient!.core.crypto.deleteSymKey(session.topic);
+    } on Object catch (e, s) {
+      _logger.warning(
+        'Failed deleting session symKey for ${session.topic}',
+        e,
+        s,
+      );
+    }
+    try {
+      await _wcClient!.core.expirer.delete(session.topic);
+    } on Object catch (e, s) {
+      _logger.warning(
+        'Failed deleting session expirer entry for ${session.topic}',
+        e,
+        s,
+      );
+    }
+    try {
+      await _wcClient!.core.relayClient.unsubscribe(topic: session.topic);
+    } on Object {
+      // Relay may be offline during local reset.
+    }
+  }
+
+  Future<void> _purgePairingLocally(PairingInfo pairing) async {
+    if (_wcClient == null) return;
+    try {
+      await _wcClient!.pairings.delete(pairing.topic);
+    } on Object catch (e, s) {
+      _logger.warning('Failed deleting local pairing ${pairing.topic}', e, s);
+    }
+    try {
+      await _wcClient!.core.crypto.deleteSymKey(pairing.topic);
+    } on Object catch (e, s) {
+      _logger.warning(
+        'Failed deleting pairing symKey for ${pairing.topic}',
+        e,
+        s,
+      );
+    }
+    try {
+      await _wcClient!.core.expirer.delete(pairing.topic);
+    } on Object catch (e, s) {
+      _logger.warning(
+        'Failed deleting pairing expirer entry for ${pairing.topic}',
+        e,
+        s,
+      );
+    }
+    try {
+      await _wcClient!.core.relayClient.unsubscribe(topic: pairing.topic);
+    } on Object {
+      // Relay may be offline during local reset.
+    }
   }
 
   @override
@@ -413,7 +501,13 @@ class Web3WalletService extends IWeb3WalletService {
       try {
         await _wcClient!.core.pairing.disconnect(topic: pairing.topic);
       } on Object catch (e, s) {
-        _logger.warning('Failed to disconnect pairing ${pairing.topic}', e, s);
+        _logger.warning(
+          'Failed to disconnect pairing ${pairing.topic} remotely; '
+          'purging local pairing state and key material',
+          e,
+          s,
+        );
+        await _purgePairingLocally(pairing);
       }
     }
 
@@ -428,11 +522,13 @@ class Web3WalletService extends IWeb3WalletService {
     }
 
     if (!_isInitialized) {
-      // Defer full store wipe until init() completes so offline wallet resets
-      // never block and never invoke uninitialized ReownWalletKit methods,
-      // while still preventing stale persisted sessions/pairings from
-      // resurfacing once initialization finishes.
+      // Persist a durable reset marker and defer full store wipe until init()
+      // completes so offline wallet resets never block, never invoke
+      // uninitialized ReownWalletKit methods, and survive an immediate exit.
       _pendingDisconnectEverything = true;
+      final Future<void> persistFuture = _persistPendingResetMarker();
+      _pendingResetMarkerPersist = persistFuture;
+      await persistFuture;
       _approvedProposalIds.clear();
       _pendingUnsentResponses.clear();
       if (!_isDisposed) {
@@ -445,6 +541,45 @@ class Web3WalletService extends IWeb3WalletService {
     _pendingDisconnectEverything = false;
     await disconnectSessions();
     await disconnectAllPairings();
+    await _clearPendingResetMarker();
+  }
+
+  Future<void> _persistPendingResetMarker() async {
+    try {
+      await _wcClient!.core.storage.init();
+      await _wcClient!.core.storage.set(
+        pendingResetStorageKey,
+        <String, dynamic>{'pending': true},
+      );
+    } on Object catch (e, s) {
+      _logger.warning('Failed persisting WalletConnect reset marker', e, s);
+    }
+  }
+
+  bool _hasPendingResetMarker() {
+    try {
+      return _wcClient!.core.storage.has(pendingResetStorageKey);
+    } on Object {
+      return false;
+    }
+  }
+
+  Future<void> _clearPendingResetMarker() async {
+    final Future<void>? inFlightPersist = _pendingResetMarkerPersist;
+    if (inFlightPersist != null) {
+      await inFlightPersist;
+      if (identical(_pendingResetMarkerPersist, inFlightPersist)) {
+        _pendingResetMarkerPersist = null;
+      }
+    }
+    try {
+      if (_wcClient != null &&
+          _wcClient!.core.storage.has(pendingResetStorageKey)) {
+        await _wcClient!.core.storage.delete(pendingResetStorageKey);
+      }
+    } on Object catch (e, s) {
+      _logger.warning('Failed clearing WalletConnect reset marker', e, s);
+    }
   }
 
   @override
@@ -1079,172 +1214,167 @@ class Web3WalletService extends IWeb3WalletService {
       _proposalPairingTopicsInFlight[event.id] = event.params.pairingTopic;
     }
 
-    final PairingMetadata dAppMetadata = event.params.proposer.metadata;
-    final String dAppName = _dAppName(dAppMetadata);
-    final String dAppDescription = _dAppDescription(dAppMetadata);
-    final String? dAppUrl = _dAppUrl(dAppMetadata);
-    final String? dAppIconUrl = _dAppIconUrl(dAppMetadata);
-    final String? unsupportedProposalReason =
-        unsupportedRequiredNamespaceReason(event.params.requiredNamespaces);
-
-    if (unsupportedProposalReason != null) {
-      try {
-        _approvedProposalIds.add(event.id);
-        await _wcClient!.rejectSession(
-          id: event.id,
-          reason: Errors.getSdkError(
-            Errors.UNSUPPORTED_NAMESPACE_KEY,
-            context: unsupportedProposalReason,
-          ).toSignError(),
-        );
-        await NotificationUtils.sendNotificationError(
-          unsupportedProposalReason,
-          'WalletConnect session proposal rejected',
-        );
-      } on Object catch (e, s) {
-        _logger.severe(
-          'Failed rejecting unsupported WalletConnect proposal',
-          e,
-          s,
-        );
-      } finally {
-        _proposalIdsInFlight.remove(event.id);
-        _proposalPairingTopicsInFlight.remove(event.id);
-        _reloadStores();
-      }
-      return;
-    }
-
-    if (isWalletConnectVerifyScam(event.verifyContext)) {
-      try {
-        _approvedProposalIds.add(event.id);
-        _logger.warning(
-          'Blocking WalletConnect session proposal flagged as scam: '
-          'id=${event.id} origin=${event.verifyContext?.origin}',
-        );
-        await _wcClient!.rejectSession(
-          id: event.id,
-          reason: Errors.getSdkError(
-            Errors.USER_REJECTED,
-            context: 'Flagged as scam by WalletConnect Verify API',
-          ).toSignError(),
-        );
-        await NotificationUtils.sendNotificationError(
-          'This peer was flagged as a known scam by WalletConnect Verify.',
-          'WalletConnect session proposal blocked',
-        );
-      } on Object catch (e, s) {
-        _logger.severe('Failed rejecting scam WalletConnect proposal', e, s);
-      } finally {
-        _proposalIdsInFlight.remove(event.id);
-        _proposalPairingTopicsInFlight.remove(event.id);
-        _reloadStores();
-      }
-      return;
-    }
-
-    if (!await windowManager.isFocused() || !await windowManager.isVisible()) {
-      await windowManager.show();
-    }
-
-    final BuildContext? context = globalNavigatorKey.currentContext;
-    if (context == null || !context.mounted) {
-      _logger.warning('No navigator context available for session proposal');
-      _proposalIdsInFlight.remove(event.id);
-      _proposalPairingTopicsInFlight.remove(event.id);
-      return;
-    }
-
-    final String requestedChains = _requestedChainsLabel(event.params);
-    final String requestedMethods = _requestedMethodsLabel(event.params);
-    final String requestedEvents = _requestedEventsLabel(event.params);
-    final WalletConnectVerifySummary verifySummary =
-        describeWalletConnectVerifyContext(event.verifyContext);
-
-    final bool? accepted = await showDialogWithNoAndYesOptions(
-      context: context,
-      isBarrierDismissible: false,
-      title: 'Approve session',
-      content: SingleChildScrollView(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: <Widget>[
-            Text('Are you sure you want to connect to $dAppName?'),
-            kVerticalSpacing,
-            _buildVerifyStatusBanner(verifySummary),
-            kVerticalSpacing,
-            Text('Chains: $requestedChains'),
-            kVerticalSpacing,
-            Text('Methods: $requestedMethods'),
-            kVerticalSpacing,
-            Text('Events: $requestedEvents'),
-            kVerticalSpacing,
-            if (dAppIconUrl != null)
-              Image(
-                image: NetworkImage(dAppIconUrl),
-                height: 100,
-                fit: BoxFit.fitHeight,
-              ),
-            kVerticalSpacing,
-            Text(dAppDescription),
-            kVerticalSpacing,
-            if (dAppUrl != null)
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: <Widget>[
-                  Flexible(
-                    child: Text(dAppUrl, overflow: TextOverflow.ellipsis),
-                  ),
-                  LinkIcon(url: dAppUrl),
-                ],
-              ),
-          ],
-        ),
-      ),
-    );
-
-    if (accepted ?? false) {
-      try {
-        final ApproveResponse approveResponse = await _approveSession(
-          id: event.id,
-        );
-
-        if (approveResponse.session == null) {
-          throw StateError('WalletConnect approveSession returned null');
-        }
-
-        // Mark the proposal as approved only after approveSession succeeds,
-        // so a transient failure leaves the id free for a retried delivery.
-        _approvedProposalIds.add(event.id);
-        _upsertSession(approveResponse.session!);
-        await _sendSuccessfullyApprovedSessionNotification(dAppMetadata);
-
-        _reloadStores();
-      } on Object catch (e, s) {
-        _logger.severe('Failed approving WalletConnect session', e, s);
-        await NotificationUtils.sendNotificationError(
-          e,
-          'WalletConnect session approval failed',
-        );
-      } finally {
-        _proposalIdsInFlight.remove(event.id);
-        _proposalPairingTopicsInFlight.remove(event.id);
-      }
-      return;
-    }
-
-    _approvedProposalIds.add(event.id);
     try {
-      await _wcClient!.rejectSession(
-        id: event.id,
-        reason: Errors.getSdkError(Errors.USER_REJECTED).toSignError(),
+      final PairingMetadata dAppMetadata = event.params.proposer.metadata;
+      final String dAppName = _dAppName(dAppMetadata);
+      final String dAppDescription = _dAppDescription(dAppMetadata);
+      final String? dAppUrl = _dAppUrl(dAppMetadata);
+      final String? dAppIconUrl = _dAppIconUrl(dAppMetadata);
+      final String? unsupportedProposalReason =
+          unsupportedRequiredNamespaceReason(event.params.requiredNamespaces);
+
+      if (unsupportedProposalReason != null) {
+        try {
+          _approvedProposalIds.add(event.id);
+          await _wcClient!.rejectSession(
+            id: event.id,
+            reason: Errors.getSdkError(
+              Errors.UNSUPPORTED_NAMESPACE_KEY,
+              context: unsupportedProposalReason,
+            ).toSignError(),
+          );
+          await NotificationUtils.sendNotificationError(
+            unsupportedProposalReason,
+            'WalletConnect session proposal rejected',
+          );
+        } on Object catch (e, s) {
+          _logger.severe(
+            'Failed rejecting unsupported WalletConnect proposal',
+            e,
+            s,
+          );
+        } finally {
+          _reloadStores();
+        }
+        return;
+      }
+
+      if (isWalletConnectVerifyScam(event.verifyContext)) {
+        try {
+          _approvedProposalIds.add(event.id);
+          _logger.warning(
+            'Blocking WalletConnect session proposal flagged as scam: '
+            'id=${event.id} origin=${event.verifyContext?.origin}',
+          );
+          await _wcClient!.rejectSession(
+            id: event.id,
+            reason: Errors.getSdkError(
+              Errors.USER_REJECTED,
+              context: 'Flagged as scam by WalletConnect Verify API',
+            ).toSignError(),
+          );
+          await NotificationUtils.sendNotificationError(
+            'This peer was flagged as a known scam by WalletConnect Verify.',
+            'WalletConnect session proposal blocked',
+          );
+        } on Object catch (e, s) {
+          _logger.severe('Failed rejecting scam WalletConnect proposal', e, s);
+        } finally {
+          _reloadStores();
+        }
+        return;
+      }
+
+      if (!await windowManager.isFocused() ||
+          !await windowManager.isVisible()) {
+        await windowManager.show();
+      }
+
+      final BuildContext? context = globalNavigatorKey.currentContext;
+      if (context == null || !context.mounted) {
+        _logger.warning('No navigator context available for session proposal');
+        return;
+      }
+
+      final String requestedChains = _requestedChainsLabel(event.params);
+      final String requestedMethods = _requestedMethodsLabel(event.params);
+      final String requestedEvents = _requestedEventsLabel(event.params);
+      final WalletConnectVerifySummary verifySummary =
+          describeWalletConnectVerifyContext(event.verifyContext);
+
+      final bool? accepted = await showDialogWithNoAndYesOptions(
+        context: context,
+        isBarrierDismissible: false,
+        title: 'Approve session',
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              Text('Are you sure you want to connect to $dAppName?'),
+              kVerticalSpacing,
+              _buildVerifyStatusBanner(verifySummary),
+              kVerticalSpacing,
+              Text('Chains: $requestedChains'),
+              kVerticalSpacing,
+              Text('Methods: $requestedMethods'),
+              kVerticalSpacing,
+              Text('Events: $requestedEvents'),
+              kVerticalSpacing,
+              if (dAppIconUrl != null)
+                Image(
+                  image: NetworkImage(dAppIconUrl),
+                  height: 100,
+                  fit: BoxFit.fitHeight,
+                ),
+              kVerticalSpacing,
+              Text(dAppDescription),
+              kVerticalSpacing,
+              if (dAppUrl != null)
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: <Widget>[
+                    Flexible(
+                      child: Text(dAppUrl, overflow: TextOverflow.ellipsis),
+                    ),
+                    LinkIcon(url: dAppUrl),
+                  ],
+                ),
+            ],
+          ),
+        ),
       );
-    } on Object catch (e, s) {
-      _logger.warning('Failed rejecting WalletConnect session', e, s);
+
+      if (accepted ?? false) {
+        try {
+          final ApproveResponse approveResponse = await _approveSession(
+            id: event.id,
+          );
+
+          if (approveResponse.session == null) {
+            throw StateError('WalletConnect approveSession returned null');
+          }
+
+          // Mark the proposal as approved only after approveSession succeeds,
+          // so a transient failure leaves the id free for a retried delivery.
+          _approvedProposalIds.add(event.id);
+          _upsertSession(approveResponse.session!);
+          await _sendSuccessfullyApprovedSessionNotification(dAppMetadata);
+
+          _reloadStores();
+        } on Object catch (e, s) {
+          _logger.severe('Failed approving WalletConnect session', e, s);
+          await NotificationUtils.sendNotificationError(
+            e,
+            'WalletConnect session approval failed',
+          );
+        }
+        return;
+      }
+
+      _approvedProposalIds.add(event.id);
+      try {
+        await _wcClient!.rejectSession(
+          id: event.id,
+          reason: Errors.getSdkError(Errors.USER_REJECTED).toSignError(),
+        );
+      } on Object catch (e, s) {
+        _logger.warning('Failed rejecting WalletConnect session', e, s);
+      } finally {
+        _reloadStores();
+      }
     } finally {
       _proposalIdsInFlight.remove(event.id);
       _proposalPairingTopicsInFlight.remove(event.id);
-      _reloadStores();
     }
   }
 

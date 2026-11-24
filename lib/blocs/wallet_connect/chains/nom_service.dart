@@ -95,8 +95,11 @@ class NoMService extends IChain {
   static const String namespace = 'zenon';
 
   /// Domain-separation prefix prepended to UTF-8 message bytes signed by
-  /// `znn_sign` so a message signature can never collide with a 32-byte
-  /// account-block hash.
+  /// `znn_sign` (analogous to EIP-191 `personal_sign`). Because the fixed
+  /// 25+ byte header (`\x19Zenon Signed Message:\n<byteLen>\n`) constrains the
+  /// leading bytes of every signed payload, producing an account block whose
+  /// 32-byte SHA3-256 hash matches any `znn_sign` payload is computationally
+  /// infeasible (>2^200 work) regardless of message length.
   static const String signedMessagePrefix = '\x19Zenon Signed Message:\n';
 
   static final Map<Address, ({String name, Abi abi})> _embeddedContractAbis =
