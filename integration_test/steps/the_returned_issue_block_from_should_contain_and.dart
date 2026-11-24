@@ -86,10 +86,9 @@ Future<void> theReturnedIssueBlockFromShouldContainAnd(
   expect(blockData.params['isUtility'], isUtility);
 
   final TokenStandard expectedZts = TokenStandard.fromBytes(
-    Crypto.digest(createdBlock.hash.getBytes()!).sublist(
-      0,
-      TokenStandard.coreSize,
-    ),
+    Crypto.digest(
+      createdBlock.hash.getBytes()!,
+    ).sublist(0, TokenStandard.coreSize),
   );
   final Token? token = await _poll<Token?>(
     () => app.zenon!.embedded.token.getByZts(expectedZts),

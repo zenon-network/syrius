@@ -20,10 +20,10 @@ Follow the instructions to install the [Flutter SDK](https://docs.flutter.dev/ge
 
 Learn about the foreign function interface (ffi) [here](https://docs.flutter.dev/development/platform-integration/c-interop) that enables state-of-the art KDF - [Argon2](https://github.com/zenon-network/argon2_ffi), feeless transactions - [PoW links](https://github.com/zenon-network/znn-pow-links-cpp), native full node integration - [Embedded Node](https://github.com/zenon-network/go-zenon) and communication library between Ledger devices - [Ledger](https://github.com/zenon-network/ledger_ffi_rs).
 
-Dependencies:
+Build toolchain (CI version and committed lockfile requirements):
 
-- Flutter: `>=3.19.x`
-- Dart: `>=3.3.x`
+- Flutter: `3.47.6` (pinned CI version)
+- Dart: `>=3.13.0 <4.0.0` (lockfile range; use the version bundled with Flutter)
 
 Currently supported `<os>`: `windows`, `macos`, `linux`
 

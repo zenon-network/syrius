@@ -72,11 +72,7 @@ Future<void> initializeDevnetIntegrationTests() async {
       .initialize(nodeUrl, retry: false)
       .timeout(const Duration(seconds: 15));
 
-  expect(
-    connected,
-    isTrue,
-    reason: 'Could not connect to devnet at $nodeUrl',
-  );
+  expect(connected, isTrue, reason: 'Could not connect to devnet at $nodeUrl');
 
   final Momentum momentum = await app.zenon!.ledger.getFrontierMomentum();
   expect(

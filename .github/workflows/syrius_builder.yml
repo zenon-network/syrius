@@ -184,11 +184,13 @@ jobs:
           cp syrius-alphanet-windows-amd64.zip releases/
           cp syrius-alphanet-macos-universal.dmg releases/
           cp syrius-alphanet-linux-amd64.zip releases/
-      - name: Generate checksums
+      - name: Generate and verify checksums
         run: |
           cd releases/
-          echo $(sha256sum *)
-          echo $(sha256sum *) >> SHA256CHECKSUMS.txt
+          sha256sum syrius-alphanet-windows-amd64.zip \
+            syrius-alphanet-macos-universal.dmg \
+            syrius-alphanet-linux-amd64.zip > SHA256CHECKSUMS.txt
+          sha256sum --check SHA256CHECKSUMS.txt
       - name: Upload files to a GitHub release
         uses: svenstaro/upload-release-action@2.9.0
         with:

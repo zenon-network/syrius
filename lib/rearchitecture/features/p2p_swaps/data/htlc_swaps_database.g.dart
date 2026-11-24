@@ -259,14 +259,31 @@ class $HtlcSwapEntriesTable extends HtlcSwapEntries
 }
 
 class HtlcSwapEntry extends DataClass implements Insertable<HtlcSwapEntry> {
+  /// The unique swap identifier.
   final String id;
+
+  /// The identifier of the chain containing the swap.
   final int chainId;
+
+  /// The serialized swap lifecycle state.
   final String state;
+
+  /// The serialized swap direction.
   final String direction;
+
+  /// The swap's hash lock.
   final String hashLock;
+
+  /// The identifier of the initial HTLC.
   final String initialHtlcId;
+
+  /// The identifier of the counterparty HTLC, when available.
   final String? counterHtlcId;
+
+  /// The swap start time.
   final int startTime;
+
+  /// The complete serialized swap payload.
   final String payloadJson;
   const HtlcSwapEntry({
     required this.id,
@@ -666,7 +683,10 @@ class $HtlcScanCheckpointsTable extends HtlcScanCheckpoints
 
 class HtlcScanCheckpoint extends DataClass
     implements Insertable<HtlcScanCheckpoint> {
+  /// The identifier of the scanned chain.
   final int chainId;
+
+  /// The last block height checked for HTLC updates.
   final int lastCheckedHeight;
   const HtlcScanCheckpoint({
     required this.chainId,

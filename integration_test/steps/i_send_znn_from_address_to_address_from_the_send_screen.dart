@@ -83,10 +83,7 @@ Future<void> iSendZnnFromAddressToAddressFromTheSendScreen(
 
   try {
     await tester.tap(find.byKey(const Key('dialog_yes_button')));
-    context.sentBlock = await _pumpUntilComplete(
-      tester,
-      completer.future,
-    );
+    context.sentBlock = await _pumpUntilComplete(tester, completer.future);
   } finally {
     await subscription.cancel();
     await sendTransactionBloc.close();

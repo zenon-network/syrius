@@ -59,21 +59,9 @@ iCreateATokenWithNameSymbolWebsiteMintableBurnableDecimalsMaxSupplyTotalSupplyUt
   await _tapAndSettle(tester, const Key('token_plasma_next_button'));
   await _tapAndSettle(tester, const Key('token_znn_next_button'));
 
-  await _enterText(
-    tester,
-    const Key('token_name_field'),
-    tokenName,
-  );
-  await _enterText(
-    tester,
-    const Key('token_symbol_field'),
-    tokenSymbol,
-  );
-  await _enterText(
-    tester,
-    const Key('token_domain_field'),
-    tokenWebsite,
-  );
+  await _enterText(tester, const Key('token_name_field'), tokenName);
+  await _enterText(tester, const Key('token_symbol_field'), tokenSymbol);
+  await _enterText(tester, const Key('token_domain_field'), tokenWebsite);
   await _tapAndSettle(tester, const Key('token_details_next_button'));
 
   await _setCheckbox(
@@ -88,26 +76,15 @@ iCreateATokenWithNameSymbolWebsiteMintableBurnableDecimalsMaxSupplyTotalSupplyUt
   );
   await _tapAndSettle(tester, const Key('token_options_next_button'));
 
-  await _pumpUntilFound(
-    tester,
-    find.byKey(const Key('token_decimals_slider')),
-  );
+  await _pumpUntilFound(tester, find.byKey(const Key('token_decimals_slider')));
   final Slider decimalsSlider = tester.widget<Slider>(
     find.byKey(const Key('token_decimals_slider')),
   );
   decimalsSlider.onChanged!(tokenDecimals.toDouble());
   await tester.pumpAndSettle();
 
-  await _enterText(
-    tester,
-    const Key('token_max_supply_field'),
-    maxSupply,
-  );
-  await _enterText(
-    tester,
-    const Key('token_total_supply_field'),
-    totalSupply,
-  );
+  await _enterText(tester, const Key('token_max_supply_field'), maxSupply);
+  await _enterText(tester, const Key('token_total_supply_field'), totalSupply);
   await _tapAndSettle(tester, const Key('token_metrics_next_button'));
 
   await _setCheckbox(

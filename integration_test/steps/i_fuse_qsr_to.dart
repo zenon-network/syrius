@@ -59,17 +59,11 @@ Future<void> iFuseQsrTo(
 
   try {
     fusePlasmaBloc.add(
-      FusePlasmaRequested(
-        beneficiaryAddress: beneficiary,
-        amount: fuseAmount,
-      ),
+      FusePlasmaRequested(beneficiaryAddress: beneficiary, amount: fuseAmount),
     );
     context
       ..plasmaFuseAmount = fuseAmount
-      ..plasmaFuseBlock = await _pumpUntilComplete(
-        tester,
-        completer.future,
-      );
+      ..plasmaFuseBlock = await _pumpUntilComplete(tester, completer.future);
   } finally {
     await subscription.cancel();
     await fusePlasmaBloc.close();

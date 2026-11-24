@@ -172,10 +172,7 @@ Future<void> _pumpUntilAnyFound(
     await tester.pump(const Duration(milliseconds: 100));
   }
 
-  expect(
-    finders.any((Finder finder) => finder.evaluate().isNotEmpty),
-    isTrue,
-  );
+  expect(finders.any((Finder finder) => finder.evaluate().isNotEmpty), isTrue);
 }
 
 Future<void> _pumpUntilFound(WidgetTester tester, Finder finder) async {
