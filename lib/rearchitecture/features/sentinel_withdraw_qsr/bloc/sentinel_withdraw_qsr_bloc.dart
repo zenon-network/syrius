@@ -14,11 +14,16 @@ part 'sentinel_withdraw_qsr_state.dart';
 class SentinelWithdrawQsrBloc
     extends Bloc<SentinelWithdrawQsrEvent, SentinelWithdrawQsrState> {
   /// Creates a new [SentinelWithdrawQsrBloc].
+  ///
+  /// Polls `sentinel.getDepositedQsr` every [_pollInterval] up to
+  /// [_confirmationTimeout] after block submission so the withdrawal is
+  /// reflected on-chain before emitting [SentinelWithdrawQsrPopulated].
   SentinelWithdrawQsrBloc({
     required this._accountBlockUtils,
     required this._zenon,
     required this._zenonAddressUtils,
-    this._postTransactionDelay = kDelayAfterAccountBlockCreationCall,
+    this._pollInterval = kDefaultConfirmationPollInterval,
+    this._confirmationTimeout = kDefaultConfirmationTimeout,
   }) : super(const SentinelWithdrawQsrInitial()) {
     on<SentinelWithdrawQsrRequested>(_onWithdrawQsrRequested);
   }
@@ -26,7 +31,8 @@ class SentinelWithdrawQsrBloc
   final Zenon _zenon;
   final AccountBlockUtils _accountBlockUtils;
   final ZenonAddressUtils _zenonAddressUtils;
-  final Duration _postTransactionDelay;
+  final Duration _pollInterval;
+  final Duration _confirmationTimeout;
 
   FutureOr<void> _onWithdrawQsrRequested(
     SentinelWithdrawQsrRequested event,
@@ -36,6 +42,12 @@ class SentinelWithdrawQsrBloc
       emit(const SentinelWithdrawQsrLoading());
       final AccountBlockTemplate transactionParams = _zenon.embedded.sentinel
           .withdrawQsr();
+      final BigInt? initialDepositedQsr = await _readDepositedQsr(
+        event.address,
+      );
+      if (isClosed) {
+        return;
+      }
 
       await _accountBlockUtils.createAccountBlock(
         transactionParams,
@@ -43,18 +55,47 @@ class SentinelWithdrawQsrBloc
         address: event.address,
         waitForRequiredPlasma: true,
       );
+      if (isClosed) {
+        return;
+      }
 
-      await Future<void>.delayed(_postTransactionDelay);
+      if (initialDepositedQsr == null || initialDepositedQsr > BigInt.zero) {
+        await pollUntilConfirmed<BigInt>(
+          fetch: () => _zenon.embedded.sentinel.getDepositedQsr(event.address),
+          isConfirmed: (BigInt deposited) => initialDepositedQsr != null
+              ? deposited < initialDepositedQsr
+              : deposited == BigInt.zero,
+          pollInterval: _pollInterval,
+          timeout: _confirmationTimeout,
+          isCancelled: () => isClosed,
+        );
+      }
+
+      if (isClosed) {
+        return;
+      }
 
       _zenonAddressUtils.refreshBalance();
 
       emit(const SentinelWithdrawQsrPopulated());
     } on SyriusException catch (e, stackTrace) {
       addError(e, stackTrace);
-      emit(SentinelWithdrawQsrFailure(exception: e));
+      if (!isClosed) {
+        emit(SentinelWithdrawQsrFailure(exception: e));
+      }
     } on Exception catch (e, stackTrace) {
       addError(e, stackTrace);
-      emit(SentinelWithdrawQsrFailure(exception: FailureException()));
+      if (!isClosed) {
+        emit(SentinelWithdrawQsrFailure(exception: FailureException()));
+      }
+    }
+  }
+
+  Future<BigInt?> _readDepositedQsr(Address address) async {
+    try {
+      return await _zenon.embedded.sentinel.getDepositedQsr(address);
+    } on Object {
+      return null;
     }
   }
 }
