@@ -1,7 +1,8 @@
 import 'dart:convert';
 
-import 'package:flutter/foundation.dart' show debugPrint, visibleForTesting;
+import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:logging/logging.dart';
 import 'package:reown_core/crypto/crypto.dart';
 import 'package:reown_core/reown_core.dart';
 import 'package:reown_core/store/generic_store.dart';
@@ -54,18 +55,27 @@ class StickyFallbackSecureStore implements IStore<Map<String, dynamic>> {
   }) : _map = defaultValue ?? <String, Map<String, dynamic>>{},
        _injectedSecureStorage = secureStorage;
 
-  /// Marker persisted in [_fallbackStorage] once secure storage fails, so
-  /// subsequent launches keep reading from fallback instead of treating an
-  /// empty keychain as authoritative.
+  /// Marker persisted in [_fallbackStorage] once fallback storage becomes
+  /// authoritative, including the manifest of unprefixed keys owned by this
+  /// store so subsequent launches restore and delete only secure-store entries
+  /// without touching unrelated keys sharing [_fallbackStorage].
   static const String fallbackFlagKey = 'secure_store_fallback_mode';
 
+  static const String _fallbackKeysField = 'keys';
+  static const String _fallbackAuthoritativeField = 'authoritative';
+
+  final Logger _logger = Logger('StickyFallbackSecureStore');
   late final FlutterSecureStorage _secureStorage;
   final IStore<Map<String, dynamic>> _fallbackStorage;
   final FlutterSecureStorage? _injectedSecureStorage;
   final Map<String, Map<String, dynamic>> _map;
+  final Set<String> _ownedFallbackKeys = <String>{};
 
   bool _initialized = false;
   bool _useFallbackStorage = false;
+  bool _fallbackPersisted = false;
+  bool _fallbackAuthoritative = false;
+  bool _hasFallbackKeyManifest = false;
 
   /// Whether this store has switched to [_fallbackStorage].
   @visibleForTesting
@@ -89,30 +99,72 @@ class StickyFallbackSecureStore implements IStore<Map<String, dynamic>> {
       return;
     }
 
-    try {
-      _secureStorage =
-          _injectedSecureStorage ??
-          const FlutterSecureStorage(
-            aOptions: AndroidOptions(resetOnError: false),
-            iOptions: IOSOptions(
-              accessibility: KeychainAccessibility.first_unlock_this_device,
-            ),
-          );
+    _secureStorage =
+        _injectedSecureStorage ??
+        const FlutterSecureStorage(
+          aOptions: AndroidOptions(resetOnError: false),
+          iOptions: IOSOptions(
+            accessibility: KeychainAccessibility.first_unlock_this_device,
+          ),
+        );
 
-      if (_fallbackStorage.has(fallbackFlagKey)) {
-        _useFallbackStorage = true;
-        await _restoreFromFallback();
-      } else {
-        await _restoreFromSecureStorage();
+    final Map<String, dynamic>? existingFlag =
+        _fallbackStorage.has(fallbackFlagKey) ? _safeGetFallbackFlag() : null;
+    // Legacy markers written without an `authoritative` field are treated as
+    // authoritative to preserve stickiness across upgrades.
+    final bool hasAuthoritativeFlag =
+        existingFlag != null &&
+        ((existingFlag[_fallbackAuthoritativeField] as bool?) ?? true);
+
+    if (hasAuthoritativeFlag) {
+      _useFallbackStorage = true;
+      _fallbackPersisted = true;
+      _fallbackAuthoritative = true;
+      await _restoreFromFallback(flagData: existingFlag);
+      _initialized = true;
+      return;
+    }
+
+    try {
+      await _restoreFromSecureStorage();
+
+      if (existingFlag != null) {
+        final List<String> transientKeys = _extractManifestKeys(existingFlag);
+        if (_map.isNotEmpty || transientKeys.isEmpty) {
+          // OS keychain recovered with existing entries (or transient fallback
+          // holds no entries): keep secure storage authoritative and purge any
+          // stale transient fallback copies.
+          await _clearTransientFallbackData(transientKeys);
+        } else {
+          // Keychain succeeded empty while a prior transient fallback holds
+          // persisted data (e.g., first launch failed readAll and wrote new
+          // session keys): restore those fallback entries instead of dropping
+          // them, while keeping `authoritative: false` unless writes fail.
+          _useFallbackStorage = true;
+          _fallbackPersisted = true;
+          _fallbackAuthoritative = false;
+          await _restoreFromFallback(flagData: existingFlag);
+        }
       }
     } on Object catch (e) {
-      debugPrint(
-        'StickyFallbackSecureStore: secure storage init/restore failed, '
-        'falling back to ${_fallbackStorage.runtimeType}: $e',
+      // Do not mark fallback authoritative on a startup read failure: even if
+      // Reown's GenericStore initializes empty metadata during this session,
+      // the next launch must still retry the OS keychain so existing keys are
+      // recovered once the keychain is unlocked/available again.
+      _logger.warning(
+        'Secure storage init/restore failed, using non-authoritative fallback '
+        '(${_fallbackStorage.runtimeType})',
+        e,
       );
       _useFallbackStorage = true;
-      await _persistFallbackFlag();
-      await _restoreFromFallback();
+      _fallbackAuthoritative = false;
+      if (existingFlag != null) {
+        _fallbackPersisted = true;
+        await _restoreFromFallback(flagData: existingFlag);
+      } else {
+        _fallbackPersisted = false;
+        _hasFallbackKeyManifest = true;
+      }
     }
 
     _initialized = true;
@@ -129,12 +181,12 @@ class StickyFallbackSecureStore implements IStore<Map<String, dynamic>> {
 
     // SharedPrefsStores populates its in-memory map lazily on get(), so on a
     // cold relaunch its .keys getter can be empty even though the entry exists
-    // in SharedPreferences.
-    if (_useFallbackStorage &&
-        key != fallbackFlagKey &&
-        _fallbackStorage.has(key)) {
+    // in SharedPreferences. Only read keys owned by this store (or legacy
+    // pre-manifest entries when upgrading from an older fallback flag).
+    if (_canLazyReadFromFallback(key) && _fallbackStorage.has(key)) {
       final Map<String, dynamic>? value = _fallbackStorage.get(key);
       if (value != null) {
+        _ownedFallbackKeys.add(key);
         _map[keyWithPrefix] = value;
       }
       return value;
@@ -152,9 +204,7 @@ class StickyFallbackSecureStore implements IStore<Map<String, dynamic>> {
       return true;
     }
 
-    return _useFallbackStorage &&
-        key != fallbackFlagKey &&
-        _fallbackStorage.has(key);
+    return _canLazyReadFromFallback(key) && _fallbackStorage.has(key);
   }
 
   @override
@@ -166,22 +216,7 @@ class StickyFallbackSecureStore implements IStore<Map<String, dynamic>> {
   @override
   Future<void> set(String key, Map<String, dynamic> value) async {
     _checkInitialized();
-
-    final String keyWithPrefix = _addPrefix(key);
-    _map[keyWithPrefix] = value;
-
-    if (_useFallbackStorage) {
-      await _fallbackStorage.set(key, value);
-    } else {
-      try {
-        await _secureStorage.write(
-          key: keyWithPrefix,
-          value: jsonEncode(value),
-        );
-      } on Object catch (e) {
-        await _switchToFallbackStorage(e);
-      }
-    }
+    await _persistEntry(key, value);
   }
 
   @override
@@ -194,22 +229,45 @@ class StickyFallbackSecureStore implements IStore<Map<String, dynamic>> {
       throw Errors.getInternalError(Errors.NO_MATCHING_KEY);
     }
 
+    await _persistEntry(key, value);
+  }
+
+  Future<void> _persistEntry(String key, Map<String, dynamic> value) async {
     final String keyWithPrefix = _addPrefix(key);
-    _map[keyWithPrefix] = value;
 
     if (_useFallbackStorage) {
       // Use set() rather than update() so a cold SharedPrefsStores instance
       // whose in-memory map hasn't been hydrated yet still persists cleanly.
       await _fallbackStorage.set(key, value);
-    } else {
-      try {
-        await _secureStorage.write(
-          key: keyWithPrefix,
-          value: jsonEncode(value),
+
+      final Set<String> nextOwnedKeys = Set<String>.from(_ownedFallbackKeys)
+        ..add(key);
+      final bool needsFlagWrite =
+          !_fallbackPersisted ||
+          !_hasFallbackKeyManifest ||
+          !_ownedFallbackKeys.contains(key);
+      if (needsFlagWrite) {
+        await _persistFallbackFlag(
+          nextOwnedKeys,
+          authoritative: _fallbackAuthoritative,
         );
-      } on Object catch (e) {
-        await _switchToFallbackStorage(e);
+        _fallbackPersisted = true;
+        _hasFallbackKeyManifest = true;
       }
+
+      _ownedFallbackKeys.add(key);
+      _map[keyWithPrefix] = value;
+      return;
+    }
+
+    try {
+      await _secureStorage.write(key: keyWithPrefix, value: jsonEncode(value));
+      _map[keyWithPrefix] = value;
+    } on Object catch (e) {
+      await _migrateAndCommitFallback(
+        error: e,
+        extraEntries: <String, Map<String, dynamic>>{key: value},
+      );
     }
   }
 
@@ -218,17 +276,40 @@ class StickyFallbackSecureStore implements IStore<Map<String, dynamic>> {
     _checkInitialized();
 
     final String keyWithPrefix = _addPrefix(key);
-    _map.remove(keyWithPrefix);
 
     if (_useFallbackStorage) {
       await _fallbackStorage.delete(key);
-    } else {
-      try {
-        await _secureStorage.delete(key: keyWithPrefix);
-      } on Object catch (e) {
-        await _switchToFallbackStorage(e);
-        await _fallbackStorage.delete(key);
+
+      final Set<String> nextOwnedKeys = Set<String>.from(_ownedFallbackKeys)
+        ..remove(key);
+      final bool needsFlagWrite =
+          !_fallbackPersisted ||
+          !_hasFallbackKeyManifest ||
+          _ownedFallbackKeys.contains(key);
+      if (needsFlagWrite) {
+        if (!_fallbackAuthoritative && nextOwnedKeys.isEmpty) {
+          await _fallbackStorage.delete(fallbackFlagKey);
+          _fallbackPersisted = false;
+        } else {
+          await _persistFallbackFlag(
+            nextOwnedKeys,
+            authoritative: _fallbackAuthoritative,
+          );
+          _fallbackPersisted = true;
+        }
+        _hasFallbackKeyManifest = true;
       }
+
+      _ownedFallbackKeys.remove(key);
+      _map.remove(keyWithPrefix);
+      return;
+    }
+
+    try {
+      await _secureStorage.delete(key: keyWithPrefix);
+      _map.remove(keyWithPrefix);
+    } on Object catch (e) {
+      await _migrateAndCommitFallback(error: e, keysToRemove: <String>{key});
     }
   }
 
@@ -236,28 +317,52 @@ class StickyFallbackSecureStore implements IStore<Map<String, dynamic>> {
   Future<void> deleteAll() async {
     _checkInitialized();
 
-    final List<String> keysToDelete = List<String>.from(_map.keys);
-    _map.clear();
-
     if (_useFallbackStorage) {
-      for (final String keyWithPrefix in keysToDelete) {
-        await _fallbackStorage.delete(_removePrefix(keyWithPrefix));
+      final Set<String> keysToDelete = <String>{
+        ..._ownedFallbackKeys,
+        ..._map.keys.map(_removePrefix),
+      };
+      for (final String unprefixedKey in keysToDelete) {
+        await _fallbackStorage.delete(unprefixedKey);
       }
-    } else {
-      try {
-        final Map<String, String> allKeys = await _secureStorage.readAll();
-        for (final String key in allKeys.keys) {
-          if (key.startsWith(storagePrefix)) {
-            await _secureStorage.delete(key: key);
-          }
-        }
-      } on Object catch (e) {
-        await _switchToFallbackStorage(e);
-        for (final String keyWithPrefix in keysToDelete) {
-          await _fallbackStorage.delete(_removePrefix(keyWithPrefix));
-        }
+
+      if (_fallbackAuthoritative) {
+        await _persistFallbackFlag(const <String>{}, authoritative: true);
+        _fallbackPersisted = true;
+      } else {
+        await _fallbackStorage.delete(fallbackFlagKey);
+        _fallbackPersisted = false;
       }
+      _hasFallbackKeyManifest = true;
+      _ownedFallbackKeys.clear();
+      _map.clear();
+      return;
     }
+
+    try {
+      final Map<String, String> allKeys = await _secureStorage.readAll();
+      for (final String key in allKeys.keys) {
+        if (key.startsWith(storagePrefix)) {
+          await _secureStorage.delete(key: key);
+        }
+      }
+      _map.clear();
+    } on Object catch (e) {
+      await _migrateAndCommitFallback(
+        error: e,
+        keysToRemove: _map.keys.map(_removePrefix).toSet(),
+      );
+    }
+  }
+
+  bool _canLazyReadFromFallback(String key) {
+    if (!_useFallbackStorage || key == fallbackFlagKey) {
+      return false;
+    }
+    if (_hasFallbackKeyManifest) {
+      return _ownedFallbackKeys.contains(key);
+    }
+    return true;
   }
 
   Future<void> _restoreFromSecureStorage() async {
@@ -274,70 +379,156 @@ class StickyFallbackSecureStore implements IStore<Map<String, dynamic>> {
           _map[entry.key] = decodedValue;
         }
       } on Object catch (e) {
-        debugPrint(
-          'Warning: Failed to decode secure storage value for key '
-          '${entry.key}: $e',
+        _logger.warning(
+          'Failed to decode secure storage value for key ${entry.key}',
+          e,
         );
       }
     }
   }
 
-  Future<void> _restoreFromFallback() async {
+  Map<String, dynamic>? _safeGetFallbackFlag() {
     try {
-      for (final String key in _fallbackStorage.keys) {
-        if (!key.startsWith(storagePrefix)) {
-          continue;
-        }
-        if (key == _addPrefix(fallbackFlagKey)) {
-          continue;
-        }
-        final Map<String, dynamic>? value = _fallbackStorage.get(
-          _removePrefix(key),
-        );
-        if (value != null) {
-          _map[key] = value;
+      return _fallbackStorage.get(fallbackFlagKey);
+    } on Object catch (e) {
+      _logger.warning('Failed to read fallback marker from storage', e);
+      return null;
+    }
+  }
+
+  List<String> _extractManifestKeys(Map<String, dynamic> flagData) {
+    final Object? rawKeys = flagData[_fallbackKeysField];
+    if (rawKeys is! List) {
+      return const <String>[];
+    }
+    return rawKeys
+        .whereType<String>()
+        .where((String key) => key.isNotEmpty && key != fallbackFlagKey)
+        .toList();
+  }
+
+  Future<void> _clearTransientFallbackData(List<String> transientKeys) async {
+    try {
+      for (final String key in transientKeys) {
+        await _fallbackStorage.delete(key);
+      }
+      await _fallbackStorage.delete(fallbackFlagKey);
+    } on Object catch (e) {
+      _logger.warning('Failed to clean up transient fallback entries', e);
+    }
+  }
+
+  Future<void> _restoreFromFallback({Map<String, dynamic>? flagData}) async {
+    try {
+      final Map<String, dynamic>? resolvedFlag =
+          flagData ??
+          (_fallbackStorage.has(fallbackFlagKey)
+              ? _fallbackStorage.get(fallbackFlagKey)
+              : null);
+      final Object? rawKeys = resolvedFlag?[_fallbackKeysField];
+      if (rawKeys is! List) {
+        // Legacy fallback flag without an explicit key manifest: avoid
+        // scanning unrelated keys in _fallbackStorage; entries will hydrate
+        // lazily on explicit get() calls.
+        _hasFallbackKeyManifest = false;
+        return;
+      }
+
+      _hasFallbackKeyManifest = true;
+      for (final String key in _extractManifestKeys(resolvedFlag!)) {
+        _ownedFallbackKeys.add(key);
+        if (_fallbackStorage.has(key)) {
+          final Map<String, dynamic>? value = _fallbackStorage.get(key);
+          if (value != null) {
+            _map[_addPrefix(key)] = value;
+          }
         }
       }
     } on Object catch (e) {
-      debugPrint('Warning: Failed to restore from fallback storage: $e');
+      _logger.warning('Failed to restore from fallback storage', e);
     }
   }
 
-  Future<void> _switchToFallbackStorage(Object error) async {
-    if (_useFallbackStorage) {
-      return;
-    }
-
-    debugPrint(
-      'Warning: Secure storage failed, switching to fallback storage: $error',
+  /// Copies all current entries (with any pending mutation applied) to
+  /// [_fallbackStorage] before persisting [fallbackFlagKey]. If copying any
+  /// entry or persisting the marker fails, the exception propagates and the
+  /// store remains on secure storage so a subsequent call or relaunch can
+  /// retry migration without data loss.
+  Future<void> _migrateAndCommitFallback({
+    required Object error,
+    Map<String, Map<String, dynamic>> extraEntries =
+        const <String, Map<String, dynamic>>{},
+    Set<String> keysToRemove = const <String>{},
+  }) async {
+    _logger.warning(
+      'Secure storage failed, switching WalletConnect secure store to '
+      'fallback storage (${_fallbackStorage.runtimeType})',
+      error,
     );
-    _useFallbackStorage = true;
-    await _persistFallbackFlag();
 
-    final List<MapEntry<String, Map<String, dynamic>>> snapshot =
-        List<MapEntry<String, Map<String, dynamic>>>.from(_map.entries);
-    for (final MapEntry<String, Map<String, dynamic>> entry in snapshot) {
-      await _fallbackStorage.set(_removePrefix(entry.key), entry.value);
+    final Map<String, Map<String, dynamic>> targetEntries =
+        <String, Map<String, dynamic>>{};
+    for (final MapEntry<String, Map<String, dynamic>> entry in _map.entries) {
+      final String unprefixedKey = _removePrefix(entry.key);
+      if (!keysToRemove.contains(unprefixedKey)) {
+        targetEntries[unprefixedKey] = entry.value;
+      }
+    }
+    targetEntries.addAll(extraEntries);
+
+    for (final MapEntry<String, Map<String, dynamic>> entry
+        in targetEntries.entries) {
+      await _fallbackStorage.set(entry.key, entry.value);
+    }
+    for (final String removedKey in keysToRemove) {
+      await _fallbackStorage.delete(removedKey);
+    }
+
+    final Set<String> nextOwnedKeys = <String>{
+      ..._ownedFallbackKeys,
+      ...targetEntries.keys,
+    }..removeAll(keysToRemove);
+
+    await _persistFallbackFlag(nextOwnedKeys, authoritative: true);
+
+    _useFallbackStorage = true;
+    _fallbackPersisted = true;
+    _fallbackAuthoritative = true;
+    _hasFallbackKeyManifest = true;
+    _ownedFallbackKeys
+      ..clear()
+      ..addAll(nextOwnedKeys);
+
+    for (final String removedKey in keysToRemove) {
+      _map.remove(_addPrefix(removedKey));
+    }
+    for (final MapEntry<String, Map<String, dynamic>> entry
+        in extraEntries.entries) {
+      _map[_addPrefix(entry.key)] = entry.value;
     }
   }
 
-  Future<void> _persistFallbackFlag() async {
+  Future<void> _persistFallbackFlag(
+    Set<String> ownedKeys, {
+    required bool authoritative,
+  }) async {
+    final List<String> sortedKeys = ownedKeys.toList()..sort();
     try {
       await _fallbackStorage.set(fallbackFlagKey, <String, dynamic>{
         'enabled': true,
+        _fallbackAuthoritativeField: authoritative,
+        _fallbackKeysField: sortedKeys,
       });
-    } on Object catch (e) {
-      debugPrint(
-        'Warning: Failed to persist secure storage fallback flag: $e',
-      );
+    } on Object catch (e, s) {
+      _logger.warning('Failed to persist secure storage fallback marker', e, s);
+      rethrow;
     }
   }
 
   String _addPrefix(String key) => '$storagePrefix$key';
 
-  String _removePrefix(String key) => key.startsWith(storagePrefix)
-      ? key.substring(storagePrefix.length)
-      : key;
+  String _removePrefix(String key) =>
+      key.startsWith(storagePrefix) ? key.substring(storagePrefix.length) : key;
 
   void _checkInitialized() {
     if (!_initialized) {

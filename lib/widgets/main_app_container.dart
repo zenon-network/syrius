@@ -109,7 +109,9 @@ class _MainAppContainerState extends State<MainAppContainer>
     kCurrentPage = kWalletInitCompleted ? Tabs.dashboard : Tabs.lock;
     _initLockBlock();
     _handleIncomingLinks();
-    _handleInitialUri();
+    if (kIsWeb || Platform.isLinux) {
+      unawaited(_handleInitialUri());
+    }
 
     super.initState();
   }

@@ -1,6 +1,11 @@
+import 'dart:async';
+
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:logging/logging.dart';
+import 'package:reown_core/crypto/crypto.dart';
 import 'package:reown_core/reown_core.dart';
+import 'package:reown_core/store/generic_store.dart';
 import 'package:reown_core/store/i_store.dart';
 import 'package:zenon_syrius_wallet_flutter/services/sticky_fallback_secure_store.dart';
 
@@ -9,6 +14,7 @@ import 'package:zenon_syrius_wallet_flutter/services/sticky_fallback_secure_stor
 class _MemoryStore implements IStore<Map<String, dynamic>> {
   final Map<String, Map<String, dynamic>> _data =
       <String, Map<String, dynamic>>{};
+  bool Function(String key)? shouldFailOnSet;
 
   @override
   Map<String, Map<String, dynamic>> get map => _data;
@@ -29,6 +35,9 @@ class _MemoryStore implements IStore<Map<String, dynamic>> {
 
   @override
   Future<void> set(String key, Map<String, dynamic> value) async {
+    if (shouldFailOnSet?.call(key) ?? false) {
+      throw StateError('fallback set failed for $key');
+    }
     _data[_addPrefix(key)] = value;
   }
 
@@ -455,5 +464,281 @@ void main() {
         equals(<String, dynamic>{'secret': 'new'}),
       );
     });
+
+    test('transient initial readAll failure does not permanently lock out '
+        'keychain when no writes occur', () async {
+      final _MemoryStore fallback = _MemoryStore();
+      final _FakeSecureStorage keychain = _FakeSecureStorage(
+        failReads: true,
+        initialData: <String, String>{
+          '${ReownConstants.CORE_STORAGE_PREFIX}keychain': '{"k":"v1"}',
+        },
+      );
+
+      final StickyFallbackSecureStore firstLaunch = StickyFallbackSecureStore(
+        fallbackStorage: fallback,
+        secureStorage: keychain,
+      );
+      await firstLaunch.init();
+      expect(firstLaunch.isUsingFallback, isTrue);
+      expect(fallback.has(StickyFallbackSecureStore.fallbackFlagKey), isFalse);
+
+      // Next launch: keychain recovered and no mutations landed in fallback.
+      keychain.failReads = false;
+      final StickyFallbackSecureStore secondLaunch = StickyFallbackSecureStore(
+        fallbackStorage: fallback,
+        secureStorage: keychain,
+      );
+      await secondLaunch.init();
+
+      expect(secondLaunch.isUsingFallback, isFalse);
+      expect(
+        secondLaunch.get('keychain'),
+        equals(<String, dynamic>{'k': 'v1'}),
+      );
+    });
+
+    test(
+      'transient initial readAll failure through GenericStore still recovers '
+      'OS keychain entries on relaunch',
+      () async {
+        final Map<String, Map<String, dynamic>> disk =
+            <String, Map<String, dynamic>>{};
+        final _FakeSecureStorage keychain = _FakeSecureStorage();
+
+        // Launch 0: healthy OS keychain stores a real WalletConnect key via
+        // ReownCore's GenericStore<String>.
+        final _ColdStartSharedPrefsStandIn storage0 =
+            _ColdStartSharedPrefsStandIn(disk);
+        final StickyFallbackSecureStore secure0 = StickyFallbackSecureStore(
+          fallbackStorage: storage0,
+          secureStorage: keychain,
+        );
+        final ReownCore core0 =
+            ReownCore(projectId: 'synthetic-project-id', memoryStore: true)
+              ..storage = storage0
+              ..secureStorage = secure0;
+        final GenericStore<String> keyChain0 = GenericStore<String>(
+          storage: secure0,
+          context: StoreVersions.CONTEXT_KEYCHAIN,
+          version: StoreVersions.VERSION_KEYCHAIN,
+          fromJson: (dynamic value) => value as String,
+        );
+        core0.crypto = Crypto(core: core0, keyChain: keyChain0);
+        await core0.storage.init();
+        await core0.secureStorage.init();
+        await core0.crypto.init();
+        await keyChain0.set('topicA', 'secret-sym-key');
+        expect(secure0.isUsingFallback, isFalse);
+
+        // Launch 1: OS keychain transiently fails readAll(). GenericStore.init
+        // writes its empty version/data bootstrap and generateKeyPair writes a
+        // seed into fallback storage; both must stay non-authoritative so
+        // Launch 2 retries the OS keychain.
+        keychain.failReads = true;
+        final _ColdStartSharedPrefsStandIn storage1 =
+            _ColdStartSharedPrefsStandIn(disk);
+        final StickyFallbackSecureStore secure1 = StickyFallbackSecureStore(
+          fallbackStorage: storage1,
+          secureStorage: keychain,
+        );
+        final ReownCore core1 =
+            ReownCore(projectId: 'synthetic-project-id', memoryStore: true)
+              ..storage = storage1
+              ..secureStorage = secure1;
+        core1.crypto = Crypto(
+          core: core1,
+          keyChain: GenericStore<String>(
+            storage: secure1,
+            context: StoreVersions.CONTEXT_KEYCHAIN,
+            version: StoreVersions.VERSION_KEYCHAIN,
+            fromJson: (dynamic value) => value as String,
+          ),
+        );
+        await core1.storage.init();
+        await core1.secureStorage.init();
+        await core1.crypto.init();
+        await core1.crypto.generateKeyPair();
+        expect(secure1.isUsingFallback, isTrue);
+
+        // Launch 2: OS keychain recovers. Existing key `topicA` must be
+        // restored from secure storage and transient fallback copies cleaned.
+        keychain.failReads = false;
+        final _ColdStartSharedPrefsStandIn storage2 =
+            _ColdStartSharedPrefsStandIn(disk);
+        final StickyFallbackSecureStore secure2 = StickyFallbackSecureStore(
+          fallbackStorage: storage2,
+          secureStorage: keychain,
+        );
+        final ReownCore core2 =
+            ReownCore(projectId: 'synthetic-project-id', memoryStore: true)
+              ..storage = storage2
+              ..secureStorage = secure2;
+        final GenericStore<String> keyChain2 = GenericStore<String>(
+          storage: secure2,
+          context: StoreVersions.CONTEXT_KEYCHAIN,
+          version: StoreVersions.VERSION_KEYCHAIN,
+          fromJson: (dynamic value) => value as String,
+        );
+        core2.crypto = Crypto(core: core2, keyChain: keyChain2);
+        await core2.storage.init();
+        await core2.secureStorage.init();
+        await core2.crypto.init();
+
+        expect(secure2.isUsingFallback, isFalse);
+        expect(keyChain2.get('topicA'), 'secret-sym-key');
+        expect(
+          storage2.has(StickyFallbackSecureStore.fallbackFlagKey),
+          isFalse,
+        );
+      },
+    );
+
+    test('fallback init ignores unrelated core entries and deleteAll preserves '
+        'them even after a cold relaunch', () async {
+      final Map<String, Map<String, dynamic>> disk =
+          <String, Map<String, dynamic>>{};
+
+      // Launch 1: populate both unrelated core data and secure-store data in
+      // fallback storage.
+      final _ColdStartSharedPrefsStandIn fallback1 =
+          _ColdStartSharedPrefsStandIn(disk);
+      await fallback1.set('unrelated_pairings', <String, dynamic>{'count': 2});
+      final StickyFallbackSecureStore firstLaunch = StickyFallbackSecureStore(
+        fallbackStorage: fallback1,
+        secureStorage: _FakeSecureStorage(failWrites: true),
+      );
+      await firstLaunch.init();
+      await firstLaunch.set('k1', <String, dynamic>{'v': 1});
+      await firstLaunch.set('k2', <String, dynamic>{'v': 2});
+
+      // Launch 2: cold start (empty in-memory cache). Verify unrelated core
+      // entries are NOT imported, and calling deleteAll() immediately wipes
+      // persisted secure-store keys without touching unrelated_pairings.
+      final _ColdStartSharedPrefsStandIn fallback2 =
+          _ColdStartSharedPrefsStandIn(disk);
+      final StickyFallbackSecureStore secondLaunch = StickyFallbackSecureStore(
+        fallbackStorage: fallback2,
+        secureStorage: _FakeSecureStorage(),
+      );
+      await secondLaunch.init();
+
+      expect(secondLaunch.isUsingFallback, isTrue);
+      expect(secondLaunch.has('unrelated_pairings'), isFalse);
+      expect(secondLaunch.get('unrelated_pairings'), isNull);
+
+      await secondLaunch.deleteAll();
+
+      expect(secondLaunch.has('k1'), isFalse);
+      expect(secondLaunch.has('k2'), isFalse);
+      expect(fallback2.has('k1'), isFalse);
+      expect(fallback2.has('k2'), isFalse);
+      expect(fallback2.has(StickyFallbackSecureStore.fallbackFlagKey), isTrue);
+      expect(
+        fallback2.get('unrelated_pairings'),
+        equals(<String, dynamic>{'count': 2}),
+      );
+
+      // Launch 3 confirms deleted keys do not reappear from disk.
+      final _ColdStartSharedPrefsStandIn fallback3 =
+          _ColdStartSharedPrefsStandIn(disk);
+      final StickyFallbackSecureStore thirdLaunch = StickyFallbackSecureStore(
+        fallbackStorage: fallback3,
+        secureStorage: _FakeSecureStorage(),
+      );
+      await thirdLaunch.init();
+      expect(thirdLaunch.isUsingFallback, isTrue);
+      expect(thirdLaunch.has('k1'), isFalse);
+      expect(thirdLaunch.has('k2'), isFalse);
+      expect(
+        fallback3.get('unrelated_pairings'),
+        equals(<String, dynamic>{'count': 2}),
+      );
+    });
+
+    test('failed mid-migration entry copy remains resumable without persisting '
+        'an incomplete fallback marker', () async {
+      final _MemoryStore fallback = _MemoryStore();
+      final _FakeSecureStorage keychain = _FakeSecureStorage(
+        initialData: <String, String>{
+          '${ReownConstants.CORE_STORAGE_PREFIX}existing_1': '{"v":1}',
+          '${ReownConstants.CORE_STORAGE_PREFIX}existing_2': '{"v":2}',
+        },
+      );
+      final StickyFallbackSecureStore store = StickyFallbackSecureStore(
+        fallbackStorage: fallback,
+        secureStorage: keychain,
+      );
+      await store.init();
+
+      keychain.failWrites = true;
+      fallback.shouldFailOnSet = (String key) => key == 'existing_2';
+
+      await expectLater(
+        store.set('new_key', <String, dynamic>{'v': 3}),
+        throwsStateError,
+      );
+      expect(store.isUsingFallback, isFalse);
+      expect(fallback.has(StickyFallbackSecureStore.fallbackFlagKey), isFalse);
+
+      // Retry once fallback recovers: all pre-existing entries and new_key
+      // are copied before the marker is committed.
+      fallback.shouldFailOnSet = null;
+      await store.set('new_key', <String, dynamic>{'v': 3});
+
+      expect(store.isUsingFallback, isTrue);
+      expect(fallback.has(StickyFallbackSecureStore.fallbackFlagKey), isTrue);
+      expect(fallback.get('existing_1'), equals(<String, dynamic>{'v': 1}));
+      expect(fallback.get('existing_2'), equals(<String, dynamic>{'v': 2}));
+      expect(fallback.get('new_key'), equals(<String, dynamic>{'v': 3}));
+    });
+
+    test(
+      'propagates fallback marker persistence failure and logs fallback switch '
+      'through Logger',
+      () async {
+        final List<LogRecord> warnings = <LogRecord>[];
+        final StreamSubscription<LogRecord> sub =
+            Logger('StickyFallbackSecureStore').onRecord.listen((
+              LogRecord record,
+            ) {
+              if (record.level >= Level.WARNING) {
+                warnings.add(record);
+              }
+            });
+        addTearDown(sub.cancel);
+
+        final _MemoryStore fallback = _MemoryStore();
+        final _FakeSecureStorage keychain = _FakeSecureStorage(
+          failWrites: true,
+        );
+        final StickyFallbackSecureStore store = StickyFallbackSecureStore(
+          fallbackStorage: fallback,
+          secureStorage: keychain,
+        );
+        await store.init();
+
+        fallback.shouldFailOnSet = (String key) =>
+            key == StickyFallbackSecureStore.fallbackFlagKey;
+
+        await expectLater(
+          store.set('wc_key', <String, dynamic>{'k': 'secret'}),
+          throwsStateError,
+        );
+        expect(store.isUsingFallback, isFalse);
+        expect(
+          fallback.has(StickyFallbackSecureStore.fallbackFlagKey),
+          isFalse,
+        );
+        expect(warnings, isNotEmpty);
+
+        // Subsequent retry succeeds once fallback marker writes work.
+        fallback.shouldFailOnSet = null;
+        await store.set('wc_key', <String, dynamic>{'k': 'secret'});
+        expect(store.isUsingFallback, isTrue);
+        expect(fallback.has(StickyFallbackSecureStore.fallbackFlagKey), isTrue);
+        expect(store.get('wc_key'), equals(<String, dynamic>{'k': 'secret'}));
+      },
+    );
   });
 }

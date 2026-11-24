@@ -1,11 +1,13 @@
 import 'dart:async';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:logging/logging.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:reown_core/pairing/i_pairing.dart';
 import 'package:reown_core/relay_client/i_relay_client.dart';
-import 'package:reown_walletkit/reown_walletkit.dart';
+import 'package:reown_walletkit/reown_walletkit.dart' hide Address;
 import 'package:zenon_syrius_wallet_flutter/blocs/wallet_connect/chains/nom_service.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/wallet_connect_metadata_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/services/web3wallet_service.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
@@ -24,10 +26,7 @@ class _MockSessionStore extends Mock implements ISessions {}
 
 class _FakeNoMService extends Mock implements NoMService {}
 
-SessionData _buildSession({
-  required String topic,
-  String chainId = 'zenon:1',
-}) {
+SessionData _buildSession({required String topic, String chainId = 'zenon:1'}) {
   return SessionData(
     topic: topic,
     pairingTopic: 'pairing-$topic',
@@ -143,9 +142,7 @@ void main() {
       when(() => walletKit.pairings).thenReturn(pairingStore);
       when(() => walletKit.sessions).thenReturn(sessionStore);
 
-      when(
-        () => relayClient.onRelayClientConnect,
-      ).thenReturn(onRelayConnect);
+      when(() => relayClient.onRelayClientConnect).thenReturn(onRelayConnect);
       when(
         () => relayClient.onRelayClientDisconnect,
       ).thenReturn(onRelayDisconnect);
@@ -173,6 +170,29 @@ void main() {
       when(() => walletKit.onSessionDelete).thenReturn(onSessionDelete);
 
       when(() => walletKit.init()).thenAnswer((_) async {});
+      when(
+        () => walletKit.getPendingSessionProposals(),
+      ).thenReturn(<String, ProposalData>{});
+      when(
+        () => walletKit.getSessionsForPairing(
+          pairingTopic: any(named: 'pairingTopic'),
+        ),
+      ).thenReturn(<String, SessionData>{});
+      when(
+        () => walletKit.disconnectSession(
+          topic: any(named: 'topic'),
+          reason: any(named: 'reason'),
+        ),
+      ).thenAnswer((_) async {});
+      when(
+        () => walletKit.rejectSession(
+          id: any(named: 'id'),
+          reason: any(named: 'reason'),
+        ),
+      ).thenAnswer((_) async {});
+      when(
+        () => pairing.disconnect(topic: any(named: 'topic')),
+      ).thenAnswer((_) async {});
       when(
         () => walletKit.getActiveSessions(),
       ).thenAnswer((_) => Map<String, SessionData>.from(activeSessions));
@@ -276,79 +296,86 @@ void main() {
       });
     });
 
-    test(
-      'waits for in-flight init before handling live session request and '
-      'deduplicates against startup pending backlog',
-      () async {
-        final SessionData session = _buildSession(topic: 'session-1');
-        activeSessions['session-1'] = session;
-        pendingRequests['77'] = const SessionRequest(
-          id: 77,
+    test('waits for in-flight init before handling live session request and '
+        'deduplicates against startup pending backlog', () async {
+      final SessionData session = _buildSession(topic: 'session-1');
+      activeSessions['session-1'] = session;
+      pendingRequests['77'] = const SessionRequest(
+        id: 77,
+        topic: 'session-1',
+        method: 'znn_sign',
+        chainId: 'zenon:1',
+        params: 'hello',
+        verifyContext: VerifyContext(
+          origin: 'https://example.invalid',
+          validation: Validation.VALID,
+          verifyUrl: '',
+        ),
+      );
+
+      final Completer<void> initGate = Completer<void>();
+      when(() => walletKit.init()).thenAnswer((_) => initGate.future);
+      when(
+        () => nomService.handleZnnSign(
+          'session-1',
+          'hello',
+          requestId: 77,
+          verifyContext: any(named: 'verifyContext'),
+        ),
+      ).thenAnswer((_) async => 'signed-hex');
+
+      final Web3WalletService service = buildService();
+      addTearDown(service.onDispose);
+      service.create();
+
+      final Future<void> initFuture = service.init();
+
+      // Deliver the live event while init() is still in progress.
+      onSessionRequest.broadcast(
+        SessionRequestEvent(
+          77,
+          'session-1',
+          'znn_sign',
+          'zenon:1',
+          'hello',
+          TransportType.relay,
+        ),
+      );
+      await Future<void>.delayed(Duration.zero);
+
+      verifyNever(
+        () => walletKit.respondSessionRequest(
+          topic: any(named: 'topic'),
+          response: any(named: 'response'),
+        ),
+      );
+
+      // Complete init(): both the waiting live listener and the startup
+      // backlog drain see request 77, but it must only dispatch/respond once.
+      initGate.complete();
+      await initFuture;
+      await Future<void>.delayed(Duration.zero);
+
+      verify(
+        () => nomService.handleZnnSign(
+          'session-1',
+          'hello',
+          requestId: 77,
+          verifyContext: any(named: 'verifyContext'),
+        ),
+      ).called(1);
+      final List<dynamic> captured = verify(
+        () => walletKit.respondSessionRequest(
           topic: 'session-1',
-          method: 'znn_sign',
-          chainId: 'zenon:1',
-          params: 'hello',
-          verifyContext: VerifyContext(
-            origin: 'https://example.invalid',
-            validation: Validation.VALID,
-            verifyUrl: '',
-          ),
-        );
-
-        final Completer<void> initGate = Completer<void>();
-        when(() => walletKit.init()).thenAnswer((_) => initGate.future);
-        when(
-          () => nomService.handleZnnSign('session-1', 'hello', requestId: 77),
-        ).thenAnswer((_) async => 'signed-hex');
-
-        final Web3WalletService service = buildService();
-        addTearDown(service.onDispose);
-        service.create();
-
-        final Future<void> initFuture = service.init();
-
-        // Deliver the live event while init() is still in progress.
-        onSessionRequest.broadcast(
-          SessionRequestEvent(
-            77,
-            'session-1',
-            'znn_sign',
-            'zenon:1',
-            'hello',
-            TransportType.relay,
-          ),
-        );
-        await Future<void>.delayed(Duration.zero);
-
-        verifyNever(
-          () => walletKit.respondSessionRequest(
-            topic: any(named: 'topic'),
-            response: any(named: 'response'),
-          ),
-        );
-
-        // Complete init(): both the waiting live listener and the startup
-        // backlog drain see request 77, but it must only dispatch/respond once.
-        initGate.complete();
-        await initFuture;
-        await Future<void>.delayed(Duration.zero);
-
-        verify(
-          () => nomService.handleZnnSign('session-1', 'hello', requestId: 77),
-        ).called(1);
-        final List<dynamic> captured = verify(
-          () => walletKit.respondSessionRequest(
-            topic: 'session-1',
-            response: captureAny(named: 'response'),
-          ),
-        ).captured;
-        expect(captured, hasLength(1));
-        final JsonRpcResponse<dynamic> response =
-            captured.single as JsonRpcResponse<dynamic>;
-        expect(response.id, 77);
-        expect(response.result, 'signed-hex');
-      },
-    );
+          response: captureAny(named: 'response'),
+        ),
+      ).captured;
+      expect(captured, hasLength(1));
+      final JsonRpcResponse<dynamic> response =
+          captured.single as JsonRpcResponse<dynamic>;
+      expect(response.id, 77);
+      expect(response.result, 'signed-hex');
+    });
 
     test('skips stale session requests without an active session', () async {
       final Web3WalletService service = buildService();
@@ -388,7 +415,12 @@ void main() {
       () async {
         activeSessions['session-1'] = _buildSession(topic: 'session-1');
         when(
-          () => nomService.handleZnnInfo('session-1', null, requestId: 91),
+          () => nomService.handleZnnInfo(
+            'session-1',
+            null,
+            requestId: 91,
+            verifyContext: any(named: 'verifyContext'),
+          ),
         ).thenAnswer(
           (_) => Future<dynamic>.error(
             const ReownCoreError(code: 9000, message: 'Wallet is locked'),
@@ -426,46 +458,48 @@ void main() {
       },
     );
 
-    test(
-      'absorbs already-responded error without sending duplicate error '
-      'response',
-      () async {
-        activeSessions['session-1'] = _buildSession(topic: 'session-1');
-        when(
-          () => nomService.handleZnnInfo('session-1', null, requestId: 92),
-        ).thenAnswer((_) async => <String, dynamic>{'address': 'z1...'});
-        when(
-          () => walletKit.respondSessionRequest(
-            topic: 'session-1',
-            response: any(named: 'response'),
-          ),
-        ).thenThrow(Exception("Proposal id doesn't exist"));
+    test('absorbs already-responded error without sending duplicate error '
+        'response', () async {
+      activeSessions['session-1'] = _buildSession(topic: 'session-1');
+      when(
+        () => nomService.handleZnnInfo(
+          'session-1',
+          null,
+          requestId: 92,
+          verifyContext: any(named: 'verifyContext'),
+        ),
+      ).thenAnswer((_) async => <String, dynamic>{'address': 'z1...'});
+      when(
+        () => walletKit.respondSessionRequest(
+          topic: 'session-1',
+          response: any(named: 'response'),
+        ),
+      ).thenThrow(Exception("Proposal id doesn't exist"));
 
-        final Web3WalletService service = buildService();
-        addTearDown(service.onDispose);
-        service.create();
-        await service.init();
+      final Web3WalletService service = buildService();
+      addTearDown(service.onDispose);
+      service.create();
+      await service.init();
 
-        onSessionRequest.broadcast(
-          SessionRequestEvent(
-            92,
-            'session-1',
-            'znn_info',
-            'zenon:1',
-            null,
-            TransportType.relay,
-          ),
-        );
-        await Future<void>.delayed(Duration.zero);
+      onSessionRequest.broadcast(
+        SessionRequestEvent(
+          92,
+          'session-1',
+          'znn_info',
+          'zenon:1',
+          null,
+          TransportType.relay,
+        ),
+      );
+      await Future<void>.delayed(Duration.zero);
 
-        verify(
-          () => walletKit.respondSessionRequest(
-            topic: 'session-1',
-            response: any(named: 'response'),
-          ),
-        ).called(1);
-      },
-    );
+      verify(
+        () => walletKit.respondSessionRequest(
+          topic: 'session-1',
+          response: any(named: 'response'),
+        ),
+      ).called(1);
+    });
 
     test(
       'deactivatePairing and disconnectSession throw StateError before create '
@@ -550,5 +584,553 @@ void main() {
         ).called(1);
       },
     );
+
+    test('rejects proposals on unsupported custom active chain and disconnects '
+        'stored sessions bound to unregistered chains on init', () async {
+      setChainIdentifier(chainIdentifier: 42);
+      final Web3WalletService service = buildService();
+      addTearDown(service.onDispose);
+
+      expect(
+        service.unsupportedRequiredNamespaceReason(<String, RequiredNamespace>{
+          'zenon': const RequiredNamespace(
+            chains: <String>['zenon:42'],
+            methods: <String>['znn_info'],
+            events: <String>[],
+          ),
+        }),
+        contains('Unsupported active chain zenon:42'),
+      );
+      expect(
+        service.unsupportedRequiredNamespaceReason(
+          const <String, RequiredNamespace>{},
+        ),
+        contains('Unsupported active chain zenon:42'),
+      );
+
+      setChainIdentifier();
+      activeSessions['good'] = _buildSession(topic: 'good');
+      activeSessions['bad'] = _buildSession(topic: 'bad', chainId: 'zenon:42');
+
+      service.create();
+      await service.init();
+
+      verify(
+        () => walletKit.disconnectSession(
+          topic: 'bad',
+          reason: any(named: 'reason'),
+        ),
+      ).called(1);
+      verifyNever(
+        () => walletKit.disconnectSession(
+          topic: 'good',
+          reason: any(named: 'reason'),
+        ),
+      );
+
+      // If a session with an unsupported chain somehow remains active,
+      // incoming requests return UNSUPPORTED_CHAINS JSON-RPC error cleanly.
+      onSessionRequest.broadcast(
+        SessionRequestEvent(
+          404,
+          'bad',
+          'znn_info',
+          'zenon:42',
+          null,
+          TransportType.relay,
+        ),
+      );
+      await Future<void>.delayed(Duration.zero);
+
+      final JsonRpcResponse<dynamic> response =
+          verify(
+                () => walletKit.respondSessionRequest(
+                  topic: 'bad',
+                  response: captureAny(named: 'response'),
+                ),
+              ).captured.single
+              as JsonRpcResponse<dynamic>;
+      expect(response.id, 404);
+      expect(
+        response.error?.code,
+        Errors.getSdkError(Errors.UNSUPPORTED_CHAINS).code,
+      );
+    });
+
+    test('pair() preserves active reusable pairings and pairings with pending '
+        'proposals while cleaning up inactive or expired orphans', () async {
+      final int now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+      final PairingInfo reusableActive = PairingInfo(
+        topic: 'active-reusable',
+        expiry: now + 3600,
+        relay: Relay(ReownConstants.RELAYER_DEFAULT_PROTOCOL),
+        active: true,
+      );
+      final PairingInfo pendingProposalPairing = PairingInfo(
+        topic: 'pending-proposal',
+        expiry: now + 3600,
+        relay: Relay(ReownConstants.RELAYER_DEFAULT_PROTOCOL),
+        active: false,
+      );
+      final PairingInfo inactiveOrphan = PairingInfo(
+        topic: 'inactive-orphan',
+        expiry: now + 3600,
+        relay: Relay(ReownConstants.RELAYER_DEFAULT_PROTOCOL),
+        active: false,
+      );
+      final PairingInfo expiredActive = PairingInfo(
+        topic: 'expired-active',
+        expiry: now - 60,
+        relay: Relay(ReownConstants.RELAYER_DEFAULT_PROTOCOL),
+        active: true,
+      );
+      final PairingInfo newlyPaired = PairingInfo(
+        topic: 'new-pairing',
+        expiry: now + 3600,
+        relay: Relay(ReownConstants.RELAYER_DEFAULT_PROTOCOL),
+        active: false,
+      );
+
+      when(() => pairingStore.getAll()).thenReturn(<PairingInfo>[
+        reusableActive,
+        pendingProposalPairing,
+        inactiveOrphan,
+        expiredActive,
+      ]);
+      when(() => walletKit.getPendingSessionProposals()).thenReturn(
+        <String, ProposalData>{
+          '10': ProposalData(
+            id: 10,
+            expiry: now + 300,
+            relays: <Relay>[Relay(ReownConstants.RELAYER_DEFAULT_PROTOCOL)],
+            proposer: const ConnectionMetadata(
+              publicKey: 'peer',
+              metadata: PairingMetadata(
+                name: 'dApp',
+                description: 'desc',
+                url: 'https://example.invalid',
+              ),
+            ),
+            requiredNamespaces: const <String, RequiredNamespace>{},
+            optionalNamespaces: const <String, RequiredNamespace>{},
+            pairingTopic: 'pending-proposal',
+          ),
+        },
+      );
+      final Uri uri = Uri.parse('wc:abcdef@2?relay-protocol=irn&symKey=123456');
+      when(() => walletKit.pair(uri: uri)).thenAnswer((_) async => newlyPaired);
+
+      final Web3WalletService service = buildService();
+      addTearDown(service.onDispose);
+      service.create();
+      await service.init();
+
+      await service.pair(uri);
+
+      verifyNever(() => pairing.disconnect(topic: 'active-reusable'));
+      verifyNever(() => pairing.disconnect(topic: 'pending-proposal'));
+      verify(() => pairing.disconnect(topic: 'inactive-orphan')).called(1);
+      verify(() => pairing.disconnect(topic: 'expired-active')).called(1);
+    });
+
+    test(
+      'disconnectEverything called while init is pending completes without '
+      'blocking and wipes persisted sessions and pairings once init finishes',
+      () async {
+        final int now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+        activeSessions['persisted-s1'] = _buildSession(topic: 'persisted-s1');
+        when(() => pairingStore.getAll()).thenReturn(<PairingInfo>[
+          PairingInfo(
+            topic: 'persisted-p1',
+            expiry: now + 3600,
+            relay: Relay(ReownConstants.RELAYER_DEFAULT_PROTOCOL),
+            active: true,
+          ),
+        ]);
+
+        final Completer<void> initGate = Completer<void>();
+        when(() => walletKit.init()).thenAnswer((_) => initGate.future);
+
+        final Web3WalletService service = buildService();
+        addTearDown(service.onDispose);
+        service.create();
+
+        final Future<void> initFuture = service.init();
+
+        // Must complete promptly while init() is still blocked.
+        await service.disconnectEverything().timeout(
+          const Duration(seconds: 1),
+        );
+
+        verifyNever(
+          () => walletKit.disconnectSession(
+            topic: 'persisted-s1',
+            reason: any(named: 'reason'),
+          ),
+        );
+
+        initGate.complete();
+        await initFuture;
+
+        verify(
+          () => walletKit.disconnectSession(
+            topic: 'persisted-s1',
+            reason: any(named: 'reason'),
+          ),
+        ).called(1);
+        verify(() => pairing.disconnect(topic: 'persisted-p1')).called(1);
+      },
+    );
+
+    test('retries pending requests on relay reconnect after error-response '
+        'send failure', () async {
+      activeSessions['session-1'] = _buildSession(topic: 'session-1');
+      pendingRequests['301'] = const SessionRequest(
+        id: 301,
+        topic: 'session-1',
+        method: 'znn_info',
+        chainId: 'zenon:1',
+        params: null,
+        verifyContext: VerifyContext(
+          origin: 'https://example.invalid',
+          validation: Validation.VALID,
+          verifyUrl: '',
+        ),
+      );
+      when(
+        () => nomService.handleZnnInfo(
+          'session-1',
+          null,
+          requestId: 301,
+          verifyContext: any(named: 'verifyContext'),
+        ),
+      ).thenAnswer(
+        (_) => Future<dynamic>.error(
+          const ReownCoreError(code: 9000, message: 'Wallet is locked'),
+        ),
+      );
+
+      int respondAttempts = 0;
+      when(
+        () => walletKit.respondSessionRequest(
+          topic: 'session-1',
+          response: any(named: 'response'),
+        ),
+      ).thenAnswer((_) async {
+        respondAttempts++;
+        if (respondAttempts == 1) {
+          throw StateError('relay disconnected');
+        }
+      });
+
+      final Web3WalletService service = buildService();
+      addTearDown(service.onDispose);
+      service.create();
+      await service.init();
+      await Future<void>.delayed(Duration.zero);
+
+      expect(respondAttempts, 1);
+
+      // Relay reconnect triggers backlog retry, delivering ONLY the cached
+      // error response without re-running handleZnnInfo.
+      onRelayConnect.broadcast(EventArgs());
+      await Future<void>.delayed(Duration.zero);
+
+      expect(respondAttempts, 2);
+      verify(
+        () => nomService.handleZnnInfo(
+          'session-1',
+          null,
+          requestId: 301,
+          verifyContext: any(named: 'verifyContext'),
+        ),
+      ).called(1);
+    });
+
+    test(
+      'retries cached znn_send success response on relay reconnect without '
+      're-executing handleZnnSend or converting success into an error',
+      () async {
+        final AccountBlockTemplate sentBlock = AccountBlockTemplate.send(
+          Address.parse('z1qzal6c5s9rjnnxd2z7dvdhjxpmmj4fmw56a0mz'),
+          znnZts,
+          BigInt.from(25),
+        );
+        activeSessions['session-1'] = _buildSession(topic: 'session-1');
+        pendingRequests['405'] = const SessionRequest(
+          id: 405,
+          topic: 'session-1',
+          method: 'znn_send',
+          chainId: 'zenon:1',
+          params: <String, dynamic>{},
+          verifyContext: VerifyContext(
+            origin: 'https://example.invalid',
+            validation: Validation.VALID,
+            verifyUrl: '',
+          ),
+        );
+        when(
+          () => nomService.handleZnnSend(
+            'session-1',
+            any(),
+            requestId: 405,
+            verifyContext: any(named: 'verifyContext'),
+          ),
+        ).thenAnswer((_) async => sentBlock);
+
+        int respondAttempts = 0;
+        final List<JsonRpcResponse<dynamic>> sentResponses =
+            <JsonRpcResponse<dynamic>>[];
+        when(
+          () => walletKit.respondSessionRequest(
+            topic: 'session-1',
+            response: any(named: 'response'),
+          ),
+        ).thenAnswer((Invocation invocation) async {
+          final JsonRpcResponse<dynamic> response =
+              invocation.namedArguments[#response] as JsonRpcResponse<dynamic>;
+          sentResponses.add(response);
+          respondAttempts++;
+          if (respondAttempts == 1) {
+            throw StateError('No internet connection');
+          }
+        });
+
+        final Web3WalletService service = buildService();
+        addTearDown(service.onDispose);
+        service.create();
+        await service.init();
+        await Future<void>.delayed(Duration.zero);
+
+        // Initial delivery failed offline: must NOT have sent an error response
+        // for a succeeded transfer.
+        expect(respondAttempts, 1);
+        expect(sentResponses.single.error, isNull);
+        expect(sentResponses.single.result, sentBlock);
+
+        // Relay reconnect resends the cached success response without
+        // re-invoking handleZnnSend.
+        onRelayConnect.broadcast(EventArgs());
+        await Future<void>.delayed(Duration.zero);
+
+        expect(respondAttempts, 2);
+        expect(sentResponses.last.error, isNull);
+        expect(sentResponses.last.result, sentBlock);
+        verify(
+          () => nomService.handleZnnSend(
+            'session-1',
+            any(),
+            requestId: 405,
+            verifyContext: any(named: 'verifyContext'),
+          ),
+        ).called(1);
+      },
+    );
+
+    test(
+      'logs WARNING with request id and block hash when side-effecting '
+      'znn_send fails delivery with EXPIRED or stale session error',
+      () async {
+        final List<LogRecord> warnings = <LogRecord>[];
+        final StreamSubscription<LogRecord> sub = Logger('WalletConnectService')
+            .onRecord
+            .listen((LogRecord record) {
+              if (record.level >= Level.WARNING) {
+                warnings.add(record);
+              }
+            });
+        addTearDown(sub.cancel);
+
+        final AccountBlockTemplate sentBlock = AccountBlockTemplate.send(
+          Address.parse('z1qzal6c5s9rjnnxd2z7dvdhjxpmmj4fmw56a0mz'),
+          znnZts,
+          BigInt.from(15),
+        );
+        activeSessions['session-1'] = _buildSession(topic: 'session-1');
+        when(
+          () => nomService.handleZnnSend(
+            'session-1',
+            any(),
+            requestId: 506,
+            verifyContext: any(named: 'verifyContext'),
+          ),
+        ).thenAnswer((_) async => sentBlock);
+        when(
+          () => walletKit.respondSessionRequest(
+            topic: 'session-1',
+            response: any(named: 'response'),
+          ),
+        ).thenThrow(Exception('Request expired: pending request id: 506'));
+
+        final Web3WalletService service = buildService();
+        addTearDown(service.onDispose);
+        service.create();
+        await service.init();
+
+        onSessionRequest.broadcast(
+          SessionRequestEvent(
+            506,
+            'session-1',
+            'znn_send',
+            'zenon:1',
+            <String, dynamic>{},
+            TransportType.relay,
+          ),
+        );
+        await Future<void>.delayed(Duration.zero);
+
+        expect(
+          warnings.any(
+            (LogRecord r) =>
+                r.message.contains('id=506') &&
+                r.message.contains('blockHash=${sentBlock.hash}'),
+          ),
+          isTrue,
+        );
+      },
+    );
+
+    test('logs WARNING with request id and block hash when a side-effecting '
+        'znn_send expires before respondSessionRequest completes', () async {
+      final List<LogRecord> warnings = <LogRecord>[];
+      final StreamSubscription<LogRecord> sub = Logger('WalletConnectService')
+          .onRecord
+          .listen((LogRecord record) {
+            if (record.level >= Level.WARNING) {
+              warnings.add(record);
+            }
+          });
+      addTearDown(sub.cancel);
+
+      final AccountBlockTemplate sentBlock = AccountBlockTemplate.send(
+        Address.parse('z1qzal6c5s9rjnnxd2z7dvdhjxpmmj4fmw56a0mz'),
+        znnZts,
+        BigInt.from(10),
+      );
+      activeSessions['session-1'] = _buildSession(topic: 'session-1');
+      when(
+        () => nomService.handleZnnSend(
+          'session-1',
+          any(),
+          requestId: 505,
+          verifyContext: any(named: 'verifyContext'),
+        ),
+      ).thenAnswer((_) async => sentBlock);
+      when(
+        () => walletKit.respondSessionRequest(
+          topic: 'session-1',
+          response: any(named: 'response'),
+        ),
+      ).thenThrow(Exception("No matching key. proposal id doesn't exist: 505"));
+
+      final Web3WalletService service = buildService();
+      addTearDown(service.onDispose);
+      service.create();
+      await service.init();
+
+      onSessionRequest.broadcast(
+        SessionRequestEvent(
+          505,
+          'session-1',
+          'znn_send',
+          'zenon:1',
+          <String, dynamic>{},
+          TransportType.relay,
+        ),
+      );
+      await Future<void>.delayed(Duration.zero);
+
+      expect(
+        warnings.any(
+          (LogRecord r) =>
+              r.message.contains('id=505') &&
+              r.message.contains('blockHash=${sentBlock.hash}'),
+        ),
+        isTrue,
+      );
+    });
+
+    test('blocks session requests flagged as scam by VerifyContext before '
+        'dispatching to NoMService', () async {
+      activeSessions['session-1'] = _buildSession(topic: 'session-1');
+      pendingRequests['606'] = const SessionRequest(
+        id: 606,
+        topic: 'session-1',
+        method: 'znn_sign',
+        chainId: 'zenon:1',
+        params: 'hello',
+        verifyContext: VerifyContext(
+          origin: 'https://phishing.invalid',
+          validation: Validation.SCAM,
+          verifyUrl: 'https://verify.walletconnect.org',
+          isScam: true,
+        ),
+      );
+
+      final Web3WalletService service = buildService();
+      addTearDown(service.onDispose);
+      service.create();
+      await service.init();
+      await Future<void>.delayed(Duration.zero);
+
+      verifyNever(
+        () => nomService.handleZnnSign(
+          any(),
+          any(),
+          requestId: any(named: 'requestId'),
+          verifyContext: any(named: 'verifyContext'),
+        ),
+      );
+      final JsonRpcResponse<dynamic> response =
+          verify(
+                () => walletKit.respondSessionRequest(
+                  topic: 'session-1',
+                  response: captureAny(named: 'response'),
+                ),
+              ).captured.single
+              as JsonRpcResponse<dynamic>;
+      expect(response.id, 606);
+      expect(response.error?.message, contains('scam'));
+    });
+
+    group('VerifyContext classification helpers', () {
+      test('classifies VALID, INVALID, UNKNOWN, null, and SCAM contexts', () {
+        expect(
+          describeWalletConnectVerifyContext(null).severity,
+          WalletConnectVerifySeverity.unverified,
+        );
+        expect(
+          describeWalletConnectVerifyContext(
+            const VerifyContext(
+              origin: 'https://app.zenon.org',
+              validation: Validation.VALID,
+              verifyUrl: '',
+            ),
+          ).severity,
+          WalletConnectVerifySeverity.verified,
+        );
+        expect(
+          describeWalletConnectVerifyContext(
+            const VerifyContext(
+              origin: 'https://spoof.invalid',
+              validation: Validation.INVALID,
+              verifyUrl: '',
+            ),
+          ).severity,
+          WalletConnectVerifySeverity.invalid,
+        );
+        expect(
+          isWalletConnectVerifyScam(
+            const VerifyContext(
+              origin: 'https://evil.invalid',
+              validation: Validation.UNKNOWN,
+              verifyUrl: '',
+              isScam: true,
+            ),
+          ),
+          isTrue,
+        );
+      });
+    });
   });
 }

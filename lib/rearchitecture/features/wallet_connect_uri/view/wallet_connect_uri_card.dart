@@ -36,12 +36,16 @@ class _View extends StatefulWidget {
 class _ViewState extends State<_View> {
   late final TextEditingController _uriController;
   final GlobalKey<FormState> _uriKey = GlobalKey<FormState>();
+  late String _lastObservedText;
+  int _inputRevision = 0;
+  int? _submittedInputRevision;
 
   @override
   void initState() {
     super.initState();
     final String? initialUri = kLastWalletConnectUriNotifier.value;
     _uriController = TextEditingController(text: initialUri);
+    _lastObservedText = _uriController.text;
     if (initialUri != null) {
       kLastWalletConnectUriNotifier.value = null;
     }
@@ -59,6 +63,11 @@ class _ViewState extends State<_View> {
   }
 
   void _onUriTextChanged() {
+    final String currentText = _uriController.text;
+    if (currentText != _lastObservedText) {
+      _lastObservedText = currentText;
+      _inputRevision++;
+    }
     if (mounted) {
       setState(() {});
     }
@@ -97,9 +106,15 @@ class _ViewState extends State<_View> {
                     previous.errorCount != current.errorCount),
         listener: (BuildContext context, WalletConnectPairState state) {
           if (state.status == WalletConnectPairStatus.success) {
-            _uriController.clear();
-            _uriKey.currentState?.reset();
+            final bool matchesSubmittedInput =
+                _submittedInputRevision == _inputRevision;
+            _submittedInputRevision = null;
+            if (matchesSubmittedInput) {
+              _uriKey.currentState?.reset();
+              _uriController.clear();
+            }
           } else if (state.status == WalletConnectPairStatus.failure) {
+            _submittedInputRevision = null;
             final Object? error = state.error;
             if (error != null) {
               unawaited(
@@ -187,6 +202,7 @@ class _ViewState extends State<_View> {
       text: context.l10n.connect,
       onPressed: _hasValidUri
           ? () {
+              _submittedInputRevision = _inputRevision;
               context.read<WalletConnectPairBloc>().add(
                 WalletConnectPairRequested(
                   rawUri: _uriController.text,

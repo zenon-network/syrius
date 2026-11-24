@@ -179,9 +179,14 @@ class _ViewState extends State<_View> {
       }
       windowRestored = true;
       try {
+        await windowManager.restore();
+      } on Object {
+        // Best-effort un-minimize (required on Windows and Linux).
+      }
+      try {
         await windowManager.show();
       } on Object {
-        // Best-effort window restore.
+        // Best-effort window reveal.
       }
     }
 

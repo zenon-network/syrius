@@ -26,20 +26,20 @@ abstract class IWeb3WalletService extends Disposable {
   Future<PairingInfo> pair(Uri uri);
 
   /// Activates an existing pairing by [topic].
-  Future<void> activatePairing({
-    required String topic,
-  });
+  Future<void> activatePairing({required String topic});
 
   /// Disconnects and deactivates a pairing by [topic].
-  Future<void> deactivatePairing({
-    required String topic,
-  });
+  Future<void> deactivatePairing({required String topic});
 
   /// Returns active sessions associated with [pairingTopic].
   Map<String, SessionData> getSessionsForPairing(String pairingTopic);
 
   /// Returns all active WalletConnect sessions keyed by session topic.
   Map<String, SessionData> getActiveSessions();
+
+  /// Returns all currently pending WalletConnect session requests keyed by
+  /// request ID string.
+  Map<String, SessionRequest> getPendingSessionRequests();
 
   /// Disconnects all active WalletConnect sessions.
   Future<void> disconnectSessions();

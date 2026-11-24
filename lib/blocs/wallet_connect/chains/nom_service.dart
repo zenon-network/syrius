@@ -1,14 +1,18 @@
 import 'dart:async';
+import 'dart:convert';
+import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:logging/logging.dart';
-import 'package:reown_walletkit/reown_walletkit.dart';
+import 'package:reown_walletkit/reown_walletkit.dart' hide Address;
 import 'package:window_manager/window_manager.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/wallet_connect/chains/i_chain.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
+import 'package:zenon_syrius_wallet_flutter/model/block_data.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/wallet_connect_metadata_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/services/i_web3wallet_service.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/account_block_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/address_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/extensions.dart';
@@ -20,6 +24,37 @@ import 'package:zenon_syrius_wallet_flutter/widgets/main_app_container.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/dialogs.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/icons/link_icon.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
+
+/// Inspection result describing any contract/raw `data` attached to an
+/// incoming WalletConnect `znn_send` account block.
+class WalletConnectBlockDataInspection {
+  /// Creates a [WalletConnectBlockDataInspection].
+  const WalletConnectBlockDataInspection({
+    required this.isEmbeddedContract,
+    required this.rawByteLength,
+    this.contractName,
+    this.decodedBlockData,
+    this.rawHexPreview,
+  });
+
+  /// Whether the block's `toAddress` is a Zenon embedded contract address.
+  final bool isEmbeddedContract;
+
+  /// Length of `accountBlock.data` in bytes.
+  final int rawByteLength;
+
+  /// Human-readable embedded contract name when [isEmbeddedContract] is true.
+  final String? contractName;
+
+  /// Decoded embedded contract method and arguments, if ABI decoding succeeded.
+  final BlockData? decodedBlockData;
+
+  /// Truncated hex representation of raw bytes when [rawByteLength] > 0.
+  final String? rawHexPreview;
+
+  /// Whether the account block carries any non-empty `data` payload.
+  bool get hasData => rawByteLength > 0;
+}
 
 /// Supported Network of Momentum (Zenon) WalletConnect chain identifiers.
 enum NoMChainId {
@@ -50,16 +85,34 @@ extension NoMChainIdX on NoMChainId {
 /// Network of Momentum (Zenon) WalletConnect request handler for `znn_info`,
 /// `znn_sign`, and `znn_send`.
 class NoMService extends IChain {
-  /// Creates a [NoMService] bound to the configured WalletConnect client.
+  /// Creates a [NoMService] bound to the configured WalletConnect service.
   NoMService({
     required this.reference,
     @visibleForTesting IWeb3WalletService? web3WalletService,
-  }) : _web3WalletService = web3WalletService ?? sl<IWeb3WalletService>() {
-    wallet = _web3WalletService.getWeb3Wallet();
-  }
+  }) : _web3WalletService = web3WalletService ?? sl<IWeb3WalletService>();
 
   /// CAIP-2 namespace for Zenon Network.
   static const String namespace = 'zenon';
+
+  /// Domain-separation prefix prepended to UTF-8 message bytes signed by
+  /// `znn_sign` so a message signature can never collide with a 32-byte
+  /// account-block hash.
+  static const String signedMessagePrefix = '\x19Zenon Signed Message:\n';
+
+  static final Map<Address, ({String name, Abi abi})> _embeddedContractAbis =
+      <Address, ({String name, Abi abi})>{
+        plasmaAddress: (name: 'Plasma', abi: Definitions.plasma),
+        pillarAddress: (name: 'Pillar', abi: Definitions.pillar),
+        tokenAddress: (name: 'Token', abi: Definitions.token),
+        sentinelAddress: (name: 'Sentinel', abi: Definitions.sentinel),
+        swapAddress: (name: 'Swap', abi: Definitions.swap),
+        stakeAddress: (name: 'Stake', abi: Definitions.stake),
+        acceleratorAddress: (name: 'Accelerator', abi: Definitions.accelerator),
+        bridgeAddress: (name: 'Bridge', abi: Definitions.bridge),
+        liquidityAddress: (name: 'Liquidity', abi: Definitions.liquidity),
+        sporkAddress: (name: 'Spork', abi: Definitions.spork),
+        htlcAddress: (name: 'HTLC', abi: Definitions.htlc),
+      };
 
   final IWeb3WalletService _web3WalletService;
   final Logger _logger = Logger('NoMWalletConnectService');
@@ -72,8 +125,6 @@ class NoMService extends IChain {
     message: 'Wallet is locked',
   );
 
-  /// Underlying [ReownWalletKit] client instance.
-  ReownWalletKit? wallet;
   final Map<String, Future<dynamic>> _interactiveRequestFutures =
       <String, Future<dynamic>>{};
 
@@ -97,6 +148,7 @@ class NoMService extends IChain {
     String topic,
     dynamic params, {
     int? requestId,
+    VerifyContext? verifyContext,
   }) {
     // znn_info approval does not depend on params, so without a request id
     // the key stays topic-scoped.
@@ -106,7 +158,15 @@ class NoMService extends IChain {
       params: null,
       requestId: requestId,
     );
-    return _runSingleFlight(key, () => _methodZnnInfo(topic, params));
+    return _runSingleFlight(
+      key,
+      () => _methodZnnInfo(
+        topic,
+        params,
+        requestId: requestId,
+        verifyContext: verifyContext,
+      ),
+    );
   }
 
   /// Handles a `znn_sign` session request with single-flight deduplication.
@@ -114,6 +174,7 @@ class NoMService extends IChain {
     String topic,
     dynamic params, {
     int? requestId,
+    VerifyContext? verifyContext,
   }) {
     final String key = interactiveRequestKey(
       method: 'znn_sign',
@@ -121,7 +182,15 @@ class NoMService extends IChain {
       params: params,
       requestId: requestId,
     );
-    return _runSingleFlight(key, () => _methodZnnSign(topic, params));
+    return _runSingleFlight(
+      key,
+      () => _methodZnnSign(
+        topic,
+        params,
+        requestId: requestId,
+        verifyContext: verifyContext,
+      ),
+    );
   }
 
   /// Handles a `znn_send` session request with single-flight deduplication.
@@ -129,6 +198,7 @@ class NoMService extends IChain {
     String topic,
     dynamic params, {
     int? requestId,
+    VerifyContext? verifyContext,
   }) {
     final String key = interactiveRequestKey(
       method: 'znn_send',
@@ -136,11 +206,24 @@ class NoMService extends IChain {
       params: params,
       requestId: requestId,
     );
-    return _runSingleFlight(key, () => _methodZnnSend(topic, params));
+    return _runSingleFlight(
+      key,
+      () => _methodZnnSend(
+        topic,
+        params,
+        requestId: requestId,
+        verifyContext: verifyContext,
+      ),
+    );
   }
 
+  /// Resolves an active session by [topic], throwing a controlled
+  /// [ReownCoreError] when the client is unavailable or the session is absent.
+  @visibleForTesting
+  SessionData sessionByTopicForTesting(String topic) => _sessionByTopic(topic);
+
   SessionData _sessionByTopic(String topic) {
-    return wallet!.getActiveSessions().values.firstWhere(
+    return _web3WalletService.getActiveSessions().values.firstWhere(
       (SessionData element) => element.topic == topic,
       orElse: () =>
           // ReownCoreError does not implement Error/Exception upstream.
@@ -149,6 +232,288 @@ class NoMService extends IChain {
             code: 5001,
             message: 'WalletConnect session not found',
           ),
+    );
+  }
+
+  /// Extracts and validates the non-empty message string for `znn_sign`.
+  @visibleForTesting
+  static String resolveSignMessage(dynamic params) {
+    final Object? rawMessage = params is Map ? params['message'] : params;
+    if (rawMessage is! String || rawMessage.isEmpty) {
+      // ReownCoreError does not implement Error/Exception upstream.
+      // ignore: only_throw_errors
+      throw const ReownCoreError(
+        code: 5003,
+        message: 'Invalid znn_sign message parameter',
+      );
+    }
+    return rawMessage;
+  }
+
+  /// Builds the domain-separated byte payload signed by `znn_sign`:
+  /// `utf8("\x19Zenon Signed Message:\n<byteLength>\n") + utf8(message)`.
+  @visibleForTesting
+  static Uint8List encodeSignedMessagePayload(String message) {
+    final List<int> messageBytes = utf8.encode(message);
+    final List<int> prefixBytes = utf8.encode(
+      '$signedMessagePrefix${messageBytes.length}\n',
+    );
+    return Uint8List.fromList(<int>[...prefixBytes, ...messageBytes]);
+  }
+
+  /// Validates that this service's session chain matches the wallet's
+  /// currently active chain identifier.
+  @visibleForTesting
+  void validateSessionChainMatchesActive() {
+    final String activeCaip2Chain = '$namespace:${getChainIdentifier()}';
+    if (reference.chain() != activeCaip2Chain) {
+      // ReownCoreError does not implement Error/Exception upstream.
+      // ignore: only_throw_errors
+      throw ReownCoreError(
+        code: 5003,
+        message:
+            'Session chain ${reference.chain()} does not match active '
+            'chain $activeCaip2Chain',
+      );
+    }
+  }
+
+  /// Validates that [accountBlock] is a user-send block matching both this
+  /// service's session chain and the wallet's currently active network.
+  @visibleForTesting
+  void validateSendAccountBlock(AccountBlockTemplate accountBlock) {
+    final int activeChainId = getChainIdentifier();
+    final String activeCaip2Chain = '$namespace:$activeChainId';
+    if (accountBlock.blockType != BlockTypeEnum.userSend.index ||
+        accountBlock.fromBlockHash != emptyHash ||
+        accountBlock.chainIdentifier != activeChainId ||
+        reference.chain() != activeCaip2Chain) {
+      // ReownCoreError does not implement Error/Exception upstream.
+      // ignore: only_throw_errors
+      throw const ReownCoreError(
+        code: 5003,
+        message: 'accountBlock does not match this session',
+      );
+    }
+  }
+
+  /// Re-validates after interactive confirmation that the session is still
+  /// active, [requestId] is still pending (when provided), and (when
+  /// [requireActiveChainMatch] is true) the active chain still matches this
+  /// session.
+  @visibleForTesting
+  void revalidateInteractiveRequest({
+    required String topic,
+    required int? requestId,
+    required bool requireActiveChainMatch,
+  }) {
+    final SessionData liveSession = _sessionByTopic(topic);
+
+    if (requestId != null) {
+      final Map<String, SessionRequest> pendingRequests = _web3WalletService
+          .getPendingSessionRequests();
+      final bool isStillPending =
+          pendingRequests.containsKey(requestId.toString()) ||
+          pendingRequests.values.any(
+            (SessionRequest request) => request.id == requestId,
+          );
+      if (!isStillPending) {
+        // ReownCoreError does not implement Error/Exception upstream.
+        // ignore: only_throw_errors
+        throw const ReownCoreError(
+          code: 5005,
+          message: 'WalletConnect request expired or no longer pending',
+        );
+      }
+    }
+
+    if (requireActiveChainMatch) {
+      final String activeCaip2Chain = '$namespace:${getChainIdentifier()}';
+      final List<String>? sessionChains =
+          liveSession.namespaces[namespace]?.chains;
+      final bool sessionMatchesActive =
+          sessionChains != null &&
+          sessionChains.isNotEmpty &&
+          sessionChains.first == activeCaip2Chain;
+      if (reference.chain() != activeCaip2Chain || !sessionMatchesActive) {
+        // ReownCoreError does not implement Error/Exception upstream.
+        // ignore: only_throw_errors
+        throw const ReownCoreError(
+          code: 5003,
+          message: 'Active network changed while awaiting confirmation',
+        );
+      }
+    }
+  }
+
+  /// Inspects [accountBlock] calldata so the `znn_send` confirmation dialog can
+  /// display decoded embedded contract calls or warn about raw undecoded data.
+  @visibleForTesting
+  static WalletConnectBlockDataInspection inspectSendAccountBlockData(
+    AccountBlockTemplate accountBlock,
+  ) {
+    final List<int> data = accountBlock.data;
+    final ({String name, Abi abi})? embeddedContract =
+        _embeddedContractAbis[accountBlock.toAddress];
+    final bool isEmbedded =
+        embeddedContract != null || accountBlock.toAddress.isEmbedded();
+    if (data.isEmpty) {
+      return WalletConnectBlockDataInspection(
+        isEmbeddedContract: isEmbedded,
+        rawByteLength: 0,
+        contractName: embeddedContract?.name,
+      );
+    }
+
+    BlockData? decoded;
+    if (embeddedContract != null) {
+      decoded =
+          _tryDecodeBlockData(embeddedContract.abi, data) ??
+          _tryDecodeBlockData(Definitions.common, data);
+    }
+
+    final String fullHex = BytesUtils.bytesToHex(data);
+    final String previewHex = fullHex.length > 64
+        ? '0x${fullHex.substring(0, 64)}…'
+        : '0x$fullHex';
+
+    return WalletConnectBlockDataInspection(
+      isEmbeddedContract: isEmbedded,
+      rawByteLength: data.length,
+      contractName: embeddedContract?.name,
+      decodedBlockData: decoded,
+      rawHexPreview: previewHex,
+    );
+  }
+
+  static BlockData? _tryDecodeBlockData(Abi abi, List<int> data) {
+    try {
+      return AccountBlockUtils.getDecodedBlockData(abi, data);
+    } on Object {
+      return null;
+    }
+  }
+
+  static String _formatDecodedParamValue(Object? value) {
+    if (value == null) {
+      return 'null';
+    }
+    if (value is List<int>) {
+      final String hex = BytesUtils.bytesToHex(value);
+      return hex.length > 64 ? '0x${hex.substring(0, 64)}…' : '0x$hex';
+    }
+    final String text = value.toString();
+    return text.length > 96 ? '${text.substring(0, 96)}…' : text;
+  }
+
+  String _networkLabel() {
+    return switch (reference) {
+      NoMChainId.mainnet => 'Mainnet (${reference.chain()})',
+      NoMChainId.testnet => 'Testnet (${reference.chain()})',
+    };
+  }
+
+  void _rejectIfScam(VerifyContext? verifyContext) {
+    if (isWalletConnectVerifyScam(verifyContext)) {
+      // ReownCoreError does not implement Error/Exception upstream.
+      // ignore: only_throw_errors
+      throw ReownCoreError(
+        code: Errors.getSdkError(Errors.USER_REJECTED).code,
+        message: 'WalletConnect request blocked: peer flagged as scam',
+      );
+    }
+  }
+
+  Widget _buildVerifyStatusBanner(VerifyContext? verifyContext) {
+    final WalletConnectVerifySummary summary =
+        describeWalletConnectVerifyContext(verifyContext);
+    final Color accentColor = switch (summary.severity) {
+      WalletConnectVerifySeverity.verified => Colors.green,
+      WalletConnectVerifySeverity.unverified => Colors.orange,
+      WalletConnectVerifySeverity.invalid ||
+      WalletConnectVerifySeverity.scam => Colors.red,
+    };
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(8),
+      decoration: BoxDecoration(
+        color: accentColor.withValues(alpha: 0.12),
+        border: Border.all(color: accentColor),
+        borderRadius: BorderRadius.circular(6),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: <Widget>[
+          Text(
+            summary.title,
+            style: TextStyle(fontWeight: FontWeight.bold, color: accentColor),
+          ),
+          const SizedBox(height: 4),
+          Text(summary.detail),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAccountBlockDataDetails(
+    WalletConnectBlockDataInspection inspection,
+  ) {
+    final BlockData? decoded = inspection.decodedBlockData;
+    if (decoded != null) {
+      return Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          color: Colors.amber.withValues(alpha: 0.12),
+          border: Border.all(color: Colors.amber),
+          borderRadius: BorderRadius.circular(6),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            Text(
+              'Embedded contract call: '
+              '${inspection.contractName ?? 'Contract'}.${decoded.function}',
+              style: const TextStyle(fontWeight: FontWeight.bold),
+            ),
+            for (final MapEntry<String, dynamic> param
+                in decoded.params.entries) ...<Widget>[
+              const SizedBox(height: 4),
+              Text('${param.key}: ${_formatDecodedParamValue(param.value)}'),
+            ],
+          ],
+        ),
+      );
+    }
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(8),
+      decoration: BoxDecoration(
+        color: Colors.red.withValues(alpha: 0.12),
+        border: Border.all(color: Colors.red),
+        borderRadius: BorderRadius.circular(6),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: <Widget>[
+          Text(
+            'Warning: ${inspection.rawByteLength} bytes of undecoded raw data',
+            style: const TextStyle(
+              fontWeight: FontWeight.bold,
+              color: Colors.red,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            'Raw payload: ${inspection.rawHexPreview}. '
+            'Only approve if you fully trust this dApp.',
+          ),
+        ],
+      ),
     );
   }
 
@@ -254,7 +619,13 @@ class NoMService extends IChain {
     }
   }
 
-  Future<dynamic> _methodZnnInfo(String topic, dynamic params) async {
+  Future<dynamic> _methodZnnInfo(
+    String topic,
+    dynamic params, {
+    int? requestId,
+    VerifyContext? verifyContext,
+  }) async {
+    _rejectIfScam(verifyContext);
     if (!await windowManager.isFocused() || !await windowManager.isVisible()) {
       await windowManager.show();
     }
@@ -277,39 +648,55 @@ class NoMService extends IChain {
         context: context,
         isBarrierDismissible: false,
         title: '$dAppName - Information',
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: <Widget>[
-            Text(
-              'Are you sure you want to allow $dAppName to '
-              'retrieve the current address, node URL and chain identifier '
-              'information?',
-            ),
-            kVerticalSpacing,
-            if (dAppIconUrl != null)
-              Image(
-                image: NetworkImage(dAppIconUrl),
-                height: 100,
-                fit: BoxFit.fitHeight,
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              Text(
+                'Are you sure you want to allow $dAppName to '
+                'retrieve the current address, node URL and chain identifier '
+                'information?',
               ),
-            kVerticalSpacing,
-            Text(dAppDescription),
-            kVerticalSpacing,
-            if (dAppUrl != null)
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: <Widget>[
-                  Flexible(
-                    child: Text(dAppUrl, overflow: TextOverflow.ellipsis),
-                  ),
-                  LinkIcon(url: dAppUrl),
-                ],
-              ),
-          ],
+              kVerticalSpacing,
+              _buildVerifyStatusBanner(verifyContext),
+              kVerticalSpacing,
+              Text('Network: ${_networkLabel()}'),
+              kVerticalSpacing,
+              if (dAppIconUrl != null)
+                Image(
+                  image: NetworkImage(dAppIconUrl),
+                  height: 100,
+                  fit: BoxFit.fitHeight,
+                ),
+              kVerticalSpacing,
+              Text(dAppDescription),
+              kVerticalSpacing,
+              if (dAppUrl != null)
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: <Widget>[
+                    Flexible(
+                      child: Text(dAppUrl, overflow: TextOverflow.ellipsis),
+                    ),
+                    LinkIcon(url: dAppUrl),
+                  ],
+                ),
+            ],
+          ),
         ),
       );
 
       if (actionWasAccepted ?? false) {
+        if (kCurrentPage == Tabs.lock) {
+          // ReownCoreError does not implement Error/Exception upstream.
+          // ignore: only_throw_errors
+          throw _walletLockedError;
+        }
+        revalidateInteractiveRequest(
+          topic: topic,
+          requestId: requestId,
+          requireActiveChainMatch: false,
+        );
         return <String, Object?>{
           'address': activeAddress,
           'nodeUrl': kCurrentNode,
@@ -331,7 +718,13 @@ class NoMService extends IChain {
     }
   }
 
-  Future<dynamic> _methodZnnSign(String topic, dynamic params) async {
+  Future<dynamic> _methodZnnSign(
+    String topic,
+    dynamic params, {
+    int? requestId,
+    VerifyContext? verifyContext,
+  }) async {
+    _rejectIfScam(verifyContext);
     if (!await windowManager.isFocused() || !await windowManager.isVisible()) {
       await windowManager.show();
     }
@@ -350,24 +743,49 @@ class NoMService extends IChain {
       topic: topic,
     );
 
-    final BuildContext? context = globalNavigatorKey.currentContext;
-    if (kCurrentPage != Tabs.lock && context != null && context.mounted) {
-      final String message = params is String
-          ? params
-          : (params is Map ? (params['message']?.toString() ?? '') : '');
-      _logger.info(
-        'WalletConnect request method=znn_sign topic=$topic '
-        'activeAddress=$activeAddress requestedFrom=$requestedFromAddress',
-      );
+    if (kCurrentPage == Tabs.lock) {
+      // ReownCoreError does not implement Error/Exception upstream.
+      // ignore: only_throw_errors
+      throw _walletLockedError;
+    }
 
-      final bool? actionWasAccepted = await showDialogWithNoAndYesOptions(
-        context: context,
-        isBarrierDismissible: false,
-        title: '$dAppName - Sign Message',
-        content: Column(
+    validateSessionChainMatchesActive();
+    final String message = resolveSignMessage(params);
+    final BuildContext? context = globalNavigatorKey.currentContext;
+    if (context == null || !context.mounted) {
+      // ReownCoreError does not implement Error/Exception upstream.
+      // ignore: only_throw_errors
+      throw _walletLockedError;
+    }
+
+    _logger.info(
+      'WalletConnect request method=znn_sign topic=$topic '
+      'activeAddress=$activeAddress requestedFrom=$requestedFromAddress',
+    );
+
+    final bool? actionWasAccepted = await showDialogWithNoAndYesOptions(
+      context: context,
+      isBarrierDismissible: false,
+      title: '$dAppName - Sign Message',
+      content: SingleChildScrollView(
+        child: Column(
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
-            Text('Are you sure you want to sign message $message ?'),
+            Text('Are you sure you want to sign this message for $dAppName?'),
+            kVerticalSpacing,
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                border: Border.all(color: Colors.white24),
+                borderRadius: BorderRadius.circular(6),
+              ),
+              child: SelectableText(message),
+            ),
+            kVerticalSpacing,
+            _buildVerifyStatusBanner(verifyContext),
+            kVerticalSpacing,
+            Text('Network: ${_networkLabel()}'),
             kVerticalSpacing,
             Text('Signing address: $signerAddress'),
             kVerticalSpacing,
@@ -392,31 +810,46 @@ class NoMService extends IChain {
               ),
           ],
         ),
-      );
+      ),
+    );
 
-      if (actionWasAccepted ?? false) {
-        final Signature signature = await walletSign(
-          message.codeUnits,
-          address: signerAddress,
-        );
-        return signature.signature;
-      } else {
-        await NotificationUtils.sendNotificationError(
-          Errors.getSdkError(Errors.USER_REJECTED),
-          'You have rejected the WalletConnect request',
-        );
+    if (actionWasAccepted ?? false) {
+      if (kCurrentPage == Tabs.lock) {
         // ReownCoreError does not implement Error/Exception upstream.
         // ignore: only_throw_errors
-        throw Errors.getSdkError(Errors.USER_REJECTED);
+        throw _walletLockedError;
       }
+      revalidateInteractiveRequest(
+        topic: topic,
+        requestId: requestId,
+        requireActiveChainMatch: true,
+      );
+      final Signature signature = await walletSign(
+        encodeSignedMessagePayload(message),
+        address: signerAddress,
+      );
+      return <String, String>{
+        'signature': signature.signature,
+        'publicKey': signature.publicKey,
+      };
     } else {
+      await NotificationUtils.sendNotificationError(
+        Errors.getSdkError(Errors.USER_REJECTED),
+        'You have rejected the WalletConnect request',
+      );
       // ReownCoreError does not implement Error/Exception upstream.
       // ignore: only_throw_errors
-      throw _walletLockedError;
+      throw Errors.getSdkError(Errors.USER_REJECTED);
     }
   }
 
-  Future<dynamic> _methodZnnSend(String topic, dynamic params) async {
+  Future<dynamic> _methodZnnSend(
+    String topic,
+    dynamic params, {
+    int? requestId,
+    VerifyContext? verifyContext,
+  }) async {
+    _rejectIfScam(verifyContext);
     if (!await windowManager.isFocused() || !await windowManager.isVisible()) {
       await windowManager.show();
     }
@@ -456,11 +889,15 @@ class NoMService extends IChain {
     final AccountBlockTemplate accountBlock = AccountBlockTemplate.fromJson(
       accountBlockJson,
     );
+    validateSendAccountBlock(accountBlock);
+
+    final WalletConnectBlockDataInspection dataInspection =
+        inspectSendAccountBlockData(accountBlock);
 
     _logger.info(
       'WalletConnect request method=znn_send topic=$topic '
       'activeAddress=$activeAddress requestedFrom=$requestedFromAddress '
-      'to=${accountBlock.toAddress}',
+      'to=${accountBlock.toAddress} dataBytes=${dataInspection.rawByteLength}',
     );
 
     final String toAddress = ZenonAddressUtils.getLabel(
@@ -492,48 +929,75 @@ class NoMService extends IChain {
       context: context,
       isBarrierDismissible: false,
       title: '$dAppName - Send Payment',
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: <Widget>[
-          Text(
-            'Are you sure you want to transfer '
-            '$amount ${token.symbol} to '
-            '$toAddress ?',
-          ),
-          kVerticalSpacing,
-          Text('Source address: $signerAddress'),
-          kVerticalSpacing,
-          if (dAppIconUrl != null)
-            Image(
-              image: NetworkImage(dAppIconUrl),
-              height: 100,
-              fit: BoxFit.fitHeight,
+      content: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            Text(
+              'Are you sure you want to transfer '
+              '$amount ${token.symbol} to '
+              '$toAddress ?',
             ),
-          kVerticalSpacing,
-          Text(dAppDescription),
-          kVerticalSpacing,
-          if (dAppUrl != null)
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: <Widget>[
-                Flexible(child: Text(dAppUrl, overflow: TextOverflow.ellipsis)),
-                LinkIcon(url: dAppUrl),
-              ],
-            ),
-        ],
+            kVerticalSpacing,
+            _buildVerifyStatusBanner(verifyContext),
+            kVerticalSpacing,
+            Text('Network: ${_networkLabel()}'),
+            kVerticalSpacing,
+            Text('Source address: $signerAddress'),
+            if (dataInspection.hasData) ...<Widget>[
+              kVerticalSpacing,
+              _buildAccountBlockDataDetails(dataInspection),
+            ],
+            kVerticalSpacing,
+            if (dAppIconUrl != null)
+              Image(
+                image: NetworkImage(dAppIconUrl),
+                height: 100,
+                fit: BoxFit.fitHeight,
+              ),
+            kVerticalSpacing,
+            Text(dAppDescription),
+            kVerticalSpacing,
+            if (dAppUrl != null)
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: <Widget>[
+                  Flexible(
+                    child: Text(dAppUrl, overflow: TextOverflow.ellipsis),
+                  ),
+                  LinkIcon(url: dAppUrl),
+                ],
+              ),
+          ],
+        ),
       ),
       description:
           'Are you sure you want to transfer '
           '$amount ${token.symbol} to '
-          '$toAddress from $signerAddress ?',
+          '$toAddress from $signerAddress on ${_networkLabel()} ?',
     );
 
     if (wasActionAccepted ?? false) {
+      if (kCurrentPage == Tabs.lock) {
+        // ReownCoreError does not implement Error/Exception upstream.
+        // ignore: only_throw_errors
+        throw _walletLockedError;
+      }
+      revalidateInteractiveRequest(
+        topic: topic,
+        requestId: requestId,
+        requireActiveChainMatch: true,
+      );
+      final AccountBlockTemplate blockToSend = AccountBlockTemplate.fromJson(
+        accountBlockJson,
+      );
+      validateSendAccountBlock(blockToSend);
+
       final SendTransactionBloc sendPaymentBloc = SendTransactionBloc();
       try {
         sendPaymentBloc.add(
           SendTransactionInitiateFromBlock(
-            block: AccountBlockTemplate.fromJson(accountBlockJson),
+            block: blockToSend,
             fromAddress: signerAddress,
             reasonForGeneratingPlasma: 'Execute transfer',
           ),
