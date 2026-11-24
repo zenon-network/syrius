@@ -63,7 +63,7 @@ class HtlcSwapUnlockService {
       htlc.id,
       preimage,
     );
-    return _accountBlockUtils.createAccountBlock(
+    return await _accountBlockUtils.createAccountBlock(
       transactionParams,
       'complete swap',
       address: htlc.hashLocked,

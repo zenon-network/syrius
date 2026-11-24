@@ -76,10 +76,10 @@ class HtlcSwapRepository extends P2pSwapRepository<HtlcSwap> {
       _decodeNullableSwap(await _dataProvider.readSwapEntryById(id));
 
   /// Returns the last processed HTLC block height for the active chain.
-  Future<int> getLastCheckedHtlcBlockHeight() async {
+  Future<int> getLastCheckedHtlcBlockHeight() {
     final int? chainId = _chainIdProvider();
     if (chainId == null) {
-      return 0;
+      return Future<int>.value(0);
     }
 
     return _dataProvider.readLastCheckedHtlcBlockHeight(chainId);

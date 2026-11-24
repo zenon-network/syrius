@@ -516,6 +516,14 @@ void main() {
         await Hive.boxExists(legacySwapsBoxName, path: temporaryDirectory.path),
         isTrue,
       );
+
+      final Box<dynamic> verifyIntactBox = await Hive.openBox<dynamic>(
+        legacySwapsBoxName,
+        encryptionCipher: HiveAesCipher(wrongEncryptionKey),
+        path: temporaryDirectory.path,
+      );
+      expect(verifyIntactBox.containsKey('locked-swap'), isTrue);
+      await verifyIntactBox.close();
     },
   );
 
@@ -554,6 +562,9 @@ void main() {
     final File swapHive = File(
       '${temporaryDirectory.path}/${kHtlcSwapsBox}_$walletBaseAddress.hive',
     )..writeAsStringSync('legacy-swap-data');
+    final File swapCompact = File(
+      '${temporaryDirectory.path}/${kHtlcSwapsBox}_$walletBaseAddress.hivec',
+    )..writeAsStringSync('legacy-compact-data');
     final File swapLock = File(
       '${temporaryDirectory.path}/${kHtlcSwapsBox}_$walletBaseAddress.lock',
     )..writeAsStringSync('');
@@ -564,6 +575,7 @@ void main() {
     await migrator.deleteLegacyBoxesOnReset();
 
     expect(swapHive.existsSync(), isFalse);
+    expect(swapCompact.existsSync(), isFalse);
     expect(swapLock.existsSync(), isFalse);
     expect(otherBox.existsSync(), isTrue);
   });

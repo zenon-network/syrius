@@ -1,7 +1,9 @@
 import 'dart:async';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:logging/logging.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:sqlite3/sqlite3.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/p2p_swaps/services/htlc_swap_auto_unlock_service.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
@@ -171,6 +173,39 @@ void main() {
               ).captured.single
               as Iterable<HtlcSwap>;
       expect(candidates, <HtlcSwap>[incomingSwap]);
+    });
+
+    test('does not log secret preimages on storage failure', () async {
+      const String secretPreimage = 'sync-secret-preimage-abcdef012345';
+      final MockWsClient wsClient = MockWsClient();
+      when(() => zenon.wsClient).thenReturn(wsClient);
+      when(wsClient.isClosed).thenReturn(false);
+      when(() => swapRepository.getSwapsByState(any())).thenThrow(
+        SqliteException(
+          extendedResultCode: 13,
+          message: 'disk full',
+          causingStatement: 'INSERT INTO htlc_swaps VALUES (?)',
+          parametersToStatement: <Object?>[secretPreimage],
+        ),
+      );
+
+      final List<LogRecord> logs = <LogRecord>[];
+      final StreamSubscription<LogRecord> subscription = Logger.root.onRecord
+          .listen(logs.add);
+      addTearDown(subscription.cancel);
+
+      handler.start();
+      await handler.stop();
+
+      expect(logs, isNotEmpty);
+      for (final LogRecord record in logs) {
+        expect(record.message, isNot(contains(secretPreimage)));
+        expect(record.error?.toString() ?? '', isNot(contains(secretPreimage)));
+        expect(
+          record.stackTrace?.toString() ?? '',
+          isNot(contains(secretPreimage)),
+        );
+      }
     });
   });
 }

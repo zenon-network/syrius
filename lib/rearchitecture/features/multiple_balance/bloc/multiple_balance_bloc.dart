@@ -72,7 +72,7 @@ class MultipleBalanceBloc
   }
 
   /// Retrieves the account information for a specific [address].
-  Future<AccountInfo> _getBalancePerAddress(String address) async {
+  Future<AccountInfo> _getBalancePerAddress(String address) {
     return zenon.ledger.getAccountInfoByAddress(
       Address.parse(address),
     );

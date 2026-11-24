@@ -175,15 +175,14 @@ class LegacyHtlcSwapsMigrator {
   /// wallet reset (including resets initiated from the lock screen before
   /// addresses are loaded).
   Future<void> deleteLegacyBoxesOnReset() async {
-    final Directory cacheDir = Directory(
-      _hiveDirectoryPath ?? znnDefaultPaths.cache.path,
-    );
-    if (!cacheDir.existsSync()) {
-      return;
-    }
-
     const String legacyPrefix = '${kHtlcSwapsBox}_';
     try {
+      final Directory cacheDir = Directory(
+        _hiveDirectoryPath ?? znnDefaultPaths.cache.path,
+      );
+      if (!cacheDir.existsSync()) {
+        return;
+      }
       for (final FileSystemEntity entity in cacheDir.listSync()) {
         if (entity is! File) {
           continue;
@@ -191,7 +190,9 @@ class LegacyHtlcSwapsMigrator {
         final String fileName = path.basename(entity.path).toLowerCase();
         final bool isLegacySwapFile =
             fileName.startsWith(legacyPrefix) &&
-            (fileName.endsWith('.hive') || fileName.endsWith('.lock'));
+            (fileName.endsWith('.hive') ||
+                fileName.endsWith('.hivec') ||
+                fileName.endsWith('.lock'));
         if (!isLegacySwapFile) {
           continue;
         }

@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:math';
 
 import 'package:logging/logging.dart';
+import 'package:sqlite3/sqlite3.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 import 'package:zenon_syrius_wallet_flutter/model/block_data.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
@@ -87,8 +88,14 @@ class HtlcSwapSyncService {
       if (unresolvedSwaps.isNotEmpty) {
         await _processUnresolvedSwaps(unresolvedSwaps);
       }
-    } on Object catch (e, stackTrace) {
-      _logger.log(Level.WARNING, '_runPeriodically', e, stackTrace);
+    } on Object catch (e) {
+      // Avoid logging raw storage exceptions (e.g. SqliteException /
+      // DriftRemoteException) whose string representations can include SQL
+      // bind parameters containing secret HTLC preimages.
+      final String summary = e is SqliteException
+          ? '${e.runtimeType} (code=${e.extendedResultCode})'
+          : '${e.runtimeType}';
+      _logger.warning('_runPeriodically failed: $summary');
     } finally {
       _scheduleNextRun();
     }

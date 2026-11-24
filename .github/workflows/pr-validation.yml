@@ -26,7 +26,7 @@ jobs:
         run: flutter pub get --enforce-lockfile
 
       - name: Analyze rearchitecture code
-        run: flutter analyze --no-pub --no-fatal-infos lib/rearchitecture
+        run: flutter analyze --no-pub lib/rearchitecture
 
       - name: Run unit and widget tests
         run: flutter test --no-pub test --exclude-tags chain
