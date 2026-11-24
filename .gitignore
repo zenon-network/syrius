@@ -134,3 +134,4 @@ app.*.symbols
 /macos/libargon2_ffi.dylib
 /macos/libledger_ffi.dylib
 /macos/libpow_links.dylib
+/scratchpad/

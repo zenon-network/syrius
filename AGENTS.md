@@ -33,7 +33,7 @@
 - If a matching existing key does not follow these naming rules, rename it in `lib/l10n/app_en.arb`, update all of its usages, and then reuse the corrected key instead of preserving the noncompliant name.
 
 ## Repo-specific gotchas
-- `pubspec.yaml` overrides upstream packages: `reown_core` is patched from `patched_packages/reown_core-1.3.8`, and `znn_sdk_dart` is pinned to a fork/branch (`maznnwell/...@refactor`). Avoid "upgrading" these without intent.
+- `pubspec.yaml` overrides `znn_sdk_dart` to a pinned commit (`16bf294b3e347cb4f9c1f47a7da5d60034724f95`) on `maznnwell/znn_sdk_dart`. Avoid "upgrading" this without intent.
 - Embedded node native libs are committed under `lib/embedded_node/blobs/` and loaded dynamically by `lib/embedded_node/embedded_node.dart`; do not delete/move these files.
 - CI refreshes `assets/community-nodes.json` from `zenon-network/zenon-node-database` during builds; if node list behavior changes, check that upstream source first.
 - On Linux with Ledger/HID usage, udev rules from `udev/` are required (`udev/README.md`).
