@@ -12,3 +12,9 @@ targets:
           hookFolderName: integration_test/bdd_hooks
           relativeToTestFolder: false
           stepFolderName: integration_test/steps
+      drift_dev:
+        options:
+          databases:
+            htlc_swaps_database: lib/rearchitecture/features/p2p_swaps/data/htlc_swaps_database.dart
+          schema_dir: drift_schemas/
+          test_dir: test/drift/

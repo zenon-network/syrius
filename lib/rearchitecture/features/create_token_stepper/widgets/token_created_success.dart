@@ -31,7 +31,10 @@ class TokenCreatedSuccess extends StatelessWidget {
           OutlinedButton.icon(
             label: Text(context.l10n.createAnotherToken),
             onPressed: onCreateAnotherTokenPressed,
-            icon: const Icon(Icons.refresh, color: Colors.white,),
+            icon: const Icon(
+              Icons.refresh,
+              color: Colors.white,
+            ),
             iconAlignment: .end,
           ),
           const SizedBox(

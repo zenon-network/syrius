@@ -165,7 +165,9 @@ class _LatestTransactionsPopulatedState
       ),
       HashCell(hash: infoBlock.hash),
       AmountCell(block: infoBlock),
-      DateCell(block: infoBlock),
+      DateCell(
+        timestampMs: infoBlock.confirmationTimestampMs,
+      ),
       TypeCell(block: transactionBlock),
       AssetCell(block: infoBlock),
     ];
@@ -204,7 +206,9 @@ class _LatestTransactionsPopulatedState
     return <Widget>[
       AddressCell(address: infoBlock.address),
       AmountCell(block: infoBlock),
-      DateCell(block: infoBlock),
+      DateCell(
+        timestampMs: infoBlock.confirmationTimestampMs,
+      ),
       TypeCell(block: transactionBlock),
       AssetCell(block: infoBlock),
     ];

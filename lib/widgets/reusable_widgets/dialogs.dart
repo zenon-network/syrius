@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/constants/app_sizes.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/extensions/buildcontext_extension.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
 
 Future<bool> showWarningDialog({
@@ -21,7 +23,8 @@ Future<bool> showWarningDialog({
       content: Text(description),
       actions: <Widget>[
         TextButton(
-          onPressed: onActionButtonPressed ??
+          onPressed:
+              onActionButtonPressed ??
               () {
                 Navigator.pop(context);
               },
@@ -34,7 +37,8 @@ Future<bool> showWarningDialog({
           ),
         ),
         TextButton(
-          onPressed: onActionButtonPressed ??
+          onPressed:
+              onActionButtonPressed ??
               () {
                 isPressed = true;
                 Navigator.pop(context);
@@ -60,53 +64,73 @@ Future<bool?> showDialogWithNoAndYesOptions({
   required bool isBarrierDismissible,
   Widget? content,
   String? description,
-}) =>
-    showDialog<bool>(
-      barrierDismissible: isBarrierDismissible,
-      context: context,
-      builder: (BuildContext context) => AlertDialog(
-        title: Text(title),
-        content: content ?? Text(description!),
-        actions: <Widget>[
-          TextButton(
-            key: const Key('dialog_no_button'),
-            style: TextButton.styleFrom(
-              backgroundColor: AppColors.znnColor,
-            ),
-            onPressed: () {
-              Navigator.pop(context, false);
-            },
-            child: Text(
-              'No',
-              style: Theme.of(context).textTheme.bodyLarge,
-            ),
-          ),
-          TextButton(
-            key: const Key('dialog_yes_button'),
-            style: TextButton.styleFrom(
-              backgroundColor: AppColors.errorColor,
-            ),
-            onPressed: () {
-              Navigator.pop(context, true);
-            },
-            child: Text(
-              'Yes',
-              style: Theme.of(context).textTheme.bodyLarge,
-            ),
-          ),
-        ],
+}) => showDialog<bool>(
+  barrierDismissible: isBarrierDismissible,
+  context: context,
+  builder: (BuildContext context) => AlertDialog(
+    title: Text(title),
+    content: content ?? Text(description!),
+    actions: <Widget>[
+      TextButton(
+        key: const Key('dialog_no_button'),
+        style: TextButton.styleFrom(
+          backgroundColor: AppColors.znnColor,
+        ),
+        onPressed: () {
+          Navigator.pop(context, false);
+        },
+        child: Text(
+          'No',
+          style: Theme.of(context).textTheme.bodyLarge,
+        ),
       ),
-    );
+      TextButton(
+        key: const Key('dialog_yes_button'),
+        style: TextButton.styleFrom(
+          backgroundColor: AppColors.errorColor,
+        ),
+        onPressed: () {
+          Navigator.pop(context, true);
+        },
+        child: Text(
+          'Yes',
+          style: Theme.of(context).textTheme.bodyLarge,
+        ),
+      ),
+    ],
+  ),
+);
 
-Future<Object?> showCustomDialog({required BuildContext context, required Widget content}) =>
-    showGeneralDialog(
-      context: context,
-      barrierLabel: '',
-      barrierDismissible: true,
-      pageBuilder: (BuildContext context, Animation<double> animation,
-              Animation<double> secondaryAnimation,) =>
-          Center(
-        child: ClipRRect(
-            borderRadius: BorderRadius.circular(15), child: content,),
-      ),
-    );
+Future<T?> showCustomDialog<T>({
+  required BuildContext context,
+  required Widget content,
+}) => showGeneralDialog<T>(
+  context: context,
+  barrierLabel: '',
+  barrierDismissible: true,
+  pageBuilder:
+      (
+        BuildContext context,
+        Animation<double> animation,
+        Animation<double> secondaryAnimation,
+      ) {
+        return Center(
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              maxHeight: context.customDialogMaxHeight,
+              maxWidth: context.customDialogMaxWidth,
+            ),
+            child: Theme(
+              data: context.newThemeData,
+              child: Card.filled(
+                clipBehavior: Clip.hardEdge,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(15),
+                ),
+                child: SingleChildScrollView(child: content),
+              ),
+            ),
+          ),
+        );
+      },
+);

@@ -23,7 +23,7 @@ class PlasmaStatsBloc extends InfiniteListBloc<PlasmaInfoWrapper> {
     required Address? address,
     required int pageIndex,
     required int pageSize,
-  }) async {
+  }) {
     final int start = pageIndex * pageSize;
     final int end = start + pageSize;
 

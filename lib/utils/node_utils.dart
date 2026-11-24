@@ -8,8 +8,8 @@ import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/embedded_node/embedded_node.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/model/model.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/date_time_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/notification_utils.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
@@ -155,7 +155,7 @@ class NodeUtils {
       if (nodeIsSynced) {
         final int frontierTime =
             (await zenon!.ledger.getFrontierMomentum()).timestamp;
-        final int timeDifference = (frontierTime - DateTimeUtils.unixTimeNow).abs();
+        final int timeDifference = (frontierTime - DateTime.now().unixTimestamp).abs();
         if (timeDifference > maxAllowedDiscrepancy.inSeconds) {
           await NotificationUtils.sendNotificationError(
             Exception('Local time discrepancy detected.'),

@@ -87,9 +87,8 @@ class _WalletConnectCameraCardState extends State<WalletConnectCameraCard> {
                         Logger('WalletConnectCameraCard')
                             .log(Level.INFO, 'onDispose');
                       },
-                      controller: MobileScannerController(
+                      controller: AiBarcodeScannerController(
                         facing: CameraFacing.front,
-                        detectionSpeed: DetectionSpeed.noDuplicates,
                       ),
                       errorBuilder:
                           (BuildContext p0, MobileScannerException p1) {

@@ -5,9 +5,14 @@ import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/extensions/buil
 /// [TextFormField]
 class ClearContentButton extends StatelessWidget {
   /// Creates a button that clears [_controller].
-  const ClearContentButton({required this._controller, super.key});
+  const ClearContentButton({
+    required this._controller,
+    this._onClear,
+    super.key,
+  });
 
   final TextEditingController _controller;
+  final VoidCallback? _onClear;
 
   @override
   Widget build(BuildContext context) {
@@ -16,7 +21,12 @@ class ClearContentButton extends StatelessWidget {
       builder: (_, TextEditingValue value, _) {
         final bool isActive = value.text.isNotEmpty;
         return IconButton(
-          onPressed: isActive ? _controller.clear : null,
+          onPressed: isActive
+              ? () {
+                  _controller.clear();
+                  _onClear?.call();
+                }
+              : null,
           icon: Icon(
             Icons.clear,
             color: isActive ? null : context.newThemeData.disabledColor,

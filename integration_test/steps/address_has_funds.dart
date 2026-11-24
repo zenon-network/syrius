@@ -13,8 +13,6 @@ Future<void> addressHasFunds(WidgetTester tester, String sender) async {
   final Address derivedSenderAddress = Address.parse(sender);
 
   final AccountInfo accountInfo = await app.zenon!.ledger
-      .getAccountInfoByAddress(
-        derivedSenderAddress,
-      );
+      .getAccountInfoByAddress(derivedSenderAddress);
   expect(accountInfo.getBalance(znnZts), greaterThan(BigInt.zero));
 }

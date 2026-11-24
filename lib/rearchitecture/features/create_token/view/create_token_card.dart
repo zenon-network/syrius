@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
@@ -53,15 +51,13 @@ class _View extends StatelessWidget {
         ),
         ElevatedButton.icon(
           onPressed: () {
-            unawaited(
-              Navigator.push(
-                context,
-                MaterialPageRoute<void>(
-                  builder: (BuildContext context) => StepperScreen(
-                    stepper: const CreateTokenStepperPage(),
-                    onStepperNotificationSeeMorePressed:
-                        onStepperNotificationSeeMorePressed,
-                  ),
+            Navigator.push(
+              context,
+              MaterialPageRoute<void>(
+                builder: (BuildContext context) => StepperScreen(
+                  stepper: const CreateTokenStepperPage(),
+                  onStepperNotificationSeeMorePressed:
+                      onStepperNotificationSeeMorePressed,
                 ),
               ),
             );

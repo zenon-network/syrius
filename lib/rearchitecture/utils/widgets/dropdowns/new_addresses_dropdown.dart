@@ -8,20 +8,32 @@ class NewAddressesDropdown extends StatefulWidget {
   /// Creates a new instance.
   const NewAddressesDropdown({
     required this._addresses,
-    required this._onSelectedCallback,
     required this._selectedAddress,
+    this._enabled = true,
+    this._label,
     super.key,
   });
   final List<String> _addresses;
-  final void Function(String) _onSelectedCallback;
-  final String _selectedAddress;
+  final Widget? _label;
+  final ValueNotifier<String> _selectedAddress;
+  final bool _enabled;
 
   @override
   State<NewAddressesDropdown> createState() => _NewAddressesDropdownState();
 }
 
 class _NewAddressesDropdownState extends State<NewAddressesDropdown> {
+  String get _address => widget._selectedAddress.value;
+
   final TextEditingController _searchController = TextEditingController();
+  late String _selectedLabel;
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedLabel = _labelFor(_address);
+    widget._selectedAddress.addListener(_onSelectedAddressChanged);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -30,45 +42,68 @@ class _NewAddressesDropdownState extends State<NewAddressesDropdown> {
     final List<DropdownMenuEntry<String>> entries = widget._addresses
         .map(
           (String address) => DropdownMenuEntry<String>(
-            label: kAddressLabelMap[address]!,
+            label: _labelFor(address),
             style: MenuItemButton.styleFrom(
-              foregroundColor: address == widget._selectedAddress
-                  ? color
-                  : null,
+              foregroundColor: address == _address ? color : null,
             ),
             value: address,
           ),
         )
         .toList();
 
-    return DropdownMenu<String>(
-      controller: _searchController,
-      enableFilter: true,
-      expandedInsets: EdgeInsets.zero,
-      filterCallback: _filterCallback,
-      initialSelection: widget._selectedAddress,
-      inputDecorationTheme: const InputDecorationTheme(
-        filled: true,
-      ),
-      leadingIcon: const Icon(
-        Icons.search,
-        color: color,
-      ),
-      dropdownMenuEntries: entries,
-      menuHeight: kDropdownMenuHeight,
-      onSelected: (String? address) {
-        if (address != null) {
-          widget._onSelectedCallback(address);
+    return Focus(
+      onFocusChange: (bool hasFocus) {
+        if (!hasFocus) {
+          _restoreSelectedLabel();
         }
       },
-      searchCallback: _searchCallback,
-      textStyle: const TextStyle(
-        color: color,
+      child: DropdownMenu<String>(
+        enabled: widget._enabled,
+        controller: _searchController,
+        enableFilter: true,
+        expandedInsets: EdgeInsets.zero,
+        filterCallback: _filterCallback,
+        initialSelection: _address,
+        inputDecorationTheme: const InputDecorationTheme(
+          filled: true,
+        ),
+        label: widget._label,
+        leadingIcon: const Icon(
+          Icons.search,
+          color: color,
+        ),
+        dropdownMenuEntries: entries,
+        menuHeight: kDropdownMenuHeight,
+        onSelected: (String? address) {
+          if (address != null) {
+            widget._selectedAddress.value = address;
+          }
+        },
+        searchCallback: _searchCallback,
+        textStyle: const TextStyle(
+          color: color,
+        ),
+        trailingIcon: const Icon(
+          Icons.keyboard_arrow_down_rounded,
+          color: color,
+        ),
       ),
-      trailingIcon: const Icon(
-        Icons.keyboard_arrow_down_rounded,
-        color: color,
-      ),
+    );
+  }
+
+  String _labelFor(String address) => kAddressLabelMap[address] ?? address;
+
+  void _onSelectedAddressChanged() {
+    setState(() {
+      _selectedLabel = _labelFor(_address);
+    });
+    _restoreSelectedLabel();
+  }
+
+  void _restoreSelectedLabel() {
+    _searchController.value = TextEditingValue(
+      text: _selectedLabel,
+      selection: TextSelection.collapsed(offset: _selectedLabel.length),
     );
   }
 
@@ -103,4 +138,11 @@ class _NewAddressesDropdownState extends State<NewAddressesDropdown> {
   bool _matchTest(DropdownMenuEntry<String> entry, String searchText) =>
       entry.label.toLowerCase().contains(searchText) ||
       entry.value.toLowerCase().contains(searchText);
+
+  @override
+  void dispose() {
+    widget._selectedAddress.removeListener(_onSelectedAddressChanged);
+    _searchController.dispose();
+    super.dispose();
+  }
 }

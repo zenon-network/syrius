@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lottie/lottie.dart';
@@ -127,15 +125,13 @@ class _View extends StatelessWidget {
       children: <Widget>[
         ElevatedButton.icon(
           onPressed: () {
-            unawaited(
-              Navigator.push(
-                context,
-                MaterialPageRoute<void>(
-                  builder: (BuildContext context) => StepperScreen(
-                    stepper: const CreateSentinelStepperPage(),
-                    onStepperNotificationSeeMorePressed:
-                        onStepperNotificationSeeMorePressed,
-                  ),
+            Navigator.push(
+              context,
+              MaterialPageRoute<void>(
+                builder: (BuildContext context) => StepperScreen(
+                  stepper: const CreateSentinelStepperPage(),
+                  onStepperNotificationSeeMorePressed:
+                      onStepperNotificationSeeMorePressed,
                 ),
               ),
             );

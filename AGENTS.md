@@ -3,7 +3,7 @@
 ## Scope and stack
 - This repo is a single Flutter desktop wallet app (not a monorepo); main package config is `pubspec.yaml`.
 - Supported runtime targets here are desktop (`macos`, `windows`, `linux`); CI builds only these three.
-- Core startup/DI wiring lives in `lib/main.dart` (and a dev entrypoint in `lib/main_dev.dart` used by `run_configurations/dev.run.xml`).
+- Core startup/DI wiring lives in `lib/main.dart`.
 
 ## Canonical commands
 - Install deps: `flutter pub get`
@@ -23,8 +23,17 @@
 - `analysis_options.yaml` excludes `**/*.g.dart`; do not manually lint-fix generated outputs.
 - Localization is generated (`flutter.generate: true`, `l10n.yaml`); treat `lib/l10n/app_localizations*.dart` as generated artifacts.
 
+## Localization
+- Localizing user-facing strings is a required step when refactoring a widget. Replace hard-coded widget text such as `Text('User Address')` with a localization entry and access it through `context.l10n`.
+- Add source strings to `lib/l10n/app_en.arb`; never edit the generated `lib/l10n/app_localizations*.dart` files manually.
+- Name localization keys after the string's content, not the feature, widget, location, or visual role where the string is used. For example, prefer `"enterNomAddress": "Enter NoM Address"` over `"p2pSwapAddressHint": "Enter NoM address"`.
+- Keep keys as simple and reusable as possible.
+- Derive longer keys from the phrase itself and keep them concise, aiming for no more than 5-7 words.
+- Reuse an existing key only when its content and meaning match and the key follows these naming rules.
+- If a matching existing key does not follow these naming rules, rename it in `lib/l10n/app_en.arb`, update all of its usages, and then reuse the corrected key instead of preserving the noncompliant name.
+
 ## Repo-specific gotchas
-- `pubspec.yaml` overrides upstream packages: `reown_core` is patched from `patched_packages/reown_core-1.3.8`, and `znn_sdk_dart` is pinned to a fork/branch (`maznnwell/...@refactor`). Avoid "upgrading" these without intent.
+- `pubspec.yaml` overrides `znn_sdk_dart` to a pinned commit (`16bf294b3e347cb4f9c1f47a7da5d60034724f95`) on `maznnwell/znn_sdk_dart`. Avoid "upgrading" this without intent.
 - Embedded node native libs are committed under `lib/embedded_node/blobs/` and loaded dynamically by `lib/embedded_node/embedded_node.dart`; do not delete/move these files.
 - CI refreshes `assets/community-nodes.json` from `zenon-network/zenon-node-database` during builds; if node list behavior changes, check that upstream source first.
 - On Linux with Ledger/HID usage, udev rules from `udev/` are required (`udev/README.md`).
@@ -44,5 +53,4 @@
 - Everything inside the feature should be private, unless needed to be otherwise. The pillars_card is again a good example: you have classes like _View or _Populated used only in that feature, for this reason they should be private.
 - The fields of a class should also be private
 - Each new feature must also have basic unit tests for the bloc or cubit class; take pillars_card as an example
-- If a Widget class, or other class that has a BuildContext field, uses hard-coded strings, try to localize them
 - Inside the build method of a Widget, when other methods return an object of type Widget - Row, Column, etc - the method's name should by prefixed by _build; for example, instead of _getColletButton(), use _buildCollectButton()

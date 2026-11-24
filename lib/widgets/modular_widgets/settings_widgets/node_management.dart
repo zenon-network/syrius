@@ -9,13 +9,13 @@ import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/embedded_node/embedded_node.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/model/model.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/p2p_swaps/data/htlc_swap_repository.dart';
 import 'package:zenon_syrius_wallet_flutter/services/i_web3wallet_service.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 class NodeManagement extends StatefulWidget {
-
   const NodeManagement({
     required this.onNodeChangedCallback,
     super.key,
@@ -127,12 +127,13 @@ class _NodeManagementState extends State<NodeManagement> {
 
     try {
       _confirmNodeButtonKey.currentState?.animateForward();
-      final bool isConnectionEstablished =
-          await _establishConnectionToNode(_selectedNode);
+      final bool isConnectionEstablished = await _establishConnectionToNode(
+        _selectedNode,
+      );
       if (isConnectionEstablished) {
         kNodeChainId = await NodeUtils.getNodeChainIdentifier();
         if (await _checkForChainIdMismatch()) {
-          await htlcSwapsService!.storeLastCheckedHtlcBlockHeight(0);
+          await sl<HtlcSwapRepository>().storeLastCheckedHtlcBlockHeight(0);
           await sharedPrefsService!.put(
             kSelectedNodeKey,
             _selectedNode,
@@ -164,25 +165,32 @@ class _NodeManagementState extends State<NodeManagement> {
   }
 
   Future<bool> _establishConnectionToNode(String? url) async {
-    final String targetUrl = url == kEmbeddedNode ? kLocalhostDefaultNodeUrl : url!;
-    bool isConnectionEstablished =
-        await NodeUtils.establishConnectionToNode(targetUrl);
+    final String targetUrl = url == kEmbeddedNode
+        ? kLocalhostDefaultNodeUrl
+        : url!;
+    bool isConnectionEstablished = await NodeUtils.establishConnectionToNode(
+      targetUrl,
+    );
     if (url == kEmbeddedNode) {
       // Check if node is already running
       if (!isConnectionEstablished) {
         // Initialize local full node
-        await Isolate.spawn(EmbeddedNode.runNode, <String>[''],
-            onExit:
-                sl<ReceivePort>(instanceName: 'embeddedStoppedPort').sendPort,);
+        await Isolate.spawn(
+          EmbeddedNode.runNode,
+          <String>[''],
+          onExit: sl<ReceivePort>(instanceName: 'embeddedStoppedPort').sendPort,
+        );
         kEmbeddedNodeRunning = true;
         // The node needs a couple of seconds to actually start
         await Future.delayed(kEmbeddedConnectionDelay);
-        isConnectionEstablished =
-            await NodeUtils.establishConnectionToNode(targetUrl);
+        isConnectionEstablished = await NodeUtils.establishConnectionToNode(
+          targetUrl,
+        );
       }
     } else {
-      isConnectionEstablished =
-          await NodeUtils.establishConnectionToNode(targetUrl);
+      isConnectionEstablished = await NodeUtils.establishConnectionToNode(
+        targetUrl,
+      );
       if (isConnectionEstablished) {
         await NodeUtils.closeEmbeddedNode();
       }
@@ -226,11 +234,15 @@ class _NodeManagementState extends State<NodeManagement> {
       InputValidators.node(_newNodeController.text) == null;
 
   Future<void> _onAddNodePressed() async {
-    if (<String>[...kDbNodes, ...kDefaultCommunityNodes, ...kDefaultNodes]
-        .contains(_newNodeController.text)) {
+    if (<String>[
+      ...kDbNodes,
+      ...kDefaultCommunityNodes,
+      ...kDefaultNodes,
+    ].contains(_newNodeController.text)) {
       await NotificationUtils.sendNotificationError(
-          'Node ${_newNodeController.text} already exists',
-          'Node already exists',);
+        'Node ${_newNodeController.text} already exists',
+        'Node already exists',
+      );
     } else {
       _addNodeToDb();
     }
@@ -248,7 +260,10 @@ class _NodeManagementState extends State<NodeManagement> {
       _newNodeController = TextEditingController();
       _newNodeKey = GlobalKey();
     } catch (e) {
-      await NotificationUtils.sendNotificationError(e, 'Error while adding new node');
+      await NotificationUtils.sendNotificationError(
+        e,
+        'Error while adding new node',
+      );
     } finally {
       _addNodeButtonKey.currentState?.animateReverse();
     }
@@ -297,13 +312,13 @@ class _NodeManagementState extends State<NodeManagement> {
 
   Future<void> _sendChangingNodeSuccessNotification() async {
     await sl.get<NotificationsBloc>().addNotification(
-          WalletNotification(
-            title: 'Successfully connected to $_selectedNode',
-            timestamp: DateTime.now().millisecondsSinceEpoch,
-            details: 'Successfully connected to $_selectedNode',
-            type: NotificationType.changedNode,
-          ),
-        );
+      WalletNotification(
+        title: 'Successfully connected to $_selectedNode',
+        timestamp: DateTime.now().millisecondsSinceEpoch,
+        details: 'Successfully connected to $_selectedNode',
+        type: NotificationType.changedNode,
+      ),
+    );
   }
 
   @override
@@ -315,13 +330,13 @@ class _NodeManagementState extends State<NodeManagement> {
 
   Future<void> _sendAddNodeSuccessNotification() async {
     await sl.get<NotificationsBloc>().addNotification(
-          WalletNotification(
-            title: 'Successfully added node ${_newNodeController.text}',
-            timestamp: DateTime.now().millisecondsSinceEpoch,
-            details: 'Successfully added node ${_newNodeController.text}',
-            type: NotificationType.changedNode,
-          ),
-        );
+      WalletNotification(
+        title: 'Successfully added node ${_newNodeController.text}',
+        timestamp: DateTime.now().millisecondsSinceEpoch,
+        details: 'Successfully added node ${_newNodeController.text}',
+        type: NotificationType.changedNode,
+      ),
+    );
   }
 
   Widget _getChainIdSelectionExpandableChild() {
@@ -330,29 +345,30 @@ class _NodeManagementState extends State<NodeManagement> {
         Row(
           children: <Widget>[
             Expanded(
-                child: Form(
-              key: _newChainIdKey,
-              autovalidateMode: AutovalidateMode.onUserInteraction,
-              child: InputField(
-                inputFormatters: <TextInputFormatter>[
-                  FilteringTextInputFormatter.digitsOnly,
-                ],
-                controller: _newChainIdController,
-                hintText:
-                    'Current client chain identifier is ${getChainIdentifier()}',
-                onSubmitted: (String value) async {
-                  if (_isChainIdSelectionInputIsValid()) {
-                    _onConfirmChainIdPressed();
-                  }
-                },
-                onChanged: (String value) {
-                  if (value.isNotEmpty) {
-                    setState(() {});
-                  }
-                },
-                validator: InputValidators.validateNumber,
+              child: Form(
+                key: _newChainIdKey,
+                autovalidateMode: AutovalidateMode.onUserInteraction,
+                child: InputField(
+                  inputFormatters: <TextInputFormatter>[
+                    FilteringTextInputFormatter.digitsOnly,
+                  ],
+                  controller: _newChainIdController,
+                  hintText:
+                      'Current client chain identifier is ${getChainIdentifier()}',
+                  onSubmitted: (String value) async {
+                    if (_isChainIdSelectionInputIsValid()) {
+                      _onConfirmChainIdPressed();
+                    }
+                  },
+                  onChanged: (String value) {
+                    if (value.isNotEmpty) {
+                      setState(() {});
+                    }
+                  },
+                  validator: InputValidators.validateNumber,
+                ),
               ),
-            ),),
+            ),
             StandardTooltipIcon(
               (getChainIdentifier() == 1)
                   ? 'Alphanet chain identifier'
@@ -390,7 +406,9 @@ class _NodeManagementState extends State<NodeManagement> {
       _confirmChainIdButtonKey.currentState?.animateForward();
       setChainIdentifier(chainIdentifier: _newChainId);
       await sharedPrefsService!.put(kChainIdKey, _newChainId);
-      await sl<IWeb3WalletService>().emitChainIdChangeEvent(_newChainId.toString());
+      await sl<IWeb3WalletService>().emitChainIdChangeEvent(
+        _newChainId.toString(),
+      );
       await _sendSuccessfullyChangedChainIdNotification(_newChainId);
       _initCurrentChainId();
       _newChainIdController = TextEditingController();
@@ -405,17 +423,18 @@ class _NodeManagementState extends State<NodeManagement> {
     }
   }
 
-  Future<void> _sendSuccessfullyChangedChainIdNotification(int newChainId) async {
+  Future<void> _sendSuccessfullyChangedChainIdNotification(
+    int newChainId,
+  ) async {
     await sl.get<NotificationsBloc>().addNotification(
-          WalletNotification(
-            title:
-                'Successfully changed client chain identifier to $newChainId',
-            timestamp: DateTime.now().millisecondsSinceEpoch,
-            details:
-                'Successfully changed client chain identifier from $_currentChainId to $_newChainId',
-            type: NotificationType.changedNode,
-          ),
-        );
+      WalletNotification(
+        title: 'Successfully changed client chain identifier to $newChainId',
+        timestamp: DateTime.now().millisecondsSinceEpoch,
+        details:
+            'Successfully changed client chain identifier from $_currentChainId to $_newChainId',
+        type: NotificationType.changedNode,
+      ),
+    );
   }
 
   Future<bool> _checkForChainIdMismatch() async {
@@ -432,7 +451,9 @@ class _NodeManagementState extends State<NodeManagement> {
   }
 
   Future<bool> _showChainIdWarningDialog(
-      int nodeChainId, int currentChainId,) async {
+    int nodeChainId,
+    int currentChainId,
+  ) async {
     return showWarningDialog(
       context: context,
       title: 'Chain identifier mismatch',

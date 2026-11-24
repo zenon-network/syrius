@@ -138,7 +138,7 @@ class _PendingTransactionsPopulatedState
       ),
       AmountCell(block: infoBlock),
       DateCell(
-        block: infoBlock,
+        timestampMs: infoBlock.confirmationTimestampMs,
       ),
       AssetCell(block: infoBlock),
       ReceiveCell(hash: infoBlock.hash),

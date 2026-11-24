@@ -6,33 +6,30 @@ on:
       - develop
   workflow_dispatch:
 
-env:
-  FLUTTER_VERSION: "3.44.0"
+permissions:
+  contents: read
 
 jobs:
   analyze-and-test:
     name: Analyze and Unit Tests
     runs-on: ubuntu-24.04
+    timeout-minutes: 30
 
     steps:
       - name: Checkout
         uses: actions/checkout@v6
 
       - name: Set up Flutter
-        uses: subosito/flutter-action@v2
-        with:
-          flutter-version: ${{ env.FLUTTER_VERSION }}
-          channel: stable
-          cache: true
+        uses: ./.github/actions/setup-flutter
 
       - name: Install Flutter dependencies
-        run: flutter pub get
+        run: flutter pub get --enforce-lockfile
 
       - name: Analyze rearchitecture code
-        run: flutter analyze lib/rearchitecture
+        run: flutter analyze --no-pub lib/rearchitecture
 
       - name: Run unit and widget tests
-        run: flutter test test --exclude-tags chain
+        run: flutter test --no-pub test --exclude-tags chain
 
       - name: Check generated files are up to date
         run: |

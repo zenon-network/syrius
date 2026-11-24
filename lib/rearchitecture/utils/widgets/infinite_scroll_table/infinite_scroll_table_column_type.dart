@@ -14,6 +14,7 @@ enum InfiniteScrollTableColumnType {
   duration,
   expectedProducedMomentums,
   expiration,
+  from,
   hash,
   level,
   momentumReward,
@@ -25,10 +26,14 @@ enum InfiniteScrollTableColumnType {
   sender,
   sentinelAddress,
   stakingDuration,
+  started,
+  status,
+  to,
   type,
   uptime,
   weight;
 
+  // TODO(maznnwell): don't handle cases where the value is equal to default
   int get flex => switch (this) {
     address => 2,
     amount => 1,
@@ -55,6 +60,7 @@ enum InfiniteScrollTableColumnType {
     type => 1,
     uptime => 1,
     weight => 1,
+    _ => 1,
   };
 
   String name({required BuildContext context}) => switch (this) {
@@ -69,6 +75,7 @@ enum InfiniteScrollTableColumnType {
     duration => context.l10n.duration,
     expectedProducedMomentums => context.l10n.expectedProducedMomentums,
     expiration => context.l10n.expiration,
+    from => context.l10n.from,
     hash => context.l10n.hash,
     level => context.l10n.level,
     momentumReward => context.l10n.momentumReward,
@@ -80,6 +87,9 @@ enum InfiniteScrollTableColumnType {
     sender => context.l10n.sender,
     sentinelAddress => context.l10n.sentinelAddress,
     stakingDuration => context.l10n.stakingDuration,
+    started => context.l10n.started,
+    status => context.l10n.status,
+    to => context.l10n.to,
     type => context.l10n.type,
     uptime => context.l10n.uptime,
     weight => context.l10n.weight,

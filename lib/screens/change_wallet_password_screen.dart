@@ -3,14 +3,16 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/decrypt_wallet_file_bloc.dart';
-import 'package:zenon_syrius_wallet_flutter/services/htlc_swaps_service.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/p2p_swaps/services/htlc_swap_sync_service.dart';
+import 'package:zenon_syrius_wallet_flutter/main.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/p2p_swaps/data/htlc_swap_local_storage_api.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/p2p_swaps/data/legacy_htlc_swaps_migrator.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/wallet_file.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 class ChangeWalletPasswordScreen extends StatefulWidget {
-
   const ChangeWalletPasswordScreen({
     required this.onStepperNotificationSeeMorePressed,
     super.key,
@@ -93,10 +95,11 @@ class _ChangeWalletPasswordScreenState
                   autovalidateMode: AutovalidateMode.onUserInteraction,
                   child: PasswordInputField(
                     controller: _confirmPasswordController,
-                    validator: (String? value) => InputValidators.checkPasswordMatch(
-                      _newPasswordController.text,
-                      value,
-                    ),
+                    validator: (String? value) =>
+                        InputValidators.checkPasswordMatch(
+                          _newPasswordController.text,
+                          value,
+                        ),
                     hintText: 'Repeat new password',
                     onSubmitted: (String value) {
                       if (_arePasswordsValid()) {
@@ -118,7 +121,8 @@ class _ChangeWalletPasswordScreenState
               ],
             ),
             const DottedBorderInfoWidget(
-              text: 'Use a password that has at least 8 characters, '
+              text:
+                  'Use a password that has at least 8 characters, '
                   'one number, one uppercase letter, one lowercase '
                   'letter and one symbol',
             ),
@@ -149,14 +153,35 @@ class _ChangeWalletPasswordScreenState
     String currentPassword,
     String newPassword,
   ) async {
-    final Address baseAddress = WalletUtils.baseAddress;
-    await kWalletFile!.changePassword(currentPassword, newPassword);
-    await HtlcSwapsService.getInstance().closeBoxes();
-    await HtlcSwapsService.getInstance().openBoxes(
-      baseAddress.toString(),
-      Crypto.digest(utf8.encode(currentPassword)),
-      newCipherKey: Crypto.digest(utf8.encode(newPassword)),
+    final HtlcSwapSyncService handler = sl<HtlcSwapSyncService>();
+    final HtlcSwapLocalStorageApi dataProvider = sl<HtlcSwapLocalStorageApi>();
+    final List<int> oldEncryptionKey = Crypto.digest(
+      utf8.encode(currentPassword),
     );
+    final List<int> newEncryptionKey = Crypto.digest(utf8.encode(newPassword));
+
+    await handler.stop();
+    try {
+      if (kDefaultAddressList.isNotEmpty && kDefaultAddressList.first != null) {
+        await sl<LegacyHtlcSwapsMigrator>().migrateIfNeeded(
+          walletBaseAddress: WalletUtils.baseAddress.toString(),
+          encryptionKey: oldEncryptionKey,
+        );
+      }
+      await dataProvider.beginRekey(
+        oldEncryptionKey: oldEncryptionKey,
+        newEncryptionKey: newEncryptionKey,
+      );
+      try {
+        await kWalletFile!.changePassword(currentPassword, newPassword);
+      } catch (_) {
+        await dataProvider.rollbackRekey(oldEncryptionKey);
+        rethrow;
+      }
+      await dataProvider.commitRekey();
+    } finally {
+      handler.start();
+    }
     if (!mounted) return;
     Navigator.pop(context);
   }
@@ -174,38 +199,41 @@ class _ChangeWalletPasswordScreenState
   Widget _getDecryptKeyStoreFileViewModel() {
     return ViewModelBuilder<DecryptWalletFileBloc>.reactive(
       onViewModelReady: (DecryptWalletFileBloc model) {
-        model.stream.listen((WalletFile? walletFile) async {
-          if (walletFile != null) {
-            setState(() {
-              _currentPassErrorText = null;
-            });
-            try {
-              await _changePassword(
-                _currentPasswordController.text,
-                _newPasswordController.text,
-              );
-            } catch (e) {
+        model.stream.listen(
+          (WalletFile? walletFile) async {
+            if (walletFile != null) {
+              setState(() {
+                _currentPassErrorText = null;
+              });
+              try {
+                await _changePassword(
+                  _currentPasswordController.text,
+                  _newPasswordController.text,
+                );
+              } catch (e) {
+                await NotificationUtils.sendNotificationError(
+                  e,
+                  'An error occurred while trying to change password',
+                );
+              } finally {
+                _loadingButtonKey.currentState!.animateReverse();
+              }
+            }
+          },
+          onError: (e) async {
+            _loadingButtonKey.currentState!.animateReverse();
+            if (e is IncorrectPasswordException) {
+              setState(() {
+                _currentPassErrorText = 'Incorrect password';
+              });
+            } else {
               await NotificationUtils.sendNotificationError(
                 e,
-                'An error occurred while trying to change password',
+                'An error occurred while trying to decrypt wallet',
               );
-            } finally {
-              _loadingButtonKey.currentState!.animateReverse();
             }
-          }
-        }, onError: (e) async {
-          _loadingButtonKey.currentState!.animateReverse();
-          if (e is IncorrectPasswordException) {
-            setState(() {
-              _currentPassErrorText = 'Incorrect password';
-            });
-          } else {
-            await NotificationUtils.sendNotificationError(
-              e,
-              'An error occurred while trying to decrypt wallet',
-            );
-          }
-        },);
+          },
+        );
       },
       builder: (_, DecryptWalletFileBloc model, __) {
         _loadingButton = _getLoadingButton(model);
@@ -222,7 +250,9 @@ class _ChangeWalletPasswordScreenState
           ? () {
               _loadingButtonKey.currentState!.animateForward();
               model.decryptWalletFile(
-                  kWalletPath!, _currentPasswordController.text,);
+                kWalletPath!,
+                _currentPasswordController.text,
+              );
             }
           : null,
       text: 'Change password',

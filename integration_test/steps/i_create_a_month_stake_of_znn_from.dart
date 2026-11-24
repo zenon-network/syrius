@@ -97,10 +97,7 @@ Future<void> iCreateAMonthStakeOfZnnFrom(
   }
 }
 
-Future<void> _selectDuration(
-  WidgetTester tester,
-  String durationMonths,
-) async {
+Future<void> _selectDuration(WidgetTester tester, String durationMonths) async {
   final Finder dropdown = find.byKey(
     const Key('create_stake_duration_dropdown'),
   );

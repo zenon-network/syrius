@@ -6,11 +6,11 @@ import 'package:flutter/foundation.dart' show kDebugMode, kIsWeb;
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:get_it/get_it.dart';
 import 'package:hive_ce/hive_ce.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
 import 'package:layout/layout.dart';
-import 'package:local_notifier/local_notifier.dart';
 import 'package:logging/logging.dart';
 import 'package:nested/nested.dart';
 import 'package:overlay_support/overlay_support.dart';
@@ -20,20 +20,19 @@ import 'package:provider/provider.dart';
 import 'package:retry/retry.dart';
 import 'package:tray_manager/tray_manager.dart';
 import 'package:window_manager/window_manager.dart';
-import 'package:zenon_syrius_wallet_flutter/blocs/auto_unlock_htlc_worker.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/wallet_connect/chains/i_chain.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/wallet_connect/chains/nom_service.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/wallet_connect/wallet_connect_pairings_bloc.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/wallet_connect/wallet_connect_sessions_bloc.dart';
-import 'package:zenon_syrius_wallet_flutter/handlers/htlc_swaps_handler.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/p2p_swaps/services/htlc_swap_auto_unlock_service.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/p2p_swaps/services/htlc_swap_sync_service.dart';
 import 'package:zenon_syrius_wallet_flutter/hive/hive_registrar.g.dart';
 import 'package:zenon_syrius_wallet_flutter/l10n/app_localizations.dart';
 import 'package:zenon_syrius_wallet_flutter/model/model.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/screens/screens.dart';
-import 'package:zenon_syrius_wallet_flutter/services/htlc_swaps_service.dart';
 import 'package:zenon_syrius_wallet_flutter/services/i_web3wallet_service.dart';
 import 'package:zenon_syrius_wallet_flutter/services/shared_prefs_service.dart';
 import 'package:zenon_syrius_wallet_flutter/services/web3wallet_service.dart';
@@ -44,13 +43,48 @@ import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 Zenon? zenon;
 SharedPrefsService? sharedPrefsService;
-HtlcSwapsService? htlcSwapsService;
 IWeb3WalletService? web3WalletService;
 
+const String _znnDataDirectoryName = String.fromEnvironment(
+  'ZNN_DATA_DIRECTORY',
+);
+
 final GetIt sl = GetIt.instance;
+final FlutterLocalNotificationsPlugin desktopNotificationsPlugin =
+    FlutterLocalNotificationsPlugin();
 
 final GlobalKey<NavigatorState> globalNavigatorKey =
     GlobalKey<NavigatorState>();
+
+TrayIcon? _trayIcon;
+
+Future<void> initializeDesktopNotifications() async {
+  if (!isDesktopPlatform()) {
+    return;
+  }
+
+  const InitializationSettings initializationSettings = InitializationSettings(
+    macOS: DarwinInitializationSettings(
+      requestAlertPermission: false,
+      requestBadgePermission: false,
+      requestSoundPermission: false,
+    ),
+    linux: LinuxInitializationSettings(
+      defaultActionName: 'Open notification',
+    ),
+    windows: WindowsInitializationSettings(
+      appName: 's y r i u s',
+      appUserModelId: 'Network.Zenon.Syrius',
+      // Randomly generated
+      guid: 'a796cf2f-0772-4ad3-b140-d44f0144fbc6',
+      iconPath: 'assets/images/tray_app_icon.png',
+    ),
+  );
+
+  await desktopNotificationsPlugin.initialize(
+    settings: initializationSettings,
+  );
+}
 
 main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -58,15 +92,23 @@ main() async {
   if (Platform.isWindows) {
     registerProtocolHandler(kDeepLinkingUrlScheme);
   }
+  _configureZnnDataDirectories();
+  ensureDirectoriesExist();
+
+  final Directory hydratedStorageDirectory = _znnDataDirectoryName.isEmpty
+      ? await getTemporaryDirectory()
+      : Directory(path.join(znnDefaultCacheDirectory.path, 'hydrated_bloc'));
+  if (!hydratedStorageDirectory.existsSync()) {
+    hydratedStorageDirectory.createSync(recursive: true);
+  }
   // Init hydrated bloc storage
   HydratedBloc.storage = await HydratedStorage.build(
     storageDirectory: kIsWeb
         ? HydratedStorageDirectory.web
-        : HydratedStorageDirectory((await getTemporaryDirectory()).path),
+        : HydratedStorageDirectory(hydratedStorageDirectory.path),
   );
   Provider.debugCheckInvalidValueType = null;
 
-  ensureDirectoriesExist();
   Hive.init(znnDefaultPaths.cache.path);
 
   // Setup logger
@@ -110,13 +152,10 @@ main() async {
     maxAttempts: 0x7FFFFFFFFFFFFFFF,
   );
 
-  // Setup local_notifier
-  await localNotifier.setup(
-    appName: 's y r i u s',
-  );
+  await initializeDesktopNotifications();
 
   // Setup tray manager
-  await _setupTrayManager();
+  _setupTrayManager();
 
   // Load default community nodes from assets
   await _loadDefaultCommunityNodes();
@@ -129,8 +168,6 @@ main() async {
   } else {
     await sharedPrefsService!.checkIfBoxIsOpen();
   }
-
-  htlcSwapsService ??= sl.get<HtlcSwapsService>();
 
   windowManager.waitUntilReadyToShow().then((_) async {
     await windowManager.setTitle('s y r i u s');
@@ -177,31 +214,89 @@ main() async {
   );
 }
 
-Future<void> _setupTrayManager() async {
-  await trayManager.setIcon(
-    Platform.isWindows
-        ? 'assets/images/tray_app_icon.ico'
-        : 'assets/images/tray_app_icon.png',
-  );
-  if (Platform.isMacOS) {
-    await trayManager.setToolTip('s y r i u s');
+void _configureZnnDataDirectories() {
+  if (_znnDataDirectoryName.isEmpty) {
+    return;
   }
-  final List<MenuItem> items = <MenuItem>[
-    MenuItem(
-      key: 'show_wallet',
-      label: 'Show wallet',
-    ),
-    MenuItem(
-      key: 'hide_wallet',
-      label: 'Hide wallet',
-    ),
-    MenuItem.separator(),
-    MenuItem(
-      key: 'exit',
-      label: 'Exit wallet',
-    ),
-  ];
-  await trayManager.setContextMenu(Menu(items: items));
+
+  final Directory root = Directory(
+    path.join(znnDefaultDirectory.parent.path, _znnDataDirectoryName),
+  );
+  znnDefaultPaths = ZnnPaths(
+    main: root,
+    wallet: Directory(path.join(root.path, 'wallet')),
+    cache: Directory(path.join(root.path, 'syrius')),
+  );
+  znnDefaultDirectory = znnDefaultPaths.main;
+  znnDefaultWalletDirectory = znnDefaultPaths.wallet;
+  znnDefaultCacheDirectory = znnDefaultPaths.cache;
+}
+
+void _setupTrayManager() {
+  final TrayIcon trayIcon =
+      TrayIcon.create() ?? (throw StateError('Unable to create the tray icon'));
+  _trayIcon = trayIcon;
+
+  final String iconPath = Platform.isWindows
+      ? 'assets/images/tray_app_icon.ico'
+      : 'assets/images/tray_app_icon.png';
+  trayIcon.icon =
+      ImageAsset.fromAsset(iconPath) ??
+      (throw StateError('Unable to load the tray icon'));
+  if (Platform.isMacOS) {
+    trayIcon.setTooltip('s y r i u s');
+  }
+
+  final Menu menu = Menu.create()!;
+  final MenuItem showWalletItem = MenuItem.createWithLabelAndType(
+    'Show wallet',
+    MenuItemType.normal,
+  )!;
+  final MenuItem hideWalletItem = MenuItem.createWithLabelAndType(
+    'Hide wallet',
+    MenuItemType.normal,
+  )!;
+  final MenuItem exitWalletItem = MenuItem.createWithLabelAndType(
+    'Exit wallet',
+    MenuItemType.normal,
+  )!;
+
+  showWalletItem.addListener((MenuEvent event) {
+    if (event is MenuItemClickedEvent) {
+      unawaited(windowManager.show());
+    }
+  });
+  hideWalletItem.addListener((MenuEvent event) {
+    if (event is MenuItemClickedEvent) {
+      unawaited(_minimizeWindow());
+    }
+  });
+  exitWalletItem.addListener((MenuEvent event) {
+    if (event is MenuItemClickedEvent) {
+      unawaited(windowManager.destroy());
+    }
+  });
+
+  menu
+    ..addItem(showWalletItem)
+    ..addItem(hideWalletItem)
+    ..addSeparator()
+    ..addItem(exitWalletItem);
+
+  trayIcon
+    ..addListener((TrayIconEvent event) {
+      if (event is TrayIconClickedEvent) {
+        trayIcon.openContextMenu();
+      }
+    })
+    ..setContextMenu(menu)
+    ..setVisible(true);
+}
+
+Future<void> _minimizeWindow() async {
+  if (!await windowManager.isMinimized()) {
+    await windowManager.minimize();
+  }
 }
 
 Future<void> _loadDefaultCommunityNodes() async {
@@ -223,12 +318,28 @@ Future<void> _loadDefaultCommunityNodes() async {
 void setup() {
   sl.registerSingleton<Zenon>(Zenon());
   zenon = sl<Zenon>();
+  sl.registerSingleton<NodeSyncMonitor>(
+    NodeSyncMonitor(zenon: sl<Zenon>()),
+  );
   sl.registerLazySingletonAsync<SharedPrefsService>(
     () => SharedPrefsService.getInstance().then(
       (SharedPrefsService? value) => value!,
     ),
   );
-  sl.registerSingleton<HtlcSwapsService>(HtlcSwapsService.getInstance());
+  sl.registerLazySingleton<HtlcSwapLocalStorageApi>(
+    () => HtlcSwapLocalStorageApi(),
+  );
+  sl.registerLazySingleton<HtlcSwapRepository>(
+    () => HtlcSwapRepository(
+      chainIdProvider: () => kNodeChainId,
+      dataProvider: sl<HtlcSwapLocalStorageApi>(),
+    ),
+  );
+  sl.registerLazySingleton<LegacyHtlcSwapsMigrator>(
+    () => LegacyHtlcSwapsMigrator(
+      swapRepository: sl<HtlcSwapRepository>(),
+    ),
+  );
 
   // Initialize WalletConnect service
   sl.registerSingleton<IWeb3WalletService>(web3WalletService!);
@@ -249,11 +360,30 @@ void setup() {
   );
   sl.registerSingleton<MultipleBalanceBloc>(MultipleBalanceBloc(zenon: zenon!));
   sl.registerSingleton<AutoReceiveTxWorker>(AutoReceiveTxWorker.getInstance());
-  sl.registerSingleton<AutoUnlockHtlcWorker>(
-    AutoUnlockHtlcWorker.getInstance(),
+  sl.registerSingleton<NotificationsBloc>(NotificationsBloc());
+  sl.registerSingleton<HtlcSwapUnlockService>(
+    HtlcSwapUnlockService(
+      accountBlockUtils: AccountBlockUtils(
+        publishSuccessNotification: false,
+      ),
+      zenon: sl<Zenon>(),
+    ),
+  );
+  sl.registerSingleton<HtlcSwapAutoUnlockService>(
+    HtlcSwapAutoUnlockService(
+      notificationsBloc: sl<NotificationsBloc>(),
+      syncMonitor: sl<NodeSyncMonitor>(),
+      unlockService: sl<HtlcSwapUnlockService>(),
+    ),
   );
 
-  sl.registerSingleton<HtlcSwapsHandler>(HtlcSwapsHandler.getInstance());
+  sl.registerSingleton<HtlcSwapSyncService>(
+    HtlcSwapSyncService(
+      swapRepository: sl<HtlcSwapRepository>(),
+      autoUnlockService: sl<HtlcSwapAutoUnlockService>(),
+      zenon: sl<Zenon>(),
+    ),
+  );
 
   sl.registerSingleton<ReceivePort>(
     ReceivePort(),
@@ -265,7 +395,6 @@ void setup() {
   );
 
   sl.registerSingleton<BalanceBloc>(BalanceBloc());
-  sl.registerSingleton<NotificationsBloc>(NotificationsBloc());
   sl.registerSingleton<AcceleratorBalanceBloc>(AcceleratorBalanceBloc());
   sl.registerSingleton<PowGeneratingStatusBloc>(PowGeneratingStatusBloc());
   sl.registerSingleton<WalletConnectPairingsBloc>(
@@ -285,11 +414,10 @@ class MyApp extends StatefulWidget {
   }
 }
 
-class _MyAppState extends State<MyApp> with WindowListener, TrayListener {
+class _MyAppState extends State<MyApp> with WindowListener {
   @override
   void initState() {
     windowManager.addListener(this);
-    trayManager.addListener(this);
     initPlatformState();
     super.initState();
   }
@@ -330,7 +458,8 @@ class _MyAppState extends State<MyApp> with WindowListener, TrayListener {
           create: (_) => sl.get<MultipleBalanceBloc>(),
         ),
         BlocProvider<AllTokensBloc>(
-          create: (_) => AllTokensBloc(zenon: zenon!)
+          create: (_) =>
+              AllTokensBloc(zenon: zenon!)
             ..add(
               const AllTokensRequested(),
             ),
@@ -483,6 +612,8 @@ class _MyAppState extends State<MyApp> with WindowListener, TrayListener {
 
     sl<Zenon>().wsClient.stop();
     Future.delayed(const Duration(seconds: 60)).then((value) => exit(0));
+    await sl<HtlcSwapSyncService>().stop();
+    await sl<HtlcSwapLocalStorageApi>().close();
     await NodeUtils.closeEmbeddedNode();
     await sl.reset();
     super.onWindowClose();
@@ -492,36 +623,10 @@ class _MyAppState extends State<MyApp> with WindowListener, TrayListener {
   }
 
   @override
-  void onTrayIconMouseDown() {
-    trayManager.popUpContextMenu();
-  }
-
-  @override
-  void onTrayIconRightMouseDown() {}
-
-  @override
-  void onTrayIconRightMouseUp() {}
-
-  @override
-  Future<void> onTrayMenuItemClick(MenuItem menuItem) async {
-    switch (menuItem.key) {
-      case 'show_wallet':
-        windowManager.show();
-      case 'hide_wallet':
-        if (!await windowManager.isMinimized()) {
-          windowManager.minimize();
-        }
-      case 'exit':
-        windowManager.destroy();
-      default:
-        break;
-    }
-  }
-
-  @override
   void dispose() {
     windowManager.removeListener(this);
-    trayManager.removeListener(this);
+    _trayIcon?.dispose();
+    _trayIcon = null;
     super.dispose();
   }
 }

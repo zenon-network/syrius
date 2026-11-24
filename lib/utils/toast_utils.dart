@@ -4,13 +4,21 @@ import 'package:flutter/material.dart';
 
 class ToastUtils {
   static Timer? _timer;
+  static OverlayEntry? _overlay;
 
   static void showToast(BuildContext context, String message, {Color? color}) {
-    if (_timer == null || !_timer!.isActive) {
-      final OverlayEntry overlay = _getOverlayEntry(message, color);
-      Overlay.of(context).insert(overlay);
-      _timer = Timer(const Duration(seconds: 3), overlay.remove);
-    }
+    _timer?.cancel();
+    _overlay?.remove();
+
+    final OverlayEntry overlay = _getOverlayEntry(message, color);
+    _overlay = overlay;
+    Overlay.of(context).insert(overlay);
+    _timer = Timer(const Duration(seconds: 3), () {
+      overlay.remove();
+      if (identical(_overlay, overlay)) {
+        _overlay = null;
+      }
+    });
   }
 
   static OverlayEntry _getOverlayEntry(String message, Color? color) {
@@ -35,8 +43,7 @@ class ToastUtils {
                     child: Text(
                       message,
                       textAlign: TextAlign.center,
-                      style:
-                          const TextStyle(fontSize: 14, color: Colors.white),
+                      style: const TextStyle(fontSize: 14, color: Colors.white),
                     ),
                   ),
                 ),

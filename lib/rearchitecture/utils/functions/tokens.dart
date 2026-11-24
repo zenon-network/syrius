@@ -20,3 +20,42 @@ List<Token> sortAssets(List<Token> assets) {
   });
   return assets;
 }
+
+/// Returns the account's tokens that have a positive balance.
+List<Token> getTokensWithBalance({
+  required AccountInfo accountInfo,
+}) {
+  final List<Token> tokens = <Token>[];
+  final List<BalanceInfoListItem> balanceInfoList =
+      accountInfo.balanceInfoList!;
+
+  for (final BalanceInfoListItem balanceInfo in balanceInfoList) {
+    final BigInt balance = balanceInfo.balance!;
+    final Token token = balanceInfo.token!;
+    if (balance > BigInt.zero) {
+      tokens.add(token);
+    }
+  }
+
+  return tokens;
+}
+
+/// Replaces [list] with the sorted union of initial and funded tokens.
+void fillAvailableTokens({
+  required List<Token> initialTokens,
+  required List<Token> list,
+  required List<Token> tokensWithBalance,
+}) {
+  final List<Token> emptyList = <Token>[...tokensWithBalance];
+
+  // The available tokens should always contain the initialTokens
+  for (final Token token in initialTokens) {
+    if (!emptyList.contains(token)) {
+      emptyList.insert(0, token);
+    }
+  }
+
+  list
+    ..clear()
+    ..addAll(sortAssets(emptyList));
+}

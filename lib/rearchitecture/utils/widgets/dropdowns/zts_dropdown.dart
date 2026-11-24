@@ -8,21 +8,23 @@ class ZtsDropdown extends StatefulWidget {
   /// Creates a new instance.
   const ZtsDropdown({
     required this._availableTokens,
-    required this._onChangeCallback,
     required this._selectedToken,
+    this._enabled = true,
+    this._label,
     super.key,
   });
 
-  final void Function(Token) _onChangeCallback;
-  final Token _selectedToken;
+  final ValueNotifier<Token> _selectedToken;
   final List<Token> _availableTokens;
+  final Widget? _label;
+  final bool _enabled;
 
   @override
   State<ZtsDropdown> createState() => _ZtsDropdownState();
 }
 
 class _ZtsDropdownState extends State<ZtsDropdown> {
-  final TextEditingController _searchController = TextEditingController();
+  Token get _token => widget._selectedToken.value;
 
   @override
   Widget build(BuildContext context) {
@@ -45,16 +47,17 @@ class _ZtsDropdownState extends State<ZtsDropdown> {
     ).toList();
 
     final Color color = ColorUtils.getTokenColor(
-      widget._selectedToken.tokenStandard,
+      _token.tokenStandard,
     );
 
     return DropdownMenu<Token>(
-      controller: _searchController,
+      enabled: widget._enabled,
       expandedInsets: EdgeInsets.zero,
-      initialSelection: widget._selectedToken,
+      initialSelection: _token,
       inputDecorationTheme: const InputDecorationTheme(
         filled: true,
       ),
+      label: widget._label,
       leadingIcon: Icon(
         Icons.search,
         color: color,
@@ -63,7 +66,7 @@ class _ZtsDropdownState extends State<ZtsDropdown> {
       menuHeight: kDropdownMenuHeight,
       onSelected: (Token? token) {
         if (token != null) {
-          widget._onChangeCallback(token);
+          widget._selectedToken.value = token;
         }
       },
       searchCallback: _searchCallback,

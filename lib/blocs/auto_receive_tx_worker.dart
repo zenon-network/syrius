@@ -3,12 +3,13 @@ import 'dart:collection';
 
 import 'package:json_rpc_2/json_rpc_2.dart';
 import 'package:logging/logging.dart';
-import 'package:zenon_syrius_wallet_flutter/blocs/auto_unlock_htlc_worker.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/model/model.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/p2p_swaps/services/htlc_swap_auto_unlock_service.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/blocs/blocs.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/extensions/sync_info_extension.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
@@ -63,9 +64,11 @@ class AutoReceiveTxWorker extends BaseBloc<WalletNotification> {
       pool.clear();
       return;
     }
-    // Make sure that AutoUnlockHtlcWorker is not running since it should be
+    // Make sure that HTLC auto-unlock is not running since it should be
     // given priority to send transactions.
-    if (pool.isNotEmpty && !running && !sl<AutoUnlockHtlcWorker>().running) {
+    if (pool.isNotEmpty &&
+        !running &&
+        !sl<HtlcSwapAutoUnlockService>().isUnlocking) {
       running = true;
       final Hash currentHash = pool.first;
       try {
@@ -110,11 +113,7 @@ class AutoReceiveTxWorker extends BaseBloc<WalletNotification> {
 
   Future<void> addHash(Hash hash) async {
     zenon!.stats.syncInfo().then((SyncInfo syncInfo) {
-      if (!pool.contains(hash) &&
-          (syncInfo.state == SyncState.syncDone ||
-              (syncInfo.targetHeight > 0 &&
-                  syncInfo.currentHeight > 0 &&
-                  (syncInfo.targetHeight - syncInfo.currentHeight) < 3))) {
+      if (!pool.contains(hash) && syncInfo.isSynced) {
         sl.get<PendingTransactionsBloc>().add(
           InfiniteListRefreshRequested(
             address: Address.parse(kSelectedAddress!),

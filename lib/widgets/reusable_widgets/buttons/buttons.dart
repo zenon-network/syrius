@@ -6,4 +6,3 @@ export 'onboarding_button.dart';
 export 'outlined_button.dart';
 export 'settings_button.dart';
 export 'stepper_button.dart';
-export 'transfer_toggle_card_size_button.dart';

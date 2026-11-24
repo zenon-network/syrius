@@ -31,9 +31,7 @@ class NodeSyncPopulated extends StatelessWidget {
         ),
       );
     } else if (syncState == SyncState.syncing) {
-      if (syncInfo.targetHeight > 0 &&
-          syncInfo.currentHeight > 0 &&
-          (syncInfo.targetHeight - syncInfo.currentHeight) < 3) {
+      if (syncInfo.isSynced) {
         message = 'Connected and synced';
         syncState = SyncState.syncDone;
         return Tooltip(

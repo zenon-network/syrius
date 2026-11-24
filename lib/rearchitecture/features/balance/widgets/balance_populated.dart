@@ -107,8 +107,7 @@ class _BalancePopulatedState extends State<BalancePopulated> {
 
     final String amount = balanceInfoListItem!.normalizedBalance.toString();
 
-    final String symbol = balanceInfoListItem.token!
-        .symbol;
+    final String symbol = balanceInfoListItem.token!.symbol;
 
     final double margin = constraints.maxWidth * 0.3;
 

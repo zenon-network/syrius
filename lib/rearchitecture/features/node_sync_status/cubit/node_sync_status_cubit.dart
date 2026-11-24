@@ -25,22 +25,22 @@ class NodeSyncStatusCubit
   /// Creates a NodeSyncStatusCubit using the super-initializer parameters
   NodeSyncStatusCubit({
     required super.zenon,
+    required this._syncMonitor,
     super.initialState = const NodeSyncStatusState(),
   }) : super(
          refreshInterval: kNodeSyncStatusRefreshInterval,
        );
+
+  final NodeSyncMonitor _syncMonitor;
 
   SyncState _lastSyncState = SyncState.unknown;
 
   @override
   Future<Pair<SyncState, SyncInfo>> fetch() async {
     if (zenon.wsClient.status() == WebsocketStatus.running) {
-      final SyncInfo syncInfo = await zenon.stats.syncInfo();
+      final SyncInfo syncInfo = await _syncMonitor.fetch();
       if (_lastSyncState != syncInfo.state &&
-          (syncInfo.state == SyncState.syncDone ||
-              (syncInfo.targetHeight > 0 &&
-                  syncInfo.currentHeight > 0 &&
-                  (syncInfo.targetHeight - syncInfo.currentHeight) > 3))) {
+          (syncInfo.state == SyncState.syncDone || syncInfo.isClearlyBehind)) {
         _lastSyncState = syncInfo.state;
         if (syncInfo.state == SyncState.syncDone) {
           unawaited(

@@ -16,6 +16,7 @@ part 'infinite_list_event.dart';
 
 part 'infinite_list_state.dart';
 
+// TODO(maznnwell): adapt doc so that it doesn't refer to transactions only
 /// A bloc that manages the state of the latest transactions for a specific
 /// address.
 ///

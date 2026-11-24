@@ -5,5 +5,3 @@ export 'database/wallet_notification.dart';
 export 'general_stats.dart';
 export 'navigation_arguments.dart';
 export 'new_token_data.dart';
-export 'p2p_swap/htlc_swap.dart';
-export 'p2p_swap/p2p_swap.dart';

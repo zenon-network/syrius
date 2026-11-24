@@ -13,28 +13,26 @@ import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 class ReceiveQrImage extends StatelessWidget {
   const ReceiveQrImage({
-    required String data,
-    required double size,
-    required TokenStandard tokenStandard,
+    required this._data,
+    required this._tokenStandard,
+    this._size = 200,
     super.key,
-  })  : _data = data,
-        _size = size,
-        _tokenStandard = tokenStandard;
+  });
 
   final String _data;
   final double _size;
   final TokenStandard _tokenStandard;
 
   PrettyQrDecorationImage get _decorationImage => PrettyQrDecorationImage(
-        colorFilter: ColorFilter.mode(
-          ColorUtils.getTokenColor(_tokenStandard),
-          BlendMode.srcIn,
-        ),
-        image: const AssetImage(
-          'assets/images/qr_code_child_image_znn_cut.png',
-        ),
-        fit: BoxFit.contain,
-      );
+    colorFilter: ColorFilter.mode(
+      ColorUtils.getTokenColor(_tokenStandard),
+      BlendMode.srcIn,
+    ),
+    image: const AssetImage(
+      'assets/images/qr_code_child_image_znn_cut.png',
+    ),
+    fit: BoxFit.contain,
+  );
 
   @override
   Widget build(BuildContext context) {
@@ -49,7 +47,7 @@ class ReceiveQrImage extends StatelessWidget {
       qrImage = QrImage(
         QrCode.fromData(
           data: _data,
-          errorCorrectLevel: QrErrorCorrectLevel.M,
+          errorCorrectLevel: QrErrorCorrectLevel.H,
         ),
       );
 
@@ -62,6 +60,7 @@ class ReceiveQrImage extends StatelessWidget {
       );
 
       qrWidget = PrettyQrView(
+        key: ValueKey<String>(_data),
         qrImage: qrImage,
         decoration: qrDecoration,
       );

@@ -41,6 +41,7 @@ const String kNodesBox = 'nodes_box';
 const String kKeyStoreBox = 'key_store_box';
 const String kHtlcSwapsBox = 'htlc_swaps_box';
 const String kLastCheckedHtlcBlockBox = 'last_checked_htlc_block_box';
+const String kHtlcSwapsDatabase = 'htlc_swaps.sqlite';
 
 const List<String> kCacheBoxesToBeDeleted = <String>[
   kFavoriteTokensBox,
@@ -214,7 +215,9 @@ const List<Tabs> kTabsWithTextTitles = <Tabs>[
 ];
 
 // P2P swap constants
-const Duration kInitialHtlcDuration = Duration(hours: 8);
+const Duration kInitialHtlcDuration = Duration(
+  hours: 8,
+);
 const Duration kCounterHtlcDuration = Duration(hours: 1);
 const Duration kMaxAllowedInitialHtlcDuration = Duration(hours: 24);
 const Duration kMinSafeTimeToFindPreimage = Duration(hours: 6);

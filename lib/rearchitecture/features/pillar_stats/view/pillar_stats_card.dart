@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lottie/lottie.dart';
@@ -92,15 +90,13 @@ class _PillarStatsView extends StatelessWidget {
   Widget _getCreatePillarWidgetBody(BuildContext context) {
     return ElevatedButton.icon(
       onPressed: () {
-        unawaited(
-          Navigator.push(
-            context,
-            MaterialPageRoute<void>(
-              builder: (BuildContext context) => StepperScreen(
-                stepper: const CreatePillarStepperPage(),
-                onStepperNotificationSeeMorePressed:
-                    onStepperNotificationSeeMorePressed,
-              ),
+        Navigator.push(
+          context,
+          MaterialPageRoute<void>(
+            builder: (BuildContext context) => StepperScreen(
+              stepper: const CreatePillarStepperPage(),
+              onStepperNotificationSeeMorePressed:
+                  onStepperNotificationSeeMorePressed,
             ),
           ),
         );
@@ -123,17 +119,15 @@ class _PillarStatsView extends StatelessWidget {
           ),
           child: ElevatedButton.icon(
             onPressed: () {
-              unawaited(
-                Navigator.push(
-                  context,
-                  MaterialPageRoute<void>(
-                    builder: (BuildContext context) => StepperScreen(
-                      stepper: UpdatePillarStepperPage(
-                        pillarInfo: pillarInfo,
-                      ),
-                      onStepperNotificationSeeMorePressed:
-                          onStepperNotificationSeeMorePressed,
+              Navigator.push(
+                context,
+                MaterialPageRoute<void>(
+                  builder: (BuildContext context) => StepperScreen(
+                    stepper: UpdatePillarStepperPage(
+                      pillarInfo: pillarInfo,
                     ),
+                    onStepperNotificationSeeMorePressed:
+                        onStepperNotificationSeeMorePressed,
                   ),
                 ),
               );

@@ -2,9 +2,10 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:hive_ce/hive_ce.dart';
-import 'package:version/version.dart';
-import 'package:zenon_syrius_wallet_flutter/handlers/htlc_swaps_handler.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/p2p_swaps/services/htlc_swap_sync_service.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/p2p_swaps/data/htlc_swap_local_storage_api.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/p2p_swaps/data/legacy_htlc_swaps_migrator.dart';
 import 'package:zenon_syrius_wallet_flutter/services/shared_prefs_service.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/address_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
@@ -52,8 +53,9 @@ class InitUtils {
         0,
       );
     }
-    kNumFailedUnlockAttempts =
-        sharedPrefsService!.get(kNumUnlockFailedAttemptsKey);
+    kNumFailedUnlockAttempts = sharedPrefsService!.get(
+      kNumUnlockFailedAttemptsKey,
+    );
   }
 
   static void _setAutoEraseWalletNumAttempts() =>
@@ -69,25 +71,17 @@ class InitUtils {
       );
 
   static Future<void> initWalletAfterDecryption(List<int> cipherKey) async {
-    final Version walletVersion = Version.parse(sharedPrefsService!
-        .get(kWalletVersionKey, defaultValue: kWalletVersion),);
     await ZenonAddressUtils.setAddresses(kWalletFile);
     await ZenonAddressUtils.setAddressLabels();
     await ZenonAddressUtils.setDefaultAddress();
     await NodeUtils.initWebSocketClient();
+    await sl<HtlcSwapLocalStorageApi>().open(cipherKey);
+    await sl<LegacyHtlcSwapsMigrator>().migrateIfNeeded(
+      walletBaseAddress: WalletUtils.baseAddress.toString(),
+      encryptionKey: cipherKey,
+    );
     await _setWalletVersion();
-    if (walletVersion <= Version(0, 1, 0)) {
-      // Migrate to password as the cipherkey instead of the private key.
-      await kWalletFile!.access((Wallet wallet) async {
-        await htlcSwapsService!.openBoxes(WalletUtils.baseAddress.toString(),
-            (wallet as KeyStore).getKeyPair().getPrivateKey()!,
-            newCipherKey: cipherKey,);
-      });
-    } else {
-      await htlcSwapsService!
-          .openBoxes(WalletUtils.baseAddress.toString(), cipherKey);
-    }
-    sl<HtlcSwapsHandler>().start();
+    sl<HtlcSwapSyncService>().start();
     kWalletInitCompleted = true;
   }
 
@@ -101,7 +95,7 @@ class InitUtils {
       Hive.openBox(kRecipientAddressBox);
 
   static Future<void> _setWalletVersion() async => sharedPrefsService!.put(
-        kWalletVersionKey,
-        kWalletVersion,
-      );
+    kWalletVersionKey,
+    kWalletVersion,
+  );
 }

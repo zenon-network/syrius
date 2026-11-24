@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:launch_at_startup/launch_at_startup.dart';
 import 'package:logging/logging.dart';
 import 'package:package_info_plus/package_info_plus.dart';
@@ -266,12 +267,7 @@ class _WalletOptionsState extends State<WalletOptions> {
           style: Theme.of(context).textTheme.bodyMedium,
         ),
         SyriusCheckbox(
-          onChanged: (bool? value) {
-            setState(() {
-              _enableDesktopNotifications = value;
-              _changeEnableDesktopNotificationsStatus(value ?? false);
-            });
-          },
+          onChanged: _onDesktopNotificationsChanged,
           value: _enableDesktopNotifications,
           context: context,
         ),
@@ -303,6 +299,37 @@ class _WalletOptionsState extends State<WalletOptions> {
         ),
       ],
     );
+  }
+
+  Future<void> _onDesktopNotificationsChanged(bool? value) async {
+    final bool enabled = value ?? false;
+
+    if (enabled && Platform.isMacOS) {
+      final MacOSFlutterLocalNotificationsPlugin? plugin =
+          desktopNotificationsPlugin.resolvePlatformSpecificImplementation<
+            MacOSFlutterLocalNotificationsPlugin
+          >();
+      final bool permissionGranted =
+          await plugin?.requestPermissions(
+            alert: true,
+            badge: true,
+            sound: true,
+          ) ??
+          false;
+
+      if (!permissionGranted) {
+        return;
+      }
+    }
+
+    if (!mounted) {
+      return;
+    }
+
+    setState(() {
+      _enableDesktopNotifications = enabled;
+    });
+    await _changeEnableDesktopNotificationsStatus(enabled);
   }
 
   Future<void> _changeEnableDesktopNotificationsStatus(bool enabled) async {

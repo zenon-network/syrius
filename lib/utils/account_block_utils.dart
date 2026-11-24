@@ -10,6 +10,11 @@ import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 class AccountBlockUtils {
+  AccountBlockUtils({bool publishSuccessNotification = true})
+    : _publishSuccessNotification = publishSuccessNotification;
+
+  final bool _publishSuccessNotification;
+
   Future<AccountBlockTemplate> createAccountBlock(
     AccountBlockTemplate transactionParams,
     String purposeOfGeneratingPlasma, {
@@ -17,7 +22,8 @@ class AccountBlockUtils {
     bool waitForRequiredPlasma = false,
   }) async {
     final SyncInfo syncInfo = await zenon!.stats.syncInfo();
-    final bool nodeIsSynced = syncInfo.state == SyncState.syncDone ||
+    final bool nodeIsSynced =
+        syncInfo.state == SyncState.syncDone ||
         (syncInfo.targetHeight > 0 &&
             syncInfo.currentHeight > 0 &&
             (syncInfo.targetHeight - syncInfo.currentHeight) < 20);
@@ -26,8 +32,9 @@ class AccountBlockUtils {
       final Wallet wallet = await kWalletFile!.open();
       try {
         address ??= Address.parse(kSelectedAddress!);
-        final WalletAccount walletAccount = await wallet
-            .getAccount(kDefaultAddressList.indexOf(address.toString()));
+        final WalletAccount walletAccount = await wallet.getAccount(
+          kDefaultAddressList.indexOf(address.toString()),
+        );
 
         final bool needPlasma = await zenon!.requiresPoW(
           transactionParams,
@@ -36,9 +43,9 @@ class AccountBlockUtils {
         final bool needReview = kWalletFile!.isHardwareWallet;
 
         if (needPlasma) {
-          await sl
-              .get<NotificationsBloc>()
-              .sendPlasmaNotification(purposeOfGeneratingPlasma);
+          await sl.get<NotificationsBloc>().sendPlasmaNotification(
+            purposeOfGeneratingPlasma,
+          );
         } else if (needReview) {
           await _sendReviewNotification(transactionParams);
         }
@@ -54,17 +61,19 @@ class AccountBlockUtils {
           },
           waitForRequiredPlasma: waitForRequiredPlasma,
         );
-        await sl.get<NotificationsBloc>().addNotification(
-              WalletNotification(
-                title: 'Account-block published',
-                timestamp: DateTime.now().millisecondsSinceEpoch,
-                details:
-                    'Account-block type: ${FormatUtils.extractNameFromEnum<BlockTypeEnum>(
-                  BlockTypeEnum.values[response.blockType],
-                )}',
-                type: NotificationType.paymentSent,
-              ),
-            );
+        if (_publishSuccessNotification) {
+          await sl.get<NotificationsBloc>().addNotification(
+            WalletNotification(
+              title: 'Account-block published',
+              timestamp: DateTime.now().millisecondsSinceEpoch,
+              details:
+                  'Account-block type: ${FormatUtils.extractNameFromEnum<BlockTypeEnum>(
+                    BlockTypeEnum.values[response.blockType],
+                  )}',
+              type: NotificationType.paymentSent,
+            ),
+          );
+        }
 
         // Release the lock after 1 second, asynchronously.
         //
@@ -87,13 +96,18 @@ class AccountBlockUtils {
     if (encodedData.length < AbiFunction.encodedSignLength) {
       return null;
     }
-    final bool Function(List? list1, List? list2) eq = const ListEquality().equals;
+    final bool Function(List? list1, List? list2) eq =
+        const ListEquality().equals;
     try {
       for (final Entry entry in abi.entries) {
-        if (eq(AbiFunction.extractSignature(entry.encodeSignature()),
-            AbiFunction.extractSignature(encodedData),)) {
-          final List decoded =
-              AbiFunction(entry.name!, entry.inputs!).decode(encodedData);
+        if (eq(
+          AbiFunction.extractSignature(entry.encodeSignature()),
+          AbiFunction.extractSignature(encodedData),
+        )) {
+          final List decoded = AbiFunction(
+            entry.name!,
+            entry.inputs!,
+          ).decode(encodedData);
           final Map<String, dynamic> params = <String, dynamic>{};
           for (int i = 0; i < entry.inputs!.length; i += 1) {
             params[entry.inputs![i].name!] = decoded[i];
@@ -110,19 +124,27 @@ class AccountBlockUtils {
   // Returns a list of AccountBlocks that are newer than a given timestamp.
   // The list is returned in ascending order.
   static Future<List<AccountBlock>> getAccountBlocksAfterTime(
-      Address address, int time,) async {
+    Address address,
+    int time,
+  ) async {
     final List<AccountBlock> blocks = <AccountBlock>[];
     int pageIndex = 0;
     try {
       while (true) {
-        final AccountBlockList fetched = await zenon!.ledger.getAccountBlocksByPage(address,
-            pageIndex: pageIndex, pageSize: 100,);
+        final AccountBlockList fetched = await zenon!.ledger
+            .getAccountBlocksByPage(
+              address,
+              pageIndex: pageIndex,
+              pageSize: 100,
+            );
 
-        final AccountBlockConfirmationDetail? lastBlockConfirmation = fetched.list!.last.confirmationDetail;
+        final AccountBlockConfirmationDetail? lastBlockConfirmation =
+            fetched.list!.last.confirmationDetail;
         if (lastBlockConfirmation == null ||
             lastBlockConfirmation.momentumTimestamp <= time) {
           for (final AccountBlock block in fetched.list!) {
-            final AccountBlockConfirmationDetail? confirmation = block.confirmationDetail;
+            final AccountBlockConfirmationDetail? confirmation =
+                block.confirmationDetail;
             if (confirmation == null ||
                 confirmation.momentumTimestamp <= time) {
               break;
@@ -147,11 +169,13 @@ class AccountBlockUtils {
   }
 
   static Future<int?> getTimeForAccountBlockHeight(
-      Address address, int height,) async {
+    Address address,
+    int height,
+  ) async {
     if (height >= 1) {
       try {
-        final AccountBlockList block =
-            await zenon!.ledger.getAccountBlocksByHeight(address, height, 1);
+        final AccountBlockList block = await zenon!.ledger
+            .getAccountBlocksByHeight(address, height, 1);
         if (block.count != null && block.count! > 0) {
           return block.list?.first.confirmationDetail?.momentumTimestamp;
         }
@@ -163,19 +187,20 @@ class AccountBlockUtils {
   }
 
   static Future<void> _sendReviewNotification(
-      AccountBlockTemplate transactionParams,) async {
+    AccountBlockTemplate transactionParams,
+  ) async {
     await sl.get<NotificationsBloc>().addNotification(
-          WalletNotification(
-            title:
-                '${BlockUtils.isSendBlock(transactionParams.blockType) ? 'Sending transaction' : 'Receiving transaction'}, please review the transaction on your hardware device',
-            timestamp: DateTime.now().millisecondsSinceEpoch,
-            details:
-                'Review account-block type: ${FormatUtils.extractNameFromEnum<BlockTypeEnum>(
+      WalletNotification(
+        title:
+            '${BlockUtils.isSendBlock(transactionParams.blockType) ? 'Sending transaction' : 'Receiving transaction'}, please review the transaction on your hardware device',
+        timestamp: DateTime.now().millisecondsSinceEpoch,
+        details:
+            'Review account-block type: ${FormatUtils.extractNameFromEnum<BlockTypeEnum>(
               BlockTypeEnum.values[transactionParams.blockType],
             )}',
-            type: NotificationType.confirm,
-          ),
-        );
+        type: NotificationType.confirm,
+      ),
+    );
   }
 
   static void _addEventToPowGeneratingStatusBloc(PowStatus event) =>

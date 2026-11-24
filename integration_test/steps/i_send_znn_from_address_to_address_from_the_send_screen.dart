@@ -40,16 +40,18 @@ Future<void> iSendZnnFromAddressToAddressFromTheSendScreen(
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
       home: Scaffold(
-        body: BlocProvider<SendTransactionBloc>.value(
-          value: sendTransactionBloc,
-          child: SendPopulated(
-            balances: <String, AccountInfo>{
-              expectedSenderAddress.toString(): accountInfo,
-            },
+        body: BlocProvider<MultipleBalanceBloc>.value(
+          value: app.sl<MultipleBalanceBloc>(),
+          child: BlocProvider<SendTransactionBloc>.value(
+            value: sendTransactionBloc,
+            child: const SendCard(),
           ),
         ),
       ),
     ),
+  );
+  app.sl<MultipleBalanceBloc>().add(
+    MultipleBalanceFetch(addresses: <String>[sender]),
   );
   await tester.pumpAndSettle();
 
@@ -81,12 +83,10 @@ Future<void> iSendZnnFromAddressToAddressFromTheSendScreen(
 
   try {
     await tester.tap(find.byKey(const Key('dialog_yes_button')));
-    context.sentBlock = await _pumpUntilComplete(
-      tester,
-      completer.future,
-    );
+    context.sentBlock = await _pumpUntilComplete(tester, completer.future);
   } finally {
     await subscription.cancel();
+    await sendTransactionBloc.close();
   }
 }
 

@@ -1,24 +1,23 @@
 import 'package:flutter/material.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/loading_info_text.dart';
 
 class InstructionButton extends StatefulWidget {
-
   const InstructionButton({
-    required this.text,
-    required this.isEnabled,
-    required this.isLoading,
-    required this.onPressed,
-    this.instructionText,
-    this.loadingText,
+    required this._text,
+    required this._isEnabled,
+    required this._isLoading,
+    required this._onPressed,
+    required this._loadingText,
+    this._instructionText,
     super.key,
   });
-  final String text;
-  final bool isEnabled;
-  final bool isLoading;
-  final VoidCallback onPressed;
-  final String? instructionText;
-  final String? loadingText;
+
+  final String _text;
+  final bool _isEnabled;
+  final bool _isLoading;
+  final VoidCallback _onPressed;
+  final String? _instructionText;
+  final String _loadingText;
 
   @override
   State<InstructionButton> createState() => _InstructionButtonState();
@@ -27,36 +26,23 @@ class InstructionButton extends StatefulWidget {
 class _InstructionButtonState extends State<InstructionButton> {
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      width: double.infinity,
-      child: ElevatedButton(
-        onPressed:
-            (widget.isEnabled && !widget.isLoading) ? widget.onPressed : null,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: AppColors.znnColor,
-          disabledBackgroundColor: AppColors.znnColor.withOpacity(0.1),
-        ),
-        child: AnimatedCrossFade(
-          duration: Duration(milliseconds: widget.isLoading ? 1000 : 10),
-          firstCurve: Curves.easeInOut,
-          firstChild: Visibility(
-            visible: !widget.isLoading,
-            child: Opacity(
-              opacity: widget.isEnabled ? 1.0 : 0.3,
-              child: Text(
-                widget.isEnabled ? widget.text : (widget.instructionText ?? ''),
-                style: Theme.of(context).textTheme.headlineSmall,
-              ),
-            ),
+    return ElevatedButton(
+      onPressed: (widget._isEnabled && !widget._isLoading)
+          ? widget._onPressed
+          : null,
+      child: AnimatedCrossFade(
+        duration: Duration(milliseconds: widget._isLoading ? 1000 : 10),
+        firstCurve: Curves.easeInOut,
+        firstChild: Visibility(
+          visible: !widget._isLoading,
+          child: Text(
+            widget._isEnabled ? widget._text : (widget._instructionText ?? ''),
           ),
-          secondChild: SizedBox(
-            width: double.infinity,
-            child: LoadingInfoText(text: widget.loadingText ?? ''),
-          ),
-          crossFadeState: widget.isLoading
-              ? CrossFadeState.showSecond
-              : CrossFadeState.showFirst,
         ),
+        secondChild: LoadingInfoText(text: widget._loadingText),
+        crossFadeState: widget._isLoading
+            ? CrossFadeState.showSecond
+            : CrossFadeState.showFirst,
       ),
     );
   }

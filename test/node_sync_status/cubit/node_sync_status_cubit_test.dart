@@ -13,8 +13,7 @@ class MockZenon extends Mock implements Zenon {}
 
 class MockWsClient extends Mock implements WsClient {}
 
-class MockStatsApi extends Mock implements StatsApi {}
-
+class MockNodeSyncMonitor extends Mock implements NodeSyncMonitor {}
 
 void main() {
   initHydratedStorage();
@@ -22,7 +21,7 @@ void main() {
   group('NodeSyncStatusCubit', () {
     late MockZenon mockZenon;
     late MockWsClient mockWsClient;
-    late MockStatsApi mockStatsApi;
+    late MockNodeSyncMonitor mockSyncMonitor;
     late NodeSyncStatusCubit nodeSyncStatusCubit;
     late FailureException exception;
     late SyncInfo syncInfo;
@@ -31,9 +30,10 @@ void main() {
     setUp(() async {
       mockZenon = MockZenon();
       mockWsClient = MockWsClient();
-      mockStatsApi = MockStatsApi();
+      mockSyncMonitor = MockNodeSyncMonitor();
       exception = FailureException();
       nodeSyncStatusCubit = NodeSyncStatusCubit(
+        syncMonitor: mockSyncMonitor,
         zenon: mockZenon,
       );
 
@@ -47,8 +47,7 @@ void main() {
       when(() => mockWsClient.isClosed()).thenReturn(false);
       when(() => mockWsClient.status()).thenReturn(WebsocketStatus.running);
 
-      when(() => mockZenon.stats).thenReturn(mockStatsApi);
-      when(() => mockStatsApi.syncInfo()).thenAnswer((_) async => syncInfo);
+      when(() => mockSyncMonitor.fetch()).thenAnswer((_) async => syncInfo);
 
       syncPair = Pair<SyncState, SyncInfo>(SyncState.syncDone, syncInfo);
     });
@@ -139,7 +138,7 @@ void main() {
       blocTest<NodeSyncStatusCubit, NodeSyncStatusState>(
         'emits [loading, failure] when fetch throws an error',
         setUp: () {
-          when(() => mockStatsApi.syncInfo()).thenThrow(exception);
+          when(() => mockSyncMonitor.fetch()).thenThrow(exception);
         },
         build: () => nodeSyncStatusCubit,
         act: (NodeSyncStatusCubit cubit) => cubit.fetchDataPeriodically(),

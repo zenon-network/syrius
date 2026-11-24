@@ -8,10 +8,12 @@ class DisabledAddressField extends StatelessWidget {
   const DisabledAddressField(
     this._addressController, {
     this.contentLeftPadding = 8.0,
+    this._labelText,
     super.key,
   });
   final TextEditingController _addressController;
   final double contentLeftPadding;
+  final String? _labelText;
 
   @override
   Widget build(BuildContext context) {
@@ -24,6 +26,7 @@ class DisabledAddressField extends StatelessWidget {
         ),
         decoration: InputDecoration(
           contentPadding: EdgeInsets.only(left: contentLeftPadding),
+          labelText: _labelText,
         ),
       ),
     );

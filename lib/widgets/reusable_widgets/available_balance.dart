@@ -27,6 +27,7 @@ class AvailableBalance extends StatelessWidget {
     return Padding(
       padding: padding,
       child: Text(
+        textAlign: TextAlign.start,
         '${accountInfo.getBalance(
           token.tokenStandard,
         ).addDecimals(token.decimals)} '

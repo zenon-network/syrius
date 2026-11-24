@@ -43,7 +43,7 @@ class StakingCubit extends TimerCubit<StakeList, StakingState> {
   }
 
   /// Retrieves the staking entries for a specific address.
-  Future<StakeList> _getStakeList(Address address) async {
+  Future<StakeList> _getStakeList(Address address) {
     return zenon.embedded.stake.getEntriesByAddress(
       address,
     );

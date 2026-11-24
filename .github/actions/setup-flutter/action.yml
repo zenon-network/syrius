@@ -1,0 +1,12 @@
+name: Setup Flutter
+description: Install the repository Flutter SDK version
+
+runs:
+  using: composite
+  steps:
+    - name: Setup Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        flutter-version: "3.47.6"
+        channel: stable
+        cache: true

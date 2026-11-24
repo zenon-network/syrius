@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/constants/app_sizes.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/loading_widget.dart';
 
 class LoadingInfoText extends StatelessWidget {
-
   const LoadingInfoText({
-    required this.text,
-    this.tooltipText,
+    required this._text,
+    this._tooltipText,
     super.key,
   });
-  final String text;
-  final String? tooltipText;
+
+  final String _text;
+  final String? _tooltipText;
 
   @override
   Widget build(BuildContext context) {
@@ -21,34 +21,22 @@ class LoadingInfoText extends StatelessWidget {
           size: 16,
           strokeWidth: 2,
         ),
-        const SizedBox(
-          width: 10,
-        ),
+        kHorizontalGap8,
         Text(
-          text,
-          style:
-              const TextStyle(fontSize: 14, color: AppColors.subtitleColor),
+          _text,
         ),
-        Visibility(
-          visible: tooltipText != null,
-          child: const SizedBox(
-            width: 5,
-          ),
-        ),
-        Visibility(
-          visible: tooltipText != null,
-          child: Tooltip(
-            message: tooltipText ?? '',
-            child: const Padding(
-              padding: EdgeInsets.only(top: 1),
-              child: Icon(
-                Icons.help,
-                color: AppColors.subtitleColor,
-                size: 14,
+        if (_tooltipText != null)
+          Row(
+            children: <Widget>[
+              kHorizontalGap4,
+              Tooltip(
+                message: _tooltipText,
+                child: const Icon(
+                  Icons.help,
+                ),
               ),
-            ),
+            ],
           ),
-        ),
       ],
     );
   }

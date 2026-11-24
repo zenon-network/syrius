@@ -1,38 +1,44 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:layout/layout.dart';
 import 'package:provider/provider.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/p2p_swap_widgets/p2p_swap_options_card.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/p2p_swap_widgets/p2p_swaps_card.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 
 class P2pSwapTabChild extends StatefulWidget {
-
-  const P2pSwapTabChild({
-    required this.onStepperNotificationSeeMorePressed,
-    super.key,
-  });
-  final VoidCallback onStepperNotificationSeeMorePressed;
+  const P2pSwapTabChild({super.key});
 
   @override
-  State createState() => P2pSwapTabChildState();
+  State createState() => _P2pSwapTabChildState();
 }
 
-class P2pSwapTabChildState extends State<P2pSwapTabChild> {
+class _P2pSwapTabChildState extends State<P2pSwapTabChild> {
+  bool _hasCheckedLocalTime = false;
+
   @override
-  void initState() {
-    super.initState();
-    NodeUtils.checkForLocalTimeDiscrepancy(
-        '''Local time discrepancy detected. Please confirm your operating '''
-        '''system's time is correct before conducting P2P swaps.''');
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_hasCheckedLocalTime) {
+      return;
+    }
+
+    _hasCheckedLocalTime = true;
+    unawaited(
+      NodeUtils.checkForLocalTimeDiscrepancy(
+        context.l10n.localTimeDiscrepancyDetected,
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    return _getLayout(context);
+    return _buildLayout(context);
   }
 
-  StandardFluidLayout _getLayout(BuildContext context) {
+  StandardFluidLayout _buildLayout(BuildContext context) {
     return StandardFluidLayout(
       children: <FluidCell>[
         FluidCell(
@@ -56,10 +62,7 @@ class P2pSwapTabChildState extends State<P2pSwapTabChild> {
             xs: kStaggeredNumOfColumns,
           ),
           child: Consumer<SelectedAddressNotifier>(
-            builder: (_, __, ___) => P2pSwapsCard(
-              onStepperNotificationSeeMorePressed:
-                  widget.onStepperNotificationSeeMorePressed,
-            ),
+            builder: (_, _, _) => const P2pSwapsCard(),
           ),
         ),
       ],

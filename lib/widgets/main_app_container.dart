@@ -15,7 +15,7 @@ import 'package:nested/nested.dart';
 import 'package:provider/provider.dart';
 import 'package:window_manager/window_manager.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
-import 'package:zenon_syrius_wallet_flutter/handlers/htlc_swaps_handler.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/p2p_swaps/services/htlc_swap_sync_service.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/model/model.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
@@ -87,6 +87,7 @@ class _MainAppContainerState extends State<MainAppContainer>
     canRequestFocus: false,
   );
   final NodeSyncStatusCubit _nodeSyncStatusCubit = NodeSyncStatusCubit(
+    syncMonitor: sl<NodeSyncMonitor>(),
     zenon: zenon!,
   );
 
@@ -500,10 +501,7 @@ class _MainAppContainerState extends State<MainAppContainer>
           onStepperNotificationSeeMorePressed: () =>
               _navigateTo(Tabs.notifications),
         ),
-        P2pSwapTabChild(
-          onStepperNotificationSeeMorePressed: () =>
-              _navigateTo(Tabs.notifications),
-        ),
+        const P2pSwapTabChild(),
         if (kWcProjectId.isNotEmpty) const WalletConnectTabChild(),
         AcceleratorTabChild(
           onStepperNotificationSeeMorePressed: () =>
@@ -657,8 +655,11 @@ class _MainAppContainerState extends State<MainAppContainer>
   Timer _createAutoLockTimer() {
     return Timer.periodic(Duration(minutes: kAutoLockWalletMinutes!), (
       Timer timer,
-    ) {
-      if (!sl<HtlcSwapsHandler>().hasActiveIncomingSwaps) {
+    ) async {
+      if (!await sl<HtlcSwapSyncService>().hasActiveIncomingSwaps() &&
+          mounted &&
+          timer.isActive &&
+          identical(_navigateToLockTimer, timer)) {
         _lockBloc.addEvent(LockEvent.navigateToLock);
       }
     });
