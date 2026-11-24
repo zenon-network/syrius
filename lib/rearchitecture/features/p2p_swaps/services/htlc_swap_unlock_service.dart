@@ -47,12 +47,15 @@ class HtlcSwapUnlockService {
     }
     if (htlc.expirationTime <=
         _unixTimeProvider() + kMinSafeTimeToCompleteSwap.inSeconds) {
-      throw SyriusException(
-        'The swap will expire too soon for a safe swap.',
-      );
+      throw SyriusException('The swap will expire too soon for a safe swap.');
     }
 
-    final List<int> preimage = FormatUtils.decodeHexString(encodedPreimage);
+    final List<int> preimage;
+    try {
+      preimage = FormatUtils.decodeHexString(encodedPreimage);
+    } on FormatException {
+      throw SyriusException('Invalid swap secret.');
+    }
     if (htlc.keyMaxSize < preimage.length) {
       throw SyriusException(
         'The swap secret size exceeds the maximum allowed size.',

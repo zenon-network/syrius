@@ -1,10 +1,12 @@
 import 'package:drift/drift.dart'
     show CouldNotRollBackException, DriftWrappedException;
+import 'package:json_rpc_2/json_rpc_2.dart' show RpcException;
 import 'package:sqlite3/sqlite3.dart';
 
 /// A log-safe error wrapper that retains only an error type and optional
-/// SQLite result code so sensitive swap data (such as HTLC preimages in
-/// SQLite/Drift bind parameters) is never written to plaintext logs.
+/// numeric error code so sensitive swap data (such as HTLC preimages in
+/// SQLite/Drift bind parameters, corrupt JSON payloads, or RPC error payloads)
+/// is never written to plaintext logs or notifications.
 class RedactedSwapError implements Exception {
   /// Creates a [RedactedSwapError] carrying only a safe [summary].
   const RedactedSwapError(this.summary);
@@ -16,8 +18,8 @@ class RedactedSwapError implements Exception {
   String toString() => summary;
 }
 
-/// Returns a log-safe summary of [error] without any exception message or SQL
-/// bind parameters that could expose secret HTLC preimages.
+/// Returns a log-safe summary of [error] without any exception message, SQL
+/// bind parameters, or RPC payloads that could expose secret HTLC preimages.
 String formatSafeSwapErrorSummary(Object error) {
   final SqliteException? sqliteError = _unwrapSqliteException(error);
   if (sqliteError != null) {
@@ -25,6 +27,9 @@ String formatSafeSwapErrorSummary(Object error) {
         ? '${error.runtimeType}'
         : '${error.runtimeType} -> ${sqliteError.runtimeType}';
     return '$prefix (code=${sqliteError.extendedResultCode})';
+  }
+  if (error is RpcException) {
+    return '${error.runtimeType} (code=${error.code})';
   }
   return '${error.runtimeType}';
 }

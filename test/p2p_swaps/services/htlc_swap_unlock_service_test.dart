@@ -82,9 +82,7 @@ void main() {
 
       when(() => zenon.embedded).thenReturn(embeddedApi);
       when(() => embeddedApi.htlc).thenReturn(htlcApi);
-      when(
-        () => htlcApi.getById(counterHtlcId),
-      ).thenAnswer((_) async => htlc);
+      when(() => htlcApi.getById(counterHtlcId)).thenAnswer((_) async => htlc);
       when(
         () => htlcApi.unlock(counterHtlcId, preimage),
       ).thenReturn(transactionParams);
@@ -127,9 +125,7 @@ void main() {
     test('unlocks the initial HTLC for an incoming swap', () async {
       swap = swap.copyWith(direction: P2pSwapDirection.incoming);
       htlc = buildHtlc(id: initialHtlcId);
-      when(
-        () => htlcApi.getById(initialHtlcId),
-      ).thenAnswer((_) async => htlc);
+      when(() => htlcApi.getById(initialHtlcId)).thenAnswer((_) async => htlc);
       when(
         () => htlcApi.unlock(initialHtlcId, preimage),
       ).thenReturn(transactionParams);
@@ -226,5 +222,33 @@ void main() {
 
       verifyNever(() => htlcApi.unlock(counterHtlcId, preimage));
     });
+
+    test(
+      'rejects a malformed hex preimage without leaking the raw preimage',
+      () async {
+        const String malformedPreimage = 'zzzz-secret-preimage-leak';
+        swap = swap.copyWith(preimage: malformedPreimage);
+
+        await expectLater(
+          service.unlock(swap),
+          throwsA(
+            isA<SyriusException>()
+                .having(
+                  (SyriusException error) => error.message,
+                  'message',
+                  'Invalid swap secret.',
+                )
+                .having(
+                  (SyriusException error) => error.toString(),
+                  'toString',
+                  isNot(contains(malformedPreimage)),
+                ),
+          ),
+        );
+
+        verify(() => htlcApi.getById(counterHtlcId)).called(1);
+        verifyNever(() => htlcApi.unlock(counterHtlcId, any()));
+      },
+    );
   });
 }

@@ -6,6 +6,8 @@ import 'package:zenon_syrius_wallet_flutter/model/database/wallet_notification.d
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/node_sync_status/services/node_sync_monitor.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/p2p_swap/model/p2p_swap.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/p2p_swaps/services/htlc_swap_unlock_service.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/p2p_swaps/utils/swap_storage_error_sanitizer.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/exceptions/syrius_exception.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/address_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
@@ -76,14 +78,23 @@ class HtlcSwapAutoUnlockService {
     try {
       final AccountBlockTemplate response = await _unlockService.unlock(swap);
       await _sendSuccessNotification(response, swap.selfAddress);
-    } on RpcException catch (error, stackTrace) {
-      _logger.log(Level.WARNING, 'unlockNext', error, stackTrace);
-      if (!error.message.contains('data non existent')) {
-        await _sendErrorNotification(error.toString());
-      }
-    } on Object catch (error, stackTrace) {
+    } on SyriusException catch (error, stackTrace) {
       _logger.log(Level.WARNING, 'unlockNext', error, stackTrace);
       await _sendErrorNotification(error.toString());
+    } on RpcException catch (error, stackTrace) {
+      final RedactedSwapError sanitizedError = sanitizeSwapErrorForLogging(
+        error,
+      );
+      _logger.log(Level.WARNING, 'unlockNext', sanitizedError, stackTrace);
+      if (!error.message.contains('data non existent')) {
+        await _sendErrorNotification(sanitizedError.summary);
+      }
+    } on Object catch (error, stackTrace) {
+      final RedactedSwapError sanitizedError = sanitizeSwapErrorForLogging(
+        error,
+      );
+      _logger.log(Level.WARNING, 'unlockNext', sanitizedError, stackTrace);
+      await _sendErrorNotification(sanitizedError.summary);
     }
   }
 

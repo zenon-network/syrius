@@ -10,9 +10,8 @@ part 'p2p_swaps_state.dart';
 /// A cubit that observes persisted P2P swaps.
 class P2pSwapsCubit extends Cubit<P2pSwapsState> {
   /// Creates a [P2pSwapsCubit] and starts observing persisted swaps.
-  P2pSwapsCubit({
-    required this._swapRepository,
-  }) : super(const P2pSwapsLoading()) {
+  P2pSwapsCubit({required this._swapRepository})
+    : super(const P2pSwapsLoading()) {
     _watchSwaps();
   }
 
@@ -32,7 +31,10 @@ class P2pSwapsCubit extends Cubit<P2pSwapsState> {
   }
 
   void _onError(Object error, StackTrace stackTrace) {
-    addError(error, stackTrace);
+    addError(
+      error is SyriusException ? error : sanitizeSwapErrorForLogging(error),
+      stackTrace,
+    );
     emit(P2pSwapsFailure(exception: _mapException(error)));
   }
 

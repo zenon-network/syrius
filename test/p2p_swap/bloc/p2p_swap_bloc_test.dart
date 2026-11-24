@@ -1,3 +1,4 @@
+import 'package:bloc/bloc.dart';
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
@@ -8,6 +9,16 @@ import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 class MockP2pSwapRepository extends Mock
     implements P2pSwapRepository<HtlcSwap> {}
+
+class _RecordingBlocObserver extends BlocObserver {
+  final List<Object> errors = <Object>[];
+
+  @override
+  void onError(BlocBase<dynamic> bloc, Object error, StackTrace stackTrace) {
+    errors.add(error);
+    super.onError(bloc, error, stackTrace);
+  }
+}
 
 void main() {
   group('P2pSwapBloc', () {
@@ -62,9 +73,7 @@ void main() {
     blocTest<P2pSwapBloc, P2pSwapBlocState>(
       'fetches the swap and emits loading and populated states',
       build: buildBloc,
-      act: (P2pSwapBloc bloc) => bloc.add(
-        const P2pSwapRequested(),
-      ),
+      act: (P2pSwapBloc bloc) => bloc.add(const P2pSwapRequested()),
       verify: (_) {
         verify(() => swapRepository.getSwapById(swapId)).called(1);
       },
@@ -82,9 +91,7 @@ void main() {
         ).thenAnswer((_) async => null);
       },
       build: buildBloc,
-      act: (P2pSwapBloc bloc) => bloc.add(
-        const P2pSwapRequested(),
-      ),
+      act: (P2pSwapBloc bloc) => bloc.add(const P2pSwapRequested()),
       expect: () => <Object>[
         const P2pSwapLoading(),
         isA<P2pSwapFailure>().having(
@@ -103,9 +110,7 @@ void main() {
         ).thenThrow(Exception('boom'));
       },
       build: buildBloc,
-      act: (P2pSwapBloc bloc) => bloc.add(
-        const P2pSwapRequested(),
-      ),
+      act: (P2pSwapBloc bloc) => bloc.add(const P2pSwapRequested()),
       expect: () => <Object>[
         const P2pSwapLoading(),
         isA<P2pSwapFailure>().having(
@@ -118,12 +123,8 @@ void main() {
 
     blocTest<P2pSwapBloc, P2pSwapBlocState>(
       'periodically refreshes after the initial request',
-      build: () => buildBloc(
-        refreshInterval: const Duration(milliseconds: 10),
-      ),
-      act: (P2pSwapBloc bloc) => bloc.add(
-        const P2pSwapRequested(),
-      ),
+      build: () => buildBloc(refreshInterval: const Duration(milliseconds: 10)),
+      act: (P2pSwapBloc bloc) => bloc.add(const P2pSwapRequested()),
       wait: const Duration(milliseconds: 25),
       verify: (_) {
         verify(
@@ -137,16 +138,42 @@ void main() {
         refreshInterval: const Duration(milliseconds: 10),
       )..add(const P2pSwapRequested());
 
-      await expectLater(
-        bloc.stream,
-        emitsThrough(isA<P2pSwapPopulated>()),
-      );
+      await expectLater(bloc.stream, emitsThrough(isA<P2pSwapPopulated>()));
 
       await bloc.close();
       clearInteractions(swapRepository);
       await Future<void>.delayed(const Duration(milliseconds: 25));
 
       verifyNever(() => swapRepository.getSwapById(swapId));
+    });
+
+    test('sanitizes preimage-bearing FormatException before reporting to '
+        'BlocObserver', () async {
+      const String secretPreimage = 'deadbeefcafebabe0123456789abcdef';
+      final BlocObserver previousObserver = Bloc.observer;
+      final _RecordingBlocObserver observer = _RecordingBlocObserver();
+      Bloc.observer = observer;
+      addTearDown(() => Bloc.observer = previousObserver);
+
+      when(() => swapRepository.getSwapById(swapId)).thenThrow(
+        const FormatException(
+          'Unterminated string',
+          '{"preimage":"$secretPreimage',
+        ),
+      );
+
+      final P2pSwapBloc bloc = buildBloc()..add(const P2pSwapRequested());
+      addTearDown(bloc.close);
+
+      await expectLater(bloc.stream, emitsThrough(isA<P2pSwapFailure>()));
+
+      expect(observer.errors, hasLength(1));
+      expect(observer.errors.single, isA<RedactedSwapError>());
+      expect(observer.errors.single.toString(), 'FormatException');
+      expect(
+        observer.errors.single.toString(),
+        isNot(contains(secretPreimage)),
+      );
     });
   });
 }

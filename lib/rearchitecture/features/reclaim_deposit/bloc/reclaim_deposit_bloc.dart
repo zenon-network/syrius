@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/p2p_swaps/utils/swap_storage_error_sanitizer.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/account_block_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/address_utils.dart';
@@ -43,9 +44,7 @@ class ReclaimDepositBloc
     try {
       emit(const ReclaimDepositLoading());
 
-      final HtlcInfo htlc = await _zenon.embedded.htlc.getById(
-        event.depositId,
-      );
+      final HtlcInfo htlc = await _zenon.embedded.htlc.getById(event.depositId);
 
       // TODO(maznnwell): this can trigger bugs: user has 10 addresses,
       // initiates swap from the 10th one, resets his wallet, has generated
@@ -59,9 +58,7 @@ class ReclaimDepositBloc
           htlc.expirationTime * Duration.millisecondsPerSecond,
           dateFormat: kDefaultDateTimeFormat,
         );
-        throw SyriusException(
-          'The deposit is locked until $expirationDate.',
-        );
+        throw SyriusException('The deposit is locked until $expirationDate.');
       }
 
       final AccountBlockTemplate transactionParams = _zenon.embedded.htlc
@@ -80,7 +77,7 @@ class ReclaimDepositBloc
       addError(error, stackTrace);
       emit(ReclaimDepositFailure(exception: error));
     } on Object catch (error, stackTrace) {
-      addError(error, stackTrace);
+      addError(sanitizeSwapErrorForLogging(error), stackTrace);
       emit(ReclaimDepositFailure(exception: FailureException()));
     }
   }

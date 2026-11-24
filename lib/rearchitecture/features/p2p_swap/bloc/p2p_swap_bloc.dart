@@ -4,6 +4,7 @@ import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/p2p_swap/model/p2p_swap.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/p2p_swaps/data/p2p_swap_repository.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/p2p_swaps/utils/swap_storage_error_sanitizer.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 
 part 'p2p_swap_event.dart';
@@ -45,7 +46,7 @@ class P2pSwapBloc extends Bloc<P2pSwapEvent, P2pSwapBlocState> {
       addError(e, stackTrace);
     } on Object catch (e, stackTrace) {
       emit(P2pSwapFailure(exception: FailureException()));
-      addError(e, stackTrace);
+      addError(sanitizeSwapErrorForLogging(e), stackTrace);
     } finally {
       _scheduleRefresh();
     }
@@ -65,14 +66,11 @@ class P2pSwapBloc extends Bloc<P2pSwapEvent, P2pSwapBlocState> {
       return;
     }
 
-    _autoRefresher = Timer(
-      refreshInterval,
-      () {
-        if (!isClosed) {
-          add(const _P2pSwapRefreshRequested());
-        }
-      },
-    );
+    _autoRefresher = Timer(refreshInterval, () {
+      if (!isClosed) {
+        add(const _P2pSwapRefreshRequested());
+      }
+    });
   }
 
   @override

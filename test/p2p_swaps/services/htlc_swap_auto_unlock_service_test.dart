@@ -1,6 +1,8 @@
 import 'dart:async';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:json_rpc_2/json_rpc_2.dart' show RpcException;
+import 'package:logging/logging.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/model/model.dart';
@@ -74,9 +76,9 @@ void main() {
       when(
         () => unlockService.unlock(swap),
       ).thenAnswer((_) async => transactionParams);
-      when(
-        () => notificationsBloc.addNotification(any()),
-      ).thenAnswer((Invocation invocation) async {
+      when(() => notificationsBloc.addNotification(any())).thenAnswer((
+        Invocation invocation,
+      ) async {
         notifications.add(
           invocation.positionalArguments.single as WalletNotification,
         );
@@ -157,9 +159,9 @@ void main() {
     });
 
     test('reports an unlock failure', () async {
-      when(() => unlockService.unlock(swap)).thenThrow(
-        SyriusException('Swap address not in default addresses.'),
-      );
+      when(
+        () => unlockService.unlock(swap),
+      ).thenThrow(SyriusException('Swap address not in default addresses.'));
 
       await service.unlockNext(<HtlcSwap>[swap]);
 
@@ -170,5 +172,89 @@ void main() {
         contains('Swap address not in default addresses'),
       );
     });
+
+    test('sanitizes RpcException details in logs and notifications while '
+        'suppressing data non existent notifications', () async {
+      const String secretPreimage = 'deadbeefcafebabe0123456789abcdef';
+      final List<LogRecord> records = <LogRecord>[];
+      final StreamSubscription<LogRecord> subscription = Logger(
+        'HtlcSwapAutoUnlockService',
+      ).onRecord.listen(records.add);
+      addTearDown(subscription.cancel);
+
+      when(() => unlockService.unlock(swap)).thenThrow(
+        RpcException(
+          -32000,
+          'node rejected tx containing $secretPreimage',
+          data: secretPreimage,
+        ),
+      );
+
+      await service.unlockNext(<HtlcSwap>[swap]);
+
+      expect(notifications, hasLength(1));
+      expect(notifications.single.type, NotificationType.error);
+      expect(
+        notifications.single.details,
+        'Failed to complete the swap: RpcException (code=-32000)',
+      );
+      expect(notifications.single.details, isNot(contains(secretPreimage)));
+      expect(records, hasLength(1));
+      expect(records.single.error, isA<RedactedSwapError>());
+      expect(records.single.error.toString(), 'RpcException (code=-32000)');
+      expect(records.single.error.toString(), isNot(contains(secretPreimage)));
+
+      now = now.add(const Duration(minutes: 2));
+      notifications.clear();
+      records.clear();
+
+      when(
+        () => unlockService.unlock(swap),
+      ).thenThrow(RpcException(-32000, 'data non existent: $secretPreimage'));
+
+      await service.unlockNext(<HtlcSwap>[swap]);
+
+      expect(notifications, isEmpty);
+      expect(records, hasLength(1));
+      expect(records.single.error.toString(), isNot(contains(secretPreimage)));
+    });
+
+    test(
+      'sanitizes unexpected unlock errors in logs and notifications',
+      () async {
+        const String secretPreimage = 'deadbeefcafebabe0123456789abcdef';
+        final List<LogRecord> records = <LogRecord>[];
+        final StreamSubscription<LogRecord> subscription =
+            Logger('HtlcSwapAutoUnlockService').onRecord.listen((
+              LogRecord record,
+            ) {
+              if (record.loggerName == 'HtlcSwapAutoUnlockService') {
+                records.add(record);
+              }
+            });
+        addTearDown(subscription.cancel);
+
+        when(() => unlockService.unlock(swap)).thenThrow(
+          const FormatException('Invalid hexadecimal string', secretPreimage),
+        );
+
+        await service.unlockNext(<HtlcSwap>[swap]);
+
+        expect(notifications, hasLength(1));
+        expect(notifications.single.type, NotificationType.error);
+        expect(
+          notifications.single.details,
+          'Failed to complete the swap: FormatException',
+        );
+        expect(notifications.single.details, isNot(contains(secretPreimage)));
+        expect(records, hasLength(1));
+        expect(records.single.error, isA<RedactedSwapError>());
+        expect(records.single.error.toString(), 'FormatException');
+        expect(
+          records.single.error.toString(),
+          isNot(contains(secretPreimage)),
+        );
+      },
+    );
   });
 }

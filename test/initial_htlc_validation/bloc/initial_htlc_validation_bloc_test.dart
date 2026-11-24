@@ -1,3 +1,4 @@
+import 'package:bloc/bloc.dart';
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
@@ -5,6 +6,16 @@ import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dar
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/zts_utils.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
+
+class _RecordingBlocObserver extends BlocObserver {
+  final List<Object> errors = <Object>[];
+
+  @override
+  void onError(BlocBase<dynamic> bloc, Object error, StackTrace stackTrace) {
+    errors.add(error);
+    super.onError(bloc, error, stackTrace);
+  }
+}
 
 class MockZenon extends Mock implements Zenon {}
 
@@ -90,9 +101,7 @@ void main() {
       when(
         () => creationBlock.confirmationDetail,
       ).thenReturn(creationConfirmation);
-      when(
-        () => creationConfirmation.momentumTimestamp,
-      ).thenReturn(now);
+      when(() => creationConfirmation.momentumTimestamp).thenReturn(now);
       bloc = InitialHtlcValidationBloc(
         accountBlocksAfterTimeFetcher: (_, _) async => <AccountBlock>[],
         htlcSwapRepository: htlcSwapRepository,
@@ -108,9 +117,8 @@ void main() {
     blocTest<InitialHtlcValidationBloc, InitialHtlcValidationState>(
       'emits [loading, done] when the HTLC is valid',
       build: () => bloc,
-      act: (InitialHtlcValidationBloc bloc) => bloc.add(
-        InitialHtlcValidationRequested(id: htlcId),
-      ),
+      act: (InitialHtlcValidationBloc bloc) =>
+          bloc.add(InitialHtlcValidationRequested(id: htlcId)),
       expect: () => <InitialHtlcValidationState>[
         const InitialHtlcValidationLoading(),
         InitialHtlcValidationDone(
@@ -123,9 +131,7 @@ void main() {
         verify(() => htlcApi.getById(htlcId)).called(1);
         verify(() => ledger.getAccountBlockByHash(htlcId)).called(1);
         verify(() => tokenApi.getByZts(znnZts)).called(1);
-        verify(
-          () => ledger.getAccountInfoByAddress(walletAddress),
-        ).called(1);
+        verify(() => ledger.getAccountInfoByAddress(walletAddress)).called(1);
       },
     );
 
@@ -135,9 +141,8 @@ void main() {
         when(() => tokenApi.getByZts(znnZts)).thenAnswer((_) async => null);
       },
       build: () => bloc,
-      act: (InitialHtlcValidationBloc bloc) => bloc.add(
-        InitialHtlcValidationRequested(id: htlcId),
-      ),
+      act: (InitialHtlcValidationBloc bloc) =>
+          bloc.add(InitialHtlcValidationRequested(id: htlcId)),
       expect: () => <Matcher>[
         isA<InitialHtlcValidationLoading>(),
         isA<InitialHtlcValidationFailure>().having(
@@ -159,9 +164,8 @@ void main() {
         ).thenThrow(Exception('boom'));
       },
       build: () => bloc,
-      act: (InitialHtlcValidationBloc bloc) => bloc.add(
-        InitialHtlcValidationRequested(id: htlcId),
-      ),
+      act: (InitialHtlcValidationBloc bloc) =>
+          bloc.add(InitialHtlcValidationRequested(id: htlcId)),
       expect: () => <Matcher>[
         isA<InitialHtlcValidationLoading>(),
         isA<InitialHtlcValidationFailure>().having(
@@ -180,9 +184,8 @@ void main() {
         walletAddresses: <String>{},
         zenon: zenon,
       ),
-      act: (InitialHtlcValidationBloc bloc) => bloc.add(
-        InitialHtlcValidationRequested(id: htlcId),
-      ),
+      act: (InitialHtlcValidationBloc bloc) =>
+          bloc.add(InitialHtlcValidationRequested(id: htlcId)),
       expect: () => <Matcher>[
         isA<InitialHtlcValidationLoading>(),
         isA<InitialHtlcValidationFailure>().having(
@@ -202,9 +205,8 @@ void main() {
         when(() => htlcApi.getById(htlcId)).thenThrow(Exception('boom'));
       },
       build: () => bloc,
-      act: (InitialHtlcValidationBloc bloc) => bloc.add(
-        InitialHtlcValidationRequested(id: htlcId),
-      ),
+      act: (InitialHtlcValidationBloc bloc) =>
+          bloc.add(InitialHtlcValidationRequested(id: htlcId)),
       expect: () => <Matcher>[
         isA<InitialHtlcValidationLoading>(),
         isA<InitialHtlcValidationFailure>().having(
@@ -213,6 +215,73 @@ void main() {
           isA<FailureException>(),
         ),
       ],
+    );
+
+    test(
+      'sanitizes preimage-bearing FormatException from swap repository lookups '
+      'before reporting to BlocObserver',
+      () async {
+        const String secretPreimage = 'deadbeefcafebabe0123456789abcdef';
+        final BlocObserver previousObserver = Bloc.observer;
+        final _RecordingBlocObserver observer = _RecordingBlocObserver();
+        Bloc.observer = observer;
+        addTearDown(() => Bloc.observer = previousObserver);
+
+        when(
+          () => htlcSwapRepository.getSwapByHtlcId(htlcId.toString()),
+        ).thenThrow(
+          const FormatException(
+            'Unexpected character',
+            '{"id":"x","preimage":"$secretPreimage","state":act',
+          ),
+        );
+
+        final InitialHtlcValidationBloc htlcIdBloc = InitialHtlcValidationBloc(
+          accountBlocksAfterTimeFetcher: (_, _) async => <AccountBlock>[],
+          htlcSwapRepository: htlcSwapRepository,
+          walletAddresses: <String>{walletAddress.toString()},
+          zenon: zenon,
+        )..add(InitialHtlcValidationRequested(id: htlcId));
+        addTearDown(htlcIdBloc.close);
+
+        await expectLater(
+          htlcIdBloc.stream,
+          emitsThrough(isA<InitialHtlcValidationFailure>()),
+        );
+
+        when(
+          () => htlcSwapRepository.getSwapByHtlcId(htlcId.toString()),
+        ).thenAnswer((_) async => null);
+        when(
+          () => htlcSwapRepository.getSwapByHashLock(htlc.hashLockHex),
+        ).thenThrow(
+          const FormatException(
+            'Unterminated string',
+            '{"preimage":"$secretPreimage',
+          ),
+        );
+
+        final InitialHtlcValidationBloc hashLockBloc =
+            InitialHtlcValidationBloc(
+              accountBlocksAfterTimeFetcher: (_, _) async => <AccountBlock>[],
+              htlcSwapRepository: htlcSwapRepository,
+              walletAddresses: <String>{walletAddress.toString()},
+              zenon: zenon,
+            )..add(InitialHtlcValidationRequested(id: htlcId));
+        addTearDown(hashLockBloc.close);
+
+        await expectLater(
+          hashLockBloc.stream,
+          emitsThrough(isA<InitialHtlcValidationFailure>()),
+        );
+
+        expect(observer.errors, hasLength(2));
+        for (final Object error in observer.errors) {
+          expect(error, isA<RedactedSwapError>());
+          expect(error.toString(), 'FormatException');
+          expect(error.toString(), isNot(contains(secretPreimage)));
+        }
+      },
     );
   });
 }

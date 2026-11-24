@@ -4,6 +4,7 @@ import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/p2p_swap/model/p2p_swap.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/p2p_swaps/data/p2p_swap_repository.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/p2p_swaps/utils/swap_storage_error_sanitizer.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 
 part 'delete_p2p_swap_event.dart';
@@ -32,7 +33,7 @@ class DeleteP2pSwapBloc extends Bloc<DeleteP2pSwapEvent, DeleteP2pSwapState> {
       addError(error, stackTrace);
       emit(DeleteP2pSwapFailure(exception: error));
     } on Object catch (error, stackTrace) {
-      addError(error, stackTrace);
+      addError(sanitizeSwapErrorForLogging(error), stackTrace);
       emit(DeleteP2pSwapFailure(exception: FailureException()));
     }
   }

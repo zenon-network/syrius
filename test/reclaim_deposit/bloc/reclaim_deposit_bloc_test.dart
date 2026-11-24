@@ -1,3 +1,4 @@
+import 'package:bloc/bloc.dart';
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
@@ -5,6 +6,16 @@ import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dar
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
+
+class _RecordingBlocObserver extends BlocObserver {
+  final List<Object> errors = <Object>[];
+
+  @override
+  void onError(BlocBase<dynamic> bloc, Object error, StackTrace stackTrace) {
+    errors.add(error);
+    super.onError(bloc, error, stackTrace);
+  }
+}
 
 class MockZenon extends Mock implements Zenon {}
 
@@ -54,10 +65,7 @@ void main() {
       accountBlockUtils = MockAccountBlockUtils();
       zenonAddressUtils = MockZenonAddressUtils();
       transactionParams = AccountBlockTemplate(blockType: 1);
-      htlc = buildHtlc(
-        timeLocked: selfAddress,
-        expirationTime: now,
-      );
+      htlc = buildHtlc(timeLocked: selfAddress, expirationTime: now);
 
       when(() => zenon.embedded).thenReturn(embedded);
       when(() => embedded.htlc).thenReturn(htlcApi);
@@ -89,9 +97,8 @@ void main() {
     blocTest<ReclaimDepositBloc, ReclaimDepositState>(
       'submits the reclaim transaction and refreshes balances',
       build: () => bloc,
-      act: (ReclaimDepositBloc bloc) => bloc.add(
-        ReclaimDepositRequested(depositId: htlcId),
-      ),
+      act: (ReclaimDepositBloc bloc) =>
+          bloc.add(ReclaimDepositRequested(depositId: htlcId)),
       expect: () => <ReclaimDepositState>[
         const ReclaimDepositLoading(),
         ReclaimDepositDone(block: transactionParams),
@@ -114,15 +121,11 @@ void main() {
     blocTest<ReclaimDepositBloc, ReclaimDepositState>(
       'rejects a deposit that does not belong to the wallet',
       setUp: () {
-        htlc = buildHtlc(
-          timeLocked: otherAddress,
-          expirationTime: now,
-        );
+        htlc = buildHtlc(timeLocked: otherAddress, expirationTime: now);
       },
       build: () => bloc,
-      act: (ReclaimDepositBloc bloc) => bloc.add(
-        ReclaimDepositRequested(depositId: htlcId),
-      ),
+      act: (ReclaimDepositBloc bloc) =>
+          bloc.add(ReclaimDepositRequested(depositId: htlcId)),
       expect: () => <Matcher>[
         isA<ReclaimDepositLoading>(),
         isA<ReclaimDepositFailure>().having(
@@ -140,27 +143,25 @@ void main() {
     blocTest<ReclaimDepositBloc, ReclaimDepositState>(
       'rejects a deposit that is still locked',
       setUp: () {
-        htlc = buildHtlc(
-          timeLocked: selfAddress,
-          expirationTime: now + 1,
-        );
+        htlc = buildHtlc(timeLocked: selfAddress, expirationTime: now + 1);
       },
       build: () => bloc,
-      act: (ReclaimDepositBloc bloc) => bloc.add(
-        ReclaimDepositRequested(depositId: htlcId),
-      ),
-      expect: () => <Matcher>[
-        isA<ReclaimDepositLoading>(),
-        isA<ReclaimDepositFailure>().having(
-          (ReclaimDepositFailure state) => state.exception.message,
-          'message',
-          'The deposit is locked until '
-              '${FormatUtils.formatDate(
-                (now + 1) * Duration.millisecondsPerSecond,
-                dateFormat: kDefaultDateTimeFormat,
-              )}.',
-        ),
-      ],
+      act: (ReclaimDepositBloc bloc) =>
+          bloc.add(ReclaimDepositRequested(depositId: htlcId)),
+      expect: () {
+        final String expectedDate = FormatUtils.formatDate(
+          (now + 1) * Duration.millisecondsPerSecond,
+          dateFormat: kDefaultDateTimeFormat,
+        );
+        return <Matcher>[
+          isA<ReclaimDepositLoading>(),
+          isA<ReclaimDepositFailure>().having(
+            (ReclaimDepositFailure state) => state.exception.message,
+            'message',
+            'The deposit is locked until $expectedDate.',
+          ),
+        ];
+      },
       verify: (_) {
         verifyNever(() => htlcApi.reclaim(htlcId));
         verifyNever(() => zenonAddressUtils.refreshBalance());
@@ -180,9 +181,8 @@ void main() {
         ).thenThrow(SyriusException('Unable to reclaim deposit.'));
       },
       build: () => bloc,
-      act: (ReclaimDepositBloc bloc) => bloc.add(
-        ReclaimDepositRequested(depositId: htlcId),
-      ),
+      act: (ReclaimDepositBloc bloc) =>
+          bloc.add(ReclaimDepositRequested(depositId: htlcId)),
       expect: () => <Matcher>[
         isA<ReclaimDepositLoading>(),
         isA<ReclaimDepositFailure>().having(
@@ -199,14 +199,11 @@ void main() {
     blocTest<ReclaimDepositBloc, ReclaimDepositState>(
       'converts an unexpected error to FailureException',
       setUp: () {
-        when(
-          () => htlcApi.getById(htlcId),
-        ).thenThrow(StateError('boom'));
+        when(() => htlcApi.getById(htlcId)).thenThrow(StateError('boom'));
       },
       build: () => bloc,
-      act: (ReclaimDepositBloc bloc) => bloc.add(
-        ReclaimDepositRequested(depositId: htlcId),
-      ),
+      act: (ReclaimDepositBloc bloc) =>
+          bloc.add(ReclaimDepositRequested(depositId: htlcId)),
       expect: () => <Matcher>[
         isA<ReclaimDepositLoading>(),
         isA<ReclaimDepositFailure>().having(
@@ -218,6 +215,43 @@ void main() {
       verify: (_) {
         verifyNever(() => htlcApi.reclaim(htlcId));
         verifyNever(() => zenonAddressUtils.refreshBalance());
+      },
+    );
+
+    test(
+      'sanitizes unexpected reclaim errors before reporting to BlocObserver',
+      () async {
+        const String sensitiveDetail = 'sensitive-reclaim-detail';
+        final BlocObserver previousObserver = Bloc.observer;
+        final _RecordingBlocObserver observer = _RecordingBlocObserver();
+        Bloc.observer = observer;
+        addTearDown(() => Bloc.observer = previousObserver);
+
+        when(
+          () => htlcApi.getById(htlcId),
+        ).thenThrow(StateError(sensitiveDetail));
+
+        final ReclaimDepositBloc observedBloc = ReclaimDepositBloc(
+          accountBlockUtils: accountBlockUtils,
+          walletAddresses: <String>{selfAddress.toString()},
+          zenon: zenon,
+          zenonAddressUtils: zenonAddressUtils,
+          unixTimeProvider: () => now,
+        )..add(ReclaimDepositRequested(depositId: htlcId));
+        addTearDown(observedBloc.close);
+
+        await expectLater(
+          observedBloc.stream,
+          emitsThrough(isA<ReclaimDepositFailure>()),
+        );
+
+        expect(observer.errors, hasLength(1));
+        expect(observer.errors.single, isA<RedactedSwapError>());
+        expect(observer.errors.single.toString(), 'StateError');
+        expect(
+          observer.errors.single.toString(),
+          isNot(contains(sensitiveDetail)),
+        );
       },
     );
   });

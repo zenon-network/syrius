@@ -5,6 +5,7 @@ import 'package:equatable/equatable.dart';
 import 'package:zenon_syrius_wallet_flutter/model/block_data.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/initial_htlc_validation/utils/htlc_info_extension.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/p2p_swaps/data/htlc_swap_repository.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/p2p_swaps/utils/swap_storage_error_sanitizer.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/account_block_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
@@ -16,10 +17,7 @@ part 'initial_htlc_validation_state.dart';
 
 /// Fetches account blocks created after a Unix timestamp.
 typedef AccountBlocksAfterTimeFetcher =
-    Future<List<AccountBlock>> Function(
-      Address address,
-      int time,
-    );
+    Future<List<AccountBlock>> Function(Address address, int time);
 
 /// Fetches and validates an initial HTLC before joining a swap.
 class InitialHtlcValidationBloc
@@ -75,7 +73,7 @@ class InitialHtlcValidationBloc
       addError(error, stackTrace);
       emit(InitialHtlcValidationFailure(exception: error));
     } on Object catch (error, stackTrace) {
-      addError(error, stackTrace);
+      addError(sanitizeSwapErrorForLogging(error), stackTrace);
       emit(InitialHtlcValidationFailure(exception: FailureException()));
     }
   }
@@ -91,9 +89,7 @@ class InitialHtlcValidationBloc
 
   Future<void> _validateUnusedDeposit(HtlcInfo htlc) async {
     if (await _htlcSwapRepository.getSwapByHtlcId(htlc.id.toString()) != null) {
-      throw SyriusException(
-        'This deposit is already used in another swap.',
-      );
+      throw SyriusException('This deposit is already used in another swap.');
     }
     if (await _htlcSwapRepository.getSwapByHashLock(htlc.hashLockHex) != null) {
       throw SyriusException(
@@ -104,9 +100,7 @@ class InitialHtlcValidationBloc
 
   void _validateExpiration(HtlcInfo htlc) {
     final int now = DateTime.now().unixTimestamp;
-    final Duration remainingDuration = htlc.remainingDurationAt(
-      now,
-    );
+    final Duration remainingDuration = htlc.remainingDurationAt(now);
     if (remainingDuration.inSeconds <= 0) {
       throw SyriusException('This deposit has expired.');
     }
@@ -155,10 +149,7 @@ class InitialHtlcValidationBloc
     }
   }
 
-  bool _isConflictingHtlcBlock(
-    AccountBlock block,
-    HtlcInfo htlc,
-  ) {
+  bool _isConflictingHtlcBlock(AccountBlock block, HtlcInfo htlc) {
     if (block.blockType != BlockTypeEnum.contractReceive.index) {
       return false;
     }

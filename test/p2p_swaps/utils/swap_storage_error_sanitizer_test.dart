@@ -1,6 +1,7 @@
 import 'package:drift/drift.dart'
     show CouldNotRollBackException, DriftWrappedException;
 import 'package:flutter_test/flutter_test.dart';
+import 'package:json_rpc_2/json_rpc_2.dart' show RpcException;
 import 'package:sqlite3/sqlite3.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
 
@@ -56,6 +57,18 @@ void main() {
         expect(summary, isNot(contains(secretPreimage)));
       },
     );
+
+    test('redacts RpcException while preserving numeric error code', () {
+      final RpcException error = RpcException(
+        -32000,
+        'execution reverted: $secretPreimage',
+        data: <String, Object?>{'preimage': secretPreimage},
+      );
+      final RedactedSwapError redacted = sanitizeSwapErrorForLogging(error);
+
+      expect(redacted.toString(), 'RpcException (code=-32000)');
+      expect(redacted.toString(), isNot(contains(secretPreimage)));
+    });
 
     test('redacts arbitrary error messages to runtimeType only', () {
       final StateError error = StateError('leak $secretPreimage');

@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:bloc/bloc.dart';
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
@@ -11,15 +12,23 @@ import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 class MockP2pSwapRepository extends Mock
     implements P2pSwapRepository<HtlcSwap> {}
 
+class _RecordingBlocObserver extends BlocObserver {
+  final List<Object> errors = <Object>[];
+
+  @override
+  void onError(BlocBase<dynamic> bloc, Object error, StackTrace stackTrace) {
+    errors.add(error);
+    super.onError(bloc, error, stackTrace);
+  }
+}
+
 void main() {
   group('P2pSwapsCubit', () {
     late MockP2pSwapRepository swapRepository;
     late HtlcSwap olderSwap;
     late HtlcSwap newerSwap;
 
-    P2pSwapsCubit buildCubit() => P2pSwapsCubit(
-      swapRepository: swapRepository,
-    );
+    P2pSwapsCubit buildCubit() => P2pSwapsCubit(swapRepository: swapRepository);
 
     HtlcSwap buildSwap({required String id, required int startTime}) {
       return HtlcSwap(
@@ -47,13 +56,8 @@ void main() {
       olderSwap = buildSwap(id: 'older-swap', startTime: 1);
       newerSwap = buildSwap(id: 'newer-swap', startTime: 2);
 
-      when(
-        () => swapRepository.watchAllSwaps(),
-      ).thenAnswer(
-        (_) => Stream<List<HtlcSwap>>.value(<HtlcSwap>[
-          newerSwap,
-          olderSwap,
-        ]),
+      when(() => swapRepository.watchAllSwaps()).thenAnswer(
+        (_) => Stream<List<HtlcSwap>>.value(<HtlcSwap>[newerSwap, olderSwap]),
       );
     });
 
@@ -80,9 +84,7 @@ void main() {
       setUp: () {
         when(
           () => swapRepository.watchAllSwaps(),
-        ).thenAnswer(
-          (_) => Stream<List<HtlcSwap>>.error(StateError('boom')),
-        );
+        ).thenAnswer((_) => Stream<List<HtlcSwap>>.error(StateError('boom')));
       },
       build: buildCubit,
       expect: () => <Object>[
@@ -95,9 +97,7 @@ void main() {
     );
 
     test('emits failure when starting observation throws', () {
-      when(
-        () => swapRepository.watchAllSwaps(),
-      ).thenThrow(StateError('boom'));
+      when(() => swapRepository.watchAllSwaps()).thenThrow(StateError('boom'));
 
       final P2pSwapsCubit cubit = buildCubit();
       addTearDown(cubit.close);
@@ -137,9 +137,7 @@ void main() {
     test('cancels the repository stream when closed', () async {
       bool cancelled = false;
       final StreamController<List<HtlcSwap>> swaps =
-          StreamController<List<HtlcSwap>>(
-            onCancel: () => cancelled = true,
-          );
+          StreamController<List<HtlcSwap>>(onCancel: () => cancelled = true);
       when(
         () => swapRepository.watchAllSwaps(),
       ).thenAnswer((_) => swaps.stream);
@@ -148,6 +146,70 @@ void main() {
 
       expect(cancelled, isTrue);
       await swaps.close();
+    });
+
+    test('sanitizes preimage-bearing FormatException stream errors before '
+        'reporting to BlocObserver', () async {
+      const String secretPreimage = 'deadbeefcafebabe0123456789abcdef';
+      final BlocObserver previousObserver = Bloc.observer;
+      final _RecordingBlocObserver observer = _RecordingBlocObserver();
+      Bloc.observer = observer;
+      addTearDown(() => Bloc.observer = previousObserver);
+
+      when(() => swapRepository.watchAllSwaps()).thenAnswer(
+        (_) => Stream<List<HtlcSwap>>.error(
+          const FormatException(
+            'Unterminated string',
+            '{"preimage":"$secretPreimage',
+          ),
+        ),
+      );
+
+      final P2pSwapsCubit cubit = buildCubit();
+      addTearDown(cubit.close);
+      await expectLater(cubit.stream, emits(isA<P2pSwapsFailure>()));
+
+      expect(observer.errors, hasLength(1));
+      expect(observer.errors.single, isA<RedactedSwapError>());
+      expect(observer.errors.single.toString(), 'FormatException');
+      expect(
+        observer.errors.single.toString(),
+        isNot(contains(secretPreimage)),
+      );
+    });
+
+    test('sanitizes synchronous watchAllSwaps errors and preserves '
+        'SyriusException', () {
+      const String secretPreimage = 'deadbeefcafebabe0123456789abcdef';
+      final BlocObserver previousObserver = Bloc.observer;
+      final _RecordingBlocObserver observer = _RecordingBlocObserver();
+      Bloc.observer = observer;
+      addTearDown(() => Bloc.observer = previousObserver);
+
+      when(() => swapRepository.watchAllSwaps()).thenThrow(
+        const FormatException(
+          'Unexpected end of input',
+          '{"preimage":"$secretPreimage',
+        ),
+      );
+      final P2pSwapsCubit redactedCubit = buildCubit();
+      addTearDown(redactedCubit.close);
+
+      when(
+        () => swapRepository.watchAllSwaps(),
+      ).thenThrow(SyriusException('Swap storage unavailable'));
+      final P2pSwapsCubit syriusCubit = buildCubit();
+      addTearDown(syriusCubit.close);
+
+      expect(observer.errors, hasLength(2));
+      expect(observer.errors.first, isA<RedactedSwapError>());
+      expect(observer.errors.first.toString(), 'FormatException');
+      expect(observer.errors.first.toString(), isNot(contains(secretPreimage)));
+      expect(observer.errors.last, isA<SyriusException>());
+      expect(
+        (observer.errors.last as SyriusException).message,
+        'Swap storage unavailable',
+      );
     });
   });
 }

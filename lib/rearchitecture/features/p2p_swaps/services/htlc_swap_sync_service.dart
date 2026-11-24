@@ -65,12 +65,19 @@ class HtlcSwapSyncService {
 
   /// Whether an active incoming swap is currently stored.
   Future<bool> hasActiveIncomingSwaps() async {
-    final List<HtlcSwap> activeSwaps = await _swapRepository.getSwapsByState(
-      _kActiveStates,
-    );
-    return activeSwaps.any(
-      (HtlcSwap swap) => swap.direction == P2pSwapDirection.incoming,
-    );
+    try {
+      final List<HtlcSwap> activeSwaps = await _swapRepository.getSwapsByState(
+        _kActiveStates,
+      );
+      return activeSwaps.any(
+        (HtlcSwap swap) => swap.direction == P2pSwapDirection.incoming,
+      );
+    } on Object catch (e) {
+      _logger.warning(
+        'hasActiveIncomingSwaps failed: ${formatSafeSwapErrorSummary(e)}',
+      );
+      return false;
+    }
   }
 
   Future<void> _runPeriodically() async {
