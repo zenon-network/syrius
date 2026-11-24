@@ -486,10 +486,12 @@ class Web3WalletService extends IWeb3WalletService {
           e,
           s,
         );
-        // Reown's disconnectSession deletes the in-memory session record before
-        // calling persist(), so ensure the follow-up local purge flushes
-        // sessions.persist() even if sessions.delete() sees it already absent.
+        // Reown's disconnectSession can delete in-memory session, keychain, and
+        // expirer entries before calling persist(), so ensure the follow-up
+        // local purge flushes all three stores even if delete() is a no-op.
         _topicsNeedingSessionStorePersist.add(session.topic);
+        _needsKeyChainPersist = true;
+        _needsExpirerPersist = true;
         final bool purged = await _purgeSessionLocally(
           topic: session.topic,
           publicKey: session.self.publicKey,
@@ -865,6 +867,7 @@ class Web3WalletService extends IWeb3WalletService {
     _pendingDisconnectEverything = false;
 
     final ({
+      bool aborted,
       bool runFullSweep,
       Map<String, String> residualSessions,
       Set<String> residualPairings,
@@ -905,10 +908,10 @@ class Web3WalletService extends IWeb3WalletService {
         },
       };
 
-      final bool hasNewLiveTargets =
-          targetSessions.length > residualSessions.length ||
-          targetPairings.length > residualPairings.length;
-      if (forceFullReset || (runFullSweep && hasNewLiveTargets)) {
+      final bool markerMissingTargets =
+          !_sameStringMap(markerState.pendingSessions, targetSessions) ||
+          !_sameStringSet(markerState.pendingPairings, targetPairings);
+      if (forceFullReset || (runFullSweep && markerMissingTargets)) {
         _hasUnresolvedReset = true;
         try {
           await _persistPendingResetMarkerLocked(
@@ -920,15 +923,28 @@ class Web3WalletService extends IWeb3WalletService {
           if (rethrowMarkerWriteError) {
             rethrow;
           }
+          // Abort before any destructive sweep so records are never deleted
+          // without their target key identifiers durably saved first.
+          return (
+            aborted: true,
+            runFullSweep: runFullSweep,
+            residualSessions: targetSessions,
+            residualPairings: targetPairings,
+          );
         }
       }
 
       return (
+        aborted: false,
         runFullSweep: runFullSweep,
         residualSessions: targetSessions,
         residualPairings: targetPairings,
       );
     });
+
+    if (snapshot.aborted) {
+      return;
+    }
 
     final Map<String, String> unfinishedSessions =
         await _disconnectSessionsInternal(
@@ -1091,6 +1107,21 @@ class Web3WalletService extends IWeb3WalletService {
       return false;
     }
   }
+
+  bool _sameStringMap(Map<String, String> a, Map<String, String> b) {
+    if (a.length != b.length) {
+      return false;
+    }
+    for (final MapEntry<String, String> entry in a.entries) {
+      if (b[entry.key] != entry.value) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  bool _sameStringSet(Set<String> a, Set<String> b) =>
+      a.length == b.length && a.containsAll(b);
 
   @override
   Future<void> disconnectSession({required String topic}) async {
