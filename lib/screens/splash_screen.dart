@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:hive_ce/hive_ce.dart';
 import 'package:logging/logging.dart';
 import 'package:lottie/lottie.dart';
-import 'package:reown_walletkit/reown_walletkit.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/p2p_swaps/services/htlc_swap_sync_service.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
@@ -138,9 +137,7 @@ class _SplashScreenState extends State<SplashScreen> {
   Future<void> _deleteWeb3Cache() async {
     try {
       final IWeb3WalletService web3WalletService = sl<IWeb3WalletService>();
-      for (final PairingInfo pairing in web3WalletService.pairings.value) {
-        await web3WalletService.deactivatePairing(topic: pairing.topic);
-      }
+      await web3WalletService.disconnectEverything();
     } catch (e, stackTrace) {
       Logger(
         'SplashScreen',

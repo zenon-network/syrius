@@ -35,6 +35,7 @@ dependencies:
   flutter_local_notifications: ^22.3.0
   flutter_localizations:
     sdk: flutter
+  flutter_secure_storage: ^10.0.0
   flutter_staggered_grid_view: ^0.7.0
   flutter_svg: ^2.0.0+1
   flutter_vector_icons: ^2.0.0
@@ -63,7 +64,8 @@ dependencies:
   path_provider: ^2.1.0
   pretty_qr_code: ^3.2.1
   provider: ^6.0.2
-  reown_walletkit: ^1.4.0
+  reown_core: 1.5.1
+  reown_walletkit: 1.5.1
   retry: ^3.1.2
   rxdart: ^0.28.0
   screen_capturer: ^0.2.3

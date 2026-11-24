@@ -343,10 +343,12 @@ void setup() {
 
   // Initialize WalletConnect service
   sl.registerSingleton<IWeb3WalletService>(web3WalletService!);
-  sl.registerSingleton<IChain>(
-    NoMService(reference: NoMChainId.mainnet),
-    instanceName: NoMChainId.mainnet.chain(),
-  );
+  for (final NoMChainId chainId in NoMChainId.values) {
+    sl.registerSingleton<IChain>(
+      NoMService(reference: chainId),
+      instanceName: chainId.chain(),
+    );
+  }
 
   sl.registerSingleton<LatestTransactionsBloc>(
     LatestTransactionsBloc(

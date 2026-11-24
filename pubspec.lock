@@ -714,7 +714,7 @@ packages:
     source: hosted
     version: "2.0.35"
   flutter_secure_storage:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: flutter_secure_storage
       sha256: fe638107c5f69119156ada2db5a57734385fac3f64430bd7252a00d3ead2ca4b
@@ -1486,7 +1486,7 @@ packages:
     source: hosted
     version: "1.1.1"
   reown_core:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: reown_core
       sha256: ec80a54a8d2ab25a8573bc2e68bac0e170a0b646d6e60729938600b8afb791cd
