@@ -19,17 +19,17 @@ String? extractWalletConnectUri(String rawLink, {bool isWindows = false}) {
   }
 
   if (lower.startsWith('wc%3a')) {
-    final String decoded = _decodeUriValue(normalized);
-    if (_isValidWalletConnectUri(decoded)) {
+    final String? decoded = _decodeUriValue(normalized);
+    if (decoded != null && _isValidWalletConnectUri(decoded)) {
       return decoded;
     }
   }
 
   final Uri? parsed = Uri.tryParse(normalized);
-  final String? uriParam = parsed?.queryParameters['uri'];
+  final String? uriParam = _extractQueryUriParam(parsed);
   if (uriParam != null && uriParam.isNotEmpty) {
-    final String decoded = _decodeUriValue(uriParam);
-    if (_isValidWalletConnectUri(decoded)) {
+    final String? decoded = _decodeUriValue(uriParam);
+    if (decoded != null && _isValidWalletConnectUri(decoded)) {
       return decoded;
     }
   }
@@ -39,8 +39,8 @@ String? extractWalletConnectUri(String rawLink, {bool isWindows = false}) {
   if (match != null) {
     final String? encoded = match.group(1);
     if (encoded != null && encoded.isNotEmpty) {
-      final String decoded = _decodeUriValue(encoded);
-      if (_isValidWalletConnectUri(decoded)) {
+      final String? decoded = _decodeUriValue(encoded);
+      if (decoded != null && _isValidWalletConnectUri(decoded)) {
         return decoded;
       }
     }
@@ -83,14 +83,29 @@ bool _isValidWalletConnectUri(String value) {
   }
 }
 
-String _decodeUriValue(String value) {
-  String decoded = value;
-  for (int i = 0; i < 2; i++) {
-    final String next = Uri.decodeComponent(decoded);
-    if (next == decoded) {
-      break;
-    }
-    decoded = next;
+String? _extractQueryUriParam(Uri? parsed) {
+  if (parsed == null) {
+    return null;
   }
-  return decoded;
+  try {
+    return parsed.queryParameters['uri'];
+  } on Object {
+    return null;
+  }
+}
+
+String? _decodeUriValue(String value) {
+  try {
+    String decoded = value;
+    for (int i = 0; i < 2; i++) {
+      final String next = Uri.decodeComponent(decoded);
+      if (next == decoded) {
+        break;
+      }
+      decoded = next;
+    }
+    return decoded;
+  } on Object {
+    return null;
+  }
 }

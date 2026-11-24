@@ -73,5 +73,11 @@ void main() {
       final String? result = extractWalletConnectUri('   ');
       expect(result, isNull);
     });
+
+    test('returns null without throwing on malformed percent-encoding', () {
+      expect(extractWalletConnectUri('discount: uri=100%'), isNull);
+      expect(extractWalletConnectUri('wc%3a%zz'), isNull);
+      expect(extractWalletConnectUri('syrius://wc?uri=%E0%A4%A'), isNull);
+    });
   });
 }

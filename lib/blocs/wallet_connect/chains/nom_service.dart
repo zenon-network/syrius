@@ -7,6 +7,7 @@ import 'package:window_manager/window_manager.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/wallet_connect/chains/i_chain.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/wallet_connect_metadata_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/services/i_web3wallet_service.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/address_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
@@ -220,6 +221,13 @@ class NoMService extends IChain {
         kDefaultAddressList.contains(address);
   }
 
+  /// Executes [action] under single-flight deduplication keyed by [key].
+  @visibleForTesting
+  Future<dynamic> runSingleFlightForTesting(
+    String key,
+    Future<dynamic> Function() action,
+  ) => _runSingleFlight(key, action);
+
   Future<dynamic> _runSingleFlight(
     String key,
     Future<dynamic> Function() action,
@@ -230,12 +238,20 @@ class NoMService extends IChain {
       return existing;
     }
 
-    final Future<dynamic> future = action();
+    final Future<dynamic> future = _executeSingleFlight(key, action);
     _interactiveRequestFutures[key] = future;
-    unawaited(
-      future.whenComplete(() => _interactiveRequestFutures.remove(key)),
-    );
     return future;
+  }
+
+  Future<dynamic> _executeSingleFlight(
+    String key,
+    Future<dynamic> Function() action,
+  ) async {
+    try {
+      return await action();
+    } finally {
+      final Future<dynamic>? _ = _interactiveRequestFutures.remove(key);
+    }
   }
 
   Future<dynamic> _methodZnnInfo(String topic, dynamic params) async {
@@ -500,9 +516,7 @@ class NoMService extends IChain {
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: <Widget>[
-                Flexible(
-                  child: Text(dAppUrl, overflow: TextOverflow.ellipsis),
-                ),
+                Flexible(child: Text(dAppUrl, overflow: TextOverflow.ellipsis)),
                 LinkIcon(url: dAppUrl),
               ],
             ),
@@ -551,38 +565,27 @@ class NoMService extends IChain {
   }
 
   String _dAppName(PairingMetadata metadata) {
-    return _metadataValue(metadata.name, 'Unknown dApp');
+    return walletConnectDisplayValue(metadata.name, 'Unknown dApp');
   }
 
   String _dAppDescription(PairingMetadata metadata) {
-    return _metadataValue(metadata.description, 'No description provided');
+    return walletConnectDisplayValue(
+      metadata.description,
+      'No description provided',
+    );
   }
 
   String? _dAppUrl(PairingMetadata metadata) {
-    final String value = _metadataValue(metadata.url, '');
-    final Uri? uri = Uri.tryParse(value);
-    if (uri == null || (uri.scheme != 'http' && uri.scheme != 'https')) {
-      return null;
-    }
-    return value;
+    return sanitizeWalletConnectHttpUrl(metadata.url);
   }
 
   String? _dAppIconUrl(PairingMetadata metadata) {
     for (final String icon in metadata.icons) {
-      final String value = _metadataValue(icon, '');
-      final Uri? uri = Uri.tryParse(value);
-      if (uri != null && (uri.scheme == 'http' || uri.scheme == 'https')) {
-        return value;
+      final String? sanitized = sanitizeWalletConnectHttpUrl(icon);
+      if (sanitized != null) {
+        return sanitized;
       }
     }
     return null;
-  }
-
-  String _metadataValue(String value, String fallback) {
-    final String trimmed = value.trim();
-    if (trimmed.isEmpty || trimmed.toLowerCase() == 'null') {
-      return fallback;
-    }
-    return trimmed;
   }
 }

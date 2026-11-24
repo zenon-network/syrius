@@ -10,6 +10,7 @@ import 'package:zenon_syrius_wallet_flutter/blocs/wallet_connect/chains/nom_serv
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/model/database/notification_type.dart';
 import 'package:zenon_syrius_wallet_flutter/model/database/wallet_notification.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/wallet_connect_metadata_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/services/desktop_signing_wallet_kit.dart';
 import 'package:zenon_syrius_wallet_flutter/services/i_web3wallet_service.dart';
 import 'package:zenon_syrius_wallet_flutter/services/sticky_fallback_secure_store.dart';
@@ -40,12 +41,15 @@ class Web3WalletService extends IWeb3WalletService {
     'addressChange',
   ];
 
+  static const int _maxCompletedRequestIds = 512;
+
   final Logger _logger = Logger('WalletConnectService');
   final IChain Function(String chainId)? _chainResolver;
 
   ReownWalletKit? _wcClient;
   Future<void>? _initFuture;
   bool _isInitialized = false;
+  bool _isDisposed = false;
   bool _listenersSubscribed = false;
 
   final Set<int> _approvedProposalIds = <int>{};
@@ -142,6 +146,11 @@ class Web3WalletService extends IWeb3WalletService {
 
   @override
   FutureOr<void> onDispose() {
+    if (_isDisposed) {
+      return null;
+    }
+    _isDisposed = true;
+
     if (_wcClient != null && _listenersSubscribed) {
       _unsubscribeListeners();
     }
@@ -443,10 +452,7 @@ class Web3WalletService extends IWeb3WalletService {
     // onSessionRequest (with event.id) instead of discarding return values.
     for (final String chainId in _supportedNoMChainIds) {
       for (final String method in _supportedNoMMethods) {
-        _wcClient!.registerRequestHandler(
-          chainId: chainId,
-          method: method,
-        );
+        _wcClient!.registerRequestHandler(chainId: chainId, method: method);
       }
     }
   }
@@ -733,6 +739,9 @@ class Web3WalletService extends IWeb3WalletService {
   void _markRequestCompleted(int id) {
     _inFlightRequestIds.remove(id);
     _completedRequestIds.add(id);
+    if (_completedRequestIds.length > _maxCompletedRequestIds) {
+      _completedRequestIds.remove(_completedRequestIds.first);
+    }
   }
 
   void _markRequestFailed(int id) {
@@ -778,7 +787,7 @@ class Web3WalletService extends IWeb3WalletService {
   }
 
   void _reloadStores() {
-    if (_wcClient == null) return;
+    if (_wcClient == null || _isDisposed) return;
 
     final List<PairingInfo> updatedPairings = List<PairingInfo>.from(
       _wcClient!.pairings.getAll(),
@@ -883,9 +892,7 @@ class Web3WalletService extends IWeb3WalletService {
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: <Widget>[
-                Flexible(
-                  child: Text(dAppUrl, overflow: TextOverflow.ellipsis),
-                ),
+                Flexible(child: Text(dAppUrl, overflow: TextOverflow.ellipsis)),
                 LinkIcon(url: dAppUrl),
               ],
             ),
@@ -1092,42 +1099,35 @@ class Web3WalletService extends IWeb3WalletService {
   }
 
   String _dAppName(PairingMetadata metadata) {
-    return _metadataValue(metadata.name, 'Unknown dApp');
+    return walletConnectDisplayValue(metadata.name, 'Unknown dApp');
   }
 
   String _dAppDescription(PairingMetadata metadata) {
-    return _metadataValue(metadata.description, 'No description provided');
+    return walletConnectDisplayValue(
+      metadata.description,
+      'No description provided',
+    );
   }
 
   String? _dAppUrl(PairingMetadata metadata) {
-    final String value = _metadataValue(metadata.url, '');
-    final Uri? uri = Uri.tryParse(value);
-    if (uri == null || (uri.scheme != 'http' && uri.scheme != 'https')) {
-      return null;
-    }
-    return value;
+    return sanitizeWalletConnectHttpUrl(metadata.url);
   }
 
   String? _dAppIconUrl(PairingMetadata metadata) {
     for (final String icon in metadata.icons) {
-      final String value = _metadataValue(icon, '');
-      final Uri? uri = Uri.tryParse(value);
-      if (uri != null && (uri.scheme == 'http' || uri.scheme == 'https')) {
-        return value;
+      final String? sanitized = sanitizeWalletConnectHttpUrl(icon);
+      if (sanitized != null) {
+        return sanitized;
       }
     }
     return null;
   }
 
-  String _metadataValue(String value, String fallback) {
-    final String trimmed = value.trim();
-    if (trimmed.isEmpty || trimmed.toLowerCase() == 'null') {
-      return fallback;
-    }
-    return trimmed;
-  }
-
   void _upsertSession(SessionData session) {
+    if (_isDisposed) {
+      return;
+    }
+
     final List<SessionData> updated = List<SessionData>.from(sessions.value);
     final int index = updated.indexWhere(
       (SessionData item) => item.topic == session.topic,

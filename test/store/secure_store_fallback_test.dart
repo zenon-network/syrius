@@ -363,42 +363,32 @@ void main() {
       },
     );
 
-    test(
-      'delete and deleteAll preserve fallback stickiness without wiping '
-      'unrelated fallback keys',
-      () async {
-        final _MemoryStore fallback = _MemoryStore();
-        await fallback.set('unrelated_pairings', <String, dynamic>{
-          'count': 1,
-        });
+    test('delete and deleteAll preserve fallback stickiness without wiping '
+        'unrelated fallback keys', () async {
+      final _MemoryStore fallback = _MemoryStore();
+      await fallback.set('unrelated_pairings', <String, dynamic>{'count': 1});
 
-        final _FakeSecureStorage keychain = _FakeSecureStorage(
-          failWrites: true,
-        );
-        final StickyFallbackSecureStore store = StickyFallbackSecureStore(
-          fallbackStorage: fallback,
-          secureStorage: keychain,
-        );
-        await store.init();
-        await store.set('k1', <String, dynamic>{'v': 1});
-        await store.set('k2', <String, dynamic>{'v': 2});
+      final _FakeSecureStorage keychain = _FakeSecureStorage(failWrites: true);
+      final StickyFallbackSecureStore store = StickyFallbackSecureStore(
+        fallbackStorage: fallback,
+        secureStorage: keychain,
+      );
+      await store.init();
+      await store.set('k1', <String, dynamic>{'v': 1});
+      await store.set('k2', <String, dynamic>{'v': 2});
 
-        await store.delete('k1');
-        expect(store.has('k1'), isFalse);
-        expect(store.has('k2'), isTrue);
+      await store.delete('k1');
+      expect(store.has('k1'), isFalse);
+      expect(store.has('k2'), isTrue);
 
-        await store.deleteAll();
-        expect(store.has('k2'), isFalse);
-        expect(
-          fallback.has(StickyFallbackSecureStore.fallbackFlagKey),
-          isTrue,
-        );
-        expect(
-          fallback.get('unrelated_pairings'),
-          equals(<String, dynamic>{'count': 1}),
-        );
-      },
-    );
+      await store.deleteAll();
+      expect(store.has('k2'), isFalse);
+      expect(fallback.has(StickyFallbackSecureStore.fallbackFlagKey), isTrue);
+      expect(
+        fallback.get('unrelated_pairings'),
+        equals(<String, dynamic>{'count': 1}),
+      );
+    });
 
     test(
       'createDesktopReownCore wires StickyFallbackSecureStore into crypto',
@@ -429,5 +419,41 @@ void main() {
         );
       },
     );
+
+    test('migrates pre-existing keychain entries alongside triggering write '
+        'when keychain later fails', () async {
+      final _MemoryStore fallback = _MemoryStore();
+      final _FakeSecureStorage keychain = _FakeSecureStorage(
+        initialData: <String, String>{
+          '${ReownConstants.CORE_STORAGE_PREFIX}existing_key':
+              '{"secret":"old"}',
+        },
+      );
+
+      final StickyFallbackSecureStore store = StickyFallbackSecureStore(
+        fallbackStorage: fallback,
+        secureStorage: keychain,
+      );
+      await store.init();
+      expect(store.isUsingFallback, isFalse);
+      expect(
+        store.get('existing_key'),
+        equals(<String, dynamic>{'secret': 'old'}),
+      );
+
+      keychain.failWrites = true;
+      await store.set('new_key', <String, dynamic>{'secret': 'new'});
+
+      expect(store.isUsingFallback, isTrue);
+      expect(fallback.has(StickyFallbackSecureStore.fallbackFlagKey), isTrue);
+      expect(
+        fallback.get('existing_key'),
+        equals(<String, dynamic>{'secret': 'old'}),
+      );
+      expect(
+        fallback.get('new_key'),
+        equals(<String, dynamic>{'secret': 'new'}),
+      );
+    });
   });
 }

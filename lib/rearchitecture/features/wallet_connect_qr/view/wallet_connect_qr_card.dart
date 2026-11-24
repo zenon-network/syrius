@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -157,7 +158,6 @@ class _ViewState extends State<_View> {
         return;
       }
 
-      await windowManager.minimize();
       await _captureAndDecodeQr();
     } finally {
       if (mounted) {
@@ -170,7 +170,25 @@ class _ViewState extends State<_View> {
 
   Future<void> _captureAndDecodeQr() async {
     File? imageFile;
+    bool windowMinimized = false;
+    bool windowRestored = false;
+
+    Future<void> ensureWindowVisible() async {
+      if (!windowMinimized || windowRestored) {
+        return;
+      }
+      windowRestored = true;
+      try {
+        await windowManager.show();
+      } on Object {
+        // Best-effort window restore.
+      }
+    }
+
     try {
+      await windowManager.minimize();
+      windowMinimized = true;
+
       final Directory walletConnectDirectory = Directory(
         path.join(znnDefaultPaths.cache.path, walletConnectDirName),
       );
@@ -191,7 +209,7 @@ class _ViewState extends State<_View> {
         imagePath: imageFile.absolute.path,
       );
 
-      await windowManager.show();
+      await ensureWindowVisible();
       if (!mounted) {
         return;
       }
@@ -210,10 +228,16 @@ class _ViewState extends State<_View> {
         return;
       }
 
+      final Int32List pixels = Int32List(image.width * image.height);
+      int offset = 0;
+      for (final img.Pixel pixel in image) {
+        pixels[offset++] =
+            (pixel.r.toInt() << 16) | (pixel.g.toInt() << 8) | pixel.b.toInt();
+      }
       final LuminanceSource source = RGBLuminanceSource(
         image.width,
         image.height,
-        image.getBytes().buffer.asInt32List(),
+        pixels,
       );
       final BinaryBitmap bitmap = BinaryBitmap(HybridBinarizer(source));
       final Result result = QRCodeReader().decode(bitmap);
@@ -247,7 +271,7 @@ class _ViewState extends State<_View> {
         ),
       );
     } on Object catch (e) {
-      await windowManager.show();
+      await ensureWindowVisible();
       if (mounted) {
         await sl<NotificationsBloc>().addErrorNotification(
           e,
@@ -255,6 +279,7 @@ class _ViewState extends State<_View> {
         );
       }
     } finally {
+      await ensureWindowVisible();
       if (imageFile != null && imageFile.existsSync()) {
         try {
           imageFile.deleteSync();

@@ -1028,7 +1028,7 @@ class _MainAppContainerState extends State<MainAppContainer>
             timestamp: DateTime.now().millisecondsSinceEpoch,
             details:
                 'A WalletConnect link has been copied to clipboard. '
-                'Go to the WalletConnect tab to connect to the dApp through ${kLastWalletConnectUriNotifier.value}',
+                'Go to the WalletConnect tab to connect to the dApp through $text',
             type: NotificationType.copiedToClipboard,
           ),
         );
