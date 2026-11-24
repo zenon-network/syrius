@@ -15,7 +15,8 @@ class SentinelWithdrawQsrBloc
     extends Bloc<SentinelWithdrawQsrEvent, SentinelWithdrawQsrState> {
   /// Creates a new [SentinelWithdrawQsrBloc].
   ///
-  /// Polls `sentinel.getDepositedQsr` every [_pollInterval] up to
+  /// Snapshots the pre-transaction deposit within [_snapshotReadTimeout], then
+  /// polls `sentinel.getDepositedQsr` every [_pollInterval] up to
   /// [_confirmationTimeout] after block submission so the withdrawal is
   /// reflected on-chain before emitting [SentinelWithdrawQsrPopulated].
   SentinelWithdrawQsrBloc({
@@ -24,6 +25,7 @@ class SentinelWithdrawQsrBloc
     required this._zenonAddressUtils,
     this._pollInterval = kDefaultConfirmationPollInterval,
     this._confirmationTimeout = kDefaultConfirmationTimeout,
+    this._snapshotReadTimeout = kDefaultSnapshotReadTimeout,
   }) : super(const SentinelWithdrawQsrInitial()) {
     on<SentinelWithdrawQsrRequested>(_onWithdrawQsrRequested);
   }
@@ -33,6 +35,7 @@ class SentinelWithdrawQsrBloc
   final ZenonAddressUtils _zenonAddressUtils;
   final Duration _pollInterval;
   final Duration _confirmationTimeout;
+  final Duration _snapshotReadTimeout;
 
   FutureOr<void> _onWithdrawQsrRequested(
     SentinelWithdrawQsrRequested event,
@@ -93,7 +96,9 @@ class SentinelWithdrawQsrBloc
 
   Future<BigInt?> _readDepositedQsr(Address address) async {
     try {
-      return await _zenon.embedded.sentinel.getDepositedQsr(address);
+      return await _zenon.embedded.sentinel
+          .getDepositedQsr(address)
+          .timeout(_snapshotReadTimeout);
     } on Object {
       return null;
     }

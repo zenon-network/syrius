@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
@@ -41,14 +43,31 @@ void main() {
 
     SentinelWithdrawQsrBloc buildBloc({
       Duration pollInterval = Duration.zero,
-      Duration confirmationTimeout = const Duration(milliseconds: 50),
+      Duration confirmationTimeout = const Duration(seconds: 5),
+      Duration snapshotReadTimeout = const Duration(seconds: 5),
     }) => SentinelWithdrawQsrBloc(
       accountBlockUtils: accountBlockUtils,
       zenon: zenon,
       zenonAddressUtils: zenonAddressUtils,
       pollInterval: pollInterval,
       confirmationTimeout: confirmationTimeout,
+      snapshotReadTimeout: snapshotReadTimeout,
     );
+
+    Future<void> dispatchAndWaitForCompletion(
+      SentinelWithdrawQsrBloc target,
+      SentinelWithdrawQsrRequested event,
+    ) async {
+      final Future<SentinelWithdrawQsrState> completed = target.stream
+          .firstWhere(
+            (SentinelWithdrawQsrState state) =>
+                state is SentinelWithdrawQsrPopulated ||
+                state is SentinelWithdrawQsrFailure,
+          )
+          .timeout(const Duration(seconds: 2));
+      target.add(event);
+      await completed;
+    }
 
     setUp(() {
       zenon = MockZenon();
@@ -99,9 +118,10 @@ void main() {
         });
       },
       build: buildBloc,
-      act: (SentinelWithdrawQsrBloc bloc) =>
-          bloc.add(SentinelWithdrawQsrRequested(address: emptyAddress)),
-      wait: const Duration(milliseconds: 50),
+      act: (SentinelWithdrawQsrBloc bloc) => dispatchAndWaitForCompletion(
+        bloc,
+        SentinelWithdrawQsrRequested(address: emptyAddress),
+      ),
       expect: () => <SentinelWithdrawQsrState>[
         const SentinelWithdrawQsrLoading(),
         const SentinelWithdrawQsrPopulated(),
@@ -130,9 +150,43 @@ void main() {
         });
       },
       build: buildBloc,
-      act: (SentinelWithdrawQsrBloc bloc) =>
-          bloc.add(SentinelWithdrawQsrRequested(address: emptyAddress)),
-      wait: const Duration(milliseconds: 50),
+      act: (SentinelWithdrawQsrBloc bloc) => dispatchAndWaitForCompletion(
+        bloc,
+        SentinelWithdrawQsrRequested(address: emptyAddress),
+      ),
+      expect: () => <SentinelWithdrawQsrState>[
+        const SentinelWithdrawQsrLoading(),
+        const SentinelWithdrawQsrPopulated(),
+      ],
+      verify: (_) {
+        verify(() => sentinelApi.getDepositedQsr(emptyAddress)).called(3);
+        verify(() => zenonAddressUtils.refreshBalance()).called(1);
+      },
+    );
+
+    blocTest<SentinelWithdrawQsrBloc, SentinelWithdrawQsrState>(
+      'polls until deposit reaches zero when initial snapshot times out',
+      setUp: () {
+        final Completer<BigInt> stalledSnapshot = Completer<BigInt>();
+        int calls = 0;
+        when(() => sentinelApi.getDepositedQsr(emptyAddress)).thenAnswer((_) {
+          calls += 1;
+          if (calls == 1) {
+            return stalledSnapshot.future;
+          }
+          if (calls == 2) {
+            return Future<BigInt>.value(BigInt.from(5000));
+          }
+          return Future<BigInt>.value(BigInt.zero);
+        });
+      },
+      build: () => buildBloc(
+        snapshotReadTimeout: const Duration(milliseconds: 10),
+      ),
+      act: (SentinelWithdrawQsrBloc bloc) => dispatchAndWaitForCompletion(
+        bloc,
+        SentinelWithdrawQsrRequested(address: emptyAddress),
+      ),
       expect: () => <SentinelWithdrawQsrState>[
         const SentinelWithdrawQsrLoading(),
         const SentinelWithdrawQsrPopulated(),
@@ -151,9 +205,10 @@ void main() {
         ).thenAnswer((_) async => BigInt.zero);
       },
       build: buildBloc,
-      act: (SentinelWithdrawQsrBloc bloc) =>
-          bloc.add(SentinelWithdrawQsrRequested(address: emptyAddress)),
-      wait: const Duration(milliseconds: 50),
+      act: (SentinelWithdrawQsrBloc bloc) => dispatchAndWaitForCompletion(
+        bloc,
+        SentinelWithdrawQsrRequested(address: emptyAddress),
+      ),
       expect: () => <SentinelWithdrawQsrState>[
         const SentinelWithdrawQsrLoading(),
         const SentinelWithdrawQsrPopulated(),
@@ -167,9 +222,10 @@ void main() {
     blocTest<SentinelWithdrawQsrBloc, SentinelWithdrawQsrState>(
       'still emits populated when confirmation polling times out',
       build: () => buildBloc(confirmationTimeout: Duration.zero),
-      act: (SentinelWithdrawQsrBloc bloc) =>
-          bloc.add(SentinelWithdrawQsrRequested(address: emptyAddress)),
-      wait: const Duration(milliseconds: 50),
+      act: (SentinelWithdrawQsrBloc bloc) => dispatchAndWaitForCompletion(
+        bloc,
+        SentinelWithdrawQsrRequested(address: emptyAddress),
+      ),
       expect: () => <SentinelWithdrawQsrState>[
         const SentinelWithdrawQsrLoading(),
         const SentinelWithdrawQsrPopulated(),

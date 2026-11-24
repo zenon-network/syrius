@@ -16,7 +16,8 @@ class PillarWithdrawQsrBloc
     extends Bloc<PillarWithdrawQsrEvent, PillarWithdrawQsrState> {
   /// Creates a new [PillarWithdrawQsrBloc].
   ///
-  /// Polls `pillar.getDepositedQsr` every [_pollInterval] up to
+  /// Snapshots the pre-transaction deposit within [_snapshotReadTimeout], then
+  /// polls `pillar.getDepositedQsr` every [_pollInterval] up to
   /// [_confirmationTimeout] after block submission so the withdrawal is
   /// reflected on-chain before emitting [PillarWithdrawQsrPopulated].
   PillarWithdrawQsrBloc({
@@ -25,6 +26,7 @@ class PillarWithdrawQsrBloc
     required this._zenonAddressUtils,
     this._pollInterval = kDefaultConfirmationPollInterval,
     this._confirmationTimeout = kDefaultConfirmationTimeout,
+    this._snapshotReadTimeout = kDefaultSnapshotReadTimeout,
   }) : super(const PillarWithdrawQsrInitial()) {
     on<PillarWithdrawQsrRequested>(_onWithdrawQsrRequested);
   }
@@ -34,6 +36,7 @@ class PillarWithdrawQsrBloc
   final ZenonAddressUtils _zenonAddressUtils;
   final Duration _pollInterval;
   final Duration _confirmationTimeout;
+  final Duration _snapshotReadTimeout;
 
   FutureOr<void> _onWithdrawQsrRequested(
     PillarWithdrawQsrRequested event,
@@ -94,7 +97,9 @@ class PillarWithdrawQsrBloc
 
   Future<BigInt?> _readDepositedQsr(Address address) async {
     try {
-      return await _zenon.embedded.pillar.getDepositedQsr(address);
+      return await _zenon.embedded.pillar
+          .getDepositedQsr(address)
+          .timeout(_snapshotReadTimeout);
     } on Object {
       return null;
     }

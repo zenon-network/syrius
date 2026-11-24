@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
@@ -41,7 +43,8 @@ void main() {
 
     PillarDepositQsrBloc buildBloc({
       Duration pollInterval = Duration.zero,
-      Duration confirmationTimeout = const Duration(milliseconds: 50),
+      Duration confirmationTimeout = const Duration(seconds: 5),
+      Duration snapshotReadTimeout = const Duration(seconds: 5),
       Duration postTransactionDelay = Duration.zero,
     }) => PillarDepositQsrBloc(
       accountBlockUtils: accountBlockUtils,
@@ -49,8 +52,24 @@ void main() {
       zenonAddressUtils: zenonAddressUtils,
       pollInterval: pollInterval,
       confirmationTimeout: confirmationTimeout,
+      snapshotReadTimeout: snapshotReadTimeout,
       postTransactionDelay: postTransactionDelay,
     );
+
+    Future<void> dispatchAndWaitForCompletion(
+      PillarDepositQsrBloc target,
+      PillarDepositQsrRequested event,
+    ) async {
+      final Future<PillarDepositQsrState> completed = target.stream
+          .firstWhere(
+            (PillarDepositQsrState state) =>
+                state is PillarDepositQsrDone ||
+                state is PillarDepositQsrFailure,
+          )
+          .timeout(const Duration(seconds: 2));
+      target.add(event);
+      await completed;
+    }
 
     setUp(() {
       zenon = MockZenon();
@@ -105,13 +124,13 @@ void main() {
         });
       },
       build: buildBloc,
-      act: (PillarDepositQsrBloc bloc) => bloc.add(
+      act: (PillarDepositQsrBloc bloc) => dispatchAndWaitForCompletion(
+        bloc,
         PillarDepositQsrRequested(
           address: emptyAddress,
           amount: BigInt.from(100),
         ),
       ),
-      wait: const Duration(milliseconds: 50),
       expect: () => <PillarDepositQsrState>[
         const PillarDepositQsrLoading(),
         PillarDepositQsrDone(accountBlock: template),
@@ -126,10 +145,10 @@ void main() {
       'still emits done and refreshes balance when confirmation polling '
       'times out',
       build: () => buildBloc(confirmationTimeout: Duration.zero),
-      act: (PillarDepositQsrBloc bloc) => bloc.add(
+      act: (PillarDepositQsrBloc bloc) => dispatchAndWaitForCompletion(
+        bloc,
         PillarDepositQsrRequested(address: emptyAddress, amount: BigInt.one),
       ),
-      wait: const Duration(milliseconds: 50),
       expect: () => <PillarDepositQsrState>[
         const PillarDepositQsrLoading(),
         PillarDepositQsrDone(accountBlock: template),
@@ -147,10 +166,36 @@ void main() {
         ).thenThrow(Exception('snapshot failed'));
       },
       build: buildBloc,
-      act: (PillarDepositQsrBloc bloc) => bloc.add(
+      act: (PillarDepositQsrBloc bloc) => dispatchAndWaitForCompletion(
+        bloc,
         PillarDepositQsrRequested(address: emptyAddress, amount: BigInt.one),
       ),
-      wait: const Duration(milliseconds: 50),
+      expect: () => <PillarDepositQsrState>[
+        const PillarDepositQsrLoading(),
+        PillarDepositQsrDone(accountBlock: template),
+      ],
+      verify: (_) {
+        verify(() => pillarApi.getDepositedQsr(emptyAddress)).called(1);
+        verify(() => zenonAddressUtils.refreshBalance()).called(1);
+      },
+    );
+
+    blocTest<PillarDepositQsrBloc, PillarDepositQsrState>(
+      'falls back to postTransactionDelay when initial deposit snapshot times '
+      'out',
+      setUp: () {
+        final Completer<BigInt> stalledSnapshot = Completer<BigInt>();
+        when(
+          () => pillarApi.getDepositedQsr(emptyAddress),
+        ).thenAnswer((_) => stalledSnapshot.future);
+      },
+      build: () => buildBloc(
+        snapshotReadTimeout: const Duration(milliseconds: 10),
+      ),
+      act: (PillarDepositQsrBloc bloc) => dispatchAndWaitForCompletion(
+        bloc,
+        PillarDepositQsrRequested(address: emptyAddress, amount: BigInt.one),
+      ),
       expect: () => <PillarDepositQsrState>[
         const PillarDepositQsrLoading(),
         PillarDepositQsrDone(accountBlock: template),

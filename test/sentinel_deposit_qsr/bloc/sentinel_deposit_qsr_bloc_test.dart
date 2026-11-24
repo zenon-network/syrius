@@ -44,7 +44,8 @@ void main() {
 
     SentinelDepositQsrBloc buildBloc({
       Duration pollInterval = Duration.zero,
-      Duration confirmationTimeout = const Duration(milliseconds: 50),
+      Duration confirmationTimeout = const Duration(seconds: 5),
+      Duration snapshotReadTimeout = const Duration(seconds: 5),
       Duration postTransactionDelay = Duration.zero,
     }) => SentinelDepositQsrBloc(
       accountBlockUtils: accountBlockUtils,
@@ -52,8 +53,24 @@ void main() {
       zenonAddressUtils: zenonAddressUtils,
       pollInterval: pollInterval,
       confirmationTimeout: confirmationTimeout,
+      snapshotReadTimeout: snapshotReadTimeout,
       postTransactionDelay: postTransactionDelay,
     );
+
+    Future<void> dispatchAndWaitForCompletion(
+      SentinelDepositQsrBloc target,
+      SentinelDepositQsrRequested event,
+    ) async {
+      final Future<SentinelDepositQsrState> completed = target.stream
+          .firstWhere(
+            (SentinelDepositQsrState state) =>
+                state is SentinelDepositQsrDone ||
+                state is SentinelDepositQsrFailure,
+          )
+          .timeout(const Duration(seconds: 2));
+      target.add(event);
+      await completed;
+    }
 
     setUp(() {
       zenon = MockZenon();
@@ -108,13 +125,13 @@ void main() {
         });
       },
       build: buildBloc,
-      act: (SentinelDepositQsrBloc bloc) => bloc.add(
+      act: (SentinelDepositQsrBloc bloc) => dispatchAndWaitForCompletion(
+        bloc,
         SentinelDepositQsrRequested(
           address: emptyAddress,
           amount: BigInt.from(50),
         ),
       ),
-      wait: const Duration(milliseconds: 50),
       expect: () => <SentinelDepositQsrState>[
         const SentinelDepositQsrLoading(),
         const SentinelDepositQsrDone(),
@@ -129,10 +146,10 @@ void main() {
       'still emits done and refreshes balance when confirmation polling '
       'times out',
       build: () => buildBloc(confirmationTimeout: Duration.zero),
-      act: (SentinelDepositQsrBloc bloc) => bloc.add(
+      act: (SentinelDepositQsrBloc bloc) => dispatchAndWaitForCompletion(
+        bloc,
         SentinelDepositQsrRequested(address: emptyAddress, amount: BigInt.one),
       ),
-      wait: const Duration(milliseconds: 50),
       expect: () => <SentinelDepositQsrState>[
         const SentinelDepositQsrLoading(),
         const SentinelDepositQsrDone(),
@@ -150,10 +167,36 @@ void main() {
         ).thenThrow(Exception('snapshot failed'));
       },
       build: buildBloc,
-      act: (SentinelDepositQsrBloc bloc) => bloc.add(
+      act: (SentinelDepositQsrBloc bloc) => dispatchAndWaitForCompletion(
+        bloc,
         SentinelDepositQsrRequested(address: emptyAddress, amount: BigInt.one),
       ),
-      wait: const Duration(milliseconds: 50),
+      expect: () => <SentinelDepositQsrState>[
+        const SentinelDepositQsrLoading(),
+        const SentinelDepositQsrDone(),
+      ],
+      verify: (_) {
+        verify(() => sentinelApi.getDepositedQsr(emptyAddress)).called(1);
+        verify(() => zenonAddressUtils.refreshBalance()).called(1);
+      },
+    );
+
+    blocTest<SentinelDepositQsrBloc, SentinelDepositQsrState>(
+      'falls back to postTransactionDelay when initial deposit snapshot times '
+      'out',
+      setUp: () {
+        final Completer<BigInt> stalledSnapshot = Completer<BigInt>();
+        when(
+          () => sentinelApi.getDepositedQsr(emptyAddress),
+        ).thenAnswer((_) => stalledSnapshot.future);
+      },
+      build: () => buildBloc(
+        snapshotReadTimeout: const Duration(milliseconds: 10),
+      ),
+      act: (SentinelDepositQsrBloc bloc) => dispatchAndWaitForCompletion(
+        bloc,
+        SentinelDepositQsrRequested(address: emptyAddress, amount: BigInt.one),
+      ),
       expect: () => <SentinelDepositQsrState>[
         const SentinelDepositQsrLoading(),
         const SentinelDepositQsrDone(),
@@ -178,10 +221,7 @@ void main() {
       });
 
       final SentinelDepositQsrBloc closingBloc =
-          buildBloc(
-            pollInterval: const Duration(milliseconds: 5),
-            confirmationTimeout: const Duration(seconds: 5),
-          )..add(
+          buildBloc(pollInterval: const Duration(milliseconds: 5))..add(
             SentinelDepositQsrRequested(
               address: emptyAddress,
               amount: BigInt.one,
