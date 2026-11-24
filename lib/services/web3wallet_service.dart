@@ -7,8 +7,6 @@ import 'package:window_manager/window_manager.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/notifications_bloc.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/wallet_connect/chains/i_chain.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/wallet_connect/chains/nom_service.dart';
-import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/wallet_connect_pairings/bloc/wallet_connect_pairings_bloc.dart';
-import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/wallet_connect_sessions/bloc/wallet_connect_sessions_bloc.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/model/database/notification_type.dart';
 import 'package:zenon_syrius_wallet_flutter/model/database/wallet_notification.dart';
@@ -139,7 +137,6 @@ class Web3WalletService extends IWeb3WalletService {
 
     _isInitialized = true;
     _reloadStores();
-    _refreshUi();
     unawaited(_drainPendingSessionRequests());
   }
 
@@ -187,7 +184,6 @@ class Web3WalletService extends IWeb3WalletService {
 
     final PairingInfo pairing = await _wcClient!.pair(uri: uri);
     _reloadStores();
-    _refreshUi();
     return pairing;
   }
 
@@ -217,7 +213,6 @@ class Web3WalletService extends IWeb3WalletService {
     }
 
     _reloadStores();
-    _refreshUi();
   }
 
   @override
@@ -227,23 +222,23 @@ class Web3WalletService extends IWeb3WalletService {
     }
     await _wcClient!.core.pairing.activate(topic: topic);
     _reloadStores();
-    _refreshUi();
   }
 
   @override
   Future<void> deactivatePairing({required String topic}) async {
     if (_wcClient == null) {
-      return;
+      throw StateError('WalletConnect client not created');
     }
     try {
       await _wcClient!.core.pairing.disconnect(topic: topic);
       _approvedProposalIds.clear();
       _reloadStores();
-      _refreshUi();
     } on ReownCoreError catch (e) {
       _logger.warning('Failed to deactivate pairing: ${e.code} ${e.message}');
+      rethrow;
     } on Object catch (e, s) {
       _logger.severe('Unexpected error while deactivating pairing', e, s);
+      rethrow;
     }
   }
 
@@ -295,7 +290,6 @@ class Web3WalletService extends IWeb3WalletService {
 
     _approvedProposalIds.clear();
     _reloadStores();
-    _refreshUi();
   }
 
   @override
@@ -318,7 +312,6 @@ class Web3WalletService extends IWeb3WalletService {
 
     _approvedProposalIds.clear();
     _reloadStores();
-    _refreshUi();
   }
 
   @override
@@ -330,7 +323,7 @@ class Web3WalletService extends IWeb3WalletService {
   @override
   Future<void> disconnectSession({required String topic}) async {
     if (_wcClient == null) {
-      return;
+      throw StateError('WalletConnect client not created');
     }
 
     await _wcClient!.disconnectSession(
@@ -339,7 +332,6 @@ class Web3WalletService extends IWeb3WalletService {
     );
 
     _reloadStores();
-    _refreshUi();
   }
 
   @override
@@ -804,15 +796,6 @@ class Web3WalletService extends IWeb3WalletService {
     );
   }
 
-  void _refreshUi() {
-    if (sl.isRegistered<WalletConnectPairingsBloc>()) {
-      sl.get<WalletConnectPairingsBloc>().refreshResults();
-    }
-    if (sl.isRegistered<WalletConnectSessionsBloc>()) {
-      sl.get<WalletConnectSessionsBloc>().refreshResults();
-    }
-  }
-
   Future<void> _onSessionProposal(SessionProposalEvent? event) async {
     if (event == null || _wcClient == null) return;
 
@@ -853,7 +836,6 @@ class Web3WalletService extends IWeb3WalletService {
       } finally {
         _proposalIdsInFlight.remove(event.id);
         _reloadStores();
-        _refreshUi();
       }
       return;
     }
@@ -928,7 +910,6 @@ class Web3WalletService extends IWeb3WalletService {
         await _sendSuccessfullyApprovedSessionNotification(dAppMetadata);
 
         _reloadStores();
-        _refreshUi();
       } on Object catch (e, s) {
         _logger.severe('Failed approving WalletConnect session', e, s);
         await NotificationUtils.sendNotificationError(
@@ -952,7 +933,6 @@ class Web3WalletService extends IWeb3WalletService {
     } finally {
       _proposalIdsInFlight.remove(event.id);
       _reloadStores();
-      _refreshUi();
     }
   }
 
@@ -1063,7 +1043,6 @@ class Web3WalletService extends IWeb3WalletService {
     }
 
     _reloadStores();
-    _refreshUi();
   }
 
   Future<void> _sendSuccessfullyApprovedSessionNotification(
@@ -1215,18 +1194,15 @@ class Web3WalletService extends IWeb3WalletService {
   void _onSessionsSync(StoreSyncEvent? args) {
     if (args == null) return;
     _reloadStores();
-    _refreshUi();
   }
 
   void _onPairingsSync(StoreSyncEvent? args) {
     if (args == null) return;
     _reloadStores();
-    _refreshUi();
   }
 
   void _onSessionDelete(SessionDelete? args) {
     _reloadStores();
-    _refreshUi();
   }
 
   void _onSessionProposalError(SessionProposalErrorEvent? args) {
@@ -1236,42 +1212,34 @@ class Web3WalletService extends IWeb3WalletService {
       _proposalIdsInFlight.remove(args.id);
     }
     _reloadStores();
-    _refreshUi();
   }
 
   void _onPairingCreate(PairingEvent? args) {
     _reloadStores();
-    _refreshUi();
   }
 
   void _onPairingActivate(PairingActivateEvent? args) {
     _reloadStores();
-    _refreshUi();
   }
 
   void _onPairingPing(PairingEvent? args) {
     _reloadStores();
-    _refreshUi();
   }
 
   void _onPairingInvalid(PairingInvalidEvent? args) {
     _reloadStores();
-    _refreshUi();
   }
 
   void _onPairingDelete(PairingEvent? args) {
     _reloadStores();
-    _refreshUi();
   }
 
   void _onRelayClientConnect(dynamic args) {
     _reloadStores();
-    _refreshUi();
   }
 
   void _onRelayClientDisconnect(dynamic args) {
     _reloadStores();
-    _refreshUi();
   }
 
   void _onRelayClientError(dynamic args) {

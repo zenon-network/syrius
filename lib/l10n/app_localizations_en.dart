@@ -9,6 +9,9 @@ class AppLocalizationsEn extends AppLocalizations {
   AppLocalizationsEn([String locale = 'en']) : super(locale);
 
   @override
+  String get acknowledged => 'Acknowledged';
+
+  @override
   String get active => 'Active';
 
   @override
@@ -282,6 +285,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get duration => 'Duration';
 
   @override
+  String get empty => 'Empty';
+
+  @override
   String get exchangeRate => 'Exchange Rate';
 
   @override
@@ -340,6 +346,14 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get errorWhileCancellingStake => 'Error while cancelling stake';
+
+  @override
+  String get errorWhileDeactivatingPairing =>
+      'Error while deactivating pairing';
+
+  @override
+  String get errorWhileDisconnectingSession =>
+      'Error while disconnecting session';
 
   @override
   String get errorGeneratingPlasma => 'Error while generating Plasma';
@@ -622,6 +636,9 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get p2pSwapsConductedWithWallet =>
       'This card displays a list of P2P swaps that have been conducted with this wallet.';
+
+  @override
+  String get pairingTopic => 'Pairing Topic';
 
   @override
   String get password => 'Password';
@@ -921,6 +938,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get sentinelsListTitle => 'Sentinels List';
 
   @override
+  String get sessionTopic => 'Session Topic';
+
+  @override
   String get shareQr => 'Share QR';
 
   @override
@@ -1159,6 +1179,9 @@ class AppLocalizationsEn extends AppLocalizations {
       'This card displays a grid with all the ZTS tokens from the network, including ZTS tokens issued by you';
 
   @override
+  String get topic => 'Topic';
+
+  @override
   String get totalSupply => 'Total supply';
 
   @override
@@ -1224,6 +1247,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get uptime => 'Uptime';
 
   @override
+  String get url => 'URL';
+
+  @override
   String get utilityToken => 'Utility token';
 
   @override
@@ -1263,11 +1289,25 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get weight => 'Weight';
+  String get walletConnectPairingDescription =>
+      'A pairing refers to the initial process of establishing a secure connection between a wallet and the dApp. Once the pairing is complete, a session is established, which allows the dApp to communicate with the wallet securely over the Internet';
+
+  @override
+  String get walletConnectPairingList => 'WalletConnect Pairing List';
+
+  @override
+  String get walletConnectSessionDescription =>
+      'A session refers to a live connection between a user\'s wallet and a dApp. A session allows the dApp to communicate with the wallet securely over the Internet';
+
+  @override
+  String get walletConnectSessionsList => 'WalletConnect Sessions List';
 
   @override
   String get walletNotAutoLocked =>
       'Your wallet will not be auto-locked while the swap is in progress.';
+
+  @override
+  String get weight => 'Weight';
 
   @override
   String get withdraw => 'Withdraw';

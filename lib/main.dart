@@ -23,8 +23,6 @@ import 'package:window_manager/window_manager.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/wallet_connect/chains/i_chain.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/wallet_connect/chains/nom_service.dart';
-import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/wallet_connect_pairings/bloc/wallet_connect_pairings_bloc.dart';
-import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/wallet_connect_sessions/bloc/wallet_connect_sessions_bloc.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/p2p_swaps/services/htlc_swap_auto_unlock_service.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/p2p_swaps/services/htlc_swap_sync_service.dart';
 import 'package:zenon_syrius_wallet_flutter/hive/hive_registrar.g.dart';
@@ -399,12 +397,6 @@ void setup() {
   sl.registerSingleton<BalanceBloc>(BalanceBloc());
   sl.registerSingleton<AcceleratorBalanceBloc>(AcceleratorBalanceBloc());
   sl.registerSingleton<PowGeneratingStatusBloc>(PowGeneratingStatusBloc());
-  sl.registerSingleton<WalletConnectPairingsBloc>(
-    WalletConnectPairingsBloc(),
-  );
-  sl.registerSingleton<WalletConnectSessionsBloc>(
-    WalletConnectSessionsBloc(),
-  );
 }
 
 class MyApp extends StatefulWidget {

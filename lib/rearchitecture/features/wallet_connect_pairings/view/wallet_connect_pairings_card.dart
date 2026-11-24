@@ -1,149 +1,204 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:reown_walletkit/reown_walletkit.dart';
-import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
-import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/wallet_connect_pairings/bloc/wallet_connect_pairings_bloc.dart';
-import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/wallet_connect_sessions/bloc/wallet_connect_sessions_bloc.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/services/i_web3wallet_service.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/extensions.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/icons/clear_icon.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart'
+    hide
+        InfiniteScrollTable,
+        InfiniteScrollTableCell,
+        InfiniteScrollTableHeaderColumn;
 
-const String _kWidgetTitle = 'WalletConnect Pairing List';
-const String _kWidgetDescription =
-    'A pairing refers to the initial process of establishing a secure connection between a wallet and the dApp.'
-    'Once the pairing is complete, a session is established, which allows the dApp to communicate with the wallet '
-    'securely over the Internet';
-
-class WalletConnectPairingsCard extends StatefulWidget {
+/// Displays WalletConnect pairings and allows deactivating individual pairings.
+class WalletConnectPairingsCard extends StatelessWidget {
+  /// Creates a [WalletConnectPairingsCard].
   const WalletConnectPairingsCard({super.key});
 
   @override
-  State<WalletConnectPairingsCard> createState() =>
-      _WalletConnectPairingsCardState();
+  Widget build(BuildContext context) {
+    return BlocProvider<WalletConnectPairingsBloc>(
+      create: (_) => WalletConnectPairingsBloc(
+        web3WalletService: sl<IWeb3WalletService>(),
+      ),
+      child: const _View(),
+    );
+  }
 }
 
-class _WalletConnectPairingsCardState extends State<WalletConnectPairingsCard> {
-  final WalletConnectPairingsBloc _pairingsBloc =
-      sl.get<WalletConnectPairingsBloc>();
-
-  @override
-  void initState() {
-    super.initState();
-  }
+class _View extends StatelessWidget {
+  const _View();
 
   @override
   Widget build(BuildContext context) {
-    return CardScaffold(
-      title: _kWidgetTitle,
-      description: _kWidgetDescription,
-      childBuilder: _getCardBody,
-      onRefreshPressed: _pairingsBloc.refreshResults,
-    );
-  }
-
-  Widget _getCardBody() {
-    return _buildPairingsTable();
-  }
-
-  Widget _buildPairingsTable() {
-    return InfiniteScrollTable<PairingInfo>(
-      disposeBloc: false,
-      bloc: _pairingsBloc,
-      headerColumns: const <InfiniteScrollTableHeaderColumn>[
-        InfiniteScrollTableHeaderColumn(
-          columnName: 'Name',
-        ),
-        InfiniteScrollTableHeaderColumn(
-          columnName: 'URL',
-          flex: 2,
-        ),
-        InfiniteScrollTableHeaderColumn(
-          columnName: 'Topic',
-        ),
-        InfiniteScrollTableHeaderColumn(
-          columnName: 'Expiration',
-        ),
-        InfiniteScrollTableHeaderColumn(
-          columnName: 'Active',
-        ),
-        InfiniteScrollTableHeaderColumn(
-          columnName: '',
-        ),
-      ],
-      generateRowCells: (PairingInfo pairingInfo, bool isSelected) {
-        return <Widget>[
-          InfiniteScrollTableCell.withText(
-            context,
-            pairingInfo.peerMetadata?.name ?? 'Empty',
-          ),
-          InfiniteScrollTableCell(
-            _buildTableUrlWidget(pairingInfo),
-            flex: 2,
-          ),
-          if (isSelected) InfiniteScrollTableCell.withMarquee(
-                  pairingInfo.topic,
-                ) else InfiniteScrollTableCell.withText(
-                  context,
-                  pairingInfo.topic.short,
-                ),
-          InfiniteScrollTableCell.withText(
-            context,
-            _formatExpiryDateTime(pairingInfo.expiry),
-          ),
-          InfiniteScrollTableCell.withText(
-            context,
-            pairingInfo.active ? 'Yes' : 'No',
-          ),
-          InfiniteScrollTableCell(
-            _buildDeactivatePairingIcon(pairingInfo),
-          ),
-        ];
+    return BlocListener<WalletConnectPairingsBloc, WalletConnectPairingsState>(
+      listenWhen:
+          (
+            WalletConnectPairingsState previous,
+            WalletConnectPairingsState current,
+          ) =>
+              current.error != null &&
+              previous.errorCount != current.errorCount,
+      listener: (BuildContext context, WalletConnectPairingsState state) {
+        final Object? error = state.error;
+        if (error != null) {
+          unawaited(
+            NotificationUtils.sendNotificationError(
+              error,
+              context.l10n.errorWhileDeactivatingPairing,
+            ),
+          );
+        }
       },
+      child: NewCardScaffold(
+        data: CardData(
+          title: context.l10n.walletConnectPairingList,
+          description: context.l10n.walletConnectPairingDescription,
+        ),
+        onRefreshPressed: () {
+          context.read<WalletConnectPairingsBloc>().add(
+            const WalletConnectPairingsRefreshRequested(),
+          );
+        },
+        body:
+            BlocBuilder<WalletConnectPairingsBloc, WalletConnectPairingsState>(
+              builder:
+                  (
+                    BuildContext context,
+                    WalletConnectPairingsState state,
+                  ) {
+                    return _Populated(
+                      pairings: state.pairings,
+                      deactivatingTopics: state.deactivatingTopics,
+                    );
+                  },
+            ),
+      ),
+    );
+  }
+}
+
+class _Populated extends StatelessWidget {
+  const _Populated({
+    required this._pairings,
+    required this._deactivatingTopics,
+  });
+
+  final List<PairingInfo> _pairings;
+  final Set<String> _deactivatingTopics;
+
+  @override
+  Widget build(BuildContext context) {
+    return InfiniteScrollTable<PairingInfo>(
+      itemKeyGenerator: (PairingInfo pairing) =>
+          ValueKey<String>(pairing.topic),
+      items: _pairings,
+      hasReachedMax: true,
+      onScrollReachedBottom: () {},
+      columns: const <InfiniteScrollTableColumnType>[
+        .name,
+        .url,
+        .topic,
+        .expiration,
+        .active,
+        .blank,
+      ],
+      generateRowCells: (PairingInfo pairing) => _buildRowCells(
+        context: context,
+        pairing: pairing,
+      ),
     );
   }
 
-  ClearIcon _buildDeactivatePairingIcon(PairingInfo pairingInfo) {
-    return ClearIcon(
-      onPressed: () => _onDeactivatePairingIconPressed(pairingInfo),
-      context: context,
+  List<Widget> _buildRowCells({
+    required BuildContext context,
+    required PairingInfo pairing,
+  }) {
+    final String name = walletConnectDisplayValue(
+      pairing.peerMetadata?.name,
+      context.l10n.empty,
     );
+
+    return <Widget>[
+      InfiniteScrollTableCell.withText(content: name),
+      InfiniteScrollTableCell(
+        flex: 2,
+        child: _buildUrlCell(
+          context: context,
+          rawUrl: pairing.peerMetadata?.url,
+        ),
+      ),
+      InfiniteScrollTableCell.withText(
+        content: pairing.topic.short,
+        tooltipMessage: pairing.topic,
+        textToBeCopied: pairing.topic,
+      ),
+      InfiniteScrollTableCell(
+        child: Center(
+          child: Text(
+            formatWalletConnectExpiry(pairing.expiry),
+            overflow: TextOverflow.ellipsis,
+            maxLines: 1,
+          ),
+        ),
+      ),
+      InfiniteScrollTableCell.withText(
+        content: pairing.active
+            ? context.l10n.yes.capitalize()
+            : context.l10n.no.capitalize(),
+      ),
+      InfiniteScrollTableCell(
+        child: _buildDeactivateCell(
+          context: context,
+          pairing: pairing,
+        ),
+      ),
+    ];
   }
 
-  Row _buildTableUrlWidget(PairingInfo pairingInfo) {
+  Widget _buildUrlCell({
+    required BuildContext context,
+    required String? rawUrl,
+  }) {
+    final String? safeUrl = sanitizeWalletConnectHttpUrl(rawUrl);
+    final String label = walletConnectDisplayValue(rawUrl, context.l10n.empty);
+
     return Row(
       children: <Widget>[
-        Text(pairingInfo.peerMetadata?.url ?? 'Empty'),
-        Visibility(
-          visible: pairingInfo.peerMetadata?.url != null,
-          child: LinkIcon(
-            url: pairingInfo.peerMetadata?.url ?? 'Empty',
+        Flexible(
+          child: Text(
+            label,
+            overflow: TextOverflow.ellipsis,
+            maxLines: 1,
           ),
         ),
+        if (safeUrl != null) LinkIcon(url: safeUrl),
       ],
     );
   }
 
-  String _formatExpiryDateTime(int expirySeconds) {
-    final DateTime expiryDateTime =
-        DateTime.fromMillisecondsSinceEpoch(expirySeconds * 1000);
-
-    return DateFormat('MMM dd, y HH:mm:ss').format(expiryDateTime);
-  }
-
-  Future<void> _onDeactivatePairingIconPressed(PairingInfo pairingInfo) async {
-    try {
-      await sl<IWeb3WalletService>().deactivatePairing(
-        topic: pairingInfo.topic,
-      );
-      _pairingsBloc.refreshResults();
-      sl<WalletConnectSessionsBloc>().refreshResults();
-    } catch (e) {
-      await sl<NotificationsBloc>().addErrorNotification(
-        e,
-        'Error while deactivating pair',
+  Widget _buildDeactivateCell({
+    required BuildContext context,
+    required PairingInfo pairing,
+  }) {
+    if (_deactivatingTopics.contains(pairing.topic)) {
+      return const Center(
+        child: SyriusLoadingWidget(size: 18, strokeWidth: 2, padding: 2),
       );
     }
+
+    return ClearIcon(
+      onPressed: () {
+        context.read<WalletConnectPairingsBloc>().add(
+          WalletConnectPairingDeactivateRequested(topic: pairing.topic),
+        );
+      },
+      context: context,
+    );
   }
 }

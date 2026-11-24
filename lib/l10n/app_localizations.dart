@@ -94,6 +94,12 @@ abstract class AppLocalizations {
   /// A list of this localizations delegate's supported locales.
   static const List<Locale> supportedLocales = <Locale>[Locale('en')];
 
+  /// No description provided for @acknowledged.
+  ///
+  /// In en, this message translates to:
+  /// **'Acknowledged'**
+  String get acknowledged;
+
   /// No description provided for @active.
   ///
   /// In en, this message translates to:
@@ -544,6 +550,12 @@ abstract class AppLocalizations {
   /// **'Duration'**
   String get duration;
 
+  /// No description provided for @empty.
+  ///
+  /// In en, this message translates to:
+  /// **'Empty'**
+  String get empty;
+
   /// No description provided for @exchangeRate.
   ///
   /// In en, this message translates to:
@@ -651,6 +663,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Error while cancelling stake'**
   String get errorWhileCancellingStake;
+
+  /// No description provided for @errorWhileDeactivatingPairing.
+  ///
+  /// In en, this message translates to:
+  /// **'Error while deactivating pairing'**
+  String get errorWhileDeactivatingPairing;
+
+  /// No description provided for @errorWhileDisconnectingSession.
+  ///
+  /// In en, this message translates to:
+  /// **'Error while disconnecting session'**
+  String get errorWhileDisconnectingSession;
 
   /// No description provided for @errorGeneratingPlasma.
   ///
@@ -1131,6 +1155,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'This card displays a list of P2P swaps that have been conducted with this wallet.'**
   String get p2pSwapsConductedWithWallet;
+
+  /// No description provided for @pairingTopic.
+  ///
+  /// In en, this message translates to:
+  /// **'Pairing Topic'**
+  String get pairingTopic;
 
   /// No description provided for @password.
   ///
@@ -1641,6 +1671,12 @@ abstract class AppLocalizations {
   /// **'Sentinels List'**
   String get sentinelsListTitle;
 
+  /// No description provided for @sessionTopic.
+  ///
+  /// In en, this message translates to:
+  /// **'Session Topic'**
+  String get sessionTopic;
+
   /// No description provided for @shareQr.
   ///
   /// In en, this message translates to:
@@ -2031,6 +2067,12 @@ abstract class AppLocalizations {
   /// **'This card displays a grid with all the ZTS tokens from the network, including ZTS tokens issued by you'**
   String get tokensCardDescription;
 
+  /// No description provided for @topic.
+  ///
+  /// In en, this message translates to:
+  /// **'Topic'**
+  String get topic;
+
   /// No description provided for @totalSupply.
   ///
   /// In en, this message translates to:
@@ -2145,6 +2187,12 @@ abstract class AppLocalizations {
   /// **'Uptime'**
   String get uptime;
 
+  /// No description provided for @url.
+  ///
+  /// In en, this message translates to:
+  /// **'URL'**
+  String get url;
+
   /// No description provided for @utilityToken.
   ///
   /// In en, this message translates to:
@@ -2211,17 +2259,41 @@ abstract class AppLocalizations {
   /// **'If the token or the amount you are receiving is not what you have agreed upon, wait until your deposit expires to reclaim your funds.\nYour deposit will expire at {expirationDate}.'**
   String waitToReclaimIncorrectDeposit(String expirationDate);
 
-  /// No description provided for @weight.
+  /// No description provided for @walletConnectPairingDescription.
   ///
   /// In en, this message translates to:
-  /// **'Weight'**
-  String get weight;
+  /// **'A pairing refers to the initial process of establishing a secure connection between a wallet and the dApp. Once the pairing is complete, a session is established, which allows the dApp to communicate with the wallet securely over the Internet'**
+  String get walletConnectPairingDescription;
+
+  /// No description provided for @walletConnectPairingList.
+  ///
+  /// In en, this message translates to:
+  /// **'WalletConnect Pairing List'**
+  String get walletConnectPairingList;
+
+  /// No description provided for @walletConnectSessionDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'A session refers to a live connection between a user\'s wallet and a dApp. A session allows the dApp to communicate with the wallet securely over the Internet'**
+  String get walletConnectSessionDescription;
+
+  /// No description provided for @walletConnectSessionsList.
+  ///
+  /// In en, this message translates to:
+  /// **'WalletConnect Sessions List'**
+  String get walletConnectSessionsList;
 
   /// No description provided for @walletNotAutoLocked.
   ///
   /// In en, this message translates to:
   /// **'Your wallet will not be auto-locked while the swap is in progress.'**
   String get walletNotAutoLocked;
+
+  /// No description provided for @weight.
+  ///
+  /// In en, this message translates to:
+  /// **'Weight'**
+  String get weight;
 
   /// No description provided for @withdraw.
   ///

@@ -7,4 +7,5 @@ export 'extensions/extensions.dart';
 export 'functions/functions.dart';
 export 'models/models.dart';
 export 'url_protocol/api.dart';
+export 'wallet_connect_metadata_utils.dart';
 export 'widgets/widgets.dart';

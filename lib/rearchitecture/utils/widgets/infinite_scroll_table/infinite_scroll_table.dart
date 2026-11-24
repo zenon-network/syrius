@@ -209,7 +209,7 @@ class _Header extends StatelessWidget {
 
         final int flex = column.flex;
 
-        final String name = column.name(context: context);
+        final String name = column.label(context: context);
 
         final MainAxisAlignment alignment = column.aligment;
 

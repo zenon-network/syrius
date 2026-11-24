@@ -72,3 +72,5 @@ export 'uncollected_staking_rewards/uncollected_staking_rewards.dart';
 export 'undelegate/undelegate.dart';
 export 'update_pillar/update_pillar.dart';
 export 'update_pillar_stepper/update_pillar_stepper.dart';
+export 'wallet_connect_pairings/wallet_connect_pairings.dart';
+export 'wallet_connect_sessions/wallet_connect_sessions.dart';
