@@ -97,6 +97,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get completed => 'Completed';
 
   @override
+  String get connect => 'Connect';
+
+  @override
   String get cannotReuseAddressForSentinel =>
       'If this address previously revoked a Sentinel, it cannot create a new Sentinel again. Use a different address before depositing QSR.';
 
@@ -115,6 +118,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String burnTokenIssueFee(Object amount, Object symbol) {
     return 'You will need to burn $amount $symbol to issue a token';
   }
+
+  @override
+  String get cameraQrScanner => 'Camera QR Scanner';
 
   @override
   String get continueText => 'Continue';
@@ -455,6 +461,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get inputDepositId => 'Input the deposit ID';
 
   @override
+  String get invalidQrCode => 'Invalid QR code';
+
+  @override
+  String get invalidQrCodeException => 'Invalid QR code exception';
+
+  @override
   String get issueToken => 'Issue Token';
 
   @override
@@ -566,6 +578,12 @@ class AppLocalizationsEn extends AppLocalizations {
       'The oldest swap entry will be deleted when a new swap is started.';
 
   @override
+  String get onScreenQrScanner => 'On-screen QR Scanner';
+
+  @override
+  String get onlyMacOsSupported => 'Only macOS is supported at the moment';
+
+  @override
   String get options => 'Options';
 
   @override
@@ -641,7 +659,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get pairingTopic => 'Pairing Topic';
 
   @override
+  String get pairingFailed => 'Pairing failed';
+
+  @override
   String get password => 'Password';
+
+  @override
+  String get pasteWalletConnectLinkHere => 'Paste the WalletConnect link here';
 
   @override
   String get pending => 'Pending';
@@ -660,6 +684,9 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get percentageOfMomentumRewards =>
       'Percentage of momentum rewards given to the delegators';
+
+  @override
+  String get permissionRequired => 'Permission required';
 
   @override
   String get pillar => 'Pillar';
@@ -753,10 +780,17 @@ class AppLocalizationsEn extends AppLocalizations {
   String get plasmaCheck => 'Plasma Check';
 
   @override
+  String get pleaseScanValidWalletConnectQr =>
+      'Please scan a valid WalletConnect QR code';
+
+  @override
   String get pressToReceive => 'Press to receive the transaction';
 
   @override
   String get producerAddress => 'Producer Address';
+
+  @override
+  String get qrCodeScanFailed => 'QR code scan failed';
 
   @override
   String quasarTransactions(Object quasar) {
@@ -852,6 +886,25 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get saveQr => 'Save QR';
+
+  @override
+  String get scanQr => 'Scan QR';
+
+  @override
+  String get scanWalletConnectQrFromDapp =>
+      'Scan the WalletConnect QR from the dApp';
+
+  @override
+  String get scanWalletConnectQrUsingCamera =>
+      'Scan a WalletConnect QR code using the built-in camera of this device';
+
+  @override
+  String get scanWalletConnectQrUsingOnScreenScanner =>
+      'Scan the WalletConnect QR code using an on-screen QR scanner. This requires the screen recording permission';
+
+  @override
+  String get screenRecordingPermissionRequired =>
+      'Screen Recording permission is required to scan and process the on-screen WalletConnect QR code';
 
   @override
   String get searchTokenHint =>
@@ -1247,6 +1300,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get uptime => 'Uptime';
 
   @override
+  String get uriInvalid => 'URI invalid';
+
+  @override
   String get url => 'URL';
 
   @override
@@ -1254,6 +1310,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get usDateFormat => 'MM/dd/yyyy';
+
+  @override
+  String get userCanceledQrScanning =>
+      'User canceled the QR scanning operation';
+
+  @override
+  String get userQrScanCanceled => 'User QR scan canceled';
 
   @override
   String verifyNonFavoriteToken(String tokenStandard) {
@@ -1289,6 +1352,9 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get walletConnectLink => 'WalletConnect Link';
+
+  @override
   String get walletConnectPairingDescription =>
       'A pairing refers to the initial process of establishing a secure connection between a wallet and the dApp. Once the pairing is complete, a session is established, which allows the dApp to communicate with the wallet securely over the Internet';
 
@@ -1301,6 +1367,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get walletConnectSessionsList => 'WalletConnect Sessions List';
+
+  @override
+  String get walletConnectUri => 'WalletConnect URI';
 
   @override
   String get walletNotAutoLocked =>

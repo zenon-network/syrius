@@ -1,119 +1,179 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image/image.dart' as img;
-import 'package:logging/logging.dart';
 import 'package:path/path.dart' as path;
 import 'package:pretty_qr_code/pretty_qr_code.dart';
-import 'package:reown_walletkit/reown_walletkit.dart';
 import 'package:screen_capturer/screen_capturer.dart';
 import 'package:window_manager/window_manager.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/model/database/notification_type.dart';
 import 'package:zenon_syrius_wallet_flutter/model/database/wallet_notification.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/services/i_web3wallet_service.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 import 'package:zxing2/qrcode.dart';
 
-const String _kWidgetTitle = 'On-screen QR Scanner';
-const String _kWidgetDescription =
-    'Scan the WalletConnect QR code using an on-screen QR scanner. '
-    'This requires the screen recording permission';
-
-final ScreenCapturer screenCapturer = ScreenCapturer.instance;
-
-class WalletConnectQrCard extends StatefulWidget {
+/// Card allowing the user to capture an on-screen WalletConnect QR code and
+/// pair with the corresponding dApp.
+class WalletConnectQrCard extends StatelessWidget {
+  /// Creates a [WalletConnectQrCard].
   const WalletConnectQrCard({super.key});
 
   @override
-  State<WalletConnectQrCard> createState() => _WalletConnectQrCardState();
+  Widget build(BuildContext context) {
+    return BlocProvider<WalletConnectPairBloc>(
+      create: (_) =>
+          WalletConnectPairBloc(web3WalletService: sl<IWeb3WalletService>()),
+      child: const _View(),
+    );
+  }
 }
 
-class _WalletConnectQrCardState extends State<WalletConnectQrCard> {
-  TextEditingController _uriController = TextEditingController(
-    text: kLastWalletConnectUriNotifier.value,
-  );
-  CapturedData? _lastCapturedData;
+class _View extends StatefulWidget {
+  const _View();
 
-  final GlobalKey<FormState> _uriKey = GlobalKey<FormState>();
+  @override
+  State<_View> createState() => _ViewState();
+}
+
+class _ViewState extends State<_View> {
+  final ScreenCapturer _screenCapturer = ScreenCapturer.instance;
+  bool _isScanning = false;
 
   @override
   Widget build(BuildContext context) {
-    return CardScaffold(
-      title: _kWidgetTitle,
-      description: _kWidgetDescription,
-      childBuilder: _getCardBody,
+    return NewCardScaffold(
+      data: CardData(
+        title: context.l10n.onScreenQrScanner,
+        description: context.l10n.scanWalletConnectQrUsingOnScreenScanner,
+      ),
+      body: BlocConsumer<WalletConnectPairBloc, WalletConnectPairState>(
+        listenWhen:
+            (WalletConnectPairState previous, WalletConnectPairState current) =>
+                current.status == WalletConnectPairStatus.failure &&
+                current.error != null &&
+                previous.errorCount != current.errorCount,
+        listener: (BuildContext context, WalletConnectPairState state) {
+          final Object? error = state.error;
+          if (error != null) {
+            unawaited(
+              NotificationUtils.sendNotificationError(
+                error,
+                context.l10n.pairingFailed,
+              ),
+            );
+          }
+        },
+        builder: (BuildContext context, WalletConnectPairState state) {
+          final bool isBusy =
+              _isScanning || state.status == WalletConnectPairStatus.loading;
+          return _buildCardBody(context: context, isBusy: isBusy);
+        },
+      ),
     );
   }
 
-  Widget _getCardBody() {
+  Widget _buildCardBody({required BuildContext context, required bool isBusy}) {
     return Padding(
       padding: const EdgeInsets.all(15),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: <Widget>[
-          Container(
-            height: 130,
-            width: 130,
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.surface,
-              borderRadius: BorderRadius.circular(15),
-            ),
-            child: PrettyQrView.data(
-              data: 'Scan the WalletConnect QR from the dApp',
-              decoration: const PrettyQrDecoration(
-                  shape: PrettyQrSmoothSymbol(
-                    roundFactor: 0,
-                    color: AppColors.znnColor,
-                  ),
-                  image: PrettyQrDecorationImage(
-                      scale: 0.3,
-                      padding: EdgeInsets.only(top: 10, bottom: 10),
-                      image: AssetImage(
-                          'assets/images/qr_code_child_image_znn_cut.png',),),),
-              errorCorrectLevel: QrErrorCorrectLevel.H,
-            ),
-          ),
-          MyOutlinedButton(
-            text: 'Scan QR',
-            onPressed: () {
-              checkPermissionForMacOS().then((bool value) {
-                if (value) {
-                  windowManager.minimize().then(
-                        (value) => _handleClickCapture(CaptureMode.region),
-                      );
-                }
-              });
-            },
-            minimumSize: kLoadingButtonMinSize,
-          ),
+          _buildQrPreview(context),
+          _buildScanButton(context: context, isBusy: isBusy),
         ],
       ),
     );
   }
 
-  Future<void> _pairWithDapp(Uri uri) async {
+  Widget _buildQrPreview(BuildContext context) {
+    return Container(
+      height: 130,
+      width: 130,
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surface,
+        borderRadius: BorderRadius.circular(15),
+      ),
+      child: PrettyQrView.data(
+        data: context.l10n.scanWalletConnectQrFromDapp,
+        decoration: const PrettyQrDecoration(
+          shape: PrettyQrSmoothSymbol(
+            roundFactor: 0,
+            color: AppColors.znnColor,
+          ),
+          image: PrettyQrDecorationImage(
+            scale: 0.3,
+            padding: EdgeInsets.only(top: 10, bottom: 10),
+            image: AssetImage('assets/images/qr_code_child_image_znn_cut.png'),
+          ),
+        ),
+        errorCorrectLevel: QrErrorCorrectLevel.H,
+      ),
+    );
+  }
+
+  Widget _buildScanButton({
+    required BuildContext context,
+    required bool isBusy,
+  }) {
+    if (isBusy) {
+      return const SizedBox(
+        height: 40,
+        child: Center(
+          child: SyriusLoadingWidget(size: 24, strokeWidth: 2, padding: 2),
+        ),
+      );
+    }
+
+    return MyOutlinedButton(
+      text: context.l10n.scanQr,
+      onPressed: () {
+        unawaited(_onScanPressed());
+      },
+      minimumSize: kLoadingButtonMinSize,
+    );
+  }
+
+  Future<void> _onScanPressed() async {
+    if (_isScanning) {
+      return;
+    }
+
+    setState(() {
+      _isScanning = true;
+    });
+
     try {
-      final IWeb3WalletService wcService = sl.get<IWeb3WalletService>();
-      final PairingInfo pairingInfo = await wcService.pair(uri);
-      Logger('WalletConnectPairingCard')
-          .log(Level.INFO, 'pairing info', pairingInfo.toJson());
-      _uriController = TextEditingController();
-      _uriKey.currentState?.reset();
-      setState(() {});
-    } catch (e) {
-      await NotificationUtils.sendNotificationError(e, 'Pairing failed');
+      final bool hasPermission = await _checkPermissionForMacOS();
+      if (!hasPermission || !mounted) {
+        return;
+      }
+
+      await windowManager.minimize();
+      await _captureAndDecodeQr();
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isScanning = false;
+        });
+      }
     }
   }
 
-  Future<void> _handleClickCapture(CaptureMode mode) async {
+  Future<void> _captureAndDecodeQr() async {
+    File? imageFile;
     try {
       final Directory walletConnectDirectory = Directory(
-          path.join(znnDefaultPaths.cache.path, walletConnectDirName),);
+        path.join(znnDefaultPaths.cache.path, walletConnectDirName),
+      );
 
       if (!walletConnectDirectory.existsSync()) {
         walletConnectDirectory.createSync(recursive: true);
@@ -122,82 +182,120 @@ class _WalletConnectQrCardState extends State<WalletConnectQrCard> {
       final String screenshotName =
           'screenshot-${DateTime.now().millisecondsSinceEpoch}';
 
-      final File imagePath = await File(
-              '${walletConnectDirectory.absolute.path}${path.separator}$screenshotName.png',)
-          .create();
+      imageFile = await File(
+        '${walletConnectDirectory.absolute.path}${path.separator}'
+        '$screenshotName.png',
+      ).create();
 
-      _lastCapturedData = await screenCapturer.capture(
-        mode: mode,
-        imagePath: imagePath.absolute.path,
+      final CapturedData? capturedData = await _screenCapturer.capture(
+        imagePath: imageFile.absolute.path,
       );
 
-      if (_lastCapturedData != null) {
-        final img.Image image = img.decodePng(imagePath.readAsBytesSync())!;
+      await windowManager.show();
+      if (!mounted) {
+        return;
+      }
 
-        final LuminanceSource source = RGBLuminanceSource(
-            image.width, image.height, image.getBytes().buffer.asInt32List(),);
-        final BinaryBitmap bitmap = BinaryBitmap(HybridBinarizer(source));
-
-        final QRCodeReader reader = QRCodeReader();
-        final Result result = reader.decode(bitmap);
-
-        if (result.rawBytes!.isNotEmpty) {
-          if (result.text.isNotEmpty &&
-              Uri.tryParse(result.text) != null) {
-            await windowManager.show();
-            _uriController.text = result.text;
-          } else {
-            await windowManager.show();
-            await sl<NotificationsBloc>().addNotification(WalletNotification(
-                title: 'Invalid QR code',
-                timestamp: DateTime.now().millisecondsSinceEpoch,
-                details: 'Please scan a valid WalletConnect QR code',
-                type: NotificationType.error,),);
-          }
-        } else {
-          await windowManager.show();
-          await sl<NotificationsBloc>().addNotification(WalletNotification(
-              title: 'QR code scan failed',
-              timestamp: DateTime.now().millisecondsSinceEpoch,
-              details: 'Please scan a valid WalletConnect QR code',
-              type: NotificationType.error));
-        }
-        await _pairWithDapp(Uri.parse(result.text));
-      } else {
-        await windowManager.show();
+      if (capturedData == null) {
         await sl<NotificationsBloc>().addErrorNotification(
-          'User canceled the QR scanning operation',
-          'User QR scan canceled',
+          context.l10n.userCanceledQrScanning,
+          context.l10n.userQrScanCanceled,
+        );
+        return;
+      }
+
+      final img.Image? image = img.decodePng(imageFile.readAsBytesSync());
+      if (image == null) {
+        await _notifyInvalidQr();
+        return;
+      }
+
+      final LuminanceSource source = RGBLuminanceSource(
+        image.width,
+        image.height,
+        image.getBytes().buffer.asInt32List(),
+      );
+      final BinaryBitmap bitmap = BinaryBitmap(HybridBinarizer(source));
+      final Result result = QRCodeReader().decode(bitmap);
+
+      final bool hasRawBytes = result.rawBytes?.isNotEmpty ?? false;
+      if (!hasRawBytes) {
+        await sl<NotificationsBloc>().addNotification(
+          WalletNotification(
+            title: context.l10n.qrCodeScanFailed,
+            timestamp: DateTime.now().millisecondsSinceEpoch,
+            details: context.l10n.pleaseScanValidWalletConnectQr,
+            type: NotificationType.error,
+          ),
+        );
+        return;
+      }
+
+      final String? wcUri = extractWalletConnectUri(
+        result.text,
+        isWindows: Platform.isWindows,
+      );
+      if (wcUri == null) {
+        await _notifyInvalidQr();
+        return;
+      }
+
+      context.read<WalletConnectPairBloc>().add(
+        WalletConnectPairRequested(
+          rawUri: wcUri,
+          isWindows: Platform.isWindows,
+        ),
+      );
+    } on Object catch (e) {
+      await windowManager.show();
+      if (mounted) {
+        await sl<NotificationsBloc>().addErrorNotification(
+          e,
+          context.l10n.invalidQrCodeException,
         );
       }
-    } on Exception catch (e) {
-      await windowManager.show();
-      await sl<NotificationsBloc>()
-          .addErrorNotification(e, 'Invalid QR code exception');
+    } finally {
+      if (imageFile != null && imageFile.existsSync()) {
+        try {
+          imageFile.deleteSync();
+        } on Object {
+          // Best-effort cleanup of temporary screenshot file.
+        }
+      }
     }
   }
 
-  Future<bool> checkPermissionForMacOS() async {
-    if (Platform.isMacOS) {
-      if (!await _requestAccessForMacOS()) {
-        await sl<NotificationsBloc>().addNotification(WalletNotification(
-            title: 'Permission required',
-            timestamp: DateTime.now().millisecondsSinceEpoch,
-            details:
-                'Screen Recording permission is required to scan and process the on-screen WalletConnect QR code',
-            type: NotificationType.generatingPlasma));
-        return false;
-      }
+  Future<void> _notifyInvalidQr() async {
+    await sl<NotificationsBloc>().addNotification(
+      WalletNotification(
+        title: context.l10n.invalidQrCode,
+        timestamp: DateTime.now().millisecondsSinceEpoch,
+        details: context.l10n.pleaseScanValidWalletConnectQr,
+        type: NotificationType.error,
+      ),
+    );
+  }
+
+  Future<bool> _checkPermissionForMacOS() async {
+    if (!Platform.isMacOS) {
       return true;
     }
-    return true;
-  }
 
-  Future<bool> _requestAccessForMacOS() async {
-    final bool isAccessAllowed = await ScreenCapturer.instance.isAccessAllowed();
+    final bool isAccessAllowed = await _screenCapturer.isAccessAllowed();
     if (!isAccessAllowed) {
-      await ScreenCapturer.instance.requestAccess();
+      await _screenCapturer.requestAccess();
+      if (mounted) {
+        await sl<NotificationsBloc>().addNotification(
+          WalletNotification(
+            title: context.l10n.permissionRequired,
+            timestamp: DateTime.now().millisecondsSinceEpoch,
+            details: context.l10n.screenRecordingPermissionRequired,
+            type: NotificationType.generatingPlasma,
+          ),
+        );
+      }
+      return false;
     }
-    return isAccessAllowed;
+    return true;
   }
 }

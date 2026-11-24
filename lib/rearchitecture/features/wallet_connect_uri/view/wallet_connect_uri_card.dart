@@ -1,116 +1,201 @@
+import 'dart:async';
+import 'dart:io';
+
 import 'package:flutter/material.dart';
-import 'package:logging/logging.dart';
-import 'package:reown_walletkit/reown_walletkit.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/services/i_web3wallet_service.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 
-const String _kWidgetTitle = 'WalletConnect Link';
-const String _kWidgetDescription = 'Paste the WalletConnect link here';
-
-class WalletConnectUriCard extends StatefulWidget {
+/// Card allowing the user to paste or receive a WalletConnect v2 URI and
+/// initiate pairing with a dApp.
+class WalletConnectUriCard extends StatelessWidget {
+  /// Creates a [WalletConnectUriCard].
   const WalletConnectUriCard({super.key});
 
   @override
-  State<WalletConnectUriCard> createState() => _WalletConnectUriCardState();
+  Widget build(BuildContext context) {
+    return BlocProvider<WalletConnectPairBloc>(
+      create: (_) =>
+          WalletConnectPairBloc(web3WalletService: sl<IWeb3WalletService>()),
+      child: const _View(),
+    );
+  }
 }
 
-class _WalletConnectUriCardState extends State<WalletConnectUriCard> {
-  TextEditingController _uriController = TextEditingController(
-    text: kLastWalletConnectUriNotifier.value,
-  );
+class _View extends StatefulWidget {
+  const _View();
 
+  @override
+  State<_View> createState() => _ViewState();
+}
+
+class _ViewState extends State<_View> {
+  late final TextEditingController _uriController;
   final GlobalKey<FormState> _uriKey = GlobalKey<FormState>();
 
   @override
-  Widget build(BuildContext context) {
-    return CardScaffold(
-      title: _kWidgetTitle,
-      description: _kWidgetDescription,
-      childBuilder: _getCardBody,
-    );
+  void initState() {
+    super.initState();
+    final String? initialUri = kLastWalletConnectUriNotifier.value;
+    _uriController = TextEditingController(text: initialUri);
+    if (initialUri != null) {
+      kLastWalletConnectUriNotifier.value = null;
+    }
+    _uriController.addListener(_onUriTextChanged);
+    kLastWalletConnectUriNotifier.addListener(_onExternalUriChanged);
   }
 
-  Widget _getCardBody() {
-    return Padding(
-      padding: const EdgeInsets.all(15),
-      child: ValueListenableBuilder<String?>(
-        builder: (_, String? value, Widget? child) {
-          if (value != null) {
-            _uriController.text = value;
-            kLastWalletConnectUriNotifier.value = null;
-          }
-          return Column(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: <Widget>[
-              SizedBox(
-                height: 120,
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: <Widget>[
-                    const CircleAvatar(
-                      backgroundColor: Colors.white12,
-                      child: Icon(
-                        Icons.link,
-                        color: AppColors.znnColor,
-                      ),
-                    ),
-                    Form(
-                      key: _uriKey,
-                      autovalidateMode: AutovalidateMode.onUserInteraction,
-                      child: InputField(
-                        validator: (value) {
-                          if (Uri.tryParse(value ?? '') != null) {
-                            return null;
-                          } else {
-                            return 'URI invalid';
-                          }
-                        },
-                        onChanged: (String value) {
-                          setState(() {});
-                        },
-                        controller: _uriController,
-                        suffixIcon: PasteContentButton(controller: _uriController),
-                        hintText: 'WalletConnect URI',
-                      ),
-                    ),
-                  ],
+  @override
+  void dispose() {
+    kLastWalletConnectUriNotifier.removeListener(_onExternalUriChanged);
+    _uriController
+      ..removeListener(_onUriTextChanged)
+      ..dispose();
+    super.dispose();
+  }
+
+  void _onUriTextChanged() {
+    if (mounted) {
+      setState(() {});
+    }
+  }
+
+  void _onExternalUriChanged() {
+    final String? incomingUri = kLastWalletConnectUriNotifier.value;
+    if (incomingUri == null) {
+      return;
+    }
+    kLastWalletConnectUriNotifier.value = null;
+    if (mounted) {
+      _uriController.text = incomingUri;
+    }
+  }
+
+  bool get _hasValidUri =>
+      extractWalletConnectUri(
+        _uriController.text,
+        isWindows: Platform.isWindows,
+      ) !=
+      null;
+
+  @override
+  Widget build(BuildContext context) {
+    return NewCardScaffold(
+      data: CardData(
+        title: context.l10n.walletConnectLink,
+        description: context.l10n.pasteWalletConnectLinkHere,
+      ),
+      body: BlocConsumer<WalletConnectPairBloc, WalletConnectPairState>(
+        listenWhen:
+            (WalletConnectPairState previous, WalletConnectPairState current) =>
+                previous.successCount != current.successCount ||
+                (current.error != null &&
+                    previous.errorCount != current.errorCount),
+        listener: (BuildContext context, WalletConnectPairState state) {
+          if (state.status == WalletConnectPairStatus.success) {
+            _uriController.clear();
+            _uriKey.currentState?.reset();
+          } else if (state.status == WalletConnectPairStatus.failure) {
+            final Object? error = state.error;
+            if (error != null) {
+              unawaited(
+                NotificationUtils.sendNotificationError(
+                  error,
+                  context.l10n.pairingFailed,
                 ),
-              ),
-              MyOutlinedButton(
-                text: 'Connect',
-                onPressed:
-                    Uri.tryParse(_uriController.text) != null
-                        ? () {
-                            _pairWithDapp(
-                              Uri.parse(_uriController.text),
-                            );
-                          }
-                        : null,
-                minimumSize: kLoadingButtonMinSize,
-              ),
-            ],
-          );
+              );
+            }
+          }
         },
-        valueListenable: kLastWalletConnectUriNotifier,
+        builder: (BuildContext context, WalletConnectPairState state) {
+          final bool isLoading =
+              state.status == WalletConnectPairStatus.loading;
+          return _buildCardBody(context: context, isLoading: isLoading);
+        },
       ),
     );
   }
 
-  Future<void> _pairWithDapp(Uri uri) async {
-    try {
-      final PairingInfo pairingInfo = await sl.get<IWeb3WalletService>().pair(uri);
-      Logger('WalletConnectPairingCard')
-          .log(Level.INFO, 'pairing info', pairingInfo.toJson());
-      _uriController = TextEditingController();
-      _uriKey.currentState?.reset();
-      setState(() {});
-    } catch (e, stackTrace) {
-      Logger('WalletConnectPairingCard')
-          .log(Level.INFO, 'pairing failed', e, stackTrace);
-      await NotificationUtils.sendNotificationError(e, 'Pairing failed');
+  Widget _buildCardBody({
+    required BuildContext context,
+    required bool isLoading,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.all(15),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: <Widget>[
+          SizedBox(
+            height: 120,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: <Widget>[
+                const CircleAvatar(
+                  backgroundColor: Colors.white12,
+                  child: Icon(Icons.link, color: AppColors.znnColor),
+                ),
+                _buildUriForm(context),
+              ],
+            ),
+          ),
+          _buildConnectButton(context: context, isLoading: isLoading),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildUriForm(BuildContext context) {
+    return Form(
+      key: _uriKey,
+      autovalidateMode: AutovalidateMode.onUserInteraction,
+      child: InputField(
+        validator: (String? value) {
+          if (extractWalletConnectUri(
+                value ?? '',
+                isWindows: Platform.isWindows,
+              ) !=
+              null) {
+            return null;
+          }
+          return context.l10n.uriInvalid;
+        },
+        controller: _uriController,
+        suffixIcon: PasteContentButton(controller: _uriController),
+        hintText: context.l10n.walletConnectUri,
+      ),
+    );
+  }
+
+  Widget _buildConnectButton({
+    required BuildContext context,
+    required bool isLoading,
+  }) {
+    if (isLoading) {
+      return const SizedBox(
+        height: 40,
+        child: Center(
+          child: SyriusLoadingWidget(size: 24, strokeWidth: 2, padding: 2),
+        ),
+      );
     }
+
+    return MyOutlinedButton(
+      text: context.l10n.connect,
+      onPressed: _hasValidUri
+          ? () {
+              context.read<WalletConnectPairBloc>().add(
+                WalletConnectPairRequested(
+                  rawUri: _uriController.text,
+                  isWindows: Platform.isWindows,
+                ),
+              );
+            }
+          : null,
+      minimumSize: kLoadingButtonMinSize,
+    );
   }
 }

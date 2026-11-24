@@ -52,9 +52,8 @@ void main() {
     late SessionData firstSession;
     late SessionData secondSession;
 
-    WalletConnectSessionsBloc buildBloc() => WalletConnectSessionsBloc(
-      web3WalletService: web3WalletService,
-    );
+    WalletConnectSessionsBloc buildBloc() =>
+        WalletConnectSessionsBloc(web3WalletService: web3WalletService);
 
     setUp(() {
       web3WalletService = _MockWeb3WalletService();

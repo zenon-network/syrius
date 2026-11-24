@@ -10,15 +10,14 @@ part 'wallet_connect_pairings_state.dart';
 class WalletConnectPairingsBloc
     extends Bloc<WalletConnectPairingsEvent, WalletConnectPairingsState> {
   /// Creates a [WalletConnectPairingsBloc] bound to [_web3WalletService].
-  WalletConnectPairingsBloc({
-    required this._web3WalletService,
-  }) : super(
-         WalletConnectPairingsState(
-           pairings: List<PairingInfo>.unmodifiable(
-             _web3WalletService.pairings.value,
-           ),
-         ),
-       ) {
+  WalletConnectPairingsBloc({required this._web3WalletService})
+    : super(
+        WalletConnectPairingsState(
+          pairings: List<PairingInfo>.unmodifiable(
+            _web3WalletService.pairings.value,
+          ),
+        ),
+      ) {
     on<WalletConnectPairingsRefreshRequested>(_onRefreshRequested);
     on<WalletConnectPairingDeactivateRequested>(_onDeactivateRequested);
     on<_WalletConnectPairingsUpdated>(_onPairingsUpdated);
@@ -69,9 +68,10 @@ class WalletConnectPairingsBloc
 
     emit(
       state.copyWith(
-        deactivatingTopics: Set<String>.unmodifiable(
-          <String>{...state.deactivatingTopics, event.topic},
-        ),
+        deactivatingTopics: Set<String>.unmodifiable(<String>{
+          ...state.deactivatingTopics,
+          event.topic,
+        }),
         clearError: true,
       ),
     );

@@ -32,9 +32,8 @@ void main() {
     late PairingInfo firstPairing;
     late PairingInfo secondPairing;
 
-    WalletConnectPairingsBloc buildBloc() => WalletConnectPairingsBloc(
-      web3WalletService: web3WalletService,
-    );
+    WalletConnectPairingsBloc buildBloc() =>
+        WalletConnectPairingsBloc(web3WalletService: web3WalletService);
 
     setUp(() {
       web3WalletService = _MockWeb3WalletService();
@@ -117,9 +116,7 @@ void main() {
       build: buildBloc,
       act: (WalletConnectPairingsBloc bloc) {
         bloc
-          ..add(
-            const WalletConnectPairingDeactivateRequested(topic: 'topic-1'),
-          )
+          ..add(const WalletConnectPairingDeactivateRequested(topic: 'topic-1'))
           ..add(
             const WalletConnectPairingDeactivateRequested(topic: 'topic-1'),
           );
@@ -226,9 +223,7 @@ void main() {
       build: buildBloc,
       act: (WalletConnectPairingsBloc bloc) async {
         bloc
-          ..add(
-            const WalletConnectPairingDeactivateRequested(topic: 'topic-1'),
-          )
+          ..add(const WalletConnectPairingDeactivateRequested(topic: 'topic-1'))
           ..add(
             const WalletConnectPairingDeactivateRequested(topic: 'topic-2'),
           );
@@ -263,26 +258,34 @@ void main() {
     test(
       'sanitizeWalletConnectHttpUrl rejects malformed and non-http URLs',
       () {
-      expect(
-        sanitizeWalletConnectHttpUrl('https://bridge.zenon.network/app'),
-        'https://bridge.zenon.network/app',
-      );
-      expect(
-        sanitizeWalletConnectHttpUrl('  http://localhost:3000  '),
-        'http://localhost:3000',
-      );
-      expect(sanitizeWalletConnectHttpUrl('https://'), isNull);
-      expect(sanitizeWalletConnectHttpUrl('http:foo'), isNull);
-      expect(sanitizeWalletConnectHttpUrl('javascript:alert(1)'), isNull);
-      expect(sanitizeWalletConnectHttpUrl(''), isNull);
-      expect(sanitizeWalletConnectHttpUrl(null), isNull);
-    });
+        expect(
+          sanitizeWalletConnectHttpUrl('https://bridge.zenon.network/app'),
+          'https://bridge.zenon.network/app',
+        );
+        expect(
+          sanitizeWalletConnectHttpUrl('  http://localhost:3000  '),
+          'http://localhost:3000',
+        );
+        expect(sanitizeWalletConnectHttpUrl('https://'), isNull);
+        expect(sanitizeWalletConnectHttpUrl('http:foo'), isNull);
+        expect(sanitizeWalletConnectHttpUrl('javascript:alert(1)'), isNull);
+        expect(sanitizeWalletConnectHttpUrl(''), isNull);
+        expect(sanitizeWalletConnectHttpUrl(null), isNull);
+      },
+    );
 
     test('walletConnectDisplayValue replaces empty or null strings', () {
       expect(walletConnectDisplayValue('My dApp', 'Empty'), 'My dApp');
       expect(walletConnectDisplayValue('  ', 'Empty'), 'Empty');
       expect(walletConnectDisplayValue('null', 'Empty'), 'Empty');
       expect(walletConnectDisplayValue(null, 'Empty'), 'Empty');
+    });
+
+    test('formatWalletConnectExpiry formats Unix seconds in local time', () {
+      final DateTime localTime = DateTime(2026, 6, 15, 14, 30, 5);
+      final int expirySeconds = localTime.millisecondsSinceEpoch ~/ 1000;
+
+      expect(formatWalletConnectExpiry(expirySeconds), 'Jun 15, 2026 14:30:05');
     });
   });
 }

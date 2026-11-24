@@ -3,42 +3,94 @@ import 'dart:io';
 
 import 'package:ai_barcode_scanner/ai_barcode_scanner.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_vector_icons/flutter_vector_icons.dart';
 import 'package:logging/logging.dart';
-import 'package:reown_core/pairing/utils/pairing_models.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/services/i_web3wallet_service.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 
-const String _kWidgetTitle = 'Camera QR Scanner';
-const String _kWidgetDescription =
-    'Scan a WalletConnect QR code using the built-in camera of this device';
-
-class WalletConnectCameraCard extends StatefulWidget {
-  const WalletConnectCameraCard({Key? key}) : super(key: key);
-
-  @override
-  State<WalletConnectCameraCard> createState() =>
-      _WalletConnectCameraCardState();
+/// Returns the first valid WalletConnect v2 URI found in [barcodeValues], or
+/// `null` if none of the scanned payloads contain a valid URI.
+@visibleForTesting
+String? extractWalletConnectUriFromBarcodes(
+  Iterable<String?> barcodeValues, {
+  bool isWindows = false,
+}) {
+  for (final String? rawValue in barcodeValues) {
+    if (rawValue == null) {
+      continue;
+    }
+    final String? extracted = extractWalletConnectUri(
+      rawValue,
+      isWindows: isWindows,
+    );
+    if (extracted != null) {
+      return extracted;
+    }
+  }
+  return null;
 }
 
-class _WalletConnectCameraCardState extends State<WalletConnectCameraCard> {
-  @override
-  void initState() {
-    super.initState();
-  }
+/// Card allowing macOS users to scan a WalletConnect QR code via the built-in
+/// camera and pair with the corresponding dApp.
+class WalletConnectCameraCard extends StatelessWidget {
+  /// Creates a [WalletConnectCameraCard].
+  const WalletConnectCameraCard({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return CardScaffold(
-      title: _kWidgetTitle,
-      description: _kWidgetDescription,
-      childBuilder: _getCardBody,
+    return BlocProvider<WalletConnectPairBloc>(
+      create: (_) =>
+          WalletConnectPairBloc(web3WalletService: sl<IWeb3WalletService>()),
+      child: const _View(),
+    );
+  }
+}
+
+class _View extends StatelessWidget {
+  const _View();
+
+  @override
+  Widget build(BuildContext context) {
+    return NewCardScaffold(
+      data: CardData(
+        title: context.l10n.cameraQrScanner,
+        description: context.l10n.scanWalletConnectQrUsingCamera,
+      ),
+      body: BlocConsumer<WalletConnectPairBloc, WalletConnectPairState>(
+        listenWhen:
+            (WalletConnectPairState previous, WalletConnectPairState current) =>
+                current.status == WalletConnectPairStatus.failure &&
+                current.error != null &&
+                previous.errorCount != current.errorCount,
+        listener: (BuildContext context, WalletConnectPairState state) {
+          final Object? error = state.error;
+          if (error != null) {
+            unawaited(
+              NotificationUtils.sendNotificationError(
+                error,
+                context.l10n.pairingFailed,
+              ),
+            );
+          }
+        },
+        builder: (BuildContext context, WalletConnectPairState state) {
+          final bool isLoading =
+              state.status == WalletConnectPairStatus.loading;
+          return _buildCardBody(context: context, isLoading: isLoading);
+        },
+      ),
     );
   }
 
-  Widget _getCardBody() {
+  Widget _buildCardBody({
+    required BuildContext context,
+    required bool isLoading,
+  }) {
     return Padding(
       padding: const EdgeInsets.all(15),
       child: Column(
@@ -54,74 +106,10 @@ class _WalletConnectCameraCardState extends State<WalletConnectCameraCard> {
             ),
           ),
           if (Platform.isMacOS)
-            MyOutlinedButton(
-              text: 'Scan QR',
-              onPressed: () async {
-                await Navigator.of(context).push(
-                  MaterialPageRoute<void>(
-                    builder: (BuildContext context) => AiBarcodeScanner(
-                      validator: (BarcodeCapture capture) =>
-                          _filterBarcodes(capture) != null,
-                      onDetect: (BarcodeCapture value) async {
-                        Logger('WalletConnectCameraCard').log(
-                          Level.INFO,
-                          'onDetect',
-                          value.toString(),
-                        );
-                        final IWeb3WalletService wcService =
-                            sl.get<IWeb3WalletService>();
-                        final Barcode? barcode = _filterBarcodes(value);
-                        if (barcode != null) {
-                          final PairingInfo pairingInfo = await wcService.pair(
-                            Uri.parse(value.barcodes.first.displayValue!),
-                          );
-                          Logger('WalletConnectCameraCard').log(
-                            Level.INFO,
-                            'pairing info',
-                            pairingInfo.toJson(),
-                          );
-                          setState(() {});
-                        }
-                      },
-                      onDispose: () {
-                        Logger('WalletConnectCameraCard')
-                            .log(Level.INFO, 'onDispose');
-                      },
-                      controller: AiBarcodeScannerController(
-                        facing: CameraFacing.front,
-                      ),
-                      errorBuilder:
-                          (BuildContext p0, MobileScannerException p1) {
-                        // Pop navigator and close camera after 10 seconds
-                        Timer(const Duration(seconds: 10), () {
-                          Navigator.pop(context);
-                        });
-                        return Center(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: <Widget>[
-                              Text('${p1.errorCode}',
-                                  style:
-                                      Theme.of(context).textTheme.bodyMedium,),
-                              Container(height: 16),
-                              const Icon(
-                                MaterialCommunityIcons.camera_off,
-                                size: 32,
-                                color: AppColors.errorColor,
-                              ),
-                            ],
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-                );
-              },
-              minimumSize: kLoadingButtonMinSize,
-            )
+            _buildScanButton(context: context, isLoading: isLoading)
           else
             Text(
-              'Only MacOS is supported at the moment',
+              context.l10n.onlyMacOsSupported,
               style: Theme.of(context).textTheme.bodyLarge,
             ),
         ],
@@ -129,31 +117,123 @@ class _WalletConnectCameraCardState extends State<WalletConnectCameraCard> {
     );
   }
 
+  Widget _buildScanButton({
+    required BuildContext context,
+    required bool isLoading,
+  }) {
+    if (isLoading) {
+      return const SizedBox(
+        height: 40,
+        child: Center(
+          child: SyriusLoadingWidget(size: 24, strokeWidth: 2, padding: 2),
+        ),
+      );
+    }
+
+    return MyOutlinedButton(
+      text: context.l10n.scanQr,
+      onPressed: () {
+        unawaited(_openScanner(context));
+      },
+      minimumSize: kLoadingButtonMinSize,
+    );
+  }
+
+  Future<void> _openScanner(BuildContext context) async {
+    final String? scannedUri = await Navigator.of(context).push<String>(
+      MaterialPageRoute<String>(builder: (_) => const _CameraScannerPage()),
+    );
+    if (scannedUri == null || !context.mounted) {
+      return;
+    }
+
+    context.read<WalletConnectPairBloc>().add(
+      WalletConnectPairRequested(
+        rawUri: scannedUri,
+        isWindows: Platform.isWindows,
+      ),
+    );
+  }
+}
+
+class _CameraScannerPage extends StatefulWidget {
+  const _CameraScannerPage();
+
+  @override
+  State<_CameraScannerPage> createState() => _CameraScannerPageState();
+}
+
+class _CameraScannerPageState extends State<_CameraScannerPage> {
+  final Logger _logger = Logger('WalletConnectCameraCard');
+  final AiBarcodeScannerController _controller = AiBarcodeScannerController(
+    facing: CameraFacing.front,
+  );
+  Timer? _errorPopTimer;
+  bool _hasDetected = false;
+
   @override
   void dispose() {
+    _errorPopTimer?.cancel();
+    _controller.dispose();
     super.dispose();
   }
 
-  bool canParseWalletConnectUri(String wcUri) {
-    Uri? walletConnectUri;
-    walletConnectUri = Uri.tryParse(wcUri);
-    if (walletConnectUri != null) {
-      return true;
-    }
-    return false;
+  String? _extractFromCapture(BarcodeCapture capture) {
+    return extractWalletConnectUriFromBarcodes(
+      capture.barcodes.map(
+        (Barcode barcode) => barcode.rawValue ?? barcode.displayValue,
+      ),
+      isWindows: Platform.isWindows,
+    );
   }
 
-  /// A BarcodeCapture can contain multiple barcodes. This function returns
-  /// the first valid WC barcode
-  Barcode? _filterBarcodes(BarcodeCapture capture) {
-    for (final Barcode barcode in capture.barcodes) {
-      final String? uri = barcode.displayValue;
-      if (uri != null) {
-        if (!canParseWalletConnectUri(uri)) {
-          return barcode;
+  @override
+  Widget build(BuildContext context) {
+    return AiBarcodeScanner(
+      controller: _controller,
+      validator: (BarcodeCapture capture) =>
+          _extractFromCapture(capture) != null,
+      onDetect: (BarcodeCapture capture) {
+        if (_hasDetected) {
+          return;
         }
-      }
-    }
-    return null;
+        final String? wcUri = _extractFromCapture(capture);
+        if (wcUri == null) {
+          return;
+        }
+        _hasDetected = true;
+        _logger.info('Detected valid WalletConnect QR code via camera');
+        if (mounted && Navigator.of(context).canPop()) {
+          Navigator.of(context).pop(wcUri);
+        }
+      },
+      onDispose: () {
+        _logger.fine('Camera barcode scanner disposed');
+      },
+      errorBuilder: (BuildContext errorContext, MobileScannerException error) {
+        _errorPopTimer ??= Timer(const Duration(seconds: 10), () {
+          if (mounted && Navigator.of(context).canPop()) {
+            Navigator.of(context).pop();
+          }
+        });
+        return Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: <Widget>[
+              Text(
+                '${error.errorCode}',
+                style: Theme.of(errorContext).textTheme.bodyMedium,
+              ),
+              const SizedBox(height: 16),
+              const Icon(
+                MaterialCommunityIcons.camera_off,
+                size: 32,
+                color: AppColors.errorColor,
+              ),
+            ],
+          ),
+        );
+      },
+    );
   }
 }

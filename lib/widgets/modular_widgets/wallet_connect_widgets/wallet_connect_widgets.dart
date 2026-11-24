@@ -1,3 +1,0 @@
-export 'package:zenon_syrius_wallet_flutter/rearchitecture/features/wallet_connect_camera/view/wallet_connect_camera_card.dart';
-export 'package:zenon_syrius_wallet_flutter/rearchitecture/features/wallet_connect_qr/view/wallet_connect_qr_card.dart';
-export 'package:zenon_syrius_wallet_flutter/rearchitecture/features/wallet_connect_uri/view/wallet_connect_uri_card.dart';

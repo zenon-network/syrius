@@ -68,10 +68,7 @@ class _View extends StatelessWidget {
         body:
             BlocBuilder<WalletConnectSessionsBloc, WalletConnectSessionsState>(
               builder:
-                  (
-                    BuildContext context,
-                    WalletConnectSessionsState state,
-                  ) {
+                  (BuildContext context, WalletConnectSessionsState state) {
                     return _Populated(
                       sessions: state.sessions,
                       disconnectingTopics: state.disconnectingTopics,
@@ -109,10 +106,8 @@ class _Populated extends StatelessWidget {
         .acknowledged,
         .blank,
       ],
-      generateRowCells: (SessionData session) => _buildRowCells(
-        context: context,
-        session: session,
-      ),
+      generateRowCells: (SessionData session) =>
+          _buildRowCells(context: context, session: session),
     );
   }
 
@@ -159,10 +154,7 @@ class _Populated extends StatelessWidget {
             : context.l10n.no.capitalize(),
       ),
       InfiniteScrollTableCell(
-        child: _buildDisconnectCell(
-          context: context,
-          session: session,
-        ),
+        child: _buildDisconnectCell(context: context, session: session),
       ),
     ];
   }
@@ -177,11 +169,7 @@ class _Populated extends StatelessWidget {
     return Row(
       children: <Widget>[
         Flexible(
-          child: Text(
-            label,
-            overflow: TextOverflow.ellipsis,
-            maxLines: 1,
-          ),
+          child: Text(label, overflow: TextOverflow.ellipsis, maxLines: 1),
         ),
         if (safeUrl != null) LinkIcon(url: safeUrl),
       ],

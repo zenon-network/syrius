@@ -256,6 +256,12 @@ abstract class AppLocalizations {
   /// **'Completed'**
   String get completed;
 
+  /// No description provided for @connect.
+  ///
+  /// In en, this message translates to:
+  /// **'Connect'**
+  String get connect;
+
   /// No description provided for @cannotReuseAddressForSentinel.
   ///
   /// In en, this message translates to:
@@ -285,6 +291,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'You will need to burn {amount} {symbol} to issue a token'**
   String burnTokenIssueFee(Object amount, Object symbol);
+
+  /// No description provided for @cameraQrScanner.
+  ///
+  /// In en, this message translates to:
+  /// **'Camera QR Scanner'**
+  String get cameraQrScanner;
 
   /// No description provided for @continueText.
   ///
@@ -844,6 +856,18 @@ abstract class AppLocalizations {
   /// **'Input the deposit ID'**
   String get inputDepositId;
 
+  /// No description provided for @invalidQrCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Invalid QR code'**
+  String get invalidQrCode;
+
+  /// No description provided for @invalidQrCodeException.
+  ///
+  /// In en, this message translates to:
+  /// **'Invalid QR code exception'**
+  String get invalidQrCodeException;
+
   /// No description provided for @issueToken.
   ///
   /// In en, this message translates to:
@@ -1036,6 +1060,18 @@ abstract class AppLocalizations {
   /// **'The oldest swap entry will be deleted when a new swap is started.'**
   String get oldestSwapDeletedWhenFull;
 
+  /// No description provided for @onScreenQrScanner.
+  ///
+  /// In en, this message translates to:
+  /// **'On-screen QR Scanner'**
+  String get onScreenQrScanner;
+
+  /// No description provided for @onlyMacOsSupported.
+  ///
+  /// In en, this message translates to:
+  /// **'Only macOS is supported at the moment'**
+  String get onlyMacOsSupported;
+
   /// No description provided for @options.
   ///
   /// In en, this message translates to:
@@ -1162,11 +1198,23 @@ abstract class AppLocalizations {
   /// **'Pairing Topic'**
   String get pairingTopic;
 
+  /// No description provided for @pairingFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Pairing failed'**
+  String get pairingFailed;
+
   /// No description provided for @password.
   ///
   /// In en, this message translates to:
   /// **'Password'**
   String get password;
+
+  /// No description provided for @pasteWalletConnectLinkHere.
+  ///
+  /// In en, this message translates to:
+  /// **'Paste the WalletConnect link here'**
+  String get pasteWalletConnectLinkHere;
 
   /// No description provided for @pending.
   ///
@@ -1197,6 +1245,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Percentage of momentum rewards given to the delegators'**
   String get percentageOfMomentumRewards;
+
+  /// No description provided for @permissionRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Permission required'**
+  String get permissionRequired;
 
   /// No description provided for @pillar.
   ///
@@ -1360,6 +1414,12 @@ abstract class AppLocalizations {
   /// **'Plasma Check'**
   String get plasmaCheck;
 
+  /// No description provided for @pleaseScanValidWalletConnectQr.
+  ///
+  /// In en, this message translates to:
+  /// **'Please scan a valid WalletConnect QR code'**
+  String get pleaseScanValidWalletConnectQr;
+
   /// No description provided for @pressToReceive.
   ///
   /// In en, this message translates to:
@@ -1371,6 +1431,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Producer Address'**
   String get producerAddress;
+
+  /// No description provided for @qrCodeScanFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'QR code scan failed'**
+  String get qrCodeScanFailed;
 
   /// No description provided for @quasarTransactions.
   ///
@@ -1527,6 +1593,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Save QR'**
   String get saveQr;
+
+  /// No description provided for @scanQr.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan QR'**
+  String get scanQr;
+
+  /// No description provided for @scanWalletConnectQrFromDapp.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan the WalletConnect QR from the dApp'**
+  String get scanWalletConnectQrFromDapp;
+
+  /// No description provided for @scanWalletConnectQrUsingCamera.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan a WalletConnect QR code using the built-in camera of this device'**
+  String get scanWalletConnectQrUsingCamera;
+
+  /// No description provided for @scanWalletConnectQrUsingOnScreenScanner.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan the WalletConnect QR code using an on-screen QR scanner. This requires the screen recording permission'**
+  String get scanWalletConnectQrUsingOnScreenScanner;
+
+  /// No description provided for @screenRecordingPermissionRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Screen Recording permission is required to scan and process the on-screen WalletConnect QR code'**
+  String get screenRecordingPermissionRequired;
 
   /// No description provided for @searchTokenHint.
   ///
@@ -2187,6 +2283,12 @@ abstract class AppLocalizations {
   /// **'Uptime'**
   String get uptime;
 
+  /// No description provided for @uriInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'URI invalid'**
+  String get uriInvalid;
+
   /// No description provided for @url.
   ///
   /// In en, this message translates to:
@@ -2204,6 +2306,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'MM/dd/yyyy'**
   String get usDateFormat;
+
+  /// No description provided for @userCanceledQrScanning.
+  ///
+  /// In en, this message translates to:
+  /// **'User canceled the QR scanning operation'**
+  String get userCanceledQrScanning;
+
+  /// No description provided for @userQrScanCanceled.
+  ///
+  /// In en, this message translates to:
+  /// **'User QR scan canceled'**
+  String get userQrScanCanceled;
 
   /// Warns the user to verify a token that is not in their favorites.
   ///
@@ -2259,6 +2373,12 @@ abstract class AppLocalizations {
   /// **'If the token or the amount you are receiving is not what you have agreed upon, wait until your deposit expires to reclaim your funds.\nYour deposit will expire at {expirationDate}.'**
   String waitToReclaimIncorrectDeposit(String expirationDate);
 
+  /// No description provided for @walletConnectLink.
+  ///
+  /// In en, this message translates to:
+  /// **'WalletConnect Link'**
+  String get walletConnectLink;
+
   /// No description provided for @walletConnectPairingDescription.
   ///
   /// In en, this message translates to:
@@ -2282,6 +2402,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'WalletConnect Sessions List'**
   String get walletConnectSessionsList;
+
+  /// No description provided for @walletConnectUri.
+  ///
+  /// In en, this message translates to:
+  /// **'WalletConnect URI'**
+  String get walletConnectUri;
 
   /// No description provided for @walletNotAutoLocked.
   ///

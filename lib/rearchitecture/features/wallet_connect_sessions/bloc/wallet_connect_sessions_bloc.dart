@@ -11,15 +11,14 @@ part 'wallet_connect_sessions_state.dart';
 class WalletConnectSessionsBloc
     extends Bloc<WalletConnectSessionsEvent, WalletConnectSessionsState> {
   /// Creates a [WalletConnectSessionsBloc] bound to [_web3WalletService].
-  WalletConnectSessionsBloc({
-    required this._web3WalletService,
-  }) : super(
-         WalletConnectSessionsState(
-           sessions: List<SessionData>.unmodifiable(
-             _web3WalletService.sessions.value,
-           ),
-         ),
-       ) {
+  WalletConnectSessionsBloc({required this._web3WalletService})
+    : super(
+        WalletConnectSessionsState(
+          sessions: List<SessionData>.unmodifiable(
+            _web3WalletService.sessions.value,
+          ),
+        ),
+      ) {
     on<WalletConnectSessionsRefreshRequested>(_onRefreshRequested);
     on<WalletConnectSessionDisconnectRequested>(_onDisconnectRequested);
     on<_WalletConnectSessionsUpdated>(_onSessionsUpdated);
@@ -70,9 +69,10 @@ class WalletConnectSessionsBloc
 
     emit(
       state.copyWith(
-        disconnectingTopics: Set<String>.unmodifiable(
-          <String>{...state.disconnectingTopics, event.topic},
-        ),
+        disconnectingTopics: Set<String>.unmodifiable(<String>{
+          ...state.disconnectingTopics,
+          event.topic,
+        }),
         clearError: true,
       ),
     );
