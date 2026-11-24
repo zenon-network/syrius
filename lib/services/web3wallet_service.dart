@@ -10,6 +10,7 @@ import 'package:zenon_syrius_wallet_flutter/blocs/wallet_connect/wallet_connect_
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/model/database/notification_type.dart';
 import 'package:zenon_syrius_wallet_flutter/model/database/wallet_notification.dart';
+import 'package:zenon_syrius_wallet_flutter/services/desktop_signing_wallet_kit.dart';
 import 'package:zenon_syrius_wallet_flutter/services/i_web3wallet_service.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/dialogs.dart';
@@ -45,7 +46,7 @@ class Web3WalletService extends IWeb3WalletService {
       return;
     }
 
-    _wcClient = ReownWalletKit(
+    _wcClient = DesktopSigningWalletKit(
       core: ReownCore(projectId: kWcProjectId),
       metadata: const PairingMetadata(
         name: 's y r i u s',
