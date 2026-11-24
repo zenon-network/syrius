@@ -11,6 +11,7 @@ import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/model/model.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/p2p_swaps/data/htlc_swap_local_storage_api.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/p2p_swaps/data/legacy_htlc_swaps_migrator.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/extensions/buildcontext_extension.dart';
 import 'package:zenon_syrius_wallet_flutter/screens/screens.dart';
 import 'package:zenon_syrius_wallet_flutter/services/i_web3wallet_service.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
@@ -34,6 +35,8 @@ class SplashScreen extends StatefulWidget {
 
 class _SplashScreenState extends State<SplashScreen> {
   late final Future<LottieComposition> _composition;
+  bool _splashStarted = false;
+  bool _clearingWalletData = false;
 
   @override
   void initState() {
@@ -48,13 +51,15 @@ class _SplashScreenState extends State<SplashScreen> {
       builder: (context, snapshot) {
         var composition = snapshot.data;
         if (composition != null) {
-          Future.delayed(composition.duration, () {
-            _splashInits();
-          });
-          return Lottie(
-            composition: composition,
-            repeat: false,
-          );
+          if (!_splashStarted) {
+            _splashStarted = true;
+            Future<void>.delayed(composition.duration, () {
+              if (mounted) {
+                unawaited(_splashInits());
+              }
+            });
+          }
+          return Lottie(composition: composition, repeat: false);
         } else {
           return const Center(child: CircularProgressIndicator());
         }
@@ -63,14 +68,44 @@ class _SplashScreenState extends State<SplashScreen> {
   }
 
   Future<void> _splashInits() async {
+    _clearingWalletData = false;
     try {
-      widget.resetWalletFlow
-          ? await _resetWallet()
-          : widget.deleteCacheFlow
-          ? await _deleteCache().then((value) => exit(0))
-          : await InitUtils.initApp(context);
+      if (widget.resetWalletFlow) {
+        await _resetWallet();
+      } else if (widget.deleteCacheFlow) {
+        _clearingWalletData = true;
+        await _deleteCache();
+        _clearingWalletData = false;
+        exit(0);
+      } else {
+        await InitUtils.initApp(context);
+      }
+      if (!mounted) return;
       _navigateToNextScreen();
-    } on Exception catch (e) {
+    } on Object catch (e) {
+      final bool failedWhileClearing = _clearingWalletData;
+      _clearingWalletData = false;
+      if (!mounted) return;
+      if (failedWhileClearing &&
+          (widget.resetWalletFlow || widget.deleteCacheFlow)) {
+        final bool retry =
+            await showDialogWithNoAndYesOptions(
+              context: context,
+              isBarrierDismissible: false,
+              title: widget.resetWalletFlow
+                  ? context.l10n.walletResetFailed
+                  : context.l10n.cacheDeletionFailed,
+              content: Text(
+                context.l10n.failedToClearLocalWalletData(e.toString()),
+              ),
+            ) ??
+            false;
+        if (!mounted) return;
+        if (retry) {
+          await _splashInits();
+          return;
+        }
+      }
       Navigator.pushReplacementNamed(
         context,
         SyriusErrorWidget.route,
@@ -82,10 +117,7 @@ class _SplashScreenState extends State<SplashScreen> {
   void _navigateToNextScreen() {
     return kWalletPath != null
         ? _checkForDefaultNode()
-        : Navigator.pushReplacementNamed(
-            context,
-            AccessWalletScreen.route,
-          );
+        : Navigator.pushReplacementNamed(context, AccessWalletScreen.route);
   }
 
   void _navigateToHomeScreen() {
@@ -111,9 +143,11 @@ class _SplashScreenState extends State<SplashScreen> {
     if (sl<AutoReceiveTxWorker>().pool.isNotEmpty) {
       sl<AutoReceiveTxWorker>().pool.clear();
     }
+    _clearingWalletData = true;
     await _deleteCache();
     await _deleteHtlcSwapsData();
     await _deleteWalletFile();
+    _clearingWalletData = false;
     if (!mounted) return;
     await InitUtils.initApp(context);
   }
@@ -124,6 +158,7 @@ class _SplashScreenState extends State<SplashScreen> {
   }
 
   Future<void> _deleteCache() async {
+    await _deleteWeb3Cache();
     await sl<HtlcSwapSyncService>().stop();
     await sl<HtlcSwapLocalStorageApi>().close();
     await Hive.close();
@@ -131,17 +166,20 @@ class _SplashScreenState extends State<SplashScreen> {
       kCacheBoxesToBeDeleted,
       (boxName) async => await Hive.deleteBoxFromDisk(boxName),
     );
-    await _deleteWeb3Cache();
   }
 
   Future<void> _deleteWeb3Cache() async {
+    if (!sl.isRegistered<IWeb3WalletService>()) {
+      return;
+    }
     try {
       final IWeb3WalletService web3WalletService = sl<IWeb3WalletService>();
       await web3WalletService.disconnectEverything();
-    } catch (e, stackTrace) {
+    } on Object catch (e, stackTrace) {
       Logger(
         'SplashScreen',
       ).log(Level.WARNING, '_deleteWeb3Cache', e, stackTrace);
+      rethrow;
     }
   }
 
@@ -156,10 +194,7 @@ class _SplashScreenState extends State<SplashScreen> {
   }
 
   void _checkForDefaultNode() =>
-      sharedPrefsService!.get(
-            kSelectedNodeKey,
-          ) !=
-          null
+      sharedPrefsService!.get(kSelectedNodeKey) != null
       ? _navigateToHomeScreen()
       : _navigateToNodeManagementScreen();
 

@@ -437,6 +437,17 @@
   "walletConnectSessionsList": "WalletConnect Sessions List",
   "walletConnectUri": "WalletConnect URI",
   "walletNotAutoLocked": "Your wallet will not be auto-locked while the swap is in progress.",
+  "walletResetFailed": "Wallet reset failed",
+  "cacheDeletionFailed": "Cache deletion failed",
+  "failedToClearLocalWalletData": "Failed to clear local wallet data:\n{error}\n\nWould you like to retry?",
+  "@failedToClearLocalWalletData": {
+    "description": "Error dialog body shown when clearing local wallet or cache data fails and offers a retry.",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
   "weight": "Weight",
   "withdraw": "Withdraw",
   "yes": "yes",

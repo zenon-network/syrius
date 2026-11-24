@@ -2415,6 +2415,24 @@ abstract class AppLocalizations {
   /// **'Your wallet will not be auto-locked while the swap is in progress.'**
   String get walletNotAutoLocked;
 
+  /// No description provided for @walletResetFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Wallet reset failed'**
+  String get walletResetFailed;
+
+  /// No description provided for @cacheDeletionFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Cache deletion failed'**
+  String get cacheDeletionFailed;
+
+  /// Error dialog body shown when clearing local wallet or cache data fails and offers a retry.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to clear local wallet data:\n{error}\n\nWould you like to retry?'**
+  String failedToClearLocalWalletData(String error);
+
   /// No description provided for @weight.
   ///
   /// In en, this message translates to:

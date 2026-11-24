@@ -1376,6 +1376,17 @@ class AppLocalizationsEn extends AppLocalizations {
       'Your wallet will not be auto-locked while the swap is in progress.';
 
   @override
+  String get walletResetFailed => 'Wallet reset failed';
+
+  @override
+  String get cacheDeletionFailed => 'Cache deletion failed';
+
+  @override
+  String failedToClearLocalWalletData(String error) {
+    return 'Failed to clear local wallet data:\n$error\n\nWould you like to retry?';
+  }
+
+  @override
   String get weight => 'Weight';
 
   @override

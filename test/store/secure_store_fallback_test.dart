@@ -14,8 +14,10 @@ import 'package:zenon_syrius_wallet_flutter/services/sticky_fallback_secure_stor
 class _MemoryStore implements IStore<Map<String, dynamic>> {
   final Map<String, Map<String, dynamic>> _data =
       <String, Map<String, dynamic>>{};
+  final List<String> deletedKeys = <String>[];
   bool Function(String key)? shouldFailOnSet;
   bool Function(String key)? shouldFailOnGet;
+  bool Function(String key)? shouldFailOnDelete;
 
   @override
   Map<String, Map<String, dynamic>> get map => _data;
@@ -63,6 +65,10 @@ class _MemoryStore implements IStore<Map<String, dynamic>> {
 
   @override
   Future<void> delete(String key) async {
+    if (shouldFailOnDelete?.call(key) ?? false) {
+      throw StateError('fallback delete failed for $key');
+    }
+    deletedKeys.add(key);
     _data.remove(_addPrefix(key));
   }
 
@@ -81,6 +87,8 @@ class _ColdStartSharedPrefsStandIn implements IStore<Map<String, dynamic>> {
   final Map<String, Map<String, dynamic>> _disk;
   final Map<String, Map<String, dynamic>> _cache =
       <String, Map<String, dynamic>>{};
+  final List<String> deletedKeys = <String>[];
+  bool Function(String key)? shouldFailOnDelete;
 
   @override
   Map<String, Map<String, dynamic>> get map => _cache;
@@ -143,6 +151,10 @@ class _ColdStartSharedPrefsStandIn implements IStore<Map<String, dynamic>> {
 
   @override
   Future<void> delete(String key) async {
+    if (shouldFailOnDelete?.call(key) ?? false) {
+      throw StateError('fallback delete failed for $key');
+    }
+    deletedKeys.add(key);
     final String prefixed = _addPrefix(key);
     _cache.remove(prefixed);
     _disk.remove(prefixed);
@@ -968,6 +980,284 @@ void main() {
         expect(record.message, isNot(contains('SUPER_SENSITIVE_SYM_KEY')));
         expect(record.error, isNull);
       }
+    });
+
+    test('same store instance retries init cleanly after transient fallback '
+        'marker read failure clears', () async {
+      final _MemoryStore fallback = _MemoryStore();
+      await fallback.set(
+        StickyFallbackSecureStore.fallbackFlagKey,
+        <String, dynamic>{
+          'enabled': true,
+          'authoritative': true,
+          'keys': <String>['wc_sessions'],
+        },
+      );
+      await fallback.set('wc_sessions', <String, dynamic>{'topic': 't1'});
+
+      fallback.shouldFailOnGet = (String key) =>
+          key == StickyFallbackSecureStore.fallbackFlagKey;
+
+      final StickyFallbackSecureStore store = StickyFallbackSecureStore(
+        fallbackStorage: fallback,
+        secureStorage: _FakeSecureStorage(),
+      );
+
+      // First attempt fails while the marker cannot be read.
+      await expectLater(store.init(), throwsStateError);
+
+      // Second attempt on the exact same store succeeds once marker is readable
+      // (must not throw LateInitializationError on _secureStorage).
+      fallback.shouldFailOnGet = null;
+      await store.init();
+
+      expect(store.isUsingFallback, isTrue);
+      expect(
+        store.get('wc_sessions'),
+        equals(<String, dynamic>{'topic': 't1'}),
+      );
+    });
+
+    test(
+      'preserves bucket replacement intent across delete + set during '
+      'keychain outage while keeping merge behavior for normal writes',
+      () async {
+        final Map<String, Map<String, dynamic>> disk =
+            <String, Map<String, dynamic>>{};
+        final _FakeSecureStorage keychain = _FakeSecureStorage(
+          failReads: true,
+          initialData: <String, String>{
+            '${ReownConstants.CORE_STORAGE_PREFIX}bucket_replaced':
+                '{"old":"A"}',
+            '${ReownConstants.CORE_STORAGE_PREFIX}bucket_merged':
+                '{"oldM":"1"}',
+            '${ReownConstants.CORE_STORAGE_PREFIX}bucket_redeleted':
+                '{"oldD":"X"}',
+          },
+        );
+
+        // Launch 1: keychain reads fail.
+        // - bucket_replaced: delete then recreate -> replaces {old: A}.
+        // - bucket_merged: write without delete -> merges {oldM: 1, newM: 2}.
+        // - bucket_redeleted: delete -> recreate -> delete -> stays deleted.
+        final _ColdStartSharedPrefsStandIn storage1 =
+            _ColdStartSharedPrefsStandIn(disk);
+        final StickyFallbackSecureStore launch1 = StickyFallbackSecureStore(
+          fallbackStorage: storage1,
+          secureStorage: keychain,
+        );
+        await launch1.init();
+        await launch1.delete('bucket_replaced');
+        await launch1.set('bucket_replaced', <String, dynamic>{'new': 'B'});
+        await launch1.set('bucket_merged', <String, dynamic>{'newM': '2'});
+        await launch1.delete('bucket_redeleted');
+        await launch1.set('bucket_redeleted', <String, dynamic>{'temp': 'T'});
+        await launch1.delete('bucket_redeleted');
+
+        // Launch 2: keychain recovers and reconciles.
+        keychain.failReads = false;
+        final _ColdStartSharedPrefsStandIn storage2 =
+            _ColdStartSharedPrefsStandIn(disk);
+        final StickyFallbackSecureStore launch2 = StickyFallbackSecureStore(
+          fallbackStorage: storage2,
+          secureStorage: keychain,
+        );
+        await launch2.init();
+
+        expect(launch2.isUsingFallback, isFalse);
+        expect(
+          launch2.get('bucket_replaced'),
+          equals(<String, dynamic>{'new': 'B'}),
+        );
+        expect(
+          launch2.get('bucket_merged'),
+          equals(<String, dynamic>{'oldM': '1', 'newM': '2'}),
+        );
+        expect(launch2.has('bucket_redeleted'), isFalse);
+        expect(
+          storage2.has(StickyFallbackSecureStore.fallbackFlagKey),
+          isFalse,
+        );
+      },
+    );
+
+    test('retires clearedAll reset marker before deleting post-reset fallback '
+        'copies and aborts cleanup if marker deletion fails', () async {
+      final Map<String, Map<String, dynamic>> disk =
+          <String, Map<String, dynamic>>{};
+      final _FakeSecureStorage keychain = _FakeSecureStorage(
+        failReads: true,
+        initialData: <String, String>{
+          '${ReownConstants.CORE_STORAGE_PREFIX}old_key': '{"v":1}',
+        },
+      );
+
+      // Launch 1: keychain reads fail; user resets via deleteAll() then
+      // writes a new post-reset key.
+      final _ColdStartSharedPrefsStandIn storage1 =
+          _ColdStartSharedPrefsStandIn(disk);
+      final StickyFallbackSecureStore launch1 = StickyFallbackSecureStore(
+        fallbackStorage: storage1,
+        secureStorage: keychain,
+      );
+      await launch1.init();
+      await launch1.deleteAll();
+      await launch1.set('post_reset', <String, dynamic>{'v': 2});
+
+      // Launch 2: keychain recovers, OS writes succeed, but retiring the
+      // reset marker fails. Recovery must throw and leave post_reset intact
+      // in fallback storage so the next launch can still replay safely.
+      keychain.failReads = false;
+      final _ColdStartSharedPrefsStandIn storage2 =
+          _ColdStartSharedPrefsStandIn(disk)
+            ..shouldFailOnDelete = (String key) =>
+                key == StickyFallbackSecureStore.fallbackFlagKey;
+      final StickyFallbackSecureStore launch2 = StickyFallbackSecureStore(
+        fallbackStorage: storage2,
+        secureStorage: keychain,
+      );
+      await expectLater(launch2.init(), throwsStateError);
+      expect(storage2.has(StickyFallbackSecureStore.fallbackFlagKey), isTrue);
+      expect(storage2.has('post_reset'), isTrue);
+      expect(storage2.deletedKeys, isEmpty);
+
+      // Launch 3: marker deletion succeeds; marker must be retired BEFORE
+      // transient fallback copies are removed, and post_reset survives in OS.
+      final _ColdStartSharedPrefsStandIn storage3 =
+          _ColdStartSharedPrefsStandIn(disk);
+      final StickyFallbackSecureStore launch3 = StickyFallbackSecureStore(
+        fallbackStorage: storage3,
+        secureStorage: keychain,
+      );
+      await launch3.init();
+
+      expect(launch3.isUsingFallback, isFalse);
+      expect(launch3.has('old_key'), isFalse);
+      expect(launch3.get('post_reset'), equals(<String, dynamic>{'v': 2}));
+      expect(storage3.has(StickyFallbackSecureStore.fallbackFlagKey), isFalse);
+      expect(storage3.has('post_reset'), isFalse);
+      expect(
+        storage3.deletedKeys.indexOf(StickyFallbackSecureStore.fallbackFlagKey),
+        lessThan(storage3.deletedKeys.indexOf('post_reset')),
+      );
+    });
+
+    test('retains full ownership manifest when restoring an earlier fallback '
+        'entry throws', () async {
+      final _MemoryStore fallback = _MemoryStore();
+      await fallback.set(
+        StickyFallbackSecureStore.fallbackFlagKey,
+        <String, dynamic>{
+          'enabled': true,
+          'authoritative': true,
+          'keys': <String>['key_a', 'key_b'],
+        },
+      );
+      await fallback.set('key_a', <String, dynamic>{'v': 'a'});
+      await fallback.set('key_b', <String, dynamic>{'v': 'b'});
+
+      fallback.shouldFailOnGet = (String key) => key == 'key_a';
+
+      final StickyFallbackSecureStore store = StickyFallbackSecureStore(
+        fallbackStorage: fallback,
+        secureStorage: _FakeSecureStorage(),
+      );
+      await store.init();
+
+      // key_b must still be restored even though key_a threw.
+      expect(store.get('key_b'), equals(<String, dynamic>{'v': 'b'}));
+
+      // Writing key_c must preserve both key_a and key_b in the manifest.
+      await store.set('key_c', <String, dynamic>{'v': 'c'});
+      final Map<String, dynamic>? updatedMarker = fallback.get(
+        StickyFallbackSecureStore.fallbackFlagKey,
+      );
+      expect(
+        updatedMarker?['keys'],
+        containsAll(<String>['key_a', 'key_b', 'key_c']),
+      );
+
+      // Once key_a becomes readable again, lazy read restores it.
+      fallback.shouldFailOnGet = null;
+      expect(store.get('key_a'), equals(<String, dynamic>{'v': 'a'}));
+    });
+
+    test(
+      'does not fail init when cleaning up a harmless empty non-authoritative '
+      'marker throws',
+      () async {
+        final _MemoryStore fallback = _MemoryStore();
+        await fallback.set(
+          StickyFallbackSecureStore.fallbackFlagKey,
+          <String, dynamic>{
+            'enabled': true,
+            'authoritative': false,
+            'keys': <String>[],
+          },
+        );
+        fallback.shouldFailOnDelete = (String key) =>
+            key == StickyFallbackSecureStore.fallbackFlagKey;
+
+        final StickyFallbackSecureStore store = StickyFallbackSecureStore(
+          fallbackStorage: fallback,
+          secureStorage: _FakeSecureStorage(),
+        );
+        await store.init();
+        expect(store.isUsingFallback, isFalse);
+      },
+    );
+
+    test('skips corrupt transient entry during reconciliation without leaking '
+        'details and still reconciles healthy entries', () async {
+      final List<LogRecord> warnings = <LogRecord>[];
+      final StreamSubscription<LogRecord> sub =
+          Logger('StickyFallbackSecureStore').onRecord.listen((
+            LogRecord record,
+          ) {
+            if (record.level >= Level.WARNING) {
+              warnings.add(record);
+            }
+          });
+      addTearDown(sub.cancel);
+
+      final _MemoryStore fallback = _MemoryStore();
+      await fallback.set(
+        StickyFallbackSecureStore.fallbackFlagKey,
+        <String, dynamic>{
+          'enabled': true,
+          'authoritative': false,
+          'keys': <String>['corrupt_entry', 'healthy_entry'],
+        },
+      );
+      await fallback.set('corrupt_entry', <String, dynamic>{'k': 'v'});
+      await fallback.set('healthy_entry', <String, dynamic>{'new': 'ok'});
+      fallback.shouldFailOnGet = (String key) => key == 'corrupt_entry';
+
+      final _FakeSecureStorage keychain = _FakeSecureStorage(
+        initialData: <String, String>{
+          '${ReownConstants.CORE_STORAGE_PREFIX}os_existing': '{"old":"1"}',
+        },
+      );
+
+      final StickyFallbackSecureStore store = StickyFallbackSecureStore(
+        fallbackStorage: fallback,
+        secureStorage: keychain,
+      );
+      await store.init();
+
+      expect(store.isUsingFallback, isFalse);
+      expect(store.get('os_existing'), equals(<String, dynamic>{'old': '1'}));
+      expect(
+        store.get('healthy_entry'),
+        equals(<String, dynamic>{'new': 'ok'}),
+      );
+      expect(
+        warnings.any(
+          (LogRecord r) =>
+              r.message.contains('corrupt_entry') && r.error == null,
+        ),
+        isTrue,
+      );
     });
   });
 }

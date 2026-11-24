@@ -165,8 +165,9 @@ void main() {
         );
 
         // Even when total encoded payload length happens to be 32 bytes
-        // (7-byte ASCII message), the fixed 25-byte domain prefix guarantees
-        // domain separation from SHA3-256 block hashes.
+        // (7-byte ASCII message), the fixed 25-byte domain prefix makes a
+        // collision with a SHA3-256 account-block hash computationally
+        // infeasible (200 fixed prefix bits).
         const String sevenBytes = '1234567';
         final Uint8List sevenBytePayload =
             NoMService.encodeSignedMessagePayload(sevenBytes);

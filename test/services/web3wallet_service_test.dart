@@ -75,6 +75,7 @@ void main() {
     registerFallbackValue(const JsonRpcResponse<dynamic>(id: 0));
     registerFallbackValue(const ReownSignError(code: 0, message: ''));
     registerFallbackValue(const SessionEventParams(name: '', data: null));
+    registerFallbackValue(Uri());
   });
 
   group('Web3WalletService', () {
@@ -159,6 +160,7 @@ void main() {
       when(() => core.expirer).thenReturn(expirer);
       when(() => coreStorage.init()).thenAnswer((_) async {});
       when(() => coreStorage.has(any())).thenReturn(false);
+      when(() => coreStorage.get(any())).thenReturn(null);
       when(() => coreStorage.set(any(), any())).thenAnswer((_) async {});
       when(() => coreStorage.delete(any())).thenAnswer((_) async {});
       when(() => crypto.deleteKeyPair(any())).thenAnswer((_) async {});
@@ -168,7 +170,9 @@ void main() {
         () => relayClient.unsubscribe(topic: any(named: 'topic')),
       ).thenAnswer((_) async {});
       when(() => pairingStore.delete(any())).thenAnswer((_) async {});
+      when(() => pairingStore.persist()).thenAnswer((_) async {});
       when(() => sessionStore.delete(any())).thenAnswer((_) async {});
+      when(() => sessionStore.persist()).thenAnswer((_) async {});
       when(() => walletKit.pairings).thenReturn(pairingStore);
       when(() => walletKit.sessions).thenReturn(sessionStore);
 
@@ -1165,49 +1169,179 @@ void main() {
 
     test(
       'disconnectEverything persists reset marker across restart and deletes '
-      'local session/pairing records when relay disconnect fails offline',
+      'local session/pairing records verified on cold restore',
       () async {
         final int now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
         final Map<String, Map<String, dynamic>> persistedStorage =
             <String, Map<String, dynamic>>{};
-        when(() => coreStorage.has(any())).thenAnswer(
-          (Invocation i) =>
-              persistedStorage.containsKey(i.positionalArguments[0]),
-        );
-        when(() => coreStorage.set(any(), any())).thenAnswer((
-          Invocation i,
-        ) async {
-          persistedStorage[i.positionalArguments[0] as String] =
-              i.positionalArguments[1] as Map<String, dynamic>;
-        });
-        when(() => coreStorage.delete(any())).thenAnswer((Invocation i) async {
-          persistedStorage.remove(i.positionalArguments[0] as String);
-        });
+        final Map<String, SessionData> persistedSessions =
+            <String, SessionData>{
+              'offline-s1': _buildSession(topic: 'offline-s1'),
+            };
+        final Map<String, PairingInfo> persistedPairings =
+            <String, PairingInfo>{
+              'offline-p1': PairingInfo(
+                topic: 'offline-p1',
+                expiry: now + 3600,
+                relay: Relay(ReownConstants.RELAYER_DEFAULT_PROTOCOL),
+                active: true,
+              ),
+            };
 
-        activeSessions['offline-s1'] = _buildSession(topic: 'offline-s1');
-        when(() => pairingStore.getAll()).thenReturn(<PairingInfo>[
-          PairingInfo(
-            topic: 'offline-p1',
-            expiry: now + 3600,
-            relay: Relay(ReownConstants.RELAYER_DEFAULT_PROTOCOL),
-            active: true,
-          ),
-        ]);
-        when(
-          () => walletKit.disconnectSession(
-            topic: 'offline-s1',
-            reason: any(named: 'reason'),
-          ),
-        ).thenThrow(StateError('No internet connection'));
-        when(
-          () => pairing.disconnect(topic: 'offline-p1'),
-        ).thenThrow(StateError('No internet connection'));
+        ({
+          Web3WalletService service,
+          _MockSessionStore sessionStore,
+          _MockPairingStore pairingStore,
+          _MockCrypto crypto,
+          _MockExpirer expirer,
+          _MockRelayClient relayClient,
+        })
+        createColdLaunch({required bool offline}) {
+          final _MockWalletKit kit = _MockWalletKit();
+          final _MockCore c = _MockCore();
+          final _MockRelayClient rc = _MockRelayClient();
+          final _MockPairing p = _MockPairing();
+          final _MockPairingStore ps = _MockPairingStore();
+          final _MockSessionStore ss = _MockSessionStore();
+          final _MockCoreStorage cs = _MockCoreStorage();
+          final _MockCrypto cr = _MockCrypto();
+          final _MockExpirer ex = _MockExpirer();
 
-        // Launch 1: wallet reset runs before init() ever runs, then exits.
-        final Web3WalletService launch1 = buildService();
-        addTearDown(launch1.onDispose);
-        launch1.create();
-        await launch1.disconnectEverything();
+          when(() => kit.core).thenReturn(c);
+          when(() => c.relayClient).thenReturn(rc);
+          when(() => c.pairing).thenReturn(p);
+          when(() => c.storage).thenReturn(cs);
+          when(() => c.crypto).thenReturn(cr);
+          when(() => c.expirer).thenReturn(ex);
+          when(() => kit.pairings).thenReturn(ps);
+          when(() => kit.sessions).thenReturn(ss);
+          when(kit.init).thenAnswer((_) async {});
+          when(
+            kit.getActiveSessions,
+          ).thenAnswer((_) => Map<String, SessionData>.from(persistedSessions));
+          when(
+            kit.getPendingSessionRequests,
+          ).thenReturn(const <String, SessionRequest>{});
+          when(
+            kit.getPendingSessionProposals,
+          ).thenReturn(const <String, ProposalData>{});
+          when(
+            () => kit.getSessionsForPairing(
+              pairingTopic: any(named: 'pairingTopic'),
+            ),
+          ).thenReturn(const <String, SessionData>{});
+
+          when(() => rc.onRelayClientConnect).thenReturn(Event<EventArgs>());
+          when(() => rc.onRelayClientDisconnect).thenReturn(Event<EventArgs>());
+          when(() => rc.onRelayClientError).thenReturn(Event<ErrorEvent>());
+          when(() => p.onPairingCreate).thenReturn(Event<PairingEvent>());
+          when(
+            () => p.onPairingActivate,
+          ).thenReturn(Event<PairingActivateEvent>());
+          when(() => p.onPairingPing).thenReturn(Event<PairingEvent>());
+          when(
+            () => p.onPairingInvalid,
+          ).thenReturn(Event<PairingInvalidEvent>());
+          when(() => p.onPairingDelete).thenReturn(Event<PairingEvent>());
+          when(() => ps.onSync).thenReturn(Event<StoreSyncEvent>());
+          when(() => ss.onSync).thenReturn(Event<StoreSyncEvent>());
+          when(
+            () => kit.onSessionProposal,
+          ).thenReturn(Event<SessionProposalEvent>());
+          when(() => kit.onSessionConnect).thenReturn(Event<SessionConnect>());
+          when(
+            () => kit.onSessionRequest,
+          ).thenReturn(Event<SessionRequestEvent>());
+          when(
+            () => kit.onSessionProposalError,
+          ).thenReturn(Event<SessionProposalErrorEvent>());
+          when(() => kit.onSessionDelete).thenReturn(Event<SessionDelete>());
+
+          when(cs.init).thenAnswer((_) async {});
+          when(() => cs.has(any())).thenAnswer(
+            (Invocation i) =>
+                persistedStorage.containsKey(i.positionalArguments[0]),
+          );
+          when(() => cs.get(any())).thenAnswer(
+            (Invocation i) => persistedStorage[i.positionalArguments[0]],
+          );
+          when(() => cs.set(any(), any())).thenAnswer((Invocation i) async {
+            persistedStorage[i.positionalArguments[0]
+                as String] = Map<String, dynamic>.from(
+              i.positionalArguments[1] as Map<String, dynamic>,
+            );
+          });
+          when(() => cs.delete(any())).thenAnswer((Invocation i) async {
+            persistedStorage.remove(i.positionalArguments[0] as String);
+          });
+
+          when(ss.getAll).thenAnswer((_) => persistedSessions.values.toList());
+          when(() => ss.delete(any())).thenAnswer((Invocation i) async {
+            persistedSessions.remove(i.positionalArguments[0] as String);
+          });
+          when(ss.persist).thenAnswer((_) async {});
+
+          when(ps.getAll).thenAnswer((_) => persistedPairings.values.toList());
+          when(() => ps.delete(any())).thenAnswer((Invocation i) async {
+            persistedPairings.remove(i.positionalArguments[0] as String);
+          });
+          when(ps.persist).thenAnswer((_) async {});
+
+          when(() => cr.deleteKeyPair(any())).thenAnswer((_) async {});
+          when(() => cr.deleteSymKey(any())).thenAnswer((_) async {});
+          when(() => ex.delete(any())).thenAnswer((_) async {});
+          when(
+            () => rc.unsubscribe(topic: any(named: 'topic')),
+          ).thenAnswer((_) async {});
+
+          if (offline) {
+            when(
+              () => kit.disconnectSession(
+                topic: any(named: 'topic'),
+                reason: any(named: 'reason'),
+              ),
+            ).thenThrow(StateError('No internet connection'));
+            when(
+              () => p.disconnect(topic: any(named: 'topic')),
+            ).thenThrow(StateError('No internet connection'));
+          } else {
+            when(
+              () => kit.disconnectSession(
+                topic: any(named: 'topic'),
+                reason: any(named: 'reason'),
+              ),
+            ).thenAnswer((_) async {});
+            when(
+              () => p.disconnect(topic: any(named: 'topic')),
+            ).thenAnswer((_) async {});
+          }
+
+          return (
+            service: Web3WalletService(
+              walletKit: kit,
+              chainResolver: (String _) => nomService,
+            ),
+            sessionStore: ss,
+            pairingStore: ps,
+            crypto: cr,
+            expirer: ex,
+            relayClient: rc,
+          );
+        }
+
+        // Launch 1: wallet reset runs before init() ever runs, then disposes.
+        final ({
+          Web3WalletService service,
+          _MockSessionStore sessionStore,
+          _MockPairingStore pairingStore,
+          _MockCrypto crypto,
+          _MockExpirer expirer,
+          _MockRelayClient relayClient,
+        })
+        launch1 = createColdLaunch(offline: true);
+        launch1.service.create();
+        await launch1.service.disconnectEverything();
+        await launch1.service.onDispose();
         expect(
           persistedStorage.containsKey(
             Web3WalletService.pendingResetStorageKey,
@@ -1215,23 +1349,635 @@ void main() {
           isTrue,
         );
 
-        // Launch 2: fresh service instance initializes offline; persisted reset
-        // marker triggers local deletion of sessions & pairings and clears
-        // marker afterwards.
-        final Web3WalletService launch2 = buildService();
-        addTearDown(launch2.onDispose);
-        launch2.create();
-        await launch2.init();
+        // Launch 2: fresh clients & stores initialize offline; persisted reset
+        // marker purges sessions & pairings from persistent state and clears
+        // the marker.
+        final ({
+          Web3WalletService service,
+          _MockSessionStore sessionStore,
+          _MockPairingStore pairingStore,
+          _MockCrypto crypto,
+          _MockExpirer expirer,
+          _MockRelayClient relayClient,
+        })
+        launch2 = createColdLaunch(offline: true);
+        launch2.service.create();
+        await launch2.service.init();
 
-        verify(() => sessionStore.delete('offline-s1')).called(1);
-        verify(() => crypto.deleteKeyPair('self-key')).called(1);
-        verify(() => crypto.deleteSymKey('offline-s1')).called(1);
-        verify(() => expirer.delete('offline-s1')).called(1);
-        verify(() => pairingStore.delete('offline-p1')).called(1);
-        verify(() => crypto.deleteSymKey('offline-p1')).called(1);
-        verify(() => expirer.delete('offline-p1')).called(1);
-        verify(() => relayClient.unsubscribe(topic: 'offline-s1')).called(1);
-        verify(() => relayClient.unsubscribe(topic: 'offline-p1')).called(1);
+        verify(() => launch2.sessionStore.delete('offline-s1')).called(1);
+        verify(() => launch2.crypto.deleteKeyPair('self-key')).called(1);
+        verify(() => launch2.crypto.deleteSymKey('offline-s1')).called(1);
+        verify(() => launch2.expirer.delete('offline-s1')).called(1);
+        verify(() => launch2.pairingStore.delete('offline-p1')).called(1);
+        verify(() => launch2.crypto.deleteSymKey('offline-p1')).called(1);
+        verify(() => launch2.expirer.delete('offline-p1')).called(1);
+        verify(
+          () => launch2.relayClient.unsubscribe(topic: 'offline-s1'),
+        ).called(1);
+        verify(
+          () => launch2.relayClient.unsubscribe(topic: 'offline-p1'),
+        ).called(1);
+        expect(persistedSessions, isEmpty);
+        expect(persistedPairings, isEmpty);
+        expect(launch2.service.sessions.value, isEmpty);
+        expect(launch2.service.pairings.value, isEmpty);
+        expect(
+          persistedStorage.containsKey(
+            Web3WalletService.pendingResetStorageKey,
+          ),
+          isFalse,
+        );
+        await launch2.service.onDispose();
+
+        // Launch 3: fresh cold restore sees neither old session nor pairing.
+        final ({
+          Web3WalletService service,
+          _MockSessionStore sessionStore,
+          _MockPairingStore pairingStore,
+          _MockCrypto crypto,
+          _MockExpirer expirer,
+          _MockRelayClient relayClient,
+        })
+        launch3 = createColdLaunch(offline: false);
+        addTearDown(launch3.service.onDispose);
+        launch3.service.create();
+        await launch3.service.init();
+
+        expect(launch3.service.sessions.value, isEmpty);
+        expect(launch3.service.pairings.value, isEmpty);
+        expect(launch3.service.getActiveSessions(), isEmpty);
+      },
+    );
+
+    test('gates relay-reconnect request draining while a startup reset is '
+        'in progress', () async {
+      activeSessions['reset-s1'] = _buildSession(topic: 'reset-s1');
+      pendingRequests['901'] = const SessionRequest(
+        id: 901,
+        topic: 'reset-s1',
+        method: 'znn_info',
+        chainId: 'zenon:1',
+        params: null,
+        verifyContext: VerifyContext(
+          origin: 'https://example.invalid',
+          validation: Validation.VALID,
+          verifyUrl: '',
+        ),
+      );
+      when(
+        () => coreStorage.has(Web3WalletService.pendingResetStorageKey),
+      ).thenReturn(true);
+      when(
+        () => coreStorage.get(Web3WalletService.pendingResetStorageKey),
+      ).thenReturn(<String, dynamic>{'pending': true, 'fullReset': true});
+
+      final Completer<void> disconnectGate = Completer<void>();
+      when(
+        () => walletKit.disconnectSession(
+          topic: 'reset-s1',
+          reason: any(named: 'reason'),
+        ),
+      ).thenAnswer((_) async {
+        await disconnectGate.future;
+        activeSessions.remove('reset-s1');
+      });
+
+      final Web3WalletService service = buildService();
+      addTearDown(service.onDispose);
+      service.create();
+
+      final Future<void> initFuture = service.init();
+      await Future<void>.delayed(Duration.zero);
+
+      // Relay reconnect fires while disconnectEverything() is awaiting
+      // disconnectSession: pending request 901 must NOT be dispatched.
+      onRelayConnect.broadcast(EventArgs());
+      await Future<void>.delayed(Duration.zero);
+
+      verifyNever(
+        () => nomService.handleZnnInfo(
+          any(),
+          any(),
+          requestId: any(named: 'requestId'),
+          verifyContext: any(named: 'verifyContext'),
+        ),
+      );
+
+      disconnectGate.complete();
+      await initFuture;
+      await Future<void>.delayed(Duration.zero);
+
+      verifyNever(
+        () => nomService.handleZnnInfo(
+          any(),
+          any(),
+          requestId: any(named: 'requestId'),
+          verifyContext: any(named: 'verifyContext'),
+        ),
+      );
+
+      // Once the reset completes and clears its marker, a later session's
+      // pending request drains normally on reconnect.
+      when(
+        () => coreStorage.has(Web3WalletService.pendingResetStorageKey),
+      ).thenReturn(false);
+      activeSessions['new-s2'] = _buildSession(topic: 'new-s2');
+      pendingRequests['902'] = const SessionRequest(
+        id: 902,
+        topic: 'new-s2',
+        method: 'znn_info',
+        chainId: 'zenon:1',
+        params: null,
+        verifyContext: VerifyContext(
+          origin: 'https://example.invalid',
+          validation: Validation.VALID,
+          verifyUrl: '',
+        ),
+      );
+      when(
+        () => nomService.handleZnnInfo(
+          'new-s2',
+          null,
+          requestId: 902,
+          verifyContext: any(named: 'verifyContext'),
+        ),
+      ).thenAnswer((_) async => <String, dynamic>{'address': 'z1...'});
+
+      onRelayConnect.broadcast(EventArgs());
+      await Future<void>.delayed(Duration.zero);
+
+      verify(
+        () => nomService.handleZnnInfo(
+          'new-s2',
+          null,
+          requestId: 902,
+          verifyContext: any(named: 'verifyContext'),
+        ),
+      ).called(1);
+    });
+
+    test('retains reset marker with topic and key identifiers when local key '
+        'cleanup fails after session record deletion, and finishes cleanup on '
+        'restart', () async {
+      final Map<String, Map<String, dynamic>> persistedStorage =
+          <String, Map<String, dynamic>>{
+            Web3WalletService.pendingResetStorageKey: <String, dynamic>{
+              'pending': true,
+              'fullReset': true,
+            },
+          };
+      when(() => coreStorage.has(any())).thenAnswer(
+        (Invocation i) =>
+            persistedStorage.containsKey(i.positionalArguments[0]),
+      );
+      when(() => coreStorage.get(any())).thenAnswer(
+        (Invocation i) => persistedStorage[i.positionalArguments[0]],
+      );
+      when(() => coreStorage.set(any(), any())).thenAnswer((
+        Invocation i,
+      ) async {
+        persistedStorage[i.positionalArguments[0]
+            as String] = Map<String, dynamic>.from(
+          i.positionalArguments[1] as Map<String, dynamic>,
+        );
+      });
+      when(() => coreStorage.delete(any())).thenAnswer((Invocation i) async {
+        persistedStorage.remove(i.positionalArguments[0] as String);
+      });
+
+      activeSessions['partial-s1'] = _buildSession(topic: 'partial-s1');
+      when(() => sessionStore.delete('partial-s1')).thenAnswer((_) async {
+        activeSessions.remove('partial-s1');
+      });
+      when(
+        () => walletKit.disconnectSession(
+          topic: 'partial-s1',
+          reason: any(named: 'reason'),
+        ),
+      ).thenThrow(StateError('offline'));
+
+      bool failKeyPairDelete = true;
+      when(() => crypto.deleteKeyPair('self-key')).thenAnswer((_) async {
+        if (failKeyPairDelete) {
+          throw StateError('keychain busy');
+        }
+      });
+
+      // Attempt 1: session record is removed, but deleteKeyPair fails.
+      // Marker must NOT be cleared and must retain topic + publicKey.
+      final Web3WalletService launch1 = buildService()..create();
+      await launch1.init();
+
+      expect(activeSessions, isEmpty);
+      expect(
+        persistedStorage.containsKey(Web3WalletService.pendingResetStorageKey),
+        isTrue,
+      );
+      final Map<String, dynamic> retainedMarker =
+          persistedStorage[Web3WalletService.pendingResetStorageKey]!;
+      expect(retainedMarker['fullReset'], isFalse);
+      expect(
+        retainedMarker['pendingSessions'],
+        equals(<Map<String, String>>[
+          <String, String>{'topic': 'partial-s1', 'publicKey': 'self-key'},
+        ]),
+      );
+      await expectLater(
+        launch1.pair(Uri.parse('wc:abc@2?relay-protocol=irn&symKey=def')),
+        throwsStateError,
+      );
+      verifyNever(() => walletKit.pair(uri: any(named: 'uri')));
+      verify(() => crypto.deleteKeyPair('self-key')).called(2);
+      await launch1.onDispose();
+
+      // Attempt 2: fresh launch with empty live session store still retries
+      // key cleanup using the persisted identifiers, then clears the marker.
+      failKeyPairDelete = false;
+      final Web3WalletService launch2 = buildService();
+      addTearDown(launch2.onDispose);
+      launch2.create();
+      await launch2.init();
+
+      verify(() => crypto.deleteKeyPair('self-key')).called(1);
+      expect(
+        persistedStorage.containsKey(Web3WalletService.pendingResetStorageKey),
+        isFalse,
+      );
+    });
+
+    test('disconnectEverything propagates marker write failure before init '
+        'instead of succeeding silently', () async {
+      when(
+        () => coreStorage.set(Web3WalletService.pendingResetStorageKey, any()),
+      ).thenThrow(StateError('disk full'));
+
+      final Web3WalletService service = buildService();
+      addTearDown(service.onDispose);
+      service.create();
+
+      await expectLater(service.disconnectEverything(), throwsStateError);
+    });
+
+    test('blocks new pairings while pending reset marker deletion fails and '
+        'allows pairing once marker removal succeeds', () async {
+      final Map<String, Map<String, dynamic>> persistedStorage =
+          <String, Map<String, dynamic>>{
+            Web3WalletService.pendingResetStorageKey: <String, dynamic>{
+              'pending': true,
+              'fullReset': true,
+            },
+          };
+      bool failMarkerDelete = true;
+      when(() => coreStorage.has(any())).thenAnswer(
+        (Invocation i) =>
+            persistedStorage.containsKey(i.positionalArguments[0]),
+      );
+      when(() => coreStorage.get(any())).thenAnswer(
+        (Invocation i) => persistedStorage[i.positionalArguments[0]],
+      );
+      when(() => coreStorage.delete(any())).thenAnswer((Invocation i) async {
+        if (failMarkerDelete) {
+          throw StateError('marker delete failed');
+        }
+        persistedStorage.remove(i.positionalArguments[0] as String);
+      });
+      final PairingInfo newPairing = PairingInfo(
+        topic: 'fresh-pairing',
+        expiry: DateTime.now().millisecondsSinceEpoch ~/ 1000 + 3600,
+        relay: Relay(ReownConstants.RELAYER_DEFAULT_PROTOCOL),
+        active: false,
+      );
+      when(
+        () => walletKit.pair(uri: any(named: 'uri')),
+      ).thenAnswer((_) async => newPairing);
+
+      final Web3WalletService service = buildService();
+      addTearDown(service.onDispose);
+      service.create();
+      await service.init();
+
+      // Marker delete failed during startup reset -> pair() must refuse so
+      // the stale marker cannot wipe a newly created pairing on relaunch.
+      await expectLater(
+        service.pair(Uri.parse('wc:abc@2?relay-protocol=irn&symKey=def')),
+        throwsStateError,
+      );
+      verifyNever(() => walletKit.pair(uri: any(named: 'uri')));
+
+      // Once marker deletion succeeds, pair() clears the marker and proceeds.
+      failMarkerDelete = false;
+      final PairingInfo paired = await service.pair(
+        Uri.parse('wc:abc@2?relay-protocol=irn&symKey=def'),
+      );
+      expect(paired.topic, 'fresh-pairing');
+      expect(
+        persistedStorage.containsKey(Web3WalletService.pendingResetStorageKey),
+        isFalse,
+      );
+    });
+
+    group('buildApprovedNamespaces', () {
+      ProposalData buildProposal({
+        Map<String, RequiredNamespace> requiredNamespaces =
+            const <String, RequiredNamespace>{},
+        Map<String, RequiredNamespace> optionalNamespaces =
+            const <String, RequiredNamespace>{},
+      }) {
+        return ProposalData(
+          id: 1,
+          expiry: DateTime.now().millisecondsSinceEpoch ~/ 1000 + 300,
+          relays: <Relay>[Relay(ReownConstants.RELAYER_DEFAULT_PROTOCOL)],
+          proposer: const ConnectionMetadata(
+            publicKey: 'peer-key',
+            metadata: PairingMetadata(
+              name: 'Test dApp',
+              description: 'dApp',
+              url: 'https://example.invalid',
+            ),
+          ),
+          requiredNamespaces: requiredNamespaces,
+          optionalNamespaces: optionalNamespaces,
+          generatedNamespaces: const <String, Namespace>{},
+          pairingTopic: 'pairing-1',
+        );
+      }
+
+      test('grants only the requested subset of methods and events', () {
+        final Web3WalletService service = buildService();
+        addTearDown(service.onDispose);
+
+        final Map<String, Namespace> approved = service.buildApprovedNamespaces(
+          buildProposal(
+            requiredNamespaces: <String, RequiredNamespace>{
+              'zenon': const RequiredNamespace(
+                chains: <String>['zenon:1'],
+                methods: <String>['znn_info'],
+                events: <String>['addressChange'],
+              ),
+            },
+          ),
+        );
+
+        final Namespace? zenon = approved['zenon'];
+        expect(zenon, isNotNull);
+        expect(zenon!.chains, equals(<String>['zenon:1']));
+        expect(zenon.methods, equals(<String>['znn_info']));
+        expect(zenon.events, equals(<String>['addressChange']));
+      });
+
+      test(
+        'includes supported optional permissions for active chain and filters '
+        'unsupported optional namespaces, chains, methods, and events',
+        () {
+          final Web3WalletService service = buildService();
+          addTearDown(service.onDispose);
+
+          final Map<String, Namespace> approved = service
+              .buildApprovedNamespaces(
+                buildProposal(
+                  requiredNamespaces: <String, RequiredNamespace>{
+                    'zenon': const RequiredNamespace(
+                      chains: <String>['zenon:1'],
+                      methods: <String>['znn_info'],
+                      events: <String>[],
+                    ),
+                  },
+                  optionalNamespaces: <String, RequiredNamespace>{
+                    'zenon': const RequiredNamespace(
+                      chains: <String>['zenon:1'],
+                      methods: <String>['znn_sign', 'znn_unsupported'],
+                      events: <String>['chainIdChange', 'unsupportedEvent'],
+                    ),
+                    'zenon:3': const RequiredNamespace(
+                      chains: <String>['zenon:3'],
+                      methods: <String>['znn_send'],
+                      events: <String>['addressChange'],
+                    ),
+                    'eip155': const RequiredNamespace(
+                      chains: <String>['eip155:1'],
+                      methods: <String>['eth_sendTransaction'],
+                      events: <String>['accountsChanged'],
+                    ),
+                  },
+                ),
+              );
+
+          expect(approved.keys, equals(<String>['zenon']));
+          expect(
+            approved['zenon']!.methods,
+            equals(<String>['znn_info', 'znn_sign']),
+          );
+          expect(approved['zenon']!.events, equals(<String>['chainIdChange']));
+        },
+      );
+
+      test('falls back to full supported Zenon capabilities when proposal '
+          'declares no matching Zenon namespaces', () {
+        final Web3WalletService service = buildService();
+        addTearDown(service.onDispose);
+
+        final Map<String, Namespace> approved = service.buildApprovedNamespaces(
+          buildProposal(),
+        );
+
+        expect(
+          approved['zenon']!.methods,
+          containsAll(<String>['znn_sign', 'znn_info', 'znn_send']),
+        );
+        expect(
+          approved['zenon']!.events,
+          containsAll(<String>['chainIdChange', 'addressChange']),
+        );
+      });
+
+      test('does not grant full Zenon methods when proposal only declares '
+          'non-active-chain or foreign optional namespaces', () {
+        final Web3WalletService service = buildService();
+        addTearDown(service.onDispose);
+
+        final Map<String, Namespace> approved = service.buildApprovedNamespaces(
+          buildProposal(
+            optionalNamespaces: <String, RequiredNamespace>{
+              'zenon:3': const RequiredNamespace(
+                chains: <String>['zenon:3'],
+                methods: <String>['znn_send'],
+                events: <String>['addressChange'],
+              ),
+              'eip155': const RequiredNamespace(
+                chains: <String>['eip155:1'],
+                methods: <String>['eth_sendTransaction'],
+                events: <String>[],
+              ),
+            },
+          ),
+        );
+
+        expect(approved['zenon']!.methods, isEmpty);
+        expect(approved['zenon']!.events, isEmpty);
+      });
+    });
+
+    test('overlapping disconnectEverything during startup reset does not leave '
+        'request handling permanently gated', () async {
+      final Map<String, Map<String, dynamic>> persistedStorage =
+          <String, Map<String, dynamic>>{
+            Web3WalletService.pendingResetStorageKey: <String, dynamic>{
+              'pending': true,
+              'fullReset': true,
+            },
+          };
+      when(() => coreStorage.has(any())).thenAnswer(
+        (Invocation i) =>
+            persistedStorage.containsKey(i.positionalArguments[0]),
+      );
+      when(() => coreStorage.get(any())).thenAnswer(
+        (Invocation i) => persistedStorage[i.positionalArguments[0]],
+      );
+      when(() => coreStorage.set(any(), any())).thenAnswer((
+        Invocation i,
+      ) async {
+        persistedStorage[i.positionalArguments[0]
+            as String] = Map<String, dynamic>.from(
+          i.positionalArguments[1] as Map<String, dynamic>,
+        );
+      });
+      when(() => coreStorage.delete(any())).thenAnswer((Invocation i) async {
+        persistedStorage.remove(i.positionalArguments[0] as String);
+      });
+
+      activeSessions['reset-s1'] = _buildSession(topic: 'reset-s1');
+      final Completer<void> disconnectGate = Completer<void>();
+      when(
+        () => walletKit.disconnectSession(
+          topic: 'reset-s1',
+          reason: any(named: 'reason'),
+        ),
+      ).thenAnswer((_) async {
+        await disconnectGate.future;
+        activeSessions.remove('reset-s1');
+      });
+
+      final Web3WalletService service = buildService();
+      addTearDown(service.onDispose);
+      service.create();
+
+      final Future<void> initFuture = service.init();
+      await Future<void>.delayed(Duration.zero);
+
+      // Trigger an overlapping reset while startup reset is in flight.
+      final Future<void> overlappingReset = service.disconnectEverything();
+      await Future<void>.delayed(Duration.zero);
+
+      disconnectGate.complete();
+      await Future.wait<void>(<Future<void>>[initFuture, overlappingReset]);
+
+      // Subsequent session requests must drain normally on reconnect.
+      activeSessions['new-s2'] = _buildSession(topic: 'new-s2');
+      pendingRequests['905'] = const SessionRequest(
+        id: 905,
+        topic: 'new-s2',
+        method: 'znn_info',
+        chainId: 'zenon:1',
+        params: null,
+        verifyContext: VerifyContext(
+          origin: 'https://example.invalid',
+          validation: Validation.VALID,
+          verifyUrl: '',
+        ),
+      );
+      when(
+        () => nomService.handleZnnInfo(
+          'new-s2',
+          null,
+          requestId: 905,
+          verifyContext: any(named: 'verifyContext'),
+        ),
+      ).thenAnswer((_) async => <String, dynamic>{'address': 'z1...'});
+
+      onRelayConnect.broadcast(EventArgs());
+      await Future<void>.delayed(Duration.zero);
+
+      verify(
+        () => nomService.handleZnnInfo(
+          'new-s2',
+          null,
+          requestId: 905,
+          verifyContext: any(named: 'verifyContext'),
+        ),
+      ).called(1);
+    });
+
+    test(
+      'flushes sessions.persist() and keeps reset marker pending when remote '
+      'disconnectSession evicts in-memory state before persist fails',
+      () async {
+        final Map<String, Map<String, dynamic>> persistedStorage =
+            <String, Map<String, dynamic>>{
+              Web3WalletService.pendingResetStorageKey: <String, dynamic>{
+                'pending': true,
+                'fullReset': true,
+              },
+            };
+        when(() => coreStorage.has(any())).thenAnswer(
+          (Invocation i) =>
+              persistedStorage.containsKey(i.positionalArguments[0]),
+        );
+        when(() => coreStorage.get(any())).thenAnswer(
+          (Invocation i) => persistedStorage[i.positionalArguments[0]],
+        );
+        when(() => coreStorage.set(any(), any())).thenAnswer((
+          Invocation i,
+        ) async {
+          persistedStorage[i.positionalArguments[0]
+              as String] = Map<String, dynamic>.from(
+            i.positionalArguments[1] as Map<String, dynamic>,
+          );
+        });
+        when(() => coreStorage.delete(any())).thenAnswer((Invocation i) async {
+          persistedStorage.remove(i.positionalArguments[0] as String);
+        });
+
+        activeSessions['evicted-s1'] = _buildSession(topic: 'evicted-s1');
+        // Simulate reown_sign removing the session in memory before persist()
+        // throws inside disconnectSession.
+        when(
+          () => walletKit.disconnectSession(
+            topic: 'evicted-s1',
+            reason: any(named: 'reason'),
+          ),
+        ).thenAnswer((_) async {
+          activeSessions.remove('evicted-s1');
+          throw StateError('storage persist failed');
+        });
+        // Follow-up sessions.delete() is a no-op once absent from memory.
+        when(() => sessionStore.delete('evicted-s1')).thenAnswer((_) async {});
+
+        bool failPersist = true;
+        when(sessionStore.persist).thenAnswer((_) async {
+          if (failPersist) {
+            throw StateError('storage persist still failing');
+          }
+        });
+
+        final Web3WalletService service = buildService();
+        addTearDown(service.onDispose);
+        service.create();
+        await service.init();
+
+        verify(sessionStore.persist).called(1);
+        expect(
+          persistedStorage.containsKey(
+            Web3WalletService.pendingResetStorageKey,
+          ),
+          isTrue,
+        );
+
+        // Once persist recovers, retrying disconnectEverything flushes and
+        // clears the marker.
+        failPersist = false;
+        await service.disconnectEverything();
+
+        verify(sessionStore.persist).called(1);
         expect(
           persistedStorage.containsKey(
             Web3WalletService.pendingResetStorageKey,
@@ -1240,5 +1986,101 @@ void main() {
         );
       },
     );
+
+    test(
+      'drains pending requests for surviving sessions after a partial startup '
+      'reset completes',
+      () async {
+        final Map<String, Map<String, dynamic>> persistedStorage =
+            <String, Map<String, dynamic>>{
+              Web3WalletService.pendingResetStorageKey: <String, dynamic>{
+                'pending': true,
+                'fullReset': false,
+                'pendingSessions': <Map<String, String>>[
+                  <String, String>{
+                    'topic': 'old-s1',
+                    'publicKey': 'old-self-key',
+                  },
+                ],
+              },
+            };
+        when(() => coreStorage.has(any())).thenAnswer(
+          (Invocation i) =>
+              persistedStorage.containsKey(i.positionalArguments[0]),
+        );
+        when(() => coreStorage.get(any())).thenAnswer(
+          (Invocation i) => persistedStorage[i.positionalArguments[0]],
+        );
+        when(() => coreStorage.delete(any())).thenAnswer((Invocation i) async {
+          persistedStorage.remove(i.positionalArguments[0] as String);
+        });
+
+        activeSessions['surviving-s2'] = _buildSession(topic: 'surviving-s2');
+        pendingRequests['910'] = const SessionRequest(
+          id: 910,
+          topic: 'surviving-s2',
+          method: 'znn_info',
+          chainId: 'zenon:1',
+          params: null,
+          verifyContext: VerifyContext(
+            origin: 'https://example.invalid',
+            validation: Validation.VALID,
+            verifyUrl: '',
+          ),
+        );
+        when(
+          () => nomService.handleZnnInfo(
+            'surviving-s2',
+            null,
+            requestId: 910,
+            verifyContext: any(named: 'verifyContext'),
+          ),
+        ).thenAnswer((_) async => <String, dynamic>{'address': 'z1...'});
+
+        final Web3WalletService service = buildService();
+        addTearDown(service.onDispose);
+        service.create();
+        await service.init();
+        await Future<void>.delayed(Duration.zero);
+
+        verify(() => crypto.deleteKeyPair('old-self-key')).called(1);
+        verify(
+          () => nomService.handleZnnInfo(
+            'surviving-s2',
+            null,
+            requestId: 910,
+            verifyContext: any(named: 'verifyContext'),
+          ),
+        ).called(1);
+      },
+    );
+
+    test('runtime disconnectEverything persists reset marker before sweeping '
+        'sessions', () async {
+      final List<String> events = <String>[];
+      activeSessions['live-s1'] = _buildSession(topic: 'live-s1');
+      when(
+        () => coreStorage.set(Web3WalletService.pendingResetStorageKey, any()),
+      ).thenAnswer((_) async {
+        events.add('persist_marker');
+      });
+      when(
+        () => walletKit.disconnectSession(
+          topic: 'live-s1',
+          reason: any(named: 'reason'),
+        ),
+      ).thenAnswer((_) async {
+        events.add('disconnect_session');
+        activeSessions.remove('live-s1');
+      });
+
+      final Web3WalletService service = buildService();
+      addTearDown(service.onDispose);
+      service.create();
+      await service.init();
+      await service.disconnectEverything();
+
+      expect(events, equals(<String>['persist_marker', 'disconnect_session']));
+    });
   });
 }
