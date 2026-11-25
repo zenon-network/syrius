@@ -1,18 +1,29 @@
 {
   "about": "About",
+  "abstain": "Abstain",
+  "acceleratorAvailableBalance": "Accelerator available balance",
+  "acceleratorDonations": "Accelerator Donations",
+  "acceleratorFundEmpty": "Accelerator fund empty",
+  "acceleratorStats": "Accelerator Stats",
+  "accepted": "Accepted",
   "acknowledged": "Acknowledged",
   "active": "Active",
   "activePillars": "Active Pillars",
   "activeSentinels": "Active Sentinels",
   "activeSwap": "Active swap",
   "address": "Address",
+  "addressOwnsOrProducesNoPillar": "This address owns or produces no pillar",
   "addressSearchDescription": "Addresses can be searched by label - \"Address 1\" - and by hex value - \"z1qxemdeddedxt0kenxxxxxxxxxxxxxxxxh9amk0\"",
   "addressToCollectRewards": "The address that will be able to collect the Pillar rewards",
   "addressToProduceMomentums": "The address that will produce momentums, get it from znn-controller",
+  "allDonatedFundsGoToAccelerator": "All donated funds go directly into the Accelerator address",
+  "alreadyVoted": "Already voted",
   "amount": "Amount",
   "areYouSureTranfer": "Are you sure you want to transfer {amount} {symbol} to {recipient} ?",
   "asset": "Asset",
+  "available": "Available",
   "balance": "Balance",
+  "balanceUnavailableForAddress": "Balance is unavailable for the selected address",
   "beneficiaryAddress": "Beneficiary address",
   "cancel": "Cancel",
   "cannotJoinSwapExpiresTooSoon": "Cannot join swap. The swap will expire too soon for a safe swap.",
@@ -39,6 +50,17 @@
   "completed": "Completed",
   "connect": "Connect",
   "cannotReuseAddressForSentinel": "If this address previously revoked a Sentinel, it cannot create a new Sentinel again. Use a different address before depositing QSR.",
+  "consumeZnnToSubmitProject": "Consume {amount} {symbol} to submit the project",
+  "@consumeZnnToSubmitProject": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      },
+      "symbol": {
+        "type": "String"
+      }
+    }
+  },
   "couldNotSend": "Couldn't send {amount} {symbol} to {recipient}",
   "burn": "Burn",
   "burnableToken": "Burnable by any holder",
@@ -59,9 +81,22 @@
     }
   },
   "create": "Create",
+  "createAnotherPhase": "Create another phase",
+  "createAnotherProject": "Create another project",
   "createAnotherToken": "Create another Token",
+  "createdWithDate": "Created {date}",
+  "@createdWithDate": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "createPhase": "Create phase",
+  "createPhaseForYourProject": "Create a phase for your project. The project can be divided into several phases. You will unlock the funds if you get enough votes from the Pillars.",
   "createPillarDescription": "Start the process of deploying a Pillar Node in the network",
-  "createPillarTitle" : "Create Pillar",
+  "createPillarTitle": "Create Pillar",
+  "createProject": "Create project",
   "createSentinelDescription": "Start the process of deploying a Sentinel Node in the network",
   "createStake": "create stake",
   "createStakeDescription": "This card displays information about staking per wallet address. Choose the duration and the amount in {kZnnCoinSymbol} for staking in order to receive {kQsrCoinSymbol}",
@@ -69,10 +104,29 @@
   "createToken": "Create Token",
   "createTokenDescription": "Create a token following the ZTS specification",
   "createTokenTitle": "Create Token",
+  "creatingProjectConsumesZnn": "Creating a project consumes {amount} {symbol} that goes to the Accelerator",
+  "@creatingProjectConsumesZnn": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      },
+      "symbol": {
+        "type": "String"
+      }
+    }
+  },
   "currentAmounts": "This card displays the current {kZnnCoinSymbol} and {kQsrCoinSymbol} amounts for the selected address",
   "currentPillarSlotFee": "Current Pillar Slot fee\n{coins} {kQsrCoinSymbol}",
   "currentSentinelSlotFee": "Current Sentinel Slot fee\n{coins} {kQsrCoinSymbol}",
-  "date":"Date",
+  "date": "Date",
+  "daysCount": "{count} days",
+  "@daysCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "decimals": "{number} decimals",
   "delegateKey": "DELEGATE",
   "delegation": "Delegation",
@@ -95,16 +149,30 @@
   "deleteSwapCannotBeUndone": "Are you sure you want to delete this swap? This action cannot be undone.",
   "description": "Description",
   "detailedInfoAboutWalletComponents": "Detailed information about wallet components",
+  "detailedInfoAboutYourProject": "Detailed information about your project",
   "disassemble": "DISASSEMBLE",
   "disassemblePillarToUnlockCoin": "You will be able to unlock the {kZnnCoinSymbol} if you choose to disassemble the Pillar",
   "disassembleSentinelToUnlockCoin": "You will be able to unlock the {kZnnCoinSymbol} if you choose to disassemble the Sentinel",
   "displaysWalletNotificationsDetails": "This card displays detailed information regarding the wallet notifications",
   "displaysZenonCommunityResources": "This card displays information about Zenon community resources",
   "documentation": "Documentation",
+  "donate": "Donate",
+  "donationAddress": "Donation address",
+  "donationAmountMustBePositive": "Donation amount must be greater than zero",
+  "donationDetails": "Donation details",
+  "donationSubmitted": "Donation submitted",
   "dualCoinStats": "Dual Coin Stats",
   "dualCoinStatsDescription": "This card displays the circulating {kZnnCoinSymbol} and {kQsrCoinSymbol} supply from the network",
   "duration": "Duration",
+  "eachProjectComprisedOfPhases": "Each project can be comprised of one or more phases. Each phase needs to be voted. Phases can be updated by the owner of the project to reflect current progress of the project.",
   "empty": "Empty",
+  "enterValidAmount": "Enter a valid amount",
+  "errorCreatingPhase": "Error while creating phase",
+  "errorGettingVoteBreakdown": "Error while trying to get the vote breakdown",
+  "errorSubmittingDonation": "Error while submitting donation",
+  "errorSubmittingProject": "Error while submitting project",
+  "errorUpdatingPhase": "Error while updating phase",
+  "errorVotingProject": "Error while voting project",
   "exchangeRate": "Exchange Rate",
   "error": "Error",
   "errorClearingNotifications": "Error while clearing notifications",
@@ -143,35 +211,80 @@
   "expectedProducedMomentums": "Expected/produced momentums",
   "explorers": "Explorers",
   "from": "From",
+  "fuelForTheMothership": "Fuel for the Mothership",
   "fuse": "Fuse",
   "fusePlasmaDescription": "This card displays information about Plasma available per wallet address. A minimum of 10 {kQsrCoinSymbol} are needed to be fused in order to generate Plasma. The more {kQsrCoinSymbol} fused, the more Plasma is produced for the beneficiary address\n\nInsufficient Plasma: Proof-of-work for Plasma generation; limited to 1 transaction per momentum\nLow Plasma: between 10 and 89 {kQsrCoinSymbol}\nAverage Plasma: between 90 and 119 {kQsrCoinSymbol}\nHigh Plasma: over 120 {kQsrCoinSymbol}; recommended for complex transactions (register Pillars, Sentinels, staking and issuing ZTS tokens)",
   "fusePlasmaTitle": "Fuse Plasma",
   "fusedPlasmaDescription": "This card displays all your addresses that have Plasma generated by fusing {kQsrCoinSymbol}",
   "fusedPlasmaTitle": "Fused Plasma",
   "goBack": "Go back",
-  "hAgo": "h ago",
   "hash": "Hash",
   "hashlock": "Hashlock",
   "hashValue": "Hash: {value}",
   "hideDetails": "Hide details",
+  "hoursAgo": "{count} h ago",
+  "@hoursAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "hoursCount": "{count} h",
+  "@hoursCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "idWithValue": "ID {id}",
+  "@idWithValue": {
+    "placeholders": {
+      "id": {
+        "type": "String"
+      }
+    }
+  },
+  "innovateInspireBuild": "Innovate. Inspire. Build.",
   "inputAmountToSend": "Input an amount to send",
   "inputDepositId": "Input the deposit ID",
+  "inputtedNumberHasTooManyDecimals": "Inputted number has too many decimals",
   "invalidQrCode": "Invalid QR code",
   "invalidQrCodeException": "Invalid QR code exception",
   "issueToken": "Issue Token",
   "joinSwap": "Join swap",
+  "joinTheAliensBuildingNom": "Join the Aliens building the future on Network of Momentum",
   "latestTransactionsDescription": "This card displays the latest transactions (including ZTS tokens) of your selected address",
   "latestTransactionsTitle": "Latest Transactions",
   "latestTransactionsTransferDescription": "This card displays the latest transactions (including ZTS tokens) involving your wallet addresses",
   "level": "Level",
+  "linkToProjectArticle": "Link to project article",
+  "listContainsAllProjects": "This card displays a list that contains all the projects",
   "locked": "{kQsrCoinSymbol} locked",
   "localTimeDiscrepancyDetected": "Local time discrepancy detected. Please confirm your operating system's time is correct before conducting P2P swaps.",
+  "makeAnotherDonation": "Make another donation",
   "manageReceivingFunds": "Manage receiving funds",
   "manageSendingFunds": "Manage sending funds",
   "management": "{kQsrCoinSymbol} management",
   "max": "Max",
   "maxSupply": "Max supply",
-  "minAgo": "min ago",
+  "minutesAgo": "{count} min ago",
+  "@minutesAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "minutesCount": "{count} min",
+  "@minutesCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "minutesLeftToJoinSwap": "You have <highlight>{minutes} minutes</highlight> left to join the swap.",
   "@minutesLeftToJoinSwap": {
     "description": "Explains how many minutes remain to join a swap.",
@@ -188,22 +301,55 @@
   "momentumPercentageGiven": "Momentum percentage given: {percentage}",
   "momentumReward": "Momentum reward",
   "morePlasmaRequired": "More Plasma is required to perform complex transactions. Please fuse enough QSR before proceeding.",
+  "moreVotesNeededForQuorum": "{count} more votes needed to achieve quorum",
+  "@moreVotesNeededForQuorum": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "moreYesThanNoVotes": "More yes than no votes",
+  "myProjects": "My projects",
   "name": "Name",
+  "necessaryBudgetToCompletePhase": "Necessary budget to successfully complete this phase",
+  "needsVoting": "Needs voting",
   "newOwnerAddress": "New owner address",
   "next": "Next",
   "no": "no",
+  "noActiveProjects": "No active projects",
   "noItemsFound": "No items founds",
+  "noMatchingPhases": "No matching phases found",
   "noMoreItems": "No more items",
   "noNotifications": "No notifications",
   "noP2pSwaps": "No P2P swaps",
+  "noProjectsFound": "No projects found",
   "noRewardsCollect": "No rewards to collect",
+  "notEnoughYesVotes": "Not enough yes votes",
+  "noVotesCount": "{count} No votes",
+  "@noVotesCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "noZtsTokensAvailable": "No ZTS tokens available",
   "notifications": "Notifications",
   "numberOfDecimals": "Number of decimals: {number}",
   "oldestSwapDeletedWhenFull": "The oldest swap entry will be deleted when a new swap is started.",
   "onScreenQrScanner": "On-screen QR Scanner",
+  "onlyAccepted": "Only accepted",
   "onlyMacOsSupported": "Only macOS is supported at the moment",
   "options": "Options",
+  "ownerWithAddress": "Owner {address}",
+  "@ownerWithAddress": {
+    "placeholders": {
+      "address": {
+        "type": "String"
+      }
+    }
+  },
   "ownZtsToken": "You own this ZTS token",
   "p2pSwapAddressHint": "Enter NoM address",
   "p2pSwapCounterpartyAddressDescription": "The address of the trading partner for the swap.",
@@ -232,6 +378,7 @@
   "p2pSwapWarningTitle": "Before continuing",
   "p2pSwaps": "P2P Swaps",
   "p2pSwapsConductedWithWallet": "This card displays a list of P2P swaps that have been conducted with this wallet.",
+  "paid": "Paid",
   "pairingTopic": "Pairing Topic",
   "pairingFailed": "Pairing failed",
   "password": "Password",
@@ -242,6 +389,20 @@
   "percentageDelegationRewardsGiven": "Percentage of delegation rewards given to the delegators",
   "percentageOfMomentumRewards": "Percentage of momentum rewards given to the delegators",
   "permissionRequired": "Permission required",
+  "phaseBelongsToProject": "This phase belongs to Project ID {projectId}",
+  "@phaseBelongsToProject": {
+    "placeholders": {
+      "projectId": {
+        "type": "String"
+      }
+    }
+  },
+  "phaseDescription": "Phase description",
+  "phaseDetails": "Phase details",
+  "phaseList": "Phase List",
+  "phaseName": "Phase name",
+  "phaseNeedsVoting": "Phase needs voting",
+  "phaseUrl": "Phase URL",
   "pillar": "Pillar",
   "pillarCollectDescription": "This card displays your current Pillar rewards (either from your Pillar Node or from your delegation) that are ready to be collected. If there are any rewards available, you will be able to collect them. In order to receive rewards, the Pillar Node needs to be not only registered in the network, but also deployed (use znn-controller for this operation) and it must produce momentums",
   "pillarCollectTitle": "Pillar Collect",
@@ -256,6 +417,14 @@
   "pillarRewardsBlockCreated": "Successfully created block for collecting the pillar rewards. It will take at least 30 seconds for the data to update and to be able to receive the rewards.",
   "pillarRewardsDescription": "This card displays a chart with your Pillar rewards. Pillar rewards are generated either by operating a Pillar Node or from delegations to a Pillar Node",
   "pillarRewardsTitle": "Pillar Rewards",
+  "pillarsCanStillVote": "{count} Pillars that can still cast a vote",
+  "@pillarsCanStillVote": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "plasmaStatsDescription": "This card displays information about current Plasma level for each wallet address. Plasma is used as an anti-spam mechanism. More Plasma you have per address, more transactions you will be able to send or receive on that address. Low or insufficient Plasma will require proof-of-work for generation. Fuse 10 {kQsrCoinSymbol} or more in order to obtain Plasma for any given address\n\nInsufficient Plasma: Proof-of-work for Plasma generation; limited to 1 transaction per momentum\nLow Plasma: between 10 and 50 {kQsrCoinSymbol}\nAverage Plasma: between 50 and 119 {kQsrCoinSymbol}\nHigh Plasma: over 120 {kQsrCoinSymbol}; recommended to make complex transactions (deploy Pillars, Sentinels, staking and issuing ZTS tokens)",
   "plasmaStatsTitle": "Plasma Stats",
   "pillarStats": "Pillar Stats",
@@ -272,11 +441,24 @@
   "pleaseScanValidWalletConnectQr": "Please scan a valid WalletConnect QR code",
   "pressToReceive": "Press to receive the transaction",
   "producerAddress": "Producer Address",
+  "projectCreation": "Project creation",
+  "projectDescription": "Project description",
+  "projectDetails": "Project details",
+  "projectHasNoPhases": "The project has no phases",
+  "projectList": "Project List",
+  "projectName": "Project name",
+  "projectStats": "Project Stats",
+  "projectSubmitted": "Project submitted",
+  "projectUrl": "Project URL",
   "qrCodeScanFailed": "QR code scan failed",
+  "qsrAmount": "QSR Amount",
   "quasarTransactions": "{quasar} transactions",
+  "quorumAchieved": "Quorum achieved",
+  "quorumNotAchieved": "Quorum not achieved",
   "realtimeStats": "Realtime Stats",
   "realtimeStatsDescription": "This card displays the number of {kZnnCoinSymbol} and {kQsrCoinSymbol} transactions. For example, a delegation is considered a {kZnnCoinSymbol} transaction from the network's perspective. Every interaction with the network embedded contracts is internally considered a transaction",
   "receive": "Receive",
+  "received": "Received",
   "receiver": "Receiver",
   "receivingWrongTokenOrAmount": "I'm receiving the wrong token or amount.",
   "recipient": "Recipient",
@@ -294,18 +476,55 @@
   "registerPillar": "Register Pillar",
   "registerSentinel": "Register Sentinel",
   "registeredUse": " registered. Use ",
+  "rejected": "Rejected",
+  "remaining": "Remaining",
+  "remainingBudgetForNextPhases": "Remaining budget for the next phases is {znnAmount} {znnSymbol} and {qsrAmount} {qsrSymbol}",
+  "@remainingBudgetForNextPhases": {
+    "placeholders": {
+      "znnAmount": {
+        "type": "String"
+      },
+      "znnSymbol": {
+        "type": "String"
+      },
+      "qsrAmount": {
+        "type": "String"
+      },
+      "qsrSymbol": {
+        "type": "String"
+      }
+    }
+  },
   "requiredForPillarSlot": "{coins} {kQsrCoinSymbol} required for a Pillar slot",
   "requiredForSentinelNode": "{coins} {kQsrCoinSymbol} required for a Sentinel Node",
+  "returnToProjectList": "Return to project list",
   "revocationWindowOpen": "Revocation window is open",
-  "sAgo": "s ago",
   "saveQr": "Save QR",
   "scanQr": "Scan QR",
   "scanWalletConnectQrFromDapp": "Scan the WalletConnect QR from the dApp",
   "scanWalletConnectQrUsingCamera": "Scan a WalletConnect QR code using the built-in camera of this device",
   "scanWalletConnectQrUsingOnScreenScanner": "Scan the WalletConnect QR code using an on-screen QR scanner. This requires the screen recording permission",
   "screenRecordingPermissionRequired": "Screen Recording permission is required to scan and process the on-screen WalletConnect QR code",
+  "searchByIdNameDescriptionUrl": "Search by id, name, description, or URL",
+  "searchByIdOwnerNameDescriptionUrl": "Search by id, owner, name, description, or URL",
   "searchTokenHint": "Search by name, symbol, owner, or token standard",
   "searching": "Searching",
+  "secondsAgo": "{count} s ago",
+  "@secondsAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "secondsCount": "{count} s",
+  "@secondsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "send": "Send",
   "sendTransaction": "send transaction",
   "sentinel": "Sentinel",
@@ -328,10 +547,13 @@
   "sentinelsListDescription": "This card displays information about the Sentinels that are currently active in the network",
   "sentinelsListTitle": "Sentinels List",
   "sessionTopic": "Session Topic",
+  "setBudgetForProject": "Set a budget for the project",
   "shareQr": "Share QR",
   "shareDepositIdWithCounterparty": "Send your deposit ID to the counterparty via a messaging service so that they can join the swap.",
+  "showcaseProgressOfProject": "Showcase the progress of your project (e.g. Git PR/commit)",
   "showDetails": "Show details",
   "socialMedia": "Social Media",
+  "sortByLastUpdate": "Sort by last update",
   "spawn": "Spawn",
   "stake": "Stake",
   "stakeCollectDescription": "This card displays your current staking rewards that are ready to be collected. If there are any rewards available, you will be able to collect them",
@@ -347,7 +569,12 @@
   "stakingRewardsDescription": "This card displays a chart with your staking rewards from your staking entries",
   "stakingRewardsBlockCreated": "Successfully created block for collecting the staking rewards. It will take at least 30 seconds for the data to update and to be able to receive the rewards.",
   "stakingRewardsTitle": "Staking Rewards",
+  "startProjectByCreatingPhase": "Start the project by creating a phase to unlock funds",
   "status": "Status",
+  "submit": "Submit",
+  "submitDonation": "Submit donation",
+  "submitPhase": "Submit phase",
+  "submitProject": "Submit project",
   "successfully": "successfully",
   "successfullyBurned": "Successfully burned {amount} {symbol}",
   "successfullyBurnedRequestedAmount": "You have successfully burned the requested amount: {amount} {symbol} {hash}",
@@ -384,6 +611,7 @@
   "syriusWalletPath": "Syrius wallet path",
   "syriusWalletType": "Syrius wallet type",
   "syriusWalletVersion": "Syrius wallet version",
+  "thankYouForSupportingAccelerator": "Thank you for supporting the Accelerator",
   "time": "Time",
   "to": "To",
   "tokenAddedToFavorites": "{name} token has been added to favorites",
@@ -412,8 +640,25 @@
   "tokens": "Tokens",
   "tokensCardDescription": "This card displays a grid with all the ZTS tokens from the network, including ZTS tokens issued by you",
   "topic": "Topic",
+  "total": "Total",
+  "totalDonationBudget": "Total donation budget",
+  "totalPhaseBudget": "Total phase budget",
+  "totalProjectBudget": "Total project budget",
   "totalSupply": "Total supply",
+  "totalVotesCount": "{count} votes in total",
+  "@totalVotesCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "transactionError": "Error while receiving transaction",
+  "updatePhase": "Update phase",
+  "updatingPhaseResetsVotes": "Updating this phase will reset all current votes",
+  "valueMustBeZero": "Value must be 0",
+  "viewPhases": "View phases",
+  "viewProjects": "View projects",
   "visitDomain": "Visit {domain}",
   "transactions": "Transactions",
   "transactionsDescription": "This card displays the total number of transactions settled in the last hour across the network",
@@ -451,6 +696,17 @@
   "viewPillars": "View Pillars",
   "viewMyTokens": "View my Tokens",
   "viewSentinels": "View Sentinels",
+  "votingClosed": "Voting closed",
+  "votingClosesIn": "Voting closes in {duration}",
+  "@votingClosesIn": {
+    "placeholders": {
+      "duration": {
+        "type": "String"
+      }
+    }
+  },
+  "votingOpen": "Voting open",
+  "votingResults": "Voting results",
   "waitingForDataFetching": "Waiting for data fetching",
   "waitingForCounterpartyToJoin": "Waiting for the counterparty to join the swap.",
   "waitingForCounterpartyKeepRunning": "Waiting for the counterparty. Please keep Syrius running.",
@@ -486,11 +742,21 @@
   "weight": "Weight",
   "withdraw": "Withdraw",
   "yes": "yes",
+  "yesVotesCount": "{count} Yes votes",
+  "@yesVotesCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "youHaveDeposited": "You have deposited {coins} {kQsrCoinSymbol}",
   "youAreReceiving": "You are receiving",
   "youAreSending": "You are sending",
   "yourAddress": "Your address",
   "yourDepositId": "Your deposit ID",
+  "yourDonationMatters": "Your donation matters",
+  "yourProjectOwnerAddress": "This will be your project owner address",
   "zenonBitcoinTalk": "Zenon Bitcoin Talk",
   "zenonDiscord": "Zenon Discord",
   "zenonExplorer": "Zenon Explorer",
@@ -520,7 +786,9 @@
   "zenonWhitepaper": "Zenon Whitepaper",
   "zenonWiki": "Zenon Wiki",
   "zenonYoutube": "Zenon Youtube",
+  "znnAmount": "ZNN Amount",
   "znnController": "znn-controller ",
+  "znnDonationSubmittedQsrFailed": "ZNN donation was submitted, but the QSR donation failed. Retry to submit only the remaining QSR donation.",
   "ztsSearchDescription": "Coins and tokens can be searched by name - \"Zenon\" -, by symbol - \"ZNN\" -, and by token standard - \"zts1znnxxxxxxxxxxxxx9z4ulx\"",
   "accountChainHeight": "Account-chain height",
   "accountChainStats": "Account-chain Stats",

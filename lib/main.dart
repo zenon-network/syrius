@@ -395,7 +395,6 @@ void setup() {
   );
 
   sl.registerSingleton<BalanceBloc>(BalanceBloc());
-  sl.registerSingleton<AcceleratorBalanceBloc>(AcceleratorBalanceBloc());
   sl.registerSingleton<PowGeneratingStatusBloc>(PowGeneratingStatusBloc());
 }
 
