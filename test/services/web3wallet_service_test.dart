@@ -5758,8 +5758,8 @@ void main() {
           if (!sdkPairStarted.isCompleted) {
             sdkPairStarted.complete();
           }
-          // Consumes most of a single 100ms timeout before settling.
-          await Future<void>.delayed(const Duration(milliseconds: 70));
+          // Consumes most of a single 300ms timeout before settling.
+          await Future<void>.delayed(const Duration(milliseconds: 220));
           return PairingInfo(
             topic: 'slow-pair',
             expiry: now + 3600,
@@ -5773,9 +5773,10 @@ void main() {
             reason: any(named: 'reason'),
           ),
         ).thenAnswer((_) async {
-          // Takes 60ms: would time out if the 100ms budget had started before
-          // waiting 70ms on the in-flight pair() call.
-          await Future<void>.delayed(const Duration(milliseconds: 60));
+          // Takes 160ms: would time out if the 300ms budget had started before
+          // waiting 220ms on the in-flight pair() call (220 + 160 = 380ms >
+          // 300ms), while leaving 140ms of CI headroom when lazy.
+          await Future<void>.delayed(const Duration(milliseconds: 160));
           activeSessions.remove('slow-ok-s1');
           sessionDisconnectCompletedRemotely = true;
         });
@@ -5783,7 +5784,7 @@ void main() {
         final Web3WalletService service = Web3WalletService(
           walletKit: walletKit,
           chainResolver: (String _) => nomService,
-          inFlightPairWaitTimeout: const Duration(milliseconds: 100),
+          inFlightPairWaitTimeout: const Duration(milliseconds: 300),
         );
         addTearDown(service.onDispose);
         service.create();

@@ -440,13 +440,32 @@ class Web3WalletService extends IWeb3WalletService {
     required String topic,
     required int expectedResetGeneration,
   }) async {
+    final _RelayTimeoutBudget budget = _RelayTimeoutBudget(
+      _inFlightPairWaitTimeout,
+    );
     while (true) {
       final Set<Future<void>>? pending =
           _inFlightStaleCleanupDisconnects[topic];
       if (pending == null || pending.isEmpty) {
         return;
       }
-      await Future.wait<void>(List<Future<void>>.from(pending));
+      final Duration remaining = budget.remaining;
+      if (remaining == Duration.zero) {
+        throw StateError(
+          'WalletConnect stale-pairing cleanup for topic $topic is still '
+          'settling; retry pairing once disconnect completes',
+        );
+      }
+      try {
+        await Future.wait<void>(
+          List<Future<void>>.from(pending),
+        ).timeout(remaining);
+      } on TimeoutException {
+        throw StateError(
+          'WalletConnect stale-pairing cleanup for topic $topic is still '
+          'settling; retry pairing once disconnect completes',
+        );
+      }
       if (_isDisposed || _wcClient == null) {
         throw StateError('WalletConnect client not initialized');
       }
@@ -1194,20 +1213,7 @@ class Web3WalletService extends IWeb3WalletService {
       _resetGeneration++;
       final Future<void> persistFuture = _synchronizedMarkerOp<void>(() async {
         await _wcClient!.core.storage.init();
-        final _PendingResetState existingMarker = _readPendingResetMarker();
-        final Map<String, String> mergedSessions = <String, String>{
-          ...existingMarker.pendingSessions,
-          ..._pendingSessionCleanups,
-        };
-        final Set<String> mergedPairings = <String>{
-          ...existingMarker.pendingPairings,
-          ..._pendingPairingCleanups,
-        };
-        await _persistPendingResetMarkerLocked(
-          fullReset: true,
-          pendingSessions: mergedSessions,
-          pendingPairings: mergedPairings,
-        );
+        await _persistFullResetMarkerMergingPendingLocked();
       });
       _pendingResetMarkerPersist = persistFuture;
       try {
@@ -1257,20 +1263,7 @@ class Web3WalletService extends IWeb3WalletService {
             if (_isDisposed || _wcClient == null) {
               return;
             }
-            final _PendingResetState existingMarker = _readPendingResetMarker();
-            final Map<String, String> mergedSessions = <String, String>{
-              ...existingMarker.pendingSessions,
-              ..._pendingSessionCleanups,
-            };
-            final Set<String> mergedPairings = <String>{
-              ...existingMarker.pendingPairings,
-              ..._pendingPairingCleanups,
-            };
-            await _persistPendingResetMarkerLocked(
-              fullReset: true,
-              pendingSessions: mergedSessions,
-              pendingPairings: mergedPairings,
-            );
+            await _persistFullResetMarkerMergingPendingLocked();
           });
         } on Object {
           if (rethrowMarkerWriteError) {
@@ -1721,9 +1714,12 @@ class Web3WalletService extends IWeb3WalletService {
       return;
     }
     if (_hasActiveOrPendingReset) {
-      // Clear the active reconnect handle synchronously before re-arming so a
-      // reset completing on the next microtask starts a fresh reconnect rather
-      // than coalescing onto this exiting future.
+      // Callers only invoke _startRecoveryRelayReconnect when no reset is
+      // active or pending, so reaching this branch happens after awaiting
+      // _pendingRecoveryRelayDisconnect (once _pendingRecoveryRelayReconnect
+      // has already been assigned). Clearing the handle synchronously before
+      // re-arming ensures a reset completing on the next microtask starts a
+      // fresh reconnect rather than coalescing onto this exiting future.
       if (_recoveryReconnectToken == token) {
         _pendingRecoveryRelayReconnect = null;
       }
@@ -1739,6 +1735,23 @@ class Web3WalletService extends IWeb3WalletService {
         s,
       );
     }
+  }
+
+  Future<void> _persistFullResetMarkerMergingPendingLocked() async {
+    final _PendingResetState existingMarker = _readPendingResetMarker();
+    final Map<String, String> mergedSessions = <String, String>{
+      ...existingMarker.pendingSessions,
+      ..._pendingSessionCleanups,
+    };
+    final Set<String> mergedPairings = <String>{
+      ...existingMarker.pendingPairings,
+      ..._pendingPairingCleanups,
+    };
+    await _persistPendingResetMarkerLocked(
+      fullReset: true,
+      pendingSessions: mergedSessions,
+      pendingPairings: mergedPairings,
+    );
   }
 
   Future<void> _persistPendingResetMarkerLocked({
