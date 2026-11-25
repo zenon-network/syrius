@@ -241,5 +241,80 @@ void main() {
         );
       },
     );
+
+    test(
+      'preserves selected sort preference even when a concurrent refresh fails',
+      () async {
+        final Completer<NetworkInfo> failingRefresh = Completer<NetworkInfo>();
+        final Completer<NetworkInfo> succeedingRefresh =
+            Completer<NetworkInfo>();
+        int callCount = 0;
+        final NetworkInfo refreshedInfo = NetworkInfo.fromJson(
+          <String, dynamic>{
+            'numPeers': 3,
+            'self': <String, dynamic>{'ip': '127.0.0.1', 'publicKey': 'self'},
+            'peers': <Map<String, dynamic>>[
+              <String, dynamic>{'ip': '10.0.0.2', 'publicKey': 'pk_z'},
+              <String, dynamic>{'ip': '10.0.0.3', 'publicKey': 'pk_m'},
+              <String, dynamic>{'ip': '10.0.0.1', 'publicKey': 'pk_a'},
+            ],
+          },
+        );
+        when(() => mockStatsApi.networkInfo()).thenAnswer((_) {
+          callCount++;
+          if (callCount == 1) {
+            return Future<NetworkInfo>.value(networkInfo);
+          }
+          if (callCount == 2) {
+            return failingRefresh.future;
+          }
+          return succeedingRefresh.future;
+        });
+
+        final PeersBloc bloc = PeersBloc(zenon: mockZenon);
+        addTearDown(bloc.close);
+
+        bloc
+          ..add(const PeersRequested())
+          ..add(const PeersSortToggled(column: PeersSortColumn.ip));
+        await expectLater(
+          bloc.stream,
+          emitsThrough(
+            isA<PeersPopulated>().having(
+              (PeersPopulated s) => s.sortColumn,
+              'sorted by ip',
+              PeersSortColumn.ip,
+            ),
+          ),
+        );
+
+        // Trigger two overlapping refreshes; first fails, second succeeds.
+        bloc
+          ..add(const PeersRequested())
+          ..add(const PeersRequested());
+        await Future<void>.delayed(Duration.zero);
+
+        failingRefresh.completeError(StateError('transient error'));
+        await expectLater(bloc.stream, emitsThrough(isA<PeersFailure>()));
+
+        succeedingRefresh.complete(refreshedInfo);
+        await expectLater(
+          bloc.stream,
+          emitsThrough(
+            isA<PeersPopulated>()
+                .having(
+                  (PeersPopulated s) => s.sortColumn,
+                  'preserved sortColumn',
+                  PeersSortColumn.ip,
+                )
+                .having(
+                  (PeersPopulated s) => s.peers.map((Peer p) => p.ip).toList(),
+                  'still sorted by IP',
+                  <String>['10.0.0.1', '10.0.0.2', '10.0.0.3'],
+                ),
+          ),
+        );
+      },
+    );
   });
 }

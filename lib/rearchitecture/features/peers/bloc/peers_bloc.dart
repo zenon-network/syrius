@@ -24,6 +24,8 @@ class PeersBloc extends Bloc<PeersEvent, PeersState> {
 
   final Zenon _zenon;
   StreamSubscription<bool>? _wsRestartSubscription;
+  PeersSortColumn? _sortColumn;
+  bool _sortAscending = true;
 
   FutureOr<void> _onPeersRequested(
     PeersRequested event,
@@ -35,23 +37,17 @@ class PeersBloc extends Bloc<PeersEvent, PeersState> {
 
     try {
       final NetworkInfo networkInfo = await _zenon.stats.networkInfo();
-      final PeersSortColumn? latestColumn = switch (state) {
-        PeersPopulated(:final PeersSortColumn? sortColumn) => sortColumn,
-        _ => null,
-      };
-      final bool latestAscending = switch (state) {
-        PeersPopulated(:final bool sortAscending) => sortAscending,
-        _ => true,
-      };
       final List<Peer> peers = List<Peer>.of(networkInfo.peers);
-      if (latestColumn != null) {
-        _sortPeers(peers, latestColumn, ascending: !latestAscending);
+      final PeersSortColumn? sortColumn = _sortColumn;
+      final bool sortAscending = _sortAscending;
+      if (sortColumn != null) {
+        _sortPeers(peers, sortColumn, ascending: !sortAscending);
       }
       emit(
         PeersPopulated(
           peers: peers,
-          sortColumn: latestColumn,
-          sortAscending: latestAscending,
+          sortColumn: sortColumn,
+          sortAscending: sortAscending,
         ),
       );
     } on SyriusException catch (error, stackTrace) {
@@ -69,14 +65,18 @@ class PeersBloc extends Bloc<PeersEvent, PeersState> {
       return;
     }
 
+    final bool ascending = _sortAscending;
+    _sortColumn = event.column;
+    _sortAscending = !ascending;
+
     final List<Peer> sorted = List<Peer>.of(current.peers);
-    _sortPeers(sorted, event.column, ascending: current.sortAscending);
+    _sortPeers(sorted, event.column, ascending: ascending);
 
     emit(
       PeersPopulated(
         peers: sorted,
-        sortColumn: event.column,
-        sortAscending: !current.sortAscending,
+        sortColumn: _sortColumn,
+        sortAscending: _sortAscending,
       ),
     );
   }

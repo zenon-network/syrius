@@ -657,6 +657,162 @@ void main() {
       },
     );
 
+    test('releases node-switch guard once terminal state is published before '
+        'post-commit notification completes', () async {
+      final Completer<void> firstNotification = Completer<void>();
+      int notificationCalls = 0;
+      when(() => repository.addNotification(any())).thenAnswer((_) {
+        notificationCalls++;
+        return notificationCalls == 1
+            ? firstNotification.future
+            : Future<void>.value();
+      });
+
+      final NodeManagementBloc bloc = buildBloc();
+      addTearDown(bloc.close);
+
+      bloc
+        ..add(const NodeManagementNodeSelected(node: kLocalhostDefaultNodeUrl))
+        ..add(
+          const NodeManagementConfirmNodeRequested(
+            successTitle: 'Connected',
+            successDetails: 'Connected',
+            connectionUnavailableMessage: 'Failed',
+            connectionFailedTitle: 'Connection failed',
+          ),
+        );
+      await expectLater(
+        bloc.stream,
+        emitsThrough(
+          isA<NodeManagementState>()
+              .having(
+                (NodeManagementState s) => s.confirmedNode,
+                'first confirmed',
+                kLocalhostDefaultNodeUrl,
+              )
+              .having(
+                (NodeManagementState s) => s.isConfirmingNode,
+                'not confirming',
+                false,
+              ),
+        ),
+      );
+
+      // Confirm another node while first notification is still pending.
+      bloc
+        ..add(const NodeManagementNodeSelected(node: kEmbeddedNode))
+        ..add(
+          const NodeManagementConfirmNodeRequested(
+            successTitle: 'Connected',
+            successDetails: 'Connected',
+            connectionUnavailableMessage: 'Failed',
+            connectionFailedTitle: 'Connection failed',
+          ),
+        );
+      await expectLater(
+        bloc.stream,
+        emitsThrough(
+          isA<NodeManagementState>().having(
+            (NodeManagementState s) => s.confirmedNode,
+            'second confirmed',
+            kEmbeddedNode,
+          ),
+        ),
+      );
+
+      firstNotification.complete();
+      await Future<void>.delayed(Duration.zero);
+      verify(() => repository.saveSelectedNode(kEmbeddedNode)).called(1);
+    });
+
+    test(
+      'prompts again if retry proceed observes a different mismatched chain ID',
+      () async {
+        int frontierCalls = 0;
+        when(() => repository.getFrontierChainId()).thenAnswer((_) async {
+          frontierCalls++;
+          return frontierCalls == 1 ? 2 : 3;
+        });
+        when(
+          () => repository.connectToNode(kEmbeddedNode),
+        ).thenAnswer((_) async => false);
+
+        final NodeManagementBloc bloc = buildBloc();
+        addTearDown(bloc.close);
+
+        bloc
+          ..add(
+            const NodeManagementNodeSelected(node: kLocalhostDefaultNodeUrl),
+          )
+          ..add(
+            const NodeManagementConfirmNodeRequested(
+              successTitle: 'Connected',
+              successDetails: 'Connected',
+              connectionUnavailableMessage: 'Failed',
+              connectionFailedTitle: 'Connection failed',
+            ),
+          );
+        await expectLater(
+          bloc.stream,
+          emitsThrough(
+            isA<NodeManagementState>().having(
+              (NodeManagementState s) => s.pendingChainIdMismatch?.nodeChainId,
+              'initial chain 2',
+              2,
+            ),
+          ),
+        );
+
+        // Cancel reconnect fails -> banner retained for chain 2.
+        bloc.add(
+          const NodeManagementChainIdMismatchResolved(
+            proceed: false,
+            connectionFailedTitle: 'Connection failed',
+          ),
+        );
+        await expectLater(
+          bloc.stream,
+          emitsThrough(
+            isA<NodeManagementState>().having(
+              (NodeManagementState s) =>
+                  s.pendingChainIdMismatch?.reconnectFailed,
+              'reconnectFailed',
+              true,
+            ),
+          ),
+        );
+
+        // User clicks Proceed anyway -> node now reports chain 3 -> must prompt
+        // again rather than finalizing silently.
+        bloc.add(
+          const NodeManagementChainIdMismatchResolved(
+            proceed: true,
+            connectionFailedTitle: 'Connection failed',
+          ),
+        );
+        await expectLater(
+          bloc.stream,
+          emitsThrough(
+            isA<NodeManagementState>()
+                .having(
+                  (NodeManagementState s) =>
+                      s.pendingChainIdMismatch?.nodeChainId,
+                  'new prompt chain 3',
+                  3,
+                )
+                .having(
+                  (NodeManagementState s) =>
+                      s.pendingChainIdMismatch?.reconnectFailed,
+                  'fresh prompt',
+                  false,
+                ),
+          ),
+        );
+
+        verifyNever(() => repository.saveSelectedNode(any()));
+      },
+    );
+
     blocTest<NodeManagementBloc, NodeManagementState>(
       'adds, edits, and deletes a custom node',
       build: buildBloc,

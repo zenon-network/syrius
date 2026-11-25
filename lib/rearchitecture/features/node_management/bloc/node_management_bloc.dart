@@ -65,7 +65,23 @@ class NodeManagementBloc
   final NodeManagementRepository _repository;
   final bool _checkChainIdMismatch;
   final bool _resetHtlcBlockHeightOnChange;
-  bool _isNodeConnectionOperationRunning = false;
+  int? _activeNodeConnectionOperationId;
+  int _nextNodeConnectionOperationId = 0;
+
+  int? _tryAcquireNodeConnectionOperation() {
+    if (_activeNodeConnectionOperationId != null) {
+      return null;
+    }
+    final int operationId = ++_nextNodeConnectionOperationId;
+    _activeNodeConnectionOperationId = operationId;
+    return operationId;
+  }
+
+  void _releaseNodeConnectionOperation(int operationId) {
+    if (_activeNodeConnectionOperationId == operationId) {
+      _activeNodeConnectionOperationId = null;
+    }
+  }
 
   /// Whether [node] is a built-in default node.
   bool isDefaultNode(String node) => _repository.isDefaultNode(node);
@@ -92,10 +108,10 @@ class NodeManagementBloc
     NodeManagementConfirmNodeRequested event,
     Emitter<NodeManagementState> emit,
   ) async {
-    if (_isNodeConnectionOperationRunning) {
+    final int? operationId = _tryAcquireNodeConnectionOperation();
+    if (operationId == null) {
       return;
     }
-    _isNodeConnectionOperationRunning = true;
     final String targetNode = state.selectedNode;
     final String previousNode = _repository.getCurrentNode(
       fallback: state.confirmedNode,
@@ -135,6 +151,7 @@ class NodeManagementBloc
 
       await _finalizeNodeSwitch(
         emit: emit,
+        operationId: operationId,
         targetNode: targetNode,
         verifiedChainId: verifiedChainId,
         successTitle: event.successTitle,
@@ -153,7 +170,7 @@ class NodeManagementBloc
         connectionUnavailableMessage: event.connectionUnavailableMessage,
       );
     } finally {
-      _isNodeConnectionOperationRunning = false;
+      _releaseNodeConnectionOperation(operationId);
     }
   }
 
@@ -161,14 +178,14 @@ class NodeManagementBloc
     NodeManagementChainIdMismatchResolved event,
     Emitter<NodeManagementState> emit,
   ) async {
-    if (_isNodeConnectionOperationRunning) {
-      return;
-    }
     final NodeChainIdMismatchPrompt? prompt = state.pendingChainIdMismatch;
     if (prompt == null) {
       return;
     }
-    _isNodeConnectionOperationRunning = true;
+    final int? operationId = _tryAcquireNodeConnectionOperation();
+    if (operationId == null) {
+      return;
+    }
 
     try {
       if (event.proceed) {
@@ -187,9 +204,28 @@ class NodeManagementBloc
             }
             connectedToTarget = true;
             verifiedChainId = await _repository.getFrontierChainId();
+            if (_checkChainIdMismatch &&
+                verifiedChainId != state.clientChainId &&
+                verifiedChainId != prompt.nodeChainId) {
+              emit(
+                state.copyWith(
+                  isDisconnected: false,
+                  pendingChainIdMismatch: NodeChainIdMismatchPrompt(
+                    node: prompt.node,
+                    previousNode: prompt.previousNode,
+                    nodeChainId: verifiedChainId,
+                    clientChainId: state.clientChainId,
+                    successTitle: prompt.successTitle,
+                    successDetails: prompt.successDetails,
+                  ),
+                ),
+              );
+              return;
+            }
           }
           await _finalizeNodeSwitch(
             emit: emit,
+            operationId: operationId,
             targetNode: prompt.node,
             verifiedChainId: verifiedChainId,
             successTitle: prompt.successTitle,
@@ -249,12 +285,13 @@ class NodeManagementBloc
         );
       }
     } finally {
-      _isNodeConnectionOperationRunning = false;
+      _releaseNodeConnectionOperation(operationId);
     }
   }
 
   Future<void> _finalizeNodeSwitch({
     required Emitter<NodeManagementState> emit,
+    required int operationId,
     required String targetNode,
     required int? verifiedChainId,
     required String successTitle,
@@ -269,8 +306,9 @@ class NodeManagementBloc
     }
     await _repository.saveSelectedNode(targetNode);
 
-    // Commit boundary crossed: update live state and never roll back on
-    // notification failure.
+    // Commit boundary crossed: update live state, release the connection
+    // operation guard before awaiting post-commit notification delivery, and
+    // never roll back on notification failure.
     if (verifiedChainId != null) {
       kNodeChainId = verifiedChainId;
     }
@@ -286,6 +324,7 @@ class NodeManagementBloc
         nodeConfirmedNonce: state.nodeConfirmedNonce + 1,
       ),
     );
+    _releaseNodeConnectionOperation(operationId);
 
     try {
       await _repository.addNotification(

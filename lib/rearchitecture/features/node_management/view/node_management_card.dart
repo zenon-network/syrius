@@ -101,7 +101,8 @@ class _ViewState extends State<_View> {
           BlocListener<NodeManagementBloc, NodeManagementState>(
             listenWhen:
                 (NodeManagementState previous, NodeManagementState current) =>
-                    previous.pendingChainIdMismatch == null &&
+                    previous.pendingChainIdMismatch !=
+                        current.pendingChainIdMismatch &&
                     current.pendingChainIdMismatch != null &&
                     !current.pendingChainIdMismatch!.reconnectFailed,
             listener: _onChainIdMismatch,
