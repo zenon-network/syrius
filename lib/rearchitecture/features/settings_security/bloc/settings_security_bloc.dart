@@ -89,10 +89,11 @@ class SettingsSecurityBloc
     SettingsSecurityAutoLockConfirmed event,
     Emitter<SettingsSecurityState> emit,
   ) async {
+    final int minutesToSave = state.autoLockMinutes;
     emit(state.copyWith(isConfirmingAutoLock: true));
     try {
-      await _prefs.put(kAutoLockWalletMinutesKey, state.autoLockMinutes);
-      kAutoLockWalletMinutes = state.autoLockMinutes;
+      await _prefs.put(kAutoLockWalletMinutesKey, minutesToSave);
+      kAutoLockWalletMinutes = minutesToSave;
       emit(
         state.copyWith(
           isConfirmingAutoLock: false,
@@ -117,10 +118,19 @@ class SettingsSecurityBloc
     SettingsSecurityAutoEraseConfirmed event,
     Emitter<SettingsSecurityState> emit,
   ) async {
+    final double attemptsToSave = state.autoEraseAttempts;
     emit(state.copyWith(isConfirmingAutoErase: true));
     try {
-      await _prefs.put(kAutoEraseNumAttemptsKey, state.autoEraseAttempts);
-      kAutoEraseWalletLimit = state.autoEraseAttempts;
+      await _prefs.put(kAutoEraseNumAttemptsKey, attemptsToSave);
+      kAutoEraseWalletLimit = attemptsToSave;
+    } on Object catch (error, stackTrace) {
+      addError(error, stackTrace);
+      emit(state.copyWith(isConfirmingAutoErase: false));
+      await _sendError(error, event.errorTitle);
+      return;
+    }
+    emit(state.copyWith(isConfirmingAutoErase: false));
+    try {
       await _sendNotification(
         WalletNotification(
           title: event.notificationTitle,
@@ -129,10 +139,8 @@ class SettingsSecurityBloc
           type: NotificationType.autoEraseNumAttemptsChanged,
         ),
       );
-      emit(state.copyWith(isConfirmingAutoErase: false));
     } on Object catch (error, stackTrace) {
       addError(error, stackTrace);
-      emit(state.copyWith(isConfirmingAutoErase: false));
       await _sendError(error, event.errorTitle);
     }
   }

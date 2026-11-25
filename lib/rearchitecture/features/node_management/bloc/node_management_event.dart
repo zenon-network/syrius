@@ -64,6 +64,7 @@ final class NodeManagementChainIdMismatchResolved extends NodeManagementEvent {
   const NodeManagementChainIdMismatchResolved({
     required this.proceed,
     required this.connectionFailedTitle,
+    this.connectionUnavailableMessage,
   });
 
   /// Whether the user chose to proceed despite the chain ID mismatch.
@@ -72,8 +73,15 @@ final class NodeManagementChainIdMismatchResolved extends NodeManagementEvent {
   /// Localized error notification title if fallback reconnect fails.
   final String connectionFailedTitle;
 
+  /// Localized error message if reconnecting returns false.
+  final String? connectionUnavailableMessage;
+
   @override
-  List<Object?> get props => <Object?>[proceed, connectionFailedTitle];
+  List<Object?> get props => <Object?>[
+    proceed,
+    connectionFailedTitle,
+    connectionUnavailableMessage,
+  ];
 }
 
 /// Adds a new custom node URL.

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:typed_data';
 
 import 'package:bloc_test/bloc_test.dart';
@@ -119,6 +120,92 @@ void main() {
         verify(() => prefs.put(kAutoEraseNumAttemptsKey, 7.0)).called(1);
         expect(kAutoEraseWalletLimit, 7.0);
         expect(notifications, hasLength(1));
+      },
+    );
+
+    test(
+      'activates captured auto-lock value when slider moves during write',
+      () async {
+        final Completer<void> writeCompleter = Completer<void>();
+        when(
+          () => prefs.put(kAutoLockWalletMinutesKey, any<dynamic>()),
+        ).thenAnswer((_) => writeCompleter.future);
+
+        final SettingsSecurityBloc bloc = buildBloc();
+        addTearDown(bloc.close);
+
+        bloc
+          ..add(const SettingsSecurityAutoLockChanged(minutes: 10))
+          ..add(
+            const SettingsSecurityAutoLockConfirmed(
+              errorTitle: 'Auto-lock error',
+            ),
+          );
+        await Future<void>.delayed(Duration.zero);
+
+        // User moves slider to 30 while persistence of 10 is still in flight.
+        bloc.add(const SettingsSecurityAutoLockChanged(minutes: 30));
+        await Future<void>.delayed(Duration.zero);
+
+        writeCompleter.complete();
+        await expectLater(
+          bloc.stream,
+          emitsThrough(
+            isA<SettingsSecurityState>().having(
+              (SettingsSecurityState s) => s.autoLockConfirmedNonce,
+              'nonce',
+              1,
+            ),
+          ),
+        );
+
+        verify(() => prefs.put(kAutoLockWalletMinutesKey, 10)).called(1);
+        expect(kAutoLockWalletMinutes, 10);
+        expect(bloc.state.autoLockMinutes, 30);
+      },
+    );
+
+    test(
+      'activates captured auto-erase value when slider moves during write',
+      () async {
+        final Completer<void> writeCompleter = Completer<void>();
+        when(
+          () => prefs.put(kAutoEraseNumAttemptsKey, any<dynamic>()),
+        ).thenAnswer((_) => writeCompleter.future);
+
+        final SettingsSecurityBloc bloc = buildBloc();
+        addTearDown(bloc.close);
+
+        bloc
+          ..add(const SettingsSecurityAutoEraseChanged(attempts: 4))
+          ..add(
+            const SettingsSecurityAutoEraseConfirmed(
+              notificationTitle: 'Changed',
+              notificationDetails: 'Now 4',
+              errorTitle: 'Error',
+            ),
+          );
+        await Future<void>.delayed(Duration.zero);
+
+        // User moves slider to 10 while persistence of 4 is still in flight.
+        bloc.add(const SettingsSecurityAutoEraseChanged(attempts: 10));
+        await Future<void>.delayed(Duration.zero);
+
+        writeCompleter.complete();
+        await expectLater(
+          bloc.stream,
+          emitsThrough(
+            isA<SettingsSecurityState>().having(
+              (SettingsSecurityState s) => s.isConfirmingAutoErase,
+              'isConfirmingAutoErase',
+              false,
+            ),
+          ),
+        );
+
+        verify(() => prefs.put(kAutoEraseNumAttemptsKey, 4.0)).called(1);
+        expect(kAutoEraseWalletLimit, 4.0);
+        expect(bloc.state.autoEraseAttempts, 10.0);
       },
     );
 

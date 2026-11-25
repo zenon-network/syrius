@@ -25,15 +25,12 @@ class HtlcSwapRepository extends P2pSwapRepository<HtlcSwap> {
   }
 
   @override
-  Stream<List<HtlcSwap>> watchAllSwaps() =>
-      _dataProvider.watchAllSwapEntries().map(
-        (List<HtlcSwapEntry> entries) => entries.map(_decodeSwap).toList(),
-      );
+  Stream<List<HtlcSwap>> watchAllSwaps() => _dataProvider
+      .watchAllSwapEntries()
+      .map((List<HtlcSwapEntry> entries) => entries.map(_decodeSwap).toList());
 
   @override
-  Future<List<HtlcSwap>> getSwapsByState(
-    List<P2pSwapState> states,
-  ) async {
+  Future<List<HtlcSwap>> getSwapsByState(List<P2pSwapState> states) async {
     final int? chainId = _chainIdProvider();
     if (chainId == null || states.isEmpty) {
       return <HtlcSwap>[];
@@ -99,18 +96,20 @@ class HtlcSwapRepository extends P2pSwapRepository<HtlcSwap> {
   /// Atomically inserts [swaps] whose ids do not already exist, without
   /// overwriting existing swaps or pruning history.
   Future<void> storeMissingSwaps(List<HtlcSwap> swaps) =>
-      _dataProvider.insertMissingSwapEntries(
-        swaps.map(_encodeSwap).toList(),
-      );
+      _dataProvider.insertMissingSwapEntries(swaps.map(_encodeSwap).toList());
 
-  /// Stores the last processed HTLC block [height] for the active chain.
-  Future<void> storeLastCheckedHtlcBlockHeight(int height) async {
-    final int? chainId = _chainIdProvider();
-    if (chainId == null) {
+  /// Stores the last processed HTLC block [height] for [chainId], or the
+  /// active chain when [chainId] is omitted.
+  Future<void> storeLastCheckedHtlcBlockHeight(
+    int height, {
+    int? chainId,
+  }) async {
+    final int? targetChainId = chainId ?? _chainIdProvider();
+    if (targetChainId == null) {
       throw StateError('Cannot store an HTLC checkpoint without a chain id');
     }
 
-    await _dataProvider.writeLastCheckedHtlcBlockHeight(chainId, height);
+    await _dataProvider.writeLastCheckedHtlcBlockHeight(targetChainId, height);
   }
 
   /// Stores a processed block checkpoint and its optional swap update.

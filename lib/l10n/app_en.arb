@@ -543,6 +543,14 @@
     }
   },
   "connectionFailed": "Connection failed",
+  "couldNotReconnectToNode": "Could not reconnect to {node}",
+  "@couldNotReconnectToNode": {
+    "placeholders": {
+      "node": {
+        "type": "String"
+      }
+    }
+  },
   "currentClientChainIdentifier": "Current client chain identifier is {chainId}",
   "@currentClientChainIdentifier": {
     "placeholders": {
@@ -589,6 +597,7 @@
     }
   },
   "disabled": "disabled",
+  "disconnectedFromNode": "Disconnected from node",
   "display": "Display",
   "displaysAccountChainInformation": "This card displays information regarding the account-chain for the specified address",
   "displaysConnectedNetworkPeers": "This card displays information about connected network peers",
@@ -785,6 +794,7 @@
   "preferences": "Preferences",
   "proceedAnyway": "Proceed anyway",
   "publicKey": "Public Key",
+  "reconnect": "Reconnect",
   "repeatNewPassword": "Repeat new password",
   "reset": "Reset",
   "resetWallet": "Reset wallet",

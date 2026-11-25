@@ -5,14 +5,19 @@ class NodeChainIdMismatchPrompt extends Equatable {
   /// Creates a [NodeChainIdMismatchPrompt].
   const NodeChainIdMismatchPrompt({
     required this.node,
+    required this.previousNode,
     required this.nodeChainId,
     required this.clientChainId,
     required this.successTitle,
     required this.successDetails,
+    this.reconnectFailed = false,
   });
 
   /// Target node that reported a mismatched chain identifier.
   final String node;
+
+  /// Previously confirmed node to reconnect to if the user cancels.
+  final String previousNode;
 
   /// Chain identifier reported by [node].
   final int nodeChainId;
@@ -26,13 +31,32 @@ class NodeChainIdMismatchPrompt extends Equatable {
   /// Localized notification details if the user confirms switching.
   final String successDetails;
 
+  /// Whether reconnecting to [previousNode] failed, requiring an explicit
+  /// retry or proceed decision.
+  final bool reconnectFailed;
+
+  /// Returns a copy of this prompt with updated fields.
+  NodeChainIdMismatchPrompt copyWith({bool? reconnectFailed}) {
+    return NodeChainIdMismatchPrompt(
+      node: node,
+      previousNode: previousNode,
+      nodeChainId: nodeChainId,
+      clientChainId: clientChainId,
+      successTitle: successTitle,
+      successDetails: successDetails,
+      reconnectFailed: reconnectFailed ?? this.reconnectFailed,
+    );
+  }
+
   @override
   List<Object?> get props => <Object?>[
     node,
+    previousNode,
     nodeChainId,
     clientChainId,
     successTitle,
     successDetails,
+    reconnectFailed,
   ];
 }
 
@@ -49,6 +73,7 @@ class NodeManagementState extends Equatable {
     this.isConfirmingNode = false,
     this.isAddingNode = false,
     this.isConfirmingChainId = false,
+    this.isDisconnected = false,
     this.editingNode,
     this.editNodeError,
     this.editNodeErrorTarget,
@@ -86,6 +111,10 @@ class NodeManagementState extends Equatable {
   /// Whether saving a new client chain ID is in progress.
   final bool isConfirmingChainId;
 
+  /// Whether the active node connection was lost after a failed rollback or
+  /// reconnect attempt.
+  final bool isDisconnected;
+
   /// Custom node currently being edited, if any.
   final String? editingNode;
 
@@ -121,6 +150,7 @@ class NodeManagementState extends Equatable {
     bool? isConfirmingNode,
     bool? isAddingNode,
     bool? isConfirmingChainId,
+    bool? isDisconnected,
     String? editingNode,
     bool clearEditingNode = false,
     String? editNodeError,
@@ -143,6 +173,7 @@ class NodeManagementState extends Equatable {
       isConfirmingNode: isConfirmingNode ?? this.isConfirmingNode,
       isAddingNode: isAddingNode ?? this.isAddingNode,
       isConfirmingChainId: isConfirmingChainId ?? this.isConfirmingChainId,
+      isDisconnected: isDisconnected ?? this.isDisconnected,
       editingNode: clearEditingNode ? null : (editingNode ?? this.editingNode),
       editNodeError: clearEditNodeError
           ? null
@@ -171,6 +202,7 @@ class NodeManagementState extends Equatable {
     isConfirmingNode,
     isAddingNode,
     isConfirmingChainId,
+    isDisconnected,
     editingNode,
     editNodeError,
     editNodeErrorTarget,

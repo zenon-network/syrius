@@ -3,10 +3,15 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:zenon_syrius_wallet_flutter/model/model.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/node_management/node_management.dart';
+import 'package:zenon_syrius_wallet_flutter/services/shared_prefs_service.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
+import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 class MockNodeManagementRepository extends Mock
     implements NodeManagementRepository {}
+
+class MockSharedPrefsService extends Mock implements SharedPrefsService {}
 
 class FakeWalletNotification extends Fake implements WalletNotification {}
 
@@ -24,8 +29,11 @@ void main() {
     late String currentNode;
     late int clientChainId;
     late bool autoReceive;
+    late int? previousGlobalNodeChainId;
 
     setUp(() {
+      previousGlobalNodeChainId = kNodeChainId;
+      kNodeChainId = 1;
       repository = MockNodeManagementRepository();
       nodes = <String>[kEmbeddedNode, kLocalhostDefaultNodeUrl];
       currentNode = kEmbeddedNode;
@@ -46,13 +54,16 @@ void main() {
       when(() => repository.getFrontierChainId()).thenAnswer((_) async => 1);
       when(() => repository.getAutoReceive()).thenAnswer((_) => autoReceive);
       when(() => repository.connectToNode(any())).thenAnswer((_) async => true);
+      when(() => repository.disconnectFromNode()).thenReturn(null);
       when(() => repository.saveSelectedNode(any())).thenAnswer((
         Invocation invocation,
       ) async {
         currentNode = invocation.positionalArguments.first as String;
       });
       when(
-        () => repository.resetLastCheckedHtlcBlockHeight(),
+        () => repository.resetLastCheckedHtlcBlockHeight(
+          chainId: any(named: 'chainId'),
+        ),
       ).thenAnswer((_) async {});
       when(() => repository.addCustomNode(any())).thenAnswer((
         Invocation invocation,
@@ -83,6 +94,9 @@ void main() {
         clientChainId = invocation.positionalArguments.first as int;
       });
       when(
+        () => repository.notifyClientChainIdChanged(any()),
+      ).thenAnswer((_) async {});
+      when(
         () => repository.saveAutoReceive(enabled: any(named: 'enabled')),
       ).thenAnswer((Invocation invocation) async {
         autoReceive = invocation.namedArguments[#enabled] as bool;
@@ -91,6 +105,10 @@ void main() {
       when(() => repository.clearAutoReceivePool()).thenReturn(null);
       when(() => repository.addNotification(any())).thenAnswer((_) async {});
       when(() => repository.reportError(any(), any())).thenAnswer((_) async {});
+    });
+
+    tearDown(() {
+      kNodeChainId = previousGlobalNodeChainId;
     });
 
     NodeManagementBloc buildBloc({
@@ -123,7 +141,9 @@ void main() {
         verify(
           () => repository.connectToNode(kLocalhostDefaultNodeUrl),
         ).called(1);
-        verify(() => repository.resetLastCheckedHtlcBlockHeight()).called(1);
+        verify(
+          () => repository.resetLastCheckedHtlcBlockHeight(chainId: 1),
+        ).called(1);
         verify(
           () => repository.saveSelectedNode(kLocalhostDefaultNodeUrl),
         ).called(1);
@@ -157,8 +177,11 @@ void main() {
     blocTest<NodeManagementBloc, NodeManagementState>(
       'emits chain ID mismatch prompt and rolls back when user cancels',
       setUp: () {
-        when(() => repository.getNodeChainId()).thenAnswer((_) async => 2);
-        when(() => repository.getFrontierChainId()).thenAnswer((_) async => 2);
+        int frontierCalls = 0;
+        when(() => repository.getFrontierChainId()).thenAnswer((_) async {
+          frontierCalls++;
+          return frontierCalls == 1 ? 2 : 1;
+        });
       },
       build: buildBloc,
       act: (NodeManagementBloc bloc) async {
@@ -186,9 +209,14 @@ void main() {
         verify(
           () => repository.connectToNode(kLocalhostDefaultNodeUrl),
         ).called(1);
+        verify(() => repository.disconnectFromNode()).called(1);
         verify(() => repository.connectToNode(kEmbeddedNode)).called(1);
         verifyNever(() => repository.saveSelectedNode(any()));
-        verifyNever(() => repository.resetLastCheckedHtlcBlockHeight());
+        verifyNever(
+          () => repository.resetLastCheckedHtlcBlockHeight(
+            chainId: any(named: 'chainId'),
+          ),
+        );
       },
       expect: () => <Matcher>[
         isA<NodeManagementState>().having(
@@ -221,6 +249,302 @@ void main() {
               (NodeManagementState s) => s.pendingChainIdMismatch,
               'cleared prompt',
               isNull,
+            ),
+      ],
+    );
+
+    blocTest<NodeManagementBloc, NodeManagementState>(
+      'passes verified frontier chain ID explicitly to HTLC checkpoint reset',
+      setUp: () {
+        kNodeChainId = 1;
+        clientChainId = 2;
+        when(() => repository.getNodeChainId()).thenAnswer((_) async => 1);
+        when(() => repository.getFrontierChainId()).thenAnswer((_) async => 2);
+      },
+      build: buildBloc,
+      act: (NodeManagementBloc bloc) {
+        bloc
+          ..add(
+            const NodeManagementNodeSelected(node: kLocalhostDefaultNodeUrl),
+          )
+          ..add(
+            const NodeManagementConfirmNodeRequested(
+              successTitle: 'Connected',
+              successDetails: 'Connected',
+              connectionUnavailableMessage: 'Failed',
+              connectionFailedTitle: 'Connection failed',
+            ),
+          );
+      },
+      verify: (_) {
+        verify(
+          () => repository.resetLastCheckedHtlcBlockHeight(chainId: 2),
+        ).called(1);
+        verifyNever(() => repository.getNodeChainId());
+        expect(kNodeChainId, 2);
+      },
+    );
+
+    blocTest<NodeManagementBloc, NodeManagementState>(
+      'restores previous live connection when frontier lookup fails pre-commit',
+      setUp: () {
+        int frontierCalls = 0;
+        when(() => repository.getFrontierChainId()).thenAnswer((_) async {
+          frontierCalls++;
+          if (frontierCalls == 1) {
+            throw StateError('frontier failed');
+          }
+          return 1;
+        });
+      },
+      build: buildBloc,
+      act: (NodeManagementBloc bloc) {
+        bloc
+          ..add(
+            const NodeManagementNodeSelected(node: kLocalhostDefaultNodeUrl),
+          )
+          ..add(
+            const NodeManagementConfirmNodeRequested(
+              successTitle: 'Connected',
+              successDetails: 'Connected',
+              connectionUnavailableMessage: 'Failed',
+              connectionFailedTitle: 'Connection failed',
+            ),
+          );
+      },
+      verify: (_) {
+        verifyInOrder(<Object? Function()>[
+          () => repository.connectToNode(kLocalhostDefaultNodeUrl),
+          () => repository.disconnectFromNode(),
+          () => repository.connectToNode(kEmbeddedNode),
+        ]);
+        verifyNever(() => repository.saveSelectedNode(any()));
+      },
+      expect: () => <Matcher>[
+        isA<NodeManagementState>().having(
+          (NodeManagementState s) => s.selectedNode,
+          'selectedNode',
+          kLocalhostDefaultNodeUrl,
+        ),
+        isA<NodeManagementState>().having(
+          (NodeManagementState s) => s.isConfirmingNode,
+          'isConfirmingNode',
+          true,
+        ),
+        isA<NodeManagementState>()
+            .having(
+              (NodeManagementState s) => s.isConfirmingNode,
+              'isConfirmingNode',
+              false,
+            )
+            .having(
+              (NodeManagementState s) => s.selectedNode,
+              'selectedNode',
+              kEmbeddedNode,
+            )
+            .having(
+              (NodeManagementState s) => s.isDisconnected,
+              'isDisconnected',
+              false,
+            ),
+      ],
+    );
+
+    blocTest<NodeManagementBloc, NodeManagementState>(
+      'emits disconnected state when pre-commit rollback reconnect also fails',
+      setUp: () {
+        when(
+          () => repository.resetLastCheckedHtlcBlockHeight(
+            chainId: any(named: 'chainId'),
+          ),
+        ).thenThrow(StateError('db error'));
+        when(
+          () => repository.connectToNode(kEmbeddedNode),
+        ).thenAnswer((_) async => false);
+      },
+      build: buildBloc,
+      act: (NodeManagementBloc bloc) {
+        bloc
+          ..add(
+            const NodeManagementNodeSelected(node: kLocalhostDefaultNodeUrl),
+          )
+          ..add(
+            const NodeManagementConfirmNodeRequested(
+              successTitle: 'Connected',
+              successDetails: 'Connected',
+              connectionUnavailableMessage: 'Failed',
+              connectionFailedTitle: 'Connection failed',
+            ),
+          );
+      },
+      verify: (_) {
+        verify(() => repository.disconnectFromNode()).called(2);
+        verifyNever(() => repository.saveSelectedNode(any()));
+      },
+      expect: () => <Matcher>[
+        isA<NodeManagementState>(),
+        isA<NodeManagementState>(),
+        isA<NodeManagementState>()
+            .having(
+              (NodeManagementState s) => s.isDisconnected,
+              'isDisconnected',
+              true,
+            )
+            .having(
+              (NodeManagementState s) => s.selectedNode,
+              'selectedNode',
+              kEmbeddedNode,
+            ),
+      ],
+    );
+
+    blocTest<NodeManagementBloc, NodeManagementState>(
+      'does not roll back committed node switch when notification throws',
+      setUp: () {
+        when(
+          () => repository.addNotification(any()),
+        ).thenThrow(StateError('notification failed'));
+      },
+      build: buildBloc,
+      act: (NodeManagementBloc bloc) {
+        bloc
+          ..add(
+            const NodeManagementNodeSelected(node: kLocalhostDefaultNodeUrl),
+          )
+          ..add(
+            const NodeManagementConfirmNodeRequested(
+              successTitle: 'Connected',
+              successDetails: 'Connected',
+              connectionUnavailableMessage: 'Failed',
+              connectionFailedTitle: 'Connection failed',
+            ),
+          );
+      },
+      verify: (_) {
+        verify(
+          () => repository.saveSelectedNode(kLocalhostDefaultNodeUrl),
+        ).called(1);
+        verifyNever(() => repository.connectToNode(kEmbeddedNode));
+        verify(
+          () => repository.reportError(any(), 'Connection failed'),
+        ).called(1);
+      },
+      expect: () => <Matcher>[
+        isA<NodeManagementState>(),
+        isA<NodeManagementState>(),
+        isA<NodeManagementState>()
+            .having(
+              (NodeManagementState s) => s.confirmedNode,
+              'confirmedNode',
+              kLocalhostDefaultNodeUrl,
+            )
+            .having(
+              (NodeManagementState s) => s.isDisconnected,
+              'isDisconnected',
+              false,
+            )
+            .having(
+              (NodeManagementState s) => s.nodeConfirmedNonce,
+              'nonce',
+              1,
+            ),
+      ],
+    );
+
+    blocTest<NodeManagementBloc, NodeManagementState>(
+      'preserves mismatch prompt with retry path when cancel reconnect fails',
+      setUp: () {
+        int previousConnectAttempts = 0;
+        int frontierCalls = 0;
+        when(() => repository.getFrontierChainId()).thenAnswer((_) async {
+          frontierCalls++;
+          return frontierCalls == 1 ? 2 : 1;
+        });
+        when(() => repository.connectToNode(kEmbeddedNode)).thenAnswer((
+          _,
+        ) async {
+          previousConnectAttempts++;
+          return previousConnectAttempts > 1;
+        });
+      },
+      build: buildBloc,
+      act: (NodeManagementBloc bloc) async {
+        bloc
+          ..add(
+            const NodeManagementNodeSelected(node: kLocalhostDefaultNodeUrl),
+          )
+          ..add(
+            const NodeManagementConfirmNodeRequested(
+              successTitle: 'Connected',
+              successDetails: 'Connected',
+              connectionUnavailableMessage: 'Failed',
+              connectionFailedTitle: 'Connection failed',
+            ),
+          );
+        await Future<void>.delayed(Duration.zero);
+        bloc.add(
+          const NodeManagementChainIdMismatchResolved(
+            proceed: false,
+            connectionFailedTitle: 'Connection failed',
+            connectionUnavailableMessage: 'Previous offline',
+          ),
+        );
+        await Future<void>.delayed(Duration.zero);
+        bloc.add(
+          const NodeManagementChainIdMismatchResolved(
+            proceed: false,
+            connectionFailedTitle: 'Connection failed',
+            connectionUnavailableMessage: 'Previous offline',
+          ),
+        );
+      },
+      verify: (_) {
+        verify(() => repository.connectToNode(kEmbeddedNode)).called(2);
+        verify(() => repository.getFrontierChainId()).called(2);
+        verify(
+          () => repository.reportError(any(), 'Connection failed'),
+        ).called(1);
+      },
+      expect: () => <Matcher>[
+        isA<NodeManagementState>(),
+        isA<NodeManagementState>(),
+        isA<NodeManagementState>().having(
+          (NodeManagementState s) => s.pendingChainIdMismatch?.reconnectFailed,
+          'initial prompt',
+          false,
+        ),
+        isA<NodeManagementState>()
+            .having(
+              (NodeManagementState s) =>
+                  s.pendingChainIdMismatch?.reconnectFailed,
+              'retained prompt with reconnectFailed',
+              true,
+            )
+            .having(
+              (NodeManagementState s) => s.isDisconnected,
+              'isDisconnected',
+              true,
+            ),
+        isA<NodeManagementState>().having(
+          (NodeManagementState s) => s.isConfirmingNode,
+          'retrying reconnect',
+          true,
+        ),
+        isA<NodeManagementState>()
+            .having(
+              (NodeManagementState s) => s.pendingChainIdMismatch,
+              'cleared after successful retry',
+              isNull,
+            )
+            .having(
+              (NodeManagementState s) => s.isDisconnected,
+              'restored connection',
+              false,
+            )
+            .having(
+              (NodeManagementState s) => s.selectedNode,
+              'restored selectedNode',
+              kEmbeddedNode,
             ),
       ],
     );
@@ -299,6 +623,49 @@ void main() {
               1,
             ),
       ],
+      verify: (_) {
+        verify(() => repository.saveClientChainId(3)).called(1);
+        verify(() => repository.notifyClientChainIdChanged(3)).called(1);
+      },
+    );
+
+    blocTest<NodeManagementBloc, NodeManagementState>(
+      'commits client chain ID to UI even if WalletConnect notification fails',
+      setUp: () {
+        when(
+          () => repository.notifyClientChainIdChanged(any()),
+        ).thenThrow(StateError('wc failed'));
+      },
+      build: buildBloc,
+      act: (NodeManagementBloc bloc) => bloc.add(
+        const NodeManagementChainIdChanged(
+          newChainId: 4,
+          successTitle: 'Chain changed',
+          successDetails: '1 -> 4',
+          errorTitle: 'Chain error',
+        ),
+      ),
+      expect: () => <Matcher>[
+        isA<NodeManagementState>().having(
+          (NodeManagementState s) => s.isConfirmingChainId,
+          'isConfirmingChainId',
+          true,
+        ),
+        isA<NodeManagementState>()
+            .having(
+              (NodeManagementState s) => s.clientChainId,
+              'clientChainId',
+              4,
+            )
+            .having(
+              (NodeManagementState s) => s.chainIdChangedNonce,
+              'nonce',
+              1,
+            ),
+      ],
+      verify: (_) {
+        verify(() => repository.reportError(any(), 'Chain error')).called(1);
+      },
     );
 
     blocTest<NodeManagementBloc, NodeManagementState>(
@@ -327,5 +694,49 @@ void main() {
         verify(() => repository.clearAutoReceivePool()).called(1);
       },
     );
+  });
+
+  group('DefaultNodeManagementRepository.saveClientChainId', () {
+    late int previousSdkChainId;
+
+    setUp(() {
+      previousSdkChainId = getChainIdentifier();
+      setChainIdentifier();
+    });
+
+    tearDown(() {
+      setChainIdentifier(chainIdentifier: previousSdkChainId);
+    });
+
+    test(
+      'leaves SDK chain identifier unchanged when prefs.put throws',
+      () async {
+        final MockSharedPrefsService prefs = MockSharedPrefsService();
+        when(
+          () => prefs.put(kChainIdKey, 2),
+        ).thenThrow(StateError('disk full'));
+
+        final DefaultNodeManagementRepository repository =
+            DefaultNodeManagementRepository(prefsService: prefs);
+
+        await expectLater(
+          () => repository.saveClientChainId(2),
+          throwsStateError,
+        );
+        expect(getChainIdentifier(), 1);
+      },
+    );
+
+    test('updates SDK chain identifier after prefs.put succeeds', () async {
+      final MockSharedPrefsService prefs = MockSharedPrefsService();
+      when(() => prefs.put(kChainIdKey, 2)).thenAnswer((_) async {});
+
+      final DefaultNodeManagementRepository repository =
+          DefaultNodeManagementRepository(prefsService: prefs);
+
+      await repository.saveClientChainId(2);
+      verify(() => prefs.put(kChainIdKey, 2)).called(1);
+      expect(getChainIdentifier(), 2);
+    });
   });
 }

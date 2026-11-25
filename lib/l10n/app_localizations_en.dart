@@ -1460,6 +1460,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get connectionFailed => 'Connection failed';
 
   @override
+  String couldNotReconnectToNode(String node) {
+    return 'Could not reconnect to $node';
+  }
+
+  @override
   String currentClientChainIdentifier(int chainId) {
     return 'Current client chain identifier is $chainId';
   }
@@ -1502,6 +1507,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get disabled => 'disabled';
+
+  @override
+  String get disconnectedFromNode => 'Disconnected from node';
 
   @override
   String get display => 'Display';
@@ -1824,6 +1832,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get publicKey => 'Public Key';
+
+  @override
+  String get reconnect => 'Reconnect';
 
   @override
   String get repeatNewPassword => 'Repeat new password';

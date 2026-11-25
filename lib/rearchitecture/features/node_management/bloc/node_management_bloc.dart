@@ -92,6 +92,11 @@ class NodeManagementBloc
     Emitter<NodeManagementState> emit,
   ) async {
     final String targetNode = state.selectedNode;
+    final String previousNode = _repository.getCurrentNode(
+      fallback: state.confirmedNode,
+    );
+    bool connectedToTarget = false;
+
     emit(
       state.copyWith(isConfirmingNode: true, clearPendingChainIdMismatch: true),
     );
@@ -101,18 +106,18 @@ class NodeManagementBloc
       if (!connected) {
         throw SyriusException(event.connectionUnavailableMessage);
       }
+      connectedToTarget = true;
 
-      if (_checkChainIdMismatch) {
-        final int nodeChainId = await _repository.getNodeChainId();
-        kNodeChainId = nodeChainId;
-        final int frontierChainId = await _repository.getFrontierChainId();
-        if (frontierChainId != state.clientChainId) {
+      int? verifiedChainId;
+      if (_checkChainIdMismatch || _resetHtlcBlockHeightOnChange) {
+        verifiedChainId = await _repository.getFrontierChainId();
+        if (_checkChainIdMismatch && verifiedChainId != state.clientChainId) {
           emit(
             state.copyWith(
-              connectedNodeChainId: nodeChainId,
               pendingChainIdMismatch: NodeChainIdMismatchPrompt(
                 node: targetNode,
-                nodeChainId: frontierChainId,
+                previousNode: previousNode,
+                nodeChainId: verifiedChainId,
                 clientChainId: state.clientChainId,
                 successTitle: event.successTitle,
                 successDetails: event.successDetails,
@@ -126,21 +131,21 @@ class NodeManagementBloc
       await _finalizeNodeSwitch(
         emit: emit,
         targetNode: targetNode,
+        verifiedChainId: verifiedChainId,
         successTitle: event.successTitle,
         successDetails: event.successDetails,
+        connectionFailedTitle: event.connectionFailedTitle,
       );
     } on Object catch (error, stackTrace) {
       addError(error, stackTrace);
       await _repository.reportError(error, event.connectionFailedTitle);
-      final String fallbackNode = _repository.getCurrentNode(
-        fallback: state.confirmedNode,
-      );
-      emit(
-        state.copyWith(
-          isConfirmingNode: false,
-          selectedNode: fallbackNode,
-          clearPendingChainIdMismatch: true,
-        ),
+      await _recoverAfterPreCommitFailure(
+        emit: emit,
+        previousNode: previousNode,
+        targetNode: targetNode,
+        connectedToTarget: connectedToTarget,
+        connectionFailedTitle: event.connectionFailedTitle,
+        connectionUnavailableMessage: event.connectionUnavailableMessage,
       );
     }
   }
@@ -154,41 +159,77 @@ class NodeManagementBloc
       return;
     }
 
-    try {
-      if (event.proceed) {
+    if (event.proceed) {
+      bool connectedToTarget = !prompt.reconnectFailed && !state.isDisconnected;
+      emit(state.copyWith(isConfirmingNode: true));
+      try {
+        int verifiedChainId = prompt.nodeChainId;
+        if (!connectedToTarget) {
+          final bool connected = await _repository.connectToNode(prompt.node);
+          if (!connected) {
+            throw SyriusException(
+              event.connectionUnavailableMessage ?? event.connectionFailedTitle,
+            );
+          }
+          connectedToTarget = true;
+          verifiedChainId = await _repository.getFrontierChainId();
+        }
         await _finalizeNodeSwitch(
           emit: emit,
           targetNode: prompt.node,
+          verifiedChainId: verifiedChainId,
           successTitle: prompt.successTitle,
           successDetails: prompt.successDetails,
+          connectionFailedTitle: event.connectionFailedTitle,
         );
-      } else {
-        final String previousNode = _repository.getCurrentNode(
-          fallback: state.confirmedNode,
-        );
-        await _repository.connectToNode(previousNode);
-        final int restoredChainId = await _repository.getNodeChainId();
-        kNodeChainId = restoredChainId;
-        emit(
-          state.copyWith(
-            isConfirmingNode: false,
-            selectedNode: previousNode,
-            connectedNodeChainId: restoredChainId,
-            clearPendingChainIdMismatch: true,
-          ),
+      } on Object catch (error, stackTrace) {
+        addError(error, stackTrace);
+        await _repository.reportError(error, event.connectionFailedTitle);
+        await _recoverAfterPreCommitFailure(
+          emit: emit,
+          previousNode: prompt.previousNode,
+          targetNode: prompt.node,
+          connectedToTarget: connectedToTarget,
+          connectionFailedTitle: event.connectionFailedTitle,
+          connectionUnavailableMessage:
+              event.connectionUnavailableMessage ?? event.connectionFailedTitle,
         );
       }
-    } on Object catch (error, stackTrace) {
-      addError(error, stackTrace);
-      await _repository.reportError(error, event.connectionFailedTitle);
-      final String fallbackNode = _repository.getCurrentNode(
-        fallback: state.confirmedNode,
-      );
+      return;
+    }
+
+    final String previousNode = prompt.previousNode;
+    emit(state.copyWith(isConfirmingNode: true));
+    try {
+      // Close candidate WebSocket while running so a failed dial cannot retain
+      // the unconfirmed candidate RPC client.
+      _repository.disconnectFromNode();
+      final bool reconnected = await _repository.connectToNode(previousNode);
+      if (!reconnected) {
+        throw SyriusException(
+          event.connectionUnavailableMessage ?? event.connectionFailedTitle,
+        );
+      }
+      final int restoredChainId = await _repository.getFrontierChainId();
+      kNodeChainId = restoredChainId;
       emit(
         state.copyWith(
           isConfirmingNode: false,
-          selectedNode: fallbackNode,
+          isDisconnected: false,
+          selectedNode: previousNode,
+          connectedNodeChainId: restoredChainId,
           clearPendingChainIdMismatch: true,
+        ),
+      );
+    } on Object catch (error, stackTrace) {
+      addError(error, stackTrace);
+      _repository.disconnectFromNode();
+      await _repository.reportError(error, event.connectionFailedTitle);
+      emit(
+        state.copyWith(
+          isConfirmingNode: false,
+          isDisconnected: true,
+          pendingChainIdMismatch: prompt.copyWith(reconnectFailed: true),
         ),
       );
     }
@@ -197,29 +238,100 @@ class NodeManagementBloc
   Future<void> _finalizeNodeSwitch({
     required Emitter<NodeManagementState> emit,
     required String targetNode,
+    required int? verifiedChainId,
     required String successTitle,
     required String successDetails,
+    required String connectionFailedTitle,
   }) async {
+    // Pre-commit phase: any failure throws back to caller for rollback.
     if (_resetHtlcBlockHeightOnChange) {
-      await _repository.resetLastCheckedHtlcBlockHeight();
+      final int chainId =
+          verifiedChainId ?? await _repository.getFrontierChainId();
+      await _repository.resetLastCheckedHtlcBlockHeight(chainId: chainId);
     }
     await _repository.saveSelectedNode(targetNode);
-    await _repository.addNotification(
-      WalletNotification(
-        title: successTitle,
-        timestamp: DateTime.now().millisecondsSinceEpoch,
-        details: successDetails,
-        type: NotificationType.changedNode,
-      ),
-    );
+
+    // Commit boundary crossed: update live state and never roll back on
+    // notification failure.
+    if (verifiedChainId != null) {
+      kNodeChainId = verifiedChainId;
+    }
     emit(
       state.copyWith(
         isConfirmingNode: false,
+        isDisconnected: false,
         confirmedNode: targetNode,
         selectedNode: targetNode,
+        connectedNodeChainId: verifiedChainId ?? state.connectedNodeChainId,
         nodes: _repository.getAvailableNodes(),
         clearPendingChainIdMismatch: true,
         nodeConfirmedNonce: state.nodeConfirmedNonce + 1,
+      ),
+    );
+
+    try {
+      await _repository.addNotification(
+        WalletNotification(
+          title: successTitle,
+          timestamp: DateTime.now().millisecondsSinceEpoch,
+          details: successDetails,
+          type: NotificationType.changedNode,
+        ),
+      );
+    } on Object catch (error, stackTrace) {
+      addError(error, stackTrace);
+      await _repository.reportError(error, connectionFailedTitle);
+    }
+  }
+
+  Future<void> _recoverAfterPreCommitFailure({
+    required Emitter<NodeManagementState> emit,
+    required String previousNode,
+    required String targetNode,
+    required bool connectedToTarget,
+    required String connectionFailedTitle,
+    required String connectionUnavailableMessage,
+  }) async {
+    if (connectedToTarget && targetNode != previousNode) {
+      try {
+        _repository.disconnectFromNode();
+        final bool restored = await _repository.connectToNode(previousNode);
+        if (!restored) {
+          throw SyriusException(connectionUnavailableMessage);
+        }
+        final int restoredChainId = await _repository.getFrontierChainId();
+        kNodeChainId = restoredChainId;
+        emit(
+          state.copyWith(
+            isConfirmingNode: false,
+            isDisconnected: false,
+            selectedNode: previousNode,
+            connectedNodeChainId: restoredChainId,
+            clearPendingChainIdMismatch: true,
+          ),
+        );
+        return;
+      } on Object catch (restoreError, restoreStackTrace) {
+        addError(restoreError, restoreStackTrace);
+        _repository.disconnectFromNode();
+        await _repository.reportError(restoreError, connectionFailedTitle);
+        emit(
+          state.copyWith(
+            isConfirmingNode: false,
+            isDisconnected: true,
+            selectedNode: previousNode,
+            clearPendingChainIdMismatch: true,
+          ),
+        );
+        return;
+      }
+    }
+
+    emit(
+      state.copyWith(
+        isConfirmingNode: false,
+        selectedNode: previousNode,
+        clearPendingChainIdMismatch: true,
       ),
     );
   }
@@ -344,6 +456,23 @@ class NodeManagementBloc
     emit(state.copyWith(isConfirmingChainId: true));
     try {
       await _repository.saveClientChainId(event.newChainId);
+    } on Object catch (error, stackTrace) {
+      addError(error, stackTrace);
+      emit(state.copyWith(isConfirmingChainId: false));
+      await _repository.reportError(error, event.errorTitle);
+      return;
+    }
+
+    emit(
+      state.copyWith(
+        isConfirmingChainId: false,
+        clientChainId: _repository.getClientChainId(),
+        chainIdChangedNonce: state.chainIdChangedNonce + 1,
+      ),
+    );
+
+    try {
+      await _repository.notifyClientChainIdChanged(event.newChainId);
       await _repository.addNotification(
         WalletNotification(
           title: event.successTitle,
@@ -352,16 +481,8 @@ class NodeManagementBloc
           type: NotificationType.changedNode,
         ),
       );
-      emit(
-        state.copyWith(
-          isConfirmingChainId: false,
-          clientChainId: _repository.getClientChainId(),
-          chainIdChangedNonce: state.chainIdChangedNonce + 1,
-        ),
-      );
     } on Object catch (error, stackTrace) {
       addError(error, stackTrace);
-      emit(state.copyWith(isConfirmingChainId: false));
       await _repository.reportError(error, event.errorTitle);
     }
   }

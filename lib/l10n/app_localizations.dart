@@ -2523,6 +2523,12 @@ abstract class AppLocalizations {
   /// **'Connection failed'**
   String get connectionFailed;
 
+  /// No description provided for @couldNotReconnectToNode.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not reconnect to {node}'**
+  String couldNotReconnectToNode(String node);
+
   /// No description provided for @currentClientChainIdentifier.
   ///
   /// In en, this message translates to:
@@ -2588,6 +2594,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'disabled'**
   String get disabled;
+
+  /// No description provided for @disconnectedFromNode.
+  ///
+  /// In en, this message translates to:
+  /// **'Disconnected from node'**
+  String get disconnectedFromNode;
 
   /// No description provided for @display.
   ///
@@ -3132,6 +3144,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Public Key'**
   String get publicKey;
+
+  /// No description provided for @reconnect.
+  ///
+  /// In en, this message translates to:
+  /// **'Reconnect'**
+  String get reconnect;
 
   /// No description provided for @repeatNewPassword.
   ///

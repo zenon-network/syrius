@@ -101,9 +101,9 @@ class _ViewState extends State<_View> {
           BlocListener<NodeManagementBloc, NodeManagementState>(
             listenWhen:
                 (NodeManagementState previous, NodeManagementState current) =>
-                    previous.pendingChainIdMismatch !=
-                        current.pendingChainIdMismatch &&
-                    current.pendingChainIdMismatch != null,
+                    previous.pendingChainIdMismatch == null &&
+                    current.pendingChainIdMismatch != null &&
+                    !current.pendingChainIdMismatch!.reconnectFailed,
             listener: _onChainIdMismatch,
           ),
         ],
@@ -185,6 +185,10 @@ class _ViewState extends State<_View> {
       NodeManagementChainIdMismatchResolved(
         proceed: proceed,
         connectionFailedTitle: context.l10n.connectionFailed,
+        connectionUnavailableMessage: context.l10n
+            .connectionCouldNotBeEstablished(
+              proceed ? prompt.node : prompt.previousNode,
+            ),
       ),
     );
   }
@@ -193,9 +197,14 @@ class _ViewState extends State<_View> {
     BuildContext context,
     NodeManagementState state,
   ) {
+    final NodeChainIdMismatchPrompt? mismatch = state.pendingChainIdMismatch;
     return Column(
       children: <Widget>[
         _buildNodeTiles(context, state),
+        if (mismatch != null && mismatch.reconnectFailed)
+          _buildReconnectRetryBanner(context, mismatch)
+        else if (state.isDisconnected)
+          _buildDisconnectedBanner(context),
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
@@ -207,6 +216,73 @@ class _ViewState extends State<_View> {
           ],
         ),
       ],
+    );
+  }
+
+  Widget _buildReconnectRetryBanner(
+    BuildContext context,
+    NodeChainIdMismatchPrompt prompt,
+  ) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Column(
+        children: <Widget>[
+          Text(
+            context.l10n.couldNotReconnectToNode(prompt.previousNode),
+            style: Theme.of(
+              context,
+            ).textTheme.bodySmall?.copyWith(color: AppColors.errorColor),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 8),
+          Wrap(
+            alignment: WrapAlignment.center,
+            spacing: 8,
+            runSpacing: 8,
+            children: <Widget>[
+              SettingsButton(
+                text: context.l10n.reconnect,
+                onPressed: () {
+                  context.read<NodeManagementBloc>().add(
+                    NodeManagementChainIdMismatchResolved(
+                      proceed: false,
+                      connectionFailedTitle: context.l10n.connectionFailed,
+                      connectionUnavailableMessage: context.l10n
+                          .connectionCouldNotBeEstablished(prompt.previousNode),
+                    ),
+                  );
+                },
+              ),
+              SettingsButton(
+                text: context.l10n.proceedAnyway,
+                onPressed: () {
+                  context.read<NodeManagementBloc>().add(
+                    NodeManagementChainIdMismatchResolved(
+                      proceed: true,
+                      connectionFailedTitle: context.l10n.connectionFailed,
+                      connectionUnavailableMessage: context.l10n
+                          .connectionCouldNotBeEstablished(prompt.node),
+                    ),
+                  );
+                },
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDisconnectedBanner(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Text(
+        context.l10n.disconnectedFromNode,
+        style: Theme.of(
+          context,
+        ).textTheme.bodySmall?.copyWith(color: AppColors.errorColor),
+        textAlign: TextAlign.center,
+      ),
     );
   }
 

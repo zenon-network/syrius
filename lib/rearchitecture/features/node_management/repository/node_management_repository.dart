@@ -43,11 +43,15 @@ abstract interface class NodeManagementRepository {
   /// embedded node as required).
   Future<bool> connectToNode(String node);
 
+  /// Closes the active WebSocket connection so stale RPC clients are not used.
+  void disconnectFromNode();
+
   /// Persists [node] as the selected node and updates [kCurrentNode].
   Future<void> saveSelectedNode(String node);
 
-  /// Resets the last checked HTLC swap block height after switching nodes.
-  Future<void> resetLastCheckedHtlcBlockHeight();
+  /// Resets the last checked HTLC swap block height for [chainId] after
+  /// switching nodes.
+  Future<void> resetLastCheckedHtlcBlockHeight({required int chainId});
 
   /// Adds a custom [node] URL to Hive storage and reloads cached DB nodes.
   Future<void> addCustomNode(String node);
@@ -61,8 +65,11 @@ abstract interface class NodeManagementRepository {
   /// Deletes custom [node] from Hive storage and updates cached DB nodes.
   Future<void> deleteCustomNode(String node);
 
-  /// Updates the SDK chain identifier, persists it, and notifies WalletConnect.
+  /// Persists [chainId] and updates the SDK chain identifier.
   Future<void> saveClientChainId(int chainId);
+
+  /// Notifies WalletConnect sessions about the updated client [chainId].
+  Future<void> notifyClientChainIdChanged(int chainId);
 
   /// Returns whether auto-receive is currently enabled.
   bool getAutoReceive();
@@ -160,14 +167,22 @@ final class DefaultNodeManagementRepository
   }
 
   @override
+  void disconnectFromNode() {
+    NodeUtils.stopWebSocketClient();
+  }
+
+  @override
   Future<void> saveSelectedNode(String node) async {
     await _prefs.put(kSelectedNodeKey, node);
     kCurrentNode = node;
   }
 
   @override
-  Future<void> resetLastCheckedHtlcBlockHeight() async {
-    await sl<HtlcSwapRepository>().storeLastCheckedHtlcBlockHeight(0);
+  Future<void> resetLastCheckedHtlcBlockHeight({required int chainId}) async {
+    await sl<HtlcSwapRepository>().storeLastCheckedHtlcBlockHeight(
+      0,
+      chainId: chainId,
+    );
   }
 
   @override
@@ -210,8 +225,12 @@ final class DefaultNodeManagementRepository
 
   @override
   Future<void> saveClientChainId(int chainId) async {
-    setChainIdentifier(chainIdentifier: chainId);
     await _prefs.put(kChainIdKey, chainId);
+    setChainIdentifier(chainIdentifier: chainId);
+  }
+
+  @override
+  Future<void> notifyClientChainIdChanged(int chainId) async {
     await sl<IWeb3WalletService>().emitChainIdChangeEvent(chainId.toString());
   }
 
