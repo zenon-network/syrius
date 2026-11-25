@@ -844,6 +844,12 @@ abstract class AppLocalizations {
   /// **'Enter a valid amount'**
   String get enterValidAmount;
 
+  /// No description provided for @enterValidDomainWithoutProtocol.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a valid domain without protocol (e.g. example.com)'**
+  String get enterValidDomainWithoutProtocol;
+
   /// No description provided for @errorCreatingPhase.
   ///
   /// In en, this message translates to:
@@ -2824,6 +2830,18 @@ abstract class AppLocalizations {
   /// **'Token Domain'**
   String get tokenDomain;
 
+  /// No description provided for @tokenDomainCannotBeEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Token domain cannot be empty'**
+  String get tokenDomainCannotBeEmpty;
+
+  /// Validation error shown when a token domain exceeds the protocol maximum length.
+  ///
+  /// In en, this message translates to:
+  /// **'Token domain must be at most {maxLength} characters'**
+  String tokenDomainMaxLength(int maxLength);
+
   /// No description provided for @tokenIssuanceAddressDescription.
   ///
   /// In en, this message translates to:
@@ -2859,6 +2877,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Token Name'**
   String get tokenName;
+
+  /// No description provided for @tokenNameAllowedCharacters.
+  ///
+  /// In en, this message translates to:
+  /// **'Token name must use letters and numbers, with optional single \'-\', \'.\', or \'_\' separators between them'**
+  String get tokenNameAllowedCharacters;
+
+  /// No description provided for @tokenNameCannotBeEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Token name cannot be empty'**
+  String get tokenNameCannotBeEmpty;
+
+  /// Validation error shown when a token name exceeds the protocol maximum length.
+  ///
+  /// In en, this message translates to:
+  /// **'Token name must be at most {maxLength} characters'**
+  String tokenNameMaxLength(int maxLength);
 
   /// No description provided for @tokenInFavorites.
   ///
@@ -2911,6 +2947,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Token Symbol'**
   String get tokenSymbol;
+
+  /// Validation error shown when a token symbol matches a reserved protocol symbol.
+  ///
+  /// In en, this message translates to:
+  /// **'Token symbol cannot be {symbols}'**
+  String tokenSymbolCannotBe(String symbols);
+
+  /// No description provided for @tokenSymbolCannotBeEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Token symbol cannot be empty'**
+  String get tokenSymbolCannotBeEmpty;
+
+  /// Validation error shown when a token symbol exceeds the protocol maximum length.
+  ///
+  /// In en, this message translates to:
+  /// **'Token symbol must be at most {maxLength} characters'**
+  String tokenSymbolMaxLength(int maxLength);
+
+  /// No description provided for @tokenSymbolUppercaseAlphanumericOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'Token symbol must contain only uppercase letters and numbers'**
+  String get tokenSymbolUppercaseAlphanumericOnly;
 
   /// No description provided for @tokenTransactions.
   ///

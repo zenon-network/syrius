@@ -452,6 +452,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get enterValidAmount => 'Enter a valid amount';
 
   @override
+  String get enterValidDomainWithoutProtocol =>
+      'Enter a valid domain without protocol (e.g. example.com)';
+
+  @override
   String get errorCreatingPhase => 'Error while creating phase';
 
   @override
@@ -1607,6 +1611,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get tokenDomain => 'Token Domain';
 
   @override
+  String get tokenDomainCannotBeEmpty => 'Token domain cannot be empty';
+
+  @override
+  String tokenDomainMaxLength(int maxLength) {
+    return 'Token domain must be at most $maxLength characters';
+  }
+
+  @override
   String get tokenIssuanceAddressDescription =>
       'This will be your issuance address';
 
@@ -1627,6 +1639,18 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get tokenName => 'Token Name';
+
+  @override
+  String get tokenNameAllowedCharacters =>
+      'Token name must use letters and numbers, with optional single \'-\', \'.\', or \'_\' separators between them';
+
+  @override
+  String get tokenNameCannotBeEmpty => 'Token name cannot be empty';
+
+  @override
+  String tokenNameMaxLength(int maxLength) {
+    return 'Token name must be at most $maxLength characters';
+  }
 
   @override
   String get tokenInFavorites => 'This token is in your favorites.';
@@ -1662,6 +1686,23 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get tokenSymbol => 'Token Symbol';
+
+  @override
+  String tokenSymbolCannotBe(String symbols) {
+    return 'Token symbol cannot be $symbols';
+  }
+
+  @override
+  String get tokenSymbolCannotBeEmpty => 'Token symbol cannot be empty';
+
+  @override
+  String tokenSymbolMaxLength(int maxLength) {
+    return 'Token symbol must be at most $maxLength characters';
+  }
+
+  @override
+  String get tokenSymbolUppercaseAlphanumericOnly =>
+      'Token symbol must contain only uppercase letters and numbers';
 
   @override
   String get tokenTransactions => 'Token Transactions';
