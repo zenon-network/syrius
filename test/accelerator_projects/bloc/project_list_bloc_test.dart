@@ -494,5 +494,75 @@ void main() {
 
       await bloc.close();
     });
+
+    test('preserves pending refresh when overtaken by search so new projects '
+        'appear', () async {
+      final Completer<ProjectList> refreshCompleter = Completer<ProjectList>();
+      final Completer<ProjectList> searchFetchCompleter =
+          Completer<ProjectList>();
+      int callCount = 0;
+
+      when(() => acceleratorApi.getAll(pageSize: 10)).thenAnswer((_) {
+        callCount += 1;
+        if (callCount == 1) {
+          return Future<ProjectList>.value(
+            _projectList(<Project>[activeOther]),
+          );
+        }
+        if (callCount == 2) {
+          return refreshCompleter.future;
+        }
+        return searchFetchCompleter.future;
+      });
+
+      // 1. Initial load caches [ActiveProject].
+      final ProjectListBloc bloc = ProjectListBloc(
+        zenon: zenon,
+        walletAddressesProvider: () => <String>[myAddr.toString()],
+        debounceDuration: Duration.zero,
+        pageSize: 10,
+        listenToWsReconnect: false,
+      )..add(const ProjectListRequested());
+      await Future<void>.delayed(Duration.zero);
+      expect(bloc.state.projects.map((Project p) => p.name).toList(), <String>[
+        'ActiveProject',
+      ]);
+
+      // 2. Refresh starts while the node now has [ActiveProject, MyProposal].
+      bloc.add(const ProjectListRequested(refresh: true));
+      await Future<void>.delayed(Duration.zero);
+
+      // 3. Search overtakes the in-flight refresh. Because cache is stale,
+      // it must fetch fresh data instead of serving the old cache.
+      bloc.add(const ProjectListSearchChanged(query: 'MyProposal'));
+      await Future<void>.delayed(const Duration(milliseconds: 20));
+
+      // 4. Search fetch resolves with the new project; then the overtaken
+      // refresh finishes later.
+      searchFetchCompleter.complete(
+        _projectList(<Project>[activeOther, votingMine]),
+      );
+      await Future<void>.delayed(Duration.zero);
+      refreshCompleter.complete(
+        _projectList(<Project>[activeOther, votingMine]),
+      );
+      await Future<void>.delayed(Duration.zero);
+
+      expect(bloc.state.status, ProjectListStatus.populated);
+      expect(bloc.state.projects.map((Project p) => p.name).toList(), <String>[
+        'MyProposal',
+      ]);
+
+      // Clearing search shows both projects from the refreshed cache without
+      // needing another manual refresh.
+      bloc.add(const ProjectListSearchChanged(query: ''));
+      await Future<void>.delayed(const Duration(milliseconds: 20));
+      expect(bloc.state.projects.map((Project p) => p.name).toList(), <String>[
+        'ActiveProject',
+        'MyProposal',
+      ]);
+
+      await bloc.close();
+    });
   });
 }

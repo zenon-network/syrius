@@ -539,9 +539,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get goBack => 'Go back';
 
   @override
-  String get hAgo => 'h ago';
-
-  @override
   String get hash => 'Hash';
 
   @override
@@ -642,9 +639,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get maxSupply => 'Max supply';
-
-  @override
-  String get minAgo => 'min ago';
 
   @override
   String minutesAgo(int count) {
@@ -1128,9 +1122,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get revocationWindowOpen => 'Revocation window is open';
-
-  @override
-  String get sAgo => 's ago';
 
   @override
   String get saveQr => 'Save QR';

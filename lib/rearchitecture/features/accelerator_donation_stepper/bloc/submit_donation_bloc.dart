@@ -70,12 +70,9 @@ class SubmitDonationBloc
             );
         sentBlocks.add(qsrBlock);
       }
-
-      _zenonAddressUtils.refreshBalance();
-      emit(SubmitDonationDone(blocks: sentBlocks));
     } on SyriusException catch (e, stackTrace) {
       if (sentBlocks.isNotEmpty) {
-        _zenonAddressUtils.refreshBalance();
+        _refreshBalanceSafely();
       }
       addError(e, stackTrace);
       emit(
@@ -85,9 +82,10 @@ class SubmitDonationBloc
           znnSubmitted: znnSubmitted,
         ),
       );
+      return;
     } on Object catch (e, stackTrace) {
       if (sentBlocks.isNotEmpty) {
-        _zenonAddressUtils.refreshBalance();
+        _refreshBalanceSafely();
       }
       addError(e, stackTrace);
       emit(
@@ -97,6 +95,22 @@ class SubmitDonationBloc
           znnSubmitted: znnSubmitted,
         ),
       );
+      return;
+    }
+
+    _refreshBalanceSafely();
+    emit(
+      SubmitDonationDone(
+        blocks: List<AccountBlockTemplate>.unmodifiable(sentBlocks),
+      ),
+    );
+  }
+
+  void _refreshBalanceSafely() {
+    try {
+      _zenonAddressUtils.refreshBalance();
+    } on Object catch (e, stackTrace) {
+      addError(e, stackTrace);
     }
   }
 }

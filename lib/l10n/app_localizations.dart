@@ -988,12 +988,6 @@ abstract class AppLocalizations {
   /// **'Go back'**
   String get goBack;
 
-  /// No description provided for @hAgo.
-  ///
-  /// In en, this message translates to:
-  /// **'h ago'**
-  String get hAgo;
-
   /// No description provided for @hash.
   ///
   /// In en, this message translates to:
@@ -1161,12 +1155,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Max supply'**
   String get maxSupply;
-
-  /// No description provided for @minAgo.
-  ///
-  /// In en, this message translates to:
-  /// **'min ago'**
-  String get minAgo;
 
   /// No description provided for @minutesAgo.
   ///
@@ -1994,12 +1982,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Revocation window is open'**
   String get revocationWindowOpen;
-
-  /// No description provided for @sAgo.
-  ///
-  /// In en, this message translates to:
-  /// **'s ago'**
-  String get sAgo;
 
   /// No description provided for @saveQr.
   ///

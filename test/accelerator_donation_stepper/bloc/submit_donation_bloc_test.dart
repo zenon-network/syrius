@@ -344,5 +344,54 @@ void main() {
         await bloc.close();
       },
     );
+
+    blocTest<SubmitDonationBloc, SubmitDonationState>(
+      'still emits SubmitDonationDone if refreshBalance throws after '
+      'publishing blocks',
+      setUp: () {
+        when(
+          () => acceleratorApi.donate(BigInt.from(10), kZnnCoin.tokenStandard),
+        ).thenReturn(znnTemplate);
+        when(
+          () => acceleratorApi.donate(BigInt.from(20), kQsrCoin.tokenStandard),
+        ).thenReturn(qsrTemplate);
+        when(
+          () => accountBlockUtils.createAccountBlock(
+            znnTemplate,
+            'donate for accelerator',
+            address: donorAddress,
+          ),
+        ).thenAnswer((_) async => znnResponse);
+        when(
+          () => accountBlockUtils.createAccountBlock(
+            qsrTemplate,
+            'donate for accelerator',
+            address: donorAddress,
+          ),
+        ).thenAnswer((_) async => qsrResponse);
+        when(
+          () => zenonAddressUtils.refreshBalance(),
+        ).thenThrow(StateError('bloc closed'));
+      },
+      build: () => SubmitDonationBloc(
+        accountBlockUtils: accountBlockUtils,
+        zenon: zenon,
+        zenonAddressUtils: zenonAddressUtils,
+      ),
+      act: (SubmitDonationBloc bloc) => bloc.add(
+        SubmitDonationRequested(
+          address: donorAddress,
+          znnAmount: BigInt.from(10),
+          qsrAmount: BigInt.from(20),
+        ),
+      ),
+      expect: () => <SubmitDonationState>[
+        const SubmitDonationLoading(),
+        SubmitDonationDone(
+          blocks: <AccountBlockTemplate>[znnResponse, qsrResponse],
+        ),
+      ],
+      errors: () => <Matcher>[isA<StateError>()],
+    );
   });
 }

@@ -58,6 +58,7 @@ class ProjectListBloc extends Bloc<ProjectListEvent, ProjectListState>
   final int _pageSize;
 
   List<Project>? _allProjects;
+  bool _cacheStale = false;
   bool _hasExplicitSort = false;
   int _requestGeneration = 0;
 
@@ -118,7 +119,6 @@ class ProjectListBloc extends Bloc<ProjectListEvent, ProjectListState>
       return;
     }
 
-    _requestGeneration += 1;
     final bool ascending = state.sortAscending;
     final List<Project> sorted = List<Project>.from(state.projects)
       ..sort(
@@ -162,6 +162,9 @@ class ProjectListBloc extends Bloc<ProjectListEvent, ProjectListState>
     bool forceRefresh = false,
   }) async {
     final int requestId = ++_requestGeneration;
+    if (forceRefresh) {
+      _cacheStale = true;
+    }
 
     emit(
       state.copyWith(
@@ -176,10 +179,11 @@ class ProjectListBloc extends Bloc<ProjectListEvent, ProjectListState>
 
     try {
       final List<Project> allProjects;
-      if (forceRefresh || _allProjects == null) {
+      if (forceRefresh || _cacheStale || _allProjects == null) {
         final List<Project> fetched = await _fetchAllProjects();
         if (emit.isDone || requestId != _requestGeneration) return;
         _allProjects = fetched;
+        _cacheStale = false;
         allProjects = fetched;
       } else {
         allProjects = _allProjects!;
@@ -221,16 +225,10 @@ class ProjectListBloc extends Bloc<ProjectListEvent, ProjectListState>
       );
     } on SyriusException catch (e, stackTrace) {
       if (emit.isDone || requestId != _requestGeneration) return;
-      if (forceRefresh) {
-        _allProjects = null;
-      }
       addError(e, stackTrace);
       emit(state.copyWith(status: ProjectListStatus.failure, exception: e));
     } on Object catch (e, stackTrace) {
       if (emit.isDone || requestId != _requestGeneration) return;
-      if (forceRefresh) {
-        _allProjects = null;
-      }
       addError(e, stackTrace);
       emit(
         state.copyWith(
