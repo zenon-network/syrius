@@ -37,12 +37,15 @@ void main() {
     WalletUnlockBloc buildBloc({
       Future<WalletFile> Function(String path, String password)? decryptWallet,
       Future<void> Function(List<int> cipherKey)? initWallet,
+      Future<void> Function(int numAttempts)? saveNumFailedAttempts,
+      Future<void> Function(Object error, String title)? sendErrorNotification,
+      void Function()? afterInitCallback,
     }) {
       return WalletUnlockBloc(
         afterUnlockCallback: (String password) async {
           unlockedPassword = password;
         },
-        afterInitCallback: () => afterInitCalls += 1,
+        afterInitCallback: afterInitCallback ?? () => afterInitCalls += 1,
         decryptWallet: decryptWallet ?? (_, _) async => walletFile,
         initWalletAfterDecryption:
             initWallet ??
@@ -54,14 +57,18 @@ void main() {
         setWalletFile: (WalletFile file) => storedWalletFile = file,
         isWalletInitCompleted: () => walletInitCompleted,
         getNumFailedAttempts: () => failedAttempts,
-        saveNumFailedAttempts: (int value) async {
-          failedAttempts = value;
-        },
+        saveNumFailedAttempts:
+            saveNumFailedAttempts ??
+            (int value) async {
+              failedAttempts = value;
+            },
         getAutoEraseWalletLimit: () => autoEraseLimit,
         onFetchBalances: () => fetchBalanceCalls += 1,
-        sendErrorNotification: (Object error, String title) async {
-          sentNotifications.add((error, title));
-        },
+        sendErrorNotification:
+            sendErrorNotification ??
+            (Object error, String title) async {
+              sentNotifications.add((error, title));
+            },
       );
     }
 
@@ -299,5 +306,125 @@ void main() {
 
       expect(decryptCalls, 1);
     });
+
+    blocTest<WalletUnlockBloc, WalletUnlockState>(
+      'runs afterInitCallback before failed-attempt reset even if reset throws',
+      build: () => buildBloc(
+        afterInitCallback: () => afterInitCalls += 1,
+        saveNumFailedAttempts: (_) =>
+            Future<void>.error(StateError('prefs write failed')),
+      ),
+      act: (WalletUnlockBloc bloc) => bloc.add(buildEvent('MyPass123!')),
+      expect: () => const <WalletUnlockState>[
+        WalletUnlockState(
+          status: WalletUnlockStatus.decrypting,
+          remainingAttempts: 3,
+          nonce: 1,
+        ),
+        WalletUnlockState(
+          status: WalletUnlockStatus.initializing,
+          remainingAttempts: 3,
+          nonce: 2,
+        ),
+        WalletUnlockState(
+          status: WalletUnlockStatus.failure,
+          remainingAttempts: 3,
+          nonce: 3,
+        ),
+      ],
+      errors: () => <Matcher>[isA<StateError>()],
+      verify: (_) {
+        expect(afterInitCalls, 1);
+      },
+    );
+
+    blocTest<WalletUnlockBloc, WalletUnlockState>(
+      'emits failure and reports error when attempt persistence fails below '
+      'limit',
+      build: () => buildBloc(
+        decryptWallet: (_, _) =>
+            Future<WalletFile>.error(IncorrectPasswordException()),
+        saveNumFailedAttempts: (_) =>
+            Future<void>.error(StateError('disk full')),
+      ),
+      act: (WalletUnlockBloc bloc) => bloc.add(buildEvent('bad')),
+      expect: () => const <WalletUnlockState>[
+        WalletUnlockState(
+          status: WalletUnlockStatus.decrypting,
+          remainingAttempts: 3,
+          nonce: 1,
+        ),
+        WalletUnlockState(
+          status: WalletUnlockStatus.failure,
+          remainingAttempts: 2,
+          nonce: 2,
+        ),
+      ],
+      errors: () => <Matcher>[
+        isA<IncorrectPasswordException>(),
+        isA<StateError>(),
+      ],
+    );
+
+    blocTest<WalletUnlockBloc, WalletUnlockState>(
+      'still emits autoEraseTriggered when attempt persistence fails at limit',
+      setUp: () {
+        failedAttempts = 2;
+        autoEraseLimit = 3;
+      },
+      build: () => buildBloc(
+        decryptWallet: (_, _) =>
+            Future<WalletFile>.error(IncorrectPasswordException()),
+        saveNumFailedAttempts: (_) =>
+            Future<void>.error(StateError('disk full')),
+      ),
+      act: (WalletUnlockBloc bloc) => bloc.add(buildEvent('bad')),
+      expect: () => const <WalletUnlockState>[
+        WalletUnlockState(
+          status: WalletUnlockStatus.decrypting,
+          remainingAttempts: 1,
+          nonce: 1,
+        ),
+        WalletUnlockState(
+          status: WalletUnlockStatus.autoEraseTriggered,
+          remainingAttempts: 0,
+          nonce: 2,
+        ),
+      ],
+      errors: () => <Matcher>[
+        isA<IncorrectPasswordException>(),
+        isA<StateError>(),
+      ],
+    );
+
+    blocTest<WalletUnlockBloc, WalletUnlockState>(
+      'still emits failure when error notification itself throws',
+      build: () => buildBloc(
+        decryptWallet: (_, _) =>
+            Future<WalletFile>.error(IncorrectPasswordException()),
+        sendErrorNotification: (_, _) =>
+            Future<void>.error(StateError('notify failed')),
+      ),
+      act: (WalletUnlockBloc bloc) => bloc.add(buildEvent('bad')),
+      expect: () => const <WalletUnlockState>[
+        WalletUnlockState(
+          status: WalletUnlockStatus.decrypting,
+          remainingAttempts: 3,
+          nonce: 1,
+        ),
+        WalletUnlockState(
+          status: WalletUnlockStatus.failure,
+          remainingAttempts: 2,
+          nonce: 2,
+        ),
+      ],
+      errors: () => <Matcher>[
+        isA<IncorrectPasswordException>(),
+        isA<StateError>(),
+      ],
+      verify: (_) {
+        expect(failedAttempts, 1);
+      },
+    );
   });
 }

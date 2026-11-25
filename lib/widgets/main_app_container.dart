@@ -107,6 +107,7 @@ class _MainAppContainerState extends State<MainAppContainer>
     _animation = Tween<double>(begin: 1, end: 3).animate(_animationController);
     kCurrentPage = kWalletInitCompleted ? Tabs.dashboard : Tabs.lock;
     _initLockBlock();
+    _listenToAutoReceiveTxWorkerNotifications();
     _handleIncomingLinks();
     _handleInitialUri();
 
@@ -547,8 +548,6 @@ class _MainAppContainerState extends State<MainAppContainer>
     } else {
       _lockBloc.add(const LockNavigateToDashboardRequested());
     }
-
-    _listenToAutoReceiveTxWorkerNotifications();
   }
 
   void _listenToAutoReceiveTxWorkerNotifications() {

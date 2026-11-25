@@ -128,8 +128,8 @@ class WalletUnlockBloc extends Bloc<WalletUnlockEvent, WalletUnlockState> {
           Crypto.digest(utf8.encode(event.password)),
         );
         _onFetchBalances();
-        await _saveNumFailedAttempts(0);
         _afterInitCallback();
+        await _saveNumFailedAttempts(0);
       } else {
         await _saveNumFailedAttempts(0);
         await _afterUnlockCallback(event.password);
@@ -144,9 +144,13 @@ class WalletUnlockBloc extends Bloc<WalletUnlockEvent, WalletUnlockState> {
       );
     } on IncorrectPasswordException catch (error, stackTrace) {
       addError(error, stackTrace);
-      await _sendErrorNotification(error, event.incorrectPasswordTitle);
+      await _safeSendErrorNotification(error, event.incorrectPasswordTitle);
       final int updatedAttempts = currentAttempts + 1;
-      await _saveNumFailedAttempts(updatedAttempts);
+      try {
+        await _saveNumFailedAttempts(updatedAttempts);
+      } on Object catch (persistError, persistStackTrace) {
+        addError(persistError, persistStackTrace);
+      }
       final int remaining = _computeRemainingAttempts(
         limit: limit,
         failedAttempts: updatedAttempts,
@@ -170,7 +174,7 @@ class WalletUnlockBloc extends Bloc<WalletUnlockEvent, WalletUnlockState> {
       }
     } on LedgerError catch (error, stackTrace) {
       addError(error, stackTrace);
-      await _sendErrorNotification(
+      await _safeSendErrorNotification(
         error,
         event.ledgerErrorTitleBuilder(error.toFriendlyString()),
       );
@@ -183,7 +187,7 @@ class WalletUnlockBloc extends Bloc<WalletUnlockEvent, WalletUnlockState> {
       );
     } on Object catch (error, stackTrace) {
       addError(error, stackTrace);
-      await _sendErrorNotification(error, event.unlockFailedTitle);
+      await _safeSendErrorNotification(error, event.unlockFailedTitle);
       emit(
         WalletUnlockState(
           status: WalletUnlockStatus.failure,
@@ -191,6 +195,14 @@ class WalletUnlockBloc extends Bloc<WalletUnlockEvent, WalletUnlockState> {
           nonce: state.nonce + 1,
         ),
       );
+    }
+  }
+
+  Future<void> _safeSendErrorNotification(Object error, String title) async {
+    try {
+      await _sendErrorNotification(error, title);
+    } on Object catch (notificationError, stackTrace) {
+      addError(notificationError, stackTrace);
     }
   }
 
@@ -213,8 +225,8 @@ class WalletUnlockBloc extends Bloc<WalletUnlockEvent, WalletUnlockState> {
   static int _defaultGetNumFailedAttempts() => kNumFailedUnlockAttempts ?? 0;
 
   static Future<void> _defaultSaveNumFailedAttempts(int numAttempts) async {
-    await sharedPrefsService!.put(kNumUnlockFailedAttemptsKey, numAttempts);
     kNumFailedUnlockAttempts = numAttempts;
+    await sharedPrefsService!.put(kNumUnlockFailedAttemptsKey, numAttempts);
   }
 
   static int _defaultGetAutoEraseWalletLimit() =>
