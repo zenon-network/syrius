@@ -11,6 +11,7 @@ abstract class WalletFile {
 
   WalletFile(this._path);
   final String _path;
+  static int _tmpFileCounter = 0;
 
   static Future<WalletFile> decrypt(String walletPath, String password) async {
     final EncryptedFile encrypted = await WalletFile.read(walletPath);
@@ -36,10 +37,25 @@ abstract class WalletFile {
 
   static Future<void> write(String walletPath, String password, List<int> data,
       {Map<String, dynamic>? metadata,}) async {
-    final File file = File(walletPath);
     final EncryptedFile encrypted =
         await EncryptedFile.encrypt(data, password, metadata: metadata);
-    file.writeAsString(json.encode(encrypted), mode: FileMode.writeOnly);
+    final int timestamp = DateTime.now().microsecondsSinceEpoch;
+    final File tmpFile = File(
+      '$walletPath.tmp.$pid.$timestamp.${_tmpFileCounter++}',
+    );
+    try {
+      await tmpFile.writeAsString(json.encode(encrypted), flush: true);
+      await tmpFile.rename(walletPath);
+    } on Object catch (_) {
+      try {
+        if (tmpFile.existsSync()) {
+          await tmpFile.delete();
+        }
+      } on FileSystemException catch (_) {
+        // Ignore cleanup errors so the original error propagates.
+      }
+      rethrow;
+    }
   }
 
   String get walletPath => _path;
