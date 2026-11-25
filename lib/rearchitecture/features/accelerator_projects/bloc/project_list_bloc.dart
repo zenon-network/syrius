@@ -59,6 +59,7 @@ class ProjectListBloc extends Bloc<ProjectListEvent, ProjectListState>
 
   List<Project>? _allProjects;
   bool _hasExplicitSort = false;
+  int _requestGeneration = 0;
 
   static List<String> _defaultWalletAddresses() =>
       kDefaultAddressList.whereType<String>().toList();
@@ -67,15 +68,13 @@ class ProjectListBloc extends Bloc<ProjectListEvent, ProjectListState>
     ProjectListRequested event,
     Emitter<ProjectListState> emit,
   ) async {
-    if (event.refresh) {
-      _allProjects = null;
-    }
     await _loadAndFilter(
       emit: emit,
       searchQuery: event.clearSearch ? '' : state.searchQuery,
       selectedTags: state.selectedTags,
       pillarInfo: state.pillarInfo,
       sortAscending: state.sortAscending,
+      forceRefresh: event.refresh,
     );
   }
 
@@ -119,6 +118,7 @@ class ProjectListBloc extends Bloc<ProjectListEvent, ProjectListState>
       return;
     }
 
+    _requestGeneration += 1;
     final bool ascending = state.sortAscending;
     final List<Project> sorted = List<Project>.from(state.projects)
       ..sort(
@@ -135,9 +135,6 @@ class ProjectListBloc extends Bloc<ProjectListEvent, ProjectListState>
     ProjectListPillarUpdated event,
     Emitter<ProjectListState> emit,
   ) async {
-    if (event.refresh) {
-      _allProjects = null;
-    }
     final Set<AcceleratorProjectFilterTag> nextTags =
         Set<AcceleratorProjectFilterTag>.from(state.selectedTags);
     if (event.pillarInfo == null) {
@@ -152,6 +149,7 @@ class ProjectListBloc extends Bloc<ProjectListEvent, ProjectListState>
       selectedTags: nextTags,
       pillarInfo: event.pillarInfo,
       sortAscending: state.sortAscending,
+      forceRefresh: event.refresh,
     );
   }
 
@@ -161,7 +159,10 @@ class ProjectListBloc extends Bloc<ProjectListEvent, ProjectListState>
     required Set<AcceleratorProjectFilterTag> selectedTags,
     required PillarInfo? pillarInfo,
     required bool sortAscending,
+    bool forceRefresh = false,
   }) async {
+    final int requestId = ++_requestGeneration;
+
     emit(
       state.copyWith(
         status: ProjectListStatus.loading,
@@ -174,9 +175,15 @@ class ProjectListBloc extends Bloc<ProjectListEvent, ProjectListState>
     );
 
     try {
-      final List<Project> allProjects = _allProjects ??=
-          await _fetchAllProjects();
-      if (emit.isDone) return;
+      final List<Project> allProjects;
+      if (forceRefresh || _allProjects == null) {
+        final List<Project> fetched = await _fetchAllProjects();
+        if (emit.isDone || requestId != _requestGeneration) return;
+        _allProjects = fetched;
+        allProjects = fetched;
+      } else {
+        allProjects = _allProjects!;
+      }
 
       final String trimmedQuery = searchQuery.trim();
       List<Project> results = trimmedQuery.isNotEmpty
@@ -188,7 +195,7 @@ class ProjectListBloc extends Bloc<ProjectListEvent, ProjectListState>
         selectedTags: selectedTags,
         pillarInfo: pillarInfo,
       );
-      if (emit.isDone) return;
+      if (emit.isDone || requestId != _requestGeneration) return;
 
       results = _filterByPillarVisibility(results, pillarInfo: pillarInfo);
 
@@ -213,11 +220,17 @@ class ProjectListBloc extends Bloc<ProjectListEvent, ProjectListState>
         ),
       );
     } on SyriusException catch (e, stackTrace) {
-      if (emit.isDone) return;
+      if (emit.isDone || requestId != _requestGeneration) return;
+      if (forceRefresh) {
+        _allProjects = null;
+      }
       addError(e, stackTrace);
       emit(state.copyWith(status: ProjectListStatus.failure, exception: e));
     } on Object catch (e, stackTrace) {
-      if (emit.isDone) return;
+      if (emit.isDone || requestId != _requestGeneration) return;
+      if (forceRefresh) {
+        _allProjects = null;
+      }
       addError(e, stackTrace);
       emit(
         state.copyWith(

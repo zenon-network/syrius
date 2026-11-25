@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:bloc/bloc.dart';
+import 'package:bloc_concurrency/bloc_concurrency.dart';
 import 'package:equatable/equatable.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/exceptions/exceptions.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/account_block_utils.dart';
@@ -18,7 +19,10 @@ class CreateProjectBloc extends Bloc<CreateProjectEvent, CreateProjectState> {
     required this._zenon,
     required this._zenonAddressUtils,
   }) : super(const CreateProjectInitial()) {
-    on<CreateProjectRequested>(_onCreateProjectRequested);
+    on<CreateProjectRequested>(
+      _onCreateProjectRequested,
+      transformer: droppable(),
+    );
   }
 
   final AccountBlockUtils _accountBlockUtils;

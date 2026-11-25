@@ -36,11 +36,22 @@ final class SubmitDonationDone extends SubmitDonationState {
 /// State emitted when submitting a donation fails.
 final class SubmitDonationFailure extends SubmitDonationState {
   /// Creates a [SubmitDonationFailure] state.
-  const SubmitDonationFailure({required this.exception});
+  const SubmitDonationFailure({
+    required this.exception,
+    this.sentBlocks = const <AccountBlockTemplate>[],
+    this.znnSubmitted = false,
+  });
 
   /// Failure describing why the donation did not complete.
   final SyriusException exception;
 
+  /// Account blocks that were already published before the failure occurred.
+  final List<AccountBlockTemplate> sentBlocks;
+
+  /// Whether the ZNN donation block was already published before a subsequent
+  /// QSR donation failure.
+  final bool znnSubmitted;
+
   @override
-  List<Object?> get props => <Object?>[exception];
+  List<Object?> get props => <Object?>[exception, sentBlocks, znnSubmitted];
 }

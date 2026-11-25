@@ -21,6 +21,7 @@
   "asset": "Asset",
   "available": "Available",
   "balance": "Balance",
+  "balanceUnavailableForAddress": "Balance is unavailable for the selected address",
   "beneficiaryAddress": "Beneficiary address",
   "cancel": "Cancel",
   "cannotJoinSwapExpiresTooSoon": "Cannot join swap. The swap will expire too soon for a safe swap.",
@@ -136,12 +137,14 @@
   "disassembleSentinelToUnlockCoin": "You will be able to unlock the {kZnnCoinSymbol} if you choose to disassemble the Sentinel",
   "donate": "Donate",
   "donationAddress": "Donation address",
+  "donationAmountMustBePositive": "Donation amount must be greater than zero",
   "donationDetails": "Donation details",
   "donationSubmitted": "Donation submitted",
   "dualCoinStats": "Dual Coin Stats",
   "dualCoinStatsDescription": "This card displays the circulating {kZnnCoinSymbol} and {kQsrCoinSymbol} supply from the network",
   "duration": "Duration",
   "eachProjectComprisedOfPhases": "Each project can be comprised of one or more phases. Each phase needs to be voted. Phases can be updated by the owner of the project to reflect current progress of the project.",
+  "enterValidAmount": "Enter a valid amount",
   "exchangeRate": "Exchange Rate",
   "error": "Error",
   "errorCreatingPhase": "Error while creating phase",
@@ -193,6 +196,14 @@
   "hashlock": "Hashlock",
   "hashValue": "Hash: {value}",
   "hideDetails": "Hide details",
+  "hoursAgo": "{count} h ago",
+  "@hoursAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "hoursCount": "{count} h",
   "@hoursCount": {
     "placeholders": {
@@ -212,6 +223,7 @@
   "innovateInspireBuild": "Innovate. Inspire. Build.",
   "inputAmountToSend": "Input an amount to send",
   "inputDepositId": "Input the deposit ID",
+  "inputtedNumberHasTooManyDecimals": "Inputted number has too many decimals",
   "issueToken": "Issue Token",
   "joinSwap": "Join swap",
   "joinTheAliensBuildingNom": "Join the Aliens building the future on Network of Momentum",
@@ -230,6 +242,14 @@
   "max": "Max",
   "maxSupply": "Max supply",
   "minAgo": "min ago",
+  "minutesAgo": "{count} min ago",
+  "@minutesAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "minutesCount": "{count} min",
   "@minutesCount": {
     "placeholders": {
@@ -391,7 +411,6 @@
   "projectHasNoPhases": "The project has no phases",
   "projectList": "Project List",
   "projectName": "Project name",
-  "projectOwnerAddress": "This will be your project owner address",
   "projectStats": "Project Stats",
   "projectSubmitted": "Project submitted",
   "projectUrl": "Project URL",
@@ -449,6 +468,14 @@
   "searchByIdOwnerNameDescriptionUrl": "Search by id, owner, name, description, or URL",
   "searchTokenHint": "Search by name, symbol, owner, or token standard",
   "searching": "Searching",
+  "secondsAgo": "{count} s ago",
+  "@secondsAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "secondsCount": "{count} s",
   "@secondsCount": {
     "placeholders": {
@@ -594,6 +621,7 @@
   "uptime": "Uptime",
   "utilityToken": "Utility token",
   "usDateFormat": "MM/dd/yyyy",
+  "valueMustBeZero": "Value must be 0",
   "verifyNonFavoriteToken": "You are receiving a token that is not in your favorites. Please verify that the token standard is correct: {tokenStandard}",
   "@verifyNonFavoriteToken": {
     "description": "Warns the user to verify a token that is not in their favorites.",
@@ -652,8 +680,10 @@
   "yourAddress": "Your address",
   "yourDepositId": "Your deposit ID",
   "yourDonationMatters": "Your donation matters",
+  "yourProjectOwnerAddress": "This will be your project owner address",
   "zenonTransactions": "{zenon} transactions",
   "znnAmount": "ZNN Amount",
   "znnController": "znn-controller ",
+  "znnDonationSubmittedQsrFailed": "ZNN donation was submitted, but the QSR donation failed. Retry to submit only the remaining QSR donation.",
   "ztsSearchDescription": "Coins and tokens can be searched by name - \"Zenon\" -, by symbol - \"ZNN\" -, and by token standard - \"zts1znnxxxxxxxxxxxxx9z4ulx\""
 }

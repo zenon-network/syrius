@@ -241,6 +241,7 @@ class _UpdatePhaseStepperViewState extends State<UpdatePhaseStepperView> {
               maxValue: widget._project.getRemainingZnnFunds(),
               decimals: kZnnCoin.decimals,
               minValue: BigInt.zero,
+              l10n: context.l10n,
             ),
             onChanged: (String value) {
               setState(() {});
@@ -272,6 +273,7 @@ class _UpdatePhaseStepperViewState extends State<UpdatePhaseStepperView> {
               maxValue: widget._project.getRemainingQsrFunds(),
               decimals: kQsrCoin.decimals,
               minValue: BigInt.zero,
+              l10n: context.l10n,
             ),
             onChanged: (String value) {
               setState(() {});

@@ -1,7 +1,9 @@
 import 'dart:async';
 
 import 'package:bloc/bloc.dart';
+import 'package:bloc_concurrency/bloc_concurrency.dart';
 import 'package:equatable/equatable.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/accelerator_donation_stepper/exceptions/invalid_donation_amount_exception.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/exceptions/exceptions.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/account_block_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/address_utils.dart';
@@ -20,7 +22,10 @@ class SubmitDonationBloc
     required this._zenon,
     required this._zenonAddressUtils,
   }) : super(const SubmitDonationInitial()) {
-    on<SubmitDonationRequested>(_onSubmitDonationRequested);
+    on<SubmitDonationRequested>(
+      _onSubmitDonationRequested,
+      transformer: droppable(),
+    );
   }
 
   final AccountBlockUtils _accountBlockUtils;
@@ -32,19 +37,14 @@ class SubmitDonationBloc
     Emitter<SubmitDonationState> emit,
   ) async {
     if (event.znnAmount <= BigInt.zero && event.qsrAmount <= BigInt.zero) {
-      emit(
-        SubmitDonationFailure(
-          exception: SyriusException(
-            'Donation amount must be greater than zero',
-          ),
-        ),
-      );
+      emit(SubmitDonationFailure(exception: InvalidDonationAmountException()));
       return;
     }
 
     emit(const SubmitDonationLoading());
 
     final List<AccountBlockTemplate> sentBlocks = <AccountBlockTemplate>[];
+    bool znnSubmitted = false;
     try {
       if (event.znnAmount > BigInt.zero) {
         final AccountBlockTemplate znnParams = _zenon.embedded.accelerator
@@ -56,6 +56,7 @@ class SubmitDonationBloc
               address: event.address,
             );
         sentBlocks.add(znnBlock);
+        znnSubmitted = true;
       }
 
       if (event.qsrAmount > BigInt.zero) {
@@ -77,13 +78,25 @@ class SubmitDonationBloc
         _zenonAddressUtils.refreshBalance();
       }
       addError(e, stackTrace);
-      emit(SubmitDonationFailure(exception: e));
+      emit(
+        SubmitDonationFailure(
+          exception: e,
+          sentBlocks: List<AccountBlockTemplate>.unmodifiable(sentBlocks),
+          znnSubmitted: znnSubmitted,
+        ),
+      );
     } on Object catch (e, stackTrace) {
       if (sentBlocks.isNotEmpty) {
         _zenonAddressUtils.refreshBalance();
       }
       addError(e, stackTrace);
-      emit(SubmitDonationFailure(exception: FailureException()));
+      emit(
+        SubmitDonationFailure(
+          exception: FailureException(),
+          sentBlocks: List<AccountBlockTemplate>.unmodifiable(sentBlocks),
+          znnSubmitted: znnSubmitted,
+        ),
+      );
     }
   }
 }

@@ -226,6 +226,12 @@ abstract class AppLocalizations {
   /// **'Balance'**
   String get balance;
 
+  /// No description provided for @balanceUnavailableForAddress.
+  ///
+  /// In en, this message translates to:
+  /// **'Balance is unavailable for the selected address'**
+  String get balanceUnavailableForAddress;
+
   /// No description provided for @beneficiaryAddress.
   ///
   /// In en, this message translates to:
@@ -658,6 +664,12 @@ abstract class AppLocalizations {
   /// **'Donation address'**
   String get donationAddress;
 
+  /// No description provided for @donationAmountMustBePositive.
+  ///
+  /// In en, this message translates to:
+  /// **'Donation amount must be greater than zero'**
+  String get donationAmountMustBePositive;
+
   /// No description provided for @donationDetails.
   ///
   /// In en, this message translates to:
@@ -693,6 +705,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Each project can be comprised of one or more phases. Each phase needs to be voted. Phases can be updated by the owner of the project to reflect current progress of the project.'**
   String get eachProjectComprisedOfPhases;
+
+  /// No description provided for @enterValidAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a valid amount'**
+  String get enterValidAmount;
 
   /// No description provided for @exchangeRate.
   ///
@@ -1000,6 +1018,12 @@ abstract class AppLocalizations {
   /// **'Hide details'**
   String get hideDetails;
 
+  /// No description provided for @hoursAgo.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} h ago'**
+  String hoursAgo(int count);
+
   /// No description provided for @hoursCount.
   ///
   /// In en, this message translates to:
@@ -1029,6 +1053,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Input the deposit ID'**
   String get inputDepositId;
+
+  /// No description provided for @inputtedNumberHasTooManyDecimals.
+  ///
+  /// In en, this message translates to:
+  /// **'Inputted number has too many decimals'**
+  String get inputtedNumberHasTooManyDecimals;
 
   /// No description provided for @issueToken.
   ///
@@ -1137,6 +1167,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'min ago'**
   String get minAgo;
+
+  /// No description provided for @minutesAgo.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} min ago'**
+  String minutesAgo(int count);
 
   /// No description provided for @minutesCount.
   ///
@@ -1744,12 +1780,6 @@ abstract class AppLocalizations {
   /// **'Project name'**
   String get projectName;
 
-  /// No description provided for @projectOwnerAddress.
-  ///
-  /// In en, this message translates to:
-  /// **'This will be your project owner address'**
-  String get projectOwnerAddress;
-
   /// No description provided for @projectStats.
   ///
   /// In en, this message translates to:
@@ -2000,6 +2030,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Searching'**
   String get searching;
+
+  /// No description provided for @secondsAgo.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} s ago'**
+  String secondsAgo(int count);
 
   /// No description provided for @secondsCount.
   ///
@@ -2750,6 +2786,12 @@ abstract class AppLocalizations {
   /// **'MM/dd/yyyy'**
   String get usDateFormat;
 
+  /// No description provided for @valueMustBeZero.
+  ///
+  /// In en, this message translates to:
+  /// **'Value must be 0'**
+  String get valueMustBeZero;
+
   /// Warns the user to verify a token that is not in their favorites.
   ///
   /// In en, this message translates to:
@@ -2906,6 +2948,12 @@ abstract class AppLocalizations {
   /// **'Your donation matters'**
   String get yourDonationMatters;
 
+  /// No description provided for @yourProjectOwnerAddress.
+  ///
+  /// In en, this message translates to:
+  /// **'This will be your project owner address'**
+  String get yourProjectOwnerAddress;
+
   /// No description provided for @zenonTransactions.
   ///
   /// In en, this message translates to:
@@ -2923,6 +2971,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'znn-controller '**
   String get znnController;
+
+  /// No description provided for @znnDonationSubmittedQsrFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'ZNN donation was submitted, but the QSR donation failed. Retry to submit only the remaining QSR donation.'**
+  String get znnDonationSubmittedQsrFailed;
 
   /// No description provided for @ztsSearchDescription.
   ///

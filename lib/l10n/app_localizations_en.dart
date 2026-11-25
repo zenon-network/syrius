@@ -82,6 +82,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get balance => 'Balance';
 
   @override
+  String get balanceUnavailableForAddress =>
+      'Balance is unavailable for the selected address';
+
+  @override
   String get beneficiaryAddress => 'Beneficiary address';
 
   @override
@@ -346,6 +350,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get donationAddress => 'Donation address';
 
   @override
+  String get donationAmountMustBePositive =>
+      'Donation amount must be greater than zero';
+
+  @override
   String get donationDetails => 'Donation details';
 
   @override
@@ -368,6 +376,9 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get eachProjectComprisedOfPhases =>
       'Each project can be comprised of one or more phases. Each phase needs to be voted. Phases can be updated by the owner of the project to reflect current progress of the project.';
+
+  @override
+  String get enterValidAmount => 'Enter a valid amount';
 
   @override
   String get exchangeRate => 'Exchange Rate';
@@ -545,6 +556,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get hideDetails => 'Hide details';
 
   @override
+  String hoursAgo(int count) {
+    return '$count h ago';
+  }
+
+  @override
   String hoursCount(int count) {
     return '$count h';
   }
@@ -562,6 +578,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get inputDepositId => 'Input the deposit ID';
+
+  @override
+  String get inputtedNumberHasTooManyDecimals =>
+      'Inputted number has too many decimals';
 
   @override
   String get issueToken => 'Issue Token';
@@ -625,6 +645,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get minAgo => 'min ago';
+
+  @override
+  String minutesAgo(int count) {
+    return '$count min ago';
+  }
 
   @override
   String minutesCount(int count) {
@@ -976,9 +1001,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get projectName => 'Project name';
 
   @override
-  String get projectOwnerAddress => 'This will be your project owner address';
-
-  @override
   String get projectStats => 'Project Stats';
 
   @override
@@ -1127,6 +1149,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get searching => 'Searching';
+
+  @override
+  String secondsAgo(int count) {
+    return '$count s ago';
+  }
 
   @override
   String secondsCount(int count) {
@@ -1574,6 +1601,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get usDateFormat => 'MM/dd/yyyy';
 
   @override
+  String get valueMustBeZero => 'Value must be 0';
+
+  @override
   String verifyNonFavoriteToken(String tokenStandard) {
     return 'You are receiving a token that is not in your favorites. Please verify that the token standard is correct: $tokenStandard';
   }
@@ -1665,6 +1695,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get yourDonationMatters => 'Your donation matters';
 
   @override
+  String get yourProjectOwnerAddress =>
+      'This will be your project owner address';
+
+  @override
   String zenonTransactions(Object zenon) {
     return '$zenon transactions';
   }
@@ -1674,6 +1708,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get znnController => 'znn-controller ';
+
+  @override
+  String get znnDonationSubmittedQsrFailed =>
+      'ZNN donation was submitted, but the QSR donation failed. Retry to submit only the remaining QSR donation.';
 
   @override
   String get ztsSearchDescription =>

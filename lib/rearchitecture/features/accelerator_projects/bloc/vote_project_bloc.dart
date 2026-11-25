@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:bloc/bloc.dart';
+import 'package:bloc_concurrency/bloc_concurrency.dart';
 import 'package:equatable/equatable.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/accelerator_pillar/accelerator_pillar.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/exceptions/exceptions.dart';
@@ -19,7 +20,7 @@ class VoteProjectBloc extends Bloc<VoteProjectEvent, VoteProjectState> {
     required this._zenon,
     this._pageSize = kPillarRegistryPageSize,
   }) : super(const VoteProjectInitial()) {
-    on<VoteProjectRequested>(_onVoteProjectRequested);
+    on<VoteProjectRequested>(_onVoteProjectRequested, transformer: droppable());
   }
 
   final AccountBlockUtils _accountBlockUtils;

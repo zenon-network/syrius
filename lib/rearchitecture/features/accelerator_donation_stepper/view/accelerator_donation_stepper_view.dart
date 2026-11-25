@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lottie/lottie.dart';
+import 'package:zenon_syrius_wallet_flutter/l10n/app_localizations.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/accelerator_donation_stepper/accelerator_donation_stepper.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/multiple_balance/multiple_balance.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
@@ -28,24 +29,28 @@ String? validateAcceleratorAmount({
   required int decimals,
   required BigInt minValue,
   bool canBeBlank = false,
+  AppLocalizations? l10n,
 }) {
   if (value == null || value.isEmpty) {
-    return canBeBlank ? null : 'Enter a valid amount';
+    return canBeBlank
+        ? null
+        : (l10n?.enterValidAmount ?? 'Enter a valid amount');
   }
   if (value.contains('.') && value.split('.')[1].length > decimals) {
-    return 'Inputted number has too many decimals';
+    return l10n?.inputtedNumberHasTooManyDecimals ??
+        'Inputted number has too many decimals';
   }
   final BigInt parsedAmount;
   try {
     parsedAmount = value.extractDecimals(decimals);
   } on Object {
-    return 'Error';
+    return l10n?.error ?? 'Error';
   }
   if (maxValue == BigInt.zero) {
     if (parsedAmount == BigInt.zero && minValue == BigInt.zero) {
       return null;
     }
-    return 'Value must be 0';
+    return l10n?.valueMustBeZero ?? 'Value must be 0';
   }
   return InputValidators.correctValue(
     value,
@@ -154,7 +159,7 @@ class _AcceleratorDonationStepperViewState
 
   Widget _buildLoadedBody(BuildContext context, AccountInfo? accountInfo) {
     if (accountInfo == null) {
-      return const SyriusLoadingWidget();
+      return SyriusErrorWidget(context.l10n.balanceUnavailableForAddress);
     }
     return _buildWidgetBody(context, accountInfo);
   }
@@ -378,6 +383,7 @@ class _AcceleratorDonationStepperViewState
               decimals: coinDecimals,
               minValue: BigInt.zero,
               canBeBlank: true,
+              l10n: context.l10n,
             ),
             onChanged: (String value) {
               setState(() {});
@@ -417,6 +423,7 @@ class _AcceleratorDonationStepperViewState
               decimals: coinDecimals,
               minValue: BigInt.zero,
               canBeBlank: true,
+              l10n: context.l10n,
             ),
             onChanged: (String value) {
               setState(() {});
@@ -487,11 +494,29 @@ class _AcceleratorDonationStepperViewState
             setState(() {
               _lastCompletedStep = _AcceleratorDonationStep.values.last;
             });
-          case SubmitDonationFailure(:final SyriusException exception):
+          case SubmitDonationFailure(
+            :final SyriusException exception,
+            :final List<AccountBlockTemplate> sentBlocks,
+            :final bool znnSubmitted,
+          ):
             _submitButtonKey.currentState?.animateReverse();
+            if (sentBlocks.isNotEmpty) {
+              widget._onDonationSubmitted?.call();
+            }
+            if (znnSubmitted) {
+              setState(() {
+                _znnAmount = BigInt.zero;
+                _znnAmountController.clear();
+              });
+            }
+            final Object errorPayload = znnSubmitted
+                ? context.l10n.znnDonationSubmittedQsrFailed
+                : exception is InvalidDonationAmountException
+                ? context.l10n.donationAmountMustBePositive
+                : exception;
             unawaited(
               NotificationUtils.sendNotificationError(
-                exception,
+                errorPayload,
                 context.l10n.errorSubmittingDonation,
               ),
             );

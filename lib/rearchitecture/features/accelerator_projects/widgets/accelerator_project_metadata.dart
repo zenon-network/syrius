@@ -98,12 +98,12 @@ class AcceleratorProjectMetadata extends StatelessWidget {
   String _formatShortElapsed(BuildContext context, int elapsedMillis) {
     final Duration duration = Duration(milliseconds: elapsedMillis);
     if (duration.inHours > 0) {
-      return '${duration.inHours} ${context.l10n.hAgo}';
+      return context.l10n.hoursAgo(duration.inHours);
     }
     if (duration.inMinutes > 0) {
-      return '${duration.inMinutes} ${context.l10n.minAgo}';
+      return context.l10n.minutesAgo(duration.inMinutes);
     }
-    return '${duration.inSeconds} ${context.l10n.sAgo}';
+    return context.l10n.secondsAgo(duration.inSeconds);
   }
 
   String _formatTimeUntilVotingCloses(

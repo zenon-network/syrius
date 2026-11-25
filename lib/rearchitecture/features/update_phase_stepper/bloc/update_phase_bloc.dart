@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:bloc/bloc.dart';
+import 'package:bloc_concurrency/bloc_concurrency.dart';
 import 'package:equatable/equatable.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/exceptions/exceptions.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/account_block_utils.dart';
@@ -14,7 +15,7 @@ class UpdatePhaseBloc extends Bloc<UpdatePhaseEvent, UpdatePhaseState> {
   /// Creates an [UpdatePhaseBloc].
   UpdatePhaseBloc({required this._accountBlockUtils, required this._zenon})
     : super(const UpdatePhaseInitial()) {
-    on<UpdatePhaseRequested>(_onUpdatePhaseRequested);
+    on<UpdatePhaseRequested>(_onUpdatePhaseRequested, transformer: droppable());
   }
 
   final AccountBlockUtils _accountBlockUtils;

@@ -213,7 +213,7 @@ class _CreateProjectStepperViewState extends State<CreateProjectStepperView> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
-        Text(context.l10n.projectOwnerAddress),
+        Text(context.l10n.yourProjectOwnerAddress),
         kVerticalSpacing,
         DisabledAddressField(_addressController),
         StepperUtils.getBalanceWidget(kZnnCoin, accountInfo),

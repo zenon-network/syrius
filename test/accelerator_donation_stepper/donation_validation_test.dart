@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:zenon_syrius_wallet_flutter/l10n/app_localizations_en.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/accelerator_donation_stepper/accelerator_donation_stepper.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
@@ -94,6 +95,40 @@ void main() {
           qsrBalance: tenCoins,
         ),
         isFalse,
+      );
+    });
+
+    test('returns localized validation messages when l10n is provided', () {
+      final AppLocalizationsEn l10n = AppLocalizationsEn();
+      expect(
+        validateAcceleratorAmount(
+          value: '',
+          maxValue: tenCoins,
+          decimals: coinDecimals,
+          minValue: BigInt.zero,
+          l10n: l10n,
+        ),
+        l10n.enterValidAmount,
+      );
+      expect(
+        validateAcceleratorAmount(
+          value: '1.123456789',
+          maxValue: tenCoins,
+          decimals: coinDecimals,
+          minValue: BigInt.zero,
+          l10n: l10n,
+        ),
+        l10n.inputtedNumberHasTooManyDecimals,
+      );
+      expect(
+        validateAcceleratorAmount(
+          value: '1',
+          maxValue: BigInt.zero,
+          decimals: coinDecimals,
+          minValue: BigInt.zero,
+          l10n: l10n,
+        ),
+        l10n.valueMustBeZero,
       );
     });
   });

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
@@ -204,14 +206,31 @@ void main() {
           qsrAmount: BigInt.zero,
         ),
       ),
-      expect: () => <Matcher>[isA<SubmitDonationFailure>()],
+      expect: () => <Matcher>[
+        isA<SubmitDonationFailure>()
+            .having(
+              (SubmitDonationFailure s) => s.exception,
+              'exception',
+              isA<InvalidDonationAmountException>(),
+            )
+            .having(
+              (SubmitDonationFailure s) => s.sentBlocks,
+              'sentBlocks',
+              isEmpty,
+            )
+            .having(
+              (SubmitDonationFailure s) => s.znnSubmitted,
+              'znnSubmitted',
+              isFalse,
+            ),
+      ],
       verify: (_) {
         verifyNever(() => acceleratorApi.donate(any(), any()));
       },
     );
 
     blocTest<SubmitDonationBloc, SubmitDonationState>(
-      'refreshes balance if ZNN succeeded before QSR threw',
+      'reports partial ZNN success and refreshes balance when QSR throws',
       setUp: () {
         when(
           () => acceleratorApi.donate(BigInt.from(10), kZnnCoin.tokenStandard),
@@ -248,14 +267,81 @@ void main() {
       ),
       expect: () => <Matcher>[
         isA<SubmitDonationLoading>(),
-        isA<SubmitDonationFailure>().having(
-          (SubmitDonationFailure s) => s.exception,
-          'exception',
-          isA<FailureException>(),
-        ),
+        isA<SubmitDonationFailure>()
+            .having(
+              (SubmitDonationFailure s) => s.exception,
+              'exception',
+              isA<FailureException>(),
+            )
+            .having(
+              (SubmitDonationFailure s) => s.sentBlocks,
+              'sentBlocks',
+              <AccountBlockTemplate>[znnResponse],
+            )
+            .having(
+              (SubmitDonationFailure s) => s.znnSubmitted,
+              'znnSubmitted',
+              isTrue,
+            ),
       ],
       verify: (_) {
         verify(() => zenonAddressUtils.refreshBalance()).called(1);
+      },
+    );
+
+    test(
+      'drops duplicate SubmitDonationRequested while submission is in flight',
+      () async {
+        final Completer<AccountBlockTemplate> completer =
+            Completer<AccountBlockTemplate>();
+        when(
+          () => acceleratorApi.donate(BigInt.from(10), kZnnCoin.tokenStandard),
+        ).thenReturn(znnTemplate);
+        when(
+          () => accountBlockUtils.createAccountBlock(
+            znnTemplate,
+            'donate for accelerator',
+            address: donorAddress,
+          ),
+        ).thenAnswer((_) => completer.future);
+
+        final SubmitDonationBloc bloc =
+            SubmitDonationBloc(
+                accountBlockUtils: accountBlockUtils,
+                zenon: zenon,
+                zenonAddressUtils: zenonAddressUtils,
+              )
+              ..add(
+                SubmitDonationRequested(
+                  address: donorAddress,
+                  znnAmount: BigInt.from(10),
+                  qsrAmount: BigInt.zero,
+                ),
+              )
+              ..add(
+                SubmitDonationRequested(
+                  address: donorAddress,
+                  znnAmount: BigInt.from(10),
+                  qsrAmount: BigInt.zero,
+                ),
+              );
+
+        await Future<void>.delayed(Duration.zero);
+        completer.complete(znnResponse);
+        await Future<void>.delayed(Duration.zero);
+
+        expect(
+          bloc.state,
+          SubmitDonationDone(blocks: <AccountBlockTemplate>[znnResponse]),
+        );
+        verify(
+          () => accountBlockUtils.createAccountBlock(
+            znnTemplate,
+            'donate for accelerator',
+            address: donorAddress,
+          ),
+        ).called(1);
+        await bloc.close();
       },
     );
   });

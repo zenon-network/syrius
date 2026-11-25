@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
@@ -359,5 +361,138 @@ void main() {
             ),
       ],
     );
+
+    test(
+      'ignores stale refresh response that completes after a newer search',
+      () async {
+        final Completer<ProjectList> refreshCompleter =
+            Completer<ProjectList>();
+        final Completer<ProjectList> searchCompleter = Completer<ProjectList>();
+        int callCount = 0;
+
+        when(() => acceleratorApi.getAll(pageSize: 10)).thenAnswer((_) {
+          callCount += 1;
+          return callCount == 1
+              ? refreshCompleter.future
+              : searchCompleter.future;
+        });
+
+        final ProjectListBloc bloc = ProjectListBloc(
+          zenon: zenon,
+          walletAddressesProvider: () => <String>[myAddr.toString()],
+          debounceDuration: Duration.zero,
+          pageSize: 10,
+          listenToWsReconnect: false,
+        )..add(const ProjectListRequested(refresh: true));
+        await Future<void>.delayed(Duration.zero);
+
+        bloc.add(const ProjectListSearchChanged(query: 'MyProposal'));
+        await Future<void>.delayed(const Duration(milliseconds: 20));
+
+        // Search completes first with filtered list.
+        searchCompleter.complete(
+          _projectList(<Project>[activeOther, votingMine]),
+        );
+        await Future<void>.delayed(Duration.zero);
+
+        expect(bloc.state.status, ProjectListStatus.populated);
+        expect(bloc.state.searchQuery, 'MyProposal');
+        expect(
+          bloc.state.projects.map((Project p) => p.name).toList(),
+          <String>['MyProposal'],
+        );
+
+        // Stale unfiltered refresh completes second and must be ignored.
+        refreshCompleter.complete(
+          _projectList(<Project>[activeOther, votingMine]),
+        );
+        await Future<void>.delayed(Duration.zero);
+
+        expect(bloc.state.status, ProjectListStatus.populated);
+        expect(bloc.state.searchQuery, 'MyProposal');
+        expect(
+          bloc.state.projects.map((Project p) => p.name).toList(),
+          <String>['MyProposal'],
+        );
+
+        await bloc.close();
+      },
+    );
+
+    test('ignores stale pillar filter response that completes after pillar '
+        'changes', () async {
+      final PillarInfo pillarA = _pillar('alpha', myAddr, prodAddr);
+      final PillarInfo pillarB = _pillar('beta', otherAddr, prodAddr);
+      final Completer<List<PillarVote?>> pillarAVotes =
+          Completer<List<PillarVote?>>();
+      final Completer<List<PillarVote?>> pillarBVotes =
+          Completer<List<PillarVote?>>();
+
+      when(() => acceleratorApi.getAll(pageSize: 10)).thenAnswer(
+        (_) async =>
+            _projectList(<Project>[activeOther, votingOther, votingMine]),
+      );
+      when(
+        () => acceleratorApi.getPillarVotes('alpha', any()),
+      ).thenAnswer((_) => pillarAVotes.future);
+      when(
+        () => acceleratorApi.getPillarVotes('beta', any()),
+      ).thenAnswer((_) => pillarBVotes.future);
+
+      // Initial fetch populates cache.
+      final ProjectListBloc bloc = ProjectListBloc(
+        zenon: zenon,
+        pillarInfo: pillarA,
+        walletAddressesProvider: () => <String>[myAddr.toString()],
+        pageSize: 10,
+        listenToWsReconnect: false,
+      )..add(const ProjectListRequested());
+      await Future<void>.delayed(Duration.zero);
+
+      // Trigger slow filter for pillarA.
+      bloc.add(
+        const ProjectListFilterTagToggled(
+          tag: AcceleratorProjectFilterTag.needsVoting,
+        ),
+      );
+      await Future<void>.delayed(Duration.zero);
+
+      // Switch active pillar to pillarB while pillarA's vote lookup is still
+      // in flight.
+      bloc.add(ProjectListPillarUpdated(pillarInfo: pillarB));
+      await Future<void>.delayed(Duration.zero);
+
+      // pillarB finishes first (already voted on votingOther, so only
+      // votingMine needs voting).
+      pillarBVotes.complete(<PillarVote?>[
+        null,
+        PillarVote.fromJson(<String, dynamic>{
+          'id': votingOther.id.toString(),
+          'name': 'beta',
+          'vote': AcceleratorProjectVote.yes.index,
+        }),
+        null,
+      ]);
+      await Future<void>.delayed(Duration.zero);
+
+      expect(bloc.state.status, ProjectListStatus.populated);
+      expect(bloc.state.pillarInfo?.name, 'beta');
+      expect(bloc.state.projects.map((Project p) => p.name).toList(), <String>[
+        'MyProposal',
+      ]);
+
+      // Stale pillarA response arrives late and must not revert pillarInfo
+      // or projects.
+      pillarAVotes.complete(<PillarVote?>[null, null, null]);
+      await Future<void>.delayed(Duration.zero);
+
+      expect(bloc.state.status, ProjectListStatus.populated);
+      expect(bloc.state.pillarInfo?.name, 'beta');
+      expect(bloc.state.projects.map((Project p) => p.name).toList(), <String>[
+        'MyProposal',
+      ]);
+
+      await bloc.close();
+    });
   });
 }
