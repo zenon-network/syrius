@@ -94,6 +94,48 @@ abstract class AppLocalizations {
   /// A list of this localizations delegate's supported locales.
   static const List<Locale> supportedLocales = <Locale>[Locale('en')];
 
+  /// No description provided for @about.
+  ///
+  /// In en, this message translates to:
+  /// **'About'**
+  String get about;
+
+  /// No description provided for @abstain.
+  ///
+  /// In en, this message translates to:
+  /// **'Abstain'**
+  String get abstain;
+
+  /// No description provided for @acceleratorAvailableBalance.
+  ///
+  /// In en, this message translates to:
+  /// **'Accelerator available balance'**
+  String get acceleratorAvailableBalance;
+
+  /// No description provided for @acceleratorDonations.
+  ///
+  /// In en, this message translates to:
+  /// **'Accelerator Donations'**
+  String get acceleratorDonations;
+
+  /// No description provided for @acceleratorFundEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Accelerator fund empty'**
+  String get acceleratorFundEmpty;
+
+  /// No description provided for @acceleratorStats.
+  ///
+  /// In en, this message translates to:
+  /// **'Accelerator Stats'**
+  String get acceleratorStats;
+
+  /// No description provided for @accepted.
+  ///
+  /// In en, this message translates to:
+  /// **'Accepted'**
+  String get accepted;
+
   /// No description provided for @active.
   ///
   /// In en, this message translates to:
@@ -124,6 +166,12 @@ abstract class AppLocalizations {
   /// **'Address'**
   String get address;
 
+  /// No description provided for @addressOwnsOrProducesNoPillar.
+  ///
+  /// In en, this message translates to:
+  /// **'This address owns or produces no pillar'**
+  String get addressOwnsOrProducesNoPillar;
+
   /// No description provided for @addressSearchDescription.
   ///
   /// In en, this message translates to:
@@ -141,6 +189,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'The address that will produce momentums, get it from znn-controller'**
   String get addressToProduceMomentums;
+
+  /// No description provided for @allDonatedFundsGoToAccelerator.
+  ///
+  /// In en, this message translates to:
+  /// **'All donated funds go directly into the Accelerator address'**
+  String get allDonatedFundsGoToAccelerator;
+
+  /// No description provided for @alreadyVoted.
+  ///
+  /// In en, this message translates to:
+  /// **'Already voted'**
+  String get alreadyVoted;
 
   /// No description provided for @amount.
   ///
@@ -160,11 +220,23 @@ abstract class AppLocalizations {
   /// **'Asset'**
   String get asset;
 
+  /// No description provided for @available.
+  ///
+  /// In en, this message translates to:
+  /// **'Available'**
+  String get available;
+
   /// No description provided for @balance.
   ///
   /// In en, this message translates to:
   /// **'Balance'**
   String get balance;
+
+  /// No description provided for @balanceUnavailableForAddress.
+  ///
+  /// In en, this message translates to:
+  /// **'Balance is unavailable for the selected address'**
+  String get balanceUnavailableForAddress;
 
   /// No description provided for @beneficiaryAddress.
   ///
@@ -202,6 +274,24 @@ abstract class AppLocalizations {
   /// **' to check the Sentinel status'**
   String get checkSentinelStatus;
 
+  /// No description provided for @checkUpdate.
+  ///
+  /// In en, this message translates to:
+  /// **'Check update'**
+  String get checkUpdate;
+
+  /// No description provided for @checkUpdatesForSyriusWallet.
+  ///
+  /// In en, this message translates to:
+  /// **'Check updates for the Syrius wallet'**
+  String get checkUpdatesForSyriusWallet;
+
+  /// No description provided for @clearAllNotifications.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear all notifications'**
+  String get clearAllNotifications;
+
   /// No description provided for @clickToAddToFavorites.
   ///
   /// In en, this message translates to:
@@ -213,6 +303,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Click to remove from favorites'**
   String get clickToRemoveFromFavorites;
+
+  /// No description provided for @clientChainIdentifier.
+  ///
+  /// In en, this message translates to:
+  /// **'Client chain identifier'**
+  String get clientChainIdentifier;
+
+  /// No description provided for @clientHostname.
+  ///
+  /// In en, this message translates to:
+  /// **'Client hostname'**
+  String get clientHostname;
+
+  /// No description provided for @clientLocalIpAddress.
+  ///
+  /// In en, this message translates to:
+  /// **'Client local IP address'**
+  String get clientLocalIpAddress;
+
+  /// No description provided for @clientNumberOfProcessors.
+  ///
+  /// In en, this message translates to:
+  /// **'Client number of processors'**
+  String get clientNumberOfProcessors;
+
+  /// No description provided for @clientOperatingSystem.
+  ///
+  /// In en, this message translates to:
+  /// **'Client operating system'**
+  String get clientOperatingSystem;
+
+  /// No description provided for @clientOperatingSystemVersion.
+  ///
+  /// In en, this message translates to:
+  /// **'Client operating system version'**
+  String get clientOperatingSystemVersion;
 
   /// No description provided for @coin.
   ///
@@ -244,6 +370,12 @@ abstract class AppLocalizations {
   /// **'Collect staking rewards'**
   String get collectStakingRewards;
 
+  /// No description provided for @community.
+  ///
+  /// In en, this message translates to:
+  /// **'Community'**
+  String get community;
+
   /// No description provided for @completed.
   ///
   /// In en, this message translates to:
@@ -255,6 +387,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'If this address previously revoked a Sentinel, it cannot create a new Sentinel again. Use a different address before depositing QSR.'**
   String get cannotReuseAddressForSentinel;
+
+  /// No description provided for @consumeZnnToSubmitProject.
+  ///
+  /// In en, this message translates to:
+  /// **'Consume {amount} {symbol} to submit the project'**
+  String consumeZnnToSubmitProject(String amount, String symbol);
 
   /// No description provided for @couldNotSend.
   ///
@@ -316,11 +454,41 @@ abstract class AppLocalizations {
   /// **'Create'**
   String get create;
 
+  /// No description provided for @createAnotherPhase.
+  ///
+  /// In en, this message translates to:
+  /// **'Create another phase'**
+  String get createAnotherPhase;
+
+  /// No description provided for @createAnotherProject.
+  ///
+  /// In en, this message translates to:
+  /// **'Create another project'**
+  String get createAnotherProject;
+
   /// No description provided for @createAnotherToken.
   ///
   /// In en, this message translates to:
   /// **'Create another Token'**
   String get createAnotherToken;
+
+  /// No description provided for @createdWithDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Created {date}'**
+  String createdWithDate(String date);
+
+  /// No description provided for @createPhase.
+  ///
+  /// In en, this message translates to:
+  /// **'Create phase'**
+  String get createPhase;
+
+  /// No description provided for @createPhaseForYourProject.
+  ///
+  /// In en, this message translates to:
+  /// **'Create a phase for your project. The project can be divided into several phases. You will unlock the funds if you get enough votes from the Pillars.'**
+  String get createPhaseForYourProject;
 
   /// No description provided for @createPillarDescription.
   ///
@@ -333,6 +501,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Create Pillar'**
   String get createPillarTitle;
+
+  /// No description provided for @createProject.
+  ///
+  /// In en, this message translates to:
+  /// **'Create project'**
+  String get createProject;
 
   /// No description provided for @createSentinelDescription.
   ///
@@ -376,6 +550,12 @@ abstract class AppLocalizations {
   /// **'Create Token'**
   String get createTokenTitle;
 
+  /// No description provided for @creatingProjectConsumesZnn.
+  ///
+  /// In en, this message translates to:
+  /// **'Creating a project consumes {amount} {symbol} that goes to the Accelerator'**
+  String creatingProjectConsumesZnn(String amount, String symbol);
+
   /// No description provided for @currentAmounts.
   ///
   /// In en, this message translates to:
@@ -399,6 +579,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Date'**
   String get date;
+
+  /// No description provided for @daysCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} days'**
+  String daysCount(int count);
 
   /// No description provided for @decimals.
   ///
@@ -496,6 +682,18 @@ abstract class AppLocalizations {
   /// **'All the deposited {kQsrCoinSymbol} will be burned in order to create the Pillar Slot'**
   String depositedCoinWillBurn(Object kQsrCoinSymbol);
 
+  /// No description provided for @deleteAllNotificationsCannotBeUndone.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to delete all notifications? This action cannot be undone.'**
+  String get deleteAllNotificationsCannotBeUndone;
+
+  /// No description provided for @deleteNotification.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete notification'**
+  String get deleteNotification;
+
   /// No description provided for @deleteSwap.
   ///
   /// In en, this message translates to:
@@ -507,6 +705,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Are you sure you want to delete this swap? This action cannot be undone.'**
   String get deleteSwapCannotBeUndone;
+
+  /// No description provided for @description.
+  ///
+  /// In en, this message translates to:
+  /// **'Description'**
+  String get description;
+
+  /// No description provided for @detailedInfoAboutWalletComponents.
+  ///
+  /// In en, this message translates to:
+  /// **'Detailed information about wallet components'**
+  String get detailedInfoAboutWalletComponents;
+
+  /// No description provided for @detailedInfoAboutYourProject.
+  ///
+  /// In en, this message translates to:
+  /// **'Detailed information about your project'**
+  String get detailedInfoAboutYourProject;
 
   /// No description provided for @disassemble.
   ///
@@ -526,6 +742,54 @@ abstract class AppLocalizations {
   /// **'You will be able to unlock the {kZnnCoinSymbol} if you choose to disassemble the Sentinel'**
   String disassembleSentinelToUnlockCoin(Object kZnnCoinSymbol);
 
+  /// No description provided for @displaysWalletNotificationsDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'This card displays detailed information regarding the wallet notifications'**
+  String get displaysWalletNotificationsDetails;
+
+  /// No description provided for @displaysZenonCommunityResources.
+  ///
+  /// In en, this message translates to:
+  /// **'This card displays information about Zenon community resources'**
+  String get displaysZenonCommunityResources;
+
+  /// No description provided for @documentation.
+  ///
+  /// In en, this message translates to:
+  /// **'Documentation'**
+  String get documentation;
+
+  /// No description provided for @donate.
+  ///
+  /// In en, this message translates to:
+  /// **'Donate'**
+  String get donate;
+
+  /// No description provided for @donationAddress.
+  ///
+  /// In en, this message translates to:
+  /// **'Donation address'**
+  String get donationAddress;
+
+  /// No description provided for @donationAmountMustBePositive.
+  ///
+  /// In en, this message translates to:
+  /// **'Donation amount must be greater than zero'**
+  String get donationAmountMustBePositive;
+
+  /// No description provided for @donationDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Donation details'**
+  String get donationDetails;
+
+  /// No description provided for @donationSubmitted.
+  ///
+  /// In en, this message translates to:
+  /// **'Donation submitted'**
+  String get donationSubmitted;
+
   /// No description provided for @dualCoinStats.
   ///
   /// In en, this message translates to:
@@ -544,11 +808,59 @@ abstract class AppLocalizations {
   /// **'Duration'**
   String get duration;
 
+  /// No description provided for @eachProjectComprisedOfPhases.
+  ///
+  /// In en, this message translates to:
+  /// **'Each project can be comprised of one or more phases. Each phase needs to be voted. Phases can be updated by the owner of the project to reflect current progress of the project.'**
+  String get eachProjectComprisedOfPhases;
+
+  /// No description provided for @enterValidAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a valid amount'**
+  String get enterValidAmount;
+
   /// No description provided for @enterValidDomainWithoutProtocol.
   ///
   /// In en, this message translates to:
   /// **'Enter a valid domain without protocol (e.g. example.com)'**
   String get enterValidDomainWithoutProtocol;
+
+  /// No description provided for @errorCreatingPhase.
+  ///
+  /// In en, this message translates to:
+  /// **'Error while creating phase'**
+  String get errorCreatingPhase;
+
+  /// No description provided for @errorGettingVoteBreakdown.
+  ///
+  /// In en, this message translates to:
+  /// **'Error while trying to get the vote breakdown'**
+  String get errorGettingVoteBreakdown;
+
+  /// No description provided for @errorSubmittingDonation.
+  ///
+  /// In en, this message translates to:
+  /// **'Error while submitting donation'**
+  String get errorSubmittingDonation;
+
+  /// No description provided for @errorSubmittingProject.
+  ///
+  /// In en, this message translates to:
+  /// **'Error while submitting project'**
+  String get errorSubmittingProject;
+
+  /// No description provided for @errorUpdatingPhase.
+  ///
+  /// In en, this message translates to:
+  /// **'Error while updating phase'**
+  String get errorUpdatingPhase;
+
+  /// No description provided for @errorVotingProject.
+  ///
+  /// In en, this message translates to:
+  /// **'Error while voting project'**
+  String get errorVotingProject;
 
   /// No description provided for @exchangeRate.
   ///
@@ -561,6 +873,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Error'**
   String get error;
+
+  /// No description provided for @errorClearingNotifications.
+  ///
+  /// In en, this message translates to:
+  /// **'Error while clearing notifications'**
+  String get errorClearingNotifications;
 
   /// No description provided for @errorCreatingToken.
   ///
@@ -585,6 +903,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Error while completing swap'**
   String get errorCompletingSwap;
+
+  /// No description provided for @errorDeletingNotification.
+  ///
+  /// In en, this message translates to:
+  /// **'Error while deleting notification'**
+  String get errorDeletingNotification;
 
   /// No description provided for @errorDeletingSwap.
   ///
@@ -742,11 +1066,23 @@ abstract class AppLocalizations {
   /// **'Expected/produced momentums'**
   String get expectedProducedMomentums;
 
+  /// No description provided for @explorers.
+  ///
+  /// In en, this message translates to:
+  /// **'Explorers'**
+  String get explorers;
+
   /// No description provided for @from.
   ///
   /// In en, this message translates to:
   /// **'From'**
   String get from;
+
+  /// No description provided for @fuelForTheMothership.
+  ///
+  /// In en, this message translates to:
+  /// **'Fuel for the Mothership'**
+  String get fuelForTheMothership;
 
   /// No description provided for @fuse.
   ///
@@ -784,12 +1120,6 @@ abstract class AppLocalizations {
   /// **'Go back'**
   String get goBack;
 
-  /// No description provided for @hAgo.
-  ///
-  /// In en, this message translates to:
-  /// **'h ago'**
-  String get hAgo;
-
   /// No description provided for @hash.
   ///
   /// In en, this message translates to:
@@ -814,6 +1144,30 @@ abstract class AppLocalizations {
   /// **'Hide details'**
   String get hideDetails;
 
+  /// No description provided for @hoursAgo.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} h ago'**
+  String hoursAgo(int count);
+
+  /// No description provided for @hoursCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} h'**
+  String hoursCount(int count);
+
+  /// No description provided for @idWithValue.
+  ///
+  /// In en, this message translates to:
+  /// **'ID {id}'**
+  String idWithValue(String id);
+
+  /// No description provided for @innovateInspireBuild.
+  ///
+  /// In en, this message translates to:
+  /// **'Innovate. Inspire. Build.'**
+  String get innovateInspireBuild;
+
   /// No description provided for @inputAmountToSend.
   ///
   /// In en, this message translates to:
@@ -826,6 +1180,12 @@ abstract class AppLocalizations {
   /// **'Input the deposit ID'**
   String get inputDepositId;
 
+  /// No description provided for @inputtedNumberHasTooManyDecimals.
+  ///
+  /// In en, this message translates to:
+  /// **'Inputted number has too many decimals'**
+  String get inputtedNumberHasTooManyDecimals;
+
   /// No description provided for @issueToken.
   ///
   /// In en, this message translates to:
@@ -837,6 +1197,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Join swap'**
   String get joinSwap;
+
+  /// No description provided for @joinTheAliensBuildingNom.
+  ///
+  /// In en, this message translates to:
+  /// **'Join the Aliens building the future on Network of Momentum'**
+  String get joinTheAliensBuildingNom;
 
   /// No description provided for @latestTransactionsDescription.
   ///
@@ -862,6 +1228,18 @@ abstract class AppLocalizations {
   /// **'Level'**
   String get level;
 
+  /// No description provided for @linkToProjectArticle.
+  ///
+  /// In en, this message translates to:
+  /// **'Link to project article'**
+  String get linkToProjectArticle;
+
+  /// No description provided for @listContainsAllProjects.
+  ///
+  /// In en, this message translates to:
+  /// **'This card displays a list that contains all the projects'**
+  String get listContainsAllProjects;
+
   /// No description provided for @locked.
   ///
   /// In en, this message translates to:
@@ -873,6 +1251,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Local time discrepancy detected. Please confirm your operating system\'s time is correct before conducting P2P swaps.'**
   String get localTimeDiscrepancyDetected;
+
+  /// No description provided for @makeAnotherDonation.
+  ///
+  /// In en, this message translates to:
+  /// **'Make another donation'**
+  String get makeAnotherDonation;
 
   /// No description provided for @manageReceivingFunds.
   ///
@@ -904,11 +1288,17 @@ abstract class AppLocalizations {
   /// **'Max supply'**
   String get maxSupply;
 
-  /// No description provided for @minAgo.
+  /// No description provided for @minutesAgo.
   ///
   /// In en, this message translates to:
-  /// **'min ago'**
-  String get minAgo;
+  /// **'{count} min ago'**
+  String minutesAgo(int count);
+
+  /// No description provided for @minutesCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} min'**
+  String minutesCount(int count);
 
   /// Explains how many minutes remain to join a swap.
   ///
@@ -952,11 +1342,41 @@ abstract class AppLocalizations {
   /// **'More Plasma is required to perform complex transactions. Please fuse enough QSR before proceeding.'**
   String get morePlasmaRequired;
 
+  /// No description provided for @moreVotesNeededForQuorum.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} more votes needed to achieve quorum'**
+  String moreVotesNeededForQuorum(int count);
+
+  /// No description provided for @moreYesThanNoVotes.
+  ///
+  /// In en, this message translates to:
+  /// **'More yes than no votes'**
+  String get moreYesThanNoVotes;
+
+  /// No description provided for @myProjects.
+  ///
+  /// In en, this message translates to:
+  /// **'My projects'**
+  String get myProjects;
+
   /// No description provided for @name.
   ///
   /// In en, this message translates to:
   /// **'Name'**
   String get name;
+
+  /// No description provided for @necessaryBudgetToCompletePhase.
+  ///
+  /// In en, this message translates to:
+  /// **'Necessary budget to successfully complete this phase'**
+  String get necessaryBudgetToCompletePhase;
+
+  /// No description provided for @needsVoting.
+  ///
+  /// In en, this message translates to:
+  /// **'Needs voting'**
+  String get needsVoting;
 
   /// No description provided for @newOwnerAddress.
   ///
@@ -976,11 +1396,23 @@ abstract class AppLocalizations {
   /// **'no'**
   String get no;
 
+  /// No description provided for @noActiveProjects.
+  ///
+  /// In en, this message translates to:
+  /// **'No active projects'**
+  String get noActiveProjects;
+
   /// No description provided for @noItemsFound.
   ///
   /// In en, this message translates to:
   /// **'No items founds'**
   String get noItemsFound;
+
+  /// No description provided for @noMatchingPhases.
+  ///
+  /// In en, this message translates to:
+  /// **'No matching phases found'**
+  String get noMatchingPhases;
 
   /// No description provided for @noMoreItems.
   ///
@@ -988,11 +1420,23 @@ abstract class AppLocalizations {
   /// **'No more items'**
   String get noMoreItems;
 
+  /// No description provided for @noNotifications.
+  ///
+  /// In en, this message translates to:
+  /// **'No notifications'**
+  String get noNotifications;
+
   /// No description provided for @noP2pSwaps.
   ///
   /// In en, this message translates to:
   /// **'No P2P swaps'**
   String get noP2pSwaps;
+
+  /// No description provided for @noProjectsFound.
+  ///
+  /// In en, this message translates to:
+  /// **'No projects found'**
+  String get noProjectsFound;
 
   /// No description provided for @noRewardsCollect.
   ///
@@ -1000,11 +1444,29 @@ abstract class AppLocalizations {
   /// **'No rewards to collect'**
   String get noRewardsCollect;
 
+  /// No description provided for @notEnoughYesVotes.
+  ///
+  /// In en, this message translates to:
+  /// **'Not enough yes votes'**
+  String get notEnoughYesVotes;
+
+  /// No description provided for @noVotesCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} No votes'**
+  String noVotesCount(int count);
+
   /// No description provided for @noZtsTokensAvailable.
   ///
   /// In en, this message translates to:
   /// **'No ZTS tokens available'**
   String get noZtsTokensAvailable;
+
+  /// No description provided for @notifications.
+  ///
+  /// In en, this message translates to:
+  /// **'Notifications'**
+  String get notifications;
 
   /// No description provided for @numberOfDecimals.
   ///
@@ -1018,11 +1480,23 @@ abstract class AppLocalizations {
   /// **'The oldest swap entry will be deleted when a new swap is started.'**
   String get oldestSwapDeletedWhenFull;
 
+  /// No description provided for @onlyAccepted.
+  ///
+  /// In en, this message translates to:
+  /// **'Only accepted'**
+  String get onlyAccepted;
+
   /// No description provided for @options.
   ///
   /// In en, this message translates to:
   /// **'Options'**
   String get options;
+
+  /// No description provided for @ownerWithAddress.
+  ///
+  /// In en, this message translates to:
+  /// **'Owner {address}'**
+  String ownerWithAddress(String address);
 
   /// No description provided for @ownZtsToken.
   ///
@@ -1138,6 +1612,12 @@ abstract class AppLocalizations {
   /// **'This card displays a list of P2P swaps that have been conducted with this wallet.'**
   String get p2pSwapsConductedWithWallet;
 
+  /// No description provided for @paid.
+  ///
+  /// In en, this message translates to:
+  /// **'Paid'**
+  String get paid;
+
   /// No description provided for @password.
   ///
   /// In en, this message translates to:
@@ -1173,6 +1653,48 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Percentage of momentum rewards given to the delegators'**
   String get percentageOfMomentumRewards;
+
+  /// No description provided for @phaseBelongsToProject.
+  ///
+  /// In en, this message translates to:
+  /// **'This phase belongs to Project ID {projectId}'**
+  String phaseBelongsToProject(String projectId);
+
+  /// No description provided for @phaseDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Phase description'**
+  String get phaseDescription;
+
+  /// No description provided for @phaseDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Phase details'**
+  String get phaseDetails;
+
+  /// No description provided for @phaseList.
+  ///
+  /// In en, this message translates to:
+  /// **'Phase List'**
+  String get phaseList;
+
+  /// No description provided for @phaseName.
+  ///
+  /// In en, this message translates to:
+  /// **'Phase name'**
+  String get phaseName;
+
+  /// No description provided for @phaseNeedsVoting.
+  ///
+  /// In en, this message translates to:
+  /// **'Phase needs voting'**
+  String get phaseNeedsVoting;
+
+  /// No description provided for @phaseUrl.
+  ///
+  /// In en, this message translates to:
+  /// **'Phase URL'**
+  String get phaseUrl;
 
   /// No description provided for @pillar.
   ///
@@ -1257,6 +1779,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Pillar Rewards'**
   String get pillarRewardsTitle;
+
+  /// No description provided for @pillarsCanStillVote.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} Pillars that can still cast a vote'**
+  String pillarsCanStillVote(int count);
 
   /// No description provided for @plasmaStatsDescription.
   ///
@@ -1348,11 +1876,83 @@ abstract class AppLocalizations {
   /// **'Producer Address'**
   String get producerAddress;
 
+  /// No description provided for @projectCreation.
+  ///
+  /// In en, this message translates to:
+  /// **'Project creation'**
+  String get projectCreation;
+
+  /// No description provided for @projectDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Project description'**
+  String get projectDescription;
+
+  /// No description provided for @projectDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Project details'**
+  String get projectDetails;
+
+  /// No description provided for @projectHasNoPhases.
+  ///
+  /// In en, this message translates to:
+  /// **'The project has no phases'**
+  String get projectHasNoPhases;
+
+  /// No description provided for @projectList.
+  ///
+  /// In en, this message translates to:
+  /// **'Project List'**
+  String get projectList;
+
+  /// No description provided for @projectName.
+  ///
+  /// In en, this message translates to:
+  /// **'Project name'**
+  String get projectName;
+
+  /// No description provided for @projectStats.
+  ///
+  /// In en, this message translates to:
+  /// **'Project Stats'**
+  String get projectStats;
+
+  /// No description provided for @projectSubmitted.
+  ///
+  /// In en, this message translates to:
+  /// **'Project submitted'**
+  String get projectSubmitted;
+
+  /// No description provided for @projectUrl.
+  ///
+  /// In en, this message translates to:
+  /// **'Project URL'**
+  String get projectUrl;
+
+  /// No description provided for @qsrAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'QSR Amount'**
+  String get qsrAmount;
+
   /// No description provided for @quasarTransactions.
   ///
   /// In en, this message translates to:
   /// **'{quasar} transactions'**
   String quasarTransactions(Object quasar);
+
+  /// No description provided for @quorumAchieved.
+  ///
+  /// In en, this message translates to:
+  /// **'Quorum achieved'**
+  String get quorumAchieved;
+
+  /// No description provided for @quorumNotAchieved.
+  ///
+  /// In en, this message translates to:
+  /// **'Quorum not achieved'**
+  String get quorumNotAchieved;
 
   /// No description provided for @realtimeStats.
   ///
@@ -1371,6 +1971,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Receive'**
   String get receive;
+
+  /// No description provided for @received.
+  ///
+  /// In en, this message translates to:
+  /// **'Received'**
+  String get received;
 
   /// No description provided for @receiver.
   ///
@@ -1474,6 +2080,29 @@ abstract class AppLocalizations {
   /// **' registered. Use '**
   String get registeredUse;
 
+  /// No description provided for @rejected.
+  ///
+  /// In en, this message translates to:
+  /// **'Rejected'**
+  String get rejected;
+
+  /// No description provided for @remaining.
+  ///
+  /// In en, this message translates to:
+  /// **'Remaining'**
+  String get remaining;
+
+  /// No description provided for @remainingBudgetForNextPhases.
+  ///
+  /// In en, this message translates to:
+  /// **'Remaining budget for the next phases is {znnAmount} {znnSymbol} and {qsrAmount} {qsrSymbol}'**
+  String remainingBudgetForNextPhases(
+    String znnAmount,
+    String znnSymbol,
+    String qsrAmount,
+    String qsrSymbol,
+  );
+
   /// No description provided for @requiredForPillarSlot.
   ///
   /// In en, this message translates to:
@@ -1486,23 +2115,35 @@ abstract class AppLocalizations {
   /// **'{coins} {kQsrCoinSymbol} required for a Sentinel Node'**
   String requiredForSentinelNode(Object coins, Object kQsrCoinSymbol);
 
+  /// No description provided for @returnToProjectList.
+  ///
+  /// In en, this message translates to:
+  /// **'Return to project list'**
+  String get returnToProjectList;
+
   /// No description provided for @revocationWindowOpen.
   ///
   /// In en, this message translates to:
   /// **'Revocation window is open'**
   String get revocationWindowOpen;
 
-  /// No description provided for @sAgo.
-  ///
-  /// In en, this message translates to:
-  /// **'s ago'**
-  String get sAgo;
-
   /// No description provided for @saveQr.
   ///
   /// In en, this message translates to:
   /// **'Save QR'**
   String get saveQr;
+
+  /// No description provided for @searchByIdNameDescriptionUrl.
+  ///
+  /// In en, this message translates to:
+  /// **'Search by id, name, description, or URL'**
+  String get searchByIdNameDescriptionUrl;
+
+  /// No description provided for @searchByIdOwnerNameDescriptionUrl.
+  ///
+  /// In en, this message translates to:
+  /// **'Search by id, owner, name, description, or URL'**
+  String get searchByIdOwnerNameDescriptionUrl;
 
   /// No description provided for @searchTokenHint.
   ///
@@ -1515,6 +2156,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Searching'**
   String get searching;
+
+  /// No description provided for @secondsAgo.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} s ago'**
+  String secondsAgo(int count);
+
+  /// No description provided for @secondsCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} s'**
+  String secondsCount(int count);
 
   /// No description provided for @send.
   ///
@@ -1647,6 +2300,12 @@ abstract class AppLocalizations {
   /// **'Sentinels List'**
   String get sentinelsListTitle;
 
+  /// No description provided for @setBudgetForProject.
+  ///
+  /// In en, this message translates to:
+  /// **'Set a budget for the project'**
+  String get setBudgetForProject;
+
   /// No description provided for @shareQr.
   ///
   /// In en, this message translates to:
@@ -1659,11 +2318,29 @@ abstract class AppLocalizations {
   /// **'Send your deposit ID to the counterparty via a messaging service so that they can join the swap.'**
   String get shareDepositIdWithCounterparty;
 
+  /// No description provided for @showcaseProgressOfProject.
+  ///
+  /// In en, this message translates to:
+  /// **'Showcase the progress of your project (e.g. Git PR/commit)'**
+  String get showcaseProgressOfProject;
+
   /// No description provided for @showDetails.
   ///
   /// In en, this message translates to:
   /// **'Show details'**
   String get showDetails;
+
+  /// No description provided for @socialMedia.
+  ///
+  /// In en, this message translates to:
+  /// **'Social Media'**
+  String get socialMedia;
+
+  /// No description provided for @sortByLastUpdate.
+  ///
+  /// In en, this message translates to:
+  /// **'Sort by last update'**
+  String get sortByLastUpdate;
 
   /// No description provided for @spawn.
   ///
@@ -1755,11 +2432,41 @@ abstract class AppLocalizations {
   /// **'Staking Rewards'**
   String get stakingRewardsTitle;
 
+  /// No description provided for @startProjectByCreatingPhase.
+  ///
+  /// In en, this message translates to:
+  /// **'Start the project by creating a phase to unlock funds'**
+  String get startProjectByCreatingPhase;
+
   /// No description provided for @status.
   ///
   /// In en, this message translates to:
   /// **'Status'**
   String get status;
+
+  /// No description provided for @submit.
+  ///
+  /// In en, this message translates to:
+  /// **'Submit'**
+  String get submit;
+
+  /// No description provided for @submitDonation.
+  ///
+  /// In en, this message translates to:
+  /// **'Submit donation'**
+  String get submitDonation;
+
+  /// No description provided for @submitPhase.
+  ///
+  /// In en, this message translates to:
+  /// **'Submit phase'**
+  String get submitPhase;
+
+  /// No description provided for @submitProject.
+  ///
+  /// In en, this message translates to:
+  /// **'Submit project'**
+  String get submitProject;
 
   /// No description provided for @successfully.
   ///
@@ -1876,6 +2583,72 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Swapping'**
   String get swapping;
+
+  /// No description provided for @syriusCachePath.
+  ///
+  /// In en, this message translates to:
+  /// **'Syrius cache path'**
+  String get syriusCachePath;
+
+  /// No description provided for @syriusGitBranchName.
+  ///
+  /// In en, this message translates to:
+  /// **'Syrius git branch name'**
+  String get syriusGitBranchName;
+
+  /// No description provided for @syriusGitCommitDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Syrius git commit date'**
+  String get syriusGitCommitDate;
+
+  /// No description provided for @syriusGitCommitHash.
+  ///
+  /// In en, this message translates to:
+  /// **'Syrius git commit hash'**
+  String get syriusGitCommitHash;
+
+  /// No description provided for @syriusGitCommitMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Syrius git commit message'**
+  String get syriusGitCommitMessage;
+
+  /// No description provided for @syriusGitOriginUrl.
+  ///
+  /// In en, this message translates to:
+  /// **'Syrius git origin url'**
+  String get syriusGitOriginUrl;
+
+  /// No description provided for @syriusWalletPath.
+  ///
+  /// In en, this message translates to:
+  /// **'Syrius wallet path'**
+  String get syriusWalletPath;
+
+  /// No description provided for @syriusWalletType.
+  ///
+  /// In en, this message translates to:
+  /// **'Syrius wallet type'**
+  String get syriusWalletType;
+
+  /// No description provided for @syriusWalletVersion.
+  ///
+  /// In en, this message translates to:
+  /// **'Syrius wallet version'**
+  String get syriusWalletVersion;
+
+  /// No description provided for @thankYouForSupportingAccelerator.
+  ///
+  /// In en, this message translates to:
+  /// **'Thank you for supporting the Accelerator'**
+  String get thankYouForSupportingAccelerator;
+
+  /// No description provided for @time.
+  ///
+  /// In en, this message translates to:
+  /// **'Time'**
+  String get time;
 
   /// No description provided for @to.
   ///
@@ -2091,17 +2864,77 @@ abstract class AppLocalizations {
   /// **'This card displays a grid with all the ZTS tokens from the network, including ZTS tokens issued by you'**
   String get tokensCardDescription;
 
+  /// No description provided for @total.
+  ///
+  /// In en, this message translates to:
+  /// **'Total'**
+  String get total;
+
+  /// No description provided for @totalDonationBudget.
+  ///
+  /// In en, this message translates to:
+  /// **'Total donation budget'**
+  String get totalDonationBudget;
+
+  /// No description provided for @totalPhaseBudget.
+  ///
+  /// In en, this message translates to:
+  /// **'Total phase budget'**
+  String get totalPhaseBudget;
+
+  /// No description provided for @totalProjectBudget.
+  ///
+  /// In en, this message translates to:
+  /// **'Total project budget'**
+  String get totalProjectBudget;
+
   /// No description provided for @totalSupply.
   ///
   /// In en, this message translates to:
   /// **'Total supply'**
   String get totalSupply;
 
+  /// No description provided for @totalVotesCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} votes in total'**
+  String totalVotesCount(int count);
+
   /// No description provided for @transactionError.
   ///
   /// In en, this message translates to:
   /// **'Error while receiving transaction'**
   String get transactionError;
+
+  /// No description provided for @updatePhase.
+  ///
+  /// In en, this message translates to:
+  /// **'Update phase'**
+  String get updatePhase;
+
+  /// No description provided for @updatingPhaseResetsVotes.
+  ///
+  /// In en, this message translates to:
+  /// **'Updating this phase will reset all current votes'**
+  String get updatingPhaseResetsVotes;
+
+  /// No description provided for @valueMustBeZero.
+  ///
+  /// In en, this message translates to:
+  /// **'Value must be 0'**
+  String get valueMustBeZero;
+
+  /// No description provided for @viewPhases.
+  ///
+  /// In en, this message translates to:
+  /// **'View phases'**
+  String get viewPhases;
+
+  /// No description provided for @viewProjects.
+  ///
+  /// In en, this message translates to:
+  /// **'View projects'**
+  String get viewProjects;
 
   /// No description provided for @visitDomain.
   ///
@@ -2247,6 +3080,30 @@ abstract class AppLocalizations {
   /// **'View Sentinels'**
   String get viewSentinels;
 
+  /// No description provided for @votingClosed.
+  ///
+  /// In en, this message translates to:
+  /// **'Voting closed'**
+  String get votingClosed;
+
+  /// No description provided for @votingClosesIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Voting closes in {duration}'**
+  String votingClosesIn(String duration);
+
+  /// No description provided for @votingOpen.
+  ///
+  /// In en, this message translates to:
+  /// **'Voting open'**
+  String get votingOpen;
+
+  /// No description provided for @votingResults.
+  ///
+  /// In en, this message translates to:
+  /// **'Voting results'**
+  String get votingResults;
+
   /// No description provided for @waitingForDataFetching.
   ///
   /// In en, this message translates to:
@@ -2277,6 +3134,12 @@ abstract class AppLocalizations {
   /// **'Weight'**
   String get weight;
 
+  /// No description provided for @websites.
+  ///
+  /// In en, this message translates to:
+  /// **'Websites'**
+  String get websites;
+
   /// No description provided for @walletNotAutoLocked.
   ///
   /// In en, this message translates to:
@@ -2294,6 +3157,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'yes'**
   String get yes;
+
+  /// No description provided for @yesVotesCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} Yes votes'**
+  String yesVotesCount(int count);
 
   /// No description provided for @youHaveDeposited.
   ///
@@ -2325,11 +3194,197 @@ abstract class AppLocalizations {
   /// **'Your deposit ID'**
   String get yourDepositId;
 
+  /// No description provided for @yourDonationMatters.
+  ///
+  /// In en, this message translates to:
+  /// **'Your donation matters'**
+  String get yourDonationMatters;
+
+  /// No description provided for @yourProjectOwnerAddress.
+  ///
+  /// In en, this message translates to:
+  /// **'This will be your project owner address'**
+  String get yourProjectOwnerAddress;
+
+  /// No description provided for @zenonBitcoinTalk.
+  ///
+  /// In en, this message translates to:
+  /// **'Zenon Bitcoin Talk'**
+  String get zenonBitcoinTalk;
+
+  /// No description provided for @zenonDiscord.
+  ///
+  /// In en, this message translates to:
+  /// **'Zenon Discord'**
+  String get zenonDiscord;
+
+  /// No description provided for @zenonExplorer.
+  ///
+  /// In en, this message translates to:
+  /// **'Zenon Explorer'**
+  String get zenonExplorer;
+
+  /// No description provided for @zenonGithub.
+  ///
+  /// In en, this message translates to:
+  /// **'Zenon Github'**
+  String get zenonGithub;
+
+  /// No description provided for @zenonHub.
+  ///
+  /// In en, this message translates to:
+  /// **'Zenon Hub'**
+  String get zenonHub;
+
+  /// No description provided for @zenonHubExplorer.
+  ///
+  /// In en, this message translates to:
+  /// **'Zenon Hub Explorer'**
+  String get zenonHubExplorer;
+
+  /// No description provided for @zenonMainDataPath.
+  ///
+  /// In en, this message translates to:
+  /// **'Zenon main data path'**
+  String get zenonMainDataPath;
+
+  /// No description provided for @zenonMedium.
+  ///
+  /// In en, this message translates to:
+  /// **'Zenon Medium'**
+  String get zenonMedium;
+
+  /// No description provided for @zenonNetwork.
+  ///
+  /// In en, this message translates to:
+  /// **'Zenon Network'**
+  String get zenonNetwork;
+
+  /// No description provided for @zenonNodeBuildVersion.
+  ///
+  /// In en, this message translates to:
+  /// **'Zenon Node build version'**
+  String get zenonNodeBuildVersion;
+
+  /// No description provided for @zenonNodeChainIdentifier.
+  ///
+  /// In en, this message translates to:
+  /// **'Zenon Node chain identifier'**
+  String get zenonNodeChainIdentifier;
+
+  /// No description provided for @zenonNodeGitCommitHash.
+  ///
+  /// In en, this message translates to:
+  /// **'Zenon Node git commit hash'**
+  String get zenonNodeGitCommitHash;
+
+  /// No description provided for @zenonNodeKernelVersion.
+  ///
+  /// In en, this message translates to:
+  /// **'Zenon Node kernel version'**
+  String get zenonNodeKernelVersion;
+
+  /// No description provided for @zenonNodeNumberOfProcessors.
+  ///
+  /// In en, this message translates to:
+  /// **'Zenon Node number of processors'**
+  String get zenonNodeNumberOfProcessors;
+
+  /// No description provided for @zenonNodeOperatingSystem.
+  ///
+  /// In en, this message translates to:
+  /// **'Zenon Node operating system'**
+  String get zenonNodeOperatingSystem;
+
+  /// No description provided for @zenonNodePlatform.
+  ///
+  /// In en, this message translates to:
+  /// **'Zenon Node platform'**
+  String get zenonNodePlatform;
+
+  /// No description provided for @zenonNodePlatformVersion.
+  ///
+  /// In en, this message translates to:
+  /// **'Zenon Node platform version'**
+  String get zenonNodePlatformVersion;
+
+  /// No description provided for @zenonOrgCommunity.
+  ///
+  /// In en, this message translates to:
+  /// **'Zenon ORG Community'**
+  String get zenonOrgCommunity;
+
+  /// No description provided for @zenonOrgCommunityForum.
+  ///
+  /// In en, this message translates to:
+  /// **'Zenon ORG Community Forum'**
+  String get zenonOrgCommunityForum;
+
+  /// No description provided for @zenonOrgCommunityWiki.
+  ///
+  /// In en, this message translates to:
+  /// **'ZenonORG Community Wiki'**
+  String get zenonOrgCommunityWiki;
+
+  /// No description provided for @zenonReddit.
+  ///
+  /// In en, this message translates to:
+  /// **'Zenon Reddit'**
+  String get zenonReddit;
+
+  /// No description provided for @zenonSdkVersion.
+  ///
+  /// In en, this message translates to:
+  /// **'Zenon SDK version'**
+  String get zenonSdkVersion;
+
+  /// No description provided for @zenonTelegram.
+  ///
+  /// In en, this message translates to:
+  /// **'Zenon Telegram'**
+  String get zenonTelegram;
+
+  /// No description provided for @zenonTools.
+  ///
+  /// In en, this message translates to:
+  /// **'Zenon Tools'**
+  String get zenonTools;
+
   /// No description provided for @zenonTransactions.
   ///
   /// In en, this message translates to:
   /// **'{zenon} transactions'**
   String zenonTransactions(Object zenon);
+
+  /// No description provided for @zenonTwitter.
+  ///
+  /// In en, this message translates to:
+  /// **'Zenon Twitter'**
+  String get zenonTwitter;
+
+  /// No description provided for @zenonWhitepaper.
+  ///
+  /// In en, this message translates to:
+  /// **'Zenon Whitepaper'**
+  String get zenonWhitepaper;
+
+  /// No description provided for @zenonWiki.
+  ///
+  /// In en, this message translates to:
+  /// **'Zenon Wiki'**
+  String get zenonWiki;
+
+  /// No description provided for @zenonYoutube.
+  ///
+  /// In en, this message translates to:
+  /// **'Zenon Youtube'**
+  String get zenonYoutube;
+
+  /// No description provided for @znnAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'ZNN Amount'**
+  String get znnAmount;
 
   /// No description provided for @znnController.
   ///
@@ -2337,11 +3392,1113 @@ abstract class AppLocalizations {
   /// **'znn-controller '**
   String get znnController;
 
+  /// No description provided for @znnDonationSubmittedQsrFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'ZNN donation was submitted, but the QSR donation failed. Retry to submit only the remaining QSR donation.'**
+  String get znnDonationSubmittedQsrFailed;
+
   /// No description provided for @ztsSearchDescription.
   ///
   /// In en, this message translates to:
   /// **'Coins and tokens can be searched by name - \"Zenon\" -, by symbol - \"ZNN\" -, and by token standard - \"zts1znnxxxxxxxxxxxxx9z4ulx\"'**
   String get ztsSearchDescription;
+
+  /// No description provided for @accountChainHeight.
+  ///
+  /// In en, this message translates to:
+  /// **'Account-chain height'**
+  String get accountChainHeight;
+
+  /// No description provided for @accountChainStats.
+  ///
+  /// In en, this message translates to:
+  /// **'Account-chain Stats'**
+  String get accountChainStats;
+
+  /// Action label for adding one or more wallet addresses.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Add 1 address} other{Add {count} addresses}}'**
+  String addAddressesCount(int count);
+
+  /// No description provided for @addNode.
+  ///
+  /// In en, this message translates to:
+  /// **'Add node'**
+  String get addNode;
+
+  /// No description provided for @addresses.
+  ///
+  /// In en, this message translates to:
+  /// **'Addresses'**
+  String get addresses;
+
+  /// No description provided for @allWalletDataErasedPermanently.
+  ///
+  /// In en, this message translates to:
+  /// **'All your wallet data will be erased permanently. Make sure you have a backup of your mnemonic or Seed Vault & Seed Vault Key before you proceed with erasing the wallet'**
+  String get allWalletDataErasedPermanently;
+
+  /// No description provided for @alphanetChainIdentifier.
+  ///
+  /// In en, this message translates to:
+  /// **'Alphanet chain identifier'**
+  String get alphanetChainIdentifier;
+
+  /// No description provided for @autoEraseLimitChanged.
+  ///
+  /// In en, this message translates to:
+  /// **'Auto-erase attempts limit successfully changed'**
+  String get autoEraseLimitChanged;
+
+  /// No description provided for @autoEraseLimitNowAttempts.
+  ///
+  /// In en, this message translates to:
+  /// **'The auto-erase limit has now {attempts} attempt(s)'**
+  String autoEraseLimitNowAttempts(String attempts);
+
+  /// No description provided for @autoEraseWallet.
+  ///
+  /// In en, this message translates to:
+  /// **'Auto-erase wallet'**
+  String get autoEraseWallet;
+
+  /// No description provided for @autoLockWallet.
+  ///
+  /// In en, this message translates to:
+  /// **'Auto-lock wallet'**
+  String get autoLockWallet;
+
+  /// No description provided for @autoReceiver.
+  ///
+  /// In en, this message translates to:
+  /// **'Auto-receiver'**
+  String get autoReceiver;
+
+  /// No description provided for @autoReceiverPreferenceStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Auto-receiver preference was {status}'**
+  String autoReceiverPreferenceStatus(String status);
+
+  /// No description provided for @autoReceiverStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Auto-receiver {status}'**
+  String autoReceiverStatus(String status);
+
+  /// No description provided for @automaticallyReceiveTransactions.
+  ///
+  /// In en, this message translates to:
+  /// **'Automatically receive transactions'**
+  String get automaticallyReceiveTransactions;
+
+  /// No description provided for @backup.
+  ///
+  /// In en, this message translates to:
+  /// **'Backup'**
+  String get backup;
+
+  /// No description provided for @backupSeedEncryptedOrClearText.
+  ///
+  /// In en, this message translates to:
+  /// **'Backup your seed using the syrius standard format JSON (encrypted, recommended) or show it on the screen (clear text, not recommended)'**
+  String get backupSeedEncryptedOrClearText;
+
+  /// No description provided for @backupWallet.
+  ///
+  /// In en, this message translates to:
+  /// **'Backup wallet'**
+  String get backupWallet;
+
+  /// No description provided for @blockHash.
+  ///
+  /// In en, this message translates to:
+  /// **'Block hash'**
+  String get blockHash;
+
+  /// No description provided for @chainIdentifierMismatch.
+  ///
+  /// In en, this message translates to:
+  /// **'Chain identifier mismatch'**
+  String get chainIdentifierMismatch;
+
+  /// No description provided for @chainIdentifierMismatchDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Chain identifier mismatch\nClient chain identifier: {clientChainId}\nNode chain identifier: {nodeChainId}'**
+  String chainIdentifierMismatchDetails(int clientChainId, int nodeChainId);
+
+  /// No description provided for @chainIdentifierPreventsReplayAttacks.
+  ///
+  /// In en, this message translates to:
+  /// **'The chain identifier is used in transaction signing to prevent replay attacks'**
+  String get chainIdentifierPreventsReplayAttacks;
+
+  /// No description provided for @change.
+  ///
+  /// In en, this message translates to:
+  /// **'Change'**
+  String get change;
+
+  /// No description provided for @changePassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Change password'**
+  String get changePassword;
+
+  /// No description provided for @changeWalletPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Change wallet password'**
+  String get changeWalletPassword;
+
+  /// No description provided for @changeWalletSecurityParameters.
+  ///
+  /// In en, this message translates to:
+  /// **'Change the security parameters of the wallet'**
+  String get changeWalletSecurityParameters;
+
+  /// No description provided for @changedClientChainIdentifier.
+  ///
+  /// In en, this message translates to:
+  /// **'Successfully changed client chain identifier to {chainId}'**
+  String changedClientChainIdentifier(int chainId);
+
+  /// No description provided for @changedClientChainIdentifierFromTo.
+  ///
+  /// In en, this message translates to:
+  /// **'Successfully changed client chain identifier from {oldChainId} to {newChainId}'**
+  String changedClientChainIdentifierFromTo(int oldChainId, int newChainId);
+
+  /// No description provided for @clientAndNodeChainIdentifiers.
+  ///
+  /// In en, this message translates to:
+  /// **'Client chain identifier: {clientChainId}\nNode chain identifier: {nodeChainId}'**
+  String clientAndNodeChainIdentifiers(int clientChainId, int nodeChainId);
+
+  /// No description provided for @clientChainIdentifierSelection.
+  ///
+  /// In en, this message translates to:
+  /// **'Client chain identifier selection'**
+  String get clientChainIdentifierSelection;
+
+  /// No description provided for @clipboardWatcherPreferenceStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Clipboard watcher preference was {status}'**
+  String clipboardWatcherPreferenceStatus(String status);
+
+  /// No description provided for @clipboardWatcherStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Clipboard watcher {status}'**
+  String clipboardWatcherStatus(String status);
+
+  /// No description provided for @communityNode.
+  ///
+  /// In en, this message translates to:
+  /// **'Community Node'**
+  String get communityNode;
+
+  /// No description provided for @confirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm'**
+  String get confirm;
+
+  /// No description provided for @confirmNode.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm node'**
+  String get confirmNode;
+
+  /// No description provided for @confirmPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm password'**
+  String get confirmPassword;
+
+  /// No description provided for @confirmScale.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm scale'**
+  String get confirmScale;
+
+  /// No description provided for @confirmTheme.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm theme'**
+  String get confirmTheme;
+
+  /// No description provided for @connectionCouldNotBeEstablished.
+  ///
+  /// In en, this message translates to:
+  /// **'Connection could not be established to {node}'**
+  String connectionCouldNotBeEstablished(String node);
+
+  /// No description provided for @connectionFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Connection failed'**
+  String get connectionFailed;
+
+  /// No description provided for @couldNotReconnectToNode.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not reconnect to {node}'**
+  String couldNotReconnectToNode(String node);
+
+  /// No description provided for @currentClientChainIdentifier.
+  ///
+  /// In en, this message translates to:
+  /// **'Current client chain identifier is {chainId}'**
+  String currentClientChainIdentifier(int chainId);
+
+  /// No description provided for @currentPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Current password'**
+  String get currentPassword;
+
+  /// No description provided for @dark.
+  ///
+  /// In en, this message translates to:
+  /// **'Dark'**
+  String get dark;
+
+  /// No description provided for @addressNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Address {index}'**
+  String addressNumber(int index);
+
+  /// No description provided for @deleteCache.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete cache'**
+  String get deleteCache;
+
+  /// No description provided for @deleteNode.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete node'**
+  String get deleteNode;
+
+  /// No description provided for @deleteNodeConfirmation.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to delete {node} from the list of nodes? This action can\'t be undone.'**
+  String deleteNodeConfirmation(String node);
+
+  /// No description provided for @deleteWalletCacheAndCloseApp.
+  ///
+  /// In en, this message translates to:
+  /// **'This option will delete the wallet cache and close the application'**
+  String get deleteWalletCacheAndCloseApp;
+
+  /// No description provided for @desktopNotificationsPreferenceStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Desktop notifications preference was {status}'**
+  String desktopNotificationsPreferenceStatus(String status);
+
+  /// No description provided for @desktopNotificationsStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Desktop notifications {status}'**
+  String desktopNotificationsStatus(String status);
+
+  /// No description provided for @disabled.
+  ///
+  /// In en, this message translates to:
+  /// **'disabled'**
+  String get disabled;
+
+  /// No description provided for @disconnectedFromNode.
+  ///
+  /// In en, this message translates to:
+  /// **'Disconnected from node'**
+  String get disconnectedFromNode;
+
+  /// No description provided for @display.
+  ///
+  /// In en, this message translates to:
+  /// **'Display'**
+  String get display;
+
+  /// No description provided for @displaysAccountChainInformation.
+  ///
+  /// In en, this message translates to:
+  /// **'This card displays information regarding the account-chain for the specified address'**
+  String get displaysAccountChainInformation;
+
+  /// No description provided for @displaysConnectedNetworkPeers.
+  ///
+  /// In en, this message translates to:
+  /// **'This card displays information about connected network peers'**
+  String get displaysConnectedNetworkPeers;
+
+  /// No description provided for @dumpMnemonic.
+  ///
+  /// In en, this message translates to:
+  /// **'Dump Mnemonic'**
+  String get dumpMnemonic;
+
+  /// No description provided for @editNode.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit node'**
+  String get editNode;
+
+  /// No description provided for @embeddedNodeSyncExplanation.
+  ///
+  /// In en, this message translates to:
+  /// **'By default Syrius connects to its own built-in full node, which is called the Embedded Node. It may take up to 24 hours to fully sync the network via the embedded node. During this time, you cannot send or receive transactions.\n\nIf you want to get started right away, please connect to a community node.'**
+  String get embeddedNodeSyncExplanation;
+
+  /// No description provided for @embeddedNodeValidatesTransactions.
+  ///
+  /// In en, this message translates to:
+  /// **'The Embedded Node validates all network transactions\nIt may take several hours to fully sync with the network'**
+  String get embeddedNodeValidatesTransactions;
+
+  /// No description provided for @emptyAccountChain.
+  ///
+  /// In en, this message translates to:
+  /// **'Empty account-chain'**
+  String get emptyAccountChain;
+
+  /// No description provided for @enableClipboardWatcher.
+  ///
+  /// In en, this message translates to:
+  /// **'Enable clipboard watcher'**
+  String get enableClipboardWatcher;
+
+  /// No description provided for @enableDesktopNotifications.
+  ///
+  /// In en, this message translates to:
+  /// **'Enable desktop notifications'**
+  String get enableDesktopNotifications;
+
+  /// No description provided for @enabled.
+  ///
+  /// In en, this message translates to:
+  /// **'enabled'**
+  String get enabled;
+
+  /// No description provided for @encryptedConnection.
+  ///
+  /// In en, this message translates to:
+  /// **'Encrypted connection'**
+  String get encryptedConnection;
+
+  /// No description provided for @english.
+  ///
+  /// In en, this message translates to:
+  /// **'English'**
+  String get english;
+
+  /// No description provided for @enterMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter message'**
+  String get enterMessage;
+
+  /// No description provided for @enterPublicKey.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter public key'**
+  String get enterPublicKey;
+
+  /// No description provided for @enterSignature.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter signature'**
+  String get enterSignature;
+
+  /// No description provided for @enterSignedHash.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter signed hash'**
+  String get enterSignedHash;
+
+  /// No description provided for @enterStrongSeedVaultKey.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter a strong Seed Vault Key to encrypt your Seed'**
+  String get enterStrongSeedVaultKey;
+
+  /// No description provided for @enterText.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter text'**
+  String get enterText;
+
+  /// No description provided for @enterWalletPasswordToDumpMnemonic.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the wallet password to dump the mnemonic'**
+  String get enterWalletPasswordToDumpMnemonic;
+
+  /// No description provided for @eraseAfterFailedPasswordAttempts.
+  ///
+  /// In en, this message translates to:
+  /// **'Erase after {attempts} failed password attempts'**
+  String eraseAfterFailedPasswordAttempts(int attempts);
+
+  /// No description provided for @eraseWalletFilesMakeSureBackup.
+  ///
+  /// In en, this message translates to:
+  /// **'This option will erase the wallet files. Make sure you have a backup first'**
+  String get eraseWalletFilesMakeSureBackup;
+
+  /// No description provided for @errorAccessingWalletForBackup.
+  ///
+  /// In en, this message translates to:
+  /// **'Error while accessing wallet for backup'**
+  String get errorAccessingWalletForBackup;
+
+  /// No description provided for @errorAddingNewNode.
+  ///
+  /// In en, this message translates to:
+  /// **'Error while adding new node'**
+  String get errorAddingNewNode;
+
+  /// No description provided for @errorChangingAddressLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Something went wrong while changing the address label'**
+  String get errorChangingAddressLabel;
+
+  /// No description provided for @errorChangingClipboardWatcher.
+  ///
+  /// In en, this message translates to:
+  /// **'Something went wrong while changing clipboard watcher preference'**
+  String get errorChangingClipboardWatcher;
+
+  /// No description provided for @errorChangingPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'An error occurred while trying to change password'**
+  String get errorChangingPassword;
+
+  /// No description provided for @errorConfirmingAutoEraseLimit.
+  ///
+  /// In en, this message translates to:
+  /// **'Error while confirming auto-erase limit'**
+  String get errorConfirmingAutoEraseLimit;
+
+  /// No description provided for @errorConfirmingAutoLockInterval.
+  ///
+  /// In en, this message translates to:
+  /// **'Error while confirming auto-lock interval'**
+  String get errorConfirmingAutoLockInterval;
+
+  /// No description provided for @errorDecryptingWallet.
+  ///
+  /// In en, this message translates to:
+  /// **'An error occurred while trying to decrypt wallet'**
+  String get errorDecryptingWallet;
+
+  /// No description provided for @errorDeletingNodeFromDatabase.
+  ///
+  /// In en, this message translates to:
+  /// **'Error during deleting node {node} from the database'**
+  String errorDeletingNodeFromDatabase(String node);
+
+  /// No description provided for @errorExportingSeedVault.
+  ///
+  /// In en, this message translates to:
+  /// **'Error while exporting Seed Vault'**
+  String get errorExportingSeedVault;
+
+  /// No description provided for @errorSettingAutoReceivePreference.
+  ///
+  /// In en, this message translates to:
+  /// **'Something went wrong while setting automatic receive preference'**
+  String get errorSettingAutoReceivePreference;
+
+  /// No description provided for @errorSettingClientChainIdentifier.
+  ///
+  /// In en, this message translates to:
+  /// **'Error while setting the new client chain identifier'**
+  String get errorSettingClientChainIdentifier;
+
+  /// No description provided for @errorSettingDesktopNotifications.
+  ///
+  /// In en, this message translates to:
+  /// **'Something went wrong while setting desktop notifications preference'**
+  String get errorSettingDesktopNotifications;
+
+  /// No description provided for @errorSettingLaunchAtStartup.
+  ///
+  /// In en, this message translates to:
+  /// **'Something went wrong while setting launch at startup preference'**
+  String get errorSettingLaunchAtStartup;
+
+  /// No description provided for @errorSigningMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Error while signing message'**
+  String get errorSigningMessage;
+
+  /// No description provided for @errorVerifyingFileHash.
+  ///
+  /// In en, this message translates to:
+  /// **'Error while verifying file hash'**
+  String get errorVerifyingFileHash;
+
+  /// No description provided for @errorVerifyingMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Error while verifying message'**
+  String get errorVerifyingMessage;
+
+  /// No description provided for @export.
+  ///
+  /// In en, this message translates to:
+  /// **'Export'**
+  String get export;
+
+  /// No description provided for @exportSeedVault.
+  ///
+  /// In en, this message translates to:
+  /// **'Export Seed Vault'**
+  String get exportSeedVault;
+
+  /// No description provided for @fileHashVerifiedSuccessfully.
+  ///
+  /// In en, this message translates to:
+  /// **'File hash verified successfully'**
+  String get fileHashVerifiedSuccessfully;
+
+  /// No description provided for @fileHashVerifiedWithSignedHash.
+  ///
+  /// In en, this message translates to:
+  /// **'File hash was successfully verified with the signed hash: {signedHash}'**
+  String fileHashVerifiedWithSignedHash(String signedHash);
+
+  /// No description provided for @general.
+  ///
+  /// In en, this message translates to:
+  /// **'General'**
+  String get general;
+
+  /// No description provided for @genericWalletAndNetworkInfo.
+  ///
+  /// In en, this message translates to:
+  /// **'Generic wallet & network information'**
+  String get genericWalletAndNetworkInfo;
+
+  /// No description provided for @hashOrPublicKeyInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Hash or public key invalid'**
+  String get hashOrPublicKeyInvalid;
+
+  /// No description provided for @huge.
+  ///
+  /// In en, this message translates to:
+  /// **'Huge'**
+  String get huge;
+
+  /// No description provided for @incorrectPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Incorrect password'**
+  String get incorrectPassword;
+
+  /// No description provided for @integratedFullNodeEnhancedSecurity.
+  ///
+  /// In en, this message translates to:
+  /// **'Integrated Full Node: enhanced security and privacy'**
+  String get integratedFullNodeEnhancedSecurity;
+
+  /// No description provided for @ip.
+  ///
+  /// In en, this message translates to:
+  /// **'IP'**
+  String get ip;
+
+  /// No description provided for @labelAlreadyExists.
+  ///
+  /// In en, this message translates to:
+  /// **'Label already exists'**
+  String get labelAlreadyExists;
+
+  /// No description provided for @labelAlreadyExistsInDatabase.
+  ///
+  /// In en, this message translates to:
+  /// **'Label {label} already exists in the database'**
+  String labelAlreadyExistsInDatabase(String label);
+
+  /// No description provided for @labelCannotBeEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Label can\'t be empty'**
+  String get labelCannotBeEmpty;
+
+  /// No description provided for @labelExceedsMaxLength.
+  ///
+  /// In en, this message translates to:
+  /// **'The label {label} is {length} characters long, which is more than the {maxLength} limit.'**
+  String labelExceedsMaxLength(String label, int length, int maxLength);
+
+  /// No description provided for @labelHasTooManyCharacters.
+  ///
+  /// In en, this message translates to:
+  /// **'The label has more than {maxLength} characters'**
+  String labelHasTooManyCharacters(int maxLength);
+
+  /// No description provided for @large.
+  ///
+  /// In en, this message translates to:
+  /// **'Large'**
+  String get large;
+
+  /// No description provided for @launchAtStartup.
+  ///
+  /// In en, this message translates to:
+  /// **'Launch at startup'**
+  String get launchAtStartup;
+
+  /// No description provided for @launchAtStartupPreferenceStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Launch at startup preference was {status}'**
+  String launchAtStartupPreferenceStatus(String status);
+
+  /// No description provided for @launchAtStartupStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Launch startup {status}'**
+  String launchAtStartupStatus(String status);
+
+  /// No description provided for @light.
+  ///
+  /// In en, this message translates to:
+  /// **'Light'**
+  String get light;
+
+  /// No description provided for @listensClipboardForWalletConnectUri.
+  ///
+  /// In en, this message translates to:
+  /// **'Listens to the values passed to the clipboard and sends a notification when a WalletConnect URI has been copied'**
+  String get listensClipboardForWalletConnectUri;
+
+  /// No description provided for @locale.
+  ///
+  /// In en, this message translates to:
+  /// **'Locale'**
+  String get locale;
+
+  /// No description provided for @lock.
+  ///
+  /// In en, this message translates to:
+  /// **'Lock'**
+  String get lock;
+
+  /// No description provided for @lockAfterMinutesOfInactivity.
+  ///
+  /// In en, this message translates to:
+  /// **'Lock after {minutes} minutes of inactivity'**
+  String lockAfterMinutesOfInactivity(int minutes);
+
+  /// No description provided for @messageOrSignatureInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Message or signature invalid'**
+  String get messageOrSignatureInvalid;
+
+  /// No description provided for @messageVerifiedSuccessfully.
+  ///
+  /// In en, this message translates to:
+  /// **'Message verified successfully'**
+  String get messageVerifiedSuccessfully;
+
+  /// No description provided for @messageVerifiedWithSignature.
+  ///
+  /// In en, this message translates to:
+  /// **'The message: {message} was successfully verified with the signature: {signature}'**
+  String messageVerifiedWithSignature(String message, String signature);
+
+  /// No description provided for @momentumHash.
+  ///
+  /// In en, this message translates to:
+  /// **'Momentum hash'**
+  String get momentumHash;
+
+  /// No description provided for @momentumHeight.
+  ///
+  /// In en, this message translates to:
+  /// **'Momentum height'**
+  String get momentumHeight;
+
+  /// No description provided for @newPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'New password'**
+  String get newPassword;
+
+  /// No description provided for @noPeersFound.
+  ///
+  /// In en, this message translates to:
+  /// **'No peers found'**
+  String get noPeersFound;
+
+  /// No description provided for @nodeAddressCannotBeEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Node address can\'t be empty'**
+  String get nodeAddressCannotBeEmpty;
+
+  /// No description provided for @nodeAddressWithPort.
+  ///
+  /// In en, this message translates to:
+  /// **'Node address with port'**
+  String get nodeAddressWithPort;
+
+  /// No description provided for @nodeAlreadyExists.
+  ///
+  /// In en, this message translates to:
+  /// **'Node already exists'**
+  String get nodeAlreadyExists;
+
+  /// No description provided for @nodeAlreadyExistsNamed.
+  ///
+  /// In en, this message translates to:
+  /// **'Node {node} already exists'**
+  String nodeAlreadyExistsNamed(String node);
+
+  /// No description provided for @nodeHasDifferentChainIdentifier.
+  ///
+  /// In en, this message translates to:
+  /// **'The node {node} you are connecting to has a different chain identifier {nodeChainId} than the current client chain identifier {currentChainId}'**
+  String nodeHasDifferentChainIdentifier(
+    String node,
+    int nodeChainId,
+    int currentChainId,
+  );
+
+  /// No description provided for @nodeHasTooManyCharacters.
+  ///
+  /// In en, this message translates to:
+  /// **'The node has more than {maxLength} characters'**
+  String nodeHasTooManyCharacters(int maxLength);
+
+  /// No description provided for @nodeManagement.
+  ///
+  /// In en, this message translates to:
+  /// **'Node Management'**
+  String get nodeManagement;
+
+  /// No description provided for @nodeSelection.
+  ///
+  /// In en, this message translates to:
+  /// **'Node selection'**
+  String get nodeSelection;
+
+  /// No description provided for @nonAlphanetChainIdentifier.
+  ///
+  /// In en, this message translates to:
+  /// **'Non-alphanet chain identifier'**
+  String get nonAlphanetChainIdentifier;
+
+  /// No description provided for @normal.
+  ///
+  /// In en, this message translates to:
+  /// **'Normal'**
+  String get normal;
+
+  /// No description provided for @otherWalletOptions.
+  ///
+  /// In en, this message translates to:
+  /// **'Other wallet options'**
+  String get otherWalletOptions;
+
+  /// No description provided for @passwordRequirementsInfo.
+  ///
+  /// In en, this message translates to:
+  /// **'Use a password that has at least 8 characters, one number, one uppercase letter, one lowercase letter and one symbol'**
+  String get passwordRequirementsInfo;
+
+  /// No description provided for @pasteFromClipboard.
+  ///
+  /// In en, this message translates to:
+  /// **'Paste from clipboard'**
+  String get pasteFromClipboard;
+
+  /// No description provided for @peers.
+  ///
+  /// In en, this message translates to:
+  /// **'Peers'**
+  String get peers;
+
+  /// No description provided for @peersAvailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Peers available'**
+  String get peersAvailable;
+
+  /// No description provided for @peersConnected.
+  ///
+  /// In en, this message translates to:
+  /// **'Peers connected'**
+  String get peersConnected;
+
+  /// No description provided for @preferences.
+  ///
+  /// In en, this message translates to:
+  /// **'Preferences'**
+  String get preferences;
+
+  /// No description provided for @proceedAnyway.
+  ///
+  /// In en, this message translates to:
+  /// **'Proceed anyway'**
+  String get proceedAnyway;
+
+  /// No description provided for @publicKey.
+  ///
+  /// In en, this message translates to:
+  /// **'Public Key'**
+  String get publicKey;
+
+  /// No description provided for @reconnect.
+  ///
+  /// In en, this message translates to:
+  /// **'Reconnect'**
+  String get reconnect;
+
+  /// No description provided for @repeatNewPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Repeat new password'**
+  String get repeatNewPassword;
+
+  /// No description provided for @reset.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset'**
+  String get reset;
+
+  /// No description provided for @resetWallet.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset wallet'**
+  String get resetWallet;
+
+  /// No description provided for @security.
+  ///
+  /// In en, this message translates to:
+  /// **'Security'**
+  String get security;
+
+  /// No description provided for @seed.
+  ///
+  /// In en, this message translates to:
+  /// **'Seed'**
+  String get seed;
+
+  /// No description provided for @seedVault.
+  ///
+  /// In en, this message translates to:
+  /// **'Seed Vault'**
+  String get seedVault;
+
+  /// No description provided for @seedVaultBackupExplanation.
+  ///
+  /// In en, this message translates to:
+  /// **'A Seed Vault is an encrypted file for backing up your Seed. The Seed is encrypted with a Seed Vault Key and cannot be accessed without it. Make sure you backup your Seed Vault in multiple offline locations (e.g. USB, external HDD) and do not lose your Seed Vault Key. If you lose the Seed Vault file or you don\'t remember the Seed Vault Key you lose access to your funds.'**
+  String get seedVaultBackupExplanation;
+
+  /// No description provided for @seedVaultExported.
+  ///
+  /// In en, this message translates to:
+  /// **'Seed Vault successfully exported'**
+  String get seedVaultExported;
+
+  /// No description provided for @seedVaultExportedToPath.
+  ///
+  /// In en, this message translates to:
+  /// **'The Seed Vault was successfully exported to {path}'**
+  String seedVaultExportedToPath(String path);
+
+  /// No description provided for @seedVaultKey.
+  ///
+  /// In en, this message translates to:
+  /// **'Seed Vault Key'**
+  String get seedVaultKey;
+
+  /// No description provided for @selectDefaultAddressForOperations.
+  ///
+  /// In en, this message translates to:
+  /// **'Select the default address that will be used throughout the wallet for any network operation'**
+  String get selectDefaultAddressForOperations;
+
+  /// No description provided for @setZnnNodeToConnect.
+  ///
+  /// In en, this message translates to:
+  /// **'This card allows one to set the ZNN Node used to connect to. By default the wallet is connected to the Embedded Node. If you are running a local ZNN Node, please use the localhost option'**
+  String get setZnnNodeToConnect;
+
+  /// No description provided for @sign.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign'**
+  String get sign;
+
+  /// No description provided for @signFile.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign file'**
+  String get signFile;
+
+  /// No description provided for @signature.
+  ///
+  /// In en, this message translates to:
+  /// **'Signature'**
+  String get signature;
+
+  /// No description provided for @signedHash.
+  ///
+  /// In en, this message translates to:
+  /// **'Signed hash'**
+  String get signedHash;
+
+  /// No description provided for @small.
+  ///
+  /// In en, this message translates to:
+  /// **'Small'**
+  String get small;
+
+  /// No description provided for @somethingWentWrong.
+  ///
+  /// In en, this message translates to:
+  /// **'Something went wrong'**
+  String get somethingWentWrong;
+
+  /// No description provided for @storeSeedVaultOfflineLocations.
+  ///
+  /// In en, this message translates to:
+  /// **'Store your Seed Vault and Seed Vault Key in secure and separate offline locations. You will need both to access your funds'**
+  String get storeSeedVaultOfflineLocations;
+
+  /// No description provided for @successfullyAddedNode.
+  ///
+  /// In en, this message translates to:
+  /// **'Successfully added node {node}'**
+  String successfullyAddedNode(String node);
+
+  /// No description provided for @successfullyConnectedToNode.
+  ///
+  /// In en, this message translates to:
+  /// **'Successfully connected to {node}'**
+  String successfullyConnectedToNode(String node);
+
+  /// No description provided for @system.
+  ///
+  /// In en, this message translates to:
+  /// **'System'**
+  String get system;
+
+  /// No description provided for @textScaleChangeFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Text scale change failed'**
+  String get textScaleChangeFailed;
+
+  /// No description provided for @textScaleChanged.
+  ///
+  /// In en, this message translates to:
+  /// **'Text scale changed'**
+  String get textScaleChanged;
+
+  /// No description provided for @textScaleChangedDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Text scale successfully changed to {scale}'**
+  String textScaleChangedDetails(String scale);
+
+  /// No description provided for @textScaling.
+  ///
+  /// In en, this message translates to:
+  /// **'Text scaling'**
+  String get textScaling;
+
+  /// No description provided for @theme.
+  ///
+  /// In en, this message translates to:
+  /// **'Theme'**
+  String get theme;
+
+  /// No description provided for @themeModeChangeFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Theme mode change failed'**
+  String get themeModeChangeFailed;
+
+  /// No description provided for @themeModeChanged.
+  ///
+  /// In en, this message translates to:
+  /// **'Theme mode changed'**
+  String get themeModeChanged;
+
+  /// No description provided for @themeModeChangedDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Theme mode successfully changed to {mode}'**
+  String themeModeChangedDetails(String mode);
+
+  /// No description provided for @timestamp.
+  ///
+  /// In en, this message translates to:
+  /// **'Timestamp'**
+  String get timestamp;
+
+  /// No description provided for @uncheckToDisableAutoReceiver.
+  ///
+  /// In en, this message translates to:
+  /// **'Uncheck to disable the auto-receiver and receive transactions manually'**
+  String get uncheckToDisableAutoReceiver;
+
+  /// No description provided for @unencryptedConnection.
+  ///
+  /// In en, this message translates to:
+  /// **'Unencrypted connection'**
+  String get unencryptedConnection;
+
+  /// No description provided for @verify.
+  ///
+  /// In en, this message translates to:
+  /// **'Verify'**
+  String get verify;
+
+  /// No description provided for @verifyFile.
+  ///
+  /// In en, this message translates to:
+  /// **'Verify file'**
+  String get verifyFile;
+
+  /// No description provided for @walletAppearanceAndThemeSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Wallet appearance and theme settings'**
+  String get walletAppearanceAndThemeSettings;
+
+  /// No description provided for @walletOptions.
+  ///
+  /// In en, this message translates to:
+  /// **'Wallet Options'**
+  String get walletOptions;
+
+  /// No description provided for @willSecurelyStoreSeedVault.
+  ///
+  /// In en, this message translates to:
+  /// **'I will securely store the Seed Vault & Seed Vault Key'**
+  String get willSecurelyStoreSeedVault;
 }
 
 class _AppLocalizationsDelegate

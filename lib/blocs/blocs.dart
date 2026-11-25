@@ -1,4 +1,3 @@
-export 'accelerator/accelerator.dart';
 export 'auto_receive_tx_worker.dart';
 export 'base_bloc.dart';
 export 'base_bloc_for_reloading_indicator.dart';

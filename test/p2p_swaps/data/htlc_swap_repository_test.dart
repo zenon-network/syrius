@@ -15,9 +15,7 @@ void main() {
   late int? originalChainId;
 
   final List<int> encryptionKey = Crypto.digest(utf8.encode('password'));
-  final List<int> newEncryptionKey = Crypto.digest(
-    utf8.encode('new-password'),
-  );
+  final List<int> newEncryptionKey = Crypto.digest(utf8.encode('new-password'));
 
   void createDataLayer() {
     dataProvider = HtlcSwapLocalStorageApi(databaseFile: databaseFile);
@@ -87,11 +85,7 @@ void main() {
     expect(await swaps.moveNext(), isTrue);
     expect(swaps.current, <HtlcSwap>[older]);
 
-    final HtlcSwap newer = _buildSwap(
-      id: 'newer',
-      chainId: 2,
-      startTime: 2,
-    );
+    final HtlcSwap newer = _buildSwap(id: 'newer', chainId: 2, startTime: 2);
     await repository.storeSwap(newer);
     expect(await swaps.moveNext(), isTrue);
     expect(swaps.current, <HtlcSwap>[newer, older]);
@@ -108,6 +102,13 @@ void main() {
 
     kNodeChainId = 1;
     expect(await repository.getLastCheckedHtlcBlockHeight(), 10);
+
+    // Explicit chainId overrides kNodeChainId so stale globals cannot target
+    // the wrong chain checkpoint.
+    await repository.storeLastCheckedHtlcBlockHeight(0, chainId: 2);
+    expect(await repository.getLastCheckedHtlcBlockHeight(), 10);
+    kNodeChainId = 2;
+    expect(await repository.getLastCheckedHtlcBlockHeight(), 0);
   });
 
   test('stores a processed block update with its checkpoint', () async {
@@ -127,10 +128,7 @@ void main() {
   });
 
   test('checkpoints a processed block without a swap update', () async {
-    await repository.storeProcessedHtlcBlock(
-      height: 10,
-      updatedSwap: null,
-    );
+    await repository.storeProcessedHtlcBlock(height: 10, updatedSwap: null);
 
     expect(await repository.getAllSwaps(), isEmpty);
     expect(await repository.getLastCheckedHtlcBlockHeight(), 10);
@@ -177,9 +175,7 @@ void main() {
     expect(databaseContents, isNot(contains(secretPreimage)));
 
     final HtlcSwapLocalStorageApi incorrectKeyDataProvider =
-        HtlcSwapLocalStorageApi(
-          databaseFile: databaseFile,
-        );
+        HtlcSwapLocalStorageApi(databaseFile: databaseFile);
     await expectLater(
       incorrectKeyDataProvider.open(newEncryptionKey),
       throwsA(anything),

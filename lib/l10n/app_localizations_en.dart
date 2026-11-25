@@ -9,6 +9,27 @@ class AppLocalizationsEn extends AppLocalizations {
   AppLocalizationsEn([String locale = 'en']) : super(locale);
 
   @override
+  String get about => 'About';
+
+  @override
+  String get abstain => 'Abstain';
+
+  @override
+  String get acceleratorAvailableBalance => 'Accelerator available balance';
+
+  @override
+  String get acceleratorDonations => 'Accelerator Donations';
+
+  @override
+  String get acceleratorFundEmpty => 'Accelerator fund empty';
+
+  @override
+  String get acceleratorStats => 'Accelerator Stats';
+
+  @override
+  String get accepted => 'Accepted';
+
+  @override
   String get active => 'Active';
 
   @override
@@ -24,6 +45,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get address => 'Address';
 
   @override
+  String get addressOwnsOrProducesNoPillar =>
+      'This address owns or produces no pillar';
+
+  @override
   String get addressSearchDescription =>
       'Addresses can be searched by label - \"Address 1\" - and by hex value - \"z1qxemdeddedxt0kenxxxxxxxxxxxxxxxxh9amk0\"';
 
@@ -34,6 +59,13 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get addressToProduceMomentums =>
       'The address that will produce momentums, get it from znn-controller';
+
+  @override
+  String get allDonatedFundsGoToAccelerator =>
+      'All donated funds go directly into the Accelerator address';
+
+  @override
+  String get alreadyVoted => 'Already voted';
 
   @override
   String get amount => 'Amount';
@@ -47,7 +79,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get asset => 'Asset';
 
   @override
+  String get available => 'Available';
+
+  @override
   String get balance => 'Balance';
+
+  @override
+  String get balanceUnavailableForAddress =>
+      'Balance is unavailable for the selected address';
 
   @override
   String get beneficiaryAddress => 'Beneficiary address';
@@ -70,10 +109,38 @@ class AppLocalizationsEn extends AppLocalizations {
   String get checkSentinelStatus => ' to check the Sentinel status';
 
   @override
+  String get checkUpdate => 'Check update';
+
+  @override
+  String get checkUpdatesForSyriusWallet =>
+      'Check updates for the Syrius wallet';
+
+  @override
+  String get clearAllNotifications => 'Clear all notifications';
+
+  @override
   String get clickToAddToFavorites => 'Click to add to favorites';
 
   @override
   String get clickToRemoveFromFavorites => 'Click to remove from favorites';
+
+  @override
+  String get clientChainIdentifier => 'Client chain identifier';
+
+  @override
+  String get clientHostname => 'Client hostname';
+
+  @override
+  String get clientLocalIpAddress => 'Client local IP address';
+
+  @override
+  String get clientNumberOfProcessors => 'Client number of processors';
+
+  @override
+  String get clientOperatingSystem => 'Client operating system';
+
+  @override
+  String get clientOperatingSystemVersion => 'Client operating system version';
 
   @override
   String get coin => 'Coin';
@@ -91,11 +158,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String get collectStakingRewards => 'Collect staking rewards';
 
   @override
+  String get community => 'Community';
+
+  @override
   String get completed => 'Completed';
 
   @override
   String get cannotReuseAddressForSentinel =>
       'If this address previously revoked a Sentinel, it cannot create a new Sentinel again. Use a different address before depositing QSR.';
+
+  @override
+  String consumeZnnToSubmitProject(String amount, String symbol) {
+    return 'Consume $amount $symbol to submit the project';
+  }
 
   @override
   String couldNotSend(Object amount, Object recipient, Object symbol) {
@@ -134,7 +209,25 @@ class AppLocalizationsEn extends AppLocalizations {
   String get create => 'Create';
 
   @override
+  String get createAnotherPhase => 'Create another phase';
+
+  @override
+  String get createAnotherProject => 'Create another project';
+
+  @override
   String get createAnotherToken => 'Create another Token';
+
+  @override
+  String createdWithDate(String date) {
+    return 'Created $date';
+  }
+
+  @override
+  String get createPhase => 'Create phase';
+
+  @override
+  String get createPhaseForYourProject =>
+      'Create a phase for your project. The project can be divided into several phases. You will unlock the funds if you get enough votes from the Pillars.';
 
   @override
   String get createPillarDescription =>
@@ -142,6 +235,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get createPillarTitle => 'Create Pillar';
+
+  @override
+  String get createProject => 'Create project';
 
   @override
   String get createSentinelDescription =>
@@ -169,6 +265,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get createTokenTitle => 'Create Token';
 
   @override
+  String creatingProjectConsumesZnn(String amount, String symbol) {
+    return 'Creating a project consumes $amount $symbol that goes to the Accelerator';
+  }
+
+  @override
   String currentAmounts(Object kQsrCoinSymbol, Object kZnnCoinSymbol) {
     return 'This card displays the current $kZnnCoinSymbol and $kQsrCoinSymbol amounts for the selected address';
   }
@@ -185,6 +286,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get date => 'Date';
+
+  @override
+  String daysCount(int count) {
+    return '$count days';
+  }
 
   @override
   String decimals(Object number) {
@@ -248,11 +354,29 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get deleteAllNotificationsCannotBeUndone =>
+      'Are you sure you want to delete all notifications? This action cannot be undone.';
+
+  @override
+  String get deleteNotification => 'Delete notification';
+
+  @override
   String get deleteSwap => 'Delete swap';
 
   @override
   String get deleteSwapCannotBeUndone =>
       'Are you sure you want to delete this swap? This action cannot be undone.';
+
+  @override
+  String get description => 'Description';
+
+  @override
+  String get detailedInfoAboutWalletComponents =>
+      'Detailed information about wallet components';
+
+  @override
+  String get detailedInfoAboutYourProject =>
+      'Detailed information about your project';
 
   @override
   String get disassemble => 'DISASSEMBLE';
@@ -266,6 +390,33 @@ class AppLocalizationsEn extends AppLocalizations {
   String disassembleSentinelToUnlockCoin(Object kZnnCoinSymbol) {
     return 'You will be able to unlock the $kZnnCoinSymbol if you choose to disassemble the Sentinel';
   }
+
+  @override
+  String get displaysWalletNotificationsDetails =>
+      'This card displays detailed information regarding the wallet notifications';
+
+  @override
+  String get displaysZenonCommunityResources =>
+      'This card displays information about Zenon community resources';
+
+  @override
+  String get documentation => 'Documentation';
+
+  @override
+  String get donate => 'Donate';
+
+  @override
+  String get donationAddress => 'Donation address';
+
+  @override
+  String get donationAmountMustBePositive =>
+      'Donation amount must be greater than zero';
+
+  @override
+  String get donationDetails => 'Donation details';
+
+  @override
+  String get donationSubmitted => 'Donation submitted';
 
   @override
   String get dualCoinStats => 'Dual Coin Stats';
@@ -282,14 +433,43 @@ class AppLocalizationsEn extends AppLocalizations {
   String get duration => 'Duration';
 
   @override
+  String get eachProjectComprisedOfPhases =>
+      'Each project can be comprised of one or more phases. Each phase needs to be voted. Phases can be updated by the owner of the project to reflect current progress of the project.';
+
+  @override
+  String get enterValidAmount => 'Enter a valid amount';
+
+  @override
   String get enterValidDomainWithoutProtocol =>
       'Enter a valid domain without protocol (e.g. example.com)';
+
+  @override
+  String get errorCreatingPhase => 'Error while creating phase';
+
+  @override
+  String get errorGettingVoteBreakdown =>
+      'Error while trying to get the vote breakdown';
+
+  @override
+  String get errorSubmittingDonation => 'Error while submitting donation';
+
+  @override
+  String get errorSubmittingProject => 'Error while submitting project';
+
+  @override
+  String get errorUpdatingPhase => 'Error while updating phase';
+
+  @override
+  String get errorVotingProject => 'Error while voting project';
 
   @override
   String get exchangeRate => 'Exchange Rate';
 
   @override
   String get error => 'Error';
+
+  @override
+  String get errorClearingNotifications => 'Error while clearing notifications';
 
   @override
   String get errorCreatingToken => 'Error while creating a new ZTS token';
@@ -304,6 +484,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get errorCompletingSwap => 'Error while completing swap';
+
+  @override
+  String get errorDeletingNotification => 'Error while deleting notification';
 
   @override
   String get errorDeletingSwap => 'Error while deleting swap';
@@ -397,7 +580,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get expectedProducedMomentums => 'Expected/produced momentums';
 
   @override
+  String get explorers => 'Explorers';
+
+  @override
   String get from => 'From';
+
+  @override
+  String get fuelForTheMothership => 'Fuel for the Mothership';
 
   @override
   String get fuse => 'Fuse';
@@ -422,9 +611,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get goBack => 'Go back';
 
   @override
-  String get hAgo => 'h ago';
-
-  @override
   String get hash => 'Hash';
 
   @override
@@ -439,16 +625,42 @@ class AppLocalizationsEn extends AppLocalizations {
   String get hideDetails => 'Hide details';
 
   @override
+  String hoursAgo(int count) {
+    return '$count h ago';
+  }
+
+  @override
+  String hoursCount(int count) {
+    return '$count h';
+  }
+
+  @override
+  String idWithValue(String id) {
+    return 'ID $id';
+  }
+
+  @override
+  String get innovateInspireBuild => 'Innovate. Inspire. Build.';
+
+  @override
   String get inputAmountToSend => 'Input an amount to send';
 
   @override
   String get inputDepositId => 'Input the deposit ID';
 
   @override
+  String get inputtedNumberHasTooManyDecimals =>
+      'Inputted number has too many decimals';
+
+  @override
   String get issueToken => 'Issue Token';
 
   @override
   String get joinSwap => 'Join swap';
+
+  @override
+  String get joinTheAliensBuildingNom =>
+      'Join the Aliens building the future on Network of Momentum';
 
   @override
   String get latestTransactionsDescription =>
@@ -465,6 +677,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get level => 'Level';
 
   @override
+  String get linkToProjectArticle => 'Link to project article';
+
+  @override
+  String get listContainsAllProjects =>
+      'This card displays a list that contains all the projects';
+
+  @override
   String locked(Object kQsrCoinSymbol) {
     return '$kQsrCoinSymbol locked';
   }
@@ -472,6 +691,9 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get localTimeDiscrepancyDetected =>
       'Local time discrepancy detected. Please confirm your operating system\'s time is correct before conducting P2P swaps.';
+
+  @override
+  String get makeAnotherDonation => 'Make another donation';
 
   @override
   String get manageReceivingFunds => 'Manage receiving funds';
@@ -491,7 +713,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get maxSupply => 'Max supply';
 
   @override
-  String get minAgo => 'min ago';
+  String minutesAgo(int count) {
+    return '$count min ago';
+  }
+
+  @override
+  String minutesCount(int count) {
+    return '$count min';
+  }
 
   @override
   String minutesLeftToJoinSwap(int minutes) {
@@ -520,7 +749,25 @@ class AppLocalizationsEn extends AppLocalizations {
       'More Plasma is required to perform complex transactions. Please fuse enough QSR before proceeding.';
 
   @override
+  String moreVotesNeededForQuorum(int count) {
+    return '$count more votes needed to achieve quorum';
+  }
+
+  @override
+  String get moreYesThanNoVotes => 'More yes than no votes';
+
+  @override
+  String get myProjects => 'My projects';
+
+  @override
   String get name => 'Name';
+
+  @override
+  String get necessaryBudgetToCompletePhase =>
+      'Necessary budget to successfully complete this phase';
+
+  @override
+  String get needsVoting => 'Needs voting';
 
   @override
   String get newOwnerAddress => 'New owner address';
@@ -532,19 +779,42 @@ class AppLocalizationsEn extends AppLocalizations {
   String get no => 'no';
 
   @override
+  String get noActiveProjects => 'No active projects';
+
+  @override
   String get noItemsFound => 'No items founds';
+
+  @override
+  String get noMatchingPhases => 'No matching phases found';
 
   @override
   String get noMoreItems => 'No more items';
 
   @override
+  String get noNotifications => 'No notifications';
+
+  @override
   String get noP2pSwaps => 'No P2P swaps';
+
+  @override
+  String get noProjectsFound => 'No projects found';
 
   @override
   String get noRewardsCollect => 'No rewards to collect';
 
   @override
+  String get notEnoughYesVotes => 'Not enough yes votes';
+
+  @override
+  String noVotesCount(int count) {
+    return '$count No votes';
+  }
+
+  @override
   String get noZtsTokensAvailable => 'No ZTS tokens available';
+
+  @override
+  String get notifications => 'Notifications';
 
   @override
   String numberOfDecimals(Object number) {
@@ -556,7 +826,15 @@ class AppLocalizationsEn extends AppLocalizations {
       'The oldest swap entry will be deleted when a new swap is started.';
 
   @override
+  String get onlyAccepted => 'Only accepted';
+
+  @override
   String get options => 'Options';
+
+  @override
+  String ownerWithAddress(String address) {
+    return 'Owner $address';
+  }
 
   @override
   String get ownZtsToken => 'You own this ZTS token';
@@ -628,6 +906,9 @@ class AppLocalizationsEn extends AppLocalizations {
       'This card displays a list of P2P swaps that have been conducted with this wallet.';
 
   @override
+  String get paid => 'Paid';
+
+  @override
   String get password => 'Password';
 
   @override
@@ -647,6 +928,29 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get percentageOfMomentumRewards =>
       'Percentage of momentum rewards given to the delegators';
+
+  @override
+  String phaseBelongsToProject(String projectId) {
+    return 'This phase belongs to Project ID $projectId';
+  }
+
+  @override
+  String get phaseDescription => 'Phase description';
+
+  @override
+  String get phaseDetails => 'Phase details';
+
+  @override
+  String get phaseList => 'Phase List';
+
+  @override
+  String get phaseName => 'Phase name';
+
+  @override
+  String get phaseNeedsVoting => 'Phase needs voting';
+
+  @override
+  String get phaseUrl => 'Phase URL';
 
   @override
   String get pillar => 'Pillar';
@@ -692,6 +996,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get pillarRewardsTitle => 'Pillar Rewards';
+
+  @override
+  String pillarsCanStillVote(int count) {
+    return '$count Pillars that can still cast a vote';
+  }
 
   @override
   String plasmaStatsDescription(Object kQsrCoinSymbol) {
@@ -746,9 +1055,45 @@ class AppLocalizationsEn extends AppLocalizations {
   String get producerAddress => 'Producer Address';
 
   @override
+  String get projectCreation => 'Project creation';
+
+  @override
+  String get projectDescription => 'Project description';
+
+  @override
+  String get projectDetails => 'Project details';
+
+  @override
+  String get projectHasNoPhases => 'The project has no phases';
+
+  @override
+  String get projectList => 'Project List';
+
+  @override
+  String get projectName => 'Project name';
+
+  @override
+  String get projectStats => 'Project Stats';
+
+  @override
+  String get projectSubmitted => 'Project submitted';
+
+  @override
+  String get projectUrl => 'Project URL';
+
+  @override
+  String get qsrAmount => 'QSR Amount';
+
+  @override
   String quasarTransactions(Object quasar) {
     return '$quasar transactions';
   }
+
+  @override
+  String get quorumAchieved => 'Quorum achieved';
+
+  @override
+  String get quorumNotAchieved => 'Quorum not achieved';
 
   @override
   String get realtimeStats => 'Realtime Stats';
@@ -763,6 +1108,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get receive => 'Receive';
+
+  @override
+  String get received => 'Received';
 
   @override
   String get receiver => 'Receiver';
@@ -822,6 +1170,22 @@ class AppLocalizationsEn extends AppLocalizations {
   String get registeredUse => ' registered. Use ';
 
   @override
+  String get rejected => 'Rejected';
+
+  @override
+  String get remaining => 'Remaining';
+
+  @override
+  String remainingBudgetForNextPhases(
+    String znnAmount,
+    String znnSymbol,
+    String qsrAmount,
+    String qsrSymbol,
+  ) {
+    return 'Remaining budget for the next phases is $znnAmount $znnSymbol and $qsrAmount $qsrSymbol';
+  }
+
+  @override
   String requiredForPillarSlot(Object coins, Object kQsrCoinSymbol) {
     return '$coins $kQsrCoinSymbol required for a Pillar slot';
   }
@@ -832,13 +1196,21 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get returnToProjectList => 'Return to project list';
+
+  @override
   String get revocationWindowOpen => 'Revocation window is open';
 
   @override
-  String get sAgo => 's ago';
+  String get saveQr => 'Save QR';
 
   @override
-  String get saveQr => 'Save QR';
+  String get searchByIdNameDescriptionUrl =>
+      'Search by id, name, description, or URL';
+
+  @override
+  String get searchByIdOwnerNameDescriptionUrl =>
+      'Search by id, owner, name, description, or URL';
 
   @override
   String get searchTokenHint =>
@@ -846,6 +1218,16 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get searching => 'Searching';
+
+  @override
+  String secondsAgo(int count) {
+    return '$count s ago';
+  }
+
+  @override
+  String secondsCount(int count) {
+    return '$count s';
+  }
 
   @override
   String get send => 'Send';
@@ -925,6 +1307,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get sentinelsListTitle => 'Sentinels List';
 
   @override
+  String get setBudgetForProject => 'Set a budget for the project';
+
+  @override
   String get shareQr => 'Share QR';
 
   @override
@@ -932,7 +1317,17 @@ class AppLocalizationsEn extends AppLocalizations {
       'Send your deposit ID to the counterparty via a messaging service so that they can join the swap.';
 
   @override
+  String get showcaseProgressOfProject =>
+      'Showcase the progress of your project (e.g. Git PR/commit)';
+
+  @override
   String get showDetails => 'Show details';
+
+  @override
+  String get socialMedia => 'Social Media';
+
+  @override
+  String get sortByLastUpdate => 'Sort by last update';
 
   @override
   String get spawn => 'Spawn';
@@ -987,7 +1382,23 @@ class AppLocalizationsEn extends AppLocalizations {
   String get stakingRewardsTitle => 'Staking Rewards';
 
   @override
+  String get startProjectByCreatingPhase =>
+      'Start the project by creating a phase to unlock funds';
+
+  @override
   String get status => 'Status';
+
+  @override
+  String get submit => 'Submit';
+
+  @override
+  String get submitDonation => 'Submit donation';
+
+  @override
+  String get submitPhase => 'Submit phase';
+
+  @override
+  String get submitProject => 'Submit project';
 
   @override
   String get successfully => 'successfully';
@@ -1063,6 +1474,40 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get swapping => 'Swapping';
+
+  @override
+  String get syriusCachePath => 'Syrius cache path';
+
+  @override
+  String get syriusGitBranchName => 'Syrius git branch name';
+
+  @override
+  String get syriusGitCommitDate => 'Syrius git commit date';
+
+  @override
+  String get syriusGitCommitHash => 'Syrius git commit hash';
+
+  @override
+  String get syriusGitCommitMessage => 'Syrius git commit message';
+
+  @override
+  String get syriusGitOriginUrl => 'Syrius git origin url';
+
+  @override
+  String get syriusWalletPath => 'Syrius wallet path';
+
+  @override
+  String get syriusWalletType => 'Syrius wallet type';
+
+  @override
+  String get syriusWalletVersion => 'Syrius wallet version';
+
+  @override
+  String get thankYouForSupportingAccelerator =>
+      'Thank you for supporting the Accelerator';
+
+  @override
+  String get time => 'Time';
 
   @override
   String get to => 'To';
@@ -1200,10 +1645,43 @@ class AppLocalizationsEn extends AppLocalizations {
       'This card displays a grid with all the ZTS tokens from the network, including ZTS tokens issued by you';
 
   @override
+  String get total => 'Total';
+
+  @override
+  String get totalDonationBudget => 'Total donation budget';
+
+  @override
+  String get totalPhaseBudget => 'Total phase budget';
+
+  @override
+  String get totalProjectBudget => 'Total project budget';
+
+  @override
   String get totalSupply => 'Total supply';
 
   @override
+  String totalVotesCount(int count) {
+    return '$count votes in total';
+  }
+
+  @override
   String get transactionError => 'Error while receiving transaction';
+
+  @override
+  String get updatePhase => 'Update phase';
+
+  @override
+  String get updatingPhaseResetsVotes =>
+      'Updating this phase will reset all current votes';
+
+  @override
+  String get valueMustBeZero => 'Value must be 0';
+
+  @override
+  String get viewPhases => 'View phases';
+
+  @override
+  String get viewProjects => 'View projects';
 
   @override
   String visitDomain(Object domain) {
@@ -1288,6 +1766,20 @@ class AppLocalizationsEn extends AppLocalizations {
   String get viewSentinels => 'View Sentinels';
 
   @override
+  String get votingClosed => 'Voting closed';
+
+  @override
+  String votingClosesIn(String duration) {
+    return 'Voting closes in $duration';
+  }
+
+  @override
+  String get votingOpen => 'Voting open';
+
+  @override
+  String get votingResults => 'Voting results';
+
+  @override
   String get waitingForDataFetching => 'Waiting for data fetching';
 
   @override
@@ -1307,6 +1799,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get weight => 'Weight';
 
   @override
+  String get websites => 'Websites';
+
+  @override
   String get walletNotAutoLocked =>
       'Your wallet will not be auto-locked while the swap is in progress.';
 
@@ -1315,6 +1810,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get yes => 'yes';
+
+  @override
+  String yesVotesCount(int count) {
+    return '$count Yes votes';
+  }
 
   @override
   String youHaveDeposited(Object coins, Object kQsrCoinSymbol) {
@@ -1334,14 +1834,775 @@ class AppLocalizationsEn extends AppLocalizations {
   String get yourDepositId => 'Your deposit ID';
 
   @override
+  String get yourDonationMatters => 'Your donation matters';
+
+  @override
+  String get yourProjectOwnerAddress =>
+      'This will be your project owner address';
+
+  @override
+  String get zenonBitcoinTalk => 'Zenon Bitcoin Talk';
+
+  @override
+  String get zenonDiscord => 'Zenon Discord';
+
+  @override
+  String get zenonExplorer => 'Zenon Explorer';
+
+  @override
+  String get zenonGithub => 'Zenon Github';
+
+  @override
+  String get zenonHub => 'Zenon Hub';
+
+  @override
+  String get zenonHubExplorer => 'Zenon Hub Explorer';
+
+  @override
+  String get zenonMainDataPath => 'Zenon main data path';
+
+  @override
+  String get zenonMedium => 'Zenon Medium';
+
+  @override
+  String get zenonNetwork => 'Zenon Network';
+
+  @override
+  String get zenonNodeBuildVersion => 'Zenon Node build version';
+
+  @override
+  String get zenonNodeChainIdentifier => 'Zenon Node chain identifier';
+
+  @override
+  String get zenonNodeGitCommitHash => 'Zenon Node git commit hash';
+
+  @override
+  String get zenonNodeKernelVersion => 'Zenon Node kernel version';
+
+  @override
+  String get zenonNodeNumberOfProcessors => 'Zenon Node number of processors';
+
+  @override
+  String get zenonNodeOperatingSystem => 'Zenon Node operating system';
+
+  @override
+  String get zenonNodePlatform => 'Zenon Node platform';
+
+  @override
+  String get zenonNodePlatformVersion => 'Zenon Node platform version';
+
+  @override
+  String get zenonOrgCommunity => 'Zenon ORG Community';
+
+  @override
+  String get zenonOrgCommunityForum => 'Zenon ORG Community Forum';
+
+  @override
+  String get zenonOrgCommunityWiki => 'ZenonORG Community Wiki';
+
+  @override
+  String get zenonReddit => 'Zenon Reddit';
+
+  @override
+  String get zenonSdkVersion => 'Zenon SDK version';
+
+  @override
+  String get zenonTelegram => 'Zenon Telegram';
+
+  @override
+  String get zenonTools => 'Zenon Tools';
+
+  @override
   String zenonTransactions(Object zenon) {
     return '$zenon transactions';
   }
 
   @override
+  String get zenonTwitter => 'Zenon Twitter';
+
+  @override
+  String get zenonWhitepaper => 'Zenon Whitepaper';
+
+  @override
+  String get zenonWiki => 'Zenon Wiki';
+
+  @override
+  String get zenonYoutube => 'Zenon Youtube';
+
+  @override
+  String get znnAmount => 'ZNN Amount';
+
+  @override
   String get znnController => 'znn-controller ';
+
+  @override
+  String get znnDonationSubmittedQsrFailed =>
+      'ZNN donation was submitted, but the QSR donation failed. Retry to submit only the remaining QSR donation.';
 
   @override
   String get ztsSearchDescription =>
       'Coins and tokens can be searched by name - \"Zenon\" -, by symbol - \"ZNN\" -, and by token standard - \"zts1znnxxxxxxxxxxxxx9z4ulx\"';
+
+  @override
+  String get accountChainHeight => 'Account-chain height';
+
+  @override
+  String get accountChainStats => 'Account-chain Stats';
+
+  @override
+  String addAddressesCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Add $count addresses',
+      one: 'Add 1 address',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get addNode => 'Add node';
+
+  @override
+  String get addresses => 'Addresses';
+
+  @override
+  String get allWalletDataErasedPermanently =>
+      'All your wallet data will be erased permanently. Make sure you have a backup of your mnemonic or Seed Vault & Seed Vault Key before you proceed with erasing the wallet';
+
+  @override
+  String get alphanetChainIdentifier => 'Alphanet chain identifier';
+
+  @override
+  String get autoEraseLimitChanged =>
+      'Auto-erase attempts limit successfully changed';
+
+  @override
+  String autoEraseLimitNowAttempts(String attempts) {
+    return 'The auto-erase limit has now $attempts attempt(s)';
+  }
+
+  @override
+  String get autoEraseWallet => 'Auto-erase wallet';
+
+  @override
+  String get autoLockWallet => 'Auto-lock wallet';
+
+  @override
+  String get autoReceiver => 'Auto-receiver';
+
+  @override
+  String autoReceiverPreferenceStatus(String status) {
+    return 'Auto-receiver preference was $status';
+  }
+
+  @override
+  String autoReceiverStatus(String status) {
+    return 'Auto-receiver $status';
+  }
+
+  @override
+  String get automaticallyReceiveTransactions =>
+      'Automatically receive transactions';
+
+  @override
+  String get backup => 'Backup';
+
+  @override
+  String get backupSeedEncryptedOrClearText =>
+      'Backup your seed using the syrius standard format JSON (encrypted, recommended) or show it on the screen (clear text, not recommended)';
+
+  @override
+  String get backupWallet => 'Backup wallet';
+
+  @override
+  String get blockHash => 'Block hash';
+
+  @override
+  String get chainIdentifierMismatch => 'Chain identifier mismatch';
+
+  @override
+  String chainIdentifierMismatchDetails(int clientChainId, int nodeChainId) {
+    return 'Chain identifier mismatch\nClient chain identifier: $clientChainId\nNode chain identifier: $nodeChainId';
+  }
+
+  @override
+  String get chainIdentifierPreventsReplayAttacks =>
+      'The chain identifier is used in transaction signing to prevent replay attacks';
+
+  @override
+  String get change => 'Change';
+
+  @override
+  String get changePassword => 'Change password';
+
+  @override
+  String get changeWalletPassword => 'Change wallet password';
+
+  @override
+  String get changeWalletSecurityParameters =>
+      'Change the security parameters of the wallet';
+
+  @override
+  String changedClientChainIdentifier(int chainId) {
+    return 'Successfully changed client chain identifier to $chainId';
+  }
+
+  @override
+  String changedClientChainIdentifierFromTo(int oldChainId, int newChainId) {
+    return 'Successfully changed client chain identifier from $oldChainId to $newChainId';
+  }
+
+  @override
+  String clientAndNodeChainIdentifiers(int clientChainId, int nodeChainId) {
+    return 'Client chain identifier: $clientChainId\nNode chain identifier: $nodeChainId';
+  }
+
+  @override
+  String get clientChainIdentifierSelection =>
+      'Client chain identifier selection';
+
+  @override
+  String clipboardWatcherPreferenceStatus(String status) {
+    return 'Clipboard watcher preference was $status';
+  }
+
+  @override
+  String clipboardWatcherStatus(String status) {
+    return 'Clipboard watcher $status';
+  }
+
+  @override
+  String get communityNode => 'Community Node';
+
+  @override
+  String get confirm => 'Confirm';
+
+  @override
+  String get confirmNode => 'Confirm node';
+
+  @override
+  String get confirmPassword => 'Confirm password';
+
+  @override
+  String get confirmScale => 'Confirm scale';
+
+  @override
+  String get confirmTheme => 'Confirm theme';
+
+  @override
+  String connectionCouldNotBeEstablished(String node) {
+    return 'Connection could not be established to $node';
+  }
+
+  @override
+  String get connectionFailed => 'Connection failed';
+
+  @override
+  String couldNotReconnectToNode(String node) {
+    return 'Could not reconnect to $node';
+  }
+
+  @override
+  String currentClientChainIdentifier(int chainId) {
+    return 'Current client chain identifier is $chainId';
+  }
+
+  @override
+  String get currentPassword => 'Current password';
+
+  @override
+  String get dark => 'Dark';
+
+  @override
+  String addressNumber(int index) {
+    return 'Address $index';
+  }
+
+  @override
+  String get deleteCache => 'Delete cache';
+
+  @override
+  String get deleteNode => 'Delete node';
+
+  @override
+  String deleteNodeConfirmation(String node) {
+    return 'Are you sure you want to delete $node from the list of nodes? This action can\'t be undone.';
+  }
+
+  @override
+  String get deleteWalletCacheAndCloseApp =>
+      'This option will delete the wallet cache and close the application';
+
+  @override
+  String desktopNotificationsPreferenceStatus(String status) {
+    return 'Desktop notifications preference was $status';
+  }
+
+  @override
+  String desktopNotificationsStatus(String status) {
+    return 'Desktop notifications $status';
+  }
+
+  @override
+  String get disabled => 'disabled';
+
+  @override
+  String get disconnectedFromNode => 'Disconnected from node';
+
+  @override
+  String get display => 'Display';
+
+  @override
+  String get displaysAccountChainInformation =>
+      'This card displays information regarding the account-chain for the specified address';
+
+  @override
+  String get displaysConnectedNetworkPeers =>
+      'This card displays information about connected network peers';
+
+  @override
+  String get dumpMnemonic => 'Dump Mnemonic';
+
+  @override
+  String get editNode => 'Edit node';
+
+  @override
+  String get embeddedNodeSyncExplanation =>
+      'By default Syrius connects to its own built-in full node, which is called the Embedded Node. It may take up to 24 hours to fully sync the network via the embedded node. During this time, you cannot send or receive transactions.\n\nIf you want to get started right away, please connect to a community node.';
+
+  @override
+  String get embeddedNodeValidatesTransactions =>
+      'The Embedded Node validates all network transactions\nIt may take several hours to fully sync with the network';
+
+  @override
+  String get emptyAccountChain => 'Empty account-chain';
+
+  @override
+  String get enableClipboardWatcher => 'Enable clipboard watcher';
+
+  @override
+  String get enableDesktopNotifications => 'Enable desktop notifications';
+
+  @override
+  String get enabled => 'enabled';
+
+  @override
+  String get encryptedConnection => 'Encrypted connection';
+
+  @override
+  String get english => 'English';
+
+  @override
+  String get enterMessage => 'Enter message';
+
+  @override
+  String get enterPublicKey => 'Enter public key';
+
+  @override
+  String get enterSignature => 'Enter signature';
+
+  @override
+  String get enterSignedHash => 'Enter signed hash';
+
+  @override
+  String get enterStrongSeedVaultKey =>
+      'Please enter a strong Seed Vault Key to encrypt your Seed';
+
+  @override
+  String get enterText => 'Enter text';
+
+  @override
+  String get enterWalletPasswordToDumpMnemonic =>
+      'Enter the wallet password to dump the mnemonic';
+
+  @override
+  String eraseAfterFailedPasswordAttempts(int attempts) {
+    return 'Erase after $attempts failed password attempts';
+  }
+
+  @override
+  String get eraseWalletFilesMakeSureBackup =>
+      'This option will erase the wallet files. Make sure you have a backup first';
+
+  @override
+  String get errorAccessingWalletForBackup =>
+      'Error while accessing wallet for backup';
+
+  @override
+  String get errorAddingNewNode => 'Error while adding new node';
+
+  @override
+  String get errorChangingAddressLabel =>
+      'Something went wrong while changing the address label';
+
+  @override
+  String get errorChangingClipboardWatcher =>
+      'Something went wrong while changing clipboard watcher preference';
+
+  @override
+  String get errorChangingPassword =>
+      'An error occurred while trying to change password';
+
+  @override
+  String get errorConfirmingAutoEraseLimit =>
+      'Error while confirming auto-erase limit';
+
+  @override
+  String get errorConfirmingAutoLockInterval =>
+      'Error while confirming auto-lock interval';
+
+  @override
+  String get errorDecryptingWallet =>
+      'An error occurred while trying to decrypt wallet';
+
+  @override
+  String errorDeletingNodeFromDatabase(String node) {
+    return 'Error during deleting node $node from the database';
+  }
+
+  @override
+  String get errorExportingSeedVault => 'Error while exporting Seed Vault';
+
+  @override
+  String get errorSettingAutoReceivePreference =>
+      'Something went wrong while setting automatic receive preference';
+
+  @override
+  String get errorSettingClientChainIdentifier =>
+      'Error while setting the new client chain identifier';
+
+  @override
+  String get errorSettingDesktopNotifications =>
+      'Something went wrong while setting desktop notifications preference';
+
+  @override
+  String get errorSettingLaunchAtStartup =>
+      'Something went wrong while setting launch at startup preference';
+
+  @override
+  String get errorSigningMessage => 'Error while signing message';
+
+  @override
+  String get errorVerifyingFileHash => 'Error while verifying file hash';
+
+  @override
+  String get errorVerifyingMessage => 'Error while verifying message';
+
+  @override
+  String get export => 'Export';
+
+  @override
+  String get exportSeedVault => 'Export Seed Vault';
+
+  @override
+  String get fileHashVerifiedSuccessfully => 'File hash verified successfully';
+
+  @override
+  String fileHashVerifiedWithSignedHash(String signedHash) {
+    return 'File hash was successfully verified with the signed hash: $signedHash';
+  }
+
+  @override
+  String get general => 'General';
+
+  @override
+  String get genericWalletAndNetworkInfo =>
+      'Generic wallet & network information';
+
+  @override
+  String get hashOrPublicKeyInvalid => 'Hash or public key invalid';
+
+  @override
+  String get huge => 'Huge';
+
+  @override
+  String get incorrectPassword => 'Incorrect password';
+
+  @override
+  String get integratedFullNodeEnhancedSecurity =>
+      'Integrated Full Node: enhanced security and privacy';
+
+  @override
+  String get ip => 'IP';
+
+  @override
+  String get labelAlreadyExists => 'Label already exists';
+
+  @override
+  String labelAlreadyExistsInDatabase(String label) {
+    return 'Label $label already exists in the database';
+  }
+
+  @override
+  String get labelCannotBeEmpty => 'Label can\'t be empty';
+
+  @override
+  String labelExceedsMaxLength(String label, int length, int maxLength) {
+    return 'The label $label is $length characters long, which is more than the $maxLength limit.';
+  }
+
+  @override
+  String labelHasTooManyCharacters(int maxLength) {
+    return 'The label has more than $maxLength characters';
+  }
+
+  @override
+  String get large => 'Large';
+
+  @override
+  String get launchAtStartup => 'Launch at startup';
+
+  @override
+  String launchAtStartupPreferenceStatus(String status) {
+    return 'Launch at startup preference was $status';
+  }
+
+  @override
+  String launchAtStartupStatus(String status) {
+    return 'Launch startup $status';
+  }
+
+  @override
+  String get light => 'Light';
+
+  @override
+  String get listensClipboardForWalletConnectUri =>
+      'Listens to the values passed to the clipboard and sends a notification when a WalletConnect URI has been copied';
+
+  @override
+  String get locale => 'Locale';
+
+  @override
+  String get lock => 'Lock';
+
+  @override
+  String lockAfterMinutesOfInactivity(int minutes) {
+    return 'Lock after $minutes minutes of inactivity';
+  }
+
+  @override
+  String get messageOrSignatureInvalid => 'Message or signature invalid';
+
+  @override
+  String get messageVerifiedSuccessfully => 'Message verified successfully';
+
+  @override
+  String messageVerifiedWithSignature(String message, String signature) {
+    return 'The message: $message was successfully verified with the signature: $signature';
+  }
+
+  @override
+  String get momentumHash => 'Momentum hash';
+
+  @override
+  String get momentumHeight => 'Momentum height';
+
+  @override
+  String get newPassword => 'New password';
+
+  @override
+  String get noPeersFound => 'No peers found';
+
+  @override
+  String get nodeAddressCannotBeEmpty => 'Node address can\'t be empty';
+
+  @override
+  String get nodeAddressWithPort => 'Node address with port';
+
+  @override
+  String get nodeAlreadyExists => 'Node already exists';
+
+  @override
+  String nodeAlreadyExistsNamed(String node) {
+    return 'Node $node already exists';
+  }
+
+  @override
+  String nodeHasDifferentChainIdentifier(
+    String node,
+    int nodeChainId,
+    int currentChainId,
+  ) {
+    return 'The node $node you are connecting to has a different chain identifier $nodeChainId than the current client chain identifier $currentChainId';
+  }
+
+  @override
+  String nodeHasTooManyCharacters(int maxLength) {
+    return 'The node has more than $maxLength characters';
+  }
+
+  @override
+  String get nodeManagement => 'Node Management';
+
+  @override
+  String get nodeSelection => 'Node selection';
+
+  @override
+  String get nonAlphanetChainIdentifier => 'Non-alphanet chain identifier';
+
+  @override
+  String get normal => 'Normal';
+
+  @override
+  String get otherWalletOptions => 'Other wallet options';
+
+  @override
+  String get passwordRequirementsInfo =>
+      'Use a password that has at least 8 characters, one number, one uppercase letter, one lowercase letter and one symbol';
+
+  @override
+  String get pasteFromClipboard => 'Paste from clipboard';
+
+  @override
+  String get peers => 'Peers';
+
+  @override
+  String get peersAvailable => 'Peers available';
+
+  @override
+  String get peersConnected => 'Peers connected';
+
+  @override
+  String get preferences => 'Preferences';
+
+  @override
+  String get proceedAnyway => 'Proceed anyway';
+
+  @override
+  String get publicKey => 'Public Key';
+
+  @override
+  String get reconnect => 'Reconnect';
+
+  @override
+  String get repeatNewPassword => 'Repeat new password';
+
+  @override
+  String get reset => 'Reset';
+
+  @override
+  String get resetWallet => 'Reset wallet';
+
+  @override
+  String get security => 'Security';
+
+  @override
+  String get seed => 'Seed';
+
+  @override
+  String get seedVault => 'Seed Vault';
+
+  @override
+  String get seedVaultBackupExplanation =>
+      'A Seed Vault is an encrypted file for backing up your Seed. The Seed is encrypted with a Seed Vault Key and cannot be accessed without it. Make sure you backup your Seed Vault in multiple offline locations (e.g. USB, external HDD) and do not lose your Seed Vault Key. If you lose the Seed Vault file or you don\'t remember the Seed Vault Key you lose access to your funds.';
+
+  @override
+  String get seedVaultExported => 'Seed Vault successfully exported';
+
+  @override
+  String seedVaultExportedToPath(String path) {
+    return 'The Seed Vault was successfully exported to $path';
+  }
+
+  @override
+  String get seedVaultKey => 'Seed Vault Key';
+
+  @override
+  String get selectDefaultAddressForOperations =>
+      'Select the default address that will be used throughout the wallet for any network operation';
+
+  @override
+  String get setZnnNodeToConnect =>
+      'This card allows one to set the ZNN Node used to connect to. By default the wallet is connected to the Embedded Node. If you are running a local ZNN Node, please use the localhost option';
+
+  @override
+  String get sign => 'Sign';
+
+  @override
+  String get signFile => 'Sign file';
+
+  @override
+  String get signature => 'Signature';
+
+  @override
+  String get signedHash => 'Signed hash';
+
+  @override
+  String get small => 'Small';
+
+  @override
+  String get somethingWentWrong => 'Something went wrong';
+
+  @override
+  String get storeSeedVaultOfflineLocations =>
+      'Store your Seed Vault and Seed Vault Key in secure and separate offline locations. You will need both to access your funds';
+
+  @override
+  String successfullyAddedNode(String node) {
+    return 'Successfully added node $node';
+  }
+
+  @override
+  String successfullyConnectedToNode(String node) {
+    return 'Successfully connected to $node';
+  }
+
+  @override
+  String get system => 'System';
+
+  @override
+  String get textScaleChangeFailed => 'Text scale change failed';
+
+  @override
+  String get textScaleChanged => 'Text scale changed';
+
+  @override
+  String textScaleChangedDetails(String scale) {
+    return 'Text scale successfully changed to $scale';
+  }
+
+  @override
+  String get textScaling => 'Text scaling';
+
+  @override
+  String get theme => 'Theme';
+
+  @override
+  String get themeModeChangeFailed => 'Theme mode change failed';
+
+  @override
+  String get themeModeChanged => 'Theme mode changed';
+
+  @override
+  String themeModeChangedDetails(String mode) {
+    return 'Theme mode successfully changed to $mode';
+  }
+
+  @override
+  String get timestamp => 'Timestamp';
+
+  @override
+  String get uncheckToDisableAutoReceiver =>
+      'Uncheck to disable the auto-receiver and receive transactions manually';
+
+  @override
+  String get unencryptedConnection => 'Unencrypted connection';
+
+  @override
+  String get verify => 'Verify';
+
+  @override
+  String get verifyFile => 'Verify file';
+
+  @override
+  String get walletAppearanceAndThemeSettings =>
+      'Wallet appearance and theme settings';
+
+  @override
+  String get walletOptions => 'Wallet Options';
+
+  @override
+  String get willSecurelyStoreSeedVault =>
+      'I will securely store the Seed Vault & Seed Vault Key';
 }
