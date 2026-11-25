@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:bloc_concurrency/bloc_concurrency.dart';
 import 'package:equatable/equatable.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
 import 'package:json_annotation/json_annotation.dart';
@@ -20,7 +21,7 @@ class MultipleBalanceBloc
   /// Creates a new instance of [MultipleBalanceBloc].
   MultipleBalanceBloc({required this.zenon})
     : super(const MultipleBalanceState()) {
-    on<MultipleBalanceFetch>(_onFetchBalances);
+    on<MultipleBalanceFetch>(_onFetchBalances, transformer: restartable());
     listenToWsRestart(
       () => add(
         MultipleBalanceFetch(
@@ -49,6 +50,9 @@ class MultipleBalanceBloc
           _getBalancePerAddress,
         ),
       );
+      if (emit.isDone) {
+        return;
+      }
 
       for (final AccountInfo accountInfo in accountInfoList) {
         addressBalanceMap[accountInfo.address!] = accountInfo;
@@ -61,6 +65,9 @@ class MultipleBalanceBloc
         ),
       );
     } on Exception catch (error, stackTrace) {
+      if (emit.isDone) {
+        return;
+      }
       addError(error, stackTrace);
       emit(
         state.copyWith(

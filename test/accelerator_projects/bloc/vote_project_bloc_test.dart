@@ -166,10 +166,10 @@ void main() {
       },
     );
 
-    blocTest<VoteProjectBloc, VoteProjectState>(
+    test(
       'producer address falls back to pillar.getAll, dispatches '
       'voteByProdAddress, and polls until confirmation',
-      setUp: () {
+      () async {
         final PillarInfo alpha = _pillar('alpha', owner, producer);
         when(
           () => pillarApi.getByOwner(producer),
@@ -213,27 +213,46 @@ void main() {
             _pillarVote(targetId, 'alpha', AcceleratorProjectVote.no),
           ];
         });
-      },
-      build: () => VoteProjectBloc(
-        accountBlockUtils: accountBlockUtils,
-        zenon: zenon,
-        pageSize: 10,
-        pollInterval: const Duration(milliseconds: 5),
-        confirmationTimeout: const Duration(milliseconds: 300),
-      ),
-      act: (VoteProjectBloc bloc) => bloc.add(
-        VoteProjectRequested(
-          address: producer,
-          id: targetId,
-          vote: AcceleratorProjectVote.no,
-        ),
-      ),
-      wait: const Duration(milliseconds: 100),
-      expect: () => <VoteProjectState>[
-        const VoteProjectLoading(),
-        VoteProjectDone(accountBlock: signedBlock),
-      ],
-      verify: (_) {
+
+        final VoteProjectBloc bloc = VoteProjectBloc(
+          accountBlockUtils: accountBlockUtils,
+          zenon: zenon,
+          pageSize: 10,
+          pollInterval: const Duration(milliseconds: 5),
+          confirmationTimeout: const Duration(seconds: 2),
+        );
+        addTearDown(bloc.close);
+
+        final List<VoteProjectState> emitted = <VoteProjectState>[];
+        final Completer<VoteProjectDone> doneCompleter =
+            Completer<VoteProjectDone>();
+        final StreamSubscription<VoteProjectState> sub = bloc.stream.listen((
+          VoteProjectState state,
+        ) {
+          emitted.add(state);
+          if (state is VoteProjectDone && !doneCompleter.isCompleted) {
+            doneCompleter.complete(state);
+          }
+        });
+        addTearDown(sub.cancel);
+
+        bloc.add(
+          VoteProjectRequested(
+            address: producer,
+            id: targetId,
+            vote: AcceleratorProjectVote.no,
+          ),
+        );
+
+        await doneCompleter.future.timeout(const Duration(seconds: 5));
+
+        expect(
+          emitted,
+          equals(<VoteProjectState>[
+            const VoteProjectLoading(),
+            VoteProjectDone(accountBlock: signedBlock),
+          ]),
+        );
         verify(
           () => acceleratorApi.voteByProdAddress(
             targetId,
@@ -256,10 +275,10 @@ void main() {
       },
     );
 
-    blocTest<VoteProjectBloc, VoteProjectState>(
+    test(
       'tolerates transient RPC errors while polling and emits VoteProjectDone '
       'once confirmed',
-      setUp: () {
+      () async {
         when(() => pillarApi.getByOwner(owner)).thenAnswer(
           (_) async => <PillarInfo>[_pillar('alpha', owner, producer)],
         );
@@ -292,26 +311,45 @@ void main() {
             _pillarVote(targetId, 'alpha', AcceleratorProjectVote.abstain),
           ];
         });
-      },
-      build: () => VoteProjectBloc(
-        accountBlockUtils: accountBlockUtils,
-        zenon: zenon,
-        pollInterval: const Duration(milliseconds: 5),
-        confirmationTimeout: const Duration(milliseconds: 300),
-      ),
-      act: (VoteProjectBloc bloc) => bloc.add(
-        VoteProjectRequested(
-          address: owner,
-          id: targetId,
-          vote: AcceleratorProjectVote.abstain,
-        ),
-      ),
-      wait: const Duration(milliseconds: 100),
-      expect: () => <VoteProjectState>[
-        const VoteProjectLoading(),
-        VoteProjectDone(accountBlock: signedBlock),
-      ],
-      verify: (_) {
+
+        final VoteProjectBloc bloc = VoteProjectBloc(
+          accountBlockUtils: accountBlockUtils,
+          zenon: zenon,
+          pollInterval: const Duration(milliseconds: 5),
+          confirmationTimeout: const Duration(seconds: 2),
+        );
+        addTearDown(bloc.close);
+
+        final List<VoteProjectState> emitted = <VoteProjectState>[];
+        final Completer<VoteProjectDone> doneCompleter =
+            Completer<VoteProjectDone>();
+        final StreamSubscription<VoteProjectState> sub = bloc.stream.listen((
+          VoteProjectState state,
+        ) {
+          emitted.add(state);
+          if (state is VoteProjectDone && !doneCompleter.isCompleted) {
+            doneCompleter.complete(state);
+          }
+        });
+        addTearDown(sub.cancel);
+
+        bloc.add(
+          VoteProjectRequested(
+            address: owner,
+            id: targetId,
+            vote: AcceleratorProjectVote.abstain,
+          ),
+        );
+
+        await doneCompleter.future.timeout(const Duration(seconds: 5));
+
+        expect(
+          emitted,
+          equals(<VoteProjectState>[
+            const VoteProjectLoading(),
+            VoteProjectDone(accountBlock: signedBlock),
+          ]),
+        );
         verify(
           () => acceleratorApi.getPillarVotes('alpha', <String>[
             targetId.toString(),
@@ -320,10 +358,10 @@ void main() {
       },
     );
 
-    blocTest<VoteProjectBloc, VoteProjectState>(
+    test(
       'falls back to emitting VoteProjectDone when confirmation polling times '
       'out',
-      setUp: () {
+      () async {
         when(() => pillarApi.getByOwner(owner)).thenAnswer(
           (_) async => <PillarInfo>[_pillar('alpha', owner, producer)],
         );
@@ -346,83 +384,111 @@ void main() {
             targetId.toString(),
           ]),
         ).thenAnswer((_) async => const <PillarVote?>[null]);
+
+        final VoteProjectBloc bloc = VoteProjectBloc(
+          accountBlockUtils: accountBlockUtils,
+          zenon: zenon,
+          pollInterval: const Duration(milliseconds: 5),
+          confirmationTimeout: const Duration(milliseconds: 25),
+        );
+        addTearDown(bloc.close);
+
+        final List<VoteProjectState> emitted = <VoteProjectState>[];
+        final Completer<VoteProjectDone> doneCompleter =
+            Completer<VoteProjectDone>();
+        final StreamSubscription<VoteProjectState> sub = bloc.stream.listen((
+          VoteProjectState state,
+        ) {
+          emitted.add(state);
+          if (state is VoteProjectDone && !doneCompleter.isCompleted) {
+            doneCompleter.complete(state);
+          }
+        });
+        addTearDown(sub.cancel);
+
+        bloc.add(
+          VoteProjectRequested(
+            address: owner,
+            id: targetId,
+            vote: AcceleratorProjectVote.yes,
+          ),
+        );
+
+        await doneCompleter.future.timeout(const Duration(seconds: 5));
+
+        expect(
+          emitted,
+          equals(<VoteProjectState>[
+            const VoteProjectLoading(),
+            VoteProjectDone(accountBlock: signedBlock),
+          ]),
+        );
       },
-      build: () => VoteProjectBloc(
-        accountBlockUtils: accountBlockUtils,
-        zenon: zenon,
-        pollInterval: const Duration(milliseconds: 5),
-        confirmationTimeout: const Duration(milliseconds: 25),
-      ),
-      act: (VoteProjectBloc bloc) => bloc.add(
-        VoteProjectRequested(
-          address: owner,
-          id: targetId,
-          vote: AcceleratorProjectVote.yes,
-        ),
-      ),
-      wait: const Duration(milliseconds: 100),
-      expect: () => <VoteProjectState>[
-        const VoteProjectLoading(),
-        VoteProjectDone(accountBlock: signedBlock),
-      ],
     );
 
     test(
       'stops polling cleanly when closed while waiting for confirmation',
       () async {
-      final Completer<List<PillarVote?>> firstPollStarted =
-          Completer<List<PillarVote?>>();
-      when(() => pillarApi.getByOwner(owner)).thenAnswer(
-        (_) async => <PillarInfo>[_pillar('alpha', owner, producer)],
-      );
-      when(
-        () => acceleratorApi.voteByName(
-          targetId,
-          'alpha',
-          AcceleratorProjectVote.yes.index,
-        ),
-      ).thenReturn(txTemplate);
-      when(
-        () => accountBlockUtils.createAccountBlock(
-          txTemplate,
-          'vote for project',
-          address: owner,
-        ),
-      ).thenAnswer((_) async => signedBlock);
-      when(
-        () => acceleratorApi.getPillarVotes('alpha', <String>[
-          targetId.toString(),
-        ]),
-      ).thenAnswer((_) => firstPollStarted.future);
+        final Completer<void> pollStarted = Completer<void>();
+        final Completer<List<PillarVote?>> pollResponse =
+            Completer<List<PillarVote?>>();
+        when(() => pillarApi.getByOwner(owner)).thenAnswer(
+          (_) async => <PillarInfo>[_pillar('alpha', owner, producer)],
+        );
+        when(
+          () => acceleratorApi.voteByName(
+            targetId,
+            'alpha',
+            AcceleratorProjectVote.yes.index,
+          ),
+        ).thenReturn(txTemplate);
+        when(
+          () => accountBlockUtils.createAccountBlock(
+            txTemplate,
+            'vote for project',
+            address: owner,
+          ),
+        ).thenAnswer((_) async => signedBlock);
+        when(
+          () => acceleratorApi.getPillarVotes('alpha', <String>[
+            targetId.toString(),
+          ]),
+        ).thenAnswer((_) {
+          if (!pollStarted.isCompleted) {
+            pollStarted.complete();
+          }
+          return pollResponse.future;
+        });
 
-      final VoteProjectBloc bloc = VoteProjectBloc(
-        accountBlockUtils: accountBlockUtils,
-        zenon: zenon,
-        pollInterval: const Duration(milliseconds: 5),
-        confirmationTimeout: const Duration(seconds: 5),
-      );
-      final List<VoteProjectState> emitted = <VoteProjectState>[];
-      final StreamSubscription<VoteProjectState> sub = bloc.stream.listen(
-        emitted.add,
-      );
-      addTearDown(sub.cancel);
+        final VoteProjectBloc bloc = VoteProjectBloc(
+          accountBlockUtils: accountBlockUtils,
+          zenon: zenon,
+          pollInterval: const Duration(milliseconds: 5),
+          confirmationTimeout: const Duration(seconds: 5),
+        );
+        final List<VoteProjectState> emitted = <VoteProjectState>[];
+        final StreamSubscription<VoteProjectState> sub = bloc.stream.listen(
+          emitted.add,
+        );
+        addTearDown(sub.cancel);
 
-      bloc.add(
-        VoteProjectRequested(
-          address: owner,
-          id: targetId,
-          vote: AcceleratorProjectVote.yes,
-        ),
-      );
-      await Future<void>.delayed(const Duration(milliseconds: 20));
-      expect(emitted, equals(<VoteProjectState>[const VoteProjectLoading()]));
+        bloc.add(
+          VoteProjectRequested(
+            address: owner,
+            id: targetId,
+            vote: AcceleratorProjectVote.yes,
+          ),
+        );
+        await pollStarted.future.timeout(const Duration(seconds: 5));
+        expect(emitted, equals(<VoteProjectState>[const VoteProjectLoading()]));
 
-      final Future<void> closeFuture = bloc.close();
-      firstPollStarted.complete(const <PillarVote?>[null]);
-      await closeFuture;
+        final Future<void> closeFuture = bloc.close();
+        pollResponse.complete(const <PillarVote?>[null]);
+        await closeFuture;
 
-      expect(emitted, equals(<VoteProjectState>[const VoteProjectLoading()]));
-    });
+        expect(emitted, equals(<VoteProjectState>[const VoteProjectLoading()]));
+      },
+    );
 
     blocTest<VoteProjectBloc, VoteProjectState>(
       'emits graceful NoPillarForAddressException when address has no pillar '

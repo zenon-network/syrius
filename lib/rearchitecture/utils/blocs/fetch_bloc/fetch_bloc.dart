@@ -35,6 +35,7 @@ abstract class FetchBloc<T extends Object>
   final Zenon zenon;
 
   final ValueNotifier<bool> _isLoading = ValueNotifier<bool>(false);
+  bool _isLoadingDisposed = false;
   int _inFlightRequests = 0;
 
   /// Notifies listeners while a [FetchRequestData] request is in flight.
@@ -86,6 +87,9 @@ abstract class FetchBloc<T extends Object>
   @override
   Future<void> close() async {
     await super.close();
-    _isLoading.dispose();
+    if (!_isLoadingDisposed) {
+      _isLoadingDisposed = true;
+      _isLoading.dispose();
+    }
   }
 }

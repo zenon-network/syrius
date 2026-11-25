@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
@@ -46,42 +45,27 @@ class PlasmaStatsCard extends StatefulWidget {
 class _PlasmaStatsCardState extends State<PlasmaStatsCard> {
   @override
   Widget build(BuildContext context) {
-    return BlocRefreshLoadingBuilder<
-      PlasmaStatsBloc,
-      InfiniteListState<PlasmaInfoWrapper>
-    >(
-      isLoading: (InfiniteListState<PlasmaInfoWrapper> state) =>
-          state.status == InfiniteListStatus.initial,
-      builder: (BuildContext context, ValueListenable<bool> isRefreshLoading) {
-        return NewCardScaffold(
-          data: _buildCard(),
-          isRefreshLoading: isRefreshLoading,
-          body:
-              BlocBuilder<
-                PlasmaStatsBloc,
-                InfiniteListState<PlasmaInfoWrapper>
-              >(
-                builder: (_, InfiniteListState<PlasmaInfoWrapper> state) {
-                  final InfiniteListStatus status = state.status;
+    return NewCardScaffold(
+      data: _buildCard(),
+      isRefreshLoading: context.read<PlasmaStatsBloc>().isLoadingListenable,
+      body: BlocBuilder<PlasmaStatsBloc, InfiniteListState<PlasmaInfoWrapper>>(
+        builder: (_, InfiniteListState<PlasmaInfoWrapper> state) {
+          final InfiniteListStatus status = state.status;
 
-                  return switch (status) {
-                    InfiniteListStatus.initial => const SyriusLoadingWidget(),
-                    InfiniteListStatus.failure => SyriusErrorWidget(
-                      state.error!,
-                    ),
-                    InfiniteListStatus.success => _Populated(
-                      hasReachedMax: state.hasReachedMax,
-                      plasmaInfoStats: state.data!,
-                      version: widget.version,
-                    ),
-                  };
-                },
-              ),
-          onRefreshPressed: () {
-            context.read<PlasmaStatsBloc>().add(
-              const InfiniteListRefreshRequested(),
-            );
-          },
+          return switch (status) {
+            InfiniteListStatus.initial => const SyriusLoadingWidget(),
+            InfiniteListStatus.failure => SyriusErrorWidget(state.error!),
+            InfiniteListStatus.success => _Populated(
+              hasReachedMax: state.hasReachedMax,
+              plasmaInfoStats: state.data!,
+              version: widget.version,
+            ),
+          };
+        },
+      ),
+      onRefreshPressed: () {
+        context.read<PlasmaStatsBloc>().add(
+          const InfiniteListRefreshRequested(),
         );
       },
     );

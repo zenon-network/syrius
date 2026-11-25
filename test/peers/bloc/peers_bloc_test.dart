@@ -316,5 +316,58 @@ void main() {
         );
       },
     );
+
+    test(
+      'isLoadingListenable tracks populated and overlapping refreshes',
+      () async {
+        final Completer<NetworkInfo> refreshCompleter =
+            Completer<NetworkInfo>();
+        final Completer<void> refreshStarted = Completer<void>();
+        int callCount = 0;
+
+        when(() => mockStatsApi.networkInfo()).thenAnswer((_) {
+          callCount++;
+          if (callCount == 1) {
+            return Future<NetworkInfo>.value(networkInfo);
+          }
+          if (!refreshStarted.isCompleted) {
+            refreshStarted.complete();
+          }
+          return refreshCompleter.future;
+        });
+
+        final PeersBloc bloc = PeersBloc(zenon: mockZenon);
+        addTearDown(bloc.close);
+
+        bloc.add(const PeersRequested());
+        await expectLater(bloc.stream, emitsThrough(isA<PeersPopulated>()));
+        expect(bloc.isLoadingListenable.value, isFalse);
+
+        // Refresh from PeersPopulated keeps state populated while exposing
+        // loading via isLoadingListenable.
+        final Completer<void> loadingCleared = Completer<void>();
+        void onLoadingChanged() {
+          if (!bloc.isLoadingListenable.value && !loadingCleared.isCompleted) {
+            loadingCleared.complete();
+          }
+        }
+
+        bloc.add(const PeersRequested());
+        await refreshStarted.future.timeout(const Duration(seconds: 5));
+        expect(bloc.state, isA<PeersPopulated>());
+        expect(bloc.isLoadingListenable.value, isTrue);
+
+        bloc.isLoadingListenable.addListener(onLoadingChanged);
+        addTearDown(() {
+          if (!bloc.isClosed) {
+            bloc.isLoadingListenable.removeListener(onLoadingChanged);
+          }
+        });
+        refreshCompleter.complete(networkInfo);
+        await loadingCleared.future.timeout(const Duration(seconds: 5));
+
+        expect(bloc.isLoadingListenable.value, isFalse);
+      },
+    );
   });
 }

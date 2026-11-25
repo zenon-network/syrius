@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:nested/nested.dart';
@@ -43,56 +42,46 @@ class _ViewState extends State<_View> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocRefreshLoadingBuilder<TokensBloc, InfiniteListState<Token>>(
-      isLoading: (InfiniteListState<Token> state) =>
-          state.status == InfiniteListStatus.initial,
-      builder: (BuildContext context, ValueListenable<bool> isRefreshLoading) {
-        return NewCardScaffold(
-          data: CardData(
-            title: context.l10n.tokens,
-            description: context.l10n.tokensCardDescription,
-          ),
-          isRefreshLoading: isRefreshLoading,
-          onRefreshPressed: () {
-            _searchController.clear();
-            context.read<TokensBloc>().add(
-              const InfiniteListRefreshRequested(),
-            );
-            context.read<SearchTokenBloc>().add(
-              const SearchTokenRequested(query: '', refresh: true),
-            );
-          },
-          body: Padding(
-            padding: const EdgeInsets.all(15),
-            child: Column(
-              children: <Widget>[
-                TextField(
-                  controller: _searchController,
-                  decoration: InputDecoration(
-                    hintText: context.l10n.searchTokenHint,
-                    prefixIcon: const Icon(Icons.search),
-                    suffixIcon: ClearContentButton(
-                      controller: _searchController,
-                    ),
-                  ),
-                  onChanged: _onSearchChanged,
-                ),
-                kVerticalSpacing,
-                Expanded(
-                  child: ValueListenableBuilder<TextEditingValue>(
-                    valueListenable: _searchController,
-                    builder: (_, TextEditingValue value, _) {
-                      return value.text.isEmpty
-                          ? _buildTokensList()
-                          : _buildSearchToken(searchQuery: value.text);
-                    },
-                  ),
-                ),
-              ],
-            ),
-          ),
+    return NewCardScaffold(
+      data: CardData(
+        title: context.l10n.tokens,
+        description: context.l10n.tokensCardDescription,
+      ),
+      isRefreshLoading: context.read<TokensBloc>().isLoadingListenable,
+      onRefreshPressed: () {
+        _searchController.clear();
+        context.read<TokensBloc>().add(const InfiniteListRefreshRequested());
+        context.read<SearchTokenBloc>().add(
+          const SearchTokenRequested(query: '', refresh: true),
         );
       },
+      body: Padding(
+        padding: const EdgeInsets.all(15),
+        child: Column(
+          children: <Widget>[
+            TextField(
+              controller: _searchController,
+              decoration: InputDecoration(
+                hintText: context.l10n.searchTokenHint,
+                prefixIcon: const Icon(Icons.search),
+                suffixIcon: ClearContentButton(controller: _searchController),
+              ),
+              onChanged: _onSearchChanged,
+            ),
+            kVerticalSpacing,
+            Expanded(
+              child: ValueListenableBuilder<TextEditingValue>(
+                valueListenable: _searchController,
+                builder: (_, TextEditingValue value, _) {
+                  return value.text.isEmpty
+                      ? _buildTokensList()
+                      : _buildSearchToken(searchQuery: value.text);
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 

@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
@@ -39,29 +38,23 @@ class _View extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocRefreshLoadingBuilder<PeersBloc, PeersState>(
-      isLoading: (PeersState state) => state is PeersLoading,
-      builder: (BuildContext context, ValueListenable<bool> isRefreshLoading) {
-        return NewCardScaffold(
-          data: _buildCardData(context: context),
-          isRefreshLoading: isRefreshLoading,
-          onRefreshPressed: () {
-            context.read<PeersBloc>().add(const PeersRequested());
-          },
-          body: BlocBuilder<PeersBloc, PeersState>(
-            builder: (BuildContext context, PeersState state) {
-              return switch (state) {
-                PeersInitial() || PeersLoading() => const SyriusLoadingWidget(),
-                PeersFailure(:final SyriusException exception) =>
-                  SyriusErrorWidget(exception),
-                PeersPopulated(:final List<Peer> peers) => _Populated(
-                  peers: peers,
-                ),
-              };
-            },
-          ),
-        );
+    return NewCardScaffold(
+      data: _buildCardData(context: context),
+      isRefreshLoading: context.read<PeersBloc>().isLoadingListenable,
+      onRefreshPressed: () {
+        context.read<PeersBloc>().add(const PeersRequested());
       },
+      body: BlocBuilder<PeersBloc, PeersState>(
+        builder: (BuildContext context, PeersState state) {
+          return switch (state) {
+            PeersInitial() || PeersLoading() => const SyriusLoadingWidget(),
+            PeersFailure(:final SyriusException exception) => SyriusErrorWidget(
+              exception,
+            ),
+            PeersPopulated(:final List<Peer> peers) => _Populated(peers: peers),
+          };
+        },
+      ),
     );
   }
 

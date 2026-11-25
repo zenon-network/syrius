@@ -25,6 +25,7 @@ class AllTokensBloc extends HydratedBloc<AllTokensEvent, AllTokensState>
   final Zenon zenon;
 
   final ValueNotifier<bool> _isLoading = ValueNotifier<bool>(false);
+  bool _isLoadingDisposed = false;
   int _inFlightRequests = 0;
 
   /// Notifies listeners while an [AllTokensRequested] request is in flight.
@@ -72,6 +73,9 @@ class AllTokensBloc extends HydratedBloc<AllTokensEvent, AllTokensState>
   Future<void> close() async {
     cancelStreamSubscription();
     await super.close();
-    _isLoading.dispose();
+    if (!_isLoadingDisposed) {
+      _isLoadingDisposed = true;
+      _isLoading.dispose();
+    }
   }
 }

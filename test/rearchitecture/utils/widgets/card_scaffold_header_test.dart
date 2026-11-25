@@ -273,6 +273,79 @@ void main() {
       },
     );
 
+    testWidgets(
+      'BlocRefreshLoadingBuilder resubscribes when BlocProvider.value swaps '
+      'blocs while reusing the same child instance without rebuilding on '
+      'state changes',
+      (WidgetTester tester) async {
+        final _TestLoadingCubit cubitA = _TestLoadingCubit(initialState: false);
+        final _TestLoadingCubit cubitB = _TestLoadingCubit(initialState: true);
+        addTearDown(() async {
+          await cubitA.close();
+          await cubitB.close();
+        });
+
+        int builderCallCount = 0;
+        final Widget reusedChild =
+            BlocRefreshLoadingBuilder<_TestLoadingCubit, bool>(
+              isLoading: (bool loading) => loading,
+              builder:
+                  (
+                    BuildContext context,
+                    ValueListenable<bool> isRefreshLoading,
+                  ) {
+                    builderCallCount++;
+                    return CardScaffoldHeader(
+                      title: 'Reused Child Card',
+                      onMoreIconPressed: () {},
+                      onRefreshPressed: () {},
+                      isRefreshLoading: isRefreshLoading,
+                    );
+                  },
+            );
+
+        Widget buildWith(_TestLoadingCubit cubit) {
+          return MaterialApp(
+            home: Scaffold(
+              body: BlocProvider<_TestLoadingCubit>.value(
+                value: cubit,
+                child: reusedChild,
+              ),
+            ),
+          );
+        }
+
+        await tester.pumpWidget(buildWith(cubitA));
+        expect(builderCallCount, 1);
+        expect(find.byIcon(Icons.refresh), findsOneWidget);
+
+        // State emissions update RefreshButton without rebuilding builder.
+        cubitA.setLoading(isLoading: true);
+        await tester.pump();
+        expect(builderCallCount, 1);
+        expect(find.byType(SyriusLoadingWidget), findsOneWidget);
+
+        cubitA.setLoading(isLoading: false);
+        await tester.pump();
+        expect(builderCallCount, 1);
+        expect(find.byIcon(Icons.refresh), findsOneWidget);
+
+        // Swapping provider value while reusing the exact same child instance
+        // must resubscribe to cubitB and ignore subsequent cubitA emissions.
+        await tester.pumpWidget(buildWith(cubitB));
+        await tester.pump();
+        expect(find.byType(SyriusLoadingWidget), findsOneWidget);
+
+        cubitA.setLoading(isLoading: true);
+        await tester.pump();
+        expect(find.byType(SyriusLoadingWidget), findsOneWidget);
+
+        cubitB.setLoading(isLoading: false);
+        await tester.pump();
+        expect(find.byIcon(Icons.refresh), findsOneWidget);
+      },
+    );
+
     test(
       'FetchBloc.isLoadingListenable tracks in-flight requests cleanly',
       () async {

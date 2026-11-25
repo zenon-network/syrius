@@ -73,6 +73,11 @@ class _BlocRefreshLoadingBuilderState<B extends StateStreamable<S>, S>
 
   @override
   Widget build(BuildContext context) {
+    if (widget._bloc == null) {
+      // Subscribe only to provider instance swaps (not state emissions) so a
+      // reused child resubscribes when BlocProvider.value replaces the bloc.
+      context.select<B, bool>((B bloc) => identical(_currentBloc, bloc));
+    }
     return widget._builder(context, _isLoadingNotifier);
   }
 }

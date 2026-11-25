@@ -12,6 +12,7 @@ import 'package:zenon_syrius_wallet_flutter/model/database/wallet_notification.d
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
 import 'package:zenon_syrius_wallet_flutter/services/shared_prefs_service.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 import '../../helpers/hydrated_bloc.dart';
@@ -166,5 +167,59 @@ void main() {
       expect(find.text('Create phase'), findsNothing);
       expect(find.text('Phase List'), findsWidgets);
     });
+
+    testWidgets(
+      'keeps PhaseListCard mounted and shows RefreshButton loading during '
+      'subsequent RefreshProjectLoading',
+      (WidgetTester tester) async {
+        final Project project = _project(projectId, owner);
+        final StreamController<RefreshProjectState> states =
+            StreamController<RefreshProjectState>.broadcast();
+        addTearDown(states.close);
+
+        kSelectedAddress = visitor.toString();
+        whenListen<RefreshProjectState>(
+          refreshProjectBloc,
+          states.stream,
+          initialState: RefreshProjectPopulated(project: project),
+        );
+
+        await pumpScreen(tester, project);
+
+        expect(find.byType(PhaseListCard), findsOneWidget);
+        expect(
+          find.descendant(
+            of: find.byType(RefreshButton),
+            matching: find.byIcon(Icons.refresh),
+          ),
+          findsNWidgets(2),
+        );
+
+        states.add(const RefreshProjectLoading());
+        await tester.pump();
+        await tester.pump();
+
+        expect(find.byType(PhaseListCard), findsOneWidget);
+        expect(
+          find.descendant(
+            of: find.byType(RefreshButton),
+            matching: find.byType(SyriusLoadingWidget),
+          ),
+          findsNWidgets(2),
+        );
+
+        states.add(RefreshProjectPopulated(project: project));
+        await tester.pump();
+        await tester.pump();
+
+        expect(
+          find.descendant(
+            of: find.byType(RefreshButton),
+            matching: find.byIcon(Icons.refresh),
+          ),
+          findsNWidgets(2),
+        );
+      },
+    );
   });
 }

@@ -1,6 +1,8 @@
 import 'dart:async';
 
+import 'package:bloc_concurrency/bloc_concurrency.dart';
 import 'package:equatable/equatable.dart';
+import 'package:flutter/foundation.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
@@ -32,8 +34,7 @@ part 'infinite_list_state.dart';
 /// [InfiniteListRefreshRequested] event. This is sent when a new default
 /// address was selected and we want to load the latest transactions for that
 /// address. In this case, an initial state is emitted, with an empty list,
-/// followed by an event of [InfiniteListRequested] that restarts the
-/// fetching process for the new address
+/// followed by fetching page 0 for the new address.
 abstract class InfiniteListBloc<T>
     extends HydratedBloc<InfiniteListEvent, InfiniteListState<T>>
     with RefreshBlocMixin {
@@ -64,6 +65,7 @@ abstract class InfiniteListBloc<T>
     );
     on<InfiniteListRefreshRequested>(
       _onInfiniteListRefreshRequested,
+      transformer: restartable(),
     );
   }
 
@@ -79,6 +81,13 @@ abstract class InfiniteListBloc<T>
   /// Method that helps serializing the generic [T] type
   final Object? Function(T) toJsonT;
 
+  final ValueNotifier<bool> _isLoading = ValueNotifier<bool>(false);
+  bool _isLoadingDisposed = false;
+  int _inFlightRefreshRequests = 0;
+
+  /// Notifies listeners while an initial or refresh page-0 fetch is in flight.
+  ValueListenable<bool> get isLoadingListenable => _isLoading;
+
   /// Retrieves the data in a pagination manner, with the first page being 0
   Future<List<T>> paginationFetch({
     required Address? address,
@@ -89,13 +98,25 @@ abstract class InfiniteListBloc<T>
   Future<void> _onInfiniteListRequested(
     InfiniteListRequested event,
     Emitter<InfiniteListState<T>> emit,
-  ) async {
+  ) => _fetchFirstPage(address: event.address, emit: emit);
+
+  Future<void> _fetchFirstPage({
+    required Address? address,
+    required Emitter<InfiniteListState<T>> emit,
+  }) async {
+    _inFlightRefreshRequests++;
+    if (!isClosed && !_isLoading.value) {
+      _isLoading.value = true;
+    }
     try {
       final List<T> newData = await paginationFetch(
-        address: event.address,
+        address: address,
         pageIndex: 0,
         pageSize: pageSize,
       );
+      if (emit.isDone) {
+        return;
+      }
 
       final bool hasReachedMax = newData.length < pageSize;
 
@@ -107,6 +128,9 @@ abstract class InfiniteListBloc<T>
         ),
       );
     } on Object catch (error, stackTrace) {
+      if (emit.isDone) {
+        return;
+      }
       addError(error, stackTrace);
       emit(
         state.copyWith(
@@ -114,6 +138,11 @@ abstract class InfiniteListBloc<T>
           error: FailureException(),
         ),
       );
+    } finally {
+      _inFlightRefreshRequests--;
+      if (!isClosed && _inFlightRefreshRequests == 0) {
+        _isLoading.value = false;
+      }
     }
   }
 
@@ -131,6 +160,9 @@ abstract class InfiniteListBloc<T>
         pageIndex: pageIndex,
         pageSize: pageSize,
       );
+      if (emit.isDone) {
+        return;
+      }
 
       final bool hasReachedMax = data.length < pageSize;
 
@@ -145,6 +177,9 @@ abstract class InfiniteListBloc<T>
         ),
       );
     } on Object catch (error, stackTrace) {
+      if (emit.isDone) {
+        return;
+      }
       addError(error, stackTrace);
       emit(
         state.copyWith(
@@ -155,12 +190,12 @@ abstract class InfiniteListBloc<T>
     }
   }
 
-  FutureOr<void> _onInfiniteListRefreshRequested(
+  Future<void> _onInfiniteListRefreshRequested(
     InfiniteListRefreshRequested event,
     Emitter<InfiniteListState<T>> emit,
-  ) {
+  ) async {
     emit(InfiniteListState<T>.initial());
-    add(InfiniteListRequested(address: event.address));
+    await _fetchFirstPage(address: event.address, emit: emit);
   }
 
   /// Deserializes the JSON map into a [InfiniteListState].
@@ -178,5 +213,9 @@ abstract class InfiniteListBloc<T>
   Future<void> close() async {
     cancelStreamSubscription();
     await super.close();
+    if (!_isLoadingDisposed) {
+      _isLoadingDisposed = true;
+      _isLoading.dispose();
+    }
   }
 }

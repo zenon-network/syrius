@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
@@ -142,6 +144,65 @@ void main() {
               isA<FailureException>(),
             ),
       ],
+    );
+
+    test(
+      'back-to-back refreshes within throttle window do not strand state in '
+      'initial and track isLoadingListenable accurately',
+      () async {
+        final Completer<List<int>> secondRefreshCompleter =
+            Completer<List<int>>();
+        final Completer<void> secondRefreshStarted = Completer<void>();
+        int fetchCount = 0;
+
+        final TestInfiniteListBloc bloc = TestInfiniteListBloc(
+          zenon: mockZenon,
+          paginationFetchCallback: (_, _, _) {
+            fetchCount++;
+            if (fetchCount == 1) {
+              return Future<List<int>>.value(<int>[1]);
+            }
+            if (!secondRefreshStarted.isCompleted) {
+              secondRefreshStarted.complete();
+            }
+            return secondRefreshCompleter.future;
+          },
+        );
+        addTearDown(bloc.close);
+
+        expect(bloc.isLoadingListenable.value, isFalse);
+
+        // First request completes quickly.
+        final Future<InfiniteListState<int>> firstSuccess = bloc.stream
+            .firstWhere(
+              (InfiniteListState<int> s) =>
+                  s.status == InfiniteListStatus.success,
+            )
+            .timeout(const Duration(seconds: 5));
+        bloc.add(InfiniteListRequested(address: emptyAddress));
+        await firstSuccess;
+        expect(bloc.isLoadingListenable.value, isFalse);
+
+        // Immediate refresh within the 100ms throttle window must NOT be
+        // dropped and must expose loading until completion.
+        bloc.add(InfiniteListRefreshRequested(address: emptyAddress));
+        await secondRefreshStarted.future.timeout(const Duration(seconds: 5));
+        expect(bloc.state.status, InfiniteListStatus.initial);
+        expect(bloc.isLoadingListenable.value, isTrue);
+
+        final Future<InfiniteListState<int>> secondSuccess = bloc.stream
+            .firstWhere(
+              (InfiniteListState<int> s) =>
+                  s.status == InfiniteListStatus.success,
+            )
+            .timeout(const Duration(seconds: 5));
+        secondRefreshCompleter.complete(<int>[2]);
+        final InfiniteListState<int> finalState = await secondSuccess;
+
+        expect(finalState.data, equals(<int>[2]));
+        await Future<void>.delayed(Duration.zero);
+        expect(bloc.isLoadingListenable.value, isFalse);
+      },
     );
   });
 }

@@ -53,7 +53,7 @@ class ProjectDetailsScreen extends StatelessWidget {
   }
 }
 
-class _View extends StatelessWidget {
+class _View extends StatefulWidget {
   const _View({
     required this._pillarInfo,
     required this._onStepperNotificationSeeMorePressed,
@@ -63,6 +63,13 @@ class _View extends StatelessWidget {
   final VoidCallback _onStepperNotificationSeeMorePressed;
   final PillarInfo? _pillarInfo;
   final int? _activePillarCount;
+
+  @override
+  State<_View> createState() => _ViewState();
+}
+
+class _ViewState extends State<_View> {
+  Project? _lastProject;
 
   @override
   Widget build(BuildContext context) {
@@ -87,11 +94,19 @@ class _View extends StatelessWidget {
                   ],
                 ),
                 NotificationWidget(
-                  onSeeMorePressed: _onStepperNotificationSeeMorePressed,
+                  onSeeMorePressed: widget._onStepperNotificationSeeMorePressed,
                 ),
                 Expanded(
                   child: BlocBuilder<RefreshProjectBloc, RefreshProjectState>(
                     builder: (BuildContext context, RefreshProjectState state) {
+                      if (state is RefreshProjectPopulated) {
+                        _lastProject = state.project;
+                        return _buildScreenLayout(context, state.project);
+                      }
+                      if (state is RefreshProjectLoading &&
+                          _lastProject != null) {
+                        return _buildScreenLayout(context, _lastProject!);
+                      }
                       return switch (state) {
                         RefreshProjectInitial() ||
                         RefreshProjectLoading() => const SyriusLoadingWidget(),
@@ -154,7 +169,7 @@ class _View extends StatelessWidget {
               project: project,
               onPhaseCreated: refreshProject,
               onStepperNotificationSeeMorePressed:
-                  _onStepperNotificationSeeMorePressed,
+                  widget._onStepperNotificationSeeMorePressed,
             ),
           ),
         FluidCell(
@@ -173,14 +188,14 @@ class _View extends StatelessWidget {
                       ValueListenable<bool> isRefreshLoading,
                     ) {
                       return PhaseListCard(
-                        pillarInfo: _pillarInfo,
-                        activePillarCount: _activePillarCount,
+                        pillarInfo: widget._pillarInfo,
+                        activePillarCount: widget._activePillarCount,
                         project: project,
                         isRefreshLoading: isRefreshLoading,
                         onRefreshButtonPressed: refreshProject,
                         onPhaseUpdated: refreshProject,
                         onStepperNotificationSeeMorePressed:
-                            _onStepperNotificationSeeMorePressed,
+                            widget._onStepperNotificationSeeMorePressed,
                       );
                     },
               ),

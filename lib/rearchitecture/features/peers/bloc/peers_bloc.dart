@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
+import 'package:flutter/foundation.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
@@ -26,17 +27,32 @@ class PeersBloc extends Bloc<PeersEvent, PeersState> {
   StreamSubscription<bool>? _wsRestartSubscription;
   PeersSortColumn? _sortColumn;
   bool _sortAscending = true;
+  final ValueNotifier<bool> _isLoading = ValueNotifier<bool>(false);
+  bool _isLoadingDisposed = false;
+  int _inFlightRequests = 0;
+
+  /// Notifies listeners while a [PeersRequested] fetch is in flight, including
+  /// refreshes triggered from [PeersPopulated].
+  ValueListenable<bool> get isLoadingListenable => _isLoading;
 
   FutureOr<void> _onPeersRequested(
     PeersRequested event,
     Emitter<PeersState> emit,
   ) async {
+    _inFlightRequests++;
+    if (!isClosed && !_isLoading.value) {
+      _isLoading.value = true;
+    }
+
     if (state is! PeersPopulated) {
       emit(const PeersLoading());
     }
 
     try {
       final NetworkInfo networkInfo = await _zenon.stats.networkInfo();
+      if (emit.isDone) {
+        return;
+      }
       final List<Peer> peers = List<Peer>.of(networkInfo.peers);
       final PeersSortColumn? sortColumn = _sortColumn;
       final bool sortAscending = _sortAscending;
@@ -52,10 +68,19 @@ class PeersBloc extends Bloc<PeersEvent, PeersState> {
       );
     } on SyriusException catch (error, stackTrace) {
       addError(error, stackTrace);
-      emit(PeersFailure(exception: error));
+      if (!emit.isDone) {
+        emit(PeersFailure(exception: error));
+      }
     } on Object catch (error, stackTrace) {
       addError(error, stackTrace);
-      emit(PeersFailure(exception: FailureException()));
+      if (!emit.isDone) {
+        emit(PeersFailure(exception: FailureException()));
+      }
+    } finally {
+      _inFlightRequests--;
+      if (!isClosed && _inFlightRequests == 0) {
+        _isLoading.value = false;
+      }
     }
   }
 
@@ -99,5 +124,9 @@ class PeersBloc extends Bloc<PeersEvent, PeersState> {
   Future<void> close() async {
     await _wsRestartSubscription?.cancel();
     await super.close();
+    if (!_isLoadingDisposed) {
+      _isLoadingDisposed = true;
+      _isLoading.dispose();
+    }
   }
 }
