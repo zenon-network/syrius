@@ -19,6 +19,23 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
 
+      - name: Run CI script unit tests
+        run: python3 -m unittest discover -s .github/scripts -p 'test_*.py' -v
+
+      - name: Verify embedded libznn provenance manifest
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          set -euo pipefail
+          args=(--repo-root .)
+          if [[ "${GITHUB_EVENT_NAME:-}" == "pull_request" && -n "${BASE_SHA:-}" ]]; then
+            if ! git rev-parse --verify "${BASE_SHA}^{commit}" >/dev/null 2>&1; then
+              git fetch --no-tags --depth=1 origin "$BASE_SHA"
+            fi
+            args+=(--base-ref "$BASE_SHA" --head-ref HEAD)
+          fi
+          python3 .github/scripts/verify_libznn_manifest.py "${args[@]}"
+
       - name: Set up Flutter
         uses: ./.github/actions/setup-flutter
 

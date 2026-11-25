@@ -1,0 +1,46 @@
+{
+  "schema_version": 1,
+  "upstream_repo": "zenon-network/go-zenon",
+  "release": {
+    "tag": "v0.0.10-alphanet",
+    "name": "v0.0.10",
+    "html_url": "https://github.com/zenon-network/go-zenon/releases/tag/v0.0.10-alphanet",
+    "published_at": "2026-11-17T00:49:47Z",
+    "prerelease": false,
+    "immutable": false,
+    "target_commitish": "e8986a63f164259053e0342ceaf9a68cb85d649e",
+    "tag_commit": "e8986a63f164259053e0342ceaf9a68cb85d649e",
+    "checksums_asset": {
+      "name": "SHA256CHECKSUMS.txt",
+      "download_url": "https://github.com/zenon-network/go-zenon/releases/download/v0.0.10-alphanet/SHA256CHECKSUMS.txt",
+      "sha256": "a02d29185eaadab8556bb5be7955d20f4375a57096681038a30d38a90e48cc18",
+      "updated_at": "2026-11-17T00:49:58Z"
+    }
+  },
+  "blobs": {
+    "lib/embedded_node/blobs/libznn.so": {
+      "platform": "Linux (amd64)",
+      "asset_name": "libznn-linux-amd64.tar.gz",
+      "download_url": "https://github.com/zenon-network/go-zenon/releases/download/v0.0.10-alphanet/libznn-linux-amd64.tar.gz",
+      "asset_updated_at": "2026-11-17T00:49:55Z",
+      "archive_sha256": "a9f8ce337bb90dc0434c549aa15abb372f60c6ceee11516f36d557167af8719f",
+      "extracted_sha256": "59183c87806c3f2408bff20ade05be440e5c20dc537b2802688869c0e5b72fa3"
+    },
+    "lib/embedded_node/blobs/libznn.dylib": {
+      "platform": "macOS (universal)",
+      "asset_name": "libznn-darwin-universal.tar.gz",
+      "download_url": "https://github.com/zenon-network/go-zenon/releases/download/v0.0.10-alphanet/libznn-darwin-universal.tar.gz",
+      "asset_updated_at": "2026-11-17T00:50:17Z",
+      "archive_sha256": "0d7f9b319f570ba71bd05a730911b66d594f122907e5fabc37b375587d5011c6",
+      "extracted_sha256": "6c85a91af10abc7a1d7fcf910180a9c8cf6fe0db91f184c61d40190cab3c0e8d"
+    },
+    "lib/embedded_node/blobs/libznn.dll": {
+      "platform": "Windows (amd64)",
+      "asset_name": "libznn-windows-amd64.zip",
+      "download_url": "https://github.com/zenon-network/go-zenon/releases/download/v0.0.10-alphanet/libznn-windows-amd64.zip",
+      "asset_updated_at": "2026-11-17T00:49:53Z",
+      "archive_sha256": "b7d7efc5b4ed06e01e4ae5ce6b826273b2f699f57133058395bde87195c9deac",
+      "extracted_sha256": "7c8e812a5f74ff95e5036f24b6da095953788a196f9f931128179ede274d9117"
+    }
+  }
+}
