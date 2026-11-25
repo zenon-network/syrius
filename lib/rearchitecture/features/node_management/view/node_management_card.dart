@@ -431,7 +431,10 @@ class _ViewState extends State<_View> {
 
   Widget _buildChainIdPanel(BuildContext context, NodeManagementState state) {
     final bool isAlphanet = state.clientChainId == 1;
-    final bool canConfirm = _isChainIdValid(state.clientChainId);
+    final bool canConfirm =
+        !state.isConfirmingNode &&
+        !state.isConfirmingChainId &&
+        _isChainIdValid(state.clientChainId);
 
     return Column(
       children: <Widget>[

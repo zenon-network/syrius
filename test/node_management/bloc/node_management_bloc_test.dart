@@ -813,6 +813,177 @@ void main() {
       },
     );
 
+    test(
+      'blocks client chain-ID changes while a node switch operation is active',
+      () async {
+        final Completer<void> saveCompleter = Completer<void>();
+        when(
+          () => repository.saveSelectedNode(kLocalhostDefaultNodeUrl),
+        ).thenAnswer((_) async {
+          await saveCompleter.future;
+          currentNode = kLocalhostDefaultNodeUrl;
+        });
+
+        final NodeManagementBloc bloc = buildBloc();
+        addTearDown(bloc.close);
+
+        bloc
+          ..add(
+            const NodeManagementNodeSelected(node: kLocalhostDefaultNodeUrl),
+          )
+          ..add(
+            const NodeManagementConfirmNodeRequested(
+              successTitle: 'Connected',
+              successDetails: 'Connected',
+              connectionUnavailableMessage: 'Failed',
+              connectionFailedTitle: 'Connection failed',
+            ),
+          );
+        await Future<void>.delayed(Duration.zero);
+
+        // Attempt to change clientChainId while node switch is awaiting commit.
+        bloc.add(
+          const NodeManagementChainIdChanged(
+            newChainId: 9,
+            successTitle: 'Chain changed',
+            successDetails: '1 -> 9',
+            errorTitle: 'Chain error',
+          ),
+        );
+        await Future<void>.delayed(Duration.zero);
+
+        saveCompleter.complete();
+        await expectLater(
+          bloc.stream,
+          emitsThrough(
+            isA<NodeManagementState>()
+                .having(
+                  (NodeManagementState s) => s.confirmedNode,
+                  'confirmedNode',
+                  kLocalhostDefaultNodeUrl,
+                )
+                .having(
+                  (NodeManagementState s) => s.clientChainId,
+                  'clientChainId unchanged',
+                  1,
+                ),
+          ),
+        );
+
+        verifyNever(() => repository.saveClientChainId(any()));
+      },
+    );
+
+    test(
+      're-reads live frontier chain ID on Proceed even without reconnecting',
+      () async {
+        int frontierCalls = 0;
+        when(() => repository.getFrontierChainId()).thenAnswer((_) async {
+          frontierCalls++;
+          return frontierCalls == 1 ? 2 : 4;
+        });
+
+        final NodeManagementBloc bloc = buildBloc();
+        addTearDown(bloc.close);
+
+        bloc
+          ..add(
+            const NodeManagementNodeSelected(node: kLocalhostDefaultNodeUrl),
+          )
+          ..add(
+            const NodeManagementConfirmNodeRequested(
+              successTitle: 'Connected',
+              successDetails: 'Connected',
+              connectionUnavailableMessage: 'Failed',
+              connectionFailedTitle: 'Connection failed',
+            ),
+          );
+        await expectLater(
+          bloc.stream,
+          emitsThrough(
+            isA<NodeManagementState>().having(
+              (NodeManagementState s) => s.pendingChainIdMismatch?.nodeChainId,
+              'initial mismatch 2',
+              2,
+            ),
+          ),
+        );
+
+        // While dialog is open, endpoint changes to chain 4.
+        bloc.add(
+          const NodeManagementChainIdMismatchResolved(
+            proceed: true,
+            connectionFailedTitle: 'Connection failed',
+          ),
+        );
+        await expectLater(
+          bloc.stream,
+          emitsThrough(
+            isA<NodeManagementState>()
+                .having(
+                  (NodeManagementState s) =>
+                      s.pendingChainIdMismatch?.nodeChainId,
+                  're-prompted with live chain 4',
+                  4,
+                )
+                .having(
+                  (NodeManagementState s) =>
+                      s.pendingChainIdMismatch?.reconnectFailed,
+                  'fresh prompt',
+                  false,
+                ),
+          ),
+        );
+
+        verify(() => repository.getFrontierChainId()).called(2);
+        verifyNever(() => repository.saveSelectedNode(any()));
+      },
+    );
+
+    test('never rolls back committed switch when both addNotification and '
+        'reportError throw post-commit', () async {
+      when(
+        () => repository.addNotification(any()),
+      ).thenThrow(StateError('notification failed'));
+      when(
+        () => repository.reportError(any(), any()),
+      ).thenThrow(StateError('report failed'));
+
+      final NodeManagementBloc bloc = buildBloc();
+      addTearDown(bloc.close);
+
+      bloc
+        ..add(const NodeManagementNodeSelected(node: kLocalhostDefaultNodeUrl))
+        ..add(
+          const NodeManagementConfirmNodeRequested(
+            successTitle: 'Connected',
+            successDetails: 'Connected',
+            connectionUnavailableMessage: 'Failed',
+            connectionFailedTitle: 'Connection failed',
+          ),
+        );
+      await expectLater(
+        bloc.stream,
+        emitsThrough(
+          isA<NodeManagementState>()
+              .having(
+                (NodeManagementState s) => s.confirmedNode,
+                'committed node',
+                kLocalhostDefaultNodeUrl,
+              )
+              .having(
+                (NodeManagementState s) => s.isDisconnected,
+                'still connected',
+                false,
+              ),
+        ),
+      );
+      await Future<void>.delayed(Duration.zero);
+
+      verifyNever(() => repository.disconnectFromNode());
+      verifyNever(() => repository.connectToNode(kEmbeddedNode));
+    });
+
     blocTest<NodeManagementBloc, NodeManagementState>(
       'adds, edits, and deletes a custom node',
       build: buildBloc,

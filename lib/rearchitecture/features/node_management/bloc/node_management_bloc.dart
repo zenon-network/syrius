@@ -193,7 +193,6 @@ class NodeManagementBloc
             !prompt.reconnectFailed && !state.isDisconnected;
         emit(state.copyWith(isConfirmingNode: true));
         try {
-          int verifiedChainId = prompt.nodeChainId;
           if (!connectedToTarget) {
             final bool connected = await _repository.connectToNode(prompt.node);
             if (!connected) {
@@ -203,25 +202,28 @@ class NodeManagementBloc
               );
             }
             connectedToTarget = true;
-            verifiedChainId = await _repository.getFrontierChainId();
-            if (_checkChainIdMismatch &&
-                verifiedChainId != state.clientChainId &&
-                verifiedChainId != prompt.nodeChainId) {
-              emit(
-                state.copyWith(
-                  isDisconnected: false,
-                  pendingChainIdMismatch: NodeChainIdMismatchPrompt(
-                    node: prompt.node,
-                    previousNode: prompt.previousNode,
-                    nodeChainId: verifiedChainId,
-                    clientChainId: state.clientChainId,
-                    successTitle: prompt.successTitle,
-                    successDetails: prompt.successDetails,
-                  ),
+          }
+          // Always re-read the live frontier chain ID before committing so we
+          // never commit a stale chain ID if the endpoint changed while the
+          // warning was open.
+          final int verifiedChainId = await _repository.getFrontierChainId();
+          if (_checkChainIdMismatch &&
+              verifiedChainId != state.clientChainId &&
+              verifiedChainId != prompt.nodeChainId) {
+            emit(
+              state.copyWith(
+                isDisconnected: false,
+                pendingChainIdMismatch: NodeChainIdMismatchPrompt(
+                  node: prompt.node,
+                  previousNode: prompt.previousNode,
+                  nodeChainId: verifiedChainId,
+                  clientChainId: state.clientChainId,
+                  successTitle: prompt.successTitle,
+                  successDetails: prompt.successDetails,
                 ),
-              );
-              return;
-            }
+              ),
+            );
+            return;
           }
           await _finalizeNodeSwitch(
             emit: emit,
@@ -337,7 +339,11 @@ class NodeManagementBloc
       );
     } on Object catch (error, stackTrace) {
       addError(error, stackTrace);
-      await _repository.reportError(error, connectionFailedTitle);
+      try {
+        await _repository.reportError(error, connectionFailedTitle);
+      } on Object catch (reportError, reportStackTrace) {
+        addError(reportError, reportStackTrace);
+      }
     }
   }
 
@@ -510,37 +516,54 @@ class NodeManagementBloc
     NodeManagementChainIdChanged event,
     Emitter<NodeManagementState> emit,
   ) async {
-    emit(state.copyWith(isConfirmingChainId: true));
-    try {
-      await _repository.saveClientChainId(event.newChainId);
-    } on Object catch (error, stackTrace) {
-      addError(error, stackTrace);
-      emit(state.copyWith(isConfirmingChainId: false));
-      await _repository.reportError(error, event.errorTitle);
+    final int? operationId = _tryAcquireNodeConnectionOperation();
+    if (operationId == null) {
       return;
     }
-
-    emit(
-      state.copyWith(
-        isConfirmingChainId: false,
-        clientChainId: _repository.getClientChainId(),
-        chainIdChangedNonce: state.chainIdChangedNonce + 1,
-      ),
-    );
-
+    emit(state.copyWith(isConfirmingChainId: true));
     try {
-      await _repository.notifyClientChainIdChanged(event.newChainId);
-      await _repository.addNotification(
-        WalletNotification(
-          title: event.successTitle,
-          timestamp: DateTime.now().millisecondsSinceEpoch,
-          details: event.successDetails,
-          type: NotificationType.changedNode,
+      try {
+        await _repository.saveClientChainId(event.newChainId);
+      } on Object catch (error, stackTrace) {
+        addError(error, stackTrace);
+        emit(state.copyWith(isConfirmingChainId: false));
+        try {
+          await _repository.reportError(error, event.errorTitle);
+        } on Object catch (reportError, reportStackTrace) {
+          addError(reportError, reportStackTrace);
+        }
+        return;
+      }
+
+      emit(
+        state.copyWith(
+          isConfirmingChainId: false,
+          clientChainId: _repository.getClientChainId(),
+          chainIdChangedNonce: state.chainIdChangedNonce + 1,
         ),
       );
-    } on Object catch (error, stackTrace) {
-      addError(error, stackTrace);
-      await _repository.reportError(error, event.errorTitle);
+      _releaseNodeConnectionOperation(operationId);
+
+      try {
+        await _repository.notifyClientChainIdChanged(event.newChainId);
+        await _repository.addNotification(
+          WalletNotification(
+            title: event.successTitle,
+            timestamp: DateTime.now().millisecondsSinceEpoch,
+            details: event.successDetails,
+            type: NotificationType.changedNode,
+          ),
+        );
+      } on Object catch (error, stackTrace) {
+        addError(error, stackTrace);
+        try {
+          await _repository.reportError(error, event.errorTitle);
+        } on Object catch (reportError, reportStackTrace) {
+          addError(reportError, reportStackTrace);
+        }
+      }
+    } finally {
+      _releaseNodeConnectionOperation(operationId);
     }
   }
 
