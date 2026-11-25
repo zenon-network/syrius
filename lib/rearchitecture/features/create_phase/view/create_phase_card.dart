@@ -1,33 +1,57 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_vector_icons/flutter_vector_icons.dart';
-import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/create_phase_stepper/create_phase_stepper.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/screens/screens.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
-class CreatePhase extends StatelessWidget {
-
-  const CreatePhase({
-    required this.onStepperNotificationSeeMorePressed,
-    required this.project,
+/// Card that launches phase creation for an active Accelerator project.
+class CreatePhaseCard extends StatelessWidget {
+  /// Creates a [CreatePhaseCard].
+  const CreatePhaseCard({
+    required this._onStepperNotificationSeeMorePressed,
+    required this._project,
+    this._onPhaseCreated,
     super.key,
   });
-  final VoidCallback onStepperNotificationSeeMorePressed;
-  final Project project;
+
+  final VoidCallback _onStepperNotificationSeeMorePressed;
+  final Project _project;
+  final VoidCallback? _onPhaseCreated;
 
   @override
   Widget build(BuildContext context) {
-    return CardScaffold(
-      title: 'Create Phase',
-      childBuilder: () => _getWidgetBody(context),
-      description: 'Create a phase for your project. '
-          'The project can be divided into several phases. '
-          'You will unlock the funds if you get enough votes from the Pillars.',
+    return NewCardScaffold(
+      data: _buildCardData(context),
+      body: _View(
+        onStepperNotificationSeeMorePressed:
+            _onStepperNotificationSeeMorePressed,
+        project: _project,
+        onPhaseCreated: _onPhaseCreated,
+      ),
     );
   }
 
-  Widget _getWidgetBody(BuildContext context) {
+  CardData _buildCardData(BuildContext context) => CardData(
+    title: context.l10n.createPhase,
+    description: context.l10n.createPhaseForYourProject,
+  );
+}
+
+class _View extends StatelessWidget {
+  const _View({
+    required this._onStepperNotificationSeeMorePressed,
+    required this._project,
+    this._onPhaseCreated,
+  });
+
+  final VoidCallback _onStepperNotificationSeeMorePressed;
+  final Project _project;
+  final VoidCallback? _onPhaseCreated;
+
+  @override
+  Widget build(BuildContext context) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceAround,
       children: <Widget>[
@@ -43,29 +67,31 @@ class CreatePhase extends StatelessWidget {
             SizedBox(
               width: 200,
               child: Text(
-                'Start the project by creating a phase to unlock funds',
+                context.l10n.startProjectByCreatingPhase,
                 style: Theme.of(context).textTheme.headlineSmall,
               ),
             ),
             kVerticalSpacing,
-            SyriusElevatedButton(
+            ElevatedButton.icon(
               onPressed: _canCreatePhase()
                   ? () {
                       Navigator.push(
                         context,
-                        MaterialPageRoute(
+                        MaterialPageRoute<void>(
                           builder: (BuildContext context) => StepperScreen(
-                            stepper: PhaseCreationStepper(project),
+                            stepper: CreatePhaseStepperPage(
+                              project: _project,
+                              onPhaseCreated: _onPhaseCreated,
+                            ),
                             onStepperNotificationSeeMorePressed:
-                                onStepperNotificationSeeMorePressed,
+                                _onStepperNotificationSeeMorePressed,
                           ),
                         ),
                       );
                     }
                   : null,
-              text: 'Create phase',
-              initialFillColor: AppColors.znnColor,
-              icon: SyriusElevatedButton.getFilledButtonPlusIcon(),
+              label: Text(context.l10n.createPhase),
+              icon: const Icon(Icons.add),
             ),
           ],
         ),
@@ -74,7 +100,7 @@ class CreatePhase extends StatelessWidget {
   }
 
   bool _canCreatePhase() =>
-      project.status == AcceleratorProjectStatus.active &&
-      (project.phases.isEmpty ||
-          project.phases.last.status == AcceleratorProjectStatus.paid);
+      _project.status == AcceleratorProjectStatus.active &&
+      (_project.phases.isEmpty ||
+          _project.phases.last.status == AcceleratorProjectStatus.paid);
 }

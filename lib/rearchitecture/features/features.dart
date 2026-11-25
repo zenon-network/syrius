@@ -1,5 +1,6 @@
 export 'accelerator_donation_stepper/accelerator_donation_stepper.dart';
 export 'accelerator_donations/accelerator_donations.dart';
+export 'accelerator_pillar/accelerator_pillar.dart';
 export 'accelerator_project_details/accelerator_project_details.dart';
 export 'accelerator_projects/accelerator_projects.dart';
 export 'accelerator_stats/accelerator_stats.dart';

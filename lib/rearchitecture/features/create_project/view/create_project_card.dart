@@ -1,28 +1,51 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_vector_icons/flutter_vector_icons.dart';
-import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/create_project_stepper/create_project_stepper.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/screens/screens.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 
-class CreateProject extends StatelessWidget {
-
-  const CreateProject({
-    required this.onStepperNotificationSeeMorePressed,
+/// Card that launches the Accelerator project creation stepper.
+class CreateProjectCard extends StatelessWidget {
+  /// Creates a [CreateProjectCard].
+  const CreateProjectCard({
+    required this._onStepperNotificationSeeMorePressed,
+    this._onProjectCreated,
     super.key,
   });
-  final VoidCallback onStepperNotificationSeeMorePressed;
+
+  final VoidCallback _onStepperNotificationSeeMorePressed;
+  final VoidCallback? _onProjectCreated;
 
   @override
   Widget build(BuildContext context) {
-    return CardScaffold(
-      title: 'Create Project',
-      childBuilder: () => _getWidgetBody(context),
-      description: 'Innovate. Inspire. Build.',
+    return NewCardScaffold(
+      data: _buildCardData(context),
+      body: _View(
+        onStepperNotificationSeeMorePressed:
+            _onStepperNotificationSeeMorePressed,
+        onProjectCreated: _onProjectCreated,
+      ),
     );
   }
 
-  Widget _getWidgetBody(BuildContext context) {
+  CardData _buildCardData(BuildContext context) => CardData(
+    title: context.l10n.createProject,
+    description: context.l10n.innovateInspireBuild,
+  );
+}
+
+class _View extends StatelessWidget {
+  const _View({
+    required this._onStepperNotificationSeeMorePressed,
+    this._onProjectCreated,
+  });
+
+  final VoidCallback _onStepperNotificationSeeMorePressed;
+  final VoidCallback? _onProjectCreated;
+
+  @override
+  Widget build(BuildContext context) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceAround,
       children: <Widget>[
@@ -38,27 +61,28 @@ class CreateProject extends StatelessWidget {
             SizedBox(
               width: 200,
               child: Text(
-                'Join the Aliens building the future on Network of Momentum',
+                context.l10n.joinTheAliensBuildingNom,
                 style: Theme.of(context).textTheme.headlineSmall,
               ),
             ),
             kVerticalSpacing,
-            SyriusElevatedButton(
+            ElevatedButton.icon(
               onPressed: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(
+                  MaterialPageRoute<void>(
                     builder: (BuildContext context) => StepperScreen(
-                      stepper: const ProjectCreationStepper(),
+                      stepper: CreateProjectStepperPage(
+                        onProjectCreated: _onProjectCreated,
+                      ),
                       onStepperNotificationSeeMorePressed:
-                          onStepperNotificationSeeMorePressed,
+                          _onStepperNotificationSeeMorePressed,
                     ),
                   ),
                 );
               },
-              text: 'Create project',
-              initialFillColor: AppColors.znnColor,
-              icon: SyriusElevatedButton.getFilledButtonPlusIcon(),
+              label: Text(context.l10n.createProject),
+              icon: const Icon(Icons.add),
             ),
           ],
         ),

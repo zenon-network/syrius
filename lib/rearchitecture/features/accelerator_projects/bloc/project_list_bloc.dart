@@ -1,274 +1,407 @@
 import 'dart:async';
 
-import 'package:logging/logging.dart';
-import 'package:rxdart/rxdart.dart';
-import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
-import 'package:zenon_syrius_wallet_flutter/main.dart';
-import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
+import 'package:bloc/bloc.dart';
+import 'package:bloc_concurrency/bloc_concurrency.dart';
+import 'package:equatable/equatable.dart';
+import 'package:stream_transform/stream_transform.dart';
+import 'package:zenon_syrius_wallet_flutter/blocs/refresh_bloc_mixin.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/exceptions/exceptions.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
-class ProjectListBloc with RefreshBlocMixin {
+part 'project_list_event.dart';
+part 'project_list_state.dart';
 
+/// Fetches, searches, filters, and sorts Accelerator-Z projects.
+class ProjectListBloc extends Bloc<ProjectListEvent, ProjectListState>
+    with RefreshBlocMixin {
+  /// Creates a [ProjectListBloc].
   ProjectListBloc({
-    required this.pillarInfo,
-  }) {
-    _onPageRequest.stream
-        .flatMap(_fetchList)
-        .listen(_onNewListingStateController.add)
-        .addTo(_subscriptions);
+    required this._zenon,
+    PillarInfo? pillarInfo,
+    List<String> Function()? walletAddressesProvider,
+    Duration debounceDuration = const Duration(milliseconds: 350),
+    this._pageSize = rpcMaxPageSize,
+    bool listenToWsReconnect = true,
+  }) : _walletAddressesProvider =
+           walletAddressesProvider ?? _defaultWalletAddresses,
+       super(ProjectListState(pillarInfo: pillarInfo)) {
+    on<ProjectListRequested>(
+      _onProjectListRequested,
+      transformer: restartable(),
+    );
+    on<ProjectListSearchChanged>(
+      _onProjectListSearchChanged,
+      transformer: _debounceRestartable(debounceDuration),
+    );
+    on<ProjectListFilterTagToggled>(
+      _onProjectListFilterTagToggled,
+      transformer: restartable(),
+    );
+    on<ProjectListSortToggled>(_onProjectListSortToggled);
+    on<ProjectListPillarUpdated>(
+      _onProjectListPillarUpdated,
+      transformer: restartable(),
+    );
 
-    _onSearchInputChangedSubject.stream
-        .flatMap((_) => _doRefreshResults())
-        .listen(_onNewListingStateController.add)
-        .addTo(_subscriptions);
-
-    listenToWsRestart(refreshResults);
+    if (listenToWsReconnect) {
+      listenToWsRestart(() {
+        if (!isClosed) {
+          add(const ProjectListRequested(refresh: true));
+        }
+      });
+    }
   }
+
+  final Zenon _zenon;
+  final List<String> Function() _walletAddressesProvider;
+  final int _pageSize;
+
   List<Project>? _allProjects;
+  bool _hasExplicitSort = false;
 
-  final List<AccProjectsFilterTag> selectedProjectsFilterTag = <AccProjectsFilterTag>[];
+  static List<String> _defaultWalletAddresses() =>
+      kDefaultAddressList.whereType<String>().toList();
 
-  final PillarInfo? pillarInfo;
-
-  void refreshResults() {
-    if (!_onSearchInputChangedSubject.isClosed) {
-      onRefreshResultsRequest.add(null);
-    }
-  }
-
-  Stream<InfiniteScrollBlocListingState<Project>> _doRefreshResults() async* {
-    yield InfiniteScrollBlocListingState<Project>();
-    yield* _fetchList(0);
-  }
-
-  static const int _pageSize = 10;
-
-  final CompositeSubscription _subscriptions = CompositeSubscription();
-
-  final BehaviorSubject<InfiniteScrollBlocListingState<Project>> _onNewListingStateController =
-      BehaviorSubject<InfiniteScrollBlocListingState<Project>>.seeded(
-    InfiniteScrollBlocListingState<Project>(),
-  );
-
-  Stream<InfiniteScrollBlocListingState<Project>> get onNewListingState =>
-      _onNewListingStateController.stream;
-
-  final StreamController<int> _onPageRequest = StreamController<int>();
-
-  Sink<int> get onPageRequestSink => _onPageRequest.sink;
-
-  final BehaviorSubject<String?> _onSearchInputChangedSubject = BehaviorSubject<String?>.seeded(null);
-
-  Sink<String?> get onRefreshResultsRequest =>
-      _onSearchInputChangedSubject.sink;
-
-  List<Project>? get lastListingItems =>
-      _onNewListingStateController.value.itemList;
-
-  Sink<String?> get onSearchInputChangedSink =>
-      _onSearchInputChangedSubject.sink;
-
-  String? get _searchInputTerm => _onSearchInputChangedSubject.value;
-
-  Stream<InfiniteScrollBlocListingState<Project>> _fetchList(
-      int pageKey,) async* {
-    final InfiniteScrollBlocListingState<Project> lastListingState = _onNewListingStateController.value;
-    try {
-      final List<Project> newItems = await getData(pageKey, _pageSize, _searchInputTerm);
-      final bool isLastPage = newItems.length < _pageSize;
-      final int? nextPageKey = isLastPage ? null : pageKey + 1;
-      final List<Project> allItems = <Project>[
-        ...lastListingState.itemList ?? <Project>[],
-        ...newItems,
-      ];
-      yield InfiniteScrollBlocListingState<Project>(
-        nextPageKey: nextPageKey,
-        itemList: allItems,
-      );
-    } catch (e, stackTrace) {
-      Logger('ProjectListBloc').log(Level.WARNING, 'addError', e, stackTrace);
-      yield InfiniteScrollBlocListingState<Project>(
-        error: e,
-        nextPageKey: lastListingState.nextPageKey,
-        itemList: lastListingState.itemList,
-      );
-    }
-  }
-
-  void dispose() {
-    _onSearchInputChangedSubject.close();
-    _onNewListingStateController.close();
-    _subscriptions.dispose();
-    _onPageRequest.close();
-  }
-
-  Future<List<Project>> getData(
-    int pageKey,
-    int pageSize,
-    String? searchTerm,
+  Future<void> _onProjectListRequested(
+    ProjectListRequested event,
+    Emitter<ProjectListState> emit,
   ) async {
-    _allProjects ??= (await zenon!.embedded.accelerator.getAll()).list;
-    List<Project> results = <Project>[];
-    if (searchTerm != null && searchTerm.isNotEmpty) {
-      results =
-          _filterProjectsBySearchKeyWord(_allProjects!, searchTerm).toList();
-    } else {
-      results = _allProjects!;
+    if (event.refresh) {
+      _allProjects = null;
     }
-    results = await _filterProjectsAccordingToPillarInfo(
-        await _filterProjectsByTags(results),);
-    return results.sublist(
-      pageKey * pageSize,
-      (pageKey + 1) * pageSize <= results.length
-          ? (pageKey + 1) * pageSize
-          : results.length,
+    await _loadAndFilter(
+      emit: emit,
+      searchQuery: event.clearSearch ? '' : state.searchQuery,
+      selectedTags: state.selectedTags,
+      pillarInfo: state.pillarInfo,
+      sortAscending: state.sortAscending,
     );
   }
 
-  /*
-  This method filters the projects according to the following rule:
-  if a user doesn't have a Pillar, only show the active
-  projects or all owned projects
-   */
-  Future<List<Project>> _filterProjectsAccordingToPillarInfo(
-      Set<Project> projectList,) async {
-    final bool isPillarAddress = pillarInfo != null;
-    if (isPillarAddress) {
-      return projectList.toList();
-    } else {
-      final List<Project> activeProjects = projectList
-          .where(
-            (Project project) =>
-                project.status == AcceleratorProjectStatus.active ||
-                kDefaultAddressList.contains(project.owner.toString()),
-          )
-          .toList();
-      if (activeProjects.isNotEmpty) {
-        return activeProjects;
-      } else {
-        throw 'No active projects';
-      }
+  Future<void> _onProjectListSearchChanged(
+    ProjectListSearchChanged event,
+    Emitter<ProjectListState> emit,
+  ) async {
+    await _loadAndFilter(
+      emit: emit,
+      searchQuery: event.query,
+      selectedTags: state.selectedTags,
+      pillarInfo: state.pillarInfo,
+      sortAscending: state.sortAscending,
+    );
+  }
+
+  Future<void> _onProjectListFilterTagToggled(
+    ProjectListFilterTagToggled event,
+    Emitter<ProjectListState> emit,
+  ) async {
+    final Set<AcceleratorProjectFilterTag> nextTags =
+        Set<AcceleratorProjectFilterTag>.from(state.selectedTags);
+    if (!nextTags.remove(event.tag)) {
+      nextTags.add(event.tag);
     }
+
+    await _loadAndFilter(
+      emit: emit,
+      searchQuery: state.searchQuery,
+      selectedTags: nextTags,
+      pillarInfo: state.pillarInfo,
+      sortAscending: state.sortAscending,
+    );
   }
 
-  Set<Project> _filterProjectsBySearchKeyWord(
-      List<Project> projects, String searchKeyWord,) {
-    final Set<Project> filteredProjects = <Project>{};
-    filteredProjects.addAll(
-      projects.where(
-        (Project element) =>
-            element.id.toString().toLowerCase().contains(
-                  searchKeyWord.toLowerCase(),
-                ) &&
-            !filteredProjects.contains(element),
-      ),
-    );
-    filteredProjects.addAll(
-      projects.where(
-        (Project element) =>
-            element.owner.toString().toLowerCase().contains(
-                  searchKeyWord.toLowerCase(),
-                ) &&
-            !filteredProjects.contains(element),
-      ),
-    );
-    filteredProjects.addAll(
-      projects.where(
-        (Project element) =>
-            element.name.toLowerCase().contains(
-                  searchKeyWord.toLowerCase(),
-                ) &&
-            !filteredProjects.contains(element),
-      ),
-    );
-    filteredProjects.addAll(
-      projects.where(
-        (Project element) =>
-            element.description.toLowerCase().contains(
-                  searchKeyWord.toLowerCase(),
-                ) &&
-            !filteredProjects.contains(element),
-      ),
-    );
-    filteredProjects.addAll(
-      projects.where(
-        (Project element) =>
-            element.url.toLowerCase().contains(
-                  searchKeyWord.toLowerCase(),
-                ) &&
-            !filteredProjects.contains(element),
-      ),
-    );
-    return filteredProjects;
+  void _onProjectListSortToggled(
+    ProjectListSortToggled event,
+    Emitter<ProjectListState> emit,
+  ) {
+    if (state.status != ProjectListStatus.populated) {
+      return;
+    }
+
+    final bool ascending = state.sortAscending;
+    final List<Project> sorted = List<Project>.from(state.projects)
+      ..sort(
+        (Project a, Project b) => ascending
+            ? a.lastUpdateTimestamp.compareTo(b.lastUpdateTimestamp)
+            : b.lastUpdateTimestamp.compareTo(a.lastUpdateTimestamp),
+      );
+    _hasExplicitSort = true;
+
+    emit(state.copyWith(projects: sorted, sortAscending: !ascending));
   }
 
-  Future<Set<Project>> _filterProjectsByTags(List<Project> projects) async {
-    if (selectedProjectsFilterTag.isNotEmpty) {
-      Iterable<Hash>? votedProjectIds;
-      Iterable<Hash>? votedPhaseIds;
-      Iterable<Project> filteredProjects = projects;
-      if (selectedProjectsFilterTag.contains(AccProjectsFilterTag.myProjects)) {
-        filteredProjects = filteredProjects.where(
-          (Project project) => kDefaultAddressList.contains(project.owner.toString()),
+  Future<void> _onProjectListPillarUpdated(
+    ProjectListPillarUpdated event,
+    Emitter<ProjectListState> emit,
+  ) async {
+    if (event.refresh) {
+      _allProjects = null;
+    }
+    final Set<AcceleratorProjectFilterTag> nextTags =
+        Set<AcceleratorProjectFilterTag>.from(state.selectedTags);
+    if (event.pillarInfo == null) {
+      nextTags
+        ..remove(AcceleratorProjectFilterTag.needsVoting)
+        ..remove(AcceleratorProjectFilterTag.alreadyVoted);
+    }
+
+    await _loadAndFilter(
+      emit: emit,
+      searchQuery: state.searchQuery,
+      selectedTags: nextTags,
+      pillarInfo: event.pillarInfo,
+      sortAscending: state.sortAscending,
+    );
+  }
+
+  Future<void> _loadAndFilter({
+    required Emitter<ProjectListState> emit,
+    required String searchQuery,
+    required Set<AcceleratorProjectFilterTag> selectedTags,
+    required PillarInfo? pillarInfo,
+    required bool sortAscending,
+  }) async {
+    emit(
+      state.copyWith(
+        status: ProjectListStatus.loading,
+        searchQuery: searchQuery,
+        selectedTags: selectedTags,
+        pillarInfo: pillarInfo,
+        clearPillarInfo: pillarInfo == null,
+        clearException: true,
+      ),
+    );
+
+    try {
+      final List<Project> allProjects = _allProjects ??=
+          await _fetchAllProjects();
+      if (emit.isDone) return;
+
+      final String trimmedQuery = searchQuery.trim();
+      List<Project> results = trimmedQuery.isNotEmpty
+          ? _filterBySearchKeyword(allProjects, trimmedQuery)
+          : List<Project>.from(allProjects);
+
+      results = await _filterByTags(
+        results,
+        selectedTags: selectedTags,
+        pillarInfo: pillarInfo,
+      );
+      if (emit.isDone) return;
+
+      results = _filterByPillarVisibility(results, pillarInfo: pillarInfo);
+
+      if (_hasExplicitSort) {
+        final bool appliedAscending = !sortAscending;
+        results.sort(
+          (Project a, Project b) => appliedAscending
+              ? a.lastUpdateTimestamp.compareTo(b.lastUpdateTimestamp)
+              : b.lastUpdateTimestamp.compareTo(a.lastUpdateTimestamp),
         );
       }
-      if (selectedProjectsFilterTag
-          .contains(AccProjectsFilterTag.onlyAccepted)) {
-        filteredProjects = filteredProjects.where(
-            (Project project) => project.status == AcceleratorProjectStatus.active,);
+
+      emit(
+        state.copyWith(
+          status: ProjectListStatus.populated,
+          projects: results,
+          selectedTags: selectedTags,
+          searchQuery: searchQuery,
+          pillarInfo: pillarInfo,
+          clearPillarInfo: pillarInfo == null,
+          clearException: true,
+        ),
+      );
+    } on SyriusException catch (e, stackTrace) {
+      if (emit.isDone) return;
+      addError(e, stackTrace);
+      emit(state.copyWith(status: ProjectListStatus.failure, exception: e));
+    } on Object catch (e, stackTrace) {
+      if (emit.isDone) return;
+      addError(e, stackTrace);
+      emit(
+        state.copyWith(
+          status: ProjectListStatus.failure,
+          exception: FailureException(),
+        ),
+      );
+    }
+  }
+
+  Future<List<Project>> _fetchAllProjects() async {
+    final List<Project> projects = <Project>[];
+    int pageIndex = 0;
+
+    while (true) {
+      final ProjectList page = await _zenon.embedded.accelerator.getAll(
+        pageIndex: pageIndex,
+        pageSize: _pageSize,
+      );
+      projects.addAll(page.list);
+      if (page.list.length < _pageSize) {
+        break;
       }
-      if (selectedProjectsFilterTag
-          .contains(AccProjectsFilterTag.needsVoting)) {
-        votedProjectIds ??= await _getVotedProjectIdsByPillar(filteredProjects);
-        votedPhaseIds ??= await _getVotedPhaseIdsByPillar(filteredProjects);
-        filteredProjects = filteredProjects.where(
+      pageIndex += 1;
+    }
+
+    return projects;
+  }
+
+  List<Project> _filterByPillarVisibility(
+    List<Project> projects, {
+    required PillarInfo? pillarInfo,
+  }) {
+    if (pillarInfo != null) {
+      return projects;
+    }
+    final List<String> walletAddresses = _walletAddressesProvider();
+    return projects
+        .where(
           (Project project) =>
-              (project.status == AcceleratorProjectStatus.voting &&
-                  !votedProjectIds!.contains(project.id)) ||
-              project.phases.any((Phase phase) =>
-                  phase.status == AcceleratorProjectStatus.voting &&
-                  !votedPhaseIds!.contains(phase.id),),
-        );
-      }
-      if (selectedProjectsFilterTag
-          .contains(AccProjectsFilterTag.alreadyVoted)) {
-        votedProjectIds ??= await _getVotedProjectIdsByPillar(filteredProjects);
-        votedPhaseIds ??= await _getVotedPhaseIdsByPillar(filteredProjects);
-        filteredProjects = filteredProjects.where(
+              project.status == AcceleratorProjectStatus.active ||
+              walletAddresses.contains(project.owner.toString()),
+        )
+        .toList();
+  }
+
+  List<Project> _filterBySearchKeyword(
+    List<Project> projects,
+    String searchKeyword,
+  ) {
+    final String lowerQuery = searchKeyword.toLowerCase();
+    return projects
+        .where(
           (Project project) =>
-              (project.status == AcceleratorProjectStatus.voting &&
-                  votedProjectIds!.contains(project.id)) ||
-              project.phases.any((Phase phase) =>
-                  phase.status == AcceleratorProjectStatus.voting &&
-                  votedPhaseIds!.contains(phase.id),),
-        );
-      }
-      return filteredProjects.toSet();
-    } else {
-      return projects.toSet();
+              project.id.toString().toLowerCase().contains(lowerQuery) ||
+              project.owner.toString().toLowerCase().contains(lowerQuery) ||
+              project.name.toLowerCase().contains(lowerQuery) ||
+              project.description.toLowerCase().contains(lowerQuery) ||
+              project.url.toLowerCase().contains(lowerQuery),
+        )
+        .toList();
+  }
+
+  Future<List<Project>> _filterByTags(
+    List<Project> projects, {
+    required Set<AcceleratorProjectFilterTag> selectedTags,
+    required PillarInfo? pillarInfo,
+  }) async {
+    if (selectedTags.isEmpty) {
+      return projects;
     }
+
+    final List<String> walletAddresses = _walletAddressesProvider();
+    Iterable<Project> filtered = projects;
+
+    if (selectedTags.contains(AcceleratorProjectFilterTag.myProjects)) {
+      filtered = filtered.where(
+        (Project project) => walletAddresses.contains(project.owner.toString()),
+      );
+    }
+    if (selectedTags.contains(AcceleratorProjectFilterTag.onlyAccepted)) {
+      filtered = filtered.where(
+        (Project project) => project.status == AcceleratorProjectStatus.active,
+      );
+    }
+
+    Set<Hash>? votedProjectIds;
+    Set<Hash>? votedPhaseIds;
+    final List<Project> snapshot = filtered.toList();
+
+    if (pillarInfo != null &&
+        selectedTags.contains(AcceleratorProjectFilterTag.needsVoting)) {
+      votedProjectIds ??= await _getVotedProjectIdsByPillar(
+        pillarInfo.name,
+        snapshot,
+      );
+      votedPhaseIds ??= await _getVotedPhaseIdsByPillar(
+        pillarInfo.name,
+        snapshot,
+      );
+      filtered = snapshot.where(
+        (Project project) =>
+            (project.status == AcceleratorProjectStatus.voting &&
+                !votedProjectIds!.contains(project.id)) ||
+            project.phases.any(
+              (Phase phase) =>
+                  phase.status == AcceleratorProjectStatus.voting &&
+                  !votedPhaseIds!.contains(phase.id),
+            ),
+      );
+    }
+
+    if (pillarInfo != null &&
+        selectedTags.contains(AcceleratorProjectFilterTag.alreadyVoted)) {
+      final List<Project> current = filtered.toList();
+      votedProjectIds ??= await _getVotedProjectIdsByPillar(
+        pillarInfo.name,
+        current,
+      );
+      votedPhaseIds ??= await _getVotedPhaseIdsByPillar(
+        pillarInfo.name,
+        current,
+      );
+      filtered = current.where(
+        (Project project) =>
+            (project.status == AcceleratorProjectStatus.voting &&
+                votedProjectIds!.contains(project.id)) ||
+            project.phases.any(
+              (Phase phase) =>
+                  phase.status == AcceleratorProjectStatus.voting &&
+                  votedPhaseIds!.contains(phase.id),
+            ),
+      );
+    }
+
+    return filtered.toList();
   }
 
-  Future<Iterable<Hash>> _getVotedProjectIdsByPillar(
-      Iterable<Project> projects,) async {
-    final List<PillarVote?> pillarVotes = await zenon!.embedded.accelerator.getPillarVotes(
-      pillarInfo!.name,
-      projects.map((Project e) => e.id.toString()).toList(),
-    );
-    return pillarVotes.where((PillarVote? e) => e != null).map((PillarVote? e) => e!.id);
+  Future<Set<Hash>> _getVotedProjectIdsByPillar(
+    String pillarName,
+    Iterable<Project> projects,
+  ) async {
+    final List<String> ids = projects
+        .map((Project project) => project.id.toString())
+        .toList();
+    if (ids.isEmpty) {
+      return <Hash>{};
+    }
+    final List<PillarVote?> pillarVotes = await _zenon.embedded.accelerator
+        .getPillarVotes(pillarName, ids);
+    return pillarVotes
+        .whereType<PillarVote>()
+        .map((PillarVote vote) => vote.id)
+        .toSet();
   }
 
-  Future<Iterable<Hash>> _getVotedPhaseIdsByPillar(
-      Iterable<Project> projects,) async {
-    final List<PillarVote?> pillarVotes = await zenon!.embedded.accelerator.getPillarVotes(
-      pillarInfo!.name,
-      projects
-          .expand((Project project) => project.phaseIds)
-          .map((Hash id) => id.toString())
-          .toList(),
-    );
-    return pillarVotes.where((PillarVote? e) => e != null).map((PillarVote? e) => e!.id);
+  Future<Set<Hash>> _getVotedPhaseIdsByPillar(
+    String pillarName,
+    Iterable<Project> projects,
+  ) async {
+    final List<String> ids = projects
+        .expand((Project project) => project.phaseIds)
+        .map((Hash id) => id.toString())
+        .toList();
+    if (ids.isEmpty) {
+      return <Hash>{};
+    }
+    final List<PillarVote?> pillarVotes = await _zenon.embedded.accelerator
+        .getPillarVotes(pillarName, ids);
+    return pillarVotes
+        .whereType<PillarVote>()
+        .map((PillarVote vote) => vote.id)
+        .toSet();
   }
+
+  @override
+  Future<void> close() async {
+    cancelStreamSubscription();
+    await super.close();
+  }
+}
+
+EventTransformer<E> _debounceRestartable<E>(Duration duration) {
+  return (Stream<E> events, EventMapper<E> mapper) {
+    return restartable<E>().call(events.debounce(duration), mapper);
+  };
 }

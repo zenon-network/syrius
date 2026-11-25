@@ -1,41 +1,59 @@
 import 'dart:async';
 
-import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
-import 'package:zenon_syrius_wallet_flutter/main.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
+import 'package:bloc/bloc.dart';
+import 'package:equatable/equatable.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/exceptions/exceptions.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/account_block_utils.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/address_utils.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
-class CreateProjectBloc extends BaseBloc<AccountBlockTemplate?> {
-  void createProject(
-    String name,
-    String description,
-    String url,
-    BigInt znnFundsNeeded,
-    BigInt qsrFundsNeeded,
-  ) {
+part 'create_project_event.dart';
+part 'create_project_state.dart';
+
+/// Submits a new Accelerator project on-chain.
+class CreateProjectBloc extends Bloc<CreateProjectEvent, CreateProjectState> {
+  /// Creates a [CreateProjectBloc].
+  CreateProjectBloc({
+    required this._accountBlockUtils,
+    required this._zenon,
+    required this._zenonAddressUtils,
+  }) : super(const CreateProjectInitial()) {
+    on<CreateProjectRequested>(_onCreateProjectRequested);
+  }
+
+  final AccountBlockUtils _accountBlockUtils;
+  final Zenon _zenon;
+  final ZenonAddressUtils _zenonAddressUtils;
+
+  Future<void> _onCreateProjectRequested(
+    CreateProjectRequested event,
+    Emitter<CreateProjectState> emit,
+  ) async {
+    emit(const CreateProjectLoading());
+
     try {
-      addEvent(null);
-      final AccountBlockTemplate transactionParams =
-          zenon!.embedded.accelerator.createProject(
-        name,
-        description,
-        url,
-        znnFundsNeeded,
-        qsrFundsNeeded,
-      );
-      AccountBlockUtils().createAccountBlock(
-        transactionParams,
-        'creating project',
-      ).then(
-        (AccountBlockTemplate block) {
-          ZenonAddressUtils().refreshBalance();
-          addEvent(block);
-        },
-      ).onError(
-        addError,
-      );
-    } catch (e, stackTrace) {
+      final AccountBlockTemplate transactionParams = _zenon.embedded.accelerator
+          .createProject(
+            event.name,
+            event.description,
+            event.url,
+            event.znnFundsNeeded,
+            event.qsrFundsNeeded,
+          );
+      final AccountBlockTemplate block = await _accountBlockUtils
+          .createAccountBlock(
+            transactionParams,
+            'creating project',
+            address: event.address,
+          );
+      _zenonAddressUtils.refreshBalance();
+      emit(CreateProjectDone(accountBlock: block));
+    } on SyriusException catch (e, stackTrace) {
       addError(e, stackTrace);
+      emit(CreateProjectFailure(exception: e));
+    } on Object catch (e, stackTrace) {
+      addError(e, stackTrace);
+      emit(CreateProjectFailure(exception: FailureException()));
     }
   }
 }

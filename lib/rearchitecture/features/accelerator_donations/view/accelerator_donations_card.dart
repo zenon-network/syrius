@@ -1,28 +1,51 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_vector_icons/flutter_vector_icons.dart';
-import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/accelerator_donation_stepper/accelerator_donation_stepper.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/screens/screens.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 
-class AcceleratorDonations extends StatelessWidget {
-
-  const AcceleratorDonations({
-    required this.onStepperNotificationSeeMorePressed,
+/// Card that launches the Accelerator donation stepper.
+class AcceleratorDonationsCard extends StatelessWidget {
+  /// Creates an [AcceleratorDonationsCard].
+  const AcceleratorDonationsCard({
+    required this._onStepperNotificationSeeMorePressed,
+    this._onDonationSubmitted,
     super.key,
   });
-  final VoidCallback onStepperNotificationSeeMorePressed;
+
+  final VoidCallback _onStepperNotificationSeeMorePressed;
+  final VoidCallback? _onDonationSubmitted;
 
   @override
   Widget build(BuildContext context) {
-    return CardScaffold(
-      title: 'Accelerator Donations',
-      childBuilder: () => _getWidgetBody(context),
-      description: 'Thank you for supporting the Accelerator',
+    return NewCardScaffold(
+      data: _buildCardData(context),
+      body: _View(
+        onStepperNotificationSeeMorePressed:
+            _onStepperNotificationSeeMorePressed,
+        onDonationSubmitted: _onDonationSubmitted,
+      ),
     );
   }
 
-  Widget _getWidgetBody(BuildContext context) {
+  CardData _buildCardData(BuildContext context) => CardData(
+    title: context.l10n.acceleratorDonations,
+    description: context.l10n.thankYouForSupportingAccelerator,
+  );
+}
+
+class _View extends StatelessWidget {
+  const _View({
+    required this._onStepperNotificationSeeMorePressed,
+    this._onDonationSubmitted,
+  });
+
+  final VoidCallback _onStepperNotificationSeeMorePressed;
+  final VoidCallback? _onDonationSubmitted;
+
+  @override
+  Widget build(BuildContext context) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: <Widget>[
@@ -38,27 +61,28 @@ class AcceleratorDonations extends StatelessWidget {
             SizedBox(
               width: 200,
               child: Text(
-                'Fuel for the Mothership',
+                context.l10n.fuelForTheMothership,
                 style: Theme.of(context).textTheme.headlineSmall,
               ),
             ),
             kVerticalSpacing,
-            SyriusElevatedButton(
+            ElevatedButton.icon(
               onPressed: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(
+                  MaterialPageRoute<void>(
                     builder: (BuildContext context) => StepperScreen(
-                      stepper: const AcceleratorDonationStepper(),
+                      stepper: AcceleratorDonationStepperPage(
+                        onDonationSubmitted: _onDonationSubmitted,
+                      ),
                       onStepperNotificationSeeMorePressed:
-                          onStepperNotificationSeeMorePressed,
+                          _onStepperNotificationSeeMorePressed,
                     ),
                   ),
                 );
               },
-              text: 'Donate',
-              initialFillColor: AppColors.znnColor,
-              icon: SyriusElevatedButton.getFilledButtonPlusIcon(),
+              label: Text(context.l10n.donate),
+              icon: const Icon(Icons.add),
             ),
           ],
         ),

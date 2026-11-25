@@ -1,242 +1,125 @@
 import 'package:flutter/material.dart';
-import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/accelerator_projects/accelerator_projects.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
-enum AcceleratorProjectsFilterTag {
-  myProjects,
-  onlyAccepted,
-  votingOpened,
-}
-
-class AcceleratorProjectList extends StatefulWidget {
-
-  const AcceleratorProjectList(
-    this.pillarInfo,
-    this.acceleratorProjects, {
-    required this.onStepperNotificationSeeMorePressed,
-    this.projects,
+/// Displays a searchable list of phases belonging to an Accelerator project.
+class AcceleratorPhaseListView extends StatefulWidget {
+  /// Creates an [AcceleratorPhaseListView].
+  const AcceleratorPhaseListView({
+    required this._pillarInfo,
+    required this._phases,
+    required this._project,
+    required this._onStepperNotificationSeeMorePressed,
+    this._activePillarCount,
+    this._onPhaseUpdated,
     super.key,
   });
-  final PillarInfo? pillarInfo;
-  final List<AcceleratorProject> acceleratorProjects;
-  final Project? projects;
-  final VoidCallback onStepperNotificationSeeMorePressed;
+
+  final PillarInfo? _pillarInfo;
+  final List<Phase> _phases;
+  final Project _project;
+  final VoidCallback _onStepperNotificationSeeMorePressed;
+  final int? _activePillarCount;
+  final VoidCallback? _onPhaseUpdated;
 
   @override
-  State<AcceleratorProjectList> createState() => _AcceleratorProjectListState();
+  State<AcceleratorPhaseListView> createState() =>
+      _AcceleratorPhaseListViewState();
 }
 
-class _AcceleratorProjectListState extends State<AcceleratorProjectList> {
-  final TextEditingController _searchKeyWordController =
-      TextEditingController();
-
-  final List<AcceleratorProjectsFilterTag> _selectedProjectsFilterTag = <AcceleratorProjectsFilterTag>[];
-
+class _AcceleratorPhaseListViewState extends State<AcceleratorPhaseListView> {
+  final TextEditingController _searchController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
 
-  String _searchKeyWord = '';
+  @override
+  void initState() {
+    super.initState();
+    _searchController.addListener(_onSearchControllerChanged);
+  }
+
+  void _onSearchControllerChanged() {
+    setState(() {});
+  }
 
   @override
   Widget build(BuildContext context) {
+    final List<Phase> filteredPhases = _filterPhases(
+      widget._phases,
+      _searchController.text,
+    );
+
     return Container(
       margin: const EdgeInsets.all(15),
       child: Column(
         children: <Widget>[
-          _getSearchInputField(),
-          const SizedBox(
-            height: 10,
-          ),
-          if (widget.acceleratorProjects.first is Project)
-            _getProjectsFilterTags(),
-          if (widget.acceleratorProjects.first is Project)
-            const SizedBox(
-              height: 10,
-            ),
+          _buildSearchInputField(context),
+          const SizedBox(height: 10),
           Expanded(
-            child: Scrollbar(
-              controller: _scrollController,
-              thumbVisibility: true,
-              child: ListView.separated(
-                separatorBuilder: (_, __) => const SizedBox(
-                  height: 15,
-                ),
-                controller: _scrollController,
-                shrinkWrap: true,
-                itemCount:
-                    _filterBaseProjects(widget.acceleratorProjects).length,
-                itemBuilder: (BuildContext context, int index) => AcceleratorProjectListItem(
-                  key: ValueKey(
-                    _filterBaseProjects(widget.acceleratorProjects)
-                        .elementAt(index)
-                        .id
-                        .toString(),
+            child: filteredPhases.isEmpty
+                ? SyriusErrorWidget(context.l10n.noMatchingPhases)
+                : Scrollbar(
+                    controller: _scrollController,
+                    thumbVisibility: true,
+                    child: ListView.separated(
+                      separatorBuilder: (BuildContext _, int _) =>
+                          const SizedBox(height: 15),
+                      controller: _scrollController,
+                      itemCount: filteredPhases.length,
+                      itemBuilder: (BuildContext context, int index) {
+                        final Phase phase = filteredPhases[index];
+                        return AcceleratorProjectListItem(
+                          key: ValueKey<String>(phase.id.toString()),
+                          pillarInfo: widget._pillarInfo,
+                          activePillarCount: widget._activePillarCount,
+                          acceleratorProject: phase,
+                          project: widget._project,
+                          onPhaseUpdated: widget._onPhaseUpdated,
+                          onStepperNotificationSeeMorePressed:
+                              widget._onStepperNotificationSeeMorePressed,
+                        );
+                      },
+                    ),
                   ),
-                  pillarInfo: widget.pillarInfo,
-                  acceleratorProject:
-                      _filterBaseProjects(widget.acceleratorProjects)
-                          .elementAt(index),
-                  project: widget.projects,
-                  onStepperNotificationSeeMorePressed:
-                      widget.onStepperNotificationSeeMorePressed,
-                ),
-              ),
-            ),
           ),
         ],
       ),
     );
   }
 
-  Widget _getSearchInputField() {
-    return InputField(
-      controller: _searchKeyWordController,
-      hintText: 'Search by id, owner, name, description, or URL',
-      suffixIcon: const Icon(
-        Icons.search,
-        color: Colors.green,
+  Widget _buildSearchInputField(BuildContext context) {
+    return TextField(
+      controller: _searchController,
+      decoration: InputDecoration(
+        hintText: context.l10n.searchByIdNameDescriptionUrl,
+        prefixIcon: const Icon(Icons.search),
+        suffixIcon: ClearContentButton(controller: _searchController),
       ),
-      onChanged: (String value) {
-        setState(() {
-          _searchKeyWord = value;
-        });
-      },
     );
   }
 
-  Set<AcceleratorProject> _filterBaseProjects(
-      List<AcceleratorProject> acceleratorProjects,) {
-    Set<AcceleratorProject> filteredBaseProjects =
-        _filterBaseProjectsBySearchKeyWord(acceleratorProjects);
-    if (widget.acceleratorProjects.first is Project &&
-        _selectedProjectsFilterTag.isNotEmpty) {
-      filteredBaseProjects = _filterProjectsByFilterTags(
-        filteredBaseProjects.map((AcceleratorProject e) => e as Project).toList(),
-      );
+  List<Phase> _filterPhases(List<Phase> phases, String query) {
+    final String lowerQuery = query.trim().toLowerCase();
+    if (lowerQuery.isEmpty) {
+      return phases;
     }
-    return filteredBaseProjects;
-  }
-
-  Set<AcceleratorProject> _filterBaseProjectsBySearchKeyWord(
-    List<AcceleratorProject> acceleratorProjects,
-  ) {
-    final Set<AcceleratorProject> filteredBaseProjects = <AcceleratorProject>{};
-    filteredBaseProjects.addAll(
-      acceleratorProjects.where(
-        (AcceleratorProject element) => element.id.toString().toLowerCase().contains(
-              _searchKeyWord.toLowerCase(),
-            ),
-      ),
-    );
-    if (acceleratorProjects.first is Project) {
-      filteredBaseProjects.addAll(
-        acceleratorProjects.where(
-          (AcceleratorProject element) =>
-              (element as Project).owner.toString().toLowerCase().contains(
-                    _searchKeyWord.toLowerCase(),
-                  ),
-        ),
-      );
-    }
-    filteredBaseProjects.addAll(
-      acceleratorProjects.where(
-        (AcceleratorProject element) => element.name.toLowerCase().contains(
-              _searchKeyWord.toLowerCase(),
-            ),
-      ),
-    );
-    filteredBaseProjects.addAll(
-      acceleratorProjects.where(
-        (AcceleratorProject element) => element.description.toLowerCase().contains(
-              _searchKeyWord.toLowerCase(),
-            ),
-      ),
-    );
-    filteredBaseProjects.addAll(
-      acceleratorProjects.where(
-        (AcceleratorProject element) => element.url.toLowerCase().contains(
-              _searchKeyWord.toLowerCase(),
-            ),
-      ),
-    );
-    return filteredBaseProjects;
-  }
-
-  Widget _getProjectsFilterTags() {
-    return Row(
-      children: <Widget>[
-        _getProjectsFilterTag(AcceleratorProjectsFilterTag.myProjects),
-        _getProjectsFilterTag(AcceleratorProjectsFilterTag.onlyAccepted),
-        if (widget.pillarInfo != null)
-          _getProjectsFilterTag(AcceleratorProjectsFilterTag.votingOpened),
-      ],
-    );
-  }
-
-  Widget _getProjectsFilterTag(AcceleratorProjectsFilterTag filterTag) {
-    return TagWidget(
-      text: FormatUtils.extractNameFromEnum<AcceleratorProjectsFilterTag>(
-          filterTag,),
-      hexColorCode: Theme.of(context)
-          .colorScheme
-          .primaryContainer
-          .value
-          .toRadixString(16)
-          .substring(2),
-      iconData: _selectedProjectsFilterTag.contains(filterTag)
-          ? Icons.check_rounded
-          : null,
-      onPressed: () {
-        setState(() {
-          if (_selectedProjectsFilterTag.contains(filterTag)) {
-            _selectedProjectsFilterTag.remove(filterTag);
-          } else {
-            _selectedProjectsFilterTag.add(filterTag);
-          }
-        });
-      },
-    );
-  }
-
-  Set<AcceleratorProject> _filterProjectsByFilterTags(List<Project> projects) {
-    Iterable<Project> filteredBaseProjects = const Iterable<Project>.empty();
-    if (_selectedProjectsFilterTag
-        .contains(AcceleratorProjectsFilterTag.myProjects)) {
-      filteredBaseProjects = projects.where(
-        (Project project) => project.owner.toString() == kSelectedAddress,
-      );
-    }
-    if (_selectedProjectsFilterTag
-        .contains(AcceleratorProjectsFilterTag.onlyAccepted)) {
-      if (filteredBaseProjects.isNotEmpty) {
-        filteredBaseProjects = filteredBaseProjects.where(
-          (Project project) => project.status == AcceleratorProjectStatus.active,
-        );
-      } else {
-        filteredBaseProjects = projects.where(
-          (Project project) => project.status == AcceleratorProjectStatus.active,
-        );
-      }
-    }
-    if (_selectedProjectsFilterTag
-        .contains(AcceleratorProjectsFilterTag.votingOpened)) {
-      if (filteredBaseProjects.isNotEmpty) {
-        filteredBaseProjects = filteredBaseProjects.where(
-          (Project project) => project.status == AcceleratorProjectStatus.voting,
-        );
-      } else {
-        filteredBaseProjects = projects.where(
-          (Project project) => project.status == AcceleratorProjectStatus.voting,
-        );
-      }
-    }
-    return filteredBaseProjects.toSet();
+    return phases
+        .where(
+          (Phase phase) =>
+              phase.id.toString().toLowerCase().contains(lowerQuery) ||
+              phase.name.toLowerCase().contains(lowerQuery) ||
+              phase.description.toLowerCase().contains(lowerQuery) ||
+              phase.url.toLowerCase().contains(lowerQuery),
+        )
+        .toList();
   }
 
   @override
   void dispose() {
-    _searchKeyWordController.dispose();
+    _searchController
+      ..removeListener(_onSearchControllerChanged)
+      ..dispose();
     _scrollController.dispose();
     super.dispose();
   }
