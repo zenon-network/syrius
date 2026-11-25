@@ -4,31 +4,48 @@ import 'package:flutter/services.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
+/// Hex-encoded signature and corresponding public key produced by [walletSign].
 class Signature {
-
+  /// Creates a [Signature] with hex-encoded [signature] and [publicKey].
   Signature(this.signature, this.publicKey);
+
+  /// Hex-encoded ed25519 signature bytes.
   String signature;
+
+  /// Hex-encoded ed25519 public key bytes.
   String publicKey;
 }
 
-Future<Signature> walletSign(List<int> message) async {
+/// Signs [message] using the wallet account for [address] (or
+/// [kSelectedAddress] when omitted).
+Future<Signature> walletSign(
+  List<int> message, {
+  String? address,
+}) async {
+  final String? signerAddress = address ?? kSelectedAddress;
+  final int signerIndex = kDefaultAddressList.indexOf(signerAddress);
+
+  if (signerAddress == null || signerIndex < 0) {
+    throw StateError('Unable to resolve signing address: $signerAddress');
+  }
+
   final Wallet wallet = await kWalletFile!.open();
   try {
-    final WalletAccount walletAccount = await wallet
-        .getAccount(kDefaultAddressList.indexOf(kSelectedAddress));
+    final WalletAccount walletAccount = await wallet.getAccount(signerIndex);
     final List<int> publicKey = await walletAccount.getPublicKey();
     final List<int> signature = await walletAccount.sign(
-      Uint8List.fromList(
-        message,
-      ),
+      Uint8List.fromList(message),
     );
     return Signature(
-        BytesUtils.bytesToHex(signature), BytesUtils.bytesToHex(publicKey),);
+      BytesUtils.bytesToHex(signature),
+      BytesUtils.bytesToHex(publicKey),
+    );
   } finally {
     kWalletFile!.close();
   }
 }
 
+/// Loads and JSON-decodes an asset file at [filePath].
 Future<dynamic> loadJsonFromAssets(String filePath) async {
   final String jsonString = await rootBundle.loadString(filePath);
   return jsonDecode(jsonString);

@@ -141,12 +141,12 @@ void main() {
       ],
       verify: (_) {
         expect(callLog, <String>[
+          'deleteWeb3Cache',
           'stopHtlcSwapSync',
           'closeHtlcSwapStorage',
           'closeHive',
           for (final String box in kCacheBoxesToBeDeleted)
             'deleteCacheBox:$box',
-          'deleteWeb3Cache',
           'exitApp',
         ]);
       },
@@ -176,12 +176,12 @@ void main() {
           'clearLastNotification',
           'stopWebSocketClient',
           'clearAutoReceivePool',
+          'deleteWeb3Cache',
           'stopHtlcSwapSync',
           'closeHtlcSwapStorage',
           'closeHive',
           for (final String box in kCacheBoxesToBeDeleted)
             'deleteCacheBox:$box',
-          'deleteWeb3Cache',
           'deleteHtlcDatabase',
           'deleteLegacyHtlcBoxes',
           'deleteKeyStoreBox',
@@ -189,6 +189,65 @@ void main() {
           'initApp',
         ]);
       },
+    );
+
+    blocTest<SplashBloc, SplashState>(
+      'emits SplashFailure(failedWhileClearing: true) when deleteWeb3Cache '
+      'throws during resetWallet without deleting wallet files',
+      build: () => SplashBloc(
+        setWalletInitIncomplete: () => callLog.add('setWalletInitIncomplete'),
+        clearLastNotification: () async => callLog.add('clearLastNotification'),
+        stopWebSocketClient: () => callLog.add('stopWebSocketClient'),
+        clearAutoReceivePool: () => callLog.add('clearAutoReceivePool'),
+        deleteWeb3Cache: () => Future<void>.error(StateError('wc reset hung')),
+        deleteKeyStoreBox: () async => callLog.add('deleteKeyStoreBox'),
+        closeAndDeleteWalletFile: () async =>
+            callLog.add('closeAndDeleteWalletFile'),
+      ),
+      act: (SplashBloc bloc) => bloc.add(
+        SplashStarted(
+          flow: SplashFlow.resetWallet,
+          initApp: () async => callLog.add('initApp'),
+        ),
+      ),
+      expect: () => <Matcher>[
+        isA<SplashInProgress>(),
+        isA<SplashFailure>()
+            .having(
+              (SplashFailure s) => s.failedWhileClearing,
+              'failedWhileClearing',
+              isTrue,
+            )
+            .having(
+              (SplashFailure s) => s.error.toString(),
+              'error',
+              contains('wc reset hung'),
+            ),
+      ],
+      verify: (_) {
+        expect(callLog, isNot(contains('deleteKeyStoreBox')));
+        expect(callLog, isNot(contains('closeAndDeleteWalletFile')));
+      },
+    );
+
+    blocTest<SplashBloc, SplashState>(
+      'emits SplashFailure(failedWhileClearing: false) when initApp throws '
+      'after clearing finishes in resetWallet',
+      build: buildBloc,
+      act: (SplashBloc bloc) => bloc.add(
+        SplashStarted(
+          flow: SplashFlow.resetWallet,
+          initApp: () => Future<void>.error(Exception('post-reset init boom')),
+        ),
+      ),
+      expect: () => <Matcher>[
+        isA<SplashInProgress>(),
+        isA<SplashFailure>().having(
+          (SplashFailure s) => s.failedWhileClearing,
+          'failedWhileClearing',
+          isFalse,
+        ),
+      ],
     );
 
     blocTest<SplashBloc, SplashState>(

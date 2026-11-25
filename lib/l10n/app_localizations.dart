@@ -136,6 +136,12 @@ abstract class AppLocalizations {
   /// **'Accepted'**
   String get accepted;
 
+  /// No description provided for @acknowledged.
+  ///
+  /// In en, this message translates to:
+  /// **'Acknowledged'**
+  String get acknowledged;
+
   /// No description provided for @active.
   ///
   /// In en, this message translates to:
@@ -382,6 +388,12 @@ abstract class AppLocalizations {
   /// **'Completed'**
   String get completed;
 
+  /// No description provided for @connect.
+  ///
+  /// In en, this message translates to:
+  /// **'Connect'**
+  String get connect;
+
   /// No description provided for @cannotReuseAddressForSentinel.
   ///
   /// In en, this message translates to:
@@ -417,6 +429,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'You will need to burn {amount} {symbol} to issue a token'**
   String burnTokenIssueFee(Object amount, Object symbol);
+
+  /// No description provided for @cameraQrScanner.
+  ///
+  /// In en, this message translates to:
+  /// **'Camera QR Scanner'**
+  String get cameraQrScanner;
 
   /// No description provided for @continueText.
   ///
@@ -814,6 +832,12 @@ abstract class AppLocalizations {
   /// **'Each project can be comprised of one or more phases. Each phase needs to be voted. Phases can be updated by the owner of the project to reflect current progress of the project.'**
   String get eachProjectComprisedOfPhases;
 
+  /// No description provided for @empty.
+  ///
+  /// In en, this message translates to:
+  /// **'Empty'**
+  String get empty;
+
   /// No description provided for @enterValidAmount.
   ///
   /// In en, this message translates to:
@@ -981,6 +1005,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Error while cancelling stake'**
   String get errorWhileCancellingStake;
+
+  /// No description provided for @errorWhileDeactivatingPairing.
+  ///
+  /// In en, this message translates to:
+  /// **'Error while deactivating pairing'**
+  String get errorWhileDeactivatingPairing;
+
+  /// No description provided for @errorWhileDisconnectingSession.
+  ///
+  /// In en, this message translates to:
+  /// **'Error while disconnecting session'**
+  String get errorWhileDisconnectingSession;
 
   /// No description provided for @errorGeneratingPlasma.
   ///
@@ -1185,6 +1221,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Inputted number has too many decimals'**
   String get inputtedNumberHasTooManyDecimals;
+
+  /// No description provided for @invalidQrCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Invalid QR code'**
+  String get invalidQrCode;
+
+  /// No description provided for @invalidQrCodeException.
+  ///
+  /// In en, this message translates to:
+  /// **'Invalid QR code exception'**
+  String get invalidQrCodeException;
 
   /// No description provided for @issueToken.
   ///
@@ -1480,11 +1528,23 @@ abstract class AppLocalizations {
   /// **'The oldest swap entry will be deleted when a new swap is started.'**
   String get oldestSwapDeletedWhenFull;
 
+  /// No description provided for @onScreenQrScanner.
+  ///
+  /// In en, this message translates to:
+  /// **'On-screen QR Scanner'**
+  String get onScreenQrScanner;
+
   /// No description provided for @onlyAccepted.
   ///
   /// In en, this message translates to:
   /// **'Only accepted'**
   String get onlyAccepted;
+
+  /// No description provided for @onlyMacOsSupported.
+  ///
+  /// In en, this message translates to:
+  /// **'Only macOS is supported at the moment'**
+  String get onlyMacOsSupported;
 
   /// No description provided for @options.
   ///
@@ -1618,11 +1678,29 @@ abstract class AppLocalizations {
   /// **'Paid'**
   String get paid;
 
+  /// No description provided for @pairingTopic.
+  ///
+  /// In en, this message translates to:
+  /// **'Pairing Topic'**
+  String get pairingTopic;
+
+  /// No description provided for @pairingFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Pairing failed'**
+  String get pairingFailed;
+
   /// No description provided for @password.
   ///
   /// In en, this message translates to:
   /// **'Password'**
   String get password;
+
+  /// No description provided for @pasteWalletConnectLinkHere.
+  ///
+  /// In en, this message translates to:
+  /// **'Paste the WalletConnect link here'**
+  String get pasteWalletConnectLinkHere;
 
   /// No description provided for @pending.
   ///
@@ -1653,6 +1731,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Percentage of momentum rewards given to the delegators'**
   String get percentageOfMomentumRewards;
+
+  /// No description provided for @permissionRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Permission required'**
+  String get permissionRequired;
 
   /// No description provided for @phaseBelongsToProject.
   ///
@@ -1864,6 +1948,12 @@ abstract class AppLocalizations {
   /// **'Plasma Check'**
   String get plasmaCheck;
 
+  /// No description provided for @pleaseScanValidWalletConnectQr.
+  ///
+  /// In en, this message translates to:
+  /// **'Please scan a valid WalletConnect QR code'**
+  String get pleaseScanValidWalletConnectQr;
+
   /// No description provided for @pressToReceive.
   ///
   /// In en, this message translates to:
@@ -1929,6 +2019,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Project URL'**
   String get projectUrl;
+
+  /// No description provided for @qrCodeScanFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'QR code scan failed'**
+  String get qrCodeScanFailed;
 
   /// No description provided for @qsrAmount.
   ///
@@ -2133,6 +2229,36 @@ abstract class AppLocalizations {
   /// **'Save QR'**
   String get saveQr;
 
+  /// No description provided for @scanQr.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan QR'**
+  String get scanQr;
+
+  /// No description provided for @scanWalletConnectQrFromDapp.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan the WalletConnect QR from the dApp'**
+  String get scanWalletConnectQrFromDapp;
+
+  /// No description provided for @scanWalletConnectQrUsingCamera.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan a WalletConnect QR code using the built-in camera of this device'**
+  String get scanWalletConnectQrUsingCamera;
+
+  /// No description provided for @scanWalletConnectQrUsingOnScreenScanner.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan the WalletConnect QR code using an on-screen QR scanner. This requires the screen recording permission'**
+  String get scanWalletConnectQrUsingOnScreenScanner;
+
+  /// No description provided for @screenRecordingPermissionRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Screen Recording permission is required to scan and process the on-screen WalletConnect QR code'**
+  String get screenRecordingPermissionRequired;
+
   /// No description provided for @searchByIdNameDescriptionUrl.
   ///
   /// In en, this message translates to:
@@ -2299,6 +2425,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Sentinels List'**
   String get sentinelsListTitle;
+
+  /// No description provided for @sessionTopic.
+  ///
+  /// In en, this message translates to:
+  /// **'Session Topic'**
+  String get sessionTopic;
 
   /// No description provided for @setBudgetForProject.
   ///
@@ -2864,6 +2996,12 @@ abstract class AppLocalizations {
   /// **'This card displays a grid with all the ZTS tokens from the network, including ZTS tokens issued by you'**
   String get tokensCardDescription;
 
+  /// No description provided for @topic.
+  ///
+  /// In en, this message translates to:
+  /// **'Topic'**
+  String get topic;
+
   /// No description provided for @total.
   ///
   /// In en, this message translates to:
@@ -3038,6 +3176,18 @@ abstract class AppLocalizations {
   /// **'Uptime'**
   String get uptime;
 
+  /// No description provided for @uriInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'URI invalid'**
+  String get uriInvalid;
+
+  /// No description provided for @url.
+  ///
+  /// In en, this message translates to:
+  /// **'URL'**
+  String get url;
+
   /// No description provided for @utilityToken.
   ///
   /// In en, this message translates to:
@@ -3049,6 +3199,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'MM/dd/yyyy'**
   String get usDateFormat;
+
+  /// No description provided for @userCanceledQrScanning.
+  ///
+  /// In en, this message translates to:
+  /// **'User canceled the QR scanning operation'**
+  String get userCanceledQrScanning;
+
+  /// No description provided for @userQrScanCanceled.
+  ///
+  /// In en, this message translates to:
+  /// **'User QR scan canceled'**
+  String get userQrScanCanceled;
 
   /// Warns the user to verify a token that is not in their favorites.
   ///
@@ -3128,11 +3290,41 @@ abstract class AppLocalizations {
   /// **'If the token or the amount you are receiving is not what you have agreed upon, wait until your deposit expires to reclaim your funds.\nYour deposit will expire at {expirationDate}.'**
   String waitToReclaimIncorrectDeposit(String expirationDate);
 
-  /// No description provided for @weight.
+  /// No description provided for @walletConnectLink.
   ///
   /// In en, this message translates to:
-  /// **'Weight'**
-  String get weight;
+  /// **'WalletConnect Link'**
+  String get walletConnectLink;
+
+  /// No description provided for @walletConnectPairingDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'A pairing refers to the initial process of establishing a secure connection between a wallet and the dApp. Once the pairing is complete, a session is established, which allows the dApp to communicate with the wallet securely over the Internet'**
+  String get walletConnectPairingDescription;
+
+  /// No description provided for @walletConnectPairingList.
+  ///
+  /// In en, this message translates to:
+  /// **'WalletConnect Pairing List'**
+  String get walletConnectPairingList;
+
+  /// No description provided for @walletConnectSessionDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'A session refers to a live connection between a user\'s wallet and a dApp. A session allows the dApp to communicate with the wallet securely over the Internet'**
+  String get walletConnectSessionDescription;
+
+  /// No description provided for @walletConnectSessionsList.
+  ///
+  /// In en, this message translates to:
+  /// **'WalletConnect Sessions List'**
+  String get walletConnectSessionsList;
+
+  /// No description provided for @walletConnectUri.
+  ///
+  /// In en, this message translates to:
+  /// **'WalletConnect URI'**
+  String get walletConnectUri;
 
   /// No description provided for @websites.
   ///
@@ -3145,6 +3337,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Your wallet will not be auto-locked while the swap is in progress.'**
   String get walletNotAutoLocked;
+
+  /// No description provided for @walletResetFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Wallet reset failed'**
+  String get walletResetFailed;
+
+  /// No description provided for @cacheDeletionFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Cache deletion failed'**
+  String get cacheDeletionFailed;
+
+  /// Error dialog body shown when clearing local wallet or cache data fails and offers a retry.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to clear local wallet data:\n{error}\n\nWould you like to retry?'**
+  String failedToClearLocalWalletData(String error);
+
+  /// No description provided for @weight.
+  ///
+  /// In en, this message translates to:
+  /// **'Weight'**
+  String get weight;
 
   /// No description provided for @withdraw.
   ///

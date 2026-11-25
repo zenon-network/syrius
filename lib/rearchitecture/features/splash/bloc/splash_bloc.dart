@@ -6,7 +6,6 @@ import 'package:bloc_concurrency/bloc_concurrency.dart';
 import 'package:equatable/equatable.dart';
 import 'package:hive_ce/hive_ce.dart';
 import 'package:logging/logging.dart';
-import 'package:reown_walletkit/reown_walletkit.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
@@ -85,6 +84,7 @@ class SplashBloc extends Bloc<SplashEvent, SplashState> {
     Emitter<SplashState> emit,
   ) async {
     emit(const SplashInProgress());
+    bool clearingWalletData = false;
     try {
       switch (event.flow) {
         case SplashFlow.normal:
@@ -100,16 +100,23 @@ class SplashBloc extends Bloc<SplashEvent, SplashState> {
             ),
           );
         case SplashFlow.deleteCache:
+          clearingWalletData = true;
           await _deleteCache();
+          clearingWalletData = false;
           emit(const SplashCacheDeleted());
           _exitApp();
         case SplashFlow.resetWallet:
-          await _resetWallet(event.initApp);
+          await _resetWallet(
+            event.initApp,
+            onClearingChanged: ({required bool isClearing}) {
+              clearingWalletData = isClearing;
+            },
+          );
           emit(SplashNavigateTo(_resolveDestination()));
       }
     } on Object catch (error, stackTrace) {
       addError(error, stackTrace);
-      emit(SplashFailure(error));
+      emit(SplashFailure(error, failedWhileClearing: clearingWalletData));
     }
   }
 
@@ -122,16 +129,21 @@ class SplashBloc extends Bloc<SplashEvent, SplashState> {
         : SplashDestination.nodeManagement;
   }
 
-  Future<void> _resetWallet(Future<void> Function() initApp) async {
+  Future<void> _resetWallet(
+    Future<void> Function() initApp, {
+    required void Function({required bool isClearing}) onClearingChanged,
+  }) async {
     // In case the notification was not dismissed, write a null sentinel so it
     // is ignored after the user creates or imports a new wallet.
     _setWalletInitIncomplete();
     await _clearLastNotification();
     _stopWebSocketClient();
     _clearAutoReceivePool();
+    onClearingChanged(isClearing: true);
     await _deleteCache();
     await _deleteHtlcSwapsData();
     await _deleteWalletFile();
+    onClearingChanged(isClearing: false);
     await initApp();
   }
 
@@ -141,13 +153,13 @@ class SplashBloc extends Bloc<SplashEvent, SplashState> {
   }
 
   Future<void> _deleteCache() async {
+    await _deleteWeb3Cache();
     await _stopHtlcSwapSync();
     await _closeHtlcSwapStorage();
     await _closeHive();
     for (final String boxName in kCacheBoxesToBeDeleted) {
       await _deleteCacheBox(boxName);
     }
-    await _deleteWeb3Cache();
   }
 
   Future<void> _deleteWalletFile() async {
@@ -179,15 +191,17 @@ class SplashBloc extends Bloc<SplashEvent, SplashState> {
   }
 
   static Future<void> _defaultDeleteWeb3Cache() async {
+    if (!sl.isRegistered<IWeb3WalletService>()) {
+      return;
+    }
     try {
       final IWeb3WalletService service = sl<IWeb3WalletService>();
-      for (final PairingInfo pairing in service.pairings.value) {
-        await service.deactivatePairing(topic: pairing.topic);
-      }
+      await service.disconnectEverything();
     } on Object catch (e, stackTrace) {
       Logger(
         'SplashScreen',
       ).log(Level.WARNING, '_deleteWeb3Cache', e, stackTrace);
+      rethrow;
     }
   }
 

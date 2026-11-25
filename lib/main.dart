@@ -23,8 +23,6 @@ import 'package:window_manager/window_manager.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/wallet_connect/chains/i_chain.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/wallet_connect/chains/nom_service.dart';
-import 'package:zenon_syrius_wallet_flutter/blocs/wallet_connect/wallet_connect_pairings_bloc.dart';
-import 'package:zenon_syrius_wallet_flutter/blocs/wallet_connect/wallet_connect_sessions_bloc.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/p2p_swaps/services/htlc_swap_auto_unlock_service.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/p2p_swaps/services/htlc_swap_sync_service.dart';
 import 'package:zenon_syrius_wallet_flutter/hive/hive_registrar.g.dart';
@@ -342,10 +340,12 @@ void setup() {
 
   // Initialize WalletConnect service
   sl.registerSingleton<IWeb3WalletService>(web3WalletService!);
-  sl.registerSingleton<IChain>(
-    NoMService(reference: NoMChainId.mainnet),
-    instanceName: NoMChainId.mainnet.chain(),
-  );
+  for (final NoMChainId chainId in NoMChainId.values) {
+    sl.registerSingleton<IChain>(
+      NoMService(reference: chainId),
+      instanceName: chainId.chain(),
+    );
+  }
 
   sl.registerSingleton<LatestTransactionsBloc>(
     LatestTransactionsBloc(
@@ -395,12 +395,6 @@ void setup() {
 
   sl.registerSingleton<BalanceBloc>(BalanceBloc());
   sl.registerSingleton<PowGeneratingStatusBloc>(PowGeneratingStatusBloc());
-  sl.registerSingleton<WalletConnectPairingsBloc>(
-    WalletConnectPairingsBloc(),
-  );
-  sl.registerSingleton<WalletConnectSessionsBloc>(
-    WalletConnectSessionsBloc(),
-  );
 }
 
 class MyApp extends StatefulWidget {

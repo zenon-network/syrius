@@ -102,6 +102,76 @@ void main() {
         }
       },
     );
+
+    testWidgets(
+      'prompts to retry when resetWalletFlow fails while clearing local data '
+      'and succeeds on retry',
+      (WidgetTester tester) async {
+        int deleteWeb3Attempts = 0;
+        final Completer<LottieComposition> compositionCompleter =
+            Completer<LottieComposition>();
+        final SplashBloc bloc = SplashBloc(
+          setWalletInitIncomplete: () {},
+          clearLastNotification: () async {},
+          stopWebSocketClient: () {},
+          clearAutoReceivePool: () {},
+          stopHtlcSwapSync: () async {},
+          closeHtlcSwapStorage: () async {},
+          closeHive: () async {},
+          deleteCacheBox: (_) async {},
+          deleteWeb3Cache: () async {
+            deleteWeb3Attempts += 1;
+            if (deleteWeb3Attempts == 1) {
+              throw StateError('keychain busy');
+            }
+          },
+          deleteHtlcDatabase: () async {},
+          deleteLegacyHtlcBoxes: () async {},
+          deleteKeyStoreBox: () async {},
+          closeAndDeleteWalletFile: () async {},
+          getWalletPath: () => null,
+          getSelectedNode: () => null,
+        );
+
+        try {
+          await tester.pumpWidget(
+            MaterialApp(
+              theme: AppTheme.darkTheme,
+              localizationsDelegates: AppLocalizations.localizationsDelegates,
+              supportedLocales: AppLocalizations.supportedLocales,
+              routes: <String, WidgetBuilder>{
+                AccessWalletScreen.route: (_) =>
+                    const Text('access-wallet-page'),
+              },
+              home: SplashScreen(
+                resetWalletFlow: true,
+                splashBloc: bloc,
+                compositionFuture: compositionCompleter.future,
+                initApp: (_) async {},
+              ),
+            ),
+          );
+
+          compositionCompleter.completeError(Exception('skip lottie'));
+          await tester.pump();
+          await tester.pump();
+          await tester.pump(const Duration(milliseconds: 300));
+
+          expect(find.text('Wallet reset failed'), findsOneWidget);
+          expect(find.textContaining('keychain busy'), findsOneWidget);
+
+          await tester.tap(find.byKey(const Key('dialog_yes_button')));
+          await tester.pump();
+          await tester.pump();
+          await tester.pump(const Duration(milliseconds: 300));
+
+          expect(deleteWeb3Attempts, 2);
+          expect(find.text('access-wallet-page'), findsOneWidget);
+        } finally {
+          await bloc.close();
+        }
+      },
+    );
   });
 
   group('DevelopmentInitializationScreen', () {

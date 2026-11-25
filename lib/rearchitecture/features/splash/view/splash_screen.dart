@@ -5,6 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lottie/lottie.dart';
 import 'package:zenon_syrius_wallet_flutter/model/model.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/extensions/buildcontext_extension.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 
@@ -139,17 +140,53 @@ class _ViewState extends State<_View> {
     switch (state) {
       case SplashNavigateTo(:final SplashDestination destination):
         _navigateTo(context, destination);
-      case SplashFailure(:final Object error):
-        Navigator.pushReplacementNamed(
-          context,
-          SyriusErrorWidget.route,
-          arguments: CustomSyriusErrorWidgetArguments(error.toString()),
+      case SplashFailure(:final Object error, :final bool failedWhileClearing):
+        unawaited(
+          _handleSplashFailure(error, failedWhileClearing: failedWhileClearing),
         );
       case SplashInitial():
       case SplashInProgress():
       case SplashCacheDeleted():
         break;
     }
+  }
+
+  Future<void> _handleSplashFailure(
+    Object error, {
+    required bool failedWhileClearing,
+  }) async {
+    if (failedWhileClearing &&
+        (widget._flow == SplashFlow.resetWallet ||
+            widget._flow == SplashFlow.deleteCache)) {
+      final bool retry =
+          await showDialogWithNoAndYesOptions(
+            context: context,
+            isBarrierDismissible: false,
+            title: widget._flow == SplashFlow.resetWallet
+                ? context.l10n.walletResetFailed
+                : context.l10n.cacheDeletionFailed,
+            content: Text(
+              context.l10n.failedToClearLocalWalletData(error.toString()),
+            ),
+          ) ??
+          false;
+      if (!mounted) {
+        return;
+      }
+      if (retry) {
+        _startSplashFlow();
+        return;
+      }
+    }
+
+    if (!mounted) {
+      return;
+    }
+    await Navigator.pushReplacementNamed(
+      context,
+      SyriusErrorWidget.route,
+      arguments: CustomSyriusErrorWidgetArguments(error.toString()),
+    );
   }
 
   void _navigateTo(BuildContext context, SplashDestination destination) {

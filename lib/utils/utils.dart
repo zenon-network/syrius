@@ -20,6 +20,8 @@ export 'notifiers/notifiers.dart';
 export 'pair.dart';
 export 'toast_utils.dart';
 export 'utils.dart';
+export 'wallet_connect_request_utils.dart';
+export 'wallet_connect_uri_utils.dart';
 export 'wallet_utils.dart';
 export 'widget_utils.dart';
 export 'zts_utils.dart';

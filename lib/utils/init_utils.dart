@@ -6,6 +6,7 @@ import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/p2p_swaps/se
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/p2p_swaps/data/htlc_swap_local_storage_api.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/p2p_swaps/data/legacy_htlc_swaps_migrator.dart';
+import 'package:zenon_syrius_wallet_flutter/services/i_web3wallet_service.dart';
 import 'package:zenon_syrius_wallet_flutter/services/shared_prefs_service.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/address_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
@@ -74,6 +75,9 @@ class InitUtils {
     await ZenonAddressUtils.setAddresses(kWalletFile);
     await ZenonAddressUtils.setAddressLabels();
     await ZenonAddressUtils.setDefaultAddress();
+    if (sl.isRegistered<IWeb3WalletService>()) {
+      sl<IWeb3WalletService>().registerAccountsIfNeeded();
+    }
     await NodeUtils.initWebSocketClient();
     await sl<HtlcSwapLocalStorageApi>().open(cipherKey);
     await sl<LegacyHtlcSwapsMigrator>().migrateIfNeeded(

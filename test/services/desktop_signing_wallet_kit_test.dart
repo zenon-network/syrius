@@ -3,11 +3,7 @@ import 'dart:async';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
-// These mock-only types belong to WalletKit's existing locked core dependency.
-// ignore: depend_on_referenced_packages
 import 'package:reown_core/events/i_events.dart';
-// The mock storage type is supplied by the same locked core dependency.
-// ignore: depend_on_referenced_packages
 import 'package:reown_core/store/i_store.dart';
 import 'package:reown_walletkit/reown_walletkit.dart';
 import 'package:zenon_syrius_wallet_flutter/services/desktop_signing_wallet_kit.dart';
@@ -88,6 +84,13 @@ void main() {
       expect(paymentCalls, 0);
       expect(() => kit.pay, throwsUnsupportedError);
       verify(() => core.start()).called(1);
+      verify(
+        () => events.setQueryParams(<String, String>{
+          'projectId': 'synthetic-project-id',
+          'st': 'events_sdk',
+          'sv': ReownCoreUtils.coreSdkVersion(packageVersion),
+        }),
+      ).called(1);
       verify(() => sign.init()).called(1);
     },
   );

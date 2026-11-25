@@ -3,6 +3,8 @@ part of 'infinite_scroll_table.dart';
 // Internal enum values are self-described by the localized column names.
 // ignore_for_file: public_member_api_docs
 enum InfiniteScrollTableColumnType {
+  acknowledged,
+  active,
   address,
   amount,
   asset,
@@ -19,6 +21,8 @@ enum InfiniteScrollTableColumnType {
   hash,
   level,
   momentumReward,
+  name,
+  pairingTopic,
   pillarName,
   plasma,
   producerAddress,
@@ -26,13 +30,16 @@ enum InfiniteScrollTableColumnType {
   recipientAddress,
   sender,
   sentinelAddress,
+  sessionTopic,
   stakingDuration,
   started,
   status,
   time,
   to,
+  topic,
   type,
   uptime,
+  url,
   weight;
 
   // TODO(maznnwell): don't handle cases where the value is equal to default
@@ -63,11 +70,14 @@ enum InfiniteScrollTableColumnType {
     time => 1,
     type => 1,
     uptime => 1,
+    url => 2,
     weight => 1,
     _ => 1,
   };
 
-  String name({required BuildContext context}) => switch (this) {
+  String label({required BuildContext context}) => switch (this) {
+    acknowledged => context.l10n.acknowledged,
+    active => context.l10n.active,
     address => context.l10n.address,
     amount => context.l10n.amount,
     asset => context.l10n.asset,
@@ -84,6 +94,8 @@ enum InfiniteScrollTableColumnType {
     hash => context.l10n.hash,
     level => context.l10n.level,
     momentumReward => context.l10n.momentumReward,
+    name => context.l10n.name,
+    pairingTopic => context.l10n.pairingTopic,
     pillarName => context.l10n.name,
     plasma => context.l10n.plasma,
     producerAddress => context.l10n.producerAddress,
@@ -91,13 +103,16 @@ enum InfiniteScrollTableColumnType {
     recipientAddress => context.l10n.recipientAddress,
     sender => context.l10n.sender,
     sentinelAddress => context.l10n.sentinelAddress,
+    sessionTopic => context.l10n.sessionTopic,
     stakingDuration => context.l10n.stakingDuration,
     started => context.l10n.started,
     status => context.l10n.status,
     time => context.l10n.time,
     to => context.l10n.to,
+    topic => context.l10n.topic,
     type => context.l10n.type,
     uptime => context.l10n.uptime,
+    url => context.l10n.url,
     weight => context.l10n.weight,
   };
 

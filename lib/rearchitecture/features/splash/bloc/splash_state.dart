@@ -54,11 +54,15 @@ final class SplashCacheDeleted extends SplashState {
 /// State emitted when splash initialization or reset fails.
 final class SplashFailure extends SplashState {
   /// Creates a [SplashFailure] state.
-  const SplashFailure(this.error);
+  const SplashFailure(this.error, {this.failedWhileClearing = false});
 
   /// Error encountered during startup or cleanup.
   final Object error;
 
+  /// Whether the failure occurred while clearing local wallet or cache data
+  /// during a reset or cache-deletion flow.
+  final bool failedWhileClearing;
+
   @override
-  List<Object?> get props => <Object?>[error];
+  List<Object?> get props => <Object?>[error, failedWhileClearing];
 }
