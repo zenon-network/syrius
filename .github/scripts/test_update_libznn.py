@@ -362,6 +362,7 @@ class EndToEndUpdateTests(unittest.TestCase):
         windows_bin: bytes,
         include_darwin_in_checksums: bool = False,
         corrupt_windows_digest: bool = False,
+        prerelease: bool = False,
     ) -> tuple[_FakeOpener, dict[str, str]]:
         linux_arc = _make_tar_gz([("libznn-linux-amd64.so", linux_bin, None, None)])
         darwin_arc = _make_tar_gz([("libznn-darwin-universal.dylib", darwin_bin, None, None)])
@@ -385,7 +386,7 @@ class EndToEndUpdateTests(unittest.TestCase):
             "tag_name": tag,
             "name": tag,
             "draft": False,
-            "prerelease": False,
+            "prerelease": prerelease,
             "published_at": "2026-11-20T12:00:00Z",
             "html_url": f"https://github.com/zenon-network/go-zenon/releases/tag/{tag}",
             "assets": [
@@ -1007,6 +1008,96 @@ class EndToEndUpdateTests(unittest.TestCase):
         self.assertIn("changed=true\n", good_output.read_text(encoding="utf-8"))
         self.assertIn("Updated embedded `libznn` binaries staged", step_summary.read_text(encoding="utf-8"))
         self.assertEqual((blobs / "libznn.so").read_bytes(), new_linux)
+
+    def test_prerelease_requires_explicit_tag_and_surfaces_warning_in_outputs(self) -> None:
+        new_linux = b"\x7fELF-prerelease"
+        new_darwin = b"\xca\xfe\xba\xbe-prerelease"
+        new_windows = b"MZ-prerelease"
+        opener, _ = self._build_mock_release(
+            tag="v0.0.11-rc1",
+            linux_bin=new_linux,
+            darwin_bin=new_darwin,
+            windows_bin=new_windows,
+            include_darwin_in_checksums=True,
+            prerelease=True,
+        )
+        blobs = self.repo_root / "lib" / "embedded_node" / "blobs"
+
+        # 1. Pre-release is refused when no explicit --tag was requested.
+        with self.assertRaisesRegex(updater.UpdaterError, "pre-release"):
+            updater.run_update(
+                repo_root=self.repo_root,
+                work_dir=self.work_dir,
+                tag="",
+                opener=opener,  # type: ignore[arg-type]
+            )
+        self.assertEqual((blobs / "libznn.so").read_bytes(), self.old_linux)
+
+        # 2. Explicitly requested pre-release tag succeeds and clearly flags PR title, body,
+        # commit message, step summary, and GitHub Actions warning output.
+        release_json = self.root / "prerelease.json"
+        release_json.write_bytes(
+            opener.responses[
+                "https://api.github.com/repos/zenon-network/go-zenon/releases/tags/v0.0.11-rc1"
+            ]
+        )
+        pr_body_path = self.root / "prerelease_pr_body.md"
+        gh_output = self.root / "prerelease_gh_output.txt"
+        step_summary = self.root / "prerelease_summary.md"
+
+        orig_build_opener = updater._build_opener
+        orig_gha = os.environ.get("GITHUB_ACTIONS")
+        stdout_buf = io.StringIO()
+        old_stdout = sys.stdout
+        try:
+            updater._build_opener = lambda: opener  # type: ignore[assignment]
+            os.environ["GITHUB_ACTIONS"] = "true"
+            sys.stdout = stdout_buf
+            rc = updater.main(
+                [
+                    "--repo-root",
+                    str(self.repo_root),
+                    "--work-dir",
+                    str(self.work_dir),
+                    "--tag=v0.0.11-rc1",
+                    "--release-json",
+                    str(release_json),
+                    "--pr-body-out",
+                    str(pr_body_path),
+                    "--github-output",
+                    str(gh_output),
+                    "--step-summary",
+                    str(step_summary),
+                ]
+            )
+        finally:
+            updater._build_opener = orig_build_opener
+            sys.stdout = old_stdout
+            if orig_gha is None:
+                os.environ.pop("GITHUB_ACTIONS", None)
+            else:
+                os.environ["GITHUB_ACTIONS"] = orig_gha
+
+        self.assertEqual(rc, 0)
+        self.assertIn(
+            "::warning::Upstream release v0.0.11-rc1 is marked as a pre-release.",
+            stdout_buf.getvalue(),
+        )
+        pr_body = pr_body_path.read_text(encoding="utf-8")
+        self.assertIn("> [!WARNING]", pr_body)
+        self.assertIn("marked as a **pre-release**", pr_body)
+        self.assertIn("- **Release type:** `pre-release`", pr_body)
+
+        gh_out_text = gh_output.read_text(encoding="utf-8")
+        self.assertIn(
+            "pr_title=chore: update embedded libznn to go-zenon v0.0.11-rc1 (prerelease)\n",
+            gh_out_text,
+        )
+        self.assertIn("Release type: pre-release\n", gh_out_text)
+
+        summary_text = step_summary.read_text(encoding="utf-8")
+        self.assertIn("`v0.0.11-rc1` — pre-release", summary_text)
+        self.assertIn("marked as a **pre-release**", summary_text)
 
     def test_unchanged_blobs_sets_changed_false(self) -> None:
         opener, _ = self._build_mock_release(

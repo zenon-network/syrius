@@ -828,14 +828,21 @@ def _staged_blob_transaction(
                 _safe_unlink(backup_path, "post-commit backup")
 
 
+def build_pr_title(release: ReleaseInfo) -> str:
+    suffix = " (prerelease)" if release.prerelease else ""
+    return f"chore: update embedded libznn to go-zenon {release.tag_name}{suffix}"
+
+
 def build_commit_message(
     release: ReleaseInfo,
     verified_binaries: Sequence[VerifiedBinary],
 ) -> str:
+    release_type = "pre-release" if release.prerelease else "release"
     lines = [
-        f"chore: update embedded libznn to go-zenon {release.tag_name}",
+        build_pr_title(release),
         "",
         f"Upstream release: {release.html_url}",
+        f"Release type: {release_type}",
         f"Published: {release.published_at}",
     ]
     if release.checksums_url and release.checksums_sha256:
@@ -868,6 +875,7 @@ def build_pr_body(
     target_branch: str,
     workflow_run_url: str | None = None,
 ) -> str:
+    release_type = "pre-release" if release.prerelease else "release"
     lines = [
         "## Summary",
         "",
@@ -876,13 +884,29 @@ def build_pr_body(
             f"[{release.upstream_repo} `{release.tag_name}`]({release.html_url}) "
             f"(published `{release.published_at}`)."
         ),
-        "",
-        "## Upstream release provenance",
-        "",
-        f"- **Repository:** `{release.upstream_repo}`",
-        f"- **Release tag:** [`{release.tag_name}`]({release.html_url})",
-        f"- **Published at:** `{release.published_at}`",
     ]
+    if release.prerelease:
+        lines.extend(
+            [
+                "",
+                "> [!WARNING]",
+                (
+                    f"> Upstream release `{release.tag_name}` is marked as a **pre-release** "
+                    f"on `{release.upstream_repo}`. Verify stability before merging."
+                ),
+            ]
+        )
+    lines.extend(
+        [
+            "",
+            "## Upstream release provenance",
+            "",
+            f"- **Repository:** `{release.upstream_repo}`",
+            f"- **Release tag:** [`{release.tag_name}`]({release.html_url})",
+            f"- **Release type:** `{release_type}`",
+            f"- **Published at:** `{release.published_at}`",
+        ]
+    )
     if release.checksums_url and release.checksums_sha256:
         lines.append(
             f"- **Upstream checksums file:** [`{CHECKSUMS_ASSET_NAME}`]({release.checksums_url}) "
@@ -964,14 +988,26 @@ def build_step_summary(
             f"`{release.tag_name}`."
         )
 
+    heading_suffix = " — pre-release" if release.prerelease else ""
     lines = [
-        f"## Embedded `libznn` update check (`{release.tag_name}`)",
+        f"## Embedded `libznn` update check (`{release.tag_name}`{heading_suffix})",
         "",
         status_line,
-        "",
-        "| Platform | Upstream asset | Archive SHA-256 | Verification | Extracted SHA-256 | Status |",
-        "|---|---|---|---|---|---|",
     ]
+    if release.prerelease:
+        lines.extend(
+            [
+                "",
+                f"> **Warning:** Upstream release `{release.tag_name}` is marked as a **pre-release**.",
+            ]
+        )
+    lines.extend(
+        [
+            "",
+            "| Platform | Upstream asset | Archive SHA-256 | Verification | Extracted SHA-256 | Status |",
+            "|---|---|---|---|---|---|",
+        ]
+    )
     for item in verified_binaries:
         state = "Updated" if item.changed else "Unchanged"
         lines.append(
@@ -1049,6 +1085,10 @@ def run_update(
     release_name = re.sub(r"[\r\n`]+", " ", str(release_data.get("name") or resolved_tag)).strip()
     published_at = re.sub(r"[\r\n`]+", " ", str(release_data.get("published_at") or "unknown")).strip()
     prerelease = bool(release_data.get("prerelease", False))
+    if prerelease and not requested_tag:
+        raise UpdaterError(
+            f"Refusing to use pre-release {resolved_tag!r} without an explicit --tag"
+        )
 
     raw_assets = release_data.get("assets")
     if not isinstance(raw_assets, list):
@@ -1163,7 +1203,7 @@ def run_update(
             )
 
         changed = any(item.changed for item in verified_binaries)
-        pr_title = f"chore: update embedded libznn to go-zenon {release_info.tag_name}"
+        pr_title = build_pr_title(release_info)
         commit_message = build_commit_message(release_info, verified_binaries)
         pr_body = build_pr_body(
             release_info,
@@ -1360,6 +1400,10 @@ def main(argv: Sequence[str] | None = None) -> int:
 
     in_github_actions = os.environ.get("GITHUB_ACTIONS") == "true"
     print(f"Verified go-zenon release {release_info.tag_name} ({release_info.html_url})")
+    if in_github_actions and release_info.prerelease:
+        print(
+            f"::warning::Upstream release {release_info.tag_name} is marked as a pre-release."
+        )
     for item in verified:
         state = "UPDATED" if item.changed else "UNCHANGED"
         print(
