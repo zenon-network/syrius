@@ -2,15 +2,12 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:zenon_syrius_wallet_flutter/blocs/pow_generating_status_bloc.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/model/model.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/dialogs.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/error_widget.dart';
-import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 /// A card with the actions available for native P2P swaps.
 class P2pSwapOptionsCard extends StatelessWidget {
@@ -48,16 +45,12 @@ class _View extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocListener<StartP2pSwapBloc, StartP2pSwapState>(
       listener: _onStartP2pSwapStateChanged,
-      child: StreamBuilder<PowStatus>(
-        stream: sl.get<PowGeneratingStatusBloc>().stream,
-        builder: (_, AsyncSnapshot<PowStatus> snapshot) {
-          if (snapshot.hasError) {
-            return SyriusErrorWidget(snapshot.error!);
-          }
-
+      child: BlocBuilder<PowGeneratingStatusBloc, PowGeneratingStatusState>(
+        bloc: sl.get<PowGeneratingStatusBloc>(),
+        builder: (_, PowGeneratingStatusState state) {
           return _buildNativeOptions(
             context: context,
-            isGeneratingPlasma: snapshot.data == PowStatus.generating,
+            isGeneratingPlasma: state.isGenerating,
           );
         },
       ),

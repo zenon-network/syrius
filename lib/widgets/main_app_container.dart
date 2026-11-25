@@ -10,7 +10,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:flutter_vector_icons/flutter_vector_icons.dart';
 import 'package:logging/logging.dart';
-import 'package:lottie/lottie.dart';
 import 'package:nested/nested.dart';
 import 'package:provider/provider.dart';
 import 'package:window_manager/window_manager.dart';
@@ -73,7 +72,7 @@ class _MainAppContainerState extends State<MainAppContainer>
     with TickerProviderStateMixin, ClipboardListener, WindowListener {
   late AnimationController _animationController;
   late Animation _animation;
-  late StreamSubscription _lockBlockStreamSubscription;
+  late StreamSubscription<WalletLockState> _lockBlockStreamSubscription;
   late StreamSubscription _incomingLinkSubscription;
   late LockBloc _lockBloc;
 
@@ -455,29 +454,7 @@ class _MainAppContainerState extends State<MainAppContainer>
   }
 
   Widget _getGenerationStatus() {
-    return StreamBuilder<PowStatus>(
-      stream: sl.get<PowGeneratingStatusBloc>().stream,
-      builder: (_, AsyncSnapshot<PowStatus> snapshot) {
-        if (snapshot.hasData && snapshot.data == PowStatus.generating) {
-          return Tooltip(
-            message: 'Generating Plasma',
-            child: Lottie.asset(
-              'assets/lottie/ic_anim_plasma_generation.json',
-              fit: BoxFit.contain,
-              width: 30,
-              repeat: true,
-            ),
-          );
-        }
-        return Tooltip(
-          message: 'Plasma generation idle',
-          child: Icon(
-            MaterialCommunityIcons.lightning_bolt,
-            color: Theme.of(context).iconTheme.color,
-          ),
-        );
-      },
-    );
+    return const PowGeneratingStatusIcon();
   }
 
   Widget _getCurrentPageContainer() {
@@ -530,7 +507,7 @@ class _MainAppContainerState extends State<MainAppContainer>
     if (kLastWalletConnectUriNotifier.value != null) {
       _tabController!.animateTo(_getTabChildIndex(Tabs.walletConnect));
     } else {
-      _lockBloc.addEvent(LockEvent.navigateToPreviousTab);
+      _lockBloc.add(const LockNavigateToPreviousTabRequested());
     }
   }
 
@@ -557,7 +534,7 @@ class _MainAppContainerState extends State<MainAppContainer>
         type: NotificationType.autoLockIntervalChanged,
       ),
     );
-    _lockBloc.addEvent(LockEvent.resetTimer);
+    _lockBloc.add(const LockTimerResetRequested());
   }
 
   void _afterAppInitCallback() {
@@ -566,16 +543,8 @@ class _MainAppContainerState extends State<MainAppContainer>
     if (kLastWalletConnectUriNotifier.value != null) {
       _tabController!.animateTo(_getTabChildIndex(Tabs.walletConnect));
     } else {
-      _lockBloc.addEvent(LockEvent.navigateToDashboard);
+      _lockBloc.add(const LockNavigateToDashboardRequested());
     }
-
-    _listenToAutoReceiveTxWorkerNotifications();
-  }
-
-  void _listenToAutoReceiveTxWorkerNotifications() {
-    sl<AutoReceiveTxWorker>().stream.listen((WalletNotification event) {
-      sl<NotificationsBloc>().addNotification(event);
-    });
   }
 
   bool _isTabSelected(Tabs page) =>
@@ -618,16 +587,20 @@ class _MainAppContainerState extends State<MainAppContainer>
   }
 
   void _initLockBlock() {
-    _lockBloc = Provider.of<LockBloc>(context, listen: false);
-    _lockBlockStreamSubscription = _lockBloc.stream.listen((LockEvent event) {
-      switch (event) {
-        case LockEvent.countDown:
+    _lockBloc = context.read<LockBloc>();
+    _lockBlockStreamSubscription = _lockBloc.stream.listen((
+      WalletLockState state,
+    ) {
+      switch (state.action) {
+        case LockAction.initial:
+          break;
+        case LockAction.countDown:
           if (kCurrentPage != Tabs.lock) {
             _navigateToLockTimer = _createAutoLockTimer();
           }
-        case LockEvent.navigateToDashboard:
+        case LockAction.navigateToDashboard:
           _tabController!.animateTo(_getTabChildIndex(Tabs.dashboard));
-        case LockEvent.navigateToLock:
+        case LockAction.navigateToLock:
           if (Navigator.of(context).canPop()) {
             Navigator.popUntil(
               context,
@@ -638,17 +611,17 @@ class _MainAppContainerState extends State<MainAppContainer>
           _tabController!.animateTo(
             _getTabChildIndex(Tabs.lock),
           );
-        case LockEvent.resetTimer:
+        case LockAction.resetTimer:
           if (_navigateToLockTimer != null && _navigateToLockTimer!.isActive) {
             _navigateToLockTimer?.cancel();
             _navigateToLockTimer = _createAutoLockTimer();
           }
-        case LockEvent.navigateToPreviousTab:
+        case LockAction.navigateToPreviousTab:
           _tabController!.animateTo(_tabController!.previousIndex);
       }
     });
     if (widget.redirectedFromWalletSuccess) {
-      _lockBloc.addEvent(LockEvent.countDown);
+      _lockBloc.add(const LockCountDownRequested());
     }
   }
 
@@ -660,7 +633,7 @@ class _MainAppContainerState extends State<MainAppContainer>
           mounted &&
           timer.isActive &&
           identical(_navigateToLockTimer, timer)) {
-        _lockBloc.addEvent(LockEvent.navigateToLock);
+        _lockBloc.add(const LockNavigateToLockRequested());
       }
     });
   }

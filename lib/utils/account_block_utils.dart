@@ -4,6 +4,7 @@ import 'package:collection/collection.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/model/model.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/exceptions/exceptions.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/format_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
@@ -204,5 +205,5 @@ class AccountBlockUtils {
   }
 
   static void _addEventToPowGeneratingStatusBloc(PowStatus event) =>
-      sl.get<PowGeneratingStatusBloc>().addEvent(event);
+      sl.get<PowGeneratingStatusBloc>().add(PowGeneratingStatusChanged(event));
 }

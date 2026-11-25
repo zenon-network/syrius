@@ -4158,11 +4158,11 @@ abstract class AppLocalizations {
   /// **'Other wallet options'**
   String get otherWalletOptions;
 
-  /// No description provided for @passwordRequirementsInfo.
+  /// No description provided for @useStrongPasswordRequirements.
   ///
   /// In en, this message translates to:
   /// **'Use a password that has at least 8 characters, one number, one uppercase letter, one lowercase letter and one symbol'**
-  String get passwordRequirementsInfo;
+  String get useStrongPasswordRequirements;
 
   /// No description provided for @pasteFromClipboard.
   ///
@@ -4439,6 +4439,270 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'I will securely store the Seed Vault & Seed Vault Key'**
   String get willSecurelyStoreSeedVault;
+
+  /// No description provided for @accessWallet.
+  ///
+  /// In en, this message translates to:
+  /// **'Access wallet'**
+  String get accessWallet;
+
+  /// Displays the number of unlock attempts remaining before wallet reset.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} attempts left'**
+  String attemptsLeft(int count);
+
+  /// No description provided for @backedUpSeedInSafeLocation.
+  ///
+  /// In en, this message translates to:
+  /// **'I have backed up my seed in a safe location'**
+  String get backedUpSeedInSafeLocation;
+
+  /// No description provided for @chooseYourDevice.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose your device'**
+  String get chooseYourDevice;
+
+  /// Prompts the user to confirm the address for a hardware wallet account index.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm address for account index: {index}'**
+  String confirmAddressAccountIndex(int index);
+
+  /// No description provided for @confirmYourSeed.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm your seed'**
+  String get confirmYourSeed;
+
+  /// No description provided for @connectAndUnlockYourDevice.
+  ///
+  /// In en, this message translates to:
+  /// **'Please connect and unlock your device'**
+  String get connectAndUnlockYourDevice;
+
+  /// No description provided for @createWallet.
+  ///
+  /// In en, this message translates to:
+  /// **'Create wallet'**
+  String get createWallet;
+
+  /// No description provided for @createWalletPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Create a wallet password'**
+  String get createWalletPassword;
+
+  /// No description provided for @deviceNotConnectedTryAgain.
+  ///
+  /// In en, this message translates to:
+  /// **'Not connected, please connect the device and try again.'**
+  String get deviceNotConnectedTryAgain;
+
+  /// No description provided for @dragAndDropWordsCorrectOrder.
+  ///
+  /// In en, this message translates to:
+  /// **'Drag & drop the words in the correct order'**
+  String get dragAndDropWordsCorrectOrder;
+
+  /// No description provided for @dragAndDropWordsOnEmptyOrIncorrect.
+  ///
+  /// In en, this message translates to:
+  /// **'You can drag & drop words on empty boxes or incorrect words'**
+  String get dragAndDropWordsOnEmptyOrIncorrect;
+
+  /// No description provided for @enterPasswordToAccessWallet.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the password to access the wallet'**
+  String get enterPasswordToAccessWallet;
+
+  /// Displays a generic error prefix followed by the error message.
+  ///
+  /// In en, this message translates to:
+  /// **'Error: {message}'**
+  String errorWithMessage(String message);
+
+  /// No description provided for @exportSeed.
+  ///
+  /// In en, this message translates to:
+  /// **'Export Seed'**
+  String get exportSeed;
+
+  /// No description provided for @generatingPlasma.
+  ///
+  /// In en, this message translates to:
+  /// **'Generating Plasma'**
+  String get generatingPlasma;
+
+  /// No description provided for @hardwareWallet.
+  ///
+  /// In en, this message translates to:
+  /// **'Hardware wallet'**
+  String get hardwareWallet;
+
+  /// No description provided for @importWallet.
+  ///
+  /// In en, this message translates to:
+  /// **'Import wallet'**
+  String get importWallet;
+
+  /// No description provided for @importYourWallet.
+  ///
+  /// In en, this message translates to:
+  /// **'Import your wallet'**
+  String get importYourWallet;
+
+  /// No description provided for @importingSeed.
+  ///
+  /// In en, this message translates to:
+  /// **'Importing seed'**
+  String get importingSeed;
+
+  /// No description provided for @initializingWalletPleaseWait.
+  ///
+  /// In en, this message translates to:
+  /// **'Initializing wallet, please wait'**
+  String get initializingWalletPleaseWait;
+
+  /// No description provided for @inputSeedOrImportSeedVault.
+  ///
+  /// In en, this message translates to:
+  /// **'Input your seed or import the Seed Vault'**
+  String get inputSeedOrImportSeedVault;
+
+  /// No description provided for @inputSeedVaultKeyToContinue.
+  ///
+  /// In en, this message translates to:
+  /// **'Input the Seed Vault Key to continue'**
+  String get inputSeedVaultKeyToContinue;
+
+  /// No description provided for @lastAttemptWalletWillReset.
+  ///
+  /// In en, this message translates to:
+  /// **'Last attempt. The wallet will be reset if this attempt fails'**
+  String get lastAttemptWalletWillReset;
+
+  /// Displays a Ledger error prefix followed by the error details.
+  ///
+  /// In en, this message translates to:
+  /// **'Ledger: {details}'**
+  String ledgerWithDetails(String details);
+
+  /// Displays a Ledger hardware device label with its name.
+  ///
+  /// In en, this message translates to:
+  /// **'Ledger {name}'**
+  String ledgerWithName(String name);
+
+  /// No description provided for @mnemonicIsNotValid.
+  ///
+  /// In en, this message translates to:
+  /// **'Mnemonic is not valid'**
+  String get mnemonicIsNotValid;
+
+  /// No description provided for @ok.
+  ///
+  /// In en, this message translates to:
+  /// **'OK'**
+  String get ok;
+
+  /// No description provided for @passwordRequiredToUnlockWallet.
+  ///
+  /// In en, this message translates to:
+  /// **'This is the password that will be required to unlock the wallet'**
+  String get passwordRequiredToUnlockWallet;
+
+  /// No description provided for @plasmaGenerationIdle.
+  ///
+  /// In en, this message translates to:
+  /// **'Plasma generation idle'**
+  String get plasmaGenerationIdle;
+
+  /// No description provided for @resolvingAddressConfirmOnDevice.
+  ///
+  /// In en, this message translates to:
+  /// **'Resolving address, please confirm the address on your hardware device'**
+  String get resolvingAddressConfirmOnDevice;
+
+  /// No description provided for @scanDevices.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan devices'**
+  String get scanDevices;
+
+  /// No description provided for @selectOptionToAccessWallet.
+  ///
+  /// In en, this message translates to:
+  /// **'Select an option to access your wallet'**
+  String get selectOptionToAccessWallet;
+
+  /// No description provided for @selectToConnectDevice.
+  ///
+  /// In en, this message translates to:
+  /// **'Select to connect the device'**
+  String get selectToConnectDevice;
+
+  /// Displays the word count of the newly generated wallet seed.
+  ///
+  /// In en, this message translates to:
+  /// **'This is your {wordCount} words seed'**
+  String thisIsYourWordsSeed(int wordCount);
+
+  /// No description provided for @unlockFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlock failed'**
+  String get unlockFailed;
+
+  /// No description provided for @unlockYourSeedVault.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlock your Seed Vault'**
+  String get unlockYourSeedVault;
+
+  /// No description provided for @unsupportedWalletFileType.
+  ///
+  /// In en, this message translates to:
+  /// **'Unsupported wallet file type'**
+  String get unsupportedWalletFileType;
+
+  /// No description provided for @walletSuccessfullyCreated.
+  ///
+  /// In en, this message translates to:
+  /// **'The wallet has been successfully created'**
+  String get walletSuccessfullyCreated;
+
+  /// No description provided for @welcome.
+  ///
+  /// In en, this message translates to:
+  /// **'Welcome'**
+  String get welcome;
+
+  /// No description provided for @welcomeBack.
+  ///
+  /// In en, this message translates to:
+  /// **'Welcome Back'**
+  String get welcomeBack;
+
+  /// No description provided for @writeDownAndExportSeedSafely.
+  ///
+  /// In en, this message translates to:
+  /// **'Please carefully write down your seed and export it to a safe location'**
+  String get writeDownAndExportSeedSafely;
+
+  /// No description provided for @writtenDownMySeed.
+  ///
+  /// In en, this message translates to:
+  /// **'I have written down my seed'**
+  String get writtenDownMySeed;
+
+  /// No description provided for @youAreAllSet.
+  ///
+  /// In en, this message translates to:
+  /// **'You\'re all set'**
+  String get youAreAllSet;
 }
 
 class _AppLocalizationsDelegate
