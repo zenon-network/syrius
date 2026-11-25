@@ -63,6 +63,7 @@ class Web3WalletService extends IWeb3WalletService {
   Future<void>? _initFuture;
   Future<void>? _pendingResetMarkerPersist;
   Future<void>? _resetInFlight;
+  Future<void>? _pendingRecoveryRelayDisconnect;
   Future<void> _markerOpQueue = Future<void>.value();
   int _activeResetDepth = 0;
   int _resetRequestEpoch = 0;
@@ -87,6 +88,8 @@ class Web3WalletService extends IWeb3WalletService {
 
   final Set<Future<void>> _inFlightPairCalls = <Future<void>>{};
   final Set<Future<void>> _timedOutInFlightPairCalls = <Future<void>>{};
+  final Map<String, Set<Future<void>>> _pendingTimedOutTopicOps =
+      <String, Set<Future<void>>>{};
 
   final Map<String, String> _pendingSessionCleanups = <String, String>{};
   final Set<String> _pendingPairingCleanups = <String>{};
@@ -251,6 +254,7 @@ class Web3WalletService extends IWeb3WalletService {
     _topicsNeedingPairingStorePersist.clear();
     _pendingDisconnectEverything = false;
     _resetInFlight = null;
+    _pendingRecoveryRelayDisconnect = null;
     _hasUnresolvedReset = false;
     _hasUnresolvedFullReset = false;
     _hasUnconfirmedResetMarkerWrite = false;
@@ -259,6 +263,7 @@ class Web3WalletService extends IWeb3WalletService {
     _needsExpirerPersist = false;
     _inFlightPairCalls.clear();
     _timedOutInFlightPairCalls.clear();
+    _pendingTimedOutTopicOps.clear();
     _pendingResetMarkerPersist = null;
     _initFuture = null;
     _isInitialized = false;
@@ -315,6 +320,15 @@ class Web3WalletService extends IWeb3WalletService {
       throw StateError(
         'WalletConnect reset cleanup is in progress or pending; cannot '
         'create a new pairing until the reset marker is cleared',
+      );
+    }
+
+    final String? requestedTopic = _extractPairingTopicFromUri(uri);
+    if (requestedTopic != null &&
+        _pendingTimedOutTopicOps.containsKey(requestedTopic)) {
+      throw StateError(
+        'WalletConnect cleanup for pairing topic $requestedTopic is still '
+        'settling; retry pairing once unsubscribe completes',
       );
     }
 
@@ -555,13 +569,18 @@ class Web3WalletService extends IWeb3WalletService {
     final Map<String, String> unfinishedSessions = <String, String>{};
 
     for (final SessionData session in sessionsByTopic.values) {
+      Future<void>? disconnectFuture;
       try {
-        await _wcClient!.disconnectSession(
+        disconnectFuture = _wcClient!.disconnectSession(
           topic: session.topic,
           reason: Errors.getSdkError(Errors.USER_DISCONNECTED).toSignError(),
         );
+        await disconnectFuture.timeout(_inFlightPairWaitTimeout);
         _topicsNeedingSessionStorePersist.remove(session.topic);
       } on Object catch (e, s) {
+        if (e is TimeoutException && disconnectFuture != null) {
+          _trackTimedOutTopicCleanup(session.topic, disconnectFuture);
+        }
         _logger.warning(
           'Failed to disconnect session ${session.topic} remotely; '
           'purging local session state and key material',
@@ -676,13 +695,7 @@ class Web3WalletService extends IWeb3WalletService {
         );
       }
     }
-    try {
-      await _wcClient!.core.relayClient
-          .unsubscribe(topic: topic)
-          .timeout(_inFlightPairWaitTimeout);
-    } on Object {
-      // Relay may be offline or unresponsive during local reset.
-    }
+    await _unsubscribeTopicBounded(topic);
 
     return allLocalDeletesSucceeded;
   }
@@ -747,15 +760,57 @@ class Web3WalletService extends IWeb3WalletService {
         );
       }
     }
+    await _unsubscribeTopicBounded(topic);
+
+    return allLocalDeletesSucceeded;
+  }
+
+  String? _extractPairingTopicFromUri(Uri uri) {
+    final List<String> pathParts = uri.path.split('@');
+    if (pathParts.length >= 2 && pathParts.first.isNotEmpty) {
+      return pathParts.first;
+    }
+    if (uri.userInfo.isNotEmpty) {
+      return uri.userInfo;
+    }
+    return null;
+  }
+
+  void _trackTimedOutTopicCleanup(String topic, Future<void> operation) {
+    if (topic.isEmpty) {
+      return;
+    }
+    _pendingTimedOutTopicOps
+        .putIfAbsent(topic, () => <Future<void>>{})
+        .add(operation);
+    unawaited(
+      operation
+          .then<void>((_) {}, onError: (Object _, StackTrace _) {})
+          .whenComplete(() {
+            final Set<Future<void>>? ops = _pendingTimedOutTopicOps[topic];
+            ops?.remove(operation);
+            if (ops != null && ops.isEmpty) {
+              _pendingTimedOutTopicOps.remove(topic);
+            }
+          }),
+    );
+  }
+
+  Future<void> _unsubscribeTopicBounded(String topic) async {
+    if (_wcClient == null || _pendingTimedOutTopicOps.containsKey(topic)) {
+      return;
+    }
+    Future<void>? unsubscribeFuture;
     try {
-      await _wcClient!.core.relayClient
-          .unsubscribe(topic: topic)
-          .timeout(_inFlightPairWaitTimeout);
+      unsubscribeFuture = _wcClient!.core.relayClient.unsubscribe(topic: topic);
+      await unsubscribeFuture.timeout(_inFlightPairWaitTimeout);
+    } on TimeoutException {
+      if (unsubscribeFuture != null) {
+        _trackTimedOutTopicCleanup(topic, unsubscribeFuture);
+      }
     } on Object {
       // Relay may be offline or unresponsive during local reset.
     }
-
-    return allLocalDeletesSucceeded;
   }
 
   @override
@@ -1101,10 +1156,11 @@ class Web3WalletService extends IWeb3WalletService {
           // JSON-RPC request). Close the relay connection owning them so the
           // SDK call fails and settles before we sweep local state.
           _needsRelayReconnectAfterRecovery = true;
+          final Future<void> disconnectFuture =
+              _pendingRecoveryRelayDisconnect ??
+              _startRecoveryRelayDisconnect();
           try {
-            await _wcClient!.core.relayClient.disconnect().timeout(
-              _inFlightPairWaitTimeout,
-            );
+            await disconnectFuture.timeout(_inFlightPairWaitTimeout);
           } on Object catch (e, s) {
             _logger.warning(
               'Failed disconnecting relay while recovering from hung '
@@ -1238,7 +1294,41 @@ class Web3WalletService extends IWeb3WalletService {
     });
   }
 
+  Future<void> _startRecoveryRelayDisconnect() {
+    final Future<void> disconnectFuture = Future<void>.sync(
+      () => _wcClient!.core.relayClient.disconnect(),
+    );
+    late final Future<void> settledFuture;
+    settledFuture = disconnectFuture
+        .then<void>(
+          (_) {},
+          onError: (Object e, StackTrace s) {
+            _logger.fine(
+              'Recovery relay disconnect completed with error',
+              e,
+              s,
+            );
+          },
+        )
+        .whenComplete(() {
+          if (identical(_pendingRecoveryRelayDisconnect, settledFuture)) {
+            _pendingRecoveryRelayDisconnect = null;
+          }
+        });
+    _pendingRecoveryRelayDisconnect = settledFuture;
+    return settledFuture;
+  }
+
   Future<void> _reconnectRelayAfterRecovery() async {
+    // Unbounded wait on the tracked recovery disconnect future guarantees
+    // relayClient.connect() never runs concurrently with an in-flight
+    // disconnect(). Trade-off: if the underlying socket close never settles,
+    // background relay reconnection stays paused until close completes or the
+    // service is disposed, without blocking the already-completed reset.
+    final Future<void>? pendingDisconnect = _pendingRecoveryRelayDisconnect;
+    if (pendingDisconnect != null) {
+      await pendingDisconnect;
+    }
     if (_isDisposed ||
         _wcClient == null ||
         _hasUnresolvedReset ||
@@ -2661,6 +2751,9 @@ class Web3WalletService extends IWeb3WalletService {
   }
 
   void _onSessionDelete(SessionDelete? args) {
+    if (args != null && _pendingTimedOutTopicOps.containsKey(args.topic)) {
+      return;
+    }
     _reloadStores();
   }
 

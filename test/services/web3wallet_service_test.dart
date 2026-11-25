@@ -3974,5 +3974,326 @@ void main() {
         );
       },
     );
+
+    test(
+      'bounds hung live disconnectSession so local purge runs, later sessions '
+      'still sweep, and late completion does not corrupt state',
+      () async {
+        final Map<String, Map<String, dynamic>> persistedStorage =
+            <String, Map<String, dynamic>>{};
+        final Completer<void> hungDisconnectCompleter = Completer<void>();
+
+        when(() => coreStorage.has(any())).thenAnswer(
+          (Invocation i) =>
+              persistedStorage.containsKey(i.positionalArguments[0]),
+        );
+        when(() => coreStorage.get(any())).thenAnswer(
+          (Invocation i) => persistedStorage[i.positionalArguments[0]],
+        );
+        when(() => coreStorage.set(any(), any())).thenAnswer((
+          Invocation i,
+        ) async {
+          persistedStorage[i.positionalArguments[0]
+              as String] = Map<String, dynamic>.from(
+            i.positionalArguments[1] as Map<String, dynamic>,
+          );
+        });
+        when(() => coreStorage.delete(any())).thenAnswer((Invocation i) async {
+          persistedStorage.remove(i.positionalArguments[0] as String);
+        });
+
+        activeSessions['hung-s1'] = _buildSession(
+          topic: 'hung-s1',
+          selfPublicKey: 'pk-hung-1',
+        );
+        activeSessions['ok-s2'] = _buildSession(
+          topic: 'ok-s2',
+          selfPublicKey: 'pk-ok-2',
+        );
+        when(
+          () => walletKit.disconnectSession(
+            topic: 'hung-s1',
+            reason: any(named: 'reason'),
+          ),
+        ).thenAnswer((_) => hungDisconnectCompleter.future);
+        when(() => sessionStore.delete('hung-s1')).thenAnswer((_) async {
+          activeSessions.remove('hung-s1');
+        });
+        when(
+          () => walletKit.disconnectSession(
+            topic: 'ok-s2',
+            reason: any(named: 'reason'),
+          ),
+        ).thenAnswer((_) async {
+          activeSessions.remove('ok-s2');
+        });
+
+        final Web3WalletService service = Web3WalletService(
+          walletKit: walletKit,
+          chainResolver: (String _) => nomService,
+          inFlightPairWaitTimeout: const Duration(milliseconds: 50),
+        );
+        addTearDown(() async {
+          if (!hungDisconnectCompleter.isCompleted) {
+            hungDisconnectCompleter.complete();
+          }
+          await service.onDispose();
+        });
+        service.create();
+        await service.init();
+
+        await service.disconnectEverything().timeout(
+          const Duration(seconds: 2),
+        );
+
+        verify(() => sessionStore.delete('hung-s1')).called(1);
+        verify(() => crypto.deleteKeyPair('pk-hung-1')).called(1);
+        verify(() => crypto.deleteSymKey('hung-s1')).called(1);
+        verify(() => expirer.delete('hung-s1')).called(1);
+        verify(
+          () => walletKit.disconnectSession(
+            topic: 'ok-s2',
+            reason: any(named: 'reason'),
+          ),
+        ).called(1);
+        // Should not wait a second timeout on a duplicate unsubscribe for the
+        // already timed-out disconnectSession topic.
+        verifyNever(() => relayClient.unsubscribe(topic: 'hung-s1'));
+        expect(activeSessions, isEmpty);
+        expect(
+          persistedStorage.containsKey(
+            Web3WalletService.pendingResetStorageKey,
+          ),
+          isFalse,
+        );
+
+        // Late completion/error of the timed-out disconnectSession must not
+        // throw unhandled errors or disturb newer sessions.
+        activeSessions['fresh-s3'] = _buildSession(topic: 'fresh-s3');
+        service.sessions.value = <SessionData>[activeSessions['fresh-s3']!];
+        onSessionDelete.broadcast(SessionDelete('hung-s1'));
+        hungDisconnectCompleter.completeError(StateError('late relay timeout'));
+        await Future<void>.delayed(Duration.zero);
+
+        expect(
+          service.sessions.value.map((SessionData s) => s.topic),
+          equals(<String>['fresh-s3']),
+        );
+      },
+    );
+
+    test(
+      'defers topic readmission in pair() while a timed-out relay unsubscribe '
+      'is still pending and allows reuse once it settles',
+      () async {
+        final int now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+        final Map<String, Map<String, dynamic>> persistedStorage =
+            <String, Map<String, dynamic>>{};
+        final List<PairingInfo> livePairings = <PairingInfo>[
+          PairingInfo(
+            topic: 'reused-p1',
+            expiry: now + 3600,
+            relay: Relay(ReownConstants.RELAYER_DEFAULT_PROTOCOL),
+            active: true,
+          ),
+        ];
+        final Completer<void> pendingUnsubscribe = Completer<void>();
+
+        when(() => coreStorage.has(any())).thenAnswer(
+          (Invocation i) =>
+              persistedStorage.containsKey(i.positionalArguments[0]),
+        );
+        when(() => coreStorage.get(any())).thenAnswer(
+          (Invocation i) => persistedStorage[i.positionalArguments[0]],
+        );
+        when(() => coreStorage.set(any(), any())).thenAnswer((
+          Invocation i,
+        ) async {
+          persistedStorage[i.positionalArguments[0]
+              as String] = Map<String, dynamic>.from(
+            i.positionalArguments[1] as Map<String, dynamic>,
+          );
+        });
+        when(() => coreStorage.delete(any())).thenAnswer((Invocation i) async {
+          persistedStorage.remove(i.positionalArguments[0] as String);
+        });
+        when(
+          pairingStore.getAll,
+        ).thenAnswer((_) => List<PairingInfo>.from(livePairings));
+        when(() => pairing.disconnect(topic: 'reused-p1')).thenAnswer((
+          _,
+        ) async {
+          livePairings.clear();
+        });
+        when(
+          () => relayClient.unsubscribe(topic: 'reused-p1'),
+        ).thenAnswer((_) => pendingUnsubscribe.future);
+        when(() => walletKit.pair(uri: any(named: 'uri'))).thenAnswer((
+          Invocation i,
+        ) async {
+          final Uri uri = i.namedArguments[#uri] as Uri;
+          final String topic = uri.path.split('@').first;
+          final PairingInfo created = PairingInfo(
+            topic: topic,
+            expiry: now + 3600,
+            relay: Relay(ReownConstants.RELAYER_DEFAULT_PROTOCOL),
+            active: false,
+          );
+          livePairings.add(created);
+          return created;
+        });
+
+        final Web3WalletService service = Web3WalletService(
+          walletKit: walletKit,
+          chainResolver: (String _) => nomService,
+          inFlightPairWaitTimeout: const Duration(milliseconds: 50),
+        );
+        addTearDown(() async {
+          if (!pendingUnsubscribe.isCompleted) {
+            pendingUnsubscribe.complete();
+          }
+          await service.onDispose();
+        });
+        service.create();
+        await service.init();
+
+        // Reset finishes within the timeout bound even while unsubscribe hangs.
+        await service.disconnectEverything().timeout(
+          const Duration(seconds: 2),
+        );
+
+        // Reusing the same topic must be blocked until unsubscribe settles.
+        await expectLater(
+          service.pair(
+            Uri.parse('wc:reused-p1@2?relay-protocol=irn&symKey=def'),
+          ),
+          throwsStateError,
+        );
+
+        // A different topic is unaffected and allowed immediately.
+        final PairingInfo other = await service.pair(
+          Uri.parse('wc:other-p2@2?relay-protocol=irn&symKey=ghi'),
+        );
+        expect(other.topic, equals('other-p2'));
+
+        // Once the timed-out unsubscribe settles, reusing reused-p1 succeeds.
+        pendingUnsubscribe.complete();
+        await Future<void>.delayed(Duration.zero);
+
+        final PairingInfo reused = await service.pair(
+          Uri.parse('wc:reused-p1@2?relay-protocol=irn&symKey=def'),
+        );
+        expect(reused.topic, equals('reused-p1'));
+      },
+    );
+
+    test('waits for a timed-out recovery relay disconnect to settle before '
+        'reconnecting after reset', () async {
+      final int now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+      final Map<String, Map<String, dynamic>> persistedStorage =
+          <String, Map<String, dynamic>>{};
+      final List<PairingInfo> livePairings = <PairingInfo>[];
+      final Completer<void> sdkPairStarted = Completer<void>();
+      final Completer<void> relaySubscribeResponse = Completer<void>();
+      final Completer<void> relayDisconnectCompleter = Completer<void>();
+
+      when(() => coreStorage.has(any())).thenAnswer(
+        (Invocation i) =>
+            persistedStorage.containsKey(i.positionalArguments[0]),
+      );
+      when(() => coreStorage.get(any())).thenAnswer(
+        (Invocation i) => persistedStorage[i.positionalArguments[0]],
+      );
+      when(() => coreStorage.set(any(), any())).thenAnswer((
+        Invocation i,
+      ) async {
+        persistedStorage[i.positionalArguments[0]
+            as String] = Map<String, dynamic>.from(
+          i.positionalArguments[1] as Map<String, dynamic>,
+        );
+      });
+      when(() => coreStorage.delete(any())).thenAnswer((Invocation i) async {
+        persistedStorage.remove(i.positionalArguments[0] as String);
+      });
+      when(
+        pairingStore.getAll,
+      ).thenAnswer((_) => List<PairingInfo>.from(livePairings));
+      when(() => pairing.disconnect(topic: 'slow-close-p1')).thenAnswer((
+        _,
+      ) async {
+        livePairings.clear();
+      });
+      when(() => relayClient.disconnect()).thenAnswer((_) {
+        // Rejects the stuck subscribe request immediately while the socket
+        // close future itself takes longer than the timeout to settle.
+        if (!relaySubscribeResponse.isCompleted) {
+          relaySubscribeResponse.completeError(
+            StateError('relay socket closing'),
+          );
+        }
+        return relayDisconnectCompleter.future;
+      });
+      when(() => walletKit.pair(uri: any(named: 'uri'))).thenAnswer((_) async {
+        final PairingInfo created = PairingInfo(
+          topic: 'slow-close-p1',
+          expiry: now + 3600,
+          relay: Relay(ReownConstants.RELAYER_DEFAULT_PROTOCOL),
+          active: false,
+        );
+        livePairings.add(created);
+        if (!sdkPairStarted.isCompleted) {
+          sdkPairStarted.complete();
+        }
+        await relaySubscribeResponse.future;
+        return created;
+      });
+
+      final Web3WalletService service = Web3WalletService(
+        walletKit: walletKit,
+        chainResolver: (String _) => nomService,
+        inFlightPairWaitTimeout: const Duration(milliseconds: 50),
+      );
+      addTearDown(() async {
+        if (!relaySubscribeResponse.isCompleted) {
+          relaySubscribeResponse.complete();
+        }
+        if (!relayDisconnectCompleter.isCompleted) {
+          relayDisconnectCompleter.complete();
+        }
+        await service.onDispose();
+      });
+      service.create();
+      await service.init();
+
+      final Future<PairingInfo> hungPairFuture = service.pair(
+        Uri.parse('wc:slow-close-p1@2?relay-protocol=irn&symKey=def'),
+      );
+      final Future<void> hungPairExpectation = expectLater(
+        hungPairFuture,
+        throwsStateError,
+      );
+      await sdkPairStarted.future;
+
+      await expectLater(
+        service.disconnectEverything(),
+        throwsA(isA<TimeoutException>()),
+      );
+
+      // Retry times out awaiting relayClient.disconnect() (50ms), sees pair()
+      // already settled, completes the sweep and clears the marker, yet must
+      // NOT call relayClient.connect() while disconnect() is still pending.
+      await service.disconnectEverything();
+      await hungPairExpectation;
+      await Future<void>.delayed(Duration.zero);
+
+      verify(() => relayClient.disconnect()).called(1);
+      verifyNever(() => relayClient.connect());
+
+      // Once the slow disconnect future finally settles, reconnect runs.
+      relayDisconnectCompleter.complete();
+      await Future<void>.delayed(Duration.zero);
+
+      verify(() => relayClient.connect()).called(1);
+    });
   });
 }
