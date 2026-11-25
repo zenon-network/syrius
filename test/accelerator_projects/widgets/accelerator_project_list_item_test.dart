@@ -101,6 +101,7 @@ void main() {
       WidgetTester tester, {
       required PillarInfo? pillarInfo,
       int? activePillarCount = 10,
+      int refreshGeneration = 0,
     }) async {
       await tester.pumpWidget(
         MaterialApp(
@@ -112,6 +113,7 @@ void main() {
                 acceleratorProject: _votingProject(projectId, owner),
                 pillarInfo: pillarInfo,
                 activePillarCount: activePillarCount,
+                refreshGeneration: refreshGeneration,
                 onStepperNotificationSeeMorePressed: () {},
                 voteBreakdownBloc: breakdownBloc,
                 voteProjectBloc: voteBloc,
@@ -292,6 +294,38 @@ void main() {
         );
         await tester.pump();
         await tester.pump();
+
+        verify(
+          () => breakdownBloc.add(
+            ProjectVoteBreakdownRequested(
+              pillarName: 'alpha',
+              projectId: projectId,
+            ),
+          ),
+        ).called(1);
+      },
+    );
+
+    testWidgets(
+      're-requests ProjectVoteBreakdownBloc when refreshGeneration increments',
+      (WidgetTester tester) async {
+        final PillarInfo pillar = _pillar('alpha', owner, producer);
+        when(() => breakdownBloc.state).thenReturn(
+          ProjectVoteBreakdownPopulated(
+            voteBreakdown: VoteBreakdown.fromJson(<String, dynamic>{
+              'id': projectId.toString(),
+              'yes': 2,
+              'no': 1,
+              'total': 3,
+            }),
+            pillarVotes: const <PillarVote?>[null],
+          ),
+        );
+
+        await pumpItem(tester, pillarInfo: pillar);
+        verifyNever(() => breakdownBloc.add(any()));
+
+        await pumpItem(tester, pillarInfo: pillar, refreshGeneration: 1);
 
         verify(
           () => breakdownBloc.add(

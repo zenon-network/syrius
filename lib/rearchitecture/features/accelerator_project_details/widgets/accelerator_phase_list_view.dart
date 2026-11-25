@@ -13,6 +13,7 @@ class AcceleratorPhaseListView extends StatefulWidget {
     required this._project,
     required this._onStepperNotificationSeeMorePressed,
     this._activePillarCount,
+    this._refreshGeneration = 0,
     this._onPhaseUpdated,
     super.key,
   });
@@ -22,6 +23,7 @@ class AcceleratorPhaseListView extends StatefulWidget {
   final Project _project;
   final VoidCallback _onStepperNotificationSeeMorePressed;
   final int? _activePillarCount;
+  final int _refreshGeneration;
   final VoidCallback? _onPhaseUpdated;
 
   @override
@@ -75,6 +77,7 @@ class _AcceleratorPhaseListViewState extends State<AcceleratorPhaseListView> {
                           activePillarCount: widget._activePillarCount,
                           acceleratorProject: phase,
                           project: widget._project,
+                          refreshGeneration: widget._refreshGeneration,
                           onPhaseUpdated: widget._onPhaseUpdated,
                           onStepperNotificationSeeMorePressed:
                               widget._onStepperNotificationSeeMorePressed,

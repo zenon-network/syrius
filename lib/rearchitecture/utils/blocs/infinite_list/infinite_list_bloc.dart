@@ -83,9 +83,10 @@ abstract class InfiniteListBloc<T>
 
   final ValueNotifier<bool> _isLoading = ValueNotifier<bool>(false);
   bool _isLoadingDisposed = false;
-  int _inFlightRefreshRequests = 0;
+  int _activeFirstPageRequestId = 0;
 
-  /// Notifies listeners while an initial or refresh page-0 fetch is in flight.
+  /// Notifies listeners while the latest initial or refresh page-0 fetch is in
+  /// flight.
   ValueListenable<bool> get isLoadingListenable => _isLoading;
 
   /// Retrieves the data in a pagination manner, with the first page being 0
@@ -104,7 +105,7 @@ abstract class InfiniteListBloc<T>
     required Address? address,
     required Emitter<InfiniteListState<T>> emit,
   }) async {
-    _inFlightRefreshRequests++;
+    final int requestId = ++_activeFirstPageRequestId;
     if (!isClosed && !_isLoading.value) {
       _isLoading.value = true;
     }
@@ -114,7 +115,7 @@ abstract class InfiniteListBloc<T>
         pageIndex: 0,
         pageSize: pageSize,
       );
-      if (emit.isDone) {
+      if (emit.isDone || requestId != _activeFirstPageRequestId) {
         return;
       }
 
@@ -128,7 +129,7 @@ abstract class InfiniteListBloc<T>
         ),
       );
     } on Object catch (error, stackTrace) {
-      if (emit.isDone) {
+      if (emit.isDone || requestId != _activeFirstPageRequestId) {
         return;
       }
       addError(error, stackTrace);
@@ -139,8 +140,7 @@ abstract class InfiniteListBloc<T>
         ),
       );
     } finally {
-      _inFlightRefreshRequests--;
-      if (!isClosed && _inFlightRefreshRequests == 0) {
+      if (!isClosed && requestId == _activeFirstPageRequestId) {
         _isLoading.value = false;
       }
     }
@@ -151,6 +151,7 @@ abstract class InfiniteListBloc<T>
     Emitter<InfiniteListState<T>> emit,
   ) async {
     if (state.hasReachedMax) return;
+    final int requestId = _activeFirstPageRequestId;
     final List<T> currentData = state.data ?? <T>[];
     final int previousNumOfItems = currentData.length;
     final int pageIndex = previousNumOfItems ~/ pageSize;
@@ -160,7 +161,7 @@ abstract class InfiniteListBloc<T>
         pageIndex: pageIndex,
         pageSize: pageSize,
       );
-      if (emit.isDone) {
+      if (emit.isDone || requestId != _activeFirstPageRequestId) {
         return;
       }
 
@@ -177,7 +178,7 @@ abstract class InfiniteListBloc<T>
         ),
       );
     } on Object catch (error, stackTrace) {
-      if (emit.isDone) {
+      if (emit.isDone || requestId != _activeFirstPageRequestId) {
         return;
       }
       addError(error, stackTrace);

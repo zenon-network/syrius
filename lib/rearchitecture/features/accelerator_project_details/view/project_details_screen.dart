@@ -70,6 +70,7 @@ class _View extends StatefulWidget {
 
 class _ViewState extends State<_View> {
   Project? _lastProject;
+  int _refreshGeneration = 0;
 
   @override
   Widget build(BuildContext context) {
@@ -97,7 +98,18 @@ class _ViewState extends State<_View> {
                   onSeeMorePressed: widget._onStepperNotificationSeeMorePressed,
                 ),
                 Expanded(
-                  child: BlocBuilder<RefreshProjectBloc, RefreshProjectState>(
+                  child: BlocConsumer<RefreshProjectBloc, RefreshProjectState>(
+                    listener:
+                        (BuildContext context, RefreshProjectState state) {
+                          if (state is RefreshProjectPopulated &&
+                              _lastProject != null) {
+                            setState(() {
+                              _refreshGeneration++;
+                            });
+                          } else if (state is RefreshProjectFailure) {
+                            _lastProject = null;
+                          }
+                        },
                     builder: (BuildContext context, RefreshProjectState state) {
                       if (state is RefreshProjectPopulated) {
                         _lastProject = state.project;
@@ -192,6 +204,7 @@ class _ViewState extends State<_View> {
                         activePillarCount: widget._activePillarCount,
                         project: project,
                         isRefreshLoading: isRefreshLoading,
+                        refreshGeneration: _refreshGeneration,
                         onRefreshButtonPressed: refreshProject,
                         onPhaseUpdated: refreshProject,
                         onStepperNotificationSeeMorePressed:

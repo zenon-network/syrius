@@ -204,5 +204,124 @@ void main() {
         expect(bloc.isLoadingListenable.value, isFalse);
       },
     );
+
+    test(
+      'discards superseded initial fetch for an older address after refresh',
+      () async {
+        final Address addressA = Address.fromPublicKey(
+          List<int>.filled(32, 1),
+        );
+        final Address addressB = Address.fromPublicKey(
+          List<int>.filled(32, 2),
+        );
+        final Completer<List<int>> fetchA = Completer<List<int>>();
+        final Completer<void> fetchAStarted = Completer<void>();
+        final Completer<List<int>> fetchB = Completer<List<int>>();
+        final Completer<void> fetchBStarted = Completer<void>();
+
+        final TestInfiniteListBloc bloc = TestInfiniteListBloc(
+          zenon: mockZenon,
+          paginationFetchCallback: (Address? address, _, _) {
+            if (address == addressA) {
+              if (!fetchAStarted.isCompleted) {
+                fetchAStarted.complete();
+              }
+              return fetchA.future;
+            }
+            if (!fetchBStarted.isCompleted) {
+              fetchBStarted.complete();
+            }
+            return fetchB.future;
+          },
+        );
+        addTearDown(bloc.close);
+
+        bloc.add(InfiniteListRequested(address: addressA));
+        await fetchAStarted.future.timeout(const Duration(seconds: 5));
+        expect(bloc.isLoadingListenable.value, isTrue);
+
+        // Switching address dispatches a refresh while A is still pending.
+        bloc.add(InfiniteListRefreshRequested(address: addressB));
+        await fetchBStarted.future.timeout(const Duration(seconds: 5));
+        expect(bloc.isLoadingListenable.value, isTrue);
+
+        final Future<InfiniteListState<int>> bSuccess = bloc.stream
+            .firstWhere(
+              (InfiniteListState<int> s) =>
+                  s.status == InfiniteListStatus.success,
+            )
+            .timeout(const Duration(seconds: 5));
+        fetchB.complete(<int>[20]);
+        final InfiniteListState<int> stateAfterB = await bSuccess;
+        expect(stateAfterB.data, equals(<int>[20]));
+        await Future<void>.delayed(Duration.zero);
+        // Loading clears as soon as the latest request finishes, even though
+        // discarded fetch A is still pending.
+        expect(bloc.isLoadingListenable.value, isFalse);
+
+        // Late completion of stale fetch A must not overwrite B's list.
+        fetchA.complete(<int>[10]);
+        await Future<void>.delayed(Duration.zero);
+        expect(bloc.state.data, equals(<int>[20]));
+        expect(bloc.isLoadingListenable.value, isFalse);
+      },
+    );
+
+    test(
+      'clears isLoadingListenable as soon as replacement refresh completes '
+      'even while discarded refresh is still pending',
+      () async {
+        final Completer<List<int>> refreshA = Completer<List<int>>();
+        final Completer<void> refreshAStarted = Completer<void>();
+        final Completer<List<int>> refreshB = Completer<List<int>>();
+        final Completer<void> refreshBStarted = Completer<void>();
+        int callCount = 0;
+
+        final TestInfiniteListBloc bloc = TestInfiniteListBloc(
+          zenon: mockZenon,
+          paginationFetchCallback: (_, _, _) {
+            callCount++;
+            if (callCount == 1) {
+              if (!refreshAStarted.isCompleted) {
+                refreshAStarted.complete();
+              }
+              return refreshA.future;
+            }
+            if (!refreshBStarted.isCompleted) {
+              refreshBStarted.complete();
+            }
+            return refreshB.future;
+          },
+        );
+        addTearDown(bloc.close);
+
+        bloc.add(InfiniteListRefreshRequested(address: emptyAddress));
+        await refreshAStarted.future.timeout(const Duration(seconds: 5));
+        expect(bloc.isLoadingListenable.value, isTrue);
+
+        bloc.add(InfiniteListRefreshRequested(address: emptyAddress));
+        await refreshBStarted.future.timeout(const Duration(seconds: 5));
+        expect(bloc.isLoadingListenable.value, isTrue);
+
+        final Future<InfiniteListState<int>> bSuccess = bloc.stream
+            .firstWhere(
+              (InfiniteListState<int> s) =>
+                  s.status == InfiniteListStatus.success,
+            )
+            .timeout(const Duration(seconds: 5));
+        refreshB.complete(<int>[99]);
+        await bSuccess;
+        await Future<void>.delayed(Duration.zero);
+
+        expect(bloc.state.data, equals(<int>[99]));
+        expect(bloc.isLoadingListenable.value, isFalse);
+
+        // Discarded refresh A completing later must not touch state or loading.
+        refreshA.complete(<int>[1]);
+        await Future<void>.delayed(Duration.zero);
+        expect(bloc.state.data, equals(<int>[99]));
+        expect(bloc.isLoadingListenable.value, isFalse);
+      },
+    );
   });
 }

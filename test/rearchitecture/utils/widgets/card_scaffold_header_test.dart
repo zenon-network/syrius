@@ -336,13 +336,14 @@ void main() {
         await tester.pump();
         expect(find.byType(SyriusLoadingWidget), findsOneWidget);
 
-        cubitA.setLoading(isLoading: true);
-        await tester.pump();
-        expect(find.byType(SyriusLoadingWidget), findsOneWidget);
-
         cubitB.setLoading(isLoading: false);
         await tester.pump();
         expect(find.byIcon(Icons.refresh), findsOneWidget);
+
+        cubitA.setLoading(isLoading: true);
+        await tester.pump();
+        expect(find.byIcon(Icons.refresh), findsOneWidget);
+        expect(find.byType(SyriusLoadingWidget), findsNothing);
       },
     );
 

@@ -15,6 +15,7 @@ class PhaseListCard extends StatelessWidget {
     required this._onStepperNotificationSeeMorePressed,
     this._activePillarCount,
     this._isRefreshLoading,
+    this._refreshGeneration = 0,
     this._onPhaseUpdated,
     super.key,
   });
@@ -25,6 +26,7 @@ class PhaseListCard extends StatelessWidget {
   final VoidCallback _onStepperNotificationSeeMorePressed;
   final int? _activePillarCount;
   final ValueListenable<bool>? _isRefreshLoading;
+  final int _refreshGeneration;
   final VoidCallback? _onPhaseUpdated;
 
   @override
@@ -40,6 +42,7 @@ class PhaseListCard extends StatelessWidget {
               activePillarCount: _activePillarCount,
               phases: _project.phases.reversed.toList(),
               project: _project,
+              refreshGeneration: _refreshGeneration,
               onPhaseUpdated: _onPhaseUpdated,
               onStepperNotificationSeeMorePressed:
                   _onStepperNotificationSeeMorePressed,
