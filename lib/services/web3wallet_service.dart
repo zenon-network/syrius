@@ -74,6 +74,7 @@ class Web3WalletService extends IWeb3WalletService {
   bool _hasUnresolvedReset = false;
   bool _hasUnresolvedFullReset = false;
   bool _hasUnconfirmedResetMarkerWrite = false;
+  bool _needsRelayReconnectAfterRecovery = false;
   bool _needsKeyChainPersist = false;
   bool _needsExpirerPersist = false;
 
@@ -85,6 +86,7 @@ class Web3WalletService extends IWeb3WalletService {
       _hasPendingResetMarker();
 
   final Set<Future<void>> _inFlightPairCalls = <Future<void>>{};
+  final Set<Future<void>> _timedOutInFlightPairCalls = <Future<void>>{};
 
   final Map<String, String> _pendingSessionCleanups = <String, String>{};
   final Set<String> _pendingPairingCleanups = <String>{};
@@ -252,9 +254,11 @@ class Web3WalletService extends IWeb3WalletService {
     _hasUnresolvedReset = false;
     _hasUnresolvedFullReset = false;
     _hasUnconfirmedResetMarkerWrite = false;
+    _needsRelayReconnectAfterRecovery = false;
     _needsKeyChainPersist = false;
     _needsExpirerPersist = false;
     _inFlightPairCalls.clear();
+    _timedOutInFlightPairCalls.clear();
     _pendingResetMarkerPersist = null;
     _initFuture = null;
     _isInitialized = false;
@@ -321,6 +325,7 @@ class Web3WalletService extends IWeb3WalletService {
       pairing = await _wcClient!.pair(uri: uri);
     } finally {
       _inFlightPairCalls.remove(pairDone.future);
+      _timedOutInFlightPairCalls.remove(pairDone.future);
       pairDone.complete();
     }
 
@@ -672,9 +677,11 @@ class Web3WalletService extends IWeb3WalletService {
       }
     }
     try {
-      await _wcClient!.core.relayClient.unsubscribe(topic: topic);
+      await _wcClient!.core.relayClient
+          .unsubscribe(topic: topic)
+          .timeout(_inFlightPairWaitTimeout);
     } on Object {
-      // Relay may be offline during local reset.
+      // Relay may be offline or unresponsive during local reset.
     }
 
     return allLocalDeletesSucceeded;
@@ -741,9 +748,11 @@ class Web3WalletService extends IWeb3WalletService {
       }
     }
     try {
-      await _wcClient!.core.relayClient.unsubscribe(topic: topic);
+      await _wcClient!.core.relayClient
+          .unsubscribe(topic: topic)
+          .timeout(_inFlightPairWaitTimeout);
     } on Object {
-      // Relay may be offline during local reset.
+      // Relay may be offline or unresponsive during local reset.
     }
 
     return allLocalDeletesSucceeded;
@@ -1080,6 +1089,35 @@ class Web3WalletService extends IWeb3WalletService {
       runFullSweep = snapshot.runFullSweep;
 
       if (snapshot.runFullSweep && _inFlightPairCalls.isNotEmpty) {
+        final List<Future<void>> pendingPairs = List<Future<void>>.from(
+          _inFlightPairCalls,
+        );
+        final bool hasPreviouslyTimedOutPairs = pendingPairs.any(
+          _timedOutInFlightPairCalls.contains,
+        );
+        if (hasPreviouslyTimedOutPairs) {
+          // A prior reset attempt already timed out waiting for these SDK
+          // pair() calls (typically hung on an unanswered relay subscribe
+          // JSON-RPC request). Close the relay connection owning them so the
+          // SDK call fails and settles before we sweep local state.
+          _needsRelayReconnectAfterRecovery = true;
+          try {
+            await _wcClient!.core.relayClient.disconnect().timeout(
+              _inFlightPairWaitTimeout,
+            );
+          } on Object catch (e, s) {
+            _logger.warning(
+              'Failed disconnecting relay while recovering from hung '
+              'WalletConnect pair() call',
+              e,
+              s,
+            );
+          }
+          if (_isDisposed || _wcClient == null) {
+            return;
+          }
+        }
+
         // Wait (with a bounded deadline) for any SDK pair() calls that were
         // admitted before this reset began so they finish writing pairing
         // records, symmetric keys, relay subscriptions, and expirer entries
@@ -1087,7 +1125,7 @@ class Web3WalletService extends IWeb3WalletService {
         // pair() calls can enter _inFlightPairCalls while waiting.
         try {
           await Future.wait<void>(
-            List<Future<void>>.from(_inFlightPairCalls),
+            pendingPairs,
           ).timeout(_inFlightPairWaitTimeout);
         } on TimeoutException {
           if (_isDisposed) {
@@ -1095,8 +1133,10 @@ class Web3WalletService extends IWeb3WalletService {
           }
           // Keep the full-reset marker on disk and unresolved so any late
           // writes from the still-in-flight SDK pair() call are swept on retry
-          // or next launch, and propagate the error to runtime callers (such
-          // as the splash reset/cache-deletion retry flow).
+          // or next launch, record the timed-out calls so retry can close the
+          // relay connection to unblock them, and propagate the error to
+          // runtime callers (such as the splash reset/cache-deletion flow).
+          _timedOutInFlightPairCalls.addAll(_inFlightPairCalls);
           _hasUnresolvedReset = true;
           _hasUnresolvedFullReset = true;
           if (rethrowMarkerWriteError) {
@@ -1190,8 +1230,30 @@ class Web3WalletService extends IWeb3WalletService {
       _hasUnresolvedReset = !cleared;
       if (cleared) {
         _hasUnresolvedFullReset = false;
+        if (_needsRelayReconnectAfterRecovery) {
+          _needsRelayReconnectAfterRecovery = false;
+          unawaited(_reconnectRelayAfterRecovery());
+        }
       }
     });
+  }
+
+  Future<void> _reconnectRelayAfterRecovery() async {
+    if (_isDisposed ||
+        _wcClient == null ||
+        _hasUnresolvedReset ||
+        _pendingDisconnectEverything) {
+      return;
+    }
+    try {
+      await _wcClient!.core.relayClient.connect();
+    } on Object catch (e, s) {
+      _logger.fine(
+        'Failed reconnecting relay after hung WalletConnect pair recovery',
+        e,
+        s,
+      );
+    }
   }
 
   Future<void> _persistPendingResetMarkerLocked({

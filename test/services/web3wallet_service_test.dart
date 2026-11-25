@@ -185,6 +185,8 @@ void main() {
       when(
         () => relayClient.unsubscribe(topic: any(named: 'topic')),
       ).thenAnswer((_) async {});
+      when(() => relayClient.disconnect()).thenAnswer((_) async {});
+      when(() => relayClient.connect()).thenAnswer((_) async {});
       when(() => pairingStore.delete(any())).thenAnswer((_) async {});
       when(() => pairingStore.persist()).thenAnswer((_) async {});
       when(() => sessionStore.delete(any())).thenAnswer((_) async {});
@@ -3757,6 +3759,213 @@ void main() {
         expect(livePairings, isEmpty);
         expect(storedSymKeys, isEmpty);
         verify(() => crypto.deleteSymKey('hung-p1')).called(1);
+        expect(
+          persistedStorage.containsKey(
+            Web3WalletService.pendingResetStorageKey,
+          ),
+          isFalse,
+        );
+      },
+    );
+
+    test(
+      'bounds hung relayClient.unsubscribe during pairing purge so full reset '
+      'completes and clears the reset marker',
+      () async {
+        final int now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+        final Map<String, Map<String, dynamic>> persistedStorage =
+            <String, Map<String, dynamic>>{};
+        final List<PairingInfo> livePairings = <PairingInfo>[
+          PairingInfo(
+            topic: 'unsub-p1',
+            expiry: now + 3600,
+            relay: Relay(ReownConstants.RELAYER_DEFAULT_PROTOCOL),
+            active: true,
+          ),
+        ];
+        final Completer<void> neverCompletingUnsubscribe = Completer<void>();
+
+        when(() => coreStorage.has(any())).thenAnswer(
+          (Invocation i) =>
+              persistedStorage.containsKey(i.positionalArguments[0]),
+        );
+        when(() => coreStorage.get(any())).thenAnswer(
+          (Invocation i) => persistedStorage[i.positionalArguments[0]],
+        );
+        when(() => coreStorage.set(any(), any())).thenAnswer((
+          Invocation i,
+        ) async {
+          persistedStorage[i.positionalArguments[0]
+              as String] = Map<String, dynamic>.from(
+            i.positionalArguments[1] as Map<String, dynamic>,
+          );
+        });
+        when(() => coreStorage.delete(any())).thenAnswer((Invocation i) async {
+          persistedStorage.remove(i.positionalArguments[0] as String);
+        });
+        when(
+          pairingStore.getAll,
+        ).thenAnswer((_) => List<PairingInfo>.from(livePairings));
+        when(() => pairing.disconnect(topic: 'unsub-p1')).thenAnswer((_) async {
+          livePairings.clear();
+        });
+        when(
+          () => relayClient.unsubscribe(topic: 'unsub-p1'),
+        ).thenAnswer((_) => neverCompletingUnsubscribe.future);
+
+        final Web3WalletService service = Web3WalletService(
+          walletKit: walletKit,
+          chainResolver: (String _) => nomService,
+          inFlightPairWaitTimeout: const Duration(milliseconds: 50),
+        );
+        addTearDown(() async {
+          if (!neverCompletingUnsubscribe.isCompleted) {
+            neverCompletingUnsubscribe.complete();
+          }
+          await service.onDispose();
+        });
+        service.create();
+        await service.init();
+
+        await service.disconnectEverything().timeout(
+          const Duration(seconds: 2),
+        );
+
+        verify(() => pairing.disconnect(topic: 'unsub-p1')).called(1);
+        verify(() => crypto.deleteSymKey('unsub-p1')).called(1);
+        verify(() => expirer.delete('unsub-p1')).called(1);
+        expect(livePairings, isEmpty);
+        expect(
+          persistedStorage.containsKey(
+            Web3WalletService.pendingResetStorageKey,
+          ),
+          isFalse,
+        );
+      },
+    );
+
+    test(
+      'reset retry disconnects the relay to terminate a hung SDK pair() call, '
+      'confirms settlement, sweeps local state, and clears the marker',
+      () async {
+        final int now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+        final Map<String, Map<String, dynamic>> persistedStorage =
+            <String, Map<String, dynamic>>{};
+        final List<PairingInfo> livePairings = <PairingInfo>[];
+        final Set<String> storedSymKeys = <String>{};
+        final Completer<void> sdkPairStarted = Completer<void>();
+        final Completer<void> relaySubscribeResponse = Completer<void>();
+
+        when(() => coreStorage.has(any())).thenAnswer(
+          (Invocation i) =>
+              persistedStorage.containsKey(i.positionalArguments[0]),
+        );
+        when(() => coreStorage.get(any())).thenAnswer(
+          (Invocation i) => persistedStorage[i.positionalArguments[0]],
+        );
+        when(() => coreStorage.set(any(), any())).thenAnswer((
+          Invocation i,
+        ) async {
+          persistedStorage[i.positionalArguments[0]
+              as String] = Map<String, dynamic>.from(
+            i.positionalArguments[1] as Map<String, dynamic>,
+          );
+        });
+        when(() => coreStorage.delete(any())).thenAnswer((Invocation i) async {
+          persistedStorage.remove(i.positionalArguments[0] as String);
+        });
+        when(
+          pairingStore.getAll,
+        ).thenAnswer((_) => List<PairingInfo>.from(livePairings));
+        when(() => pairing.disconnect(topic: 'stuck-p1')).thenAnswer((_) async {
+          // Relay is disconnected during retry recovery, so remote disconnect
+          // throws and local purge cleans up the record + symKey + expirer.
+          throw StateError('relay disconnected');
+        });
+        when(() => pairingStore.delete('stuck-p1')).thenAnswer((_) async {
+          livePairings.removeWhere((PairingInfo p) => p.topic == 'stuck-p1');
+        });
+        when(() => crypto.deleteSymKey('stuck-p1')).thenAnswer((_) async {
+          storedSymKeys.remove('stuck-p1');
+        });
+        when(() => relayClient.disconnect()).thenAnswer((_) async {
+          // Mirrors Reown RelayClient._disconnect() closing jsonRPC, which
+          // immediately fails the unanswered relay subscribe request.
+          if (!relaySubscribeResponse.isCompleted) {
+            relaySubscribeResponse.completeError(
+              StateError('relay socket closed'),
+            );
+          }
+        });
+        when(() => walletKit.pair(uri: any(named: 'uri'))).thenAnswer((
+          _,
+        ) async {
+          // Reown writes pairing record and symKey before awaiting relay
+          // subscribe.
+          final PairingInfo created = PairingInfo(
+            topic: 'stuck-p1',
+            expiry: now + 3600,
+            relay: Relay(ReownConstants.RELAYER_DEFAULT_PROTOCOL),
+            active: false,
+          );
+          livePairings.add(created);
+          storedSymKeys.add('stuck-p1');
+          if (!sdkPairStarted.isCompleted) {
+            sdkPairStarted.complete();
+          }
+          await relaySubscribeResponse.future;
+          return created;
+        });
+
+        final Web3WalletService service = Web3WalletService(
+          walletKit: walletKit,
+          chainResolver: (String _) => nomService,
+          inFlightPairWaitTimeout: const Duration(milliseconds: 50),
+        );
+        addTearDown(() async {
+          if (!relaySubscribeResponse.isCompleted) {
+            relaySubscribeResponse.complete();
+          }
+          await service.onDispose();
+        });
+        service.create();
+        await service.init();
+
+        final Future<PairingInfo> hungPairFuture = service.pair(
+          Uri.parse('wc:stuck-p1@2?relay-protocol=irn&symKey=def'),
+        );
+        final Future<void> hungPairExpectation = expectLater(
+          hungPairFuture,
+          throwsStateError,
+        );
+        await sdkPairStarted.future;
+
+        // First attempt times out without disconnecting the relay, keeping the
+        // durable full-reset marker on disk so the splash flow can retry.
+        await expectLater(
+          service.disconnectEverything(),
+          throwsA(isA<TimeoutException>()),
+        );
+        verifyNever(() => relayClient.disconnect());
+        expect(
+          persistedStorage[Web3WalletService
+              .pendingResetStorageKey]?['fullReset'],
+          isTrue,
+        );
+
+        // Retry recovers WITHOUT external intervention by disconnecting the
+        // relay to terminate the hung subscribe call, confirming settlement,
+        // purging local state + symKey, clearing the marker, and reconnecting.
+        await service.disconnectEverything();
+        await hungPairExpectation;
+        await Future<void>.delayed(Duration.zero);
+
+        verify(() => relayClient.disconnect()).called(1);
+        verify(() => relayClient.connect()).called(1);
+        verify(() => crypto.deleteSymKey('stuck-p1')).called(1);
+        verify(() => expirer.delete('stuck-p1')).called(1);
+        expect(livePairings, isEmpty);
+        expect(storedSymKeys, isEmpty);
         expect(
           persistedStorage.containsKey(
             Web3WalletService.pendingResetStorageKey,
