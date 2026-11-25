@@ -74,7 +74,6 @@ class _MainAppContainerState extends State<MainAppContainer>
   late Animation _animation;
   late StreamSubscription<WalletLockState> _lockBlockStreamSubscription;
   late StreamSubscription _incomingLinkSubscription;
-  StreamSubscription<AutoReceiveTxState>? _autoReceiveSubscription;
   late LockBloc _lockBloc;
 
   Timer? _navigateToLockTimer;
@@ -107,7 +106,6 @@ class _MainAppContainerState extends State<MainAppContainer>
     _animation = Tween<double>(begin: 1, end: 3).animate(_animationController);
     kCurrentPage = kWalletInitCompleted ? Tabs.dashboard : Tabs.lock;
     _initLockBlock();
-    _listenToAutoReceiveTxWorkerNotifications();
     _handleIncomingLinks();
     _handleInitialUri();
 
@@ -520,7 +518,6 @@ class _MainAppContainerState extends State<MainAppContainer>
     _animationController.dispose();
     _navigateToLockTimer?.cancel();
     _lockBlockStreamSubscription.cancel();
-    _autoReceiveSubscription?.cancel();
     _incomingLinkSubscription.cancel();
     _tabController?.dispose();
     super.dispose();
@@ -548,18 +545,6 @@ class _MainAppContainerState extends State<MainAppContainer>
     } else {
       _lockBloc.add(const LockNavigateToDashboardRequested());
     }
-  }
-
-  void _listenToAutoReceiveTxWorkerNotifications() {
-    _autoReceiveSubscription?.cancel();
-    _autoReceiveSubscription = sl<AutoReceiveTxWorker>().stream.listen((
-      AutoReceiveTxState state,
-    ) {
-      final WalletNotification? notification = state.lastNotification;
-      if (notification != null) {
-        sl<NotificationsBloc>().addNotification(notification);
-      }
-    });
   }
 
   bool _isTabSelected(Tabs page) =>

@@ -5,6 +5,7 @@ import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:json_rpc_2/json_rpc_2.dart';
 import 'package:logging/logging.dart';
+import 'package:zenon_syrius_wallet_flutter/blocs/notifications_bloc.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/model/model.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
@@ -29,6 +30,7 @@ class AutoReceiveTxWorker extends Cubit<AutoReceiveTxState> {
     void Function()? onRefreshPendingTransactions,
     void Function()? onTransactionReceived,
     String Function(String address)? addressLabelResolver,
+    void Function(WalletNotification notification)? onNotification,
   }) : _zenonProvider = zenonProvider ?? _defaultZenonProvider,
        _accountBlockUtilsProvider =
            accountBlockUtilsProvider ?? AccountBlockUtils.new,
@@ -42,6 +44,7 @@ class AutoReceiveTxWorker extends Cubit<AutoReceiveTxState> {
            onTransactionReceived ?? _defaultOnTransactionReceived,
        _addressLabelResolver =
            addressLabelResolver ?? ZenonAddressUtils.getLabel,
+       _onNotification = onNotification ?? _defaultOnNotification,
        super(const AutoReceiveTxState());
 
   final Zenon Function() _zenonProvider;
@@ -51,6 +54,7 @@ class AutoReceiveTxWorker extends Cubit<AutoReceiveTxState> {
   final void Function() _onRefreshPendingTransactions;
   final void Function() _onTransactionReceived;
   final String Function(String address) _addressLabelResolver;
+  final void Function(WalletNotification notification) _onNotification;
 
   final Queue<Hash> _pool = Queue<Hash>();
   bool _running = false;
@@ -212,7 +216,17 @@ class AutoReceiveTxWorker extends Cubit<AutoReceiveTxState> {
   }
 
   void _emitNotification(WalletNotification notification) {
-    _safeEmit(
+    if (isClosed) {
+      return;
+    }
+    try {
+      _onNotification(notification);
+    } on Object catch (e, stackTrace) {
+      Logger(
+        'AutoReceiveTxWorker',
+      ).log(Level.WARNING, '_emitNotification', e, stackTrace);
+    }
+    emit(
       AutoReceiveTxState(
         isRunning: _running,
         pendingCount: _pool.length,
@@ -295,5 +309,11 @@ class AutoReceiveTxWorker extends Cubit<AutoReceiveTxState> {
     sl.get<PendingTransactionsBloc>().add(
       InfiniteListRefreshRequested(address: address),
     );
+  }
+
+  static void _defaultOnNotification(WalletNotification notification) {
+    if (sl.isRegistered<NotificationsBloc>()) {
+      unawaited(sl<NotificationsBloc>().addNotification(notification));
+    }
   }
 }

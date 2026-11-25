@@ -3,6 +3,8 @@ import 'dart:async';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:json_rpc_2/json_rpc_2.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:zenon_syrius_wallet_flutter/blocs/notifications_bloc.dart';
+import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/model/model.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/account_block_utils.dart';
@@ -15,6 +17,8 @@ class _MockStatsApi extends Mock implements StatsApi {}
 class _MockLedgerApi extends Mock implements LedgerApi {}
 
 class _MockAccountBlockUtils extends Mock implements AccountBlockUtils {}
+
+class _MockNotificationsBloc extends Mock implements NotificationsBloc {}
 
 class _FakeHash extends Fake implements Hash {}
 
@@ -86,7 +90,9 @@ void main() {
       hash1,
     );
 
-    AutoReceiveTxWorker buildWorker() {
+    AutoReceiveTxWorker buildWorker({
+      void Function(WalletNotification notification)? onNotification,
+    }) {
       return AutoReceiveTxWorker(
         zenonProvider: () => mockZenon,
         accountBlockUtilsProvider: () => mockAccountBlockUtils,
@@ -95,6 +101,7 @@ void main() {
         onRefreshPendingTransactions: () => refreshPendingCalls += 1,
         onTransactionReceived: () => txReceivedCalls += 1,
         addressLabelResolver: (String address) => 'Address 1',
+        onNotification: onNotification,
       );
     }
 
@@ -392,6 +399,63 @@ void main() {
         expect(worker.running, isFalse);
         expect(notifications, hasLength(1));
         expect(notifications.single.type, NotificationType.error);
+      },
+    );
+
+    test(
+      'autoReceive forwards notifications to NotificationsBloc even with no '
+      'stream subscribers (e.g. during onboarding before MainAppContainer)',
+      () async {
+        final _MockNotificationsBloc mockNotificationsBloc =
+            _MockNotificationsBloc();
+        final List<WalletNotification?> forwarded = <WalletNotification?>[];
+        when(() => mockNotificationsBloc.addNotification(any())).thenAnswer((
+          Invocation invocation,
+        ) async {
+          forwarded.add(
+            invocation.positionalArguments.first as WalletNotification?,
+          );
+        });
+
+        sl.registerSingleton<NotificationsBloc>(mockNotificationsBloc);
+        addTearDown(sl.unregister<NotificationsBloc>);
+
+        final AutoReceiveTxWorker worker = buildWorker();
+        addTearDown(worker.close);
+
+        worker.pool.add(hash1);
+        await worker.autoReceive();
+
+        expect(forwarded, hasLength(1));
+        expect(forwarded.single?.type, NotificationType.paymentReceived);
+        expect(forwarded.single?.title, 'Transaction received on Address 1');
+      },
+    );
+
+    test(
+      'autoReceive completes and emits state even if onNotification throws',
+      () async {
+        final AutoReceiveTxWorker worker = buildWorker(
+          onNotification: (_) => throw StateError('notification sink failed'),
+        );
+        addTearDown(worker.close);
+
+        final List<AutoReceiveTxState> emitted = <AutoReceiveTxState>[];
+        final StreamSubscription<AutoReceiveTxState> sub = worker.stream.listen(
+          emitted.add,
+        );
+        addTearDown(sub.cancel);
+
+        worker.pool.add(hash1);
+        await worker.autoReceive();
+        await Future<void>.delayed(Duration.zero);
+
+        expect(worker.pool, isEmpty);
+        expect(worker.running, isFalse);
+        expect(
+          emitted.where((AutoReceiveTxState s) => s.lastNotification != null),
+          hasLength(1),
+        );
       },
     );
   });
