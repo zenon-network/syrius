@@ -1,4 +1,4 @@
-export 'account_chain_stats.dart';
+export 'package:zenon_syrius_wallet_flutter/rearchitecture/features/account_chain_stats/model/account_chain_stats.dart';
 export 'block_data.dart';
 export 'database/notification_type.dart';
 export 'database/wallet_notification.dart';

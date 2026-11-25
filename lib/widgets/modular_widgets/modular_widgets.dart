@@ -1,4 +1,12 @@
 export 'accelerator_widgets/accelerator_widgets.dart';
 export 'help_widgets/help_widgets.dart';
-export 'settings_widgets/settings_widgets.dart';
+export 'package:zenon_syrius_wallet_flutter/rearchitecture/features/account_chain_stats/view/account_chain_stats_card.dart';
+export 'package:zenon_syrius_wallet_flutter/rearchitecture/features/node_management/view/node_management_card.dart';
+export 'package:zenon_syrius_wallet_flutter/rearchitecture/features/peers/view/peers_card.dart';
+export 'package:zenon_syrius_wallet_flutter/rearchitecture/features/settings_addresses/view/settings_addresses_card.dart';
+export 'package:zenon_syrius_wallet_flutter/rearchitecture/features/settings_backup/view/settings_backup_card.dart';
+export 'package:zenon_syrius_wallet_flutter/rearchitecture/features/settings_display/view/settings_display_card.dart';
+export 'package:zenon_syrius_wallet_flutter/rearchitecture/features/settings_general/view/settings_general_card.dart';
+export 'package:zenon_syrius_wallet_flutter/rearchitecture/features/settings_security/view/settings_security_card.dart';
+export 'package:zenon_syrius_wallet_flutter/rearchitecture/features/settings_wallet_options/view/settings_wallet_options_card.dart';
 export 'wallet_connect_widgets/wallet_connect_widgets.dart';
