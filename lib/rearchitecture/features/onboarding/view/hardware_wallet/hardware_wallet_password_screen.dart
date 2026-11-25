@@ -1,19 +1,20 @@
 import 'package:flutter/material.dart';
-import 'package:zenon_syrius_wallet_flutter/screens/screens.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
+import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
-class NewWalletPasswordScreen extends StatefulWidget {
+class HardwareWalletPasswordScreen extends StatefulWidget {
 
-  const NewWalletPasswordScreen(this.seedWords, {super.key});
-  final List<String> seedWords;
+  const HardwareWalletPasswordScreen(this.deviceInfo, {super.key});
+  final WalletDefinition deviceInfo;
 
   @override
-  State<NewWalletPasswordScreen> createState() =>
-      _NewWalletPasswordScreenState();
+  State<HardwareWalletPasswordScreen> createState() =>
+      _HardwareWalletPasswordScreenState();
 }
 
-class _NewWalletPasswordScreenState extends State<NewWalletPasswordScreen> {
+class _HardwareWalletPasswordScreenState extends State<HardwareWalletPasswordScreen> {
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _confirmPasswordController =
       TextEditingController();
@@ -34,7 +35,8 @@ class _NewWalletPasswordScreenState extends State<NewWalletPasswordScreen> {
             Column(
               children: <Widget>[
                 const ProgressBar(
-                  currentLevel: 3,
+                  currentLevel: 2,
+                  numLevels: 4,
                 ),
                 const SizedBox(
                   height: 30,
@@ -113,8 +115,8 @@ class _NewWalletPasswordScreenState extends State<NewWalletPasswordScreen> {
           ? () {
               NavigationUtils.push(
                 context,
-                CreateKeyStoreScreen(
-                  widget.seedWords.join(' '),
+                CreateLedgerWalletScreen(
+                  widget.deviceInfo,
                   _passwordController.text,
                 ),
               );

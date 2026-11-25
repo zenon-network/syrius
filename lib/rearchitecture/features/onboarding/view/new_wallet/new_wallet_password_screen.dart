@@ -1,20 +1,19 @@
 import 'package:flutter/material.dart';
-import 'package:zenon_syrius_wallet_flutter/screens/onboarding/create_ledger_screen.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
-import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
-class HardwareWalletPasswordScreen extends StatefulWidget {
+class NewWalletPasswordScreen extends StatefulWidget {
 
-  const HardwareWalletPasswordScreen(this.deviceInfo, {super.key});
-  final WalletDefinition deviceInfo;
+  const NewWalletPasswordScreen(this.seedWords, {super.key});
+  final List<String> seedWords;
 
   @override
-  State<HardwareWalletPasswordScreen> createState() =>
-      _HardwareWalletPasswordScreenState();
+  State<NewWalletPasswordScreen> createState() =>
+      _NewWalletPasswordScreenState();
 }
 
-class _HardwareWalletPasswordScreenState extends State<HardwareWalletPasswordScreen> {
+class _NewWalletPasswordScreenState extends State<NewWalletPasswordScreen> {
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _confirmPasswordController =
       TextEditingController();
@@ -35,8 +34,7 @@ class _HardwareWalletPasswordScreenState extends State<HardwareWalletPasswordScr
             Column(
               children: <Widget>[
                 const ProgressBar(
-                  currentLevel: 2,
-                  numLevels: 4,
+                  currentLevel: 3,
                 ),
                 const SizedBox(
                   height: 30,
@@ -115,8 +113,8 @@ class _HardwareWalletPasswordScreenState extends State<HardwareWalletPasswordScr
           ? () {
               NavigationUtils.push(
                 context,
-                CreateLedgerWalletScreen(
-                  widget.deviceInfo,
+                CreateKeyStoreScreen(
+                  widget.seedWords.join(' '),
                   _passwordController.text,
                 ),
               );

@@ -4,7 +4,7 @@ import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
-import 'package:zenon_syrius_wallet_flutter/blocs/auto_receive_tx_worker.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/auto_receive_tx/auto_receive_tx.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/transfer/receive_transaction/cubit/receive_transaction_cubit.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/exceptions/failure_exception.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';

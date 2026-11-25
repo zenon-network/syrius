@@ -4,7 +4,7 @@ import 'package:zenon_syrius_wallet_flutter/blocs/notifications_bloc.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/model/database/notification_type.dart';
 import 'package:zenon_syrius_wallet_flutter/model/database/wallet_notification.dart';
-import 'package:zenon_syrius_wallet_flutter/screens/screens.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_ledger_dart/znn_ledger_dart.dart';
