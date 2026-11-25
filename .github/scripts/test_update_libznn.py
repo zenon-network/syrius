@@ -491,6 +491,176 @@ class EndToEndUpdateTests(unittest.TestCase):
         self.assertIn("changed=true\n", gh_out_text)
         self.assertIn("release_tag=v0.0.11-alphanet\n", gh_out_text)
         self.assertIn("commit_message<<EOF_", gh_out_text)
+        base_dl = "https://github.com/zenon-network/go-zenon/releases/download/v0.0.11-alphanet"
+        self.assertIn(f"{base_dl}/libznn-linux-amd64.tar.gz", gh_out_text)
+        self.assertIn(f"{base_dl}/libznn-darwin-universal.tar.gz", gh_out_text)
+        self.assertIn(f"{base_dl}/libznn-windows-amd64.zip", gh_out_text)
+        self.assertIn(f"{base_dl}/SHA256CHECKSUMS.txt", gh_out_text)
+        self.assertIn(hashes["checksums"], gh_out_text)
+
+    def test_release_json_mode_skips_api_call_and_verifies_assets(self) -> None:
+        new_linux = b"\x7fELF-json-mode"
+        new_darwin = b"\xca\xfe\xba\xbe-json-mode"
+        new_windows = b"MZ-json-mode"
+        opener, _ = self._build_mock_release(
+            tag="v0.0.12-alphanet",
+            linux_bin=new_linux,
+            darwin_bin=new_darwin,
+            windows_bin=new_windows,
+        )
+        api_url = "https://api.github.com/repos/zenon-network/go-zenon/releases/tags/v0.0.12-alphanet"
+        release_json_path = self.root / "release.json"
+        release_json_path.write_bytes(opener.responses.pop(api_url))
+        opener.responses.pop(
+            "https://api.github.com/repos/zenon-network/go-zenon/releases/latest"
+        )
+
+        _, _, changed = updater.run_update(
+            repo_root=self.repo_root,
+            work_dir=self.work_dir,
+            tag="v0.0.12-alphanet",
+            release_json=release_json_path,
+            opener=opener,  # type: ignore[arg-type]
+        )
+        self.assertTrue(changed)
+        self.assertTrue(
+            all(not req.full_url.startswith("https://api.github.com/") for req in opener.requests)
+        )
+
+    def test_rejects_draft_tag_mismatch_bad_html_url_missing_asset_and_bad_checksums_digest(
+        self,
+    ) -> None:
+        base_payload = json.loads(
+            self._build_mock_release(
+                tag="v0.0.11-alphanet",
+                linux_bin=b"\x7fELF-1",
+                darwin_bin=b"\xca\xfe\xba\xbe-1",
+                windows_bin=b"MZ-1",
+            )[0]
+            .responses[
+                "https://api.github.com/repos/zenon-network/go-zenon/releases/tags/v0.0.11-alphanet"
+            ]
+            .decode("utf-8")
+        )
+
+        def run_with_payload(
+            payload: dict[str, Any],
+            *,
+            tag: str = "v0.0.11-alphanet",
+            extra_responses: dict[str, bytes] | None = None,
+        ) -> None:
+            meta_file = self.root / "bad_release.json"
+            meta_file.write_text(json.dumps(payload), encoding="utf-8")
+            opener = _FakeOpener(extra_responses or {})
+            updater.run_update(
+                repo_root=self.repo_root,
+                work_dir=self.work_dir,
+                tag=tag,
+                release_json=meta_file,
+                opener=opener,  # type: ignore[arg-type]
+            )
+
+        # 1. Draft release
+        draft_payload = dict(base_payload, draft=True)
+        with self.assertRaisesRegex(updater.UpdaterError, "draft"):
+            run_with_payload(draft_payload)
+
+        # 2. Resolved tag differs from requested tag
+        with self.assertRaisesRegex(updater.UpdaterError, "does not match resolved"):
+            run_with_payload(base_payload, tag="v0.0.99-alphanet")
+
+        # 3. Untrusted html_url
+        bad_url_payload = dict(
+            base_payload,
+            html_url="https://evil.example/zenon-network/go-zenon/releases/tag/v0.0.11-alphanet",
+        )
+        with self.assertRaisesRegex(updater.UpdaterError, "Untrusted release URL"):
+            run_with_payload(bad_url_payload)
+
+        # 4. Missing required asset
+        missing_asset_payload = dict(
+            base_payload,
+            assets=[
+                a for a in base_payload["assets"] if a["name"] != "libznn-windows-amd64.zip"
+            ],
+        )
+        opener_full, _ = self._build_mock_release(
+            tag="v0.0.11-alphanet",
+            linux_bin=b"\x7fELF-1",
+            darwin_bin=b"\xca\xfe\xba\xbe-1",
+            windows_bin=b"MZ-1",
+        )
+        with self.assertRaisesRegex(updater.UpdaterError, "Required asset"):
+            run_with_payload(missing_asset_payload, extra_responses=opener_full.responses)
+
+        # 5. SHA256CHECKSUMS.txt content does not match its GitHub digest
+        bad_csum_assets = []
+        for asset in base_payload["assets"]:
+            if asset["name"] == "SHA256CHECKSUMS.txt":
+                bad_csum_assets.append(dict(asset, digest=f"sha256:{'f' * 64}"))
+            else:
+                bad_csum_assets.append(asset)
+        bad_csum_payload = dict(base_payload, assets=bad_csum_assets)
+        with self.assertRaisesRegex(updater.UpdaterError, "SHA256CHECKSUMS.txt"):
+            run_with_payload(bad_csum_payload, extra_responses=opener_full.responses)
+
+    def test_download_retries_on_connection_reset_and_bounds_attempts(self) -> None:
+        url = "https://github.com/zenon-network/go-zenon/releases/download/v0.0.11-alphanet/libznn-linux-amd64.tar.gz"
+
+        class _FlakyStream:
+            def __init__(self, fail: bool, data: bytes) -> None:
+                self._fail = fail
+                self._stream = io.BytesIO(data)
+
+            def read(self, size: int = -1) -> bytes:
+                if self._fail:
+                    raise ConnectionResetError("connection reset by peer")
+                return self._stream.read(size)
+
+            def __enter__(self) -> _FlakyStream:
+                return self
+
+            def __exit__(self, *args: Any) -> None:
+                self._stream.close()
+
+        class _FlakyOpener:
+            def __init__(self, fail_times: int, data: bytes) -> None:
+                self.calls = 0
+                self.fail_times = fail_times
+                self.data = data
+
+            def open(self, req: urllib.request.Request, timeout: int = 60) -> _FlakyStream:
+                self.calls += 1
+                return _FlakyStream(self.calls <= self.fail_times, self.data)
+
+        dest = self.root / "flaky.tar.gz"
+        payload = b"recovered-payload"
+        flaky_ok = _FlakyOpener(fail_times=2, data=payload)
+        digest = updater.download_release_file(
+            url,
+            dest,
+            upstream_repo="zenon-network/go-zenon",
+            max_bytes=1024,
+            opener=flaky_ok,  # type: ignore[arg-type]
+            max_attempts=3,
+            retry_backoff_seconds=0,
+        )
+        self.assertEqual(flaky_ok.calls, 3)
+        self.assertEqual(digest, _sha256_bytes(payload))
+
+        flaky_fail = _FlakyOpener(fail_times=5, data=payload)
+        with self.assertRaisesRegex(updater.UpdaterError, "Network error downloading"):
+            updater.download_release_file(
+                url,
+                dest,
+                upstream_repo="zenon-network/go-zenon",
+                max_bytes=1024,
+                opener=flaky_fail,  # type: ignore[arg-type]
+                max_attempts=3,
+                retry_backoff_seconds=0,
+            )
+        self.assertEqual(flaky_fail.calls, 3)
+        self.assertFalse(dest.exists())
 
     def test_unchanged_blobs_sets_changed_false(self) -> None:
         opener, _ = self._build_mock_release(

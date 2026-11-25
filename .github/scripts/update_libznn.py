@@ -500,6 +500,7 @@ def _open_with_retries(
     *,
     timeout: int = HTTP_TIMEOUT_SECONDS,
     max_attempts: int = HTTP_MAX_ATTEMPTS,
+    retry_backoff_seconds: float | None = None,
 ) -> Any:
     last_exc: Exception | None = None
     for attempt in range(1, max_attempts + 1):
@@ -509,11 +510,23 @@ def _open_with_retries(
             last_exc = exc
             if exc.code not in {429, 500, 502, 503, 504} or attempt == max_attempts:
                 raise UpdaterError(f"HTTP {exc.code} fetching {req.full_url}: {exc.reason}") from exc
-        except (urllib.error.URLError, http.client.HTTPException, TimeoutError, socket.timeout) as exc:
+        except (
+            urllib.error.URLError,
+            http.client.HTTPException,
+            ConnectionError,
+            TimeoutError,
+            socket.timeout,
+        ) as exc:
             last_exc = exc
             if attempt == max_attempts:
                 raise UpdaterError(f"Network error fetching {req.full_url}: {exc}") from exc
-        time.sleep(min(2 ** (attempt - 1), 4))
+        sleep_s = (
+            retry_backoff_seconds
+            if retry_backoff_seconds is not None
+            else min(2 ** (attempt - 1), 4)
+        )
+        if sleep_s > 0:
+            time.sleep(sleep_s)
     raise UpdaterError(f"Failed fetching {req.full_url}: {last_exc}")
 
 
@@ -540,8 +553,18 @@ def fetch_release_metadata(
 
     req = urllib.request.Request(url, headers=headers)
     active_opener = opener or _build_opener()
-    with _open_with_retries(active_opener, req) as resp:
-        raw = resp.read(2 * 1024 * 1024)
+    try:
+        with _open_with_retries(active_opener, req) as resp:
+            raw = resp.read(2 * 1024 * 1024)
+    except (
+        urllib.error.URLError,
+        http.client.HTTPException,
+        ConnectionError,
+        TimeoutError,
+        socket.timeout,
+        OSError,
+    ) as exc:
+        raise UpdaterError(f"Error reading GitHub Releases API response ({url}): {exc}") from exc
 
     try:
         payload = json.loads(raw.decode("utf-8"))
@@ -553,6 +576,17 @@ def fetch_release_metadata(
     return payload
 
 
+def load_release_metadata_file(path: pathlib.Path) -> dict[str, Any]:
+    try:
+        raw = path.read_text(encoding="utf-8")
+        payload = json.loads(raw)
+    except (OSError, UnicodeDecodeError, json.JSONDecodeError) as exc:
+        raise UpdaterError(f"Failed to load release metadata JSON from {path}: {exc}") from exc
+    if not isinstance(payload, dict):
+        raise UpdaterError(f"Unexpected release metadata JSON payload type in {path}")
+    return payload
+
+
 def download_release_file(
     url: str,
     dest_path: pathlib.Path,
@@ -560,6 +594,8 @@ def download_release_file(
     upstream_repo: str,
     max_bytes: int,
     opener: urllib.request.OpenerDirector | None = None,
+    max_attempts: int = HTTP_MAX_ATTEMPTS,
+    retry_backoff_seconds: float | None = None,
 ) -> str:
     validate_release_download_url(url, upstream_repo)
     req = urllib.request.Request(
@@ -567,9 +603,10 @@ def download_release_file(
         headers={"User-Agent": "syrius-libznn-updater"},
     )
     active_opener = opener or _build_opener()
-    for attempt in range(1, HTTP_MAX_ATTEMPTS + 1):
+    last_exc: Exception | None = None
+    for attempt in range(1, max_attempts + 1):
         try:
-            with _open_with_retries(active_opener, req) as resp:
+            with active_opener.open(req, timeout=HTTP_TIMEOUT_SECONDS) as resp:
                 digest, total = _copy_stream_bounded(
                     resp,
                     dest_path,
@@ -579,12 +616,36 @@ def download_release_file(
             if total == 0:
                 raise UpdaterError(f"Downloaded file from {url} is empty")
             return digest
-        except (urllib.error.URLError, http.client.HTTPException, TimeoutError, socket.timeout) as exc:
+        except UpdaterError:
             dest_path.unlink(missing_ok=True)
-            if attempt == HTTP_MAX_ATTEMPTS:
-                raise UpdaterError(f"Interrupted download from {url}: {exc}") from exc
-            time.sleep(min(2 ** (attempt - 1), 4))
-    raise UpdaterError(f"Failed downloading {url}")
+            raise
+        except urllib.error.HTTPError as exc:
+            dest_path.unlink(missing_ok=True)
+            last_exc = exc
+            if exc.code not in {429, 500, 502, 503, 504} or attempt == max_attempts:
+                raise UpdaterError(f"HTTP {exc.code} downloading {url}: {exc.reason}") from exc
+        except (
+            urllib.error.URLError,
+            http.client.HTTPException,
+            ConnectionError,
+            TimeoutError,
+            socket.timeout,
+        ) as exc:
+            dest_path.unlink(missing_ok=True)
+            last_exc = exc
+            if attempt == max_attempts:
+                raise UpdaterError(f"Network error downloading {url}: {exc}") from exc
+        except OSError as exc:
+            dest_path.unlink(missing_ok=True)
+            raise UpdaterError(f"I/O error downloading {url}: {exc}") from exc
+        sleep_s = (
+            retry_backoff_seconds
+            if retry_backoff_seconds is not None
+            else min(2 ** (attempt - 1), 4)
+        )
+        if sleep_s > 0:
+            time.sleep(sleep_s)
+    raise UpdaterError(f"Failed downloading {url}: {last_exc}")
 
 
 def stage_verified_binaries(
@@ -630,14 +691,20 @@ def build_commit_message(
         "",
         f"Upstream release: {release.html_url}",
         f"Published: {release.published_at}",
-        "",
-        "Verified upstream release archives (SHA-256):",
     ]
+    if release.checksums_url and release.checksums_sha256:
+        lines.append(
+            f"Checksums file: {release.checksums_url} (sha256: {release.checksums_sha256})"
+        )
+    else:
+        lines.append(f"Checksums file: not present in release ({CHECKSUMS_ASSET_NAME})")
+    lines.extend(["", "Verified upstream release archives (SHA-256):"])
     for item in verified_binaries:
         source_plain = item.archive_verification.source_description.replace("`", "")
         lines.append(
             f"- {item.spec.asset_name}: {item.archive_verification.actual_sha256} ({source_plain})"
         )
+        lines.append(f"  URL: {item.download_url}")
     lines.extend(["", "Extracted embedded library binaries (SHA-256):"])
     for item in verified_binaries:
         prev = item.previous_sha256 or "<missing>"
@@ -795,6 +862,7 @@ def run_update(
     work_dir: pathlib.Path,
     upstream_repo: str = DEFAULT_UPSTREAM_REPO,
     tag: str = "",
+    release_json: pathlib.Path | None = None,
     target_branch: str = "develop",
     pr_body_out: pathlib.Path | None = None,
     github_output: pathlib.Path | None = None,
@@ -809,12 +877,15 @@ def run_update(
     requested_tag = validate_tag(tag)
     branch = validate_target_branch(target_branch)
 
-    release_data = fetch_release_metadata(
-        upstream,
-        requested_tag,
-        github_token=github_token,
-        opener=opener,
-    )
+    if release_json is not None:
+        release_data = load_release_metadata_file(release_json)
+    else:
+        release_data = fetch_release_metadata(
+            upstream,
+            requested_tag,
+            github_token=github_token,
+            opener=opener,
+        )
 
     if release_data.get("draft"):
         raise UpdaterError("Refusing to use a draft go-zenon release")
@@ -990,15 +1061,32 @@ def main(argv: Sequence[str] | None = None) -> int:
         description="Fetch, verify, and stage embedded libznn binaries from go-zenon releases."
     )
     parser.add_argument(
+        "--fetch-metadata-only",
+        action="store_true",
+        help="Only fetch GitHub release metadata JSON and write it to --metadata-out.",
+    )
+    parser.add_argument(
+        "--metadata-out",
+        type=pathlib.Path,
+        default=None,
+        help="Output path for --fetch-metadata-only.",
+    )
+    parser.add_argument(
+        "--release-json",
+        type=pathlib.Path,
+        default=None,
+        help="Use pre-fetched GitHub release metadata JSON instead of calling the API.",
+    )
+    parser.add_argument(
         "--repo-root",
         type=pathlib.Path,
-        required=True,
+        default=None,
         help="Path to the checked-out syrius repository.",
     )
     parser.add_argument(
         "--work-dir",
         type=pathlib.Path,
-        required=True,
+        default=None,
         help="Temporary working directory for downloads and extracted files.",
     )
     parser.add_argument(
@@ -1046,12 +1134,37 @@ def main(argv: Sequence[str] | None = None) -> int:
     )
     args = parser.parse_args(argv)
 
+    if args.fetch_metadata_only:
+        if args.metadata_out is None:
+            print("ERROR: --metadata-out is required with --fetch-metadata-only", file=sys.stderr)
+            return 1
+        try:
+            upstream = validate_upstream_repo(args.upstream_repo)
+            requested_tag = validate_tag(args.tag)
+            payload = fetch_release_metadata(
+                upstream,
+                requested_tag,
+                github_token=os.environ.get("GH_TOKEN") or os.environ.get("GITHUB_TOKEN"),
+            )
+            args.metadata_out.parent.mkdir(parents=True, exist_ok=True)
+            args.metadata_out.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+        except (UpdaterError, OSError) as exc:
+            print(f"ERROR: {exc}", file=sys.stderr)
+            return 1
+        print(f"Wrote release metadata to {args.metadata_out}")
+        return 0
+
+    if args.repo_root is None or args.work_dir is None:
+        print("ERROR: --repo-root and --work-dir are required", file=sys.stderr)
+        return 1
+
     try:
         release_info, verified, changed = run_update(
             repo_root=args.repo_root,
             work_dir=args.work_dir,
             upstream_repo=args.upstream_repo,
             tag=args.tag,
+            release_json=args.release_json,
             target_branch=args.target_branch,
             pr_body_out=args.pr_body_out,
             github_output=args.github_output,
@@ -1065,6 +1178,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         print(f"ERROR: {exc}", file=sys.stderr)
         return 1
 
+    in_github_actions = os.environ.get("GITHUB_ACTIONS") == "true"
     print(f"Verified go-zenon release {release_info.tag_name} ({release_info.html_url})")
     for item in verified:
         state = "UPDATED" if item.changed else "UNCHANGED"
@@ -1072,6 +1186,11 @@ def main(argv: Sequence[str] | None = None) -> int:
             f"  - {item.spec.blob_relpath}: {state} "
             f"(extracted={item.extracted_sha256}, archive={item.archive_verification.actual_sha256})"
         )
+        if in_github_actions and item.archive_verification.checksums_file_sha256 is None:
+            print(
+                f"::warning::Asset {item.spec.asset_name} was not listed in "
+                f"{CHECKSUMS_ASSET_NAME}; verified via GitHub release digest only."
+            )
     if changed and args.dry_run:
         print("Dry run enabled: repository blobs were not modified.")
     elif changed:

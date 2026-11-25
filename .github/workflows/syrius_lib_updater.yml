@@ -102,10 +102,28 @@ jobs:
           path: target-repo
           persist-credentials: false
 
-      - name: Fetch, verify, and stage libznn binaries
-        id: update
+      - name: Fetch go-zenon release metadata
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GO_ZENON_TAG: ${{ steps.config.outputs.tag }}
+          WORK_DIR: ${{ runner.temp }}/libznn-update
+        run: |
+          set -euo pipefail
+
+          mkdir -p "$WORK_DIR"
+          args=(
+            --fetch-metadata-only
+            --metadata-out "$WORK_DIR/release.json"
+          )
+          if [[ -n "${GO_ZENON_TAG:-}" ]]; then
+            args+=("--tag=${GO_ZENON_TAG}")
+          fi
+
+          python3 workflow-scripts/.github/scripts/update_libznn.py "${args[@]}"
+
+      - name: Download, verify, and stage libznn binaries
+        id: update
+        env:
           GO_ZENON_TAG: ${{ steps.config.outputs.tag }}
           TARGET_BRANCH: ${{ steps.config.outputs.target_branch }}
           DRY_RUN: ${{ steps.config.outputs.dry_run }}
@@ -113,10 +131,10 @@ jobs:
         run: |
           set -euo pipefail
 
-          mkdir -p "$WORK_DIR"
           args=(
             --repo-root target-repo
             --work-dir "$WORK_DIR"
+            --release-json "$WORK_DIR/release.json"
             --target-branch "$TARGET_BRANCH"
             --pr-body-out "$WORK_DIR/pr-body.md"
             --github-output "$GITHUB_OUTPUT"
@@ -131,6 +149,10 @@ jobs:
 
           python3 workflow-scripts/.github/scripts/update_libznn.py "${args[@]}"
 
+      # Requires repo setting: Settings -> Actions -> General -> Workflow permissions ->
+      # "Allow GitHub Actions to create and approve pull requests".
+      # Note: PRs created with GITHUB_TOKEN do not automatically trigger pull_request CI
+      # workflows; close and reopen the generated PR to trigger desktop builds and tests.
       - name: Create or update pull request
         id: cpr
         if: steps.update.outputs.changed == 'true'
