@@ -1,56 +1,195 @@
-name: Library updater for syrius
+name: Update embedded libznn binaries
 
 on:
   workflow_dispatch:
+    inputs:
+      tag:
+        description: 'go-zenon release tag (e.g. v0.0.10-alphanet); leave blank for latest'
+        required: false
+        default: ''
+        type: string
+      target_branch:
+        description: 'Target branch for the update pull request'
+        required: false
+        default: 'develop'
+        type: choice
+        options:
+          - develop
+          - master
+      dry_run:
+        description: 'Verify upstream release and checksums without opening a pull request'
+        required: false
+        default: false
+        type: boolean
+  schedule:
+    # Weekly check every Monday at 06:00 UTC for new zenon-network/go-zenon releases
+    - cron: '0 6 * * 1'
+
+permissions: {}
+
+concurrency:
+  group: syrius-lib-updater-${{ inputs.target_branch || 'develop' }}
+  cancel-in-progress: false
 
 jobs:
-  lib-builder:
-    runs-on: ubuntu-latest
+  update-libznn:
+    name: Check and update libznn
+    if: github.event_name != 'schedule' || github.repository == 'zenon-network/syrius'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      contents: write
+      pull-requests: write
+
     steps:
-      - name: Prepare environment
+      - name: Resolve workflow configuration
+        id: config
+        env:
+          INPUT_TAG: ${{ inputs.tag }}
+          INPUT_TARGET_BRANCH: ${{ inputs.target_branch }}
+          INPUT_DRY_RUN: ${{ inputs.dry_run }}
         run: |
-          sudo apt update
-          sudo apt install -y unzip
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Download libznn
-        uses: robinraju/release-downloader@v1.9
-        with:
-          repository: "zenon-network/go-zenon"
-          latest: true
-      - name: Extract libznn library
-        run: |
-          tar -xvf libznn-linux-amd64.tar.gz
-          tar -xvf libznn-darwin-universal.tar.gz
-          unzip -j libznn-windows-amd64.zip -d ./
-      - name: Check if changes are present
-        run: |
-          LIBZNN_LINUX_AMD64=$(sha256sum ./libznn-linux-amd64.so | head -c 64)
-          LIBZNN_LINUX_AMD64_LOCAL=$(sha256sum ./lib/embedded_node/blobs/libznn.so | head -c 64)
-          LIBZNN_WINDOWS_AMD64=$(sha256sum ./libznn-windows-amd64.dll | head -c 64)
-          LIBZNN_WINDOWS_AMD64_LOCAL=$(sha256sum ./lib/embedded_node/blobs/libznn.dll | head -c 64)
-          LIBZNN_DARWIN_UNIVERSAL=$(sha256sum ./libznn-darwin-universal.dylib | head -c 64)
-          LIBZNN_DARWIN_UNIVERSAL_LOCAL=$(sha256sum ./lib/embedded_node/blobs/libznn.dylib | head -c 64)
-          function check() {
-            if [[ "$LIBZNN_LINUX_AMD64" == "$LIBZNN_LINUX_AMD64_LOCAL" && "$LIBZNN_WINDOWS_AMD64" == "$LIBZNN_WINDOWS_AMD64_LOCAL" && "$LIBZNN_DARWIN_UNIVERSAL" == "$LIBZNN_DARWIN_UNIVERSAL_LOCAL" ]];
-            then
-              echo "0"
-            else
-              echo "1"
+          set -euo pipefail
+
+          target_branch="${INPUT_TARGET_BRANCH:-develop}"
+          case "$target_branch" in
+            develop|master) ;;
+            *)
+              echo "::error::Unsupported target_branch: ${target_branch} (allowed: develop, master)"
+              exit 1
+              ;;
+          esac
+
+          if [[ "${INPUT_TAG:-}" == *$'\n'* || "${INPUT_TAG:-}" == *$'\r'* ]]; then
+            echo "::error::Invalid go-zenon release tag: multiline values are not allowed"
+            exit 1
+          fi
+          tag="$(printf '%s' "${INPUT_TAG:-}" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')"
+          if [[ -n "$tag" ]]; then
+            if [[ ! "$tag" =~ ^[A-Za-z0-9][A-Za-z0-9._+-]*$ ]] || [[ "$tag" == *".."* ]]; then
+              echo "::error::Invalid go-zenon release tag format: ${tag}"
+              exit 1
             fi
-          }
-          echo "CHANGED=$(check)" >> $GITHUB_ENV
-      - name: Move libznn native library to blobs directory
-        if: ${{ env.CHANGED == '1' }}
+          fi
+
+          dry_run="false"
+          if [[ "${INPUT_DRY_RUN:-false}" == "true" ]]; then
+            dry_run="true"
+          fi
+
+          {
+            echo "target_branch=${target_branch}"
+            echo "tag=${tag}"
+            echo "dry_run=${dry_run}"
+            echo "pr_branch=chore/update-libznn-${target_branch}"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Checkout updater scripts
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+        with:
+          ref: ${{ github.sha }}
+          path: workflow-scripts
+          sparse-checkout: .github/scripts
+          persist-credentials: false
+
+      - name: Run updater unit tests
+        run: python3 -m unittest discover -s workflow-scripts/.github/scripts -p 'test_*.py' -v
+
+      - name: Checkout target branch
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+        with:
+          ref: ${{ steps.config.outputs.target_branch }}
+          path: target-repo
+          persist-credentials: false
+
+      - name: Fetch go-zenon release metadata
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GO_ZENON_TAG: ${{ steps.config.outputs.tag }}
+          WORK_DIR: ${{ runner.temp }}/libznn-update
         run: |
-          mv libznn-linux-amd64.so lib/embedded_node/blobs/libznn.so
-          mv libznn-darwin-universal.dylib lib/embedded_node/blobs/libznn.dylib
-          mv libznn-windows-amd64.dll lib/embedded_node/blobs/libznn.dll
-      - name: Push if changes are present
-        if: ${{ env.CHANGED == '1' }}
+          set -euo pipefail
+
+          mkdir -p "$WORK_DIR"
+          args=(
+            --fetch-metadata-only
+            --metadata-out "$WORK_DIR/release.json"
+          )
+          if [[ -n "${GO_ZENON_TAG:-}" ]]; then
+            args+=("--tag=${GO_ZENON_TAG}")
+          fi
+
+          python3 workflow-scripts/.github/scripts/update_libznn.py "${args[@]}"
+
+      - name: Download, verify, and stage libznn binaries
+        id: update
+        env:
+          GO_ZENON_TAG: ${{ steps.config.outputs.tag }}
+          TARGET_BRANCH: ${{ steps.config.outputs.target_branch }}
+          DRY_RUN: ${{ steps.config.outputs.dry_run }}
+          WORK_DIR: ${{ runner.temp }}/libznn-update
         run: |
-          git config user.name  "Github Actions"
-          git config user.email "GH-actions-ci@github.com"
-          git add -f lib/embedded_node/blobs/*
-          git commit -m "Updated native libraries"
-          git push origin ${GITHUB_REF##*/}
+          set -euo pipefail
+
+          args=(
+            --repo-root target-repo
+            --work-dir "$WORK_DIR"
+            --release-json "$WORK_DIR/release.json"
+            --target-branch "$TARGET_BRANCH"
+            --pr-body-out "$WORK_DIR/pr-body.md"
+            --github-output "$GITHUB_OUTPUT"
+            --step-summary "$GITHUB_STEP_SUMMARY"
+          )
+          if [[ -n "${GO_ZENON_TAG:-}" ]]; then
+            args+=("--tag=${GO_ZENON_TAG}")
+          fi
+          if [[ "${DRY_RUN:-false}" == "true" ]]; then
+            args+=(--dry-run)
+          fi
+
+          python3 workflow-scripts/.github/scripts/update_libznn.py "${args[@]}"
+
+      # Requires repo setting: Settings -> Actions -> General -> Workflow permissions ->
+      # "Allow GitHub Actions to create and approve pull requests".
+      # Note: PRs created with GITHUB_TOKEN create pull_request CI runs that require approval.
+      # A maintainer with write access must select "Approve workflows to run" in the merge box.
+      # If no runs appear, check the workflow triggers and branch filters.
+      - name: Create or update pull request
+        id: cpr
+        if: steps.update.outputs.changed == 'true'
+        uses: peter-evans/create-pull-request@3ffccacd46053766916f087ce41d627c0b8cf2d1 # v8.1.3
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          path: target-repo
+          add-paths: |
+            lib/embedded_node/blobs/libznn.so
+            lib/embedded_node/blobs/libznn.dylib
+            lib/embedded_node/blobs/libznn.dll
+          base: ${{ steps.config.outputs.target_branch }}
+          branch: ${{ steps.config.outputs.pr_branch }}
+          delete-branch: true
+          committer: github-actions[bot] <41898282+github-actions[bot]@users.noreply.github.com>
+          author: github-actions[bot] <41898282+github-actions[bot]@users.noreply.github.com>
+          commit-message: ${{ steps.update.outputs.commit_message }}
+          title: ${{ steps.update.outputs.pr_title }}
+          body-path: ${{ steps.update.outputs.pr_body_path }}
+
+      - name: Record pull request outcome
+        if: steps.update.outputs.changed == 'true'
+        env:
+          PR_URL: ${{ steps.cpr.outputs.pull-request-url }}
+          PR_OPERATION: ${{ steps.cpr.outputs.pull-request-operation }}
+          PR_BRANCH: ${{ steps.cpr.outputs.pull-request-branch }}
+        run: |
+          set -euo pipefail
+          {
+            echo ""
+            echo "### Pull request"
+            if [[ -n "${PR_URL:-}" ]]; then
+              echo "- **Operation:** \`${PR_OPERATION:-unchanged}\`"
+              echo "- **Branch:** \`${PR_BRANCH:-}\`"
+              echo "- **PR:** ${PR_URL}"
+            else
+              echo "- No pull request changes were required."
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
