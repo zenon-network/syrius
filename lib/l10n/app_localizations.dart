@@ -2282,6 +2282,1102 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Coins and tokens can be searched by name - \"Zenon\" -, by symbol - \"ZNN\" -, and by token standard - \"zts1znnxxxxxxxxxxxxx9z4ulx\"'**
   String get ztsSearchDescription;
+
+  /// No description provided for @accountChainHeight.
+  ///
+  /// In en, this message translates to:
+  /// **'Account-chain height'**
+  String get accountChainHeight;
+
+  /// No description provided for @accountChainStats.
+  ///
+  /// In en, this message translates to:
+  /// **'Account-chain Stats'**
+  String get accountChainStats;
+
+  /// Action label for adding one or more wallet addresses.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Add 1 address} other{Add {count} addresses}}'**
+  String addAddressesCount(int count);
+
+  /// No description provided for @addNode.
+  ///
+  /// In en, this message translates to:
+  /// **'Add node'**
+  String get addNode;
+
+  /// No description provided for @addresses.
+  ///
+  /// In en, this message translates to:
+  /// **'Addresses'**
+  String get addresses;
+
+  /// No description provided for @allWalletDataErasedPermanently.
+  ///
+  /// In en, this message translates to:
+  /// **'All your wallet data will be erased permanently. Make sure you have a backup of your mnemonic or Seed Vault & Seed Vault Key before you proceed with erasing the wallet'**
+  String get allWalletDataErasedPermanently;
+
+  /// No description provided for @alphanetChainIdentifier.
+  ///
+  /// In en, this message translates to:
+  /// **'Alphanet chain identifier'**
+  String get alphanetChainIdentifier;
+
+  /// No description provided for @autoEraseLimitChanged.
+  ///
+  /// In en, this message translates to:
+  /// **'Auto-erase attempts limit successfully changed'**
+  String get autoEraseLimitChanged;
+
+  /// No description provided for @autoEraseLimitNowAttempts.
+  ///
+  /// In en, this message translates to:
+  /// **'The auto-erase limit has now {attempts} attempt(s)'**
+  String autoEraseLimitNowAttempts(String attempts);
+
+  /// No description provided for @autoEraseWallet.
+  ///
+  /// In en, this message translates to:
+  /// **'Auto-erase wallet'**
+  String get autoEraseWallet;
+
+  /// No description provided for @autoLockWallet.
+  ///
+  /// In en, this message translates to:
+  /// **'Auto-lock wallet'**
+  String get autoLockWallet;
+
+  /// No description provided for @autoReceiver.
+  ///
+  /// In en, this message translates to:
+  /// **'Auto-receiver'**
+  String get autoReceiver;
+
+  /// No description provided for @autoReceiverPreferenceStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Auto-receiver preference was {status}'**
+  String autoReceiverPreferenceStatus(String status);
+
+  /// No description provided for @autoReceiverStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Auto-receiver {status}'**
+  String autoReceiverStatus(String status);
+
+  /// No description provided for @automaticallyReceiveTransactions.
+  ///
+  /// In en, this message translates to:
+  /// **'Automatically receive transactions'**
+  String get automaticallyReceiveTransactions;
+
+  /// No description provided for @backup.
+  ///
+  /// In en, this message translates to:
+  /// **'Backup'**
+  String get backup;
+
+  /// No description provided for @backupSeedEncryptedOrClearText.
+  ///
+  /// In en, this message translates to:
+  /// **'Backup your seed using the syrius standard format JSON (encrypted, recommended) or show it on the screen (clear text, not recommended)'**
+  String get backupSeedEncryptedOrClearText;
+
+  /// No description provided for @backupWallet.
+  ///
+  /// In en, this message translates to:
+  /// **'Backup wallet'**
+  String get backupWallet;
+
+  /// No description provided for @blockHash.
+  ///
+  /// In en, this message translates to:
+  /// **'Block hash'**
+  String get blockHash;
+
+  /// No description provided for @chainIdentifierMismatch.
+  ///
+  /// In en, this message translates to:
+  /// **'Chain identifier mismatch'**
+  String get chainIdentifierMismatch;
+
+  /// No description provided for @chainIdentifierMismatchDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Chain identifier mismatch\nClient chain identifier: {clientChainId}\nNode chain identifier: {nodeChainId}'**
+  String chainIdentifierMismatchDetails(int clientChainId, int nodeChainId);
+
+  /// No description provided for @chainIdentifierPreventsReplayAttacks.
+  ///
+  /// In en, this message translates to:
+  /// **'The chain identifier is used in transaction signing to prevent replay attacks'**
+  String get chainIdentifierPreventsReplayAttacks;
+
+  /// No description provided for @change.
+  ///
+  /// In en, this message translates to:
+  /// **'Change'**
+  String get change;
+
+  /// No description provided for @changePassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Change password'**
+  String get changePassword;
+
+  /// No description provided for @changeWalletPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Change wallet password'**
+  String get changeWalletPassword;
+
+  /// No description provided for @changeWalletSecurityParameters.
+  ///
+  /// In en, this message translates to:
+  /// **'Change the security parameters of the wallet'**
+  String get changeWalletSecurityParameters;
+
+  /// No description provided for @changedClientChainIdentifier.
+  ///
+  /// In en, this message translates to:
+  /// **'Successfully changed client chain identifier to {chainId}'**
+  String changedClientChainIdentifier(int chainId);
+
+  /// No description provided for @changedClientChainIdentifierFromTo.
+  ///
+  /// In en, this message translates to:
+  /// **'Successfully changed client chain identifier from {oldChainId} to {newChainId}'**
+  String changedClientChainIdentifierFromTo(int oldChainId, int newChainId);
+
+  /// No description provided for @clientAndNodeChainIdentifiers.
+  ///
+  /// In en, this message translates to:
+  /// **'Client chain identifier: {clientChainId}\nNode chain identifier: {nodeChainId}'**
+  String clientAndNodeChainIdentifiers(int clientChainId, int nodeChainId);
+
+  /// No description provided for @clientChainIdentifierSelection.
+  ///
+  /// In en, this message translates to:
+  /// **'Client chain identifier selection'**
+  String get clientChainIdentifierSelection;
+
+  /// No description provided for @clipboardWatcherPreferenceStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Clipboard watcher preference was {status}'**
+  String clipboardWatcherPreferenceStatus(String status);
+
+  /// No description provided for @clipboardWatcherStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Clipboard watcher {status}'**
+  String clipboardWatcherStatus(String status);
+
+  /// No description provided for @communityNode.
+  ///
+  /// In en, this message translates to:
+  /// **'Community Node'**
+  String get communityNode;
+
+  /// No description provided for @confirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm'**
+  String get confirm;
+
+  /// No description provided for @confirmNode.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm node'**
+  String get confirmNode;
+
+  /// No description provided for @confirmPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm password'**
+  String get confirmPassword;
+
+  /// No description provided for @confirmScale.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm scale'**
+  String get confirmScale;
+
+  /// No description provided for @confirmTheme.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm theme'**
+  String get confirmTheme;
+
+  /// No description provided for @connectionCouldNotBeEstablished.
+  ///
+  /// In en, this message translates to:
+  /// **'Connection could not be established to {node}'**
+  String connectionCouldNotBeEstablished(String node);
+
+  /// No description provided for @connectionFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Connection failed'**
+  String get connectionFailed;
+
+  /// No description provided for @couldNotReconnectToNode.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not reconnect to {node}'**
+  String couldNotReconnectToNode(String node);
+
+  /// No description provided for @currentClientChainIdentifier.
+  ///
+  /// In en, this message translates to:
+  /// **'Current client chain identifier is {chainId}'**
+  String currentClientChainIdentifier(int chainId);
+
+  /// No description provided for @currentPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Current password'**
+  String get currentPassword;
+
+  /// No description provided for @dark.
+  ///
+  /// In en, this message translates to:
+  /// **'Dark'**
+  String get dark;
+
+  /// No description provided for @addressNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Address {index}'**
+  String addressNumber(int index);
+
+  /// No description provided for @deleteCache.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete cache'**
+  String get deleteCache;
+
+  /// No description provided for @deleteNode.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete node'**
+  String get deleteNode;
+
+  /// No description provided for @deleteNodeConfirmation.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to delete {node} from the list of nodes? This action can\'t be undone.'**
+  String deleteNodeConfirmation(String node);
+
+  /// No description provided for @deleteWalletCacheAndCloseApp.
+  ///
+  /// In en, this message translates to:
+  /// **'This option will delete the wallet cache and close the application'**
+  String get deleteWalletCacheAndCloseApp;
+
+  /// No description provided for @desktopNotificationsPreferenceStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Desktop notifications preference was {status}'**
+  String desktopNotificationsPreferenceStatus(String status);
+
+  /// No description provided for @desktopNotificationsStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Desktop notifications {status}'**
+  String desktopNotificationsStatus(String status);
+
+  /// No description provided for @disabled.
+  ///
+  /// In en, this message translates to:
+  /// **'disabled'**
+  String get disabled;
+
+  /// No description provided for @disconnectedFromNode.
+  ///
+  /// In en, this message translates to:
+  /// **'Disconnected from node'**
+  String get disconnectedFromNode;
+
+  /// No description provided for @display.
+  ///
+  /// In en, this message translates to:
+  /// **'Display'**
+  String get display;
+
+  /// No description provided for @displaysAccountChainInformation.
+  ///
+  /// In en, this message translates to:
+  /// **'This card displays information regarding the account-chain for the specified address'**
+  String get displaysAccountChainInformation;
+
+  /// No description provided for @displaysConnectedNetworkPeers.
+  ///
+  /// In en, this message translates to:
+  /// **'This card displays information about connected network peers'**
+  String get displaysConnectedNetworkPeers;
+
+  /// No description provided for @dumpMnemonic.
+  ///
+  /// In en, this message translates to:
+  /// **'Dump Mnemonic'**
+  String get dumpMnemonic;
+
+  /// No description provided for @editNode.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit node'**
+  String get editNode;
+
+  /// No description provided for @embeddedNodeSyncExplanation.
+  ///
+  /// In en, this message translates to:
+  /// **'By default Syrius connects to its own built-in full node, which is called the Embedded Node. It may take up to 24 hours to fully sync the network via the embedded node. During this time, you cannot send or receive transactions.\n\nIf you want to get started right away, please connect to a community node.'**
+  String get embeddedNodeSyncExplanation;
+
+  /// No description provided for @embeddedNodeValidatesTransactions.
+  ///
+  /// In en, this message translates to:
+  /// **'The Embedded Node validates all network transactions\nIt may take several hours to fully sync with the network'**
+  String get embeddedNodeValidatesTransactions;
+
+  /// No description provided for @emptyAccountChain.
+  ///
+  /// In en, this message translates to:
+  /// **'Empty account-chain'**
+  String get emptyAccountChain;
+
+  /// No description provided for @enableClipboardWatcher.
+  ///
+  /// In en, this message translates to:
+  /// **'Enable clipboard watcher'**
+  String get enableClipboardWatcher;
+
+  /// No description provided for @enableDesktopNotifications.
+  ///
+  /// In en, this message translates to:
+  /// **'Enable desktop notifications'**
+  String get enableDesktopNotifications;
+
+  /// No description provided for @enabled.
+  ///
+  /// In en, this message translates to:
+  /// **'enabled'**
+  String get enabled;
+
+  /// No description provided for @encryptedConnection.
+  ///
+  /// In en, this message translates to:
+  /// **'Encrypted connection'**
+  String get encryptedConnection;
+
+  /// No description provided for @english.
+  ///
+  /// In en, this message translates to:
+  /// **'English'**
+  String get english;
+
+  /// No description provided for @enterMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter message'**
+  String get enterMessage;
+
+  /// No description provided for @enterPublicKey.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter public key'**
+  String get enterPublicKey;
+
+  /// No description provided for @enterSignature.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter signature'**
+  String get enterSignature;
+
+  /// No description provided for @enterSignedHash.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter signed hash'**
+  String get enterSignedHash;
+
+  /// No description provided for @enterStrongSeedVaultKey.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter a strong Seed Vault Key to encrypt your Seed'**
+  String get enterStrongSeedVaultKey;
+
+  /// No description provided for @enterText.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter text'**
+  String get enterText;
+
+  /// No description provided for @enterWalletPasswordToDumpMnemonic.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the wallet password to dump the mnemonic'**
+  String get enterWalletPasswordToDumpMnemonic;
+
+  /// No description provided for @eraseAfterFailedPasswordAttempts.
+  ///
+  /// In en, this message translates to:
+  /// **'Erase after {attempts} failed password attempts'**
+  String eraseAfterFailedPasswordAttempts(int attempts);
+
+  /// No description provided for @eraseWalletFilesMakeSureBackup.
+  ///
+  /// In en, this message translates to:
+  /// **'This option will erase the wallet files. Make sure you have a backup first'**
+  String get eraseWalletFilesMakeSureBackup;
+
+  /// No description provided for @errorAccessingWalletForBackup.
+  ///
+  /// In en, this message translates to:
+  /// **'Error while accessing wallet for backup'**
+  String get errorAccessingWalletForBackup;
+
+  /// No description provided for @errorAddingNewNode.
+  ///
+  /// In en, this message translates to:
+  /// **'Error while adding new node'**
+  String get errorAddingNewNode;
+
+  /// No description provided for @errorChangingAddressLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Something went wrong while changing the address label'**
+  String get errorChangingAddressLabel;
+
+  /// No description provided for @errorChangingClipboardWatcher.
+  ///
+  /// In en, this message translates to:
+  /// **'Something went wrong while changing clipboard watcher preference'**
+  String get errorChangingClipboardWatcher;
+
+  /// No description provided for @errorChangingPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'An error occurred while trying to change password'**
+  String get errorChangingPassword;
+
+  /// No description provided for @errorConfirmingAutoEraseLimit.
+  ///
+  /// In en, this message translates to:
+  /// **'Error while confirming auto-erase limit'**
+  String get errorConfirmingAutoEraseLimit;
+
+  /// No description provided for @errorConfirmingAutoLockInterval.
+  ///
+  /// In en, this message translates to:
+  /// **'Error while confirming auto-lock interval'**
+  String get errorConfirmingAutoLockInterval;
+
+  /// No description provided for @errorDecryptingWallet.
+  ///
+  /// In en, this message translates to:
+  /// **'An error occurred while trying to decrypt wallet'**
+  String get errorDecryptingWallet;
+
+  /// No description provided for @errorDeletingNodeFromDatabase.
+  ///
+  /// In en, this message translates to:
+  /// **'Error during deleting node {node} from the database'**
+  String errorDeletingNodeFromDatabase(String node);
+
+  /// No description provided for @errorExportingSeedVault.
+  ///
+  /// In en, this message translates to:
+  /// **'Error while exporting Seed Vault'**
+  String get errorExportingSeedVault;
+
+  /// No description provided for @errorSettingAutoReceivePreference.
+  ///
+  /// In en, this message translates to:
+  /// **'Something went wrong while setting automatic receive preference'**
+  String get errorSettingAutoReceivePreference;
+
+  /// No description provided for @errorSettingClientChainIdentifier.
+  ///
+  /// In en, this message translates to:
+  /// **'Error while setting the new client chain identifier'**
+  String get errorSettingClientChainIdentifier;
+
+  /// No description provided for @errorSettingDesktopNotifications.
+  ///
+  /// In en, this message translates to:
+  /// **'Something went wrong while setting desktop notifications preference'**
+  String get errorSettingDesktopNotifications;
+
+  /// No description provided for @errorSettingLaunchAtStartup.
+  ///
+  /// In en, this message translates to:
+  /// **'Something went wrong while setting launch at startup preference'**
+  String get errorSettingLaunchAtStartup;
+
+  /// No description provided for @errorSigningMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Error while signing message'**
+  String get errorSigningMessage;
+
+  /// No description provided for @errorVerifyingFileHash.
+  ///
+  /// In en, this message translates to:
+  /// **'Error while verifying file hash'**
+  String get errorVerifyingFileHash;
+
+  /// No description provided for @errorVerifyingMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Error while verifying message'**
+  String get errorVerifyingMessage;
+
+  /// No description provided for @export.
+  ///
+  /// In en, this message translates to:
+  /// **'Export'**
+  String get export;
+
+  /// No description provided for @exportSeedVault.
+  ///
+  /// In en, this message translates to:
+  /// **'Export Seed Vault'**
+  String get exportSeedVault;
+
+  /// No description provided for @fileHashVerifiedSuccessfully.
+  ///
+  /// In en, this message translates to:
+  /// **'File hash verified successfully'**
+  String get fileHashVerifiedSuccessfully;
+
+  /// No description provided for @fileHashVerifiedWithSignedHash.
+  ///
+  /// In en, this message translates to:
+  /// **'File hash was successfully verified with the signed hash: {signedHash}'**
+  String fileHashVerifiedWithSignedHash(String signedHash);
+
+  /// No description provided for @general.
+  ///
+  /// In en, this message translates to:
+  /// **'General'**
+  String get general;
+
+  /// No description provided for @genericWalletAndNetworkInfo.
+  ///
+  /// In en, this message translates to:
+  /// **'Generic wallet & network information'**
+  String get genericWalletAndNetworkInfo;
+
+  /// No description provided for @hashOrPublicKeyInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Hash or public key invalid'**
+  String get hashOrPublicKeyInvalid;
+
+  /// No description provided for @huge.
+  ///
+  /// In en, this message translates to:
+  /// **'Huge'**
+  String get huge;
+
+  /// No description provided for @incorrectPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Incorrect password'**
+  String get incorrectPassword;
+
+  /// No description provided for @integratedFullNodeEnhancedSecurity.
+  ///
+  /// In en, this message translates to:
+  /// **'Integrated Full Node: enhanced security and privacy'**
+  String get integratedFullNodeEnhancedSecurity;
+
+  /// No description provided for @ip.
+  ///
+  /// In en, this message translates to:
+  /// **'IP'**
+  String get ip;
+
+  /// No description provided for @labelAlreadyExists.
+  ///
+  /// In en, this message translates to:
+  /// **'Label already exists'**
+  String get labelAlreadyExists;
+
+  /// No description provided for @labelAlreadyExistsInDatabase.
+  ///
+  /// In en, this message translates to:
+  /// **'Label {label} already exists in the database'**
+  String labelAlreadyExistsInDatabase(String label);
+
+  /// No description provided for @labelCannotBeEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Label can\'t be empty'**
+  String get labelCannotBeEmpty;
+
+  /// No description provided for @labelExceedsMaxLength.
+  ///
+  /// In en, this message translates to:
+  /// **'The label {label} is {length} characters long, which is more than the {maxLength} limit.'**
+  String labelExceedsMaxLength(String label, int length, int maxLength);
+
+  /// No description provided for @labelHasTooManyCharacters.
+  ///
+  /// In en, this message translates to:
+  /// **'The label has more than {maxLength} characters'**
+  String labelHasTooManyCharacters(int maxLength);
+
+  /// No description provided for @large.
+  ///
+  /// In en, this message translates to:
+  /// **'Large'**
+  String get large;
+
+  /// No description provided for @launchAtStartup.
+  ///
+  /// In en, this message translates to:
+  /// **'Launch at startup'**
+  String get launchAtStartup;
+
+  /// No description provided for @launchAtStartupPreferenceStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Launch at startup preference was {status}'**
+  String launchAtStartupPreferenceStatus(String status);
+
+  /// No description provided for @launchAtStartupStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Launch startup {status}'**
+  String launchAtStartupStatus(String status);
+
+  /// No description provided for @light.
+  ///
+  /// In en, this message translates to:
+  /// **'Light'**
+  String get light;
+
+  /// No description provided for @listensClipboardForWalletConnectUri.
+  ///
+  /// In en, this message translates to:
+  /// **'Listens to the values passed to the clipboard and sends a notification when a WalletConnect URI has been copied'**
+  String get listensClipboardForWalletConnectUri;
+
+  /// No description provided for @locale.
+  ///
+  /// In en, this message translates to:
+  /// **'Locale'**
+  String get locale;
+
+  /// No description provided for @lock.
+  ///
+  /// In en, this message translates to:
+  /// **'Lock'**
+  String get lock;
+
+  /// No description provided for @lockAfterMinutesOfInactivity.
+  ///
+  /// In en, this message translates to:
+  /// **'Lock after {minutes} minutes of inactivity'**
+  String lockAfterMinutesOfInactivity(int minutes);
+
+  /// No description provided for @messageOrSignatureInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Message or signature invalid'**
+  String get messageOrSignatureInvalid;
+
+  /// No description provided for @messageVerifiedSuccessfully.
+  ///
+  /// In en, this message translates to:
+  /// **'Message verified successfully'**
+  String get messageVerifiedSuccessfully;
+
+  /// No description provided for @messageVerifiedWithSignature.
+  ///
+  /// In en, this message translates to:
+  /// **'The message: {message} was successfully verified with the signature: {signature}'**
+  String messageVerifiedWithSignature(String message, String signature);
+
+  /// No description provided for @momentumHash.
+  ///
+  /// In en, this message translates to:
+  /// **'Momentum hash'**
+  String get momentumHash;
+
+  /// No description provided for @momentumHeight.
+  ///
+  /// In en, this message translates to:
+  /// **'Momentum height'**
+  String get momentumHeight;
+
+  /// No description provided for @newPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'New password'**
+  String get newPassword;
+
+  /// No description provided for @noPeersFound.
+  ///
+  /// In en, this message translates to:
+  /// **'No peers found'**
+  String get noPeersFound;
+
+  /// No description provided for @nodeAddressCannotBeEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Node address can\'t be empty'**
+  String get nodeAddressCannotBeEmpty;
+
+  /// No description provided for @nodeAddressWithPort.
+  ///
+  /// In en, this message translates to:
+  /// **'Node address with port'**
+  String get nodeAddressWithPort;
+
+  /// No description provided for @nodeAlreadyExists.
+  ///
+  /// In en, this message translates to:
+  /// **'Node already exists'**
+  String get nodeAlreadyExists;
+
+  /// No description provided for @nodeAlreadyExistsNamed.
+  ///
+  /// In en, this message translates to:
+  /// **'Node {node} already exists'**
+  String nodeAlreadyExistsNamed(String node);
+
+  /// No description provided for @nodeHasDifferentChainIdentifier.
+  ///
+  /// In en, this message translates to:
+  /// **'The node {node} you are connecting to has a different chain identifier {nodeChainId} than the current client chain identifier {currentChainId}'**
+  String nodeHasDifferentChainIdentifier(
+    String node,
+    int nodeChainId,
+    int currentChainId,
+  );
+
+  /// No description provided for @nodeHasTooManyCharacters.
+  ///
+  /// In en, this message translates to:
+  /// **'The node has more than {maxLength} characters'**
+  String nodeHasTooManyCharacters(int maxLength);
+
+  /// No description provided for @nodeManagement.
+  ///
+  /// In en, this message translates to:
+  /// **'Node Management'**
+  String get nodeManagement;
+
+  /// No description provided for @nodeSelection.
+  ///
+  /// In en, this message translates to:
+  /// **'Node selection'**
+  String get nodeSelection;
+
+  /// No description provided for @nonAlphanetChainIdentifier.
+  ///
+  /// In en, this message translates to:
+  /// **'Non-alphanet chain identifier'**
+  String get nonAlphanetChainIdentifier;
+
+  /// No description provided for @normal.
+  ///
+  /// In en, this message translates to:
+  /// **'Normal'**
+  String get normal;
+
+  /// No description provided for @otherWalletOptions.
+  ///
+  /// In en, this message translates to:
+  /// **'Other wallet options'**
+  String get otherWalletOptions;
+
+  /// No description provided for @passwordRequirementsInfo.
+  ///
+  /// In en, this message translates to:
+  /// **'Use a password that has at least 8 characters, one number, one uppercase letter, one lowercase letter and one symbol'**
+  String get passwordRequirementsInfo;
+
+  /// No description provided for @pasteFromClipboard.
+  ///
+  /// In en, this message translates to:
+  /// **'Paste from clipboard'**
+  String get pasteFromClipboard;
+
+  /// No description provided for @peers.
+  ///
+  /// In en, this message translates to:
+  /// **'Peers'**
+  String get peers;
+
+  /// No description provided for @peersAvailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Peers available'**
+  String get peersAvailable;
+
+  /// No description provided for @peersConnected.
+  ///
+  /// In en, this message translates to:
+  /// **'Peers connected'**
+  String get peersConnected;
+
+  /// No description provided for @preferences.
+  ///
+  /// In en, this message translates to:
+  /// **'Preferences'**
+  String get preferences;
+
+  /// No description provided for @proceedAnyway.
+  ///
+  /// In en, this message translates to:
+  /// **'Proceed anyway'**
+  String get proceedAnyway;
+
+  /// No description provided for @publicKey.
+  ///
+  /// In en, this message translates to:
+  /// **'Public Key'**
+  String get publicKey;
+
+  /// No description provided for @reconnect.
+  ///
+  /// In en, this message translates to:
+  /// **'Reconnect'**
+  String get reconnect;
+
+  /// No description provided for @repeatNewPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Repeat new password'**
+  String get repeatNewPassword;
+
+  /// No description provided for @reset.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset'**
+  String get reset;
+
+  /// No description provided for @resetWallet.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset wallet'**
+  String get resetWallet;
+
+  /// No description provided for @security.
+  ///
+  /// In en, this message translates to:
+  /// **'Security'**
+  String get security;
+
+  /// No description provided for @seed.
+  ///
+  /// In en, this message translates to:
+  /// **'Seed'**
+  String get seed;
+
+  /// No description provided for @seedVault.
+  ///
+  /// In en, this message translates to:
+  /// **'Seed Vault'**
+  String get seedVault;
+
+  /// No description provided for @seedVaultBackupExplanation.
+  ///
+  /// In en, this message translates to:
+  /// **'A Seed Vault is an encrypted file for backing up your Seed. The Seed is encrypted with a Seed Vault Key and cannot be accessed without it. Make sure you backup your Seed Vault in multiple offline locations (e.g. USB, external HDD) and do not lose your Seed Vault Key. If you lose the Seed Vault file or you don\'t remember the Seed Vault Key you lose access to your funds.'**
+  String get seedVaultBackupExplanation;
+
+  /// No description provided for @seedVaultExported.
+  ///
+  /// In en, this message translates to:
+  /// **'Seed Vault successfully exported'**
+  String get seedVaultExported;
+
+  /// No description provided for @seedVaultExportedToPath.
+  ///
+  /// In en, this message translates to:
+  /// **'The Seed Vault was successfully exported to {path}'**
+  String seedVaultExportedToPath(String path);
+
+  /// No description provided for @seedVaultKey.
+  ///
+  /// In en, this message translates to:
+  /// **'Seed Vault Key'**
+  String get seedVaultKey;
+
+  /// No description provided for @selectDefaultAddressForOperations.
+  ///
+  /// In en, this message translates to:
+  /// **'Select the default address that will be used throughout the wallet for any network operation'**
+  String get selectDefaultAddressForOperations;
+
+  /// No description provided for @setZnnNodeToConnect.
+  ///
+  /// In en, this message translates to:
+  /// **'This card allows one to set the ZNN Node used to connect to. By default the wallet is connected to the Embedded Node. If you are running a local ZNN Node, please use the localhost option'**
+  String get setZnnNodeToConnect;
+
+  /// No description provided for @sign.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign'**
+  String get sign;
+
+  /// No description provided for @signFile.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign file'**
+  String get signFile;
+
+  /// No description provided for @signature.
+  ///
+  /// In en, this message translates to:
+  /// **'Signature'**
+  String get signature;
+
+  /// No description provided for @signedHash.
+  ///
+  /// In en, this message translates to:
+  /// **'Signed hash'**
+  String get signedHash;
+
+  /// No description provided for @small.
+  ///
+  /// In en, this message translates to:
+  /// **'Small'**
+  String get small;
+
+  /// No description provided for @somethingWentWrong.
+  ///
+  /// In en, this message translates to:
+  /// **'Something went wrong'**
+  String get somethingWentWrong;
+
+  /// No description provided for @storeSeedVaultOfflineLocations.
+  ///
+  /// In en, this message translates to:
+  /// **'Store your Seed Vault and Seed Vault Key in secure and separate offline locations. You will need both to access your funds'**
+  String get storeSeedVaultOfflineLocations;
+
+  /// No description provided for @successfullyAddedNode.
+  ///
+  /// In en, this message translates to:
+  /// **'Successfully added node {node}'**
+  String successfullyAddedNode(String node);
+
+  /// No description provided for @successfullyConnectedToNode.
+  ///
+  /// In en, this message translates to:
+  /// **'Successfully connected to {node}'**
+  String successfullyConnectedToNode(String node);
+
+  /// No description provided for @system.
+  ///
+  /// In en, this message translates to:
+  /// **'System'**
+  String get system;
+
+  /// No description provided for @textScaleChangeFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Text scale change failed'**
+  String get textScaleChangeFailed;
+
+  /// No description provided for @textScaleChanged.
+  ///
+  /// In en, this message translates to:
+  /// **'Text scale changed'**
+  String get textScaleChanged;
+
+  /// No description provided for @textScaleChangedDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Text scale successfully changed to {scale}'**
+  String textScaleChangedDetails(String scale);
+
+  /// No description provided for @textScaling.
+  ///
+  /// In en, this message translates to:
+  /// **'Text scaling'**
+  String get textScaling;
+
+  /// No description provided for @theme.
+  ///
+  /// In en, this message translates to:
+  /// **'Theme'**
+  String get theme;
+
+  /// No description provided for @themeModeChangeFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Theme mode change failed'**
+  String get themeModeChangeFailed;
+
+  /// No description provided for @themeModeChanged.
+  ///
+  /// In en, this message translates to:
+  /// **'Theme mode changed'**
+  String get themeModeChanged;
+
+  /// No description provided for @themeModeChangedDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Theme mode successfully changed to {mode}'**
+  String themeModeChangedDetails(String mode);
+
+  /// No description provided for @timestamp.
+  ///
+  /// In en, this message translates to:
+  /// **'Timestamp'**
+  String get timestamp;
+
+  /// No description provided for @uncheckToDisableAutoReceiver.
+  ///
+  /// In en, this message translates to:
+  /// **'Uncheck to disable the auto-receiver and receive transactions manually'**
+  String get uncheckToDisableAutoReceiver;
+
+  /// No description provided for @unencryptedConnection.
+  ///
+  /// In en, this message translates to:
+  /// **'Unencrypted connection'**
+  String get unencryptedConnection;
+
+  /// No description provided for @verify.
+  ///
+  /// In en, this message translates to:
+  /// **'Verify'**
+  String get verify;
+
+  /// No description provided for @verifyFile.
+  ///
+  /// In en, this message translates to:
+  /// **'Verify file'**
+  String get verifyFile;
+
+  /// No description provided for @walletAppearanceAndThemeSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Wallet appearance and theme settings'**
+  String get walletAppearanceAndThemeSettings;
+
+  /// No description provided for @walletOptions.
+  ///
+  /// In en, this message translates to:
+  /// **'Wallet Options'**
+  String get walletOptions;
+
+  /// No description provided for @willSecurelyStoreSeedVault.
+  ///
+  /// In en, this message translates to:
+  /// **'I will securely store the Seed Vault & Seed Vault Key'**
+  String get willSecurelyStoreSeedVault;
 }
 
 class _AppLocalizationsDelegate

@@ -414,5 +414,458 @@
   "yourDepositId": "Your deposit ID",
   "zenonTransactions": "{zenon} transactions",
   "znnController": "znn-controller ",
-  "ztsSearchDescription": "Coins and tokens can be searched by name - \"Zenon\" -, by symbol - \"ZNN\" -, and by token standard - \"zts1znnxxxxxxxxxxxxx9z4ulx\""
+  "ztsSearchDescription": "Coins and tokens can be searched by name - \"Zenon\" -, by symbol - \"ZNN\" -, and by token standard - \"zts1znnxxxxxxxxxxxxx9z4ulx\"",
+  "accountChainHeight": "Account-chain height",
+  "accountChainStats": "Account-chain Stats",
+  "addAddressesCount": "{count, plural, =1{Add 1 address} other{Add {count} addresses}}",
+  "@addAddressesCount": {
+    "description": "Action label for adding one or more wallet addresses.",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "1"
+      }
+    }
+  },
+  "addNode": "Add node",
+  "addresses": "Addresses",
+  "allWalletDataErasedPermanently": "All your wallet data will be erased permanently. Make sure you have a backup of your mnemonic or Seed Vault & Seed Vault Key before you proceed with erasing the wallet",
+  "alphanetChainIdentifier": "Alphanet chain identifier",
+  "autoEraseLimitChanged": "Auto-erase attempts limit successfully changed",
+  "autoEraseLimitNowAttempts": "The auto-erase limit has now {attempts} attempt(s)",
+  "@autoEraseLimitNowAttempts": {
+    "placeholders": {
+      "attempts": {
+        "type": "String"
+      }
+    }
+  },
+  "autoEraseWallet": "Auto-erase wallet",
+  "autoLockWallet": "Auto-lock wallet",
+  "autoReceiver": "Auto-receiver",
+  "autoReceiverPreferenceStatus": "Auto-receiver preference was {status}",
+  "@autoReceiverPreferenceStatus": {
+    "placeholders": {
+      "status": {
+        "type": "String"
+      }
+    }
+  },
+  "autoReceiverStatus": "Auto-receiver {status}",
+  "@autoReceiverStatus": {
+    "placeholders": {
+      "status": {
+        "type": "String"
+      }
+    }
+  },
+  "automaticallyReceiveTransactions": "Automatically receive transactions",
+  "backup": "Backup",
+  "backupSeedEncryptedOrClearText": "Backup your seed using the syrius standard format JSON (encrypted, recommended) or show it on the screen (clear text, not recommended)",
+  "backupWallet": "Backup wallet",
+  "blockHash": "Block hash",
+  "chainIdentifierMismatch": "Chain identifier mismatch",
+  "chainIdentifierMismatchDetails": "Chain identifier mismatch\nClient chain identifier: {clientChainId}\nNode chain identifier: {nodeChainId}",
+  "@chainIdentifierMismatchDetails": {
+    "placeholders": {
+      "clientChainId": {
+        "type": "int"
+      },
+      "nodeChainId": {
+        "type": "int"
+      }
+    }
+  },
+  "chainIdentifierPreventsReplayAttacks": "The chain identifier is used in transaction signing to prevent replay attacks",
+  "change": "Change",
+  "changePassword": "Change password",
+  "changeWalletPassword": "Change wallet password",
+  "changeWalletSecurityParameters": "Change the security parameters of the wallet",
+  "changedClientChainIdentifier": "Successfully changed client chain identifier to {chainId}",
+  "@changedClientChainIdentifier": {
+    "placeholders": {
+      "chainId": {
+        "type": "int"
+      }
+    }
+  },
+  "changedClientChainIdentifierFromTo": "Successfully changed client chain identifier from {oldChainId} to {newChainId}",
+  "@changedClientChainIdentifierFromTo": {
+    "placeholders": {
+      "oldChainId": {
+        "type": "int"
+      },
+      "newChainId": {
+        "type": "int"
+      }
+    }
+  },
+  "clientAndNodeChainIdentifiers": "Client chain identifier: {clientChainId}\nNode chain identifier: {nodeChainId}",
+  "@clientAndNodeChainIdentifiers": {
+    "placeholders": {
+      "clientChainId": {
+        "type": "int"
+      },
+      "nodeChainId": {
+        "type": "int"
+      }
+    }
+  },
+  "clientChainIdentifierSelection": "Client chain identifier selection",
+  "clipboardWatcherPreferenceStatus": "Clipboard watcher preference was {status}",
+  "@clipboardWatcherPreferenceStatus": {
+    "placeholders": {
+      "status": {
+        "type": "String"
+      }
+    }
+  },
+  "clipboardWatcherStatus": "Clipboard watcher {status}",
+  "@clipboardWatcherStatus": {
+    "placeholders": {
+      "status": {
+        "type": "String"
+      }
+    }
+  },
+  "communityNode": "Community Node",
+  "confirm": "Confirm",
+  "confirmNode": "Confirm node",
+  "confirmPassword": "Confirm password",
+  "confirmScale": "Confirm scale",
+  "confirmTheme": "Confirm theme",
+  "connectionCouldNotBeEstablished": "Connection could not be established to {node}",
+  "@connectionCouldNotBeEstablished": {
+    "placeholders": {
+      "node": {
+        "type": "String"
+      }
+    }
+  },
+  "connectionFailed": "Connection failed",
+  "couldNotReconnectToNode": "Could not reconnect to {node}",
+  "@couldNotReconnectToNode": {
+    "placeholders": {
+      "node": {
+        "type": "String"
+      }
+    }
+  },
+  "currentClientChainIdentifier": "Current client chain identifier is {chainId}",
+  "@currentClientChainIdentifier": {
+    "placeholders": {
+      "chainId": {
+        "type": "int"
+      }
+    }
+  },
+  "currentPassword": "Current password",
+  "dark": "Dark",
+  "addressNumber": "Address {index}",
+  "@addressNumber": {
+    "placeholders": {
+      "index": {
+        "type": "int"
+      }
+    }
+  },
+  "deleteCache": "Delete cache",
+  "deleteNode": "Delete node",
+  "deleteNodeConfirmation": "Are you sure you want to delete {node} from the list of nodes? This action can't be undone.",
+  "@deleteNodeConfirmation": {
+    "placeholders": {
+      "node": {
+        "type": "String"
+      }
+    }
+  },
+  "deleteWalletCacheAndCloseApp": "This option will delete the wallet cache and close the application",
+  "desktopNotificationsPreferenceStatus": "Desktop notifications preference was {status}",
+  "@desktopNotificationsPreferenceStatus": {
+    "placeholders": {
+      "status": {
+        "type": "String"
+      }
+    }
+  },
+  "desktopNotificationsStatus": "Desktop notifications {status}",
+  "@desktopNotificationsStatus": {
+    "placeholders": {
+      "status": {
+        "type": "String"
+      }
+    }
+  },
+  "disabled": "disabled",
+  "disconnectedFromNode": "Disconnected from node",
+  "display": "Display",
+  "displaysAccountChainInformation": "This card displays information regarding the account-chain for the specified address",
+  "displaysConnectedNetworkPeers": "This card displays information about connected network peers",
+  "dumpMnemonic": "Dump Mnemonic",
+  "editNode": "Edit node",
+  "embeddedNodeSyncExplanation": "By default Syrius connects to its own built-in full node, which is called the Embedded Node. It may take up to 24 hours to fully sync the network via the embedded node. During this time, you cannot send or receive transactions.\n\nIf you want to get started right away, please connect to a community node.",
+  "embeddedNodeValidatesTransactions": "The Embedded Node validates all network transactions\nIt may take several hours to fully sync with the network",
+  "emptyAccountChain": "Empty account-chain",
+  "enableClipboardWatcher": "Enable clipboard watcher",
+  "enableDesktopNotifications": "Enable desktop notifications",
+  "enabled": "enabled",
+  "encryptedConnection": "Encrypted connection",
+  "english": "English",
+  "enterMessage": "Enter message",
+  "enterPublicKey": "Enter public key",
+  "enterSignature": "Enter signature",
+  "enterSignedHash": "Enter signed hash",
+  "enterStrongSeedVaultKey": "Please enter a strong Seed Vault Key to encrypt your Seed",
+  "enterText": "Enter text",
+  "enterWalletPasswordToDumpMnemonic": "Enter the wallet password to dump the mnemonic",
+  "eraseAfterFailedPasswordAttempts": "Erase after {attempts} failed password attempts",
+  "@eraseAfterFailedPasswordAttempts": {
+    "placeholders": {
+      "attempts": {
+        "type": "int"
+      }
+    }
+  },
+  "eraseWalletFilesMakeSureBackup": "This option will erase the wallet files. Make sure you have a backup first",
+  "errorAccessingWalletForBackup": "Error while accessing wallet for backup",
+  "errorAddingNewNode": "Error while adding new node",
+  "errorChangingAddressLabel": "Something went wrong while changing the address label",
+  "errorChangingClipboardWatcher": "Something went wrong while changing clipboard watcher preference",
+  "errorChangingPassword": "An error occurred while trying to change password",
+  "errorConfirmingAutoEraseLimit": "Error while confirming auto-erase limit",
+  "errorConfirmingAutoLockInterval": "Error while confirming auto-lock interval",
+  "errorDecryptingWallet": "An error occurred while trying to decrypt wallet",
+  "errorDeletingNodeFromDatabase": "Error during deleting node {node} from the database",
+  "@errorDeletingNodeFromDatabase": {
+    "placeholders": {
+      "node": {
+        "type": "String"
+      }
+    }
+  },
+  "errorExportingSeedVault": "Error while exporting Seed Vault",
+  "errorSettingAutoReceivePreference": "Something went wrong while setting automatic receive preference",
+  "errorSettingClientChainIdentifier": "Error while setting the new client chain identifier",
+  "errorSettingDesktopNotifications": "Something went wrong while setting desktop notifications preference",
+  "errorSettingLaunchAtStartup": "Something went wrong while setting launch at startup preference",
+  "errorSigningMessage": "Error while signing message",
+  "errorVerifyingFileHash": "Error while verifying file hash",
+  "errorVerifyingMessage": "Error while verifying message",
+  "export": "Export",
+  "exportSeedVault": "Export Seed Vault",
+  "fileHashVerifiedSuccessfully": "File hash verified successfully",
+  "fileHashVerifiedWithSignedHash": "File hash was successfully verified with the signed hash: {signedHash}",
+  "@fileHashVerifiedWithSignedHash": {
+    "placeholders": {
+      "signedHash": {
+        "type": "String"
+      }
+    }
+  },
+  "general": "General",
+  "genericWalletAndNetworkInfo": "Generic wallet & network information",
+  "hashOrPublicKeyInvalid": "Hash or public key invalid",
+  "huge": "Huge",
+  "incorrectPassword": "Incorrect password",
+  "integratedFullNodeEnhancedSecurity": "Integrated Full Node: enhanced security and privacy",
+  "ip": "IP",
+  "labelAlreadyExists": "Label already exists",
+  "labelAlreadyExistsInDatabase": "Label {label} already exists in the database",
+  "@labelAlreadyExistsInDatabase": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      }
+    }
+  },
+  "labelCannotBeEmpty": "Label can't be empty",
+  "labelExceedsMaxLength": "The label {label} is {length} characters long, which is more than the {maxLength} limit.",
+  "@labelExceedsMaxLength": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      },
+      "length": {
+        "type": "int"
+      },
+      "maxLength": {
+        "type": "int"
+      }
+    }
+  },
+  "labelHasTooManyCharacters": "The label has more than {maxLength} characters",
+  "@labelHasTooManyCharacters": {
+    "placeholders": {
+      "maxLength": {
+        "type": "int"
+      }
+    }
+  },
+  "large": "Large",
+  "launchAtStartup": "Launch at startup",
+  "launchAtStartupPreferenceStatus": "Launch at startup preference was {status}",
+  "@launchAtStartupPreferenceStatus": {
+    "placeholders": {
+      "status": {
+        "type": "String"
+      }
+    }
+  },
+  "launchAtStartupStatus": "Launch startup {status}",
+  "@launchAtStartupStatus": {
+    "placeholders": {
+      "status": {
+        "type": "String"
+      }
+    }
+  },
+  "light": "Light",
+  "listensClipboardForWalletConnectUri": "Listens to the values passed to the clipboard and sends a notification when a WalletConnect URI has been copied",
+  "locale": "Locale",
+  "lock": "Lock",
+  "lockAfterMinutesOfInactivity": "Lock after {minutes} minutes of inactivity",
+  "@lockAfterMinutesOfInactivity": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "messageOrSignatureInvalid": "Message or signature invalid",
+  "messageVerifiedSuccessfully": "Message verified successfully",
+  "messageVerifiedWithSignature": "The message: {message} was successfully verified with the signature: {signature}",
+  "@messageVerifiedWithSignature": {
+    "placeholders": {
+      "message": {
+        "type": "String"
+      },
+      "signature": {
+        "type": "String"
+      }
+    }
+  },
+  "momentumHash": "Momentum hash",
+  "momentumHeight": "Momentum height",
+  "newPassword": "New password",
+  "noPeersFound": "No peers found",
+  "nodeAddressCannotBeEmpty": "Node address can't be empty",
+  "nodeAddressWithPort": "Node address with port",
+  "nodeAlreadyExists": "Node already exists",
+  "nodeAlreadyExistsNamed": "Node {node} already exists",
+  "@nodeAlreadyExistsNamed": {
+    "placeholders": {
+      "node": {
+        "type": "String"
+      }
+    }
+  },
+  "nodeHasDifferentChainIdentifier": "The node {node} you are connecting to has a different chain identifier {nodeChainId} than the current client chain identifier {currentChainId}",
+  "@nodeHasDifferentChainIdentifier": {
+    "placeholders": {
+      "node": {
+        "type": "String"
+      },
+      "nodeChainId": {
+        "type": "int"
+      },
+      "currentChainId": {
+        "type": "int"
+      }
+    }
+  },
+  "nodeHasTooManyCharacters": "The node has more than {maxLength} characters",
+  "@nodeHasTooManyCharacters": {
+    "placeholders": {
+      "maxLength": {
+        "type": "int"
+      }
+    }
+  },
+  "nodeManagement": "Node Management",
+  "nodeSelection": "Node selection",
+  "nonAlphanetChainIdentifier": "Non-alphanet chain identifier",
+  "normal": "Normal",
+  "otherWalletOptions": "Other wallet options",
+  "passwordRequirementsInfo": "Use a password that has at least 8 characters, one number, one uppercase letter, one lowercase letter and one symbol",
+  "pasteFromClipboard": "Paste from clipboard",
+  "peers": "Peers",
+  "peersAvailable": "Peers available",
+  "peersConnected": "Peers connected",
+  "preferences": "Preferences",
+  "proceedAnyway": "Proceed anyway",
+  "publicKey": "Public Key",
+  "reconnect": "Reconnect",
+  "repeatNewPassword": "Repeat new password",
+  "reset": "Reset",
+  "resetWallet": "Reset wallet",
+  "security": "Security",
+  "seed": "Seed",
+  "seedVault": "Seed Vault",
+  "seedVaultBackupExplanation": "A Seed Vault is an encrypted file for backing up your Seed. The Seed is encrypted with a Seed Vault Key and cannot be accessed without it. Make sure you backup your Seed Vault in multiple offline locations (e.g. USB, external HDD) and do not lose your Seed Vault Key. If you lose the Seed Vault file or you don't remember the Seed Vault Key you lose access to your funds.",
+  "seedVaultExported": "Seed Vault successfully exported",
+  "seedVaultExportedToPath": "The Seed Vault was successfully exported to {path}",
+  "@seedVaultExportedToPath": {
+    "placeholders": {
+      "path": {
+        "type": "String"
+      }
+    }
+  },
+  "seedVaultKey": "Seed Vault Key",
+  "selectDefaultAddressForOperations": "Select the default address that will be used throughout the wallet for any network operation",
+  "setZnnNodeToConnect": "This card allows one to set the ZNN Node used to connect to. By default the wallet is connected to the Embedded Node. If you are running a local ZNN Node, please use the localhost option",
+  "sign": "Sign",
+  "signFile": "Sign file",
+  "signature": "Signature",
+  "signedHash": "Signed hash",
+  "small": "Small",
+  "somethingWentWrong": "Something went wrong",
+  "storeSeedVaultOfflineLocations": "Store your Seed Vault and Seed Vault Key in secure and separate offline locations. You will need both to access your funds",
+  "successfullyAddedNode": "Successfully added node {node}",
+  "@successfullyAddedNode": {
+    "placeholders": {
+      "node": {
+        "type": "String"
+      }
+    }
+  },
+  "successfullyConnectedToNode": "Successfully connected to {node}",
+  "@successfullyConnectedToNode": {
+    "placeholders": {
+      "node": {
+        "type": "String"
+      }
+    }
+  },
+  "system": "System",
+  "textScaleChangeFailed": "Text scale change failed",
+  "textScaleChanged": "Text scale changed",
+  "textScaleChangedDetails": "Text scale successfully changed to {scale}",
+  "@textScaleChangedDetails": {
+    "placeholders": {
+      "scale": {
+        "type": "String"
+      }
+    }
+  },
+  "textScaling": "Text scaling",
+  "theme": "Theme",
+  "themeModeChangeFailed": "Theme mode change failed",
+  "themeModeChanged": "Theme mode changed",
+  "themeModeChangedDetails": "Theme mode successfully changed to {mode}",
+  "@themeModeChangedDetails": {
+    "placeholders": {
+      "mode": {
+        "type": "String"
+      }
+    }
+  },
+  "timestamp": "Timestamp",
+  "uncheckToDisableAutoReceiver": "Uncheck to disable the auto-receiver and receive transactions manually",
+  "unencryptedConnection": "Unencrypted connection",
+  "verify": "Verify",
+  "verifyFile": "Verify file",
+  "walletAppearanceAndThemeSettings": "Wallet appearance and theme settings",
+  "walletOptions": "Wallet Options",
+  "willSecurelyStoreSeedVault": "I will securely store the Seed Vault & Seed Vault Key"
 }
