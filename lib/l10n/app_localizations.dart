@@ -4926,6 +4926,36 @@ abstract class AppLocalizations {
   /// **'This is your {wordCount} words seed'**
   String thisIsYourWordsSeed(int wordCount);
 
+  /// No description provided for @clickToBrowseOrDragAndDropFile.
+  ///
+  /// In en, this message translates to:
+  /// **'Click to browse or drag and drop a file'**
+  String get clickToBrowseOrDragAndDropFile;
+
+  /// No description provided for @file.
+  ///
+  /// In en, this message translates to:
+  /// **'File'**
+  String get file;
+
+  /// No description provided for @nodeInformationUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Node information is unavailable'**
+  String get nodeInformationUnavailable;
+
+  /// No description provided for @someNodeInformationUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Some node information is unavailable'**
+  String get someNodeInformationUnavailable;
+
+  /// No description provided for @unavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Unavailable'**
+  String get unavailable;
+
   /// No description provided for @unlockFailed.
   ///
   /// In en, this message translates to:

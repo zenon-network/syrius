@@ -2856,6 +2856,23 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get clickToBrowseOrDragAndDropFile =>
+      'Click to browse or drag and drop a file';
+
+  @override
+  String get file => 'File';
+
+  @override
+  String get nodeInformationUnavailable => 'Node information is unavailable';
+
+  @override
+  String get someNodeInformationUnavailable =>
+      'Some node information is unavailable';
+
+  @override
+  String get unavailable => 'Unavailable';
+
+  @override
   String get unlockFailed => 'Unlock failed';
 
   @override

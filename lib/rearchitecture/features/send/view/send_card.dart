@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
@@ -19,27 +20,34 @@ class SendCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return NewCardScaffold(
-      data: _buildCardData(context: context),
-      onRefreshPressed: () {
-        sl.get<MultipleBalanceBloc>().add(
-          MultipleBalanceFetch(
-            addresses: kDefaultAddressList.map((String? e) => e!).toList(),
+    return BlocRefreshLoadingBuilder<MultipleBalanceBloc, MultipleBalanceState>(
+      isLoading: (MultipleBalanceState state) =>
+          state.status == MultipleBalanceStatus.loading,
+      builder: (BuildContext context, ValueListenable<bool> isRefreshLoading) {
+        return NewCardScaffold(
+          data: _buildCardData(context: context),
+          isRefreshLoading: isRefreshLoading,
+          onRefreshPressed: () {
+            sl.get<MultipleBalanceBloc>().add(
+              MultipleBalanceFetch(
+                addresses: kDefaultAddressList.map((String? e) => e!).toList(),
+              ),
+            );
+          },
+          body: BlocBuilder<MultipleBalanceBloc, MultipleBalanceState>(
+            builder: (_, MultipleBalanceState state) => switch (state.status) {
+              MultipleBalanceStatus.failure => SyriusErrorWidget(state.error!),
+              MultipleBalanceStatus.initial => SyriusErrorWidget(
+                context.l10n.waitingForDataFetching,
+              ),
+              MultipleBalanceStatus.loading => const SyriusLoadingWidget(),
+              MultipleBalanceStatus.success => _Populated(
+                balances: state.data!,
+              ),
+            },
           ),
         );
       },
-      body: BlocBuilder<MultipleBalanceBloc, MultipleBalanceState>(
-        builder: (_, MultipleBalanceState state) => switch (state.status) {
-          MultipleBalanceStatus.failure => SyriusErrorWidget(state.error!),
-          MultipleBalanceStatus.initial => SyriusErrorWidget(
-            context.l10n.waitingForDataFetching,
-          ),
-          MultipleBalanceStatus.loading => const SyriusLoadingWidget(),
-          MultipleBalanceStatus.success => _Populated(
-            balances: state.data!,
-          ),
-        },
-      ),
     );
   }
 

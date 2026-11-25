@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
@@ -22,34 +23,48 @@ class PendingTransactionsCard extends StatelessWidget {
     final PendingTransactionsBloc bloc = context
         .read<PendingTransactionsBloc>();
 
-    return NewCardScaffold(
-      data: _buildCardData(context: context),
-      onRefreshPressed: () {
-        bloc.add(
-          InfiniteListRefreshRequested(
-            address: Address.parse(kSelectedAddress!),
-          ),
+    return BlocRefreshLoadingBuilder<
+      PendingTransactionsBloc,
+      InfiniteListState<AccountBlock>
+    >(
+      bloc: bloc,
+      isLoading: (InfiniteListState<AccountBlock> state) =>
+          state.status == InfiniteListStatus.initial,
+      builder: (BuildContext context, ValueListenable<bool> isRefreshLoading) {
+        return NewCardScaffold(
+          data: _buildCardData(context: context),
+          isRefreshLoading: isRefreshLoading,
+          onRefreshPressed: () {
+            bloc.add(
+              InfiniteListRefreshRequested(
+                address: Address.parse(kSelectedAddress!),
+              ),
+            );
+          },
+          body:
+              BlocBuilder<
+                PendingTransactionsBloc,
+                InfiniteListState<AccountBlock>
+              >(
+                builder: (_, InfiniteListState<AccountBlock> state) {
+                  final InfiniteListStatus status = state.status;
+
+                  return switch (status) {
+                    InfiniteListStatus.initial =>
+                      const _PendingTransactionsInitial(),
+                    InfiniteListStatus.failure => _PendingTransactionsFailure(
+                      exception: state.error!,
+                    ),
+                    InfiniteListStatus.success => _PendingTransactionsPopulated(
+                      bloc: bloc,
+                      hasReachedMax: state.hasReachedMax,
+                      transactions: state.data!,
+                    ),
+                  };
+                },
+              ),
         );
       },
-      body:
-          BlocBuilder<PendingTransactionsBloc, InfiniteListState<AccountBlock>>(
-            builder: (_, InfiniteListState<AccountBlock> state) {
-              final InfiniteListStatus status = state.status;
-
-              return switch (status) {
-                InfiniteListStatus.initial =>
-                  const _PendingTransactionsInitial(),
-                InfiniteListStatus.failure => _PendingTransactionsFailure(
-                  exception: state.error!,
-                ),
-                InfiniteListStatus.success => _PendingTransactionsPopulated(
-                  bloc: bloc,
-                  hasReachedMax: state.hasReachedMax,
-                  transactions: state.data!,
-                ),
-              };
-            },
-          ),
     );
   }
 

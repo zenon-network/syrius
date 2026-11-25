@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
@@ -26,21 +27,28 @@ class _View extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return NewCardScaffold(
-      data: _buildCardData(context: context),
-      onRefreshPressed: () => _refreshStakes(context),
-      body: BlocBuilder<StakesBloc, InfiniteListState<StakeEntry>>(
-        builder: (_, InfiniteListState<StakeEntry> state) {
-          return switch (state.status) {
-            InfiniteListStatus.initial => const SyriusLoadingWidget(),
-            InfiniteListStatus.failure => SyriusErrorWidget(state.error!),
-            InfiniteListStatus.success => _Populated(
-              hasReachedMax: state.hasReachedMax,
-              stakes: state.data!,
-            ),
-          };
-        },
-      ),
+    return BlocRefreshLoadingBuilder<StakesBloc, InfiniteListState<StakeEntry>>(
+      isLoading: (InfiniteListState<StakeEntry> state) =>
+          state.status == InfiniteListStatus.initial,
+      builder: (BuildContext context, ValueListenable<bool> isRefreshLoading) {
+        return NewCardScaffold(
+          data: _buildCardData(context: context),
+          isRefreshLoading: isRefreshLoading,
+          onRefreshPressed: () => _refreshStakes(context),
+          body: BlocBuilder<StakesBloc, InfiniteListState<StakeEntry>>(
+            builder: (_, InfiniteListState<StakeEntry> state) {
+              return switch (state.status) {
+                InfiniteListStatus.initial => const SyriusLoadingWidget(),
+                InfiniteListStatus.failure => SyriusErrorWidget(state.error!),
+                InfiniteListStatus.success => _Populated(
+                  hasReachedMax: state.hasReachedMax,
+                  stakes: state.data!,
+                ),
+              };
+            },
+          ),
+        );
+      },
     );
   }
 

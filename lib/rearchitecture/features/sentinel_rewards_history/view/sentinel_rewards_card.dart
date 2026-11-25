@@ -18,6 +18,9 @@ class SentinelRewardsCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return NewCardScaffold(
       data: _buildCardData(context: context),
+      isRefreshLoading: context
+          .read<SentinelRewardsHistoryBloc>()
+          .isLoadingListenable,
       onRefreshPressed: () {
         context.read<SentinelRewardsHistoryBloc>().add(
           FetchRequestData(

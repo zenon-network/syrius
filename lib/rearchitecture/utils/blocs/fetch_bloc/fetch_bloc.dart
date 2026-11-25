@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'package:flutter/foundation.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/exceptions/exceptions.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
@@ -33,6 +34,12 @@ abstract class FetchBloc<T extends Object>
   /// The [Zenon] SDK instance used for ledger interactions.
   final Zenon zenon;
 
+  final ValueNotifier<bool> _isLoading = ValueNotifier<bool>(false);
+  int _inFlightRequests = 0;
+
+  /// Notifies listeners while a [FetchRequestData] request is in flight.
+  ValueListenable<bool> get isLoadingListenable => _isLoading;
+
   /// Retrieves the data for [address].
   Future<T> getData({required Address address});
 
@@ -40,23 +47,30 @@ abstract class FetchBloc<T extends Object>
     FetchRequestData event,
     Emitter<FetchState<Object>> emit,
   ) async {
+    _inFlightRequests++;
+    if (!isClosed && !_isLoading.value) {
+      _isLoading.value = true;
+    }
     try {
       final T data = await getData(address: event.address);
-      emit(FetchPopulated<T>(data: data));
+      if (!emit.isDone) {
+        emit(FetchPopulated<T>(data: data));
+      }
     } on SyriusException catch (e, stackTrace) {
-      emit(
-        FetchFailure<T>(
-          exception: e,
-        ),
-      );
+      if (!emit.isDone) {
+        emit(FetchFailure<T>(exception: e));
+      }
       addError(e, stackTrace);
     } on Exception catch (e, stackTrace) {
-      emit(
-        FetchFailure<T>(
-          exception: FailureException(),
-        ),
-      );
+      if (!emit.isDone) {
+        emit(FetchFailure<T>(exception: FailureException()));
+      }
       addError(e, stackTrace);
+    } finally {
+      _inFlightRequests--;
+      if (!isClosed && _inFlightRequests == 0) {
+        _isLoading.value = false;
+      }
     }
   }
 
@@ -68,4 +82,10 @@ abstract class FetchBloc<T extends Object>
   /// Serializes the current state into a JSON map.
   @override
   Map<String, dynamic>? toJson(FetchState<T> state) => state.toJson(toJsonT);
+
+  @override
+  Future<void> close() async {
+    await super.close();
+    _isLoading.dispose();
+  }
 }

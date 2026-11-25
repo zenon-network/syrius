@@ -45,6 +45,9 @@ class _View extends StatelessWidget {
   Widget build(BuildContext context) {
     return NewCardScaffold(
       data: _buildCardData(context: context),
+      isRefreshLoading: context
+          .read<UncollectedStakingRewardsBloc>()
+          .isLoadingListenable,
       onRefreshPressed: () {
         context.read<UncollectedStakingRewardsBloc>().add(
           FetchRequestData(address: Address.parse(kSelectedAddress!)),

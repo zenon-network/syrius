@@ -16,6 +16,9 @@ class StakingRewardsCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return NewCardScaffold(
       data: _buildCardData(context: context),
+      isRefreshLoading: context
+          .read<StakingRewardsHistoryBloc>()
+          .isLoadingListenable,
       onRefreshPressed: () {
         context.read<StakingRewardsHistoryBloc>().add(
           FetchRequestData(

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
@@ -39,6 +41,13 @@ PillarInfo _pillar(String name, Address owner, Address producer) =>
         'expectedMomentums': 0,
       },
       'weight': '0',
+    });
+
+PillarVote _pillarVote(Hash id, String name, AcceleratorProjectVote vote) =>
+    PillarVote.fromJson(<String, dynamic>{
+      'id': id.toString(),
+      'name': name,
+      'vote': vote.index,
     });
 
 void main() {
@@ -86,7 +95,8 @@ void main() {
     });
 
     blocTest<VoteProjectBloc, VoteProjectState>(
-      'owner address dispatches voteByName and pins signing address',
+      'owner address dispatches voteByName, pins signing address, and waits '
+      'for on-chain vote confirmation',
       setUp: () {
         when(() => pillarApi.getByOwner(owner)).thenAnswer(
           (_) async => <PillarInfo>[_pillar('alpha', owner, producer)],
@@ -105,9 +115,22 @@ void main() {
             address: owner,
           ),
         ).thenAnswer((_) async => signedBlock);
+        when(
+          () => acceleratorApi.getPillarVotes('alpha', <String>[
+            targetId.toString(),
+          ]),
+        ).thenAnswer(
+          (_) async => <PillarVote?>[
+            _pillarVote(targetId, 'alpha', AcceleratorProjectVote.yes),
+          ],
+        );
       },
-      build: () =>
-          VoteProjectBloc(accountBlockUtils: accountBlockUtils, zenon: zenon),
+      build: () => VoteProjectBloc(
+        accountBlockUtils: accountBlockUtils,
+        zenon: zenon,
+        pollInterval: const Duration(milliseconds: 5),
+        confirmationTimeout: const Duration(milliseconds: 200),
+      ),
       act: (VoteProjectBloc bloc) => bloc.add(
         VoteProjectRequested(
           address: owner,
@@ -135,12 +158,17 @@ void main() {
             address: owner,
           ),
         ).called(1);
+        verify(
+          () => acceleratorApi.getPillarVotes('alpha', <String>[
+            targetId.toString(),
+          ]),
+        ).called(1);
       },
     );
 
     blocTest<VoteProjectBloc, VoteProjectState>(
       'producer address falls back to pillar.getAll, dispatches '
-      'voteByProdAddress, and pins signing address',
+      'voteByProdAddress, and polls until confirmation',
       setUp: () {
         final PillarInfo alpha = _pillar('alpha', owner, producer);
         when(
@@ -165,11 +193,33 @@ void main() {
             address: producer,
           ),
         ).thenAnswer((_) async => signedBlock);
+
+        int pollCount = 0;
+        when(
+          () => acceleratorApi.getPillarVotes('alpha', <String>[
+            targetId.toString(),
+          ]),
+        ).thenAnswer((_) async {
+          pollCount++;
+          if (pollCount == 1) {
+            return const <PillarVote?>[null];
+          }
+          if (pollCount == 2) {
+            return <PillarVote?>[
+              _pillarVote(targetId, 'alpha', AcceleratorProjectVote.yes),
+            ];
+          }
+          return <PillarVote?>[
+            _pillarVote(targetId, 'alpha', AcceleratorProjectVote.no),
+          ];
+        });
       },
       build: () => VoteProjectBloc(
         accountBlockUtils: accountBlockUtils,
         zenon: zenon,
         pageSize: 10,
+        pollInterval: const Duration(milliseconds: 5),
+        confirmationTimeout: const Duration(milliseconds: 300),
       ),
       act: (VoteProjectBloc bloc) => bloc.add(
         VoteProjectRequested(
@@ -178,6 +228,7 @@ void main() {
           vote: AcceleratorProjectVote.no,
         ),
       ),
+      wait: const Duration(milliseconds: 100),
       expect: () => <VoteProjectState>[
         const VoteProjectLoading(),
         VoteProjectDone(accountBlock: signedBlock),
@@ -197,8 +248,181 @@ void main() {
             address: producer,
           ),
         ).called(1);
+        verify(
+          () => acceleratorApi.getPillarVotes('alpha', <String>[
+            targetId.toString(),
+          ]),
+        ).called(3);
       },
     );
+
+    blocTest<VoteProjectBloc, VoteProjectState>(
+      'tolerates transient RPC errors while polling and emits VoteProjectDone '
+      'once confirmed',
+      setUp: () {
+        when(() => pillarApi.getByOwner(owner)).thenAnswer(
+          (_) async => <PillarInfo>[_pillar('alpha', owner, producer)],
+        );
+        when(
+          () => acceleratorApi.voteByName(
+            targetId,
+            'alpha',
+            AcceleratorProjectVote.abstain.index,
+          ),
+        ).thenReturn(txTemplate);
+        when(
+          () => accountBlockUtils.createAccountBlock(
+            txTemplate,
+            'vote for project',
+            address: owner,
+          ),
+        ).thenAnswer((_) async => signedBlock);
+
+        int attempt = 0;
+        when(
+          () => acceleratorApi.getPillarVotes('alpha', <String>[
+            targetId.toString(),
+          ]),
+        ).thenAnswer((_) async {
+          attempt++;
+          if (attempt == 1) {
+            throw Exception('transient RPC hiccup');
+          }
+          return <PillarVote?>[
+            _pillarVote(targetId, 'alpha', AcceleratorProjectVote.abstain),
+          ];
+        });
+      },
+      build: () => VoteProjectBloc(
+        accountBlockUtils: accountBlockUtils,
+        zenon: zenon,
+        pollInterval: const Duration(milliseconds: 5),
+        confirmationTimeout: const Duration(milliseconds: 300),
+      ),
+      act: (VoteProjectBloc bloc) => bloc.add(
+        VoteProjectRequested(
+          address: owner,
+          id: targetId,
+          vote: AcceleratorProjectVote.abstain,
+        ),
+      ),
+      wait: const Duration(milliseconds: 100),
+      expect: () => <VoteProjectState>[
+        const VoteProjectLoading(),
+        VoteProjectDone(accountBlock: signedBlock),
+      ],
+      verify: (_) {
+        verify(
+          () => acceleratorApi.getPillarVotes('alpha', <String>[
+            targetId.toString(),
+          ]),
+        ).called(2);
+      },
+    );
+
+    blocTest<VoteProjectBloc, VoteProjectState>(
+      'falls back to emitting VoteProjectDone when confirmation polling times '
+      'out',
+      setUp: () {
+        when(() => pillarApi.getByOwner(owner)).thenAnswer(
+          (_) async => <PillarInfo>[_pillar('alpha', owner, producer)],
+        );
+        when(
+          () => acceleratorApi.voteByName(
+            targetId,
+            'alpha',
+            AcceleratorProjectVote.yes.index,
+          ),
+        ).thenReturn(txTemplate);
+        when(
+          () => accountBlockUtils.createAccountBlock(
+            txTemplate,
+            'vote for project',
+            address: owner,
+          ),
+        ).thenAnswer((_) async => signedBlock);
+        when(
+          () => acceleratorApi.getPillarVotes('alpha', <String>[
+            targetId.toString(),
+          ]),
+        ).thenAnswer((_) async => const <PillarVote?>[null]);
+      },
+      build: () => VoteProjectBloc(
+        accountBlockUtils: accountBlockUtils,
+        zenon: zenon,
+        pollInterval: const Duration(milliseconds: 5),
+        confirmationTimeout: const Duration(milliseconds: 25),
+      ),
+      act: (VoteProjectBloc bloc) => bloc.add(
+        VoteProjectRequested(
+          address: owner,
+          id: targetId,
+          vote: AcceleratorProjectVote.yes,
+        ),
+      ),
+      wait: const Duration(milliseconds: 100),
+      expect: () => <VoteProjectState>[
+        const VoteProjectLoading(),
+        VoteProjectDone(accountBlock: signedBlock),
+      ],
+    );
+
+    test(
+      'stops polling cleanly when closed while waiting for confirmation',
+      () async {
+      final Completer<List<PillarVote?>> firstPollStarted =
+          Completer<List<PillarVote?>>();
+      when(() => pillarApi.getByOwner(owner)).thenAnswer(
+        (_) async => <PillarInfo>[_pillar('alpha', owner, producer)],
+      );
+      when(
+        () => acceleratorApi.voteByName(
+          targetId,
+          'alpha',
+          AcceleratorProjectVote.yes.index,
+        ),
+      ).thenReturn(txTemplate);
+      when(
+        () => accountBlockUtils.createAccountBlock(
+          txTemplate,
+          'vote for project',
+          address: owner,
+        ),
+      ).thenAnswer((_) async => signedBlock);
+      when(
+        () => acceleratorApi.getPillarVotes('alpha', <String>[
+          targetId.toString(),
+        ]),
+      ).thenAnswer((_) => firstPollStarted.future);
+
+      final VoteProjectBloc bloc = VoteProjectBloc(
+        accountBlockUtils: accountBlockUtils,
+        zenon: zenon,
+        pollInterval: const Duration(milliseconds: 5),
+        confirmationTimeout: const Duration(seconds: 5),
+      );
+      final List<VoteProjectState> emitted = <VoteProjectState>[];
+      final StreamSubscription<VoteProjectState> sub = bloc.stream.listen(
+        emitted.add,
+      );
+      addTearDown(sub.cancel);
+
+      bloc.add(
+        VoteProjectRequested(
+          address: owner,
+          id: targetId,
+          vote: AcceleratorProjectVote.yes,
+        ),
+      );
+      await Future<void>.delayed(const Duration(milliseconds: 20));
+      expect(emitted, equals(<VoteProjectState>[const VoteProjectLoading()]));
+
+      final Future<void> closeFuture = bloc.close();
+      firstPollStarted.complete(const <PillarVote?>[null]);
+      await closeFuture;
+
+      expect(emitted, equals(<VoteProjectState>[const VoteProjectLoading()]));
+    });
 
     blocTest<VoteProjectBloc, VoteProjectState>(
       'emits graceful NoPillarForAddressException when address has no pillar '
@@ -243,7 +467,7 @@ void main() {
     );
 
     blocTest<VoteProjectBloc, VoteProjectState>(
-      'emits failure when signing fails',
+      'emits failure when signing fails without polling',
       setUp: () {
         when(() => pillarApi.getByOwner(owner)).thenAnswer(
           (_) async => <PillarInfo>[_pillar('alpha', owner, producer)],
@@ -280,6 +504,9 @@ void main() {
           isA<FailureException>(),
         ),
       ],
+      verify: (_) {
+        verifyNever(() => acceleratorApi.getPillarVotes(any(), any()));
+      },
     );
   });
 }

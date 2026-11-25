@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:provider/single_child_widget.dart';
@@ -45,35 +46,39 @@ class _View extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return NewCardScaffold(
-      data: _buildCardData(context: context),
-      onRefreshPressed: () {
-        context.read<PillarsBloc>().add(
-          InfiniteListRefreshRequested(
-            address: Address.parse(kSelectedAddress!),
-          ),
-        );
-      },
-      body: BlocBuilder<PillarsBloc, InfiniteListState<PillarInfo>>(
-        builder:
-            (
-              _,
-              InfiniteListState<PillarInfo> state,
-            ) {
+    return BlocRefreshLoadingBuilder<
+      PillarsBloc,
+      InfiniteListState<PillarInfo>
+    >(
+      isLoading: (InfiniteListState<PillarInfo> state) =>
+          state.status == InfiniteListStatus.initial,
+      builder: (BuildContext context, ValueListenable<bool> isRefreshLoading) {
+        return NewCardScaffold(
+          data: _buildCardData(context: context),
+          isRefreshLoading: isRefreshLoading,
+          onRefreshPressed: () {
+            context.read<PillarsBloc>().add(
+              InfiniteListRefreshRequested(
+                address: Address.parse(kSelectedAddress!),
+              ),
+            );
+          },
+          body: BlocBuilder<PillarsBloc, InfiniteListState<PillarInfo>>(
+            builder: (_, InfiniteListState<PillarInfo> state) {
               final InfiniteListStatus status = state.status;
 
               return switch (status) {
                 InfiniteListStatus.initial => const SyriusLoadingWidget(),
-                InfiniteListStatus.failure => SyriusErrorWidget(
-                  state.error!,
-                ),
+                InfiniteListStatus.failure => SyriusErrorWidget(state.error!),
                 InfiniteListStatus.success => _Populated(
                   hasReachedMax: state.hasReachedMax,
                   pillars: state.data!,
                 ),
               };
             },
-      ),
+          ),
+        );
+      },
     );
   }
 

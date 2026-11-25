@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
@@ -31,27 +32,37 @@ class _View extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return NewCardScaffold(
-      data: _buildCardData(context: context),
-      onRefreshPressed: () {
-        context.read<SentinelsBloc>().add(
-          const InfiniteListRefreshRequested(),
+    return BlocRefreshLoadingBuilder<
+      SentinelsBloc,
+      InfiniteListState<SentinelInfo>
+    >(
+      isLoading: (InfiniteListState<SentinelInfo> state) =>
+          state.status == InfiniteListStatus.initial,
+      builder: (BuildContext context, ValueListenable<bool> isRefreshLoading) {
+        return NewCardScaffold(
+          data: _buildCardData(context: context),
+          isRefreshLoading: isRefreshLoading,
+          onRefreshPressed: () {
+            context.read<SentinelsBloc>().add(
+              const InfiniteListRefreshRequested(),
+            );
+          },
+          body: BlocBuilder<SentinelsBloc, InfiniteListState<SentinelInfo>>(
+            builder: (_, InfiniteListState<SentinelInfo> state) {
+              final InfiniteListStatus status = state.status;
+
+              return switch (status) {
+                InfiniteListStatus.initial => const SyriusLoadingWidget(),
+                InfiniteListStatus.failure => SyriusErrorWidget(state.error!),
+                InfiniteListStatus.success => _Populated(
+                  hasReachedMax: state.hasReachedMax,
+                  sentinels: state.data!,
+                ),
+              };
+            },
+          ),
         );
       },
-      body: BlocBuilder<SentinelsBloc, InfiniteListState<SentinelInfo>>(
-        builder: (_, InfiniteListState<SentinelInfo> state) {
-          final InfiniteListStatus status = state.status;
-
-          return switch (status) {
-            InfiniteListStatus.initial => const SyriusLoadingWidget(),
-            InfiniteListStatus.failure => SyriusErrorWidget(state.error!),
-            InfiniteListStatus.success => _Populated(
-              hasReachedMax: state.hasReachedMax,
-              sentinels: state.data!,
-            ),
-          };
-        },
-      ),
     );
   }
 

@@ -134,7 +134,7 @@ Future<void> _pumpTokenCard(
           body: SizedBox(
             width: 700,
             height: 500,
-            child: TokenCard(token: token, favoritesCallback: () {}),
+            child: TokenCard(token: token),
           ),
         ),
       ),

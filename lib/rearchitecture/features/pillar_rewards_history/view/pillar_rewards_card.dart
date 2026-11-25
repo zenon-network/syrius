@@ -19,6 +19,9 @@ class PillarRewardsCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return NewCardScaffold(
       data: _buildCardData(context: context),
+      isRefreshLoading: context
+          .read<PillarRewardsHistoryBloc>()
+          .isLoadingListenable,
       onRefreshPressed: () {
         context.read<PillarRewardsHistoryBloc>().add(
           FetchRequestData(

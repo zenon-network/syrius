@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
@@ -36,20 +37,27 @@ class _View extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return NewCardScaffold(
-      data: _buildCardData(context: context),
-      onRefreshPressed: _fetchBalance,
-      body: BlocBuilder<MultipleBalanceBloc, MultipleBalanceState>(
-        builder: (_, MultipleBalanceState state) => switch (state.status) {
-          MultipleBalanceStatus.failure => SyriusErrorWidget(state.error!),
-          MultipleBalanceStatus.initial => const SyriusLoadingWidget(),
-          MultipleBalanceStatus.loading => const SyriusLoadingWidget(),
-          MultipleBalanceStatus.success => _Populated(
-            mapAccountInfo: state.data!,
-            onStakeCreated: onStakeCreated,
+    return BlocRefreshLoadingBuilder<MultipleBalanceBloc, MultipleBalanceState>(
+      isLoading: (MultipleBalanceState state) =>
+          state.status == MultipleBalanceStatus.loading,
+      builder: (BuildContext context, ValueListenable<bool> isRefreshLoading) {
+        return NewCardScaffold(
+          data: _buildCardData(context: context),
+          isRefreshLoading: isRefreshLoading,
+          onRefreshPressed: _fetchBalance,
+          body: BlocBuilder<MultipleBalanceBloc, MultipleBalanceState>(
+            builder: (_, MultipleBalanceState state) => switch (state.status) {
+              MultipleBalanceStatus.failure => SyriusErrorWidget(state.error!),
+              MultipleBalanceStatus.initial => const SyriusLoadingWidget(),
+              MultipleBalanceStatus.loading => const SyriusLoadingWidget(),
+              MultipleBalanceStatus.success => _Populated(
+                mapAccountInfo: state.data!,
+                onStakeCreated: onStakeCreated,
+              ),
+            },
           ),
-        },
-      ),
+        );
+      },
     );
   }
 

@@ -7,6 +7,7 @@ import 'package:mocktail/mocktail.dart';
 import 'package:zenon_syrius_wallet_flutter/l10n/app_localizations.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/accelerator_projects/accelerator_projects.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 class _MockVoteBreakdownBloc
@@ -74,6 +75,7 @@ void main() {
         vote: AcceleratorProjectVote.yes,
       ),
     );
+    registerFallbackValue(ProjectVoteBreakdownRequested(projectId: projectId));
   });
 
   group('AcceleratorProjectListItem', () {
@@ -248,6 +250,57 @@ void main() {
         await tester.pumpAndSettle();
 
         expect(find.byTooltip('Quorum achieved'), findsOneWidget);
+      },
+    );
+
+    testWidgets(
+      'waits for VoteProjectDone before refreshing ProjectVoteBreakdownBloc',
+      (WidgetTester tester) async {
+        final PillarInfo pillar = _pillar('alpha', owner, producer);
+        final StreamController<VoteProjectState> voteStates =
+            StreamController<VoteProjectState>.broadcast();
+        addTearDown(voteStates.close);
+
+        when(() => breakdownBloc.state).thenReturn(
+          ProjectVoteBreakdownPopulated(
+            voteBreakdown: VoteBreakdown.fromJson(<String, dynamic>{
+              'id': projectId.toString(),
+              'yes': 2,
+              'no': 1,
+              'total': 3,
+            }),
+            pillarVotes: const <PillarVote?>[null],
+          ),
+        );
+        whenListen<VoteProjectState>(
+          voteBloc,
+          voteStates.stream,
+          initialState: const VoteProjectInitial(),
+        );
+
+        await pumpItem(tester, pillarInfo: pillar);
+
+        voteStates.add(const VoteProjectLoading());
+        await tester.pump();
+        await tester.pump();
+
+        expect(find.byType(SyriusLoadingWidget), findsOneWidget);
+        verifyNever(() => breakdownBloc.add(any()));
+
+        voteStates.add(
+          VoteProjectDone(accountBlock: AccountBlockTemplate(blockType: 2)),
+        );
+        await tester.pump();
+        await tester.pump();
+
+        verify(
+          () => breakdownBloc.add(
+            ProjectVoteBreakdownRequested(
+              pillarName: 'alpha',
+              projectId: projectId,
+            ),
+          ),
+        ).called(1);
       },
     );
   });

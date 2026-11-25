@@ -18,11 +18,11 @@ class TokenFavorite extends StatelessWidget {
   /// Creates a [TokenFavorite].
   const TokenFavorite({
     required this._token,
-    required this._callback,
+    this._callback,
     super.key,
   });
   final Token _token;
-  final VoidCallback _callback;
+  final VoidCallback? _callback;
 
   @override
   Widget build(BuildContext context) {
@@ -36,9 +36,9 @@ class TokenFavorite extends StatelessWidget {
 }
 
 class _View extends StatelessWidget {
-  const _View({required this._callback, required this._token});
+  const _View({required this._token, this._callback});
 
-  final VoidCallback _callback;
+  final VoidCallback? _callback;
   final Token _token;
 
   @override
@@ -126,7 +126,7 @@ class _View extends StatelessWidget {
         type: NotificationType.addedTokenFavourite,
       ),
     );
-    _callback();
+    _callback?.call();
   }
 
   Future<void> _sendRemovedNotification(BuildContext context) async {
@@ -142,6 +142,6 @@ class _View extends StatelessWidget {
         type: NotificationType.addedTokenFavourite,
       ),
     );
-    _callback();
+    _callback?.call();
   }
 }

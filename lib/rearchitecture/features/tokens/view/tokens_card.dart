@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:nested/nested.dart';
@@ -42,45 +43,56 @@ class _ViewState extends State<_View> {
 
   @override
   Widget build(BuildContext context) {
-    return NewCardScaffold(
-      data: CardData(
-        title: context.l10n.tokens,
-        description: context.l10n.tokensCardDescription,
-      ),
-      onRefreshPressed: () {
-        _searchController.clear();
-        context.read<TokensBloc>().add(const InfiniteListRefreshRequested());
-        context.read<SearchTokenBloc>().add(
-          const SearchTokenRequested(query: '', refresh: true),
+    return BlocRefreshLoadingBuilder<TokensBloc, InfiniteListState<Token>>(
+      isLoading: (InfiniteListState<Token> state) =>
+          state.status == InfiniteListStatus.initial,
+      builder: (BuildContext context, ValueListenable<bool> isRefreshLoading) {
+        return NewCardScaffold(
+          data: CardData(
+            title: context.l10n.tokens,
+            description: context.l10n.tokensCardDescription,
+          ),
+          isRefreshLoading: isRefreshLoading,
+          onRefreshPressed: () {
+            _searchController.clear();
+            context.read<TokensBloc>().add(
+              const InfiniteListRefreshRequested(),
+            );
+            context.read<SearchTokenBloc>().add(
+              const SearchTokenRequested(query: '', refresh: true),
+            );
+          },
+          body: Padding(
+            padding: const EdgeInsets.all(15),
+            child: Column(
+              children: <Widget>[
+                TextField(
+                  controller: _searchController,
+                  decoration: InputDecoration(
+                    hintText: context.l10n.searchTokenHint,
+                    prefixIcon: const Icon(Icons.search),
+                    suffixIcon: ClearContentButton(
+                      controller: _searchController,
+                    ),
+                  ),
+                  onChanged: _onSearchChanged,
+                ),
+                kVerticalSpacing,
+                Expanded(
+                  child: ValueListenableBuilder<TextEditingValue>(
+                    valueListenable: _searchController,
+                    builder: (_, TextEditingValue value, _) {
+                      return value.text.isEmpty
+                          ? _buildTokensList()
+                          : _buildSearchToken(searchQuery: value.text);
+                    },
+                  ),
+                ),
+              ],
+            ),
+          ),
         );
       },
-      body: Padding(
-        padding: const EdgeInsets.all(15),
-        child: Column(
-          children: <Widget>[
-            TextField(
-              controller: _searchController,
-              decoration: InputDecoration(
-                hintText: context.l10n.searchTokenHint,
-                prefixIcon: const Icon(Icons.search),
-                suffixIcon: ClearContentButton(controller: _searchController),
-              ),
-              onChanged: _onSearchChanged,
-            ),
-            kVerticalSpacing,
-            Expanded(
-              child: ValueListenableBuilder<TextEditingValue>(
-                valueListenable: _searchController,
-                builder: (_, TextEditingValue value, _) {
-                  return value.text.isEmpty
-                      ? _buildTokensList()
-                      : _buildSearchToken(searchQuery: value.text);
-                },
-              ),
-            ),
-          ],
-        ),
-      ),
     );
   }
 
@@ -147,8 +159,6 @@ class _TokensGrid extends StatelessWidget {
   final VoidCallback _onScrollReachedBottom;
   final List<Token> _tokens;
 
-  static void _onFavoritesChanged() {}
-
   @override
   Widget build(BuildContext context) {
     final List<Token> tokens = _excludeNativeCoins(_tokens);
@@ -161,8 +171,7 @@ class _TokensGrid extends StatelessWidget {
         crossAxisCount: 2,
       ),
       hasReachedMax: _hasReachedMax,
-      itemBuilder: (_, Token token, _) =>
-          TokenCard(favoritesCallback: _onFavoritesChanged, token: token),
+      itemBuilder: (_, Token token, _) => TokenCard(token: token),
       itemKeyGenerator: (Token token) =>
           ValueKey<String>(token.tokenStandard.toString()),
       items: tokens,

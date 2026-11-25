@@ -23,6 +23,7 @@ class ReceiveCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return NewCardScaffold(
       data: _buildCardData(context: context),
+      isRefreshLoading: context.read<AllTokensBloc>().isLoadingListenable,
       onRefreshPressed: () {
         context.read<AllTokensBloc>().add(const AllTokensRequested());
       },

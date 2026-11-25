@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:expandable/expandable.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zenon_syrius_wallet_flutter/model/model.dart';
@@ -76,29 +77,43 @@ class _View extends StatelessWidget {
             state is NotificationsListPopulated &&
             state.notifications.isNotEmpty;
 
-        return NewCardScaffold(
-          data: CardData(
-            title: context.l10n.notifications,
-            description: context.l10n.displaysWalletNotificationsDetails,
-          ),
-          actions: <Widget>[
-            _buildClearAllButton(context, enabled: hasNotifications),
-          ],
-          onRefreshPressed: () {
-            context.read<NotificationsListBloc>().add(
-              const NotificationsListRefreshRequested(),
-            );
-          },
-          body: switch (state) {
-            NotificationsListInitial() ||
-            NotificationsListLoading() => const SyriusLoadingWidget(),
-            NotificationsListFailure(:final SyriusException exception) =>
-              SyriusErrorWidget(exception),
-            NotificationsListPopulated(
-              :final List<StoredWalletNotification> notifications,
-            ) =>
-              _Populated(notifications: notifications),
-          },
+        return BlocRefreshLoadingBuilder<
+          NotificationsListBloc,
+          NotificationsListState
+        >(
+          isLoading: (NotificationsListState s) =>
+              s is NotificationsListLoading,
+          builder:
+              (BuildContext context, ValueListenable<bool> isRefreshLoading) {
+                return NewCardScaffold(
+                  data: CardData(
+                    title: context.l10n.notifications,
+                    description:
+                        context.l10n.displaysWalletNotificationsDetails,
+                  ),
+                  actions: <Widget>[
+                    _buildClearAllButton(context, enabled: hasNotifications),
+                  ],
+                  isRefreshLoading: isRefreshLoading,
+                  onRefreshPressed: () {
+                    context.read<NotificationsListBloc>().add(
+                      const NotificationsListRefreshRequested(),
+                    );
+                  },
+                  body: switch (state) {
+                    NotificationsListInitial() ||
+                    NotificationsListLoading() => const SyriusLoadingWidget(),
+                    NotificationsListFailure(
+                      :final SyriusException exception,
+                    ) =>
+                      SyriusErrorWidget(exception),
+                    NotificationsListPopulated(
+                      :final List<StoredWalletNotification> notifications,
+                    ) =>
+                      _Populated(notifications: notifications),
+                  },
+                );
+              },
         );
       },
     );

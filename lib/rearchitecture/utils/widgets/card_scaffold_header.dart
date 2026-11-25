@@ -1,5 +1,5 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/refresh_button/view/view.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/constants/constants.dart';
 
@@ -10,6 +10,7 @@ class CardScaffoldHeader extends StatelessWidget {
     required this.onMoreIconPressed,
     required this.onRefreshPressed,
     required this.title,
+    this.isRefreshLoading,
     this.actions = const <Widget>[],
     super.key,
   });
@@ -22,6 +23,10 @@ class CardScaffoldHeader extends StatelessWidget {
 
   /// Optional callback that can be trigger from the refresh icon.
   final VoidCallback? onRefreshPressed;
+
+  /// Optional listenable controlling whether the refresh icon shows a loading
+  /// indicator while a refresh is in flight.
+  final ValueListenable<bool>? isRefreshLoading;
 
   /// Optional trailing action widgets shown before the refresh and more icons.
   final List<Widget> actions;
@@ -53,7 +58,10 @@ class CardScaffoldHeader extends StatelessWidget {
           children: <Widget>[
             ...actions,
             if (onRefreshPressed != null)
-              RefreshButton(onPressed: onRefreshPressed!),
+              RefreshButton(
+                onPressed: onRefreshPressed!,
+                isLoadingListenable: isRefreshLoading,
+              ),
             IconButton(
               mouseCursor: SystemMouseCursors.click,
               icon: const Icon(Icons.more_horiz),

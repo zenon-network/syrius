@@ -27,12 +27,12 @@ class TokenCard extends StatefulWidget {
   /// Creates a [TokenCard].
   const TokenCard({
     required this._token,
-    required this._favoritesCallback,
+    this._favoritesCallback,
     super.key,
   });
 
   final Token _token;
-  final VoidCallback _favoritesCallback;
+  final VoidCallback? _favoritesCallback;
 
   @override
   State<TokenCard> createState() => _TokenCardState();

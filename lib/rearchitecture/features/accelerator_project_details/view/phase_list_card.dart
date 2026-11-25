@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/accelerator_project_details/widgets/accelerator_phase_list_view.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
@@ -13,6 +14,7 @@ class PhaseListCard extends StatelessWidget {
     required this._onRefreshButtonPressed,
     required this._onStepperNotificationSeeMorePressed,
     this._activePillarCount,
+    this._isRefreshLoading,
     this._onPhaseUpdated,
     super.key,
   });
@@ -22,12 +24,14 @@ class PhaseListCard extends StatelessWidget {
   final VoidCallback _onRefreshButtonPressed;
   final VoidCallback _onStepperNotificationSeeMorePressed;
   final int? _activePillarCount;
+  final ValueListenable<bool>? _isRefreshLoading;
   final VoidCallback? _onPhaseUpdated;
 
   @override
   Widget build(BuildContext context) {
     return NewCardScaffold(
       data: _buildCardData(context),
+      isRefreshLoading: _isRefreshLoading,
       onRefreshPressed: _onRefreshButtonPressed,
       body: _project.phases.isEmpty
           ? SyriusErrorWidget(context.l10n.projectHasNoPhases)

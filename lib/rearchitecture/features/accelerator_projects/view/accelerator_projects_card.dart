@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_vector_icons/flutter_vector_icons.dart';
@@ -60,71 +61,79 @@ class _ViewState extends State<_View> {
 
   @override
   Widget build(BuildContext context) {
-    return NewCardScaffold(
-      data: _buildCardData(context),
-      onRefreshPressed: () {
-        _searchController.clear();
-        context.read<ProjectListBloc>().add(
-          const ProjectListRequested(refresh: true, clearSearch: true),
+    return BlocRefreshLoadingBuilder<ProjectListBloc, ProjectListState>(
+      isLoading: (ProjectListState state) =>
+          state.status == ProjectListStatus.loading,
+      builder: (BuildContext context, ValueListenable<bool> isRefreshLoading) {
+        return NewCardScaffold(
+          data: _buildCardData(context),
+          isRefreshLoading: isRefreshLoading,
+          onRefreshPressed: () {
+            _searchController.clear();
+            context.read<ProjectListBloc>().add(
+              const ProjectListRequested(refresh: true, clearSearch: true),
+            );
+          },
+          body: Padding(
+            padding: const EdgeInsets.all(15),
+            child: Column(
+              children: <Widget>[
+                _buildSearchInputField(context),
+                kVerticalSpacing,
+                BlocBuilder<ProjectListBloc, ProjectListState>(
+                  builder: (BuildContext context, ProjectListState state) {
+                    return Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: <Widget>[
+                        Expanded(
+                          child: _buildProjectsFilterTags(
+                            context,
+                            state.selectedTags,
+                          ),
+                        ),
+                        Tooltip(
+                          message: context.l10n.sortByLastUpdate,
+                          child: InkWell(
+                            onTap: () {
+                              context.read<ProjectListBloc>().add(
+                                const ProjectListSortToggled(),
+                              );
+                            },
+                            child: Icon(
+                              Entypo.select_arrows,
+                              size: 15,
+                              color: Theme.of(context).iconTheme.color,
+                            ),
+                          ),
+                        ),
+                      ],
+                    );
+                  },
+                ),
+                kVerticalSpacing,
+                Expanded(
+                  child: BlocBuilder<ProjectListBloc, ProjectListState>(
+                    builder: (BuildContext context, ProjectListState state) {
+                      return switch (state.status) {
+                        ProjectListStatus.initial ||
+                        ProjectListStatus.loading =>
+                          const SyriusLoadingWidget(),
+                        ProjectListStatus.failure => SyriusErrorWidget(
+                          state.exception!,
+                        ),
+                        ProjectListStatus.populated => _buildPopulatedList(
+                          context,
+                          state.projects,
+                        ),
+                      };
+                    },
+                  ),
+                ),
+              ],
+            ),
+          ),
         );
       },
-      body: Padding(
-        padding: const EdgeInsets.all(15),
-        child: Column(
-          children: <Widget>[
-            _buildSearchInputField(context),
-            kVerticalSpacing,
-            BlocBuilder<ProjectListBloc, ProjectListState>(
-              builder: (BuildContext context, ProjectListState state) {
-                return Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: <Widget>[
-                    Expanded(
-                      child: _buildProjectsFilterTags(
-                        context,
-                        state.selectedTags,
-                      ),
-                    ),
-                    Tooltip(
-                      message: context.l10n.sortByLastUpdate,
-                      child: InkWell(
-                        onTap: () {
-                          context.read<ProjectListBloc>().add(
-                            const ProjectListSortToggled(),
-                          );
-                        },
-                        child: Icon(
-                          Entypo.select_arrows,
-                          size: 15,
-                          color: Theme.of(context).iconTheme.color,
-                        ),
-                      ),
-                    ),
-                  ],
-                );
-              },
-            ),
-            kVerticalSpacing,
-            Expanded(
-              child: BlocBuilder<ProjectListBloc, ProjectListState>(
-                builder: (BuildContext context, ProjectListState state) {
-                  return switch (state.status) {
-                    ProjectListStatus.initial ||
-                    ProjectListStatus.loading => const SyriusLoadingWidget(),
-                    ProjectListStatus.failure => SyriusErrorWidget(
-                      state.exception!,
-                    ),
-                    ProjectListStatus.populated => _buildPopulatedList(
-                      context,
-                      state.projects,
-                    ),
-                  };
-                },
-              ),
-            ),
-          ],
-        ),
-      ),
     );
   }
 

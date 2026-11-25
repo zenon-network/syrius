@@ -1,12 +1,13 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:open_filex/open_filex.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
-import 'package:zenon_syrius_wallet_flutter/model/model.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/about/bloc/about_bloc.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/about/model/about_node_info.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/metadata.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
@@ -52,41 +53,57 @@ class _View extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return NewCardScaffold(
-      data: CardData(
-        title: context.l10n.about,
-        description: context.l10n.detailedInfoAboutWalletComponents,
-      ),
-      onRefreshPressed: () {
-        context.read<AboutBloc>().add(const AboutRequested());
+    return BlocRefreshLoadingBuilder<AboutBloc, AboutState>(
+      isLoading: (AboutState state) => state is AboutLoading,
+      builder: (BuildContext context, ValueListenable<bool> isRefreshLoading) {
+        return NewCardScaffold(
+          data: CardData(
+            title: context.l10n.about,
+            description: context.l10n.detailedInfoAboutWalletComponents,
+          ),
+          isRefreshLoading: isRefreshLoading,
+          onRefreshPressed: () {
+            context.read<AboutBloc>().add(const AboutRequested());
+          },
+          body: BlocBuilder<AboutBloc, AboutState>(
+            builder: (BuildContext context, AboutState state) {
+              return switch (state) {
+                AboutInitial() || AboutLoading() => const SyriusLoadingWidget(),
+                AboutFailure(:final SyriusException exception) => _Populated(
+                  nodeInfo: const AboutNodeInfo(),
+                  nodeError: exception,
+                  onOpenPath: _onOpenPath,
+                  onOpenUrl: _onOpenUrl,
+                ),
+                AboutPopulated(
+                  :final AboutNodeInfo nodeInfo,
+                  :final SyriusException? nodeError,
+                ) =>
+                  _Populated(
+                    nodeInfo: nodeInfo,
+                    nodeError: nodeError,
+                    onOpenPath: _onOpenPath,
+                    onOpenUrl: _onOpenUrl,
+                  ),
+              };
+            },
+          ),
+        );
       },
-      body: BlocBuilder<AboutBloc, AboutState>(
-        builder: (BuildContext context, AboutState state) {
-          return switch (state) {
-            AboutInitial() || AboutLoading() => const SyriusLoadingWidget(),
-            AboutFailure(:final SyriusException exception) => SyriusErrorWidget(
-              exception,
-            ),
-            AboutPopulated(:final GeneralStats stats) => _Populated(
-              stats: stats,
-              onOpenPath: _onOpenPath,
-              onOpenUrl: _onOpenUrl,
-            ),
-          };
-        },
-      ),
     );
   }
 }
 
 class _Populated extends StatelessWidget {
   const _Populated({
-    required this._stats,
+    required this._nodeInfo,
     required this._onOpenPath,
     required this._onOpenUrl,
+    this._nodeError,
   });
 
-  final GeneralStats _stats;
+  final AboutNodeInfo _nodeInfo;
+  final SyriusException? _nodeError;
   final Future<void> Function(String path)? _onOpenPath;
   final void Function(String url)? _onOpenUrl;
 
@@ -95,15 +112,20 @@ class _Populated extends StatelessWidget {
     return ListView(
       shrinkWrap: true,
       children: <Widget>[
+        if (_nodeError != null)
+          Padding(
+            padding: const EdgeInsets.fromLTRB(12, 8, 12, 8),
+            child: Warning(text: _buildNodeWarningText(context)),
+          ),
         CustomExpandablePanel(
           context.l10n.syriusWalletVersion,
           _buildTextRow(context, kWalletVersion),
         ),
         CustomExpandablePanel(
           context.l10n.zenonNodeChainIdentifier,
-          _buildTextRow(
+          _buildOptionalNodeTextRow(
             context,
-            _stats.frontierMomentum.chainIdentifier.toString(),
+            _nodeInfo.frontierMomentum?.chainIdentifier.toString(),
           ),
         ),
         CustomExpandablePanel(
@@ -116,11 +138,11 @@ class _Populated extends StatelessWidget {
         ),
         CustomExpandablePanel(
           context.l10n.zenonNodeBuildVersion,
-          _buildTextRow(context, _stats.processInfo.version),
+          _buildOptionalNodeTextRow(context, _nodeInfo.processInfo?.version),
         ),
         CustomExpandablePanel(
           context.l10n.zenonNodeGitCommitHash,
-          _buildTextRow(context, _stats.processInfo.commit),
+          _buildOptionalNodeTextRow(context, _nodeInfo.processInfo?.commit),
         ),
         CustomExpandablePanel(
           context.l10n.syriusGitOriginUrl,
@@ -144,23 +166,26 @@ class _Populated extends StatelessWidget {
         ),
         CustomExpandablePanel(
           context.l10n.zenonNodeKernelVersion,
-          _buildTextRow(context, _stats.osInfo.kernelVersion),
+          _buildOptionalNodeTextRow(context, _nodeInfo.osInfo?.kernelVersion),
         ),
         CustomExpandablePanel(
           context.l10n.zenonNodeOperatingSystem,
-          _buildTextRow(context, _stats.osInfo.os),
+          _buildOptionalNodeTextRow(context, _nodeInfo.osInfo?.os),
         ),
         CustomExpandablePanel(
           context.l10n.zenonNodePlatform,
-          _buildTextRow(context, _stats.osInfo.platform),
+          _buildOptionalNodeTextRow(context, _nodeInfo.osInfo?.platform),
         ),
         CustomExpandablePanel(
           context.l10n.zenonNodePlatformVersion,
-          _buildTextRow(context, _stats.osInfo.platformVersion),
+          _buildOptionalNodeTextRow(context, _nodeInfo.osInfo?.platformVersion),
         ),
         CustomExpandablePanel(
           context.l10n.zenonNodeNumberOfProcessors,
-          _buildTextRow(context, _stats.osInfo.numCPU.toString()),
+          _buildOptionalNodeTextRow(
+            context,
+            _nodeInfo.osInfo?.numCPU.toString(),
+          ),
         ),
         CustomExpandablePanel(
           context.l10n.zenonMainDataPath,
@@ -199,6 +224,33 @@ class _Populated extends StatelessWidget {
           _buildTextRow(context, Platform.numberOfProcessors.toString()),
         ),
       ],
+    );
+  }
+
+  String _buildNodeWarningText(BuildContext context) {
+    final String prefix = _nodeInfo.isUnavailable
+        ? context.l10n.nodeInformationUnavailable
+        : context.l10n.someNodeInformationUnavailable;
+    final SyriusException? error = _nodeError;
+    if (error != null &&
+        error is! FailureException &&
+        error.message.isNotEmpty) {
+      return '$prefix: ${error.message}';
+    }
+    return prefix;
+  }
+
+  Widget _buildOptionalNodeTextRow(BuildContext context, String? value) {
+    if (value != null) {
+      return _buildTextRow(context, value);
+    }
+    return Text(
+      context.l10n.unavailable,
+      overflow: TextOverflow.ellipsis,
+      maxLines: 1,
+      style: Theme.of(
+        context,
+      ).textTheme.bodySmall?.copyWith(color: AppColors.errorColor),
     );
   }
 

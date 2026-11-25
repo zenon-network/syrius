@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:layout/layout.dart';
@@ -159,15 +160,30 @@ class _View extends StatelessWidget {
         FluidCell(
           width: kStaggeredNumOfColumns,
           height: kStaggeredNumOfColumns / 2,
-          child: PhaseListCard(
-            pillarInfo: _pillarInfo,
-            activePillarCount: _activePillarCount,
-            project: project,
-            onRefreshButtonPressed: refreshProject,
-            onPhaseUpdated: refreshProject,
-            onStepperNotificationSeeMorePressed:
-                _onStepperNotificationSeeMorePressed,
-          ),
+          child:
+              BlocRefreshLoadingBuilder<
+                RefreshProjectBloc,
+                RefreshProjectState
+              >(
+                isLoading: (RefreshProjectState state) =>
+                    state is RefreshProjectLoading,
+                builder:
+                    (
+                      BuildContext context,
+                      ValueListenable<bool> isRefreshLoading,
+                    ) {
+                      return PhaseListCard(
+                        pillarInfo: _pillarInfo,
+                        activePillarCount: _activePillarCount,
+                        project: project,
+                        isRefreshLoading: isRefreshLoading,
+                        onRefreshButtonPressed: refreshProject,
+                        onPhaseUpdated: refreshProject,
+                        onStepperNotificationSeeMorePressed:
+                            _onStepperNotificationSeeMorePressed,
+                      );
+                    },
+              ),
         ),
       ],
     );
