@@ -94,6 +94,12 @@ abstract class AppLocalizations {
   /// A list of this localizations delegate's supported locales.
   static const List<Locale> supportedLocales = <Locale>[Locale('en')];
 
+  /// No description provided for @about.
+  ///
+  /// In en, this message translates to:
+  /// **'About'**
+  String get about;
+
   /// No description provided for @active.
   ///
   /// In en, this message translates to:
@@ -202,6 +208,24 @@ abstract class AppLocalizations {
   /// **' to check the Sentinel status'**
   String get checkSentinelStatus;
 
+  /// No description provided for @checkUpdate.
+  ///
+  /// In en, this message translates to:
+  /// **'Check update'**
+  String get checkUpdate;
+
+  /// No description provided for @checkUpdatesForSyriusWallet.
+  ///
+  /// In en, this message translates to:
+  /// **'Check updates for the Syrius wallet'**
+  String get checkUpdatesForSyriusWallet;
+
+  /// No description provided for @clearAllNotifications.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear all notifications'**
+  String get clearAllNotifications;
+
   /// No description provided for @clickToAddToFavorites.
   ///
   /// In en, this message translates to:
@@ -213,6 +237,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Click to remove from favorites'**
   String get clickToRemoveFromFavorites;
+
+  /// No description provided for @clientChainIdentifier.
+  ///
+  /// In en, this message translates to:
+  /// **'Client chain identifier'**
+  String get clientChainIdentifier;
+
+  /// No description provided for @clientHostname.
+  ///
+  /// In en, this message translates to:
+  /// **'Client hostname'**
+  String get clientHostname;
+
+  /// No description provided for @clientLocalIpAddress.
+  ///
+  /// In en, this message translates to:
+  /// **'Client local IP address'**
+  String get clientLocalIpAddress;
+
+  /// No description provided for @clientNumberOfProcessors.
+  ///
+  /// In en, this message translates to:
+  /// **'Client number of processors'**
+  String get clientNumberOfProcessors;
+
+  /// No description provided for @clientOperatingSystem.
+  ///
+  /// In en, this message translates to:
+  /// **'Client operating system'**
+  String get clientOperatingSystem;
+
+  /// No description provided for @clientOperatingSystemVersion.
+  ///
+  /// In en, this message translates to:
+  /// **'Client operating system version'**
+  String get clientOperatingSystemVersion;
 
   /// No description provided for @coin.
   ///
@@ -243,6 +303,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Collect staking rewards'**
   String get collectStakingRewards;
+
+  /// No description provided for @community.
+  ///
+  /// In en, this message translates to:
+  /// **'Community'**
+  String get community;
 
   /// No description provided for @completed.
   ///
@@ -496,6 +562,18 @@ abstract class AppLocalizations {
   /// **'All the deposited {kQsrCoinSymbol} will be burned in order to create the Pillar Slot'**
   String depositedCoinWillBurn(Object kQsrCoinSymbol);
 
+  /// No description provided for @deleteAllNotificationsCannotBeUndone.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to delete all notifications? This action cannot be undone.'**
+  String get deleteAllNotificationsCannotBeUndone;
+
+  /// No description provided for @deleteNotification.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete notification'**
+  String get deleteNotification;
+
   /// No description provided for @deleteSwap.
   ///
   /// In en, this message translates to:
@@ -507,6 +585,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Are you sure you want to delete this swap? This action cannot be undone.'**
   String get deleteSwapCannotBeUndone;
+
+  /// No description provided for @description.
+  ///
+  /// In en, this message translates to:
+  /// **'Description'**
+  String get description;
+
+  /// No description provided for @detailedInfoAboutWalletComponents.
+  ///
+  /// In en, this message translates to:
+  /// **'Detailed information about wallet components'**
+  String get detailedInfoAboutWalletComponents;
 
   /// No description provided for @disassemble.
   ///
@@ -525,6 +615,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'You will be able to unlock the {kZnnCoinSymbol} if you choose to disassemble the Sentinel'**
   String disassembleSentinelToUnlockCoin(Object kZnnCoinSymbol);
+
+  /// No description provided for @displaysWalletNotificationsDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'This card displays detailed information regarding the wallet notifications'**
+  String get displaysWalletNotificationsDetails;
+
+  /// No description provided for @displaysZenonCommunityResources.
+  ///
+  /// In en, this message translates to:
+  /// **'This card displays information about Zenon community resources'**
+  String get displaysZenonCommunityResources;
+
+  /// No description provided for @documentation.
+  ///
+  /// In en, this message translates to:
+  /// **'Documentation'**
+  String get documentation;
 
   /// No description provided for @dualCoinStats.
   ///
@@ -556,6 +664,12 @@ abstract class AppLocalizations {
   /// **'Error'**
   String get error;
 
+  /// No description provided for @errorClearingNotifications.
+  ///
+  /// In en, this message translates to:
+  /// **'Error while clearing notifications'**
+  String get errorClearingNotifications;
+
   /// No description provided for @errorCreatingToken.
   ///
   /// In en, this message translates to:
@@ -579,6 +693,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Error while completing swap'**
   String get errorCompletingSwap;
+
+  /// No description provided for @errorDeletingNotification.
+  ///
+  /// In en, this message translates to:
+  /// **'Error while deleting notification'**
+  String get errorDeletingNotification;
 
   /// No description provided for @errorDeletingSwap.
   ///
@@ -735,6 +855,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Expected/produced momentums'**
   String get expectedProducedMomentums;
+
+  /// No description provided for @explorers.
+  ///
+  /// In en, this message translates to:
+  /// **'Explorers'**
+  String get explorers;
 
   /// No description provided for @from.
   ///
@@ -982,6 +1108,12 @@ abstract class AppLocalizations {
   /// **'No more items'**
   String get noMoreItems;
 
+  /// No description provided for @noNotifications.
+  ///
+  /// In en, this message translates to:
+  /// **'No notifications'**
+  String get noNotifications;
+
   /// No description provided for @noP2pSwaps.
   ///
   /// In en, this message translates to:
@@ -999,6 +1131,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No ZTS tokens available'**
   String get noZtsTokensAvailable;
+
+  /// No description provided for @notifications.
+  ///
+  /// In en, this message translates to:
+  /// **'Notifications'**
+  String get notifications;
 
   /// No description provided for @numberOfDecimals.
   ///
@@ -1659,6 +1797,12 @@ abstract class AppLocalizations {
   /// **'Show details'**
   String get showDetails;
 
+  /// No description provided for @socialMedia.
+  ///
+  /// In en, this message translates to:
+  /// **'Social Media'**
+  String get socialMedia;
+
   /// No description provided for @spawn.
   ///
   /// In en, this message translates to:
@@ -1870,6 +2014,66 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Swapping'**
   String get swapping;
+
+  /// No description provided for @syriusCachePath.
+  ///
+  /// In en, this message translates to:
+  /// **'Syrius cache path'**
+  String get syriusCachePath;
+
+  /// No description provided for @syriusGitBranchName.
+  ///
+  /// In en, this message translates to:
+  /// **'Syrius git branch name'**
+  String get syriusGitBranchName;
+
+  /// No description provided for @syriusGitCommitDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Syrius git commit date'**
+  String get syriusGitCommitDate;
+
+  /// No description provided for @syriusGitCommitHash.
+  ///
+  /// In en, this message translates to:
+  /// **'Syrius git commit hash'**
+  String get syriusGitCommitHash;
+
+  /// No description provided for @syriusGitCommitMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Syrius git commit message'**
+  String get syriusGitCommitMessage;
+
+  /// No description provided for @syriusGitOriginUrl.
+  ///
+  /// In en, this message translates to:
+  /// **'Syrius git origin url'**
+  String get syriusGitOriginUrl;
+
+  /// No description provided for @syriusWalletPath.
+  ///
+  /// In en, this message translates to:
+  /// **'Syrius wallet path'**
+  String get syriusWalletPath;
+
+  /// No description provided for @syriusWalletType.
+  ///
+  /// In en, this message translates to:
+  /// **'Syrius wallet type'**
+  String get syriusWalletType;
+
+  /// No description provided for @syriusWalletVersion.
+  ///
+  /// In en, this message translates to:
+  /// **'Syrius wallet version'**
+  String get syriusWalletVersion;
+
+  /// No description provided for @time.
+  ///
+  /// In en, this message translates to:
+  /// **'Time'**
+  String get time;
 
   /// No description provided for @to.
   ///
@@ -2217,6 +2421,12 @@ abstract class AppLocalizations {
   /// **'Weight'**
   String get weight;
 
+  /// No description provided for @websites.
+  ///
+  /// In en, this message translates to:
+  /// **'Websites'**
+  String get websites;
+
   /// No description provided for @walletNotAutoLocked.
   ///
   /// In en, this message translates to:
@@ -2265,11 +2475,179 @@ abstract class AppLocalizations {
   /// **'Your deposit ID'**
   String get yourDepositId;
 
+  /// No description provided for @zenonBitcoinTalk.
+  ///
+  /// In en, this message translates to:
+  /// **'Zenon Bitcoin Talk'**
+  String get zenonBitcoinTalk;
+
+  /// No description provided for @zenonDiscord.
+  ///
+  /// In en, this message translates to:
+  /// **'Zenon Discord'**
+  String get zenonDiscord;
+
+  /// No description provided for @zenonExplorer.
+  ///
+  /// In en, this message translates to:
+  /// **'Zenon Explorer'**
+  String get zenonExplorer;
+
+  /// No description provided for @zenonGithub.
+  ///
+  /// In en, this message translates to:
+  /// **'Zenon Github'**
+  String get zenonGithub;
+
+  /// No description provided for @zenonHub.
+  ///
+  /// In en, this message translates to:
+  /// **'Zenon Hub'**
+  String get zenonHub;
+
+  /// No description provided for @zenonHubExplorer.
+  ///
+  /// In en, this message translates to:
+  /// **'Zenon Hub Explorer'**
+  String get zenonHubExplorer;
+
+  /// No description provided for @zenonMainDataPath.
+  ///
+  /// In en, this message translates to:
+  /// **'Zenon main data path'**
+  String get zenonMainDataPath;
+
+  /// No description provided for @zenonMedium.
+  ///
+  /// In en, this message translates to:
+  /// **'Zenon Medium'**
+  String get zenonMedium;
+
+  /// No description provided for @zenonNetwork.
+  ///
+  /// In en, this message translates to:
+  /// **'Zenon Network'**
+  String get zenonNetwork;
+
+  /// No description provided for @zenonNodeBuildVersion.
+  ///
+  /// In en, this message translates to:
+  /// **'Zenon Node build version'**
+  String get zenonNodeBuildVersion;
+
+  /// No description provided for @zenonNodeChainIdentifier.
+  ///
+  /// In en, this message translates to:
+  /// **'Zenon Node chain identifier'**
+  String get zenonNodeChainIdentifier;
+
+  /// No description provided for @zenonNodeGitCommitHash.
+  ///
+  /// In en, this message translates to:
+  /// **'Zenon Node git commit hash'**
+  String get zenonNodeGitCommitHash;
+
+  /// No description provided for @zenonNodeKernelVersion.
+  ///
+  /// In en, this message translates to:
+  /// **'Zenon Node kernel version'**
+  String get zenonNodeKernelVersion;
+
+  /// No description provided for @zenonNodeNumberOfProcessors.
+  ///
+  /// In en, this message translates to:
+  /// **'Zenon Node number of processors'**
+  String get zenonNodeNumberOfProcessors;
+
+  /// No description provided for @zenonNodeOperatingSystem.
+  ///
+  /// In en, this message translates to:
+  /// **'Zenon Node operating system'**
+  String get zenonNodeOperatingSystem;
+
+  /// No description provided for @zenonNodePlatform.
+  ///
+  /// In en, this message translates to:
+  /// **'Zenon Node platform'**
+  String get zenonNodePlatform;
+
+  /// No description provided for @zenonNodePlatformVersion.
+  ///
+  /// In en, this message translates to:
+  /// **'Zenon Node platform version'**
+  String get zenonNodePlatformVersion;
+
+  /// No description provided for @zenonOrgCommunity.
+  ///
+  /// In en, this message translates to:
+  /// **'Zenon ORG Community'**
+  String get zenonOrgCommunity;
+
+  /// No description provided for @zenonOrgCommunityForum.
+  ///
+  /// In en, this message translates to:
+  /// **'Zenon ORG Community Forum'**
+  String get zenonOrgCommunityForum;
+
+  /// No description provided for @zenonOrgCommunityWiki.
+  ///
+  /// In en, this message translates to:
+  /// **'ZenonORG Community Wiki'**
+  String get zenonOrgCommunityWiki;
+
+  /// No description provided for @zenonReddit.
+  ///
+  /// In en, this message translates to:
+  /// **'Zenon Reddit'**
+  String get zenonReddit;
+
+  /// No description provided for @zenonSdkVersion.
+  ///
+  /// In en, this message translates to:
+  /// **'Zenon SDK version'**
+  String get zenonSdkVersion;
+
+  /// No description provided for @zenonTelegram.
+  ///
+  /// In en, this message translates to:
+  /// **'Zenon Telegram'**
+  String get zenonTelegram;
+
+  /// No description provided for @zenonTools.
+  ///
+  /// In en, this message translates to:
+  /// **'Zenon Tools'**
+  String get zenonTools;
+
   /// No description provided for @zenonTransactions.
   ///
   /// In en, this message translates to:
   /// **'{zenon} transactions'**
   String zenonTransactions(Object zenon);
+
+  /// No description provided for @zenonTwitter.
+  ///
+  /// In en, this message translates to:
+  /// **'Zenon Twitter'**
+  String get zenonTwitter;
+
+  /// No description provided for @zenonWhitepaper.
+  ///
+  /// In en, this message translates to:
+  /// **'Zenon Whitepaper'**
+  String get zenonWhitepaper;
+
+  /// No description provided for @zenonWiki.
+  ///
+  /// In en, this message translates to:
+  /// **'Zenon Wiki'**
+  String get zenonWiki;
+
+  /// No description provided for @zenonYoutube.
+  ///
+  /// In en, this message translates to:
+  /// **'Zenon Youtube'**
+  String get zenonYoutube;
 
   /// No description provided for @znnController.
   ///
