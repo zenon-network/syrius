@@ -20,6 +20,22 @@ class _MockZenonAddressUtils extends Mock implements ZenonAddressUtils {}
 
 class _MockAccountBlockTemplate extends Mock implements AccountBlockTemplate {}
 
+class _RecordingSubmitDonationBloc extends SubmitDonationBloc {
+  _RecordingSubmitDonationBloc({
+    required super.accountBlockUtils,
+    required super.zenon,
+    required super.zenonAddressUtils,
+  });
+
+  final List<Object> reportedErrors = <Object>[];
+
+  @override
+  void onError(Object error, StackTrace stackTrace) {
+    reportedErrors.add(error);
+    super.onError(error, stackTrace);
+  }
+}
+
 void main() {
   setUpAll(() {
     registerFallbackValue(AccountBlockTemplate(blockType: 1));
@@ -345,53 +361,59 @@ void main() {
       },
     );
 
-    blocTest<SubmitDonationBloc, SubmitDonationState>(
-      'still emits SubmitDonationDone if refreshBalance throws after '
-      'publishing blocks',
-      setUp: () {
-        when(
-          () => acceleratorApi.donate(BigInt.from(10), kZnnCoin.tokenStandard),
-        ).thenReturn(znnTemplate);
-        when(
-          () => acceleratorApi.donate(BigInt.from(20), kQsrCoin.tokenStandard),
-        ).thenReturn(qsrTemplate);
-        when(
-          () => accountBlockUtils.createAccountBlock(
-            znnTemplate,
-            'donate for accelerator',
-            address: donorAddress,
-          ),
-        ).thenAnswer((_) async => znnResponse);
-        when(
-          () => accountBlockUtils.createAccountBlock(
-            qsrTemplate,
-            'donate for accelerator',
-            address: donorAddress,
-          ),
-        ).thenAnswer((_) async => qsrResponse);
-        when(
-          () => zenonAddressUtils.refreshBalance(),
-        ).thenThrow(StateError('bloc closed'));
-      },
-      build: () => SubmitDonationBloc(
+    test('still emits SubmitDonationDone if refreshBalance throws after '
+        'publishing blocks', () async {
+      when(
+        () => acceleratorApi.donate(BigInt.from(10), kZnnCoin.tokenStandard),
+      ).thenReturn(znnTemplate);
+      when(
+        () => acceleratorApi.donate(BigInt.from(20), kQsrCoin.tokenStandard),
+      ).thenReturn(qsrTemplate);
+      when(
+        () => accountBlockUtils.createAccountBlock(
+          znnTemplate,
+          'donate for accelerator',
+          address: donorAddress,
+        ),
+      ).thenAnswer((_) async => znnResponse);
+      when(
+        () => accountBlockUtils.createAccountBlock(
+          qsrTemplate,
+          'donate for accelerator',
+          address: donorAddress,
+        ),
+      ).thenAnswer((_) async => qsrResponse);
+      when(
+        () => zenonAddressUtils.refreshBalance(),
+      ).thenThrow(StateError('bloc closed'));
+
+      final _RecordingSubmitDonationBloc bloc = _RecordingSubmitDonationBloc(
         accountBlockUtils: accountBlockUtils,
         zenon: zenon,
         zenonAddressUtils: zenonAddressUtils,
-      ),
-      act: (SubmitDonationBloc bloc) => bloc.add(
+      );
+      final Future<List<SubmitDonationState>> emittedFuture = bloc.stream
+          .take(2)
+          .toList();
+
+      bloc.add(
         SubmitDonationRequested(
           address: donorAddress,
           znnAmount: BigInt.from(10),
           qsrAmount: BigInt.from(20),
         ),
-      ),
-      expect: () => <SubmitDonationState>[
+      );
+
+      final List<SubmitDonationState> emitted = await emittedFuture;
+      expect(emitted, <SubmitDonationState>[
         const SubmitDonationLoading(),
         SubmitDonationDone(
           blocks: <AccountBlockTemplate>[znnResponse, qsrResponse],
         ),
-      ],
-      errors: () => <Matcher>[isA<StateError>()],
-    );
+      ]);
+      expect(bloc.reportedErrors, <Matcher>[isA<StateError>()]);
+
+      await bloc.close();
+    });
   });
 }
