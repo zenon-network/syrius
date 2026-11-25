@@ -5807,5 +5807,147 @@ void main() {
         expect(activeSessions, isEmpty);
       },
     );
+
+    test(
+      'registers requested topic before pre-pair awaits so a concurrent '
+      'stale-pairing cleanup resuming mid-microtask cannot delete it',
+      () async {
+        final int now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+        final List<PairingInfo> livePairings = <PairingInfo>[
+          PairingInfo(
+            topic: 'orphan-x',
+            expiry: now + 300,
+            relay: Relay(ReownConstants.RELAYER_DEFAULT_PROTOCOL),
+            active: false,
+          ),
+          PairingInfo(
+            topic: 'topic-t',
+            expiry: now + 300,
+            relay: Relay(ReownConstants.RELAYER_DEFAULT_PROTOCOL),
+            active: false,
+          ),
+        ];
+        final Completer<void> orphanXDisconnectStarted = Completer<void>();
+        final Completer<void> releaseOrphanXDisconnect = Completer<void>();
+        final Completer<void> topicTDisconnectFinish = Completer<void>();
+        bool protectTopicTWithProposal = true;
+        bool releaseOrphanXOnNextReload = false;
+        int topicTDisconnectCalls = 0;
+
+        when(pairingStore.getAll).thenAnswer((_) {
+          // _cleanupStalePairings ends with _reloadStores(), which calls
+          // pairingStore.getAll(). Schedule two microtasks later so Call B
+          // resumes from _cleanupStalePairings and is yielding inside its
+          // pre-pair awaits (_awaitPendingRecoveryRelayReconnect /
+          // _awaitInFlightStaleCleanupDisconnects) when Call A wakes up and
+          // advances to topic-t.
+          if (releaseOrphanXOnNextReload &&
+              !releaseOrphanXDisconnect.isCompleted) {
+            releaseOrphanXOnNextReload = false;
+            scheduleMicrotask(
+              () => scheduleMicrotask(() {
+                protectTopicTWithProposal = false;
+                if (!releaseOrphanXDisconnect.isCompleted) {
+                  releaseOrphanXDisconnect.complete();
+                }
+              }),
+            );
+          }
+          return List<PairingInfo>.from(livePairings);
+        });
+        when(() => walletKit.getPendingSessionProposals()).thenAnswer((_) {
+          if (!protectTopicTWithProposal) {
+            return const <String, ProposalData>{};
+          }
+          // Call B skips topic-t during its own cleanup; mark next getAll()
+          // (_reloadStores() at end of Call B's cleanup) to release Call A.
+          if (orphanXDisconnectStarted.isCompleted) {
+            releaseOrphanXOnNextReload = true;
+          }
+          return <String, ProposalData>{
+            '99': ProposalData(
+              id: 99,
+              expiry: now + 300,
+              relays: <Relay>[Relay(ReownConstants.RELAYER_DEFAULT_PROTOCOL)],
+              proposer: const ConnectionMetadata(
+                publicKey: 'peer',
+                metadata: PairingMetadata(
+                  name: 'dApp',
+                  description: 'desc',
+                  url: 'https://example.invalid',
+                ),
+              ),
+              requiredNamespaces: const <String, RequiredNamespace>{},
+              optionalNamespaces: const <String, RequiredNamespace>{},
+              pairingTopic: 'topic-t',
+            ),
+          };
+        });
+        when(() => pairing.disconnect(topic: 'orphan-x')).thenAnswer((_) async {
+          livePairings.removeWhere((PairingInfo p) => p.topic == 'orphan-x');
+          if (!orphanXDisconnectStarted.isCompleted) {
+            orphanXDisconnectStarted.complete();
+            await releaseOrphanXDisconnect.future;
+          }
+        });
+        when(() => pairing.disconnect(topic: 'topic-t')).thenAnswer((_) async {
+          topicTDisconnectCalls++;
+          await topicTDisconnectFinish.future;
+          livePairings.removeWhere((PairingInfo p) => p.topic == 'topic-t');
+        });
+        when(() => walletKit.pair(uri: any(named: 'uri'))).thenAnswer((
+          Invocation i,
+        ) async {
+          final Uri uri = i.namedArguments[#uri] as Uri;
+          final String topic = uri.path.split('@').first;
+          final PairingInfo created = PairingInfo(
+            topic: topic,
+            expiry: now + 3600,
+            relay: Relay(ReownConstants.RELAYER_DEFAULT_PROTOCOL),
+            active: false,
+          );
+          livePairings
+            ..removeWhere((PairingInfo p) => p.topic == topic)
+            ..add(created);
+          return created;
+        });
+
+        final Web3WalletService service = buildService();
+        addTearDown(() async {
+          if (!releaseOrphanXDisconnect.isCompleted) {
+            releaseOrphanXDisconnect.complete();
+          }
+          if (!topicTDisconnectFinish.isCompleted) {
+            topicTDisconnectFinish.complete();
+          }
+          await service.onDispose();
+        });
+        service.create();
+        await service.init();
+
+        // Call A snapshots [orphan-x, topic-t] and pauses on orphan-x.
+        final Future<PairingInfo> callAFuture = service.pair(
+          Uri.parse('wc:other-a@2?relay-protocol=irn&symKey=111'),
+        );
+        await orphanXDisconnectStarted.future;
+
+        // Call B targets topic-t. As Call B finishes _cleanupStalePairings and
+        // yields on its pre-pair awaits, Call A resumes and reaches topic-t.
+        final PairingInfo createdB = await service.pair(
+          Uri.parse('wc:topic-t@2?relay-protocol=irn&symKey=222'),
+        );
+        if (!topicTDisconnectFinish.isCompleted) {
+          topicTDisconnectFinish.complete();
+        }
+        await callAFuture;
+
+        expect(createdB.topic, equals('topic-t'));
+        expect(topicTDisconnectCalls, equals(0));
+        expect(
+          livePairings.map((PairingInfo p) => p.topic),
+          contains('topic-t'),
+        );
+      },
+    );
   });
 }

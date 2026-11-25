@@ -348,41 +348,46 @@ class Web3WalletService extends IWeb3WalletService {
       );
     }
 
-    await _awaitPendingRecoveryRelayReconnect(
-      expectedResetGeneration: capturedResetGeneration,
-    );
-
     final String? requestedTopic = _extractPairingTopicFromUri(uri);
-    if (requestedTopic != null) {
-      await _awaitInFlightStaleCleanupDisconnects(
-        topic: requestedTopic,
-        expectedResetGeneration: capturedResetGeneration,
-      );
-      if (_pendingTimedOutTopicOps.containsKey(requestedTopic)) {
-        throw StateError(
-          'WalletConnect cleanup for pairing topic $requestedTopic is still '
-          'settling; retry pairing once unsubscribe completes',
-        );
-      }
-    }
-
-    final Completer<void> pairDone = Completer<void>();
-    final Set<String> sweptTopicsDuringPair = <String>{};
-    _inFlightPairCalls.add(pairDone.future);
-    _inFlightPairSweptTopics.add(sweptTopicsDuringPair);
     if (requestedTopic != null) {
       _inFlightPairTopics[requestedTopic] =
           (_inFlightPairTopics[requestedTopic] ?? 0) + 1;
       _recordPairingCreationEpoch(requestedTopic);
     }
+
     late final PairingInfo pairing;
+    final Set<String> sweptTopicsDuringPair = <String>{};
     try {
-      pairing = await _wcClient!.pair(uri: uri);
-      _recordPairingCreationEpoch(pairing.topic);
+      await _awaitPendingRecoveryRelayReconnect(
+        expectedResetGeneration: capturedResetGeneration,
+      );
+
+      if (requestedTopic != null) {
+        await _awaitInFlightStaleCleanupDisconnects(
+          topic: requestedTopic,
+          expectedResetGeneration: capturedResetGeneration,
+        );
+        if (_pendingTimedOutTopicOps.containsKey(requestedTopic)) {
+          throw StateError(
+            'WalletConnect cleanup for pairing topic $requestedTopic is still '
+            'settling; retry pairing once unsubscribe completes',
+          );
+        }
+      }
+
+      final Completer<void> pairDone = Completer<void>();
+      _inFlightPairCalls.add(pairDone.future);
+      _inFlightPairSweptTopics.add(sweptTopicsDuringPair);
+      try {
+        pairing = await _wcClient!.pair(uri: uri);
+        _recordPairingCreationEpoch(pairing.topic);
+      } finally {
+        _inFlightPairCalls.remove(pairDone.future);
+        _timedOutInFlightPairCalls.remove(pairDone.future);
+        _inFlightPairSweptTopics.remove(sweptTopicsDuringPair);
+        pairDone.complete();
+      }
     } finally {
-      _inFlightPairCalls.remove(pairDone.future);
-      _timedOutInFlightPairCalls.remove(pairDone.future);
-      _inFlightPairSweptTopics.remove(sweptTopicsDuringPair);
       if (requestedTopic != null) {
         final int remaining = (_inFlightPairTopics[requestedTopic] ?? 1) - 1;
         if (remaining <= 0) {
@@ -391,7 +396,6 @@ class Web3WalletService extends IWeb3WalletService {
           _inFlightPairTopics[requestedTopic] = remaining;
         }
       }
-      pairDone.complete();
     }
 
     if (_isDisposed ||
