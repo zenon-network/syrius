@@ -269,6 +269,10 @@ def parse_semver_tag(tag: str) -> tuple[int, int, int, tuple[str, ...]] | None:
         return None
     major, minor, patch = int(match.group(1)), int(match.group(2)), int(match.group(3))
     prerelease = tuple(match.group(4).split(".")) if match.group(4) else ()
+    # Per SemVer 2.0.0 §9, numeric prerelease identifiers MUST NOT include leading zeroes.
+    for ident in prerelease:
+        if ident.isdigit() and len(ident) > 1 and ident.startswith("0"):
+            return None
     return major, minor, patch, prerelease
 
 
@@ -565,6 +569,12 @@ def evaluate_manifest_transition(
 
     rebuild_reasons: list[str] = []
     if prev_tag == release.tag_name:
+        if prev_tag_commit and release.tag_commit is None:
+            raise UpdaterError(
+                f"Refusing to overwrite recorded tag_commit ({prev_tag_commit}) for "
+                f"{release.tag_name!r} with an unresolved tag commit; provide _resolved_tag_commit "
+                "(via --fetch-metadata-only) or query the GitHub API directly"
+            )
         if prev_tag_commit and release.tag_commit and prev_tag_commit.lower() != release.tag_commit.lower():
             rebuild_reasons.append(
                 f"tag commit changed ({prev_tag_commit} -> {release.tag_commit})"
@@ -1870,8 +1880,6 @@ def _run_update_detailed(
         pre_resolved = release_data.get("_resolved_tag_commit")
         if pre_resolved is not None and pre_resolved != "":
             tag_commit = validate_git_commit_sha(pre_resolved, label="_resolved_tag_commit")
-        elif target_commitish and GIT_COMMIT_SHA_PATTERN.fullmatch(target_commitish):
-            tag_commit = target_commitish.lower()
     else:
         tag_commit = fetch_tag_commit(
             upstream,
@@ -2232,7 +2240,19 @@ def main(argv: Sequence[str] | None = None) -> int:
             print("ERROR: --metadata-out is required with --fetch-metadata-only", file=sys.stderr)
             return 1
         try:
-            _validate_output_file_path(args.metadata_out, "--metadata-out")
+            protected_blobs = (
+                [args.repo_root / spec.blob_relpath for spec in BINARY_SPECS]
+                if args.repo_root is not None
+                else ()
+            )
+            protected_manifest = (
+                args.repo_root / MANIFEST_RELPATH if args.repo_root is not None else None
+            )
+            validate_output_file_paths(
+                (("--metadata-out", args.metadata_out),),
+                protected_blobs=protected_blobs,
+                protected_manifest=protected_manifest,
+            )
             upstream = validate_upstream_repo(args.upstream_repo)
             requested_tag = validate_tag(args.tag)
             token = os.environ.get("GH_TOKEN") or os.environ.get("GITHUB_TOKEN")
@@ -2283,41 +2303,47 @@ def main(argv: Sequence[str] | None = None) -> int:
         return 1
 
     in_github_actions = os.environ.get("GITHUB_ACTIONS") == "true"
+
+    def _emit_warning(message: str) -> None:
+        if in_github_actions:
+            print(f"::warning::{message}")
+        else:
+            print(f"WARNING: {message}", file=sys.stderr)
+
     print(f"Verified go-zenon release {release_info.tag_name} ({release_info.html_url})")
-    if in_github_actions and release_info.prerelease:
-        print(
-            f"::warning::Upstream release {release_info.tag_name} is marked as a pre-release."
+    if release_info.prerelease:
+        _emit_warning(
+            f"Upstream release {release_info.tag_name} is marked as a pre-release."
         )
-    if in_github_actions and alerts.is_downgrade:
-        print(
-            f"::warning::Forced downgrade of embedded libznn from "
+    if alerts.is_downgrade:
+        _emit_warning(
+            f"Forced downgrade of embedded libznn from "
             f"{alerts.previous_tag or 'unknown'} to {release_info.tag_name}."
         )
-    if in_github_actions and alerts.same_tag_rebuild:
-        print(
-            f"::warning::Same-tag rebuild detected for {release_info.tag_name}: "
+    if alerts.same_tag_rebuild:
+        _emit_warning(
+            f"Same-tag rebuild detected for {release_info.tag_name}: "
             f"{'; '.join(alerts.same_tag_rebuild_reasons)}."
         )
-    if in_github_actions and alerts.commitish_mismatch:
-        print(
-            f"::warning::Release target_commitish ({release_info.target_commitish}) "
+    if alerts.commitish_mismatch:
+        _emit_warning(
+            f"Release target_commitish ({release_info.target_commitish}) "
             f"differs from resolved tag commit ({release_info.tag_commit})."
         )
     for asset_name, updated_at in alerts.late_updated_assets:
-        if in_github_actions:
-            print(
-                f"::warning::Release asset {asset_name} was updated at {updated_at}, "
-                f"after release published_at ({release_info.published_at})."
-            )
+        _emit_warning(
+            f"Release asset {asset_name} was updated at {updated_at}, "
+            f"after release published_at ({release_info.published_at})."
+        )
     for item in verified:
         state = "UPDATED" if item.changed else "UNCHANGED"
         print(
             f"  - {item.spec.blob_relpath}: {state} "
             f"(extracted={item.extracted_sha256}, archive={item.archive_verification.actual_sha256})"
         )
-        if in_github_actions and item.archive_verification.checksums_file_sha256 is None:
+        if item.archive_verification.checksums_file_sha256 is None:
             source_plain = item.archive_verification.source_description.replace("`", "")
-            print(f"::warning::Asset {item.spec.asset_name} verified via {source_plain}.")
+            _emit_warning(f"Asset {item.spec.asset_name} verified via {source_plain}.")
     if changed and args.dry_run:
         print("Dry run enabled: repository blobs were not modified.")
     elif changed:

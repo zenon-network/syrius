@@ -1247,6 +1247,12 @@ class EndToEndUpdateTests(unittest.TestCase):
         self.assertEqual(updater.compare_release_tags("v0.0.10-alphanet", "v0.0.10"), -1)
         self.assertEqual(updater.compare_release_tags("v0.0.10-rc.2", "v0.0.10-rc.10"), -1)
         self.assertEqual(updater.compare_release_tags("v1.0.0+build.1", "v1.0.0+build.2"), 0)
+        self.assertEqual(updater.compare_release_tags("v1.2.3-rc.0", "v1.2.3-rc.1"), -1)
+        self.assertEqual(updater.compare_release_tags("v1.2.3-01a", "v1.2.3-01b"), -1)
+        # Zero-padded numeric prerelease identifiers are invalid per SemVer 2.0.0 §9.
+        self.assertIsNone(updater.parse_semver_tag("v1.2.3-rc.01"))
+        self.assertIsNone(updater.compare_release_tags("v1.2.3-rc.01", "v1.2.3-rc.1"))
+        self.assertIsNone(updater.compare_release_tags("v1.2.3-rc.1", "v1.2.3-rc.01"))
         self.assertIsNone(updater.compare_release_tags("nightly-2026", "v0.0.10-alphanet"))
 
         commit_sha = "1" * 40
@@ -1564,6 +1570,138 @@ class EndToEndUpdateTests(unittest.TestCase):
         self.assertEqual((blobs / "libznn.so").read_bytes(), self.old_linux)
         self.assertEqual(list(blobs.glob(".*.bak")), [])
         self.assertEqual(list(blobs.glob(".*.tmp")), [])
+
+    def test_release_json_without_resolved_commit_does_not_copy_target_commitish_or_erase_recorded_commit(
+        self,
+    ) -> None:
+        # 1. Raw --release-json (no _resolved_tag_commit) leaves tag_commit=None instead of copying target_commitish.
+        opener, _ = self._build_mock_release(
+            tag="v0.0.11-alphanet",
+            linux_bin=b"\x7fELF-raw-json",
+            darwin_bin=b"\xca\xfe\xba\xbe-raw-json",
+            windows_bin=b"MZ-raw-json",
+            target_commitish="e" * 40,
+            tag_commit="f" * 40,
+        )
+        raw_release_path = self.root / "raw_release_no_commit.json"
+        raw_release_path.write_bytes(
+            opener.responses[
+                "https://api.github.com/repos/zenon-network/go-zenon/releases/tags/v0.0.11-alphanet"
+            ]
+        )
+        dl_only = _FakeOpener(
+            {k: v for k, v in opener.responses.items() if not k.startswith("https://api.github.com/")}
+        )
+        release, _, changed = updater.run_update(
+            repo_root=self.repo_root,
+            work_dir=self.work_dir,
+            tag="v0.0.11-alphanet",
+            release_json=raw_release_path,
+            dry_run=True,
+            opener=dl_only,  # type: ignore[arg-type]
+        )
+        self.assertTrue(changed)
+        self.assertIsNone(release.tag_commit)
+        self.assertEqual(release.target_commitish, "e" * 40)
+
+        # 2. If repo manifest already records tag_commit for v0.0.11-alphanet, unresolved --release-json is refused.
+        updater.run_update(
+            repo_root=self.repo_root,
+            work_dir=self.work_dir,
+            tag="v0.0.11-alphanet",
+            opener=opener,  # type: ignore[arg-type]
+        )
+        with self.assertRaisesRegex(updater.UpdaterError, "Refusing to overwrite recorded tag_commit"):
+            updater.run_update(
+                repo_root=self.repo_root,
+                work_dir=self.work_dir,
+                tag="v0.0.11-alphanet",
+                release_json=raw_release_path,
+                opener=dl_only,  # type: ignore[arg-type]
+            )
+
+    def test_fetch_metadata_only_protects_manifest_and_blobs_when_repo_root_given(self) -> None:
+        manifest_path = self.repo_root / updater.MANIFEST_RELPATH
+        blob_path = self.repo_root / "lib" / "embedded_node" / "blobs" / "libznn.so"
+        for protected in (manifest_path, blob_path):
+            with self.subTest(protected=protected.name):
+                stderr_buf = io.StringIO()
+                old_stderr = sys.stderr
+                try:
+                    sys.stderr = stderr_buf
+                    rc = updater.main(
+                        [
+                            "--fetch-metadata-only",
+                            "--repo-root",
+                            str(self.repo_root),
+                            "--metadata-out",
+                            str(protected),
+                        ]
+                    )
+                finally:
+                    sys.stderr = old_stderr
+                self.assertEqual(rc, 1)
+                self.assertIn("must not refer to repository", stderr_buf.getvalue())
+
+    def test_local_cli_emits_provenance_warnings_to_stderr_outside_github_actions(self) -> None:
+        # Seed manifest at v0.0.10-alphanet.
+        opener_v10, _ = self._build_mock_release(
+            tag="v0.0.10-alphanet",
+            linux_bin=self.old_linux,
+            darwin_bin=self.old_darwin,
+            windows_bin=self.old_windows,
+            include_darwin_in_checksums=True,
+            tag_commit="1" * 40,
+        )
+        updater.run_update(
+            repo_root=self.repo_root,
+            work_dir=self.work_dir,
+            tag="v0.0.10-alphanet",
+            opener=opener_v10,  # type: ignore[arg-type]
+        )
+
+        # Trigger same-tag rebuild + late-updated asset in local CLI (GITHUB_ACTIONS unset).
+        opener_local, _ = self._build_mock_release(
+            tag="v0.0.10-alphanet",
+            linux_bin=b"\x7fELF-local-rebuild",
+            darwin_bin=self.old_darwin,
+            windows_bin=self.old_windows,
+            include_darwin_in_checksums=False,
+            published_at="2026-11-20T12:00:00Z",
+            asset_updated_at="2026-11-20T12:05:00Z",
+            tag_commit="2" * 40,
+        )
+        orig_build_opener = updater._build_opener
+        orig_gha = os.environ.pop("GITHUB_ACTIONS", None)
+        stdout_buf = io.StringIO()
+        stderr_buf = io.StringIO()
+        old_stdout, old_stderr = sys.stdout, sys.stderr
+        try:
+            updater._build_opener = lambda: opener_local  # type: ignore[assignment]
+            sys.stdout = stdout_buf
+            sys.stderr = stderr_buf
+            rc = updater.main(
+                [
+                    "--repo-root",
+                    str(self.repo_root),
+                    "--work-dir",
+                    str(self.work_dir),
+                    "--tag=v0.0.10-alphanet",
+                    "--dry-run",
+                ]
+            )
+        finally:
+            updater._build_opener = orig_build_opener
+            sys.stdout = old_stdout
+            sys.stderr = old_stderr
+            if orig_gha is not None:
+                os.environ["GITHUB_ACTIONS"] = orig_gha
+
+        self.assertEqual(rc, 0)
+        stderr_text = stderr_buf.getvalue()
+        self.assertIn("WARNING: Same-tag rebuild detected", stderr_text)
+        self.assertIn("WARNING: Release asset libznn-linux-amd64.tar.gz was updated at", stderr_text)
+        self.assertNotIn("::warning::", stdout_buf.getvalue())
 
     def test_failure_on_third_asset_leaves_all_blobs_untouched(self) -> None:
         opener, _ = self._build_mock_release(

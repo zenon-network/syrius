@@ -102,6 +102,20 @@ def _encoded_manifest_response(tag: str, *, prerelease: bool = False) -> bytes:
     return json.dumps({"encoding": "base64", "content": encoded}).encode("utf-8")
 
 
+def _pr_files_response(filenames: list[str]) -> bytes:
+    return json.dumps([{"filename": name} for name in filenames]).encode("utf-8")
+
+
+def _blobs_dir_contents_response(so_sha: str, dylib_sha: str, dll_sha: str) -> bytes:
+    return json.dumps(
+        [
+            {"type": "file", "path": "lib/embedded_node/blobs/libznn.so", "sha": so_sha},
+            {"type": "file", "path": "lib/embedded_node/blobs/libznn.dylib", "sha": dylib_sha},
+            {"type": "file", "path": "lib/embedded_node/blobs/libznn.dll", "sha": dll_sha},
+        ]
+    ).encode("utf-8")
+
+
 def _pr_obj(
     *,
     number: int,
@@ -143,15 +157,38 @@ class CloseStaleLibznnPrTests(unittest.TestCase):
             "https://api.github.com/repos/zenon-network/syrius/git/refs/heads/"
             "chore/update-libznn-develop"
         )
+        self.all_updater_files = [
+            "lib/embedded_node/blobs/libznn.so",
+            "lib/embedded_node/blobs/libznn.dylib",
+            "lib/embedded_node/blobs/libznn.dll",
+            updater.MANIFEST_RELPATH,
+        ]
+        self.blob_only_files = [
+            "lib/embedded_node/blobs/libznn.so",
+            "lib/embedded_node/blobs/libznn.dylib",
+            "lib/embedded_node/blobs/libznn.dll",
+        ]
 
     def tearDown(self) -> None:
         self.tmpdir.cleanup()
 
-    def _contents_url(self, ref: str) -> str:
+    def _files_url(self, pr_number: int) -> str:
+        return f"https://api.github.com/repos/zenon-network/syrius/pulls/{pr_number}/files?per_page=100"
+
+    def _manifest_contents_url(self, ref: str) -> str:
         return (
             "https://api.github.com/repos/zenon-network/syrius/contents/"
             f"lib/embedded_node/blobs/libznn.manifest.json?ref={ref}"
         )
+
+    def _blobs_contents_url(self, ref: str) -> str:
+        return (
+            "https://api.github.com/repos/zenon-network/syrius/contents/"
+            f"lib/embedded_node/blobs?ref={ref}"
+        )
+
+    def _ref_url(self, branch: str) -> str:
+        return f"https://api.github.com/repos/zenon-network/syrius/git/ref/heads/{branch}"
 
     def test_no_open_pr_performs_no_writes_and_records_zero_closed(self) -> None:
         opener = _RecordingOpener({("GET", self.list_develop_url): b"[]"})
@@ -197,7 +234,10 @@ class CloseStaleLibznnPrTests(unittest.TestCase):
         opener = _RecordingOpener(
             {
                 ("GET", self.list_develop_url): json.dumps(prs_payload).encode("utf-8"),
-                ("GET", self._contents_url(head_sha)): _encoded_manifest_response("v0.0.10-alphanet"),
+                ("GET", self._files_url(201)): _pr_files_response(self.all_updater_files),
+                ("GET", self._manifest_contents_url(head_sha)): _encoded_manifest_response(
+                    "v0.0.10-alphanet"
+                ),
                 ("PATCH", close_url): json.dumps({"number": 201, "state": "closed"}).encode("utf-8"),
                 ("POST", comment_url): json.dumps({"id": 1}).encode("utf-8"),
                 ("DELETE", self.delete_develop_url): b"",
@@ -219,14 +259,15 @@ class CloseStaleLibznnPrTests(unittest.TestCase):
         )
         self.assertEqual(len(result.closed_prs), 1)
         self.assertEqual(result.closed_prs[0].number, 201)
+        self.assertIsNone(result.closed_prs[0].comment_warning)
         self.assertEqual(result.preserved_prs, ())
         self.assertEqual(result.branch_deleted, "deleted")
 
-        # Verify request sequence: GET pulls -> GET manifest -> PATCH close -> POST comment -> DELETE branch
-        self.assertEqual([r[0] for r in opener.requests], ["GET", "GET", "PATCH", "POST", "DELETE"])
-        self.assertEqual(opener.requests[2][2], {"state": "closed"})
-        self.assertIn("v0.0.10-alphanet", opener.requests[3][2]["body"])
-        self.assertIn("actions/runs/999", opener.requests[3][2]["body"])
+        # Sequence: GET pulls -> GET files -> GET manifest -> PATCH close -> POST comment -> DELETE branch
+        self.assertEqual([r[0] for r in opener.requests], ["GET", "GET", "GET", "PATCH", "POST", "DELETE"])
+        self.assertEqual(opener.requests[3][2], {"state": "closed"})
+        self.assertIn("v0.0.10-alphanet", opener.requests[4][2]["body"])
+        self.assertIn("actions/runs/999", opener.requests[4][2]["body"])
 
         gh_out_text = gh_out.read_text(encoding="utf-8")
         self.assertIn("closed_count=1\n", gh_out_text)
@@ -248,7 +289,10 @@ class CloseStaleLibznnPrTests(unittest.TestCase):
         opener = _RecordingOpener(
             {
                 ("GET", self.list_develop_url): json.dumps(prs_payload).encode("utf-8"),
-                ("GET", self._contents_url(head_sha)): _encoded_manifest_response("v0.0.9-alphanet"),
+                ("GET", self._files_url(202)): _pr_files_response(self.all_updater_files),
+                ("GET", self._manifest_contents_url(head_sha)): _encoded_manifest_response(
+                    "v0.0.9-alphanet"
+                ),
                 ("PATCH", close_url): json.dumps({"number": 202, "state": "closed"}).encode("utf-8"),
                 ("POST", comment_url): json.dumps({"id": 2}).encode("utf-8"),
                 ("DELETE", self.delete_develop_url): b"",
@@ -265,6 +309,80 @@ class CloseStaleLibznnPrTests(unittest.TestCase):
         self.assertEqual(len(result.closed_prs), 1)
         self.assertIn("superseded by `v0.0.10-alphanet`", result.closed_prs[0].reason)
         self.assertEqual(result.branch_deleted, "deleted")
+
+    def test_preserves_inherited_manifest_pr_when_blobs_differ_from_target_branch(self) -> None:
+        # Legacy updater started from develop at v10 (inherited v10 manifest),
+        # updated ONLY the blobs to v11-rc.1, and left manifest untouched.
+        head_sha = "7" * 40
+        prs_payload = [
+            _pr_obj(
+                number=207,
+                title="chore: update embedded libznn to go-zenon v0.0.11-rc.1 (prerelease)",
+                head_sha=head_sha,
+            )
+        ]
+        opener = _RecordingOpener(
+            {
+                ("GET", self.list_develop_url): json.dumps(prs_payload).encode("utf-8"),
+                ("GET", self._files_url(207)): _pr_files_response(self.blob_only_files),
+                ("GET", self._blobs_contents_url(head_sha)): _blobs_dir_contents_response(
+                    "aaa", "bbb", "ccc"
+                ),
+                ("GET", self._blobs_contents_url("develop")): _blobs_dir_contents_response(
+                    "111", "222", "333"
+                ),
+            }
+        )
+        result = stale_pr.close_stale_libznn_prs(
+            repo="zenon-network/syrius",
+            target_branch="develop",
+            pr_branch="chore/update-libznn-develop",
+            release_tag="v0.0.10-alphanet",
+            github_token="ghs_test",
+            opener=opener,  # type: ignore[arg-type]
+        )
+        self.assertEqual(result.closed_prs, ())
+        self.assertEqual(len(result.preserved_prs), 1)
+        self.assertEqual(result.branch_deleted, "not_needed")
+        self.assertIn("without updating", result.preserved_prs[0].reason)
+
+    def test_closes_blob_only_pr_when_all_three_blobs_already_match_target_branch(self) -> None:
+        head_sha = "8" * 40
+        prs_payload = [
+            _pr_obj(
+                number=208,
+                title="chore: update embedded libznn to go-zenon v0.0.10-alphanet",
+                head_sha=head_sha,
+            )
+        ]
+        close_url = "https://api.github.com/repos/zenon-network/syrius/pulls/208"
+        comment_url = "https://api.github.com/repos/zenon-network/syrius/issues/208/comments"
+        opener = _RecordingOpener(
+            {
+                ("GET", self.list_develop_url): json.dumps(prs_payload).encode("utf-8"),
+                ("GET", self._files_url(208)): _pr_files_response(self.blob_only_files),
+                ("GET", self._blobs_contents_url(head_sha)): _blobs_dir_contents_response(
+                    "111", "222", "333"
+                ),
+                ("GET", self._blobs_contents_url("develop")): _blobs_dir_contents_response(
+                    "111", "222", "333"
+                ),
+                ("PATCH", close_url): json.dumps({"number": 208, "state": "closed"}).encode("utf-8"),
+                ("POST", comment_url): json.dumps({"id": 8}).encode("utf-8"),
+                ("DELETE", self.delete_develop_url): b"",
+            }
+        )
+        result = stale_pr.close_stale_libznn_prs(
+            repo="zenon-network/syrius",
+            target_branch="develop",
+            pr_branch="chore/update-libznn-develop",
+            release_tag="v0.0.10-alphanet",
+            github_token="ghs_test",
+            opener=opener,  # type: ignore[arg-type]
+        )
+        self.assertEqual(len(result.closed_prs), 1)
+        self.assertEqual(result.branch_deleted, "deleted")
+        self.assertIn("already match `develop`", result.closed_prs[0].reason)
 
     def test_preserves_forced_downgrade_pr_and_does_not_delete_branch(self) -> None:
         prs_payload = [
@@ -310,7 +428,8 @@ class CloseStaleLibznnPrTests(unittest.TestCase):
         opener = _RecordingOpener(
             {
                 ("GET", self.list_develop_url): json.dumps(prs_payload).encode("utf-8"),
-                ("GET", self._contents_url(head_sha)): _encoded_manifest_response(
+                ("GET", self._files_url(204)): _pr_files_response(self.all_updater_files),
+                ("GET", self._manifest_contents_url(head_sha)): _encoded_manifest_response(
                     "v0.0.11-rc.1", prerelease=True
                 ),
             }
@@ -329,73 +448,63 @@ class CloseStaleLibznnPrTests(unittest.TestCase):
         self.assertEqual(result.closed_prs, ())
         self.assertEqual(len(result.preserved_prs), 1)
         self.assertEqual(result.branch_deleted, "not_needed")
-        self.assertEqual([r[0] for r in opener.requests], ["GET", "GET"])
+        self.assertEqual([r[0] for r in opener.requests], ["GET", "GET", "GET"])
         self.assertIn("not superseded by `v0.0.10-alphanet`", summary.read_text(encoding="utf-8"))
 
-    def test_legacy_pr_without_manifest_closes_only_when_diff_is_empty(self) -> None:
-        base_sha = "4" * 40
-        head_sha = "5" * 40
-        compare_url = (
-            f"https://api.github.com/repos/zenon-network/syrius/compare/{base_sha}...{head_sha}"
-        )
+    def test_comment_failure_after_patch_still_records_close_and_deletes_branch(self) -> None:
+        head_sha = "9" * 40
         prs_payload = [
             _pr_obj(
-                number=206,
+                number=209,
                 title="chore: update embedded libznn to go-zenon v0.0.10-alphanet",
                 head_sha=head_sha,
-                base_sha=base_sha,
             )
         ]
-        # 1. Legacy PR with non-empty diff is preserved (fail-safe).
-        opener_keep = _RecordingOpener(
+        close_url = "https://api.github.com/repos/zenon-network/syrius/pulls/209"
+        comment_url = "https://api.github.com/repos/zenon-network/syrius/issues/209/comments"
+        opener = _RecordingOpener(
             {
                 ("GET", self.list_develop_url): json.dumps(prs_payload).encode("utf-8"),
-                ("GET", self._contents_url(head_sha)): urllib.error.HTTPError(
-                    self._contents_url(head_sha), 404, "Not Found", {}, None  # type: ignore[arg-type]
+                ("GET", self._files_url(209)): _pr_files_response(self.all_updater_files),
+                ("GET", self._manifest_contents_url(head_sha)): _encoded_manifest_response(
+                    "v0.0.10-alphanet"
                 ),
-                ("GET", compare_url): json.dumps(
-                    {"status": "ahead", "files": [{"filename": "lib/embedded_node/blobs/libznn.so"}]}
-                ).encode("utf-8"),
-            }
-        )
-        keep_result = stale_pr.close_stale_libznn_prs(
-            repo="zenon-network/syrius",
-            target_branch="develop",
-            pr_branch="chore/update-libznn-develop",
-            release_tag="v0.0.10-alphanet",
-            github_token="ghs_test",
-            opener=opener_keep,  # type: ignore[arg-type]
-        )
-        self.assertEqual(keep_result.closed_prs, ())
-        self.assertEqual(len(keep_result.preserved_prs), 1)
-
-        # 2. Legacy PR with identical/empty diff is closed and its branch deleted.
-        close_url = "https://api.github.com/repos/zenon-network/syrius/pulls/206"
-        comment_url = "https://api.github.com/repos/zenon-network/syrius/issues/206/comments"
-        opener_close = _RecordingOpener(
-            {
-                ("GET", self.list_develop_url): json.dumps(prs_payload).encode("utf-8"),
-                ("GET", self._contents_url(head_sha)): urllib.error.HTTPError(
-                    self._contents_url(head_sha), 404, "Not Found", {}, None  # type: ignore[arg-type]
+                ("PATCH", close_url): json.dumps({"number": 209, "state": "closed"}).encode("utf-8"),
+                ("POST", comment_url): urllib.error.HTTPError(
+                    comment_url, 403, "Forbidden", {}, None  # type: ignore[arg-type]
                 ),
-                ("GET", compare_url): json.dumps({"status": "identical", "files": []}).encode("utf-8"),
-                ("PATCH", close_url): json.dumps({"number": 206, "state": "closed"}).encode("utf-8"),
-                ("POST", comment_url): json.dumps({"id": 6}).encode("utf-8"),
                 ("DELETE", self.delete_develop_url): b"",
             }
         )
-        close_result = stale_pr.close_stale_libznn_prs(
-            repo="zenon-network/syrius",
-            target_branch="develop",
-            pr_branch="chore/update-libznn-develop",
-            release_tag="v0.0.10-alphanet",
-            github_token="ghs_test",
-            opener=opener_close,  # type: ignore[arg-type]
-        )
-        self.assertEqual(len(close_result.closed_prs), 1)
-        self.assertEqual(close_result.branch_deleted, "deleted")
+        gh_out = self.root / "comment_fail.out"
+        summary = self.root / "comment_fail_summary.md"
+        stderr_buf = io.StringIO()
+        old_stderr = sys.stderr
+        try:
+            sys.stderr = stderr_buf
+            result = stale_pr.close_stale_libznn_prs(
+                repo="zenon-network/syrius",
+                target_branch="develop",
+                pr_branch="chore/update-libznn-develop",
+                release_tag="v0.0.10-alphanet",
+                github_token="ghs_test",
+                github_output=gh_out,
+                step_summary=summary,
+                opener=opener,  # type: ignore[arg-type]
+            )
+        finally:
+            sys.stderr = old_stderr
 
-    def test_tolerates_already_deleted_branch_on_404_or_422(self) -> None:
+        self.assertEqual(len(result.closed_prs), 1)
+        self.assertIsNotNone(result.closed_prs[0].comment_warning)
+        self.assertEqual(result.branch_deleted, "deleted")
+        self.assertEqual([r[0] for r in opener.requests], ["GET", "GET", "GET", "PATCH", "POST", "DELETE"])
+        self.assertIn("closed_count=1\n", gh_out.read_text(encoding="utf-8"))
+        self.assertIn("branch_deleted=deleted\n", gh_out.read_text(encoding="utf-8"))
+        self.assertIn("closing comment failed", summary.read_text(encoding="utf-8"))
+        self.assertIn("failed to post closing comment", stderr_buf.getvalue())
+
+    def test_delete_branch_handles_404_and_confirms_absence_on_422(self) -> None:
         list_url = (
             "https://api.github.com/repos/zenon-network/syrius/pulls?"
             "state=open&head=zenon-network%3Achore%2Fupdate-libznn-master&base=master&per_page=100"
@@ -407,6 +516,7 @@ class CloseStaleLibznnPrTests(unittest.TestCase):
             "https://api.github.com/repos/zenon-network/syrius/git/refs/heads/"
             "chore/update-libznn-master"
         )
+        get_ref_url = self._ref_url("chore/update-libznn-master")
         pr_item = [
             _pr_obj(
                 number=205,
@@ -416,32 +526,87 @@ class CloseStaleLibznnPrTests(unittest.TestCase):
                 base_ref="master",
             )
         ]
-        for code in (404, 422):
-            with self.subTest(code=code):
-                opener = _RecordingOpener(
-                    {
-                        ("GET", list_url): json.dumps(pr_item).encode("utf-8"),
-                        ("GET", self._contents_url(head_sha)): _encoded_manifest_response(
-                            "v0.0.10-alphanet"
-                        ),
-                        ("PATCH", close_url): json.dumps({"number": 205, "state": "closed"}).encode(
-                            "utf-8"
-                        ),
-                        ("POST", comment_url): json.dumps({"id": 1}).encode("utf-8"),
-                        ("DELETE", delete_ref_url): urllib.error.HTTPError(
-                            delete_ref_url, code, "Not Found", {}, None  # type: ignore[arg-type]
-                        ),
-                    }
-                )
-                result = stale_pr.close_stale_libznn_prs(
-                    repo="zenon-network/syrius",
-                    target_branch="master",
-                    pr_branch="chore/update-libznn-master",
-                    release_tag="v0.0.10-alphanet",
-                    github_token="ghs_test",
-                    opener=opener,  # type: ignore[arg-type]
-                )
-                self.assertEqual(result.branch_deleted, "already_deleted")
+
+        # 1. DELETE 404 -> already_deleted directly.
+        opener_404 = _RecordingOpener(
+            {
+                ("GET", list_url): json.dumps(pr_item).encode("utf-8"),
+                ("GET", self._files_url(205)): _pr_files_response(self.all_updater_files),
+                ("GET", self._manifest_contents_url(head_sha)): _encoded_manifest_response(
+                    "v0.0.10-alphanet"
+                ),
+                ("PATCH", close_url): json.dumps({"number": 205, "state": "closed"}).encode("utf-8"),
+                ("POST", comment_url): json.dumps({"id": 1}).encode("utf-8"),
+                ("DELETE", delete_ref_url): urllib.error.HTTPError(
+                    delete_ref_url, 404, "Not Found", {}, None  # type: ignore[arg-type]
+                ),
+            }
+        )
+        res_404 = stale_pr.close_stale_libznn_prs(
+            repo="zenon-network/syrius",
+            target_branch="master",
+            pr_branch="chore/update-libznn-master",
+            release_tag="v0.0.10-alphanet",
+            github_token="ghs_test",
+            opener=opener_404,  # type: ignore[arg-type]
+        )
+        self.assertEqual(res_404.branch_deleted, "already_deleted")
+
+        # 2. DELETE 422 + GET ref 404 -> confirmed absent -> already_deleted.
+        opener_422_absent = _RecordingOpener(
+            {
+                ("GET", list_url): json.dumps(pr_item).encode("utf-8"),
+                ("GET", self._files_url(205)): _pr_files_response(self.all_updater_files),
+                ("GET", self._manifest_contents_url(head_sha)): _encoded_manifest_response(
+                    "v0.0.10-alphanet"
+                ),
+                ("PATCH", close_url): json.dumps({"number": 205, "state": "closed"}).encode("utf-8"),
+                ("POST", comment_url): json.dumps({"id": 1}).encode("utf-8"),
+                ("DELETE", delete_ref_url): urllib.error.HTTPError(
+                    delete_ref_url, 422, "Unprocessable Entity", {}, None  # type: ignore[arg-type]
+                ),
+                ("GET", get_ref_url): urllib.error.HTTPError(
+                    get_ref_url, 404, "Not Found", {}, None  # type: ignore[arg-type]
+                ),
+            }
+        )
+        res_422_absent = stale_pr.close_stale_libznn_prs(
+            repo="zenon-network/syrius",
+            target_branch="master",
+            pr_branch="chore/update-libznn-master",
+            release_tag="v0.0.10-alphanet",
+            github_token="ghs_test",
+            opener=opener_422_absent,  # type: ignore[arg-type]
+        )
+        self.assertEqual(res_422_absent.branch_deleted, "already_deleted")
+
+        # 3. DELETE 422 + GET ref 200 (branch still exists) -> raises UpdaterError!
+        opener_422_present = _RecordingOpener(
+            {
+                ("GET", list_url): json.dumps(pr_item).encode("utf-8"),
+                ("GET", self._files_url(205)): _pr_files_response(self.all_updater_files),
+                ("GET", self._manifest_contents_url(head_sha)): _encoded_manifest_response(
+                    "v0.0.10-alphanet"
+                ),
+                ("PATCH", close_url): json.dumps({"number": 205, "state": "closed"}).encode("utf-8"),
+                ("POST", comment_url): json.dumps({"id": 1}).encode("utf-8"),
+                ("DELETE", delete_ref_url): urllib.error.HTTPError(
+                    delete_ref_url, 422, "Unprocessable Entity", {}, None  # type: ignore[arg-type]
+                ),
+                ("GET", get_ref_url): json.dumps(
+                    {"ref": "refs/heads/chore/update-libznn-master", "object": {"sha": head_sha}}
+                ).encode("utf-8"),
+            }
+        )
+        with self.assertRaisesRegex(updater.UpdaterError, "HTTP 422"):
+            stale_pr.close_stale_libznn_prs(
+                repo="zenon-network/syrius",
+                target_branch="master",
+                pr_branch="chore/update-libznn-master",
+                release_tag="v0.0.10-alphanet",
+                github_token="ghs_test",
+                opener=opener_422_present,  # type: ignore[arg-type]
+            )
 
     def test_rejects_unexpected_branch_missing_token_and_colliding_outputs(self) -> None:
         with self.assertRaisesRegex(updater.UpdaterError, "unexpected PR branch"):

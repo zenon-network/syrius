@@ -26,6 +26,9 @@ DOWNGRADE_TITLE_FLAG_PATTERN = re.compile(
     r"\(\s*(?:[^()]*,\s*)?downgrade(?:\s*,[^()]*)?\s*\)\s*$",
     re.IGNORECASE,
 )
+BLOB_RELPATHS = frozenset(spec.blob_relpath for spec in updater.BINARY_SPECS)
+BLOBS_DIR_RELPATH = "lib/embedded_node/blobs"
+MAX_PR_FILES_PER_PAGE = 100
 
 
 @dataclasses.dataclass(frozen=True)
@@ -33,6 +36,7 @@ class ClosedPullRequest:
     number: int
     html_url: str
     reason: str
+    comment_warning: str | None = None
 
 
 @dataclasses.dataclass(frozen=True)
@@ -125,6 +129,103 @@ def _list_candidate_open_prs(
     return matching
 
 
+def _list_pr_changed_files(
+    *,
+    repo: str,
+    pr_number: int,
+    github_token: str,
+    opener: urllib.request.OpenerDirector | None = None,
+) -> list[str] | None:
+    """Return changed filenames in the PR, or None if the list may be truncated/invalid."""
+    url = (
+        f"https://api.github.com/repos/{repo}/pulls/{pr_number}/files"
+        f"?per_page={MAX_PR_FILES_PER_PAGE}"
+    )
+    payload = updater.github_api_request_json(
+        url,
+        github_token=github_token,
+        opener=opener,
+        api_label="GitHub Pull Request Files API",
+    )
+    if not isinstance(payload, list) or len(payload) >= MAX_PR_FILES_PER_PAGE:
+        return None
+    paths: list[str] = []
+    for entry in payload:
+        if not isinstance(entry, dict) or not isinstance(entry.get("filename"), str):
+            return None
+        paths.append(entry["filename"])
+    return paths
+
+
+def _fetch_blob_git_shas(
+    *,
+    repo: str,
+    ref: str,
+    github_token: str,
+    opener: urllib.request.OpenerDirector | None = None,
+) -> dict[str, str] | None:
+    """Return {blob_relpath: git_blob_sha} for embedded blobs at ref, or None if unreadable."""
+    encoded_dir = urllib.parse.quote(BLOBS_DIR_RELPATH, safe="/")
+    query = urllib.parse.urlencode({"ref": ref})
+    url = f"https://api.github.com/repos/{repo}/contents/{encoded_dir}?{query}"
+    try:
+        payload = updater.github_api_request_json(
+            url,
+            github_token=github_token,
+            opener=opener,
+            api_label="GitHub Contents API",
+        )
+    except updater.UpdaterError as exc:
+        cause = exc.__cause__
+        if isinstance(cause, urllib.error.HTTPError) and cause.code == 404:
+            return None
+        raise
+    if not isinstance(payload, list):
+        return None
+    shas: dict[str, str] = {}
+    for entry in payload:
+        if not isinstance(entry, dict) or entry.get("type") != "file":
+            continue
+        path = entry.get("path")
+        sha = entry.get("sha")
+        if path in BLOB_RELPATHS and isinstance(sha, str) and sha:
+            shas[path] = sha
+    return shas if set(shas.keys()) == BLOB_RELPATHS else None
+
+
+def _pr_blobs_match_target_branch(
+    *,
+    repo: str,
+    head_ref: str,
+    target_branch: str,
+    changed_files: Sequence[str],
+    github_token: str,
+    opener: urllib.request.OpenerDirector | None = None,
+) -> bool:
+    """Return True only if PR touches only embedded blobs and all 3 blobs match target_branch."""
+    if not changed_files:
+        return True
+    if not set(changed_files).issubset(BLOB_RELPATHS):
+        return False
+    head_shas = _fetch_blob_git_shas(
+        repo=repo,
+        ref=head_ref,
+        github_token=github_token,
+        opener=opener,
+    )
+    if head_shas is None:
+        return False
+    target_shas = _fetch_blob_git_shas(
+        repo=repo,
+        ref=target_branch,
+        github_token=github_token,
+        opener=opener,
+    )
+    if target_shas is None:
+        return False
+    return head_shas == target_shas
+
+
 def _fetch_pr_manifest(
     *,
     repo: str,
@@ -165,32 +266,6 @@ def _fetch_pr_manifest(
     return "ok", validated
 
 
-def _pr_diff_is_empty(
-    *,
-    repo: str,
-    base_ref: str,
-    head_ref: str,
-    github_token: str,
-    opener: urllib.request.OpenerDirector | None = None,
-) -> bool:
-    encoded_base = urllib.parse.quote(base_ref, safe="")
-    encoded_head = urllib.parse.quote(head_ref, safe="")
-    url = f"https://api.github.com/repos/{repo}/compare/{encoded_base}...{encoded_head}"
-    payload = updater.github_api_request_json(
-        url,
-        github_token=github_token,
-        opener=opener,
-        api_label="GitHub Compare API",
-    )
-    if not isinstance(payload, dict):
-        return False
-    status = payload.get("status")
-    files = payload.get("files")
-    if status in {"identical", "behind"}:
-        return True
-    return isinstance(files, list) and len(files) == 0
-
-
 def _classify_pr_staleness(
     *,
     repo: str,
@@ -204,10 +279,54 @@ def _classify_pr_staleness(
     if is_forced_downgrade_pr(pr):
         return False, "PR is marked as an intentional forced downgrade"
 
+    pr_number = int(pr["number"])
     head = pr["head"]
-    base = pr["base"]
     head_ref = str(head.get("sha") or head.get("ref") or "")
-    base_ref = str(base.get("sha") or base.get("ref") or target_branch)
+
+    changed_files = _list_pr_changed_files(
+        repo=repo,
+        pr_number=pr_number,
+        github_token=github_token,
+        opener=opener,
+    )
+    if changed_files is None:
+        return (
+            False,
+            "PR file list could not be verified or exceeded 100 files; preserving PR for manual review",
+        )
+    if len(changed_files) == 0:
+        return True, f"PR has no remaining diff against `{target_branch}`"
+
+    changed_set = set(changed_files)
+    allowed_paths = BLOB_RELPATHS | {updater.MANIFEST_RELPATH}
+    if not changed_set.issubset(allowed_paths):
+        return (
+            False,
+            "PR modifies files outside embedded libznn blobs/manifest; preserving PR for manual review",
+        )
+    touches_blobs = bool(changed_set & BLOB_RELPATHS)
+    touches_manifest = updater.MANIFEST_RELPATH in changed_set
+
+    # If the PR modifies blobs without modifying the manifest, any manifest at PR head is
+    # inherited from the base branch and does not describe the PR's blob changes.
+    if touches_blobs and not touches_manifest:
+        if _pr_blobs_match_target_branch(
+            repo=repo,
+            head_ref=head_ref,
+            target_branch=target_branch,
+            changed_files=changed_files,
+            github_token=github_token,
+            opener=opener,
+        ):
+            return (
+                True,
+                f"PR blob contents already match `{target_branch}` (no remaining binary diff)",
+            )
+        return (
+            False,
+            f"PR updates embedded blobs without updating `{updater.MANIFEST_RELPATH}` and "
+            f"differs from `{target_branch}`; preserving PR for manual review",
+        )
 
     manifest_status, pr_manifest = _fetch_pr_manifest(
         repo=repo,
@@ -231,17 +350,9 @@ def _classify_pr_staleness(
         )
 
     if manifest_status == "missing":
-        if _pr_diff_is_empty(
-            repo=repo,
-            base_ref=base_ref,
-            head_ref=head_ref,
-            github_token=github_token,
-            opener=opener,
-        ):
-            return True, f"PR has no remaining diff against `{target_branch}`"
         return (
             False,
-            f"PR has no `{updater.MANIFEST_RELPATH}` and still carries changes; manual review required",
+            f"PR has no `{updater.MANIFEST_RELPATH}` and modifies non-blob files; preserving PR for manual review",
         )
 
     return (
@@ -262,6 +373,38 @@ def _build_close_comment(
         f"Closing this automated pull request because `{target_branch}` is already up to date "
         f"with `go-zenon` `{release_tag}` ({reason}){run_suffix}."
     )
+
+
+def _ref_is_absent(
+    *,
+    repo: str,
+    pr_branch: str,
+    github_token: str,
+    opener: urllib.request.OpenerDirector | None = None,
+) -> bool:
+    encoded_branch = urllib.parse.quote(pr_branch, safe="/")
+    url = f"https://api.github.com/repos/{repo}/git/ref/heads/{encoded_branch}"
+    try:
+        payload = updater.github_api_request_json(
+            url,
+            github_token=github_token,
+            opener=opener,
+            api_label="GitHub Git Ref API",
+        )
+    except updater.UpdaterError as exc:
+        cause = exc.__cause__
+        if isinstance(cause, urllib.error.HTTPError) and cause.code == 404:
+            return True
+        return False
+    expected_ref = f"refs/heads/{pr_branch}"
+    if isinstance(payload, dict) and payload.get("ref") == expected_ref:
+        return False
+    # Prefix-match list response from GitHub means the exact branch ref does not exist.
+    if isinstance(payload, list):
+        return not any(
+            isinstance(entry, dict) and entry.get("ref") == expected_ref for entry in payload
+        )
+    return False
 
 
 def _delete_stale_branch(
@@ -285,8 +428,16 @@ def _delete_stale_branch(
         return "deleted"
     except updater.UpdaterError as exc:
         cause = exc.__cause__
-        if isinstance(cause, urllib.error.HTTPError) and cause.code in {404, 422}:
+        if isinstance(cause, urllib.error.HTTPError) and cause.code == 404:
             return "already_deleted"
+        if isinstance(cause, urllib.error.HTTPError) and cause.code == 422:
+            if _ref_is_absent(
+                repo=repo,
+                pr_branch=pr_branch,
+                github_token=github_token,
+                opener=opener,
+            ):
+                return "already_deleted"
         raise
 
 
@@ -354,6 +505,8 @@ def close_stale_libznn_prs(
             opener=opener,
             api_label="GitHub Pull Requests API",
         )
+        # Record the close immediately and isolate comment failures so branch cleanup still runs.
+        comment_warning: str | None = None
         comment_body = _build_close_comment(
             target_branch=validated_target,
             release_tag=validated_tag,
@@ -361,15 +514,29 @@ def close_stale_libznn_prs(
             workflow_run_url=workflow_run_url,
         )
         comment_url = f"https://api.github.com/repos/{validated_repo}/issues/{pr_number}/comments"
-        updater.github_api_request_json(
-            comment_url,
-            method="POST",
-            body={"body": comment_body},
-            github_token=github_token,
-            opener=opener,
-            api_label="GitHub Issue Comments API",
+        try:
+            updater.github_api_request_json(
+                comment_url,
+                method="POST",
+                body={"body": comment_body},
+                github_token=github_token,
+                opener=opener,
+                api_label="GitHub Issue Comments API",
+            )
+        except updater.UpdaterError as exc:
+            comment_warning = str(exc)
+            print(
+                f"WARNING: closed stale PR #{pr_number} but failed to post closing comment: {exc}",
+                file=sys.stderr,
+            )
+        closed.append(
+            ClosedPullRequest(
+                number=pr_number,
+                html_url=pr_url,
+                reason=reason,
+                comment_warning=comment_warning,
+            )
         )
-        closed.append(ClosedPullRequest(number=pr_number, html_url=pr_url, reason=reason))
 
     if closed and not preserved:
         branch_status = _delete_stale_branch(
@@ -407,8 +574,13 @@ def close_stale_libznn_prs(
         summary_lines = ["", "### Stale pull request cleanup"]
         if result.closed_prs:
             for item in result.closed_prs:
+                note = (
+                    f" (warning: closing comment failed: {item.comment_warning})"
+                    if item.comment_warning
+                    else ""
+                )
                 summary_lines.append(
-                    f"- Closed stale PR #{item.number} ({item.html_url}): {item.reason}."
+                    f"- Closed stale PR #{item.number} ({item.html_url}): {item.reason}.{note}"
                 )
             summary_lines.append(
                 f"- Branch `{validated_branch}` deletion status: `{result.branch_deleted}`."
