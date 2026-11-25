@@ -39,6 +39,7 @@ OUTPUT_KEY_PATTERN = re.compile(r"^[A-Za-z_][A-Za-z0-9_-]*$")
 MAX_ARCHIVE_BYTES = 256 * 1024 * 1024
 MAX_EXTRACTED_BYTES = 256 * 1024 * 1024
 MAX_CHECKSUMS_BYTES = 1 * 1024 * 1024
+MAX_METADATA_BYTES = 2 * 1024 * 1024
 HTTP_TIMEOUT_SECONDS = 60
 HTTP_MAX_ATTEMPTS = 3
 CHUNK_SIZE = 64 * 1024
@@ -494,40 +495,21 @@ def extract_expected_binary(
     return digest
 
 
-def _open_with_retries(
-    opener: urllib.request.OpenerDirector,
-    req: urllib.request.Request,
-    *,
-    timeout: int = HTTP_TIMEOUT_SECONDS,
-    max_attempts: int = HTTP_MAX_ATTEMPTS,
-    retry_backoff_seconds: float | None = None,
-) -> Any:
-    last_exc: Exception | None = None
-    for attempt in range(1, max_attempts + 1):
-        try:
-            return opener.open(req, timeout=timeout)
-        except urllib.error.HTTPError as exc:
-            last_exc = exc
-            if exc.code not in {429, 500, 502, 503, 504} or attempt == max_attempts:
-                raise UpdaterError(f"HTTP {exc.code} fetching {req.full_url}: {exc.reason}") from exc
-        except (
-            urllib.error.URLError,
-            http.client.HTTPException,
-            ConnectionError,
-            TimeoutError,
-            socket.timeout,
-        ) as exc:
-            last_exc = exc
-            if attempt == max_attempts:
-                raise UpdaterError(f"Network error fetching {req.full_url}: {exc}") from exc
-        sleep_s = (
-            retry_backoff_seconds
-            if retry_backoff_seconds is not None
-            else min(2 ** (attempt - 1), 4)
-        )
-        if sleep_s > 0:
-            time.sleep(sleep_s)
-    raise UpdaterError(f"Failed fetching {req.full_url}: {last_exc}")
+def _declared_content_length(resp: Any) -> int | None:
+    headers = getattr(resp, "headers", None)
+    if headers is None or not hasattr(headers, "get"):
+        return None
+    content_encoding = headers.get("Content-Encoding")
+    if content_encoding and str(content_encoding).strip().lower() != "identity":
+        return None
+    raw_len = headers.get("Content-Length")
+    if raw_len is None:
+        return None
+    try:
+        length = int(str(raw_len).strip())
+    except ValueError:
+        return None
+    return length if length >= 0 else None
 
 
 def fetch_release_metadata(
@@ -536,6 +518,8 @@ def fetch_release_metadata(
     *,
     github_token: str | None = None,
     opener: urllib.request.OpenerDirector | None = None,
+    max_attempts: int = HTTP_MAX_ATTEMPTS,
+    retry_backoff_seconds: float | None = None,
 ) -> dict[str, Any]:
     if tag:
         encoded_tag = urllib.parse.quote(tag, safe="")
@@ -553,18 +537,53 @@ def fetch_release_metadata(
 
     req = urllib.request.Request(url, headers=headers)
     active_opener = opener or _build_opener()
-    try:
-        with _open_with_retries(active_opener, req) as resp:
-            raw = resp.read(2 * 1024 * 1024)
-    except (
-        urllib.error.URLError,
-        http.client.HTTPException,
-        ConnectionError,
-        TimeoutError,
-        socket.timeout,
-        OSError,
-    ) as exc:
-        raise UpdaterError(f"Error reading GitHub Releases API response ({url}): {exc}") from exc
+    raw: bytes | None = None
+    last_exc: Exception | None = None
+
+    for attempt in range(1, max_attempts + 1):
+        try:
+            with active_opener.open(req, timeout=HTTP_TIMEOUT_SECONDS) as resp:
+                declared_len = _declared_content_length(resp)
+                if declared_len is not None and declared_len > MAX_METADATA_BYTES:
+                    raise UpdaterError(
+                        f"GitHub Releases API response exceeded {MAX_METADATA_BYTES} bytes ({url})"
+                    )
+                raw = resp.read(MAX_METADATA_BYTES + 1)
+                if len(raw) > MAX_METADATA_BYTES:
+                    raise UpdaterError(
+                        f"GitHub Releases API response exceeded {MAX_METADATA_BYTES} bytes ({url})"
+                    )
+                if declared_len is not None and len(raw) != declared_len:
+                    raise http.client.IncompleteRead(raw, max(declared_len - len(raw), 0))
+            break
+        except UpdaterError:
+            raise
+        except urllib.error.HTTPError as exc:
+            last_exc = exc
+            if exc.code not in {429, 500, 502, 503, 504} or attempt == max_attempts:
+                raise UpdaterError(f"HTTP {exc.code} fetching {url}: {exc.reason}") from exc
+        except (
+            urllib.error.URLError,
+            http.client.HTTPException,
+            ConnectionError,
+            TimeoutError,
+            socket.timeout,
+        ) as exc:
+            last_exc = exc
+            if attempt == max_attempts:
+                raise UpdaterError(f"Network error fetching {url}: {exc}") from exc
+        except OSError as exc:
+            raise UpdaterError(f"Error reading GitHub Releases API response ({url}): {exc}") from exc
+        sleep_s = (
+            retry_backoff_seconds
+            if retry_backoff_seconds is not None
+            else min(2 ** (attempt - 1), 4)
+        )
+        if sleep_s > 0:
+            time.sleep(sleep_s)
+
+    if raw is None:
+        raise UpdaterError(f"Failed fetching {url}: {last_exc}")
 
     try:
         payload = json.loads(raw.decode("utf-8"))
@@ -607,12 +626,19 @@ def download_release_file(
     for attempt in range(1, max_attempts + 1):
         try:
             with active_opener.open(req, timeout=HTTP_TIMEOUT_SECONDS) as resp:
+                declared_len = _declared_content_length(resp)
+                if declared_len is not None and declared_len > max_bytes:
+                    raise UpdaterError(
+                        f"{url} declared Content-Length {declared_len} exceeds maximum allowed size of {max_bytes} bytes"
+                    )
                 digest, total = _copy_stream_bounded(
                     resp,
                     dest_path,
                     max_bytes=max_bytes,
                     label=url,
                 )
+            if declared_len is not None and total != declared_len:
+                raise http.client.IncompleteRead(b"", max(declared_len - total, 0))
             if total == 0:
                 raise UpdaterError(f"Downloaded file from {url} is empty")
             return digest
@@ -789,9 +815,10 @@ def build_pr_body(
             "- [ ] PR unit/widget tests and devnet BDD integration tests pass",
             "- [ ] Smoke-test embedded node startup/RPC/shutdown if FFI or runtime behavior changed",
             "",
-            "> **Note:** Pull requests opened with the default `GITHUB_TOKEN` do not automatically "
-            "trigger `pull_request` CI workflows. If CI checks have not started, close and reopen "
-            "this pull request to trigger builds and tests.",
+            "> **Note:** Pull requests opened with the default `GITHUB_TOKEN` create "
+            "`pull_request` CI runs that require approval. A maintainer with write access must "
+            "select **Approve workflows to run** in the merge box. If no CI runs appear, check "
+            "the workflow triggers and branch filters.",
         ]
     )
     return "\n".join(lines) + "\n"
@@ -911,103 +938,111 @@ def run_update(
         if isinstance(entry, dict) and isinstance(entry.get("name"), str):
             assets_by_name[entry["name"]] = entry
 
-    downloads_dir = work_dir / "downloads"
-    extracted_dir = work_dir / "extracted"
-    downloads_dir.mkdir(parents=True, exist_ok=True)
-    extracted_dir.mkdir(parents=True, exist_ok=True)
+    work_dir.mkdir(parents=True, exist_ok=True)
+    with tempfile.TemporaryDirectory(
+        prefix="libznn-update-",
+        dir=str(work_dir),
+    ) as scratch_dir_name:
+        run_scratch_dir = pathlib.Path(scratch_dir_name)
+        downloads_dir = run_scratch_dir / "downloads"
+        extracted_dir = run_scratch_dir / "extracted"
+        downloads_dir.mkdir()
+        extracted_dir.mkdir()
 
-    checksums_map: dict[str, str] | None = None
-    checksums_url: str | None = None
-    checksums_sha256: str | None = None
+        checksums_map: dict[str, str] | None = None
+        checksums_url: str | None = None
+        checksums_sha256: str | None = None
 
-    checksums_asset = assets_by_name.get(CHECKSUMS_ASSET_NAME)
-    if checksums_asset is not None:
-        checksums_url = validate_release_download_url(
-            str(checksums_asset.get("browser_download_url") or ""),
-            upstream,
-        )
-        checksums_path = downloads_dir / CHECKSUMS_ASSET_NAME
-        checksums_sha256 = download_release_file(
-            checksums_url,
-            checksums_path,
+        checksums_asset = assets_by_name.get(CHECKSUMS_ASSET_NAME)
+        if checksums_asset is not None:
+            checksums_url = validate_release_download_url(
+                str(checksums_asset.get("browser_download_url") or ""),
+                upstream,
+            )
+            checksums_path = downloads_dir / CHECKSUMS_ASSET_NAME
+            checksums_sha256 = download_release_file(
+                checksums_url,
+                checksums_path,
+                upstream_repo=upstream,
+                max_bytes=MAX_CHECKSUMS_BYTES,
+                opener=opener,
+            )
+            checksums_gh_digest = parse_github_asset_digest(
+                checksums_asset.get("digest"),
+                CHECKSUMS_ASSET_NAME,
+            )
+            if checksums_gh_digest is not None and checksums_gh_digest != checksums_sha256:
+                raise UpdaterError(
+                    f"SHA-256 mismatch for {CHECKSUMS_ASSET_NAME} against GitHub release digest: "
+                    f"expected {checksums_gh_digest}, got {checksums_sha256}"
+                )
+            try:
+                checksums_text = checksums_path.read_text(encoding="utf-8")
+            except UnicodeDecodeError as exc:
+                raise UpdaterError(
+                    f"Failed to decode {CHECKSUMS_ASSET_NAME} as UTF-8: {exc}"
+                ) from exc
+            checksums_map = parse_checksums_file(checksums_text)
+
+        release_info = ReleaseInfo(
             upstream_repo=upstream,
-            max_bytes=MAX_CHECKSUMS_BYTES,
-            opener=opener,
+            tag_name=resolved_tag,
+            release_name=release_name,
+            html_url=html_url,
+            published_at=published_at,
+            prerelease=prerelease,
+            checksums_url=checksums_url,
+            checksums_sha256=checksums_sha256,
         )
-        checksums_gh_digest = parse_github_asset_digest(
-            checksums_asset.get("digest"),
-            CHECKSUMS_ASSET_NAME,
-        )
-        if checksums_gh_digest is not None and checksums_gh_digest != checksums_sha256:
-            raise UpdaterError(
-                f"SHA-256 mismatch for {CHECKSUMS_ASSET_NAME} against GitHub release digest: "
-                f"expected {checksums_gh_digest}, got {checksums_sha256}"
+
+        verified_binaries: list[VerifiedBinary] = []
+        for spec in BINARY_SPECS:
+            asset = assets_by_name.get(spec.asset_name)
+            if asset is None:
+                raise UpdaterError(
+                    f"Required asset {spec.asset_name!r} not found in {upstream} release {resolved_tag}"
+                )
+            download_url = validate_release_download_url(
+                str(asset.get("browser_download_url") or ""),
+                upstream,
             )
-        try:
-            checksums_text = checksums_path.read_text(encoding="utf-8")
-        except UnicodeDecodeError as exc:
-            raise UpdaterError(f"Failed to decode {CHECKSUMS_ASSET_NAME} as UTF-8: {exc}") from exc
-        checksums_map = parse_checksums_file(checksums_text)
-
-    release_info = ReleaseInfo(
-        upstream_repo=upstream,
-        tag_name=resolved_tag,
-        release_name=release_name,
-        html_url=html_url,
-        published_at=published_at,
-        prerelease=prerelease,
-        checksums_url=checksums_url,
-        checksums_sha256=checksums_sha256,
-    )
-
-    verified_binaries: list[VerifiedBinary] = []
-    for spec in BINARY_SPECS:
-        asset = assets_by_name.get(spec.asset_name)
-        if asset is None:
-            raise UpdaterError(
-                f"Required asset {spec.asset_name!r} not found in {upstream} release {resolved_tag}"
+            archive_path = downloads_dir / spec.asset_name
+            actual_archive_sha256 = download_release_file(
+                download_url,
+                archive_path,
+                upstream_repo=upstream,
+                max_bytes=MAX_ARCHIVE_BYTES,
+                opener=opener,
             )
-        download_url = validate_release_download_url(
-            str(asset.get("browser_download_url") or ""),
-            upstream,
-        )
-        archive_path = downloads_dir / spec.asset_name
-        actual_archive_sha256 = download_release_file(
-            download_url,
-            archive_path,
-            upstream_repo=upstream,
-            max_bytes=MAX_ARCHIVE_BYTES,
-            opener=opener,
-        )
-        gh_digest = parse_github_asset_digest(asset.get("digest"), spec.asset_name)
-        verification = verify_asset_checksum(
-            asset_name=spec.asset_name,
-            actual_sha256=actual_archive_sha256,
-            checksums_map=checksums_map,
-            github_digest_sha256=gh_digest,
-            require_in_checksums_file=require_all_in_checksums_file,
-        )
-
-        extracted_path = extracted_dir / spec.member_name
-        extracted_sha256 = extract_expected_binary(archive_path, spec, extracted_path)
-
-        existing_blob = repo_root / spec.blob_relpath
-        previous_sha256 = sha256_file(existing_blob) if existing_blob.is_file() else None
-
-        verified_binaries.append(
-            VerifiedBinary(
-                spec=spec,
-                download_url=download_url,
-                archive_verification=verification,
-                extracted_path=extracted_path,
-                extracted_sha256=extracted_sha256,
-                previous_sha256=previous_sha256,
+            gh_digest = parse_github_asset_digest(asset.get("digest"), spec.asset_name)
+            verification = verify_asset_checksum(
+                asset_name=spec.asset_name,
+                actual_sha256=actual_archive_sha256,
+                checksums_map=checksums_map,
+                github_digest_sha256=gh_digest,
+                require_in_checksums_file=require_all_in_checksums_file,
             )
-        )
 
-    changed = any(item.changed for item in verified_binaries)
-    if changed and not dry_run:
-        stage_verified_binaries(repo_root, verified_binaries)
+            extracted_path = extracted_dir / spec.member_name
+            extracted_sha256 = extract_expected_binary(archive_path, spec, extracted_path)
+
+            existing_blob = repo_root / spec.blob_relpath
+            previous_sha256 = sha256_file(existing_blob) if existing_blob.is_file() else None
+
+            verified_binaries.append(
+                VerifiedBinary(
+                    spec=spec,
+                    download_url=download_url,
+                    archive_verification=verification,
+                    extracted_path=extracted_path,
+                    extracted_sha256=extracted_sha256,
+                    previous_sha256=previous_sha256,
+                )
+            )
+
+        changed = any(item.changed for item in verified_binaries)
+        if changed and not dry_run:
+            stage_verified_binaries(repo_root, verified_binaries)
 
     pr_title = f"chore: update embedded libznn to go-zenon {release_info.tag_name}"
     commit_message = build_commit_message(release_info, verified_binaries)
@@ -1187,10 +1222,8 @@ def main(argv: Sequence[str] | None = None) -> int:
             f"(extracted={item.extracted_sha256}, archive={item.archive_verification.actual_sha256})"
         )
         if in_github_actions and item.archive_verification.checksums_file_sha256 is None:
-            print(
-                f"::warning::Asset {item.spec.asset_name} was not listed in "
-                f"{CHECKSUMS_ASSET_NAME}; verified via GitHub release digest only."
-            )
+            source_plain = item.archive_verification.source_description.replace("`", "")
+            print(f"::warning::Asset {item.spec.asset_name} verified via {source_plain}.")
     if changed and args.dry_run:
         print("Dry run enabled: repository blobs were not modified.")
     elif changed:

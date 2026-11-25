@@ -151,8 +151,9 @@ jobs:
 
       # Requires repo setting: Settings -> Actions -> General -> Workflow permissions ->
       # "Allow GitHub Actions to create and approve pull requests".
-      # Note: PRs created with GITHUB_TOKEN do not automatically trigger pull_request CI
-      # workflows; close and reopen the generated PR to trigger desktop builds and tests.
+      # Note: PRs created with GITHUB_TOKEN create pull_request CI runs that require approval.
+      # A maintainer with write access must select "Approve workflows to run" in the merge box.
+      # If no runs appear, check the workflow triggers and branch filters.
       - name: Create or update pull request
         id: cpr
         if: steps.update.outputs.changed == 'true'

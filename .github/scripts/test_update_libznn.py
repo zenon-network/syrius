@@ -485,7 +485,8 @@ class EndToEndUpdateTests(unittest.TestCase):
         self.assertIn(hashes["win_arc"], pr_body)
         self.assertIn(_sha256_bytes(new_linux), pr_body)
         self.assertIn(_sha256_bytes(self.old_linux), pr_body)
-        self.assertIn("GITHUB_TOKEN", pr_body)
+        self.assertIn("Approve workflows to run", pr_body)
+        self.assertNotIn("close and reopen", pr_body)
 
         gh_out_text = gh_output.read_text(encoding="utf-8")
         self.assertIn("changed=true\n", gh_out_text)
@@ -530,17 +531,16 @@ class EndToEndUpdateTests(unittest.TestCase):
     def test_rejects_draft_tag_mismatch_bad_html_url_missing_asset_and_bad_checksums_digest(
         self,
     ) -> None:
+        opener_full, _ = self._build_mock_release(
+            tag="v0.0.11-alphanet",
+            linux_bin=b"\x7fELF-1",
+            darwin_bin=b"\xca\xfe\xba\xbe-1",
+            windows_bin=b"MZ-1",
+        )
         base_payload = json.loads(
-            self._build_mock_release(
-                tag="v0.0.11-alphanet",
-                linux_bin=b"\x7fELF-1",
-                darwin_bin=b"\xca\xfe\xba\xbe-1",
-                windows_bin=b"MZ-1",
-            )[0]
-            .responses[
+            opener_full.responses[
                 "https://api.github.com/repos/zenon-network/go-zenon/releases/tags/v0.0.11-alphanet"
-            ]
-            .decode("utf-8")
+            ].decode("utf-8")
         )
 
         def run_with_payload(
@@ -577,18 +577,12 @@ class EndToEndUpdateTests(unittest.TestCase):
         with self.assertRaisesRegex(updater.UpdaterError, "Untrusted release URL"):
             run_with_payload(bad_url_payload)
 
-        # 4. Missing required asset
+        # 4. Missing required asset (reuses opener_full so archive/checksums match base_payload)
         missing_asset_payload = dict(
             base_payload,
             assets=[
                 a for a in base_payload["assets"] if a["name"] != "libznn-windows-amd64.zip"
             ],
-        )
-        opener_full, _ = self._build_mock_release(
-            tag="v0.0.11-alphanet",
-            linux_bin=b"\x7fELF-1",
-            darwin_bin=b"\xca\xfe\xba\xbe-1",
-            windows_bin=b"MZ-1",
         )
         with self.assertRaisesRegex(updater.UpdaterError, "Required asset"):
             run_with_payload(missing_asset_payload, extra_responses=opener_full.responses)
@@ -601,19 +595,29 @@ class EndToEndUpdateTests(unittest.TestCase):
             else:
                 bad_csum_assets.append(asset)
         bad_csum_payload = dict(base_payload, assets=bad_csum_assets)
-        with self.assertRaisesRegex(updater.UpdaterError, "SHA256CHECKSUMS.txt"):
+        with self.assertRaisesRegex(
+            updater.UpdaterError, "SHA-256 mismatch for SHA256CHECKSUMS.txt"
+        ):
             run_with_payload(bad_csum_payload, extra_responses=opener_full.responses)
 
-    def test_download_retries_on_connection_reset_and_bounds_attempts(self) -> None:
+    def test_download_retries_on_connection_reset_truncated_body_and_bounds_attempts(self) -> None:
         url = "https://github.com/zenon-network/go-zenon/releases/download/v0.0.11-alphanet/libznn-linux-amd64.tar.gz"
 
         class _FlakyStream:
-            def __init__(self, fail: bool, data: bytes) -> None:
-                self._fail = fail
+            def __init__(
+                self,
+                *,
+                fail_reset: bool = False,
+                data: bytes = b"",
+                headers: dict[str, str] | None = None,
+            ) -> None:
+                self._fail_reset = fail_reset
                 self._stream = io.BytesIO(data)
+                self.headers = headers or {}
+                self.closed = False
 
             def read(self, size: int = -1) -> bytes:
-                if self._fail:
+                if self._fail_reset:
                     raise ConnectionResetError("connection reset by peer")
                 return self._stream.read(size)
 
@@ -621,21 +625,34 @@ class EndToEndUpdateTests(unittest.TestCase):
                 return self
 
             def __exit__(self, *args: Any) -> None:
+                self.closed = True
                 self._stream.close()
 
         class _FlakyOpener:
-            def __init__(self, fail_times: int, data: bytes) -> None:
+            def __init__(self, responses: list[_FlakyStream]) -> None:
                 self.calls = 0
-                self.fail_times = fail_times
-                self.data = data
+                self._responses = responses
 
             def open(self, req: urllib.request.Request, timeout: int = 60) -> _FlakyStream:
+                idx = min(self.calls, len(self._responses) - 1)
                 self.calls += 1
-                return _FlakyStream(self.calls <= self.fail_times, self.data)
+                return self._responses[idx]
 
         dest = self.root / "flaky.tar.gz"
         payload = b"recovered-payload"
-        flaky_ok = _FlakyOpener(fail_times=2, data=payload)
+        flaky_ok = _FlakyOpener(
+            [
+                _FlakyStream(fail_reset=True),
+                _FlakyStream(
+                    data=payload[:5],
+                    headers={"Content-Length": str(len(payload))},
+                ),
+                _FlakyStream(
+                    data=payload,
+                    headers={"Content-Length": str(len(payload))},
+                ),
+            ]
+        )
         digest = updater.download_release_file(
             url,
             dest,
@@ -648,19 +665,139 @@ class EndToEndUpdateTests(unittest.TestCase):
         self.assertEqual(flaky_ok.calls, 3)
         self.assertEqual(digest, _sha256_bytes(payload))
 
-        flaky_fail = _FlakyOpener(fail_times=5, data=payload)
+        # Persistent truncated body fails cleanly after max_attempts and removes partial file.
+        truncated_fail = _FlakyOpener(
+            [
+                _FlakyStream(
+                    data=payload[:4],
+                    headers={"Content-Length": str(len(payload))},
+                ),
+                _FlakyStream(
+                    data=payload[:4],
+                    headers={"Content-Length": str(len(payload))},
+                ),
+                _FlakyStream(
+                    data=payload[:4],
+                    headers={"Content-Length": str(len(payload))},
+                ),
+            ]
+        )
         with self.assertRaisesRegex(updater.UpdaterError, "Network error downloading"):
             updater.download_release_file(
                 url,
                 dest,
                 upstream_repo="zenon-network/go-zenon",
                 max_bytes=1024,
-                opener=flaky_fail,  # type: ignore[arg-type]
+                opener=truncated_fail,  # type: ignore[arg-type]
                 max_attempts=3,
                 retry_backoff_seconds=0,
             )
-        self.assertEqual(flaky_fail.calls, 3)
+        self.assertEqual(truncated_fail.calls, 3)
         self.assertFalse(dest.exists())
+
+    def test_fetch_release_metadata_retries_body_read_failure_and_closes_response(self) -> None:
+        good_json = json.dumps({"tag_name": "v0.0.11-alphanet"}).encode("utf-8")
+
+        class _MetaStream:
+            def __init__(self, fail_read: bool, data: bytes) -> None:
+                self._fail_read = fail_read
+                self._data = data
+                self.closed = False
+
+            def read(self, size: int = -1) -> bytes:
+                if self._fail_read:
+                    raise TimeoutError("timed out reading metadata body")
+                return self._data[:size] if size >= 0 else self._data
+
+            def __enter__(self) -> _MetaStream:
+                return self
+
+            def __exit__(self, *args: Any) -> None:
+                self.closed = True
+
+        first_stream = _MetaStream(fail_read=True, data=b"")
+        second_stream = _MetaStream(fail_read=False, data=good_json)
+
+        class _MetaOpener:
+            def __init__(self) -> None:
+                self.calls = 0
+
+            def open(self, req: urllib.request.Request, timeout: int = 60) -> _MetaStream:
+                self.calls += 1
+                return first_stream if self.calls == 1 else second_stream
+
+        opener = _MetaOpener()
+        payload = updater.fetch_release_metadata(
+            "zenon-network/go-zenon",
+            "v0.0.11-alphanet",
+            opener=opener,  # type: ignore[arg-type]
+            max_attempts=3,
+            retry_backoff_seconds=0,
+        )
+        self.assertEqual(opener.calls, 2)
+        self.assertTrue(first_stream.closed)
+        self.assertTrue(second_stream.closed)
+        self.assertEqual(payload["tag_name"], "v0.0.11-alphanet")
+
+    def test_main_fetch_metadata_only_errors_without_output_and_emits_warning_in_ci(self) -> None:
+        stderr_buf = io.StringIO()
+        old_stderr = sys.stderr
+        try:
+            sys.stderr = stderr_buf
+            rc = updater.main(["--fetch-metadata-only"])
+        finally:
+            sys.stderr = old_stderr
+        self.assertEqual(rc, 1)
+        self.assertIn("--metadata-out is required", stderr_buf.getvalue())
+
+        # Verify ::warning:: annotation on digest-only fallback uses accurate source description.
+        opener, _ = self._build_mock_release(
+            tag="v0.0.11-alphanet",
+            linux_bin=b"\x7fELF-warn",
+            darwin_bin=b"\xca\xfe\xba\xbe-warn",
+            windows_bin=b"MZ-warn",
+            include_darwin_in_checksums=False,
+        )
+        release_json = self.root / "warn_release.json"
+        release_json.write_bytes(
+            opener.responses[
+                "https://api.github.com/repos/zenon-network/go-zenon/releases/tags/v0.0.11-alphanet"
+            ]
+        )
+        orig_build_opener = updater._build_opener
+        orig_gha = os.environ.get("GITHUB_ACTIONS")
+        stdout_buf = io.StringIO()
+        old_stdout = sys.stdout
+        try:
+            updater._build_opener = lambda: opener  # type: ignore[assignment]
+            os.environ["GITHUB_ACTIONS"] = "true"
+            sys.stdout = stdout_buf
+            rc = updater.main(
+                [
+                    "--repo-root",
+                    str(self.repo_root),
+                    "--work-dir",
+                    str(self.work_dir),
+                    "--release-json",
+                    str(release_json),
+                    "--dry-run",
+                ]
+            )
+        finally:
+            updater._build_opener = orig_build_opener
+            sys.stdout = old_stdout
+            if orig_gha is None:
+                os.environ.pop("GITHUB_ACTIONS", None)
+            else:
+                os.environ["GITHUB_ACTIONS"] = orig_gha
+        self.assertEqual(rc, 0)
+        self.assertIn(
+            "::warning::Asset libznn-darwin-universal.tar.gz verified via "
+            "GitHub release digest (not listed in SHA256CHECKSUMS.txt).",
+            stdout_buf.getvalue(),
+        )
+        # Ensure per-run scratch directories were cleaned up inside work_dir.
+        self.assertEqual(list(self.work_dir.glob("libznn-update-*")), [])
 
     def test_unchanged_blobs_sets_changed_false(self) -> None:
         opener, _ = self._build_mock_release(
