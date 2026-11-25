@@ -4695,6 +4695,13 @@ void main() {
         (rejected.captured.single as ReownSignError).code,
         equals(Errors.getSdkError(Errors.USER_REJECTED).code),
       );
+      // Queued full reset must also persist fullReset: true to disk while the
+      // partial reset is still running so a crash cannot lose the request.
+      expect(
+        persistedStorage[Web3WalletService
+            .pendingResetStorageKey]?['fullReset'],
+        isTrue,
+      );
 
       // Release the partial reset: it must NOT delete the reset marker before
       // the queued full reset sweeps live-s1 and other-p2.
@@ -4712,14 +4719,16 @@ void main() {
     });
 
     test(
-      'does not abort an in-flight pair() when an unrelated non-full partial '
-      'reset overlaps it',
+      'does not abort an in-flight pair() when a real unrelated non-full '
+      'partial reset runs concurrently, but still aborts if its topic is swept',
       () async {
         final int now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
         final Map<String, Map<String, dynamic>> persistedStorage =
             <String, Map<String, dynamic>>{};
-        final Completer<void> sdkPairStarted = Completer<void>();
-        final Completer<void> releaseSdkPair = Completer<void>();
+        final Completer<void> pairNewStarted = Completer<void>();
+        final Completer<void> releasePairNew = Completer<void>();
+        final Completer<void> partialCleanupStarted = Completer<void>();
+        final Completer<void> releasePartialCleanup = Completer<void>();
 
         when(() => coreStorage.has(any())).thenAnswer(
           (Invocation i) =>
@@ -4739,15 +4748,25 @@ void main() {
         when(() => coreStorage.delete(any())).thenAnswer((Invocation i) async {
           persistedStorage.remove(i.positionalArguments[0] as String);
         });
-        when(() => walletKit.pair(uri: any(named: 'uri'))).thenAnswer((
-          _,
-        ) async {
-          if (!sdkPairStarted.isCompleted) {
-            sdkPairStarted.complete();
+        when(() => crypto.deleteSymKey('old-p1')).thenAnswer((_) async {
+          if (!partialCleanupStarted.isCompleted) {
+            partialCleanupStarted.complete();
+            await releasePartialCleanup.future;
           }
-          await releaseSdkPair.future;
+        });
+        when(() => walletKit.pair(uri: any(named: 'uri'))).thenAnswer((
+          Invocation i,
+        ) async {
+          final Uri uri = i.namedArguments[#uri] as Uri;
+          final String topic = uri.path.split('@').first;
+          if (topic == 'new-p2') {
+            if (!pairNewStarted.isCompleted) {
+              pairNewStarted.complete();
+            }
+            await releasePairNew.future;
+          }
           return PairingInfo(
-            topic: 'new-p2',
+            topic: topic,
             expiry: now + 3600,
             relay: Relay(ReownConstants.RELAYER_DEFAULT_PROTOCOL),
             active: false,
@@ -4759,23 +4778,84 @@ void main() {
         service.create();
         await service.init();
 
-        final Future<PairingInfo> pairFuture = service.pair(
+        // Start pair() for 'new-p2' and pause inside walletKit.pair().
+        final Future<PairingInfo> pairNewFuture = service.pair(
           Uri.parse('wc:new-p2@2?relay-protocol=irn&symKey=def'),
         );
-        await sdkPairStarted.future;
+        await pairNewStarted.future;
 
-        // Simulate an unrelated partial reset marker for 'old-p1' overlapping
-        // the in-flight pair() for 'new-p2'.
+        // Trigger a REAL non-full partial reset targeting 'old-p1' via a second
+        // pair() call while 'new-p2' is in flight (_isResetting == true).
         persistedStorage[Web3WalletService.pendingResetStorageKey] =
             <String, dynamic>{
               'pending': true,
               'fullReset': false,
               'pendingPairings': <String>['old-p1'],
             };
+        final Future<PairingInfo> triggeringPair = service.pair(
+          Uri.parse('wc:other-p3@2?relay-protocol=irn&symKey=ghi'),
+        );
+        await partialCleanupStarted.future;
 
-        releaseSdkPair.complete();
-        final PairingInfo result = await pairFuture;
+        // Release 'new-p2' WHILE the partial reset is actively running
+        // (_isResetting == true): it must succeed instead of aborting.
+        releasePairNew.complete();
+        final PairingInfo result = await pairNewFuture;
         expect(result.topic, equals('new-p2'));
+
+        releasePartialCleanup.complete();
+        final PairingInfo triggerResult = await triggeringPair;
+        expect(triggerResult.topic, equals('other-p3'));
+
+        // Opposite case: if a real partial reset sweeps the SAME topic
+        // ('swept-p1') and completes while pair('swept-p1') is in flight,
+        // pair('swept-p1') MUST abort via sweptTopicsDuringPair.
+        final Completer<void> sweptPairStarted = Completer<void>();
+        final Completer<void> releaseSweptPair = Completer<void>();
+        when(() => walletKit.pair(uri: any(named: 'uri'))).thenAnswer((
+          Invocation i,
+        ) async {
+          final Uri uri = i.namedArguments[#uri] as Uri;
+          final String topic = uri.path.split('@').first;
+          if (topic == 'swept-p1') {
+            if (!sweptPairStarted.isCompleted) {
+              sweptPairStarted.complete();
+            }
+            await releaseSweptPair.future;
+          }
+          return PairingInfo(
+            topic: topic,
+            expiry: now + 3600,
+            relay: Relay(ReownConstants.RELAYER_DEFAULT_PROTOCOL),
+            active: false,
+          );
+        });
+
+        final Future<PairingInfo> sweptPairFuture = service.pair(
+          Uri.parse('wc:swept-p1@2?relay-protocol=irn&symKey=jkl'),
+        );
+        await sweptPairStarted.future;
+
+        persistedStorage[Web3WalletService.pendingResetStorageKey] =
+            <String, dynamic>{
+              'pending': true,
+              'fullReset': false,
+              'pendingPairings': <String>['swept-p1'],
+            };
+        // Complete a real partial reset targeting 'swept-p1' (marker cleared).
+        final PairingInfo otherAfterSweep = await service.pair(
+          Uri.parse('wc:after-sweep@2?relay-protocol=irn&symKey=mno'),
+        );
+        expect(otherAfterSweep.topic, equals('after-sweep'));
+        expect(
+          persistedStorage.containsKey(
+            Web3WalletService.pendingResetStorageKey,
+          ),
+          isFalse,
+        );
+
+        releaseSweptPair.complete();
+        await expectLater(sweptPairFuture, throwsStateError);
       },
     );
 
@@ -5303,17 +5383,22 @@ void main() {
         when(
           pairingStore.getAll,
         ).thenAnswer((_) => List<PairingInfo>.from(livePairings));
+        int disconnectStarts = 0;
         when(
           () => walletKit.disconnectSession(
             topic: any(named: 'topic'),
             reason: any(named: 'reason'),
           ),
         ).thenAnswer((_) {
+          disconnectStarts++;
           final Completer<void> c = Completer<void>();
           hungOps.add(c);
           return c.future;
         });
         when(() => sessionStore.delete(any())).thenAnswer((Invocation i) async {
+          // By the time the first local purge runs, all 6 remote disconnects
+          // must have already been launched concurrently in parallel.
+          expect(disconnectStarts, equals(6));
           activeSessions.remove(i.positionalArguments[0] as String);
         });
         when(() => pairing.disconnect(topic: any(named: 'topic'))).thenAnswer((
@@ -5419,6 +5504,306 @@ void main() {
         hungDisconnect.complete();
         await Future<void>.delayed(Duration.zero);
         expect(service.sessions.value, isEmpty);
+      },
+    );
+
+    test(
+      'bounds wait for a hung approveSession() call and recovers on retry by '
+      'disconnecting the relay, sweeping the session, and reconnecting',
+      () async {
+        TestWidgetsFlutterBinding.ensureInitialized();
+        const MethodChannel windowManagerChannel = MethodChannel(
+          'window_manager',
+        );
+        TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+            .setMockMethodCallHandler(windowManagerChannel, (
+              MethodCall call,
+            ) async {
+              if (call.method == 'isFocused' || call.method == 'isVisible') {
+                return true;
+              }
+              return null;
+            });
+        addTearDown(() {
+          TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+              .setMockMethodCallHandler(windowManagerChannel, null);
+        });
+
+        final Map<String, Map<String, dynamic>> persistedStorage =
+            <String, Map<String, dynamic>>{};
+        final Completer<void> sdkApproveStarted = Completer<void>();
+        final Completer<void> relaySubscribeResponse = Completer<void>();
+
+        when(() => coreStorage.has(any())).thenAnswer(
+          (Invocation i) =>
+              persistedStorage.containsKey(i.positionalArguments[0]),
+        );
+        when(() => coreStorage.get(any())).thenAnswer(
+          (Invocation i) => persistedStorage[i.positionalArguments[0]],
+        );
+        when(() => coreStorage.set(any(), any())).thenAnswer((
+          Invocation i,
+        ) async {
+          persistedStorage[i.positionalArguments[0]
+              as String] = Map<String, dynamic>.from(
+            i.positionalArguments[1] as Map<String, dynamic>,
+          );
+        });
+        when(() => coreStorage.delete(any())).thenAnswer((Invocation i) async {
+          persistedStorage.remove(i.positionalArguments[0] as String);
+        });
+        when(() => relayClient.disconnect()).thenAnswer((_) async {
+          if (!relaySubscribeResponse.isCompleted) {
+            relaySubscribeResponse.completeError(
+              StateError('relay socket closed'),
+            );
+          }
+        });
+        when(
+          () => walletKit.disconnectSession(
+            topic: 'stuck-s1',
+            reason: any(named: 'reason'),
+          ),
+        ).thenThrow(StateError('relay disconnected'));
+        when(() => sessionStore.delete('stuck-s1')).thenAnswer((_) async {
+          activeSessions.remove('stuck-s1');
+        });
+        when(
+          () => walletKit.approveSession(
+            id: any(named: 'id'),
+            namespaces: any(named: 'namespaces'),
+          ),
+        ).thenAnswer((_) async {
+          final SessionData created = _buildSession(
+            topic: 'stuck-s1',
+            selfPublicKey: 'pk-stuck-s1',
+          );
+          activeSessions['stuck-s1'] = created;
+          if (!sdkApproveStarted.isCompleted) {
+            sdkApproveStarted.complete();
+          }
+          await relaySubscribeResponse.future;
+          return ApproveResponse(topic: 'stuck-s1', session: created);
+        });
+
+        final Web3WalletService service = Web3WalletService(
+          walletKit: walletKit,
+          chainResolver: (String _) => nomService,
+          inFlightPairWaitTimeout: const Duration(milliseconds: 50),
+        );
+        addTearDown(() async {
+          if (!relaySubscribeResponse.isCompleted) {
+            relaySubscribeResponse.complete();
+          }
+          await service.onDispose();
+        });
+        service.create();
+        await service.init();
+
+        final Future<ApproveResponse> hungApprove = service.approveSession(
+          id: 801,
+          namespaces: const <String, Namespace>{},
+          pairingTopic: 'p-801',
+        );
+        final Future<void> hungApproveExpectation = expectLater(
+          hungApprove,
+          throwsStateError,
+        );
+        await sdkApproveStarted.future;
+
+        await expectLater(
+          service.disconnectEverything(),
+          throwsA(isA<TimeoutException>()),
+        );
+        verifyNever(() => relayClient.disconnect());
+        expect(
+          persistedStorage[Web3WalletService
+              .pendingResetStorageKey]?['fullReset'],
+          isTrue,
+        );
+
+        await service.disconnectEverything();
+        await hungApproveExpectation;
+        await Future<void>.delayed(Duration.zero);
+
+        verify(() => relayClient.disconnect()).called(1);
+        verify(() => relayClient.connect()).called(1);
+        verify(() => crypto.deleteKeyPair('pk-stuck-s1')).called(1);
+        verify(() => crypto.deleteSymKey('stuck-s1')).called(1);
+        verify(() => expirer.delete('stuck-s1')).called(1);
+        expect(activeSessions, isEmpty);
+        expect(
+          persistedStorage.containsKey(
+            Web3WalletService.pendingResetStorageKey,
+          ),
+          isFalse,
+        );
+      },
+    );
+
+    test('pair() waits for an in-flight stale-pairing disconnect on the same '
+        'topic so cleanup cannot delete the newly created pairing', () async {
+      final int now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+      final List<PairingInfo> livePairings = <PairingInfo>[
+        PairingInfo(
+          topic: 'race-topic',
+          expiry: now + 300,
+          relay: Relay(ReownConstants.RELAYER_DEFAULT_PROTOCOL),
+          active: false,
+        ),
+      ];
+      final Completer<void> disconnectStarted = Completer<void>();
+      final Completer<void> releaseDisconnect = Completer<void>();
+      bool walletKitPairStartedForRaceTopic = false;
+
+      when(
+        pairingStore.getAll,
+      ).thenAnswer((_) => List<PairingInfo>.from(livePairings));
+      when(() => pairing.disconnect(topic: 'race-topic')).thenAnswer((_) async {
+        if (!disconnectStarted.isCompleted) {
+          disconnectStarted.complete();
+          await releaseDisconnect.future;
+        }
+        // Mirrors Reown deleting the topic AFTER awaiting _isValidDisconnect.
+        livePairings.removeWhere((PairingInfo p) => p.topic == 'race-topic');
+      });
+      when(() => walletKit.pair(uri: any(named: 'uri'))).thenAnswer((
+        Invocation i,
+      ) async {
+        final Uri uri = i.namedArguments[#uri] as Uri;
+        final String topic = uri.path.split('@').first;
+        if (topic == 'race-topic') {
+          walletKitPairStartedForRaceTopic = true;
+        }
+        final PairingInfo created = PairingInfo(
+          topic: topic,
+          expiry: now + 3600,
+          relay: Relay(ReownConstants.RELAYER_DEFAULT_PROTOCOL),
+          active: false,
+        );
+        livePairings
+          ..removeWhere((PairingInfo p) => p.topic == topic)
+          ..add(created);
+        return created;
+      });
+
+      final Web3WalletService service = buildService();
+      addTearDown(service.onDispose);
+      service.create();
+      await service.init();
+
+      // Call A starts stale-pairing disconnect for 'race-topic' and pauses
+      // mid-disconnect (before Reown removes 'race-topic' from pairings).
+      final Future<PairingInfo> callAFuture = service.pair(
+        Uri.parse('wc:other-a@2?relay-protocol=irn&symKey=111'),
+      );
+      await disconnectStarted.future;
+
+      // Call B attempts to pair 'race-topic' while Call A's disconnect is
+      // still in flight: Call B must wait for Call A's disconnect to settle
+      // BEFORE invoking walletKit.pair('race-topic').
+      final Future<PairingInfo> callBFuture = service.pair(
+        Uri.parse('wc:race-topic@2?relay-protocol=irn&symKey=222'),
+      );
+      await Future<void>.delayed(Duration.zero);
+      expect(walletKitPairStartedForRaceTopic, isFalse);
+
+      releaseDisconnect.complete();
+      await callAFuture;
+      final PairingInfo createdB = await callBFuture;
+      expect(createdB.topic, equals('race-topic'));
+      expect(walletKitPairStartedForRaceTopic, isTrue);
+      expect(
+        livePairings.map((PairingInfo p) => p.topic),
+        contains('race-topic'),
+      );
+    });
+
+    test(
+      'starts the shared relay sweep budget lazily after in-flight pair() '
+      'settlement so session disconnects still get the full timeout budget',
+      () async {
+        final int now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+        final Map<String, Map<String, dynamic>> persistedStorage =
+            <String, Map<String, dynamic>>{};
+        final Completer<void> sdkPairStarted = Completer<void>();
+        bool sessionDisconnectCompletedRemotely = false;
+
+        activeSessions['slow-ok-s1'] = _buildSession(
+          topic: 'slow-ok-s1',
+          selfPublicKey: 'pk-slow-ok',
+        );
+
+        when(() => coreStorage.has(any())).thenAnswer(
+          (Invocation i) =>
+              persistedStorage.containsKey(i.positionalArguments[0]),
+        );
+        when(() => coreStorage.get(any())).thenAnswer(
+          (Invocation i) => persistedStorage[i.positionalArguments[0]],
+        );
+        when(() => coreStorage.set(any(), any())).thenAnswer((
+          Invocation i,
+        ) async {
+          persistedStorage[i.positionalArguments[0]
+              as String] = Map<String, dynamic>.from(
+            i.positionalArguments[1] as Map<String, dynamic>,
+          );
+        });
+        when(() => coreStorage.delete(any())).thenAnswer((Invocation i) async {
+          persistedStorage.remove(i.positionalArguments[0] as String);
+        });
+        when(() => walletKit.pair(uri: any(named: 'uri'))).thenAnswer((
+          _,
+        ) async {
+          if (!sdkPairStarted.isCompleted) {
+            sdkPairStarted.complete();
+          }
+          // Consumes most of a single 100ms timeout before settling.
+          await Future<void>.delayed(const Duration(milliseconds: 70));
+          return PairingInfo(
+            topic: 'slow-pair',
+            expiry: now + 3600,
+            relay: Relay(ReownConstants.RELAYER_DEFAULT_PROTOCOL),
+            active: false,
+          );
+        });
+        when(
+          () => walletKit.disconnectSession(
+            topic: 'slow-ok-s1',
+            reason: any(named: 'reason'),
+          ),
+        ).thenAnswer((_) async {
+          // Takes 60ms: would time out if the 100ms budget had started before
+          // waiting 70ms on the in-flight pair() call.
+          await Future<void>.delayed(const Duration(milliseconds: 60));
+          activeSessions.remove('slow-ok-s1');
+          sessionDisconnectCompletedRemotely = true;
+        });
+
+        final Web3WalletService service = Web3WalletService(
+          walletKit: walletKit,
+          chainResolver: (String _) => nomService,
+          inFlightPairWaitTimeout: const Duration(milliseconds: 100),
+        );
+        addTearDown(service.onDispose);
+        service.create();
+        await service.init();
+
+        final Future<PairingInfo> slowPair = service.pair(
+          Uri.parse('wc:slow-pair@2?relay-protocol=irn&symKey=def'),
+        );
+        final Future<void> slowPairExpectation = expectLater(
+          slowPair,
+          throwsStateError,
+        );
+        await sdkPairStarted.future;
+
+        await service.disconnectEverything();
+        await slowPairExpectation;
+
+        expect(sessionDisconnectCompletedRemotely, isTrue);
+        verifyNever(() => sessionStore.delete('slow-ok-s1'));
+        expect(activeSessions, isEmpty);
       },
     );
   });

@@ -71,6 +71,7 @@ class Web3WalletService extends IWeb3WalletService {
   int _resetRequestEpoch = 0;
   int _resetGeneration = 0;
   int _pairingCreateCounter = 0;
+  int _recoveryReconnectToken = 0;
   bool _isInitialized = false;
   bool _isDisposed = false;
   bool _listenersSubscribed = false;
@@ -99,6 +100,8 @@ class Web3WalletService extends IWeb3WalletService {
   final Set<Future<void>> _timedOutInFlightPairCalls = <Future<void>>{};
   final Map<String, int> _inFlightPairTopics = <String, int>{};
   final Set<Set<String>> _inFlightPairSweptTopics = <Set<String>>{};
+  final Map<String, Set<Future<void>>> _inFlightStaleCleanupDisconnects =
+      <String, Set<Future<void>>>{};
   final Map<String, int> _pairingCreateEpoch = <String, int>{};
   final Set<Future<void>> _inFlightApproveCalls = <Future<void>>{};
   final Set<Future<void>> _timedOutInFlightApproveCalls = <Future<void>>{};
@@ -281,6 +284,7 @@ class Web3WalletService extends IWeb3WalletService {
     _timedOutInFlightPairCalls.clear();
     _inFlightPairTopics.clear();
     _inFlightPairSweptTopics.clear();
+    _inFlightStaleCleanupDisconnects.clear();
     _pairingCreateEpoch.clear();
     _inFlightApproveCalls.clear();
     _timedOutInFlightApproveCalls.clear();
@@ -349,12 +353,17 @@ class Web3WalletService extends IWeb3WalletService {
     );
 
     final String? requestedTopic = _extractPairingTopicFromUri(uri);
-    if (requestedTopic != null &&
-        _pendingTimedOutTopicOps.containsKey(requestedTopic)) {
-      throw StateError(
-        'WalletConnect cleanup for pairing topic $requestedTopic is still '
-        'settling; retry pairing once unsubscribe completes',
+    if (requestedTopic != null) {
+      await _awaitInFlightStaleCleanupDisconnects(
+        topic: requestedTopic,
+        expectedResetGeneration: capturedResetGeneration,
       );
+      if (_pendingTimedOutTopicOps.containsKey(requestedTopic)) {
+        throw StateError(
+          'WalletConnect cleanup for pairing topic $requestedTopic is still '
+          'settling; retry pairing once unsubscribe completes',
+        );
+      }
     }
 
     final Completer<void> pairDone = Completer<void>();
@@ -427,6 +436,30 @@ class Web3WalletService extends IWeb3WalletService {
     return null;
   }
 
+  Future<void> _awaitInFlightStaleCleanupDisconnects({
+    required String topic,
+    required int expectedResetGeneration,
+  }) async {
+    while (true) {
+      final Set<Future<void>>? pending =
+          _inFlightStaleCleanupDisconnects[topic];
+      if (pending == null || pending.isEmpty) {
+        return;
+      }
+      await Future.wait<void>(List<Future<void>>.from(pending));
+      if (_isDisposed || _wcClient == null) {
+        throw StateError('WalletConnect client not initialized');
+      }
+      if (_hasActiveOrPendingReset ||
+          _resetGeneration != expectedResetGeneration) {
+        throw StateError(
+          'WalletConnect reset cleanup is in progress or pending; cannot '
+          'create a new pairing until the reset marker is cleared',
+        );
+      }
+    }
+  }
+
   Future<void> _cleanupStalePairings({
     required int expectedResetGeneration,
   }) async {
@@ -451,7 +484,8 @@ class Web3WalletService extends IWeb3WalletService {
       }
 
       final String topic = snapshotPairing.topic;
-      if (_inFlightPairTopics.containsKey(topic)) {
+      if (_inFlightPairTopics.containsKey(topic) ||
+          _inFlightStaleCleanupDisconnects.containsKey(topic)) {
         continue;
       }
       final int? createdEpoch = _pairingCreateEpoch[topic];
@@ -483,6 +517,10 @@ class Web3WalletService extends IWeb3WalletService {
         continue;
       }
 
+      final Completer<void> disconnectDone = Completer<void>();
+      _inFlightStaleCleanupDisconnects
+          .putIfAbsent(livePairing.topic, () => <Future<void>>{})
+          .add(disconnectDone.future);
       try {
         _logger.info('Removing stale orphan pairing: ${livePairing.topic}');
         await _wcClient!.core.pairing.disconnect(topic: livePairing.topic);
@@ -492,6 +530,14 @@ class Web3WalletService extends IWeb3WalletService {
           e,
           s,
         );
+      } finally {
+        final Set<Future<void>>? pending =
+            _inFlightStaleCleanupDisconnects[livePairing.topic];
+        pending?.remove(disconnectDone.future);
+        if (pending != null && pending.isEmpty) {
+          _inFlightStaleCleanupDisconnects.remove(livePairing.topic);
+        }
+        disconnectDone.complete();
       }
     }
 
@@ -1202,6 +1248,36 @@ class Web3WalletService extends IWeb3WalletService {
       _resetRequestEpoch++;
       _resetGeneration++;
       generationBumpedForCall = true;
+      if (_resetInFlight != null) {
+        // Persist fullReset: true before waiting on an in-flight partial reset
+        // so a crash while the partial reset is still running cannot lose the
+        // full-reset request.
+        try {
+          await _synchronizedMarkerOp<void>(() async {
+            if (_isDisposed || _wcClient == null) {
+              return;
+            }
+            final _PendingResetState existingMarker = _readPendingResetMarker();
+            final Map<String, String> mergedSessions = <String, String>{
+              ...existingMarker.pendingSessions,
+              ..._pendingSessionCleanups,
+            };
+            final Set<String> mergedPairings = <String>{
+              ...existingMarker.pendingPairings,
+              ..._pendingPairingCleanups,
+            };
+            await _persistPendingResetMarkerLocked(
+              fullReset: true,
+              pendingSessions: mergedSessions,
+              pendingPairings: mergedPairings,
+            );
+          });
+        } on Object {
+          if (rethrowMarkerWriteError) {
+            rethrow;
+          }
+        }
+      }
     }
 
     while (_resetInFlight != null) {
@@ -1266,9 +1342,7 @@ class Web3WalletService extends IWeb3WalletService {
     final int capturedEpoch = _resetRequestEpoch;
     _pendingDisconnectEverything = false;
 
-    final _RelayTimeoutBudget relayBudget = _RelayTimeoutBudget(
-      _inFlightPairWaitTimeout,
-    );
+    _RelayTimeoutBudget? relayBudget;
     final Set<String> attemptedSessionTopics = <String>{};
     final Set<String> attemptedPairingTopics = <String>{};
     Map<String, String> unfinishedSessions = <String, String>{};
@@ -1466,6 +1540,7 @@ class Web3WalletService extends IWeb3WalletService {
       hasSweptOnce = true;
       attemptedSessionTopics.addAll(snapshot.targetSessions.keys);
       attemptedPairingTopics.addAll(snapshot.targetPairings);
+      relayBudget ??= _RelayTimeoutBudget(_inFlightPairWaitTimeout);
 
       unfinishedSessions = await _disconnectSessionsInternal(
         includeLiveSessions: snapshot.runFullSweep,
@@ -1577,9 +1652,11 @@ class Web3WalletService extends IWeb3WalletService {
     if (existing != null) {
       return existing;
     }
+    final int token = ++_recoveryReconnectToken;
     late final Future<void> reconnectFuture;
-    reconnectFuture = _reconnectRelayAfterRecovery().whenComplete(() {
-      if (identical(_pendingRecoveryRelayReconnect, reconnectFuture)) {
+    reconnectFuture = _reconnectRelayAfterRecovery(token).whenComplete(() {
+      if (_recoveryReconnectToken == token &&
+          identical(_pendingRecoveryRelayReconnect, reconnectFuture)) {
         _pendingRecoveryRelayReconnect = null;
       }
     });
@@ -1628,7 +1705,7 @@ class Web3WalletService extends IWeb3WalletService {
     }
   }
 
-  Future<void> _reconnectRelayAfterRecovery() async {
+  Future<void> _reconnectRelayAfterRecovery(int token) async {
     // Unbounded wait on the tracked recovery disconnect future guarantees
     // relayClient.connect() never runs concurrently with an in-flight
     // disconnect(). Trade-off: if the underlying socket close never settles,
@@ -1644,9 +1721,12 @@ class Web3WalletService extends IWeb3WalletService {
       return;
     }
     if (_hasActiveOrPendingReset) {
-      // A newer reset started while the prior recovery disconnect was settling;
-      // re-arm the reconnect flag so that reset reconnects the relay once it
-      // completes.
+      // Clear the active reconnect handle synchronously before re-arming so a
+      // reset completing on the next microtask starts a fresh reconnect rather
+      // than coalescing onto this exiting future.
+      if (_recoveryReconnectToken == token) {
+        _pendingRecoveryRelayReconnect = null;
+      }
       _needsRelayReconnectAfterRecovery = true;
       return;
     }
@@ -1857,6 +1937,8 @@ class Web3WalletService extends IWeb3WalletService {
         publicKey: publicKey,
       );
       if (!purged) {
+        // Record for retry on the next reset without escalating a single
+        // session disconnect into a full-wallet reset marker.
         _pendingSessionCleanups[topic] = publicKey;
         _reloadStores();
         rethrow;
