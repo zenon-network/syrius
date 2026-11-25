@@ -688,11 +688,41 @@ def download_release_file(
     raise UpdaterError(f"Failed downloading {url}: {last_exc}")
 
 
-def _validate_output_file_path(path: pathlib.Path | None, label: str) -> None:
+def _safe_unlink(path: pathlib.Path, context: str) -> None:
+    try:
+        path.unlink(missing_ok=True)
+    except OSError as exc:
+        print(f"WARNING: failed to remove {context} {path}: {exc}", file=sys.stderr)
+
+
+def _paths_alias(path_a: pathlib.Path, path_b: pathlib.Path) -> bool:
+    try:
+        if path_a.resolve(strict=False) == path_b.resolve(strict=False):
+            return True
+    except OSError:
+        pass
+    try:
+        if path_a.exists() and path_b.exists() and os.path.samefile(path_a, path_b):
+            return True
+    except OSError:
+        pass
+    return False
+
+
+def _validate_output_file_path(
+    path: pathlib.Path | None,
+    label: str,
+    protected_paths: Sequence[pathlib.Path] = (),
+) -> None:
     if path is None:
         return
     if path.exists() and path.is_dir():
         raise UpdaterError(f"{label} path is a directory, not a file: {path}")
+    for protected in protected_paths:
+        if _paths_alias(path, protected):
+            raise UpdaterError(
+                f"{label} path {path} must not refer to repository blob {protected}"
+            )
 
 
 def _create_backup(dest: pathlib.Path) -> pathlib.Path:
@@ -714,8 +744,8 @@ def _create_backup(dest: pathlib.Path) -> pathlib.Path:
             try:
                 shutil.copy2(dest, bak_path)
                 return bak_path
-            except Exception:
-                bak_path.unlink(missing_ok=True)
+            except BaseException:
+                _safe_unlink(bak_path, "temporary backup")
                 raise
     raise UpdaterError(f"Failed to allocate unique backup path for {dest}")
 
@@ -754,12 +784,18 @@ def _staged_blob_transaction(
 
         updated_paths: list[pathlib.Path] = []
         for tmp_path, dest, backup_path in prepared:
-            os.replace(tmp_path, dest)
             replaced.append((dest, backup_path))
+            try:
+                os.replace(tmp_path, dest)
+            except BaseException:
+                if tmp_path.exists():
+                    replaced.pop()
+                raise
             updated_paths.append(dest)
 
         yield updated_paths
-    except Exception as exc:
+    except BaseException as exc:
+        retained_backups: set[pathlib.Path] = set()
         for dest, backup_path in reversed(replaced):
             try:
                 if backup_path is not None:
@@ -767,21 +803,29 @@ def _staged_blob_transaction(
                 else:
                     dest.unlink(missing_ok=True)
             except OSError as restore_exc:
-                print(
-                    f"WARNING: failed to restore {dest} during rollback: {restore_exc}",
-                    file=sys.stderr,
-                )
+                if backup_path is not None:
+                    retained_backups.add(backup_path)
+                    print(
+                        f"WARNING: failed to restore {dest} from backup {backup_path} during "
+                        f"rollback: {restore_exc}; retaining backup {backup_path} for manual recovery",
+                        file=sys.stderr,
+                    )
+                else:
+                    print(
+                        f"WARNING: failed to remove newly staged {dest} during rollback: {restore_exc}",
+                        file=sys.stderr,
+                    )
         for tmp_path, _, backup_path in prepared:
-            tmp_path.unlink(missing_ok=True)
-            if backup_path is not None:
-                backup_path.unlink(missing_ok=True)
+            _safe_unlink(tmp_path, "staging temp file")
+            if backup_path is not None and backup_path not in retained_backups:
+                _safe_unlink(backup_path, "rollback backup")
         if isinstance(exc, OSError):
             raise UpdaterError(f"Failed staging embedded binaries: {exc}") from exc
         raise
     else:
         for _, _, backup_path in prepared:
             if backup_path is not None:
-                backup_path.unlink(missing_ok=True)
+                _safe_unlink(backup_path, "post-commit backup")
 
 
 def build_commit_message(
@@ -1135,13 +1179,15 @@ def run_update(
             dry_run=dry_run,
         )
 
-        _validate_output_file_path(pr_body_out, "--pr-body-out")
-        _validate_output_file_path(step_summary, "--step-summary")
-        _validate_output_file_path(github_output, "--github-output")
+        protected_blobs = [repo_root / spec.blob_relpath for spec in BINARY_SPECS]
+        _validate_output_file_path(pr_body_out, "--pr-body-out", protected_blobs)
+        _validate_output_file_path(step_summary, "--step-summary", protected_blobs)
+        _validate_output_file_path(github_output, "--github-output", protected_blobs)
 
+        blobs_committed = changed and not dry_run
         stage_ctx: contextlib.AbstractContextManager[Any] = (
             _staged_blob_transaction(repo_root, staged_binaries)
-            if (changed and not dry_run)
+            if blobs_committed
             else contextlib.nullcontext()
         )
         with stage_ctx:
@@ -1150,15 +1196,10 @@ def run_update(
                     pr_body_out.parent.mkdir(parents=True, exist_ok=True)
                     pr_body_out.write_text(pr_body, encoding="utf-8")
 
-                if step_summary is not None:
-                    step_summary.parent.mkdir(parents=True, exist_ok=True)
-                    with step_summary.open("a", encoding="utf-8") as handle:
-                        handle.write(summary_md)
-
                 if github_output is not None:
                     github_output.parent.mkdir(parents=True, exist_ok=True)
                     outputs = {
-                        "changed": "true" if (changed and not dry_run) else "false",
+                        "changed": "true" if blobs_committed else "false",
                         "release_tag": release_info.tag_name,
                         "release_url": release_info.html_url,
                         "pr_title": pr_title,
@@ -1168,6 +1209,20 @@ def run_update(
                     write_github_outputs(github_output, outputs)
             except OSError as exc:
                 raise UpdaterError(f"Failed writing updater output file: {exc}") from exc
+
+        if step_summary is not None:
+            try:
+                step_summary.parent.mkdir(parents=True, exist_ok=True)
+                with step_summary.open("a", encoding="utf-8") as handle:
+                    handle.write(summary_md)
+            except OSError as exc:
+                if blobs_committed:
+                    print(
+                        f"WARNING: failed to append step summary {step_summary}: {exc}",
+                        file=sys.stderr,
+                    )
+                else:
+                    raise UpdaterError(f"Failed writing step summary {step_summary}: {exc}") from exc
 
     return release_info, verified_binaries, changed
 

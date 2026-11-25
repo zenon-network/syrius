@@ -816,13 +816,17 @@ class EndToEndUpdateTests(unittest.TestCase):
         )
 
         orig_replace = os.replace
-        replace_calls = 0
+        forward_replaces: list[str] = []
+        observed_dylib_before_failure: bytes | None = None
 
         def fail_on_third_replace(src: Any, dst: Any) -> None:
-            nonlocal replace_calls
-            if pathlib.Path(dst).name == "libznn.dll":
+            nonlocal observed_dylib_before_failure
+            dst_path = pathlib.Path(dst)
+            if dst_path.name == "libznn.dll":
+                observed_dylib_before_failure = (blobs / "libznn.dylib").read_bytes()
                 raise PermissionError("simulated failure replacing third blob")
-            replace_calls += 1
+            if pathlib.Path(src).name.endswith(".tmp"):
+                forward_replaces.append(dst_path.name)
             orig_replace(src, dst)
 
         try:
@@ -837,13 +841,103 @@ class EndToEndUpdateTests(unittest.TestCase):
         finally:
             os.replace = orig_replace
 
-        # First two blobs had been replaced before the third failed; both must be rolled back.
-        self.assertGreaterEqual(replace_calls, 2)
+        # Both forward installs ran (including the newly created libznn.dylib) before rollback.
+        self.assertEqual(forward_replaces, ["libznn.so", "libznn.dylib"])
+        self.assertEqual(observed_dylib_before_failure, new_darwin)
         self.assertEqual((blobs / "libznn.so").read_bytes(), self.old_linux)
         self.assertFalse((blobs / "libznn.dylib").exists())
         self.assertEqual((blobs / "libznn.dll").read_bytes(), self.old_windows)
         self.assertEqual(list(blobs.glob(".*.tmp")), [])
         self.assertEqual(list(blobs.glob(".*.bak")), [])
+
+    def test_rollback_handles_keyboard_interrupt_retains_unrestored_backup_and_rejects_blob_output_paths(
+        self,
+    ) -> None:
+        blobs = self.repo_root / "lib" / "embedded_node" / "blobs"
+        new_linux = b"\x7fELF-int-linux"
+        new_darwin = b"\xca\xfe\xba\xbe-int-darwin"
+        new_windows = b"MZ-int-windows"
+        opener, _ = self._build_mock_release(
+            tag="v0.0.11-alphanet",
+            linux_bin=new_linux,
+            darwin_bin=new_darwin,
+            windows_bin=new_windows,
+        )
+
+        # 1. Output path aliasing a repository blob is rejected even in dry-run mode.
+        blob_symlink = self.root / "alias_to_so"
+        blob_symlink.symlink_to(blobs / "libznn.so")
+        with self.assertRaisesRegex(updater.UpdaterError, "must not refer to repository blob"):
+            updater.run_update(
+                repo_root=self.repo_root,
+                work_dir=self.work_dir,
+                tag="v0.0.11-alphanet",
+                pr_body_out=blob_symlink,
+                dry_run=True,
+                opener=opener,  # type: ignore[arg-type]
+            )
+        self.assertEqual((blobs / "libznn.so").read_bytes(), self.old_linux)
+
+        # 2. KeyboardInterrupt mid-replacement rolls back already-installed blobs and re-raises.
+        orig_replace = os.replace
+
+        def interrupt_on_second_replace(src: Any, dst: Any) -> None:
+            if pathlib.Path(dst).name == "libznn.dylib":
+                raise KeyboardInterrupt("simulated Ctrl+C")
+            orig_replace(src, dst)
+
+        try:
+            os.replace = interrupt_on_second_replace  # type: ignore[assignment]
+            with self.assertRaises(KeyboardInterrupt):
+                updater.run_update(
+                    repo_root=self.repo_root,
+                    work_dir=self.work_dir,
+                    tag="v0.0.11-alphanet",
+                    opener=opener,  # type: ignore[arg-type]
+                )
+        finally:
+            os.replace = orig_replace
+        self.assertEqual((blobs / "libznn.so").read_bytes(), self.old_linux)
+        self.assertEqual(list(blobs.glob(".*.bak")), [])
+
+        # 3. If restoring a backup fails during rollback, the backup file is retained for recovery.
+        orig_write_outputs = updater.write_github_outputs
+
+        def fail_write_outputs(path: pathlib.Path, outputs: Any) -> None:
+            raise OSError("simulated output write error")
+
+        def fail_restore_linux(src: Any, dst: Any) -> None:
+            if pathlib.Path(src).name.endswith(".bak") and pathlib.Path(dst).name == "libznn.so":
+                raise PermissionError("simulated restore failure")
+            orig_replace(src, dst)
+
+        stderr_buf = io.StringIO()
+        old_stderr = sys.stderr
+        try:
+            updater.write_github_outputs = fail_write_outputs  # type: ignore[assignment]
+            os.replace = fail_restore_linux  # type: ignore[assignment]
+            sys.stderr = stderr_buf
+            with self.assertRaisesRegex(updater.UpdaterError, "Failed writing updater output"):
+                updater.run_update(
+                    repo_root=self.repo_root,
+                    work_dir=self.work_dir,
+                    tag="v0.0.11-alphanet",
+                    github_output=self.root / "gh_out.txt",
+                    opener=opener,  # type: ignore[arg-type]
+                )
+        finally:
+            updater.write_github_outputs = orig_write_outputs
+            os.replace = orig_replace
+            sys.stderr = old_stderr
+
+        retained = list(blobs.glob(".libznn.so.*.bak"))
+        self.assertEqual(len(retained), 1)
+        self.assertEqual(retained[0].read_bytes(), self.old_linux)
+        self.assertIn("retaining backup", stderr_buf.getvalue())
+        # Restore manually for clean teardown.
+        os.replace(retained[0], blobs / "libznn.so")
+        self.assertEqual((blobs / "libznn.dylib").read_bytes(), self.old_darwin)
+        self.assertEqual((blobs / "libznn.dll").read_bytes(), self.old_windows)
 
     def test_failed_output_write_does_not_hide_changes_on_retry(self) -> None:
         new_linux = b"\x7fELF-output-retry"
@@ -877,6 +971,8 @@ class EndToEndUpdateTests(unittest.TestCase):
             raise OSError("disk full writing GITHUB_OUTPUT")
 
         good_output = self.root / "github_output.txt"
+        step_summary = self.root / "step_summary.md"
+        step_summary.write_text("# Existing summary\n", encoding="utf-8")
         try:
             updater.write_github_outputs = fail_write_outputs  # type: ignore[assignment]
             with self.assertRaisesRegex(updater.UpdaterError, "Failed writing updater output"):
@@ -885,26 +981,31 @@ class EndToEndUpdateTests(unittest.TestCase):
                     work_dir=self.work_dir,
                     tag="v0.0.11-alphanet",
                     github_output=good_output,
+                    step_summary=step_summary,
                     opener=opener,  # type: ignore[arg-type]
                 )
         finally:
             updater.write_github_outputs = orig_write_outputs
 
+        # Step summary was not appended with a false success report on rollback.
+        self.assertEqual(step_summary.read_text(encoding="utf-8"), "# Existing summary\n")
         self.assertEqual((blobs / "libznn.so").read_bytes(), self.old_linux)
         self.assertEqual((blobs / "libznn.dylib").read_bytes(), self.old_darwin)
         self.assertEqual((blobs / "libznn.dll").read_bytes(), self.old_windows)
         self.assertEqual(list(blobs.glob(".*.bak")), [])
 
-        # 3. Retrying with valid output path still reports changed=true and stages blobs.
+        # 3. Retrying with valid output path still reports changed=true, stages blobs, and writes summary.
         _, _, changed = updater.run_update(
             repo_root=self.repo_root,
             work_dir=self.work_dir,
             tag="v0.0.11-alphanet",
             github_output=good_output,
+            step_summary=step_summary,
             opener=opener,  # type: ignore[arg-type]
         )
         self.assertTrue(changed)
         self.assertIn("changed=true\n", good_output.read_text(encoding="utf-8"))
+        self.assertIn("Updated embedded `libznn` binaries staged", step_summary.read_text(encoding="utf-8"))
         self.assertEqual((blobs / "libznn.so").read_bytes(), new_linux)
 
     def test_unchanged_blobs_sets_changed_false(self) -> None:
