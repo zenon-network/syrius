@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/dump_mnemonic/dump_mnemonic.dart';
@@ -86,6 +88,40 @@ void main() {
           contains('corrupt'),
         ),
       ],
+    );
+
+    test(
+      'drops concurrent submissions while wallet decryption is pending',
+      () async {
+        final Completer<WalletFile> decryptCompleter = Completer<WalletFile>();
+        int decryptCalls = 0;
+
+        final DumpMnemonicBloc bloc = DumpMnemonicBloc(
+          walletPathProvider: () => '/tmp/wallet',
+          decryptWalletFile: (_, _) {
+            decryptCalls++;
+            return decryptCompleter.future;
+          },
+        );
+        addTearDown(bloc.close);
+
+        bloc
+          ..add(const DumpMnemonicSubmitted(password: 'secret'))
+          ..add(const DumpMnemonicSubmitted(password: 'wrong'));
+        await Future<void>.delayed(Duration.zero);
+
+        decryptCompleter.complete(fakeWalletFile);
+        await expectLater(
+          bloc.stream,
+          emitsThrough(
+            const DumpMnemonicUnlocked(
+              seedWords: <String>['alpha', 'beta', 'gamma'],
+            ),
+          ),
+        );
+
+        expect(decryptCalls, 1);
+      },
     );
   });
 }

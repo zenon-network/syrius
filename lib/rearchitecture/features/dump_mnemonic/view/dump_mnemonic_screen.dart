@@ -56,6 +56,9 @@ class _ViewState extends State<_View> {
           }
         },
         builder: (BuildContext context, DumpMnemonicState state) {
+          final bool isLoading = state is DumpMnemonicLoading;
+          final bool canSubmit =
+              !isLoading && _passwordController.text.isNotEmpty;
           final List<String>? seedWords = state is DumpMnemonicUnlocked
               ? state.seedWords
               : null;
@@ -83,7 +86,7 @@ class _ViewState extends State<_View> {
                     controller: _passwordController,
                     hintText: context.l10n.currentPassword,
                     onSubmitted: (String value) {
-                      if (_passwordController.text.isNotEmpty) {
+                      if (canSubmit) {
                         _submit(context);
                       }
                     },
@@ -105,7 +108,11 @@ class _ViewState extends State<_View> {
                       child: SeedGrid(seedWords, enableSeedInputFields: false),
                     ),
                   ),
-                _buildActionButtons(context, seedWords: seedWords),
+                _buildActionButtons(
+                  context,
+                  seedWords: seedWords,
+                  canSubmit: canSubmit,
+                ),
               ],
             ),
           );
@@ -117,6 +124,7 @@ class _ViewState extends State<_View> {
   Widget _buildActionButtons(
     BuildContext context, {
     required List<String>? seedWords,
+    required bool canSubmit,
   }) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
@@ -133,9 +141,7 @@ class _ViewState extends State<_View> {
             children: <Widget>[
               kSpacingBetweenActionButtons,
               LoadingButton.onboarding(
-                onPressed: _passwordController.text.isNotEmpty
-                    ? () => _submit(context)
-                    : null,
+                onPressed: canSubmit ? () => _submit(context) : null,
                 text: context.l10n.continueText,
                 key: _continueButtonKey,
               ),

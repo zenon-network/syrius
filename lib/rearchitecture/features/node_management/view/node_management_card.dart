@@ -202,7 +202,7 @@ class _ViewState extends State<_View> {
       children: <Widget>[
         _buildNodeTiles(context, state),
         if (mismatch != null && mismatch.reconnectFailed)
-          _buildReconnectRetryBanner(context, mismatch)
+          _buildReconnectRetryBanner(context, state, mismatch)
         else if (state.isDisconnected)
           _buildDisconnectedBanner(context),
         Row(
@@ -221,8 +221,10 @@ class _ViewState extends State<_View> {
 
   Widget _buildReconnectRetryBanner(
     BuildContext context,
+    NodeManagementState state,
     NodeChainIdMismatchPrompt prompt,
   ) {
+    final bool isBusy = state.isConfirmingNode;
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: Column(
@@ -242,29 +244,37 @@ class _ViewState extends State<_View> {
             children: <Widget>[
               SettingsButton(
                 text: context.l10n.reconnect,
-                onPressed: () {
-                  context.read<NodeManagementBloc>().add(
-                    NodeManagementChainIdMismatchResolved(
-                      proceed: false,
-                      connectionFailedTitle: context.l10n.connectionFailed,
-                      connectionUnavailableMessage: context.l10n
-                          .connectionCouldNotBeEstablished(prompt.previousNode),
-                    ),
-                  );
-                },
+                onPressed: isBusy
+                    ? null
+                    : () {
+                        context.read<NodeManagementBloc>().add(
+                          NodeManagementChainIdMismatchResolved(
+                            proceed: false,
+                            connectionFailedTitle:
+                                context.l10n.connectionFailed,
+                            connectionUnavailableMessage: context.l10n
+                                .connectionCouldNotBeEstablished(
+                                  prompt.previousNode,
+                                ),
+                          ),
+                        );
+                      },
               ),
               SettingsButton(
                 text: context.l10n.proceedAnyway,
-                onPressed: () {
-                  context.read<NodeManagementBloc>().add(
-                    NodeManagementChainIdMismatchResolved(
-                      proceed: true,
-                      connectionFailedTitle: context.l10n.connectionFailed,
-                      connectionUnavailableMessage: context.l10n
-                          .connectionCouldNotBeEstablished(prompt.node),
-                    ),
-                  );
-                },
+                onPressed: isBusy
+                    ? null
+                    : () {
+                        context.read<NodeManagementBloc>().add(
+                          NodeManagementChainIdMismatchResolved(
+                            proceed: true,
+                            connectionFailedTitle:
+                                context.l10n.connectionFailed,
+                            connectionUnavailableMessage: context.l10n
+                                .connectionCouldNotBeEstablished(prompt.node),
+                          ),
+                        );
+                      },
               ),
             ],
           ),

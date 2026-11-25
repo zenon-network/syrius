@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:bloc/bloc.dart';
+import 'package:bloc_concurrency/bloc_concurrency.dart';
 import 'package:equatable/equatable.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/settings_addresses/repository/settings_addresses_repository.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
@@ -30,7 +31,10 @@ class SettingsAddressesBloc
     on<SettingsAddressesDefaultChanged>(_onDefaultChanged);
     on<SettingsAddressesGenerateRequested>(_onGenerateRequested);
     on<SettingsAddressesCountChanged>(_onCountChanged);
-    on<SettingsAddressesLabelUpdated>(_onLabelUpdated);
+    on<SettingsAddressesLabelUpdated>(
+      _onLabelUpdated,
+      transformer: sequential(),
+    );
   }
 
   final SettingsAddressesRepository _repository;

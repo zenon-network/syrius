@@ -263,5 +263,56 @@ void main() {
         verifyNever(() => mockStorageApi.rollbackRekey(any()));
       },
     );
+
+    test(
+      'serializes password-change transactions across separate bloc instances',
+      () async {
+        final List<String> trace = <String>[];
+        final Completer<WalletFile> firstDecrypt = Completer<WalletFile>();
+        final ChangeWalletPasswordBloc bloc1 = buildBloc(
+          decrypt: (_, _) {
+            trace.add('decrypt1-start');
+            return firstDecrypt.future;
+          },
+        );
+        final ChangeWalletPasswordBloc bloc2 = buildBloc(
+          decrypt: (_, _) async {
+            trace.add('decrypt2-start');
+            throw IncorrectPasswordException();
+          },
+        );
+        addTearDown(() async {
+          await bloc1.close();
+          await bloc2.close();
+        });
+
+        when(() => mockStorageApi.commitRekey()).thenAnswer((_) async {
+          trace.add('commit1');
+        });
+
+        const ChangeWalletPasswordSubmitted event =
+            ChangeWalletPasswordSubmitted(
+              currentPassword: currentPassword,
+              newPassword: newPassword,
+              decryptErrorTitle: 'Decrypt error',
+              changePasswordErrorTitle: 'Change error',
+            );
+
+        bloc1.add(event);
+        await Future<void>.delayed(Duration.zero);
+        bloc2.add(event);
+        await Future<void>.delayed(Duration.zero);
+
+        // Second bloc must not begin until the first transaction finishes.
+        expect(trace, <String>['decrypt1-start']);
+
+        firstDecrypt.complete(mockWalletFile);
+        await expectLater(
+          bloc2.stream,
+          emitsThrough(const ChangeWalletPasswordIncorrectCurrentPassword()),
+        );
+        expect(trace, <String>['decrypt1-start', 'commit1', 'decrypt2-start']);
+      },
+    );
   });
 }

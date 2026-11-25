@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -82,6 +84,41 @@ void main() {
       verify: (_) {
         expect(errorTitles, <String>['Text scale change failed']);
         expect(notifications, isEmpty);
+      },
+    );
+
+    test(
+      'does not throw when closed while theme or text scale save is pending',
+      () async {
+        final Completer<void> themeGate = Completer<void>();
+        final Completer<void> scaleGate = Completer<void>();
+        when(
+          () => prefs.put(kThemeModeKey, any<dynamic>()),
+        ).thenAnswer((_) => themeGate.future);
+        when(
+          () => prefs.put(kTextScalingKey, any<dynamic>()),
+        ).thenAnswer((_) => scaleGate.future);
+
+        final SettingsDisplayCubit cubit = buildCubit();
+        final Future<void> themeFuture = cubit.confirmThemeMode(
+          themeMode: ThemeMode.dark,
+          notificationTitle: 'Theme',
+          notificationDetails: 'Dark',
+          errorTitle: 'Theme error',
+        );
+        final Future<void> scaleFuture = cubit.confirmTextScaling(
+          textScaling: TextScaling.large,
+          notificationTitle: 'Scale',
+          notificationDetails: 'Large',
+          errorTitle: 'Scale error',
+        );
+
+        await cubit.close();
+        themeGate.complete();
+        scaleGate.completeError(StateError('disk error'));
+
+        await expectLater(themeFuture, completes);
+        await expectLater(scaleFuture, completes);
       },
     );
   });

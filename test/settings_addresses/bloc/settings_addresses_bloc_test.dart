@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
@@ -204,6 +206,67 @@ void main() {
               isNull,
             ),
       ],
+    );
+
+    test(
+      'serializes label updates so concurrent duplicate labels are rejected',
+      () async {
+        final Completer<void> firstWrite = Completer<void>();
+        when(
+          () => repository.updateAddressLabel(
+            address: any(named: 'address'),
+            label: any(named: 'label'),
+          ),
+        ).thenAnswer((Invocation invocation) async {
+          final String address = invocation.namedArguments[#address] as String;
+          final String label = invocation.namedArguments[#label] as String;
+          if (address == addr1) {
+            await firstWrite.future;
+          }
+          labels[address] = label;
+        });
+
+        final SettingsAddressesBloc bloc = SettingsAddressesBloc(
+          repository: repository,
+        );
+        addTearDown(bloc.close);
+
+        bloc
+          ..add(
+            const SettingsAddressesLabelUpdated(
+              address: addr1,
+              label: 'Shared',
+            ),
+          )
+          ..add(
+            const SettingsAddressesLabelUpdated(
+              address: addr2,
+              label: 'Shared',
+            ),
+          );
+        await Future<void>.delayed(Duration.zero);
+
+        firstWrite.complete();
+        await expectLater(
+          bloc.stream,
+          emitsThrough(
+            isA<SettingsAddressesState>().having(
+              (SettingsAddressesState s) => s.labelError,
+              'duplicate rejected',
+              SettingsAddressLabelError.alreadyExists,
+            ),
+          ),
+        );
+
+        expect(labels[addr1], 'Shared');
+        expect(labels[addr2], 'Address 2');
+        verify(
+          () => repository.updateAddressLabel(address: addr1, label: 'Shared'),
+        ).called(1);
+        verifyNever(
+          () => repository.updateAddressLabel(address: addr2, label: 'Shared'),
+        );
+      },
     );
   });
 }

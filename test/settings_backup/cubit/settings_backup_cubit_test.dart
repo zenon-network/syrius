@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/settings_backup/settings_backup.dart';
@@ -9,6 +11,7 @@ class _FakeWalletFile extends Fake implements WalletFile {
     required this.isHardwareWallet,
     this.mnemonic = 'abandon abandon abandon',
     this.throwOnAccess = false,
+    this.accessGate,
   });
 
   @override
@@ -16,9 +19,13 @@ class _FakeWalletFile extends Fake implements WalletFile {
 
   final String mnemonic;
   final bool throwOnAccess;
+  final Completer<void>? accessGate;
 
   @override
   Future<T> access<T>(Future<T> Function(Wallet) accessSection) async {
+    if (accessGate != null) {
+      await accessGate!.future;
+    }
     if (throwOnAccess) {
       throw StateError('wallet locked');
     }
@@ -75,6 +82,25 @@ void main() {
         isA<SettingsBackupFailure>(),
         isA<SettingsBackupIdle>(),
       ],
+    );
+
+    test(
+      'does not throw when closed while wallet access is still pending',
+      () async {
+        final Completer<void> gate = Completer<void>();
+        final SettingsBackupCubit cubit = SettingsBackupCubit(
+          walletFile: _FakeWalletFile(
+            isHardwareWallet: false,
+            accessGate: gate,
+          ),
+        );
+
+        final Future<void> request = cubit.requestBackupSeed();
+        await cubit.close();
+        gate.complete();
+
+        await expectLater(request, completes);
+      },
     );
   });
 }

@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:bloc/bloc.dart';
+import 'package:bloc_concurrency/bloc_concurrency.dart';
 import 'package:equatable/equatable.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/wallet_file.dart';
@@ -19,7 +20,7 @@ class DumpMnemonicBloc extends Bloc<DumpMnemonicEvent, DumpMnemonicState> {
   }) : _decryptWalletFile = decryptWalletFile ?? WalletUtils.decryptWalletFile,
        _walletPathProvider = walletPathProvider ?? _defaultWalletPath,
        super(const DumpMnemonicInitial()) {
-    on<DumpMnemonicSubmitted>(_onSubmitted);
+    on<DumpMnemonicSubmitted>(_onSubmitted, transformer: droppable());
     on<DumpMnemonicErrorCleared>(_onErrorCleared);
   }
 
@@ -43,7 +44,7 @@ class DumpMnemonicBloc extends Bloc<DumpMnemonicEvent, DumpMnemonicState> {
     DumpMnemonicSubmitted event,
     Emitter<DumpMnemonicState> emit,
   ) async {
-    if (event.password.isEmpty) {
+    if (state is DumpMnemonicLoading || event.password.isEmpty) {
       return;
     }
 

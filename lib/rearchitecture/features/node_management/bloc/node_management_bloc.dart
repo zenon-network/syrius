@@ -65,6 +65,7 @@ class NodeManagementBloc
   final NodeManagementRepository _repository;
   final bool _checkChainIdMismatch;
   final bool _resetHtlcBlockHeightOnChange;
+  bool _isNodeConnectionOperationRunning = false;
 
   /// Whether [node] is a built-in default node.
   bool isDefaultNode(String node) => _repository.isDefaultNode(node);
@@ -91,6 +92,10 @@ class NodeManagementBloc
     NodeManagementConfirmNodeRequested event,
     Emitter<NodeManagementState> emit,
   ) async {
+    if (_isNodeConnectionOperationRunning) {
+      return;
+    }
+    _isNodeConnectionOperationRunning = true;
     final String targetNode = state.selectedNode;
     final String previousNode = _repository.getCurrentNode(
       fallback: state.confirmedNode,
@@ -147,6 +152,8 @@ class NodeManagementBloc
         connectionFailedTitle: event.connectionFailedTitle,
         connectionUnavailableMessage: event.connectionUnavailableMessage,
       );
+    } finally {
+      _isNodeConnectionOperationRunning = false;
     }
   }
 
@@ -154,84 +161,95 @@ class NodeManagementBloc
     NodeManagementChainIdMismatchResolved event,
     Emitter<NodeManagementState> emit,
   ) async {
+    if (_isNodeConnectionOperationRunning) {
+      return;
+    }
     final NodeChainIdMismatchPrompt? prompt = state.pendingChainIdMismatch;
     if (prompt == null) {
       return;
     }
+    _isNodeConnectionOperationRunning = true;
 
-    if (event.proceed) {
-      bool connectedToTarget = !prompt.reconnectFailed && !state.isDisconnected;
+    try {
+      if (event.proceed) {
+        bool connectedToTarget =
+            !prompt.reconnectFailed && !state.isDisconnected;
+        emit(state.copyWith(isConfirmingNode: true));
+        try {
+          int verifiedChainId = prompt.nodeChainId;
+          if (!connectedToTarget) {
+            final bool connected = await _repository.connectToNode(prompt.node);
+            if (!connected) {
+              throw SyriusException(
+                event.connectionUnavailableMessage ??
+                    event.connectionFailedTitle,
+              );
+            }
+            connectedToTarget = true;
+            verifiedChainId = await _repository.getFrontierChainId();
+          }
+          await _finalizeNodeSwitch(
+            emit: emit,
+            targetNode: prompt.node,
+            verifiedChainId: verifiedChainId,
+            successTitle: prompt.successTitle,
+            successDetails: prompt.successDetails,
+            connectionFailedTitle: event.connectionFailedTitle,
+          );
+        } on Object catch (error, stackTrace) {
+          addError(error, stackTrace);
+          await _repository.reportError(error, event.connectionFailedTitle);
+          await _recoverAfterPreCommitFailure(
+            emit: emit,
+            previousNode: prompt.previousNode,
+            targetNode: prompt.node,
+            connectedToTarget: connectedToTarget,
+            connectionFailedTitle: event.connectionFailedTitle,
+            connectionUnavailableMessage:
+                event.connectionUnavailableMessage ??
+                event.connectionFailedTitle,
+          );
+        }
+        return;
+      }
+
+      final String previousNode = prompt.previousNode;
       emit(state.copyWith(isConfirmingNode: true));
       try {
-        int verifiedChainId = prompt.nodeChainId;
-        if (!connectedToTarget) {
-          final bool connected = await _repository.connectToNode(prompt.node);
-          if (!connected) {
-            throw SyriusException(
-              event.connectionUnavailableMessage ?? event.connectionFailedTitle,
-            );
-          }
-          connectedToTarget = true;
-          verifiedChainId = await _repository.getFrontierChainId();
+        // Close candidate WebSocket while running so a failed dial cannot
+        // retain the unconfirmed candidate RPC client.
+        _repository.disconnectFromNode();
+        final bool reconnected = await _repository.connectToNode(previousNode);
+        if (!reconnected) {
+          throw SyriusException(
+            event.connectionUnavailableMessage ?? event.connectionFailedTitle,
+          );
         }
-        await _finalizeNodeSwitch(
-          emit: emit,
-          targetNode: prompt.node,
-          verifiedChainId: verifiedChainId,
-          successTitle: prompt.successTitle,
-          successDetails: prompt.successDetails,
-          connectionFailedTitle: event.connectionFailedTitle,
+        final int restoredChainId = await _repository.getFrontierChainId();
+        kNodeChainId = restoredChainId;
+        emit(
+          state.copyWith(
+            isConfirmingNode: false,
+            isDisconnected: false,
+            selectedNode: previousNode,
+            connectedNodeChainId: restoredChainId,
+            clearPendingChainIdMismatch: true,
+          ),
         );
       } on Object catch (error, stackTrace) {
         addError(error, stackTrace);
+        _repository.disconnectFromNode();
         await _repository.reportError(error, event.connectionFailedTitle);
-        await _recoverAfterPreCommitFailure(
-          emit: emit,
-          previousNode: prompt.previousNode,
-          targetNode: prompt.node,
-          connectedToTarget: connectedToTarget,
-          connectionFailedTitle: event.connectionFailedTitle,
-          connectionUnavailableMessage:
-              event.connectionUnavailableMessage ?? event.connectionFailedTitle,
+        emit(
+          state.copyWith(
+            isConfirmingNode: false,
+            isDisconnected: true,
+            pendingChainIdMismatch: prompt.copyWith(reconnectFailed: true),
+          ),
         );
       }
-      return;
-    }
-
-    final String previousNode = prompt.previousNode;
-    emit(state.copyWith(isConfirmingNode: true));
-    try {
-      // Close candidate WebSocket while running so a failed dial cannot retain
-      // the unconfirmed candidate RPC client.
-      _repository.disconnectFromNode();
-      final bool reconnected = await _repository.connectToNode(previousNode);
-      if (!reconnected) {
-        throw SyriusException(
-          event.connectionUnavailableMessage ?? event.connectionFailedTitle,
-        );
-      }
-      final int restoredChainId = await _repository.getFrontierChainId();
-      kNodeChainId = restoredChainId;
-      emit(
-        state.copyWith(
-          isConfirmingNode: false,
-          isDisconnected: false,
-          selectedNode: previousNode,
-          connectedNodeChainId: restoredChainId,
-          clearPendingChainIdMismatch: true,
-        ),
-      );
-    } on Object catch (error, stackTrace) {
-      addError(error, stackTrace);
-      _repository.disconnectFromNode();
-      await _repository.reportError(error, event.connectionFailedTitle);
-      emit(
-        state.copyWith(
-          isConfirmingNode: false,
-          isDisconnected: true,
-          pendingChainIdMismatch: prompt.copyWith(reconnectFailed: true),
-        ),
-      );
+    } finally {
+      _isNodeConnectionOperationRunning = false;
     }
   }
 

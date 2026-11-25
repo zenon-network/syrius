@@ -50,6 +50,20 @@ class ChangeWalletPasswordBloc
   final LegacyHtlcSwapsMigrator? _legacyMigrator;
   final Future<void> Function(Object error, String title)? _reportError;
 
+  static Future<void> _serializedTransactions = Future<void>.value();
+
+  static Future<T> _runSerialized<T>(Future<T> Function() action) {
+    final Completer<T> completer = Completer<T>();
+    _serializedTransactions = _serializedTransactions.then((_) async {
+      try {
+        completer.complete(await action());
+      } on Object catch (error, stackTrace) {
+        completer.completeError(error, stackTrace);
+      }
+    });
+    return completer.future;
+  }
+
   static String? _defaultWalletPath() => kWalletPath;
 
   static WalletFile? _defaultWalletFile() => kWalletFile;
@@ -79,29 +93,39 @@ class ChangeWalletPasswordBloc
     }
     emit(const ChangeWalletPasswordLoading());
 
-    try {
-      await _decryptWalletFile(_walletPathProvider()!, event.currentPassword);
-    } on IncorrectPasswordException {
-      emit(const ChangeWalletPasswordIncorrectCurrentPassword());
-      return;
-    } on Object catch (error, stackTrace) {
-      addError(error, stackTrace);
-      await _sendError(error, event.decryptErrorTitle);
-      emit(ChangeWalletPasswordFailure(error: error));
-      return;
-    }
+    await _runSerialized<void>(() async {
+      try {
+        await _decryptWalletFile(_walletPathProvider()!, event.currentPassword);
+      } on IncorrectPasswordException {
+        if (!isClosed) {
+          emit(const ChangeWalletPasswordIncorrectCurrentPassword());
+        }
+        return;
+      } on Object catch (error, stackTrace) {
+        if (!isClosed) {
+          addError(error, stackTrace);
+          emit(ChangeWalletPasswordFailure(error: error));
+        }
+        await _sendError(error, event.decryptErrorTitle);
+        return;
+      }
 
-    try {
-      await _changePasswordAtomically(
-        currentPassword: event.currentPassword,
-        newPassword: event.newPassword,
-      );
-      emit(const ChangeWalletPasswordSuccess());
-    } on Object catch (error, stackTrace) {
-      addError(error, stackTrace);
-      await _sendError(error, event.changePasswordErrorTitle);
-      emit(ChangeWalletPasswordFailure(error: error));
-    }
+      try {
+        await _changePasswordAtomically(
+          currentPassword: event.currentPassword,
+          newPassword: event.newPassword,
+        );
+        if (!isClosed) {
+          emit(const ChangeWalletPasswordSuccess());
+        }
+      } on Object catch (error, stackTrace) {
+        if (!isClosed) {
+          addError(error, stackTrace);
+          emit(ChangeWalletPasswordFailure(error: error));
+        }
+        await _sendError(error, event.changePasswordErrorTitle);
+      }
+    });
   }
 
   Future<void> _changePasswordAtomically({

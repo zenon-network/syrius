@@ -185,5 +185,61 @@ void main() {
         verify(() => mockStatsApi.networkInfo()).called(1);
       },
     );
+
+    test(
+      'applies latest sort settings if user toggles sort during refresh',
+      () async {
+        final Completer<NetworkInfo> refreshCompleter =
+            Completer<NetworkInfo>();
+        int callCount = 0;
+        final NetworkInfo refreshedInfo = NetworkInfo.fromJson(
+          <String, dynamic>{
+            'numPeers': 3,
+            'self': <String, dynamic>{'ip': '127.0.0.1', 'publicKey': 'self'},
+            'peers': <Map<String, dynamic>>[
+              <String, dynamic>{'ip': '10.0.0.2', 'publicKey': 'pk_z'},
+              <String, dynamic>{'ip': '10.0.0.3', 'publicKey': 'pk_m'},
+              <String, dynamic>{'ip': '10.0.0.1', 'publicKey': 'pk_a'},
+            ],
+          },
+        );
+        when(() => mockStatsApi.networkInfo()).thenAnswer((_) {
+          callCount++;
+          return callCount == 1
+              ? Future<NetworkInfo>.value(networkInfo)
+              : refreshCompleter.future;
+        });
+
+        final PeersBloc bloc = PeersBloc(zenon: mockZenon);
+        addTearDown(bloc.close);
+
+        bloc.add(const PeersRequested());
+        await expectLater(bloc.stream, emitsThrough(isA<PeersPopulated>()));
+
+        // Start refresh while unsorted, then toggle IP sort while RPC awaits.
+        bloc.add(const PeersRequested());
+        await Future<void>.delayed(Duration.zero);
+        bloc.add(const PeersSortToggled(column: PeersSortColumn.ip));
+        await Future<void>.delayed(Duration.zero);
+
+        refreshCompleter.complete(refreshedInfo);
+        await expectLater(
+          bloc.stream,
+          emitsThrough(
+            isA<PeersPopulated>()
+                .having(
+                  (PeersPopulated s) => s.sortColumn,
+                  'sortColumn',
+                  PeersSortColumn.ip,
+                )
+                .having(
+                  (PeersPopulated s) => s.peers.map((Peer p) => p.ip).toList(),
+                  'sorted refreshed IPs',
+                  <String>['10.0.0.1', '10.0.0.2', '10.0.0.3'],
+                ),
+          ),
+        );
+      },
+    );
   });
 }

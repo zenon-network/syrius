@@ -62,53 +62,61 @@ class _ViewState extends State<_View> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: BlocConsumer<ChangeWalletPasswordBloc, ChangeWalletPasswordState>(
-        listener: (BuildContext context, ChangeWalletPasswordState state) {
-          if (state is ChangeWalletPasswordLoading) {
-            _loadingButtonKey.currentState?.animateForward();
-          } else {
-            _loadingButtonKey.currentState?.animateReverse();
-          }
-          if (state is ChangeWalletPasswordSuccess) {
-            Navigator.pop(context);
-          }
-        },
-        builder: (BuildContext context, ChangeWalletPasswordState state) {
-          final String? currentPassErrorText =
-              state is ChangeWalletPasswordIncorrectCurrentPassword
-              ? context.l10n.incorrectPassword
-              : null;
-          final bool canSubmit =
-              state is! ChangeWalletPasswordLoading &&
-              _arePasswordsValid(currentPassErrorText);
+    return BlocConsumer<ChangeWalletPasswordBloc, ChangeWalletPasswordState>(
+      listener: (BuildContext context, ChangeWalletPasswordState state) {
+        if (state is ChangeWalletPasswordLoading) {
+          _loadingButtonKey.currentState?.animateForward();
+        } else {
+          _loadingButtonKey.currentState?.animateReverse();
+        }
+        if (state is ChangeWalletPasswordSuccess) {
+          Navigator.pop(context);
+        }
+      },
+      builder: (BuildContext context, ChangeWalletPasswordState state) {
+        final bool isLoading = state is ChangeWalletPasswordLoading;
+        final String? currentPassErrorText =
+            state is ChangeWalletPasswordIncorrectCurrentPassword
+            ? context.l10n.incorrectPassword
+            : null;
+        final bool canSubmit =
+            !isLoading && _arePasswordsValid(currentPassErrorText);
 
-          return Container(
-            padding: const EdgeInsets.symmetric(vertical: 30),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: <Widget>[
-                NotificationWidget(
-                  onSeeMorePressed: widget._onStepperNotificationSeeMorePressed,
-                ),
-                Text(
-                  context.l10n.changeWalletPassword,
-                  style: Theme.of(context).textTheme.headlineLarge,
-                ),
-                _buildPasswordFields(
-                  context: context,
-                  currentPassErrorText: currentPassErrorText,
-                  canSubmit: canSubmit,
-                ),
-                DottedBorderInfoWidget(
-                  text: context.l10n.passwordRequirementsInfo,
-                ),
-                _buildActionButtons(context: context, canSubmit: canSubmit),
-              ],
+        return PopScope(
+          canPop: !isLoading,
+          child: Scaffold(
+            body: Container(
+              padding: const EdgeInsets.symmetric(vertical: 30),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: <Widget>[
+                  NotificationWidget(
+                    onSeeMorePressed:
+                        widget._onStepperNotificationSeeMorePressed,
+                  ),
+                  Text(
+                    context.l10n.changeWalletPassword,
+                    style: Theme.of(context).textTheme.headlineLarge,
+                  ),
+                  _buildPasswordFields(
+                    context: context,
+                    currentPassErrorText: currentPassErrorText,
+                    canSubmit: canSubmit,
+                  ),
+                  DottedBorderInfoWidget(
+                    text: context.l10n.passwordRequirementsInfo,
+                  ),
+                  _buildActionButtons(
+                    context: context,
+                    isLoading: isLoading,
+                    canSubmit: canSubmit,
+                  ),
+                ],
+              ),
             ),
-          );
-        },
-      ),
+          ),
+        );
+      },
     );
   }
 
@@ -181,15 +189,18 @@ class _ViewState extends State<_View> {
 
   Widget _buildActionButtons({
     required BuildContext context,
+    required bool isLoading,
     required bool canSubmit,
   }) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: <Widget>[
         OnboardingButton(
-          onPressed: () {
-            Navigator.pop(context, false);
-          },
+          onPressed: isLoading
+              ? null
+              : () {
+                  Navigator.pop(context, false);
+                },
           text: context.l10n.goBack,
         ),
         kSpacingBetweenActionButtons,

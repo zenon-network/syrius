@@ -29,30 +29,29 @@ class PeersBloc extends Bloc<PeersEvent, PeersState> {
     PeersRequested event,
     Emitter<PeersState> emit,
   ) async {
-    final PeersSortColumn? previousColumn = switch (state) {
-      PeersPopulated(:final PeersSortColumn? sortColumn) => sortColumn,
-      _ => null,
-    };
-    final bool previousAscending = switch (state) {
-      PeersPopulated(:final bool sortAscending) => sortAscending,
-      _ => true,
-    };
-
     if (state is! PeersPopulated) {
       emit(const PeersLoading());
     }
 
     try {
       final NetworkInfo networkInfo = await _zenon.stats.networkInfo();
+      final PeersSortColumn? latestColumn = switch (state) {
+        PeersPopulated(:final PeersSortColumn? sortColumn) => sortColumn,
+        _ => null,
+      };
+      final bool latestAscending = switch (state) {
+        PeersPopulated(:final bool sortAscending) => sortAscending,
+        _ => true,
+      };
       final List<Peer> peers = List<Peer>.of(networkInfo.peers);
-      if (previousColumn != null) {
-        _sortPeers(peers, previousColumn, ascending: !previousAscending);
+      if (latestColumn != null) {
+        _sortPeers(peers, latestColumn, ascending: !latestAscending);
       }
       emit(
         PeersPopulated(
           peers: peers,
-          sortColumn: previousColumn,
-          sortAscending: previousAscending,
+          sortColumn: latestColumn,
+          sortAscending: latestAscending,
         ),
       );
     } on SyriusException catch (error, stackTrace) {

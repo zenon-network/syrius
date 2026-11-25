@@ -32,11 +32,17 @@ class SettingsBackupCubit extends Cubit<SettingsBackupState> {
       final String mnemonic = await walletFile.access<String>(
         (Wallet wallet) async => (wallet as KeyStore).mnemonic!,
       );
+      if (isClosed) {
+        return;
+      }
       emit(
         SettingsBackupSeedLoaded(seed: mnemonic, canBackup: state.canBackup),
       );
       emit(SettingsBackupIdle(canBackup: state.canBackup));
     } on Object catch (error, stackTrace) {
+      if (isClosed) {
+        return;
+      }
       addError(error, stackTrace);
       emit(SettingsBackupFailure(error: error, canBackup: state.canBackup));
       emit(SettingsBackupIdle(canBackup: state.canBackup));

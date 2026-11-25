@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
@@ -547,6 +549,112 @@ void main() {
               kEmbeddedNode,
             ),
       ],
+    );
+
+    test(
+      'drops concurrent mismatch recovery action while reconnect dial runs',
+      () async {
+        final Completer<bool> secondReconnectCompleter = Completer<bool>();
+        int previousConnectAttempts = 0;
+        int frontierCalls = 0;
+        when(() => repository.getFrontierChainId()).thenAnswer((_) async {
+          frontierCalls++;
+          return frontierCalls == 1 ? 2 : 1;
+        });
+        when(() => repository.connectToNode(kEmbeddedNode)).thenAnswer((_) {
+          previousConnectAttempts++;
+          if (previousConnectAttempts == 1) {
+            return Future<bool>.value(false);
+          }
+          return secondReconnectCompleter.future;
+        });
+
+        final NodeManagementBloc bloc = buildBloc();
+        addTearDown(bloc.close);
+
+        // Trigger initial mismatch, then fail the first cancel-reconnect.
+        bloc
+          ..add(
+            const NodeManagementNodeSelected(node: kLocalhostDefaultNodeUrl),
+          )
+          ..add(
+            const NodeManagementConfirmNodeRequested(
+              successTitle: 'Connected',
+              successDetails: 'Connected',
+              connectionUnavailableMessage: 'Failed',
+              connectionFailedTitle: 'Connection failed',
+            ),
+          );
+        await expectLater(
+          bloc.stream,
+          emitsThrough(
+            isA<NodeManagementState>().having(
+              (NodeManagementState s) => s.pendingChainIdMismatch?.node,
+              'pending mismatch',
+              kLocalhostDefaultNodeUrl,
+            ),
+          ),
+        );
+
+        bloc.add(
+          const NodeManagementChainIdMismatchResolved(
+            proceed: false,
+            connectionFailedTitle: 'Connection failed',
+          ),
+        );
+        await expectLater(
+          bloc.stream,
+          emitsThrough(
+            isA<NodeManagementState>().having(
+              (NodeManagementState s) =>
+                  s.pendingChainIdMismatch?.reconnectFailed,
+              'reconnectFailed',
+              true,
+            ),
+          ),
+        );
+
+        // Start retry reconnect, then concurrently dispatch proceed: true.
+        bloc
+          ..add(
+            const NodeManagementChainIdMismatchResolved(
+              proceed: false,
+              connectionFailedTitle: 'Connection failed',
+            ),
+          )
+          ..add(
+            const NodeManagementChainIdMismatchResolved(
+              proceed: true,
+              connectionFailedTitle: 'Connection failed',
+            ),
+          );
+        await Future<void>.delayed(Duration.zero);
+
+        secondReconnectCompleter.complete(true);
+        await expectLater(
+          bloc.stream,
+          emitsThrough(
+            isA<NodeManagementState>()
+                .having(
+                  (NodeManagementState s) => s.pendingChainIdMismatch,
+                  'cleared mismatch',
+                  isNull,
+                )
+                .having(
+                  (NodeManagementState s) => s.confirmedNode,
+                  'confirmedNode remains previous',
+                  kEmbeddedNode,
+                ),
+          ),
+        );
+
+        // Candidate node was only dialed once initially, never re-dialed or
+        // committed by the dropped concurrent proceed event.
+        verify(
+          () => repository.connectToNode(kLocalhostDefaultNodeUrl),
+        ).called(1);
+        verifyNever(() => repository.saveSelectedNode(any()));
+      },
     );
 
     blocTest<NodeManagementBloc, NodeManagementState>(

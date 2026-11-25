@@ -50,10 +50,15 @@ class SettingsDisplayCubit extends Cubit<SettingsDisplayState> {
         ),
       );
     } on Object catch (error, stackTrace) {
+      if (isClosed) {
+        return;
+      }
       addError(error, stackTrace);
       await _sendError(error, errorTitle);
     } finally {
-      emit(state.copyWith(isSavingTheme: false));
+      if (!isClosed) {
+        emit(state.copyWith(isSavingTheme: false));
+      }
     }
   }
 
@@ -76,10 +81,15 @@ class SettingsDisplayCubit extends Cubit<SettingsDisplayState> {
         ),
       );
     } on Object catch (error, stackTrace) {
+      if (isClosed) {
+        return;
+      }
       addError(error, stackTrace);
       await _sendError(error, errorTitle);
     } finally {
-      emit(state.copyWith(isSavingTextScaling: false));
+      if (!isClosed) {
+        emit(state.copyWith(isSavingTextScaling: false));
+      }
     }
   }
 
