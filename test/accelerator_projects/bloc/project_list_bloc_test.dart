@@ -564,5 +564,45 @@ void main() {
 
       await bloc.close();
     });
+
+    test('cancels pending debounced search on refresh with clearSearch while '
+        'allowing subsequent searches', () async {
+      when(() => acceleratorApi.getAll(pageSize: 10)).thenAnswer(
+        (_) async => _projectList(<Project>[activeOther, votingMine]),
+      );
+
+      final ProjectListBloc bloc = ProjectListBloc(
+        zenon: zenon,
+        walletAddressesProvider: () => <String>[myAddr.toString()],
+        debounceDuration: const Duration(milliseconds: 50),
+        pageSize: 10,
+        listenToWsReconnect: false,
+      )..add(const ProjectListRequested());
+      await Future<void>.delayed(Duration.zero);
+
+      // Type a query, then click refresh before the 50 ms debounce expires.
+      bloc.add(const ProjectListSearchChanged(query: 'MyProposal'));
+      await Future<void>.delayed(const Duration(milliseconds: 10));
+      bloc.add(const ProjectListRequested(refresh: true, clearSearch: true));
+
+      // Wait past the original debounce window: pending search must stay
+      // cancelled and must not re-apply 'MyProposal'.
+      await Future<void>.delayed(const Duration(milliseconds: 100));
+      expect(bloc.state.searchQuery, isEmpty);
+      expect(bloc.state.projects.map((Project p) => p.name).toList(), <String>[
+        'ActiveProject',
+        'MyProposal',
+      ]);
+
+      // Text entered after refresh must still trigger a new search.
+      bloc.add(const ProjectListSearchChanged(query: 'MyProposal'));
+      await Future<void>.delayed(const Duration(milliseconds: 100));
+      expect(bloc.state.searchQuery, 'MyProposal');
+      expect(bloc.state.projects.map((Project p) => p.name).toList(), <String>[
+        'MyProposal',
+      ]);
+
+      await bloc.close();
+    });
   });
 }

@@ -48,7 +48,15 @@ class _View extends StatefulWidget {
 
 class _ViewState extends State<_View> {
   final ScrollController _scrollController = ScrollController();
-  final TextEditingController _searchController = TextEditingController();
+  late final TextEditingController _searchController;
+
+  @override
+  void initState() {
+    super.initState();
+    _searchController = TextEditingController(
+      text: context.read<ProjectListBloc>().state.searchQuery,
+    );
+  }
 
   @override
   Widget build(BuildContext context) {

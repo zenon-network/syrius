@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -287,6 +289,52 @@ void main() {
         verify(
           () => pillarBloc.add(AcceleratorPillarRequested(address: producer)),
         ).called(1);
+      },
+    );
+
+    testWidgets(
+      'preserves displayed search query when AcceleratorProjectsCard rebuilds '
+      'after address change loading',
+      (WidgetTester tester) async {
+        final StreamController<AcceleratorPillarState> pillarStates =
+            StreamController<AcceleratorPillarState>.broadcast();
+        addTearDown(pillarStates.close);
+
+        whenListen<AcceleratorPillarState>(
+          pillarBloc,
+          pillarStates.stream,
+          initialState: AcceleratorPillarPopulated(
+            address: stranger,
+            pillarInfo: null,
+            activePillarCount: 30,
+          ),
+        );
+        when(() => projectListBloc.state).thenReturn(
+          const ProjectListState(
+            status: ProjectListStatus.populated,
+            searchQuery: 'alpha',
+          ),
+        );
+
+        await pumpTab(tester);
+
+        // Simulate address change moving through loading (unmounting card)
+        // and back to populated (reconstructing AcceleratorProjectsCard).
+        pillarStates.add(AcceleratorPillarLoading(address: producer));
+        await tester.pump();
+        pillarStates.add(
+          AcceleratorPillarPopulated(
+            address: producer,
+            pillarInfo: _pillar('prod-pillar', owner, producer),
+            activePillarCount: 30,
+          ),
+        );
+        await tester.pump();
+
+        final TextField searchField = tester.widget<TextField>(
+          find.byType(TextField),
+        );
+        expect(searchField.controller?.text, 'alpha');
       },
     );
   });

@@ -62,19 +62,48 @@ class _CreateProjectStepperViewState extends State<CreateProjectStepperView> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<MultipleBalanceBloc, MultipleBalanceState>(
-      builder: (BuildContext context, MultipleBalanceState state) {
-        return switch (state.status) {
-          MultipleBalanceStatus.failure => SyriusErrorWidget(state.error!),
-          MultipleBalanceStatus.initial ||
-          MultipleBalanceStatus.loading => const SyriusLoadingWidget(),
-          MultipleBalanceStatus.success => _buildLoadedBody(
-            context,
-            state.data?[_addressController.text],
-          ),
-        };
-      },
+    return BlocListener<CreateProjectBloc, CreateProjectState>(
+      listener: _onCreateProjectStateChanged,
+      child: BlocBuilder<MultipleBalanceBloc, MultipleBalanceState>(
+        builder: (BuildContext context, MultipleBalanceState state) {
+          return switch (state.status) {
+            MultipleBalanceStatus.failure => SyriusErrorWidget(state.error!),
+            MultipleBalanceStatus.initial ||
+            MultipleBalanceStatus.loading => const SyriusLoadingWidget(),
+            MultipleBalanceStatus.success => _buildLoadedBody(
+              context,
+              state.data?[_addressController.text],
+            ),
+          };
+        },
+      ),
     );
+  }
+
+  void _onCreateProjectStateChanged(
+    BuildContext context,
+    CreateProjectState state,
+  ) {
+    switch (state) {
+      case CreateProjectInitial():
+        break;
+      case CreateProjectLoading():
+        _submitButtonKey.currentState?.animateForward();
+      case CreateProjectDone():
+        _submitButtonKey.currentState?.animateReverse();
+        widget._onProjectCreated?.call();
+        setState(() {
+          _lastCompletedStep = _ProjectCreationStep.submitProject;
+        });
+      case CreateProjectFailure(:final SyriusException exception):
+        _submitButtonKey.currentState?.animateReverse();
+        unawaited(
+          NotificationUtils.sendNotificationError(
+            exception,
+            context.l10n.errorSubmittingProject,
+          ),
+        );
+    }
   }
 
   Widget _buildLoadedBody(BuildContext context, AccountInfo? accountInfo) {
@@ -447,73 +476,49 @@ class _CreateProjectStepperViewState extends State<CreateProjectStepperView> {
   }
 
   Widget _buildSubmitProjectStepContent(BuildContext context) {
-    return BlocListener<CreateProjectBloc, CreateProjectState>(
-      listener: (BuildContext context, CreateProjectState state) {
-        switch (state) {
-          case CreateProjectInitial():
-            break;
-          case CreateProjectLoading():
-            _submitButtonKey.currentState?.animateForward();
-          case CreateProjectDone():
-            _submitButtonKey.currentState?.animateReverse();
-            widget._onProjectCreated?.call();
-            setState(() {
-              _lastCompletedStep = _ProjectCreationStep.submitProject;
-            });
-          case CreateProjectFailure(:final SyriusException exception):
-            _submitButtonKey.currentState?.animateReverse();
-            unawaited(
-              NotificationUtils.sendNotificationError(
-                exception,
-                context.l10n.errorSubmittingProject,
-              ),
-            );
-        }
-      },
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-          DottedBorderInfoWidget(
-            text: context.l10n.consumeZnnToSubmitProject(
-              projectCreationFeeInZnn.addDecimals(coinDecimals),
-              kZnnCoin.symbol,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: <Widget>[
+        DottedBorderInfoWidget(
+          text: context.l10n.consumeZnnToSubmitProject(
+            projectCreationFeeInZnn.addDecimals(coinDecimals),
+            kZnnCoin.symbol,
+          ),
+        ),
+        kVerticalSpacing,
+        Row(
+          children: <Widget>[
+            StepperButton(
+              onPressed: () {
+                setState(() {
+                  _currentStep = _ProjectCreationStep.projectDetails;
+                  _lastCompletedStep = _ProjectCreationStep.projectCreation;
+                });
+              },
+              text: context.l10n.goBack,
             ),
-          ),
-          kVerticalSpacing,
-          Row(
-            children: <Widget>[
-              StepperButton(
-                onPressed: () {
-                  setState(() {
-                    _currentStep = _ProjectCreationStep.projectDetails;
-                    _lastCompletedStep = _ProjectCreationStep.projectCreation;
-                  });
-                },
-                text: context.l10n.goBack,
-              ),
-              const SizedBox(width: 15),
-              LoadingButton.stepper(
-                onPressed: () {
-                  context.read<CreateProjectBloc>().add(
-                    CreateProjectRequested(
-                      address: Address.parse(_addressController.text),
-                      name: _projectNameController.text,
-                      description: _projectDescriptionController.text,
-                      url: _projectUrlController.text,
-                      znnFundsNeeded: _projectZnnAmountController.text
-                          .extractDecimals(coinDecimals),
-                      qsrFundsNeeded: _projectQsrAmountController.text
-                          .extractDecimals(coinDecimals),
-                    ),
-                  );
-                },
-                text: context.l10n.submit,
-                key: _submitButtonKey,
-              ),
-            ],
-          ),
-        ],
-      ),
+            const SizedBox(width: 15),
+            LoadingButton.stepper(
+              onPressed: () {
+                context.read<CreateProjectBloc>().add(
+                  CreateProjectRequested(
+                    address: Address.parse(_addressController.text),
+                    name: _projectNameController.text,
+                    description: _projectDescriptionController.text,
+                    url: _projectUrlController.text,
+                    znnFundsNeeded: _projectZnnAmountController.text
+                        .extractDecimals(coinDecimals),
+                    qsrFundsNeeded: _projectQsrAmountController.text
+                        .extractDecimals(coinDecimals),
+                  ),
+                );
+              },
+              text: context.l10n.submit,
+              key: _submitButtonKey,
+            ),
+          ],
+        ),
+      ],
     );
   }
 

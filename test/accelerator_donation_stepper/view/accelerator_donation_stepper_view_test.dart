@@ -275,5 +275,106 @@ void main() {
         ).called(1);
       },
     );
+
+    testWidgets(
+      'keeps SubmitDonationBloc listener mounted while MultipleBalanceBloc '
+      'reloads so partial ZNN failure is never missed',
+      (WidgetTester tester) async {
+        final AccountInfo accountInfo = _accountInfo(
+          address: donorAddress.toString(),
+          znn: BigInt.from(100 * oneZnn),
+          qsr: BigInt.from(200 * oneQsr),
+        );
+        final MultipleBalanceState loadedState = MultipleBalanceState(
+          status: MultipleBalanceStatus.success,
+          data: <String, AccountInfo>{donorAddress.toString(): accountInfo},
+        );
+        final StreamController<MultipleBalanceState> balanceStates =
+            StreamController<MultipleBalanceState>.broadcast();
+        final StreamController<SubmitDonationState> submitStates =
+            StreamController<SubmitDonationState>.broadcast();
+        addTearDown(balanceStates.close);
+        addTearDown(submitStates.close);
+
+        whenListen<MultipleBalanceState>(
+          multipleBalanceBloc,
+          balanceStates.stream,
+          initialState: loadedState,
+        );
+        whenListen<SubmitDonationState>(
+          submitDonationBloc,
+          submitStates.stream,
+          initialState: const SubmitDonationInitial(),
+        );
+
+        int onSubmittedCount = 0;
+        await pumpStepper(
+          tester,
+          onDonationSubmitted: () {
+            onSubmittedCount += 1;
+          },
+        );
+
+        // Step 1 -> Step 2 (Continue)
+        await tester.tap(find.text('Continue').first);
+        await tester.pumpAndSettle();
+
+        // Enter ZNN and QSR amounts.
+        final Finder textFields = find.byType(TextFormField);
+        await tester.enterText(textFields.at(0), '10');
+        await tester.enterText(textFields.at(1), '25');
+        await tester.pumpAndSettle();
+
+        // Step 2 -> Step 3 (Continue)
+        final Finder step2Continue = find.text('Continue').at(1);
+        await tester.ensureVisible(step2Continue);
+        await tester.tap(step2Continue);
+        await tester.pumpAndSettle();
+
+        // Trigger submission.
+        final Finder submitButton = find.byType(LoadingButton);
+        await tester.ensureVisible(submitButton);
+        await tester.tap(submitButton);
+        await tester.pump();
+
+        // Balance reload replaces stepper body with loading indicator while
+        // submission is still in flight.
+        balanceStates.add(
+          const MultipleBalanceState(status: MultipleBalanceStatus.loading),
+        );
+        await tester.pump();
+
+        // Partial failure arrives while balances are loading.
+        submitStates.add(
+          SubmitDonationFailure(
+            exception: FailureException(),
+            sentBlocks: <AccountBlockTemplate>[_MockAccountBlockTemplate()],
+            znnSubmitted: true,
+          ),
+        );
+        await tester.pump();
+
+        expect(onSubmittedCount, 1);
+
+        // Balances finish loading and stepper remounts; retry must send ONLY
+        // the remaining QSR amount (znnAmount == 0).
+        balanceStates.add(loadedState);
+        await tester.pumpAndSettle();
+
+        await tester.ensureVisible(submitButton);
+        await tester.tap(submitButton);
+        await tester.pump();
+
+        verify(
+          () => submitDonationBloc.add(
+            SubmitDonationRequested(
+              address: donorAddress,
+              znnAmount: BigInt.zero,
+              qsrAmount: BigInt.from(25 * oneQsr),
+            ),
+          ),
+        ).called(1);
+      },
+    );
   });
 }

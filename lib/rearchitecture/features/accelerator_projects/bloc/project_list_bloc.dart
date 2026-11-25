@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:bloc/bloc.dart';
 import 'package:bloc_concurrency/bloc_concurrency.dart';
 import 'package:equatable/equatable.dart';
-import 'package:stream_transform/stream_transform.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/refresh_bloc_mixin.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/exceptions/exceptions.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
@@ -32,7 +31,7 @@ class ProjectListBloc extends Bloc<ProjectListEvent, ProjectListState>
     );
     on<ProjectListSearchChanged>(
       _onProjectListSearchChanged,
-      transformer: _debounceRestartable(debounceDuration),
+      transformer: _debounceSearchRestartable(debounceDuration),
     );
     on<ProjectListFilterTagToggled>(
       _onProjectListFilterTagToggled,
@@ -61,6 +60,7 @@ class ProjectListBloc extends Bloc<ProjectListEvent, ProjectListState>
   bool _cacheStale = false;
   bool _hasExplicitSort = false;
   int _requestGeneration = 0;
+  void Function()? _cancelPendingSearch;
 
   static List<String> _defaultWalletAddresses() =>
       kDefaultAddressList.whereType<String>().toList();
@@ -69,6 +69,9 @@ class ProjectListBloc extends Bloc<ProjectListEvent, ProjectListState>
     ProjectListRequested event,
     Emitter<ProjectListState> emit,
   ) async {
+    if (event.clearSearch) {
+      _cancelPendingSearch?.call();
+    }
     await _loadAndFilter(
       emit: emit,
       searchQuery: event.clearSearch ? '' : state.searchQuery,
@@ -135,6 +138,7 @@ class ProjectListBloc extends Bloc<ProjectListEvent, ProjectListState>
     ProjectListPillarUpdated event,
     Emitter<ProjectListState> emit,
   ) async {
+    _cancelPendingSearch?.call();
     final Set<AcceleratorProjectFilterTag> nextTags =
         Set<AcceleratorProjectFilterTag>.from(state.selectedTags);
     if (event.pillarInfo == null) {
@@ -404,15 +408,60 @@ class ProjectListBloc extends Bloc<ProjectListEvent, ProjectListState>
         .toSet();
   }
 
+  EventTransformer<ProjectListSearchChanged> _debounceSearchRestartable(
+    Duration duration,
+  ) {
+    return (
+      Stream<ProjectListSearchChanged> events,
+      EventMapper<ProjectListSearchChanged> mapper,
+    ) {
+      Timer? debounceTimer;
+      StreamSubscription<ProjectListSearchChanged>? sourceSub;
+      late final StreamController<ProjectListSearchChanged> debouncedController;
+
+      void cancelPending() {
+        debounceTimer?.cancel();
+        debounceTimer = null;
+      }
+
+      _cancelPendingSearch = cancelPending;
+
+      debouncedController = StreamController<ProjectListSearchChanged>(
+        onListen: () {
+          sourceSub = events.listen(
+            (ProjectListSearchChanged event) {
+              cancelPending();
+              debounceTimer = Timer(duration, () {
+                debounceTimer = null;
+                if (!debouncedController.isClosed) {
+                  debouncedController.add(event);
+                }
+              });
+            },
+            onError: debouncedController.addError,
+            onDone: () {
+              cancelPending();
+              unawaited(debouncedController.close());
+            },
+          );
+        },
+        onCancel: () async {
+          cancelPending();
+          await sourceSub?.cancel();
+        },
+      );
+
+      return restartable<ProjectListSearchChanged>().call(
+        debouncedController.stream,
+        mapper,
+      );
+    };
+  }
+
   @override
   Future<void> close() async {
+    _cancelPendingSearch?.call();
     cancelStreamSubscription();
     await super.close();
   }
-}
-
-EventTransformer<E> _debounceRestartable<E>(Duration duration) {
-  return (Stream<E> events, EventMapper<E> mapper) {
-    return restartable<E>().call(events.debounce(duration), mapper);
-  };
 }

@@ -142,19 +142,66 @@ class _AcceleratorDonationStepperViewState
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<MultipleBalanceBloc, MultipleBalanceState>(
-      builder: (BuildContext context, MultipleBalanceState state) {
-        return switch (state.status) {
-          MultipleBalanceStatus.failure => SyriusErrorWidget(state.error!),
-          MultipleBalanceStatus.initial ||
-          MultipleBalanceStatus.loading => const SyriusLoadingWidget(),
-          MultipleBalanceStatus.success => _buildLoadedBody(
-            context,
-            state.data?[_addressController.text],
-          ),
-        };
-      },
+    return BlocListener<SubmitDonationBloc, SubmitDonationState>(
+      listener: _onSubmitDonationStateChanged,
+      child: BlocBuilder<MultipleBalanceBloc, MultipleBalanceState>(
+        builder: (BuildContext context, MultipleBalanceState state) {
+          return switch (state.status) {
+            MultipleBalanceStatus.failure => SyriusErrorWidget(state.error!),
+            MultipleBalanceStatus.initial ||
+            MultipleBalanceStatus.loading => const SyriusLoadingWidget(),
+            MultipleBalanceStatus.success => _buildLoadedBody(
+              context,
+              state.data?[_addressController.text],
+            ),
+          };
+        },
+      ),
     );
+  }
+
+  void _onSubmitDonationStateChanged(
+    BuildContext context,
+    SubmitDonationState state,
+  ) {
+    switch (state) {
+      case SubmitDonationInitial():
+        break;
+      case SubmitDonationLoading():
+        _submitButtonKey.currentState?.animateForward();
+      case SubmitDonationDone():
+        _submitButtonKey.currentState?.animateReverse();
+        widget._onDonationSubmitted?.call();
+        setState(() {
+          _lastCompletedStep = _AcceleratorDonationStep.values.last;
+        });
+      case SubmitDonationFailure(
+        :final SyriusException exception,
+        :final List<AccountBlockTemplate> sentBlocks,
+        :final bool znnSubmitted,
+      ):
+        _submitButtonKey.currentState?.animateReverse();
+        if (sentBlocks.isNotEmpty) {
+          widget._onDonationSubmitted?.call();
+        }
+        if (znnSubmitted) {
+          setState(() {
+            _znnAmount = BigInt.zero;
+            _znnAmountController.clear();
+          });
+        }
+        final Object errorPayload = znnSubmitted
+            ? context.l10n.znnDonationSubmittedQsrFailed
+            : exception is InvalidDonationAmountException
+            ? context.l10n.donationAmountMustBePositive
+            : exception;
+        unawaited(
+          NotificationUtils.sendNotificationError(
+            errorPayload,
+            context.l10n.errorSubmittingDonation,
+          ),
+        );
+    }
   }
 
   Widget _buildLoadedBody(BuildContext context, AccountInfo? accountInfo) {
@@ -481,84 +528,41 @@ class _AcceleratorDonationStepperViewState
   }
 
   Widget _buildSubmitDonationStepContent(BuildContext context) {
-    return BlocListener<SubmitDonationBloc, SubmitDonationState>(
-      listener: (BuildContext context, SubmitDonationState state) {
-        switch (state) {
-          case SubmitDonationInitial():
-            break;
-          case SubmitDonationLoading():
-            _submitButtonKey.currentState?.animateForward();
-          case SubmitDonationDone():
-            _submitButtonKey.currentState?.animateReverse();
-            widget._onDonationSubmitted?.call();
-            setState(() {
-              _lastCompletedStep = _AcceleratorDonationStep.values.last;
-            });
-          case SubmitDonationFailure(
-            :final SyriusException exception,
-            :final List<AccountBlockTemplate> sentBlocks,
-            :final bool znnSubmitted,
-          ):
-            _submitButtonKey.currentState?.animateReverse();
-            if (sentBlocks.isNotEmpty) {
-              widget._onDonationSubmitted?.call();
-            }
-            if (znnSubmitted) {
-              setState(() {
-                _znnAmount = BigInt.zero;
-                _znnAmountController.clear();
-              });
-            }
-            final Object errorPayload = znnSubmitted
-                ? context.l10n.znnDonationSubmittedQsrFailed
-                : exception is InvalidDonationAmountException
-                ? context.l10n.donationAmountMustBePositive
-                : exception;
-            unawaited(
-              NotificationUtils.sendNotificationError(
-                errorPayload,
-                context.l10n.errorSubmittingDonation,
-              ),
-            );
-        }
-      },
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-          DottedBorderInfoWidget(
-            text: context.l10n.thankYouForSupportingAccelerator,
-          ),
-          kVerticalSpacing,
-          Row(
-            children: <Widget>[
-              StepperButton(
-                onPressed: () {
-                  setState(() {
-                    _currentStep = _AcceleratorDonationStep.donationDetails;
-                    _lastCompletedStep =
-                        _AcceleratorDonationStep.donationAddress;
-                  });
-                },
-                text: context.l10n.goBack,
-              ),
-              const SizedBox(width: 15),
-              LoadingButton.stepper(
-                onPressed: () {
-                  context.read<SubmitDonationBloc>().add(
-                    SubmitDonationRequested(
-                      address: Address.parse(_addressController.text),
-                      znnAmount: _znnAmount,
-                      qsrAmount: _qsrAmount,
-                    ),
-                  );
-                },
-                text: context.l10n.submit,
-                key: _submitButtonKey,
-              ),
-            ],
-          ),
-        ],
-      ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: <Widget>[
+        DottedBorderInfoWidget(
+          text: context.l10n.thankYouForSupportingAccelerator,
+        ),
+        kVerticalSpacing,
+        Row(
+          children: <Widget>[
+            StepperButton(
+              onPressed: () {
+                setState(() {
+                  _currentStep = _AcceleratorDonationStep.donationDetails;
+                  _lastCompletedStep = _AcceleratorDonationStep.donationAddress;
+                });
+              },
+              text: context.l10n.goBack,
+            ),
+            const SizedBox(width: 15),
+            LoadingButton.stepper(
+              onPressed: () {
+                context.read<SubmitDonationBloc>().add(
+                  SubmitDonationRequested(
+                    address: Address.parse(_addressController.text),
+                    znnAmount: _znnAmount,
+                    qsrAmount: _qsrAmount,
+                  ),
+                );
+              },
+              text: context.l10n.submit,
+              key: _submitButtonKey,
+            ),
+          ],
+        ),
+      ],
     );
   }
 
