@@ -1,111 +1,108 @@
 import 'package:flutter/material.dart';
-import 'package:hive_ce/hive_ce.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/notification_utils.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 
-class SettingsAddress extends StatefulWidget {
-
-  const SettingsAddress({
-    required this.address,
-    required this.onAddressLabelPressed,
+/// Displays a wallet address row with inline label editing and copy action.
+class SettingsAddressTile extends StatefulWidget {
+  /// Creates a [SettingsAddressTile].
+  const SettingsAddressTile({
+    required this._address,
+    required this._label,
+    required this._isSavingLabel,
+    required this._onAddressPressed,
+    required this._onLabelSubmitted,
     super.key,
   });
-  final String? address;
-  final void Function(String?) onAddressLabelPressed;
+
+  final String _address;
+  final String _label;
+  final bool _isSavingLabel;
+  final ValueChanged<String> _onAddressPressed;
+  final ValueChanged<String> _onLabelSubmitted;
 
   @override
-  State<SettingsAddress> createState() => _SettingsAddressState();
+  State<SettingsAddressTile> createState() => _SettingsAddressTileState();
 }
 
-class _SettingsAddressState extends State<SettingsAddress> {
+class _SettingsAddressTileState extends State<SettingsAddressTile> {
   bool _editable = false;
-
-  final TextEditingController _labelController = TextEditingController();
-
-  final GlobalKey<MyOutlinedButtonState> _changeButtonKey = GlobalKey();
+  late final TextEditingController _labelController;
 
   @override
   void initState() {
     super.initState();
-    if (kAddressLabelMap[widget.address] != null) {
-      _labelController.text = kAddressLabelMap[widget.address]!;
-    } else {
-      _labelController.text = 'Address 1';
+    _labelController = TextEditingController(text: widget._label);
+  }
+
+  @override
+  void didUpdateWidget(covariant SettingsAddressTile oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget._label != widget._label) {
+      _labelController.text = widget._label;
+      if (_editable) {
+        _editable = false;
+      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.symmetric(
-        vertical: 5,
-      ),
-      child:
-          _editable ? _getAddressLabelInputField() : _getAddressLabel(context),
+      margin: const EdgeInsets.symmetric(vertical: 5),
+      child: _editable
+          ? _buildAddressLabelInputField(context)
+          : _buildAddressLabel(context),
     );
   }
 
-  Row _getAddressLabel(BuildContext context) {
+  Widget _buildAddressLabel(BuildContext context) {
+    final TextStyle bodyLarge = Theme.of(context).textTheme.bodyLarge!;
     return Row(
       children: <Widget>[
         Expanded(
           child: InkWell(
-            borderRadius: BorderRadius.circular(
-              10,
-            ),
-            onTap: () => widget.onAddressLabelPressed(widget.address),
+            borderRadius: BorderRadius.circular(10),
+            onTap: () => widget._onAddressPressed(widget._address),
             child: Padding(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 5, vertical: 5),
+              padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 5),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[
                   Text(
-                    _labelController.text,
-                    style: Theme.of(context).textTheme.bodyLarge!.copyWith(
-                          color: Theme.of(context)
-                              .textTheme
-                              .bodyLarge!
-                              .color!
-                              .withOpacity(0.7),
-                        ),
+                    widget._label,
+                    style: bodyLarge.copyWith(
+                      color: bodyLarge.color?.withValues(alpha: 0.7),
+                    ),
                   ),
-                  _getAddressTextWidget(),
+                  _buildAddressText(context),
                 ],
               ),
             ),
           ),
         ),
-        const SizedBox(
-          width: 5,
-        ),
+        const SizedBox(width: 5),
         MaterialIconButton(
           size: 15,
           iconData: Icons.edit,
           onPressed: () {
             setState(() {
+              _labelController.text = widget._label;
               _editable = true;
             });
           },
           materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
         ),
-        const SizedBox(
-          width: 5,
-        ),
-        CopyToClipboardButton(
-          widget.address!,
-        ),
-        const SizedBox(
-          width: 5,
-        ),
+        const SizedBox(width: 5),
+        CopyToClipboardButton(widget._address),
+        const SizedBox(width: 5),
       ],
     );
   }
 
-  Widget _getAddressLabelInputField() {
+  Widget _buildAddressLabelInputField(BuildContext context) {
+    final bool canSubmit =
+        !widget._isSavingLabel && _labelController.text != widget._label;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
@@ -117,18 +114,16 @@ class _SettingsAddressState extends State<SettingsAddress> {
                 child: InputField(
                   controller: _labelController,
                   onSubmitted: (String value) {
-                    if (_labelController.text !=
-                        kAddressLabelMap[widget.address]!) {
-                      _onChangeButtonPressed();
+                    if (canSubmit) {
+                      widget._onLabelSubmitted(_labelController.text);
                     }
                   },
                   onChanged: (String value) {
                     setState(() {});
                   },
-                  inputtedTextStyle:
-                      Theme.of(context).textTheme.bodyMedium!.copyWith(
-                            color: AppColors.znnColor,
-                          ),
+                  inputtedTextStyle: Theme.of(
+                    context,
+                  ).textTheme.bodyMedium!.copyWith(color: AppColors.znnColor),
                   enabledBorder: OutlineInputBorder(
                     borderSide: BorderSide.none,
                     borderRadius: BorderRadius.circular(10),
@@ -136,7 +131,7 @@ class _SettingsAddressState extends State<SettingsAddress> {
                   contentLeftPadding: 5,
                   disabledBorder: OutlineInputBorder(
                     borderSide: BorderSide(
-                      color: Colors.white.withOpacity(0.1),
+                      color: Colors.white.withValues(alpha: 0.1),
                     ),
                     borderRadius: BorderRadius.circular(10),
                   ),
@@ -161,22 +156,18 @@ class _SettingsAddressState extends State<SettingsAddress> {
                 ),
               ),
             ),
-            const SizedBox(
-              width: 15,
-            ),
+            const SizedBox(width: 15),
             SettingsButton(
-              onPressed:
-                  _labelController.text != kAddressLabelMap[widget.address]!
-                      ? _onChangeButtonPressed
-                      : null,
-              text: 'Change',
-              key: _changeButtonKey,
+              onPressed: canSubmit
+                  ? () => widget._onLabelSubmitted(_labelController.text)
+                  : null,
+              text: context.l10n.change,
             ),
             MaterialIconButton(
               size: 15,
               onPressed: () {
                 setState(() {
-                  _labelController.text = kAddressLabelMap[widget.address]!;
+                  _labelController.text = widget._label;
                   _editable = false;
                 });
               },
@@ -184,58 +175,13 @@ class _SettingsAddressState extends State<SettingsAddress> {
             ),
           ],
         ),
-        _getAddressTextWidget(),
+        _buildAddressText(context),
       ],
     );
   }
 
-  Text _getAddressTextWidget() {
-    return Text(
-      widget.address!,
-      style: Theme.of(context).textTheme.bodyMedium,
-    );
-  }
-
-  Future<void> _onChangeButtonPressed() async {
-    try {
-      _changeButtonKey.currentState!.showLoadingIndicator(true);
-      if (_labelController.text.isNotEmpty &&
-          _labelController.text.length <= kAddressLabelMaxLength &&
-          !kAddressLabelMap.containsValue(_labelController.text)) {
-        await Hive.box(kAddressLabelsBox).put(
-          widget.address,
-          _labelController.text,
-        );
-        kAddressLabelMap[widget.address!] = _labelController.text;
-        setState(() {
-          _editable = false;
-        });
-      } else if (_labelController.text.isEmpty) {
-        await NotificationUtils.sendNotificationError(
-          "Label can't be empty",
-          "Label can't be empty",
-        );
-      } else if (_labelController.text.length > kAddressLabelMaxLength) {
-        await NotificationUtils.sendNotificationError(
-          'The label ${_labelController.text} is ${_labelController.text.length} '
-              'characters long, which is more than the $kAddressLabelMaxLength limit.',
-          'The label has more than $kAddressLabelMaxLength characters',
-        );
-      } else {
-        await NotificationUtils.sendNotificationError(
-          'Label ${_labelController.text}'
-              ' already exists in the database',
-          'Label already exists',
-        );
-      }
-    } catch (e) {
-      await NotificationUtils.sendNotificationError(
-        e,
-        'Something went wrong while changing the address label',
-      );
-    } finally {
-      _changeButtonKey.currentState!.showLoadingIndicator(false);
-    }
+  Widget _buildAddressText(BuildContext context) {
+    return Text(widget._address, style: Theme.of(context).textTheme.bodyMedium);
   }
 
   @override

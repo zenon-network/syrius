@@ -1,116 +1,103 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_vector_icons/flutter_vector_icons.dart';
-import 'package:zenon_syrius_wallet_flutter/screens/screens.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/export_wallet/view/export_wallet_password_screen.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 
+/// Step 1 of the Seed Vault export flow explaining offline backup requirements.
 class ExportWalletInfoScreen extends StatefulWidget {
-
+  /// Creates an [ExportWalletInfoScreen].
   const ExportWalletInfoScreen(
-    this.seed, {
-    this.backupWalletFlow = false,
+    this._seed, {
+    this._backupWalletFlow = false,
     super.key,
   });
-  final String seed;
-  final bool backupWalletFlow;
+
+  final String _seed;
+  final bool _backupWalletFlow;
 
   @override
   State<ExportWalletInfoScreen> createState() => _ExportWalletInfoScreenState();
 }
 
 class _ExportWalletInfoScreenState extends State<ExportWalletInfoScreen> {
-  bool? _isSecure = false;
+  bool _isSecure = false;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
-        padding: const EdgeInsets.symmetric(
-          vertical: 30,
-        ),
+        padding: const EdgeInsets.symmetric(vertical: 30),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: <Widget>[
-            const ProgressBar(
-              currentLevel: 1,
-              numLevels: 2,
-            ),
-            Container(
-              color: Colors.transparent,
-              child: SvgPicture.asset(
-                'assets/svg/ic_export_seed.svg',
-                colorFilter:
-                    const ColorFilter.mode(AppColors.znnColor, BlendMode.srcIn),
-                height: 55,
+            const ProgressBar(currentLevel: 1, numLevels: 2),
+            SvgPicture.asset(
+              'assets/svg/ic_export_seed.svg',
+              colorFilter: const ColorFilter.mode(
+                AppColors.znnColor,
+                BlendMode.srcIn,
               ),
+              height: 55,
             ),
             Text(
-              'Export Seed Vault',
+              context.l10n.exportSeedVault,
               style: Theme.of(context).textTheme.headlineLarge,
             ),
-            _getSeedFieldsGrid(),
-            _getSecureSeedInfo(),
-            _secureSeedCheckBoxContainer(),
-            _getActionButtons(),
+            _buildExplanationBox(context),
+            _buildSeedVaultIcons(context),
+            _buildConfirmationCheckbox(context),
+            _buildActionButtons(context),
           ],
         ),
       ),
     );
   }
 
-  Widget _getSeedFieldsGrid() {
-    final double seedFieldsGridWidth = MediaQuery.of(context).size.width * 0.5;
-    const String text = 'A Seed Vault is an encrypted file for backing up your Seed.'
-        ' The Seed is encrypted with a Seed Vault Key and cannot be accessed '
-        'without it. Make sure you backup your Seed Vault in multiple offline locations '
-        '(e.g. USB, external HDD) and do not lose your Seed Vault Key.'
-        " If you lose the Seed Vault file or you don't remember the Seed Vault "
-        'Key you lose access to your funds.';
+  Widget _buildExplanationBox(BuildContext context) {
+    final double seedFieldsGridWidth = MediaQuery.sizeOf(context).width * 0.5;
     return Container(
       width: seedFieldsGridWidth,
-      padding: const EdgeInsets.symmetric(
-        vertical: 40,
-        horizontal: 50,
-      ),
+      padding: const EdgeInsets.symmetric(vertical: 40, horizontal: 50),
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.secondaryContainer,
-        borderRadius: const BorderRadius.all(
-          Radius.circular(10),
-        ),
+        borderRadius: const BorderRadius.all(Radius.circular(10)),
       ),
       child: Text(
-        text,
-        style: Theme.of(context).textTheme.bodyLarge!.copyWith(
-              color: Colors.white,
-            ),
+        context.l10n.seedVaultBackupExplanation,
+        style: Theme.of(
+          context,
+        ).textTheme.bodyLarge!.copyWith(color: Colors.white),
         textAlign: TextAlign.justify,
       ),
     );
   }
 
-  Widget _getSecureSeedInfo() {
-    return SizedBox(
-      width: MediaQuery.of(context).size.width * 0.2,
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+  Widget _buildSeedVaultIcons(BuildContext context) {
+    return ConstrainedBox(
+      constraints: BoxConstraints(
+        minWidth: MediaQuery.sizeOf(context).width * 0.2,
+      ),
+      child: Wrap(
+        alignment: WrapAlignment.center,
+        spacing: 32,
+        runSpacing: 16,
         children: <Widget>[
           Column(
             children: <Widget>[
-              Container(
-                color: Colors.transparent,
-                child: SvgPicture.asset(
-                  'assets/svg/ic_seed.svg',
-                  colorFilter: const ColorFilter.mode(
-                      AppColors.qsrColor, BlendMode.srcIn,),
-                  height: 50,
+              SvgPicture.asset(
+                'assets/svg/ic_seed.svg',
+                colorFilter: const ColorFilter.mode(
+                  AppColors.qsrColor,
+                  BlendMode.srcIn,
                 ),
+                height: 50,
               ),
-              const Padding(
-                padding: EdgeInsets.only(top: 8),
-              ),
+              const SizedBox(height: 8),
               Text(
-                'Seed',
+                context.l10n.seed,
                 style: Theme.of(context).textTheme.bodyLarge,
               ),
             ],
@@ -122,31 +109,26 @@ class _ExportWalletInfoScreenState extends State<ExportWalletInfoScreen> {
                 size: 50,
                 color: AppColors.errorColor,
               ),
-              const Padding(
-                padding: EdgeInsets.only(top: 8),
-              ),
+              const SizedBox(height: 8),
               Text(
-                'Seed Vault Key',
+                context.l10n.seedVaultKey,
                 style: Theme.of(context).textTheme.bodyLarge,
               ),
             ],
           ),
           Column(
             children: <Widget>[
-              Container(
-                color: Colors.transparent,
-                child: SvgPicture.asset(
-                  'assets/svg/ic_vault_seed.svg',
-                  colorFilter: const ColorFilter.mode(
-                      AppColors.znnColor, BlendMode.srcIn,),
-                  height: 50,
+              SvgPicture.asset(
+                'assets/svg/ic_vault_seed.svg',
+                colorFilter: const ColorFilter.mode(
+                  AppColors.znnColor,
+                  BlendMode.srcIn,
                 ),
+                height: 50,
               ),
-              const Padding(
-                padding: EdgeInsets.only(top: 8),
-              ),
+              const SizedBox(height: 8),
               Text(
-                'Seed Vault',
+                context.l10n.seedVault,
                 style: Theme.of(context).textTheme.bodyLarge,
               ),
             ],
@@ -156,7 +138,7 @@ class _ExportWalletInfoScreenState extends State<ExportWalletInfoScreen> {
     );
   }
 
-  Widget _secureSeedCheckBoxContainer() {
+  Widget _buildConfirmationCheckbox(BuildContext context) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: <Widget>[
@@ -166,19 +148,21 @@ class _ExportWalletInfoScreenState extends State<ExportWalletInfoScreen> {
           activeColor: AppColors.znnColor,
           onChanged: (bool? value) {
             setState(() {
-              _isSecure = value;
+              _isSecure = value ?? false;
             });
           },
         ),
-        Text(
-          'I will securely store the Seed Vault & Seed Vault Key',
-          style: Theme.of(context).textTheme.headlineSmall,
+        Flexible(
+          child: Text(
+            context.l10n.willSecurelyStoreSeedVault,
+            style: Theme.of(context).textTheme.headlineSmall,
+          ),
         ),
       ],
     );
   }
 
-  Widget _getActionButtons() {
+  Widget _buildActionButtons(BuildContext context) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: <Widget>[
@@ -186,22 +170,22 @@ class _ExportWalletInfoScreenState extends State<ExportWalletInfoScreen> {
           onPressed: () {
             Navigator.of(context).pop();
           },
-          text: 'Go back',
+          text: context.l10n.goBack,
         ),
         kSpacingBetweenActionButtons,
         OnboardingButton(
-          onPressed: _isSecure!
+          onPressed: _isSecure
               ? () {
                   NavigationUtils.push(
                     context,
                     ExportWalletPasswordScreen(
-                      widget.seed,
-                      backupWalletFlow: widget.backupWalletFlow,
+                      widget._seed,
+                      backupWalletFlow: widget._backupWalletFlow,
                     ),
                   );
                 }
               : null,
-          text: 'Continue',
+          text: context.l10n.continueText,
         ),
       ],
     );

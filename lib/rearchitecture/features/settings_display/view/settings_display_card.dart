@@ -1,176 +1,226 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
-import 'package:zenon_syrius_wallet_flutter/main.dart';
-import 'package:zenon_syrius_wallet_flutter/model/model.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/format_utils.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/notification_utils.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/settings_display/settings_display.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/notifiers/app_theme_notifier.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/notifiers/text_scaling_notifier.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 
-enum TextScaling {
-  system,
-  small,
-  normal,
-  large,
-  huge,
-}
+/// Displays appearance and theme preferences in the Settings tab.
+class SettingsDisplayCard extends StatelessWidget {
+  /// Creates a [SettingsDisplayCard].
+  const SettingsDisplayCard({super.key, this._cubit});
 
-enum LocaleType {
-  english,
-}
-
-class DisplayWidget extends StatefulWidget {
-  const DisplayWidget({super.key});
-
-  @override
-  State<DisplayWidget> createState() => _DisplayWidget();
-}
-
-class _DisplayWidget extends State<DisplayWidget> {
-  LocaleType? _selectedLocaleType = LocaleType.english;
-
-  final GlobalKey<LoadingButtonState> _confirmThemeButtonKey = GlobalKey();
-  final GlobalKey<LoadingButtonState> _confirmScaleButtonKey = GlobalKey();
+  final SettingsDisplayCubit? _cubit;
 
   @override
   Widget build(BuildContext context) {
-    return CardScaffold(
-      title: 'Display',
-      description: 'Wallet appearance and theme settings',
-      childBuilder: _getWidgetBody,
+    final SettingsDisplayCubit? injected = _cubit;
+    if (injected != null) {
+      return BlocProvider<SettingsDisplayCubit>.value(
+        value: injected,
+        child: const _View(),
+      );
+    }
+
+    return BlocProvider<SettingsDisplayCubit>(
+      create: (_) => SettingsDisplayCubit(),
+      child: const _View(),
+    );
+  }
+}
+
+class _View extends StatefulWidget {
+  const _View();
+
+  @override
+  State<_View> createState() => _ViewState();
+}
+
+class _ViewState extends State<_View> {
+  final GlobalKey<LoadingButtonState> _confirmThemeButtonKey =
+      GlobalKey<LoadingButtonState>();
+  final GlobalKey<LoadingButtonState> _confirmScaleButtonKey =
+      GlobalKey<LoadingButtonState>();
+
+  @override
+  Widget build(BuildContext context) {
+    return NewCardScaffold(
+      data: _buildCardData(context: context),
+      body: BlocConsumer<SettingsDisplayCubit, SettingsDisplayState>(
+        listener: (BuildContext context, SettingsDisplayState state) {
+          if (state.isSavingTheme) {
+            _confirmThemeButtonKey.currentState?.animateForward();
+          } else {
+            _confirmThemeButtonKey.currentState?.animateReverse();
+          }
+          if (state.isSavingTextScaling) {
+            _confirmScaleButtonKey.currentState?.animateForward();
+          } else {
+            _confirmScaleButtonKey.currentState?.animateReverse();
+          }
+        },
+        builder: (BuildContext context, SettingsDisplayState state) {
+          return ListView(
+            shrinkWrap: true,
+            children: <Widget>[
+              CustomExpandablePanel(
+                context.l10n.textScaling,
+                _buildTextScalingPanel(context),
+              ),
+              CustomExpandablePanel(
+                context.l10n.locale,
+                _buildLocalePanel(context, state.selectedLocale),
+              ),
+              CustomExpandablePanel(
+                context.l10n.theme,
+                _buildThemePanel(context),
+              ),
+            ],
+          );
+        },
+      ),
     );
   }
 
-  Widget _getWidgetBody() {
-    return ListView(
-      shrinkWrap: true,
+  CardData _buildCardData({required BuildContext context}) => CardData(
+    title: context.l10n.display,
+    description: context.l10n.walletAppearanceAndThemeSettings,
+  );
+
+  Widget _buildTextScalingPanel(BuildContext context) {
+    final TextScalingNotifier textScalingNotifier = context
+        .watch<TextScalingNotifier>();
+    return Column(
       children: <Widget>[
-        CustomExpandablePanel('Text scaling', _getTextScalingExpandableChild()),
-        CustomExpandablePanel('Locale', _getLocaleExpandableChild()),
-        CustomExpandablePanel('Theme', _getThemeExpandableChild()),
+        RadioGroup<TextScaling>(
+          groupValue: textScalingNotifier.currentTextScaling,
+          onChanged: (TextScaling? value) {
+            if (value != null) {
+              textScalingNotifier.changeTextScaling(value);
+            }
+          },
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: TextScaling.values
+                .map(
+                  (TextScaling preset) => _buildRadioTile<TextScaling>(
+                    context: context,
+                    text: _textScalingLabel(context, preset),
+                    value: preset,
+                  ),
+                )
+                .toList(),
+          ),
+        ),
+        _buildConfirmScaleButton(context),
       ],
     );
   }
 
-  Widget _getTextScalingExpandableChild() {
+  Widget _buildLocalePanel(BuildContext context, LocaleType selectedLocale) {
+    return RadioGroup<LocaleType>(
+      groupValue: selectedLocale,
+      onChanged: (LocaleType? value) {
+        if (value != null) {
+          context.read<SettingsDisplayCubit>().selectLocale(value);
+        }
+      },
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: LocaleType.values
+            .map(
+              (LocaleType locale) => _buildRadioTile<LocaleType>(
+                context: context,
+                text: _localeLabel(context, locale),
+                value: locale,
+              ),
+            )
+            .toList(),
+      ),
+    );
+  }
+
+  Widget _buildThemePanel(BuildContext context) {
+    final AppThemeNotifier themeNotifier = context.watch<AppThemeNotifier>();
     return Column(
       children: <Widget>[
-        _getTextScalingTiles(),
-        _getConfirmScaleButton(),
+        RadioGroup<ThemeMode>(
+          groupValue: themeNotifier.currentThemeMode,
+          onChanged: (ThemeMode? value) {
+            if (value != null) {
+              themeNotifier.changeThemeMode(value);
+            }
+          },
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: ThemeMode.values
+                .map(
+                  (ThemeMode mode) => _buildRadioTile<ThemeMode>(
+                    context: context,
+                    text: _themeModeLabel(context, mode),
+                    value: mode,
+                  ),
+                )
+                .toList(),
+          ),
+        ),
+        _buildConfirmThemeButton(context),
       ],
     );
   }
 
-  Column _getTextScalingTiles() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: TextScaling.values
-          .map(
-            (TextScaling e) => _getListTile<TextScaling>(
-              FormatUtils.extractNameFromEnum<TextScaling>(e),
-              e,
-            ),
-          )
-          .toList(),
-    );
-  }
-
-  Widget _getListTile<T>(String text, T value) {
+  Widget _buildRadioTile<T>({
+    required BuildContext context,
+    required String text,
+    required T value,
+  }) {
     return Row(
       children: <Widget>[
         Radio<T>(
           materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
           value: value,
-          groupValue: value is TextScaling
-              ? Provider.of<TextScalingNotifier>(
-                  context,
-                  listen: false,
-                ).currentTextScaling as T
-              : value is LocaleType
-                  ? _selectedLocaleType as T?
-                  : Provider.of<AppThemeNotifier>(
-                      context,
-                      listen: false,
-                    ).currentThemeMode as T?,
-          onChanged: (T? value) {
-            setState(() {
-              if (value is TextScaling) {
-                Provider.of<TextScalingNotifier>(
-                  context,
-                  listen: false,
-                ).changeTextScaling(value);
-              }
-              if (value is LocaleType) {
-                _selectedLocaleType = value;
-              }
-              if (value is ThemeMode) {
-                Provider.of<AppThemeNotifier>(context, listen: false)
-                    .changeThemeMode(value);
-              }
-            });
-          },
         ),
         Expanded(
           child: Text(
             text,
-            style: Theme.of(context).textTheme.bodyLarge!.copyWith(
-                  fontSize: 10,
-                ),
+            style: Theme.of(
+              context,
+            ).textTheme.bodyLarge!.copyWith(fontSize: 10),
           ),
         ),
       ],
     );
   }
 
-  Widget _getLocaleExpandableChild() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: LocaleType.values
-          .map(
-            (LocaleType e) => _getListTile<LocaleType>(
-              FormatUtils.extractNameFromEnum<LocaleType>(e),
-              e,
-            ),
-          )
-          .toList(),
-    );
-  }
-
-  Widget _getThemeExpandableChild() {
-    return Column(
-      children: <Widget>[
-        _getThemeModeTiles(),
-        _getConfirmThemeButton(),
-      ],
-    );
-  }
-
-  Column _getThemeModeTiles() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: ThemeMode.values
-          .map(
-            (ThemeMode e) => _getListTile<ThemeMode>(
-              FormatUtils.extractNameFromEnum<ThemeMode>(e),
-              e,
-            ),
-          )
-          .toList(),
-    );
-  }
-
-  Widget _getConfirmThemeButton() {
+  Widget _buildConfirmThemeButton(BuildContext context) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: <Widget>[
         Padding(
           padding: const EdgeInsets.all(8),
           child: LoadingButton.settings(
-            text: 'Confirm theme',
-            onPressed: _onConfirmThemeButtonPressed,
+            text: context.l10n.confirmTheme,
+            onPressed: () {
+              final ThemeMode? currentThemeMode = context
+                  .read<AppThemeNotifier>()
+                  .currentThemeMode;
+              final String modeLabel = currentThemeMode != null
+                  ? _themeModeLabel(context, currentThemeMode)
+                  : '';
+              unawaited(
+                context.read<SettingsDisplayCubit>().confirmThemeMode(
+                  themeMode: currentThemeMode,
+                  notificationTitle: context.l10n.themeModeChanged,
+                  notificationDetails: context.l10n.themeModeChangedDetails(
+                    modeLabel,
+                  ),
+                  errorTitle: context.l10n.themeModeChangeFailed,
+                ),
+              );
+            },
             key: _confirmThemeButtonKey,
           ),
         ),
@@ -178,47 +228,32 @@ class _DisplayWidget extends State<DisplayWidget> {
     );
   }
 
-  Future<void> _onConfirmThemeButtonPressed() async {
-    try {
-      _confirmThemeButtonKey.currentState!.animateForward();
-      final ThemeMode? currentThemeMode = Provider.of<AppThemeNotifier>(
-        context,
-        listen: false,
-      ).currentThemeMode;
-      sharedPrefsService!.put(
-        kThemeModeKey,
-        currentThemeMode.toString(),
-      );
-      await sl.get<NotificationsBloc>().addNotification(
-            WalletNotification(
-              title: 'Theme mode changed',
-              timestamp: DateTime.now().millisecondsSinceEpoch,
-              details: 'Theme mode successfully changed to '
-                  '${FormatUtils.extractNameFromEnum<ThemeMode?>(
-                Provider.of<AppThemeNotifier>(
-                  context,
-                  listen: false,
-                ).currentThemeMode,
-              )}',
-              type: NotificationType.paymentSent,
-            ),
-          );
-    } catch (e) {
-      await NotificationUtils.sendNotificationError(e, 'Theme mode change failed');
-    } finally {
-      _confirmThemeButtonKey.currentState!.animateReverse();
-    }
-  }
-
-  Widget _getConfirmScaleButton() {
+  Widget _buildConfirmScaleButton(BuildContext context) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: <Widget>[
         Padding(
           padding: const EdgeInsets.all(8),
           child: LoadingButton.settings(
-            text: 'Confirm scale',
-            onPressed: _onConfirmScaleButtonPressed,
+            text: context.l10n.confirmScale,
+            onPressed: () {
+              final TextScaling? currentTextScaling = context
+                  .read<TextScalingNotifier>()
+                  .currentTextScaling;
+              final String scaleLabel = currentTextScaling != null
+                  ? _textScalingLabel(context, currentTextScaling)
+                  : '';
+              unawaited(
+                context.read<SettingsDisplayCubit>().confirmTextScaling(
+                  textScaling: currentTextScaling,
+                  notificationTitle: context.l10n.textScaleChanged,
+                  notificationDetails: context.l10n.textScaleChangedDetails(
+                    scaleLabel,
+                  ),
+                  errorTitle: context.l10n.textScaleChangeFailed,
+                ),
+              );
+            },
             key: _confirmScaleButtonKey,
           ),
         ),
@@ -226,32 +261,27 @@ class _DisplayWidget extends State<DisplayWidget> {
     );
   }
 
-  Future<void> _onConfirmScaleButtonPressed() async {
-    try {
-      _confirmScaleButtonKey.currentState!.animateForward();
+  String _textScalingLabel(BuildContext context, TextScaling preset) {
+    return switch (preset) {
+      TextScaling.system => context.l10n.system,
+      TextScaling.small => context.l10n.small,
+      TextScaling.normal => context.l10n.normal,
+      TextScaling.large => context.l10n.large,
+      TextScaling.huge => context.l10n.huge,
+    };
+  }
 
-      final TextScaling? currentTextScaling = Provider.of<TextScalingNotifier>(
-        context,
-        listen: false,
-      ).currentTextScaling;
+  String _localeLabel(BuildContext context, LocaleType locale) {
+    return switch (locale) {
+      LocaleType.english => context.l10n.english,
+    };
+  }
 
-      sharedPrefsService!.put(
-        kTextScalingKey,
-        currentTextScaling.toString(),
-      );
-
-      await sl.get<NotificationsBloc>().addNotification(
-            WalletNotification(
-                title: 'Text scale changed',
-                timestamp: DateTime.now().millisecondsSinceEpoch,
-                details: 'Text scale successfully changed to '
-                    '${FormatUtils.extractNameFromEnum<TextScaling?>(currentTextScaling)}',
-                type: NotificationType.paymentSent,),
-          );
-    } catch (e) {
-      await NotificationUtils.sendNotificationError(e, 'Text scale change failed');
-    } finally {
-      _confirmScaleButtonKey.currentState!.animateReverse();
-    }
+  String _themeModeLabel(BuildContext context, ThemeMode mode) {
+    return switch (mode) {
+      ThemeMode.system => context.l10n.system,
+      ThemeMode.light => context.l10n.light,
+      ThemeMode.dark => context.l10n.dark,
+    };
   }
 }

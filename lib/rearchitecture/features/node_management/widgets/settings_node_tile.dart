@@ -1,330 +1,243 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_vector_icons/flutter_vector_icons.dart';
-import 'package:hive_ce/hive_ce.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/input_validators.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/node_utils.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/notification_utils.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
-import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
-class SettingsNode extends StatefulWidget {
-  const SettingsNode({
-    required this.node,
-    required this.onNodePressed,
-    required this.onChangedOrDeletedNode,
-    required this.currentNode,
+/// Displays a selectable node row with connection tooltips and inline
+/// edit/delete controls for user-added nodes.
+class SettingsNodeTile extends StatefulWidget {
+  /// Creates a [SettingsNodeTile].
+  const SettingsNodeTile({
+    required this._node,
+    required this._currentNode,
+    required this._clientChainId,
+    required this._connectedNodeChainId,
+    required this._isDefaultNode,
+    required this._isCommunityNode,
+    required this._isSavingEdit,
+    required this._onNodePressed,
+    required this._onEditSubmitted,
+    required this._onDeleteConfirmed,
+    this._editError,
     super.key,
   });
 
-  final String node;
-  final void Function(String?) onNodePressed;
-  final VoidCallback onChangedOrDeletedNode;
-  final String currentNode;
+  final String _node;
+  final String _currentNode;
+  final int _clientChainId;
+  final int _connectedNodeChainId;
+  final bool _isDefaultNode;
+  final bool _isCommunityNode;
+  final bool _isSavingEdit;
+  final ValueChanged<String> _onNodePressed;
+  final ValueChanged<String> _onEditSubmitted;
+  final VoidCallback _onDeleteConfirmed;
+  final String? _editError;
 
   @override
-  State<SettingsNode> createState() => _SettingsNodeState();
+  State<SettingsNodeTile> createState() => _SettingsNodeTileState();
 }
 
-class _SettingsNodeState extends State<SettingsNode> {
+class _SettingsNodeTileState extends State<SettingsNodeTile> {
   bool _editable = false;
-  String? _nodeError;
-
-  final TextEditingController _nodeController = TextEditingController();
-
-  final GlobalKey<MyOutlinedButtonState> _changeButtonKey = GlobalKey();
-
-  int connectedNodeChainIdentifier = 1;
+  bool _hideExternalError = false;
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  late final TextEditingController _nodeController;
 
   @override
   void initState() {
-    _nodeController.text = widget.node;
-
-    NodeUtils.getNodeChainIdentifier().then((int chainIdentifier) {
-      connectedNodeChainIdentifier = chainIdentifier;
-      setState(() {});
-    });
-
     super.initState();
+    _nodeController = TextEditingController(text: widget._node);
+  }
+
+  @override
+  void didUpdateWidget(covariant SettingsNodeTile oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget._node != widget._node) {
+      _nodeController.text = widget._node;
+      _editable = false;
+      _hideExternalError = false;
+    } else if (oldWidget._editError != widget._editError &&
+        widget._editError != null) {
+      _hideExternalError = false;
+      _formKey.currentState?.validate();
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.symmetric(
-        vertical: 5,
-      ),
-      child: _editable ? _getNodeInputField() : _getNode(context),
+      margin: const EdgeInsets.symmetric(vertical: 5),
+      child: _editable ? _buildNodeInputField(context) : _buildNodeRow(context),
     );
   }
 
-  Row _getNode(BuildContext context) {
+  Widget _buildNodeRow(BuildContext context) {
+    final bool isCustomNode =
+        !widget._isDefaultNode && !widget._isCommunityNode;
+    final bool isCurrentNode = widget._currentNode == widget._node;
+    final bool chainIdsMatch =
+        widget._connectedNodeChainId == widget._clientChainId;
+    final TextStyle bodyLarge = Theme.of(context).textTheme.bodyLarge!;
+
     return Row(
       children: <Widget>[
         Expanded(
           child: InkWell(
-            borderRadius: BorderRadius.circular(
-              10,
-            ),
-            onTap: () => widget.onNodePressed(widget.node),
+            borderRadius: BorderRadius.circular(10),
+            onTap: () => widget._onNodePressed(widget._node),
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 5),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: <Widget>[
-                  Text(
-                    _nodeController.text,
-                    style: Theme.of(context).textTheme.bodyLarge!.copyWith(
-                          color: Theme.of(context)
-                              .textTheme
-                              .bodyLarge!
-                              .color!
-                              .withValues(alpha: 0.7),
-                        ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-        Visibility(
-          visible: widget.currentNode.contains(widget.node),
-          child: StandardTooltipIcon(
-            (connectedNodeChainIdentifier == getChainIdentifier())
-                ? 'Client chain identifier: ${getChainIdentifier()}\n'
-                    'Node chain identifier: $connectedNodeChainIdentifier'
-                : 'Chain identifier mismatch\n'
-                    'Client chain identifier: ${getChainIdentifier()}\n'
-                    'Node chain identifier: $connectedNodeChainIdentifier',
-            MaterialCommunityIcons.identifier,
-            iconColor: (getChainIdentifier() == connectedNodeChainIdentifier)
-                ? AppColors.znnColor
-                : AppColors.errorColor,
-          ),
-        ),
-        Visibility(
-          visible: widget.node.contains('wss://'),
-          child: const StandardTooltipIcon('Encrypted connection', Icons.lock),
-        ),
-        Visibility(
-          visible: widget.node.contains('ws://'),
-          child: const StandardTooltipIcon(
-            'Unencrypted connection',
-            Icons.lock_open,
-            iconColor: AppColors.errorColor,
-          ),
-        ),
-        Visibility(
-          visible: widget.node.contains('Embedded'),
-          child: const StandardTooltipIcon(
-            'Integrated Full Node: enhanced security and privacy',
-            MaterialCommunityIcons.security,
-          ),
-        ),
-        Visibility(
-          visible: widget.node.contains('Embedded'),
-          child: const StandardTooltipIcon(
-            'The Embedded Node validates all network transactions\n'
-            'It may take several hours to fully sync with the network',
-            MaterialCommunityIcons.clock,
-            iconColor: Colors.amber,
-          ),
-        ),
-        Visibility(
-          visible: kDefaultCommunityNodes.contains(widget.node),
-          child: const StandardTooltipIcon(
-            'Community Node',
-            MaterialCommunityIcons.vector_link,
-            iconColor: Colors.amber,
-          ),
-        ),
-        Visibility(
-          visible: !kDefaultNodes.contains(widget.node) &&
-              !kDefaultCommunityNodes.contains(widget.node),
-          child: IconButton(
-            hoverColor: Colors.transparent,
-            padding: const EdgeInsets.all(4),
-            constraints: const BoxConstraints(),
-            iconSize: 15,
-            icon: const Icon(
-              Icons.edit,
-              color: AppColors.znnColor,
-            ),
-            onPressed: () {
-              setState(() {
-                _editable = true;
-              });
-            },
-            tooltip: 'Edit node',
-          ),
-        ),
-        Visibility(
-          visible: !kDefaultNodes.contains(widget.node) &&
-              !kDefaultCommunityNodes.contains(widget.node),
-          child: IconButton(
-            hoverColor: Colors.transparent,
-            padding: const EdgeInsets.all(4),
-            constraints: const BoxConstraints(),
-            iconSize: 15,
-            icon: const Icon(
-              Icons.delete_forever,
-              color: AppColors.znnColor,
-            ),
-            onPressed: () async {
-              final bool? deleteConfirmed = await showDialogWithNoAndYesOptions(
-                isBarrierDismissible: true,
-                context: context,
-                title: 'Node Management',
-                description: 'Are you sure you want to delete '
-                    '${widget.node} from the list of nodes? This action '
-                    "can't be undone.",
-              );
-
-              if (deleteConfirmed ?? false) {
-                unawaited(_deleteNodeFromDb(widget.node));
-              }
-            },
-            tooltip: 'Delete node',
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _getNodeInputField() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: <Widget>[
-        Row(
-          children: <Widget>[
-            Expanded(
-              child: SizedBox(
-                child: Form(
-                  key: widget.key,
-                  autovalidateMode: AutovalidateMode.onUserInteraction,
-                  child: InputField(
-                    controller: _nodeController,
-                    hintText: 'Node address with port',
-                    onSubmitted: (String value) {
-                      if (_nodeController.text != widget.node &&
-                          _ifUserInputValid()) {
-                        _onChangeButtonPressed();
-                      }
-                    },
-                    onChanged: (String value) {
-                      if (value.isNotEmpty) {
-                        setState(() {
-                          _nodeError = null;
-                        });
-                      }
-                    },
-                    validator: (String? value) =>
-                        InputValidators.node(value) ?? _nodeError,
-                  ),
+              child: Text(
+                widget._node,
+                style: bodyLarge.copyWith(
+                  color: bodyLarge.color?.withValues(alpha: 0.7),
                 ),
               ),
             ),
-            const SizedBox(
-              width: 15,
-            ),
-            SettingsButton(
-              onPressed:
-                  _nodeController.text != widget.node && _ifUserInputValid()
-                      ? _onChangeButtonPressed
-                      : null,
-              text: 'Change',
-              key: _changeButtonKey,
-            ),
-            MaterialIconButton(
-              size: 15,
-              onPressed: () {
+          ),
+        ),
+        if (isCurrentNode)
+          StandardTooltipIcon(
+            chainIdsMatch
+                ? context.l10n.clientAndNodeChainIdentifiers(
+                    widget._clientChainId,
+                    widget._connectedNodeChainId,
+                  )
+                : context.l10n.chainIdentifierMismatchDetails(
+                    widget._clientChainId,
+                    widget._connectedNodeChainId,
+                  ),
+            MaterialCommunityIcons.identifier,
+            iconColor: chainIdsMatch
+                ? AppColors.znnColor
+                : AppColors.errorColor,
+          ),
+        if (widget._node.contains('wss://'))
+          StandardTooltipIcon(context.l10n.encryptedConnection, Icons.lock),
+        if (widget._node.contains('ws://'))
+          StandardTooltipIcon(
+            context.l10n.unencryptedConnection,
+            Icons.lock_open,
+            iconColor: AppColors.errorColor,
+          ),
+        if (widget._node.contains('Embedded')) ...<Widget>[
+          StandardTooltipIcon(
+            context.l10n.integratedFullNodeEnhancedSecurity,
+            MaterialCommunityIcons.security,
+          ),
+          StandardTooltipIcon(
+            context.l10n.embeddedNodeValidatesTransactions,
+            MaterialCommunityIcons.clock,
+            iconColor: Colors.amber,
+          ),
+        ],
+        if (widget._isCommunityNode)
+          StandardTooltipIcon(
+            context.l10n.communityNode,
+            MaterialCommunityIcons.vector_link,
+            iconColor: Colors.amber,
+          ),
+        if (isCustomNode) ...<Widget>[
+          IconButton(
+            hoverColor: Colors.transparent,
+            padding: const EdgeInsets.all(4),
+            constraints: const BoxConstraints(),
+            iconSize: 15,
+            icon: const Icon(Icons.edit, color: AppColors.znnColor),
+            onPressed: () {
+              setState(() {
+                _nodeController.text = widget._node;
+                _editable = true;
+                _hideExternalError = true;
+              });
+            },
+            tooltip: context.l10n.editNode,
+          ),
+          IconButton(
+            hoverColor: Colors.transparent,
+            padding: const EdgeInsets.all(4),
+            constraints: const BoxConstraints(),
+            iconSize: 15,
+            icon: const Icon(Icons.delete_forever, color: AppColors.znnColor),
+            onPressed: () => _confirmDelete(context),
+            tooltip: context.l10n.deleteNode,
+          ),
+        ],
+      ],
+    );
+  }
+
+  Future<void> _confirmDelete(BuildContext context) async {
+    final bool? deleteConfirmed = await showDialogWithNoAndYesOptions(
+      isBarrierDismissible: true,
+      context: context,
+      title: context.l10n.nodeManagement,
+      description: context.l10n.deleteNodeConfirmation(widget._node),
+    );
+    if (!mounted) {
+      return;
+    }
+    if (deleteConfirmed ?? false) {
+      widget._onDeleteConfirmed();
+    }
+  }
+
+  Widget _buildNodeInputField(BuildContext context) {
+    final bool canSubmit =
+        !widget._isSavingEdit &&
+        _nodeController.text != widget._node &&
+        _isInputValid();
+
+    return Row(
+      children: <Widget>[
+        Expanded(
+          child: Form(
+            key: _formKey,
+            autovalidateMode: AutovalidateMode.onUserInteraction,
+            child: InputField(
+              controller: _nodeController,
+              hintText: context.l10n.nodeAddressWithPort,
+              onSubmitted: (String value) {
+                if (canSubmit) {
+                  widget._onEditSubmitted(_nodeController.text);
+                }
+              },
+              onChanged: (String value) {
                 setState(() {
-                  _nodeController.text = widget.node;
-                  _editable = false;
-                  _nodeError = null;
+                  _hideExternalError = true;
                 });
               },
-              iconData: Icons.clear,
+              validator: (String? value) =>
+                  InputValidators.node(value) ??
+                  (_hideExternalError ? null : widget._editError),
             ),
-          ],
+          ),
+        ),
+        const SizedBox(width: 15),
+        SettingsButton(
+          onPressed: canSubmit
+              ? () => widget._onEditSubmitted(_nodeController.text)
+              : null,
+          text: context.l10n.change,
+        ),
+        MaterialIconButton(
+          size: 15,
+          onPressed: () {
+            setState(() {
+              _nodeController.text = widget._node;
+              _editable = false;
+              _hideExternalError = true;
+            });
+          },
+          iconData: Icons.clear,
         ),
       ],
     );
   }
 
-  bool _ifUserInputValid() =>
-      InputValidators.node(_nodeController.text) == null;
-
-  Future<void> _onChangeButtonPressed() async {
-    try {
-      _changeButtonKey.currentState!.showLoadingIndicator(true);
-      if (_nodeController.text.isNotEmpty &&
-          _nodeController.text.length <= kAddressLabelMaxLength &&
-          !<String>[...kDefaultNodes, ...kDefaultCommunityNodes, ...kDbNodes]
-              .contains(_nodeController.text)) {
-        if (!Hive.isBoxOpen(kNodesBox)) {
-          await Hive.openBox<String>(kNodesBox);
-        }
-        final Box<String> nodesBox = Hive.box<String>(kNodesBox);
-        final nodeKey = nodesBox.keys.firstWhere(
-          (key) => nodesBox.get(key) == widget.node,
-        );
-        await nodesBox.put(nodeKey, _nodeController.text);
-        await NodeUtils.loadDbNodes();
-        setState(() {
-          _editable = false;
-          _nodeError = null;
-        });
-        if (!mounted) return;
-        widget.onChangedOrDeletedNode();
-      } else if (_nodeController.text.isEmpty) {
-        setState(() {
-          _nodeError = "Node address can't be empty";
-        });
-      } else if (_nodeController.text.length > kAddressLabelMaxLength) {
-        setState(() {
-          _nodeError =
-              'The node has more than $kAddressLabelMaxLength characters';
-        });
-      } else {
-        setState(() {
-          _nodeError = 'Node already exists';
-        });
-      }
-    } catch (e) {
-      await NotificationUtils.sendNotificationError(
-        e,
-        'Something went wrong',
-      );
-    } finally {
-      _changeButtonKey.currentState!.showLoadingIndicator(false);
-    }
-  }
-
-  Future<void> _deleteNodeFromDb(String node) async {
-    try {
-      if (!Hive.isBoxOpen(kNodesBox)) {
-        await Hive.openBox<String>(kNodesBox);
-      }
-      final Box<String> nodesBox = Hive.box<String>(kNodesBox);
-      final nodeKey = nodesBox.keys.firstWhere(
-        (key) => nodesBox.get(key) == node,
-      );
-      await nodesBox.delete(nodeKey);
-      kDbNodes.remove(node);
-      if (!mounted) return;
-      widget.onChangedOrDeletedNode();
-    } catch (e) {
-      await NotificationUtils.sendNotificationError(
-        e,
-        'Error during deleting node $node from the database',
-      );
-    }
-  }
+  bool _isInputValid() => InputValidators.node(_nodeController.text) == null;
 
   @override
   void dispose() {

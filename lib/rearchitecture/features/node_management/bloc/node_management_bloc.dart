@@ -1,0 +1,396 @@
+import 'dart:async';
+
+import 'package:bloc/bloc.dart';
+import 'package:equatable/equatable.dart';
+import 'package:zenon_syrius_wallet_flutter/model/model.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/node_management/repository/node_management_repository.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
+
+part 'node_management_event.dart';
+part 'node_management_state.dart';
+
+/// Manages node selection, custom node CRUD, chain identifier updates, and
+/// auto-receive toggle for both Settings NodeManagementCard and
+/// NodeManagementScreen.
+class NodeManagementBloc
+    extends Bloc<NodeManagementEvent, NodeManagementState> {
+  /// Creates a [NodeManagementBloc].
+  factory NodeManagementBloc({
+    required bool checkChainIdMismatch,
+    required bool resetHtlcBlockHeightOnChange,
+    NodeManagementRepository? repository,
+    bool shuffleCommunityNodes = true,
+  }) {
+    final NodeManagementRepository resolvedRepository =
+        repository ?? DefaultNodeManagementRepository();
+    if (shuffleCommunityNodes) {
+      resolvedRepository.shuffleCommunityNodes();
+    }
+    final String currentNode = resolvedRepository.getCurrentNode(
+      fallback: kEmbeddedNode,
+    );
+    return NodeManagementBloc._(
+      repository: resolvedRepository,
+      checkChainIdMismatch: checkChainIdMismatch,
+      resetHtlcBlockHeightOnChange: resetHtlcBlockHeightOnChange,
+      initialState: NodeManagementState(
+        nodes: resolvedRepository.getAvailableNodes(),
+        selectedNode: currentNode,
+        confirmedNode: currentNode,
+        clientChainId: resolvedRepository.getClientChainId(),
+        connectedNodeChainId: kNodeChainId ?? kChainIdDefaultValue,
+        autoReceive: resolvedRepository.getAutoReceive(),
+      ),
+    );
+  }
+
+  NodeManagementBloc._({
+    required this._repository,
+    required this._checkChainIdMismatch,
+    required this._resetHtlcBlockHeightOnChange,
+    required NodeManagementState initialState,
+  }) : super(initialState) {
+    on<NodeManagementChainIdLoaded>(_onChainIdLoaded);
+    on<NodeManagementNodeSelected>(_onNodeSelected);
+    on<NodeManagementConfirmNodeRequested>(_onConfirmNodeRequested);
+    on<NodeManagementChainIdMismatchResolved>(_onChainIdMismatchResolved);
+    on<NodeManagementAddNodeRequested>(_onAddNodeRequested);
+    on<NodeManagementEditNodeRequested>(_onEditNodeRequested);
+    on<NodeManagementDeleteNodeRequested>(_onDeleteNodeRequested);
+    on<NodeManagementChainIdChanged>(_onChainIdChanged);
+    on<NodeManagementAutoReceiveToggled>(_onAutoReceiveToggled);
+  }
+
+  final NodeManagementRepository _repository;
+  final bool _checkChainIdMismatch;
+  final bool _resetHtlcBlockHeightOnChange;
+
+  /// Whether [node] is a built-in default node.
+  bool isDefaultNode(String node) => _repository.isDefaultNode(node);
+
+  /// Whether [node] is a community node.
+  bool isCommunityNode(String node) => _repository.isCommunityNode(node);
+
+  FutureOr<void> _onChainIdLoaded(
+    NodeManagementChainIdLoaded event,
+    Emitter<NodeManagementState> emit,
+  ) async {
+    final int nodeChainId = await _repository.getNodeChainId();
+    emit(state.copyWith(connectedNodeChainId: nodeChainId));
+  }
+
+  void _onNodeSelected(
+    NodeManagementNodeSelected event,
+    Emitter<NodeManagementState> emit,
+  ) {
+    emit(state.copyWith(selectedNode: event.node));
+  }
+
+  FutureOr<void> _onConfirmNodeRequested(
+    NodeManagementConfirmNodeRequested event,
+    Emitter<NodeManagementState> emit,
+  ) async {
+    final String targetNode = state.selectedNode;
+    emit(
+      state.copyWith(isConfirmingNode: true, clearPendingChainIdMismatch: true),
+    );
+
+    try {
+      final bool connected = await _repository.connectToNode(targetNode);
+      if (!connected) {
+        throw SyriusException(event.connectionUnavailableMessage);
+      }
+
+      if (_checkChainIdMismatch) {
+        final int nodeChainId = await _repository.getNodeChainId();
+        kNodeChainId = nodeChainId;
+        final int frontierChainId = await _repository.getFrontierChainId();
+        if (frontierChainId != state.clientChainId) {
+          emit(
+            state.copyWith(
+              connectedNodeChainId: nodeChainId,
+              pendingChainIdMismatch: NodeChainIdMismatchPrompt(
+                node: targetNode,
+                nodeChainId: frontierChainId,
+                clientChainId: state.clientChainId,
+                successTitle: event.successTitle,
+                successDetails: event.successDetails,
+              ),
+            ),
+          );
+          return;
+        }
+      }
+
+      await _finalizeNodeSwitch(
+        emit: emit,
+        targetNode: targetNode,
+        successTitle: event.successTitle,
+        successDetails: event.successDetails,
+      );
+    } on Object catch (error, stackTrace) {
+      addError(error, stackTrace);
+      await _repository.reportError(error, event.connectionFailedTitle);
+      final String fallbackNode = _repository.getCurrentNode(
+        fallback: state.confirmedNode,
+      );
+      emit(
+        state.copyWith(
+          isConfirmingNode: false,
+          selectedNode: fallbackNode,
+          clearPendingChainIdMismatch: true,
+        ),
+      );
+    }
+  }
+
+  FutureOr<void> _onChainIdMismatchResolved(
+    NodeManagementChainIdMismatchResolved event,
+    Emitter<NodeManagementState> emit,
+  ) async {
+    final NodeChainIdMismatchPrompt? prompt = state.pendingChainIdMismatch;
+    if (prompt == null) {
+      return;
+    }
+
+    try {
+      if (event.proceed) {
+        await _finalizeNodeSwitch(
+          emit: emit,
+          targetNode: prompt.node,
+          successTitle: prompt.successTitle,
+          successDetails: prompt.successDetails,
+        );
+      } else {
+        final String previousNode = _repository.getCurrentNode(
+          fallback: state.confirmedNode,
+        );
+        await _repository.connectToNode(previousNode);
+        final int restoredChainId = await _repository.getNodeChainId();
+        kNodeChainId = restoredChainId;
+        emit(
+          state.copyWith(
+            isConfirmingNode: false,
+            selectedNode: previousNode,
+            connectedNodeChainId: restoredChainId,
+            clearPendingChainIdMismatch: true,
+          ),
+        );
+      }
+    } on Object catch (error, stackTrace) {
+      addError(error, stackTrace);
+      await _repository.reportError(error, event.connectionFailedTitle);
+      final String fallbackNode = _repository.getCurrentNode(
+        fallback: state.confirmedNode,
+      );
+      emit(
+        state.copyWith(
+          isConfirmingNode: false,
+          selectedNode: fallbackNode,
+          clearPendingChainIdMismatch: true,
+        ),
+      );
+    }
+  }
+
+  Future<void> _finalizeNodeSwitch({
+    required Emitter<NodeManagementState> emit,
+    required String targetNode,
+    required String successTitle,
+    required String successDetails,
+  }) async {
+    if (_resetHtlcBlockHeightOnChange) {
+      await _repository.resetLastCheckedHtlcBlockHeight();
+    }
+    await _repository.saveSelectedNode(targetNode);
+    await _repository.addNotification(
+      WalletNotification(
+        title: successTitle,
+        timestamp: DateTime.now().millisecondsSinceEpoch,
+        details: successDetails,
+        type: NotificationType.changedNode,
+      ),
+    );
+    emit(
+      state.copyWith(
+        isConfirmingNode: false,
+        confirmedNode: targetNode,
+        selectedNode: targetNode,
+        nodes: _repository.getAvailableNodes(),
+        clearPendingChainIdMismatch: true,
+        nodeConfirmedNonce: state.nodeConfirmedNonce + 1,
+      ),
+    );
+  }
+
+  FutureOr<void> _onAddNodeRequested(
+    NodeManagementAddNodeRequested event,
+    Emitter<NodeManagementState> emit,
+  ) async {
+    final List<String> existingNodes = _repository.getAvailableNodes();
+    if (existingNodes.contains(event.node)) {
+      await _repository.reportError(
+        event.duplicateDetails,
+        event.duplicateTitle,
+      );
+      return;
+    }
+
+    emit(state.copyWith(isAddingNode: true));
+    try {
+      await _repository.addCustomNode(event.node);
+      await _repository.addNotification(
+        WalletNotification(
+          title: event.successTitle,
+          timestamp: DateTime.now().millisecondsSinceEpoch,
+          details: event.successDetails,
+          type: NotificationType.changedNode,
+        ),
+      );
+      emit(
+        state.copyWith(
+          isAddingNode: false,
+          nodes: _repository.getAvailableNodes(),
+          nodeAddedNonce: state.nodeAddedNonce + 1,
+        ),
+      );
+    } on Object catch (error, stackTrace) {
+      addError(error, stackTrace);
+      emit(state.copyWith(isAddingNode: false));
+      await _repository.reportError(error, event.errorTitle);
+    }
+  }
+
+  FutureOr<void> _onEditNodeRequested(
+    NodeManagementEditNodeRequested event,
+    Emitter<NodeManagementState> emit,
+  ) async {
+    final String newNode = event.newNode;
+    if (newNode.isEmpty) {
+      emit(
+        state.copyWith(
+          editNodeError: event.emptyErrorMessage,
+          editNodeErrorTarget: event.oldNode,
+        ),
+      );
+      return;
+    }
+    if (newNode.length > kAddressLabelMaxLength) {
+      emit(
+        state.copyWith(
+          editNodeError: event.tooLongErrorMessage,
+          editNodeErrorTarget: event.oldNode,
+        ),
+      );
+      return;
+    }
+    if (_repository.getAvailableNodes().contains(newNode)) {
+      emit(
+        state.copyWith(
+          editNodeError: event.duplicateErrorMessage,
+          editNodeErrorTarget: event.oldNode,
+        ),
+      );
+      return;
+    }
+
+    emit(state.copyWith(editingNode: event.oldNode, clearEditNodeError: true));
+    try {
+      await _repository.updateCustomNode(
+        oldNode: event.oldNode,
+        newNode: newNode,
+      );
+      final String updatedSelected = state.selectedNode == event.oldNode
+          ? newNode
+          : state.selectedNode;
+      emit(
+        state.copyWith(
+          nodes: _repository.getAvailableNodes(),
+          selectedNode: updatedSelected,
+          clearEditingNode: true,
+          clearEditNodeError: true,
+          nodeEditedNonce: state.nodeEditedNonce + 1,
+        ),
+      );
+    } on Object catch (error, stackTrace) {
+      addError(error, stackTrace);
+      emit(state.copyWith(clearEditingNode: true));
+      await _repository.reportError(error, event.errorTitle);
+    }
+  }
+
+  FutureOr<void> _onDeleteNodeRequested(
+    NodeManagementDeleteNodeRequested event,
+    Emitter<NodeManagementState> emit,
+  ) async {
+    try {
+      await _repository.deleteCustomNode(event.node);
+      final List<String> updatedNodes = _repository.getAvailableNodes();
+      final String updatedSelected = state.selectedNode == event.node
+          ? state.confirmedNode
+          : state.selectedNode;
+      emit(state.copyWith(nodes: updatedNodes, selectedNode: updatedSelected));
+    } on Object catch (error, stackTrace) {
+      addError(error, stackTrace);
+      await _repository.reportError(error, event.errorTitle);
+    }
+  }
+
+  FutureOr<void> _onChainIdChanged(
+    NodeManagementChainIdChanged event,
+    Emitter<NodeManagementState> emit,
+  ) async {
+    emit(state.copyWith(isConfirmingChainId: true));
+    try {
+      await _repository.saveClientChainId(event.newChainId);
+      await _repository.addNotification(
+        WalletNotification(
+          title: event.successTitle,
+          timestamp: DateTime.now().millisecondsSinceEpoch,
+          details: event.successDetails,
+          type: NotificationType.changedNode,
+        ),
+      );
+      emit(
+        state.copyWith(
+          isConfirmingChainId: false,
+          clientChainId: _repository.getClientChainId(),
+          chainIdChangedNonce: state.chainIdChangedNonce + 1,
+        ),
+      );
+    } on Object catch (error, stackTrace) {
+      addError(error, stackTrace);
+      emit(state.copyWith(isConfirmingChainId: false));
+      await _repository.reportError(error, event.errorTitle);
+    }
+  }
+
+  FutureOr<void> _onAutoReceiveToggled(
+    NodeManagementAutoReceiveToggled event,
+    Emitter<NodeManagementState> emit,
+  ) async {
+    final bool previous = state.autoReceive;
+    emit(state.copyWith(autoReceive: event.enabled));
+    try {
+      await _repository.saveAutoReceive(enabled: event.enabled);
+      if (event.enabled) {
+        unawaited(_repository.triggerAutoReceive());
+      } else {
+        _repository.clearAutoReceivePool();
+      }
+      await _repository.addNotification(
+        WalletNotification(
+          title: event.notificationTitle,
+          details: event.notificationDetails,
+          timestamp: DateTime.now().millisecondsSinceEpoch,
+          type: NotificationType.paymentSent,
+        ),
+      );
+    } on Object catch (error, stackTrace) {
+      addError(error, stackTrace);
+      emit(state.copyWith(autoReceive: previous));
+      await _repository.reportError(error, event.errorTitle);
+    }
+  }
+}

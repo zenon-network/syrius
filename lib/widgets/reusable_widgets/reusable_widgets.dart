@@ -26,8 +26,6 @@ export 'receive_qr_image.dart';
 export 'seed/seed_choice.dart';
 export 'seed/seed_grid.dart';
 export 'select_file_widget.dart';
-export 'package:zenon_syrius_wallet_flutter/rearchitecture/features/settings_addresses/widgets/settings_address_tile.dart';
-export 'package:zenon_syrius_wallet_flutter/rearchitecture/features/node_management/widgets/settings_node_tile.dart';
 export 'stepper_utils.dart';
 export 'syrius_checkbox.dart';
 export 'tag_widget.dart';

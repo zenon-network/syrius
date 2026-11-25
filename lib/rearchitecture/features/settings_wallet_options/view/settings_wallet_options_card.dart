@@ -1,385 +1,263 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:launch_at_startup/launch_at_startup.dart';
-import 'package:logging/logging.dart';
-import 'package:package_info_plus/package_info_plus.dart';
-import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
-import 'package:zenon_syrius_wallet_flutter/main.dart';
-import 'package:zenon_syrius_wallet_flutter/model/model.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/reset_wallet/reset_wallet.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/settings_wallet_options/settings_wallet_options.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/screens/screens.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 
-class WalletOptions extends StatefulWidget {
-  const WalletOptions({super.key});
+/// Displays cache deletion, wallet reset, and desktop preferences in Settings.
+class SettingsWalletOptionsCard extends StatelessWidget {
+  /// Creates a [SettingsWalletOptionsCard].
+  const SettingsWalletOptionsCard({super.key, this._bloc});
 
-  @override
-  State<WalletOptions> createState() => _WalletOptionsState();
-}
-
-class _WalletOptionsState extends State<WalletOptions> {
-  bool? _launchAtStartup;
-  bool? _enableDesktopNotifications;
-  bool? _enabledClipboardWatcher;
-  bool? _autoReceive;
-
-  @override
-  void initState() {
-    super.initState();
-    _launchAtStartup = sharedPrefsService!.get(
-      kLaunchAtStartupKey,
-      defaultValue: kLaunchAtStartupDefaultValue,
-    );
-    _enableDesktopNotifications = sharedPrefsService!.get(
-      kEnableDesktopNotificationsKey,
-      defaultValue: kEnableDesktopNotificationsDefaultValue,
-    );
-    _enabledClipboardWatcher = sharedPrefsService!.get(
-      kEnableClipboardWatcherKey,
-      defaultValue: kEnableClipboardWatcherDefaultValue,
-    );
-    _autoReceive = sharedPrefsService!.get(
-      kAutoReceiveKey,
-      defaultValue: kAutoReceiveDefaultValue,
-    );
-  }
+  final SettingsWalletOptionsBloc? _bloc;
 
   @override
   Widget build(BuildContext context) {
-    return CardScaffold(
-      title: 'Wallet Options',
-      description: 'Other wallet options',
-      childBuilder: _getWidgetBody,
+    final SettingsWalletOptionsBloc? injected = _bloc;
+    if (injected != null) {
+      return BlocProvider<SettingsWalletOptionsBloc>.value(
+        value: injected,
+        child: const _View(),
+      );
+    }
+
+    return BlocProvider<SettingsWalletOptionsBloc>(
+      create: (_) => SettingsWalletOptionsBloc(),
+      child: const _View(),
+    );
+  }
+}
+
+class _View extends StatelessWidget {
+  const _View();
+
+  @override
+  Widget build(BuildContext context) {
+    return NewCardScaffold(
+      data: _buildCardData(context: context),
+      body: BlocBuilder<SettingsWalletOptionsBloc, SettingsWalletOptionsState>(
+        builder: (BuildContext context, SettingsWalletOptionsState state) {
+          return ListView(
+            shrinkWrap: true,
+            children: <Widget>[
+              CustomExpandablePanel(
+                context.l10n.deleteCache,
+                _buildDeleteCachePanel(context),
+              ),
+              CustomExpandablePanel(
+                context.l10n.resetWallet,
+                _buildResetWalletPanel(context),
+              ),
+              CustomExpandablePanel(
+                context.l10n.preferences,
+                _buildPreferencesPanel(context, state),
+              ),
+            ],
+          );
+        },
+      ),
     );
   }
 
-  Widget _getWidgetBody() {
-    return ListView(
-      shrinkWrap: true,
-      children: <Widget>[
-        CustomExpandablePanel('Delete cache', _getDeleteCacheExpandedWidget()),
-        CustomExpandablePanel('Reset wallet', _getResetWalletExpandedWidget()),
-        CustomExpandablePanel('Preferences', _getPreferencesExpandedWidget()),
-      ],
-    );
-  }
+  CardData _buildCardData({required BuildContext context}) => CardData(
+    title: context.l10n.walletOptions,
+    description: context.l10n.otherWalletOptions,
+  );
 
-  Column _getResetWalletExpandedWidget() {
+  Widget _buildDeleteCachePanel(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
         Text(
-          'This option will erase the wallet files. Make sure you have a '
-          'backup first',
-          style: Theme.of(context).textTheme.titleSmall,
-        ),
-        kVerticalSpacing,
-        Center(
-          child: SettingsButton(
-            onPressed: () => NavigationUtils.push(
-              context,
-              const ResetWalletScreen(),
-            ),
-            text: 'Reset wallet',
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _getDeleteCacheExpandedWidget() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: <Widget>[
-        Text(
-          'This option will delete the wallet cache and close the application',
+          context.l10n.deleteWalletCacheAndCloseApp,
           style: Theme.of(context).textTheme.titleSmall,
         ),
         kVerticalSpacing,
         Center(
           child: SettingsButton(
             onPressed: () {
+              // Preserves P2P HTLC Drift swaps and legacy swap boxes via
+              // SplashScreen._deleteCache.
               NavigationUtils.pushReplacement(
                 context,
-                const SplashScreen(
-                  deleteCacheFlow: true,
-                ),
+                const SplashScreen(deleteCacheFlow: true),
               );
             },
-            text: 'Delete cache',
+            text: context.l10n.deleteCache,
           ),
         ),
       ],
     );
   }
 
-  Widget _getPreferencesExpandedWidget() {
+  Widget _buildResetWalletPanel(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: <Widget>[
+        Text(
+          context.l10n.eraseWalletFilesMakeSureBackup,
+          style: Theme.of(context).textTheme.titleSmall,
+        ),
+        kVerticalSpacing,
+        Center(
+          child: SettingsButton(
+            onPressed: () =>
+                NavigationUtils.push(context, const ResetWalletScreen()),
+            text: context.l10n.resetWallet,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildPreferencesPanel(
+    BuildContext context,
+    SettingsWalletOptionsState state,
+  ) {
     return Column(
       children: <Widget>[
-        _getLaunchAtStartupWidget(),
-        _getEnableDesktopNotifications(),
-        _buildEnableClipboardWatcher(),
-        _getAutoReceiveWidget(),
+        _buildLaunchAtStartupRow(context, state.launchAtStartup),
+        _buildDesktopNotificationsRow(
+          context,
+          state.enableDesktopNotifications,
+        ),
+        _buildClipboardWatcherRow(context, state.enableClipboardWatcher),
+        _buildAutoReceiveRow(context, state.autoReceive),
       ],
     );
   }
 
-  Widget _getLaunchAtStartupWidget() {
+  Widget _buildLaunchAtStartupRow(BuildContext context, bool value) {
     return Row(
       children: <Widget>[
         Text(
-          'Launch at startup ',
+          '${context.l10n.launchAtStartup} ',
           style: Theme.of(context).textTheme.bodyMedium,
         ),
         SyriusCheckbox(
-          onChanged: (bool? value) async {
-            setState(() {
-              _launchAtStartup = value;
-            });
-            await _changeLaunchAtStartupStatus(value ?? false);
+          onChanged: (bool? nextValue) {
+            final bool enabled = nextValue ?? false;
+            final String status = enabled
+                ? context.l10n.enabled
+                : context.l10n.disabled;
+            context.read<SettingsWalletOptionsBloc>().add(
+              SettingsWalletOptionsLaunchAtStartupToggled(
+                enabled: enabled,
+                notificationTitle: context.l10n.launchAtStartupStatus(status),
+                notificationDetails: context.l10n
+                    .launchAtStartupPreferenceStatus(status),
+                errorTitle: context.l10n.errorSettingLaunchAtStartup,
+              ),
+            );
           },
-          value: _launchAtStartup,
+          value: value,
           context: context,
         ),
       ],
     );
   }
 
-  Widget _getAutoReceiveWidget() {
+  Widget _buildDesktopNotificationsRow(BuildContext context, bool value) {
     return Row(
       children: <Widget>[
         Text(
-          'Auto-receiver',
+          '${context.l10n.enableDesktopNotifications} ',
           style: Theme.of(context).textTheme.bodyMedium,
         ),
         SyriusCheckbox(
-          onChanged: (bool? value) async {
-            if (value == true) {
-              NodeUtils.getUnreceivedTransactions().then((value) {
-                sl<AutoReceiveTxWorker>().autoReceive();
-              }).onError((Object? error, StackTrace stackTrace) {
-                Logger('MainAppContainer').log(
-                    Level.WARNING, '_getAutoReceiveWidget', error, stackTrace,);
-              });
-            } else if (value == false &&
-                sl<AutoReceiveTxWorker>().pool.isNotEmpty) {
-              sl<AutoReceiveTxWorker>().pool.clear();
-            }
-            setState(() {
-              _autoReceive = value;
-            });
-            await _changeAutoReceiveStatus(value ?? false);
+          onChanged: (bool? nextValue) {
+            final bool enabled = nextValue ?? false;
+            final String status = enabled
+                ? context.l10n.enabled
+                : context.l10n.disabled;
+            context.read<SettingsWalletOptionsBloc>().add(
+              SettingsWalletOptionsDesktopNotificationsToggled(
+                enabled: enabled,
+                notificationTitle: context.l10n.desktopNotificationsStatus(
+                  status,
+                ),
+                notificationDetails: context.l10n
+                    .desktopNotificationsPreferenceStatus(status),
+                errorTitle: context.l10n.errorSettingDesktopNotifications,
+              ),
+            );
           },
-          value: _autoReceive,
+          value: value,
           context: context,
         ),
-        const StandardTooltipIcon(
-          'Uncheck to disable the auto-receiver and receive transactions manually',
+      ],
+    );
+  }
+
+  Widget _buildClipboardWatcherRow(BuildContext context, bool value) {
+    return Row(
+      children: <Widget>[
+        Text(
+          context.l10n.enableClipboardWatcher,
+          style: Theme.of(context).textTheme.bodyMedium,
+        ),
+        SyriusCheckbox(
+          onChanged: (bool? nextValue) {
+            final bool enabled = nextValue ?? false;
+            final String status = enabled
+                ? context.l10n.enabled
+                : context.l10n.disabled;
+            context.read<SettingsWalletOptionsBloc>().add(
+              SettingsWalletOptionsClipboardWatcherToggled(
+                enabled: enabled,
+                notificationTitle: context.l10n.clipboardWatcherStatus(status),
+                notificationDetails: context.l10n
+                    .clipboardWatcherPreferenceStatus(status),
+                errorTitle: context.l10n.errorChangingClipboardWatcher,
+              ),
+            );
+          },
+          value: value,
+          context: context,
+        ),
+        StandardTooltipIcon(
+          context.l10n.listensClipboardForWalletConnectUri,
           Icons.help,
         ),
       ],
     );
   }
 
-  Future<void> _setupLaunchAtStartup() async {
-    final PackageInfo packageInfo = await PackageInfo.fromPlatform();
-    launchAtStartup.setup(
-      appName: packageInfo.appName,
-      appPath: Platform.resolvedExecutable,
-    );
-  }
-
-  Future<void> _changeAutoReceiveStatus(bool enabled) async {
-    try {
-      await _saveAutoReceiveValueToCache(enabled);
-      await _sendAutoReceiveNotification(enabled);
-    } on Exception catch (e) {
-      await NotificationUtils.sendNotificationError(
-        e,
-        'Something went wrong while setting automatic receive preference',
-      );
-    }
-  }
-
-  Future<void> _saveAutoReceiveValueToCache(bool enabled) async {
-    await sharedPrefsService!.put(
-      kAutoReceiveKey,
-      enabled,
-    );
-  }
-
-  Future<void> _sendAutoReceiveNotification(bool enabled) async {
-    await sl.get<NotificationsBloc>().addNotification(
-          WalletNotification(
-            title: 'Auto-receiver ${enabled ? 'enabled' : 'disabled'}',
-            details:
-                'Auto-receiver preference was ${enabled ? 'enabled' : 'disabled'}',
-            timestamp: DateTime.now().millisecondsSinceEpoch,
-            type: NotificationType.paymentSent,
-          ),
-        );
-  }
-
-  Future<void> _changeLaunchAtStartupStatus(bool enabled) async {
-    try {
-      await _setupLaunchAtStartup();
-      if (enabled) {
-        await launchAtStartup.enable();
-      } else {
-        await launchAtStartup.disable();
-      }
-      await _saveLaunchAtStartupValueToCache(enabled);
-      await _sendLaunchAtStartupStatusNotification(enabled);
-    } on Exception catch (e) {
-      await NotificationUtils.sendNotificationError(
-        e,
-        'Something went wrong while setting launch at startup preference',
-      );
-    }
-  }
-
-  Future<void> _saveLaunchAtStartupValueToCache(bool enabled) async {
-    await sharedPrefsService!.put(
-      kLaunchAtStartupKey,
-      enabled,
-    );
-  }
-
-  Future<void> _sendLaunchAtStartupStatusNotification(bool enabled) async {
-    await sl.get<NotificationsBloc>().addNotification(
-          WalletNotification(
-            title: 'Launch startup ${enabled ? 'enabled' : 'disabled'}',
-            details:
-                'Launch at startup preference was ${enabled ? 'enabled' : 'disabled'}',
-            timestamp: DateTime.now().millisecondsSinceEpoch,
-            type: NotificationType.paymentSent,
-          ),
-        );
-  }
-
-  Widget _getEnableDesktopNotifications() {
+  Widget _buildAutoReceiveRow(BuildContext context, bool value) {
     return Row(
       children: <Widget>[
         Text(
-          'Enable desktop notifications ',
+          context.l10n.autoReceiver,
           style: Theme.of(context).textTheme.bodyMedium,
         ),
         SyriusCheckbox(
-          onChanged: _onDesktopNotificationsChanged,
-          value: _enableDesktopNotifications,
-          context: context,
-        ),
-      ],
-    );
-  }
-
-  Widget _buildEnableClipboardWatcher() {
-    return Row(
-      children: <Widget>[
-        Text(
-          'Enable clipboard watcher',
-          style: Theme.of(context).textTheme.bodyMedium,
-        ),
-        SyriusCheckbox(
-          onChanged: (bool? value) {
-            setState(() {
-              _enabledClipboardWatcher = value;
-              _changeEnableClipboardWatcherStatus(value ?? false);
-            });
+          onChanged: (bool? nextValue) {
+            final bool enabled = nextValue ?? false;
+            final String status = enabled
+                ? context.l10n.enabled
+                : context.l10n.disabled;
+            context.read<SettingsWalletOptionsBloc>().add(
+              SettingsWalletOptionsAutoReceiveToggled(
+                enabled: enabled,
+                notificationTitle: context.l10n.autoReceiverStatus(status),
+                notificationDetails: context.l10n.autoReceiverPreferenceStatus(
+                  status,
+                ),
+                errorTitle: context.l10n.errorSettingAutoReceivePreference,
+              ),
+            );
           },
-          value: _enabledClipboardWatcher,
+          value: value,
           context: context,
         ),
-        const StandardTooltipIcon(
-          'Listens to the values passed to the clipboard and sends a '
-          'notification when a WalletConnect URI has been copied',
+        StandardTooltipIcon(
+          context.l10n.uncheckToDisableAutoReceiver,
           Icons.help,
         ),
       ],
     );
-  }
-
-  Future<void> _onDesktopNotificationsChanged(bool? value) async {
-    final bool enabled = value ?? false;
-
-    if (enabled && Platform.isMacOS) {
-      final MacOSFlutterLocalNotificationsPlugin? plugin =
-          desktopNotificationsPlugin.resolvePlatformSpecificImplementation<
-            MacOSFlutterLocalNotificationsPlugin
-          >();
-      final bool permissionGranted =
-          await plugin?.requestPermissions(
-            alert: true,
-            badge: true,
-            sound: true,
-          ) ??
-          false;
-
-      if (!permissionGranted) {
-        return;
-      }
-    }
-
-    if (!mounted) {
-      return;
-    }
-
-    setState(() {
-      _enableDesktopNotifications = enabled;
-    });
-    await _changeEnableDesktopNotificationsStatus(enabled);
-  }
-
-  Future<void> _changeEnableDesktopNotificationsStatus(bool enabled) async {
-    try {
-      await sharedPrefsService!.put(kEnableDesktopNotificationsKey, enabled);
-      await _sendEnabledDesktopNotificationsStatusNotification(enabled);
-    } on Exception catch (e) {
-      await NotificationUtils.sendNotificationError(
-        e,
-        'Something went wrong while setting desktop notifications preference',
-      );
-    }
-  }
-
-  Future<void> _changeEnableClipboardWatcherStatus(bool enabled) async {
-    try {
-      await sharedPrefsService!.put(kEnableClipboardWatcherKey, enabled);
-      ClipboardUtils.toggleClipboardWatcherStatus();
-      await _sendEnableClipboardWatcherStatusNotification(enabled);
-    } on Exception catch (e) {
-      await NotificationUtils.sendNotificationError(
-        e,
-        'Something went wrong while changing clipboard watcher preference',
-      );
-    }
-  }
-
-  Future<void> _sendEnabledDesktopNotificationsStatusNotification(
-      bool enabled,) async {
-    await sl.get<NotificationsBloc>().addNotification(
-          WalletNotification(
-            title: 'Desktop notifications ${enabled ? 'enabled' : 'disabled'}',
-            details:
-                'Desktop notifications preference was ${enabled ? 'enabled' : 'disabled'}',
-            timestamp: DateTime.now().millisecondsSinceEpoch,
-            type: NotificationType.paymentSent,
-          ),
-        );
-  }
-
-  Future<void> _sendEnableClipboardWatcherStatusNotification(
-      bool enabled,) async {
-    await sl.get<NotificationsBloc>().addNotification(
-          WalletNotification(
-            title: 'Clipboard watcher ${enabled ? 'enabled' : 'disabled'}',
-            details:
-                'Clipboard watcher preference was ${enabled ? 'enabled' : 'disabled'}',
-            timestamp: DateTime.now().millisecondsSinceEpoch,
-            type: NotificationType.paymentSent,
-          ),
-        );
   }
 }

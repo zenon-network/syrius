@@ -1,66 +1,56 @@
-import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
-import 'package:zenon_syrius_wallet_flutter/main.dart';
-import 'package:zenon_syrius_wallet_flutter/model/model.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/account_chain_stats/exceptions/empty_account_chain_exception.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/account_chain_stats/model/account_chain_stats.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
-class AccountChainStatsBloc
-    extends BaseBlocForReloadingIndicator<AccountChainStats> {
+/// Fetches account-chain block statistics for a given wallet address.
+class AccountChainStatsBloc extends FetchBloc<AccountChainStats> {
+  /// Creates an [AccountChainStatsBloc].
+  AccountChainStatsBloc({required super.zenon})
+    : super(
+        fromJsonT: AccountChainStats.fromJson,
+        toJsonT: (AccountChainStats data) => data.toJson(),
+      );
+
   @override
-  Future<AccountChainStats> getDataAsync() async {
-    final AccountInfo accountInfo = await zenon!.ledger.getAccountInfoByAddress(
-      Address.parse(
-        kSelectedAddress!,
-      ),
+  Future<AccountChainStats> getData({required Address address}) async {
+    final AccountInfo accountInfo = await zenon.ledger.getAccountInfoByAddress(
+      address,
     );
 
-    final int pageSize = accountInfo.blockCount!;
-    final int pageCount = ((pageSize + 1) / rpcMaxPageSize).ceil();
+    final int blockCount = accountInfo.blockCount ?? 0;
 
-    if (pageSize > 0) {
-      final List<AccountBlock> allBlocks = <AccountBlock>[];
-
-      for (int i = 0; i < pageCount; i++) {
-        allBlocks.addAll((await zenon!.ledger.getAccountBlocksByHeight(
-              Address.parse(
-                kSelectedAddress!,
-              ),
-              (rpcMaxPageSize * i) + 1,
-            ))
-                .list ??
-            <AccountBlock>[],);
-      }
-
-      return AccountChainStats(
-        firstHash: allBlocks.isNotEmpty ? allBlocks.first.hash : emptyHash,
-        blockCount: pageSize,
-        blockTypeNumOfBlocksMap: _getNumOfBlocksForEachBlockType(allBlocks),
-      );
-    } else {
-      throw 'Empty account-chain';
+    if (blockCount <= 0) {
+      throw EmptyAccountChainException();
     }
+
+    final int pageCount = (blockCount / rpcMaxPageSize).ceil();
+    final List<AccountBlock> allBlocks = <AccountBlock>[];
+
+    for (int i = 0; i < pageCount; i++) {
+      final AccountBlockList response = await zenon.ledger
+          .getAccountBlocksByHeight(address, (rpcMaxPageSize * i) + 1);
+      allBlocks.addAll(response.list ?? <AccountBlock>[]);
+    }
+
+    return AccountChainStats(
+      firstHash: allBlocks.isNotEmpty ? allBlocks.first.hash : emptyHash,
+      blockCount: blockCount,
+      blockTypeNumOfBlocksMap: _countBlocksByType(allBlocks),
+    );
   }
 
-  Map<BlockTypeEnum, int> _getNumOfBlocksForEachBlockType(
-          List<AccountBlock> blocks,) =>
-      BlockTypeEnum.values.fold<Map<BlockTypeEnum, int>>(
-        <BlockTypeEnum, int>{},
-        (Map<BlockTypeEnum, int> previousValue, BlockTypeEnum blockType) {
-          previousValue[blockType] =
-              _getNumOfBlockForBlockType(blocks, blockType);
-          return previousValue;
-        },
-      );
-
-  int _getNumOfBlockForBlockType(
-          List<AccountBlock> blocks, BlockTypeEnum blockType,) =>
-      blocks.fold<int>(
-        0,
-        (int previousValue, AccountBlock element) {
-          if (element.blockType == blockType.index) {
-            return previousValue + 1;
-          }
-          return previousValue;
-        },
-      );
+  Map<BlockTypeEnum, int> _countBlocksByType(List<AccountBlock> blocks) {
+    final Map<BlockTypeEnum, int> counts = <BlockTypeEnum, int>{
+      for (final BlockTypeEnum blockType in BlockTypeEnum.values) blockType: 0,
+    };
+    for (final AccountBlock block in blocks) {
+      final int typeIndex = block.blockType;
+      if (typeIndex >= 0 && typeIndex < BlockTypeEnum.values.length) {
+        final BlockTypeEnum blockType = BlockTypeEnum.values[typeIndex];
+        counts[blockType] = (counts[blockType] ?? 0) + 1;
+      }
+    }
+    return counts;
+  }
 }

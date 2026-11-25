@@ -1,87 +1,154 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/dump_mnemonic/dump_mnemonic.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/wallet_file.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
-import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
-class DumpMnemonicScreen extends StatefulWidget {
-  const DumpMnemonicScreen({super.key});
+/// Prompts for the wallet password and reveals the mnemonic phrase on screen.
+class DumpMnemonicScreen extends StatelessWidget {
+  /// Creates a [DumpMnemonicScreen].
+  const DumpMnemonicScreen({super.key, this._bloc});
 
-  @override
-  State<DumpMnemonicScreen> createState() => _DumpMnemonicScreenState();
-}
-
-class _DumpMnemonicScreenState extends State<DumpMnemonicScreen> {
-  final TextEditingController _passwordController = TextEditingController();
-
-  final GlobalKey<LoadingButtonState> _continueButtonKey = GlobalKey();
-
-  LoadingButton? _continueButton;
-
-  String? _passwordError;
-
-  List<String>? _seedWords;
+  final DumpMnemonicBloc? _bloc;
 
   @override
   Widget build(BuildContext context) {
-    _continueButton = _getContinueButton();
+    final DumpMnemonicBloc? injected = _bloc;
+    if (injected != null) {
+      return BlocProvider<DumpMnemonicBloc>.value(
+        value: injected,
+        child: const _View(),
+      );
+    }
+
+    return BlocProvider<DumpMnemonicBloc>(
+      create: (_) => DumpMnemonicBloc(),
+      child: const _View(),
+    );
+  }
+}
+
+class _View extends StatefulWidget {
+  const _View();
+
+  @override
+  State<_View> createState() => _ViewState();
+}
+
+class _ViewState extends State<_View> {
+  final TextEditingController _passwordController = TextEditingController();
+  final GlobalKey<LoadingButtonState> _continueButtonKey =
+      GlobalKey<LoadingButtonState>();
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
-      body: Container(
-        padding: const EdgeInsets.symmetric(
-          vertical: 30,
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: <Widget>[
-            Visibility(
-              visible: _seedWords == null,
-              child: Text(
-                'Enter the wallet password to dump the mnemonic',
-                style: Theme.of(context).textTheme.headlineLarge,
-              ),
-            ),
-            Visibility(
-              visible: _seedWords == null,
-              child: PasswordInputField(
-                controller: _passwordController,
-                hintText: 'Current password',
-                onSubmitted: (String value) {
-                  _continueButton!.onPressed!();
-                },
-                onChanged: (String value) {
-                  setState(() {});
-                },
-                errorText: _passwordError,
-              ),
-            ),
-            if (_seedWords != null)
-              Expanded(
-                child: Container(
-                  alignment: Alignment.center,
-                  child: SeedGrid(
-                    _seedWords!,
-                    enableSeedInputFields: false,
-                  ),
-                ),
-              ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
+      body: BlocConsumer<DumpMnemonicBloc, DumpMnemonicState>(
+        listener: (BuildContext context, DumpMnemonicState state) {
+          if (state is DumpMnemonicLoading) {
+            _continueButtonKey.currentState?.animateForward();
+          } else {
+            _continueButtonKey.currentState?.animateReverse();
+          }
+          if (state is DumpMnemonicUnlocked) {
+            _passwordController.clear();
+          }
+        },
+        builder: (BuildContext context, DumpMnemonicState state) {
+          final List<String>? seedWords = state is DumpMnemonicUnlocked
+              ? state.seedWords
+              : null;
+          final String? passwordError = switch (state) {
+            DumpMnemonicIncorrectPassword() => context.l10n.incorrectPassword,
+            DumpMnemonicFailure(:final String errorMessage) => errorMessage,
+            _ => null,
+          };
+
+          return Container(
+            padding: const EdgeInsets.symmetric(vertical: 30),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: <Widget>[
-                _getLockButton(),
                 Visibility(
-                  visible: _seedWords == null,
-                  child: Row(
-                    children: <Widget>[
-                      kSpacingBetweenActionButtons,
-                      _continueButton!,
-                    ],
+                  visible: seedWords == null,
+                  child: Text(
+                    context.l10n.enterWalletPasswordToDumpMnemonic,
+                    style: Theme.of(context).textTheme.headlineLarge,
                   ),
                 ),
+                Visibility(
+                  visible: seedWords == null,
+                  child: PasswordInputField(
+                    controller: _passwordController,
+                    hintText: context.l10n.currentPassword,
+                    onSubmitted: (String value) {
+                      if (_passwordController.text.isNotEmpty) {
+                        _submit(context);
+                      }
+                    },
+                    onChanged: (String value) {
+                      if (passwordError != null) {
+                        context.read<DumpMnemonicBloc>().add(
+                          const DumpMnemonicErrorCleared(),
+                        );
+                      }
+                      setState(() {});
+                    },
+                    errorText: passwordError,
+                  ),
+                ),
+                if (seedWords != null)
+                  Expanded(
+                    child: Container(
+                      alignment: Alignment.center,
+                      child: SeedGrid(seedWords, enableSeedInputFields: false),
+                    ),
+                  ),
+                _buildActionButtons(context, seedWords: seedWords),
               ],
             ),
-          ],
-        ),
+          );
+        },
       ),
+    );
+  }
+
+  Widget _buildActionButtons(
+    BuildContext context, {
+    required List<String>? seedWords,
+  }) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: <Widget>[
+        OnboardingButton(
+          onPressed: () {
+            Navigator.of(context).pop();
+          },
+          text: seedWords != null ? context.l10n.lock : context.l10n.goBack,
+        ),
+        Visibility(
+          visible: seedWords == null,
+          child: Row(
+            children: <Widget>[
+              kSpacingBetweenActionButtons,
+              LoadingButton.onboarding(
+                onPressed: _passwordController.text.isNotEmpty
+                    ? () => _submit(context)
+                    : null,
+                text: context.l10n.continueText,
+                key: _continueButtonKey,
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  void _submit(BuildContext context) {
+    context.read<DumpMnemonicBloc>().add(
+      DumpMnemonicSubmitted(password: _passwordController.text),
     );
   }
 
@@ -89,52 +156,5 @@ class _DumpMnemonicScreenState extends State<DumpMnemonicScreen> {
   void dispose() {
     _passwordController.dispose();
     super.dispose();
-  }
-
-  Widget _getLockButton() {
-    return OnboardingButton(
-      onPressed: () {
-        Navigator.of(context).pop();
-      },
-      text: _seedWords != null ? 'Lock' : 'Go back',
-    );
-  }
-
-  Future<void> _onContinueButtonPressed() async {
-    if (_passwordController.text.isNotEmpty) {
-      try {
-        _continueButtonKey.currentState!.animateForward();
-        final WalletFile walletFile = await WalletUtils.decryptWalletFile(
-          kWalletPath!,
-          _passwordController.text,
-        );
-        walletFile.open().then((Wallet wallet) {
-          setState(() {
-            _passwordController.clear();
-            _seedWords = (wallet as KeyStore).mnemonic!.split(' ');
-            _passwordError = null;
-          });
-        });
-      } on IncorrectPasswordException {
-        setState(() {
-          _passwordError = kIncorrectPasswordNotificationTitle;
-        });
-      } catch (e) {
-        setState(() {
-          _passwordError = e.toString();
-        });
-      } finally {
-        _continueButtonKey.currentState?.animateReverse();
-      }
-    }
-  }
-
-  LoadingButton _getContinueButton() {
-    return LoadingButton.onboarding(
-      onPressed:
-          _passwordController.text.isNotEmpty ? _onContinueButtonPressed : null,
-      text: 'Continue',
-      key: _continueButtonKey,
-    );
   }
 }

@@ -1303,4 +1303,656 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get ztsSearchDescription =>
       'Coins and tokens can be searched by name - \"Zenon\" -, by symbol - \"ZNN\" -, and by token standard - \"zts1znnxxxxxxxxxxxxx9z4ulx\"';
+
+  @override
+  String get accountChainHeight => 'Account-chain height';
+
+  @override
+  String get accountChainStats => 'Account-chain Stats';
+
+  @override
+  String addAddressesCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Add $count addresses',
+      one: 'Add 1 address',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get addNode => 'Add node';
+
+  @override
+  String get addresses => 'Addresses';
+
+  @override
+  String get allWalletDataErasedPermanently =>
+      'All your wallet data will be erased permanently. Make sure you have a backup of your mnemonic or Seed Vault & Seed Vault Key before you proceed with erasing the wallet';
+
+  @override
+  String get alphanetChainIdentifier => 'Alphanet chain identifier';
+
+  @override
+  String get autoEraseLimitChanged =>
+      'Auto-erase attempts limit successfully changed';
+
+  @override
+  String autoEraseLimitNowAttempts(String attempts) {
+    return 'The auto-erase limit has now $attempts attempt(s)';
+  }
+
+  @override
+  String get autoEraseWallet => 'Auto-erase wallet';
+
+  @override
+  String get autoLockWallet => 'Auto-lock wallet';
+
+  @override
+  String get autoReceiver => 'Auto-receiver';
+
+  @override
+  String autoReceiverPreferenceStatus(String status) {
+    return 'Auto-receiver preference was $status';
+  }
+
+  @override
+  String autoReceiverStatus(String status) {
+    return 'Auto-receiver $status';
+  }
+
+  @override
+  String get automaticallyReceiveTransactions =>
+      'Automatically receive transactions';
+
+  @override
+  String get backup => 'Backup';
+
+  @override
+  String get backupSeedEncryptedOrClearText =>
+      'Backup your seed using the syrius standard format JSON (encrypted, recommended) or show it on the screen (clear text, not recommended)';
+
+  @override
+  String get backupWallet => 'Backup wallet';
+
+  @override
+  String get blockHash => 'Block hash';
+
+  @override
+  String get chainIdentifierMismatch => 'Chain identifier mismatch';
+
+  @override
+  String chainIdentifierMismatchDetails(int clientChainId, int nodeChainId) {
+    return 'Chain identifier mismatch\nClient chain identifier: $clientChainId\nNode chain identifier: $nodeChainId';
+  }
+
+  @override
+  String get chainIdentifierPreventsReplayAttacks =>
+      'The chain identifier is used in transaction signing to prevent replay attacks';
+
+  @override
+  String get change => 'Change';
+
+  @override
+  String get changePassword => 'Change password';
+
+  @override
+  String get changeWalletPassword => 'Change wallet password';
+
+  @override
+  String get changeWalletSecurityParameters =>
+      'Change the security parameters of the wallet';
+
+  @override
+  String changedClientChainIdentifier(int chainId) {
+    return 'Successfully changed client chain identifier to $chainId';
+  }
+
+  @override
+  String changedClientChainIdentifierFromTo(int oldChainId, int newChainId) {
+    return 'Successfully changed client chain identifier from $oldChainId to $newChainId';
+  }
+
+  @override
+  String clientAndNodeChainIdentifiers(int clientChainId, int nodeChainId) {
+    return 'Client chain identifier: $clientChainId\nNode chain identifier: $nodeChainId';
+  }
+
+  @override
+  String get clientChainIdentifierSelection =>
+      'Client chain identifier selection';
+
+  @override
+  String clipboardWatcherPreferenceStatus(String status) {
+    return 'Clipboard watcher preference was $status';
+  }
+
+  @override
+  String clipboardWatcherStatus(String status) {
+    return 'Clipboard watcher $status';
+  }
+
+  @override
+  String get communityNode => 'Community Node';
+
+  @override
+  String get confirm => 'Confirm';
+
+  @override
+  String get confirmNode => 'Confirm node';
+
+  @override
+  String get confirmPassword => 'Confirm password';
+
+  @override
+  String get confirmScale => 'Confirm scale';
+
+  @override
+  String get confirmTheme => 'Confirm theme';
+
+  @override
+  String connectionCouldNotBeEstablished(String node) {
+    return 'Connection could not be established to $node';
+  }
+
+  @override
+  String get connectionFailed => 'Connection failed';
+
+  @override
+  String currentClientChainIdentifier(int chainId) {
+    return 'Current client chain identifier is $chainId';
+  }
+
+  @override
+  String get currentPassword => 'Current password';
+
+  @override
+  String get dark => 'Dark';
+
+  @override
+  String defaultAddressLabel(int index) {
+    return 'Address $index';
+  }
+
+  @override
+  String get deleteCache => 'Delete cache';
+
+  @override
+  String get deleteNode => 'Delete node';
+
+  @override
+  String deleteNodeConfirmation(String node) {
+    return 'Are you sure you want to delete $node from the list of nodes? This action can\'t be undone.';
+  }
+
+  @override
+  String get deleteWalletCacheAndCloseApp =>
+      'This option will delete the wallet cache and close the application';
+
+  @override
+  String desktopNotificationsPreferenceStatus(String status) {
+    return 'Desktop notifications preference was $status';
+  }
+
+  @override
+  String desktopNotificationsStatus(String status) {
+    return 'Desktop notifications $status';
+  }
+
+  @override
+  String get disabled => 'disabled';
+
+  @override
+  String get display => 'Display';
+
+  @override
+  String get displaysAccountChainInformation =>
+      'This card displays information regarding the account-chain for the specified address';
+
+  @override
+  String get displaysConnectedNetworkPeers =>
+      'This card displays information about connected network peers';
+
+  @override
+  String get dumpMnemonic => 'Dump Mnemonic';
+
+  @override
+  String get editNode => 'Edit node';
+
+  @override
+  String get embeddedNodeSyncExplanation =>
+      'By default Syrius connects to its own built-in full node, which is called the Embedded Node. It may take up to 24 hours to fully sync the network via the embedded node. During this time, you cannot send or receive transactions.\n\nIf you want to get started right away, please connect to a community node.';
+
+  @override
+  String get embeddedNodeValidatesTransactions =>
+      'The Embedded Node validates all network transactions\nIt may take several hours to fully sync with the network';
+
+  @override
+  String get emptyAccountChain => 'Empty account-chain';
+
+  @override
+  String get enableClipboardWatcher => 'Enable clipboard watcher';
+
+  @override
+  String get enableDesktopNotifications => 'Enable desktop notifications';
+
+  @override
+  String get enabled => 'enabled';
+
+  @override
+  String get encryptedConnection => 'Encrypted connection';
+
+  @override
+  String get english => 'English';
+
+  @override
+  String get enterMessage => 'Enter message';
+
+  @override
+  String get enterPublicKey => 'Enter public key';
+
+  @override
+  String get enterSignature => 'Enter signature';
+
+  @override
+  String get enterSignedHash => 'Enter signed hash';
+
+  @override
+  String get enterStrongSeedVaultKey =>
+      'Please enter a strong Seed Vault Key to encrypt your Seed';
+
+  @override
+  String get enterText => 'Enter text';
+
+  @override
+  String get enterWalletPasswordToDumpMnemonic =>
+      'Enter the wallet password to dump the mnemonic';
+
+  @override
+  String eraseAfterFailedPasswordAttempts(int attempts) {
+    return 'Erase after $attempts failed password attempts';
+  }
+
+  @override
+  String get eraseWalletFilesMakeSureBackup =>
+      'This option will erase the wallet files. Make sure you have a backup first';
+
+  @override
+  String get errorAccessingWalletForBackup =>
+      'Error while accessing wallet for backup';
+
+  @override
+  String get errorAddingNewNode => 'Error while adding new node';
+
+  @override
+  String get errorChangingAddressLabel =>
+      'Something went wrong while changing the address label';
+
+  @override
+  String get errorChangingClipboardWatcher =>
+      'Something went wrong while changing clipboard watcher preference';
+
+  @override
+  String get errorChangingPassword =>
+      'An error occurred while trying to change password';
+
+  @override
+  String get errorConfirmingAutoEraseLimit =>
+      'Error while confirming auto-erase limit';
+
+  @override
+  String get errorConfirmingAutoLockInterval =>
+      'Error while confirming auto-lock interval';
+
+  @override
+  String get errorDecryptingWallet =>
+      'An error occurred while trying to decrypt wallet';
+
+  @override
+  String errorDeletingNodeFromDatabase(String node) {
+    return 'Error during deleting node $node from the database';
+  }
+
+  @override
+  String get errorExportingSeedVault => 'Error while exporting Seed Vault';
+
+  @override
+  String get errorSettingAutoReceivePreference =>
+      'Something went wrong while setting automatic receive preference';
+
+  @override
+  String get errorSettingClientChainIdentifier =>
+      'Error while setting the new client chain identifier';
+
+  @override
+  String get errorSettingDesktopNotifications =>
+      'Something went wrong while setting desktop notifications preference';
+
+  @override
+  String get errorSettingLaunchAtStartup =>
+      'Something went wrong while setting launch at startup preference';
+
+  @override
+  String get errorSigningMessage => 'Error while signing message';
+
+  @override
+  String get errorVerifyingFileHash => 'Error while verifying file hash';
+
+  @override
+  String get errorVerifyingMessage => 'Error while verifying message';
+
+  @override
+  String get export => 'Export';
+
+  @override
+  String get exportSeedVault => 'Export Seed Vault';
+
+  @override
+  String get fileHashVerifiedSuccessfully => 'File hash verified successfully';
+
+  @override
+  String fileHashVerifiedWithSignedHash(String signedHash) {
+    return 'File hash was successfully verified with the signed hash: $signedHash';
+  }
+
+  @override
+  String get general => 'General';
+
+  @override
+  String get genericWalletAndNetworkInfo =>
+      'Generic wallet & network information';
+
+  @override
+  String get hashOrPublicKeyInvalid => 'Hash or public key invalid';
+
+  @override
+  String get huge => 'Huge';
+
+  @override
+  String get incorrectPassword => 'Incorrect password';
+
+  @override
+  String get integratedFullNodeEnhancedSecurity =>
+      'Integrated Full Node: enhanced security and privacy';
+
+  @override
+  String get ip => 'IP';
+
+  @override
+  String get labelAlreadyExists => 'Label already exists';
+
+  @override
+  String labelAlreadyExistsInDatabase(String label) {
+    return 'Label $label already exists in the database';
+  }
+
+  @override
+  String get labelCannotBeEmpty => 'Label can\'t be empty';
+
+  @override
+  String labelExceedsMaxLength(String label, int length, int maxLength) {
+    return 'The label $label is $length characters long, which is more than the $maxLength limit.';
+  }
+
+  @override
+  String labelHasTooManyCharacters(int maxLength) {
+    return 'The label has more than $maxLength characters';
+  }
+
+  @override
+  String get large => 'Large';
+
+  @override
+  String get launchAtStartup => 'Launch at startup';
+
+  @override
+  String launchAtStartupPreferenceStatus(String status) {
+    return 'Launch at startup preference was $status';
+  }
+
+  @override
+  String launchAtStartupStatus(String status) {
+    return 'Launch startup $status';
+  }
+
+  @override
+  String get light => 'Light';
+
+  @override
+  String get listensClipboardForWalletConnectUri =>
+      'Listens to the values passed to the clipboard and sends a notification when a WalletConnect URI has been copied';
+
+  @override
+  String get locale => 'Locale';
+
+  @override
+  String get lock => 'Lock';
+
+  @override
+  String lockAfterMinutesOfInactivity(int minutes) {
+    return 'Lock after $minutes minutes of inactivity';
+  }
+
+  @override
+  String get messageOrSignatureInvalid => 'Message or signature invalid';
+
+  @override
+  String get messageVerifiedSuccessfully => 'Message verified successfully';
+
+  @override
+  String messageVerifiedWithSignature(String message, String signature) {
+    return 'The message: $message was successfully verified with the signature: $signature';
+  }
+
+  @override
+  String get momentumHash => 'Momentum hash';
+
+  @override
+  String get momentumHeight => 'Momentum height';
+
+  @override
+  String get newPassword => 'New password';
+
+  @override
+  String get noPeersFound => 'No peers found';
+
+  @override
+  String get nodeAddressCannotBeEmpty => 'Node address can\'t be empty';
+
+  @override
+  String get nodeAddressWithPort => 'Node address with port';
+
+  @override
+  String get nodeAlreadyExists => 'Node already exists';
+
+  @override
+  String nodeAlreadyExistsNamed(String node) {
+    return 'Node $node already exists';
+  }
+
+  @override
+  String nodeHasDifferentChainIdentifier(
+    String node,
+    int nodeChainId,
+    int currentChainId,
+  ) {
+    return 'The node $node you are connecting to has a different chain identifier $nodeChainId than the current client chain identifier $currentChainId';
+  }
+
+  @override
+  String nodeHasTooManyCharacters(int maxLength) {
+    return 'The node has more than $maxLength characters';
+  }
+
+  @override
+  String get nodeManagement => 'Node Management';
+
+  @override
+  String get nodeSelection => 'Node selection';
+
+  @override
+  String get nonAlphanetChainIdentifier => 'Non-alphanet chain identifier';
+
+  @override
+  String get normal => 'Normal';
+
+  @override
+  String get otherWalletOptions => 'Other wallet options';
+
+  @override
+  String get passwordRequirementsInfo =>
+      'Use a password that has at least 8 characters, one number, one uppercase letter, one lowercase letter and one symbol';
+
+  @override
+  String get pasteFromClipboard => 'Paste from clipboard';
+
+  @override
+  String get peers => 'Peers';
+
+  @override
+  String get peersAvailable => 'Peers available';
+
+  @override
+  String get peersConnected => 'Peers connected';
+
+  @override
+  String get preferences => 'Preferences';
+
+  @override
+  String get proceedAnyway => 'Proceed anyway';
+
+  @override
+  String get publicKey => 'Public Key';
+
+  @override
+  String get repeatNewPassword => 'Repeat new password';
+
+  @override
+  String get reset => 'Reset';
+
+  @override
+  String get resetWallet => 'Reset wallet';
+
+  @override
+  String get security => 'Security';
+
+  @override
+  String get seed => 'Seed';
+
+  @override
+  String get seedVault => 'Seed Vault';
+
+  @override
+  String get seedVaultBackupExplanation =>
+      'A Seed Vault is an encrypted file for backing up your Seed. The Seed is encrypted with a Seed Vault Key and cannot be accessed without it. Make sure you backup your Seed Vault in multiple offline locations (e.g. USB, external HDD) and do not lose your Seed Vault Key. If you lose the Seed Vault file or you don\'t remember the Seed Vault Key you lose access to your funds.';
+
+  @override
+  String get seedVaultExported => 'Seed Vault successfully exported';
+
+  @override
+  String seedVaultExportedToPath(String path) {
+    return 'The Seed Vault was successfully exported to $path';
+  }
+
+  @override
+  String get seedVaultKey => 'Seed Vault Key';
+
+  @override
+  String get selectDefaultAddressForOperations =>
+      'Select the default address that will be used throughout the wallet for any network operation';
+
+  @override
+  String get setZnnNodeToConnect =>
+      'This card allows one to set the ZNN Node used to connect to. By default the wallet is connected to the Embedded Node. If you are running a local ZNN Node, please use the localhost option';
+
+  @override
+  String get sign => 'Sign';
+
+  @override
+  String get signFile => 'Sign file';
+
+  @override
+  String get signature => 'Signature';
+
+  @override
+  String get signedHash => 'Signed hash';
+
+  @override
+  String get small => 'Small';
+
+  @override
+  String get somethingWentWrong => 'Something went wrong';
+
+  @override
+  String get storeSeedVaultOfflineLocations =>
+      'Store your Seed Vault and Seed Vault Key in secure and separate offline locations. You will need both to access your funds';
+
+  @override
+  String successfullyAddedNode(String node) {
+    return 'Successfully added node $node';
+  }
+
+  @override
+  String successfullyConnectedToNode(String node) {
+    return 'Successfully connected to $node';
+  }
+
+  @override
+  String get system => 'System';
+
+  @override
+  String get textScaleChangeFailed => 'Text scale change failed';
+
+  @override
+  String get textScaleChanged => 'Text scale changed';
+
+  @override
+  String textScaleChangedDetails(String scale) {
+    return 'Text scale successfully changed to $scale';
+  }
+
+  @override
+  String get textScaling => 'Text scaling';
+
+  @override
+  String get theme => 'Theme';
+
+  @override
+  String get themeModeChangeFailed => 'Theme mode change failed';
+
+  @override
+  String get themeModeChanged => 'Theme mode changed';
+
+  @override
+  String themeModeChangedDetails(String mode) {
+    return 'Theme mode successfully changed to $mode';
+  }
+
+  @override
+  String get timestamp => 'Timestamp';
+
+  @override
+  String get uncheckToDisableAutoReceiver =>
+      'Uncheck to disable the auto-receiver and receive transactions manually';
+
+  @override
+  String get unencryptedConnection => 'Unencrypted connection';
+
+  @override
+  String get verify => 'Verify';
+
+  @override
+  String get verifyFile => 'Verify file';
+
+  @override
+  String get walletAppearanceAndThemeSettings =>
+      'Wallet appearance and theme settings';
+
+  @override
+  String get walletOptions => 'Wallet Options';
+
+  @override
+  String get willSecurelyStoreSeedVault =>
+      'I will securely store the Seed Vault & Seed Vault Key';
 }

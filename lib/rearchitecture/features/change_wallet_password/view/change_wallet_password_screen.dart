@@ -1,193 +1,208 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
-import 'package:stacked/stacked.dart';
-import 'package:zenon_syrius_wallet_flutter/blocs/decrypt_wallet_file_bloc.dart';
-import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/p2p_swaps/services/htlc_swap_sync_service.dart';
-import 'package:zenon_syrius_wallet_flutter/main.dart';
-import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/p2p_swaps/data/htlc_swap_local_storage_api.dart';
-import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/p2p_swaps/data/legacy_htlc_swaps_migrator.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/change_wallet_password/change_wallet_password.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/wallet_file.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
-import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
-class ChangeWalletPasswordScreen extends StatefulWidget {
+/// Full-screen workflow for changing the wallet password while atomically
+/// migrating and rekeying encrypted HTLC swap storage.
+class ChangeWalletPasswordScreen extends StatelessWidget {
+  /// Creates a [ChangeWalletPasswordScreen].
   const ChangeWalletPasswordScreen({
-    required this.onStepperNotificationSeeMorePressed,
+    required this._onStepperNotificationSeeMorePressed,
+    this._bloc,
     super.key,
   });
-  final VoidCallback onStepperNotificationSeeMorePressed;
+
+  final VoidCallback _onStepperNotificationSeeMorePressed;
+  final ChangeWalletPasswordBloc? _bloc;
 
   @override
-  State<ChangeWalletPasswordScreen> createState() =>
-      _ChangeWalletPasswordScreenState();
+  Widget build(BuildContext context) {
+    final ChangeWalletPasswordBloc? injected = _bloc;
+    final Widget view = _View(
+      onStepperNotificationSeeMorePressed: _onStepperNotificationSeeMorePressed,
+    );
+    if (injected != null) {
+      return BlocProvider<ChangeWalletPasswordBloc>.value(
+        value: injected,
+        child: view,
+      );
+    }
+
+    return BlocProvider<ChangeWalletPasswordBloc>(
+      create: (_) => ChangeWalletPasswordBloc(),
+      child: view,
+    );
+  }
 }
 
-class _ChangeWalletPasswordScreenState
-    extends State<ChangeWalletPasswordScreen> {
-  String? _currentPassErrorText;
+class _View extends StatefulWidget {
+  const _View({required this._onStepperNotificationSeeMorePressed});
 
+  final VoidCallback _onStepperNotificationSeeMorePressed;
+
+  @override
+  State<_View> createState() => _ViewState();
+}
+
+class _ViewState extends State<_View> {
   final TextEditingController _newPasswordController = TextEditingController();
   final TextEditingController _confirmPasswordController =
       TextEditingController();
   final TextEditingController _currentPasswordController =
       TextEditingController();
 
-  final GlobalKey<FormState> _currentPasswordKey = GlobalKey();
-  final GlobalKey<FormState> _newPasswordKey = GlobalKey();
-  final GlobalKey<FormState> _confirmPasswordKey = GlobalKey();
-  final GlobalKey<LoadingButtonState> _loadingButtonKey = GlobalKey();
-
-  late LoadingButton _loadingButton;
+  final GlobalKey<FormState> _currentPasswordKey = GlobalKey<FormState>();
+  final GlobalKey<FormState> _newPasswordKey = GlobalKey<FormState>();
+  final GlobalKey<FormState> _confirmPasswordKey = GlobalKey<FormState>();
+  final GlobalKey<LoadingButtonState> _loadingButtonKey =
+      GlobalKey<LoadingButtonState>();
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Container(
-        padding: const EdgeInsets.symmetric(
-          vertical: 30,
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: <Widget>[
-            NotificationWidget(
-              onSeeMorePressed: widget.onStepperNotificationSeeMorePressed,
-            ),
-            Text(
-              'Change wallet password',
-              style: Theme.of(context).textTheme.headlineLarge,
-            ),
-            Column(
+      body: BlocConsumer<ChangeWalletPasswordBloc, ChangeWalletPasswordState>(
+        listener: (BuildContext context, ChangeWalletPasswordState state) {
+          if (state is ChangeWalletPasswordLoading) {
+            _loadingButtonKey.currentState?.animateForward();
+          } else {
+            _loadingButtonKey.currentState?.animateReverse();
+          }
+          if (state is ChangeWalletPasswordSuccess) {
+            Navigator.pop(context);
+          }
+        },
+        builder: (BuildContext context, ChangeWalletPasswordState state) {
+          final String? currentPassErrorText =
+              state is ChangeWalletPasswordIncorrectCurrentPassword
+              ? context.l10n.incorrectPassword
+              : null;
+          final bool canSubmit = _arePasswordsValid(currentPassErrorText);
+
+          return Container(
+            padding: const EdgeInsets.symmetric(vertical: 30),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: <Widget>[
-                Form(
-                  key: _currentPasswordKey,
-                  autovalidateMode: AutovalidateMode.onUserInteraction,
-                  child: PasswordInputField(
-                    errorText: _currentPassErrorText,
-                    controller: _currentPasswordController,
-                    hintText: 'Current password',
-                    onChanged: (String value) {
-                      setState(() {
-                        if (_currentPassErrorText != null) {
-                          _currentPassErrorText = null;
-                        }
-                      });
-                    },
-                  ),
+                NotificationWidget(
+                  onSeeMorePressed: widget._onStepperNotificationSeeMorePressed,
                 ),
-                kVerticalSpacing,
-                Form(
-                  key: _newPasswordKey,
-                  autovalidateMode: AutovalidateMode.onUserInteraction,
-                  child: PasswordInputField(
-                    controller: _newPasswordController,
-                    validator: InputValidators.validatePassword,
-                    onChanged: (String value) {
-                      setState(() {});
-                    },
-                    hintText: 'New password',
-                  ),
+                Text(
+                  context.l10n.changeWalletPassword,
+                  style: Theme.of(context).textTheme.headlineLarge,
                 ),
-                kVerticalSpacing,
-                Form(
-                  key: _confirmPasswordKey,
-                  autovalidateMode: AutovalidateMode.onUserInteraction,
-                  child: PasswordInputField(
-                    controller: _confirmPasswordController,
-                    validator: (String? value) =>
-                        InputValidators.checkPasswordMatch(
-                          _newPasswordController.text,
-                          value,
-                        ),
-                    hintText: 'Repeat new password',
-                    onSubmitted: (String value) {
-                      if (_arePasswordsValid()) {
-                        _loadingButton.onPressed!();
-                      }
-                    },
-                    onChanged: (String value) {
-                      setState(() {});
-                    },
-                  ),
+                _buildPasswordFields(
+                  context: context,
+                  currentPassErrorText: currentPassErrorText,
+                  canSubmit: canSubmit,
                 ),
-                const SizedBox(
-                  height: 35,
+                DottedBorderInfoWidget(
+                  text: context.l10n.passwordRequirementsInfo,
                 ),
-                PasswordProgressBar(
-                  password: _newPasswordController.text,
-                  passwordKey: _newPasswordKey,
-                ),
+                _buildActionButtons(context: context, canSubmit: canSubmit),
               ],
             ),
-            const DottedBorderInfoWidget(
-              text:
-                  'Use a password that has at least 8 characters, '
-                  'one number, one uppercase letter, one lowercase '
-                  'letter and one symbol',
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: <Widget>[
-                _getPassiveButton(),
-                kSpacingBetweenActionButtons,
-                _getDecryptKeyStoreFileViewModel(),
-              ],
-            ),
-          ],
-        ),
+          );
+        },
       ),
     );
   }
 
-  Widget _getPassiveButton() {
-    return OnboardingButton(
-      onPressed: () {
-        Navigator.pop(context, false);
-      },
-      text: 'Go back',
+  Widget _buildPasswordFields({
+    required BuildContext context,
+    required String? currentPassErrorText,
+    required bool canSubmit,
+  }) {
+    return Column(
+      children: <Widget>[
+        Form(
+          key: _currentPasswordKey,
+          autovalidateMode: AutovalidateMode.onUserInteraction,
+          child: PasswordInputField(
+            errorText: currentPassErrorText,
+            controller: _currentPasswordController,
+            hintText: context.l10n.currentPassword,
+            onChanged: (String value) {
+              if (currentPassErrorText != null) {
+                context.read<ChangeWalletPasswordBloc>().add(
+                  const ChangeWalletPasswordErrorCleared(),
+                );
+              }
+              setState(() {});
+            },
+          ),
+        ),
+        kVerticalSpacing,
+        Form(
+          key: _newPasswordKey,
+          autovalidateMode: AutovalidateMode.onUserInteraction,
+          child: PasswordInputField(
+            controller: _newPasswordController,
+            validator: InputValidators.validatePassword,
+            onChanged: (String value) {
+              setState(() {});
+            },
+            hintText: context.l10n.newPassword,
+          ),
+        ),
+        kVerticalSpacing,
+        Form(
+          key: _confirmPasswordKey,
+          autovalidateMode: AutovalidateMode.onUserInteraction,
+          child: PasswordInputField(
+            controller: _confirmPasswordController,
+            validator: (String? value) => InputValidators.checkPasswordMatch(
+              _newPasswordController.text,
+              value,
+            ),
+            hintText: context.l10n.repeatNewPassword,
+            onSubmitted: (String value) {
+              if (canSubmit) {
+                _submit(context);
+              }
+            },
+            onChanged: (String value) {
+              setState(() {});
+            },
+          ),
+        ),
+        const SizedBox(height: 35),
+        PasswordProgressBar(
+          password: _newPasswordController.text,
+          passwordKey: _newPasswordKey,
+        ),
+      ],
     );
   }
 
-  Future<void> _changePassword(
-    String currentPassword,
-    String newPassword,
-  ) async {
-    final HtlcSwapSyncService handler = sl<HtlcSwapSyncService>();
-    final HtlcSwapLocalStorageApi dataProvider = sl<HtlcSwapLocalStorageApi>();
-    final List<int> oldEncryptionKey = Crypto.digest(
-      utf8.encode(currentPassword),
+  Widget _buildActionButtons({
+    required BuildContext context,
+    required bool canSubmit,
+  }) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: <Widget>[
+        OnboardingButton(
+          onPressed: () {
+            Navigator.pop(context, false);
+          },
+          text: context.l10n.goBack,
+        ),
+        kSpacingBetweenActionButtons,
+        LoadingButton.onboarding(
+          key: _loadingButtonKey,
+          onPressed: canSubmit ? () => _submit(context) : null,
+          text: context.l10n.changePassword,
+        ),
+      ],
     );
-    final List<int> newEncryptionKey = Crypto.digest(utf8.encode(newPassword));
-
-    await handler.stop();
-    try {
-      if (kDefaultAddressList.isNotEmpty && kDefaultAddressList.first != null) {
-        await sl<LegacyHtlcSwapsMigrator>().migrateIfNeeded(
-          walletBaseAddress: WalletUtils.baseAddress.toString(),
-          encryptionKey: oldEncryptionKey,
-        );
-      }
-      await dataProvider.beginRekey(
-        oldEncryptionKey: oldEncryptionKey,
-        newEncryptionKey: newEncryptionKey,
-      );
-      try {
-        await kWalletFile!.changePassword(currentPassword, newPassword);
-      } catch (_) {
-        await dataProvider.rollbackRekey(oldEncryptionKey);
-        rethrow;
-      }
-      await dataProvider.commitRekey();
-    } finally {
-      handler.start();
-    }
-    if (!mounted) return;
-    Navigator.pop(context);
   }
 
-  bool _arePasswordsValid() {
-    return _currentPassErrorText == null &&
+  bool _arePasswordsValid(String? currentPassErrorText) {
+    return currentPassErrorText == null &&
+        _currentPasswordController.text.isNotEmpty &&
         InputValidators.validatePassword(_newPasswordController.text) == null &&
         InputValidators.checkPasswordMatch(
               _newPasswordController.text,
@@ -196,66 +211,14 @@ class _ChangeWalletPasswordScreenState
             null;
   }
 
-  Widget _getDecryptKeyStoreFileViewModel() {
-    return ViewModelBuilder<DecryptWalletFileBloc>.reactive(
-      onViewModelReady: (DecryptWalletFileBloc model) {
-        model.stream.listen(
-          (WalletFile? walletFile) async {
-            if (walletFile != null) {
-              setState(() {
-                _currentPassErrorText = null;
-              });
-              try {
-                await _changePassword(
-                  _currentPasswordController.text,
-                  _newPasswordController.text,
-                );
-              } catch (e) {
-                await NotificationUtils.sendNotificationError(
-                  e,
-                  'An error occurred while trying to change password',
-                );
-              } finally {
-                _loadingButtonKey.currentState!.animateReverse();
-              }
-            }
-          },
-          onError: (e) async {
-            _loadingButtonKey.currentState!.animateReverse();
-            if (e is IncorrectPasswordException) {
-              setState(() {
-                _currentPassErrorText = 'Incorrect password';
-              });
-            } else {
-              await NotificationUtils.sendNotificationError(
-                e,
-                'An error occurred while trying to decrypt wallet',
-              );
-            }
-          },
-        );
-      },
-      builder: (_, DecryptWalletFileBloc model, __) {
-        _loadingButton = _getLoadingButton(model);
-        return _getLoadingButton(model);
-      },
-      viewModelBuilder: DecryptWalletFileBloc.new,
-    );
-  }
-
-  LoadingButton _getLoadingButton(DecryptWalletFileBloc model) {
-    return LoadingButton.onboarding(
-      key: _loadingButtonKey,
-      onPressed: _arePasswordsValid()
-          ? () {
-              _loadingButtonKey.currentState!.animateForward();
-              model.decryptWalletFile(
-                kWalletPath!,
-                _currentPasswordController.text,
-              );
-            }
-          : null,
-      text: 'Change password',
+  void _submit(BuildContext context) {
+    context.read<ChangeWalletPasswordBloc>().add(
+      ChangeWalletPasswordSubmitted(
+        currentPassword: _currentPasswordController.text,
+        newPassword: _newPasswordController.text,
+        decryptErrorTitle: context.l10n.errorDecryptingWallet,
+        changePasswordErrorTitle: context.l10n.errorChangingPassword,
+      ),
     );
   }
 

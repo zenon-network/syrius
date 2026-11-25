@@ -1,53 +1,75 @@
 import 'package:flutter/material.dart';
-import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:zenon_syrius_wallet_flutter/main.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/peers/peers.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
-class PeersWidget extends StatefulWidget {
-  const PeersWidget({super.key});
+/// Displays the table of peers currently connected to the node.
+class PeersCard extends StatelessWidget {
+  /// Creates a [PeersCard].
+  const PeersCard({super.key, this._peersBloc});
 
-  @override
-  State<PeersWidget> createState() => _PeersWidget();
-}
-
-class _PeersWidget extends State<PeersWidget> {
-  bool _sortAscending = true;
-
-  PeersBloc? _peersBloc;
-
-  List<Peer>? _peers;
-
-  @override
-  void initState() {
-    _peersBloc = PeersBloc();
-    super.initState();
-  }
+  final PeersBloc? _peersBloc;
 
   @override
   Widget build(BuildContext context) {
-    return CardScaffold(
-      title: 'Peers',
-      description:
-          'This card displays information about connected network peers',
-      childBuilder: _getStreamBuilder,
+    final PeersBloc? injected = _peersBloc;
+    if (injected != null) {
+      return BlocProvider<PeersBloc>.value(
+        value: injected,
+        child: const _View(),
+      );
+    }
+
+    return BlocProvider<PeersBloc>(
+      create: (_) => PeersBloc(zenon: zenon!)..add(const PeersRequested()),
+      child: const _View(),
+    );
+  }
+}
+
+class _View extends StatelessWidget {
+  const _View();
+
+  @override
+  Widget build(BuildContext context) {
+    return NewCardScaffold(
+      data: _buildCardData(context: context),
+      onRefreshPressed: () {
+        context.read<PeersBloc>().add(const PeersRequested());
+      },
+      body: BlocBuilder<PeersBloc, PeersState>(
+        builder: (BuildContext context, PeersState state) {
+          return switch (state) {
+            PeersInitial() || PeersLoading() => const SyriusLoadingWidget(),
+            PeersFailure(:final SyriusException exception) => SyriusErrorWidget(
+              exception,
+            ),
+            PeersPopulated(:final List<Peer> peers) => _Populated(peers: peers),
+          };
+        },
+      ),
     );
   }
 
-  Widget _getTable() {
+  CardData _buildCardData({required BuildContext context}) => CardData(
+    title: context.l10n.peers,
+    description: context.l10n.displaysConnectedNetworkPeers,
+  );
+}
+
+class _Populated extends StatelessWidget {
+  const _Populated({required this._peers});
+
+  final List<Peer> _peers;
+
+  @override
+  Widget build(BuildContext context) {
     return CustomTable<Peer>(
       items: _peers,
-      headerColumns: <CustomHeaderColumn>[
-        CustomHeaderColumn(
-          columnName: 'IP',
-          onSortArrowsPressed: _onSortArrowsPressed,
-          contentAlign: MainAxisAlignment.center,
-        ),
-        CustomHeaderColumn(
-          columnName: 'Public Key',
-          onSortArrowsPressed: _onSortArrowsPressed,
-          contentAlign: MainAxisAlignment.center,
-        ),
-      ],
+      headerColumns: _buildHeaderColumns(context),
       generateRowCells: (Peer peer, bool isSelected, {Object? model}) {
         return <Widget>[
           CustomTableCell.withText(context, peer.ip),
@@ -60,49 +82,28 @@ class _PeersWidget extends State<PeersWidget> {
     );
   }
 
-  Widget _getStreamBuilder() {
-    return StreamBuilder<NetworkInfo>(
-      stream: _peersBloc!.stream,
-      builder: (_, AsyncSnapshot<NetworkInfo> snapshot) {
-        if (snapshot.hasData) {
-          _peers = snapshot.data!.peers;
-          return _getTable();
-        } else if (snapshot.hasError) {
-          return SyriusErrorWidget(snapshot.error!);
-        }
-        return const SyriusLoadingWidget();
-      },
-    );
-  }
-
-  void _onSortArrowsPressed(String columnName) {
-    switch (columnName) {
-      case 'IP':
-        _sortAscending
-            ? _peers!.sort((Peer a, Peer b) => a.ip.compareTo(b.ip))
-            : _peers!.sort((Peer a, Peer b) => b.ip.compareTo(a.ip));
-      case 'Public Key':
-        _sortAscending
-            ? _peers!.sort(
-                (Peer a, Peer b) => a.publicKey.compareTo(b.publicKey),
-              )
-            : _peers!.sort(
-                (Peer a, Peer b) => b.publicKey.compareTo(a.publicKey),
-              );
-      default:
-        _sortAscending
-            ? _peers!.sort((Peer a, Peer b) => a.ip.compareTo(b.ip))
-            : _peers!.sort((Peer a, Peer b) => b.ip.compareTo(a.ip));
-        break;
-    }
-    setState(() {
-      _sortAscending = !_sortAscending;
-    });
-  }
-
-  @override
-  void dispose() {
-    _peersBloc!.dispose();
-    super.dispose();
+  List<CustomHeaderColumn> _buildHeaderColumns(BuildContext context) {
+    final String ipColumn = context.l10n.ip;
+    final String publicKeyColumn = context.l10n.publicKey;
+    return <CustomHeaderColumn>[
+      CustomHeaderColumn(
+        columnName: ipColumn,
+        onSortArrowsPressed: (_) {
+          context.read<PeersBloc>().add(
+            const PeersSortToggled(column: PeersSortColumn.ip),
+          );
+        },
+        contentAlign: MainAxisAlignment.center,
+      ),
+      CustomHeaderColumn(
+        columnName: publicKeyColumn,
+        onSortArrowsPressed: (_) {
+          context.read<PeersBloc>().add(
+            const PeersSortToggled(column: PeersSortColumn.publicKey),
+          );
+        },
+        contentAlign: MainAxisAlignment.center,
+      ),
+    ];
   }
 }

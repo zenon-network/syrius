@@ -1,204 +1,299 @@
-import 'dart:isolate';
+import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_vector_icons/flutter_vector_icons.dart';
-import 'package:hive_ce/hive_ce.dart';
-import 'package:wakelock_plus/wakelock_plus.dart';
-import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
-import 'package:zenon_syrius_wallet_flutter/embedded_node/embedded_node.dart';
-import 'package:zenon_syrius_wallet_flutter/main.dart';
-import 'package:zenon_syrius_wallet_flutter/model/model.dart';
-import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/p2p_swaps/data/htlc_swap_repository.dart';
-import 'package:zenon_syrius_wallet_flutter/services/i_web3wallet_service.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/node_management/node_management.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
-import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
-class NodeManagement extends StatefulWidget {
-  const NodeManagement({
-    required this.onNodeChangedCallback,
+/// Displays node selection, custom node management, and client chain
+/// identifier configuration inside the Settings tab.
+class NodeManagementCard extends StatelessWidget {
+  /// Creates a [NodeManagementCard].
+  const NodeManagementCard({
+    required this._onNodeChangedCallback,
+    this._bloc,
     super.key,
   });
-  final VoidCallback onNodeChangedCallback;
 
-  @override
-  State<NodeManagement> createState() => _NodeManagementState();
-}
-
-class _NodeManagementState extends State<NodeManagement> {
-  String? _selectedNode;
-
-  final GlobalKey<LoadingButtonState> _confirmNodeButtonKey = GlobalKey();
-  final GlobalKey<LoadingButtonState> _addNodeButtonKey = GlobalKey();
-  final GlobalKey<LoadingButtonState> _confirmChainIdButtonKey = GlobalKey();
-
-  TextEditingController _newNodeController = TextEditingController();
-  GlobalKey<FormState> _newNodeKey = GlobalKey();
-
-  TextEditingController _newChainIdController = TextEditingController();
-  GlobalKey<FormState> _newChainIdKey = GlobalKey();
-
-  late String _selectedNodeConfirmed;
-  late int _currentChainId;
-
-  int get _newChainId => int.parse(_newChainIdController.text);
-
-  @override
-  void initState() {
-    super.initState();
-    kDefaultCommunityNodes.shuffle();
-  }
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    _selectedNode ??= kCurrentNode!;
-    _selectedNodeConfirmed = _selectedNode!;
-    _initCurrentChainId();
-  }
-
-  void _initCurrentChainId() {
-    _currentChainId = sharedPrefsService!.get(
-      kChainIdKey,
-      defaultValue: kChainIdDefaultValue,
-    );
-  }
+  final VoidCallback _onNodeChangedCallback;
+  final NodeManagementBloc? _bloc;
 
   @override
   Widget build(BuildContext context) {
-    return CardScaffold(
-      title: 'Node Management',
-      description:
-          'This card allows one to set the ZNN Node used to connect to. '
-          'By default the wallet is connected to the Embedded Node. '
-          'If you are running a local ZNN Node, please use the localhost option',
-      childBuilder: _getWidgetBody,
-    );
-  }
-
-  Widget _getWidgetBody() {
-    return ListView(
-      shrinkWrap: true,
-      children: <Widget>[
-        CustomExpandablePanel(
-          'Client chain identifier selection',
-          _getChainIdSelectionExpandableChild(),
-        ),
-        CustomExpandablePanel(
-          'Node selection',
-          _getNodeSelectionExpandableChild(),
-        ),
-        CustomExpandablePanel(
-          'Add node',
-          _getAddNodeExpandableChild(),
-        ),
-      ],
-    );
-  }
-
-  Widget _getNodeSelectionExpandableChild() {
-    return Column(
-      children: <Widget>[
-        _getNodeTiles(),
-        _getConfirmNodeSelectionButton(),
-      ],
-    );
-  }
-
-  Row _getConfirmNodeSelectionButton() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: <Widget>[
-        LoadingButton.settings(
-          text: 'Confirm node',
-          onPressed: _onConfirmNodeButtonPressed,
-          key: _confirmNodeButtonKey,
-        ),
-      ],
-    );
-  }
-
-  Future<void> _onConfirmNodeButtonPressed() async {
-    // Acquire WakeLock
-    if (!await WakelockPlus.enabled) {
-      WakelockPlus.enable();
+    final NodeManagementBloc? injected = _bloc;
+    final Widget view = _View(onNodeChangedCallback: _onNodeChangedCallback);
+    if (injected != null) {
+      return BlocProvider<NodeManagementBloc>.value(
+        value: injected,
+        child: view,
+      );
     }
 
-    try {
+    return BlocProvider<NodeManagementBloc>(
+      create: (_) => NodeManagementBloc(
+        checkChainIdMismatch: true,
+        resetHtlcBlockHeightOnChange: true,
+      )..add(const NodeManagementChainIdLoaded()),
+      child: view,
+    );
+  }
+}
+
+class _View extends StatefulWidget {
+  const _View({required this._onNodeChangedCallback});
+
+  final VoidCallback _onNodeChangedCallback;
+
+  @override
+  State<_View> createState() => _ViewState();
+}
+
+class _ViewState extends State<_View> {
+  final GlobalKey<LoadingButtonState> _confirmNodeButtonKey =
+      GlobalKey<LoadingButtonState>();
+  final GlobalKey<LoadingButtonState> _addNodeButtonKey =
+      GlobalKey<LoadingButtonState>();
+  final GlobalKey<LoadingButtonState> _confirmChainIdButtonKey =
+      GlobalKey<LoadingButtonState>();
+
+  final TextEditingController _newNodeController = TextEditingController();
+  final GlobalKey<FormState> _newNodeKey = GlobalKey<FormState>();
+
+  final TextEditingController _newChainIdController = TextEditingController();
+  final GlobalKey<FormState> _newChainIdKey = GlobalKey<FormState>();
+
+  @override
+  Widget build(BuildContext context) {
+    return NewCardScaffold(
+      data: _buildCardData(context: context),
+      body: MultiBlocListener(
+        listeners: <BlocListener<NodeManagementBloc, NodeManagementState>>[
+          BlocListener<NodeManagementBloc, NodeManagementState>(
+            listenWhen:
+                (NodeManagementState previous, NodeManagementState current) =>
+                    previous.nodeConfirmedNonce != current.nodeConfirmedNonce,
+            listener: (_, _) => widget._onNodeChangedCallback(),
+          ),
+          BlocListener<NodeManagementBloc, NodeManagementState>(
+            listenWhen:
+                (NodeManagementState previous, NodeManagementState current) =>
+                    previous.nodeAddedNonce != current.nodeAddedNonce,
+            listener: (_, _) {
+              _newNodeController.clear();
+              _newNodeKey.currentState?.reset();
+              setState(() {});
+            },
+          ),
+          BlocListener<NodeManagementBloc, NodeManagementState>(
+            listenWhen:
+                (NodeManagementState previous, NodeManagementState current) =>
+                    previous.chainIdChangedNonce != current.chainIdChangedNonce,
+            listener: (_, _) {
+              _newChainIdController.clear();
+              _newChainIdKey.currentState?.reset();
+              setState(() {});
+            },
+          ),
+          BlocListener<NodeManagementBloc, NodeManagementState>(
+            listenWhen:
+                (NodeManagementState previous, NodeManagementState current) =>
+                    previous.pendingChainIdMismatch !=
+                        current.pendingChainIdMismatch &&
+                    current.pendingChainIdMismatch != null,
+            listener: _onChainIdMismatch,
+          ),
+        ],
+        child: BlocConsumer<NodeManagementBloc, NodeManagementState>(
+          listener: _syncLoadingButtons,
+          builder: (BuildContext context, NodeManagementState state) {
+            return ListView(
+              shrinkWrap: true,
+              children: <Widget>[
+                CustomExpandablePanel(
+                  context.l10n.clientChainIdentifierSelection,
+                  _buildChainIdPanel(context, state),
+                ),
+                CustomExpandablePanel(
+                  context.l10n.nodeSelection,
+                  _buildNodeSelectionPanel(context, state),
+                ),
+                CustomExpandablePanel(
+                  context.l10n.addNode,
+                  _buildAddNodePanel(context),
+                ),
+              ],
+            );
+          },
+        ),
+      ),
+    );
+  }
+
+  CardData _buildCardData({required BuildContext context}) => CardData(
+    title: context.l10n.nodeManagement,
+    description: context.l10n.setZnnNodeToConnect,
+  );
+
+  void _syncLoadingButtons(BuildContext context, NodeManagementState state) {
+    if (state.isConfirmingNode) {
       _confirmNodeButtonKey.currentState?.animateForward();
-      final bool isConnectionEstablished = await _establishConnectionToNode(
-        _selectedNode,
-      );
-      if (isConnectionEstablished) {
-        kNodeChainId = await NodeUtils.getNodeChainIdentifier();
-        if (await _checkForChainIdMismatch()) {
-          await sl<HtlcSwapRepository>().storeLastCheckedHtlcBlockHeight(0);
-          await sharedPrefsService!.put(
-            kSelectedNodeKey,
-            _selectedNode,
-          );
-          kCurrentNode = _selectedNode;
-          await _sendChangingNodeSuccessNotification();
-          widget.onNodeChangedCallback();
-        } else {
-          await _establishConnectionToNode(kCurrentNode);
-          kNodeChainId = await NodeUtils.getNodeChainIdentifier();
-          setState(() {
-            _selectedNode = kCurrentNode;
-          });
-        }
-      } else {
-        throw 'Connection could not be established to $_selectedNode';
-      }
-    } catch (e) {
-      await NotificationUtils.sendNotificationError(
-        e,
-        'Connection failed',
-      );
-      setState(() {
-        _selectedNode = kCurrentNode;
-      });
-    } finally {
+    } else {
       _confirmNodeButtonKey.currentState?.animateReverse();
     }
-  }
-
-  Future<bool> _establishConnectionToNode(String? url) async {
-    final String targetUrl = url == kEmbeddedNode
-        ? kLocalhostDefaultNodeUrl
-        : url!;
-    bool isConnectionEstablished = await NodeUtils.establishConnectionToNode(
-      targetUrl,
-    );
-    if (url == kEmbeddedNode) {
-      // Check if node is already running
-      if (!isConnectionEstablished) {
-        // Initialize local full node
-        await Isolate.spawn(
-          EmbeddedNode.runNode,
-          <String>[''],
-          onExit: sl<ReceivePort>(instanceName: 'embeddedStoppedPort').sendPort,
-        );
-        kEmbeddedNodeRunning = true;
-        // The node needs a couple of seconds to actually start
-        await Future.delayed(kEmbeddedConnectionDelay);
-        isConnectionEstablished = await NodeUtils.establishConnectionToNode(
-          targetUrl,
-        );
-      }
+    if (state.isAddingNode) {
+      _addNodeButtonKey.currentState?.animateForward();
     } else {
-      isConnectionEstablished = await NodeUtils.establishConnectionToNode(
-        targetUrl,
-      );
-      if (isConnectionEstablished) {
-        await NodeUtils.closeEmbeddedNode();
-      }
+      _addNodeButtonKey.currentState?.animateReverse();
     }
-    return isConnectionEstablished;
+    if (state.isConfirmingChainId) {
+      _confirmChainIdButtonKey.currentState?.animateForward();
+    } else {
+      _confirmChainIdButtonKey.currentState?.animateReverse();
+    }
   }
 
-  Widget _getAddNodeExpandableChild() {
+  void _onChainIdMismatch(BuildContext context, NodeManagementState state) {
+    final NodeChainIdMismatchPrompt? prompt = state.pendingChainIdMismatch;
+    if (prompt == null) {
+      return;
+    }
+    unawaited(_showChainIdWarningAndResolve(context, prompt));
+  }
+
+  Future<void> _showChainIdWarningAndResolve(
+    BuildContext context,
+    NodeChainIdMismatchPrompt prompt,
+  ) async {
+    final bool proceed = await showWarningDialog(
+      context: context,
+      title: context.l10n.chainIdentifierMismatch,
+      buttonText: context.l10n.proceedAnyway,
+      description: context.l10n.nodeHasDifferentChainIdentifier(
+        prompt.node,
+        prompt.nodeChainId,
+        prompt.clientChainId,
+      ),
+    );
+    if (!context.mounted) {
+      return;
+    }
+    context.read<NodeManagementBloc>().add(
+      NodeManagementChainIdMismatchResolved(
+        proceed: proceed,
+        connectionFailedTitle: context.l10n.connectionFailed,
+      ),
+    );
+  }
+
+  Widget _buildNodeSelectionPanel(
+    BuildContext context,
+    NodeManagementState state,
+  ) {
+    return Column(
+      children: <Widget>[
+        _buildNodeTiles(context, state),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            LoadingButton.settings(
+              text: context.l10n.confirmNode,
+              onPressed: () => _onConfirmNodePressed(context, state),
+              key: _confirmNodeButtonKey,
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildNodeTiles(BuildContext context, NodeManagementState state) {
+    final NodeManagementBloc bloc = context.read<NodeManagementBloc>();
+    return RadioGroup<String>(
+      groupValue: state.selectedNode,
+      onChanged: (String? value) {
+        if (value != null) {
+          bloc.add(NodeManagementNodeSelected(node: value));
+        }
+      },
+      child: Column(
+        children: state.nodes
+            .map((String node) => _buildNodeTile(context, state, node))
+            .toList(),
+      ),
+    );
+  }
+
+  Widget _buildNodeTile(
+    BuildContext context,
+    NodeManagementState state,
+    String node,
+  ) {
+    final NodeManagementBloc bloc = context.read<NodeManagementBloc>();
+    return Row(
+      children: <Widget>[
+        Radio<String>(value: node),
+        Expanded(
+          child: SettingsNodeTile(
+            key: ValueKey<String>(node),
+            node: node,
+            currentNode: state.confirmedNode,
+            clientChainId: state.clientChainId,
+            connectedNodeChainId: state.connectedNodeChainId,
+            isDefaultNode: bloc.isDefaultNode(node),
+            isCommunityNode: bloc.isCommunityNode(node),
+            isSavingEdit: state.editingNode == node,
+            editError: state.editNodeErrorTarget == node
+                ? state.editNodeError
+                : null,
+            onNodePressed: (String value) {
+              bloc.add(NodeManagementNodeSelected(node: value));
+            },
+            onEditSubmitted: (String newNode) {
+              bloc.add(
+                NodeManagementEditNodeRequested(
+                  oldNode: node,
+                  newNode: newNode,
+                  emptyErrorMessage: context.l10n.nodeAddressCannotBeEmpty,
+                  tooLongErrorMessage: context.l10n.nodeHasTooManyCharacters(
+                    kAddressLabelMaxLength,
+                  ),
+                  duplicateErrorMessage: context.l10n.nodeAlreadyExists,
+                  errorTitle: context.l10n.somethingWentWrong,
+                ),
+              );
+            },
+            onDeleteConfirmed: () {
+              bloc.add(
+                NodeManagementDeleteNodeRequested(
+                  node: node,
+                  errorTitle: context.l10n.errorDeletingNodeFromDatabase(node),
+                ),
+              );
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
+  void _onConfirmNodePressed(BuildContext context, NodeManagementState state) {
+    final String selected = state.selectedNode;
+    context.read<NodeManagementBloc>().add(
+      NodeManagementConfirmNodeRequested(
+        successTitle: context.l10n.successfullyConnectedToNode(selected),
+        successDetails: context.l10n.successfullyConnectedToNode(selected),
+        connectionUnavailableMessage: context.l10n
+            .connectionCouldNotBeEstablished(selected),
+        connectionFailedTitle: context.l10n.connectionFailed,
+      ),
+    );
+  }
+
+  Widget _buildAddNodePanel(BuildContext context) {
     return Column(
       children: <Widget>[
         Form(
@@ -206,140 +301,51 @@ class _NodeManagementState extends State<NodeManagement> {
           autovalidateMode: AutovalidateMode.onUserInteraction,
           child: InputField(
             controller: _newNodeController,
-            hintText: 'Node address with port',
+            hintText: context.l10n.nodeAddressWithPort,
             onSubmitted: (String value) {
-              if (_ifUserInputValid()) {
-                _onAddNodePressed();
+              if (_isNewNodeValid()) {
+                _onAddNodePressed(context);
               }
             },
             onChanged: (String value) {
-              if (value.isNotEmpty) {
-                setState(() {});
-              }
+              setState(() {});
             },
             validator: InputValidators.node,
           ),
         ),
         kVerticalSpacing,
         LoadingButton.settings(
-          onPressed: _ifUserInputValid() ? _onAddNodePressed : null,
-          text: 'Add node',
+          onPressed: _isNewNodeValid()
+              ? () => _onAddNodePressed(context)
+              : null,
+          text: context.l10n.addNode,
           key: _addNodeButtonKey,
         ),
       ],
     );
   }
 
-  bool _ifUserInputValid() =>
+  bool _isNewNodeValid() =>
       InputValidators.node(_newNodeController.text) == null;
 
-  Future<void> _onAddNodePressed() async {
-    if (<String>[
-      ...kDbNodes,
-      ...kDefaultCommunityNodes,
-      ...kDefaultNodes,
-    ].contains(_newNodeController.text)) {
-      await NotificationUtils.sendNotificationError(
-        'Node ${_newNodeController.text} already exists',
-        'Node already exists',
-      );
-    } else {
-      _addNodeToDb();
-    }
-  }
-
-  Future<void> _addNodeToDb() async {
-    try {
-      _addNodeButtonKey.currentState?.animateForward();
-      if (!Hive.isBoxOpen(kNodesBox)) {
-        await Hive.openBox<String>(kNodesBox);
-      }
-      Hive.box<String>(kNodesBox).add(_newNodeController.text);
-      await NodeUtils.loadDbNodes();
-      await _sendAddNodeSuccessNotification();
-      _newNodeController = TextEditingController();
-      _newNodeKey = GlobalKey();
-    } catch (e) {
-      await NotificationUtils.sendNotificationError(
-        e,
-        'Error while adding new node',
-      );
-    } finally {
-      _addNodeButtonKey.currentState?.animateReverse();
-    }
-  }
-
-  Widget _getNodeTiles() {
-    return Column(
-      children: <String>{
-        ...kDefaultNodes,
-        ...kDefaultCommunityNodes,
-        ...kDbNodes,
-      }.toList().map(_getNodeTile).toList(),
-    );
-  }
-
-  Row _getNodeTile(String node) {
-    return Row(
-      children: <Widget>[
-        Radio<String?>(
-          value: node,
-          groupValue: _selectedNode,
-          onChanged: (String? value) {
-            setState(() {
-              _selectedNode = value;
-            });
-          },
-        ),
-        Expanded(
-          child: SettingsNode(
-            key: ValueKey(node),
-            node: node,
-            onNodePressed: (String? value) {
-              setState(() {
-                _selectedNode = value;
-              });
-            },
-            onChangedOrDeletedNode: () {
-              setState(() {});
-            },
-            currentNode: _selectedNodeConfirmed,
-          ),
-        ),
-      ],
-    );
-  }
-
-  Future<void> _sendChangingNodeSuccessNotification() async {
-    await sl.get<NotificationsBloc>().addNotification(
-      WalletNotification(
-        title: 'Successfully connected to $_selectedNode',
-        timestamp: DateTime.now().millisecondsSinceEpoch,
-        details: 'Successfully connected to $_selectedNode',
-        type: NotificationType.changedNode,
+  void _onAddNodePressed(BuildContext context) {
+    final String node = _newNodeController.text;
+    context.read<NodeManagementBloc>().add(
+      NodeManagementAddNodeRequested(
+        node: node,
+        duplicateDetails: context.l10n.nodeAlreadyExistsNamed(node),
+        duplicateTitle: context.l10n.nodeAlreadyExists,
+        successTitle: context.l10n.successfullyAddedNode(node),
+        successDetails: context.l10n.successfullyAddedNode(node),
+        errorTitle: context.l10n.errorAddingNewNode,
       ),
     );
   }
 
-  @override
-  void dispose() {
-    _newNodeController.dispose();
-    _newChainIdController.dispose();
-    super.dispose();
-  }
+  Widget _buildChainIdPanel(BuildContext context, NodeManagementState state) {
+    final bool isAlphanet = state.clientChainId == 1;
+    final bool canConfirm = _isChainIdValid(state.clientChainId);
 
-  Future<void> _sendAddNodeSuccessNotification() async {
-    await sl.get<NotificationsBloc>().addNotification(
-      WalletNotification(
-        title: 'Successfully added node ${_newNodeController.text}',
-        timestamp: DateTime.now().millisecondsSinceEpoch,
-        details: 'Successfully added node ${_newNodeController.text}',
-        type: NotificationType.changedNode,
-      ),
-    );
-  }
-
-  Widget _getChainIdSelectionExpandableChild() {
     return Column(
       children: <Widget>[
         Row(
@@ -353,33 +359,30 @@ class _NodeManagementState extends State<NodeManagement> {
                     FilteringTextInputFormatter.digitsOnly,
                   ],
                   controller: _newChainIdController,
-                  hintText:
-                      'Current client chain identifier is ${getChainIdentifier()}',
-                  onSubmitted: (String value) async {
-                    if (_isChainIdSelectionInputIsValid()) {
-                      _onConfirmChainIdPressed();
+                  hintText: context.l10n.currentClientChainIdentifier(
+                    state.clientChainId,
+                  ),
+                  onSubmitted: (String value) {
+                    if (canConfirm) {
+                      _onConfirmChainIdPressed(context, state.clientChainId);
                     }
                   },
                   onChanged: (String value) {
-                    if (value.isNotEmpty) {
-                      setState(() {});
-                    }
+                    setState(() {});
                   },
                   validator: InputValidators.validateNumber,
                 ),
               ),
             ),
             StandardTooltipIcon(
-              (getChainIdentifier() == 1)
-                  ? 'Alphanet chain identifier'
-                  : 'Non-alphanet chain identifier',
+              isAlphanet
+                  ? context.l10n.alphanetChainIdentifier
+                  : context.l10n.nonAlphanetChainIdentifier,
               MaterialCommunityIcons.network,
-              iconColor: (getChainIdentifier() == 1)
-                  ? AppColors.znnColor
-                  : Colors.orange,
+              iconColor: isAlphanet ? AppColors.znnColor : Colors.orange,
             ),
-            const StandardTooltipIcon(
-              'The chain identifier is used in transaction signing to prevent replay attacks',
+            StandardTooltipIcon(
+              context.l10n.chainIdentifierPreventsReplayAttacks,
               MaterialCommunityIcons.alert,
               iconColor: Colors.orange,
             ),
@@ -387,80 +390,42 @@ class _NodeManagementState extends State<NodeManagement> {
         ),
         kVerticalSpacing,
         LoadingButton.settings(
-          onPressed: _isChainIdSelectionInputIsValid()
-              ? _onConfirmChainIdPressed
+          onPressed: canConfirm
+              ? () => _onConfirmChainIdPressed(context, state.clientChainId)
               : null,
-          text: 'Confirm',
+          text: context.l10n.confirm,
           key: _confirmChainIdButtonKey,
         ),
       ],
     );
   }
 
-  bool _isChainIdSelectionInputIsValid() =>
-      InputValidators.validateNumber(_newChainIdController.text) == null &&
-      _newChainId != _currentChainId;
-
-  Future<void> _onConfirmChainIdPressed() async {
-    try {
-      _confirmChainIdButtonKey.currentState?.animateForward();
-      setChainIdentifier(chainIdentifier: _newChainId);
-      await sharedPrefsService!.put(kChainIdKey, _newChainId);
-      await sl<IWeb3WalletService>().emitChainIdChangeEvent(
-        _newChainId.toString(),
-      );
-      await _sendSuccessfullyChangedChainIdNotification(_newChainId);
-      _initCurrentChainId();
-      _newChainIdController = TextEditingController();
-      _newChainIdKey = GlobalKey();
-    } catch (e) {
-      await NotificationUtils.sendNotificationError(
-        e,
-        'Error while setting the new client chain identifier',
-      );
-    } finally {
-      _confirmChainIdButtonKey.currentState?.animateReverse();
+  bool _isChainIdValid(int currentChainId) {
+    if (InputValidators.validateNumber(_newChainIdController.text) != null) {
+      return false;
     }
+    return int.tryParse(_newChainIdController.text) != currentChainId;
   }
 
-  Future<void> _sendSuccessfullyChangedChainIdNotification(
-    int newChainId,
-  ) async {
-    await sl.get<NotificationsBloc>().addNotification(
-      WalletNotification(
-        title: 'Successfully changed client chain identifier to $newChainId',
-        timestamp: DateTime.now().millisecondsSinceEpoch,
-        details:
-            'Successfully changed client chain identifier from $_currentChainId to $_newChainId',
-        type: NotificationType.changedNode,
+  void _onConfirmChainIdPressed(BuildContext context, int currentChainId) {
+    final int newChainId = int.parse(_newChainIdController.text);
+    context.read<NodeManagementBloc>().add(
+      NodeManagementChainIdChanged(
+        newChainId: newChainId,
+        successTitle: context.l10n.changedClientChainIdentifier(newChainId),
+        successDetails: context.l10n.changedClientChainIdentifierFromTo(
+          currentChainId,
+          newChainId,
+        ),
+        errorTitle: context.l10n.errorSettingClientChainIdentifier,
       ),
     );
   }
 
-  Future<bool> _checkForChainIdMismatch() async {
-    bool match = false;
-    await zenon!.ledger.getFrontierMomentum().then((Momentum momentum) async {
-      final int nodeChainId = momentum.chainIdentifier;
-      if (nodeChainId != _currentChainId) {
-        match = await _showChainIdWarningDialog(nodeChainId, _currentChainId);
-      } else {
-        match = true;
-      }
-    });
-    return match;
-  }
-
-  Future<bool> _showChainIdWarningDialog(
-    int nodeChainId,
-    int currentChainId,
-  ) async {
-    return showWarningDialog(
-      context: context,
-      title: 'Chain identifier mismatch',
-      buttonText: 'Proceed anyway',
-      description:
-          'The node $_selectedNode you are connecting to has a different '
-          'chain identifier $nodeChainId than the current client chain identifier $currentChainId',
-    );
+  @override
+  void dispose() {
+    _newNodeController.dispose();
+    _newChainIdController.dispose();
+    super.dispose();
   }
 }

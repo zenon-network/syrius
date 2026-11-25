@@ -1,220 +1,197 @@
-import 'dart:io';
-
-import 'package:file_selector/file_selector.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:path/path.dart' as path;
-import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
-import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
-import 'package:zenon_syrius_wallet_flutter/main.dart';
-import 'package:zenon_syrius_wallet_flutter/model/model.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/export_wallet/bloc/export_wallet_bloc.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
-import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
-class ExportWalletPasswordScreen extends StatefulWidget {
-
+/// Step 2 of the Seed Vault export flow where the user enters an encryption
+/// password and saves the encrypted JSON backup file.
+class ExportWalletPasswordScreen extends StatelessWidget {
+  /// Creates an [ExportWalletPasswordScreen].
   const ExportWalletPasswordScreen(
-    this.seed, {
-    this.backupWalletFlow = false,
+    this._seed, {
+    this._backupWalletFlow = false,
+    this._bloc,
     super.key,
   });
-  final String seed;
-  final bool backupWalletFlow;
+
+  final String _seed;
+  final bool _backupWalletFlow;
+  final ExportWalletBloc? _bloc;
 
   @override
-  State<ExportWalletPasswordScreen> createState() =>
-      _ExportWalletPasswordScreenState();
+  Widget build(BuildContext context) {
+    final ExportWalletBloc? injected = _bloc;
+    final Widget view = _View(seed: _seed, backupWalletFlow: _backupWalletFlow);
+    if (injected != null) {
+      return BlocProvider<ExportWalletBloc>.value(value: injected, child: view);
+    }
+
+    return BlocProvider<ExportWalletBloc>(
+      create: (_) => ExportWalletBloc(),
+      child: view,
+    );
+  }
 }
 
-class _ExportWalletPasswordScreenState
-    extends State<ExportWalletPasswordScreen> {
+class _View extends StatefulWidget {
+  const _View({required this._seed, required this._backupWalletFlow});
+
+  final String _seed;
+  final bool _backupWalletFlow;
+
+  @override
+  State<_View> createState() => _ViewState();
+}
+
+class _ViewState extends State<_View> {
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _confirmPasswordController =
       TextEditingController();
 
-  final GlobalKey<FormState> _passwordKey = GlobalKey();
-  final GlobalKey<FormState> _confirmPasswordKey = GlobalKey();
+  final GlobalKey<FormState> _passwordKey = GlobalKey<FormState>();
+  final GlobalKey<FormState> _confirmPasswordKey = GlobalKey<FormState>();
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Container(
-        padding: const EdgeInsets.symmetric(
-          vertical: 30,
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: <Widget>[
-            Column(
+      body: BlocConsumer<ExportWalletBloc, ExportWalletState>(
+        listener: (BuildContext context, ExportWalletState state) {
+          if (state is ExportWalletSuccess) {
+            if (!state.backupWalletFlow) {
+              _updateExportedSeedList(context);
+            }
+            NavigationUtils.popRepeated(context, 2);
+          }
+        },
+        builder: (BuildContext context, ExportWalletState state) {
+          final bool isLoading = state is ExportWalletLoading;
+          return Container(
+            padding: const EdgeInsets.symmetric(vertical: 30),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: <Widget>[
-                const ProgressBar(
-                  currentLevel: 2,
-                  numLevels: 2,
+                _buildHeaderAndForm(context),
+                DottedBorderInfoWidget(
+                  text: context.l10n.storeSeedVaultOfflineLocations,
                 ),
-                kVerticalSpacing,
-                Container(
-                  color: Colors.transparent,
-                  child: SvgPicture.asset(
-                    'assets/svg/ic_export_seed.svg',
-                    colorFilter: const ColorFilter.mode(
-                        AppColors.znnColor, BlendMode.srcIn,),
-                    height: 55,
-                  ),
-                ),
-                kVerticalSpacing,
-                Text(
-                  'Export Seed Vault',
-                  style: Theme.of(context).textTheme.headlineLarge,
-                ),
-                kVerticalSpacing,
-                Text(
-                  'Please enter a strong Seed Vault Key to encrypt your Seed',
-                  style: Theme.of(context).textTheme.headlineMedium,
-                ),
-                const SizedBox(
-                  height: 50,
-                ),
-                Column(
-                  children: <Widget>[
-                    Form(
-                      key: _passwordKey,
-                      autovalidateMode: AutovalidateMode.onUserInteraction,
-                      child: PasswordInputField(
-                        hintText: 'Password',
-                        controller: _passwordController,
-                        validator: InputValidators.validatePassword,
-                        onChanged: (String value) {
-                          setState(() {});
-                        },
-                      ),
-                    ),
-                    kVerticalSpacing,
-                    Form(
-                      key: _confirmPasswordKey,
-                      autovalidateMode: AutovalidateMode.onUserInteraction,
-                      child: PasswordInputField(
-                        hintText: 'Confirm password',
-                        controller: _confirmPasswordController,
-                        validator: (String? value) =>
-                            InputValidators.checkPasswordMatch(
-                          _passwordController.text,
-                          value,
-                        ),
-                        onChanged: (String value) {
-                          setState(() {});
-                        },
-                      ),
-                    ),
-                    kVerticalSpacing,
-                    PasswordProgressBar(
-                      password: _passwordController.text,
-                      passwordKey: _passwordKey,
-                    ),
-                  ],
-                ),
+                _buildActionButtons(context, isLoading: isLoading),
               ],
             ),
-            const DottedBorderInfoWidget(
-              text: 'Store your Seed Vault and Seed Vault Key in secure and '
-                  'separate offline locations. You will need both to '
-                  'access your funds',
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: <Widget>[
-                _getGoBackButton(),
-                kSpacingBetweenActionButtons,
-                _getExportButton(),
-              ],
-            ),
-          ],
-        ),
+          );
+        },
       ),
     );
   }
 
-  Widget _getExportButton() {
-    return OnboardingButton(
-      onPressed: _arePasswordsValid()
-          ? () async {
-              String? initialDirectory;
-              if (Platform.isMacOS || Platform.isWindows || Platform.isLinux) {
-                initialDirectory =
-                    (await getApplicationDocumentsDirectory()).path;
-              }
-              final FileSaveLocation? walletPath = await getSaveLocation(
-                acceptedTypeGroups: <XTypeGroup>[
-                  const XTypeGroup(
-                    label: 'file',
-                    extensions: <String>['json'],
-                  ),
-                ],
-                initialDirectory: initialDirectory,
-                suggestedName:
-                    'zenon-syrius-wallet-backup-${FormatUtils.formatDate(
-                  DateTime.now().millisecondsSinceEpoch,
-                  dateFormat: 'yyyy-MM-dd-HHmm',
-                )}.json',
-              );
-              if (walletPath != null) {
-                final KeyStoreManager keyStoreManager = KeyStoreManager(
-                  walletPath: Directory(
-                    path.dirname(walletPath.path),
-                  ),
-                );
-                final KeyStore keyStore = KeyStore.fromMnemonic(widget.seed);
-                await keyStoreManager.saveKeyStore(
-                  keyStore,
-                  _passwordController.text,
-                  name: path.basename(walletPath.path),
-                );
-                if (widget.backupWalletFlow) {
-                  await _sendSuccessNotification(walletPath.path);
-                } else {
-                  _updateExportedSeedList();
-                }
-                if (!mounted) return;
-                NavigationUtils.popRepeated(context, 2);
-              }
-            }
-          : null,
-      text: 'Export',
-    );
-  }
-
-  void _updateExportedSeedList() {
-    final List<String> exportedSeeds = <String>[];
-    exportedSeeds.addAll(Provider.of<ValueNotifier<List<String>>>(
-      context,
-      listen: false,
-    ).value,);
-    exportedSeeds.add(widget.seed);
-    Provider.of<ValueNotifier<List<String>>>(
-      context,
-      listen: false,
-    ).value = exportedSeeds;
-  }
-
-  Future<void> _sendSuccessNotification(String path) async {
-    await sl.get<NotificationsBloc>().addNotification(
-          WalletNotification(
-            title: 'Seed Vault successfully exported',
-            timestamp: DateTime.now().millisecondsSinceEpoch,
-            details: 'The Seed Vault was successfully exported to $path',
-            type: NotificationType.paymentSent,
+  Widget _buildHeaderAndForm(BuildContext context) {
+    return Column(
+      children: <Widget>[
+        const ProgressBar(currentLevel: 2, numLevels: 2),
+        kVerticalSpacing,
+        SvgPicture.asset(
+          'assets/svg/ic_export_seed.svg',
+          colorFilter: const ColorFilter.mode(
+            AppColors.znnColor,
+            BlendMode.srcIn,
           ),
-        );
+          height: 55,
+        ),
+        kVerticalSpacing,
+        Text(
+          context.l10n.exportSeedVault,
+          style: Theme.of(context).textTheme.headlineLarge,
+        ),
+        kVerticalSpacing,
+        Text(
+          context.l10n.enterStrongSeedVaultKey,
+          style: Theme.of(context).textTheme.headlineMedium,
+        ),
+        const SizedBox(height: 50),
+        Column(
+          children: <Widget>[
+            Form(
+              key: _passwordKey,
+              autovalidateMode: AutovalidateMode.onUserInteraction,
+              child: PasswordInputField(
+                hintText: context.l10n.password,
+                controller: _passwordController,
+                validator: InputValidators.validatePassword,
+                onChanged: (String value) {
+                  setState(() {});
+                },
+              ),
+            ),
+            kVerticalSpacing,
+            Form(
+              key: _confirmPasswordKey,
+              autovalidateMode: AutovalidateMode.onUserInteraction,
+              child: PasswordInputField(
+                hintText: context.l10n.confirmPassword,
+                controller: _confirmPasswordController,
+                validator: (String? value) =>
+                    InputValidators.checkPasswordMatch(
+                      _passwordController.text,
+                      value,
+                    ),
+                onChanged: (String value) {
+                  setState(() {});
+                },
+              ),
+            ),
+            kVerticalSpacing,
+            PasswordProgressBar(
+              password: _passwordController.text,
+              passwordKey: _passwordKey,
+            ),
+          ],
+        ),
+      ],
+    );
   }
 
-  Widget _getGoBackButton() {
-    return OnboardingButton(
-      onPressed: () {
-        Navigator.of(context).pop();
-      },
-      text: 'Go back',
+  Widget _buildActionButtons(BuildContext context, {required bool isLoading}) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: <Widget>[
+        OnboardingButton(
+          onPressed: isLoading
+              ? null
+              : () {
+                  Navigator.of(context).pop();
+                },
+          text: context.l10n.goBack,
+        ),
+        kSpacingBetweenActionButtons,
+        OnboardingButton(
+          onPressed: !isLoading && _arePasswordsValid()
+              ? () {
+                  context.read<ExportWalletBloc>().add(
+                    ExportWalletRequested(
+                      seed: widget._seed,
+                      password: _passwordController.text,
+                      backupWalletFlow: widget._backupWalletFlow,
+                      successTitle: context.l10n.seedVaultExported,
+                      successDetailsBuilder:
+                          context.l10n.seedVaultExportedToPath,
+                      errorTitle: context.l10n.errorExportingSeedVault,
+                    ),
+                  );
+                }
+              : null,
+          text: context.l10n.export,
+        ),
+      ],
     );
+  }
+
+  void _updateExportedSeedList(BuildContext context) {
+    final ValueNotifier<List<String>> notifier =
+        Provider.of<ValueNotifier<List<String>>>(context, listen: false);
+    notifier.value = <String>[...notifier.value, widget._seed];
   }
 
   bool _arePasswordsValid() {

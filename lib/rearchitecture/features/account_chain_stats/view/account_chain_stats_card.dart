@@ -1,43 +1,76 @@
+import 'dart:async';
+
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_vector_icons/flutter_vector_icons.dart';
 import 'package:marquee_widget/marquee_widget.dart';
-import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
-import 'package:zenon_syrius_wallet_flutter/model/model.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/format_utils.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/navigation_utils.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/account_chain_stats/account_chain_stats.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
-class AccountChainStatsWidget extends StatefulWidget {
-
-  const AccountChainStatsWidget({
-    required this.accountChainStatsBloc,
-    super.key,
-  });
-  final AccountChainStatsBloc accountChainStatsBloc;
+/// Displays account-chain height, block type breakdown, and first block hash
+/// for the currently selected address.
+class AccountChainStatsCard extends StatelessWidget {
+  /// Creates an [AccountChainStatsCard].
+  const AccountChainStatsCard({super.key});
 
   @override
-  State createState() {
-    return _AccountChainStatsState();
+  Widget build(BuildContext context) {
+    return const _View();
   }
 }
 
-class _AccountChainStatsState extends State<AccountChainStatsWidget> {
+class _View extends StatelessWidget {
+  const _View();
+
   @override
   Widget build(BuildContext context) {
-    return CardScaffold(
-      title: 'Account-chain Stats',
-      description: 'This card displays information regarding the account-chain '
-          'for the specified address',
-      childBuilder: _getStreamBuilder,
+    return NewCardScaffold(
+      data: _buildCardData(context: context),
+      onRefreshPressed: () {
+        final String? selectedAddress = kSelectedAddress;
+        if (selectedAddress == null) {
+          return;
+        }
+        context.read<AccountChainStatsBloc>().add(
+          FetchRequestData(address: Address.parse(selectedAddress)),
+        );
+      },
+      body: BlocBuilder<AccountChainStatsBloc, FetchState<AccountChainStats>>(
+        builder: (BuildContext context, FetchState<AccountChainStats> state) {
+          return switch (state) {
+            FetchInitial<AccountChainStats>() => const SyriusLoadingWidget(),
+            FetchFailure<AccountChainStats>(:final SyriusException exception) =>
+              SyriusErrorWidget(
+                exception is EmptyAccountChainException
+                    ? context.l10n.emptyAccountChain
+                    : exception,
+              ),
+            FetchPopulated<AccountChainStats>(:final AccountChainStats data) =>
+              _Populated(stats: data),
+          };
+        },
+      ),
     );
   }
 
-  Widget _getBody(AccountChainStats stats) {
+  CardData _buildCardData({required BuildContext context}) => CardData(
+    title: context.l10n.accountChainStats,
+    description: context.l10n.displaysAccountChainInformation,
+  );
+}
+
+class _Populated extends StatelessWidget {
+  const _Populated({required this._stats});
+
+  final AccountChainStats _stats;
+
+  @override
+  Widget build(BuildContext context) {
     return Center(
       child: ListView(
         shrinkWrap: true,
@@ -47,65 +80,23 @@ class _AccountChainStatsState extends State<AccountChainStatsWidget> {
             child: Column(
               children: <Widget>[
                 Text(
-                  'Account-chain height',
+                  context.l10n.accountChainHeight,
                   style: Theme.of(context).textTheme.titleMedium,
                 ),
                 Stack(
                   alignment: Alignment.center,
                   children: <Widget>[
                     NumberAnimation(
-                      end: stats.blockCount,
+                      end: _stats.blockCount,
                       isInt: true,
                       style: Theme.of(context).textTheme.headlineMedium,
                     ),
-                    _getChart(stats),
+                    _buildChart(),
                   ],
                 ),
-                _getChartLegend(stats),
-                RawMaterialButton(
-                  constraints: const BoxConstraints(
-                    minWidth: 40,
-                    minHeight: 40,
-                  ),
-                  materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                  onPressed: () => NavigationUtils.openUrl(
-                    '$kExplorer/transaction/${stats.firstHash}',
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: <Widget>[
-                      Text(
-                        'Block hash',
-                        style: Theme.of(context).textTheme.bodyMedium,
-                      ),
-                      Container(width: 10),
-                      const Icon(
-                        MaterialCommunityIcons.compass,
-                        size: 20,
-                        color: AppColors.qsrColor,
-                      ),
-                    ],
-                  ),
-                ),
-                Row(
-                  children: <Widget>[
-                    Expanded(
-                      child: Container(
-                        padding: const EdgeInsets.only(
-                          top: 12,
-                          right: 22,
-                          left: 22,
-                        ),
-                        child: Marquee(
-                          child: Text(
-                            stats.firstHash.toString(),
-                            style: Theme.of(context).textTheme.titleMedium,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
+                _buildChartLegend(context),
+                _buildExplorerButton(context),
+                _buildHashMarquee(context),
               ],
             ),
           ),
@@ -114,85 +105,77 @@ class _AccountChainStatsState extends State<AccountChainStatsWidget> {
     );
   }
 
-  Container _getChart(AccountChainStats stats) {
+  Widget _buildChart() {
     return Container(
       width: 150,
       height: 150,
-      margin: const EdgeInsets.all(
-        10,
-      ),
-      child: StandardPieChart(
-        sections: _getChartSections(stats),
-      ),
+      margin: const EdgeInsets.all(10),
+      child: StandardPieChart(sections: _buildChartSections()),
     );
   }
 
-  PieChartSectionData _getChartSection(
-    AccountChainStats stats,
-    BlockTypeEnum blockType,
-  ) {
-    final int blockTypeCount = stats.blockTypeNumOfBlocksMap[blockType]!;
+  List<PieChartSectionData> _buildChartSections() =>
+      BlockTypeEnum.values.map(_buildChartSection).toList();
+
+  PieChartSectionData _buildChartSection(BlockTypeEnum blockType) {
+    final int blockTypeCount = _stats.blockTypeNumOfBlocksMap[blockType] ?? 0;
+    final double percentage = _stats.blockCount > 0
+        ? 100.0 * blockTypeCount / _stats.blockCount
+        : 0;
 
     return PieChartSectionData(
       showTitle: false,
       radius: 7,
       color: kBlockTypeColorMap[blockType] ?? AppColors.errorColor,
-      value: 100.0 * blockTypeCount / stats.blockCount,
+      value: percentage,
     );
   }
 
-  Widget _getStreamBuilder() {
-    return StreamBuilder<AccountChainStats?>(
-      stream: widget.accountChainStatsBloc.stream,
-      builder: (_, AsyncSnapshot<AccountChainStats?> snapshot) {
-        if (snapshot.hasError) {
-          return SyriusErrorWidget(snapshot.error!);
-        }
-        if (snapshot.connectionState == ConnectionState.active) {
-          if (snapshot.hasData) {
-            return _getBody(snapshot.data!);
-          }
-          return const SyriusLoadingWidget();
-        }
-        return const SyriusLoadingWidget();
+  Widget _buildChartLegend(BuildContext context) {
+    final List<BlockTypeEnum> typesWithBlocks = _stats
+        .blockTypeNumOfBlocksMap
+        .keys
+        .where(
+          (BlockTypeEnum key) => (_stats.blockTypeNumOfBlocksMap[key] ?? 0) > 0,
+        )
+        .toList();
+
+    return ListView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      itemCount: typesWithBlocks.length,
+      itemBuilder: (BuildContext context, int index) {
+        final BlockTypeEnum blockType = typesWithBlocks[index];
+        return _buildBlockTypeCountDetails(
+          context,
+          blockType,
+          _stats.blockTypeNumOfBlocksMap[blockType] ?? 0,
+        );
       },
     );
   }
 
-  List<PieChartSectionData> _getChartSections(AccountChainStats stats) =>
-      List.generate(
-        BlockTypeEnum.values.length,
-        (int index) => _getChartSection(
-          stats,
-          BlockTypeEnum.values.elementAt(index),
-        ),
-      );
-
-  Widget _getBlockTypeCountDetails(
+  Widget _buildBlockTypeCountDetails(
+    BuildContext context,
     BlockTypeEnum blockType,
-    int? blockTypeCount,
+    int blockTypeCount,
   ) {
     return Container(
-      margin: const EdgeInsets.symmetric(
-        horizontal: 20,
-        vertical: 4,
-      ),
+      margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: <Widget>[
           Text(
             '● ',
             style: Theme.of(context).textTheme.bodyMedium!.copyWith(
-                  color: kBlockTypeColorMap[blockType] ?? AppColors.errorColor,
-                ),
+              color: kBlockTypeColorMap[blockType] ?? AppColors.errorColor,
+            ),
           ),
           AutoSizeText(
             FormatUtils.extractNameFromEnum<BlockTypeEnum>(blockType),
             style: Theme.of(context).textTheme.bodyMedium,
           ),
-          const SizedBox(
-            width: 10,
-          ),
+          const SizedBox(width: 10),
           AutoSizeText(
             blockTypeCount.toString(),
             style: Theme.of(context).textTheme.titleMedium,
@@ -202,18 +185,48 @@ class _AccountChainStatsState extends State<AccountChainStatsWidget> {
     );
   }
 
-  Widget _getChartLegend(AccountChainStats stats) {
-    final List<BlockTypeEnum> typesWithBlocks = stats.blockTypeNumOfBlocksMap.keys
-        .where((BlockTypeEnum key) => stats.blockTypeNumOfBlocksMap[key]! > 0)
-        .toList();
-
-    return ListView.builder(
-      shrinkWrap: true,
-      itemCount: typesWithBlocks.length,
-      itemBuilder: (BuildContext context, int index) => _getBlockTypeCountDetails(
-        typesWithBlocks[index],
-        stats.blockTypeNumOfBlocksMap[typesWithBlocks[index]],
+  Widget _buildExplorerButton(BuildContext context) {
+    return RawMaterialButton(
+      constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
+      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+      onPressed: () {
+        unawaited(
+          NavigationUtils.openUrl('$kExplorer/transaction/${_stats.firstHash}'),
+        );
+      },
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: <Widget>[
+          Text(
+            context.l10n.blockHash,
+            style: Theme.of(context).textTheme.bodyMedium,
+          ),
+          const SizedBox(width: 10),
+          const Icon(
+            MaterialCommunityIcons.compass,
+            size: 20,
+            color: AppColors.qsrColor,
+          ),
+        ],
       ),
+    );
+  }
+
+  Widget _buildHashMarquee(BuildContext context) {
+    return Row(
+      children: <Widget>[
+        Expanded(
+          child: Container(
+            padding: const EdgeInsets.only(top: 12, right: 22, left: 22),
+            child: Marquee(
+              child: Text(
+                _stats.firstHash.toString(),
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

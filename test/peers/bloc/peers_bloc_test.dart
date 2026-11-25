@@ -1,0 +1,168 @@
+import 'package:bloc_test/bloc_test.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:mocktail/mocktail.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/peers/peers.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
+import 'package:znn_sdk_dart/znn_sdk_dart.dart';
+
+class MockZenon extends Mock implements Zenon {}
+
+class MockStatsApi extends Mock implements StatsApi {}
+
+void main() {
+  group('PeersBloc', () {
+    late MockZenon mockZenon;
+    late MockStatsApi mockStatsApi;
+    late Peer peerA;
+    late Peer peerB;
+    late NetworkInfo networkInfo;
+
+    setUp(() {
+      mockZenon = MockZenon();
+      mockStatsApi = MockStatsApi();
+      peerA = Peer.fromJson(<String, dynamic>{
+        'ip': '10.0.0.2',
+        'publicKey': 'pk_z',
+      });
+      peerB = Peer.fromJson(<String, dynamic>{
+        'ip': '10.0.0.1',
+        'publicKey': 'pk_a',
+      });
+      networkInfo = NetworkInfo.fromJson(<String, dynamic>{
+        'numPeers': 2,
+        'self': <String, dynamic>{'ip': '127.0.0.1', 'publicKey': 'self'},
+        'peers': <Map<String, dynamic>>[
+          <String, dynamic>{'ip': peerA.ip, 'publicKey': peerA.publicKey},
+          <String, dynamic>{'ip': peerB.ip, 'publicKey': peerB.publicKey},
+        ],
+      });
+
+      when(() => mockZenon.stats).thenReturn(mockStatsApi);
+      when(
+        () => mockStatsApi.networkInfo(),
+      ).thenAnswer((_) async => networkInfo);
+    });
+
+    test('initial state is PeersInitial', () {
+      final PeersBloc bloc = PeersBloc(zenon: mockZenon);
+      addTearDown(bloc.close);
+
+      expect(bloc.state, const PeersInitial());
+    });
+
+    blocTest<PeersBloc, PeersState>(
+      'emits [loading, populated] when PeersRequested succeeds',
+      build: () => PeersBloc(zenon: mockZenon),
+      act: (PeersBloc bloc) => bloc.add(const PeersRequested()),
+      expect: () => <Matcher>[
+        isA<PeersLoading>(),
+        isA<PeersPopulated>().having(
+          (PeersPopulated s) => s.peers.map((Peer p) => p.ip).toList(),
+          'peer IPs',
+          <String>['10.0.0.2', '10.0.0.1'],
+        ),
+      ],
+    );
+
+    blocTest<PeersBloc, PeersState>(
+      'sorts peers by IP ascending then descending when toggled twice',
+      build: () => PeersBloc(zenon: mockZenon),
+      act: (PeersBloc bloc) async {
+        bloc
+          ..add(const PeersRequested())
+          ..add(const PeersSortToggled(column: PeersSortColumn.ip))
+          ..add(const PeersSortToggled(column: PeersSortColumn.ip));
+      },
+      expect: () => <Matcher>[
+        isA<PeersLoading>(),
+        isA<PeersPopulated>().having(
+          (PeersPopulated s) => s.peers.map((Peer p) => p.ip).toList(),
+          'initial IPs',
+          <String>['10.0.0.2', '10.0.0.1'],
+        ),
+        isA<PeersPopulated>()
+            .having(
+              (PeersPopulated s) => s.peers.map((Peer p) => p.ip).toList(),
+              'ascending IPs',
+              <String>['10.0.0.1', '10.0.0.2'],
+            )
+            .having(
+              (PeersPopulated s) => s.sortAscending,
+              'sortAscending',
+              false,
+            ),
+        isA<PeersPopulated>()
+            .having(
+              (PeersPopulated s) => s.peers.map((Peer p) => p.ip).toList(),
+              'descending IPs',
+              <String>['10.0.0.2', '10.0.0.1'],
+            )
+            .having(
+              (PeersPopulated s) => s.sortAscending,
+              'sortAscending',
+              true,
+            ),
+      ],
+    );
+
+    blocTest<PeersBloc, PeersState>(
+      'sorts peers by publicKey and preserves sort on refresh',
+      setUp: () {
+        int callCount = 0;
+        final NetworkInfo refreshedInfo = NetworkInfo.fromJson(
+          <String, dynamic>{
+            'numPeers': 3,
+            'self': <String, dynamic>{'ip': '127.0.0.1', 'publicKey': 'self'},
+            'peers': <Map<String, dynamic>>[
+              <String, dynamic>{'ip': peerA.ip, 'publicKey': peerA.publicKey},
+              <String, dynamic>{'ip': '10.0.0.3', 'publicKey': 'pk_m'},
+              <String, dynamic>{'ip': peerB.ip, 'publicKey': peerB.publicKey},
+            ],
+          },
+        );
+        when(() => mockStatsApi.networkInfo()).thenAnswer((_) async {
+          callCount++;
+          return callCount == 1 ? networkInfo : refreshedInfo;
+        });
+      },
+      build: () => PeersBloc(zenon: mockZenon),
+      act: (PeersBloc bloc) async {
+        bloc
+          ..add(const PeersRequested())
+          ..add(const PeersSortToggled(column: PeersSortColumn.publicKey))
+          ..add(const PeersRequested());
+      },
+      expect: () => <Matcher>[
+        isA<PeersLoading>(),
+        isA<PeersPopulated>(),
+        isA<PeersPopulated>().having(
+          (PeersPopulated s) => s.peers.map((Peer p) => p.publicKey).toList(),
+          'sorted publicKeys',
+          <String>['pk_a', 'pk_z'],
+        ),
+        isA<PeersPopulated>().having(
+          (PeersPopulated s) => s.peers.map((Peer p) => p.publicKey).toList(),
+          'preserved sort after refresh',
+          <String>['pk_a', 'pk_m', 'pk_z'],
+        ),
+      ],
+    );
+
+    blocTest<PeersBloc, PeersState>(
+      'emits failure when networkInfo throws',
+      setUp: () {
+        when(() => mockStatsApi.networkInfo()).thenThrow(StateError('offline'));
+      },
+      build: () => PeersBloc(zenon: mockZenon),
+      act: (PeersBloc bloc) => bloc.add(const PeersRequested()),
+      expect: () => <Matcher>[
+        isA<PeersLoading>(),
+        isA<PeersFailure>().having(
+          (PeersFailure s) => s.exception,
+          'exception',
+          isA<FailureException>(),
+        ),
+      ],
+    );
+  });
+}
