@@ -100,6 +100,7 @@ class Web3WalletService extends IWeb3WalletService {
   final Set<Future<void>> _timedOutInFlightPairCalls = <Future<void>>{};
   final Map<String, int> _inFlightPairTopics = <String, int>{};
   final Set<Set<String>> _inFlightPairSweptTopics = <Set<String>>{};
+  final Map<String, int> _activePairingSweepTopics = <String, int>{};
   final Map<String, Set<Future<void>>> _inFlightStaleCleanupDisconnects =
       <String, Set<Future<void>>>{};
   final Map<String, int> _pairingCreateEpoch = <String, int>{};
@@ -284,6 +285,7 @@ class Web3WalletService extends IWeb3WalletService {
     _timedOutInFlightPairCalls.clear();
     _inFlightPairTopics.clear();
     _inFlightPairSweptTopics.clear();
+    _activePairingSweepTopics.clear();
     _inFlightStaleCleanupDisconnects.clear();
     _pairingCreateEpoch.clear();
     _inFlightApproveCalls.clear();
@@ -368,7 +370,8 @@ class Web3WalletService extends IWeb3WalletService {
           topic: requestedTopic,
           expectedResetGeneration: capturedResetGeneration,
         );
-        if (_pendingTimedOutTopicOps.containsKey(requestedTopic)) {
+        if (_pendingTimedOutTopicOps.containsKey(requestedTopic) ||
+            _activePairingSweepTopics.containsKey(requestedTopic)) {
           throw StateError(
             'WalletConnect cleanup for pairing topic $requestedTopic is still '
             'settling; retry pairing once unsubscribe completes',
@@ -1145,60 +1148,80 @@ class Web3WalletService extends IWeb3WalletService {
     };
     final Set<String> unfinishedPairings = <String>{};
     final Set<String> topicsToUnsubscribe = <String>{};
+    final Set<String> ownedSweepTopics = <String>{
+      ...pairingsByTopic.keys,
+      ...residualPairings,
+    };
+    for (final String topic in ownedSweepTopics) {
+      _activePairingSweepTopics[topic] =
+          (_activePairingSweepTopics[topic] ?? 0) + 1;
+    }
 
-    for (final PairingInfo pairing in pairingsByTopic.values) {
-      for (final Set<String> swept in _inFlightPairSweptTopics) {
-        swept.add(pairing.topic);
-      }
-      try {
-        await _wcClient!.core.pairing.disconnect(topic: pairing.topic);
-      } on Object catch (e, s) {
-        _logger.warning(
-          'Failed to disconnect pairing ${pairing.topic} remotely; '
-          'purging local pairing state and key material',
-          e,
-          s,
+    try {
+      for (final PairingInfo pairing in pairingsByTopic.values) {
+        for (final Set<String> swept in _inFlightPairSweptTopics) {
+          swept.add(pairing.topic);
+        }
+        try {
+          await _wcClient!.core.pairing.disconnect(topic: pairing.topic);
+        } on Object catch (e, s) {
+          _logger.warning(
+            'Failed to disconnect pairing ${pairing.topic} remotely; '
+            'purging local pairing state and key material',
+            e,
+            s,
+          );
+          // Reown's pairing.disconnect deletes the in-memory pairing record
+          // before calling persist(), so ensure the follow-up local purge
+          // flushes pairings.persist() even if pairings.delete() sees it
+          // already absent.
+          _topicsNeedingPairingStorePersist.add(pairing.topic);
+        }
+
+        // Reown's pairing.disconnect removes the pairing record and broadcasts
+        // onPairingDelete, but does not delete the topic's symmetric key or
+        // expirer entry. Always complete local key/expirer cleanup before
+        // treating the pairing as finished.
+        final bool purged = await _purgePairingLocally(
+          topic: pairing.topic,
+          deferRelayUnsubscribe: true,
         );
-        // Reown's pairing.disconnect deletes the in-memory pairing record
-        // before calling persist(), so ensure the follow-up local purge flushes
-        // pairings.persist() even if pairings.delete() sees it already absent.
-        _topicsNeedingPairingStorePersist.add(pairing.topic);
+        if (purged) {
+          _topicsNeedingPairingStorePersist.remove(pairing.topic);
+        } else {
+          unfinishedPairings.add(pairing.topic);
+        }
+        topicsToUnsubscribe.add(pairing.topic);
       }
 
-      // Reown's pairing.disconnect removes the pairing record and broadcasts
-      // onPairingDelete, but does not delete the topic's symmetric key or
-      // expirer entry. Always complete local key/expirer cleanup before
-      // treating the pairing as finished.
-      final bool purged = await _purgePairingLocally(
-        topic: pairing.topic,
-        deferRelayUnsubscribe: true,
-      );
-      if (purged) {
-        _topicsNeedingPairingStorePersist.remove(pairing.topic);
-      } else {
-        unfinishedPairings.add(pairing.topic);
+      for (final String topic in residualPairings) {
+        if (pairingsByTopic.containsKey(topic)) {
+          continue;
+        }
+        for (final Set<String> swept in _inFlightPairSweptTopics) {
+          swept.add(topic);
+        }
+        final bool purged = await _purgePairingLocally(
+          topic: topic,
+          deferRelayUnsubscribe: true,
+        );
+        if (!purged) {
+          unfinishedPairings.add(topic);
+        }
+        topicsToUnsubscribe.add(topic);
       }
-      topicsToUnsubscribe.add(pairing.topic);
+
+      await _unsubscribeTopicsBounded(topicsToUnsubscribe, budget: budget);
+    } finally {
+      for (final String topic in ownedSweepTopics) {
+        final int remaining = (_activePairingSweepTopics[topic] ?? 1) - 1;
+        if (remaining <= 0) {
+          _activePairingSweepTopics.remove(topic);
+        } else {
+          _activePairingSweepTopics[topic] = remaining;
+        }
+      }
     }
-
-    for (final String topic in residualPairings) {
-      if (pairingsByTopic.containsKey(topic)) {
-        continue;
-      }
-      for (final Set<String> swept in _inFlightPairSweptTopics) {
-        swept.add(topic);
-      }
-      final bool purged = await _purgePairingLocally(
-        topic: topic,
-        deferRelayUnsubscribe: true,
-      );
-      if (!purged) {
-        unfinishedPairings.add(topic);
-      }
-      topicsToUnsubscribe.add(topic);
-    }
-
-    await _unsubscribeTopicsBounded(topicsToUnsubscribe, budget: budget);
 
     _approvedProposalIds.clear();
     _reloadStores();
@@ -1629,6 +1652,13 @@ class Web3WalletService extends IWeb3WalletService {
       }
 
       final bool cleared = await _clearPendingResetMarkerLocked();
+      final bool newerResetRequestedAfterClear =
+          _resetRequestEpoch != capturedEpoch || _pendingDisconnectEverything;
+      if (newerResetRequestedAfterClear) {
+        _hasUnresolvedReset = true;
+        _hasUnresolvedFullReset = true;
+        return;
+      }
       _hasUnresolvedReset = !cleared;
       if (cleared) {
         _hasUnresolvedFullReset = false;
@@ -1937,13 +1967,32 @@ class Web3WalletService extends IWeb3WalletService {
       throw StateError('WalletConnect client not created');
     }
 
+    final String? pendingPublicKey = _pendingSessionCleanups[topic];
     final SessionData? storedSession =
         _findStoredSession(topic) ??
         sessions.value.cast<SessionData?>().firstWhere(
           (SessionData? session) => session?.topic == topic,
           orElse: () => null,
         );
-    final String publicKey = storedSession?.self.publicKey ?? '';
+
+    if (pendingPublicKey != null && storedSession == null) {
+      final bool purged = await _purgeSessionLocally(
+        topic: topic,
+        publicKey: pendingPublicKey,
+      );
+      _reloadStores();
+      if (!purged) {
+        throw StateError(
+          'Failed finishing local WalletConnect session cleanup for $topic',
+        );
+      }
+      _pendingSessionCleanups.remove(topic);
+      return;
+    }
+
+    final String publicKey = (storedSession?.self.publicKey.isNotEmpty ?? false)
+        ? storedSession!.self.publicKey
+        : (pendingPublicKey ?? '');
 
     Future<void>? disconnectFuture;
     try {
@@ -1953,6 +2002,7 @@ class Web3WalletService extends IWeb3WalletService {
       );
       await disconnectFuture.timeout(_inFlightPairWaitTimeout);
       _topicsNeedingSessionStorePersist.remove(topic);
+      _pendingSessionCleanups.remove(topic);
     } on Object catch (e, s) {
       if (e is TimeoutException && disconnectFuture != null) {
         _trackTimedOutTopicCleanup(topic, disconnectFuture);
@@ -1977,6 +2027,7 @@ class Web3WalletService extends IWeb3WalletService {
         _reloadStores();
         rethrow;
       }
+      _pendingSessionCleanups.remove(topic);
     }
 
     _reloadStores();
@@ -2662,6 +2713,7 @@ class Web3WalletService extends IWeb3WalletService {
       return;
     }
     final String pairingTopic = event.params.pairingTopic;
+    final int capturedResetGeneration = _resetGeneration;
 
     try {
       if (_isProposalBlockedByReset(pairingTopic: pairingTopic)) {
@@ -2738,7 +2790,8 @@ class Web3WalletService extends IWeb3WalletService {
       if (_wcClient == null || _isDisposed) {
         return;
       }
-      if (_isProposalBlockedByReset(pairingTopic: pairingTopic)) {
+      if (_resetGeneration != capturedResetGeneration ||
+          _isProposalBlockedByReset(pairingTopic: pairingTopic)) {
         await _rejectProposalForReset(event.id);
         return;
       }
@@ -2758,7 +2811,6 @@ class Web3WalletService extends IWeb3WalletService {
       final WalletConnectVerifySummary verifySummary =
           describeWalletConnectVerifyContext(event.verifyContext);
 
-      final int capturedResetGeneration = _resetGeneration;
       final bool? accepted = await showDialogWithNoAndYesOptions(
         context: context,
         isBarrierDismissible: false,
@@ -3311,14 +3363,14 @@ class Web3WalletService extends IWeb3WalletService {
 }
 
 class _RelayTimeoutBudget {
-  _RelayTimeoutBudget(Duration timeout)
-    : _deadline = DateTime.now().add(timeout);
+  _RelayTimeoutBudget(this._timeout) : _stopwatch = Stopwatch()..start();
 
-  final DateTime _deadline;
+  final Duration _timeout;
+  final Stopwatch _stopwatch;
   bool _timedOut = false;
 
   Duration get remaining {
-    final Duration left = _deadline.difference(DateTime.now());
+    final Duration left = _timeout - _stopwatch.elapsed;
     return left.isNegative ? Duration.zero : left;
   }
 
