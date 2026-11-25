@@ -102,9 +102,9 @@ abstract class WalletFile {
     }
     final Object? cipherName = crypto['cipherName'];
     final Object? kdf = crypto['kdf'];
-    if (!_isValidPrefixedHex(argon2Params['salt'], minBytes: 1) ||
+    if (!_isValidPrefixedHex(argon2Params['salt'], minBytes: 8) ||
         !_isValidPrefixedHex(crypto['cipherData'], minBytes: 16) ||
-        !_isValidPrefixedHex(crypto['nonce'], minBytes: 1) ||
+        !_isValidPrefixedHex(crypto['nonce'], minBytes: 12) ||
         cipherName is! String ||
         cipherName.isEmpty ||
         kdf is! String ||

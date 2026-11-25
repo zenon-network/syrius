@@ -7,6 +7,7 @@ import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/model/database/notification_type.dart';
 import 'package:zenon_syrius_wallet_flutter/model/database/wallet_notification.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/exceptions/exceptions.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/node_utils.dart';
@@ -30,7 +31,7 @@ class ZenonAddressUtils {
       {int numAddr = 1, VoidCallback? callback,}) async {
     final WalletFile? walletFile = kWalletFile;
     if (walletFile == null) {
-      throw StateError('Wallet is not unlocked.');
+      throw SyriusException('Wallet is not unlocked.');
     }
     await walletFile.access<void>((Wallet wallet) async {
       await Future<void>.delayed(const Duration(milliseconds: 500));

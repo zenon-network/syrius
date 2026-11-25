@@ -322,10 +322,14 @@ void main() {
       'serializes consecutive sends from the same address across postSendDelay '
       'while allowing sends from different addresses concurrently',
       () async {
+        const Duration postSendDelay = Duration(milliseconds: 80);
         final Completer<void> firstSendEntered = Completer<void>();
         final Completer<void> releaseFirstSend = Completer<void>();
         final Completer<void> otherAddrSendEntered = Completer<void>();
         final List<String> sendTimeline = <String>[];
+        final Stopwatch stopwatch = Stopwatch()..start();
+        Duration? firstEndElapsed;
+        Duration? secondStartElapsed;
 
         when(
           () => mockZenon.send(
@@ -343,8 +347,10 @@ void main() {
             sendTimeline.add('addr0-first-start');
             firstSendEntered.complete();
             await releaseFirstSend.future;
+            firstEndElapsed = stopwatch.elapsed;
             sendTimeline.add('addr0-first-end');
           } else if (account.accountIndex == 0) {
+            secondStartElapsed = stopwatch.elapsed;
             sendTimeline.add('addr0-second-start');
           } else {
             sendTimeline.add('addr1-start');
@@ -354,7 +360,7 @@ void main() {
         });
 
         final AccountBlockUtils utils = buildUtils(
-          postSendDelay: const Duration(milliseconds: 80),
+          postSendDelay: postSendDelay,
         );
 
         final Future<AccountBlockTemplate> firstAddr0 = utils
@@ -387,7 +393,6 @@ void main() {
         // Second send on address0 must still be waiting behind the first send.
         expect(sendTimeline, isNot(contains('addr0-second-start')));
 
-        final DateTime releasedAt = DateTime.now();
         releaseFirstSend.complete();
 
         await Future.wait<AccountBlockTemplate>(<Future<AccountBlockTemplate>>[
@@ -395,15 +400,133 @@ void main() {
           secondAddr0,
         ]);
 
-        // Second send on address0 must start only after first finished.
+        // Second send on address0 must start only after first finished AND the
+        // full postSendDelay elapsed inside the per-address lock.
         expect(
           sendTimeline.indexOf('addr0-first-end'),
           lessThan(sendTimeline.indexOf('addr0-second-start')),
         );
+        expect(firstEndElapsed, isNotNull);
+        expect(secondStartElapsed, isNotNull);
         expect(
-          DateTime.now().difference(releasedAt),
-          greaterThanOrEqualTo(const Duration(milliseconds: 60)),
+          secondStartElapsed! - firstEndElapsed!,
+          greaterThanOrEqualTo(postSendDelay),
         );
+      },
+    );
+
+    test(
+      'aborts queued same-address send if address is removed while waiting '
+      'for per-address lock',
+      () async {
+        final Completer<void> firstSendEntered = Completer<void>();
+        final Completer<void> releaseFirstSend = Completer<void>();
+
+        when(
+          () => mockZenon.send(
+            any(),
+            currentKeyPair: any(named: 'currentKeyPair'),
+            generatingPowCallback: any(named: 'generatingPowCallback'),
+            waitForRequiredPlasma: any(named: 'waitForRequiredPlasma'),
+          ),
+        ).thenAnswer((Invocation invocation) async {
+          if (!firstSendEntered.isCompleted) {
+            firstSendEntered.complete();
+            await releaseFirstSend.future;
+          }
+          return invocation.positionalArguments.first as AccountBlockTemplate;
+        });
+
+        final AccountBlockUtils utils = buildUtils();
+        final Future<AccountBlockTemplate> firstSend = utils.createAccountBlock(
+          AccountBlockTemplate(blockType: BlockTypeEnum.userSend.index),
+          'first',
+          address: address0,
+        );
+        await firstSendEntered.future;
+
+        final Future<AccountBlockTemplate> queuedSend = utils
+            .createAccountBlock(
+              AccountBlockTemplate(blockType: BlockTypeEnum.userSend.index),
+              'queued-address-removed',
+              address: address0,
+            );
+        final Future<void> expectFailure = expectLater(
+          queuedSend,
+          throwsA(
+            isA<SyriusException>().having(
+              (SyriusException e) => e.message,
+              'message',
+              contains(address0.toString()),
+            ),
+          ),
+        );
+
+        addressList.remove(address0.toString());
+        releaseFirstSend.complete();
+
+        await firstSend;
+        await expectFailure;
+        expect(softwareWalletFile.openCalls, 1);
+      },
+    );
+
+    test(
+      'aborts queued same-address send if wallet locks while waiting for '
+      'per-address lock',
+      () async {
+        final Completer<void> firstSendEntered = Completer<void>();
+        final Completer<void> releaseFirstSend = Completer<void>();
+        WalletFile? activeWallet = softwareWalletFile;
+
+        when(
+          () => mockZenon.send(
+            any(),
+            currentKeyPair: any(named: 'currentKeyPair'),
+            generatingPowCallback: any(named: 'generatingPowCallback'),
+            waitForRequiredPlasma: any(named: 'waitForRequiredPlasma'),
+          ),
+        ).thenAnswer((Invocation invocation) async {
+          if (!firstSendEntered.isCompleted) {
+            firstSendEntered.complete();
+            await releaseFirstSend.future;
+          }
+          return invocation.positionalArguments.first as AccountBlockTemplate;
+        });
+
+        final AccountBlockUtils utils = buildUtils(
+          walletFileProvider: () => activeWallet,
+        );
+        final Future<AccountBlockTemplate> firstSend = utils.createAccountBlock(
+          AccountBlockTemplate(blockType: BlockTypeEnum.userSend.index),
+          'first',
+          address: address0,
+        );
+        await firstSendEntered.future;
+
+        final Future<AccountBlockTemplate> queuedSend = utils
+            .createAccountBlock(
+              AccountBlockTemplate(blockType: BlockTypeEnum.userSend.index),
+              'queued-wallet-locked',
+              address: address0,
+            );
+        final Future<void> expectFailure = expectLater(
+          queuedSend,
+          throwsA(
+            isA<SyriusException>().having(
+              (SyriusException e) => e.message,
+              'message',
+              contains('Wallet is not unlocked'),
+            ),
+          ),
+        );
+
+        activeWallet = null;
+        releaseFirstSend.complete();
+
+        await firstSend;
+        await expectFailure;
+        expect(softwareWalletFile.openCalls, 1);
       },
     );
 

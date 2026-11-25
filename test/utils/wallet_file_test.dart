@@ -433,6 +433,14 @@ void main() {
               '{"crypto": {"argon2Params": {"salt": "$saltHex"}, '
               '"cipherData": "0x0102", "nonce": "$nonceHex", '
               '"cipherName": "aes-256-gcm", "kdf": "argon2.IDKey"}}',
+          'short_salt.json':
+              '{"crypto": {"argon2Params": {"salt": "0x01020304"}, '
+              '"cipherData": "$cipherHex", "nonce": "$nonceHex", '
+              '"cipherName": "aes-256-gcm", "kdf": "argon2.IDKey"}}',
+          'short_nonce.json':
+              '{"crypto": {"argon2Params": {"salt": "$saltHex"}, '
+              '"cipherData": "$cipherHex", "nonce": "0x01020304", '
+              '"cipherName": "aes-256-gcm", "kdf": "argon2.IDKey"}}',
           'bad_version_type.json':
               '{"version": "1", "crypto": {"argon2Params": '
               '{"salt": "$saltHex"}, "cipherData": "$cipherHex", '

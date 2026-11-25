@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mutex/mutex.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/exceptions/exceptions.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/address_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/wallet_file.dart';
@@ -67,12 +68,12 @@ void main() {
       kDefaultAddressList = previousAddressList;
     });
 
-    test('throws StateError when wallet is not unlocked', () async {
+    test('throws SyriusException when wallet is not unlocked', () async {
       kWalletFile = null;
 
       await expectLater(
         ZenonAddressUtils.generateNewAddress,
-        throwsA(isA<StateError>()),
+        throwsA(isA<SyriusException>()),
       );
     });
 

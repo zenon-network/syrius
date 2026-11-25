@@ -108,7 +108,7 @@ class AccountBlockUtils {
       resolvedAddressStr,
       () => _createAndPublishAccountBlock(
         currentZenon: currentZenon,
-        walletFile: walletFile,
+        expectedWalletFile: walletFile,
         resolvedAddressStr: resolvedAddressStr,
         transactionParams: transactionParams,
         purposeOfGeneratingPlasma: purposeOfGeneratingPlasma,
@@ -127,12 +127,18 @@ class AccountBlockUtils {
 
   Future<AccountBlockTemplate> _createAndPublishAccountBlock({
     required Zenon currentZenon,
-    required WalletFile walletFile,
+    required WalletFile expectedWalletFile,
     required String resolvedAddressStr,
     required AccountBlockTemplate transactionParams,
     required String purposeOfGeneratingPlasma,
     required bool waitForRequiredPlasma,
   }) async {
+    final WalletFile? currentWalletFile = _walletFileProvider();
+    if (currentWalletFile == null ||
+        !identical(currentWalletFile, expectedWalletFile)) {
+      throw SyriusException('Wallet is not unlocked.');
+    }
+
     final int accountIndex = _addressListProvider().indexOf(resolvedAddressStr);
     if (accountIndex < 0) {
       throw SyriusException(
@@ -141,7 +147,7 @@ class AccountBlockUtils {
       );
     }
 
-    final bool needReview = walletFile.isHardwareWallet;
+    final bool needReview = currentWalletFile.isHardwareWallet;
     final AccountBlockTemplate response;
 
     if (needReview) {
@@ -149,7 +155,7 @@ class AccountBlockUtils {
       // on-device transaction signing. Release the wallet lock before the
       // trailing frontier propagation delay so other wallet operations are not
       // blocked longer than necessary.
-      response = await walletFile.access<AccountBlockTemplate>(
+      response = await currentWalletFile.access<AccountBlockTemplate>(
         (Wallet wallet) async {
           final WalletAccount walletAccount = await wallet.getAccount(
             accountIndex,
@@ -170,7 +176,7 @@ class AccountBlockUtils {
       // address derivation or reclaim discovery) do not stall during PoW
       // generation or network I/O. Per-address frontier sequencing is preserved
       // by _withAddressSendLock.
-      final WalletAccount walletAccount = await walletFile
+      final WalletAccount walletAccount = await currentWalletFile
           .access<WalletAccount>(
             (Wallet wallet) => wallet.getAccount(accountIndex),
           );
