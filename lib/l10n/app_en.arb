@@ -163,6 +163,7 @@
   "duration": "Duration",
   "eachProjectComprisedOfPhases": "Each project can be comprised of one or more phases. Each phase needs to be voted. Phases can be updated by the owner of the project to reflect current progress of the project.",
   "enterValidAmount": "Enter a valid amount",
+  "enterValidDomainWithoutProtocol": "Enter a valid domain without protocol (e.g. example.com)",
   "errorCreatingPhase": "Error while creating phase",
   "errorGettingVoteBreakdown": "Error while trying to get the vote breakdown",
   "errorSubmittingDonation": "Error while submitting donation",
@@ -599,12 +600,35 @@
   "tokenCreation": "ZNN Check",
   "tokenDetails": "Details",
   "tokenDomain": "Token Domain",
+  "tokenDomainCannotBeEmpty": "Token domain cannot be empty",
+  "tokenDomainMaxLength": "Token domain must be at most {maxLength} characters",
+  "@tokenDomainMaxLength": {
+    "description": "Validation error shown when a token domain exceeds the protocol maximum length.",
+    "placeholders": {
+      "maxLength": {
+        "type": "int",
+        "example": "128"
+      }
+    }
+  },
   "tokenIssuanceAddressDescription": "This will be your issuance address",
   "tokenMetrics": "Metrics",
   "tokenMintableBurnableOptions": "Mintable and Burnable Options",
   "tokenMintableBurnableSubtitle": "Mintable: {mintable}\nBurnable: {burnable}",
   "tokenMintableTooltip": "Whether or not this token is mintable after creation",
   "tokenName": "Token Name",
+  "tokenNameAllowedCharacters": "Token name must use letters and numbers, with optional single '-', '.', or '_' separators between them",
+  "tokenNameCannotBeEmpty": "Token name cannot be empty",
+  "tokenNameMaxLength": "Token name must be at most {maxLength} characters",
+  "@tokenNameMaxLength": {
+    "description": "Validation error shown when a token name exceeds the protocol maximum length.",
+    "placeholders": {
+      "maxLength": {
+        "type": "int",
+        "example": "40"
+      }
+    }
+  },
   "tokenInFavorites": "This token is in your favorites.",
   "tokenNotInFavorites": "This token is not in your favorites.",
   "tokenRemovedFromFavorites": "{name} token has been removed from favorites",
@@ -613,6 +637,28 @@
   "tokenSummary": "Token {name} with symbol {symbol} and ZTS {tokenStandard}",
   "tokenSupplyOutOfMax": "{totalSupply} out of {maxSupply} {symbol}",
   "tokenSymbol": "Token Symbol",
+  "tokenSymbolCannotBe": "Token symbol cannot be {symbols}",
+  "@tokenSymbolCannotBe": {
+    "description": "Validation error shown when a token symbol matches a reserved protocol symbol.",
+    "placeholders": {
+      "symbols": {
+        "type": "String",
+        "example": "ZNN, QSR"
+      }
+    }
+  },
+  "tokenSymbolCannotBeEmpty": "Token symbol cannot be empty",
+  "tokenSymbolMaxLength": "Token symbol must be at most {maxLength} characters",
+  "@tokenSymbolMaxLength": {
+    "description": "Validation error shown when a token symbol exceeds the protocol maximum length.",
+    "placeholders": {
+      "maxLength": {
+        "type": "int",
+        "example": "10"
+      }
+    }
+  },
+  "tokenSymbolUppercaseAlphanumericOnly": "Token symbol must contain only uppercase letters and numbers",
   "tokenTransactions": "Token Transactions",
   "tokenVerified": "This token is verified.",
   "tokens": "Tokens",

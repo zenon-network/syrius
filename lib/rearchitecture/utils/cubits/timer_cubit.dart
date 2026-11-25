@@ -47,17 +47,17 @@ abstract class TimerCubit<T, S extends TimerState<T>> extends HydratedCubit<S> {
   Future<T> fetch();
 
   /// Returns a [Timer] that triggers the auto-refresh functionality after
-  /// the predefined [kTimerCubitRefreshInterval].
+  /// [refreshInterval].
   ///
   /// This method cancels any existing timers and initiates a new periodic
   /// fetch cycle by calling [fetchDataPeriodically].
-  Timer _getAutoRefreshTimer() => Timer(
-    refreshInterval,
-    () {
-      _autoRefresher!.cancel();
-      unawaited(fetchDataPeriodically());
-    },
-  );
+  Timer _getAutoRefreshTimer() => Timer(refreshInterval, () {
+    _cancelAutoRefresh();
+    if (isClosed) {
+      return;
+    }
+    unawaited(fetchDataPeriodically());
+  });
 
   /// Periodically fetches data and updates the state with either success or
   /// failure.
@@ -68,34 +68,43 @@ abstract class TimerCubit<T, S extends TimerState<T>> extends HydratedCubit<S> {
   /// If the WebSocket client is closed, it throws a [noConnectionException].
   Future<void> fetchDataPeriodically() async {
     if (isClosed) {
-      _autoRefresher?.cancel();
+      _cancelAutoRefresh();
       return;
     }
+    _cancelAutoRefresh();
     try {
       if (state.status != TimerStatus.success) {
         emit(state.copyWith(status: TimerStatus.loading) as S);
       }
       if (!zenon.wsClient.isClosed()) {
         final T data = await fetch();
+        if (isClosed) {
+          return;
+        }
         emit(state.copyWith(data: data, status: TimerStatus.success) as S);
       } else {
         throw noConnectionException;
       }
     } on SyriusException catch (e) {
+      if (isClosed) {
+        return;
+      }
       emit(state.copyWith(status: TimerStatus.failure, error: e) as S);
     } on Object catch (e, stackTrace) {
+      if (isClosed) {
+        return;
+      }
       emit(
-        state.copyWith(
-              status: TimerStatus.failure,
-              error: FailureException(),
-            )
+        state.copyWith(status: TimerStatus.failure, error: FailureException())
             as S,
       );
       // Reports only the unexpected errors
       addError(e, stackTrace);
     } finally {
-      /// Ensure that the auto-refresher is restarted if it's not active.
-      if (!isTimerActive) {
+      // Ensure that the auto-refresher is restarted only while still open.
+      if (isClosed) {
+        _cancelAutoRefresh();
+      } else if (!isTimerActive) {
         _startAutoRefresh();
       }
     }
@@ -103,7 +112,16 @@ abstract class TimerCubit<T, S extends TimerState<T>> extends HydratedCubit<S> {
 
   /// Starts the auto-refresh cycle by initializing the [_autoRefresher] timer.
   void _startAutoRefresh() {
+    if (isClosed) {
+      return;
+    }
+    _cancelAutoRefresh();
     _autoRefresher = _getAutoRefreshTimer();
+  }
+
+  void _cancelAutoRefresh() {
+    _autoRefresher?.cancel();
+    _autoRefresher = null;
   }
 
   /// Checks if a timer was set and if it's active
@@ -115,7 +133,7 @@ abstract class TimerCubit<T, S extends TimerState<T>> extends HydratedCubit<S> {
   /// background tasks remain active after the bloc is disposed.
   @override
   Future<void> close() {
-    _autoRefresher?.cancel();
+    _cancelAutoRefresh();
     return super.close();
   }
 
@@ -127,12 +145,9 @@ abstract class TimerCubit<T, S extends TimerState<T>> extends HydratedCubit<S> {
     }
     // state.runtimeType has the roll to identify in which bloc subclass
     // the error happened
-    Logger('TimerCubit - ${state.runtimeType}').log(
-      logLevel,
-      'onError triggered',
-      error,
-      stackTrace,
-    );
+    Logger(
+      'TimerCubit - ${state.runtimeType}',
+    ).log(logLevel, 'onError triggered', error, stackTrace);
     super.onError(error, stackTrace);
   }
 }

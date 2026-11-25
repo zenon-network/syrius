@@ -11,18 +11,14 @@ import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 /// Modal containing the flow used to reclaim an expired deposit.
 class ReclaimDepositModal extends StatelessWidget {
   /// Creates a [ReclaimDepositModal].
-  const ReclaimDepositModal({
-    super.key,
-  });
+  const ReclaimDepositModal({super.key});
 
   @override
   Widget build(BuildContext context) {
     return BlocProvider<ReclaimDepositBloc>(
       create: (_) => ReclaimDepositBloc(
-        accountBlockUtils: AccountBlockUtils(
-          publishSuccessNotification: false,
-        ),
-        walletAddresses: kDefaultAddressList.whereType<String>().toSet(),
+        accountBlockUtils: AccountBlockUtils(publishSuccessNotification: false),
+        walletAddressesProvider: () => kDefaultAddressList,
         zenon: zenon!,
         zenonAddressUtils: ZenonAddressUtils(),
       ),
@@ -90,9 +86,7 @@ class _ViewState extends State<_View> {
         return Column(
           spacing: kVerticalGap16.height!,
           children: <Widget>[
-            Text(
-              context.l10n.reclaimExpiredDepositWithId,
-            ),
+            Text(context.l10n.reclaimExpiredDepositWithId),
             const ViewSwapTutorialButton(),
             TextField(
               decoration: InputDecoration(
