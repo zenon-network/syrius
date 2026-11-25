@@ -577,6 +577,10 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get errorWhileGeneratingNewAddress =>
+      'Error while generating new address';
+
+  @override
   String get errorWhileGeneratingStake => 'Error while generating stake';
 
   @override
@@ -2563,6 +2567,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get normal => 'Normal';
+
+  @override
+  String get notAValidKeystoreFile => 'Not a valid keystore file';
 
   @override
   String get otherWalletOptions => 'Other wallet options';

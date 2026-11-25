@@ -302,4 +302,167 @@ void main() {
       },
     );
   });
+
+  group('WalletFile.read validation', () {
+    late Directory tempDir;
+
+    setUp(() {
+      tempDir = Directory.systemTemp.createTempSync('wallet_file_read_test_');
+    });
+
+    tearDown(() {
+      if (tempDir.existsSync()) {
+        tempDir.deleteSync(recursive: true);
+      }
+    });
+
+    test(
+      'rejects a directory with a clear non-regular file WalletException',
+      () async {
+        final Directory subDir = Directory(path.join(tempDir.path, 'a_dir'))
+          ..createSync();
+
+        await expectLater(
+          () => WalletFile.read(subDir.path),
+          throwsA(
+            isA<WalletException>().having(
+              (WalletException e) => e.message,
+              'message',
+              contains('not a regular file'),
+            ),
+          ),
+        );
+      },
+    );
+
+    test(
+      'rejects a symlink to a directory with a non-regular file error',
+      skip: Platform.isWindows ? 'POSIX symlinks required' : false,
+      () async {
+        final Directory subDir = Directory(path.join(tempDir.path, 'dir_tgt'))
+          ..createSync();
+        final Link link = Link(path.join(tempDir.path, 'dir_link'))
+          ..createSync(subDir.path);
+
+        await expectLater(
+          () => WalletFile.read(link.path),
+          throwsA(
+            isA<WalletException>().having(
+              (WalletException e) => e.message,
+              'message',
+              contains('not a regular file'),
+            ),
+          ),
+        );
+      },
+    );
+
+    test(
+      'rejects a named pipe (FIFO) without blocking',
+      skip: Platform.isWindows ? 'POSIX mkfifo required' : false,
+      () async {
+        final String fifoPath = path.join(tempDir.path, 'wallet.fifo');
+        final ProcessResult result = Process.runSync('mkfifo', <String>[
+          fifoPath,
+        ]);
+        expect(result.exitCode, 0);
+
+        await expectLater(
+          () => WalletFile.read(fifoPath).timeout(const Duration(seconds: 2)),
+          throwsA(
+            isA<WalletException>().having(
+              (WalletException e) => e.message,
+              'message',
+              contains('not a regular file'),
+            ),
+          ),
+        );
+      },
+    );
+
+    test(
+      'reads a symlink pointing to a valid regular keystore file',
+      skip: Platform.isWindows ? 'POSIX symlinks required' : false,
+      () async {
+        final String walletPath = path.join(tempDir.path, 'real_wallet');
+        final String linkPath = path.join(tempDir.path, 'linked_wallet');
+        await WalletFile.write(
+          walletPath,
+          'SecretPass123!',
+          utf8.encode('symlink-payload'),
+        );
+        Link(linkPath).createSync(walletPath);
+
+        final EncryptedFile loaded = await WalletFile.read(linkPath);
+        expect(
+          utf8.decode(await loaded.decrypt('SecretPass123!')),
+          'symlink-payload',
+        );
+      },
+    );
+
+    test(
+      'rejects JSON objects missing required keystore fields with '
+      'FormatException instead of TypeError',
+      () async {
+        final String saltHex = '0x${'aa' * 16}';
+        final String cipherHex = '0x${'aa' * 16}';
+        final String nonceHex = '0x${'bb' * 12}';
+        final Map<String, String> invalidPayloads = <String, String>{
+          'empty_object.json': '{}',
+          'null_crypto.json': '{"crypto": null}',
+          'non_map_crypto.json': '{"crypto": "invalid"}',
+          'empty_crypto.json': '{"crypto": {}}',
+          'missing_argon2.json':
+              '{"crypto": {"cipherData": "$cipherHex", '
+              '"nonce": "$nonceHex", "cipherName": "aes-256-gcm", '
+              '"kdf": "argon2.IDKey"}}',
+          'missing_salt.json':
+              '{"crypto": {"argon2Params": {}, "cipherData": "$cipherHex", '
+              '"nonce": "$nonceHex", "cipherName": "aes-256-gcm", '
+              '"kdf": "argon2.IDKey"}}',
+          'bad_hex_salt.json':
+              '{"crypto": {"argon2Params": {"salt": "0xzzzz"}, '
+              '"cipherData": "$cipherHex", "nonce": "$nonceHex", '
+              '"cipherName": "aes-256-gcm", "kdf": "argon2.IDKey"}}',
+          'unprefixed_hex.json':
+              '{"crypto": {"argon2Params": {"salt": "${'aa' * 16}"}, '
+              '"cipherData": "$cipherHex", "nonce": "$nonceHex", '
+              '"cipherName": "aes-256-gcm", "kdf": "argon2.IDKey"}}',
+          'short_cipher_data.json':
+              '{"crypto": {"argon2Params": {"salt": "$saltHex"}, '
+              '"cipherData": "0x0102", "nonce": "$nonceHex", '
+              '"cipherName": "aes-256-gcm", "kdf": "argon2.IDKey"}}',
+          'bad_version_type.json':
+              '{"version": "1", "crypto": {"argon2Params": '
+              '{"salt": "$saltHex"}, "cipherData": "$cipherHex", '
+              '"nonce": "$nonceHex", "cipherName": "aes-256-gcm", '
+              '"kdf": "argon2.IDKey"}}',
+        };
+
+        for (final MapEntry<String, String> entry in invalidPayloads.entries) {
+          final File file = File(path.join(tempDir.path, entry.key))
+            ..writeAsStringSync(entry.value);
+          await expectLater(
+            () => WalletFile.read(file.path),
+            throwsA(isA<FormatException>()),
+            reason: 'Expected FormatException for ${entry.key}',
+          );
+        }
+      },
+    );
+
+    test(
+      'WalletFile.decrypt surfaces FormatException for empty JSON object',
+      () async {
+        final File emptyJson = File(path.join(tempDir.path, 'empty.json'))
+          ..writeAsStringSync('{}');
+
+        await expectLater(
+          () => WalletFile.decrypt(emptyJson.path, 'any-password'),
+          throwsA(isA<FormatException>()),
+        );
+      },
+    );
+  });
 }

@@ -132,6 +132,43 @@ void main() {
     );
 
     blocTest<SettingsAddressesBloc, SettingsAddressesState>(
+      'recovers to ready state and exposes generateError when generation '
+      'throws',
+      setUp: () {
+        when(
+          () => repository.generateNewAddresses(any()),
+        ).thenThrow(StateError('ledger rejected'));
+      },
+      build: () => SettingsAddressesBloc(repository: repository),
+      act: (SettingsAddressesBloc bloc) =>
+          bloc.add(const SettingsAddressesGenerateRequested(count: 1)),
+      expect: () => <Matcher>[
+        isA<SettingsAddressesState>().having(
+          (SettingsAddressesState s) => s.status,
+          'status',
+          SettingsAddressesStatus.loading,
+        ),
+        isA<SettingsAddressesState>()
+            .having(
+              (SettingsAddressesState s) => s.status,
+              'status',
+              SettingsAddressesStatus.ready,
+            )
+            .having(
+              (SettingsAddressesState s) => s.generateErrorNonce,
+              'generateErrorNonce',
+              1,
+            )
+            .having(
+              (SettingsAddressesState s) => s.generateError,
+              'generateError',
+              isA<StateError>(),
+            ),
+      ],
+      errors: () => <Matcher>[isA<StateError>()],
+    );
+
+    blocTest<SettingsAddressesBloc, SettingsAddressesState>(
       'validates empty, too-long, and duplicate address labels',
       build: () => SettingsAddressesBloc(repository: repository),
       act: (SettingsAddressesBloc bloc) {

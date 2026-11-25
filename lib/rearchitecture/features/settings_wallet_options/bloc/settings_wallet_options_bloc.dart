@@ -292,8 +292,9 @@ class SettingsWalletOptionsBloc
       _clearAutoReceivePool();
       return;
     }
-    if (sl<AutoReceiveTxWorker>().pool.isNotEmpty) {
-      sl<AutoReceiveTxWorker>().pool.clear();
+    final AutoReceiveTxWorker worker = sl<AutoReceiveTxWorker>();
+    if (worker.pool.isNotEmpty) {
+      worker.clearPool();
     }
   }
 

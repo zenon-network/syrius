@@ -80,6 +80,17 @@ class _ViewState extends State<_View> {
                         current.labelError != null,
                 listener: _onLabelError,
               ),
+              BlocListener<SettingsAddressesBloc, SettingsAddressesState>(
+                listenWhen:
+                    (
+                      SettingsAddressesState previous,
+                      SettingsAddressesState current,
+                    ) =>
+                        previous.generateErrorNonce !=
+                            current.generateErrorNonce &&
+                        current.generateError != null,
+                listener: _onGenerateError,
+              ),
             ],
         child: BlocBuilder<SettingsAddressesBloc, SettingsAddressesState>(
           builder: (BuildContext context, SettingsAddressesState state) {
@@ -197,6 +208,19 @@ class _ViewState extends State<_View> {
           ),
         );
     }
+  }
+
+  void _onGenerateError(BuildContext context, SettingsAddressesState state) {
+    final Object? error = state.generateError;
+    if (error == null) {
+      return;
+    }
+    unawaited(
+      NotificationUtils.sendNotificationError(
+        error,
+        context.l10n.errorWhileGeneratingNewAddress,
+      ),
+    );
   }
 
   @override

@@ -156,6 +156,8 @@ class _ViewState extends State<_View> {
         setState(() {
           _passwordErrorText = isIncorrectPassword
               ? context.l10n.incorrectPassword
+              : error is FormatException
+              ? context.l10n.notAValidKeystoreFile
               : error.toString();
         });
       case DecryptWalletFileInitial():
