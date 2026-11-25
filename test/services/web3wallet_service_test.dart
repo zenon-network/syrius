@@ -3438,5 +3438,332 @@ void main() {
       );
       verify(() => mockNotifications.addNotification(any())).called(1);
     });
+
+    test('stops stale-pairing cleanup when reset completes and a new pair() '
+        'recreates the next orphan topic', () async {
+      final int now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+      final Map<String, Map<String, dynamic>> persistedStorage =
+          <String, Map<String, dynamic>>{};
+      final List<PairingInfo> livePairings = <PairingInfo>[
+        PairingInfo(
+          topic: 'orphan-a',
+          expiry: now + 3600,
+          relay: Relay(ReownConstants.RELAYER_DEFAULT_PROTOCOL),
+          active: false,
+        ),
+        PairingInfo(
+          topic: 'orphan-b',
+          expiry: now + 3600,
+          relay: Relay(ReownConstants.RELAYER_DEFAULT_PROTOCOL),
+          active: false,
+        ),
+      ];
+      final Completer<void> orphanADisconnectStarted = Completer<void>();
+      final Completer<void> releaseOrphanADisconnect = Completer<void>();
+      int orphanBDisconnects = 0;
+
+      when(() => coreStorage.has(any())).thenAnswer(
+        (Invocation i) =>
+            persistedStorage.containsKey(i.positionalArguments[0]),
+      );
+      when(() => coreStorage.get(any())).thenAnswer(
+        (Invocation i) => persistedStorage[i.positionalArguments[0]],
+      );
+      when(() => coreStorage.set(any(), any())).thenAnswer((
+        Invocation i,
+      ) async {
+        persistedStorage[i.positionalArguments[0]
+            as String] = Map<String, dynamic>.from(
+          i.positionalArguments[1] as Map<String, dynamic>,
+        );
+      });
+      when(() => coreStorage.delete(any())).thenAnswer((Invocation i) async {
+        persistedStorage.remove(i.positionalArguments[0] as String);
+      });
+      when(
+        pairingStore.getAll,
+      ).thenAnswer((_) => List<PairingInfo>.from(livePairings));
+      when(() => pairing.disconnect(topic: 'orphan-a')).thenAnswer((_) async {
+        livePairings.removeWhere((PairingInfo p) => p.topic == 'orphan-a');
+        if (!orphanADisconnectStarted.isCompleted) {
+          orphanADisconnectStarted.complete();
+          await releaseOrphanADisconnect.future;
+        }
+      });
+      when(() => pairing.disconnect(topic: 'orphan-b')).thenAnswer((_) async {
+        orphanBDisconnects++;
+        livePairings.removeWhere((PairingInfo p) => p.topic == 'orphan-b');
+      });
+      when(() => walletKit.pair(uri: any(named: 'uri'))).thenAnswer((_) async {
+        final PairingInfo recreated = PairingInfo(
+          topic: 'orphan-b',
+          expiry: now + 3600,
+          relay: Relay(ReownConstants.RELAYER_DEFAULT_PROTOCOL),
+          active: false,
+        );
+        livePairings.add(recreated);
+        return recreated;
+      });
+
+      final Web3WalletService service = buildService();
+      addTearDown(service.onDispose);
+      service.create();
+      await service.init();
+
+      // Old pair() pauses while disconnecting orphan-a (with orphan-b next in
+      // its snapshot of stale pairings).
+      final Future<PairingInfo> stalePairFuture = service.pair(
+        Uri.parse('wc:old@2?relay-protocol=irn&symKey=def'),
+      );
+      await orphanADisconnectStarted.future;
+
+      // Full reset completes and wipes the old orphan-b (disconnect count = 1).
+      await service.disconnectEverything();
+      expect(orphanBDisconnects, equals(1));
+      expect(livePairings, isEmpty);
+
+      // New post-reset pair() saves a fresh pairing with topic orphan-b.
+      final PairingInfo freshPairing = await service.pair(
+        Uri.parse('wc:orphan-b@2?relay-protocol=irn&symKey=ghi'),
+      );
+      expect(freshPairing.topic, equals('orphan-b'));
+      expect(livePairings.map((PairingInfo p) => p.topic), <String>[
+        'orphan-b',
+      ]);
+
+      // Resume old pair(): stale cleanup must stop before disconnecting the
+      // recreated orphan-b, and the old pair() call must fail with StateError.
+      releaseOrphanADisconnect.complete();
+      await expectLater(stalePairFuture, throwsStateError);
+
+      expect(orphanBDisconnects, equals(1));
+      expect(livePairings.map((PairingInfo p) => p.topic), <String>[
+        'orphan-b',
+      ]);
+    });
+
+    test(
+      'waits for an admitted SDK pair() call before purging its visible '
+      'pairing record so delayed symKey and expirer writes are purged',
+      () async {
+        final int now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+        final Map<String, Map<String, dynamic>> persistedStorage =
+            <String, Map<String, dynamic>>{};
+        final List<PairingInfo> livePairings = <PairingInfo>[];
+        final Set<String> storedSymKeys = <String>{};
+        final Set<String> storedExpirers = <String>{};
+        final Completer<void> recordVisible = Completer<void>();
+        final Completer<void> releaseDelayedWrites = Completer<void>();
+
+        when(() => coreStorage.has(any())).thenAnswer(
+          (Invocation i) =>
+              persistedStorage.containsKey(i.positionalArguments[0]),
+        );
+        when(() => coreStorage.get(any())).thenAnswer(
+          (Invocation i) => persistedStorage[i.positionalArguments[0]],
+        );
+        when(() => coreStorage.set(any(), any())).thenAnswer((
+          Invocation i,
+        ) async {
+          persistedStorage[i.positionalArguments[0]
+              as String] = Map<String, dynamic>.from(
+            i.positionalArguments[1] as Map<String, dynamic>,
+          );
+        });
+        when(() => coreStorage.delete(any())).thenAnswer((Invocation i) async {
+          persistedStorage.remove(i.positionalArguments[0] as String);
+        });
+        when(
+          pairingStore.getAll,
+        ).thenAnswer((_) => List<PairingInfo>.from(livePairings));
+        when(() => pairing.disconnect(topic: 'partial-p1')).thenAnswer((
+          _,
+        ) async {
+          livePairings.removeWhere((PairingInfo p) => p.topic == 'partial-p1');
+        });
+        when(() => crypto.deleteSymKey('partial-p1')).thenAnswer((_) async {
+          storedSymKeys.remove('partial-p1');
+        });
+        when(() => expirer.delete('partial-p1')).thenAnswer((_) async {
+          storedExpirers.remove('partial-p1');
+        });
+        when(() => walletKit.pair(uri: any(named: 'uri'))).thenAnswer((
+          _,
+        ) async {
+          // Reown writes the pairing record BEFORE symKey and expirer.
+          final PairingInfo created = PairingInfo(
+            topic: 'partial-p1',
+            expiry: now + 3600,
+            relay: Relay(ReownConstants.RELAYER_DEFAULT_PROTOCOL),
+            active: false,
+          );
+          livePairings.add(created);
+          if (!recordVisible.isCompleted) {
+            recordVisible.complete();
+          }
+          await releaseDelayedWrites.future;
+          storedSymKeys.add('partial-p1');
+          storedExpirers.add('partial-p1');
+          return created;
+        });
+
+        final Web3WalletService service = buildService();
+        addTearDown(service.onDispose);
+        service.create();
+        await service.init();
+
+        final Future<PairingInfo> pairFuture = service.pair(
+          Uri.parse('wc:partial-p1@2?relay-protocol=irn&symKey=def'),
+        );
+        await recordVisible.future;
+
+        // Start full reset while the record is visible but symKey/expirer have
+        // not been written yet.
+        final Future<void> resetFuture = service.disconnectEverything();
+        await Future<void>.delayed(Duration.zero);
+
+        // Reset must persist the marker with partial-p1 and wait for pair() to
+        // settle BEFORE purging partial-p1 or clearing the marker.
+        expect(
+          persistedStorage[Web3WalletService
+              .pendingResetStorageKey]?['pendingPairings'],
+          equals(<String>['partial-p1']),
+        );
+        verifyNever(() => pairing.disconnect(topic: 'partial-p1'));
+        verifyNever(() => crypto.deleteSymKey('partial-p1'));
+
+        // Release pair()'s delayed symKey + expirer writes.
+        releaseDelayedWrites.complete();
+        await expectLater(pairFuture, throwsStateError);
+        await resetFuture;
+
+        expect(livePairings, isEmpty);
+        expect(storedSymKeys, isEmpty);
+        expect(storedExpirers, isEmpty);
+        verify(() => crypto.deleteSymKey('partial-p1')).called(1);
+        verify(() => expirer.delete('partial-p1')).called(1);
+        expect(
+          persistedStorage.containsKey(
+            Web3WalletService.pendingResetStorageKey,
+          ),
+          isFalse,
+        );
+      },
+    );
+
+    test(
+      'bounds wait for a hung admitted SDK pair() call, propagates '
+      'TimeoutException, and keeps the full-reset marker pending until retry',
+      () async {
+        final int now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+        final Map<String, Map<String, dynamic>> persistedStorage =
+            <String, Map<String, dynamic>>{};
+        final List<PairingInfo> livePairings = <PairingInfo>[];
+        final Set<String> storedSymKeys = <String>{};
+        final Completer<void> sdkPairStarted = Completer<void>();
+        final Completer<void> releaseHungPair = Completer<void>();
+
+        when(() => coreStorage.has(any())).thenAnswer(
+          (Invocation i) =>
+              persistedStorage.containsKey(i.positionalArguments[0]),
+        );
+        when(() => coreStorage.get(any())).thenAnswer(
+          (Invocation i) => persistedStorage[i.positionalArguments[0]],
+        );
+        when(() => coreStorage.set(any(), any())).thenAnswer((
+          Invocation i,
+        ) async {
+          persistedStorage[i.positionalArguments[0]
+              as String] = Map<String, dynamic>.from(
+            i.positionalArguments[1] as Map<String, dynamic>,
+          );
+        });
+        when(() => coreStorage.delete(any())).thenAnswer((Invocation i) async {
+          persistedStorage.remove(i.positionalArguments[0] as String);
+        });
+        when(
+          pairingStore.getAll,
+        ).thenAnswer((_) => List<PairingInfo>.from(livePairings));
+        when(() => pairing.disconnect(topic: 'hung-p1')).thenAnswer((_) async {
+          livePairings.removeWhere((PairingInfo p) => p.topic == 'hung-p1');
+        });
+        when(() => crypto.deleteSymKey('hung-p1')).thenAnswer((_) async {
+          storedSymKeys.remove('hung-p1');
+        });
+        when(() => walletKit.pair(uri: any(named: 'uri'))).thenAnswer((
+          _,
+        ) async {
+          if (!sdkPairStarted.isCompleted) {
+            sdkPairStarted.complete();
+          }
+          await releaseHungPair.future;
+          final PairingInfo created = PairingInfo(
+            topic: 'hung-p1',
+            expiry: now + 3600,
+            relay: Relay(ReownConstants.RELAYER_DEFAULT_PROTOCOL),
+            active: false,
+          );
+          livePairings.add(created);
+          storedSymKeys.add('hung-p1');
+          return created;
+        });
+
+        final Web3WalletService service = Web3WalletService(
+          walletKit: walletKit,
+          chainResolver: (String _) => nomService,
+          inFlightPairWaitTimeout: const Duration(milliseconds: 50),
+        );
+        addTearDown(() async {
+          if (!releaseHungPair.isCompleted) {
+            releaseHungPair.complete();
+          }
+          await service.onDispose();
+        });
+        service.create();
+        await service.init();
+
+        final Future<PairingInfo> hungPairFuture = service.pair(
+          Uri.parse('wc:hung-p1@2?relay-protocol=irn&symKey=def'),
+        );
+        await sdkPairStarted.future;
+
+        // Full reset must time out rather than hanging forever, propagate
+        // TimeoutException to the caller, and keep the full-reset marker on
+        // disk.
+        await expectLater(
+          service.disconnectEverything(),
+          throwsA(isA<TimeoutException>()),
+        );
+        expect(
+          persistedStorage[Web3WalletService
+              .pendingResetStorageKey]?['fullReset'],
+          isTrue,
+        );
+
+        // New pairings must remain blocked while the timed-out reset is
+        // pending.
+        await expectLater(
+          service.pair(Uri.parse('wc:other@2?relay-protocol=irn&symKey=xyz')),
+          throwsStateError,
+        );
+
+        // Once the hung pair() settles later and writes hung-p1, a retry sweeps
+        // it (including its symKey) and clears the reset marker.
+        releaseHungPair.complete();
+        await expectLater(hungPairFuture, throwsStateError);
+
+        await service.disconnectEverything();
+
+        expect(livePairings, isEmpty);
+        expect(storedSymKeys, isEmpty);
+        verify(() => crypto.deleteSymKey('hung-p1')).called(1);
+        expect(
+          persistedStorage.containsKey(
+            Web3WalletService.pendingResetStorageKey,
+          ),
+          isFalse,
+        );
+      },
+    );
   });
 }

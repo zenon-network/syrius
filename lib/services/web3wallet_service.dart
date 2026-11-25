@@ -24,12 +24,18 @@ import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 class Web3WalletService extends IWeb3WalletService {
   /// Creates a [Web3WalletService].
   ///
-  /// Optional [walletKit] and [_chainResolver] overrides exist solely for
-  /// deterministic unit testing without a live relay or global service locator.
+  /// Optional [walletKit], [_chainResolver], and [inFlightPairWaitTimeout]
+  /// overrides exist solely for deterministic unit testing without a live
+  /// relay or global service locator.
   Web3WalletService({
     @visibleForTesting ReownWalletKit? walletKit,
     @visibleForTesting this._chainResolver,
-  }) : _wcClient = walletKit;
+    @visibleForTesting Duration? inFlightPairWaitTimeout,
+  }) : _wcClient = walletKit,
+       _inFlightPairWaitTimeout =
+           inFlightPairWaitTimeout ?? _defaultInFlightPairWaitTimeout;
+
+  static const Duration _defaultInFlightPairWaitTimeout = Duration(seconds: 5);
 
   static const List<String> _supportedNoMMethods = <String>[
     'znn_sign',
@@ -51,6 +57,7 @@ class Web3WalletService extends IWeb3WalletService {
 
   final Logger _logger = Logger('WalletConnectService');
   final IChain Function(String chainId)? _chainResolver;
+  final Duration _inFlightPairWaitTimeout;
 
   ReownWalletKit? _wcClient;
   Future<void>? _initFuture;
@@ -292,7 +299,9 @@ class Web3WalletService extends IWeb3WalletService {
 
     final int capturedResetGeneration = _resetGeneration;
     registerAccountsIfNeeded();
-    await _cleanupStalePairings();
+    await _cleanupStalePairings(
+      expectedResetGeneration: capturedResetGeneration,
+    );
 
     if (_isDisposed || _wcClient == null) {
       throw StateError('WalletConnect client not initialized');
@@ -329,14 +338,27 @@ class Web3WalletService extends IWeb3WalletService {
     return pairing;
   }
 
-  Future<void> _cleanupStalePairings() async {
-    if (_wcClient == null) return;
+  Future<void> _cleanupStalePairings({
+    required int expectedResetGeneration,
+  }) async {
+    if (_wcClient == null ||
+        _isDisposed ||
+        _hasActiveOrPendingReset ||
+        _resetGeneration != expectedResetGeneration) {
+      return;
+    }
 
     final List<PairingInfo> currentPairings = List<PairingInfo>.from(
       _wcClient!.pairings.getAll(),
     );
 
     for (final PairingInfo pairing in currentPairings) {
+      if (_wcClient == null ||
+          _isDisposed ||
+          _hasActiveOrPendingReset ||
+          _resetGeneration != expectedResetGeneration) {
+        return;
+      }
       if (_isPairingProtectedByProposal(pairing.topic)) {
         continue;
       }
@@ -366,6 +388,12 @@ class Web3WalletService extends IWeb3WalletService {
       }
     }
 
+    if (_wcClient == null ||
+        _isDisposed ||
+        _hasActiveOrPendingReset ||
+        _resetGeneration != expectedResetGeneration) {
+      return;
+    }
     _reloadStores();
   }
 
@@ -933,7 +961,9 @@ class Web3WalletService extends IWeb3WalletService {
     Map<String, String> unfinishedSessions = <String, String>{};
     Set<String> unfinishedPairings = <String>{};
     bool runFullSweep = forceFullReset;
-    bool firstPass = true;
+    bool hasSweptOnce = false;
+    bool bumpedResetGeneration = false;
+    bool persistedInitialFullResetMarker = false;
 
     while (!_isDisposed && _wcClient != null) {
       final ({
@@ -944,24 +974,25 @@ class Web3WalletService extends IWeb3WalletService {
       })
       snapshot = await _synchronizedMarkerOp(() async {
         final _PendingResetState markerState = _readPendingResetMarker();
-        final bool passRunFullSweep = firstPass
+        final bool passRunFullSweep = !hasSweptOnce
             ? (forceFullReset ||
                   _hasUnresolvedFullReset ||
                   markerState.fullReset)
             : runFullSweep;
         if (passRunFullSweep) {
           _hasUnresolvedFullReset = true;
-          if (firstPass) {
+          if (!bumpedResetGeneration) {
+            bumpedResetGeneration = true;
             _resetGeneration++;
           }
         }
-        final Map<String, String> residualSessions = firstPass
+        final Map<String, String> residualSessions = !hasSweptOnce
             ? <String, String>{
                 ...markerState.pendingSessions,
                 ..._pendingSessionCleanups,
               }
             : Map<String, String>.from(unfinishedSessions);
-        final Set<String> residualPairings = firstPass
+        final Set<String> residualPairings = !hasSweptOnce
             ? <String>{
                 ...markerState.pendingPairings,
                 ..._pendingPairingCleanups,
@@ -976,11 +1007,12 @@ class Web3WalletService extends IWeb3WalletService {
           ...residualSessions,
           if (passRunFullSweep) ...<String, String>{
             for (final SessionData session in sessions.value)
-              if (firstPass || !attemptedSessionTopics.contains(session.topic))
+              if (!hasSweptOnce ||
+                  !attemptedSessionTopics.contains(session.topic))
                 session.topic: session.self.publicKey,
             if (_isInitialized || storesReady)
               for (final SessionData session in _wcClient!.sessions.getAll())
-                if (firstPass ||
+                if (!hasSweptOnce ||
                     !attemptedSessionTopics.contains(session.topic))
                   session.topic: session.self.publicKey,
           },
@@ -989,11 +1021,12 @@ class Web3WalletService extends IWeb3WalletService {
           ...residualPairings,
           if (passRunFullSweep) ...<String>{
             for (final PairingInfo pairing in pairings.value)
-              if (firstPass || !attemptedPairingTopics.contains(pairing.topic))
+              if (!hasSweptOnce ||
+                  !attemptedPairingTopics.contains(pairing.topic))
                 pairing.topic,
             if (_isInitialized || storesReady)
               for (final PairingInfo pairing in _wcClient!.pairings.getAll())
-                if (firstPass ||
+                if (!hasSweptOnce ||
                     !attemptedPairingTopics.contains(pairing.topic))
                   pairing.topic,
           },
@@ -1003,7 +1036,7 @@ class Web3WalletService extends IWeb3WalletService {
             !_sameStringMap(markerState.pendingSessions, targetSessions) ||
             !_sameStringSet(markerState.pendingPairings, targetPairings);
         final bool mustPersistMarker =
-            (firstPass && forceFullReset) ||
+            (!persistedInitialFullResetMarker && forceFullReset) ||
             _hasUnconfirmedResetMarkerWrite ||
             markerMissingTargets;
         if (mustPersistMarker) {
@@ -1014,6 +1047,9 @@ class Web3WalletService extends IWeb3WalletService {
               pendingSessions: targetSessions,
               pendingPairings: targetPairings,
             );
+            if (passRunFullSweep) {
+              persistedInitialFullResetMarker = true;
+            }
           } on Object {
             if (rethrowMarkerWriteError) {
               rethrow;
@@ -1042,7 +1078,41 @@ class Web3WalletService extends IWeb3WalletService {
       }
 
       runFullSweep = snapshot.runFullSweep;
-      firstPass = false;
+
+      if (snapshot.runFullSweep && _inFlightPairCalls.isNotEmpty) {
+        // Wait (with a bounded deadline) for any SDK pair() calls that were
+        // admitted before this reset began so they finish writing pairing
+        // records, symmetric keys, relay subscriptions, and expirer entries
+        // BEFORE the first purge runs. Because _isResetting is true, no new
+        // pair() calls can enter _inFlightPairCalls while waiting.
+        try {
+          await Future.wait<void>(
+            List<Future<void>>.from(_inFlightPairCalls),
+          ).timeout(_inFlightPairWaitTimeout);
+        } on TimeoutException {
+          if (_isDisposed) {
+            return;
+          }
+          // Keep the full-reset marker on disk and unresolved so any late
+          // writes from the still-in-flight SDK pair() call are swept on retry
+          // or next launch, and propagate the error to runtime callers (such
+          // as the splash reset/cache-deletion retry flow).
+          _hasUnresolvedReset = true;
+          _hasUnresolvedFullReset = true;
+          if (rethrowMarkerWriteError) {
+            rethrow;
+          }
+          return;
+        }
+        if (_isDisposed || _wcClient == null) {
+          return;
+        }
+        // Re-snapshot with all newly settled pairing targets committed to the
+        // marker before running the first purge.
+        continue;
+      }
+
+      hasSweptOnce = true;
       attemptedSessionTopics.addAll(snapshot.targetSessions.keys);
       attemptedPairingTopics.addAll(snapshot.targetPairings);
 
@@ -1070,29 +1140,12 @@ class Web3WalletService extends IWeb3WalletService {
         break;
       }
 
-      bool hasNewLiveSessions = _collectLiveSessionTopics(
+      final bool hasNewLiveSessions = _collectLiveSessionTopics(
         storesReady: storesReady,
       ).any((String topic) => !attemptedSessionTopics.contains(topic));
-      bool hasNewLivePairings = _collectLivePairingTopics(
+      final bool hasNewLivePairings = _collectLivePairingTopics(
         storesReady: storesReady,
       ).any((String topic) => !attemptedPairingTopics.contains(topic));
-      if (!hasNewLiveSessions &&
-          !hasNewLivePairings &&
-          _inFlightPairCalls.isNotEmpty) {
-        // Wait for any SDK pair() calls that were admitted before this reset
-        // started so their pairings are committed to the marker and swept
-        // before the marker can be cleared.
-        await Future.wait<void>(List<Future<void>>.from(_inFlightPairCalls));
-        if (_isDisposed || _wcClient == null) {
-          break;
-        }
-        hasNewLiveSessions = _collectLiveSessionTopics(
-          storesReady: storesReady,
-        ).any((String topic) => !attemptedSessionTopics.contains(topic));
-        hasNewLivePairings = _collectLivePairingTopics(
-          storesReady: storesReady,
-        ).any((String topic) => !attemptedPairingTopics.contains(topic));
-      }
       if (!hasNewLiveSessions && !hasNewLivePairings) {
         break;
       }
