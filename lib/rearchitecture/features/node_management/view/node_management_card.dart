@@ -211,7 +211,9 @@ class _ViewState extends State<_View> {
           children: <Widget>[
             LoadingButton.settings(
               text: context.l10n.confirmNode,
-              onPressed: () => _onConfirmNodePressed(context, state),
+              onPressed: state.isConfirmingNode || state.isConfirmingChainId
+                  ? null
+                  : () => _onConfirmNodePressed(context, state),
               key: _confirmNodeButtonKey,
             ),
           ],
@@ -225,7 +227,7 @@ class _ViewState extends State<_View> {
     NodeManagementState state,
     NodeChainIdMismatchPrompt prompt,
   ) {
-    final bool isBusy = state.isConfirmingNode;
+    final bool isBusy = state.isConfirmingNode || state.isConfirmingChainId;
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: Column(

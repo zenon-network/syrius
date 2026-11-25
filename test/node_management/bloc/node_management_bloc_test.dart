@@ -984,6 +984,124 @@ void main() {
       verifyNever(() => repository.connectToNode(kEmbeddedNode));
     });
 
+    test('restores previous connection on frontier failure even if reportError '
+        'throws', () async {
+      int frontierCalls = 0;
+      when(() => repository.getFrontierChainId()).thenAnswer((_) async {
+        frontierCalls++;
+        if (frontierCalls == 1) {
+          throw StateError('frontier failed');
+        }
+        return 1;
+      });
+      when(
+        () => repository.reportError(any(), any()),
+      ).thenThrow(StateError('report failed'));
+
+      final NodeManagementBloc bloc = buildBloc();
+      addTearDown(bloc.close);
+
+      bloc
+        ..add(const NodeManagementNodeSelected(node: kLocalhostDefaultNodeUrl))
+        ..add(
+          const NodeManagementConfirmNodeRequested(
+            successTitle: 'Connected',
+            successDetails: 'Connected',
+            connectionUnavailableMessage: 'Failed',
+            connectionFailedTitle: 'Connection failed',
+          ),
+        );
+      await expectLater(
+        bloc.stream,
+        emitsThrough(
+          isA<NodeManagementState>()
+              .having(
+                (NodeManagementState s) => s.isConfirmingNode,
+                'isConfirmingNode',
+                false,
+              )
+              .having(
+                (NodeManagementState s) => s.selectedNode,
+                'restored selectedNode',
+                kEmbeddedNode,
+              )
+              .having(
+                (NodeManagementState s) => s.isDisconnected,
+                'isDisconnected',
+                false,
+              ),
+        ),
+      );
+
+      verify(() => repository.connectToNode(kEmbeddedNode)).called(1);
+    });
+
+    test(
+      'releases operation token after failed chain-ID save before reportError '
+      'completes',
+      () async {
+        final Completer<void> reportCompleter = Completer<void>();
+        when(
+          () => repository.saveClientChainId(9),
+        ).thenThrow(StateError('write failed'));
+        when(
+          () => repository.reportError(any(), 'Chain error'),
+        ).thenAnswer((_) => reportCompleter.future);
+
+        final NodeManagementBloc bloc = buildBloc();
+        addTearDown(bloc.close);
+
+        bloc.add(
+          const NodeManagementChainIdChanged(
+            newChainId: 9,
+            successTitle: 'Chain changed',
+            successDetails: '1 -> 9',
+            errorTitle: 'Chain error',
+          ),
+        );
+        await expectLater(
+          bloc.stream,
+          emitsThrough(
+            isA<NodeManagementState>().having(
+              (NodeManagementState s) => s.isConfirmingChainId,
+              'isConfirmingChainId cleared',
+              false,
+            ),
+          ),
+        );
+
+        // Immediately start a node switch while reportError is still pending.
+        bloc
+          ..add(
+            const NodeManagementNodeSelected(node: kLocalhostDefaultNodeUrl),
+          )
+          ..add(
+            const NodeManagementConfirmNodeRequested(
+              successTitle: 'Connected',
+              successDetails: 'Connected',
+              connectionUnavailableMessage: 'Failed',
+              connectionFailedTitle: 'Connection failed',
+            ),
+          );
+        await expectLater(
+          bloc.stream,
+          emitsThrough(
+            isA<NodeManagementState>().having(
+              (NodeManagementState s) => s.confirmedNode,
+              'confirmedNode',
+              kLocalhostDefaultNodeUrl,
+            ),
+          ),
+        );
+
+        reportCompleter.complete();
+        await Future<void>.delayed(Duration.zero);
+        verify(
+          () => repository.saveSelectedNode(kLocalhostDefaultNodeUrl),
+        ).called(1);
+      },
+    );
+
     blocTest<NodeManagementBloc, NodeManagementState>(
       'adds, edits, and deletes a custom node',
       build: buildBloc,

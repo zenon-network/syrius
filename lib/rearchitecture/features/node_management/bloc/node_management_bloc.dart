@@ -83,6 +83,14 @@ class NodeManagementBloc
     }
   }
 
+  Future<void> _safeReportError(Object error, String title) async {
+    try {
+      await _repository.reportError(error, title);
+    } on Object catch (reportError, reportStackTrace) {
+      addError(reportError, reportStackTrace);
+    }
+  }
+
   /// Whether [node] is a built-in default node.
   bool isDefaultNode(String node) => _repository.isDefaultNode(node);
 
@@ -160,15 +168,16 @@ class NodeManagementBloc
       );
     } on Object catch (error, stackTrace) {
       addError(error, stackTrace);
-      await _repository.reportError(error, event.connectionFailedTitle);
       await _recoverAfterPreCommitFailure(
         emit: emit,
+        operationId: operationId,
         previousNode: previousNode,
         targetNode: targetNode,
         connectedToTarget: connectedToTarget,
         connectionFailedTitle: event.connectionFailedTitle,
         connectionUnavailableMessage: event.connectionUnavailableMessage,
       );
+      await _safeReportError(error, event.connectionFailedTitle);
     } finally {
       _releaseNodeConnectionOperation(operationId);
     }
@@ -236,9 +245,9 @@ class NodeManagementBloc
           );
         } on Object catch (error, stackTrace) {
           addError(error, stackTrace);
-          await _repository.reportError(error, event.connectionFailedTitle);
           await _recoverAfterPreCommitFailure(
             emit: emit,
+            operationId: operationId,
             previousNode: prompt.previousNode,
             targetNode: prompt.node,
             connectedToTarget: connectedToTarget,
@@ -247,6 +256,7 @@ class NodeManagementBloc
                 event.connectionUnavailableMessage ??
                 event.connectionFailedTitle,
           );
+          await _safeReportError(error, event.connectionFailedTitle);
         }
         return;
       }
@@ -277,7 +287,6 @@ class NodeManagementBloc
       } on Object catch (error, stackTrace) {
         addError(error, stackTrace);
         _repository.disconnectFromNode();
-        await _repository.reportError(error, event.connectionFailedTitle);
         emit(
           state.copyWith(
             isConfirmingNode: false,
@@ -285,6 +294,8 @@ class NodeManagementBloc
             pendingChainIdMismatch: prompt.copyWith(reconnectFailed: true),
           ),
         );
+        _releaseNodeConnectionOperation(operationId);
+        await _safeReportError(error, event.connectionFailedTitle);
       }
     } finally {
       _releaseNodeConnectionOperation(operationId);
@@ -339,16 +350,13 @@ class NodeManagementBloc
       );
     } on Object catch (error, stackTrace) {
       addError(error, stackTrace);
-      try {
-        await _repository.reportError(error, connectionFailedTitle);
-      } on Object catch (reportError, reportStackTrace) {
-        addError(reportError, reportStackTrace);
-      }
+      await _safeReportError(error, connectionFailedTitle);
     }
   }
 
   Future<void> _recoverAfterPreCommitFailure({
     required Emitter<NodeManagementState> emit,
+    required int operationId,
     required String previousNode,
     required String targetNode,
     required bool connectedToTarget,
@@ -373,11 +381,11 @@ class NodeManagementBloc
             clearPendingChainIdMismatch: true,
           ),
         );
+        _releaseNodeConnectionOperation(operationId);
         return;
       } on Object catch (restoreError, restoreStackTrace) {
         addError(restoreError, restoreStackTrace);
         _repository.disconnectFromNode();
-        await _repository.reportError(restoreError, connectionFailedTitle);
         emit(
           state.copyWith(
             isConfirmingNode: false,
@@ -386,6 +394,8 @@ class NodeManagementBloc
             clearPendingChainIdMismatch: true,
           ),
         );
+        _releaseNodeConnectionOperation(operationId);
+        await _safeReportError(restoreError, connectionFailedTitle);
         return;
       }
     }
@@ -397,6 +407,7 @@ class NodeManagementBloc
         clearPendingChainIdMismatch: true,
       ),
     );
+    _releaseNodeConnectionOperation(operationId);
   }
 
   FutureOr<void> _onAddNodeRequested(
@@ -527,11 +538,8 @@ class NodeManagementBloc
       } on Object catch (error, stackTrace) {
         addError(error, stackTrace);
         emit(state.copyWith(isConfirmingChainId: false));
-        try {
-          await _repository.reportError(error, event.errorTitle);
-        } on Object catch (reportError, reportStackTrace) {
-          addError(reportError, reportStackTrace);
-        }
+        _releaseNodeConnectionOperation(operationId);
+        await _safeReportError(error, event.errorTitle);
         return;
       }
 
@@ -556,11 +564,7 @@ class NodeManagementBloc
         );
       } on Object catch (error, stackTrace) {
         addError(error, stackTrace);
-        try {
-          await _repository.reportError(error, event.errorTitle);
-        } on Object catch (reportError, reportStackTrace) {
-          addError(reportError, reportStackTrace);
-        }
+        await _safeReportError(error, event.errorTitle);
       }
     } finally {
       _releaseNodeConnectionOperation(operationId);
