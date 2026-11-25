@@ -462,6 +462,11 @@ void main() {
           ),
         );
 
+        // Let the queued call pass its pre-lock checks and park on the
+        // per-address mutex before mutating state.
+        await Future<void>.delayed(Duration.zero);
+        expect(softwareWalletFile.openCalls, 1);
+
         addressList.remove(address0.toString());
         releaseFirstSend.complete();
 
@@ -520,6 +525,11 @@ void main() {
             ),
           ),
         );
+
+        // Let the queued call pass its pre-lock checks and park on the
+        // per-address mutex before mutating state.
+        await Future<void>.delayed(Duration.zero);
+        expect(softwareWalletFile.openCalls, 1);
 
         activeWallet = null;
         releaseFirstSend.complete();

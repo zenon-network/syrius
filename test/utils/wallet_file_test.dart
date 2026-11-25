@@ -461,6 +461,24 @@ void main() {
     );
 
     test(
+      'accepts keystore JSON at exact minimum salt (8B), nonce (12B), and '
+      'cipherData (16B) boundaries',
+      () async {
+        final File minValid = File(path.join(tempDir.path, 'min_valid.json'))
+          ..writeAsStringSync(
+            '{"crypto": {"argon2Params": {"salt": "0x${'11' * 8}"}, '
+            '"cipherData": "0x${'22' * 16}", '
+            '"nonce": "0x${'33' * 12}", '
+            '"cipherName": "aes-256-gcm", '
+            '"kdf": "argon2.IDKey"}}',
+          );
+
+        final EncryptedFile loaded = await WalletFile.read(minValid.path);
+        expect(loaded.crypto, isNotNull);
+      },
+    );
+
+    test(
       'WalletFile.decrypt surfaces FormatException for empty JSON object',
       () async {
         final File emptyJson = File(path.join(tempDir.path, 'empty.json'))
