@@ -2263,11 +2263,11 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: "16bf294b3e347cb4f9c1f47a7da5d60034724f95"
-      resolved-ref: "16bf294b3e347cb4f9c1f47a7da5d60034724f95"
-      url: "https://github.com/maznnwell/znn_sdk_dart.git"
+      ref: "v1.1.0"
+      resolved-ref: "4ad394db64fe39b150f5cbe8a38829aca585bb03"
+      url: "https://github.com/zenon-network/znn_sdk_dart.git"
     source: git
-    version: "1.0.0"
+    version: "1.1.0"
   zxing2:
     dependency: "direct main"
     description:

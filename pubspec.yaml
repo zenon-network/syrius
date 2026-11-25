@@ -86,14 +86,16 @@ dependencies:
   znn_sdk_dart:
     git:
       url: https://github.com/zenon-network/znn_sdk_dart.git
-      ref: v1.0.0
+      ref: v1.1.0
   zxing2: ^0.2.0
 
+# Override znn_ledger_dart v1.0.0's transitive pin on znn_sdk_dart v1.0.0
+# until znn_ledger_dart updates its SDK ref to v1.1.0.
 dependency_overrides:
   znn_sdk_dart:
     git:
-      url: https://github.com/maznnwell/znn_sdk_dart.git
-      ref: 16bf294b3e347cb4f9c1f47a7da5d60034724f95
+      url: https://github.com/zenon-network/znn_sdk_dart.git
+      ref: v1.1.0
 
 dev_dependencies:
   bdd_widget_test: ^2.1.4
