@@ -462,6 +462,7 @@ class EndToEndUpdateTests(unittest.TestCase):
         self.assertTrue(changed)
         self.assertEqual(release.tag_name, "v0.0.11-alphanet")
         self.assertEqual(len(verified), 3)
+        self.assertFalse(hasattr(verified[0], "extracted_path"))
 
         blobs = self.repo_root / "lib" / "embedded_node" / "blobs"
         self.assertEqual((blobs / "libznn.so").read_bytes(), new_linux)
@@ -798,6 +799,113 @@ class EndToEndUpdateTests(unittest.TestCase):
         )
         # Ensure per-run scratch directories were cleaned up inside work_dir.
         self.assertEqual(list(self.work_dir.glob("libznn-update-*")), [])
+
+    def test_rollback_restores_existing_and_removes_new_blobs_on_mid_replace_failure(self) -> None:
+        blobs = self.repo_root / "lib" / "embedded_node" / "blobs"
+        # Remove libznn.dylib beforehand to verify newly created blobs are also removed on rollback.
+        (blobs / "libznn.dylib").unlink()
+
+        new_linux = b"\x7fELF-rollback-linux"
+        new_darwin = b"\xca\xfe\xba\xbe-rollback-darwin"
+        new_windows = b"MZ-rollback-windows"
+        opener, _ = self._build_mock_release(
+            tag="v0.0.11-alphanet",
+            linux_bin=new_linux,
+            darwin_bin=new_darwin,
+            windows_bin=new_windows,
+        )
+
+        orig_replace = os.replace
+        replace_calls = 0
+
+        def fail_on_third_replace(src: Any, dst: Any) -> None:
+            nonlocal replace_calls
+            if pathlib.Path(dst).name == "libznn.dll":
+                raise PermissionError("simulated failure replacing third blob")
+            replace_calls += 1
+            orig_replace(src, dst)
+
+        try:
+            os.replace = fail_on_third_replace  # type: ignore[assignment]
+            with self.assertRaisesRegex(updater.UpdaterError, "Failed staging embedded binaries"):
+                updater.run_update(
+                    repo_root=self.repo_root,
+                    work_dir=self.work_dir,
+                    tag="v0.0.11-alphanet",
+                    opener=opener,  # type: ignore[arg-type]
+                )
+        finally:
+            os.replace = orig_replace
+
+        # First two blobs had been replaced before the third failed; both must be rolled back.
+        self.assertGreaterEqual(replace_calls, 2)
+        self.assertEqual((blobs / "libznn.so").read_bytes(), self.old_linux)
+        self.assertFalse((blobs / "libznn.dylib").exists())
+        self.assertEqual((blobs / "libznn.dll").read_bytes(), self.old_windows)
+        self.assertEqual(list(blobs.glob(".*.tmp")), [])
+        self.assertEqual(list(blobs.glob(".*.bak")), [])
+
+    def test_failed_output_write_does_not_hide_changes_on_retry(self) -> None:
+        new_linux = b"\x7fELF-output-retry"
+        new_darwin = b"\xca\xfe\xba\xbe-output-retry"
+        new_windows = b"MZ-output-retry"
+        opener, _ = self._build_mock_release(
+            tag="v0.0.11-alphanet",
+            linux_bin=new_linux,
+            darwin_bin=new_darwin,
+            windows_bin=new_windows,
+        )
+        bad_output_dir = self.root / "output_is_a_dir"
+        bad_output_dir.mkdir()
+
+        # 1. Passing a directory as --github-output fails before replacing blobs.
+        with self.assertRaisesRegex(updater.UpdaterError, "is a directory"):
+            updater.run_update(
+                repo_root=self.repo_root,
+                work_dir=self.work_dir,
+                tag="v0.0.11-alphanet",
+                github_output=bad_output_dir,
+                opener=opener,  # type: ignore[arg-type]
+            )
+        blobs = self.repo_root / "lib" / "embedded_node" / "blobs"
+        self.assertEqual((blobs / "libznn.so").read_bytes(), self.old_linux)
+
+        # 2. A post-replace output write error rolls back all replaced blobs.
+        orig_write_outputs = updater.write_github_outputs
+
+        def fail_write_outputs(path: pathlib.Path, outputs: Any) -> None:
+            raise OSError("disk full writing GITHUB_OUTPUT")
+
+        good_output = self.root / "github_output.txt"
+        try:
+            updater.write_github_outputs = fail_write_outputs  # type: ignore[assignment]
+            with self.assertRaisesRegex(updater.UpdaterError, "Failed writing updater output"):
+                updater.run_update(
+                    repo_root=self.repo_root,
+                    work_dir=self.work_dir,
+                    tag="v0.0.11-alphanet",
+                    github_output=good_output,
+                    opener=opener,  # type: ignore[arg-type]
+                )
+        finally:
+            updater.write_github_outputs = orig_write_outputs
+
+        self.assertEqual((blobs / "libznn.so").read_bytes(), self.old_linux)
+        self.assertEqual((blobs / "libznn.dylib").read_bytes(), self.old_darwin)
+        self.assertEqual((blobs / "libznn.dll").read_bytes(), self.old_windows)
+        self.assertEqual(list(blobs.glob(".*.bak")), [])
+
+        # 3. Retrying with valid output path still reports changed=true and stages blobs.
+        _, _, changed = updater.run_update(
+            repo_root=self.repo_root,
+            work_dir=self.work_dir,
+            tag="v0.0.11-alphanet",
+            github_output=good_output,
+            opener=opener,  # type: ignore[arg-type]
+        )
+        self.assertTrue(changed)
+        self.assertIn("changed=true\n", good_output.read_text(encoding="utf-8"))
+        self.assertEqual((blobs / "libznn.so").read_bytes(), new_linux)
 
     def test_unchanged_blobs_sets_changed_false(self) -> None:
         opener, _ = self._build_mock_release(

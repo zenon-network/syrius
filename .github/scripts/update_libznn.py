@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import contextlib
 import dataclasses
 import hashlib
 import http.client
@@ -22,7 +23,7 @@ import urllib.error
 import urllib.parse
 import urllib.request
 import zipfile
-from typing import Any, Mapping, Sequence
+from typing import Any, Iterator, Mapping, Sequence
 
 DEFAULT_UPSTREAM_REPO = "zenon-network/go-zenon"
 CHECKSUMS_ASSET_NAME = "SHA256CHECKSUMS.txt"
@@ -115,13 +116,18 @@ class VerifiedBinary:
     spec: BinarySpec
     download_url: str
     archive_verification: ChecksumVerification
-    extracted_path: pathlib.Path
     extracted_sha256: str
     previous_sha256: str | None
 
     @property
     def changed(self) -> bool:
         return self.previous_sha256 != self.extracted_sha256
+
+
+@dataclasses.dataclass(frozen=True)
+class _StagedBinary:
+    verified: VerifiedBinary
+    extracted_path: pathlib.Path
 
 
 @dataclasses.dataclass(frozen=True)
@@ -553,8 +559,12 @@ def fetch_release_metadata(
                     raise UpdaterError(
                         f"GitHub Releases API response exceeded {MAX_METADATA_BYTES} bytes ({url})"
                     )
-                if declared_len is not None and len(raw) != declared_len:
-                    raise http.client.IncompleteRead(raw, max(declared_len - len(raw), 0))
+                if declared_len is not None and len(raw) < declared_len:
+                    raise http.client.IncompleteRead(raw, declared_len - len(raw))
+                if declared_len is not None and len(raw) > declared_len:
+                    raise http.client.HTTPException(
+                        f"Response length mismatch for {url}: declared {declared_len} bytes, got {len(raw)}"
+                    )
             break
         except UpdaterError:
             raise
@@ -637,8 +647,12 @@ def download_release_file(
                     max_bytes=max_bytes,
                     label=url,
                 )
-            if declared_len is not None and total != declared_len:
-                raise http.client.IncompleteRead(b"", max(declared_len - total, 0))
+            if declared_len is not None and total < declared_len:
+                raise http.client.IncompleteRead(b"", declared_len - total)
+            if declared_len is not None and total > declared_len:
+                raise http.client.HTTPException(
+                    f"Response length mismatch for {url}: declared {declared_len} bytes, got {total}"
+                )
             if total == 0:
                 raise UpdaterError(f"Downloaded file from {url} is empty")
             return digest
@@ -674,17 +688,55 @@ def download_release_file(
     raise UpdaterError(f"Failed downloading {url}: {last_exc}")
 
 
-def stage_verified_binaries(
+def _validate_output_file_path(path: pathlib.Path | None, label: str) -> None:
+    if path is None:
+        return
+    if path.exists() and path.is_dir():
+        raise UpdaterError(f"{label} path is a directory, not a file: {path}")
+
+
+def _create_backup(dest: pathlib.Path) -> pathlib.Path:
+    for _ in range(16):
+        backup = dest.parent / f".{dest.name}.{secrets.token_hex(8)}.bak"
+        try:
+            os.link(dest, backup)
+            return backup
+        except FileExistsError:
+            continue
+        except OSError:
+            fd, tmp_bak = tempfile.mkstemp(
+                prefix=f".{dest.name}.",
+                suffix=".bak",
+                dir=str(dest.parent),
+            )
+            os.close(fd)
+            bak_path = pathlib.Path(tmp_bak)
+            try:
+                shutil.copy2(dest, bak_path)
+                return bak_path
+            except Exception:
+                bak_path.unlink(missing_ok=True)
+                raise
+    raise UpdaterError(f"Failed to allocate unique backup path for {dest}")
+
+
+@contextlib.contextmanager
+def _staged_blob_transaction(
     repo_root: pathlib.Path,
-    verified_binaries: Sequence[VerifiedBinary],
-) -> list[pathlib.Path]:
-    """Prepare all changed blobs as temp files first, then atomically replace."""
-    staged: list[tuple[pathlib.Path, pathlib.Path]] = []
+    staged_binaries: Sequence[_StagedBinary],
+) -> Iterator[list[pathlib.Path]]:
+    """Stage changed blobs with rollback if any replacement or post-stage write fails."""
+    prepared: list[tuple[pathlib.Path, pathlib.Path, pathlib.Path | None]] = []
+    replaced: list[tuple[pathlib.Path, pathlib.Path | None]] = []
     try:
-        for item in verified_binaries:
-            if not item.changed:
+        for entry in staged_binaries:
+            if not entry.verified.changed:
                 continue
-            dest = repo_root / item.spec.blob_relpath
+            dest = repo_root / entry.verified.spec.blob_relpath
+            if dest.is_symlink():
+                raise UpdaterError(f"Destination blob path must not be a symlink: {dest}")
+            if dest.exists() and dest.is_dir():
+                raise UpdaterError(f"Destination blob path is a directory: {dest}")
             dest.parent.mkdir(parents=True, exist_ok=True)
             fd, tmp_name = tempfile.mkstemp(
                 prefix=f".{dest.name}.",
@@ -693,19 +745,43 @@ def stage_verified_binaries(
             )
             os.close(fd)
             tmp_path = pathlib.Path(tmp_name)
-            staged.append((tmp_path, dest))
-            shutil.copyfile(item.extracted_path, tmp_path)
-            os.chmod(tmp_path, item.spec.file_mode)
+            prepared.append((tmp_path, dest, None))
+            shutil.copyfile(entry.extracted_path, tmp_path)
+            os.chmod(tmp_path, entry.verified.spec.file_mode)
+            if dest.is_file():
+                backup_path = _create_backup(dest)
+                prepared[-1] = (tmp_path, dest, backup_path)
 
         updated_paths: list[pathlib.Path] = []
-        for tmp_path, dest in staged:
+        for tmp_path, dest, backup_path in prepared:
             os.replace(tmp_path, dest)
+            replaced.append((dest, backup_path))
             updated_paths.append(dest)
-        return updated_paths
-    except Exception:
-        for tmp_path, _ in staged:
+
+        yield updated_paths
+    except Exception as exc:
+        for dest, backup_path in reversed(replaced):
+            try:
+                if backup_path is not None:
+                    os.replace(backup_path, dest)
+                else:
+                    dest.unlink(missing_ok=True)
+            except OSError as restore_exc:
+                print(
+                    f"WARNING: failed to restore {dest} during rollback: {restore_exc}",
+                    file=sys.stderr,
+                )
+        for tmp_path, _, backup_path in prepared:
             tmp_path.unlink(missing_ok=True)
+            if backup_path is not None:
+                backup_path.unlink(missing_ok=True)
+        if isinstance(exc, OSError):
+            raise UpdaterError(f"Failed staging embedded binaries: {exc}") from exc
         raise
+    else:
+        for _, _, backup_path in prepared:
+            if backup_path is not None:
+                backup_path.unlink(missing_ok=True)
 
 
 def build_commit_message(
@@ -996,6 +1072,7 @@ def run_update(
         )
 
         verified_binaries: list[VerifiedBinary] = []
+        staged_binaries: list[_StagedBinary] = []
         for spec in BINARY_SPECS:
             asset = assets_by_name.get(spec.asset_name)
             if asset is None:
@@ -1029,35 +1106,27 @@ def run_update(
             existing_blob = repo_root / spec.blob_relpath
             previous_sha256 = sha256_file(existing_blob) if existing_blob.is_file() else None
 
-            verified_binaries.append(
-                VerifiedBinary(
-                    spec=spec,
-                    download_url=download_url,
-                    archive_verification=verification,
-                    extracted_path=extracted_path,
-                    extracted_sha256=extracted_sha256,
-                    previous_sha256=previous_sha256,
-                )
+            verified = VerifiedBinary(
+                spec=spec,
+                download_url=download_url,
+                archive_verification=verification,
+                extracted_sha256=extracted_sha256,
+                previous_sha256=previous_sha256,
+            )
+            verified_binaries.append(verified)
+            staged_binaries.append(
+                _StagedBinary(verified=verified, extracted_path=extracted_path)
             )
 
         changed = any(item.changed for item in verified_binaries)
-        if changed and not dry_run:
-            stage_verified_binaries(repo_root, verified_binaries)
-
-    pr_title = f"chore: update embedded libznn to go-zenon {release_info.tag_name}"
-    commit_message = build_commit_message(release_info, verified_binaries)
-    pr_body = build_pr_body(
-        release_info,
-        verified_binaries,
-        target_branch=branch,
-        workflow_run_url=workflow_run_url,
-    )
-
-    if pr_body_out is not None:
-        pr_body_out.parent.mkdir(parents=True, exist_ok=True)
-        pr_body_out.write_text(pr_body, encoding="utf-8")
-
-    if step_summary is not None:
+        pr_title = f"chore: update embedded libznn to go-zenon {release_info.tag_name}"
+        commit_message = build_commit_message(release_info, verified_binaries)
+        pr_body = build_pr_body(
+            release_info,
+            verified_binaries,
+            target_branch=branch,
+            workflow_run_url=workflow_run_url,
+        )
         summary_md = build_step_summary(
             release_info,
             verified_binaries,
@@ -1065,19 +1134,40 @@ def run_update(
             changed=changed,
             dry_run=dry_run,
         )
-        with step_summary.open("a", encoding="utf-8") as handle:
-            handle.write(summary_md)
 
-    if github_output is not None:
-        outputs = {
-            "changed": "true" if (changed and not dry_run) else "false",
-            "release_tag": release_info.tag_name,
-            "release_url": release_info.html_url,
-            "pr_title": pr_title,
-            "commit_message": commit_message,
-            "pr_body_path": str(pr_body_out) if pr_body_out is not None else "",
-        }
-        write_github_outputs(github_output, outputs)
+        _validate_output_file_path(pr_body_out, "--pr-body-out")
+        _validate_output_file_path(step_summary, "--step-summary")
+        _validate_output_file_path(github_output, "--github-output")
+
+        stage_ctx: contextlib.AbstractContextManager[Any] = (
+            _staged_blob_transaction(repo_root, staged_binaries)
+            if (changed and not dry_run)
+            else contextlib.nullcontext()
+        )
+        with stage_ctx:
+            try:
+                if pr_body_out is not None:
+                    pr_body_out.parent.mkdir(parents=True, exist_ok=True)
+                    pr_body_out.write_text(pr_body, encoding="utf-8")
+
+                if step_summary is not None:
+                    step_summary.parent.mkdir(parents=True, exist_ok=True)
+                    with step_summary.open("a", encoding="utf-8") as handle:
+                        handle.write(summary_md)
+
+                if github_output is not None:
+                    github_output.parent.mkdir(parents=True, exist_ok=True)
+                    outputs = {
+                        "changed": "true" if (changed and not dry_run) else "false",
+                        "release_tag": release_info.tag_name,
+                        "release_url": release_info.html_url,
+                        "pr_title": pr_title,
+                        "commit_message": commit_message,
+                        "pr_body_path": str(pr_body_out) if pr_body_out is not None else "",
+                    }
+                    write_github_outputs(github_output, outputs)
+            except OSError as exc:
+                raise UpdaterError(f"Failed writing updater output file: {exc}") from exc
 
     return release_info, verified_binaries, changed
 
