@@ -29,6 +29,7 @@ class NewCardScaffold extends StatefulWidget {
     required this.body,
     required this.data,
     this.onRefreshPressed,
+    this.actions = const <Widget>[],
     super.key,
   });
 
@@ -40,6 +41,10 @@ class NewCardScaffold extends StatefulWidget {
 
   /// Optional callback that can be trigger from the card
   final VoidCallback? onRefreshPressed;
+
+  /// Optional trailing header actions shown on the front of the card when
+  /// the body is visible.
+  final List<Widget> actions;
 
   @override
   State<NewCardScaffold> createState() => _NewCardScaffoldState();
@@ -65,7 +70,16 @@ class _NewCardScaffoldState extends State<NewCardScaffold> {
 
   @override
   Widget build(BuildContext context) {
-    final Widget header = CardScaffoldHeader(
+    final bool isHidden = _isFrontWidgetHidden(_title);
+    final Widget frontHeader = CardScaffoldHeader(
+      actions: isHidden ? const <Widget>[] : widget.actions,
+      onMoreIconPressed: () {
+        unawaited(cardKey.currentState!.toggleCard());
+      },
+      onRefreshPressed: widget.onRefreshPressed,
+      title: _title,
+    );
+    final Widget backHeader = CardScaffoldHeader(
       onMoreIconPressed: () {
         unawaited(cardKey.currentState!.toggleCard());
       },
@@ -73,9 +87,7 @@ class _NewCardScaffoldState extends State<NewCardScaffold> {
       title: _title,
     );
 
-    final Widget front = _isFrontWidgetHidden(_title)
-        ? _getHiddenInfoWidget()
-        : widget.body;
+    final Widget front = isHidden ? _getHiddenInfoWidget() : widget.body;
 
     final Color background = context.isDarkMode
         ? AppColors.darkPrimary
@@ -94,36 +106,28 @@ class _NewCardScaffoldState extends State<NewCardScaffold> {
             key: cardKey,
             onFlipDone: (bool status) {},
             front: ClipRRect(
-              borderRadius: BorderRadius.circular(
-                15,
-              ),
+              borderRadius: BorderRadius.circular(15),
               child: ColoredBox(
                 color: background,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: <Widget>[
-                    header,
+                    frontHeader,
                     const Divider(),
-                    Expanded(
-                      child: front,
-                    ),
+                    Expanded(child: front),
                   ],
                 ),
               ),
             ),
             back: ClipRRect(
-              borderRadius: BorderRadius.circular(
-                15,
-              ),
+              borderRadius: BorderRadius.circular(15),
               child: ColoredBox(
                 color: background,
                 child: Column(
                   children: <Widget>[
-                    header,
+                    backHeader,
                     const Divider(),
-                    Expanded(
-                      child: _getHideWidgetInfoViewModel(),
-                    ),
+                    Expanded(child: _getHideWidgetInfoViewModel()),
                   ],
                 ),
               ),
@@ -151,10 +155,7 @@ class _NewCardScaffoldState extends State<NewCardScaffold> {
                 ),
                 header: Row(
                   children: <Widget>[
-                    const Icon(
-                      Icons.info,
-                      color: AppColors.znnColor,
-                    ),
+                    const Icon(Icons.info, color: AppColors.znnColor),
                     kHorizontalGap4,
                     Expanded(
                       child: Text(

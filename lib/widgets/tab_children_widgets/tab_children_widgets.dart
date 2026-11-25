@@ -2,7 +2,6 @@ export 'accelerator_tab_child.dart';
 export 'dashboard_tab_child.dart';
 export 'help_tab_child.dart';
 export 'lock_tab_child.dart';
-export 'package:zenon_syrius_wallet_flutter/rearchitecture/features/notifications/view/notifications_card.dart';
 export 'p2p_swap_tab_child.dart';
 export 'pillars_tab_child.dart';
 export 'plasma_tab_child.dart';

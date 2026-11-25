@@ -1,214 +1,209 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_vector_icons/flutter_vector_icons.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 
+/// Displays categorized links to Zenon Network community resources.
 class CommunityCard extends StatelessWidget {
+  /// Creates a [CommunityCard].
   const CommunityCard({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return CardScaffold(
-      title: 'Community',
-      description:
-          'This card displays information about Zenon community resources',
-      childBuilder: () => _getWidgetBody(context),
+    return NewCardScaffold(
+      data: CardData(
+        title: context.l10n.community,
+        description: context.l10n.displaysZenonCommunityResources,
+      ),
+      body: _buildBody(context),
     );
   }
 
-  Widget _getWidgetBody(BuildContext context) {
+  Widget _buildBody(BuildContext context) {
     return ListView(
       physics: const ClampingScrollPhysics(),
       shrinkWrap: true,
       children: <Widget>[
         CustomExpandablePanel(
-          'Websites',
-          _getWebsitesExpandableChild(context),
+          context.l10n.websites,
+          _buildWebsitesSection(context),
         ),
         CustomExpandablePanel(
-          'Explorers',
-          _getExplorersExpandableChild(context),
+          context.l10n.explorers,
+          _buildExplorersSection(context),
         ),
         CustomExpandablePanel(
-          'Social Media',
-          _getSocialMediaExpandableChild(context),
+          context.l10n.socialMedia,
+          _buildSocialMediaSection(context),
         ),
         CustomExpandablePanel(
-          'Documentation',
-          _getDocumentationExpandableChild(context),
+          context.l10n.documentation,
+          _buildDocumentationSection(context),
         ),
       ],
     );
   }
 
-  Widget _getWebsitesExpandableChild(BuildContext context) {
+  Widget _buildWebsitesSection(BuildContext context) {
     return ListView(
       physics: const ClampingScrollPhysics(),
       shrinkWrap: true,
       children: <Widget>[
-        _getListViewChild(
+        _buildResourceRow(
+          context: context,
           iconData: MaterialCommunityIcons.home,
-          title: 'Zenon Network',
+          title: context.l10n.zenonNetwork,
           url: kWebsite,
-          context: context,
         ),
-        _getListViewChild(
+        _buildResourceRow(
+          context: context,
           iconData: MaterialCommunityIcons.forum,
-          title: 'Zenon ORG Community Forum',
+          title: context.l10n.zenonOrgCommunityForum,
           url: kOrgCommunityForum,
-          context: context,
         ),
-        _getListViewChild(
+        _buildResourceRow(
+          context: context,
           iconData: MaterialCommunityIcons.tools,
-          title: 'Zenon Tools',
+          title: context.l10n.zenonTools,
           url: kTools,
-          context: context,
         ),
-        _getListViewChild(
+        _buildResourceRow(
+          context: context,
           iconData: MaterialCommunityIcons.web,
-          title: 'Zenon ORG Community',
+          title: context.l10n.zenonOrgCommunity,
           url: kOrgCommunityWebsite,
-          context: context,
         ),
-        _getListViewChild(
+        _buildResourceRow(
+          context: context,
           iconData: MaterialCommunityIcons.lan,
-          title: 'Zenon Hub',
+          title: context.l10n.zenonHub,
           url: kHubCommunityWebsite,
-          context: context,
         ),
       ],
     );
   }
 
-  Widget _getExplorersExpandableChild(BuildContext context) {
+  Widget _buildExplorersSection(BuildContext context) {
     return ListView(
       physics: const ClampingScrollPhysics(),
       shrinkWrap: true,
       children: <Widget>[
-        _getListViewChild(
+        _buildResourceRow(
+          context: context,
           iconData: Icons.explore,
-          title: 'Zenon Explorer',
+          title: context.l10n.zenonExplorer,
           url: kExplorer,
-          context: context,
         ),
-        _getListViewChild(
+        _buildResourceRow(
+          context: context,
           iconData: Icons.explore_off_outlined,
-          title: 'Zenon Hub Explorer',
+          title: context.l10n.zenonHubExplorer,
           url: kHubCommunityExplorer,
-          context: context,
         ),
       ],
     );
   }
 
-  Widget _getSocialMediaExpandableChild(BuildContext context) {
+  Widget _buildSocialMediaSection(BuildContext context) {
     return ListView(
       physics: const ClampingScrollPhysics(),
       shrinkWrap: true,
       children: <Widget>[
-        _getListViewChild(
+        _buildResourceRow(
+          context: context,
           iconData: MaterialCommunityIcons.twitter,
-          title: 'Zenon Twitter',
+          title: context.l10n.zenonTwitter,
           url: kTwitter,
-          context: context,
         ),
-        _getListViewChild(
+        _buildResourceRow(
+          context: context,
           iconData: MaterialCommunityIcons.discord,
-          title: 'Zenon Discord',
+          title: context.l10n.zenonDiscord,
           url: kDiscord,
-          context: context,
         ),
-        _getListViewChild(
+        _buildResourceRow(
+          context: context,
           iconData: Icons.telegram,
-          title: 'Zenon Telegram',
+          title: context.l10n.zenonTelegram,
           url: kTelegram,
-          context: context,
         ),
-        _getListViewChild(
+        _buildResourceRow(
+          context: context,
           iconData: Icons.article,
-          title: 'Zenon Medium',
+          title: context.l10n.zenonMedium,
           url: kMedium,
-          context: context,
         ),
-        _getListViewChild(
+        _buildResourceRow(
+          context: context,
           iconData: MaterialCommunityIcons.github,
-          title: 'Zenon Github',
+          title: context.l10n.zenonGithub,
           url: kGithub,
-          context: context,
         ),
-        _getListViewChild(
+        _buildResourceRow(
+          context: context,
           iconData: MaterialCommunityIcons.bitcoin,
-          title: 'Zenon Bitcoin Talk',
+          title: context.l10n.zenonBitcoinTalk,
           url: kBitcoinTalk,
-          context: context,
         ),
-        _getListViewChild(
+        _buildResourceRow(
+          context: context,
           iconData: MaterialCommunityIcons.reddit,
-          title: 'Zenon Reddit',
+          title: context.l10n.zenonReddit,
           url: kReddit,
-          context: context,
         ),
-        _getListViewChild(
-          iconData: MaterialCommunityIcons.youtube,
-          title: 'Zenon Youtube',
-          url: kYoutube,
+        _buildResourceRow(
           context: context,
+          iconData: MaterialCommunityIcons.youtube,
+          title: context.l10n.zenonYoutube,
+          url: kYoutube,
         ),
       ],
     );
   }
 
-  Widget _getDocumentationExpandableChild(BuildContext context) {
+  Widget _buildDocumentationSection(BuildContext context) {
     return ListView(
       physics: const ClampingScrollPhysics(),
       shrinkWrap: true,
       children: <Widget>[
-        _getListViewChild(
+        _buildResourceRow(
+          context: context,
           iconData: MaterialCommunityIcons.book_open_page_variant,
-          title: 'Zenon Wiki',
+          title: context.l10n.zenonWiki,
           url: kWiki,
-          context: context,
         ),
-        _getListViewChild(
+        _buildResourceRow(
+          context: context,
           iconData: MaterialCommunityIcons.book_multiple,
-          title: 'ZenonORG Community Wiki',
+          title: context.l10n.zenonOrgCommunityWiki,
           url: kOrgCommunityWiki,
-          context: context,
         ),
-        _getListViewChild(
-          iconData: MaterialCommunityIcons.file_document,
-          title: 'Zenon Whitepaper',
-          url: kWhitepaper,
+        _buildResourceRow(
           context: context,
+          iconData: MaterialCommunityIcons.file_document,
+          title: context.l10n.zenonWhitepaper,
+          url: kWhitepaper,
         ),
       ],
     );
   }
 
-  Widget _getListViewChild({
+  Widget _buildResourceRow({
+    required BuildContext context,
     required IconData iconData,
     required String title,
     required String url,
-    required BuildContext context,
   }) {
     return Row(
       children: <Widget>[
-        Icon(
-          iconData,
-          color: AppColors.znnColor,
-          size: 20,
+        Icon(iconData, color: AppColors.znnColor, size: 20),
+        kHorizontalGap8,
+        Flexible(
+          child: Text(title, style: Theme.of(context).textTheme.titleMedium),
         ),
-        const SizedBox(
-          width: 10,
-        ),
-        Text(
-          title,
-          style: Theme.of(context).textTheme.titleMedium,
-        ),
-        const SizedBox(
-          width: 10,
-        ),
+        kHorizontalGap8,
         LinkIcon(url: url),
       ],
     );

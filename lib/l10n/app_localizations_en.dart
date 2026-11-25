@@ -9,6 +9,9 @@ class AppLocalizationsEn extends AppLocalizations {
   AppLocalizationsEn([String locale = 'en']) : super(locale);
 
   @override
+  String get about => 'About';
+
+  @override
   String get active => 'Active';
 
   @override
@@ -70,10 +73,38 @@ class AppLocalizationsEn extends AppLocalizations {
   String get checkSentinelStatus => ' to check the Sentinel status';
 
   @override
+  String get checkUpdate => 'Check update';
+
+  @override
+  String get checkUpdatesForSyriusWallet =>
+      'Check updates for the Syrius wallet';
+
+  @override
+  String get clearAllNotifications => 'Clear all notifications';
+
+  @override
   String get clickToAddToFavorites => 'Click to add to favorites';
 
   @override
   String get clickToRemoveFromFavorites => 'Click to remove from favorites';
+
+  @override
+  String get clientChainIdentifier => 'Client chain identifier';
+
+  @override
+  String get clientHostname => 'Client hostname';
+
+  @override
+  String get clientLocalIpAddress => 'Client local IP address';
+
+  @override
+  String get clientNumberOfProcessors => 'Client number of processors';
+
+  @override
+  String get clientOperatingSystem => 'Client operating system';
+
+  @override
+  String get clientOperatingSystemVersion => 'Client operating system version';
 
   @override
   String get coin => 'Coin';
@@ -89,6 +120,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get collectStakingRewards => 'Collect staking rewards';
+
+  @override
+  String get community => 'Community';
 
   @override
   String get completed => 'Completed';
@@ -248,11 +282,25 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get deleteAllNotificationsCannotBeUndone =>
+      'Are you sure you want to delete all notifications? This action cannot be undone.';
+
+  @override
+  String get deleteNotification => 'Delete notification';
+
+  @override
   String get deleteSwap => 'Delete swap';
 
   @override
   String get deleteSwapCannotBeUndone =>
       'Are you sure you want to delete this swap? This action cannot be undone.';
+
+  @override
+  String get description => 'Description';
+
+  @override
+  String get detailedInfoAboutWalletComponents =>
+      'Detailed information about wallet components';
 
   @override
   String get disassemble => 'DISASSEMBLE';
@@ -266,6 +314,17 @@ class AppLocalizationsEn extends AppLocalizations {
   String disassembleSentinelToUnlockCoin(Object kZnnCoinSymbol) {
     return 'You will be able to unlock the $kZnnCoinSymbol if you choose to disassemble the Sentinel';
   }
+
+  @override
+  String get displaysWalletNotificationsDetails =>
+      'This card displays detailed information regarding the wallet notifications';
+
+  @override
+  String get displaysZenonCommunityResources =>
+      'This card displays information about Zenon community resources';
+
+  @override
+  String get documentation => 'Documentation';
 
   @override
   String get dualCoinStats => 'Dual Coin Stats';
@@ -288,6 +347,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get error => 'Error';
 
   @override
+  String get errorClearingNotifications => 'Error while clearing notifications';
+
+  @override
   String get errorCreatingToken => 'Error while creating a new ZTS token';
 
   @override
@@ -300,6 +362,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get errorCompletingSwap => 'Error while completing swap';
+
+  @override
+  String get errorDeletingNotification => 'Error while deleting notification';
 
   @override
   String get errorDeletingSwap => 'Error while deleting swap';
@@ -391,6 +456,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get expectedProducedMomentums => 'Expected/produced momentums';
+
+  @override
+  String get explorers => 'Explorers';
 
   @override
   String get from => 'From';
@@ -534,6 +602,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get noMoreItems => 'No more items';
 
   @override
+  String get noNotifications => 'No notifications';
+
+  @override
   String get noP2pSwaps => 'No P2P swaps';
 
   @override
@@ -541,6 +612,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get noZtsTokensAvailable => 'No ZTS tokens available';
+
+  @override
+  String get notifications => 'Notifications';
 
   @override
   String numberOfDecimals(Object number) {
@@ -931,6 +1005,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get showDetails => 'Show details';
 
   @override
+  String get socialMedia => 'Social Media';
+
+  @override
   String get spawn => 'Spawn';
 
   @override
@@ -1059,6 +1136,36 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get swapping => 'Swapping';
+
+  @override
+  String get syriusCachePath => 'Syrius cache path';
+
+  @override
+  String get syriusGitBranchName => 'Syrius git branch name';
+
+  @override
+  String get syriusGitCommitDate => 'Syrius git commit date';
+
+  @override
+  String get syriusGitCommitHash => 'Syrius git commit hash';
+
+  @override
+  String get syriusGitCommitMessage => 'Syrius git commit message';
+
+  @override
+  String get syriusGitOriginUrl => 'Syrius git origin url';
+
+  @override
+  String get syriusWalletPath => 'Syrius wallet path';
+
+  @override
+  String get syriusWalletType => 'Syrius wallet type';
+
+  @override
+  String get syriusWalletVersion => 'Syrius wallet version';
+
+  @override
+  String get time => 'Time';
 
   @override
   String get to => 'To';
@@ -1266,6 +1373,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get weight => 'Weight';
 
   @override
+  String get websites => 'Websites';
+
+  @override
   String get walletNotAutoLocked =>
       'Your wallet will not be auto-locked while the swap is in progress.';
 
@@ -1293,9 +1403,93 @@ class AppLocalizationsEn extends AppLocalizations {
   String get yourDepositId => 'Your deposit ID';
 
   @override
+  String get zenonBitcoinTalk => 'Zenon Bitcoin Talk';
+
+  @override
+  String get zenonDiscord => 'Zenon Discord';
+
+  @override
+  String get zenonExplorer => 'Zenon Explorer';
+
+  @override
+  String get zenonGithub => 'Zenon Github';
+
+  @override
+  String get zenonHub => 'Zenon Hub';
+
+  @override
+  String get zenonHubExplorer => 'Zenon Hub Explorer';
+
+  @override
+  String get zenonMainDataPath => 'Zenon main data path';
+
+  @override
+  String get zenonMedium => 'Zenon Medium';
+
+  @override
+  String get zenonNetwork => 'Zenon Network';
+
+  @override
+  String get zenonNodeBuildVersion => 'Zenon Node build version';
+
+  @override
+  String get zenonNodeChainIdentifier => 'Zenon Node chain identifier';
+
+  @override
+  String get zenonNodeGitCommitHash => 'Zenon Node git commit hash';
+
+  @override
+  String get zenonNodeKernelVersion => 'Zenon Node kernel version';
+
+  @override
+  String get zenonNodeNumberOfProcessors => 'Zenon Node number of processors';
+
+  @override
+  String get zenonNodeOperatingSystem => 'Zenon Node operating system';
+
+  @override
+  String get zenonNodePlatform => 'Zenon Node platform';
+
+  @override
+  String get zenonNodePlatformVersion => 'Zenon Node platform version';
+
+  @override
+  String get zenonOrgCommunity => 'Zenon ORG Community';
+
+  @override
+  String get zenonOrgCommunityForum => 'Zenon ORG Community Forum';
+
+  @override
+  String get zenonOrgCommunityWiki => 'ZenonORG Community Wiki';
+
+  @override
+  String get zenonReddit => 'Zenon Reddit';
+
+  @override
+  String get zenonSdkVersion => 'Zenon SDK version';
+
+  @override
+  String get zenonTelegram => 'Zenon Telegram';
+
+  @override
+  String get zenonTools => 'Zenon Tools';
+
+  @override
   String zenonTransactions(Object zenon) {
     return '$zenon transactions';
   }
+
+  @override
+  String get zenonTwitter => 'Zenon Twitter';
+
+  @override
+  String get zenonWhitepaper => 'Zenon Whitepaper';
+
+  @override
+  String get zenonWiki => 'Zenon Wiki';
+
+  @override
+  String get zenonYoutube => 'Zenon Youtube';
 
   @override
   String get znnController => 'znn-controller ';
