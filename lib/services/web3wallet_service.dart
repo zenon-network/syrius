@@ -59,11 +59,13 @@ class Web3WalletService extends IWeb3WalletService {
   Future<void> _markerOpQueue = Future<void>.value();
   int _activeResetDepth = 0;
   int _resetRequestEpoch = 0;
+  int _resetGeneration = 0;
   bool _isInitialized = false;
   bool _isDisposed = false;
   bool _listenersSubscribed = false;
   bool _pendingDisconnectEverything = false;
   bool _hasUnresolvedReset = false;
+  bool _hasUnresolvedFullReset = false;
   bool _hasUnconfirmedResetMarkerWrite = false;
   bool _needsKeyChainPersist = false;
   bool _needsExpirerPersist = false;
@@ -74,6 +76,8 @@ class Web3WalletService extends IWeb3WalletService {
       _hasUnresolvedReset ||
       _pendingDisconnectEverything ||
       _hasPendingResetMarker();
+
+  final Set<Future<void>> _inFlightPairCalls = <Future<void>>{};
 
   final Map<String, String> _pendingSessionCleanups = <String, String>{};
   final Set<String> _pendingPairingCleanups = <String>{};
@@ -239,9 +243,11 @@ class Web3WalletService extends IWeb3WalletService {
     _pendingDisconnectEverything = false;
     _resetInFlight = null;
     _hasUnresolvedReset = false;
+    _hasUnresolvedFullReset = false;
     _hasUnconfirmedResetMarkerWrite = false;
     _needsKeyChainPersist = false;
     _needsExpirerPersist = false;
+    _inFlightPairCalls.clear();
     _pendingResetMarkerPersist = null;
     _initFuture = null;
     _isInitialized = false;
@@ -266,12 +272,12 @@ class Web3WalletService extends IWeb3WalletService {
       throw StateError('WalletConnect client not initialized');
     }
 
-    if (_hasUnresolvedReset || _hasPendingResetMarker()) {
+    if (_hasActiveOrPendingReset) {
       await _runInitializedReset(
         forceFullReset: false,
         rethrowMarkerWriteError: false,
       );
-      if (_hasUnresolvedReset || _hasPendingResetMarker()) {
+      if (_hasActiveOrPendingReset) {
         throw StateError(
           'WalletConnect reset cleanup is still pending; cannot create a new '
           'pairing until the reset marker is cleared',
@@ -284,10 +290,41 @@ class Web3WalletService extends IWeb3WalletService {
       throw StateError('No wallet addresses available');
     }
 
+    final int capturedResetGeneration = _resetGeneration;
     registerAccountsIfNeeded();
     await _cleanupStalePairings();
 
-    final PairingInfo pairing = await _wcClient!.pair(uri: uri);
+    if (_isDisposed || _wcClient == null) {
+      throw StateError('WalletConnect client not initialized');
+    }
+    if (_hasActiveOrPendingReset ||
+        _resetGeneration != capturedResetGeneration) {
+      throw StateError(
+        'WalletConnect reset cleanup is in progress or pending; cannot '
+        'create a new pairing until the reset marker is cleared',
+      );
+    }
+
+    final Completer<void> pairDone = Completer<void>();
+    _inFlightPairCalls.add(pairDone.future);
+    late final PairingInfo pairing;
+    try {
+      pairing = await _wcClient!.pair(uri: uri);
+    } finally {
+      _inFlightPairCalls.remove(pairDone.future);
+      pairDone.complete();
+    }
+
+    if (_isDisposed ||
+        _wcClient == null ||
+        _hasActiveOrPendingReset ||
+        _resetGeneration != capturedResetGeneration) {
+      _reloadStores();
+      throw StateError(
+        'WalletConnect reset ran while creating pairing; pairing was aborted',
+      );
+    }
+
     _reloadStores();
     return pairing;
   }
@@ -791,7 +828,9 @@ class Web3WalletService extends IWeb3WalletService {
       // uninitialized ReownWalletKit methods, and survive an immediate exit.
       _pendingDisconnectEverything = true;
       _hasUnresolvedReset = true;
+      _hasUnresolvedFullReset = true;
       _resetRequestEpoch++;
+      _resetGeneration++;
       final Future<void> persistFuture = _synchronizedMarkerOp<void>(() async {
         await _wcClient!.core.storage.init();
         final _PendingResetState existingMarker = _readPendingResetMarker();
@@ -906,8 +945,16 @@ class Web3WalletService extends IWeb3WalletService {
       snapshot = await _synchronizedMarkerOp(() async {
         final _PendingResetState markerState = _readPendingResetMarker();
         final bool passRunFullSweep = firstPass
-            ? (forceFullReset || markerState.fullReset)
+            ? (forceFullReset ||
+                  _hasUnresolvedFullReset ||
+                  markerState.fullReset)
             : runFullSweep;
+        if (passRunFullSweep) {
+          _hasUnresolvedFullReset = true;
+          if (firstPass) {
+            _resetGeneration++;
+          }
+        }
         final Map<String, String> residualSessions = firstPass
             ? <String, String>{
                 ...markerState.pendingSessions,
@@ -1023,12 +1070,29 @@ class Web3WalletService extends IWeb3WalletService {
         break;
       }
 
-      final bool hasNewLiveSessions = _collectLiveSessionTopics(
+      bool hasNewLiveSessions = _collectLiveSessionTopics(
         storesReady: storesReady,
       ).any((String topic) => !attemptedSessionTopics.contains(topic));
-      final bool hasNewLivePairings = _collectLivePairingTopics(
+      bool hasNewLivePairings = _collectLivePairingTopics(
         storesReady: storesReady,
       ).any((String topic) => !attemptedPairingTopics.contains(topic));
+      if (!hasNewLiveSessions &&
+          !hasNewLivePairings &&
+          _inFlightPairCalls.isNotEmpty) {
+        // Wait for any SDK pair() calls that were admitted before this reset
+        // started so their pairings are committed to the marker and swept
+        // before the marker can be cleared.
+        await Future.wait<void>(List<Future<void>>.from(_inFlightPairCalls));
+        if (_isDisposed || _wcClient == null) {
+          break;
+        }
+        hasNewLiveSessions = _collectLiveSessionTopics(
+          storesReady: storesReady,
+        ).any((String topic) => !attemptedSessionTopics.contains(topic));
+        hasNewLivePairings = _collectLivePairingTopics(
+          storesReady: storesReady,
+        ).any((String topic) => !attemptedPairingTopics.contains(topic));
+      }
       if (!hasNewLiveSessions && !hasNewLivePairings) {
         break;
       }
@@ -1040,12 +1104,18 @@ class Web3WalletService extends IWeb3WalletService {
 
       if (unfinishedSessions.isNotEmpty || unfinishedPairings.isNotEmpty) {
         _hasUnresolvedReset = true;
+        if (newerResetRequested) {
+          _hasUnresolvedFullReset = true;
+        }
         try {
           await _persistPendingResetMarkerLocked(
             fullReset: newerResetRequested,
             pendingSessions: unfinishedSessions,
             pendingPairings: unfinishedPairings,
           );
+          if (!newerResetRequested) {
+            _hasUnresolvedFullReset = false;
+          }
         } on Object {
           if (rethrowMarkerWriteError) {
             rethrow;
@@ -1059,11 +1129,15 @@ class Web3WalletService extends IWeb3WalletService {
       // the next loop iteration executes.
       if (newerResetRequested) {
         _hasUnresolvedReset = true;
+        _hasUnresolvedFullReset = true;
         return;
       }
 
       final bool cleared = await _clearPendingResetMarkerLocked();
       _hasUnresolvedReset = !cleared;
+      if (cleared) {
+        _hasUnresolvedFullReset = false;
+      }
     });
   }
 
@@ -1847,11 +1921,59 @@ class Web3WalletService extends IWeb3WalletService {
     );
   }
 
+  bool _isProposalBlockedByReset({String? pairingTopic}) {
+    if (_pendingDisconnectEverything || _hasUnresolvedFullReset) {
+      return true;
+    }
+    if (_isResetting || _hasUnresolvedReset || _hasPendingResetMarker()) {
+      final _PendingResetState markerState = _readPendingResetMarker();
+      if (markerState.fullReset) {
+        return true;
+      }
+      if (pairingTopic == null || pairingTopic.isEmpty) {
+        return true;
+      }
+      return markerState.pendingPairings.contains(pairingTopic) ||
+          _pendingPairingCleanups.contains(pairingTopic);
+    }
+    return false;
+  }
+
+  Future<void> _rejectProposalForReset(int id) async {
+    if (_wcClient == null || _isDisposed) {
+      return;
+    }
+    try {
+      await _wcClient!.rejectSession(
+        id: id,
+        reason: Errors.getSdkError(
+          Errors.USER_REJECTED,
+          context: 'WalletConnect reset in progress',
+        ).toSignError(),
+      );
+    } on Object catch (e, s) {
+      _logger.fine(
+        'Failed rejecting proposal $id during WalletConnect reset',
+        e,
+        s,
+      );
+    }
+  }
+
+  SessionData? _findStoredSession(String topic) {
+    if (_wcClient == null) {
+      return null;
+    }
+    for (final SessionData session in _wcClient!.sessions.getAll()) {
+      if (session.topic == topic) {
+        return session;
+      }
+    }
+    return null;
+  }
+
   Future<void> _onSessionProposal(SessionProposalEvent? event) async {
-    if (event == null ||
-        _wcClient == null ||
-        _isDisposed ||
-        _hasActiveOrPendingReset) {
+    if (event == null || _wcClient == null || _isDisposed) {
       return;
     }
 
@@ -1860,11 +1982,16 @@ class Web3WalletService extends IWeb3WalletService {
       _logger.fine('Ignoring duplicate WalletConnect proposal ${event.id}');
       return;
     }
-    if (event.params.pairingTopic.isNotEmpty) {
-      _proposalPairingTopicsInFlight[event.id] = event.params.pairingTopic;
-    }
+    final String pairingTopic = event.params.pairingTopic;
 
     try {
+      if (_isProposalBlockedByReset(pairingTopic: pairingTopic)) {
+        await _rejectProposalForReset(event.id);
+        return;
+      }
+      if (pairingTopic.isNotEmpty) {
+        _proposalPairingTopicsInFlight[event.id] = pairingTopic;
+      }
       final PairingMetadata dAppMetadata = event.params.proposer.metadata;
       final String dAppName = _dAppName(dAppMetadata);
       final String dAppDescription = _dAppDescription(dAppMetadata);
@@ -1929,7 +2056,11 @@ class Web3WalletService extends IWeb3WalletService {
           !await windowManager.isVisible()) {
         await windowManager.show();
       }
-      if (_wcClient == null || _isDisposed || _hasActiveOrPendingReset) {
+      if (_wcClient == null || _isDisposed) {
+        return;
+      }
+      if (_isProposalBlockedByReset(pairingTopic: pairingTopic)) {
+        await _rejectProposalForReset(event.id);
         return;
       }
 
@@ -1990,7 +2121,11 @@ class Web3WalletService extends IWeb3WalletService {
         ),
       );
 
-      if (_wcClient == null || _isDisposed || _hasActiveOrPendingReset) {
+      if (_wcClient == null || _isDisposed) {
+        return;
+      }
+      if (_isProposalBlockedByReset(pairingTopic: pairingTopic)) {
+        await _rejectProposalForReset(event.id);
         return;
       }
 
@@ -1999,23 +2134,15 @@ class Web3WalletService extends IWeb3WalletService {
           final ApproveResponse approveResponse = await approveSession(
             id: event.id,
             namespaces: approvedNamespaces,
+            pairingTopic: pairingTopic,
           );
 
-          if (_wcClient == null || _isDisposed || _hasActiveOrPendingReset) {
-            return;
-          }
-
-          if (approveResponse.session == null) {
-            throw StateError('WalletConnect approveSession returned null');
-          }
-
-          // Mark the proposal as approved only after approveSession succeeds,
-          // so a transient failure leaves the id free for a retried delivery.
-          _approvedProposalIds.add(event.id);
-          _upsertSession(approveResponse.session!);
-          await _sendSuccessfullyApprovedSessionNotification(dAppMetadata);
-
-          _reloadStores();
+          await finalizeApprovedSession(
+            proposalId: event.id,
+            approveResponse: approveResponse,
+            dAppMetadata: dAppMetadata,
+            pairingTopic: pairingTopic,
+          );
         } on Object catch (e, s) {
           _logger.severe('Failed approving WalletConnect session', e, s);
           await NotificationUtils.sendNotificationError(
@@ -2203,14 +2330,54 @@ class Web3WalletService extends IWeb3WalletService {
     );
   }
 
+  /// Finalizes an approved WalletConnect session using the current SDK store
+  /// record so a session removed by a concurrent reset is neither re-inserted
+  /// into [sessions] nor reported as connected.
+  @visibleForTesting
+  Future<bool> finalizeApprovedSession({
+    required int proposalId,
+    required ApproveResponse approveResponse,
+    required PairingMetadata dAppMetadata,
+    String? pairingTopic,
+  }) async {
+    if (_wcClient == null ||
+        _isDisposed ||
+        _isProposalBlockedByReset(pairingTopic: pairingTopic)) {
+      return false;
+    }
+
+    final SessionData? approvedSession = approveResponse.session;
+    if (approvedSession == null) {
+      throw StateError('WalletConnect approveSession returned null');
+    }
+
+    final SessionData? liveSession = _findStoredSession(approvedSession.topic);
+    if (liveSession == null) {
+      _reloadStores();
+      return false;
+    }
+
+    // Mark the proposal as approved only after approveSession succeeds and
+    // the session is still present in the SDK store.
+    _approvedProposalIds.add(proposalId);
+    _upsertSession(liveSession);
+    await _sendSuccessfullyApprovedSessionNotification(dAppMetadata);
+
+    _reloadStores();
+    return true;
+  }
+
   /// Approves a pending WalletConnect session proposal unless a wallet reset
-  /// is currently in progress or pending.
+  /// affecting [pairingTopic] (or any full reset) is in progress or pending.
   @visibleForTesting
   Future<ApproveResponse> approveSession({
     required int id,
     required Map<String, Namespace> namespaces,
+    String? pairingTopic,
   }) async {
-    if (_isDisposed || _wcClient == null || _hasActiveOrPendingReset) {
+    if (_isDisposed ||
+        _wcClient == null ||
+        _isProposalBlockedByReset(pairingTopic: pairingTopic)) {
       throw StateError(
         'WalletConnect reset cleanup is in progress or pending; '
         'cannot approve session proposal',
@@ -2221,7 +2388,9 @@ class Web3WalletService extends IWeb3WalletService {
       await windowManager.show();
     }
 
-    if (_isDisposed || _wcClient == null || _hasActiveOrPendingReset) {
+    if (_isDisposed ||
+        _wcClient == null ||
+        _isProposalBlockedByReset(pairingTopic: pairingTopic)) {
       throw StateError(
         'WalletConnect reset cleanup is in progress or pending; '
         'cannot approve session proposal',
