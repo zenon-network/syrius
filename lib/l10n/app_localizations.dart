@@ -2541,11 +2541,11 @@ abstract class AppLocalizations {
   /// **'Dark'**
   String get dark;
 
-  /// No description provided for @defaultAddressLabel.
+  /// No description provided for @addressNumber.
   ///
   /// In en, this message translates to:
   /// **'Address {index}'**
-  String defaultAddressLabel(int index);
+  String addressNumber(int index);
 
   /// No description provided for @deleteCache.
   ///

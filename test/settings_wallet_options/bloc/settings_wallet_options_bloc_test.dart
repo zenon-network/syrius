@@ -58,6 +58,7 @@ void main() {
       bool isMacOs = false,
       Future<bool> Function()? requestPermissions,
       Future<void> Function({required bool enabled})? configureLaunchAtStartup,
+      Future<void> Function(WalletNotification notification)? addNotification,
     }) => SettingsWalletOptionsBloc(
       prefsService: prefs,
       isMacOs: isMacOs,
@@ -76,9 +77,11 @@ void main() {
       clearAutoReceivePool: () {
         poolClears++;
       },
-      addNotification: (WalletNotification notification) async {
-        notifications.add(notification);
-      },
+      addNotification:
+          addNotification ??
+          (WalletNotification notification) async {
+            notifications.add(notification);
+          },
       reportError: (Object error, String title) async {
         errors.add(title);
       },
@@ -225,6 +228,33 @@ void main() {
       verify: (_) {
         expect(poolClears, 1);
         expect(autoReceiveTriggers, 1);
+      },
+    );
+
+    blocTest<SettingsWalletOptionsBloc, SettingsWalletOptionsState>(
+      'keeps persisted toggle enabled when post-save notification throws',
+      build: () => buildBloc(
+        addNotification: (_) async => throw StateError('notification failed'),
+      ),
+      act: (SettingsWalletOptionsBloc bloc) => bloc.add(
+        const SettingsWalletOptionsDesktopNotificationsToggled(
+          enabled: true,
+          notificationTitle: 'Desktop enabled',
+          notificationDetails: 'Enabled',
+          errorTitle: 'Notification error',
+        ),
+      ),
+      expect: () => const <SettingsWalletOptionsState>[
+        SettingsWalletOptionsState(
+          launchAtStartup: false,
+          enableDesktopNotifications: true,
+          enableClipboardWatcher: false,
+          autoReceive: true,
+        ),
+      ],
+      verify: (_) {
+        verify(() => prefs.put(kEnableDesktopNotificationsKey, true)).called(1);
+        expect(errors, <String>['Notification error']);
       },
     );
   });

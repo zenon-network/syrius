@@ -24,7 +24,10 @@ class PeersCard extends StatelessWidget {
     }
 
     return BlocProvider<PeersBloc>(
-      create: (_) => PeersBloc(zenon: zenon!)..add(const PeersRequested()),
+      create: (_) => PeersBloc(
+        zenon: zenon!,
+        wsRestartedStream: zenon!.wsClient.restartedStream,
+      )..add(const PeersRequested()),
       child: const _View(),
     );
   }

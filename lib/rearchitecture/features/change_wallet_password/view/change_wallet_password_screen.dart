@@ -79,7 +79,9 @@ class _ViewState extends State<_View> {
               state is ChangeWalletPasswordIncorrectCurrentPassword
               ? context.l10n.incorrectPassword
               : null;
-          final bool canSubmit = _arePasswordsValid(currentPassErrorText);
+          final bool canSubmit =
+              state is! ChangeWalletPasswordLoading &&
+              _arePasswordsValid(currentPassErrorText);
 
           return Container(
             padding: const EdgeInsets.symmetric(vertical: 30),

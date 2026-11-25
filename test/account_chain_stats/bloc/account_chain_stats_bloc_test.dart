@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
@@ -199,6 +201,44 @@ void main() {
         final EmptyAccountChainException exception =
             EmptyAccountChainException();
         expect(SyriusException.fromJson(exception.toJson()), exception);
+      },
+    );
+
+    test(
+      'refreshes stats for last requested address when websocket restarts',
+      () async {
+        final StreamController<bool> wsController =
+            StreamController<bool>.broadcast();
+        addTearDown(wsController.close);
+
+        final MockAccountBlockList page = MockAccountBlockList();
+        final AccountBlock block = mockBlock(
+          blockType: BlockTypeEnum.userSend.index,
+          hash: firstBlockHash,
+        );
+        when(() => mockAccountInfo.blockCount).thenReturn(1);
+        when(() => page.list).thenReturn(<AccountBlock>[block]);
+        when(
+          () => mockLedgerApi.getAccountBlocksByHeight(any()),
+        ).thenAnswer((_) async => page);
+
+        final AccountChainStatsBloc bloc = AccountChainStatsBloc(
+          zenon: mockZenon,
+          wsRestartedStream: wsController.stream,
+        );
+        addTearDown(bloc.close);
+
+        bloc.add(FetchRequestData(address: emptyAddress));
+        await expectLater(
+          bloc.stream,
+          emits(isA<FetchPopulated<AccountChainStats>>()),
+        );
+
+        wsController.add(true);
+        await Future<void>.delayed(Duration.zero);
+        await Future<void>.delayed(Duration.zero);
+
+        verify(() => mockLedgerApi.getAccountInfoByAddress(any())).called(2);
       },
     );
   });

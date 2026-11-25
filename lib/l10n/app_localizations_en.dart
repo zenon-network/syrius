@@ -1471,7 +1471,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get dark => 'Dark';
 
   @override
-  String defaultAddressLabel(int index) {
+  String addressNumber(int index) {
     return 'Address $index';
   }
 

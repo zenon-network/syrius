@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -25,6 +27,20 @@ void main() {
       build: () => ResetWalletCubit(
         closeEmbeddedNode: () async => throw StateError('node hung'),
         dismissLastNotification: () {},
+      ),
+      act: (ResetWalletCubit cubit) => cubit.confirmReset(),
+      expect: () => const <ResetWalletState>[
+        ResetWalletInProgress(),
+        ResetWalletReadyToNavigate(),
+      ],
+    );
+
+    blocTest<ResetWalletCubit, ResetWalletState>(
+      'times out hanging embedded node shutdown and emits readyToNavigate',
+      build: () => ResetWalletCubit(
+        closeEmbeddedNode: () => Completer<void>().future,
+        dismissLastNotification: () {},
+        closeTimeout: const Duration(milliseconds: 20),
       ),
       act: (ResetWalletCubit cubit) => cubit.confirmReset(),
       expect: () => const <ResetWalletState>[

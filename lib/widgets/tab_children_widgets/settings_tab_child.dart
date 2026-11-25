@@ -26,7 +26,10 @@ class SettingsTabChild extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocProvider<AccountChainStatsBloc>(
       create: (_) {
-        final AccountChainStatsBloc bloc = AccountChainStatsBloc(zenon: zenon!);
+        final AccountChainStatsBloc bloc = AccountChainStatsBloc(
+          zenon: zenon!,
+          wsRestartedStream: zenon!.wsClient.restartedStream,
+        );
         final String? selectedAddress = kSelectedAddress;
         if (selectedAddress != null) {
           bloc.add(FetchRequestData(address: Address.parse(selectedAddress)));

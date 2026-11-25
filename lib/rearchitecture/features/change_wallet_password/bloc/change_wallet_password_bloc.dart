@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:bloc/bloc.dart';
+import 'package:bloc_concurrency/bloc_concurrency.dart';
 import 'package:equatable/equatable.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/p2p_swaps/data/htlc_swap_local_storage_api.dart';
@@ -35,7 +36,7 @@ class ChangeWalletPasswordBloc
        _walletBaseAddressProvider =
            walletBaseAddressProvider ?? _defaultWalletBaseAddress,
        super(const ChangeWalletPasswordInitial()) {
-    on<ChangeWalletPasswordSubmitted>(_onSubmitted);
+    on<ChangeWalletPasswordSubmitted>(_onSubmitted, transformer: droppable());
     on<ChangeWalletPasswordErrorCleared>(_onErrorCleared);
   }
 
@@ -73,6 +74,9 @@ class ChangeWalletPasswordBloc
     ChangeWalletPasswordSubmitted event,
     Emitter<ChangeWalletPasswordState> emit,
   ) async {
+    if (state is ChangeWalletPasswordLoading) {
+      return;
+    }
     emit(const ChangeWalletPasswordLoading());
 
     try {

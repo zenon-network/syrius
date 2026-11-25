@@ -111,19 +111,21 @@ class SettingsWalletOptionsBloc
     try {
       await _applyLaunchAtStartup(event.enabled);
       await _prefs.put(kLaunchAtStartupKey, event.enabled);
-      await _sendNotification(
-        WalletNotification(
-          title: event.notificationTitle,
-          details: event.notificationDetails,
-          timestamp: DateTime.now().millisecondsSinceEpoch,
-          type: NotificationType.paymentSent,
-        ),
-      );
     } on Object catch (error, stackTrace) {
       addError(error, stackTrace);
       emit(state.copyWith(launchAtStartup: previous));
       await _sendError(error, event.errorTitle);
+      return;
     }
+    await _trySendNotification(
+      WalletNotification(
+        title: event.notificationTitle,
+        details: event.notificationDetails,
+        timestamp: DateTime.now().millisecondsSinceEpoch,
+        type: NotificationType.paymentSent,
+      ),
+      errorTitle: event.errorTitle,
+    );
   }
 
   FutureOr<void> _onDesktopNotificationsToggled(
@@ -141,19 +143,21 @@ class SettingsWalletOptionsBloc
     emit(state.copyWith(enableDesktopNotifications: event.enabled));
     try {
       await _prefs.put(kEnableDesktopNotificationsKey, event.enabled);
-      await _sendNotification(
-        WalletNotification(
-          title: event.notificationTitle,
-          details: event.notificationDetails,
-          timestamp: DateTime.now().millisecondsSinceEpoch,
-          type: NotificationType.paymentSent,
-        ),
-      );
     } on Object catch (error, stackTrace) {
       addError(error, stackTrace);
       emit(state.copyWith(enableDesktopNotifications: previous));
       await _sendError(error, event.errorTitle);
+      return;
     }
+    await _trySendNotification(
+      WalletNotification(
+        title: event.notificationTitle,
+        details: event.notificationDetails,
+        timestamp: DateTime.now().millisecondsSinceEpoch,
+        type: NotificationType.paymentSent,
+      ),
+      errorTitle: event.errorTitle,
+    );
   }
 
   FutureOr<void> _onClipboardWatcherToggled(
@@ -164,6 +168,13 @@ class SettingsWalletOptionsBloc
     emit(state.copyWith(enableClipboardWatcher: event.enabled));
     try {
       await _prefs.put(kEnableClipboardWatcherKey, event.enabled);
+    } on Object catch (error, stackTrace) {
+      addError(error, stackTrace);
+      emit(state.copyWith(enableClipboardWatcher: previous));
+      await _sendError(error, event.errorTitle);
+      return;
+    }
+    try {
       (_toggleClipboardWatcher ?? ClipboardUtils.toggleClipboardWatcherStatus)
           .call();
       await _sendNotification(
@@ -176,7 +187,6 @@ class SettingsWalletOptionsBloc
       );
     } on Object catch (error, stackTrace) {
       addError(error, stackTrace);
-      emit(state.copyWith(enableClipboardWatcher: previous));
       await _sendError(error, event.errorTitle);
     }
   }
@@ -189,6 +199,13 @@ class SettingsWalletOptionsBloc
     emit(state.copyWith(autoReceive: event.enabled));
     try {
       await _prefs.put(kAutoReceiveKey, event.enabled);
+    } on Object catch (error, stackTrace) {
+      addError(error, stackTrace);
+      emit(state.copyWith(autoReceive: previous));
+      await _sendError(error, event.errorTitle);
+      return;
+    }
+    try {
       if (event.enabled) {
         unawaited(_runAutoReceive());
       } else {
@@ -204,8 +221,19 @@ class SettingsWalletOptionsBloc
       );
     } on Object catch (error, stackTrace) {
       addError(error, stackTrace);
-      emit(state.copyWith(autoReceive: previous));
       await _sendError(error, event.errorTitle);
+    }
+  }
+
+  Future<void> _trySendNotification(
+    WalletNotification notification, {
+    required String errorTitle,
+  }) async {
+    try {
+      await _sendNotification(notification);
+    } on Object catch (error, stackTrace) {
+      addError(error, stackTrace);
+      await _sendError(error, errorTitle);
     }
   }
 

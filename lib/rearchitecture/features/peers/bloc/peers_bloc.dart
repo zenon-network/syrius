@@ -11,12 +11,19 @@ part 'peers_state.dart';
 /// Fetches and sorts the list of peers connected to the current Zenon node.
 class PeersBloc extends Bloc<PeersEvent, PeersState> {
   /// Creates a [PeersBloc].
-  PeersBloc({required this._zenon}) : super(const PeersInitial()) {
+  PeersBloc({required this._zenon, Stream<bool>? wsRestartedStream})
+    : super(const PeersInitial()) {
     on<PeersRequested>(_onPeersRequested);
     on<PeersSortToggled>(_onPeersSortToggled);
+    _wsRestartSubscription = wsRestartedStream?.listen((bool restarted) {
+      if (restarted && !isClosed) {
+        add(const PeersRequested());
+      }
+    });
   }
 
   final Zenon _zenon;
+  StreamSubscription<bool>? _wsRestartSubscription;
 
   FutureOr<void> _onPeersRequested(
     PeersRequested event,
@@ -87,5 +94,11 @@ class PeersBloc extends Bloc<PeersEvent, PeersState> {
       };
       return ascending ? comparison : -comparison;
     });
+  }
+
+  @override
+  Future<void> close() async {
+    await _wsRestartSubscription?.cancel();
+    await super.close();
   }
 }

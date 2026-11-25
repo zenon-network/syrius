@@ -374,6 +374,13 @@ class NodeManagementBloc
     emit(state.copyWith(autoReceive: event.enabled));
     try {
       await _repository.saveAutoReceive(enabled: event.enabled);
+    } on Object catch (error, stackTrace) {
+      addError(error, stackTrace);
+      emit(state.copyWith(autoReceive: previous));
+      await _repository.reportError(error, event.errorTitle);
+      return;
+    }
+    try {
       if (event.enabled) {
         unawaited(_repository.triggerAutoReceive());
       } else {
@@ -389,7 +396,6 @@ class NodeManagementBloc
       );
     } on Object catch (error, stackTrace) {
       addError(error, stackTrace);
-      emit(state.copyWith(autoReceive: previous));
       await _repository.reportError(error, event.errorTitle);
     }
   }

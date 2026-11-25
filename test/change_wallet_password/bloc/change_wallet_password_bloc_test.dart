@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:bloc_test/bloc_test.dart';
@@ -223,6 +224,43 @@ void main() {
             newEncryptionKey: any(named: 'newEncryptionKey'),
           ),
         );
+      },
+    );
+
+    test(
+      'drops concurrent submissions while a rekey is already in progress',
+      () async {
+        final Completer<WalletFile> decryptCompleter = Completer<WalletFile>();
+        final ChangeWalletPasswordBloc bloc = buildBloc(
+          decrypt: (_, _) => decryptCompleter.future,
+        );
+        addTearDown(bloc.close);
+
+        const ChangeWalletPasswordSubmitted event =
+            ChangeWalletPasswordSubmitted(
+              currentPassword: currentPassword,
+              newPassword: newPassword,
+              decryptErrorTitle: 'Decrypt error',
+              changePasswordErrorTitle: 'Change error',
+            );
+
+        bloc
+          ..add(event)
+          ..add(event);
+
+        await Future<void>.delayed(Duration.zero);
+        decryptCompleter.complete(mockWalletFile);
+        await expectLater(
+          bloc.stream,
+          emitsThrough(const ChangeWalletPasswordSuccess()),
+        );
+
+        verify(() => mockSyncService.stop()).called(1);
+        verify(
+          () => mockWalletFile.changePassword(currentPassword, newPassword),
+        ).called(1);
+        verify(() => mockStorageApi.commitRekey()).called(1);
+        verifyNever(() => mockStorageApi.rollbackRekey(any()));
       },
     );
   });

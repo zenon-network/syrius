@@ -553,8 +553,8 @@
   },
   "currentPassword": "Current password",
   "dark": "Dark",
-  "defaultAddressLabel": "Address {index}",
-  "@defaultAddressLabel": {
+  "addressNumber": "Address {index}",
+  "@addressNumber": {
     "placeholders": {
       "index": {
         "type": "int"

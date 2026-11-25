@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
@@ -163,6 +165,25 @@ void main() {
           isA<FailureException>(),
         ),
       ],
+    );
+
+    test(
+      'refreshes peers when websocket restarted stream emits true',
+      () async {
+        final StreamController<bool> wsController =
+            StreamController<bool>.broadcast();
+        addTearDown(wsController.close);
+
+        final PeersBloc bloc = PeersBloc(
+          zenon: mockZenon,
+          wsRestartedStream: wsController.stream,
+        );
+        addTearDown(bloc.close);
+
+        wsController.add(true);
+        await expectLater(bloc.stream, emitsThrough(isA<PeersPopulated>()));
+        verify(() => mockStatsApi.networkInfo()).called(1);
+      },
     );
   });
 }

@@ -243,7 +243,7 @@ class _Populated extends StatelessWidget {
             final String address = _state.addresses[index];
             final String label =
                 _state.addressLabels[address] ??
-                context.l10n.defaultAddressLabel(index + 1);
+                context.l10n.addressNumber(index + 1);
             return Row(
               children: <Widget>[
                 Radio<String>(value: address),

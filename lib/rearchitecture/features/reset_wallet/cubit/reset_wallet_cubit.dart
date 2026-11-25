@@ -12,6 +12,7 @@ class ResetWalletCubit extends Cubit<ResetWalletState> {
   ResetWalletCubit({
     Future<void> Function()? closeEmbeddedNode,
     void Function()? dismissLastNotification,
+    this._closeTimeout = const Duration(seconds: 5),
   }) : _closeEmbeddedNode = closeEmbeddedNode ?? _defaultCloseEmbeddedNode,
        _dismissLastNotification =
            dismissLastNotification ?? _defaultDismissLastNotification,
@@ -19,6 +20,7 @@ class ResetWalletCubit extends Cubit<ResetWalletState> {
 
   final Future<void> Function() _closeEmbeddedNode;
   final void Function() _dismissLastNotification;
+  final Duration _closeTimeout;
 
   static Future<void> _defaultCloseEmbeddedNode() async {
     await NodeUtils.closeEmbeddedNode();
@@ -36,7 +38,7 @@ class ResetWalletCubit extends Cubit<ResetWalletState> {
     }
     emit(const ResetWalletInProgress());
     try {
-      await _closeEmbeddedNode();
+      await _closeEmbeddedNode().timeout(_closeTimeout);
     } on Object catch (error, stackTrace) {
       addError(error, stackTrace);
     } finally {
