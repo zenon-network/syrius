@@ -5,7 +5,7 @@ import 'package:desktop_drop/desktop_drop.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/wallet_file.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/select_file_widget.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/select_file_widget.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 void _dropFiles(WidgetTester tester, List<String> paths) {

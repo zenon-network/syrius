@@ -11,4 +11,5 @@ export 'htlc_card.dart';
 export 'infinite_scroll_grid/export.dart';
 export 'infinite_scroll_table/export.dart';
 export 'new_card_scaffold.dart';
+export 'select_file_widget.dart';
 export 'warning.dart';
