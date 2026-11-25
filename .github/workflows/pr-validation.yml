@@ -18,6 +18,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v6
+        with:
+          fetch-depth: 2
 
       - name: Run CI script unit tests
         run: python3 -m unittest discover -s .github/scripts -p 'test_*.py' -v
@@ -28,11 +30,16 @@ jobs:
         run: |
           set -euo pipefail
           args=(--repo-root .)
-          if [[ "${GITHUB_EVENT_NAME:-}" == "pull_request" && -n "${BASE_SHA:-}" ]]; then
-            if ! git rev-parse --verify "${BASE_SHA}^{commit}" >/dev/null 2>&1; then
-              git fetch --no-tags --depth=1 origin "$BASE_SHA"
+          if [[ "${GITHUB_EVENT_NAME:-}" == "pull_request" ]]; then
+            if git rev-parse --verify "HEAD^2" >/dev/null 2>&1; then
+              # GitHub checks out refs/pull/<n>/merge; HEAD^1 is the exact base parent of this merge.
+              args+=(--base-ref "HEAD^1" --head-ref HEAD)
+            elif [[ -n "${BASE_SHA:-}" ]]; then
+              if ! git rev-parse --verify "${BASE_SHA}^{commit}" >/dev/null 2>&1; then
+                git fetch --no-tags --depth=1 origin "$BASE_SHA"
+              fi
+              args+=(--base-ref "$BASE_SHA" --head-ref HEAD)
             fi
-            args+=(--base-ref "$BASE_SHA" --head-ref HEAD)
           fi
           python3 .github/scripts/verify_libznn_manifest.py "${args[@]}"
 

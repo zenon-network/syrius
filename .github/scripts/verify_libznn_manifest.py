@@ -29,6 +29,9 @@ def get_changed_blob_paths(
     head_ref: str = "HEAD",
 ) -> list[str]:
     """Return paths under lib/embedded_node/blobs/ changed between base_ref and head_ref."""
+    for label, ref in (("base_ref", base_ref), ("head_ref", head_ref)):
+        if not ref or ref.startswith("-"):
+            raise ManifestVerificationError(f"Invalid git ref for {label}: {ref!r}")
     cmd = [
         "git",
         "-C",
@@ -37,6 +40,7 @@ def get_changed_blob_paths(
         "-z",
         "--name-only",
         "--no-renames",
+        "--end-of-options",
         base_ref,
         head_ref,
         "--",

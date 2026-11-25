@@ -175,6 +175,10 @@ class VerifyLibznnManifestTests(unittest.TestCase):
         with self.assertRaisesRegex(verifier.ManifestVerificationError, "without updating"):
             verifier.verify_pr_diff_updates_manifest(["lib/embedded_node/blobs/libznn.so"])
 
+        # Option-like git refs are rejected before invoking git diff
+        with self.assertRaisesRegex(verifier.ManifestVerificationError, "Invalid git ref"):
+            verifier.get_changed_blob_paths(self.repo_root, base_ref="--output=/tmp/x")
+
     def test_git_diff_integration_with_base_ref(self) -> None:
         def run_git(*args: str) -> str:
             proc = subprocess.run(

@@ -214,6 +214,7 @@ jobs:
       - name: Close stale pull request when already up to date
         id: close_stale
         if: >-
+          steps.config.outputs.tag == '' &&
           steps.update.outputs.changed == 'false' &&
           steps.update.outputs.updates_detected == 'false' &&
           steps.config.outputs.dry_run == 'false'

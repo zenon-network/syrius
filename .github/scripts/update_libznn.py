@@ -329,6 +329,24 @@ def find_late_updated_assets(
     return late
 
 
+def _format_late_delta(published_at: str, updated_at: str) -> str:
+    published_dt = parse_iso8601_utc(published_at)
+    updated_dt = parse_iso8601_utc(updated_at)
+    if published_dt is None or updated_dt is None or updated_dt <= published_dt:
+        return ""
+    seconds = int((updated_dt - published_dt).total_seconds())
+    if seconds < 60:
+        return f" (+{seconds}s)"
+    minutes, rem_s = divmod(seconds, 60)
+    if minutes < 60:
+        return f" (+{minutes}m{rem_s:02d}s)"
+    hours, rem_m = divmod(minutes, 60)
+    if hours < 24:
+        return f" (+{hours}h{rem_m:02d}m)"
+    days, rem_h = divmod(hours, 24)
+    return f" (+{days}d{rem_h:02d}h)"
+
+
 def build_provenance_manifest(
     release: ReleaseInfo,
     verified_binaries: Sequence[VerifiedBinary],
@@ -565,10 +583,15 @@ def evaluate_manifest_transition(
                     f"{item.spec.asset_name} archive SHA-256 changed "
                     f"({prev_entry['archive_sha256']} -> {item.archive_verification.actual_sha256})"
                 )
-            if prev_entry["extracted_sha256"] != item.extracted_sha256 or item.changed:
+            if prev_entry["extracted_sha256"] != item.extracted_sha256:
                 rebuild_reasons.append(
                     f"{item.spec.blob_relpath} extracted SHA-256 changed "
                     f"({prev_entry['extracted_sha256']} -> {item.extracted_sha256})"
+                )
+            elif item.changed:
+                rebuild_reasons.append(
+                    f"{item.spec.blob_relpath} on-disk binary differed from manifest/release "
+                    f"({item.previous_sha256 or '<missing>'} -> {item.extracted_sha256})"
                 )
 
     return ProvenanceAlerts(
@@ -896,7 +919,7 @@ def _declared_content_length(resp: Any) -> int | None:
     return length if length >= 0 else None
 
 
-def _github_api_request_json(
+def github_api_request_json(
     url: str,
     *,
     method: str = "GET",
@@ -1003,7 +1026,7 @@ def fetch_release_metadata(
     else:
         url = f"https://api.github.com/repos/{upstream_repo}/releases/latest"
 
-    payload = _github_api_request_json(
+    payload = github_api_request_json(
         url,
         github_token=github_token,
         opener=opener,
@@ -1031,7 +1054,7 @@ def fetch_tag_commit(
         raise UpdaterError("Cannot resolve tag commit for empty tag")
     encoded_tag = urllib.parse.quote(validated_tag, safe="")
     ref_url = f"https://api.github.com/repos/{upstream_repo}/git/ref/tags/{encoded_tag}"
-    payload = _github_api_request_json(
+    payload = github_api_request_json(
         ref_url,
         github_token=github_token,
         opener=opener,
@@ -1062,7 +1085,7 @@ def fetch_tag_commit(
         seen_tag_shas.add(obj_sha)
         depth += 1
         tag_obj_url = f"https://api.github.com/repos/{upstream_repo}/git/tags/{obj_sha}"
-        tag_obj = _github_api_request_json(
+        tag_obj = github_api_request_json(
             tag_obj_url,
             github_token=github_token,
             opener=opener,
@@ -1192,15 +1215,13 @@ def _paths_alias(path_a: pathlib.Path, path_b: pathlib.Path) -> bool:
 def _validate_output_file_path(
     path: pathlib.Path | None,
     label: str,
-    protected_paths: Sequence[pathlib.Path] = (),
-    *,
-    protected_kind: str = "repository blob",
+    protected_entries: Sequence[tuple[pathlib.Path, str]] = (),
 ) -> None:
     if path is None:
         return
     if path.exists() and path.is_dir():
         raise UpdaterError(f"{label} path is a directory, not a file: {path}")
-    for protected in protected_paths:
+    for protected, protected_kind in protected_entries:
         if _paths_alias(path, protected):
             raise UpdaterError(
                 f"{label} path {path} must not refer to {protected_kind} {protected}"
@@ -1214,18 +1235,17 @@ def validate_output_file_paths(
     protected_manifest: pathlib.Path | None = None,
 ) -> None:
     """Validate individual output paths and reject pairwise collisions across CLI flags."""
+    protected_entries: list[tuple[pathlib.Path, str]] = [
+        (blob, "repository blob") for blob in protected_blobs
+    ]
+    if protected_manifest is not None:
+        protected_entries.append((protected_manifest, "repository provenance manifest"))
+
     provided: list[tuple[str, pathlib.Path]] = []
     for label, path in output_paths:
         if path is None:
             continue
-        _validate_output_file_path(path, label, protected_blobs, protected_kind="repository blob")
-        if protected_manifest is not None:
-            _validate_output_file_path(
-                path,
-                label,
-                (protected_manifest,),
-                protected_kind="repository provenance manifest",
-            )
+        _validate_output_file_path(path, label, protected_entries)
         provided.append((label, path))
 
     for idx, (label_a, path_a) in enumerate(provided):
@@ -1526,7 +1546,8 @@ def build_pr_body(
         )
     if active_alerts.late_updated_assets:
         late_details = ", ".join(
-            f"`{name}` (`{ts}`)" for name, ts in active_alerts.late_updated_assets
+            f"`{name}` (`{ts}`{_format_late_delta(release.published_at, ts)})"
+            for name, ts in active_alerts.late_updated_assets
         )
         lines.extend(
             [
@@ -1535,7 +1556,8 @@ def build_pr_body(
                 (
                     f"> One or more upstream release assets have `updated_at` later than release "
                     f"`published_at` (`{release.published_at}`): {late_details}. "
-                    "Verify these asset uploads were expected."
+                    "On mutable releases, uploads seconds after publication can occur during "
+                    "initial release CI; verify any unexpected or later asset modifications."
                 ),
             ]
         )
@@ -1711,7 +1733,8 @@ def build_step_summary(
         )
     if active_alerts.late_updated_assets:
         late_details = ", ".join(
-            f"`{name}` (`{ts}`)" for name, ts in active_alerts.late_updated_assets
+            f"`{name}` (`{ts}`{_format_late_delta(release.published_at, ts)})"
+            for name, ts in active_alerts.late_updated_assets
         )
         lines.extend(
             [
@@ -1772,7 +1795,7 @@ def write_github_outputs(output_path: pathlib.Path, outputs: Mapping[str, str]) 
         handle.write("\n".join(lines) + "\n")
 
 
-def run_update(
+def _run_update_detailed(
     *,
     repo_root: pathlib.Path,
     work_dir: pathlib.Path,
@@ -1789,7 +1812,7 @@ def run_update(
     github_token: str | None = None,
     workflow_run_url: str | None = None,
     opener: urllib.request.OpenerDirector | None = None,
-) -> tuple[ReleaseInfo, list[VerifiedBinary], bool]:
+) -> tuple[ReleaseInfo, list[VerifiedBinary], bool, ProvenanceAlerts]:
     upstream = validate_upstream_repo(upstream_repo)
     requested_tag = validate_tag(tag)
     branch = validate_target_branch(target_branch)
@@ -2071,10 +2094,48 @@ def run_update(
                 else:
                     raise UpdaterError(f"Failed writing step summary {step_summary}: {exc}") from exc
 
+    return release_info, verified_binaries, changed, alerts
+
+
+def run_update(
+    *,
+    repo_root: pathlib.Path,
+    work_dir: pathlib.Path,
+    upstream_repo: str = DEFAULT_UPSTREAM_REPO,
+    tag: str = "",
+    release_json: pathlib.Path | None = None,
+    target_branch: str = "develop",
+    pr_body_out: pathlib.Path | None = None,
+    github_output: pathlib.Path | None = None,
+    step_summary: pathlib.Path | None = None,
+    require_all_in_checksums_file: bool = False,
+    allow_downgrade: bool = False,
+    dry_run: bool = False,
+    github_token: str | None = None,
+    workflow_run_url: str | None = None,
+    opener: urllib.request.OpenerDirector | None = None,
+) -> tuple[ReleaseInfo, list[VerifiedBinary], bool]:
+    release_info, verified_binaries, changed, _ = _run_update_detailed(
+        repo_root=repo_root,
+        work_dir=work_dir,
+        upstream_repo=upstream_repo,
+        tag=tag,
+        release_json=release_json,
+        target_branch=target_branch,
+        pr_body_out=pr_body_out,
+        github_output=github_output,
+        step_summary=step_summary,
+        require_all_in_checksums_file=require_all_in_checksums_file,
+        allow_downgrade=allow_downgrade,
+        dry_run=dry_run,
+        github_token=github_token,
+        workflow_run_url=workflow_run_url,
+        opener=opener,
+    )
     return release_info, verified_binaries, changed
 
 
-def _workflow_run_url_from_env() -> str | None:
+def workflow_run_url_from_env() -> str | None:
     server = os.environ.get("GITHUB_SERVER_URL", "").strip()
     repo = os.environ.get("GITHUB_REPOSITORY", "").strip()
     run_id = os.environ.get("GITHUB_RUN_ID", "").strip()
@@ -2201,8 +2262,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         return 1
 
     try:
-        existing_manifest_before = load_provenance_manifest(args.repo_root)
-        release_info, verified, changed = run_update(
+        release_info, verified, changed, alerts = _run_update_detailed(
             repo_root=args.repo_root,
             work_dir=args.work_dir,
             upstream_repo=args.upstream_repo,
@@ -2216,13 +2276,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             allow_downgrade=args.allow_downgrade,
             dry_run=args.dry_run,
             github_token=os.environ.get("GH_TOKEN") or os.environ.get("GITHUB_TOKEN"),
-            workflow_run_url=_workflow_run_url_from_env(),
-        )
-        alerts = evaluate_manifest_transition(
-            existing_manifest_before,
-            release_info,
-            verified,
-            allow_downgrade=args.allow_downgrade,
+            workflow_run_url=workflow_run_url_from_env(),
         )
     except UpdaterError as exc:
         print(f"ERROR: {exc}", file=sys.stderr)
