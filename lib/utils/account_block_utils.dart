@@ -133,11 +133,15 @@ class AccountBlockUtils {
     required String purposeOfGeneratingPlasma,
     required bool waitForRequiredPlasma,
   }) async {
-    final WalletFile? currentWalletFile = _walletFileProvider();
-    if (currentWalletFile == null ||
-        !identical(currentWalletFile, expectedWalletFile)) {
-      throw SyriusException('Wallet is not unlocked.');
+    void throwIfWalletChanged() {
+      final WalletFile? walletNow = _walletFileProvider();
+      if (walletNow == null || !identical(walletNow, expectedWalletFile)) {
+        throw SyriusException('Wallet is not unlocked.');
+      }
     }
+
+    throwIfWalletChanged();
+    final WalletFile currentWalletFile = expectedWalletFile;
 
     final int accountIndex = _addressListProvider().indexOf(resolvedAddressStr);
     if (accountIndex < 0) {
@@ -157,6 +161,7 @@ class AccountBlockUtils {
       // blocked longer than necessary.
       response = await currentWalletFile.access<AccountBlockTemplate>(
         (Wallet wallet) async {
+          throwIfWalletChanged();
           final WalletAccount walletAccount = await wallet.getAccount(
             accountIndex,
           );
@@ -177,9 +182,10 @@ class AccountBlockUtils {
       // generation or network I/O. Per-address frontier sequencing is preserved
       // by _withAddressSendLock.
       final WalletAccount walletAccount = await currentWalletFile
-          .access<WalletAccount>(
-            (Wallet wallet) => wallet.getAccount(accountIndex),
-          );
+          .access<WalletAccount>((Wallet wallet) async {
+            throwIfWalletChanged();
+            return await wallet.getAccount(accountIndex);
+          });
       response = await _prepareAndSend(
         currentZenon: currentZenon,
         walletAccount: walletAccount,

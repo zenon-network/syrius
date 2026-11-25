@@ -624,5 +624,127 @@ void main() {
         expect(attempts, 2);
       },
     );
+
+    test(
+      'aborts software send if wallet locks while waiting for wallet mutex',
+      () async {
+        final Completer<void> holdWalletLock = Completer<void>();
+        WalletFile? activeWallet = softwareWalletFile;
+
+        final Future<void> holder = softwareWalletFile.access<void>(
+          (_) => holdWalletLock.future,
+        );
+        // Ensure holder holds the wallet mutex before starting the send.
+        await Future<void>.delayed(Duration.zero);
+        expect(softwareWalletFile.isOpen, isTrue);
+
+        final AccountBlockUtils utils = buildUtils(
+          walletFileProvider: () => activeWallet,
+        );
+        final Future<AccountBlockTemplate> sendFuture = utils
+            .createAccountBlock(
+              AccountBlockTemplate(blockType: BlockTypeEnum.userSend.index),
+              'waiting-on-wallet-mutex',
+              address: address0,
+            );
+        final Future<void> expectFailure = expectLater(
+          sendFuture,
+          throwsA(
+            isA<SyriusException>().having(
+              (SyriusException e) => e.message,
+              'message',
+              contains('Wallet is not unlocked'),
+            ),
+          ),
+        );
+
+        // Let createAccountBlock pass syncInfo and park on walletFile.open().
+        await Future<void>.delayed(Duration.zero);
+        expect(softwareWalletFile.openCalls, 1);
+        expect(fakeWallet.requestedIndices, isEmpty);
+
+        // Lock the wallet while the send is parked waiting on the wallet mutex.
+        activeWallet = null;
+        holdWalletLock.complete();
+
+        await holder;
+        await expectFailure;
+        expect(softwareWalletFile.isOpen, isFalse);
+        expect(fakeWallet.requestedIndices, isEmpty);
+        verifyNever(
+          () => mockZenon.send(
+            any(),
+            currentKeyPair: any(named: 'currentKeyPair'),
+            generatingPowCallback: any(named: 'generatingPowCallback'),
+            waitForRequiredPlasma: any(named: 'waitForRequiredPlasma'),
+          ),
+        );
+      },
+    );
+
+    test(
+      'aborts hardware send if wallet is replaced while waiting for wallet '
+      'mutex',
+      () async {
+        final _LockingWalletFile hardwareWalletFile = _LockingWalletFile(
+          fakeWallet,
+          isHardwareWallet: true,
+        );
+        final _LockingWalletFile replacementWalletFile = _LockingWalletFile(
+          fakeWallet,
+          isHardwareWallet: true,
+        );
+        final Completer<void> holdWalletLock = Completer<void>();
+        WalletFile? activeWallet = hardwareWalletFile;
+
+        final Future<void> holder = hardwareWalletFile.access<void>(
+          (_) => holdWalletLock.future,
+        );
+        await Future<void>.delayed(Duration.zero);
+        expect(hardwareWalletFile.isOpen, isTrue);
+
+        final AccountBlockUtils utils = buildUtils(
+          walletFileProvider: () => activeWallet,
+        );
+        final Future<AccountBlockTemplate> sendFuture = utils
+            .createAccountBlock(
+              AccountBlockTemplate(blockType: BlockTypeEnum.userSend.index),
+              'hw-waiting-on-wallet-mutex',
+              address: address0,
+            );
+        final Future<void> expectFailure = expectLater(
+          sendFuture,
+          throwsA(
+            isA<SyriusException>().having(
+              (SyriusException e) => e.message,
+              'message',
+              contains('Wallet is not unlocked'),
+            ),
+          ),
+        );
+
+        // Let createAccountBlock pass syncInfo and park on walletFile.open().
+        await Future<void>.delayed(Duration.zero);
+        expect(hardwareWalletFile.openCalls, 1);
+        expect(fakeWallet.requestedIndices, isEmpty);
+
+        // Replace wallet while the hardware send waits on the wallet mutex.
+        activeWallet = replacementWalletFile;
+        holdWalletLock.complete();
+
+        await holder;
+        await expectFailure;
+        expect(hardwareWalletFile.isOpen, isFalse);
+        expect(fakeWallet.requestedIndices, isEmpty);
+        verifyNever(
+          () => mockZenon.send(
+            any(),
+            currentKeyPair: any(named: 'currentKeyPair'),
+            generatingPowCallback: any(named: 'generatingPowCallback'),
+            waitForRequiredPlasma: any(named: 'waitForRequiredPlasma'),
+          ),
+        );
+      },
+    );
   });
 }
