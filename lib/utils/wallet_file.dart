@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:hex/hex.dart';
 import 'package:mutex/mutex.dart';
@@ -8,10 +9,13 @@ import 'package:znn_ledger_dart/znn_ledger_dart.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 abstract class WalletFile {
-
   WalletFile(this._path);
   final String _path;
   static int _tmpFileCounter = 0;
+
+  /// Keystore files are a few KB; anything far larger is a mistaken
+  /// drop/pick and would freeze the UI thread in readAsStringSync.
+  static const int maxWalletFileSizeBytes = 1024 * 1024;
 
   static Future<WalletFile> decrypt(String walletPath, String password) async {
     final EncryptedFile encrypted = await WalletFile.read(walletPath);
@@ -32,7 +36,43 @@ abstract class WalletFile {
     if (!file.existsSync()) {
       throw WalletException('Given wallet path does not exist ($walletPath)');
     }
-    return EncryptedFile.fromJson(json.decode(file.readAsStringSync()));
+    // Bound the read through a single open handle: a file swapped for a
+    // larger one between a length check and the read must still be
+    // caught before decoding, and the allocation is capped at
+    // maxWalletFileSizeBytes + 1.
+    final RandomAccessFile reader = file.openSync();
+    final Uint8List bytes;
+    try {
+      // readSync may return fewer bytes than requested without being at
+      // EOF, so accumulate from the same handle until EOF or until the
+      // bound is exceeded.
+      final BytesBuilder builder = BytesBuilder();
+      int total = 0;
+      while (total <= maxWalletFileSizeBytes) {
+        final Uint8List chunk = reader.readSync(
+          maxWalletFileSizeBytes + 1 - total,
+        );
+        if (chunk.isEmpty) {
+          break;
+        }
+        builder.add(chunk);
+        total += chunk.length;
+      }
+      bytes = builder.toBytes();
+    } finally {
+      reader.closeSync();
+    }
+    if (bytes.length > maxWalletFileSizeBytes) {
+      throw WalletException(
+        'Wallet file is too large (over $maxWalletFileSizeBytes bytes) — '
+        'is this a keystore file?',
+      );
+    }
+    final Object? decoded = json.decode(utf8.decode(bytes));
+    if (decoded is! Map<String, dynamic>) {
+      throw const FormatException('Invalid keystore file format');
+    }
+    return EncryptedFile.fromJson(decoded);
   }
 
   static Future<void> write(String walletPath, String password, List<int> data,

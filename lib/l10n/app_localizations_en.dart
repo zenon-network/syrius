@@ -2527,7 +2527,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get otherWalletOptions => 'Other wallet options';
 
   @override
-  String get passwordRequirementsInfo =>
+  String get useStrongPasswordRequirements =>
       'Use a password that has at least 8 characters, one number, one uppercase letter, one lowercase letter and one symbol';
 
   @override
@@ -2684,4 +2684,162 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get willSecurelyStoreSeedVault =>
       'I will securely store the Seed Vault & Seed Vault Key';
+
+  @override
+  String get accessWallet => 'Access wallet';
+
+  @override
+  String attemptsLeft(int count) {
+    return '$count attempts left';
+  }
+
+  @override
+  String get backedUpSeedInSafeLocation =>
+      'I have backed up my seed in a safe location';
+
+  @override
+  String get chooseYourDevice => 'Choose your device';
+
+  @override
+  String confirmAddressAccountIndex(int index) {
+    return 'Confirm address for account index: $index';
+  }
+
+  @override
+  String get confirmYourSeed => 'Confirm your seed';
+
+  @override
+  String get connectAndUnlockYourDevice =>
+      'Please connect and unlock your device';
+
+  @override
+  String get createWallet => 'Create wallet';
+
+  @override
+  String get createWalletPassword => 'Create a wallet password';
+
+  @override
+  String get deviceNotConnectedTryAgain =>
+      'Not connected, please connect the device and try again.';
+
+  @override
+  String get dragAndDropWordsCorrectOrder =>
+      'Drag & drop the words in the correct order';
+
+  @override
+  String get dragAndDropWordsOnEmptyOrIncorrect =>
+      'You can drag & drop words on empty boxes or incorrect words';
+
+  @override
+  String get enterPasswordToAccessWallet =>
+      'Enter the password to access the wallet';
+
+  @override
+  String errorWithMessage(String message) {
+    return 'Error: $message';
+  }
+
+  @override
+  String get exportSeed => 'Export Seed';
+
+  @override
+  String get generatingPlasma => 'Generating Plasma';
+
+  @override
+  String get hardwareWallet => 'Hardware wallet';
+
+  @override
+  String get importWallet => 'Import wallet';
+
+  @override
+  String get importYourWallet => 'Import your wallet';
+
+  @override
+  String get importingSeed => 'Importing seed';
+
+  @override
+  String get initializingWalletPleaseWait => 'Initializing wallet, please wait';
+
+  @override
+  String get inputSeedOrImportSeedVault =>
+      'Input your seed or import the Seed Vault';
+
+  @override
+  String get inputSeedVaultKeyToContinue =>
+      'Input the Seed Vault Key to continue';
+
+  @override
+  String get lastAttemptWalletWillReset =>
+      'Last attempt. The wallet will be reset if this attempt fails';
+
+  @override
+  String ledgerWithDetails(String details) {
+    return 'Ledger: $details';
+  }
+
+  @override
+  String ledgerWithName(String name) {
+    return 'Ledger $name';
+  }
+
+  @override
+  String get mnemonicIsNotValid => 'Mnemonic is not valid';
+
+  @override
+  String get ok => 'OK';
+
+  @override
+  String get passwordRequiredToUnlockWallet =>
+      'This is the password that will be required to unlock the wallet';
+
+  @override
+  String get plasmaGenerationIdle => 'Plasma generation idle';
+
+  @override
+  String get resolvingAddressConfirmOnDevice =>
+      'Resolving address, please confirm the address on your hardware device';
+
+  @override
+  String get scanDevices => 'Scan devices';
+
+  @override
+  String get selectOptionToAccessWallet =>
+      'Select an option to access your wallet';
+
+  @override
+  String get selectToConnectDevice => 'Select to connect the device';
+
+  @override
+  String thisIsYourWordsSeed(int wordCount) {
+    return 'This is your $wordCount words seed';
+  }
+
+  @override
+  String get unlockFailed => 'Unlock failed';
+
+  @override
+  String get unlockYourSeedVault => 'Unlock your Seed Vault';
+
+  @override
+  String get unsupportedWalletFileType => 'Unsupported wallet file type';
+
+  @override
+  String get walletSuccessfullyCreated =>
+      'The wallet has been successfully created';
+
+  @override
+  String get welcome => 'Welcome';
+
+  @override
+  String get welcomeBack => 'Welcome Back';
+
+  @override
+  String get writeDownAndExportSeedSafely =>
+      'Please carefully write down your seed and export it to a safe location';
+
+  @override
+  String get writtenDownMySeed => 'I have written down my seed';
+
+  @override
+  String get youAreAllSet => 'You\'re all set';
 }

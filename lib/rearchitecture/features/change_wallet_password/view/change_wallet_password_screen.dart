@@ -104,7 +104,7 @@ class _ViewState extends State<_View> {
                     canSubmit: canSubmit,
                   ),
                   DottedBorderInfoWidget(
-                    text: context.l10n.passwordRequirementsInfo,
+                    text: context.l10n.useStrongPasswordRequirements,
                   ),
                   _buildActionButtons(
                     context: context,

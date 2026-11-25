@@ -1161,7 +1161,7 @@
   "nonAlphanetChainIdentifier": "Non-alphanet chain identifier",
   "normal": "Normal",
   "otherWalletOptions": "Other wallet options",
-  "passwordRequirementsInfo": "Use a password that has at least 8 characters, one number, one uppercase letter, one lowercase letter and one symbol",
+  "useStrongPasswordRequirements": "Use a password that has at least 8 characters, one number, one uppercase letter, one lowercase letter and one symbol",
   "pasteFromClipboard": "Paste from clipboard",
   "peers": "Peers",
   "peersAvailable": "Peers available",
@@ -1242,5 +1242,103 @@
   "verifyFile": "Verify file",
   "walletAppearanceAndThemeSettings": "Wallet appearance and theme settings",
   "walletOptions": "Wallet Options",
-  "willSecurelyStoreSeedVault": "I will securely store the Seed Vault & Seed Vault Key"
+  "willSecurelyStoreSeedVault": "I will securely store the Seed Vault & Seed Vault Key",
+  "accessWallet": "Access wallet",
+  "attemptsLeft": "{count} attempts left",
+  "@attemptsLeft": {
+    "description": "Displays the number of unlock attempts remaining before wallet reset.",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "3"
+      }
+    }
+  },
+  "backedUpSeedInSafeLocation": "I have backed up my seed in a safe location",
+  "chooseYourDevice": "Choose your device",
+  "confirmAddressAccountIndex": "Confirm address for account index: {index}",
+  "@confirmAddressAccountIndex": {
+    "description": "Prompts the user to confirm the address for a hardware wallet account index.",
+    "placeholders": {
+      "index": {
+        "type": "int",
+        "example": "0"
+      }
+    }
+  },
+  "confirmYourSeed": "Confirm your seed",
+  "connectAndUnlockYourDevice": "Please connect and unlock your device",
+  "createWallet": "Create wallet",
+  "createWalletPassword": "Create a wallet password",
+  "deviceNotConnectedTryAgain": "Not connected, please connect the device and try again.",
+  "dragAndDropWordsCorrectOrder": "Drag & drop the words in the correct order",
+  "dragAndDropWordsOnEmptyOrIncorrect": "You can drag & drop words on empty boxes or incorrect words",
+  "enterPasswordToAccessWallet": "Enter the password to access the wallet",
+  "errorWithMessage": "Error: {message}",
+  "@errorWithMessage": {
+    "description": "Displays a generic error prefix followed by the error message.",
+    "placeholders": {
+      "message": {
+        "type": "String",
+        "example": "Connection failed"
+      }
+    }
+  },
+  "exportSeed": "Export Seed",
+  "generatingPlasma": "Generating Plasma",
+  "hardwareWallet": "Hardware wallet",
+  "importWallet": "Import wallet",
+  "importYourWallet": "Import your wallet",
+  "importingSeed": "Importing seed",
+  "initializingWalletPleaseWait": "Initializing wallet, please wait",
+  "inputSeedOrImportSeedVault": "Input your seed or import the Seed Vault",
+  "inputSeedVaultKeyToContinue": "Input the Seed Vault Key to continue",
+  "lastAttemptWalletWillReset": "Last attempt. The wallet will be reset if this attempt fails",
+  "ledgerWithDetails": "Ledger: {details}",
+  "@ledgerWithDetails": {
+    "description": "Displays a Ledger error prefix followed by the error details.",
+    "placeholders": {
+      "details": {
+        "type": "String",
+        "example": "Device locked"
+      }
+    }
+  },
+  "ledgerWithName": "Ledger {name}",
+  "@ledgerWithName": {
+    "description": "Displays a Ledger hardware device label with its name.",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "Nano X"
+      }
+    }
+  },
+  "mnemonicIsNotValid": "Mnemonic is not valid",
+  "ok": "OK",
+  "passwordRequiredToUnlockWallet": "This is the password that will be required to unlock the wallet",
+  "plasmaGenerationIdle": "Plasma generation idle",
+  "resolvingAddressConfirmOnDevice": "Resolving address, please confirm the address on your hardware device",
+  "scanDevices": "Scan devices",
+  "selectOptionToAccessWallet": "Select an option to access your wallet",
+  "selectToConnectDevice": "Select to connect the device",
+  "thisIsYourWordsSeed": "This is your {wordCount} words seed",
+  "@thisIsYourWordsSeed": {
+    "description": "Displays the word count of the newly generated wallet seed.",
+    "placeholders": {
+      "wordCount": {
+        "type": "int",
+        "example": "24"
+      }
+    }
+  },
+  "unlockFailed": "Unlock failed",
+  "unlockYourSeedVault": "Unlock your Seed Vault",
+  "unsupportedWalletFileType": "Unsupported wallet file type",
+  "walletSuccessfullyCreated": "The wallet has been successfully created",
+  "welcome": "Welcome",
+  "welcomeBack": "Welcome Back",
+  "writeDownAndExportSeedSafely": "Please carefully write down your seed and export it to a safe location",
+  "writtenDownMySeed": "I have written down my seed",
+  "youAreAllSet": "You're all set"
 }
