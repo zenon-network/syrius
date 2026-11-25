@@ -19,20 +19,16 @@ class ClipboardUtils {
   }
 
   static void copyToClipboard(String stringValue, BuildContext context) {
-    Clipboard.setData(
-      ClipboardData(
-        text: stringValue,
-      ),
-    ).then((_) =>
-        ToastUtils.showToast(context, 'Copied', color: AppColors.znnColor),);
+    Clipboard.setData(ClipboardData(text: stringValue)).then(
+      (_) => ToastUtils.showToast(context, 'Copied', color: AppColors.znnColor),
+    );
   }
 
-  static void pasteToClipboard({
-    required Function(String) callback,
-}) {
+  static void pasteToClipboard({required Function(String) callback}) {
     Clipboard.getData('text/plain').then((ClipboardData? value) async {
-      if (value != null) {
-        callback(value.text!);
+      final String? text = value?.text;
+      if (text != null && text.isNotEmpty) {
+        callback(text);
       } else {
         await NotificationUtils.sendNotificationError(
           Exception('The clipboard data could not be obtained'),

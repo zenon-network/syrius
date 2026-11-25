@@ -10,6 +10,7 @@ class CardScaffoldHeader extends StatelessWidget {
     required this.onMoreIconPressed,
     required this.onRefreshPressed,
     required this.title,
+    this.actions = const <Widget>[],
     super.key,
   });
 
@@ -21,6 +22,9 @@ class CardScaffoldHeader extends StatelessWidget {
 
   /// Optional callback that can be trigger from the refresh icon.
   final VoidCallback? onRefreshPressed;
+
+  /// Optional trailing action widgets shown before the refresh and more icons.
+  final List<Widget> actions;
 
   @override
   Widget build(BuildContext context) {
@@ -47,10 +51,9 @@ class CardScaffoldHeader extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           mainAxisAlignment: MainAxisAlignment.end,
           children: <Widget>[
+            ...actions,
             if (onRefreshPressed != null)
-              RefreshButton(
-                onPressed: onRefreshPressed!,
-              ),
+              RefreshButton(onPressed: onRefreshPressed!),
             IconButton(
               mouseCursor: SystemMouseCursors.click,
               icon: const Icon(Icons.more_horiz),

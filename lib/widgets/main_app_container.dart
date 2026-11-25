@@ -508,7 +508,7 @@ class _MainAppContainerState extends State<MainAppContainer>
               _navigateTo(Tabs.notifications),
         ),
         const HelpTabChild(),
-        const NotificationsTabChild(),
+        const NotificationsCard(),
         SettingsTabChild(
           _onChangeAutoLockTime,
           onStepperNotificationSeeMorePressed: () => _navigateTo(
