@@ -349,6 +349,8 @@ class Web3WalletService extends IWeb3WalletService {
     }
 
     final String? requestedTopic = _extractPairingTopicFromUri(uri);
+    final Set<String> sweptTopicsDuringPair = <String>{};
+    _inFlightPairSweptTopics.add(sweptTopicsDuringPair);
     if (requestedTopic != null) {
       _inFlightPairTopics[requestedTopic] =
           (_inFlightPairTopics[requestedTopic] ?? 0) + 1;
@@ -356,7 +358,6 @@ class Web3WalletService extends IWeb3WalletService {
     }
 
     late final PairingInfo pairing;
-    final Set<String> sweptTopicsDuringPair = <String>{};
     try {
       await _awaitPendingRecoveryRelayReconnect(
         expectedResetGeneration: capturedResetGeneration,
@@ -375,19 +376,35 @@ class Web3WalletService extends IWeb3WalletService {
         }
       }
 
+      if (_isDisposed || _wcClient == null) {
+        throw StateError('WalletConnect client not initialized');
+      }
+      if (_hasActiveOrPendingReset ||
+          _resetGeneration != capturedResetGeneration) {
+        throw StateError(
+          'WalletConnect reset cleanup is in progress or pending; cannot '
+          'create a new pairing until the reset marker is cleared',
+        );
+      }
+      if (requestedTopic != null &&
+          sweptTopicsDuringPair.contains(requestedTopic)) {
+        throw StateError(
+          'WalletConnect reset ran while creating pairing; pairing was aborted',
+        );
+      }
+
       final Completer<void> pairDone = Completer<void>();
       _inFlightPairCalls.add(pairDone.future);
-      _inFlightPairSweptTopics.add(sweptTopicsDuringPair);
       try {
         pairing = await _wcClient!.pair(uri: uri);
         _recordPairingCreationEpoch(pairing.topic);
       } finally {
         _inFlightPairCalls.remove(pairDone.future);
         _timedOutInFlightPairCalls.remove(pairDone.future);
-        _inFlightPairSweptTopics.remove(sweptTopicsDuringPair);
         pairDone.complete();
       }
     } finally {
+      _inFlightPairSweptTopics.remove(sweptTopicsDuringPair);
       if (requestedTopic != null) {
         final int remaining = (_inFlightPairTopics[requestedTopic] ?? 1) - 1;
         if (remaining <= 0) {

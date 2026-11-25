@@ -5900,6 +5900,9 @@ void main() {
         ) async {
           final Uri uri = i.namedArguments[#uri] as Uri;
           final String topic = uri.path.split('@').first;
+          if (topic == 'topic-t') {
+            expect(releaseOrphanXDisconnect.isCompleted, isTrue);
+          }
           final PairingInfo created = PairingInfo(
             topic: topic,
             expiry: now + 3600,
@@ -5929,6 +5932,7 @@ void main() {
         final Future<PairingInfo> callAFuture = service.pair(
           Uri.parse('wc:other-a@2?relay-protocol=irn&symKey=111'),
         );
+        unawaited(callAFuture.then<void>((_) {}, onError: (Object _) {}));
         await orphanXDisconnectStarted.future;
 
         // Call B targets topic-t. As Call B finishes _cleanupStalePairings and
@@ -5947,6 +5951,266 @@ void main() {
           livePairings.map((PairingInfo p) => p.topic),
           contains('topic-t'),
         );
+      },
+    );
+
+    test('blocks pair() before SDK admission when disconnectEverything() '
+        'starts during a no-op pre-pair await microtask', () async {
+      final Map<String, Map<String, dynamic>> persistedStorage =
+          <String, Map<String, dynamic>>{};
+      late final Web3WalletService service;
+      bool triggerResetOnNextReload = false;
+      Future<void>? resetFuture;
+
+      when(() => coreStorage.has(any())).thenAnswer(
+        (Invocation i) =>
+            persistedStorage.containsKey(i.positionalArguments[0]),
+      );
+      when(() => coreStorage.get(any())).thenAnswer(
+        (Invocation i) => persistedStorage[i.positionalArguments[0]],
+      );
+      when(() => coreStorage.set(any(), any())).thenAnswer((
+        Invocation i,
+      ) async {
+        persistedStorage[i.positionalArguments[0]
+            as String] = Map<String, dynamic>.from(
+          i.positionalArguments[1] as Map<String, dynamic>,
+        );
+      });
+      when(() => coreStorage.delete(any())).thenAnswer((Invocation i) async {
+        persistedStorage.remove(i.positionalArguments[0] as String);
+      });
+      when(pairingStore.getAll).thenAnswer((_) {
+        // _cleanupStalePairings ends with _reloadStores(), which calls
+        // pairingStore.getAll(). Two microtasks later, pair() is yielding
+        // inside its pre-pair awaits.
+        if (triggerResetOnNextReload) {
+          triggerResetOnNextReload = false;
+          scheduleMicrotask(
+            () => scheduleMicrotask(() {
+              resetFuture = service.disconnectEverything();
+            }),
+          );
+        }
+        return const <PairingInfo>[];
+      });
+
+      service = buildService();
+      addTearDown(service.onDispose);
+      service.create();
+      await service.init();
+
+      triggerResetOnNextReload = true;
+      await expectLater(
+        service.pair(
+          Uri.parse('wc:pre-pair-reset@2?relay-protocol=irn&symKey=def'),
+        ),
+        throwsStateError,
+      );
+      expect(resetFuture, isNotNull);
+      await resetFuture;
+
+      verifyNever(() => walletKit.pair(uri: any(named: 'uri')));
+    });
+
+    test(
+      'blocks SDK admission when disconnectAllPairings() sweeps the requested '
+      'topic during pre-pair waits, but allows unrelated topic sweeps',
+      () async {
+        final int now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+        final Map<String, Map<String, dynamic>> persistedStorage =
+            <String, Map<String, dynamic>>{};
+        final List<PairingInfo> livePairings = <PairingInfo>[];
+        final Completer<void> sdkPairStarted = Completer<void>();
+        final Completer<void> relaySubscribeResponse = Completer<void>();
+        Completer<void> relayConnectCompleter = Completer<void>();
+        int sdkPairCallsForTarget = 0;
+
+        when(() => coreStorage.has(any())).thenAnswer(
+          (Invocation i) =>
+              persistedStorage.containsKey(i.positionalArguments[0]),
+        );
+        when(() => coreStorage.get(any())).thenAnswer(
+          (Invocation i) => persistedStorage[i.positionalArguments[0]],
+        );
+        when(() => coreStorage.set(any(), any())).thenAnswer((
+          Invocation i,
+        ) async {
+          persistedStorage[i.positionalArguments[0]
+              as String] = Map<String, dynamic>.from(
+            i.positionalArguments[1] as Map<String, dynamic>,
+          );
+        });
+        when(() => coreStorage.delete(any())).thenAnswer((Invocation i) async {
+          persistedStorage.remove(i.positionalArguments[0] as String);
+        });
+        when(
+          pairingStore.getAll,
+        ).thenAnswer((_) => List<PairingInfo>.from(livePairings));
+        when(() => pairing.disconnect(topic: any(named: 'topic'))).thenAnswer((
+          Invocation i,
+        ) async {
+          final String topic = i.namedArguments[#topic] as String;
+          livePairings.removeWhere((PairingInfo p) => p.topic == topic);
+        });
+        when(() => relayClient.disconnect()).thenAnswer((_) async {
+          if (!relaySubscribeResponse.isCompleted) {
+            relaySubscribeResponse.completeError(
+              StateError('relay socket closed'),
+            );
+          }
+        });
+        when(
+          () => relayClient.connect(),
+        ).thenAnswer((_) => relayConnectCompleter.future);
+        when(() => walletKit.pair(uri: any(named: 'uri'))).thenAnswer((
+          Invocation i,
+        ) async {
+          final Uri uri = i.namedArguments[#uri] as Uri;
+          final String topic = uri.path.split('@').first;
+          final PairingInfo created = PairingInfo(
+            topic: topic,
+            expiry: now + 3600,
+            relay: Relay(ReownConstants.RELAYER_DEFAULT_PROTOCOL),
+            active: false,
+          );
+          if (topic == 'hung-seed') {
+            livePairings.add(created);
+            if (!sdkPairStarted.isCompleted) {
+              sdkPairStarted.complete();
+            }
+            await relaySubscribeResponse.future;
+          } else if (topic == 'swept-t' || topic == 'allowed-t') {
+            sdkPairCallsForTarget++;
+            livePairings.add(created);
+          }
+          return created;
+        });
+
+        final Web3WalletService service = Web3WalletService(
+          walletKit: walletKit,
+          chainResolver: (String _) => nomService,
+          inFlightPairWaitTimeout: const Duration(milliseconds: 50),
+        );
+        addTearDown(() async {
+          if (!relaySubscribeResponse.isCompleted) {
+            relaySubscribeResponse.complete();
+          }
+          if (!relayConnectCompleter.isCompleted) {
+            relayConnectCompleter.complete();
+          }
+          await service.onDispose();
+        });
+        service.create();
+        await service.init();
+
+        // Trigger a recovery reset that leaves relayClient.connect() pending so
+        // the next pair() pauses inside _awaitPendingRecoveryRelayReconnect().
+        final Future<PairingInfo> hungSeed = service.pair(
+          Uri.parse('wc:hung-seed@2?relay-protocol=irn&symKey=def'),
+        );
+        final Future<void> hungSeedExpectation = expectLater(
+          hungSeed,
+          throwsStateError,
+        );
+        await sdkPairStarted.future;
+        await expectLater(
+          service.disconnectEverything(),
+          throwsA(isA<TimeoutException>()),
+        );
+        await service.disconnectEverything();
+        await hungSeedExpectation;
+
+        // Case 1: Sweeping the requested topic 'swept-t' during the reconnect
+        // wait must stop pair() before SDK admission.
+        livePairings.add(
+          PairingInfo(
+            topic: 'swept-t',
+            expiry: now + 3600,
+            relay: Relay(ReownConstants.RELAYER_DEFAULT_PROTOCOL),
+            active: true,
+          ),
+        );
+        final Future<PairingInfo> sweptPairFuture = service.pair(
+          Uri.parse('wc:swept-t@2?relay-protocol=irn&symKey=aaa'),
+        );
+        await Future<void>.delayed(Duration.zero);
+
+        await service.disconnectAllPairings();
+        relayConnectCompleter.complete();
+
+        await expectLater(sweptPairFuture, throwsStateError);
+        expect(sdkPairCallsForTarget, equals(0));
+        expect(livePairings, isEmpty);
+
+        // Case 2: Sweeping an unrelated topic 'unrelated-u' during the wait
+        // must NOT stop pair() for 'allowed-t'.
+        final Completer<void> secondSubscribe = Completer<void>();
+        final Completer<void> secondSeedStarted = Completer<void>();
+        relayConnectCompleter = Completer<void>();
+        when(() => relayClient.disconnect()).thenAnswer((_) async {
+          if (!secondSubscribe.isCompleted) {
+            secondSubscribe.completeError(StateError('relay socket closed'));
+          }
+        });
+        when(() => walletKit.pair(uri: any(named: 'uri'))).thenAnswer((
+          Invocation i,
+        ) async {
+          final Uri uri = i.namedArguments[#uri] as Uri;
+          final String topic = uri.path.split('@').first;
+          final PairingInfo created = PairingInfo(
+            topic: topic,
+            expiry: now + 3600,
+            relay: Relay(ReownConstants.RELAYER_DEFAULT_PROTOCOL),
+            active: false,
+          );
+          if (topic == 'hung-seed-2') {
+            livePairings.add(created);
+            if (!secondSeedStarted.isCompleted) {
+              secondSeedStarted.complete();
+            }
+            await secondSubscribe.future;
+          } else if (topic == 'allowed-t') {
+            sdkPairCallsForTarget++;
+            livePairings.add(created);
+          }
+          return created;
+        });
+
+        final Future<PairingInfo> hungSeed2 = service.pair(
+          Uri.parse('wc:hung-seed-2@2?relay-protocol=irn&symKey=def'),
+        );
+        final Future<void> hungSeed2Expectation = expectLater(
+          hungSeed2,
+          throwsStateError,
+        );
+        await secondSeedStarted.future;
+        await expectLater(
+          service.disconnectEverything(),
+          throwsA(isA<TimeoutException>()),
+        );
+        await service.disconnectEverything();
+        await hungSeed2Expectation;
+
+        livePairings.add(
+          PairingInfo(
+            topic: 'unrelated-u',
+            expiry: now + 3600,
+            relay: Relay(ReownConstants.RELAYER_DEFAULT_PROTOCOL),
+            active: true,
+          ),
+        );
+        final Future<PairingInfo> allowedPairFuture = service.pair(
+          Uri.parse('wc:allowed-t@2?relay-protocol=irn&symKey=bbb'),
+        );
+        await Future<void>.delayed(Duration.zero);
+
+        await service.disconnectAllPairings();
+        relayConnectCompleter.complete();
+
+        final PairingInfo created = await allowedPairFuture;
+        expect(created.topic, equals('allowed-t'));
+        expect(sdkPairCallsForTarget, equals(1));
       },
     );
   });
