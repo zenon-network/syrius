@@ -1,3 +1,4 @@
+export 'bloc/hardware_wallet_device_bloc.dart';
 export 'bloc/key_store_file_bloc.dart';
 export 'bloc/ledger_wallet_file_bloc.dart';
 export 'view/access_wallet_screen.dart';

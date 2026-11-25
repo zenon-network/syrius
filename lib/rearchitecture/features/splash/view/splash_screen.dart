@@ -1,170 +1,177 @@
 import 'dart:async';
-import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:hive_ce/hive_ce.dart';
-import 'package:logging/logging.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lottie/lottie.dart';
-import 'package:reown_walletkit/reown_walletkit.dart';
-import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
-import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/model/model.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
-import 'package:zenon_syrius_wallet_flutter/services/i_web3wallet_service.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 
-class SplashScreen extends StatefulWidget {
+/// Animated startup screen coordinating app initialization, cache deletion,
+/// and wallet reset flows.
+class SplashScreen extends StatelessWidget {
+  /// Creates a [SplashScreen].
+  const SplashScreen({
+    this._resetWalletFlow = false,
+    this._deleteCacheFlow = false,
+    this._splashBloc,
+    this._compositionFuture,
+    this._initApp,
+    super.key,
+  });
+
+  /// Named route for [SplashScreen].
   static const String route = 'splash-screen';
 
-  final bool resetWalletFlow;
-  final bool deleteCacheFlow;
-
-  const SplashScreen({
-    this.resetWalletFlow = false,
-    this.deleteCacheFlow = false,
-    Key? key,
-  }) : super(key: key);
+  final bool _resetWalletFlow;
+  final bool _deleteCacheFlow;
+  final SplashBloc? _splashBloc;
+  final Future<LottieComposition>? _compositionFuture;
+  final Future<void> Function(BuildContext context)? _initApp;
 
   @override
-  State<SplashScreen> createState() => _SplashScreenState();
+  Widget build(BuildContext context) {
+    final SplashFlow flow = _resetWalletFlow
+        ? SplashFlow.resetWallet
+        : _deleteCacheFlow
+        ? SplashFlow.deleteCache
+        : SplashFlow.normal;
+
+    final Widget view = _View(
+      flow: flow,
+      compositionFuture: _compositionFuture,
+      initApp: _initApp ?? InitUtils.initApp,
+    );
+
+    final SplashBloc? injectedBloc = _splashBloc;
+    if (injectedBloc != null) {
+      return BlocProvider<SplashBloc>.value(value: injectedBloc, child: view);
+    }
+
+    return BlocProvider<SplashBloc>(create: (_) => SplashBloc(), child: view);
+  }
 }
 
-class _SplashScreenState extends State<SplashScreen> {
+class _View extends StatefulWidget {
+  const _View({
+    required this._flow,
+    required this._initApp,
+    this._compositionFuture,
+  });
+
+  final SplashFlow _flow;
+  final Future<void> Function(BuildContext context) _initApp;
+  final Future<LottieComposition>? _compositionFuture;
+
+  @override
+  State<_View> createState() => _ViewState();
+}
+
+class _ViewState extends State<_View> {
   late final Future<LottieComposition> _composition;
+  Timer? _initTimer;
+  bool _initScheduled = false;
 
   @override
   void initState() {
     super.initState();
-    _composition = AssetLottie('assets/lottie/ic_anim_splash.json').load();
+    _composition =
+        widget._compositionFuture ??
+        AssetLottie('assets/lottie/ic_anim_splash.json').load();
+    unawaited(_scheduleInitializationOnLoad());
+  }
+
+  Future<void> _scheduleInitializationOnLoad() async {
+    try {
+      final LottieComposition composition = await _composition;
+      if (!mounted || _initScheduled) {
+        return;
+      }
+      _initScheduled = true;
+      _initTimer = Timer(composition.duration, () {
+        if (!mounted) {
+          return;
+        }
+        _startSplashFlow();
+      });
+    } on Object catch (_) {
+      if (!mounted || _initScheduled) {
+        return;
+      }
+      _initScheduled = true;
+      _startSplashFlow();
+    }
+  }
+
+  void _startSplashFlow() {
+    context.read<SplashBloc>().add(
+      SplashStarted(
+        flow: widget._flow,
+        initApp: () async {
+          if (mounted) {
+            await widget._initApp(context);
+          }
+        },
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<LottieComposition>(
-      future: _composition,
-      builder: (context, snapshot) {
-        var composition = snapshot.data;
-        if (composition != null) {
-          Future.delayed(composition.duration, () {
-            _splashInits();
-          });
-          return Lottie(
-            composition: composition,
-            repeat: false,
-          );
-        } else {
-          return const Center(child: CircularProgressIndicator());
-        }
-      },
+    return BlocListener<SplashBloc, SplashState>(
+      listener: _onSplashStateChanged,
+      child: FutureBuilder<LottieComposition>(
+        future: _composition,
+        builder:
+            (BuildContext context, AsyncSnapshot<LottieComposition> snapshot) {
+              final LottieComposition? composition = snapshot.data;
+              if (composition != null) {
+                return Lottie(composition: composition, repeat: false);
+              }
+              return const Center(child: CircularProgressIndicator());
+            },
+      ),
     );
   }
 
-  Future<void> _splashInits() async {
-    try {
-      widget.resetWalletFlow
-          ? await _resetWallet()
-          : widget.deleteCacheFlow
-          ? await _deleteCache().then((value) => exit(0))
-          : await InitUtils.initApp(context);
-      _navigateToNextScreen();
-    } on Exception catch (e) {
-      Navigator.pushReplacementNamed(
-        context,
-        SyriusErrorWidget.route,
-        arguments: CustomSyriusErrorWidgetArguments(e.toString()),
-      );
+  void _onSplashStateChanged(BuildContext context, SplashState state) {
+    switch (state) {
+      case SplashNavigateTo(:final SplashDestination destination):
+        _navigateTo(context, destination);
+      case SplashFailure(:final Object error):
+        Navigator.pushReplacementNamed(
+          context,
+          SyriusErrorWidget.route,
+          arguments: CustomSyriusErrorWidgetArguments(error.toString()),
+        );
+      case SplashInitial():
+      case SplashInProgress():
+      case SplashCacheDeleted():
+        break;
     }
   }
 
-  void _navigateToNextScreen() {
-    return kWalletPath != null
-        ? _checkForDefaultNode()
-        : Navigator.pushReplacementNamed(
-            context,
-            AccessWalletScreen.route,
-          );
-  }
-
-  void _navigateToHomeScreen() {
-    Navigator.of(
-      context,
-      rootNavigator: true,
-    ).pushReplacementNamed(MainAppContainer.route);
-  }
-
-  void _navigateToNodeManagementScreen() {
-    Navigator.of(
-      context,
-      rootNavigator: true,
-    ).pushReplacementNamed(NodeManagementScreen.route);
-  }
-
-  Future<void> _resetWallet() async {
-    // In case the notification was not dismissed, we add a null value to be ignored
-    // after the user creates or imports a new wallet
-    kWalletInitCompleted = false;
-    await sl.get<NotificationsBloc>().addNotification(null);
-    NodeUtils.stopWebSocketClient();
-    if (sl<AutoReceiveTxWorker>().pool.isNotEmpty) {
-      sl<AutoReceiveTxWorker>().pool.clear();
-    }
-    await _deleteCache();
-    await _deleteHtlcSwapsData();
-    await _deleteWalletFile();
-    if (!mounted) return;
-    await InitUtils.initApp(context);
-  }
-
-  Future<void> _deleteHtlcSwapsData() async {
-    await sl<HtlcSwapLocalStorageApi>().deleteDatabase();
-    await sl<LegacyHtlcSwapsMigrator>().deleteLegacyBoxesOnReset();
-  }
-
-  Future<void> _deleteCache() async {
-    await sl<HtlcSwapSyncService>().stop();
-    await sl<HtlcSwapLocalStorageApi>().close();
-    await Hive.close();
-    await Future.forEach<String>(
-      kCacheBoxesToBeDeleted,
-      (boxName) async => await Hive.deleteBoxFromDisk(boxName),
-    );
-    await _deleteWeb3Cache();
-  }
-
-  Future<void> _deleteWeb3Cache() async {
-    try {
-      final IWeb3WalletService web3WalletService = sl<IWeb3WalletService>();
-      for (final PairingInfo pairing in web3WalletService.pairings.value) {
-        await web3WalletService.deactivatePairing(topic: pairing.topic);
-      }
-    } catch (e, stackTrace) {
-      Logger(
-        'SplashScreen',
-      ).log(Level.WARNING, '_deleteWeb3Cache', e, stackTrace);
+  void _navigateTo(BuildContext context, SplashDestination destination) {
+    switch (destination) {
+      case SplashDestination.accessWallet:
+        Navigator.pushReplacementNamed(context, AccessWalletScreen.route);
+      case SplashDestination.home:
+        Navigator.of(
+          context,
+          rootNavigator: true,
+        ).pushReplacementNamed(MainAppContainer.route);
+      case SplashDestination.nodeManagement:
+        Navigator.of(
+          context,
+          rootNavigator: true,
+        ).pushReplacementNamed(NodeManagementScreen.route);
     }
   }
-
-  Future<void> _deleteWalletFile() async {
-    await Hive.deleteBoxFromDisk(kKeyStoreBox);
-    if (kWalletFile != null) kWalletFile!.close();
-    kWalletFile = null;
-    if (kWalletPath != null) {
-      await FileUtils.deleteFile(kWalletPath!);
-      kWalletPath = null;
-    }
-  }
-
-  void _checkForDefaultNode() =>
-      sharedPrefsService!.get(
-            kSelectedNodeKey,
-          ) !=
-          null
-      ? _navigateToHomeScreen()
-      : _navigateToNodeManagementScreen();
 
   @override
   void dispose() {
+    _initTimer?.cancel();
     super.dispose();
   }
 }

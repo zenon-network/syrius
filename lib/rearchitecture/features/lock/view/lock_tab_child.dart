@@ -1,134 +1,119 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_vector_icons/flutter_vector_icons.dart';
-import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/extensions.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/init_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/navigation_utils.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/notification_utils.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/wallet_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
-import 'package:znn_ledger_dart/znn_ledger_dart.dart';
-import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
-class LockTabChild extends StatefulWidget {
+/// Lock screen tab requiring the wallet password before accessing the wallet.
+class LockTabChild extends StatelessWidget {
+  /// Creates a [LockTabChild].
   const LockTabChild(
-    this.afterUnlockCallback,
-    this.afterInitCallback, {
+    this._afterUnlockCallback,
+    this._afterInitCallback, {
+    this._unlockBloc,
     super.key,
   });
-  final Future<void> Function(String) afterUnlockCallback;
-  final Function() afterInitCallback;
 
-  @override
-  State<LockTabChild> createState() => _LockTabChildState();
-}
-
-class _LockTabChildState extends State<LockTabChild> {
-  final TextEditingController _passwordController = TextEditingController();
-
-  String _messageToUser = '';
-
-  final GlobalKey<LoadingButtonState> _actionButtonKey = GlobalKey();
-
-  LoadingButton? _actionButton;
-
-  @override
-  void initState() {
-    super.initState();
-    _actionButton = _getActionButton();
-  }
+  final Future<void> Function(String) _afterUnlockCallback;
+  final void Function() _afterInitCallback;
+  final WalletUnlockBloc? _unlockBloc;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      color: Theme.of(context).colorScheme.primary,
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: <Widget>[
-          const Icon(
-            Fontisto.locked,
-            color: AppColors.znnColor,
-            size: 50,
-          ),
-          const SizedBox(
-            height: 40,
-          ),
-          Text(
-            'Welcome Back',
-            style: Theme.of(context).textTheme.headlineMedium,
-          ),
-          const SizedBox(
-            height: 20,
-          ),
-          Text(
-            'Enter the password to access the wallet',
-            style: Theme.of(context).textTheme.headlineSmall,
-          ),
-          const SizedBox(
-            height: 40,
-          ),
-          Row(
+    final WalletUnlockBloc? injectedBloc = _unlockBloc;
+    if (injectedBloc != null) {
+      return BlocProvider<WalletUnlockBloc>.value(
+        value: injectedBloc,
+        child: const _View(),
+      );
+    }
+
+    return BlocProvider<WalletUnlockBloc>(
+      create: (_) => WalletUnlockBloc(
+        afterUnlockCallback: _afterUnlockCallback,
+        afterInitCallback: _afterInitCallback,
+      ),
+      child: const _View(),
+    );
+  }
+}
+
+class _View extends StatefulWidget {
+  const _View();
+
+  @override
+  State<_View> createState() => _ViewState();
+}
+
+class _ViewState extends State<_View> {
+  final TextEditingController _passwordController = TextEditingController();
+  final GlobalKey<LoadingButtonState> _actionButtonKey =
+      GlobalKey<LoadingButtonState>();
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocConsumer<WalletUnlockBloc, WalletUnlockState>(
+      listener: _onUnlockStateChanged,
+      builder: (BuildContext context, WalletUnlockState state) {
+        final bool isInitializing =
+            state.status == WalletUnlockStatus.initializing;
+
+        return ColoredBox(
+          color: Theme.of(context).colorScheme.primary,
+          child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: <Widget>[
-              PasswordInputField(
-                key: const Key('wallet_password_field'),
-                controller: _passwordController,
-                hintText: 'Current password',
-                onSubmitted: (String value) {
-                  _actionButton!.onPressed!();
-                },
+              const Icon(Fontisto.locked, color: AppColors.znnColor, size: 50),
+              const SizedBox(height: 40),
+              Text(
+                context.l10n.welcomeBack,
+                style: Theme.of(context).textTheme.headlineMedium,
               ),
-              const SizedBox(
-                width: 10,
+              const SizedBox(height: 20),
+              Text(
+                context.l10n.enterPasswordToAccessWallet,
+                style: Theme.of(context).textTheme.headlineSmall,
               ),
-              KeyedSubtree(
-                key: const Key('wallet_unlock_button'),
-                child: _actionButton!,
+              const SizedBox(height: 40),
+              _buildPasswordRow(context, state),
+              const SizedBox(height: 30),
+              _buildStatusMessage(
+                context,
+                isInitializing: isInitializing,
+                remainingAttempts: state.remainingAttempts,
               ),
             ],
           ),
-          const SizedBox(
-            height: 30,
-          ),
-          Visibility(
-            visible: _messageToUser.isEmpty,
-            child:
-                (kAutoEraseWalletLimit!.toInt() - kNumFailedUnlockAttempts! ==
-                    1)
-                ? Text(
-                    'Last attempt. The wallet will be reset if this '
-                    'attempt fails',
-                    style: Theme.of(context).textTheme.headlineSmall,
-                  )
-                : Text(
-                    '${kAutoEraseWalletLimit!.toInt() - kNumFailedUnlockAttempts!} attempts left',
-                    style: Theme.of(context).textTheme.headlineSmall,
-                  ),
-          ),
-          Visibility(
-            visible: _messageToUser.isNotEmpty,
-            child: Padding(
-              padding: const EdgeInsets.only(top: 30),
-              child: Text(
-                _messageToUser,
-                style: Theme.of(context).textTheme.bodyLarge,
-              ),
-            ),
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 
-  LoadingButton _getActionButton() {
+  Widget _buildPasswordRow(BuildContext context, WalletUnlockState state) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: <Widget>[
+        PasswordInputField(
+          key: const Key('wallet_password_field'),
+          controller: _passwordController,
+          hintText: context.l10n.currentPassword,
+          onSubmitted: (_) => _onSubmitPressed(context, state),
+        ),
+        const SizedBox(width: 10),
+        KeyedSubtree(
+          key: const Key('wallet_unlock_button'),
+          child: _buildActionButton(context, state),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildActionButton(BuildContext context, WalletUnlockState state) {
     return LoadingButton(
-      onPressed: _onActionButtonPressed,
+      onPressed: () => _onSubmitPressed(context, state),
       key: _actionButtonKey,
       minimumSize: const Size(50, 50),
       child: const Icon(
@@ -139,98 +124,65 @@ class _LockTabChildState extends State<LockTabChild> {
     );
   }
 
-  Future<void> _onError(String errorMessage, Object error) async {
-    if (_messageToUser.isNotEmpty) {
-      setState(() {
-        _messageToUser = '';
-      });
-    }
-    await NotificationUtils.sendNotificationError(error, errorMessage);
-    if (error is IncorrectPasswordException) {
-      kNumFailedUnlockAttempts = kNumFailedUnlockAttempts! + 1;
-      await _saveNumFailedUnlockAttempts(kNumFailedUnlockAttempts);
-    }
-    if (kNumFailedUnlockAttempts == kAutoEraseWalletLimit) {
-      NavigationUtils.pushReplacement(
-        context,
-        const SplashScreen(
-          resetWalletFlow: true,
+  Widget _buildStatusMessage(
+    BuildContext context, {
+    required bool isInitializing,
+    required int remainingAttempts,
+  }) {
+    if (isInitializing) {
+      return Padding(
+        padding: const EdgeInsets.only(top: 30),
+        child: Text(
+          context.l10n.initializingWalletPleaseWait,
+          style: Theme.of(context).textTheme.bodyLarge,
         ),
       );
     }
-  }
 
-  Future<void> _onActionButtonPressed() async {
-    if (_passwordController.text.isNotEmpty &&
-        _actionButtonKey.currentState!.btnState == ButtonState.idle) {
-      try {
-        _actionButtonKey.currentState!.animateForward();
-        kWalletFile = await WalletUtils.decryptWalletFile(
-          kWalletPath!,
-          _passwordController.text,
-        );
-        if (kWalletInitCompleted == false) {
-          setState(() {
-            _messageToUser = 'Initializing wallet, please wait';
-          });
-          await InitUtils.initWalletAfterDecryption(
-            Crypto.digest(utf8.encode(_passwordController.text)),
-          );
-          sl.get<MultipleBalanceBloc>().add(
-            MultipleBalanceFetch(
-              addresses: kDefaultAddressList.map((String? e) => e!).toList(),
-            ),
-          );
-          widget.afterInitCallback();
-        } else {
-          await widget.afterUnlockCallback(_passwordController.text);
-        }
-        _restNumOfFailedAttempts();
-        _resetScreenState();
-      } on IncorrectPasswordException {
-        _onError(
-          kIncorrectPasswordNotificationTitle,
-          IncorrectPasswordException(),
-        );
-      } on LedgerError catch (e) {
-        _onError('Ledger: ${e.toFriendlyString()}', e);
-      } catch (e) {
-        _onError(kUnlockFailedNotificationTitle, e);
-      } finally {
-        _actionButtonKey.currentState?.animateReverse();
-      }
-    }
-  }
-
-  Future<void> _saveNumFailedUnlockAttempts(int? numAttempts) async {
-    await sharedPrefsService!.put(kNumUnlockFailedAttemptsKey, numAttempts);
-  }
-
-  void _resetScreenState() {
-    setState(_cleanScreen);
-  }
-
-  void _cleanScreen() {
-    _clearInput();
-    _clearMessageToUser();
-  }
-
-  void _clearInput() {
-    _passwordController.clear();
-  }
-
-  void _clearMessageToUser() {
-    _messageToUser = '';
-  }
-
-  void _restNumOfFailedAttempts() {
-    _saveNumFailedUnlockAttempts(0).then(
-      (_) {
-        kNumFailedUnlockAttempts = sharedPrefsService!.get(
-          kNumUnlockFailedAttemptsKey,
-        );
-      },
+    return Text(
+      remainingAttempts == 1
+          ? context.l10n.lastAttemptWalletWillReset
+          : context.l10n.attemptsLeft(remainingAttempts),
+      style: Theme.of(context).textTheme.headlineSmall,
     );
+  }
+
+  void _onSubmitPressed(BuildContext context, WalletUnlockState state) {
+    if (_passwordController.text.isEmpty ||
+        state.isBusy ||
+        _actionButtonKey.currentState?.btnState == ButtonState.busy) {
+      return;
+    }
+
+    context.read<WalletUnlockBloc>().add(
+      WalletUnlockSubmitted(
+        password: _passwordController.text,
+        incorrectPasswordTitle: context.l10n.incorrectPassword,
+        unlockFailedTitle: context.l10n.unlockFailed,
+        ledgerErrorTitleBuilder: context.l10n.ledgerWithDetails,
+      ),
+    );
+  }
+
+  void _onUnlockStateChanged(BuildContext context, WalletUnlockState state) {
+    switch (state.status) {
+      case WalletUnlockStatus.decrypting:
+        _actionButtonKey.currentState?.animateForward();
+      case WalletUnlockStatus.success:
+        _passwordController.clear();
+        _actionButtonKey.currentState?.animateReverse();
+      case WalletUnlockStatus.failure:
+        _actionButtonKey.currentState?.animateReverse();
+      case WalletUnlockStatus.autoEraseTriggered:
+        _actionButtonKey.currentState?.animateReverse();
+        NavigationUtils.pushReplacement(
+          context,
+          const SplashScreen(resetWalletFlow: true),
+        );
+      case WalletUnlockStatus.initial:
+      case WalletUnlockStatus.initializing:
+        break;
+    }
   }
 
   @override

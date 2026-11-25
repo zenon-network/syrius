@@ -1,330 +1,268 @@
 import 'package:flutter/material.dart';
-import 'package:hive_ce/hive_ce.dart';
-import 'package:zenon_syrius_wallet_flutter/blocs/notifications_bloc.dart';
-import 'package:zenon_syrius_wallet_flutter/main.dart';
-import 'package:zenon_syrius_wallet_flutter/model/database/notification_type.dart';
-import 'package:zenon_syrius_wallet_flutter/model/database/wallet_notification.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_ledger_dart/znn_ledger_dart.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
-class HardwareWalletDeviceChoiceScreen extends StatefulWidget {
-  const HardwareWalletDeviceChoiceScreen({super.key});
+/// Onboarding screen for discovering and verifying a hardware wallet device.
+class HardwareWalletDeviceChoiceScreen extends StatelessWidget {
+  /// Creates a [HardwareWalletDeviceChoiceScreen].
+  const HardwareWalletDeviceChoiceScreen({
+    this._deviceBloc,
+    this._showNotificationBanner = true,
+    super.key,
+  });
+
+  final HardwareWalletDeviceBloc? _deviceBloc;
+  final bool _showNotificationBanner;
 
   @override
-  State<HardwareWalletDeviceChoiceScreen> createState() =>
-      _HardwareWalletDeviceChoiceScreenState();
-}
+  Widget build(BuildContext context) {
+    final Widget view = _View(showNotificationBanner: _showNotificationBanner);
+    final HardwareWalletDeviceBloc? injectedBloc = _deviceBloc;
+    if (injectedBloc != null) {
+      return BlocProvider<HardwareWalletDeviceBloc>.value(
+        value: injectedBloc,
+        child: view,
+      );
+    }
 
-class _HardwareWalletDeviceChoiceScreenState
-    extends State<HardwareWalletDeviceChoiceScreen> {
-  final List<WalletManager> _walletManagers = <WalletManager>[LedgerWalletManager()];
-  List<WalletDefinition> _devices = <WalletDefinition>[];
-  WalletDefinition? _selectedDevice;
-  final Map<String, ValueNotifier<String?>> _deviceValueMap =
-      <String, ValueNotifier<String?>>{};
-
-  @override
-  void initState() {
-    super.initState();
-    _openHiveAddressesBox();
-  }
-
-  void _openHiveAddressesBox() {
-    Hive.boxExists(kAddressesBox).then(
-      (bool addressesBoxExists) {
-        if (addressesBoxExists) {
-          Hive.openBox(kAddressesBox)
-              .then((Box addressesBox) => addressesBox.clear());
-        }
-      },
+    return BlocProvider<HardwareWalletDeviceBloc>(
+      create: (_) =>
+          HardwareWalletDeviceBloc()
+            ..add(const HardwareWalletDeviceInitialized()),
+      child: view,
     );
   }
+}
+
+class _View extends StatelessWidget {
+  const _View({required this._showNotificationBanner});
+
+  final bool _showNotificationBanner;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Container(
-        padding: const EdgeInsets.symmetric(
-          vertical: 30,
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: <Widget>[
-            Column(
+      body: BlocBuilder<HardwareWalletDeviceBloc, HardwareWalletDeviceState>(
+        builder: (BuildContext context, HardwareWalletDeviceState state) {
+          return Container(
+            padding: const EdgeInsets.symmetric(vertical: 30),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: <Widget>[
-                const ProgressBar(
-                  currentLevel: 1,
-                  numLevels: 4,
+                Column(
+                  children: <Widget>[
+                    const ProgressBar(currentLevel: 1, numLevels: 4),
+                    const SizedBox(height: 30),
+                    if (_showNotificationBanner) const NotificationWidget(),
+                    Text(
+                      context.l10n.chooseYourDevice,
+                      style: Theme.of(context).textTheme.headlineLarge,
+                    ),
+                    kVerticalSpacing,
+                    Text(
+                      context.l10n.connectAndUnlockYourDevice,
+                      style: Theme.of(context).textTheme.headlineMedium,
+                    ),
+                    kVerticalSpacing,
+                    SizedBox(
+                      height: 40,
+                      child: _buildScanDevicesButton(context, state),
+                    ),
+                    kVerticalSpacing,
+                    SizedBox(
+                      width: 420,
+                      child: _buildDevicesList(context, state),
+                    ),
+                  ],
                 ),
-                const SizedBox(
-                  height: 30,
-                ),
-                const NotificationWidget(),
-                Text(
-                  'Choose your device',
-                  style: Theme.of(context).textTheme.headlineLarge,
-                ),
-                kVerticalSpacing,
-                Text(
-                  'Please connect and unlock your device',
-                  style: Theme.of(context).textTheme.headlineMedium,
-                ),
-                kVerticalSpacing,
-                SizedBox(
-                  height: 40,
-                  child: _getScanDevicesContainer(),
-                ),
-                kVerticalSpacing,
-                SizedBox(
-                  width: 420,
-                  child: Column(children: _getDevices()),
-                ),
+                _buildActionButtons(context, state),
               ],
             ),
-            _getActionButtons(),
-          ],
-        ),
+          );
+        },
       ),
     );
   }
 
-  Widget _getScanDevicesContainer() {
+  Widget _buildScanDevicesButton(
+    BuildContext context,
+    HardwareWalletDeviceState state,
+  ) {
     return Container(
       decoration: BoxDecoration(
-          color: Colors.transparent,
-          borderRadius: const BorderRadius.all(Radius.circular(6)),
-          border: Border.all(
-            color: AppColors.znnColor,
-          ),),
+        color: Colors.transparent,
+        borderRadius: const BorderRadius.all(Radius.circular(6)),
+        border: Border.all(color: AppColors.znnColor),
+      ),
       child: InkWell(
-          child: FocusableActionDetector(
-            child: SizedBox(
-              height: 50,
-              width: 150,
+        onTap: state.isScanning
+            ? null
+            : () => context.read<HardwareWalletDeviceBloc>().add(
+                const HardwareWalletDevicesScanRequested(),
+              ),
+        child: FocusableActionDetector(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(minWidth: 150, minHeight: 40),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Row(
+                mainAxisSize: MainAxisSize.min,
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: <Widget>[
-                  Container(
-                      color: Colors.transparent,
-                      child: Icon(Icons.search,
-                          color:
-                              Theme.of(context).textTheme.headlineSmall!.color,
-                          size: 18,),),
-                  const SizedBox(
-                    width: 15,
+                  Icon(
+                    Icons.search,
+                    color: Theme.of(context).textTheme.headlineSmall!.color,
+                    size: 18,
                   ),
+                  const SizedBox(width: 12),
                   Text(
-                    'Scan devices',
+                    context.l10n.scanDevices,
                     style: Theme.of(context).textTheme.headlineSmall,
                   ),
                 ],
               ),
             ),
           ),
-          onTap: () async {
-            await _scanDevices();
-          },),
+        ),
+      ),
     );
   }
 
-  Future<void> _scanDevices() async {
-    final List<Future<Iterable<WalletDefinition>>> futures = _walletManagers
-        .map((WalletManager manager) => manager.getWalletDefinitions())
-        .toList();
-
-    final List<Iterable<WalletDefinition>> listOfDefinitions =
-        await Future.wait(futures);
-
-    // Combine all the iterables into a single list using fold or expand
-    // For example, using fold:
-    final List<WalletDefinition> combinedList =
-        listOfDefinitions.fold<List<WalletDefinition>>(
-      <WalletDefinition>[],
-      (List<WalletDefinition> previousList, Iterable<WalletDefinition> element) => previousList..addAll(element),
-    );
-
-    for (final WalletDefinition device in combinedList) {
-      if (!_deviceValueMap.containsKey(device.walletId)) {
-        _deviceValueMap[device.walletId] = ValueNotifier<String?>(null);
-      }
-    }
-
-    setState(() {
-      _devices = combinedList;
-      _selectedDevice = null;
-
-      for (final ValueNotifier<String?> valueNotifier in _deviceValueMap.values) {
-        valueNotifier.value = null;
-      }
-    });
-  }
-
-  List<Widget> _getDevices() {
-    return _devices
-        .map(
-          (WalletDefinition e) => Row(
-            children: <Widget>[
-              Radio<WalletDefinition?>(
-                value: e,
-                groupValue: _selectedDevice,
-                onChanged: _onDevicePressedCallback,
+  Widget _buildDevicesList(
+    BuildContext context,
+    HardwareWalletDeviceState state,
+  ) {
+    return RadioGroup<WalletDefinition?>(
+      groupValue: state.selectedDevice,
+      onChanged: (WalletDefinition? device) {
+        if (device != null) {
+          _onDeviceSelected(context, device);
+        }
+      },
+      child: Column(
+        children: state.devices
+            .map<Widget>(
+              (WalletDefinition device) => _buildDeviceTile(
+                context,
+                device,
+                state.deviceMessages[device.walletId],
               ),
-              Expanded(
-                child: Container(
-                  margin: const EdgeInsets.symmetric(
-                    vertical: 5,
-                  ),
-                  child: Row(
-                    children: <Widget>[
-                      Expanded(
-                        child: InkWell(
-                          borderRadius: BorderRadius.circular(
-                            10,
-                          ),
-                          onTap: () => _onDevicePressedCallback(e),
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 5, vertical: 5,),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: <Widget>[
-                                Text(
-                                  _getWalletName(e),
-                                  style: Theme.of(context)
+            )
+            .toList(),
+      ),
+    );
+  }
+
+  Widget _buildDeviceTile(
+    BuildContext context,
+    WalletDefinition device,
+    String? statusMessage,
+  ) {
+    return Row(
+      children: <Widget>[
+        Radio<WalletDefinition?>(value: device),
+        Expanded(
+          child: Container(
+            margin: const EdgeInsets.symmetric(vertical: 5),
+            child: Row(
+              children: <Widget>[
+                Expanded(
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(10),
+                    onTap: () => _onDeviceSelected(context, device),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 5,
+                        vertical: 5,
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: <Widget>[
+                          Text(
+                            _getWalletName(context, device),
+                            style: Theme.of(context).textTheme.bodyLarge!
+                                .copyWith(
+                                  color: Theme.of(context)
                                       .textTheme
                                       .bodyLarge!
-                                      .copyWith(
-                                        color: Theme.of(context)
-                                            .textTheme
-                                            .bodyLarge!
-                                            .color!
-                                            .withOpacity(0.7),
-                                      ),
+                                      .color!
+                                      .withValues(alpha: 0.7),
                                 ),
-                                ValueListenableBuilder<String?>(
-                                  valueListenable: _deviceValueMap[e.walletId]!,
-                                  builder: (BuildContext context, String? value, _) => SizedBox(
-                                    height: 20,
-                                    child: value == null
-                                        ? const Text(
-                                            'Select to connect the device',)
-                                        : Text(value,
-                                            style: Theme.of(context)
-                                                .textTheme
-                                                .bodyMedium,),
-                                  ),
-                                ),
-                              ],
-                            ),
                           ),
-                        ),
+                          SizedBox(
+                            height: 20,
+                            child: statusMessage == null
+                                ? Text(context.l10n.selectToConnectDevice)
+                                : Text(
+                                    statusMessage,
+                                    style: Theme.of(
+                                      context,
+                                    ).textTheme.bodyMedium,
+                                  ),
+                          ),
+                        ],
                       ),
-                    ],
+                    ),
                   ),
                 ),
-              ),
-            ],
-          ),
-        )
-        .toList();
-  }
-
-  Future<void> _onDevicePressedCallback(
-      WalletDefinition? walletDefinition,) async {
-    Wallet? wallet;
-    try {
-      for (final WalletManager walletManager in _walletManagers) {
-        final WalletDefinition wd = walletDefinition!;
-        if (await walletManager.supportsWallet(wd)) {
-          wallet = await walletManager.getWallet(walletDefinition);
-          break;
-        }
-      }
-      if (wallet == null) {
-        throw const LedgerError.connectionError(
-            origMessage:
-                'Not connected, please connect the device and try again.',);
-      }
-      final Address walletAddress = await _getWalletAddress(wallet);
-      setState(() {
-        _deviceValueMap[walletDefinition!.walletId]!.value =
-            walletAddress.toString();
-        _selectedDevice = walletDefinition;
-      });
-    } catch (e) {
-      _mapError(walletDefinition, e);
-    } finally {
-      if (wallet != null) {
-        try {
-          await (wallet as LedgerWallet).disconnect();
-        } catch (_) {}
-      }
-      wallet = null;
-    }
-  }
-
-  Future<Address> _getWalletAddress(Wallet wallet) async {
-    final WalletAccount account = await wallet.getAccount();
-    if (account is LedgerWalletAccount) {
-      await sl.get<NotificationsBloc>().addNotification(
-            WalletNotification(
-              title:
-                  'Resolving address, please confirm the address on your hardware device',
-              timestamp: DateTime.now().millisecondsSinceEpoch,
-              details: 'Confirm address for account index: 0',
-              type: NotificationType.confirm,
+              ],
             ),
-          );
-      return account.getAddress(true);
-    } else {
-      return account.getAddress();
-    }
+          ),
+        ),
+      ],
+    );
   }
 
-  void _mapError(WalletDefinition? walletDefinition, Object err) {
-    String? errorText;
-    if (err is LedgerError) {
-      errorText = err.toFriendlyString();
-    } else {
-      errorText = 'Error: $err';
-    }
-    setState(() {
-      _deviceValueMap[walletDefinition!.walletId]!.value = errorText;
-      _selectedDevice = null;
-    });
+  void _onDeviceSelected(BuildContext context, WalletDefinition device) {
+    context.read<HardwareWalletDeviceBloc>().add(
+      HardwareWalletDeviceSelected(
+        device: device,
+        confirmAddressTitle: context.l10n.resolvingAddressConfirmOnDevice,
+        confirmAddressDetails: context.l10n.confirmAddressAccountIndex(0),
+        notConnectedMessage: context.l10n.deviceNotConnectedTryAgain,
+        errorMessageBuilder: context.l10n.errorWithMessage,
+      ),
+    );
   }
 
-  String _getWalletName(WalletDefinition walletDefinition) {
+  String _getWalletName(
+    BuildContext context,
+    WalletDefinition walletDefinition,
+  ) {
     if (walletDefinition is LedgerWalletDefinition) {
-      return 'Ledger ${walletDefinition.walletName}';
+      return context.l10n.ledgerWithName(walletDefinition.walletName);
     }
     return walletDefinition.walletName;
   }
 
-  Widget _getActionButtons() {
+  Widget _buildActionButtons(
+    BuildContext context,
+    HardwareWalletDeviceState state,
+  ) {
+    final WalletDefinition? selectedDevice = state.selectedDevice;
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: <Widget>[
         OnboardingButton(
-          onPressed: () {
-            Navigator.pop(context);
-          },
-          text: 'Go back',
+          onPressed: () => Navigator.pop(context),
+          text: context.l10n.goBack,
         ),
         kSpacingBetweenActionButtons,
         OnboardingButton(
-          onPressed: _selectedDevice != null
+          onPressed: selectedDevice != null
               ? () {
                   NavigationUtils.push(
                     context,
-                    HardwareWalletPasswordScreen(_selectedDevice!),
+                    HardwareWalletPasswordScreen(selectedDevice),
                   );
                 }
               : null,
-          text: 'Continue',
+          text: context.l10n.continueText,
         ),
       ],
     );

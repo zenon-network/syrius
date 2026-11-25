@@ -1,153 +1,28 @@
 import 'package:flutter/material.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/onboarding/widgets/onboarding_password_view.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
-class HardwareWalletPasswordScreen extends StatefulWidget {
+/// Password creation screen for hardware wallet onboarding.
+class HardwareWalletPasswordScreen extends StatelessWidget {
+  /// Creates a [HardwareWalletPasswordScreen].
+  const HardwareWalletPasswordScreen(this._deviceInfo, {super.key});
 
-  const HardwareWalletPasswordScreen(this.deviceInfo, {super.key});
-  final WalletDefinition deviceInfo;
-
-  @override
-  State<HardwareWalletPasswordScreen> createState() =>
-      _HardwareWalletPasswordScreenState();
-}
-
-class _HardwareWalletPasswordScreenState extends State<HardwareWalletPasswordScreen> {
-  final TextEditingController _passwordController = TextEditingController();
-  final TextEditingController _confirmPasswordController =
-      TextEditingController();
-
-  final GlobalKey<FormState> _passwordKey = GlobalKey();
-  final GlobalKey<FormState> _confirmPasswordKey = GlobalKey();
+  final WalletDefinition _deviceInfo;
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Container(
-        padding: const EdgeInsets.symmetric(
-          vertical: 30,
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: <Widget>[
-            Column(
-              children: <Widget>[
-                const ProgressBar(
-                  currentLevel: 2,
-                  numLevels: 4,
-                ),
-                const SizedBox(
-                  height: 30,
-                ),
-                Text('Create a wallet password',
-                    style: Theme.of(context).textTheme.headlineLarge,),
-                kVerticalSpacing,
-                Text(
-                    'This is the password that will be required to unlock the wallet',
-                    style: Theme.of(context).textTheme.headlineMedium,),
-                const SizedBox(
-                  height: 65,
-                ),
-                Column(
-                  children: <Widget>[
-                    Form(
-                      key: _passwordKey,
-                      autovalidateMode: AutovalidateMode.onUserInteraction,
-                      child: PasswordInputField(
-                        controller: _passwordController,
-                        validator: InputValidators.validatePassword,
-                        onChanged: (String value) {
-                          setState(() {});
-                        },
-                        hintText: 'Password',
-                      ),
-                    ),
-                    kVerticalSpacing,
-                    Form(
-                      key: _confirmPasswordKey,
-                      autovalidateMode: AutovalidateMode.onUserInteraction,
-                      child: PasswordInputField(
-                        controller: _confirmPasswordController,
-                        validator: (String? value) =>
-                            InputValidators.checkPasswordMatch(
-                                _passwordController.text, value,),
-                        onChanged: (String value) {
-                          setState(() {});
-                        },
-                        hintText: 'Confirm password',
-                      ),
-                    ),
-                    const SizedBox(
-                      height: 35,
-                    ),
-                    PasswordProgressBar(
-                      password: _passwordController.text,
-                      passwordKey: _passwordKey,
-                    ),
-                  ],
-                ),
-              ],
-            ),
-            const DottedBorderInfoWidget(
-              text: 'Use a password that has at least 8 characters, one '
-                  'number, one uppercase letter, one lowercase letter and '
-                  'one symbol',
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: <Widget>[
-                _getPassiveButton(),
-                kSpacingBetweenActionButtons,
-                _getActionButton(),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _getActionButton() {
-    return OnboardingButton(
-      onPressed: _arePasswordsValid()
-          ? () {
-              NavigationUtils.push(
-                context,
-                CreateLedgerWalletScreen(
-                  widget.deviceInfo,
-                  _passwordController.text,
-                ),
-              );
-            }
-          : null,
-      text: 'Confirm password',
-    );
-  }
-
-  Widget _getPassiveButton() {
-    return OnboardingButton(
-      onPressed: () {
-        Navigator.pop(context, false);
+    return OnboardingPasswordView(
+      currentLevel: 2,
+      numLevels: 4,
+      popResult: false,
+      onConfirmed: (String password) {
+        NavigationUtils.push(
+          context,
+          CreateLedgerWalletScreen(_deviceInfo, password),
+        );
       },
-      text: 'Go back',
     );
-  }
-
-  bool _arePasswordsValid() {
-    return InputValidators.validatePassword(_passwordController.text) == null &&
-        InputValidators.checkPasswordMatch(
-              _passwordController.text,
-              _confirmPasswordController.text,
-            ) ==
-            null;
-  }
-
-  @override
-  void dispose() {
-    _confirmPasswordController.dispose();
-    _passwordController.dispose();
-    super.dispose();
   }
 }

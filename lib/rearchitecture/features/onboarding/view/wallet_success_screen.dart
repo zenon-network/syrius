@@ -1,53 +1,55 @@
 import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 
-class WalletSuccessScreen extends StatefulWidget {
+/// Final onboarding screen confirming wallet creation and entering the app.
+class WalletSuccessScreen extends StatelessWidget {
+  /// Creates a [WalletSuccessScreen].
+  const WalletSuccessScreen({this._progressBarNumLevels = 5, super.key});
 
-  const WalletSuccessScreen({
-    this.progressBarNumLevels = 5,
-    super.key,
-  });
-  final int progressBarNumLevels;
+  final int _progressBarNumLevels;
 
   @override
-  State<WalletSuccessScreen> createState() => _WalletSuccessScreenState();
+  Widget build(BuildContext context) {
+    return _View(progressBarNumLevels: _progressBarNumLevels);
+  }
 }
 
-class _WalletSuccessScreenState extends State<WalletSuccessScreen> {
+class _View extends StatelessWidget {
+  const _View({required this._progressBarNumLevels});
+
+  final int _progressBarNumLevels;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
-        padding: const EdgeInsets.symmetric(
-          vertical: 30,
-        ),
-        child: _getSuccessBody(),
+        padding: const EdgeInsets.symmetric(vertical: 30),
+        child: _buildSuccessBody(context),
       ),
     );
   }
 
-  Column _getSuccessBody() {
+  Widget _buildSuccessBody(BuildContext context) {
     return Column(
       children: <Widget>[
         Column(
           children: <Widget>[
             ProgressBar(
-              currentLevel: widget.progressBarNumLevels,
-              numLevels: widget.progressBarNumLevels,
+              currentLevel: _progressBarNumLevels,
+              numLevels: _progressBarNumLevels,
             ),
-            const SizedBox(
-              height: 30,
-            ),
+            const SizedBox(height: 30),
             Text(
-              "You're all set",
+              context.l10n.youAreAllSet,
               style: Theme.of(context).textTheme.headlineLarge,
             ),
             kVerticalSpacing,
             Text(
-              'The wallet has been successfully created',
+              context.l10n.walletSuccessfullyCreated,
               style: Theme.of(context).textTheme.headlineMedium,
             ),
           ],
@@ -60,12 +62,12 @@ class _WalletSuccessScreenState extends State<WalletSuccessScreen> {
             ),
           ),
         ),
-        _getAccessWalletActionButton(),
+        _buildAccessWalletButton(context),
       ],
     );
   }
 
-  Widget _getAccessWalletActionButton() {
+  Widget _buildAccessWalletButton(BuildContext context) {
     return OnboardingButton(
       onPressed: () {
         Navigator.popUntil(
@@ -74,12 +76,10 @@ class _WalletSuccessScreenState extends State<WalletSuccessScreen> {
         );
         NavigationUtils.pushReplacement(
           context,
-          const MainAppContainer(
-            redirectedFromWalletSuccess: true,
-          ),
+          const MainAppContainer(redirectedFromWalletSuccess: true),
         );
       },
-      text: 'Access wallet',
+      text: context.l10n.accessWallet,
     );
   }
 }

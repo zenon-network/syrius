@@ -2,51 +2,83 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 
-class NewWalletConfirmSeedScreen extends StatefulWidget {
-
+/// Screen asking the user to drag and drop missing seed words to confirm
+/// backup.
+class NewWalletConfirmSeedScreen extends StatelessWidget {
+  /// Creates a [NewWalletConfirmSeedScreen].
   const NewWalletConfirmSeedScreen(
-    this.seedWords, {
+    this._seedWords, {
+    this._randomIndexes,
     super.key,
   });
-  final List<String> seedWords;
+
+  final List<String> _seedWords;
+  final List<int>? _randomIndexes;
 
   @override
-  State<NewWalletConfirmSeedScreen> createState() =>
-      _NewWalletConfirmSeedScreenState();
+  Widget build(BuildContext context) {
+    return _View(seedWords: _seedWords, randomIndexes: _randomIndexes);
+  }
 }
 
-class _NewWalletConfirmSeedScreenState
-    extends State<NewWalletConfirmSeedScreen> {
+class _View extends StatefulWidget {
+  const _View({required this._seedWords, this._randomIndexes});
+
+  final List<String> _seedWords;
+  final List<int>? _randomIndexes;
+
+  @override
+  State<_View> createState() => _ViewState();
+}
+
+class _ViewState extends State<_View> {
   bool _seedError = false;
+  bool _isSeedVerified = false;
   int? _hoveredSeedGridIndex;
   int? _textCursor;
-
-  late Widget _actionButton;
   String? _draggedValue;
 
   final List<SeedGridElement> _seedGridElements = <SeedGridElement>[];
+  final List<TextEditingController> _controllers = <TextEditingController>[];
   final List<int> _randomIndexes = <int>[];
   List<int> _foundMissingRandomElementsIndexes = <int>[];
 
   @override
   void initState() {
     super.initState();
-    _actionButton = _getVerifyButton();
-    for (final String word in widget.seedWords) {
+    for (final String word in widget._seedWords) {
       _seedGridElements.add(
-        SeedGridElement(
-          word: word,
-          isValid: true,
-          isShown: true,
-        ),
+        SeedGridElement(word: word, isValid: true, isShown: true),
       );
+      _controllers.add(TextEditingController(text: word));
     }
-    _generateRandomIndexes();
+    _initRandomIndexes();
     for (final int index in _randomIndexes) {
       _seedGridElements[index].word = '';
+      _controllers[index].text = '';
+    }
+  }
+
+  void _initRandomIndexes() {
+    final List<int>? injectedIndexes = widget._randomIndexes;
+    if (injectedIndexes != null) {
+      _randomIndexes.addAll(injectedIndexes);
+      return;
+    }
+    final Random random = Random();
+    final int targetCount = min(
+      kNumOfSeedWordsToBeFound,
+      _seedGridElements.length,
+    );
+    while (_randomIndexes.length < targetCount) {
+      final int randomNumber = random.nextInt(_seedGridElements.length);
+      if (!_randomIndexes.contains(randomNumber)) {
+        _randomIndexes.add(randomNumber);
+      }
     }
   }
 
@@ -54,22 +86,16 @@ class _NewWalletConfirmSeedScreenState
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
-        padding: const EdgeInsets.symmetric(
-          vertical: 30,
-        ),
+        padding: const EdgeInsets.symmetric(vertical: 30),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: <Widget>[
             Column(
               children: <Widget>[
-                const ProgressBar(
-                  currentLevel: 2,
-                ),
-                const SizedBox(
-                  height: 30,
-                ),
+                const ProgressBar(currentLevel: 2),
+                const SizedBox(height: 30),
                 Text(
-                  'Confirm your seed',
+                  context.l10n.confirmYourSeed,
                   style: Theme.of(context).textTheme.headlineLarge,
                 ),
                 kVerticalSpacing,
@@ -77,35 +103,39 @@ class _NewWalletConfirmSeedScreenState
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: <Widget>[
                     Text(
-                      'Drag & drop the words in the correct order',
+                      context.l10n.dragAndDropWordsCorrectOrder,
                       style: Theme.of(context).textTheme.headlineMedium,
                     ),
-                    const StandardTooltipIcon(
-                      'You can drag & drop words on empty boxes or incorrect words',
+                    StandardTooltipIcon(
+                      context.l10n.dragAndDropWordsOnEmptyOrIncorrect,
                       Icons.help,
                     ),
                   ],
                 ),
-                const SizedBox(
-                  height: 75,
-                ),
-                _getSeedInputWidgetsGrid(),
+                const SizedBox(height: 75),
+                _buildSeedInputWidgetsGrid(context),
               ],
             ),
             Row(
               children: <Widget>[
                 Container(
                   margin: const EdgeInsets.only(left: 90),
-                  child: _getMissingSeedGridElements(widget.seedWords),
+                  child: _buildMissingSeedGridElements(
+                    context,
+                    widget._seedWords,
+                  ),
                 ),
               ],
             ),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: <Widget>[
-                _getPassiveButton(),
+                _buildGoBackButton(context),
                 kSpacingBetweenActionButtons,
-                _actionButton,
+                if (_isSeedVerified)
+                  _buildContinueButton(context)
+                else
+                  _buildVerifyButton(context),
               ],
             ),
           ],
@@ -114,48 +144,38 @@ class _NewWalletConfirmSeedScreenState
     );
   }
 
-  void _generateRandomIndexes() {
-    while (_randomIndexes.length < kNumOfSeedWordsToBeFound) {
-      _generateRandomIndex();
-    }
-  }
-
-  void _generateRandomIndex() {
-    final int randomNumber = Random().nextInt(_seedGridElements.length);
-    if (!_randomIndexes.contains(randomNumber)) {
-      _randomIndexes.add(randomNumber);
-    }
-  }
-
-  Color _getColor(SeedGridElement seedGridElement, bool border) {
-    if (_randomIndexes.contains(_seedGridElements.indexOf(seedGridElement))) {
-      if (seedGridElement.isValid == true && _seedError == true) {
+  Color _getColor(
+    BuildContext context,
+    int seedGridElementIndex,
+    SeedGridElement seedGridElement, {
+    required bool isBorder,
+  }) {
+    if (_randomIndexes.contains(seedGridElementIndex)) {
+      if (seedGridElement.isValid && _seedError) {
         return AppColors.znnColor;
-      } else if (!seedGridElement.isValid && _seedError == true) {
+      } else if (!seedGridElement.isValid && _seedError) {
         return AppColors.errorColor;
       } else {
-        if (border) {
-          return AppColors.seedUnderlineBorderColor;
-        } else {
-          return Theme.of(context).colorScheme.secondaryContainer;
-        }
+        return isBorder
+            ? AppColors.seedUnderlineBorderColor
+            : Theme.of(context).colorScheme.secondaryContainer;
       }
-    } else if (seedGridElement.isValid && border == false) {
+    } else if (seedGridElement.isValid && !isBorder) {
       return AppColors.znnColor;
     } else {
-      if (border) {
-        return AppColors.seedUnderlineBorderColor;
-      } else {
-        return Theme.of(context).colorScheme.secondaryContainer;
-      }
+      return isBorder
+          ? AppColors.seedUnderlineBorderColor
+          : Theme.of(context).colorScheme.secondaryContainer;
     }
   }
 
-  Widget _seedFieldWidget(SeedGridElement seedGridElement) {
-    final int seedGridElementIndex = _seedGridElements.indexOf(seedGridElement);
-
-    final TextEditingController controller = TextEditingController();
-    controller.text = seedGridElement.word;
+  Widget _buildSeedFieldWidget(BuildContext context, int seedGridElementIndex) {
+    final SeedGridElement seedGridElement =
+        _seedGridElements[seedGridElementIndex];
+    final TextEditingController controller = _controllers[seedGridElementIndex];
+    if (controller.text != seedGridElement.word) {
+      controller.text = seedGridElement.word;
+    }
     if (_textCursor == seedGridElementIndex) {
       controller.selection = TextSelection.collapsed(
         offset: controller.text.length,
@@ -175,30 +195,33 @@ class _NewWalletConfirmSeedScreenState
               });
             },
             child: FocusableActionDetector(
-              onShowHoverHighlight: (bool x) {
-                if (x) {
-                  setState(() {
-                    _hoveredSeedGridIndex = seedGridElementIndex;
-                  });
-                } else {
-                  setState(() {
-                    _hoveredSeedGridIndex = null;
-                  });
-                }
+              onShowHoverHighlight: (bool isHovered) {
+                setState(() {
+                  _hoveredSeedGridIndex = isHovered
+                      ? seedGridElementIndex
+                      : null;
+                });
               },
               child: Container(
                 width: 30,
                 height: 30,
                 decoration: BoxDecoration(
-                    border: Border.all(
-                      width: 2,
-                      color: _hoveredSeedGridIndex == seedGridElementIndex ||
-                              _randomIndexes.contains(seedGridElementIndex)
-                          ? _getColor(seedGridElement, false)
-                          : Theme.of(context).colorScheme.secondaryContainer,
-                    ),
-                    color: Theme.of(context).colorScheme.secondaryContainer,
-                    shape: BoxShape.circle,),
+                  border: Border.all(
+                    width: 2,
+                    color:
+                        _hoveredSeedGridIndex == seedGridElementIndex ||
+                            _randomIndexes.contains(seedGridElementIndex)
+                        ? _getColor(
+                            context,
+                            seedGridElementIndex,
+                            seedGridElement,
+                            isBorder: false,
+                          )
+                        : Theme.of(context).colorScheme.secondaryContainer,
+                  ),
+                  color: Theme.of(context).colorScheme.secondaryContainer,
+                  shape: BoxShape.circle,
+                ),
                 child: Center(
                   child: Text(
                     '${seedGridElementIndex + 1}',
@@ -208,67 +231,75 @@ class _NewWalletConfirmSeedScreenState
               ),
             ),
           ),
-          const SizedBox(
-            width: 10,
-          ),
+          const SizedBox(width: 10),
           Expanded(
             child: FocusableActionDetector(
-              onShowHoverHighlight: (bool x) {
-                if (x) {
-                  setState(() {
-                    _hoveredSeedGridIndex = seedGridElementIndex;
-                  });
-                } else {
-                  setState(() {
-                    _hoveredSeedGridIndex = null;
-                  });
-                }
+              onShowHoverHighlight: (bool isHovered) {
+                setState(() {
+                  _hoveredSeedGridIndex = isHovered
+                      ? seedGridElementIndex
+                      : null;
+                });
               },
               child: DragTarget<String>(
-                builder: (BuildContext context, List<String?> accepted, List rejected) {
-                  return TextField(
-                    enabled: false,
-                    controller: controller,
-                    obscureText: _randomIndexes.contains(seedGridElementIndex)
-                        ? false
-                        : !seedGridElement.isShown ||
-                            _hoveredSeedGridIndex != seedGridElementIndex,
-                    cursorColor: Colors.white,
-                    style: TextStyle(
-                      color: _hoveredSeedGridIndex == seedGridElementIndex ||
-                              _randomIndexes.contains(seedGridElementIndex)
-                          ? Colors.white
-                          : AppColors.znnColor,
-                      fontSize: 12,
-                    ),
-                    decoration: InputDecoration(
-                      contentPadding: EdgeInsets.all(8.0),
-                      isDense: true,
-                      filled: true,
-                      fillColor: Theme.of(context)
-                          .colorScheme
-                          .secondaryContainer
-                          .withOpacity(0.9),
-                      disabledBorder: UnderlineInputBorder(
-                        borderSide: BorderSide(
-                          color: _getColor(seedGridElement, true),
-                          width: 3,
+                builder:
+                    (
+                      BuildContext context,
+                      List<String?> accepted,
+                      List<dynamic> rejected,
+                    ) {
+                      return TextField(
+                        enabled: false,
+                        controller: controller,
+                        obscureText:
+                            !_randomIndexes.contains(seedGridElementIndex) &&
+                            (!seedGridElement.isShown ||
+                                _hoveredSeedGridIndex != seedGridElementIndex),
+                        cursorColor: Colors.white,
+                        style: TextStyle(
+                          color:
+                              _hoveredSeedGridIndex == seedGridElementIndex ||
+                                  _randomIndexes.contains(seedGridElementIndex)
+                              ? Colors.white
+                              : AppColors.znnColor,
+                          fontSize: 12,
                         ),
-                      ),
-                      hintText: '',
-                    ),
-                  );
-                },
-                onWillAcceptWithDetails: (DragTargetDetails<String> data) {
+                        decoration: InputDecoration(
+                          contentPadding: const EdgeInsets.all(8),
+                          isDense: true,
+                          filled: true,
+                          fillColor: Theme.of(context)
+                              .colorScheme
+                              .secondaryContainer
+                              .withValues(alpha: 0.9),
+                          disabledBorder: UnderlineInputBorder(
+                            borderSide: BorderSide(
+                              color: _getColor(
+                                context,
+                                seedGridElementIndex,
+                                seedGridElement,
+                                isBorder: true,
+                              ),
+                              width: 3,
+                            ),
+                          ),
+                          hintText: '',
+                        ),
+                      );
+                    },
+                onWillAcceptWithDetails: (DragTargetDetails<String> details) {
                   return _randomIndexes.contains(seedGridElementIndex) ||
                       !seedGridElement.isValid;
                 },
-                onAcceptWithDetails: (DragTargetDetails data) {
-                  final SeedGridElement element = _seedGridElements[seedGridElementIndex];
+                onAcceptWithDetails: (DragTargetDetails<String> details) {
+                  final SeedGridElement element =
+                      _seedGridElements[seedGridElementIndex];
                   int i = -1;
-                  if (element.word != '') {
-                    while ((i =
-                            widget.seedWords.indexOf(element.word, i + 1)) !=
+                  if (element.word.isNotEmpty) {
+                    while ((i = widget._seedWords.indexOf(
+                          element.word,
+                          i + 1,
+                        )) !=
                         -1) {
                       if (_foundMissingRandomElementsIndexes.contains(i)) {
                         _foundMissingRandomElementsIndexes.remove(i);
@@ -277,14 +308,16 @@ class _NewWalletConfirmSeedScreenState
                     }
                   }
                   i = -1;
-                  while ((i = widget.seedWords.indexOf(data.data, i + 1)) != -1) {
+                  while ((i = widget._seedWords.indexOf(details.data, i + 1)) !=
+                      -1) {
                     if (!_foundMissingRandomElementsIndexes.contains(i) &&
                         _randomIndexes.contains(i)) {
                       _foundMissingRandomElementsIndexes.add(i);
                       break;
                     }
                   }
-                  element.word = data.data;
+                  element.word = details.data;
+                  _controllers[seedGridElementIndex].text = details.data;
                   setState(() {
                     _textCursor = seedGridElementIndex;
                   });
@@ -297,7 +330,10 @@ class _NewWalletConfirmSeedScreenState
     );
   }
 
-  Widget _getMissingSeedGridElements(List<String> seedWords) {
+  Widget _buildMissingSeedGridElements(
+    BuildContext context,
+    List<String> seedWords,
+  ) {
     final List<Widget> list = <Widget>[];
     for (final int index in _randomIndexes) {
       if (!_foundMissingRandomElementsIndexes.contains(index)) {
@@ -330,10 +366,9 @@ class _NewWalletConfirmSeedScreenState
             child: ElevatedButton(
               style: ElevatedButton.styleFrom(
                 foregroundColor: _draggedValue == seedWords[index]
-                    ? Theme.of(context)
-                        .colorScheme
-                        .secondaryContainer
-                        .withOpacity(0.5)
+                    ? Theme.of(
+                        context,
+                      ).colorScheme.secondaryContainer.withValues(alpha: 0.5)
                     : Theme.of(context).colorScheme.secondaryContainer,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(5),
@@ -343,37 +378,34 @@ class _NewWalletConfirmSeedScreenState
               child: Text(
                 seedWords[index],
                 style: Theme.of(context).textTheme.bodyLarge!.copyWith(
-                      color: _draggedValue == seedWords[index]
-                          ? Colors.white.withOpacity(0.7)
-                          : Colors.white,
-                    ),
+                  color: _draggedValue == seedWords[index]
+                      ? Colors.white.withValues(alpha: 0.7)
+                      : Colors.white,
+                ),
               ),
             ),
           ),
         );
       }
     }
-    return Wrap(
-      spacing: 5,
-      children: list,
-    );
+    return Wrap(spacing: 5, children: list);
   }
 
   void _checkSeed() {
-    _seedError = false;
-    for (final SeedGridElement element in _seedGridElements) {
-      final int i = _seedGridElements.indexOf(element);
-      element.isValid = element.word == widget.seedWords[i];
+    bool hasError = false;
+    for (int i = 0; i < _seedGridElements.length; i++) {
+      final SeedGridElement element = _seedGridElements[i];
+      element.isValid = element.word == widget._seedWords[i];
       if (!element.isValid) {
-        _seedError = true;
+        hasError = true;
       }
     }
-    if (_seedError) {
-      for (final SeedGridElement element in _seedGridElements) {
-        final int i = _seedGridElements.indexOf(element);
+    if (hasError) {
+      for (int i = 0; i < _seedGridElements.length; i++) {
         if (_randomIndexes.contains(i)) {
-          element.isValid = false;
-          element.word = '';
+          _seedGridElements[i].isValid = false;
+          _seedGridElements[i].word = '';
+          _controllers[i].text = '';
         }
       }
     }
@@ -383,65 +415,56 @@ class _NewWalletConfirmSeedScreenState
       _foundMissingRandomElementsIndexes = _randomIndexes
           .where((int index) => _seedGridElements[index].isValid)
           .toList();
-      _actionButton =
-          _foundMissingRandomElementsIndexes.length == kNumOfSeedWordsToBeFound
-              ? _getContinueButton()
-              : _getVerifyButton();
+      _isSeedVerified =
+          _foundMissingRandomElementsIndexes.length == _randomIndexes.length;
     });
   }
 
-  Widget _getContinueButton() {
+  Widget _buildContinueButton(BuildContext context) {
     return OnboardingButton(
-      text: 'Continue',
+      text: context.l10n.continueText,
       onPressed: () {
         NavigationUtils.push(
           context,
           NewWalletPasswordScreen(
-            _seedGridElements.map((SeedGridElement e) => e.word).toList(),
+            _seedGridElements
+                .map<String>((SeedGridElement e) => e.word)
+                .toList(),
           ),
         );
       },
     );
   }
 
-  Widget _getVerifyButton() {
+  Widget _buildVerifyButton(BuildContext context) {
+    return OnboardingButton(text: context.l10n.verify, onPressed: _checkSeed);
+  }
+
+  Widget _buildGoBackButton(BuildContext context) {
     return OnboardingButton(
-      text: 'Verify',
-      onPressed: _checkSeed,
+      onPressed: () => Navigator.pop(context),
+      text: context.l10n.goBack,
     );
   }
 
-  Widget _getPassiveButton() {
-    return OnboardingButton(
-      onPressed: () {
-        Navigator.pop(context);
-      },
-      text: 'Go back',
-    );
-  }
-
-  Widget _getSeedInputWidgetsGrid() {
-    final int divider = widget.seedWords.length ~/ kSeedGridNumOfRows;
+  Widget _buildSeedInputWidgetsGrid(BuildContext context) {
+    final int divider = widget._seedWords.length ~/ kSeedGridNumOfRows;
 
     List<Widget> columnChildren = <Widget>[];
 
     for (int i = 0; i <= _seedGridElements.length / divider - 1; i++) {
       columnChildren.add(
-        _getSeedRow(
-          List.generate(
-            divider,
-            (int index) => index + (divider * i),
-          ),
+        _buildSeedRow(
+          context,
+          List<int>.generate(divider, (int index) => index + (divider * i)),
         ),
       );
     }
 
     columnChildren = columnChildren.zip<Widget>(
-      List.generate(
+      List<Widget>.generate(
         kSeedGridNumOfRows - 1,
-        (int index) => const SizedBox(
-          height: 10,
-        ),
+        (int index) => const SizedBox(height: 10),
       ),
     );
 
@@ -451,26 +474,25 @@ class _NewWalletConfirmSeedScreenState
     );
   }
 
-  Widget _getSeedRow(List<int> rangeIndexes) {
-    final List<Widget> children = rangeIndexes.fold<List<Widget>>(
-      <Widget>[],
-      (List<Widget> previousValue, int index) {
-        previousValue.add(_seedFieldWidget(
-          _seedGridElements[index],
-        ),);
-        if (rangeIndexes.last != index) {
-          previousValue.add(
-            const SizedBox(
-              width: 10,
-            ),
-          );
-        }
-        return previousValue;
-      },
-    );
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: children,
-    );
+  Widget _buildSeedRow(BuildContext context, List<int> rangeIndexes) {
+    final List<Widget> children = rangeIndexes.fold<List<Widget>>(<Widget>[], (
+      List<Widget> previousValue,
+      int index,
+    ) {
+      previousValue.add(_buildSeedFieldWidget(context, index));
+      if (rangeIndexes.last != index) {
+        previousValue.add(const SizedBox(width: 10));
+      }
+      return previousValue;
+    });
+    return Row(mainAxisAlignment: MainAxisAlignment.center, children: children);
+  }
+
+  @override
+  void dispose() {
+    for (final TextEditingController controller in _controllers) {
+      controller.dispose();
+    }
+    super.dispose();
   }
 }

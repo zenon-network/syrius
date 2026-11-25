@@ -205,5 +205,5 @@ class AccountBlockUtils {
   }
 
   static void _addEventToPowGeneratingStatusBloc(PowStatus event) =>
-      sl.get<PowGeneratingStatusBloc>().addEvent(event);
+      sl.get<PowGeneratingStatusBloc>().add(PowGeneratingStatusChanged(event));
 }

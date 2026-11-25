@@ -1,78 +1,104 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/wallet_file.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 
-class CreateKeyStoreScreen extends StatefulWidget {
-
+/// Creates an encrypted keystore file from a mnemonic and then prompts for
+/// initial node configuration.
+class CreateKeyStoreScreen extends StatelessWidget {
+  /// Creates a [CreateKeyStoreScreen].
   const CreateKeyStoreScreen(
-    this.seed,
-    this.password, {
-    this.progressBarNumLevels = 5,
+    this._seed,
+    this._password, {
+    this._progressBarNumLevels = 5,
+    this._keyStoreFileBloc,
+    this._nodeManagementBuilder,
     super.key,
   });
-  final String seed;
-  final String password;
-  final int progressBarNumLevels;
+
+  final String _seed;
+  final String _password;
+  final int _progressBarNumLevels;
+  final KeyStoreFileBloc? _keyStoreFileBloc;
+  final Widget Function(VoidCallback onConfirmed)? _nodeManagementBuilder;
 
   @override
-  State<CreateKeyStoreScreen> createState() => _CreateKeyStoreScreenState();
+  Widget build(BuildContext context) {
+    final Widget view = _View(
+      progressBarNumLevels: _progressBarNumLevels,
+      nodeManagementBuilder: _nodeManagementBuilder,
+    );
+    final KeyStoreFileBloc? injectedBloc = _keyStoreFileBloc;
+    if (injectedBloc != null) {
+      return BlocProvider<KeyStoreFileBloc>.value(
+        value: injectedBloc,
+        child: view,
+      );
+    }
+
+    return BlocProvider<KeyStoreFileBloc>(
+      create: (_) => KeyStoreFileBloc()
+        ..add(
+          KeyStoreFileCreateRequested(mnemonic: _seed, password: _password),
+        ),
+      child: view,
+    );
+  }
 }
 
-class _CreateKeyStoreScreenState extends State<CreateKeyStoreScreen> {
-  late KeyStoreFileBloc _keyStoreFileBloc;
+class _View extends StatelessWidget {
+  const _View({
+    required this._progressBarNumLevels,
+    this._nodeManagementBuilder,
+  });
 
-  @override
-  void initState() {
-    super.initState();
-    _keyStoreFileBloc = KeyStoreFileBloc()
-      ..getKeyStorePath(
-        widget.seed,
-        widget.password,
-      );
-  }
+  final int _progressBarNumLevels;
+  final Widget Function(VoidCallback onConfirmed)? _nodeManagementBuilder;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
-        padding: const EdgeInsets.symmetric(
-          vertical: 30,
-        ),
+        padding: const EdgeInsets.symmetric(vertical: 30),
         child: Center(
-          child: StreamBuilder<KeyStoreWalletFile?>(
-            stream: _keyStoreFileBloc.stream,
-            builder: (_, AsyncSnapshot<KeyStoreWalletFile?> snapshot) {
-              if (snapshot.hasData) {
-                return Column(
-                  children: <Widget>[
-                    ProgressBar(
-                      currentLevel: widget.progressBarNumLevels - 1,
-                      numLevels: widget.progressBarNumLevels,
-                    ),
-                    Expanded(
-                      child: NodeManagementScreen(
-                        nodeConfirmationCallback: () {
-                          NavigationUtils.push(
-                            context,
-                            WalletSuccessScreen(
-                              progressBarNumLevels: widget.progressBarNumLevels,
-                            ),
-                          );
-                        },
-                      ),
-                    ),
-                  ],
-                );
-              } else if (snapshot.hasError) {
-                return SyriusErrorWidget(snapshot.error!);
-              }
-              return const SyriusLoadingWidget();
+          child: BlocBuilder<KeyStoreFileBloc, KeyStoreFileState>(
+            builder: (BuildContext context, KeyStoreFileState state) {
+              return switch (state) {
+                KeyStoreFileSuccess() => _buildNodeManagement(context),
+                KeyStoreFileFailure(:final Object error) => SyriusErrorWidget(
+                  error,
+                ),
+                KeyStoreFileInitial() ||
+                KeyStoreFileLoading() => const SyriusLoadingWidget(),
+              };
             },
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildNodeManagement(BuildContext context) {
+    void onConfirmed() {
+      NavigationUtils.push(
+        context,
+        WalletSuccessScreen(progressBarNumLevels: _progressBarNumLevels),
+      );
+    }
+
+    return Column(
+      children: <Widget>[
+        ProgressBar(
+          currentLevel: _progressBarNumLevels - 1,
+          numLevels: _progressBarNumLevels,
+        ),
+        Expanded(
+          child: _nodeManagementBuilder != null
+              ? _nodeManagementBuilder(onConfirmed)
+              : NodeManagementScreen(nodeConfirmationCallback: onConfirmed),
+        ),
+      ],
     );
   }
 }

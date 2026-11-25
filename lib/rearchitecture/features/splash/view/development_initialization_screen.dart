@@ -1,69 +1,95 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 
-/// This will be used to quickly initialize the app when testing in the
-/// development phase
+/// Fast startup screen used during development to bypass the splash animation.
+class DevelopmentInitializationScreen extends StatelessWidget {
+  /// Creates a [DevelopmentInitializationScreen].
+  const DevelopmentInitializationScreen({
+    this._splashBloc,
+    this._initApp,
+    super.key,
+  });
 
-class DevelopmentInitializationScreen extends StatefulWidget {
-
-  const DevelopmentInitializationScreen({super.key});
+  /// Named route for [DevelopmentInitializationScreen].
   static const String route = 'development-initialization-screen';
 
-  @override
-  State<DevelopmentInitializationScreen> createState() =>
-      _DevelopmentInitializationScreenState();
-}
+  final SplashBloc? _splashBloc;
+  final Future<void> Function(BuildContext context)? _initApp;
 
-class _DevelopmentInitializationScreenState
-    extends State<DevelopmentInitializationScreen> {
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder(
-      future: _checkIfWalletPathIsNull(context: context),
-      builder: (_, AsyncSnapshot<bool> snapshot) {
-        if (snapshot.hasData) {
-          final bool isWalletPathNull = snapshot.data!;
+    final Widget view = _View(initApp: _initApp ?? InitUtils.initApp);
+    final SplashBloc? injectedBloc = _splashBloc;
+    if (injectedBloc != null) {
+      return BlocProvider<SplashBloc>.value(value: injectedBloc, child: view);
+    }
 
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            if (isWalletPathNull) {
-              _navigateToAccessWalletScreen(context: context);
-            } else {
-              _navigateToHomeScreen(context: context);
+    return BlocProvider<SplashBloc>(create: (_) => SplashBloc(), child: view);
+  }
+}
+
+class _View extends StatefulWidget {
+  const _View({required this._initApp});
+
+  final Future<void> Function(BuildContext context) _initApp;
+
+  @override
+  State<_View> createState() => _ViewState();
+}
+
+class _ViewState extends State<_View> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) {
+        return;
+      }
+      context.read<SplashBloc>().add(
+        SplashStarted(
+          flow: SplashFlow.development,
+          initApp: () async {
+            if (mounted) {
+              await widget._initApp(context);
             }
-          });
+          },
+        ),
+      );
+    });
+  }
 
-          return const SizedBox.shrink();
-        } else if (snapshot.hasError) {
-          return Text('Error: ${snapshot.error}');
-        }
-
-        return const Center(child: CircularProgressIndicator());
+  @override
+  Widget build(BuildContext context) {
+    return BlocConsumer<SplashBloc, SplashState>(
+      listener: _onSplashStateChanged,
+      builder: (BuildContext context, SplashState state) {
+        return switch (state) {
+          SplashFailure(:final Object error) => Text(
+            context.l10n.errorWithMessage(error.toString()),
+          ),
+          SplashNavigateTo() => const SizedBox.shrink(),
+          _ => const Center(child: CircularProgressIndicator()),
+        };
       },
     );
   }
 
-  Future<bool> _checkIfWalletPathIsNull({required BuildContext context}) async {
-    try {
-      await InitUtils.initApp(context);
-      return kWalletPath == null;
-    } on Exception catch (_) {
-      rethrow;
+  void _onSplashStateChanged(BuildContext context, SplashState state) {
+    if (state case SplashNavigateTo(:final SplashDestination destination)) {
+      switch (destination) {
+        case SplashDestination.accessWallet:
+          Navigator.pushReplacementNamed(context, AccessWalletScreen.route);
+        case SplashDestination.home:
+        case SplashDestination.nodeManagement:
+          Navigator.of(
+            context,
+            rootNavigator: true,
+          ).pushReplacementNamed(MainAppContainer.route);
+      }
     }
-  }
-
-  void _navigateToHomeScreen({required BuildContext context}) {
-    Navigator.of(
-      context,
-      rootNavigator: true,
-    ).pushReplacementNamed(MainAppContainer.route);
-  }
-
-  void _navigateToAccessWalletScreen({required BuildContext context}) {
-    Navigator.pushReplacementNamed(
-      context,
-      AccessWalletScreen.route,
-    );
   }
 }
