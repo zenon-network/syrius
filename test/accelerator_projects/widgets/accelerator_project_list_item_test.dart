@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -199,6 +201,53 @@ void main() {
 
         expect(find.text('Voting results'), findsOneWidget);
         expect(tester.takeException(), isNull);
+      },
+    );
+
+    testWidgets(
+      'requires 34 votes (strictly > 33%) for quorum when 100 Pillars are '
+      'active',
+      (WidgetTester tester) async {
+        final StreamController<ProjectVoteBreakdownState> states =
+            StreamController<ProjectVoteBreakdownState>.broadcast();
+        addTearDown(states.close);
+
+        whenListen<ProjectVoteBreakdownState>(
+          breakdownBloc,
+          states.stream,
+          initialState: ProjectVoteBreakdownPopulated(
+            voteBreakdown: VoteBreakdown.fromJson(<String, dynamic>{
+              'id': projectId.toString(),
+              'yes': 33,
+              'no': 0,
+              'total': 33,
+            }),
+            pillarVotes: null,
+          ),
+        );
+
+        await pumpItem(tester, pillarInfo: null, activePillarCount: 100);
+
+        expect(find.byTooltip('Quorum not achieved'), findsOneWidget);
+        expect(
+          find.byTooltip('1 more votes needed to achieve quorum'),
+          findsOneWidget,
+        );
+
+        states.add(
+          ProjectVoteBreakdownPopulated(
+            voteBreakdown: VoteBreakdown.fromJson(<String, dynamic>{
+              'id': projectId.toString(),
+              'yes': 34,
+              'no': 0,
+              'total': 34,
+            }),
+            pillarVotes: null,
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        expect(find.byTooltip('Quorum achieved'), findsOneWidget);
       },
     );
   });

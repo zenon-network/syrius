@@ -338,7 +338,7 @@ class _ViewState extends State<_View> {
     final int quorum = voteBreakdown.total;
     final int totalPillars = widget._activePillarCount ?? kNumOfPillars ?? 0;
     final int quorumNeeded = totalPillars > 0
-        ? (totalPillars * 0.33).ceil()
+        ? (totalPillars * 33) ~/ 100 + 1
         : 0;
     final int votesToAchieveQuorum = totalPillars > 0
         ? (quorumNeeded - quorum).clamp(0, totalPillars)

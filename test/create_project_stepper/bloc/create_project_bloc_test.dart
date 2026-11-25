@@ -18,6 +18,22 @@ class _MockZenonAddressUtils extends Mock implements ZenonAddressUtils {}
 
 class _MockAccountBlockTemplate extends Mock implements AccountBlockTemplate {}
 
+class _RecordingCreateProjectBloc extends CreateProjectBloc {
+  _RecordingCreateProjectBloc({
+    required super.accountBlockUtils,
+    required super.zenon,
+    required super.zenonAddressUtils,
+  });
+
+  final List<Object> reportedErrors = <Object>[];
+
+  @override
+  void onError(Object error, StackTrace stackTrace) {
+    reportedErrors.add(error);
+    super.onError(error, stackTrace);
+  }
+}
+
 void main() {
   setUpAll(() {
     registerFallbackValue(AccountBlockTemplate(blockType: 1));
@@ -141,5 +157,49 @@ void main() {
         ),
       ],
     );
+
+    test('still emits CreateProjectDone if refreshBalance throws after '
+        'publishing project block', () async {
+      when(
+        () => accountBlockUtils.createAccountBlock(
+          template,
+          'creating project',
+          address: owner,
+        ),
+      ).thenAnswer((_) async => response);
+      when(
+        () => zenonAddressUtils.refreshBalance(),
+      ).thenThrow(StateError('bloc closed'));
+
+      final _RecordingCreateProjectBloc bloc = _RecordingCreateProjectBloc(
+        accountBlockUtils: accountBlockUtils,
+        zenon: zenon,
+        zenonAddressUtils: zenonAddressUtils,
+      );
+      final Future<List<CreateProjectState>> emittedFuture = bloc.stream
+          .take(2)
+          .toList()
+          .timeout(const Duration(seconds: 5));
+
+      bloc.add(
+        CreateProjectRequested(
+          address: owner,
+          name: 'My Project',
+          description: 'Builds something useful',
+          url: 'https://zenon.network',
+          znnFundsNeeded: BigInt.from(100),
+          qsrFundsNeeded: BigInt.from(1000),
+        ),
+      );
+
+      final List<CreateProjectState> emitted = await emittedFuture;
+      expect(emitted, <CreateProjectState>[
+        const CreateProjectLoading(),
+        CreateProjectDone(accountBlock: response),
+      ]);
+      expect(bloc.reportedErrors, <Matcher>[isA<StateError>()]);
+
+      await bloc.close();
+    });
   });
 }

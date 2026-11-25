@@ -35,6 +35,7 @@ class CreateProjectBloc extends Bloc<CreateProjectEvent, CreateProjectState> {
   ) async {
     emit(const CreateProjectLoading());
 
+    final AccountBlockTemplate block;
     try {
       final AccountBlockTemplate transactionParams = _zenon.embedded.accelerator
           .createProject(
@@ -44,20 +45,26 @@ class CreateProjectBloc extends Bloc<CreateProjectEvent, CreateProjectState> {
             event.znnFundsNeeded,
             event.qsrFundsNeeded,
           );
-      final AccountBlockTemplate block = await _accountBlockUtils
-          .createAccountBlock(
-            transactionParams,
-            'creating project',
-            address: event.address,
-          );
-      _zenonAddressUtils.refreshBalance();
-      emit(CreateProjectDone(accountBlock: block));
+      block = await _accountBlockUtils.createAccountBlock(
+        transactionParams,
+        'creating project',
+        address: event.address,
+      );
     } on SyriusException catch (e, stackTrace) {
       addError(e, stackTrace);
       emit(CreateProjectFailure(exception: e));
+      return;
     } on Object catch (e, stackTrace) {
       addError(e, stackTrace);
       emit(CreateProjectFailure(exception: FailureException()));
+      return;
     }
+
+    try {
+      _zenonAddressUtils.refreshBalance();
+    } on Object catch (e, stackTrace) {
+      addError(e, stackTrace);
+    }
+    emit(CreateProjectDone(accountBlock: block));
   }
 }
