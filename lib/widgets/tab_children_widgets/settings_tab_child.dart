@@ -76,8 +76,8 @@ class SettingsTabChild extends StatelessWidget {
               xs: kStaggeredNumOfColumns,
             ),
             height: kStaggeredNumOfColumns / 2,
-            child: SecurityWidget(
-              _onChangeAutoLockTime,
+            child: SettingsSecurityCard(
+              onChangeAutoLockTime: _onChangeAutoLockTime,
               onStepperNotificationSeeMorePressed:
                   _onStepperNotificationSeeMorePressed,
             ),

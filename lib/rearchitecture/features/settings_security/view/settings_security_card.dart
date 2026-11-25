@@ -1,49 +1,83 @@
-import 'dart:io';
-import 'dart:typed_data';
-
 import 'package:flutter/material.dart';
-import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
-import 'package:zenon_syrius_wallet_flutter/main.dart';
-import 'package:zenon_syrius_wallet_flutter/model/model.dart';
-import 'package:zenon_syrius_wallet_flutter/screens/screens.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/clipboard_utils.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/format_utils.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/functions.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/navigation_utils.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/notification_utils.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/change_wallet_password/change_wallet_password.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/settings_security/settings_security.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
-import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 const double _kMaxMinutesOfInactivity = 30;
 const double _kMinUnlockAttempts = 3;
 const double _kMaxUnlockAttempts = 10;
 
-class SecurityWidget extends StatefulWidget {
-  const SecurityWidget(
-    this._onChangeAutoLockTime, {
-    required this.onStepperNotificationSeeMorePressed,
+const BoxConstraints _kCompactPasteSuffixConstraints = BoxConstraints(
+  maxWidth: 45,
+  maxHeight: 20,
+);
+
+/// Displays wallet security settings, message signing/verification, and file
+/// signing/verification controls in the Settings tab.
+class SettingsSecurityCard extends StatelessWidget {
+  /// Creates a [SettingsSecurityCard].
+  const SettingsSecurityCard({
+    required this._onChangeAutoLockTime,
+    required this._onStepperNotificationSeeMorePressed,
+    this._bloc,
     super.key,
   });
 
   final VoidCallback _onChangeAutoLockTime;
-  final VoidCallback onStepperNotificationSeeMorePressed;
+  final VoidCallback _onStepperNotificationSeeMorePressed;
+  final SettingsSecurityBloc? _bloc;
 
   @override
-  State createState() {
-    return _SecurityWidgetState();
+  Widget build(BuildContext context) {
+    final SettingsSecurityBloc? injected = _bloc;
+    final Widget view = _View(
+      onChangeAutoLockTime: _onChangeAutoLockTime,
+      onStepperNotificationSeeMorePressed: _onStepperNotificationSeeMorePressed,
+    );
+
+    if (injected != null) {
+      return BlocProvider<SettingsSecurityBloc>.value(
+        value: injected,
+        child: view,
+      );
+    }
+
+    return BlocProvider<SettingsSecurityBloc>(
+      create: (_) => SettingsSecurityBloc(),
+      child: view,
+    );
   }
 }
 
-class _SecurityWidgetState extends State<SecurityWidget> {
-  final GlobalKey<LoadingButtonState> _confirmIntervalButtonKey = GlobalKey();
-  final GlobalKey<LoadingButtonState> _autoEraseButtonKey = GlobalKey();
-  final GlobalKey<LoadingButtonState> _signButtonKey = GlobalKey();
-  final GlobalKey<LoadingButtonState> _signFileButtonKey = GlobalKey();
-  final GlobalKey<LoadingButtonState> _verifyButtonKey = GlobalKey();
-  final GlobalKey<LoadingButtonState> _verifyFileButtonKey = GlobalKey();
+class _View extends StatefulWidget {
+  const _View({
+    required this._onChangeAutoLockTime,
+    required this._onStepperNotificationSeeMorePressed,
+  });
+
+  final VoidCallback _onChangeAutoLockTime;
+  final VoidCallback _onStepperNotificationSeeMorePressed;
+
+  @override
+  State<_View> createState() => _ViewState();
+}
+
+class _ViewState extends State<_View> {
+  final GlobalKey<LoadingButtonState> _confirmIntervalButtonKey =
+      GlobalKey<LoadingButtonState>();
+  final GlobalKey<LoadingButtonState> _autoEraseButtonKey =
+      GlobalKey<LoadingButtonState>();
+  final GlobalKey<LoadingButtonState> _signButtonKey =
+      GlobalKey<LoadingButtonState>();
+  final GlobalKey<LoadingButtonState> _signFileButtonKey =
+      GlobalKey<LoadingButtonState>();
+  final GlobalKey<LoadingButtonState> _verifyButtonKey =
+      GlobalKey<LoadingButtonState>();
+  final GlobalKey<LoadingButtonState> _verifyFileButtonKey =
+      GlobalKey<LoadingButtonState>();
 
   final TextEditingController _textToBeSignedController =
       TextEditingController();
@@ -62,216 +96,289 @@ class _SecurityWidgetState extends State<SecurityWidget> {
   final TextEditingController _publicKeyVerifyFileController =
       TextEditingController();
 
+  final GlobalKey<SelectFileWidgetState> _signSelectFileWidgetKey =
+      GlobalKey<SelectFileWidgetState>();
+  final GlobalKey<SelectFileWidgetState> _verifySelectFileWidgetKey =
+      GlobalKey<SelectFileWidgetState>();
+
   String? _toBeSignedFilePath;
   String? _toBeVerifiedFilePath;
 
-  double? _autoEraseWalletLimit;
-  int? _autoLockWalletMinutes;
-
-  final GlobalKey<SelectFileWidgetState> _signSelectFileWidgetKey = GlobalKey();
-  final GlobalKey<SelectFileWidgetState> _verifySelectFileWidgetKey =
-      GlobalKey();
-
-  @override
-  void initState() {
-    super.initState();
-    _autoEraseWalletLimit = kAutoEraseWalletLimit;
-    _autoLockWalletMinutes = kAutoLockWalletMinutes;
-  }
-
   @override
   Widget build(BuildContext context) {
-    return CardScaffold(
-      title: 'Security',
-      description: 'Change the security parameters of the wallet',
-      childBuilder: () => _getWidgetBody(context),
-    );
-  }
-
-  Widget _getWidgetBody(BuildContext context) {
-    return ListView(
-      shrinkWrap: true,
-      children: <Widget>[
-        CustomExpandablePanel(
-          'Change password',
-          _getChangePasswordExpandedWidget(),
+    return NewCardScaffold(
+      data: _buildCardData(context: context),
+      body: MultiBlocListener(
+        listeners: <BlocListener<SettingsSecurityBloc, SettingsSecurityState>>[
+          BlocListener<SettingsSecurityBloc, SettingsSecurityState>(
+            listenWhen:
+                (
+                  SettingsSecurityState previous,
+                  SettingsSecurityState current,
+                ) =>
+                    previous.autoLockConfirmedNonce !=
+                    current.autoLockConfirmedNonce,
+            listener: (_, _) => widget._onChangeAutoLockTime(),
+          ),
+          BlocListener<SettingsSecurityBloc, SettingsSecurityState>(
+            listenWhen:
+                (
+                  SettingsSecurityState previous,
+                  SettingsSecurityState current,
+                ) =>
+                    previous.messageVerifiedNonce !=
+                    current.messageVerifiedNonce,
+            listener: (_, _) {
+              setState(() {
+                _textToBeVerifiedController.clear();
+                _signatureController.clear();
+                _publicKeyToBeFilledController.clear();
+              });
+            },
+          ),
+          BlocListener<SettingsSecurityBloc, SettingsSecurityState>(
+            listenWhen:
+                (
+                  SettingsSecurityState previous,
+                  SettingsSecurityState current,
+                ) => previous.fileSignedNonce != current.fileSignedNonce,
+            listener: (_, _) {
+              setState(() {
+                _toBeSignedFilePath = null;
+                _signSelectFileWidgetKey.currentState?.resetMessageToUser();
+              });
+            },
+          ),
+          BlocListener<SettingsSecurityBloc, SettingsSecurityState>(
+            listenWhen:
+                (
+                  SettingsSecurityState previous,
+                  SettingsSecurityState current,
+                ) => previous.fileVerifiedNonce != current.fileVerifiedNonce,
+            listener: (_, _) {
+              setState(() {
+                _toBeVerifiedFilePath = null;
+                _verifySelectFileWidgetKey.currentState?.resetMessageToUser();
+                _fileHashVerifyController.clear();
+                _publicKeyVerifyFileController.clear();
+              });
+            },
+          ),
+        ],
+        child: BlocConsumer<SettingsSecurityBloc, SettingsSecurityState>(
+          listener: _onStateChanged,
+          builder: (BuildContext context, SettingsSecurityState state) {
+            return ListView(
+              shrinkWrap: true,
+              children: <Widget>[
+                CustomExpandablePanel(
+                  context.l10n.changePassword,
+                  _buildChangePasswordPanel(context),
+                ),
+                CustomExpandablePanel(
+                  context.l10n.autoLockWallet,
+                  _buildAutoLockSlider(context, state),
+                ),
+                CustomExpandablePanel(
+                  context.l10n.autoEraseWallet,
+                  _buildAutoEraseSlider(context, state),
+                ),
+                CustomExpandablePanel(
+                  context.l10n.sign,
+                  _buildSignPanel(context, state),
+                ),
+                CustomExpandablePanel(
+                  context.l10n.verify,
+                  _buildVerifyPanel(context),
+                ),
+                CustomExpandablePanel(
+                  context.l10n.signFile,
+                  _buildSignFilePanel(context, state),
+                ),
+                CustomExpandablePanel(
+                  context.l10n.verifyFile,
+                  _buildVerifyFilePanel(context),
+                ),
+              ],
+            );
+          },
         ),
-        CustomExpandablePanel('Auto-lock wallet', _getAutoLockSlider()),
-        CustomExpandablePanel('Auto-erase wallet', _getAutoEraseSlider()),
-        CustomExpandablePanel('Sign', _getSignExpandedWidget()),
-        CustomExpandablePanel('Verify', _getVerifyExpandedWidget()),
-        CustomExpandablePanel('Sign file', _getSignFileExpandedWidget()),
-        CustomExpandablePanel('Verify file', _getVerifyFileExpandedWidget()),
-      ],
+      ),
     );
   }
 
-  Widget _getChangePasswordExpandedWidget() {
+  CardData _buildCardData({required BuildContext context}) => CardData(
+    title: context.l10n.security,
+    description: context.l10n.changeWalletSecurityParameters,
+  );
+
+  void _onStateChanged(BuildContext context, SettingsSecurityState state) {
+    _syncLoadingButton(_confirmIntervalButtonKey, state.isConfirmingAutoLock);
+    _syncLoadingButton(_autoEraseButtonKey, state.isConfirmingAutoErase);
+    _syncLoadingButton(_signButtonKey, state.isSigningMessage);
+    _syncLoadingButton(_verifyButtonKey, state.isVerifyingMessage);
+    _syncLoadingButton(_signFileButtonKey, state.isSigningFile);
+    _syncLoadingButton(_verifyFileButtonKey, state.isVerifyingFile);
+
+    if (_signedTextController.text != state.signedMessageSignature) {
+      _signedTextController.text = state.signedMessageSignature;
+    }
+    if (_publicKeyController.text != state.signedMessagePublicKey) {
+      _publicKeyController.text = state.signedMessagePublicKey;
+    }
+    if (_fileHashController.text != state.signedFileHash) {
+      _fileHashController.text = state.signedFileHash;
+    }
+    if (_publicKeySignFileController.text != state.signedFilePublicKey) {
+      _publicKeySignFileController.text = state.signedFilePublicKey;
+    }
+  }
+
+  void _syncLoadingButton(GlobalKey<LoadingButtonState> key, bool isLoading) {
+    if (isLoading) {
+      key.currentState?.animateForward();
+    } else {
+      key.currentState?.animateReverse();
+    }
+  }
+
+  Widget _buildChangePasswordPanel(BuildContext context) {
     return Center(
       child: SettingsButton(
-        text: 'Change password',
-        onPressed: _onChangePasswordPressed,
+        text: context.l10n.changePassword,
+        onPressed: () {
+          NavigationUtils.push(
+            context,
+            ChangeWalletPasswordScreen(
+              onStepperNotificationSeeMorePressed:
+                  widget._onStepperNotificationSeeMorePressed,
+            ),
+          );
+        },
       ),
     );
   }
 
-  void _onChangePasswordPressed() {
-    NavigationUtils.push(
-      context,
-      ChangeWalletPasswordScreen(
-        onStepperNotificationSeeMorePressed:
-            widget.onStepperNotificationSeeMorePressed,
-      ),
-    );
-  }
-
-  Widget _getAutoLockSlider() {
+  Widget _buildAutoLockSlider(
+    BuildContext context,
+    SettingsSecurityState state,
+  ) {
     return Column(
       children: <Widget>[
         CustomSlider(
-          description:
-              'Lock after $_autoLockWalletMinutes minutes of inactivity',
-          startValue: kAutoLockWalletMinutes!.toDouble(),
+          description: context.l10n.lockAfterMinutesOfInactivity(
+            state.autoLockMinutes,
+          ),
+          startValue: state.autoLockMinutes.toDouble(),
           maxValue: _kMaxMinutesOfInactivity,
           callback: (double value) {
-            setState(() {
-              _autoLockWalletMinutes = value.toInt();
-            });
+            context.read<SettingsSecurityBloc>().add(
+              SettingsSecurityAutoLockChanged(minutes: value.toInt()),
+            );
           },
         ),
         kVerticalSpacing,
-        _getConfirmAutoLockDurationButton(),
+        LoadingButton.settings(
+          text: context.l10n.confirm,
+          onPressed: () {
+            context.read<SettingsSecurityBloc>().add(
+              SettingsSecurityAutoLockConfirmed(
+                errorTitle: context.l10n.errorConfirmingAutoLockInterval,
+              ),
+            );
+          },
+          key: _confirmIntervalButtonKey,
+        ),
       ],
     );
   }
 
-  Widget _getAutoEraseSlider() {
+  Widget _buildAutoEraseSlider(
+    BuildContext context,
+    SettingsSecurityState state,
+  ) {
     return Column(
       children: <Widget>[
         CustomSlider(
-          description: 'Erase after ${_autoEraseWalletLimit!.toInt()} '
-              'failed password attempts',
-          startValue: kAutoEraseWalletLimit,
+          description: context.l10n.eraseAfterFailedPasswordAttempts(
+            state.autoEraseAttempts.toInt(),
+          ),
+          startValue: state.autoEraseAttempts,
           min: _kMinUnlockAttempts,
           maxValue: _kMaxUnlockAttempts,
           callback: (double value) {
-            setState(() {
-              _autoEraseWalletLimit = value;
-            });
+            context.read<SettingsSecurityBloc>().add(
+              SettingsSecurityAutoEraseChanged(attempts: value),
+            );
           },
         ),
         kVerticalSpacing,
-        _getConfirmAutoEraseButton(),
+        LoadingButton.settings(
+          text: context.l10n.confirm,
+          onPressed: () {
+            context.read<SettingsSecurityBloc>().add(
+              SettingsSecurityAutoEraseConfirmed(
+                notificationTitle: context.l10n.autoEraseLimitChanged,
+                notificationDetails: context.l10n.autoEraseLimitNowAttempts(
+                  state.autoEraseAttempts.toString(),
+                ),
+                errorTitle: context.l10n.errorConfirmingAutoEraseLimit,
+              ),
+            );
+          },
+          key: _autoEraseButtonKey,
+        ),
       ],
     );
   }
 
-  Widget _getConfirmAutoLockDurationButton() {
-    return LoadingButton.settings(
-      text: 'Confirm',
-      onPressed: _onConfirmAutoLockDurationButtonPressed,
-      key: _confirmIntervalButtonKey,
-    );
-  }
-
-  Future<void> _onConfirmAutoLockDurationButtonPressed() async {
-    try {
-      _confirmIntervalButtonKey.currentState?.animateForward();
-      await sharedPrefsService!
-          .put(
-        kAutoLockWalletMinutesKey,
-        _autoLockWalletMinutes,
-      )
-          .then(
-        (value) {
-          kAutoLockWalletMinutes = _autoLockWalletMinutes;
-          widget._onChangeAutoLockTime();
-        },
-      );
-    } catch (e) {
-      await NotificationUtils.sendNotificationError(
-        e,
-        'Error while confirming auto-lock interval',
-      );
-    } finally {
-      _confirmIntervalButtonKey.currentState?.animateReverse();
-    }
-  }
-
-  Widget _getConfirmAutoEraseButton() {
-    return LoadingButton.settings(
-      text: 'Confirm',
-      onPressed: _onConfirmAutoEraseButtonPressed,
-      key: _autoEraseButtonKey,
-    );
-  }
-
-  Future<void> _onConfirmAutoEraseButtonPressed() async {
-    try {
-      _autoEraseButtonKey.currentState?.animateForward();
-      await sharedPrefsService!
-          .put(
-        kAutoEraseNumAttemptsKey,
-        _autoEraseWalletLimit,
-      )
-          .then(
-        (value) async {
-          kAutoEraseWalletLimit = _autoEraseWalletLimit;
-          await sl.get<NotificationsBloc>().addNotification(
-                WalletNotification(
-                  title: 'Auto-erase attempts limit successfully changed',
-                  details: 'The auto-erase limit has now '
-                      '$kAutoEraseWalletLimit attempt(s)',
-                  timestamp: DateTime.now().millisecondsSinceEpoch,
-                  type: NotificationType.autoEraseNumAttemptsChanged,
-                ),
-              );
-        },
-      );
-    } catch (e) {
-      await NotificationUtils.sendNotificationError(
-        e,
-        'Error while confirming auto-erase limit',
-      );
-    } finally {
-      _autoEraseButtonKey.currentState?.animateReverse();
-    }
-  }
-
-  Widget _getSignExpandedWidget() {
+  Widget _buildSignPanel(BuildContext context, SettingsSecurityState state) {
     return Column(
       children: <Widget>[
         kVerticalSpacing,
         InputField(
           controller: _textToBeSignedController,
-          hintText: 'Enter text',
-          onChanged: (String? value) {
+          hintText: context.l10n.enterText,
+          onChanged: (String value) {
             setState(() {});
           },
-          suffixIcon: CopyToClipboardButton(
-            _textToBeSignedController.text,
+          suffixIcon: PasteContentButton(
+            controller: _textToBeSignedController,
+            iconColor: AppColors.znnColor,
+            iconSize: 15,
+            hoverColor: Colors.transparent,
+            tooltip: context.l10n.pasteFromClipboard,
+            onPasted: (_) {
+              if (!mounted) {
+                return;
+              }
+              setState(() {});
+            },
           ),
         ),
         kVerticalSpacing,
         LoadingButton.settings(
           key: _signButtonKey,
-          text: 'Sign',
+          text: context.l10n.sign,
           onPressed: _textToBeSignedController.text.isNotEmpty
-              ? _onSignButtonPressed
+              ? () {
+                  context.read<SettingsSecurityBloc>().add(
+                    SettingsSecuritySignMessageRequested(
+                      message: _textToBeSignedController.text,
+                      errorTitle: context.l10n.errorSigningMessage,
+                    ),
+                  );
+                }
               : null,
         ),
         Visibility(
-          visible: _signedTextController.text.isNotEmpty,
+          visible: state.signedMessageSignature.isNotEmpty,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
-              const SizedBox(
-                height: 10,
-              ),
-              const Text('Signature:'),
-              const SizedBox(
-                height: 10,
-              ),
+              const SizedBox(height: 10),
+              Text('${context.l10n.signature}:'),
+              const SizedBox(height: 10),
               Row(
                 children: <Widget>[
                   Expanded(
@@ -280,16 +387,12 @@ class _SecurityWidgetState extends State<SecurityWidget> {
                       controller: _signedTextController,
                     ),
                   ),
-                  CopyToClipboardButton(_signedTextController.text),
+                  CopyToClipboardButton(state.signedMessageSignature),
                 ],
               ),
-              const SizedBox(
-                height: 10,
-              ),
-              const Text('Public key:'),
-              const SizedBox(
-                height: 10,
-              ),
+              const SizedBox(height: 10),
+              Text('${context.l10n.publicKey}:'),
+              const SizedBox(height: 10),
               Row(
                 children: <Widget>[
                   Expanded(
@@ -298,7 +401,7 @@ class _SecurityWidgetState extends State<SecurityWidget> {
                       controller: _publicKeyController,
                     ),
                   ),
-                  CopyToClipboardButton(_publicKeyController.text),
+                  CopyToClipboardButton(state.signedMessagePublicKey),
                 ],
               ),
             ],
@@ -308,178 +411,65 @@ class _SecurityWidgetState extends State<SecurityWidget> {
     );
   }
 
-  Future<void> _onSignButtonPressed() async {
-    try {
-      _signButtonKey.currentState?.animateForward();
-      final Signature signature = await walletSign(
-        _textToBeSignedController.text.codeUnits,
-      );
-      setState(() {
-        _signedTextController.text = signature.signature;
-        _publicKeyController.text = signature.publicKey;
-      });
-    } catch (e) {
-      await NotificationUtils.sendNotificationError(
-          e, 'Error while signing message');
-    } finally {
-      _signButtonKey.currentState?.animateReverse();
-    }
-  }
+  Widget _buildVerifyPanel(BuildContext context) {
+    final bool canVerify =
+        _textToBeVerifiedController.text.isNotEmpty &&
+        _signatureController.text.isNotEmpty &&
+        _publicKeyToBeFilledController.text.isNotEmpty;
 
-  Widget _getVerifyExpandedWidget() {
     return Column(
       children: <Widget>[
         kVerticalSpacing,
-        InputField(
-          onChanged: (String value) {
-            setState(() {});
-          },
+        _buildCompactPasteInputField(
+          context: context,
           controller: _textToBeVerifiedController,
-          hintText: 'Enter message',
-          suffixIcon: RawMaterialButton(
-            hoverColor: Colors.white12,
-            shape: const CircleBorder(),
-            onPressed: () {
-              setState(() {
-                ClipboardUtils.pasteToClipboard(
-                  callback: (String value) {
-                    _textToBeVerifiedController.text = value;
-                  },
-                );
-              });
-            },
-            child: const Icon(
-              Icons.content_paste,
-              color: AppColors.darkHintTextColor,
-              size: 15,
-            ),
-          ),
-          suffixIconConstraints: const BoxConstraints(
-            maxWidth: 45,
-            maxHeight: 20,
-          ),
+          hintText: context.l10n.enterMessage,
         ),
         kVerticalSpacing,
-        InputField(
-          onChanged: (String value) {
-            setState(() {});
-          },
+        _buildCompactPasteInputField(
+          context: context,
           controller: _signatureController,
-          hintText: 'Enter signature',
-          suffixIcon: RawMaterialButton(
-            hoverColor: Colors.white12,
-            shape: const CircleBorder(),
-            onPressed: () {
-              setState(() {
-                ClipboardUtils.pasteToClipboard(
-                  callback: (String value) {
-                    _signatureController.text = value;
-                  },
-                );
-              });
-            },
-            child: const Icon(
-              Icons.content_paste,
-              color: AppColors.darkHintTextColor,
-              size: 15,
-            ),
-          ),
-          suffixIconConstraints: const BoxConstraints(
-            maxWidth: 45,
-            maxHeight: 20,
-          ),
+          hintText: context.l10n.enterSignature,
         ),
         kVerticalSpacing,
-        InputField(
-          onChanged: (String value) {
-            setState(() {});
-          },
+        _buildCompactPasteInputField(
+          context: context,
           controller: _publicKeyToBeFilledController,
-          hintText: 'Enter public key',
-          suffixIcon: RawMaterialButton(
-            hoverColor: Colors.white12,
-            shape: const CircleBorder(),
-            onPressed: () {
-              setState(() {
-                ClipboardUtils.pasteToClipboard(
-                  callback: (String value) {
-                    _publicKeyToBeFilledController.text = value;
-                  },
-                );
-              });
-            },
-            child: const Icon(
-              Icons.content_paste,
-              color: AppColors.darkHintTextColor,
-              size: 15,
-            ),
-          ),
-          suffixIconConstraints: const BoxConstraints(
-            maxWidth: 45,
-            maxHeight: 20,
-          ),
+          hintText: context.l10n.enterPublicKey,
         ),
         kVerticalSpacing,
         LoadingButton.settings(
           key: _verifyButtonKey,
-          text: 'Verify',
-          onPressed: _textToBeVerifiedController.text.isNotEmpty &&
-                  _signatureController.text.isNotEmpty &&
-                  _publicKeyToBeFilledController.text.isNotEmpty
-              ? _onVerifyButtonPressed
+          text: context.l10n.verify,
+          onPressed: canVerify
+              ? () {
+                  final String message = _textToBeVerifiedController.text;
+                  final String signature = _signatureController.text;
+                  context.read<SettingsSecurityBloc>().add(
+                    SettingsSecurityVerifyMessageRequested(
+                      message: message,
+                      signature: signature,
+                      publicKey: _publicKeyToBeFilledController.text,
+                      successTitle: context.l10n.messageVerifiedSuccessfully,
+                      successDetails: context.l10n.messageVerifiedWithSignature(
+                        message,
+                        signature,
+                      ),
+                      invalidMessage: context.l10n.messageOrSignatureInvalid,
+                      errorTitle: context.l10n.errorVerifyingMessage,
+                    ),
+                  );
+                }
               : null,
         ),
       ],
     );
   }
 
-  Future<void> _onVerifyButtonPressed() async {
-    try {
-      _verifyButtonKey.currentState?.animateForward();
-      final bool verified = await Crypto.verify(
-        FormatUtils.decodeHexString(_signatureController.text),
-        Uint8List.fromList(_textToBeVerifiedController.text.codeUnits),
-        FormatUtils.decodeHexString(_publicKeyToBeFilledController.text),
-      );
-      if (verified) {
-        await sl.get<NotificationsBloc>().addNotification(
-              WalletNotification(
-                title: 'Message verified successfully',
-                timestamp: DateTime.now().millisecondsSinceEpoch,
-                details: 'The message: ${_textToBeVerifiedController.text} '
-                    'was successfully verified with the signature: '
-                    '${_signatureController.text}',
-                type: NotificationType.paymentSent,
-              ),
-            );
-        setState(() {
-          _textToBeVerifiedController.clear();
-          _signatureController.clear();
-          _publicKeyToBeFilledController.clear();
-        });
-      } else {
-        throw 'Message or signature invalid';
-      }
-    } catch (e) {
-      await NotificationUtils.sendNotificationError(
-        e,
-        'Error while verifying message',
-      );
-    } finally {
-      _verifyButtonKey.currentState?.animateReverse();
-    }
-  }
-
-  @override
-  void dispose() {
-    _textToBeSignedController.dispose();
-    _signedTextController.dispose();
-    _textToBeVerifiedController.dispose();
-    _signatureController.dispose();
-    super.dispose();
-  }
-
-  Widget _getSignFileExpandedWidget() {
+  Widget _buildSignFilePanel(
+    BuildContext context,
+    SettingsSecurityState state,
+  ) {
     return Column(
       children: <Widget>[
         SelectFileWidget(
@@ -498,19 +488,28 @@ class _SecurityWidgetState extends State<SecurityWidget> {
               kVerticalSpacing,
               LoadingButton.settings(
                 key: _signFileButtonKey,
-                text: 'Sign file',
-                onPressed: _onSignFileButtonPressed,
+                text: context.l10n.signFile,
+                onPressed: _toBeSignedFilePath != null
+                    ? () {
+                        context.read<SettingsSecurityBloc>().add(
+                          SettingsSecuritySignFileRequested(
+                            filePath: _toBeSignedFilePath!,
+                            errorTitle: context.l10n.errorSigningMessage,
+                          ),
+                        );
+                      }
+                    : null,
               ),
             ],
           ),
         ),
         Visibility(
-          visible: _fileHashController.text.isNotEmpty,
+          visible: state.signedFileHash.isNotEmpty,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
               kVerticalSpacing,
-              const Text('Signed hash:'),
+              Text('${context.l10n.signedHash}:'),
               kVerticalSpacing,
               Row(
                 children: <Widget>[
@@ -520,11 +519,11 @@ class _SecurityWidgetState extends State<SecurityWidget> {
                       controller: _fileHashController,
                     ),
                   ),
-                  CopyToClipboardButton(_fileHashController.text),
+                  CopyToClipboardButton(state.signedFileHash),
                 ],
               ),
               kVerticalSpacing,
-              const Text('Public key:'),
+              Text('${context.l10n.publicKey}:'),
               kVerticalSpacing,
               Row(
                 children: <Widget>[
@@ -534,7 +533,7 @@ class _SecurityWidgetState extends State<SecurityWidget> {
                       controller: _publicKeySignFileController,
                     ),
                   ),
-                  CopyToClipboardButton(_publicKeySignFileController.text),
+                  CopyToClipboardButton(state.signedFilePublicKey),
                 ],
               ),
             ],
@@ -544,32 +543,12 @@ class _SecurityWidgetState extends State<SecurityWidget> {
     );
   }
 
-  Future<void> _onSignFileButtonPressed() async {
-    try {
-      _signFileButtonKey.currentState?.animateForward();
-      final File droppedFile = File(
-        _toBeSignedFilePath!,
-      );
-      final Signature fileSignature = await walletSign(
-        Crypto.digest(
-          await droppedFile.readAsBytes(),
-        ),
-      );
-      setState(() {
-        _fileHashController.text = fileSignature.signature;
-        _publicKeySignFileController.text = fileSignature.publicKey;
-        _toBeSignedFilePath = null;
-        _signSelectFileWidgetKey.currentState!.resetMessageToUser();
-      });
-    } catch (e) {
-      await NotificationUtils.sendNotificationError(
-          e, 'Error while signing message');
-    } finally {
-      _signFileButtonKey.currentState?.animateReverse();
-    }
-  }
+  Widget _buildVerifyFilePanel(BuildContext context) {
+    final bool canVerifyFile =
+        _toBeVerifiedFilePath != null &&
+        _fileHashVerifyController.text.isNotEmpty &&
+        _publicKeyVerifyFileController.text.isNotEmpty;
 
-  Widget _getVerifyFileExpandedWidget() {
     return Column(
       children: <Widget>[
         SelectFileWidget(
@@ -588,125 +567,91 @@ class _SecurityWidgetState extends State<SecurityWidget> {
               kVerticalSpacing,
               LoadingButton.settings(
                 key: _verifyFileButtonKey,
-                text: 'Verify file',
-                onPressed: _fileHashVerifyController.text.isNotEmpty &&
-                        _publicKeyVerifyFileController.text.isNotEmpty
-                    ? _onVerifyFileButtonPressed
+                text: context.l10n.verifyFile,
+                onPressed: canVerifyFile
+                    ? () {
+                        final String signedHash =
+                            _fileHashVerifyController.text;
+                        context.read<SettingsSecurityBloc>().add(
+                          SettingsSecurityVerifyFileRequested(
+                            filePath: _toBeVerifiedFilePath!,
+                            signedHash: signedHash,
+                            publicKey: _publicKeyVerifyFileController.text,
+                            successTitle:
+                                context.l10n.fileHashVerifiedSuccessfully,
+                            successDetails: context.l10n
+                                .fileHashVerifiedWithSignedHash(signedHash),
+                            invalidMessage: context.l10n.hashOrPublicKeyInvalid,
+                            errorTitle: context.l10n.errorVerifyingFileHash,
+                          ),
+                        );
+                      }
                     : null,
               ),
             ],
           ),
         ),
-        Column(
-          children: <Widget>[
-            kVerticalSpacing,
-            InputField(
-              onChanged: (String value) {
-                setState(() {});
-              },
-              controller: _fileHashVerifyController,
-              hintText: 'Enter signed hash',
-              suffixIcon: RawMaterialButton(
-                hoverColor: Colors.white12,
-                shape: const CircleBorder(),
-                onPressed: () {
-                  setState(() {
-                    ClipboardUtils.pasteToClipboard(
-                      callback: (String value) {
-                        _fileHashVerifyController.text = value;
-                      },
-                    );
-                  });
-                },
-                child: const Icon(
-                  Icons.content_paste,
-                  color: AppColors.darkHintTextColor,
-                  size: 15,
-                ),
-              ),
-              suffixIconConstraints: const BoxConstraints(
-                maxWidth: 45,
-                maxHeight: 20,
-              ),
-            ),
-            kVerticalSpacing,
-            InputField(
-              onChanged: (String value) {
-                setState(() {});
-              },
-              controller: _publicKeyVerifyFileController,
-              hintText: 'Enter public key',
-              suffixIcon: RawMaterialButton(
-                hoverColor: Colors.white12,
-                shape: const CircleBorder(),
-                onPressed: () {
-                  setState(() {
-                    ClipboardUtils.pasteToClipboard(
-                      callback: (String value) {
-                        _publicKeyVerifyFileController.text = value;
-                      },
-                    );
-                  });
-                },
-                child: const Icon(
-                  Icons.content_paste,
-                  color: AppColors.darkHintTextColor,
-                  size: 15,
-                ),
-              ),
-              suffixIconConstraints: const BoxConstraints(
-                maxWidth: 45,
-                maxHeight: 20,
-              ),
-            ),
-            kVerticalSpacing,
-          ],
+        kVerticalSpacing,
+        _buildCompactPasteInputField(
+          context: context,
+          controller: _fileHashVerifyController,
+          hintText: context.l10n.enterSignedHash,
         ),
+        kVerticalSpacing,
+        _buildCompactPasteInputField(
+          context: context,
+          controller: _publicKeyVerifyFileController,
+          hintText: context.l10n.enterPublicKey,
+        ),
+        kVerticalSpacing,
       ],
     );
   }
 
-  Future<void> _onVerifyFileButtonPressed() async {
-    try {
-      _verifyFileButtonKey.currentState?.animateForward();
-      final bool verified = await Crypto.verify(
-        FormatUtils.decodeHexString(_fileHashVerifyController.text),
-        Uint8List.fromList(
-          Crypto.digest(
-            await File(
-              _toBeVerifiedFilePath!,
-            ).readAsBytes(),
-          ),
-        ),
-        FormatUtils.decodeHexString(_publicKeyVerifyFileController.text),
-      );
-      if (verified) {
-        await sl.get<NotificationsBloc>().addNotification(
-              WalletNotification(
-                title: 'File hash verified successfully',
-                timestamp: DateTime.now().millisecondsSinceEpoch,
-                details:
-                    'File hash was successfully verified with the signed hash: '
-                    '${_fileHashVerifyController.text}',
-                type: NotificationType.paymentSent,
-              ),
-            );
-        setState(() {
-          _toBeVerifiedFilePath = null;
-          _verifySelectFileWidgetKey.currentState!.resetMessageToUser();
-          _fileHashVerifyController.clear();
-          _publicKeyVerifyFileController.clear();
-        });
-      } else {
-        throw 'Hash or public key invalid';
-      }
-    } catch (e) {
-      await NotificationUtils.sendNotificationError(
-        e,
-        'Error while verifying file hash:',
-      );
-    } finally {
-      _verifyFileButtonKey.currentState?.animateReverse();
-    }
+  Widget _buildCompactPasteInputField({
+    required BuildContext context,
+    required TextEditingController controller,
+    required String hintText,
+  }) {
+    return InputField(
+      onChanged: (String value) {
+        setState(() {});
+      },
+      controller: controller,
+      hintText: hintText,
+      suffixIcon: PasteContentButton(
+        controller: controller,
+        hoverColor: Colors.white12,
+        iconColor: AppColors.darkHintTextColor,
+        iconSize: 15,
+        // Verify fields cap suffix height at 20 px, so zero padding avoids
+        // clipping the 15 px icon.
+        padding: EdgeInsets.zero,
+        constraints: const BoxConstraints(),
+        tooltip: context.l10n.pasteFromClipboard,
+        onPasted: (_) {
+          if (!mounted) {
+            return;
+          }
+          setState(() {});
+        },
+      ),
+      suffixIconConstraints: _kCompactPasteSuffixConstraints,
+    );
+  }
+
+  @override
+  void dispose() {
+    _textToBeSignedController.dispose();
+    _signedTextController.dispose();
+    _publicKeyController.dispose();
+    _textToBeVerifiedController.dispose();
+    _signatureController.dispose();
+    _publicKeyToBeFilledController.dispose();
+    _fileHashController.dispose();
+    _publicKeySignFileController.dispose();
+    _fileHashVerifyController.dispose();
+    _publicKeyVerifyFileController.dispose();
+    super.dispose();
   }
 }
