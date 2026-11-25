@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:logging/logging.dart';
-import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/model/model.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/notifications/notifications.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/toast_utils.dart';
 import 'package:znn_sdk_dart/src/model/stats.dart';
 
@@ -50,9 +49,12 @@ class NotificationUtils {
     );
   }
 
-  static bool shouldShowNotification() =>
-      kLastNotification != null &&
-      kLastNotification?.timestamp != kLastDismissedNotification?.timestamp;
+  static WalletNotification? activeNotification() =>
+      sl.isRegistered<NotificationsBloc>()
+          ? sl<NotificationsBloc>().state.activeNotification
+          : null;
+
+  static bool shouldShowNotification() => activeNotification() != null;
 
   static Future<void> sendNodeSyncingNotification() async {
     final SyncInfo syncInfo = await zenon!.stats.syncInfo();

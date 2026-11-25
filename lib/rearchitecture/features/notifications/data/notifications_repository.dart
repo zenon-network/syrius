@@ -28,12 +28,20 @@ class StoredWalletNotification extends Equatable {
   ];
 }
 
-/// Repository interface for reading, observing, and deleting stored wallet
-/// notifications.
+/// Repository interface for reading, observing, storing, and deleting stored
+/// wallet notifications.
 abstract class NotificationsRepository {
   /// Loads up to [limit] stored notifications ordered newest-first.
   Future<List<StoredWalletNotification>> loadNotifications({
     int limit = kNotificationsResultLimit,
+  });
+
+  /// Persists [notification] in history, evicting the oldest entries when the
+  /// store reaches [maxEntries]. When [maxEntries] is `<= 0`, clears stored
+  /// entries without adding [notification].
+  Future<void> addNotification(
+    WalletNotification notification, {
+    int maxEntries = kNotificationsEntriesLimit,
   });
 
   /// Emits whenever the underlying notifications store changes.
@@ -100,6 +108,22 @@ class HiveNotificationsRepository implements NotificationsRepository {
       return const <StoredWalletNotification>[];
     }
     return sorted.take(limit).toList();
+  }
+
+  @override
+  Future<void> addNotification(
+    WalletNotification notification, {
+    int maxEntries = kNotificationsEntriesLimit,
+  }) async {
+    final Box<dynamic> box = await _openBox();
+    if (maxEntries <= 0) {
+      await box.clear();
+      return;
+    }
+    while (box.length >= maxEntries) {
+      await box.delete(box.keys.first);
+    }
+    await box.add(notification);
   }
 
   @override

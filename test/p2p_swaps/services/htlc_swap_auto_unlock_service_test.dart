@@ -4,7 +4,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:json_rpc_2/json_rpc_2.dart' show RpcException;
 import 'package:logging/logging.dart';
 import 'package:mocktail/mocktail.dart';
-import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/model/model.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';

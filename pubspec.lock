@@ -992,14 +992,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.2.2"
-  infinite_scroll_pagination:
-    dependency: "direct main"
-    description:
-      name: infinite_scroll_pagination
-      sha256: "4047eb8191e8b33573690922a9e995af64c3949dc87efc844f936b039ea279df"
-      url: "https://pub.dev"
-    source: hosted
-    version: "4.1.0"
   integration_test:
     dependency: "direct dev"
     description: flutter
@@ -1517,14 +1509,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.1.2"
-  rxdart:
-    dependency: "direct main"
-    description:
-      name: rxdart
-      sha256: "5c3004a4a8dbb94bd4bf5412a4def4acdaa12e12f269737a5751369e12d1a962"
-      url: "https://pub.dev"
-    source: hosted
-    version: "0.28.0"
   screen_capturer:
     dependency: "direct main"
     description:
@@ -1738,14 +1722,6 @@ packages:
     description: flutter
     source: sdk
     version: "0.0.0"
-  sliver_tools:
-    dependency: transitive
-    description:
-      name: sliver_tools
-      sha256: eae28220badfb9d0559207badcbbc9ad5331aac829a88cb0964d330d2a4636a6
-      url: "https://pub.dev"
-    source: hosted
-    version: "0.2.12"
   source_gen:
     dependency: transitive
     description:
@@ -1810,22 +1786,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.12.2"
-  stacked:
-    dependency: "direct main"
-    description:
-      name: stacked
-      sha256: "5f4a6ba6cfa43c5854690de0f946eef1694250cf46ecf7859519d90bf764b1e4"
-      url: "https://pub.dev"
-    source: hosted
-    version: "3.5.0"
-  stacked_shared:
-    dependency: transitive
-    description:
-      name: stacked_shared
-      sha256: "3d69b34d87422b78a7e5123681d3f4bcdd79757170454933f68795c54812d003"
-      url: "https://pub.dev"
-    source: hosted
-    version: "1.4.2"
   stream_channel:
     dependency: transitive
     description:
@@ -1930,14 +1890,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.4.0"
-  universal_io:
-    dependency: transitive
-    description:
-      name: universal_io
-      sha256: f63cbc48103236abf48e345e07a03ce5757ea86285ed313a6a032596ed9301e2
-      url: "https://pub.dev"
-    source: hosted
-    version: "2.3.1"
   universal_platform:
     dependency: transitive
     description:

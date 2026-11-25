@@ -153,6 +153,7 @@
   "disassemble": "DISASSEMBLE",
   "disassemblePillarToUnlockCoin": "You will be able to unlock the {kZnnCoinSymbol} if you choose to disassemble the Pillar",
   "disassembleSentinelToUnlockCoin": "You will be able to unlock the {kZnnCoinSymbol} if you choose to disassemble the Sentinel",
+  "dismiss": "Dismiss",
   "displaysWalletNotificationsDetails": "This card displays detailed information regarding the wallet notifications",
   "displaysZenonCommunityResources": "This card displays information about Zenon community resources",
   "documentation": "Documentation",
@@ -526,6 +527,7 @@
       }
     }
   },
+  "seeMore": "See more",
   "send": "Send",
   "sendTransaction": "send transaction",
   "sentinel": "Sentinel",

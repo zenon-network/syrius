@@ -120,6 +120,31 @@ void main() {
       expect(box.isEmpty, isTrue);
     });
 
+    test(
+      'addNotification persists entries and evicts oldest at maxEntries',
+      () async {
+        await repository.addNotification(
+          makeNotification(title: 'First', timestamp: 1000),
+          maxEntries: 2,
+        );
+        await repository.addNotification(
+          makeNotification(title: 'Second', timestamp: 2000),
+          maxEntries: 2,
+        );
+        await repository.addNotification(
+          makeNotification(title: 'Third', timestamp: 3000),
+          maxEntries: 2,
+        );
+
+        final List<StoredWalletNotification> loaded = await repository
+            .loadNotifications();
+        expect(
+          loaded.map((StoredWalletNotification e) => e.notification.title),
+          equals(<String?>['Third', 'Second']),
+        );
+      },
+    );
+
     test('watchChanges emits on add, delete, and clear', () async {
       final Box<dynamic> box = await Hive.openBox<dynamic>(boxName);
       int eventCount = 0;

@@ -5,10 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:layout/layout.dart';
 import 'package:mocktail/mocktail.dart';
-import 'package:zenon_syrius_wallet_flutter/blocs/notifications_bloc.dart';
 import 'package:zenon_syrius_wallet_flutter/l10n/app_localizations.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
-import 'package:zenon_syrius_wallet_flutter/model/database/wallet_notification.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
 import 'package:zenon_syrius_wallet_flutter/services/shared_prefs_service.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
@@ -22,7 +20,9 @@ class _MockRefreshProjectBloc
 
 class _MockSharedPrefsService extends Mock implements SharedPrefsService {}
 
-class _MockNotificationsBloc extends Mock implements NotificationsBloc {}
+class _MockNotificationsBloc
+    extends MockBloc<NotificationsEvent, NotificationsState>
+    implements NotificationsBloc {}
 
 Address _address(int seed) => Address.fromPublicKey(List<int>.filled(32, seed));
 
@@ -60,7 +60,7 @@ void main() {
     late _MockRefreshProjectBloc refreshProjectBloc;
     late _MockSharedPrefsService mockSharedPrefs;
     late _MockNotificationsBloc mockNotificationsBloc;
-    late StreamController<WalletNotification?> notificationsController;
+    late StreamController<NotificationsState> notificationsController;
     late SharedPrefsService? previousSharedPrefs;
     late String? previousSelectedAddress;
     late bool registeredNotifications;
@@ -79,11 +79,13 @@ void main() {
       sharedPrefsService = mockSharedPrefs;
 
       notificationsController =
-          StreamController<WalletNotification?>.broadcast();
+          StreamController<NotificationsState>.broadcast();
       mockNotificationsBloc = _MockNotificationsBloc();
-      when(
-        () => mockNotificationsBloc.stream,
-      ).thenAnswer((_) => notificationsController.stream);
+      whenListen<NotificationsState>(
+        mockNotificationsBloc,
+        notificationsController.stream,
+        initialState: const NotificationsState(),
+      );
       if (sl.isRegistered<NotificationsBloc>()) {
         await sl.unregister<NotificationsBloc>();
       }
