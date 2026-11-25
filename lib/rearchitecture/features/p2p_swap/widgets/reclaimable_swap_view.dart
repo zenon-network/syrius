@@ -17,10 +17,8 @@ class ReclaimableSwapView extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocProvider<ReclaimDepositBloc>(
       create: (_) => ReclaimDepositBloc(
-        accountBlockUtils: AccountBlockUtils(
-          publishSuccessNotification: false,
-        ),
-        walletAddresses: kDefaultAddressList.whereType<String>().toSet(),
+        accountBlockUtils: AccountBlockUtils(publishSuccessNotification: false),
+        walletAddressesProvider: () => kDefaultAddressList,
         zenon: zenon!,
         zenonAddressUtils: ZenonAddressUtils(),
       ),
