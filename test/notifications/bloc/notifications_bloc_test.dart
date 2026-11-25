@@ -199,104 +199,197 @@ void main() {
     );
 
     test(
-      'still emits in-app banner when desktop notification plugin throws',
+      'still emits in-app banner when desktop notification plugin throws '
+      'synchronously or asynchronously',
       () async {
         final BlocObserver previousObserver = Bloc.observer;
         final _RecordingBlocObserver observer = _RecordingBlocObserver();
         Bloc.observer = observer;
         addTearDown(() => Bloc.observer = previousObserver);
 
+        bool throwSync = true;
         final NotificationsBloc bloc = NotificationsBloc(
           repository: repository,
           isDesktopPlatformCheck: () => true,
           isDesktopNotificationsEnabled: () => true,
-          showDesktopNotification: (_) async {
-            throw StateError('DBus unavailable');
+          showDesktopNotification: (_) {
+            if (throwSync) {
+              throw StateError('sync DBus error');
+            }
+            return Future<void>.error(StateError('async DBus error'));
           },
         );
         addTearDown(bloc.close);
 
-        await bloc.addNotification(buildNotification(title: 'Still visible'));
-
+        await bloc.addNotification(buildNotification(title: 'Sync failure'));
+        await Future<void>.delayed(Duration.zero);
         expect(bloc.state.hasActiveNotification, isTrue);
-        expect(bloc.state.activeNotification?.title, 'Still visible');
-        expect(observer.errors, contains(isA<StateError>()));
+        expect(bloc.state.activeNotification?.title, 'Sync failure');
+
+        throwSync = false;
+        await bloc.addNotification(buildNotification(title: 'Async failure'));
+        await Future<void>.delayed(Duration.zero);
+        expect(bloc.state.hasActiveNotification, isTrue);
+        expect(bloc.state.activeNotification?.title, 'Async failure');
+
+        expect(observer.errors, hasLength(2));
+        expect(observer.errors, everyElement(isA<StateError>()));
       },
     );
 
     test(
-      'does not emit banner when repository persistence fails',
+      'does not block banner emit, history recording, or clearing while '
+      'desktop alert is pending',
       () async {
-        final BlocObserver previousObserver = Bloc.observer;
-        final _RecordingBlocObserver observer = _RecordingBlocObserver();
-        Bloc.observer = observer;
-        addTearDown(() => Bloc.observer = previousObserver);
-
-        when(
-          () => repository.addNotification(
-            any(),
-            maxEntries: any(named: 'maxEntries'),
-          ),
-        ).thenThrow(Exception('disk full'));
-
+        final Completer<void> desktopAlertBlocker = Completer<void>();
         final NotificationsBloc bloc = NotificationsBloc(
           repository: repository,
-          isDesktopPlatformCheck: () => false,
+          isDesktopPlatformCheck: () => true,
+          isDesktopNotificationsEnabled: () => true,
+          showDesktopNotification: (_) => desktopAlertBlocker.future,
         );
-        addTearDown(bloc.close);
-
-        await bloc.addNotification(buildNotification(title: 'Failed'));
-
-        expect(bloc.state.hasActiveNotification, isFalse);
-        expect(observer.errors, contains(isA<Exception>()));
-      },
-    );
-
-    test(
-      'helper methods create expected notification payloads',
-      () async {
-        final List<WalletNotification> stored = <WalletNotification>[];
-        when(
-          () => repository.addNotification(
-            any(),
-            maxEntries: any(named: 'maxEntries'),
-          ),
-        ).thenAnswer((Invocation invocation) async {
-          stored.add(
-            invocation.positionalArguments.first as WalletNotification,
-          );
+        addTearDown(() async {
+          if (!desktopAlertBlocker.isCompleted) {
+            desktopAlertBlocker.complete();
+          }
+          await bloc.close();
         });
 
-        final DateTime fixedTime = DateTime.fromMillisecondsSinceEpoch(123456);
-        final NotificationsBloc bloc = NotificationsBloc(
-          repository: repository,
-          isDesktopPlatformCheck: () => false,
-          now: () => fixedTime,
-        );
-        addTearDown(bloc.close);
+        await bloc
+            .addNotification(buildNotification(title: 'Pending desktop'))
+            .timeout(const Duration(seconds: 2));
+        expect(bloc.state.hasActiveNotification, isTrue);
+        expect(bloc.state.activeNotification?.title, 'Pending desktop');
 
-        await bloc.sendPlasmaNotification('send ZNN');
-        await bloc.addErrorNotification('boom', 'Send failed');
-        await bloc.recordErrorNotification('silent boom', 'Background error');
+        await bloc
+            .recordNotification(buildNotification(title: 'Recorded'))
+            .timeout(const Duration(seconds: 2));
+        await bloc.addNotification(null).timeout(const Duration(seconds: 2));
+        expect(bloc.state.hasActiveNotification, isFalse);
 
-        expect(stored, hasLength(3));
-        expect(
-          stored[0].title,
-          'Plasma will be generated in order to send ZNN',
-        );
-        expect(stored[0].type, NotificationType.generatingPlasma);
-        expect(stored[0].timestamp, 123456);
-
-        expect(stored[1].title, 'Send failed');
-        expect(stored[1].details, 'Send failed: boom');
-        expect(stored[1].type, NotificationType.error);
-
-        expect(stored[2].title, 'Background error');
-        expect(stored[2].details, 'Background error: silent boom');
-        expect(stored[2].type, NotificationType.error);
-        expect(bloc.state.activeNotification?.title, 'Send failed');
+        verify(
+          () => repository.addNotification(
+            any(),
+            maxEntries: any(named: 'maxEntries'),
+          ),
+        ).called(2);
       },
     );
+
+    blocTest<NotificationsBloc, NotificationsState>(
+      'ignores stale revision dismissal without clearing newer banner',
+      build: () => NotificationsBloc(
+        repository: repository,
+        isDesktopPlatformCheck: () => false,
+      ),
+      act: (NotificationsBloc bloc) async {
+        await bloc.addNotification(buildNotification(title: 'First'));
+        await bloc.addNotification(buildNotification(title: 'Second'));
+        await bloc.dismissNotification(revision: 1);
+      },
+      expect: () => <NotificationsState>[
+        NotificationsState(
+          activeNotification: buildNotification(title: 'First'),
+          revision: 1,
+        ),
+        NotificationsState(
+          activeNotification: buildNotification(title: 'Second'),
+          revision: 2,
+        ),
+      ],
+      verify: (NotificationsBloc bloc) {
+        expect(bloc.state.hasActiveNotification, isTrue);
+        expect(bloc.state.activeNotification?.title, 'Second');
+        expect(bloc.state.revision, 2);
+      },
+    );
+
+    blocTest<NotificationsBloc, NotificationsState>(
+      'clears banner when dismissal revision matches active state',
+      build: () => NotificationsBloc(
+        repository: repository,
+        isDesktopPlatformCheck: () => false,
+      ),
+      act: (NotificationsBloc bloc) async {
+        await bloc.addNotification(buildNotification(title: 'First'));
+        await bloc.addNotification(buildNotification(title: 'Second'));
+        await bloc.dismissNotification(revision: 2);
+      },
+      expect: () => <NotificationsState>[
+        NotificationsState(
+          activeNotification: buildNotification(title: 'First'),
+          revision: 1,
+        ),
+        NotificationsState(
+          activeNotification: buildNotification(title: 'Second'),
+          revision: 2,
+        ),
+        const NotificationsState(revision: 2),
+      ],
+    );
+
+    test('does not emit banner when repository persistence fails', () async {
+      final BlocObserver previousObserver = Bloc.observer;
+      final _RecordingBlocObserver observer = _RecordingBlocObserver();
+      Bloc.observer = observer;
+      addTearDown(() => Bloc.observer = previousObserver);
+
+      when(
+        () => repository.addNotification(
+          any(),
+          maxEntries: any(named: 'maxEntries'),
+        ),
+      ).thenThrow(Exception('disk full'));
+
+      final NotificationsBloc bloc = NotificationsBloc(
+        repository: repository,
+        isDesktopPlatformCheck: () => false,
+      );
+      addTearDown(bloc.close);
+
+      await bloc.addNotification(buildNotification(title: 'Failed'));
+
+      expect(bloc.state.hasActiveNotification, isFalse);
+      expect(observer.errors, contains(isA<Exception>()));
+    });
+
+    test('helper methods create expected notification payloads', () async {
+      final List<WalletNotification> stored = <WalletNotification>[];
+      when(
+        () => repository.addNotification(
+          any(),
+          maxEntries: any(named: 'maxEntries'),
+        ),
+      ).thenAnswer((Invocation invocation) async {
+        stored.add(invocation.positionalArguments.first as WalletNotification);
+      });
+
+      final DateTime fixedTime = DateTime.fromMillisecondsSinceEpoch(123456);
+      final NotificationsBloc bloc = NotificationsBloc(
+        repository: repository,
+        isDesktopPlatformCheck: () => false,
+        now: () => fixedTime,
+      );
+      addTearDown(bloc.close);
+
+      await bloc.sendPlasmaNotification('send ZNN');
+      await bloc.addErrorNotification('boom', 'Send failed');
+      await bloc.recordErrorNotification('silent boom', 'Background error');
+
+      expect(stored, hasLength(3));
+      expect(stored[0].title, 'Plasma will be generated in order to send ZNN');
+      expect(stored[0].type, NotificationType.generatingPlasma);
+      expect(stored[0].timestamp, 123456);
+
+      expect(stored[1].title, 'Send failed');
+      expect(stored[1].details, 'Send failed: boom');
+      expect(stored[1].type, NotificationType.error);
+
+      expect(stored[2].title, 'Background error');
+      expect(stored[2].details, 'Background error: silent boom');
+      expect(stored[2].type, NotificationType.error);
+      expect(bloc.state.activeNotification?.title, 'Send failed');
+    });
 
     test(
       'completes pending futures cleanly when closed mid-operation and ignores '

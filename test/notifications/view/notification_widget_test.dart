@@ -86,7 +86,7 @@ void main() {
           const Stream<NotificationsState>.empty(),
           initialState: NotificationsState(
             activeNotification: sampleNotification,
-            revision: 1,
+            revision: 7,
           ),
         );
 
@@ -102,7 +102,9 @@ void main() {
         await tester.tap(find.text('Dismiss'));
         await tester.pump();
 
-        verify(() => mockBloc.add(const NotificationDismissed())).called(1);
+        verify(
+          () => mockBloc.add(const NotificationDismissed(revision: 7)),
+        ).called(1);
         expect(seeMoreCalled, isFalse);
       },
     );
@@ -115,7 +117,7 @@ void main() {
           const Stream<NotificationsState>.empty(),
           initialState: NotificationsState(
             activeNotification: sampleNotification,
-            revision: 1,
+            revision: 7,
           ),
         );
 
@@ -128,7 +130,9 @@ void main() {
         await tester.pump();
 
         expect(seeMoreCalled, isTrue);
-        verify(() => mockBloc.add(const NotificationDismissed())).called(1);
+        verify(
+          () => mockBloc.add(const NotificationDismissed(revision: 7)),
+        ).called(1);
       },
     );
 

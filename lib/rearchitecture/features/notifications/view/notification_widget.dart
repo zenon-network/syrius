@@ -139,7 +139,11 @@ class _View extends StatelessWidget {
                         child: _buildNotificationDetails(context, notification),
                       ),
                       const SizedBox(width: 15),
-                      _buildNotificationOptions(context, notification),
+                      _buildNotificationOptions(
+                        context,
+                        notification,
+                        state.revision,
+                      ),
                     ],
                   ),
                 ),
@@ -172,6 +176,7 @@ class _View extends StatelessWidget {
   Widget _buildNotificationOptions(
     BuildContext context,
     WalletNotification notification,
+    int revision,
   ) {
     return Row(
       mainAxisSize: MainAxisSize.min,
@@ -182,12 +187,12 @@ class _View extends StatelessWidget {
             materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
             constraints: const BoxConstraints.tightFor(),
             padding: const EdgeInsets.all(4),
-            onPressed: () => _navigateToNotification(context),
+            onPressed: () => _navigateToNotification(context, revision),
             child: Text(
               context.l10n.seeMore,
-              style: Theme.of(context).textTheme.titleMedium!.copyWith(
-                color: notification.getColor(),
-              ),
+              style: Theme.of(
+                context,
+              ).textTheme.titleMedium!.copyWith(color: notification.getColor()),
             ),
           ),
         ),
@@ -196,7 +201,7 @@ class _View extends StatelessWidget {
           materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
           constraints: const BoxConstraints.tightFor(),
           padding: const EdgeInsets.all(4),
-          onPressed: () => _dismissNotification(context),
+          onPressed: () => _dismissNotification(context, revision),
           child: Text(
             context.l10n.dismiss,
             style: Theme.of(context).textTheme.bodyMedium,
@@ -206,7 +211,7 @@ class _View extends StatelessWidget {
     );
   }
 
-  void _navigateToNotification(BuildContext context) {
+  void _navigateToNotification(BuildContext context, int revision) {
     if (kCurrentPage != Tabs.lock) {
       if (_popBeforeSeeMoreIsPressed) {
         Navigator.popUntil(
@@ -214,12 +219,14 @@ class _View extends StatelessWidget {
           ModalRoute.withName(MainAppContainer.route),
         );
       }
-      _dismissNotification(context);
+      _dismissNotification(context, revision);
       _onSeeMorePressed?.call();
     }
   }
 
-  void _dismissNotification(BuildContext context) {
-    context.read<NotificationsBloc>().add(const NotificationDismissed());
+  void _dismissNotification(BuildContext context, int revision) {
+    context.read<NotificationsBloc>().add(
+      NotificationDismissed(revision: revision),
+    );
   }
 }

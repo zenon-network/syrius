@@ -49,9 +49,20 @@ final class NotificationRecorded extends NotificationsEvent {
 }
 
 /// Dismisses the currently visible notification banner.
+///
+/// When [revision] is provided, the banner is dismissed only if it still
+/// matches the current state's revision, preventing a stale UI tap from
+/// dismissing a newer notification.
 final class NotificationDismissed extends NotificationsEvent {
   /// Creates a [NotificationDismissed] event.
-  const NotificationDismissed({super.completer});
+  const NotificationDismissed({this.revision, super.completer});
+
+  /// Revision of the notification being dismissed, or `null` to dismiss
+  /// unconditionally.
+  final int? revision;
+
+  @override
+  List<Object?> get props => <Object?>[revision];
 }
 
 /// Clears the currently visible notification banner without writing to history.

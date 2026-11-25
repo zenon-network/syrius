@@ -67,8 +67,12 @@ class NotificationsBloc extends Bloc<NotificationsEvent, NotificationsState> {
   }
 
   /// Dismisses the currently visible notification banner.
-  Future<void> dismissNotification() => _dispatch(
-    (Completer<void> completer) => NotificationDismissed(completer: completer),
+  ///
+  /// When [revision] is provided, the banner is cleared only if [revision]
+  /// matches the active state's revision.
+  Future<void> dismissNotification({int? revision}) => _dispatch(
+    (Completer<void> completer) =>
+        NotificationDismissed(revision: revision, completer: completer),
   );
 
   /// Clears the currently visible notification banner without writing to
@@ -147,8 +151,10 @@ class NotificationsBloc extends Bloc<NotificationsEvent, NotificationsState> {
           await _onAdded(event, emit);
         case NotificationRecorded():
           await _onRecorded(event);
-        case NotificationDismissed():
-          emit(NotificationsState(revision: state.revision));
+        case NotificationDismissed(:final int? revision):
+          if (revision == null || revision == state.revision) {
+            emit(NotificationsState(revision: state.revision));
+          }
         case NotificationBannerCleared():
           emit(NotificationsState(revision: state.revision));
       }
@@ -174,20 +180,29 @@ class NotificationsBloc extends Bloc<NotificationsEvent, NotificationsState> {
       return;
     }
 
-    if (_isDesktopPlatformCheck() && _isDesktopNotificationsEnabled()) {
-      try {
-        await _showDesktopNotification(event.notification);
-      } on Object catch (error, stackTrace) {
-        addError(error, stackTrace);
-      }
-    }
-
     emit(
       NotificationsState(
         activeNotification: event.notification,
         revision: state.revision + 1,
       ),
     );
+
+    unawaited(_dispatchDesktopNotification(event.notification));
+  }
+
+  Future<void> _dispatchDesktopNotification(
+    WalletNotification notification,
+  ) async {
+    try {
+      if (!_isDesktopPlatformCheck() || !_isDesktopNotificationsEnabled()) {
+        return;
+      }
+      await _showDesktopNotification(notification);
+    } on Object catch (error, stackTrace) {
+      if (!isClosed) {
+        addError(error, stackTrace);
+      }
+    }
   }
 
   Future<void> _onRecorded(NotificationRecorded event) async {
