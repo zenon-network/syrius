@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:bloc/bloc.dart';
 import 'package:bloc_concurrency/bloc_concurrency.dart';
 import 'package:equatable/equatable.dart';
-import 'package:zenon_syrius_wallet_flutter/blocs/refresh_bloc_mixin.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/blocs/refresh_bloc_mixin.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/exceptions/exceptions.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
@@ -461,7 +461,7 @@ class ProjectListBloc extends Bloc<ProjectListEvent, ProjectListState>
   @override
   Future<void> close() async {
     _cancelPendingSearch?.call();
-    cancelStreamSubscription();
+    await cancelStreamSubscription();
     await super.close();
   }
 }

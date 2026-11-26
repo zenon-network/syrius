@@ -13,7 +13,6 @@ import 'package:logging/logging.dart';
 import 'package:nested/nested.dart';
 import 'package:provider/provider.dart';
 import 'package:window_manager/window_manager.dart';
-import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/p2p_swaps/services/htlc_swap_sync_service.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/model/model.dart';
@@ -248,9 +247,9 @@ class _MainAppContainerState extends State<MainAppContainer>
   }
 
   Widget _getDesktopNavigationContainer() {
-    final Color borderColor = NotificationUtils.shouldShowNotification()
-        ? kLastNotification!.getColor()
-        : Colors.transparent;
+    final Color borderColor =
+        NotificationUtils.activeNotification()?.getColor() ??
+        Colors.transparent;
 
     return AnimatedBuilder(
       animation: _animationController,

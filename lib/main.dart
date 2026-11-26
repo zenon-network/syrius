@@ -20,9 +20,6 @@ import 'package:provider/provider.dart';
 import 'package:retry/retry.dart';
 import 'package:tray_manager/tray_manager.dart';
 import 'package:window_manager/window_manager.dart';
-import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
-import 'package:zenon_syrius_wallet_flutter/blocs/wallet_connect/chains/i_chain.dart';
-import 'package:zenon_syrius_wallet_flutter/blocs/wallet_connect/chains/nom_service.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/p2p_swaps/services/htlc_swap_auto_unlock_service.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/p2p_swaps/services/htlc_swap_sync_service.dart';
 import 'package:zenon_syrius_wallet_flutter/hive/hive_registrar.g.dart';
@@ -30,7 +27,9 @@ import 'package:zenon_syrius_wallet_flutter/l10n/app_localizations.dart';
 import 'package:zenon_syrius_wallet_flutter/model/model.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
+import 'package:zenon_syrius_wallet_flutter/services/i_chain.dart';
 import 'package:zenon_syrius_wallet_flutter/services/i_web3wallet_service.dart';
+import 'package:zenon_syrius_wallet_flutter/services/nom_service.dart';
 import 'package:zenon_syrius_wallet_flutter/services/shared_prefs_service.dart';
 import 'package:zenon_syrius_wallet_flutter/services/web3wallet_service.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/functions.dart';
@@ -393,7 +392,6 @@ void setup() {
     instanceName: 'embeddedStoppedStream',
   );
 
-  sl.registerSingleton<BalanceBloc>(BalanceBloc());
   sl.registerSingleton<PowGeneratingStatusBloc>(PowGeneratingStatusBloc());
 }
 
@@ -427,6 +425,9 @@ class _MyAppState extends State<MyApp> with WindowListener {
   Widget build(BuildContext context) {
     return MultiBlocProvider(
       providers: <SingleChildWidget>[
+        BlocProvider<NotificationsBloc>.value(
+          value: sl.get<NotificationsBloc>(),
+        ),
         BlocProvider<LatestTransactionsBloc>(
           create: (_) => sl.get<LatestTransactionsBloc>()
             ..add(

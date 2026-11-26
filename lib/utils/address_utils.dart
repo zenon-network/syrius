@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:hive_ce/hive_ce.dart';
-import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/model/database/notification_type.dart';
 import 'package:zenon_syrius_wallet_flutter/model/database/wallet_notification.dart';
@@ -17,7 +16,6 @@ import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 class ZenonAddressUtils {
   void refreshBalance() {
-    sl.get<BalanceBloc>().getBalanceForAllAddresses();
     sl.get<MultipleBalanceBloc>().add(
       MultipleBalanceFetch(
         addresses: kDefaultAddressList.map((String? e) => e!).toList(),

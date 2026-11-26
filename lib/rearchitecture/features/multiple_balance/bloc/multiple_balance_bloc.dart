@@ -2,7 +2,7 @@ import 'dart:async';
 import 'package:equatable/equatable.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
 import 'package:json_annotation/json_annotation.dart';
-import 'package:zenon_syrius_wallet_flutter/blocs/refresh_bloc_mixin.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/blocs/refresh_bloc_mixin.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/exceptions/exceptions.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
@@ -22,11 +22,15 @@ class MultipleBalanceBloc
     : super(const MultipleBalanceState()) {
     on<MultipleBalanceFetch>(_onFetchBalances);
     listenToWsRestart(
-      () => add(
-        MultipleBalanceFetch(
-          addresses: kDefaultAddressList.map((String? e) => e!).toList(),
-        ),
-      ),
+      () {
+        if (!isClosed) {
+          add(
+            MultipleBalanceFetch(
+              addresses: kDefaultAddressList.map((String? e) => e!).toList(),
+            ),
+          );
+        }
+      },
     );
   }
 
@@ -86,4 +90,10 @@ class MultipleBalanceBloc
   /// Serializes the current state into a JSON map for persistence.
   @override
   Map<String, dynamic>? toJson(MultipleBalanceState state) => state.toJson();
+
+  @override
+  Future<void> close() async {
+    await cancelStreamSubscription();
+    await super.close();
+  }
 }
