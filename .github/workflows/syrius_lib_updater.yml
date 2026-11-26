@@ -93,7 +93,6 @@ jobs:
             echo "tag=${tag}"
             echo "dry_run=${dry_run}"
             echo "allow_downgrade=${allow_downgrade}"
-            echo "pr_branch=chore/update-libznn-${target_branch}"
           } >> "$GITHUB_OUTPUT"
 
       - name: Checkout updater scripts
@@ -165,6 +164,27 @@ jobs:
 
           python3 workflow-scripts/.github/scripts/update_libznn.py "${args[@]}"
 
+      - name: Check rolling PR branch for protected open PR
+        id: pr_guard
+        if: >-
+          steps.update.outputs.changed == 'true' &&
+          steps.update.outputs.is_default_pr_branch == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TARGET_BRANCH: ${{ steps.config.outputs.target_branch }}
+          PR_BRANCH: ${{ steps.update.outputs.pr_branch }}
+          RELEASE_TAG: ${{ steps.update.outputs.release_tag }}
+        run: |
+          set -euo pipefail
+          python3 workflow-scripts/.github/scripts/close_stale_libznn_pr.py \
+            --check-update-safe \
+            --repo "$GITHUB_REPOSITORY" \
+            --target-branch "$TARGET_BRANCH" \
+            --pr-branch "$PR_BRANCH" \
+            --release-tag "$RELEASE_TAG" \
+            --github-output "$GITHUB_OUTPUT" \
+            --step-summary "$GITHUB_STEP_SUMMARY"
+
       # Requires repo setting: Settings -> Actions -> General -> Workflow permissions ->
       # "Allow GitHub Actions to create and approve pull requests".
       # Note: PRs created with GITHUB_TOKEN create pull_request CI runs that require approval.
@@ -172,27 +192,49 @@ jobs:
       # If no runs appear, check the workflow triggers and branch filters.
       - name: Create or update pull request
         id: cpr
-        if: steps.update.outputs.changed == 'true'
-        uses: peter-evans/create-pull-request@3ffccacd46053766916f087ce41d627c0b8cf2d1 # v8.1.3
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          path: target-repo
-          add-paths: |
-            lib/embedded_node/blobs/libznn.so
-            lib/embedded_node/blobs/libznn.dylib
-            lib/embedded_node/blobs/libznn.dll
-            lib/embedded_node/blobs/libznn.manifest.json
-          base: ${{ steps.config.outputs.target_branch }}
-          branch: ${{ steps.config.outputs.pr_branch }}
-          delete-branch: true
-          committer: github-actions[bot] <41898282+github-actions[bot]@users.noreply.github.com>
-          author: github-actions[bot] <41898282+github-actions[bot]@users.noreply.github.com>
-          commit-message: ${{ steps.update.outputs.commit_message }}
-          title: ${{ steps.update.outputs.pr_title }}
-          body-path: ${{ steps.update.outputs.pr_body_path }}
+        if: >-
+          steps.update.outputs.changed == 'true' &&
+          (steps.update.outputs.is_default_pr_branch == 'false' ||
+            steps.pr_guard.outputs.safe_to_update == 'true')
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TARGET_BRANCH: ${{ steps.config.outputs.target_branch }}
+          PR_BRANCH: ${{ steps.update.outputs.pr_branch }}
+          IS_DEFAULT_PR_BRANCH: ${{ steps.update.outputs.is_default_pr_branch }}
+          EXPECTED_HEAD_STATE: ${{ steps.pr_guard.outputs.expected_head_state }}
+          EXPECTED_HEAD_OID: ${{ steps.pr_guard.outputs.expected_head_oid }}
+          EXPECTED_PR_NUMBERS: ${{ steps.pr_guard.outputs.inspected_pr_numbers }}
+          PR_TITLE: ${{ steps.update.outputs.pr_title }}
+          PR_BODY_PATH: ${{ steps.update.outputs.pr_body_path }}
+          COMMIT_MESSAGE: ${{ steps.update.outputs.commit_message }}
+        run: |
+          set -euo pipefail
+          args=(
+            --repo "$GITHUB_REPOSITORY"
+            --repo-root target-repo
+            --target-branch "$TARGET_BRANCH"
+            --pr-branch "$PR_BRANCH"
+            --pr-title "$PR_TITLE"
+            --pr-body-file "$PR_BODY_PATH"
+            --commit-message-env COMMIT_MESSAGE
+            --github-output "$GITHUB_OUTPUT"
+            --step-summary "$GITHUB_STEP_SUMMARY"
+          )
+          if [[ "${IS_DEFAULT_PR_BRANCH:-false}" == "true" ]]; then
+            args+=(
+              --require-expected-head
+              --expected-head-state "${EXPECTED_HEAD_STATE:-}"
+              --expected-head-oid "${EXPECTED_HEAD_OID:-}"
+              --expected-pr-numbers "${EXPECTED_PR_NUMBERS:-}"
+            )
+          fi
+          python3 workflow-scripts/.github/scripts/publish_libznn_pr.py "${args[@]}"
 
       - name: Record pull request outcome
-        if: steps.update.outputs.changed == 'true'
+        if: >-
+          steps.update.outputs.changed == 'true' &&
+          (steps.update.outputs.is_default_pr_branch == 'false' ||
+            steps.pr_guard.outputs.safe_to_update == 'true')
         env:
           PR_URL: ${{ steps.cpr.outputs.pull-request-url }}
           PR_OPERATION: ${{ steps.cpr.outputs.pull-request-operation }}
@@ -215,18 +257,21 @@ jobs:
         id: close_stale
         if: >-
           steps.config.outputs.tag == '' &&
+          steps.config.outputs.allow_downgrade == 'false' &&
           steps.update.outputs.changed == 'false' &&
           steps.update.outputs.updates_detected == 'false' &&
+          steps.update.outputs.is_default_pr_branch == 'true' &&
           steps.config.outputs.dry_run == 'false'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TARGET_BRANCH: ${{ steps.config.outputs.target_branch }}
-          PR_BRANCH: ${{ steps.config.outputs.pr_branch }}
+          PR_BRANCH: ${{ steps.update.outputs.pr_branch }}
           RELEASE_TAG: ${{ steps.update.outputs.release_tag }}
         run: |
           set -euo pipefail
           python3 workflow-scripts/.github/scripts/close_stale_libznn_pr.py \
             --repo "$GITHUB_REPOSITORY" \
+            --repo-root target-repo \
             --target-branch "$TARGET_BRANCH" \
             --pr-branch "$PR_BRANCH" \
             --release-tag "$RELEASE_TAG" \

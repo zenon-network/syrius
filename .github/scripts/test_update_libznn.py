@@ -9,6 +9,7 @@ import json
 import os
 import pathlib
 import stat
+import subprocess
 import sys
 import tarfile
 import tempfile
@@ -110,6 +111,95 @@ class ValidationTests(unittest.TestCase):
         self.assertEqual(updater.validate_target_branch("master"), "master")
         with self.assertRaises(updater.UpdaterError):
             updater.validate_target_branch("main")
+
+    def test_resolve_pr_branch_isolates_explicit_tag_downgrade_and_prerelease(self) -> None:
+        # Rolling latest-stable runs use the shared rolling branch.
+        self.assertEqual(
+            updater.resolve_pr_branch(target_branch="develop", release_tag="v0.0.10-alphanet"),
+            "chore/update-libznn-develop",
+        )
+        self.assertEqual(
+            updater.resolve_pr_branch(target_branch="master", release_tag="v0.0.10-alphanet"),
+            "chore/update-libznn-master",
+        )
+
+        # Explicit-tag, forced-downgrade, and pre-release runs get tag-scoped branches.
+        self.assertEqual(
+            updater.resolve_pr_branch(
+                target_branch="develop",
+                release_tag="v0.0.11-rc.1",
+                explicit_tag=True,
+                is_prerelease=True,
+            ),
+            "chore/update-libznn-develop-v0.0.11-rc.1",
+        )
+        self.assertEqual(
+            updater.resolve_pr_branch(
+                target_branch="develop",
+                release_tag="v0.0.10-alphanet",
+                explicit_tag=True,
+            ),
+            "chore/update-libznn-develop-v0.0.10-alphanet",
+        )
+        self.assertEqual(
+            updater.resolve_pr_branch(
+                target_branch="master",
+                release_tag="v0.0.9-alphanet",
+                is_downgrade=True,
+            ),
+            "chore/update-libznn-master-v0.0.9-alphanet",
+        )
+        self.assertEqual(
+            updater.resolve_pr_branch(
+                target_branch="develop",
+                release_tag="v0.0.11-rc.1",
+                is_prerelease=True,
+            ),
+            "chore/update-libznn-develop-v0.0.11-rc.1",
+        )
+
+    def test_sanitize_branch_tag_slug_is_git_valid_and_collision_resistant(self) -> None:
+        self.assertEqual(updater.sanitize_branch_tag_slug("v0.0.10-alphanet"), "v0.0.10-alphanet")
+
+        plus_slug = updater.sanitize_branch_tag_slug("v1.2.3+build.1")
+        dash_slug = updater.sanitize_branch_tag_slug("v1.2.3-build.1")
+        self.assertEqual(dash_slug, "v1.2.3-build.1")
+        self.assertNotEqual(plus_slug, dash_slug)
+        self.assertNotIn("+", plus_slug)
+
+        dot_slug = updater.sanitize_branch_tag_slug("v1.0.")
+        lock_slug = updater.sanitize_branch_tag_slug("v1.0.lock")
+        upper_lock_slug = updater.sanitize_branch_tag_slug("v1.0.LOCK")
+        long_tag = "v1." + "a" * 120
+        long_slug = updater.sanitize_branch_tag_slug(long_tag)
+        self.assertFalse(dot_slug.endswith("."))
+        self.assertFalse(lock_slug.lower().endswith(".lock"))
+        self.assertFalse(upper_lock_slug.lower().endswith(".lock"))
+        self.assertLessEqual(len(long_slug), 90)
+
+        for tag in (
+            "v0.0.10-alphanet",
+            "v1.2.3+build.1",
+            "v1.0.",
+            "v1.0.lock",
+            "v1.0.LOCK",
+            long_tag,
+        ):
+            branch = updater.resolve_pr_branch(
+                target_branch="develop",
+                release_tag=tag,
+                explicit_tag=True,
+            )
+            proc = subprocess.run(
+                ["git", "check-ref-format", "--branch", branch],
+                check=False,
+                capture_output=True,
+                text=True,
+            )
+            self.assertEqual(proc.returncode, 0, f"Invalid git branch {branch!r}: {proc.stderr}")
+
+        with self.assertRaises(updater.UpdaterError):
+            updater.sanitize_branch_tag_slug("")
 
     def test_validate_download_url_checks_host_and_prefix(self) -> None:
         valid = "https://github.com/zenon-network/go-zenon/releases/download/v0.0.10-alphanet/libznn-linux-amd64.tar.gz"
@@ -1806,8 +1896,95 @@ class EndToEndUpdateTests(unittest.TestCase):
         )
         self.assertTrue(changed)
         self.assertIn("changed=false\n", gh_output.read_text(encoding="utf-8"))
+        self.assertIn("pr_branch=chore/update-libznn-develop\n", gh_output.read_text(encoding="utf-8"))
+        self.assertIn("is_default_pr_branch=true\n", gh_output.read_text(encoding="utf-8"))
         blobs = self.repo_root / "lib" / "embedded_node" / "blobs"
         self.assertEqual((blobs / "libznn.so").read_bytes(), self.old_linux)
+
+    def test_run_update_outputs_distinct_branch_for_explicit_tag_and_forced_downgrade(self) -> None:
+        # 1. Explicit-tag dispatch (even for a stable release) uses tag-scoped PR branch.
+        opener_explicit, _ = self._build_mock_release(
+            tag="v0.0.11-alphanet",
+            linux_bin=b"\x7fELF-v11",
+            darwin_bin=b"\xca\xfe\xba\xbe-v11",
+            windows_bin=b"MZ-v11",
+            tag_commit="1" * 40,
+        )
+        gh_explicit = self.work_dir / "explicit.out"
+        body_explicit = self.work_dir / "explicit-body.md"
+        summary_explicit = self.work_dir / "explicit-summary.md"
+        updater.run_update(
+            repo_root=self.repo_root,
+            work_dir=self.work_dir,
+            tag="v0.0.11-alphanet",
+            target_branch="develop",
+            pr_body_out=body_explicit,
+            github_output=gh_explicit,
+            step_summary=summary_explicit,
+            opener=opener_explicit,  # type: ignore[arg-type]
+        )
+        explicit_out = gh_explicit.read_text(encoding="utf-8")
+        self.assertIn("pr_branch=chore/update-libznn-develop-v0.0.11-alphanet\n", explicit_out)
+        self.assertIn("is_default_pr_branch=false\n", explicit_out)
+        self.assertIn(
+            "- **Selection mode:** explicit tag (`v0.0.11-alphanet`)",
+            body_explicit.read_text(encoding="utf-8"),
+        )
+        self.assertIn(
+            "- **PR branch:** `chore/update-libznn-develop-v0.0.11-alphanet`",
+            summary_explicit.read_text(encoding="utf-8"),
+        )
+
+        # 2. Forced downgrade with blank tag (e.g. downgrading from v0.0.11 to latest stable v0.0.10)
+        # ALSO isolates onto a tag-scoped PR branch.
+        opener_downgrade, _ = self._build_mock_release(
+            tag="v0.0.10-alphanet",
+            linux_bin=b"\x7fELF-v10",
+            darwin_bin=b"\xca\xfe\xba\xbe-v10",
+            windows_bin=b"MZ-v10",
+            tag_commit="2" * 40,
+        )
+        gh_downgrade = self.work_dir / "downgrade.out"
+        body_downgrade = self.work_dir / "downgrade-body.md"
+        updater.run_update(
+            repo_root=self.repo_root,
+            work_dir=self.work_dir,
+            tag="",
+            target_branch="develop",
+            allow_downgrade=True,
+            pr_body_out=body_downgrade,
+            github_output=gh_downgrade,
+            opener=opener_downgrade,  # type: ignore[arg-type]
+        )
+        dg_out = gh_downgrade.read_text(encoding="utf-8")
+        self.assertIn("downgrade=true\n", dg_out)
+        self.assertIn("pr_branch=chore/update-libznn-develop-v0.0.10-alphanet\n", dg_out)
+        self.assertIn("is_default_pr_branch=false\n", dg_out)
+        self.assertNotIn("- **Selection mode:** explicit tag", body_downgrade.read_text(encoding="utf-8"))
+
+        # 3. Normal latest-stable rolling upgrade uses chore/update-libznn-develop.
+        opener_latest, _ = self._build_mock_release(
+            tag="v0.0.12-alphanet",
+            linux_bin=b"\x7fELF-v12",
+            darwin_bin=b"\xca\xfe\xba\xbe-v12",
+            windows_bin=b"MZ-v12",
+            tag_commit="3" * 40,
+        )
+        gh_latest = self.work_dir / "latest.out"
+        body_latest = self.work_dir / "latest-body.md"
+        updater.run_update(
+            repo_root=self.repo_root,
+            work_dir=self.work_dir,
+            tag="",
+            target_branch="develop",
+            pr_body_out=body_latest,
+            github_output=gh_latest,
+            opener=opener_latest,  # type: ignore[arg-type]
+        )
+        latest_out = gh_latest.read_text(encoding="utf-8")
+        self.assertIn("pr_branch=chore/update-libznn-develop\n", latest_out)
+        self.assertIn("is_default_pr_branch=true\n", latest_out)
+        self.assertNotIn("- **Selection mode:** explicit tag", body_latest.read_text(encoding="utf-8"))
 
 
 if __name__ == "__main__":
