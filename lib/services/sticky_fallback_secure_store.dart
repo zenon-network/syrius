@@ -5,16 +5,19 @@ import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:logging/logging.dart';
 import 'package:reown_core/crypto/crypto.dart';
+import 'package:reown_core/pairing/pairing.dart';
 import 'package:reown_core/reown_core.dart';
 import 'package:reown_core/store/generic_store.dart';
 import 'package:reown_core/store/i_store.dart';
 
 /// Creates a [ReownCore] instance configured with [StickyFallbackSecureStore]
-/// before [ReownCore.start] initializes storage and crypto.
+/// and [SafeDisconnectPairing] before [ReownCore.start] initializes storage,
+/// crypto, and pairing.
 ///
-/// Rebinding [ReownCore.secureStorage] and [ReownCore.crypto] avoids vendoring
-/// `reown_core` while preserving desktop keychain fallback persistence across
-/// launches.
+/// Rebinding [ReownCore.secureStorage], [ReownCore.crypto], and
+/// [ReownCore.pairing] avoids vendoring `reown_core` while preserving desktop
+/// keychain fallback persistence across launches and preventing unawaited
+/// `wc_pairingDelete` errors from escaping `Pairing.disconnect()`.
 ReownCore createDesktopReownCore({
   required String projectId,
   bool memoryStore = false,
@@ -40,7 +43,99 @@ ReownCore createDesktopReownCore({
       fromJson: (dynamic value) => value as String,
     ),
   );
+  final Pairing defaultPairing = core.pairing as Pairing;
+  core.pairing = SafeDisconnectPairing(
+    core: core,
+    pairings: defaultPairing.pairings,
+    history: defaultPairing.history,
+    topicToReceiverPublicKey: defaultPairing.topicToReceiverPublicKey,
+  );
   return core;
+}
+
+/// [Pairing] subclass that attaches an error handler to the fire-and-forget
+/// `wc_pairingDelete` request sent by [disconnect].
+///
+/// In `reown_core` 1.5.1, [Pairing.disconnect] invokes `sendRequest(...)`
+/// without awaiting it or attaching an error handler, allowing an offline or
+/// failing relay to surface an unhandled async error. Overriding [disconnect]
+/// runs entirely in the caller's zone (avoiding cross-error-zone hangs or
+/// capturing long-lived relay callbacks) while preserving upstream validation,
+/// store deletion, and `onPairingDelete` broadcast semantics.
+class SafeDisconnectPairing extends Pairing {
+  /// Creates a [SafeDisconnectPairing] delegating storage and core wiring to
+  /// [Pairing].
+  SafeDisconnectPairing({
+    required super.core,
+    required super.pairings,
+    required super.history,
+    required super.topicToReceiverPublicKey,
+  });
+
+  static final Logger _logger = Logger('WalletConnectService');
+
+  bool _isInitialized = false;
+
+  @override
+  Future<void> init() async {
+    await super.init();
+    _isInitialized = true;
+  }
+
+  @override
+  Future<void> disconnect({required String topic}) async {
+    if (!_isInitialized) {
+      // ReownCoreError does not implement Error/Exception upstream.
+      // ignore: only_throw_errors
+      throw Errors.getInternalError(Errors.NOT_INITIALIZED);
+    }
+
+    core.logger.i('[SafeDisconnectPairing] disconnect $topic');
+
+    await isValidPairingTopic(topic: topic);
+    if (pairings.has(topic)) {
+      // Send the request to delete the pairing without blocking local cleanup,
+      // attaching an error handler so asynchronous relay/crypto failures never
+      // escape as unhandled zone errors or leak secret material into logs.
+      try {
+        unawaited(
+          sendRequest(
+            topic,
+            MethodConstants.WC_PAIRING_DELETE,
+            Errors.getSdkError(Errors.USER_DISCONNECTED).toJson(),
+          ).then<void>(
+            (_) {},
+            onError: (Object error, StackTrace _) {
+              _logSuppressedSendRequestError(topic: topic, error: error);
+            },
+          ),
+        );
+      } on Object catch (error) {
+        _logSuppressedSendRequestError(topic: topic, error: error);
+      }
+
+      await pairings.delete(topic);
+      onPairingDelete.broadcast(PairingEvent(topic: topic));
+    }
+  }
+
+  void _logSuppressedSendRequestError({
+    required String topic,
+    required Object error,
+  }) {
+    final String errorSummary;
+    if (error is ReownCoreError) {
+      errorSummary = 'ReownCoreError(code=${error.code})';
+    } else if (error is JsonRpcError) {
+      errorSummary = 'JsonRpcError(code=${error.code})';
+    } else {
+      errorSummary = '${error.runtimeType}';
+    }
+    _logger.fine(
+      'Suppressed unawaited wc_pairingDelete sendRequest error for topic '
+      '$topic ($errorSummary)',
+    );
+  }
 }
 
 /// Secure [IStore] implementation that permanently sticks to its fallback store

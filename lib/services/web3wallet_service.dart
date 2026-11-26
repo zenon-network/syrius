@@ -380,7 +380,6 @@ class Web3WalletService extends IWeb3WalletService {
       _inFlightPairTopics[requestedTopic] =
           (_inFlightPairTopics[requestedTopic] ?? 0) + 1;
       _recordPairingCreationEpoch(requestedTopic);
-      _markTopicSubscriptionInstanceActive(requestedTopic);
     }
 
     late final PairingInfo pairing;
@@ -543,9 +542,6 @@ class Web3WalletService extends IWeb3WalletService {
     if (_currentTopicSubscriptionEpoch(topic) != queuedEpoch) {
       return true;
     }
-    if (_inFlightPairTopics.containsKey(topic)) {
-      return true;
-    }
     if (_isTopicLiveInStores(topic)) {
       return true;
     }
@@ -563,50 +559,6 @@ class Web3WalletService extends IWeb3WalletService {
   Future<void> _getResetStartedFuture() {
     final Completer<void> signal = _resetStartedSignal ??= Completer<void>();
     return signal.future;
-  }
-
-  /// Invokes Reown's `core.pairing.disconnect` inside a guarded error zone.
-  ///
-  /// In `reown_core` 1.5.1, `Pairing.disconnect()` calls `sendRequest(...)`
-  /// without awaiting it or attaching an error handler. Running the call in a
-  /// scoped zone ensures direct synchronous/Future failures still propagate to
-  /// callers while unawaited async errors from `sendRequest` are absorbed and
-  /// logged without leaking secrets or escaping to the root zone.
-  Future<void> _disconnectPairingGuarded(
-    ReownWalletKit client, {
-    required String topic,
-  }) {
-    final Completer<void> completer = Completer<void>();
-    runZonedGuarded(
-      () {
-        unawaited(
-          Future<void>.sync(
-            () => client.core.pairing.disconnect(topic: topic),
-          ).then<void>(
-            (_) {
-              if (!completer.isCompleted) {
-                completer.complete();
-              }
-            },
-            onError: (Object error, StackTrace stackTrace) {
-              if (!completer.isCompleted) {
-                completer.completeError(error, stackTrace);
-              }
-            },
-          ),
-        );
-      },
-      (Object error, StackTrace _) {
-        final String errorSummary = error is ReownCoreError
-            ? 'ReownCoreError(code=${error.code})'
-            : '${error.runtimeType}';
-        _logger.fine(
-          'Suppressed unawaited async error during WalletConnect pairing '
-          'disconnect for topic $topic ($errorSummary)',
-        );
-      },
-    );
-    return completer.future;
   }
 
   PairingInfo? _findStoredPairing(String topic) {
@@ -745,8 +697,7 @@ class Web3WalletService extends IWeb3WalletService {
       Future<void>? disconnectFuture;
       try {
         _logger.info('Removing stale orphan pairing: ${livePairing.topic}');
-        disconnectFuture = _disconnectPairingGuarded(
-          client,
+        disconnectFuture = client.core.pairing.disconnect(
           topic: livePairing.topic,
         );
         await disconnectFuture.timeout(waitBudget);
@@ -876,7 +827,7 @@ class Web3WalletService extends IWeb3WalletService {
       throw StateError('WalletConnect client not created');
     }
     try {
-      await _disconnectPairingGuarded(_wcClient!, topic: topic);
+      await _wcClient!.core.pairing.disconnect(topic: topic);
       _approvedProposalIds.clear();
       _reloadStores();
     } on ReownCoreError catch (e) {
@@ -1390,7 +1341,8 @@ class Web3WalletService extends IWeb3WalletService {
         }
         continue;
       }
-      if (_pendingTimedOutTopicOps.containsKey(topic) ||
+      if (_inFlightPairTopics.containsKey(topic) ||
+          _pendingTimedOutTopicOps.containsKey(topic) ||
           _inFlightReconcileUnsubscribes.containsKey(topic) ||
           _activePairingSweepTopics.containsKey(topic) ||
           _inFlightStaleCleanupDisconnects.containsKey(topic)) {
@@ -1424,7 +1376,8 @@ class Web3WalletService extends IWeb3WalletService {
           }
           return;
         }
-        if (_pendingTimedOutTopicOps.containsKey(topic) ||
+        if (_inFlightPairTopics.containsKey(topic) ||
+            _pendingTimedOutTopicOps.containsKey(topic) ||
             _inFlightReconcileUnsubscribes.containsKey(topic) ||
             _activePairingSweepTopics.containsKey(topic) ||
             _inFlightStaleCleanupDisconnects.containsKey(topic)) {
@@ -1541,7 +1494,7 @@ class Web3WalletService extends IWeb3WalletService {
           swept.add(pairing.topic);
         }
         try {
-          await _disconnectPairingGuarded(_wcClient!, topic: pairing.topic);
+          await _wcClient!.core.pairing.disconnect(topic: pairing.topic);
         } on Object catch (e, s) {
           _logger.warning(
             'Failed to disconnect pairing ${pairing.topic} remotely; '
@@ -1982,24 +1935,43 @@ class Web3WalletService extends IWeb3WalletService {
         relayBudget: relayBudget,
       );
 
-      _pendingSessionCleanups
-        ..clear()
-        ..addAll(unfinishedSessions);
-      _pendingPairingCleanups
-        ..clear()
-        ..addAll(unfinishedPairings);
+      for (final String topic in snapshot.targetSessions.keys) {
+        if (!unfinishedSessions.containsKey(topic)) {
+          _pendingSessionCleanups.remove(topic);
+        }
+      }
+      _pendingSessionCleanups.addAll(unfinishedSessions);
+      for (final String topic in snapshot.targetPairings) {
+        if (!unfinishedPairings.contains(topic)) {
+          _pendingPairingCleanups.remove(topic);
+        }
+      }
+      _pendingPairingCleanups.addAll(unfinishedPairings);
 
-      if (!snapshot.runFullSweep || _isDisposed || _wcClient == null) {
+      if (_isDisposed || _wcClient == null) {
         break;
       }
 
-      final bool hasNewLiveSessions = _collectLiveSessionTopics(
-        storesReady: storesReady,
-      ).any((String topic) => !attemptedSessionTopics.contains(topic));
-      final bool hasNewLivePairings = _collectLivePairingTopics(
-        storesReady: storesReady,
-      ).any((String topic) => !attemptedPairingTopics.contains(topic));
-      if (!hasNewLiveSessions && !hasNewLivePairings) {
+      final bool hasNewPendingSessions = _pendingSessionCleanups.keys.any(
+        (String topic) => !attemptedSessionTopics.contains(topic),
+      );
+      final bool hasNewPendingPairings = _pendingPairingCleanups.any(
+        (String topic) => !attemptedPairingTopics.contains(topic),
+      );
+      final bool hasNewLiveSessions =
+          snapshot.runFullSweep &&
+          _collectLiveSessionTopics(
+            storesReady: storesReady,
+          ).any((String topic) => !attemptedSessionTopics.contains(topic));
+      final bool hasNewLivePairings =
+          snapshot.runFullSweep &&
+          _collectLivePairingTopics(
+            storesReady: storesReady,
+          ).any((String topic) => !attemptedPairingTopics.contains(topic));
+      if (!hasNewPendingSessions &&
+          !hasNewPendingPairings &&
+          !hasNewLiveSessions &&
+          !hasNewLivePairings) {
         break;
       }
     }
@@ -2007,8 +1979,17 @@ class Web3WalletService extends IWeb3WalletService {
     await _synchronizedMarkerOp<void>(() async {
       final bool newerResetRequested =
           _resetRequestEpoch != capturedEpoch || _pendingDisconnectEverything;
+      final Map<String, String> remainingPendingSessions = <String, String>{
+        ..._pendingSessionCleanups,
+        ...unfinishedSessions,
+      };
+      final Set<String> remainingPendingPairings = <String>{
+        ..._pendingPairingCleanups,
+        ...unfinishedPairings,
+      };
 
-      if (unfinishedSessions.isNotEmpty || unfinishedPairings.isNotEmpty) {
+      if (remainingPendingSessions.isNotEmpty ||
+          remainingPendingPairings.isNotEmpty) {
         _hasUnresolvedReset = true;
         if (newerResetRequested) {
           _hasUnresolvedFullReset = true;
@@ -2016,8 +1997,8 @@ class Web3WalletService extends IWeb3WalletService {
         try {
           await _persistPendingResetMarkerLocked(
             fullReset: newerResetRequested,
-            pendingSessions: unfinishedSessions,
-            pendingPairings: unfinishedPairings,
+            pendingSessions: remainingPendingSessions,
+            pendingPairings: remainingPendingPairings,
           );
           final bool newerResetRequestedAfterPersist =
               _resetRequestEpoch != capturedEpoch ||
@@ -2350,6 +2331,74 @@ class Web3WalletService extends IWeb3WalletService {
   bool _sameStringSet(Set<String> a, Set<String> b) =>
       a.length == b.length && a.containsAll(b);
 
+  Future<void> _unsubscribeTopicInterruptible(String topic) async {
+    final ReownWalletKit? client = _wcClient;
+    if (client == null || _isDisposed || topic.isEmpty) {
+      return;
+    }
+    if (_pendingTimedOutTopicOps.containsKey(topic)) {
+      _recordPendingRelayUnsubscription(topic);
+      return;
+    }
+
+    final int capturedEpoch = _ensureTopicSubscriptionEpoch(topic);
+    final Future<void> resetSignal = _getResetStartedFuture();
+    Future<void>? unsubscribeFuture;
+    bool unsubscribeSettled = false;
+    try {
+      unsubscribeFuture = client.core.relayClient.unsubscribe(topic: topic);
+      final Future<bool> outcome = unsubscribeFuture.then<bool>(
+        (_) {
+          unsubscribeSettled = true;
+          return true;
+        },
+        onError: (Object error, StackTrace stackTrace) {
+          unsubscribeSettled = true;
+          Error.throwWithStackTrace(error, stackTrace);
+        },
+      );
+      final bool completed = await Future.any<bool>(<Future<bool>>[
+        outcome,
+        resetSignal.then<bool>((_) => false),
+      ]).timeout(_inFlightPairWaitTimeout);
+
+      if (completed) {
+        if (_pendingRelayUnsubscriptions[topic] == capturedEpoch) {
+          _pendingRelayUnsubscriptions.remove(topic);
+        }
+        return;
+      }
+
+      if (!unsubscribeSettled) {
+        _trackTimedOutTopicCleanup(
+          topic,
+          unsubscribeFuture,
+          onSuccess: () {
+            if (_pendingRelayUnsubscriptions[topic] == capturedEpoch) {
+              _pendingRelayUnsubscriptions.remove(topic);
+            }
+          },
+        );
+      }
+      _recordPendingRelayUnsubscription(topic, epoch: capturedEpoch);
+    } on TimeoutException {
+      if (unsubscribeFuture != null) {
+        _trackTimedOutTopicCleanup(
+          topic,
+          unsubscribeFuture,
+          onSuccess: () {
+            if (_pendingRelayUnsubscriptions[topic] == capturedEpoch) {
+              _pendingRelayUnsubscriptions.remove(topic);
+            }
+          },
+        );
+      }
+      _recordPendingRelayUnsubscription(topic, epoch: capturedEpoch);
+    } on Object {
+      _recordPendingRelayUnsubscription(topic, epoch: capturedEpoch);
+    }
+  }
+
   @override
   Future<void> disconnectSession({required String topic}) async {
     if (_wcClient == null) {
@@ -2389,10 +2438,21 @@ class Web3WalletService extends IWeb3WalletService {
         final bool purged = await _purgeSessionLocally(
           topic: topic,
           publicKey: pendingPublicKey,
+          deferRelayUnsubscribe: true,
         );
         if (purged) {
           _pendingSessionCleanups.remove(topic);
         }
+        if (isInterruptedByReset()) {
+          if (purged) {
+            _recordPendingRelayUnsubscription(topic);
+          }
+          throw StateError(
+            'WalletConnect reset ran while disconnecting session; '
+            'reset will complete cleanup',
+          );
+        }
+        await _unsubscribeTopicInterruptible(topic);
         if (isInterruptedByReset()) {
           throw StateError(
             'WalletConnect reset ran while disconnecting session; '
@@ -2511,7 +2571,21 @@ class Web3WalletService extends IWeb3WalletService {
         final bool purged = await _purgeSessionLocally(
           topic: topic,
           publicKey: publicKey,
+          deferRelayUnsubscribe: true,
         );
+        if (isInterruptedByReset()) {
+          if (!purged) {
+            _pendingSessionCleanups[topic] = publicKey;
+          } else {
+            _pendingSessionCleanups.remove(topic);
+            _recordPendingRelayUnsubscription(topic);
+          }
+          throw StateError(
+            'WalletConnect reset ran while disconnecting session; '
+            'reset will complete cleanup',
+          );
+        }
+        await _unsubscribeTopicInterruptible(topic);
         if (isInterruptedByReset()) {
           if (!purged) {
             _pendingSessionCleanups[topic] = publicKey;
