@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:collection/collection.dart';
+import 'package:logging/logging.dart';
 import 'package:mutex/mutex.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/model/model.dart';
@@ -244,7 +245,7 @@ class AccountBlockUtils {
       return await currentZenon.send(
         transactionParams,
         currentKeyPair: walletAccount,
-        generatingPowCallback: (PowStatus status) async {
+        generatingPowCallback: (PowStatus status) {
           if (status == PowStatus.generating) {
             powActive = true;
             _onPowStatusChanged(status);
@@ -256,7 +257,7 @@ class AccountBlockUtils {
             // Wait for plasma to be generated before sending review
             // notification.
             if (needReview) {
-              await _sendReviewNotification(transactionParams);
+              unawaited(_sendReviewNotificationSafely(transactionParams));
             }
           }
         },
@@ -362,6 +363,21 @@ class AccountBlockUtils {
       }
     }
     return null;
+  }
+
+  Future<void> _sendReviewNotificationSafely(
+    AccountBlockTemplate transactionParams,
+  ) async {
+    try {
+      await _sendReviewNotification(transactionParams);
+    } on Object catch (error, stackTrace) {
+      Logger('AccountBlockUtils').log(
+        Level.WARNING,
+        'Failed to send hardware wallet review notification',
+        error,
+        stackTrace,
+      );
+    }
   }
 
   Future<void> _sendReviewNotification(

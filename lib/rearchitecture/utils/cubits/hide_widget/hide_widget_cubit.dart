@@ -5,6 +5,7 @@ import 'package:logging/logging.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/exceptions/exceptions.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/wallet_file.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 part 'hide_widget_cubit.g.dart';
@@ -17,7 +18,24 @@ part 'hide_widget_state.dart';
 /// wallet password is correct
 class HideWidgetCubit extends HydratedCubit<HideWidgetState> {
   /// Creates a new instance with an initial state
-  HideWidgetCubit() : super(const HideWidgetState.initial());
+  HideWidgetCubit({
+    Future<WalletFile> Function(String walletPath, String password)?
+    decryptWalletFile,
+    String? Function()? walletPathProvider,
+    Future<void> Function(String widgetTitle, {required bool isHidden})?
+    markWidgetAsHidden,
+  }) : _decryptWalletFile = decryptWalletFile ?? WalletUtils.decryptWalletFile,
+       _walletPathProvider = walletPathProvider ?? _defaultWalletPath,
+       _markWidgetAsHiddenCallback = markWidgetAsHidden,
+       super(const HideWidgetState.initial());
+
+  final Future<WalletFile> Function(String walletPath, String password)
+  _decryptWalletFile;
+  final String? Function() _walletPathProvider;
+  final Future<void> Function(String widgetTitle, {required bool isHidden})?
+  _markWidgetAsHiddenCallback;
+
+  static String? _defaultWalletPath() => kWalletPath;
 
   @override
   HideWidgetState? fromJson(Map<String, dynamic> json) =>
@@ -33,9 +51,21 @@ class HideWidgetCubit extends HydratedCubit<HideWidgetState> {
     try {
       if (!isHidden) {
         // TODO(maznnwell): use an Isolate
-        await WalletUtils.decryptWalletFile(kWalletPath!, password!);
+        final WalletFile walletFile = await _decryptWalletFile(
+          _walletPathProvider()!,
+          password!,
+        );
+        try {
+          await walletFile.close();
+        } on Object catch (closeError, closeStackTrace) {
+          Logger('HideWidgetCubit').warning(
+            'Failed to close temporary WalletFile',
+            closeError,
+            closeStackTrace,
+          );
+        }
       }
-      await _markWidgetAsHidden(widgetTitle, isHidden);
+      await _markWidgetAsHidden(widgetTitle, isHidden: isHidden);
       emit(
         state.copyWith(
           isHidden: isHidden,
@@ -61,7 +91,16 @@ class HideWidgetCubit extends HydratedCubit<HideWidgetState> {
     }
   }
 
-  Future<void> _markWidgetAsHidden(String widgetTitle, bool isHidden) async {
+  Future<void> _markWidgetAsHidden(
+    String widgetTitle, {
+    required bool isHidden,
+  }) async {
+    final Future<void> Function(String widgetTitle, {required bool isHidden})?
+    customMarkWidgetAsHidden = _markWidgetAsHiddenCallback;
+    if (customMarkWidgetAsHidden != null) {
+      await customMarkWidgetAsHidden(widgetTitle, isHidden: isHidden);
+      return;
+    }
     await sharedPrefsService!.put(
       WidgetUtils.isWidgetHiddenKey(widgetTitle),
       isHidden,

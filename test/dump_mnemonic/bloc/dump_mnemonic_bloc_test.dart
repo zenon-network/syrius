@@ -14,18 +14,25 @@ class _FakeKeyStore extends Fake implements KeyStore {
 }
 
 class _FakeWalletFile extends Fake implements WalletFile {
-  _FakeWalletFile(this.mnemonic);
+  _FakeWalletFile(this.mnemonic, {this.accessError});
 
   final String mnemonic;
-  bool closed = false;
+  final Error? accessError;
+  int closeCalls = 0;
+
+  bool get closed => closeCalls > 0;
 
   @override
   Future<T> access<T>(Future<T> Function(Wallet) accessSection) async {
-    try {
-      return await accessSection(_FakeKeyStore(mnemonic));
-    } finally {
-      closed = true;
+    if (accessError != null) {
+      throw accessError!;
     }
+    return await accessSection(_FakeKeyStore(mnemonic));
+  }
+
+  @override
+  Future<void> close() async {
+    closeCalls += 1;
   }
 }
 
@@ -38,7 +45,7 @@ void main() {
     });
 
     blocTest<DumpMnemonicBloc, DumpMnemonicState>(
-      'unlocks mnemonic words and closes wallet file via access()',
+      'unlocks mnemonic words and closes temporary wallet file',
       build: () => DumpMnemonicBloc(
         walletPathProvider: () => '/tmp/wallet',
         decryptWalletFile: (_, _) async => fakeWalletFile,
@@ -51,6 +58,36 @@ void main() {
       ],
       verify: (_) {
         expect(fakeWalletFile.closed, isTrue);
+        expect(fakeWalletFile.closeCalls, 1);
+      },
+    );
+
+    blocTest<DumpMnemonicBloc, DumpMnemonicState>(
+      'closes temporary wallet file when access throws an error',
+      setUp: () {
+        fakeWalletFile = _FakeWalletFile(
+          'alpha beta gamma',
+          accessError: StateError('keystore read failed'),
+        );
+      },
+      build: () => DumpMnemonicBloc(
+        walletPathProvider: () => '/tmp/wallet',
+        decryptWalletFile: (_, _) async => fakeWalletFile,
+      ),
+      act: (DumpMnemonicBloc bloc) =>
+          bloc.add(const DumpMnemonicSubmitted(password: 'secret')),
+      expect: () => <Matcher>[
+        isA<DumpMnemonicLoading>(),
+        isA<DumpMnemonicFailure>().having(
+          (DumpMnemonicFailure s) => s.errorMessage,
+          'errorMessage',
+          contains('keystore read failed'),
+        ),
+      ],
+      errors: () => <Matcher>[isA<StateError>()],
+      verify: (_) {
+        expect(fakeWalletFile.closed, isTrue);
+        expect(fakeWalletFile.closeCalls, 1);
       },
     );
 

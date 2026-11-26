@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:logging/logging.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:mutex/mutex.dart';
 import 'package:zenon_syrius_wallet_flutter/model/model.dart';
@@ -121,6 +122,7 @@ void main() {
       WalletFile? Function()? walletFileProvider,
       List<String?> Function()? addressListProvider,
       String? Function()? selectedAddressProvider,
+      Future<void> Function(WalletNotification notification)? addNotification,
       Duration postSendDelay = Duration.zero,
     }) {
       return AccountBlockUtils(
@@ -131,9 +133,11 @@ void main() {
         sendPlasmaNotification: (String purpose) async {
           plasmaNotifications.add(purpose);
         },
-        addNotification: (WalletNotification notification) async {
-          notifications.add(notification);
-        },
+        addNotification:
+            addNotification ??
+            (WalletNotification notification) async {
+              notifications.add(notification);
+            },
         onPowStatusChanged: powStatuses.add,
         postSendDelay: postSendDelay,
       );
@@ -786,6 +790,168 @@ void main() {
         );
 
         expect(powStatuses, <PowStatus>[PowStatus.generating, PowStatus.done]);
+      },
+    );
+
+    test(
+      'catches and logs async error from review notification during hardware '
+      'PoW completion without leaking an unhandled zone error',
+      () async {
+        final _LockingWalletFile hardwareWalletFile = _LockingWalletFile(
+          fakeWallet,
+          isHardwareWallet: true,
+        );
+        when(
+          () => mockZenon.requiresPoW(
+            any(),
+            blockSigningKey: any(named: 'blockSigningKey'),
+          ),
+        ).thenAnswer((_) async => true);
+        when(
+          () => mockZenon.send(
+            any(),
+            currentKeyPair: any(named: 'currentKeyPair'),
+            generatingPowCallback: any(named: 'generatingPowCallback'),
+            waitForRequiredPlasma: any(named: 'waitForRequiredPlasma'),
+          ),
+        ).thenAnswer((Invocation invocation) async {
+          final void Function(PowStatus)? callback =
+              invocation.namedArguments[#generatingPowCallback]
+                  as void Function(PowStatus)?;
+          callback?.call(PowStatus.generating);
+          callback?.call(PowStatus.done);
+          return invocation.positionalArguments.first as AccountBlockTemplate;
+        });
+
+        final List<LogRecord> logs = <LogRecord>[];
+        final StreamSubscription<LogRecord> logSubscription = Logger(
+          'AccountBlockUtils',
+        ).onRecord.listen(logs.add);
+        addTearDown(logSubscription.cancel);
+
+        final List<Object> unhandledErrors = <Object>[];
+        late AccountBlockTemplate result;
+        final AccountBlockTemplate tx = AccountBlockTemplate(
+          blockType: BlockTypeEnum.userSend.index,
+        );
+
+        await runZonedGuarded<Future<void>>(
+          () async {
+            final AccountBlockUtils utils = buildUtils(
+              walletFileProvider: () => hardwareWalletFile,
+              addNotification: (WalletNotification notification) async {
+                if (notification.type == NotificationType.confirm) {
+                  throw StateError('review notification failed');
+                }
+                notifications.add(notification);
+              },
+            );
+            result = await utils.createAccountBlock(
+              tx,
+              'hw pow send',
+              address: address0,
+            );
+            await pumpEventQueue();
+          },
+          (Object error, StackTrace stackTrace) {
+            unhandledErrors.add(error);
+          },
+        );
+
+        expect(unhandledErrors, isEmpty);
+        expect(result, same(tx));
+        expect(powStatuses, <PowStatus>[PowStatus.generating, PowStatus.done]);
+        expect(notifications, hasLength(1));
+        expect(
+          logs.any(
+            (LogRecord record) =>
+                record.level == Level.WARNING &&
+                record.error is StateError &&
+                record.error.toString().contains('review notification failed'),
+          ),
+          isTrue,
+        );
+      },
+    );
+
+    test(
+      'catches and logs synchronous error from review notification during '
+      'hardware PoW completion without leaking an unhandled zone error',
+      () async {
+        final _LockingWalletFile hardwareWalletFile = _LockingWalletFile(
+          fakeWallet,
+          isHardwareWallet: true,
+        );
+        when(
+          () => mockZenon.requiresPoW(
+            any(),
+            blockSigningKey: any(named: 'blockSigningKey'),
+          ),
+        ).thenAnswer((_) async => true);
+        when(
+          () => mockZenon.send(
+            any(),
+            currentKeyPair: any(named: 'currentKeyPair'),
+            generatingPowCallback: any(named: 'generatingPowCallback'),
+            waitForRequiredPlasma: any(named: 'waitForRequiredPlasma'),
+          ),
+        ).thenAnswer((Invocation invocation) async {
+          final void Function(PowStatus)? callback =
+              invocation.namedArguments[#generatingPowCallback]
+                  as void Function(PowStatus)?;
+          callback?.call(PowStatus.generating);
+          callback?.call(PowStatus.done);
+          return invocation.positionalArguments.first as AccountBlockTemplate;
+        });
+
+        final List<LogRecord> logs = <LogRecord>[];
+        final StreamSubscription<LogRecord> logSubscription = Logger(
+          'AccountBlockUtils',
+        ).onRecord.listen(logs.add);
+        addTearDown(logSubscription.cancel);
+
+        final List<Object> unhandledErrors = <Object>[];
+        final AccountBlockTemplate tx = AccountBlockTemplate(
+          blockType: BlockTypeEnum.userSend.index,
+        );
+
+        await runZonedGuarded<Future<void>>(
+          () async {
+            final AccountBlockUtils utils = buildUtils(
+              walletFileProvider: () => hardwareWalletFile,
+              addNotification: (WalletNotification notification) {
+                if (notification.type == NotificationType.confirm) {
+                  throw StateError('sync review notification failed');
+                }
+                notifications.add(notification);
+                return Future<void>.value();
+              },
+            );
+            await utils.createAccountBlock(
+              tx,
+              'hw pow sync throw',
+              address: address0,
+            );
+            await pumpEventQueue();
+          },
+          (Object error, StackTrace stackTrace) {
+            unhandledErrors.add(error);
+          },
+        );
+
+        expect(unhandledErrors, isEmpty);
+        expect(powStatuses, <PowStatus>[PowStatus.generating, PowStatus.done]);
+        expect(
+          logs.any(
+            (LogRecord record) =>
+                record.level == Level.WARNING &&
+                record.error is StateError &&
+                record.error.toString().contains(
+                  'sync review notification failed',
+                ),
+          ),
+          isTrue,
+        );
       },
     );
   });

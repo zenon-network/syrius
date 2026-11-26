@@ -401,21 +401,11 @@ List<SingleChildWidget> buildMyAppBlocProviders() => <SingleChildWidget>[
   BlocProvider<NotificationsBloc>.value(
     value: sl.get<NotificationsBloc>(),
   ),
-  BlocProvider<LatestTransactionsBloc>(
-    create: (_) => sl.get<LatestTransactionsBloc>()
-      ..add(
-        InfiniteListRequested(
-          address: Address.parse(kSelectedAddress!),
-        ),
-      ),
+  BlocProvider<LatestTransactionsBloc>.value(
+    value: sl.get<LatestTransactionsBloc>(),
   ),
-  BlocProvider<PendingTransactionsBloc>(
-    create: (_) => sl.get<PendingTransactionsBloc>()
-      ..add(
-        InfiniteListRequested(
-          address: Address.parse(kSelectedAddress!),
-        ),
-      ),
+  BlocProvider<PendingTransactionsBloc>.value(
+    value: sl.get<PendingTransactionsBloc>(),
   ),
   BlocProvider<SendTransactionBloc>(
     create: (_) => SendTransactionBloc(),

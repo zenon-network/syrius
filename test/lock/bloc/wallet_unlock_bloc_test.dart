@@ -5,6 +5,7 @@ import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/wallet_file.dart';
 import 'package:znn_ledger_dart/znn_ledger_dart.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
@@ -424,6 +425,54 @@ void main() {
       ],
       verify: (_) {
         expect(failedAttempts, 1);
+      },
+    );
+
+    test(
+      'default setWalletFile closes previously active distinct kWalletFile on '
+      'unlock',
+      () async {
+        final WalletFile? originalWalletFile = kWalletFile;
+        addTearDown(() {
+          kWalletFile = originalWalletFile;
+        });
+
+        final _MockWalletFile previousWalletFile = _MockWalletFile();
+        when(previousWalletFile.close).thenAnswer((_) async {});
+        when(walletFile.close).thenAnswer((_) async {});
+        kWalletFile = previousWalletFile;
+        walletInitCompleted = true;
+
+        final WalletUnlockBloc bloc = WalletUnlockBloc(
+          afterUnlockCallback: (_) async {},
+          afterInitCallback: () {},
+          decryptWallet: (_, _) async => walletFile,
+          initWalletAfterDecryption: (_) async {},
+          getWalletPath: () => '/tmp/wallet',
+          isWalletInitCompleted: () => true,
+          getNumFailedAttempts: () => 0,
+          saveNumFailedAttempts: (_) async {},
+          getAutoEraseWalletLimit: () => 3,
+          onFetchBalances: () {},
+          sendErrorNotification: (_, _) async {},
+        );
+        addTearDown(bloc.close);
+
+        bloc.add(buildEvent('MyPass123!'));
+        await expectLater(
+          bloc.stream,
+          emitsThrough(
+            isA<WalletUnlockState>().having(
+              (WalletUnlockState s) => s.status,
+              'status',
+              WalletUnlockStatus.success,
+            ),
+          ),
+        );
+
+        expect(kWalletFile, same(walletFile));
+        verify(previousWalletFile.close).called(1);
+        verifyNever(walletFile.close);
       },
     );
   });
