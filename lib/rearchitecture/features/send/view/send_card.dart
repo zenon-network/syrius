@@ -58,9 +58,7 @@ class SendCard extends StatelessWidget {
 }
 
 class _Populated extends StatefulWidget {
-  const _Populated({
-    required this.balances,
-  });
+  const _Populated({required this.balances});
 
   final Map<String, AccountInfo> balances;
 
@@ -89,17 +87,17 @@ class _PopulatedState extends State<_Populated> {
 
   AccountInfo get _accountInfo => widget.balances[_sender.value]!;
 
-  String? get _recipientErrorText =>
-      _recipient.isNotEmpty ? InputValidators.checkAddress(_recipient) : null;
+  String? get _recipientErrorText => _recipient.isNotEmpty
+      ? InputValidators.checkAddress(_recipient, l10n: context.l10n)
+      : null;
 
   String? get _amountErrorText => _amount.isNotEmpty
       ? InputValidators.correctValue(
           _amount,
-          _accountInfo.getBalance(
-            _selectedToken.value.tokenStandard,
-          ),
+          _accountInfo.getBalance(_selectedToken.value.tokenStandard),
           _selectedToken.value.decimals,
           BigInt.zero,
+          l10n: context.l10n,
         )
       : null;
 
@@ -128,10 +126,7 @@ class _PopulatedState extends State<_Populated> {
   @override
   Widget build(BuildContext context) {
     return ListenableBuilder(
-      listenable: Listenable.merge(<Listenable>[
-        _selectedToken,
-        _sender,
-      ]),
+      listenable: Listenable.merge(<Listenable>[_selectedToken, _sender]),
       builder: (_, _) {
         final Token selectedToken = _selectedToken.value;
 
@@ -148,10 +143,7 @@ class _PopulatedState extends State<_Populated> {
               children: <Widget>[
                 _buildAddressAndTokenRow(),
                 kVerticalGap8,
-                AvailableBalance(
-                  selectedToken,
-                  _accountInfo,
-                ),
+                AvailableBalance(selectedToken, _accountInfo),
                 kVerticalGap8,
                 _buildRecipientField(),
                 kVerticalGap16,
@@ -223,9 +215,7 @@ class _PopulatedState extends State<_Populated> {
   Widget _buildAddressAndTokenRow() {
     return Row(
       children: <Widget>[
-        Expanded(
-          child: _buildDefaultAddressDropdown(),
-        ),
+        Expanded(child: _buildDefaultAddressDropdown()),
         kHorizontalGap8,
         Expanded(
           child: ZtsDropdown(
@@ -247,9 +237,7 @@ class _PopulatedState extends State<_Populated> {
           decoration: InputDecoration(
             errorText: _recipientErrorText,
             hintText: context.l10n.recipientAddress,
-            suffixIcon: FieldSuffixButtons(
-              controller: _recipientController,
-            ),
+            suffixIcon: FieldSuffixButtons(controller: _recipientController),
           ),
           focusNode: _recipientFocusNode,
           onSubmitted: (_) {
@@ -319,10 +307,7 @@ class _PopulatedState extends State<_Populated> {
 
     final String title = context.l10n.couldNotSend(_amount, recipient, symbol);
 
-    await NotificationUtils.sendNotificationError(
-      error,
-      title,
-    );
+    await NotificationUtils.sendNotificationError(error, title);
   }
 
   Future<void> _sendConfirmationNotification({

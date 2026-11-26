@@ -41,10 +41,49 @@ class DecryptWalletFileBloc
       emit(DecryptWalletFileSuccess(walletFile: walletFile));
     } on IncorrectPasswordException catch (e, stackTrace) {
       addError(e, stackTrace);
-      emit(DecryptWalletFileFailure(error: e, isIncorrectPassword: true));
+      emit(
+        DecryptWalletFileFailure(
+          error: e,
+          isIncorrectPassword: true,
+          reason: DecryptWalletFileFailureReason.incorrectPassword,
+        ),
+      );
+    } on WalletFileReadException catch (e, stackTrace) {
+      addError(e, stackTrace);
+      emit(
+        DecryptWalletFileFailure(
+          error: e,
+          isIncorrectPassword: false,
+          reason: _mapReadFailureReason(e.reason),
+        ),
+      );
+    } on FormatException catch (e, stackTrace) {
+      addError(e, stackTrace);
+      emit(
+        DecryptWalletFileFailure(
+          error: e,
+          isIncorrectPassword: false,
+          reason: DecryptWalletFileFailureReason.invalidKeystoreFormat,
+        ),
+      );
     } on Object catch (e, stackTrace) {
       addError(e, stackTrace);
       emit(DecryptWalletFileFailure(error: e, isIncorrectPassword: false));
     }
+  }
+
+  DecryptWalletFileFailureReason _mapReadFailureReason(
+    WalletFileReadFailureReason reason,
+  ) {
+    return switch (reason) {
+      WalletFileReadFailureReason.notFound =>
+        DecryptWalletFileFailureReason.fileNotFound,
+      WalletFileReadFailureReason.notRegularFile =>
+        DecryptWalletFileFailureReason.notRegularFile,
+      WalletFileReadFailureReason.fileTooLarge =>
+        DecryptWalletFileFailureReason.fileTooLarge,
+      WalletFileReadFailureReason.unsupportedWalletType =>
+        DecryptWalletFileFailureReason.unsupportedWalletType,
+    };
   }
 }

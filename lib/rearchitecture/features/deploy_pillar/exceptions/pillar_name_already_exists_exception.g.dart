@@ -9,7 +9,7 @@ part of 'pillar_name_already_exists_exception.dart';
 PillarNameAlreadyExistsException _$PillarNameAlreadyExistsExceptionFromJson(
   Map<String, dynamic> json,
 ) => PillarNameAlreadyExistsException(
-  message: json['message'] as String? ?? 'Pillar name already exists',
+  message: json['message'] as String? ?? _kDefaultMessage,
 );
 
 Map<String, dynamic> _$PillarNameAlreadyExistsExceptionToJson(

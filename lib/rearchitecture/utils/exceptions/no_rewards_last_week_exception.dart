@@ -1,22 +1,27 @@
 import 'package:flutter/cupertino.dart';
 import 'package:json_annotation/json_annotation.dart';
+import 'package:zenon_syrius_wallet_flutter/l10n/app_localizations.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/exceptions/exceptions.dart';
 
 part 'no_rewards_last_week_exception.g.dart';
+
+const String _kDefaultMessage = 'No rewards in the last week';
 
 /// A [SyriusException] used when there are no pillar rewards in the last week.
 @immutable
 @JsonSerializable()
 class NoRewardsLastWeekException extends SyriusException {
   /// Creates a [NoRewardsLastWeekException] instance
-  NoRewardsLastWeekException({
-    String message = 'No rewards in the last week',
-  }) : super(message);
+  NoRewardsLastWeekException({String message = _kDefaultMessage})
+    : super(message);
 
   /// {@macro instance_from_json}
-  factory NoRewardsLastWeekException.fromJson(
-    Map<String, dynamic> json,
-  ) => _$NoRewardsLastWeekExceptionFromJson(json);
+  factory NoRewardsLastWeekException.fromJson(Map<String, dynamic> json) =>
+      _$NoRewardsLastWeekExceptionFromJson(json);
+
+  @override
+  String localizedMessage(AppLocalizations l10n) =>
+      message == _kDefaultMessage ? l10n.noRewardsInLastWeek : message;
 
   @override
   Map<String, dynamic> toJson() =>

@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:json_rpc_2/json_rpc_2.dart' show RpcException;
 import 'package:logging/logging.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:zenon_syrius_wallet_flutter/l10n/app_localizations_en.dart';
 import 'package:zenon_syrius_wallet_flutter/model/model.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
@@ -20,6 +21,20 @@ class MockHtlcSwapUnlockService extends Mock implements HtlcSwapUnlockService {}
 class MockWalletFile extends Mock implements WalletFile {}
 
 class FakeWalletNotification extends Fake implements WalletNotification {}
+
+class _CustomAutoUnlockL10n extends AppLocalizationsEn {
+  _CustomAutoUnlockL10n() : super('en');
+
+  @override
+  String get failedToCompleteSwap => '[L10N] Failed swap title';
+
+  @override
+  String failedToCompleteSwapWithError(String error) =>
+      '[L10N] Failed swap details: $error';
+
+  @override
+  String get swapAddressNotInDefaultAddresses => '[L10N] Swap address missing';
+}
 
 void main() {
   setUpAll(() {
@@ -252,6 +267,35 @@ void main() {
         expect(
           records.single.error.toString(),
           isNot(contains(secretPreimage)),
+        );
+      },
+    );
+
+    test(
+      'localizes LocalizedSyriusException errors via injected l10nProvider',
+      () async {
+        final HtlcSwapAutoUnlockService localizedService =
+            HtlcSwapAutoUnlockService(
+              notificationsBloc: notificationsBloc,
+              syncMonitor: syncMonitor,
+              unlockService: unlockService,
+              now: () => now,
+              l10nProvider: _CustomAutoUnlockL10n.new,
+            );
+
+        when(() => unlockService.unlock(swap)).thenThrow(
+          LocalizedSyriusException(
+            SyriusErrorCode.swapAddressNotInDefaultAddresses,
+          ),
+        );
+
+        await localizedService.unlockNext(<HtlcSwap>[swap]);
+
+        expect(notifications, hasLength(1));
+        expect(notifications.single.title, '[L10N] Failed swap title');
+        expect(
+          notifications.single.details,
+          '[L10N] Failed swap details: [L10N] Swap address missing',
         );
       },
     );

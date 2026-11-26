@@ -92,15 +92,14 @@ class AccountBlockUtils {
     final Address resolvedAddress = address ?? _resolveSelectedAddress();
     final String resolvedAddressStr = resolvedAddress.toString();
     if (!_addressListProvider().contains(resolvedAddressStr)) {
-      throw SyriusException(
-        'Address $resolvedAddressStr is not present in the wallet '
-        'address list.',
+      throw LocalizedSyriusException.addressNotInWalletList(
+        address: resolvedAddressStr,
       );
     }
 
     final WalletFile? walletFile = _walletFileProvider();
     if (walletFile == null) {
-      throw SyriusException('Wallet is not unlocked.');
+      throw LocalizedSyriusException(SyriusErrorCode.walletNotUnlocked);
     }
 
     return await _withAddressSendLock<AccountBlockTemplate>(
@@ -119,7 +118,7 @@ class AccountBlockUtils {
   Address _resolveSelectedAddress() {
     final String? selected = _selectedAddressProvider();
     if (selected == null || selected.isEmpty) {
-      throw SyriusException('No wallet address is selected.');
+      throw LocalizedSyriusException(SyriusErrorCode.noWalletAddressSelected);
     }
     return Address.parse(selected);
   }
@@ -135,7 +134,7 @@ class AccountBlockUtils {
     void throwIfWalletChanged() {
       final WalletFile? walletNow = _walletFileProvider();
       if (walletNow == null || !identical(walletNow, expectedWalletFile)) {
-        throw SyriusException('Wallet is not unlocked.');
+        throw LocalizedSyriusException(SyriusErrorCode.walletNotUnlocked);
       }
     }
 
@@ -144,9 +143,8 @@ class AccountBlockUtils {
 
     final int accountIndex = _addressListProvider().indexOf(resolvedAddressStr);
     if (accountIndex < 0) {
-      throw SyriusException(
-        'Address $resolvedAddressStr is not present in the wallet '
-        'address list.',
+      throw LocalizedSyriusException.addressNotInWalletList(
+        address: resolvedAddressStr,
       );
     }
 
@@ -158,22 +156,22 @@ class AccountBlockUtils {
       // on-device transaction signing. Release the wallet lock before the
       // trailing frontier propagation delay so other wallet operations are not
       // blocked longer than necessary.
-      response = await currentWalletFile.access<AccountBlockTemplate>(
-        (Wallet wallet) async {
-          throwIfWalletChanged();
-          final WalletAccount walletAccount = await wallet.getAccount(
-            accountIndex,
-          );
-          return await _prepareAndSend(
-            currentZenon: currentZenon,
-            walletAccount: walletAccount,
-            transactionParams: transactionParams,
-            purposeOfGeneratingPlasma: purposeOfGeneratingPlasma,
-            needReview: true,
-            waitForRequiredPlasma: waitForRequiredPlasma,
-          );
-        },
-      );
+      response = await currentWalletFile.access<AccountBlockTemplate>((
+        Wallet wallet,
+      ) async {
+        throwIfWalletChanged();
+        final WalletAccount walletAccount = await wallet.getAccount(
+          accountIndex,
+        );
+        return await _prepareAndSend(
+          currentZenon: currentZenon,
+          walletAccount: walletAccount,
+          transactionParams: transactionParams,
+          purposeOfGeneratingPlasma: purposeOfGeneratingPlasma,
+          needReview: true,
+          waitForRequiredPlasma: waitForRequiredPlasma,
+        );
+      });
     } else {
       // Software wallets derive an in-memory KeyPair; release the wallet lock
       // immediately after derivation so concurrent wallet operations (such as
@@ -373,9 +371,7 @@ class AccountBlockUtils {
             '${BlockUtils.isSendBlock(transactionParams.blockType) ? 'Sending transaction' : 'Receiving transaction'}, please review the transaction on your hardware device',
         timestamp: DateTime.now().millisecondsSinceEpoch,
         details:
-            'Review account-block type: ${FormatUtils.extractNameFromEnum<BlockTypeEnum>(
-              BlockTypeEnum.values[transactionParams.blockType],
-            )}',
+            'Review account-block type: ${FormatUtils.extractNameFromEnum<BlockTypeEnum>(BlockTypeEnum.values[transactionParams.blockType])}',
         type: NotificationType.confirm,
       ),
     );

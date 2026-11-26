@@ -31,19 +31,13 @@ class TransferTokenView extends StatelessWidget {
         accountBlockUtils: AccountBlockUtils(),
         zenon: zenon!,
       ),
-      child: _View(
-        onBackPressed: _onBackPressed,
-        token: _token,
-      ),
+      child: _View(onBackPressed: _onBackPressed, token: _token),
     );
   }
 }
 
 class _View extends StatefulWidget {
-  const _View({
-    required this._onBackPressed,
-    required this._token,
-  });
+  const _View({required this._onBackPressed, required this._token});
 
   final VoidCallback _onBackPressed;
   final Token _token;
@@ -59,9 +53,8 @@ class _ViewState extends State<_View> {
 
   String get _newOwnerAddress => _newOwnerAddressController.text;
 
-  String? get _newOwnerAddressError => InputValidators.checkAddress(
-    _newOwnerAddress,
-  );
+  String? get _newOwnerAddressError =>
+      InputValidators.checkAddress(_newOwnerAddress, l10n: context.l10n);
 
   @override
   void initState() {

@@ -254,7 +254,8 @@ class _ViewState extends State<_View> {
             onChanged: (String value) {
               setState(() {});
             },
-            validator: InputValidators.node,
+            validator: (String? value) =>
+                InputValidators.node(value, l10n: context.l10n),
           ),
         ),
         kVerticalSpacing,

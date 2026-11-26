@@ -31,13 +31,12 @@ List<FileSystemEntity> _tmpFilesIn(Directory dir) {
 }
 
 Future<({KeyStore keyStore, String baseAddress, KeyStoreWalletFile walletFile})>
-    _createKeyStoreWalletFile({
+_createKeyStoreWalletFile({
   required String walletPath,
   required String password,
 }) async {
   final KeyStore keyStore = await KeyStore.newRandom();
-  final Address baseAddress =
-      await (await keyStore.getAccount()).getAddress();
+  final Address baseAddress = await (await keyStore.getAccount()).getAddress();
   final String baseAddressStr = baseAddress.toString();
 
   await WalletFile.write(
@@ -50,8 +49,10 @@ Future<({KeyStore keyStore, String baseAddress, KeyStoreWalletFile walletFile})>
     },
   );
 
-  final KeyStoreWalletFile walletFile =
-      await KeyStoreWalletFile.decrypt(walletPath, password);
+  final KeyStoreWalletFile walletFile = await KeyStoreWalletFile.decrypt(
+    walletPath,
+    password,
+  );
 
   return (
     keyStore: keyStore,
@@ -65,8 +66,9 @@ void main() {
     test(
       'atomically creates and overwrites wallet file without tmp files',
       () async {
-        final Directory tempDir =
-            Directory.systemTemp.createTempSync('wallet_file_atomic_test_');
+        final Directory tempDir = Directory.systemTemp.createTempSync(
+          'wallet_file_atomic_test_',
+        );
         addTearDown(() {
           if (tempDir.existsSync()) {
             tempDir.deleteSync(recursive: true);
@@ -121,16 +123,20 @@ void main() {
     test(
       'propagates FileSystemException when parent directory is missing',
       () async {
-        final Directory tempDir =
-            Directory.systemTemp.createTempSync('wallet_file_missing_dir_');
+        final Directory tempDir = Directory.systemTemp.createTempSync(
+          'wallet_file_missing_dir_',
+        );
         addTearDown(() {
           if (tempDir.existsSync()) {
             tempDir.deleteSync(recursive: true);
           }
         });
 
-        final String missingPath =
-            path.join(tempDir.path, 'does_not_exist', 'wallet');
+        final String missingPath = path.join(
+          tempDir.path,
+          'does_not_exist',
+          'wallet',
+        );
 
         final List<Object> unhandledErrors = <Object>[];
         await runZonedGuarded<Future<void>>(
@@ -161,8 +167,9 @@ void main() {
     test(
       'cleans up temporary file and propagates error when rename fails',
       () async {
-        final Directory tempDir =
-            Directory.systemTemp.createTempSync('wallet_file_rename_fail_');
+        final Directory tempDir = Directory.systemTemp.createTempSync(
+          'wallet_file_rename_fail_',
+        );
         addTearDown(() {
           if (tempDir.existsSync()) {
             tempDir.deleteSync(recursive: true);
@@ -189,59 +196,61 @@ void main() {
   });
 
   group('KeyStoreWalletFile.changePassword', () {
-    test(
-      're-encrypts keystore and preserves mnemonic and metadata',
-      () async {
-        final Directory tempDir =
-            Directory.systemTemp.createTempSync('wallet_file_rekey_ok_');
-        addTearDown(() {
-          if (tempDir.existsSync()) {
-            tempDir.deleteSync(recursive: true);
-          }
-        });
+    test('re-encrypts keystore and preserves mnemonic and metadata', () async {
+      final Directory tempDir = Directory.systemTemp.createTempSync(
+        'wallet_file_rekey_ok_',
+      );
+      addTearDown(() {
+        if (tempDir.existsSync()) {
+          tempDir.deleteSync(recursive: true);
+        }
+      });
 
-        final String walletPath = path.join(tempDir.path, 'keystore');
-        const String oldPassword = 'old-password-123';
-        const String newPassword = 'new-password-456';
+      final String walletPath = path.join(tempDir.path, 'keystore');
+      const String oldPassword = 'old-password-123';
+      const String newPassword = 'new-password-456';
 
-        final ({
-          KeyStore keyStore,
-          String baseAddress,
-          KeyStoreWalletFile walletFile,
-        }) created = await _createKeyStoreWalletFile(
-          walletPath: walletPath,
-          password: oldPassword,
-        );
+      final ({
+        KeyStore keyStore,
+        String baseAddress,
+        KeyStoreWalletFile walletFile,
+      })
+      created = await _createKeyStoreWalletFile(
+        walletPath: walletPath,
+        password: oldPassword,
+      );
 
-        await created.walletFile.changePassword(oldPassword, newPassword);
+      await created.walletFile.changePassword(oldPassword, newPassword);
 
-        await expectLater(
-          KeyStoreWalletFile.decrypt(walletPath, oldPassword),
-          throwsA(isA<IncorrectPasswordException>()),
-        );
+      await expectLater(
+        KeyStoreWalletFile.decrypt(walletPath, oldPassword),
+        throwsA(isA<IncorrectPasswordException>()),
+      );
 
-        final KeyStoreWalletFile rekeyedWallet =
-            await KeyStoreWalletFile.decrypt(walletPath, newPassword);
-        final String? rekeyedMnemonic = await rekeyedWallet.access<String?>(
-          (Wallet wallet) async => (wallet as KeyStore).mnemonic,
-        );
-        expect(rekeyedMnemonic, created.keyStore.mnemonic);
+      final KeyStoreWalletFile rekeyedWallet = await KeyStoreWalletFile.decrypt(
+        walletPath,
+        newPassword,
+      );
+      final String? rekeyedMnemonic = await rekeyedWallet.access<String?>(
+        (Wallet wallet) async => (wallet as KeyStore).mnemonic,
+      );
+      expect(rekeyedMnemonic, created.keyStore.mnemonic);
 
-        final EncryptedFile encrypted = await WalletFile.read(walletPath);
-        expect(encrypted.metadata, <String, dynamic>{
-          baseAddressKey: created.baseAddress,
-          walletTypeKey: keyStoreWalletType,
-        });
-        expect(_tmpFilesIn(tempDir), isEmpty);
-      },
-    );
+      final EncryptedFile encrypted = await WalletFile.read(walletPath);
+      expect(encrypted.metadata, <String, dynamic>{
+        baseAddressKey: created.baseAddress,
+        walletTypeKey: keyStoreWalletType,
+      });
+      expect(_tmpFilesIn(tempDir), isEmpty);
+    });
 
     test(
       'leaves original keystore intact when directory is read-only',
       skip: Platform.isWindows ? 'POSIX directory permissions required' : false,
       () async {
-        final Directory tempDir =
-            Directory.systemTemp.createTempSync('wallet_file_rekey_ro_');
+        final Directory tempDir = Directory.systemTemp.createTempSync(
+          'wallet_file_rekey_ro_',
+        );
         addTearDown(() {
           Process.runSync('chmod', <String>['0755', tempDir.path]);
           if (tempDir.existsSync()) {
@@ -257,15 +266,18 @@ void main() {
           KeyStore keyStore,
           String baseAddress,
           KeyStoreWalletFile walletFile,
-        }) created = await _createKeyStoreWalletFile(
+        })
+        created = await _createKeyStoreWalletFile(
           walletPath: walletPath,
           password: oldPassword,
         );
 
         final List<int> originalBytes = File(walletPath).readAsBytesSync();
 
-        final ProcessResult lockResult =
-            Process.runSync('chmod', <String>['0555', tempDir.path]);
+        final ProcessResult lockResult = Process.runSync('chmod', <String>[
+          '0555',
+          tempDir.path,
+        ]);
         expect(lockResult.exitCode, 0);
 
         final File probeFile = File(path.join(tempDir.path, '.write_probe'));
@@ -293,8 +305,10 @@ void main() {
           throwsA(isA<FileSystemException>()),
         );
 
-        final ProcessResult unlockResult =
-            Process.runSync('chmod', <String>['0755', tempDir.path]);
+        final ProcessResult unlockResult = Process.runSync('chmod', <String>[
+          '0755',
+          tempDir.path,
+        ]);
         expect(unlockResult.exitCode, 0);
 
         expect(File(walletPath).readAsBytesSync(), originalBytes);
@@ -413,82 +427,76 @@ void main() {
       },
     );
 
-    test(
-      'rejects JSON objects missing required keystore fields with '
-      'FormatException instead of TypeError',
-      () async {
-        final String saltHex = '0x${'aa' * 16}';
-        final String cipherHex = '0x${'aa' * 16}';
-        final String nonceHex = '0x${'bb' * 12}';
-        final Map<String, String> invalidPayloads = <String, String>{
-          'empty_object.json': '{}',
-          'null_crypto.json': '{"crypto": null}',
-          'non_map_crypto.json': '{"crypto": "invalid"}',
-          'empty_crypto.json': '{"crypto": {}}',
-          'missing_argon2.json':
-              '{"crypto": {"cipherData": "$cipherHex", '
-              '"nonce": "$nonceHex", "cipherName": "aes-256-gcm", '
-              '"kdf": "argon2.IDKey"}}',
-          'missing_salt.json':
-              '{"crypto": {"argon2Params": {}, "cipherData": "$cipherHex", '
-              '"nonce": "$nonceHex", "cipherName": "aes-256-gcm", '
-              '"kdf": "argon2.IDKey"}}',
-          'bad_hex_salt.json':
-              '{"crypto": {"argon2Params": {"salt": "0xzzzz"}, '
-              '"cipherData": "$cipherHex", "nonce": "$nonceHex", '
-              '"cipherName": "aes-256-gcm", "kdf": "argon2.IDKey"}}',
-          'unprefixed_hex.json':
-              '{"crypto": {"argon2Params": {"salt": "${'aa' * 16}"}, '
-              '"cipherData": "$cipherHex", "nonce": "$nonceHex", '
-              '"cipherName": "aes-256-gcm", "kdf": "argon2.IDKey"}}',
-          'short_cipher_data.json':
-              '{"crypto": {"argon2Params": {"salt": "$saltHex"}, '
-              '"cipherData": "0x0102", "nonce": "$nonceHex", '
-              '"cipherName": "aes-256-gcm", "kdf": "argon2.IDKey"}}',
-          'short_salt.json':
-              '{"crypto": {"argon2Params": {"salt": "0x01020304"}, '
-              '"cipherData": "$cipherHex", "nonce": "$nonceHex", '
-              '"cipherName": "aes-256-gcm", "kdf": "argon2.IDKey"}}',
-          'short_nonce.json':
-              '{"crypto": {"argon2Params": {"salt": "$saltHex"}, '
-              '"cipherData": "$cipherHex", "nonce": "0x01020304", '
-              '"cipherName": "aes-256-gcm", "kdf": "argon2.IDKey"}}',
-          'bad_version_type.json':
-              '{"version": "1", "crypto": {"argon2Params": '
-              '{"salt": "$saltHex"}, "cipherData": "$cipherHex", '
-              '"nonce": "$nonceHex", "cipherName": "aes-256-gcm", '
-              '"kdf": "argon2.IDKey"}}',
-        };
-
-        for (final MapEntry<String, String> entry in invalidPayloads.entries) {
-          final File file = File(path.join(tempDir.path, entry.key))
-            ..writeAsStringSync(entry.value);
-          await expectLater(
-            () => WalletFile.read(file.path),
-            throwsA(isA<FormatException>()),
-            reason: 'Expected FormatException for ${entry.key}',
-          );
-        }
-      },
-    );
-
-    test(
-      'accepts keystore JSON at exact minimum salt (8B), nonce (12B), and '
-      'cipherData (16B) boundaries',
-      () async {
-        final File minValid = File(path.join(tempDir.path, 'min_valid.json'))
-          ..writeAsStringSync(
-            '{"crypto": {"argon2Params": {"salt": "0x${'11' * 8}"}, '
-            '"cipherData": "0x${'22' * 16}", '
-            '"nonce": "0x${'33' * 12}", '
-            '"cipherName": "aes-256-gcm", '
+    test('rejects JSON objects missing required keystore fields with '
+        'FormatException instead of TypeError', () async {
+      final String saltHex = '0x${'aa' * 16}';
+      final String cipherHex = '0x${'aa' * 16}';
+      final String nonceHex = '0x${'bb' * 12}';
+      final Map<String, String> invalidPayloads = <String, String>{
+        'empty_object.json': '{}',
+        'null_crypto.json': '{"crypto": null}',
+        'non_map_crypto.json': '{"crypto": "invalid"}',
+        'empty_crypto.json': '{"crypto": {}}',
+        'missing_argon2.json':
+            '{"crypto": {"cipherData": "$cipherHex", '
+            '"nonce": "$nonceHex", "cipherName": "aes-256-gcm", '
             '"kdf": "argon2.IDKey"}}',
-          );
+        'missing_salt.json':
+            '{"crypto": {"argon2Params": {}, "cipherData": "$cipherHex", '
+            '"nonce": "$nonceHex", "cipherName": "aes-256-gcm", '
+            '"kdf": "argon2.IDKey"}}',
+        'bad_hex_salt.json':
+            '{"crypto": {"argon2Params": {"salt": "0xzzzz"}, '
+            '"cipherData": "$cipherHex", "nonce": "$nonceHex", '
+            '"cipherName": "aes-256-gcm", "kdf": "argon2.IDKey"}}',
+        'unprefixed_hex.json':
+            '{"crypto": {"argon2Params": {"salt": "${'aa' * 16}"}, '
+            '"cipherData": "$cipherHex", "nonce": "$nonceHex", '
+            '"cipherName": "aes-256-gcm", "kdf": "argon2.IDKey"}}',
+        'short_cipher_data.json':
+            '{"crypto": {"argon2Params": {"salt": "$saltHex"}, '
+            '"cipherData": "0x0102", "nonce": "$nonceHex", '
+            '"cipherName": "aes-256-gcm", "kdf": "argon2.IDKey"}}',
+        'short_salt.json':
+            '{"crypto": {"argon2Params": {"salt": "0x01020304"}, '
+            '"cipherData": "$cipherHex", "nonce": "$nonceHex", '
+            '"cipherName": "aes-256-gcm", "kdf": "argon2.IDKey"}}',
+        'short_nonce.json':
+            '{"crypto": {"argon2Params": {"salt": "$saltHex"}, '
+            '"cipherData": "$cipherHex", "nonce": "0x01020304", '
+            '"cipherName": "aes-256-gcm", "kdf": "argon2.IDKey"}}',
+        'bad_version_type.json':
+            '{"version": "1", "crypto": {"argon2Params": '
+            '{"salt": "$saltHex"}, "cipherData": "$cipherHex", '
+            '"nonce": "$nonceHex", "cipherName": "aes-256-gcm", '
+            '"kdf": "argon2.IDKey"}}',
+      };
 
-        final EncryptedFile loaded = await WalletFile.read(minValid.path);
-        expect(loaded.crypto, isNotNull);
-      },
-    );
+      for (final MapEntry<String, String> entry in invalidPayloads.entries) {
+        final File file = File(path.join(tempDir.path, entry.key))
+          ..writeAsStringSync(entry.value);
+        await expectLater(
+          () => WalletFile.read(file.path),
+          throwsA(isA<FormatException>()),
+          reason: 'Expected FormatException for ${entry.key}',
+        );
+      }
+    });
+
+    test('accepts keystore JSON at exact minimum salt (8B), nonce (12B), and '
+        'cipherData (16B) boundaries', () async {
+      final File minValid = File(path.join(tempDir.path, 'min_valid.json'))
+        ..writeAsStringSync(
+          '{"crypto": {"argon2Params": {"salt": "0x${'11' * 8}"}, '
+          '"cipherData": "0x${'22' * 16}", '
+          '"nonce": "0x${'33' * 12}", '
+          '"cipherName": "aes-256-gcm", '
+          '"kdf": "argon2.IDKey"}}',
+        );
+
+      final EncryptedFile loaded = await WalletFile.read(minValid.path);
+      expect(loaded.crypto, isNotNull);
+    });
 
     test(
       'WalletFile.decrypt surfaces FormatException for empty JSON object',
@@ -505,96 +513,95 @@ void main() {
   });
 
   group('WalletFile.close concurrency safety', () {
-    test(
-      'KeyStoreWalletFile.close does not prematurely release mutex held by '
-      'in-flight access and rejects queued/subsequent accesses',
-      () async {
-        final Directory tempDir =
-            Directory.systemTemp.createTempSync('wallet_file_close_ks_');
-        addTearDown(() {
-          if (tempDir.existsSync()) {
-            tempDir.deleteSync(recursive: true);
-          }
-        });
+    test('KeyStoreWalletFile.close does not prematurely release mutex held by '
+        'in-flight access and rejects queued/subsequent accesses', () async {
+      final Directory tempDir = Directory.systemTemp.createTempSync(
+        'wallet_file_close_ks_',
+      );
+      addTearDown(() {
+        if (tempDir.existsSync()) {
+          tempDir.deleteSync(recursive: true);
+        }
+      });
 
-        final ({
-          KeyStore keyStore,
-          String baseAddress,
-          KeyStoreWalletFile walletFile,
-        }) created = await _createKeyStoreWalletFile(
-          walletPath: path.join(tempDir.path, 'keystore'),
-          password: 'password-123',
-        );
-        final KeyStoreWalletFile walletFile = created.walletFile;
+      final ({
+        KeyStore keyStore,
+        String baseAddress,
+        KeyStoreWalletFile walletFile,
+      })
+      created = await _createKeyStoreWalletFile(
+        walletPath: path.join(tempDir.path, 'keystore'),
+        password: 'password-123',
+      );
+      final KeyStoreWalletFile walletFile = created.walletFile;
 
-        final Completer<void> firstEntered = Completer<void>();
-        final Completer<void> releaseFirst = Completer<void>();
-        bool secondEntered = false;
-        bool closeCompleted = false;
+      final Completer<void> firstEntered = Completer<void>();
+      final Completer<void> releaseFirst = Completer<void>();
+      bool secondEntered = false;
+      bool closeCompleted = false;
 
-        final Future<String?> firstAccess = walletFile.access<String?>(
-          (Wallet wallet) async {
-            firstEntered.complete();
-            await releaseFirst.future;
-            return (wallet as KeyStore).mnemonic;
-          },
-        );
-        await firstEntered.future;
-        expect(walletFile.isOpen, isTrue);
-        expect(walletFile.isClosed, isFalse);
+      final Future<String?> firstAccess = walletFile.access<String?>((
+        Wallet wallet,
+      ) async {
+        firstEntered.complete();
+        await releaseFirst.future;
+        return (wallet as KeyStore).mnemonic;
+      });
+      await firstEntered.future;
+      expect(walletFile.isOpen, isTrue);
+      expect(walletFile.isClosed, isFalse);
 
-        // Queue a second operation while the first holds the mutex.
-        final Future<void> queuedAccess = walletFile.access<void>((_) async {
-          secondEntered = true;
-        });
-        final Future<void> queuedRejection = expectLater(
-          queuedAccess,
-          throwsA(
-            isA<WalletException>().having(
-              (WalletException e) => e.message,
-              'message',
-              contains('closed'),
-            ),
+      // Queue a second operation while the first holds the mutex.
+      final Future<void> queuedAccess = walletFile.access<void>((_) async {
+        secondEntered = true;
+      });
+      final Future<void> queuedRejection = expectLater(
+        queuedAccess,
+        throwsA(
+          isA<WalletException>().having(
+            (WalletException e) => e.message,
+            'message',
+            contains('closed'),
           ),
-        );
+        ),
+      );
 
-        // Simulate concurrent wallet lock/reset calling close().
-        final Future<void> closeFuture = walletFile.close().then((_) {
-          closeCompleted = true;
-        });
-        await Future<void>.delayed(const Duration(milliseconds: 20));
+      // Simulate concurrent wallet lock/reset calling close().
+      final Future<void> closeFuture = walletFile.close().then((_) {
+        closeCompleted = true;
+      });
+      await Future<void>.delayed(const Duration(milliseconds: 20));
 
-        // close() must mark the wallet closed, wait for the in-flight access,
-        // and NOT release the mutex to the queued operation.
-        expect(walletFile.isClosed, isTrue);
-        expect(walletFile.isOpen, isTrue);
-        expect(secondEntered, isFalse);
-        expect(closeCompleted, isFalse);
+      // close() must mark the wallet closed, wait for the in-flight access,
+      // and NOT release the mutex to the queued operation.
+      expect(walletFile.isClosed, isTrue);
+      expect(walletFile.isOpen, isTrue);
+      expect(secondEntered, isFalse);
+      expect(closeCompleted, isFalse);
 
-        // Any new access after close() fails immediately without entering.
-        await expectLater(
-          walletFile.access<void>((_) async {
-            fail('accessSection should not run on a closed wallet');
-          }),
-          throwsA(isA<WalletException>()),
-        );
+      // Any new access after close() fails immediately without entering.
+      await expectLater(
+        walletFile.access<void>((_) async {
+          fail('accessSection should not run on a closed wallet');
+        }),
+        throwsA(isA<WalletException>()),
+      );
 
-        // Completing the in-flight access releases its own mutex; queued access
-        // is rejected and close() completes cleanly.
-        releaseFirst.complete();
-        expect(await firstAccess, created.keyStore.mnemonic);
-        await queuedRejection;
-        await closeFuture;
+      // Completing the in-flight access releases its own mutex; queued access
+      // is rejected and close() completes cleanly.
+      releaseFirst.complete();
+      expect(await firstAccess, created.keyStore.mnemonic);
+      await queuedRejection;
+      await closeFuture;
 
-        expect(secondEntered, isFalse);
-        expect(closeCompleted, isTrue);
-        expect(walletFile.isOpen, isFalse);
-        expect(walletFile.isClosed, isTrue);
+      expect(secondEntered, isFalse);
+      expect(closeCompleted, isTrue);
+      expect(walletFile.isOpen, isFalse);
+      expect(walletFile.isClosed, isTrue);
 
-        // Repeated close() calls are idempotent.
-        await walletFile.close();
-      },
-    );
+      // Repeated close() calls are idempotent.
+      await walletFile.close();
+    });
 
     test(
       'LedgerWalletFile.close waits for in-flight access before tearing down '
@@ -619,13 +626,13 @@ void main() {
         bool secondEntered = false;
         bool closeCompleted = false;
 
-        final Future<String> firstAccess = walletFile.access<String>(
-          (Wallet wallet) async {
-            firstEntered.complete();
-            await releaseFirst.future;
-            return 'signed';
-          },
-        );
+        final Future<String> firstAccess = walletFile.access<String>((
+          Wallet wallet,
+        ) async {
+          firstEntered.complete();
+          await releaseFirst.future;
+          return 'signed';
+        });
         await firstEntered.future;
         expect(connectCalls, 1);
         expect(createdWallets.single.disconnectCalls, 0);
@@ -663,97 +670,161 @@ void main() {
       },
     );
 
-    test(
-      'LedgerWalletFile.close during pending connect disconnects newly '
-      'connected device and skips accessSection',
-      () async {
-        final Completer<_FakeLedgerWallet> connectCompleter =
-            Completer<_FakeLedgerWallet>();
-        final _FakeLedgerWallet fakeWallet = _FakeLedgerWallet();
-        bool callbackRan = false;
+    test('LedgerWalletFile.close during pending connect disconnects newly '
+        'connected device and skips accessSection', () async {
+      final Completer<_FakeLedgerWallet> connectCompleter =
+          Completer<_FakeLedgerWallet>();
+      final _FakeLedgerWallet fakeWallet = _FakeLedgerWallet();
+      bool callbackRan = false;
 
-        final LedgerWalletFile walletFile = LedgerWalletFile.forTesting(
-          '/tmp/fake-ledger',
-          'ledger-device-2',
-          (_) => connectCompleter.future,
-        );
+      final LedgerWalletFile walletFile = LedgerWalletFile.forTesting(
+        '/tmp/fake-ledger',
+        'ledger-device-2',
+        (_) => connectCompleter.future,
+      );
 
-        final Future<void> pendingAccess = walletFile.access<void>((_) async {
-          callbackRan = true;
-        });
-        final Future<void> expectedRejection = expectLater(
-          pendingAccess,
-          throwsA(
-            isA<WalletException>().having(
-              (WalletException e) => e.message,
-              'message',
-              contains('closed'),
-            ),
+      final Future<void> pendingAccess = walletFile.access<void>((_) async {
+        callbackRan = true;
+      });
+      final Future<void> expectedRejection = expectLater(
+        pendingAccess,
+        throwsA(
+          isA<WalletException>().having(
+            (WalletException e) => e.message,
+            'message',
+            contains('closed'),
           ),
-        );
+        ),
+      );
 
-        await Future<void>.delayed(Duration.zero);
-        final Future<void> closeFuture = walletFile.close();
-        connectCompleter.complete(fakeWallet);
+      await Future<void>.delayed(Duration.zero);
+      final Future<void> closeFuture = walletFile.close();
+      connectCompleter.complete(fakeWallet);
 
-        await expectedRejection;
-        await closeFuture;
+      await expectedRejection;
+      await closeFuture;
 
-        expect(callbackRan, isFalse);
-        expect(fakeWallet.disconnectCalls, 1);
-        expect(walletFile.isOpen, isFalse);
-      },
-    );
+      expect(callbackRan, isFalse);
+      expect(fakeWallet.disconnectCalls, 1);
+      expect(walletFile.isOpen, isFalse);
+    });
 
-    test(
-      'walletSign uses captured walletFile.access and survives concurrent '
-      'wallet lock clearing kWalletFile',
-      () async {
-        final Directory tempDir =
-            Directory.systemTemp.createTempSync('wallet_sign_lock_test_');
-        final WalletFile? previousWalletFile = kWalletFile;
-        final String? previousSelectedAddress = kSelectedAddress;
-        final List<String?> previousAddressList = List<String?>.from(
-          kDefaultAddressList,
-        );
-        addTearDown(() {
-          kWalletFile = previousWalletFile;
-          kSelectedAddress = previousSelectedAddress;
-          kDefaultAddressList = previousAddressList;
-          if (tempDir.existsSync()) {
-            tempDir.deleteSync(recursive: true);
-          }
-        });
+    test('walletSign uses captured walletFile.access and survives concurrent '
+        'wallet lock clearing kWalletFile', () async {
+      final Directory tempDir = Directory.systemTemp.createTempSync(
+        'wallet_sign_lock_test_',
+      );
+      final WalletFile? previousWalletFile = kWalletFile;
+      final String? previousSelectedAddress = kSelectedAddress;
+      final List<String?> previousAddressList = List<String?>.from(
+        kDefaultAddressList,
+      );
+      addTearDown(() {
+        kWalletFile = previousWalletFile;
+        kSelectedAddress = previousSelectedAddress;
+        kDefaultAddressList = previousAddressList;
+        if (tempDir.existsSync()) {
+          tempDir.deleteSync(recursive: true);
+        }
+      });
 
-        final ({
-          KeyStore keyStore,
-          String baseAddress,
-          KeyStoreWalletFile walletFile,
-        }) created = await _createKeyStoreWalletFile(
-          walletPath: path.join(tempDir.path, 'keystore'),
-          password: 'password-123',
-        );
+      final ({
+        KeyStore keyStore,
+        String baseAddress,
+        KeyStoreWalletFile walletFile,
+      })
+      created = await _createKeyStoreWalletFile(
+        walletPath: path.join(tempDir.path, 'keystore'),
+        password: 'password-123',
+      );
 
-        kWalletFile = created.walletFile;
-        kSelectedAddress = created.baseAddress;
-        kDefaultAddressList = <String?>[created.baseAddress];
+      kWalletFile = created.walletFile;
+      kSelectedAddress = created.baseAddress;
+      kDefaultAddressList = <String?>[created.baseAddress];
 
-        final Signature signature = await walletSign(
-          utf8.encode('hello zenon'),
-        );
-        expect(signature.signature, isNotEmpty);
-        expect(signature.publicKey, isNotEmpty);
-        expect(created.walletFile.isOpen, isFalse);
+      final Signature signature = await walletSign(utf8.encode('hello zenon'));
+      expect(signature.signature, isNotEmpty);
+      expect(signature.publicKey, isNotEmpty);
+      expect(created.walletFile.isOpen, isFalse);
 
-        // When wallet is locked (kWalletFile == null), walletSign throws
-        // WalletException instead of a null-check error.
-        kWalletFile = null;
-        await created.walletFile.close();
-        await expectLater(
-          () => walletSign(utf8.encode('after lock')),
-          throwsA(isA<WalletException>()),
-        );
-      },
-    );
+      // When wallet is locked (kWalletFile == null), walletSign throws
+      // WalletException instead of a null-check error.
+      kWalletFile = null;
+      await created.walletFile.close();
+      await expectLater(
+        () => walletSign(utf8.encode('after lock')),
+        throwsA(isA<WalletException>()),
+      );
+    });
+
+    test('classifies missing, non-regular, oversized, and unsupported wallet '
+        'files with WalletFileReadException reasons', () async {
+      final Directory tempDir = Directory.systemTemp.createTempSync(
+        'wallet_file_read_reason_test_',
+      );
+      addTearDown(() {
+        if (tempDir.existsSync()) {
+          tempDir.deleteSync(recursive: true);
+        }
+      });
+
+      await expectLater(
+        () => WalletFile.read(path.join(tempDir.path, 'missing.json')),
+        throwsA(
+          isA<WalletFileReadException>().having(
+            (WalletFileReadException e) => e.reason,
+            'reason',
+            WalletFileReadFailureReason.notFound,
+          ),
+        ),
+      );
+
+      final Directory subDir = Directory(path.join(tempDir.path, 'dir'))
+        ..createSync();
+      await expectLater(
+        () => WalletFile.read(subDir.path),
+        throwsA(
+          isA<WalletFileReadException>().having(
+            (WalletFileReadException e) => e.reason,
+            'reason',
+            WalletFileReadFailureReason.notRegularFile,
+          ),
+        ),
+      );
+
+      final File oversized = File(path.join(tempDir.path, 'oversized.json'))
+        ..writeAsStringSync('x' * (WalletFile.maxWalletFileSizeBytes + 1));
+      await expectLater(
+        () => WalletFile.read(oversized.path),
+        throwsA(
+          isA<WalletFileReadException>().having(
+            (WalletFileReadException e) => e.reason,
+            'reason',
+            WalletFileReadFailureReason.fileTooLarge,
+          ),
+        ),
+      );
+
+      final String unsupportedPath = path.join(
+        tempDir.path,
+        'unsupported.json',
+      );
+      await WalletFile.write(
+        unsupportedPath,
+        'SecretPass123!',
+        utf8.encode('payload'),
+        metadata: const <String, dynamic>{walletTypeKey: 'custom-type'},
+      );
+      await expectLater(
+        () => WalletFile.decrypt(unsupportedPath, 'SecretPass123!'),
+        throwsA(
+          isA<WalletFileReadException>().having(
+            (WalletFileReadException e) => e.reason,
+            'reason',
+            WalletFileReadFailureReason.unsupportedWalletType,
+          ),
+        ),
+      );
+    });
   });
 }

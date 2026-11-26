@@ -148,21 +148,42 @@ class _ViewState extends State<_View> {
         _loadingButtonKey.currentState?.animateForward();
       case DecryptWalletFileSuccess(:final WalletFile walletFile):
         unawaited(_handleDecryptedWallet(context, walletFile));
-      case DecryptWalletFileFailure(
-        :final Object error,
-        :final bool isIncorrectPassword,
-      ):
+      case DecryptWalletFileFailure():
         _loadingButtonKey.currentState?.animateReverse();
         setState(() {
-          _passwordErrorText = isIncorrectPassword
-              ? context.l10n.incorrectPassword
-              : error is FormatException
-              ? context.l10n.notAValidKeystoreFile
-              : error.toString();
+          _passwordErrorText = _localizedDecryptError(context, state);
         });
       case DecryptWalletFileInitial():
         break;
     }
+  }
+
+  String _localizedDecryptError(
+    BuildContext context,
+    DecryptWalletFileFailure state,
+  ) {
+    return switch (state.reason) {
+      DecryptWalletFileFailureReason.incorrectPassword =>
+        context.l10n.incorrectPassword,
+      DecryptWalletFileFailureReason.invalidKeystoreFormat =>
+        context.l10n.notAValidKeystoreFile,
+      DecryptWalletFileFailureReason.fileNotFound =>
+        context.l10n.walletFileDoesNotExist,
+      DecryptWalletFileFailureReason.notRegularFile =>
+        context.l10n.walletPathNotRegularFile,
+      DecryptWalletFileFailureReason.fileTooLarge =>
+        context.l10n.walletFileTooLarge,
+      DecryptWalletFileFailureReason.unsupportedWalletType =>
+        context.l10n.unsupportedWalletFileType,
+      DecryptWalletFileFailureReason.unknown =>
+        state.isIncorrectPassword
+            ? context.l10n.incorrectPassword
+            : state.error is FormatException
+            ? context.l10n.notAValidKeystoreFile
+            : state.error is SyriusException
+            ? (state.error as SyriusException).localizedMessage(context.l10n)
+            : state.error.toString(),
+    };
   }
 
   Future<void> _handleDecryptedWallet(

@@ -11,10 +11,7 @@ import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 /// Deploy step for registering a pillar.
 class DeployPillarStep extends StatefulWidget {
   /// Creates a [DeployPillarStep].
-  const DeployPillarStep({
-    required this.onDeployDone,
-    super.key,
-  });
+  const DeployPillarStep({required this.onDeployDone, super.key});
 
   /// Called when deployment completes.
   final VoidCallback onDeployDone;
@@ -35,12 +32,15 @@ class _DeployPillarStepState extends State<DeployPillarStep> {
   String? get _pillarNameError =>
       Validations.pillarName(_pillarNameController.text);
 
-  String? get _pillarRewardAddressError =>
-      InputValidators.checkAddress(_pillarRewardAddressController.text);
+  String? get _pillarRewardAddressError => InputValidators.checkAddress(
+    _pillarRewardAddressController.text,
+    l10n: context.l10n,
+  );
 
   String? get _pillarMomentumError =>
       InputValidators.validatePillarMomentumAddress(
         _pillarMomentumController.text,
+        l10n: context.l10n,
       );
 
   final ValueNotifier<double> _momentumRewardPercentage = .new(0);
@@ -201,9 +201,7 @@ class _DeployPillarStepState extends State<DeployPillarStep> {
       DeployPillarRequested(
         pillarName: _pillarNameController.text,
         rewardAddress: Address.parse(_pillarRewardAddressController.text),
-        blockProducingAddress: Address.parse(
-          _pillarMomentumController.text,
-        ),
+        blockProducingAddress: Address.parse(_pillarMomentumController.text),
         giveBlockRewardPercentage: _momentumRewardPercentage.value.toInt(),
         giveDelegateRewardPercentage: _delegateRewardPercentage.value.toInt(),
       ),

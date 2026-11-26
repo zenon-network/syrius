@@ -31,26 +31,24 @@ String? validateAcceleratorAmount({
   bool canBeBlank = false,
   AppLocalizations? l10n,
 }) {
+  final AppLocalizations resolvedL10n = l10n ?? resolveAppLocalizations();
   if (value == null || value.isEmpty) {
-    return canBeBlank
-        ? null
-        : (l10n?.enterValidAmount ?? 'Enter a valid amount');
+    return canBeBlank ? null : resolvedL10n.enterValidAmount;
   }
   if (value.contains('.') && value.split('.')[1].length > decimals) {
-    return l10n?.inputtedNumberHasTooManyDecimals ??
-        'Inputted number has too many decimals';
+    return resolvedL10n.inputtedNumberHasTooManyDecimals;
   }
   final BigInt parsedAmount;
   try {
     parsedAmount = value.extractDecimals(decimals);
   } on Object {
-    return l10n?.error ?? 'Error';
+    return resolvedL10n.error;
   }
   if (maxValue == BigInt.zero) {
     if (parsedAmount == BigInt.zero && minValue == BigInt.zero) {
       return null;
     }
-    return l10n?.valueMustBeZero ?? 'Value must be 0';
+    return resolvedL10n.valueMustBeZero;
   }
   return InputValidators.correctValue(
     value,
@@ -59,6 +57,7 @@ String? validateAcceleratorAmount({
     minValue,
     canBeEqualToMin: true,
     canBeBlank: canBeBlank,
+    l10n: resolvedL10n,
   );
 }
 

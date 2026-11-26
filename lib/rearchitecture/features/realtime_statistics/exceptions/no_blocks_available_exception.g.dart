@@ -9,7 +9,7 @@ part of 'no_blocks_available_exception.dart';
 NoBlocksAvailableException _$NoBlocksAvailableExceptionFromJson(
   Map<String, dynamic> json,
 ) => NoBlocksAvailableException(
-  message: json['message'] as String? ?? 'No account blocks available',
+  message: json['message'] as String? ?? _kDefaultMessage,
 );
 
 Map<String, dynamic> _$NoBlocksAvailableExceptionToJson(

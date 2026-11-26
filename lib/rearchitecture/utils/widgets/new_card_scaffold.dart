@@ -226,7 +226,7 @@ class _NewCardScaffoldState extends State<NewCardScaffold> {
                         builder: (_, bool obscureText, _) {
                           return CardScaffoldPasswordField(
                             controller: _passwordController,
-                            errorText: _error?.toString(),
+                            errorText: _error?.localizedMessage(context.l10n),
                             onSubmitted: (String value) {
                               _actionButton.onPressed!();
                             },

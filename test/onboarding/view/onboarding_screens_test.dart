@@ -154,20 +154,28 @@ void main() {
     );
 
     testWidgets(
-      'shows WalletException message (e.g. oversized file) under password',
+      'shows localized oversized file error when file exceeds keystore size '
+      'limit',
       (WidgetTester tester) async {
         _configureDesktopViewport(tester);
 
-        final DecryptWalletFileBloc bloc = DecryptWalletFileBloc(
-          decryptWalletFile: (_, _) => Future<WalletFile>.error(
-            WalletException('Wallet file is too large'),
-          ),
+        final Directory tempDir = Directory.systemTemp.createTempSync(
+          'onboarding_oversized_',
         );
+        addTearDown(() {
+          if (tempDir.existsSync()) {
+            tempDir.deleteSync(recursive: true);
+          }
+        });
+        final File oversized = File('${tempDir.path}/huge.json')
+          ..writeAsStringSync('x' * (WalletFile.maxWalletFileSizeBytes + 1));
+
+        final DecryptWalletFileBloc bloc = DecryptWalletFileBloc();
 
         try {
           await tester.pumpWidget(
             _buildDesktopApp(
-              ImportWalletDecryptScreen('/tmp/huge.bak', decryptBloc: bloc),
+              ImportWalletDecryptScreen(oversized.path, decryptBloc: bloc),
             ),
           );
 
@@ -178,9 +186,46 @@ void main() {
           await tester.pump(const Duration(milliseconds: 50));
 
           expect(
-            find.textContaining('Wallet file is too large'),
+            find.text('Wallet file is too large to be a valid keystore file'),
             findsOneWidget,
           );
+        } finally {
+          await bloc.close();
+        }
+      },
+    );
+
+    testWidgets(
+      'shows localized missing file error when wallet file does not exist',
+      (WidgetTester tester) async {
+        _configureDesktopViewport(tester);
+
+        final Directory tempDir = Directory.systemTemp.createTempSync(
+          'onboarding_missing_',
+        );
+        addTearDown(() {
+          if (tempDir.existsSync()) {
+            tempDir.deleteSync(recursive: true);
+          }
+        });
+        final String missingPath = '${tempDir.path}/does_not_exist.json';
+
+        final DecryptWalletFileBloc bloc = DecryptWalletFileBloc();
+
+        try {
+          await tester.pumpWidget(
+            _buildDesktopApp(
+              ImportWalletDecryptScreen(missingPath, decryptBloc: bloc),
+            ),
+          );
+
+          await tester.enterText(find.byType(TextFormField), 'pass');
+          await tester.pump();
+          await tester.tap(find.text('Continue'));
+          await tester.pump();
+          await tester.pump(const Duration(milliseconds: 50));
+
+          expect(find.text('Wallet file does not exist'), findsOneWidget);
         } finally {
           await bloc.close();
         }
@@ -258,7 +303,10 @@ void main() {
           await tester.pump();
           await tester.pump(const Duration(milliseconds: 50));
 
-          expect(find.textContaining('not a regular file'), findsOneWidget);
+          expect(
+            find.text('Selected wallet path is not a regular file'),
+            findsOneWidget,
+          );
         } finally {
           await bloc.close();
         }
@@ -294,6 +342,40 @@ void main() {
         }
       },
     );
+
+    testWidgets('shows localized unsupported wallet file type error on '
+        'WalletFileReadException(unsupportedWalletType)', (
+      WidgetTester tester,
+    ) async {
+      _configureDesktopViewport(tester);
+
+      final DecryptWalletFileBloc bloc = DecryptWalletFileBloc(
+        decryptWalletFile: (_, _) => Future<WalletFile>.error(
+          WalletFileReadException(
+            WalletFileReadFailureReason.unsupportedWalletType,
+            'Wallet type (unknown) is not supported',
+          ),
+        ),
+      );
+
+      try {
+        await tester.pumpWidget(
+          _buildDesktopApp(
+            ImportWalletDecryptScreen('/tmp/unsupported', decryptBloc: bloc),
+          ),
+        );
+
+        await tester.enterText(find.byType(TextFormField), 'pass');
+        await tester.pump();
+        await tester.tap(find.text('Continue'));
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 50));
+
+        expect(find.text('Unsupported wallet file type'), findsOneWidget);
+      } finally {
+        await bloc.close();
+      }
+    });
 
     testWidgets(
       'navigates to ImportWalletPasswordScreen on valid KeyStoreWalletFile',

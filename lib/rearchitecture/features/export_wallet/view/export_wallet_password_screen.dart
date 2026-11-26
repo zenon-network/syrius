@@ -119,7 +119,8 @@ class _ViewState extends State<_View> {
               child: PasswordInputField(
                 hintText: context.l10n.password,
                 controller: _passwordController,
-                validator: InputValidators.validatePassword,
+                validator: (String? value) =>
+                    InputValidators.validatePassword(value, l10n: context.l10n),
                 onChanged: (String value) {
                   setState(() {});
                 },
@@ -136,6 +137,7 @@ class _ViewState extends State<_View> {
                     InputValidators.checkPasswordMatch(
                       _passwordController.text,
                       value,
+                      l10n: context.l10n,
                     ),
                 onChanged: (String value) {
                   setState(() {});

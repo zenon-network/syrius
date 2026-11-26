@@ -1,3 +1,4 @@
+import 'package:zenon_syrius_wallet_flutter/l10n/app_localizations.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/cubits/timer_cubit.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/exceptions/exceptions.dart';
@@ -19,6 +20,8 @@ class SyriusException implements Exception {
     final String? type = json['runtimeType'] as String?;
     if (type != null) {
       switch (type) {
+        case 'LocalizedSyriusException':
+          return LocalizedSyriusException.fromJsonOrFallback(json);
         case 'NoActiveStakingEntriesException':
           return NoActiveStakingEntriesException.fromJson(json);
         case 'NoBalanceException':
@@ -31,6 +34,8 @@ class SyriusException implements Exception {
           return FailureException.fromJson(json);
         case 'NoDelegationStatsException':
           return NoDelegationStatsException.fromJson(json);
+        case 'NodeNotSyncedException':
+          return NodeNotSyncedException.fromJson(json);
         case 'NotEnoughMomentumsException':
           return NotEnoughMomentumsException.fromJson(json);
         case 'NoRewardsLastWeekException':
@@ -46,6 +51,13 @@ class SyriusException implements Exception {
 
   /// The exception message
   final String message;
+
+  /// Returns a localized user-facing error message using [l10n].
+  ///
+  /// Subclasses representing localizable domain errors override this method to
+  /// resolve strings from [l10n]. Unclassified exceptions fall back to
+  /// [message].
+  String localizedMessage(AppLocalizations l10n) => message;
 
   /// Returns the exception message without the 'Exception:' prefix.
   @override

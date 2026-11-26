@@ -37,19 +37,16 @@ class HideWidgetCubit extends HydratedCubit<HideWidgetState> {
       }
       await _markWidgetAsHidden(widgetTitle, isHidden);
       emit(
-        state.copyWith(
-          isHidden: isHidden,
-          status: HideWidgetStatus.success,
-        ),
+        state.copyWith(isHidden: isHidden, status: HideWidgetStatus.success),
       );
     } on IncorrectPasswordException catch (e, stackTrace) {
-      emit(
-        state.copyWith(
-          status: HideWidgetStatus.failure,
-          exception: SyriusException(kIncorrectPasswordNotificationTitle),
-        ),
+      final LocalizedSyriusException exception = LocalizedSyriusException(
+        SyriusErrorCode.incorrectPassword,
       );
-      addError(kIncorrectPasswordNotificationTitle, stackTrace);
+      emit(
+        state.copyWith(status: HideWidgetStatus.failure, exception: exception),
+      );
+      addError(exception, stackTrace);
     } on Object catch (error, stackTrace) {
       emit(
         state.copyWith(
@@ -73,11 +70,7 @@ class HideWidgetCubit extends HydratedCubit<HideWidgetState> {
 
   @override
   void onError(Object error, StackTrace stackTrace) {
-    Logger('HideWidgetCubit').warning(
-      'onError triggered',
-      error,
-      stackTrace,
-    );
+    Logger('HideWidgetCubit').warning('onError triggered', error, stackTrace);
     super.onError(error, stackTrace);
   }
 }

@@ -42,9 +42,7 @@ class PillarUpdateDetailsStep extends StatelessWidget {
         TextField(
           controller: pillarNameController,
           enabled: false,
-          style: const TextStyle(
-            color: AppColors.znnColor,
-          ),
+          style: const TextStyle(color: AppColors.znnColor),
         ),
         kVerticalSpacing,
         Text(
@@ -59,10 +57,9 @@ class PillarUpdateDetailsStep extends StatelessWidget {
             suffixIcon: FieldSuffixButtons(controller: pillarRewardController),
           ),
           controller: pillarRewardController,
-          validator: InputValidators.checkAddress,
-          style: const TextStyle(
-            color: AppColors.znnColor,
-          ),
+          validator: (String? value) =>
+              InputValidators.checkAddress(value, l10n: context.l10n),
+          style: const TextStyle(color: AppColors.znnColor),
         ),
         kVerticalSpacing,
         Text(
@@ -79,10 +76,12 @@ class PillarUpdateDetailsStep extends StatelessWidget {
               controller: pillarProducerController,
             ),
           ),
-          style: const TextStyle(
-            color: AppColors.znnColor,
-          ),
-          validator: InputValidators.validatePillarMomentumAddress,
+          style: const TextStyle(color: AppColors.znnColor),
+          validator: (String? value) =>
+              InputValidators.validatePillarMomentumAddress(
+                value,
+                l10n: context.l10n,
+              ),
         ),
         kVerticalSpacing,
         Row(

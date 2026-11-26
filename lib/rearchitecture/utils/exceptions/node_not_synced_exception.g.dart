@@ -9,7 +9,7 @@ part of 'node_not_synced_exception.dart';
 NodeNotSyncedException _$NodeNotSyncedExceptionFromJson(
   Map<String, dynamic> json,
 ) => NodeNotSyncedException(
-  message: json['message'] as String? ?? 'Node is not synced',
+  message: json['message'] as String? ?? _kDefaultMessage,
 );
 
 Map<String, dynamic> _$NodeNotSyncedExceptionToJson(

@@ -83,9 +83,7 @@ class _ViewState extends State<_View> {
     );
   }
 
-  Widget _buildContent({
-    required Map<String, AccountInfo> balances,
-  }) {
+  Widget _buildContent({required Map<String, AccountInfo> balances}) {
     return BlocConsumer<StartP2pSwapBloc, StartP2pSwapState>(
       listener: _onStartP2pSwapStateChanged,
       builder: (BuildContext context, StartP2pSwapState swapState) {
@@ -103,11 +101,10 @@ class _ViewState extends State<_View> {
 
             final String? amountError = InputValidators.correctValue(
               _amount,
-              accountInfo.getBalance(
-                _token.tokenStandard,
-              ),
+              accountInfo.getBalance(_token.tokenStandard),
               _token.decimals,
               BigInt.zero,
+              l10n: context.l10n,
             );
 
             final bool isInputValid =
@@ -183,9 +180,7 @@ class _ViewState extends State<_View> {
                   bulletPoints: <String>[
                     context.l10n.p2pSwapWaitForCounterparty,
                     context.l10n.p2pSwapReclaimFunds(
-                      context.l10n.p2pSwapHours(
-                        kInitialHtlcDuration.inHours,
-                      ),
+                      context.l10n.p2pSwapHours(kInitialHtlcDuration.inHours),
                     ),
                     context.l10n.p2pSwapMachineOnly,
                   ],
@@ -222,9 +217,7 @@ class _ViewState extends State<_View> {
         selfAddress: Address.parse(_sender.value),
         counterpartyAddress: Address.parse(_counterpartyAddressController.text),
         fromToken: _token,
-        fromAmount: _amountController.text.extractDecimals(
-          _token.decimals,
-        ),
+        fromAmount: _amountController.text.extractDecimals(_token.decimals),
       ),
     );
   }
@@ -239,7 +232,10 @@ class _ViewState extends State<_View> {
   }
 
   String? _validateCounterpartyAddress(String? address) {
-    final String? result = InputValidators.checkAddress(address);
+    final String? result = InputValidators.checkAddress(
+      address,
+      l10n: context.l10n,
+    );
     if (result != null) {
       return result;
     } else {

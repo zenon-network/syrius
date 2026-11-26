@@ -29,7 +29,10 @@ class _InitialHtlcValidationFormState extends State<InitialHtlcValidationForm> {
     return ValueListenableBuilder<TextEditingValue>(
       valueListenable: _depositIdController,
       builder: (_, TextEditingValue value, _) {
-        final String? depositIdError = InputValidators.checkHash(value.text);
+        final String? depositIdError = InputValidators.checkHash(
+          value.text,
+          l10n: context.l10n,
+        );
         final bool isDepositIdValid =
             value.text.isNotEmpty && depositIdError == null;
 
@@ -80,7 +83,7 @@ class _InitialHtlcValidationFormState extends State<InitialHtlcValidationForm> {
 
         return Column(
           children: <Widget>[
-            Warning(text: exception.toString()),
+            Warning(text: exception.localizedMessage(context.l10n)),
             kVerticalGap16,
           ],
         );

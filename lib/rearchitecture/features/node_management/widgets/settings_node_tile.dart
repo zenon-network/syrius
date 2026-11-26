@@ -210,7 +210,7 @@ class _SettingsNodeTileState extends State<SettingsNodeTile> {
                 });
               },
               validator: (String? value) =>
-                  InputValidators.node(value) ??
+                  InputValidators.node(value, l10n: context.l10n) ??
                   (_hideExternalError ? null : widget._editError),
             ),
           ),

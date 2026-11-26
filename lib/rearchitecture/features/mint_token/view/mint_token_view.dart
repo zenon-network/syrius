@@ -73,13 +73,13 @@ class _ViewState extends State<_View> {
     _maxAmount,
     widget._token.decimals,
     BigInt.zero,
+    l10n: context.l10n,
   );
 
   String get _beneficiaryAddress => _beneficiaryAddressController.text;
 
-  String? get _beneficiaryAddressError => InputValidators.checkAddress(
-    _beneficiaryAddress,
-  );
+  String? get _beneficiaryAddressError =>
+      InputValidators.checkAddress(_beneficiaryAddress, l10n: context.l10n);
 
   @override
   void initState() {

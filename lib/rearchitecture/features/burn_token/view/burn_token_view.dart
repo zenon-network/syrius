@@ -61,9 +61,8 @@ class _ViewState extends State<_View> {
   final GlobalKey<LoadingButtonState> _buttonKey = GlobalKey();
   final TextEditingController _amountController = TextEditingController();
 
-  BigInt get _maxAmount => widget._accountInfo.getBalance(
-    widget._token.tokenStandard,
-  );
+  BigInt get _maxAmount =>
+      widget._accountInfo.getBalance(widget._token.tokenStandard);
 
   String get _amount => _amountController.text;
 
@@ -72,6 +71,7 @@ class _ViewState extends State<_View> {
     _maxAmount,
     widget._token.decimals,
     BigInt.zero,
+    l10n: context.l10n,
   );
 
   @override
@@ -122,9 +122,7 @@ class _ViewState extends State<_View> {
   void _burnToken() {
     context.read<BurnTokenBloc>().add(
       BurnTokenRequested(
-        amount: _amountController.text.extractDecimals(
-          widget._token.decimals,
-        ),
+        amount: _amountController.text.extractDecimals(widget._token.decimals),
         token: widget._token,
       ),
     );

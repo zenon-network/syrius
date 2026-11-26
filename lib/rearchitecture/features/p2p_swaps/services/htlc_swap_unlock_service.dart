@@ -1,5 +1,5 @@
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/p2p_swap/model/p2p_swap.dart';
-import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/exceptions/syrius_exception.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/exceptions/exceptions.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/extensions/date_time_extension.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/account_block_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
@@ -30,36 +30,35 @@ class HtlcSwapUnlockService {
     };
     final String? encodedPreimage = swap.preimage;
     if (htlcIdString == null || encodedPreimage == null) {
-      throw SyriusException('Invalid swap');
+      throw LocalizedSyriusException(SyriusErrorCode.invalidSwap);
     }
 
     final Hash htlcId = Hash.parse(htlcIdString);
     final HtlcInfo htlc = await _zenon.embedded.htlc.getById(htlcId);
     if (FormatUtils.encodeHexString(htlc.hashLock) != swap.hashLock ||
         htlc.hashLocked.toString() != swap.selfAddress) {
-      throw SyriusException('Invalid swap');
+      throw LocalizedSyriusException(SyriusErrorCode.invalidSwap);
     }
     if (!kDefaultAddressList.contains(htlc.hashLocked.toString())) {
-      throw SyriusException(
-        'Swap address not in default addresses. Please add the address '
-        'in the addresses list.',
+      throw LocalizedSyriusException(
+        SyriusErrorCode.swapAddressNotInDefaultAddresses,
       );
     }
     if (htlc.expirationTime <=
         _unixTimeProvider() + kMinSafeTimeToCompleteSwap.inSeconds) {
-      throw SyriusException('The swap will expire too soon for a safe swap.');
+      throw LocalizedSyriusException(
+        SyriusErrorCode.swapExpiresTooSoonForSafeSwap,
+      );
     }
 
     final List<int> preimage;
     try {
       preimage = FormatUtils.decodeHexString(encodedPreimage);
     } on FormatException {
-      throw SyriusException('Invalid swap secret.');
+      throw LocalizedSyriusException(SyriusErrorCode.invalidSwapSecret);
     }
     if (htlc.keyMaxSize < preimage.length) {
-      throw SyriusException(
-        'The swap secret size exceeds the maximum allowed size.',
-      );
+      throw LocalizedSyriusException(SyriusErrorCode.swapSecretExceedsMaxSize);
     }
 
     final AccountBlockTemplate transactionParams = _zenon.embedded.htlc.unlock(

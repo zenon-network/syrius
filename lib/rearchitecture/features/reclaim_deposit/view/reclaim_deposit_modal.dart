@@ -81,7 +81,10 @@ class _ViewState extends State<_View> {
     return ValueListenableBuilder<TextEditingValue>(
       valueListenable: _depositIdController,
       builder: (_, TextEditingValue value, _) {
-        final String? depositIdError = InputValidators.checkHash(value.text);
+        final String? depositIdError = InputValidators.checkHash(
+          value.text,
+          l10n: context.l10n,
+        );
 
         return Column(
           spacing: kVerticalGap16.height!,

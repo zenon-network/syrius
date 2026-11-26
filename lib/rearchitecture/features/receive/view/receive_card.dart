@@ -50,9 +50,7 @@ class ReceiveCard extends StatelessWidget {
 
 class _Populated extends StatefulWidget {
   /// Creates a new instance.
-  const _Populated({
-    required this.assets,
-  });
+  const _Populated({required this.assets});
 
   /// The list of available assets on the network - includes tokens and coins
   final List<Token> assets;
@@ -77,6 +75,7 @@ class _PopulatedState extends State<_Populated> {
     kBigP255m1,
     _token.decimals,
     BigInt.zero,
+    l10n: context.l10n,
   );
 
   @override
@@ -107,9 +106,7 @@ class _PopulatedState extends State<_Populated> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
               ReceiveQrImage(
-                data: _getQrString(
-                  address: receiver,
-                ),
+                data: _getQrString(address: receiver),
                 tokenStandard: _token.tokenStandard,
               ),
               kHorizontalGap16,
@@ -118,12 +115,8 @@ class _PopulatedState extends State<_Populated> {
                   children: <Widget>[
                     Row(
                       children: <Widget>[
-                        Expanded(
-                          child: _buildDefaultAddressDropdown(),
-                        ),
-                        CopyToClipboardButton(
-                          _receiverNotifier.value,
-                        ),
+                        Expanded(child: _buildDefaultAddressDropdown()),
+                        CopyToClipboardButton(_receiverNotifier.value),
                       ],
                     ),
                     kVerticalGap16,
@@ -153,9 +146,7 @@ class _PopulatedState extends State<_Populated> {
     );
   }
 
-  String _getQrString({
-    required String address,
-  }) {
+  String _getQrString({required String address}) {
     return '${_token.symbol.toLowerCase()}:'
         '$address?zts=${_token.tokenStandard}'
         '&amount=${_getAmount()}';
