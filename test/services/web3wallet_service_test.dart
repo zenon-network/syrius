@@ -8068,5 +8068,139 @@ void main() {
         isNot(contains('reconcile-timeout-p')),
       );
     });
+
+    test('terminates cleanly and sweeps newly added pending session cleanups '
+        'that arrive mid-reset after record eviction without '
+        'looping', () async {
+      final Map<String, Map<String, dynamic>> persistedStorage =
+          <String, Map<String, dynamic>>{};
+      when(() => coreStorage.has(any())).thenAnswer(
+        (Invocation i) =>
+            persistedStorage.containsKey(i.positionalArguments[0]),
+      );
+      when(() => coreStorage.get(any())).thenAnswer(
+        (Invocation i) => persistedStorage[i.positionalArguments[0]],
+      );
+      when(() => coreStorage.set(any(), any())).thenAnswer((
+        Invocation i,
+      ) async {
+        persistedStorage[i.positionalArguments[0]
+            as String] = Map<String, dynamic>.from(
+          i.positionalArguments[1] as Map<String, dynamic>,
+        );
+      });
+      when(() => coreStorage.delete(any())).thenAnswer((Invocation i) async {
+        persistedStorage.remove(i.positionalArguments[0] as String);
+      });
+
+      // Unsupported session being cleaned up during init() whose record is
+      // evicted before a concurrent reset snapshots live sessions, and whose
+      // local key deletion fails while the reset sweep is in flight.
+      activeSessions['bad-s'] = _buildSession(
+        topic: 'bad-s',
+        chainId: 'zenon:42',
+        selfPublicKey: 'pk-bad-s',
+      );
+      activeSessions['good-s'] = _buildSession(
+        topic: 'good-s',
+        selfPublicKey: 'pk-good-s',
+      );
+
+      final Completer<void> badLocalPurgePaused = Completer<void>();
+      final Completer<void> releaseBadLocalPurge = Completer<void>();
+      final Completer<void> goodResetPaused = Completer<void>();
+      final Completer<void> releaseGoodReset = Completer<void>();
+      bool failBadKeyPairOnce = true;
+      int getAllCalls = 0;
+
+      when(sessionStore.getAll).thenAnswer((_) {
+        getAllCalls++;
+        if (getAllCalls > 200) {
+          throw StateError('Infinite reset loop detected ($getAllCalls calls)');
+        }
+        return activeSessions.values.toList();
+      });
+      when(
+        () => walletKit.disconnectSession(
+          topic: 'bad-s',
+          reason: any(named: 'reason'),
+        ),
+      ).thenThrow(StateError('relay offline'));
+      when(() => sessionStore.delete('bad-s')).thenAnswer((_) async {
+        activeSessions.remove('bad-s');
+      });
+      when(() => crypto.deleteKeyPair('pk-bad-s')).thenAnswer((_) async {
+        if (failBadKeyPairOnce) {
+          failBadKeyPairOnce = false;
+          if (!badLocalPurgePaused.isCompleted) {
+            badLocalPurgePaused.complete();
+          }
+          await releaseBadLocalPurge.future;
+          throw StateError('transient keychain lock');
+        }
+      });
+      when(
+        () => walletKit.disconnectSession(
+          topic: 'good-s',
+          reason: any(named: 'reason'),
+        ),
+      ).thenAnswer((_) async {
+        if (!goodResetPaused.isCompleted) {
+          goodResetPaused.complete();
+        }
+        await releaseGoodReset.future;
+        activeSessions.remove('good-s');
+      });
+
+      final Web3WalletService service = buildService();
+      addTearDown(() async {
+        if (!releaseBadLocalPurge.isCompleted) releaseBadLocalPurge.complete();
+        if (!releaseGoodReset.isCompleted) releaseGoodReset.complete();
+        await service.onDispose();
+      });
+      service.create();
+
+      // Step 1: init() enters _disconnectUnsupportedSessions() for 'bad-s',
+      // evicts 'bad-s' from activeSessions, and pauses inside deleteKeyPair.
+      final Future<void> initFuture = service.init();
+      await badLocalPurgePaused.future;
+
+      // Step 2: Relay event reloads stores so 'bad-s' disappears from
+      // service.sessions.value before the reset snapshot runs.
+      onRelayDisconnect.broadcast(EventArgs());
+      expect(
+        service.sessions.value.map((SessionData s) => s.topic),
+        equals(<String>['good-s']),
+      );
+
+      // Step 3: Full reset snapshots only 'good-s' and pauses mid-sweep.
+      final Future<void> resetFuture = service.disconnectEverything();
+      await goodResetPaused.future;
+
+      // Step 4: Release 'bad-s' local purge so it fails and writes
+      // _pendingSessionCleanups['bad-s'] = 'pk-bad-s' mid-reset, then release
+      // the 'good-s' sweep.
+      releaseBadLocalPurge.complete();
+      await initFuture;
+      bool timerFired = false;
+      Timer.run(() {
+        timerFired = true;
+      });
+      releaseGoodReset.complete();
+
+      await resetFuture.timeout(const Duration(seconds: 2));
+      await Future<void>.delayed(Duration.zero);
+
+      expect(timerFired, isTrue);
+      expect(getAllCalls, lessThan(50));
+      // The second pass of the reset swept the newly arrived pending cleanup
+      // for 'bad-s', retrying deleteKeyPair('pk-bad-s') and clearing the
+      // marker.
+      verify(() => crypto.deleteKeyPair('pk-bad-s')).called(2);
+      expect(
+        persistedStorage.containsKey(Web3WalletService.pendingResetStorageKey),
+        isFalse,
+      );
+    });
   });
 }

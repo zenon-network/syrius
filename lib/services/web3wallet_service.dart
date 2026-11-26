@@ -86,7 +86,7 @@ class Web3WalletService extends IWeb3WalletService {
   bool _needsExpirerPersist = false;
   bool _isReconcilingRelayUnsubscriptions = false;
   bool _reconcileRelayUnsubscriptionsAgain = false;
-  Completer<void>? _resetStartedSignal;
+  final Set<Completer<void>> _resetWaiters = <Completer<void>>{};
 
   /// Monotonic counter incremented whenever a full wallet reset begins.
   @visibleForTesting
@@ -502,7 +502,10 @@ class Web3WalletService extends IWeb3WalletService {
       if (excess <= 0) {
         break;
       }
-      if (!_pendingRelayUnsubscriptions.containsKey(key)) {
+      if (!_pendingRelayUnsubscriptions.containsKey(key) &&
+          !_inFlightReconcileUnsubscribes.containsKey(key) &&
+          !_pendingTimedOutTopicOps.containsKey(key) &&
+          !_inFlightPairTopics.containsKey(key)) {
         evictable.add(key);
         excess--;
       }
@@ -549,16 +552,26 @@ class Web3WalletService extends IWeb3WalletService {
   }
 
   void _notifyResetStarted() {
-    final Completer<void>? signal = _resetStartedSignal;
-    if (signal != null && !signal.isCompleted) {
-      signal.complete();
+    if (_resetWaiters.isEmpty) {
+      return;
     }
-    _resetStartedSignal = null;
+    final List<Completer<void>> waiters = _resetWaiters.toList();
+    _resetWaiters.clear();
+    for (final Completer<void> waiter in waiters) {
+      if (!waiter.isCompleted) {
+        waiter.complete();
+      }
+    }
   }
 
-  Future<void> _getResetStartedFuture() {
-    final Completer<void> signal = _resetStartedSignal ??= Completer<void>();
-    return signal.future;
+  Completer<void> _registerResetWaiter() {
+    final Completer<void> waiter = Completer<void>();
+    _resetWaiters.add(waiter);
+    return waiter;
+  }
+
+  void _unregisterResetWaiter(Completer<void> waiter) {
+    _resetWaiters.remove(waiter);
   }
 
   PairingInfo? _findStoredPairing(String topic) {
@@ -1749,13 +1762,23 @@ class Web3WalletService extends IWeb3WalletService {
                 ...markerState.pendingSessions,
                 ..._pendingSessionCleanups,
               }
-            : Map<String, String>.from(unfinishedSessions);
+            : <String, String>{
+                ...unfinishedSessions,
+                for (final MapEntry<String, String> entry
+                    in _pendingSessionCleanups.entries)
+                  if (!attemptedSessionTopics.contains(entry.key))
+                    entry.key: entry.value,
+              };
         final Set<String> residualPairings = !hasSweptOnce
             ? <String>{
                 ...markerState.pendingPairings,
                 ..._pendingPairingCleanups,
               }
-            : Set<String>.from(unfinishedPairings);
+            : <String>{
+                ...unfinishedPairings,
+                for (final String topic in _pendingPairingCleanups)
+                  if (!attemptedPairingTopics.contains(topic)) topic,
+              };
 
         // Snapshot all live session (topic + publicKey) and pairing targets so
         // they are persisted in the reset marker BEFORE the first destructive
@@ -2342,7 +2365,7 @@ class Web3WalletService extends IWeb3WalletService {
     }
 
     final int capturedEpoch = _ensureTopicSubscriptionEpoch(topic);
-    final Future<void> resetSignal = _getResetStartedFuture();
+    final Completer<void> resetWaiter = _registerResetWaiter();
     Future<void>? unsubscribeFuture;
     bool unsubscribeSettled = false;
     try {
@@ -2359,7 +2382,7 @@ class Web3WalletService extends IWeb3WalletService {
       );
       final bool completed = await Future.any<bool>(<Future<bool>>[
         outcome,
-        resetSignal.then<bool>((_) => false),
+        resetWaiter.future.then<bool>((_) => false),
       ]).timeout(_inFlightPairWaitTimeout);
 
       if (completed) {
@@ -2396,6 +2419,8 @@ class Web3WalletService extends IWeb3WalletService {
       _recordPendingRelayUnsubscription(topic, epoch: capturedEpoch);
     } on Object {
       _recordPendingRelayUnsubscription(topic, epoch: capturedEpoch);
+    } finally {
+      _unregisterResetWaiter(resetWaiter);
     }
   }
 
@@ -2477,25 +2502,30 @@ class Web3WalletService extends IWeb3WalletService {
       bool disconnectSettled = false;
       bool interruptedDuringRemote = false;
       try {
-        final Future<void> resetSignal = _getResetStartedFuture();
-        disconnectFuture = _wcClient!.disconnectSession(
-          topic: topic,
-          reason: Errors.getSdkError(Errors.USER_DISCONNECTED).toSignError(),
-        );
-        final Future<bool> remoteOutcome = disconnectFuture.then<bool>(
-          (_) {
-            disconnectSettled = true;
-            return true;
-          },
-          onError: (Object error, StackTrace stackTrace) {
-            disconnectSettled = true;
-            Error.throwWithStackTrace(error, stackTrace);
-          },
-        );
-        final bool completedRemotely = await Future.any<bool>(<Future<bool>>[
-          remoteOutcome,
-          resetSignal.then<bool>((_) => false),
-        ]).timeout(_inFlightPairWaitTimeout);
+        final Completer<void> resetWaiter = _registerResetWaiter();
+        final bool completedRemotely;
+        try {
+          disconnectFuture = _wcClient!.disconnectSession(
+            topic: topic,
+            reason: Errors.getSdkError(Errors.USER_DISCONNECTED).toSignError(),
+          );
+          final Future<bool> remoteOutcome = disconnectFuture.then<bool>(
+            (_) {
+              disconnectSettled = true;
+              return true;
+            },
+            onError: (Object error, StackTrace stackTrace) {
+              disconnectSettled = true;
+              Error.throwWithStackTrace(error, stackTrace);
+            },
+          );
+          completedRemotely = await Future.any<bool>(<Future<bool>>[
+            remoteOutcome,
+            resetWaiter.future.then<bool>((_) => false),
+          ]).timeout(_inFlightPairWaitTimeout);
+        } finally {
+          _unregisterResetWaiter(resetWaiter);
+        }
 
         if (!completedRemotely || isInterruptedByReset()) {
           interruptedDuringRemote = true;
