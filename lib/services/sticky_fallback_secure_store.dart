@@ -11,6 +11,7 @@ import 'package:reown_core/relay_client/relay_client.dart';
 import 'package:reown_core/reown_core.dart';
 import 'package:reown_core/store/generic_store.dart';
 import 'package:reown_core/store/i_store.dart';
+import 'package:reown_walletkit/reown_walletkit.dart' show Event, EventArgs;
 
 /// Creates a [ReownCore] instance configured with [StickyFallbackSecureStore],
 /// [SafeDisconnectPairing], and [ConfirmingRelayClient] before
@@ -111,10 +112,38 @@ class ConfirmingRelayClient extends RelayClient {
       Set<String>.unmodifiable(_unconfirmedUnsubscribeTopics);
 
   /// Preserved subscription ID retained for [topic] after an unconfirmed
-  /// unsubscribe, exposed for deterministic testing.
-  @visibleForTesting
+  /// unsubscribe.
   String? preservedUnsubscribeId(String topic) =>
       _preservedUnsubscribeIds[topic];
+
+  /// Restores a persisted relay [subscriptionId] for [topic] across a cold
+  /// restart when local cleanup already removed [topic] from [topicMap] before
+  /// the relay confirmed `irn_unsubscribe`.
+  ///
+  /// Does not overwrite an active subscription, an existing [topicMap] entry,
+  /// or a fresher in-memory preserved ID.
+  void restorePreservedUnsubscribeId({
+    required String topic,
+    required String subscriptionId,
+  }) {
+    if (topic.isEmpty || subscriptionId.isEmpty) {
+      return;
+    }
+    if (_latestConfirmedSubscribeSeq.containsKey(topic) ||
+        _preservedUnsubscribeIds.containsKey(topic)) {
+      return;
+    }
+    String? mappedId;
+    try {
+      mappedId = topicMap.get(topic);
+    } on Object {
+      mappedId = null;
+    }
+    if (mappedId != null && mappedId.isNotEmpty) {
+      return;
+    }
+    _preserveUnsubscribeId(topic, subscriptionId);
+  }
 
   @override
   Future<void> init() async {
@@ -271,8 +300,70 @@ class ConfirmingRelayClient extends RelayClient {
   }
 }
 
+/// [Event] subclass that attaches an async error handler to any [Future]
+/// returned by an async subscriber without introducing a `runZonedGuarded`
+/// error-zone boundary.
+///
+/// Upstream `Event.broadcast` invokes each handler synchronously and discards
+/// its return value. When an async listener (such as `reown_sign`'s internal
+/// `_onPairingDelete` handler) rejects asynchronously, the unhandled [Future]
+/// would otherwise escape into the ambient zone.
+class GuardedEvent<T extends EventArgs> extends Event<T> {
+  /// Creates a [GuardedEvent] that reports suppressed async listener failures
+  /// to [onAsyncError].
+  GuardedEvent({String eventName = '', this.onAsyncError}) : super(eventName);
+
+  /// Callback invoked when an async event subscriber rejects asynchronously.
+  final void Function(Object error, StackTrace stackTrace)? onAsyncError;
+  final Map<void Function(T args), List<void Function(T args)>>
+  _wrappedHandlers = <void Function(T args), List<void Function(T args)>>{};
+
+  @override
+  void subscribe(void Function(T args) handler) {
+    void wrapped(T args) {
+      final Object? result = (handler as Object? Function(T))(args);
+      if (result is Future<Object?>) {
+        unawaited(
+          result.then<void>(
+            (_) {},
+            onError: (Object error, StackTrace stackTrace) {
+              onAsyncError?.call(error, stackTrace);
+            },
+          ),
+        );
+      }
+    }
+
+    _wrappedHandlers
+        .putIfAbsent(handler, () => <void Function(T args)>[])
+        .add(wrapped);
+    super.subscribe(wrapped);
+  }
+
+  @override
+  bool unsubscribe(void Function(T args) handler) {
+    final List<void Function(T args)>? wrappedList = _wrappedHandlers[handler];
+    if (wrappedList == null || wrappedList.isEmpty) {
+      return super.unsubscribe(handler);
+    }
+    final void Function(T args) wrapped = wrappedList.removeAt(0);
+    if (wrappedList.isEmpty) {
+      _wrappedHandlers.remove(handler);
+    }
+    return super.unsubscribe(wrapped);
+  }
+
+  @override
+  void unsubscribeAll() {
+    _wrappedHandlers.clear();
+    super.unsubscribeAll();
+  }
+}
+
 /// [Pairing] subclass that attaches an error handler to the fire-and-forget
-/// `wc_pairingDelete` request sent by [disconnect].
+/// `wc_pairingDelete` request sent by [disconnect] and guards async
+/// [onPairingDelete] / [onPairingExpire] listeners (such as `reown_sign`'s
+/// internal `_onPairingDelete` handler).
 ///
 /// In `reown_core` 1.5.1, [Pairing.disconnect] invokes `sendRequest(...)`
 /// without awaiting it or attaching an error handler, allowing an offline or
@@ -293,6 +384,32 @@ class SafeDisconnectPairing extends Pairing {
   static final Logger _logger = Logger('WalletConnectService');
 
   bool _isInitialized = false;
+
+  late final Event<PairingEvent> _guardedOnPairingDelete =
+      GuardedEvent<PairingEvent>(
+        onAsyncError: (Object error, StackTrace _) {
+          _logSuppressedListenerError(
+            eventName: 'onPairingDelete',
+            error: error,
+          );
+        },
+      );
+
+  late final Event<PairingEvent> _guardedOnPairingExpire =
+      GuardedEvent<PairingEvent>(
+        onAsyncError: (Object error, StackTrace _) {
+          _logSuppressedListenerError(
+            eventName: 'onPairingExpire',
+            error: error,
+          );
+        },
+      );
+
+  @override
+  Event<PairingEvent> get onPairingDelete => _guardedOnPairingDelete;
+
+  @override
+  Event<PairingEvent> get onPairingExpire => _guardedOnPairingExpire;
 
   @override
   Future<void> init() async {
@@ -341,18 +458,29 @@ class SafeDisconnectPairing extends Pairing {
     required String topic,
     required Object error,
   }) {
-    final String errorSummary;
-    if (error is ReownCoreError) {
-      errorSummary = 'ReownCoreError(code=${error.code})';
-    } else if (error is JsonRpcError) {
-      errorSummary = 'JsonRpcError(code=${error.code})';
-    } else {
-      errorSummary = '${error.runtimeType}';
-    }
     _logger.fine(
       'Suppressed unawaited wc_pairingDelete sendRequest error for topic '
-      '$topic ($errorSummary)',
+      '$topic (${_summarizeError(error)})',
     );
+  }
+
+  void _logSuppressedListenerError({
+    required String eventName,
+    required Object error,
+  }) {
+    _logger.fine(
+      'Suppressed async $eventName listener error (${_summarizeError(error)})',
+    );
+  }
+
+  String _summarizeError(Object error) {
+    if (error is ReownCoreError) {
+      return 'ReownCoreError(code=${error.code})';
+    }
+    if (error is JsonRpcError) {
+      return 'JsonRpcError(code=${error.code})';
+    }
+    return '${error.runtimeType}';
   }
 }
 

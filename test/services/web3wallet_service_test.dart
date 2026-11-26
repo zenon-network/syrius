@@ -5472,6 +5472,10 @@ void main() {
           final String topic = i.namedArguments[#topic] as String;
           livePairings.removeWhere((PairingInfo p) => p.topic == topic);
         });
+        when(() => pairingStore.delete(any())).thenAnswer((Invocation i) async {
+          final String topic = i.positionalArguments[0] as String;
+          livePairings.removeWhere((PairingInfo p) => p.topic == topic);
+        });
         when(
           () => relayClient.unsubscribe(topic: any(named: 'topic')),
         ).thenAnswer((_) {
@@ -6132,6 +6136,10 @@ void main() {
           Invocation i,
         ) async {
           final String topic = i.namedArguments[#topic] as String;
+          livePairings.removeWhere((PairingInfo p) => p.topic == topic);
+        });
+        when(() => pairingStore.delete(any())).thenAnswer((Invocation i) async {
+          final String topic = i.positionalArguments[0] as String;
           livePairings.removeWhere((PairingInfo p) => p.topic == topic);
         });
         when(() => relayClient.disconnect()).thenAnswer((_) async {
@@ -7481,6 +7489,10 @@ void main() {
         final String topic = i.namedArguments[#topic] as String;
         livePairings.removeWhere((PairingInfo p) => p.topic == topic);
       });
+      when(() => pairingStore.delete(any())).thenAnswer((Invocation i) async {
+        final String topic = i.positionalArguments[0] as String;
+        livePairings.removeWhere((PairingInfo p) => p.topic == topic);
+      });
 
       final Web3WalletService service = Web3WalletService(
         walletKit: walletKit,
@@ -7585,6 +7597,10 @@ void main() {
         final String topic = i.namedArguments[#topic] as String;
         livePairings.removeWhere((PairingInfo p) => p.topic == topic);
       });
+      when(() => pairingStore.delete(any())).thenAnswer((Invocation i) async {
+        final String topic = i.positionalArguments[0] as String;
+        livePairings.removeWhere((PairingInfo p) => p.topic == topic);
+      });
       when(() => walletKit.pair(uri: any(named: 'uri'))).thenAnswer((
         Invocation i,
       ) async {
@@ -7682,6 +7698,11 @@ void main() {
         _,
       ) async {
         livePairings.clear();
+      });
+      when(() => pairingStore.delete('race-reconcile')).thenAnswer((_) async {
+        livePairings.removeWhere(
+          (PairingInfo p) => p.topic == 'race-reconcile',
+        );
       });
       when(() => relayClient.unsubscribe(topic: 'race-reconcile')).thenAnswer((
         _,
@@ -7787,6 +7808,9 @@ void main() {
       });
       when(() => pairing.disconnect(topic: 'retry-p')).thenAnswer((_) async {
         livePairings.clear();
+      });
+      when(() => pairingStore.delete('retry-p')).thenAnswer((_) async {
+        livePairings.removeWhere((PairingInfo p) => p.topic == 'retry-p');
       });
       when(() => relayClient.unsubscribe(topic: 'retry-p')).thenAnswer((
         _,
@@ -7928,6 +7952,9 @@ void main() {
         ) async {
           livePairings.clear();
         });
+        when(() => pairingStore.delete('aborted-p')).thenAnswer((_) async {
+          livePairings.removeWhere((PairingInfo p) => p.topic == 'aborted-p');
+        });
         when(() => walletKit.pair(uri: any(named: 'uri'))).thenAnswer((
           _,
         ) async {
@@ -8015,6 +8042,10 @@ void main() {
         Invocation i,
       ) async {
         final String topic = i.namedArguments[#topic] as String;
+        livePairings.removeWhere((PairingInfo p) => p.topic == topic);
+      });
+      when(() => pairingStore.delete(any())).thenAnswer((Invocation i) async {
+        final String topic = i.positionalArguments[0] as String;
         livePairings.removeWhere((PairingInfo p) => p.topic == topic);
       });
       when(
@@ -8239,15 +8270,19 @@ void main() {
         equals(<String>['good-s']),
       );
 
-      // Step 3: Full reset snapshots only 'good-s' and pauses mid-sweep.
+      // Step 3: Full reset serializes behind the in-flight
+      // _disconnectUnsupportedSessions() local purge and must not start
+      // sweeping 'good-s' until 'bad-s' settles.
       final Future<void> resetFuture = service.disconnectEverything();
-      await goodResetPaused.future;
+      await Future<void>.delayed(Duration.zero);
+      expect(goodResetPaused.isCompleted, isFalse);
 
-      // Step 4: Release 'bad-s' local purge so it fails and writes
-      // _pendingSessionCleanups['bad-s'] = 'pk-bad-s' mid-reset, then release
-      // the 'good-s' sweep.
+      // Step 4: Release 'bad-s' local purge so it fails, records
+      // _pendingSessionCleanups['bad-s'] = 'pk-bad-s', and yields to the
+      // waiting reset, which then sweeps both 'good-s' and 'bad-s'.
       releaseBadLocalPurge.complete();
       await initFuture;
+      await goodResetPaused.future;
       bool timerFired = false;
       Timer.run(() {
         timerFired = true;
@@ -8259,9 +8294,9 @@ void main() {
 
       expect(timerFired, isTrue);
       expect(getAllCalls, lessThan(50));
-      // The second pass of the reset swept the newly arrived pending cleanup
-      // for 'bad-s', retrying deleteKeyPair('pk-bad-s') and clearing the
-      // marker.
+      // The reset waited for _disconnectUnsupportedSessions() to record
+      // 'bad-s' into _pendingSessionCleanups, retried deleteKeyPair, and
+      // cleared the marker without looping.
       verify(() => crypto.deleteKeyPair('pk-bad-s')).called(2);
       expect(
         persistedStorage.containsKey(Web3WalletService.pendingResetStorageKey),
@@ -8299,6 +8334,10 @@ void main() {
         Invocation i,
       ) async {
         final String topic = i.namedArguments[#topic] as String;
+        livePairings.removeWhere((PairingInfo p) => p.topic == topic);
+      });
+      when(() => pairingStore.delete(any())).thenAnswer((Invocation i) async {
+        final String topic = i.positionalArguments[0] as String;
         livePairings.removeWhere((PairingInfo p) => p.topic == topic);
       });
       int inFlightAttempts = 0;
@@ -8729,6 +8768,10 @@ void main() {
         Invocation i,
       ) async {
         final String topic = i.namedArguments[#topic] as String;
+        livePairings.removeWhere((PairingInfo p) => p.topic == topic);
+      });
+      when(() => pairingStore.delete(any())).thenAnswer((Invocation i) async {
+        final String topic = i.positionalArguments[0] as String;
         livePairings.removeWhere((PairingInfo p) => p.topic == topic);
       });
       // Mirrors reown_core 1.5.1 Pairing.activate: broadcasts onPairingActivate
@@ -9424,6 +9467,1071 @@ void main() {
       expect(
         service.pendingRelayUnsubscriptionTopics,
         isNot(contains('expired-upstream-t')),
+      );
+    });
+
+    test('bounds hung core.pairing.disconnect in _disconnectPairingsInternal '
+        'with shared timeout budget and skips topics already in '
+        '_pendingTimedOutTopicOps', () async {
+      final int now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+      final List<PairingInfo> livePairings = <PairingInfo>[
+        PairingInfo(
+          topic: 'hung-p1',
+          expiry: now + 3600,
+          relay: Relay(ReownConstants.RELAYER_DEFAULT_PROTOCOL),
+          active: true,
+        ),
+        PairingInfo(
+          topic: 'skipped-p2',
+          expiry: now + 3600,
+          relay: Relay(ReownConstants.RELAYER_DEFAULT_PROTOCOL),
+          active: true,
+        ),
+      ];
+      final Completer<void> hungP1 = Completer<void>();
+
+      when(
+        pairingStore.getAll,
+      ).thenAnswer((_) => List<PairingInfo>.from(livePairings));
+      when(
+        () => pairing.disconnect(topic: 'hung-p1'),
+      ).thenAnswer((_) => hungP1.future);
+      when(() => pairingStore.delete(any())).thenAnswer((Invocation i) async {
+        final String topic = i.positionalArguments[0] as String;
+        livePairings.removeWhere((PairingInfo p) => p.topic == topic);
+      });
+
+      final Web3WalletService service = Web3WalletService(
+        walletKit: walletKit,
+        chainResolver: (String _) => nomService,
+        inFlightPairWaitTimeout: const Duration(milliseconds: 60),
+      );
+      addTearDown(() async {
+        if (!hungP1.isCompleted) hungP1.complete();
+        await service.onDispose();
+      });
+      service.create();
+      await service.init();
+
+      // disconnectAllPairings() times out on hung-p1, marks the shared budget
+      // exhausted so skipped-p2 skips core.pairing.disconnect(), purges both
+      // locally (flushing pairings.persist() for hung-p1), and records both
+      // for deferred relay unsubscription.
+      await service.disconnectAllPairings();
+
+      verify(() => pairing.disconnect(topic: 'hung-p1')).called(1);
+      verifyNever(() => pairing.disconnect(topic: 'skipped-p2'));
+      verify(() => pairingStore.delete('hung-p1')).called(1);
+      verify(() => pairingStore.delete('skipped-p2')).called(1);
+      verify(() => pairingStore.persist()).called(1);
+      verifyNever(() => relayClient.unsubscribe(topic: any(named: 'topic')));
+      expect(livePairings, isEmpty);
+      expect(
+        service.pendingRelayUnsubscriptionTopics,
+        equals(<String>{'hung-p1', 'skipped-p2'}),
+      );
+
+      // Re-add hung-p1 while its original timed-out disconnect is still
+      // pending: a subsequent pairing sweep MUST skip core.pairing.disconnect
+      // for hung-p1 instead of launching a duplicate remote disconnect, while
+      // still purging locally and deferring relay unsubscribe.
+      livePairings.add(
+        PairingInfo(
+          topic: 'hung-p1',
+          expiry: now + 3600,
+          relay: Relay(ReownConstants.RELAYER_DEFAULT_PROTOCOL),
+          active: true,
+        ),
+      );
+      await service.disconnectAllPairings();
+
+      verifyNever(() => pairing.disconnect(topic: 'hung-p1'));
+      verify(() => pairingStore.delete('hung-p1')).called(1);
+      verify(() => pairingStore.persist()).called(1);
+      expect(livePairings, isEmpty);
+
+      // Once hung-p1 settles, reconnect reconciles both topics.
+      hungP1.completeError(StateError('socket closed'));
+      await Future<void>.delayed(Duration.zero);
+
+      onRelayConnect.broadcast(EventArgs());
+      await Future<void>.delayed(Duration.zero);
+
+      verify(() => relayClient.unsubscribe(topic: 'hung-p1')).called(1);
+      verify(() => relayClient.unsubscribe(topic: 'skipped-p2')).called(1);
+      expect(service.pendingRelayUnsubscriptionTopics, isEmpty);
+    });
+
+    test(
+      'skips duplicate core.pairing.disconnect in _disconnectPairingsInternal '
+      'after _cleanupStalePairings times out on the same topic',
+      () async {
+        final int now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+        final List<PairingInfo> livePairings = <PairingInfo>[
+          PairingInfo(
+            topic: 'stale-hung-p',
+            expiry: now - 10,
+            relay: Relay(ReownConstants.RELAYER_DEFAULT_PROTOCOL),
+            active: false,
+          ),
+        ];
+        final Completer<void> staleDisconnect = Completer<void>();
+
+        when(
+          pairingStore.getAll,
+        ).thenAnswer((_) => List<PairingInfo>.from(livePairings));
+        when(
+          () => pairing.disconnect(topic: 'stale-hung-p'),
+        ).thenAnswer((_) => staleDisconnect.future);
+        when(() => pairingStore.delete(any())).thenAnswer((Invocation i) async {
+          final String topic = i.positionalArguments[0] as String;
+          livePairings.removeWhere((PairingInfo p) => p.topic == topic);
+        });
+        when(() => walletKit.pair(uri: any(named: 'uri'))).thenAnswer((
+          _,
+        ) async {
+          final PairingInfo created = PairingInfo(
+            topic: 'fresh-p',
+            expiry: now + 3600,
+            relay: Relay(ReownConstants.RELAYER_DEFAULT_PROTOCOL),
+            active: false,
+          );
+          livePairings.add(created);
+          return created;
+        });
+
+        final Web3WalletService service = Web3WalletService(
+          walletKit: walletKit,
+          chainResolver: (String _) => nomService,
+          inFlightPairWaitTimeout: const Duration(milliseconds: 60),
+        );
+        addTearDown(() async {
+          if (!staleDisconnect.isCompleted) staleDisconnect.complete();
+          await service.onDispose();
+        });
+        service.create();
+        await service.init();
+
+        // pair() runs _cleanupStalePairings(), timing out on 'stale-hung-p'
+        // and tracking it in _pendingTimedOutTopicOps.
+        await service.pair(
+          Uri.parse('wc:fresh-p@2?relay-protocol=irn&symKey=abc'),
+        );
+        verify(() => pairing.disconnect(topic: 'stale-hung-p')).called(1);
+
+        // A subsequent disconnectEverything() must NOT call
+        // core.pairing.disconnect('stale-hung-p') again, while still calling it
+        // for 'fresh-p' and locally purging both.
+        await service.disconnectEverything();
+
+        verifyNever(() => pairing.disconnect(topic: 'stale-hung-p'));
+        verify(() => pairing.disconnect(topic: 'fresh-p')).called(1);
+        verify(() => pairingStore.delete('stale-hung-p')).called(1);
+        verify(() => pairingStore.delete('fresh-p')).called(1);
+        expect(livePairings, isEmpty);
+        expect(
+          service.pendingRelayUnsubscriptionTopics,
+          contains('stale-hung-p'),
+        );
+      },
+    );
+
+    test(
+      'gates disconnectSessions, disconnectAllPairings, and '
+      'deactivatePairing against pending and in-flight full resets',
+      () async {
+        final int now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+        final Map<String, Map<String, dynamic>> persistedStorage =
+            <String, Map<String, dynamic>>{
+              Web3WalletService.pendingResetStorageKey: <String, dynamic>{
+                'pending': true,
+                'fullReset': true,
+              },
+            };
+        final List<PairingInfo> livePairings = <PairingInfo>[
+          PairingInfo(
+            topic: 'gated-p',
+            expiry: now + 3600,
+            relay: Relay(ReownConstants.RELAYER_DEFAULT_PROTOCOL),
+            active: true,
+          ),
+        ];
+        activeSessions['gated-s'] = _buildSession(
+          topic: 'gated-s',
+          selfPublicKey: 'pk-gated',
+        );
+
+        when(() => coreStorage.has(any())).thenAnswer(
+          (Invocation i) =>
+              persistedStorage.containsKey(i.positionalArguments[0]),
+        );
+        when(() => coreStorage.get(any())).thenAnswer(
+          (Invocation i) => persistedStorage[i.positionalArguments[0]],
+        );
+        when(() => coreStorage.set(any(), any())).thenAnswer((
+          Invocation i,
+        ) async {
+          persistedStorage[i.positionalArguments[0]
+              as String] = Map<String, dynamic>.from(
+            i.positionalArguments[1] as Map<String, dynamic>,
+          );
+        });
+        when(() => coreStorage.delete(any())).thenAnswer((Invocation i) async {
+          persistedStorage.remove(i.positionalArguments[0] as String);
+        });
+        when(
+          pairingStore.getAll,
+        ).thenAnswer((_) => List<PairingInfo>.from(livePairings));
+
+        final Web3WalletService service = buildService();
+        addTearDown(service.onDispose);
+        service.create();
+
+        // With a pending reset marker present before init, all three methods
+        // must throw StateError without touching SDK disconnect or stores.
+        await expectLater(service.disconnectSessions(), throwsStateError);
+        await expectLater(service.disconnectAllPairings(), throwsStateError);
+        await expectLater(
+          service.deactivatePairing(topic: 'gated-p'),
+          throwsStateError,
+        );
+        verifyNever(
+          () => walletKit.disconnectSession(
+            topic: any(named: 'topic'),
+            reason: any(named: 'reason'),
+          ),
+        );
+        verifyNever(() => pairing.disconnect(topic: any(named: 'topic')));
+        verifyNever(() => sessionStore.delete(any()));
+        verifyNever(() => pairingStore.delete(any()));
+
+        // Clear marker and initialize, then pause an active full reset and
+        // confirm all three methods remain gated while reset is in flight.
+        persistedStorage.clear();
+        await service.init();
+
+        final Completer<void> resetPaused = Completer<void>();
+        final Completer<void> releaseReset = Completer<void>();
+        addTearDown(() {
+          if (!releaseReset.isCompleted) releaseReset.complete();
+        });
+        when(
+          () => walletKit.disconnectSession(
+            topic: 'gated-s',
+            reason: any(named: 'reason'),
+          ),
+        ).thenAnswer((_) async {
+          if (!resetPaused.isCompleted) resetPaused.complete();
+          await releaseReset.future;
+          activeSessions.remove('gated-s');
+        });
+        when(() => pairing.disconnect(topic: 'gated-p')).thenAnswer((_) async {
+          livePairings.clear();
+        });
+        when(() => pairingStore.delete('gated-p')).thenAnswer((_) async {
+          livePairings.clear();
+        });
+
+        final Future<void> activeReset = service.disconnectEverything();
+        await resetPaused.future;
+
+        await expectLater(service.disconnectSessions(), throwsStateError);
+        await expectLater(service.disconnectAllPairings(), throwsStateError);
+        await expectLater(
+          service.deactivatePairing(topic: 'gated-p'),
+          throwsStateError,
+        );
+
+        releaseReset.complete();
+        await activeReset;
+
+        verify(
+          () => walletKit.disconnectSession(
+            topic: 'gated-s',
+            reason: any(named: 'reason'),
+          ),
+        ).called(1);
+        verify(() => pairing.disconnect(topic: 'gated-p')).called(1);
+      },
+    );
+
+    test('interrupts in-flight disconnectSessions, disconnectAllPairings, '
+        'deactivatePairing, and _disconnectUnsupportedSessions when '
+        'disconnectEverything starts and hands off cleanup cleanly', () async {
+      final int now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+      final Map<String, Map<String, dynamic>> persistedStorage =
+          <String, Map<String, dynamic>>{};
+
+      when(() => coreStorage.has(any())).thenAnswer(
+        (Invocation i) =>
+            persistedStorage.containsKey(i.positionalArguments[0]),
+      );
+      when(() => coreStorage.get(any())).thenAnswer(
+        (Invocation i) => persistedStorage[i.positionalArguments[0]],
+      );
+      when(() => coreStorage.set(any(), any())).thenAnswer((
+        Invocation i,
+      ) async {
+        persistedStorage[i.positionalArguments[0]
+            as String] = Map<String, dynamic>.from(
+          i.positionalArguments[1] as Map<String, dynamic>,
+        );
+      });
+      when(() => coreStorage.delete(any())).thenAnswer((Invocation i) async {
+        persistedStorage.remove(i.positionalArguments[0] as String);
+      });
+
+      // (1) Interrupt in-flight disconnectSessions().
+      activeSessions['ds-s1'] = _buildSession(
+        topic: 'ds-s1',
+        selfPublicKey: 'pk-ds-1',
+      );
+      final Completer<void> dsStarted = Completer<void>();
+      final Completer<void> dsHung = Completer<void>();
+      when(
+        () => walletKit.disconnectSession(
+          topic: 'ds-s1',
+          reason: any(named: 'reason'),
+        ),
+      ).thenAnswer((_) {
+        if (!dsStarted.isCompleted) dsStarted.complete();
+        return dsHung.future;
+      });
+      when(() => sessionStore.delete('ds-s1')).thenAnswer((_) async {
+        activeSessions.remove('ds-s1');
+      });
+
+      final Web3WalletService service = Web3WalletService(
+        walletKit: walletKit,
+        chainResolver: (String _) => nomService,
+        inFlightPairWaitTimeout: const Duration(milliseconds: 200),
+      );
+      addTearDown(() async {
+        if (!dsHung.isCompleted) dsHung.complete();
+        await service.onDispose();
+      });
+      service.create();
+      await service.init();
+
+      final Future<void> dsFuture = service.disconnectSessions();
+      final Future<void> dsExpectation = expectLater(
+        dsFuture,
+        throwsStateError,
+      );
+      await dsStarted.future;
+
+      await service.disconnectEverything();
+      await dsExpectation;
+
+      expect(activeSessions, isEmpty);
+      verify(() => crypto.deleteKeyPair('pk-ds-1')).called(1);
+      expect(
+        persistedStorage.containsKey(Web3WalletService.pendingResetStorageKey),
+        isFalse,
+      );
+
+      // (2) Interrupt in-flight disconnectAllPairings().
+      final List<PairingInfo> livePairings = <PairingInfo>[
+        PairingInfo(
+          topic: 'dap-p1',
+          expiry: now + 3600,
+          relay: Relay(ReownConstants.RELAYER_DEFAULT_PROTOCOL),
+          active: true,
+        ),
+      ];
+      final Completer<void> dapStarted = Completer<void>();
+      final Completer<void> dapHung = Completer<void>();
+      addTearDown(() {
+        if (!dapHung.isCompleted) dapHung.complete();
+      });
+      when(
+        pairingStore.getAll,
+      ).thenAnswer((_) => List<PairingInfo>.from(livePairings));
+      when(() => pairing.disconnect(topic: 'dap-p1')).thenAnswer((_) {
+        if (!dapStarted.isCompleted) dapStarted.complete();
+        return dapHung.future;
+      });
+      when(() => pairingStore.delete('dap-p1')).thenAnswer((_) async {
+        livePairings.removeWhere((PairingInfo p) => p.topic == 'dap-p1');
+      });
+
+      final Future<void> dapFuture = service.disconnectAllPairings();
+      final Future<void> dapExpectation = expectLater(
+        dapFuture,
+        throwsStateError,
+      );
+      await dapStarted.future;
+
+      await service.disconnectEverything();
+      await dapExpectation;
+
+      expect(livePairings, isEmpty);
+      verify(() => crypto.deleteSymKey('dap-p1')).called(1);
+      expect(
+        persistedStorage.containsKey(Web3WalletService.pendingResetStorageKey),
+        isFalse,
+      );
+
+      // (3) Interrupt in-flight deactivatePairing().
+      livePairings.add(
+        PairingInfo(
+          topic: 'deact-p1',
+          expiry: now + 3600,
+          relay: Relay(ReownConstants.RELAYER_DEFAULT_PROTOCOL),
+          active: true,
+        ),
+      );
+      final Completer<void> deactStarted = Completer<void>();
+      final Completer<void> deactHung = Completer<void>();
+      addTearDown(() {
+        if (!deactHung.isCompleted) deactHung.complete();
+      });
+      when(() => pairing.disconnect(topic: 'deact-p1')).thenAnswer((_) {
+        if (!deactStarted.isCompleted) deactStarted.complete();
+        return deactHung.future;
+      });
+      when(() => pairingStore.delete('deact-p1')).thenAnswer((_) async {
+        livePairings.removeWhere((PairingInfo p) => p.topic == 'deact-p1');
+      });
+
+      final Future<void> deactFuture = service.deactivatePairing(
+        topic: 'deact-p1',
+      );
+      final Future<void> deactExpectation = expectLater(
+        deactFuture,
+        throwsStateError,
+      );
+      await deactStarted.future;
+
+      await service.disconnectEverything();
+      await deactExpectation;
+
+      expect(livePairings, isEmpty);
+      verify(() => crypto.deleteSymKey('deact-p1')).called(1);
+      expect(
+        persistedStorage.containsKey(Web3WalletService.pendingResetStorageKey),
+        isFalse,
+      );
+
+      // (4) Interrupt _disconnectUnsupportedSessions() mid-remote-disconnect
+      // on a fresh service instance.
+      final Web3WalletService service2 = Web3WalletService(
+        walletKit: walletKit,
+        chainResolver: (String _) => nomService,
+        inFlightPairWaitTimeout: const Duration(milliseconds: 200),
+      );
+      final Completer<void> unsupStarted = Completer<void>();
+      final Completer<void> unsupHung = Completer<void>();
+      addTearDown(() async {
+        if (!unsupHung.isCompleted) unsupHung.complete();
+        await service2.onDispose();
+      });
+      activeSessions['unsup-s1'] = _buildSession(
+        topic: 'unsup-s1',
+        chainId: 'zenon:999',
+        selfPublicKey: 'pk-unsup-1',
+      );
+      when(
+        () => walletKit.disconnectSession(
+          topic: 'unsup-s1',
+          reason: any(named: 'reason'),
+        ),
+      ).thenAnswer((_) {
+        if (!unsupStarted.isCompleted) unsupStarted.complete();
+        return unsupHung.future;
+      });
+      when(() => sessionStore.delete('unsup-s1')).thenAnswer((_) async {
+        activeSessions.remove('unsup-s1');
+      });
+
+      service2.create();
+      final Future<void> initFuture = service2.init();
+      await unsupStarted.future;
+
+      await service2.disconnectEverything();
+      await initFuture;
+
+      expect(activeSessions, isEmpty);
+      verify(() => crypto.deleteKeyPair('pk-unsup-1')).called(1);
+      expect(
+        persistedStorage.containsKey(Web3WalletService.pendingResetStorageKey),
+        isFalse,
+      );
+    });
+
+    test('disconnectSessions and disconnectAllPairings merge pending cleanup '
+        'entries instead of clearing entries added concurrently', () async {
+      final int now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+      activeSessions['bulk-s1'] = _buildSession(
+        topic: 'bulk-s1',
+        selfPublicKey: 'pk-bulk-1',
+      );
+      final Completer<void> bulkSessionPaused = Completer<void>();
+      final Completer<void> releaseBulkSession = Completer<void>();
+      addTearDown(() {
+        if (!releaseBulkSession.isCompleted) releaseBulkSession.complete();
+      });
+
+      when(
+        () => walletKit.disconnectSession(
+          topic: 'bulk-s1',
+          reason: any(named: 'reason'),
+        ),
+      ).thenAnswer((_) async {
+        if (!bulkSessionPaused.isCompleted) bulkSessionPaused.complete();
+        await releaseBulkSession.future;
+        activeSessions.remove('bulk-s1');
+      });
+
+      final Web3WalletService service = buildService();
+      addTearDown(service.onDispose);
+      service.create();
+      await service.init();
+
+      // Start disconnectSessions() and pause it mid-flight.
+      final Future<void> bulkSessionsFuture = service.disconnectSessions();
+      await bulkSessionPaused.future;
+
+      // While disconnectSessions() is in flight, a separate disconnectSession()
+      // fails local cleanup for 'late-s2' and adds it to pending cleanups.
+      activeSessions['late-s2'] = _buildSession(
+        topic: 'late-s2',
+        selfPublicKey: 'pk-late-2',
+      );
+      when(
+        () => walletKit.disconnectSession(
+          topic: 'late-s2',
+          reason: any(named: 'reason'),
+        ),
+      ).thenThrow(StateError('remote failed'));
+      when(() => sessionStore.delete('late-s2')).thenAnswer((_) async {
+        activeSessions.remove('late-s2');
+      });
+      bool failLateKeyOnce = true;
+      when(() => crypto.deleteKeyPair('pk-late-2')).thenAnswer((_) async {
+        if (failLateKeyOnce) {
+          failLateKeyOnce = false;
+          throw StateError('transient keychain error');
+        }
+      });
+
+      await expectLater(
+        service.disconnectSession(topic: 'late-s2'),
+        throwsStateError,
+      );
+
+      // Now finish disconnectSessions(): it must NOT clear 'late-s2' from
+      // _pendingSessionCleanups.
+      releaseBulkSession.complete();
+      await bulkSessionsFuture;
+
+      // A subsequent disconnectSessions() must pick up 'late-s2' from
+      // _pendingSessionCleanups and retry deleteKeyPair('pk-late-2').
+      await service.disconnectSessions();
+      verify(() => crypto.deleteKeyPair('pk-late-2')).called(2);
+
+      // Now verify the same non-destructive merge for disconnectAllPairings().
+      final List<PairingInfo> livePairings = <PairingInfo>[
+        PairingInfo(
+          topic: 'bulk-p1',
+          expiry: now + 3600,
+          relay: Relay(ReownConstants.RELAYER_DEFAULT_PROTOCOL),
+          active: true,
+        ),
+      ];
+      final Completer<void> bulkPairingPaused = Completer<void>();
+      final Completer<void> releaseBulkPairing = Completer<void>();
+      addTearDown(() {
+        if (!releaseBulkPairing.isCompleted) releaseBulkPairing.complete();
+      });
+
+      when(
+        pairingStore.getAll,
+      ).thenAnswer((_) => List<PairingInfo>.from(livePairings));
+      when(() => pairing.disconnect(topic: 'bulk-p1')).thenAnswer((_) async {
+        if (!bulkPairingPaused.isCompleted) bulkPairingPaused.complete();
+        await releaseBulkPairing.future;
+        livePairings.removeWhere((PairingInfo p) => p.topic == 'bulk-p1');
+      });
+      when(() => pairingStore.delete(any())).thenAnswer((Invocation i) async {
+        final String topic = i.positionalArguments[0] as String;
+        livePairings.removeWhere((PairingInfo p) => p.topic == topic);
+      });
+
+      final Future<void> firstPairSweep = service.disconnectAllPairings();
+      await bulkPairingPaused.future;
+
+      // While firstPairSweep is in flight, a second pairing 'late-p2' appears
+      // and a second disconnectAllPairings() fails local symKey cleanup for it.
+      livePairings.add(
+        PairingInfo(
+          topic: 'late-p2',
+          expiry: now + 3600,
+          relay: Relay(ReownConstants.RELAYER_DEFAULT_PROTOCOL),
+          active: true,
+        ),
+      );
+      when(() => pairing.disconnect(topic: 'late-p2')).thenAnswer((_) async {
+        livePairings.removeWhere((PairingInfo p) => p.topic == 'late-p2');
+      });
+      bool failLateSymKeyOnce = true;
+      when(() => crypto.deleteSymKey('late-p2')).thenAnswer((_) async {
+        if (failLateSymKeyOnce) {
+          failLateSymKeyOnce = false;
+          throw StateError('transient symKey error');
+        }
+      });
+
+      await service.disconnectAllPairings();
+
+      // Now finish firstPairSweep: it must NOT wipe 'late-p2' from
+      // _pendingPairingCleanups.
+      releaseBulkPairing.complete();
+      await firstPairSweep;
+
+      // Next disconnectAllPairings() retries 'late-p2' and succeeds.
+      await service.disconnectAllPairings();
+      verify(() => crypto.deleteSymKey('late-p2')).called(2);
+    });
+
+    test('persists pending relay unsubscriptions across cold restarts '
+        'separately from reset marker, reconciles on reconnect, and protects '
+        'live/restored topics', () async {
+      final int now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+      final Map<String, Map<String, dynamic>> persistedStorage =
+          <String, Map<String, dynamic>>{};
+      final List<PairingInfo> livePairings = <PairingInfo>[
+        PairingInfo(
+          topic: 'cold-p1',
+          expiry: now + 3600,
+          relay: Relay(ReownConstants.RELAYER_DEFAULT_PROTOCOL),
+          active: true,
+        ),
+        PairingInfo(
+          topic: 'restored-live-p',
+          expiry: now + 3600,
+          relay: Relay(ReownConstants.RELAYER_DEFAULT_PROTOCOL),
+          active: true,
+        ),
+      ];
+      activeSessions['cold-s1'] = _buildSession(
+        topic: 'cold-s1',
+        selfPublicKey: 'pk-cold-s1',
+      );
+      final Completer<void> hungColdSession = Completer<void>();
+
+      when(() => coreStorage.has(any())).thenAnswer(
+        (Invocation i) =>
+            persistedStorage.containsKey(i.positionalArguments[0]),
+      );
+      when(() => coreStorage.get(any())).thenAnswer(
+        (Invocation i) => persistedStorage[i.positionalArguments[0]],
+      );
+      when(() => coreStorage.set(any(), any())).thenAnswer((
+        Invocation i,
+      ) async {
+        persistedStorage[i.positionalArguments[0]
+            as String] = Map<String, dynamic>.from(
+          i.positionalArguments[1] as Map<String, dynamic>,
+        );
+      });
+      when(() => coreStorage.delete(any())).thenAnswer((Invocation i) async {
+        persistedStorage.remove(i.positionalArguments[0] as String);
+      });
+      when(
+        pairingStore.getAll,
+      ).thenAnswer((_) => List<PairingInfo>.from(livePairings));
+      when(
+        () => walletKit.disconnectSession(
+          topic: 'cold-s1',
+          reason: any(named: 'reason'),
+        ),
+      ).thenAnswer((_) => hungColdSession.future);
+      when(() => sessionStore.delete(any())).thenAnswer((Invocation i) async {
+        activeSessions.remove(i.positionalArguments[0] as String);
+      });
+      when(() => pairingStore.delete(any())).thenAnswer((Invocation i) async {
+        final String topic = i.positionalArguments[0] as String;
+        livePairings.removeWhere((PairingInfo p) => p.topic == topic);
+      });
+
+      // Run 1: full reset exhausts timeout budget -> reset marker cleared,
+      // pending relay unsubscriptions persisted separately.
+      final Web3WalletService firstRun = Web3WalletService(
+        walletKit: walletKit,
+        chainResolver: (String _) => nomService,
+        inFlightPairWaitTimeout: const Duration(milliseconds: 60),
+      );
+      addTearDown(() async {
+        if (!hungColdSession.isCompleted) hungColdSession.complete();
+        await firstRun.onDispose();
+      });
+      firstRun.create();
+      await firstRun.init();
+      await firstRun.disconnectEverything();
+
+      expect(
+        persistedStorage.containsKey(Web3WalletService.pendingResetStorageKey),
+        isFalse,
+      );
+      expect(
+        persistedStorage[Web3WalletService
+            .pendingRelayUnsubscriptionsStorageKey]?['topics'],
+        equals(<String>['cold-p1', 'cold-s1', 'restored-live-p']),
+      );
+
+      // Simulating app exit via onDispose() MUST preserve persisted pending
+      // relay unsubscriptions on disk.
+      await firstRun.onDispose();
+      expect(
+        persistedStorage.containsKey(
+          Web3WalletService.pendingRelayUnsubscriptionsStorageKey,
+        ),
+        isTrue,
+      );
+
+      // Run 2 (cold restart): 'restored-live-p' is restored as a live pairing
+      // and 'cold-s1' is restored as a live session in stores; neither may be
+      // unsubscribed, while 'cold-p1' must reconcile on reconnect and clear
+      // persisted storage only after confirmation.
+      livePairings.add(
+        PairingInfo(
+          topic: 'restored-live-p',
+          expiry: now + 3600,
+          relay: Relay(ReownConstants.RELAYER_DEFAULT_PROTOCOL),
+          active: true,
+        ),
+      );
+      activeSessions['cold-s1'] = _buildSession(
+        topic: 'cold-s1',
+        selfPublicKey: 'pk-cold-s1-live',
+      );
+      when(() => relayClient.isConnected).thenReturn(false);
+
+      final Web3WalletService secondRun = Web3WalletService(
+        walletKit: walletKit,
+        chainResolver: (String _) => nomService,
+        inFlightPairWaitTimeout: const Duration(milliseconds: 60),
+      );
+      addTearDown(secondRun.onDispose);
+      secondRun.create();
+      await secondRun.init();
+
+      // Live/restored topics were pruned immediately; only 'cold-p1' remains.
+      expect(
+        secondRun.pendingRelayUnsubscriptionTopics,
+        equals(<String>{'cold-p1'}),
+      );
+      expect(
+        persistedStorage[Web3WalletService
+            .pendingRelayUnsubscriptionsStorageKey]?['topics'],
+        equals(<String>['cold-p1']),
+      );
+
+      // Pending relay unsubscriptions must NOT block pair() (no reset marker).
+      when(() => walletKit.pair(uri: any(named: 'uri'))).thenAnswer((_) async {
+        final PairingInfo created = PairingInfo(
+          topic: 'new-cold-pair',
+          expiry: now + 3600,
+          relay: Relay(ReownConstants.RELAYER_DEFAULT_PROTOCOL),
+          active: false,
+        );
+        livePairings.add(created);
+        return created;
+      });
+      final PairingInfo paired = await secondRun.pair(
+        Uri.parse('wc:new-cold-pair@2?relay-protocol=irn&symKey=abc'),
+      );
+      expect(paired.topic, equals('new-cold-pair'));
+
+      // First reconnect fails -> 'cold-p1' MUST remain persisted on disk!
+      bool failFirstUnsub = true;
+      when(() => relayClient.unsubscribe(topic: 'cold-p1')).thenAnswer((
+        _,
+      ) async {
+        if (failFirstUnsub) {
+          failFirstUnsub = false;
+          throw StateError('relay error');
+        }
+      });
+      when(() => relayClient.isConnected).thenReturn(true);
+      onRelayConnect.broadcast(EventArgs());
+      await Future<void>.delayed(Duration.zero);
+
+      verify(() => relayClient.unsubscribe(topic: 'cold-p1')).called(1);
+      verifyNever(() => relayClient.unsubscribe(topic: 'restored-live-p'));
+      verifyNever(() => relayClient.unsubscribe(topic: 'cold-s1'));
+      expect(
+        persistedStorage[Web3WalletService
+            .pendingRelayUnsubscriptionsStorageKey]?['topics'],
+        equals(<String>['cold-p1']),
+      );
+
+      // Second reconnect confirms -> persisted storage key is deleted.
+      onRelayConnect.broadcast(EventArgs());
+      await Future<void>.delayed(Duration.zero);
+
+      verify(() => relayClient.unsubscribe(topic: 'cold-p1')).called(1);
+      expect(secondRun.pendingRelayUnsubscriptionTopics, isEmpty);
+      expect(
+        persistedStorage.containsKey(
+          Web3WalletService.pendingRelayUnsubscriptionsStorageKey,
+        ),
+        isFalse,
+      );
+    });
+
+    test('persists ConfirmingRelayClient subscription IDs across cold restart '
+        'and reconciles automatically when relay connects '
+        'during init', () async {
+      final int now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+      final ReownCore desktopCore = createDesktopReownCore(
+        projectId: 'test-project-id',
+        memoryStore: true,
+      );
+      final SharedPrefsStores memStorage = SharedPrefsStores(memoryStore: true);
+      await memStorage.init();
+      final GenericStore<String> topicMap = GenericStore<String>(
+        storage: memStorage,
+        context: StoreVersions.CONTEXT_TOPIC_MAP,
+        version: StoreVersions.VERSION_TOPIC_MAP,
+        fromJson: (dynamic value) => value as String,
+      );
+      final _MockMessageTracker messageTracker = _MockMessageTracker();
+      when(messageTracker.init).thenAnswer((_) async {});
+      when(() => messageTracker.delete(any())).thenAnswer((_) async {});
+      when(() => core.logger).thenReturn(desktopCore.logger);
+      when(() => core.heartbeat).thenReturn(desktopCore.heartbeat);
+      when(() => core.crypto).thenReturn(desktopCore.crypto);
+      await desktopCore.storage.init();
+      await desktopCore.secureStorage.init();
+      await desktopCore.crypto.init();
+
+      final Map<String, Map<String, dynamic>> persistedStorage =
+          <String, Map<String, dynamic>>{};
+      when(() => coreStorage.has(any())).thenAnswer(
+        (Invocation i) =>
+            persistedStorage.containsKey(i.positionalArguments[0]),
+      );
+      when(() => coreStorage.get(any())).thenAnswer(
+        (Invocation i) => persistedStorage[i.positionalArguments[0]],
+      );
+      when(() => coreStorage.set(any(), any())).thenAnswer((
+        Invocation i,
+      ) async {
+        persistedStorage[i.positionalArguments[0]
+            as String] = Map<String, dynamic>.from(
+          i.positionalArguments[1] as Map<String, dynamic>,
+        );
+      });
+      when(() => coreStorage.delete(any())).thenAnswer((Invocation i) async {
+        persistedStorage.remove(i.positionalArguments[0] as String);
+      });
+
+      final List<Map<String, dynamic>> sentParams = <Map<String, dynamic>>[];
+      final _TestConfirmingRelayClient firstRelay = _TestConfirmingRelayClient(
+        core: core,
+        messageTracker: messageTracker,
+        topicMap: topicMap,
+        onSendUnsubscribeRpc:
+            ({
+              required String method,
+              required Map<String, dynamic> parameters,
+              required int id,
+            }) async {
+              sentParams.add(Map<String, dynamic>.from(parameters));
+              return true;
+            },
+      );
+      await firstRelay.init();
+      await topicMap.set('cold-sub-p', 'sub-id-cold-123');
+      firstRelay.connected = false;
+
+      final List<PairingInfo> livePairings = <PairingInfo>[
+        PairingInfo(
+          topic: 'cold-sub-p',
+          expiry: now + 3600,
+          relay: Relay(ReownConstants.RELAYER_DEFAULT_PROTOCOL),
+          active: true,
+        ),
+      ];
+      when(() => core.relayClient).thenReturn(firstRelay);
+      when(
+        pairingStore.getAll,
+      ).thenAnswer((_) => List<PairingInfo>.from(livePairings));
+      when(() => pairing.disconnect(topic: 'cold-sub-p')).thenAnswer((_) async {
+        livePairings.clear();
+      });
+      when(() => pairingStore.delete('cold-sub-p')).thenAnswer((_) async {
+        livePairings.clear();
+      });
+
+      final Web3WalletService firstService = Web3WalletService(
+        walletKit: walletKit,
+        chainResolver: (String _) => nomService,
+        inFlightPairWaitTimeout: const Duration(milliseconds: 100),
+      );
+      addTearDown(firstService.onDispose);
+      firstService.create();
+      await firstService.init();
+
+      // Offline disconnect deletes topicMap locally while preserving
+      // 'sub-id-cold-123' in persisted pending relay unsubscriptions.
+      await firstService.disconnectAllPairings();
+      expect(topicMap.has('cold-sub-p'), isFalse);
+      expect(sentParams, isEmpty);
+      expect(
+        persistedStorage[Web3WalletService
+            .pendingRelayUnsubscriptionsStorageKey]?['subscriptionIds'],
+        equals(<String, String>{'cold-sub-p': 'sub-id-cold-123'}),
+      );
+      await firstService.onDispose();
+
+      // Cold restart with a brand new ConfirmingRelayClient (empty in-memory
+      // _preservedUnsubscribeIds) that is ALREADY connected by the time init()
+      // completes -> must restore 'sub-id-cold-123', send irn_unsubscribe with
+      // that exact ID, and delete the persisted storage entry.
+      final _TestConfirmingRelayClient secondRelay = _TestConfirmingRelayClient(
+        core: core,
+        messageTracker: messageTracker,
+        topicMap: topicMap,
+        onSendUnsubscribeRpc:
+            ({
+              required String method,
+              required Map<String, dynamic> parameters,
+              required int id,
+            }) async {
+              sentParams.add(Map<String, dynamic>.from(parameters));
+              return true;
+            },
+      );
+      await secondRelay.init();
+      secondRelay.connected = true;
+      when(() => core.relayClient).thenReturn(secondRelay);
+
+      final Web3WalletService secondService = Web3WalletService(
+        walletKit: walletKit,
+        chainResolver: (String _) => nomService,
+        inFlightPairWaitTimeout: const Duration(milliseconds: 100),
+      );
+      addTearDown(secondService.onDispose);
+      secondService.create();
+      await secondService.init();
+      await Future<void>.delayed(Duration.zero);
+
+      expect(
+        sentParams,
+        equals(<Map<String, dynamic>>[
+          <String, dynamic>{'topic': 'cold-sub-p', 'id': 'sub-id-cold-123'},
+        ]),
+      );
+      expect(secondService.pendingRelayUnsubscriptionTopics, isEmpty);
+      expect(
+        persistedStorage.containsKey(
+          Web3WalletService.pendingRelayUnsubscriptionsStorageKey,
+        ),
+        isFalse,
+      );
+    });
+
+    test('preserves previously persisted pending relay unsubscriptions when '
+        'cold restart also executes a pending reset marker', () async {
+      final int now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+      final Map<String, Map<String, dynamic>> persistedStorage =
+          <String, Map<String, dynamic>>{
+            Web3WalletService.pendingResetStorageKey: <String, dynamic>{
+              'pending': true,
+              'fullReset': true,
+            },
+            Web3WalletService.pendingRelayUnsubscriptionsStorageKey:
+                <String, dynamic>{
+                  'topics': <String>['prior-cold-topic'],
+                },
+          };
+      final List<PairingInfo> livePairings = <PairingInfo>[
+        PairingInfo(
+          topic: 'new-reset-p',
+          expiry: now + 3600,
+          relay: Relay(ReownConstants.RELAYER_DEFAULT_PROTOCOL),
+          active: true,
+        ),
+      ];
+      final Completer<void> hungResetPairing = Completer<void>();
+
+      when(() => coreStorage.has(any())).thenAnswer(
+        (Invocation i) =>
+            persistedStorage.containsKey(i.positionalArguments[0]),
+      );
+      when(() => coreStorage.get(any())).thenAnswer(
+        (Invocation i) => persistedStorage[i.positionalArguments[0]],
+      );
+      when(() => coreStorage.set(any(), any())).thenAnswer((
+        Invocation i,
+      ) async {
+        persistedStorage[i.positionalArguments[0]
+            as String] = Map<String, dynamic>.from(
+          i.positionalArguments[1] as Map<String, dynamic>,
+        );
+      });
+      when(() => coreStorage.delete(any())).thenAnswer((Invocation i) async {
+        persistedStorage.remove(i.positionalArguments[0] as String);
+      });
+      when(
+        pairingStore.getAll,
+      ).thenAnswer((_) => List<PairingInfo>.from(livePairings));
+      when(
+        () => pairing.disconnect(topic: 'new-reset-p'),
+      ).thenAnswer((_) => hungResetPairing.future);
+      when(() => pairingStore.delete('new-reset-p')).thenAnswer((_) async {
+        livePairings.clear();
+      });
+
+      final Web3WalletService service = Web3WalletService(
+        walletKit: walletKit,
+        chainResolver: (String _) => nomService,
+        inFlightPairWaitTimeout: const Duration(milliseconds: 60),
+      );
+      addTearDown(() async {
+        if (!hungResetPairing.isCompleted) hungResetPairing.complete();
+        await service.onDispose();
+      });
+      service.create();
+      await service.init();
+
+      // Both the previously persisted topic AND the newly budget-exhausted
+      // topic must be present in memory and on disk.
+      expect(
+        persistedStorage.containsKey(Web3WalletService.pendingResetStorageKey),
+        isFalse,
+      );
+      expect(
+        service.pendingRelayUnsubscriptionTopics,
+        equals(<String>{'prior-cold-topic', 'new-reset-p'}),
+      );
+      expect(
+        persistedStorage[Web3WalletService
+            .pendingRelayUnsubscriptionsStorageKey]?['topics'],
+        equals(<String>['new-reset-p', 'prior-cold-topic']),
+      );
+
+      // Settle hung reset pairing and reconnect: both topics reconcile and
+      // persisted storage is cleaned up.
+      hungResetPairing.completeError(StateError('socket closed'));
+      await Future<void>.delayed(Duration.zero);
+
+      onRelayConnect.broadcast(EventArgs());
+      await Future<void>.delayed(Duration.zero);
+
+      verify(
+        () => relayClient.unsubscribe(topic: 'prior-cold-topic'),
+      ).called(1);
+      verify(() => relayClient.unsubscribe(topic: 'new-reset-p')).called(1);
+      expect(service.pendingRelayUnsubscriptionTopics, isEmpty);
+      expect(
+        persistedStorage.containsKey(
+          Web3WalletService.pendingRelayUnsubscriptionsStorageKey,
+        ),
+        isFalse,
       );
     });
   });
