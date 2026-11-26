@@ -5,16 +5,23 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:logging/logging.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:reown_core/crypto/i_crypto.dart';
+import 'package:reown_core/events/i_events.dart';
+import 'package:reown_core/heartbit/i_heartbeat.dart';
 import 'package:reown_core/pairing/i_expirer.dart';
+import 'package:reown_core/pairing/i_json_rpc_history.dart';
 import 'package:reown_core/pairing/i_pairing.dart';
+import 'package:reown_core/relay_client/i_message_tracker.dart';
 import 'package:reown_core/relay_client/i_relay_client.dart';
+import 'package:reown_core/store/generic_store.dart';
 import 'package:reown_core/store/i_generic_store.dart';
 import 'package:reown_core/store/i_store.dart';
+import 'package:reown_core/store/shared_prefs_store.dart';
 import 'package:reown_walletkit/reown_walletkit.dart' hide Address;
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/notifications/notifications.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/wallet_connect_metadata_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/services/nom_service.dart';
+import 'package:zenon_syrius_wallet_flutter/services/sticky_fallback_secure_store.dart';
 import 'package:zenon_syrius_wallet_flutter/services/web3wallet_service.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
@@ -39,9 +46,64 @@ class _MockKeyChainStore extends Mock implements IGenericStore<String> {}
 
 class _MockExpirer extends Mock implements IExpirer {}
 
+class _MockJsonRpcHistory extends Mock implements IJsonRpcHistory {}
+
+class _MockReceiverKeyStore extends Mock
+    implements IGenericStore<ReceiverPublicKey> {}
+
+class _MockHeartBeat extends Mock implements IHeartBeat {}
+
+class _MockEvents extends Mock implements IEvents {}
+
+class _MockMessageTracker extends Mock implements IMessageTracker {}
+
 class _FakeNoMService extends Mock implements NoMService {}
 
 class _MockNotificationsBloc extends Mock implements NotificationsBloc {}
+
+class _TestConfirmingRelayClient extends ConfirmingRelayClient {
+  _TestConfirmingRelayClient({
+    required super.core,
+    required super.messageTracker,
+    required super.topicMap,
+    required this.onSendUnsubscribeRpc,
+  });
+
+  bool connected = true;
+  final Future<dynamic> Function({
+    required String method,
+    required Map<String, dynamic> parameters,
+    required int id,
+  })
+  onSendUnsubscribeRpc;
+
+  @override
+  bool get isConnected => connected;
+
+  @override
+  Future<void> init() async {
+    await messageTracker.init();
+    await topicMap.init();
+    await super.init();
+  }
+
+  @override
+  Future<void> connect({String? relayUrl}) async {}
+
+  @override
+  Future<void> disconnect() async {
+    connected = false;
+  }
+
+  @override
+  Future<dynamic> sendUnsubscribeRpc({
+    required String method,
+    required Map<String, dynamic> parameters,
+    required int id,
+  }) {
+    return onSendUnsubscribeRpc(method: method, parameters: parameters, id: id);
+  }
+}
 
 SessionData _buildSession({
   required String topic,
@@ -87,6 +149,8 @@ void main() {
     registerFallbackValue(const JsonRpcResponse<dynamic>(id: 0));
     registerFallbackValue(const ReownSignError(code: 0, message: ''));
     registerFallbackValue(const SessionEventParams(name: '', data: null));
+    registerFallbackValue(const PublishOptions(ttl: 0, tag: 0));
+    registerFallbackValue(const SubscribeOptions(topic: ''));
     registerFallbackValue(Uri());
   });
 
@@ -183,6 +247,7 @@ void main() {
       when(keyChainStore.persist).thenAnswer((_) async {});
       when(() => expirer.delete(any())).thenAnswer((_) async {});
       when(expirer.persist).thenAnswer((_) async {});
+      when(() => relayClient.isConnected).thenReturn(false);
       when(
         () => relayClient.unsubscribe(topic: any(named: 'topic')),
       ).thenAnswer((_) async {});
@@ -6656,5 +6721,2710 @@ void main() {
         verify(() => crypto.deleteKeyPair('pk-kc-1')).called(3);
       },
     );
+
+    test('SafeDisconnectPairing wired by createDesktopReownCore absorbs async '
+        'sendRequest errors without leaking secrets or isolating shared '
+        'futures across error zones', () async {
+      final ReownCore desktopCore = createDesktopReownCore(
+        projectId: 'test-project',
+        memoryStore: true,
+      );
+      expect(desktopCore.pairing, isA<SafeDisconnectPairing>());
+
+      final List<Object> uncaughtErrors = <Object>[];
+      final List<LogRecord> logs = <LogRecord>[];
+      final Logger logger = Logger('WalletConnectService');
+      final Level previousLevel = logger.level;
+      final bool previousHierarchical = hierarchicalLoggingEnabled;
+      hierarchicalLoggingEnabled = true;
+      logger.level = Level.ALL;
+      final StreamSubscription<LogRecord> logSub = logger.onRecord.listen(
+        logs.add,
+      );
+      addTearDown(() async {
+        await logSub.cancel();
+        logger.level = previousLevel;
+        hierarchicalLoggingEnabled = previousHierarchical;
+      });
+
+      final _MockJsonRpcHistory mockHistory = _MockJsonRpcHistory();
+      final _MockReceiverKeyStore mockReceiverKeys = _MockReceiverKeyStore();
+      final _MockHeartBeat mockHeartBeat = _MockHeartBeat();
+      final _MockEvents mockEvents = _MockEvents();
+      final Event<MessageEvent> onRelayMessage = Event<MessageEvent>();
+      final Event<MessageEvent> onLinkModeMessage = Event<MessageEvent>();
+      final Event<ExpirationEvent> onExpire = Event<ExpirationEvent>();
+      final Event<EventArgs> onPulse = Event<EventArgs>();
+      final Set<String> storedTopics = <String>{
+        'encode-fail',
+        'publish-fail',
+        'shared-connect-fail',
+      };
+
+      when(() => core.logger).thenReturn(desktopCore.logger);
+      when(() => core.heartbeat).thenReturn(mockHeartBeat);
+      when(() => core.events).thenReturn(mockEvents);
+      when(() => relayClient.onRelayClientMessage).thenReturn(onRelayMessage);
+      when(() => relayClient.onLinkModeMessage).thenReturn(onLinkModeMessage);
+      when(() => relayClient.isConnected).thenReturn(false);
+      when(() => expirer.onExpire).thenReturn(onExpire);
+      when(() => expirer.init()).thenAnswer((_) async {});
+      when(() => expirer.checkAndExpire(any())).thenAnswer((_) async => false);
+      when(() => mockHeartBeat.onPulse).thenReturn(onPulse);
+      when(() => pairingStore.init()).thenAnswer((_) async {});
+      when(() => pairingStore.getAll()).thenReturn(<PairingInfo>[]);
+      when(() => pairingStore.has(any())).thenAnswer(
+        (Invocation i) => storedTopics.contains(i.positionalArguments[0]),
+      );
+      when(() => pairingStore.delete(any())).thenAnswer((Invocation i) async {
+        storedTopics.remove(i.positionalArguments[0] as String);
+      });
+      when(mockHistory.init).thenAnswer((_) async {});
+      when(mockHistory.getAll).thenReturn(<JsonRpcRecord>[]);
+      when(mockReceiverKeys.init).thenAnswer((_) async {});
+      when(mockReceiverKeys.getAll).thenReturn(<ReceiverPublicKey>[]);
+
+      when(
+        () =>
+            crypto.encode('encode-fail', any(), options: any(named: 'options')),
+      ).thenAnswer(
+        (_) => Future<String?>.error(
+          StateError('encode failed symKey=super-secret-encode'),
+        ),
+      );
+      when(
+        () => crypto.encode(
+          'publish-fail',
+          any(),
+          options: any(named: 'options'),
+        ),
+      ).thenAnswer((_) async => 'encoded-payload');
+      when(
+        () => crypto.encode(
+          'shared-connect-fail',
+          any(),
+          options: any(named: 'options'),
+        ),
+      ).thenAnswer((_) async => 'encoded-payload');
+
+      when(
+        () => relayClient.publish(
+          topic: 'publish-fail',
+          message: any(named: 'message'),
+          options: any(named: 'options'),
+        ),
+      ).thenAnswer(
+        (_) => Future<void>.error(
+          const ReownCoreError(
+            code: 9001,
+            message: 'wc:secret-uri@2?symKey=super-secret-publish',
+          ),
+        ),
+      );
+
+      // Mirrors RelayClient._sendJsonRpcRequest creating a shared
+      // _connectingFuture inside publish() that an outer caller also awaits.
+      Future<void>? sharedReconnectFuture;
+      when(
+        () => relayClient.publish(
+          topic: 'shared-connect-fail',
+          message: any(named: 'message'),
+          options: any(named: 'options'),
+        ),
+      ).thenAnswer((_) {
+        sharedReconnectFuture = Future<void>.delayed(
+          const Duration(milliseconds: 10),
+          () => throw StateError('shared reconnect failed'),
+        );
+        return sharedReconnectFuture!;
+      });
+
+      final SafeDisconnectPairing safePairing = SafeDisconnectPairing(
+        core: core,
+        pairings: pairingStore,
+        history: mockHistory,
+        topicToReceiverPublicKey: mockReceiverKeys,
+      );
+
+      // Uninitialized disconnect still throws NOT_INITIALIZED.
+      await expectLater(
+        safePairing.disconnect(topic: 'encode-fail'),
+        throwsA(
+          isA<ReownCoreError>().having(
+            (ReownCoreError e) => e.code,
+            'code',
+            Errors.getInternalError(Errors.NOT_INITIALIZED).code,
+          ),
+        ),
+      );
+
+      await safePairing.init();
+
+      final List<String> deletedEvents = <String>[];
+      safePairing.onPairingDelete.subscribe((PairingEvent? event) {
+        if (event?.topic != null) {
+          deletedEvents.add(event!.topic!);
+        }
+      });
+
+      final Completer<void> bodyDone = Completer<void>();
+      runZonedGuarded<void>(
+        () {
+          unawaited(() async {
+            try {
+              // Direct validation errors still propagate to the caller.
+              await expectLater(
+                safePairing.disconnect(topic: 'missing-topic'),
+                throwsA(
+                  isA<ReownCoreError>().having(
+                    (ReownCoreError e) => e.code,
+                    'code',
+                    Errors.getInternalError(Errors.NO_MATCHING_KEY).code,
+                  ),
+                ),
+              );
+
+              // Async crypto.encode and relayClient.publish errors in unawaited
+              // sendRequest are absorbed while local delete & broadcast
+              // succeed.
+              await safePairing.disconnect(topic: 'encode-fail');
+              await safePairing.disconnect(topic: 'publish-fail');
+
+              // Shared future created during publish() must stay in the
+              // caller's error zone so another normal caller awaiting it
+              // receives the error cleanly instead of hanging across an
+              // error-zone boundary.
+              await safePairing.disconnect(topic: 'shared-connect-fail');
+              expect(sharedReconnectFuture, isNotNull);
+              await expectLater(
+                sharedReconnectFuture!.timeout(const Duration(seconds: 1)),
+                throwsA(
+                  isA<StateError>().having(
+                    (StateError e) => e.message,
+                    'message',
+                    'shared reconnect failed',
+                  ),
+                ),
+              );
+
+              await Future<void>.delayed(const Duration(milliseconds: 20));
+              if (!bodyDone.isCompleted) {
+                bodyDone.complete();
+              }
+            } on Object catch (error, stackTrace) {
+              if (!bodyDone.isCompleted) {
+                bodyDone.completeError(error, stackTrace);
+              }
+            }
+          }());
+        },
+        (Object error, StackTrace _) {
+          uncaughtErrors.add(error);
+        },
+      );
+      await bodyDone.future;
+
+      expect(uncaughtErrors, isEmpty);
+      expect(storedTopics, isEmpty);
+      expect(
+        deletedEvents,
+        equals(<String>['encode-fail', 'publish-fail', 'shared-connect-fail']),
+      );
+
+      final List<String> suppressedMessages = logs
+          .where(
+            (LogRecord r) => r.message.contains(
+              'Suppressed unawaited wc_pairingDelete sendRequest error',
+            ),
+          )
+          .map((LogRecord r) => r.message)
+          .toList();
+      expect(suppressedMessages, hasLength(3));
+      expect(
+        suppressedMessages.any(
+          (String m) => m.contains('encode-fail') && m.contains('StateError'),
+        ),
+        isTrue,
+      );
+      expect(
+        suppressedMessages.any(
+          (String m) =>
+              m.contains('publish-fail') &&
+              m.contains('ReownCoreError(code=9001)'),
+        ),
+        isTrue,
+      );
+      expect(
+        suppressedMessages.any(
+          (String m) =>
+              m.contains('shared-connect-fail') && m.contains('StateError'),
+        ),
+        isTrue,
+      );
+      for (final LogRecord record in logs) {
+        expect(record.message, isNot(contains('super-secret')));
+        expect(record.message, isNot(contains('symKey=')));
+      }
+    });
+
+    test('gates standalone disconnectSession against pending and in-flight '
+        'full resets without touching stores or reloading', () async {
+      final Map<String, Map<String, dynamic>> persistedStorage =
+          <String, Map<String, dynamic>>{};
+      when(() => coreStorage.has(any())).thenAnswer(
+        (Invocation i) =>
+            persistedStorage.containsKey(i.positionalArguments[0]),
+      );
+      when(() => coreStorage.get(any())).thenAnswer(
+        (Invocation i) => persistedStorage[i.positionalArguments[0]],
+      );
+      when(() => coreStorage.set(any(), any())).thenAnswer((
+        Invocation i,
+      ) async {
+        persistedStorage[i.positionalArguments[0]
+            as String] = Map<String, dynamic>.from(
+          i.positionalArguments[1] as Map<String, dynamic>,
+        );
+      });
+      when(() => coreStorage.delete(any())).thenAnswer((Invocation i) async {
+        persistedStorage.remove(i.positionalArguments[0] as String);
+      });
+
+      // Case 1: Pre-init disconnectEverything() leaves a pending reset;
+      // standalone disconnectSession must be rejected immediately.
+      final Web3WalletService preInitService = buildService();
+      addTearDown(preInitService.onDispose);
+      preInitService.create();
+      await preInitService.disconnectEverything();
+
+      await expectLater(
+        preInitService.disconnectSession(topic: 'pre-init-s1'),
+        throwsStateError,
+      );
+      verifyNever(
+        () => walletKit.disconnectSession(
+          topic: 'pre-init-s1',
+          reason: any(named: 'reason'),
+        ),
+      );
+      verifyNever(() => sessionStore.delete('pre-init-s1'));
+
+      // Case 2: In-flight initialized full reset rejects concurrent standalone
+      // disconnectSession without overlapping store deletes or _reloadStores().
+      persistedStorage.clear();
+      activeSessions['reset-s1'] = _buildSession(
+        topic: 'reset-s1',
+        selfPublicKey: 'pk-reset-1',
+      );
+      activeSessions['other-s2'] = _buildSession(
+        topic: 'other-s2',
+        selfPublicKey: 'pk-other-2',
+      );
+      final Completer<void> resetRemoteStarted = Completer<void>();
+      final Completer<void> releaseResetRemote = Completer<void>();
+
+      when(
+        () => walletKit.disconnectSession(
+          topic: 'reset-s1',
+          reason: any(named: 'reason'),
+        ),
+      ).thenAnswer((_) async {
+        if (!resetRemoteStarted.isCompleted) {
+          resetRemoteStarted.complete();
+        }
+        await releaseResetRemote.future;
+        activeSessions.remove('reset-s1');
+      });
+      when(
+        () => walletKit.disconnectSession(
+          topic: 'other-s2',
+          reason: any(named: 'reason'),
+        ),
+      ).thenAnswer((_) async {
+        activeSessions.remove('other-s2');
+      });
+
+      final Web3WalletService service = buildService();
+      addTearDown(() async {
+        if (!releaseResetRemote.isCompleted) {
+          releaseResetRemote.complete();
+        }
+        await service.onDispose();
+      });
+      service.create();
+      await service.init();
+
+      int sessionsReloadNotifications = 0;
+      void onSessionsReloaded() {
+        sessionsReloadNotifications++;
+      }
+
+      service.sessions.addListener(onSessionsReloaded);
+      addTearDown(() => service.sessions.removeListener(onSessionsReloaded));
+
+      final Future<void> resetFuture = service.disconnectEverything();
+      await resetRemoteStarted.future;
+
+      final int notificationsBeforeStandalone = sessionsReloadNotifications;
+      await expectLater(
+        service.disconnectSession(topic: 'other-s2'),
+        throwsStateError,
+      );
+      expect(
+        sessionsReloadNotifications,
+        equals(notificationsBeforeStandalone),
+      );
+
+      releaseResetRemote.complete();
+      await resetFuture;
+
+      // Only the full reset invoked disconnectSession for other-s2 (once).
+      verify(
+        () => walletKit.disconnectSession(
+          topic: 'other-s2',
+          reason: any(named: 'reason'),
+        ),
+      ).called(1);
+      expect(activeSessions, isEmpty);
+
+      // Case 3: Once reset completes, standalone disconnectSession works again.
+      activeSessions['post-s3'] = _buildSession(
+        topic: 'post-s3',
+        selfPublicKey: 'pk-post-3',
+      );
+      when(
+        () => walletKit.disconnectSession(
+          topic: 'post-s3',
+          reason: any(named: 'reason'),
+        ),
+      ).thenAnswer((_) async {
+        activeSessions.remove('post-s3');
+      });
+      await service.disconnectSession(topic: 'post-s3');
+      expect(activeSessions, isEmpty);
+    });
+
+    test('interrupts an in-flight standalone disconnectSession when '
+        'disconnectEverything starts and hands off cleanup cleanly', () async {
+      final Map<String, Map<String, dynamic>> persistedStorage =
+          <String, Map<String, dynamic>>{};
+      when(() => coreStorage.has(any())).thenAnswer(
+        (Invocation i) =>
+            persistedStorage.containsKey(i.positionalArguments[0]),
+      );
+      when(() => coreStorage.get(any())).thenAnswer(
+        (Invocation i) => persistedStorage[i.positionalArguments[0]],
+      );
+      when(() => coreStorage.set(any(), any())).thenAnswer((
+        Invocation i,
+      ) async {
+        persistedStorage[i.positionalArguments[0]
+            as String] = Map<String, dynamic>.from(
+          i.positionalArguments[1] as Map<String, dynamic>,
+        );
+      });
+      when(() => coreStorage.delete(any())).thenAnswer((Invocation i) async {
+        persistedStorage.remove(i.positionalArguments[0] as String);
+      });
+
+      activeSessions['s-race'] = _buildSession(
+        topic: 's-race',
+        selfPublicKey: 'pk-race',
+      );
+      final Completer<void> remoteStarted = Completer<void>();
+      final Completer<void> hungRemote = Completer<void>();
+
+      when(
+        () => walletKit.disconnectSession(
+          topic: 's-race',
+          reason: any(named: 'reason'),
+        ),
+      ).thenAnswer((_) {
+        // Evict the session record from the store before hanging so the full
+        // reset can ONLY recover 'pk-race' and purge keys/expirer via the
+        // _pendingSessionCleanups hand-off from the interrupted standalone
+        // call.
+        activeSessions.remove('s-race');
+        if (!remoteStarted.isCompleted) {
+          remoteStarted.complete();
+        }
+        return hungRemote.future;
+      });
+      when(() => sessionStore.delete('s-race')).thenAnswer((_) async {
+        activeSessions.remove('s-race');
+      });
+
+      final Web3WalletService service = Web3WalletService(
+        walletKit: walletKit,
+        chainResolver: (String _) => nomService,
+        inFlightPairWaitTimeout: const Duration(seconds: 2),
+      );
+      addTearDown(() async {
+        if (!hungRemote.isCompleted) {
+          hungRemote.completeError(StateError('late hung disconnect'));
+        }
+        await service.onDispose();
+      });
+      service.create();
+      await service.init();
+
+      final Future<void> standaloneFuture = service.disconnectSession(
+        topic: 's-race',
+      );
+      final Future<void> standaloneExpectation = expectLater(
+        standaloneFuture,
+        throwsStateError,
+      );
+      await remoteStarted.future;
+
+      final Stopwatch sw = Stopwatch()..start();
+      await service.disconnectEverything();
+      sw.stop();
+      await standaloneExpectation;
+
+      // Reset interrupted standalone disconnectSession immediately rather than
+      // waiting for its 2s relay timeout or firing a duplicate remote call.
+      expect(sw.elapsedMilliseconds, lessThan(1500));
+      verify(
+        () => walletKit.disconnectSession(
+          topic: 's-race',
+          reason: any(named: 'reason'),
+        ),
+      ).called(1);
+      verify(() => sessionStore.delete('s-race')).called(1);
+      verify(() => crypto.deleteKeyPair('pk-race')).called(1);
+      verify(() => crypto.deleteSymKey('s-race')).called(1);
+      verify(() => expirer.delete('s-race')).called(1);
+      expect(activeSessions, isEmpty);
+      expect(service.sessions.value, isEmpty);
+      expect(
+        persistedStorage.containsKey(Web3WalletService.pendingResetStorageKey),
+        isFalse,
+      );
+    });
+
+    test(
+      'serializes disconnectEverything behind an in-flight standalone '
+      'disconnectSession local purge so store deletes never overlap',
+      () async {
+        final Map<String, Map<String, dynamic>> persistedStorage =
+            <String, Map<String, dynamic>>{};
+        when(() => coreStorage.has(any())).thenAnswer(
+          (Invocation i) =>
+              persistedStorage.containsKey(i.positionalArguments[0]),
+        );
+        when(() => coreStorage.get(any())).thenAnswer(
+          (Invocation i) => persistedStorage[i.positionalArguments[0]],
+        );
+        when(() => coreStorage.set(any(), any())).thenAnswer((
+          Invocation i,
+        ) async {
+          persistedStorage[i.positionalArguments[0]
+              as String] = Map<String, dynamic>.from(
+            i.positionalArguments[1] as Map<String, dynamic>,
+          );
+        });
+        when(() => coreStorage.delete(any())).thenAnswer((Invocation i) async {
+          persistedStorage.remove(i.positionalArguments[0] as String);
+        });
+
+        activeSessions['s-purge'] = _buildSession(
+          topic: 's-purge',
+          selfPublicKey: 'pk-purge',
+        );
+        activeSessions['s-second'] = _buildSession(
+          topic: 's-second',
+          selfPublicKey: 'pk-second',
+        );
+        final Completer<void> deleteStarted = Completer<void>();
+        final Completer<void> releaseDelete = Completer<void>();
+        int activeStoreDeletes = 0;
+        int maxConcurrentStoreDeletes = 0;
+
+        when(
+          () => walletKit.disconnectSession(
+            topic: 's-purge',
+            reason: any(named: 'reason'),
+          ),
+        ).thenThrow(StateError('relay offline'));
+        when(
+          () => walletKit.disconnectSession(
+            topic: 's-second',
+            reason: any(named: 'reason'),
+          ),
+        ).thenThrow(StateError('relay offline'));
+        when(() => sessionStore.delete(any())).thenAnswer((Invocation i) async {
+          final String topic = i.positionalArguments[0] as String;
+          activeStoreDeletes++;
+          if (activeStoreDeletes > maxConcurrentStoreDeletes) {
+            maxConcurrentStoreDeletes = activeStoreDeletes;
+          }
+          try {
+            if (topic == 's-purge' && !deleteStarted.isCompleted) {
+              deleteStarted.complete();
+              await releaseDelete.future;
+            }
+            activeSessions.remove(topic);
+          } finally {
+            activeStoreDeletes--;
+          }
+        });
+
+        final Web3WalletService service = buildService();
+        addTearDown(() async {
+          if (!releaseDelete.isCompleted) {
+            releaseDelete.complete();
+          }
+          await service.onDispose();
+        });
+        service.create();
+        await service.init();
+
+        final Future<void> standaloneFuture = service.disconnectSession(
+          topic: 's-purge',
+        );
+        final Future<void> standaloneExpectation = expectLater(
+          standaloneFuture,
+          throwsStateError,
+        );
+        await deleteStarted.future;
+
+        // Start full reset while standalone disconnectSession is inside
+        // sessionStore.delete('s-purge'). Full reset must wait before sweeping
+        // any sessions.
+        final Future<void> resetFuture = service.disconnectEverything();
+        await Future<void>.delayed(Duration.zero);
+        verifyNever(
+          () => walletKit.disconnectSession(
+            topic: 's-second',
+            reason: any(named: 'reason'),
+          ),
+        );
+        expect(maxConcurrentStoreDeletes, equals(1));
+
+        releaseDelete.complete();
+        await resetFuture;
+        await standaloneExpectation;
+
+        expect(maxConcurrentStoreDeletes, equals(1));
+        expect(activeSessions, isEmpty);
+        expect(service.sessions.value, isEmpty);
+      },
+    );
+
+    test('bounds hung core.pairing.disconnect in _cleanupStalePairings so '
+        'pair() does not stall and blocks reuse of the hung topic until '
+        'settled', () async {
+      final int now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+      final List<PairingInfo> livePairings = <PairingInfo>[
+        for (int i = 0; i < 4; i++)
+          PairingInfo(
+            topic: 'stale-$i',
+            expiry: now + 300,
+            relay: Relay(ReownConstants.RELAYER_DEFAULT_PROTOCOL),
+            active: false,
+          ),
+      ];
+      final Completer<Error?> hungStaleDisconnect = Completer<Error?>();
+
+      when(
+        pairingStore.getAll,
+      ).thenAnswer((_) => List<PairingInfo>.from(livePairings));
+      when(() => pairing.disconnect(topic: 'stale-0')).thenAnswer((_) async {
+        final Error? error = await hungStaleDisconnect.future;
+        if (error != null) {
+          throw error;
+        }
+      });
+      when(() => walletKit.pair(uri: any(named: 'uri'))).thenAnswer((
+        Invocation i,
+      ) async {
+        final Uri uri = i.namedArguments[#uri] as Uri;
+        final String topic = uri.path.split('@').first;
+        final PairingInfo created = PairingInfo(
+          topic: topic,
+          expiry: now + 3600,
+          relay: Relay(ReownConstants.RELAYER_DEFAULT_PROTOCOL),
+          active: false,
+        );
+        livePairings
+          ..removeWhere((PairingInfo p) => p.topic == topic)
+          ..add(created);
+        return created;
+      });
+
+      final Web3WalletService service = Web3WalletService(
+        walletKit: walletKit,
+        chainResolver: (String _) => nomService,
+        inFlightPairWaitTimeout: const Duration(milliseconds: 60),
+      );
+      addTearDown(() async {
+        if (!hungStaleDisconnect.isCompleted) {
+          hungStaleDisconnect.complete(null);
+        }
+        await service.onDispose();
+      });
+      service.create();
+      await service.init();
+
+      final Stopwatch sw = Stopwatch()..start();
+      final PairingInfo paired = await service.pair(
+        Uri.parse('wc:fresh-p1@2?relay-protocol=irn&symKey=111'),
+      );
+      sw.stop();
+
+      expect(paired.topic, equals('fresh-p1'));
+      expect(sw.elapsedMilliseconds, lessThan(1500));
+      verify(() => pairing.disconnect(topic: 'stale-0')).called(1);
+      verifyNever(() => pairing.disconnect(topic: 'stale-1'));
+      verifyNever(() => pairing.disconnect(topic: 'stale-2'));
+      verifyNever(() => pairing.disconnect(topic: 'stale-3'));
+
+      // Re-pairing the hung topic while its disconnect is still pending must
+      // be rejected without admitting walletKit.pair('stale-0').
+      await expectLater(
+        service.pair(Uri.parse('wc:stale-0@2?relay-protocol=irn&symKey=222')),
+        throwsStateError,
+      );
+      verifyNever(
+        () => walletKit.pair(
+          uri: Uri.parse('wc:stale-0@2?relay-protocol=irn&symKey=222'),
+        ),
+      );
+      // Subsequent stale cleanup must skip stale-0 rather than launching a
+      // duplicate disconnect while the first one is still in flight.
+      verifyNever(() => pairing.disconnect(topic: 'stale-0'));
+
+      // Once the hung disconnect settles (even with an error), no unhandled
+      // error escapes and stale-0 can be paired cleanly.
+      livePairings.removeWhere((PairingInfo p) => p.topic == 'stale-0');
+      hungStaleDisconnect.complete(StateError('late stale failure'));
+      await Future<void>.delayed(Duration.zero);
+
+      final PairingInfo repaired = await service.pair(
+        Uri.parse('wc:stale-0@2?relay-protocol=irn&symKey=222'),
+      );
+      expect(repaired.topic, equals('stale-0'));
+    });
+
+    test('tracks skipped relay unsubscriptions separately from local reset '
+        'cleanup when shared budget is exhausted and reconciles them on relay '
+        'reconnect', () async {
+      final int now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+      final Map<String, Map<String, dynamic>> persistedStorage =
+          <String, Map<String, dynamic>>{};
+      final List<PairingInfo> livePairings = <PairingInfo>[
+        PairingInfo(
+          topic: 'budget-p1',
+          expiry: now + 3600,
+          relay: Relay(ReownConstants.RELAYER_DEFAULT_PROTOCOL),
+          active: true,
+        ),
+        PairingInfo(
+          topic: 'budget-p2',
+          expiry: now + 3600,
+          relay: Relay(ReownConstants.RELAYER_DEFAULT_PROTOCOL),
+          active: true,
+        ),
+      ];
+      activeSessions['budget-s1'] = _buildSession(
+        topic: 'budget-s1',
+        selfPublicKey: 'pk-bs1',
+      );
+      activeSessions['budget-s2'] = _buildSession(
+        topic: 'budget-s2',
+        selfPublicKey: 'pk-bs2',
+      );
+
+      final Completer<void> s1Completer = Completer<void>();
+      final Completer<void> s2Completer = Completer<void>();
+
+      when(() => coreStorage.has(any())).thenAnswer(
+        (Invocation i) =>
+            persistedStorage.containsKey(i.positionalArguments[0]),
+      );
+      when(() => coreStorage.get(any())).thenAnswer(
+        (Invocation i) => persistedStorage[i.positionalArguments[0]],
+      );
+      when(() => coreStorage.set(any(), any())).thenAnswer((
+        Invocation i,
+      ) async {
+        persistedStorage[i.positionalArguments[0]
+            as String] = Map<String, dynamic>.from(
+          i.positionalArguments[1] as Map<String, dynamic>,
+        );
+      });
+      when(() => coreStorage.delete(any())).thenAnswer((Invocation i) async {
+        persistedStorage.remove(i.positionalArguments[0] as String);
+      });
+      when(
+        pairingStore.getAll,
+      ).thenAnswer((_) => List<PairingInfo>.from(livePairings));
+      when(
+        () => walletKit.disconnectSession(
+          topic: 'budget-s1',
+          reason: any(named: 'reason'),
+        ),
+      ).thenAnswer((_) => s1Completer.future);
+      when(
+        () => walletKit.disconnectSession(
+          topic: 'budget-s2',
+          reason: any(named: 'reason'),
+        ),
+      ).thenAnswer((_) => s2Completer.future);
+      when(() => sessionStore.delete(any())).thenAnswer((Invocation i) async {
+        activeSessions.remove(i.positionalArguments[0] as String);
+      });
+      when(() => pairing.disconnect(topic: any(named: 'topic'))).thenAnswer((
+        Invocation i,
+      ) async {
+        final String topic = i.namedArguments[#topic] as String;
+        livePairings.removeWhere((PairingInfo p) => p.topic == topic);
+      });
+
+      final Web3WalletService service = Web3WalletService(
+        walletKit: walletKit,
+        chainResolver: (String _) => nomService,
+        inFlightPairWaitTimeout: const Duration(milliseconds: 60),
+      );
+      addTearDown(() async {
+        if (!s1Completer.isCompleted) s1Completer.complete();
+        if (!s2Completer.isCompleted) s2Completer.complete();
+        await service.onDispose();
+      });
+      service.create();
+      await service.init();
+
+      await service.disconnectEverything();
+
+      // Local deletion succeeded and reset marker is cleared, while all 4
+      // skipped relay unsubscriptions are tracked separately for reconnect.
+      expect(activeSessions, isEmpty);
+      expect(livePairings, isEmpty);
+      expect(
+        persistedStorage.containsKey(Web3WalletService.pendingResetStorageKey),
+        isFalse,
+      );
+      verifyNever(() => relayClient.unsubscribe(topic: any(named: 'topic')));
+      expect(
+        service.pendingRelayUnsubscriptionTopics,
+        equals(<String>{'budget-s1', 'budget-s2', 'budget-p1', 'budget-p2'}),
+      );
+
+      // Settle s1's timed-out disconnectSession while s2 remains pending.
+      s1Completer.completeError(StateError('socket closed'));
+      await Future<void>.delayed(Duration.zero);
+
+      // Reconnect 1 reconciles p1, p2, and s1, while deferring s2 until its
+      // timed-out operation settles.
+      onRelayConnect.broadcast(EventArgs());
+      await Future<void>.delayed(Duration.zero);
+
+      verify(() => relayClient.unsubscribe(topic: 'budget-p1')).called(1);
+      verify(() => relayClient.unsubscribe(topic: 'budget-p2')).called(1);
+      verify(() => relayClient.unsubscribe(topic: 'budget-s1')).called(1);
+      verifyNever(() => relayClient.unsubscribe(topic: 'budget-s2'));
+      expect(
+        service.pendingRelayUnsubscriptionTopics,
+        equals(<String>{'budget-s2'}),
+      );
+
+      // Settle s2 and reconnect again: s2 is now reconciled and previously
+      // reconciled topics are not unsubscribed a second time.
+      s2Completer.completeError(StateError('socket closed'));
+      await Future<void>.delayed(Duration.zero);
+
+      onRelayConnect.broadcast(EventArgs());
+      await Future<void>.delayed(Duration.zero);
+
+      verify(() => relayClient.unsubscribe(topic: 'budget-s2')).called(1);
+      verifyNever(() => relayClient.unsubscribe(topic: 'budget-p1'));
+      verifyNever(() => relayClient.unsubscribe(topic: 'budget-p2'));
+      verifyNever(() => relayClient.unsubscribe(topic: 'budget-s1'));
+      expect(service.pendingRelayUnsubscriptionTopics, isEmpty);
+    });
+
+    test('never unsubscribes a replacement pairing or session of the same '
+        'topic during delayed reconnect reconciliation', () async {
+      final int now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+      final List<PairingInfo> livePairings = <PairingInfo>[
+        PairingInfo(
+          topic: 'reused-p',
+          expiry: now + 3600,
+          relay: Relay(ReownConstants.RELAYER_DEFAULT_PROTOCOL),
+          active: true,
+        ),
+        PairingInfo(
+          topic: 'stale-p',
+          expiry: now + 3600,
+          relay: Relay(ReownConstants.RELAYER_DEFAULT_PROTOCOL),
+          active: true,
+        ),
+      ];
+      activeSessions['reused-s'] = _buildSession(
+        topic: 'reused-s',
+        selfPublicKey: 'pk-rs1',
+      );
+      final Completer<void> hungSession = Completer<void>();
+
+      when(
+        pairingStore.getAll,
+      ).thenAnswer((_) => List<PairingInfo>.from(livePairings));
+      when(
+        () => walletKit.disconnectSession(
+          topic: 'reused-s',
+          reason: any(named: 'reason'),
+        ),
+      ).thenAnswer((_) => hungSession.future);
+      when(() => sessionStore.delete('reused-s')).thenAnswer((_) async {
+        activeSessions.remove('reused-s');
+      });
+      when(() => pairing.disconnect(topic: any(named: 'topic'))).thenAnswer((
+        Invocation i,
+      ) async {
+        final String topic = i.namedArguments[#topic] as String;
+        livePairings.removeWhere((PairingInfo p) => p.topic == topic);
+      });
+      when(() => walletKit.pair(uri: any(named: 'uri'))).thenAnswer((
+        Invocation i,
+      ) async {
+        final Uri uri = i.namedArguments[#uri] as Uri;
+        final String topic = uri.path.split('@').first;
+        final PairingInfo created = PairingInfo(
+          topic: topic,
+          expiry: now + 3600,
+          relay: Relay(ReownConstants.RELAYER_DEFAULT_PROTOCOL),
+          active: false,
+        );
+        livePairings.add(created);
+        return created;
+      });
+
+      final Web3WalletService service = Web3WalletService(
+        walletKit: walletKit,
+        chainResolver: (String _) => nomService,
+        inFlightPairWaitTimeout: const Duration(milliseconds: 60),
+      );
+      addTearDown(() async {
+        if (!hungSession.isCompleted) hungSession.complete();
+        await service.onDispose();
+      });
+      service.create();
+      await service.init();
+
+      await service.disconnectEverything();
+      expect(
+        service.pendingRelayUnsubscriptionTopics,
+        equals(<String>{'reused-s', 'reused-p', 'stale-p'}),
+      );
+
+      // Old hung disconnect settles before replacement session connects.
+      hungSession.completeError(StateError('old socket closed'));
+      await Future<void>.delayed(Duration.zero);
+
+      // Create a replacement pairing for 'reused-p' and replacement session
+      // for 'reused-s' before the relay reconnects.
+      await service.pair(
+        Uri.parse('wc:reused-p@2?relay-protocol=irn&symKey=replacement-key'),
+      );
+      final SessionData replacementSession = _buildSession(
+        topic: 'reused-s',
+        selfPublicKey: 'pk-rs-replacement',
+      );
+      activeSessions['reused-s'] = replacementSession;
+      onSessionConnect.broadcast(SessionConnect(replacementSession));
+
+      // Reconnect must only unsubscribe 'stale-p' and NEVER touch 'reused-p'
+      // or 'reused-s'.
+      onRelayConnect.broadcast(EventArgs());
+      await Future<void>.delayed(Duration.zero);
+
+      verify(() => relayClient.unsubscribe(topic: 'stale-p')).called(1);
+      verifyNever(() => relayClient.unsubscribe(topic: 'reused-p'));
+      verifyNever(() => relayClient.unsubscribe(topic: 'reused-s'));
+      expect(service.pendingRelayUnsubscriptionTopics, isEmpty);
+    });
+
+    test('waits for an in-flight reconcile unsubscribe before admitting '
+        'replacement pair() on the same topic and does not re-queue failed '
+        'obsolete unsubscribes', () async {
+      final int now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+      final List<PairingInfo> livePairings = <PairingInfo>[
+        PairingInfo(
+          topic: 'race-reconcile',
+          expiry: now + 3600,
+          relay: Relay(ReownConstants.RELAYER_DEFAULT_PROTOCOL),
+          active: true,
+        ),
+      ];
+      activeSessions['budget-burn-s'] = _buildSession(
+        topic: 'budget-burn-s',
+        selfPublicKey: 'pk-burn',
+      );
+      final Completer<void> burnSession = Completer<void>();
+      final Completer<void> reconcileStarted = Completer<void>();
+      final Completer<void> releaseReconcile = Completer<void>();
+      bool walletKitPairStarted = false;
+
+      when(
+        pairingStore.getAll,
+      ).thenAnswer((_) => List<PairingInfo>.from(livePairings));
+      when(
+        () => walletKit.disconnectSession(
+          topic: 'budget-burn-s',
+          reason: any(named: 'reason'),
+        ),
+      ).thenAnswer((_) => burnSession.future);
+      when(() => sessionStore.delete('budget-burn-s')).thenAnswer((_) async {
+        activeSessions.remove('budget-burn-s');
+      });
+      when(() => pairing.disconnect(topic: 'race-reconcile')).thenAnswer((
+        _,
+      ) async {
+        livePairings.clear();
+      });
+      when(() => relayClient.unsubscribe(topic: 'race-reconcile')).thenAnswer((
+        _,
+      ) async {
+        if (!reconcileStarted.isCompleted) {
+          reconcileStarted.complete();
+        }
+        await releaseReconcile.future;
+      });
+      when(() => walletKit.pair(uri: any(named: 'uri'))).thenAnswer((
+        Invocation i,
+      ) async {
+        walletKitPairStarted = true;
+        final Uri uri = i.namedArguments[#uri] as Uri;
+        final String topic = uri.path.split('@').first;
+        final PairingInfo created = PairingInfo(
+          topic: topic,
+          expiry: now + 3600,
+          relay: Relay(ReownConstants.RELAYER_DEFAULT_PROTOCOL),
+          active: false,
+        );
+        livePairings.add(created);
+        return created;
+      });
+
+      final Web3WalletService service = Web3WalletService(
+        walletKit: walletKit,
+        chainResolver: (String _) => nomService,
+        inFlightPairWaitTimeout: const Duration(milliseconds: 200),
+      );
+      addTearDown(() async {
+        if (!burnSession.isCompleted) burnSession.complete();
+        if (!releaseReconcile.isCompleted) releaseReconcile.complete();
+        await service.onDispose();
+      });
+      service.create();
+      await service.init();
+
+      await service.disconnectEverything();
+      expect(
+        service.pendingRelayUnsubscriptionTopics,
+        contains('race-reconcile'),
+      );
+
+      // Start reconnect reconciliation and pause mid-unsubscribe.
+      onRelayConnect.broadcast(EventArgs());
+      await reconcileStarted.future;
+
+      // Replacement pair() for the same topic must wait for the in-flight
+      // unsubscribe to finish before calling walletKit.pair().
+      final Future<PairingInfo> replacementPair = service.pair(
+        Uri.parse('wc:race-reconcile@2?relay-protocol=irn&symKey=new'),
+      );
+      await Future<void>.delayed(Duration.zero);
+      expect(walletKitPairStarted, isFalse);
+
+      // Fail the old in-flight unsubscribe: replacement pair() proceeds and
+      // the obsolete failed unsubscribe must NOT be re-queued.
+      releaseReconcile.completeError(StateError('transient relay error'));
+      final PairingInfo created = await replacementPair;
+      expect(created.topic, equals('race-reconcile'));
+      expect(walletKitPairStarted, isTrue);
+
+      onRelayConnect.broadcast(EventArgs());
+      await Future<void>.delayed(Duration.zero);
+      verify(() => relayClient.unsubscribe(topic: 'race-reconcile')).called(1);
+      expect(
+        service.pendingRelayUnsubscriptionTopics,
+        isNot(contains('race-reconcile')),
+      );
+    });
+
+    test('retries transient reconcile unsubscribe failure on subsequent '
+        'reconnect and preserves pending topic epochs across >256 unrelated '
+        'pairings', () async {
+      final int now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+      final List<PairingInfo> livePairings = <PairingInfo>[
+        PairingInfo(
+          topic: 'retry-p',
+          expiry: now + 3600,
+          relay: Relay(ReownConstants.RELAYER_DEFAULT_PROTOCOL),
+          active: true,
+        ),
+      ];
+      activeSessions['burn-s'] = _buildSession(
+        topic: 'burn-s',
+        selfPublicKey: 'pk-burn',
+      );
+      final Completer<void> burnSession = Completer<void>();
+      bool failFirstReconcile = true;
+
+      when(
+        pairingStore.getAll,
+      ).thenAnswer((_) => List<PairingInfo>.from(livePairings));
+      when(
+        () => walletKit.disconnectSession(
+          topic: 'burn-s',
+          reason: any(named: 'reason'),
+        ),
+      ).thenAnswer((_) => burnSession.future);
+      when(() => sessionStore.delete('burn-s')).thenAnswer((_) async {
+        activeSessions.remove('burn-s');
+      });
+      when(() => pairing.disconnect(topic: 'retry-p')).thenAnswer((_) async {
+        livePairings.clear();
+      });
+      when(() => relayClient.unsubscribe(topic: 'retry-p')).thenAnswer((
+        _,
+      ) async {
+        if (failFirstReconcile) {
+          failFirstReconcile = false;
+          throw StateError('transient reconnect drop');
+        }
+      });
+
+      final Web3WalletService service = Web3WalletService(
+        walletKit: walletKit,
+        chainResolver: (String _) => nomService,
+        inFlightPairWaitTimeout: const Duration(milliseconds: 60),
+      );
+      addTearDown(() async {
+        if (!burnSession.isCompleted) burnSession.complete();
+        await service.onDispose();
+      });
+      service.create();
+      await service.init();
+
+      await service.disconnectEverything();
+      expect(service.pendingRelayUnsubscriptionTopics, contains('retry-p'));
+
+      // Exceed _maxTrackedPairingEpochs (256) with unrelated pairings.
+      for (int i = 0; i < 270; i++) {
+        onPairingCreate.broadcast(PairingEvent(topic: 'unrelated-$i'));
+      }
+
+      // First reconnect fails transiently -> topic remains pending.
+      onRelayConnect.broadcast(EventArgs());
+      await Future<void>.delayed(Duration.zero);
+      verify(() => relayClient.unsubscribe(topic: 'retry-p')).called(1);
+      expect(service.pendingRelayUnsubscriptionTopics, contains('retry-p'));
+
+      // Second reconnect succeeds -> topic is reconciled and cleared.
+      onRelayConnect.broadcast(EventArgs());
+      await Future<void>.delayed(Duration.zero);
+      verify(() => relayClient.unsubscribe(topic: 'retry-p')).called(1);
+      expect(
+        service.pendingRelayUnsubscriptionTopics,
+        isNot(contains('retry-p')),
+      );
+    });
+
+    test('interrupts standalone disconnectSession fallback relay unsubscribe '
+        'when disconnectEverything starts so reset does not time '
+        'out', () async {
+      activeSessions['unsub-race'] = _buildSession(
+        topic: 'unsub-race',
+        selfPublicKey: 'pk-unsub-race',
+      );
+      final Completer<void> unsubStarted = Completer<void>();
+      final Completer<void> hungUnsub = Completer<void>();
+
+      when(
+        () => walletKit.disconnectSession(
+          topic: 'unsub-race',
+          reason: any(named: 'reason'),
+        ),
+      ).thenThrow(StateError('relay offline'));
+      when(() => sessionStore.delete('unsub-race')).thenAnswer((_) async {
+        activeSessions.remove('unsub-race');
+      });
+      when(() => relayClient.unsubscribe(topic: 'unsub-race')).thenAnswer((_) {
+        if (!unsubStarted.isCompleted) {
+          unsubStarted.complete();
+        }
+        return hungUnsub.future;
+      });
+
+      final Web3WalletService service = Web3WalletService(
+        walletKit: walletKit,
+        chainResolver: (String _) => nomService,
+        inFlightPairWaitTimeout: const Duration(milliseconds: 80),
+      );
+      addTearDown(() async {
+        if (!hungUnsub.isCompleted) {
+          hungUnsub.completeError(StateError('late unsub fail'));
+        }
+        await service.onDispose();
+      });
+      service.create();
+      await service.init();
+
+      final Future<void> standaloneFuture = service.disconnectSession(
+        topic: 'unsub-race',
+      );
+      final Future<void> standaloneExpectation = expectLater(
+        standaloneFuture,
+        throwsStateError,
+      );
+      await unsubStarted.future;
+
+      // Full reset must interrupt the hung fallback unsubscribe immediately and
+      // complete without throwing TimeoutException.
+      await service.disconnectEverything();
+      await standaloneExpectation;
+      expect(activeSessions, isEmpty);
+      expect(service.pendingRelayUnsubscriptionTopics, contains('unsub-race'));
+    });
+
+    test(
+      'preserves pending relay unsubscription when a replacement pair() '
+      'aborts or fails while postponing concurrent reconnect reconcile',
+      () async {
+        final int now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+        final List<PairingInfo> livePairings = <PairingInfo>[
+          PairingInfo(
+            topic: 'aborted-p',
+            expiry: now + 3600,
+            relay: Relay(ReownConstants.RELAYER_DEFAULT_PROTOCOL),
+            active: true,
+          ),
+        ];
+        activeSessions['burn-s'] = _buildSession(
+          topic: 'burn-s',
+          selfPublicKey: 'pk-burn',
+        );
+        final Completer<void> burnSession = Completer<void>();
+        final Completer<void> pairStarted = Completer<void>();
+        final Completer<void> failPair = Completer<void>();
+
+        when(
+          pairingStore.getAll,
+        ).thenAnswer((_) => List<PairingInfo>.from(livePairings));
+        when(
+          () => walletKit.disconnectSession(
+            topic: 'burn-s',
+            reason: any(named: 'reason'),
+          ),
+        ).thenAnswer((_) => burnSession.future);
+        when(() => sessionStore.delete('burn-s')).thenAnswer((_) async {
+          activeSessions.remove('burn-s');
+        });
+        when(() => pairing.disconnect(topic: 'aborted-p')).thenAnswer((
+          _,
+        ) async {
+          livePairings.clear();
+        });
+        when(() => walletKit.pair(uri: any(named: 'uri'))).thenAnswer((
+          _,
+        ) async {
+          if (!pairStarted.isCompleted) {
+            pairStarted.complete();
+          }
+          await failPair.future;
+          throw StateError('pair failed');
+        });
+
+        final Web3WalletService service = Web3WalletService(
+          walletKit: walletKit,
+          chainResolver: (String _) => nomService,
+          inFlightPairWaitTimeout: const Duration(milliseconds: 60),
+        );
+        addTearDown(() async {
+          if (!burnSession.isCompleted) burnSession.complete();
+          if (!failPair.isCompleted) failPair.complete();
+          await service.onDispose();
+        });
+        service.create();
+        await service.init();
+
+        await service.disconnectEverything();
+        expect(service.pendingRelayUnsubscriptionTopics, contains('aborted-p'));
+
+        final Future<PairingInfo> failingPair = service.pair(
+          Uri.parse('wc:aborted-p@2?relay-protocol=irn&symKey=abc'),
+        );
+        final Future<void> failingPairExpectation = expectLater(
+          failingPair,
+          throwsStateError,
+        );
+        await pairStarted.future;
+
+        // Reconnect while pair('aborted-p') is in flight must postpone (NOT
+        // unsubscribe and NOT drop) the pending unsubscription.
+        onRelayConnect.broadcast(EventArgs());
+        await Future<void>.delayed(Duration.zero);
+        verifyNever(() => relayClient.unsubscribe(topic: 'aborted-p'));
+        expect(service.pendingRelayUnsubscriptionTopics, contains('aborted-p'));
+
+        // Once pair('aborted-p') fails, the entry must STILL be pending and
+        // reconcile cleanly on the next reconnect.
+        failPair.complete();
+        await failingPairExpectation;
+        expect(service.pendingRelayUnsubscriptionTopics, contains('aborted-p'));
+
+        onRelayConnect.broadcast(EventArgs());
+        await Future<void>.delayed(Duration.zero);
+        verify(() => relayClient.unsubscribe(topic: 'aborted-p')).called(1);
+        expect(
+          service.pendingRelayUnsubscriptionTopics,
+          isNot(contains('aborted-p')),
+        );
+      },
+    );
+
+    test('clears pending relay unsubscription when a timed-out reset '
+        'unsubscribe succeeds late and handles reconcile timeout plus active '
+        'reset gating', () async {
+      final int now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+      final List<PairingInfo> livePairings = <PairingInfo>[
+        PairingInfo(
+          topic: 'late-ok-p',
+          expiry: now + 3600,
+          relay: Relay(ReownConstants.RELAYER_DEFAULT_PROTOCOL),
+          active: true,
+        ),
+        PairingInfo(
+          topic: 'reconcile-timeout-p',
+          expiry: now + 3600,
+          relay: Relay(ReownConstants.RELAYER_DEFAULT_PROTOCOL),
+          active: true,
+        ),
+      ];
+      final Completer<void> lateOkUnsub = Completer<void>();
+      final Completer<void> hungReconcileUnsub = Completer<void>();
+      int reconcileTimeoutAttempts = 0;
+
+      when(
+        pairingStore.getAll,
+      ).thenAnswer((_) => List<PairingInfo>.from(livePairings));
+      when(() => pairing.disconnect(topic: any(named: 'topic'))).thenAnswer((
+        Invocation i,
+      ) async {
+        final String topic = i.namedArguments[#topic] as String;
+        livePairings.removeWhere((PairingInfo p) => p.topic == topic);
+      });
+      when(
+        () => relayClient.unsubscribe(topic: 'late-ok-p'),
+      ).thenAnswer((_) => lateOkUnsub.future);
+      when(
+        () => relayClient.unsubscribe(topic: 'reconcile-timeout-p'),
+      ).thenAnswer((_) {
+        reconcileTimeoutAttempts++;
+        if (reconcileTimeoutAttempts == 1) {
+          return hungReconcileUnsub.future;
+        }
+        return Future<void>.value();
+      });
+
+      final Web3WalletService service = Web3WalletService(
+        walletKit: walletKit,
+        chainResolver: (String _) => nomService,
+        inFlightPairWaitTimeout: const Duration(milliseconds: 60),
+      );
+      addTearDown(() async {
+        if (!lateOkUnsub.isCompleted) lateOkUnsub.complete();
+        if (!hungReconcileUnsub.isCompleted) hungReconcileUnsub.complete();
+        await service.onDispose();
+      });
+      service.create();
+      await service.init();
+
+      // Part 1: Reset unsubscribe for late-ok-p times out, then succeeds late.
+      // reconcile-timeout-p also hangs in this reset; simulate it settling on
+      // reconnect below.
+      await service.disconnectEverything();
+      expect(service.pendingRelayUnsubscriptionTopics, contains('late-ok-p'));
+
+      // Complete lateOkUnsub successfully: onSuccess hook must remove late-ok-p
+      // so a subsequent reconnect does NOT issue a duplicate unsubscribe.
+      lateOkUnsub.complete();
+      await Future<void>.delayed(Duration.zero);
+      expect(
+        service.pendingRelayUnsubscriptionTopics,
+        isNot(contains('late-ok-p')),
+      );
+
+      // Part 2: Reconcile TimeoutException branch on a separate topic.
+      // First settle the initial hung unsubscribe with error, then re-arm a
+      // hanging reconcile attempt.
+      final Completer<void> secondHungReconcile = Completer<void>();
+      addTearDown(() {
+        if (!secondHungReconcile.isCompleted) secondHungReconcile.complete();
+      });
+      hungReconcileUnsub.completeError(StateError('reset socket closed'));
+      await Future<void>.delayed(Duration.zero);
+
+      reconcileTimeoutAttempts = 0;
+      when(
+        () => relayClient.unsubscribe(topic: 'reconcile-timeout-p'),
+      ).thenAnswer((_) {
+        reconcileTimeoutAttempts++;
+        if (reconcileTimeoutAttempts == 1) {
+          return secondHungReconcile.future;
+        }
+        return Future<void>.value();
+      });
+
+      // Reconnect 1 hits TimeoutException in reconcile -> keeps topic pending
+      // and tracks the timed-out op.
+      onRelayConnect.broadcast(EventArgs());
+      await Future<void>.delayed(const Duration(milliseconds: 100));
+      expect(reconcileTimeoutAttempts, equals(1));
+      expect(
+        service.pendingRelayUnsubscriptionTopics,
+        contains('reconcile-timeout-p'),
+      );
+      verify(() => relayClient.unsubscribe(topic: 'late-ok-p')).called(1);
+
+      // Fail the hung reconcile op so it clears from _pendingTimedOutTopicOps.
+      secondHungReconcile.completeError(StateError('reconcile socket closed'));
+      await Future<void>.delayed(Duration.zero);
+
+      // Part 3: Reconcile is skipped while another reset is active, then runs
+      // on the first reconnect after the reset completes.
+      activeSessions['gate-s'] = _buildSession(
+        topic: 'gate-s',
+        selfPublicKey: 'pk-gate',
+      );
+      final Completer<void> gateResetStarted = Completer<void>();
+      final Completer<void> releaseGateReset = Completer<void>();
+      addTearDown(() {
+        if (!releaseGateReset.isCompleted) releaseGateReset.complete();
+      });
+      when(
+        () => walletKit.disconnectSession(
+          topic: 'gate-s',
+          reason: any(named: 'reason'),
+        ),
+      ).thenAnswer((_) async {
+        if (!gateResetStarted.isCompleted) gateResetStarted.complete();
+        await releaseGateReset.future;
+        activeSessions.remove('gate-s');
+      });
+
+      final Future<void> activeReset = service.disconnectEverything();
+      await gateResetStarted.future;
+
+      onRelayConnect.broadcast(EventArgs());
+      await Future<void>.delayed(Duration.zero);
+      expect(reconcileTimeoutAttempts, equals(1));
+
+      releaseGateReset.complete();
+      await activeReset;
+
+      onRelayConnect.broadcast(EventArgs());
+      await Future<void>.delayed(Duration.zero);
+      expect(reconcileTimeoutAttempts, equals(2));
+      expect(
+        service.pendingRelayUnsubscriptionTopics,
+        isNot(contains('reconcile-timeout-p')),
+      );
+    });
+
+    test('terminates cleanly and sweeps newly added pending session cleanups '
+        'that arrive mid-reset after record eviction without '
+        'looping', () async {
+      final Map<String, Map<String, dynamic>> persistedStorage =
+          <String, Map<String, dynamic>>{};
+      when(() => coreStorage.has(any())).thenAnswer(
+        (Invocation i) =>
+            persistedStorage.containsKey(i.positionalArguments[0]),
+      );
+      when(() => coreStorage.get(any())).thenAnswer(
+        (Invocation i) => persistedStorage[i.positionalArguments[0]],
+      );
+      when(() => coreStorage.set(any(), any())).thenAnswer((
+        Invocation i,
+      ) async {
+        persistedStorage[i.positionalArguments[0]
+            as String] = Map<String, dynamic>.from(
+          i.positionalArguments[1] as Map<String, dynamic>,
+        );
+      });
+      when(() => coreStorage.delete(any())).thenAnswer((Invocation i) async {
+        persistedStorage.remove(i.positionalArguments[0] as String);
+      });
+
+      // Unsupported session being cleaned up during init() whose record is
+      // evicted before a concurrent reset snapshots live sessions, and whose
+      // local key deletion fails while the reset sweep is in flight.
+      activeSessions['bad-s'] = _buildSession(
+        topic: 'bad-s',
+        chainId: 'zenon:42',
+        selfPublicKey: 'pk-bad-s',
+      );
+      activeSessions['good-s'] = _buildSession(
+        topic: 'good-s',
+        selfPublicKey: 'pk-good-s',
+      );
+
+      final Completer<void> badLocalPurgePaused = Completer<void>();
+      final Completer<void> releaseBadLocalPurge = Completer<void>();
+      final Completer<void> goodResetPaused = Completer<void>();
+      final Completer<void> releaseGoodReset = Completer<void>();
+      bool failBadKeyPairOnce = true;
+      int getAllCalls = 0;
+
+      when(sessionStore.getAll).thenAnswer((_) {
+        getAllCalls++;
+        if (getAllCalls > 200) {
+          throw StateError('Infinite reset loop detected ($getAllCalls calls)');
+        }
+        return activeSessions.values.toList();
+      });
+      when(
+        () => walletKit.disconnectSession(
+          topic: 'bad-s',
+          reason: any(named: 'reason'),
+        ),
+      ).thenThrow(StateError('relay offline'));
+      when(() => sessionStore.delete('bad-s')).thenAnswer((_) async {
+        activeSessions.remove('bad-s');
+      });
+      when(() => crypto.deleteKeyPair('pk-bad-s')).thenAnswer((_) async {
+        if (failBadKeyPairOnce) {
+          failBadKeyPairOnce = false;
+          if (!badLocalPurgePaused.isCompleted) {
+            badLocalPurgePaused.complete();
+          }
+          await releaseBadLocalPurge.future;
+          throw StateError('transient keychain lock');
+        }
+      });
+      when(
+        () => walletKit.disconnectSession(
+          topic: 'good-s',
+          reason: any(named: 'reason'),
+        ),
+      ).thenAnswer((_) async {
+        if (!goodResetPaused.isCompleted) {
+          goodResetPaused.complete();
+        }
+        await releaseGoodReset.future;
+        activeSessions.remove('good-s');
+      });
+
+      final Web3WalletService service = buildService();
+      addTearDown(() async {
+        if (!releaseBadLocalPurge.isCompleted) releaseBadLocalPurge.complete();
+        if (!releaseGoodReset.isCompleted) releaseGoodReset.complete();
+        await service.onDispose();
+      });
+      service.create();
+
+      // Step 1: init() enters _disconnectUnsupportedSessions() for 'bad-s',
+      // evicts 'bad-s' from activeSessions, and pauses inside deleteKeyPair.
+      final Future<void> initFuture = service.init();
+      await badLocalPurgePaused.future;
+
+      // Step 2: Relay event reloads stores so 'bad-s' disappears from
+      // service.sessions.value before the reset snapshot runs.
+      onRelayDisconnect.broadcast(EventArgs());
+      expect(
+        service.sessions.value.map((SessionData s) => s.topic),
+        equals(<String>['good-s']),
+      );
+
+      // Step 3: Full reset snapshots only 'good-s' and pauses mid-sweep.
+      final Future<void> resetFuture = service.disconnectEverything();
+      await goodResetPaused.future;
+
+      // Step 4: Release 'bad-s' local purge so it fails and writes
+      // _pendingSessionCleanups['bad-s'] = 'pk-bad-s' mid-reset, then release
+      // the 'good-s' sweep.
+      releaseBadLocalPurge.complete();
+      await initFuture;
+      bool timerFired = false;
+      Timer.run(() {
+        timerFired = true;
+      });
+      releaseGoodReset.complete();
+
+      await resetFuture.timeout(const Duration(seconds: 2));
+      await Future<void>.delayed(Duration.zero);
+
+      expect(timerFired, isTrue);
+      expect(getAllCalls, lessThan(50));
+      // The second pass of the reset swept the newly arrived pending cleanup
+      // for 'bad-s', retrying deleteKeyPair('pk-bad-s') and clearing the
+      // marker.
+      verify(() => crypto.deleteKeyPair('pk-bad-s')).called(2);
+      expect(
+        persistedStorage.containsKey(Web3WalletService.pendingResetStorageKey),
+        isFalse,
+      );
+    });
+
+    test('protects in-flight unsubscribe epochs from LRU eviction and '
+        'preserves newly allocated epochs past 256 protected entries while '
+        'still rejecting replaced epochs', () async {
+      final int now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+      final List<PairingInfo> livePairings = <PairingInfo>[
+        PairingInfo(
+          topic: 'in-flight-unsub',
+          expiry: now + 3600,
+          relay: Relay(ReownConstants.RELAYER_DEFAULT_PROTOCOL),
+          active: true,
+        ),
+        PairingInfo(
+          topic: 'in-flight-replaced',
+          expiry: now + 3600,
+          relay: Relay(ReownConstants.RELAYER_DEFAULT_PROTOCOL),
+          active: true,
+        ),
+      ];
+      final Completer<void> unsubStarted = Completer<void>();
+      final Completer<void> releaseUnsub = Completer<void>();
+      final Completer<void> replacedStarted = Completer<void>();
+      final Completer<void> releaseReplaced = Completer<void>();
+
+      when(
+        pairingStore.getAll,
+      ).thenAnswer((_) => List<PairingInfo>.from(livePairings));
+      when(() => pairing.disconnect(topic: any(named: 'topic'))).thenAnswer((
+        Invocation i,
+      ) async {
+        final String topic = i.namedArguments[#topic] as String;
+        livePairings.removeWhere((PairingInfo p) => p.topic == topic);
+      });
+      int inFlightAttempts = 0;
+      when(() => relayClient.unsubscribe(topic: 'in-flight-unsub')).thenAnswer((
+        _,
+      ) async {
+        inFlightAttempts++;
+        if (inFlightAttempts == 1) {
+          if (!unsubStarted.isCompleted) unsubStarted.complete();
+          await releaseUnsub.future;
+          throw StateError('transient relay error');
+        }
+      });
+      when(
+        () => relayClient.unsubscribe(topic: 'in-flight-replaced'),
+      ).thenAnswer((_) async {
+        if (!replacedStarted.isCompleted) replacedStarted.complete();
+        await releaseReplaced.future;
+        throw StateError('old unsubscribe failed');
+      });
+
+      final Web3WalletService service = Web3WalletService(
+        walletKit: walletKit,
+        chainResolver: (String _) => nomService,
+        inFlightPairWaitTimeout: const Duration(milliseconds: 250),
+      );
+      addTearDown(() async {
+        if (!releaseUnsub.isCompleted) releaseUnsub.complete();
+        if (!releaseReplaced.isCompleted) releaseReplaced.complete();
+        await service.onDispose();
+      });
+      service.create();
+      await service.init();
+
+      // Part 1: While both initial unsubscribes are in flight (not yet in
+      // _pendingRelayUnsubscriptions), create >256 unrelated topics to trigger
+      // LRU trimming, and confirm a replacement for 'in-flight-replaced'.
+      final Future<void> disconnectFuture = service.disconnectAllPairings();
+      await Future.wait<void>(<Future<void>>[
+        unsubStarted.future,
+        replacedStarted.future,
+      ]);
+
+      for (int i = 0; i < 270; i++) {
+        onPairingCreate.broadcast(PairingEvent(topic: 'unrelated-evict-$i'));
+      }
+      onPairingCreate.broadcast(PairingEvent(topic: 'in-flight-replaced'));
+
+      releaseUnsub.complete();
+      releaseReplaced.complete();
+      await disconnectFuture;
+
+      // 'in-flight-unsub' survived trimming and was queued;
+      // 'in-flight-replaced' was rejected as stale because a confirmed
+      // replacement advanced its epoch.
+      expect(
+        service.pendingRelayUnsubscriptionTopics,
+        contains('in-flight-unsub'),
+      );
+      expect(
+        service.pendingRelayUnsubscriptionTopics,
+        isNot(contains('in-flight-replaced')),
+      );
+
+      onRelayConnect.broadcast(EventArgs());
+      await Future<void>.delayed(Duration.zero);
+      expect(inFlightAttempts, equals(2));
+      expect(
+        service.pendingRelayUnsubscriptionTopics,
+        isNot(contains('in-flight-unsub')),
+      );
+
+      // Part 2: 257 queued topics (exceeding _maxTrackedPairingEpochs = 256)
+      // must all survive epoch allocation and queue insertion without the
+      // 257th epoch being evicted before its first insertion.
+      final Completer<void> hungSession = Completer<void>();
+      addTearDown(() {
+        if (!hungSession.isCompleted) hungSession.complete();
+      });
+      activeSessions['burn-257'] = _buildSession(
+        topic: 'burn-257',
+        selfPublicKey: 'pk-burn-257',
+      );
+      when(
+        () => walletKit.disconnectSession(
+          topic: 'burn-257',
+          reason: any(named: 'reason'),
+        ),
+      ).thenAnswer((_) => hungSession.future);
+      when(() => sessionStore.delete('burn-257')).thenAnswer((_) async {
+        activeSessions.remove('burn-257');
+      });
+
+      final List<String> all257Topics = List<String>.generate(
+        257,
+        (int i) => 'protected-topic-$i',
+      );
+      livePairings
+        ..clear()
+        ..addAll(
+          all257Topics.map(
+            (String topic) => PairingInfo(
+              topic: topic,
+              expiry: now + 3600,
+              relay: Relay(ReownConstants.RELAYER_DEFAULT_PROTOCOL),
+              active: true,
+            ),
+          ),
+        );
+
+      final Web3WalletService service257 = Web3WalletService(
+        walletKit: walletKit,
+        chainResolver: (String _) => nomService,
+        inFlightPairWaitTimeout: const Duration(milliseconds: 60),
+      );
+      addTearDown(service257.onDispose);
+      service257.create();
+      await service257.init();
+
+      await service257.disconnectEverything();
+      for (final String topic in all257Topics) {
+        expect(
+          service257.pendingRelayUnsubscriptionTopics,
+          contains(topic),
+          reason: 'Topic $topic must not be evicted before queue insertion',
+        );
+      }
+      expect(
+        service257.pendingRelayUnsubscriptionTopics.length,
+        equals(258), // 257 pairings + 'burn-257' session
+      );
+    });
+
+    test('defers reconciliation while pair() is in flight after writing a '
+        'provisional pairing record and retains the retry after pair() '
+        'fails without subscribing', () async {
+      final int now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+      final List<PairingInfo> livePairings = <PairingInfo>[
+        PairingInfo(
+          topic: 'provisional-p',
+          expiry: now + 3600,
+          relay: Relay(ReownConstants.RELAYER_DEFAULT_PROTOCOL),
+          active: true,
+        ),
+      ];
+      activeSessions['burn-prov'] = _buildSession(
+        topic: 'burn-prov',
+        selfPublicKey: 'pk-burn-prov',
+      );
+      final Completer<void> burnSession = Completer<void>();
+      final Completer<void> provisionalWritten = Completer<void>();
+      final Completer<void> failAfterWrite = Completer<void>();
+      bool failPairOnce = true;
+
+      when(
+        pairingStore.getAll,
+      ).thenAnswer((_) => List<PairingInfo>.from(livePairings));
+      when(
+        () => walletKit.disconnectSession(
+          topic: 'burn-prov',
+          reason: any(named: 'reason'),
+        ),
+      ).thenAnswer((_) => burnSession.future);
+      when(() => sessionStore.delete('burn-prov')).thenAnswer((_) async {
+        activeSessions.remove('burn-prov');
+      });
+      when(() => pairing.disconnect(topic: 'provisional-p')).thenAnswer((
+        _,
+      ) async {
+        livePairings.clear();
+      });
+      when(() => pairingStore.delete('provisional-p')).thenAnswer((_) async {
+        livePairings.removeWhere((PairingInfo p) => p.topic == 'provisional-p');
+      });
+      final List<String> resubscribedTopics = <String>[];
+      when(
+        () => relayClient.subscribe(options: any(named: 'options')),
+      ).thenAnswer((Invocation i) async {
+        final SubscribeOptions opts =
+            i.namedArguments[#options] as SubscribeOptions;
+        resubscribedTopics.add(opts.topic);
+        return 'resub-${opts.topic}';
+      });
+      // Mirrors reown_core 1.5.1 Pairing.pair: writes pairings.set() BEFORE
+      // crypto.setSymKey() / relayClient.subscribe(), and leaves that
+      // provisional record behind if key persistence throws.
+      when(() => walletKit.pair(uri: any(named: 'uri'))).thenAnswer((
+        Invocation i,
+      ) async {
+        final Uri uri = i.namedArguments[#uri] as Uri;
+        final String topic = uri.path.split('@').first;
+        final PairingInfo provisional = PairingInfo(
+          topic: topic,
+          expiry: now + 3600,
+          relay: Relay(ReownConstants.RELAYER_DEFAULT_PROTOCOL),
+          active: false,
+        );
+        livePairings
+          ..removeWhere((PairingInfo p) => p.topic == topic)
+          ..add(provisional);
+        if (failPairOnce) {
+          failPairOnce = false;
+          if (!provisionalWritten.isCompleted) {
+            provisionalWritten.complete();
+          }
+          await failAfterWrite.future;
+          throw StateError('setSymKey failed after provisional pairing write');
+        }
+        onPairingCreate.broadcast(PairingEvent(topic: topic));
+        return provisional;
+      });
+
+      final Web3WalletService service = Web3WalletService(
+        walletKit: walletKit,
+        chainResolver: (String _) => nomService,
+        inFlightPairWaitTimeout: const Duration(milliseconds: 60),
+      );
+      addTearDown(() async {
+        if (!burnSession.isCompleted) burnSession.complete();
+        if (!failAfterWrite.isCompleted) failAfterWrite.complete();
+        await service.onDispose();
+      });
+      service.create();
+      await service.init();
+
+      // Mirror reown_core 1.5.1 Pairing._resubscribeAll registered AFTER
+      // service.create() (as in Pairing.init()): resubscribes every topic in
+      // pairingStore.getAll() on each onRelayConnect.
+      onRelayConnect.subscribe((EventArgs? _) {
+        for (final PairingInfo p in pairingStore.getAll()) {
+          unawaited(
+            relayClient.subscribe(options: SubscribeOptions(topic: p.topic)),
+          );
+        }
+      });
+
+      await service.disconnectEverything();
+      expect(
+        service.pendingRelayUnsubscriptionTopics,
+        contains('provisional-p'),
+      );
+
+      final Future<PairingInfo> failingPair = service.pair(
+        Uri.parse('wc:provisional-p@2?relay-protocol=irn&symKey=abc'),
+      );
+      final Future<void> failingPairExpectation = expectLater(
+        failingPair,
+        throwsStateError,
+      );
+      await provisionalWritten.future;
+
+      // Provisional record is already in pairingStore while pair() is in
+      // flight.
+      expect(
+        pairingStore.getAll().any(
+          (PairingInfo p) => p.topic == 'provisional-p',
+        ),
+        isTrue,
+      );
+
+      // Reconnect during in-flight pair must defer (neither unsubscribe nor
+      // drop the queued entry despite the provisional record in store).
+      onRelayConnect.broadcast(EventArgs());
+      await Future<void>.delayed(Duration.zero);
+      verifyNever(() => relayClient.unsubscribe(topic: 'provisional-p'));
+      expect(
+        service.pendingRelayUnsubscriptionTopics,
+        contains('provisional-p'),
+      );
+      resubscribedTopics.clear();
+
+      // Failing pair purges the provisional record locally (pairingStore,
+      // symKey, expirer) so Pairing._resubscribeAll will NOT resubscribe it on
+      // reconnect, while retaining the pending relay unsubscription.
+      failAfterWrite.complete();
+      await failingPairExpectation;
+      expect(
+        pairingStore.getAll().any(
+          (PairingInfo p) => p.topic == 'provisional-p',
+        ),
+        isFalse,
+      );
+      verify(() => pairingStore.delete('provisional-p')).called(greaterThan(1));
+      verify(() => crypto.deleteSymKey('provisional-p')).called(greaterThan(1));
+      verify(() => expirer.delete('provisional-p')).called(greaterThan(1));
+      expect(
+        service.pendingRelayUnsubscriptionTopics,
+        contains('provisional-p'),
+      );
+
+      // Subsequent reconnect unsubscribes 'provisional-p' and Pairing does NOT
+      // resubscribe it because the provisional record was purged.
+      onRelayConnect.broadcast(EventArgs());
+      await Future<void>.delayed(Duration.zero);
+      verify(() => relayClient.unsubscribe(topic: 'provisional-p')).called(1);
+      expect(resubscribedTopics, isNot(contains('provisional-p')));
+      expect(
+        service.pendingRelayUnsubscriptionTopics,
+        isNot(contains('provisional-p')),
+      );
+
+      // Even if local pairingStore.delete() fails during provisional cleanup,
+      // _provisionalPairingTopics still prevents the leftover record from
+      // dropping the queued unsubscribe on reconnect.
+      when(
+        () => pairingStore.delete('provisional-p'),
+      ).thenThrow(StateError('disk full'));
+      livePairings.add(
+        PairingInfo(
+          topic: 'provisional-p',
+          expiry: now + 3600,
+          relay: Relay(ReownConstants.RELAYER_DEFAULT_PROTOCOL),
+          active: true,
+        ),
+      );
+      when(
+        () => relayClient.unsubscribe(topic: 'provisional-p'),
+      ).thenThrow(StateError('offline'));
+      await service.disconnectAllPairings();
+      expect(
+        service.pendingRelayUnsubscriptionTopics,
+        contains('provisional-p'),
+      );
+
+      failPairOnce = true;
+      when(
+        () => relayClient.unsubscribe(topic: 'provisional-p'),
+      ).thenAnswer((_) async {});
+      final Completer<void> secondProvisionalWritten = Completer<void>();
+      final Completer<void> secondFail = Completer<void>();
+      addTearDown(() {
+        if (!secondFail.isCompleted) secondFail.complete();
+      });
+      when(() => walletKit.pair(uri: any(named: 'uri'))).thenAnswer((
+        Invocation i,
+      ) async {
+        final Uri uri = i.namedArguments[#uri] as Uri;
+        final String topic = uri.path.split('@').first;
+        final PairingInfo provisional = PairingInfo(
+          topic: topic,
+          expiry: now + 3600,
+          relay: Relay(ReownConstants.RELAYER_DEFAULT_PROTOCOL),
+          active: false,
+        );
+        livePairings
+          ..removeWhere((PairingInfo p) => p.topic == topic)
+          ..add(provisional);
+        if (failPairOnce) {
+          failPairOnce = false;
+          secondProvisionalWritten.complete();
+          await secondFail.future;
+          throw StateError('setSymKey failed again');
+        }
+        onPairingCreate.broadcast(PairingEvent(topic: topic));
+        return provisional;
+      });
+
+      final Future<PairingInfo> secondFailingPair = service.pair(
+        Uri.parse('wc:provisional-p@2?relay-protocol=irn&symKey=abc2'),
+      );
+      final Future<void> secondExpectation = expectLater(
+        secondFailingPair,
+        throwsStateError,
+      );
+      await secondProvisionalWritten.future;
+      secondFail.complete();
+      await secondExpectation;
+
+      // Record survived because pairingStore.delete threw, yet reconnect still
+      // unsubscribes rather than dropping it as obsolete.
+      expect(
+        pairingStore.getAll().any(
+          (PairingInfo p) => p.topic == 'provisional-p',
+        ),
+        isTrue,
+      );
+      onRelayConnect.broadcast(EventArgs());
+      await Future<void>.delayed(Duration.zero);
+      verify(() => relayClient.unsubscribe(topic: 'provisional-p')).called(2);
+      expect(
+        service.pendingRelayUnsubscriptionTopics,
+        isNot(contains('provisional-p')),
+      );
+
+      // A subsequent confirmed pair() clears provisional tracking cleanly.
+      final PairingInfo confirmed = await service.pair(
+        Uri.parse('wc:provisional-p@2?relay-protocol=irn&symKey=def'),
+      );
+      expect(confirmed.topic, equals('provisional-p'));
+    });
+
+    test('does not advance subscription epoch or drop queued relay '
+        'unsubscriptions on activatePairing or onPairingActivate', () async {
+      final int now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+      final List<PairingInfo> livePairings = <PairingInfo>[
+        PairingInfo(
+          topic: 'activate-fail-p',
+          expiry: now + 3600,
+          relay: Relay(ReownConstants.RELAYER_DEFAULT_PROTOCOL),
+          active: true,
+        ),
+        PairingInfo(
+          topic: 'activate-ok-p',
+          expiry: now + 3600,
+          relay: Relay(ReownConstants.RELAYER_DEFAULT_PROTOCOL),
+          active: true,
+        ),
+      ];
+      activeSessions['burn-act'] = _buildSession(
+        topic: 'burn-act',
+        selfPublicKey: 'pk-burn-act',
+      );
+      final Completer<void> burnSession = Completer<void>();
+
+      when(
+        pairingStore.getAll,
+      ).thenAnswer((_) => List<PairingInfo>.from(livePairings));
+      when(
+        () => walletKit.disconnectSession(
+          topic: 'burn-act',
+          reason: any(named: 'reason'),
+        ),
+      ).thenAnswer((_) => burnSession.future);
+      when(() => sessionStore.delete('burn-act')).thenAnswer((_) async {
+        activeSessions.remove('burn-act');
+      });
+      when(() => pairing.disconnect(topic: any(named: 'topic'))).thenAnswer((
+        Invocation i,
+      ) async {
+        final String topic = i.namedArguments[#topic] as String;
+        livePairings.removeWhere((PairingInfo p) => p.topic == topic);
+      });
+      // Mirrors reown_core 1.5.1 Pairing.activate: broadcasts onPairingActivate
+      // BEFORE checking/updating pairingStore.
+      when(() => pairing.activate(topic: 'activate-fail-p')).thenAnswer((
+        _,
+      ) async {
+        onPairingActivate.broadcast(
+          PairingActivateEvent(topic: 'activate-fail-p', expiry: now + 3600),
+        );
+        // ReownCoreError does not implement Error/Exception upstream.
+        // ignore: only_throw_errors
+        throw Errors.getInternalError(Errors.NO_MATCHING_KEY);
+      });
+      when(() => pairing.activate(topic: 'activate-ok-p')).thenAnswer((
+        _,
+      ) async {
+        onPairingActivate.broadcast(
+          PairingActivateEvent(topic: 'activate-ok-p', expiry: now + 3600),
+        );
+      });
+
+      final Web3WalletService service = Web3WalletService(
+        walletKit: walletKit,
+        chainResolver: (String _) => nomService,
+        inFlightPairWaitTimeout: const Duration(milliseconds: 60),
+      );
+      addTearDown(() async {
+        if (!burnSession.isCompleted) burnSession.complete();
+        await service.onDispose();
+      });
+      service.create();
+      await service.init();
+
+      await service.disconnectEverything();
+      expect(
+        service.pendingRelayUnsubscriptionTopics,
+        containsAll(<String>['activate-fail-p', 'activate-ok-p']),
+      );
+
+      await expectLater(
+        service.activatePairing(topic: 'activate-fail-p'),
+        throwsA(isA<ReownCoreError>()),
+      );
+      await service.activatePairing(topic: 'activate-ok-p');
+      onPairingActivate.broadcast(
+        PairingActivateEvent(topic: 'activate-fail-p', expiry: now + 7200),
+      );
+
+      // Neither failing nor succeeding activation creates a relay subscription,
+      // so both queued unsubscriptions remain pending and reconcile on connect.
+      expect(
+        service.pendingRelayUnsubscriptionTopics,
+        containsAll(<String>['activate-fail-p', 'activate-ok-p']),
+      );
+
+      onRelayConnect.broadcast(EventArgs());
+      await Future<void>.delayed(Duration.zero);
+
+      verify(() => relayClient.unsubscribe(topic: 'activate-fail-p')).called(1);
+      verify(() => relayClient.unsubscribe(topic: 'activate-ok-p')).called(1);
+      expect(
+        service.pendingRelayUnsubscriptionTopics,
+        isNot(contains('activate-fail-p')),
+      );
+      expect(
+        service.pendingRelayUnsubscriptionTopics,
+        isNot(contains('activate-ok-p')),
+      );
+    });
+
+    test('ConfirmingRelayClient wired by createDesktopReownCore preserves '
+        'subscription ID across failed RPCs while completing local cleanup and '
+        'retries on reconnect until relay confirms', () async {
+      final ReownCore desktopCore = createDesktopReownCore(
+        projectId: 'test-project-id',
+        memoryStore: true,
+      );
+      expect(desktopCore.relayClient, isA<ConfirmingRelayClient>());
+
+      final SharedPrefsStores memStorage = SharedPrefsStores(memoryStore: true);
+      await memStorage.init();
+      final GenericStore<String> topicMap = GenericStore<String>(
+        storage: memStorage,
+        context: StoreVersions.CONTEXT_TOPIC_MAP,
+        version: StoreVersions.VERSION_TOPIC_MAP,
+        fromJson: (dynamic value) => value as String,
+      );
+      final _MockMessageTracker messageTracker = _MockMessageTracker();
+      when(messageTracker.init).thenAnswer((_) async {});
+      when(() => messageTracker.delete(any())).thenAnswer((_) async {});
+      when(() => core.logger).thenReturn(desktopCore.logger);
+      when(() => core.heartbeat).thenReturn(desktopCore.heartbeat);
+
+      final List<Map<String, dynamic>> sentUnsubscribeParams =
+          <Map<String, dynamic>>[];
+      bool failFirstRpc = true;
+      final _TestConfirmingRelayClient confirmingRelay =
+          _TestConfirmingRelayClient(
+            core: core,
+            messageTracker: messageTracker,
+            topicMap: topicMap,
+            onSendUnsubscribeRpc:
+                ({
+                  required String method,
+                  required Map<String, dynamic> parameters,
+                  required int id,
+                }) async {
+                  expect(method, equals('irn_unsubscribe'));
+                  sentUnsubscribeParams.add(
+                    Map<String, dynamic>.from(parameters),
+                  );
+                  if (failFirstRpc) {
+                    failFirstRpc = false;
+                    throw StateError('socket dropped before relay ACK');
+                  }
+                  return true;
+                },
+          );
+      await confirmingRelay.init();
+      await topicMap.set('rpc-fail-p', 'sub-id-999');
+
+      final List<ErrorEvent?> observedRelayErrors = <ErrorEvent?>[];
+      confirmingRelay.onRelayClientError.subscribe(observedRelayErrors.add);
+
+      final int now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+      final List<PairingInfo> livePairings = <PairingInfo>[
+        PairingInfo(
+          topic: 'rpc-fail-p',
+          expiry: now + 3600,
+          relay: Relay(ReownConstants.RELAYER_DEFAULT_PROTOCOL),
+          active: true,
+        ),
+      ];
+      when(() => core.relayClient).thenReturn(confirmingRelay);
+      when(
+        pairingStore.getAll,
+      ).thenAnswer((_) => List<PairingInfo>.from(livePairings));
+      when(() => pairing.disconnect(topic: 'rpc-fail-p')).thenAnswer((_) async {
+        livePairings.clear();
+      });
+
+      final Web3WalletService service = Web3WalletService(
+        walletKit: walletKit,
+        chainResolver: (String _) => nomService,
+        inFlightPairWaitTimeout: const Duration(milliseconds: 100),
+      );
+      addTearDown(service.onDispose);
+      service.create();
+      await service.init();
+
+      // Disconnect pairing: ConfirmingRelayClient sends irn_unsubscribe with
+      // 'sub-id-999', RPC fails, onRelayClientError fires, SDK local cleanup
+      // deletes topicMap and messageTracker, and the topic remains queued.
+      await service.disconnectAllPairings();
+
+      expect(sentUnsubscribeParams, hasLength(1));
+      expect(
+        sentUnsubscribeParams.first,
+        equals(<String, dynamic>{'topic': 'rpc-fail-p', 'id': 'sub-id-999'}),
+      );
+      expect(observedRelayErrors, hasLength(1));
+      expect(topicMap.has('rpc-fail-p'), isFalse);
+      verify(() => messageTracker.delete('rpc-fail-p')).called(1);
+      expect(
+        confirmingRelay.preservedUnsubscribeId('rpc-fail-p'),
+        equals('sub-id-999'),
+      );
+      expect(service.pendingRelayUnsubscriptionTopics, contains('rpc-fail-p'));
+
+      // Reconnect reconciles using the preserved 'sub-id-999' (NOT '') and
+      // clears the pending entry once the relay confirms.
+      confirmingRelay.onRelayClientConnect.broadcast(EventArgs());
+      await Future<void>.delayed(Duration.zero);
+
+      expect(sentUnsubscribeParams, hasLength(2));
+      expect(
+        sentUnsubscribeParams.last,
+        equals(<String, dynamic>{'topic': 'rpc-fail-p', 'id': 'sub-id-999'}),
+      );
+      expect(confirmingRelay.preservedUnsubscribeId('rpc-fail-p'), isNull);
+      expect(
+        service.pendingRelayUnsubscriptionTopics,
+        isNot(contains('rpc-fail-p')),
+      );
+
+      // Also verify disconnectSession queues an unconfirmed unsubscribe when
+      // SignEngine._deleteSession's inner relayClient.unsubscribe fails RPC
+      // while completing local deletion.
+      await topicMap.set('sess-unconfirmed', 'sub-id-sess-1');
+      activeSessions['sess-unconfirmed'] = _buildSession(
+        topic: 'sess-unconfirmed',
+        selfPublicKey: 'pk-sess-unconfirmed',
+      );
+      failFirstRpc = true;
+      when(
+        () => walletKit.disconnectSession(
+          topic: 'sess-unconfirmed',
+          reason: any(named: 'reason'),
+        ),
+      ).thenAnswer((_) async {
+        // Mirrors SignEngine._deleteSession calling
+        // core.relayClient.unsubscribe followed by local deletion without
+        // throwing on RPC failure.
+        await confirmingRelay.unsubscribe(topic: 'sess-unconfirmed');
+        activeSessions.remove('sess-unconfirmed');
+      });
+
+      await service.disconnectSession(topic: 'sess-unconfirmed');
+      expect(activeSessions, isEmpty);
+      expect(topicMap.has('sess-unconfirmed'), isFalse);
+      expect(
+        service.pendingRelayUnsubscriptionTopics,
+        contains('sess-unconfirmed'),
+      );
+
+      confirmingRelay.onRelayClientConnect.broadcast(EventArgs());
+      await Future<void>.delayed(Duration.zero);
+
+      expect(
+        sentUnsubscribeParams.last,
+        equals(<String, dynamic>{
+          'topic': 'sess-unconfirmed',
+          'id': 'sub-id-sess-1',
+        }),
+      );
+      expect(
+        service.pendingRelayUnsubscriptionTopics,
+        isNot(contains('sess-unconfirmed')),
+      );
+    });
+
+    test('retains queued relay unsubscribe when a non-ConfirmingRelayClient '
+        'swallows RPC errors via onRelayClientError and returns '
+        'normally', () async {
+      final int now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+      final List<PairingInfo> livePairings = <PairingInfo>[
+        PairingInfo(
+          topic: 'swallowed-err-p',
+          expiry: now + 3600,
+          relay: Relay(ReownConstants.RELAYER_DEFAULT_PROTOCOL),
+          active: true,
+        ),
+      ];
+      bool emitErrorOnce = true;
+
+      when(
+        pairingStore.getAll,
+      ).thenAnswer((_) => List<PairingInfo>.from(livePairings));
+      when(() => pairing.disconnect(topic: 'swallowed-err-p')).thenAnswer((
+        _,
+      ) async {
+        livePairings.clear();
+      });
+      when(() => relayClient.unsubscribe(topic: 'swallowed-err-p')).thenAnswer((
+        _,
+      ) async {
+        if (emitErrorOnce) {
+          emitErrorOnce = false;
+          onRelayError.broadcast(ErrorEvent(StateError('swallowed RPC error')));
+        }
+      });
+
+      final Web3WalletService service = Web3WalletService(
+        walletKit: walletKit,
+        chainResolver: (String _) => nomService,
+        inFlightPairWaitTimeout: const Duration(milliseconds: 80),
+      );
+      addTearDown(service.onDispose);
+      service.create();
+      await service.init();
+
+      await service.disconnectAllPairings();
+      verify(() => relayClient.unsubscribe(topic: 'swallowed-err-p')).called(1);
+      expect(
+        service.pendingRelayUnsubscriptionTopics,
+        contains('swallowed-err-p'),
+      );
+
+      // Next reconnect succeeds without error and clears the entry.
+      onRelayConnect.broadcast(EventArgs());
+      await Future<void>.delayed(Duration.zero);
+      verify(() => relayClient.unsubscribe(topic: 'swallowed-err-p')).called(1);
+      expect(
+        service.pendingRelayUnsubscriptionTopics,
+        isNot(contains('swallowed-err-p')),
+      );
+    });
+
+    test('starts pending relay unsubscription reconciliation when a reset '
+        'ends on an already-connected relay without needing another connect '
+        'event, while preserving unresolved-reset guards', () async {
+      final int now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+      final List<PairingInfo> livePairings = <PairingInfo>[
+        PairingInfo(
+          topic: 'reset-exit-p',
+          expiry: now + 3600,
+          relay: Relay(ReownConstants.RELAYER_DEFAULT_PROTOCOL),
+          active: true,
+        ),
+      ];
+      activeSessions['burn-exit'] = _buildSession(
+        topic: 'burn-exit',
+        selfPublicKey: 'pk-burn-exit',
+      );
+      final Completer<void> burnSession = Completer<void>();
+
+      when(
+        pairingStore.getAll,
+      ).thenAnswer((_) => List<PairingInfo>.from(livePairings));
+      when(
+        () => walletKit.disconnectSession(
+          topic: 'burn-exit',
+          reason: any(named: 'reason'),
+        ),
+      ).thenAnswer((_) => burnSession.future);
+      when(() => sessionStore.delete('burn-exit')).thenAnswer((_) async {
+        activeSessions.remove('burn-exit');
+      });
+      when(() => pairing.disconnect(topic: 'reset-exit-p')).thenAnswer((
+        _,
+      ) async {
+        livePairings.clear();
+      });
+
+      final Web3WalletService service = Web3WalletService(
+        walletKit: walletKit,
+        chainResolver: (String _) => nomService,
+        inFlightPairWaitTimeout: const Duration(milliseconds: 60),
+      );
+      addTearDown(() async {
+        if (!burnSession.isCompleted) burnSession.complete();
+        await service.onDispose();
+      });
+      service.create();
+      await service.init();
+
+      // Queue 'reset-exit-p' while relay is offline.
+      when(() => relayClient.isConnected).thenReturn(false);
+      await service.disconnectEverything();
+      expect(
+        service.pendingRelayUnsubscriptionTopics,
+        contains('reset-exit-p'),
+      );
+      verifyNever(() => relayClient.unsubscribe(topic: 'reset-exit-p'));
+
+      // Start a second reset that pauses mid-sweep. Relay connects during the
+      // reset, so _onRelayClientConnect skips reconciliation.
+      activeSessions['gate-exit-s'] = _buildSession(
+        topic: 'gate-exit-s',
+        selfPublicKey: 'pk-gate-exit',
+      );
+      final Completer<void> gateStarted = Completer<void>();
+      final Completer<void> releaseGate = Completer<void>();
+      addTearDown(() {
+        if (!releaseGate.isCompleted) releaseGate.complete();
+      });
+      when(
+        () => walletKit.disconnectSession(
+          topic: 'gate-exit-s',
+          reason: any(named: 'reason'),
+        ),
+      ).thenAnswer((_) async {
+        if (!gateStarted.isCompleted) gateStarted.complete();
+        await releaseGate.future;
+        activeSessions.remove('gate-exit-s');
+      });
+
+      final Future<void> secondReset = service.disconnectEverything();
+      await gateStarted.future;
+
+      when(() => relayClient.isConnected).thenReturn(true);
+      onRelayConnect.broadcast(EventArgs());
+      await Future<void>.delayed(Duration.zero);
+      verifyNever(() => relayClient.unsubscribe(topic: 'reset-exit-p'));
+
+      // Ending the reset on an already-connected relay (with
+      // _needsRelayReconnectAfterRecovery == false) must automatically kick off
+      // reconciliation without waiting for another onRelayConnect event.
+      releaseGate.complete();
+      await secondReset;
+      await Future<void>.delayed(Duration.zero);
+
+      verify(() => relayClient.unsubscribe(topic: 'reset-exit-p')).called(1);
+      expect(
+        service.pendingRelayUnsubscriptionTopics,
+        isNot(contains('reset-exit-p')),
+      );
+
+      // Negative guard: if a reset exits unresolved (failed local cleanup),
+      // reconciliation must NOT start even when relay is connected.
+      when(() => relayClient.isConnected).thenReturn(false);
+      livePairings.add(
+        PairingInfo(
+          topic: 'unresolved-exit-p',
+          expiry: now + 3600,
+          relay: Relay(ReownConstants.RELAYER_DEFAULT_PROTOCOL),
+          active: true,
+        ),
+      );
+      when(() => pairing.disconnect(topic: 'unresolved-exit-p')).thenAnswer((
+        _,
+      ) async {
+        livePairings.clear();
+      });
+      when(
+        () => relayClient.unsubscribe(topic: 'unresolved-exit-p'),
+      ).thenThrow(StateError('offline'));
+      await service.disconnectAllPairings();
+      verify(
+        () => relayClient.unsubscribe(topic: 'unresolved-exit-p'),
+      ).called(1);
+      expect(
+        service.pendingRelayUnsubscriptionTopics,
+        contains('unresolved-exit-p'),
+      );
+
+      activeSessions['stuck-s'] = _buildSession(
+        topic: 'stuck-s',
+        selfPublicKey: 'pk-stuck',
+      );
+      when(
+        () => walletKit.disconnectSession(
+          topic: 'stuck-s',
+          reason: any(named: 'reason'),
+        ),
+      ).thenThrow(StateError('remote failed'));
+      when(
+        () => sessionStore.delete('stuck-s'),
+      ).thenThrow(StateError('storage failed'));
+      when(
+        () => relayClient.unsubscribe(topic: 'unresolved-exit-p'),
+      ).thenAnswer((_) async {});
+      when(() => relayClient.isConnected).thenReturn(true);
+
+      await service.disconnectEverything();
+      await Future<void>.delayed(Duration.zero);
+      verifyNever(() => relayClient.unsubscribe(topic: 'unresolved-exit-p'));
+      expect(
+        service.pendingRelayUnsubscriptionTopics,
+        contains('unresolved-exit-p'),
+      );
+    });
+
+    test('ConfirmingRelayClient handles offline unsubscribes, in-flight '
+        'replacement subscribes, subscribe() bookkeeping, concurrent '
+        'unsubscribes, and upstream unconfirmed pickup', () async {
+      final ReownCore desktopCore = createDesktopReownCore(
+        projectId: 'test-project-id',
+        memoryStore: true,
+      );
+      final SharedPrefsStores memStorage = SharedPrefsStores(memoryStore: true);
+      await memStorage.init();
+      final GenericStore<String> topicMap = GenericStore<String>(
+        storage: memStorage,
+        context: StoreVersions.CONTEXT_TOPIC_MAP,
+        version: StoreVersions.VERSION_TOPIC_MAP,
+        fromJson: (dynamic value) => value as String,
+      );
+      final _MockMessageTracker messageTracker = _MockMessageTracker();
+      when(messageTracker.init).thenAnswer((_) async {});
+      when(() => messageTracker.delete(any())).thenAnswer((_) async {});
+      when(() => core.logger).thenReturn(desktopCore.logger);
+      when(() => core.heartbeat).thenReturn(desktopCore.heartbeat);
+      when(() => core.crypto).thenReturn(desktopCore.crypto);
+      await desktopCore.storage.init();
+      await desktopCore.secureStorage.init();
+      await desktopCore.crypto.init();
+
+      final List<Map<String, dynamic>> sentParams = <Map<String, dynamic>>[];
+      Future<dynamic> Function({
+        required String method,
+        required Map<String, dynamic> parameters,
+        required int id,
+      })
+      rpcHandler =
+          ({
+            required String method,
+            required Map<String, dynamic> parameters,
+            required int id,
+          }) async {
+            sentParams.add(Map<String, dynamic>.from(parameters));
+            return true;
+          };
+
+      final _TestConfirmingRelayClient confirmingRelay =
+          _TestConfirmingRelayClient(
+            core: core,
+            messageTracker: messageTracker,
+            topicMap: topicMap,
+            onSendUnsubscribeRpc:
+                ({
+                  required String method,
+                  required Map<String, dynamic> parameters,
+                  required int id,
+                }) =>
+                    rpcHandler(method: method, parameters: parameters, id: id),
+          );
+      await confirmingRelay.init();
+
+      // (a) Offline branch: no RPC sent, returns false, preserves ID, deletes
+      // topicMap and messageTracker, marks unconfirmed; next connect sends the
+      // preserved ID and clears state.
+      await topicMap.set('offline-t', 'sub-offline');
+      confirmingRelay.connected = false;
+
+      final bool offlineResult = await confirmingRelay
+          .unsubscribeWithConfirmation(topic: 'offline-t');
+      expect(offlineResult, isFalse);
+      expect(sentParams, isEmpty);
+      expect(topicMap.has('offline-t'), isFalse);
+      verify(() => messageTracker.delete('offline-t')).called(1);
+      expect(
+        confirmingRelay.preservedUnsubscribeId('offline-t'),
+        equals('sub-offline'),
+      );
+      expect(confirmingRelay.hasUnconfirmedUnsubscribe('offline-t'), isTrue);
+
+      confirmingRelay.connected = true;
+      final bool onlineRetry = await confirmingRelay
+          .unsubscribeWithConfirmation(topic: 'offline-t');
+      expect(onlineRetry, isTrue);
+      expect(
+        sentParams,
+        equals(<Map<String, dynamic>>[
+          <String, dynamic>{'topic': 'offline-t', 'id': 'sub-offline'},
+        ]),
+      );
+      expect(confirmingRelay.preservedUnsubscribeId('offline-t'), isNull);
+      expect(confirmingRelay.hasUnconfirmedUnsubscribe('offline-t'), isFalse);
+
+      // (b) Replacement subscribe() completing while unsubscribe RPC is still
+      // pending: topicMap keeps the new ID, messageTracker.delete is NOT
+      // called, and nothing is flagged unconfirmed.
+      await topicMap.set('race-t', 'sub-old');
+      final Completer<void> rpcStarted = Completer<void>();
+      final Completer<void> releaseRpc = Completer<void>();
+      addTearDown(() {
+        if (!releaseRpc.isCompleted) releaseRpc.complete();
+      });
+      rpcHandler =
+          ({
+            required String method,
+            required Map<String, dynamic> parameters,
+            required int id,
+          }) async {
+            sentParams.add(Map<String, dynamic>.from(parameters));
+            if (!rpcStarted.isCompleted) rpcStarted.complete();
+            await releaseRpc.future;
+            throw StateError('old unsubscribe failed after replacement');
+          };
+
+      final Future<bool> inFlightUnsub = confirmingRelay
+          .unsubscribeWithConfirmation(topic: 'race-t');
+      await rpcStarted.future;
+
+      final String newSubId = await confirmingRelay.subscribe(
+        options: const SubscribeOptions(topic: 'race-t', skipSubscribe: true),
+      );
+      expect(newSubId, isNotEmpty);
+      expect(topicMap.get('race-t'), equals(newSubId));
+
+      releaseRpc.complete();
+      expect(await inFlightUnsub, isFalse);
+      expect(topicMap.get('race-t'), equals(newSubId));
+      verifyNever(() => messageTracker.delete('race-t'));
+      expect(confirmingRelay.hasUnconfirmedUnsubscribe('race-t'), isFalse);
+      expect(confirmingRelay.preservedUnsubscribeId('race-t'), isNull);
+
+      // (c) subscribe() bookkeeping: empty-result subscribe preserves state;
+      // non-empty subscribe clears preserved ID and unconfirmed flag.
+      await topicMap.set('resub-t', 'sub-resub-old');
+      confirmingRelay.connected = false;
+      expect(
+        await confirmingRelay.unsubscribeWithConfirmation(topic: 'resub-t'),
+        isFalse,
+      );
+      expect(
+        confirmingRelay.preservedUnsubscribeId('resub-t'),
+        equals('sub-resub-old'),
+      );
+      expect(confirmingRelay.hasUnconfirmedUnsubscribe('resub-t'), isTrue);
+
+      final String failedSub = await confirmingRelay.subscribe(
+        options: const SubscribeOptions(
+          topic: 'resub-t',
+          transportType: TransportType.linkMode,
+        ),
+      );
+      expect(failedSub, isEmpty);
+      expect(
+        confirmingRelay.preservedUnsubscribeId('resub-t'),
+        equals('sub-resub-old'),
+      );
+      expect(confirmingRelay.hasUnconfirmedUnsubscribe('resub-t'), isTrue);
+
+      final String succeededSub = await confirmingRelay.subscribe(
+        options: const SubscribeOptions(topic: 'resub-t', skipSubscribe: true),
+      );
+      expect(succeededSub, isNotEmpty);
+      expect(confirmingRelay.preservedUnsubscribeId('resub-t'), isNull);
+      expect(confirmingRelay.hasUnconfirmedUnsubscribe('resub-t'), isFalse);
+
+      // (d) Concurrent unsubscribes for the same topic: if one confirms and
+      // clears the kept ID while another fails, the topic is NOT left flagged
+      // unconfirmed with an empty ID.
+      confirmingRelay.connected = true;
+      await topicMap.set('concurrent-t', 'sub-conc');
+      final Completer<void> firstPaused = Completer<void>();
+      final Completer<void> releaseFirstFail = Completer<void>();
+      addTearDown(() {
+        if (!releaseFirstFail.isCompleted) releaseFirstFail.complete();
+      });
+      int concurrentCalls = 0;
+      rpcHandler =
+          ({
+            required String method,
+            required Map<String, dynamic> parameters,
+            required int id,
+          }) async {
+            concurrentCalls++;
+            sentParams.add(Map<String, dynamic>.from(parameters));
+            if (concurrentCalls == 1) {
+              if (!firstPaused.isCompleted) firstPaused.complete();
+              await releaseFirstFail.future;
+              throw StateError('first call timed out');
+            }
+            return true;
+          };
+
+      final Future<bool> failingFirst = confirmingRelay
+          .unsubscribeWithConfirmation(topic: 'concurrent-t');
+      await firstPaused.future;
+      final bool confirmedSecond = await confirmingRelay
+          .unsubscribeWithConfirmation(topic: 'concurrent-t');
+      expect(confirmedSecond, isTrue);
+
+      releaseFirstFail.complete();
+      expect(await failingFirst, isFalse);
+      expect(
+        confirmingRelay.hasUnconfirmedUnsubscribe('concurrent-t'),
+        isFalse,
+      );
+      expect(confirmingRelay.preservedUnsubscribeId('concurrent-t'), isNull);
+
+      // (e) Upstream unconfirmed unsubscribe (e.g. Pairing._deletePairing on
+      // expiry) is picked up and reconciled on the next onRelayClientConnect.
+      sentParams.clear();
+      await topicMap.set('expired-upstream-t', 'sub-expired-1');
+      confirmingRelay.connected = false;
+      await confirmingRelay.unsubscribe(topic: 'expired-upstream-t');
+      expect(
+        confirmingRelay.hasUnconfirmedUnsubscribe('expired-upstream-t'),
+        isTrue,
+      );
+
+      when(() => core.relayClient).thenReturn(confirmingRelay);
+      final Web3WalletService service = Web3WalletService(
+        walletKit: walletKit,
+        chainResolver: (String _) => nomService,
+        inFlightPairWaitTimeout: const Duration(milliseconds: 100),
+      );
+      addTearDown(service.onDispose);
+      service.create();
+      await service.init();
+
+      rpcHandler =
+          ({
+            required String method,
+            required Map<String, dynamic> parameters,
+            required int id,
+          }) async {
+            sentParams.add(Map<String, dynamic>.from(parameters));
+            return true;
+          };
+      confirmingRelay.connected = true;
+      confirmingRelay.onRelayClientConnect.broadcast(EventArgs());
+      await Future<void>.delayed(Duration.zero);
+
+      expect(
+        sentParams,
+        equals(<Map<String, dynamic>>[
+          <String, dynamic>{
+            'topic': 'expired-upstream-t',
+            'id': 'sub-expired-1',
+          },
+        ]),
+      );
+      expect(
+        confirmingRelay.hasUnconfirmedUnsubscribe('expired-upstream-t'),
+        isFalse,
+      );
+      expect(
+        service.pendingRelayUnsubscriptionTopics,
+        isNot(contains('expired-upstream-t')),
+      );
+    });
   });
 }
