@@ -151,7 +151,8 @@ class _ViewState extends State<_View> {
           autovalidateMode: AutovalidateMode.onUserInteraction,
           child: PasswordInputField(
             controller: _newPasswordController,
-            validator: InputValidators.validatePassword,
+            validator: (String? value) =>
+                InputValidators.validatePassword(value, l10n: context.l10n),
             onChanged: (String value) {
               setState(() {});
             },
@@ -167,6 +168,7 @@ class _ViewState extends State<_View> {
             validator: (String? value) => InputValidators.checkPasswordMatch(
               _newPasswordController.text,
               value,
+              l10n: context.l10n,
             ),
             hintText: context.l10n.repeatNewPassword,
             onSubmitted: (String value) {

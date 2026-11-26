@@ -57,7 +57,9 @@ class InitialHtlcValidationBloc
         htlc.tokenStandard,
       );
       if (token == null) {
-        throw SyriusException('Unable to retrieve token information.');
+        throw LocalizedSyriusException(
+          SyriusErrorCode.unableToRetrieveTokenInformation,
+        );
       }
       final AccountInfo accountInfo = await _zenon.ledger
           .getAccountInfoByAddress(htlc.hashLocked);
@@ -80,20 +82,20 @@ class InitialHtlcValidationBloc
 
   void _validateParticipants(HtlcInfo htlc) {
     if (!_walletAddresses.contains(htlc.hashLocked.toString())) {
-      throw SyriusException('This deposit is not intended for you.');
+      throw LocalizedSyriusException(SyriusErrorCode.depositNotIntendedForYou);
     }
     if (_walletAddresses.contains(htlc.timeLocked.toString())) {
-      throw SyriusException('Cannot join a swap that you have started.');
+      throw LocalizedSyriusException(SyriusErrorCode.cannotJoinOwnSwap);
     }
   }
 
   Future<void> _validateUnusedDeposit(HtlcInfo htlc) async {
     if (await _htlcSwapRepository.getSwapByHtlcId(htlc.id.toString()) != null) {
-      throw SyriusException('This deposit is already used in another swap.');
+      throw LocalizedSyriusException(SyriusErrorCode.depositAlreadyUsedInSwap);
     }
     if (await _htlcSwapRepository.getSwapByHashLock(htlc.hashLockHex) != null) {
-      throw SyriusException(
-        "The deposit's hashlock is already used in another swap.",
+      throw LocalizedSyriusException(
+        SyriusErrorCode.depositHashlockAlreadyUsedInSwap,
       );
     }
   }
@@ -102,11 +104,11 @@ class InitialHtlcValidationBloc
     final int now = DateTime.now().unixTimestamp;
     final Duration remainingDuration = htlc.remainingDurationAt(now);
     if (remainingDuration.inSeconds <= 0) {
-      throw SyriusException('This deposit has expired.');
+      throw LocalizedSyriusException(SyriusErrorCode.depositExpired);
     }
     if (!htlc.canBeSafelyJoinedAt(now)) {
-      throw SyriusException(
-        'This deposit will expire too soon for a safe swap.',
+      throw LocalizedSyriusException(
+        SyriusErrorCode.depositExpiresTooSoonForSafeSwap,
       );
     }
 
@@ -119,7 +121,9 @@ class InitialHtlcValidationBloc
     final int? creationTime =
         creationBlock?.confirmationDetail?.momentumTimestamp;
     if (creationTime == null) {
-      throw SyriusException('Unable to verify the deposit creation time.');
+      throw LocalizedSyriusException(
+        SyriusErrorCode.unableToVerifyDepositCreationTime,
+      );
     }
 
     _validateMaximumDuration(
@@ -129,9 +133,8 @@ class InitialHtlcValidationBloc
 
   void _validateMaximumDuration(Duration duration) {
     if (duration > kMaxAllowedInitialHtlcDuration) {
-      throw SyriusException(
-        "The deposit's duration is too long. Expected "
-        '${kMaxAllowedInitialHtlcDuration.inHours} hours at most.',
+      throw LocalizedSyriusException.depositDurationTooLong(
+        maxHours: kMaxAllowedInitialHtlcDuration.inHours,
       );
     }
   }
@@ -145,7 +148,7 @@ class InitialHtlcValidationBloc
       (AccountBlock block) => _isConflictingHtlcBlock(block, htlc),
     );
     if (hasDuplicate) {
-      throw SyriusException('The hashlock is not unique.');
+      throw LocalizedSyriusException(SyriusErrorCode.hashlockNotUnique);
     }
   }
 

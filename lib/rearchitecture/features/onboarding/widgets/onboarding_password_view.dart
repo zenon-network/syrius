@@ -83,7 +83,8 @@ class _OnboardingPasswordViewState extends State<OnboardingPasswordView> {
           child: PasswordInputField(
             hintText: context.l10n.password,
             controller: _passwordController,
-            validator: InputValidators.validatePassword,
+            validator: (String? value) =>
+                InputValidators.validatePassword(value, l10n: context.l10n),
             onChanged: (_) => setState(() {}),
             onSubmitted: (_) => _submitIfValid(),
           ),
@@ -98,6 +99,7 @@ class _OnboardingPasswordViewState extends State<OnboardingPasswordView> {
             validator: (String? value) => InputValidators.checkPasswordMatch(
               _passwordController.text,
               value,
+              l10n: context.l10n,
             ),
             onChanged: (_) => setState(() {}),
             onSubmitted: (_) => _submitIfValid(),

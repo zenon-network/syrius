@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:logging/logging.dart';
+import 'package:zenon_syrius_wallet_flutter/l10n/app_localizations.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/model/model.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/notifications/notifications.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/exceptions/syrius_exception.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/l10n/app_localizations_resolver.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/toast_utils.dart';
 import 'package:znn_sdk_dart/src/model/stats.dart';
@@ -13,10 +16,7 @@ class NotificationUtils {
     WalletNotification notification, {
     String? toastMessage,
   }) async {
-    ToastUtils.showToast(
-      context,
-      toastMessage ?? notification.title ?? '',
-    );
+    ToastUtils.showToast(context, toastMessage ?? notification.title ?? '');
     await sl.get<NotificationsBloc>().recordNotification(notification);
   }
 
@@ -25,34 +25,40 @@ class NotificationUtils {
     Object error,
     String title,
   ) async {
+    final String errorMessage = _resolveErrorMessage(
+      error,
+      AppLocalizations.of(context) ?? resolveAppLocalizations(),
+    );
     Logger(
       'NotificationUtils',
     ).log(Level.WARNING, 'showForegroundError', error);
-    ToastUtils.showToast(
-      context,
-      error.toString(),
-      color: AppColors.errorColor,
-    );
-    await sl.get<NotificationsBloc>().recordErrorNotification(error, title);
-  }
-
-  static Future<void> sendNotificationError(
-    Object error,
-    String title,
-  ) async {
-    Logger(
-      'NotificationUtils',
-    ).log(Level.WARNING, 'sendNotificationError', error);
-    await sl.get<NotificationsBloc>().addErrorNotification(
-      error,
+    ToastUtils.showToast(context, errorMessage, color: AppColors.errorColor);
+    await sl.get<NotificationsBloc>().recordErrorNotification(
+      errorMessage,
       title,
     );
   }
 
+  static Future<void> sendNotificationError(Object error, String title) async {
+    final String errorMessage = _resolveErrorMessage(
+      error,
+      resolveAppLocalizations(),
+    );
+    Logger(
+      'NotificationUtils',
+    ).log(Level.WARNING, 'sendNotificationError', error);
+    await sl.get<NotificationsBloc>().addErrorNotification(errorMessage, title);
+  }
+
+  static String _resolveErrorMessage(Object error, AppLocalizations l10n) =>
+      error is SyriusException
+      ? error.localizedMessage(l10n)
+      : error.toString();
+
   static WalletNotification? activeNotification() =>
       sl.isRegistered<NotificationsBloc>()
-          ? sl<NotificationsBloc>().state.activeNotification
-          : null;
+      ? sl<NotificationsBloc>().state.activeNotification
+      : null;
 
   static bool shouldShowNotification() => activeNotification() != null;
 

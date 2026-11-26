@@ -55,7 +55,7 @@ class P2pSwapBloc extends Bloc<P2pSwapEvent, P2pSwapBlocState> {
   Future<HtlcSwap> _getSwap() async {
     final HtlcSwap? swap = await _swapRepository.getSwapById(_swapId);
     if (swap == null) {
-      throw SyriusException('Swap does not exist');
+      throw LocalizedSyriusException(SyriusErrorCode.swapDoesNotExist);
     }
 
     return swap;

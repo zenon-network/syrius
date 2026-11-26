@@ -74,26 +74,17 @@ class _SentinelQsrManagementStepState extends State<SentinelQsrManagementStep> {
     CreateSentinelQsrInfoData qsrInfo,
   ) {
     final BigInt maxQsrAmount = MathUtils.bigMin(
-      widget.accountInfo.getBalance(
-        kQsrCoin.tokenStandard,
-      ),
+      widget.accountInfo.getBalance(kQsrCoin.tokenStandard),
       MathUtils.bigMax(BigInt.zero, qsrInfo.cost - qsrInfo.deposit),
     );
 
-    widget.qsrAmountController.text = maxQsrAmount.addDecimals(
-      coinDecimals,
-    );
+    widget.qsrAmountController.text = maxQsrAmount.addDecimals(coinDecimals);
 
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
         Expanded(
-          child: _buildFields(
-            accountInfo,
-            context,
-            qsrInfo,
-            maxQsrAmount,
-          ),
+          child: _buildFields(accountInfo, context, qsrInfo, maxQsrAmount),
         ),
         kHorizontalGap45,
         Expanded(
@@ -271,32 +262,22 @@ class _SentinelQsrManagementStepState extends State<SentinelQsrManagementStep> {
           cursorColor: AppColors.qsrColor,
           decoration: InputDecoration(
             border: const OutlineInputBorder(
-              borderSide: BorderSide(
-                color: AppColors.qsrColor,
-              ),
+              borderSide: BorderSide(color: AppColors.qsrColor),
             ),
             enabledBorder: const OutlineInputBorder(
-              borderSide: BorderSide(
-                color: AppColors.qsrColor,
-              ),
+              borderSide: BorderSide(color: AppColors.qsrColor),
             ),
             focusedBorder: const OutlineInputBorder(
-              borderSide: BorderSide(
-                color: AppColors.qsrColor,
-              ),
+              borderSide: BorderSide(color: AppColors.qsrColor),
             ),
             hintText: context.l10n.amount,
           ),
           inputFormatters: FormatUtils.getAmountTextInputFormatters(
             widget.qsrAmountController.text,
           ),
-          style: const TextStyle(
-            color: AppColors.qsrColor,
-          ),
-          validator: (String? value) => _qsrAmountValidator(
-            maxQsrAmount: maxQsrAmount,
-            value: value,
-          ),
+          style: const TextStyle(color: AppColors.qsrColor),
+          validator: (String? value) =>
+              _qsrAmountValidator(maxQsrAmount: maxQsrAmount, value: value),
         ),
       ],
     );
@@ -311,6 +292,7 @@ class _SentinelQsrManagementStepState extends State<SentinelQsrManagementStep> {
     kQsrCoin.decimals,
     BigInt.one,
     canBeEqualToMin: true,
+    l10n: context.l10n,
   );
 
   void _refreshSentinelQsrInfo() {
@@ -320,9 +302,7 @@ class _SentinelQsrManagementStepState extends State<SentinelQsrManagementStep> {
       ),
     );
     context.read<CreateSentinelQsrInfoBloc>().add(
-      FetchRequestData(
-        address: Address.parse(widget.addressController.text),
-      ),
+      FetchRequestData(address: Address.parse(widget.addressController.text)),
     );
   }
 
@@ -332,10 +312,7 @@ class _SentinelQsrManagementStepState extends State<SentinelQsrManagementStep> {
     required String qsrAmountText,
   }) =>
       _hasQsrBalance(accountInfo) &&
-      _qsrAmountValidator(
-            value: qsrAmountText,
-            maxQsrAmount: maxQsrAmount,
-          ) ==
+      _qsrAmountValidator(value: qsrAmountText, maxQsrAmount: maxQsrAmount) ==
           null;
 
   bool _hasQsrBalance(AccountInfo accountInfo) =>
@@ -345,9 +322,7 @@ class _SentinelQsrManagementStepState extends State<SentinelQsrManagementStep> {
     required String qsrAmountText,
     required CreateSentinelQsrInfoData qsrInfo,
   }) {
-    final BigInt qsrAmount = qsrAmountText.extractDecimals(
-      coinDecimals,
-    );
+    final BigInt qsrAmount = qsrAmountText.extractDecimals(coinDecimals);
 
     context.read<SentinelDepositQsrBloc>().add(
       SentinelDepositQsrRequested(
@@ -396,9 +371,7 @@ class _DepositButton extends StatelessWidget {
           onPressed: onPressed,
           outlineColor: AppColors.qsrColor,
           // TODO(maznnwell): make sure that the outline and text colors match
-          textStyle: const TextStyle(
-            color: AppColors.qsrColor,
-          ),
+          textStyle: const TextStyle(color: AppColors.qsrColor),
         ),
       ),
     );
@@ -440,18 +413,14 @@ class _WithdrawButton extends StatelessWidget {
         onPressed: () => _onWithdrawButtonPressed(context: context),
         key: loadingKey,
         outlineColor: AppColors.qsrColor,
-        textStyle: const TextStyle(
-          color: AppColors.qsrColor,
-        ),
+        textStyle: const TextStyle(color: AppColors.qsrColor),
       ),
     );
   }
 
   void _onWithdrawButtonPressed({required BuildContext context}) {
     context.read<SentinelWithdrawQsrBloc>().add(
-      SentinelWithdrawQsrRequested(
-        address: Address.parse(address),
-      ),
+      SentinelWithdrawQsrRequested(address: Address.parse(address)),
     );
   }
 }

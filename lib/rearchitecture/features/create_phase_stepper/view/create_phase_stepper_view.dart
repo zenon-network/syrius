@@ -221,7 +221,8 @@ class _CreatePhaseStepperViewState extends State<CreatePhaseStepperView> {
                   onChanged: (String value) {
                     setState(() {});
                   },
-                  validator: InputValidators.checkUrl,
+                  validator: (String? value) =>
+                      InputValidators.checkUrl(value, l10n: context.l10n),
                 ),
               ),
             ),

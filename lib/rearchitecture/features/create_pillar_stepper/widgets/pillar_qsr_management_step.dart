@@ -83,26 +83,17 @@ class _PillarQsrManagementStepState extends State<PillarQsrManagementStep> {
     CreatePillarQsrInfoData qsrInfo,
   ) {
     final BigInt maxQsrAmount = MathUtils.bigMin(
-      widget.accountInfo.getBalance(
-        kQsrCoin.tokenStandard,
-      ),
+      widget.accountInfo.getBalance(kQsrCoin.tokenStandard),
       MathUtils.bigMax(BigInt.zero, qsrInfo.cost - qsrInfo.deposit),
     );
 
-    widget.qsrAmountController.text = maxQsrAmount.addDecimals(
-      coinDecimals,
-    );
+    widget.qsrAmountController.text = maxQsrAmount.addDecimals(coinDecimals);
 
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
         Expanded(
-          child: _buildFields(
-            accountInfo,
-            context,
-            qsrInfo,
-            maxQsrAmount,
-          ),
+          child: _buildFields(accountInfo, context, qsrInfo, maxQsrAmount),
         ),
         kHorizontalGap45,
         Expanded(
@@ -213,18 +204,13 @@ class _PillarQsrManagementStepState extends State<PillarQsrManagementStep> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
-              AvailableBalance(
-                kQsrCoin,
-                accountInfo,
-              ),
+              AvailableBalance(kQsrCoin, accountInfo),
               Text(
                 context.l10n.requiredForPillarSlot(
                   qsrInfo.cost.addDecimals(coinDecimals),
                   kQsrCoin.symbol,
                 ),
-                style: Theme.of(
-                  context,
-                ).inputDecorationTheme.hintStyle,
+                style: Theme.of(context).inputDecorationTheme.hintStyle,
               ),
             ],
           ),
@@ -281,32 +267,22 @@ class _PillarQsrManagementStepState extends State<PillarQsrManagementStep> {
           cursorColor: AppColors.qsrColor,
           decoration: InputDecoration(
             border: const OutlineInputBorder(
-              borderSide: BorderSide(
-                color: AppColors.qsrColor,
-              ),
+              borderSide: BorderSide(color: AppColors.qsrColor),
             ),
             enabledBorder: const OutlineInputBorder(
-              borderSide: BorderSide(
-                color: AppColors.qsrColor,
-              ),
+              borderSide: BorderSide(color: AppColors.qsrColor),
             ),
             focusedBorder: const OutlineInputBorder(
-              borderSide: BorderSide(
-                color: AppColors.qsrColor,
-              ),
+              borderSide: BorderSide(color: AppColors.qsrColor),
             ),
             hintText: context.l10n.amount,
           ),
           inputFormatters: FormatUtils.getAmountTextInputFormatters(
             widget.qsrAmountController.text,
           ),
-          style: const TextStyle(
-            color: AppColors.qsrColor,
-          ),
-          validator: (String? value) => _qsrAmountValidator(
-            maxQsrAmount: maxQsrAmount,
-            value: value,
-          ),
+          style: const TextStyle(color: AppColors.qsrColor),
+          validator: (String? value) =>
+              _qsrAmountValidator(maxQsrAmount: maxQsrAmount, value: value),
         ),
       ],
     );
@@ -321,6 +297,7 @@ class _PillarQsrManagementStepState extends State<PillarQsrManagementStep> {
     kQsrCoin.decimals,
     BigInt.one,
     canBeEqualToMin: true,
+    l10n: context.l10n,
   );
 
   void _refreshPillarQsrInfo() {
@@ -330,9 +307,7 @@ class _PillarQsrManagementStepState extends State<PillarQsrManagementStep> {
       ),
     );
     context.read<CreatePillarQsrInfoBloc>().add(
-      FetchRequestData(
-        address: Address.parse(widget.addressController.text),
-      ),
+      FetchRequestData(address: Address.parse(widget.addressController.text)),
     );
   }
 
@@ -342,10 +317,7 @@ class _PillarQsrManagementStepState extends State<PillarQsrManagementStep> {
     required String qsrAmountText,
   }) =>
       _hasQsrBalance(accountInfo) &&
-      _qsrAmountValidator(
-            value: qsrAmountText,
-            maxQsrAmount: maxQsrAmount,
-          ) ==
+      _qsrAmountValidator(value: qsrAmountText, maxQsrAmount: maxQsrAmount) ==
           null;
 
   bool _hasQsrBalance(AccountInfo accountInfo) =>
@@ -355,9 +327,7 @@ class _PillarQsrManagementStepState extends State<PillarQsrManagementStep> {
     required String qsrAmountText,
     required CreatePillarQsrInfoData qsrInfo,
   }) {
-    final BigInt qsrAmount = qsrAmountText.extractDecimals(
-      coinDecimals,
-    );
+    final BigInt qsrAmount = qsrAmountText.extractDecimals(coinDecimals);
 
     context.read<PillarDepositQsrBloc>().add(
       PillarDepositQsrRequested(
@@ -405,9 +375,7 @@ class _DepositButton extends StatelessWidget {
           text: context.l10n.deposit,
           onPressed: onPressed,
           outlineColor: AppColors.qsrColor,
-          textStyle: const TextStyle(
-            color: AppColors.qsrColor,
-          ),
+          textStyle: const TextStyle(color: AppColors.qsrColor),
         ),
       ),
     );
@@ -449,20 +417,14 @@ class _WithdrawButton extends StatelessWidget {
         onPressed: () => _onWithdrawButtonPressed(context: context),
         key: loadingKey,
         outlineColor: AppColors.qsrColor,
-        textStyle: const TextStyle(
-          color: AppColors.qsrColor,
-        ),
+        textStyle: const TextStyle(color: AppColors.qsrColor),
       ),
     );
   }
 
-  void _onWithdrawButtonPressed({
-    required BuildContext context,
-  }) {
+  void _onWithdrawButtonPressed({required BuildContext context}) {
     context.read<PillarWithdrawQsrBloc>().add(
-      PillarWithdrawQsrRequested(
-        address: Address.parse(address),
-      ),
+      PillarWithdrawQsrRequested(address: Address.parse(address)),
     );
   }
 }

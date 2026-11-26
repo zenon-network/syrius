@@ -76,10 +76,14 @@ void main() {
     );
 
     blocTest<DecryptWalletFileBloc, DecryptWalletFileState>(
-      'emits [loading, failure(isIncorrectPassword: false)] on WalletException',
+      'emits [loading, failure(reason: fileTooLarge)] on '
+      'WalletFileReadException',
       build: () => DecryptWalletFileBloc(
         decryptWalletFile: (_, _) => Future<WalletFile>.error(
-          WalletException('Wallet file is too large'),
+          WalletFileReadException(
+            WalletFileReadFailureReason.fileTooLarge,
+            'Wallet file is too large',
+          ),
         ),
       ),
       act: (DecryptWalletFileBloc bloc) => bloc.add(
@@ -97,10 +101,86 @@ void main() {
               isFalse,
             )
             .having(
+              (DecryptWalletFileFailure s) => s.reason,
+              'reason',
+              DecryptWalletFileFailureReason.fileTooLarge,
+            )
+            .having(
               (DecryptWalletFileFailure s) => s.error,
               'error',
-              isA<WalletException>(),
+              isA<WalletFileReadException>(),
             ),
+      ],
+    );
+
+    blocTest<DecryptWalletFileBloc, DecryptWalletFileState>(
+      'classifies notFound, notRegularFile, unsupportedWalletType, and '
+      'FormatException',
+      build: () {
+        int call = 0;
+        return DecryptWalletFileBloc(
+          decryptWalletFile: (_, _) {
+            call += 1;
+            return switch (call) {
+              1 => Future<WalletFile>.error(
+                WalletFileReadException(
+                  WalletFileReadFailureReason.notFound,
+                  'missing',
+                ),
+              ),
+              2 => Future<WalletFile>.error(
+                WalletFileReadException(
+                  WalletFileReadFailureReason.notRegularFile,
+                  'dir',
+                ),
+              ),
+              3 => Future<WalletFile>.error(
+                WalletFileReadException(
+                  WalletFileReadFailureReason.unsupportedWalletType,
+                  'unsupported',
+                ),
+              ),
+              _ => Future<WalletFile>.error(
+                const FormatException('Invalid keystore file format'),
+              ),
+            };
+          },
+        );
+      },
+      act: (DecryptWalletFileBloc bloc) async {
+        bloc.add(const DecryptWalletFileRequested(path: '/1', password: 'p'));
+        await Future<void>.delayed(Duration.zero);
+        bloc.add(const DecryptWalletFileRequested(path: '/2', password: 'p'));
+        await Future<void>.delayed(Duration.zero);
+        bloc.add(const DecryptWalletFileRequested(path: '/3', password: 'p'));
+        await Future<void>.delayed(Duration.zero);
+        bloc.add(const DecryptWalletFileRequested(path: '/4', password: 'p'));
+      },
+      expect: () => <Matcher>[
+        isA<DecryptWalletFileLoading>(),
+        isA<DecryptWalletFileFailure>().having(
+          (DecryptWalletFileFailure s) => s.reason,
+          'reason',
+          DecryptWalletFileFailureReason.fileNotFound,
+        ),
+        isA<DecryptWalletFileLoading>(),
+        isA<DecryptWalletFileFailure>().having(
+          (DecryptWalletFileFailure s) => s.reason,
+          'reason',
+          DecryptWalletFileFailureReason.notRegularFile,
+        ),
+        isA<DecryptWalletFileLoading>(),
+        isA<DecryptWalletFileFailure>().having(
+          (DecryptWalletFileFailure s) => s.reason,
+          'reason',
+          DecryptWalletFileFailureReason.unsupportedWalletType,
+        ),
+        isA<DecryptWalletFileLoading>(),
+        isA<DecryptWalletFileFailure>().having(
+          (DecryptWalletFileFailure s) => s.reason,
+          'reason',
+          DecryptWalletFileFailureReason.invalidKeystoreFormat,
+        ),
       ],
     );
 

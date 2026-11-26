@@ -43,33 +43,31 @@ class _TokenMetricsStepState extends State<TokenMetricsStep> {
 
   int get _decimals => widget.tokenData.value.decimals;
 
-  String? get _maxSupplyError =>
-      _isMintable
-          ? InputValidators.correctValue(
-        _maxSupply,
-        kBigP255m1,
-        _decimals,
-        kMinTokenTotalMaxSupply,
-        canBeEqualToMin: true,
-      )
-          : InputValidators.isMaxSupplyZero(_maxSupply);
+  String? get _maxSupplyError => _isMintable
+      ? InputValidators.correctValue(
+          _maxSupply,
+          kBigP255m1,
+          _decimals,
+          kMinTokenTotalMaxSupply,
+          canBeEqualToMin: true,
+          l10n: context.l10n,
+        )
+      : InputValidators.isMaxSupplyZero(_maxSupply, l10n: context.l10n);
 
   String get _totalSupply => widget.totalSupplyController.text;
 
-  String? get _totalSupplyError =>
-      InputValidators.correctValue(
-        _totalSupply,
-        _isMintable
-            ? _maxSupply.isNotEmpty
-            ? _maxSupply.extractDecimals(
-          _decimals,
-        )
-            : kBigP255m1
-            : kBigP255m1,
-        _decimals,
-        _isMintable ? BigInt.zero : kMinTokenTotalMaxSupply,
-        canBeEqualToMin: true,
-      );
+  String? get _totalSupplyError => InputValidators.correctValue(
+    _totalSupply,
+    _isMintable
+        ? _maxSupply.isNotEmpty
+              ? _maxSupply.extractDecimals(_decimals)
+              : kBigP255m1
+        : kBigP255m1,
+    _decimals,
+    _isMintable ? BigInt.zero : kMinTokenTotalMaxSupply,
+    canBeEqualToMin: true,
+    l10n: context.l10n,
+  );
 
   @override
   Widget build(BuildContext context) {
@@ -77,9 +75,7 @@ class _TokenMetricsStepState extends State<TokenMetricsStep> {
       children: <Widget>[
         CustomSlider(
           activeColor: AppColors.ztsColor,
-          description: context.l10n.numberOfDecimals(
-            _decimals,
-          ),
+          description: context.l10n.numberOfDecimals(_decimals),
           startValue: 0,
           min: 0,
           maxValue: 18,
@@ -134,14 +130,13 @@ class _TokenMetricsStepState extends State<TokenMetricsStep> {
                 widget.totalSupplyController,
                 widget.maxSupplyController,
               ]),
-              builder: (_, _) =>
-                  StepperButton(
-                    key: const Key('token_metrics_next_button'),
-                    text: context.l10n.continueText,
-                    onPressed: _areTokenMetricsCorrect()
-                        ? _onContinuePressed
-                        : null,
-                  ),
+              builder: (_, _) => StepperButton(
+                key: const Key('token_metrics_next_button'),
+                text: context.l10n.continueText,
+                onPressed: _areTokenMetricsCorrect()
+                    ? _onContinuePressed
+                    : null,
+              ),
             ),
           ],
         ),

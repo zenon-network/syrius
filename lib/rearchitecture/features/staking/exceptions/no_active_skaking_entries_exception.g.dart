@@ -9,7 +9,7 @@ part of 'no_active_skaking_entries_exception.dart';
 NoActiveStakingEntriesException _$NoActiveStakingEntriesExceptionFromJson(
   Map<String, dynamic> json,
 ) => NoActiveStakingEntriesException(
-  message: json['message'] as String? ?? 'No active staking entries',
+  message: json['message'] as String? ?? _kDefaultMessage,
 );
 
 Map<String, dynamic> _$NoActiveStakingEntriesExceptionToJson(

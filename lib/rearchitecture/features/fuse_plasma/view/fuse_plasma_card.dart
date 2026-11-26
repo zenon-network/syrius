@@ -147,10 +147,13 @@ class _PopulatedState extends State<_Populated> {
     kQsrCoin.decimals,
     fuseMinQsrAmount,
     canBeEqualToMin: true,
+    l10n: context.l10n,
   );
 
-  String? get _beneficiaryAddressError =>
-      InputValidators.checkAddress(_beneficiaryAddressController.text);
+  String? get _beneficiaryAddressError => InputValidators.checkAddress(
+    _beneficiaryAddressController.text,
+    l10n: context.l10n,
+  );
 
   bool get _isInputValid =>
       _qsrAmountController.text.isNotEmpty &&
@@ -177,13 +180,9 @@ class _PopulatedState extends State<_Populated> {
   @override
   Widget build(BuildContext context) {
     return BlocListener<FusePlasmaBloc, FusePlasmaState>(
-      listener: (_, FusePlasmaState state) => _onFusePlasmaStateChanged(
-        state,
-      ),
+      listener: (_, FusePlasmaState state) => _onFusePlasmaStateChanged(state),
       child: BlocListener<PlasmaBeneficiaryAddressCubit, String?>(
-        listener: (_, String? address) => _onBeneficiaryAddressChanged(
-          address,
-        ),
+        listener: (_, String? address) => _onBeneficiaryAddressChanged(address),
         child: Consumer<SelectedAddressNotifier>(
           builder: (_, _, Widget? child) {
             _addressController.text = kSelectedAddress!;
@@ -216,11 +215,7 @@ class _PopulatedState extends State<_Populated> {
               Expanded(
                 child: Column(
                   crossAxisAlignment: .start,
-                  children: <Widget>[
-                    DisabledAddressField(
-                      _addressController,
-                    ),
-                  ],
+                  children: <Widget>[DisabledAddressField(_addressController)],
                 ),
               ),
               SizedBox(width: _spaceBetweenExpandedWidgets),
@@ -241,9 +236,7 @@ class _PopulatedState extends State<_Populated> {
                           onPressed: _maxQsrAmount > BigInt.zero
                               ? _onMaxPressed
                               : null,
-                          child: Text(
-                            context.l10n.max.toUpperCase(),
-                          ),
+                          child: Text(context.l10n.max.toUpperCase()),
                         ),
                         hintText: context.l10n.amount,
                       ),
@@ -281,9 +274,7 @@ class _PopulatedState extends State<_Populated> {
                         ),
                       ),
                       inputFormatters: <TextInputFormatter>[
-                        FilteringTextInputFormatter.allow(
-                          RegExp('[0-9a-z]'),
-                        ),
+                        FilteringTextInputFormatter.allow(RegExp('[0-9a-z]')),
                       ],
                       controller: _beneficiaryAddressController,
                     );
@@ -345,9 +336,7 @@ class _PopulatedState extends State<_Populated> {
     BigInt currentPlasma = BigInt.zero;
     if (_qsrAmountController.text.isNotEmpty) {
       final BigInt qsrAmountWithoutDecimals = _qsrAmountController.text
-          .extractDecimals(
-            kQsrCoin.decimals,
-          );
+          .extractDecimals(kQsrCoin.decimals);
 
       final BigInt plasmaValueWithoutDecimals = zenon!.embedded.plasma
           .getPlasmaByQsr(qsrAmountWithoutDecimals);
@@ -364,13 +353,11 @@ class _PopulatedState extends State<_Populated> {
     final BigInt finalPlasma = currentPlasma + pastPlasma;
 
     return PlasmaIcon(
-      PlasmaInfo.fromJson(
-        <String, dynamic>{
-          'currentPlasma': finalPlasma.toInt(),
-          'maxPlasma': 0,
-          'qsrAmount': '0',
-        },
-      ),
+      PlasmaInfo.fromJson(<String, dynamic>{
+        'currentPlasma': finalPlasma.toInt(),
+        'maxPlasma': 0,
+        'qsrAmount': '0',
+      }),
     );
   }
 
@@ -385,9 +372,7 @@ class _PopulatedState extends State<_Populated> {
   }
 
   Widget _buildFuseButton() {
-    const Widget icon = Icon(
-      Icons.bolt,
-    );
+    const Widget icon = Icon(Icons.bolt);
 
     // TODO(maznnwell): make sure the button is as tall as the text field
     return KeyedSubtree(
@@ -398,9 +383,7 @@ class _PopulatedState extends State<_Populated> {
         label: context.l10n.fuse,
         outlineColor: AppColors.qsrColor,
         icon: icon,
-        textStyle: const TextStyle(
-          color: AppColors.qsrColor,
-        ),
+        textStyle: const TextStyle(color: AppColors.qsrColor),
       ),
     );
   }
@@ -450,9 +433,7 @@ class _PopulatedState extends State<_Populated> {
       _qsrAmountController.clear();
       _beneficiaryAddressController.clear();
       _fetchBalance();
-      context.read<PlasmaStatsBloc>().add(
-        const InfiniteListRefreshRequested(),
-      );
+      context.read<PlasmaStatsBloc>().add(const InfiniteListRefreshRequested());
       widget.onPlasmaFused();
     } else if (state is FusePlasmaFailure) {
       _fuseButtonKey.currentState?.animateReverse();

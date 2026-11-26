@@ -22,14 +22,17 @@ class ZenonAddressUtils {
       ),
     );
   }
+
   static String getLabel(String address) =>
       kAddressLabelMap[address] ?? address;
 
-  static Future<void> generateNewAddress(
-      {int numAddr = 1, VoidCallback? callback,}) async {
+  static Future<void> generateNewAddress({
+    int numAddr = 1,
+    VoidCallback? callback,
+  }) async {
     final WalletFile? walletFile = kWalletFile;
     if (walletFile == null) {
-      throw SyriusException('Wallet is not unlocked.');
+      throw LocalizedSyriusException(SyriusErrorCode.walletNotUnlocked);
     }
     await walletFile.access<void>((Wallet wallet) async {
       await Future<void>.delayed(const Duration(milliseconds: 500));
@@ -37,19 +40,20 @@ class ZenonAddressUtils {
       final int addrListLength = kDefaultAddressList.length;
       for (int i = 0; i < numAddr; i++) {
         final int addrListCounter = addrListLength + i;
-        final WalletAccount walletAccount = await wallet.getAccount(addrListCounter);
+        final WalletAccount walletAccount = await wallet.getAccount(
+          addrListCounter,
+        );
         Address? address;
         if (walletAccount is LedgerWalletAccount) {
           await sl.get<NotificationsBloc>().addNotification(
-                WalletNotification(
-                  title:
-                      'Adding address, please confirm the address on your hardware device',
-                  timestamp: DateTime.now().millisecondsSinceEpoch,
-                  details:
-                      'Confirm address for account index: $addrListCounter',
-                  type: NotificationType.confirm,
-                ),
-              );
+            WalletNotification(
+              title:
+                  'Adding address, please confirm the address on your hardware device',
+              timestamp: DateTime.now().millisecondsSinceEpoch,
+              details: 'Confirm address for account index: $addrListCounter',
+              type: NotificationType.confirm,
+            ),
+          );
           address = await walletAccount.getAddress(true);
         } else {
           address = await walletAccount.getAddress();
@@ -83,7 +87,9 @@ class ZenonAddressUtils {
     if (addressLabelsBox.isEmpty) {
       for (final String? address in kDefaultAddressList) {
         await addressLabelsBox.put(
-            address, 'Address ${kDefaultAddressList.indexOf(address) + 1}',);
+          address,
+          'Address ${kDefaultAddressList.indexOf(address) + 1}',
+        );
       }
     }
     _initAddressLabels(addressLabelsBox);
@@ -91,10 +97,7 @@ class ZenonAddressUtils {
 
   static Future<void> setDefaultAddress() async {
     if (sharedPrefsService!.get(kDefaultAddressKey) == null) {
-      await sharedPrefsService!.put(
-        kDefaultAddressKey,
-        kDefaultAddressList[0],
-      );
+      await sharedPrefsService!.put(kDefaultAddressKey, kDefaultAddressList[0]);
     }
     kSelectedAddress = sharedPrefsService!.get(kDefaultAddressKey);
   }
@@ -105,10 +108,11 @@ class ZenonAddressUtils {
       await walletFile!.access((Wallet wallet) async {
         for (final String element in await Future.wait(
           List<Future<String>>.generate(
-              kNumOfInitialAddresses,
-              (int index) async =>
-                  (await (await wallet.getAccount(index)).getAddress())
-                      .toString(),),
+            kNumOfInitialAddresses,
+            (int index) async => (await (await wallet.getAccount(
+              index,
+            )).getAddress()).toString(),
+          ),
         )) {
           addressesBox.add(element);
         }

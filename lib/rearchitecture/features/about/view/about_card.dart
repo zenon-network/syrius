@@ -232,10 +232,11 @@ class _Populated extends StatelessWidget {
         ? context.l10n.nodeInformationUnavailable
         : context.l10n.someNodeInformationUnavailable;
     final SyriusException? error = _nodeError;
-    if (error != null &&
-        error is! FailureException &&
-        error.message.isNotEmpty) {
-      return '$prefix: ${error.message}';
+    if (error != null && error is! FailureException) {
+      final String errorMessage = error.localizedMessage(context.l10n);
+      if (errorMessage.isNotEmpty) {
+        return '$prefix: $errorMessage';
+      }
     }
     return prefix;
   }

@@ -93,7 +93,9 @@ class ReclaimDepositBloc
           htlc.expirationTime * Duration.millisecondsPerSecond,
           dateFormat: kDefaultDateTimeFormat,
         );
-        throw SyriusException('The deposit is locked until $expirationDate.');
+        throw LocalizedSyriusException.depositLockedUntil(
+          expirationDate: expirationDate,
+        );
       }
 
       if (missingAddressIndex != null) {
@@ -133,14 +135,12 @@ class ReclaimDepositBloc
 
     final WalletFile? walletFile = _walletFileProvider();
     if (walletFile == null) {
-      throw SyriusException('The deposit does not belong to you.');
+      throw LocalizedSyriusException(SyriusErrorCode.depositDoesNotBelongToYou);
     }
 
     if (walletFile.isHardwareWallet) {
-      throw SyriusException(
-        'The deposit address is not in your wallet addresses. If you created '
-        'this deposit from another address in this wallet, generate '
-        'additional addresses in Settings and try again.',
+      throw LocalizedSyriusException(
+        SyriusErrorCode.depositAddressNotInWalletAddresses,
       );
     }
 
@@ -150,7 +150,7 @@ class ReclaimDepositBloc
       startIndex: currentAddresses.length,
     );
     if (derivedIndex == null) {
-      throw SyriusException('The deposit does not belong to you.');
+      throw LocalizedSyriusException(SyriusErrorCode.depositDoesNotBelongToYou);
     }
 
     return derivedIndex;
@@ -194,9 +194,8 @@ class ReclaimDepositBloc
     }
 
     if (!_walletAddressesProvider().contains(targetAddressString)) {
-      throw SyriusException(
-        'Unable to add the deposit address to your wallet addresses. '
-        'Generate additional addresses in Settings and try again.',
+      throw LocalizedSyriusException(
+        SyriusErrorCode.unableToAddDepositAddressToWallet,
       );
     }
   }

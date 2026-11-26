@@ -6,11 +6,14 @@ import 'package:equatable/equatable.dart';
 import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:json_rpc_2/json_rpc_2.dart';
 import 'package:logging/logging.dart';
+import 'package:zenon_syrius_wallet_flutter/l10n/app_localizations.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/model/model.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/blocs/blocs.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/exceptions/syrius_exception.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/extensions/sync_info_extension.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/l10n/app_localizations_resolver.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
@@ -31,6 +34,7 @@ class AutoReceiveTxWorker extends Cubit<AutoReceiveTxState> {
     void Function()? onTransactionReceived,
     String Function(String address)? addressLabelResolver,
     void Function(WalletNotification notification)? onNotification,
+    AppLocalizations Function()? l10nProvider,
   }) : _zenonProvider = zenonProvider ?? _defaultZenonProvider,
        _accountBlockUtilsProvider =
            accountBlockUtilsProvider ?? AccountBlockUtils.new,
@@ -45,6 +49,7 @@ class AutoReceiveTxWorker extends Cubit<AutoReceiveTxState> {
        _addressLabelResolver =
            addressLabelResolver ?? ZenonAddressUtils.getLabel,
        _onNotification = onNotification ?? _defaultOnNotification,
+       _l10nProvider = l10nProvider ?? resolveAppLocalizations,
        super(const AutoReceiveTxState());
 
   final Zenon Function() _zenonProvider;
@@ -55,6 +60,7 @@ class AutoReceiveTxWorker extends Cubit<AutoReceiveTxState> {
   final void Function() _onTransactionReceived;
   final String Function(String address) _addressLabelResolver;
   final void Function(WalletNotification notification) _onNotification;
+  final AppLocalizations Function() _l10nProvider;
 
   final Queue<Hash> _pool = Queue<Hash>();
   bool _running = false;
@@ -115,7 +121,7 @@ class AutoReceiveTxWorker extends Cubit<AutoReceiveTxState> {
       _onSuccess(response, toAddress.toString());
       return response;
     } on RpcException catch (e, stackTrace) {
-      _sendErrorNotification(e.toString());
+      _sendErrorNotification(e);
       Logger(
         'AutoReceiveTxWorker',
       ).log(Level.WARNING, 'autoReceiveTransactionHash', e, stackTrace);
@@ -173,7 +179,7 @@ class AutoReceiveTxWorker extends Cubit<AutoReceiveTxState> {
           }
           _onSuccess(response, toAddress.toString());
         } on RpcException catch (e, stackTrace) {
-          _sendErrorNotification(e.toString());
+          _sendErrorNotification(e);
           Logger(
             'AutoReceiveTxWorker',
           ).log(Level.WARNING, 'autoReceive', e, stackTrace);
@@ -188,7 +194,7 @@ class AutoReceiveTxWorker extends Cubit<AutoReceiveTxState> {
           Logger(
             'AutoReceiveTxWorker',
           ).log(Level.WARNING, 'autoReceive', e, stackTrace);
-          _sendErrorNotification(e.toString());
+          _sendErrorNotification(e);
           break;
         }
       }
@@ -252,12 +258,16 @@ class AutoReceiveTxWorker extends Cubit<AutoReceiveTxState> {
     }
   }
 
-  void _sendErrorNotification(String errorText) {
+  void _sendErrorNotification(Object error) {
+    final AppLocalizations l10n = _l10nProvider();
+    final String errorText = error is SyriusException
+        ? error.localizedMessage(l10n)
+        : error.toString();
     _emitNotification(
       WalletNotification(
-        title: 'Receive transaction failed',
+        title: l10n.receiveTransactionFailed,
         timestamp: DateTime.now().millisecondsSinceEpoch,
-        details: 'Failed to receive the transaction: $errorText',
+        details: l10n.failedToReceiveTransaction(errorText),
         type: NotificationType.error,
       ),
     );
@@ -269,11 +279,14 @@ class AutoReceiveTxWorker extends Cubit<AutoReceiveTxState> {
   }
 
   void _sendSuccessNotification(AccountBlockTemplate block, String toAddress) {
+    final AppLocalizations l10n = _l10nProvider();
     _emitNotification(
       WalletNotification(
-        title: 'Transaction received on ${_addressLabelResolver(toAddress)}',
+        title: l10n.transactionReceivedOnAddress(
+          _addressLabelResolver(toAddress),
+        ),
         timestamp: DateTime.now().millisecondsSinceEpoch,
-        details: 'Transaction hash: ${block.hash}',
+        details: l10n.transactionHashWithValue(block.hash.toString()),
         type: NotificationType.paymentReceived,
       ),
     );

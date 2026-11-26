@@ -43,8 +43,8 @@ class JoinP2pSwapBloc extends Bloc<JoinP2pSwapEvent, JoinP2pSwapState> {
     try {
       final int now = _unixTimeProvider();
       if (!event.initialHtlc.canBeSafelyJoinedAt(now)) {
-        throw SyriusException(
-          'This deposit will expire too soon for a safe swap.',
+        throw LocalizedSyriusException(
+          SyriusErrorCode.depositExpiresTooSoonForSafeSwap,
         );
       }
       final int counterHtlcExpirationTime =

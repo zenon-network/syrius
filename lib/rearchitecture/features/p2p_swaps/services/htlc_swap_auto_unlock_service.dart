@@ -1,5 +1,6 @@
 import 'package:json_rpc_2/json_rpc_2.dart';
 import 'package:logging/logging.dart';
+import 'package:zenon_syrius_wallet_flutter/l10n/app_localizations.dart';
 import 'package:zenon_syrius_wallet_flutter/model/database/notification_type.dart';
 import 'package:zenon_syrius_wallet_flutter/model/database/wallet_notification.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/node_sync_status/services/node_sync_monitor.dart';
@@ -8,6 +9,7 @@ import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/p2p_swap/mod
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/p2p_swaps/services/htlc_swap_unlock_service.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/p2p_swaps/utils/swap_storage_error_sanitizer.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/exceptions/syrius_exception.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/l10n/app_localizations_resolver.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/address_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
@@ -22,11 +24,14 @@ class HtlcSwapAutoUnlockService {
     required this._syncMonitor,
     required this._unlockService,
     DateTime Function()? now,
-  }) : _now = now ?? DateTime.now;
+    AppLocalizations Function()? l10nProvider,
+  }) : _now = now ?? DateTime.now,
+       _l10nProvider = l10nProvider ?? resolveAppLocalizations;
 
   final Logger _logger = Logger('HtlcSwapAutoUnlockService');
   final NodeSyncMonitor _syncMonitor;
   final DateTime Function() _now;
+  final AppLocalizations Function() _l10nProvider;
   final Map<String, DateTime> _recentAttempts = <String, DateTime>{};
   final NotificationsBloc _notificationsBloc;
   final HtlcSwapUnlockService _unlockService;
@@ -80,7 +85,7 @@ class HtlcSwapAutoUnlockService {
       await _sendSuccessNotification(response, swap.selfAddress);
     } on SyriusException catch (error, stackTrace) {
       _logger.log(Level.WARNING, 'unlockNext', error, stackTrace);
-      await _sendErrorNotification(error.toString());
+      await _sendErrorNotification(error.localizedMessage(_l10nProvider()));
     } on RpcException catch (error, stackTrace) {
       final RedactedSwapError sanitizedError = sanitizeSwapErrorForLogging(
         error,
@@ -98,26 +103,34 @@ class HtlcSwapAutoUnlockService {
     }
   }
 
-  Future<void> _sendErrorNotification(String errorText) => _notify(
-    WalletNotification(
-      title: 'Failed to complete swap',
-      timestamp: _now().millisecondsSinceEpoch,
-      details: 'Failed to complete the swap: $errorText',
-      type: NotificationType.error,
-    ),
-  );
+  Future<void> _sendErrorNotification(String errorText) {
+    final AppLocalizations l10n = _l10nProvider();
+    return _notify(
+      WalletNotification(
+        title: l10n.failedToCompleteSwap,
+        timestamp: _now().millisecondsSinceEpoch,
+        details: l10n.failedToCompleteSwapWithError(errorText),
+        type: NotificationType.error,
+      ),
+    );
+  }
 
   Future<void> _sendSuccessNotification(
     AccountBlockTemplate block,
     String toAddress,
-  ) => _notify(
-    WalletNotification(
-      title: 'Transaction received on ${ZenonAddressUtils.getLabel(toAddress)}',
-      timestamp: _now().millisecondsSinceEpoch,
-      details: 'Transaction hash: ${block.hash}',
-      type: NotificationType.paymentReceived,
-    ),
-  );
+  ) {
+    final AppLocalizations l10n = _l10nProvider();
+    return _notify(
+      WalletNotification(
+        title: l10n.transactionReceivedOnAddress(
+          ZenonAddressUtils.getLabel(toAddress),
+        ),
+        timestamp: _now().millisecondsSinceEpoch,
+        details: l10n.transactionHashWithValue(block.hash.toString()),
+        type: NotificationType.paymentReceived,
+      ),
+    );
+  }
 
   Future<void> _notify(WalletNotification notification) async {
     try {

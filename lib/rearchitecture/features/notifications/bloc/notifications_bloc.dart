@@ -99,11 +99,14 @@ class NotificationsBloc extends Bloc<NotificationsEvent, NotificationsState> {
 
   /// Stores and publishes an error notification with [title] and [error].
   Future<void> addErrorNotification(Object error, String title) {
+    final String detailsError = error is SyriusException
+        ? error.localizedMessage(resolveAppLocalizations())
+        : error.toString();
     return addNotification(
       WalletNotification(
         title: title,
         timestamp: _now().millisecondsSinceEpoch,
-        details: '$title: $error',
+        details: '$title: $detailsError',
         type: NotificationType.error,
       ),
     );
@@ -111,11 +114,14 @@ class NotificationsBloc extends Bloc<NotificationsEvent, NotificationsState> {
 
   /// Stores an error in history without showing it to the user.
   Future<void> recordErrorNotification(Object error, String title) {
+    final String detailsError = error is SyriusException
+        ? error.localizedMessage(resolveAppLocalizations())
+        : error.toString();
     return recordNotification(
       WalletNotification(
         title: title,
         timestamp: _now().millisecondsSinceEpoch,
-        details: '$title: $error',
+        details: '$title: $detailsError',
         type: NotificationType.error,
       ),
     );

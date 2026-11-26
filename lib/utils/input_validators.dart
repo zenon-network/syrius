@@ -1,68 +1,84 @@
 import 'package:convert/convert.dart';
 import 'package:logging/logging.dart';
 import 'package:validators/validators.dart';
+import 'package:zenon_syrius_wallet_flutter/l10n/app_localizations.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/l10n/app_localizations_resolver.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 class InputValidators {
   static String kEVMAddressRegex = r'^(0x)([a-fA-F0-9]){40}$';
 
-  static String? evmAddress(String? address) {
+  static String? evmAddress(String? address, {AppLocalizations? l10n}) {
     if (address != null && RegExp(kEVMAddressRegex).hasMatch(address)) {
       return null;
     }
-    return 'Invalid address';
+    return (l10n ?? resolveAppLocalizations()).invalidAddress;
   }
 
-  static String? node(String? node) {
+  static String? node(String? node, {AppLocalizations? l10n}) {
     if (node != null &&
-        RegExp(r'^(wss?://)([0-9]{1,3}(?:.[0-9]{1,3}){3}|[^/]+):([0-9]{1,5})$')
-            .hasMatch(node)) {
+        RegExp(
+          r'^(wss?://)([0-9]{1,3}(?:.[0-9]{1,3}){3}|[^/]+):([0-9]{1,5})$',
+        ).hasMatch(node)) {
       return null;
     }
-    return 'Invalid Node';
+    return (l10n ?? resolveAppLocalizations()).invalidNode;
   }
 
-  static String? recipientAddress(String recipientAddress) {
+  static String? recipientAddress(
+    String recipientAddress, {
+    AppLocalizations? l10n,
+  }) {
     if (!kDefaultAddressList.contains(recipientAddress)) {
-      return 'Must be an address from your wallet';
+      return (l10n ?? resolveAppLocalizations()).mustBeAddressFromWallet;
     }
     return null;
   }
 
-  static String? notEmpty(String fieldName, String? value) {
-    return (value ?? '').isEmpty ? '$fieldName must not be empty' : null;
+  static String? notEmpty(
+    String fieldName,
+    String? value, {
+    AppLocalizations? l10n,
+  }) {
+    return (value ?? '').isEmpty
+        ? (l10n ?? resolveAppLocalizations()).fieldMustNotBeEmpty(fieldName)
+        : null;
   }
 
-  static String? validateNumber(String? number) {
+  static String? validateNumber(String? number, {AppLocalizations? l10n}) {
+    final AppLocalizations resolvedL10n = l10n ?? resolveAppLocalizations();
     try {
       if (number == null || number.isEmpty) {
-        return 'Number required';
+        return resolvedL10n.numberRequired;
       }
       int.parse(number);
       return null;
     } catch (e, stackTrace) {
-      Logger('InputValidators')
-          .log(Level.SEVERE, 'validateNumber ', e, stackTrace);
-      return 'Input is not a valid number';
+      Logger(
+        'InputValidators',
+      ).log(Level.SEVERE, 'validateNumber ', e, stackTrace);
+      return resolvedL10n.inputNotValidNumber;
     }
   }
 
-  static String? validateAmount(String? value) {
+  static String? validateAmount(String? value, {AppLocalizations? l10n}) {
+    final AppLocalizations resolvedL10n = l10n ?? resolveAppLocalizations();
     if (value != null) {
       try {
         if (value.isEmpty) {
-          return 'Invalid amount';
+          return resolvedL10n.invalidAmount;
         }
         BigInt.parse(value);
         return null;
       } catch (e, stackTrace) {
-        Logger('InputValidators')
-            .log(Level.SEVERE, 'validateAmount', e, stackTrace);
-        return 'Error';
+        Logger(
+          'InputValidators',
+        ).log(Level.SEVERE, 'validateAmount', e, stackTrace);
+        return resolvedL10n.error;
       }
     } else {
-      return 'Value is null';
+      return resolvedL10n.valueIsNull;
     }
   }
 
@@ -73,74 +89,91 @@ class InputValidators {
     BigInt minValue, {
     bool canBeEqualToMin = false,
     bool canBeBlank = false,
+    AppLocalizations? l10n,
   }) {
+    final AppLocalizations resolvedL10n = l10n ?? resolveAppLocalizations();
     if (value != null) {
       try {
         if (maxValue == BigInt.zero) {
           if (canBeEqualToMin) {
             return null;
           }
-          return 'Empty balance';
+          return resolvedL10n.emptyBalance;
         }
         if (value.isEmpty) {
           if (canBeBlank) {
             return null;
           } else {
-            return 'Enter a valid amount';
+            return resolvedL10n.enterValidAmount;
           }
         }
 
         final BigInt inputNum = value.extractDecimals(decimals);
 
         if (value.contains('.') && value.split('.')[1].length > decimals) {
-          return 'Inputted number has too many decimals';
+          return resolvedL10n.inputtedNumberHasTooManyDecimals;
         }
         if (maxValue < minValue) {
-          return 'Your available balance must be at least ${minValue.addDecimals(decimals)}';
+          return resolvedL10n.availableBalanceMustBeAtLeast(
+            minValue.addDecimals(decimals),
+          );
         }
         if (canBeEqualToMin) {
           return minValue <= inputNum && inputNum <= maxValue
               ? null
               : maxValue == minValue
-                  ? 'Value must be  ${minValue.addDecimals(decimals)}'
-                  : 'Value must be between ${minValue.addDecimals(decimals)} and ${maxValue.addDecimals(decimals)}';
+              ? resolvedL10n.valueMustBe(minValue.addDecimals(decimals))
+              : resolvedL10n.valueMustBeBetween(
+                  minValue.addDecimals(decimals),
+                  maxValue.addDecimals(decimals),
+                );
         }
         return minValue < inputNum && inputNum <= maxValue
             ? null
             : maxValue == minValue
-                ? 'Value must be ${minValue.addDecimals(decimals)}'
-                : 'Value must be between ${minValue.addDecimals(decimals)} and ${maxValue.addDecimals(decimals)}';
+            ? resolvedL10n.valueMustBe(minValue.addDecimals(decimals))
+            : resolvedL10n.valueMustBeBetween(
+                minValue.addDecimals(decimals),
+                maxValue.addDecimals(decimals),
+              );
       } catch (e, stackTrace) {
-        Logger('InputValidators')
-            .log(Level.SEVERE, 'correctValue', e, stackTrace);
-        return 'Error';
+        Logger(
+          'InputValidators',
+        ).log(Level.SEVERE, 'correctValue', e, stackTrace);
+        return resolvedL10n.error;
       }
     }
-    return "Value can't be empty";
+    return resolvedL10n.valueCannotBeEmpty;
   }
 
-  static String? checkAddress(String? value) {
+  static String? checkAddress(String? value, {AppLocalizations? l10n}) {
+    final AppLocalizations resolvedL10n = l10n ?? resolveAppLocalizations();
     if (value != null) {
       if (value.isEmpty) {
-        return 'Enter an address';
+        return resolvedL10n.enterAddress;
       }
-      return Address.isValid(value) ? null : 'Invalid address';
+      return Address.isValid(value) ? null : resolvedL10n.invalidAddress;
     } else {
-      return 'Value is null';
+      return resolvedL10n.valueIsNull;
     }
   }
 
-  static String? checkPasswordMatch(String firstPass, String? secondPass) {
+  static String? checkPasswordMatch(
+    String firstPass,
+    String? secondPass, {
+    AppLocalizations? l10n,
+  }) {
     if (firstPass != secondPass) {
-      return 'Passwords do not match';
+      return (l10n ?? resolveAppLocalizations()).passwordsDoNotMatch;
     }
     return null;
   }
 
-  static String? validatePassword(String? value) {
+  static String? validatePassword(String? value, {AppLocalizations? l10n}) {
+    final AppLocalizations resolvedL10n = l10n ?? resolveAppLocalizations();
     if (value != null) {
       if (value.length < 8) {
-        return 'Password not strong enough';
+        return resolvedL10n.passwordNotStrongEnough;
       }
       const String pattern =
           r'''^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[`~!@#$%^&*()\-_=+\[\]\{\}\\|;:",<.>\/\?']).{8,}$''';
@@ -148,65 +181,76 @@ class InputValidators {
       if (regExp.hasMatch(value)) {
         return null;
       }
-      return 'Invalid password';
+      return resolvedL10n.invalidPassword;
     } else {
-      return 'Value is null';
+      return resolvedL10n.valueIsNull;
     }
   }
 
-  static String? validatePillarMomentumAddress(String? value) {
+  static String? validatePillarMomentumAddress(
+    String? value, {
+    AppLocalizations? l10n,
+  }) {
+    final AppLocalizations resolvedL10n = l10n ?? resolveAppLocalizations();
     if (value != null) {
-      if (checkAddress(value) == null) {
+      final String? addressError = checkAddress(value, l10n: resolvedL10n);
+      if (addressError == null) {
         if (kDefaultAddressList.contains(value)) {
-          return 'Pillar producer address must be generated from a different seed';
+          return resolvedL10n.pillarProducerAddressDifferentSeed;
         }
       } else {
-        return checkAddress(value);
+        return addressError;
       }
       return null;
     } else {
-      return 'Value is null';
+      return resolvedL10n.valueIsNull;
     }
   }
 
-  static String? isMaxSupplyZero(String? value) {
+  static String? isMaxSupplyZero(String? value, {AppLocalizations? l10n}) {
+    final AppLocalizations resolvedL10n = l10n ?? resolveAppLocalizations();
     if (value != null) {
       try {
         if (BigInt.parse(value) != BigInt.zero) {
-          return 'Max supply must be 0 for non-mintable tokens';
+          return resolvedL10n.maxSupplyZeroForNonMintableTokens;
         }
         return null;
       } catch (e, stackTrace) {
-        Logger('InputValidators')
-            .log(Level.SEVERE, 'isMaxSupplyZero', e, stackTrace);
-        return 'Error';
+        Logger(
+          'InputValidators',
+        ).log(Level.SEVERE, 'isMaxSupplyZero', e, stackTrace);
+        return resolvedL10n.error;
       }
     } else {
-      return 'Value is null';
+      return resolvedL10n.valueIsNull;
     }
   }
 
-  static String? checkUrl(String? value) {
+  static String? checkUrl(String? value, {AppLocalizations? l10n}) {
     final List<String> protocols = <String>['https'];
 
     if (isURL(value, protocols: protocols)) {
       return null;
     }
-    return 'Invalid URL';
+    return (l10n ?? resolveAppLocalizations()).invalidUrl;
   }
 
-  static String? checkHash(String? value) {
+  static String? checkHash(String? value, {AppLocalizations? l10n}) {
     try {
       if (Hash.parse(value!).runtimeType == Hash) {
         return null;
       }
     } catch (e) {
-      return 'Invalid hash';
+      return (l10n ?? resolveAppLocalizations()).invalidHash;
     }
-    return 'Invalid hash';
+    return (l10n ?? resolveAppLocalizations()).invalidHash;
   }
 
-  static Future<String?> checkSecret(HtlcInfo htlc, String? value) async {
+  static Future<String?> checkSecret(
+    HtlcInfo htlc,
+    String? value, {
+    AppLocalizations? l10n,
+  }) async {
     if (value != null) {
       try {
         final Hash preimageCheck = htlc.hashType == htlcHashTypeSha3
@@ -217,9 +261,9 @@ class InputValidators {
           return null;
         }
       } catch (e) {
-        return 'Invalid secret';
+        return (l10n ?? resolveAppLocalizations()).invalidSecret;
       }
     }
-    return 'Invalid secret';
+    return (l10n ?? resolveAppLocalizations()).invalidSecret;
   }
 }

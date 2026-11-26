@@ -9,6 +9,49 @@ import 'package:path/path.dart' as path;
 import 'package:znn_ledger_dart/znn_ledger_dart.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
+/// Classifies failures raised while reading or validating a wallet file.
+enum WalletFileReadFailureReason {
+  /// The requested wallet path does not exist on disk.
+  notFound,
+
+  /// The requested wallet path points to a directory, FIFO, or other non-file.
+  notRegularFile,
+
+  /// The wallet file exceeds [WalletFile.maxWalletFileSizeBytes].
+  fileTooLarge,
+
+  /// The encrypted file's wallet type metadata is unsupported.
+  unsupportedWalletType,
+}
+
+/// A typed [WalletException] thrown by [WalletFile.read] and wallet decryptors
+/// so callers can classify and localize file errors cleanly.
+class WalletFileReadException extends WalletException {
+  /// Creates a [WalletFileReadException] with a structured [reason] and
+  /// diagnostic [message].
+  WalletFileReadException(
+    this.reason,
+    super.message, {
+    this.walletPath,
+    this.maxSizeBytes,
+    this.walletType,
+  });
+
+  /// Machine-readable reason describing why reading the wallet file failed.
+  final WalletFileReadFailureReason reason;
+
+  /// The filesystem path that triggered this failure, if available.
+  final String? walletPath;
+
+  /// Maximum allowed file size in bytes when [reason] is
+  /// [WalletFileReadFailureReason.fileTooLarge].
+  final int? maxSizeBytes;
+
+  /// Unsupported wallet type metadata value when [reason] is
+  /// [WalletFileReadFailureReason.unsupportedWalletType].
+  final Object? walletType;
+}
+
 abstract class WalletFile {
   WalletFile(this._path);
   final String _path;
@@ -20,15 +63,20 @@ abstract class WalletFile {
 
   static Future<WalletFile> decrypt(String walletPath, String password) async {
     final EncryptedFile encrypted = await WalletFile.read(walletPath);
-    final walletType =
-        encrypted.metadata != null ? encrypted.metadata![walletTypeKey] : null;
+    final walletType = encrypted.metadata != null
+        ? encrypted.metadata![walletTypeKey]
+        : null;
     if (walletType == null || walletType == keyStoreWalletType) {
       return KeyStoreWalletFile.decrypt(walletPath, password);
     } else if (walletType == ledgerWalletType) {
       return LedgerWalletFile.decrypt(walletPath, password);
     } else {
-      throw WalletException(
-          'Wallet type (${encrypted.metadata![walletTypeKey]}) is not supported',);
+      throw WalletFileReadException(
+        WalletFileReadFailureReason.unsupportedWalletType,
+        'Wallet type (${encrypted.metadata![walletTypeKey]}) is not supported',
+        walletPath: walletPath,
+        walletType: encrypted.metadata![walletTypeKey],
+      );
     }
   }
 
@@ -37,11 +85,17 @@ abstract class WalletFile {
       walletPath,
     );
     if (entityType == FileSystemEntityType.notFound) {
-      throw WalletException('Given wallet path does not exist ($walletPath)');
+      throw WalletFileReadException(
+        WalletFileReadFailureReason.notFound,
+        'Given wallet path does not exist ($walletPath)',
+        walletPath: walletPath,
+      );
     }
     if (entityType != FileSystemEntityType.file) {
-      throw WalletException(
+      throw WalletFileReadException(
+        WalletFileReadFailureReason.notRegularFile,
         'Given wallet path is not a regular file ($walletPath)',
+        walletPath: walletPath,
       );
     }
     final File file = File(walletPath);
@@ -72,9 +126,12 @@ abstract class WalletFile {
       reader.closeSync();
     }
     if (bytes.length > maxWalletFileSizeBytes) {
-      throw WalletException(
+      throw WalletFileReadException(
+        WalletFileReadFailureReason.fileTooLarge,
         'Wallet file is too large (over $maxWalletFileSizeBytes bytes) — '
         'is this a keystore file?',
+        walletPath: walletPath,
+        maxSizeBytes: maxWalletFileSizeBytes,
       );
     }
     final Object? decoded = json.decode(utf8.decode(bytes));
@@ -132,10 +189,17 @@ abstract class WalletFile {
     }
   }
 
-  static Future<void> write(String walletPath, String password, List<int> data,
-      {Map<String, dynamic>? metadata,}) async {
-    final EncryptedFile encrypted =
-        await EncryptedFile.encrypt(data, password, metadata: metadata);
+  static Future<void> write(
+    String walletPath,
+    String password,
+    List<int> data, {
+    Map<String, dynamic>? metadata,
+  }) async {
+    final EncryptedFile encrypted = await EncryptedFile.encrypt(
+      data,
+      password,
+      metadata: metadata,
+    );
     final int timestamp = DateTime.now().microsecondsSinceEpoch;
     final File tmpFile = File(
       '$walletPath.tmp.$pid.$timestamp.${_tmpFileCounter++}',
@@ -174,11 +238,17 @@ abstract class WalletFile {
   Future<void> close();
 
   Future<void> changePassword(
-      String currentPassword, String newPassword,) async {
+    String currentPassword,
+    String newPassword,
+  ) async {
     final EncryptedFile file = await WalletFile.read(walletPath);
     final List<int> decrypted = await file.decrypt(currentPassword);
-    await WalletFile.write(walletPath, newPassword, decrypted,
-        metadata: file.metadata,);
+    await WalletFile.write(
+      walletPath,
+      newPassword,
+      decrypted,
+      metadata: file.metadata,
+    );
   }
 }
 
@@ -228,33 +298,44 @@ class _WalletFileLifecycle {
 }
 
 class KeyStoreWalletFile extends WalletFile {
-
   KeyStoreWalletFile._internal(super._path, String walletSeed)
-      : _walletSeed = walletSeed;
+    : _walletSeed = walletSeed;
   final _WalletFileLifecycle _lifecycle = _WalletFileLifecycle();
   String? _walletSeed;
   KeyStore? _keyStore;
 
-  static final KeyStoreManager keyStoreWalletManager =
-      KeyStoreManager(walletPath: znnDefaultWalletDirectory);
+  static final KeyStoreManager keyStoreWalletManager = KeyStoreManager(
+    walletPath: znnDefaultWalletDirectory,
+  );
 
-  static Future<KeyStoreWalletFile> create(String mnemonic, String password,
-      {String? name,}) async {
+  static Future<KeyStoreWalletFile> create(
+    String mnemonic,
+    String password, {
+    String? name,
+  }) async {
     final KeyStore wallet = KeyStore.fromMnemonic(mnemonic);
-    final KeyStoreDefinition walletDefinition =
-        await keyStoreWalletManager.saveKeyStore(wallet, password, name: name);
+    final KeyStoreDefinition walletDefinition = await keyStoreWalletManager
+        .saveKeyStore(wallet, password, name: name);
     return KeyStoreWalletFile._internal(
-        walletDefinition.walletId, wallet.entropy,);
+      walletDefinition.walletId,
+      wallet.entropy,
+    );
   }
 
   static Future<KeyStoreWalletFile> decrypt(
-      String walletPath, String password,) async {
+    String walletPath,
+    String password,
+  ) async {
     final EncryptedFile encrypted = await WalletFile.read(walletPath);
     if (encrypted.metadata != null &&
         encrypted.metadata![walletTypeKey] != null &&
         encrypted.metadata![walletTypeKey] != keyStoreWalletType) {
-      throw WalletException(
-          'Wallet type (${encrypted.metadata![walletTypeKey]}) is not supported',);
+      throw WalletFileReadException(
+        WalletFileReadFailureReason.unsupportedWalletType,
+        'Wallet type (${encrypted.metadata![walletTypeKey]}) is not supported',
+        walletPath: walletPath,
+        walletType: encrypted.metadata![walletTypeKey],
+      );
     }
     final List<int> decrypted = await encrypted.decrypt(password);
     return KeyStoreWalletFile._internal(walletPath, HEX.encode(decrypted));
@@ -312,17 +393,12 @@ class KeyStoreWalletFile extends WalletFile {
 }
 
 class LedgerWalletFile extends WalletFile {
-
   LedgerWalletFile._internal(super._path, this._walletName)
-      : _connector = _connect;
+    : _connector = _connect;
 
   /// Creates a [LedgerWalletFile] with a custom device connector for tests.
   @visibleForTesting
-  LedgerWalletFile.forTesting(
-    super._path,
-    this._walletName,
-    this._connector,
-  );
+  LedgerWalletFile.forTesting(super._path, this._walletName, this._connector);
 
   final _WalletFileLifecycle _lifecycle = _WalletFileLifecycle();
   final String _walletName;
@@ -341,22 +417,34 @@ class LedgerWalletFile extends WalletFile {
       }
     }
     throw const LedgerError.connectionError(
-        origMessage:
-            'Cannot find the hardware device, please connect/unlock the device on which the wallet is initialized',);
+      origMessage:
+          'Cannot find the hardware device, please connect/unlock the device on which the wallet is initialized',
+    );
   }
 
-  static Future<LedgerWalletFile> create(String walletId, String password,
-      {String? walletName,}) async {
+  static Future<LedgerWalletFile> create(
+    String walletId,
+    String password, {
+    String? walletName,
+  }) async {
     final LedgerWallet wallet = await _connect(walletId);
     try {
-      final Address baseAddress = await (await wallet.getAccount()).getAddress();
+      final Address baseAddress = await (await wallet.getAccount())
+          .getAddress();
       walletName ??= baseAddress.toString();
-      final String walletPath = path.join(znnDefaultWalletDirectory.path, walletName);
-      await WalletFile.write(walletPath, password, utf8.encode(walletName),
-          metadata: <String, String>{
-            baseAddressKey: baseAddress.toString(),
-            walletTypeKey: ledgerWalletType,
-          },);
+      final String walletPath = path.join(
+        znnDefaultWalletDirectory.path,
+        walletName,
+      );
+      await WalletFile.write(
+        walletPath,
+        password,
+        utf8.encode(walletName),
+        metadata: <String, String>{
+          baseAddressKey: baseAddress.toString(),
+          walletTypeKey: ledgerWalletType,
+        },
+      );
       return LedgerWalletFile._internal(walletPath, walletName);
     } finally {
       await wallet.disconnect();
@@ -364,12 +452,18 @@ class LedgerWalletFile extends WalletFile {
   }
 
   static Future<LedgerWalletFile> decrypt(
-      String walletPath, String password,) async {
+    String walletPath,
+    String password,
+  ) async {
     final EncryptedFile encrypted = await WalletFile.read(walletPath);
     if (encrypted.metadata == null ||
         encrypted.metadata![walletTypeKey] != ledgerWalletType) {
-      throw WalletException(
-          'Wallet type (${encrypted.metadata?[walletTypeKey]}) is not supported',);
+      throw WalletFileReadException(
+        WalletFileReadFailureReason.unsupportedWalletType,
+        'Wallet type (${encrypted.metadata?[walletTypeKey]}) is not supported',
+        walletPath: walletPath,
+        walletType: encrypted.metadata?[walletTypeKey],
+      );
     }
     final List<int> decrypted = await encrypted.decrypt(password);
     return LedgerWalletFile._internal(walletPath, utf8.decode(decrypted));

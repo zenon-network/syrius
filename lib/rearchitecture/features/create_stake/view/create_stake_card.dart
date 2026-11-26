@@ -13,10 +13,7 @@ import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 /// A card that lets the user create a stake for the selected address.
 class CreateStakeCard extends StatelessWidget {
   /// Creates a stake creation widget.
-  const CreateStakeCard({
-    required this.onStakeCreated,
-    super.key,
-  });
+  const CreateStakeCard({required this.onStakeCreated, super.key});
 
   /// Called after a stake transaction was successfully created.
   final VoidCallback onStakeCreated;
@@ -107,10 +104,8 @@ class _PopulatedState extends State<_Populated> {
 
   Duration? _selectedStakeDuration;
 
-  BigInt get _maxZnnAmount =>
-      widget.mapAccountInfo[kSelectedAddress!]!.getBalance(
-        kZnnCoin.tokenStandard,
-      );
+  BigInt get _maxZnnAmount => widget.mapAccountInfo[kSelectedAddress!]!
+      .getBalance(kZnnCoin.tokenStandard);
 
   String get _amount => _amountController.text;
 
@@ -121,6 +116,7 @@ class _PopulatedState extends State<_Populated> {
           kZnnCoin.decimals,
           stakeMinZnnAmount,
           canBeEqualToMin: true,
+          l10n: context.l10n,
         )
       : null;
 
@@ -155,13 +151,8 @@ class _PopulatedState extends State<_Populated> {
         child: Column(
           crossAxisAlignment: .stretch,
           children: <Widget>[
-            DisabledAddressField(
-              _addressController,
-            ),
-            AvailableBalance.stepper(
-              kZnnCoin,
-              accountInfo,
-            ),
+            DisabledAddressField(_addressController),
+            AvailableBalance.stepper(kZnnCoin, accountInfo),
             _buildStakeDurationDropdown(context),
             kVerticalGap16,
             ValueListenableBuilder<TextEditingValue>(
@@ -221,9 +212,7 @@ class _PopulatedState extends State<_Populated> {
       onSelected: _onStakeDurationChanged,
       selectOnly: true,
       expandedInsets: EdgeInsets.zero,
-      inputDecorationTheme: const InputDecorationTheme(
-        filled: true,
-      ),
+      inputDecorationTheme: const InputDecorationTheme(filled: true),
       menuHeight: kDropdownMenuHeight,
       trailingIcon: const Icon(
         Icons.keyboard_arrow_down_rounded,
@@ -320,9 +309,7 @@ class _StakeButton extends StatelessWidget {
         key: buttonKey,
         onPressed: isInputValid ? onPressed : null,
         label: context.l10n.stake,
-        icon: const Icon(
-          Icons.lock_clock,
-        ),
+        icon: const Icon(Icons.lock_clock),
       ),
     );
   }

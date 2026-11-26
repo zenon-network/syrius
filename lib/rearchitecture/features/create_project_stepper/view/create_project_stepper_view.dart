@@ -338,7 +338,8 @@ class _CreateProjectStepperViewState extends State<CreateProjectStepperView> {
                   onChanged: (String value) {
                     setState(() {});
                   },
-                  validator: InputValidators.checkUrl,
+                  validator: (String? value) =>
+                      InputValidators.checkUrl(value, l10n: context.l10n),
                 ),
               ),
             ),
@@ -391,6 +392,7 @@ class _CreateProjectStepperViewState extends State<CreateProjectStepperView> {
                     kZnnCoin.decimals,
                     kZnnProjectMinimumFunds,
                     canBeEqualToMin: true,
+                    l10n: context.l10n,
                   ),
                   onChanged: (String value) {
                     setState(() {});
@@ -437,6 +439,7 @@ class _CreateProjectStepperViewState extends State<CreateProjectStepperView> {
                     kQsrCoin.decimals,
                     kQsrProjectMinimumFunds,
                     canBeEqualToMin: true,
+                    l10n: context.l10n,
                   ),
                   onChanged: (String value) {
                     setState(() {});

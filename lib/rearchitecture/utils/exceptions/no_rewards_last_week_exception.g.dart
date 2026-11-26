@@ -9,7 +9,7 @@ part of 'no_rewards_last_week_exception.dart';
 NoRewardsLastWeekException _$NoRewardsLastWeekExceptionFromJson(
   Map<String, dynamic> json,
 ) => NoRewardsLastWeekException(
-  message: json['message'] as String? ?? 'No rewards in the last week',
+  message: json['message'] as String? ?? _kDefaultMessage,
 );
 
 Map<String, dynamic> _$NoRewardsLastWeekExceptionToJson(

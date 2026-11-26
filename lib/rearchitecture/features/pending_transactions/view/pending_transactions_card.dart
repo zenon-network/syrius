@@ -72,7 +72,7 @@ class _PendingTransactionsFailure extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SyriusErrorWidget(exception.message);
+    return SyriusErrorWidget(exception);
   }
 }
 
@@ -105,9 +105,7 @@ class _PendingTransactionsPopulatedState
       items: widget.transactions,
       onScrollReachedBottom: () {
         widget.bloc.add(
-          InfiniteListMoreRequested(
-            address: Address.parse(kSelectedAddress!),
-          ),
+          InfiniteListMoreRequested(address: Address.parse(kSelectedAddress!)),
         );
       },
     );
@@ -116,27 +114,17 @@ class _PendingTransactionsPopulatedState
   List<Widget> _rowCellsGenerator(AccountBlock transaction) =>
       _getCellsForPendingTransactions(transaction);
 
-  List<Widget> _getCellsForPendingTransactions(
-    AccountBlock transaction,
-  ) {
+  List<Widget> _getCellsForPendingTransactions(AccountBlock transaction) {
     final AccountBlock infoBlock =
         BlockUtils.isReceiveBlock(transaction.blockType)
         ? transaction.pairedAccountBlock!
         : transaction;
     return <Widget>[
-      AddressCell(
-        address: infoBlock.address,
-      ),
-      AddressCell(
-        address: infoBlock.toAddress,
-      ),
-      HashCell(
-        hash: infoBlock.hash,
-      ),
+      AddressCell(address: infoBlock.address),
+      AddressCell(address: infoBlock.toAddress),
+      HashCell(hash: infoBlock.hash),
       AmountCell(block: infoBlock),
-      DateCell(
-        timestampMs: infoBlock.confirmationTimestampMs,
-      ),
+      DateCell(timestampMs: infoBlock.confirmationTimestampMs),
       AssetCell(block: infoBlock),
       ReceiveCell(hash: infoBlock.hash),
     ];
@@ -163,41 +151,31 @@ class _PendingTransactionsPopulatedState
         _sortAscending
             ? widget.transactions.sort(
                 (AccountBlock a, AccountBlock b) =>
-                    a.address.toString().compareTo(
-                      b.address.toString(),
-                    ),
+                    a.address.toString().compareTo(b.address.toString()),
               )
             : widget.transactions.sort(
                 (AccountBlock a, AccountBlock b) =>
-                    b.address.toString().compareTo(
-                      a.address.toString(),
-                    ),
+                    b.address.toString().compareTo(a.address.toString()),
               );
       case InfiniteScrollTableColumnType.receiver:
         _sortAscending
             ? widget.transactions.sort(
                 (AccountBlock a, AccountBlock b) =>
-                    a.toAddress.toString().compareTo(
-                      b.toAddress.toString(),
-                    ),
+                    a.toAddress.toString().compareTo(b.toAddress.toString()),
               )
             : widget.transactions.sort(
                 (AccountBlock a, AccountBlock b) =>
-                    b.toAddress.toString().compareTo(
-                      a.toAddress.toString(),
-                    ),
+                    b.toAddress.toString().compareTo(a.toAddress.toString()),
               );
       case InfiniteScrollTableColumnType.hash:
         _sortAscending
             ? widget.transactions.sort(
-                (AccountBlock a, AccountBlock b) => a.hash.toString().compareTo(
-                  b.hash.toString(),
-                ),
+                (AccountBlock a, AccountBlock b) =>
+                    a.hash.toString().compareTo(b.hash.toString()),
               )
             : widget.transactions.sort(
-                (AccountBlock a, AccountBlock b) => b.hash.toString().compareTo(
-                  a.hash.toString(),
-                ),
+                (AccountBlock a, AccountBlock b) =>
+                    b.hash.toString().compareTo(a.hash.toString()),
               );
       case InfiniteScrollTableColumnType.amount:
         _sortAscending
@@ -212,16 +190,16 @@ class _PendingTransactionsPopulatedState
       case InfiniteScrollTableColumnType.date:
         _sortAscending
             ? widget.transactions.sort(
-                (AccountBlock a, AccountBlock b) =>
-                    a.confirmationDetail!.momentumTimestamp.compareTo(
-                      b.confirmationDetail!.momentumTimestamp,
-                    ),
+                (AccountBlock a, AccountBlock b) => a
+                    .confirmationDetail!
+                    .momentumTimestamp
+                    .compareTo(b.confirmationDetail!.momentumTimestamp),
               )
             : widget.transactions.sort(
-                (AccountBlock a, AccountBlock b) =>
-                    b.confirmationDetail!.momentumTimestamp.compareTo(
-                      a.confirmationDetail!.momentumTimestamp,
-                    ),
+                (AccountBlock a, AccountBlock b) => b
+                    .confirmationDetail!
+                    .momentumTimestamp
+                    .compareTo(a.confirmationDetail!.momentumTimestamp),
               );
       case InfiniteScrollTableColumnType.asset:
         _sortAscending
@@ -236,16 +214,14 @@ class _PendingTransactionsPopulatedState
       default:
         _sortAscending
             ? widget.transactions.sort(
-                (AccountBlock a, AccountBlock b) =>
-                    a.tokenStandard.toString().compareTo(
-                      b.tokenStandard.toString(),
-                    ),
+                (AccountBlock a, AccountBlock b) => a.tokenStandard
+                    .toString()
+                    .compareTo(b.tokenStandard.toString()),
               )
             : widget.transactions.sort(
-                (AccountBlock a, AccountBlock b) =>
-                    b.tokenStandard.toString().compareTo(
-                      a.tokenStandard.toString(),
-                    ),
+                (AccountBlock a, AccountBlock b) => b.tokenStandard
+                    .toString()
+                    .compareTo(a.tokenStandard.toString()),
               );
     }
 

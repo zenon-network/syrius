@@ -3,11 +3,35 @@ import 'dart:async';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:json_rpc_2/json_rpc_2.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:zenon_syrius_wallet_flutter/l10n/app_localizations.dart';
+import 'package:zenon_syrius_wallet_flutter/l10n/app_localizations_en.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/model/model.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/exceptions/exceptions.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/account_block_utils.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
+
+class _CustomAutoReceiveL10n extends AppLocalizationsEn {
+  _CustomAutoReceiveL10n() : super('en');
+
+  @override
+  String get receiveTransactionFailed => '[L10N] Receive failed';
+
+  @override
+  String failedToReceiveTransaction(String error) =>
+      '[L10N] Failed details: $error';
+
+  @override
+  String transactionReceivedOnAddress(String address) =>
+      '[L10N] Received on $address';
+
+  @override
+  String transactionHashWithValue(String hash) => '[L10N] Hash: $hash';
+
+  @override
+  String get walletNotUnlocked => '[L10N] Wallet locked';
+}
 
 class _MockZenon extends Mock implements Zenon {}
 
@@ -91,6 +115,7 @@ void main() {
 
     AutoReceiveTxWorker buildWorker({
       void Function(WalletNotification notification)? onNotification,
+      AppLocalizations Function()? l10nProvider,
     }) {
       return AutoReceiveTxWorker(
         zenonProvider: () => mockZenon,
@@ -101,6 +126,7 @@ void main() {
         onTransactionReceived: () => txReceivedCalls += 1,
         addressLabelResolver: (String address) => 'Address 1',
         onNotification: onNotification,
+        l10nProvider: l10nProvider,
       );
     }
 
@@ -193,17 +219,18 @@ void main() {
     test(
       'pool returns an unmodifiable view that cannot be mutated directly',
       () async {
-      final AutoReceiveTxWorker worker = buildWorker();
-      addTearDown(worker.close);
+        final AutoReceiveTxWorker worker = buildWorker();
+        addTearDown(worker.close);
 
-      await worker.addHash(hash1);
+        await worker.addHash(hash1);
 
-      expect(() => worker.pool.add(hash2), throwsUnsupportedError);
-      expect(() => worker.pool.clear(), throwsUnsupportedError);
-      expect(() => worker.pool.remove(hash1), throwsUnsupportedError);
-      expect(worker.pool, <Hash>[hash1]);
-      expect(worker.state.pendingCount, 1);
-    });
+        expect(() => worker.pool.add(hash2), throwsUnsupportedError);
+        expect(() => worker.pool.clear(), throwsUnsupportedError);
+        expect(() => worker.pool.remove(hash1), throwsUnsupportedError);
+        expect(worker.pool, <Hash>[hash1]);
+        expect(worker.state.pendingCount, 1);
+      },
+    );
 
     test('autoReceive clears pool when disabled', () async {
       final AutoReceiveTxWorker worker = buildWorker();
@@ -469,5 +496,44 @@ void main() {
         );
       },
     );
+
+    test('localizes success and error notifications via injected l10nProvider '
+        'without BuildContext', () async {
+      final List<WalletNotification> captured = <WalletNotification>[];
+      final AutoReceiveTxWorker worker = buildWorker(
+        onNotification: captured.add,
+        l10nProvider: _CustomAutoReceiveL10n.new,
+      );
+      addTearDown(worker.close);
+
+      await worker.addHash(hash1);
+      await worker.autoReceive();
+
+      expect(captured, hasLength(1));
+      expect(captured.single.type, NotificationType.paymentReceived);
+      expect(captured.single.title, '[L10N] Received on Address 1');
+      expect(captured.single.details, '[L10N] Hash: ${testTemplate.hash}');
+
+      captured.clear();
+      when(
+        () => mockAccountBlockUtils.createAccountBlock(
+          any(),
+          any(),
+          address: any(named: 'address'),
+          waitForRequiredPlasma: any(named: 'waitForRequiredPlasma'),
+        ),
+      ).thenThrow(LocalizedSyriusException(SyriusErrorCode.walletNotUnlocked));
+
+      await worker.addHash(hash2);
+      await worker.autoReceive();
+
+      expect(captured, hasLength(1));
+      expect(captured.single.type, NotificationType.error);
+      expect(captured.single.title, '[L10N] Receive failed');
+      expect(
+        captured.single.details,
+        '[L10N] Failed details: [L10N] Wallet locked',
+      );
+    });
   });
 }

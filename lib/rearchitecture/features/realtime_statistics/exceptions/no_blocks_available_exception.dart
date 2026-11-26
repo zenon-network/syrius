@@ -1,9 +1,12 @@
 import 'package:flutter/cupertino.dart';
 import 'package:json_annotation/json_annotation.dart';
+import 'package:zenon_syrius_wallet_flutter/l10n/app_localizations.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/exceptions/exceptions.dart';
 
 part 'no_blocks_available_exception.g.dart';
+
+const String _kDefaultMessage = 'No account blocks available';
 
 /// An exception to be used with [RealtimeStatisticsCubit] when there are
 /// no account blocks available on the network
@@ -11,13 +14,16 @@ part 'no_blocks_available_exception.g.dart';
 @JsonSerializable()
 class NoBlocksAvailableException extends SyriusException {
   /// Creates a [NoBlocksAvailableException] instance
-  NoBlocksAvailableException({
-    String message = 'No account blocks available',
-  }) : super(message);
+  NoBlocksAvailableException({String message = _kDefaultMessage})
+    : super(message);
 
   /// {@macro instance_from_json}
   factory NoBlocksAvailableException.fromJson(Map<String, dynamic> json) =>
       _$NoBlocksAvailableExceptionFromJson(json);
+
+  @override
+  String localizedMessage(AppLocalizations l10n) =>
+      message == _kDefaultMessage ? l10n.noAccountBlocksAvailable : message;
 
   @override
   Map<String, dynamic> toJson() =>

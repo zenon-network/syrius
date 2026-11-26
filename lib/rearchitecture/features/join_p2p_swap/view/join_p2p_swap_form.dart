@@ -60,18 +60,14 @@ class _JoinP2pSwapFormState extends State<JoinP2pSwapForm> {
   @override
   Widget build(BuildContext context) {
     return BlocProvider<JoinSwapAvailabilityCubit>(
-      create: (_) => JoinSwapAvailabilityCubit(
-        initialHtlc: widget.initialHtlc,
-      ),
+      create: (_) => JoinSwapAvailabilityCubit(initialHtlc: widget.initialHtlc),
       child: _buildContent(),
     );
   }
 
   Widget _buildContent() {
     final String counterpartyDeadlineBullet = context.l10n
-        .counterpartyTimeToCompleteSwap(
-          kCounterHtlcDuration.inHours,
-        );
+        .counterpartyTimeToCompleteSwap(kCounterHtlcDuration.inHours);
     final String reclaimBullet = context.l10n.reclaimFundsIfCounterpartyFails;
 
     return BlocConsumer<JoinP2pSwapBloc, JoinP2pSwapState>(
@@ -91,6 +87,7 @@ class _JoinP2pSwapFormState extends State<JoinP2pSwapForm> {
               widget.accountInfo.getBalance(_token.tokenStandard),
               _token.decimals,
               BigInt.zero,
+              l10n: context.l10n,
             );
             final bool isAmountValid = amount.isNotEmpty && amountError == null;
 
@@ -130,10 +127,7 @@ class _JoinP2pSwapFormState extends State<JoinP2pSwapForm> {
                     ),
                   ],
                 ),
-                const Icon(
-                  AntDesign.arrowdown,
-                  color: Colors.white,
-                ),
+                const Icon(AntDesign.arrowdown, color: Colors.white),
                 HtlcCard.fromHtlcInfo(
                   title: context.l10n.youAreReceiving,
                   htlc: widget.initialHtlc,
@@ -175,9 +169,7 @@ class _JoinP2pSwapFormState extends State<JoinP2pSwapForm> {
                 reclaimBullet,
               ],
             ),
-            if (!isTrustedToken(
-              widget.token.tokenStandard.toString(),
-            ))
+            if (!isTrustedToken(widget.token.tokenStandard.toString()))
               Warning(
                 text: context.l10n.verifyNonFavoriteToken(
                   widget.token.tokenStandard.toString(),
@@ -194,9 +186,7 @@ class _JoinP2pSwapFormState extends State<JoinP2pSwapForm> {
         ),
         JoinSwapUnavailable() => Column(
           children: <Widget>[
-            Warning(
-              text: context.l10n.cannotJoinSwapExpiresTooSoon,
-            ),
+            Warning(text: context.l10n.cannotJoinSwapExpiresTooSoon),
           ],
         ),
       },
@@ -224,9 +214,7 @@ class _JoinP2pSwapFormState extends State<JoinP2pSwapForm> {
 
   Widget _buildExchangeRateWidget() {
     return ExchangeRate(
-      fromAmount: _amountController.text.extractDecimals(
-        _token.decimals,
-      ),
+      fromAmount: _amountController.text.extractDecimals(_token.decimals),
       toAmount: widget.initialHtlc.amount,
       fromToken: _token,
       toToken: widget.token,
