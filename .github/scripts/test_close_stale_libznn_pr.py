@@ -668,6 +668,295 @@ class CloseStaleLibznnPrTests(unittest.TestCase):
         self.assertEqual(rc, 1)
         self.assertIn("GitHub token is required", stderr_buf.getvalue())
 
+    def test_update_guard_allows_when_no_open_pr_or_only_fork_pr(self) -> None:
+        prs_payload = [
+            _pr_obj(
+                number=300,
+                title="chore: update embedded libznn to go-zenon v0.0.11-rc.1 (prerelease)",
+                head_repo="external-fork/syrius",
+            )
+        ]
+        opener = _RecordingOpener({("GET", self.list_develop_url): json.dumps(prs_payload).encode("utf-8")})
+        gh_out = self.root / "guard_ok.out"
+        summary = self.root / "guard_ok.md"
+
+        result = stale_pr.check_pr_branch_safe_to_update(
+            repo="zenon-network/syrius",
+            target_branch="develop",
+            pr_branch="chore/update-libznn-develop",
+            release_tag="v0.0.11-alphanet",
+            github_token="ghs_test",
+            github_output=gh_out,
+            step_summary=summary,
+            opener=opener,  # type: ignore[arg-type]
+        )
+        self.assertTrue(result.safe_to_update)
+        self.assertEqual(result.blocking_prs, ())
+        self.assertEqual([r[0] for r in opener.requests], ["GET"])
+        out_text = gh_out.read_text(encoding="utf-8")
+        self.assertIn("safe_to_update=true\n", out_text)
+        self.assertIn("blocking_pr_count=0\n", out_text)
+        self.assertFalse(summary.exists())
+
+    def test_update_guard_allows_superseding_older_or_same_stable_rolling_pr(self) -> None:
+        head_sha = "a" * 40
+        prs_payload = [
+            _pr_obj(
+                number=301,
+                title="chore: update embedded libznn to go-zenon v0.0.10-alphanet",
+                head_sha=head_sha,
+            )
+        ]
+        opener = _RecordingOpener(
+            {
+                ("GET", self.list_develop_url): json.dumps(prs_payload).encode("utf-8"),
+                ("GET", self._files_url(301)): _pr_files_response(self.all_updater_files),
+                ("GET", self._manifest_contents_url(head_sha)): _encoded_manifest_response(
+                    "v0.0.10-alphanet", prerelease=False
+                ),
+            }
+        )
+        for incoming_tag in ("v0.0.11-alphanet", "v0.0.10-alphanet"):
+            with self.subTest(incoming_tag=incoming_tag):
+                result = stale_pr.check_pr_branch_safe_to_update(
+                    repo="zenon-network/syrius",
+                    target_branch="develop",
+                    pr_branch="chore/update-libznn-develop",
+                    release_tag=incoming_tag,
+                    github_token="ghs_test",
+                    opener=opener,  # type: ignore[arg-type]
+                )
+                self.assertTrue(result.safe_to_update)
+                self.assertEqual(len(result.updatable_prs), 1)
+                self.assertEqual(result.blocking_prs, ())
+        self.assertTrue(all(r[0] == "GET" for r in opener.requests))
+
+    def test_update_guard_blocks_prerelease_downgrade_explicit_newer_and_non_blob_prs(self) -> None:
+        # 1. Forced downgrade PR (caught immediately from PR metadata, single GET).
+        dg_prs = [
+            _pr_obj(
+                number=302,
+                title="chore: update embedded libznn to go-zenon v0.0.9-alphanet (downgrade)",
+                body="> **Forced downgrade:** intentional",
+            )
+        ]
+        opener_dg = _RecordingOpener({("GET", self.list_develop_url): json.dumps(dg_prs).encode("utf-8")})
+        gh_out = self.root / "guard_dg.out"
+        summary = self.root / "guard_dg.md"
+        res_dg = stale_pr.check_pr_branch_safe_to_update(
+            repo="zenon-network/syrius",
+            target_branch="develop",
+            pr_branch="chore/update-libznn-develop",
+            release_tag="v0.0.11-alphanet",
+            github_token="ghs_test",
+            github_output=gh_out,
+            step_summary=summary,
+            opener=opener_dg,  # type: ignore[arg-type]
+        )
+        self.assertFalse(res_dg.safe_to_update)
+        self.assertEqual(res_dg.blocking_prs[0].number, 302)
+        self.assertIn("forced downgrade", res_dg.blocking_prs[0].reason)
+        self.assertIn("safe_to_update=false\n", gh_out.read_text(encoding="utf-8"))
+        self.assertIn("blocking_pr_count=1\n", gh_out.read_text(encoding="utf-8"))
+        self.assertIn("Preserved open PR #302", summary.read_text(encoding="utf-8"))
+
+        # 2. Pre-release PR marked via manifest (even if title was edited and SemVer < incoming).
+        head_pre = "b" * 40
+        pre_prs = [
+            _pr_obj(
+                number=303,
+                title="custom title without flag",
+                head_sha=head_pre,
+            )
+        ]
+        opener_pre = _RecordingOpener(
+            {
+                ("GET", self.list_develop_url): json.dumps(pre_prs).encode("utf-8"),
+                ("GET", self._files_url(303)): _pr_files_response(self.all_updater_files),
+                ("GET", self._manifest_contents_url(head_pre)): _encoded_manifest_response(
+                    "v0.0.10-rc.1", prerelease=True
+                ),
+            }
+        )
+        res_pre = stale_pr.check_pr_branch_safe_to_update(
+            repo="zenon-network/syrius",
+            target_branch="develop",
+            pr_branch="chore/update-libznn-develop",
+            release_tag="v0.0.10-alphanet",
+            github_token="ghs_test",
+            opener=opener_pre,  # type: ignore[arg-type]
+        )
+        self.assertFalse(res_pre.safe_to_update)
+        self.assertIn("pre-release", res_pre.blocking_prs[0].reason)
+
+        # 3. Explicit-tag PR marked in body (even for an older stable tag).
+        explicit_prs = [
+            _pr_obj(
+                number=304,
+                title="chore: update embedded libznn to go-zenon v0.0.10-alphanet",
+                body="- **Selection mode:** explicit tag (`v0.0.10-alphanet`)",
+            )
+        ]
+        opener_exp = _RecordingOpener({("GET", self.list_develop_url): json.dumps(explicit_prs).encode("utf-8")})
+        res_exp = stale_pr.check_pr_branch_safe_to_update(
+            repo="zenon-network/syrius",
+            target_branch="develop",
+            pr_branch="chore/update-libznn-develop",
+            release_tag="v0.0.11-alphanet",
+            github_token="ghs_test",
+            opener=opener_exp,  # type: ignore[arg-type]
+        )
+        self.assertFalse(res_exp.safe_to_update)
+        self.assertIn("explicit-tag", res_exp.blocking_prs[0].reason)
+
+        # 4. Open PR targeting a newer tag than the scheduled release.
+        head_newer = "c" * 40
+        newer_prs = [
+            _pr_obj(
+                number=305,
+                title="chore: update embedded libznn to go-zenon v0.0.12-alphanet",
+                head_sha=head_newer,
+            )
+        ]
+        opener_newer = _RecordingOpener(
+            {
+                ("GET", self.list_develop_url): json.dumps(newer_prs).encode("utf-8"),
+                ("GET", self._files_url(305)): _pr_files_response(self.all_updater_files),
+                ("GET", self._manifest_contents_url(head_newer)): _encoded_manifest_response(
+                    "v0.0.12-alphanet", prerelease=False
+                ),
+            }
+        )
+        res_newer = stale_pr.check_pr_branch_safe_to_update(
+            repo="zenon-network/syrius",
+            target_branch="develop",
+            pr_branch="chore/update-libznn-develop",
+            release_tag="v0.0.11-alphanet",
+            github_token="ghs_test",
+            opener=opener_newer,  # type: ignore[arg-type]
+        )
+        self.assertFalse(res_newer.safe_to_update)
+        self.assertIn("not superseded", res_newer.blocking_prs[0].reason)
+
+        # 5. Open PR modifying files outside blobs/manifest (human commits on rolling branch).
+        head_extra = "d" * 40
+        extra_prs = [
+            _pr_obj(
+                number=306,
+                title="chore: update embedded libznn to go-zenon v0.0.10-alphanet",
+                head_sha=head_extra,
+            )
+        ]
+        opener_extra = _RecordingOpener(
+            {
+                ("GET", self.list_develop_url): json.dumps(extra_prs).encode("utf-8"),
+                ("GET", self._files_url(306)): _pr_files_response(
+                    [*self.all_updater_files, "lib/embedded_node/embedded_node.dart"]
+                ),
+            }
+        )
+        res_extra = stale_pr.check_pr_branch_safe_to_update(
+            repo="zenon-network/syrius",
+            target_branch="develop",
+            pr_branch="chore/update-libznn-develop",
+            release_tag="v0.0.11-alphanet",
+            github_token="ghs_test",
+            opener=opener_extra,  # type: ignore[arg-type]
+        )
+        self.assertFalse(res_extra.safe_to_update)
+        self.assertIn("outside embedded libznn blobs/manifest", res_extra.blocking_prs[0].reason)
+
+        # 6. Legacy blob-only PR whose blobs differ from target branch.
+        head_legacy = "e" * 40
+        legacy_prs = [
+            _pr_obj(
+                number=307,
+                title="chore: update embedded libznn to go-zenon v0.0.10-alphanet",
+                head_sha=head_legacy,
+            )
+        ]
+        opener_legacy = _RecordingOpener(
+            {
+                ("GET", self.list_develop_url): json.dumps(legacy_prs).encode("utf-8"),
+                ("GET", self._files_url(307)): _pr_files_response(self.blob_only_files),
+                ("GET", self._blobs_contents_url(head_legacy)): _blobs_dir_contents_response(
+                    "aaa", "bbb", "ccc"
+                ),
+                ("GET", self._blobs_contents_url("develop")): _blobs_dir_contents_response(
+                    "111", "222", "333"
+                ),
+            }
+        )
+        res_legacy = stale_pr.check_pr_branch_safe_to_update(
+            repo="zenon-network/syrius",
+            target_branch="develop",
+            pr_branch="chore/update-libznn-develop",
+            release_tag="v0.0.11-alphanet",
+            github_token="ghs_test",
+            opener=opener_legacy,  # type: ignore[arg-type]
+        )
+        self.assertFalse(res_legacy.safe_to_update)
+        self.assertIn("without updating", res_legacy.blocking_prs[0].reason)
+
+    def test_update_guard_rejects_tag_scoped_branch_and_cli_emits_warning_in_ci(self) -> None:
+        with self.assertRaisesRegex(updater.UpdaterError, "unexpected PR branch"):
+            stale_pr.check_pr_branch_safe_to_update(
+                repo="zenon-network/syrius",
+                target_branch="develop",
+                pr_branch="chore/update-libznn-develop-v0.0.11-rc.1",
+                release_tag="v0.0.11-alphanet",
+                github_token="ghs_test",
+            )
+
+        pre_prs = [
+            _pr_obj(
+                number=308,
+                title="chore: update embedded libznn to go-zenon v0.0.11-rc.1 (prerelease)",
+            )
+        ]
+        opener = _RecordingOpener({("GET", self.list_develop_url): json.dumps(pre_prs).encode("utf-8")})
+        gh_out = self.root / "cli_guard.out"
+        orig_build_opener = updater._build_opener
+        orig_token = os.environ.get("GH_TOKEN")
+        orig_gha = os.environ.get("GITHUB_ACTIONS")
+        stdout_buf = io.StringIO()
+        old_stdout = sys.stdout
+        try:
+            updater._build_opener = lambda: opener  # type: ignore[assignment]
+            os.environ["GH_TOKEN"] = "ghs_test"
+            os.environ["GITHUB_ACTIONS"] = "true"
+            sys.stdout = stdout_buf
+            rc = stale_pr.main(
+                [
+                    "--check-update-safe",
+                    "--repo",
+                    "zenon-network/syrius",
+                    "--target-branch",
+                    "develop",
+                    "--pr-branch",
+                    "chore/update-libznn-develop",
+                    "--release-tag",
+                    "v0.0.10-alphanet",
+                    "--github-output",
+                    str(gh_out),
+                ]
+            )
+        finally:
+            updater._build_opener = orig_build_opener
+            sys.stdout = old_stdout
+            if orig_token is None:
+                os.environ.pop("GH_TOKEN", None)
+            else:
+                os.environ["GH_TOKEN"] = orig_token
+            if orig_gha is None:
+                os.environ.pop("GITHUB_ACTIONS", None)
+            else:
+                os.environ["GITHUB_ACTIONS"] = orig_gha
+
+        self.assertEqual(rc, 0)
+        self.assertIn("::warning::Skipping rolling PR update", stdout_buf.getvalue())
+        self.assertIn("safe_to_update=false\n", gh_out.read_text(encoding="utf-8"))
+
 
 if __name__ == "__main__":
     unittest.main()

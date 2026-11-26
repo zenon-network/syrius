@@ -45,6 +45,8 @@ SEMVER_TAG_PATTERN = re.compile(
 CHECKSUM_LINE_PATTERN = re.compile(r"^([0-9a-fA-F]{64})[ \t]+\*?(.+)$")
 GITHUB_DIGEST_PATTERN = re.compile(r"^sha256:([0-9a-fA-F]{64})$")
 OUTPUT_KEY_PATTERN = re.compile(r"^[A-Za-z_][A-Za-z0-9_-]*$")
+BRANCH_SLUG_SAFE_PATTERN = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]*$")
+MAX_BRANCH_TAG_SLUG_LEN = 100
 MAX_TAG_DEREF_DEPTH = 5
 # Allow normal upstream release CI upload lag (e.g. znn_builder + makefat) before warning.
 ASSET_UPDATE_GRACE_SECONDS = 3600
@@ -229,6 +231,58 @@ def validate_target_branch(branch: str) -> str:
             f"Unsupported target branch {branch!r}; allowed values: {allowed}"
         )
     return cleaned
+
+
+def default_pr_branch_for_target(target_branch: str) -> str:
+    validated = validate_target_branch(target_branch)
+    return f"chore/update-libznn-{validated}"
+
+
+def sanitize_branch_tag_slug(tag: str) -> str:
+    """Convert a validated release tag into a Git-safe, collision-resistant branch suffix."""
+    validated = validate_tag(tag)
+    if not validated:
+        raise UpdaterError("Cannot build PR branch suffix for empty release tag")
+
+    if (
+        BRANCH_SLUG_SAFE_PATTERN.fullmatch(validated)
+        and len(validated) <= MAX_BRANCH_TAG_SLUG_LEN
+        and not validated.endswith(".")
+        and not validated.lower().endswith(".lock")
+    ):
+        return validated
+
+    digest = hashlib.sha256(validated.encode("utf-8")).hexdigest()[:8]
+    cleaned = re.sub(r"[^A-Za-z0-9._-]+", "-", validated)
+    while ".." in cleaned:
+        cleaned = cleaned.replace("..", ".")
+    cleaned = cleaned.strip(".-")
+    if len(cleaned) > 80:
+        cleaned = cleaned[:80].rstrip(".-")
+    if not cleaned or not cleaned[0].isalnum():
+        cleaned = f"tag-{cleaned}" if cleaned else "tag"
+    return f"{cleaned}-{digest}"
+
+
+def resolve_pr_branch(
+    *,
+    target_branch: str,
+    release_tag: str,
+    explicit_tag: bool = False,
+    is_downgrade: bool = False,
+    is_prerelease: bool = False,
+) -> str:
+    """Resolve the PR head branch for a libznn update.
+
+    Rolling latest-stable updates use `chore/update-libznn-<target_branch>`.
+    Explicit-tag, forced-downgrade, and pre-release updates use a dedicated
+    tag-scoped branch (`chore/update-libznn-<target_branch>-<tag-slug>`) so
+    scheduled updates cannot overwrite them.
+    """
+    base = default_pr_branch_for_target(target_branch)
+    if explicit_tag or is_downgrade or is_prerelease:
+        return f"{base}-{sanitize_branch_tag_slug(release_tag)}"
+    return base
 
 
 def validate_git_commit_sha(value: Any, label: str = "git commit SHA") -> str:
@@ -1531,6 +1585,7 @@ def build_pr_body(
     workflow_run_url: str | None = None,
     alerts: ProvenanceAlerts | None = None,
     manifest_changed: bool = False,
+    explicit_tag: bool = False,
 ) -> str:
     active_alerts = alerts or ProvenanceAlerts()
     release_type = "pre-release" if release.prerelease else "release"
@@ -1627,6 +1682,8 @@ def build_pr_body(
             f"- **Tag commit:** {tag_commit_md}",
         ]
     )
+    if explicit_tag:
+        lines.append(f"- **Selection mode:** explicit tag (`{release.tag_name}`)")
     if release.target_commitish:
         lines.append(f"- **Target commitish:** `{release.target_commitish}`")
     lines.append(f"- **Published at:** `{release.published_at}`")
@@ -1707,6 +1764,7 @@ def build_step_summary(
     dry_run: bool,
     alerts: ProvenanceAlerts | None = None,
     manifest_changed: bool = False,
+    pr_branch: str | None = None,
 ) -> str:
     active_alerts = alerts or ProvenanceAlerts()
     if changed and dry_run:
@@ -1740,6 +1798,8 @@ def build_step_summary(
         f"- **Published at:** `{release.published_at}`",
         f"- **Manifest (`{MANIFEST_RELPATH}`):** {'Updated' if manifest_changed else 'Unchanged'}",
     ]
+    if pr_branch:
+        lines.append(f"- **PR branch:** `{pr_branch}`")
     if active_alerts.is_downgrade:
         lines.extend(
             [
@@ -2054,6 +2114,15 @@ def _run_update_detailed(
         blobs_changed = any(item.changed for item in verified_binaries)
         changed = blobs_changed or manifest_changed
 
+        pr_branch = resolve_pr_branch(
+            target_branch=branch,
+            release_tag=release_info.tag_name,
+            explicit_tag=bool(requested_tag),
+            is_downgrade=alerts.is_downgrade,
+            is_prerelease=release_info.prerelease,
+        )
+        is_default_pr_branch = pr_branch == default_pr_branch_for_target(branch)
+
         pr_title = build_pr_title(release_info, alerts=alerts)
         commit_message = build_commit_message(
             release_info,
@@ -2068,6 +2137,7 @@ def _run_update_detailed(
             workflow_run_url=workflow_run_url,
             alerts=alerts,
             manifest_changed=manifest_changed,
+            explicit_tag=bool(requested_tag),
         )
         summary_md = build_step_summary(
             release_info,
@@ -2077,6 +2147,7 @@ def _run_update_detailed(
             dry_run=dry_run,
             alerts=alerts,
             manifest_changed=manifest_changed,
+            pr_branch=pr_branch,
         )
 
         blobs_committed = changed and not dry_run
@@ -2106,6 +2177,8 @@ def _run_update_detailed(
                         "tag_commit": release_info.tag_commit or "",
                         "same_tag_rebuild": "true" if alerts.same_tag_rebuild else "false",
                         "downgrade": "true" if alerts.is_downgrade else "false",
+                        "pr_branch": pr_branch,
+                        "is_default_pr_branch": "true" if is_default_pr_branch else "false",
                         "pr_title": pr_title,
                         "commit_message": commit_message,
                         "pr_body_path": str(pr_body_out) if pr_body_out is not None else "",

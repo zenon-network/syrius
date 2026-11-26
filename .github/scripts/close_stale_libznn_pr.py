@@ -26,6 +26,10 @@ DOWNGRADE_TITLE_FLAG_PATTERN = re.compile(
     r"\(\s*(?:[^()]*,\s*)?downgrade(?:\s*,[^()]*)?\s*\)\s*$",
     re.IGNORECASE,
 )
+PRERELEASE_TITLE_FLAG_PATTERN = re.compile(
+    r"\(\s*(?:[^()]*,\s*)?prerelease(?:\s*,[^()]*)?\s*\)\s*$",
+    re.IGNORECASE,
+)
 BLOB_RELPATHS = frozenset(spec.blob_relpath for spec in updater.BINARY_SPECS)
 BLOBS_DIR_RELPATH = "lib/embedded_node/blobs"
 MAX_PR_FILES_PER_PAGE = 100
@@ -53,9 +57,15 @@ class StalePrCleanupResult:
     branch_deleted: str  # "not_needed", "deleted", or "already_deleted"
 
 
+@dataclasses.dataclass(frozen=True)
+class PrUpdateGuardResult:
+    safe_to_update: bool
+    blocking_prs: tuple[PreservedPullRequest, ...]
+    updatable_prs: tuple[PreservedPullRequest, ...]
+
+
 def expected_pr_branch_for_target(target_branch: str) -> str:
-    validated = updater.validate_target_branch(target_branch)
-    return f"chore/update-libznn-{validated}"
+    return updater.default_pr_branch_for_target(target_branch)
 
 
 def validate_pr_branch(pr_branch: str, target_branch: str) -> str:
@@ -76,6 +86,21 @@ def is_forced_downgrade_pr(pr: Mapping[str, Any]) -> bool:
     if "**Forced downgrade:**" in body:
         return True
     return False
+
+
+def is_prerelease_pr(pr: Mapping[str, Any]) -> bool:
+    title = str(pr.get("title") or "")
+    body = str(pr.get("body") or "")
+    if PRERELEASE_TITLE_FLAG_PATTERN.search(title):
+        return True
+    if "is marked as a **pre-release**" in body or "- **Release type:** `pre-release`" in body:
+        return True
+    return False
+
+
+def is_explicit_tag_pr(pr: Mapping[str, Any]) -> bool:
+    body = str(pr.get("body") or "")
+    return "- **Selection mode:** explicit tag" in body
 
 
 def _list_candidate_open_prs(
@@ -361,6 +386,206 @@ def _classify_pr_staleness(
     )
 
 
+def _classify_pr_overwrite_safety(
+    *,
+    repo: str,
+    pr: Mapping[str, Any],
+    target_branch: str,
+    release_tag: str,
+    github_token: str,
+    opener: urllib.request.OpenerDirector | None = None,
+) -> tuple[bool, str]:
+    """Return (safe_to_overwrite, reason) for a rolling update PR branch. Fails safe (False)."""
+    if is_forced_downgrade_pr(pr):
+        return False, "PR is marked as an intentional forced downgrade"
+    if is_prerelease_pr(pr):
+        return False, "PR is marked as a pre-release update"
+    if is_explicit_tag_pr(pr):
+        return False, "PR is marked as an explicit-tag dispatch"
+
+    pr_number = int(pr["number"])
+    head = pr["head"]
+    head_ref = str(head.get("sha") or head.get("ref") or "")
+
+    changed_files = _list_pr_changed_files(
+        repo=repo,
+        pr_number=pr_number,
+        github_token=github_token,
+        opener=opener,
+    )
+    if changed_files is None:
+        return (
+            False,
+            "PR file list could not be verified or exceeded 100 files; preserving PR for manual review",
+        )
+    if len(changed_files) == 0:
+        return True, f"PR has no remaining diff against `{target_branch}`"
+
+    changed_set = set(changed_files)
+    allowed_paths = BLOB_RELPATHS | {updater.MANIFEST_RELPATH}
+    if not changed_set.issubset(allowed_paths):
+        return (
+            False,
+            "PR modifies files outside embedded libznn blobs/manifest; preserving PR for manual review",
+        )
+    touches_blobs = bool(changed_set & BLOB_RELPATHS)
+    touches_manifest = updater.MANIFEST_RELPATH in changed_set
+
+    if touches_blobs and not touches_manifest:
+        if _pr_blobs_match_target_branch(
+            repo=repo,
+            head_ref=head_ref,
+            target_branch=target_branch,
+            changed_files=changed_files,
+            github_token=github_token,
+            opener=opener,
+        ):
+            return (
+                True,
+                f"PR blob contents already match `{target_branch}` (no remaining binary diff)",
+            )
+        return (
+            False,
+            f"PR updates embedded blobs without updating `{updater.MANIFEST_RELPATH}` and "
+            f"differs from `{target_branch}`; preserving PR for manual review",
+        )
+
+    manifest_status, pr_manifest = _fetch_pr_manifest(
+        repo=repo,
+        ref=head_ref,
+        github_token=github_token,
+        opener=opener,
+    )
+    if manifest_status == "ok" and pr_manifest is not None:
+        if pr_manifest["release"].get("prerelease") is True:
+            return False, "PR provenance manifest targets a pre-release"
+        pr_tag = str(pr_manifest["release"]["tag"])
+        if pr_tag == release_tag:
+            return True, f"PR already targets `{pr_tag}`"
+        tag_cmp = updater.compare_release_tags(pr_tag, release_tag)
+        if tag_cmp is not None and tag_cmp < 0:
+            return (
+                True,
+                f"PR targets older release `{pr_tag}`, superseded by `{release_tag}`",
+            )
+        return (
+            False,
+            f"PR targets `{pr_tag}`, which is not superseded by `{release_tag}`",
+        )
+
+    if manifest_status == "missing":
+        return (
+            False,
+            f"PR has no `{updater.MANIFEST_RELPATH}` and modifies non-blob files; preserving PR for manual review",
+        )
+
+    return (
+        False,
+        f"PR `{updater.MANIFEST_RELPATH}` could not be validated; preserving PR for manual review",
+    )
+
+
+def check_pr_branch_safe_to_update(
+    *,
+    repo: str,
+    target_branch: str,
+    pr_branch: str,
+    release_tag: str,
+    github_token: str,
+    github_output: pathlib.Path | None = None,
+    step_summary: pathlib.Path | None = None,
+    opener: urllib.request.OpenerDirector | None = None,
+) -> PrUpdateGuardResult:
+    """Inspect open PRs on the rolling branch and report whether force-updating is safe."""
+    validated_repo = updater.validate_upstream_repo(repo)
+    validated_target = updater.validate_target_branch(target_branch)
+    validated_branch = validate_pr_branch(pr_branch, validated_target)
+    validated_tag = updater.validate_tag(release_tag)
+    if not validated_tag:
+        raise updater.UpdaterError("A non-empty --release-tag is required")
+    if not github_token or not github_token.strip():
+        raise updater.UpdaterError("GitHub token is required to inspect open pull requests")
+
+    updater.validate_output_file_paths(
+        (
+            ("--github-output", github_output),
+            ("--step-summary", step_summary),
+        )
+    )
+
+    open_prs = _list_candidate_open_prs(
+        repo=validated_repo,
+        target_branch=validated_target,
+        pr_branch=validated_branch,
+        github_token=github_token,
+        opener=opener,
+    )
+
+    blocking: list[PreservedPullRequest] = []
+    updatable: list[PreservedPullRequest] = []
+    for pr in open_prs:
+        pr_number = int(pr["number"])
+        pr_url = str(pr.get("html_url") or f"https://github.com/{validated_repo}/pull/{pr_number}")
+        safe, reason = _classify_pr_overwrite_safety(
+            repo=validated_repo,
+            pr=pr,
+            target_branch=validated_target,
+            release_tag=validated_tag,
+            github_token=github_token,
+            opener=opener,
+        )
+        entry = PreservedPullRequest(number=pr_number, html_url=pr_url, reason=reason)
+        if safe:
+            updatable.append(entry)
+        else:
+            blocking.append(entry)
+
+    result = PrUpdateGuardResult(
+        safe_to_update=len(blocking) == 0,
+        blocking_prs=tuple(blocking),
+        updatable_prs=tuple(updatable),
+    )
+
+    if github_output is not None:
+        try:
+            github_output.parent.mkdir(parents=True, exist_ok=True)
+            updater.write_github_outputs(
+                github_output,
+                {
+                    "safe_to_update": "true" if result.safe_to_update else "false",
+                    "blocking_pr_count": str(len(result.blocking_prs)),
+                    "blocking_pr_urls": ",".join(item.html_url for item in result.blocking_prs),
+                },
+            )
+        except OSError as exc:
+            raise updater.UpdaterError(f"Failed writing GITHUB_OUTPUT {github_output}: {exc}") from exc
+
+    if step_summary is not None and not result.safe_to_update:
+        summary_lines = [
+            "",
+            "### Pull request",
+            (
+                f"- Skipped updating rolling branch `{validated_branch}` -> `{validated_target}` "
+                f"for `{validated_tag}` to avoid overwriting a protected open pull request:"
+            ),
+        ]
+        for kept in result.blocking_prs:
+            summary_lines.append(
+                f"  - Preserved open PR #{kept.number} ({kept.html_url}): {kept.reason}."
+            )
+        try:
+            step_summary.parent.mkdir(parents=True, exist_ok=True)
+            with step_summary.open("a", encoding="utf-8") as handle:
+                handle.write("\n".join(summary_lines) + "\n")
+        except OSError as exc:
+            print(
+                f"WARNING: failed to append step summary {step_summary}: {exc}",
+                file=sys.stderr,
+            )
+
+    return result
+
+
 def _build_close_comment(
     *,
     target_branch: str,
@@ -632,6 +857,11 @@ def main(argv: Sequence[str] | None = None) -> int:
         help="Resolved go-zenon release tag that the target branch already matches.",
     )
     parser.add_argument(
+        "--check-update-safe",
+        action="store_true",
+        help="Read-only check: verify no protected open PR on --pr-branch would be overwritten.",
+    )
+    parser.add_argument(
         "--github-output",
         type=pathlib.Path,
         default=None,
@@ -646,6 +876,41 @@ def main(argv: Sequence[str] | None = None) -> int:
     args = parser.parse_args(argv)
 
     token = os.environ.get("GH_TOKEN") or os.environ.get("GITHUB_TOKEN") or ""
+    if args.check_update_safe:
+        try:
+            guard_result = check_pr_branch_safe_to_update(
+                repo=args.repo,
+                target_branch=args.target_branch,
+                pr_branch=args.pr_branch,
+                release_tag=args.release_tag,
+                github_token=token,
+                github_output=args.github_output,
+                step_summary=args.step_summary,
+            )
+        except updater.UpdaterError as exc:
+            print(f"ERROR: {exc}", file=sys.stderr)
+            return 1
+
+        if guard_result.safe_to_update:
+            print(
+                f"Rolling PR branch {args.pr_branch} -> {args.target_branch} is safe to update "
+                f"for {args.release_tag}."
+            )
+            return 0
+
+        in_github_actions = os.environ.get("GITHUB_ACTIONS") == "true"
+        for kept in guard_result.blocking_prs:
+            msg = (
+                f"Skipping rolling PR update on {args.pr_branch} -> {args.target_branch} "
+                f"for {args.release_tag} to preserve open PR #{kept.number} ({kept.html_url}): "
+                f"{kept.reason}."
+            )
+            if in_github_actions:
+                print(f"::warning::{msg}")
+            else:
+                print(f"WARNING: {msg}", file=sys.stderr)
+        return 0
+
     try:
         result = close_stale_libznn_prs(
             repo=args.repo,
