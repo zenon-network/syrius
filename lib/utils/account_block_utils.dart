@@ -239,18 +239,35 @@ class AccountBlockUtils {
     } else if (needReview) {
       await _sendReviewNotification(transactionParams);
     }
-    return await currentZenon.send(
-      transactionParams,
-      currentKeyPair: walletAccount,
-      generatingPowCallback: (PowStatus status) async {
-        // Wait for plasma to be generated before sending review notification
-        if (needReview && status == PowStatus.done) {
-          await _sendReviewNotification(transactionParams);
-        }
-        _onPowStatusChanged(status);
-      },
-      waitForRequiredPlasma: waitForRequiredPlasma,
-    );
+    bool powActive = false;
+    try {
+      return await currentZenon.send(
+        transactionParams,
+        currentKeyPair: walletAccount,
+        generatingPowCallback: (PowStatus status) async {
+          if (status == PowStatus.generating) {
+            powActive = true;
+            _onPowStatusChanged(status);
+            return;
+          }
+          if (status == PowStatus.done) {
+            powActive = false;
+            _onPowStatusChanged(status);
+            // Wait for plasma to be generated before sending review
+            // notification.
+            if (needReview) {
+              await _sendReviewNotification(transactionParams);
+            }
+          }
+        },
+        waitForRequiredPlasma: waitForRequiredPlasma,
+      );
+    } finally {
+      if (powActive) {
+        powActive = false;
+        _onPowStatusChanged(PowStatus.done);
+      }
+    }
   }
 
   static BlockData? getDecodedBlockData(Abi abi, List<int> encodedData) {

@@ -3,6 +3,7 @@ import 'dart:collection';
 
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
+import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:json_rpc_2/json_rpc_2.dart';
 import 'package:logging/logging.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
@@ -58,8 +59,18 @@ class AutoReceiveTxWorker extends Cubit<AutoReceiveTxState> {
   final Queue<Hash> _pool = Queue<Hash>();
   bool _running = false;
 
-  /// Pending block hashes queued for auto-receive.
-  Queue<Hash> get pool => _pool;
+  /// Read-only view of pending block hashes queued for auto-receive.
+  UnmodifiableListView<Hash> get pool => UnmodifiableListView<Hash>(_pool);
+
+  /// Enqueues [hash] directly into the pool for tests without querying node
+  /// sync status, emitting the updated [AutoReceiveTxState].
+  @visibleForTesting
+  void enqueueForTesting(Hash hash) {
+    if (!_pool.contains(hash)) {
+      _pool.add(hash);
+      _emitStatus();
+    }
+  }
 
   /// Whether a receive operation is currently in flight.
   bool get running => _running;

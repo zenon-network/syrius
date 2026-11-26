@@ -28,6 +28,68 @@ void main() {
         PowGeneratingStatusState(),
       ],
     );
+
+    blocTest<PowGeneratingStatusBloc, PowGeneratingStatusState>(
+      'keeps status generating while overlapping PoW jobs are still in flight',
+      build: PowGeneratingStatusBloc.new,
+      act: (PowGeneratingStatusBloc bloc) => bloc
+        ..add(const PowGeneratingStatusChanged(PowStatus.generating))
+        ..add(const PowGeneratingStatusChanged(PowStatus.generating))
+        ..add(const PowGeneratingStatusChanged(PowStatus.done)),
+      expect: () => const <PowGeneratingStatusState>[
+        PowGeneratingStatusState(status: PowStatus.generating),
+      ],
+      verify: (PowGeneratingStatusBloc bloc) {
+        expect(bloc.state.isGenerating, isTrue);
+      },
+    );
+
+    blocTest<PowGeneratingStatusBloc, PowGeneratingStatusState>(
+      'emits done only after all overlapping PoW jobs finish',
+      build: PowGeneratingStatusBloc.new,
+      act: (PowGeneratingStatusBloc bloc) => bloc
+        ..add(const PowGeneratingStatusChanged(PowStatus.generating))
+        ..add(const PowGeneratingStatusChanged(PowStatus.generating))
+        ..add(const PowGeneratingStatusChanged(PowStatus.done))
+        ..add(const PowGeneratingStatusChanged(PowStatus.generating))
+        ..add(const PowGeneratingStatusChanged(PowStatus.done))
+        ..add(const PowGeneratingStatusChanged(PowStatus.done)),
+      expect: () => const <PowGeneratingStatusState>[
+        PowGeneratingStatusState(status: PowStatus.generating),
+        PowGeneratingStatusState(),
+      ],
+    );
+
+    blocTest<PowGeneratingStatusBloc, PowGeneratingStatusState>(
+      'clamps active count at zero on mismatched initial done events',
+      build: PowGeneratingStatusBloc.new,
+      act: (PowGeneratingStatusBloc bloc) => bloc
+        ..add(const PowGeneratingStatusChanged(PowStatus.done))
+        ..add(const PowGeneratingStatusChanged(PowStatus.done))
+        ..add(const PowGeneratingStatusChanged(PowStatus.generating))
+        ..add(const PowGeneratingStatusChanged(PowStatus.done)),
+      expect: () => const <PowGeneratingStatusState>[
+        PowGeneratingStatusState(status: PowStatus.generating),
+        PowGeneratingStatusState(),
+      ],
+    );
+
+    blocTest<PowGeneratingStatusBloc, PowGeneratingStatusState>(
+      'clamps active count at zero on extra done events after completion',
+      build: PowGeneratingStatusBloc.new,
+      act: (PowGeneratingStatusBloc bloc) => bloc
+        ..add(const PowGeneratingStatusChanged(PowStatus.generating))
+        ..add(const PowGeneratingStatusChanged(PowStatus.done))
+        ..add(const PowGeneratingStatusChanged(PowStatus.done))
+        ..add(const PowGeneratingStatusChanged(PowStatus.generating))
+        ..add(const PowGeneratingStatusChanged(PowStatus.done)),
+      expect: () => const <PowGeneratingStatusState>[
+        PowGeneratingStatusState(status: PowStatus.generating),
+        PowGeneratingStatusState(),
+        PowGeneratingStatusState(status: PowStatus.generating),
+        PowGeneratingStatusState(),
+      ],
+    );
   });
 
   group('PowGeneratingStatusIcon', () {

@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter/services.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/wallet_file.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 /// Hex-encoded signature and corresponding public key produced by [walletSign].
@@ -29,8 +30,12 @@ Future<Signature> walletSign(
     throw StateError('Unable to resolve signing address: $signerAddress');
   }
 
-  final Wallet wallet = await kWalletFile!.open();
-  try {
+  final WalletFile? walletFile = kWalletFile;
+  if (walletFile == null) {
+    throw WalletException('Wallet is not unlocked.');
+  }
+
+  return await walletFile.access<Signature>((Wallet wallet) async {
     final WalletAccount walletAccount = await wallet.getAccount(signerIndex);
     final List<int> publicKey = await walletAccount.getPublicKey();
     final List<int> signature = await walletAccount.sign(
@@ -40,9 +45,7 @@ Future<Signature> walletSign(
       BytesUtils.bytesToHex(signature),
       BytesUtils.bytesToHex(publicKey),
     );
-  } finally {
-    kWalletFile!.close();
-  }
+  });
 }
 
 /// Loads and JSON-decodes an asset file at [filePath].

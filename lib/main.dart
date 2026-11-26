@@ -2,7 +2,7 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:isolate';
 
-import 'package:flutter/foundation.dart' show kDebugMode, kIsWeb;
+import 'package:flutter/foundation.dart' show kDebugMode, kIsWeb, visibleForTesting;
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -395,6 +395,48 @@ void setup() {
   sl.registerSingleton<PowGeneratingStatusBloc>(PowGeneratingStatusBloc());
 }
 
+/// Builds the root [MultiBlocProvider] list for [MyApp].
+@visibleForTesting
+List<SingleChildWidget> buildMyAppBlocProviders() => <SingleChildWidget>[
+  BlocProvider<NotificationsBloc>.value(
+    value: sl.get<NotificationsBloc>(),
+  ),
+  BlocProvider<LatestTransactionsBloc>(
+    create: (_) => sl.get<LatestTransactionsBloc>()
+      ..add(
+        InfiniteListRequested(
+          address: Address.parse(kSelectedAddress!),
+        ),
+      ),
+  ),
+  BlocProvider<PendingTransactionsBloc>(
+    create: (_) => sl.get<PendingTransactionsBloc>()
+      ..add(
+        InfiniteListRequested(
+          address: Address.parse(kSelectedAddress!),
+        ),
+      ),
+  ),
+  BlocProvider<SendTransactionBloc>(
+    create: (_) => SendTransactionBloc(),
+  ),
+  BlocProvider<MultipleBalanceBloc>.value(
+    value: sl.get<MultipleBalanceBloc>(),
+  ),
+  BlocProvider<AllTokensBloc>(
+    create: (_) => AllTokensBloc(zenon: zenon!)
+      ..add(
+        const AllTokensRequested(),
+      ),
+  ),
+  BlocProvider<PlasmaStatsBloc>(
+    create: (_) => PlasmaStatsBloc(zenon: zenon!)
+      ..add(
+        const InfiniteListRequested(),
+      ),
+  ),
+];
+
 class MyApp extends StatefulWidget {
   const MyApp({super.key});
 
@@ -424,46 +466,7 @@ class _MyAppState extends State<MyApp> with WindowListener {
   @override
   Widget build(BuildContext context) {
     return MultiBlocProvider(
-      providers: <SingleChildWidget>[
-        BlocProvider<NotificationsBloc>.value(
-          value: sl.get<NotificationsBloc>(),
-        ),
-        BlocProvider<LatestTransactionsBloc>(
-          create: (_) => sl.get<LatestTransactionsBloc>()
-            ..add(
-              InfiniteListRequested(
-                address: Address.parse(kSelectedAddress!),
-              ),
-            ),
-        ),
-        BlocProvider<PendingTransactionsBloc>(
-          create: (_) => sl.get<PendingTransactionsBloc>()
-            ..add(
-              InfiniteListRequested(
-                address: Address.parse(kSelectedAddress!),
-              ),
-            ),
-        ),
-        BlocProvider<SendTransactionBloc>(
-          create: (_) => SendTransactionBloc(),
-        ),
-        BlocProvider<MultipleBalanceBloc>(
-          create: (_) => sl.get<MultipleBalanceBloc>(),
-        ),
-        BlocProvider<AllTokensBloc>(
-          create: (_) =>
-              AllTokensBloc(zenon: zenon!)
-            ..add(
-              const AllTokensRequested(),
-            ),
-        ),
-        BlocProvider<PlasmaStatsBloc>(
-          create: (_) => PlasmaStatsBloc(zenon: zenon!)
-            ..add(
-              const InfiniteListRequested(),
-            ),
-        ),
-      ],
+      providers: buildMyAppBlocProviders(),
       child: MultiProvider(
         providers: <SingleChildWidget>[
           ChangeNotifierProvider<SelectedAddressNotifier>(

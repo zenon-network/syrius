@@ -290,8 +290,7 @@ void main() {
           await worker.close();
         });
 
-        worker.pool.add(Hash.digest(<int>[1, 2, 3]));
-        worker.emit(const AutoReceiveTxState(pendingCount: 1));
+        worker.enqueueForTesting(Hash.digest(<int>[1, 2, 3]));
         expect(worker.state.pendingCount, 1);
 
         final SettingsWalletOptionsBloc bloc = SettingsWalletOptionsBloc(

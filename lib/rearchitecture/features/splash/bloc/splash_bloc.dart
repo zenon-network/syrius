@@ -10,6 +10,7 @@ import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
 import 'package:zenon_syrius_wallet_flutter/services/i_web3wallet_service.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/wallet_file.dart';
 
 part 'splash_event.dart';
 part 'splash_state.dart';
@@ -217,10 +218,11 @@ class SplashBloc extends Bloc<SplashEvent, SplashState> {
   }
 
   static Future<void> _defaultCloseAndDeleteWalletFile() async {
-    if (kWalletFile != null) {
-      kWalletFile!.close();
-    }
+    final WalletFile? walletFile = kWalletFile;
     kWalletFile = null;
+    if (walletFile != null) {
+      await walletFile.close();
+    }
     if (kWalletPath != null) {
       await FileUtils.deleteFile(kWalletPath!);
       kWalletPath = null;

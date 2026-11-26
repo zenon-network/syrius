@@ -190,11 +190,26 @@ void main() {
       expect(worker.state.pendingCount, 0);
     });
 
+    test(
+      'pool returns an unmodifiable view that cannot be mutated directly',
+      () async {
+      final AutoReceiveTxWorker worker = buildWorker();
+      addTearDown(worker.close);
+
+      await worker.addHash(hash1);
+
+      expect(() => worker.pool.add(hash2), throwsUnsupportedError);
+      expect(() => worker.pool.clear(), throwsUnsupportedError);
+      expect(() => worker.pool.remove(hash1), throwsUnsupportedError);
+      expect(worker.pool, <Hash>[hash1]);
+      expect(worker.state.pendingCount, 1);
+    });
+
     test('autoReceive clears pool when disabled', () async {
       final AutoReceiveTxWorker worker = buildWorker();
       addTearDown(worker.close);
 
-      worker.pool.add(hash1);
+      await worker.addHash(hash1);
       autoReceiveEnabled = false;
 
       await worker.autoReceive();
@@ -209,7 +224,7 @@ void main() {
         final AutoReceiveTxWorker worker = buildWorker();
         addTearDown(worker.close);
 
-        worker.pool.add(hash1);
+        await worker.addHash(hash1);
         htlcUnlocking = true;
 
         await worker.autoReceive();
@@ -235,9 +250,8 @@ void main() {
         );
         addTearDown(sub.cancel);
 
-        worker.pool
-          ..add(hash1)
-          ..add(hash2);
+        await worker.addHash(hash1);
+        await worker.addHash(hash2);
 
         await worker.autoReceive();
         await Future<void>.delayed(Duration.zero);
@@ -292,9 +306,8 @@ void main() {
         );
         addTearDown(sub.cancel);
 
-        worker.pool
-          ..add(hash1)
-          ..add(hash2);
+        await worker.addHash(hash1);
+        await worker.addHash(hash2);
 
         await worker.autoReceive();
         await Future<void>.delayed(Duration.zero);
@@ -320,9 +333,8 @@ void main() {
       final AutoReceiveTxWorker worker = buildWorker();
       addTearDown(worker.close);
 
-      worker.pool
-        ..add(hash1)
-        ..add(hash2);
+      await worker.addHash(hash1);
+      await worker.addHash(hash2);
 
       await worker.autoReceive();
 
@@ -422,7 +434,7 @@ void main() {
         final AutoReceiveTxWorker worker = buildWorker();
         addTearDown(worker.close);
 
-        worker.pool.add(hash1);
+        await worker.addHash(hash1);
         await worker.autoReceive();
 
         expect(forwarded, hasLength(1));
@@ -445,7 +457,7 @@ void main() {
         );
         addTearDown(sub.cancel);
 
-        worker.pool.add(hash1);
+        await worker.addHash(hash1);
         await worker.autoReceive();
         await Future<void>.delayed(Duration.zero);
 

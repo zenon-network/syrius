@@ -69,16 +69,13 @@ class _InMemoryWalletFile extends WalletFile {
   bool get isHardwareWallet => _isHardwareWallet;
 
   @override
-  Future<Wallet> open() async => _wallet;
-
-  @override
-  void close() {}
-
-  @override
   Future<T> access<T>(Future<T> Function(Wallet) accessSection) {
     accessCalls++;
-    return super.access(accessSection);
+    return accessSection(_wallet);
   }
+
+  @override
+  Future<void> close() async {}
 }
 
 class MockZenon extends Mock implements Zenon {}

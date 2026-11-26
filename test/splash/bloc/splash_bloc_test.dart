@@ -1,9 +1,15 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:hex/hex.dart';
+import 'package:path/path.dart' as path;
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/wallet_file.dart';
+import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 void main() {
   group('SplashBloc', () {
@@ -303,5 +309,110 @@ void main() {
 
       expect(initCalls, 1);
     });
+
+    test(
+      'resetWallet waits for in-flight walletFile.access before deleting '
+      'keystore file and never releases mutex prematurely',
+      () async {
+        final Directory tempDir = Directory.systemTemp.createTempSync(
+          'splash_reset_wallet_lock_',
+        );
+        final WalletFile? previousWalletFile = kWalletFile;
+        final String? previousWalletPath = kWalletPath;
+        addTearDown(() {
+          kWalletFile = previousWalletFile;
+          kWalletPath = previousWalletPath;
+          if (tempDir.existsSync()) {
+            tempDir.deleteSync(recursive: true);
+          }
+        });
+
+        final String tempWalletPath = path.join(tempDir.path, 'keystore');
+        final KeyStore keyStore = await KeyStore.newRandom();
+        final Address baseAddress =
+            await (await keyStore.getAccount()).getAddress();
+        await WalletFile.write(
+          tempWalletPath,
+          'reset-pass-123',
+          HEX.decode(keyStore.entropy),
+          metadata: <String, dynamic>{
+            baseAddressKey: baseAddress.toString(),
+            walletTypeKey: keyStoreWalletType,
+          },
+        );
+        final KeyStoreWalletFile activeWallet =
+            await KeyStoreWalletFile.decrypt(tempWalletPath, 'reset-pass-123');
+
+        kWalletFile = activeWallet;
+        kWalletPath = tempWalletPath;
+
+        final Completer<void> accessEntered = Completer<void>();
+        final Completer<void> releaseAccess = Completer<void>();
+        bool queuedEntered = false;
+
+        final Future<String?> activeOp = activeWallet.access<String?>(
+          (Wallet wallet) async {
+            accessEntered.complete();
+            await releaseAccess.future;
+            return (wallet as KeyStore).mnemonic;
+          },
+        );
+        await accessEntered.future;
+
+        final Future<void> queuedOp = activeWallet.access<void>((_) async {
+          queuedEntered = true;
+        });
+        final Future<void> queuedRejection = expectLater(
+          queuedOp,
+          throwsA(isA<WalletException>()),
+        );
+
+        final SplashBloc bloc = SplashBloc(
+          setWalletInitIncomplete: () {},
+          clearLastNotification: () async {},
+          stopWebSocketClient: () {},
+          clearAutoReceivePool: () {},
+          stopHtlcSwapSync: () async {},
+          closeHtlcSwapStorage: () async {},
+          closeHive: () async {},
+          deleteCacheBox: (_) async {},
+          deleteWeb3Cache: () async {},
+          deleteHtlcDatabase: () async {},
+          deleteLegacyHtlcBoxes: () async {},
+          deleteKeyStoreBox: () async {},
+          getSelectedNode: () => null,
+        );
+        addTearDown(bloc.close);
+
+        bloc.add(
+          SplashStarted(
+            flow: SplashFlow.resetWallet,
+            initApp: () async {},
+          ),
+        );
+        await Future<void>.delayed(const Duration(milliseconds: 30));
+
+        // Reset has invalidated and cleared kWalletFile, but must still be
+        // waiting on the active access() before deleting the keystore file.
+        expect(kWalletFile, isNull);
+        expect(activeWallet.isClosed, isTrue);
+        expect(activeWallet.isOpen, isTrue);
+        expect(queuedEntered, isFalse);
+        expect(File(tempWalletPath).existsSync(), isTrue);
+
+        releaseAccess.complete();
+        expect(await activeOp, keyStore.mnemonic);
+        await queuedRejection;
+        await expectLater(
+          bloc.stream,
+          emitsThrough(const SplashNavigateTo(SplashDestination.accessWallet)),
+        );
+
+        expect(queuedEntered, isFalse);
+        expect(activeWallet.isOpen, isFalse);
+        expect(kWalletPath, isNull);
+        expect(File(tempWalletPath).existsSync(), isFalse);
+      },
+    );
   });
 }

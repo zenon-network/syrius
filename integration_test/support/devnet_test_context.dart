@@ -158,6 +158,7 @@ class DevnetWalletFile extends WalletFile {
 
   final Wallet _wallet;
   bool _isOpen = false;
+  bool _isClosed = false;
 
   @override
   bool get isHardwareWallet => false;
@@ -166,16 +167,27 @@ class DevnetWalletFile extends WalletFile {
   bool get isOpen => _isOpen;
 
   @override
+  bool get isClosed => _isClosed;
+
+  @override
   String get walletType => keyStoreWalletType;
 
   @override
-  Future<Wallet> open() async {
+  Future<T> access<T>(Future<T> Function(Wallet) accessSection) async {
+    if (_isClosed) {
+      throw WalletException('Wallet file is closed');
+    }
     _isOpen = true;
-    return _wallet;
+    try {
+      return await accessSection(_wallet);
+    } finally {
+      _isOpen = false;
+    }
   }
 
   @override
-  void close() {
+  Future<void> close() async {
+    _isClosed = true;
     _isOpen = false;
   }
 }

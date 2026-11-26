@@ -13,10 +13,25 @@ class PowGeneratingStatusBloc
     on<PowGeneratingStatusChanged>(_onStatusChanged);
   }
 
+  int _activeCount = 0;
+
   void _onStatusChanged(
     PowGeneratingStatusChanged event,
     Emitter<PowGeneratingStatusState> emit,
   ) {
-    emit(PowGeneratingStatusState(status: event.status));
+    switch (event.status) {
+      case PowStatus.generating:
+        _activeCount += 1;
+      case PowStatus.done:
+        if (_activeCount > 0) {
+          _activeCount -= 1;
+        }
+    }
+    final PowStatus nextStatus = _activeCount > 0
+        ? PowStatus.generating
+        : PowStatus.done;
+    if (nextStatus != state.status) {
+      emit(PowGeneratingStatusState(status: nextStatus));
+    }
   }
 }

@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:hex/hex.dart';
 import 'package:mutex/mutex.dart';
 import 'package:path/path.dart' as path;
@@ -160,20 +161,17 @@ abstract class WalletFile {
 
   bool get isOpen;
 
+  /// Whether this wallet file has been permanently closed.
+  bool get isClosed => false;
+
   bool get isHardwareWallet;
 
-  Future<Wallet> open();
+  /// Runs [accessSection] while holding exclusive access to this wallet.
+  Future<T> access<T>(Future<T> Function(Wallet) accessSection);
 
-  void close();
-
-  Future<T> access<T>(Future<T> Function(Wallet) accessSection) async {
-    final Wallet wallet = await open();
-    try {
-      return await accessSection(wallet);
-    } finally {
-      close();
-    }
-  }
+  /// Permanently closes this wallet file without releasing another operation's
+  /// active access lock.
+  Future<void> close();
 
   Future<void> changePassword(
       String currentPassword, String newPassword,) async {
@@ -184,11 +182,57 @@ abstract class WalletFile {
   }
 }
 
+class _WalletFileLifecycle {
+  final Mutex _lock = Mutex();
+  bool _isClosed = false;
+  bool _isSessionActive = false;
+  Future<void>? _closeFuture;
+
+  bool get isOpen => _isSessionActive;
+
+  bool get isClosed => _isClosed;
+
+  Future<T> access<T>({
+    required Future<Wallet> Function() openSession,
+    required Future<void> Function({required bool isClosing}) closeSession,
+    required Future<T> Function(Wallet) accessSection,
+  }) async {
+    if (_isClosed) {
+      throw WalletException('Wallet file is closed');
+    }
+    return await _lock.protect<T>(() async {
+      if (_isClosed) {
+        throw WalletException('Wallet file is closed');
+      }
+      _isSessionActive = true;
+      try {
+        final Wallet wallet = await openSession();
+        try {
+          if (_isClosed) {
+            throw WalletException('Wallet file is closed');
+          }
+          return await accessSection(wallet);
+        } finally {
+          await closeSession(isClosing: _isClosed);
+        }
+      } finally {
+        _isSessionActive = false;
+      }
+    });
+  }
+
+  Future<void> close({required Future<void> Function() dispose}) {
+    _isClosed = true;
+    return _closeFuture ??= _lock.protect<void>(dispose);
+  }
+}
+
 class KeyStoreWalletFile extends WalletFile {
 
-  KeyStoreWalletFile._internal(super._path, this._walletSeed);
-  final Mutex _lock = Mutex();
-  final String _walletSeed;
+  KeyStoreWalletFile._internal(super._path, String walletSeed)
+      : _walletSeed = walletSeed;
+  final _WalletFileLifecycle _lifecycle = _WalletFileLifecycle();
+  String? _walletSeed;
   KeyStore? _keyStore;
 
   static final KeyStoreManager keyStoreWalletManager =
@@ -220,34 +264,69 @@ class KeyStoreWalletFile extends WalletFile {
   String get walletType => keyStoreWalletType;
 
   @override
-  bool get isOpen => _lock.isLocked;
+  bool get isOpen => _lifecycle.isOpen;
+
+  @override
+  bool get isClosed => _lifecycle.isClosed;
 
   @override
   bool get isHardwareWallet => false;
 
   @override
-  Future<Wallet> open() async {
-    await _lock.acquire();
-    try {
-      _keyStore ??= KeyStore.fromEntropy(_walletSeed);
-      return _keyStore!;
-    } catch (_) {
-      _lock.release();
-      rethrow;
+  Future<T> access<T>(Future<T> Function(Wallet) accessSection) {
+    return _lifecycle.access<T>(
+      openSession: _openSession,
+      closeSession: _closeSession,
+      accessSection: accessSection,
+    );
+  }
+
+  Future<Wallet> _openSession() async {
+    final String? seed = _walletSeed;
+    if (seed == null) {
+      throw WalletException('Wallet file is closed');
+    }
+    _keyStore ??= KeyStore.fromEntropy(seed);
+    return _keyStore!;
+  }
+
+  Future<void> _closeSession({required bool isClosing}) async {
+    if (isClosing) {
+      _clearMemory();
     }
   }
 
+  void _clearMemory() {
+    _keyStore = null;
+    _walletSeed = null;
+  }
+
   @override
-  Future<void> close() async {
-    if (_lock.isLocked) _lock.release();
+  Future<void> close() {
+    return _lifecycle.close(
+      dispose: () async {
+        _clearMemory();
+      },
+    );
   }
 }
 
 class LedgerWalletFile extends WalletFile {
 
-  LedgerWalletFile._internal(super._path, this._walletName);
-  final Mutex _lock = Mutex();
+  LedgerWalletFile._internal(super._path, this._walletName)
+      : _connector = _connect;
+
+  /// Creates a [LedgerWalletFile] with a custom device connector for tests.
+  @visibleForTesting
+  LedgerWalletFile.forTesting(
+    super._path,
+    this._walletName,
+    this._connector,
+  );
+
+  final _WalletFileLifecycle _lifecycle = _WalletFileLifecycle();
   final String _walletName;
+  final Future<LedgerWallet> Function(String walletIdOrName) _connector;
   LedgerWallet? _wallet;
 
   static final LedgerWalletManager ledgerWalletManager = LedgerWalletManager();
@@ -300,33 +379,40 @@ class LedgerWalletFile extends WalletFile {
   String get walletType => ledgerWalletType;
 
   @override
-  bool get isOpen => _lock.isLocked;
+  bool get isOpen => _lifecycle.isOpen;
+
+  @override
+  bool get isClosed => _lifecycle.isClosed;
 
   @override
   bool get isHardwareWallet => true;
 
   @override
-  Future<Wallet> open() async {
-    await _lock.acquire();
-    try {
-      _wallet = await _connect(_walletName);
-      return _wallet!;
-    } catch (_) {
-      _lock.release();
-      rethrow;
+  Future<T> access<T>(Future<T> Function(Wallet) accessSection) {
+    return _lifecycle.access<T>(
+      openSession: _openSession,
+      closeSession: ({required bool isClosing}) => _disconnectWallet(),
+      accessSection: accessSection,
+    );
+  }
+
+  Future<Wallet> _openSession() async {
+    _wallet = await _connector(_walletName);
+    return _wallet!;
+  }
+
+  Future<void> _disconnectWallet() async {
+    final LedgerWallet? wallet = _wallet;
+    _wallet = null;
+    if (wallet != null) {
+      try {
+        await wallet.disconnect();
+      } on Object catch (_) {}
     }
   }
 
   @override
-  Future<void> close() async {
-    if (_wallet != null) {
-      try {
-        await _wallet!.disconnect();
-      } catch (_) {
-      } finally {
-        _wallet = null;
-      }
-    }
-    if (_lock.isLocked) _lock.release();
+  Future<void> close() {
+    return _lifecycle.close(dispose: _disconnectWallet);
   }
 }
