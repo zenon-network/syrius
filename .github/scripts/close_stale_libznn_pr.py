@@ -291,18 +291,28 @@ def _fetch_pr_manifest(
     return "ok", validated
 
 
-def _classify_pr_staleness(
+def _classify_rolling_pr(
     *,
     repo: str,
     pr: Mapping[str, Any],
     target_branch: str,
     release_tag: str,
     github_token: str,
+    protect_prerelease_and_explicit: bool,
     opener: urllib.request.OpenerDirector | None = None,
 ) -> tuple[bool, str]:
-    """Return (is_stale, reason). Fails safe (False) when staleness cannot be proven."""
+    """Evaluate whether an open rolling-branch PR can be closed/superseded.
+
+    Fails safe (False) unless the PR is proven to be a replaceable automated
+    libznn update for `release_tag` or an older superseded release.
+    """
     if is_forced_downgrade_pr(pr):
         return False, "PR is marked as an intentional forced downgrade"
+    if protect_prerelease_and_explicit:
+        if is_prerelease_pr(pr):
+            return False, "PR is marked as a pre-release update"
+        if is_explicit_tag_pr(pr):
+            return False, "PR is marked as an explicit-tag dispatch"
 
     pr_number = int(pr["number"])
     head = pr["head"]
@@ -360,11 +370,20 @@ def _classify_pr_staleness(
         opener=opener,
     )
     if manifest_status == "ok" and pr_manifest is not None:
+        if protect_prerelease_and_explicit and pr_manifest["release"].get("prerelease") is True:
+            return False, "PR provenance manifest targets a pre-release"
         pr_tag = str(pr_manifest["release"]["tag"])
         if pr_tag == release_tag:
+            if protect_prerelease_and_explicit:
+                return True, f"PR already targets `{pr_tag}`"
             return True, f"PR targets `{pr_tag}`, which `{target_branch}` already matches"
         tag_cmp = updater.compare_release_tags(pr_tag, release_tag)
         if tag_cmp is not None and tag_cmp < 0:
+            if protect_prerelease_and_explicit:
+                return (
+                    True,
+                    f"PR targets older release `{pr_tag}`, superseded by `{release_tag}`",
+                )
             return (
                 True,
                 f"PR targets older release `{pr_tag}`, superseded by `{release_tag}` on `{target_branch}`",
@@ -377,12 +396,34 @@ def _classify_pr_staleness(
     if manifest_status == "missing":
         return (
             False,
-            f"PR has no `{updater.MANIFEST_RELPATH}` and modifies non-blob files; preserving PR for manual review",
+            f"PR head is missing `{updater.MANIFEST_RELPATH}` (deleted or absent); "
+            "preserving PR for manual review",
         )
 
     return (
         False,
         f"PR `{updater.MANIFEST_RELPATH}` could not be validated; preserving PR for manual review",
+    )
+
+
+def _classify_pr_staleness(
+    *,
+    repo: str,
+    pr: Mapping[str, Any],
+    target_branch: str,
+    release_tag: str,
+    github_token: str,
+    opener: urllib.request.OpenerDirector | None = None,
+) -> tuple[bool, str]:
+    """Return (is_stale, reason). Fails safe (False) when staleness cannot be proven."""
+    return _classify_rolling_pr(
+        repo=repo,
+        pr=pr,
+        target_branch=target_branch,
+        release_tag=release_tag,
+        github_token=github_token,
+        protect_prerelease_and_explicit=False,
+        opener=opener,
     )
 
 
@@ -396,92 +437,14 @@ def _classify_pr_overwrite_safety(
     opener: urllib.request.OpenerDirector | None = None,
 ) -> tuple[bool, str]:
     """Return (safe_to_overwrite, reason) for a rolling update PR branch. Fails safe (False)."""
-    if is_forced_downgrade_pr(pr):
-        return False, "PR is marked as an intentional forced downgrade"
-    if is_prerelease_pr(pr):
-        return False, "PR is marked as a pre-release update"
-    if is_explicit_tag_pr(pr):
-        return False, "PR is marked as an explicit-tag dispatch"
-
-    pr_number = int(pr["number"])
-    head = pr["head"]
-    head_ref = str(head.get("sha") or head.get("ref") or "")
-
-    changed_files = _list_pr_changed_files(
+    return _classify_rolling_pr(
         repo=repo,
-        pr_number=pr_number,
+        pr=pr,
+        target_branch=target_branch,
+        release_tag=release_tag,
         github_token=github_token,
+        protect_prerelease_and_explicit=True,
         opener=opener,
-    )
-    if changed_files is None:
-        return (
-            False,
-            "PR file list could not be verified or exceeded 100 files; preserving PR for manual review",
-        )
-    if len(changed_files) == 0:
-        return True, f"PR has no remaining diff against `{target_branch}`"
-
-    changed_set = set(changed_files)
-    allowed_paths = BLOB_RELPATHS | {updater.MANIFEST_RELPATH}
-    if not changed_set.issubset(allowed_paths):
-        return (
-            False,
-            "PR modifies files outside embedded libznn blobs/manifest; preserving PR for manual review",
-        )
-    touches_blobs = bool(changed_set & BLOB_RELPATHS)
-    touches_manifest = updater.MANIFEST_RELPATH in changed_set
-
-    if touches_blobs and not touches_manifest:
-        if _pr_blobs_match_target_branch(
-            repo=repo,
-            head_ref=head_ref,
-            target_branch=target_branch,
-            changed_files=changed_files,
-            github_token=github_token,
-            opener=opener,
-        ):
-            return (
-                True,
-                f"PR blob contents already match `{target_branch}` (no remaining binary diff)",
-            )
-        return (
-            False,
-            f"PR updates embedded blobs without updating `{updater.MANIFEST_RELPATH}` and "
-            f"differs from `{target_branch}`; preserving PR for manual review",
-        )
-
-    manifest_status, pr_manifest = _fetch_pr_manifest(
-        repo=repo,
-        ref=head_ref,
-        github_token=github_token,
-        opener=opener,
-    )
-    if manifest_status == "ok" and pr_manifest is not None:
-        if pr_manifest["release"].get("prerelease") is True:
-            return False, "PR provenance manifest targets a pre-release"
-        pr_tag = str(pr_manifest["release"]["tag"])
-        if pr_tag == release_tag:
-            return True, f"PR already targets `{pr_tag}`"
-        tag_cmp = updater.compare_release_tags(pr_tag, release_tag)
-        if tag_cmp is not None and tag_cmp < 0:
-            return (
-                True,
-                f"PR targets older release `{pr_tag}`, superseded by `{release_tag}`",
-            )
-        return (
-            False,
-            f"PR targets `{pr_tag}`, which is not superseded by `{release_tag}`",
-        )
-
-    if manifest_status == "missing":
-        return (
-            False,
-            f"PR has no `{updater.MANIFEST_RELPATH}` and modifies non-blob files; preserving PR for manual review",
-        )
-
-    return (
-        False,
-        f"PR `{updater.MANIFEST_RELPATH}` could not be validated; preserving PR for manual review",
     )
 
 

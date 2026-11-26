@@ -957,6 +957,88 @@ class CloseStaleLibznnPrTests(unittest.TestCase):
         self.assertIn("::warning::Skipping rolling PR update", stdout_buf.getvalue())
         self.assertIn("safe_to_update=false\n", gh_out.read_text(encoding="utf-8"))
 
+    def test_update_guard_fails_closed_on_api_error_and_deleted_manifest(self) -> None:
+        # 1. PR that deleted libznn.manifest.json reports accurate missing-manifest reason.
+        head_deleted = "f" * 40
+        deleted_prs = [
+            _pr_obj(
+                number=309,
+                title="chore: update embedded libznn to go-zenon v0.0.10-alphanet",
+                head_sha=head_deleted,
+            )
+        ]
+        opener_deleted = _RecordingOpener(
+            {
+                ("GET", self.list_develop_url): json.dumps(deleted_prs).encode("utf-8"),
+                ("GET", self._files_url(309)): _pr_files_response([updater.MANIFEST_RELPATH]),
+                ("GET", self._manifest_contents_url(head_deleted)): urllib.error.HTTPError(
+                    self._manifest_contents_url(head_deleted),
+                    404,
+                    "Not Found",
+                    {},
+                    None,  # type: ignore[arg-type]
+                ),
+            }
+        )
+        res_deleted = stale_pr.check_pr_branch_safe_to_update(
+            repo="zenon-network/syrius",
+            target_branch="develop",
+            pr_branch="chore/update-libznn-develop",
+            release_tag="v0.0.11-alphanet",
+            github_token="ghs_test",
+            opener=opener_deleted,  # type: ignore[arg-type]
+        )
+        self.assertFalse(res_deleted.safe_to_update)
+        self.assertIn("missing `lib/embedded_node/blobs/libznn.manifest.json`", res_deleted.blocking_prs[0].reason)
+        self.assertNotIn("modifies non-blob files", res_deleted.blocking_prs[0].reason)
+
+        # 2. GitHub API HTTP 500 error in --check-update-safe CLI mode returns exit 1 (fail closed).
+        opener_err = _RecordingOpener(
+            {
+                ("GET", self.list_develop_url): urllib.error.HTTPError(
+                    self.list_develop_url,
+                    500,
+                    "Internal Server Error",
+                    {},
+                    None,  # type: ignore[arg-type]
+                )
+            }
+        )
+        orig_build_opener = updater._build_opener
+        orig_sleep = updater.time.sleep
+        orig_token = os.environ.get("GH_TOKEN")
+        stderr_buf = io.StringIO()
+        old_stderr = sys.stderr
+        try:
+            updater._build_opener = lambda: opener_err  # type: ignore[assignment]
+            updater.time.sleep = lambda _s: None  # type: ignore[assignment]
+            os.environ["GH_TOKEN"] = "ghs_test"
+            sys.stderr = stderr_buf
+            rc = stale_pr.main(
+                [
+                    "--check-update-safe",
+                    "--repo",
+                    "zenon-network/syrius",
+                    "--target-branch",
+                    "develop",
+                    "--pr-branch",
+                    "chore/update-libznn-develop",
+                    "--release-tag",
+                    "v0.0.11-alphanet",
+                ]
+            )
+        finally:
+            updater._build_opener = orig_build_opener
+            updater.time.sleep = orig_sleep
+            sys.stderr = old_stderr
+            if orig_token is None:
+                os.environ.pop("GH_TOKEN", None)
+            else:
+                os.environ["GH_TOKEN"] = orig_token
+
+        self.assertEqual(rc, 1)
+        self.assertIn("HTTP 500", stderr_buf.getvalue())
+
 
 if __name__ == "__main__":
     unittest.main()

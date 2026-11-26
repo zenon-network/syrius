@@ -194,7 +194,7 @@ jobs:
         id: cpr
         if: >-
           steps.update.outputs.changed == 'true' &&
-          (steps.update.outputs.is_default_pr_branch != 'true' ||
+          (steps.update.outputs.is_default_pr_branch == 'false' ||
             steps.pr_guard.outputs.safe_to_update == 'true')
         uses: peter-evans/create-pull-request@3ffccacd46053766916f087ce41d627c0b8cf2d1 # v8.1.3
         with:
@@ -217,7 +217,7 @@ jobs:
       - name: Record pull request outcome
         if: >-
           steps.update.outputs.changed == 'true' &&
-          (steps.update.outputs.is_default_pr_branch != 'true' ||
+          (steps.update.outputs.is_default_pr_branch == 'false' ||
             steps.pr_guard.outputs.safe_to_update == 'true')
         env:
           PR_URL: ${{ steps.cpr.outputs.pull-request-url }}
