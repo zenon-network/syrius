@@ -6,6 +6,7 @@ from __future__ import annotations
 import argparse
 import contextlib
 import dataclasses
+import datetime
 import hashlib
 import http.client
 import json
@@ -27,14 +28,26 @@ from typing import Any, Iterator, Mapping, Sequence
 
 DEFAULT_UPSTREAM_REPO = "zenon-network/go-zenon"
 CHECKSUMS_ASSET_NAME = "SHA256CHECKSUMS.txt"
+MANIFEST_RELPATH = "lib/embedded_node/blobs/libznn.manifest.json"
+MANIFEST_SCHEMA_VERSION = 1
+MANIFEST_FILE_MODE = 0o644
 ALLOWED_TARGET_BRANCHES = frozenset({"develop", "master"})
 
 TAG_PATTERN = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._+-]*$")
 REPO_PATTERN = re.compile(r"^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$")
 SHA256_HEX_PATTERN = re.compile(r"^[0-9a-f]{64}$")
+GIT_COMMIT_SHA_PATTERN = re.compile(r"^[0-9a-fA-F]{40}$")
+SEMVER_TAG_PATTERN = re.compile(
+    r"^[vV]?(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)"
+    r"(?:-([0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*))?"
+    r"(?:\+([0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*))?$"
+)
 CHECKSUM_LINE_PATTERN = re.compile(r"^([0-9a-fA-F]{64})[ \t]+\*?(.+)$")
 GITHUB_DIGEST_PATTERN = re.compile(r"^sha256:([0-9a-fA-F]{64})$")
 OUTPUT_KEY_PATTERN = re.compile(r"^[A-Za-z_][A-Za-z0-9_-]*$")
+MAX_TAG_DEREF_DEPTH = 5
+# Allow normal upstream release CI upload lag (e.g. znn_builder + makefat) before warning.
+ASSET_UPDATE_GRACE_SECONDS = 3600
 
 # Cap archive downloads and extracted native binaries (current binaries are ~19-38 MiB).
 MAX_ARCHIVE_BYTES = 256 * 1024 * 1024
@@ -118,6 +131,7 @@ class VerifiedBinary:
     archive_verification: ChecksumVerification
     extracted_sha256: str
     previous_sha256: str | None
+    asset_updated_at: str | None = None
 
     @property
     def changed(self) -> bool:
@@ -140,6 +154,20 @@ class ReleaseInfo:
     prerelease: bool
     checksums_url: str | None
     checksums_sha256: str | None
+    target_commitish: str | None = None
+    tag_commit: str | None = None
+    immutable: bool | None = None
+    checksums_updated_at: str | None = None
+
+
+@dataclasses.dataclass(frozen=True)
+class ProvenanceAlerts:
+    late_updated_assets: tuple[tuple[str, str], ...] = ()
+    same_tag_rebuild: bool = False
+    same_tag_rebuild_reasons: tuple[str, ...] = ()
+    is_downgrade: bool = False
+    previous_tag: str | None = None
+    commitish_mismatch: bool = False
 
 
 class _SafeRedirectHandler(urllib.request.HTTPRedirectHandler):
@@ -201,6 +229,416 @@ def validate_target_branch(branch: str) -> str:
             f"Unsupported target branch {branch!r}; allowed values: {allowed}"
         )
     return cleaned
+
+
+def validate_git_commit_sha(value: Any, label: str = "git commit SHA") -> str:
+    if not isinstance(value, str):
+        raise UpdaterError(f"Invalid {label}: expected string, got {type(value).__name__}")
+    cleaned = value.strip()
+    if not GIT_COMMIT_SHA_PATTERN.fullmatch(cleaned):
+        raise UpdaterError(f"Invalid {label}: {value!r}")
+    return cleaned.lower()
+
+
+def _sanitize_inline_text(value: Any, *, default: str | None = None) -> str | None:
+    if value is None:
+        return default
+    cleaned = re.sub(r"[\r\n`]+", " ", str(value)).strip()
+    return cleaned if cleaned else default
+
+
+def parse_iso8601_utc(value: str | None) -> datetime.datetime | None:
+    if not value or not isinstance(value, str):
+        return None
+    cleaned = value.strip()
+    if not cleaned:
+        return None
+    if cleaned.endswith(("Z", "z")):
+        cleaned = cleaned[:-1] + "+00:00"
+    try:
+        dt = datetime.datetime.fromisoformat(cleaned)
+    except ValueError:
+        return None
+    if dt.tzinfo is None or dt.utcoffset() is None:
+        return None
+    return dt.astimezone(datetime.timezone.utc)
+
+
+def parse_semver_tag(tag: str) -> tuple[int, int, int, tuple[str, ...]] | None:
+    """Parse a SemVer 2.0.0 tag (optional leading v/V) into (major, minor, patch, prerelease)."""
+    match = SEMVER_TAG_PATTERN.fullmatch(tag.strip())
+    if not match:
+        return None
+    major, minor, patch = int(match.group(1)), int(match.group(2)), int(match.group(3))
+    prerelease = tuple(match.group(4).split(".")) if match.group(4) else ()
+    # Per SemVer 2.0.0 §9, numeric prerelease identifiers MUST NOT include leading zeroes.
+    for ident in prerelease:
+        if ident.isdigit() and len(ident) > 1 and ident.startswith("0"):
+            return None
+    return major, minor, patch, prerelease
+
+
+def compare_release_tags(tag_a: str, tag_b: str) -> int | None:
+    """Compare two SemVer tags. Returns -1 if a < b, 0 if equal, 1 if a > b, None if incomparable."""
+    parsed_a = parse_semver_tag(tag_a)
+    parsed_b = parse_semver_tag(tag_b)
+    if parsed_a is None or parsed_b is None:
+        return None
+
+    core_a, pre_a = parsed_a[:3], parsed_a[3]
+    core_b, pre_b = parsed_b[:3], parsed_b[3]
+    if core_a != core_b:
+        return -1 if core_a < core_b else 1
+
+    if not pre_a and not pre_b:
+        return 0
+    if not pre_a:
+        return 1
+    if not pre_b:
+        return -1
+
+    for ident_a, ident_b in zip(pre_a, pre_b):
+        if ident_a == ident_b:
+            continue
+        a_num = ident_a.isdigit()
+        b_num = ident_b.isdigit()
+        if a_num and b_num:
+            return -1 if int(ident_a) < int(ident_b) else 1
+        if a_num != b_num:
+            return -1 if a_num else 1
+        return -1 if ident_a < ident_b else 1
+
+    if len(pre_a) != len(pre_b):
+        return -1 if len(pre_a) < len(pre_b) else 1
+    return 0
+
+
+def find_late_updated_assets(
+    release: ReleaseInfo,
+    verified_binaries: Sequence[VerifiedBinary],
+    *,
+    grace_seconds: int = ASSET_UPDATE_GRACE_SECONDS,
+) -> list[tuple[str, str]]:
+    """Return [(asset_name, updated_at)] for consumed assets updated past the post-publish grace window."""
+    published_dt = parse_iso8601_utc(release.published_at)
+    if published_dt is None:
+        return []
+    cutoff_dt = published_dt + datetime.timedelta(seconds=grace_seconds)
+    late: list[tuple[str, str]] = []
+    if release.checksums_url and release.checksums_updated_at:
+        csum_dt = parse_iso8601_utc(release.checksums_updated_at)
+        if csum_dt is not None and csum_dt > cutoff_dt:
+            late.append((CHECKSUMS_ASSET_NAME, release.checksums_updated_at))
+    for item in verified_binaries:
+        if not item.asset_updated_at:
+            continue
+        asset_dt = parse_iso8601_utc(item.asset_updated_at)
+        if asset_dt is not None and asset_dt > cutoff_dt:
+            late.append((item.spec.asset_name, item.asset_updated_at))
+    return late
+
+
+def _timestamp_changed(prev_ts: str | None, new_ts: str | None) -> bool:
+    if not prev_ts or not new_ts:
+        return False
+    prev_dt = parse_iso8601_utc(prev_ts)
+    new_dt = parse_iso8601_utc(new_ts)
+    if prev_dt is not None and new_dt is not None:
+        return new_dt != prev_dt
+    return prev_ts != new_ts
+
+
+def _format_late_delta(published_at: str, updated_at: str) -> str:
+    published_dt = parse_iso8601_utc(published_at)
+    updated_dt = parse_iso8601_utc(updated_at)
+    if published_dt is None or updated_dt is None or updated_dt <= published_dt:
+        return ""
+    seconds = int((updated_dt - published_dt).total_seconds())
+    if seconds < 60:
+        return f" (+{seconds}s)"
+    minutes, rem_s = divmod(seconds, 60)
+    if minutes < 60:
+        return f" (+{minutes}m{rem_s:02d}s)"
+    hours, rem_m = divmod(minutes, 60)
+    if hours < 24:
+        return f" (+{hours}h{rem_m:02d}m)"
+    days, rem_h = divmod(hours, 24)
+    return f" (+{days}d{rem_h:02d}h)"
+
+
+def build_provenance_manifest(
+    release: ReleaseInfo,
+    verified_binaries: Sequence[VerifiedBinary],
+) -> dict[str, Any]:
+    checksums_entry: dict[str, Any] | None = None
+    if release.checksums_url and release.checksums_sha256:
+        checksums_entry = {
+            "name": CHECKSUMS_ASSET_NAME,
+            "download_url": release.checksums_url,
+            "sha256": release.checksums_sha256,
+            "updated_at": release.checksums_updated_at,
+        }
+    blobs_map: dict[str, dict[str, Any]] = {}
+    for item in verified_binaries:
+        blobs_map[item.spec.blob_relpath] = {
+            "platform": item.spec.platform,
+            "asset_name": item.spec.asset_name,
+            "download_url": item.download_url,
+            "asset_updated_at": item.asset_updated_at,
+            "archive_sha256": item.archive_verification.actual_sha256,
+            "extracted_sha256": item.extracted_sha256,
+        }
+    return {
+        "schema_version": MANIFEST_SCHEMA_VERSION,
+        "upstream_repo": release.upstream_repo,
+        "release": {
+            "tag": release.tag_name,
+            "name": release.release_name,
+            "html_url": release.html_url,
+            "published_at": release.published_at,
+            "prerelease": release.prerelease,
+            "immutable": release.immutable,
+            "target_commitish": release.target_commitish,
+            "tag_commit": release.tag_commit,
+            "checksums_asset": checksums_entry,
+        },
+        "blobs": blobs_map,
+    }
+
+
+def serialize_provenance_manifest(manifest: Mapping[str, Any]) -> str:
+    return json.dumps(manifest, indent=2) + "\n"
+
+
+def validate_provenance_manifest(
+    data: Any,
+    *,
+    source: str = MANIFEST_RELPATH,
+) -> dict[str, Any]:
+    if not isinstance(data, dict):
+        raise UpdaterError(f"Provenance manifest {source} must be a JSON object")
+    schema_version = data.get("schema_version")
+    if type(schema_version) is not int or schema_version != MANIFEST_SCHEMA_VERSION:
+        raise UpdaterError(
+            f"Unsupported provenance manifest schema_version in {source}: {schema_version!r}"
+        )
+    raw_repo = data.get("upstream_repo")
+    if not isinstance(raw_repo, str):
+        raise UpdaterError(f"Provenance manifest {source} is missing valid upstream_repo")
+    upstream_repo = validate_upstream_repo(raw_repo)
+
+    release = data.get("release")
+    if not isinstance(release, dict):
+        raise UpdaterError(f"Provenance manifest {source} is missing release object")
+    raw_tag = release.get("tag")
+    if not isinstance(raw_tag, str) or not validate_tag(raw_tag):
+        raise UpdaterError(f"Provenance manifest {source} has invalid release.tag: {raw_tag!r}")
+    if not isinstance(release.get("name"), str) or not release["name"].strip():
+        raise UpdaterError(f"Provenance manifest {source} is missing release.name")
+    raw_html_url = release.get("html_url")
+    if not isinstance(raw_html_url, str):
+        raise UpdaterError(f"Provenance manifest {source} is missing release.html_url")
+    validate_release_html_url(raw_html_url, upstream_repo)
+    raw_published_at = release.get("published_at")
+    if not isinstance(raw_published_at, str) or not raw_published_at.strip():
+        raise UpdaterError(f"Provenance manifest {source} is missing release.published_at")
+    if type(release.get("prerelease")) is not bool:
+        raise UpdaterError(f"Provenance manifest {source} release.prerelease must be a boolean")
+    immutable = release.get("immutable")
+    if immutable is not None and type(immutable) is not bool:
+        raise UpdaterError(f"Provenance manifest {source} release.immutable must be boolean or null")
+    target_commitish = release.get("target_commitish")
+    if target_commitish is not None and (
+        not isinstance(target_commitish, str) or not target_commitish.strip()
+    ):
+        raise UpdaterError(
+            f"Provenance manifest {source} release.target_commitish must be non-empty string or null"
+        )
+    tag_commit = release.get("tag_commit")
+    if tag_commit is not None:
+        validate_git_commit_sha(tag_commit, label=f"{source} release.tag_commit")
+
+    checksums_asset = release.get("checksums_asset")
+    if checksums_asset is not None:
+        if not isinstance(checksums_asset, dict):
+            raise UpdaterError(f"Provenance manifest {source} release.checksums_asset must be object or null")
+        if checksums_asset.get("name") != CHECKSUMS_ASSET_NAME:
+            raise UpdaterError(
+                f"Provenance manifest {source} release.checksums_asset.name must be {CHECKSUMS_ASSET_NAME!r}"
+            )
+        raw_csum_url = checksums_asset.get("download_url")
+        if not isinstance(raw_csum_url, str):
+            raise UpdaterError(f"Provenance manifest {source} release.checksums_asset.download_url missing")
+        validate_release_download_url(raw_csum_url, upstream_repo)
+        raw_csum_sha = checksums_asset.get("sha256")
+        if not isinstance(raw_csum_sha, str) or not SHA256_HEX_PATTERN.fullmatch(raw_csum_sha):
+            raise UpdaterError(f"Provenance manifest {source} release.checksums_asset.sha256 invalid")
+        csum_updated_at = checksums_asset.get("updated_at")
+        if csum_updated_at is not None and (
+            not isinstance(csum_updated_at, str) or not csum_updated_at.strip()
+        ):
+            raise UpdaterError(
+                f"Provenance manifest {source} release.checksums_asset.updated_at must be string or null"
+            )
+
+    blobs = data.get("blobs")
+    if not isinstance(blobs, dict):
+        raise UpdaterError(f"Provenance manifest {source} is missing blobs mapping")
+    expected_keys = {spec.blob_relpath for spec in BINARY_SPECS}
+    actual_keys = set(blobs.keys())
+    if actual_keys != expected_keys:
+        missing = sorted(expected_keys - actual_keys)
+        extra = sorted(actual_keys - expected_keys)
+        raise UpdaterError(
+            f"Provenance manifest {source} blobs keys mismatch (missing={missing}, extra={extra})"
+        )
+    for spec in BINARY_SPECS:
+        entry = blobs[spec.blob_relpath]
+        if not isinstance(entry, dict):
+            raise UpdaterError(f"Provenance manifest {source} entry for {spec.blob_relpath} must be an object")
+        if not isinstance(entry.get("platform"), str) or not entry["platform"].strip():
+            raise UpdaterError(f"Provenance manifest {source} {spec.blob_relpath}.platform missing")
+        if entry.get("asset_name") != spec.asset_name:
+            raise UpdaterError(
+                f"Provenance manifest {source} {spec.blob_relpath}.asset_name expected {spec.asset_name!r}, "
+                f"got {entry.get('asset_name')!r}"
+            )
+        raw_dl_url = entry.get("download_url")
+        if not isinstance(raw_dl_url, str):
+            raise UpdaterError(f"Provenance manifest {source} {spec.blob_relpath}.download_url missing")
+        validate_release_download_url(raw_dl_url, upstream_repo)
+        asset_updated_at = entry.get("asset_updated_at")
+        if asset_updated_at is not None and (
+            not isinstance(asset_updated_at, str) or not asset_updated_at.strip()
+        ):
+            raise UpdaterError(
+                f"Provenance manifest {source} {spec.blob_relpath}.asset_updated_at must be string or null"
+            )
+        for field_name in ("archive_sha256", "extracted_sha256"):
+            raw_hash = entry.get(field_name)
+            if not isinstance(raw_hash, str) or not SHA256_HEX_PATTERN.fullmatch(raw_hash):
+                raise UpdaterError(
+                    f"Provenance manifest {source} {spec.blob_relpath}.{field_name} invalid: {raw_hash!r}"
+                )
+    return data
+
+
+def load_provenance_manifest(repo_root: pathlib.Path) -> dict[str, Any] | None:
+    manifest_path = repo_root / MANIFEST_RELPATH
+    if manifest_path.is_symlink():
+        raise UpdaterError(f"Provenance manifest path must not be a symlink: {manifest_path}")
+    if not manifest_path.exists():
+        return None
+    if manifest_path.is_dir():
+        raise UpdaterError(f"Provenance manifest path is a directory: {manifest_path}")
+    try:
+        raw = manifest_path.read_text(encoding="utf-8")
+        parsed = json.loads(raw)
+    except (OSError, UnicodeDecodeError, json.JSONDecodeError) as exc:
+        raise UpdaterError(f"Failed to read provenance manifest {manifest_path}: {exc}") from exc
+    return validate_provenance_manifest(parsed, source=str(manifest_path))
+
+
+def evaluate_manifest_transition(
+    existing_manifest: Mapping[str, Any] | None,
+    release: ReleaseInfo,
+    verified_binaries: Sequence[VerifiedBinary],
+    *,
+    allow_downgrade: bool = False,
+) -> ProvenanceAlerts:
+    late_assets = tuple(find_late_updated_assets(release, verified_binaries))
+    commitish_mismatch = bool(
+        release.target_commitish
+        and release.tag_commit
+        and GIT_COMMIT_SHA_PATTERN.fullmatch(release.target_commitish)
+        and release.target_commitish.lower() != release.tag_commit.lower()
+    )
+
+    if existing_manifest is None:
+        return ProvenanceAlerts(
+            late_updated_assets=late_assets,
+            commitish_mismatch=commitish_mismatch,
+        )
+
+    prev_release = existing_manifest["release"]
+    prev_tag = str(prev_release["tag"])
+    prev_published_at = str(prev_release["published_at"])
+    prev_tag_commit = prev_release.get("tag_commit")
+    prev_blobs = existing_manifest["blobs"]
+
+    tag_cmp = compare_release_tags(prev_tag, release.tag_name)
+    is_downgrade = False
+    if tag_cmp is not None:
+        is_downgrade = tag_cmp > 0
+    elif prev_tag != release.tag_name:
+        prev_dt = parse_iso8601_utc(prev_published_at)
+        new_dt = parse_iso8601_utc(release.published_at)
+        if prev_dt is not None and new_dt is not None and new_dt < prev_dt:
+            is_downgrade = True
+
+    if is_downgrade and not allow_downgrade:
+        raise UpdaterError(
+            f"Refusing to downgrade embedded libznn from {prev_tag!r} to older release "
+            f"{release.tag_name!r}; re-run with --allow-downgrade to force"
+        )
+
+    rebuild_reasons: list[str] = []
+    if prev_tag == release.tag_name:
+        if prev_tag_commit and release.tag_commit is None:
+            raise UpdaterError(
+                f"Refusing to overwrite recorded tag_commit ({prev_tag_commit}) for "
+                f"{release.tag_name!r} with an unresolved tag commit; provide _resolved_tag_commit "
+                "(via --fetch-metadata-only) or query the GitHub API directly"
+            )
+        if prev_tag_commit and release.tag_commit and prev_tag_commit.lower() != release.tag_commit.lower():
+            rebuild_reasons.append(
+                f"tag commit changed ({prev_tag_commit} -> {release.tag_commit})"
+            )
+        prev_csum = prev_release.get("checksums_asset")
+        prev_csum_sha = prev_csum.get("sha256") if isinstance(prev_csum, dict) else None
+        prev_csum_updated = prev_csum.get("updated_at") if isinstance(prev_csum, dict) else None
+        if prev_csum_sha != release.checksums_sha256:
+            rebuild_reasons.append(
+                f"{CHECKSUMS_ASSET_NAME} SHA-256 changed "
+                f"({prev_csum_sha or '<none>'} -> {release.checksums_sha256 or '<none>'})"
+            )
+        if _timestamp_changed(prev_csum_updated, release.checksums_updated_at):
+            rebuild_reasons.append(
+                f"{CHECKSUMS_ASSET_NAME} updated_at changed "
+                f"({prev_csum_updated} -> {release.checksums_updated_at})"
+            )
+        for item in verified_binaries:
+            prev_entry = prev_blobs[item.spec.blob_relpath]
+            if prev_entry["archive_sha256"] != item.archive_verification.actual_sha256:
+                rebuild_reasons.append(
+                    f"{item.spec.asset_name} archive SHA-256 changed "
+                    f"({prev_entry['archive_sha256']} -> {item.archive_verification.actual_sha256})"
+                )
+            if prev_entry["extracted_sha256"] != item.extracted_sha256:
+                rebuild_reasons.append(
+                    f"{item.spec.blob_relpath} extracted SHA-256 changed "
+                    f"({prev_entry['extracted_sha256']} -> {item.extracted_sha256})"
+                )
+            elif item.changed:
+                rebuild_reasons.append(
+                    f"{item.spec.blob_relpath} on-disk binary differed from manifest/release "
+                    f"({item.previous_sha256 or '<missing>'} -> {item.extracted_sha256})"
+                )
+            prev_asset_updated = prev_entry.get("asset_updated_at")
+            if _timestamp_changed(prev_asset_updated, item.asset_updated_at):
+                rebuild_reasons.append(
+                    f"{item.spec.asset_name} updated_at changed "
+                    f"({prev_asset_updated} -> {item.asset_updated_at})"
+                )
+
+    return ProvenanceAlerts(
+        late_updated_assets=late_assets,
+        same_tag_rebuild=bool(rebuild_reasons),
+        same_tag_rebuild_reasons=tuple(rebuild_reasons),
+        is_downgrade=is_downgrade,
+        previous_tag=prev_tag,
+        commitish_mismatch=commitish_mismatch,
+    )
 
 
 def _validate_github_url(url: str, expected_prefix: str, label: str) -> str:
@@ -518,6 +956,98 @@ def _declared_content_length(resp: Any) -> int | None:
     return length if length >= 0 else None
 
 
+def github_api_request_json(
+    url: str,
+    *,
+    method: str = "GET",
+    body: Mapping[str, Any] | None = None,
+    github_token: str | None = None,
+    opener: urllib.request.OpenerDirector | None = None,
+    max_attempts: int = HTTP_MAX_ATTEMPTS,
+    retry_backoff_seconds: float | None = None,
+    api_label: str = "GitHub API",
+    allow_empty_response: bool = False,
+) -> Any:
+    headers = {
+        "Accept": "application/vnd.github+json",
+        "X-GitHub-Api-Version": "2022-11-28",
+        "User-Agent": "syrius-libznn-updater",
+    }
+    if github_token and urllib.parse.urlsplit(url).netloc.lower() == "api.github.com":
+        headers["Authorization"] = f"Bearer {github_token}"
+    data: bytes | None = None
+    if body is not None:
+        data = json.dumps(body).encode("utf-8")
+        headers["Content-Type"] = "application/json"
+
+    req = urllib.request.Request(url, data=data, headers=headers, method=method)
+    active_opener = opener or _build_opener()
+    raw: bytes | None = None
+    last_exc: Exception | None = None
+    retryable_methods = {"GET", "HEAD", "DELETE"}
+
+    for attempt in range(1, max_attempts + 1):
+        try:
+            with active_opener.open(req, timeout=HTTP_TIMEOUT_SECONDS) as resp:
+                declared_len = _declared_content_length(resp)
+                if declared_len is not None and declared_len > MAX_METADATA_BYTES:
+                    raise UpdaterError(
+                        f"{api_label} response exceeded {MAX_METADATA_BYTES} bytes ({url})"
+                    )
+                raw = resp.read(MAX_METADATA_BYTES + 1)
+                if len(raw) > MAX_METADATA_BYTES:
+                    raise UpdaterError(
+                        f"{api_label} response exceeded {MAX_METADATA_BYTES} bytes ({url})"
+                    )
+                if declared_len is not None and len(raw) < declared_len:
+                    raise http.client.IncompleteRead(raw, declared_len - len(raw))
+                if declared_len is not None and len(raw) > declared_len:
+                    raise http.client.HTTPException(
+                        f"Response length mismatch for {url}: declared {declared_len} bytes, got {len(raw)}"
+                    )
+            break
+        except UpdaterError:
+            raise
+        except urllib.error.HTTPError as exc:
+            last_exc = exc
+            if (
+                method not in retryable_methods
+                or exc.code not in {429, 500, 502, 503, 504}
+                or attempt == max_attempts
+            ):
+                raise UpdaterError(f"HTTP {exc.code} fetching {url}: {exc.reason}") from exc
+        except (
+            urllib.error.URLError,
+            http.client.HTTPException,
+            ConnectionError,
+            TimeoutError,
+            socket.timeout,
+        ) as exc:
+            last_exc = exc
+            if method not in retryable_methods or attempt == max_attempts:
+                raise UpdaterError(f"Network error fetching {url}: {exc}") from exc
+        except OSError as exc:
+            raise UpdaterError(f"Error reading {api_label} response ({url}): {exc}") from exc
+        sleep_s = (
+            retry_backoff_seconds
+            if retry_backoff_seconds is not None
+            else min(2 ** (attempt - 1), 4)
+        )
+        if sleep_s > 0:
+            time.sleep(sleep_s)
+
+    if raw is None:
+        raise UpdaterError(f"Failed fetching {url}: {last_exc}")
+
+    if allow_empty_response and not raw.strip():
+        return None
+
+    try:
+        return json.loads(raw.decode("utf-8"))
+    except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+        raise UpdaterError(f"Invalid JSON from {api_label} ({url}): {exc}") from exc
+
+
 def fetch_release_metadata(
     upstream_repo: str,
     tag: str,
@@ -533,76 +1063,86 @@ def fetch_release_metadata(
     else:
         url = f"https://api.github.com/repos/{upstream_repo}/releases/latest"
 
-    headers = {
-        "Accept": "application/vnd.github+json",
-        "X-GitHub-Api-Version": "2022-11-28",
-        "User-Agent": "syrius-libznn-updater",
-    }
-    if github_token and urllib.parse.urlsplit(url).netloc.lower() == "api.github.com":
-        headers["Authorization"] = f"Bearer {github_token}"
-
-    req = urllib.request.Request(url, headers=headers)
-    active_opener = opener or _build_opener()
-    raw: bytes | None = None
-    last_exc: Exception | None = None
-
-    for attempt in range(1, max_attempts + 1):
-        try:
-            with active_opener.open(req, timeout=HTTP_TIMEOUT_SECONDS) as resp:
-                declared_len = _declared_content_length(resp)
-                if declared_len is not None and declared_len > MAX_METADATA_BYTES:
-                    raise UpdaterError(
-                        f"GitHub Releases API response exceeded {MAX_METADATA_BYTES} bytes ({url})"
-                    )
-                raw = resp.read(MAX_METADATA_BYTES + 1)
-                if len(raw) > MAX_METADATA_BYTES:
-                    raise UpdaterError(
-                        f"GitHub Releases API response exceeded {MAX_METADATA_BYTES} bytes ({url})"
-                    )
-                if declared_len is not None and len(raw) < declared_len:
-                    raise http.client.IncompleteRead(raw, declared_len - len(raw))
-                if declared_len is not None and len(raw) > declared_len:
-                    raise http.client.HTTPException(
-                        f"Response length mismatch for {url}: declared {declared_len} bytes, got {len(raw)}"
-                    )
-            break
-        except UpdaterError:
-            raise
-        except urllib.error.HTTPError as exc:
-            last_exc = exc
-            if exc.code not in {429, 500, 502, 503, 504} or attempt == max_attempts:
-                raise UpdaterError(f"HTTP {exc.code} fetching {url}: {exc.reason}") from exc
-        except (
-            urllib.error.URLError,
-            http.client.HTTPException,
-            ConnectionError,
-            TimeoutError,
-            socket.timeout,
-        ) as exc:
-            last_exc = exc
-            if attempt == max_attempts:
-                raise UpdaterError(f"Network error fetching {url}: {exc}") from exc
-        except OSError as exc:
-            raise UpdaterError(f"Error reading GitHub Releases API response ({url}): {exc}") from exc
-        sleep_s = (
-            retry_backoff_seconds
-            if retry_backoff_seconds is not None
-            else min(2 ** (attempt - 1), 4)
-        )
-        if sleep_s > 0:
-            time.sleep(sleep_s)
-
-    if raw is None:
-        raise UpdaterError(f"Failed fetching {url}: {last_exc}")
-
-    try:
-        payload = json.loads(raw.decode("utf-8"))
-    except (UnicodeDecodeError, json.JSONDecodeError) as exc:
-        raise UpdaterError(f"Invalid JSON from GitHub Releases API ({url}): {exc}") from exc
-
+    payload = github_api_request_json(
+        url,
+        github_token=github_token,
+        opener=opener,
+        max_attempts=max_attempts,
+        retry_backoff_seconds=retry_backoff_seconds,
+        api_label="GitHub Releases API",
+    )
     if not isinstance(payload, dict):
         raise UpdaterError("Unexpected GitHub Releases API payload type")
     return payload
+
+
+def fetch_tag_commit(
+    upstream_repo: str,
+    tag: str,
+    *,
+    github_token: str | None = None,
+    opener: urllib.request.OpenerDirector | None = None,
+    max_attempts: int = HTTP_MAX_ATTEMPTS,
+    retry_backoff_seconds: float | None = None,
+) -> str:
+    """Resolve the authoritative commit SHA for an upstream release tag via git/ref/tags/<tag>."""
+    validated_tag = validate_tag(tag)
+    if not validated_tag:
+        raise UpdaterError("Cannot resolve tag commit for empty tag")
+    encoded_tag = urllib.parse.quote(validated_tag, safe="")
+    ref_url = f"https://api.github.com/repos/{upstream_repo}/git/ref/tags/{encoded_tag}"
+    payload = github_api_request_json(
+        ref_url,
+        github_token=github_token,
+        opener=opener,
+        max_attempts=max_attempts,
+        retry_backoff_seconds=retry_backoff_seconds,
+        api_label="GitHub Git Ref API",
+    )
+    expected_ref = f"refs/tags/{validated_tag}"
+    if not isinstance(payload, dict) or payload.get("ref") != expected_ref:
+        raise UpdaterError(
+            f"Unexpected GitHub Git Ref API response for {expected_ref!r} ({ref_url})"
+        )
+    obj = payload.get("object")
+    if not isinstance(obj, dict):
+        raise UpdaterError(f"Missing object metadata for tag ref {expected_ref!r}")
+    obj_sha = validate_git_commit_sha(obj.get("sha"), label=f"tag {validated_tag!r} object SHA")
+    obj_type = obj.get("type")
+
+    seen_tag_shas: set[str] = set()
+    depth = 0
+    while obj_type == "tag":
+        if obj_sha in seen_tag_shas:
+            raise UpdaterError(f"Circular annotated tag object reference detected for {validated_tag!r}")
+        if depth >= MAX_TAG_DEREF_DEPTH:
+            raise UpdaterError(
+                f"Annotated tag {validated_tag!r} exceeded maximum dereference depth ({MAX_TAG_DEREF_DEPTH})"
+            )
+        seen_tag_shas.add(obj_sha)
+        depth += 1
+        tag_obj_url = f"https://api.github.com/repos/{upstream_repo}/git/tags/{obj_sha}"
+        tag_obj = github_api_request_json(
+            tag_obj_url,
+            github_token=github_token,
+            opener=opener,
+            max_attempts=max_attempts,
+            retry_backoff_seconds=retry_backoff_seconds,
+            api_label="GitHub Git Tag API",
+        )
+        if not isinstance(tag_obj, dict) or not isinstance(tag_obj.get("object"), dict):
+            raise UpdaterError(f"Malformed annotated tag object {obj_sha} for {validated_tag!r}")
+        inner_obj = tag_obj["object"]
+        obj_sha = validate_git_commit_sha(
+            inner_obj.get("sha"), label=f"annotated tag {validated_tag!r} target SHA"
+        )
+        obj_type = inner_obj.get("type")
+
+    if obj_type != "commit":
+        raise UpdaterError(
+            f"Expected tag {validated_tag!r} to resolve to a commit, got {obj_type!r}"
+        )
+    return obj_sha
 
 
 def load_release_metadata_file(path: pathlib.Path) -> dict[str, Any]:
@@ -712,17 +1252,46 @@ def _paths_alias(path_a: pathlib.Path, path_b: pathlib.Path) -> bool:
 def _validate_output_file_path(
     path: pathlib.Path | None,
     label: str,
-    protected_paths: Sequence[pathlib.Path] = (),
+    protected_entries: Sequence[tuple[pathlib.Path, str]] = (),
 ) -> None:
     if path is None:
         return
     if path.exists() and path.is_dir():
         raise UpdaterError(f"{label} path is a directory, not a file: {path}")
-    for protected in protected_paths:
+    for protected, protected_kind in protected_entries:
         if _paths_alias(path, protected):
             raise UpdaterError(
-                f"{label} path {path} must not refer to repository blob {protected}"
+                f"{label} path {path} must not refer to {protected_kind} {protected}"
             )
+
+
+def validate_output_file_paths(
+    output_paths: Sequence[tuple[str, pathlib.Path | None]],
+    *,
+    protected_blobs: Sequence[pathlib.Path] = (),
+    protected_manifest: pathlib.Path | None = None,
+) -> None:
+    """Validate individual output paths and reject pairwise collisions across CLI flags."""
+    protected_entries: list[tuple[pathlib.Path, str]] = [
+        (blob, "repository blob") for blob in protected_blobs
+    ]
+    if protected_manifest is not None:
+        protected_entries.append((protected_manifest, "repository provenance manifest"))
+
+    provided: list[tuple[str, pathlib.Path]] = []
+    for label, path in output_paths:
+        if path is None:
+            continue
+        _validate_output_file_path(path, label, protected_entries)
+        provided.append((label, path))
+
+    for idx, (label_a, path_a) in enumerate(provided):
+        for label_b, path_b in provided[idx + 1 :]:
+            if _paths_alias(path_a, path_b):
+                raise UpdaterError(
+                    f"Output paths for {label_a} ({path_a}) and {label_b} ({path_b}) "
+                    "must not refer to the same file"
+                )
 
 
 def _create_backup(dest: pathlib.Path) -> pathlib.Path:
@@ -754,8 +1323,11 @@ def _create_backup(dest: pathlib.Path) -> pathlib.Path:
 def _staged_blob_transaction(
     repo_root: pathlib.Path,
     staged_binaries: Sequence[_StagedBinary],
+    *,
+    manifest_text: str | None = None,
+    manifest_changed: bool = False,
 ) -> Iterator[list[pathlib.Path]]:
-    """Stage changed blobs with rollback if any replacement or post-stage write fails."""
+    """Stage changed blobs and manifest with rollback if any replacement or post-stage write fails."""
     prepared: list[tuple[pathlib.Path, pathlib.Path, pathlib.Path | None]] = []
     replaced: list[tuple[pathlib.Path, pathlib.Path | None]] = []
     try:
@@ -781,6 +1353,31 @@ def _staged_blob_transaction(
             if dest.is_file():
                 backup_path = _create_backup(dest)
                 prepared[-1] = (tmp_path, dest, backup_path)
+
+        if manifest_changed and manifest_text is not None:
+            manifest_dest = repo_root / MANIFEST_RELPATH
+            if manifest_dest.is_symlink():
+                raise UpdaterError(
+                    f"Destination provenance manifest path must not be a symlink: {manifest_dest}"
+                )
+            if manifest_dest.exists() and manifest_dest.is_dir():
+                raise UpdaterError(
+                    f"Destination provenance manifest path is a directory: {manifest_dest}"
+                )
+            manifest_dest.parent.mkdir(parents=True, exist_ok=True)
+            fd, tmp_name = tempfile.mkstemp(
+                prefix=f".{manifest_dest.name}.",
+                suffix=".tmp",
+                dir=str(manifest_dest.parent),
+            )
+            os.close(fd)
+            tmp_path = pathlib.Path(tmp_name)
+            prepared.append((tmp_path, manifest_dest, None))
+            tmp_path.write_text(manifest_text, encoding="utf-8")
+            os.chmod(tmp_path, MANIFEST_FILE_MODE)
+            if manifest_dest.is_file():
+                backup_path = _create_backup(manifest_dest)
+                prepared[-1] = (tmp_path, manifest_dest, backup_path)
 
         updated_paths: list[pathlib.Path] = []
         for tmp_path, dest, backup_path in prepared:
@@ -828,34 +1425,90 @@ def _staged_blob_transaction(
                 _safe_unlink(backup_path, "post-commit backup")
 
 
-def build_pr_title(release: ReleaseInfo) -> str:
-    suffix = " (prerelease)" if release.prerelease else ""
+def _format_immutable_label(immutable: bool | None) -> str:
+    if immutable is True:
+        return "true"
+    if immutable is False:
+        return "false"
+    return "unknown"
+
+
+def build_pr_title(
+    release: ReleaseInfo,
+    *,
+    alerts: ProvenanceAlerts | None = None,
+) -> str:
+    flags: list[str] = []
+    if release.prerelease:
+        flags.append("prerelease")
+    if alerts is not None and alerts.same_tag_rebuild:
+        flags.append("same-tag rebuild")
+    if alerts is not None and alerts.is_downgrade:
+        flags.append("downgrade")
+    suffix = f" ({', '.join(flags)})" if flags else ""
     return f"chore: update embedded libznn to go-zenon {release.tag_name}{suffix}"
 
 
 def build_commit_message(
     release: ReleaseInfo,
     verified_binaries: Sequence[VerifiedBinary],
+    *,
+    alerts: ProvenanceAlerts | None = None,
+    manifest_changed: bool = False,
 ) -> str:
+    active_alerts = alerts or ProvenanceAlerts()
     release_type = "pre-release" if release.prerelease else "release"
+    immutable_label = _format_immutable_label(release.immutable)
     lines = [
-        build_pr_title(release),
+        build_pr_title(release, alerts=active_alerts),
         "",
         f"Upstream release: {release.html_url}",
         f"Release type: {release_type}",
-        f"Published: {release.published_at}",
+        f"Release immutable: {immutable_label}",
+        f"Tag commit: {release.tag_commit or 'unknown'}",
     ]
+    if release.target_commitish and release.target_commitish != release.tag_commit:
+        lines.append(f"Target commitish: {release.target_commitish}")
+    lines.append(f"Published: {release.published_at}")
     if release.checksums_url and release.checksums_sha256:
+        csum_updated = f", updated_at: {release.checksums_updated_at}" if release.checksums_updated_at else ""
         lines.append(
-            f"Checksums file: {release.checksums_url} (sha256: {release.checksums_sha256})"
+            f"Checksums file: {release.checksums_url} "
+            f"(sha256: {release.checksums_sha256}{csum_updated})"
         )
     else:
         lines.append(f"Checksums file: not present in release ({CHECKSUMS_ASSET_NAME})")
+
+    warning_lines: list[str] = []
+    if active_alerts.is_downgrade:
+        warning_lines.append(
+            f"- Forced downgrade from {active_alerts.previous_tag or 'unknown'} to {release.tag_name}"
+        )
+    if active_alerts.same_tag_rebuild:
+        warning_lines.append(
+            f"- Same-tag rebuild detected for {release.tag_name}: "
+            + "; ".join(active_alerts.same_tag_rebuild_reasons)
+        )
+    if active_alerts.commitish_mismatch:
+        warning_lines.append(
+            f"- Release target_commitish ({release.target_commitish}) differs from resolved "
+            f"tag commit ({release.tag_commit})"
+        )
+    for asset_name, updated_at in active_alerts.late_updated_assets:
+        warning_lines.append(
+            f"- Asset {asset_name} updated_at ({updated_at}) is later than release published_at ({release.published_at})"
+        )
+    if warning_lines:
+        lines.extend(["", "Provenance warnings:"])
+        lines.extend(warning_lines)
+
     lines.extend(["", "Verified upstream release archives (SHA-256):"])
     for item in verified_binaries:
         source_plain = item.archive_verification.source_description.replace("`", "")
+        updated_part = f"; updated_at: {item.asset_updated_at}" if item.asset_updated_at else ""
         lines.append(
-            f"- {item.spec.asset_name}: {item.archive_verification.actual_sha256} ({source_plain})"
+            f"- {item.spec.asset_name}: {item.archive_verification.actual_sha256} "
+            f"({source_plain}{updated_part})"
         )
         lines.append(f"  URL: {item.download_url}")
     lines.extend(["", "Extracted embedded library binaries (SHA-256):"])
@@ -865,6 +1518,8 @@ def build_commit_message(
         lines.append(
             f"- {item.spec.blob_relpath}: {item.extracted_sha256} ({status}; previous: {prev})"
         )
+    manifest_status = "updated" if manifest_changed else "unchanged"
+    lines.append(f"- {MANIFEST_RELPATH}: ({manifest_status})")
     return "\n".join(lines)
 
 
@@ -874,8 +1529,13 @@ def build_pr_body(
     *,
     target_branch: str,
     workflow_run_url: str | None = None,
+    alerts: ProvenanceAlerts | None = None,
+    manifest_changed: bool = False,
 ) -> str:
+    active_alerts = alerts or ProvenanceAlerts()
     release_type = "pre-release" if release.prerelease else "release"
+    immutable_label = _format_immutable_label(release.immutable)
+    immutable_suffix = " (mutable release)" if release.immutable is False else ""
     lines = [
         "## Summary",
         "",
@@ -885,6 +1545,31 @@ def build_pr_body(
             f"(published `{release.published_at}`)."
         ),
     ]
+    if active_alerts.is_downgrade:
+        lines.extend(
+            [
+                "",
+                "> [!CAUTION]",
+                (
+                    f"> **Forced downgrade:** This update downgrades embedded `libznn` from "
+                    f"`{active_alerts.previous_tag or 'unknown'}` to older release "
+                    f"`{release.tag_name}` via `--allow-downgrade`. Confirm this downgrade is intentional."
+                ),
+            ]
+        )
+    if active_alerts.same_tag_rebuild:
+        reasons_md = "; ".join(active_alerts.same_tag_rebuild_reasons)
+        lines.extend(
+            [
+                "",
+                "> [!CAUTION]",
+                (
+                    f"> **Same-tag rebuild detected:** Upstream release tag `{release.tag_name}` "
+                    f"is unchanged from `{MANIFEST_RELPATH}`, but provenance hashes/metadata changed "
+                    f"({reasons_md}). Inspect the upstream release carefully before merging."
+                ),
+            ]
+        )
     if release.prerelease:
         lines.extend(
             [
@@ -896,6 +1581,40 @@ def build_pr_body(
                 ),
             ]
         )
+    if active_alerts.late_updated_assets:
+        late_details = ", ".join(
+            f"`{name}` (`{ts}`{_format_late_delta(release.published_at, ts)})"
+            for name, ts in active_alerts.late_updated_assets
+        )
+        lines.extend(
+            [
+                "",
+                "> [!WARNING]",
+                (
+                    f"> One or more upstream release assets have `updated_at` more than 1 hour "
+                    f"after release `published_at` (`{release.published_at}`): {late_details}. "
+                    "Verify these post-publication asset uploads were expected."
+                ),
+            ]
+        )
+    if active_alerts.commitish_mismatch:
+        lines.extend(
+            [
+                "",
+                "> [!WARNING]",
+                (
+                    f"> Upstream release `target_commitish` (`{release.target_commitish}`) differs "
+                    f"from resolved `git/ref/tags/{release.tag_name}` commit (`{release.tag_commit}`)."
+                ),
+            ]
+        )
+
+    if release.tag_commit:
+        commit_url = f"https://github.com/{release.upstream_repo}/commit/{release.tag_commit}"
+        tag_commit_md = f"[`{release.tag_commit}`]({commit_url})"
+    else:
+        tag_commit_md = "`unknown`"
+
     lines.extend(
         [
             "",
@@ -904,16 +1623,25 @@ def build_pr_body(
             f"- **Repository:** `{release.upstream_repo}`",
             f"- **Release tag:** [`{release.tag_name}`]({release.html_url})",
             f"- **Release type:** `{release_type}`",
-            f"- **Published at:** `{release.published_at}`",
+            f"- **Release immutable:** `{immutable_label}`{immutable_suffix}",
+            f"- **Tag commit:** {tag_commit_md}",
         ]
     )
+    if release.target_commitish:
+        lines.append(f"- **Target commitish:** `{release.target_commitish}`")
+    lines.append(f"- **Published at:** `{release.published_at}`")
     if release.checksums_url and release.checksums_sha256:
+        csum_updated_md = (
+            f", updated `{release.checksums_updated_at}`" if release.checksums_updated_at else ""
+        )
         lines.append(
             f"- **Upstream checksums file:** [`{CHECKSUMS_ASSET_NAME}`]({release.checksums_url}) "
-            f"(`{release.checksums_sha256}`)"
+            f"(`{release.checksums_sha256}`{csum_updated_md})"
         )
     else:
         lines.append(f"- **Upstream checksums file:** not present in release")
+    manifest_state = "updated" if manifest_changed else "unchanged"
+    lines.append(f"- **Provenance manifest:** `{MANIFEST_RELPATH}` ({manifest_state})")
     if workflow_run_url:
         lines.append(f"- **Workflow run:** {workflow_run_url}")
 
@@ -922,15 +1650,17 @@ def build_pr_body(
             "",
             "### Verified release archives",
             "",
-            "| Platform | Upstream asset | Archive SHA-256 | Verification source |",
-            "|---|---|---|---|",
+            "| Platform | Upstream asset | Archive SHA-256 | Updated at | Verification source |",
+            "|---|---|---|---|---|",
         ]
     )
     for item in verified_binaries:
+        updated_col = f"`{item.asset_updated_at}`" if item.asset_updated_at else "`unknown`"
         lines.append(
             f"| {item.spec.platform} "
             f"| [`{item.spec.asset_name}`]({item.download_url}) "
             f"| `{item.archive_verification.actual_sha256}` "
+            f"| {updated_col} "
             f"| {item.archive_verification.source_description} |"
         )
 
@@ -975,7 +1705,10 @@ def build_step_summary(
     target_branch: str,
     changed: bool,
     dry_run: bool,
+    alerts: ProvenanceAlerts | None = None,
+    manifest_changed: bool = False,
 ) -> str:
+    active_alerts = alerts or ProvenanceAlerts()
     if changed and dry_run:
         status_line = (
             f"Updates detected for `{target_branch}` (dry run; no repository blobs were modified)."
@@ -988,12 +1721,45 @@ def build_step_summary(
             f"`{release.tag_name}`."
         )
 
-    heading_suffix = " — pre-release" if release.prerelease else ""
+    heading_flags: list[str] = []
+    if release.prerelease:
+        heading_flags.append("pre-release")
+    if active_alerts.same_tag_rebuild:
+        heading_flags.append("same-tag rebuild")
+    if active_alerts.is_downgrade:
+        heading_flags.append("downgrade")
+    heading_suffix = f" — {', '.join(heading_flags)}" if heading_flags else ""
+    immutable_label = _format_immutable_label(release.immutable)
     lines = [
         f"## Embedded `libznn` update check (`{release.tag_name}`{heading_suffix})",
         "",
         status_line,
+        "",
+        f"- **Tag commit:** `{release.tag_commit or 'unknown'}`",
+        f"- **Release immutable:** `{immutable_label}`",
+        f"- **Published at:** `{release.published_at}`",
+        f"- **Manifest (`{MANIFEST_RELPATH}`):** {'Updated' if manifest_changed else 'Unchanged'}",
     ]
+    if active_alerts.is_downgrade:
+        lines.extend(
+            [
+                "",
+                (
+                    f"> **Warning:** Forced downgrade from `{active_alerts.previous_tag or 'unknown'}` "
+                    f"to `{release.tag_name}`."
+                ),
+            ]
+        )
+    if active_alerts.same_tag_rebuild:
+        lines.extend(
+            [
+                "",
+                (
+                    f"> **Warning:** Same-tag rebuild detected for `{release.tag_name}` "
+                    f"({'; '.join(active_alerts.same_tag_rebuild_reasons)})."
+                ),
+            ]
+        )
     if release.prerelease:
         lines.extend(
             [
@@ -1001,19 +1767,45 @@ def build_step_summary(
                 f"> **Warning:** Upstream release `{release.tag_name}` is marked as a **pre-release**.",
             ]
         )
+    if active_alerts.late_updated_assets:
+        late_details = ", ".join(
+            f"`{name}` (`{ts}`{_format_late_delta(release.published_at, ts)})"
+            for name, ts in active_alerts.late_updated_assets
+        )
+        lines.extend(
+            [
+                "",
+                (
+                    f"> **Warning:** Assets updated after release `published_at` "
+                    f"(`{release.published_at}`): {late_details}."
+                ),
+            ]
+        )
+    if active_alerts.commitish_mismatch:
+        lines.extend(
+            [
+                "",
+                (
+                    f"> **Warning:** Release `target_commitish` (`{release.target_commitish}`) "
+                    f"differs from tag commit (`{release.tag_commit}`)."
+                ),
+            ]
+        )
     lines.extend(
         [
             "",
-            "| Platform | Upstream asset | Archive SHA-256 | Verification | Extracted SHA-256 | Status |",
-            "|---|---|---|---|---|---|",
+            "| Platform | Upstream asset | Archive SHA-256 | Updated at | Verification | Extracted SHA-256 | Status |",
+            "|---|---|---|---|---|---|---|",
         ]
     )
     for item in verified_binaries:
         state = "Updated" if item.changed else "Unchanged"
+        updated_col = f"`{item.asset_updated_at}`" if item.asset_updated_at else "`unknown`"
         lines.append(
             f"| {item.spec.platform} "
             f"| [`{item.spec.asset_name}`]({item.download_url}) "
             f"| `{item.archive_verification.actual_sha256}` "
+            f"| {updated_col} "
             f"| {item.archive_verification.source_description} "
             f"| `{item.extracted_sha256}` "
             f"| {state} |"
@@ -1039,7 +1831,7 @@ def write_github_outputs(output_path: pathlib.Path, outputs: Mapping[str, str]) 
         handle.write("\n".join(lines) + "\n")
 
 
-def run_update(
+def _run_update_detailed(
     *,
     repo_root: pathlib.Path,
     work_dir: pathlib.Path,
@@ -1051,14 +1843,29 @@ def run_update(
     github_output: pathlib.Path | None = None,
     step_summary: pathlib.Path | None = None,
     require_all_in_checksums_file: bool = False,
+    allow_downgrade: bool = False,
     dry_run: bool = False,
     github_token: str | None = None,
     workflow_run_url: str | None = None,
     opener: urllib.request.OpenerDirector | None = None,
-) -> tuple[ReleaseInfo, list[VerifiedBinary], bool]:
+) -> tuple[ReleaseInfo, list[VerifiedBinary], bool, ProvenanceAlerts]:
     upstream = validate_upstream_repo(upstream_repo)
     requested_tag = validate_tag(tag)
     branch = validate_target_branch(target_branch)
+
+    protected_blobs = [repo_root / spec.blob_relpath for spec in BINARY_SPECS]
+    protected_manifest = repo_root / MANIFEST_RELPATH
+    validate_output_file_paths(
+        (
+            ("--pr-body-out", pr_body_out),
+            ("--step-summary", step_summary),
+            ("--github-output", github_output),
+        ),
+        protected_blobs=protected_blobs,
+        protected_manifest=protected_manifest,
+    )
+
+    existing_manifest = load_provenance_manifest(repo_root)
 
     if release_json is not None:
         release_data = load_release_metadata_file(release_json)
@@ -1082,12 +1889,29 @@ def run_update(
         )
 
     html_url = validate_release_html_url(str(release_data.get("html_url") or ""), upstream)
-    release_name = re.sub(r"[\r\n`]+", " ", str(release_data.get("name") or resolved_tag)).strip()
-    published_at = re.sub(r"[\r\n`]+", " ", str(release_data.get("published_at") or "unknown")).strip()
+    release_name = _sanitize_inline_text(release_data.get("name"), default=resolved_tag) or resolved_tag
+    published_at = _sanitize_inline_text(release_data.get("published_at"), default="unknown") or "unknown"
     prerelease = bool(release_data.get("prerelease", False))
     if prerelease and not requested_tag:
         raise UpdaterError(
             f"Refusing to use pre-release {resolved_tag!r} without an explicit --tag"
+        )
+
+    raw_immutable = release_data.get("immutable")
+    immutable: bool | None = raw_immutable if type(raw_immutable) is bool else None
+    target_commitish = _sanitize_inline_text(release_data.get("target_commitish"), default=None)
+
+    tag_commit: str | None = None
+    if release_json is not None:
+        pre_resolved = release_data.get("_resolved_tag_commit")
+        if pre_resolved is not None and pre_resolved != "":
+            tag_commit = validate_git_commit_sha(pre_resolved, label="_resolved_tag_commit")
+    else:
+        tag_commit = fetch_tag_commit(
+            upstream,
+            resolved_tag,
+            github_token=github_token,
+            opener=opener,
         )
 
     raw_assets = release_data.get("assets")
@@ -1112,12 +1936,16 @@ def run_update(
         checksums_map: dict[str, str] | None = None
         checksums_url: str | None = None
         checksums_sha256: str | None = None
+        checksums_updated_at: str | None = None
 
         checksums_asset = assets_by_name.get(CHECKSUMS_ASSET_NAME)
         if checksums_asset is not None:
             checksums_url = validate_release_download_url(
                 str(checksums_asset.get("browser_download_url") or ""),
                 upstream,
+            )
+            checksums_updated_at = _sanitize_inline_text(
+                checksums_asset.get("updated_at"), default=None
             )
             checksums_path = downloads_dir / CHECKSUMS_ASSET_NAME
             checksums_sha256 = download_release_file(
@@ -1153,6 +1981,10 @@ def run_update(
             prerelease=prerelease,
             checksums_url=checksums_url,
             checksums_sha256=checksums_sha256,
+            target_commitish=target_commitish,
+            tag_commit=tag_commit,
+            immutable=immutable,
+            checksums_updated_at=checksums_updated_at,
         )
 
         verified_binaries: list[VerifiedBinary] = []
@@ -1167,6 +1999,7 @@ def run_update(
                 str(asset.get("browser_download_url") or ""),
                 upstream,
             )
+            asset_updated_at = _sanitize_inline_text(asset.get("updated_at"), default=None)
             archive_path = downloads_dir / spec.asset_name
             actual_archive_sha256 = download_release_file(
                 download_url,
@@ -1196,20 +2029,45 @@ def run_update(
                 archive_verification=verification,
                 extracted_sha256=extracted_sha256,
                 previous_sha256=previous_sha256,
+                asset_updated_at=asset_updated_at,
             )
             verified_binaries.append(verified)
             staged_binaries.append(
                 _StagedBinary(verified=verified, extracted_path=extracted_path)
             )
 
-        changed = any(item.changed for item in verified_binaries)
-        pr_title = build_pr_title(release_info)
-        commit_message = build_commit_message(release_info, verified_binaries)
+        alerts = evaluate_manifest_transition(
+            existing_manifest,
+            release_info,
+            verified_binaries,
+            allow_downgrade=allow_downgrade,
+        )
+
+        new_manifest = build_provenance_manifest(release_info, verified_binaries)
+        new_manifest_text = serialize_provenance_manifest(new_manifest)
+        existing_manifest_text = (
+            protected_manifest.read_text(encoding="utf-8")
+            if protected_manifest.is_file()
+            else None
+        )
+        manifest_changed = existing_manifest_text != new_manifest_text
+        blobs_changed = any(item.changed for item in verified_binaries)
+        changed = blobs_changed or manifest_changed
+
+        pr_title = build_pr_title(release_info, alerts=alerts)
+        commit_message = build_commit_message(
+            release_info,
+            verified_binaries,
+            alerts=alerts,
+            manifest_changed=manifest_changed,
+        )
         pr_body = build_pr_body(
             release_info,
             verified_binaries,
             target_branch=branch,
             workflow_run_url=workflow_run_url,
+            alerts=alerts,
+            manifest_changed=manifest_changed,
         )
         summary_md = build_step_summary(
             release_info,
@@ -1217,16 +2075,18 @@ def run_update(
             target_branch=branch,
             changed=changed,
             dry_run=dry_run,
+            alerts=alerts,
+            manifest_changed=manifest_changed,
         )
-
-        protected_blobs = [repo_root / spec.blob_relpath for spec in BINARY_SPECS]
-        _validate_output_file_path(pr_body_out, "--pr-body-out", protected_blobs)
-        _validate_output_file_path(step_summary, "--step-summary", protected_blobs)
-        _validate_output_file_path(github_output, "--github-output", protected_blobs)
 
         blobs_committed = changed and not dry_run
         stage_ctx: contextlib.AbstractContextManager[Any] = (
-            _staged_blob_transaction(repo_root, staged_binaries)
+            _staged_blob_transaction(
+                repo_root,
+                staged_binaries,
+                manifest_text=new_manifest_text,
+                manifest_changed=manifest_changed,
+            )
             if blobs_committed
             else contextlib.nullcontext()
         )
@@ -1240,8 +2100,12 @@ def run_update(
                     github_output.parent.mkdir(parents=True, exist_ok=True)
                     outputs = {
                         "changed": "true" if blobs_committed else "false",
+                        "updates_detected": "true" if changed else "false",
                         "release_tag": release_info.tag_name,
                         "release_url": release_info.html_url,
+                        "tag_commit": release_info.tag_commit or "",
+                        "same_tag_rebuild": "true" if alerts.same_tag_rebuild else "false",
+                        "downgrade": "true" if alerts.is_downgrade else "false",
                         "pr_title": pr_title,
                         "commit_message": commit_message,
                         "pr_body_path": str(pr_body_out) if pr_body_out is not None else "",
@@ -1264,10 +2128,48 @@ def run_update(
                 else:
                     raise UpdaterError(f"Failed writing step summary {step_summary}: {exc}") from exc
 
+    return release_info, verified_binaries, changed, alerts
+
+
+def run_update(
+    *,
+    repo_root: pathlib.Path,
+    work_dir: pathlib.Path,
+    upstream_repo: str = DEFAULT_UPSTREAM_REPO,
+    tag: str = "",
+    release_json: pathlib.Path | None = None,
+    target_branch: str = "develop",
+    pr_body_out: pathlib.Path | None = None,
+    github_output: pathlib.Path | None = None,
+    step_summary: pathlib.Path | None = None,
+    require_all_in_checksums_file: bool = False,
+    allow_downgrade: bool = False,
+    dry_run: bool = False,
+    github_token: str | None = None,
+    workflow_run_url: str | None = None,
+    opener: urllib.request.OpenerDirector | None = None,
+) -> tuple[ReleaseInfo, list[VerifiedBinary], bool]:
+    release_info, verified_binaries, changed, _ = _run_update_detailed(
+        repo_root=repo_root,
+        work_dir=work_dir,
+        upstream_repo=upstream_repo,
+        tag=tag,
+        release_json=release_json,
+        target_branch=target_branch,
+        pr_body_out=pr_body_out,
+        github_output=github_output,
+        step_summary=step_summary,
+        require_all_in_checksums_file=require_all_in_checksums_file,
+        allow_downgrade=allow_downgrade,
+        dry_run=dry_run,
+        github_token=github_token,
+        workflow_run_url=workflow_run_url,
+        opener=opener,
+    )
     return release_info, verified_binaries, changed
 
 
-def _workflow_run_url_from_env() -> str | None:
+def workflow_run_url_from_env() -> str | None:
     server = os.environ.get("GITHUB_SERVER_URL", "").strip()
     repo = os.environ.get("GITHUB_REPOSITORY", "").strip()
     run_id = os.environ.get("GITHUB_RUN_ID", "").strip()
@@ -1348,6 +2250,11 @@ def main(argv: Sequence[str] | None = None) -> int:
         help=f"Fail if any required asset is missing from {CHECKSUMS_ASSET_NAME}.",
     )
     parser.add_argument(
+        "--allow-downgrade",
+        action="store_true",
+        help="Allow downgrading embedded libznn binaries to an older go-zenon release tag.",
+    )
+    parser.add_argument(
         "--dry-run",
         action="store_true",
         help="Verify release assets and compare hashes without modifying repository blobs.",
@@ -1359,13 +2266,35 @@ def main(argv: Sequence[str] | None = None) -> int:
             print("ERROR: --metadata-out is required with --fetch-metadata-only", file=sys.stderr)
             return 1
         try:
+            protected_blobs = (
+                [args.repo_root / spec.blob_relpath for spec in BINARY_SPECS]
+                if args.repo_root is not None
+                else ()
+            )
+            protected_manifest = (
+                args.repo_root / MANIFEST_RELPATH if args.repo_root is not None else None
+            )
+            validate_output_file_paths(
+                (("--metadata-out", args.metadata_out),),
+                protected_blobs=protected_blobs,
+                protected_manifest=protected_manifest,
+            )
             upstream = validate_upstream_repo(args.upstream_repo)
             requested_tag = validate_tag(args.tag)
+            token = os.environ.get("GH_TOKEN") or os.environ.get("GITHUB_TOKEN")
             payload = fetch_release_metadata(
                 upstream,
                 requested_tag,
-                github_token=os.environ.get("GH_TOKEN") or os.environ.get("GITHUB_TOKEN"),
+                github_token=token,
             )
+            if not payload.get("draft"):
+                resolved_tag = validate_tag(str(payload.get("tag_name") or ""))
+                if resolved_tag:
+                    payload["_resolved_tag_commit"] = fetch_tag_commit(
+                        upstream,
+                        resolved_tag,
+                        github_token=token,
+                    )
             args.metadata_out.parent.mkdir(parents=True, exist_ok=True)
             args.metadata_out.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
         except (UpdaterError, OSError) as exc:
@@ -1379,7 +2308,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         return 1
 
     try:
-        release_info, verified, changed = run_update(
+        release_info, verified, changed, alerts = _run_update_detailed(
             repo_root=args.repo_root,
             work_dir=args.work_dir,
             upstream_repo=args.upstream_repo,
@@ -1390,19 +2319,47 @@ def main(argv: Sequence[str] | None = None) -> int:
             github_output=args.github_output,
             step_summary=args.step_summary,
             require_all_in_checksums_file=args.require_all_in_checksums_file,
+            allow_downgrade=args.allow_downgrade,
             dry_run=args.dry_run,
             github_token=os.environ.get("GH_TOKEN") or os.environ.get("GITHUB_TOKEN"),
-            workflow_run_url=_workflow_run_url_from_env(),
+            workflow_run_url=workflow_run_url_from_env(),
         )
     except UpdaterError as exc:
         print(f"ERROR: {exc}", file=sys.stderr)
         return 1
 
     in_github_actions = os.environ.get("GITHUB_ACTIONS") == "true"
+
+    def _emit_warning(message: str) -> None:
+        if in_github_actions:
+            print(f"::warning::{message}")
+        else:
+            print(f"WARNING: {message}", file=sys.stderr)
+
     print(f"Verified go-zenon release {release_info.tag_name} ({release_info.html_url})")
-    if in_github_actions and release_info.prerelease:
-        print(
-            f"::warning::Upstream release {release_info.tag_name} is marked as a pre-release."
+    if release_info.prerelease:
+        _emit_warning(
+            f"Upstream release {release_info.tag_name} is marked as a pre-release."
+        )
+    if alerts.is_downgrade:
+        _emit_warning(
+            f"Forced downgrade of embedded libznn from "
+            f"{alerts.previous_tag or 'unknown'} to {release_info.tag_name}."
+        )
+    if alerts.same_tag_rebuild:
+        _emit_warning(
+            f"Same-tag rebuild detected for {release_info.tag_name}: "
+            f"{'; '.join(alerts.same_tag_rebuild_reasons)}."
+        )
+    if alerts.commitish_mismatch:
+        _emit_warning(
+            f"Release target_commitish ({release_info.target_commitish}) "
+            f"differs from resolved tag commit ({release_info.tag_commit})."
+        )
+    for asset_name, updated_at in alerts.late_updated_assets:
+        _emit_warning(
+            f"Release asset {asset_name} was updated at {updated_at}, "
+            f"after release published_at ({release_info.published_at})."
         )
     for item in verified:
         state = "UPDATED" if item.changed else "UNCHANGED"
@@ -1410,15 +2367,15 @@ def main(argv: Sequence[str] | None = None) -> int:
             f"  - {item.spec.blob_relpath}: {state} "
             f"(extracted={item.extracted_sha256}, archive={item.archive_verification.actual_sha256})"
         )
-        if in_github_actions and item.archive_verification.checksums_file_sha256 is None:
+        if item.archive_verification.checksums_file_sha256 is None:
             source_plain = item.archive_verification.source_description.replace("`", "")
-            print(f"::warning::Asset {item.spec.asset_name} verified via {source_plain}.")
+            _emit_warning(f"Asset {item.spec.asset_name} verified via {source_plain}.")
     if changed and args.dry_run:
         print("Dry run enabled: repository blobs were not modified.")
     elif changed:
-        print("Staged updated libznn binaries in repository.")
+        print("Staged updated libznn binaries and provenance manifest in repository.")
     else:
-        print("All embedded libznn binaries are already up to date.")
+        print("All embedded libznn binaries and provenance manifest are already up to date.")
     return 0
 
 

@@ -21,6 +21,11 @@ on:
         required: false
         default: false
         type: boolean
+      allow_downgrade:
+        description: 'Allow downgrading embedded libznn to an older go-zenon release tag'
+        required: false
+        default: false
+        type: boolean
   schedule:
     # Weekly check every Monday at 06:00 UTC for new zenon-network/go-zenon releases
     - cron: '0 6 * * 1'
@@ -48,6 +53,7 @@ jobs:
           INPUT_TAG: ${{ inputs.tag }}
           INPUT_TARGET_BRANCH: ${{ inputs.target_branch }}
           INPUT_DRY_RUN: ${{ inputs.dry_run }}
+          INPUT_ALLOW_DOWNGRADE: ${{ inputs.allow_downgrade }}
         run: |
           set -euo pipefail
 
@@ -77,10 +83,16 @@ jobs:
             dry_run="true"
           fi
 
+          allow_downgrade="false"
+          if [[ "${INPUT_ALLOW_DOWNGRADE:-false}" == "true" ]]; then
+            allow_downgrade="true"
+          fi
+
           {
             echo "target_branch=${target_branch}"
             echo "tag=${tag}"
             echo "dry_run=${dry_run}"
+            echo "allow_downgrade=${allow_downgrade}"
             echo "pr_branch=chore/update-libznn-${target_branch}"
           } >> "$GITHUB_OUTPUT"
 
@@ -127,6 +139,7 @@ jobs:
           GO_ZENON_TAG: ${{ steps.config.outputs.tag }}
           TARGET_BRANCH: ${{ steps.config.outputs.target_branch }}
           DRY_RUN: ${{ steps.config.outputs.dry_run }}
+          ALLOW_DOWNGRADE: ${{ steps.config.outputs.allow_downgrade }}
           WORK_DIR: ${{ runner.temp }}/libznn-update
         run: |
           set -euo pipefail
@@ -145,6 +158,9 @@ jobs:
           fi
           if [[ "${DRY_RUN:-false}" == "true" ]]; then
             args+=(--dry-run)
+          fi
+          if [[ "${ALLOW_DOWNGRADE:-false}" == "true" ]]; then
+            args+=(--allow-downgrade)
           fi
 
           python3 workflow-scripts/.github/scripts/update_libznn.py "${args[@]}"
@@ -165,6 +181,7 @@ jobs:
             lib/embedded_node/blobs/libznn.so
             lib/embedded_node/blobs/libznn.dylib
             lib/embedded_node/blobs/libznn.dll
+            lib/embedded_node/blobs/libznn.manifest.json
           base: ${{ steps.config.outputs.target_branch }}
           branch: ${{ steps.config.outputs.pr_branch }}
           delete-branch: true
@@ -193,3 +210,25 @@ jobs:
               echo "- No pull request changes were required."
             fi
           } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Close stale pull request when already up to date
+        id: close_stale
+        if: >-
+          steps.config.outputs.tag == '' &&
+          steps.update.outputs.changed == 'false' &&
+          steps.update.outputs.updates_detected == 'false' &&
+          steps.config.outputs.dry_run == 'false'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TARGET_BRANCH: ${{ steps.config.outputs.target_branch }}
+          PR_BRANCH: ${{ steps.config.outputs.pr_branch }}
+          RELEASE_TAG: ${{ steps.update.outputs.release_tag }}
+        run: |
+          set -euo pipefail
+          python3 workflow-scripts/.github/scripts/close_stale_libznn_pr.py \
+            --repo "$GITHUB_REPOSITORY" \
+            --target-branch "$TARGET_BRANCH" \
+            --pr-branch "$PR_BRANCH" \
+            --release-tag "$RELEASE_TAG" \
+            --github-output "$GITHUB_OUTPUT" \
+            --step-summary "$GITHUB_STEP_SUMMARY"

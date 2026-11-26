@@ -363,6 +363,13 @@ class EndToEndUpdateTests(unittest.TestCase):
         include_darwin_in_checksums: bool = False,
         corrupt_windows_digest: bool = False,
         prerelease: bool = False,
+        immutable: bool | None = False,
+        published_at: str = "2026-11-20T12:00:00Z",
+        asset_updated_at: str = "2026-11-20T12:00:30Z",
+        checksums_updated_at: str | None = "2026-11-20T12:00:11Z",
+        target_commitish: str | None = None,
+        tag_commit: str | None = None,
+        annotated_tag_sha: str | None = None,
     ) -> tuple[_FakeOpener, dict[str, str]]:
         linux_arc = _make_tar_gz([("libznn-linux-amd64.so", linux_bin, None, None)])
         darwin_arc = _make_tar_gz([("libznn-darwin-universal.dylib", darwin_bin, None, None)])
@@ -381,39 +388,52 @@ class EndToEndUpdateTests(unittest.TestCase):
         checksums_bytes = ("\n".join(checksum_lines) + "\n").encode("utf-8")
         checksums_sha = _sha256_bytes(checksums_bytes)
 
+        resolved_tag_commit = tag_commit or "a" * 40
+        resolved_target_commitish = (
+            target_commitish if target_commitish is not None else resolved_tag_commit
+        )
+        csum_updated = checksums_updated_at if checksums_updated_at is not None else asset_updated_at
+
         base_dl = f"https://github.com/zenon-network/go-zenon/releases/download/{tag}"
-        payload = {
+        payload: dict[str, Any] = {
             "tag_name": tag,
             "name": tag,
             "draft": False,
             "prerelease": prerelease,
-            "published_at": "2026-11-20T12:00:00Z",
+            "published_at": published_at,
+            "target_commitish": resolved_target_commitish,
             "html_url": f"https://github.com/zenon-network/go-zenon/releases/tag/{tag}",
             "assets": [
                 {
                     "name": "libznn-linux-amd64.tar.gz",
                     "browser_download_url": f"{base_dl}/libznn-linux-amd64.tar.gz",
                     "digest": f"sha256:{linux_sha}",
+                    "updated_at": asset_updated_at,
                 },
                 {
                     "name": "libznn-darwin-universal.tar.gz",
                     "browser_download_url": f"{base_dl}/libznn-darwin-universal.tar.gz",
                     "digest": f"sha256:{darwin_sha}",
+                    "updated_at": asset_updated_at,
                 },
                 {
                     "name": "libznn-windows-amd64.zip",
                     "browser_download_url": f"{base_dl}/libznn-windows-amd64.zip",
                     "digest": f"sha256:{'0' * 64 if corrupt_windows_digest else win_sha}",
+                    "updated_at": asset_updated_at,
                 },
                 {
                     "name": "SHA256CHECKSUMS.txt",
                     "browser_download_url": f"{base_dl}/SHA256CHECKSUMS.txt",
                     "digest": f"sha256:{checksums_sha}",
+                    "updated_at": csum_updated,
                 },
             ],
         }
+        if immutable is not None:
+            payload["immutable"] = immutable
 
-        responses = {
+        responses: dict[str, bytes] = {
             f"https://api.github.com/repos/zenon-network/go-zenon/releases/tags/{tag}": json.dumps(
                 payload
             ).encode("utf-8"),
@@ -425,11 +445,39 @@ class EndToEndUpdateTests(unittest.TestCase):
             f"{base_dl}/libznn-windows-amd64.zip": win_arc,
             f"{base_dl}/SHA256CHECKSUMS.txt": checksums_bytes,
         }
+        if annotated_tag_sha is not None:
+            responses[
+                f"https://api.github.com/repos/zenon-network/go-zenon/git/ref/tags/{tag}"
+            ] = json.dumps(
+                {
+                    "ref": f"refs/tags/{tag}",
+                    "object": {"sha": annotated_tag_sha, "type": "tag"},
+                }
+            ).encode("utf-8")
+            responses[
+                f"https://api.github.com/repos/zenon-network/go-zenon/git/tags/{annotated_tag_sha}"
+            ] = json.dumps(
+                {
+                    "sha": annotated_tag_sha,
+                    "object": {"sha": resolved_tag_commit, "type": "commit"},
+                }
+            ).encode("utf-8")
+        else:
+            responses[
+                f"https://api.github.com/repos/zenon-network/go-zenon/git/ref/tags/{tag}"
+            ] = json.dumps(
+                {
+                    "ref": f"refs/tags/{tag}",
+                    "object": {"sha": resolved_tag_commit, "type": "commit"},
+                }
+            ).encode("utf-8")
+
         return _FakeOpener(responses), {
             "linux_arc": linux_sha,
             "darwin_arc": darwin_sha,
             "win_arc": win_sha,
             "checksums": checksums_sha,
+            "tag_commit": resolved_tag_commit,
         }
 
     def test_updates_changed_blobs_preserves_modes_and_writes_provenance(self) -> None:
@@ -1107,6 +1155,18 @@ class EndToEndUpdateTests(unittest.TestCase):
             windows_bin=self.old_windows,
             include_darwin_in_checksums=True,
         )
+        # First run seeds the missing provenance manifest even though binaries match.
+        _, _, first_changed = updater.run_update(
+            repo_root=self.repo_root,
+            work_dir=self.work_dir,
+            tag="v0.0.10-alphanet",
+            target_branch="master",
+            opener=opener,  # type: ignore[arg-type]
+        )
+        self.assertTrue(first_changed)
+        self.assertTrue((self.repo_root / updater.MANIFEST_RELPATH).is_file())
+
+        # Second run with matching blobs AND matching manifest reports no changes.
         gh_output = self.work_dir / "github_output.txt"
         _, _, changed = updater.run_update(
             repo_root=self.repo_root,
@@ -1117,7 +1177,597 @@ class EndToEndUpdateTests(unittest.TestCase):
             opener=opener,  # type: ignore[arg-type]
         )
         self.assertFalse(changed)
-        self.assertIn("changed=false\n", gh_output.read_text(encoding="utf-8"))
+        gh_out_text = gh_output.read_text(encoding="utf-8")
+        self.assertIn("changed=false\n", gh_out_text)
+        self.assertIn("updates_detected=false\n", gh_out_text)
+
+    def test_rejects_colliding_output_paths_and_manifest_alias(self) -> None:
+        opener, _ = self._build_mock_release(
+            tag="v0.0.11-alphanet",
+            linux_bin=b"\x7fELF-collide",
+            darwin_bin=b"\xca\xfe\xba\xbe-collide",
+            windows_bin=b"MZ-collide",
+        )
+        shared_out = self.work_dir / "shared.out"
+        with self.assertRaisesRegex(updater.UpdaterError, "must not refer to the same file"):
+            updater.run_update(
+                repo_root=self.repo_root,
+                work_dir=self.work_dir,
+                tag="v0.0.11-alphanet",
+                pr_body_out=shared_out,
+                github_output=shared_out,
+                opener=opener,  # type: ignore[arg-type]
+            )
+        # Fails fast before making any network requests.
+        self.assertEqual(opener.requests, [])
+
+        # Symlink alias between --pr-body-out and --step-summary is rejected.
+        target_file = self.work_dir / "real_out.txt"
+        target_file.parent.mkdir(parents=True, exist_ok=True)
+        target_file.write_text("", encoding="utf-8")
+        sym_file = self.work_dir / "sym_out.txt"
+        sym_file.symlink_to(target_file)
+        with self.assertRaisesRegex(updater.UpdaterError, "must not refer to the same file"):
+            updater.run_update(
+                repo_root=self.repo_root,
+                work_dir=self.work_dir,
+                tag="v0.0.11-alphanet",
+                pr_body_out=target_file,
+                step_summary=sym_file,
+                opener=opener,  # type: ignore[arg-type]
+            )
+
+        # Hardlink alias between --github-output and --step-summary is rejected.
+        hard_file = self.work_dir / "hard_out.txt"
+        os.link(target_file, hard_file)
+        with self.assertRaisesRegex(updater.UpdaterError, "must not refer to the same file"):
+            updater.run_update(
+                repo_root=self.repo_root,
+                work_dir=self.work_dir,
+                tag="v0.0.11-alphanet",
+                github_output=target_file,
+                step_summary=hard_file,
+                opener=opener,  # type: ignore[arg-type]
+            )
+
+        # Output path aliasing libznn.manifest.json is rejected.
+        manifest_path = self.repo_root / updater.MANIFEST_RELPATH
+        with self.assertRaisesRegex(updater.UpdaterError, "repository provenance manifest"):
+            updater.run_update(
+                repo_root=self.repo_root,
+                work_dir=self.work_dir,
+                tag="v0.0.11-alphanet",
+                pr_body_out=manifest_path,
+                opener=opener,  # type: ignore[arg-type]
+            )
+
+    def test_semver_comparison_and_tag_commit_dereferencing(self) -> None:
+        self.assertEqual(updater.compare_release_tags("v0.0.9-alphanet", "v0.0.10-alphanet"), -1)
+        self.assertEqual(updater.compare_release_tags("v0.0.10-alphanet", "v0.0.9-alphanet"), 1)
+        self.assertEqual(updater.compare_release_tags("v0.0.10-alphanet", "v0.0.10"), -1)
+        self.assertEqual(updater.compare_release_tags("v0.0.10-rc.2", "v0.0.10-rc.10"), -1)
+        self.assertEqual(updater.compare_release_tags("v1.0.0+build.1", "v1.0.0+build.2"), 0)
+        self.assertEqual(updater.compare_release_tags("v1.2.3-rc.0", "v1.2.3-rc.1"), -1)
+        self.assertEqual(updater.compare_release_tags("v1.2.3-01a", "v1.2.3-01b"), -1)
+        # Zero-padded numeric prerelease identifiers are invalid per SemVer 2.0.0 §9.
+        self.assertIsNone(updater.parse_semver_tag("v1.2.3-rc.01"))
+        self.assertIsNone(updater.compare_release_tags("v1.2.3-rc.01", "v1.2.3-rc.1"))
+        self.assertIsNone(updater.compare_release_tags("v1.2.3-rc.1", "v1.2.3-rc.01"))
+        self.assertIsNone(updater.compare_release_tags("nightly-2026", "v0.0.10-alphanet"))
+
+        commit_sha = "1" * 40
+        tag_obj_sha = "2" * 40
+        opener, _ = self._build_mock_release(
+            tag="v0.0.11-alphanet",
+            linux_bin=b"\x7fELF-ann",
+            darwin_bin=b"\xca\xfe\xba\xbe-ann",
+            windows_bin=b"MZ-ann",
+            tag_commit=commit_sha,
+            annotated_tag_sha=tag_obj_sha,
+        )
+        resolved = updater.fetch_tag_commit(
+            "zenon-network/go-zenon",
+            "v0.0.11-alphanet",
+            opener=opener,  # type: ignore[arg-type]
+        )
+        self.assertEqual(resolved, commit_sha)
+
+        # Prefix list response from git/ref/tags/<tag> is rejected cleanly.
+        list_opener = _FakeOpener(
+            {
+                "https://api.github.com/repos/zenon-network/go-zenon/git/ref/tags/v0.0.11": json.dumps(
+                    [{"ref": "refs/tags/v0.0.11-alphanet", "object": {"sha": commit_sha, "type": "commit"}}]
+                ).encode("utf-8")
+            }
+        )
+        with self.assertRaisesRegex(updater.UpdaterError, "Unexpected GitHub Git Ref API response"):
+            updater.fetch_tag_commit(
+                "zenon-network/go-zenon",
+                "v0.0.11",
+                opener=list_opener,  # type: ignore[arg-type]
+            )
+
+        # Circular annotated tag object is rejected cleanly.
+        cycle_opener = _FakeOpener(
+            {
+                "https://api.github.com/repos/zenon-network/go-zenon/git/ref/tags/v0.0.11": json.dumps(
+                    {"ref": "refs/tags/v0.0.11", "object": {"sha": tag_obj_sha, "type": "tag"}}
+                ).encode("utf-8"),
+                f"https://api.github.com/repos/zenon-network/go-zenon/git/tags/{tag_obj_sha}": json.dumps(
+                    {"sha": tag_obj_sha, "object": {"sha": tag_obj_sha, "type": "tag"}}
+                ).encode("utf-8"),
+            }
+        )
+        with self.assertRaisesRegex(updater.UpdaterError, "Circular annotated tag"):
+            updater.fetch_tag_commit(
+                "zenon-network/go-zenon",
+                "v0.0.11",
+                opener=cycle_opener,  # type: ignore[arg-type]
+            )
+
+    def test_provenance_metadata_late_asset_warning_and_commitish_mismatch(self) -> None:
+        tag_commit = "b" * 40
+        other_commit = "c" * 40
+        opener, hashes = self._build_mock_release(
+            tag="v0.0.11-alphanet",
+            linux_bin=b"\x7fELF-prov",
+            darwin_bin=b"\xca\xfe\xba\xbe-prov",
+            windows_bin=b"MZ-prov",
+            immutable=False,
+            published_at="2026-11-20T12:00:00Z",
+            asset_updated_at="2026-11-20T13:05:00Z",
+            checksums_updated_at="2026-11-20T13:05:00Z",
+            target_commitish=other_commit,
+            tag_commit=tag_commit,
+        )
+        pr_body_path = self.work_dir / "prov-pr-body.md"
+        gh_output = self.work_dir / "prov-gh-output.txt"
+        summary_path = self.work_dir / "prov-summary.md"
+
+        orig_build_opener = updater._build_opener
+        orig_gha = os.environ.get("GITHUB_ACTIONS")
+        stdout_buf = io.StringIO()
+        old_stdout = sys.stdout
+        try:
+            updater._build_opener = lambda: opener  # type: ignore[assignment]
+            os.environ["GITHUB_ACTIONS"] = "true"
+            sys.stdout = stdout_buf
+            rc = updater.main(
+                [
+                    "--repo-root",
+                    str(self.repo_root),
+                    "--work-dir",
+                    str(self.work_dir),
+                    "--tag=v0.0.11-alphanet",
+                    "--pr-body-out",
+                    str(pr_body_path),
+                    "--github-output",
+                    str(gh_output),
+                    "--step-summary",
+                    str(summary_path),
+                ]
+            )
+        finally:
+            updater._build_opener = orig_build_opener
+            sys.stdout = old_stdout
+            if orig_gha is None:
+                os.environ.pop("GITHUB_ACTIONS", None)
+            else:
+                os.environ["GITHUB_ACTIONS"] = orig_gha
+
+        self.assertEqual(rc, 0)
+        pr_body = pr_body_path.read_text(encoding="utf-8")
+        summary_text = summary_path.read_text(encoding="utf-8")
+        gh_out_text = gh_output.read_text(encoding="utf-8")
+        stdout_text = stdout_buf.getvalue()
+
+        # Release commit, immutability, and asset updated_at appear in PR body & commit message.
+        self.assertIn(tag_commit, pr_body)
+        self.assertIn(other_commit, pr_body)
+        self.assertIn("`false` (mutable release)", pr_body)
+        self.assertIn("2026-11-20T13:05:00Z", pr_body)
+        self.assertIn("more than 1 hour after release", pr_body)
+        self.assertIn(f"Tag commit: {tag_commit}", gh_out_text)
+        self.assertIn("Release immutable: false", gh_out_text)
+        self.assertIn("updated_at: 2026-11-20T13:05:00Z", gh_out_text)
+
+        # Step summary & GitHub Actions annotations warn on late asset updates & commitish mismatch.
+        self.assertIn("Assets updated after release `published_at`", summary_text)
+        self.assertIn("::warning::Release asset libznn-linux-amd64.tar.gz was updated at 2026-11-20T13:05:00Z", stdout_text)
+        self.assertIn("::warning::Release target_commitish", stdout_text)
+
+        # Manifest written and valid.
+        manifest = updater.load_provenance_manifest(self.repo_root)
+        assert manifest is not None
+        self.assertEqual(manifest["release"]["tag"], "v0.0.11-alphanet")
+        self.assertEqual(manifest["release"]["tag_commit"], tag_commit)
+        self.assertEqual(manifest["release"]["immutable"], False)
+        self.assertEqual(
+            manifest["blobs"]["lib/embedded_node/blobs/libznn.so"]["archive_sha256"],
+            hashes["linux_arc"],
+        )
+
+    def test_detects_same_tag_rebuild_and_refuses_downgrade_unless_forced(self) -> None:
+        # Step 1: Establish committed manifest at v0.0.10-alphanet.
+        opener_v10, _ = self._build_mock_release(
+            tag="v0.0.10-alphanet",
+            linux_bin=self.old_linux,
+            darwin_bin=self.old_darwin,
+            windows_bin=self.old_windows,
+            include_darwin_in_checksums=True,
+            tag_commit="1" * 40,
+        )
+        updater.run_update(
+            repo_root=self.repo_root,
+            work_dir=self.work_dir,
+            tag="v0.0.10-alphanet",
+            opener=opener_v10,  # type: ignore[arg-type]
+        )
+
+        # Step 2: Downgrade to v0.0.9-alphanet is refused by default.
+        opener_v9, _ = self._build_mock_release(
+            tag="v0.0.9-alphanet",
+            linux_bin=b"\x7fELF-v9",
+            darwin_bin=b"\xca\xfe\xba\xbe-v9",
+            windows_bin=b"MZ-v9",
+            include_darwin_in_checksums=True,
+            published_at="2026-11-10T12:00:00Z",
+            asset_updated_at="2026-11-10T12:00:00Z",
+            tag_commit="9" * 40,
+        )
+        with self.assertRaisesRegex(updater.UpdaterError, "Refusing to downgrade"):
+            updater.run_update(
+                repo_root=self.repo_root,
+                work_dir=self.work_dir,
+                tag="v0.0.9-alphanet",
+                opener=opener_v9,  # type: ignore[arg-type]
+            )
+        blobs = self.repo_root / "lib" / "embedded_node" / "blobs"
+        self.assertEqual((blobs / "libznn.so").read_bytes(), self.old_linux)
+
+        # Step 3: Same-tag rebuild on v0.0.10-alphanet (different binaries) is detected and flagged.
+        rebuilt_linux = b"\x7fELF-rebuilt-v10"
+        opener_rebuild, _ = self._build_mock_release(
+            tag="v0.0.10-alphanet",
+            linux_bin=rebuilt_linux,
+            darwin_bin=self.old_darwin,
+            windows_bin=self.old_windows,
+            include_darwin_in_checksums=True,
+            tag_commit="2" * 40,
+        )
+        rebuild_pr_body = self.work_dir / "rebuild-pr-body.md"
+        rebuild_gh_out = self.work_dir / "rebuild-gh-out.txt"
+        rebuild_summary = self.work_dir / "rebuild-summary.md"
+        _, _, changed = updater.run_update(
+            repo_root=self.repo_root,
+            work_dir=self.work_dir,
+            tag="v0.0.10-alphanet",
+            pr_body_out=rebuild_pr_body,
+            github_output=rebuild_gh_out,
+            step_summary=rebuild_summary,
+            opener=opener_rebuild,  # type: ignore[arg-type]
+        )
+        self.assertTrue(changed)
+        self.assertIn("same_tag_rebuild=true\n", rebuild_gh_out.read_text(encoding="utf-8"))
+        self.assertIn("(same-tag rebuild)", rebuild_gh_out.read_text(encoding="utf-8"))
+        self.assertIn("Same-tag rebuild detected", rebuild_pr_body.read_text(encoding="utf-8"))
+        self.assertIn("Same-tag rebuild detected", rebuild_summary.read_text(encoding="utf-8"))
+        self.assertEqual((blobs / "libznn.so").read_bytes(), rebuilt_linux)
+
+        # Step 4: Forced downgrade with allow_downgrade=True succeeds and emits downgrade warnings.
+        dg_pr_body = self.work_dir / "dg-pr-body.md"
+        dg_gh_out = self.work_dir / "dg-gh-out.txt"
+        dg_summary = self.work_dir / "dg-summary.md"
+        _, _, dg_changed = updater.run_update(
+            repo_root=self.repo_root,
+            work_dir=self.work_dir,
+            tag="v0.0.9-alphanet",
+            allow_downgrade=True,
+            pr_body_out=dg_pr_body,
+            github_output=dg_gh_out,
+            step_summary=dg_summary,
+            opener=opener_v9,  # type: ignore[arg-type]
+        )
+        self.assertTrue(dg_changed)
+        self.assertIn("downgrade=true\n", dg_gh_out.read_text(encoding="utf-8"))
+        self.assertIn("(downgrade)", dg_gh_out.read_text(encoding="utf-8"))
+        self.assertIn("Forced downgrade", dg_pr_body.read_text(encoding="utf-8"))
+        self.assertIn("Forced downgrade", dg_summary.read_text(encoding="utf-8"))
+        self.assertEqual((blobs / "libznn.so").read_bytes(), b"\x7fELF-v9")
+
+    def test_fetch_metadata_only_embeds_resolved_tag_commit_for_release_json_mode(self) -> None:
+        tag_commit = "d" * 40
+        opener, _ = self._build_mock_release(
+            tag="v0.0.12-alphanet",
+            linux_bin=b"\x7fELF-meta",
+            darwin_bin=b"\xca\xfe\xba\xbe-meta",
+            windows_bin=b"MZ-meta",
+            target_commitish="master",
+            tag_commit=tag_commit,
+        )
+        meta_out = self.work_dir / "fetched_release.json"
+        orig_build_opener = updater._build_opener
+        try:
+            updater._build_opener = lambda: opener  # type: ignore[assignment]
+            rc = updater.main(
+                [
+                    "--fetch-metadata-only",
+                    "--tag=v0.0.12-alphanet",
+                    "--metadata-out",
+                    str(meta_out),
+                ]
+            )
+        finally:
+            updater._build_opener = orig_build_opener
+
+        self.assertEqual(rc, 0)
+        saved = json.loads(meta_out.read_text(encoding="utf-8"))
+        self.assertEqual(saved["_resolved_tag_commit"], tag_commit)
+
+        # Now run update in --release-json mode without any API URLs available in opener.
+        dl_only_responses = {
+            k: v for k, v in opener.responses.items() if not k.startswith("https://api.github.com/")
+        }
+        dl_opener = _FakeOpener(dl_only_responses)
+        release, _, changed = updater.run_update(
+            repo_root=self.repo_root,
+            work_dir=self.work_dir,
+            tag="v0.0.12-alphanet",
+            release_json=meta_out,
+            opener=dl_opener,  # type: ignore[arg-type]
+        )
+        self.assertTrue(changed)
+        self.assertEqual(release.tag_commit, tag_commit)
+        self.assertEqual(release.target_commitish, "master")
+        self.assertTrue(
+            all(not req.full_url.startswith("https://api.github.com/") for req in dl_opener.requests)
+        )
+
+    def test_rollback_restores_manifest_on_post_stage_failure(self) -> None:
+        opener_v10, _ = self._build_mock_release(
+            tag="v0.0.10-alphanet",
+            linux_bin=self.old_linux,
+            darwin_bin=self.old_darwin,
+            windows_bin=self.old_windows,
+            include_darwin_in_checksums=True,
+            tag_commit="1" * 40,
+        )
+        updater.run_update(
+            repo_root=self.repo_root,
+            work_dir=self.work_dir,
+            tag="v0.0.10-alphanet",
+            opener=opener_v10,  # type: ignore[arg-type]
+        )
+        manifest_path = self.repo_root / updater.MANIFEST_RELPATH
+        original_manifest_text = manifest_path.read_text(encoding="utf-8")
+
+        opener_v11, _ = self._build_mock_release(
+            tag="v0.0.11-alphanet",
+            linux_bin=b"\x7fELF-v11-rb",
+            darwin_bin=b"\xca\xfe\xba\xbe-v11-rb",
+            windows_bin=b"MZ-v11-rb",
+            tag_commit="2" * 40,
+        )
+        orig_write_outputs = updater.write_github_outputs
+
+        def fail_outputs(path: pathlib.Path, outputs: Any) -> None:
+            raise OSError("simulated disk full")
+
+        try:
+            updater.write_github_outputs = fail_outputs  # type: ignore[assignment]
+            with self.assertRaisesRegex(updater.UpdaterError, "Failed writing updater output"):
+                updater.run_update(
+                    repo_root=self.repo_root,
+                    work_dir=self.work_dir,
+                    tag="v0.0.11-alphanet",
+                    github_output=self.work_dir / "gh.out",
+                    opener=opener_v11,  # type: ignore[arg-type]
+                )
+        finally:
+            updater.write_github_outputs = orig_write_outputs
+
+        self.assertEqual(manifest_path.read_text(encoding="utf-8"), original_manifest_text)
+        blobs = self.repo_root / "lib" / "embedded_node" / "blobs"
+        self.assertEqual((blobs / "libznn.so").read_bytes(), self.old_linux)
+        self.assertEqual(list(blobs.glob(".*.bak")), [])
+        self.assertEqual(list(blobs.glob(".*.tmp")), [])
+
+    def test_release_json_without_resolved_commit_does_not_copy_target_commitish_or_erase_recorded_commit(
+        self,
+    ) -> None:
+        # 1. Raw --release-json (no _resolved_tag_commit) leaves tag_commit=None instead of copying target_commitish.
+        opener, _ = self._build_mock_release(
+            tag="v0.0.11-alphanet",
+            linux_bin=b"\x7fELF-raw-json",
+            darwin_bin=b"\xca\xfe\xba\xbe-raw-json",
+            windows_bin=b"MZ-raw-json",
+            target_commitish="e" * 40,
+            tag_commit="f" * 40,
+        )
+        raw_release_path = self.root / "raw_release_no_commit.json"
+        raw_release_path.write_bytes(
+            opener.responses[
+                "https://api.github.com/repos/zenon-network/go-zenon/releases/tags/v0.0.11-alphanet"
+            ]
+        )
+        dl_only = _FakeOpener(
+            {k: v for k, v in opener.responses.items() if not k.startswith("https://api.github.com/")}
+        )
+        release, _, changed = updater.run_update(
+            repo_root=self.repo_root,
+            work_dir=self.work_dir,
+            tag="v0.0.11-alphanet",
+            release_json=raw_release_path,
+            dry_run=True,
+            opener=dl_only,  # type: ignore[arg-type]
+        )
+        self.assertTrue(changed)
+        self.assertIsNone(release.tag_commit)
+        self.assertEqual(release.target_commitish, "e" * 40)
+
+        # 2. If repo manifest already records tag_commit for v0.0.11-alphanet, unresolved --release-json is refused.
+        updater.run_update(
+            repo_root=self.repo_root,
+            work_dir=self.work_dir,
+            tag="v0.0.11-alphanet",
+            opener=opener,  # type: ignore[arg-type]
+        )
+        with self.assertRaisesRegex(updater.UpdaterError, "Refusing to overwrite recorded tag_commit"):
+            updater.run_update(
+                repo_root=self.repo_root,
+                work_dir=self.work_dir,
+                tag="v0.0.11-alphanet",
+                release_json=raw_release_path,
+                opener=dl_only,  # type: ignore[arg-type]
+            )
+
+    def test_fetch_metadata_only_protects_manifest_and_blobs_when_repo_root_given(self) -> None:
+        manifest_path = self.repo_root / updater.MANIFEST_RELPATH
+        blob_path = self.repo_root / "lib" / "embedded_node" / "blobs" / "libznn.so"
+        for protected in (manifest_path, blob_path):
+            with self.subTest(protected=protected.name):
+                stderr_buf = io.StringIO()
+                old_stderr = sys.stderr
+                try:
+                    sys.stderr = stderr_buf
+                    rc = updater.main(
+                        [
+                            "--fetch-metadata-only",
+                            "--repo-root",
+                            str(self.repo_root),
+                            "--metadata-out",
+                            str(protected),
+                        ]
+                    )
+                finally:
+                    sys.stderr = old_stderr
+                self.assertEqual(rc, 1)
+                self.assertIn("must not refer to repository", stderr_buf.getvalue())
+
+    def test_local_cli_emits_provenance_warnings_to_stderr_outside_github_actions(self) -> None:
+        # Seed manifest at v0.0.10-alphanet.
+        opener_v10, _ = self._build_mock_release(
+            tag="v0.0.10-alphanet",
+            linux_bin=self.old_linux,
+            darwin_bin=self.old_darwin,
+            windows_bin=self.old_windows,
+            include_darwin_in_checksums=True,
+            tag_commit="1" * 40,
+        )
+        updater.run_update(
+            repo_root=self.repo_root,
+            work_dir=self.work_dir,
+            tag="v0.0.10-alphanet",
+            opener=opener_v10,  # type: ignore[arg-type]
+        )
+
+        # Trigger same-tag rebuild + late-updated asset (>1h grace window) in local CLI.
+        opener_local, _ = self._build_mock_release(
+            tag="v0.0.10-alphanet",
+            linux_bin=b"\x7fELF-local-rebuild",
+            darwin_bin=self.old_darwin,
+            windows_bin=self.old_windows,
+            include_darwin_in_checksums=False,
+            published_at="2026-11-20T12:00:00Z",
+            asset_updated_at="2026-11-20T13:05:00Z",
+            checksums_updated_at="2026-11-20T13:05:00Z",
+            tag_commit="2" * 40,
+        )
+        orig_build_opener = updater._build_opener
+        orig_gha = os.environ.pop("GITHUB_ACTIONS", None)
+        stdout_buf = io.StringIO()
+        stderr_buf = io.StringIO()
+        old_stdout, old_stderr = sys.stdout, sys.stderr
+        try:
+            updater._build_opener = lambda: opener_local  # type: ignore[assignment]
+            sys.stdout = stdout_buf
+            sys.stderr = stderr_buf
+            rc = updater.main(
+                [
+                    "--repo-root",
+                    str(self.repo_root),
+                    "--work-dir",
+                    str(self.work_dir),
+                    "--tag=v0.0.10-alphanet",
+                    "--dry-run",
+                ]
+            )
+        finally:
+            updater._build_opener = orig_build_opener
+            sys.stdout = old_stdout
+            sys.stderr = old_stderr
+            if orig_gha is not None:
+                os.environ["GITHUB_ACTIONS"] = orig_gha
+
+        self.assertEqual(rc, 0)
+        stderr_text = stderr_buf.getvalue()
+        self.assertIn("WARNING: Same-tag rebuild detected", stderr_text)
+        self.assertIn("WARNING: Release asset libznn-linux-amd64.tar.gz was updated at", stderr_text)
+        self.assertNotIn("::warning::", stdout_buf.getvalue())
+
+    def test_realistic_release_timestamps_suppress_noise_and_flag_same_tag_reupload(self) -> None:
+        # 1. Realistic go-zenon release timing (assets uploaded 11-30s after published_at)
+        # does NOT emit a false-positive late-asset warning.
+        opener_initial, _ = self._build_mock_release(
+            tag="v0.0.10-alphanet",
+            linux_bin=self.old_linux,
+            darwin_bin=self.old_darwin,
+            windows_bin=self.old_windows,
+            include_darwin_in_checksums=True,
+            published_at="2026-11-17T00:49:47Z",
+            asset_updated_at="2026-11-17T00:50:17Z",
+            checksums_updated_at="2026-11-17T00:49:58Z",
+            tag_commit="1" * 40,
+        )
+        pr_body_initial = self.work_dir / "initial-pr-body.md"
+        summary_initial = self.work_dir / "initial-summary.md"
+        gh_out_initial = self.work_dir / "initial-gh.out"
+        _, _, changed = updater.run_update(
+            repo_root=self.repo_root,
+            work_dir=self.work_dir,
+            tag="v0.0.10-alphanet",
+            pr_body_out=pr_body_initial,
+            step_summary=summary_initial,
+            github_output=gh_out_initial,
+            opener=opener_initial,  # type: ignore[arg-type]
+        )
+        self.assertTrue(changed)
+        self.assertNotIn("more than 1 hour after release", pr_body_initial.read_text(encoding="utf-8"))
+        self.assertNotIn("Assets updated after release", summary_initial.read_text(encoding="utf-8"))
+        self.assertIn("same_tag_rebuild=false\n", gh_out_initial.read_text(encoding="utf-8"))
+
+        # 2. A same-tag re-upload 2 minutes later (still within the 1h post-publish window,
+        # even with identical binary bytes) IS flagged by comparing against manifest asset_updated_at.
+        opener_reupload, _ = self._build_mock_release(
+            tag="v0.0.10-alphanet",
+            linux_bin=self.old_linux,
+            darwin_bin=self.old_darwin,
+            windows_bin=self.old_windows,
+            include_darwin_in_checksums=True,
+            published_at="2026-11-17T00:49:47Z",
+            asset_updated_at="2026-11-17T00:52:00Z",
+            checksums_updated_at="2026-11-17T00:49:58Z",
+            tag_commit="1" * 40,
+        )
+        pr_body_reupload = self.work_dir / "reupload-pr-body.md"
+        summary_reupload = self.work_dir / "reupload-summary.md"
+        gh_out_reupload = self.work_dir / "reupload-gh.out"
+        _, _, reupload_changed = updater.run_update(
+            repo_root=self.repo_root,
+            work_dir=self.work_dir,
+            tag="v0.0.10-alphanet",
+            pr_body_out=pr_body_reupload,
+            step_summary=summary_reupload,
+            github_output=gh_out_reupload,
+            opener=opener_reupload,  # type: ignore[arg-type]
+        )
+        self.assertTrue(reupload_changed)
+        self.assertIn("same_tag_rebuild=true\n", gh_out_reupload.read_text(encoding="utf-8"))
+        self.assertIn(
+            "libznn-linux-amd64.tar.gz updated_at changed (2026-11-17T00:50:17Z -> 2026-11-17T00:52:00Z)",
+            pr_body_reupload.read_text(encoding="utf-8"),
+        )
+        self.assertIn("Same-tag rebuild detected", summary_reupload.read_text(encoding="utf-8"))
 
     def test_failure_on_third_asset_leaves_all_blobs_untouched(self) -> None:
         opener, _ = self._build_mock_release(
