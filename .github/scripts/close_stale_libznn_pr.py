@@ -10,6 +10,7 @@ import json
 import os
 import pathlib
 import re
+import subprocess
 import sys
 import urllib.error
 import urllib.parse
@@ -108,6 +109,150 @@ def is_explicit_tag_pr(pr: Mapping[str, Any]) -> bool:
     return "- **Selection mode:** explicit tag" in body
 
 
+def protected_pr_marker_reason(
+    pr: Mapping[str, Any],
+    *,
+    protect_prerelease_and_explicit: bool = True,
+) -> str | None:
+    """Return a human-readable protection reason if PR carries a protected title/body marker."""
+    if is_forced_downgrade_pr(pr):
+        return "PR is marked as an intentional forced downgrade"
+    if protect_prerelease_and_explicit:
+        if is_prerelease_pr(pr):
+            return "PR is marked as a pre-release update"
+        if is_explicit_tag_pr(pr):
+            return "PR is marked as an explicit-tag dispatch"
+    return None
+
+
+def _scrub_secrets(text: str, secrets_to_mask: Sequence[str]) -> str:
+    redacted = text
+    for secret in secrets_to_mask:
+        if secret:
+            redacted = redacted.replace(secret, "***")
+    return redacted
+
+
+def _build_git_env(
+    *,
+    remote_url: str | None = None,
+    github_token: str | None = None,
+    author_name: str | None = None,
+    author_email: str | None = None,
+) -> tuple[dict[str, str], tuple[str, ...]]:
+    env = dict(os.environ)
+    env["GIT_TERMINAL_PROMPT"] = "0"
+    secrets_to_mask: list[str] = []
+
+    if author_name and author_email:
+        env["GIT_AUTHOR_NAME"] = author_name
+        env["GIT_AUTHOR_EMAIL"] = author_email
+        env["GIT_COMMITTER_NAME"] = author_name
+        env["GIT_COMMITTER_EMAIL"] = author_email
+
+    if remote_url and github_token:
+        parsed = urllib.parse.urlsplit(remote_url)
+        if parsed.scheme == "https" and parsed.netloc.lower() == "github.com":
+            basic_b64 = base64.b64encode(
+                f"x-access-token:{github_token}".encode("utf-8")
+            ).decode("ascii")
+            secrets_to_mask.extend([github_token, basic_b64])
+            try:
+                existing_count = int(env.get("GIT_CONFIG_COUNT", "0"))
+            except ValueError:
+                existing_count = 0
+            env[f"GIT_CONFIG_KEY_{existing_count}"] = "http.https://github.com/.extraheader"
+            env[f"GIT_CONFIG_VALUE_{existing_count}"] = f"AUTHORIZATION: basic {basic_b64}"
+            env["GIT_CONFIG_COUNT"] = str(existing_count + 1)
+        else:
+            secrets_to_mask.append(github_token)
+
+    return env, tuple(secrets_to_mask)
+
+
+def _run_git(
+    args: Sequence[str],
+    *,
+    repo_root: pathlib.Path,
+    env: Mapping[str, str] | None = None,
+    input_text: str | None = None,
+    secrets_to_mask: Sequence[str] = (),
+    check: bool = True,
+) -> subprocess.CompletedProcess[str]:
+    proc = subprocess.run(
+        ["git", *args],
+        cwd=str(repo_root),
+        env=dict(env) if env is not None else None,
+        input=input_text,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    if check and proc.returncode != 0:
+        detail = _scrub_secrets(
+            (proc.stderr or proc.stdout or f"exit status {proc.returncode}").strip(),
+            secrets_to_mask,
+        )
+        safe_args = _scrub_secrets(" ".join(args), secrets_to_mask)
+        raise updater.UpdaterError(f"git {safe_args} failed: {detail}")
+    return proc
+
+
+def _resolve_remote_head_via_ls_remote(
+    *,
+    repo_root: pathlib.Path,
+    remote: str,
+    pr_branch: str,
+    env: Mapping[str, str],
+    secrets_to_mask: Sequence[str],
+) -> tuple[str, str]:
+    target_ref = f"refs/heads/{pr_branch}"
+    proc = _run_git(
+        ["ls-remote", "--heads", remote, target_ref],
+        repo_root=repo_root,
+        env=env,
+        secrets_to_mask=secrets_to_mask,
+    )
+    matched_shas: list[str] = []
+    for line in proc.stdout.splitlines():
+        parts = line.strip().split("\t")
+        if len(parts) == 2 and parts[1] == target_ref:
+            matched_shas.append(
+                updater.validate_git_commit_sha(
+                    parts[0], label=f"remote {target_ref} head SHA"
+                )
+            )
+    if not matched_shas:
+        return "absent", ""
+    if len(matched_shas) > 1:
+        raise updater.UpdaterError(f"Ambiguous ls-remote output for {target_ref}")
+    return "present", matched_shas[0]
+
+
+def _prepare_git_remote_env(
+    *,
+    repo_root: pathlib.Path,
+    remote: str,
+    github_token: str,
+) -> tuple[dict[str, str], tuple[str, ...]]:
+    base_env, base_secrets = _build_git_env()
+    inside = _run_git(
+        ["rev-parse", "--is-inside-work-tree"],
+        repo_root=repo_root,
+        env=base_env,
+        secrets_to_mask=base_secrets,
+    )
+    if inside.stdout.strip() != "true":
+        raise updater.UpdaterError(f"{repo_root} is not a Git working tree")
+    remote_url = _run_git(
+        ["remote", "get-url", remote],
+        repo_root=repo_root,
+        env=base_env,
+        secrets_to_mask=base_secrets,
+    ).stdout.strip()
+    return _build_git_env(remote_url=remote_url, github_token=github_token)
+
+
 def _list_candidate_open_prs(
     *,
     repo: str,
@@ -187,6 +332,44 @@ def _list_candidate_open_prs(
     return matching
 
 
+def _decode_changed_file_entries(
+    raw_files: Any,
+    *,
+    max_entries: int,
+) -> list[str] | None:
+    """Decode GitHub PR/compare file entries, returning all affected paths or None if unverifiable.
+
+    Includes both `filename` and `previous_filename` so renames out of or into
+    unrelated paths cannot bypass the allowlist, and fails closed when a rename
+    entry lacks a verifiable source path.
+    """
+    if not isinstance(raw_files, list) or len(raw_files) >= max_entries:
+        return None
+    paths: list[str] = []
+    for entry in raw_files:
+        if not isinstance(entry, dict):
+            return None
+        filename = entry.get("filename")
+        if not isinstance(filename, str) or not filename:
+            return None
+        paths.append(filename)
+
+        raw_status = entry.get("status")
+        if raw_status is not None and not isinstance(raw_status, str):
+            return None
+        status_norm = raw_status.strip().lower() if isinstance(raw_status, str) else ""
+
+        has_prev_key = "previous_filename" in entry and entry["previous_filename"] is not None
+        prev_filename = entry.get("previous_filename")
+        if has_prev_key:
+            if not isinstance(prev_filename, str) or not prev_filename:
+                return None
+            paths.append(prev_filename)
+        elif status_norm == "renamed":
+            return None
+    return paths
+
+
 def _list_pr_changed_files(
     *,
     repo: str,
@@ -194,7 +377,7 @@ def _list_pr_changed_files(
     github_token: str,
     opener: urllib.request.OpenerDirector | None = None,
 ) -> list[str] | None:
-    """Return changed filenames in the PR, or None if the list may be truncated/invalid."""
+    """Return changed paths in the PR (including rename sources), or None if truncated/invalid."""
     url = (
         f"https://api.github.com/repos/{repo}/pulls/{pr_number}/files"
         f"?per_page={MAX_PR_FILES_PER_PAGE}"
@@ -205,14 +388,7 @@ def _list_pr_changed_files(
         opener=opener,
         api_label="GitHub Pull Request Files API",
     )
-    if not isinstance(payload, list) or len(payload) >= MAX_PR_FILES_PER_PAGE:
-        return None
-    paths: list[str] = []
-    for entry in payload:
-        if not isinstance(entry, dict) or not isinstance(entry.get("filename"), str):
-            return None
-        paths.append(entry["filename"])
-    return paths
+    return _decode_changed_file_entries(payload, max_entries=MAX_PR_FILES_PER_PAGE)
 
 
 def _fetch_blob_git_shas(
@@ -446,13 +622,12 @@ def _classify_rolling_pr(
             "preserving PR for manual review",
         )
 
-    if is_forced_downgrade_pr(pr):
-        return False, "PR is marked as an intentional forced downgrade"
-    if protect_prerelease_and_explicit:
-        if is_prerelease_pr(pr):
-            return False, "PR is marked as a pre-release update"
-        if is_explicit_tag_pr(pr):
-            return False, "PR is marked as an explicit-tag dispatch"
+    marker_reason = protected_pr_marker_reason(
+        pr,
+        protect_prerelease_and_explicit=protect_prerelease_and_explicit,
+    )
+    if marker_reason is not None:
+        return False, marker_reason
 
     pr_number = int(pr["number"])
     head = pr["head"]
@@ -593,23 +768,57 @@ def _resolve_remote_branch_head(
     return "present", sha
 
 
-def _compare_commits_contain_downgrade_marker(payload: Mapping[str, Any]) -> bool:
+def _inspect_compare_commits_for_downgrade(payload: Mapping[str, Any]) -> tuple[str, str]:
+    """Inspect compare commits for downgrade markers and verify list completeness.
+
+    Returns:
+      ("downgrade", reason)  if any visible commit carries a forced-downgrade marker
+      ("incomplete", reason) if the commit list is missing, truncated, or malformed
+      ("clean", "")          only when all `ahead_by` commits were inspected and clean
+    """
     raw_commits = payload.get("commits")
+    malformed_entry = False
+    if isinstance(raw_commits, list):
+        for entry in raw_commits:
+            if not isinstance(entry, dict):
+                malformed_entry = True
+                continue
+            commit_obj = entry.get("commit")
+            if not isinstance(commit_obj, dict):
+                malformed_entry = True
+                continue
+            raw_message = commit_obj.get("message")
+            if not isinstance(raw_message, str):
+                malformed_entry = True
+                continue
+            subject = raw_message.splitlines()[0] if raw_message else ""
+            if DOWNGRADE_TITLE_FLAG_PATTERN.search(subject):
+                return "downgrade", "commit subject carries downgrade flag"
+            if "- Forced downgrade from " in raw_message or "**Forced downgrade:**" in raw_message:
+                return "downgrade", "commit message carries forced-downgrade marker"
+
+    ahead_by = payload.get("ahead_by")
+    if type(ahead_by) is not int or ahead_by < 0:
+        return "incomplete", f"missing or invalid ahead_by ({ahead_by!r})"
     if not isinstance(raw_commits, list):
-        return False
-    for entry in raw_commits:
-        if not isinstance(entry, dict):
-            continue
-        commit_obj = entry.get("commit")
-        if not isinstance(commit_obj, dict):
-            continue
-        message = str(commit_obj.get("message") or "")
-        subject = message.splitlines()[0] if message else ""
-        if DOWNGRADE_TITLE_FLAG_PATTERN.search(subject):
-            return True
-        if "- Forced downgrade from " in message or "**Forced downgrade:**" in message:
-            return True
-    return False
+        return "incomplete", "compare response omitted commits list"
+    if malformed_entry:
+        return "incomplete", "compare response contained malformed commit entry"
+    if len(raw_commits) < ahead_by:
+        return (
+            "incomplete",
+            f"compare response returned only {len(raw_commits)} of {ahead_by} ahead commit(s)",
+        )
+    if "total_commits" in payload and payload["total_commits"] is not None:
+        total_commits = payload["total_commits"]
+        if type(total_commits) is not int or total_commits < 0:
+            return "incomplete", f"invalid total_commits ({total_commits!r})"
+        if len(raw_commits) < total_commits:
+            return (
+                "incomplete",
+                f"compare response returned only {len(raw_commits)} of {total_commits} total commit(s)",
+            )
+    return "clean", ""
 
 
 def _classify_orphan_branch_head(
@@ -656,15 +865,25 @@ def _classify_orphan_branch_head(
     if status in {"identical", "behind"} and type(ahead_by) is int and ahead_by == 0:
         return True, f"Remote branch head `{head_sha[:12]}` is already merged into `{target_branch}`"
 
-    if _compare_commits_contain_downgrade_marker(payload):
+    commit_status, commit_detail = _inspect_compare_commits_for_downgrade(payload)
+    if commit_status == "downgrade":
         return (
             False,
             f"Remote branch `{head_sha[:12]}` contains an intentional forced downgrade commit; "
             "preserving branch for manual review",
         )
+    if commit_status != "clean":
+        return (
+            False,
+            f"Remote branch `{head_sha[:12]}` commit list could not be fully verified for downgrade "
+            f"markers ({commit_detail}); preserving branch for manual review",
+        )
 
-    raw_files = payload.get("files")
-    if not isinstance(raw_files, list) or len(raw_files) >= MAX_COMPARE_FILES:
+    changed_files = _decode_changed_file_entries(
+        payload.get("files"),
+        max_entries=MAX_COMPARE_FILES,
+    )
+    if changed_files is None:
         ahead_desc = (
             f"ahead by {ahead_by} commit(s)"
             if type(ahead_by) is int
@@ -675,16 +894,6 @@ def _classify_orphan_branch_head(
             f"Remote branch exists at `{head_sha[:12]}` with no open PR ({ahead_desc} relative to "
             f"`{target_branch}`) and its changed file list could not be verified; preserving branch for manual review",
         )
-
-    changed_files: list[str] = []
-    for entry in raw_files:
-        if not isinstance(entry, dict) or not isinstance(entry.get("filename"), str):
-            return (
-                False,
-                f"Remote branch `{head_sha[:12]}` compare file list was malformed; "
-                "preserving branch for manual review",
-            )
-        changed_files.append(entry["filename"])
 
     return _classify_content_diff(
         repo=repo,
@@ -893,70 +1102,71 @@ def _build_close_comment(
     )
 
 
-def _ref_is_absent(
-    *,
-    repo: str,
-    pr_branch: str,
-    github_token: str,
-    opener: urllib.request.OpenerDirector | None = None,
-) -> bool:
-    encoded_branch = urllib.parse.quote(pr_branch, safe="/")
-    url = f"https://api.github.com/repos/{repo}/git/ref/heads/{encoded_branch}"
-    try:
-        payload = updater.github_api_request_json(
-            url,
-            github_token=github_token,
-            opener=opener,
-            api_label="GitHub Git Ref API",
-        )
-    except updater.UpdaterError as exc:
-        cause = exc.__cause__
-        if isinstance(cause, urllib.error.HTTPError) and cause.code == 404:
-            return True
-        return False
-    expected_ref = f"refs/heads/{pr_branch}"
-    if isinstance(payload, dict) and payload.get("ref") == expected_ref:
-        return False
-    # Prefix-match list response from GitHub means the exact branch ref does not exist.
-    if isinstance(payload, list):
-        return not any(
-            isinstance(entry, dict) and entry.get("ref") == expected_ref for entry in payload
-        )
-    return False
-
-
 def _delete_stale_branch(
     *,
-    repo: str,
     pr_branch: str,
+    expected_head_oid: str,
+    repo_root: pathlib.Path,
+    remote: str,
     github_token: str,
-    opener: urllib.request.OpenerDirector | None = None,
-) -> str:
-    encoded_branch = urllib.parse.quote(pr_branch, safe="/")
-    url = f"https://api.github.com/repos/{repo}/git/refs/heads/{encoded_branch}"
-    try:
-        updater.github_api_request_json(
-            url,
-            method="DELETE",
+    git_env: Mapping[str, str] | None = None,
+    git_secrets: Sequence[str] | None = None,
+) -> tuple[str, str | None]:
+    """Atomically delete `refs/heads/<pr_branch>` only if it still points to `expected_head_oid`."""
+    validated_sha = updater.validate_git_commit_sha(
+        expected_head_oid, label=f"expected stale branch {pr_branch!r} head SHA"
+    )
+    if git_env is None or git_secrets is None:
+        git_env, git_secrets = _prepare_git_remote_env(
+            repo_root=repo_root,
+            remote=remote,
             github_token=github_token,
-            opener=opener,
-            api_label="GitHub Git Ref API",
-            allow_empty_response=True,
         )
-        return "deleted"
-    except updater.UpdaterError as exc:
-        cause = exc.__cause__
-        if isinstance(cause, urllib.error.HTTPError) and cause.code == 404:
-            return "already_deleted"
-        if isinstance(cause, urllib.error.HTTPError) and cause.code == 422:
-            if _ref_is_absent(
-                repo=repo,
-                pr_branch=pr_branch,
-                github_token=github_token,
-                opener=opener,
-            ):
-                return "already_deleted"
-        raise
+
+    delete_proc = _run_git(
+        [
+            "push",
+            f"--force-with-lease=refs/heads/{pr_branch}:{validated_sha}",
+            remote,
+            f":refs/heads/{pr_branch}",
+        ],
+        repo_root=repo_root,
+        env=git_env,
+        secrets_to_mask=git_secrets,
+        check=False,
+    )
+    if delete_proc.returncode == 0:
+        return "deleted", None
+
+    detail = _scrub_secrets(
+        (delete_proc.stderr or delete_proc.stdout or f"exit status {delete_proc.returncode}").strip(),
+        git_secrets,
+    )
+    try:
+        cur_state, cur_oid = _resolve_remote_head_via_ls_remote(
+            repo_root=repo_root,
+            remote=remote,
+            pr_branch=pr_branch,
+            env=git_env,
+            secrets_to_mask=git_secrets,
+        )
+    except updater.UpdaterError as verify_exc:
+        raise updater.UpdaterError(
+            f"Failed to atomically delete stale branch {pr_branch!r} at {validated_sha}: {detail} "
+            f"(and follow-up remote ref inspection failed: {verify_exc})"
+        ) from verify_exc
+
+    if cur_state == "absent":
+        return "already_deleted", None
+    if cur_oid != validated_sha:
+        return (
+            "not_needed",
+            f"Skipped deleting `{pr_branch}` because remote head moved from "
+            f"`{validated_sha[:12]}` to `{cur_oid[:12]}` before atomic delete",
+        )
+    raise updater.UpdaterError(
+        f"Failed to atomically delete stale branch {pr_branch!r} at {validated_sha}: {detail}"
+    )
 
 
 def close_stale_libznn_prs(
@@ -966,6 +1176,8 @@ def close_stale_libznn_prs(
     pr_branch: str,
     release_tag: str,
     github_token: str,
+    repo_root: pathlib.Path | None = None,
+    remote: str = "origin",
     workflow_run_url: str | None = None,
     github_output: pathlib.Path | None = None,
     step_summary: pathlib.Path | None = None,
@@ -986,6 +1198,15 @@ def close_stale_libznn_prs(
             ("--step-summary", step_summary),
         )
     )
+
+    git_env: dict[str, str] | None = None
+    git_secrets: tuple[str, ...] | None = None
+    if repo_root is not None:
+        git_env, git_secrets = _prepare_git_remote_env(
+            repo_root=repo_root,
+            remote=remote,
+            github_token=github_token,
+        )
 
     open_prs = _list_candidate_open_prs(
         repo=validated_repo,
@@ -1097,12 +1318,20 @@ def close_stale_libznn_prs(
                     f"Skipped deleting `{validated_branch}` because remote head `{head_oid[:12]}` "
                     "moved after stale-PR classification"
                 )
+            elif repo_root is None:
+                raise updater.UpdaterError(
+                    "A Git working tree (--repo-root) is required to atomically delete stale "
+                    f"branch {validated_branch!r}"
+                )
             else:
-                branch_status = _delete_stale_branch(
-                    repo=validated_repo,
+                branch_status, branch_skip_note = _delete_stale_branch(
                     pr_branch=validated_branch,
+                    expected_head_oid=head_oid,
+                    repo_root=repo_root,
+                    remote=remote,
                     github_token=github_token,
-                    opener=opener,
+                    git_env=git_env,
+                    git_secrets=git_secrets,
                 )
     else:
         branch_status = "not_needed"
@@ -1198,6 +1427,17 @@ def main(argv: Sequence[str] | None = None) -> int:
         help="Read-only check: verify no protected open PR on --pr-branch would be overwritten.",
     )
     parser.add_argument(
+        "--repo-root",
+        type=pathlib.Path,
+        default=None,
+        help="Path to checked-out repository working tree (required for atomic branch cleanup).",
+    )
+    parser.add_argument(
+        "--remote",
+        default="origin",
+        help="Git remote name used for atomic stale-branch deletion (default: origin).",
+    )
+    parser.add_argument(
         "--github-output",
         type=pathlib.Path,
         default=None,
@@ -1263,12 +1503,18 @@ def main(argv: Sequence[str] | None = None) -> int:
         return 0
 
     try:
+        if token.strip() and args.repo_root is None:
+            raise updater.UpdaterError(
+                "--repo-root is required when closing stale pull requests"
+            )
         result = close_stale_libznn_prs(
             repo=args.repo,
             target_branch=args.target_branch,
             pr_branch=args.pr_branch,
             release_tag=args.release_tag,
             github_token=token,
+            repo_root=args.repo_root,
+            remote=args.remote,
             workflow_run_url=updater.workflow_run_url_from_env(),
             github_output=args.github_output,
             step_summary=args.step_summary,

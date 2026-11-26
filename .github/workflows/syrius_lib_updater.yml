@@ -271,6 +271,7 @@ jobs:
           set -euo pipefail
           python3 workflow-scripts/.github/scripts/close_stale_libznn_pr.py \
             --repo "$GITHUB_REPOSITORY" \
+            --repo-root target-repo \
             --target-branch "$TARGET_BRANCH" \
             --pr-branch "$PR_BRANCH" \
             --release-tag "$RELEASE_TAG" \

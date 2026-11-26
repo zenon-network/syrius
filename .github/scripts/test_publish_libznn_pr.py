@@ -630,38 +630,15 @@ class PublishLibznnPrTests(unittest.TestCase):
         self.assertEqual(res.operation, "created")
         self.assertEqual(self._bare_ref_sha(tag_branch), res.pushed_commit_sha)
 
-        # 4. POST /pulls fails after overwriting an existing branch (present) -> guarded REST restore to old OID!
+        # 4. POST /pulls fails after overwriting an existing branch (present) -> atomic Git lease restore to old OID!
         prev_sha = res.pushed_commit_sha
         self._reclone_work_repo()
         self._write_blobs(self.work_repo, version="v0.0.11-rc.2")
-        get_ref_url = f"https://api.github.com/repos/zenon-network/syrius/git/ref/heads/{tag_branch}"
-        patch_ref_url = f"https://api.github.com/repos/zenon-network/syrius/git/refs/heads/{tag_branch}"
-
-        class _RestoreCheckOpener(_RecordingOpener):
-            def open(self, req: urllib.request.Request, timeout: int = 60) -> _FakeResponse:
-                if req.get_method() == "GET" and req.full_url == get_ref_url:
-                    self.requests.append(("GET", req.full_url, None))
-                    # Simulate GitHub returning the newly pushed SHA at rollback check time.
-                    pushed_now = _git(["rev-parse", f"refs/heads/{tag_branch}"], bare_repo_ref)
-                    return _FakeResponse(
-                        json.dumps(
-                            {
-                                "ref": f"refs/heads/{tag_branch}",
-                                "object": {"type": "commit", "sha": pushed_now},
-                            }
-                        ).encode("utf-8")
-                    )
-                return super().open(req, timeout=timeout)
-
-        bare_repo_ref = self.bare_repo
-        opener_restore = _RestoreCheckOpener(
+        opener_restore = _RecordingOpener(
             {
                 ("GET", list_tag_head_only_url): b"[]",
                 ("POST", self.create_pr_url): urllib.error.HTTPError(
                     self.create_pr_url, 422, "Unprocessable Entity", {}, None  # type: ignore[arg-type]
-                ),
-                ("PATCH", patch_ref_url): json.dumps({"ref": f"refs/heads/{tag_branch}"}).encode(
-                    "utf-8"
                 ),
             }
         )
@@ -677,9 +654,9 @@ class PublishLibznnPrTests(unittest.TestCase):
                 github_token="ghs_test",
                 opener=opener_restore,  # type: ignore[arg-type]
             )
-        patch_calls = [r for r in opener_restore.requests if r[0] == "PATCH" and r[1] == patch_ref_url]
-        self.assertEqual(len(patch_calls), 1)
-        self.assertEqual(patch_calls[0][2], {"sha": prev_sha, "force": True})
+        # No REST PATCH was used; bare remote was atomically restored to prev_sha via Git lease push.
+        self.assertFalse(any(r[0] == "PATCH" for r in opener_restore.requests))
+        self.assertEqual(self._bare_ref_sha(tag_branch), prev_sha)
 
     def test_validation_and_secret_scrubbing(self) -> None:
         # Rolling branch ALWAYS refuses missing expected_head_state even if require_expected_head=False.
@@ -809,6 +786,430 @@ class PublishLibznnPrTests(unittest.TestCase):
         self.assertIsNotNone(pushed_sha)
         msg = _git(["log", "-1", "--format=%B", pushed_sha or ""], self.bare_repo)
         self.assertIn("Body line", msg)
+
+    def test_rejects_staged_rename_into_manifest_and_handles_special_filenames(self) -> None:
+        # Remove manifest on develop and add an unrelated file whose content matches a manifest,
+        # so default git rename detection would classify `git mv` as a pure rename.
+        _git(["checkout", "develop"], self.seed_repo)
+        manifest_seed = self.seed_repo / updater.MANIFEST_RELPATH
+        manifest_content = manifest_seed.read_text(encoding="utf-8")
+        manifest_seed.unlink()
+        (self.seed_repo / "unrelated.json").write_text(manifest_content, encoding="utf-8")
+        _git(["add", "-A"], self.seed_repo)
+        _git(["commit", "--no-gpg-sign", "-m", "drop manifest and add unrelated file"], self.seed_repo)
+        _git(["push", "origin", "develop"], self.seed_repo)
+
+        self._reclone_work_repo()
+        _git(["mv", "unrelated.json", updater.MANIFEST_RELPATH], self.work_repo)
+
+        with self.assertRaisesRegex(updater.UpdaterError, r"unexpected staged files.*unrelated\.json"):
+            publish_pr.publish_libznn_pr(
+                repo="zenon-network/syrius",
+                repo_root=self.work_repo,
+                target_branch="develop",
+                pr_branch=self.rolling_branch,
+                pr_title="title",
+                pr_body="body\n",
+                commit_message="msg",
+                github_token="ghs_test",
+                require_expected_head=True,
+                expected_head_state="absent",
+                expected_head_oid="",
+                expected_pr_numbers="none",
+            )
+
+        # Also verify filenames with embedded newlines are parsed safely via -z.
+        self._reclone_work_repo()
+        self._write_blobs(self.work_repo, version="v0.0.10")
+        weird_name = "bad\nname.txt"
+        (self.work_repo / weird_name).write_text("oops\n", encoding="utf-8")
+        _git(["add", "--", weird_name], self.work_repo)
+        with self.assertRaisesRegex(updater.UpdaterError, "unexpected staged files"):
+            publish_pr.publish_libznn_pr(
+                repo="zenon-network/syrius",
+                repo_root=self.work_repo,
+                target_branch="develop",
+                pr_branch=self.rolling_branch,
+                pr_title="title",
+                pr_body="body\n",
+                commit_message="msg",
+                github_token="ghs_test",
+                require_expected_head=True,
+                expected_head_state="absent",
+                expected_head_oid="",
+                expected_pr_numbers="none",
+            )
+
+    def test_aborts_before_push_if_existing_guarded_pr_gains_protection_marker(self) -> None:
+        old_sha = self._push_concurrent_commit(self.rolling_branch, note="guarded-old")
+        protected_cases = [
+            (
+                "forced-downgrade-body",
+                "chore: update embedded libznn to go-zenon v0.0.10-alphanet",
+                "> **Forced downgrade:** intentional\n",
+                "forced downgrade",
+            ),
+            (
+                "prerelease-title",
+                "chore: update embedded libznn to go-zenon v0.0.10-rc.1 (prerelease)",
+                "body\n",
+                "pre-release",
+            ),
+            (
+                "explicit-tag-body",
+                "chore: update embedded libznn to go-zenon v0.0.10-alphanet",
+                "- **Selection mode:** explicit tag (`v0.0.10-alphanet`)\n",
+                "explicit-tag",
+            ),
+        ]
+        for label, title, body, expected_reason in protected_cases:
+            with self.subTest(case=label):
+                self._reclone_work_repo()
+                self._write_blobs(self.work_repo, version="v0.0.11")
+                summary = self.root / f"marker_{label}.md"
+                pr_rec = _pr_obj(
+                    number=420,
+                    title=title,
+                    body=body,
+                    head_ref=self.rolling_branch,
+                    head_sha=old_sha,
+                )
+                opener = _RecordingOpener(
+                    {
+                        ("GET", self.list_rolling_head_only_url): json.dumps([pr_rec]).encode(
+                            "utf-8"
+                        )
+                    }
+                )
+                with self.assertRaisesRegex(
+                    updater.UpdaterError, f"protection marker.*{expected_reason}"
+                ):
+                    publish_pr.publish_libznn_pr(
+                        repo="zenon-network/syrius",
+                        repo_root=self.work_repo,
+                        target_branch="develop",
+                        pr_branch=self.rolling_branch,
+                        pr_title="chore: update embedded libznn to go-zenon v0.0.11-alphanet",
+                        pr_body="new body\n",
+                        commit_message="commit v0.0.11",
+                        github_token="ghs_test",
+                        require_expected_head=True,
+                        expected_head_state="present",
+                        expected_head_oid=old_sha,
+                        expected_pr_numbers="420",
+                        step_summary=summary,
+                        opener=opener,  # type: ignore[arg-type]
+                    )
+                self.assertEqual(self._bare_ref_sha(self.rolling_branch), old_sha)
+                self.assertIn("protection marker", summary.read_text(encoding="utf-8"))
+
+        # Unguarded tag-scoped PRs legitimately carry prerelease/explicit-tag markers and still update.
+        tag_branch = "chore/update-libznn-develop-v0.0.11-rc.1"
+        tag_sha = self._push_concurrent_commit(tag_branch, note="tag-old")
+        list_tag_url = (
+            "https://api.github.com/repos/zenon-network/syrius/pulls?"
+            "state=open&head=zenon-network%3Achore%2Fupdate-libznn-develop-v0.0.11-rc.1&per_page=100"
+        )
+        patch_tag_url = "https://api.github.com/repos/zenon-network/syrius/pulls/421"
+        self._reclone_work_repo()
+        self._write_blobs(self.work_repo, version="v0.0.11-rc.1")
+        tag_pr = _pr_obj(
+            number=421,
+            title="chore: update embedded libznn to go-zenon v0.0.11-rc.1 (prerelease)",
+            body="- **Selection mode:** explicit tag (`v0.0.11-rc.1`)\n",
+            head_ref=tag_branch,
+            head_sha=tag_sha,
+        )
+        opener_tag = _RecordingOpener(
+            {
+                ("GET", list_tag_url): json.dumps([tag_pr]).encode("utf-8"),
+                ("PATCH", patch_tag_url): json.dumps(
+                    {
+                        "number": 421,
+                        "html_url": "https://github.com/zenon-network/syrius/pull/421",
+                    }
+                ).encode("utf-8"),
+            }
+        )
+        updated_tag = publish_pr.publish_libznn_pr(
+            repo="zenon-network/syrius",
+            repo_root=self.work_repo,
+            target_branch="develop",
+            pr_branch=tag_branch,
+            pr_title="chore: update embedded libznn to go-zenon v0.0.11-rc.1 (prerelease)",
+            pr_body="- **Selection mode:** explicit tag (`v0.0.11-rc.1`)\nUpdated\n",
+            commit_message="commit rc.1 refresh",
+            github_token="ghs_test",
+            opener=opener_tag,  # type: ignore[arg-type]
+        )
+        self.assertEqual(updated_tag.operation, "updated")
+        self.assertNotEqual(self._bare_ref_sha(tag_branch), tag_sha)
+
+    def test_ambiguous_post_failure_reconciles_existing_pr_or_preserves_ref(self) -> None:
+        # Helper opener supporting sequential GET /pulls responses.
+        class _SequentialListOpener(_RecordingOpener):
+            def __init__(self, handlers: dict[tuple[str, str], Any], list_seq: list[Any]) -> None:
+                super().__init__(handlers)
+                self._list_seq = list(list_seq)
+
+            def open(self, req: urllib.request.Request, timeout: int = 60) -> _FakeResponse:
+                if req.get_method() == "GET" and req.full_url == list_url:
+                    self.requests.append(("GET", req.full_url, None))
+                    outcome = self._list_seq.pop(0)
+                    if callable(outcome):
+                        outcome = outcome()
+                    if isinstance(outcome, Exception):
+                        raise outcome
+                    return _FakeResponse(outcome)
+                return super().open(req, timeout=timeout)
+
+        list_url = self.list_rolling_head_only_url
+        orig_sleep = updater.time.sleep
+        updater.time.sleep = lambda _s: None  # type: ignore[assignment]
+        try:
+            # 1. Ambiguous POST timeout, but GitHub actually created PR #450 at the pushed SHA -> reconcile!
+            prev_sha = self._push_concurrent_commit(self.rolling_branch, note="orphan-prev")
+            self._reclone_work_repo()
+            self._write_blobs(self.work_repo, version="v0.0.11")
+            gh_out = self.root / "reconcile.out"
+
+            def _return_created_pr() -> bytes:
+                pushed_now = self._bare_ref_sha(self.rolling_branch)
+                assert pushed_now is not None
+                return json.dumps(
+                    [
+                        _pr_obj(
+                            number=450,
+                            title="chore: update embedded libznn to go-zenon v0.0.11-alphanet",
+                            body="body\n",
+                            head_ref=self.rolling_branch,
+                            head_sha=pushed_now,
+                        )
+                    ]
+                ).encode("utf-8")
+
+            opener_reconcile = _SequentialListOpener(
+                {("POST", self.create_pr_url): TimeoutError("read timed out")},
+                list_seq=[b"[]", _return_created_pr],
+            )
+            stderr_buf = io.StringIO()
+            old_stderr = sys.stderr
+            try:
+                sys.stderr = stderr_buf
+                res = publish_pr.publish_libznn_pr(
+                    repo="zenon-network/syrius",
+                    repo_root=self.work_repo,
+                    target_branch="develop",
+                    pr_branch=self.rolling_branch,
+                    pr_title="chore: update embedded libznn to go-zenon v0.0.11-alphanet",
+                    pr_body="body\n",
+                    commit_message="commit v0.0.11",
+                    github_token="ghs_test",
+                    require_expected_head=True,
+                    expected_head_state="present",
+                    expected_head_oid=prev_sha,
+                    expected_pr_numbers="none",
+                    github_output=gh_out,
+                    opener=opener_reconcile,  # type: ignore[arg-type]
+                )
+            finally:
+                sys.stderr = old_stderr
+            self.assertEqual(res.operation, "created")
+            self.assertEqual(res.pr_number, 450)
+            self.assertEqual(self._bare_ref_sha(self.rolling_branch), res.pushed_commit_sha)
+            self.assertNotEqual(res.pushed_commit_sha, prev_sha)
+            self.assertIn("reconciling as created", stderr_buf.getvalue())
+            self.assertIn("pull-request-number=450\n", gh_out.read_text(encoding="utf-8"))
+
+            # 2. Ambiguous POST 502 AND follow-up GET /pulls also fails -> leave ref intact and report retry!
+            prev_sha2 = self._bare_ref_sha(self.rolling_branch)
+            assert prev_sha2 is not None
+            self._reclone_work_repo()
+            self._write_blobs(self.work_repo, version="v0.0.12")
+            summary_unver = self.root / "unverifiable.md"
+            opener_unver = _SequentialListOpener(
+                {
+                    ("POST", self.create_pr_url): urllib.error.HTTPError(
+                        self.create_pr_url, 502, "Bad Gateway", {}, None  # type: ignore[arg-type]
+                    )
+                },
+                list_seq=[
+                    b"[]",
+                    urllib.error.HTTPError(
+                        list_url, 500, "Internal Server Error", {}, None  # type: ignore[arg-type]
+                    ),
+                    urllib.error.HTTPError(
+                        list_url, 500, "Internal Server Error", {}, None  # type: ignore[arg-type]
+                    ),
+                    urllib.error.HTTPError(
+                        list_url, 500, "Internal Server Error", {}, None  # type: ignore[arg-type]
+                    ),
+                ],
+            )
+            with self.assertRaisesRegex(
+                updater.UpdaterError, "Leaving remote branch .* intact .* retry"
+            ):
+                publish_pr.publish_libznn_pr(
+                    repo="zenon-network/syrius",
+                    repo_root=self.work_repo,
+                    target_branch="develop",
+                    pr_branch=self.rolling_branch,
+                    pr_title="chore: update embedded libznn to go-zenon v0.0.12-alphanet",
+                    pr_body="body\n",
+                    commit_message="commit v0.0.12",
+                    github_token="ghs_test",
+                    require_expected_head=True,
+                    expected_head_state="present",
+                    expected_head_oid=prev_sha2,
+                    expected_pr_numbers="none",
+                    step_summary=summary_unver,
+                    opener=opener_unver,  # type: ignore[arg-type]
+                )
+            # Remote ref MUST stay at the newly pushed commit (not rolled back to prev_sha2)!
+            self.assertNotEqual(self._bare_ref_sha(self.rolling_branch), prev_sha2)
+            self.assertIn("re-run the workflow to retry", summary_unver.read_text(encoding="utf-8"))
+
+            # 3. Ambiguous POST timeout + follow-up GET confirms NO PR exists -> safely rolls back to prev_sha3!
+            prev_sha3 = self._bare_ref_sha(self.rolling_branch)
+            assert prev_sha3 is not None
+            self._reclone_work_repo()
+            self._write_blobs(self.work_repo, version="v0.0.13")
+            opener_no_pr = _SequentialListOpener(
+                {("POST", self.create_pr_url): TimeoutError("timed out")},
+                list_seq=[b"[]", b"[]"],
+            )
+            with self.assertRaisesRegex(updater.UpdaterError, "timed out"):
+                publish_pr.publish_libznn_pr(
+                    repo="zenon-network/syrius",
+                    repo_root=self.work_repo,
+                    target_branch="develop",
+                    pr_branch=self.rolling_branch,
+                    pr_title="chore: update embedded libznn to go-zenon v0.0.13-alphanet",
+                    pr_body="body\n",
+                    commit_message="commit v0.0.13",
+                    github_token="ghs_test",
+                    require_expected_head=True,
+                    expected_head_state="present",
+                    expected_head_oid=prev_sha3,
+                    expected_pr_numbers="none",
+                    opener=opener_no_pr,  # type: ignore[arg-type]
+                )
+            self.assertEqual(self._bare_ref_sha(self.rolling_branch), prev_sha3)
+        finally:
+            updater.time.sleep = orig_sleep
+
+    def test_shallow_clone_rollback_restores_older_ancestor_and_preserves_concurrent_head(
+        self,
+    ) -> None:
+        # Build topology where A branches off D0, then develop advances D0 -> D1 -> D2,
+        # so the shallow clone (--depth=1 --branch develop) has neither D0 nor A locally!
+        sha_a = self._push_concurrent_commit(self.rolling_branch, note="older-orphan-a")
+        _git(["checkout", "develop"], self.seed_repo)
+        for idx in (1, 2):
+            (self.seed_repo / "DEVELOP_PROGRESS.txt").write_text(
+                f"step {idx}\n", encoding="utf-8"
+            )
+            _git(["add", "DEVELOP_PROGRESS.txt"], self.seed_repo)
+            _git(["commit", "--no-gpg-sign", "-m", f"advance develop {idx}"], self.seed_repo)
+        _git(["push", "origin", "develop"], self.seed_repo)
+
+        # 1. Rollback success from shallow checkout: POST /pulls 422 -> atomically restores sha_a!
+        self._reclone_work_repo()
+        # Confirm sha_a is NOT in the shallow clone before publish_libznn_pr runs.
+        check_proc = subprocess.run(
+            ["git", "cat-file", "-e", f"{sha_a}^{{commit}}"],
+            cwd=str(self.work_repo),
+            capture_output=True,
+            check=False,
+        )
+        self.assertNotEqual(check_proc.returncode, 0)
+
+        self._write_blobs(self.work_repo, version="v0.0.14")
+        opener_fail = _RecordingOpener(
+            {
+                ("GET", self.list_rolling_head_only_url): b"[]",
+                ("POST", self.create_pr_url): urllib.error.HTTPError(
+                    self.create_pr_url, 422, "Unprocessable Entity", {}, None  # type: ignore[arg-type]
+                ),
+            }
+        )
+        with self.assertRaisesRegex(updater.UpdaterError, "HTTP 422"):
+            publish_pr.publish_libznn_pr(
+                repo="zenon-network/syrius",
+                repo_root=self.work_repo,
+                target_branch="develop",
+                pr_branch=self.rolling_branch,
+                pr_title="chore: update embedded libznn to go-zenon v0.0.14-alphanet",
+                pr_body="body\n",
+                commit_message="commit v0.0.14",
+                github_token="ghs_test",
+                require_expected_head=True,
+                expected_head_state="present",
+                expected_head_oid=sha_a,
+                expected_pr_numbers="none",
+                opener=opener_fail,  # type: ignore[arg-type]
+            )
+        self.assertEqual(self._bare_ref_sha(self.rolling_branch), sha_a)
+        # Temporary backup ref must be cleaned up.
+        backup_check = subprocess.run(
+            ["git", "rev-parse", "--verify", publish_pr.ROLLBACK_BACKUP_REF],
+            cwd=str(self.work_repo),
+            capture_output=True,
+            check=False,
+        )
+        self.assertNotEqual(backup_check.returncode, 0)
+
+        # 2. Rollback lease-conflict preservation: concurrent maintainer pushes commit C
+        #    while POST /pulls fails -> rollback lease against B fails -> C is preserved!
+        self._reclone_work_repo()
+        self._write_blobs(self.work_repo, version="v0.0.15")
+        summary_conflict = self.root / "rollback_conflict.md"
+        pushed_c: list[str] = []
+
+        class _ConcurrentCOnPostOpener(_RecordingOpener):
+            def open(self, req: urllib.request.Request, timeout: int = 60) -> _FakeResponse:
+                if req.get_method() == "POST" and req.full_url == create_url_ref:
+                    self.requests.append(("POST", req.full_url, None))
+                    pushed_c.append(push_c_fn())
+                    raise urllib.error.HTTPError(
+                        req.full_url, 422, "Unprocessable Entity", {}, None  # type: ignore[arg-type]
+                    )
+                return super().open(req, timeout=timeout)
+
+        create_url_ref = self.create_pr_url
+        push_c_fn = lambda: self._push_concurrent_commit(self.rolling_branch, note="concurrent-c")
+        opener_conflict = _ConcurrentCOnPostOpener(
+            {("GET", self.list_rolling_head_only_url): b"[]"}
+        )
+        stderr_buf = io.StringIO()
+        old_stderr = sys.stderr
+        try:
+            sys.stderr = stderr_buf
+            with self.assertRaisesRegex(updater.UpdaterError, "HTTP 422"):
+                publish_pr.publish_libznn_pr(
+                    repo="zenon-network/syrius",
+                    repo_root=self.work_repo,
+                    target_branch="develop",
+                    pr_branch=self.rolling_branch,
+                    pr_title="chore: update embedded libznn to go-zenon v0.0.15-alphanet",
+                    pr_body="body\n",
+                    commit_message="commit v0.0.15",
+                    github_token="ghs_test",
+                    require_expected_head=True,
+                    expected_head_state="present",
+                    expected_head_oid=sha_a,
+                    expected_pr_numbers="none",
+                    step_summary=summary_conflict,
+                    opener=opener_conflict,  # type: ignore[arg-type]
+                )
+        finally:
+            sys.stderr = old_stderr
+
+        self.assertEqual(len(pushed_c), 1)
+        self.assertEqual(self._bare_ref_sha(self.rolling_branch), pushed_c[0])
+        self.assertIn("Skipped rollback", stderr_buf.getvalue())
+        self.assertIn("preserving newer head", stderr_buf.getvalue())
+        self.assertIn("Skipped rollback", summary_conflict.read_text(encoding="utf-8"))
 
 
 if __name__ == "__main__":
