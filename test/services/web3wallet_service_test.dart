@@ -6255,11 +6255,14 @@ void main() {
             topic: 'sweep-u',
             expiry: now + 3600,
             relay: Relay(ReownConstants.RELAYER_DEFAULT_PROTOCOL),
-            active: true,
+            active: false,
           ),
         ];
         final Completer<void> uDisconnectStarted = Completer<void>();
         final Completer<void> releaseUDisconnect = Completer<void>();
+        final Completer<void> tUnsubscribeStarted = Completer<void>();
+        final Completer<void> releaseTUnsubscribe = Completer<void>();
+        int uDisconnectCalls = 0;
 
         when(
           pairingStore.getAll,
@@ -6268,11 +6271,20 @@ void main() {
           livePairings.removeWhere((PairingInfo p) => p.topic == 'sweep-t');
         });
         when(() => pairing.disconnect(topic: 'sweep-u')).thenAnswer((_) async {
+          uDisconnectCalls++;
           if (!uDisconnectStarted.isCompleted) {
             uDisconnectStarted.complete();
             await releaseUDisconnect.future;
           }
           livePairings.removeWhere((PairingInfo p) => p.topic == 'sweep-u');
+        });
+        when(() => relayClient.unsubscribe(topic: 'sweep-t')).thenAnswer((
+          _,
+        ) async {
+          if (!tUnsubscribeStarted.isCompleted) {
+            tUnsubscribeStarted.complete();
+            await releaseTUnsubscribe.future;
+          }
         });
         when(() => walletKit.pair(uri: any(named: 'uri'))).thenAnswer((
           Invocation i,
@@ -6294,13 +6306,17 @@ void main() {
           if (!releaseUDisconnect.isCompleted) {
             releaseUDisconnect.complete();
           }
+          if (!releaseTUnsubscribe.isCompleted) {
+            releaseTUnsubscribe.complete();
+          }
           await service.onDispose();
         });
         service.create();
         await service.init();
 
-        // Start sweep: removes sweep-t locally and pauses on sweep-u BEFORE the
-        // batch unsubscribe for sweep-t has run.
+        // Start sweep: removes sweep-t locally and pauses on inactive sweep-u
+        // (still visible in store) BEFORE the batch unsubscribe for sweep-t
+        // has run.
         final Future<void> sweepFuture = service.disconnectAllPairings();
         await uDisconnectStarted.future;
 
@@ -6311,14 +6327,30 @@ void main() {
         );
         verifyNever(() => walletKit.pair(uri: any(named: 'uri')));
 
-        // Unrelated topic is unaffected.
+        // Unrelated topic must skip sweep-owned inactive sweep-u during stale
+        // cleanup (no duplicate disconnect) and proceed immediately.
         final PairingInfo other = await service.pair(
           Uri.parse('wc:unrelated-v@2?relay-protocol=irn&symKey=bbb'),
         );
         expect(other.topic, equals('unrelated-v'));
+        expect(uDisconnectCalls, equals(1));
+
+        // Release sweep-u so the batch unsubscribe for sweep-t begins and stays
+        // pending: sweep-t must still be rejected before SDK admission.
+        releaseUDisconnect.complete();
+        await tUnsubscribeStarted.future;
+        await expectLater(
+          service.pair(Uri.parse('wc:sweep-t@2?relay-protocol=irn&symKey=aaa')),
+          throwsStateError,
+        );
+        verifyNever(
+          () => walletKit.pair(
+            uri: Uri.parse('wc:sweep-t@2?relay-protocol=irn&symKey=aaa'),
+          ),
+        );
 
         // Once the sweep finishes its batch unsubscribe, sweep-t can be reused.
-        releaseUDisconnect.complete();
+        releaseTUnsubscribe.complete();
         await sweepFuture;
 
         final PairingInfo reused = await service.pair(
@@ -6564,6 +6596,64 @@ void main() {
 
         releaseSecondPersist.complete();
         await secondReset;
+      },
+    );
+
+    test(
+      'flushes pending keychain persist on online disconnectSession retry and '
+      'keeps retry state if persist fails',
+      () async {
+        activeSessions['kc-s1'] = _buildSession(
+          topic: 'kc-s1',
+          selfPublicKey: 'pk-kc-1',
+        );
+        bool failRemoteOnce = true;
+        int remainingKeyChainPersistFailures = 2;
+
+        when(
+          () => walletKit.disconnectSession(
+            topic: 'kc-s1',
+            reason: any(named: 'reason'),
+          ),
+        ).thenAnswer((_) async {
+          if (failRemoteOnce) {
+            failRemoteOnce = false;
+            throw StateError('relay offline');
+          }
+          // Online retry removes session without flushing keychain.
+          activeSessions.remove('kc-s1');
+        });
+        when(() => sessionStore.delete('kc-s1')).thenAnswer((_) async {});
+        when(keyChainStore.persist).thenAnswer((_) async {
+          if (remainingKeyChainPersistFailures > 0) {
+            remainingKeyChainPersistFailures--;
+            throw StateError('keychain flush failed');
+          }
+        });
+
+        final Web3WalletService service = buildService();
+        addTearDown(service.onDispose);
+        service.create();
+        await service.init();
+
+        // Attempt 1 (offline): fallback evicts keys in memory, fails persist
+        // -> leaves _needsKeyChainPersist = true and saves pending cleanup.
+        await expectLater(
+          service.disconnectSession(topic: 'kc-s1'),
+          throwsStateError,
+        );
+        // Attempt 2 (online): remote disconnect succeeds, keychain persist
+        // fails once -> fallback local purge also fails persist and rethrows
+        // while keeping the pending cleanup entry.
+        remainingKeyChainPersistFailures = 2;
+        await expectLater(
+          service.disconnectSession(topic: 'kc-s1'),
+          throwsStateError,
+        );
+        // Attempt 3: session record is gone, saved-key local retry runs and
+        // succeeds once keychain persist succeeds.
+        await service.disconnectSession(topic: 'kc-s1');
+        verify(() => crypto.deleteKeyPair('pk-kc-1')).called(3);
       },
     );
   });

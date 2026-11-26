@@ -528,7 +528,8 @@ class Web3WalletService extends IWeb3WalletService {
 
       final String topic = snapshotPairing.topic;
       if (_inFlightPairTopics.containsKey(topic) ||
-          _inFlightStaleCleanupDisconnects.containsKey(topic)) {
+          _inFlightStaleCleanupDisconnects.containsKey(topic) ||
+          _activePairingSweepTopics.containsKey(topic)) {
         continue;
       }
       final int? createdEpoch = _pairingCreateEpoch[topic];
@@ -1631,9 +1632,10 @@ class Web3WalletService extends IWeb3WalletService {
             pendingSessions: unfinishedSessions,
             pendingPairings: unfinishedPairings,
           );
-          if (!newerResetRequested) {
-            _hasUnresolvedFullReset = false;
-          }
+          final bool newerResetRequestedAfterPersist =
+              _resetRequestEpoch != capturedEpoch ||
+              _pendingDisconnectEverything;
+          _hasUnresolvedFullReset = newerResetRequestedAfterPersist;
         } on Object {
           if (rethrowMarkerWriteError) {
             rethrow;
@@ -2002,6 +2004,14 @@ class Web3WalletService extends IWeb3WalletService {
       );
       await disconnectFuture.timeout(_inFlightPairWaitTimeout);
       _topicsNeedingSessionStorePersist.remove(topic);
+      if (_needsKeyChainPersist) {
+        await _wcClient!.core.crypto.keyChain.persist();
+        _needsKeyChainPersist = false;
+      }
+      if (_needsExpirerPersist) {
+        await _wcClient!.core.expirer.persist();
+        _needsExpirerPersist = false;
+      }
       _pendingSessionCleanups.remove(topic);
     } on Object catch (e, s) {
       if (e is TimeoutException && disconnectFuture != null) {
