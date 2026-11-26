@@ -75,7 +75,11 @@ class SettingsAddressesBloc
     Emitter<SettingsAddressesState> emit,
   ) async {
     emit(
-      state.copyWith(status: SettingsAddressesStatus.loading, clearError: true),
+      state.copyWith(
+        status: SettingsAddressesStatus.loading,
+        clearError: true,
+        clearGenerateError: true,
+      ),
     );
     try {
       await _repository.generateNewAddresses(event.count);
@@ -86,12 +90,20 @@ class SettingsAddressesBloc
           addressLabels: _repository.getAddressLabels(),
           scrollToEndNonce: state.scrollToEndNonce + 1,
           clearError: true,
+          clearGenerateError: true,
         ),
       );
     } on Object catch (error, stackTrace) {
       addError(error, stackTrace);
       emit(
-        state.copyWith(status: SettingsAddressesStatus.failure, error: error),
+        state.copyWith(
+          status: SettingsAddressesStatus.ready,
+          addresses: _repository.getAddresses(),
+          addressLabels: _repository.getAddressLabels(),
+          generateErrorNonce: state.generateErrorNonce + 1,
+          generateError: error,
+          clearError: true,
+        ),
       );
     }
   }

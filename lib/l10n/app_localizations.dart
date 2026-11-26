@@ -1066,6 +1066,12 @@ abstract class AppLocalizations {
   /// **'Error while depositing {kQsrCoinSymbol}'**
   String errorWhileDepositing(Object kQsrCoinSymbol);
 
+  /// No description provided for @errorWhileGeneratingNewAddress.
+  ///
+  /// In en, this message translates to:
+  /// **'Error while generating new address'**
+  String get errorWhileGeneratingNewAddress;
+
   /// No description provided for @errorWhileGeneratingStake.
   ///
   /// In en, this message translates to:
@@ -4439,6 +4445,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Normal'**
   String get normal;
+
+  /// No description provided for @notAValidKeystoreFile.
+  ///
+  /// In en, this message translates to:
+  /// **'Not a valid keystore file'**
+  String get notAValidKeystoreFile;
 
   /// No description provided for @otherWalletOptions.
   ///

@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:desktop_drop/desktop_drop.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -179,6 +181,84 @@ void main() {
             find.textContaining('Wallet file is too large'),
             findsOneWidget,
           );
+        } finally {
+          await bloc.close();
+        }
+      },
+    );
+
+    testWidgets(
+      'shows localized keystore format error when file is missing required '
+      'keystore fields',
+      (WidgetTester tester) async {
+        _configureDesktopViewport(tester);
+
+        final Directory tempDir = Directory.systemTemp.createTempSync(
+          'onboarding_invalid_keystore_',
+        );
+        addTearDown(() {
+          if (tempDir.existsSync()) {
+            tempDir.deleteSync(recursive: true);
+          }
+        });
+        final File invalidKeystore = File('${tempDir.path}/empty.json')
+          ..writeAsStringSync('{}');
+
+        final DecryptWalletFileBloc bloc = DecryptWalletFileBloc();
+
+        try {
+          await tester.pumpWidget(
+            _buildDesktopApp(
+              ImportWalletDecryptScreen(
+                invalidKeystore.path,
+                decryptBloc: bloc,
+              ),
+            ),
+          );
+
+          await tester.enterText(find.byType(TextFormField), 'pass');
+          await tester.pump();
+          await tester.tap(find.text('Continue'));
+          await tester.pump();
+          await tester.pump(const Duration(milliseconds: 50));
+
+          expect(find.text('Not a valid keystore file'), findsOneWidget);
+        } finally {
+          await bloc.close();
+        }
+      },
+    );
+
+    testWidgets(
+      'shows non-regular file WalletException when a directory is provided',
+      (WidgetTester tester) async {
+        _configureDesktopViewport(tester);
+
+        final Directory tempDir = Directory.systemTemp.createTempSync(
+          'onboarding_dir_drop_',
+        );
+        addTearDown(() {
+          if (tempDir.existsSync()) {
+            tempDir.deleteSync(recursive: true);
+          }
+        });
+
+        final DecryptWalletFileBloc bloc = DecryptWalletFileBloc();
+
+        try {
+          await tester.pumpWidget(
+            _buildDesktopApp(
+              ImportWalletDecryptScreen(tempDir.path, decryptBloc: bloc),
+            ),
+          );
+
+          await tester.enterText(find.byType(TextFormField), 'pass');
+          await tester.pump();
+          await tester.tap(find.text('Continue'));
+          await tester.pump();
+          await tester.pump(const Duration(milliseconds: 50));
+
+          expect(find.textContaining('not a regular file'), findsOneWidget);
         } finally {
           await bloc.close();
         }

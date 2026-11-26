@@ -1,19 +1,76 @@
 import 'dart:async';
 
 import 'package:collection/collection.dart';
+import 'package:mutex/mutex.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/model/model.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/exceptions/exceptions.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/format_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/wallet_file.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
+class _AddressLockEntry {
+  final Mutex mutex = Mutex();
+  int activeCount = 0;
+}
+
 class AccountBlockUtils {
-  AccountBlockUtils({bool publishSuccessNotification = true})
-    : _publishSuccessNotification = publishSuccessNotification;
+  AccountBlockUtils({
+    this._publishSuccessNotification = true,
+    Zenon Function()? zenonProvider,
+    WalletFile? Function()? walletFileProvider,
+    List<String?> Function()? addressListProvider,
+    String? Function()? selectedAddressProvider,
+    Future<void> Function(String purpose)? sendPlasmaNotification,
+    Future<void> Function(WalletNotification notification)? addNotification,
+    void Function(PowStatus status)? onPowStatusChanged,
+    this._postSendDelay = const Duration(seconds: 1),
+  }) : _zenonProvider = zenonProvider ?? _defaultZenonProvider,
+       _walletFileProvider = walletFileProvider ?? _defaultWalletFileProvider,
+       _addressListProvider =
+           addressListProvider ?? _defaultAddressListProvider,
+       _selectedAddressProvider =
+           selectedAddressProvider ?? _defaultSelectedAddressProvider,
+       _sendPlasmaNotification =
+           sendPlasmaNotification ?? _defaultSendPlasmaNotification,
+       _addNotification = addNotification ?? _defaultAddNotification,
+       _onPowStatusChanged =
+           onPowStatusChanged ?? _addEventToPowGeneratingStatusBloc;
 
   final bool _publishSuccessNotification;
+  final Zenon Function() _zenonProvider;
+  final WalletFile? Function() _walletFileProvider;
+  final List<String?> Function() _addressListProvider;
+  final String? Function() _selectedAddressProvider;
+  final Future<void> Function(String purpose) _sendPlasmaNotification;
+  final Future<void> Function(WalletNotification notification) _addNotification;
+  final void Function(PowStatus status) _onPowStatusChanged;
+  final Duration _postSendDelay;
+
+  static final Map<String, _AddressLockEntry> _addressSendLocks =
+      <String, _AddressLockEntry>{};
+
+  static Future<T> _withAddressSendLock<T>(
+    String addressKey,
+    Future<T> Function() action,
+  ) async {
+    final _AddressLockEntry entry = _addressSendLocks.putIfAbsent(
+      addressKey,
+      _AddressLockEntry.new,
+    );
+    entry.activeCount++;
+    try {
+      return await entry.mutex.protect(action);
+    } finally {
+      entry.activeCount--;
+      if (entry.activeCount == 0 &&
+          identical(_addressSendLocks[addressKey], entry)) {
+        _addressSendLocks.remove(addressKey);
+      }
+    }
+  }
 
   Future<AccountBlockTemplate> createAccountBlock(
     AccountBlockTemplate transactionParams,
@@ -21,75 +78,179 @@ class AccountBlockUtils {
     Address? address,
     bool waitForRequiredPlasma = false,
   }) async {
-    final SyncInfo syncInfo = await zenon!.stats.syncInfo();
+    final Zenon currentZenon = _zenonProvider();
+    final SyncInfo syncInfo = await currentZenon.stats.syncInfo();
     final bool nodeIsSynced =
         syncInfo.state == SyncState.syncDone ||
         (syncInfo.targetHeight > 0 &&
             syncInfo.currentHeight > 0 &&
             (syncInfo.targetHeight - syncInfo.currentHeight) < 20);
-    if (nodeIsSynced) {
-      // Acquire wallet lock to prevent concurrent access.
-      final Wallet wallet = await kWalletFile!.open();
-      try {
-        address ??= Address.parse(kSelectedAddress!);
-        final WalletAccount walletAccount = await wallet.getAccount(
-          kDefaultAddressList.indexOf(address.toString()),
-        );
-
-        final bool needPlasma = await zenon!.requiresPoW(
-          transactionParams,
-          blockSigningKey: walletAccount,
-        );
-        final bool needReview = kWalletFile!.isHardwareWallet;
-
-        if (needPlasma) {
-          await sl.get<NotificationsBloc>().sendPlasmaNotification(
-            purposeOfGeneratingPlasma,
-          );
-        } else if (needReview) {
-          await _sendReviewNotification(transactionParams);
-        }
-        final AccountBlockTemplate response = await zenon!.send(
-          transactionParams,
-          currentKeyPair: walletAccount,
-          generatingPowCallback: (PowStatus status) async {
-            // Wait for plasma to be generated before sending review notification
-            if (needReview && status == PowStatus.done) {
-              await _sendReviewNotification(transactionParams);
-            }
-            _addEventToPowGeneratingStatusBloc(status);
-          },
-          waitForRequiredPlasma: waitForRequiredPlasma,
-        );
-        if (_publishSuccessNotification) {
-          await sl.get<NotificationsBloc>().addNotification(
-            WalletNotification(
-              title: 'Account-block published',
-              timestamp: DateTime.now().millisecondsSinceEpoch,
-              details:
-                  'Account-block type: ${FormatUtils.extractNameFromEnum<BlockTypeEnum>(
-                    BlockTypeEnum.values[response.blockType],
-                  )}',
-              type: NotificationType.paymentSent,
-            ),
-          );
-        }
-
-        // Release the lock after 1 second, asynchronously.
-        //
-        // This will give the node enough time so that it'll process the transaction before we start creating a new one.
-        // This is a problem when we create 2 transactions from the same address without requiring PoW.
-        // If we release the lock too early, zenon.send will autofill the AccountBlockTemplate with an old value of
-        // ledger.getFrontierAccountBlock, since the node did not had enough time to process the current transaction.
-        await Future.delayed(const Duration(seconds: 1));
-
-        return response;
-      } finally {
-        kWalletFile!.close();
-      }
-    } else {
+    if (!nodeIsSynced) {
       throw NodeNotSyncedException();
     }
+
+    final Address resolvedAddress = address ?? _resolveSelectedAddress();
+    final String resolvedAddressStr = resolvedAddress.toString();
+    if (!_addressListProvider().contains(resolvedAddressStr)) {
+      throw SyriusException(
+        'Address $resolvedAddressStr is not present in the wallet '
+        'address list.',
+      );
+    }
+
+    final WalletFile? walletFile = _walletFileProvider();
+    if (walletFile == null) {
+      throw SyriusException('Wallet is not unlocked.');
+    }
+
+    return await _withAddressSendLock<AccountBlockTemplate>(
+      resolvedAddressStr,
+      () => _createAndPublishAccountBlock(
+        currentZenon: currentZenon,
+        expectedWalletFile: walletFile,
+        resolvedAddressStr: resolvedAddressStr,
+        transactionParams: transactionParams,
+        purposeOfGeneratingPlasma: purposeOfGeneratingPlasma,
+        waitForRequiredPlasma: waitForRequiredPlasma,
+      ),
+    );
+  }
+
+  Address _resolveSelectedAddress() {
+    final String? selected = _selectedAddressProvider();
+    if (selected == null || selected.isEmpty) {
+      throw SyriusException('No wallet address is selected.');
+    }
+    return Address.parse(selected);
+  }
+
+  Future<AccountBlockTemplate> _createAndPublishAccountBlock({
+    required Zenon currentZenon,
+    required WalletFile expectedWalletFile,
+    required String resolvedAddressStr,
+    required AccountBlockTemplate transactionParams,
+    required String purposeOfGeneratingPlasma,
+    required bool waitForRequiredPlasma,
+  }) async {
+    void throwIfWalletChanged() {
+      final WalletFile? walletNow = _walletFileProvider();
+      if (walletNow == null || !identical(walletNow, expectedWalletFile)) {
+        throw SyriusException('Wallet is not unlocked.');
+      }
+    }
+
+    throwIfWalletChanged();
+    final WalletFile currentWalletFile = expectedWalletFile;
+
+    final int accountIndex = _addressListProvider().indexOf(resolvedAddressStr);
+    if (accountIndex < 0) {
+      throw SyriusException(
+        'Address $resolvedAddressStr is not present in the wallet '
+        'address list.',
+      );
+    }
+
+    final bool needReview = currentWalletFile.isHardwareWallet;
+    final AccountBlockTemplate response;
+
+    if (needReview) {
+      // Hardware wallets require serial USB device access across key lookup and
+      // on-device transaction signing. Release the wallet lock before the
+      // trailing frontier propagation delay so other wallet operations are not
+      // blocked longer than necessary.
+      response = await currentWalletFile.access<AccountBlockTemplate>(
+        (Wallet wallet) async {
+          throwIfWalletChanged();
+          final WalletAccount walletAccount = await wallet.getAccount(
+            accountIndex,
+          );
+          return await _prepareAndSend(
+            currentZenon: currentZenon,
+            walletAccount: walletAccount,
+            transactionParams: transactionParams,
+            purposeOfGeneratingPlasma: purposeOfGeneratingPlasma,
+            needReview: true,
+            waitForRequiredPlasma: waitForRequiredPlasma,
+          );
+        },
+      );
+    } else {
+      // Software wallets derive an in-memory KeyPair; release the wallet lock
+      // immediately after derivation so concurrent wallet operations (such as
+      // address derivation or reclaim discovery) do not stall during PoW
+      // generation or network I/O. Per-address frontier sequencing is preserved
+      // by _withAddressSendLock.
+      final WalletAccount walletAccount = await currentWalletFile
+          .access<WalletAccount>((Wallet wallet) async {
+            throwIfWalletChanged();
+            return await wallet.getAccount(accountIndex);
+          });
+      response = await _prepareAndSend(
+        currentZenon: currentZenon,
+        walletAccount: walletAccount,
+        transactionParams: transactionParams,
+        purposeOfGeneratingPlasma: purposeOfGeneratingPlasma,
+        needReview: false,
+        waitForRequiredPlasma: waitForRequiredPlasma,
+      );
+    }
+
+    if (_publishSuccessNotification) {
+      final String blockTypeName =
+          FormatUtils.extractNameFromEnum<BlockTypeEnum>(
+            BlockTypeEnum.values[response.blockType],
+          );
+      await _addNotification(
+        WalletNotification(
+          title: 'Account-block published',
+          timestamp: DateTime.now().millisecondsSinceEpoch,
+          details: 'Account-block type: $blockTypeName',
+          type: NotificationType.paymentSent,
+        ),
+      );
+    }
+
+    // Keep the per-address send lock held for 1 second after publishing so the
+    // node has time to process the transaction and update
+    // ledger.getFrontierAccountBlock before the next block from the same
+    // address is autofilled.
+    if (_postSendDelay > Duration.zero) {
+      await Future<void>.delayed(_postSendDelay);
+    }
+
+    return response;
+  }
+
+  Future<AccountBlockTemplate> _prepareAndSend({
+    required Zenon currentZenon,
+    required WalletAccount walletAccount,
+    required AccountBlockTemplate transactionParams,
+    required String purposeOfGeneratingPlasma,
+    required bool needReview,
+    required bool waitForRequiredPlasma,
+  }) async {
+    final bool needPlasma = await currentZenon.requiresPoW(
+      transactionParams,
+      blockSigningKey: walletAccount,
+    );
+
+    if (needPlasma) {
+      await _sendPlasmaNotification(purposeOfGeneratingPlasma);
+    } else if (needReview) {
+      await _sendReviewNotification(transactionParams);
+    }
+    return await currentZenon.send(
+      transactionParams,
+      currentKeyPair: walletAccount,
+      generatingPowCallback: (PowStatus status) async {
+        // Wait for plasma to be generated before sending review notification
+        if (needReview && status == PowStatus.done) {
+          await _sendReviewNotification(transactionParams);
+        }
+        _onPowStatusChanged(status);
+      },
+      waitForRequiredPlasma: waitForRequiredPlasma,
+    );
   }
 
   static BlockData? getDecodedBlockData(Abi abi, List<int> encodedData) {
@@ -186,10 +347,10 @@ class AccountBlockUtils {
     return null;
   }
 
-  static Future<void> _sendReviewNotification(
+  Future<void> _sendReviewNotification(
     AccountBlockTemplate transactionParams,
   ) async {
-    await sl.get<NotificationsBloc>().addNotification(
+    await _addNotification(
       WalletNotification(
         title:
             '${BlockUtils.isSendBlock(transactionParams.blockType) ? 'Sending transaction' : 'Receiving transaction'}, please review the transaction on your hardware device',
@@ -202,6 +363,21 @@ class AccountBlockUtils {
       ),
     );
   }
+
+  static Zenon _defaultZenonProvider() => zenon!;
+
+  static WalletFile? _defaultWalletFileProvider() => kWalletFile;
+
+  static List<String?> _defaultAddressListProvider() => kDefaultAddressList;
+
+  static String? _defaultSelectedAddressProvider() => kSelectedAddress;
+
+  static Future<void> _defaultSendPlasmaNotification(String purpose) =>
+      sl.get<NotificationsBloc>().sendPlasmaNotification(purpose);
+
+  static Future<void> _defaultAddNotification(
+    WalletNotification notification,
+  ) => sl.get<NotificationsBloc>().addNotification(notification);
 
   static void _addEventToPowGeneratingStatusBloc(PowStatus event) =>
       sl.get<PowGeneratingStatusBloc>().add(PowGeneratingStatusChanged(event));

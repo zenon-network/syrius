@@ -43,6 +43,8 @@ class SettingsAddressesState extends Equatable {
     this.labelError,
     this.failedLabel,
     this.labelErrorCause,
+    this.generateErrorNonce = 0,
+    this.generateError,
     this.error,
   });
 
@@ -82,6 +84,12 @@ class SettingsAddressesState extends Equatable {
   /// Underlying error object when [labelError] is unexpected.
   final Object? labelErrorCause;
 
+  /// Incremented whenever generating new addresses fails.
+  final int generateErrorNonce;
+
+  /// Error thrown by the latest failed address-generation request, if any.
+  final Object? generateError;
+
   /// Fatal error object when [status] is [SettingsAddressesStatus.failure].
   final Object? error;
 
@@ -101,6 +109,9 @@ class SettingsAddressesState extends Equatable {
     bool clearLabelError = false,
     String? failedLabel,
     Object? labelErrorCause,
+    int? generateErrorNonce,
+    Object? generateError,
+    bool clearGenerateError = false,
     Object? error,
     bool clearError = false,
   }) {
@@ -123,6 +134,10 @@ class SettingsAddressesState extends Equatable {
       labelErrorCause: clearLabelError
           ? null
           : (labelErrorCause ?? this.labelErrorCause),
+      generateErrorNonce: generateErrorNonce ?? this.generateErrorNonce,
+      generateError: clearGenerateError
+          ? null
+          : (generateError ?? this.generateError),
       error: clearError ? null : (error ?? this.error),
     );
   }
@@ -141,6 +156,8 @@ class SettingsAddressesState extends Equatable {
     labelError,
     failedLabel,
     labelErrorCause,
+    generateErrorNonce,
+    generateError,
     error,
   ];
 }

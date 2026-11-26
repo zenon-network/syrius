@@ -3,7 +3,9 @@ import 'dart:async';
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/model/model.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/auto_receive_tx/auto_receive_tx.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/node_management/node_management.dart';
 import 'package:zenon_syrius_wallet_flutter/services/shared_prefs_service.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
@@ -1291,5 +1293,55 @@ void main() {
       verify(() => prefs.put(kChainIdKey, 2)).called(1);
       expect(getChainIdentifier(), 2);
     });
+  });
+
+  group('DefaultNodeManagementRepository.clearAutoReceivePool', () {
+    test(
+      'delegates to AutoReceiveTxWorker.clearPool and emits pendingCount 0',
+      () async {
+        final AutoReceiveTxWorker worker = AutoReceiveTxWorker(
+          isAutoReceiveEnabled: () => true,
+          isHtlcAutoUnlocking: () => false,
+          onRefreshPendingTransactions: () {},
+          onTransactionReceived: () {},
+          onNotification: (_) {},
+        );
+        final bool hadPrevious = sl.isRegistered<AutoReceiveTxWorker>();
+        final AutoReceiveTxWorker? previous = hadPrevious
+            ? sl<AutoReceiveTxWorker>()
+            : null;
+        if (hadPrevious) {
+          sl.unregister<AutoReceiveTxWorker>();
+        }
+        sl.registerSingleton<AutoReceiveTxWorker>(worker);
+        addTearDown(() async {
+          if (sl.isRegistered<AutoReceiveTxWorker>()) {
+            sl.unregister<AutoReceiveTxWorker>();
+          }
+          if (previous != null) {
+            sl.registerSingleton<AutoReceiveTxWorker>(previous);
+          }
+          await worker.close();
+        });
+
+        worker.pool.add(Hash.digest(<int>[4, 5, 6]));
+        worker.emit(const AutoReceiveTxState(pendingCount: 1));
+        expect(worker.state.pendingCount, 1);
+
+        final DefaultNodeManagementRepository repository =
+            DefaultNodeManagementRepository();
+
+        final Future<void> stateCleared = expectLater(
+          worker.stream,
+          emits(const AutoReceiveTxState()),
+        );
+
+        repository.clearAutoReceivePool();
+        await stateCleared;
+
+        expect(worker.pool, isEmpty);
+        expect(worker.state.pendingCount, 0);
+      },
+    );
   });
 }

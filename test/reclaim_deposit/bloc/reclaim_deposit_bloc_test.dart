@@ -423,6 +423,44 @@ void main() {
       verifyNever(() => zenonAddressUtils.refreshBalance());
     });
 
+    test('fails cleanly when generating missing addresses throws', () async {
+      final Address sixthAddress = derivedAddresses[5];
+
+      walletAddresses = <String?>[
+        for (final Address address in derivedAddresses.sublist(0, 3))
+          address.toString(),
+      ];
+      walletFile = _InMemoryWalletFile(_FakeWallet(derivedAddresses));
+      htlc = buildHtlc(timeLocked: sixthAddress, expirationTime: now);
+
+      final ReclaimDepositBloc derivedBloc = createBloc(
+        generateAddresses: (int count) async {
+          generatedCounts.add(count);
+          throw StateError('address persistence failed');
+        },
+      );
+      addTearDown(derivedBloc.close);
+
+      final Future<void> expectation = expectLater(
+        derivedBloc.stream,
+        emitsInOrder(<Matcher>[
+          isA<ReclaimDepositLoading>(),
+          isA<ReclaimDepositFailure>().having(
+            (ReclaimDepositFailure state) => state.exception,
+            'exception',
+            isA<FailureException>(),
+          ),
+        ]),
+      );
+
+      derivedBloc.add(ReclaimDepositRequested(depositId: htlcId));
+      await expectation;
+
+      expect(generatedCounts, <int>[3]);
+      verifyNever(() => htlcApi.reclaim(htlcId));
+      verifyNever(() => zenonAddressUtils.refreshBalance());
+    });
+
     test('rejects a deposit beyond addressLookaheadLimit without generating '
         'addresses', () async {
       final Address tenthAddress = derivedAddresses[9];

@@ -259,8 +259,9 @@ final class DefaultNodeManagementRepository
 
   @override
   void clearAutoReceivePool() {
-    if (sl<AutoReceiveTxWorker>().pool.isNotEmpty) {
-      sl<AutoReceiveTxWorker>().pool.clear();
+    final AutoReceiveTxWorker worker = sl<AutoReceiveTxWorker>();
+    if (worker.pool.isNotEmpty) {
+      worker.clearPool();
     }
   }
 

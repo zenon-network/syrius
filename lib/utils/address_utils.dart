@@ -6,10 +6,10 @@ import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/model/database/notification_type.dart';
 import 'package:zenon_syrius_wallet_flutter/model/database/wallet_notification.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/exceptions/exceptions.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/node_utils.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/notification_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/wallet_file.dart';
 import 'package:znn_ledger_dart/znn_ledger_dart.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
@@ -27,9 +27,12 @@ class ZenonAddressUtils {
 
   static Future<void> generateNewAddress(
       {int numAddr = 1, VoidCallback? callback,}) async {
-    final Wallet wallet = await kWalletFile!.open();
-    try {
-      await Future.delayed(const Duration(milliseconds: 500));
+    final WalletFile? walletFile = kWalletFile;
+    if (walletFile == null) {
+      throw SyriusException('Wallet is not unlocked.');
+    }
+    await walletFile.access<void>((Wallet wallet) async {
+      await Future<void>.delayed(const Duration(milliseconds: 500));
       final List<Address?> listAddr = <Address?>[];
       final int addrListLength = kDefaultAddressList.length;
       for (int i = 0; i < numAddr; i++) {
@@ -71,12 +74,7 @@ class ZenonAddressUtils {
         ),
       );
       listAddr.clear();
-    } catch (e) {
-      await NotificationUtils.sendNotificationError(
-          e, 'Error while generating new address',);
-    } finally {
-      kWalletFile!.close();
-    }
+    });
   }
 
   static Future<void> setAddressLabels() async {

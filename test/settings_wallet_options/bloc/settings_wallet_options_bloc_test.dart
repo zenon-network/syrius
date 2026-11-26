@@ -1,10 +1,13 @@
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/model/model.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/auto_receive_tx/auto_receive_tx.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/settings_wallet_options/settings_wallet_options.dart';
 import 'package:zenon_syrius_wallet_flutter/services/shared_prefs_service.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
+import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 class MockSharedPrefsService extends Mock implements SharedPrefsService {}
 
@@ -255,6 +258,69 @@ void main() {
       verify: (_) {
         verify(() => prefs.put(kEnableDesktopNotificationsKey, true)).called(1);
         expect(errors, <String>['Notification error']);
+      },
+    );
+
+    test(
+      'default pool clear invokes AutoReceiveTxWorker.clearPool and emits '
+      'pendingCount 0',
+      () async {
+        final AutoReceiveTxWorker worker = AutoReceiveTxWorker(
+          isAutoReceiveEnabled: () => true,
+          isHtlcAutoUnlocking: () => false,
+          onRefreshPendingTransactions: () {},
+          onTransactionReceived: () {},
+          onNotification: (_) {},
+        );
+        final bool hadPrevious = sl.isRegistered<AutoReceiveTxWorker>();
+        final AutoReceiveTxWorker? previous = hadPrevious
+            ? sl<AutoReceiveTxWorker>()
+            : null;
+        if (hadPrevious) {
+          sl.unregister<AutoReceiveTxWorker>();
+        }
+        sl.registerSingleton<AutoReceiveTxWorker>(worker);
+        addTearDown(() async {
+          if (sl.isRegistered<AutoReceiveTxWorker>()) {
+            sl.unregister<AutoReceiveTxWorker>();
+          }
+          if (previous != null) {
+            sl.registerSingleton<AutoReceiveTxWorker>(previous);
+          }
+          await worker.close();
+        });
+
+        worker.pool.add(Hash.digest(<int>[1, 2, 3]));
+        worker.emit(const AutoReceiveTxState(pendingCount: 1));
+        expect(worker.state.pendingCount, 1);
+
+        final SettingsWalletOptionsBloc bloc = SettingsWalletOptionsBloc(
+          prefsService: prefs,
+          isMacOs: false,
+          addNotification: (WalletNotification notification) async {
+            notifications.add(notification);
+          },
+          reportError: (Object error, String title) async {
+            errors.add(title);
+          },
+        );
+        addTearDown(bloc.close);
+
+        bloc.add(
+          const SettingsWalletOptionsAutoReceiveToggled(
+            enabled: false,
+            notificationTitle: 'Disabled',
+            notificationDetails: 'Disabled',
+            errorTitle: 'Error',
+          ),
+        );
+
+        await expectLater(
+          worker.stream,
+          emits(const AutoReceiveTxState()),
+        );
+        expect(worker.pool, isEmpty);
+        expect(worker.state.pendingCount, 0);
       },
     );
   });

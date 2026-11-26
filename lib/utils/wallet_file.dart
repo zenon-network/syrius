@@ -32,10 +32,18 @@ abstract class WalletFile {
   }
 
   static Future<EncryptedFile> read(String walletPath) async {
-    final File file = File(walletPath);
-    if (!file.existsSync()) {
+    final FileSystemEntityType entityType = FileSystemEntity.typeSync(
+      walletPath,
+    );
+    if (entityType == FileSystemEntityType.notFound) {
       throw WalletException('Given wallet path does not exist ($walletPath)');
     }
+    if (entityType != FileSystemEntityType.file) {
+      throw WalletException(
+        'Given wallet path is not a regular file ($walletPath)',
+      );
+    }
+    final File file = File(walletPath);
     // Bound the read through a single open handle: a file swapped for a
     // larger one between a length check and the read must still be
     // caught before decoding, and the allocation is capped at
@@ -72,7 +80,55 @@ abstract class WalletFile {
     if (decoded is! Map<String, dynamic>) {
       throw const FormatException('Invalid keystore file format');
     }
-    return EncryptedFile.fromJson(decoded);
+    _validateEncryptedFileJson(decoded);
+    try {
+      return EncryptedFile.fromJson(decoded);
+    } on FormatException {
+      throw const FormatException('Invalid keystore file format');
+    }
+  }
+
+  static void _validateEncryptedFileJson(Map<String, dynamic> jsonMap) {
+    if (jsonMap['timestamp'] is! int? || jsonMap['version'] is! int?) {
+      throw const FormatException('Invalid keystore file format');
+    }
+    final Object? crypto = jsonMap['crypto'];
+    if (crypto is! Map<String, dynamic>) {
+      throw const FormatException('Invalid keystore file format');
+    }
+    final Object? argon2Params = crypto['argon2Params'];
+    if (argon2Params is! Map<String, dynamic>) {
+      throw const FormatException('Invalid keystore file format');
+    }
+    final Object? cipherName = crypto['cipherName'];
+    final Object? kdf = crypto['kdf'];
+    if (!_isValidPrefixedHex(argon2Params['salt'], minBytes: 8) ||
+        !_isValidPrefixedHex(crypto['cipherData'], minBytes: 16) ||
+        !_isValidPrefixedHex(crypto['nonce'], minBytes: 12) ||
+        cipherName is! String ||
+        cipherName.isEmpty ||
+        kdf is! String ||
+        kdf.isEmpty) {
+      throw const FormatException('Invalid keystore file format');
+    }
+  }
+
+  static bool _isValidPrefixedHex(Object? value, {required int minBytes}) {
+    if (value is! String || value.length < 2 + minBytes * 2) {
+      return false;
+    }
+    if (!value.startsWith('0x') && !value.startsWith('0X')) {
+      return false;
+    }
+    final String hexBody = value.substring(2);
+    if (hexBody.length.isOdd) {
+      return false;
+    }
+    try {
+      return HEX.decode(hexBody).length >= minBytes;
+    } on FormatException {
+      return false;
+    }
   }
 
   static Future<void> write(String walletPath, String password, List<int> data,
@@ -234,7 +290,7 @@ class LedgerWalletFile extends WalletFile {
     if (encrypted.metadata == null ||
         encrypted.metadata![walletTypeKey] != ledgerWalletType) {
       throw WalletException(
-          'Wallet type (${encrypted.metadata![walletTypeKey]}) is not supported',);
+          'Wallet type (${encrypted.metadata?[walletTypeKey]}) is not supported',);
     }
     final List<int> decrypted = await encrypted.decrypt(password);
     return LedgerWalletFile._internal(walletPath, utf8.decode(decrypted));
