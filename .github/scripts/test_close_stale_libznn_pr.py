@@ -271,6 +271,7 @@ class CloseStaleLibznnPrTests(unittest.TestCase):
             pr_branch="chore/update-libznn-develop",
             release_tag="v0.0.10-alphanet",
             github_token="ghs_test",
+            repo_root=self.work_repo,
             github_output=gh_out,
             step_summary=summary,
             opener=opener,  # type: ignore[arg-type]
@@ -423,6 +424,7 @@ class CloseStaleLibznnPrTests(unittest.TestCase):
             pr_branch="chore/update-libznn-develop",
             release_tag="v0.0.10-alphanet",
             github_token="ghs_test",
+            repo_root=self.work_repo,
             opener=opener,  # type: ignore[arg-type]
         )
         self.assertEqual(result.closed_prs, ())
@@ -493,6 +495,7 @@ class CloseStaleLibznnPrTests(unittest.TestCase):
             pr_branch="chore/update-libznn-develop",
             release_tag="v0.0.11-alphanet",
             github_token="ghs_test",
+            repo_root=self.work_repo,
             github_output=gh_out,
             step_summary=summary,
             opener=opener,  # type: ignore[arg-type]
@@ -531,6 +534,7 @@ class CloseStaleLibznnPrTests(unittest.TestCase):
             pr_branch="chore/update-libznn-develop",
             release_tag="v0.0.10-alphanet",
             github_token="ghs_test",
+            repo_root=self.work_repo,
             step_summary=summary,
             opener=opener,  # type: ignore[arg-type]
         )
@@ -795,6 +799,7 @@ class CloseStaleLibznnPrTests(unittest.TestCase):
             pr_branch="chore/update-libznn-develop",
             release_tag="v0.0.10-alphanet",
             github_token="ghs_test",
+            repo_root=self.work_repo,
             step_summary=summary_other,
             opener=opener_other,  # type: ignore[arg-type]
         )
@@ -826,6 +831,7 @@ class CloseStaleLibznnPrTests(unittest.TestCase):
             pr_branch="chore/update-libznn-develop",
             release_tag="v0.0.10-alphanet",
             github_token="ghs_test",
+            repo_root=self.work_repo,
             step_summary=summary_moved,
             opener=opener_moved,  # type: ignore[arg-type]
         )
@@ -1219,6 +1225,7 @@ class CloseStaleLibznnPrTests(unittest.TestCase):
             pr_branch="chore/update-libznn-develop",
             release_tag="v0.0.11-alphanet",
             github_token="ghs_test",
+            repo_root=self.work_repo,
             opener=opener_stale,  # type: ignore[arg-type]
         )
         self.assertEqual(res_stale.closed_prs, ())
@@ -1810,6 +1817,7 @@ class CloseStaleLibznnPrTests(unittest.TestCase):
             pr_branch="chore/update-libznn-develop",
             release_tag="v0.0.11-alphanet",
             github_token="ghs_test",
+            repo_root=self.work_repo,
             opener=opener_stale_rename,  # type: ignore[arg-type]
         )
         self.assertEqual(res_stale_rename.closed_prs, ())
@@ -1923,6 +1931,42 @@ class CloseStaleLibznnPrTests(unittest.TestCase):
 
         self.assertEqual(rc, 1)
         self.assertIn("--repo-root is required", stderr_buf.getvalue())
+
+    def test_rejects_missing_repo_root_before_closing_or_commenting_on_pr(self) -> None:
+        head_sha = "9" * 40
+        prs_payload = [
+            _pr_obj(
+                number=399,
+                title="chore: update embedded libznn to go-zenon v0.0.10-alphanet",
+                head_sha=head_sha,
+            )
+        ]
+        close_url = "https://api.github.com/repos/zenon-network/syrius/pulls/399"
+        comment_url = "https://api.github.com/repos/zenon-network/syrius/issues/399/comments"
+        opener = _RecordingOpener(
+            {
+                ("GET", self.list_develop_url): json.dumps(prs_payload).encode("utf-8"),
+                ("GET", self._files_url(399)): _pr_files_response(self.all_updater_files),
+                ("GET", self._manifest_contents_url(head_sha)): _encoded_manifest_response(
+                    "v0.0.10-alphanet"
+                ),
+                ("PATCH", close_url): json.dumps({"number": 399, "state": "closed"}).encode("utf-8"),
+                ("POST", comment_url): json.dumps({"id": 99}).encode("utf-8"),
+            }
+        )
+
+        with self.assertRaisesRegex(updater.UpdaterError, "--repo-root is required"):
+            stale_pr.close_stale_libznn_prs(
+                repo="zenon-network/syrius",
+                target_branch="develop",
+                pr_branch="chore/update-libznn-develop",
+                release_tag="v0.0.10-alphanet",
+                github_token="ghs_test",
+                opener=opener,  # type: ignore[arg-type]
+            )
+
+        # Must fail fast before any API call (no PR listing, closing, or commenting).
+        self.assertEqual(opener.requests, [])
 
 
 if __name__ == "__main__":

@@ -9,7 +9,6 @@ import os
 import pathlib
 import re
 import sys
-import urllib.error
 import urllib.request
 from typing import Any, Mapping, Sequence
 
@@ -28,7 +27,6 @@ ALLOWED_STAGE_PATHS: tuple[str, ...] = tuple(
 TAG_SUFFIX_PATTERN = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]*$")
 VALID_HEAD_STATES = frozenset({"present", "absent"})
 LEASE_CHECK_REF = "refs/remotes/__libznn_lease_check__"
-ROLLBACK_BACKUP_REF = "refs/remotes/__libznn_rollback_backup__"
 
 _scrub_secrets = stale_pr._scrub_secrets
 _build_git_env = stale_pr._build_git_env
@@ -76,151 +74,6 @@ def _validate_pr_title(title: str) -> str:
     if not cleaned:
         raise updater.UpdaterError("A non-empty --pr-title is required")
     return cleaned
-
-
-def _is_definite_post_rejection(exc: updater.UpdaterError) -> bool:
-    """Return True only when GitHub explicitly rejected POST /pulls with a non-timeout 4xx."""
-    cause = exc.__cause__
-    return (
-        isinstance(cause, urllib.error.HTTPError)
-        and 400 <= cause.code < 500
-        and cause.code != 408
-    )
-
-
-def _fetch_rollback_backup_commit(
-    *,
-    repo_root: pathlib.Path,
-    remote: str,
-    pr_branch: str,
-    expected_head_oid: str,
-    env: Mapping[str, str],
-    secrets_to_mask: Sequence[str],
-) -> None:
-    """Fetch `expected_head_oid` (non-shallow) into ROLLBACK_BACKUP_REF before overwriting it."""
-    # Omit --depth=1 so the backup commit is not marked shallow in `.git/shallow`;
-    # otherwise Git rejects restoring it via push with `(shallow update not allowed)`.
-    fetch_proc = _run_git(
-        [
-            "fetch",
-            "--no-tags",
-            remote,
-            f"+refs/heads/{pr_branch}:{ROLLBACK_BACKUP_REF}",
-        ],
-        repo_root=repo_root,
-        env=env,
-        secrets_to_mask=secrets_to_mask,
-        check=False,
-    )
-    if fetch_proc.returncode != 0:
-        detail = _scrub_secrets(
-            (fetch_proc.stderr or fetch_proc.stdout or f"exit status {fetch_proc.returncode}").strip(),
-            secrets_to_mask,
-        )
-        raise updater.UpdaterError(
-            f"Atomic push aborted: could not fetch approved remote head {expected_head_oid} "
-            f"for {pr_branch!r} before overwrite (branch may have been deleted concurrently or "
-            f"remote is unreachable). Re-run the workflow to re-classify. Git error: {detail}"
-        )
-
-    rev_proc = _run_git(
-        ["rev-parse", ROLLBACK_BACKUP_REF],
-        repo_root=repo_root,
-        env=env,
-        secrets_to_mask=secrets_to_mask,
-    )
-    fetched_sha = updater.validate_git_commit_sha(
-        rev_proc.stdout.strip(), label=f"fetched backup {pr_branch!r} head SHA"
-    )
-    if fetched_sha != expected_head_oid:
-        _run_git(
-            ["update-ref", "-d", ROLLBACK_BACKUP_REF],
-            repo_root=repo_root,
-            env=env,
-            secrets_to_mask=secrets_to_mask,
-            check=False,
-        )
-        raise updater.UpdaterError(
-            f"Atomic push aborted: remote branch {pr_branch!r} moved from approved head "
-            f"{expected_head_oid} to {fetched_sha}. Re-run the workflow so pr_guard can "
-            "classify the new branch head."
-        )
-
-
-def _rollback_pushed_branch(
-    *,
-    pr_branch: str,
-    cleaned_state: str,
-    previous_oid: str,
-    pushed_commit_sha: str,
-    repo_root: pathlib.Path,
-    remote: str,
-    git_env: Mapping[str, str],
-    git_secrets: Sequence[str],
-    step_summary: pathlib.Path | None,
-) -> None:
-    """Atomically roll back a newly pushed branch using --force-with-lease against pushed_commit_sha."""
-    if cleaned_state == "absent":
-        refspec = f":refs/heads/{pr_branch}"
-        action_desc = f"delete newly pushed branch {pr_branch!r}"
-    elif cleaned_state == "present" and previous_oid:
-        refspec = f"{previous_oid}:refs/heads/{pr_branch}"
-        action_desc = f"restore branch {pr_branch!r} to {previous_oid}"
-    else:
-        return
-
-    rollback = _run_git(
-        [
-            "push",
-            f"--force-with-lease=refs/heads/{pr_branch}:{pushed_commit_sha}",
-            remote,
-            refspec,
-        ],
-        repo_root=repo_root,
-        env=git_env,
-        secrets_to_mask=git_secrets,
-        check=False,
-    )
-    if rollback.returncode == 0:
-        return
-
-    detail = _scrub_secrets(
-        (rollback.stderr or rollback.stdout or f"exit status {rollback.returncode}").strip(),
-        git_secrets,
-    )
-    try:
-        cur_state, cur_oid = _resolve_remote_head_via_ls_remote(
-            repo_root=repo_root,
-            remote=remote,
-            pr_branch=pr_branch,
-            env=git_env,
-            secrets_to_mask=git_secrets,
-        )
-    except updater.UpdaterError:
-        cur_state, cur_oid = "", ""
-
-    if cur_state == "present" and cur_oid != pushed_commit_sha:
-        note = (
-            f"Skipped rollback ({action_desc}) after PR creation failure because remote head "
-            f"moved from {pushed_commit_sha} to {cur_oid}; preserving newer head."
-        )
-        print(f"WARNING: {note}", file=sys.stderr)
-        _append_step_summary_note(step_summary, ["", "### Pull request", f"- {note}"])
-        return
-    if cur_state == "absent":
-        if cleaned_state == "absent":
-            return
-        note = (
-            f"Skipped rollback ({action_desc}) after PR creation failure because remote branch "
-            f"{pr_branch!r} was deleted concurrently."
-        )
-        print(f"WARNING: {note}", file=sys.stderr)
-        _append_step_summary_note(step_summary, ["", "### Pull request", f"- {note}"])
-        return
-
-    note = f"Failed to {action_desc} after PR creation failure: {detail}"
-    print(f"WARNING: {note}", file=sys.stderr)
-    _append_step_summary_note(step_summary, ["", "### Pull request", f"- {note}"])
 
 
 def _parse_commit_tree_and_parents(raw_commit: str) -> tuple[str | None, list[str]]:
@@ -666,240 +519,242 @@ def publish_libznn_pr(
             need_push = False
 
     pushed_commit_sha = ""
-    backup_fetched = False
-    try:
-        if need_push and existing_pr is None and cleaned_state == "present" and cleaned_oid:
-            try:
-                _fetch_rollback_backup_commit(
-                    repo_root=repo_root,
-                    remote=remote,
-                    pr_branch=validated_branch,
-                    expected_head_oid=cleaned_oid,
-                    env=git_env,
-                    secrets_to_mask=git_secrets,
-                )
-            except updater.UpdaterError as exc:
-                _append_step_summary_note(
-                    step_summary,
-                    ["", "### Pull request", f"- {exc}"],
-                )
-                raise
-            backup_fetched = True
-
-        if need_push:
-            lease_expect = cleaned_oid if cleaned_state == "present" else ""
-            lease_arg = f"--force-with-lease=refs/heads/{validated_branch}:{lease_expect}"
-            push_proc = _run_git(
-                [
-                    "push",
-                    lease_arg,
-                    remote,
-                    f"HEAD:refs/heads/{validated_branch}",
-                ],
-                repo_root=repo_root,
-                env=git_env,
-                secrets_to_mask=git_secrets,
-                check=False,
+    if need_push:
+        lease_expect = cleaned_oid if cleaned_state == "present" else ""
+        lease_arg = f"--force-with-lease=refs/heads/{validated_branch}:{lease_expect}"
+        push_proc = _run_git(
+            [
+                "push",
+                lease_arg,
+                remote,
+                f"HEAD:refs/heads/{validated_branch}",
+            ],
+            repo_root=repo_root,
+            env=git_env,
+            secrets_to_mask=git_secrets,
+            check=False,
+        )
+        if push_proc.returncode != 0:
+            detail = _scrub_secrets(
+                (
+                    push_proc.stderr
+                    or push_proc.stdout
+                    or f"exit status {push_proc.returncode}"
+                ).strip(),
+                git_secrets,
             )
-            if push_proc.returncode != 0:
-                detail = _scrub_secrets(
-                    (
-                        push_proc.stderr
-                        or push_proc.stdout
-                        or f"exit status {push_proc.returncode}"
-                    ).strip(),
-                    git_secrets,
+            if cleaned_state == "absent":
+                msg = (
+                    f"Atomic push aborted: remote branch {validated_branch!r} could not be created "
+                    "with an empty lease (branch may have been created concurrently after pr_guard "
+                    f"inspected it). Re-run the workflow to classify the new branch head. "
+                    f"Git error: {detail}"
                 )
-                if cleaned_state == "absent":
-                    msg = (
-                        f"Atomic push aborted: remote branch {validated_branch!r} could not be created "
-                        "with an empty lease (branch may have been created concurrently after pr_guard "
-                        f"inspected it). Re-run the workflow to classify the new branch head. "
-                        f"Git error: {detail}"
-                    )
-                else:
-                    msg = (
-                        f"Atomic push aborted: remote branch {validated_branch!r} no longer matches "
-                        f"approved head {cleaned_oid} (or push was rejected). Re-run the workflow so "
-                        f"pr_guard can classify the new branch head. Git error: {detail}"
-                    )
+            else:
+                msg = (
+                    f"Atomic push aborted: remote branch {validated_branch!r} no longer matches "
+                    f"approved head {cleaned_oid} (or push was rejected). Re-run the workflow so "
+                    f"pr_guard can classify the new branch head. Git error: {detail}"
+                )
+            _append_step_summary_note(
+                step_summary,
+                ["", "### Pull request", f"- {msg}"],
+            )
+            raise updater.UpdaterError(msg)
+        pushed_commit_sha = new_commit_sha
+
+    if existing_pr is not None:
+        pr_number = int(existing_pr["number"])
+        pr_url = str(
+            existing_pr.get("html_url")
+            or f"https://github.com/{validated_repo}/pull/{pr_number}"
+        )
+        existing_title = str(existing_pr.get("title") or "")
+        existing_body = str(existing_pr.get("body") or "")
+        if existing_title != validated_title or existing_body != pr_body:
+            update_url = f"https://api.github.com/repos/{validated_repo}/pulls/{pr_number}"
+            updated_payload = updater.github_api_request_json(
+                update_url,
+                method="PATCH",
+                body={"title": validated_title, "body": pr_body},
+                github_token=github_token,
+                opener=opener,
+                api_label="GitHub Pull Requests API",
+            )
+            if isinstance(updated_payload, dict) and isinstance(
+                updated_payload.get("html_url"), str
+            ):
+                pr_url = updated_payload["html_url"]
+            operation = "updated"
+        elif pushed_commit_sha:
+            operation = "updated"
+        else:
+            operation = "unchanged"
+    else:
+        create_url = f"https://api.github.com/repos/{validated_repo}/pulls"
+        reconciled_pr: dict[str, Any] | None = None
+        created_payload: Any = None
+        try:
+            created_payload = updater.github_api_request_json(
+                create_url,
+                method="POST",
+                body={
+                    "title": validated_title,
+                    "head": validated_branch,
+                    "base": validated_target,
+                    "body": pr_body,
+                },
+                github_token=github_token,
+                opener=opener,
+                api_label="GitHub Pull Requests API",
+            )
+        except updater.UpdaterError as create_exc:
+            # Never roll back or delete the pushed branch after a POST /pulls failure:
+            # GitHub has no atomic lock between GET /pulls and a rollback push, so any
+            # rollback could move or close a concurrently opened PR. The pushed commit is
+            # already a validated, allowlisted libznn commit on an authorized branch, and
+            # pr_guard / orphan classification handles an unattached branch safely on retry.
+            try:
+                post_open_prs = stale_pr._list_candidate_open_prs(
+                    repo=validated_repo,
+                    pr_branch=validated_branch,
+                    base_branch=None,
+                    strict=True,
+                    github_token=github_token,
+                    opener=opener,
+                )
+            except updater.UpdaterError as verify_exc:
+                msg = (
+                    f"PR creation for {validated_branch!r} -> {validated_target!r} failed "
+                    f"({create_exc}), and follow-up verification of open PRs also failed "
+                    f"({verify_exc}). Leaving remote branch {validated_branch!r} intact at "
+                    f"{pushed_commit_sha} (not rolling back). Inspect open pull requests "
+                    "for this branch and re-run the workflow to retry."
+                )
                 _append_step_summary_note(
                     step_summary,
                     ["", "### Pull request", f"- {msg}"],
                 )
-                raise updater.UpdaterError(msg)
-            pushed_commit_sha = new_commit_sha
+                raise updater.UpdaterError(msg) from create_exc
 
-        if existing_pr is not None:
-            pr_number = int(existing_pr["number"])
+            post_matching = [
+                pr
+                for pr in post_open_prs
+                if str((pr.get("base") or {}).get("ref") or "") == validated_target
+            ]
+            if not post_open_prs:
+                msg = (
+                    f"PR creation for {validated_branch!r} -> {validated_target!r} failed "
+                    f"({create_exc}), and follow-up verification confirmed no open PR exists "
+                    f"for {validated_branch!r}. Leaving remote branch {validated_branch!r} "
+                    f"intact at {pushed_commit_sha} (not rolling back). Inspect the failure "
+                    "and re-run the workflow to retry."
+                )
+                _append_step_summary_note(
+                    step_summary,
+                    ["", "### Pull request", f"- {msg}"],
+                )
+                raise updater.UpdaterError(msg) from create_exc
+
+            if len(post_open_prs) == 1 and len(post_matching) == 1:
+                candidate = post_matching[0]
+                candidate_num = int(candidate["number"])
+                candidate_url = str(
+                    candidate.get("html_url")
+                    or f"https://github.com/{validated_repo}/pull/{candidate_num}"
+                )
+                try:
+                    candidate_head_sha = updater.validate_git_commit_sha(
+                        candidate["head"].get("sha"),
+                        label=f"PR #{candidate_num} head SHA",
+                    )
+                except updater.UpdaterError:
+                    candidate_head_sha = ""
+                candidate_title = str(candidate.get("title") or "")
+                candidate_body = str(candidate.get("body") or "").replace("\r\n", "\n")
+                expected_body = pr_body.replace("\r\n", "\n")
+                if (
+                    candidate_head_sha == pushed_commit_sha
+                    and candidate_title == validated_title
+                    and candidate_body == expected_body
+                    and not candidate.get("draft")
+                ):
+                    reconciled_pr = candidate
+                    print(
+                        f"WARNING: POST /pulls failed ({create_exc}), but verified expected "
+                        f"open PR #{candidate_num} ({candidate_url}) already exists at pushed "
+                        f"commit {pushed_commit_sha}; reconciling as created.",
+                        file=sys.stderr,
+                    )
+                elif candidate_head_sha == pushed_commit_sha:
+                    msg = (
+                        f"PR creation for {validated_branch!r} -> {validated_target!r} failed "
+                        f"({create_exc}), and follow-up verification found existing open PR "
+                        f"#{candidate_num} ({candidate_url}) at pushed commit {pushed_commit_sha} "
+                        "with different title/body/draft metadata. Leaving remote branch "
+                        f"{validated_branch!r} intact at {pushed_commit_sha} (not rolling back); "
+                        f"inspect PR #{candidate_num} and re-run the workflow to retry if appropriate."
+                    )
+                    _append_step_summary_note(
+                        step_summary,
+                        ["", "### Pull request", f"- {msg}"],
+                    )
+                    raise updater.UpdaterError(msg) from create_exc
+                else:
+                    msg = (
+                        f"PR creation for {validated_branch!r} -> {validated_target!r} failed "
+                        f"({create_exc}), and follow-up verification found existing open PR "
+                        f"#{candidate_num} ({candidate_url}) at head "
+                        f"{candidate_head_sha or 'unknown'!r} instead of pushed commit "
+                        f"{pushed_commit_sha}. Leaving remote branch {validated_branch!r} "
+                        f"intact (not rolling back); inspect PR #{candidate_num} and re-run "
+                        "the workflow to retry."
+                    )
+                    _append_step_summary_note(
+                        step_summary,
+                        ["", "### Pull request", f"- {msg}"],
+                    )
+                    raise updater.UpdaterError(msg) from create_exc
+            else:
+                found_desc = ", ".join(
+                    f"#{int(pr['number'])} "
+                    f"(base={str((pr.get('base') or {}).get('ref') or 'unknown')})"
+                    for pr in post_open_prs
+                )
+                msg = (
+                    f"PR creation for {validated_branch!r} -> {validated_target!r} failed "
+                    f"({create_exc}), and follow-up verification found existing open PR(s) "
+                    f"on {validated_branch!r}: {found_desc}. Leaving remote branch "
+                    f"{validated_branch!r} intact at {pushed_commit_sha} (not rolling back); "
+                    "inspect the PR(s) and re-run the workflow to retry."
+                )
+                _append_step_summary_note(
+                    step_summary,
+                    ["", "### Pull request", f"- {msg}"],
+                )
+                raise updater.UpdaterError(msg) from create_exc
+
+        if reconciled_pr is not None:
+            pr_number = int(reconciled_pr["number"])
             pr_url = str(
-                existing_pr.get("html_url")
+                reconciled_pr.get("html_url")
                 or f"https://github.com/{validated_repo}/pull/{pr_number}"
             )
-            existing_title = str(existing_pr.get("title") or "")
-            existing_body = str(existing_pr.get("body") or "")
-            if existing_title != validated_title or existing_body != pr_body:
-                update_url = f"https://api.github.com/repos/{validated_repo}/pulls/{pr_number}"
-                updated_payload = updater.github_api_request_json(
-                    update_url,
-                    method="PATCH",
-                    body={"title": validated_title, "body": pr_body},
-                    github_token=github_token,
-                    opener=opener,
-                    api_label="GitHub Pull Requests API",
-                )
-                if isinstance(updated_payload, dict) and isinstance(
-                    updated_payload.get("html_url"), str
-                ):
-                    pr_url = updated_payload["html_url"]
-                operation = "updated"
-            elif pushed_commit_sha:
-                operation = "updated"
-            else:
-                operation = "unchanged"
+            operation = "created"
         else:
-            create_url = f"https://api.github.com/repos/{validated_repo}/pulls"
-            reconciled_pr: dict[str, Any] | None = None
-            created_payload: Any = None
-            try:
-                created_payload = updater.github_api_request_json(
-                    create_url,
-                    method="POST",
-                    body={
-                        "title": validated_title,
-                        "head": validated_branch,
-                        "base": validated_target,
-                        "body": pr_body,
-                    },
-                    github_token=github_token,
-                    opener=opener,
-                    api_label="GitHub Pull Requests API",
+            if (
+                not isinstance(created_payload, dict)
+                or type(created_payload.get("number")) is not int
+                or created_payload["number"] <= 0
+                or not isinstance(created_payload.get("html_url"), str)
+                or not created_payload["html_url"].strip()
+            ):
+                raise updater.UpdaterError(
+                    "Unexpected GitHub Pull Requests API response when creating PR"
                 )
-            except updater.UpdaterError as create_exc:
-                should_rollback = _is_definite_post_rejection(create_exc)
-                if not should_rollback:
-                    try:
-                        post_open_prs = stale_pr._list_candidate_open_prs(
-                            repo=validated_repo,
-                            pr_branch=validated_branch,
-                            base_branch=None,
-                            strict=True,
-                            github_token=github_token,
-                            opener=opener,
-                        )
-                    except updater.UpdaterError as verify_exc:
-                        msg = (
-                            f"PR creation for {validated_branch!r} -> {validated_target!r} failed "
-                            f"ambiguously ({create_exc}), and follow-up verification of open PRs "
-                            f"also failed ({verify_exc}). Leaving remote branch {validated_branch!r} "
-                            f"intact at {pushed_commit_sha} to avoid corrupting a potentially created PR. "
-                            "Inspect open pull requests for this branch and re-run the workflow to retry."
-                        )
-                        _append_step_summary_note(
-                            step_summary,
-                            ["", "### Pull request", f"- {msg}"],
-                        )
-                        raise updater.UpdaterError(msg) from create_exc
-
-                    post_matching = [
-                        pr
-                        for pr in post_open_prs
-                        if str((pr.get("base") or {}).get("ref") or "") == validated_target
-                    ]
-                    if not post_open_prs:
-                        should_rollback = True
-                    elif len(post_open_prs) == 1 and len(post_matching) == 1:
-                        candidate = post_matching[0]
-                        candidate_num = int(candidate["number"])
-                        try:
-                            candidate_head_sha = updater.validate_git_commit_sha(
-                                candidate["head"].get("sha"),
-                                label=f"PR #{candidate_num} head SHA",
-                            )
-                        except updater.UpdaterError:
-                            candidate_head_sha = ""
-                        if candidate_head_sha == pushed_commit_sha:
-                            reconciled_pr = candidate
-                            print(
-                                f"WARNING: POST /pulls failed ambiguously ({create_exc}), but "
-                                f"verified open PR #{candidate_num} already exists at pushed commit "
-                                f"{pushed_commit_sha}; reconciling as created.",
-                                file=sys.stderr,
-                            )
-                        else:
-                            msg = (
-                                f"PR creation for {validated_branch!r} -> {validated_target!r} "
-                                f"failed ambiguously ({create_exc}), and follow-up lookup found "
-                                f"open PR #{candidate_num} at head "
-                                f"{candidate_head_sha or 'unknown'!r} instead of pushed commit "
-                                f"{pushed_commit_sha}. Leaving remote branch {validated_branch!r} "
-                                "intact; inspect the PR and re-run the workflow to retry."
-                            )
-                            _append_step_summary_note(
-                                step_summary,
-                                ["", "### Pull request", f"- {msg}"],
-                            )
-                            raise updater.UpdaterError(msg) from create_exc
-                    else:
-                        found_desc = ", ".join(f"#{int(pr['number'])}" for pr in post_open_prs)
-                        msg = (
-                            f"PR creation for {validated_branch!r} -> {validated_target!r} failed "
-                            f"ambiguously ({create_exc}), and follow-up lookup found unexpected "
-                            f"open PR(s) on {validated_branch!r} ({found_desc}). Leaving remote "
-                            f"branch {validated_branch!r} intact; inspect the PR(s) and re-run the "
-                            "workflow to retry."
-                        )
-                        _append_step_summary_note(
-                            step_summary,
-                            ["", "### Pull request", f"- {msg}"],
-                        )
-                        raise updater.UpdaterError(msg) from create_exc
-
-                if reconciled_pr is None:
-                    if should_rollback and pushed_commit_sha:
-                        _rollback_pushed_branch(
-                            pr_branch=validated_branch,
-                            cleaned_state=cleaned_state,
-                            previous_oid=cleaned_oid,
-                            pushed_commit_sha=pushed_commit_sha,
-                            repo_root=repo_root,
-                            remote=remote,
-                            git_env=git_env,
-                            git_secrets=git_secrets,
-                            step_summary=step_summary,
-                        )
-                    raise
-
-            if reconciled_pr is not None:
-                pr_number = int(reconciled_pr["number"])
-                pr_url = str(
-                    reconciled_pr.get("html_url")
-                    or f"https://github.com/{validated_repo}/pull/{pr_number}"
-                )
-                operation = "created"
-            else:
-                if (
-                    not isinstance(created_payload, dict)
-                    or type(created_payload.get("number")) is not int
-                    or created_payload["number"] <= 0
-                    or not isinstance(created_payload.get("html_url"), str)
-                    or not created_payload["html_url"].strip()
-                ):
-                    raise updater.UpdaterError(
-                        "Unexpected GitHub Pull Requests API response when creating PR"
-                    )
-                pr_number = int(created_payload["number"])
-                pr_url = created_payload["html_url"]
-                operation = "created"
-    finally:
-        if backup_fetched:
-            _run_git(
-                ["update-ref", "-d", ROLLBACK_BACKUP_REF],
-                repo_root=repo_root,
-                env=git_env,
-                secrets_to_mask=git_secrets,
-                check=False,
-            )
+            pr_number = int(created_payload["number"])
+            pr_url = created_payload["html_url"]
+            operation = "created"
 
     result = PublishPrResult(
         operation=operation,

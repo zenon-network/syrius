@@ -1199,14 +1199,17 @@ def close_stale_libznn_prs(
         )
     )
 
-    git_env: dict[str, str] | None = None
-    git_secrets: tuple[str, ...] | None = None
-    if repo_root is not None:
-        git_env, git_secrets = _prepare_git_remote_env(
-            repo_root=repo_root,
-            remote=remote,
-            github_token=github_token,
+    if repo_root is None:
+        raise updater.UpdaterError(
+            "--repo-root is required when closing stale pull requests "
+            f"(needed to atomically delete stale branch {validated_branch!r})"
         )
+
+    git_env, git_secrets = _prepare_git_remote_env(
+        repo_root=repo_root,
+        remote=remote,
+        github_token=github_token,
+    )
 
     open_prs = _list_candidate_open_prs(
         repo=validated_repo,
@@ -1317,11 +1320,6 @@ def close_stale_libznn_prs(
                 branch_skip_note = (
                     f"Skipped deleting `{validated_branch}` because remote head `{head_oid[:12]}` "
                     "moved after stale-PR classification"
-                )
-            elif repo_root is None:
-                raise updater.UpdaterError(
-                    "A Git working tree (--repo-root) is required to atomically delete stale "
-                    f"branch {validated_branch!r}"
                 )
             else:
                 branch_status, branch_skip_note = _delete_stale_branch(
@@ -1503,10 +1501,6 @@ def main(argv: Sequence[str] | None = None) -> int:
         return 0
 
     try:
-        if token.strip() and args.repo_root is None:
-            raise updater.UpdaterError(
-                "--repo-root is required when closing stale pull requests"
-            )
         result = close_stale_libznn_prs(
             repo=args.repo,
             target_branch=args.target_branch,
