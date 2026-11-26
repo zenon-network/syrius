@@ -365,8 +365,8 @@ class EndToEndUpdateTests(unittest.TestCase):
         prerelease: bool = False,
         immutable: bool | None = False,
         published_at: str = "2026-11-20T12:00:00Z",
-        asset_updated_at: str = "2026-11-20T12:00:00Z",
-        checksums_updated_at: str | None = None,
+        asset_updated_at: str = "2026-11-20T12:00:30Z",
+        checksums_updated_at: str | None = "2026-11-20T12:00:11Z",
         target_commitish: str | None = None,
         tag_commit: str | None = None,
         annotated_tag_sha: str | None = None,
@@ -1315,7 +1315,8 @@ class EndToEndUpdateTests(unittest.TestCase):
             windows_bin=b"MZ-prov",
             immutable=False,
             published_at="2026-11-20T12:00:00Z",
-            asset_updated_at="2026-11-20T12:05:00Z",
+            asset_updated_at="2026-11-20T13:05:00Z",
+            checksums_updated_at="2026-11-20T13:05:00Z",
             target_commitish=other_commit,
             tag_commit=tag_commit,
         )
@@ -1364,15 +1365,15 @@ class EndToEndUpdateTests(unittest.TestCase):
         self.assertIn(tag_commit, pr_body)
         self.assertIn(other_commit, pr_body)
         self.assertIn("`false` (mutable release)", pr_body)
-        self.assertIn("2026-11-20T12:05:00Z", pr_body)
-        self.assertIn("updated_at` later than release", pr_body)
+        self.assertIn("2026-11-20T13:05:00Z", pr_body)
+        self.assertIn("more than 1 hour after release", pr_body)
         self.assertIn(f"Tag commit: {tag_commit}", gh_out_text)
         self.assertIn("Release immutable: false", gh_out_text)
-        self.assertIn("updated_at: 2026-11-20T12:05:00Z", gh_out_text)
+        self.assertIn("updated_at: 2026-11-20T13:05:00Z", gh_out_text)
 
         # Step summary & GitHub Actions annotations warn on late asset updates & commitish mismatch.
         self.assertIn("Assets updated after release `published_at`", summary_text)
-        self.assertIn("::warning::Release asset libznn-linux-amd64.tar.gz was updated at 2026-11-20T12:05:00Z", stdout_text)
+        self.assertIn("::warning::Release asset libznn-linux-amd64.tar.gz was updated at 2026-11-20T13:05:00Z", stdout_text)
         self.assertIn("::warning::Release target_commitish", stdout_text)
 
         # Manifest written and valid.
@@ -1660,7 +1661,7 @@ class EndToEndUpdateTests(unittest.TestCase):
             opener=opener_v10,  # type: ignore[arg-type]
         )
 
-        # Trigger same-tag rebuild + late-updated asset in local CLI (GITHUB_ACTIONS unset).
+        # Trigger same-tag rebuild + late-updated asset (>1h grace window) in local CLI.
         opener_local, _ = self._build_mock_release(
             tag="v0.0.10-alphanet",
             linux_bin=b"\x7fELF-local-rebuild",
@@ -1668,7 +1669,8 @@ class EndToEndUpdateTests(unittest.TestCase):
             windows_bin=self.old_windows,
             include_darwin_in_checksums=False,
             published_at="2026-11-20T12:00:00Z",
-            asset_updated_at="2026-11-20T12:05:00Z",
+            asset_updated_at="2026-11-20T13:05:00Z",
+            checksums_updated_at="2026-11-20T13:05:00Z",
             tag_commit="2" * 40,
         )
         orig_build_opener = updater._build_opener
@@ -1702,6 +1704,70 @@ class EndToEndUpdateTests(unittest.TestCase):
         self.assertIn("WARNING: Same-tag rebuild detected", stderr_text)
         self.assertIn("WARNING: Release asset libznn-linux-amd64.tar.gz was updated at", stderr_text)
         self.assertNotIn("::warning::", stdout_buf.getvalue())
+
+    def test_realistic_release_timestamps_suppress_noise_and_flag_same_tag_reupload(self) -> None:
+        # 1. Realistic go-zenon release timing (assets uploaded 11-30s after published_at)
+        # does NOT emit a false-positive late-asset warning.
+        opener_initial, _ = self._build_mock_release(
+            tag="v0.0.10-alphanet",
+            linux_bin=self.old_linux,
+            darwin_bin=self.old_darwin,
+            windows_bin=self.old_windows,
+            include_darwin_in_checksums=True,
+            published_at="2026-11-17T00:49:47Z",
+            asset_updated_at="2026-11-17T00:50:17Z",
+            checksums_updated_at="2026-11-17T00:49:58Z",
+            tag_commit="1" * 40,
+        )
+        pr_body_initial = self.work_dir / "initial-pr-body.md"
+        summary_initial = self.work_dir / "initial-summary.md"
+        gh_out_initial = self.work_dir / "initial-gh.out"
+        _, _, changed = updater.run_update(
+            repo_root=self.repo_root,
+            work_dir=self.work_dir,
+            tag="v0.0.10-alphanet",
+            pr_body_out=pr_body_initial,
+            step_summary=summary_initial,
+            github_output=gh_out_initial,
+            opener=opener_initial,  # type: ignore[arg-type]
+        )
+        self.assertTrue(changed)
+        self.assertNotIn("more than 1 hour after release", pr_body_initial.read_text(encoding="utf-8"))
+        self.assertNotIn("Assets updated after release", summary_initial.read_text(encoding="utf-8"))
+        self.assertIn("same_tag_rebuild=false\n", gh_out_initial.read_text(encoding="utf-8"))
+
+        # 2. A same-tag re-upload 2 minutes later (still within the 1h post-publish window,
+        # even with identical binary bytes) IS flagged by comparing against manifest asset_updated_at.
+        opener_reupload, _ = self._build_mock_release(
+            tag="v0.0.10-alphanet",
+            linux_bin=self.old_linux,
+            darwin_bin=self.old_darwin,
+            windows_bin=self.old_windows,
+            include_darwin_in_checksums=True,
+            published_at="2026-11-17T00:49:47Z",
+            asset_updated_at="2026-11-17T00:52:00Z",
+            checksums_updated_at="2026-11-17T00:49:58Z",
+            tag_commit="1" * 40,
+        )
+        pr_body_reupload = self.work_dir / "reupload-pr-body.md"
+        summary_reupload = self.work_dir / "reupload-summary.md"
+        gh_out_reupload = self.work_dir / "reupload-gh.out"
+        _, _, reupload_changed = updater.run_update(
+            repo_root=self.repo_root,
+            work_dir=self.work_dir,
+            tag="v0.0.10-alphanet",
+            pr_body_out=pr_body_reupload,
+            step_summary=summary_reupload,
+            github_output=gh_out_reupload,
+            opener=opener_reupload,  # type: ignore[arg-type]
+        )
+        self.assertTrue(reupload_changed)
+        self.assertIn("same_tag_rebuild=true\n", gh_out_reupload.read_text(encoding="utf-8"))
+        self.assertIn(
+            "libznn-linux-amd64.tar.gz updated_at changed (2026-11-17T00:50:17Z -> 2026-11-17T00:52:00Z)",
+            pr_body_reupload.read_text(encoding="utf-8"),
+        )
+        self.assertIn("Same-tag rebuild detected", summary_reupload.read_text(encoding="utf-8"))
 
     def test_failure_on_third_asset_leaves_all_blobs_untouched(self) -> None:
         opener, _ = self._build_mock_release(

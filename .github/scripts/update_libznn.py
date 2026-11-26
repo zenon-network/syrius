@@ -46,6 +46,8 @@ CHECKSUM_LINE_PATTERN = re.compile(r"^([0-9a-fA-F]{64})[ \t]+\*?(.+)$")
 GITHUB_DIGEST_PATTERN = re.compile(r"^sha256:([0-9a-fA-F]{64})$")
 OUTPUT_KEY_PATTERN = re.compile(r"^[A-Za-z_][A-Za-z0-9_-]*$")
 MAX_TAG_DEREF_DEPTH = 5
+# Allow normal upstream release CI upload lag (e.g. znn_builder + makefat) before warning.
+ASSET_UPDATE_GRACE_SECONDS = 3600
 
 # Cap archive downloads and extracted native binaries (current binaries are ~19-38 MiB).
 MAX_ARCHIVE_BYTES = 256 * 1024 * 1024
@@ -314,23 +316,36 @@ def compare_release_tags(tag_a: str, tag_b: str) -> int | None:
 def find_late_updated_assets(
     release: ReleaseInfo,
     verified_binaries: Sequence[VerifiedBinary],
+    *,
+    grace_seconds: int = ASSET_UPDATE_GRACE_SECONDS,
 ) -> list[tuple[str, str]]:
-    """Return [(asset_name, updated_at)] for consumed assets updated after release published_at."""
+    """Return [(asset_name, updated_at)] for consumed assets updated past the post-publish grace window."""
     published_dt = parse_iso8601_utc(release.published_at)
     if published_dt is None:
         return []
+    cutoff_dt = published_dt + datetime.timedelta(seconds=grace_seconds)
     late: list[tuple[str, str]] = []
     if release.checksums_url and release.checksums_updated_at:
         csum_dt = parse_iso8601_utc(release.checksums_updated_at)
-        if csum_dt is not None and csum_dt > published_dt:
+        if csum_dt is not None and csum_dt > cutoff_dt:
             late.append((CHECKSUMS_ASSET_NAME, release.checksums_updated_at))
     for item in verified_binaries:
         if not item.asset_updated_at:
             continue
         asset_dt = parse_iso8601_utc(item.asset_updated_at)
-        if asset_dt is not None and asset_dt > published_dt:
+        if asset_dt is not None and asset_dt > cutoff_dt:
             late.append((item.spec.asset_name, item.asset_updated_at))
     return late
+
+
+def _timestamp_changed(prev_ts: str | None, new_ts: str | None) -> bool:
+    if not prev_ts or not new_ts:
+        return False
+    prev_dt = parse_iso8601_utc(prev_ts)
+    new_dt = parse_iso8601_utc(new_ts)
+    if prev_dt is not None and new_dt is not None:
+        return new_dt != prev_dt
+    return prev_ts != new_ts
 
 
 def _format_late_delta(published_at: str, updated_at: str) -> str:
@@ -581,10 +596,16 @@ def evaluate_manifest_transition(
             )
         prev_csum = prev_release.get("checksums_asset")
         prev_csum_sha = prev_csum.get("sha256") if isinstance(prev_csum, dict) else None
+        prev_csum_updated = prev_csum.get("updated_at") if isinstance(prev_csum, dict) else None
         if prev_csum_sha != release.checksums_sha256:
             rebuild_reasons.append(
                 f"{CHECKSUMS_ASSET_NAME} SHA-256 changed "
                 f"({prev_csum_sha or '<none>'} -> {release.checksums_sha256 or '<none>'})"
+            )
+        if _timestamp_changed(prev_csum_updated, release.checksums_updated_at):
+            rebuild_reasons.append(
+                f"{CHECKSUMS_ASSET_NAME} updated_at changed "
+                f"({prev_csum_updated} -> {release.checksums_updated_at})"
             )
         for item in verified_binaries:
             prev_entry = prev_blobs[item.spec.blob_relpath]
@@ -602,6 +623,12 @@ def evaluate_manifest_transition(
                 rebuild_reasons.append(
                     f"{item.spec.blob_relpath} on-disk binary differed from manifest/release "
                     f"({item.previous_sha256 or '<missing>'} -> {item.extracted_sha256})"
+                )
+            prev_asset_updated = prev_entry.get("asset_updated_at")
+            if _timestamp_changed(prev_asset_updated, item.asset_updated_at):
+                rebuild_reasons.append(
+                    f"{item.spec.asset_name} updated_at changed "
+                    f"({prev_asset_updated} -> {item.asset_updated_at})"
                 )
 
     return ProvenanceAlerts(
@@ -1564,10 +1591,9 @@ def build_pr_body(
                 "",
                 "> [!WARNING]",
                 (
-                    f"> One or more upstream release assets have `updated_at` later than release "
-                    f"`published_at` (`{release.published_at}`): {late_details}. "
-                    "On mutable releases, uploads seconds after publication can occur during "
-                    "initial release CI; verify any unexpected or later asset modifications."
+                    f"> One or more upstream release assets have `updated_at` more than 1 hour "
+                    f"after release `published_at` (`{release.published_at}`): {late_details}. "
+                    "Verify these post-publication asset uploads were expected."
                 ),
             ]
         )
