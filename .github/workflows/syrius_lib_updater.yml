@@ -196,23 +196,39 @@ jobs:
           steps.update.outputs.changed == 'true' &&
           (steps.update.outputs.is_default_pr_branch == 'false' ||
             steps.pr_guard.outputs.safe_to_update == 'true')
-        uses: peter-evans/create-pull-request@3ffccacd46053766916f087ce41d627c0b8cf2d1 # v8.1.3
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          path: target-repo
-          add-paths: |
-            lib/embedded_node/blobs/libznn.so
-            lib/embedded_node/blobs/libznn.dylib
-            lib/embedded_node/blobs/libznn.dll
-            lib/embedded_node/blobs/libznn.manifest.json
-          base: ${{ steps.config.outputs.target_branch }}
-          branch: ${{ steps.update.outputs.pr_branch }}
-          delete-branch: true
-          committer: github-actions[bot] <41898282+github-actions[bot]@users.noreply.github.com>
-          author: github-actions[bot] <41898282+github-actions[bot]@users.noreply.github.com>
-          commit-message: ${{ steps.update.outputs.commit_message }}
-          title: ${{ steps.update.outputs.pr_title }}
-          body-path: ${{ steps.update.outputs.pr_body_path }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TARGET_BRANCH: ${{ steps.config.outputs.target_branch }}
+          PR_BRANCH: ${{ steps.update.outputs.pr_branch }}
+          IS_DEFAULT_PR_BRANCH: ${{ steps.update.outputs.is_default_pr_branch }}
+          EXPECTED_HEAD_STATE: ${{ steps.pr_guard.outputs.expected_head_state }}
+          EXPECTED_HEAD_OID: ${{ steps.pr_guard.outputs.expected_head_oid }}
+          EXPECTED_PR_NUMBERS: ${{ steps.pr_guard.outputs.inspected_pr_numbers }}
+          PR_TITLE: ${{ steps.update.outputs.pr_title }}
+          PR_BODY_PATH: ${{ steps.update.outputs.pr_body_path }}
+          COMMIT_MESSAGE: ${{ steps.update.outputs.commit_message }}
+        run: |
+          set -euo pipefail
+          args=(
+            --repo "$GITHUB_REPOSITORY"
+            --repo-root target-repo
+            --target-branch "$TARGET_BRANCH"
+            --pr-branch "$PR_BRANCH"
+            --pr-title "$PR_TITLE"
+            --pr-body-file "$PR_BODY_PATH"
+            --commit-message-env COMMIT_MESSAGE
+            --github-output "$GITHUB_OUTPUT"
+            --step-summary "$GITHUB_STEP_SUMMARY"
+          )
+          if [[ "${IS_DEFAULT_PR_BRANCH:-false}" == "true" ]]; then
+            args+=(
+              --require-expected-head
+              --expected-head-state "${EXPECTED_HEAD_STATE:-}"
+              --expected-head-oid "${EXPECTED_HEAD_OID:-}"
+              --expected-pr-numbers "${EXPECTED_PR_NUMBERS:-}"
+            )
+          fi
+          python3 workflow-scripts/.github/scripts/publish_libznn_pr.py "${args[@]}"
 
       - name: Record pull request outcome
         if: >-
