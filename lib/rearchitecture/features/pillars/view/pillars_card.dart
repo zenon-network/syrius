@@ -49,11 +49,7 @@ class _View extends StatelessWidget {
       data: _buildCardData(context: context),
       isRefreshLoading: context.read<PillarsBloc>().isLoadingListenable,
       onRefreshPressed: () {
-        context.read<PillarsBloc>().add(
-          InfiniteListRefreshRequested(
-            address: Address.parse(kSelectedAddress!),
-          ),
-        );
+        context.read<PillarsBloc>().add(const InfiniteListRefreshRequested());
       },
       body: BlocBuilder<PillarsBloc, InfiniteListState<PillarInfo>>(
         builder: (_, InfiniteListState<PillarInfo> state) {

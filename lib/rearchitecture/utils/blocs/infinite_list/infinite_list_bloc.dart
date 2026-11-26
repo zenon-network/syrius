@@ -49,11 +49,12 @@ abstract class InfiniteListBloc<T>
        ) {
     listenToWsRestart(
       () {
-        add(
-          InfiniteListRefreshRequested(
-            address: Address.parse(kSelectedAddress!),
-          ),
-        );
+        final Address? refreshAddress = _activeFirstPageRequestId > 0
+            ? _activeAddress
+            : (kSelectedAddress != null
+                  ? Address.parse(kSelectedAddress!)
+                  : null);
+        add(InfiniteListRefreshRequested(address: refreshAddress));
       },
     );
     on<InfiniteListRequested>(
@@ -84,6 +85,7 @@ abstract class InfiniteListBloc<T>
   final ValueNotifier<bool> _isLoading = ValueNotifier<bool>(false);
   bool _isLoadingDisposed = false;
   int _activeFirstPageRequestId = 0;
+  Address? _activeAddress;
 
   /// Notifies listeners while the latest initial or refresh page-0 fetch is in
   /// flight.
@@ -106,6 +108,7 @@ abstract class InfiniteListBloc<T>
     required Emitter<InfiniteListState<T>> emit,
   }) async {
     final int requestId = ++_activeFirstPageRequestId;
+    _activeAddress = address;
     if (!isClosed && !_isLoading.value) {
       _isLoading.value = true;
     }
@@ -152,7 +155,14 @@ abstract class InfiniteListBloc<T>
   ) async {
     if (state.hasReachedMax) return;
     final int requestId = _activeFirstPageRequestId;
-    final List<T> currentData = state.data ?? <T>[];
+    if (requestId > 0 &&
+        event.address != null &&
+        _activeAddress != null &&
+        event.address != _activeAddress) {
+      return;
+    }
+    final List<T>? snapshotData = state.data;
+    final List<T> currentData = snapshotData ?? <T>[];
     final int previousNumOfItems = currentData.length;
     final int pageIndex = previousNumOfItems ~/ pageSize;
     try {
@@ -161,7 +171,9 @@ abstract class InfiniteListBloc<T>
         pageIndex: pageIndex,
         pageSize: pageSize,
       );
-      if (emit.isDone || requestId != _activeFirstPageRequestId) {
+      if (emit.isDone ||
+          requestId != _activeFirstPageRequestId ||
+          !identical(state.data, snapshotData)) {
         return;
       }
 
@@ -178,7 +190,9 @@ abstract class InfiniteListBloc<T>
         ),
       );
     } on Object catch (error, stackTrace) {
-      if (emit.isDone || requestId != _activeFirstPageRequestId) {
+      if (emit.isDone ||
+          requestId != _activeFirstPageRequestId ||
+          !identical(state.data, snapshotData)) {
         return;
       }
       addError(error, stackTrace);

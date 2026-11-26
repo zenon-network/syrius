@@ -323,5 +323,196 @@ void main() {
         expect(bloc.isLoadingListenable.value, isFalse);
       },
     );
+
+    test(
+      'ignores InfiniteListMoreRequested for a stale address after switching '
+      'addresses',
+      () async {
+        final Address addressA = Address.fromPublicKey(
+          List<int>.filled(32, 1),
+        );
+        final Address addressB = Address.fromPublicKey(
+          List<int>.filled(32, 2),
+        );
+        int moreCallsForA = 0;
+
+        final TestInfiniteListBloc bloc = TestInfiniteListBloc(
+          zenon: mockZenon,
+          paginationFetchCallback: (Address? address, int pageIndex, _) async {
+            if (address == addressA && pageIndex > 0) {
+              moreCallsForA++;
+              return <int>[101, 102];
+            }
+            if (address == addressB && pageIndex == 0) {
+              return <int>[201, 202];
+            }
+            return <int>[1, 2];
+          },
+        );
+        addTearDown(bloc.close);
+
+        final Future<InfiniteListState<int>> bLoaded = bloc.stream
+            .firstWhere(
+              (InfiniteListState<int> s) =>
+                  s.status == InfiniteListStatus.success &&
+                  s.data?.first == 201,
+            )
+            .timeout(const Duration(seconds: 5));
+        bloc.add(InfiniteListRefreshRequested(address: addressB));
+        await bLoaded;
+
+        // A queued pagination request for the old address must be ignored.
+        bloc.add(InfiniteListMoreRequested(address: addressA));
+        await Future<void>.delayed(Duration.zero);
+
+        expect(moreCallsForA, 0);
+        expect(bloc.state.data, equals(<int>[201, 202]));
+      },
+    );
+
+    test(
+      'discards in-flight InfiniteListMoreRequested when superseded by refresh',
+      () async {
+        final Address addressA = Address.fromPublicKey(
+          List<int>.filled(32, 1),
+        );
+        final Address addressB = Address.fromPublicKey(
+          List<int>.filled(32, 2),
+        );
+        final Completer<List<int>> moreForA = Completer<List<int>>();
+        final Completer<void> moreForAStarted = Completer<void>();
+
+        final TestInfiniteListBloc bloc = TestInfiniteListBloc(
+          zenon: mockZenon,
+          paginationFetchCallback: (Address? address, int pageIndex, _) {
+            if (address == addressA && pageIndex == 0) {
+              return Future<List<int>>.value(<int>[1, 2]);
+            }
+            if (address == addressA && pageIndex == 1) {
+              if (!moreForAStarted.isCompleted) {
+                moreForAStarted.complete();
+              }
+              return moreForA.future;
+            }
+            return Future<List<int>>.value(<int>[20, 21]);
+          },
+        );
+        addTearDown(bloc.close);
+
+        final Future<InfiniteListState<int>> aLoaded = bloc.stream
+            .firstWhere(
+              (InfiniteListState<int> s) =>
+                  s.status == InfiniteListStatus.success,
+            )
+            .timeout(const Duration(seconds: 5));
+        bloc.add(InfiniteListRequested(address: addressA));
+        await aLoaded;
+
+        // Start loading page 1 for address A, then switch to address B.
+        bloc.add(InfiniteListMoreRequested(address: addressA));
+        await moreForAStarted.future.timeout(const Duration(seconds: 5));
+
+        final Future<InfiniteListState<int>> bLoaded = bloc.stream
+            .firstWhere(
+              (InfiniteListState<int> s) =>
+                  s.status == InfiniteListStatus.success && s.data?.first == 20,
+            )
+            .timeout(const Duration(seconds: 5));
+        bloc.add(InfiniteListRefreshRequested(address: addressB));
+        await bLoaded;
+
+        // Completing the stale page-1 fetch for A must not modify B's list.
+        moreForA.complete(<int>[3, 4]);
+        await Future<void>.delayed(Duration.zero);
+        expect(bloc.state.data, equals(<int>[20, 21]));
+      },
+    );
+
+    test(
+      'allows null-address pagination after a refresh with an address',
+      () async {
+        final Address selected = Address.fromPublicKey(
+          List<int>.filled(32, 3),
+        );
+        final TestInfiniteListBloc bloc = TestInfiniteListBloc(
+          zenon: mockZenon,
+          paginationFetchCallback: (_, int pageIndex, _) async {
+            return pageIndex == 0 ? <int>[1, 2] : <int>[3];
+          },
+        );
+        addTearDown(bloc.close);
+
+        final Future<InfiniteListState<int>> firstPage = bloc.stream
+            .firstWhere(
+              (InfiniteListState<int> s) =>
+                  s.status == InfiniteListStatus.success,
+            )
+            .timeout(const Duration(seconds: 5));
+        bloc.add(InfiniteListRefreshRequested(address: selected));
+        await firstPage;
+
+        final Future<InfiniteListState<int>> secondPage = bloc.stream
+            .firstWhere(
+              (InfiniteListState<int> s) =>
+                  s.status == InfiniteListStatus.success &&
+                  (s.data?.length ?? 0) == 3,
+            )
+            .timeout(const Duration(seconds: 5));
+        bloc.add(const InfiniteListMoreRequested());
+        final InfiniteListState<int> updated = await secondPage;
+
+        expect(updated.data, equals(<int>[1, 2, 3]));
+      },
+    );
+
+    test(
+      'discards load-more that started while a first-page fetch was in flight '
+      'and completed after it',
+      () async {
+        final Completer<List<int>> page0Completer = Completer<List<int>>();
+        final Completer<void> page0Started = Completer<void>();
+        final Completer<List<int>> moreCompleter = Completer<List<int>>();
+        final Completer<void> moreStarted = Completer<void>();
+
+        final TestInfiniteListBloc bloc = TestInfiniteListBloc(
+          zenon: mockZenon,
+          paginationFetchCallback: (_, int pageIndex, _) {
+            if (!page0Started.isCompleted) {
+              page0Started.complete();
+              return page0Completer.future;
+            }
+            if (!moreStarted.isCompleted) {
+              moreStarted.complete();
+            }
+            return moreCompleter.future;
+          },
+        );
+        addTearDown(bloc.close);
+
+        // Start a first-page fetch (captures requestId == 1).
+        bloc.add(InfiniteListRequested(address: emptyAddress));
+        await page0Started.future.timeout(const Duration(seconds: 5));
+
+        // Start a load-more while the first-page fetch is still in flight
+        // (same requestId == 1, snapshotData == null).
+        bloc.add(InfiniteListMoreRequested(address: emptyAddress));
+        await moreStarted.future.timeout(const Duration(seconds: 5));
+
+        // First-page fetch finishes and populates fresh data.
+        final Future<InfiniteListState<int>> page0Done = bloc.stream
+            .firstWhere(
+              (InfiniteListState<int> s) =>
+                  s.status == InfiniteListStatus.success,
+            )
+            .timeout(const Duration(seconds: 5));
+        page0Completer.complete(<int>[10, 20]);
+        await page0Done;
+
+        // Completing the earlier load-more must not overwrite fresh page 0.
+        moreCompleter.complete(<int>[99]);
+        await Future<void>.delayed(Duration.zero);
+        expect(bloc.state.data, equals(<int>[10, 20]));
+      },
+    );
   });
 }
