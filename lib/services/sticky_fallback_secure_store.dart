@@ -6,18 +6,22 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:logging/logging.dart';
 import 'package:reown_core/crypto/crypto.dart';
 import 'package:reown_core/pairing/pairing.dart';
+import 'package:reown_core/pairing/utils/json_rpc_utils.dart';
+import 'package:reown_core/relay_client/relay_client.dart';
 import 'package:reown_core/reown_core.dart';
 import 'package:reown_core/store/generic_store.dart';
 import 'package:reown_core/store/i_store.dart';
 
-/// Creates a [ReownCore] instance configured with [StickyFallbackSecureStore]
-/// and [SafeDisconnectPairing] before [ReownCore.start] initializes storage,
-/// crypto, and pairing.
+/// Creates a [ReownCore] instance configured with [StickyFallbackSecureStore],
+/// [SafeDisconnectPairing], and [ConfirmingRelayClient] before
+/// [ReownCore.start] initializes storage, crypto, relay, and pairing.
 ///
-/// Rebinding [ReownCore.secureStorage], [ReownCore.crypto], and
-/// [ReownCore.pairing] avoids vendoring `reown_core` while preserving desktop
-/// keychain fallback persistence across launches and preventing unawaited
-/// `wc_pairingDelete` errors from escaping `Pairing.disconnect()`.
+/// Rebinding [ReownCore.secureStorage], [ReownCore.crypto],
+/// [ReownCore.relayClient], and [ReownCore.pairing] avoids vendoring
+/// `reown_core` while preserving desktop keychain fallback persistence across
+/// launches, preventing unawaited `wc_pairingDelete` errors from escaping
+/// `Pairing.disconnect()`, and confirming relay unsubscriptions without losing
+/// subscription IDs across retries.
 ReownCore createDesktopReownCore({
   required String projectId,
   bool memoryStore = false,
@@ -43,6 +47,13 @@ ReownCore createDesktopReownCore({
       fromJson: (dynamic value) => value as String,
     ),
   );
+  final RelayClient defaultRelayClient = core.relayClient as RelayClient;
+  core.relayClient = ConfirmingRelayClient(
+    core: core,
+    messageTracker: defaultRelayClient.messageTracker,
+    topicMap: defaultRelayClient.topicMap,
+    socketHandler: defaultRelayClient.socketHandler,
+  );
   final Pairing defaultPairing = core.pairing as Pairing;
   core.pairing = SafeDisconnectPairing(
     core: core,
@@ -51,6 +62,213 @@ ReownCore createDesktopReownCore({
     topicToReceiverPublicKey: defaultPairing.topicToReceiverPublicKey,
   );
   return core;
+}
+
+/// [RelayClient] subclass that reports per-call relay confirmation for
+/// unsubscriptions and preserves subscription IDs across failed or offline
+/// attempts.
+///
+/// In `reown_core` 1.5.1, [RelayClient.unsubscribe] catches JSON-RPC failures,
+/// broadcasts [onRelayClientError], deletes the topic from [topicMap], and
+/// returns normally (and silently returns `null` from `_sendJsonRpcRequest`
+/// when disconnected). Deleting [topicMap] before confirmation also causes
+/// subsequent retries to send an empty subscription ID (`''`).
+///
+/// Keeping [unsubscribe] non-throwing preserves upstream cleanup semantics for
+/// `Pairing._deletePairing` and `SignEngine._deleteSession`, while
+/// [unsubscribeWithConfirmation] and [hasUnconfirmedUnsubscribe] let callers
+/// retain retries until the relay confirms `irn_unsubscribe` using the
+/// preserved subscription ID.
+class ConfirmingRelayClient extends RelayClient {
+  /// Creates a [ConfirmingRelayClient] delegating storage and transport wiring
+  /// to [RelayClient].
+  ConfirmingRelayClient({
+    required super.core,
+    required super.messageTracker,
+    required super.topicMap,
+    super.socketHandler,
+  });
+
+  static const int _maxTrackedTopics = 512;
+
+  bool _isInitialized = false;
+  int _operationSeq = 0;
+  final Map<String, int> _latestConfirmedSubscribeSeq = <String, int>{};
+  final Map<String, int> _latestUnsubscribeSeq = <String, int>{};
+  final Map<String, int> _confirmedUnsubscribeSeq = <String, int>{};
+  final Map<String, String> _preservedUnsubscribeIds = <String, String>{};
+  final Set<String> _unconfirmedUnsubscribeTopics = <String>{};
+
+  /// Whether the most recent unsubscribe attempt for [topic] has not yet been
+  /// confirmed by the relay (and has not been superseded by a newer
+  /// subscription).
+  bool hasUnconfirmedUnsubscribe(String topic) =>
+      _unconfirmedUnsubscribeTopics.contains(topic);
+
+  /// Snapshot of all topics whose most recent unsubscribe has not yet been
+  /// confirmed by the relay.
+  Set<String> get unconfirmedUnsubscribeTopics =>
+      Set<String>.unmodifiable(_unconfirmedUnsubscribeTopics);
+
+  /// Preserved subscription ID retained for [topic] after an unconfirmed
+  /// unsubscribe, exposed for deterministic testing.
+  @visibleForTesting
+  String? preservedUnsubscribeId(String topic) =>
+      _preservedUnsubscribeIds[topic];
+
+  @override
+  Future<void> init() async {
+    await super.init();
+    _isInitialized = true;
+  }
+
+  @override
+  Future<String> subscribe({required SubscribeOptions options}) async {
+    final int callSeq = ++_operationSeq;
+    final String subscriptionId = await super.subscribe(options: options);
+    if (subscriptionId.isNotEmpty) {
+      _recordConfirmedSubscribe(options.topic, callSeq: callSeq);
+    }
+    return subscriptionId;
+  }
+
+  @override
+  Future<void> unsubscribe({required String topic}) async {
+    await unsubscribeWithConfirmation(topic: topic);
+  }
+
+  /// Sends `irn_unsubscribe` for [topic] when connected, returning `true` only
+  /// when the relay confirms the JSON-RPC request.
+  ///
+  /// On RPC failure or when disconnected, the subscription ID is preserved so
+  /// a later retry sends the original ID even after upstream local cleanup
+  /// deletes the [topicMap] entry.
+  Future<bool> unsubscribeWithConfirmation({required String topic}) async {
+    if (!_isInitialized) {
+      // ReownCoreError does not implement Error/Exception upstream.
+      // ignore: only_throw_errors
+      throw Errors.getInternalError(Errors.NOT_INITIALIZED);
+    }
+
+    core.logger.i('[ConfirmingRelayClient] unsubscribe, $topic');
+
+    final int callSeq = ++_operationSeq;
+    _setCappedSeq(_latestUnsubscribeSeq, topic, callSeq);
+    final int confirmedSeqAtStart = _confirmedUnsubscribeSeq[topic] ?? 0;
+
+    final String? mappedId = topicMap.get(topic);
+    final String? preservedId = _preservedUnsubscribeIds[topic];
+    final String id = (mappedId != null && mappedId.isNotEmpty)
+        ? mappedId
+        : (preservedId ?? '');
+
+    if (id.isNotEmpty) {
+      _preserveUnsubscribeId(topic, id);
+    }
+
+    bool confirmed = false;
+
+    if (isConnected) {
+      try {
+        await sendUnsubscribeRpc(
+          method:
+              '${ReownConstants.RELAYER_DEFAULT_PROTOCOL}_'
+              '${RelayClient.IRN_UNSUBSCRIBE}',
+          parameters: <String, dynamic>{'topic': topic, 'id': id},
+          id: JsonRpcUtils.payloadId(entropy: 6),
+        );
+        confirmed = true;
+      } on Object catch (e, s) {
+        core.logger.e(
+          '[ConfirmingRelayClient], unsubscribe: $e',
+          stackTrace: s,
+        );
+        onRelayClientError.broadcast(ErrorEvent(e));
+      }
+    }
+
+    final int? latestSubscribeSeq = _latestConfirmedSubscribeSeq[topic];
+    final bool replacedByNewSubscribe =
+        latestSubscribeSeq != null && latestSubscribeSeq > callSeq;
+    final String? currentMappedId = topicMap.get(topic);
+    final bool mappedIdReplaced =
+        latestSubscribeSeq == null &&
+        currentMappedId != null &&
+        currentMappedId.isNotEmpty &&
+        currentMappedId != mappedId;
+
+    if (confirmed) {
+      _setCappedSeq(_confirmedUnsubscribeSeq, topic, callSeq);
+      if (_preservedUnsubscribeIds[topic] == id) {
+        _preservedUnsubscribeIds.remove(topic);
+      }
+      if (!replacedByNewSubscribe) {
+        _unconfirmedUnsubscribeTopics.remove(topic);
+      }
+    } else if (!replacedByNewSubscribe && !mappedIdReplaced) {
+      final bool confirmedByConcurrentCall =
+          (_confirmedUnsubscribeSeq[topic] ?? 0) > confirmedSeqAtStart ||
+          (id.isNotEmpty && _preservedUnsubscribeIds[topic] != id);
+      if (!confirmedByConcurrentCall) {
+        _unconfirmedUnsubscribeTopics.add(topic);
+        _trimUnconfirmedTopics();
+      }
+    }
+
+    if (!replacedByNewSubscribe && !mappedIdReplaced) {
+      pendingSubscriptions.remove(topic)?.ignore();
+      await topicMap.delete(topic);
+      await messageTracker.delete(topic);
+    }
+
+    return confirmed;
+  }
+
+  /// Sends the raw JSON-RPC unsubscribe request over [jsonRPC].
+  ///
+  /// Exposed as a seam for deterministic unit tests without importing internal
+  /// `reown_core` `src/` types.
+  @visibleForTesting
+  Future<dynamic> sendUnsubscribeRpc({
+    required String method,
+    required Map<String, dynamic> parameters,
+    required int id,
+  }) {
+    return jsonRPC!.sendRequest(method, parameters, id);
+  }
+
+  void _recordConfirmedSubscribe(String topic, {required int callSeq}) {
+    final int previousSeq = _latestConfirmedSubscribeSeq[topic] ?? 0;
+    if (callSeq > previousSeq) {
+      _setCappedSeq(_latestConfirmedSubscribeSeq, topic, callSeq);
+    }
+    if (callSeq > (_latestUnsubscribeSeq[topic] ?? 0)) {
+      _preservedUnsubscribeIds.remove(topic);
+      _unconfirmedUnsubscribeTopics.remove(topic);
+    }
+  }
+
+  void _setCappedSeq(Map<String, int> map, String topic, int seq) {
+    map.remove(topic);
+    map[topic] = seq;
+    if (map.length > _maxTrackedTopics) {
+      map.remove(map.keys.first);
+    }
+  }
+
+  void _preserveUnsubscribeId(String topic, String id) {
+    _preservedUnsubscribeIds.remove(topic);
+    _preservedUnsubscribeIds[topic] = id;
+    if (_preservedUnsubscribeIds.length > _maxTrackedTopics) {
+      _preservedUnsubscribeIds.remove(_preservedUnsubscribeIds.keys.first);
+    }
+  }
+
+  void _trimUnconfirmedTopics() {
+    while (_unconfirmedUnsubscribeTopics.length > _maxTrackedTopics) {
+      _unconfirmedUnsubscribeTopics.remove(_unconfirmedUnsubscribeTopics.first);
+    }
+  }
 }
 
 /// [Pairing] subclass that attaches an error handler to the fire-and-forget

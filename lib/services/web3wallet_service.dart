@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:logging/logging.dart';
+import 'package:reown_core/relay_client/i_relay_client.dart';
 import 'package:reown_walletkit/reown_walletkit.dart';
 import 'package:window_manager/window_manager.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
@@ -117,13 +118,15 @@ class Web3WalletService extends IWeb3WalletService {
   final Map<String, int> _pairingCreateEpoch = <String, int>{};
   final Map<String, int> _topicSubscriptionEpoch = <String, int>{};
   final Map<String, int> _pendingRelayUnsubscriptions = <String, int>{};
+  final Map<String, int> _inFlightUnsubscribeTopics = <String, int>{};
+  final Set<String> _provisionalPairingTopics = <String>{};
   final Map<String, Set<Future<void>>> _inFlightReconcileUnsubscribes =
       <String, Set<Future<void>>>{};
   final Set<Future<void>> _inFlightApproveCalls = <Future<void>>{};
   final Set<Future<void>> _timedOutInFlightApproveCalls = <Future<void>>{};
   final Set<Future<void>> _inFlightDisconnectSessionCalls = <Future<void>>{};
-  final Map<String, Set<Future<void>>> _pendingTimedOutTopicOps =
-      <String, Set<Future<void>>>{};
+  final Map<String, Set<Future<Object?>>> _pendingTimedOutTopicOps =
+      <String, Set<Future<Object?>>>{};
 
   final Map<String, String> _pendingSessionCleanups = <String, String>{};
   final Set<String> _pendingPairingCleanups = <String>{};
@@ -252,6 +255,15 @@ class Web3WalletService extends IWeb3WalletService {
       if (!_hasUnresolvedReset) {
         _reloadStores();
         await _disconnectUnsupportedSessions();
+        if (!_isDisposed &&
+            _wcClient != null &&
+            !_hasActiveOrPendingReset &&
+            !_needsRelayReconnectAfterRecovery &&
+            _pendingRecoveryRelayReconnect == null &&
+            _hasPendingOrUnconfirmedRelayUnsubscriptions &&
+            _isRelayConnected()) {
+          unawaited(_reconcilePendingRelayUnsubscriptions());
+        }
         unawaited(_drainPendingSessionRequests());
       }
       return;
@@ -309,6 +321,8 @@ class Web3WalletService extends IWeb3WalletService {
     _pairingCreateEpoch.clear();
     _topicSubscriptionEpoch.clear();
     _pendingRelayUnsubscriptions.clear();
+    _inFlightUnsubscribeTopics.clear();
+    _provisionalPairingTopics.clear();
     _inFlightReconcileUnsubscribes.clear();
     _inFlightApproveCalls.clear();
     _timedOutInFlightApproveCalls.clear();
@@ -383,6 +397,10 @@ class Web3WalletService extends IWeb3WalletService {
     }
 
     late final PairingInfo pairing;
+    int? epochBeforePair;
+    bool hadConfirmedStoredPairingBeforePair = false;
+    bool pairCallSucceeded = false;
+    bool shouldPurgeProvisionalPairing = false;
     try {
       await _awaitPendingRecoveryRelayReconnect(
         expectedResetGeneration: capturedResetGeneration,
@@ -419,12 +437,30 @@ class Web3WalletService extends IWeb3WalletService {
         );
       }
 
+      epochBeforePair = requestedTopic == null
+          ? null
+          : _currentTopicSubscriptionEpoch(requestedTopic);
+      hadConfirmedStoredPairingBeforePair =
+          requestedTopic != null &&
+          !_provisionalPairingTopics.contains(requestedTopic) &&
+          _findStoredPairing(requestedTopic) != null;
+
       final Completer<void> pairDone = Completer<void>();
       _inFlightPairCalls.add(pairDone.future);
       try {
         pairing = await _wcClient!.pair(uri: uri);
+        pairCallSucceeded = true;
         _recordPairingCreationEpoch(pairing.topic);
       } finally {
+        if (!pairCallSucceeded &&
+            requestedTopic != null &&
+            (!hadConfirmedStoredPairingBeforePair ||
+                _provisionalPairingTopics.contains(requestedTopic)) &&
+            _currentTopicSubscriptionEpoch(requestedTopic) == epochBeforePair &&
+            _findStoredPairing(requestedTopic) != null) {
+          _markProvisionalPairingTopic(requestedTopic);
+          shouldPurgeProvisionalPairing = true;
+        }
         _inFlightPairCalls.remove(pairDone.future);
         _timedOutInFlightPairCalls.remove(pairDone.future);
         pairDone.complete();
@@ -432,6 +468,20 @@ class Web3WalletService extends IWeb3WalletService {
     } finally {
       _inFlightPairSweptTopics.remove(sweptTopicsDuringPair);
       if (requestedTopic != null) {
+        final bool isLastInFlightPair =
+            (_inFlightPairTopics[requestedTopic] ?? 1) <= 1;
+        if (shouldPurgeProvisionalPairing &&
+            isLastInFlightPair &&
+            !_isDisposed &&
+            _wcClient != null &&
+            !_hasActiveOrPendingReset &&
+            _resetGeneration == capturedResetGeneration &&
+            _currentTopicSubscriptionEpoch(requestedTopic) == epochBeforePair) {
+          await _purgeProvisionalPairingAfterFailedPair(
+            topic: requestedTopic,
+            epochBeforePair: epochBeforePair,
+          );
+        }
         final int remaining = (_inFlightPairTopics[requestedTopic] ?? 1) - 1;
         if (remaining <= 0) {
           _inFlightPairTopics.remove(requestedTopic);
@@ -478,7 +528,7 @@ class Web3WalletService extends IWeb3WalletService {
     }
     final int next = ++_topicSubscriptionEpochCounter;
     _topicSubscriptionEpoch[topic] = next;
-    _trimTopicSubscriptionEpochs();
+    _trimTopicSubscriptionEpochs(protectedTopic: topic);
     return next;
   }
 
@@ -486,13 +536,114 @@ class Web3WalletService extends IWeb3WalletService {
     if (topic.isEmpty || _isDisposed) {
       return;
     }
+    _provisionalPairingTopics.remove(topic);
     _topicSubscriptionEpoch.remove(topic);
     _topicSubscriptionEpoch[topic] = ++_topicSubscriptionEpochCounter;
     _pendingRelayUnsubscriptions.remove(topic);
-    _trimTopicSubscriptionEpochs();
+    _trimTopicSubscriptionEpochs(protectedTopic: topic);
   }
 
-  void _trimTopicSubscriptionEpochs() {
+  void _incrementInFlightUnsubscribeTopic(String topic) {
+    if (topic.isEmpty || _isDisposed) {
+      return;
+    }
+    _inFlightUnsubscribeTopics[topic] =
+        (_inFlightUnsubscribeTopics[topic] ?? 0) + 1;
+  }
+
+  void _decrementInFlightUnsubscribeTopic(String topic) {
+    if (topic.isEmpty) {
+      return;
+    }
+    final int remaining = (_inFlightUnsubscribeTopics[topic] ?? 1) - 1;
+    if (remaining <= 0) {
+      _inFlightUnsubscribeTopics.remove(topic);
+      if (!_isDisposed) {
+        _trimTopicSubscriptionEpochs();
+      }
+    } else {
+      _inFlightUnsubscribeTopics[topic] = remaining;
+    }
+  }
+
+  void _markProvisionalPairingTopic(String topic) {
+    if (topic.isEmpty || _isDisposed) {
+      return;
+    }
+    _provisionalPairingTopics
+      ..remove(topic)
+      ..add(topic);
+    if (_provisionalPairingTopics.length > _maxTrackedPairingEpochs) {
+      final List<String> evictable = <String>[];
+      int excess = _provisionalPairingTopics.length - _maxTrackedPairingEpochs;
+      for (final String key in _provisionalPairingTopics) {
+        if (excess <= 0) {
+          break;
+        }
+        if (key != topic &&
+            !_pendingRelayUnsubscriptions.containsKey(key) &&
+            !_inFlightUnsubscribeTopics.containsKey(key) &&
+            !_inFlightReconcileUnsubscribes.containsKey(key) &&
+            !_pendingTimedOutTopicOps.containsKey(key) &&
+            !_inFlightPairTopics.containsKey(key)) {
+          evictable.add(key);
+          excess--;
+        }
+      }
+      evictable.forEach(_provisionalPairingTopics.remove);
+    }
+  }
+
+  Future<void> _purgeProvisionalPairingAfterFailedPair({
+    required String topic,
+    required int? epochBeforePair,
+  }) async {
+    _activePairingSweepTopics[topic] =
+        (_activePairingSweepTopics[topic] ?? 0) + 1;
+    try {
+      final bool purged = await _purgePairingLocally(
+        topic: topic,
+        deferRelayUnsubscribe: true,
+      );
+      if (purged && !_isDisposed) {
+        _reloadStores();
+      }
+      if (!_isDisposed &&
+          _wcClient != null &&
+          _currentTopicSubscriptionEpoch(topic) == epochBeforePair) {
+        final IRelayClient relayClient = _wcClient!.core.relayClient;
+        final bool hasRelaySubscription =
+            relayClient is ConfirmingRelayClient &&
+            (relayClient.topicMap.has(topic) ||
+                relayClient.hasUnconfirmedUnsubscribe(topic));
+        if (_pendingRelayUnsubscriptions.containsKey(topic)) {
+          _recordPendingRelayUnsubscription(topic, epoch: epochBeforePair);
+        } else if (hasRelaySubscription) {
+          _recordPendingRelayUnsubscription(
+            topic,
+            epoch: (epochBeforePair != null && epochBeforePair > 0)
+                ? epochBeforePair
+                : null,
+          );
+        }
+      }
+    } on Object catch (e, s) {
+      _logger.warning(
+        'Failed purging provisional pairing $topic after pair() failure',
+        e,
+        s,
+      );
+    } finally {
+      final int remaining = (_activePairingSweepTopics[topic] ?? 1) - 1;
+      if (remaining <= 0) {
+        _activePairingSweepTopics.remove(topic);
+      } else {
+        _activePairingSweepTopics[topic] = remaining;
+      }
+    }
+  }
+
+  void _trimTopicSubscriptionEpochs({String? protectedTopic}) {
     if (_topicSubscriptionEpoch.length <= _maxTrackedPairingEpochs) {
       return;
     }
@@ -502,7 +653,9 @@ class Web3WalletService extends IWeb3WalletService {
       if (excess <= 0) {
         break;
       }
-      if (!_pendingRelayUnsubscriptions.containsKey(key) &&
+      if (key != protectedTopic &&
+          !_pendingRelayUnsubscriptions.containsKey(key) &&
+          !_inFlightUnsubscribeTopics.containsKey(key) &&
           !_inFlightReconcileUnsubscribes.containsKey(key) &&
           !_pendingTimedOutTopicOps.containsKey(key) &&
           !_inFlightPairTopics.containsKey(key)) {
@@ -525,11 +678,17 @@ class Web3WalletService extends IWeb3WalletService {
   }
 
   bool _isTopicLiveInStores(String topic) {
-    if (_findStoredPairing(topic) != null ||
-        _findStoredSession(topic) != null) {
+    final bool hasStoredPairing = _findStoredPairing(topic) != null;
+    if (!hasStoredPairing) {
+      _provisionalPairingTopics.remove(topic);
+    } else if (!_provisionalPairingTopics.contains(topic)) {
       return true;
     }
-    if (pairings.value.any((PairingInfo p) => p.topic == topic)) {
+    if (_findStoredSession(topic) != null) {
+      return true;
+    }
+    if (!_provisionalPairingTopics.contains(topic) &&
+        pairings.value.any((PairingInfo p) => p.topic == topic)) {
       return true;
     }
     if (sessions.value.any((SessionData s) => s.topic == topic)) {
@@ -545,10 +704,34 @@ class Web3WalletService extends IWeb3WalletService {
     if (_currentTopicSubscriptionEpoch(topic) != queuedEpoch) {
       return true;
     }
+    if (_inFlightPairTopics.containsKey(topic)) {
+      return false;
+    }
     if (_isTopicLiveInStores(topic)) {
       return true;
     }
     return false;
+  }
+
+  bool get _hasPendingOrUnconfirmedRelayUnsubscriptions {
+    if (_pendingRelayUnsubscriptions.isNotEmpty) {
+      return true;
+    }
+    final IRelayClient? relayClient = _wcClient?.core.relayClient;
+    return relayClient is ConfirmingRelayClient &&
+        relayClient.unconfirmedUnsubscribeTopics.isNotEmpty;
+  }
+
+  bool _isRelayConnected() {
+    final ReownWalletKit? client = _wcClient;
+    if (client == null || _isDisposed) {
+      return false;
+    }
+    try {
+      return client.core.relayClient.isConnected;
+    } on Object {
+      return false;
+    }
   }
 
   void _notifyResetStarted() {
@@ -827,9 +1010,6 @@ class Web3WalletService extends IWeb3WalletService {
     if (_wcClient == null) {
       return;
     }
-    if (!_hasActiveOrPendingReset) {
-      _markTopicSubscriptionInstanceActive(topic);
-    }
     await _wcClient!.core.pairing.activate(topic: topic);
     _reloadStores();
   }
@@ -930,6 +1110,7 @@ class Web3WalletService extends IWeb3WalletService {
           );
           await disconnectFuture.timeout(waitBudget);
           _topicsNeedingSessionStorePersist.remove(session.topic);
+          _recordUnconfirmedRelayUnsubscribeIfNeeded(client, session.topic);
           return true;
         } on Object catch (e, s) {
           if (e is TimeoutException) {
@@ -1129,6 +1310,7 @@ class Web3WalletService extends IWeb3WalletService {
 
     try {
       await _wcClient!.pairings.delete(topic);
+      _provisionalPairingTopics.remove(topic);
       if (_topicsNeedingPairingStorePersist.contains(topic)) {
         await _wcClient!.pairings.persist();
         _topicsNeedingPairingStorePersist.remove(topic);
@@ -1198,30 +1380,89 @@ class Web3WalletService extends IWeb3WalletService {
     return null;
   }
 
-  void _trackTimedOutTopicCleanup(
+  void _trackTimedOutTopicCleanup<T>(
     String topic,
-    Future<void> operation, {
-    void Function()? onSuccess,
+    Future<T> operation, {
+    void Function(T result)? onSuccess,
   }) {
     if (topic.isEmpty) {
       return;
     }
     _pendingTimedOutTopicOps
-        .putIfAbsent(topic, () => <Future<void>>{})
+        .putIfAbsent(topic, () => <Future<Object?>>{})
         .add(operation);
     unawaited(
       operation
-          .then<void>((_) {
-            onSuccess?.call();
+          .then<void>((T result) {
+            onSuccess?.call(result);
           }, onError: (Object _, StackTrace _) {})
           .whenComplete(() {
-            final Set<Future<void>>? ops = _pendingTimedOutTopicOps[topic];
+            final Set<Future<Object?>>? ops = _pendingTimedOutTopicOps[topic];
             ops?.remove(operation);
             if (ops != null && ops.isEmpty) {
               _pendingTimedOutTopicOps.remove(topic);
+              if (!_isDisposed) {
+                _trimTopicSubscriptionEpochs();
+              }
             }
           }),
     );
+  }
+
+  Future<bool> _unsubscribeFromRelay(
+    ReownWalletKit client,
+    String topic,
+  ) async {
+    final IRelayClient relayClient = client.core.relayClient;
+    if (relayClient is ConfirmingRelayClient) {
+      return await relayClient.unsubscribeWithConfirmation(topic: topic);
+    }
+
+    bool observedRelayError = false;
+    void onRelayError(ErrorEvent? _) {
+      observedRelayError = true;
+    }
+
+    relayClient.onRelayClientError.subscribe(onRelayError);
+    try {
+      await relayClient.unsubscribe(topic: topic);
+    } finally {
+      relayClient.onRelayClientError.unsubscribe(onRelayError);
+    }
+    return !observedRelayError;
+  }
+
+  void _recordUnconfirmedRelayUnsubscribeIfNeeded(
+    ReownWalletKit client,
+    String topic,
+  ) {
+    final IRelayClient relayClient = client.core.relayClient;
+    if (relayClient is ConfirmingRelayClient &&
+        relayClient.hasUnconfirmedUnsubscribe(topic)) {
+      _recordPendingRelayUnsubscription(topic);
+    }
+  }
+
+  void _enqueueAllUnconfirmedRelayUnsubscribes() {
+    final ReownWalletKit? client = _wcClient;
+    if (client == null || _isDisposed) {
+      return;
+    }
+    final IRelayClient relayClient = client.core.relayClient;
+    if (relayClient is! ConfirmingRelayClient) {
+      return;
+    }
+    for (final String topic in relayClient.unconfirmedUnsubscribeTopics) {
+      if (_pendingRelayUnsubscriptions.containsKey(topic) ||
+          _inFlightPairTopics.containsKey(topic) ||
+          _inFlightUnsubscribeTopics.containsKey(topic) ||
+          _inFlightReconcileUnsubscribes.containsKey(topic) ||
+          _pendingTimedOutTopicOps.containsKey(topic) ||
+          _isTopicLiveInStores(topic)) {
+        continue;
+      }
+      _recordPendingRelayUnsubscription(topic);
+    }
   }
 
   Future<void> _unsubscribeTopicBounded(
@@ -1276,31 +1517,41 @@ class Web3WalletService extends IWeb3WalletService {
 
     await Future.wait<void>(
       eligibleTopics.map((String topic) async {
-        final int capturedEpoch = _ensureTopicSubscriptionEpoch(topic);
-        Future<void>? unsubscribeFuture;
+        _incrementInFlightUnsubscribeTopic(topic);
         try {
-          unsubscribeFuture = client.core.relayClient.unsubscribe(topic: topic);
-          await unsubscribeFuture.timeout(waitBudget);
-          if (_pendingRelayUnsubscriptions[topic] == capturedEpoch) {
-            _pendingRelayUnsubscriptions.remove(topic);
+          final int capturedEpoch = _ensureTopicSubscriptionEpoch(topic);
+          Future<bool>? unsubscribeFuture;
+          try {
+            unsubscribeFuture = _unsubscribeFromRelay(client, topic);
+            final bool confirmed = await unsubscribeFuture.timeout(waitBudget);
+            if (confirmed) {
+              if (_pendingRelayUnsubscriptions[topic] == capturedEpoch) {
+                _pendingRelayUnsubscriptions.remove(topic);
+              }
+            } else {
+              _recordPendingRelayUnsubscription(topic, epoch: capturedEpoch);
+            }
+          } on TimeoutException {
+            budget.markTimedOut();
+            if (unsubscribeFuture != null) {
+              _trackTimedOutTopicCleanup<bool>(
+                topic,
+                unsubscribeFuture,
+                onSuccess: (bool confirmed) {
+                  if (confirmed &&
+                      _pendingRelayUnsubscriptions[topic] == capturedEpoch) {
+                    _pendingRelayUnsubscriptions.remove(topic);
+                  }
+                },
+              );
+            }
+            _recordPendingRelayUnsubscription(topic, epoch: capturedEpoch);
+          } on Object {
+            // Relay may be offline or unresponsive during local reset.
+            _recordPendingRelayUnsubscription(topic, epoch: capturedEpoch);
           }
-        } on TimeoutException {
-          budget.markTimedOut();
-          if (unsubscribeFuture != null) {
-            _trackTimedOutTopicCleanup(
-              topic,
-              unsubscribeFuture,
-              onSuccess: () {
-                if (_pendingRelayUnsubscriptions[topic] == capturedEpoch) {
-                  _pendingRelayUnsubscriptions.remove(topic);
-                }
-              },
-            );
-          }
-          _recordPendingRelayUnsubscription(topic, epoch: capturedEpoch);
-        } on Object {
-          // Relay may be offline or unresponsive during local reset.
-          _recordPendingRelayUnsubscription(topic, epoch: capturedEpoch);
+        } finally {
+          _decrementInFlightUnsubscribeTopic(topic);
         }
       }),
     );
@@ -1332,8 +1583,11 @@ class Web3WalletService extends IWeb3WalletService {
     if (client == null ||
         _isDisposed ||
         !_isInitialized ||
-        _hasActiveOrPendingReset ||
-        _pendingRelayUnsubscriptions.isEmpty) {
+        _hasActiveOrPendingReset) {
+      return;
+    }
+    _enqueueAllUnconfirmedRelayUnsubscribes();
+    if (_pendingRelayUnsubscriptions.isEmpty) {
       return;
     }
 
@@ -1348,17 +1602,18 @@ class Web3WalletService extends IWeb3WalletService {
     for (final MapEntry<String, int> entry in snapshot) {
       final String topic = entry.key;
       final int queuedEpoch = entry.value;
-      if (_isPendingUnsubscriptionObsolete(topic, queuedEpoch)) {
-        if (_pendingRelayUnsubscriptions[topic] == queuedEpoch) {
-          _pendingRelayUnsubscriptions.remove(topic);
-        }
-        continue;
-      }
       if (_inFlightPairTopics.containsKey(topic) ||
+          _inFlightUnsubscribeTopics.containsKey(topic) ||
           _pendingTimedOutTopicOps.containsKey(topic) ||
           _inFlightReconcileUnsubscribes.containsKey(topic) ||
           _activePairingSweepTopics.containsKey(topic) ||
           _inFlightStaleCleanupDisconnects.containsKey(topic)) {
+        continue;
+      }
+      if (_isPendingUnsubscriptionObsolete(topic, queuedEpoch)) {
+        if (_pendingRelayUnsubscriptions[topic] == queuedEpoch) {
+          _pendingRelayUnsubscriptions.remove(topic);
+        }
         continue;
       }
       eligible.add(entry);
@@ -1383,17 +1638,18 @@ class Web3WalletService extends IWeb3WalletService {
             _hasActiveOrPendingReset) {
           return;
         }
-        if (_isPendingUnsubscriptionObsolete(topic, queuedEpoch)) {
-          if (_pendingRelayUnsubscriptions[topic] == queuedEpoch) {
-            _pendingRelayUnsubscriptions.remove(topic);
-          }
-          return;
-        }
         if (_inFlightPairTopics.containsKey(topic) ||
+            _inFlightUnsubscribeTopics.containsKey(topic) ||
             _pendingTimedOutTopicOps.containsKey(topic) ||
             _inFlightReconcileUnsubscribes.containsKey(topic) ||
             _activePairingSweepTopics.containsKey(topic) ||
             _inFlightStaleCleanupDisconnects.containsKey(topic)) {
+          return;
+        }
+        if (_isPendingUnsubscriptionObsolete(topic, queuedEpoch)) {
+          if (_pendingRelayUnsubscriptions[topic] == queuedEpoch) {
+            _pendingRelayUnsubscriptions.remove(topic);
+          }
           return;
         }
 
@@ -1401,21 +1657,27 @@ class Web3WalletService extends IWeb3WalletService {
         _inFlightReconcileUnsubscribes
             .putIfAbsent(topic, () => <Future<void>>{})
             .add(unsubDone.future);
-        Future<void>? unsubscribeFuture;
+        Future<bool>? unsubscribeFuture;
         try {
-          unsubscribeFuture = client.core.relayClient.unsubscribe(topic: topic);
-          await unsubscribeFuture.timeout(waitBudget);
-          if (_pendingRelayUnsubscriptions[topic] == queuedEpoch) {
+          unsubscribeFuture = _unsubscribeFromRelay(client, topic);
+          final bool confirmed = await unsubscribeFuture.timeout(waitBudget);
+          if (confirmed) {
+            if (_pendingRelayUnsubscriptions[topic] == queuedEpoch) {
+              _pendingRelayUnsubscriptions.remove(topic);
+            }
+          } else if (_isPendingUnsubscriptionObsolete(topic, queuedEpoch) &&
+              _pendingRelayUnsubscriptions[topic] == queuedEpoch) {
             _pendingRelayUnsubscriptions.remove(topic);
           }
         } on TimeoutException {
           budget.markTimedOut();
           if (unsubscribeFuture != null) {
-            _trackTimedOutTopicCleanup(
+            _trackTimedOutTopicCleanup<bool>(
               topic,
               unsubscribeFuture,
-              onSuccess: () {
-                if (_pendingRelayUnsubscriptions[topic] == queuedEpoch) {
+              onSuccess: (bool confirmed) {
+                if (confirmed &&
+                    _pendingRelayUnsubscriptions[topic] == queuedEpoch) {
                   _pendingRelayUnsubscriptions.remove(topic);
                 }
               },
@@ -1695,12 +1957,16 @@ class Web3WalletService extends IWeb3WalletService {
       resetCompleter.complete();
     }
 
-    if (!_isDisposed &&
-        _wcClient != null &&
-        _needsRelayReconnectAfterRecovery &&
-        !_hasActiveOrPendingReset) {
-      _needsRelayReconnectAfterRecovery = false;
-      unawaited(_startRecoveryRelayReconnect());
+    if (!_isDisposed && _wcClient != null && !_hasActiveOrPendingReset) {
+      if (_needsRelayReconnectAfterRecovery) {
+        _needsRelayReconnectAfterRecovery = false;
+        unawaited(_startRecoveryRelayReconnect());
+      } else if (_isInitialized &&
+          _pendingRecoveryRelayReconnect == null &&
+          _hasPendingOrUnconfirmedRelayUnsubscriptions &&
+          _isRelayConnected()) {
+        unawaited(_reconcilePendingRelayUnsubscriptions());
+      }
     }
   }
 
@@ -2172,6 +2438,14 @@ class Web3WalletService extends IWeb3WalletService {
     }
     try {
       await _wcClient!.core.relayClient.connect();
+      if (!_isDisposed &&
+          _wcClient != null &&
+          _isInitialized &&
+          !_hasActiveOrPendingReset &&
+          _hasPendingOrUnconfirmedRelayUnsubscriptions &&
+          _isRelayConnected()) {
+        unawaited(_reconcilePendingRelayUnsubscriptions());
+      }
     } on Object catch (e, s) {
       _logger.fine(
         'Failed reconnecting relay after hung WalletConnect pair recovery',
@@ -2364,63 +2638,69 @@ class Web3WalletService extends IWeb3WalletService {
       return;
     }
 
-    final int capturedEpoch = _ensureTopicSubscriptionEpoch(topic);
+    _incrementInFlightUnsubscribeTopic(topic);
     final Completer<void> resetWaiter = _registerResetWaiter();
-    Future<void>? unsubscribeFuture;
-    bool unsubscribeSettled = false;
     try {
-      unsubscribeFuture = client.core.relayClient.unsubscribe(topic: topic);
-      final Future<bool> outcome = unsubscribeFuture.then<bool>(
-        (_) {
-          unsubscribeSettled = true;
-          return true;
-        },
-        onError: (Object error, StackTrace stackTrace) {
-          unsubscribeSettled = true;
-          Error.throwWithStackTrace(error, stackTrace);
-        },
-      );
-      final bool completed = await Future.any<bool>(<Future<bool>>[
-        outcome,
-        resetWaiter.future.then<bool>((_) => false),
-      ]).timeout(_inFlightPairWaitTimeout);
+      final int capturedEpoch = _ensureTopicSubscriptionEpoch(topic);
+      Future<bool>? unsubscribeFuture;
+      bool unsubscribeSettled = false;
+      try {
+        unsubscribeFuture = _unsubscribeFromRelay(client, topic);
+        final Future<bool?> outcome = unsubscribeFuture.then<bool?>(
+          (bool confirmed) {
+            unsubscribeSettled = true;
+            return confirmed;
+          },
+          onError: (Object error, StackTrace stackTrace) {
+            unsubscribeSettled = true;
+            Error.throwWithStackTrace(error, stackTrace);
+          },
+        );
+        final bool? result = await Future.any<bool?>(<Future<bool?>>[
+          outcome,
+          resetWaiter.future.then<bool?>((_) => null),
+        ]).timeout(_inFlightPairWaitTimeout);
 
-      if (completed) {
-        if (_pendingRelayUnsubscriptions[topic] == capturedEpoch) {
-          _pendingRelayUnsubscriptions.remove(topic);
+        if (result == true) {
+          if (_pendingRelayUnsubscriptions[topic] == capturedEpoch) {
+            _pendingRelayUnsubscriptions.remove(topic);
+          }
+          return;
         }
-        return;
-      }
 
-      if (!unsubscribeSettled) {
-        _trackTimedOutTopicCleanup(
-          topic,
-          unsubscribeFuture,
-          onSuccess: () {
-            if (_pendingRelayUnsubscriptions[topic] == capturedEpoch) {
-              _pendingRelayUnsubscriptions.remove(topic);
-            }
-          },
-        );
+        if (!unsubscribeSettled) {
+          _trackTimedOutTopicCleanup<bool>(
+            topic,
+            unsubscribeFuture,
+            onSuccess: (bool confirmed) {
+              if (confirmed &&
+                  _pendingRelayUnsubscriptions[topic] == capturedEpoch) {
+                _pendingRelayUnsubscriptions.remove(topic);
+              }
+            },
+          );
+        }
+        _recordPendingRelayUnsubscription(topic, epoch: capturedEpoch);
+      } on TimeoutException {
+        if (unsubscribeFuture != null) {
+          _trackTimedOutTopicCleanup<bool>(
+            topic,
+            unsubscribeFuture,
+            onSuccess: (bool confirmed) {
+              if (confirmed &&
+                  _pendingRelayUnsubscriptions[topic] == capturedEpoch) {
+                _pendingRelayUnsubscriptions.remove(topic);
+              }
+            },
+          );
+        }
+        _recordPendingRelayUnsubscription(topic, epoch: capturedEpoch);
+      } on Object {
+        _recordPendingRelayUnsubscription(topic, epoch: capturedEpoch);
       }
-      _recordPendingRelayUnsubscription(topic, epoch: capturedEpoch);
-    } on TimeoutException {
-      if (unsubscribeFuture != null) {
-        _trackTimedOutTopicCleanup(
-          topic,
-          unsubscribeFuture,
-          onSuccess: () {
-            if (_pendingRelayUnsubscriptions[topic] == capturedEpoch) {
-              _pendingRelayUnsubscriptions.remove(topic);
-            }
-          },
-        );
-      }
-      _recordPendingRelayUnsubscription(topic, epoch: capturedEpoch);
-    } on Object {
-      _recordPendingRelayUnsubscription(topic, epoch: capturedEpoch);
     } finally {
       _unregisterResetWaiter(resetWaiter);
+      _decrementInFlightUnsubscribeTopic(topic);
     }
   }
 
@@ -2543,6 +2823,7 @@ class Web3WalletService extends IWeb3WalletService {
         }
 
         _topicsNeedingSessionStorePersist.remove(topic);
+        _recordUnconfirmedRelayUnsubscribeIfNeeded(_wcClient!, topic);
         if (_needsKeyChainPersist) {
           await _wcClient!.core.crypto.keyChain.persist();
           _needsKeyChainPersist = false;
@@ -3939,6 +4220,13 @@ class Web3WalletService extends IWeb3WalletService {
   }
 
   void _onSessionDelete(SessionDelete? args) {
+    final String? topic = args?.topic;
+    if (topic != null &&
+        topic.isNotEmpty &&
+        _wcClient != null &&
+        !_isDisposed) {
+      _recordUnconfirmedRelayUnsubscribeIfNeeded(_wcClient!, topic);
+    }
     _reloadStores();
   }
 
@@ -3961,9 +4249,6 @@ class Web3WalletService extends IWeb3WalletService {
   }
 
   void _onPairingActivate(PairingActivateEvent? args) {
-    if (args != null && args.topic.isNotEmpty && !_hasActiveOrPendingReset) {
-      _markTopicSubscriptionInstanceActive(args.topic);
-    }
     _reloadStores();
   }
 
@@ -3976,6 +4261,13 @@ class Web3WalletService extends IWeb3WalletService {
   }
 
   void _onPairingDelete(PairingEvent? args) {
+    final String? topic = args?.topic;
+    if (topic != null && topic.isNotEmpty) {
+      _provisionalPairingTopics.remove(topic);
+      if (_wcClient != null && !_isDisposed) {
+        _recordUnconfirmedRelayUnsubscribeIfNeeded(_wcClient!, topic);
+      }
+    }
     _reloadStores();
   }
 
