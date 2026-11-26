@@ -2,12 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/settings_display/model/display_settings_enums.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/notifiers/app_theme_notifier.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/notifiers/text_scaling_notifier.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 class WidgetUtils {
@@ -46,32 +43,6 @@ class WidgetUtils {
   static String isWidgetHiddenKey(String widgetTitle) =>
       '${widgetTitle}is_hidden';
 
-  static InfiniteScrollTableCell getMarqueeAddressTableCell(
-    Address? address,
-    BuildContext context,
-  ) {
-    final TextStyle? textStyle = address != null && address.isEmbedded()
-        ? Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: AppColors.znnColor,
-              fontWeight: FontWeight.bold,
-            )
-        : null;
-
-    if (address != null && kAddressLabelMap.containsKey(address.toString())) {
-      return InfiniteScrollTableCell.tooltipWithMarquee(
-        address,
-        textStyle: textStyle,
-        flex: 2,
-      );
-    } else {
-      return InfiniteScrollTableCell.withMarquee(
-        address != null ? address.toString() : '',
-        textStyle: textStyle,
-        flex: 2,
-      );
-    }
-  }
-
   static String getPlasmaToolTipMessage(PlasmaInfo plasmaInfo) {
     if (plasmaInfo.currentPlasma >= kPillarPlasmaAmountNeeded) {
       return 'High Plasma';
@@ -83,44 +54,6 @@ class WidgetUtils {
       return 'Low Plasma';
     } else {
       return 'Insufficient Plasma';
-    }
-  }
-
-  static InfiniteScrollTableCell getTextAddressTableCell(
-    Address? address,
-    BuildContext context, {
-    bool checkIfStakeAddress = false,
-    bool isShortVersion = true,
-    bool showCopyToClipboardIcon = false,
-  }) {
-    final TextStyle? textStyle = address != null && address.isEmbedded() ||
-            (checkIfStakeAddress && address.toString() == kSelectedAddress)
-        ? Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: AppColors.znnColor,
-              fontWeight: FontWeight.bold,
-            )
-        : null;
-
-    if (address != null && kAddressLabelMap.containsKey(address.toString())) {
-      return InfiniteScrollTableCell.tooltipWithText(
-        context,
-        address,
-        textStyle: textStyle,
-        flex: 2,
-        showCopyToClipboardIcon: showCopyToClipboardIcon,
-      );
-    } else {
-      return InfiniteScrollTableCell.withText(
-        context,
-        address != null
-            ? isShortVersion
-                ? address.toShortString()
-                : address.toString()
-            : '',
-        flex: 2,
-        textStyle: textStyle,
-        showCopyToClipboardIcon: showCopyToClipboardIcon,
-      );
     }
   }
 }

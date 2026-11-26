@@ -1,6 +1,5 @@
 import 'package:equatable/equatable.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
-import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/all_tokens/all_tokens.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
@@ -17,7 +16,11 @@ class AllTokensBloc extends HydratedBloc<AllTokensEvent, AllTokensState>
   /// Creates a new instance.
   AllTokensBloc({required this.zenon}) : super(const AllTokensInitial()) {
     on<AllTokensRequested>(_onTokensRequested);
-    listenToWsRestart(() => add(const AllTokensRequested()));
+    listenToWsRestart(() {
+      if (!isClosed) {
+        add(const AllTokensRequested());
+      }
+    });
   }
 
   /// The client used to interact with the Zenon network
@@ -53,7 +56,7 @@ class AllTokensBloc extends HydratedBloc<AllTokensEvent, AllTokensState>
 
   @override
   Future<void> close() async {
-    cancelStreamSubscription();
+    await cancelStreamSubscription();
     await super.close();
   }
 }

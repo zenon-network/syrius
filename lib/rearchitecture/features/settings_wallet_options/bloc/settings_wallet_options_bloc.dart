@@ -7,10 +7,10 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:launch_at_startup/launch_at_startup.dart';
 import 'package:logging/logging.dart';
 import 'package:package_info_plus/package_info_plus.dart';
-import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/model/model.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/auto_receive_tx/auto_receive_tx.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/notifications/notifications.dart';
 import 'package:zenon_syrius_wallet_flutter/services/shared_prefs_service.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 

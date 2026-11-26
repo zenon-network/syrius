@@ -4,9 +4,9 @@ import 'dart:typed_data';
 
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
-import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/model/model.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/notifications/notifications.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/services/shared_prefs_service.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/functions.dart';

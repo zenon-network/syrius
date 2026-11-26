@@ -4,7 +4,6 @@ import 'dart:isolate';
 import 'package:hive_ce/hive_ce.dart';
 import 'package:logging/logging.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
-import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/embedded_node/embedded_node.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/model/model.dart';

@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:equatable/equatable.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
 import 'package:json_annotation/json_annotation.dart';
-import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/blocs/refresh_bloc_mixin.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/constants/api.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/exceptions/exceptions.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/functions/functions.dart';
@@ -48,11 +48,14 @@ abstract class InfiniteListBloc<T>
        ) {
     listenToWsRestart(
       () {
-        add(
-          InfiniteListRefreshRequested(
-            address: Address.parse(kSelectedAddress!),
-          ),
-        );
+        final String? selectedAddress = kSelectedAddress;
+        if (!isClosed && selectedAddress != null) {
+          add(
+            InfiniteListRefreshRequested(
+              address: Address.parse(selectedAddress),
+            ),
+          );
+        }
       },
     );
     on<InfiniteListRequested>(
@@ -176,7 +179,7 @@ abstract class InfiniteListBloc<T>
 
   @override
   Future<void> close() async {
-    cancelStreamSubscription();
+    await cancelStreamSubscription();
     await super.close();
   }
 }
