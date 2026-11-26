@@ -9,8 +9,7 @@ import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/notification
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/notifications/data/notifications_repository.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart'
-    hide InfiniteScrollTable, InfiniteScrollTableCell;
+import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 
 /// Displays persisted wallet notifications with single-item and clear-all
 /// deletion controls.

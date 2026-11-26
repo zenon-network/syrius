@@ -401,6 +401,9 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get dismiss => 'Dismiss';
+
+  @override
   String get displaysWalletNotificationsDetails =>
       'This card displays detailed information regarding the wallet notifications';
 
@@ -1298,6 +1301,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String secondsCount(int count) {
     return '$count s';
   }
+
+  @override
+  String get seeMore => 'See more';
 
   @override
   String get send => 'Send';

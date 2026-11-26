@@ -3,7 +3,6 @@ import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hive_ce/hive_ce.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
-import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart' as app;
 import 'package:zenon_syrius_wallet_flutter/model/model.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
@@ -202,9 +201,7 @@ class InMemoryHydratedStorage implements Storage {
 
 class TestNotificationsBloc extends NotificationsBloc {
   @override
-  Future<void> addNotification(WalletNotification? notification) async {
-    addEvent(notification);
-  }
+  Future<void> addNotification(WalletNotification? notification) async {}
 
   @override
   Future<void> sendPlasmaNotification(String purposeOfGeneratingPlasma) async {}
@@ -216,9 +213,6 @@ void _registerTestServices() {
   }
   if (!app.sl.isRegistered<NotificationsBloc>()) {
     app.sl.registerSingleton<NotificationsBloc>(TestNotificationsBloc());
-  }
-  if (!app.sl.isRegistered<BalanceBloc>()) {
-    app.sl.registerSingleton<BalanceBloc>(BalanceBloc());
   }
   if (!app.sl.isRegistered<MultipleBalanceBloc>()) {
     app.sl.registerSingleton<MultipleBalanceBloc>(

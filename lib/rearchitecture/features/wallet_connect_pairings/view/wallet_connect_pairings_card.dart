@@ -9,11 +9,7 @@ import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/services/i_web3wallet_service.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/icons/clear_icon.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart'
-    hide
-        InfiniteScrollTable,
-        InfiniteScrollTableCell,
-        InfiniteScrollTableHeaderColumn;
+import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 
 /// Displays WalletConnect pairings and allows deactivating individual pairings.
 class WalletConnectPairingsCard extends StatelessWidget {

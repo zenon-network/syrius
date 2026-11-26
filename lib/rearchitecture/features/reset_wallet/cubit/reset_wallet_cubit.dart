@@ -1,6 +1,9 @@
+import 'dart:async';
+
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
+import 'package:zenon_syrius_wallet_flutter/main.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/notifications/notifications.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/node_utils.dart';
 
 part 'reset_wallet_state.dart';
@@ -27,7 +30,9 @@ class ResetWalletCubit extends Cubit<ResetWalletState> {
   }
 
   static void _defaultDismissLastNotification() {
-    kLastDismissedNotification = kLastNotification;
+    if (sl.isRegistered<NotificationsBloc>()) {
+      unawaited(sl<NotificationsBloc>().dismissNotification());
+    }
   }
 
   /// Stops the embedded node, dismisses the active notification banner, and

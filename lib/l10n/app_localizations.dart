@@ -760,6 +760,12 @@ abstract class AppLocalizations {
   /// **'You will be able to unlock the {kZnnCoinSymbol} if you choose to disassemble the Sentinel'**
   String disassembleSentinelToUnlockCoin(Object kZnnCoinSymbol);
 
+  /// No description provided for @dismiss.
+  ///
+  /// In en, this message translates to:
+  /// **'Dismiss'**
+  String get dismiss;
+
   /// No description provided for @displaysWalletNotificationsDetails.
   ///
   /// In en, this message translates to:
@@ -2294,6 +2300,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{count} s'**
   String secondsCount(int count);
+
+  /// No description provided for @seeMore.
+  ///
+  /// In en, this message translates to:
+  /// **'See more'**
+  String get seeMore;
 
   /// No description provided for @send.
   ///

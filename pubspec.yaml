@@ -45,7 +45,6 @@ dependencies:
   hive_ce: ^2.19.3
   hydrated_bloc: ^11.0.0
   image: ^4.0.10
-  infinite_scroll_pagination: ^4.0.0
   intl: ^0.20.2
   json_annotation: ^4.9.0
   json_rpc_2: ^4.0.0
@@ -67,11 +66,9 @@ dependencies:
   reown_core: 1.5.1
   reown_walletkit: 1.5.1
   retry: ^3.1.2
-  rxdart: ^0.28.0
   screen_capturer: ^0.2.3
   share_plus: ^12.0.1
   sqlite3: any
-  stacked: ^3.4.1
   stream_transform: ^2.1.0
   styled_text: ^10.0.0
   tray_manager: ^0.7.0
