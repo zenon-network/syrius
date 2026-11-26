@@ -29,6 +29,7 @@ class _View extends StatelessWidget {
   Widget build(BuildContext context) {
     return NewCardScaffold(
       data: _buildCardData(context: context),
+      isRefreshLoading: context.read<SentinelsBloc>().isLoadingListenable,
       onRefreshPressed: () {
         context.read<SentinelsBloc>().add(
           const InfiniteListRefreshRequested(),

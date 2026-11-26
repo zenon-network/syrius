@@ -47,6 +47,7 @@ class _ViewState extends State<_View> {
         title: context.l10n.tokens,
         description: context.l10n.tokensCardDescription,
       ),
+      isRefreshLoading: context.read<TokensBloc>().isLoadingListenable,
       onRefreshPressed: () {
         _searchController.clear();
         context.read<TokensBloc>().add(const InfiniteListRefreshRequested());
@@ -147,8 +148,6 @@ class _TokensGrid extends StatelessWidget {
   final VoidCallback _onScrollReachedBottom;
   final List<Token> _tokens;
 
-  static void _onFavoritesChanged() {}
-
   @override
   Widget build(BuildContext context) {
     final List<Token> tokens = _excludeNativeCoins(_tokens);
@@ -161,8 +160,7 @@ class _TokensGrid extends StatelessWidget {
         crossAxisCount: 2,
       ),
       hasReachedMax: _hasReachedMax,
-      itemBuilder: (_, Token token, _) =>
-          TokenCard(favoritesCallback: _onFavoritesChanged, token: token),
+      itemBuilder: (_, Token token, _) => TokenCard(token: token),
       itemKeyGenerator: (Token token) =>
           ValueKey<String>(token.tokenStandard.toString()),
       items: tokens,

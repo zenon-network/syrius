@@ -54,6 +54,9 @@ class _View extends StatelessWidget {
     return NewCardScaffold(
       body: _buildBody(context),
       data: _buildCardData(context: context),
+      isRefreshLoading: context
+          .read<SentinelsByOwnerBloc>()
+          .isLoadingListenable,
       onRefreshPressed: () {
         context.read<SentinelsByOwnerBloc>().add(
           FetchRequestData(

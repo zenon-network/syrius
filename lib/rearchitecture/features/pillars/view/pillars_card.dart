@@ -43,32 +43,23 @@ class _View extends StatelessWidget {
   Widget build(BuildContext context) {
     return NewCardScaffold(
       data: _buildCardData(context: context),
+      isRefreshLoading: context.read<PillarsBloc>().isLoadingListenable,
       onRefreshPressed: () {
-        context.read<PillarsBloc>().add(
-          InfiniteListRefreshRequested(
-            address: Address.parse(kSelectedAddress!),
-          ),
-        );
+        context.read<PillarsBloc>().add(const InfiniteListRefreshRequested());
       },
       body: BlocBuilder<PillarsBloc, InfiniteListState<PillarInfo>>(
-        builder:
-            (
-              _,
-              InfiniteListState<PillarInfo> state,
-            ) {
-              final InfiniteListStatus status = state.status;
+        builder: (_, InfiniteListState<PillarInfo> state) {
+          final InfiniteListStatus status = state.status;
 
-              return switch (status) {
-                InfiniteListStatus.initial => const SyriusLoadingWidget(),
-                InfiniteListStatus.failure => SyriusErrorWidget(
-                  state.error!,
-                ),
-                InfiniteListStatus.success => _Populated(
-                  hasReachedMax: state.hasReachedMax,
-                  pillars: state.data!,
-                ),
-              };
-            },
+          return switch (status) {
+            InfiniteListStatus.initial => const SyriusLoadingWidget(),
+            InfiniteListStatus.failure => SyriusErrorWidget(state.error!),
+            InfiniteListStatus.success => _Populated(
+              hasReachedMax: state.hasReachedMax,
+              pillars: state.data!,
+            ),
+          };
+        },
       ),
     );
   }

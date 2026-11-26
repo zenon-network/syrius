@@ -43,15 +43,14 @@ class _PlasmaStatsCardState extends State<PlasmaStatsCard> {
   Widget build(BuildContext context) {
     return NewCardScaffold(
       data: _buildCard(),
+      isRefreshLoading: context.read<PlasmaStatsBloc>().isLoadingListenable,
       body: BlocBuilder<PlasmaStatsBloc, InfiniteListState<PlasmaInfoWrapper>>(
         builder: (_, InfiniteListState<PlasmaInfoWrapper> state) {
           final InfiniteListStatus status = state.status;
 
           return switch (status) {
             InfiniteListStatus.initial => const SyriusLoadingWidget(),
-            InfiniteListStatus.failure => SyriusErrorWidget(
-              state.error!,
-            ),
+            InfiniteListStatus.failure => SyriusErrorWidget(state.error!),
             InfiniteListStatus.success => _Populated(
               hasReachedMax: state.hasReachedMax,
               plasmaInfoStats: state.data!,

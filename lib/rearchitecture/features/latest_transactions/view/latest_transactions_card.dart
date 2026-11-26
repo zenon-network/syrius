@@ -29,6 +29,9 @@ class LatestTransactionsCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return NewCardScaffold(
       data: _buildCardData(context: context),
+      isRefreshLoading: context
+          .read<LatestTransactionsBloc>()
+          .isLoadingListenable,
       onRefreshPressed: () {
         context.read<LatestTransactionsBloc>().add(
           InfiniteListRefreshRequested(
@@ -38,26 +41,22 @@ class LatestTransactionsCard extends StatelessWidget {
       },
       body:
           BlocBuilder<LatestTransactionsBloc, InfiniteListState<AccountBlock>>(
-            builder:
-                (
-                  _,
-                  InfiniteListState<AccountBlock> state,
-                ) {
-                  final InfiniteListStatus status = state.status;
+            builder: (_, InfiniteListState<AccountBlock> state) {
+              final InfiniteListStatus status = state.status;
 
-                  return switch (status) {
-                    InfiniteListStatus.initial =>
-                      const _LatestTransactionsInitial(),
-                    InfiniteListStatus.failure => _LatestTransactionsFailure(
-                      exception: state.error!,
-                    ),
-                    InfiniteListStatus.success => _LatestTransactionsPopulated(
-                      hasReachedMax: state.hasReachedMax,
-                      transactions: state.data!,
-                      type: type,
-                    ),
-                  };
-                },
+              return switch (status) {
+                InfiniteListStatus.initial =>
+                  const _LatestTransactionsInitial(),
+                InfiniteListStatus.failure => _LatestTransactionsFailure(
+                  exception: state.error!,
+                ),
+                InfiniteListStatus.success => _LatestTransactionsPopulated(
+                  hasReachedMax: state.hasReachedMax,
+                  transactions: state.data!,
+                  type: type,
+                ),
+              };
+            },
           ),
     );
   }

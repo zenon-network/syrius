@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:expandable/expandable.dart';
 import 'package:flip_card/flip_card.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_vector_icons/flutter_vector_icons.dart';
@@ -29,6 +30,7 @@ class NewCardScaffold extends StatefulWidget {
     required this.body,
     required this.data,
     this.onRefreshPressed,
+    this.isRefreshLoading,
     this.actions = const <Widget>[],
     super.key,
   });
@@ -41,6 +43,10 @@ class NewCardScaffold extends StatefulWidget {
 
   /// Optional callback that can be trigger from the card
   final VoidCallback? onRefreshPressed;
+
+  /// Optional listenable controlling whether the header refresh button displays
+  /// a disabled loading indicator while a refresh is in flight.
+  final ValueListenable<bool>? isRefreshLoading;
 
   /// Optional trailing header actions shown on the front of the card when
   /// the body is visible.
@@ -73,6 +79,7 @@ class _NewCardScaffoldState extends State<NewCardScaffold> {
     final bool isHidden = _isFrontWidgetHidden(_title);
     final Widget frontHeader = CardScaffoldHeader(
       actions: isHidden ? const <Widget>[] : widget.actions,
+      isRefreshLoading: widget.isRefreshLoading,
       onMoreIconPressed: () {
         unawaited(cardKey.currentState!.toggleCard());
       },
@@ -80,6 +87,7 @@ class _NewCardScaffoldState extends State<NewCardScaffold> {
       title: _title,
     );
     final Widget backHeader = CardScaffoldHeader(
+      isRefreshLoading: widget.isRefreshLoading,
       onMoreIconPressed: () {
         unawaited(cardKey.currentState!.toggleCard());
       },

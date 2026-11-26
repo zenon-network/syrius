@@ -1,4 +1,5 @@
 import 'package:fl_chart/fl_chart.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/accelerator_stats/accelerator_stats.dart';
@@ -23,29 +24,39 @@ class _View extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return NewCardScaffold(
-      data: _buildCardData(context),
-      onRefreshPressed: () {
-        context.read<AcceleratorBalanceBloc>().add(
-          const AcceleratorBalanceRequested(),
+    return BlocRefreshLoadingBuilder<
+      AcceleratorBalanceBloc,
+      AcceleratorBalanceState
+    >(
+      isLoading: (AcceleratorBalanceState state) =>
+          state is AcceleratorBalanceLoading,
+      builder: (BuildContext context, ValueListenable<bool> isRefreshLoading) {
+        return NewCardScaffold(
+          data: _buildCardData(context),
+          isRefreshLoading: isRefreshLoading,
+          onRefreshPressed: () {
+            context.read<AcceleratorBalanceBloc>().add(
+              const AcceleratorBalanceRequested(),
+            );
+          },
+          body: BlocBuilder<AcceleratorBalanceBloc, AcceleratorBalanceState>(
+            builder: (BuildContext context, AcceleratorBalanceState state) {
+              return switch (state) {
+                AcceleratorBalanceInitial() ||
+                AcceleratorBalanceLoading() => const SyriusLoadingWidget(),
+                AcceleratorBalanceFailure(:final SyriusException exception) =>
+                  SyriusErrorWidget(
+                    exception is AcceleratorFundEmptyException
+                        ? context.l10n.acceleratorFundEmpty
+                        : exception,
+                  ),
+                AcceleratorBalancePopulated(:final AccountInfo accountInfo) =>
+                  _Populated(accountInfo: accountInfo),
+              };
+            },
+          ),
         );
       },
-      body: BlocBuilder<AcceleratorBalanceBloc, AcceleratorBalanceState>(
-        builder: (BuildContext context, AcceleratorBalanceState state) {
-          return switch (state) {
-            AcceleratorBalanceInitial() ||
-            AcceleratorBalanceLoading() => const SyriusLoadingWidget(),
-            AcceleratorBalanceFailure(:final SyriusException exception) =>
-              SyriusErrorWidget(
-                exception is AcceleratorFundEmptyException
-                    ? context.l10n.acceleratorFundEmpty
-                    : exception,
-              ),
-            AcceleratorBalancePopulated(:final AccountInfo accountInfo) =>
-              _Populated(accountInfo: accountInfo),
-          };
-        },
-      ),
     );
   }
 

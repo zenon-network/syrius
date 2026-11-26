@@ -40,6 +40,7 @@ class _View extends StatelessWidget {
   Widget build(BuildContext context) {
     return NewCardScaffold(
       data: _buildCardData(context: context),
+      isRefreshLoading: context.read<PeersBloc>().isLoadingListenable,
       onRefreshPressed: () {
         context.read<PeersBloc>().add(const PeersRequested());
       },

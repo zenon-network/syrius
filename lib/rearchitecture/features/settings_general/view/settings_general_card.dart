@@ -38,15 +38,43 @@ class SettingsGeneralCard extends StatelessWidget {
   }
 }
 
-class _View extends StatelessWidget {
+class _View extends StatefulWidget {
   const _View();
+
+  @override
+  State<_View> createState() => _ViewState();
+}
+
+class _ViewState extends State<_View> {
+  final ValueNotifier<bool> _isRefreshing = ValueNotifier<bool>(false);
+
+  Future<void> _onRefreshPressed() async {
+    if (_isRefreshing.value) {
+      return;
+    }
+    _isRefreshing.value = true;
+    try {
+      await context.read<SettingsGeneralCubit>().fetchDataPeriodically();
+    } finally {
+      if (mounted) {
+        _isRefreshing.value = false;
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    _isRefreshing.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     return NewCardScaffold(
       data: _buildCardData(context: context),
+      isRefreshLoading: _isRefreshing,
       onRefreshPressed: () {
-        unawaited(context.read<SettingsGeneralCubit>().fetchDataPeriodically());
+        unawaited(_onRefreshPressed());
       },
       body: BlocBuilder<SettingsGeneralCubit, SettingsGeneralState>(
         builder: (BuildContext context, SettingsGeneralState state) {

@@ -8,6 +8,7 @@ import 'package:zenon_syrius_wallet_flutter/l10n/app_localizations.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart' as app_main;
 import 'package:zenon_syrius_wallet_flutter/model/model.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/notifications/notifications.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/refresh_button/refresh_button.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/services/shared_prefs_service.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
@@ -115,7 +116,14 @@ void main() {
       await tester.pumpWidget(buildSubject());
 
       expect(find.text('Notifications'), findsAtLeastNWidgets(1));
-      expect(find.byType(SyriusLoadingWidget), findsOneWidget);
+      expect(
+        find.descendant(
+          of: find.byType(RefreshButton),
+          matching: find.byType(SyriusLoadingWidget),
+        ),
+        findsNWidgets(2),
+      );
+      expect(find.byType(SyriusLoadingWidget), findsNWidgets(3));
       final IconButton clearAllButton = tester.widget<IconButton>(
         find.widgetWithIcon(IconButton, Icons.delete_sweep_outlined),
       );

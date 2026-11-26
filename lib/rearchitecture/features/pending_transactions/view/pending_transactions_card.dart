@@ -20,6 +20,7 @@ class PendingTransactionsCard extends StatelessWidget {
 
     return NewCardScaffold(
       data: _buildCardData(context: context),
+      isRefreshLoading: bloc.isLoadingListenable,
       onRefreshPressed: () {
         bloc.add(
           InfiniteListRefreshRequested(

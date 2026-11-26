@@ -47,6 +47,7 @@ class _PillarStatsView extends StatelessWidget {
     return NewCardScaffold(
       body: _buildBody(context),
       data: _buildCardData(context: context),
+      isRefreshLoading: context.read<PillarsByOwnerBloc>().isLoadingListenable,
       onRefreshPressed: () {
         context.read<PillarsByOwnerBloc>().add(
           FetchRequestData(

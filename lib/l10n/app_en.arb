@@ -1380,6 +1380,11 @@
       }
     }
   },
+  "clickToBrowseOrDragAndDropFile": "Click to browse or drag and drop a file",
+  "file": "File",
+  "nodeInformationUnavailable": "Node information is unavailable",
+  "someNodeInformationUnavailable": "Some node information is unavailable",
+  "unavailable": "Unavailable",
   "unlockFailed": "Unlock failed",
   "unlockYourSeedVault": "Unlock your Seed Vault",
   "unsupportedWalletFileType": "Unsupported wallet file type",

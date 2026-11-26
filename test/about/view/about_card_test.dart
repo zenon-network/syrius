@@ -4,8 +4,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:zenon_syrius_wallet_flutter/l10n/app_localizations.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart' as app_main;
-import 'package:zenon_syrius_wallet_flutter/model/model.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/about/about.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/refresh_button/refresh_button.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/services/shared_prefs_service.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/global.dart' as app_global;
@@ -23,8 +23,6 @@ class _MockSharedPrefsService extends Mock implements SharedPrefsService {}
 class _MockMomentum extends Mock implements Momentum {}
 
 class _MockProcessInfo extends Mock implements ProcessInfo {}
-
-class _MockNetworkInfo extends Mock implements NetworkInfo {}
 
 class _MockOsInfo extends Mock implements OsInfo {}
 
@@ -81,66 +79,154 @@ void main() {
     );
   }
 
-  GeneralStats createStats() {
-    final _MockMomentum momentum = _MockMomentum();
-    final _MockProcessInfo processInfo = _MockProcessInfo();
-    final _MockNetworkInfo networkInfo = _MockNetworkInfo();
-    final _MockOsInfo osInfo = _MockOsInfo();
+  AboutNodeInfo createNodeInfo({
+    bool includeMomentum = true,
+    bool includeProcessInfo = true,
+    bool includeOsInfo = true,
+  }) {
+    _MockMomentum? momentum;
+    _MockProcessInfo? processInfo;
+    _MockOsInfo? osInfo;
 
-    when(() => momentum.chainIdentifier).thenReturn(1);
-    when(() => processInfo.version).thenReturn('0.0.7');
-    when(() => processInfo.commit).thenReturn('abcdef1234');
-    when(() => osInfo.kernelVersion).thenReturn('6.8.0');
-    when(() => osInfo.os).thenReturn('linux');
-    when(() => osInfo.platform).thenReturn('ubuntu');
-    when(() => osInfo.platformVersion).thenReturn('24.04');
-    when(() => osInfo.numCPU).thenReturn(8);
+    if (includeMomentum) {
+      momentum = _MockMomentum();
+      when(() => momentum!.chainIdentifier).thenReturn(1);
+    }
+    if (includeProcessInfo) {
+      processInfo = _MockProcessInfo();
+      when(() => processInfo!.version).thenReturn('0.0.7');
+      when(() => processInfo!.commit).thenReturn('abcdef1234');
+    }
+    if (includeOsInfo) {
+      osInfo = _MockOsInfo();
+      when(() => osInfo!.kernelVersion).thenReturn('6.8.0');
+      when(() => osInfo!.os).thenReturn('linux');
+      when(() => osInfo!.platform).thenReturn('ubuntu');
+      when(() => osInfo!.platformVersion).thenReturn('24.04');
+      when(() => osInfo!.numCPU).thenReturn(8);
+    }
 
-    return GeneralStats(
+    return AboutNodeInfo(
       frontierMomentum: momentum,
       processInfo: processInfo,
-      networkInfo: networkInfo,
       osInfo: osInfo,
     );
   }
 
   group('AboutCard', () {
-    testWidgets('shows loading widget while AboutLoading', (
-      WidgetTester tester,
-    ) async {
-      whenListen<AboutState>(
-        mockBloc,
-        const Stream<AboutState>.empty(),
-        initialState: const AboutLoading(),
-      );
+    testWidgets(
+      'shows loading widget in body and RefreshButton while AboutLoading',
+      (WidgetTester tester) async {
+        whenListen<AboutState>(
+          mockBloc,
+          const Stream<AboutState>.empty(),
+          initialState: const AboutLoading(),
+        );
 
-      await tester.pumpWidget(buildSubject());
+        await tester.pumpWidget(buildSubject());
 
-      expect(find.text('About'), findsAtLeastNWidgets(1));
-      expect(find.byType(SyriusLoadingWidget), findsOneWidget);
-    });
-
-    testWidgets('shows error widget on AboutFailure and refreshes on tap', (
-      WidgetTester tester,
-    ) async {
-      whenListen<AboutState>(
-        mockBloc,
-        const Stream<AboutState>.empty(),
-        initialState: AboutFailure(exception: FailureException()),
-      );
-
-      await tester.pumpWidget(buildSubject());
-
-      expect(find.byType(SyriusErrorWidget), findsOneWidget);
-
-      await tester.tap(find.byIcon(Icons.refresh).first);
-      await tester.pump();
-
-      verify(() => mockBloc.add(const AboutRequested())).called(1);
-    });
+        expect(find.text('About'), findsAtLeastNWidgets(1));
+        expect(
+          find.descendant(
+            of: find.byType(RefreshButton),
+            matching: find.byType(SyriusLoadingWidget),
+          ),
+          findsNWidgets(2),
+        );
+        expect(find.byType(SyriusLoadingWidget), findsNWidgets(3));
+      },
+    );
 
     testWidgets(
-      'renders populated metadata safely and invokes path/url callbacks',
+      'renders local diagnostics and non-blocking warning on AboutFailure and '
+      'refreshes on tap',
+      (WidgetTester tester) async {
+        whenListen<AboutState>(
+          mockBloc,
+          const Stream<AboutState>.empty(),
+          initialState: AboutFailure(exception: FailureException()),
+        );
+
+        await tester.pumpWidget(buildSubject());
+
+        expect(find.byType(Warning), findsOneWidget);
+        expect(find.text('Node information is unavailable'), findsOneWidget);
+        expect(find.text('Syrius wallet version'), findsOneWidget);
+        expect(find.text('Client chain identifier'), findsOneWidget);
+        expect(find.text('Zenon SDK version'), findsOneWidget);
+
+        await tester.tap(find.text('Zenon Node chain identifier'));
+        await tester.pumpAndSettle();
+        final Finder nodeChainPanel = find.ancestor(
+          of: find.text('Zenon Node chain identifier'),
+          matching: find.byType(CustomExpandablePanel),
+        );
+        expect(
+          find.descendant(
+            of: nodeChainPanel,
+            matching: find.text('Unavailable'),
+          ),
+          findsOneWidget,
+        );
+
+        await tester.tap(find.byIcon(Icons.refresh).first);
+        await tester.pump();
+
+        verify(() => mockBloc.add(const AboutRequested())).called(1);
+      },
+    );
+
+    testWidgets(
+      'renders available node rows, unavailable fallbacks, and partial warning '
+      'when only some node RPCs fail',
+      (WidgetTester tester) async {
+        whenListen<AboutState>(
+          mockBloc,
+          const Stream<AboutState>.empty(),
+          initialState: AboutPopulated(
+            nodeInfo: createNodeInfo(includeProcessInfo: false),
+            nodeError: SyriusException('stats disabled'),
+          ),
+        );
+
+        await tester.pumpWidget(buildSubject());
+
+        expect(find.byType(Warning), findsOneWidget);
+        expect(
+          find.text('Some node information is unavailable: stats disabled'),
+          findsOneWidget,
+        );
+
+        await tester.tap(find.text('Zenon Node chain identifier'));
+        await tester.pumpAndSettle();
+        final Finder nodeChainPanel = find.ancestor(
+          of: find.text('Zenon Node chain identifier'),
+          matching: find.byType(CustomExpandablePanel),
+        );
+        expect(
+          find.descendant(of: nodeChainPanel, matching: find.text('1')),
+          findsOneWidget,
+        );
+
+        await tester.tap(find.text('Zenon Node build version'));
+        await tester.pumpAndSettle();
+        final Finder buildVersionPanel = find.ancestor(
+          of: find.text('Zenon Node build version'),
+          matching: find.byType(CustomExpandablePanel),
+        );
+        expect(
+          find.descendant(
+            of: buildVersionPanel,
+            matching: find.text('Unavailable'),
+          ),
+          findsOneWidget,
+        );
+      },
+    );
+
+    testWidgets(
+      'renders populated metadata without warning and invokes path/url '
+      'callbacks',
       (WidgetTester tester) async {
         final List<String> openedPaths = <String>[];
         final List<String> openedUrls = <String>[];
@@ -148,7 +234,7 @@ void main() {
         whenListen<AboutState>(
           mockBloc,
           const Stream<AboutState>.empty(),
-          initialState: AboutPopulated(stats: createStats()),
+          initialState: AboutPopulated(nodeInfo: createNodeInfo()),
         );
 
         await tester.pumpWidget(
@@ -158,6 +244,7 @@ void main() {
           ),
         );
 
+        expect(find.byType(Warning), findsNothing);
         expect(find.text('About'), findsAtLeastNWidgets(1));
         expect(find.text('Syrius wallet version'), findsOneWidget);
 

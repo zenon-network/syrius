@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:layout/layout.dart';
@@ -53,7 +54,7 @@ class ProjectDetailsScreen extends StatelessWidget {
   }
 }
 
-class _View extends StatelessWidget {
+class _View extends StatefulWidget {
   const _View({
     required this._pillarInfo,
     required this._onStepperNotificationSeeMorePressed,
@@ -63,6 +64,14 @@ class _View extends StatelessWidget {
   final VoidCallback _onStepperNotificationSeeMorePressed;
   final PillarInfo? _pillarInfo;
   final int? _activePillarCount;
+
+  @override
+  State<_View> createState() => _ViewState();
+}
+
+class _ViewState extends State<_View> {
+  Project? _lastProject;
+  int _refreshGeneration = 0;
 
   @override
   Widget build(BuildContext context) {
@@ -87,11 +96,30 @@ class _View extends StatelessWidget {
                   ],
                 ),
                 NotificationWidget(
-                  onSeeMorePressed: _onStepperNotificationSeeMorePressed,
+                  onSeeMorePressed: widget._onStepperNotificationSeeMorePressed,
                 ),
                 Expanded(
-                  child: BlocBuilder<RefreshProjectBloc, RefreshProjectState>(
+                  child: BlocConsumer<RefreshProjectBloc, RefreshProjectState>(
+                    listener:
+                        (BuildContext context, RefreshProjectState state) {
+                          if (state is RefreshProjectPopulated &&
+                              _lastProject != null) {
+                            setState(() {
+                              _refreshGeneration++;
+                            });
+                          } else if (state is RefreshProjectFailure) {
+                            _lastProject = null;
+                          }
+                        },
                     builder: (BuildContext context, RefreshProjectState state) {
+                      if (state is RefreshProjectPopulated) {
+                        _lastProject = state.project;
+                        return _buildScreenLayout(context, state.project);
+                      }
+                      if (state is RefreshProjectLoading &&
+                          _lastProject != null) {
+                        return _buildScreenLayout(context, _lastProject!);
+                      }
                       return switch (state) {
                         RefreshProjectInitial() ||
                         RefreshProjectLoading() => const SyriusLoadingWidget(),
@@ -154,21 +182,37 @@ class _View extends StatelessWidget {
               project: project,
               onPhaseCreated: refreshProject,
               onStepperNotificationSeeMorePressed:
-                  _onStepperNotificationSeeMorePressed,
+                  widget._onStepperNotificationSeeMorePressed,
             ),
           ),
         FluidCell(
           width: kStaggeredNumOfColumns,
           height: kStaggeredNumOfColumns / 2,
-          child: PhaseListCard(
-            pillarInfo: _pillarInfo,
-            activePillarCount: _activePillarCount,
-            project: project,
-            onRefreshButtonPressed: refreshProject,
-            onPhaseUpdated: refreshProject,
-            onStepperNotificationSeeMorePressed:
-                _onStepperNotificationSeeMorePressed,
-          ),
+          child:
+              BlocRefreshLoadingBuilder<
+                RefreshProjectBloc,
+                RefreshProjectState
+              >(
+                isLoading: (RefreshProjectState state) =>
+                    state is RefreshProjectLoading,
+                builder:
+                    (
+                      BuildContext context,
+                      ValueListenable<bool> isRefreshLoading,
+                    ) {
+                      return PhaseListCard(
+                        pillarInfo: widget._pillarInfo,
+                        activePillarCount: widget._activePillarCount,
+                        project: project,
+                        isRefreshLoading: isRefreshLoading,
+                        refreshGeneration: _refreshGeneration,
+                        onRefreshButtonPressed: refreshProject,
+                        onPhaseUpdated: refreshProject,
+                        onStepperNotificationSeeMorePressed:
+                            widget._onStepperNotificationSeeMorePressed,
+                      );
+                    },
+              ),
         ),
       ],
     );

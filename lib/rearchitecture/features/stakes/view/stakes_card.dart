@@ -24,6 +24,7 @@ class _View extends StatelessWidget {
   Widget build(BuildContext context) {
     return NewCardScaffold(
       data: _buildCardData(context: context),
+      isRefreshLoading: context.read<StakesBloc>().isLoadingListenable,
       onRefreshPressed: () => _refreshStakes(context),
       body: BlocBuilder<StakesBloc, InfiniteListState<StakeEntry>>(
         builder: (_, InfiniteListState<StakeEntry> state) {

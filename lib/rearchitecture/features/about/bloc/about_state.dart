@@ -20,19 +20,25 @@ final class AboutLoading extends AboutState {
   const AboutLoading();
 }
 
-/// State emitted once [stats] have been loaded from the connected node.
+/// State emitted once at least one node diagnostic section has loaded.
+///
+/// When one or more individual node RPCs fail, [nodeError] contains the mapped
+/// exception while unavailable fields in [nodeInfo] remain `null`.
 final class AboutPopulated extends AboutState {
   /// Creates an [AboutPopulated] state.
-  const AboutPopulated({required this.stats});
+  const AboutPopulated({required this.nodeInfo, this.nodeError});
 
-  /// Loaded general node and process statistics.
-  final GeneralStats stats;
+  /// Loaded node diagnostic information (with `null` fields for failed RPCs).
+  final AboutNodeInfo nodeInfo;
+
+  /// Optional error from partial node RPC failures.
+  final SyriusException? nodeError;
 
   @override
-  List<Object?> get props => <Object?>[stats];
+  List<Object?> get props => <Object?>[nodeInfo, nodeError];
 }
 
-/// State emitted when fetching component details fails.
+/// State emitted when all node diagnostic RPCs fail.
 final class AboutFailure extends AboutState {
   /// Creates an [AboutFailure] state.
   const AboutFailure({required this.exception});

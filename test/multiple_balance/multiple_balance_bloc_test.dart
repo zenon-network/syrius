@@ -181,5 +181,68 @@ void main() {
         ),
       ],
     );
+
+    test(
+      'keeps loading active until the latest overlapping fetch completes and '
+      'discards stale responses',
+      () async {
+        final Completer<AccountInfo> firstFetch = Completer<AccountInfo>();
+        final Completer<AccountInfo> secondFetch = Completer<AccountInfo>();
+        final AccountInfo freshAccountInfo = AccountInfo(
+          address: emptyAddress.toString(),
+          blockCount: 2,
+          balanceInfoList: <BalanceInfoListItem>[
+            BalanceInfoListItem(token: kZnnCoin, balance: BigInt.from(42)),
+          ],
+        );
+
+        int callCount = 0;
+        when(() => mockLedger.getAccountInfoByAddress(any())).thenAnswer((_) {
+          callCount++;
+          return callCount == 1 ? firstFetch.future : secondFetch.future;
+        });
+
+        final List<MultipleBalanceState> states = <MultipleBalanceState>[];
+        final StreamSubscription<MultipleBalanceState> sub = bloc.stream.listen(
+          states.add,
+        );
+        addTearDown(sub.cancel);
+
+        bloc.add(MultipleBalanceFetch(addresses: <String>[testAddress]));
+        await Future<void>.delayed(Duration.zero);
+        expect(bloc.state.status, MultipleBalanceStatus.loading);
+
+        // Start a second fetch while the first is still pending.
+        bloc.add(MultipleBalanceFetch(addresses: <String>[testAddress]));
+        await Future<void>.delayed(Duration.zero);
+
+        // Completing the superseded first fetch must not clear loading or emit
+        // stale balances.
+        firstFetch.complete(accountInfo);
+        await Future<void>.delayed(Duration.zero);
+        expect(bloc.state.status, MultipleBalanceStatus.loading);
+
+        // Completing the latest fetch emits success with fresh data.
+        final Future<MultipleBalanceState> doneFuture = bloc.stream
+            .firstWhere(
+              (MultipleBalanceState s) =>
+                  s.status == MultipleBalanceStatus.success,
+            )
+            .timeout(const Duration(seconds: 5));
+        secondFetch.complete(freshAccountInfo);
+        final MultipleBalanceState done = await doneFuture;
+
+        expect(done.data?[testAddress]?.blockCount, 2);
+        expect(
+          states
+              .where(
+                (MultipleBalanceState s) =>
+                    s.status == MultipleBalanceStatus.success,
+              )
+              .length,
+          1,
+        );
+      },
+    );
   });
 }

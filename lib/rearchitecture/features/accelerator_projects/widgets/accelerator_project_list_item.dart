@@ -25,6 +25,7 @@ class AcceleratorProjectListItem extends StatelessWidget {
     this._pillarInfo,
     this._activePillarCount,
     this._project,
+    this._refreshGeneration = 0,
     this._onPhaseUpdated,
     this._voteBreakdownBloc,
     this._voteProjectBloc,
@@ -35,6 +36,7 @@ class AcceleratorProjectListItem extends StatelessWidget {
   final PillarInfo? _pillarInfo;
   final int? _activePillarCount;
   final Project? _project;
+  final int _refreshGeneration;
   final VoidCallback _onStepperNotificationSeeMorePressed;
   final VoidCallback? _onPhaseUpdated;
   final ProjectVoteBreakdownBloc? _voteBreakdownBloc;
@@ -76,6 +78,7 @@ class AcceleratorProjectListItem extends StatelessWidget {
         pillarInfo: _pillarInfo,
         activePillarCount: _activePillarCount,
         project: _project,
+        refreshGeneration: _refreshGeneration,
         onStepperNotificationSeeMorePressed:
             _onStepperNotificationSeeMorePressed,
         onPhaseUpdated: _onPhaseUpdated,
@@ -91,6 +94,7 @@ class _View extends StatefulWidget {
     this._pillarInfo,
     this._activePillarCount,
     this._project,
+    this._refreshGeneration = 0,
     this._onPhaseUpdated,
   });
 
@@ -98,6 +102,7 @@ class _View extends StatefulWidget {
   final PillarInfo? _pillarInfo;
   final int? _activePillarCount;
   final Project? _project;
+  final int _refreshGeneration;
   final VoidCallback _onStepperNotificationSeeMorePressed;
   final VoidCallback? _onPhaseUpdated;
 
@@ -110,7 +115,8 @@ class _ViewState extends State<_View> {
   void didUpdateWidget(covariant _View oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget._pillarInfo?.name != widget._pillarInfo?.name ||
-        oldWidget._acceleratorProject.id != widget._acceleratorProject.id) {
+        oldWidget._acceleratorProject.id != widget._acceleratorProject.id ||
+        oldWidget._refreshGeneration != widget._refreshGeneration) {
       context.read<ProjectVoteBreakdownBloc>().add(
         ProjectVoteBreakdownRequested(
           pillarName: widget._pillarInfo?.name,

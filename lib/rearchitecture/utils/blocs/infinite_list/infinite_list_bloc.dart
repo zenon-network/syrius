@@ -1,6 +1,8 @@
 import 'dart:async';
 
+import 'package:bloc_concurrency/bloc_concurrency.dart';
 import 'package:equatable/equatable.dart';
+import 'package:flutter/foundation.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/blocs/refresh_bloc_mixin.dart';
@@ -32,8 +34,7 @@ part 'infinite_list_state.dart';
 /// [InfiniteListRefreshRequested] event. This is sent when a new default
 /// address was selected and we want to load the latest transactions for that
 /// address. In this case, an initial state is emitted, with an empty list,
-/// followed by an event of [InfiniteListRequested] that restarts the
-/// fetching process for the new address
+/// followed by fetching page 0 for the new address.
 abstract class InfiniteListBloc<T>
     extends HydratedBloc<InfiniteListEvent, InfiniteListState<T>>
     with RefreshBlocMixin {
@@ -48,8 +49,15 @@ abstract class InfiniteListBloc<T>
        ) {
     listenToWsRestart(
       () {
+        if (isClosed) {
+          return;
+        }
+        if (_activeFirstPageRequestId > 0) {
+          add(InfiniteListRefreshRequested(address: _activeAddress));
+          return;
+        }
         final String? selectedAddress = kSelectedAddress;
-        if (!isClosed && selectedAddress != null) {
+        if (selectedAddress != null) {
           add(
             InfiniteListRefreshRequested(
               address: Address.parse(selectedAddress),
@@ -67,6 +75,7 @@ abstract class InfiniteListBloc<T>
     );
     on<InfiniteListRefreshRequested>(
       _onInfiniteListRefreshRequested,
+      transformer: restartable(),
     );
   }
 
@@ -82,6 +91,15 @@ abstract class InfiniteListBloc<T>
   /// Method that helps serializing the generic [T] type
   final Object? Function(T) toJsonT;
 
+  final ValueNotifier<bool> _isLoading = ValueNotifier<bool>(false);
+  bool _isLoadingDisposed = false;
+  int _activeFirstPageRequestId = 0;
+  Address? _activeAddress;
+
+  /// Notifies listeners while the latest initial or refresh page-0 fetch is in
+  /// flight.
+  ValueListenable<bool> get isLoadingListenable => _isLoading;
+
   /// Retrieves the data in a pagination manner, with the first page being 0
   Future<List<T>> paginationFetch({
     required Address? address,
@@ -92,13 +110,26 @@ abstract class InfiniteListBloc<T>
   Future<void> _onInfiniteListRequested(
     InfiniteListRequested event,
     Emitter<InfiniteListState<T>> emit,
-  ) async {
+  ) => _fetchFirstPage(address: event.address, emit: emit);
+
+  Future<void> _fetchFirstPage({
+    required Address? address,
+    required Emitter<InfiniteListState<T>> emit,
+  }) async {
+    final int requestId = ++_activeFirstPageRequestId;
+    _activeAddress = address;
+    if (!isClosed && !_isLoading.value) {
+      _isLoading.value = true;
+    }
     try {
       final List<T> newData = await paginationFetch(
-        address: event.address,
+        address: address,
         pageIndex: 0,
         pageSize: pageSize,
       );
+      if (emit.isDone || requestId != _activeFirstPageRequestId) {
+        return;
+      }
 
       final bool hasReachedMax = newData.length < pageSize;
 
@@ -110,6 +141,9 @@ abstract class InfiniteListBloc<T>
         ),
       );
     } on Object catch (error, stackTrace) {
+      if (emit.isDone || requestId != _activeFirstPageRequestId) {
+        return;
+      }
       addError(error, stackTrace);
       emit(
         state.copyWith(
@@ -117,6 +151,10 @@ abstract class InfiniteListBloc<T>
           error: FailureException(),
         ),
       );
+    } finally {
+      if (!isClosed && requestId == _activeFirstPageRequestId) {
+        _isLoading.value = false;
+      }
     }
   }
 
@@ -125,7 +163,15 @@ abstract class InfiniteListBloc<T>
     Emitter<InfiniteListState<T>> emit,
   ) async {
     if (state.hasReachedMax) return;
-    final List<T> currentData = state.data ?? <T>[];
+    final int requestId = _activeFirstPageRequestId;
+    if (requestId > 0 &&
+        event.address != null &&
+        _activeAddress != null &&
+        event.address != _activeAddress) {
+      return;
+    }
+    final List<T>? snapshotData = state.data;
+    final List<T> currentData = snapshotData ?? <T>[];
     final int previousNumOfItems = currentData.length;
     final int pageIndex = previousNumOfItems ~/ pageSize;
     try {
@@ -134,6 +180,11 @@ abstract class InfiniteListBloc<T>
         pageIndex: pageIndex,
         pageSize: pageSize,
       );
+      if (emit.isDone ||
+          requestId != _activeFirstPageRequestId ||
+          !identical(state.data, snapshotData)) {
+        return;
+      }
 
       final bool hasReachedMax = data.length < pageSize;
 
@@ -148,6 +199,11 @@ abstract class InfiniteListBloc<T>
         ),
       );
     } on Object catch (error, stackTrace) {
+      if (emit.isDone ||
+          requestId != _activeFirstPageRequestId ||
+          !identical(state.data, snapshotData)) {
+        return;
+      }
       addError(error, stackTrace);
       emit(
         state.copyWith(
@@ -158,12 +214,12 @@ abstract class InfiniteListBloc<T>
     }
   }
 
-  FutureOr<void> _onInfiniteListRefreshRequested(
+  Future<void> _onInfiniteListRefreshRequested(
     InfiniteListRefreshRequested event,
     Emitter<InfiniteListState<T>> emit,
-  ) {
+  ) async {
     emit(InfiniteListState<T>.initial());
-    add(InfiniteListRequested(address: event.address));
+    await _fetchFirstPage(address: event.address, emit: emit);
   }
 
   /// Deserializes the JSON map into a [InfiniteListState].
@@ -181,5 +237,9 @@ abstract class InfiniteListBloc<T>
   Future<void> close() async {
     await cancelStreamSubscription();
     await super.close();
+    if (!_isLoadingDisposed) {
+      _isLoadingDisposed = true;
+      _isLoading.dispose();
+    }
   }
 }

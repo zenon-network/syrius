@@ -4,8 +4,9 @@ import 'dart:io';
 import 'package:desktop_drop/desktop_drop.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:zenon_syrius_wallet_flutter/l10n/app_localizations.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/select_file_widget.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/wallet_file.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/select_file_widget.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 void _dropFiles(WidgetTester tester, List<String> paths) {
@@ -29,6 +30,8 @@ Future<void> _pumpWidget(
 }) async {
   await tester.pumpWidget(
     MaterialApp(
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
       home: Scaffold(
         body: SelectFileWidget(
           key: widgetKey,
@@ -104,8 +107,47 @@ void main() {
         await tester.pump();
 
         expect(find.text('/home/user/document.bin'), findsNothing);
+        expect(
+          find.text('Click to browse or drag and drop a file'),
+          findsOneWidget,
+        );
       },
     );
+
+    testWidgets('shows localized prompt initially and handles drag hover', (
+      WidgetTester tester,
+    ) async {
+      await _pumpWidget(tester, (_) {});
+
+      expect(
+        find.text('Click to browse or drag and drop a file'),
+        findsOneWidget,
+      );
+
+      final DropTarget dropTarget = tester.widget<DropTarget>(
+        find.byType(DropTarget),
+      );
+      dropTarget.onDragEntered!(
+        DropEventDetails(
+          localPosition: Offset.zero,
+          globalPosition: Offset.zero,
+        ),
+      );
+      await tester.pump();
+
+      dropTarget.onDragExited!(
+        DropEventDetails(
+          localPosition: Offset.zero,
+          globalPosition: Offset.zero,
+        ),
+      );
+      await tester.pump();
+
+      expect(
+        find.text('Click to browse or drag and drop a file'),
+        findsOneWidget,
+      );
+    });
 
     testWidgets('ignores an empty drop payload without throwing', (
       WidgetTester tester,
