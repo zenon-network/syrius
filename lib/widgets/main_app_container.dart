@@ -55,17 +55,36 @@ enum Tabs {
   walletConnect,
 }
 
+/// Dispatches the initial [InfiniteListRequested] event to the singleton
+/// transaction BLoCs when a wallet address is selected.
+@visibleForTesting
+void requestInitialTransactionsForAddress(String? selectedAddress) {
+  if (selectedAddress == null || selectedAddress.isEmpty) {
+    return;
+  }
+  final Address address = Address.parse(selectedAddress);
+  if (sl.isRegistered<LatestTransactionsBloc>()) {
+    final LatestTransactionsBloc latestTransactionsBloc = sl
+        .get<LatestTransactionsBloc>();
+    if (!latestTransactionsBloc.isClosed) {
+      latestTransactionsBloc.add(InfiniteListRequested(address: address));
+    }
+  }
+  if (sl.isRegistered<PendingTransactionsBloc>()) {
+    final PendingTransactionsBloc pendingTransactionsBloc = sl
+        .get<PendingTransactionsBloc>();
+    if (!pendingTransactionsBloc.isClosed) {
+      pendingTransactionsBloc.add(InfiniteListRequested(address: address));
+    }
+  }
+}
+
 /// Builds the [MultiBlocProvider] list for [MainAppContainer].
 @visibleForTesting
 List<SingleChildWidget> buildMainAppContainerBlocProviders() =>
     <SingleChildWidget>[
-      BlocProvider<LatestTransactionsBloc>(
-        create: (_) => sl.get<LatestTransactionsBloc>()
-          ..add(
-            InfiniteListRequested(
-              address: Address.parse(kSelectedAddress!),
-            ),
-          ),
+      BlocProvider<LatestTransactionsBloc>.value(
+        value: sl.get<LatestTransactionsBloc>(),
       ),
       BlocProvider<SendTransactionBloc>(
         create: (_) => SendTransactionBloc(),
@@ -73,13 +92,8 @@ List<SingleChildWidget> buildMainAppContainerBlocProviders() =>
       BlocProvider<MultipleBalanceBloc>.value(
         value: sl.get<MultipleBalanceBloc>(),
       ),
-      BlocProvider<PendingTransactionsBloc>(
-        create: (_) => sl.get<PendingTransactionsBloc>()
-          ..add(
-            InfiniteListRequested(
-              address: Address.parse(kSelectedAddress!),
-            ),
-          ),
+      BlocProvider<PendingTransactionsBloc>.value(
+        value: sl.get<PendingTransactionsBloc>(),
       ),
       BlocProvider<PillarRewardsHistoryBloc>(
         create: (_) =>
@@ -183,6 +197,9 @@ class _MainAppContainerState extends State<MainAppContainer>
     _animationController.repeat(reverse: true);
     _animation = Tween<double>(begin: 1, end: 3).animate(_animationController);
     kCurrentPage = kWalletInitCompleted ? Tabs.dashboard : Tabs.lock;
+    if (kWalletInitCompleted) {
+      requestInitialTransactionsForAddress(kSelectedAddress);
+    }
     _initLockBlock();
     _handleIncomingLinks();
     if (kIsWeb || Platform.isLinux) {
@@ -550,6 +567,7 @@ class _MainAppContainerState extends State<MainAppContainer>
 
   void _afterAppInitCallback() {
     _nodeSyncStatusCubit.fetchDataPeriodically();
+    requestInitialTransactionsForAddress(kSelectedAddress);
     _navigateToLockTimer = _createAutoLockTimer();
     if (kLastWalletConnectUriNotifier.value != null) {
       _tabController!.animateTo(_getTabChildIndex(Tabs.walletConnect));

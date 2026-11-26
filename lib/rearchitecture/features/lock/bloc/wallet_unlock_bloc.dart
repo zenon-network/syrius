@@ -30,7 +30,7 @@ class WalletUnlockBloc extends Bloc<WalletUnlockEvent, WalletUnlockState> {
     decryptWallet,
     Future<void> Function(List<int> cipherKey)? initWalletAfterDecryption,
     String? Function()? getWalletPath,
-    void Function(WalletFile walletFile)? setWalletFile,
+    FutureOr<void> Function(WalletFile walletFile)? setWalletFile,
     bool Function()? isWalletInitCompleted,
     int Function()? getNumFailedAttempts,
     Future<void> Function(int numAttempts)? saveNumFailedAttempts,
@@ -72,7 +72,7 @@ class WalletUnlockBloc extends Bloc<WalletUnlockEvent, WalletUnlockState> {
   _decryptWallet;
   final Future<void> Function(List<int> cipherKey) _initWalletAfterDecryption;
   final String? Function() _getWalletPath;
-  final void Function(WalletFile walletFile) _setWalletFile;
+  final FutureOr<void> Function(WalletFile walletFile) _setWalletFile;
   final bool Function() _isWalletInitCompleted;
   final int Function() _getNumFailedAttempts;
   final Future<void> Function(int numAttempts) _saveNumFailedAttempts;
@@ -114,7 +114,7 @@ class WalletUnlockBloc extends Bloc<WalletUnlockEvent, WalletUnlockState> {
         walletPath,
         event.password,
       );
-      _setWalletFile(walletFile);
+      await _setWalletFile(walletFile);
 
       if (!_isWalletInitCompleted()) {
         emit(
@@ -216,9 +216,8 @@ class WalletUnlockBloc extends Bloc<WalletUnlockEvent, WalletUnlockState> {
 
   static String? _defaultGetWalletPath() => kWalletPath;
 
-  static void _defaultSetWalletFile(WalletFile walletFile) {
-    kWalletFile = walletFile;
-  }
+  static Future<void> _defaultSetWalletFile(WalletFile walletFile) =>
+      WalletUtils.setWalletFile(walletFile);
 
   static bool _defaultIsWalletInitCompleted() => kWalletInitCompleted;
 

@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:bloc/bloc.dart';
 import 'package:bloc_concurrency/bloc_concurrency.dart';
 import 'package:equatable/equatable.dart';
+import 'package:logging/logging.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/p2p_swaps/data/htlc_swap_local_storage_api.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/p2p_swaps/data/legacy_htlc_swaps_migrator.dart';
@@ -95,7 +96,22 @@ class ChangeWalletPasswordBloc
 
     await _runSerialized<void>(() async {
       try {
-        await _decryptWalletFile(_walletPathProvider()!, event.currentPassword);
+        final WalletFile verifiedWalletFile = await _decryptWalletFile(
+          _walletPathProvider()!,
+          event.currentPassword,
+        );
+        if (!identical(verifiedWalletFile, _walletFileProvider())) {
+          try {
+            await verifiedWalletFile.close();
+          } on Object catch (closeError, closeStackTrace) {
+            Logger('ChangeWalletPasswordBloc').log(
+              Level.WARNING,
+              'Failed to close temporary WalletFile',
+              closeError,
+              closeStackTrace,
+            );
+          }
+        }
       } on IncorrectPasswordException {
         if (!isClosed) {
           emit(const ChangeWalletPasswordIncorrectCurrentPassword());
