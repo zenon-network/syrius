@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:bloc/bloc.dart';
 import 'package:bloc_concurrency/bloc_concurrency.dart';
 import 'package:equatable/equatable.dart';
+import 'package:logging/logging.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/wallet_file.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
@@ -54,9 +55,23 @@ class DumpMnemonicBloc extends Bloc<DumpMnemonicEvent, DumpMnemonicState> {
         _walletPathProvider()!,
         event.password,
       );
-      final List<String> seedWords = await walletFile.access<List<String>>(
-        (Wallet wallet) async => (wallet as KeyStore).mnemonic!.split(' '),
-      );
+      final List<String> seedWords;
+      try {
+        seedWords = await walletFile.access<List<String>>(
+          (Wallet wallet) async => (wallet as KeyStore).mnemonic!.split(' '),
+        );
+      } finally {
+        try {
+          await walletFile.close();
+        } on Object catch (closeError, closeStackTrace) {
+          Logger('DumpMnemonicBloc').log(
+            Level.WARNING,
+            'Failed to close temporary WalletFile',
+            closeError,
+            closeStackTrace,
+          );
+        }
+      }
       emit(DumpMnemonicUnlocked(seedWords: seedWords));
     } on IncorrectPasswordException {
       emit(const DumpMnemonicIncorrectPassword());

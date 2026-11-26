@@ -208,5 +208,26 @@ void main() {
 
       expect(calls, 1);
     });
+
+    test('closes decrypted wallet file if bloc closes while decryption is in '
+        'flight', () async {
+      when(walletFile.close).thenAnswer((_) async {});
+      final Completer<WalletFile> completer = Completer<WalletFile>();
+      final DecryptWalletFileBloc bloc =
+          DecryptWalletFileBloc(decryptWalletFile: (_, _) => completer.future)
+            ..add(
+              const DecryptWalletFileRequested(
+                path: '/tmp/wallet',
+                password: 'pw',
+              ),
+            );
+      await Future<void>.delayed(Duration.zero);
+
+      await bloc.close();
+      completer.complete(walletFile);
+      await Future<void>.delayed(Duration.zero);
+
+      verify(walletFile.close).called(1);
+    });
   });
 }

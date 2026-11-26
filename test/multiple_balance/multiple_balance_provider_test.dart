@@ -31,10 +31,16 @@ void main() {
     late _MockLedger mockLedger;
     late MultipleBalanceBloc singletonBloc;
     late NotificationsBloc notificationsBloc;
+    late LatestTransactionsBloc latestTransactionsBloc;
+    late PendingTransactionsBloc pendingTransactionsBloc;
     late bool hadMultipleBalanceBloc;
     late MultipleBalanceBloc? previousMultipleBalanceBloc;
     late bool hadNotificationsBloc;
     late NotificationsBloc? previousNotificationsBloc;
+    late bool hadLatestTransactionsBloc;
+    late LatestTransactionsBloc? previousLatestTransactionsBloc;
+    late bool hadPendingTransactionsBloc;
+    late PendingTransactionsBloc? previousPendingTransactionsBloc;
     late Zenon? previousZenon;
 
     final String testAddress = emptyAddress.toString();
@@ -82,6 +88,26 @@ void main() {
       }
       notificationsBloc = NotificationsBloc();
       sl.registerSingleton<NotificationsBloc>(notificationsBloc);
+
+      hadLatestTransactionsBloc = sl.isRegistered<LatestTransactionsBloc>();
+      previousLatestTransactionsBloc = hadLatestTransactionsBloc
+          ? sl<LatestTransactionsBloc>()
+          : null;
+      if (hadLatestTransactionsBloc) {
+        await sl.unregister<LatestTransactionsBloc>();
+      }
+      latestTransactionsBloc = LatestTransactionsBloc(zenon: mockZenon);
+      sl.registerSingleton<LatestTransactionsBloc>(latestTransactionsBloc);
+
+      hadPendingTransactionsBloc = sl.isRegistered<PendingTransactionsBloc>();
+      previousPendingTransactionsBloc = hadPendingTransactionsBloc
+          ? sl<PendingTransactionsBloc>()
+          : null;
+      if (hadPendingTransactionsBloc) {
+        await sl.unregister<PendingTransactionsBloc>();
+      }
+      pendingTransactionsBloc = PendingTransactionsBloc(zenon: mockZenon);
+      sl.registerSingleton<PendingTransactionsBloc>(pendingTransactionsBloc);
     });
 
     tearDown(() async {
@@ -97,9 +123,27 @@ void main() {
       if (previousNotificationsBloc != null) {
         sl.registerSingleton<NotificationsBloc>(previousNotificationsBloc!);
       }
+      if (sl.isRegistered<LatestTransactionsBloc>()) {
+        await sl.unregister<LatestTransactionsBloc>();
+      }
+      if (previousLatestTransactionsBloc != null) {
+        sl.registerSingleton<LatestTransactionsBloc>(
+          previousLatestTransactionsBloc!,
+        );
+      }
+      if (sl.isRegistered<PendingTransactionsBloc>()) {
+        await sl.unregister<PendingTransactionsBloc>();
+      }
+      if (previousPendingTransactionsBloc != null) {
+        sl.registerSingleton<PendingTransactionsBloc>(
+          previousPendingTransactionsBloc!,
+        );
+      }
       zenon = previousZenon;
       await singletonBloc.close();
       await notificationsBloc.close();
+      await latestTransactionsBloc.close();
+      await pendingTransactionsBloc.close();
     });
 
     testWidgets(

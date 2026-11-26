@@ -190,29 +190,22 @@ class _ViewState extends State<_View> {
     BuildContext context,
     WalletFile walletFile,
   ) async {
-    if (walletFile is! KeyStoreWalletFile) {
-      _loadingButtonKey.currentState?.animateReverse();
-      if (!mounted) {
+    String? mnemonic;
+    try {
+      if (walletFile is! KeyStoreWalletFile) {
+        _loadingButtonKey.currentState?.animateReverse();
+        if (!mounted) {
+          return;
+        }
+        setState(() {
+          _passwordErrorText = context.l10n.unsupportedWalletFileType;
+        });
         return;
       }
-      setState(() {
-        _passwordErrorText = context.l10n.unsupportedWalletFileType;
-      });
-      return;
-    }
 
-    try {
-      final String mnemonic = await walletFile.access<String>(
+      mnemonic = await walletFile.access<String>(
         (Wallet wallet) => Future<String>.value((wallet as KeyStore).mnemonic!),
       );
-      _loadingButtonKey.currentState?.animateReverse();
-      if (!context.mounted) {
-        return;
-      }
-      setState(() {
-        _passwordErrorText = null;
-      });
-      NavigationUtils.push(context, ImportWalletPasswordScreen(mnemonic));
     } on Object catch (error) {
       _loadingButtonKey.currentState?.animateReverse();
       if (!mounted) {
@@ -221,7 +214,23 @@ class _ViewState extends State<_View> {
       setState(() {
         _passwordErrorText = error.toString();
       });
+      return;
+    } finally {
+      try {
+        await walletFile.close();
+      } on Object catch (_) {
+        // Best-effort cleanup of the temporary decrypted keystore handle.
+      }
     }
+
+    _loadingButtonKey.currentState?.animateReverse();
+    if (!context.mounted) {
+      return;
+    }
+    setState(() {
+      _passwordErrorText = null;
+    });
+    NavigationUtils.push(context, ImportWalletPasswordScreen(mnemonic));
   }
 
   @override

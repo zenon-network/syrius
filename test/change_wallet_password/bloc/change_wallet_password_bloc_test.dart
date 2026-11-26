@@ -314,5 +314,100 @@ void main() {
         expect(trace, <String>['decrypt1-start', 'commit1', 'decrypt2-start']);
       },
     );
+
+    test(
+      'closes temporary verification WalletFile without closing active wallet '
+      'on success path',
+      () async {
+        final MockWalletFile tempWalletFile = MockWalletFile();
+        when(tempWalletFile.close).thenAnswer((_) async {});
+        when(mockWalletFile.close).thenAnswer((_) async {});
+
+        final ChangeWalletPasswordBloc bloc = buildBloc(
+          decrypt: (_, _) async => tempWalletFile,
+        );
+        addTearDown(bloc.close);
+
+        bloc.add(
+          const ChangeWalletPasswordSubmitted(
+            currentPassword: currentPassword,
+            newPassword: newPassword,
+            decryptErrorTitle: 'Decrypt error',
+            changePasswordErrorTitle: 'Change error',
+          ),
+        );
+
+        await expectLater(
+          bloc.stream,
+          emitsThrough(const ChangeWalletPasswordSuccess()),
+        );
+
+        verify(tempWalletFile.close).called(1);
+        verifyNever(mockWalletFile.close);
+      },
+    );
+
+    test(
+      'closes temporary verification WalletFile even when rekey fails',
+      () async {
+        final MockWalletFile tempWalletFile = MockWalletFile();
+        when(tempWalletFile.close).thenAnswer((_) async {});
+        when(mockWalletFile.close).thenAnswer((_) async {});
+        when(
+          () => mockWalletFile.changePassword(any(), any()),
+        ).thenThrow(StateError('write failed'));
+
+        final ChangeWalletPasswordBloc bloc = buildBloc(
+          decrypt: (_, _) async => tempWalletFile,
+        );
+        addTearDown(bloc.close);
+
+        bloc.add(
+          const ChangeWalletPasswordSubmitted(
+            currentPassword: currentPassword,
+            newPassword: newPassword,
+            decryptErrorTitle: 'Decrypt error',
+            changePasswordErrorTitle: 'Change error',
+          ),
+        );
+
+        await expectLater(
+          bloc.stream,
+          emitsThrough(isA<ChangeWalletPasswordFailure>()),
+        );
+
+        verify(tempWalletFile.close).called(1);
+        verifyNever(mockWalletFile.close);
+      },
+    );
+
+    test(
+      'does not close active wallet when decrypt returns the identical '
+      'WalletFile instance',
+      () async {
+        when(mockWalletFile.close).thenAnswer((_) async {});
+
+        final ChangeWalletPasswordBloc bloc = buildBloc(
+          decrypt: (_, _) async => mockWalletFile,
+        );
+        addTearDown(bloc.close);
+
+        bloc.add(
+          const ChangeWalletPasswordSubmitted(
+            currentPassword: currentPassword,
+            newPassword: newPassword,
+            decryptErrorTitle: 'Decrypt error',
+            changePasswordErrorTitle: 'Change error',
+          ),
+        );
+
+        await expectLater(
+          bloc.stream,
+          emitsThrough(const ChangeWalletPasswordSuccess()),
+        );
+
+        verifyNever(mockWalletFile.close);
+      },
+    );
   });
 }

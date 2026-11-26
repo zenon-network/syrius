@@ -38,6 +38,14 @@ class DecryptWalletFileBloc
         event.path,
         event.password,
       );
+      if (isClosed || emit.isDone) {
+        try {
+          await walletFile.close();
+        } on Object catch (_) {
+          // Best-effort cleanup when the BLoC closed while decrypting.
+        }
+        return;
+      }
       emit(DecryptWalletFileSuccess(walletFile: walletFile));
     } on IncorrectPasswordException catch (e, stackTrace) {
       addError(e, stackTrace);

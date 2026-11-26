@@ -314,11 +314,13 @@ void main() {
     );
 
     testWidgets(
-      'shows unsupported wallet file type error when decrypted file is Ledger',
+      'shows unsupported wallet file type error and closes decrypted Ledger '
+      'file',
       (WidgetTester tester) async {
         _configureDesktopViewport(tester);
 
         final _MockLedgerWalletFile ledgerFile = _MockLedgerWalletFile();
+        when(ledgerFile.close).thenAnswer((_) async {});
         final DecryptWalletFileBloc bloc = DecryptWalletFileBloc(
           decryptWalletFile: (_, _) async => ledgerFile,
         );
@@ -337,6 +339,7 @@ void main() {
           await tester.pump(const Duration(milliseconds: 50));
 
           expect(find.text('Unsupported wallet file type'), findsOneWidget);
+          verify(ledgerFile.close).called(1);
         } finally {
           await bloc.close();
         }
@@ -377,23 +380,59 @@ void main() {
       }
     });
 
+    testWidgets('navigates to ImportWalletPasswordScreen and closes temporary '
+        'KeyStoreWalletFile on success', (WidgetTester tester) async {
+      _configureDesktopViewport(tester);
+
+      final _MockKeyStoreWalletFile keyStoreFile = _MockKeyStoreWalletFile();
+      final KeyStore keyStore = KeyStore.fromMnemonic(
+        Mnemonic.generateMnemonic(128),
+      );
+      when(() => keyStoreFile.access<String>(any())).thenAnswer((
+        Invocation invocation,
+      ) async {
+        final Future<String> Function(Wallet) callback =
+            invocation.positionalArguments.first
+                as Future<String> Function(Wallet);
+        return await callback(keyStore);
+      });
+      when(keyStoreFile.close).thenAnswer((_) async {});
+
+      final DecryptWalletFileBloc bloc = DecryptWalletFileBloc(
+        decryptWalletFile: (_, _) async => keyStoreFile,
+      );
+
+      try {
+        await tester.pumpWidget(
+          _buildDesktopApp(
+            ImportWalletDecryptScreen('/tmp/wallet', decryptBloc: bloc),
+          ),
+        );
+
+        await tester.enterText(find.byType(TextFormField), 'GoodPass1!');
+        await tester.pump();
+        await tester.tap(find.text('Continue'));
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 300));
+
+        expect(find.byType(ImportWalletPasswordScreen), findsOneWidget);
+        expect(find.text('Create a wallet password'), findsOneWidget);
+        verify(keyStoreFile.close).called(1);
+      } finally {
+        await bloc.close();
+      }
+    });
+
     testWidgets(
-      'navigates to ImportWalletPasswordScreen on valid KeyStoreWalletFile',
+      'closes temporary KeyStoreWalletFile when access throws an error',
       (WidgetTester tester) async {
         _configureDesktopViewport(tester);
 
         final _MockKeyStoreWalletFile keyStoreFile = _MockKeyStoreWalletFile();
-        final KeyStore keyStore = KeyStore.fromMnemonic(
-          Mnemonic.generateMnemonic(128),
-        );
-        when(() => keyStoreFile.access<String>(any())).thenAnswer((
-          Invocation invocation,
-        ) async {
-          final Future<String> Function(Wallet) callback =
-              invocation.positionalArguments.first
-                  as Future<String> Function(Wallet);
-          return await callback(keyStore);
-        });
+        when(
+          () => keyStoreFile.access<String>(any()),
+        ).thenThrow(StateError('corrupt seed'));
+        when(keyStoreFile.close).thenAnswer((_) async {});
 
         final DecryptWalletFileBloc bloc = DecryptWalletFileBloc(
           decryptWalletFile: (_, _) async => keyStoreFile,
@@ -410,10 +449,10 @@ void main() {
           await tester.pump();
           await tester.tap(find.text('Continue'));
           await tester.pump();
-          await tester.pump(const Duration(milliseconds: 300));
+          await tester.pump(const Duration(milliseconds: 50));
 
-          expect(find.byType(ImportWalletPasswordScreen), findsOneWidget);
-          expect(find.text('Create a wallet password'), findsOneWidget);
+          expect(find.textContaining('corrupt seed'), findsOneWidget);
+          verify(keyStoreFile.close).called(1);
         } finally {
           await bloc.close();
         }
