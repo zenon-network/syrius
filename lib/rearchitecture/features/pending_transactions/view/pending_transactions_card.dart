@@ -105,7 +105,7 @@ class _PendingTransactionsPopulatedState
       items: widget.transactions,
       onScrollReachedBottom: () {
         widget.bloc.add(
-          InfiniteListRequested(
+          InfiniteListMoreRequested(
             address: Address.parse(kSelectedAddress!),
           ),
         );

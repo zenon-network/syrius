@@ -5,8 +5,20 @@ import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hex/hex.dart';
 import 'package:path/path.dart' as path;
+import 'package:zenon_syrius_wallet_flutter/utils/functions.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/wallet_file.dart';
+import 'package:znn_ledger_dart/znn_ledger_dart.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
+
+class _FakeLedgerWallet extends Fake implements LedgerWallet {
+  int disconnectCalls = 0;
+
+  @override
+  Future<void> disconnect() async {
+    disconnectCalls += 1;
+  }
+}
 
 List<FileSystemEntity> _tmpFilesIn(Directory dir) {
   return dir
@@ -487,6 +499,259 @@ void main() {
         await expectLater(
           () => WalletFile.decrypt(emptyJson.path, 'any-password'),
           throwsA(isA<FormatException>()),
+        );
+      },
+    );
+  });
+
+  group('WalletFile.close concurrency safety', () {
+    test(
+      'KeyStoreWalletFile.close does not prematurely release mutex held by '
+      'in-flight access and rejects queued/subsequent accesses',
+      () async {
+        final Directory tempDir =
+            Directory.systemTemp.createTempSync('wallet_file_close_ks_');
+        addTearDown(() {
+          if (tempDir.existsSync()) {
+            tempDir.deleteSync(recursive: true);
+          }
+        });
+
+        final ({
+          KeyStore keyStore,
+          String baseAddress,
+          KeyStoreWalletFile walletFile,
+        }) created = await _createKeyStoreWalletFile(
+          walletPath: path.join(tempDir.path, 'keystore'),
+          password: 'password-123',
+        );
+        final KeyStoreWalletFile walletFile = created.walletFile;
+
+        final Completer<void> firstEntered = Completer<void>();
+        final Completer<void> releaseFirst = Completer<void>();
+        bool secondEntered = false;
+        bool closeCompleted = false;
+
+        final Future<String?> firstAccess = walletFile.access<String?>(
+          (Wallet wallet) async {
+            firstEntered.complete();
+            await releaseFirst.future;
+            return (wallet as KeyStore).mnemonic;
+          },
+        );
+        await firstEntered.future;
+        expect(walletFile.isOpen, isTrue);
+        expect(walletFile.isClosed, isFalse);
+
+        // Queue a second operation while the first holds the mutex.
+        final Future<void> queuedAccess = walletFile.access<void>((_) async {
+          secondEntered = true;
+        });
+        final Future<void> queuedRejection = expectLater(
+          queuedAccess,
+          throwsA(
+            isA<WalletException>().having(
+              (WalletException e) => e.message,
+              'message',
+              contains('closed'),
+            ),
+          ),
+        );
+
+        // Simulate concurrent wallet lock/reset calling close().
+        final Future<void> closeFuture = walletFile.close().then((_) {
+          closeCompleted = true;
+        });
+        await Future<void>.delayed(const Duration(milliseconds: 20));
+
+        // close() must mark the wallet closed, wait for the in-flight access,
+        // and NOT release the mutex to the queued operation.
+        expect(walletFile.isClosed, isTrue);
+        expect(walletFile.isOpen, isTrue);
+        expect(secondEntered, isFalse);
+        expect(closeCompleted, isFalse);
+
+        // Any new access after close() fails immediately without entering.
+        await expectLater(
+          walletFile.access<void>((_) async {
+            fail('accessSection should not run on a closed wallet');
+          }),
+          throwsA(isA<WalletException>()),
+        );
+
+        // Completing the in-flight access releases its own mutex; queued access
+        // is rejected and close() completes cleanly.
+        releaseFirst.complete();
+        expect(await firstAccess, created.keyStore.mnemonic);
+        await queuedRejection;
+        await closeFuture;
+
+        expect(secondEntered, isFalse);
+        expect(closeCompleted, isTrue);
+        expect(walletFile.isOpen, isFalse);
+        expect(walletFile.isClosed, isTrue);
+
+        // Repeated close() calls are idempotent.
+        await walletFile.close();
+      },
+    );
+
+    test(
+      'LedgerWalletFile.close waits for in-flight access before tearing down '
+      'and does not release mutex or disconnect active USB session early',
+      () async {
+        int connectCalls = 0;
+        final List<_FakeLedgerWallet> createdWallets = <_FakeLedgerWallet>[];
+
+        final LedgerWalletFile walletFile = LedgerWalletFile.forTesting(
+          '/tmp/fake-ledger',
+          'ledger-device-1',
+          (_) async {
+            connectCalls += 1;
+            final _FakeLedgerWallet fakeWallet = _FakeLedgerWallet();
+            createdWallets.add(fakeWallet);
+            return fakeWallet;
+          },
+        );
+
+        final Completer<void> firstEntered = Completer<void>();
+        final Completer<void> releaseFirst = Completer<void>();
+        bool secondEntered = false;
+        bool closeCompleted = false;
+
+        final Future<String> firstAccess = walletFile.access<String>(
+          (Wallet wallet) async {
+            firstEntered.complete();
+            await releaseFirst.future;
+            return 'signed';
+          },
+        );
+        await firstEntered.future;
+        expect(connectCalls, 1);
+        expect(createdWallets.single.disconnectCalls, 0);
+
+        final Future<void> queuedAccess = walletFile.access<void>((_) async {
+          secondEntered = true;
+        });
+        final Future<void> queuedRejection = expectLater(
+          queuedAccess,
+          throwsA(isA<WalletException>()),
+        );
+
+        final Future<void> closeFuture = walletFile.close().then((_) {
+          closeCompleted = true;
+        });
+        await Future<void>.delayed(const Duration(milliseconds: 20));
+
+        expect(walletFile.isClosed, isTrue);
+        expect(walletFile.isOpen, isTrue);
+        expect(secondEntered, isFalse);
+        expect(closeCompleted, isFalse);
+        expect(connectCalls, 1);
+        expect(createdWallets.single.disconnectCalls, 0);
+
+        releaseFirst.complete();
+        expect(await firstAccess, 'signed');
+        await queuedRejection;
+        await closeFuture;
+
+        expect(secondEntered, isFalse);
+        expect(closeCompleted, isTrue);
+        expect(connectCalls, 1);
+        expect(createdWallets.single.disconnectCalls, 1);
+        expect(walletFile.isOpen, isFalse);
+      },
+    );
+
+    test(
+      'LedgerWalletFile.close during pending connect disconnects newly '
+      'connected device and skips accessSection',
+      () async {
+        final Completer<_FakeLedgerWallet> connectCompleter =
+            Completer<_FakeLedgerWallet>();
+        final _FakeLedgerWallet fakeWallet = _FakeLedgerWallet();
+        bool callbackRan = false;
+
+        final LedgerWalletFile walletFile = LedgerWalletFile.forTesting(
+          '/tmp/fake-ledger',
+          'ledger-device-2',
+          (_) => connectCompleter.future,
+        );
+
+        final Future<void> pendingAccess = walletFile.access<void>((_) async {
+          callbackRan = true;
+        });
+        final Future<void> expectedRejection = expectLater(
+          pendingAccess,
+          throwsA(
+            isA<WalletException>().having(
+              (WalletException e) => e.message,
+              'message',
+              contains('closed'),
+            ),
+          ),
+        );
+
+        await Future<void>.delayed(Duration.zero);
+        final Future<void> closeFuture = walletFile.close();
+        connectCompleter.complete(fakeWallet);
+
+        await expectedRejection;
+        await closeFuture;
+
+        expect(callbackRan, isFalse);
+        expect(fakeWallet.disconnectCalls, 1);
+        expect(walletFile.isOpen, isFalse);
+      },
+    );
+
+    test(
+      'walletSign uses captured walletFile.access and survives concurrent '
+      'wallet lock clearing kWalletFile',
+      () async {
+        final Directory tempDir =
+            Directory.systemTemp.createTempSync('wallet_sign_lock_test_');
+        final WalletFile? previousWalletFile = kWalletFile;
+        final String? previousSelectedAddress = kSelectedAddress;
+        final List<String?> previousAddressList = List<String?>.from(
+          kDefaultAddressList,
+        );
+        addTearDown(() {
+          kWalletFile = previousWalletFile;
+          kSelectedAddress = previousSelectedAddress;
+          kDefaultAddressList = previousAddressList;
+          if (tempDir.existsSync()) {
+            tempDir.deleteSync(recursive: true);
+          }
+        });
+
+        final ({
+          KeyStore keyStore,
+          String baseAddress,
+          KeyStoreWalletFile walletFile,
+        }) created = await _createKeyStoreWalletFile(
+          walletPath: path.join(tempDir.path, 'keystore'),
+          password: 'password-123',
+        );
+
+        kWalletFile = created.walletFile;
+        kSelectedAddress = created.baseAddress;
+        kDefaultAddressList = <String?>[created.baseAddress];
+
+        final Signature signature = await walletSign(
+          utf8.encode('hello zenon'),
+        );
+        expect(signature.signature, isNotEmpty);
+        expect(signature.publicKey, isNotEmpty);
+        expect(created.walletFile.isOpen, isFalse);
+
+        // When wallet is locked (kWalletFile == null), walletSign throws
+        // WalletException instead of a null-check error.
+        kWalletFile = null;
+        await created.walletFile.close();
+        await expectLater(
+          () => walletSign(utf8.encode('after lock')),
+          throwsA(isA<WalletException>()),
         );
       },
     );

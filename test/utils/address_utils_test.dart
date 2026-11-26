@@ -23,7 +23,7 @@ class _TestWalletFile extends WalletFile {
   final Wallet? wallet;
   final Exception? openError;
   final Mutex _lock = Mutex();
-  int closeCalls = 0;
+  int releaseCalls = 0;
 
   @override
   String get walletType => keyStoreWalletType;
@@ -35,22 +35,21 @@ class _TestWalletFile extends WalletFile {
   bool get isHardwareWallet => false;
 
   @override
-  Future<Wallet> open() async {
-    await _lock.acquire();
-    if (openError != null) {
-      _lock.release();
-      throw openError!;
-    }
-    return wallet!;
+  Future<T> access<T>(Future<T> Function(Wallet) accessSection) {
+    return _lock.protect<T>(() async {
+      if (openError != null) {
+        throw openError!;
+      }
+      try {
+        return await accessSection(wallet!);
+      } finally {
+        releaseCalls++;
+      }
+    });
   }
 
   @override
-  void close() {
-    closeCalls++;
-    if (_lock.isLocked) {
-      _lock.release();
-    }
-  }
+  Future<void> close() async {}
 }
 
 void main() {
@@ -118,7 +117,7 @@ void main() {
           ),
         );
         expect(walletFile.isOpen, isFalse);
-        expect(walletFile.closeCalls, 1);
+        expect(walletFile.releaseCalls, 1);
       },
     );
   });

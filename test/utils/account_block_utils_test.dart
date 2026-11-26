@@ -55,6 +55,7 @@ class _LockingWalletFile extends WalletFile {
   final Wallet _wallet;
   final Mutex _lock = Mutex();
   int openCalls = 0;
+  bool _isClosed = false;
 
   @override
   final bool isHardwareWallet;
@@ -66,17 +67,25 @@ class _LockingWalletFile extends WalletFile {
   bool get isOpen => _lock.isLocked;
 
   @override
-  Future<Wallet> open() async {
-    await _lock.acquire();
-    openCalls++;
-    return _wallet;
+  bool get isClosed => _isClosed;
+
+  @override
+  Future<T> access<T>(Future<T> Function(Wallet) accessSection) async {
+    if (_isClosed) {
+      throw WalletException('Wallet file is closed');
+    }
+    return await _lock.protect<T>(() async {
+      if (_isClosed) {
+        throw WalletException('Wallet file is closed');
+      }
+      openCalls++;
+      return await accessSection(_wallet);
+    });
   }
 
   @override
-  void close() {
-    if (_lock.isLocked) {
-      _lock.release();
-    }
+  Future<void> close() async {
+    _isClosed = true;
   }
 }
 
@@ -744,6 +753,39 @@ void main() {
             waitForRequiredPlasma: any(named: 'waitForRequiredPlasma'),
           ),
         );
+      },
+    );
+
+    test(
+      'emits balancing PowStatus.done when zenon.send throws after '
+      'PowStatus.generating',
+      () async {
+        when(
+          () => mockZenon.send(
+            any(),
+            currentKeyPair: any(named: 'currentKeyPair'),
+            generatingPowCallback: any(named: 'generatingPowCallback'),
+            waitForRequiredPlasma: any(named: 'waitForRequiredPlasma'),
+          ),
+        ).thenAnswer((Invocation invocation) async {
+          final void Function(PowStatus)? callback =
+              invocation.namedArguments[#generatingPowCallback]
+                  as void Function(PowStatus)?;
+          callback?.call(PowStatus.generating);
+          throw StateError('PoW generation failed');
+        });
+
+        final AccountBlockUtils utils = buildUtils();
+        await expectLater(
+          () => utils.createAccountBlock(
+            AccountBlockTemplate(blockType: BlockTypeEnum.userSend.index),
+            'pow failure',
+            address: address0,
+          ),
+          throwsA(isA<StateError>()),
+        );
+
+        expect(powStatuses, <PowStatus>[PowStatus.generating, PowStatus.done]);
       },
     );
   });

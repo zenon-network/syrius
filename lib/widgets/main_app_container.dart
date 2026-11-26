@@ -30,6 +30,7 @@ import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/notification_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/notifiers/text_scaling_notifier.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/wallet_connect_uri_utils.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/wallet_file.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/zts_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/tab_children_widgets/wallet_connect_tab_child.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
@@ -53,6 +54,83 @@ enum Tabs {
   accelerator,
   walletConnect,
 }
+
+/// Builds the [MultiBlocProvider] list for [MainAppContainer].
+@visibleForTesting
+List<SingleChildWidget> buildMainAppContainerBlocProviders() =>
+    <SingleChildWidget>[
+      BlocProvider<LatestTransactionsBloc>(
+        create: (_) => sl.get<LatestTransactionsBloc>()
+          ..add(
+            InfiniteListRequested(
+              address: Address.parse(kSelectedAddress!),
+            ),
+          ),
+      ),
+      BlocProvider<SendTransactionBloc>(
+        create: (_) => SendTransactionBloc(),
+      ),
+      BlocProvider<MultipleBalanceBloc>.value(
+        value: sl.get<MultipleBalanceBloc>(),
+      ),
+      BlocProvider<PendingTransactionsBloc>(
+        create: (_) => sl.get<PendingTransactionsBloc>()
+          ..add(
+            InfiniteListRequested(
+              address: Address.parse(kSelectedAddress!),
+            ),
+          ),
+      ),
+      BlocProvider<PillarRewardsHistoryBloc>(
+        create: (_) =>
+            PillarRewardsHistoryBloc(
+              zenon: zenon!,
+            )..add(
+              FetchRequestData(
+                address: Address.parse(kSelectedAddress!),
+              ),
+            ),
+      ),
+      BlocProvider<SentinelRewardsHistoryBloc>(
+        create: (_) =>
+            SentinelRewardsHistoryBloc(
+              zenon: zenon!,
+            )..add(
+              FetchRequestData(
+                address: Address.parse(kSelectedAddress!),
+              ),
+            ),
+      ),
+      BlocProvider<StakingRewardsHistoryBloc>(
+        create: (_) =>
+            StakingRewardsHistoryBloc(
+              zenon: zenon!,
+            )..add(
+              FetchRequestData(
+                address: Address.parse(kSelectedAddress!),
+              ),
+            ),
+      ),
+      BlocProvider<PillarsByOwnerBloc>(
+        create: (_) =>
+            PillarsByOwnerBloc(
+              zenon: zenon!,
+            )..add(
+              FetchRequestData(
+                address: Address.parse(kSelectedAddress!),
+              ),
+            ),
+      ),
+      BlocProvider<AllTokensBloc>(
+        create: (_) => AllTokensBloc(
+          zenon: zenon!,
+        )..add(const AllTokensRequested()),
+      ),
+      BlocProvider<DelegationStatsBloc>(
+        create: (_) => DelegationStatsBloc(zenon: zenon!)
+          ..add(FetchRequestData(address: Address.parse(kSelectedAddress!))),
+      ),
+    ];
 
 class MainAppContainer extends StatefulWidget {
   const MainAppContainer({
@@ -117,79 +195,7 @@ class _MainAppContainerState extends State<MainAppContainer>
   @override
   Widget build(BuildContext context) {
     return MultiBlocProvider(
-      providers: <SingleChildWidget>[
-        BlocProvider<LatestTransactionsBloc>(
-          create: (_) => sl.get<LatestTransactionsBloc>()
-            ..add(
-              InfiniteListRequested(
-                address: Address.parse(kSelectedAddress!),
-              ),
-            ),
-        ),
-        BlocProvider<SendTransactionBloc>(
-          create: (_) => SendTransactionBloc(),
-        ),
-        BlocProvider<MultipleBalanceBloc>(
-          create: (_) => sl.get<MultipleBalanceBloc>(),
-        ),
-        BlocProvider<PendingTransactionsBloc>(
-          create: (_) => sl.get<PendingTransactionsBloc>()
-            ..add(
-              InfiniteListRequested(
-                address: Address.parse(kSelectedAddress!),
-              ),
-            ),
-        ),
-        BlocProvider<PillarRewardsHistoryBloc>(
-          create: (_) =>
-              PillarRewardsHistoryBloc(
-                zenon: zenon!,
-              )..add(
-                FetchRequestData(
-                  address: Address.parse(kSelectedAddress!),
-                ),
-              ),
-        ),
-        BlocProvider<SentinelRewardsHistoryBloc>(
-          create: (_) =>
-              SentinelRewardsHistoryBloc(
-                zenon: zenon!,
-              )..add(
-                FetchRequestData(
-                  address: Address.parse(kSelectedAddress!),
-                ),
-              ),
-        ),
-        BlocProvider<StakingRewardsHistoryBloc>(
-          create: (_) =>
-              StakingRewardsHistoryBloc(
-                zenon: zenon!,
-              )..add(
-                FetchRequestData(
-                  address: Address.parse(kSelectedAddress!),
-                ),
-              ),
-        ),
-        BlocProvider<PillarsByOwnerBloc>(
-          create: (_) =>
-              PillarsByOwnerBloc(
-                zenon: zenon!,
-              )..add(
-                FetchRequestData(
-                  address: Address.parse(kSelectedAddress!),
-                ),
-              ),
-        ),
-        BlocProvider<AllTokensBloc>(
-          create: (_) => AllTokensBloc(
-            zenon: zenon!,
-          )..add(const AllTokensRequested()),
-        ),
-        BlocProvider<DelegationStatsBloc>(
-          create: (_) => DelegationStatsBloc(zenon: zenon!)
-            ..add(FetchRequestData(address: Address.parse(kSelectedAddress!))),
-        ),
-      ],
+      providers: buildMainAppContainerBlocProviders(),
       child: Consumer<TextScalingNotifier>(
         builder:
             (
@@ -317,7 +323,7 @@ class _MainAppContainerState extends State<MainAppContainer>
                           ).textTheme.headlineSmall!.color,
                           onTap: (int index) {
                             if (_isTabSelected(Tabs.lock)) {
-                              _onNavigateToLock();
+                              unawaited(_onNavigateToLock());
                             }
                           },
                           labelPadding: const EdgeInsets.symmetric(
@@ -350,9 +356,12 @@ class _MainAppContainerState extends State<MainAppContainer>
   }
 
   Future<void> _onNavigateToLock() async {
-    if (kWalletFile != null) kWalletFile!.close();
+    final WalletFile? walletFile = kWalletFile;
     kWalletFile = null;
     _navigateToLockTimer?.cancel();
+    if (walletFile != null) {
+      await walletFile.close();
+    }
   }
 
   bool _isWalletLocked() {
@@ -609,7 +618,7 @@ class _MainAppContainerState extends State<MainAppContainer>
               ModalRoute.withName(MainAppContainer.route),
             );
           }
-          _onNavigateToLock();
+          unawaited(_onNavigateToLock());
           _tabController!.animateTo(
             _getTabChildIndex(Tabs.lock),
           );
