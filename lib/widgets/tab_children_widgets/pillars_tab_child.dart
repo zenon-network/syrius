@@ -10,10 +10,9 @@ import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 class PillarsTabChild extends StatelessWidget {
   /// Creates a Pillars tab child.
   const PillarsTabChild({
-    required VoidCallback onStepperNotificationSeeMorePressed,
+    required this._onStepperNotificationSeeMorePressed,
     super.key,
-  }) : _onStepperNotificationSeeMorePressed =
-           onStepperNotificationSeeMorePressed;
+  });
 
   final VoidCallback _onStepperNotificationSeeMorePressed;
 
@@ -61,8 +60,7 @@ class PillarsTabChild extends StatelessWidget {
     ];
     return BlocProvider<PillarsBloc>(
       create: (_) =>
-          PillarsBloc(zenon: zenon!)
-            ..add(const InfiniteListRequested(address: null)),
+          PillarsBloc(zenon: zenon!)..add(const InfiniteListRequested()),
       child: StandardFluidLayout(
         children: children,
       ),

@@ -8,7 +8,9 @@ import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 
+/// Tab content hosting peer-to-peer HTLC swap options and active swaps.
 class P2pSwapTabChild extends StatefulWidget {
+  /// Creates a [P2pSwapTabChild].
   const P2pSwapTabChild({super.key});
 
   @override

@@ -13,7 +13,6 @@ import 'package:logging/logging.dart';
 import 'package:nested/nested.dart';
 import 'package:provider/provider.dart';
 import 'package:window_manager/window_manager.dart';
-import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/p2p_swaps/services/htlc_swap_sync_service.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/model/model.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
@@ -36,22 +35,54 @@ import 'package:zenon_syrius_wallet_flutter/widgets/tab_children_widgets/wallet_
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
+/// Top-level navigation tabs available in [MainAppContainer].
 enum Tabs {
+  /// Overview dashboard tab.
   dashboard,
+
+  /// Token transfer tab.
   transfer,
+
+  /// Help and support information tab.
   help,
+
+  /// Wallet notifications history tab.
   notifications,
+
+  /// Application settings tab.
   settings,
+
+  /// Wallet lock screen tab.
   lock,
+
+  /// Sentinels management tab.
   sentinels,
+
+  /// Pillars management tab.
   pillars,
+
+  /// Staking management tab.
   staking,
+
+  /// Plasma fusion management tab.
   plasma,
+
+  /// ZTS tokens management tab.
   tokens,
+
+  /// Peer-to-peer swap tab.
   p2pSwap,
+
+  /// Proof-of-work plasma generation status indicator slot.
   generation,
+
+  /// Node synchronization status indicator slot.
   sync,
+
+  /// Accelerator-Z proposals tab.
   accelerator,
+
+  /// WalletConnect sessions and pairings tab.
   walletConnect,
 }
 
@@ -146,14 +177,18 @@ List<SingleChildWidget> buildMainAppContainerBlocProviders() =>
       ),
     ];
 
+/// Primary application shell hosting desktop tab navigation and global BLoCs.
 class MainAppContainer extends StatefulWidget {
+  /// Creates a [MainAppContainer].
   const MainAppContainer({
     super.key,
     this.redirectedFromWalletSuccess = false,
   });
 
+  /// Whether navigation arrived immediately after wallet onboarding succeeded.
   final bool redirectedFromWalletSuccess;
 
+  /// Named route identifier for [MainAppContainer].
   static const String route = 'main-app-container';
 
   @override
@@ -163,9 +198,9 @@ class MainAppContainer extends StatefulWidget {
 class _MainAppContainerState extends State<MainAppContainer>
     with TickerProviderStateMixin, ClipboardListener, WindowListener {
   late AnimationController _animationController;
-  late Animation _animation;
+  late Animation<double> _animation;
   late StreamSubscription<WalletLockState> _lockBlockStreamSubscription;
-  late StreamSubscription _incomingLinkSubscription;
+  late StreamSubscription<Uri> _incomingLinkSubscription;
   late LockBloc _lockBloc;
 
   Timer? _navigateToLockTimer;
@@ -356,7 +391,7 @@ class _MainAppContainerState extends State<MainAppContainer>
                               width: 2,
                             ),
                           ),
-                          dividerHeight: 0.0,
+                          dividerHeight: 0,
                           controller: _tabController,
                           tabs: _getTabs(),
                         ),
@@ -458,7 +493,7 @@ class _MainAppContainerState extends State<MainAppContainer>
         child: _getGenerationStatus(),
       ),
       Tab(
-        child: BlocProvider.value(
+        child: BlocProvider<NodeSyncStatusCubit>.value(
           value: _nodeSyncStatusCubit,
           child: const NodeSyncStatusIcon(),
         ),
@@ -491,7 +526,7 @@ class _MainAppContainerState extends State<MainAppContainer>
       controller: _tabController,
       children: <Widget>[
         DashboardTabChild(changePage: _navigateTo),
-        TransferTabChild(),
+        const TransferTabChild(),
         PillarsTabChild(
           onStepperNotificationSeeMorePressed: () =>
               _navigateTo(Tabs.notifications),
@@ -542,11 +577,11 @@ class _MainAppContainerState extends State<MainAppContainer>
   @override
   void dispose() {
     windowManager.removeListener(this);
-    _nodeSyncStatusCubit.close();
+    unawaited(_nodeSyncStatusCubit.close());
     _animationController.dispose();
     _navigateToLockTimer?.cancel();
-    _lockBlockStreamSubscription.cancel();
-    _incomingLinkSubscription.cancel();
+    unawaited(_lockBlockStreamSubscription.cancel());
+    unawaited(_incomingLinkSubscription.cancel());
     _tabController?.dispose();
     super.dispose();
   }
@@ -566,7 +601,7 @@ class _MainAppContainerState extends State<MainAppContainer>
   }
 
   void _afterAppInitCallback() {
-    _nodeSyncStatusCubit.fetchDataPeriodically();
+    unawaited(_nodeSyncStatusCubit.fetchDataPeriodically());
     requestInitialTransactionsForAddress(kSelectedAddress);
     _navigateToLockTimer = _createAutoLockTimer();
     if (kLastWalletConnectUriNotifier.value != null) {
@@ -630,7 +665,7 @@ class _MainAppContainerState extends State<MainAppContainer>
         case LockAction.navigateToDashboard:
           _tabController!.animateTo(_getTabChildIndex(Tabs.dashboard));
         case LockAction.navigateToLock:
-          if (Navigator.of(context).canPop()) {
+          if (mounted && Navigator.of(context).canPop()) {
             Navigator.popUntil(
               context,
               ModalRoute.withName(MainAppContainer.route),
@@ -777,6 +812,7 @@ class _MainAppContainerState extends State<MainAppContainer>
               type: NotificationType.paymentReceived,
             ),
           );
+          if (!mounted) return;
 
           if (kCurrentPage != Tabs.lock) {
             _navigateTo(Tabs.transfer);
@@ -790,11 +826,14 @@ class _MainAppContainerState extends State<MainAppContainer>
                   mainAxisSize: MainAxisSize.min,
                   children: <Widget>[
                     Text(
-                      'Are you sure you want transfer $queryAmount ${token.symbol} from $kSelectedAddress to $queryAddress?',
+                      'Are you sure you want transfer $queryAmount '
+                      '${token.symbol} from $kSelectedAddress to '
+                      '$queryAddress?',
                     ),
                   ],
                 ),
               );
+              if (!mounted) return;
 
               if (actionAccepted ?? false) {
                 context.read<SendTransactionBloc>().add(
@@ -819,6 +858,7 @@ class _MainAppContainerState extends State<MainAppContainer>
               type: NotificationType.paymentReceived,
             ),
           );
+          if (!mounted) return;
 
           if (kCurrentPage != Tabs.lock) {
             _navigateTo(Tabs.staking);
@@ -831,11 +871,13 @@ class _MainAppContainerState extends State<MainAppContainer>
                 mainAxisSize: MainAxisSize.min,
                 children: <Widget>[
                   Text(
-                    'Are you sure you want stake $queryAmount ${kZnnCoin.symbol} for $queryDuration month(s)?',
+                    'Are you sure you want stake $queryAmount '
+                    '${kZnnCoin.symbol} for $queryDuration month(s)?',
                   ),
                 ],
               ),
             );
+            if (!mounted) return;
 
             if (actionAccepted ?? false) {
               final AccountBlockTemplate block = zenon!.embedded.stake.stake(
@@ -862,6 +904,7 @@ class _MainAppContainerState extends State<MainAppContainer>
               type: NotificationType.paymentReceived,
             ),
           );
+          if (!mounted) return;
 
           if (kCurrentPage != Tabs.lock) {
             _navigateTo(Tabs.pillars);
@@ -874,7 +917,8 @@ class _MainAppContainerState extends State<MainAppContainer>
                 mainAxisSize: MainAxisSize.min,
                 children: <Widget>[
                   Text(
-                    'Are you sure you want delegate the ${kZnnCoin.symbol} from $kSelectedAddress to Pillar $queryPillarName?',
+                    'Are you sure you want delegate the ${kZnnCoin.symbol} '
+                    'from $kSelectedAddress to Pillar $queryPillarName?',
                   ),
                 ],
               ),
@@ -899,6 +943,7 @@ class _MainAppContainerState extends State<MainAppContainer>
               type: NotificationType.paymentReceived,
             ),
           );
+          if (!mounted) return;
 
           if (kCurrentPage != Tabs.lock) {
             _navigateTo(Tabs.plasma);
@@ -911,7 +956,8 @@ class _MainAppContainerState extends State<MainAppContainer>
                 mainAxisSize: MainAxisSize.min,
                 children: <Widget>[
                   Text(
-                    'Are you sure you want fuse $queryAmount ${kQsrCoin.symbol} for address $queryAddress?',
+                    'Are you sure you want fuse $queryAmount '
+                    '${kQsrCoin.symbol} for address $queryAddress?',
                   ),
                 ],
               ),
@@ -966,7 +1012,6 @@ class _MainAppContainerState extends State<MainAppContainer>
               type: NotificationType.paymentReceived,
             ),
           );
-          break;
       }
     }
   }
@@ -1011,7 +1056,8 @@ class _MainAppContainerState extends State<MainAppContainer>
       isWindows: Platform.isWindows,
     );
     if (wcUri != null) {
-      // This check is needed because onClipboardChanged is called twice sometimes
+      // This check is needed because onClipboardChanged is sometimes called
+      // twice.
       if (kLastWalletConnectUriNotifier.value != wcUri) {
         await _updateWalletConnectUri(wcUri);
       }
@@ -1025,11 +1071,13 @@ class _MainAppContainerState extends State<MainAppContainer>
         await sl<NotificationsBloc>().addNotification(
           WalletNotification(
             title:
-                'WalletConnect link detected. Go to WalletConnect tab to connect.',
+                'WalletConnect link detected. '
+                'Go to WalletConnect tab to connect.',
             timestamp: DateTime.now().millisecondsSinceEpoch,
             details:
                 'A WalletConnect link has been copied to clipboard. '
-                'Go to the WalletConnect tab to connect to the dApp through $text',
+                'Go to the WalletConnect tab to connect to the dApp through '
+                '$text',
             type: NotificationType.copiedToClipboard,
           ),
         );

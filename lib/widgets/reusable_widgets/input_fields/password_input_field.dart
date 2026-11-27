@@ -3,8 +3,9 @@ import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 
+/// Password input field with a visibility toggle button.
 class PasswordInputField extends StatefulWidget {
-
+  /// Creates a [PasswordInputField].
   const PasswordInputField({
     required this.controller,
     required this.hintText,
@@ -14,11 +15,23 @@ class PasswordInputField extends StatefulWidget {
     this.errorText,
     super.key,
   });
+
+  /// Controller managing the password input text.
   final TextEditingController controller;
+
+  /// Placeholder hint text displayed when empty.
   final String hintText;
+
+  /// Optional callback invoked when the user submits the field.
   final void Function(String)? onSubmitted;
+
+  /// Optional callback invoked whenever the password text changes.
   final void Function(String)? onChanged;
+
+  /// Optional form validator returning an error message or `null`.
   final String? Function(String?)? validator;
+
+  /// Optional error message displayed below the input field.
   final String? errorText;
 
   @override

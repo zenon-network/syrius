@@ -5,8 +5,9 @@ import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/extensions.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart' show Mnemonic;
 
+/// Interactive grid of mnemonic seed word inputs with validation indicators.
 class SeedGrid extends StatefulWidget {
-
+  /// Creates a [SeedGrid].
   const SeedGrid(
     this.seedWords, {
     this.isContinueButtonDisabled = false,
@@ -14,9 +15,17 @@ class SeedGrid extends StatefulWidget {
     this.onTextFieldChangedCallback,
     super.key,
   });
+
+  /// Initial list of mnemonic seed words displayed in the grid.
   final List<String> seedWords;
+
+  /// Initial disabled state for the parent flow's continue button.
   final bool isContinueButtonDisabled;
+
+  /// Whether the individual seed word fields accept user input.
   final bool enableSeedInputFields;
+
+  /// Optional callback invoked whenever any seed word field changes.
   final VoidCallback? onTextFieldChangedCallback;
 
   @override
@@ -25,6 +34,7 @@ class SeedGrid extends StatefulWidget {
   }
 }
 
+/// State object for [SeedGrid] providing access to the edited mnemonic words.
 class SeedGridState extends State<SeedGrid> {
   final List<SeedGridElement> _seedGridElements = <SeedGridElement>[];
 
@@ -32,6 +42,9 @@ class SeedGridState extends State<SeedGrid> {
   int? _onHoverText;
 
   bool? _seedError;
+
+  /// Whether the parent continue action should remain disabled due to invalid
+  /// seed words.
   bool? continueButtonDisabled;
 
   late List<FocusNode> _focusNodes;
@@ -46,7 +59,7 @@ class SeedGridState extends State<SeedGrid> {
     _initFocusNodes(_seedGridElements.length);
     continueButtonDisabled = widget.isContinueButtonDisabled;
     _actionMap = <Type, Action<Intent>>{
-      ActivateIntent: CallbackAction(
+      ActivateIntent: CallbackAction<Intent>(
         onInvoke: (Intent intent) => _changeFocusToNextNode(),
       ),
     };
@@ -68,7 +81,7 @@ class SeedGridState extends State<SeedGrid> {
     for (int i = 0; i <= widget.seedWords.length / divider - 1; i++) {
       columnChildren.add(
         _getSeedRow(
-          List.generate(
+          List<int>.generate(
             divider,
             (int index) => index + (divider * i),
           ),
@@ -77,7 +90,7 @@ class SeedGridState extends State<SeedGrid> {
     }
 
     columnChildren = columnChildren.zip<Widget>(
-      List.generate(
+      List<Widget>.generate(
         kSeedGridNumOfRows - 1,
         (int index) => const SizedBox(
           height: 10,
@@ -114,8 +127,8 @@ class SeedGridState extends State<SeedGrid> {
   Widget _seedWordWidget(int seedWordIndex) {
     final String seedWord = _seedGridElements[seedWordIndex].word;
 
-    final TextEditingController controller = TextEditingController();
-    controller.text = seedWord;
+    final TextEditingController controller = TextEditingController()
+      ..text = seedWord;
 
     if (_textCursor == seedWordIndex) {
       controller.selection = TextSelection.collapsed(
@@ -202,46 +215,49 @@ class SeedGridState extends State<SeedGrid> {
                     _checkIfSeedIsValid();
                     widget.onTextFieldChangedCallback?.call();
                   },
-                  inputFormatters: <TextInputFormatter>[LengthLimitingTextInputFormatter(8)],
+                  inputFormatters: <TextInputFormatter>[
+                    LengthLimitingTextInputFormatter(8),
+                  ],
                   enabled: widget.enableSeedInputFields,
                   controller: controller,
-                  obscureText: _onHoverText == seedWordIndex
-                      ? false
-                      : _seedGridElements[seedWordIndex].isShown,
+                  obscureText:
+                      _onHoverText != seedWordIndex &&
+                      _seedGridElements[seedWordIndex].isShown,
                   cursorColor: Colors.white,
                   style: TextStyle(
-                    color: _seedGridElements[seedWordIndex].isShown == false ||
+                    color:
+                        !_seedGridElements[seedWordIndex].isShown ||
                             _onHoverText == seedWordIndex
                         ? Colors.white
                         : getIndicatorColor(seedWord),
                     fontSize: 12,
                   ),
                   decoration: InputDecoration(
-                    contentPadding: EdgeInsets.all(8.0),
+                    contentPadding: const EdgeInsets.all(8),
                     isDense: true,
                     filled: true,
                     fillColor: Theme.of(context)
                         .colorScheme
                         .secondaryContainer
-                        .withOpacity(0.9),
+                        .withValues(alpha: 0.9),
                     border: _getBorder(
                       seedWord,
-                      _seedGridElements[seedWordIndex].isShown == false ||
+                      !_seedGridElements[seedWordIndex].isShown ||
                           _onHoverText == seedWordIndex,
                     ),
                     focusedBorder: _getBorder(
                       seedWord,
-                      _seedGridElements[seedWordIndex].isShown == false ||
+                      !_seedGridElements[seedWordIndex].isShown ||
                           _onHoverText == seedWordIndex,
                     ),
                     enabledBorder: _getBorder(
                       seedWord,
-                      _seedGridElements[seedWordIndex].isShown == false ||
+                      !_seedGridElements[seedWordIndex].isShown ||
                           _onHoverText == seedWordIndex,
                     ),
                     disabledBorder: _getBorder(
                       seedWord,
-                      _seedGridElements[seedWordIndex].isShown == false ||
+                      !_seedGridElements[seedWordIndex].isShown ||
                           _onHoverText == seedWordIndex,
                     ),
                     hintText: '',
@@ -256,15 +272,16 @@ class SeedGridState extends State<SeedGrid> {
   }
 
   Color _getSeedNumberColor(int seedIndex, String seedValue) {
-    return _seedGridElements[seedIndex].isShown == false
+    return !_seedGridElements[seedIndex].isShown
         ? getIndicatorColor(seedValue)
         : Theme.of(context).colorScheme.secondaryContainer;
   }
 
+  /// Returns the validation status indicator color for [seedValue].
   Color getIndicatorColor(String seedValue) {
     if (Mnemonic.isValidWord(seedValue)) {
       return AppColors.znnColor;
-    } else if (Mnemonic.isValidWord(seedValue) == false && seedValue != '' ||
+    } else if (!Mnemonic.isValidWord(seedValue) && seedValue != '' ||
         (seedValue == '' && _seedError == true)) {
       return AppColors.errorColor;
     } else {
@@ -273,14 +290,13 @@ class SeedGridState extends State<SeedGrid> {
   }
 
   Color _getSeedNumberBorderColor(int seedIndex, String seedValue) {
-    return _onHoverText == seedIndex ||
-            _seedGridElements[seedIndex].isShown == false
+    return _onHoverText == seedIndex || !_seedGridElements[seedIndex].isShown
         ? getIndicatorColor(seedValue)
         : Theme.of(context).colorScheme.secondaryContainer;
   }
 
-  UnderlineInputBorder _getBorder(String seedValue, normal) {
-    if (normal == false) {
+  UnderlineInputBorder _getBorder(String seedValue, bool normal) {
+    if (!normal) {
       return const UnderlineInputBorder(
         borderSide: BorderSide(
           color: AppColors.seedUnderlineBorderColor,
@@ -294,7 +310,7 @@ class SeedGridState extends State<SeedGrid> {
           width: 3,
         ),
       );
-    } else if (Mnemonic.isValidWord(seedValue) == false && seedValue != '' ||
+    } else if (!Mnemonic.isValidWord(seedValue) && seedValue != '' ||
         (seedValue == '' && _seedError == true)) {
       return const UnderlineInputBorder(
         borderSide: BorderSide(
@@ -326,6 +342,7 @@ class SeedGridState extends State<SeedGrid> {
     return _seedGridElements.any((SeedGridElement element) => !element.isValid);
   }
 
+  /// Replaces the displayed seed words with [newSeed].
   void changedSeed(List<String> newSeed) {
     setState(() {
       _seedGridElements.clear();
@@ -334,12 +351,14 @@ class SeedGridState extends State<SeedGrid> {
     });
   }
 
+  /// Returns the current list of entered seed words.
   List<String> get getSeedWords =>
       _seedGridElements.map((SeedGridElement e) => e.word).toList();
 
+  /// Returns the current seed words joined by spaces.
   String get getSeed => getSeedWords.join(' ');
 
-  void _initFocusNodes(int length) => _focusNodes = List.generate(
+  void _initFocusNodes(int length) => _focusNodes = List<FocusNode>.generate(
         length,
         (int index) => FocusNode(),
       );
@@ -378,14 +397,21 @@ class SeedGridState extends State<SeedGrid> {
   }
 }
 
+/// Mutable state for a single seed word cell inside [SeedGrid].
 class SeedGridElement {
-
+  /// Creates a [SeedGridElement].
   SeedGridElement({
     required this.word,
     required this.isValid,
     required this.isShown,
   });
+
+  /// Mnemonic word text in this cell.
   String word;
+
+  /// Whether [word] is a valid BIP-39 mnemonic word.
   bool isValid;
+
+  /// Whether the cell currently obscures [word].
   bool isShown;
 }

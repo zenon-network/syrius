@@ -3,8 +3,9 @@ import 'package:flutter/services.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
 
+/// Styled form text field with custom desktop context menu support.
 class InputField extends StatefulWidget {
-
+  /// Creates an [InputField].
   const InputField({
     required this.controller,
     this.maxLines = 1,
@@ -32,26 +33,68 @@ class InputField extends StatefulWidget {
     this.focusedErrorBorder,
     super.key,
   });
+
+  /// Controller managing the text being edited.
   final TextEditingController controller;
+
+  /// Optional focus node associated with this input field.
   final FocusNode? thisNode;
+
+  /// Optional focus node to advance focus to after submission.
   final FocusNode? nextNode;
+
+  /// Placeholder hint text displayed when the field is empty.
   final String? hintText;
+
+  /// Whether the field accepts user input.
   final bool enabled;
+
+  /// Optional input formatters applied to user edits.
   final List<TextInputFormatter>? inputFormatters;
+
+  /// Optional validation callback returning an error string or `null`.
   final String? Function(String?)? validator;
+
+  /// Optional widget rendered at the trailing edge of the field.
   final Widget? suffixIcon;
+
+  /// Optional size constraints for [suffixIcon].
   final BoxConstraints? suffixIconConstraints;
+
+  /// Left content padding inside the input decoration.
   final double contentLeftPadding;
+
+  /// Optional callback invoked when the field's text changes.
   final Function(String)? onChanged;
+
+  /// Whether entered text should be obscured (e.g. for passwords).
   final bool obscureText;
+
+  /// Optional error text displayed below the input field.
   final String? errorText;
+
+  /// Maximum number of lines for the input field.
   final int maxLines;
+
+  /// Optional callback invoked when the user submits the field.
   final Function(String)? onSubmitted;
+
+  /// Text style applied to user-entered text.
   final TextStyle inputtedTextStyle;
+
+  /// Border displayed when the field is enabled and unfocused.
   final InputBorder? enabledBorder;
+
+  /// Border displayed when the field has focus.
   final InputBorder? focusedBorder;
+
+  /// Border displayed when the field is disabled.
   final InputBorder? disabledBorder;
+
+  /// Border displayed when the field has a validation error.
   final InputBorder? errorBorder;
+
+  /// Border displayed when the field is focused and has a validation error.
   final InputBorder? focusedErrorBorder;
 
   @override
@@ -64,7 +107,10 @@ class _InputFieldState extends State<InputField> {
   @override
   Widget build(BuildContext context) {
     return TextFormField(
-      contextMenuBuilder: (BuildContext context, EditableTextState editableTextState) {
+      contextMenuBuilder: (
+        BuildContext context,
+        EditableTextState editableTextState,
+      ) {
         return AdaptiveTextSelectionToolbar(
             anchors: editableTextState.contextMenuAnchors,
             children: editableTextState.contextMenuButtonItems

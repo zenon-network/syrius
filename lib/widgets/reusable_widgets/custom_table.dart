@@ -7,8 +7,9 @@ import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
+/// Generic scrollable data table with selectable rows and optional pagination.
 class CustomTable<T> extends StatefulWidget {
-
+  /// Creates a [CustomTable].
   const CustomTable({
     required this.items,
     required this.generateRowCells,
@@ -17,10 +18,22 @@ class CustomTable<T> extends StatefulWidget {
     this.onRowTappedCallback,
     super.key,
   });
+
+  /// Items rendered as table rows.
   final List<T>? items;
+
+  /// Optional column headers displayed above the table rows.
   final List<CustomHeaderColumn>? headerColumns;
+
+  /// Builder that returns row cells for an item and its selection state.
+  // Preserves the existing public callback signature for external callers.
+  // ignore: avoid_positional_boolean_parameters
   final List<Widget> Function(T, bool) generateRowCells;
+
+  /// Optional callback invoked when the "Show more" footer button is pressed.
   final VoidCallback? onShowMoreButtonPressed;
+
+  /// Optional callback invoked with the row index when a row is tapped.
   final void Function(int index)? onRowTappedCallback;
 
   @override
@@ -58,7 +71,7 @@ class _CustomTableState<T> extends State<CustomTable<T>> {
 
   List<Widget> _getRows() => widget.items!
       .map(
-        (e) => _getTableRow(
+        (T e) => _getTableRow(
           e,
           widget.items!.indexOf(e),
         ),
@@ -163,8 +176,9 @@ class _CustomTableState<T> extends State<CustomTable<T>> {
   }
 }
 
+/// Header column cell for a [CustomTable] with optional sort arrows.
 class CustomHeaderColumn extends StatelessWidget {
-
+  /// Creates a [CustomHeaderColumn].
   const CustomHeaderColumn({
     required this.columnName,
     this.onSortArrowsPressed,
@@ -172,9 +186,17 @@ class CustomHeaderColumn extends StatelessWidget {
     this.flex = 1,
     super.key,
   });
+
+  /// Display title of the column.
   final String columnName;
+
+  /// Optional callback invoked with [columnName] when sort arrows are tapped.
   final Function(String)? onSortArrowsPressed;
+
+  /// Horizontal alignment of the column header content.
   final MainAxisAlignment contentAlign;
+
+  /// Flex factor controlling the column width within the header row.
   final int flex;
 
   @override
@@ -205,14 +227,17 @@ class CustomHeaderColumn extends StatelessWidget {
   }
 }
 
+/// Flexible row cell widget used inside a [CustomTable].
 class CustomTableCell extends StatelessWidget {
-
+  /// Creates a [CustomTableCell] wrapping an arbitrary [child] widget.
   const CustomTableCell(
     this.child, {
     this.flex = 1,
     super.key,
   });
 
+  /// Creates a [CustomTableCell] showing an address label with marquee and
+  /// tooltip.
   CustomTableCell.tooltipWithMarquee(
     Address address, {
     super.key,
@@ -250,6 +275,7 @@ class CustomTableCell extends StatelessWidget {
           ],
         );
 
+  /// Creates a [CustomTableCell] showing scrolling marquee [text].
   CustomTableCell.withMarquee(
     String text, {
     super.key,
@@ -292,6 +318,7 @@ class CustomTableCell extends StatelessWidget {
           ],
         );
 
+  /// Creates a [CustomTableCell] showing an address label with a tooltip.
   CustomTableCell.tooltipWithText(
     BuildContext context,
     Address? address, {
@@ -333,6 +360,7 @@ class CustomTableCell extends StatelessWidget {
           ],
         );
 
+  /// Creates a [CustomTableCell] displaying plain [text].
   CustomTableCell.withText(
     BuildContext context,
     String text, {
@@ -369,7 +397,11 @@ class CustomTableCell extends StatelessWidget {
             ),
           ],
         );
+
+  /// Widget rendered inside the flexible cell.
   final Widget child;
+
+  /// Flex factor controlling the cell width within its row.
   final int flex;
 
   @override

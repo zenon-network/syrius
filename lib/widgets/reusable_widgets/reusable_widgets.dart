@@ -1,4 +1,3 @@
-export 'accelerator_project_details.dart';
 export 'access_wallet_fluid_cell.dart';
 export 'amount_info_column.dart';
 export 'available_balance.dart';
@@ -25,5 +24,4 @@ export 'seed/seed_choice.dart';
 export 'seed/seed_grid.dart';
 export 'stepper_utils.dart';
 export 'syrius_checkbox.dart';
-export 'tag_widget.dart';
 export 'transfer_icon_legend.dart';

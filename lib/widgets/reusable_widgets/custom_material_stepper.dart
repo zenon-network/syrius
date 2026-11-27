@@ -20,8 +20,8 @@ enum StepState {
   /// A step that is disabled and does not to react to taps.
   disabled,
 
-  /// A step that is currently having an error. e.g. the user has submitted wrong
-  /// input.
+  /// A step that is currently having an error, e.g. the user has submitted
+  /// wrong input.
   error,
 }
 
@@ -122,7 +122,10 @@ class Stepper extends StatefulWidget {
     this.onStepCancel,
     this.controlsBuilder,
     this.activeColor = AppColors.znnColor,
-  })  : assert(0 <= currentStep && currentStep < steps.length);
+  }) : assert(
+         0 <= currentStep && currentStep < steps.length,
+         'currentStep must be within the bounds of steps.',
+       );
 
   /// The color of the circle next to the name of the step when the step
   /// is selected or completed
@@ -178,8 +181,11 @@ class Stepper extends StatefulWidget {
   /// ```dart
   /// Widget build(BuildContext context) {
   ///   return Stepper(
-  ///     controlsBuilder:
-  ///       (BuildContext context, { VoidCallback onStepContinue, VoidCallback onStepCancel }) {
+  ///     controlsBuilder: (
+  ///       BuildContext context, {
+  ///       VoidCallback onStepContinue,
+  ///       VoidCallback onStepCancel,
+  ///     }) {
   ///          return Row(
   ///            children: <Widget>[
   ///              TextButton(
@@ -239,7 +245,10 @@ class _StepperState extends State<Stepper> with TickerProviderStateMixin {
   @override
   void didUpdateWidget(Stepper oldWidget) {
     super.didUpdateWidget(oldWidget);
-    assert(widget.steps.length == oldWidget.steps.length);
+    assert(
+      widget.steps.length == oldWidget.steps.length,
+      'The length of Stepper.steps must not change.',
+    );
 
     for (int i = 0; i < oldWidget.steps.length; i += 1) {
       _oldStates[i] = oldWidget.steps[i].state;
@@ -332,8 +341,8 @@ class _StepperState extends State<Stepper> with TickerProviderStateMixin {
       child: Center(
         child: SizedBox(
           width: _kStepSize,
-          height:
-              _kTriangleHeight, // Height of 24dp-long-sided equilateral triangle.
+          // Height of 24dp-long-sided equilateral triangle.
+          height: _kTriangleHeight,
           child: CustomPaint(
             painter: _TrianglePainter(
               color: _isDark() ? _kErrorDark : _kErrorLight,
@@ -492,10 +501,11 @@ class _StepperState extends State<Stepper> with TickerProviderStateMixin {
             child: Column(
               children: <Widget>[
                 Visibility(
-                    visible: index == widget.steps.length - 1
-                        ? widget.steps[index].state != StepState.complete
-                        : true,
-                    child: widget.steps[index].content,),
+                  visible:
+                      index != widget.steps.length - 1 ||
+                      widget.steps[index].state != StepState.complete,
+                  child: widget.steps[index].content,
+                ),
                 _buildVerticalControls(),
               ],
             ),
@@ -522,23 +532,23 @@ class _StepperState extends State<Stepper> with TickerProviderStateMixin {
             key: _keys[i],
             children: <Widget>[
               InkWell(
-                overlayColor: WidgetStateProperty.resolveWith((Set<WidgetState> states) =>
-                    states.contains(WidgetState.hovered)
-                        ? Colors.transparent
-                        : null,),
+                overlayColor: WidgetStateProperty.resolveWith(
+                  (Set<WidgetState> states) =>
+                      states.contains(WidgetState.hovered)
+                          ? Colors.transparent
+                          : null,
+                ),
                 onTap: widget.steps[i].state != StepState.disabled
                     ? () {
-                        // In the vertical case we need to scroll to the newly tapped
-                        // step.
+                        // In the vertical case we need to scroll to the newly
+                        // tapped step.
                         Scrollable.ensureVisible(
                           _keys[i].currentContext!,
                           curve: Curves.fastOutSlowIn,
                           duration: kThemeAnimationDuration,
                         );
 
-                        if (widget.onStepTapped != null) {
-                          widget.onStepTapped!(i);
-                        }
+                        widget.onStepTapped?.call(i);
                       }
                     : null,
                 canRequestFocus: widget.steps[i].state != StepState.disabled,
@@ -557,7 +567,7 @@ class _StepperState extends State<Stepper> with TickerProviderStateMixin {
         InkResponse(
           onTap: widget.steps[i].state != StepState.disabled
               ? () {
-                  if (widget.onStepTapped != null) widget.onStepTapped!(i);
+                  widget.onStepTapped?.call(i);
                 }
               : null,
           canRequestFocus: widget.steps[i].state != StepState.disabled,
@@ -604,10 +614,10 @@ class _StepperState extends State<Stepper> with TickerProviderStateMixin {
             padding: const EdgeInsets.all(24),
             children: <Widget>[
               Visibility(
-                visible: widget.currentStep == widget.steps.length - 1
-                    ? widget.steps[widget.currentStep].state !=
-                        StepState.complete
-                    : true,
+                visible:
+                    widget.currentStep != widget.steps.length - 1 ||
+                    widget.steps[widget.currentStep].state !=
+                        StepState.complete,
                 child: AnimatedSize(
                   curve: Curves.fastOutSlowIn,
                   duration: kThemeAnimationDuration,
@@ -624,17 +634,26 @@ class _StepperState extends State<Stepper> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
-    assert(debugCheckHasMaterial(context));
-    assert(debugCheckHasMaterialLocalizations(context));
+    assert(
+      debugCheckHasMaterial(context),
+      'Stepper requires a Material ancestor.',
+    );
+    assert(
+      debugCheckHasMaterialLocalizations(context),
+      'Stepper requires MaterialLocalizations.',
+    );
     assert(() {
       if (context.findAncestorWidgetOfExactType<Stepper>() != null) {
-        throw FlutterError('Steppers must not be nested.\n'
-            'The material specification advises that one should avoid embedding '
-            'steppers within steppers. '
-            'https://material.io/archive/guidelines/components/steppers.html#steppers-usage');
+        throw FlutterError(
+          'Steppers must not be nested.\n'
+          'The material specification advises that one should avoid embedding '
+          'steppers within steppers. '
+          'https://material.io/archive/guidelines/components/steppers.html'
+          '#steppers-usage',
+        );
       }
       return true;
-    }());
+    }(), 'Steppers must not be nested.');
     switch (widget.type) {
       case StepperType.vertical:
         return _buildVertical();

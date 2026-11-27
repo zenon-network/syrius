@@ -5,7 +5,9 @@ import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/custom_mate
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
+/// Helper builders for constructing steps in custom material steppers.
 class StepperUtils {
+  /// Creates a styled [custom_material_stepper.Step] for a stepper flow.
   static custom_material_stepper.Step getMaterialStep({
     required String stepTitle,
     required Widget stepContent,
@@ -58,6 +60,7 @@ class StepperUtils {
     );
   }
 
+  /// Resolves the [custom_material_stepper.StepState] for [currentStepIndex].
   static custom_material_stepper.StepState getStepState(
       int currentStepIndex, int? completedStepIndex,) {
     return currentStepIndex <= (completedStepIndex ?? -1)
@@ -65,6 +68,7 @@ class StepperUtils {
         : custom_material_stepper.StepState.indexed;
   }
 
+  /// Returns a padded [AvailableBalance] widget for [token] and [accountInfo].
   static Widget getBalanceWidget(Token token, AccountInfo accountInfo) {
     return Padding(
       padding: const EdgeInsets.only(left: 20, top: 10, bottom: 10),

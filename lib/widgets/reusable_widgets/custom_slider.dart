@@ -5,11 +5,14 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
-import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/extensions/buildcontext_extension.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
 
+/// Placement of the description label relative to a [CustomSlider].
 enum SliderDescriptionPosition {
+  /// Places the description below the slider track.
   bottom,
+
+  /// Places the description above the slider track.
   top,
 }
 
@@ -19,19 +22,20 @@ Path _downTriangle(double size, Offset thumbCenter, {bool invert = false}) {
   final double centerHeight = size * height / 3.0;
   final double halfSize = size / 2.0;
   final double sign = invert ? -1.0 : 1.0;
-  thumbPath.moveTo(
-    thumbCenter.dx - halfSize,
-    thumbCenter.dy + sign * centerHeight,
-  );
-  thumbPath.lineTo(
-    thumbCenter.dx,
-    thumbCenter.dy - 2 * sign * centerHeight,
-  );
-  thumbPath.lineTo(
-    thumbCenter.dx + halfSize,
-    thumbCenter.dy + sign * centerHeight,
-  );
-  thumbPath.close();
+  thumbPath
+    ..moveTo(
+      thumbCenter.dx - halfSize,
+      thumbCenter.dy + sign * centerHeight,
+    )
+    ..lineTo(
+      thumbCenter.dx,
+      thumbCenter.dy - 2 * sign * centerHeight,
+    )
+    ..lineTo(
+      thumbCenter.dx + halfSize,
+      thumbCenter.dy + sign * centerHeight,
+    )
+    ..close();
   return thumbPath;
 }
 
@@ -132,19 +136,19 @@ class _CustomValueIndicatorShape extends SliderComponentShape {
     final Color paintColor = enableColor
         .evaluate(enableAnimation)!
         .withAlpha((255.0 * activationAnimation.value).round());
-    canvas.drawPath(
-      thumbPath,
-      Paint()
-        ..color = paintColor,
-    );
-    canvas.drawLine(
-      thumbCenter,
-      thumbCenter + slideUpOffset,
-      Paint()
-        ..color = paintColor
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 2.0,
-    );
+    canvas
+      ..drawPath(
+        thumbPath,
+        Paint()..color = paintColor,
+      )
+      ..drawLine(
+        thumbCenter,
+        thumbCenter + slideUpOffset,
+        Paint()
+          ..color = paintColor
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 2.0,
+      );
     labelPainter.paint(
       canvas,
       thumbCenter +
@@ -154,7 +158,9 @@ class _CustomValueIndicatorShape extends SliderComponentShape {
   }
 }
 
+/// Discrete slider with custom triangular thumb, value indicator, and label.
 class CustomSlider extends StatefulWidget {
+  /// Creates a [CustomSlider].
   const CustomSlider({
     required this.description,
     required this.startValue,
@@ -167,13 +173,28 @@ class CustomSlider extends StatefulWidget {
     super.key,
   });
 
+  /// Label describing the setting controlled by the slider.
   final String description;
+
+  /// Initial slider value.
   final double? startValue;
+
+  /// Maximum selectable slider value.
   final double maxValue;
-  final Function callback;
+
+  /// Callback invoked with the new value whenever the slider changes.
+  final ValueChanged<double> callback;
+
+  /// Optional key attached directly to the inner [Slider] widget.
   final Key? sliderKey;
+
+  /// Minimum selectable slider value.
   final double min;
+
+  /// Active track, thumb, and value indicator color.
   final Color activeColor;
+
+  /// Whether [description] is rendered above or below the slider.
   final SliderDescriptionPosition descriptionPosition;
 
   @override
@@ -205,10 +226,14 @@ class _CustomSliderState extends State<CustomSlider> {
           data: theme.sliderTheme.copyWith(
             trackHeight: 2,
             activeTrackColor: widget.activeColor,
-            inactiveTrackColor: theme.colorScheme.onSurface.withOpacity(0.5),
-            activeTickMarkColor: theme.colorScheme.onSurface.withOpacity(0.7),
-            inactiveTickMarkColor: theme.colorScheme.surface.withOpacity(0.7),
-            overlayColor: theme.colorScheme.onSurface.withOpacity(0.12),
+            inactiveTrackColor:
+                theme.colorScheme.onSurface.withValues(alpha: 0.5),
+            activeTickMarkColor:
+                theme.colorScheme.onSurface.withValues(alpha: 0.7),
+            inactiveTickMarkColor:
+                theme.colorScheme.surface.withValues(alpha: 0.7),
+            overlayColor:
+                theme.colorScheme.onSurface.withValues(alpha: 0.12),
             thumbColor: widget.activeColor,
             valueIndicatorColor: widget.activeColor,
             thumbShape: const _CustomThumbShape(),

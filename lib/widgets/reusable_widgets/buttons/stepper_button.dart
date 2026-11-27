@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 
+/// [MyOutlinedButton] sized for stepper navigation actions.
 class StepperButton extends MyOutlinedButton {
+  /// Creates a [StepperButton].
   const StepperButton({
     required super.onPressed,
     super.text,
@@ -12,6 +14,7 @@ class StepperButton extends MyOutlinedButton {
           minimumSize: const Size(120, 40),
         );
 
+  /// Creates a [StepperButton] with a trailing icon next to [label].
   factory StepperButton.icon({
     required String label,
     required IconData iconData,

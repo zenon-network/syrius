@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+/// [ScrollBehavior] that suppresses the platform overscroll glow indicator.
 class RemoveOverscrollEffect extends ScrollBehavior {
   @override
   Widget buildOverscrollIndicator(

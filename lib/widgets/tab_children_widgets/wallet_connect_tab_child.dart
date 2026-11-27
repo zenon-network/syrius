@@ -3,7 +3,10 @@ import 'package:layout/layout.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 
+/// Tab content displaying WalletConnect QR, URI, camera, pairing, and session
+/// cards.
 class WalletConnectTabChild extends StatelessWidget {
+  /// Creates a [WalletConnectTabChild].
   const WalletConnectTabChild({super.key});
 
   @override

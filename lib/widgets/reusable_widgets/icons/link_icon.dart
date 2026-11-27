@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_vector_icons/flutter_vector_icons.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 
+/// Circular icon button that launches an external URL.
 class LinkIcon extends RawMaterialButton {
+  /// Creates a [LinkIcon] opening [url] when pressed.
   LinkIcon({
     required String url,
     super.key,})

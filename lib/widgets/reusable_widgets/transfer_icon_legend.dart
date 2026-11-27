@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 
+/// Rounded pill label displayed beneath transfer action icons.
 class TransferIconLegend extends StatelessWidget {
-
+  /// Creates a [TransferIconLegend].
   const TransferIconLegend({
     required this.legendText,
     super.key,
   });
+
+  /// Label text displayed inside the pill.
   final String legendText;
 
   @override

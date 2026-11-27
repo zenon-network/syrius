@@ -4,8 +4,10 @@ import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dar
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/models/card/card.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 
+/// Tab content displaying send, receive, and transaction history cards.
 class TransferTabChild extends StatefulWidget {
-  TransferTabChild({
+  /// Creates a [TransferTabChild].
+  const TransferTabChild({
     super.key,
   });
 

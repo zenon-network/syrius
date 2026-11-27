@@ -2,19 +2,24 @@ import 'package:flutter/material.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/notifications/notifications.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/extensions/buildcontext_extension.dart';
 
+/// Screen scaffold that displays a stepper widget alongside notifications.
 class StepperScreen extends StatelessWidget {
+  /// Creates a [StepperScreen].
   const StepperScreen({
     required this.stepper,
     required this.onStepperNotificationSeeMorePressed,
     super.key,
   });
 
+  /// Callback invoked when the user presses "See more" on a notification.
   final VoidCallback onStepperNotificationSeeMorePressed;
+
+  /// The stepper widget displayed inside the card body.
   final Widget stepper;
 
   @override
   Widget build(BuildContext context) {
-    //TODO: to delete Theme widget once only the new theme is being used
+    // TODO(syrius): delete Theme widget once only the new theme is being used.
     return Theme(
       data: context.newThemeData,
       child: Scaffold(

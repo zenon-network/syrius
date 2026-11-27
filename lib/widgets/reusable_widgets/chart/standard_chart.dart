@@ -3,14 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/format_utils.dart';
 
+/// Standardized line chart widget with date axis labels and touch tooltips.
 class StandardChart extends StatelessWidget {
-  final double maxX;
-  final double maxY;
-  final List<LineChartBarData> lineBarsData;
-  final String lineBarDotSymbol;
-  final DateTime titlesReferenceDate;
-  final bool convertLeftSideTitlesToInt;
-
+  /// Creates a [StandardChart].
   const StandardChart({
     required this.maxY,
     required this.lineBarsData,
@@ -18,8 +13,26 @@ class StandardChart extends StatelessWidget {
     this.maxX = kStandardChartNumDays - 1,
     this.lineBarDotSymbol = '',
     this.convertLeftSideTitlesToInt = false,
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
+
+  /// Maximum value along the horizontal axis.
+  final double maxX;
+
+  /// Maximum value along the vertical axis.
+  final double maxY;
+
+  /// Data series rendered as lines in the chart.
+  final List<LineChartBarData> lineBarsData;
+
+  /// Optional unit symbol appended to tooltip values.
+  final String lineBarDotSymbol;
+
+  /// Reference date used to compute horizontal axis day labels.
+  final DateTime titlesReferenceDate;
+
+  /// Whether left-axis titles should be formatted as integers.
+  final bool convertLeftSideTitlesToInt;
 
   @override
   Widget build(BuildContext context) {
@@ -43,9 +56,12 @@ class StandardChart extends StatelessWidget {
                       fontWeight: FontWeight.bold,
                       fontSize: 14,
                     );
+                    final num spotValue =
+                        touchedSpot.y == touchedSpot.y.toInt()
+                            ? touchedSpot.y.toInt()
+                            : touchedSpot.y;
                     return LineTooltipItem(
-                      '${touchedSpot.y == touchedSpot.y.toInt() ? touchedSpot.y.toInt() : touchedSpot.y} '
-                      '$lineBarDotSymbol',
+                      '$spotValue $lineBarDotSymbol',
                       textStyle,
                     );
                   },

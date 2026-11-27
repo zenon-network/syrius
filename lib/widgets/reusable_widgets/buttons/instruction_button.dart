@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/loading_info_text.dart';
 
+/// Elevated button showing action text, disabled instructions, or a loader.
 class InstructionButton extends StatefulWidget {
+  /// Creates an [InstructionButton].
   const InstructionButton({
     required this._text,
     required this._isEnabled,
