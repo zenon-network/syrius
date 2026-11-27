@@ -9,6 +9,7 @@ import 'package:flutter/foundation.dart'
         FlutterError,
         FlutterErrorDetails,
         FlutterExceptionHandler;
+import 'package:flutter/widgets.dart' show DebugCreator, Element, RenderObject;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:json_rpc_2/json_rpc_2.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart' as app;
@@ -16,6 +17,8 @@ import 'package:zenon_syrius_wallet_flutter/model/model.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/wallet_file.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/buttons/instruction_button.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/loading_info_text.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 import 'devnet_bdd_helpers.dart';
@@ -634,22 +637,26 @@ bool _isInstructionButtonLoadingOverflow(FlutterErrorDetails details) {
 
   final StringBuffer buffer = StringBuffer();
   for (final DiagnosticsNode node in nodes) {
+    final Object? value = node.value;
+    if (value is RenderObject) {
+      final Object? debugCreator = value.debugCreator;
+      if (debugCreator is DebugCreator && debugCreator.element.mounted) {
+        final Element element = debugCreator.element;
+        return element.findAncestorWidgetOfExactType<LoadingInfoText>() !=
+                null &&
+            element.findAncestorWidgetOfExactType<InstructionButton>() != null;
+      }
+    }
     buffer.writeln(node.toDescription());
     for (final DiagnosticsNode property in node.getProperties()) {
-      // Avoid calling Flutter's widget-inspector creator transform on defunct
-      // elements, which throws "Looking up a deactivated widget's ancestor is
-      // unsafe". Raw DiagnosticsNode values still carry creator/size strings.
       if (property.name == 'creator') {
         buffer.writeln('${property.name}: ${property.value}');
       }
     }
   }
   final String summary = buffer.toString();
-  // InstructionButton is the only widget in the app that renders
-  // LoadingInfoText inside an AnimatedCrossFade. Require both identifiers so
-  // unrelated AnimatedCrossFade or disposed RenderFlex overflows are never
-  // suppressed.
-  return summary.contains('LoadingInfoText') &&
-      (summary.contains('InstructionButton') ||
-          summary.contains('AnimatedCrossFade'));
+  // Fallback when the RenderObject is not directly exposed on the diagnostics
+  // node: InstructionButton is the only widget in the app that renders
+  // LoadingInfoText directly inside AnimatedCrossFade's FadeTransition.
+  return summary.contains('Row ← LoadingInfoText ← FadeTransition');
 }
