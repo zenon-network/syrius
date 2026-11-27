@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
@@ -283,10 +284,22 @@ class P2pSwapDevnetContext {
       );
       return swap!;
     } finally {
-      await syncService.stop();
+      await _stopSyncServiceBounded(syncService);
       if (identical(_activeSyncService, syncService)) {
         _activeSyncService = null;
       }
+    }
+  }
+
+  Future<void> _stopSyncServiceBounded(HtlcSwapSyncService syncService) async {
+    try {
+      await syncService.stop().timeout(const Duration(seconds: 15));
+    } on TimeoutException {
+      // Abort the stalled WebSocket transport so any hung sync RPC completes
+      // with an error and drains before the Drift stores are closed.
+      app.zenon?.wsClient.stop();
+      await syncService.stop().timeout(const Duration(seconds: 5));
+      rethrow;
     }
   }
 
@@ -309,7 +322,10 @@ class P2pSwapDevnetContext {
 
     try {
       try {
-        await _activeSyncService?.stop();
+        final HtlcSwapSyncService? activeSync = _activeSyncService;
+        if (activeSync != null) {
+          await _stopSyncServiceBounded(activeSync);
+        }
       } on Object catch (error, stackTrace) {
         recordError(error, stackTrace);
       } finally {
