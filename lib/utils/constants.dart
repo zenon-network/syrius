@@ -56,7 +56,7 @@ const Size kAcceleratorProgressBarSize = Size(300, 10);
 // Wallet version
 /// Syrius wallet version displayed in About and saved under
 /// [kWalletVersionKey].
-const String kWalletVersion = '0.2.5';
+const String kWalletVersion = '0.3.0';
 
 // Boxes constants
 /// Hive box name storing user-favorited token standards.
